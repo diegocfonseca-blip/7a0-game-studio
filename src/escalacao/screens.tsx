@@ -19,7 +19,7 @@ import { PyramidOverlay } from './pyramid'
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
-import { Escudo, LOGOS_PRONTAS } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
@@ -55,8 +55,9 @@ const GOLD = '#FFC400'
 // do seu TIER (com brilho); amigo (online) = cor fixa viva; BOT = cor viva própria
 // também (Diego 11/08: era apagada/cinza e ficava tudo parecido — agora cada bot
 // puxa a MESMA paleta, só sem brilho de tier). Paleta FORA das cores de tier.
-const COPA_SIDE_COLORS = ['#C2452F', '#2E6FC2', '#123A63', '#B5541F', '#9C1F2E', '#0E7C86', '#3A5A8A', '#7A3E2A', '#8A3560', '#B0491F', '#155E73', '#963D2E']
-const copaSideColor = (name: string): string => { let h = 0; for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) >>> 0; return COPA_SIDE_COLORS[h % COPA_SIDE_COLORS.length] }
+// 🛡️ Diego (11/08): cor tem que bater com a do ESCUDO do time, não sortear separado
+// — puxa o fundo (c1) do mesmo gerador de escudo, qualquer nome (real ou fictício).
+const copaSideColor = (name: string): string => escudoDe(name).c1
 type CopaFill = { bg: string; ink: string; holo: number }
 const _lum = (r: number, g: number, b: number) => 0.3 * r + 0.59 * g + 0.11 * b
 const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }

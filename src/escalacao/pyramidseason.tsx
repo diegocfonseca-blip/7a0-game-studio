@@ -19,7 +19,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard, SponsorLoyaltyBanner } from './estadio'
-import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada } from './sport'
@@ -690,8 +690,9 @@ const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3p
 // (paleta FORA dos tiers); BOT = cor viva própria também (Diego 11/08: era
 // apagada e ficava tudo parecido — agora usa a MESMA paleta cheia do rival,
 // só sem o selo ⚔️); outro humano (online) = a cor de login dele. `mark` = selo.
-export const COPA_SIDE_COLORS = ['#C2452F', '#2E6FC2', '#123A63', '#B5541F', '#9C1F2E', '#0E7C86', '#3A5A8A', '#7A3E2A', '#8A3560', '#B0491F', '#155E73', '#963D2E']
-export const copaSideColor = (name: string): string => { let h = 0; for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) >>> 0; return COPA_SIDE_COLORS[h % COPA_SIDE_COLORS.length] }
+// 🛡️ Diego (11/08): cor tem que bater com a do ESCUDO do time, não sortear separado
+// — puxa o fundo (c1) do mesmo gerador de escudo, qualquer nome (real ou fictício).
+export const copaSideColor = (name: string): string => escudoDe(name).c1
 export type CopaFill = { bg: string; ink: string; holo: number; mark: string }
 const _lum = (r: number, g: number, b: number) => 0.3 * r + 0.59 * g + 0.11 * b
 export const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }
