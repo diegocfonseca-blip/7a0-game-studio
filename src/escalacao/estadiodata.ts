@@ -60,10 +60,11 @@ export const SPONSOR_BET_META: Record<SponsorBetTier, { label: string; emoji: st
   2: { label: 'Acesso (top 4)', emoji: '📈', desc: 'Termine entre os 4 primeiros da sua divisão.' },
   3: { label: 'Campeão (liga ou copa)', emoji: '👑', desc: 'Seja CAMPEÃO — da liga ou da Copa Legends. Ganhar as duas não dobra o prêmio.' },
 }
-// 💰 quanto paga cada nível, por divisão — dobra a cada divisão (Diego 05/08):
-// Várzea 1/2/3 · D 2/4/6 · C 4/8/12 · B 8/16/24 · A 16/32/48.
+// 💰 quanto paga cada nível, por divisão — dobra a cada divisão (Diego 11/08:
+// dobrou a tabela toda pra aliviar a grana, sobretudo no começo da carreira):
+// Várzea 2/4/6 · D 4/8/12 · C 8/16/24 · B 16/32/48 · A 32/64/96.
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
-  V: [1, 2, 3], D: [2, 4, 6], C: [4, 8, 12], B: [8, 16, 24], A: [16, 32, 48],
+  V: [2, 4, 6], D: [4, 8, 12], C: [8, 16, 24], B: [16, 32, 48], A: [32, 64, 96],
 }
 export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
