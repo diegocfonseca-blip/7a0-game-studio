@@ -2198,8 +2198,10 @@ function FloatingEmotes() {
     <div className="fixed inset-x-0 bottom-20 z-50 pointer-events-none flex flex-col-reverse items-center gap-1 px-3">
       <AnimatePresence>
         {emotes.slice(-6).map(e => {
-          const m = state.managers[e.from]
-          const who = m ? (m.id === you.id ? 'Você' : (m.teamName || m.name)) : ''
+          // resolve o autor pelo CRACHÁ (fromId) — estável entre aparelhos; cai
+          // pra cadeira (e.from) só em evento antigo sem fromId
+          const m = (e.fromId != null ? state.managers.find(x => x.id === e.fromId) : undefined) ?? state.managers[e.from]
+          const who = m ? (m.id === you?.id ? 'Você' : (m.teamName || m.name)) : ''
           const cn = cardName(e.cardId)
           return (
             <motion.div key={e.id} initial={{ opacity: 0, y: 24, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -34 }}

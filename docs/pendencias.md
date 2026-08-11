@@ -13,7 +13,10 @@ Plano em 3 passos revertíveis:
 - ✅ **Passo 1 (feito)**: `OnlineEndVote` (screens.tsx) usa CRACHÁ no voto/placar/
   presença/tag de host (era `youId = state.youIdx`). `duplas` continua por cadeira
   (`youSeat`). Presença convertida cadeira→crachá.
-- ⏳ **Passo 2**: chat + alfinetada (emote) carimbarem pelo crachá do autor.
+- ✅ **Passo 2 (feito)**: chat e alfinetada carimbam pelo CRACHÁ. `EmoteEvent`/
+  `ChatMsg` ganharam `fromId` (crachá); `sendChat`/`emote` usam `myMgrIdRef`
+  (âncora estável, movida pra cima no provider) pra achar "meu técnico" mesmo se
+  a cadeira deslizou; `FloatingEmotes` resolve o autor por crachá (fallback índice).
 - ⏳ **Passo 3**: host que sai passa a coroa de forma determinística (inclusive na
   carreira) e conserta o host fantasma; próximo jogo não começa embaralhado.
 Futebol não é tocado; cada passo é commit isolado.

@@ -5377,13 +5377,13 @@ export function reducer(state: EscState, action: Action): EscState {
 // ─── reações efêmeras (zoeira/blefe) — NÃO fazem parte do estado do jogo ──
 // vão por um evento de broadcast à parte ('emote'); não passam pelo reducer
 // nem pelo host, então não têm risco nenhum de afetar o resultado do leilão.
-export type EmoteEvent = { id: string; from: number; kind: string; cardId?: string; ts: number; text?: string }
+export type EmoteEvent = { id: string; from: number; fromId?: number; kind: string; cardId?: string; ts: number; text?: string } // from=cadeira (compat); fromId=CRACHÁ (estável entre aparelhos)
 // 💬 mensagem de chat da sala — efêmera (broadcast, fora do reducer, igual aos emotes).
 // Não passa pelo host nem afeta o jogo. Cada cliente conta as suas "não lidas".
 // `from` é o TIME (manager id) — numa dupla os DOIS compartilham o mesmo `from`,
 // então "é minha?" usa `uid` (pessoa de verdade) quando disponível, com `from`
 // como fallback pra mensagem antiga guardada no aparelho sem uid.
-export type ChatMsg = { id: string; from: number; uid?: string; name: string; text: string; ts: number }
+export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number } // from=cadeira (compat); fromId=CRACHÁ
 
 // ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
 const Ctx = createContext<{
@@ -5798,6 +5798,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const lastHostMsgRef = useRef(Date.now())
   const [hostStale, setHostStale] = useState(false)
 
+  // 🎫 âncoras estáveis de identidade (setadas pela auto-cura mais abaixo): meu
+  // nome de exibição e o CRACHÁ do meu técnico nesta sala. Ficam aqui em cima
+  // pra o chat/alfinetada carimbarem pelo CRACHÁ (não pela cadeira, que desliza
+  // quando o host sai). A auto-cura (lá embaixo) é quem preenche esses refs.
+  const myDisplayNameRef = useRef<string | null>(null)
+  const myMgrIdRef = useRef<number | null>(null)
+
   // reações efêmeras: lista viva que some sozinha (~2,6s cada). Fora do reducer.
   const [emotes, setEmotes] = useState<EmoteEvent[]>([])
   const addEmote = useCallback((e: EmoteEvent) => {
@@ -5805,7 +5812,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setEmotes(prev => prev.filter(x => x.id !== e.id)), 2600)
   }, [])
   const emote = useCallback((kind: string, cardId?: string, text?: string) => {
-    const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: stateRef.current.youIdx, kind, cardId, text, ts: Date.now() }
+    const st0 = stateRef.current
+    // fromId = meu CRACHÁ (estável entre aparelhos); `from` (cadeira) fica só por compat
+    const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: st0.youIdx, fromId: (myMgrIdRef.current ?? st0.managers[st0.youIdx]?.id), kind, cardId, text, ts: Date.now() }
     addEmote(e) // mostra o seu na hora (o canal usa self:false e não devolve o próprio)
     channelRef.current?.send({ type: 'broadcast', event: 'emote', payload: e })
   }, [addEmote])
@@ -5824,7 +5833,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const t = text.trim().slice(0, 160)
     if (!t) return
     const st = stateRef.current
-    const me = st.managers[st.youIdx]
+    // carimba pelo CRACHÁ estável (myMgrIdRef) — se a cadeira (youIdx) deslizou
+    // (host saiu), o nome ainda sai certo. Fallback pra cadeira enquanto o crachá
+    // ainda não foi descoberto pela auto-cura.
+    const me = st.managers.find(m => m.isHuman && m.id === myMgrIdRef.current) ?? st.managers[st.youIdx]
     // 🤝 DUPLA: os dois dividem o MESMO time, então falar pelo nome do time faria
     // as duas pessoas aparecerem iguais no chat e ninguém saberia quem escreveu.
     // Quem está em dupla fala com o PRÓPRIO nome (o time original dele).
@@ -5832,7 +5844,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meuNome = d?.partnerUid
       ? (st.youUid === d.ownerUid ? d.ownerName : st.youUid === d.partnerUid ? d.partnerName : undefined)
       : undefined
-    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now() }
+    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, fromId: me?.id, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now() }
     addChat(m, true) // aparece pra mim na hora (canal usa self:false)
     channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: m })
   }, [addChat])
@@ -6209,7 +6221,6 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // "tô dando lance por alguém que não sou eu"). Cura: se o manager no meu índice
   // é humano mas NÃO tem o meu nome, e existe EXATAMENTE UM manager humano com o
   // meu nome, reancora youIdx nele (local; nome repetido na sala = não mexe).
-  const myDisplayNameRef = useRef<string | null>(null)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       // MESMA fonte do nome do técnico no lobby (nameOf): display_name; se vazio,
@@ -6222,7 +6233,6 @@ export function EscProvider({ children }: { children: ReactNode }) {
   }, [])
   // guarda o CRACHÁ (id) do meu técnico nesta sala. Uma vez descoberto, a cura passa a
   // ser por id (robusta), não mais por nome. Zera ao trocar de sala (ids se repetem).
-  const myMgrIdRef = useRef<number | null>(null)
   const lastRoomRef = useRef<string | undefined>(undefined)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
