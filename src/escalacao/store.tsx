@@ -2523,6 +2523,7 @@ type Action =
   | { type: 'BECOME_HOST' }
   | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
+  | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'ADVANCE_REVEAL' }
@@ -3092,6 +3093,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const cmCoins = action.coins ?? 100 // 🌍 prêmio por participação (campeão 100 … grupos 10)
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: (s.careerCoins?.[action.mgrId] ?? 0) + cmCoins }
       logFin(s, 'reward', '🌍 Prêmio da Copa do Mundo Legends', cmCoins, undefined, action.mgrId)
+      return s
+    }
+    case 'TV_BANNER_SEEN': {
+      const arr = s.tvBannerSeen ?? []
+      if (!arr.includes(action.div)) s.tvBannerSeen = [...arr, action.div]
       return s
     }
     case 'KICK_PLAYER': {

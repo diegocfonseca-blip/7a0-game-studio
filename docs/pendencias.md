@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
 
+## 💰 CARREIRA: reforma da economia (11/08) ✅ NO AR
+Simulação até T140 mostrou que subir/competir levava ao vermelho (folha > renda de
+meio de tabela da Série C pra cima). Ajustes aprovados pelo Diego (valores dele) e
+implementados, cada um em commit isolado:
+- 🔻 **Quedas aliviadas** — QUEDA em pyramidseason: C −10 · B −15 · A −20 (era 20/25/30).
+- 🏆 **Copa Legends por fase** — `copaRewards` paga por fase alcançada (participação
+  20% → quartas 40% → semi 65% → vice 80% → campeão 100%), total/divisão A30/B20/C15/D10.
+- 🌍 **Copa do Mundo por participação** — campeão 100 · vice 70 · semi 50 · quartas 32 ·
+  grupos 10 (ação COPA_MUNDO_PRIZE ganhou `coins`; copa-mundo.tsx calcula a fase).
+- 📺 **Cota de TV** — renda por divisão no fim de temporada: V0 D5 C10 B15 A20
+  (`applyTVIncome` em store.tsx, linha própria "📺 Cota de TV" no extrato) +
+  **banner "a TV descobriu seu clube"** 1x por divisão (D/C/B/A), antes do patrocínio,
+  só carreira SOLO (estado `tvBannerSeen`, ação TV_BANNER_SEEN).
+- Simulação final: frugal 100→6.201, equilibrado 100→11.526 (nunca no vermelho);
+  só quem estoura a folha na A/B ainda aperta (realista). Sem erro financeiro.
+- Reversível: `git revert` em cada commit. Futebol (jogo) intocado — só economia da carreira.
+
 ## 🐛 ONLINE: host sai na votação → identidade embaralha (11/08) — EM CONSERTO
 Bug relatado + CONFIRMADO no servidor (sala ABVYLU/68036bfb): o host (SucodeFruta,
 cadeira 0) saiu na votação de fim de temporada; o `game_rooms.host_id` continuou

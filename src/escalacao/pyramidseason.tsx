@@ -3379,6 +3379,22 @@ export function PyramidSeasonScreen() {
             {eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> está fora ({suspenso.tipo === 'noitada' ? 'foi pro banco depois da noitada' : suspenso.tipo === 'expulsao' ? 'cumprindo gancho' : 'se recuperando da lesão'}) — volta na <b>rodada {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} segura a vaga.</> : null}
           </div>
         )}
+        {/* 📺 BANNER DA TV (Diego 11/08): 1x por divisão nova (D/C/B/A), no fim de
+            temporada ANTES do patrocínio. A cota já entra no caixa sozinha — o banner
+            é só a história/aviso. Só carreira SOLO (online tem estado compartilhado). */}
+        {round === 0 && me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div) && (() => {
+          const cota = ({ D: 5, C: 10, B: 15, A: 20 } as Record<string, number>)[me.div] ?? 0
+          const primeira = !(state.tvBannerSeen ?? []).length
+          return (
+            <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
+              <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Contrato de TV</span>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{primeira ? <>A <span style={{ color: GOLD }}>TV descobriu</span> seu clube!</> : <>Contrato de TV <span style={{ color: GOLD }}>melhorou</span>!</>}</p>
+              <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Pelada</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me.div}</b> e a audiência cresceu — a <b>Rede Pelada</b> renovou por mais grana. 📡</>}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} por temporada <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>· direto no caixa</span></div>
+              <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 12, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Bora! 📺</button>
+            </div>
+          )
+        })()}
         {/* 🤝 PATROCÍNIO POR APOSTA (05/08): banner de início de temporada — aparece
             pra TODO humano (cada um aposta o seu), logo após o leilão/mesmo-time,
             ANTES de "Começar a temporada". O resultado da aposta PASSADA vem junto. */}
