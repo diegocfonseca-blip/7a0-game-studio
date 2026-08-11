@@ -1,5 +1,20 @@
 # 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
 
+## ⚠️ LIÇÃO (11/08): TIER ao vivo = tabela `user_colors` (banco), NÃO só o código!
+`apoio.tsx:214` → `const tier = dbTier ?? FOUNDERS[email]`. O tier que o jogo mostra
+(e que os OUTROS jogadores enxergam) vem da tabela **`user_colors`** (email, tier,
+manual). O `FOUNDERS` do código é só fallback do próprio aparelho. Mudei só o código
+e o Gabriel continuou prata (tinha user_colors='prata' do tempo de Craque).
+👉 Pra dar/trocar tier: **gravar em `user_colors` (upsert email→tier)** — código é só backup.
+Corrigido hoje: Gabriel/paisagensetrilha/agrostinho/lucas=ouro, lipeh/pedronovikoff=prata.
+
+## ⚠️ LIÇÃO (11/08): escudo do batismo é pelo NOME EXATO do time (LOGOS_PRONTAS[nome])
+O `Escudo(nome)` faz `LOGOS_PRONTAS[nome]` (match exato do nome do time). Cadastrei
+"Desportivo Montreal" (com S) mas o time do Gabriel é "Deportivo Montreal" (sem S,
+clube real) → escudo caía no automático. Renomeado pra "Deportivo Montreal" no código
+(escudos.tsx + data.ts) e no banco (esc_socios.escudo_time + esc_nomes_batismo).
+👉 Conferir a grafia EXATA do nome do time do dono antes de cadastrar o batismo.
+
 ## ⚠️ LIÇÃO (11/08): batismo TEM que entrar em `esc_nomes_batismo` também!
 A trava de nome único (`esc_nome_livre`) reserva o nome do batismo pro dono
 **pela tabela `esc_nomes_batismo`** (colunas: nome_norm, nome, email). Publiquei
