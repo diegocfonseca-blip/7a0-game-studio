@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
 
+## 🛡️ LIÇÃO (11/08): logo do batismo no JORNAL + em carreira antiga
+Diego: "a logo do Império Samambaia não aparece no jornal quando ele joga carreira".
+Duas causas achadas e corrigidas (commit isolado, reversível com `git revert`):
+1. **Carreira antiga fica com o nome VELHO do time** (`store.tsx:1706` migra o nome
+   de todo mundo com `newestTeamName`, MENOS o humano — pra não trocar nome que a
+   pessoa escolheu). Então quem começou a carreira antes do batismo continua com
+   "Cuiabagre" e caía no escudo automático. FIX: `Escudo()` agora tenta
+   `LOGOS_PRONTAS[nome] ?? LOGOS_PRONTAS[newestTeamName(nome)]` — a logo comprada
+   aparece mesmo com o nome antigo. NÃO renomeia nada (seguro).
+2. **A IMAGEM do jornal que vai pro grupo** (`buildJornalBlob`) desenhava só a 1ª
+   LETRA do time no lugar do brasão. FIX: agora rasteriza o `<Escudo>` de verdade
+   (react-dom já no bundle) e desenha o brasão; se falhar, cai na letra de antes.
+   Vale pra TODO time (futebol também ganha brasão na figura de compartilhar).
+👉 Se algum dia quiser o NOME do time também migrar pro do batismo em carreira antiga,
+   é tirar o `m.isHuman ? m :` da linha 1706 — mas aí renomeia o time do cara (pedir OK).
+
+
 ## ⚠️ LIÇÃO (11/08): TIER ao vivo = tabela `user_colors` (banco), NÃO só o código!
 `apoio.tsx:214` → `const tier = dbTier ?? FOUNDERS[email]`. O tier que o jogo mostra
 (e que os OUTROS jogadores enxergam) vem da tabela **`user_colors`** (email, tier,

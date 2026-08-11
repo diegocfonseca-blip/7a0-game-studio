@@ -4,9 +4,39 @@
 // time, e "Os Donos da Temporada" (campeão + artilheiro de cada série + Copa).
 // `{t}` nas manchetes é trocado pelo nome do time do jogador.
 import { useState, useEffect, useRef } from 'react'
+import { createRoot } from 'react-dom/client'
+import { flushSync } from 'react-dom'
 import type { SimTeam, CopaResult, SeasonScorer, Div } from './pyramidseason'
 import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { meuEstadioNome } from './manto' // 🏟️ nome batizado pelo sócio
+
+// 🛡️→🖼️ rasteriza o escudo (o MESMO <Escudo> da tela) pra desenhar no canvas do
+// compartilhar. Antes a imagem do jornal mostrava só a 1ª LETRA do time — então a
+// logo do batismo (Império Samambaia, Tôka10, etc.) não aparecia na figura que vai
+// pro grupo. Agora desenha o brasão de verdade. Usa o react-dom já no bundle
+// (createRoot + flushSync, síncrono); qualquer falha cai na letra de antes.
+function escudoMarkup(nome: string, px: number): { kind: 'svg' | 'img'; data: string } | null {
+  const host = document.createElement('div')
+  host.style.cssText = 'position:fixed;left:-9999px;top:0'
+  document.body.appendChild(host)
+  const root = createRoot(host)
+  try {
+    flushSync(() => root.render(<Escudo nome={nome} size={px} />))
+    const el = host.firstElementChild
+    if (!el) return null
+    if (el.tagName.toLowerCase() === 'img') return { kind: 'img', data: (el as HTMLImageElement).src }
+    let s = new XMLSerializer().serializeToString(el)
+    if (!s.includes('xmlns')) s = s.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+    return { kind: 'svg', data: s }
+  } catch { return null }
+  finally { root.unmount(); host.remove() }
+}
+function escudoImg(nome: string, px: number): Promise<HTMLImageElement | null> {
+  const m = escudoMarkup(nome, px)
+  if (!m) return Promise.resolve(null)
+  const src = m.kind === 'img' ? m.data : 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(m.data)
+  return new Promise(res => { const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null); img.src = src })
+}
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -262,9 +292,17 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     x.fillStyle = g; x.fillRect(L, y, colW, boxH)
     x.lineWidth = 4; x.strokeStyle = INK; x.strokeRect(L, y, colW, boxH)
     const cx = L + colW / 2
-    x.beginPath(); x.arc(cx, y + 128, 62, 0, Math.PI * 2); x.fillStyle = '#F7F1DD'; x.fill(); x.lineWidth = 5; x.stroke()
-    x.textAlign = 'center'; x.fillStyle = INK; x.font = `900 56px ${OSW}`
-    x.fillText(me.team.trim()[0]?.toUpperCase() ?? '?', cx, y + 148)
+    x.beginPath(); x.arc(cx, y + 128, 62, 0, Math.PI * 2); x.fillStyle = '#F7F1DD'; x.fill(); x.strokeStyle = INK; x.lineWidth = 5; x.stroke()
+    // 🛡️ brasão de verdade (a logo do time). Save antigo sem rede/logo cai na letra.
+    const escFoto = await escudoImg(me.team, 120)
+    if (escFoto && escFoto.naturalWidth) {
+      const eh = 104, ew = eh * escFoto.naturalWidth / escFoto.naturalHeight
+      x.save(); x.beginPath(); x.arc(cx, y + 128, 60, 0, Math.PI * 2); x.clip()
+      x.drawImage(escFoto, cx - ew / 2, y + 128 - eh / 2, ew, eh); x.restore()
+    } else {
+      x.textAlign = 'center'; x.fillStyle = INK; x.font = `900 56px ${OSW}`
+      x.fillText(me.team.trim()[0]?.toUpperCase() ?? '?', cx, y + 148)
+    }
     x.fillStyle = '#fff'; x.font = `900 30px ${OSW}`
     let tn = me.team; while (x.measureText(tn).width > colW - 30 && tn.length > 3) tn = tn.slice(0, -1)
     x.fillText(tn, cx, y + 236)

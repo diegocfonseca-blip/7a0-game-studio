@@ -17,6 +17,7 @@
 // kit inteiro ≤ ~40 KB (o site tem ~3 MB, então isso é ~1% — irrelevante).
 import type { ReactNode } from 'react'
 import tokaEscudoImg from './img/toka10-escudo.webp'
+import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
 const INK = '#0C0C0C'
 
@@ -841,7 +842,10 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
 // e com traço mais grosso (o que lê na tabela é a silhueta + a cor).
 export function Escudo({ nome: nomeCru, size = 30, title }: { nome: string; size?: number; title?: string }) {
   const nome = nomeLimpo(nomeCru) || nomeCru // 🧼 mesmo escudo com ou sem o selo do tier
-  const pronta = LOGOS_PRONTAS[nome]
+  // logo artesanal: bate pelo nome EXATO; se não achar, tenta o nome ATUAL do
+  // batismo (save antigo que ficou com o nome velho — ex.: "Cuiabagre" →
+  // "Império Samambaia"). Assim a logo comprada aparece mesmo em carreira antiga.
+  const pronta = LOGOS_PRONTAS[nome] ?? LOGOS_PRONTAS[newestTeamName(nome)]
   if (pronta) return <>{pronta(size)}</>
   const d = escudoDe(nome)
   const mini = size < 40
