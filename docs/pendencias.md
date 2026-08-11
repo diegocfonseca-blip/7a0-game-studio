@@ -1,4 +1,22 @@
-# 📌 Pendências combinadas com o Diego (atualizado 10/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
+
+## 🐛 ONLINE: host sai na votação → identidade embaralha (11/08) — EM CONSERTO
+Bug relatado + CONFIRMADO no servidor (sala ABVYLU/68036bfb): o host (SucodeFruta,
+cadeira 0) saiu na votação de fim de temporada; o `game_rooms.host_id` continuou
+apontando pra ele (**host fantasma**) e ninguém assumiu direito; ao começar o
+próximo jogo as cadeiras vazias foram renumeradas e cada aparelho continuou no
+"quem sou eu" pela CADEIRA antiga → todos escorregaram de assento → nomes trocados
+no chat, "lacrando pelo outro", voto de um caindo na conta de outro.
+CAUSA-RAIZ: identidade amarrada à CADEIRA (youIdx/player_index) em vez do CRACHÁ
+(manager.id) em vários pontos + carreira sem migração de host (store.tsx:5893).
+Plano em 3 passos revertíveis:
+- ✅ **Passo 1 (feito)**: `OnlineEndVote` (screens.tsx) usa CRACHÁ no voto/placar/
+  presença/tag de host (era `youId = state.youIdx`). `duplas` continua por cadeira
+  (`youSeat`). Presença convertida cadeira→crachá.
+- ⏳ **Passo 2**: chat + alfinetada (emote) carimbarem pelo crachá do autor.
+- ⏳ **Passo 3**: host que sai passa a coroa de forma determinística (inclusive na
+  carreira) e conserta o host fantasma; próximo jogo não começa embaralhado.
+Futebol não é tocado; cada passo é commit isolado.
 
 ## 🔴⚫🌿 KITS: Murriz FC + Império Samambaia (batismo) (10/08) ✅ NO AR
 Dois batismos novos publicados juntos:

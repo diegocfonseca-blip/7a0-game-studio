@@ -6308,7 +6308,11 @@ function CareerEndPanel() {
 // pode remover quem não decide e voltar pro menu das salas.
 function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
-  const youId = state.youIdx
+  // 🎫 identidade pelo CRACHÁ (manager.id), NÃO pela cadeira (youIdx) — quando o
+  // host sai e os assentos escorregam, a cadeira muda de dono mas o crachá NÃO.
+  // (correção 11/08: era `youId = state.youIdx`, o que trocava voto/nome de lugar)
+  const youSeat = state.youIdx                          // 🪑 minha cadeira (só pra coisas por assento, ex.: duplas)
+  const youId = state.managers[youSeat]?.id ?? youSeat  // 🎫 meu crachá (identidade fixa)
   const isHost = state.isHost
   const votes = state.seasonVotes ?? {}
   const myVote = votes[youId]
@@ -6336,7 +6340,11 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   // ex.: a sala era 10 e agora só tem 3). Presença via realtime (+ eu mesmo);
   // quem fechou o app aparece esmaecido como "saiu". A tag 👑 HOST vem do banco
   // (host_id → player_index) — é a fonte de verdade, inclusive após passar a coroa.
-  const present = new Set([...(state.presence ?? []), youId])
+  // presença chega por CADEIRA (playerIndex) — converte pra CRACHÁ pra casar com m.id
+  const present = new Set<number>([
+    ...(state.presence ?? []).map(idx => state.managers[idx]?.id).filter((id): id is number => id != null),
+    youId,
+  ])
   const pend = pendTodos.filter(m => present.has(m.id)) // só quem está NA SALA segura o começo
   // 🤝 DUPLA (09/08, relato do Diego jogando com o Didico): o parceiro do HOST
   // compartilha o MESMO time (youId), então nunca aparece em `guests`/`pend` —
@@ -6344,10 +6352,10 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   // parecia que "só falta gente de fora". `votes[youId]` só é escrito pelo
   // PARCEIRO (o host não vota, decide) — então dá pra usar exatamente essa
   // chave pra saber se ele já confirmou.
-  const myDupla = state.duplas?.[youId]
+  const myDupla = state.duplas?.[youSeat]
   const partnerPending = isHost && !!myDupla?.partnerUid && !myDupla.soloUid && !votes[youId]
   const podeComecarDireto = pend.length === 0 && !partnerPending
-  const [hostIdx, setHostIdx] = useState<number | null>(isHost ? youId : null)
+  const [hostId, setHostId] = useState<number | null>(isHost ? youId : null)
   useEffect(() => {
     if (!state.roomId) return
     ;(async () => {
@@ -6358,7 +6366,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         ])
         const hid = (room as { host_id?: string } | null)?.host_id
         const row = ((pls ?? []) as { user_id: string; player_index: number }[]).find(p => p.user_id === hid)
-        if (row) setHostIdx(row.player_index)
+        if (row) setHostId(state.managers[row.player_index]?.id ?? row.player_index)
       } catch { /* sem tag de host — segue */ }
     })()
   }, [state.roomId, isHost])
@@ -6462,11 +6470,11 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                     {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
                   </div>
                   <span className="font-black text-[13px] text-black flex-1 truncate" style={OSWALD}>{m.teamName}{m.id === youId ? ' (você)' : ''}</span>
-                  {hostIdx === m.id && <span className="text-[9px] font-black uppercase bg-yellow-400 border border-black px-1.5 py-0.5 rounded-full shrink-0">👑 HOST</span>}
+                  {hostId === m.id && <span className="text-[9px] font-black uppercase bg-yellow-400 border border-black px-1.5 py-0.5 rounded-full shrink-0">👑 HOST</span>}
                   {/* status: saiu · voto de cada um (▶️/🔨) · ainda não votou. Host não vota (decide). */}
                   {(() => {
                     if (!here) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#8a8672' }}>🚪 saiu</span>
-                    if (m.id === hostIdx) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>🟢 na sala</span>
+                    if (m.id === hostId) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>🟢 na sala</span>
                     const v = votes[m.id]
                     return v
                       ? <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{v === 'mesmo' ? '✅ ▶️ mesmo time' : '✅ 🔨 novo leilão'}</span>
