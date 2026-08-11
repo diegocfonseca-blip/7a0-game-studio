@@ -3355,3 +3355,69 @@ PENDENTE — só sobrou 1 sem confiança suficiente pra não arriscar errar:
 lista Atlético-GO, não Goiás EC) e outros 2 jogadores diferentes com esse
 apelido ligados ao futebol goiano — preciso do nome completo ou ano pra
 saber qual dos 3 é.
+
+## 🎚️ AJUSTE DE NÍVEL — leva de jogadores (10/08, à noite)
+Diego revisou os níveis e pediu ajustes (já no ar em `main`):
+subiu p/ CRAQUE: Arthur, Rodrigo Garro, Edu, Mancini. Subiu p/ LENDA: Dirceu
+Lopes. Desceu de lenda p/ craque: Andrade (Flamengo 81 — o Adílio já tava
+craque certo, não mexi). Desceu p/ bom jogador: Alexander Barboza. Desceu p/
+foi profissional: Cédric Soares, Lingard. Careca (São Paulo 1986) já era
+lenda, conferido, não precisou mexer.
+PERGUNTA EM ABERTO pro Diego: ele perguntou se o Mariano (lateral) não seria
+"promessa" no auge (2010, Fluminense, campeão brasileiro) — respondi no chat
+que naquele ano ele já estava consagrado (não estreante), então mantive
+"bom jogador"; só mudo se ele confirmar que quer assim mesmo.
+
+## 🖼️ ARTE STORIES — 44 reforços
+Gerada arte vertical (1080×1920) com todos os 44 jogadores agrupados por
+posição, identidade visual do jogo (creme/preto/Oswald/sombra dura). SEM
+cor por raridade e SEM texto de categoria — Diego pediu que os cards
+fiquem todos iguais (só nome+clube). Arquivo:
+`/tmp/.../scratchpad/story-novos-jogadores.html` (+ fontes Oswald ttf no
+mesmo scratchpad) — gerada a screenshot via `playwright screenshot
+--viewport-size "1080,1920"`. Já entregue ao Diego, aguardando OK final
+pra postar.
+
+## 🔍 AUDITORIA DE DATAS/FATOS — leva de jogadores (10/08, à noite)
+Diego achou 2 problemas (Kaio Jorge duplicado + Lingard com ano errado — ele
+chegou em 2026, não 2023) e pediu pra conferir TODAS as cartas novas. Fui
+carta por carta com WebSearch e achei **16 erros reais** de ano/fato/clube
+(taxa de erro alta — quase 40% das 44 cartas novas tinham algo errado):
+- Lingard: ano 2023→2026 (chegou É este ano, não em 2023)
+- Cuiabano: ano 2023→2024 (contratação foi abril/2024)
+- Titi: ERA TOTALMENTE ERRADO — inventei "convocação pra Seleção" que não
+  achei confirmação nenhuma; o Titi real jogou no Bahia 2011-2015 (não 2023),
+  tricampeão baiano no período. Corrigido ano e bio.
+- Gabriel Bontempo: ano 2024→2025 (estreou profissional em jan/2025)
+- Natanael: bio dizia "lateral-esquerdo...foi pra Europa" — ele é
+  lateral-DIREITO e não foi pra Europa, foi pro Atlético-MG em 2025.
+- Bitello: ano 2022→2023 (foi vendido em set/2023)
+- Rafael Tolói: ano 2011→2014 (saiu pra Atalanta em 2015, não logo em 2011)
+- Edu: bio citava "Deportivo" errado — foi Arsenal e Valencia. Ano 1997→1999.
+- Lucho González: ERRO GRAVE — disse que foi do Athletico-PR PRO Porto, mas é
+  o contrário (jogou no Porto ANTES, no início da carreira, e chegou no
+  Athletico já veterano em 2016, saindo em 2021). Ano corrigido 2005→2019,
+  bio reescrita.
+- Gabriel Pec: ano 2022→2023 (foi vendido em jan/2024)
+- Elkeson: bio dizia "revelado no Botafogo" — ele foi revelado no VITÓRIA,
+  só chegou no Botafogo em 2011. Ano 2010→2012, bio corrigida.
+- Osvaldo: card dizia "Ceará" mas os anos que pus (2019-2021) eram do
+  FORTALEZA — o Osvaldo no Ceará foi 2010-2011. Ano corrigido pra 2011.
+- Lucas Arcanjo: ERRO GRAVE — inventei que ele era "cria do Athletico-PR
+  emprestado ao Vitória" e "pegou pênaltis decisivos". Na real ele é cria
+  da BASE do próprio Vitória (lá desde 2016), sem nenhum vínculo com
+  Athletico-PR. Bio reescrita do zero.
+- Marcelo Cirino: joguei ele em 2015, mas nesse ano ele tava EMPRESTADO ao
+  Flamengo, não jogando pelo Athletico-PR. Ano corrigido pra 2019 (ano que
+  fez o gol do título da Copa do Brasil) + bio mais precisa.
+- Alex Alves: ERRO GRAVE de década — pus "2013" mas o auge dele no Cruzeiro
+  foi 1998-1999 (artilheiro, vendido pro Hertha Berlin por US$7mi). Corrigido
+  + adicionei o apelido real "Capoeira" (comemorava com golpes de capoeira).
+- Félix Torres: bio dizia que ele foi "rumar ao futebol mexicano" mas é o
+  contrário — ele VEIO do México (Santos Laguna) pro Corinthians. Corrigido.
+
+Todas as correções já buildadas e no `main` (ao vivo). Conferido também se
+"Kaio Jorge" tem duplicata na base — NÃO tem (só uma carta, Cruzeiro 2024).
+Então a duplicata que o Diego viu no leilão não é erro de dado — pedi pra
+ele mandar print/mais detalhe pra caçar se é bug de embaralhamento
+(store.tsx) ou só duas telas mostrando a mesma carta (normal).
