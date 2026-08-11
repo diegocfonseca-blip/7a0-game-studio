@@ -3597,3 +3597,24 @@ card de jogo), podendo dar cores diferentes pro mesmo time. Agora
 card e escudo do time são sempre a mesma cor, para qualquer nome (real ou
 fictício). Mexido em `screens.tsx` e `pyramidseason.tsx`. Build ok, no ar
 em `main`. Revertível (1 commit: `e9a238c` no main).
+
+## 🎨 Copa: faixa branca no meio com o placar (11/08) ✅ NO AR
+Diego mandou print da Copa Legends + print do card de partida do próprio
+jogo dele, perguntando se dava pra manter as cores dos times mas com um
+fundo branco separando os dois no meio (onde fica o placar), igual ao card
+do jogo dele. Mockup aprovado ("Pode fazer"). Aplicado nos 5 lugares que
+mostravam o card de confronto da Copa (nos 3 sistemas: Copa dos 8, Copa
+Legends — card grande ao vivo + lista de confrontos decididos do
+chaveamento, Copa do Mundo — MiniLive + lista de confrontos): trocou o
+fundo colorido cobrindo o card INTEIRO (placar flutuando numa pilulazinha
+preta por cima) por 3 zonas lado a lado — cor cheia do time à esquerda,
+faixa BRANCA no meio com o placar, cor cheia do time à direita. Resto
+(barra de progresso ao vivo, flash de gol, escudo, anti-spoiler dos
+pênaltis) preservado, só que agora fica embaixo da faixa colorida em vez
+de por cima dela. O componente antigo `CopaHalves` (fundo full-bleed) foi
+REMOVIDO do código — não sobrou nenhum uso dele. ⚠️ Cuidado que resolvi na
+hora: o brilho holográfico do tier pago (ApoioSheen, aparece no lado
+"você" quando é verde/roxo/prata/ouro) tinha ficado de fora na primeira
+versão da troca — recolocado nos 3 lugares que precisavam (Copa dos 8,
+Copa Legends card grande, Copa Legends lista). Build ok, no ar em `main`.
+Revertível (1 commit: `d6b7346` no main).
