@@ -3514,3 +3514,36 @@ cobrança decisiva; 3: bolinha de cada cobrança com a cor do time) ficam
 guardadas caso o Diego queira depois — não implementadas.
 Build ok, no ar em `main`. Revertível (1 commit:
 `git revert 235160f` no main / `f076855` na branch de trabalho).
+
+## 🏆 Auditoria "Libertadores" no baralho (11/08) ✅ NO AR
+Diego perguntou pelo modo **"Glória Eterna Libertadores"** achando que já
+tinha um baralho separado pra conferir — na real esse modo **NUNCA foi
+programado**, só tem a ideia anotada mais acima ("Modo Libertadores
+temático... AINDA PENDENTE") + mockups antigos. Expliquei isso a ele e, como
+prep pro dia que o modo for feito de verdade, auditei as ~45 cartas do
+baralho ÚNICO cuja bio cita Libertadores (clube+ano bate com a história
+real?). Rodei em agente separado (pesquisa na web pros casos mais obscuros),
+conferi cada achado eu mesmo antes de mexer. 7 cartas corrigidas em
+`data.ts`:
+- Alex Mineiro: não tava no Athletico em 2005 (emprestado ao Kashima
+  Antlers no Japão) — ano 2005→2002, tirei o claim de Libertadores da bio.
+- Andrés Escobar: título (1º colombiano campeão) foi 1989, card tinha 1991.
+- Aranha: bio dizia "vice" 2011, Santos foi CAMPEÃO naquele ano.
+- Carlos Germano: título do Vasco foi 1998, card tinha 1997.
+- Deyverson: gol histórico do título é 2021, card tinha 2018 (1ª passagem,
+  antes do feito).
+- Nino: título de capitão do Flu foi 2023, card tinha 2021.
+- Piquerez: bio dizia "bicampeão", só tem 1 título (chegou depois da final
+  de 2020, jogada em jan/2021).
+- Gabigol (Inter de Milão, 2017): card sem bio própria HERDAVA a bio do
+  Flamengo dele (que fala de finais de Libertadores) por compartilhar o
+  mesmo nome no dicionário de bios — bug estrutural, ganhou bio própria.
+  ⚠️ Vale considerar se tem mais algum card assim (nome repetido em clubes
+  diferentes, sem bio própria, herdando bio errada de outra fase da
+  carreira) — não fiz uma varredura geral disso, só resolvi este caso.
+NÃO mexido (fica pro Diego decidir, não tive certeza suficiente): Antony de
+Ávila (ano 1990 não bate exato com nenhuma das finais de vice que achei —
+1985/86 — mas ele jogou lá 1988-96 então não é erro grosseiro) e a bio do
+Gabriel Mendoza (diz "Corinthians 99", pode ser Tigres UANL/México — não
+afeta o veredito Libertadores do card, só um detalhe da frase).
+44 cartas conferidas e certas, sem mexer. Build ok, no ar em `main`.
