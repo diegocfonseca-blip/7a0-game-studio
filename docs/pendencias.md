@@ -3438,3 +3438,27 @@ Diego: "pessoal reclamando que tá difícil fazer grana no carreira" — 2 ajust
   Mira ajudar quem tá começando (Várzea/D), onde a bilheteria-base (20 fixo)
   ainda é quase a única renda garantida.
 Ambos já no ar em `main`, build ok, reversível (só valor de tabela).
+
+## 🎨 Mata-mata mais vivo — Copa dos 8, Copa Legends e Copa do Mundo (11/08)
+Diego achava os jogos simulados (que ele não tá jogando) "muito feio" —
+mockup aprovado, aplicado nos 3 sistemas de mata-mata do jogo:
+- **Copa dos 8** (Jogo Rápido, `screens.tsx` `tieRow`/`copaFill`)
+- **Copa Legends** (Carreira, `pyramidseason.tsx` `CopaLiveMatch`/`fillFor`)
+- **Copa do Mundo** (`copa-mundo.tsx` `MiniLive`/`tieRow` — não tinha NEM cor
+  antes, era texto puro; ganhou o visual dos outros dois)
+O que mudou nos 3: time de ROBÔ ganha cor de verdade (antes era cinza
+apagado de propósito — combinado com o Diego que pode perder essa "pista
+visual" de bot); barrinha de progresso do tempo; flash dourado + "GOOOL
+agora!" quando alguém acaba de marcar (só destaca o que JÁ apareceu no
+placar — zero mudança no timing de revelação/anti-spoiler, conferido com
+cuidado porque é ponto sensível do Diego); lista de jogos rolando vira
+grade que se ajusta ao espaço (1 coluna no celular, mais em tela larga).
+`copaSideColor`/`CopaHalves`/`copaCenterChip` viraram export de
+`pyramidseason.tsx` pra dar pra reusar no `copa-mundo.tsx` sem duplicar.
+Build ok, já no ar em `main`. NÃO consegui testar ao vivo num navegador de
+verdade (sandbox sem acesso de rede configurado direito pro Supabase —
+o jogo caía numa tela de manutenção) — pedido ao Diego pra conferir na
+próxima Copa dele e avisar se tiver algo estranho (reversão é 1 commit).
+Pendente ainda combinado, não mexido: melhorar visual da disputa de
+pênaltis (ideias sugeridas no chat: ⚽/🧤 em vez de ✓/✕, destaque na
+cobrança decisiva, cor diferente na morte súbita).
