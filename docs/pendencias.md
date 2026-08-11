@@ -3582,3 +3582,18 @@ NÃO mexido (fica pro Diego decidir, não tive certeza suficiente): Antony de
 Gabriel Mendoza (diz "Corinthians 99", pode ser Tigres UANL/México — não
 afeta o veredito Libertadores do card, só um detalhe da frase).
 44 cartas conferidas e certas, sem mexer. Build ok, no ar em `main`.
+
+## 🎨 Cor do time na Copa = cor do escudo dele (11/08) ✅ NO AR
+Diego notou no print da Copa Legends que o Guarani (fictício, "Guarani do
+Cerrado") tava com fundo laranja — perguntou se não dava pra basear na cor
+da LOGO do time, "não importa se é genérico ou não". Confirmado: os times
+da Copa Legends (Guarani do Cerrado, Napolitano, Nacional da Serra etc.)
+são fictícios das divisões, não têm "cor real" tipo seleção da Copa do
+Mundo — mas o Diego só queria que a cor do card BATESSE com a do escudo do
+mesmo time, sorteada ou não. Antes eram DOIS sorteios separados (escudo E
+card de jogo), podendo dar cores diferentes pro mesmo time. Agora
+`copaSideColor` (usada nas 3 copas: dos 8, Legends, Mundo) puxa direto o
+`c1` (fundo) do `escudoDe()` — o MESMO gerador que desenha o brasão — então
+card e escudo do time são sempre a mesma cor, para qualquer nome (real ou
+fictício). Mexido em `screens.tsx` e `pyramidseason.tsx`. Build ok, no ar
+em `main`. Revertível (1 commit: `e9a238c` no main).
