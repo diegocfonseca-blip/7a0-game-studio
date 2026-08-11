@@ -239,7 +239,7 @@ function MiniLive({ nmH, nmA, hPais, aPais, ev, min, bold }: { nmH: string; nmA:
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, agenciaOn }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, agenciaOn }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean }) {
   const save = useMemo(() => ensureSave(seed), [seed])
   const [open, setOpen] = useState(false)
   const copaNow = isCopaSeason(save, seasonNo) && !save.played.includes(seasonNo)
@@ -303,7 +303,7 @@ const CMModal = ({ children, wide = false }: { children: React.ReactNode; wide?:
     </div>
   </div>, document.body)
 
-function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, agenciaOn, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onClose: () => void }) {
+function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, agenciaOn, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onClose: () => void }) {
   // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
   // um gerador compartilhado com estado fazia o resultado mudar sozinho)
   const [phase, setPhase] = useState<'select' | 'convoke' | 'cup'>('select')
@@ -563,7 +563,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
   }
 }
 
-function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: () => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onClose: () => void }) {
+function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onClose: () => void }) {
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo), [entrants, seed, seasonNo])
@@ -654,7 +654,16 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
     // dois, o prêmio não some — o reducer é idempotente por temporada, então
     // re-disparar no reload não dobra. A ordem inversa (played antes) fazia as
     // 100 moedas se perderem pra sempre.
-    if (isYou(c)) onPrize?.() // 💰 +100 moedas (só solo — no online o caixa é do host)
+    // 💰 prêmio POR PARTICIPAÇÃO (Diego 11/08): campeão 100 · vice 70 · semi 50 ·
+    // quartas 32 · fase de grupos 10. Todo mundo que jogou leva algo (só solo — no
+    // online o caixa é do host). O TÍTULO/estrela continua só do campeão (abaixo).
+    const cmPrize = myIdx < 0 ? 0
+      : world.final.champion === myIdx ? 100
+      : (world.final.h === myIdx || world.final.a === myIdx) ? 70
+      : world.sf.some(t => t.h === myIdx || t.a === myIdx) ? 50
+      : world.qf.some(t => t.h === myIdx || t.a === myIdx) ? 32
+      : 10
+    if (cmPrize > 0) onPrize?.(cmPrize)
     saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }] })
     // 🏆 REGRA DO DIEGO (04/08): campeão do MUNDO também é TÍTULO no ranking
     // Carreira — grava a linha co:solo…:copamundo (mesmo padrão da liga/Copa).
