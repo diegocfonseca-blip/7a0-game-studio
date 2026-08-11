@@ -3640,3 +3640,27 @@ Relâmpago", "Hall da Fama") foi REJEITADA — ele quer os nomes ORIGINAIS
 Copa do Mundo (preto/dourado) e Glória Eterna Libertadores (mockup, não
 programada) ficam de fora dessa rodada — não foram pedidas dessa vez.
 Build ok, no ar em `main`.
+
+## 🐛 Copa Legends ONLINE: fase agora sincronizada pelo host (11/08)
+Diego repassou relato de jogadores: "atualiza [a página] e muda o placar
+todo" na Copa Legends. Investiguei com agente de pesquisa (só leitura) e
+depois confirmei com o Diego que precisava mesmo ser corrigido. Achado:
+- O RESULTADO final (campeão, placares, artilheiros) sempre foi 100%
+  determinístico (semente + temporada) — refresh NUNCA mudou isso, nem
+  antes desta correção.
+- O problema real: a FASE da Copa (oitavas/quartas/semi/final) era um
+  `useState` LOCAL de cada tela — cada convidado avançava sozinho no
+  próprio relógio, sem nenhum dado sincronizado. Um F5/reconexão podia
+  mostrar uma fase (e portanto um placar) diferente do que o host via na
+  mesma sala. O aviso que já existia na tela pro convidado ("a próxima
+  fase anda quando o host avançar") não era verdade — hoje passou a ser.
+Corrigido: novo campo `EscState.copaRound` (só o HOST escreve, via
+`dispatch({type:'SET_COPA_ROUND'})`, gate por `state.isHost` — igual o
+`state.round` da liga) — o mecanismo de sync que já existe (host reemite o
+estado a cada mudança) propaga sozinho, nada novo de rede. Carreira SOLO
+(offline) continua 100% em `useState` local, zero mudança de
+comportamento. Mexeu em `types.ts`, `store.tsx`, `pyramidseason.tsx`.
+Build ok, no ar em `main`. Não dava pra testar ao vivo numa sala online de
+verdade nesta sessão (sandbox sem 2 abas simultâneas de teste) — pedido
+ao Diego pra avisar se algo parecer estranho numa sala online (reversão é
+1 commit).
