@@ -60,6 +60,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'venturakaua2@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'luancamposreal@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'juniormelocdm@hotmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
+  'lipeh_95@hotmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual (11/08)
   'nevesgabriel95@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Desportivo Montreal, homenagem à filha Maitê) (11/08)
   'valentinnavitoria165@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'mmmartins246@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (era Craque, subiu pra Lenda)
