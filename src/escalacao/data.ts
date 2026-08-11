@@ -1237,31 +1237,31 @@ const NOVOS_BR_ZAG: C[] = [
 
 // 🆕 leva 2 de cartas novas (baralho BR) — pedidas pelo Diego, ago/2026.
 const NOVOS_BR2_GOL: C[] = [
-  { name: "Lucas Arcanjo", club: "Vitória", year: 2022, fame: 2, lo: 66, hi: 82, bio: "Goleiro cria da base do Athletico-PR que fez história emprestado ao Vitória — pegou pênaltis decisivos e virou herói do acesso rubro-negro." },
+  { name: "Lucas Arcanjo", club: "Vitória", year: 2022, fame: 2, lo: 66, hi: 82, bio: "Goleiro cria da base do Vitória — virou titular a partir de 2021 e é um dos xodós recentes do Barradão." },
   { name: "Marcelo Lomba", club: "Bahia", year: 2012, fame: 1, lo: 58, hi: 78, bio: "Goleiro gaúcho que começou a carreira no Esquadrão antes de virar ídolo e capitão do Internacional." },
 ]
 const NOVOS_BR2_LAT: C[] = [
-  { name: "Cuiabano", club: "Botafogo", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo raçudo do Botafogo campeão brasileiro e da Libertadores em 2023/24 — força física e chegada ao ataque." },
+  { name: "Cuiabano", club: "Botafogo", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo raçudo do Botafogo campeão brasileiro e da Libertadores em 2024 — força física e chegada ao ataque." },
   { name: "Matheuzinho", club: "Vitória", year: 2023, fame: 2, lo: 66, hi: 82, bio: "Lateral-direito de apoio constante e cruzamento afiado — titular do Vitória na volta à elite." },
-  { name: "Natanael", club: "Coritiba", year: 2021, fame: 2, lo: 68, hi: 83, bio: "Lateral-esquerdo canhoto revelado no Coritiba — velocidade e cruzamento que chamaram atenção da Europa." },
+  { name: "Natanael", club: "Coritiba", year: 2021, fame: 2, lo: 68, hi: 83, bio: "Lateral-direito revelado no Coritiba — velocidade e cruzamento que renderam sondagem da Europa antes de ir pro Atlético-MG." },
 ]
 const NOVOS_BR2_ZAG: C[] = [
-  { name: "Félix Torres", club: "Corinthians", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Zagueiro equatoriano forte no jogo aéreo e na saída de bola — titular do Corinthians antes de rumar ao futebol mexicano." },
+  { name: "Félix Torres", club: "Corinthians", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Zagueiro equatoriano forte no jogo aéreo e na saída de bola — veio do futebol mexicano (Santos Laguna) pra ser titular do Corinthians." },
   { name: "Gabriel Mercado", club: "Internacional", year: 2021, fame: 2, lo: 66, hi: 82, bio: "Zagueiro argentino experiente, ex-Sevilla e Seleção Albiceleste — liderança e postura na defesa do Inter." },
-  { name: "Titi", club: "Bahia", year: 2023, fame: 3, lo: 74, hi: 84, bio: "Zagueiro-capitão do Bahia da nova era — liderança, bola aérea e a braçadeira que rendeu a convocação pra Seleção." },
+  { name: "Titi", club: "Bahia", year: 2013, fame: 3, lo: 74, hi: 84, bio: "Zagueiro raçudo que fez 5 temporadas pelo Bahia (2011-2015) — tricampeão baiano no período, liderança e bola aérea na zaga tricolor." },
   { name: "Jemerson", club: "Atlético-MG", year: 2015, fame: 2, lo: 68, hi: 83, bio: "Zagueiro forte e elegante na saída de bola — titular do Atlético-MG antes de brilhar no Monaco." },
-  { name: "Rafael Tolói", club: "São Paulo", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Zagueiro revelado no São Paulo — foi pra Itália ainda jovem e virou capitão histórico da Atalanta." },
+  { name: "Rafael Tolói", club: "São Paulo", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Zagueiro revelado no São Paulo — foi pra Itália e virou capitão histórico da Atalanta por 10 temporadas." },
 ]
 const NOVOS_BR2_MEI: C[] = [
   { name: "Rodrigo Garro", club: "Corinthians", year: 2023, fame: 4, lo: 82, hi: 89, bio: "Meia argentino de drible e categoria — ídolo rápido do Corinthians, cobranças de falta e assistências de gala." },
   { name: "Breno Bidon", club: "Corinthians", year: 2024, fame: 1, lo: 58, hi: 76, promessa: true, bio: "Volante-joia da base do Corinthians — chegada de área, personalidade e a braçadeira que virou promessa da Seleção." },
   { name: "Arthur", club: "Grêmio", year: 2017, fame: 4, lo: 83, hi: 90, bio: "Meia-camisa 8 de toque fino e visão de jogo — o auge tricolor antes da badalada ida ao Barcelona." },
-  { name: "Bitello", club: "Grêmio", year: 2022, fame: 2, lo: 68, hi: 83, bio: "Meia-atacante de drible e faro de gol — peça de criação do Grêmio antes de rodar a Rússia." },
+  { name: "Bitello", club: "Grêmio", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Meia-atacante de drible e faro de gol — peça de criação do Grêmio antes de rodar a Rússia." },
   { name: "Juan Cazares", club: "Atlético-MG", year: 2016, fame: 2, lo: 68, hi: 82, bio: "Meia equatoriano de categoria e visão de jogo — cérebro criativo do Atlético-MG por vários anos." },
-  { name: "Edu", club: "Corinthians", year: 1997, fame: 4, lo: 82, hi: 89, bio: "Meia-artista revelado no Corinthians — brilhou na Europa (Valencia, Deportivo) antes de voltar pra encantar o Brasil de novo." },
-  { name: "Gabriel Bontempo", club: "Santos", year: 2024, fame: 1, lo: 56, hi: 76, promessa: true, bio: "Meia-joia da base do Santos — visão de jogo e talento que já rendem comparações e moral de futuro camisa 10." },
+  { name: "Edu", club: "Corinthians", year: 1999, fame: 4, lo: 82, hi: 89, bio: "Meia-artista revelado no Corinthians, bicampeão brasileiro (98/99) e campeão do Mundial de 2000 — brilhou na Europa (Arsenal, Valencia) antes de voltar pra encantar o Brasil de novo em 2009." },
+  { name: "Gabriel Bontempo", club: "Santos", year: 2025, fame: 1, lo: 56, hi: 76, promessa: true, bio: "Meia-joia da base do Santos — visão de jogo e talento que já rendem comparações e moral de futuro camisa 10." },
   { name: "Lucas Crispim", club: "Fortaleza", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Meia-atacante de passe certo e faro de assistência — peça-chave do Fortaleza nos anos de ouro no Nordeste." },
-  { name: "Lucho González", club: "Athletico-PR", year: 2005, fame: 3, lo: 78, hi: 86, bio: "Meia argentino elegante do Athletico Paranaense — categoria e passe que renderam a ida ao Porto de Mourinho." },
+  { name: "Lucho González", club: "Athletico-PR", year: 2019, fame: 3, lo: 78, hi: 86, bio: "\u0022El Comandante\u0022 — meia argentino que chegou veterano (já tinha passado pelo Porto) e virou lenda do Athletico Paranaense, bicampeão da Sul-Americana (2018 e 2021)." },
 ]
 const NOVOS_BR3_LAT: C[] = [
   { name: "Roger Machado", club: "Grêmio", year: 1996, fame: 3, lo: 74, hi: 84, bio: "Lateral-esquerdo raçudo dos anos 90 — 10 anos de Grêmio e 6 títulos (Libertadores 95, Brasileirão 96, 3 Copas do Brasil), hoje um dos maiores ídolos tricolores. Antes de virar treinador, foi decisivo em campo." },
@@ -1285,16 +1285,16 @@ const NOVOS_BR3_ATA: C[] = [
   { name: "Beto Acosta", club: "Náutico", year: 2007, fame: 3, lo: 76, hi: 85, bio: "Centroavante uruguaio artilheiro — vice-artilheiro do Brasileirão de 2007 pelo Náutico, um dos maiores ídolos recentes dos Aflitos." },
 ]
 const NOVOS_BR2_ATA: C[] = [
-  { name: "Gabriel Pec", club: "Vasco", year: 2022, fame: 2, lo: 68, hi: 83, bio: "Ponta-atacante de velocidade e faro de gol — xodó recente de São Januário antes de rumar aos Estados Unidos." },
-  { name: "Lingard", club: "Corinthians", year: 2023, fame: 1, lo: 56, hi: 76, bio: "Meia-atacante inglês, ex-Manchester United — passagem curta e badalada pelo Corinthians." },
-  { name: "Elkeson", club: "Botafogo", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Centroavante de faro de gol revelado no Botafogo — foi pra China, virou ídolo e até defendeu a seleção chinesa." },
+  { name: "Gabriel Pec", club: "Vasco", year: 2023, fame: 2, lo: 68, hi: 83, bio: "Ponta-atacante de velocidade e faro de gol — xodó recente de São Januário antes de rumar aos Estados Unidos." },
+  { name: "Lingard", club: "Corinthians", year: 2026, fame: 1, lo: 56, hi: 76, bio: "Meia-atacante inglês, ex-Manchester United — chegada badalada e de graça ao Corinthians." },
+  { name: "Elkeson", club: "Botafogo", year: 2012, fame: 2, lo: 64, hi: 80, bio: "Centroavante de faro de gol revelado no Vitória e estourado no Botafogo — foi pra China, virou ídolo e até defendeu a seleção chinesa." },
   { name: "Rafael Borré", club: "Internacional", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Centroavante colombiano de finalização e faro de área — reforço de peso pro ataque do Internacional." },
   { name: "Dirceu Lopes", club: "Cruzeiro", year: 1976, fame: 5, lo: 88, hi: 94, bio: "Craque do \u0022Cruzeiro Show de Bola\u0022 — categoria e passe que fizeram dele um dos maiores ídolos da história celeste, campeão da Libertadores de 1976." },
   { name: "Nikão", club: "Athletico-PR", year: 2019, fame: 3, lo: 76, hi: 85, bio: "Ponta-canhota de categoria — ídolo do Athletico Paranaense campeão da Sul-Americana e Recopa." },
-  { name: "Marcelo Cirino", club: "Athletico-PR", year: 2015, fame: 1, lo: 54, hi: 74, bio: "Atacante andarilho que passou pelo Athletico Paranaense — carreira de muitas malas, sempre em busca de espaço." },
+  { name: "Marcelo Cirino", club: "Athletico-PR", year: 2019, fame: 2, lo: 62, hi: 80, bio: "Atacante cria da base do Athletico Paranaense — marcou o gol decisivo do título da Copa do Brasil de 2019, depois de rodar em empréstimos por Vitória, Flamengo e Internacional." },
   { name: "Jesé Rodríguez", club: "Coritiba", year: 2022, fame: 1, lo: 48, hi: 66, bio: "Ex-joia do Real Madrid e do PSG — chegou badalado ao Coritiba mas o auge já tinha ficado pra trás. Passagem que virou piada." },
-  { name: "Alex Alves", club: "Cruzeiro", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Centroavante goleador e andarilho — passou pelo Cruzeiro deixando faro de gol por onde jogou." },
-  { name: "Osvaldo", club: "Ceará", year: 2019, fame: 2, lo: 64, hi: 80, bio: "Centroavante de área — passagem de bons números artilheiros pelo Ceará." },
+  { name: "Alex Alves", club: "Cruzeiro", year: 1999, fame: 3, lo: 74, hi: 84, bio: "\u0022Capoeira\u0022 — centroavante artilheiro do Cruzeiro, comemorava os gols com golpes de capoeira. Artilheiro do time no Brasileirão de 1999, foi vendido pro Hertha Berlin por US$ 7 milhões." },
+  { name: "Osvaldo", club: "Ceará", year: 2011, fame: 2, lo: 64, hi: 80, bio: "Centroavante de área — campeão cearense de 2011 pelo Ceará, antes do bom momento que rendeu a convocação pra Seleção jogando pelo São Paulo." },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA] }
 
