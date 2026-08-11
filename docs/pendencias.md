@@ -17,9 +17,13 @@ Plano em 3 passos revertíveis:
   `ChatMsg` ganharam `fromId` (crachá); `sendChat`/`emote` usam `myMgrIdRef`
   (âncora estável, movida pra cima no provider) pra achar "meu técnico" mesmo se
   a cadeira deslizou; `FloatingEmotes` resolve o autor por crachá (fallback índice).
-- ⏳ **Passo 3**: host que sai passa a coroa de forma determinística (inclusive na
-  carreira) e conserta o host fantasma; próximo jogo não começa embaralhado.
-Futebol não é tocado; cada passo é commit isolado.
+- ✅ **Passo 3 (feito)**: eleição de host DETERMINÍSTICA no vigia do host
+  (store.tsx ~6289). Quando o `host_id` aponta pra alguém fora da presença (host
+  fantasma: fechou app/caiu/saiu sem passar coroa — rápido E carreira), os
+  presentes elegem o MENOR uid presente → exatamente um assume, grava host_id e
+  vira autoritativo; ganha o aviso "você virou host". Sem sorteio, sem dois hosts.
+Futebol não foi tocado; cada passo é commit isolado e revertível.
+CONSERTO COMPLETO (3 passos no ar). Falta o Diego testar em sala real com amigos.
 
 ## 🔴⚫🌿 KITS: Murriz FC + Império Samambaia (batismo) (10/08) ✅ NO AR
 Dois batismos novos publicados juntos:

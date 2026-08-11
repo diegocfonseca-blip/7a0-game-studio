@@ -6286,7 +6286,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
             const st = stateRef.current
             if (!st.roomId || st.isHost) return
             const { data: r } = await supabase.from('game_rooms').select('host_id').eq('id', st.roomId).maybeSingle()
-            if (r?.host_id === uid && !stateRef.current.isHost) rawDispatch({ type: 'BECOME_HOST' })
+            const hostId = (r as { host_id?: string } | null)?.host_id
+            // (1) a posse já é MINHA no banco (handoff explícito ou eu era o dono) → assumo.
+            if (hostId === uid) { if (!stateRef.current.isHost) rawDispatch({ type: 'BECOME_HOST' }); return }
+            // (2) 👻 HOST FANTASMA: o host_id aponta pra alguém que NÃO está mais na
+            // sala (fechou o app / caiu / saiu sem passar a coroa — o bug do Diego
+            // 11/08). Elejo um novo host DETERMINÍSTICO: o MENOR uid presente vira
+            // host. Todo aparelho calcula o mesmo vencedor → exatamente UM assume
+            // (sem sorteio, sem dois hosts). O vencedor grava o host_id e vira
+            // autoritativo; os outros recebem o estado dele e o "host caiu" some.
+            const present = (stateRef.current.presenceUids ?? []).filter((u2): u2 is string => !!u2)
+            const hostPresente = !!hostId && present.includes(hostId)
+            if (!hostPresente && present.length > 0 && [...present].sort()[0] === uid) {
+              try { await supabase.from('game_rooms').update({ host_id: uid }).eq('id', st.roomId) } catch { /* best effort */ }
+              if (!stateRef.current.isHost) { rawDispatch({ type: 'BECOME_HOST' }); setBecameHost(true) } // aviso "você virou host"
+            }
           } catch { /* segue pedindo estado; a próxima volta tenta de novo */ }
         })()
       }
