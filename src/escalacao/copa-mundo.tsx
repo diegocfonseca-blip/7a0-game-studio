@@ -15,7 +15,7 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // placar AO VIVO oficial (relógio 0→90', GOOOL, bump) + pênaltis com suspense —
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
-import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal, copaSideColor, _inkFor, CopaHalves, copaCenterChip, type CopaFill } from './pyramidseason'
+import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill } from './pyramidseason'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
 import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt } from './screens'
@@ -213,22 +213,23 @@ function MiniLive({ nmH, nmA, hPais, aPais, ev, min, bold }: { nmH: string; nmA:
   const justScored = !done && lastGoalMin >= 0 && min - lastGoalMin <= 1
   const barPct = Math.max(0, Math.min(100, Math.round((min / 90) * 100)))
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${justScored ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, padding: '5px 8px', margin: '5px 0' }}>
-      <CopaHalves fL={fH} fR={fA} />
-      {justScored && (
-        <>
-          <style>{'@keyframes cmGoalFlash{0%{opacity:1}100%{opacity:0}}'}</style>
-          <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'radial-gradient(circle, rgba(255,255,255,.4), transparent 70%)', animation: 'cmGoalFlash 1.1s ease', pointerEvents: 'none' }} />
-        </>
-      )}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        {!done && <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.28)', margin: '0 0 4px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${barPct}%`, background: 'rgba(255,255,255,.85)' }} /></div>}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, fontSize: 11, fontWeight: bold ? 900 : 700 }}>
-          <span style={{ color: fH.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nmH}</span>
-          <span style={{ ...copaCenterChip, fontWeight: 900, fontSize: 11, flex: 'none' }}>{gh}×{ga}</span>
-          <span style={{ color: fA.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{nmA}</span>
-        </div>
-        <p style={{ textAlign: 'center', margin: '3px 0 0' }}>
+    <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${justScored ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, margin: '5px 0' }}>
+      {/* 🎨 faixa branca no meio com o placar (Diego 11/08) — mesmo padrão das
+          outras 2 copas: cor cheia só nas laterais, placar em cima do branco. */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'stretch', overflow: 'hidden', borderTopLeftRadius: 9, borderTopRightRadius: 9 }}>
+        <div style={{ flex: 1, minWidth: 0, background: fH.bg, color: fH.ink, padding: '5px 8px', display: 'flex', alignItems: 'center', fontSize: 11, fontWeight: bold ? 900 : 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nmH}</div>
+        <div style={{ flex: 'none', background: '#fff', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px 9px', fontWeight: 900, fontSize: 12 }}>{gh}×{ga}</div>
+        <div style={{ flex: 1, minWidth: 0, background: fA.bg, color: fA.ink, padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontSize: 11, fontWeight: bold ? 900 : 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{nmA}</div>
+        {justScored && (
+          <>
+            <style>{'@keyframes cmGoalFlash{0%{opacity:1}100%{opacity:0}}'}</style>
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, rgba(255,255,255,.5), transparent 70%)', animation: 'cmGoalFlash 1.1s ease', pointerEvents: 'none' }} />
+          </>
+        )}
+      </div>
+      <div style={{ padding: '4px 8px 5px' }}>
+        {!done && <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.15)', margin: '0 0 4px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${barPct}%`, background: GOLD }} /></div>}
+        <p style={{ textAlign: 'center', margin: 0 }}>
           <span style={{ ...copaCenterChip, fontWeight: 900, fontSize: 9, color: done ? '#8ff0a8' : justScored ? '#FFD778' : '#ff9a8f' }}>
             {done ? 'FIM' : justScored ? '⚽ GOOOL agora!' : `🔴 ${Math.min(90, min)}'`}
           </span>
@@ -704,13 +705,20 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
     const fH = { bg: paisColor(entrants[t.h].pais), ink: _inkFor(paisColor(entrants[t.h].pais)), holo: 0, mark: '' } as CopaFill
     const fA = { bg: paisColor(entrants[t.a].pais), ink: _inkFor(paisColor(entrants[t.a].pais)), holo: 0, mark: '' } as CopaFill
     return (
-      <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, padding: '5px 8px', margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
-        <CopaHalves fL={fH} fR={fA} />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          {winDelay > 0 && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
-          <span style={{ color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,.45)' }}>{nm(t.h)} {t.g1![0]}×{t.g1![1]} {nm(t.a)}</span>
-          {showVolta && <span style={{ display: 'block', color: 'rgba(255,255,255,.85)', textShadow: '0 1px 2px rgba(0,0,0,.45)' }}>volta: {t.g2![0]}×{t.g2![1]}<span style={winDelay > 0 ? { opacity: 0, animation: `cmWinPop .35s ease ${winDelay.toFixed(2)}s forwards` } : undefined}>{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: '#8ff0a8' }}>{nm(t.winner!)} avança</b></span></span>}
+      <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
+        {/* 🎨 faixa branca no meio com o placar (Diego 11/08) — mesmo padrão das
+            outras 2 copas: cor cheia só nas laterais, placar em cima do branco. */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'stretch', overflow: 'hidden', borderTopLeftRadius: 9, borderTopRightRadius: 9 }}>
+          <div style={{ flex: 1, minWidth: 0, background: fH.bg, color: fH.ink, padding: '5px 8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(t.h)}</div>
+          <div style={{ flex: 'none', background: '#fff', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px 9px', fontWeight: 900 }}>{t.g1![0]}×{t.g1![1]}</div>
+          <div style={{ flex: 1, minWidth: 0, background: fA.bg, color: fA.ink, padding: '5px 8px', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(t.a)}</div>
         </div>
+        {showVolta && (
+          <div style={{ padding: '3px 8px 5px', textAlign: 'center', color: INK }}>
+            {winDelay > 0 && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
+            volta: {t.g2![0]}×{t.g2![1]}<span style={winDelay > 0 ? { opacity: 0, animation: `cmWinPop .35s ease ${winDelay.toFixed(2)}s forwards` } : undefined}>{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: '#1B7A3D' }}>{nm(t.winner!)} avança</b></span>
+          </div>
+        )}
       </div>
     )
   }

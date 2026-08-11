@@ -67,12 +67,6 @@ function copaFill(kind: 'you' | 'human' | 'bot', name: string): CopaFill {
   const hex = copaSideColor(name)
   return { bg: hex, ink: _inkFor(hex), holo: 0 }
 }
-const CopaHalves = ({ fL, fR }: { fL: CopaFill; fR: CopaFill }) => (
-  <div style={{ position: 'absolute', inset: 0, display: 'flex', zIndex: 0 }}>
-    <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: fL.bg }}>{fL.holo > 0 && <ApoioSheen holo={fL.holo} />}</div>
-    <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: fR.bg }}>{fR.holo > 0 && <ApoioSheen holo={fR.holo} />}</div>
-  </div>
-)
 const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', borderRadius: 7, padding: '1px 7px', color: '#fff' }
 const GREEN = '#1B7A3D'
 const RED = '#E8503A'
@@ -4086,35 +4080,38 @@ export function EscSeason() {
           const justScored = live && lastGoalMin >= 0 && copaMin - lastGoalMin <= 1
           const barPct = Math.max(0, Math.min(100, Math.round((copaMin / 90) * 100)))
           return (
-            <Box key={`${tie.aId}-${tie.bId}`} bg="transparent" style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : undefined }} className="p-3" shadow={4}>
-              <CopaHalves fL={fA} fR={fB} />
-              {justScored && (
-                <>
-                  <style>{'@keyframes qcGoalFlash{0%{opacity:1}100%{opacity:0}}'}</style>
-                  <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'radial-gradient(circle, rgba(255,255,255,.4), transparent 70%)', animation: 'qcGoalFlash 1.1s ease', pointerEvents: 'none' }} />
-                </>
-              )}
-              <div style={{ position: 'relative', zIndex: 1 }}>
+            <Box key={`${tie.aId}-${tie.bId}`} bg="transparent" style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : undefined }} shadow={4}>
+              {/* 🎨 faixa branca no meio com o placar (Diego 11/08) — cor cheia só nas
+                  laterais (nome+escudo), placar em cima do branco, igual ao card do
+                  próprio jogo dele (fundo colorido/branco/colorido). */}
+              <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch', overflow: 'hidden', borderTopLeftRadius: 13, borderTopRightRadius: 13 }}>
+                <div style={{ position: 'relative', overflow: 'hidden', background: fA.bg, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, padding: '8px 9px' }}>
+                  {fA.holo > 0 && <ApoioSheen holo={fA.holo} />}
+                  <span style={{ flex: 'none', ...loserStyle(!aWin) }}><Escudo nome={tie.aName} size={18} /></span>
+                  <span className="font-black text-sm truncate" style={{ ...OSWALD, color: fA.ink, ...loserStyle(!aWin) }}>{tie.aName}{nameTag(tie.aId)}</span>
+                </div>
+                <div style={{ background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 11px', gap: 1 }}>
+                  {live && <span className="text-[9px] font-black" style={{ color: '#C2452F' }}>●{minLabel}</span>}
+                  <span className="font-black text-lg" style={{ ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{showA} × {showB}</span>
+                </div>
+                <div style={{ position: 'relative', overflow: 'hidden', background: fB.bg, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, justifyContent: 'flex-end', padding: '8px 9px' }}>
+                  {fB.holo > 0 && <ApoioSheen holo={fB.holo} />}
+                  <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: fB.ink, ...loserStyle(aWin) }}>{tie.bName}{nameTag(tie.bId)}</span>
+                  <span style={{ flex: 'none', ...loserStyle(aWin) }}><Escudo nome={tie.bName} size={18} /></span>
+                </div>
+                {justScored && (
+                  <>
+                    <style>{'@keyframes qcGoalFlash{0%{opacity:1}100%{opacity:0}}'}</style>
+                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, rgba(255,255,255,.5), transparent 70%)', animation: 'qcGoalFlash 1.1s ease', pointerEvents: 'none' }} />
+                  </>
+                )}
+              </div>
+              <div style={{ padding: '6px 10px 9px' }}>
                 {live && (
-                  <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.28)', margin: '0 1px 6px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${barPct}%`, background: 'rgba(255,255,255,.85)' }} />
+                  <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.15)', margin: '0 1px 6px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${barPct}%`, background: GOLD }} />
                   </div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-                  {/* 🛡️ escudo (gerado do nome) nos confrontos da Copa, igual ao placar grande */}
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
-                    <span style={{ flex: 'none', ...loserStyle(!aWin) }}><Escudo nome={tie.aName} size={18} /></span>
-                    <span className="font-black text-sm truncate" style={{ ...OSWALD, color: fA.ink, ...loserStyle(!aWin) }}>{tie.aName}{nameTag(tie.aId)}</span>
-                  </span>
-                  <span className="font-black text-sm px-2 py-0.5 rounded inline-flex items-center gap-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>
-                    {live && <span className="text-[9px] font-black" style={{ color: '#F87168' }}>●{minLabel}</span>}
-                    {showA} × {showB}
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, justifyContent: 'flex-end' }}>
-                    <span className="font-black text-sm truncate text-right" style={{ ...OSWALD, color: fB.ink, ...loserStyle(aWin) }}>{tie.bName}{nameTag(tie.bId)}</span>
-                    <span style={{ flex: 'none', ...loserStyle(aWin) }}><Escudo nome={tie.bName} size={18} /></span>
-                  </span>
-                </div>
                 {justScored && <p className="text-center mt-1"><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 900, color: '#FFD778' }}>⚽ GOOOL agora!</span></p>}
                 {settled && nLegs > 0 && (
                   <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
