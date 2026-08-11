@@ -1,5 +1,19 @@
 # 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
 
+## 🦍🦂 BATISMO: Scorporila FC (lucassrribeiroo2023) — kit visual (11/08)
+Escudo + mascote + manto do batismo (ex-Realeza FC, Série A). O Diego rejeitou
+várias tentativas SVG e TAMBÉM a imagem do Gemini (pesada: PNG cru ~275KB; webp
+otimizado ~30KB, mas ele preferiu vetor). Decisão FINAL **aprovada**: SVG leve
+estilo Nightfull. Gorila RUGINDO (silverback preto + máscara facial cinza) fundido
+com ESCORPIÃO (cauda dourada segmentada + ferrão vermelho + pinças), sobre listras
+P&B do Santos. Coração: Santos → manto branco com listras pretas (verticais).
+- ✅ `escudos.tsx`: `LOGOS_PRONTAS['Scorporila FC']` (versão detalhada + MINI pra tabela).
+- ✅ `mascotes.tsx`: `MASCOTES.scorporila` (corpo inteiro, aparece no festão).
+- ✅ `data.ts` (OLD_NAME + CPU_MANAGERS) e `apoio.tsx` (ouro/Lenda) — já feitos por outra sessão.
+- ⏳ FALTA: DB `esc_socios` do lucassrribeiroo2023 (escudo_time='Scorporila FC',
+  mascote_key='scorporila', manto_c1='#FFFFFF' manto_c2='#0C0C0C', time_coracao='Santos').
+- Reversível: `git revert` do commit + 1 UPDATE no banco. Futebol intocado.
+
 ## 💰 CARREIRA: reforma da economia (11/08) ✅ NO AR
 Simulação até T140 mostrou que subir/competir levava ao vermelho (folha > renda de
 meio de tabela da Série C pra cima). Ajustes aprovados pelo Diego (valores dele) e
