@@ -3495,3 +3495,22 @@ quando chegar lá (ele já tem carreiras avançadas, deve ser em breve).
 Se aparecer alguma seleção nova no futuro, falta adicionar a cor dela em
 `PAIS_COLORS` (cai no fallback do hash automático, só não vai ser a cor
 real até alguém completar).
+
+## 🎯 Disputa de pênaltis mais chamativa (11/08) ✅ NO AR
+Retomando a pendência anotada acima. Mostrei 6 ideias em 2 mockups pro
+Diego, ele escolheu 3 ("4-5-6"): implementadas em `PensShootout`
+(`pyramidseason.tsx`), componente ÚNICO reusado pelas 3 copas do jogo
+(Copa dos 8, Copa Legends, Copa do Mundo — mexeu 1 vez, valeu nas 3):
+- **Morte súbita** ganha caixa vermelha com textura listrada + título em
+  destaque (antes era só um texto pequeno "· MORTE SÚBITA" no cabeçalho).
+- **Confete + tremidinha** no instante exato que o resultado final
+  aparece (mesmo timing de antes — não adianta nem atrasa nada).
+- **Telão final**: o placar vira uma caixa preta/dourada com um quadrado
+  da cor de cada time dos lados (na Copa do Mundo é a cor REAL do país,
+  via `PAIS_COLORS`; nas outras copas é a cor já sorteada do time —
+  passado por um novo prop opcional `colorOf` no `PensShootout`).
+Ideias NÃO escolhidas (1: ⚽/🧤 em vez de ✓/✕; 2: pausa de suspense na
+cobrança decisiva; 3: bolinha de cada cobrança com a cor do time) ficam
+guardadas caso o Diego queira depois — não implementadas.
+Build ok, no ar em `main`. Revertível (1 commit:
+`git revert 235160f` no main / `f076855` na branch de trabalho).
