@@ -52,8 +52,9 @@ const CREAM = '#F4ECD6'
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 // 🎨 COR SÓLIDA de cada lado do placar da Copa dos 8 (estilo Brasfoot). VOCÊ = cor
-// do seu TIER (com brilho); amigo (online) = cor fixa viva; BOT = mesma paleta porém
-// APAGADA (dois bots se distinguem pelo matiz). Paleta FORA das cores de tier.
+// do seu TIER (com brilho); amigo (online) = cor fixa viva; BOT = cor viva própria
+// também (Diego 11/08: era apagada/cinza e ficava tudo parecido — agora cada bot
+// puxa a MESMA paleta, só sem brilho de tier). Paleta FORA das cores de tier.
 const COPA_SIDE_COLORS = ['#C2452F', '#2E6FC2', '#123A63', '#B5541F', '#9C1F2E', '#0E7C86', '#3A5A8A', '#7A3E2A', '#8A3560', '#B0491F', '#155E73', '#963D2E']
 const copaSideColor = (name: string): string => { let h = 0; for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) >>> 0; return COPA_SIDE_COLORS[h % COPA_SIDE_COLORS.length] }
 type CopaFill = { bg: string; ink: string; holo: number }
@@ -62,10 +63,8 @@ const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return 
 const TIER_INK: Record<string, string> = { bege: '#0c0c0c', verde: '#ffffff', roxo: '#ffffff', prata: '#0c0c0c', ouro: '#0c0c0c' }
 function copaFill(kind: 'you' | 'human' | 'bot', name: string): CopaFill {
   if (kind === 'you') { const p = myApoioPerk() ?? APOIO_PERKS.bege; return { bg: p.grad, ink: TIER_INK[p.tier], holo: p.holo } }
-  const hex = copaSideColor(name), n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
-  if (kind === 'human') return { bg: hex, ink: _inkFor(hex), holo: 0 }
-  const mx = (v: number) => Math.round(v * 0.4 + 170 * 0.6), mr = mx(r), mg = mx(g), mb = mx(b) // bot: dessaturado
-  return { bg: `rgb(${mr},${mg},${mb})`, ink: _lum(mr, mg, mb) > 150 ? '#0c0c0c' : '#ffffff', holo: 0 }
+  const hex = copaSideColor(name)
+  return { bg: hex, ink: _inkFor(hex), holo: 0 }
 }
 const CopaHalves = ({ fL, fR }: { fL: CopaFill; fR: CopaFill }) => (
   <div style={{ position: 'absolute', inset: 0, display: 'flex', zIndex: 0 }}>
@@ -4057,14 +4056,15 @@ export function EscSeason() {
           const clockDone = copaMin >= 93
           // placar AO VIVO: pernas já fechadas + a perna atual progredindo no relógio.
           let showA = fullAggA, showB = fullAggB
+          let minsA: number[] = [], minsB: number[] = []
           if (!clockDone && nLegs > 0) {
             const doneA = tie.legs.slice(0, nLegs - 1).reduce((s2, l) => s2 + l[0], 0)
             const doneB = tie.legs.slice(0, nLegs - 1).reduce((s2, l) => s2 + l[1], 0)
             const [curA, curB] = tie.legs[nLegs - 1]
             // meu jogo tem highlights reais (fica igual ao card grande); CPU usa sintético
             const useHl = (tie.lastHighlights?.length ?? 0) > 0
-            const minsA = useHl ? tie.lastHighlights!.filter(h => h.teamId === tie.aId).map(h => h.min).sort((a, b) => a - b) : synthMins(curA, tie.aId * 31 + tie.bId + nLegs)
-            const minsB = useHl ? tie.lastHighlights!.filter(h => h.teamId === tie.bId).map(h => h.min).sort((a, b) => a - b) : synthMins(curB, tie.aId * 31 + tie.bId + nLegs + 7)
+            minsA = useHl ? tie.lastHighlights!.filter(h => h.teamId === tie.aId).map(h => h.min).sort((a, b) => a - b) : synthMins(curA, tie.aId * 31 + tie.bId + nLegs)
+            minsB = useHl ? tie.lastHighlights!.filter(h => h.teamId === tie.bId).map(h => h.min).sort((a, b) => a - b) : synthMins(curB, tie.aId * 31 + tie.bId + nLegs + 7)
             showA = doneA + minsA.filter(m => m <= copaMin).length
             showB = doneB + minsB.filter(m => m <= copaMin).length
           }
@@ -4077,10 +4077,27 @@ export function EscSeason() {
           const live = !clockDone && nLegs > 0
           const kindOf = (id: number): 'you' | 'human' | 'bot' => id === you.id ? 'you' : state.managers.some(m => m.id === id && m.isHuman) ? 'human' : 'bot'
           const fA = copaFill(kindOf(tie.aId), tie.aName), fB = copaFill(kindOf(tie.bId), tie.bName)
+          // ⚡ "acabou de fazer gol": olha só pra minuto JÁ revelado no placar (<=
+          // copaMin) — nunca antecipa nada, é só destaque visual de algo que o
+          // placar já mostrou. Janela de 1' (mesmo passo do relógio da Copa).
+          const lastGoalMin = live ? Math.max(-1, ...minsA.filter(m => m <= copaMin), ...minsB.filter(m => m <= copaMin)) : -1
+          const justScored = live && lastGoalMin >= 0 && copaMin - lastGoalMin <= 1
+          const barPct = Math.max(0, Math.min(100, Math.round((copaMin / 90) * 100)))
           return (
-            <Box key={`${tie.aId}-${tie.bId}`} bg="transparent" style={{ position: 'relative', overflow: 'hidden', borderColor: mine ? '#B23B2E' : undefined }} className="p-3" shadow={4}>
+            <Box key={`${tie.aId}-${tie.bId}`} bg="transparent" style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : undefined }} className="p-3" shadow={4}>
               <CopaHalves fL={fA} fR={fB} />
+              {justScored && (
+                <>
+                  <style>{'@keyframes qcGoalFlash{0%{opacity:1}100%{opacity:0}}'}</style>
+                  <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'radial-gradient(circle, rgba(255,255,255,.4), transparent 70%)', animation: 'qcGoalFlash 1.1s ease', pointerEvents: 'none' }} />
+                </>
+              )}
               <div style={{ position: 'relative', zIndex: 1 }}>
+                {live && (
+                  <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.28)', margin: '0 1px 6px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${barPct}%`, background: 'rgba(255,255,255,.85)' }} />
+                  </div>
+                )}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
                   {/* 🛡️ escudo (gerado do nome) nos confrontos da Copa, igual ao placar grande */}
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
@@ -4096,6 +4113,7 @@ export function EscSeason() {
                     <span style={{ flex: 'none', ...loserStyle(aWin) }}><Escudo nome={tie.bName} size={18} /></span>
                   </span>
                 </div>
+                {justScored && <p className="text-center mt-1"><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 900, color: '#FFD778' }}>⚽ GOOOL agora!</span></p>}
                 {settled && nLegs > 0 && (
                   <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
                 )}
@@ -4169,7 +4187,7 @@ export function EscSeason() {
             {qc.ties.length > 0 && (
               <div>
                 <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">Todos os jogos da fase</p>
-                <div className="space-y-2">{qc.ties.map(t => tieRow(t))}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>{qc.ties.map(t => tieRow(t))}</div>
               </div>
             )}
           </>
