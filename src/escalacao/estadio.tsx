@@ -439,7 +439,18 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
 
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>🧱 Arquibancadas — investe aos poucos</p>
       {STADIUM_SECTORS.map(s => {
-        const p = sectorPct(st, s.k), full = p >= 100, poor = coins < STADIUM_STEP
+        const p = sectorPct(st, s.k), full = p >= 100
+        // 🐛 CORRIGIDO (relato de jogador, 12/08): Cadeiras (90) e Camarote (150)
+        // não são múltiplos de 20 — o ÚLTIMO clique já cobrava só o restante
+        // (o reducer sempre fez `Math.min(STADIUM_STEP, custo - investido)`,
+        // nunca cobrou 1 moeda a mais que o "custo total"), mas o BOTÃO sempre
+        // dizia "+20" mesmo quando ia cobrar menos — parecia que o total ia
+        // estourar o custo informado, gerando essa dúvida. Agora o botão mostra
+        // o valor REAL do próximo clique, e a trava de "sem grana" usa esse
+        // valor (senão travava um clique final barato só por ter menos de 20).
+        const investedRaw = st?.inv[s.k] ?? 0
+        const stepPay = Math.min(STADIUM_STEP, Math.max(0, s.cost - investedRaw))
+        const poor = coins < stepPay
         return (
           <div key={s.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -454,7 +465,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
             </div>
             <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
-              {full ? '✅ pronto' : <>Investir<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{STADIUM_STEP} 💰</span></>}
+              {full ? '✅ pronto' : <>Investir<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{stepPay} 💰</span></>}
             </button>
           </div>
         )
