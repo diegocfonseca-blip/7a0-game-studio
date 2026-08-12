@@ -380,6 +380,49 @@ export function torcidaDeltas(tables: Record<Div, SimTeam[]>, newPlacements: Rec
   })
   return out
 }
+// 🎪 BÔNUS DE MOEDAS DO TORCIDÔMETRO (Diego 12/08): torcida ALTA no fim da
+// temporada (já somado o delta desta temporada) paga um extra por cima —
+// NUNCA desconta nada (torcida baixa = bônus 0, não punição). Entra
+// misturado no mesmo balde de "Prêmios da temporada" no extrato (reusa o
+// caminho já testado de `rewards`; dar uma linha própria no extrato exigiria
+// mexer na contabilidade de fechamento de temporada, que é código sensível
+// — deixado pra depois se o Diego quiser).
+function torcidaBonusByPct(pct: number): number {
+  if (pct >= 80) return 15 // 🤩
+  if (pct >= 55) return 8  // 😊
+  return 0                 // 😐 ou 😢: sem bônus, mas também sem desconto
+}
+// 🎪 HISTÓRICO SUTIL (Diego 12/08, mockado e aprovado em mockup-torcidometro-v3):
+// 1-2 chips por temporada pra explicar o PORQUÊ a torcida mudou (a mesma conta
+// de torcidaDeltas, só que separada em pedaços pra virar texto pequeno embaixo
+// da barra: "+5 · 3º lugar", "+5 · subiu de divisão"...).
+export function torcidaHistEntries(tables: Record<Div, SimTeam[]>, newPlacements: Record<string, string>): Record<string, { delta: number; motivo: string }[]> {
+  const out: Record<string, { delta: number; motivo: string }[]> = {}
+  for (const d of DIVS) tables[d].forEach((t, i) => {
+    if (!t.human) return
+    const key = teamKey(t)
+    const pos = i + 1
+    const entries: { delta: number; motivo: string }[] = [{ delta: torcidaDeltaByPos(pos), motivo: `${pos}º lugar` }]
+    const nd = newPlacements[key] as Div | undefined
+    if (nd && nd !== d) {
+      const subiu = DIV_RANK[nd] > DIV_RANK[d]
+      entries.push({ delta: subiu ? 5 : -5, motivo: subiu ? 'subiu de divisão' : 'caiu de divisão' })
+    }
+    out[key] = entries
+  })
+  return out
+}
+export function torcidaBonusRewards(careerTorcida: Record<string, number> | undefined, deltas: Record<string, number>, tables: Record<Div, SimTeam[]>): Record<number, number> {
+  const out: Record<number, number> = {}
+  for (const d of DIVS) tables[d].forEach(t => {
+    if (!t.human || t.teamId < 0) return
+    const key = teamKey(t)
+    const novo = Math.max(0, Math.min(100, (careerTorcida?.[key] ?? 50) + (deltas[key] ?? 0)))
+    const bonus = torcidaBonusByPct(novo)
+    if (bonus > 0) out[t.teamId] = bonus
+  })
+  return out
+}
 
 export interface Goal { name: string; min: number; home: boolean }
 export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[] }
@@ -3511,6 +3554,8 @@ export function PyramidSeasonScreen() {
   }, [round, roundMs])
 
   const torcidaPct = state.careerTorcida?.[`m${youId}`] ?? 50
+  // 🎪 histórico sutil: só os últimos 3 motivos (dos 6 guardados), texto pequeno
+  const torcidaHist = (state.careerTorcidaHist?.[`m${youId}`] ?? []).slice(-3)
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
@@ -3541,6 +3586,13 @@ export function PyramidSeasonScreen() {
             </div>
             <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD }}>{torcidaPct}%</span>
           </div>
+          {/* 🎪 histórico sutil (mockup-torcidometro-v3, aprovado): motivo das
+              últimas mudanças, texto bem discreto — não é destaque, é rodapé. */}
+          {torcidaHist.length > 0 && (
+            <p style={{ padding: '0 14px 12px', margin: 0, marginTop: -8, fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.5)' }}>
+              {torcidaHist.map(h => `${h.delta >= 0 ? '+' : ''}${h.delta} · ${h.motivo}`).join('  ·  ')}
+            </p>
+          )}
           {/* progresso da temporada: trilho ESCURO visível de ponta a ponta (não
               é mais um risquinho solto — lê como barra que está começando) */}
           {!done && <div style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: '100%', background: '#2b2721' }}><div style={{ height: '100%', minWidth: 3, width: `${Math.min(100, Math.round(round / 38 * 100))}%`, background: `linear-gradient(90deg, ${GOLD}, #ffde5c)` }} /></div>}
@@ -3740,7 +3792,8 @@ export function PyramidSeasonScreen() {
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
           const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
           const newPlacements = computePromotions(tables)
-          const args = () => ({ placements: newPlacements, rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcidaDeltas(tables, newPlacements) })
+          const torcDeltas = torcidaDeltas(tables, newPlacements)
+          const args = () => ({ placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcidaBonusRewards(state.careerTorcida, torcDeltas, tables)), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements) })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
