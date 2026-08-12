@@ -3844,19 +3844,34 @@ barra verde/amarelo/vermelho dentro do Extrato, só aparece quando o caixa
 fica negativo, aviso vago ("coisas piores podem acontecer com o time")
 — nunca cita jogador.
 
-**⏳ NÃO implementado ainda (sobrou pra depois):**
-- Bônus de MOEDAS no fim da temporada pela torcida (hoje só mostra o
-  medidor, não paga nada ainda) — o fixo do estádio nunca deve ser
-  tocado, só somar um extra por cima.
-- Histórico sutil embaixo do torcidômetro (tipo "+4 · 3º lugar · +5 ·
-  venceu clássico") — mockado e aprovado, não construído.
-- "Lotação" visual do estádio refletindo o torcidômetro + efeito de dia de
-  chuva sem Camarote reduzindo a lotação daquele jogo específico — só
-  ideia, mockup aprovado, zero código.
-Build ok, no ar em `main` (só a parte 1). Não testado ao vivo (precisa
-fechar uma temporada de verdade pra ver o número mudar) — pedido ao Diego
-pra conferir e avisar se os números da colocação não baterem com o
-esperado.
+**✅ TUDO IMPLEMENTADO (12/08, 3 entregas seguintes no mesmo dia):**
+- **Bônus de moedas** (`torcidaBonusRewards` em `pyramidseason.tsx`): torcida
+  ≥55% no fim da temporada paga +8 🪙, ≥80% paga +15 🪙 — sempre por cima do
+  que o clube já ganha (misturado no mesmo balde de "Prêmios da temporada"
+  do extrato; dar uma linha própria exigiria mexer na contabilidade de
+  fechamento de temporada, código sensível — fica pra depois se o Diego
+  quiser).
+- **Histórico sutil** (`careerTorcidaHist`, `torcidaHistEntries`): chips tipo
+  "+5 · 3º lugar · +5 · subiu de divisão" embaixo da barra, guarda os
+  últimos 6, mostra os últimos 3 — igual ao mockup aprovado.
+- **Lotação + chuva/Camarote** (`StadiumTab` em `estadio.tsx`, props novas
+  `torcidaPct`/`chuvaHoje`): card "Lotação do próximo jogo" logo depois do
+  desenho do estádio (StadiumSvg) e da bilheteria fixa — a lotação segue o
+  torcidômetro; dia de chuva (sorteio determinístico por seed+rodada, ~28%
+  dos jogos, calculado em `pyramidseason.tsx`) derruba a lotação SÓ daquele
+  jogo, a menos que o clube já tenha o Camarote construído. Nunca toca na
+  bilheteria fixa por temporada (isso é outro número, intocado).
+  ⚠️ Mockup mostrado (`mockup-lotacao-chuva.png`) e aprovado pelo Diego
+  ("Já dei ok pode fazer") antes de codar.
+Build ok em cada passo, tudo no ar em `main`. Não testado ao vivo (precisa
+jogar de verdade pra ver o número da torcida mudar, o bônus cair no caixa e
+pegar um dia de chuva) — pedido ao Diego pra conferir.
+
+**🎨 Stories pro Instagram**: 3 imagens 1080x1920 feitas e entregues (não
+fazem parte do jogo, só material de divulgação): torcidômetro sozinho,
+riscômetro com tom de MEDO (ligado ao evento "jogador vai embora"), e uma
+versão "tudo junto" com os 3 recursos numa imagem só (fontes reduzidas pra
+caber). Arquivos ficaram só no scratchpad da sessão (não versionados).
 
 ## 🚨 Crise financeira (Modo Carreira) — parte 2, IMPLEMENTADA (12/08)
 "Pode iniciar" do Diego → construí o EVENTO GRANDE que tava pendente da
