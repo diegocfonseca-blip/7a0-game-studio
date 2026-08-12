@@ -2794,12 +2794,12 @@ function EventoBanner({ ev, reservas, onDecide }: {
 // técnico escolhe quem entra no lugar, de graça: um folclórico livre (filtrado
 // pela posição aberta) ou alguém da base (Cria da Base) — igual ao mockup
 // aprovado, só com o texto do banner corrigido pra soar aviso, não pergunta.
-function CriseBanner({ crise, onResolve }: {
+function CriseBanner({ crise, opcoes, onResolve }: {
   crise: { playerId: string; playerName: string; pos: Sector }
+  opcoes: FolcloricoLivre[] // 🚨 já filtrado por posição E por quem tá LIVRE (não some com ninguém que já joga em algum time) — calculado no componente pai, que tem acesso aos elencos
   onResolve: (choice: 'folclorico' | 'base', folclorico?: FolcloricoLivre) => void
 }) {
   const [tela, setTela] = useState<'banner' | 'folclorico' | 'base'>('banner')
-  const opcoes = useMemo(() => FOLCLORICOS_LIVRES.filter(f => f.pos === crise.pos), [crise.pos])
   if (tela === 'folclorico') {
     return (
       <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
@@ -3283,6 +3283,19 @@ export function PyramidSeasonScreen() {
     dispatch({ type: 'START_CAREER_CRISE', mgrId: youId, barrier: agora, playerId: alvo.id, playerName: alvo.name, pos: alvo.pos })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caixa, soloCareer, state.careerOnline, mgrMe, copaPlaying, seasonOver, eventoPendente, criseAtual, youId, state.careerDebtBarrier])
+  // 🚨 quem já tá jogando em ALGUM time (seu ou não) some da lista — assim não
+  // duplica ninguém, e se você vender/soltar ele depois, volta a aparecer
+  // sozinho (não precisa de contador/flag: é só olhar quem tá livre AGORA).
+  // Se por azar TODOS da posição já estiverem ocupados, mostra todos de novo
+  // (senão a lista ficava vazia e travava o técnico sem opção).
+  const folcOpcoes = useMemo(() => {
+    if (!criseAtual) return []
+    const emUso = new Set<string>()
+    for (const mg of state.managers) for (const c of mg.squad) emUso.add(c.name)
+    const daPos = FOLCLORICOS_LIVRES.filter(f => f.pos === criseAtual.pos)
+    const livres = daPos.filter(f => !emUso.has(f.name))
+    return livres.length ? livres : daPos
+  }, [criseAtual, state.managers])
 
   // artilheiros de TODOS OS TEMPOS (acumulado entre temporadas) — top 20
   const allTimeScorers = useMemo(() => Object.values((state.careerScorersAll ?? {}) as Record<string, SeasonScorer>).sort((a, b) => b.goals - a.goals).slice(0, 20), [state.careerScorersAll])
@@ -3581,7 +3594,7 @@ export function PyramidSeasonScreen() {
             (caixa cruzou uma barreira nova de -500) — trava até o técnico escolher
             quem entra no lugar, de graça. */}
         {criseAtual && (
-          <CriseBanner crise={criseAtual}
+          <CriseBanner crise={criseAtual} opcoes={folcOpcoes}
             onResolve={(choice, folclorico) => dispatch({ type: 'RESOLVE_CAREER_CRISE', mgrId: youId, choice, folclorico })} />
         )}
         {/* 🎭 aviso do suspenso (o porquê + quando volta) — a trava explica sempre */}
