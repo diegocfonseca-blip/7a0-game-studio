@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
 
+## 🎮🐶 BATISMO: Eros FC (erosreis@outlook.com.br / @erosreis) — ✅ NO AR (12/08)
+Batismo do Eros Reis, influencer de games nostálgicos (@erosreis). Time **Eros FC**,
+mascote a cachorrinha **Nina**, manto **vermelho e cinza**. Escudo = arte própria do
+dono (Eros com o videogame retrô). Aprovado pelo Diego 12/08 (mockup padrão v7).
+- ✅ `escudos.tsx`: `erosEscudoRender` (webp `img/eros-escudo.webp`) em `LOGOS_PRONTAS`
+  pros **4 nomes**: 'Eros FC', 'Eros Reis FC', 'Eros Reis', 'Eros' (todos mesmo escudo).
+- ✅ `mascotes.tsx`: `MASCOTES.eros_nina` (webp `img/eros-nina-mascote.webp` — Nina nos
+  cartuchos, controle no peito).
+- ✅ `apoio.tsx`: FOUNDERS ouro + FUNDADOR_N **nº 40**.
+- ✅ DB: `esc_socios` (sócio **nº20**, escudo_time='Eros FC', mascote_key='eros_nina',
+  manto #C2452F/#7C7C7C, origem='batismo') + `esc_nomes_batismo` (os 4 nomes → eros) +
+  `user_colors` tier ouro.
+- ⚠️ NÃO substitui time de CPU (é só reserva de nome + kit do sócio) — Diego não indicou
+  divisão. Se um dia quiser o Eros FC como time na pirâmide, aí entra em `data.ts`.
+- ✅ **Na main (deploy 12/08)** — escudo/mascote/Lenda no ar; DB já estava no ar.
+- Reversível: `git revert` do commit + apagar as linhas do DB.
+
 ## 🎽 CARREIRA: formações novas 3-4-3 e 5-3-2 ✅ NO AR (12/08)
 Aprovado. **Só na carreira, meio de temporada** (o início segue só 4-3-3/4-4-2 — base do
 leilão, `screens.tsx:1875`). Igual o 4-5-1.
