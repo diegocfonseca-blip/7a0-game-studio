@@ -641,6 +641,16 @@ function bestXIids(squad: WonCard[], formation: FormationKey): string[] {
   }
   return out
 }
+// 🧊 XI (ids) de uma rodada r com a MESMA regra da simulação (lineupAt): a última
+// escalação guardada numa rodada <= r; se não houver NENHUMA, o bestXI da formação
+// dada. Serve pra CONGELAR o passado gravando exatamente o que a sim já usou —
+// inclusive quando a pessoa fez uma substituição manual antes (aquela escalação
+// vale "dali pra frente", então tem que ser copiada, não trocada pelo bestXI).
+function frozenXIids(byRound: Record<number, string[]>, r: number, squad: WonCard[], formation: FormationKey): string[] {
+  let bestK = -1, ids: string[] | null = null
+  for (const k in byRound) { const kn = +k; if (kn <= r && kn > bestK) { bestK = kn; ids = byRound[kn] } }
+  return ids ?? bestXIids(squad, formation)
+}
 // FIXA o XI dos HUMANOS pro começo da temporada: quem já era titular continua, e o
 // REFORÇO NOVO vai pro BANCO — só o usuário promove (manual). CPU/rivais seguem no
 // bestXI automático (tudo bem). Vale offline e online. Chamado ANTES do leilão
@@ -4389,7 +4399,27 @@ export function reducer(state: EscState, action: Action): EscState {
         // pirâmide, pra os bots não aparecerem zerados no ranking. Idempotente.
         if (!s.clubCash || Object.keys(s.clubCash).length === 0) s.clubCash = seedClubCash({}, s.careerPlacements)
         const times = action.type === 'PLAY_ROUND' ? 1 : action.count
-        s.round = Math.min(TOTAL_ROUNDS, s.round + times)
+        const nextRound = Math.min(TOTAL_ROUNDS, s.round + times)
+        // 🧊 CONGELA O PASSADO AO JOGAR (solo): grava o XI real de cada humano em
+        // TODA rodada já jogada (0..nextRound-1), com a MESMA regra da simulação. A
+        // temporada nasce da semente e re-simula a cada render; sem isto, as rodadas
+        // sem escalação gravada caíam no bestXI da formação ATUAL — então trocar de
+        // formação/escalação re-atribuía os gols do passado (bug do Diego: "os gols
+        // do Evaristo foram pro Jairzinho"). Gravando o XI aqui, o passado fica
+        // imutável a QUALQUER troca futura. Gravar = capturar o que a tela já mostra
+        // (mesmo XI), então nada muda na hora — só trava. Só solo (online é
+        // host-autoritativo e sincroniza a escalação por outro caminho).
+        if (s.onlineMode !== 'online') {
+          const cl = { ...(s.careerLineup ?? {}) }
+          for (const m of s.managers) {
+            if (!m.isHuman) continue
+            const byR = { ...(cl[m.id] ?? {}) }
+            for (let r = 0; r < nextRound; r++) if (byR[r] == null) byR[r] = frozenXIids(byR, r, m.squad, m.formation)
+            cl[m.id] = byR
+          }
+          s.careerLineup = cl
+        }
+        s.round = nextRound
         // o fim de temporada é tratado na própria tela da pirâmide (não vai pro
         // EscEnd, que usa a liga viva). A rodada capada em 38 encerra a sim.
         return s
@@ -4552,7 +4582,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // da rodada atual em diante — igual a escalação e os eventos já fazem.
       const antiga = m.formation
       const mineCl = { ...((s.careerLineup ?? {})[m.id] ?? {}) }
-      for (let r = 0; r < s.round; r++) if (mineCl[r] == null) mineCl[r] = bestXIids(m.squad, antiga)
+      // congela CADA rodada passada com o XI que a sim REALMENTE usou (respeitando
+      // substituição manual que valia dali pra frente) — não só o bestXI. Antes
+      // sobrescrevia a troca manual pelo bestXI e por isso os gols ainda mudavam.
+      for (let r = 0; r < s.round; r++) if (mineCl[r] == null) mineCl[r] = frozenXIids(mineCl, r, m.squad, antiga)
       m.formation = action.formation
       mineCl[s.round] = bestXIids(m.squad, action.formation)
       s.careerLineup = { ...(s.careerLineup ?? {}), [m.id]: mineCl }

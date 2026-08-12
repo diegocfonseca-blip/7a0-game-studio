@@ -1,4 +1,23 @@
-# 📌 Pendências combinadas com o Diego (atualizado 11/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
+
+## ⚽🧊 BUG "gols mudam ao trocar formação" (VOLTOU — reforço 12/08)
+Relato do Diego (niko.messias/Aracaju Saf, carreira solo): trocou 4-5-1↔4-4-2 e os
+gols dos jogadores mudaram ("os gols do Evaristo foram pro Jairzinho"). Já tinha o
+band-aid de 10/08 (commit 5533e39) mas CONTINUAVA. Causa real: a temporada re-simula
+do seed a cada render; as rodadas SEM escalação gravada caíam no `bestXI` da formação
+ATUAL → trocar formação re-atribuía os gols do passado. O band-aid só congelava no
+CHANGE_FORMATION e, pior, sobrescrevia com `bestXIids` uma SUBSTITUIÇÃO MANUAL que
+valia dali pra frente (buraco do carry-forward). Correção (2 frentes, `store.tsx`):
+1. **Congela CADA rodada AO JOGAR** (`PLAY_ROUND`/`SIM_MANY`, SÓ solo): grava o XI real
+   de cada humano em todas as rodadas já jogadas, com a MESMA regra da simulação
+   (`frozenXIids` = última escalação <= r, senão bestXI). Gravar = capturar o que a
+   tela já mostra (mesmo XI), então NADA muda na hora — só trava o passado pra sempre.
+2. **Band-aid do CHANGE_FORMATION agora é carry-forward aware** (usa `frozenXIids`, não
+   `bestXIids` cru) → não atropela mais a troca manual.
+Verificado: `bestXI`(sim) == `bestXIids`(store) idênticos, até com empate de nível →
+gravar é transparente. Reversível: `git revert`. ⚠️ FALTA: mesmo congelamento no
+ONLINE (por ora só solo, pra não mexer no host-autoritativo sem teste).
+
 
 ## 🛡️ LIÇÃO (11/08): logo do batismo no JORNAL + em carreira antiga
 Diego: "a logo do Império Samambaia não aparece no jornal quando ele joga carreira".
