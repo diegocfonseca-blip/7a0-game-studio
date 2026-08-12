@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import tokaMascoteImg from './img/toka10-mascote.webp'
 import erosNinaImg from './img/eros-nina-mascote.webp'
+import sapekAbelhaImg from './img/sapek-mascote.webp'
 
 const INK = '#0C0C0C'
 
@@ -367,6 +368,12 @@ export const MASCOTES: Record<string, ReactNode> = {
       alt="Tôka10"
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />
+  ),
+  // 🐝👑 a ABELHA COROADA (mascote do Sapekeiros FC — tiosapeka/@tiosapekagg, aprovado
+  // 12/08): abelha/vespa coroada de asas abertas agarrando a bola. Arte própria do dono
+  // (webp, gerada no estilo do escudo, fundo transparente). mascote_key = "sapek_abelha".
+  sapek_abelha: (
+    <img src={sapekAbelhaImg} height={176} width={Math.round(176 * 500 / 424)} alt="Abelha — Sapekeiros FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐶🎮 a NINA (mascote do Eros FC — erosreis/@erosreis, aprovado 12/08): a
   // cachorrinha do dono, de coleira vermelha, sentada na pilha de cartuchos com o

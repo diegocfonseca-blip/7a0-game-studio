@@ -18,6 +18,7 @@
 import type { ReactNode } from 'react'
 import tokaEscudoImg from './img/toka10-escudo.webp'
 import erosEscudoImg from './img/eros-escudo.webp'
+import sapekEscudoImg from './img/sapek-escudo.webp'
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
 const INK = '#0C0C0C'
@@ -409,9 +410,19 @@ const erosEscudoRender = (size: number) => (
   />
 )
 
+// 🐝👑 Sapekeiros FC (batismo do tiosapeka@gmail.com / @tiosapekagg, aprovado pelo
+// Diego 12/08): a logo REAL do clube (abelha coroada com a bola) — arte própria do
+// dono (imagem webp redonda). Vale pros nomes 'Sapekeiros FC' e 'Sapekeiros'.
+const sapekEscudoRender = (size: number) => (
+  <img src={sapekEscudoImg} height={size} width={size} alt="Sapekeiros FC" style={{ flex: 'none', display: 'block', objectFit: 'contain', borderRadius: '50%' }} />
+)
+
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // 🐝👑 Sapekeiros FC (Tio Sapeka) — mesmo escudo pros dois nomes
+  'Sapekeiros FC': sapekEscudoRender,
+  'Sapekeiros': sapekEscudoRender,
   // 🎮🐶 Eros FC + variações reservadas (todas puxam o MESMO escudo)
   'Eros FC': erosEscudoRender,
   'Eros Reis FC': erosEscudoRender,

@@ -1,5 +1,18 @@
 # 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
 
+## 🐝👑 BATISMO: Sapekeiros FC (tiosapeka@gmail.com / @tiosapekagg) — ✅ NO AR (12/08)
+Batismo do Tio Sapeka (Gaming Content Creator / Streamer / UGC Creator, presidente do
+Sapekeiros FC). Coração **Santos**. Logo REAL do clube (abelha coroada com a bola) vira
+escudo; a **abelha coroada** (arte do Gemini no mesmo estilo, recortada) vira mascote.
+- `escudos.tsx`: `sapekEscudoRender` (webp `img/sapek-escudo.webp`, redondo) em
+  `LOGOS_PRONTAS` pros nomes **'Sapekeiros FC'** e **'Sapekeiros'**.
+- `mascotes.tsx`: `MASCOTES.sapek_abelha` (webp `img/sapek-mascote.webp`).
+- `apoio.tsx`: FOUNDERS ouro + FUNDADOR_N **nº 41**.
+- DB: `esc_socios` (sócio **nº21**, escudo_time='Sapekeiros FC', mascote_key='sapek_abelha',
+  manto #0C0C0C/#C9A227 preto+dourado, time_coracao='Santos', origem='batismo') +
+  `esc_nomes_batismo` (sapekeiros fc / sapekeiros) + `user_colors` tier ouro.
+- ⚠️ Reserva de nome + kit (não substitui time de CPU). Reversível: `git revert` + apagar DB.
+
 ## 🔁 CARREIRA: substituição no intervalo — ✅ NO AR (12/08)
 Feature nova SÓ na carreira OFFLINE solo (online intocado). Aprovada pelo Diego 12/08.
 Toggle no Elenco: **Dinâmico** (padrão, como sempre foi) vs **Só no intervalo** (o jogo
