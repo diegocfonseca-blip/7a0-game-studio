@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
 
+## 🎽 CARREIRA: formações novas 3-4-3 e 5-3-2 ✅ NO AR (12/08)
+Aprovado. **Só na carreira, meio de temporada** (o início segue só 4-3-3/4-4-2 — base do
+leilão, `screens.tsx:1875`). Igual o 4-5-1.
+- `types.ts`: FormationKey + FORMATIONS → **3-4-3** (GOL1 LAT2 ZAG1 MEI4 ATA3, ousado) e
+  **5-3-2** (GOL1 LAT2 ZAG3 MEI3 ATA2, muralha). LAT fixo em 2 (igual todas), varia ZAG.
+- `dinastia.tsx`: FORM_NEED ganhou as 2 (senão o Record<FormationKey> quebra o tsc).
+- `pyramidseason.tsx`: seletor do meio de carreira (botões + dica) lista as 5 agora,
+  com flexWrap (3+2). A **trava** que já existe segura: só troca se tem os jogadores
+  REAIS por posição (5-3-2 pede 3 zagueiros; se faltar, botão travado com aviso claro).
+- Força de ataque/defesa sai EMERGENTE do XI (mais ATA = mais ataque; rollForm usa o XI,
+  não a formação) — nada hardcoded, nada a balancear. Reversível: `git revert`.
+- ⏳ PENDENTE combinado: **substituição ao vivo** (toggle no Elenco "só no intervalo" vs
+  "modo dinâmico"; no intervalo troca jogador + formação + tática Retranca/Equilíbrio/
+  Ataque) — desenho aprovado, ainda não codado. E **pênalti interativo** (mockup jogável
+  feito e aprovado a ideia, mas Diego NÃO liberou codar ainda).
+
+
 ## 🦁⚡ BATISMO: Remoçada (luiz.maia.luiz) — Série A ✅ NO AR
 Batismo do luiz.maia.luiz@gmail.com, aprovado 12/08. Time **Remoçada**, coração **Remo**.
 O **Leão Azul do Remo fantasiado de Thor** (elmo alado + Mjölnir), azul-marinho + branco,

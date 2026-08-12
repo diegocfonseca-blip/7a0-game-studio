@@ -165,12 +165,14 @@ export interface EventoManchete { season: number; round: number; emoji: string; 
 // só MEI/ATA mudam. Isso é o que sustenta o plano de rodadas por vaga.
 // 4-3-3 e 4-4-2 são as formações INICIAIS (base do leilão). 4-5-1 é uma troca
 // TÁTICA que o técnico faz na carreira quando tiver 5 meias (nunca no início).
-export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1'
+export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2'
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
   '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
+  '3-4-3': { GOL: 1, LAT: 2, ZAG: 1, MEI: 4, ATA: 3 }, // 🗡️ ousado: 3 na defesa (2 lat + 1 zag), 3 no ataque
+  '5-3-2': { GOL: 1, LAT: 2, ZAG: 3, MEI: 3, ATA: 2 }, // 🧱 muralha: 5 na defesa (2 lat + 3 zag), retranca
 }
 
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
