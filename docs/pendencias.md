@@ -3815,11 +3815,10 @@ time humano, chave `m<id>`, começa em 50): atualiza **1x por temporada**
 (no fim, junto com título/colocação — reaproveita o `tables` que já
 calcula `computePromotions`/`seasonChampions`, função nova
 `torcidaDeltas()` em `pyramidseason.tsx`) pela colocação final:
-- 1º-3º: **+4** · 4º-5º: **+3** · 6º-14º: **0** · 15º: **−3** · 16º-20º:
-  **−4** · subiu/caiu de divisão DE VERDADE: **+5/−5** a mais
-- ⚠️ Diego só confirmou os números de 3º/5º/15º/16º/subida/queda — 1º-2º e
-  4º foram interpolados pro degrau vizinho mais próximo (não confirmado
-  com ele ainda, é só o palpite mais razoável).
+- 1º-4º: **+5** · 5º-6º: **+4** · 7º-14º: **0** · 15º-16º: **−4** ·
+  17º-20º: **−5** · subiu/caiu de divisão DE VERDADE: **+5/−5** a mais
+- ✅ Régua CONFIRMADA pelo Diego (12/08) pra TODOS os 20 lugares — a 1ª
+  versão tinha 3 degraus chutados por mim (1º/2º/4º), corrigido.
 - Aparece no cabeçalho do clube (escudo/nome/dinheiro) — carinha + barra
   + %. **Nunca** perto de jogador/elenco (pedido explícito do Diego).
 
@@ -3837,7 +3836,11 @@ fica negativo, aviso vago ("coisas piores podem acontecer com o time")
 - O EVENTO GRANDE: quando o caixa cruza −500/−1000/−1500... (SÓ dinheiro,
   NÃO torcida — decisão final do Diego), banner do MELHOR jogador do
   elenco anunciando que vai sair ("não jogo em time duro" — ele já avisa,
-  não pergunta). Duas respostas do técnico:
+  não pergunta). ❓ PERGUNTA EM ABERTO pro Diego (perguntei 2x, ainda sem
+  resposta): contas que JÁ ESTÃO fundo no vermelho HOJE — o evento dispara
+  pra elas assim que a feature for ligada, ou só conta dívida NOVA daqui
+  pra frente (quem já tava negativo antes fica de fora dessa primeira
+  rodada)? Decidir antes de construir essa parte. Duas respostas do técnico:
   - "Aqui não tem mercenário" → lista de FOLCLÓRICOS que jogam de graça
     (Mauro Shampoo, Carlos Kaiser, Adriano Gol Contra + outros — filtrados
     pela posição que abriu). Precisa criar esse elenco de conteúdo novo.
