@@ -299,7 +299,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje }: {
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
@@ -324,6 +324,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   loanSlots?: number // 🏢 vagas de empréstimo por lado (cresce com a divisão)
   trimNotice?: number | null // 🏢 quantos voltaram sozinhos na última virada por rebaixamento
   onDismissTrimNotice?: () => void
+  // 🎟️ LOTAÇÃO (Diego 12/08): clima do PRÓXIMO jogo — só visual/sabor, nunca
+  // mexe na bilheteria garantida por temporada (essa é fixa, ver `income`
+  // acima). torcidaPct = base (o torcidômetro do clube); chuvaHoje = sorteio
+  // determinístico do dia (feito na tela-mãe, por seed+rodada). Sem Camarote,
+  // chuva reduz a lotação DESSE jogo; com Camarote, protege.
+  torcidaPct?: number
+  chuvaHoje?: boolean
 }) {
   const [buying, setBuying] = useState(false)
   const [pickOut, setPickOut] = useState(false)
@@ -398,6 +405,37 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '7px 2px 0', lineHeight: 1.35 }}>
           <b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</p>
       </div>
+
+      {/* 🎟️ LOTAÇÃO (Diego 12/08): só clima do próximo jogo — nunca desconta a
+          bilheteria fixa acima. Sem Camarote, chuva esfria o público SÓ desse
+          jogo; com Camarote, protege. */}
+      {torcidaPct != null && (() => {
+        const temCamarote = hasExtra(st, 'camarote')
+        const chuvaAtiva = !!chuvaHoje && !temCamarote
+        const lotacaoPct = chuvaAtiva ? Math.max(20, torcidaPct - 32) : torcidaPct
+        const cor = lotacaoPct >= 55 ? '#1B7A3D' : lotacaoPct >= 30 ? '#E8A200' : '#C2452F'
+        return (
+          <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
+            <div style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: .8, color: 'rgba(0,0,0,.6)', marginBottom: 7, ...OSW }}>🎟️ Lotação do próximo jogo</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 26, lineHeight: 1 }}>{chuvaAtiva ? '🌧️' : chuvaHoje ? '☂️' : '🏟️'}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ height: 10, borderRadius: 6, background: '#e6dcc2', border: `1.5px solid ${INK}`, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${lotacaoPct}%`, background: cor, transition: 'width .35s ease' }} />
+                </div>
+              </div>
+              <span style={{ fontWeight: 900, fontSize: 17, ...OSW }}>{lotacaoPct}%</span>
+            </div>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '7px 0 0', lineHeight: 1.4 }}>
+              {chuvaAtiva
+                ? '🌧️ Chuva hoje — sem cobertura, parte da torcida fica em casa. O Camarote protege o público mesmo na chuva.'
+                : chuvaHoje
+                  ? '☂️ Chuva lá fora, mas o Camarote segura a casa cheia hoje.'
+                  : 'Segue o clima da torcida — nunca mexe na bilheteria garantida por temporada (essa é fixa, ali em cima).'}
+            </p>
+          </div>
+        )
+      })()}
 
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>🧱 Arquibancadas — investe aos poucos</p>
       {STADIUM_SECTORS.map(s => {

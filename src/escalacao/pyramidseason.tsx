@@ -3556,6 +3556,10 @@ export function PyramidSeasonScreen() {
   const torcidaPct = state.careerTorcida?.[`m${youId}`] ?? 50
   // 🎪 histórico sutil: só os últimos 3 motivos (dos 6 guardados), texto pequeno
   const torcidaHist = (state.careerTorcidaHist?.[`m${youId}`] ?? []).slice(-3)
+  // 🌧️ LOTAÇÃO (Diego 12/08): dia de chuva do PRÓXIMO jogo — sorteio determinístico
+  // por seed+temporada+rodada+clube (mesmo save sempre dá o mesmo resultado; sem
+  // Camarote, chuva esfria a lotação SÓ desse jogo — a bilheteria fixa não muda).
+  const chuvaHoje = useMemo(() => mulberry((state.seed ^ (round * 7919) ^ (youId * 104729) ^ ((state.seasonNo ?? 1) * 65537) ^ 0xC0FFEE) >>> 0)() < 0.28, [state.seed, round, youId, state.seasonNo])
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
@@ -4072,7 +4076,8 @@ export function PyramidSeasonScreen() {
               onDismissTrimNotice={() => dispatch({ type: 'CLEAR_FILIAL_TRIM_NOTICE' })}
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
-                filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')} />
+                filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')}
+              torcidaPct={torcidaPct} chuvaHoje={chuvaHoje} />
             {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio DEPOIS do estádio, e a escada
                 da agência fecha a página (caixa escura — não confunde com a obra) */}
             {agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
