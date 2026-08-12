@@ -1984,7 +1984,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 // ── 🔁 BANNER DO INTERVALO (carreira offline): pausa aos 45' e deixa o técnico
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
-function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConfirm }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; scoreText: string; oppName: string; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void }) {
+function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG, awayG, youIsHome, onConfirm }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void }) {
   const [formation, setFormation] = useState<FormationKey>(mgr.formation)
   const [tactic, setTactic] = useState<Tac>(baseTactic)
   const [baseline, setBaseline] = useState<string[]>(baseXIids) // conta as trocas contra isto (reinicia se troca formação)
@@ -2039,15 +2039,19 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConf
       <div style={{ position: 'relative', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', background: perk.grad, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
         {perk.holo > 0 && <ApoioSheen holo={perk.holo} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* cabeçalho: placar do 1º tempo + aviso "vale só o 2º tempo" */}
-        <div style={{ background: INK, color: '#fff', padding: '12px 16px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 20 }}>⏸️ Intervalo</div>
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.7)' }}>vale SÓ o 2º tempo · não muda o próximo jogo</div>
+        {/* cabeçalho: título + o JOGO (mandante ESQUERDA 🏠 · visitante DIREITA ✈️),
+            cada time com o placar do 1º tempo; o SEU time em dourado. */}
+        <div style={{ background: INK, color: '#fff', padding: '11px 15px', borderRadius: '14px 14px 0 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19 }}>⏸️ Intervalo</div>
+            <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)' }}>vale SÓ o 2º tempo · não muda o próximo jogo</div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 24, color: GOLD }}>{scoreText}</div>
-            <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)' }}>x {oppName}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 }}>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: youIsHome ? GOLD : '#fff', maxWidth: '38%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🏠 {homeName}</span>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, background: '#000', border: '2px solid rgba(255,255,255,.15)', borderRadius: 7, padding: '1px 8px', minWidth: 28, textAlign: 'center' }}>{homeG}</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>×</span>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, background: '#000', border: '2px solid rgba(255,255,255,.15)', borderRadius: 7, padding: '1px 8px', minWidth: 28, textAlign: 'center' }}>{awayG}</span>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: !youIsHome ? GOLD : '#fff', maxWidth: '38%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayName} ✈️</span>
           </div>
         </div>
         <div style={{ padding: 14 }}>
@@ -3887,10 +3891,10 @@ export function PyramidSeasonScreen() {
         {halftimeOpen && halfMode && mgrMe && myMatch && me && (() => {
           const iAmHome = myMatch.h === me.team
           const g1 = myMatch.goals.filter(g => g.min <= 45)
-          const myG = g1.filter(g => (iAmHome ? g.home : !g.home)).length
-          const oppG = g1.length - myG
+          const homeG = g1.filter(g => g.home).length // mandante à esquerda
+          const awayG = g1.length - homeG              // visitante à direita
           return <HalftimeBanner mgr={mgrMe} baseXIids={myXI.map(c => c.id)} baseTactic={myTactic}
-            scoreText={`${myG} x ${oppG}`} oppName={iAmHome ? myMatch.a : myMatch.h}
+            homeName={myMatch.h} awayName={myMatch.a} homeG={homeG} awayG={awayG} youIsHome={iAmHome}
             onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round, xi2: ids, formation, tactic }); setHalftimeOpen(false) }} />
         })()}
         {/* 🚨 CRISE FINANCEIRA: o melhor jogador do elenco avisa que vai embora
