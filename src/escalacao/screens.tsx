@@ -4130,6 +4130,24 @@ export function EscSeason() {
               <p className="font-black text-sm" style={{ ...OSWALD, color: GOLD }}>🏆 {bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA DOS 8'} · {phaseLabel.toUpperCase()}</p>
               <p className="font-black text-[11px]" style={{ color: 'rgba(255,255,255,.75)' }}>{legLabel}</p>
             </Box>
+            {/* 🎯 tática também na Copa dos 8 (pedido de jogador, 12/08) — mesmo botão
+                da liga; a simulação já lia state.tactics aqui, só faltava o controle
+                pra trocar DURANTE a Copa (antes ficava travado na última escolha da liga). */}
+            {myTie && (
+              <Box bg="#fff" className="p-4 space-y-3" shadow={4}>
+                <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🎯 Sua tática na Copa</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
+                    <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
+                      className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
+                      style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
+                      {tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? 'Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.' : 'Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.'}</p>
+              </Box>
+            )}
             {firstLegPending && (
               <Box bg={`linear-gradient(150deg,${PURPLE},#5b21b6)`} className="p-4 space-y-2" shadow={6}>
                 <p className="font-black text-base text-center" style={{ ...OSWALD, color: GOLD }}>🏆 {bbS ? LS('Chegaram os Playoffs!', 'Playoffs are here!') : 'Chegou a Copa dos 8!'}</p>
@@ -4607,7 +4625,7 @@ type ShareCard = { name: string; club: string; year: number; pos: string; fame: 
 type ShareBlobOpts = {
   teamName: string; youPos: number; youWon: boolean; champName: string
   pts: number; w: number; d: number; l: number; scorerName?: string; scorerGoals?: number
-  nTeams?: number // tamanho da liga (pra faixa 🥈/🪦 proporcional; ausente = 20)
+  nTeams?: number // tamanho da liga (pra faixa 🏅/🪦 proporcional; ausente = 20)
   card?: ShareCard // carta-lembrança do campeão (só quando você venceu e escolheu)
 }
 // 🏆 CAMPEÃO (jogo rápido): a imagem de compartilhar é a CARTA BONITA do craque-troféu
@@ -4721,7 +4739,11 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
 
   const hasCard = !!opts.card
   ctx.font = hasCard ? '110px sans-serif' : '160px sans-serif'
-  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= zoneN(opts.nTeams ?? 20) ? '🥈' : opts.youPos >= zoneBot(opts.nTeams ?? 20) ? '🪦' : '⚽', 450, hasCard ? 296 : 400)
+  // 🐛 CORRIGIDO (relato do Diego 12/08): usava 🥈 (que É literalmente a
+  // medalha "2º lugar" no desenho do emoji) pra QUALQUER posição dentro da
+  // zona de cima — um 3º lugar aparecia com "2" na medalha. Trocado por 🏅
+  // (medalha sem número), que não promete uma posição que não é a de verdade.
+  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= zoneN(opts.nTeams ?? 20) ? '🏅' : opts.youPos >= zoneBot(opts.nTeams ?? 20) ? '🪦' : '⚽', 450, hasCard ? 296 : 400)
 
   ctx.font = '900 72px Oswald, sans-serif'
   ctx.fillText(opts.youWon ? 'CAMPEÃO!' : `${opts.youPos}º LUGAR`, 450, hasCard ? 366 : 500)
@@ -6722,7 +6744,10 @@ export function EscEnd() {
   // (é a próxima ação). Sem Copa, fica no topo como sempre.
   const placementHeader = (padTop: string) => (
     <div className={`text-center ${padTop}`}>
-      <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🥈' : youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
+      {/* 🐛 CORRIGIDO (relato do Diego 12/08): 🥈 é a medalha "2º lugar" de
+          verdade (tem um "2" desenhado nela) — usar pra QUALQUER posição da
+          zona de cima mostrava "2" pra quem ficou em 3º ou 4º. Trocado por 🏅. */}
+      <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🏅' : youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
       <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? 'CAMPEÃO!' : `${youPos}º LUGAR`}</h2>
       <p className="font-semibold text-black/60 mt-1">
         {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
