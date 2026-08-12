@@ -6621,10 +6621,14 @@ export function EscEnd() {
   const youPos = table.findIndex(t => t.id === you.id) + 1
   const youWon = champ.id === you.id
   const online = state.onlineMode === 'online'
-  // 🐊 FESTÃO DA MASCOTE (aprovado no GIF): só o CAMPEÃO vê, pós-apito (a
-  // liga aqui já acabou), 1x por temporada (sessionStorage), toque pula.
+  // 🐊 FESTÃO DA MASCOTE (aprovado no GIF): só o CAMPEÃO vê, pós-apito, 1x por
+  // temporada (sessionStorage), toque pula. Diego 11/08: valia só pro campeão
+  // da LIGA — ganhar a COPA DOS 8 (mata-mata) não disparava a festa. Agora os
+  // dois contam ("por quem vê": compara com o MEU id, não o flag .you global,
+  // que no online marca todo humano igual).
   const meuSoc = useMeuSocio()
-  const mascKey = youWon && meuSoc?.ativo && meuSoc.mascoteKey && MASCOTES[meuSoc.mascoteKey] ? meuSoc.mascoteKey : null
+  const wonCopaRapido = state.quickCopa?.champion?.id === you.id
+  const mascKey = (youWon || wonCopaRapido) && meuSoc?.ativo && meuSoc.mascoteKey && MASCOTES[meuSoc.mascoteKey] ? meuSoc.mascoteKey : null
   const festaKey = `esc-festa-${state.seed}-${state.seasonNo}`
   const [festaOn, setFestaOn] = useState(false)
   useEffect(() => {
