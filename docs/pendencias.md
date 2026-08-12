@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
 
+## 🔁 CARREIRA: substituição no intervalo — ✅ NO AR (12/08)
+Feature nova SÓ na carreira OFFLINE solo (online intocado). Aprovada pelo Diego 12/08.
+Toggle no Elenco: **Dinâmico** (padrão, como sempre foi) vs **Só no intervalo** (o jogo
+pausa aos 45' e abre banner pra mexer no 2º tempo).
+- `types.ts`: `careerSubMode` ('dinamico'|'intervalo') + `careerHalftime` (mgrId→rodada→
+  {xi2, formation?, tactic?}). `store.tsx`: actions SET_SUBMODE/SET_HALFTIME (travas: 11
+  reais distintos, sem fake, batendo a formação; só offline). Reset por temporada.
+- **MOTOR** (`pyramidseason.tsx`): 2º tempo re-simulado com **rng ISOLADO** (semente =
+  seed+rodada+time) só quando há decisão de intervalo do humano. Com `halftime` vazio o
+  caminho é **byte-idêntico** ao de hoje → NÃO cascateia em outros jogos (não repete o
+  bug "gols mudaram de dono"). `scoreGoals` agora devolve id e aceita rng/faixa própria.
+- UI: relógio pausável aos 45' (`LiveScoreCard`) + `HalftimeBanner` (titulares|reservas,
+  troca mesma posição até 3, formação, tática; **vale só o 2º tempo, não muda o próximo
+  jogo**). Fundo = manto do TIER do usuário (perk.grad + brilho, igual Elenco); selo de
+  posição neutro (não parecer Lenda). Rodada não anda enquanto o banner está aberto.
+- ⚠️ Copa fica FORA (não anima 1º/2º tempo por jogo). Reversível: `git revert`.
+
 ## 🎮🐶 BATISMO: Eros FC (erosreis@outlook.com.br / @erosreis) — ✅ NO AR (12/08)
 Batismo do Eros Reis, influencer de games nostálgicos (@erosreis). Time **Eros FC**,
 mascote a cachorrinha **Nina**, manto **vermelho e cinza**. Escudo = arte própria do
@@ -28,10 +45,10 @@ leilão, `screens.tsx:1875`). Igual o 4-5-1.
   REAIS por posição (5-3-2 pede 3 zagueiros; se faltar, botão travado com aviso claro).
 - Força de ataque/defesa sai EMERGENTE do XI (mais ATA = mais ataque; rollForm usa o XI,
   não a formação) — nada hardcoded, nada a balancear. Reversível: `git revert`.
-- ⏳ PENDENTE combinado: **substituição ao vivo** (toggle no Elenco "só no intervalo" vs
-  "modo dinâmico"; no intervalo troca jogador + formação + tática Retranca/Equilíbrio/
-  Ataque) — desenho aprovado, ainda não codado. E **pênalti interativo** (mockup jogável
-  feito e aprovado a ideia, mas Diego NÃO liberou codar ainda).
+- ✅ FEITO (12/08): **substituição no intervalo** (toggle "só no intervalo" vs "dinâmico";
+  pausa aos 45' + banner) — ver seção "🔁 CARREIRA: substituição no intervalo" no topo.
+- ⏳ PENDENTE: **pênalti interativo** (mockup jogável feito e ideia aprovada, mas Diego
+  NÃO liberou codar ainda).
 
 
 ## 🦁⚡ BATISMO: Remoçada (luiz.maia.luiz) — Série A ✅ NO AR
