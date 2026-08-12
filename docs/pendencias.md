@@ -3805,3 +3805,51 @@ entrada própria nesse diário explicando o desenho completo (RPC
 `esc_meu_socio`, tabela `esc_socios`, painel `esc_admin_socio_perso`). Se
 mexer nessa área de novo, vale ler o código direto (`manto.ts` tem os
 comentários) antes de assumir o que já existe.
+
+## 🎪 Torcidômetro + 🚨 Riscômetro financeiro (Modo Carreira) — parte 1 (11/08)
+Longa conversa de design com o Diego (várias idas e voltas — vale ler o
+histórico do chat se precisar do racional completo). Fechado e IMPLEMENTADO:
+
+**Torcidômetro** (`state.careerTorcida`, `Record<string, number>` 0-100 por
+time humano, chave `m<id>`, começa em 50): atualiza **1x por temporada**
+(no fim, junto com título/colocação — reaproveita o `tables` que já
+calcula `computePromotions`/`seasonChampions`, função nova
+`torcidaDeltas()` em `pyramidseason.tsx`) pela colocação final:
+- 1º-3º: **+4** · 4º-5º: **+3** · 6º-14º: **0** · 15º: **−3** · 16º-20º:
+  **−4** · subiu/caiu de divisão DE VERDADE: **+5/−5** a mais
+- ⚠️ Diego só confirmou os números de 3º/5º/15º/16º/subida/queda — 1º-2º e
+  4º foram interpolados pro degrau vizinho mais próximo (não confirmado
+  com ele ainda, é só o palpite mais razoável).
+- Aparece no cabeçalho do clube (escudo/nome/dinheiro) — carinha + barra
+  + %. **Nunca** perto de jogador/elenco (pedido explícito do Diego).
+
+**Riscômetro** (usa `state.careerCoins` que já existe, NADA de campo novo):
+barra verde/amarelo/vermelho dentro do Extrato, só aparece quando o caixa
+fica negativo, aviso vago ("coisas piores podem acontecer com o time")
+— nunca cita jogador.
+
+**⏳ NÃO implementado ainda (parte 2, combinada mas não construída):**
+- Bônus de MOEDAS no fim da temporada pela torcida (hoje só mostra o
+  medidor, não paga nada ainda) — o fixo do estádio nunca deve ser
+  tocado, só somar um extra por cima.
+- Histórico sutil embaixo do torcidômetro (tipo "+4 · 3º lugar · +5 ·
+  venceu clássico") — mockado e aprovado, não construído.
+- O EVENTO GRANDE: quando o caixa cruza −500/−1000/−1500... (SÓ dinheiro,
+  NÃO torcida — decisão final do Diego), banner do MELHOR jogador do
+  elenco anunciando que vai sair ("não jogo em time duro" — ele já avisa,
+  não pergunta). Duas respostas do técnico:
+  - "Aqui não tem mercenário" → lista de FOLCLÓRICOS que jogam de graça
+    (Mauro Shampoo, Carlos Kaiser, Adriano Gol Contra + outros — filtrados
+    pela posição que abriu). Precisa criar esse elenco de conteúdo novo.
+  - "Nunca gostei dele mesmo" → chama alguém da BASE (like já existe hoje
+    pra tapa-buraco).
+  - O jogador que saiu vai pra outro clube que precisa dele na posição, ou
+    fica no banco — sem narrar nada disso pro jogador.
+  - Mockup aprovado em 2 rodadas (`escudo`/banner + telas de escolha).
+- "Lotação" visual do estádio refletindo o torcidômetro + efeito de dia de
+  chuva sem Camarote reduzindo a lotação daquele jogo específico — só
+  ideia, mockup aprovado, zero código.
+Build ok, no ar em `main` (só a parte 1). Não testado ao vivo (precisa
+fechar uma temporada de verdade pra ver o número mudar) — pedido ao Diego
+pra conferir e avisar se os números da colocação não baterem com o
+esperado.
