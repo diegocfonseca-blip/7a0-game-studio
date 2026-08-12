@@ -3836,11 +3836,16 @@ fica negativo, aviso vago ("coisas piores podem acontecer com o time")
 - O EVENTO GRANDE: quando o caixa cruza −500/−1000/−1500... (SÓ dinheiro,
   NÃO torcida — decisão final do Diego), banner do MELHOR jogador do
   elenco anunciando que vai sair ("não jogo em time duro" — ele já avisa,
-  não pergunta). ❓ PERGUNTA EM ABERTO pro Diego (perguntei 2x, ainda sem
-  resposta): contas que JÁ ESTÃO fundo no vermelho HOJE — o evento dispara
-  pra elas assim que a feature for ligada, ou só conta dívida NOVA daqui
-  pra frente (quem já tava negativo antes fica de fora dessa primeira
-  rodada)? Decidir antes de construir essa parte. Duas respostas do técnico:
+  não pergunta).
+  - ✅ RESPONDIDO (12/08): as barreiras são FIXAS (−500, −1000, −1500...).
+    Quem já passou por alguma barreira ANTES da feature existir não "deve"
+    essa barreira antiga — só dispara na PRÓXIMA barreira daqui pra frente.
+    Ex.: conta já em −1.100 quando a feature for ligada → não dispara na
+    hora (já passou −500 e −1.000 "de graça"); só dispara se chegar a
+    −1.500. Na prática: ao implementar, inicializar pra cada conta a
+    "última barreira já cruzada" = floor(caixa atual / 500) × 500, e só
+    disparar quando cruzar UMA barreira ABAIXO dessa marca inicial.
+  Duas respostas do técnico:
   - "Aqui não tem mercenário" → lista de FOLCLÓRICOS que jogam de graça
     (Mauro Shampoo, Carlos Kaiser, Adriano Gol Contra + outros — filtrados
     pela posição que abriu). Precisa criar esse elenco de conteúdo novo.
