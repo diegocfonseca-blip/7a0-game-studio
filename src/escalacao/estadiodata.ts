@@ -33,7 +33,14 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
   { k: 'telao', n: '📺 Telão',            cost: 60,  inc: 3, reqTxt: 'Cadeiras 100%' },
   { k: 'loja',  n: '🛍️ Loja do Clube',    cost: 80,  inc: 6, reqTxt: '2 setores prontos' },
   { k: 'estac', n: '🅿️ Estacionamento',   cost: 70,  inc: 4, reqTxt: 'Loja do Clube' },
+  // 🏬 NOVOS ESTABELECIMENTOS (Diego 12/08) — só carreira nova (agenciaOn), mesmo
+  // gate do médico/retrátil pra NUNCA mexer no meio da carreira de ninguém. Entram
+  // na conta do "estádio completo" e engatam na renda por ocupação (torcidômetro).
+  { k: 'praca',  n: '🍔 Praça de Alimentação', cost: 110, inc: 7, reqTxt: 'Loja do Clube', perk: 'as marcas do seu patrocínio viram as lojinhas' },
+  { k: 'chopp',  n: '🍻 Choperia do Estádio',  cost: 90,  inc: 6, reqTxt: 'Praça de Alimentação', perk: 'esquenta antes do jogo' },
+  { k: 'estacao', n: '🚇 Estação / Acesso Fácil', cost: 120, inc: 5, reqTxt: 'Estacionamento', perk: '+8% de lotação: mais gente consegue chegar' },
   { k: 'cober', n: '☂️ Cobertura',        cost: 130, inc: 8, reqTxt: '4 setores prontos' },
+  { k: 'hotel',  n: '🏨 Hotel do Clube',   cost: 160, inc: 9, reqTxt: 'Arquibancadas 100%', perk: 'hospeda torcedor visitante e delegação' },
   // 🏟️ RETRÁTIL (decisão do Diego 09/08: saiu do sócio — "não tem a ver com
   // sócio-torcedor" — e virou obra normal da árvore, no padrão de valores):
   // upgrade da Cobertura comum, +10/temporada. Não muda o desenho (StadiumSvg
@@ -113,11 +120,42 @@ export function extraUnlocked(st: StadiumSave | undefined, k: string): boolean {
     case 'telao': return sectorPct(st, 'cadeiras') >= 100
     case 'loja':  return sectorsDone(st) >= 2
     case 'estac': return hasExtra(st, 'loja')
+    case 'praca': return hasExtra(st, 'loja')       // 🍔 na ala comercial
+    case 'chopp': return hasExtra(st, 'praca')      // 🍻 estende a praça de alimentação
+    case 'estacao': return hasExtra(st, 'estac')    // 🚇 evolui o acesso do estacionamento
+    case 'hotel': return sectorsDone(st) >= STADIUM_SECTORS.length // 🏨 obra grande: arquibancadas 100%
     case 'cober': return sectorsDone(st) >= 4
     case 'retratil': return hasExtra(st, 'cober') // 🏟️ upgrade da cobertura comum
     case 'medico': return hasExtra(st, 'cober') // 🏥 a última obra da árvore (depois vem a SAF)
     default: return false
   }
+}
+// 🏬 melhorias NOVAS (Diego 12/08): só carreira nova. Nas checagens de "estádio
+// completo" (SAF, Craque) elas são tratadas como o médico/retrátil — opcionais pra
+// quem não é carreira nova, pra nunca mudar o meio da carreira de ninguém.
+export const NEW_EXTRAS = ['praca', 'chopp', 'estacao', 'hotel']
+// melhoria que só aparece/conta em carreira nova (agenciaOn)? (médico e retrátil já
+// eram assim; agora as 4 novas também).
+export function extraNovaOnly(k: string): boolean { return k === 'medico' || k === 'retratil' || NEW_EXTRAS.includes(k) }
+
+// 🎟️ OCUPAÇÃO (Diego 12/08): quão CHEIO o estádio fica pela COLOCAÇÃO final da
+// temporada — é o que vira renda (só fatura o que encher). Top 4 lota; Z4 às moscas.
+// A Estação/Acesso soma +8% (mais gente consegue chegar). Teto 100%.
+export function occByPos(pos: number): number {
+  if (pos <= 4) return 1.0    // 🥇 zona de acesso — LOTADO
+  if (pos <= 7) return 0.82   // 🔵 quase lá
+  if (pos <= 14) return 0.55  // ⚪ meio de tabela
+  if (pos <= 16) return 0.35  // 🟠 escapou do Z4
+  return 0.18                 // 🔴 rebaixamento — às moscas
+}
+export function stadiumOccupancy(pos: number, st: StadiumSave | undefined): number {
+  const bump = hasExtra(st, 'estacao') ? 0.08 : 0
+  return Math.min(1, occByPos(pos) + bump)
+}
+// 🎟️ RENDA REAL da temporada pela ocupação: piso garantido + o CONSTRUÍDO × ocupação.
+// occ = 0..1. Só carreira nova usa isto; a antiga segue no stadiumIncome cheio.
+export function stadiumIncomeAt(st: StadiumSave | undefined, occ: number): number {
+  return STADIUM_BASE + Math.floor(stadiumBuiltIncome(st) * Math.max(0, Math.min(1, occ)))
 }
 // renda por TEMPORADA: BILHETERIA-BASE + setores proporcionais ao construído +
 // melhorias fixas. A base vale mesmo com o estádio zerado (st indefinido).
@@ -177,7 +215,7 @@ export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFili
     // ⚠️ NÃO usa stadiumComplete(): quando o 🏥 Dep. Médico entrou na lista de
     // melhorias, quem JÁ tinha o estádio 100% não pode PERDER a renda de Craque
     // até construir o médico (grandfather). O gate segue sendo o estádio "clássico".
-    case 'craque': return sectorsDone(st) >= STADIUM_SECTORS.length && STADIUM_EXTRAS.every(e => e.k === 'medico' || e.k === 'retratil' || hasExtra(st, e.k))
+    case 'craque': return sectorsDone(st) >= STADIUM_SECTORS.length && STADIUM_EXTRAS.every(e => extraNovaOnly(e.k) || hasExtra(st, e.k))
     case 'lenda': return hasFilial
     default: return false
   }

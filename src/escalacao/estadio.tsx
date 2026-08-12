@@ -3,7 +3,7 @@ import { useState } from 'react'
 // Cada compra APARECE no desenho: torcida enchendo os setores, refletores
 // acendendo (anoitece!), telão ligando, loja, estacionamento, cobertura.
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
-import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_META, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf } from './estadiodata'
+import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, extraNovaOnly, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_META, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf } from './estadiodata'
 import type { StadiumSave, SponsorBetTier, SponsorBrand } from './estadiodata'
 import { VADICO_LOGO } from './vadico'
 import { ERO_LOGO } from './ero'
@@ -357,7 +357,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   // 🏥 lista de melhorias da CARREIRA: sem agenciaOn o médico não existe (nem no
   // % pronto, nem na exigência da SAF — senão save antigo travava em 91%).
   // (o 🏟️ retrátil segue o MESMO gate do médico: só carreiras novas veem/exigem)
-  const extras = medicoOn ? STADIUM_EXTRAS : STADIUM_EXTRAS.filter(e => e.k !== 'medico' && e.k !== 'retratil')
+  const extras = medicoOn ? STADIUM_EXTRAS : STADIUM_EXTRAS.filter(e => !extraNovaOnly(e.k))
   const totalPieces = STADIUM_SECTORS.length + extras.length
   const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + extras.filter(e => hasExtra(st, e.k)).length) / totalPieces * 100)
   return (
@@ -399,11 +399,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% pronto</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 10, padding: '7px 11px' }}>
-          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>🎟️ Bilheteria por temporada</span>
+          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>🎟️ Bilheteria por temporada{medicoOn ? ' (potencial)' : ''}</span>
           <b style={{ fontSize: 17 }}>+{income}</b>
         </div>
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '7px 2px 0', lineHeight: 1.35 }}>
-          <b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</p>
+          {medicoOn
+            ? <><b>Piso garantido +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> se LOTAR. 🎟️ Você fatura conforme a <b>colocação</b> enche o estádio: Top 4 lota (renda cheia), Z4 esvazia (só o piso). O piso nunca cai.</>
+            : <><b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</>}</p>
       </div>
 
       {/* 🎟️ LOTAÇÃO (Diego 12/08): só clima do próximo jogo — nunca desconta a
@@ -416,7 +418,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         // OU a Cobertura (☂️) OU a Cobertura Retrátil — telhado protege da chuva.
         const temCobertura = sectorPct(st, 'camarote') >= 100 || hasExtra(st, 'cober') || hasExtra(st, 'retratil')
         const chuvaAtiva = !!chuvaHoje && !temCobertura
-        const lotacaoPct = chuvaAtiva ? Math.max(20, torcidaPct - 32) : torcidaPct
+        const estacaoBump = hasExtra(st, 'estacao') ? 8 : 0 // 🚇 acesso fácil: +8% de lotação
+        const lotacaoPct = Math.min(100, (chuvaAtiva ? Math.max(20, torcidaPct - 32) : torcidaPct) + estacaoBump)
         const cor = lotacaoPct >= 55 ? '#1B7A3D' : lotacaoPct >= 30 ? '#E8A200' : '#C2452F'
         return (
           <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>

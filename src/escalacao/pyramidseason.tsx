@@ -13,7 +13,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, mancheteSemReserva, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos, agenciaEstadio, ident } from './store'
-import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue } from './estadiodata'
+import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
@@ -3430,7 +3430,10 @@ export function PyramidSeasonScreen() {
     const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
     const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
     const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult)
-    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), sponsorRewards: spb.rewards, sponsorResults: spb.results })
+    // 🎟️ ocupação por técnico (carreira nova) — colocação final vira renda do estádio
+    const stadiumOcc: Record<number, number> = {}
+    for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]) })
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), sponsorRewards: spb.rewards, sponsorResults: spb.results, stadiumOcc })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
@@ -4020,7 +4023,14 @@ export function PyramidSeasonScreen() {
           const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
           const newPlacements = computePromotions(tables)
           const torcDeltas = torcidaDeltas(tables, newPlacements)
-          const args = () => ({ placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcidaBonusRewards(state.careerTorcida, torcDeltas, tables)), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements) })
+          // 🎟️ OCUPAÇÃO por técnico (carreira nova): quão cheio o estádio ficou pela
+          // colocação final → vira a renda (piso + construído × ocupação, no reducer).
+          const stadiumOcc: Record<number, number> = {}
+          for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]) })
+          // carreira NOVA (agenciaOn) troca o bônus solto do torcidômetro pela renda de
+          // ocupação; a antiga mantém o +15/+8 de sempre.
+          const torcBonus = state.agenciaOn ? {} : torcidaBonusRewards(state.careerTorcida, torcDeltas, tables)
+          const args = () => ({ placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,

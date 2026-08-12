@@ -265,7 +265,7 @@ function applyTVIncome(s: EscState) {
     }
   }
 }
-function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>) {
+function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
   // refazer o leilão) NÃO repete nada — o caixa nunca é creditado duas vezes.
@@ -295,7 +295,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   const s0 = snap()
   s.careerCoins = applyRewards(s.careerCoins, rewards)
   const s1 = snap()
-  s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums, s.managers)
+  s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums, s.managers, stadiumOcc, s.agenciaOn)
   const s2 = snap()
   chargeSalaries(s)
   const s3 = snap()
@@ -446,17 +446,20 @@ function recordDormantCards(s: EscState, champions?: Record<string, 'A' | 'B' | 
 // temporada). Inclui a BILHETERIA-BASE (stadiumIncome vale mesmo sem estádio), então
 // dá pra render pra quem nunca abriu a tela do estádio também. Bots não têm estádio
 // (usam clubCash), então só os humanos ganham aqui.
-function applyStadiumIncome(coins: Record<number, number> | undefined, stads: EscState['stadiums'], managers: Manager[]): Record<number, number> {
+function applyStadiumIncome(coins: Record<number, number> | undefined, stads: EscState['stadiums'], managers: Manager[], occ?: Record<number, number>, agencia?: boolean): Record<number, number> {
   const out = { ...(coins ?? {}) }
   for (const m of managers) {
     if (!m.isHuman) continue
-    const inc = stadiumIncome(stads?.[m.id]) // base + construído
+    // 🎟️ carreira NOVA (agenciaOn): a renda é piso + construído × OCUPAÇÃO (quão cheio
+    // ficou, pela colocação). Carreira antiga segue no valor cheio de sempre (grandfather).
+    const o = occ?.[m.id]
+    const inc = (agencia && o != null) ? stadiumIncomeAt(stads?.[m.id], o) : stadiumIncome(stads?.[m.id])
     if (inc > 0) out[m.id] = (out[m.id] ?? 0) + inc
   }
   return out
 }
 import type { CareerTeam } from './data'
-import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, emptyStadium, sectorPct, hasExtra, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
+import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'
 import { logPlay, logVisit, heartbeat } from './analytics'
@@ -2504,8 +2507,8 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
-  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6
+  | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
@@ -2525,7 +2528,7 @@ type Action =
   | { type: 'SET_PRESENCE'; indices: number[]; uids?: string[] } // uids = 🤝 quem está online pelo crachá (numa dupla, os dois dividem o mesmo assento)
   | { type: 'MARK_COPA_DONE' }
   | { type: 'SET_COPA_ROUND'; round: number }
-  | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
+  | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
@@ -3051,7 +3054,7 @@ export function reducer(state: EscState, action: Action): EscState {
     // (applySeasonMoney trava por temporada): abrir o leilão depois não repete.
     case 'CLOSE_SEASON_BOOKS': {
       if (!s.careerOnline) return s
-      applySeasonMoney(s, action.rewards, action.sponsorRewards)
+      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc)
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       return s
     }
@@ -3084,7 +3087,7 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'STADIUM_BUILD': {
       if (!s.careerOnline) return s
       const ext = STADIUM_EXTRAS.find(x => x.k === action.ext); if (!ext) return s
-      if (action.ext === 'medico' && !s.agenciaOn) return s // 🏥 só carreiras com eventos de jogador
+      if (extraNovaOnly(action.ext) && !s.agenciaOn) return s // 🏥🍔🍻🚇🏨 médico/retrátil + estabelecimentos novos: só carreira nova
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       if (st.ext.includes(action.ext) || !extraUnlocked(st, action.ext) || wallet < ext.cost) return s
@@ -3808,7 +3811,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const stO = s.stadiums?.[you.id]
         // 🏥 o Dep. Médico só conta pra SAF nas carreiras com eventos (agenciaOn) —
         // save antigo compra a SAF com a régua de sempre (nada muda no meio).
-        const readyO = STADIUM_SECTORS.every(x => sectorPct(stO, x.k) >= 100) && STADIUM_EXTRAS.every(e => ((e.k === 'medico' || e.k === 'retratil') && !s.agenciaOn) || hasExtra(stO, e.k))
+        const readyO = STADIUM_SECTORS.every(x => sectorPct(stO, x.k) >= 100) && STADIUM_EXTRAS.every(e => (extraNovaOnly(e.k) && !s.agenciaOn) || hasExtra(stO, e.k))
         if (!readyO) return s
         if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
         // e nunca um clube que OUTRO humano já tem de SAF
@@ -3825,7 +3828,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < 2000) return s
       const st = s.stadiums?.[you.id]
-      const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => ((e.k === 'medico' || e.k === 'retratil') && !s.agenciaOn) || hasExtra(st, e.k))
+      const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => (extraNovaOnly(e.k) && !s.agenciaOn) || hasExtra(st, e.k))
       if (!ready) return s
       if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
       s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }
@@ -4791,7 +4794,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.screen === 'auction') return s
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
-      applySeasonMoney(s, action.rewards, action.sponsorRewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
+      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
@@ -4832,7 +4835,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.screen === 'reserveList') return s
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
-      applySeasonMoney(s, action.rewards, action.sponsorRewards) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
+      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
