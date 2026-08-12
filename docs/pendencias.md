@@ -3967,3 +3967,23 @@ vs CPU:
   o arquivo é `buildShareCardBlob`/`buildChampionShareBlob` em `screens.tsx`.
 Build ok, no ar em `main`. Reversível (2 emojis trocados + 1 bloco de UI
 reaproveitado — sem campo novo no estado).
+
+## 🐛 Botão do estádio prometia "+20" mesmo quando ia cobrar menos (12/08)
+Relato de usuário (via Diego): "Cadeiras custa 90 mas os investimentos vão
+de 80 pra 100 — paga 10 a mais". **Investiguei e o jogo NUNCA cobrou a
+mais**: o reducer (`STADIUM_INVEST` em `store.tsx`) já fazia
+`Math.min(STADIUM_STEP, custo - investido, carteira)` — o clique final de
+Cadeiras (80/90) sempre cobrou só +10, nunca +20; total pago sempre bate
+exatamente o "custo total" mostrado. O bug de verdade era só o BOTÃO
+(`StadiumTab` em `estadio.tsx`), que sempre escrevia "Investir +20 💰"
+mesmo no clique que ia cobrar menos — dava a entender (corretamente, pela
+lógica do próprio jogador) que o total ia estourar. Corrigido pra mostrar
+o valor REAL do próximo clique. De brinde, achei e corrigi um bug
+funcional junto: a trava de "sem grana" (`poor`) comparava com o +20 fixo
+também, então podia travar o clique final barato de alguém que já tinha o
+suficiente pra completar o setor (ex.: 15 moedas não bastam pra "+20", mas
+bastam pra completar os 10 que faltavam).
+Só afeta Cadeiras (90) e Camarote (150) — os únicos setores que não são
+múltiplo de 20 (Gramado/Geral/Visitante fecham exato, sem clique parcial).
+Build ok, no ar em `main`. Reversível — só troca o número mostrado no
+botão e a conta da trava, nenhum campo de estado novo.
