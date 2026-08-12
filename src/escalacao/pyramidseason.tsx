@@ -1991,9 +1991,10 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConf
   const [xi, setXi] = useState<string[]>(baseXIids)
   const [sel, setSel] = useState<string | null>(null)
   const byId = useMemo(() => new Map(mgr.squad.map(c => [c.id, c])), [mgr.squad])
-  // 🎨 cor do banner = tier do usuário (bege grátis · verde · roxo · prata · ouro),
-  // igual ao Elenco — nunca cor emprestada. Deslogado/sem tier cai no bege.
-  const accent = myApoioPerk()?.solid ?? '#B2A583'
+  // 🎨 FUNDO do banner = o MANTO do tier do usuário (degradê + brilho), IGUAL à aba
+  // Elenco — nunca cor emprestada. O dourado (ou a cor do tier) é o FUNDO, não um
+  // selo por jogador (senão parece que cada um é Lenda). Deslogado/sem tier = bege.
+  const perk = myApoioPerk() ?? APOIO_PERKS.bege
   const xiSet = new Set(xi)
   const subs = baseline.filter(id => !xiSet.has(id)).length // quantas trocas já foram feitas
   const real = mgr.squad.filter(c => !c.fake)
@@ -2024,7 +2025,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConf
     return (
       <button key={c.id} onClick={() => tap(c.id)}
         style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', border: `2px solid ${picked ? GOLD : target ? GREEN : INK}`, borderRadius: 8, padding: '5px 7px', marginBottom: 4, background: picked ? '#FFF7DA' : target ? '#E9F6EE' : '#fff', cursor: 'pointer', boxShadow: picked ? `2px 2px 0 0 ${INK}` : 'none' }}>
-        <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#fff', background: side === 'tit' ? accent : '#b0aa9a', border: `2px solid ${INK}`, borderRadius: 6, padding: '2px 0', minWidth: 34, textAlign: 'center' }}>{c.pos}</span>
+        <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#fff', background: side === 'tit' ? INK : '#b0aa9a', border: `2px solid ${INK}`, borderRadius: 6, padding: '2px 0', minWidth: 34, textAlign: 'center' }}>{c.pos}</span>
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontWeight: 800, fontSize: 12.5, ...OSWALD, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
           <span style={{ display: 'block', fontSize: 9, fontWeight: 700, color: '#8a8478' }}>{c.club} · {c.year}</span>
@@ -2034,7 +2035,10 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConf
   }
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
-      <div style={{ width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
+      {/* fundo = MANTO do tier (degradê + brilho), igual à aba Elenco */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', background: perk.grad, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
+        {perk.holo > 0 && <ApoioSheen holo={perk.holo} />}
+        <div style={{ position: 'relative', zIndex: 1 }}>
         {/* cabeçalho: placar do 1º tempo + aviso "vale só o 2º tempo" */}
         <div style={{ background: INK, color: '#fff', padding: '12px 16px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -2052,7 +2056,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConf
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
             {(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).map(f => {
               const cur = formation === f, can = cur || missFor(f).length === 0
-              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? accent : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
+              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? INK : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
             })}
           </div>
           {/* tática */}
@@ -2060,7 +2064,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConf
           <div style={{ display: 'flex', gap: 5, marginBottom: 12 }}>
             {([['retranca', '🛡️ Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '⚔️ Ataque']] as [Tac, string][]).map(([t, lb]) => {
               const cur = tactic === t
-              return <button key={t} onClick={() => setTactic(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '7px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: 'pointer', background: cur ? accent : '#fff', color: cur ? '#fff' : INK, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>{lb}</button>
+              return <button key={t} onClick={() => setTactic(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '7px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: 'pointer', background: cur ? INK : '#fff', color: cur ? '#fff' : INK, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{lb}</button>
             })}
           </div>
           {/* trocas: em campo | banco */}
@@ -2080,6 +2084,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConf
           </div>
           <button onClick={() => onConfirm(xi, formation, tactic)} style={{ width: '100%', marginTop: 14, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px', fontWeight: 900, fontSize: 15, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>▶️ Voltar pro 2º tempo</button>
           <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '6px 0 0' }}>pode voltar sem trocar nada — aí o 2º tempo segue com o mesmo time</p>
+        </div>
         </div>
       </div>
     </div>
