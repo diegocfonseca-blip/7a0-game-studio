@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import tokaMascoteImg from './img/toka10-mascote.webp'
+import erosNinaImg from './img/eros-nina-mascote.webp'
 
 const INK = '#0C0C0C'
 
@@ -364,6 +365,18 @@ export const MASCOTES: Record<string, ReactNode> = {
       height={176}
       width={92}
       alt="Tôka10"
+      style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
+    />
+  ),
+  // 🐶🎮 a NINA (mascote do Eros FC — erosreis/@erosreis, aprovado 12/08): a
+  // cachorrinha do dono, de coleira vermelha, sentada na pilha de cartuchos com o
+  // controle no peito. Arte própria do dono (webp, exceção aprovada). mascote_key = "eros_nina".
+  eros_nina: (
+    <img
+      src={erosNinaImg}
+      height={176}
+      width={Math.round(176 * 400 / 474)}
+      alt="Nina — Eros FC"
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />
   ),

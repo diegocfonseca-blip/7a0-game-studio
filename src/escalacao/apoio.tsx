@@ -107,6 +107,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'lucassrribeiroo2023@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Scorporila FC) (11/08)
   'paisagensetrilha@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marolados FC — molecada da várzea) (11/08)
   'agrostinho88@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (Leandro/Obina; nome reservado "Papão United Madrid") (11/08)
+  'erosreis@outlook.com.br': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Eros FC — influencer @erosreis; nomes: Eros Reis FC / Eros Reis / Eros; mascote Nina 🐶) (12/08)
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
@@ -145,6 +146,7 @@ const FUNDADOR_N: Record<string, number> = {
   'nevesgabriel95@gmail.com': 37, // 🖋️ Gabriel — batismo Desportivo Montreal (11/08)
   'paisagensetrilha@gmail.com': 38, // 🖋️ Marolados FC — molecada da várzea (11/08)
   'agrostinho88@gmail.com': 39, // 🖋️ Leandro/Obina — Lenda (nome "Papão United Madrid") (11/08)
+  'erosreis@outlook.com.br': 40, // 🖋️ Eros Reis — batismo Eros FC (influencer @erosreis, mascote Nina 🐶) (12/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

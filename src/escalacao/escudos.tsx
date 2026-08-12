@@ -17,6 +17,7 @@
 // kit inteiro ≤ ~40 KB (o site tem ~3 MB, então isso é ~1% — irrelevante).
 import type { ReactNode } from 'react'
 import tokaEscudoImg from './img/toka10-escudo.webp'
+import erosEscudoImg from './img/eros-escudo.webp'
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
 const INK = '#0C0C0C'
@@ -394,9 +395,28 @@ export function escudoDe(nomeCru: string): EscudoDesign {
   }
 }
 
+// 🎮🐶 Eros FC (batismo do erosreis@outlook.com.br / @erosreis, aprovado pelo Diego
+// 12/08): o Eros com o videogame retrô no escudo vermelho e cinza — ARTE PRÓPRIA do
+// dono (imagem webp, exceção aprovada; ver nota no topo). Mesma arte vale pros 4
+// nomes reservados do clube (Eros FC / Eros Reis FC / Eros Reis / Eros).
+const erosEscudoRender = (size: number) => (
+  <img
+    src={erosEscudoImg}
+    height={size}
+    width={Math.round(size * 419 / 520)}
+    alt="Eros FC"
+    style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
+  />
+)
+
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // 🎮🐶 Eros FC + variações reservadas (todas puxam o MESMO escudo)
+  'Eros FC': erosEscudoRender,
+  'Eros Reis FC': erosEscudoRender,
+  'Eros Reis': erosEscudoRender,
+  'Eros': erosEscudoRender,
   'Remoçada': (size: number) => {
     const w = Math.round(size * 200 / 240)
     return (
