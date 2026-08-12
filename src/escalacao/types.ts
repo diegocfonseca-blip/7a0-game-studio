@@ -403,6 +403,7 @@ export interface EscState {
   careerCoins?: Record<number, number> // carreira online: caixa de moedas por técnico (mgrId → moedas), pra reforços; +100/temporada + bônus de título/acesso, -queda
   clubCash?: Record<string, number> // carreira online: caixa dos OUTROS times (CPUs + reservas de fundo, tudo que não é humano/fiador), por teamKey. Base por divisão + título/acesso/queda. Aparece no ranking pra todo time ter grana real.
   careerHonors?: Record<string, { A: number; B: number; C: number; D: number; V?: number }> // carreira online: títulos por divisão de CADA time (chave = m<id> humano / nome do CPU), acumulados por temporada; base do Ranking
+  careerTorcida?: Record<string, number> // 🎪 TORCIDÔMETRO (Diego 11/08): 0-100 por time HUMANO (chave = m<id>), começa em 50. Atualiza no fim de cada temporada pela colocação final (ver torcidaDeltas em pyramidseason.tsx) + bônus/punição de subida/queda de verdade. Só dá BÔNUS de moedas quando alto — nunca desconta o fixo do estádio.
   locked?: boolean // sala fechada (com senha) — guardado no estado pra sobreviver ao autosave
   pwHash?: string // hash da senha da sala (SHA-256) — idem
   reserveAuction?: boolean // carreira online: o leilão em curso é o de RESERVAS (mantém elenco, mira 22, orçamento = caixa). No fim, sincroniza a caixa e tira o elenco fundo.

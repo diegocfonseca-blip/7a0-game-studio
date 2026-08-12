@@ -345,6 +345,42 @@ export function seasonChampions(tables: Record<Div, SimTeam[]>): Record<string, 
   return out
 }
 
+// 🎪 TORCIDÔMETRO (Diego 11/08): quanto a torcida de cada time HUMANO muda
+// nesta temporada — pela colocação final na própria divisão (régua dele:
+// 1º-3º · 4º-5º · 6º-14º neutro · 15º · 16º-20º) + bônus/punição extra se
+// a divisão realmente mudou (subiu ou caiu de verdade). Só times humanos —
+// CPU não tem torcida rastreada.
+function torcidaDeltaByPos(pos: number): number {
+  if (pos <= 3) return 4
+  if (pos <= 5) return 3
+  if (pos <= 14) return 0
+  if (pos === 15) return -3
+  return -4 // 16º a 20º
+}
+export function torcidaFace(pct: number): string {
+  if (pct >= 80) return '🤩'
+  if (pct >= 55) return '😊'
+  if (pct >= 30) return '😐'
+  return '😢'
+}
+export function torcidaCor(pct: number): string {
+  if (pct >= 55) return '#1B7A3D'
+  if (pct >= 30) return '#E8A200'
+  return '#C2452F'
+}
+export function torcidaDeltas(tables: Record<Div, SimTeam[]>, newPlacements: Record<string, string>): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const d of DIVS) tables[d].forEach((t, i) => {
+    if (!t.human) return
+    const key = teamKey(t)
+    let delta = torcidaDeltaByPos(i + 1)
+    const nd = newPlacements[key] as Div | undefined
+    if (nd && nd !== d) delta += DIV_RANK[nd] > DIV_RANK[d] ? 5 : -5 // subiu/caiu de verdade
+    out[key] = delta
+  })
+  return out
+}
+
 export interface Goal { name: string; min: number; home: boolean }
 export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[] }
 
@@ -1310,6 +1346,27 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
           ))}
         </div>
       </div>
+
+      {/* 🚨 RISCÔMETRO (Diego 11/08): só aparece no vermelho — barrinha discreta,
+          nunca fala em "jogador", só um aviso vago. Quanto mais fundo, mais perto
+          de coisa pior acontecer com o time. */}
+      {caixa < 0 && (() => {
+        const risco = Math.max(0, Math.min(100, Math.round((-caixa / 1000) * 100)))
+        return (
+          <div style={{ ...box('#fff'), padding: '9px 11px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 10.5, marginBottom: 5 }}><span>Saúde financeira</span></div>
+            <div style={{ position: 'relative' }}>
+              <div style={{ height: 8, borderRadius: 5, overflow: 'hidden', border: `1.5px solid ${INK}`, display: 'flex' }}>
+                <div style={{ width: '55%', background: GREEN }} /><div style={{ width: '25%', background: '#E8A200' }} /><div style={{ width: '20%', background: FIN_RED }} />
+              </div>
+              <span style={{ position: 'absolute', top: -14, left: `calc(${risco}% - 7px)`, fontSize: 13 }}>📍</span>
+            </div>
+            <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 0 0' }}>
+              {risco >= 60 ? '⚠️ Sinal de alerta — coisas piores podem acontecer com o time se continuar assim.' : '🟡 O clube já sentiu o vermelho. Vender ou ganhar prêmio ajuda a melhorar.'}
+            </p>
+          </div>
+        )
+      })()}
 
       {/* sub-abas: 🧾 Extrato | 🔁 Transferências */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
@@ -3334,6 +3391,7 @@ export function PyramidSeasonScreen() {
     return () => clearTimeout(t)
   }, [round, roundMs])
 
+  const torcidaPct = state.careerTorcida?.[`m${youId}`] ?? 50
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
@@ -3351,6 +3409,18 @@ export function PyramidSeasonScreen() {
               {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
               <CoinsBadge coins={state.careerCoins?.[youId] ?? 0} />
             </div>
+          </div>
+          {/* 🎪 TORCIDÔMETRO (Diego 11/08): status do TIME, não do jogador — fica
+              aqui no cabeçalho do clube, junto do escudo/nome/dinheiro. Sobe/desce
+              pela colocação final de cada temporada (nunca desconta o fixo do
+              estádio, só dá bônus por cima quando tá alto). */}
+          <div style={{ padding: '0 14px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>{torcidaFace(torcidaPct)}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: .5, textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' }}>Torcida</div>
+              <div style={{ height: 6, borderRadius: 4, background: 'rgba(255,255,255,.15)', overflow: 'hidden', marginTop: 2 }}><div style={{ height: '100%', width: `${torcidaPct}%`, background: torcidaCor(torcidaPct) }} /></div>
+            </div>
+            <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD }}>{torcidaPct}%</span>
           </div>
           {/* progresso da temporada: trilho ESCURO visível de ponta a ponta (não
               é mais um risquinho solto — lê como barra que está começando) */}
@@ -3543,7 +3613,8 @@ export function PyramidSeasonScreen() {
           const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // campeão +25 · vice +15 · artilheiro +16 (caixa+piso)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
           const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
-          const args = () => ({ placements: computePromotions(tables), rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, sponsorRewards: spb.rewards, sponsorResults: spb.results })
+          const newPlacements = computePromotions(tables)
+          const args = () => ({ placements: newPlacements, rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcidaDeltas(tables, newPlacements) })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
