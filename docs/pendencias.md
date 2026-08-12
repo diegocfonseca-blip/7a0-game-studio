@@ -3937,3 +3937,33 @@ Build ok. **Não testado ao vivo** (precisa realmente deixar o caixa
 negativo numa carreira solo de verdade pra ver o banner disparar) — avisar
 o Diego pra testar e conferir se o texto/fluxo tá do jeito que ele
 imaginou.
+
+## 🐛 Medalha errada (3º lugar mostrava "2") + 🎯 tática na Copa dos 8 (12/08)
+Relato de um jogador (print de WhatsApp que o Diego repassou), jogo rápido
+vs CPU:
+
+- **Bug real**: a carta de compartilhar (`buildShareCardBlob` em
+  `screens.tsx`) e o cabeçalho de fim de temporada (`placementHeader`)
+  usavam 🥈 pra QUALQUER posição dentro da zona de acesso (ex.: top 4 de
+  20) — só que 🥈 É literalmente a medalha "2º lugar" (tem um "2" desenhado
+  nela nos emojis). Quem ficava em 3º ou 4º via a medalha de prata com "2"
+  do lado do texto certo "3º LUGAR"/"4º LUGAR" — visual contraditório.
+  Trocado por 🏅 (medalha genérica, sem número) nos 2 lugares. Não mexi na
+  lógica de zona (continua sendo "zona de acesso" proporcional, só o ícone
+  não promete mais uma posição que não é a de verdade).
+- **Pedido do jogador**: a tática (🧱 Retranca / ⚖️ Equilíbrio / 🔥 Ataque)
+  já existia no jogo rápido, mas só na LIGA — sumia na Copa dos 8. Conferi
+  o motor (`simMatch` em `store.tsx`): ele SEMPRE leu `state.tactics[id]`,
+  inclusive nos jogos da Copa — só faltava o BOTÃO pra trocar durante a
+  Copa (ficava travada na última escolha da liga). Adicionei o mesmo
+  seletor (reaproveitando 100% o componente que já existia) na tela da
+  Copa dos 8, logo depois do cabeçalho roxo da fase.
+- ⚠️ **Pendência em aberto, NÃO mexida**: o Diego reclamou que a arte da
+  carta de compartilhar do jogo rápido/CPU (fundo creme, faixa amarela
+  "🔨 LEILÃO LEGENDS", texto em lista "Pontos:/Artilheiro:/Campeão da
+  temporada:") tá "muito feia" pro nível visual atual do jogo. Não mexi
+  nisso ainda — é redesign de verdade (precisa mockup + OK do Diego antes,
+  regra do próprio Diego pra qualquer visual novo). Se for pedido de novo,
+  o arquivo é `buildShareCardBlob`/`buildChampionShareBlob` em `screens.tsx`.
+Build ok, no ar em `main`. Reversível (2 emojis trocados + 1 bloco de UI
+reaproveitado — sem campo novo no estado).
