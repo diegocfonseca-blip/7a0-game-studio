@@ -3758,7 +3758,14 @@ export function PyramidSeasonScreen() {
     return () => clearTimeout(t)
   }, [round, roundMs])
 
-  const torcidaPct = state.careerTorcida?.[`m${youId}`] ?? 50
+  // 🎪 TORCIDÔMETRO AO VIVO (Diego 12/08): o número exibido reage à posição
+  // ATUAL na tabela enquanto a rodada corre — não fica travado esperando o
+  // fim da temporada. O valor BANCADO (`state.careerTorcida`) só muda de
+  // verdade na virada de temporada (é o que paga bônus e vira histórico);
+  // aqui embaixo é só a PRÉVIA visual, somando o degrau da colocação de
+  // AGORA — se a temporada fechasse nesse instante, o número bateria certo.
+  const torcidaBanked = state.careerTorcida?.[`m${youId}`] ?? 50
+  const torcidaPct = me ? Math.max(0, Math.min(100, torcidaBanked + torcidaDeltaByPos(me.pos))) : torcidaBanked
   // 🎪 histórico sutil: só os últimos 3 motivos (dos 6 guardados), texto pequeno
   const torcidaHist = (state.careerTorcidaHist?.[`m${youId}`] ?? []).slice(-3)
   // 🌧️ LOTAÇÃO (Diego 12/08): dia de chuva do PRÓXIMO jogo — sorteio determinístico
