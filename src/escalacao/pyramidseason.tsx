@@ -345,17 +345,17 @@ export function seasonChampions(tables: Record<Div, SimTeam[]>): Record<string, 
   return out
 }
 
-// 🎪 TORCIDÔMETRO (Diego 11/08): quanto a torcida de cada time HUMANO muda
-// nesta temporada — pela colocação final na própria divisão (régua dele:
-// 1º-3º · 4º-5º · 6º-14º neutro · 15º · 16º-20º) + bônus/punição extra se
-// a divisão realmente mudou (subiu ou caiu de verdade). Só times humanos —
-// CPU não tem torcida rastreada.
+// 🎪 TORCIDÔMETRO (Diego 11/08, régua final 12/08): quanto a torcida de cada
+// time HUMANO muda nesta temporada — pela colocação final na própria divisão
+// (1º-4º: +5 · 5º-6º: +4 · 7º-14º: 0 · 15º-16º: −4 · 17º-20º: −5) + bônus/
+// punição extra se a divisão realmente mudou (subiu ou caiu de verdade, ±5
+// a mais). Só times humanos — CPU não tem torcida rastreada.
 function torcidaDeltaByPos(pos: number): number {
-  if (pos <= 3) return 4
-  if (pos <= 5) return 3
+  if (pos <= 4) return 5
+  if (pos <= 6) return 4
   if (pos <= 14) return 0
-  if (pos === 15) return -3
-  return -4 // 16º a 20º
+  if (pos <= 16) return -4
+  return -5 // 17º a 20º
 }
 export function torcidaFace(pct: number): string {
   if (pct >= 80) return '🤩'
