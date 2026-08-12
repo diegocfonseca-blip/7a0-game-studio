@@ -491,7 +491,11 @@ function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolC
 // "escalar assim mesmo" da noitada (-2 SÓ naquele jogo). Tem que ser por rodada:
 // mexer na carta re-simularia o passado (a temporada inteira nasce da semente).
 export type RoundMods = Record<number, Record<number, number>>
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}) {
+// 🔁 INTERVALO (carreira offline): decisão do 2º tempo por técnico/rodada. O 1º
+// tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
+// é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
+export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac }>>
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -506,24 +510,30 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
   // (nível ~85) leva a maioria. Antes era só por posição — por isso Bola Murcha e
   // Trapalhão viravam artilheiros. n²: acentua a diferença entre perna-de-pau e craque.
   const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
-  const scoreGoals = (t: SimTeam, xi: PoolCard[], goals: number): { name: string; min: number }[] => {
-    const evs: { name: string; min: number }[] = []
+  // `rngUse` = qual "dado" usar (padrão o rng compartilhado da divisão). `half`:
+  // 0 = jogo cheio (minuto 1..90+); 2 = SÓ o 2º tempo (minuto 46..90+), usado na
+  // re-simulação do intervalo com um rng ISOLADO. Com os padrões (rng, half 0) o
+  // consumo do rng é BYTE-IDÊNTICO ao de antes — nada muda nos jogos normais.
+  const scoreGoals = (t: SimTeam, xi: PoolCard[], goals: number, rngUse: () => number = rng, half: 0 | 2 = 0): { name: string; min: number; id: string }[] => {
+    const evs: { name: string; min: number; id: string }[] = []
     // "DIA" do jogador (por partida): 0,4×–2,6× no peso do gol — o folclórico
     // iluminado rouba a cena hoje; na média da temporada o nível manda.
     const day = new Map<string, number>()
-    for (const c of xi) day.set(c.id, 0.4 + rng() * 2.2)
+    for (const c of xi) day.set(c.id, 0.4 + rngUse() * 2.2)
     for (let g = 0; g < goals; g++) {
       const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
       const total = pool.reduce((s, p) => s + p.w, 0)
-      let r = rng() * total, pick = pool[0]?.c
+      let r = rngUse() * total, pick = pool[0]?.c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       // 🛟 XI vazio (save torto / time sem elenco) → não crasha a tela: só não credita
       // artilheiro nesse gol (o placar já foi somado à parte). Mesma guarda da Copa.
       if (!pick) continue
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
       if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id })
-      const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 90) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
-      evs.push({ name: pick.name, min })
+      const min = half === 2
+        ? (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 46 + Math.floor(rngUse() * 45)) // 2º tempo: 46..90 (+ acréscimos)
+        : (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 1 + Math.floor(rngUse() * 90)) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
+      evs.push({ name: pick.name, min, id: pick.id })
     }
     return evs
   }
@@ -560,25 +570,65 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const lh = Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + G.home) * qual(fh.atk)), la = Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk))
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     const hev = scoreGoals(H, hxi, hg), aev = scoreGoals(A, axi, ag)
-    H.gf += hg; H.ga += ag; A.gf += ag; A.ga += hg
-    if (hg > ag) { H.pts += 3; H.w++; A.l++ } else if (ag > hg) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
+    // resultado do jogo (pode ser reescrito SÓ no 2º tempo se o humano trocou no intervalo)
+    let hgF = hg, agF = ag, hFinal = hev, aFinal = aev
+    // 🔁 SUBSTITUIÇÃO NO INTERVALO — só carreira offline (halftime só é preenchido lá).
+    // O 1º tempo (gols com min<=45) fica IGUAL ao baseline; o 2º tempo é RE-SIMULADO
+    // com o time novo do humano usando um rng ISOLADO (semente = seed+rodada+time).
+    // Assim o rng compartilhado NÃO é tocado aqui → nenhum outro jogo/divisão muda.
+    const humanTid = H.human ? H.teamId : A.human ? A.teamId : null
+    const hd = humanTid != null ? halftime[humanTid]?.[r] : undefined
+    if (hd && hd.xi2?.length === 11) {
+      const humM = H.human ? H : A
+      const hmap = new Map(humM.squad.map(c => [c.id, c]))
+      const humXI2 = hd.xi2.map(id => hmap.get(id)).filter((c): c is PoolCard => !!c)
+      if (humXI2.length === 11) {
+        const sub = mulberry((((seed ^ 0x48A17F) ^ ((r + 1) * 0x2545F491) ^ (humanTid! * 0x9E3779B1)) >>> 0))
+        const homeXI2 = H.human ? humXI2 : hxi
+        const awayXI2 = A.human ? humXI2 : axi
+        const humTac2 = hd.tactic ?? (H.human ? th : ta)
+        const homeTac2 = H.human ? humTac2 : th
+        const awayTac2 = A.human ? humTac2 : ta
+        const fh2 = rollForm(homeXI2, homeTac2, awayTac2, sub), fa2 = rollForm(awayXI2, awayTac2, homeTac2, sub)
+        fh2.atk += bh; fh2.def += bh; fa2.atk += ba; fa2.def += ba
+        fh2.atk += mh; fh2.def += mh; fa2.atk += ma; fa2.def += ma
+        const lkH2 = 0.85 + sub() * 0.30, lkA2 = 0.85 + sub() * 0.30
+        fh2.atk *= lkH2; fh2.def *= lkH2; fa2.atk *= lkA2; fa2.def *= lkA2
+        // metade do jogo → metade da expectativa de gols (piso menor, é meio tempo)
+        const lh2 = Math.max(0.04, (G.base + (fh2.atk - fa2.def) * G.coef + G.home) * qual(fh2.atk)) * 0.5
+        const la2 = Math.max(0.04, (G.base + (fa2.atk - fh2.def) * G.coef) * qual(fa2.atk)) * 0.5
+        const hg2 = poisson(lh2, sub), ag2 = poisson(la2, sub)
+        // 1º tempo = o que o baseline fez com min<=45 (fica INTACTO)
+        const hev1 = hev.filter(e => e.min <= 45), aev1 = aev.filter(e => e.min <= 45)
+        // desfaz o crédito de artilharia dos gols de 2º tempo do BASELINE (por id)
+        const undo = (teamName: string, e: { id: string }) => { const k = `${teamName}:${e.id}`; const row = scorers.get(k); if (row) { row.goals--; if (row.goals <= 0) scorers.delete(k) } }
+        hev.filter(e => e.min > 45).forEach(e => undo(H.name, e))
+        aev.filter(e => e.min > 45).forEach(e => undo(A.name, e))
+        // credita os gols NOVOS do 2º tempo (rng isolado, minutos 46..90)
+        const hev2 = scoreGoals(H, homeXI2, hg2, sub, 2), aev2 = scoreGoals(A, awayXI2, ag2, sub, 2)
+        hgF = hev1.length + hev2.length; agF = aev1.length + aev2.length
+        hFinal = [...hev1, ...hev2]; aFinal = [...aev1, ...aev2]
+      }
+    }
+    H.gf += hgF; H.ga += agF; A.gf += agF; A.ga += hgF
+    if (hgF > agF) { H.pts += 3; H.w++; A.l++ } else if (agF > hgF) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
-      const goals: Goal[] = [...hev.map(e => ({ ...e, home: true })), ...aev.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
-      lastMatches.push({ h: H.name, a: A.name, hg, ag, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals })
+      const goals: Goal[] = [...hFinal.map(e => ({ ...e, home: true })), ...aFinal.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
+      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals })
     }
   }
 }
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -1729,8 +1779,8 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
 // ── PLACAR AO VIVO (reutilizável): relógio animado, selo GOOOL, flash e bump.
 // Usado na carreira (pirâmide) E no jogo rápido (offline/online) — mesmo visual.
 export interface ScoreGoal { name: string; min: number; home: boolean }
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket }:
-  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number } }) {
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf }:
+  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean }) {
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
@@ -1744,20 +1794,27 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // o relógio só zera/anima quando MUDA A RODADA (roundKey). Trocar a tática na
     // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
     if (finished) { setMin(93); return }
-    setMin(0)
     // relógio por TEMPO (não por passo fixo): sobe 0→93' ao longo de `dur`. Assim
     // cada velocidade é REALMENTE diferente — o passo fixo batia num piso (30ms) e
     // 2× e 4× ficavam iguais. E termina EXATO no fim do jogo (nada de liberar o
     // "próxima" antes do apito). Piso de 400ms pra nunca ficar instantâneo.
     const dur = Math.max(400, roundMs * 0.82)
+    // 🔁 INTERVALO (carreira offline com toggle): se vai pausar aos 45' e AINDA não
+    // resolveu, o relógio roda 0→45 e trava; depois de resolver (resumeHalf) retoma
+    // 45→93. Sem pausa, é 0→93 como sempre. `span` mantém o ritmo proporcional.
+    const startMin = resumeHalf ? 45 : 0
+    const span = 93 - startMin
+    const segDur = dur * (span / 93)
+    setMin(startMin)
     const t0 = Date.now()
     const iv = setInterval(() => {
-      const m = Math.min(93, Math.round(((Date.now() - t0) / dur) * 93))
+      const m = Math.min(93, Math.round(startMin + ((Date.now() - t0) / segDur) * span))
+      if (pauseAtHalf && !resumeHalf && m >= 45) { setMin(45); clearInterval(iv); onReachHalf?.(); return }
       setMin(m)
       if (m >= 93) clearInterval(iv)
     }, 40)
     return () => clearInterval(iv)
-  }, [roundKey, finished, roundMs])
+  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf])
   const done = min >= 93
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
@@ -1916,12 +1973,114 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
-function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number }) {
+function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean }) {
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} />
+}
+
+// ── 🔁 BANNER DO INTERVALO (carreira offline): pausa aos 45' e deixa o técnico
+// mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
+// só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
+function HalftimeBanner({ mgr, baseXIids, baseTactic, col, scoreText, oppName, onConfirm }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; col: FCol; scoreText: string; oppName: string; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void }) {
+  const [formation, setFormation] = useState<FormationKey>(mgr.formation)
+  const [tactic, setTactic] = useState<Tac>(baseTactic)
+  const [baseline, setBaseline] = useState<string[]>(baseXIids) // conta as trocas contra isto (reinicia se troca formação)
+  const [xi, setXi] = useState<string[]>(baseXIids)
+  const [sel, setSel] = useState<string | null>(null)
+  const byId = useMemo(() => new Map(mgr.squad.map(c => [c.id, c])), [mgr.squad])
+  const xiSet = new Set(xi)
+  const subs = baseline.filter(id => !xiSet.has(id)).length // quantas trocas já foram feitas
+  const real = mgr.squad.filter(c => !c.fake)
+  const availByPos = (pos: Sector) => real.filter(c => c.pos === pos && !c.emprestado).length
+  const missFor = (f: FormationKey) => SECTORS.filter(pos => availByPos(pos) < FORMATIONS[f][pos])
+  const pickForm = (f: FormationKey) => {
+    if (f === formation || missFor(f).length) return
+    const ids = bestXI(mgr.squad, f).map(c => c.id) // nova formação: melhor XI real pra ela (reinicia a contagem de trocas)
+    setFormation(f); setXi(ids); setBaseline(ids); setSel(null)
+  }
+  const tap = (id: string) => {
+    if (sel === id) { setSel(null); return }
+    if (sel == null) { setSel(id); return }
+    const a = byId.get(sel), b = byId.get(id)
+    if (!a || !b) { setSel(null); return }
+    const aTit = xiSet.has(sel), bTit = xiSet.has(id)
+    if (aTit === bTit) { setSel(id); return } // os dois do mesmo lado → só re-seleciona
+    if (a.pos !== b.pos) { setSel(null); return } // 🔒 só mesma posição
+    const outId = aTit ? sel : id, inId = aTit ? id : sel
+    const nx = xi.map(x => x === outId ? inId : x)
+    if (baseline.filter(x => !new Set(nx).has(x)).length > 3) { setSel(null); return } // 🔒 no máx. 3 trocas
+    setXi(nx); setSel(null)
+  }
+  const row = (c: WonCard, side: 'tit' | 'res') => {
+    const picked = sel === c.id
+    const selCard = sel ? byId.get(sel) : null
+    const target = !!selCard && (xiSet.has(sel!) ? side === 'res' : side === 'tit') && selCard.pos === c.pos // candidato de troca válido
+    return (
+      <button key={c.id} onClick={() => tap(c.id)}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', border: `2px solid ${picked ? GOLD : target ? GREEN : INK}`, borderRadius: 8, padding: '5px 7px', marginBottom: 4, background: picked ? '#FFF7DA' : target ? '#E9F6EE' : '#fff', cursor: 'pointer', boxShadow: picked ? `2px 2px 0 0 ${INK}` : 'none' }}>
+        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: side === 'tit' ? col.solid : '#888', minWidth: 20 }}>{Math.round(mid(c))}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontWeight: 800, fontSize: 12.5, ...OSWALD, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+          <span style={{ display: 'block', fontSize: 9, fontWeight: 700, color: '#8a8478' }}>{c.club} · {c.year}</span>
+        </span>
+      </button>
+    )
+  }
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+      <div style={{ width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
+        {/* cabeçalho: placar do 1º tempo + aviso "vale só o 2º tempo" */}
+        <div style={{ background: INK, color: '#fff', padding: '12px 16px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 20 }}>⏸️ Intervalo</div>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.7)' }}>vale SÓ o 2º tempo · não muda o próximo jogo</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 24, color: GOLD }}>{scoreText}</div>
+            <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)' }}>x {oppName}</div>
+          </div>
+        </div>
+        <div style={{ padding: 14 }}>
+          {/* formação */}
+          <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>🎽 Formação</p>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
+            {(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).map(f => {
+              const cur = formation === f, can = cur || missFor(f).length === 0
+              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? col.solid : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
+            })}
+          </div>
+          {/* tática */}
+          <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>🧠 Tática</p>
+          <div style={{ display: 'flex', gap: 5, marginBottom: 12 }}>
+            {([['retranca', '🛡️ Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '⚔️ Ataque']] as [Tac, string][]).map(([t, lb]) => {
+              const cur = tactic === t
+              return <button key={t} onClick={() => setTactic(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '7px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: 'pointer', background: cur ? col.solid : '#fff', color: cur ? '#fff' : INK, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>{lb}</button>
+            })}
+          </div>
+          {/* trocas: em campo | banco */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: 0, color: INK }}>🔁 Trocas <span style={{ color: subs >= 3 ? '#C2452F' : '#2E7D46' }}>({subs}/3)</span></p>
+            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#8a8478' }}>toca num titular e depois num reserva da mesma posição</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2E7D46', margin: '0 0 4px', textTransform: 'uppercase' }}>🟢 Em campo</p>
+              {SECTORS.map(pos => { const cs = xi.map(id => byId.get(id)).filter((c): c is WonCard => !!c && c.pos === pos).sort((a, b) => mid(b) - mid(a)); return cs.length ? <div key={pos} style={{ marginBottom: 5 }}><span style={{ fontSize: 8.5, fontWeight: 800, color: '#a29c8c', textTransform: 'uppercase' }}>{POS_LABEL[pos]}</span>{cs.map(c => row(c, 'tit'))}</div> : null })}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2b5fa8', margin: '0 0 4px', textTransform: 'uppercase' }}>🔵 Banco</p>
+              {SECTORS.map(pos => { const cs = mgr.squad.filter(c => c.pos === pos && !xiSet.has(c.id) && !c.fake).sort((a, b) => mid(b) - mid(a)); return cs.length ? <div key={pos} style={{ marginBottom: 5 }}><span style={{ fontSize: 8.5, fontWeight: 800, color: '#a29c8c', textTransform: 'uppercase' }}>{POS_LABEL[pos]}</span>{cs.map(c => row(c, 'res'))}</div> : null })}
+            </div>
+          </div>
+          <button onClick={() => onConfirm(xi, formation, tactic)} style={{ width: '100%', marginTop: 14, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px', fontWeight: 900, fontSize: 15, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>▶️ Voltar pro 2º tempo</button>
+          <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '6px 0 0' }}>pode voltar sem trocar nada — aí o 2º tempo segue com o mesmo time</p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
@@ -2225,7 +2384,7 @@ function GoldTeaser({ label, children }: { label: string; children: React.ReactN
 }
 
 const POS_SHORT: Record<Sector, string> = { GOL: 'goleiro', LAT: 'lateral', ZAG: 'zagueiro', MEI: 'meia', ATA: 'atacante' }
-function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey) => void; contratosOn?: boolean; olheiros?: boolean }) {
+function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -2279,6 +2438,30 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
             {blocked.length
               ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{blocked[0]}</b> faltam <b>{missFor(blocked[0]).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
               : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
+          </div>
+        )
+      })()}
+      {/* 🔁 TOGGLE: como o técnico faz troca (só carreira offline). Padrão = dinâmico
+          (como sempre foi). "Só no intervalo" faz o jogo pausar aos 45' pra trocar. */}
+      {elenco && onSetSubMode && (() => {
+        const mode = subMode ?? 'dinamico'
+        const Opt = ({ m, titulo, desc }: { m: 'dinamico' | 'intervalo'; titulo: string; desc: string }) => {
+          const on = mode === m
+          return (
+            <button onClick={() => { if (!on) onSetSubMode(m) }}
+              style={{ flex: 1, textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', cursor: on ? 'default' : 'pointer', background: on ? col.solid : '#fff', color: on ? '#fff' : INK, boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none' }}>
+              <div style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{titulo}{on ? ' ✓' : ''}</div>
+              <div style={{ fontSize: 8.5, fontWeight: 700, opacity: on ? 0.85 : 0.55, lineHeight: 1.25, marginTop: 2 }}>{desc}</div>
+            </button>
+          )
+        }
+        return (
+          <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
+            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🔁 Substituições</p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <Opt m="dinamico" titulo="🔄 Dinâmico" desc="troca quando quiser · vale pro próximo jogo" />
+              <Opt m="intervalo" titulo="⏸️ Só no intervalo" desc="o jogo pausa aos 45' pra trocar (só o 2º tempo)" />
+            </div>
           </div>
         )
       })()}
@@ -3037,6 +3220,9 @@ export function PyramidSeasonScreen() {
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
+  // 🔁 decisões de intervalo (só carreira offline; vazio no resto) — motor re-simula
+  // SÓ o 2º tempo do jogo do humano com rng isolado. Vazio = jogo 100% igual a hoje.
+  const careerHalftime = ((state.onlineMode !== 'online' ? state.careerHalftime : undefined) ?? {}) as RoundHalftime
   // teto de qualidade + gol realista por versão da fórmula (simV): v3 (>=3) = gol
   // realista/menos goleada; v2 = 1.28; save antigo = 1.2. Temporada em andamento
   // termina na versão em que começou (não muda no meio).
@@ -3058,7 +3244,7 @@ export function PyramidSeasonScreen() {
     if (!state.agenciaOn || !ev || ev.season !== state.seasonNo || ev.status !== 'campo') return {}
     return { [ev.mgrId]: { [ev.round]: -2 } }
   }, [state.eventoTemporada, state.seasonNo, state.agenciaOn])
-  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods])
+  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -3079,7 +3265,7 @@ export function PyramidSeasonScreen() {
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
   // artilharia entregava). Quando a rodada termina de animar (revealed = round),
   // tudo passa a vir da simulação completa (live), sem recomputar à toa.
-  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods])
+  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime])
   const { scorers, scorersAll, goalsByCard, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)
@@ -3503,6 +3689,14 @@ export function PyramidSeasonScreen() {
   const ord = orderedDivs(myDiv).filter(d => d !== 'V' || (tables.V?.length ?? 0) > 0) // 🌱 Várzea só aparece quando existe
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
   const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
+  // 🔁 INTERVALO (carreira offline com toggle "só no intervalo"): o jogo pausa aos
+  // 45' e abre o banner pra trocar o 2º tempo. `halfMode` = a pausa está armada pra
+  // esta rodada; `halftimeDone` = o técnico já resolveu (aí o relógio retoma 45→93).
+  const [halftimeOpen, setHalftimeOpen] = useState(false)
+  const halftimeDone = !!state.careerHalftime?.[youId]?.[round]
+  const halfMode = soloCareer && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
+  // fecha o banner ao virar a rodada (jogo novo) — nunca fica aberto de um jogo pro outro
+  useEffect(() => { setHalftimeOpen(false) }, [round])
 
   // host conduz: avança a rodada (isso sincroniza pra todos). Nos modos SOLO
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
@@ -3539,11 +3733,14 @@ export function PyramidSeasonScreen() {
     // o clique no botão "Começar a temporada" (Diego 07/08: escolher o patrocínio
     // não pode já disparar a temporada; tem que ter o botão, pra quem tem Manual e
     // pra quem não tem).
-    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0) return
+    // 🔁 intervalo pendente PAUSA o auto (igual ao evento): a rodada só anda depois
+    // que o técnico resolve o 2º tempo. Quando resolve (halftimeDone), o efeito
+    // re-roda e arma um timer novo — dando tempo do 2º tempo animar antes de avançar.
+    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0 || (halfMode && !halftimeDone)) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, roundMs)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk, halfMode, halftimeDone])
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [roundReady, setRoundReady] = useState(false)
@@ -3654,7 +3851,7 @@ export function PyramidSeasonScreen() {
         {copaFinished && copa?.champion && (
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
         )}
-        {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} />}
+        {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} />}
         {/* 🎭 EVENTO DE JOGADOR: banner de decisão — a rodada SÓ anda depois da escolha.
             Elenco/XI vêm do clube DO EVENTO (ev.mgrId): se o técnico trocar de clube
             (multiclube) com o banner aberto, a decisão segue no clube certo. */}
@@ -3666,6 +3863,17 @@ export function PyramidSeasonScreen() {
           return <EventoBanner ev={eventoPendente}
             reservas={evMgr.squad.filter(c => c.pos === eventoPendente.pos && !evXIids.has(c.id))}
             onDecide={(escolha, subId) => dispatch({ type: 'EVENTO_DECIDE', escolha, subId, xi: evXI.map(c => c.id) })} />
+        })()}
+        {/* 🔁 BANNER DO INTERVALO (carreira offline, toggle "só no intervalo"): pausa
+            aos 45' e deixa mexer no 2º tempo. Enquanto aberto, a rodada não anda. */}
+        {halftimeOpen && halfMode && mgrMe && myMatch && me && (() => {
+          const iAmHome = myMatch.h === me.team
+          const g1 = myMatch.goals.filter(g => g.min <= 45)
+          const myG = g1.filter(g => (iAmHome ? g.home : !g.home)).length
+          const oppG = g1.length - myG
+          return <HalftimeBanner mgr={mgrMe} baseXIids={myXI.map(c => c.id)} baseTactic={myTactic} col={myCol}
+            scoreText={`${myG} x ${oppG}`} oppName={iAmHome ? myMatch.a : myMatch.h}
+            onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round, xi2: ids, formation, tactic }); setHalftimeOpen(false) }} />
         })()}
         {/* 🚨 CRISE FINANCEIRA: o melhor jogador do elenco avisa que vai embora
             (caixa cruzou uma barreira nova de -500) — trava até o técnico escolher
@@ -3729,10 +3937,10 @@ export function PyramidSeasonScreen() {
           ) : manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady}
-              onNext={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              onSkip={() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              nextLabel={!roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !(halfMode && !halftimeDone)}
+              onNext={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              onSkip={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              nextLabel={halfMode && !halftimeDone ? '⏸️ Resolva o intervalo primeiro' : !roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
           </>
           ) : <ManualLockButton />
         )}
@@ -4226,7 +4434,7 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} olheiros={state.onlineMode !== 'online'} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
                 Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner
