@@ -4017,3 +4017,20 @@ Só afeta Cadeiras (90) e Camarote (150) — os únicos setores que não são
 múltiplo de 20 (Gramado/Geral/Visitante fecham exato, sem clique parcial).
 Build ok, no ar em `main`. Reversível — só troca o número mostrado no
 botão e a conta da trava, nenhum campo de estado novo.
+
+## 👑 Novo Lenda: chiarentin.dyno127@gmail.com (12/08)
+Pedido do Diego: "add esse usuário, como Lenda e tudo que tem direito".
+Adicionado em `apoio.tsx` — tier `ouro` no `FOUNDERS` + `FUNDADOR_N`
+(tudo do ouro: cor/selo 👑, brilho, Modo Manual + selo de fundador 🖋️).
+Sem batismo (Diego não passou nome de clube — só entra quando for pedido
+explicitamente, igual todo mundo dessa lista).
+⚠️ **Colisão com sessão concorrente**: outra sessão adicionou o Tio Sapeka
+(@tiosapekagg, batismo Sapekeiros FC) como fundador nº41 quase na mesma
+hora — o cherry-pick pro `main` bateu de frente (os 2 tentaram usar o
+nº41). Resolvido mantendo os DOIS: **Tio Sapeka = 41, chiarentin = 42**
+(o commit local ficou com a mensagem desatualizada dizendo "41" por
+engano — o número de verdade no código é 42, mais confiável que a
+mensagem do commit).
+Build ok, no ar em `main`. A fonte oficial de tier é a tabela
+`user_colors` do Supabase (o Diego gerencia no painel dele) — isto aqui é
+só a lista de reserva no código, que o jogo usa se o banco não responder.
