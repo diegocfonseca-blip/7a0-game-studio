@@ -3951,8 +3951,12 @@ export function PyramidSeasonScreen() {
   // 🔁 INTERVALO (carreira offline com toggle "só no intervalo"): o jogo pausa aos
   // 45' e abre o banner pra trocar o 2º tempo. `halfMode` = a pausa está armada pra
   // esta rodada; `halftimeDone` = o técnico já resolveu (aí o relógio retoma 45→93).
+  // 🐞 A chave é `round - 1` = ÍNDICE 0-based do jogo que está ROLANDO (o motor lê por
+  // esse índice). Antes gravava em `round` (o PRÓXIMO jogo) — a troca ia pro jogo
+  // errado, sem efeito nenhum no que você assistia (comprovado em teste). Corrigido.
+  const curMatchIdx = round - 1
   const [halftimeOpen, setHalftimeOpen] = useState(false)
-  const halftimeDone = !!state.careerHalftime?.[youId]?.[round]
+  const halftimeDone = !!state.careerHalftime?.[youId]?.[curMatchIdx]
   const halfMode = soloCareer && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
   // fecha o banner ao virar a rodada (jogo novo) — nunca fica aberto de um jogo pro outro
   useEffect(() => { setHalftimeOpen(false) }, [round])
@@ -3962,7 +3966,7 @@ export function PyramidSeasonScreen() {
   // morto — não atrasa o ritmo). `penIdx` = índice 0-based do jogo atual (round-1),
   // a mesma chave que o motor lê. `penDecisive` sai do placar-base do SEU jogo (antes
   // do pênalti): empatando (um gol vira) ou perdendo por 1 (um gol empata).
-  const penIdx = round - 1
+  const penIdx = curMatchIdx
   const penaltyDone = !!state.careerPenalty?.[youId]?.[penIdx]
   const penIAmHome = !!(myMatch && me && myMatch.h === me.team)
   const penYourG = myMatch ? (penIAmHome ? myMatch.hg : myMatch.ag) : 0
@@ -4160,7 +4164,7 @@ export function PyramidSeasonScreen() {
           const awayG = g1.length - homeG              // visitante à direita
           return <HalftimeBanner mgr={mgrMe} baseXIids={myXI.map(c => c.id)} baseTactic={myTactic}
             homeName={myMatch.h} awayName={myMatch.a} homeG={homeG} awayG={awayG} youIsHome={iAmHome}
-            onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round, xi2: ids, formation, tactic }); setHalftimeOpen(false) }} />
+            onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round: curMatchIdx, xi2: ids, formation, tactic }); setHalftimeOpen(false) }} />
         })()}
         {/* ⚽ BANNER DO PÊNALTI (carreira offline): jogo decisivo de última hora, um gol
             empata ou vira. Enquanto aberto, a rodada não anda. Depois de BATER, não volta. */}

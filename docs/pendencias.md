@@ -12,8 +12,8 @@ perdendo por 1 = 1 gol empata). Abre no FIM da animação (tempo morto — não 
   (rodadas 5..35). O motor SÓ soma **1 gol** ao humano no min 90 se `scored` — sem rng,
   resultado já decidido pelo jogador. Com `careerPenalty` vazio a simulação é
   **byte-idêntica** (não afeta ninguém). ⚠️ Chave = índice 0-based do jogo atual
-  (`round-1`) — NÃO o `round` (a substituição do intervalo usa `round`; conferir se ela
-  não está 1 rodada adiantada — anotado pra investigar depois, sem mexer agora).
+  (`round-1`) — o motor lê por esse índice. (A substituição do intervalo usava `round`
+  por engano → CORRIGIDO, ver abaixo.)
 - UI: `PenaltyBanner` com **2 modos num toggle** (🎯 Você bate: mira 6 cantos + trava a
   força no verde; 🎙️ Bate sozinho: narração de suspense, pontinhos um a um). Header mostra
   o JOGO (mandante 🏠 esquerda × visitante ✈️ direita, placar de cada, SEU time em ouro).
@@ -21,6 +21,15 @@ perdendo por 1 = 1 gol empata). Abre no FIM da animação (tempo morto — não 
   GOOOOL + confete (+ **mascote de quem TEM mascote**; sem mascote = só a festa). Depois
   de BATER **não volta** (trava modo/cobrador). Fundo = manto do tier do usuário.
 - ⚠️ Reversível: `git revert`. Não toca no futebol online nem em carreiras sem pênalti.
+
+## 🐞 FIX: substituição no intervalo estava 1 rodada adiantada — ✅ CORRIGIDO (12/08)
+Bug encontrado ao codar o pênalti e **comprovado em teste** (rodando `simulatePyramid`):
+a troca do intervalo gravava em `careerHalftime[mgr][round]`, mas o jogo que está
+rolando é o índice **`round-1`** (o motor lê por esse índice). Resultado: a substituição
+não fazia efeito nenhum no jogo que você assistia — ela caía no PRÓXIMO jogo (1 rodada
+adiantada). Corrigido pra `round-1` (dispatch do SET_HALFTIME + leitura do `halftimeDone`
+em `pyramidseason.tsx`). O motor NÃO mudou → colocações de saves antigos não mudam
+retroativamente; só as trocas NOVAS passam a valer no jogo certo. Só offline. Reversível.
 
 ## 🏟️ ESTÁDIO: renda por ocupação + 4 estabelecimentos — ✅ NO AR (12/08)
 Reforma do torcidômetro (Diego): a renda deixa de ser bônus solto e passa a vir da
