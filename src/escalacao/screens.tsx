@@ -771,7 +771,7 @@ export function GameFooter() {
 
 function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
   return (
-    <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ backgroundColor: bg, boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
+    <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
       {children}
     </div>
   )
