@@ -36,7 +36,7 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
   // 🏬 NOVOS ESTABELECIMENTOS (Diego 12/08) — só carreira nova (agenciaOn), mesmo
   // gate do médico/retrátil pra NUNCA mexer no meio da carreira de ninguém. Entram
   // na conta do "estádio completo" e engatam na renda por ocupação (torcidômetro).
-  { k: 'praca',  n: '🍔 Praça de Alimentação', cost: 110, inc: 7, reqTxt: 'Loja do Clube', perk: 'as marcas do seu patrocínio viram as lojinhas' },
+  { k: 'praca',  n: '🍔 Praça de Alimentação', cost: 110, inc: 7, reqTxt: 'Loja do Clube', perk: 'o food court do estádio' },
   { k: 'chopp',  n: '🍻 Choperia do Estádio',  cost: 90,  inc: 6, reqTxt: 'Praça de Alimentação', perk: 'esquenta antes do jogo' },
   { k: 'estacao', n: '🚇 Estação / Acesso Fácil', cost: 120, inc: 5, reqTxt: 'Estacionamento', perk: '+8% de lotação: mais gente consegue chegar' },
   { k: 'cober', n: '☂️ Cobertura',        cost: 130, inc: 8, reqTxt: '4 setores prontos' },
