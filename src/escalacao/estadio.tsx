@@ -410,8 +410,12 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           bilheteria fixa acima. Sem Camarote, chuva esfria o público SÓ desse
           jogo; com Camarote, protege. */}
       {torcidaPct != null && (() => {
-        const temCamarote = hasExtra(st, 'camarote')
-        const chuvaAtiva = !!chuvaHoje && !temCamarote
+        // 🐛 CORRIGIDO (relato do jogador Amauri, 12/08): 'camarote' é SETOR (st.inv),
+        // não extra — então hasExtra('camarote') dava SEMPRE falso e a chuva punia
+        // todo mundo, até com camarote 100%. Agora protege quem tem o Camarote pronto
+        // OU a Cobertura (☂️) OU a Cobertura Retrátil — telhado protege da chuva.
+        const temCobertura = sectorPct(st, 'camarote') >= 100 || hasExtra(st, 'cober') || hasExtra(st, 'retratil')
+        const chuvaAtiva = !!chuvaHoje && !temCobertura
         const lotacaoPct = chuvaAtiva ? Math.max(20, torcidaPct - 32) : torcidaPct
         const cor = lotacaoPct >= 55 ? '#1B7A3D' : lotacaoPct >= 30 ? '#E8A200' : '#C2452F'
         return (
@@ -428,9 +432,9 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
             </div>
             <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '7px 0 0', lineHeight: 1.4 }}>
               {chuvaAtiva
-                ? '🌧️ Chuva hoje — sem cobertura, parte da torcida fica em casa. O Camarote protege o público mesmo na chuva.'
+                ? '🌧️ Chuva hoje — sem cobertura, parte da torcida fica em casa. Construa o Camarote ou a Cobertura (☂️) que protege o público na chuva.'
                 : chuvaHoje
-                  ? '☂️ Chuva lá fora, mas o Camarote segura a casa cheia hoje.'
+                  ? '☂️ Chuva lá fora, mas a sua cobertura segura a casa cheia hoje.'
                   : 'Segue o clima da torcida — nunca mexe na bilheteria garantida por temporada (essa é fixa, ali em cima).'}
             </p>
           </div>
