@@ -4078,11 +4078,12 @@ export function PyramidSeasonScreen() {
             </div>
             <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD }}>{torcidaPct}%</span>
           </div>
-          {/* 🎪 histórico sutil (mockup-torcidometro-v3, aprovado): motivo das
-              últimas mudanças, texto bem discreto — não é destaque, é rodapé. */}
+          {/* 🎪 histórico sutil: SÓ o motivo do humor da torcida (Diego 12/08: tirar o
+              ±número pra não parecer "lucro" — a renda agora vem da lotação, não daqui).
+              Ex.: "20º lugar · caiu de divisão". Texto bem discreto, é rodapé. */}
           {torcidaHist.length > 0 && (
             <p style={{ padding: '0 14px 12px', margin: 0, marginTop: -8, fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.5)' }}>
-              {torcidaHist.map(h => `${h.delta >= 0 ? '+' : ''}${h.delta} · ${h.motivo}`).join('  ·  ')}
+              {torcidaHist.map(h => h.motivo).join('  ·  ')}
             </p>
           )}
           {/* progresso da temporada: trilho ESCURO visível de ponta a ponta (não
