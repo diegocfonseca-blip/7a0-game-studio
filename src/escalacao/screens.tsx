@@ -1519,6 +1519,34 @@ function CareerLoginGate({ onClose }: { onClose: () => void }) {
   )
 }
 
+// 🎥 BANNER DA CAMPANHA "CHAMA UM STREAMER" na home (pra todos). Dá pra FECHAR no
+// ✕ e não volta mais (grava no aparelho). Só divulgação — não mexe em nada do
+// jogo. Pra relançar depois (nova versão), é só trocar a chave do localStorage.
+function StreamerBanner() {
+  const KEY = 'esc-streamer-banner-v1'
+  const [dismissed, setDismissed] = useState(() => { try { return localStorage.getItem(KEY) === '1' } catch { return false } })
+  if (dismissed) return null
+  const close = () => { try { localStorage.setItem(KEY, '1') } catch { /* ignora */ } setDismissed(true) }
+  const pill = (txt: string) => (
+    <span style={{ background: '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', ...OSWALD }}>{txt}</span>
+  )
+  return (
+    <div style={{ position: 'relative', background: GOLD, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 0 ${INK}`, padding: '12px 14px 13px' }}>
+      <button onClick={close} aria-label="Fechar" style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: 999, border: `2px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 13, lineHeight: 1, cursor: 'pointer' }}>✕</button>
+      <p style={{ fontWeight: 900, fontSize: 18, textTransform: 'uppercase', ...OSWALD, margin: 0, paddingRight: 30 }}>🎥 Chama um streamer!</p>
+      <p style={{ fontWeight: 700, fontSize: 12.5, color: '#3a2f00', margin: '4px 0 9px', lineHeight: 1.3 }}>
+        Mandou o jogo pra um streamer e ele <b>postou?</b> <b>Você e ele</b> ganham prêmio no jogo 👑 (quanto maior o streamer, maior o prêmio).
+      </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 9 }}>
+        {pill('⭐ Craque')}{pill('👑 Lenda')}{pill('🎖️ Batismo')}{pill('🛡️ escudo + mascote')}
+      </div>
+      <div style={{ background: INK, color: GOLD, borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 12, textAlign: 'center', ...OSWALD }}>
+        Postou? Me manda o print 📲 <span style={{ color: '#fff' }}>@leilaolegendscom</span>
+      </div>
+    </div>
+  )
+}
+
 export function EscIntro() {
   const [sport] = useSport()
   const unlocked = useSportUnlocked() // 🔒 só o Diego vê qualquer coisa de basquete
@@ -1586,6 +1614,7 @@ export function EscIntro() {
       )}
       {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); startCareer(() => dispatch({ type: 'GO_SETUP_CAREER' })) }} />}
       {careerGate && <CareerLoginGate onClose={() => setCareerGate(false)} />}
+      <StreamerBanner />
       <div className="text-center pt-8">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           ⚽ Leilão às cegas de lendas
