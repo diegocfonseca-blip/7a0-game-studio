@@ -2470,7 +2470,7 @@ export const INITIAL: EscState = {
   phase: 'envelope', currentCards: [], revealQueue: [], revealIdx: 0,
   stock: { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 },
   monte: [], monteOrder: [], monteIdx: 0,
-  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, clubCash: {}, careerHonors: {}, marketValues: {}, marketLog: [], careerSubMode: 'dinamico', careerHalftime: {},
+  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, clubCash: {}, careerHonors: {}, marketValues: {}, marketLog: [], careerSubMode: 'dinamico', careerHalftime: {}, careerPenalty: {},
   lastResults: [], news: [], champion: null,
   deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
@@ -2563,6 +2563,7 @@ type Action =
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic } // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
+  | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
@@ -3484,7 +3485,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
-      s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.seasonVotes = {}
+      s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.seasonVotes = {}
       const cc: Record<number, number> = {}
       for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
       s.careerCoins = cc
@@ -3625,7 +3626,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
-      s.tactics = {}; s.careerTactics = {}; s.careerHalftime = {}
+      s.tactics = {}; s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
       // desempenho (título por série, acesso) e perde na queda — sem base recorrente.
       if (s.careerOnline) {
@@ -4364,6 +4365,24 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerHalftime = hh
       return s
     }
+    case 'SET_PENALTY': {
+      // ⚽ PÊNALTI DECISIVO (carreira offline): grava se o cobrador CONVERTEU no jogo.
+      // TRAVAS (segurança #1 do Diego): só carreira offline; o cobrador tem que ser
+      // uma carta REAL do elenco (sem perna-de-pau/fake — nada de gol de fantasma);
+      // grava UMA vez por jogo (dispatch repetido/reload = no-op, o pênalti não se
+      // re-bate). O motor só SOMA 1 gol ao humano se scored — nunca tira gol, nunca
+      // mexe em outro jogo. round = índice 0-based do jogo (o que está rolando).
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      if (!m) return s
+      const tk = m.squad.find(c => c.id === action.taker)
+      if (!tk || tk.fake) return s // cobrador tem que existir no elenco e ser real
+      if (s.careerPenalty?.[action.mgrId]?.[action.round] !== undefined) return s // já batido — não re-bate
+      const pp = { ...(s.careerPenalty ?? {}) }
+      pp[action.mgrId] = { ...(pp[action.mgrId] ?? {}), [action.round]: { scored: !!action.scored, taker: action.taker } }
+      s.careerPenalty = pp
+      return s
+    }
     case 'EVENTO_SET': {
       // 🎭 EVENTOS (carreira SOLO): registra o causo sorteado na tela. A trava de
       // "1 por temporada" mora AQUI (dispatch repetido/reload vira no-op).
@@ -4817,7 +4836,7 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
-      s.tactics = {}; s.careerTactics = {}; s.careerHalftime = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+      s.tactics = {}; s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
@@ -4877,7 +4896,7 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       s.seasonNo++
       s.round = 0; s.champion = null
-      s.careerTactics = {}; s.careerHalftime = {}
+      s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveListed = {}
       s.screen = 'reserveList'
       // 🔒 "mesmo time": mesma tela de contratos, mas SEM leilão depois — o relógio
@@ -5321,7 +5340,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.surpriseId = pickSurprise(s.deck, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
-      s.careerTactics = {}; s.careerHalftime = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
+      s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.reserveListed = {}
       s.reserveAuction = true
       s.screen = 'auction'

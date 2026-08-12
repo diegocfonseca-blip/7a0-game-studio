@@ -1,5 +1,27 @@
 # 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
 
+## ⚽ CARREIRA: pênalti decisivo — 🟡 CODADO na branch (aguarda OK de deploy do Diego)
+Feature nova SÓ na carreira OFFLINE (online intocado). Aprovada visualmente pelo Diego
+via protótipo (artifact pen_full). Aparece **0-2x/temporada** (sorteio fixo por semente),
+SÓ em **jogo de última hora onde um gol empata ou vira** (você empatando = 1 gol vira;
+perdendo por 1 = 1 gol empata). Abre no FIM da animação (tempo morto — não atrasa ritmo).
+- `types.ts`: `careerPenalty` (mgrId → índice 0-based do jogo → {scored, taker}). Zera
+  por temporada. `store.tsx`: action **SET_PENALTY** (travas: só offline; cobrador REAL
+  do elenco, sem fake; grava 1x — não re-bate no reload).
+- **MOTOR** (`pyramidseason.tsx`): `penaltyPlan(seasonSeed)` sorteia 0-2 índices de jogo
+  (rodadas 5..35). O motor SÓ soma **1 gol** ao humano no min 90 se `scored` — sem rng,
+  resultado já decidido pelo jogador. Com `careerPenalty` vazio a simulação é
+  **byte-idêntica** (não afeta ninguém). ⚠️ Chave = índice 0-based do jogo atual
+  (`round-1`) — NÃO o `round` (a substituição do intervalo usa `round`; conferir se ela
+  não está 1 rodada adiantada — anotado pra investigar depois, sem mexer agora).
+- UI: `PenaltyBanner` com **2 modos num toggle** (🎯 Você bate: mira 6 cantos + trava a
+  força no verde; 🎙️ Bate sozinho: narração de suspense, pontinhos um a um). Header mostra
+  o JOGO (mandante 🏠 esquerda × visitante ✈️ direita, placar de cada, SEU time em ouro).
+  Categoria do cobrador (Foi Profissional→Lenda) manda no acerto/tamanho do verde. Gol →
+  GOOOOL + confete (+ **mascote de quem TEM mascote**; sem mascote = só a festa). Depois
+  de BATER **não volta** (trava modo/cobrador). Fundo = manto do tier do usuário.
+- ⚠️ Reversível: `git revert`. Não toca no futebol online nem em carreiras sem pênalti.
+
 ## 🐝👑 BATISMO: Sapekeiros FC (tiosapeka@gmail.com / @tiosapekagg) — ✅ NO AR (12/08)
 Batismo do Tio Sapeka (Gaming Content Creator / Streamer / UGC Creator, presidente do
 Sapekeiros FC). Coração **Santos**. Logo REAL do clube (abelha coroada com a bola) vira

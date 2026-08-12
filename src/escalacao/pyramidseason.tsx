@@ -7,6 +7,7 @@
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
@@ -495,7 +496,24 @@ export type RoundMods = Record<number, Record<number, number>>
 // tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
 // é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
 export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac }>>
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}) {
+// ⚽ resultado do pênalti decisivo por jogo do humano (teamId → índice 0-based → resultado)
+export type RoundPenalty = Record<number, Record<number, { scored: boolean; taker: string }>>
+// ⚽ PLANO DE PÊNALTIS DA TEMPORADA (determinístico, só carreira offline): sorteia
+// QUANTOS pênaltis a temporada reserva (0, 1 ou 2 — nunca mais) e em QUAIS jogos
+// (índices 0-based). O pênalti só APARECE se aquele jogo for decisivo de verdade (um
+// gol empata/vira no fim) — senão o "vale" se perde e a temporada tem menos. Evita as
+// primeiras e as últimas rodadas (índices 4..34 = rodadas 5..35). NÃO toca na
+// simulação: é só pra tela decidir quando oferecer. Semente = seed da temporada.
+export function penaltyPlan(seasonSeed: number): number[] {
+  const rng = mulberry((seasonSeed ^ 0x50EA17) >>> 0)
+  const roll = rng()
+  const n = roll < 0.45 ? 0 : roll < 0.85 ? 1 : 2 // 45% nenhum · 40% um · 15% dois
+  const out = new Set<number>()
+  let guard = 0
+  while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
+  return [...out]
+}
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -610,6 +628,21 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
         hFinal = [...hev1, ...hev2]; aFinal = [...aev1, ...aev2]
       }
     }
+    // ⚽ PÊNALTI DECISIVO — só carreira offline. Se o humano bateu e CONVERTEU neste
+    // jogo (guardado em `penalty`), soma 1 gol pro time dele no minuto 90. SEM rng (o
+    // resultado já foi decidido pelo jogador na tela) → determinístico e byte-idêntico
+    // quando `penalty` está vazio. Só ADICIONA gol ao humano; nunca tira nem toca em
+    // outro jogo. `r` é o índice 0-based do jogo (o mesmo que a tela guarda).
+    const pd = humanTid != null ? penalty[humanTid]?.[r] : undefined
+    if (pd && pd.scored) {
+      const humM = H.human ? H : A
+      const tk = humM.squad.find(c => c.id === pd.taker)
+      const nm = tk?.name ?? 'Cobrador'
+      const pkey = `${humM.name}:${pd.taker}`, prow = scorers.get(pkey)
+      if (prow) prow.goals++; else scorers.set(pkey, { name: nm, teamName: humM.name, teamId: humM.teamId, div, goals: 1, you: humM.you, human: humM.human, rival: humM.rival, dorm: humM.dorm, cardId: pd.taker })
+      const penEv = { name: nm, min: 90, id: pd.taker }
+      if (H.human) { hgF += 1; hFinal = [...hFinal, penEv] } else { agF += 1; aFinal = [...aFinal, penEv] }
+    }
     H.gf += hgF; H.ga += agF; A.gf += agF; A.ga += hgF
     if (hgF > agF) { H.pts += 3; H.w++; A.l++ } else if (agF > hgF) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
@@ -621,14 +654,14 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -2095,6 +2128,214 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
   )
 }
 
+// ⚽ ─── PÊNALTI DECISIVO (banner, carreira offline) ─────────────────────────────
+// Aparece 0-2x/temporada em jogo de última hora (um gol empata/vira). Dois modos num
+// toggle: 🎯 Você bate (mira + trava a força no verde) e 🎙️ Bate sozinho (narração de
+// suspense). Depois de BATER, NÃO volta. Gol → GOOOOL + confete (+ mascote de quem tem).
+// O resultado (converteu ou não) sobe pro onDone → o motor soma o gol no jogo.
+const PEN_SKILL: Record<EmpCat, number> = { lenda: 0.95, craque: 0.85, promessa: 0.72, bom: 0.58, prof: 0.45 }
+const PEN_SELO: Record<EmpCat, string> = { lenda: '👑 Lenda', craque: '⭐ Craque', promessa: '💎 Promessa', bom: '📇 Bom Jogador', prof: '💼 Foi Profissional' }
+const PEN_INTRO: Record<EmpCat, string[]> = {
+  lenda: ['👑 O REI assume! Frieza absoluta — o estádio em SILÊNCIO.', '👑 Craque de placa pega a bola. Isso aqui é pão com manteiga pra ele.', '👑 O maestro ajeita a grama, encara o goleiro e sorri...'],
+  craque: ['⭐ O craque da equipe na responsa — pé de anjo.', '⭐ Confiança total: já bateu mil desses.', '⭐ Bola nos pés do xodó da torcida.'],
+  promessa: ['💎 A joia da base assume — talento de sobra, sangue frio a testar.', '💎 A promessa pede a bola. Coragem não falta!'],
+  bom: ['📇 Jogador rodado pega a bola — experiência conta.', '📇 Ele já viu de tudo no futebol. Calma nessa hora.'],
+  prof: ['💼 Ele se oferece pra bater. Vai na fé!', '💼 Sem medo: pegou a bola e foi.'],
+}
+const PEN_GO = ['GOOOOOL!', 'É GOL!', 'NA REDE!', 'ESTUFOU!']
+const PEN_GO_S = ['No ângulo, indefensável! 🐟', 'Cavou no cantinho — que categoria!', 'Bola na gaveta, sem chance pro goleiro! 🧤', 'O estádio DESABA! Que cobrança! 🎆', 'Paredão estufado — GOLAÇO!', 'Vira a mão do juiz que acabou! 🏆', 'A torcida foi À LOUCURA! 💸', 'Frango? Que nada — foi pura pancada!']
+const PEN_DE = ['DEFENDEU!', 'PEGOU!', 'MILAGRE!']
+const PEN_DE_S = ['O goleiro VOOU e espalmou! 🧤', 'Defesa de placa do arqueiro!', 'Bateu no meio, o goleiro só esperou. 😬', 'Que MURO! O goleiro cresceu na hora.', 'Adivinhou o canto e pegou firme! 🧤']
+const PEN_FO = ['PRA FORA!', 'ISOLOU!', 'POR CIMA!']
+const PEN_FO_S = ['Mandou nas arquibancadas! 😱', 'Foi pro espaço — que desperdício! 🤦', 'Tirou tinta da trave e foi embora — quase!', 'Cavou DEMAIS, foi parar na lua! 🌙', 'Chutou torto, a torcida leva a mão à cabeça. 🤦']
+function penPick<T>(a: T[]): T { return a[Math.floor(Math.random() * a.length)] }
+// alvos e saídas (%): 6 cantos (2 linhas × 3), e pra onde a bola vai quando erra
+const PEN_ZP: [number, number][] = [[20, 26], [50, 22], [80, 26], [22, 64], [50, 66], [78, 64]]
+const PEN_OUT: [number, number][] = [[-4, -9], [50, -17], [104, -9], [-8, 58], [50, -17], [108, 58]]
+
+function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, mascote, onDone }: { mgr: Manager; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; mascote: ReactNode | null; onDone: (scored: boolean, takerId: string) => void }) {
+  const perk = myApoioPerk() ?? APOIO_PERKS.bege
+  const takers = useMemo(() => mgr.squad.filter(c => !c.fake).sort((a, b) => mid(b) - mid(a)), [mgr.squad])
+  const [mode, setMode] = useState<'voce' | 'sozinho'>('voce')
+  const [takerId, setTakerId] = useState<string>(takers[0]?.id ?? '')
+  const [aim, setAim] = useState<number | null>(null)
+  const [phase, setPhase] = useState<'choose' | 'power' | 'anim' | 'rev'>('choose')
+  const [kind, setKind] = useState<'gol' | 'def' | 'fora' | null>(null)
+  const [revWord, setRevWord] = useState('')
+  const [line, setLine] = useState('')
+  const [dots, setDots] = useState('')
+  const [sub, setSub] = useState('')
+  const [celeb, setCeleb] = useState(false)
+  const busy = phase !== 'choose'
+  const taker = takers.find(c => c.id === takerId) ?? takers[0]
+  const cat = taker ? empCat(taker) : 'prof'
+  const skill = PEN_SKILL[cat]
+  // fala de suspense estável por cobrador (não re-sorteia a cada render)
+  const introTxt = useMemo(() => penPick(PEN_INTRO[cat] || PEN_INTRO.prof), [takerId, cat])
+  // refs de animação (transform direto, como o protótipo aprovado)
+  const goalRef = useRef<HTMLDivElement>(null), ballRef = useRef<HTMLDivElement>(null), gkRef = useRef<HTMLDivElement>(null), markRef = useRef<HTMLDivElement>(null)
+  const rafRef = useRef<number | null>(null), timers = useRef<number[]>([])
+  const posx = useRef(0), dir = useRef(1)
+  const swRef = useRef(0.3)
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); timers.current.forEach(t => clearTimeout(t)) }, [])
+  const after = (ms: number, fn: () => void) => { const t = window.setTimeout(fn, ms); timers.current.push(t); return t }
+  const moveKeeper = (z: number) => { const gk = gkRef.current; if (!gk) return; const [x, y] = PEN_ZP[z]; gk.style.transform = `translateX(-50%) translate(${(x - 50) * 2.3}px, ${-(72 - y) * 1.05}px)` }
+  const flyBall = (z: number, out: boolean) => { const ball = ballRef.current, g = goalRef.current; if (!ball || !g) return; const [x, y] = out ? PEN_OUT[z] : PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H + 18 - (y / 100 * H)); ball.style.transition = 'transform .52s cubic-bezier(.25,.7,.35,1)'; ball.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px) scale(.62)` }
+  const reveal = (k: 'gol' | 'def' | 'fora') => {
+    setKind(k); setRevWord(k === 'gol' ? penPick(PEN_GO) : k === 'def' ? penPick(PEN_DE) : penPick(PEN_FO)); setDots(''); setPhase('rev')
+    if (k === 'gol') setCeleb(true)
+    after(560, () => { setSub(k === 'gol' ? penPick(PEN_GO_S) : k === 'def' ? penPick(PEN_DE_S) : penPick(PEN_FO_S)) })
+  }
+  // ── VOCÊ BATE: barra de força + mira
+  const startPower = () => {
+    if (aim === null || busy) return
+    setPhase('power'); setLine('')
+    const sw = 0.12 + skill * 0.30; swRef.current = sw
+    posx.current = 0; dir.current = 1
+    const speed = 3.4 - skill * 1.0
+    let last = performance.now()
+    const loop = (t: number) => {
+      const dt = (t - last) / 1000; last = t
+      posx.current += dir.current * speed * dt
+      if (posx.current >= 1) { posx.current = 1; dir.current = -1 }
+      if (posx.current <= 0) { posx.current = 0; dir.current = 1 }
+      if (markRef.current) markRef.current.style.left = (posx.current * 100) + '%'
+      rafRef.current = requestAnimationFrame(loop)
+    }
+    rafRef.current = requestAnimationFrame(loop)
+  }
+  const travar = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    const stop = posx.current, sw = swRef.current, aimZ = aim ?? 4
+    const err = Math.abs(stop - 0.5), half = sw / 2, onTarget = err <= half, reads = Math.random() < 0.32
+    setPhase('anim'); setLine(`⚽ Vai ${taker?.name ?? 'o cobrador'}...`)
+    let k: 'gol' | 'def' | 'fora', kz: number
+    if (!onTarget) { k = 'fora'; kz = Math.floor(Math.random() * 6); moveKeeper(kz); flyBall(aimZ, true) }
+    else if (reads) { kz = aimZ; moveKeeper(kz); if (aimZ < 3 && err < half * 0.55) { k = 'gol'; flyBall(aimZ, false) } else { k = 'def'; flyBall(aimZ, false) } }
+    else { let z = Math.floor(Math.random() * 6); while (z === aimZ) z = Math.floor(Math.random() * 6); kz = z; moveKeeper(kz); k = 'gol'; flyBall(aimZ, false) }
+    after(520, () => reveal(k))
+  }
+  // ── BATE SOZINHO: suspense mais longo, pontinhos um a um
+  const shootAlone = () => {
+    if (busy || !taker) return
+    setPhase('anim')
+    const r = Math.random()
+    const k: 'gol' | 'def' | 'fora' = r < 0.28 + skill * 0.62 ? 'gol' : r < 0.28 + skill * 0.62 + 0.20 ? 'def' : 'fora'
+    const aimZ = Math.floor(Math.random() * 6)
+    after(560, () => {
+      setLine(`⚽ Partiu ${taker.name}, na cobraaaança`)
+      let i = 0; const N = 8
+      const iv = window.setInterval(() => {
+        i++; setDots('● '.repeat(i).trim())
+        if (i >= N) {
+          clearInterval(iv)
+          after(720, () => {
+            let kz = k === 'def' ? aimZ : Math.floor(Math.random() * 6)
+            while (k !== 'def' && kz === aimZ) kz = Math.floor(Math.random() * 6)
+            moveKeeper(kz); flyBall(aimZ, k === 'fora')
+            after(480, () => reveal(k))
+          })
+        }
+      }, 380)
+      timers.current.push(iv)
+    })
+  }
+  const revColor = kind === 'gol' ? '#39E27A' : kind === 'def' ? '#6FA8FF' : '#FF6A4D'
+  const conf = useMemo(() => Array.from({ length: 26 }, (_, i) => ({ x: (i * 137 + 40) % 100, w: 5 + (i % 3) * 2, cor: ['#FFC400', '#39E27A', '#6FA8FF', '#FF6A4D', '#ffffff', '#7C3AED'][i % 6], dur: 1 + ((i * 79) % 100) / 90, delay: -((i * 211) % 120) / 100, rot: (i * 47) % 360 })), [])
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+      <style>{`@keyframes penPop{to{opacity:1;transform:scale(1)}}@keyframes penJump{from{transform:translateX(-50%) translateY(0) rotate(-7deg)}to{transform:translateX(-50%) translateY(-20px) rotate(7deg)}}@keyframes penConf{to{transform:translateY(300px) rotate(560deg);opacity:.15}}@keyframes penSpin{to{rotate:540deg}}`}</style>
+      <div style={{ position: 'relative', width: '100%', maxWidth: 480, maxHeight: '94vh', overflowY: 'auto', background: perk.grad, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
+        {perk.holo > 0 && <ApoioSheen holo={perk.holo} />}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {/* cabeçalho: ⚡ PÊNALTI + o JOGO (mandante 🏠 esquerda · visitante ✈️ direita) */}
+          <div style={{ background: INK, color: '#fff', padding: '11px 15px', borderRadius: '14px 14px 0 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19 }}>⚡ PÊNALTI!</div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: GOLD }}>90+2' · última chance 🏆</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 }}>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: youIsHome ? GOLD : '#fff', maxWidth: '36%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🏠 {homeName}</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, background: '#000', border: '2px solid rgba(255,255,255,.15)', borderRadius: 7, padding: '1px 8px', minWidth: 28, textAlign: 'center' }}>{homeG}</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>×</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, background: '#000', border: '2px solid rgba(255,255,255,.15)', borderRadius: 7, padding: '1px 8px', minWidth: 28, textAlign: 'center' }}>{awayG}</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: !youIsHome ? GOLD : '#fff', maxWidth: '36%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayName} ✈️</span>
+            </div>
+          </div>
+          <div style={{ padding: 13 }}>
+            {/* toggle dos 2 modos (trava depois de bater) */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 11 }}>
+              {([['voce', '🎯 Você bate'], ['sozinho', '🎙️ Bate sozinho']] as ['voce' | 'sozinho', string][]).map(([m, lb]) => (
+                <button key={m} disabled={busy} onClick={() => { if (!busy) { setMode(m); setAim(null) } }} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 3px', fontWeight: 900, fontSize: 12.5, ...OSWALD, cursor: busy ? 'default' : 'pointer', background: mode === m ? INK : '#fff', color: mode === m ? GOLD : INK, opacity: busy && mode !== m ? 0.38 : 1, boxShadow: mode === m ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{lb}</button>
+              ))}
+            </div>
+            {/* cobrador */}
+            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>👟 Quem vai pra bola?</p>
+            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 10 }}>
+              {takers.slice(0, 8).map(c => { const sel = c.id === takerId; return (
+                <button key={c.id} disabled={busy} onClick={() => { if (!busy) setTakerId(c.id) }} style={{ flex: '0 0 auto', minWidth: 92, textAlign: 'left', border: `2.5px solid ${sel ? '#C9A227' : INK}`, borderRadius: 10, padding: '7px 9px', background: sel ? '#FFF7DA' : '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy && !sel ? 0.4 : 1, boxShadow: sel ? `3px 3px 0 0 ${INK}` : 'none' }}>
+                  <span style={{ display: 'block', fontWeight: 800, fontSize: 13.5, ...OSWALD, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                  <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: '#8a8478' }}>{c.pos} · {c.club}</span>
+                  <span style={{ display: 'inline-block', marginTop: 3, fontWeight: 800, fontSize: 9, color: '#fff', background: INK, borderRadius: 999, padding: '1px 7px' }}>{PEN_SELO[empCat(c)]}</span>
+                </button>
+              ) })}
+            </div>
+            {mode === 'voce' && phase === 'choose' && <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎯 Mira num canto e trava a força no VERDE</p>}
+            {/* CAMPO */}
+            <div style={{ position: 'relative', borderRadius: 13, overflow: 'hidden', background: 'linear-gradient(#3aa862,#2c8a4f 55%,#25793f)', border: `3px solid ${INK}`, padding: '11px 11px 0' }}>
+              <div ref={goalRef} style={{ position: 'relative', height: 122, margin: '0 6px' }}>
+                <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 6, background: '#fff', borderRadius: 2, boxShadow: '0 0 0 2px rgba(0,0,0,.25)' }} />
+                <div style={{ position: 'absolute', left: 0, top: 0, width: 6, height: '100%', background: '#fff', borderRadius: 2, boxShadow: '0 0 0 2px rgba(0,0,0,.25)' }} />
+                <div style={{ position: 'absolute', right: 0, top: 0, width: 6, height: '100%', background: '#fff', borderRadius: 2, boxShadow: '0 0 0 2px rgba(0,0,0,.25)' }} />
+                <div style={{ position: 'absolute', left: 6, right: 6, top: 6, bottom: 0, backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.28) 1px,transparent 1px),linear-gradient(-45deg,rgba(255,255,255,.28) 1px,transparent 1px)', backgroundSize: '12px 12px', backgroundColor: 'rgba(255,255,255,.05)' }} />
+                {mode === 'voce' && phase === 'choose' && (
+                  <div style={{ position: 'absolute', left: 8, right: 8, top: 8, bottom: 4, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 6, zIndex: 4 }}>
+                    {[0, 1, 2, 3, 4, 5].map(z => { const s = aim === z; return <button key={z} onClick={() => setAim(z)} style={{ border: `2px ${s ? 'solid #fff' : 'dashed rgba(255,255,255,.55)'}`, borderRadius: 7, cursor: 'pointer', background: s ? 'rgba(255,196,0,.9)' : 'transparent' }} /> })}
+                  </div>
+                )}
+                <div ref={gkRef} style={{ position: 'absolute', left: '50%', bottom: 0, transform: 'translateX(-50%)', fontSize: 34, zIndex: 5, transition: 'transform .34s cubic-bezier(.4,1.5,.5,1)', filter: 'drop-shadow(0 2px 2px rgba(0,0,0,.4))' }}>🧤</div>
+              </div>
+              <div style={{ position: 'relative', height: 66 }}>
+                <div ref={ballRef} style={{ position: 'absolute', left: '50%', bottom: 13, transform: 'translateX(-50%)', fontSize: 25, zIndex: 6, filter: 'drop-shadow(0 3px 3px rgba(0,0,0,.35))' }}>⚽</div>
+              </div>
+            </div>
+            {/* barra de força (só Você bate) */}
+            {mode === 'voce' && (phase === 'choose' || phase === 'power') && (
+              <div style={{ margin: '10px 0 2px' }}>
+                <div style={{ position: 'relative', height: 20, border: `3px solid ${INK}`, borderRadius: 10, background: '#e9dfbe', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${(0.5 - (0.12 + skill * 0.30) / 2) * 100}%`, width: `${(0.12 + skill * 0.30) * 100}%`, background: 'repeating-linear-gradient(90deg,#1B7A3D 0 7px,#249a4a 7px 14px)' }} />
+                  <div ref={markRef} style={{ position: 'absolute', top: -3, width: 6, height: 24, background: '#fff', border: `2px solid ${INK}`, borderRadius: 3, left: '0%', transform: 'translateX(-50%)' }} />
+                </div>
+              </div>
+            )}
+            {/* NARRAÇÃO (fundo preto) + comemoração do mascote */}
+            <div style={{ position: 'relative', overflow: 'hidden', marginTop: 10, background: '#0C0C0C', border: `3px solid ${INK}`, borderRadius: 12, minHeight: 72, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '11px 13px' }}>
+              {celeb && (
+                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 8, overflow: 'hidden' }}>
+                  {conf.map((c, i) => <span key={i} style={{ position: 'absolute', top: -14, left: `${c.x}%`, width: c.w, height: c.w + 4, borderRadius: 2, background: c.cor, transform: `rotate(${c.rot}deg)`, animation: `penConf ${c.dur}s linear ${c.delay}s forwards` }} />)}
+                  {mascote && <div style={{ position: 'absolute', left: '50%', bottom: 4, transform: 'translateX(-50%)', animation: 'penJump .48s ease-in-out infinite alternate', filter: 'drop-shadow(0 4px 4px rgba(0,0,0,.45))' }}><div style={{ transformOrigin: 'bottom center', transform: 'scale(.62)' }}>{mascote}</div></div>}
+                </div>
+              )}
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 4, ...OSWALD }}>🎙️ Narração</div>
+              <div style={{ fontWeight: 800, fontSize: 16.5, color: '#fff', lineHeight: 1.25, ...OSWALD, position: 'relative', zIndex: 9 }}>{line || (mode === 'voce' ? 'Escolha o canto e mande bala! ⚽' : phase === 'choose' ? introTxt : '')}</div>
+              {dots && <div style={{ fontWeight: 900, fontSize: 24, color: GOLD, letterSpacing: 5, marginTop: 6, ...OSWALD }}>{dots}</div>}
+              {kind && phase === 'rev' && <div style={{ fontWeight: 900, fontSize: 40, lineHeight: 1, marginTop: 2, color: revColor, ...OSWALD, animation: 'penPop .45s cubic-bezier(.2,1.7,.4,1) forwards', opacity: 0, transform: 'scale(.4)', position: 'relative', zIndex: 9, textShadow: kind === 'gol' ? '0 0 18px rgba(57,226,122,.5)' : 'none' }}>{revWord}</div>}
+              {sub && <div style={{ fontWeight: 800, fontSize: 13.5, color: '#efe9d6', marginTop: 7, ...OSWALD, position: 'relative', zIndex: 9 }}>{sub}</div>}
+            </div>
+            {/* botão de ação */}
+            {phase === 'choose' && mode === 'voce' && <button onClick={startPower} disabled={aim === null} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: aim === null ? '#b7b0a0' : GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: aim === null ? 'default' : 'pointer' }}>{aim === null ? '1️⃣ escolha o canto' : '⚽ BATER!'}</button>}
+            {phase === 'choose' && mode === 'sozinho' && <button onClick={shootAlone} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>⚽ BATER!</button>}
+            {phase === 'power' && <button onClick={travar} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: '#C2452F', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>🛑 TRAVAR!</button>}
+            {phase === 'anim' && <button disabled style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: '#b7b0a0', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, opacity: 0.7 }}>...</button>}
+            {phase === 'rev' && <button onClick={() => onDone(kind === 'gol', taker?.id ?? takerId)} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: INK, color: GOLD, boxShadow: `3px 3px 0 0 rgba(0,0,0,.4)`, cursor: 'pointer' }}>▶️ Seguir o jogo</button>}
+            <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '7px 0 0' }}>{phase === 'choose' ? 'depois de BATER não dá pra voltar — escolha com calma' : phase === 'rev' ? 'o resultado já vale pro placar do jogo' : 'valendo!'}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── os JOGOS de uma divisão (placar + quem fez os gols), cores por amigo ──
 function DivMatches({ div, matches, colors, humans, hideId, reveal = true }: { div: Div; matches: SimMatch[]; colors: Record<number, FCol>; humans: { name: string; teamId: number; you: boolean; rival?: boolean; dorm?: boolean }[]; hideId?: number; reveal?: boolean }) {
   // cor SÓ pra quem interessa: você/SAF/2º clube (seu tier) e rivais (marrom) vêm
@@ -3235,6 +3476,9 @@ export function PyramidSeasonScreen() {
   // 🔁 decisões de intervalo (só carreira offline; vazio no resto) — motor re-simula
   // SÓ o 2º tempo do jogo do humano com rng isolado. Vazio = jogo 100% igual a hoje.
   const careerHalftime = ((state.onlineMode !== 'online' ? state.careerHalftime : undefined) ?? {}) as RoundHalftime
+  // ⚽ pênaltis decisivos guardados (só carreira offline; vazio no resto). O motor só
+  // soma 1 gol ao humano no jogo em que ele bateu e converteu. Vazio = jogo 100% igual.
+  const careerPenalty = ((state.onlineMode !== 'online' ? state.careerPenalty : undefined) ?? {}) as RoundPenalty
   // teto de qualidade + gol realista por versão da fórmula (simV): v3 (>=3) = gol
   // realista/menos goleada; v2 = 1.28; save antigo = 1.2. Temporada em andamento
   // termina na versão em que começou (não muda no meio).
@@ -3256,7 +3500,7 @@ export function PyramidSeasonScreen() {
     if (!state.agenciaOn || !ev || ev.season !== state.seasonNo || ev.status !== 'campo') return {}
     return { [ev.mgrId]: { [ev.round]: -2 } }
   }, [state.eventoTemporada, state.seasonNo, state.agenciaOn])
-  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime])
+  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -3277,7 +3521,7 @@ export function PyramidSeasonScreen() {
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
   // artilharia entregava). Quando a rodada termina de animar (revealed = round),
   // tudo passa a vir da simulação completa (live), sem recomputar à toa.
-  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime])
+  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty])
   const { scorers, scorersAll, goalsByCard, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)
@@ -3713,6 +3957,24 @@ export function PyramidSeasonScreen() {
   // fecha o banner ao virar a rodada (jogo novo) — nunca fica aberto de um jogo pro outro
   useEffect(() => { setHalftimeOpen(false) }, [round])
 
+  // ⚽ PÊNALTI DECISIVO (carreira offline): 0-2x/temporada (sorteio fixo), SÓ em jogo
+  // de última hora onde um gol EMPATA ou VIRA. Aparece no fim da animação (tempo
+  // morto — não atrasa o ritmo). `penIdx` = índice 0-based do jogo atual (round-1),
+  // a mesma chave que o motor lê. `penDecisive` sai do placar-base do SEU jogo (antes
+  // do pênalti): empatando (um gol vira) ou perdendo por 1 (um gol empata).
+  const penIdx = round - 1
+  const penaltyDone = !!state.careerPenalty?.[youId]?.[penIdx]
+  const penIAmHome = !!(myMatch && me && myMatch.h === me.team)
+  const penYourG = myMatch ? (penIAmHome ? myMatch.hg : myMatch.ag) : 0
+  const penOppG = myMatch ? (penIAmHome ? myMatch.ag : myMatch.hg) : 0
+  const penDecisive = !!myMatch && (penYourG === penOppG || penOppG - penYourG === 1)
+  const penPlanned = useMemo(() => penaltyPlan(seasonSeed).includes(penIdx), [seasonSeed, penIdx])
+  const penMode = soloCareer && !!myMatch && !done && !seasonOver && !copaPlaying && penPlanned && penDecisive
+  const [penaltyOpen, setPenaltyOpen] = useState(false)
+  useEffect(() => { setPenaltyOpen(false) }, [round])
+  // 🐊 mascote do usuário pra comemorar o gol de pênalti (SÓ quem tem mascote)
+  const penMascArt = meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? MASCOTES[meuSocFesta.mascoteKey] : null
+
   // host conduz: avança a rodada (isso sincroniza pra todos). Nos modos SOLO
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
   // (manualPref/manual são declarados lá em cima — a Copa também precisa deles.)
@@ -3751,11 +4013,11 @@ export function PyramidSeasonScreen() {
     // 🔁 intervalo pendente PAUSA o auto (igual ao evento): a rodada só anda depois
     // que o técnico resolve o 2º tempo. Quando resolve (halftimeDone), o efeito
     // re-roda e arma um timer novo — dando tempo do 2º tempo animar antes de avançar.
-    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0 || (halfMode && !halftimeDone)) return
+    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone)) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, roundMs)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk, halfMode, halftimeDone])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk, halfMode, halftimeDone, penMode, penaltyDone])
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [roundReady, setRoundReady] = useState(false)
@@ -3764,6 +4026,9 @@ export function PyramidSeasonScreen() {
     const t = setTimeout(() => setRoundReady(true), roundMs * 0.85 + 250)
     return () => clearTimeout(t)
   }, [round, roundMs])
+  // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
+  // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
+  useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
 
   // 🎪 TORCIDÔMETRO AO VIVO (Diego 12/08): o número exibido reage à posição
   // ATUAL na tabela enquanto a rodada corre — não fica travado esperando o
@@ -3897,6 +4162,15 @@ export function PyramidSeasonScreen() {
             homeName={myMatch.h} awayName={myMatch.a} homeG={homeG} awayG={awayG} youIsHome={iAmHome}
             onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round, xi2: ids, formation, tactic }); setHalftimeOpen(false) }} />
         })()}
+        {/* ⚽ BANNER DO PÊNALTI (carreira offline): jogo decisivo de última hora, um gol
+            empata ou vira. Enquanto aberto, a rodada não anda. Depois de BATER, não volta. */}
+        {penaltyOpen && penMode && mgrMe && myMatch && me && (() => {
+          const iAmHome = myMatch.h === me.team
+          return <PenaltyBanner mgr={mgrMe}
+            homeName={myMatch.h} awayName={myMatch.a} homeG={myMatch.hg} awayG={myMatch.ag} youIsHome={iAmHome}
+            mascote={penMascArt}
+            onDone={(scored, takerId) => { dispatch({ type: 'SET_PENALTY', mgrId: youId, round: penIdx, scored, taker: takerId }); setPenaltyOpen(false) }} />
+        })()}
         {/* 🚨 CRISE FINANCEIRA: o melhor jogador do elenco avisa que vai embora
             (caixa cruzou uma barreira nova de -500) — trava até o técnico escolher
             quem entra no lugar, de graça. */}
@@ -3959,10 +4233,10 @@ export function PyramidSeasonScreen() {
           ) : manualAllowed ? (
           <>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !(halfMode && !halftimeDone)}
-              onNext={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              onSkip={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              nextLabel={halfMode && !halftimeDone ? '⏸️ Resolva o intervalo primeiro' : !roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
+              onNext={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              onSkip={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              nextLabel={halfMode && !halftimeDone ? '⏸️ Resolva o intervalo primeiro' : penMode && !penaltyDone ? '⚽ Bata o pênalti primeiro' : !roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
           </>
           ) : <ManualLockButton />
         )}
