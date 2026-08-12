@@ -3861,19 +3861,37 @@ banner da TV e o dos eventos de jogador já faziam).
 **Banner** (`CriseBanner` em `pyramidseason.tsx`): é um AVISO, não uma
 pergunta — "Não jogo em time duro assim, não." + o nome do jogador + tag
 vermelha "CAIXA NO VERMELHO". Duas respostas:
-- **"Aqui não tem mercenário"** → lista de FOLCLÓRICOS livres, filtrada
-  pela posição que abriu (`FOLCLORICOS_LIVRES` em `data.ts`: Mauro
-  Shampoo, Carlos Kaiser e Adriano Gol Contra — os 3 nomes exatos que o
-  Diego pediu, todos ATA — + 8 inventados no mesmo espírito pras outras
-  posições, já que os 3 do Diego são todos de ataque).
+- **"Aqui não tem mercenário"** → lista de gente da categoria **"foi
+  profissional"** (fame 1), filtrada pela posição que abriu.
+  ⚠️ CORREÇÃO (12/08, mesmo dia): a 1ª versão desta entrega inventou uma
+  lista nova (`FOLCLORICOS_LIVRES`) com bios escritas por mim — o Diego
+  apontou o erro: Mauro Shampoo, Carlos Kaiser, Adriano Gol Contra e o
+  resto da categoria "foi profissional" **já existem de verdade no
+  catálogo** (`CATALOG`/`CATALOG_EU`/`CATALOG_BOTH`/`catalogTodos()`,
+  `fame===1`), com bio/clube/ano reais. Removi a lista inventada; agora a
+  tela busca direto no catálogo REAL da carreira (mesmo baralho
+  br/eu/both/todos que o jogo já usa), priorizando quem tem selo
+  folclórico (`folk:true`) — cai pra "foi profissional" sem selo só se a
+  posição não tiver folclórico nenhum. **Lição pra quem mexer aqui de
+  novo:** antes de inventar conteúdo novo pro jogo, checar se já não
+  existe no catálogo — "foi profissional"/folclórico já é um sistema
+  grande e pronto.
+  - Quem já tá jogando em ALGUM time (seu ou de bot) some da lista —
+    evita duplicar a mesma pessoa em 2 lugares. Vende/solta depois? Ele
+    volta a aparecer sozinho (calculado on-the-fly, sem flag "usado").
 - **"Nunca gostei dele mesmo"** → sobe alguém da BASE, reaproveitando 100%
   o `spawnCria()` que já existia pro tapa-buraco de contrato vencido
-  (mesmos nomes de `CRIA_NOMES`, mesma mecânica).
+  (mesmos nomes de `CRIA_NOMES`, mesma mecânica) — esses sim são
+  inventados, igual sempre foram.
 - O jogador que saiu só é removido do elenco — não narra pra onde ele foi
   (pedido explícito do Diego: "não precisa falar nada no jogo dessa troca").
 - Trava a tela igual o banner de evento de jogador (não anda "Próxima
   rodada"/Copa enquanto não decide) e nunca aparece em cima da Copa Legends
   ao vivo nem da tela de fim de temporada.
+- 🤡 Piada pedida pelo Diego: o botão "Aqui não tem mercenário" faz bravata
+  ("temos gente MELHOR, pode confiar") e um aviso embaixo dos 2 botões
+  zoa que, seja base ou "foi profissional", ninguém ali é bom de bola —
+  é de graça mesmo.
 
 **Reversível:** é só um novo jogador de graça entrando (mesma mecânica do
 Cria da Base que já existe há meses) — se algo sair torto, é reverter o
