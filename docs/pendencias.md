@@ -3739,3 +3739,14 @@ Build ok, no ar em `main`. Não dava pra testar ao vivo numa sala online de
 verdade nesta sessão (sandbox sem 2 abas simultâneas de teste) — pedido
 ao Diego pra avisar se algo parecer estranho numa sala online (reversão é
 1 commit).
+
+## 🐛 Fundo roxo da Copa dos 8 sumido (bug de CSS) — corrigido (11/08)
+Diego mandou print: a caixa "Chegou a Copa dos 8!" e o cabeçalho da fase
+apareciam esbranquiçados, texto quase ilegível (era pra ser roxo). Causa:
+o componente `Box` (screens.tsx) usava a prop `bg` como CSS
+`backgroundColor`, que NÃO aceita degradê — só cor sólida. A identidade
+roxa da Copa dos 8 (adicionada hoje) usa `linear-gradient(...)`, o
+navegador ignorava o valor inválido e a caixa ficava sem fundo nenhum.
+Corrigido: `backgroundColor` → `background` no componente (aceita sólido
+E degradê, sem quebrar quem já usava cor sólida — só 2 lugares usavam
+degradê, os 2 novos de hoje). Build ok, no ar em `main`.
