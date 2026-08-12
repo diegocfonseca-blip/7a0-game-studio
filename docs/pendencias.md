@@ -3750,3 +3750,22 @@ navegador ignorava o valor inválido e a caixa ficava sem fundo nenhum.
 Corrigido: `backgroundColor` → `background` no componente (aceita sólido
 E degradê, sem quebrar quem já usava cor sólida — só 2 lugares usavam
 degradê, os 2 novos de hoje). Build ok, no ar em `main`.
+
+## 🐊 Festão do mascote também no Jogo Rápido/Copa dos 8 (11/08)
+Diego: ganhou a Copa dos 8 no Jogo Rápido online e o festão do mascote
+(feature nova de "Sócio Legends" — `mascotes.tsx`/`manto.ts`, de outra
+sessão) não apareceu. Achado em `screens.tsx` (`EscEnd`): a condição só
+olhava campeão da LIGA (`youWon`), igual o mesmo recorte que já existe na
+Copa Legends da carreira (`pyramidseason.tsx`, só liga também, não mexido
+por enquanto — fora do escopo combinado). Agora conta liga OU Copa dos 8
+(`state.quickCopa?.champion?.id === you.id`, "por quem vê" — nunca o flag
+`.you` global, que no online marca todo humano por igual). Mesma trava de
+1x por sessionStorage (ganhar os dois no mesmo jogo festeja só 1 vez).
+Build ok, no ar em `main`.
+⚠️ Nota pra próxima sessão: `mascotes.tsx`/`manto.ts` (Sócio Legends: 30
+moedas/mês, escudo à mão, mascote+festão, manto do coração, nome do
+estádio) foram adicionados por outra sessão em paralelo — ainda sem
+entrada própria nesse diário explicando o desenho completo (RPC
+`esc_meu_socio`, tabela `esc_socios`, painel `esc_admin_socio_perso`). Se
+mexer nessa área de novo, vale ler o código direto (`manto.ts` tem os
+comentários) antes de assumir o que já existe.
