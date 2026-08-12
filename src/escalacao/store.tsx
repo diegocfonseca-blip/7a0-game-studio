@@ -2560,6 +2560,9 @@ type Action =
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
+  | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
+  | { type: 'START_CAREER_CRISE'; mgrId: number; barrier: number; playerId: string; playerName: string; pos: Sector } // 🚨 caixa cruzou uma barreira NOVA (mais funda) de -500 — o jogador de mais fama do elenco anuncia que vai embora ("não jogo em time duro")
+  | { type: 'RESOLVE_CAREER_CRISE'; mgrId: number; choice: 'folclorico' | 'base'; folclorico?: { name: string; pos: Sector; bio: string; lo: number; hi: number } } // 🚨 decisão do técnico: 'folclorico' = pega alguém da lista de graça · 'base' = sobe alguém da base (Cria da Base)
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_SEASON' } // 🏁 rápido: encerra a liga DEPOIS da última partida animar
@@ -4367,6 +4370,47 @@ export function reducer(state: EscState, action: Action): EscState {
       s.eventoTemporada = { ...ev }
       const m = mancheteDecisao(ev)
       s.eventoManchetes = [...(s.eventoManchetes ?? []), { season: ev.season, round: ev.round, ...m }].slice(-24)
+      return s
+    }
+    case 'SEED_DEBT_BARRIER': {
+      // 🚨 baseline silenciosa da 1ª observação: idempotente (nunca reabre nem
+      // regride uma barreira já registrada) — é isto que evita punir retroativo
+      // quem já tava fundo no vermelho quando o recurso saiu.
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      if (s.careerDebtBarrier?.[action.mgrId] !== undefined) return s
+      s.careerDebtBarrier = { ...(s.careerDebtBarrier ?? {}), [action.mgrId]: action.barrier }
+      return s
+    }
+    case 'START_CAREER_CRISE': {
+      // 🚨 CRISE FINANCEIRA (Diego 12/08): caixa cruzou uma barreira NOVA (mais
+      // funda) de -500 — o jogador de mais fama do elenco anuncia que sai. Só
+      // carreira SOLO. Trava dupla: já tem crise pendente OU a barreira não é
+      // mais funda que a última registrada → no-op (evita disparo duplicado).
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      if (s.careerCrise?.[action.mgrId]) return s
+      const last = s.careerDebtBarrier?.[action.mgrId]
+      if (last !== undefined && action.barrier >= last) return s
+      s.careerDebtBarrier = { ...(s.careerDebtBarrier ?? {}), [action.mgrId]: action.barrier }
+      s.careerCrise = { ...(s.careerCrise ?? {}), [action.mgrId]: { playerId: action.playerId, playerName: action.playerName, pos: action.pos } }
+      return s
+    }
+    case 'RESOLVE_CAREER_CRISE': {
+      // 🚨 decisão do técnico: tira quem anunciou saída e bota o novo, de graça
+      // (folclórico livre ou Cria da Base) — não narra pra onde o antigo foi.
+      const crise = s.careerCrise?.[action.mgrId]
+      const cm = s.managers.find(mg => mg.id === action.mgrId)
+      if (!crise || !cm) return s
+      cm.squad = cm.squad.filter(c => c.id !== crise.playerId)
+      if (action.choice === 'base') {
+        const crRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 104729) ^ 0xC21515) >>> 0)
+        spawnCria(s, cm, crise.pos, crise.playerName, crRng)
+      } else if (action.folclorico) {
+        const f = action.folclorico
+        const novo = { id: `folc-${f.pos}-${nextBuildTok()}`, name: f.name, club: 'Sem clube', year: new Date().getFullYear(), pos: f.pos, fame: 1, lo: f.lo, hi: f.hi, folk: true } as Card
+        cm.squad.push({ ...novo, paid: 0, buyPrice: 0, via: 'monte' } as WonCard)
+        ;(s.marketLog = s.marketLog ?? []).push(`🤝 ${cm.teamName}: ${f.name} topou jogar de graça no lugar de ${crise.playerName}`)
+      }
+      const cc = { ...(s.careerCrise ?? {}) }; delete cc[action.mgrId]; s.careerCrise = cc
       return s
     }
     case 'PLAY_ROUND':

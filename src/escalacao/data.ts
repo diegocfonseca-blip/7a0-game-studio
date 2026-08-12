@@ -2240,6 +2240,25 @@ export const newestTeamName = (name: string): string => {
 // jogador ir). Cada entrada na carreira usa um nome NOVO (o jogo não repete).
 export const CRIA_NOMES = ['Zezinho', 'Guri', 'Pituquinha', 'Neneca', 'Cabecinha', 'Juninho Pipoca', 'Toquinho', 'Buiú', 'Sapinho', 'Carequinha', 'Foguinho', 'Pezão', 'Miudinho', 'Bidu', 'Cotoco', 'Mirim', 'Formiguinha', 'Pintinho', 'Grilo', 'Peninha', 'Xandoca', 'Tonhinho', 'Ratinho', 'Biscoito', 'Chulé', 'Fubá', 'Pipoquinha', 'Zé Pequeno da Base', 'Canelinha', 'Tampinha']
 
+// 🚨 CRISE FINANCEIRA (Diego 12/08): folclóricos que topam jogar de GRAÇA quando
+// o caixa do clube afunda e o melhor jogador vai embora. 3 nomes exatos pedidos
+// pelo Diego (Mauro Shampoo, Carlos Kaiser, Adriano Gol Contra, todos ATA) + o
+// resto inventado no mesmo espírito (folclore do futebol de várzea, zoeira BR).
+export interface FolcloricoLivre { name: string; pos: Sector; bio: string; lo: number; hi: number }
+export const FOLCLORICOS_LIVRES: FolcloricoLivre[] = [
+  { name: 'Beto Frangueiro', pos: 'GOL', bio: 'Já tomou gol de quase todo canto do campo — inclusive um de lateral, de bicicleta.', lo: 28, hi: 40 },
+  { name: 'Adenor Sete Furos', pos: 'GOL', bio: 'Sofreu 7 num jogo só e ainda comemorou o "quase" da defesa.', lo: 26, hi: 38 },
+  { name: 'Duda Fantasma', pos: 'LAT', bio: 'Corre tanto que ninguém nunca viu ele marcar o adversário — literalmente.', lo: 30, hi: 42 },
+  { name: 'Marquinhos Vaselina', pos: 'LAT', bio: 'Escorrega mais que marca — reclama que o gramado "tava traiçoeiro".', lo: 28, hi: 40 },
+  { name: 'Robertão Zero Bola', pos: 'ZAG', bio: 'Nunca perdeu no cabeceio... porque nunca disputou nenhum.', lo: 30, hi: 43 },
+  { name: 'Nonato Cadeira', pos: 'ZAG', bio: 'Marcação tão de longe que o atacante nem percebeu que tinha zagueiro.', lo: 28, hi: 41 },
+  { name: 'Juca Passe Curto', pos: 'MEI', bio: 'O passe mais seguro do futebol: sempre de volta pro goleiro.', lo: 29, hi: 41 },
+  { name: 'Zeca Giro Errado', pos: 'MEI', bio: 'Vira de costas pro gol nos momentos decisivos — vocação nata.', lo: 27, hi: 39 },
+  { name: 'Mauro Shampoo', pos: 'ATA', bio: 'Garante que já testou em 3 clubes — nunca marcou gol, mas o cabelo tava impecável.', lo: 32, hi: 44 },
+  { name: 'Carlos Kaiser', pos: 'ATA', bio: 'Nunca jogou uma bola oficial na carreira — mas o currículo de histórias é imbatível.', lo: 30, hi: 42 },
+  { name: 'Adriano Gol Contra', pos: 'ATA', bio: 'Balançou a rede várias vezes — o problema é que era sempre a rede errada.', lo: 31, hi: 43 },
+]
+
 export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Bilu', team: 'Unidos da Resenha' },
   { name: 'Careca', team: 'Chuteira Rachada FC' },

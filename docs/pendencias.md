@@ -3827,33 +3827,12 @@ barra verde/amarelo/vermelho dentro do Extrato, só aparece quando o caixa
 fica negativo, aviso vago ("coisas piores podem acontecer com o time")
 — nunca cita jogador.
 
-**⏳ NÃO implementado ainda (parte 2, combinada mas não construída):**
+**⏳ NÃO implementado ainda (sobrou pra depois):**
 - Bônus de MOEDAS no fim da temporada pela torcida (hoje só mostra o
   medidor, não paga nada ainda) — o fixo do estádio nunca deve ser
   tocado, só somar um extra por cima.
 - Histórico sutil embaixo do torcidômetro (tipo "+4 · 3º lugar · +5 ·
   venceu clássico") — mockado e aprovado, não construído.
-- O EVENTO GRANDE: quando o caixa cruza −500/−1000/−1500... (SÓ dinheiro,
-  NÃO torcida — decisão final do Diego), banner do MELHOR jogador do
-  elenco anunciando que vai sair ("não jogo em time duro" — ele já avisa,
-  não pergunta).
-  - ✅ RESPONDIDO (12/08): as barreiras são FIXAS (−500, −1000, −1500...).
-    Quem já passou por alguma barreira ANTES da feature existir não "deve"
-    essa barreira antiga — só dispara na PRÓXIMA barreira daqui pra frente.
-    Ex.: conta já em −1.100 quando a feature for ligada → não dispara na
-    hora (já passou −500 e −1.000 "de graça"); só dispara se chegar a
-    −1.500. Na prática: ao implementar, inicializar pra cada conta a
-    "última barreira já cruzada" = floor(caixa atual / 500) × 500, e só
-    disparar quando cruzar UMA barreira ABAIXO dessa marca inicial.
-  Duas respostas do técnico:
-  - "Aqui não tem mercenário" → lista de FOLCLÓRICOS que jogam de graça
-    (Mauro Shampoo, Carlos Kaiser, Adriano Gol Contra + outros — filtrados
-    pela posição que abriu). Precisa criar esse elenco de conteúdo novo.
-  - "Nunca gostei dele mesmo" → chama alguém da BASE (like já existe hoje
-    pra tapa-buraco).
-  - O jogador que saiu vai pra outro clube que precisa dele na posição, ou
-    fica no banco — sem narrar nada disso pro jogador.
-  - Mockup aprovado em 2 rodadas (`escudo`/banner + telas de escolha).
 - "Lotação" visual do estádio refletindo o torcidômetro + efeito de dia de
   chuva sem Camarote reduzindo a lotação daquele jogo específico — só
   ideia, mockup aprovado, zero código.
@@ -3861,3 +3840,50 @@ Build ok, no ar em `main` (só a parte 1). Não testado ao vivo (precisa
 fechar uma temporada de verdade pra ver o número mudar) — pedido ao Diego
 pra conferir e avisar se os números da colocação não baterem com o
 esperado.
+
+## 🚨 Crise financeira (Modo Carreira) — parte 2, IMPLEMENTADA (12/08)
+"Pode iniciar" do Diego → construí o EVENTO GRANDE que tava pendente da
+entrega acima. Design já vinha 100% fechado do chat (releitura antes de
+codar), resumo do que ficou:
+
+**Gatilho** (`state.careerDebtBarrier`, `Record<number, number>` por
+técnico, e a lógica em `pyramidseason.tsx`): quando o caixa cruza uma
+barreira NOVA de −500 (−500, −1000, −1500...), o jogador de MAIS FAMA do
+elenco (empate: maior `hi`) anuncia que vai embora. Matemática confirmada
+com o Diego: barreira já cruzada = `Math.ceil(caixa/500)*500`. A 1ª vez
+que o app observa o caixa de uma conta, ele só GRAVA essa marca (sem
+disparar banner) — assim quem já tava fundo no vermelho quando a feature
+foi ao ar não "deve" as barreiras antigas, só a PRÓXIMA conta daqui pra
+frente. Só carreira SOLO (mesmo padrão do banner de evento de jogador —
+online tem estado compartilhado, fica de fora por segurança, igual o
+banner da TV e o dos eventos de jogador já faziam).
+
+**Banner** (`CriseBanner` em `pyramidseason.tsx`): é um AVISO, não uma
+pergunta — "Não jogo em time duro assim, não." + o nome do jogador + tag
+vermelha "CAIXA NO VERMELHO". Duas respostas:
+- **"Aqui não tem mercenário"** → lista de FOLCLÓRICOS livres, filtrada
+  pela posição que abriu (`FOLCLORICOS_LIVRES` em `data.ts`: Mauro
+  Shampoo, Carlos Kaiser e Adriano Gol Contra — os 3 nomes exatos que o
+  Diego pediu, todos ATA — + 8 inventados no mesmo espírito pras outras
+  posições, já que os 3 do Diego são todos de ataque).
+- **"Nunca gostei dele mesmo"** → sobe alguém da BASE, reaproveitando 100%
+  o `spawnCria()` que já existia pro tapa-buraco de contrato vencido
+  (mesmos nomes de `CRIA_NOMES`, mesma mecânica).
+- O jogador que saiu só é removido do elenco — não narra pra onde ele foi
+  (pedido explícito do Diego: "não precisa falar nada no jogo dessa troca").
+- Trava a tela igual o banner de evento de jogador (não anda "Próxima
+  rodada"/Copa enquanto não decide) e nunca aparece em cima da Copa Legends
+  ao vivo nem da tela de fim de temporada.
+
+**Reversível:** é só um novo jogador de graça entrando (mesma mecânica do
+Cria da Base que já existe há meses) — se algo sair torto, é reverter o
+commit, não tem save quebrado nem estado que trava o jogo.
+
+**Arquivos:** `types.ts` (`careerDebtBarrier`, `careerCrise`), `store.tsx`
+(3 ações novas: `SEED_DEBT_BARRIER`, `START_CAREER_CRISE`,
+`RESOLVE_CAREER_CRISE`), `data.ts` (`FOLCLORICOS_LIVRES`),
+`pyramidseason.tsx` (gatilho + `CriseBanner`).
+Build ok. **Não testado ao vivo** (precisa realmente deixar o caixa
+negativo numa carreira solo de verdade pra ver o banner disparar) — avisar
+o Diego pra testar e conferir se o texto/fluxo tá do jeito que ele
+imaginou.

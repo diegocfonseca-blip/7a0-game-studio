@@ -7,7 +7,8 @@
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain, FOLCLORICOS_LIVRES } from './data'
+import type { FolcloricoLivre } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, mancheteSemReserva, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
@@ -2788,6 +2789,70 @@ function EventoBanner({ ev, reservas, onDecide }: {
   )
 }
 
+// 🚨 CRISE FINANCEIRA (Diego 12/08): caixa cruzou uma barreira nova de -500 —
+// o melhor jogador do elenco ANUNCIA que vai embora (não pergunta, avisa). O
+// técnico escolhe quem entra no lugar, de graça: um folclórico livre (filtrado
+// pela posição aberta) ou alguém da base (Cria da Base) — igual ao mockup
+// aprovado, só com o texto do banner corrigido pra soar aviso, não pergunta.
+function CriseBanner({ crise, onResolve }: {
+  crise: { playerId: string; playerName: string; pos: Sector }
+  onResolve: (choice: 'folclorico' | 'base', folclorico?: FolcloricoLivre) => void
+}) {
+  const [tela, setTela] = useState<'banner' | 'folclorico' | 'base'>('banner')
+  const opcoes = useMemo(() => FOLCLORICOS_LIVRES.filter(f => f.pos === crise.pos), [crise.pos])
+  if (tela === 'folclorico') {
+    return (
+      <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+        <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: 'linear-gradient(150deg,#1B7A3D,#0f4a24)', ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>🤝 Quem topa jogar de graça?</div>
+        <div style={{ padding: '12px 13px' }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', margin: '0 0 9px' }}>Vaga aberta: {POS_LABEL[crise.pos]}</p>
+          {opcoes.map(f => (
+            <button key={f.name} onClick={() => onResolve('folclorico', f)} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', padding: '9px 10px', marginBottom: 8, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}` }}>
+              <div style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}>{f.name}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio}</div>
+              <span style={{ display: 'inline-block', marginTop: 6, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 8.5, borderRadius: 5, padding: '2px 8px', textTransform: 'uppercase' }}>Grátis</span>
+            </button>
+          ))}
+          <button onClick={() => setTela('banner')} style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 0', fontWeight: 800, fontSize: 11, background: '#F4ECD6', cursor: 'pointer', ...OSWALD }}>‹ Voltar</button>
+        </div>
+      </div>
+    )
+  }
+  if (tela === 'base') {
+    return (
+      <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+        <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: 'linear-gradient(150deg,#7a4a1e,#4a2c0f)', ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>🌱 Quem sobe da base?</div>
+        <div style={{ padding: '12px 13px' }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', margin: '0 0 9px' }}>Vaga aberta: {POS_LABEL[crise.pos]}</p>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: '0 0 12px' }}>Um novato da categoria de base sobe pra tapar o buraco de <b>{crise.playerName}</b> — sem contrato, sem custo. O nome sai na hora.</p>
+          <button onClick={() => onResolve('base')} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '10px 0', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', boxShadow: `2px 2px 0 ${INK}`, background: GOLD, cursor: 'pointer', marginBottom: 8, ...OSWALD }}>Confirmar</button>
+          <button onClick={() => setTela('banner')} style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 0', fontWeight: 800, fontSize: 11, background: '#F4ECD6', cursor: 'pointer', ...OSWALD }}>‹ Voltar</button>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+      <div style={{ background: 'linear-gradient(160deg,#3a1414,#1a0808)', border: `3px solid ${INK}`, borderRadius: 13, margin: 10, padding: '14px', textAlign: 'center', color: '#fff' }}>
+        <div style={{ fontSize: 34 }}>🚪</div>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, margin: '6px 0 2px', textTransform: 'uppercase' }}>"Não jogo em time duro assim, não."</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.85)', lineHeight: 1.4, margin: 0 }}><b>{crise.playerName}</b> (seu melhor jogador) avisa que tá de saída — com o caixa no vermelho desse jeito, ele não fica.</p>
+        <span style={{ display: 'inline-block', marginTop: 8, background: '#C2452F', color: '#fff', fontWeight: 900, fontSize: 9.5, borderRadius: 6, padding: '3px 9px' }}>💸 CAIXA NO VERMELHO</span>
+      </div>
+      <div style={{ padding: '0 13px 13px' }}>
+        <button onClick={() => setTela('folclorico')} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9, fontWeight: 800, fontSize: 11.5, background: GOLD, cursor: 'pointer', ...OSWALD }}>
+          "Aqui não tem mercenário"
+          <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>Tem gente que jogaria de graça pra você — vamos ver quem topa.</small>
+        </button>
+        <button onClick={() => setTela('base')} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 800, fontSize: 11.5, background: '#fff', cursor: 'pointer', ...OSWALD }}>
+          "Nunca gostei dele mesmo"
+          <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>Chama alguém da base pro lugar dele.</small>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // caixa do header com animação: quando o valor muda, sobe/desce um "+N" verde
 // (ganhou: título, prêmio, artilharia, venda) ou "-N" vermelho (gastou no leilão).
 // Como o header tem overflow:hidden, o número flutua PRA BAIXO (não corta em cima).
@@ -3199,6 +3264,26 @@ export function PyramidSeasonScreen() {
     return true
   }
 
+  // ─── 🚨 CRISE FINANCEIRA (Diego 12/08, só carreira SOLO): quando o caixa
+  // cruza uma barreira NOVA de -500 (-500, -1000, -1500...), o jogador de mais
+  // fama do elenco anuncia que sai. A 1ª observação vira baseline SILENCIOSA
+  // (não dispara banner) — assim quem já tava fundo no vermelho quando o
+  // recurso saiu não é punido retroativo, só a PRÓXIMA barreira conta. Nunca
+  // durante a Copa ao vivo nem em cima de outro banner de evento pendente. ───
+  const caixa = state.careerCoins?.[youId] ?? 0
+  const criseAtual = soloCareer ? state.careerCrise?.[youId] : undefined
+  useEffect(() => {
+    if (!soloCareer || !state.careerOnline || !mgrMe || copaPlaying || seasonOver || eventoPendente || criseAtual) return
+    const agora = caixa < 0 ? Math.ceil(caixa / 500) * 500 : 0
+    const last = state.careerDebtBarrier?.[youId]
+    if (last === undefined) { dispatch({ type: 'SEED_DEBT_BARRIER', mgrId: youId, barrier: agora }); return }
+    if (agora >= last) return
+    const alvo = [...mgrMe.squad].filter(c => !c.emprestado).sort((a, b) => (b.fame - a.fame) || (b.hi - a.hi))[0]
+    if (!alvo) { dispatch({ type: 'SEED_DEBT_BARRIER', mgrId: youId, barrier: agora }); return }
+    dispatch({ type: 'START_CAREER_CRISE', mgrId: youId, barrier: agora, playerId: alvo.id, playerName: alvo.name, pos: alvo.pos })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caixa, soloCareer, state.careerOnline, mgrMe, copaPlaying, seasonOver, eventoPendente, criseAtual, youId, state.careerDebtBarrier])
+
   // artilheiros de TODOS OS TEMPOS (acumulado entre temporadas) — top 20
   const allTimeScorers = useMemo(() => Object.values((state.careerScorersAll ?? {}) as Record<string, SeasonScorer>).sort((a, b) => b.goals - a.goals).slice(0, 20), [state.careerScorersAll])
   // ao FIM da temporada, soma os artilheiros dela no acumulado (uma vez por
@@ -3492,6 +3577,13 @@ export function PyramidSeasonScreen() {
             reservas={evMgr.squad.filter(c => c.pos === eventoPendente.pos && !evXIids.has(c.id))}
             onDecide={(escolha, subId) => dispatch({ type: 'EVENTO_DECIDE', escolha, subId, xi: evXI.map(c => c.id) })} />
         })()}
+        {/* 🚨 CRISE FINANCEIRA: o melhor jogador do elenco avisa que vai embora
+            (caixa cruzou uma barreira nova de -500) — trava até o técnico escolher
+            quem entra no lugar, de graça. */}
+        {criseAtual && (
+          <CriseBanner crise={criseAtual}
+            onResolve={(choice, folclorico) => dispatch({ type: 'RESOLVE_CAREER_CRISE', mgrId: youId, choice, folclorico })} />
+        )}
         {/* 🎭 aviso do suspenso (o porquê + quando volta) — a trava explica sempre */}
         {!done && suspenso && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 11px', marginBottom: 10, background: '#FDE9C8', fontWeight: 800, fontSize: 11, lineHeight: 1.4 }}>
