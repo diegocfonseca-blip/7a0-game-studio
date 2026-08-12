@@ -7,8 +7,7 @@
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain, FOLCLORICOS_LIVRES } from './data'
-import type { FolcloricoLivre } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, mancheteSemReserva, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
@@ -2791,13 +2790,16 @@ function EventoBanner({ ev, reservas, onDecide }: {
 
 // 🚨 CRISE FINANCEIRA (Diego 12/08): caixa cruzou uma barreira nova de -500 —
 // o melhor jogador do elenco ANUNCIA que vai embora (não pergunta, avisa). O
-// técnico escolhe quem entra no lugar, de graça: um folclórico livre (filtrado
-// pela posição aberta) ou alguém da base (Cria da Base) — igual ao mockup
-// aprovado, só com o texto do banner corrigido pra soar aviso, não pergunta.
+// técnico escolhe quem entra no lugar, de graça: alguém REAL da categoria "foi
+// profissional" (fame 1, do catálogo — Mauro Shampoo, Carlos Kaiser etc. já
+// existem lá, não são inventados) ou alguém da base (Cria da Base) — igual ao
+// mockup aprovado, com o texto do banner corrigido pra soar aviso, não
+// pergunta, e a piada de que "melhor" aqui é bem relativo (pedido do Diego).
+type CrisePool = Omit<Card, 'id'>
 function CriseBanner({ crise, opcoes, onResolve }: {
   crise: { playerId: string; playerName: string; pos: Sector }
-  opcoes: FolcloricoLivre[] // 🚨 já filtrado por posição E por quem tá LIVRE (não some com ninguém que já joga em algum time) — calculado no componente pai, que tem acesso aos elencos
-  onResolve: (choice: 'folclorico' | 'base', folclorico?: FolcloricoLivre) => void
+  opcoes: CrisePool[] // 🚨 já filtrado por posição E por quem tá LIVRE (ninguém que já joga em algum time) — calculado no componente pai, que tem acesso aos elencos
+  onResolve: (choice: 'folclorico' | 'base', folclorico?: CrisePool) => void
 }) {
   const [tela, setTela] = useState<'banner' | 'folclorico' | 'base'>('banner')
   if (tela === 'folclorico') {
@@ -2809,7 +2811,8 @@ function CriseBanner({ crise, opcoes, onResolve }: {
           {opcoes.map(f => (
             <button key={f.name} onClick={() => onResolve('folclorico', f)} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', padding: '9px 10px', marginBottom: 8, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}` }}>
               <div style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}>{f.name}</div>
-              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio}</div>
+              <div style={{ fontSize: 8.5, fontWeight: 800, color: '#7a6b3f', marginTop: 1 }}>{f.club} · {f.year}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio ?? 'Categoria "foi profissional" — jogou pouco, mas jogou.'}</div>
               <span style={{ display: 'inline-block', marginTop: 6, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 8.5, borderRadius: 5, padding: '2px 8px', textTransform: 'uppercase' }}>Grátis</span>
             </button>
           ))}
@@ -2842,12 +2845,13 @@ function CriseBanner({ crise, opcoes, onResolve }: {
       <div style={{ padding: '0 13px 13px' }}>
         <button onClick={() => setTela('folclorico')} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9, fontWeight: 800, fontSize: 11.5, background: GOLD, cursor: 'pointer', ...OSWALD }}>
           "Aqui não tem mercenário"
-          <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>Tem gente que jogaria de graça pra você — vamos ver quem topa.</small>
+          <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>Temos gente MELHOR pra vestir a camisa — pode confiar. Vamos ver quem topa.</small>
         </button>
         <button onClick={() => setTela('base')} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 800, fontSize: 11.5, background: '#fff', cursor: 'pointer', ...OSWALD }}>
           "Nunca gostei dele mesmo"
           <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>Chama alguém da base pro lugar dele.</small>
         </button>
+        <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.4 }}>🤡 Aviso justo: seja base ou "foi profissional", ninguém aqui é bom de bola — mas topa jogar de graça.</p>
       </div>
     </div>
   )
@@ -3283,7 +3287,24 @@ export function PyramidSeasonScreen() {
     dispatch({ type: 'START_CAREER_CRISE', mgrId: youId, barrier: agora, playerId: alvo.id, playerName: alvo.name, pos: alvo.pos })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caixa, soloCareer, state.careerOnline, mgrMe, copaPlaying, seasonOver, eventoPendente, criseAtual, youId, state.careerDebtBarrier])
-  // 🚨 quem já tá jogando em ALGUM time (seu ou não) some da lista — assim não
+  // 🚨 "de graça" = gente REAL da categoria "foi profissional" (fame 1) do
+  // PRÓPRIO catálogo do jogo (Mauro Shampoo, Carlos Kaiser, Adriano Gol
+  // Contra e cia. já existem lá com bio de verdade — não são inventados;
+  // correção do Diego 12/08). Prioriza quem tem selo folclórico (a história
+  // é a graça da lista); se a posição não tiver folclórico nenhum, usa
+  // qualquer "foi profissional" da posição. Segue o mesmo baralho da
+  // carreira (state.deckLeague — br/eu/both/todos).
+  const profDeck = useMemo(() => {
+    const base = state.deckLeague === 'eu' ? CATALOG_EU : state.deckLeague === 'both' ? CATALOG_BOTH : state.deckLeague === 'todos' ? catalogTodos() : CATALOG
+    const out = {} as Record<Sector, CrisePool[]>
+    for (const pos of SECTORS) {
+      const daPos: CrisePool[] = (base[pos] ?? []).map(c => ({ ...c, pos }))
+      const folk = daPos.filter(c => c.fame === 1 && c.folk)
+      out[pos] = folk.length ? folk : daPos.filter(c => c.fame === 1)
+    }
+    return out
+  }, [state.deckLeague])
+  // quem já tá jogando em ALGUM time (seu ou não) some da lista — assim não
   // duplica ninguém, e se você vender/soltar ele depois, volta a aparecer
   // sozinho (não precisa de contador/flag: é só olhar quem tá livre AGORA).
   // Se por azar TODOS da posição já estiverem ocupados, mostra todos de novo
@@ -3292,10 +3313,10 @@ export function PyramidSeasonScreen() {
     if (!criseAtual) return []
     const emUso = new Set<string>()
     for (const mg of state.managers) for (const c of mg.squad) emUso.add(c.name)
-    const daPos = FOLCLORICOS_LIVRES.filter(f => f.pos === criseAtual.pos)
+    const daPos = profDeck[criseAtual.pos] ?? []
     const livres = daPos.filter(f => !emUso.has(f.name))
     return livres.length ? livres : daPos
-  }, [criseAtual, state.managers])
+  }, [criseAtual, state.managers, profDeck])
 
   // artilheiros de TODOS OS TEMPOS (acumulado entre temporadas) — top 20
   const allTimeScorers = useMemo(() => Object.values((state.careerScorersAll ?? {}) as Record<string, SeasonScorer>).sort((a, b) => b.goals - a.goals).slice(0, 20), [state.careerScorersAll])

@@ -4,7 +4,7 @@ import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
   QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
-  EventoAtivo, EventoManchete, DuplaSeat, DuplaCat,
+  EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
@@ -2562,7 +2562,7 @@ type Action =
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
   | { type: 'START_CAREER_CRISE'; mgrId: number; barrier: number; playerId: string; playerName: string; pos: Sector } // 🚨 caixa cruzou uma barreira NOVA (mais funda) de -500 — o jogador de mais fama do elenco anuncia que vai embora ("não jogo em time duro")
-  | { type: 'RESOLVE_CAREER_CRISE'; mgrId: number; choice: 'folclorico' | 'base'; folclorico?: { name: string; pos: Sector; bio: string; lo: number; hi: number } } // 🚨 decisão do técnico: 'folclorico' = pega alguém da lista de graça · 'base' = sobe alguém da base (Cria da Base)
+  | { type: 'RESOLVE_CAREER_CRISE'; mgrId: number; choice: 'folclorico' | 'base'; folclorico?: { name: string; club: string; year: number; pos: Sector; fame: Fame; lo: number; hi: number; bio?: string; folk?: boolean } } // 🚨 decisão do técnico: 'folclorico' = pega alguém REAL da categoria "foi profissional" (fame 1, do catálogo — não é jogador inventado) de graça · 'base' = sobe alguém da base (Cria da Base)
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_SEASON' } // 🏁 rápido: encerra a liga DEPOIS da última partida animar
@@ -4405,8 +4405,10 @@ export function reducer(state: EscState, action: Action): EscState {
         const crRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 104729) ^ 0xC21515) >>> 0)
         spawnCria(s, cm, crise.pos, crise.playerName, crRng)
       } else if (action.folclorico) {
+        // 🚨 jogador REAL do catálogo (categoria "foi profissional", fame 1) —
+        // preserva bio/clube/ano/folk originais, só troca o id (livre pra jogar).
         const f = action.folclorico
-        const novo = { id: `folc-${f.pos}-${nextBuildTok()}`, name: f.name, club: 'Sem clube', year: new Date().getFullYear(), pos: f.pos, fame: 1, lo: f.lo, hi: f.hi, folk: true } as Card
+        const novo = { id: `folc-${f.pos}-${nextBuildTok()}`, name: f.name, club: f.club, year: f.year, pos: f.pos, fame: f.fame, lo: f.lo, hi: f.hi, bio: f.bio, folk: f.folk } as Card
         cm.squad.push({ ...novo, paid: 0, buyPrice: 0, via: 'monte' } as WonCard)
         ;(s.marketLog = s.marketLog ?? []).push(`🤝 ${cm.teamName}: ${f.name} topou jogar de graça no lugar de ${crise.playerName}`)
       }
