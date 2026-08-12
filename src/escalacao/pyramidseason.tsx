@@ -1984,13 +1984,16 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 // ── 🔁 BANNER DO INTERVALO (carreira offline): pausa aos 45' e deixa o técnico
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
-function HalftimeBanner({ mgr, baseXIids, baseTactic, col, scoreText, oppName, onConfirm }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; col: FCol; scoreText: string; oppName: string; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void }) {
+function HalftimeBanner({ mgr, baseXIids, baseTactic, scoreText, oppName, onConfirm }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; scoreText: string; oppName: string; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void }) {
   const [formation, setFormation] = useState<FormationKey>(mgr.formation)
   const [tactic, setTactic] = useState<Tac>(baseTactic)
   const [baseline, setBaseline] = useState<string[]>(baseXIids) // conta as trocas contra isto (reinicia se troca formação)
   const [xi, setXi] = useState<string[]>(baseXIids)
   const [sel, setSel] = useState<string | null>(null)
   const byId = useMemo(() => new Map(mgr.squad.map(c => [c.id, c])), [mgr.squad])
+  // 🎨 cor do banner = tier do usuário (bege grátis · verde · roxo · prata · ouro),
+  // igual ao Elenco — nunca cor emprestada. Deslogado/sem tier cai no bege.
+  const accent = myApoioPerk()?.solid ?? '#B2A583'
   const xiSet = new Set(xi)
   const subs = baseline.filter(id => !xiSet.has(id)).length // quantas trocas já foram feitas
   const real = mgr.squad.filter(c => !c.fake)
@@ -2021,7 +2024,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, col, scoreText, oppName, o
     return (
       <button key={c.id} onClick={() => tap(c.id)}
         style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', border: `2px solid ${picked ? GOLD : target ? GREEN : INK}`, borderRadius: 8, padding: '5px 7px', marginBottom: 4, background: picked ? '#FFF7DA' : target ? '#E9F6EE' : '#fff', cursor: 'pointer', boxShadow: picked ? `2px 2px 0 0 ${INK}` : 'none' }}>
-        <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: side === 'tit' ? col.solid : '#888', minWidth: 20 }}>{Math.round(mid(c))}</span>
+        <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#fff', background: side === 'tit' ? accent : '#b0aa9a', border: `2px solid ${INK}`, borderRadius: 6, padding: '2px 0', minWidth: 34, textAlign: 'center' }}>{c.pos}</span>
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontWeight: 800, fontSize: 12.5, ...OSWALD, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
           <span style={{ display: 'block', fontSize: 9, fontWeight: 700, color: '#8a8478' }}>{c.club} · {c.year}</span>
@@ -2049,7 +2052,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, col, scoreText, oppName, o
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
             {(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).map(f => {
               const cur = formation === f, can = cur || missFor(f).length === 0
-              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? col.solid : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
+              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? accent : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
             })}
           </div>
           {/* tática */}
@@ -2057,7 +2060,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, col, scoreText, oppName, o
           <div style={{ display: 'flex', gap: 5, marginBottom: 12 }}>
             {([['retranca', '🛡️ Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '⚔️ Ataque']] as [Tac, string][]).map(([t, lb]) => {
               const cur = tactic === t
-              return <button key={t} onClick={() => setTactic(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '7px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: 'pointer', background: cur ? col.solid : '#fff', color: cur ? '#fff' : INK, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>{lb}</button>
+              return <button key={t} onClick={() => setTactic(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '7px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: 'pointer', background: cur ? accent : '#fff', color: cur ? '#fff' : INK, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>{lb}</button>
             })}
           </div>
           {/* trocas: em campo | banco */}
@@ -3871,7 +3874,7 @@ export function PyramidSeasonScreen() {
           const g1 = myMatch.goals.filter(g => g.min <= 45)
           const myG = g1.filter(g => (iAmHome ? g.home : !g.home)).length
           const oppG = g1.length - myG
-          return <HalftimeBanner mgr={mgrMe} baseXIids={myXI.map(c => c.id)} baseTactic={myTactic} col={myCol}
+          return <HalftimeBanner mgr={mgrMe} baseXIids={myXI.map(c => c.id)} baseTactic={myTactic}
             scoreText={`${myG} x ${oppG}`} oppName={iAmHome ? myMatch.a : myMatch.h}
             onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round, xi2: ids, formation, tactic }); setHalftimeOpen(false) }} />
         })()}
