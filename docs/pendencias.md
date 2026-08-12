@@ -1,6 +1,6 @@
 # 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
 
-## ⚽ CARREIRA: pênalti decisivo — 🟡 CODADO na branch (aguarda OK de deploy do Diego)
+## ⚽ CARREIRA: pênalti decisivo — ✅ NO AR (12/08, deploy junto com a reforma do estádio)
 Feature nova SÓ na carreira OFFLINE (online intocado). Aprovada visualmente pelo Diego
 via protótipo (artifact pen_full). Aparece **0-2x/temporada** (sorteio fixo por semente),
 SÓ em **jogo de última hora onde um gol empata ou vira** (você empatando = 1 gol vira;
@@ -21,6 +21,18 @@ perdendo por 1 = 1 gol empata). Abre no FIM da animação (tempo morto — não 
   GOOOOL + confete (+ **mascote de quem TEM mascote**; sem mascote = só a festa). Depois
   de BATER **não volta** (trava modo/cobrador). Fundo = manto do tier do usuário.
 - ⚠️ Reversível: `git revert`. Não toca no futebol online nem em carreiras sem pênalti.
+
+## 🏟️ ESTÁDIO: renda por ocupação + 4 estabelecimentos — ✅ NO AR (12/08)
+Reforma do torcidômetro (Diego): a renda deixa de ser bônus solto e passa a vir da
+**LOTAÇÃO** — o estádio construído é o TETO (potencial); quanto enche de verdade sai da
+**colocação final** (1º-4º lotado → … → 17º-20º às moscas). Piso pequeno garantido.
+Gate: `agenciaOn` (carreira NOVA); carreiras antigas seguem no esquema velho (grandfather
+via `extraNovaOnly`). 4 estabelecimentos novos pagos e encadeados: 🍔 Praça de Alimentação,
+🍺 Choperia, 🚉 Estação/Acesso Fácil (+8% lotação), 🏨 Hotel do Clube. Ver `estadiodata.ts`
+(`occByPos`, `stadiumOccupancy`, `stadiumIncomeAt`, `NEW_EXTRAS`) e `estadio.tsx`.
+- 🎪 Casou com o "torcidômetro AO VIVO" de outra sessão (medidor reage à posição atual —
+  `torcidaDeltaByPos`): são coisas separadas (medidor % vs renda 🪙), sem dupla contagem.
+- ⚠️ Reversível: `git revert`. Só carreira NOVA (offline); antigas intocadas.
 
 ## 🐝👑 BATISMO: Sapekeiros FC (tiosapeka@gmail.com / @tiosapekagg) — ✅ NO AR (12/08)
 Batismo do Tio Sapeka (Gaming Content Creator / Streamer / UGC Creator, presidente do
