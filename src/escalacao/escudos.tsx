@@ -397,6 +397,54 @@ export function escudoDe(nomeCru: string): EscudoDesign {
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  'Remoçada': (size: number) => {
+    const w = Math.round(size * 200 / 240)
+    return (
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Remoçada" role="img" style={{ flex: 'none', display: 'block' }}>
+        <defs><clipPath id="rmcEsc"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z"/></clipPath></defs>
+        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#12256B"/>
+        <g clipPath="url(#rmcEsc)">
+        <path d="M-20 150 L210 30 v42 L10 182 Z" fill="#1E3A9E" opacity=".5"/>
+        <g stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round">
+        <g transform="rotate(-27 100 122)">
+        <rect x="95" y="66" width="10" height="96" rx="4" fill="#7A5230"/>
+        <rect x="80" y="50" width="40" height="28" rx="8" fill="#C2CAD9"/>
+        <rect x="80" y="50" width="40" height="10" rx="4" fill="#8B96AE"/>
+        </g>
+        <g transform="rotate(27 100 122)">
+        <rect x="95" y="66" width="10" height="96" rx="4" fill="#7A5230"/>
+        <rect x="80" y="50" width="40" height="28" rx="8" fill="#C2CAD9"/>
+        <rect x="80" y="50" width="40" height="10" rx="4" fill="#8B96AE"/>
+        </g>
+        </g>
+        </g>
+        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
+        <g stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round">
+        <path d="M60 74 Q40 60 22 64 Q36 68 42 78 Q28 76 18 84 Q36 88 58 84 Z" fill="#EDEFF5"/>
+        <path d="M140 74 Q160 60 178 64 Q164 68 158 78 Q172 76 182 84 Q164 88 142 84 Z" fill="#EDEFF5"/>
+        </g>
+        <g clipPath="url(#rmcEsc)">
+        <path d="M100 66
+        L124 60 118 78 138 74 128 92 150 96 132 108 148 120 128 124 138 142 118 136 116 154 100 146
+        84 154 82 136 62 142 72 124 52 120 68 108 50 96 72 92 62 74 82 78 76 60 Z"
+        fill="#B4732A" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
+        <ellipse cx="100" cy="108" rx="33" ry="31" fill="#E4A950" stroke="#0C0C0C" strokeWidth="5"/>
+        <circle cx="74" cy="92" r="9" fill="#B4732A" stroke="#0C0C0C" strokeWidth="4.5"/>
+        <circle cx="126" cy="92" r="9" fill="#B4732A" stroke="#0C0C0C" strokeWidth="4.5"/>
+        <path d="M66 98 Q100 72 134 98 L130 106 Q100 86 70 106 Z" fill="#C7CEDB" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
+        <path d="M100 76 L100 98" stroke="#0C0C0C" strokeWidth="4.5"/>
+        <ellipse cx="100" cy="126" rx="17" ry="13" fill="#F2E4C4" stroke="#0C0C0C" strokeWidth="3.5"/>
+        <path d="M84 110 L96 114" stroke="#0C0C0C" strokeWidth="5" strokeLinecap="round"/>
+        <path d="M116 110 L104 114" stroke="#0C0C0C" strokeWidth="5" strokeLinecap="round"/>
+        <circle cx="90" cy="117" r="4.5" fill="#0C0C0C"/><circle cx="110" cy="117" r="4.5" fill="#0C0C0C"/>
+        <path d="M93 122 Q100 118 107 122 Q105 130 100 130 Q95 130 93 122 Z" fill="#3A2410" stroke="#0C0C0C" strokeWidth="3" strokeLinejoin="round"/>
+        <path d="M100 130 L100 136 M100 136 Q92 139 88 133 M100 136 Q108 139 112 133" stroke="#0C0C0C" strokeWidth="3.2" fill="none" strokeLinecap="round"/>
+        </g>
+        <path d="M26 180 H174 L164 200 H36 Z" fill="#0D1B52" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
+        <text x="100" y="196" fontFamily="Oswald, sans-serif" fontWeight="700" fontSize="22" fill="#FFFFFF" textAnchor="middle" letterSpacing="1">REMOÇADA</text>
+      </svg>
+    )
+  },
   // 🛡️🌱 Marolados FC (batismo do paisagensetrilha — Lenda + fundador, aprovado 11/08):
   // a molecada da várzea. Cabeça do moleque RASTAFARI (dreadlocks + touca rasta) no
   // escudo verde ("AQUI É RAIZ") + fumaça. ex-Real Madruga (Série D). SVG + mini.

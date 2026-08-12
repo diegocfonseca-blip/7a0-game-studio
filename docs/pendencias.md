@@ -1,5 +1,24 @@
 # 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
 
+## 🦁⚡ BATISMO: Remoçada (luiz.maia.luiz) — Série A ✅ NO AR
+Batismo do luiz.maia.luiz@gmail.com, aprovado 12/08. Time **Remoçada**, coração **Remo**.
+O **Leão Azul do Remo fantasiado de Thor** (elmo alado + Mjölnir), azul-marinho + branco,
+capa vermelha. Entrou na **Série A no lugar do Olimpo FC**. luiz **já era Lenda(ouro) +
+FUNDADOR nº35** (código + banco) — não precisou mexer nisso.
+- ✅ `data.ts`: DIVISION_TEAMS.A Olimpo FC → Remoçada + OLD_NAME 'Remoçada':'Olimpo FC'.
+- ✅ `escudos.tsx`: `LOGOS_PRONTAS['Remoçada']` — leão dourado do Remo, elmo alado,
+  2 Mjölnir cruzados, "REMOÇADA" branco em faixa navy (clipPath id `rmcEsc`).
+- ✅ `mascotes.tsx`: `MASCOTES.leao_thor` — leão dourado, elmo alado, Mjölnir erguido +
+  faísca, camisa navy/branca, capa vermelha, pé na bola. Festão genérico (Campeão!).
+- ✅ Manto azul-marinho `#12256B` + branco `#FFFFFF` (2 cores, vertical).
+- ✅ DB: `esc_socios` (sócio nº19, escudo_time='Remoçada', mascote_key='leao_thor',
+  manto navy/branco, time_coracao='Remo', origem='batismo') + `esc_nomes_batismo`
+  ('remoçada'→luiz). `user_colors` já era ouro.
+- ⚠️ luiz precisa colocar o nome do time como **"Remoçada"** (hoje é "PES FC") pra a
+  logo aparecer (Escudo casa pelo nome EXATO; o fallback newestTeamName cobre saves
+  com "Olimpo FC"). Reversível: `git revert` + apagar as 2 linhas do banco.
+
+
 ## ⚽🧊 BUG "gols mudam ao trocar formação" (VOLTOU — reforço 12/08)
 Relato do Diego (niko.messias/Aracaju Saf, carreira solo): trocou 4-5-1↔4-4-2 e os
 gols dos jogadores mudaram ("os gols do Evaristo foram pro Jairzinho"). Já tinha o

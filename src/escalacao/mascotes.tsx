@@ -13,6 +13,52 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🦁⚡ Leão Azul do Remo fantasiado de THOR (Remoçada — luiz.maia.luiz, Lenda+fundador).
+  // Elmo alado, Mjölnir erguido, camisa azul-marinho/branca, capa vermelha. mascote_key = "leao_thor".
+  leao_thor: (
+    <svg width="126" height="178" viewBox="0 0 120 170">
+      <g transform="translate(0,2)">
+      <ellipse cx="60" cy="160" rx="44" ry="9" fill="rgba(0,0,0,.15)"/>
+      <path d="M42 66 Q18 98 24 142 L46 130 Q40 100 52 78 Z" fill="#C2452F" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+      <path d="M78 66 Q102 98 96 142 L74 130 Q80 100 68 78 Z" fill="#9A2E20" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+      <circle cx="90" cy="150" r="12" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
+      <path d="M90 143 l4 4 -2 6 h-4 l-2 -6 Z" fill="#12256B"/>
+      <path d="M50 120 48 150 60 150 60 122 Z" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+      <path d="M62 122 64 146 76 148 72 120 Z" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+      <path d="M42 150 h18 v6 h-20 Z" fill="#12256B" stroke="#0C0C0C" strokeWidth="3.5" strokeLinejoin="round"/>
+      <path d="M62 146 l14 2 2 6 -16 -2 Z" fill="#12256B" stroke="#0C0C0C" strokeWidth="3.5" strokeLinejoin="round"/>
+      <path d="M40 84 H80 L84 124 H36 Z" fill="#12256B" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
+      <path d="M60 84 H80 L84 124 H60 Z" fill="#F7F4EC"/>
+      <path d="M40 84 H80 L84 124 H36 Z" fill="none" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
+      <path d="M40 92 Q24 98 30 116 L40 112" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
+      <circle cx="30" cy="116" r="7" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4"/>
+      <path d="M80 90 Q98 78 96 58 L86 62 Q86 80 74 92 Z" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
+      <circle cx="93" cy="56" r="8" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4"/>
+      <rect x="90" y="20" width="7" height="40" rx="3" fill="#7A5230" stroke="#0C0C0C" strokeWidth="4"/>
+      <rect x="76" y="8" width="36" height="22" rx="6" fill="#C2CAD9" stroke="#0C0C0C" strokeWidth="4.5"/>
+      <rect x="76" y="8" width="36" height="7" rx="3" fill="#8B96AE"/>
+      <rect x="76" y="8" width="36" height="22" rx="6" fill="none" stroke="#0C0C0C" strokeWidth="4.5"/>
+      <path d="M70 14 l-10 -2 6 6 -8 2 12 4" fill="none" stroke="#FFC400" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M60 40
+      L82 34 76 52 96 50 84 66 100 76 82 82 90 98 72 92 70 108 60 100
+      50 108 48 92 30 98 38 82 20 76 36 66 24 50 44 52 38 34 Z"
+      fill="#B4732A" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
+      <ellipse cx="60" cy="66" rx="23" ry="21" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4.5"/>
+      <circle cx="43" cy="54" r="7" fill="#B4732A" stroke="#0C0C0C" strokeWidth="4"/>
+      <circle cx="77" cy="54" r="7" fill="#B4732A" stroke="#0C0C0C" strokeWidth="4"/>
+      <path d="M40 56 Q60 38 80 56 L76 62 Q60 48 44 62 Z" fill="#C7CEDB" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
+      <path d="M60 40 L60 56" stroke="#0C0C0C" strokeWidth="4"/>
+      <path d="M40 56 Q24 46 12 50 Q24 55 28 62 Q18 61 12 68 Q26 70 40 62 Z" fill="#EDEFF5" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+      <path d="M80 56 Q96 46 108 50 Q96 55 92 62 Q102 61 108 68 Q94 70 80 62 Z" fill="#EDEFF5" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
+      <ellipse cx="60" cy="80" rx="13" ry="10" fill="#F2E4C4" stroke="#0C0C0C" strokeWidth="3.2"/>
+      <path d="M48 64 L58 68 M72 64 L62 68" stroke="#0C0C0C" strokeWidth="4.5" strokeLinecap="round"/>
+      <circle cx="53" cy="72" r="4" fill="#0C0C0C"/><circle cx="67" cy="72" r="4" fill="#0C0C0C"/>
+      <path d="M55 77 Q60 74 65 77 Q63 83 60 83 Q57 83 55 77 Z" fill="#3A2410" stroke="#0C0C0C" strokeWidth="2.6" strokeLinejoin="round"/>
+      <path d="M60 83 Q53 88 48 84 M60 83 Q67 88 72 84" stroke="#0C0C0C" strokeWidth="3.2" fill="none" strokeLinecap="round"/>
+      <path d="M47 79 L34 77 M47 83 L36 87 M73 79 L86 77 M73 83 L84 87" stroke="#0C0C0C" strokeWidth="2.2" strokeLinecap="round"/>
+      </g>
+    </svg>
+  ),
   // 🤙🌱 Marolados FC (batismo do paisagensetrilha): o MOLEQUE de boa da várzea —
   // rastafari (dreadlocks + touca rasta), descalço, com a bola rasgada, fazendo joia.
   // Homenagem à molecada de periferia que joga na várzea. mascote_key = "marolado".
