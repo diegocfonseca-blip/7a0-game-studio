@@ -4077,3 +4077,23 @@ mensagem do commit).
 Build ok, no ar em `main`. A fonte oficial de tier é a tabela
 `user_colors` do Supabase (o Diego gerencia no painel dele) — isto aqui é
 só a lista de reserva no código, que o jogo usa se o banco não responder.
+
+## 🎪 Torcidômetro ao vivo + 🗑️ banner preto do batismo removido (12/08)
+Duas pendências rápidas do Diego:
+- **Torcidômetro ao vivo**: o medidor ficava travado a temporada toda,
+  só atualizando na virada. Agora o número exibido é `banco + degrau da
+  posição ATUAL na tabela` (recalculado a cada render, nunca grava nada
+  novo) — sobe/desce em tempo real conforme a rodada avança. O valor
+  BANCADO (`state.careerTorcida`, o que paga bônus e vira histórico)
+  continua intocado, só muda de verdade na virada como sempre foi.
+- **Banner preto do sócio-batismo removido**: `SocioBaraoBanner` em
+  `pyramidseason.tsx` mostrava uma lista grande de vantagens (30
+  moedas/mês, escudo, mascote, manto, estádio) + botão de Instagram toda
+  vez que um sócio de batismo abria a carreira — o Diego achou repetitivo
+  e pediu pra tirar (confirmado explicitamente: remoção total, não só
+  encurtar). A CREDITAÇÃO das 30 moedas/mês continua rodando sozinha
+  (nunca dependeu do banner aparecer) — só sobrou um avisinho pequeno e
+  discreto ("🪙 as 30 moedas caíram") quando cai, sem a lista de
+  vantagens nem botão nenhum.
+Build ok, no ar em `main`. Reversível nos dois — nenhum campo de estado
+novo, só lógica de exibição.
