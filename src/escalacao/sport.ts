@@ -188,9 +188,10 @@ export function useRevealCinema(): boolean {
 
 // ⚽🧪 MODO TESTE DO PÊNALTI (temporário, Diego 12/08): pro Diego CONFERIR os dois
 // modos (Você bate / Bate sozinho) sem esperar a raridade de 0-2/temporada, na conta
-// dele o pênalti aparece em TODO jogo decisivo de última hora. Pra todo mundo continua
-// raro (0-2/temporada). Depois que ele testar, é só esvaziar a lista (volta ao normal).
-const PEN_TEST_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+// dele o pênalti aparecia em TODO jogo decisivo de última hora. Pra todo mundo continua
+// raro (0-2/temporada). ✅ Diego já testou (12/08, ficou "pênalti toda hora, dá nem pra
+// jogar direito") — desligado. Sua conta agora segue a raridade normal como todo mundo.
+const PEN_TEST_TESTERS = new Set<string>([])
 let penTestOk = false
 function applyPenTest(email?: string | null): void {
   const u = !!email && PEN_TEST_TESTERS.has(email.toLowerCase())
