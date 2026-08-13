@@ -2900,23 +2900,34 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
   // rank é uma fila sem empate de posição). null = não tinha rank ainda ontem
   // (novo no Top 50 ou temporada 1, sem "ontem" pra comparar).
   const [prevPos, setPrevPos] = useState<Map<string, number> | null>(null)
+  // 🔎 pra quem fica FORA do Top 50: a posição de verdade dele, não só "fora
+  // do Top 50" seco (pedido do Diego). Busca à parte (RPC própria) só quando
+  // precisa — ninguém mais usa isso, não vale pesar a busca de todo mundo.
+  const [myRank, setMyRank] = useState<{ pos: number; total: number } | null>(null)
   useEffect(() => {
     let alive = true
-    setRows(null); setDown(false); setPrevPos(null)
+    setRows(null); setDown(false); setPrevPos(null); setMyRank(null)
     ;(async () => {
       try {
         const { data: auth } = await supabase.auth.getUser()
-        if (alive) setMeUid(auth?.user?.id ?? null)
+        const uid = auth?.user?.id ?? null
+        if (alive) setMeUid(uid)
         const [cur, prev] = await Promise.all([
           supabase.rpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 50 }),
           seasonNo > 1 ? supabase.rpc('esc_pyramid_rank', { p_season: seasonNo - 1, p_limit: 50 }) : Promise.resolve({ data: [], error: null }),
         ])
         if (cur.error) throw cur.error
+        const curRows = (cur.data ?? []) as GlobalRankRow[]
         if (alive) {
-          setRows((cur.data ?? []) as GlobalRankRow[])
+          setRows(curRows)
           const m = new Map<string, number>()
           ;((prev.data ?? []) as GlobalRankRow[]).forEach((r, i) => m.set(r.user_id, i + 1))
           setPrevPos(m)
+        }
+        if (uid && !curRows.some(r => r.user_id === uid)) {
+          const { data: mr } = await supabase.rpc('esc_pyramid_my_rank', { p_season: seasonNo, p_user_id: uid })
+          const row = (mr ?? [])[0] as { pos: number; total: number } | undefined
+          if (alive && row) setMyRank({ pos: row.pos, total: row.total })
         }
       } catch {
         if (alive) { setDown(true); setRows([]) } // backend fora: não trava em "Carregando…"
@@ -2989,10 +3000,13 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
             })}
             {!meInList && meUid && (
               <tr style={{ borderTop: `2px solid ${INK}`, background: '#FFF3D6', fontWeight: 800 }}>
-                <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>—</td>
+                <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>{myRank ? `${myRank.pos}º` : '—'}</td>
                 <td style={{ maxWidth: 150, color: '#C2452F' }}>
                   <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    🫵 {myTeamName || 'Seu time'}<span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>VOCÊ · fora do Top 50</span>
+                    🫵 {myTeamName || 'Seu time'}
+                    <span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>
+                      VOCÊ · {myRank ? `${myRank.pos}º de ${myRank.total}` : 'fora do Top 50'}
+                    </span>
                   </span>
                 </td>
                 <td style={{ textAlign: 'center' }}>—</td>

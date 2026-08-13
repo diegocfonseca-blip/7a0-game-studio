@@ -1,5 +1,16 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🔢 RANKING GLOBAL: posição real de quem tá fora do Top 50 — ✅ NO AR (14/08)
+Diego: "quem fica fora do Top 50 dá pra mostrar a posição atual dele, além de
+'fora do Top 50'?". RPC nova `esc_pyramid_my_rank(p_season, p_user_id)` —
+mesma ordem/régua da `esc_pyramid_rank`, mas calcula a posição de UM usuário
+só (mesmo fora do top 50), via `row_number()` sobre todo mundo. `GlobalRankTab`
+chama ela só quando o técnico não aparece no Top 50 (não pesa a busca de
+quem já tá na lista). Mostra "127º de 674" em vez de só "fora do Top 50".
+⚠️ Se um dia mudar a ordem de desempate na `esc_pyramid_rank`, mudar as DUAS
+funções junto (a lógica tá duplicada de propósito, são queries pequenas).
+Reversível: `git revert`.
+
 ## 🔼🔽 RANKING GLOBAL: setinhas de quem subiu/desceu posição — ✅ NO AR (14/08)
 Pedido do Diego: mostrar quantas posições cada um subiu/caiu de uma temporada
 pra outra "passando ou sendo passado por alguém". `GlobalRankTab` agora busca
