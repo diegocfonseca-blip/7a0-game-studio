@@ -186,8 +186,26 @@ export function useRevealCinema(): boolean {
   return revealCinema
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email) })
+// ⚽🧪 MODO TESTE DO PÊNALTI (temporário, Diego 12/08): pro Diego CONFERIR os dois
+// modos (Você bate / Bate sozinho) sem esperar a raridade de 0-2/temporada, na conta
+// dele o pênalti aparece em TODO jogo decisivo de última hora. Pra todo mundo continua
+// raro (0-2/temporada). Depois que ele testar, é só esvaziar a lista (volta ao normal).
+const PEN_TEST_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let penTestOk = false
+function applyPenTest(email?: string | null): void {
+  const u = !!email && PEN_TEST_TESTERS.has(email.toLowerCase())
+  if (u === penTestOk) return
+  penTestOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function usePenaltiTeste(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return penTestOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

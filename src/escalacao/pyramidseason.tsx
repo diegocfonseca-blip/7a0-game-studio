@@ -23,7 +23,7 @@ import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetR
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste } from './sport'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
@@ -3973,7 +3973,10 @@ export function PyramidSeasonScreen() {
   const penOppG = myMatch ? (penIAmHome ? myMatch.ag : myMatch.hg) : 0
   const penDecisive = !!myMatch && (penYourG === penOppG || penOppG - penYourG === 1)
   const penPlanned = useMemo(() => penaltyPlan(seasonSeed).includes(penIdx), [seasonSeed, penIdx])
-  const penMode = soloCareer && !!myMatch && !done && !seasonOver && !copaPlaying && penPlanned && penDecisive
+  // 🧪 na conta do Diego (usePenaltiTeste) o pênalti aparece em TODO jogo decisivo,
+  // pra ele conferir os dois modos sem esperar a raridade. Pros outros: só planejado.
+  const penTeste = usePenaltiTeste()
+  const penMode = soloCareer && !!myMatch && !done && !seasonOver && !copaPlaying && (penPlanned || penTeste) && penDecisive
   const [penaltyOpen, setPenaltyOpen] = useState(false)
   useEffect(() => { setPenaltyOpen(false) }, [round])
   // 🐊 mascote do usuário pra comemorar o gol de pênalti (SÓ quem tem mascote)
