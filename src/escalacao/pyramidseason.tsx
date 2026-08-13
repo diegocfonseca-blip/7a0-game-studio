@@ -3658,7 +3658,7 @@ export function PyramidSeasonScreen() {
     const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult)
     // 🎟️ ocupação por técnico (carreira nova) — colocação final vira renda do estádio
     const stadiumOcc: Record<number, number> = {}
-    for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId], d) })
+    for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]) })
     dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), sponsorRewards: spb.rewards, sponsorResults: spb.results, stadiumOcc })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
@@ -4290,7 +4290,7 @@ export function PyramidSeasonScreen() {
           // 🎟️ OCUPAÇÃO por técnico (carreira nova): quão cheio o estádio ficou pela
           // colocação final → vira a renda (piso + construído × ocupação, no reducer).
           const stadiumOcc: Record<number, number> = {}
-          for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId], d) })
+          for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]) })
           // carreira NOVA (agenciaOn) troca o bônus solto do torcidômetro pela renda de
           // ocupação; a antiga mantém o +15/+8 de sempre.
           const torcBonus = state.agenciaOn ? {} : torcidaBonusRewards(state.careerTorcida, torcDeltas, tables)
