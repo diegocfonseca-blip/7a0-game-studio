@@ -10,7 +10,7 @@ export const STADIUM_STEP = 20 // moedas por clique de "investir" num setor
 // 🎟️ BILHETERIA-BASE: todo clube tem um estádio que já vende ingresso — mesmo
 // sem investir nada, rende isto por temporada (desde a 1ª). O que você constrói
 // (setores + melhorias) SOMA em cima. Dá oxigênio pro meio de tabela sem inventar
-// uma "renda solta": a grana vem do estádio, claro na tela. Máximo = 20 + 56 = 76.
+// uma "renda solta": a grana vem do estádio, claro na tela. Máximo = 20 + 92 = 112.
 export const STADIUM_BASE = 20
 
 export interface StadiumSector { k: string; n: string; cost: number; inc: number; seats: number }
