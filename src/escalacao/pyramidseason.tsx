@@ -2134,7 +2134,6 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
 // suspense). Depois de BATER, NÃO volta. Gol → GOOOOL + confete (+ mascote de quem tem).
 // O resultado (converteu ou não) sobe pro onDone → o motor soma o gol no jogo.
 const PEN_SKILL: Record<EmpCat, number> = { lenda: 0.95, craque: 0.85, promessa: 0.72, bom: 0.58, prof: 0.45 }
-const PEN_SELO: Record<EmpCat, string> = { lenda: '👑 Lenda', craque: '⭐ Craque', promessa: '💎 Promessa', bom: '📇 Bom Jogador', prof: '💼 Foi Profissional' }
 const PEN_INTRO: Record<EmpCat, string[]> = {
   lenda: ['👑 O REI assume! Frieza absoluta — o estádio em SILÊNCIO.', '👑 Craque de placa pega a bola. Isso aqui é pão com manteiga pra ele.', '👑 O maestro ajeita a grama, encara o goleiro e sorri...'],
   craque: ['⭐ O craque da equipe na responsa — pé de anjo.', '⭐ Confiança total: já bateu mil desses.', '⭐ Bola nos pés do xodó da torcida.'],
@@ -2179,7 +2178,10 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
   const swRef = useRef(0.3)
   useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); timers.current.forEach(t => clearTimeout(t)) }, [])
   const after = (ms: number, fn: () => void) => { const t = window.setTimeout(fn, ms); timers.current.push(t); return t }
-  const moveKeeper = (z: number) => { const gk = gkRef.current; if (!gk) return; const [x, y] = PEN_ZP[z]; gk.style.transform = `translateX(-50%) translate(${(x - 50) * 2.3}px, ${-(72 - y) * 1.05}px)` }
+  // mesma base de cálculo do flyBall (percentual do próprio goalRef) — antes o
+  // goleiro usava uma escala fixa (2.3x/1.05x) diferente da bola, então numa
+  // defesa a bola voava pra um ponto e o goleiro pra outro (não parecia pegar).
+  const moveKeeper = (z: number) => { const gk = gkRef.current, g = goalRef.current; if (!gk || !g) return; const [x, y] = PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H - (y / 100 * H)); gk.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px)` }
   const flyBall = (z: number, out: boolean) => { const ball = ballRef.current, g = goalRef.current; if (!ball || !g) return; const [x, y] = out ? PEN_OUT[z] : PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H + 18 - (y / 100 * H)); ball.style.transition = 'transform .52s cubic-bezier(.25,.7,.35,1)'; ball.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px) scale(.62)` }
   const reveal = (k: 'gol' | 'def' | 'fora') => {
     setKind(k); setRevWord(k === 'gol' ? penPick(PEN_GO) : k === 'def' ? penPick(PEN_DE) : penPick(PEN_FO)); setDots(''); setPhase('rev')
@@ -2211,7 +2213,11 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
     setPhase('anim'); setLine(`⚽ Vai ${taker?.name ?? 'o cobrador'}...`)
     let k: 'gol' | 'def' | 'fora', kz: number
     if (!onTarget) { k = 'fora'; kz = Math.floor(Math.random() * 6); moveKeeper(kz); flyBall(aimZ, true) }
-    else if (reads) { kz = aimZ; moveKeeper(kz); if (aimZ < 3 && err < half * 0.55) { k = 'gol'; flyBall(aimZ, false) } else { k = 'def'; flyBall(aimZ, false) } }
+    // 🎯 acertou o VERDE: sempre bola no gol — só defende se o goleiro "ler" o
+    // canto (32%). Antes tinha uma trava escondida (só valia gol nos cantos de
+    // CIMA e numa faixa ainda mais fina dentro do verde) — bug real: o Diego
+    // acertava o verde nos cantos de BAIXO e nunca saía gol, mesmo preciso.
+    else if (reads) { k = 'def'; kz = aimZ; moveKeeper(kz); flyBall(aimZ, false) }
     else { let z = Math.floor(Math.random() * 6); while (z === aimZ) z = Math.floor(Math.random() * 6); kz = z; moveKeeper(kz); k = 'gol'; flyBall(aimZ, false) }
     after(520, () => reveal(k))
   }
@@ -2276,7 +2282,6 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
                 <button key={c.id} disabled={busy} onClick={() => { if (!busy) setTakerId(c.id) }} style={{ flex: '0 0 auto', minWidth: 92, textAlign: 'left', border: `2.5px solid ${sel ? '#C9A227' : INK}`, borderRadius: 10, padding: '7px 9px', background: sel ? '#FFF7DA' : '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy && !sel ? 0.4 : 1, boxShadow: sel ? `3px 3px 0 0 ${INK}` : 'none' }}>
                   <span style={{ display: 'block', fontWeight: 800, fontSize: 13.5, ...OSWALD, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                   <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: '#8a8478' }}>{c.pos} · {c.club}</span>
-                  <span style={{ display: 'inline-block', marginTop: 3, fontWeight: 800, fontSize: 9, color: '#fff', background: INK, borderRadius: 999, padding: '1px 7px' }}>{PEN_SELO[empCat(c)]}</span>
                 </button>
               ) })}
             </div>

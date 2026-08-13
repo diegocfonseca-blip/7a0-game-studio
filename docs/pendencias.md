@@ -1,5 +1,30 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## ⚡🧤 FIX: pênalti interativo — goleiro "não pega" a bola + acertar o verde não fazia gol — ✅ NO AR (14/08)
+Diego reportou dois problemas no pênalti (🎯 Você bate): "o goleiro defende e a bola
+nem parece que tá na luva" + "acertando várias vezes na cor verde na hora de bater
+e ainda assim não sai gol". Achados os dois no código de `PenaltyBanner`
+(`pyramidseason.tsx`):
+1. **Bug real de lógica**: em `travar()`, mesmo acertando o VERDE (`onTarget`), só
+   valia gol se TAMBÉM tivesse mirado num canto de CIMA (`aimZ<3`) E acertado uma
+   faixa ainda mais fina dentro do verde (`err<half*0.55`) — trava escondida que a
+   tela nunca avisa. Mirando canto de BAIXO (3/4/5), era IMPOSSÍVEL sair gol mesmo
+   acertando o verde na mosca. Corrigido: acertar o verde agora É perigo de gol de
+   verdade — só defende se o goleiro "ler" o canto (32%, mesmo de antes), sem mais
+   depender de qual canto ou de precisão extra escondida.
+2. **Bug visual**: `moveKeeper` usava uma escala fixa (`×2.3`/`×1.05`) sem relação
+   nenhuma com o tamanho real do gol na tela, enquanto `flyBall` (a bola) calculava
+   a posição em % do tamanho de verdade (`goalRef.clientWidth/Height`) — os dois
+   apontavam pra lugares DIFERENTES na mesma "zona", por isso a defesa nunca parecia
+   pegar a bola de verdade. Corrigido: goleiro agora usa a MESMA base de cálculo da
+   bola (% do goalRef). Testei visualmente as 6 zonas num teste isolado (mesma
+   fórmula, fora do app) — bola e luva caem juntas no mesmo canto agora.
+- Também removido o SELO de categoria (👑 Lenda / ⭐ Craque / etc.) da escolha do
+  cobrador, a pedido do Diego.
+- Build ok. Não consegui testar no jogo real de ponta a ponta (precisa cair numa
+  temporada com jogo decisivo) — se ainda estiver estranho, avisar que reverto.
+- Reversível: `git revert`. Só mexe no banner de pênalti, nada mais.
+
 ## 🐛🕰️ FIX: tela do leilão "travava" pra quem tá com saldo negativo — ✅ NO AR (14/08)
 Relato do Diego (com print): técnico devendo (saldo negativo — vira espectador,
 sem lance pra dar) via a tela de revelação/martelo travar de vez em quando, só
