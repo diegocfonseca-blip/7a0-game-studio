@@ -18,6 +18,16 @@ o rank da temporada ATUAL e da ANTERIOR (2 chamadas da mesma RPC
   paleta (azul/amarelo claro → creme/dourado), sombra dura faltando nos
   botões de marca.
 
+## 🌱 FIX: Cria da Base sem reserva não tinha banner — ✅ CORRIGIDO (13/08)
+Diego mandou print de jogo real: "Denílson Show está fora... Pintinho segurou a
+vaga" apareceu como notícia PRONTA, sem banner nenhum — a correção anterior (ver
+entrada mais abaixo, "malandro de 11 jogadores") subia um cria SOZINHO, sem o
+técnico escolher nem saber que rolou lesão. Corrigido: o banner do evento agora
+abre normal (`EventoSemReservaBanner`, mesma cara do de sempre), mostrando 3
+nomes GERADOS da base pra escolher — só o escolhido sobe de verdade pro elenco.
+Noitada continua oferecendo "escalar assim mesmo" como alternativa. Nova função
+`previewCriaNomes` (store.tsx) gera candidatos sem gravar nada até a escolha.
+
 ## 🕴️ BICO DE FOLGA — ✅ NO AR (13/08, mockup aprovado)
 Pedido do Diego: dinheiro extra pra quem tá preso na Várzea/Série D, escolhendo
 um patrocinador real do jogo pra "trabalhar na folga". Desenhado a fundo em
@@ -46,12 +56,12 @@ Diego reportou telas confusas depois de olhar prints do jogo ao vivo:
   na Copa.
 - **Agenciados** ganhou um banner de apresentação (Guia da Carreira) explicando
   o conceito ("Agora você é empresário...") antes do painel técnico.
-- **⏳ PENDENTE**: Diego reportou (print novo, 13/08) que a aba **Elenco** tá com
-  excesso de DOURADO — botão de aba selecionada, tática selecionada (Equilíbrio)
-  e modo de substituição selecionado (Dinâmico) usam a MESMA cor de destaque, e
-  tudo isso empilhado vira uma parede amarela, difícil de distinguir um controle
-  do outro. Precisa de mockup diferenciando as cores de "selecionado" por TIPO
-  de controle (tab ≠ tática ≠ substituição), não resolvido ainda.
+- **✅ Cores do Elenco — CORRIGIDO (13/08, mockup aprovado)**: Diego reportou
+  (print) que a aba Elenco virava "parede amarela" — aba selecionada, tática
+  (Equilíbrio) e substituição (Dinâmico) todas dourado. Corrigido: dourado
+  segue só pra navegação; **tática selecionada = azul** (`#2F6BAE`);
+  **substituição selecionada = verde** (`GREEN`) — cores já usadas em outras
+  partes do jogo, nada de arte nova.
 
 ## 🌍 RANKING GLOBAL de usuários (aba Rank) — ✅ NO AR (14/08, mockup aprovado)
 Pedido do Diego: rank mundial de USUÁRIOS de verdade (bots já têm o rank local),

@@ -13,7 +13,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -2722,11 +2722,13 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
           (como sempre foi). "Só no intervalo" faz o jogo pausar aos 45' pra trocar. */}
       {elenco && onSetSubMode && (() => {
         const mode = subMode ?? 'dinamico'
+        // 🎨 CORES DO ELENCO (Diego 13/08): substituição ganha verde PRÓPRIO, em vez
+        // da cor do time — evita se misturar com a navegação (mockup aprovado).
         const Opt = ({ m, titulo, desc }: { m: 'dinamico' | 'intervalo'; titulo: string; desc: string }) => {
           const on = mode === m
           return (
             <button onClick={() => { if (!on) onSetSubMode(m) }}
-              style={{ flex: 1, textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', cursor: on ? 'default' : 'pointer', background: on ? col.solid : '#fff', color: on ? '#fff' : INK, boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none' }}>
+              style={{ flex: 1, textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', cursor: on ? 'default' : 'pointer', background: on ? GREEN : '#fff', color: on ? '#fff' : INK, boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none' }}>
               <div style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{titulo}{on ? ' ✓' : ''}</div>
               <div style={{ fontSize: 8.5, fontWeight: 700, opacity: on ? 0.85 : 0.55, lineHeight: 1.25, marginTop: 2 }}>{desc}</div>
             </button>
@@ -3419,6 +3421,59 @@ function EventoBanner({ ev, reservas, onDecide }: {
   )
 }
 
+// 🌱 EVENTO SEM RESERVA (Diego 13/08): mesmo visual do EventoBanner, mas em vez
+// de escolher um titular do banco, o técnico escolhe 1 de 3 nomes gerados da
+// base (nenhum deles existe no elenco ainda — só o escolhido sobe de verdade).
+function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
+  ev: EventoAtivo
+  onEscolher: (nome: string) => void
+  onCampo?: () => void // só noitada — "escalar assim mesmo", sem chamar ninguém da base
+}) {
+  const [nome, setNome] = useState(ev.criaOptions?.[0] ?? '')
+  const noit = ev.tipo === 'noitada'
+  const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
+  const trait = traitDe(ev.nome)
+  return (
+    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+      <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas)}</div>
+      <div style={{ padding: '12px 13px' }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: 0 }}>{ev.historia}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '10px 0', boxShadow: '2px 2px 0 #000' }}>
+          <span style={{ fontSize: 30 }}>{eventoEmoji(ev.tipo)}</span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>{ev.nome}</div>
+            <div style={{ fontWeight: 800, fontSize: 9, color: 'rgba(0,0,0,.55)', ...OSWALD, textTransform: 'uppercase' }}>{ev.pos}{trait ? ` · ${trait}` : ''}</div>
+          </div>
+        </div>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '0 0 8px', lineHeight: 1.4 }}>🌱 Sem reserva no banco pra essa vaga — chame alguém da base pra tapar o buraco:</p>
+        <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
+          <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>quem sobe do Sub-20?</div>
+          {(ev.criaOptions ?? []).map(n => (
+            <button key={n} onClick={() => setNome(n)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', borderTop: `1.5px solid rgba(0,0,0,.12)`, borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: nome === n ? '#EAF6EE' : '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+              🌱 {n}
+              {nome === n && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>SOBE ✓</span>}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => nome && onEscolher(nome)} disabled={!nome}
+            style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: '#EAF6EE', cursor: 'pointer', ...OSWALD }}>
+            ✅ Confirmar
+            <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>de graça, sem contrato · volta em {ev.rodadas} {ev.rodadas === 1 ? 'rodada' : 'rodadas'}</small>
+          </button>
+          {noit && onCampo && (
+            <button onClick={onCampo}
+              style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: GOLD, cursor: 'pointer', ...OSWALD }}>
+              🙏 Escalar assim mesmo
+              <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>joga hoje, mas pode render menos</small>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // 🚨 CRISE FINANCEIRA (Diego 12/08): caixa cruzou uma barreira nova de -500 —
 // o melhor jogador do elenco ANUNCIA que vai embora (não pergunta, avisa). O
 // técnico escolhe quem entra no lugar, de graça: alguém REAL da categoria "foi
@@ -3930,10 +3985,13 @@ export function PyramidSeasonScreen() {
     if (!d) return false
     const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente' }
     if (!d.reservas.length) {
-      // 🌱 SEM RESERVA na posição (Diego 13/08): antes não travava nada — quem jogava
-      // sempre só com 11 driblava todo evento. Agora sobe um Cria da Base pra tapar
-      // o buraco de verdade (reducer cuida de nascer o cria e trocar a escalação).
-      dispatch({ type: 'EVENTO_SET_NO_RESERVE', evento: base, xi: myXI.map(c => c.id) })
+      // 🌱 SEM RESERVA na posição (Diego 13/08 — "malandrinho que joga só com 11" +
+      // "era pra ter aparecido um banner, escolher 3 da base"): antes não travava
+      // nada nenhum jogador; a 1ª correção subia um cria SOZINHO sem avisar. Agora
+      // o banner abre normal (pendente) com 3 nomes gerados pro técnico escolher.
+      const crRng = mulberry((state.seed ^ ((state.seasonNo ?? 1) * 104729) ^ 0xE1E27E) >>> 0)
+      const opcoes = previewCriaNomes(state.criaNames ?? [], crRng, 3)
+      dispatch({ type: 'EVENTO_SET', evento: { ...base, criaOptions: opcoes } })
       return true
     }
     dispatch({ type: 'EVENTO_SET', evento: base })
@@ -4351,6 +4409,11 @@ export function PyramidSeasonScreen() {
           if (!evMgr) return null
           const evXI = lineupAt(careerLineup, eventoPendente.mgrId, round, evMgr.squad, evMgr.formation)
           const evXIids = new Set(evXI.map(c => c.id))
+          if (eventoPendente.criaOptions) {
+            return <EventoSemReservaBanner ev={eventoPendente}
+              onEscolher={nome => dispatch({ type: 'EVENTO_DECIDE_CRIA', nome, xi: evXI.map(c => c.id) })}
+              onCampo={eventoPendente.tipo === 'noitada' ? () => dispatch({ type: 'EVENTO_DECIDE', escolha: 'campo', xi: evXI.map(c => c.id) }) : undefined} />
+          }
           return <EventoBanner ev={eventoPendente}
             reservas={evMgr.squad.filter(c => c.pos === eventoPendente.pos && !evXIids.has(c.id))}
             onDecide={(escolha, subId) => dispatch({ type: 'EVENTO_DECIDE', escolha, subId, xi: evXI.map(c => c.id) })} />
@@ -4995,8 +5058,11 @@ export function PyramidSeasonScreen() {
                 {/* botões de tática MENORES que as abas do menu (pra não confundir) */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, marginBottom: 6 }}>
                   {([['retranca', '🧱 Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '🔥 Ataque']] as [Tac, string][]).map(([t, label]) => (
+                    // 🎨 CORES DO ELENCO (Diego 13/08 — "parede amarela, tudo dourado"):
+                    // tática ganha cor PRÓPRIA (azul), separada do dourado da navegação
+                    // e do verde da substituição — mockup aprovado antes de codar.
                     <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: youId, tactic: t })}
-                      style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? GOLD : '#fff', color: INK, boxShadow: myTactic === t ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                      style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? '#2F6BAE' : '#fff', color: myTactic === t ? '#fff' : INK, boxShadow: myTactic === t ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
                       {label}
                     </button>
                   ))}
