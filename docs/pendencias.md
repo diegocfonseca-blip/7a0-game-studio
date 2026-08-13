@@ -1,5 +1,23 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🔼🔽 RANKING GLOBAL: setinhas de quem subiu/desceu posição — ✅ NO AR (14/08)
+Pedido do Diego: mostrar quantas posições cada um subiu/caiu de uma temporada
+pra outra "passando ou sendo passado por alguém". `GlobalRankTab` agora busca
+o rank da temporada ATUAL e da ANTERIOR (2 chamadas da mesma RPC
+`esc_pyramid_rank`, em paralelo) e compara a posição de cada usuário nas duas.
+- Como o rank é uma fila sem empate de posição, a diferença de posição JÁ É
+  exatamente quantas pessoas a pessoa passou (ou foi passada) — não precisou
+  de conta nova. ▲N verde = subiu N (passou N pessoas) · ▼N vermelho = caiu N
+  (foi passado por N) · "novo" roxo = não tava no Top 50 ontem · "–" cinza =
+  ficou na mesma posição.
+- Temporada 1 não tem "ontem" pra comparar (fica tudo em branco, sem setinha).
+- Reversível: `git revert`. Só a sub-aba Global, mais nada.
+- ⏳ PENDENTE (mockup mostrado, Diego disse "depois falamos disso" — NÃO
+  aprovado ainda, não codar sem OK): ajuste visual da tela de Patrocínio/Bico
+  de Folga — dourado errado (#F5B301→#FFC400), fundo dos níveis fora da
+  paleta (azul/amarelo claro → creme/dourado), sombra dura faltando nos
+  botões de marca.
+
 ## 🕴️ BICO DE FOLGA — ✅ NO AR (13/08, mockup aprovado)
 Pedido do Diego: dinheiro extra pra quem tá preso na Várzea/Série D, escolhendo
 um patrocinador real do jogo pra "trabalhar na folga". Desenhado a fundo em

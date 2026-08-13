@@ -2893,16 +2893,29 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
   const [rows, setRows] = useState<GlobalRankRow[] | null>(null)
   const [down, setDown] = useState(false)
   const [meUid, setMeUid] = useState<string | null>(null)
+  // 🔼🔽 quantas posições cada um subiu/desceu desde a temporada anterior (a
+  // MESMA posição = exatamente quantas pessoas passou/foi passado, já que o
+  // rank é uma fila sem empate de posição). null = não tinha rank ainda ontem
+  // (novo no Top 50 ou temporada 1, sem "ontem" pra comparar).
+  const [prevPos, setPrevPos] = useState<Map<string, number> | null>(null)
   useEffect(() => {
     let alive = true
-    setRows(null); setDown(false)
+    setRows(null); setDown(false); setPrevPos(null)
     ;(async () => {
       try {
         const { data: auth } = await supabase.auth.getUser()
         if (alive) setMeUid(auth?.user?.id ?? null)
-        const { data, error } = await supabase.rpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 50 })
-        if (error) throw error
-        if (alive) setRows((data ?? []) as GlobalRankRow[])
+        const [cur, prev] = await Promise.all([
+          supabase.rpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 50 }),
+          seasonNo > 1 ? supabase.rpc('esc_pyramid_rank', { p_season: seasonNo - 1, p_limit: 50 }) : Promise.resolve({ data: [], error: null }),
+        ])
+        if (cur.error) throw cur.error
+        if (alive) {
+          setRows((cur.data ?? []) as GlobalRankRow[])
+          const m = new Map<string, number>()
+          ;((prev.data ?? []) as GlobalRankRow[]).forEach((r, i) => m.set(r.user_id, i + 1))
+          setPrevPos(m)
+        }
       } catch {
         if (alive) { setDown(true); setRows([]) } // backend fora: não trava em "Carregando…"
       }
@@ -2938,9 +2951,21 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
             {rows!.map((r, i) => {
               const you = r.user_id === meUid
               const totalTit = r.honors_a + r.honors_b + r.honors_c + r.honors_d + r.copa_titles + r.world_titles
+              const pos = i + 1
+              const was = prevPos?.get(r.user_id)
+              const delta = was != null ? was - pos : null // positivo = subiu (passou gente)
               return (
                 <tr key={r.user_id} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: you ? '#FFF3D6' : undefined, fontWeight: you ? 800 : 500 }}>
-                  <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
+                  <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>
+                    {pos}
+                    {delta != null && delta !== 0 && (
+                      <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 9, fontWeight: 900, color: delta > 0 ? '#fff' : '#fff', background: delta > 0 ? '#1B7A3D' : '#C2452F', borderRadius: 4, padding: '0 3px' }} title={delta > 0 ? `Passou ${delta} nesta temporada` : `Foi passado por ${-delta} nesta temporada`}>
+                        {delta > 0 ? '▲' : '▼'}{Math.abs(delta)}
+                      </span>
+                    )}
+                    {delta === 0 && <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 9, fontWeight: 900, color: 'rgba(0,0,0,.35)' }}>–</span>}
+                    {delta == null && seasonNo > 1 && <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 8, fontWeight: 900, color: '#7C3AED', background: '#F3EBFF', border: '1px solid #7C3AED', borderRadius: 4, padding: '0 3px' }}>novo</span>}
+                  </td>
                   <td style={{ maxWidth: 150, color: you ? '#C2452F' : INK }}>
                     <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       {you ? '🫵 ' : ''}{r.team_name || 'Time sem nome'}
