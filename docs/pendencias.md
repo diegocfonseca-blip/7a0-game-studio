@@ -28,6 +28,25 @@ em Elenco); carreira antiga fica de fora.
 - ⚠️ Não consegui testar dentro do jogo de ponta a ponta (precisaria de 2
   contas jogando carreiras de verdade) — testei a função do banco isolada e o
   build passou limpo. Se aparecer algo estranho, avisar.
+- **✅ BACKFILL (14/08, mesmo dia — Diego reclamou "só 10 gente, mas muita gente
+  já jogou"):** o rank só grava retrato em temporada NOVA a partir de quando foi
+  ao ar — quem já tava jogando (729 contas com Agência 2.0 salva) não tinha
+  nenhum retrato ainda. Rodei uma migração única puxando o estado ATUAL de cada
+  um direto de `esc_pyramid_saves` (a carreira mais avançada com Agência 2.0 de
+  cada conta) e gravei como retrato de hoje — 728 contas populadas na hora.
+  - 🐛 **Bug separado, achado no caminho**: 3 saves tinham `careerCopaHonors`
+    "herdado" de uma carreira anterior — números impossíveis (ex.: 49 títulos de
+    Copa Legends numa carreira de 2 temporadas). Não é bug da minha feature, é o
+    campo em si vindo sujo do save (provavelmente não reseta direito nalgum
+    fluxo de reiniciar carreira/repescar) — **o Hall de Troféus LOCAL dessas 3
+    contas também deve estar mostrando esse número errado**, vale investigar
+    outro dia. Por enquanto, blindei os dois lados (backfill + a função
+    `esc_pyramid_rank`) pra nunca mostrar mais títulos do que temporadas
+    jogadas (`least(titulo, season_no)`) — mesmo se o jogo gravar sujo nesse
+    campo de novo, o rank nunca mais expõe número impossível.
+  - Copa do Mundo Legends fica 0 pra todo mundo NO BACKFILL (é dado só local no
+    aparelho, nunca subiu pro banco — não dá pra recuperar histórico). Os
+    retratos NOVOS (a partir de agora, a cada temporada) já gravam certo.
 - Reversível: `git revert` no código; a tabela nova no banco fica órfã mas
   inofensiva (não é lida em lugar nenhum se reverter o código).
 - ⏳ PRÓXIMO PASSO (pedido pelo Diego): montar mockup pra Stories/Feed do
