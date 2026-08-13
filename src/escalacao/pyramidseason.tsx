@@ -3721,6 +3721,12 @@ export function PyramidSeasonScreen() {
 
   // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
   const soloCareer = state.onlineMode !== 'online'
+  // 🗺️ GUIA DA CARREIRA (13/08): carreira em andamento de ANTES do Guia não tem
+  // `careerSeen` (undefined) — sem isto ela mostraria TODOS os banners de uma vez
+  // na próxima abertura, mesmo etapa que já passou faz tempo (ex: "Salário chegou"
+  // pra quem já tá na T20 pagando salário há muito). Backfill roda 1x: marca como
+  // "já visto" só o que JÁ passou, e deixa só o que ainda vem pela frente avisar.
+  useEffect(() => { if (state.careerSeen === undefined) dispatch({ type: 'BACKFILL_CAREER_SEEN' }) }, [state.careerSeen, dispatch])
   // 🔒 SÓ carreiras com o novo modo empresário (agenciaOn) — ordem do Diego
   // (04/08): carreira ANTIGA nunca vê banner, médico, nada. Zero mudança nela.
   const eventosOn = soloCareer && !!state.agenciaOn

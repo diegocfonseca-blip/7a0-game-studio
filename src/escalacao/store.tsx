@@ -2609,6 +2609,7 @@ type Action =
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic } // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
+  | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
@@ -4436,6 +4437,22 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'MARK_CAREER_SEEN': {
       if (s.careerSeen?.[action.key]) return s
       s.careerSeen = { ...(s.careerSeen ?? {}), [action.key]: true }
+      return s
+    }
+    case 'BACKFILL_CAREER_SEEN': {
+      // 🗺️ só roda UMA vez, e só em save de ANTES do Guia (careerSeen nunca existiu
+      // nele — carreira nova já nasce com {} na fundação, então nem entra aqui).
+      if (s.careerSeen !== undefined) return s
+      const seen: Record<string, true> = {}
+      if ((s.seasonNo ?? 1) >= 2) seen.sub = true
+      if ((s.seasonNo ?? 1) >= 4) seen.salario = true
+      seen.estadio = true // a base do estádio já existe desde a T1 de qualquer carreira em andamento
+      if (s.escadaSubiu) seen.profissional = true
+      if (s.careerFilial) seen.saf = true
+      const you = s.managers[s.youIdx]
+      const st = you ? s.stadiums?.[you.id] : undefined
+      if (st && hasExtra(st, 'medico')) seen.medico = true
+      s.careerSeen = seen
       return s
     }
     case 'EVENTO_SET': {
