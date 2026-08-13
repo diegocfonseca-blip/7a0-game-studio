@@ -2969,13 +2969,26 @@ function Tiebreak() {
 }
 
 // ─── LEILÃO: revelação ───────────────────────────────────────────────
+// avança sozinho depois de alguns segundos. Usa PRAZO por relógio real, não
+// só um setTimeout cego: quem tá de espectador (saldo negativo, sem lance
+// pra dar) não toca na tela — se a aba fica em 2º plano nesse meio tempo, o
+// navegador atrasa/pausa o setTimeout e a revelação ficava presa pra sempre
+// (só um F5 destravava). Com prazo (Date.now()) + um poll de reforço, assim
+// que a aba volta a rodar de verdade a gente vê que o prazo já passou e
+// avança na hora — sem precisar recarregar a página.
 function AutoAdvance({ hasBids, canDrive, extraMs = 0 }: { hasBids: boolean; canDrive: boolean; isLast: boolean; extraMs?: number }) {
   const { state, dispatch } = useEsc()
   useEffect(() => {
     if (!canDrive) return
     const delay = (hasBids ? 2000 : 1000) + extraMs
-    const t = setTimeout(() => dispatch({ type: 'ADVANCE_REVEAL' }), delay)
-    return () => clearTimeout(t)
+    const due = Date.now() + delay
+    let fired = false
+    const fire = () => { if (fired) return; fired = true; dispatch({ type: 'ADVANCE_REVEAL' }) }
+    const t = setTimeout(fire, delay)
+    const iv = setInterval(() => { if (Date.now() >= due) fire() }, 1000)
+    const onVis = () => { if (!document.hidden && Date.now() >= due) fire() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { clearTimeout(t); clearInterval(iv); document.removeEventListener('visibilitychange', onVis) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.revealIdx, state.phase, canDrive, hasBids, extraMs])
   return null

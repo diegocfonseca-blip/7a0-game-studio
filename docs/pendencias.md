@@ -1,5 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🐛🕰️ FIX: tela do leilão "travava" pra quem tá com saldo negativo — ✅ NO AR (14/08)
+Relato do Diego (com print): técnico devendo (saldo negativo — vira espectador,
+sem lance pra dar) via a tela de revelação/martelo travar de vez em quando, só
+resolvia dando F5. Não achei um bug de LÓGICA do jogo (Monte Final e desempate
+foram descartados com prova — não travam por saldo negativo). Explicação mais
+provável: quem tá de espectador não toca na tela, então se a aba do navegador
+fica em 2º plano nesse meio tempo (troca de janela/app), o navegador ATRASA ou
+pausa o `setTimeout` que passa a carta sozinha — o timer nunca disparava e a
+revelação ficava presa até recarregar.
+- Correção em `AutoAdvance` (`screens.tsx`, componente que avança a revelação
+  do leilão sozinho): trocado o `setTimeout` cego por PRAZO com relógio real
+  (`Date.now()`) + um poll de reforço a cada 1s + um gatilho no
+  `visibilitychange` (quando a aba volta a ficar visível). Se o navegador
+  atrasou o timer, assim que ele volta a rodar de verdade (ou você volta pra
+  aba) o jogo vê que o prazo já passou e avança na hora — sem precisar de F5.
+- Escopo mínimo, só a tela de revelação do leilão (onde o print mostrava a
+  trava) — não mexe em Monte Final, desempate, liga ou Copa.
+- Reversível: `git revert`. Não muda o RITMO nem o TEMPO normal de ninguém —
+  só destrava quem ficaria preso esperando um timer atrasado.
+- ⚠️ Ainda não é 100% certeza (não consegui reproduzir a trava de propósito) —
+  se voltar a acontecer mesmo com essa correção, o próximo passo é logar o
+  `state.phase`/`revealIdx` no momento da trava pra achar outra causa.
+
 ## 📝💰 RENOVAÇÃO DE CONTRATO: escada por valor + Várzea sem renovação — ✅ NO AR (14/08)
 Reforma pedida pelo Patrick (usuário) + retrabalhada a fundo com o Diego (várias
 rodadas calibrando pra nunca ter "opção dominada" — prazo mais longo NUNCA pode
