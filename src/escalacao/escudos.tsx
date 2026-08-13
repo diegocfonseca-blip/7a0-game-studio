@@ -417,9 +417,76 @@ const sapekEscudoRender = (size: number) => (
   <img src={sapekEscudoImg} height={size} width={size} alt="Sapekeiros FC" style={{ flex: 'none', display: 'block', objectFit: 'contain', borderRadius: '50%' }} />
 )
 
+// 🏎️⚽ Ferrari SC (batismo do adriano.ferrari, aprovado pelo Diego 14/08): a arte é
+// o PILOTO dirigindo uma bola de futebol gigante — macacão vermelho, capacete do
+// Brasil, bola com rodas de aro vermelho. Arte AUTORAL do jogo (NÃO usa marca: sem
+// o cavalinho/emblema da Ferrari, que é registrado). A MESMA arte serve de escudo e
+// de mascote (ver mascotes.tsx, chave "piloto_bola"). Desenhada em 0..200 x 0..200.
+export function pilotBallSC(): ReactNode {
+  return (
+    <>
+      <ellipse cx="100" cy="186" rx="74" ry="9" fill="rgba(0,0,0,.15)" />
+      <path d="M55 168 H145" stroke="#141414" strokeWidth="8" />
+      <circle cx="55" cy="168" r="17" fill="#141414" stroke="#0C0C0C" strokeWidth="5" /><circle cx="55" cy="168" r="10" fill="#C2452F" stroke="#0C0C0C" strokeWidth="2.5" /><circle cx="55" cy="168" r="3.5" fill="#CFCFCF" />
+      <circle cx="145" cy="168" r="17" fill="#141414" stroke="#0C0C0C" strokeWidth="5" /><circle cx="145" cy="168" r="10" fill="#C2452F" stroke="#0C0C0C" strokeWidth="2.5" /><circle cx="145" cy="168" r="3.5" fill="#CFCFCF" />
+      <circle cx="100" cy="130" r="52" fill="#F7F7F2" stroke="#0C0C0C" strokeWidth="6" />
+      <path d="M100 106 l19 14 -8 22 h-22 l-8 -22 Z" fill="#141414" />
+      <path d="M60 121 l15 3 3 17 -15 7 -12 -12 Z" fill="#141414" opacity=".92" />
+      <path d="M140 121 l-15 3 -3 17 15 7 12 -12 Z" fill="#141414" opacity=".92" />
+      <path d="M83 165 l7 -14 20 0 7 14 -17 9 Z" fill="#141414" opacity=".92" />
+      <path d="M100 106 v-10 M119 120 l12 -7 M111 142 l13 10 M89 142 l-13 10 M81 120 l-12 -7" stroke="#141414" strokeWidth="3.2" />
+      <path d="M78 108 Q76 82 100 78 Q124 82 122 108 Q112 103 100 103 Q88 103 78 108 Z" fill="#C2452F" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round" />
+      <path d="M87 84 H113" stroke="#FFC400" strokeWidth="5" strokeLinecap="round" />
+      <circle cx="100" cy="96" r="7.5" fill="#F4ECD6" stroke="#0C0C0C" strokeWidth="3" />
+      <path d="M100 92 l3.5 2.5 -1.3 4.3 h-4.4 l-1.3 -4.3 Z" fill="#141414" />
+      <rect x="114" y="97" width="11" height="8.5" rx="1.5" fill="#1B7A3D" stroke="#0C0C0C" strokeWidth="1.6" />
+      <path d="M119.5 98.5 l4 2.7 -4 2.7 -4 -2.7 Z" fill="#FFC400" /><circle cx="119.5" cy="101.2" r="1.6" fill="#1E4F9E" />
+      <path d="M80 103 Q67 112 77 123" fill="none" stroke="#C2452F" strokeWidth="12" strokeLinecap="round" />
+      <path d="M120 103 Q133 112 123 123" fill="none" stroke="#C2452F" strokeWidth="12" strokeLinecap="round" />
+      <ellipse cx="100" cy="125" rx="24" ry="10" fill="none" stroke="#141414" strokeWidth="6.5" />
+      <circle cx="100" cy="125" r="4.5" fill="#141414" />
+      <path d="M100 125 L81 120 M100 125 L119 120 M100 125 V135" stroke="#141414" strokeWidth="4.5" />
+      <circle cx="76" cy="123" r="7.5" fill="#141414" stroke="#0C0C0C" strokeWidth="3.5" />
+      <circle cx="124" cy="123" r="7.5" fill="#141414" stroke="#0C0C0C" strokeWidth="3.5" />
+      <path d="M78 56 Q78 30 100 30 Q122 30 122 56 L122 65 Q122 73 113 73 H87 Q78 73 78 65 Z" fill="#1B7A3D" stroke="#0C0C0C" strokeWidth="5.5" strokeLinejoin="round" />
+      <path d="M80 51 H120" stroke="#FFC400" strokeWidth="8" />
+      <path d="M82 56 H118 V66 Q118 70 111 70 H89 Q82 70 82 66 Z" fill="#1b2c66" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round" />
+      <path d="M82 55 H118" stroke="#FFC400" strokeWidth="3.5" />
+      <path d="M85 61 q15 -5 30 0" stroke="#3f63c9" strokeWidth="3" fill="none" opacity=".8" />
+      <path d="M91 71 Q100 77 109 71 Q100 74 91 71 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M100 32 l11 9 -11 9 -11 -9 Z" fill="#FFC400" stroke="#0C0C0C" strokeWidth="2.6" strokeLinejoin="round" />
+      <circle cx="100" cy="41" r="4.4" fill="#1E4F9E" />
+      <path d="M96 41 q4 -3 8 0" stroke="#fff" strokeWidth="1.6" fill="none" />
+    </>
+  )
+}
+const ferrariSCRender = (size: number) => {
+  const w = Math.round(size * 200 / 240)
+  return (
+    <svg width={w} height={size} viewBox="0 0 200 240" role="img" aria-label="Ferrari SC" style={{ flex: 'none', display: 'block' }}>
+      <defs>
+        <clipPath id="ferEscClip"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath>
+        <linearGradient id="ferRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#D24A33" /><stop offset="1" stopColor="#A5371F" /></linearGradient>
+        <pattern id="ferChk" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#F4ECD6" /><rect width="8" height="8" fill="#141414" /><rect x="8" y="8" width="8" height="8" fill="#141414" /></pattern>
+      </defs>
+      <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="url(#ferRed)" />
+      <g clipPath="url(#ferEscClip)">
+        <rect x="0" y="212" width="200" height="16" fill="url(#ferChk)" />
+        <g transform="translate(30,26) scale(0.70)">{pilotBallSC()}</g>
+      </g>
+      <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#0C0C0C" strokeWidth="9" />
+      <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#FFC400" strokeWidth="3.5" />
+    </svg>
+  )
+}
+
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // 🏎️⚽ Ferrari SC (adriano) — piloto na bola (mesma arte da mascote), todos os nomes
+  'Ferrari SC': ferrariSCRender,
+  'Ferrari FC': ferrariSCRender,
+  'Ferrari': ferrariSCRender,
   // 🐝👑 Sapekeiros FC (Tio Sapeka) — mesmo escudo pros dois nomes
   'Sapekeiros FC': sapekEscudoRender,
   'Sapekeiros': sapekEscudoRender,

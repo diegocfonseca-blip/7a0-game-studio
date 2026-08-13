@@ -1,4 +1,26 @@
-# 📌 Pendências combinadas com o Diego (atualizado 13/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
+
+## 🏎️⚽ Ferrari SC (batismo adriano.ferrari) — ✅ NO AR (14/08)
+Kit visual do time do adriano.ferrari@quepazseguros.com.br. Arte AUTORAL (piloto de
+macacão vermelho + capacete do Brasil dirigindo uma BOLA de futebol gigante com rodas).
+- ⚠️ **REGRA DE MARCA**: o Diego pediu MUITAS vezes o cavalo/escudo IDÊNTICO da Ferrari
+  (inclusive "só mudando detalhes"). **NÃO foi feito** — é marca registrada e poria o
+  site (ao vivo, no nome dele) em risco. Mesma regra dos clubes reais. A arte final é o
+  piloto-na-bola, SEM o emblema/cavalinho da Ferrari (esse detalhe do render dele ficou
+  de fora de propósito). Se ele insistir de novo: continua sendo NÃO.
+- **Manto** vermelho/preto: `manto.ts` MANTO_CONTAS (por e-mail) — já vale, é só cor.
+- **Escudo** `escudos.tsx`: `pilotBallSC()` (arte) + `ferrariSCRender` (dentro do escudo
+  vermelho, borda ouro, quadriculado). LOGOS_PRONTAS: 'Ferrari SC'/'Ferrari FC'/'Ferrari'.
+  Vale pelo NOME do time — já aparece.
+- **Mascote** `mascotes.tsx`: MASCOTES['piloto_bola'] (mesma arte, grande). ⚠️ Só aparece
+  no festão do campeão quando o Diego apontar a conta do adriano pra ela NO PAINEL
+  (esc_socios.mascote_key = 'piloto_bola'). Enquanto não setar, o resto (escudo+manto) já vale.
+- Reversível: `git revert`. Só afeta esse time/conta; não toca em mais nada.
+- 🔧 Pendente do gosto do Diego: ele queria a qualidade de RENDER (imagem gerada). Vetor
+  à mão não chega lá; se um dia ele mandar o ARQUIVO (webp) de uma arte SEM marca, dá pra
+  embutir igual Sapekeiros/Eros.
+
+
 
 ## 🐞🌐 FIX GRAVE: ONLINE virava DOIS HOSTS (dessincronia total na Copa) — ✅ NO AR (13/08)
 Relato do Diego (sala "Sapekeiro FC", jogo rápido online): no meio do leilão o host

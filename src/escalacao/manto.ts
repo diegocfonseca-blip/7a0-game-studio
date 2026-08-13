@@ -11,6 +11,7 @@ import { loggedEmail } from './apoio'
 // reserva no código (beta) — conta → [cor1, cor2]
 export const MANTO_CONTAS: Record<string, [string, string]> = {
   'diego.c.fonseca@gmail.com': ['#C2452F', '#141414'], // ❤️🖤 vermelho e preto
+  'adriano.ferrari@quepazseguros.com.br': ['#C2452F', '#141414'], // 🏎️ Ferrari SC — vermelho e preto
 }
 
 // cache do MEU sócio (mesmo padrão do myEmail do apoio: pontos de uso são

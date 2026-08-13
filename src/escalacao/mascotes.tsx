@@ -9,12 +9,21 @@ import type { ReactNode } from 'react'
 import tokaMascoteImg from './img/toka10-mascote.webp'
 import erosNinaImg from './img/eros-nina-mascote.webp'
 import sapekAbelhaImg from './img/sapek-mascote.webp'
+import { pilotBallSC } from './escudos' // 🏎️ Ferrari SC: mesma arte do escudo (piloto na bola)
 
 const INK = '#0C0C0C'
 
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🏎️⚽ Ferrari SC (adriano.ferrari) — o PILOTO dirigindo a bola de futebol gigante
+  // (macacão vermelho, capacete do Brasil). MESMA arte do escudo (pilotBallSC), aqui
+  // desenhada grande pro festão do campeão. Arte autoral (sem marca). mascote_key = "piloto_bola".
+  piloto_bola: (
+    <svg width="176" height="176" viewBox="0 0 200 200">
+      {pilotBallSC()}
+    </svg>
+  ),
   // 🦁⚡ Leão Azul do Remo fantasiado de THOR (Remoçada — luiz.maia.luiz, Lenda+fundador).
   // Elmo alado, Mjölnir erguido, camisa azul-marinho/branca, capa vermelha. mascote_key = "leao_thor".
   leao_thor: (
