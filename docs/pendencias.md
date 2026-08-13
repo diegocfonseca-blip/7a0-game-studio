@@ -1,5 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 📝💰 RENOVAÇÃO DE CONTRATO: escada por valor + Várzea sem renovação — ✅ NO AR (14/08)
+Reforma pedida pelo Patrick (usuário) + retrabalhada a fundo com o Diego (várias
+rodadas calibrando pra nunca ter "opção dominada" — prazo mais longo NUNCA pode
+custar igual ou menos que um mais curto, senão ninguém escolheria o curto).
+- **Várzea: SEM renovação nenhuma** (`store.tsx` RENEW_CONTRACT, checa
+  `careerPlacements[m<id>] ?? careerDivision`). Contrato acaba → vai pro leilão
+  com teto de venda → o CLUBE recebe (em vez de pagar). Vale JÁ pra quem já tá na
+  Várzea (não é gate de carreira nova — só reaproveita o `contratosOn` existente).
+- **Série D pra cima**: `renewOptions(oficial)` / `renewCost(oficial, anos)` em
+  `store.tsx`. Abaixo de 10 moedas = tabela fixa calibrada valor a valor pelo Diego
+  (1 a 9, cada um com só os prazos que fazem sentido — 1/2/3/5 anos, nunca 10). A
+  PARTIR de 10 moedas (jogador "de verdade") = só 5 e 10 anos, fórmula: 5 anos =
+  metade (ceil), 10 anos = 90% arredondado pro mais PRÓXIMO (não é floor — testado
+  contra 15 moedas = 14, não 13). Testei em script isolado: **nenhuma opção
+  dominada de 1 a 600 moedas**, todas as âncoras do Diego batem.
+- UI (`pyramidseason.tsx`, tela reserveList): os botões de renovar agora são
+  DINÂMICOS — só aparecem os prazos que `renewOptions` liberar pra aquele valor,
+  cada um com sua cor (dourado=10, verde=5, azul claro=1-3).
+- Reversível: `git revert`. Não muda nada da lógica do leilão/liga.
+- 🔧 Ainda não fiz (fica pra próxima): a "saída de emergência" (quebrar contrato
+  caro com multa quando o caixa trava fundo) e o "vender reserva pro banco" —
+  ideias combinadas mas não implementadas ainda.
+
 ## 🏎️⚽ Ferrari SC (batismo adriano.ferrari) — ✅ NO AR (14/08)
 Kit visual do time do adriano.ferrari@quepazseguros.com.br. Arte AUTORAL (piloto de
 macacão vermelho + capacete do Brasil dirigindo uma BOLA de futebol gigante com rodas).

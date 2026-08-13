@@ -741,12 +741,50 @@ function spawnCria(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () =
 export function valorOficial(state: EscState, c: Card): number {
   return Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
 }
+export type RenewAnos = 1 | 2 | 3 | 5 | 10
+// 📝💰 RENOVAÇÃO POR VALOR (decisão do Diego 14/08, várias rodadas de ajuste fino):
+// regra de ouro — um prazo mais LONGO nunca pode custar igual ou menos que um mais
+// CURTO (senão ninguém escolheria o curto — "opção dominada"). Abaixo de 10 moedas
+// não dá pra achar uma fórmula única que bata sem fração de moeda, então é tabela
+// fixa, calibrada valor a valor pelo Diego. A PARTIR de 10 moedas (jogador "de
+// verdade", disputado no leilão): só 5 e 10 anos — acaba a mamata do contrato
+// curtinho, força compromisso real. 5 anos = metade (arredonda pra CIMA, desconto
+// nunca vira preço cheio). 10 anos = 90% arredondado pro mais PRÓXIMO (não é floor:
+// 15 moedas dá 14, não 13 — conferido com o Diego).
+const RENEW_TABLE_LOW: Record<number, Partial<Record<RenewAnos, number>>> = {
+  1: { 1: 1, 5: 2 },
+  2: { 1: 1, 3: 2 },
+  3: { 1: 1, 2: 2, 5: 3 },
+  4: { 1: 1, 2: 2, 3: 3, 5: 4 },
+  5: { 2: 2, 5: 3, 10: 5 },
+  6: { 2: 2, 5: 3, 10: 5 },
+  7: { 2: 3, 5: 4, 10: 6 },
+  8: { 2: 3, 5: 4, 10: 7 },
+  9: { 2: 3, 3: 4, 5: 5, 10: 8 },
+}
+// prazos disponíveis (em ordem) pra um jogador de determinado valor oficial
+export function renewOptions(oficial: number): RenewAnos[] {
+  const v = Math.max(1, Math.round(oficial))
+  const ORDER: RenewAnos[] = [1, 2, 3, 5, 10]
+  if (v < 10) return ORDER.filter(a => RENEW_TABLE_LOW[v]?.[a] != null)
+  return [5, 10]
+}
+// custo de renovar por N anos pro valor oficial dado (0 = essa opção não existe pra esse valor)
+export function renewCost(oficial: number, anos: RenewAnos): number {
+  const v = Math.max(1, Math.round(oficial))
+  if (v < 10) return RENEW_TABLE_LOW[v]?.[anos] ?? 0
+  if (anos === 5) return Math.max(1, Math.ceil(v * 0.5))
+  if (anos === 10) return Math.max(1, Math.round(v * 0.9))
+  return 0
+}
 // prazo da renovação com "tempero": 5 vira 4-6 e 10 vira 9-11 (preço não muda).
 // Sem isso, todo mundo renovando por 5 EXATOS re-alinhava os vencimentos e, anos
 // depois, meia dúzia de contratos venciam JUNTOS (medido em simulação: até 13!).
-function contratoDur(anos: 5 | 10, rng: () => number): number {
+// 1/2/3 anos NÃO temperam (evita cair pra 0) — só 5 e 10 mantêm a variação de sempre.
+function contratoDur(anos: RenewAnos, rng: () => number): number {
+  if (anos <= 2) return anos
   const r = rng()
-  return anos + (r < 1 / 3 ? -1 : r < 2 / 3 ? 0 : 1)
+  return Math.max(1, anos + (r < 1 / 3 ? -1 : r < 2 / 3 ? 0 : 1))
 }
 // paga o VENDEDOR da carta (quem listou/soltou no mercado) quando ela é vendida —
 // no leilão ou no monte. A grana entra na caixa (money) dele, pra reinvestir na
@@ -2516,7 +2554,7 @@ type Action =
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
-  | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: 5 | 10 } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — 10 anos = valor oficial cheio, 5 = metade. Prazo real sai com tempero (±1) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); quem não renovar vai pro leilão com teto de venda
+  | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: RenewAnos } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — prazo e preço vêm de renewOptions/renewCost (escada por valor; 10+ moedas = só 5/10 anos). Prazo real sai com tempero (±1, exceto 1-2 anos) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); Várzea NÃO RENOVA (vai pro leilão com teto de venda); quem não renovar nas outras divisões também
   | { type: 'CONFIRM_MESMO_TIME' } // 🔒 fecha a janela de contratos do voto "mesmo time" (sem leilão): processa Deixar ir/Renovar decididos e volta pra temporada
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
@@ -5024,24 +5062,23 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'RENEW_CONTRACT': {
       // 📝 renova um contrato ENCERRADO na janela de venda (tela reserveList).
-      // 10 anos = valor oficial cheio · 5 anos = metade. Precisa ter a grana
-      // (sem fiado aqui — sem grana, o caminho é deixar ir pro leilão).
+      // Preço/prazo vêm de renewCost/renewOptions (escada por valor, ver comentário
+      // ali). Precisa ter a grana? NÃO — renovar por ESCOLHA pode negativar (Diego
+      // 03/08): a dívida é do jogo (transfer ban no vermelho cuida da consequência).
       if (!s.careerOnline || !s.contratosOn || s.screen !== 'reserveList') return s
       const mgr = s.managers.find(m => m.id === action.mgrId)
       if (!mgr?.isHuman) return s
+      // 🌱 Várzea NÃO RENOVA (decisão do Diego 14/08): contrato acaba, vai pro leilão
+      // com teto de venda — o clube embolsa em vez de pagar. Vale JÁ pra quem já
+      // estiver na Várzea (não é gate de carreira nova).
+      const div = s.careerPlacements?.[`m${mgr.id}`] ?? s.careerDivision ?? 'V'
+      if (div === 'V') return s
       const card = mgr.squad.find(c => c.id === action.cardId) as WonCard | undefined
       if (!card || card.fake || card.emprestado) return s
       if (card.contratoAte == null || card.contratoAte >= s.seasonNo) return s // só contrato JÁ encerrado
       const oficial = valorOficial(s, card)
-      // 💰 10 anos = 90% (decisão do Diego 03/08): desconto de fidelidade — por
-      // temporada sai 9% vs 10% dos 5 anos, mas o desembolso à vista é maior.
-      // 🐛 05/08 (relato do Diego): Math.ceil no desconto de 10% ARREDONDAVA PRA
-      // CIMA — pra vários valores (ex.: piso 8) o "desconto" virava o preço CHEIO
-      // (ceil(8×0.9)=ceil(7.2)=8, igual sem desconto nenhum!). Math.floor garante
-      // desconto de verdade sempre (piso 8 → 7, nunca mais o preço cheio).
-      // 💳 SEM trava de saldo (Diego 03/08): renovar por ESCOLHA pode negativar —
-      // a dívida é do jogo (transfer ban no vermelho cuida da consequência).
-      const custo = action.anos === 10 ? Math.max(1, Math.floor(oficial * 0.9)) : Math.max(1, Math.ceil(oficial / 2))
+      const custo = renewCost(oficial, action.anos)
+      if (custo <= 0) return s // esse prazo não existe pra esse valor (ex.: 1 ano num jogador de 20 moedas)
       const saldo = s.careerCoins?.[mgr.id] ?? 0
       s.careerCoins = { ...(s.careerCoins ?? {}), [mgr.id]: saldo - custo }
       card.contratoAte = s.seasonNo + contratoDur(action.anos, rngOf(s)) - 1

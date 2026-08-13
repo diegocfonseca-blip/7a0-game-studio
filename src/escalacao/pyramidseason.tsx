@@ -13,7 +13,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, mancheteSemReserva, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, catalogTodos, agenciaEstadio, ident } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -5030,8 +5030,13 @@ export function ReserveListScreen() {
                 // card de decisão de UM jogador; `empilha` = botões em pilha (modo 2 colunas)
                 const decisao = (c: WonCard, dono: Manager, saldo: number, empilha: boolean) => {
                   const oficial = valorOficial(state, c)
-                  const c10 = Math.max(1, Math.floor(oficial * 0.9)) // 💰 10 anos = 90% (Math.floor: desconto de verdade, nunca vira preço cheio por arredondamento)
-                  const c5 = Math.max(1, Math.ceil(oficial / 2))
+                  // 📝 prazos disponíveis pra ESSE valor (renewOptions já filtra opção
+                  // "dominada" — nunca aparece um prazo maior custando igual ou menos
+                  // que um mais curto). 10+ moedas = só 5/10 anos (compromisso real).
+                  const opcoes = renewOptions(oficial)
+                  const COR_PRAZO: Record<number, [string, string]> = {
+                    10: [GOLD, INK], 5: ['#EAF6EE', INK], 3: ['#E3EEFA', INK], 2: ['#E3EEFA', INK], 1: ['#F4ECD6', INK],
+                  }
                   const solto = (state.contratoRelease ?? []).includes(c.id)
                   return (
                     <div key={c.id} style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 9px', marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 0 ${INK}` }}>
@@ -5040,9 +5045,16 @@ export function ReserveListScreen() {
                         <span style={{ fontWeight: 900, fontSize: empilha ? 12.5 : 14, ...OSWALD, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                         <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647', flex: 'none' }}>{empilha ? '' : 'valor '}{oficial} 🪙</span>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: empilha ? 'column' : 'row', gap: 6 }}>
-                        <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: 10 })} disabled={solto} style={btn(GOLD, INK, solto)}>Renovar 10 anos{empilha ? ' · ' : <br />}{c10} 🪙 (-10%){saldo < c10 ? ' 💳' : ''}</button>
-                        <button onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: 5 })} disabled={solto} style={btn('#EAF6EE', INK, solto)}>Renovar 5 anos{empilha ? ' · ' : <br />}{c5} 🪙{saldo < c5 ? ' 💳' : ''}</button>
+                      <div style={{ display: 'flex', flexDirection: empilha ? 'column' : 'row', gap: 6, flexWrap: 'wrap' }}>
+                        {opcoes.map(anos => {
+                          const custo = renewCost(oficial, anos)
+                          const [bg, fg] = COR_PRAZO[anos] ?? ['#F4ECD6', INK]
+                          return (
+                            <button key={anos} onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos })} disabled={solto} style={btn(bg, fg, solto)}>
+                              Renovar {anos} ano{anos > 1 ? 's' : ''}{empilha ? ' · ' : <br />}{custo} 🪙{anos === 10 ? ' (-10%)' : ''}{saldo < custo ? ' 💳' : ''}
+                            </button>
+                          )
+                        })}
                         <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? '🌱 vai embora\u2028(desfazer)' : '😢 Deixar ir'}{empilha ? ' · ' : <br />}{solto ? 'cria assume se faltar' : 'vai pro leilão'}</button>
                       </div>
                     </div>
