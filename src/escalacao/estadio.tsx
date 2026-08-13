@@ -12,6 +12,7 @@ import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
+import { UnlockBanner } from './unlockbanner'
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -398,6 +399,9 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} lugares</span></div>
           <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% pronto</span>
         </div>
+        <UnlockBanner k="estadio" tag="🏟️ sistema completo" title="Seu estádio já rende">
+          Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.
+        </UnlockBanner>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 10, padding: '7px 11px' }}>
           <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>🎟️ Bilheteria por temporada{medicoOn ? ' (potencial)' : ''}</span>
           <b style={{ fontSize: 17 }}>+{income}</b>
@@ -499,6 +503,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           </div>
         )
       })}
+      {hasExtra(st, 'medico') && (
+        <UnlockBanner k="medico" tag="🏥 obra grande" title="Departamento Médico pronto" ctaBg="#C2452F" ctaColor="#fff">
+          A partir de agora <b>NUNCA MAIS</b> um jogador seu sai de campo por lesão — acabou pra sempre, em qualquer elenco desta carreira.
+        </UnlockBanner>
+      )}
       {onBuyFilial && (() => {
         // 🔐 a SAF EXIGE login (direitos ligados à conta). Antes, sem login a seção
         // SUMIA — e o jogador não entendia (ele só via a SAF "desaparecer"). Agora
@@ -522,6 +531,9 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         if (filial) {
           return (
           <div style={{ ...box('#FFF6DE'), borderRadius: 14, padding: '11px 12px', marginTop: 14 }}>
+            <UnlockBanner k="saf" tag="🏢 sistema completo" title="Você comprou a SAF">
+              É um clube da Série D que passa a ser SEU: caixa e elenco próprios, mas <b>50% do que ela ganha (ou perde) cai no seu caixa também.</b> Ela empresta jogadores pros dois lados e destrava a categoria <b>👑 Lenda</b> lá na Agência (+6 🪙 por carta).
+            </UnlockBanner>
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 SUA SAF</p>
             <p style={{ fontWeight: 900, fontSize: 13, margin: '5px 0 2px', ...OSW }}>⚽ {filial.team}{filialInfo ? <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,.55)' }}> · Série {filialInfo.div} · {filialInfo.pos}º</span> : null}</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Dono da SAF desde a T{filial.since} · direito a 50% dos lucros de campanha (título/acesso rende; queda desconta)</p>
