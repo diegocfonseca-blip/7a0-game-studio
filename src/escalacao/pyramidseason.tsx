@@ -2722,11 +2722,13 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
           (como sempre foi). "Só no intervalo" faz o jogo pausar aos 45' pra trocar. */}
       {elenco && onSetSubMode && (() => {
         const mode = subMode ?? 'dinamico'
+        // 🎨 CORES DO ELENCO (Diego 13/08): substituição ganha verde PRÓPRIO, em vez
+        // da cor do time — evita se misturar com a navegação (mockup aprovado).
         const Opt = ({ m, titulo, desc }: { m: 'dinamico' | 'intervalo'; titulo: string; desc: string }) => {
           const on = mode === m
           return (
             <button onClick={() => { if (!on) onSetSubMode(m) }}
-              style={{ flex: 1, textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', cursor: on ? 'default' : 'pointer', background: on ? col.solid : '#fff', color: on ? '#fff' : INK, boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none' }}>
+              style={{ flex: 1, textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', cursor: on ? 'default' : 'pointer', background: on ? GREEN : '#fff', color: on ? '#fff' : INK, boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none' }}>
               <div style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{titulo}{on ? ' ✓' : ''}</div>
               <div style={{ fontSize: 8.5, fontWeight: 700, opacity: on ? 0.85 : 0.55, lineHeight: 1.25, marginTop: 2 }}>{desc}</div>
             </button>
@@ -5031,8 +5033,11 @@ export function PyramidSeasonScreen() {
                 {/* botões de tática MENORES que as abas do menu (pra não confundir) */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, marginBottom: 6 }}>
                   {([['retranca', '🧱 Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '🔥 Ataque']] as [Tac, string][]).map(([t, label]) => (
+                    // 🎨 CORES DO ELENCO (Diego 13/08 — "parede amarela, tudo dourado"):
+                    // tática ganha cor PRÓPRIA (azul), separada do dourado da navegação
+                    // e do verde da substituição — mockup aprovado antes de codar.
                     <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: youId, tactic: t })}
-                      style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? GOLD : '#fff', color: INK, boxShadow: myTactic === t ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                      style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? '#2F6BAE' : '#fff', color: myTactic === t ? '#fff' : INK, boxShadow: myTactic === t ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
                       {label}
                     </button>
                   ))}
