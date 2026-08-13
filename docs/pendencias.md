@@ -4151,3 +4151,12 @@ fácil e barato de tapar, símbolico mas tira o zero. `TV_COTA` em
 ocupação só na Várzea (hoje 18% no rebaixamento — ficaria tipo 40%) pra
 quem tá começando não ficar preso no fundo do poço.
 Build ok, no ar em `main`.
+
+**✅ Implementado (12/08, mesmo dia)**: Diego confirmou que ainda tava
+difícil mesmo depois da TV — subi o piso de ocupação da Várzea de 18% pra
+**40%** (`VARZEA_OCC_FLOOR` em `estadiodata.ts`, `stadiumOccupancy` agora
+recebe a divisão como 3º parâmetro opcional). Só afeta Várzea — as outras
+divisões continuam na régua de sempre (18% na zona de rebaixamento).
+Junto com a cota de TV, isso ataca os 2 maiores "buracos" que achei na
+economia da Várzea. Segue em aberto (não mexido, maior escopo): entrar na
+Copa Legends.
