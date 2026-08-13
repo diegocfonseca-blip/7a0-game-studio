@@ -47,6 +47,20 @@ em Elenco); carreira antiga fica de fora.
   - Copa do Mundo Legends fica 0 pra todo mundo NO BACKFILL (é dado só local no
     aparelho, nunca subiu pro banco — não dá pra recuperar histórico). Os
     retratos NOVOS (a partir de agora, a cada temporada) já gravam certo.
+- **✅ FIX (14/08, Diego notou "Copa" no topo do rank sem sentido)**: o
+  `least(titulo, season_no)` do item acima só limitava o TAMANHO do número
+  errado, não zerava — as 4 contas com `careerCopaHonors` sujo (temporada 1-2,
+  0 moedas gastas/0 título de divisão, mas "1-2 Copa Legends") ainda furavam
+  pro topo do rank por causa do peso da Copa no critério de ordem. Zerei
+  `copa_titles` nessas 4 contas especificamente (temporada ≤2 com copa>0 —
+  ganhar Copa Legends exige terminar a temporada inteira, praticamente
+  impossível legítimo nesse ponto). Rank confere: zero conta com Copa fake
+  no topo agora.
+- ⏳ Diego achou estranho o rank ter muita conta "temporada 1, 100 moedas
+  paradas" enchendo o Top 50 — são contas REAIS que só entraram uma vez e não
+  jogaram (não é bug, é gente inativa mesmo). Perguntei se ele quer um piso
+  mínimo (tipo exigir pelo menos temporada 2 jogada) pra tirar essas do rank
+  e deixar a lista mais "viva" — esperando resposta.
 - Reversível: `git revert` no código; a tabela nova no banco fica órfã mas
   inofensiva (não é lida em lugar nenhum se reverter o código).
 - ⏳ PRÓXIMO PASSO (pedido pelo Diego): montar mockup pra Stories/Feed do
