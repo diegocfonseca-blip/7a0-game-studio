@@ -2857,6 +2857,102 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
   )
 }
 
+// ── RANKING GLOBAL (14/08, pedido do Diego): top 50 usuários (nunca bots — bots
+// já têm o ranking local acima), na MESMA régua de troféus/dinheiro. Trava
+// anti-spoiler: o rank vem SEMPRE capado na temporada de quem está olhando (RPC
+// `esc_pyramid_rank`, ver comentário no banco) — ninguém vê o futuro de ninguém,
+// só o que cada um já tinha feito até ali. Só conta quem jogou com Agência 2.0.
+interface GlobalRankRow { user_id: string; season_no: number; team_name: string; honors_a: number; honors_b: number; honors_c: number; honors_d: number; honors_v: number; copa_titles: number; world_titles: number; money: number }
+function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo: number }) {
+  const [rows, setRows] = useState<GlobalRankRow[] | null>(null)
+  const [down, setDown] = useState(false)
+  const [meUid, setMeUid] = useState<string | null>(null)
+  useEffect(() => {
+    let alive = true
+    setRows(null); setDown(false)
+    ;(async () => {
+      try {
+        const { data: auth } = await supabase.auth.getUser()
+        if (alive) setMeUid(auth?.user?.id ?? null)
+        const { data, error } = await supabase.rpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 50 })
+        if (error) throw error
+        if (alive) setRows((data ?? []) as GlobalRankRow[])
+      } catch {
+        if (alive) { setDown(true); setRows([]) } // backend fora: não trava em "Carregando…"
+      }
+    })()
+    return () => { alive = false }
+  }, [seasonNo])
+  const loading = rows === null
+  const meInList = !!meUid && (rows ?? []).some(r => r.user_id === meUid)
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Mesma régua do ranking do seu save (títulos e depois dinheiro) — só gente de verdade, top 50. Só conta quem joga com a Agência 2.0.</p>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
+        <span style={{ fontSize: 19, lineHeight: 1.2 }}>📍</span>
+        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.4, color: INK }}>
+          Você tá na <b style={{ color: '#7C3AED' }}>Temporada {seasonNo}</b> — todo mundo abaixo aparece com o que tinha feito ATÉ a temporada {seasonNo}, nem um pouco a mais. Ninguém vê o futuro de ninguém.
+        </p>
+      </div>
+      {loading ? (
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Carregando…</p>
+      ) : down ? (
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Não consegui buscar o ranking agora — tenta de novo mais tarde.</p>
+      ) : rows!.length === 0 ? (
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Ninguém no ranking ainda até a temporada {seasonNo} — seja o primeiro!</p>
+      ) : (
+        <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+          <thead><tr style={{ textAlign: 'left' }}>
+            <th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Usuário</th>
+            <th style={{ ...th, textAlign: 'center' }}>Títulos <span style={{ textTransform: 'none', fontWeight: 700, color: '#7C3AED' }}>(até T{seasonNo})</span></th>
+            <th style={{ ...th, textAlign: 'right' }}>💰</th>
+          </tr></thead>
+          <tbody>
+            {rows!.map((r, i) => {
+              const you = r.user_id === meUid
+              const totalTit = r.honors_a + r.honors_b + r.honors_c + r.honors_d + r.copa_titles + r.world_titles
+              return (
+                <tr key={r.user_id} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: you ? '#FFF3D6' : undefined, fontWeight: you ? 800 : 500 }}>
+                  <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
+                  <td style={{ maxWidth: 150, color: you ? '#C2452F' : INK }}>
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      {you ? '🫵 ' : ''}{r.team_name || 'Time sem nome'}
+                      {you && <span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>VOCÊ</span>}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    {totalTit === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                      {r.world_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.world_titles > 1 ? r.world_titles : ''}</span>}
+                      {r.copa_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copa_titles > 1 ? r.copa_titles : ''}</span>}
+                      {([['A', r.honors_a], ['B', r.honors_b], ['C', r.honors_c], ['D', r.honors_d], ['V', r.honors_v]] as [Div, number][]).map(([d, n]) => n > 0 ? (
+                        <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{n}</span>
+                      ) : null)}
+                    </>}
+                  </td>
+                  <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
+                </tr>
+              )
+            })}
+            {!meInList && meUid && (
+              <tr style={{ borderTop: `2px solid ${INK}`, background: '#FFF3D6', fontWeight: 800 }}>
+                <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>—</td>
+                <td style={{ maxWidth: 150, color: '#C2452F' }}>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    🫵 {myTeamName || 'Seu time'}<span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>VOCÊ · fora do Top 50</span>
+                  </span>
+                </td>
+                <td style={{ textAlign: 'center' }}>—</td>
+                <td style={{ textAlign: 'right' }}>—</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
+    </div>
+  )
+}
+
 // ── TELA da temporada simulada da carreira online (toma o lugar da temporada
 // ao vivo). O host conduz o ritmo (PLAY_ROUND avança a rodada, já sincronizado);
 // os clientes seguem a rodada do estado. Tudo determinístico → mesma tabela. ──
@@ -3444,7 +3540,7 @@ export function PyramidSeasonScreen() {
   }, [seasonOver, speedFactor])
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
-  const [rankSub, setRankSub] = useState<'clubes' | 'arti'>('arti')
+  const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio') // 🏟️/💰/💼 sub-abas da aba Clube
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
@@ -3523,6 +3619,36 @@ export function PyramidSeasonScreen() {
   const fecharFestaC = () => { setFestaOnC(false); try { sessionStorage.setItem(festaKeyC, '1') } catch { /* segue */ } }
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
+  // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
+  // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
+  // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
+  // por temporada (o ref evita gravar de novo a cada render/autosave). Falha
+  // silenciosa: sem login ou sem net, o jogo segue normal — é só o rank que não
+  // atualiza pro resto da galera.
+  const rankSnapSeasonRef = useRef(-1)
+  useEffect(() => {
+    if (!state.agenciaOn || state.onlineMode === 'online' || !state.careerOnline) return
+    if (rankSnapSeasonRef.current === state.seasonNo) return
+    rankSnapSeasonRef.current = state.seasonNo
+    ;(async () => {
+      try {
+        const { data } = await supabase.auth.getUser()
+        if (!data?.user) return
+        const you = state.managers.find(m => m.id === youId)
+        if (!you) return
+        const h = (state.careerHonors as Record<string, Honors> | undefined)?.[`m${youId}`] ?? EMPTY_HONORS
+        const copas = state.careerCopaHonors?.[`m${youId}`] ?? 0
+        const world = (loadCopaSave(state.seed)?.mural ?? []).filter(m => m.voce).length
+        const money = Math.round(state.careerCoins?.[youId] ?? 0)
+        await supabase.from('esc_pyramid_rank_snap').upsert({
+          user_id: data.user.id, season_no: state.seasonNo, team_name: you.teamName,
+          honors_a: h.A ?? 0, honors_b: h.B ?? 0, honors_c: h.C ?? 0, honors_d: h.D ?? 0, honors_v: h.V ?? 0,
+          copa_titles: copas, world_titles: world, money,
+        })
+      } catch { /* melhor esforço — nunca trava o jogo por causa do rank */ }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.agenciaOn, state.onlineMode, state.careerOnline, state.seasonNo, youId])
   // 🎽 destrava PERMANENTE da troca de formação na 1ª vez que o elenco chega a 22
   // reais (fica destravado mesmo se depois cair de 22). Só marca o selo — a trava
   // por-posição segue valendo em cada troca.
@@ -4671,14 +4797,17 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'ranking' ? (
           <>
-            {/* sub-abas do Rank: Clubes | Artilheiros (temporada + todos os tempos) */}
+            {/* sub-abas do Rank: Clubes | Artilheiros (temporada + todos os tempos) | Global
+                (usuários, só Agência 2.0 — carreira sem Agência não mostra essa aba) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {([['arti', '⚽', 'Artilheiros'], ['clubes', '🥇', 'Clubes']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+              {([['arti', '⚽', 'Artilheiros'], ['clubes', '🥇', 'Clubes'], ...(agenciaOk ? [['global', '🌍', 'Global']] as const : [])] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} />
+            ) : rankSub === 'global' && agenciaOk ? (
+              <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} />
             ) : (
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no

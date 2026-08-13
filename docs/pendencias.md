@@ -1,5 +1,38 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🌍 RANKING GLOBAL de usuários (aba Rank) — ✅ NO AR (14/08, mockup aprovado)
+Pedido do Diego: rank mundial de USUÁRIOS de verdade (bots já têm o rank local),
+mesma régua do ranking do save (títulos A›Mundo›Copa›B›C›D, depois dinheiro),
+**top 50**, sub-aba própria do lado de Clubes/Artilheiros. Regra de ouro dele:
+**anti-spoiler por temporada** — se eu tô na T15 e o outro já foi pra T89, só
+vejo o que ele tinha feito ATÉ a T15 (nem um pouco do futuro dele). Só conta
+carreira feita com **Agência 2.0** (`agenciaOn` — a mesma trava das 2 sub-abas
+em Elenco); carreira antiga fica de fora.
+- **Banco** (projeto certo é `faabglpjutwursgmrpny` — o `supabase/config.toml`
+  do repo aponta pra OUTRO projeto errado/morto, cuidado se for usar ele de
+  referência): tabela nova `esc_pyramid_rank_snap` (user_id, season_no, nome do
+  time, títulos A/B/C/D/V, Copa Legends, Copa do Mundo, dinheiro) — um retrato
+  POR TEMPORADA de cada usuário, não só o estado atual. RLS: todo mundo LÊ,
+  cada um só grava a PRÓPRIA linha. Função `esc_pyramid_rank(p_season, p_limit)`
+  pega, pra cada usuário, o retrato mais recente **ATÉ** p_season (nunca depois)
+  — é isso que impede o spoiler — e devolve já ordenado/limitado. Testado na mão
+  (2 usuários fake, um "do futuro") — bateu certinho.
+- **Grava o retrato**: `pyramidseason.tsx` (dentro de `PyramidSeasonScreen`), um
+  `useEffect` que dispara 1× por temporada nova (só carreira offline com
+  `agenciaOn`) e sobe pro Supabase (melhor esforço — sem login/net, o jogo
+  segue normal, só o rank de quem tá sem conta que não atualiza).
+- **Lê o retrato**: `GlobalRankTab` (nova, mesmo arquivo) — sub-aba "🌍 Global"
+  (só aparece com Agência 2.0 liberada), busca via RPC, mostra banner roxo
+  fixo explicando o trava-por-temporada, badges de troféus iguais ao rank
+  local, sua linha destacada (mesmo fora do Top 50).
+- ⚠️ Não consegui testar dentro do jogo de ponta a ponta (precisaria de 2
+  contas jogando carreiras de verdade) — testei a função do banco isolada e o
+  build passou limpo. Se aparecer algo estranho, avisar.
+- Reversível: `git revert` no código; a tabela nova no banco fica órfã mas
+  inofensiva (não é lida em lugar nenhum se reverter o código).
+- ⏳ PRÓXIMO PASSO (pedido pelo Diego): montar mockup pra Stories/Feed do
+  Instagram anunciando essa feature.
+
 ## ⚡🧤 FIX: pênalti interativo — goleiro "não pega" a bola + acertar o verde não fazia gol — ✅ NO AR (14/08)
 Diego reportou dois problemas no pênalti (🎯 Você bate): "o goleiro defende e a bola
 nem parece que tá na luva" + "acertando várias vezes na cor verde na hora de bater
