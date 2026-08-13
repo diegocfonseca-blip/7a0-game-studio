@@ -513,6 +513,7 @@ export interface EscState {
   // rodada certa) — a formação NUNCA quebra. Morre na virada da temporada.
   eventoTemporada?: EventoAtivo | null
   eventoManchetes?: EventoManchete[] // manchetes pro jornal (página "Aconteceu na temporada") — últimas ~24
+  criaDeEvento?: boolean // 🌱 já subiu algum Cria da Base por FALTA de reserva num evento (noitada/expulsão/lesão) — liga o banner explicando (uma vez só, guia da carreira)
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {
