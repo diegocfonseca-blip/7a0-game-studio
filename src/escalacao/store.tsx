@@ -253,6 +253,10 @@ function escadaAfterPlacements(s: EscState) {
 // Creditada ANTES dos snapshots do extrato pra não entrar em outra
 // linha — e logada com linha própria "📺 Cota de TV".
 const TV_COTA: Record<string, number> = { A: 20, B: 15, C: 10, D: 5, V: 1 }
+// 🕴️ BICO DE FOLGA (Guia da Carreira, 13/08): renda extra fixa enquanto o clube
+// tá na Várzea/D, a partir da T3 — 3 patrocinadores reais do jogo, escolha livre.
+const BICO_BRANDS: Record<'vadico' | 'maxjoias' | 'ero', string> = { vadico: 'Vadico Veículos', maxjoias: 'Max Jóias', ero: 'Ero Dentista' }
+const BICO_VALOR: Record<'V' | 'D', number> = { V: 2, D: 4 }
 function applyTVIncome(s: EscState) {
   const online = s.onlineMode === 'online'
   const y = s.managers[s.youIdx]?.id ?? s.youIdx
@@ -362,8 +366,18 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
     s.agenciaFatura = { season: (s.seasonNo ?? 1) + 1, mensal: renda.total, rows: evs, total: renda.total + com }
     s.agenciaEventos = undefined
     const s5 = snap()
-    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro/campeão)']]
-    const steps = [s0, s1, s2, s3, s4, s45, s5]
+    // 🕴️ BICO DE FOLGA: só rende com T3+ e clube na Várzea/D — a escolha fica
+    // guardada mesmo fora da janela (não paga, mas não esquece o patrocinador).
+    if (s.careerBico) {
+      const divAtual = (s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'V') as string
+      if ((s.seasonNo ?? 1) >= 3 && (divAtual === 'V' || divAtual === 'D')) {
+        const valor = BICO_VALOR[divAtual as 'V' | 'D']
+        s.careerCoins = { ...(s.careerCoins ?? {}), [y]: (s.careerCoins?.[y] ?? 0) + valor }
+      }
+    }
+    const s6 = snap()
+    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro/campeão)'], ['bico', '🕴️ Bico de Folga']]
+    const steps = [s0, s1, s2, s3, s4, s45, s5, s6]
     const ids = dorm != null ? [y, dorm] : [y]
     for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
     return
@@ -2610,6 +2624,8 @@ type Action =
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
+  | { type: 'SET_BICO'; brand: 'vadico' | 'maxjoias' | 'ero' | null } // 🕴️ Bico de Folga: escolhe/troca (ou larga, null) o patrocinador do bico — renda entra sozinha na virada de temporada
+  | { type: 'BICO_NEWS'; kind: 'saiu' | 'voltou' } // 🕴️ notícia de virada (subiu pra C = desligou · caiu pra D de novo = reabriu) — repete quantas vezes acontecer, não é banner de uma vez só
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
   | { type: 'EVENTO_SET_NO_RESERVE'; evento: EventoAtivo; xi: string[] } // 🎭 evento sem reserva na posição (Diego 13/08): em vez de virar só manchete de zoeira, sobe um Cria da Base pra tapar o buraco de verdade — acaba o truque de jogar sempre só com 11
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
@@ -3514,6 +3530,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
       s.careerSeen = {} // 🗺️ Guia da carreira: carreira nova não herda banner fechado da carreira anterior
       s.criaDeEvento = undefined
+      s.careerBico = undefined // 🕴️ Bico de Folga: carreira nova não herda o patrocinador da carreira anterior
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
@@ -4455,6 +4472,21 @@ export function reducer(state: EscState, action: Action): EscState {
       const st = you ? s.stadiums?.[you.id] : undefined
       if (st && hasExtra(st, 'medico')) seen.medico = true
       s.careerSeen = seen
+      return s
+    }
+    case 'SET_BICO': {
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return s
+      if (action.brand === null) { s.careerBico = null; return s }
+      s.careerBico = { brandId: action.brand, since: s.seasonNo ?? 1 }
+      return s
+    }
+    case 'BICO_NEWS': {
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.careerBico) return s
+      const nome = BICO_BRANDS[s.careerBico.brandId]
+      const msg = action.kind === 'saiu'
+        ? `💼 Chega de bico! Virou nome grande — agora é VOCÊ o patrão. O bico de folga na ${nome} desligou.`
+        : `😅 Voltou humilde pedir o emprego de volta — a ${nome} topou de novo.`
+      s.marketLog = [...(s.marketLog ?? []), msg]
       return s
     }
     case 'EVENTO_SET': {

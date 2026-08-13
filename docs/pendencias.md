@@ -1,5 +1,40 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🕴️ BICO DE FOLGA — ✅ NO AR (13/08, mockup aprovado)
+Pedido do Diego: dinheiro extra pra quem tá preso na Várzea/Série D, escolhendo
+um patrocinador real do jogo pra "trabalhar na folga". Desenhado a fundo em
+várias rodadas de dúvida antes de codar (onde mora, quando desbloqueia, se
+duplica banner) — decisão final:
+- **Nova sub-aba "🤝 Patrocínio"** em Clube (do lado de Estrutura/Finanças) —
+  também passou a mostrar o status do patrocínio por aposta pra carreiras com
+  Agência 2.0 (antes não tinha onde ver isso ali).
+- **Libera na Temporada 3**, só enquanto o clube tá na Várzea ou Série D.
+- **Valores**: +2🪙/temporada na Várzea · +4🪙/temporada na Série D.
+- **3 patrocinadores reais**: Vadico Veículos 🚗 · Max Jóias 💍 · Ero Dentista 🦷 —
+  escolha livre, de graça, troca quando quiser.
+- **Sobe pra Série C**: desliga sozinho + notícia no mural ("virou patrão").
+  **Cai de volta pra D**: reabre sozinho, MESMO patrocinador ("pediu emprego de
+  volta") — a escolha nunca esquece, só pausa. Repete quantas vezes acontecer
+  na carreira (não é banner de uma vez só — usa o mural/marketLog).
+- Renda entra sozinha na virada de temporada, mesmo padrão de TV/Agência/Patrocínio.
+- `state.careerBico`, ações `SET_BICO`/`BICO_NEWS` (store.tsx).
+- ⚠️ Reversível: sub-aba isolada, não mexe em Estrutura/SAF/Agência.
+
+## 🧹 LIMPEZA VISUAL — ✅ 1ª leva NO AR (13/08, mockup aprovado)
+Diego reportou telas confusas depois de olhar prints do jogo ao vivo:
+- **Controles da partida** (velocidade/próxima rodada/pular/modo auto) ficavam
+  soltos, colados na navegação de abas — agora entram num cartão só
+  ("🎮 Controle da partida"), separado visualmente da navegação. Vale na liga e
+  na Copa.
+- **Agenciados** ganhou um banner de apresentação (Guia da Carreira) explicando
+  o conceito ("Agora você é empresário...") antes do painel técnico.
+- **⏳ PENDENTE**: Diego reportou (print novo, 13/08) que a aba **Elenco** tá com
+  excesso de DOURADO — botão de aba selecionada, tática selecionada (Equilíbrio)
+  e modo de substituição selecionado (Dinâmico) usam a MESMA cor de destaque, e
+  tudo isso empilhado vira uma parede amarela, difícil de distinguir um controle
+  do outro. Precisa de mockup diferenciando as cores de "selecionado" por TIPO
+  de controle (tab ≠ tática ≠ substituição), não resolvido ainda.
+
 ## 🌍 RANKING GLOBAL de usuários (aba Rank) — ✅ NO AR (14/08, mockup aprovado)
 Pedido do Diego: rank mundial de USUÁRIOS de verdade (bots já têm o rank local),
 mesma régua do ranking do save (títulos A›Mundo›Copa›B›C›D, depois dinheiro),
