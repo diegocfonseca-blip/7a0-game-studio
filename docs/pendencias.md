@@ -4,10 +4,19 @@
 Reforma pedida pelo Patrick (usuário) + retrabalhada a fundo com o Diego (várias
 rodadas calibrando pra nunca ter "opção dominada" — prazo mais longo NUNCA pode
 custar igual ou menos que um mais curto, senão ninguém escolheria o curto).
-- **Várzea: SEM renovação nenhuma** (`store.tsx` RENEW_CONTRACT, checa
-  `careerPlacements[m<id>] ?? careerDivision`). Contrato acaba → vai pro leilão
-  com teto de venda → o CLUBE recebe (em vez de pagar). Vale JÁ pra quem já tá na
-  Várzea (não é gate de carreira nova — só reaproveita o `contratosOn` existente).
+- ⚠️ **CORRIGIDO (14/08, entendimento errado na 1ª tentativa)**: Várzea NÃO manda
+  jogador pro leilão quando o contrato "venceria" — o relógio do contrato **pausa**
+  enquanto o time tá lá. `applySeasonMoney`-adjacent (a virada de temporada, logo
+  após `s.careerPlacements = action.placements`): se a divisão nova do manager é
+  'V', soma +1 em `contratoAte` de TODO o elenco, junto com o `seasonNo++` que vem
+  logo depois — cancela o avanço, "congela" quantos anos faltavam. Quando o time
+  sobe de novo pra Série D+, o relógio RETOMA do ponto exato onde parou (2 anos
+  faltando quando caiu → ainda 2 anos faltando quando sobe, não importa quantas
+  temporadas ficou lá embaixo). Efeito: a lista de "vencidos" fica SEMPRE vazia em
+  Várzea → a tela de contratos inteira some sozinha (nem aparece botão de renovar
+  nem de "deixar ir" — não existiam pra sumir, o painel só não renderiza).
+  RENEW_CONTRACT e RELEASE_CONTRACT também têm trava explícita de divisão (reforço,
+  já que o freeze sozinho já deveria bastar). Vale JÁ pra quem já tá na Várzea.
 - **Série D pra cima**: `renewOptions(oficial)` / `renewCost(oficial, anos)` em
   `store.tsx`. Abaixo de 10 moedas = tabela fixa calibrada valor a valor pelo Diego
   (1 a 9, cada um com só os prazos que fazem sentido — 1/2/3/5 anos, nunca 10). A

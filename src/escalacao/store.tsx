@@ -4907,6 +4907,21 @@ export function reducer(state: EscState, action: Action): EscState {
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
+      // 🌱⏸️ VÁRZEA PAUSA O RELÓGIO DO CONTRATO (Diego 14/08): não existe renovação
+      // nem dispensa na Várzea — o contrato nem CORRE lá. Pra isso, sempre que o
+      // time está (ou acabou de cair pra) Várzea pra próxima temporada, empurra o
+      // vencimento +1 JUNTO com o seasonNo que sobe logo abaixo — na prática
+      // "congela" os anos que faltavam. Quando volta pra Série D+, o relógio
+      // simplesmente retoma de onde parou (nada aqui adianta nem atrasa o prazo).
+      // Efeito colateral desejado: com contratoAte nunca vencendo em V, a tela de
+      // contratos (vencidos) fica sempre vazia lá — some sozinha, sem botão nenhum.
+      for (const m of s.managers) {
+        if (!m.isHuman) continue
+        if ((s.careerPlacements?.[`m${m.id}`] ?? null) !== 'V') continue
+        for (const c of m.squad as WonCard[]) {
+          if (c.contratoAte != null) c.contratoAte++
+        }
+      }
       escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
       s.filialTrimNotice = trimFilialLoansToDivision(s) || null // 🏢 empréstimo PERSISTE; só devolve o excedente se rebaixou (com aviso)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
@@ -5053,6 +5068,10 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline || !s.contratosOn || s.screen !== 'reserveList') return s
       const mgr = s.managers.find(m => m.id === action.mgrId)
       if (!mgr?.isHuman) return s
+      // 🌱 Várzea não tem "deixar ir" (nem renovar) — o relógio do contrato pausa lá
+      // (ver o freeze no fim de temporada), então isso aqui nem deveria disparar; a
+      // trava explícita é só reforço, caso algum save fique num estado inesperado.
+      if ((s.careerPlacements?.[`m${mgr.id}`] ?? s.careerDivision ?? 'V') === 'V') return s
       const card = mgr.squad.find(c => c.id === action.cardId) as WonCard | undefined
       if (!card || card.fake || card.emprestado || card.cria) return s
       if (card.contratoAte == null || card.contratoAte >= s.seasonNo) return s // só contrato JÁ vencido
