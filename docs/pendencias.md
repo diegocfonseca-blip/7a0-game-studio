@@ -38,12 +38,12 @@ Diego reportou telas confusas depois de olhar prints do jogo ao vivo:
   na Copa.
 - **Agenciados** ganhou um banner de apresentação (Guia da Carreira) explicando
   o conceito ("Agora você é empresário...") antes do painel técnico.
-- **⏳ PENDENTE**: Diego reportou (print novo, 13/08) que a aba **Elenco** tá com
-  excesso de DOURADO — botão de aba selecionada, tática selecionada (Equilíbrio)
-  e modo de substituição selecionado (Dinâmico) usam a MESMA cor de destaque, e
-  tudo isso empilhado vira uma parede amarela, difícil de distinguir um controle
-  do outro. Precisa de mockup diferenciando as cores de "selecionado" por TIPO
-  de controle (tab ≠ tática ≠ substituição), não resolvido ainda.
+- **✅ Cores do Elenco — CORRIGIDO (13/08, mockup aprovado)**: Diego reportou
+  (print) que a aba Elenco virava "parede amarela" — aba selecionada, tática
+  (Equilíbrio) e substituição (Dinâmico) todas dourado. Corrigido: dourado
+  segue só pra navegação; **tática selecionada = azul** (`#2F6BAE`);
+  **substituição selecionada = verde** (`GREEN`) — cores já usadas em outras
+  partes do jogo, nada de arte nova.
 
 ## 🌍 RANKING GLOBAL de usuários (aba Rank) — ✅ NO AR (14/08, mockup aprovado)
 Pedido do Diego: rank mundial de USUÁRIOS de verdade (bots já têm o rank local),
