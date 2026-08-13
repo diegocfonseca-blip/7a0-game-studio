@@ -120,6 +120,16 @@ perdendo por 1 = 1 gol empata). Abre no FIM da animação (tempo morto — não 
   de BATER **não volta** (trava modo/cobrador). Fundo = manto do tier do usuário.
 - ⚠️ Reversível: `git revert`. Não toca no futebol online nem em carreiras sem pênalti.
 
+## 🐞 FIX: pênalti decisivo disparando toda hora (só na conta do Diego) — ✅ CORRIGIDO (13/08)
+Diego reportou: "está passando duas, três rodadas está tendo pênalti... dá nem pra jogar
+direito" — quando o certo é 0-2x/temporada (às vezes zero). Causa: `PEN_TEST_TESTERS` em
+`sport.ts`, um modo de teste temporário criado em 12/08 (ligado SÓ na conta dele) pra ele
+conferir os dois modos do `PenaltyBanner` sem esperar a raridade sortear — e esquecido
+ligado. `usePenaltiTeste()` fazia `penPlanned || penTeste` pular direto o `penaltyPlan()`
+raro. Corrigido esvaziando `PEN_TEST_TESTERS` (`new Set<string>([])`) — a conta dele volta
+a seguir a mesma raridade sorteada de todo mundo. Motor (`penaltyPlan`) nunca teve bug,
+sempre foi só o teste ligado. ⚠️ Reversível: `git revert`. Não mexe em mais nada.
+
 ## 🐞 FIX: substituição no intervalo estava 1 rodada adiantada — ✅ CORRIGIDO (12/08)
 Bug encontrado ao codar o pênalti e **comprovado em teste** (rodando `simulatePyramid`):
 a troca do intervalo gravava em `careerHalftime[mgr][round]`, mas o jogo que está
