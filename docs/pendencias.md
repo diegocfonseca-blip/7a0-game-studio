@@ -9,12 +9,18 @@ macacão vermelho + capacete do Brasil dirigindo uma BOLA de futebol gigante com
   piloto-na-bola, SEM o emblema/cavalinho da Ferrari (esse detalhe do render dele ficou
   de fora de propósito). Se ele insistir de novo: continua sendo NÃO.
 - **Manto** vermelho/preto: `manto.ts` MANTO_CONTAS (por e-mail) — já vale, é só cor.
-- **Escudo** `escudos.tsx`: `pilotBallSC()` (arte) + `ferrariSCRender` (dentro do escudo
-  vermelho, borda ouro, quadriculado). LOGOS_PRONTAS: 'Ferrari SC'/'Ferrari FC'/'Ferrari'.
-  Vale pelo NOME do time — já aparece.
-- **Mascote** `mascotes.tsx`: MASCOTES['piloto_bola'] (mesma arte, grande). ⚠️ Só aparece
-  no festão do campeão quando o Diego apontar a conta do adriano pra ela NO PAINEL
-  (esc_socios.mascote_key = 'piloto_bola'). Enquanto não setar, o resto (escudo+manto) já vale.
+- **Escudo/Mascote = ARTE PRÓPRIA do dono** (imagens webp que o Diego mandou, exceção de
+  batismo — igual Sapekeiros/Eros). Cavalo-piloto de macacão vermelho + capacete do Brasil,
+  SEM emblema da Ferrari (o Diego regerou sem a marca; conferido). `img/ferrari-escudo.webp`
+  (carrinho de bola) e `img/ferrari-mascote.webp` (comemorando GOL). A pilotBallSC vetorial
+  ficou em `escudos.tsx` só como fallback (não é usada).
+  - Escudo: `ferrariSCRender` → `<img ferrari-escudo.webp>`. LOGOS_PRONTAS: 'Ferrari SC'/
+    'Ferrari FC'/'Ferrari'. Vale pelo NOME — já aparece.
+  - Mascote: MASCOTES['piloto_bola'] → `<img ferrari-mascote.webp>`. ⚠️ Só aparece no festão
+    quando o Diego setar no painel esc_socios.mascote_key = 'piloto_bola' pra conta do adriano.
+- **Manto**: agora vermelho/preto/**branco** (3 cores). MANTO_CONTAS (email) dá vermelho+preto;
+  MANTO_TRI['piloto_bola'] = branco (3ª cor). ⚠️ a 3ª cor branca também depende do
+  mascote_key='piloto_bola' setado no painel (idem mascote).
 - Reversível: `git revert`. Só afeta esse time/conta; não toca em mais nada.
 - 🔧 Pendente do gosto do Diego: ele queria a qualidade de RENDER (imagem gerada). Vetor
   à mão não chega lá; se um dia ele mandar o ARQUIVO (webp) de uma arte SEM marca, dá pra

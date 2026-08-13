@@ -19,6 +19,7 @@ import type { ReactNode } from 'react'
 import tokaEscudoImg from './img/toka10-escudo.webp'
 import erosEscudoImg from './img/eros-escudo.webp'
 import sapekEscudoImg from './img/sapek-escudo.webp'
+import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
 const INK = '#0C0C0C'
@@ -460,25 +461,12 @@ export function pilotBallSC(): ReactNode {
     </>
   )
 }
-const ferrariSCRender = (size: number) => {
-  const w = Math.round(size * 200 / 240)
-  return (
-    <svg width={w} height={size} viewBox="0 0 200 240" role="img" aria-label="Ferrari SC" style={{ flex: 'none', display: 'block' }}>
-      <defs>
-        <clipPath id="ferEscClip"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath>
-        <linearGradient id="ferRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#D24A33" /><stop offset="1" stopColor="#A5371F" /></linearGradient>
-        <pattern id="ferChk" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#F4ECD6" /><rect width="8" height="8" fill="#141414" /><rect x="8" y="8" width="8" height="8" fill="#141414" /></pattern>
-      </defs>
-      <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="url(#ferRed)" />
-      <g clipPath="url(#ferEscClip)">
-        <rect x="0" y="212" width="200" height="16" fill="url(#ferChk)" />
-        <g transform="translate(30,26) scale(0.70)">{pilotBallSC()}</g>
-      </g>
-      <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#0C0C0C" strokeWidth="9" />
-      <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#FFC400" strokeWidth="3.5" />
-    </svg>
-  )
-}
+// 🖼️ o escudo FINAL do Ferrari SC é a ARTE PRÓPRIA do dono (imagem webp) — o
+// cavalo-piloto no carrinho de bola. (A pilotBallSC acima ficou como fallback em
+// vetor, não é mais usada no render.)
+const ferrariSCRender = (size: number) => (
+  <img src={ferrariEscudoImg} height={size} width={size} alt="Ferrari SC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.

@@ -103,6 +103,7 @@ export function meuMantoAngle(): number {
 // outros times. Quem não está aqui segue com manto de 2 cores normal.
 const MANTO_TRI: Record<string, string> = {
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
+  piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
 }
 export function meuMantoC3(): string | null {
   const k = meu?.ativo ? meu.mascoteKey : null
