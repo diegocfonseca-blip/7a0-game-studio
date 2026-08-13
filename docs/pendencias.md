@@ -1,5 +1,36 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🗺️ GUIA DA CARREIRA — banners de desbloqueio explicado — 🚧 EM ANDAMENTO (13/08)
+Diego: muita gente começa a carreira e não entende nada (Agenciados, Estádio, quando
+o salário chega, etc.) — pediu um sistema de avisos que explica cada mecânica NA
+HORA em que ela passa a valer, uma vez só. Fiz mockup visual (aprovado) antes de
+codar. Pesquisei as condições REAIS no código (nada de números inventados) e simulei
+uma carreira de 120 temporadas pra achar TODOS os marcos (SAF, Multiclubes, Copa do
+Mundo, extras do estádio, Departamento Médico etc.) — relatório completo na sessão,
+não copiado aqui por ser longo demais; qualquer sessão que continuar isso deve pedir
+o relatório de novo se precisar (perguntar ao Diego ou re-analisar o código).
+- **Infra nova**: `unlockbanner.tsx` (`UnlockBanner`, componente reusável — módulo à
+  parte pra não criar import circular entre `estadio.tsx` e `pyramidseason.tsx`).
+  `state.careerSeen: Record<string, true>` (types.ts) marca banners já fechados
+  ("Entendi!" → dispatch `MARK_CAREER_SEEN`) — nunca mais aparece NESTA carreira,
+  zera só na fundação de carreira nova (mesmo lugar da "faxina anti-herança").
+- **✅ 1ª leva NO AR (13/08)**: Substituições liberadas (T2) · Salário chegou (T4) ·
+  Seu estádio já rende (base +20 fixa) · Departamento Médico pronto (acaba com lesão
+  pra sempre) · Você comprou a SAF · Virou profissional (saiu da Várzea).
+- **⏳ PENDENTE (próxima leva, planejado no mockup)**: Agenciados (versão rica —
+  como ganha carta, convoca 22, as 2 formas de renda), Premiações (valores reais por
+  divisão: campeão V15/D20/C35/B50/A65 + acesso + queda), Categoria Lenda destrava
+  (junto com a SAF), Multiclubes comprado. Diego pediu explicitamente pra NÃO fazer
+  banner de "Dinastia" (6 títulos da Série A) — achou bobeira / incentiva o cara a se
+  gabar. Não reintroduzir essa ideia.
+- **Bônus corrigido no caminho (13/08)**: 2 números errados na tela de artilharia —
+  prêmio do artilheiro por divisão mostrava METADE do valor real (D+4/C+8/B+12/A+16
+  → corrigido pra V+6/D+10/C+15/B+20/A+30) e o piso do artilheiro da Copa Legends
+  mostrava +16 (correto é +10, igual à liga). Só texto, os valores que o jogo já
+  pagava sempre estavam certos.
+- ⚠️ Reversível: cada banner é independente (`git revert` no commit, ou remover 1
+  chamada de `UnlockBanner` não afeta as outras). Não mexe no online nem no futebol.
+
 ## ⚡🧤 FIX: pênalti interativo — goleiro "não pega" a bola + acertar o verde não fazia gol — ✅ NO AR (14/08)
 Diego reportou dois problemas no pênalti (🎯 Você bate): "o goleiro defende e a bola
 nem parece que tá na luva" + "acertando várias vezes na cor verde na hora de bater
