@@ -19,9 +19,8 @@ custar igual ou menos que um mais curto, senão ninguém escolheria o curto).
   DINÂMICOS — só aparecem os prazos que `renewOptions` liberar pra aquele valor,
   cada um com sua cor (dourado=10, verde=5, azul claro=1-3).
 - Reversível: `git revert`. Não muda nada da lógica do leilão/liga.
-- 🔧 Ainda não fiz (fica pra próxima): a "saída de emergência" (quebrar contrato
-  caro com multa quando o caixa trava fundo) e o "vender reserva pro banco" —
-  ideias combinadas mas não implementadas ainda.
+- ❌ "Saída de emergência" (quebrar contrato com multa) e "vender reserva pro
+  banco": foram cogitadas mas o Diego NÃO quer — descartadas, não implementar.
 
 ## 🏎️⚽ Ferrari SC (batismo adriano.ferrari) — ✅ NO AR (14/08)
 Kit visual do time do adriano.ferrari@quepazseguros.com.br. Arte AUTORAL (piloto de
