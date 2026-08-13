@@ -4014,6 +4014,11 @@ export function PyramidSeasonScreen() {
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
+  // 🔴 SINCRONIA (Diego 13/08 — "não vi o tempo começar, já apareceu 1x1"): assim que
+  // a rodada é decisiva pra pênalti, volta pra aba Jogos NA HORA (igual a Copa faz).
+  // Sem isto o técnico podia estar em Tabelas/Elenco/Rank enquanto o placar corria —
+  // aí só via o pênalti já "pronto", sem ter visto o jogo andar em tempo real.
+  useEffect(() => { if (penMode && !penaltyDone) setTab('jogos') }, [penMode, penaltyDone])
 
   // 🎪 TORCIDÔMETRO AO VIVO (Diego 12/08): o número exibido reage à posição
   // ATUAL na tabela enquanto a rodada corre — não fica travado esperando o
