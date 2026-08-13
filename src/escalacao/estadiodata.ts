@@ -148,9 +148,16 @@ export function occByPos(pos: number): number {
   if (pos <= 16) return 0.35  // 🟠 escapou do Z4
   return 0.18                 // 🔴 rebaixamento — às moscas
 }
-export function stadiumOccupancy(pos: number, st: StadiumSave | undefined): number {
+// 🌱 PISO DA VÁRZEA (Diego 12/08): a régua normal (18% no rebaixamento) pune
+// demais quem tá só COMEÇANDO a carreira — na Várzea ninguém tá "rebaixado
+// de verdade" (é o fundo da pirâmide), então o piso sobe pra 40% mesmo pra
+// quem ficou mal na tabela. Some com a renda quase toda logo na entrada era
+// o principal motivo do "não dá pra ganhar dinheiro na Várzea".
+const VARZEA_OCC_FLOOR = 0.40
+export function stadiumOccupancy(pos: number, st: StadiumSave | undefined, div?: string): number {
   const bump = hasExtra(st, 'estacao') ? 0.08 : 0
-  return Math.min(1, occByPos(pos) + bump)
+  const occ = occByPos(pos) + bump
+  return Math.min(1, div === 'V' ? Math.max(occ, VARZEA_OCC_FLOOR) : occ)
 }
 // 🎟️ RENDA REAL da temporada pela ocupação: piso garantido + o CONSTRUÍDO × ocupação.
 // occ = 0..1. Só carreira nova usa isto; a antiga segue no stadiumIncome cheio.
