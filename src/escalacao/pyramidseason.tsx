@@ -1025,6 +1025,12 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
   const locked = EMP_ORDER.filter(k => !renda.by[k].unlocked && renda.by[k].count > 0)
   return (
     <>
+      {/* 🕴️ APRESENTAÇÃO (Diego 13/08 — "não tá claro o que é Agenciados"): conta a
+          história ANTES do painel técnico — de onde vêm as cartas (título) e por
+          que só 22 (dar atenção). Some pra sempre depois do "Entendi!". */}
+      <UnlockBanner k="agenciados" tag="🕴️ novidade pra você" title="Agora você é empresário" ctaBg="#7C3AED" ctaColor="#fff">
+        Toda vez que for <b>CAMPEÃO</b> — com qualquer time — você ganha jogadores de verdade pra agenciar. Dá pra dar atenção a até <b>22 de cada vez</b>.
+      </UnlockBanner>
       {/* CABEÇALHO: quantos na ativa */}
       <div style={{ ...box(INK), color: '#fff', padding: '11px 13px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, borderRadius: 14 }}>
         <span style={{ fontSize: 26 }}>🕴️</span>
@@ -4387,13 +4393,18 @@ export function PyramidSeasonScreen() {
               {sponsorBetOk ? '▶️ Começar a temporada' : '🤝 Escolha o patrocínio aí em cima'}
             </button>
           ) : manualAllowed ? (
-          <>
+          // 🧹 LIMPEZA VISUAL (Diego 13/08 — "tá confuso, botão manual deveria ter um
+          // fundo envolvendo"): velocidade + próxima rodada/pular/modo auto agora
+          // vivem DENTRO de um cartão só, separado visualmente da navegação de abas
+          // logo abaixo (antes ficavam soltos, coladas uma coisa na outra).
+          <div style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>🎮 Controle da partida</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
               onNext={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
               onSkip={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
               nextLabel={halfMode && !halftimeDone ? '⏸️ Resolva o intervalo primeiro' : penMode && !penaltyDone ? '⚽ Bata o pênalti primeiro' : !roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
-          </>
+          </div>
           ) : <ManualLockButton />
         )}
         {/* 🎮 CONVIDADO (online): NÃO controla o ritmo (só o host), mas VÊ o estado —
@@ -4413,13 +4424,14 @@ export function PyramidSeasonScreen() {
             sozinha (só aparece o botão de ativar o manual). */}
         {copaPlaying && state.isHost && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
-          <>
+          <div style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>🎮 Controle da partida</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
               onNext={() => setCopaRound(r => r + 1)}
               onSkip={() => setCopaRound(r => r + 1)}
               nextLabel={!copaReady ? '⏳ Deixa o jogo acabar…' : copaRound + 1 >= nCopaRounds ? '🏆 Ver o campeão' : '▶️ Próxima fase'} />
-          </>
+          </div>
           ) : <ManualLockButton />
         )}
         {/* 🎮 CONVIDADO (online) na Copa: vê o ritmo do host (read-only), reflete a troca */}
