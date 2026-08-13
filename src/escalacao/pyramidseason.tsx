@@ -1457,7 +1457,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
   const noElenco = squad.filter(c => !c.fake && !isFillerClub(c.club) && !c.emprestado && (c.buyPrice != null || c.paid != null))
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'empresario' ? '💼 Renda do Empresário' : k === 'opening' ? '🏁 Saldo inicial' : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'empresario' ? '💼 Renda do Empresário' : k === 'opening' ? '🏁 Saldo inicial' : k === 'bico' ? '🕴️ Bico de Folga' : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
@@ -3567,7 +3567,7 @@ export function PyramidSeasonScreen() {
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'global'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio') // 🏟️/💰/💼 sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
   const agenciaOk = !!state.agenciaOn && agLib // 🏗️ Clube vira "Estrutura" (estádio→patrocínio→agência) SÓ na Agência 2.0
@@ -3864,6 +3864,23 @@ export function PyramidSeasonScreen() {
   // pra quem já tá na T20 pagando salário há muito). Backfill roda 1x: marca como
   // "já visto" só o que JÁ passou, e deixa só o que ainda vem pela frente avisar.
   useEffect(() => { if (state.careerSeen === undefined) dispatch({ type: 'BACKFILL_CAREER_SEEN' }) }, [state.careerSeen, dispatch])
+  // 🕴️ BICO DE FOLGA — manchete de virada (Diego 13/08): não é banner de uma vez
+  // só, repete toda vez que sair/entrar na janela Várzea-D (pode subir e cair
+  // várias vezes na mesma carreira). Detecta a MUDANÇA de divisão comparando com
+  // a última observada (ref, não dispara no 1º render).
+  const bicoDivRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!state.careerBico) return
+    const divAgora = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
+    const prev = bicoDivRef.current
+    if (prev !== null && prev !== divAgora) {
+      const eraElegivel = prev === 'V' || prev === 'D'
+      const elegivelAgora = divAgora === 'V' || divAgora === 'D'
+      if (eraElegivel && !elegivelAgora) dispatch({ type: 'BICO_NEWS', kind: 'saiu' })
+      else if (!eraElegivel && elegivelAgora) dispatch({ type: 'BICO_NEWS', kind: 'voltou' })
+    }
+    bicoDivRef.current = divAgora
+  }, [state.careerBico, state.careerPlacements, state.careerDivision, youId, dispatch])
   // 🔒 SÓ carreiras com o novo modo empresário (agenciaOn) — ordem do Diego
   // (04/08): carreira ANTIGA nunca vê banner, médico, nada. Zero mudança nela.
   const eventosOn = soloCareer && !!state.agenciaOn
@@ -4689,7 +4706,7 @@ export function PyramidSeasonScreen() {
                 Agora tudo (Estádio · Finanças · Agência) vale online também,
                 por-técnico (Passo 2c completa a paridade com o offline). */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
                 .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
@@ -4705,6 +4722,60 @@ export function PyramidSeasonScreen() {
               <FinancasTab ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
               <BancoLegends />
+              </>
+            ) : clubeSub === 'patrocinio' ? (
+              <>
+                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
+                {agenciaOk && (() => {
+                  const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
+                  const bicoOn = (state.seasonNo ?? 1) >= 3 && (myDiv === 'V' || myDiv === 'D')
+                  const valor = myDiv === 'V' ? 2 : 4
+                  const BRANDS: { k: 'vadico' | 'maxjoias' | 'ero'; ic: string; bg: string; nome: string; cargo: string }[] = [
+                    { k: 'vadico', ic: '🚗', bg: '#FDE68A', nome: 'Vadico Veículos', cargo: 'vendedor nas folgas' },
+                    { k: 'maxjoias', ic: '💍', bg: '#F5D0E8', nome: 'Max Jóias', cargo: 'atendente na loja' },
+                    { k: 'ero', ic: '🦷', bg: '#CFE8FB', nome: 'Ero Dentista', cargo: 'recepcionista' },
+                  ]
+                  return (
+                    <div style={{ marginTop: 10 }}>
+                      <UnlockBanner k="bico" tag="🕴️ novo bico" title="Bico de Folga" ctaBg={GREEN} ctaColor="#fff">
+                        O clube ainda não paga bem — nos dias de folga, você pode trabalhar num dos patrocinadores pra ajudar no caixa. Escolha um abaixo, de graça. Troca quando quiser. Sobe pra Série C? Não precisa mais.
+                      </UnlockBanner>
+                      {!bicoOn ? (
+                        <div style={{ ...box('#FBF6E9'), padding: 12, textAlign: 'center' }}>
+                          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: 0 }}>🔒 Bico de Folga</p>
+                          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a7d59', margin: '4px 0 0', lineHeight: 1.4 }}>
+                            {(state.seasonNo ?? 1) < 3 ? 'Destrava na Temporada 3, enquanto o clube tiver na Várzea ou Série D.' : 'Só vale na Várzea ou Série D — clube grande já se sustenta sozinho.'}
+                          </p>
+                        </div>
+                      ) : state.careerBico ? (
+                        <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #0e4a22)`, color: '#fff', padding: 12 }}>
+                          <p style={{ fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800, margin: 0 }}>🕴️ Seu bico de folga</p>
+                          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: '2px 0 5px' }}>{BRANDS.find(b => b.k === state.careerBico!.brandId)?.ic} {BRANDS.find(b => b.k === state.careerBico!.brandId)?.nome}</p>
+                          <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: 0 }}>Rendendo <b>+{valor}🪙</b> por temporada ({myDiv === 'V' ? 'Várzea' : 'Série D'}).</p>
+                          <div style={{ marginTop: 9, display: 'flex', gap: 6 }}>
+                            {BRANDS.filter(b => b.k !== state.careerBico!.brandId).map(b => (
+                              <button key={b.k} onClick={() => dispatch({ type: 'SET_BICO', brand: b.k })} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 2px', fontWeight: 800, fontSize: 9, ...OSWALD, background: GOLD, color: INK, cursor: 'pointer' }}>{b.ic} trocar</button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ ...box('#fff'), padding: 12 }}>
+                          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px' }}>Escolha seu bico — de graça</p>
+                          {BRANDS.map(b => (
+                            <button key={b.k} onClick={() => dispatch({ type: 'SET_BICO', brand: b.k })} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 10px', marginBottom: 7, background: '#FBF6E9', cursor: 'pointer', textAlign: 'left' }}>
+                              <span style={{ width: 34, height: 34, borderRadius: 9, border: `2px solid ${INK}`, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{b.ic}</span>
+                              <span style={{ minWidth: 0 }}>
+                                <span style={{ display: 'block', fontWeight: 800, fontSize: 11.5, ...OSWALD }}>{b.nome}</span>
+                                <span style={{ fontSize: 9, color: '#8a8069', fontWeight: 700 }}>{b.cargo}</span>
+                              </span>
+                            </button>
+                          ))}
+                          <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 12.5, color: GREEN, ...OSWALD, margin: '4px 0 0' }}>+{valor}🪙 por temporada</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
               </>
             ) : (
           <>

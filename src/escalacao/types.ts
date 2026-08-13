@@ -117,7 +117,7 @@ export interface WonCard extends Card {
 export interface LedgerEntry {
   id: string
   season: number // temporada do lançamento
-  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF · obra no estádio · compra da SAF · venda da SAF · saldo inicial · renda do empresário
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF · obra no estádio · compra da SAF · venda da SAF · saldo inicial · renda do empresário · bico de folga
   label: string
   amount: number // sinal: + entrada, − saída
   player?: string // compra/venda: nome do jogador
@@ -514,6 +514,11 @@ export interface EscState {
   eventoTemporada?: EventoAtivo | null
   eventoManchetes?: EventoManchete[] // manchetes pro jornal (página "Aconteceu na temporada") — últimas ~24
   criaDeEvento?: boolean // 🌱 já subiu algum Cria da Base por FALTA de reserva num evento (noitada/expulsão/lesão) — liga o banner explicando (uma vez só, guia da carreira)
+  // 🕴️ BICO DE FOLGA (Guia da Carreira, 13/08): renda extra fixa enquanto o clube
+  // tá na Várzea/Série D, a partir da Temporada 3. A escolha fica guardada mesmo
+  // fora da janela de elegibilidade (subiu pra C) — reabre sozinha se cair de
+  // volta, com o MESMO patrocinador (ideia do Diego: "pede o emprego de volta").
+  careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero'; since: number } | null
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {
