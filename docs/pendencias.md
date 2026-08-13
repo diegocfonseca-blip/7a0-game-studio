@@ -130,6 +130,17 @@ raro. Corrigido esvaziando `PEN_TEST_TESTERS` (`new Set<string>([])`) — a cont
 a seguir a mesma raridade sorteada de todo mundo. Motor (`penaltyPlan`) nunca teve bug,
 sempre foi só o teste ligado. ⚠️ Reversível: `git revert`. Não mexe em mais nada.
 
+## 🐞 FIX: pênalti "aparecia do nada já com o placar pronto" — ✅ CORRIGIDO (13/08)
+Mesmo depois do fix acima, Diego continuou vendo o pênalti abrir "sem sincronia": "não
+consegui nem ver o tempo começar... já tava 1x1". Causa real: o placar do SEU jogo sempre
+animou certinho em tempo real (cardzinho fixo no topo, MyMatchCard), só que se o técnico
+estivesse em Tabelas/Elenco/Rank (não na aba Jogos) enquanto a rodada decisiva rolava, ele
+só via o resultado quando voltava — o pênalti parecia ter "pulado" pronto porque ele não
+estava olhando o jogo andar. Corrigido em `pyramidseason.tsx`: assim que a rodada vira
+decisiva pra pênalti (`penMode`), o jogo troca sozinho pra aba Jogos (igual já faz quando
+entra a Copa dos 8) — o técnico é obrigado a ver o placar mexer minuto a minuto antes do
+banner abrir. ⚠️ Reversível: `git revert`. Não mexe no resto da carreira nem no online.
+
 ## 🐞 FIX: substituição no intervalo estava 1 rodada adiantada — ✅ CORRIGIDO (12/08)
 Bug encontrado ao codar o pênalti e **comprovado em teste** (rodando `simulatePyramid`):
 a troca do intervalo gravava em `careerHalftime[mgr][round]`, mas o jogo que está
