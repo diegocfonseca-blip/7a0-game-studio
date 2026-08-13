@@ -3379,10 +3379,14 @@ function CoinsBadge({ coins }: { coins: number }) {
 // (b) mostra o banner de boas-vindas com as vantagens + chamada pro direct.
 // SÓ contas de batismo veem (origem='batismo' no esc_socios). Dispensável.
 function SocioBaraoBanner() {
+  // 🗑️ REMOVIDO (pedido do Diego 12/08): o banner preto de boas-vindas do
+  // sócio-batismo (lista de vantagens + botão de chamar no Instagram) saiu de
+  // tela — ficava repetitivo. A CREDITAÇÃO das 30 moedas/mês CONTINUA rodando
+  // sozinha aqui embaixo (não depende do banner aparecer); só a apresentação
+  // grande em preto foi tirada. O aviso de "as moedas caíram" vira um toast
+  // pequeno e discreto, sem o resto da lista de vantagens.
   const { state, dispatch } = useEsc()
-  const [barao, setBarao] = useState<{ n: number | null } | null>(null)
-  const [moedas, setMoedas] = useState(0) // 30 = caíram agora
-  const [fechado, setFechado] = useState(() => { try { return localStorage.getItem('esc-barao-banner-v1') === '1' } catch { return false } })
+  const [moedas, setMoedas] = useState(0) // 30 = caíram agora (nesta sessão)
   const solo = state.careerOnline && state.onlineMode !== 'online'
   useEffect(() => {
     if (!solo) return
@@ -3392,7 +3396,6 @@ function SocioBaraoBanner() {
         const { data } = await supabase.rpc('esc_meu_socio')
         const row = (Array.isArray(data) ? data[0] : data) as { socio_n?: number; ativo?: boolean; origem?: string } | undefined
         if (!alive || !row?.ativo) return
-        if (row.origem === 'batismo') setBarao({ n: row.socio_n ?? null })
         // 🪙 resgate do mês (qualquer sócio ativo): guarda local só pra não repetir a chamada
         const chave = `esc-socio-resgate-${new Date().toISOString().slice(0, 7)}`
         if (localStorage.getItem(chave) !== '1') {
@@ -3407,34 +3410,9 @@ function SocioBaraoBanner() {
     })()
     return () => { alive = false }
   }, [solo]) // eslint-disable-line react-hooks/exhaustive-deps
-  if (!solo || !barao || fechado) {
-    // mesmo com o banner fechado, avisa quando as moedas do mês caem
-    if (solo && moedas > 0 && fechado) return (
-      <div style={{ border: `3px solid ${INK}`, borderRadius: 13, background: 'linear-gradient(150deg,#FFE79A,#FFC400)', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 12px', marginBottom: 12, fontWeight: 900, fontSize: 12.5, fontFamily: 'Oswald, sans-serif' }}>🪙 As 30 moedas de sócio deste mês caíram no caixa!</div>
-    )
-    return null
-  }
+  if (!solo || moedas <= 0) return null
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', border: `3.5px solid ${INK}`, borderRadius: 16, background: 'linear-gradient(160deg,#241d0c,#141414 60%,#1d1708)', boxShadow: `4px 4px 0 0 ${INK}`, padding: '13px 14px', marginBottom: 12 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, color: GOLD, textTransform: 'uppercase', margin: 0 }}>🖋️ Barão! Seu batismo agora vale um SÓCIO LEGENDS</p>
-      <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '6px 0 0', lineHeight: 1.5 }}>
-        Por ser do batismo, você virou <b style={{ color: GOLD }}>sócio incluso da conta</b> — sem pagar nada a mais:
-      </p>
-      <ul style={{ margin: '7px 0 0', paddingLeft: 18, fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', lineHeight: 1.6 }}>
-        <li>🪙 <b>30 moedas todo mês</b>{moedas > 0 ? <b style={{ color: GOLD }}> — as deste mês JÁ caíram no caixa!</b> : ' no caixa da carreira'}</li>
-        <li>🛡️ <b>Escudo desenhado à mão</b> pro seu time</li>
-        <li>🐊 <b>Mascote do clube</b> + festão animado no título</li>
-        <li>🎽 <b>Manto do Coração</b> — as cores do clube que você torce</li>
-        <li>🏟️ <b>Batizar seu estádio</b> — o nome sai no jornal</li>
-        <li>💜 Carteirinha de sócio numerada no seu perfil</li>
-      </ul>
-      <button onClick={() => { try { navigator.clipboard.writeText('Opa! Sou do BATISMO no Leilão Legends 🖋️ e quero personalizar meu clube de sócio: escudo, mascote, manto e nome do estádio!') } catch { /* segue */ } window.open('https://ig.me/m/leilaolegendscom', '_blank', 'noopener') }}
-        style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 12px', marginTop: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, cursor: 'pointer', boxShadow: '2px 2px 0 rgba(0,0,0,.5)' }}>
-        📲 Chamar no direct pra personalizar tudo
-      </button>
-      <button onClick={() => { setFechado(true); try { localStorage.setItem('esc-barao-banner-v1', '1') } catch { /* segue */ } }}
-        style={{ width: '100%', border: 'none', background: 'none', color: 'rgba(255,255,255,.55)', fontWeight: 800, fontSize: 10.5, marginTop: 6, cursor: 'pointer', textDecoration: 'underline' }}>fechar — já entendi 👍</button>
-    </div>
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 13, background: 'linear-gradient(150deg,#FFE79A,#FFC400)', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 12px', marginBottom: 12, fontWeight: 900, fontSize: 12.5, fontFamily: 'Oswald, sans-serif' }}>🪙 As 30 moedas de sócio deste mês caíram no caixa!</div>
   )
 }
 
