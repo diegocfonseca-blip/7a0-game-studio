@@ -2079,8 +2079,11 @@ function applyResult(league: LeagueTeam[], r: MatchResult) {
 }
 
 export function sortedTable(league: LeagueTeam[]): LeagueTeam[] {
+  // 🇧🇷 Ordem de desempate do Brasileirão: pontos → VITÓRIAS → saldo de gols →
+  // gols pró → nome (estável). O 1º critério depois dos pontos é vitórias (faltava —
+  // antes ia direto pro saldo). Vale pra tabela, semeadura da Copa e rebaixamento.
   return [...league].sort((a, b) =>
-    b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name))
+    b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name))
 }
 
 // ─── rivalidade de clássicos (só entre humanos) ──────────────────────
