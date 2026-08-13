@@ -3987,6 +3987,14 @@ export function PyramidSeasonScreen() {
   // técnico escolher a meta do patrocínio — senão os 9s do ROUND_MS viravam um
   // cronômetro escondido pra escolher (Diego pediu SEM tempo nenhum nessa área).
   const sponsorBetOk = round > 0 || !!(state.careerSponsorBet?.[youId] && state.careerSponsorBet[youId].season === state.seasonNo)
+  // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
+  // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
+  const [roundReady, setRoundReady] = useState(false)
+  useEffect(() => {
+    setRoundReady(false)
+    const t = setTimeout(() => setRoundReady(true), roundMs * 0.85 + 250)
+    return () => clearTimeout(t)
+  }, [round, roundMs])
   useEffect(() => {
     // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
     // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
@@ -3998,19 +4006,18 @@ export function PyramidSeasonScreen() {
     // 🔁 intervalo pendente PAUSA o auto (igual ao evento): a rodada só anda depois
     // que o técnico resolve o 2º tempo. Quando resolve (halftimeDone), o efeito
     // re-roda e arma um timer novo — dando tempo do 2º tempo animar antes de avançar.
-    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone)) return
-    const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, roundMs)
+    // 🔴 SINCRONIA (Diego 13/08): antes este timer corria SOZINHO até `roundMs`, numa
+    // corrida separada contra o timer do `roundReady` (abaixo) — em rodadas rápidas ou
+    // decisivas de pênalti, às vezes a rodada MUDAVA antes do banner abrir, e o pênalti
+    // acabava mostrando o placar do jogo SEGUINTE (o que o Diego reportou: "abriu o
+    // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
+    // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
+    // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
+    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady) return
+    const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk, halfMode, halftimeDone, penMode, penaltyDone])
-  // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
-  // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
-  const [roundReady, setRoundReady] = useState(false)
-  useEffect(() => {
-    setRoundReady(false)
-    const t = setTimeout(() => setRoundReady(true), roundMs * 0.85 + 250)
-    return () => clearTimeout(t)
-  }, [round, roundMs])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady])
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
