@@ -247,10 +247,12 @@ function escadaAfterPlacements(s: EscState) {
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
 // 📺 COTA DE TV (Diego 11/08): renda por PARTICIPAÇÃO na divisão, todo fim de
-// temporada. Cresce quanto mais alto você está; Várzea 0 (ninguém transmite a
-// pelada). Creditada ANTES dos snapshots do extrato pra não entrar em outra
+// temporada. Cresce quanto mais alto você está. Várzea 1 (Diego 12/08: a
+// pelada não tem TV de verdade, mas um valor bem simbólico ajuda quem tá
+// começando — antes era 0, a única divisão sem NENHUMA renda de TV).
+// Creditada ANTES dos snapshots do extrato pra não entrar em outra
 // linha — e logada com linha própria "📺 Cota de TV".
-const TV_COTA: Record<string, number> = { A: 20, B: 15, C: 10, D: 5, V: 0 }
+const TV_COTA: Record<string, number> = { A: 20, B: 15, C: 10, D: 5, V: 1 }
 function applyTVIncome(s: EscState) {
   const online = s.onlineMode === 'online'
   const y = s.managers[s.youIdx]?.id ?? s.youIdx
