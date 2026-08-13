@@ -4097,3 +4097,26 @@ Duas pendências rápidas do Diego:
   vantagens nem botão nenhum.
 Build ok, no ar em `main`. Reversível nos dois — nenhum campo de estado
 novo, só lógica de exibição.
+
+## 💸 Investigação: "difícil ganhar dinheiro na Várzea" (12/08)
+Pessoal reclamando pro Diego. Fui atrás e mapeei TODA fonte de renda da
+carreira, comparando Várzea × resto — a Várzea é a ÚNICA divisão que:
+- Fica de fora da **Copa Legends** inteira (`COPA_DIV_STRENGTH`, comentário
+  já dizia "Várzea não joga a Copa — só A-D") → perde campeão/vice/
+  artilheiro da Copa.
+- Tinha **ZERO cota de TV** (`TV_COTA`, era `{ A:20, B:15, C:10, D:5, V:0 }`).
+- Tem os MENORES prêmios em tudo que É proporcional (artilheiro +6 vs +30
+  na A; patrocínio 2/4/6 vs 32/64/96 na A).
+- Some com a maior parte do que construiu no estádio se não tiver bem
+  colocada (sistema de OCUPAÇÃO — `occByPos` em `estadiodata.ts`, já
+  existia de outra sessão: top4=100%, meio=55%, Z4=18% do que foi
+  construído).
+**Implementado (só isto, o resto ficou pra decisão futura do Diego)**:
+Várzea agora tem cota de TV = **1** (era 0). Não resolve tudo (a Copa
+fora do escopo, e a ocupação continua igual) — foi só o "buraco" mais
+fácil e barato de tapar, símbolico mas tira o zero. `TV_COTA` em
+`store.tsx`.
+**Ainda em aberto (perguntei, Diego não decidiu ainda)**: subir o PISO da
+ocupação só na Várzea (hoje 18% no rebaixamento — ficaria tipo 40%) pra
+quem tá começando não ficar preso no fundo do poço.
+Build ok, no ar em `main`.
