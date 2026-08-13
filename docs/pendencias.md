@@ -130,16 +130,27 @@ raro. Corrigido esvaziando `PEN_TEST_TESTERS` (`new Set<string>([])`) — a cont
 a seguir a mesma raridade sorteada de todo mundo. Motor (`penaltyPlan`) nunca teve bug,
 sempre foi só o teste ligado. ⚠️ Reversível: `git revert`. Não mexe em mais nada.
 
-## 🐞 FIX: pênalti "aparecia do nada já com o placar pronto" — ✅ CORRIGIDO (13/08)
-Mesmo depois do fix acima, Diego continuou vendo o pênalti abrir "sem sincronia": "não
-consegui nem ver o tempo começar... já tava 1x1". Causa real: o placar do SEU jogo sempre
-animou certinho em tempo real (cardzinho fixo no topo, MyMatchCard), só que se o técnico
-estivesse em Tabelas/Elenco/Rank (não na aba Jogos) enquanto a rodada decisiva rolava, ele
-só via o resultado quando voltava — o pênalti parecia ter "pulado" pronto porque ele não
-estava olhando o jogo andar. Corrigido em `pyramidseason.tsx`: assim que a rodada vira
-decisiva pra pênalti (`penMode`), o jogo troca sozinho pra aba Jogos (igual já faz quando
-entra a Copa dos 8) — o técnico é obrigado a ver o placar mexer minuto a minuto antes do
-banner abrir. ⚠️ Reversível: `git revert`. Não mexe no resto da carreira nem no online.
+## 🐞 FIX: pênalti "aparecia do nada já com o placar pronto" — ⚠️ diagnóstico incompleto (13/08)
+Primeira tentativa: achei que era só o técnico estar em Tabelas/Elenco/Rank enquanto a
+rodada decisiva rolava — corrigi trocando pra aba Jogos sozinho quando `penMode` liga
+(igual a Copa já faz). Isto ficou (é bom de qualquer forma), MAS Diego confirmou que
+mesmo JÁ na aba Jogos, olhando o jogo, o pênalti continuava abrindo com placar de OUTRO
+jogo — não era isso. Causa real, achada depois: ver entrada abaixo (corrida de timers).
+
+## 🐞 FIX: pênalti abria com o placar de OUTRO jogo (corrida de timers) — ✅ CORRIGIDO (13/08)
+Causa raiz de verdade, achada com o relato específico do Diego ("o jogo 1 tava
+terminando, quando acaba já abriu o pênalti mostrando resultado de 2x2 EM OUTRO jogo" +
+"depois do leilão mal começou o jogo já abrindo pênalti, como se nem visse a simulação").
+Existiam DOIS relógios (`setTimeout`) rodando em paralelo e independentes: um decidia
+quando a rodada troca sozinha (`roundMs` cheio) e outro decidia quando o pênalti pode
+abrir (`roundMs*0.85+250`, sempre um pouco ANTES). Em corrida (mais comum em rodada
+rápida/decisiva), a rodada podia virar ANTES do banner abrir — e quando abria, já lia os
+dados da rodada NOVA (o jogo seguinte), não da que o Diego via na tela. Corrigido em
+`pyramidseason.tsx`: os dois agora usam o MESMO sinal (`roundReady`) — a troca de rodada
+só acontece DEPOIS que o jogo atual terminou de animar, no mesmo instante em que o
+pênalti decide se abre. Não tem mais corrida entre os dois relógios. Ritmo do resto da
+carreira não muda (a troca de rodada fica só ~250ms mais rápida). ⚠️ Reversível:
+`git revert`. Não mexe no online (o auto-avanço aqui é só da carreira offline solo).
 
 ## 🐞 FIX: substituição no intervalo estava 1 rodada adiantada — ✅ CORRIGIDO (12/08)
 Bug encontrado ao codar o pênalti e **comprovado em teste** (rodando `simulatePyramid`):
