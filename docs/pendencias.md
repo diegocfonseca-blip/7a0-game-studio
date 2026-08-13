@@ -21,12 +21,15 @@ macacão vermelho + capacete do Brasil dirigindo uma BOLA de futebol gigante com
     transparência de verdade antes de embutir.
   - Escudo: `ferrariSCRender` → `<img ferrari-escudo.webp>`. LOGOS_PRONTAS: 'Ferrari SC'/
     'Ferrari FC'/'Ferrari'. Vale pelo NOME — já aparece.
-  - Mascote: MASCOTES['piloto_bola'] → `<img ferrari-mascote.webp>`. ⚠️ Só aparece no festão
-    quando o Diego setar no painel esc_socios.mascote_key = 'piloto_bola' pra conta do adriano.
-- **Manto**: agora vermelho/preto/**branco** (3 cores). MANTO_CONTAS (email) dá vermelho+preto;
-  MANTO_TRI['piloto_bola'] = branco (3ª cor). ⚠️ a 3ª cor branca também depende do
-  mascote_key='piloto_bola' setado no painel (idem mascote).
-- Reversível: `git revert`. Só afeta esse time/conta; não toca em mais nada.
+  - Mascote: MASCOTES['piloto_bola'] → `<img ferrari-mascote.webp>`. Pro festão.
+- **Manto**: vermelho/preto/**branco** (3 cores). MANTO_CONTAS (email) dá vermelho+preto;
+  MANTO_TRI['piloto_bola'] = branco (3ª cor).
+- ✅ **DB do sócio ATUALIZADO (14/08, direto pelo Claude no Supabase — sócio nº10, já
+  existia desde 09/08 com validade até 2100, só faltava a personalização)**: `esc_socios`
+  manto_c1='#C2452F', manto_c2='#141414', mascote_key='piloto_bola', escudo_time='Ferrari SC',
+  time_coracao='Corinthians', origem='batismo'. Nada mais pendente no painel — escudo,
+  mascote (festão) e manto tricolor valem pra ele já na próxima aberta do jogo.
+- Reversível: `git revert` (código) / UPDATE esc_socios (banco). Só afeta esse time/conta.
 - 🔧 Pendente do gosto do Diego: ele queria a qualidade de RENDER (imagem gerada). Vetor
   à mão não chega lá; se um dia ele mandar o ARQUIVO (webp) de uma arte SEM marca, dá pra
   embutir igual Sapekeiros/Eros.
