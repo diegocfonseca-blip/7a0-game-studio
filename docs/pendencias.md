@@ -1,5 +1,15 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🌱 FIX: Cria da Base sem reserva não tinha banner — ✅ CORRIGIDO (13/08)
+Diego mandou print de jogo real: "Denílson Show está fora... Pintinho segurou a
+vaga" apareceu como notícia PRONTA, sem banner nenhum — a correção anterior (ver
+entrada mais abaixo, "malandro de 11 jogadores") subia um cria SOZINHO, sem o
+técnico escolher nem saber que rolou lesão. Corrigido: o banner do evento agora
+abre normal (`EventoSemReservaBanner`, mesma cara do de sempre), mostrando 3
+nomes GERADOS da base pra escolher — só o escolhido sobe de verdade pro elenco.
+Noitada continua oferecendo "escalar assim mesmo" como alternativa. Nova função
+`previewCriaNomes` (store.tsx) gera candidatos sem gravar nada até a escolha.
+
 ## 🕴️ BICO DE FOLGA — ✅ NO AR (13/08, mockup aprovado)
 Pedido do Diego: dinheiro extra pra quem tá preso na Várzea/Série D, escolhendo
 um patrocinador real do jogo pra "trabalhar na folga". Desenhado a fundo em
