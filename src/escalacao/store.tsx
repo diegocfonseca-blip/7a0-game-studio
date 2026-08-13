@@ -2611,6 +2611,7 @@ type Action =
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
+  | { type: 'EVENTO_SET_NO_RESERVE'; evento: EventoAtivo; xi: string[] } // 🎭 evento sem reserva na posição (Diego 13/08): em vez de virar só manchete de zoeira, sobe um Cria da Base pra tapar o buraco de verdade — acaba o truque de jogar sempre só com 11
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
   | { type: 'START_CAREER_CRISE'; mgrId: number; barrier: number; playerId: string; playerName: string; pos: Sector } // 🚨 caixa cruzou uma barreira NOVA (mais funda) de -500 — o jogador de mais fama do elenco anuncia que vai embora ("não jogo em time duro")
@@ -3512,6 +3513,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined // 🌱 crias/janela zerados
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
       s.careerSeen = {} // 🗺️ Guia da carreira: carreira nova não herda banner fechado da carreira anterior
+      s.criaDeEvento = undefined
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
@@ -4467,6 +4469,38 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🔁 anota QUEM aprontou e QUANDO — é isso que dá o descanso de 5 temporadas
       if (action.evento.nome) s.eventoHist = { ...(s.eventoHist ?? {}), [action.evento.nome]: s.seasonNo }
       if (action.manchete) s.eventoManchetes = [...(s.eventoManchetes ?? []), action.manchete].slice(-24)
+      return s
+    }
+    case 'EVENTO_SET_NO_RESERVE': {
+      // 🎭 SEM RESERVA na posição (Diego 13/08 — "malandrinho que joga só com 11"):
+      // antes isso virava só manchete de zoeira, sem trava nenhuma — jogar sempre
+      // com o elenco raspado driblava noitada/expulsão/lesão por completo. Agora
+      // sobe um 🌱 Cria da Base (mesmo mecanismo da crise financeira/contrato
+      // vencido) pra tapar o buraco de verdade — ruim, sem contrato, some sozinho
+      // quando chega reforço de verdade (regra que já existia).
+      if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return s
+      if (s.eventoTemporada && s.eventoTemporada.season === s.seasonNo) return s
+      if (action.evento.season !== s.seasonNo) return s
+      const you = s.managers.find(m => m.id === action.evento.mgrId)
+      if (!you) return s
+      const idx = action.xi.indexOf(action.evento.cardId)
+      if (idx < 0) return s // estado torto (escalação mudou entre o sorteio e o dispatch) — não trava o jogo
+      const crRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 104729) ^ 0xE1E27E) >>> 0)
+      const beforeIds = new Set(you.squad.map(c => c.id))
+      spawnCria(s, you, action.evento.pos, action.evento.nome, crRng)
+      const cria = you.squad.find(c => !beforeIds.has(c.id))
+      if (!cria) return s
+      s.criaDeEvento = true // 🗺️ Guia da carreira: liga o banner explicativo (uma vez)
+      const volta = action.evento.round + action.evento.rodadas
+      const ev: EventoAtivo = { ...action.evento, status: 'banco', volta, subId: cria.id, subNome: cria.name }
+      const ids = action.xi.slice(); ids[idx] = cria.id
+      const bl = { ...(s.careerLineup ?? {}) }
+      bl[you.id] = { ...(bl[you.id] ?? {}), [ev.round]: ids, [volta]: action.xi.slice() }
+      s.careerLineup = bl
+      s.eventoTemporada = ev
+      if (ev.nome) s.eventoHist = { ...(s.eventoHist ?? {}), [ev.nome]: s.seasonNo }
+      const m = mancheteDecisao(ev)
+      s.eventoManchetes = [...(s.eventoManchetes ?? []), { season: ev.season, round: ev.round, ...m }].slice(-24)
       return s
     }
     case 'EVENTO_DECIDE': {

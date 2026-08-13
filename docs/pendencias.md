@@ -82,6 +82,16 @@ o relatório de novo se precisar (perguntar ao Diego ou re-analisar o código).
   pagava sempre estavam certos.
 - ⚠️ Reversível: cada banner é independente (`git revert` no commit, ou remover 1
   chamada de `UnlockBanner` não afeta as outras). Não mexe no online nem no futebol.
+- **✅ Malandro de 11 jogadores — CORRIGIDO (13/08)**: Diego reportou que quem nunca
+  compra reserva (fica sempre com exatamente 11) driblava TODO evento de jogador
+  (noitada/expulsão/lesão) — sem reserva na posição, virava só manchete de zoeira,
+  nada travava. Corrigido: `EVENTO_SET_NO_RESERVE` (store.tsx) sobe um 🌱 Cria da
+  Base pra tapar o buraco de verdade (mesmo mecanismo da crise financeira/contrato
+  vencido) — ruim, sem contrato, some sozinho quando compra reforço de verdade. Vale
+  em qualquer divisão (Diego não tinha certeza se devia travar só a partir da Série
+  D — deixei valendo geral por consistência com os outros casos de Cria da Base; se
+  ele quiser restringir depois é só adicionar a checagem de divisão). Banner novo
+  (`k="criabase"`) explica na 1ª vez que acontece.
 - **✅ Backfill pra quem já tá em carreira (13/08)**: Diego apontou que carreira EM
   ANDAMENTO (de antes do Guia) ia mostrar TODOS os banners de uma vez, mesmo etapa
   antiga (ex: "Salário chegou" pra quem já paga desde a T4 e tá na T20). Corrigido
