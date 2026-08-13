@@ -56,11 +56,23 @@ em Elenco); carreira antiga fica de fora.
   ganhar Copa Legends exige terminar a temporada inteira, praticamente
   impossível legítimo nesse ponto). Rank confere: zero conta com Copa fake
   no topo agora.
-- ⏳ Diego achou estranho o rank ter muita conta "temporada 1, 100 moedas
-  paradas" enchendo o Top 50 — são contas REAIS que só entraram uma vez e não
-  jogaram (não é bug, é gente inativa mesmo). Perguntei se ele quer um piso
-  mínimo (tipo exigir pelo menos temporada 2 jogada) pra tirar essas do rank
-  e deixar a lista mais "viva" — esperando resposta.
+- Diego achou estranho o rank ter muita conta "temporada 1, dinheiro variado"
+  enchendo o Top 50 — CONFERIDO: é dado real (56% das 728 contas estão nas
+  temporadas 1-3, é só quem começou a jogar Agência 2.0 há pouco tempo — a
+  feature é recente). Cross-check numa conta específica ("Gru", T216) provou
+  o retrato acompanhando o save AO VIVO, atualizando a cada poucos minutos
+  enquanto a pessoa jogava (T201→T216, títulos e dinheiro evoluindo de
+  verdade). Ele perguntou se queria esconder quem nunca deu lance — respondeu
+  que NÃO, só queria confirmar que os dados batem (bateram).
+- **✅ AUDITORIA COMPLETA (14/08, pedido explícito do Diego)**: ele lembrou a
+  regra certa — só conta carreira com a Agência 2.0 DE VERDADE (a que tem as
+  2 sub-abas em Elenco E convocação de 22, `agenciaOn`); a carreira antiga
+  tinha "agenciados" só que DIFERENTE, sem essa forma — não vale. Rodei uma
+  auditoria nas 728 contas do rank comparando com o save ATUAL de cada uma no
+  banco: **achei 2 contas órfãs** (`Samba do Argumento`, `Well`) cujo save
+  mudou depois do backfill (uma apagou a carreira, a outra ficou só com uma
+  carreira SEM Agência 2.0) — removidas do rank. As outras 726 conferem
+  100% (0 órfãs depois da limpeza).
 - Reversível: `git revert` no código; a tabela nova no banco fica órfã mas
   inofensiva (não é lida em lugar nenhum se reverter o código).
 - ⏳ PRÓXIMO PASSO (pedido pelo Diego): montar mockup pra Stories/Feed do
