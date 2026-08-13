@@ -11,9 +11,14 @@ macacão vermelho + capacete do Brasil dirigindo uma BOLA de futebol gigante com
 - **Manto** vermelho/preto: `manto.ts` MANTO_CONTAS (por e-mail) — já vale, é só cor.
 - **Escudo/Mascote = ARTE PRÓPRIA do dono** (imagens webp que o Diego mandou, exceção de
   batismo — igual Sapekeiros/Eros). Cavalo-piloto de macacão vermelho + capacete do Brasil,
-  SEM emblema da Ferrari (o Diego regerou sem a marca; conferido). `img/ferrari-escudo.webp`
-  (carrinho de bola) e `img/ferrari-mascote.webp` (comemorando GOL). A pilotBallSC vetorial
-  ficou em `escudos.tsx` só como fallback (não é usada).
+  SEM emblema da Ferrari (o Diego regerou sem a marca; conferido). TROCA pedida pelo Diego:
+  `img/ferrari-escudo.webp` = cavalo gritando GOL; `img/ferrari-mascote.webp` = cavalo no
+  carrinho de bola. A pilotBallSC vetorial ficou em `escudos.tsx` só como fallback (não é usada).
+  - 🧼 **RECORTE DE FUNDO (14/08)**: o "fundo transparente" dos PNGs dele era FALSO — o
+    xadrez vinha PINTADO nos pixels e apareceu atrás da arte no jogo (reclamação dele).
+    Recorte real por inundação a partir das bordas + limpeza dos retalhos presos entre as
+    rodas e do chão quadriculado. Se ele mandar arte nova, CONFERIR se o fundo é
+    transparência de verdade antes de embutir.
   - Escudo: `ferrariSCRender` → `<img ferrari-escudo.webp>`. LOGOS_PRONTAS: 'Ferrari SC'/
     'Ferrari FC'/'Ferrari'. Vale pelo NOME — já aparece.
   - Mascote: MASCOTES['piloto_bola'] → `<img ferrari-mascote.webp>`. ⚠️ Só aparece no festão
