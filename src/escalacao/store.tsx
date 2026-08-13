@@ -2537,6 +2537,7 @@ type Action =
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
+  | { type: 'STEP_DOWN_HOST' } // 🪑 host antigo ABAIXA A BOLA: a posse (game_rooms.host_id) já é de outro no banco → deixo de ser autoritativo e volto a só RECEBER. Garante "um dono só" (nunca dois hosts brigando).
   | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
@@ -3103,6 +3104,10 @@ export function reducer(state: EscState, action: Action): EscState {
     // canal realtime re-inscreve como host (reage a s.isHost) e passo a emitir
     // e persistir o estado da sala.
     case 'BECOME_HOST': { s.isHost = true; return s }
+    // 🪑 host antigo cede o comando: volto a ser convidado. O efeito do canal
+    // (dep. isHost) re-inscreve como ouvinte e pede o estado do novo dono. Assim
+    // NUNCA ficam dois hosts rodando a própria liga/Copa (bug do Sapekeiro).
+    case 'STEP_DOWN_HOST': { s.isHost = false; return s }
     case 'FIX_YOU_IDX': { s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
     case 'COPA_MUNDO_PRIZE': {
       // 🌍 +100 por clube SEU classificado (Diego 04/08: dormindo recebe igual —
@@ -6173,6 +6178,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
     ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
     ch.on('broadcast', { event: 'chat' }, ({ payload }: { payload: ChatMsg }) => addChat(payload, false))
+    // 💗 "TÔ VIVO" do host: mensageninha (bytes) no canal já aberto, a cada ~4s,
+    // mesmo com o jogo PARADO (leilão quieto). O convidado marca "host vivo" por
+    // aqui — assim ficar quieto pra economizar egress NÃO parece mais que o dono
+    // caiu (era o gatilho do bug: host demorava e viravam dois donos). Não toca no
+    // banco; custo insignificante (vs. reemitir o estado inteiro de ~100 KB).
+    ch.on('broadcast', { event: 'host_ping' }, () => { lastHostMsgRef.current = Date.now() })
     // host removeu alguém: se for EU, saio da partida DE VEZ e caio no menu online.
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       // payload.playerIndex é o CRACHÁ (id) do expulso — comparo com o MEU id, não com
@@ -6266,6 +6277,44 @@ export function EscProvider({ children }: { children: ReactNode }) {
       channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
       lastStateSendRef.current = Date.now()
     }, 6000)
+    return () => clearInterval(iv)
+  }, [state.onlineMode, state.isHost, state.roomId])
+
+  // 💗 PING "TÔ VIVO" do host: bem mais leve e frequente que o heartbeat de estado.
+  // Só o dono manda, a cada 4s, mesmo PARADO — é o que impede o convidado de achar
+  // que ele caiu só por ficar quieto (a raiz do bug do Sapekeiro). É uma mensagem de
+  // POUCOS BYTES no canal já aberto (não é o estado inteiro), então não pesa no
+  // Realtime/Egress nem escreve no banco. self:false → só os convidados recebem.
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    const iv = setInterval(() => {
+      if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
+      channelRef.current?.send({ type: 'broadcast', event: 'host_ping', payload: {} })
+    }, 4000)
+    return () => clearInterval(iv)
+  }, [state.onlineMode, state.isHost, state.roomId])
+
+  // 🪑 REGRA DE OURO — UM DONO SÓ: o dono confere no banco quem é o host_id (a
+  // ÚNICA verdade). Se a posse já é de OUTRO (um convidado assumiu num failover
+  // legítimo, ou sobrou dono duplicado de um bug), ele ABAIXA A BOLA na hora: deixa
+  // de ser autoritativo e volta a só RECEBER o estado do novo dono. É o que torna
+  // IMPOSSÍVEL ficar com dois hosts rodando a própria liga/Copa (bug do Sapekeiro).
+  // Só rebaixa com host_id CONFIRMADO e DIFERENTE do meu — leitura nula/erro de rede
+  // NÃO rebaixa ninguém (senão a rede ruim tiraria o dono legítimo).
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    const iv = setInterval(() => {
+      ;(async () => {
+        try {
+          const st = stateRef.current
+          const uid = st.youUid // meu crachá (= auth uid). Sem uid não dá pra comparar → não mexe.
+          if (!uid || !st.roomId || !st.isHost) return
+          const { data: r } = await supabase.from('game_rooms').select('host_id').eq('id', st.roomId).maybeSingle()
+          const hostId = (r as { host_id?: string } | null)?.host_id
+          if (hostId && hostId !== uid && stateRef.current.isHost) rawDispatch({ type: 'STEP_DOWN_HOST' })
+        } catch { /* leitura falhou: não rebaixa (evita perder o dono por rede ruim) */ }
+      })()
+    }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 
@@ -6467,19 +6516,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
             if (!uid) return
             const st = stateRef.current
             if (!st.roomId || st.isHost) return
-            const { data: r } = await supabase.from('game_rooms').select('host_id').eq('id', st.roomId).maybeSingle()
+            const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at').eq('id', st.roomId).maybeSingle()
             const hostId = (r as { host_id?: string } | null)?.host_id
             // (1) a posse já é MINHA no banco (handoff explícito ou eu era o dono) → assumo.
             if (hostId === uid) { if (!stateRef.current.isHost) rawDispatch({ type: 'BECOME_HOST' }); return }
+            // 💓 BATIMENTO DO BANCO: o host grava updated_at a cada ~3s (mesmo PARADO
+            // no leilão). Se está fresco (< 9s), o dono está VIVO — só ficou quieto no
+            // Realtime pra economizar egress. NÃO se rouba host de quem está batendo:
+            // era exatamente o bug do Sapekeiro (demorou pra jogar → viraram DOIS donos).
+            const upAt = (r as { updated_at?: string } | null)?.updated_at
+            const hostBeatFresh = !!upAt && (Date.now() - new Date(upAt).getTime() < 9000)
             // (2) 👻 HOST FANTASMA: o host_id aponta pra alguém que NÃO está mais na
             // sala (fechou o app / caiu / saiu sem passar a coroa — o bug do Diego
-            // 11/08). Elejo um novo host DETERMINÍSTICO: o MENOR uid presente vira
-            // host. Todo aparelho calcula o mesmo vencedor → exatamente UM assume
-            // (sem sorteio, sem dois hosts). O vencedor grava o host_id e vira
-            // autoritativo; os outros recebem o estado dele e o "host caiu" some.
+            // 11/08) E o batimento do banco secou (dono realmente sumiu). Elejo um novo
+            // host DETERMINÍSTICO: o MENOR uid presente vira host. Todo aparelho calcula
+            // o mesmo vencedor → exatamente UM assume (sem sorteio, sem dois hosts). O
+            // vencedor grava o host_id e vira autoritativo; os outros recebem o estado dele.
             const present = (stateRef.current.presenceUids ?? []).filter((u2): u2 is string => !!u2)
             const hostPresente = !!hostId && present.includes(hostId)
-            if (!hostPresente && present.length > 0 && [...present].sort()[0] === uid) {
+            if (!hostPresente && !hostBeatFresh && present.length > 0 && [...present].sort()[0] === uid) {
               try { await supabase.from('game_rooms').update({ host_id: uid }).eq('id', st.roomId) } catch { /* best effort */ }
               if (!stateRef.current.isHost) { rawDispatch({ type: 'BECOME_HOST' }); setBecameHost(true) } // aviso "você virou host"
             }

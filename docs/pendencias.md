@@ -1,4 +1,35 @@
-# 📌 Pendências combinadas com o Diego (atualizado 12/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 13/08/2026)
+
+## 🐞🌐 FIX GRAVE: ONLINE virava DOIS HOSTS (dessincronia total na Copa) — ✅ NO AR (13/08)
+Relato do Diego (sala "Sapekeiro FC", jogo rápido online): no meio do leilão o host
+(Sapekeiro) foi TROCADO sozinho — apareceu pra outro que ELE virou host — mesmo com o
+Sapekeiro **online, na mesma tela, sem trocar de app**, só demorando pra jogar. Daí a sala
+ficou com **dois donos** e cada aparelho passou a rodar a própria simulação: liga e Copa
+**dessincronizadas** (campeão diferente pra cada um, eliminado pra um e pra outro não,
+jogador sumindo do campinho). A Copa é determinística (mesma tabela + mesma semente = mesmo
+campeão) → só diverge com >1 host rodando com semente/tabela própria.
+- **RAIZ**: pra economizar egress, o host fica CALADO no Realtime até ~12s quando não há
+  jogada nova (leilão parado). O convidado lia esse silêncio como "host caiu" em 10s e, com
+  um piscar de presença, se auto-promovia — e o host antigo NUNCA era rebaixado → dois donos.
+- **FIX (5 partes, `store.tsx`, só online; futebol offline/normal intocado):**
+  1. Ação **STEP_DOWN_HOST** (host antigo abaixa a bola → vira convidado).
+  2. **Ping "tô vivo"** do host a cada 4s (broadcast de POUCOS BYTES no canal já aberto —
+     NÃO é o estado de ~100KB, NÃO toca no banco). Convidado marca "host vivo" por aqui →
+     ficar quieto não parece mais que caiu.
+  3. Convidado escuta o `host_ping` (zera o relógio de "host sumiu").
+  4. **Anti-roubo**: a promoção de novo host só rola se o **batimento do banco**
+     (`game_rooms.updated_at`, que o host já grava a cada ~3s) estiver SECO (>9s). Host vivo
+     e batendo NUNCA é usurpado. (Custo zero: é a MESMA leitura, só +1 coluna.)
+  5. **Regra de ouro (UM DONO SÓ)**: o host confere no banco quem é o `host_id` a cada 5s
+     (usando `youUid`, sem chamada de auth na rede); se a posse já é de OUTRO, ABAIXA A BOLA
+     na hora. Impossível ficar com dois hosts. Leitura nula/erro NÃO rebaixa (rede ruim não
+     tira o dono legítimo).
+- ⚠️ Reversível: `git revert` desse commit volta ao de hoje. Não muda o fluxo normal
+  (leilão/liga/Copa com rede boa) — só o "e se o dono cair" passa a se comportar direito.
+- 🔎 A investigar se reincidir: janela de ~5s em que um host que RECONECTA pode mandar 1
+  estado velho antes de detectar que deve ceder (auto-corrige no próximo estado do novo dono).
+
+
 
 ## ⚽ CARREIRA: pênalti decisivo — ✅ NO AR (12/08, deploy junto com a reforma do estádio)
 Feature nova SÓ na carreira OFFLINE (online intocado). Aprovada visualmente pelo Diego
