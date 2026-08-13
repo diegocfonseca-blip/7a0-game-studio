@@ -30,6 +30,13 @@ o relatório de novo se precisar (perguntar ao Diego ou re-analisar o código).
   pagava sempre estavam certos.
 - ⚠️ Reversível: cada banner é independente (`git revert` no commit, ou remover 1
   chamada de `UnlockBanner` não afeta as outras). Não mexe no online nem no futebol.
+- **✅ Backfill pra quem já tá em carreira (13/08)**: Diego apontou que carreira EM
+  ANDAMENTO (de antes do Guia) ia mostrar TODOS os banners de uma vez, mesmo etapa
+  antiga (ex: "Salário chegou" pra quem já paga desde a T4 e tá na T20). Corrigido
+  com `BACKFILL_CAREER_SEEN` (store.tsx): roda 1x nesses saves (só quando
+  `careerSeen` nunca existiu), marca como "já visto" o que já passou — só o que
+  ainda vem pela frente (Médico, SAF, próximas etapas) avisa de verdade. Carreira
+  NOVA não passa por aqui (já nasce com `careerSeen: {}` na fundação).
 
 ## ⚡🧤 FIX: pênalti interativo — goleiro "não pega" a bola + acertar o verde não fazia gol — ✅ NO AR (14/08)
 Diego reportou dois problemas no pênalti (🎯 Você bate): "o goleiro defende e a bola
