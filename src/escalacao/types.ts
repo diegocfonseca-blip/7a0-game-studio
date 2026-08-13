@@ -495,6 +495,10 @@ export interface EscState {
   escadaLivre?: boolean // true = mercado liberou geral (2 temporadas na A) — vira o jogo normal pra sempre
   escadaTempA?: number // temporadas COMPLETAS jogadas na Série A (conta até 2)
   escadaSubiu?: boolean // já subiu da divisão de estreia (virou profissional)? não tranca de novo se cair
+  // 🗺️ GUIA DA CARREIRA (banners de desbloqueio explicado, 13/08): cada chave é um
+  // banner que o técnico já fechou (toque em "Entendi!") — nunca mais aparece
+  // NESTA carreira. Zera junto com tudo o mais na fundação de carreira nova.
+  careerSeen?: Record<string, true>
   // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
   // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).
   contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)

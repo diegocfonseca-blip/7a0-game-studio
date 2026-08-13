@@ -20,6 +20,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard, SponsorLoyaltyBanner } from './estadio'
+import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave } from './copa-mundo'
 import { supabase } from '../lib/supabase'
@@ -2699,6 +2700,13 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
           </div>
         )
       })()}
+      {/* 🔓 Substituições acabaram de liberar (T2, onSwap só existe com canSub true):
+          avisa ANTES do seletor de modo, senão o botão só "aparece" sem explicar nada. */}
+      {elenco && onSetSubMode && onSwap && (
+        <UnlockBanner k="sub" tag="🔁 novo controle" title="Substituições liberadas">
+          Agora dá pra trocar <b>titular por reserva NO MEIO da temporada</b> — não só na escalação inicial. Escolha embaixo como prefere fazer a troca.
+        </UnlockBanner>
+      )}
       {/* 🔁 TOGGLE: como o técnico faz troca (só carreira offline). Padrão = dinâmico
           (como sempre foi). "Só no intervalo" faz o jogo pausar aos 45' pra trocar. */}
       {elenco && onSetSubMode && (() => {
@@ -2724,7 +2732,14 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
         )
       })()}
       {elenco ? (
-        <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} />
+        <>
+          {(seasonNo ?? 1) >= 4 && (
+            <UnlockBanner k="salario" tag="💰 novo custo" title="Salário chegou" ctaBg="#C2452F" ctaColor="#fff">
+              A partir de agora o clube paga <b>salário todo mês</b> pelo elenco inteiro (o valor é o preço pago ÷ 10 de cada carta). Fique de olho na caixa — jogador caro pesa mais na folha.
+            </UnlockBanner>
+          )}
+          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} />
+        </>
       ) : (<>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
@@ -5137,6 +5152,11 @@ export function ReserveListScreen() {
             <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: GREEN }}>🔓 Desbloqueado: Leilão de transferências!</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você pode <b>listar jogadores pra leilão</b> (e disputá-los de volta).</p>
           </div>
+        )}
+        {state.escadaOn && state.escadaSubiu && (
+          <UnlockBanner k="profissional" tag="🪜 subiu de divisão" title="Virou profissional!" ctaBg={GREEN} ctaColor="#fff">
+            Saiu da Várzea! Agora o contrato dos seus jogadores passa a valer de verdade — pode vencer, você renova ou deixa ir.
+          </UnlockBanner>
         )}
         {/* 🔒 "mesmo time": sem mercado, sem leilão — só confere o elenco e decide
             contrato (acima). Nada de listar/vender aqui. */}

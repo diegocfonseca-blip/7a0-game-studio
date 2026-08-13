@@ -2513,7 +2513,7 @@ export const INITIAL: EscState = {
   phase: 'envelope', currentCards: [], revealQueue: [], revealIdx: 0,
   stock: { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 },
   monte: [], monteOrder: [], monteIdx: 0,
-  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, clubCash: {}, careerHonors: {}, marketValues: {}, marketLog: [], careerSubMode: 'dinamico', careerHalftime: {}, careerPenalty: {},
+  league: [], fixtures: [], round: 0, tactics: {}, careerTactics: {}, careerCoins: {}, clubCash: {}, careerHonors: {}, marketValues: {}, marketLog: [], careerSubMode: 'dinamico', careerHalftime: {}, careerPenalty: {}, careerSeen: {},
   lastResults: [], news: [], champion: null,
   deckLeague: 'br', careerDivision: null, careerOnline: false, careerPlacements: null, careerIntent: false, careerTitles: 0, careerTitlesA: 0, careerRivalCount: 5, careerRivals: [],
   phaseDeadline: null, scorers: [],
@@ -2608,6 +2608,7 @@ type Action =
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic } // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
+  | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
@@ -3509,6 +3510,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.varzea = false // modo várzea do rápido não pode pintar o campo da carreira
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined // 🌱 crias/janela zerados
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
+      s.careerSeen = {} // 🗺️ Guia da carreira: carreira nova não herda banner fechado da carreira anterior
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
@@ -4429,6 +4431,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const pp = { ...(s.careerPenalty ?? {}) }
       pp[action.mgrId] = { ...(pp[action.mgrId] ?? {}), [action.round]: { scored: !!action.scored, taker: action.taker } }
       s.careerPenalty = pp
+      return s
+    }
+    case 'MARK_CAREER_SEEN': {
+      if (s.careerSeen?.[action.key]) return s
+      s.careerSeen = { ...(s.careerSeen ?? {}), [action.key]: true }
       return s
     }
     case 'EVENTO_SET': {
