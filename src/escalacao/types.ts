@@ -158,6 +158,11 @@ export interface EventoAtivo {
   volta?: number   // rodada em que o titular VOLTA (round + rodadas) — só status 'banco'
   subId?: string   // quem assumiu a vaga
   subNome?: string
+  // 🌱 SEM RESERVA na posição (Diego 13/08): em vez de virar manchete sem efeito,
+  // o banner mostra 3 nomes de Cria da Base pra ESCOLHER (ninguém sobe sozinho
+  // sem o técnico decidir). Presente só quando `status: 'pendente'` e não há
+  // reserva de verdade — nesse caso a tela troca a lista de reservas por estes.
+  criaOptions?: string[]
 }
 export interface EventoManchete { season: number; round: number; emoji: string; titulo: string; sub: string }
 

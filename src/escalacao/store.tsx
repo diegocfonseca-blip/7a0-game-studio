@@ -737,9 +737,34 @@ const CONTRATO_TABELA = (c: Card): number => c.fame >= 5 ? 30 : c.promessa ? 12 
 // contrato, invendável (valor 0, ninguém compra), e some sozinho quando chega
 // reforço de verdade. Cada cria usa um nome NOVO da listinha (nunca repete).
 function spawnCria(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () => number): void {
-  const usados = new Set(s.criaNames ?? [])
-  const livres = CRIA_NOMES.filter(n => !usados.has(n))
-  const nome = livres.length ? livres[Math.floor(rng() * livres.length)] : `${CRIA_NOMES[Math.floor(rng() * CRIA_NOMES.length)]} ${((s.criaNames?.length ?? 0) + 1)}º`
+  spawnCriaCore(s, m, pos, saiu, rng)
+}
+// 🌱 preview SEM COMMITAR: gera N nomes candidatos pro banner de escolha (evento
+// sem reserva) sem gravar nada no save — só se o técnico escolher um deles é que
+// `spawnCriaCore` (com `forcedName`) grava de verdade. Nunca repete nome já usado
+// nesta carreira nem entre os N candidatos do mesmo sorteio.
+export function previewCriaNomes(jaUsados: string[], rng: () => number, n = 3): string[] {
+  const usados = new Set(jaUsados)
+  const livres = CRIA_NOMES.filter(nm => !usados.has(nm))
+  const pool = livres.length >= n ? livres : CRIA_NOMES
+  const escolhidos: string[] = []
+  const tentados = new Set<string>()
+  while (escolhidos.length < n && tentados.size < pool.length) {
+    const nm = pool[Math.floor(rng() * pool.length)]
+    if (tentados.has(nm)) continue
+    tentados.add(nm)
+    escolhidos.push(nm)
+  }
+  return escolhidos
+}
+function spawnCriaCore(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () => number, forcedName?: string): void {
+  let nome: string
+  if (forcedName) nome = forcedName
+  else {
+    const usados = new Set(s.criaNames ?? [])
+    const livres = CRIA_NOMES.filter(n => !usados.has(n))
+    nome = livres.length ? livres[Math.floor(rng() * livres.length)] : `${CRIA_NOMES[Math.floor(rng() * CRIA_NOMES.length)]} ${((s.criaNames?.length ?? 0) + 1)}º`
+  }
   s.criaNames = [...(s.criaNames ?? []), nome]
   const cria = { id: `cria-${pos}-${nextBuildTok()}`, name: nome, club: 'Sub-20', year: new Date().getFullYear(), pos, fame: 1, lo: 48, hi: 58, cria: true } as Card
   m.squad.push({ ...cria, paid: 0, buyPrice: 0, via: 'monte' } as WonCard)
@@ -2627,7 +2652,7 @@ type Action =
   | { type: 'SET_BICO'; brand: 'vadico' | 'maxjoias' | 'ero' | null } // 🕴️ Bico de Folga: escolhe/troca (ou larga, null) o patrocinador do bico — renda entra sozinha na virada de temporada
   | { type: 'BICO_NEWS'; kind: 'saiu' | 'voltou' } // 🕴️ notícia de virada (subiu pra C = desligou · caiu pra D de novo = reabriu) — repete quantas vezes acontecer, não é banner de uma vez só
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
-  | { type: 'EVENTO_SET_NO_RESERVE'; evento: EventoAtivo; xi: string[] } // 🎭 evento sem reserva na posição (Diego 13/08): em vez de virar só manchete de zoeira, sobe um Cria da Base pra tapar o buraco de verdade — acaba o truque de jogar sempre só com 11
+  | { type: 'EVENTO_DECIDE_CRIA'; nome: string; xi: string[] } // 🌱 evento sem reserva na posição: o técnico ESCOLHE 1 de 3 nomes de Cria da Base (ev.criaOptions) pra tapar o buraco — acaba o truque de jogar sempre só com 11, sem pular a decisão do técnico
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
   | { type: 'START_CAREER_CRISE'; mgrId: number; barrier: number; playerId: string; playerName: string; pos: Sector } // 🚨 caixa cruzou uma barreira NOVA (mais funda) de -500 — o jogador de mais fama do elenco anuncia que vai embora ("não jogo em time duro")
@@ -4503,28 +4528,26 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.manchete) s.eventoManchetes = [...(s.eventoManchetes ?? []), action.manchete].slice(-24)
       return s
     }
-    case 'EVENTO_SET_NO_RESERVE': {
-      // 🎭 SEM RESERVA na posição (Diego 13/08 — "malandrinho que joga só com 11"):
-      // antes isso virava só manchete de zoeira, sem trava nenhuma — jogar sempre
-      // com o elenco raspado driblava noitada/expulsão/lesão por completo. Agora
-      // sobe um 🌱 Cria da Base (mesmo mecanismo da crise financeira/contrato
-      // vencido) pra tapar o buraco de verdade — ruim, sem contrato, some sozinho
-      // quando chega reforço de verdade (regra que já existia).
-      if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return s
-      if (s.eventoTemporada && s.eventoTemporada.season === s.seasonNo) return s
-      if (action.evento.season !== s.seasonNo) return s
-      const you = s.managers.find(m => m.id === action.evento.mgrId)
+    case 'EVENTO_DECIDE_CRIA': {
+      // 🌱 SEM RESERVA na posição (Diego 13/08 — "malandrinho que joga só com 11" +
+      // "era pra ter aparecido um banner, escolher entre pelo menos 3 da base"):
+      // 1ª versão só subia UM cria sozinho, sem banner — corrigido: o banner fica
+      // 'pendente' com 3 nomes gerados (ev.criaOptions) e o técnico ESCOLHE um
+      // aqui. Mesmo mecanismo de sempre (Cria da Base: sem contrato, invendável,
+      // some sozinho quando chega reforço de verdade).
+      const ev0 = s.eventoTemporada
+      if (!ev0 || ev0.status !== 'pendente' || ev0.season !== s.seasonNo || !ev0.criaOptions?.includes(action.nome)) return s
+      const you = s.managers.find(m => m.id === ev0.mgrId)
       if (!you) return s
-      const idx = action.xi.indexOf(action.evento.cardId)
-      if (idx < 0) return s // estado torto (escalação mudou entre o sorteio e o dispatch) — não trava o jogo
+      const idx = action.xi.indexOf(ev0.cardId)
+      if (idx < 0) return s // estado torto (escalação mudou entre o sorteio e a decisão) — não trava o jogo
       const crRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 104729) ^ 0xE1E27E) >>> 0)
-      const beforeIds = new Set(you.squad.map(c => c.id))
-      spawnCria(s, you, action.evento.pos, action.evento.nome, crRng)
-      const cria = you.squad.find(c => !beforeIds.has(c.id))
+      spawnCriaCore(s, you, ev0.pos, ev0.nome, crRng, action.nome)
+      const cria = you.squad.find(c => c.name === action.nome && c.cria)
       if (!cria) return s
       s.criaDeEvento = true // 🗺️ Guia da carreira: liga o banner explicativo (uma vez)
-      const volta = action.evento.round + action.evento.rodadas
-      const ev: EventoAtivo = { ...action.evento, status: 'banco', volta, subId: cria.id, subNome: cria.name }
+      const volta = ev0.round + ev0.rodadas
+      const ev: EventoAtivo = { ...ev0, status: 'banco', volta, subId: cria.id, subNome: cria.name, criaOptions: undefined }
       const ids = action.xi.slice(); ids[idx] = cria.id
       const bl = { ...(s.careerLineup ?? {}) }
       bl[you.id] = { ...(bl[you.id] ?? {}), [ev.round]: ids, [volta]: action.xi.slice() }
