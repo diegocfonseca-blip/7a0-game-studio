@@ -2,8 +2,7 @@
 
 ## 🕴️ Reorganização Elenco/Agência (passo 2 e 3 da auditoria de UX) — ✅ NO AR (14/08)
 Continuação da auditoria de organização (ver entrada abaixo). Diego aprovou
-2 dos 3 pontos da aba Clube/Elenco (o 1º, trocar o ícone 💰 duplicado de
-"Clube", ficou pendente — ele ainda não entendeu direito, não mexi):
+os 3 pontos da aba Clube/Elenco:
 - **Sub-aba duplicada corrigida**: dentro da aba "Elenco", a sub-aba padrão
   se chamava "👥 Elenco" — MESMO nome/ícone da aba-mãe. Agora é "🎽 Time".
   Só troca de rótulo/ícone, o conteúdo é o mesmo de sempre.
@@ -12,10 +11,19 @@ Continuação da auditoria de organização (ver entrada abaixo). Diego aprovou
   escalação de verdade (Elenco›Agenciados). Mudei ela pra dentro de
   Elenco›Agenciados — agora tudo de Agência mora junto. Tirei o botão "Ver
   meus agenciados" que existia nela (não faz mais sentido, já estamos lá).
+- **Ícone da aba "Clube" trocado** (💰 → 🏟️): a aba-mãe "Clube" usava 💰,
+  IGUAL ao ícone da sua própria sub-aba "💰 Finanças" lá dentro — parecia
+  a mesma coisa duas vezes. Agora a aba-mãe usa 🏟️ (estádio) e só a
+  sub-aba "Finanças" fica com 💰. Ajustei também o texto do Manual do
+  Técnico que citava o ícone antigo.
 - Reversível: `git revert`. Não mexe em nenhuma regra/valor de jogo, só
-  onde cada painel aparece e como se chama a sub-aba.
-- ⏳ PENDENTE: ícone 🏟️ pra aba "Clube" (ainda esperando o Diego confirmar
-  que entendeu o problema — não mexer sem OK).
+  onde cada painel aparece e como se chama a sub-aba/ícone.
+
+## 🥇 PENDENTE (aguardando OK do Diego, 14/08): renomear sub-aba "Clubes" do Rank
+Diego notou que a sub-aba "🥇 Clubes" do Rank (ranking local: você + os
+times CPU da SUA carreira, por títulos) tem nome parecido com a aba-mãe
+"Clube" (finanças/estádio) — confunde. Sugeri trocar para **"🥇 Liga"**
+(fica: Artilheiros | Liga | Global). Esperando confirmação antes de mexer.
 
 ## 🗂️ AUDITORIA DE ORGANIZAÇÃO/UX do jogo inteiro (14/08) — análise feita, aprovado só o passo 1
 Diego pediu análise MUITO a fundo de toda a navegação (Home, Carreira offline,

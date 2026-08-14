@@ -4806,7 +4806,7 @@ export function PyramidSeasonScreen() {
             também no ONLINE (Passo 1): construir + renda já sincronizam por-técnico.
             SAF · Patrocínio · Finanças · Agência ainda são só SOLO (Passo 2). */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-          {([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank'], ['estadio', '💰', 'Clube']] as [typeof tab, string, string][]).map(([t, ic, label]) => (
+          {([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank'], ['estadio', '🏟️', 'Clube']] as [typeof tab, string, string][]).map(([t, ic, label]) => (
             <button key={t} onClick={() => setTab(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
           ))}
         </div>
