@@ -1,5 +1,16 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🌍 RANKING GLOBAL: Copa do Mundo decide ANTES da Série A — ✅ NO AR (14/08)
+Diego pediu explicitamente (só o rank GLOBAL, não mexeu no local do save):
+Copa do Mundo Legends na frente da Série A no desempate. Ordem nova:
+**🌍 Mundo › 🏆 A › 🏆 Copa Legends › 🏆 B › 🏆 C › 🏆 D › 💰 dinheiro**
+(antes era A › Mundo › Copa). Mudei as duas funções (`esc_pyramid_rank` e
+`esc_pyramid_my_rank`, têm que ficar sempre iguais) + o texto da tela pra não
+mentir "mesma régua do save local" (agora é diferente, de propósito).
+⚠️ O rank LOCAL de cada save (aba Clubes, `RankingTab`) continua A › Mundo ›
+Copa — Diego não pediu mudar esse. Testei: usuário com 1 título de A mas 6 de
+Mundo agora fica na frente de outro com 107 de A e só 5 de Mundo. Reversível.
+
 ## 🔢 RANKING GLOBAL: posição real de quem tá fora do Top 50 — ✅ NO AR (14/08)
 Diego: "quem fica fora do Top 50 dá pra mostrar a posição atual dele, além de
 'fora do Top 50'?". RPC nova `esc_pyramid_my_rank(p_season, p_user_id)` —

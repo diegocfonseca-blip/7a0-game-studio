@@ -2886,7 +2886,10 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
 }
 
 // ── RANKING GLOBAL (14/08, pedido do Diego): top 50 usuários (nunca bots — bots
-// já têm o ranking local acima), na MESMA régua de troféus/dinheiro. Trava
+// já têm o ranking local acima). ⚠️ Ordem PRÓPRIA (Diego pediu 14/08: Copa do
+// Mundo decide ANTES da Série A aqui) — diferente do rank LOCAL do save
+// (RankingTab, que segue A › Mundo › Copa). Ordem de verdade é a da função
+// `esc_pyramid_rank` no banco (fonte única — não duplicar aqui). Trava
 // anti-spoiler: o rank vem SEMPRE capado na temporada de quem está olhando (RPC
 // `esc_pyramid_rank`, ver comentário no banco) — ninguém vê o futuro de ninguém,
 // só o que cada um já tinha feito até ali. Só conta quem jogou com Agência 2.0.
@@ -2940,7 +2943,7 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Mesma régua do ranking do seu save (títulos e depois dinheiro) — só gente de verdade, top 50. Só conta quem joga com a Agência 2.0.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Ordem: 🌍 Copa do Mundo › 🏆 Série A › 🏆 Copa Legends › 🏆 B › 🏆 C › 🏆 D › 💰 dinheiro — só gente de verdade, top 50. Só conta quem joga com a Agência 2.0.</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
         <span style={{ fontSize: 19, lineHeight: 1.2 }}>📍</span>
         <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.4, color: INK }}>
