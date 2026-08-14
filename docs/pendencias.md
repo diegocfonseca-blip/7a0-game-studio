@@ -55,7 +55,19 @@ da Copa dos 8 (top 8 = 40%, não os 20% do G4 antigo). Trocado por:
 - Não toquei nas tabelas de DIVISÃO da carreira (`DivTable`, pyramidseason.tsx)
   — lá o G4/Z4 já É a regra real de acesso/queda, sem descompasso. Reversível:
   `git revert`.
-## 🛡️ BATISMO Barcenite FC (Ricardo, ricardopessoafreire@gmail.com) — em andamento (14/08)
+## 🛡️ BATISMO Barcenite FC (Ricardo, ricardopessoafreire@gmail.com) — ✅ COMPLETO (14/08)
+Diego aprovou o card vertical (escudo + mascote + manto) — tudo no ar:
+- **Escudo** em `LOGOS_PRONTAS` (escudos.tsx, chave 'Barcenite FC' — o nome
+  velho Milanesa FC resolve via newestTeamName). Estilo Barcelona sem
+  copiar: topo azul + BFC dourado, faixa dourada, base listrada com bola.
+- **Mascote "gatao_bfc"** em MASCOTES (mascotes.tsx) — Gatão amarelo/azul
+  inspirado no CAT do Barça, desenhado em código (SVG). Se o Diego quiser
+  versão IA depois, regerar quando o OpenArt MCP voltar.
+- **Banco**: manto #FFC400/#0E3E86 · mascote_key 'gatao_bfc' ·
+  time_coracao 'Flamengo' — tudo em esc_socios.
+Detalhes do processo abaixo (entrada original):
+
+## 🛡️ BATISMO Barcenite FC — histórico (14/08)
 Ricardo é o Sócio Barão nº 12; o NOME já estava batizado (Barcenite FC,
 ex-Milanesa FC, Série D). Diego pediu o kit completo:
 - ✅ **Manto**: amarelo #FFC400 + azul #0E3E86 — JÁ APLICADO no banco
