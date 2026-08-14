@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🕴️ Reorganização Elenco/Agência (passo 2 e 3 da auditoria de UX) — ✅ NO AR (14/08)
+Continuação da auditoria de organização (ver entrada abaixo). Diego aprovou
+2 dos 3 pontos da aba Clube/Elenco (o 1º, trocar o ícone 💰 duplicado de
+"Clube", ficou pendente — ele ainda não entendeu direito, não mexi):
+- **Sub-aba duplicada corrigida**: dentro da aba "Elenco", a sub-aba padrão
+  se chamava "👥 Elenco" — MESMO nome/ícone da aba-mãe. Agora é "🎽 Time".
+  Só troca de rótulo/ícone, o conteúdo é o mesmo de sempre.
+- **Agência num lugar só**: a escada de desbloqueios da Agência (🪵→👑, quanto
+  do estádio libera cada categoria) morava em Clube›Estrutura, longe da
+  escalação de verdade (Elenco›Agenciados). Mudei ela pra dentro de
+  Elenco›Agenciados — agora tudo de Agência mora junto. Tirei o botão "Ver
+  meus agenciados" que existia nela (não faz mais sentido, já estamos lá).
+- Reversível: `git revert`. Não mexe em nenhuma regra/valor de jogo, só
+  onde cada painel aparece e como se chama a sub-aba.
+- ⏳ PENDENTE: ícone 🏟️ pra aba "Clube" (ainda esperando o Diego confirmar
+  que entendeu o problema — não mexer sem OK).
+
 ## 🗂️ AUDITORIA DE ORGANIZAÇÃO/UX do jogo inteiro (14/08) — análise feita, aprovado só o passo 1
 Diego pediu análise MUITO a fundo de toda a navegação (Home, Carreira offline,
 Leilão em todos os modos, Online/salas) — mandei 4 investigações em paralelo

@@ -4939,11 +4939,11 @@ export function PyramidSeasonScreen() {
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')}
               torcidaPct={torcidaPct} chuvaHoje={chuvaHoje} />
-            {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio DEPOIS do estádio, e a escada
-                da agência fecha a página (caixa escura — não confunde com a obra) */}
+            {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio depois do estádio. A escada de
+                desbloqueios da Agência morava aqui — mudou pra Elenco › Agenciados
+                (14/08, pedido do Diego: tudo de Agência num lugar só, junto da
+                escalação de verdade, em vez de espalhado em duas abas). */}
             {agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
-            {agenciaOk && <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial}
-              onVerAgenciados={() => { setTab('elenco'); setElencoSub('agencia') }} />}
             {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
                 fora do leilão (outra tela) e de jogo/Copa rolando. Só testers, só solo. */}
             {state.onlineMode !== 'online' && state.multiClube && (() => {
@@ -5042,15 +5042,22 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'elenco' ? (
           <>
-            {/* 🕴️ AGÊNCIA 2.0: sub-abas Elenco | Agenciados (só carreira nova) */}
+            {/* 🕴️ AGÊNCIA 2.0: sub-abas Time | Agenciados (só carreira nova). A
+                sub-aba do elenco em si NÃO se chama mais "Elenco" — tinha o MESMO
+                nome/ícone da aba-mãe "Elenco", confundindo (14/08, pedido do Diego). */}
             {state.agenciaOn && agLib && (
               <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-                {(([['elenco', '👥', 'Elenco'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
+                {(([['elenco', '🎽', 'Time'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
                   <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
                 ))}
               </div>
             )}
             {state.agenciaOn && agLib && elencoSub === 'agencia' ? (
+              <>
+              {/* 🪜 escada de desbloqueios da Agência: mudou de Clube›Estrutura pra
+                  cá (14/08) — tudo de Agência agora mora num lugar só, junto da
+                  escalação de verdade. Sem onVerAgenciados: já estamos aqui. */}
+              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial} />
               <AgenciadosTab cards={state.agenciados ?? []}
                 pool={(() => {
                   const seen = new Set<string>(); const out: AgCard[] = []
@@ -5072,6 +5079,7 @@ export function PyramidSeasonScreen() {
                 destinoId={state.agenciaClubeId ?? youId} dividir={!!state.agenciaDividir}
                 onSetDestino={(id, dividir) => dispatch({ type: 'SET_AGENCIA_CLUBE', mgrId: id, dividir })}
                 onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} />
+              </>
             ) : (
             <>
             {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
