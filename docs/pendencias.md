@@ -1,5 +1,47 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🗂️ AUDITORIA DE ORGANIZAÇÃO/UX do jogo inteiro (14/08) — análise feita, aprovado só o passo 1
+Diego pediu análise MUITO a fundo de toda a navegação (Home, Carreira offline,
+Leilão em todos os modos, Online/salas) — mandei 4 investigações em paralelo
+mapeando TODAS as abas/sub-abas/botões. Achados principais (relatório
+completo foi na conversa, não copiado aqui por ser longo — perguntar ao Diego
+ou re-analisar se precisar):
+1. **Nomes inconsistentes pro mesmo modo/botão** em vários lugares (Rápido,
+   Online, Voltar) — cada tela usava um rótulo/ícone diferente.
+2. Aba **"Clube"** é a mais confusa: nome não bate com o conteúdo (é o
+   estádio), sub-aba padrão muda de nome (Estádio↔Estrutura) conforme
+   `agenciaOn`, e "Agência" (antiga) vs "Agenciados" (nova) quase-homônimos.
+   Sub-aba "Elenco" dentro da aba "Elenco" (nome duplicado).
+3. Até **17 banners condicionais** podem empilhar ACIMA da barra de abas da
+   temporada, ao mesmo tempo, enterrando a navegação.
+4. Copa do Mundo Legends não tem aba/ícone fixo — só aparece dentro da pilha
+   de banners de fim de temporada.
+5. Leilão não tem indicador único de "fase X de 4" — cada fase tem seu
+   próprio contador diferente. Leilão de reservas é visualmente idêntico ao
+   inicial (só um detalhe pequeno no rodapé avisa a diferença).
+6. Lobby online abre na aba "Salas abertas" em vez de "Criar sala"; botões
+   "Sair da conta"/"Menu inicial" ficam parecidos e colados.
+
+### ✅ FEITO (14/08): passo 1 — padronizar nomes (só texto, baixo risco)
+- **Modo Rápido offline**: agora sempre "⚡ Rápido (offline)" (Manual do
+  Técnico e filtro do Ranking já usavam nomes diferentes — unificado; filtro
+  do Álbum virou "⚡ Offline" compacto, mesmo ícone).
+- **Modo Rápido online**: agora sempre "👥 Rápido (online)" (Manual usava
+  🌐+"Rápido Online", Ranking usava "Rápido online" sem parênteses —
+  unificado com o ícone 👥 que já era o mais usado).
+- **Botão "voltar pro início"**: unificado pra "🏠 Voltar ao início" em todo
+  lugar que volta pra HOME de verdade (Setup, Álbum, Ranking já tinham a
+  MESMA ação `GO_LOBBY` com rótulos diferentes: "← Home", "← Voltar" ×2).
+  ⚠️ NÃO mexi no botão da sala online "🏠 Voltar pro menu" nem no link de
+  emergência do rodapé "Travou na tela?" — esses dois fazem coisas
+  DIFERENTES de verdade (um mantém a vaga na sala, o outro tem confirmação
+  de segurança), então o texto diferente ali é correto, não é bug.
+- Reversível: `git revert`. Só troca texto/ícone de botão, nenhuma ação
+  (destino) mudou — testado conferindo o `dispatch` de cada botão antes de
+  mexer, pra não juntar coisas que na verdade vão pra lugares diferentes.
+- ⏳ PENDENTE (esperando Diego decidir prioridade): os itens 2-6 acima são
+  mudanças de estrutura/visual maiores — não mexer sem aprovação.
+
 ## 🌍 FIX: 20 jogadores estrangeiros caindo em "Brasil" na Copa do Mundo — ✅ CORRIGIDO (14/08)
 Diego: "MT gente reclamando... vários jogadores em países errados... Lodeiro,
 Pochettino, Yotún e muito mais". Causa: `paises.ts` (`PAIS`, o mapa nome→país

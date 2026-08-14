@@ -1675,7 +1675,7 @@ function ManualDoTecnico({ onClose }: { onClose: () => void }) {
   ]
   const modos: [string, string, string][] = [
     ['⚡', 'Rápido (offline)', 'Você contra a CPU. Monta o time no leilão e joga UMA temporada (liga + Copa dos 8). Bom pra treinar o dedo.'],
-    ['🌐', 'Rápido Online', 'Mesma coisa, só que os lances são dos seus AMIGOS na sala (até 8). Baralho Brasil, Europa, Todos — ou a Várzea 🥅 (sem craques).'],
+    ['👥', 'Rápido (online)', 'Mesma coisa, só que os lances são dos seus AMIGOS na sala (até 8). Baralho Brasil, Europa, Todos — ou a Várzea 🥅 (sem craques).'],
     ['🪜', 'Carreira', escadaLiberada() ? 'A vida de técnico: começa na VÁRZEA (peladão raiz 🍺) e sobe a pirâmide até a Série A. Temporada a temporada desbloqueia reservas, vendas, folha, contratos, estádio, SAF…' : 'A vida de técnico: começa na Série D e sobe a pirâmide até a A. Temporada a temporada desbloqueia reservas, vendas, folha salarial, contratos, estádio, SAF…'],
   ]
   return (
@@ -1800,7 +1800,7 @@ export function EscSetup() {
     <Shell>
       <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
         className="flex items-center gap-1 text-black/60 font-black text-sm pt-4 -mb-2 active:opacity-60" style={OSWALD}>
-        <span className="text-lg leading-none">←</span> Home
+        <span className="text-lg leading-none">🏠</span> Voltar ao início
       </button>
       <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? (escadaLiberada() ? '🪜 CARREIRA · VÁRZEA' : '🪜 CARREIRA · SÉRIE D') : 'MONTE SUA SALA'}</h2>
       {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada() ? 'Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.' : 'Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.'}</p>}
@@ -5541,7 +5541,7 @@ export function EscAlbum() {
   const nOnline = uniqBy(all.filter(c => c.origin === 'online'))
   const TABS: { id: AlbumFilter; label: string }[] = [
     { id: 'all', label: `Todos (${nAll})` },
-    { id: 'cpu', label: `🤖 CPU (${nCpu})` },
+    { id: 'cpu', label: `⚡ Offline (${nCpu})` },
     { id: 'online', label: `👥 Online (${nOnline})` },
   ]
 
@@ -5550,7 +5550,7 @@ export function EscAlbum() {
       <div className="text-center pt-4">
         <h2 className="font-black text-4xl" style={OSWALD}>📖 MEU ÁLBUM</h2>
         <p className="font-semibold text-black/60 mt-1">Campeão ganha uma carta-lembrança por título — no CPU ou no online. Vai colecionando os craques.</p>
-        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{CATALOG_TOTAL} craques{filter !== 'all' ? ` (${filter === 'cpu' ? '🤖 CPU' : '👥 Online'})` : ''}</p>}
+        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{CATALOG_TOTAL} craques{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
       </div>
 
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
@@ -5605,7 +5605,7 @@ export function EscAlbum() {
           ))}
         </div>
       )}
-      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">← Voltar</Btn>
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 Voltar ao início</Btn>
     </Shell>
   )
 }
@@ -5719,8 +5719,8 @@ export function EscRanking() {
   const albumShown = viewScope === 'carreira' && albumCarreira ? albumCarreira : albumConta
 
   const MODES: { id: RankMode; label: string }[] = [
-    { id: 'ronline', label: '👥 Rápido online' },
-    { id: 'rcpu', label: '🤖 Rápido offline' },
+    { id: 'ronline', label: '👥 Rápido (online)' },
+    { id: 'rcpu', label: '⚡ Rápido (offline)' },
     { id: 'carreira', label: '🪜 Carreira' }, // histórico completo, liberado geral (04/08)
   ]
   const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
@@ -5798,7 +5798,7 @@ export function EscRanking() {
           <p className="font-bold text-black/70 text-sm">Faça login pra aparecer no ranking e ganhar cartas.</p>
         </Box>
       )}
-      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">← Voltar</Btn>
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 Voltar ao início</Btn>
 
       {/* álbum do técnico tocado */}
       {viewUser && (
