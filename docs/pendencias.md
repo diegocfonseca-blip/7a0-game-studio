@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🤝📊 MEDIA KIT pra apresentar a marcas/patrocinadores — ✅ entregue v1 (14/08)
+Diego pediu um media kit de alta qualidade pra apresentar o jogo a
+empresas (bets e outras) e buscar patrocínio. Entregue como página HTML
+na identidade do jogo (creme/tinta/dourado/Oswald), cópia salva em
+**`docs/media-kit.html`** (abre no navegador; NÃO deploya — docs/ fica
+fora do build). Estrutura: capa · como funciona · números · gráfico de
+volume diário · engajamento · público · tese · formatos · contato.
+- **Métricas 100% REAIS**, tiradas do banco de produção em 14/08 (nada
+  estimado): 7.030 contas (desde jun/2026) · 178.808 títulos desde 15/07
+  (3–12 mil/dia) · 104.411 temporadas nas carreiras ativas · 1.128
+  técnicos de carreira ativos/7d · 443 ativos/24h · +565 contas na última
+  semana · recorde 783 temporadas · 317 carreiras com 100+ temporadas ·
+  6.119 usuários com troféu · 40% retenção semanal (carreira).
+- **Tese central** (o pulo do gato do kit): "patrocínio não é banner, é
+  MECÂNICA" — o técnico ESCOLHE o patrocinador toda temporada e joga pela
+  meta da marca; Max Joias/Rei das Tintas/Vadico/Ero citadas como prova
+  de conceito já rodando.
+- Formatos ofertados: Patrocínio Master jogável · naming rights de copa ·
+  marca no estádio · torneio patrocinado com prêmio.
+- ⚠️ Honestidade dos números: o jogo tem ~2 MESES (1ª conta 11/06), não
+  30 dias — o kit fala "2 meses" e o gráfico cobre os últimos 30 dias
+  (registro de títulos começou 15/07). Não inventei demografia (idade/
+  gênero) — não temos esse dado; o "quem joga" é qualitativo.
+- Pendente de o Diego revisar: textos, se quer foto/print do jogo dentro
+  do kit, e se o e-mail de contato tá certo. Iterar aqui mesmo no HTML.
+
 ## 🕴️ Bico de Folga: visual novo (card "emprego" + 1 botão) — ✅ NO AR (14/08)
 Diego não gostou do card de status do Bico (texto corrido + 2-3 botõezinhos
 "trocar" espremidos, piorou com a 4ª marca). Mockup aprovado, implementado:
