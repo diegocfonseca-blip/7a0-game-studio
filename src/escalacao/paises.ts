@@ -31,6 +31,17 @@ export const PAIS: Record<string, string> = {
   'Miguelito': 'Bolívia', 'Petkovic': 'Sérvia', 'Seedorf': 'Holanda',
   'Depay': 'Holanda', 'Anelka': 'França', 'Pablo Marí': 'Espanha',
   'GarrinSha': 'Haiti',
+  // ── adicionados 14/08 (Diego: vários estrangeiros do baralho BR caindo em
+  // "Brasil" por engano — tinham bio de nacionalidade mas faltava aqui) ──
+  'Brítez': 'Argentina', 'Pochettino': 'Argentina', 'Matías Defederico': 'Argentina',
+  'Lucas Pratto': 'Argentina', 'Scocco': 'Argentina', 'Machuca': 'Argentina',
+  'Gabriel Mercado': 'Argentina', 'Rodrigo Garro': 'Argentina', 'Lucho González': 'Argentina',
+  'Alexander Barboza': 'Argentina', 'Marcelino Moreno': 'Argentina',
+  'Martín Silva': 'Uruguai', 'Nicolás Lodeiro': 'Uruguai', 'Beto Acosta': 'Uruguai',
+  'Yoshimar Yotún': 'Peru',
+  'Ángel Romero': 'Paraguai',
+  'Félix Torres': 'Equador', 'Juan Cazares': 'Equador',
+  'Kevin Viveros': 'Colômbia', 'Rafael Borré': 'Colômbia',
 
   // ── Baralho EU: goleiros ──
   'Ter Stegen': 'Alemanha', 'Massimo Taibi (o frango do United)': 'Itália',

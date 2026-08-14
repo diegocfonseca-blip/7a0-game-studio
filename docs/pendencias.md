@@ -1,5 +1,27 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🌍 FIX: 20 jogadores estrangeiros caindo em "Brasil" na Copa do Mundo — ✅ CORRIGIDO (14/08)
+Diego: "MT gente reclamando... vários jogadores em países errados... Lodeiro,
+Pochettino, Yotún e muito mais". Causa: `paises.ts` (`PAIS`, o mapa nome→país
+usado pela Copa do Mundo Legends) — o baralho BR assume Brasil por padrão
+quando o nome NÃO está no mapa; jogador estrangeiro esquecido cai errado.
+Escrevi um script (Node, comparando os bios de `data.ts` que citam
+nacionalidade contra as chaves de `PAIS`) e achei **20 faltando** — bem mais
+que os 3 que ele citou:
+- 🇦🇷 Argentina (11): Brítez, Pochettino, Matías Defederico, Lucas Pratto,
+  Scocco, Machuca, Gabriel Mercado, Rodrigo Garro, Lucho González, Alexander
+  Barboza, Marcelino Moreno.
+- 🇺🇾 Uruguai (3): Martín Silva, Nicolás Lodeiro, Beto Acosta.
+- 🇨🇴 Colômbia (2): Kevin Viveros, Rafael Borré.
+- 🇪🇨 Equador (2): Félix Torres, Juan Cazares.
+- 🇵🇾 Paraguai (1): Ángel Romero. 🇵🇪 Peru (1): Yoshimar Yotún.
+- Todos com a nacionalidade tirada direto do BIO de cada carta (nunca
+  inventei — é o texto que já existe no jogo descrevendo o jogador).
+- Rodei o script de novo depois do fix: **zero faltando**. Não achei jeito
+  de testar a Copa do Mundo ao vivo (só destrava na temporada 100 + Top 20),
+  mas a correção é só dados (mapa nome→país), sem lógica nova — risco baixo.
+- Reversível: `git revert`. Só mexe em `paises.ts`.
+
 ## 🏅 SELOS de troféu: ordem visual agora bate com a ordem de desempate — ✅ NO AR (14/08)
 Diego mandou print de grupo (Gabriel comentando "caí pra terceiro mas olha a
 diferença") — reparou que os selos apareciam Mundo→Copa→A→B..., mas quem
