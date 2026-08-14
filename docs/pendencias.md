@@ -1,5 +1,24 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🔁 Leilão de Reservas com cara diferente do inicial — ✅ NO AR (14/08)
+Último item da auditoria de UX (item 5, parte 2). O leilão de reservas/
+transferências (meio da carreira, repõe o elenco) usava o MESMO topo
+branco do leilão inicial — só um textinho pequeno perto do campo avisava
+que era outro leilão. Agora o topo (barra fixa de posições + moedas, em
+TODAS as telas do leilão — lance, revelação, desempate) fica **lilás**
+com o rótulo "🔁 Leilão de Reservas" (ou "🔁 Leilão de Transferências" a
+partir da 2ª vez), pra bater o olho e já saber de cara que não é o leilão
+inicial. Sem mockup prévio dessa vez — o Diego pediu pra seguir direto
+("pode fazer"). Se não gostar da cor/lugar, é só `git revert`.
+- A "fase X de 4" (item 5, parte 1) segue **fechada, não vamos fazer**
+  (ver decisão abaixo) — isso aqui foi só a parte do leilão de reservas.
+- ⏳ Ainda em aberto da auditoria original (sem decisão do Diego, NÃO
+  começar sem OK): reorganização visual da **Home** (muitos botões com o
+  mesmo peso, "em breve" no meio dos que funcionam — mandei recomendação
+  por texto, ofereci mockup, Diego não confirmou ainda). Fora isso, os
+  itens 3, 4 e 5 (avisos, Copa do Mundo, leilão de reservas) estão feitos
+  e o item da fase do leilão foi fechado como "não vamos fazer".
+
 ## 🌍 Copa do Mundo: "(aba Rank)" virou link de verdade — ✅ NO AR (14/08)
 Item 4 da auditoria de UX, mockup aprovado — mas o Diego pediu escopo
 menor: só o link, sem o cartão de status fixo que eu tinha sugerido junto.

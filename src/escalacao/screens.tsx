@@ -852,10 +852,19 @@ function Shell({ children, bar, hideExit = false }: { children: React.ReactNode;
       : `Excluir o rival CPU ${m.teamName}? Ele para de dar lance no leilão (fica só na tabela).`
     if (window.confirm(msg)) kickPlayer(m.id)
   }
+  // 🔁 LEILÃO DE RESERVAS (Diego 14/08): cabeçalho do leilão do meio da
+  // carreira usava a MESMA cara (fundo branco) do leilão inicial — só um
+  // textinho pequeno perto do campo avisava que era outro leilão. Agora o
+  // topo fica lilás com um rótulo, pra bater o olho e já saber de cara.
+  const isReserveAuction = !!bar && state.reserveAuction
+  const reserveLabel = state.seasonNo === 1 ? '🔁 Leilão de Reservas' : '🔁 Leilão de Transferências'
   return (
     <div className="min-h-screen pb-16 palco" style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
-        <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: '#fff', color: INK }}>
+        <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : '#fff', color: INK }}>
+          {isReserveAuction && (
+            <p className="text-center text-[10px] font-black uppercase tracking-wide mb-1.5" style={{ ...OSWALD, color: PURPLE }}>{reserveLabel}</p>
+          )}
           {bar}
         </div>
       )}
