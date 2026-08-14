@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🚪 Confirmação antes de "Sair da conta" no Online — ✅ NO AR (14/08)
+Item 6 da auditoria de UX (ver mais abaixo), só a parte que o Diego topou:
+o botão "Sair da conta" da tela de Online (deslogava direto, sem aviso,
+colado embaixo de "← Menu inicial" que só volta) agora pergunta antes
+("Sair da conta? Você vai precisar entrar de novo..."), igual ao padrão
+que outros botões de sair já usam no jogo. Não mudei o resto: não trocou
+a aba padrão do Online, não mudou cor de nada. Reversível: `git revert`.
+
+## 🔜 PRÓXIMOS da auditoria de UX, na ordem que o Diego pediu (14/08)
+1. **Avisos empilhados** (evento/crise/patrocínio/TV etc. aparecendo todos
+   juntos antes das abas) — próximo a fazer. Vou mandar mockup antes.
+2. **Copa do Mundo sem "porta"** (texto "(aba Rank)" sem link, sem status
+   fixo) — depois do item 1.
+3. **Indicador de fase do leilão (X de 4)**: Diego questionou se vale a
+   pena — jogador só vai acompanhando o jogo, talvez não repare/não
+   precise. Combinamos discutir de novo antes de fazer (não é prioridade).
+
 ## 🕴️ Reorganização Elenco/Agência (passo 2 e 3 da auditoria de UX) — ✅ NO AR (14/08)
 Continuação da auditoria de organização (ver entrada abaixo). Diego aprovou
 os 3 pontos da aba Clube/Elenco:

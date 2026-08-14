@@ -1961,7 +1961,7 @@ export function EscLobby() {
         </div>
       )}
       <AdminButton />
-      <button onClick={() => { clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
+      <button onClick={() => { if (!window.confirm('Sair da conta? Você vai precisar entrar de novo (e-mail/senha ou Google) da próxima vez.')) return; clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
       <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
     </>, () => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) })
   }
