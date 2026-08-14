@@ -1,5 +1,25 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🔧 Copa do Mundo perdida: recuperados 3 casos reais (dado verificado, não invenção) (14/08)
+Diego pediu pra tentar repor a Copa do Mundo que o dono do "Dérick FC"
+tinha perdido. Achei uma saída honesta: existe uma tabela separada
+(`esc_results`) que grava CADA título de Copa do Mundo no momento exato
+que acontece, na nuvem, desde 04/08 — é registro real, não invenção.
+- **Dérick FC**: tinha 7 títulos de verdade (não 6 como eu tinha achado
+  antes) — repus certinho, contando só da carreira com Agência 2.0 dele
+  (ele tem 2 carreiras; a outra não conta pro ranking).
+- **Conferi TODO MUNDO** com esse mesmo método (comparando o registro real
+  com o que tava salvo) e achei mais **2 contas** genuinamente sub-
+  contadas: **Kata-Kata** (tinha 0, eram 3) e **Smith** (tinha 0, era 1).
+  Corrigi as duas do mesmo jeito.
+- **Importante**: só "consertei" quando achei EVIDÊNCIA real (registro na
+  esc_results maior que o salvo) — não inventei número pra ninguém. Pra
+  quem a gente não tem esse cruzamento possível (ex.: título ganho antes
+  de 04/08, quando essa tabela nem existia ainda), não dá pra recuperar —
+  ficou perdido de vez, como já expliquei antes.
+- Isso foi correção de DADO (via SQL), não mudou nenhum código novo além
+  do que já tinha sido commitado antes (mural na nuvem).
+
 ## 🎨 Rei das Tintas — novo patrocinador real — ✅ NO AR (14/08)
 Diego mandou a logo real (`src/escalacao/reidastintas.ts`, embutida como
 data URI igual Vadico/Ero/Max Joias). Entrou em dois lugares:
