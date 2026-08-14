@@ -5434,8 +5434,8 @@ export function ReserveListScreen() {
                 }
                 return (
                   <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
-                    <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar TODOS{<br />}10 anos (-10%)</button>
                     <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>5️⃣ Renovar TODOS{<br />}5 anos</button>
+                    <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar TODOS{<br />}10 anos (-10%)</button>
                     <button onClick={bulkDeixarIr} style={btn('#FDECEA', '#a23325', false)}>😢 Deixar TODOS ir{<br />}vão pro leilão</button>
                   </div>
                 )
