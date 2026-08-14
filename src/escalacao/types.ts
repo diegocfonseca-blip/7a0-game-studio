@@ -558,6 +558,13 @@ export interface EscState {
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.
   copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).
   copaPrizeDone?: Record<string, boolean> // 🌍 Copa do Mundo: chave `${mgrId}:${temporada}` já creditada (+100) — trava anti-perda/anti-dobro no próprio estado do jogo (persiste no autosave), pra o prêmio não sumir se o app fechar entre creditar e marcar "já joguei".
+  // 🌍 ESPELHO do mural da Copa do Mundo (Diego 14/08): o mural "de verdade" segue
+  // vivendo local (localStorage `llcopa:<seed>`, ver copa-mundo.tsx — motor isolado
+  // de propósito, não mexi nisso). Esse campo aqui é só uma CÓPIA que anda junto
+  // com o save (nuvem), pra sobreviver a troca de aparelho/limpeza de dados —
+  // antes, o título de Copa do Mundo do ranking global só existia no aparelho de
+  // origem e sumia se a pessoa trocasse de celular. Mescla com o local, nunca some.
+  copaMundoMural?: { season: number; selecao: string; campeao: string; voce: boolean }[]
   copaRound?: number // 🌐 ONLINE (Diego 11/08): fase da Copa Legends ao vivo AGORA (0=oitavas), sincronizada pelo host — sem isto, cada convidado avançava a fase sozinho no próprio relógio e via um placar diferente do host num F5/reconexão.
   stadiums?: Record<number, { inv: Record<string, number>; ext: string[] }> // 🏟️ estádio da carreira por técnico (mgrId): moedas investidas por setor + melhorias prontas. Rende no fim de cada temporada.
   careerCopaHonors?: Record<string, number> // 🏆 títulos da COPA LEGENDS por time (teamKey → nº de Copas) — o campeão agora fica registrado, não só embolsa as moedas

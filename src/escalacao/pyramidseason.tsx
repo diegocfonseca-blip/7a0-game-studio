@@ -22,7 +22,7 @@ import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard, SponsorLoyaltyBanner } from './estadio'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
-import { CopaMundoGate, loadCopaSave } from './copa-mundo'
+import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste } from './sport'
 import { resilientWrite } from './pending'
@@ -3775,7 +3775,7 @@ export function PyramidSeasonScreen() {
         if (!you) return
         const h = (state.careerHonors as Record<string, Honors> | undefined)?.[`m${youId}`] ?? EMPTY_HONORS
         const copas = state.careerCopaHonors?.[`m${youId}`] ?? 0
-        const world = (loadCopaSave(state.seed)?.mural ?? []).filter(m => m.voce).length
+        const world = mergedMundialMural(state.seed, state.copaMundoMural).filter(m => m.voce).length
         const money = Math.round(state.careerCoins?.[youId] ?? 0)
         await supabase.from('esc_pyramid_rank_snap').upsert({
           user_id: data.user.id, season_no: state.seasonNo, team_name: you.teamName,
@@ -4693,7 +4693,8 @@ export function PyramidSeasonScreen() {
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [youId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
-              onGoRank={() => { setTab('ranking'); setRankSub('clubes') }} />
+              onGoRank={() => { setTab('ranking'); setRankSub('clubes') }}
+              onMural={entries => dispatch({ type: 'COPA_MUNDO_MURAL_SYNC', entries })} />
           })()
           // 🗳️ a VOTAÇÃO é só do ONLINE (vários técnicos na sala decidem juntos).
           // No SOLO/carreira offline NUNCA vota — mesmo com 2º clube (multiclube),

@@ -2620,6 +2620,7 @@ type Action =
   | { type: 'STEP_DOWN_HOST' } // 🪑 host antigo ABAIXA A BOLA: a posse (game_rooms.host_id) já é de outro no banco → deixo de ser autoritativo e volto a só RECEBER. Garante "um dono só" (nunca dois hosts brigando).
   | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
+  | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
@@ -3194,6 +3195,17 @@ export function reducer(state: EscState, action: Action): EscState {
     // NUNCA ficam dois hosts rodando a própria liga/Copa (bug do Sapekeiro).
     case 'STEP_DOWN_HOST': { s.isHost = false; return s }
     case 'FIX_YOU_IDX': { s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
+    case 'COPA_MUNDO_MURAL_SYNC': {
+      // 🌍 mescla por temporada (nunca duplica, nunca perde) — o mural local
+      // segue sendo a fonte de verdade pro JOGO; isso aqui é só a cópia que
+      // anda com o save pra sobreviver a troca de aparelho.
+      const existing = s.copaMundoMural ?? []
+      const seen = new Set(existing.map(e => e.season))
+      const novos = action.entries.filter(e => !seen.has(e.season))
+      if (!novos.length) return s
+      s.copaMundoMural = [...existing, ...novos]
+      return s
+    }
     case 'COPA_MUNDO_PRIZE': {
       // 🌍 +100 por clube SEU classificado (Diego 04/08: dormindo recebe igual —
       // independência total). logFin roteia o extrato do dormindo pro stash.

@@ -92,6 +92,17 @@ export function loadCopaSave(seed: number): CopaSave | null {
   try { const r = localStorage.getItem(skey(seed)); return r ? JSON.parse(r) as CopaSave : null } catch { return null }
 }
 function saveCopaSave(seed: number, s: CopaSave) { try { localStorage.setItem(skey(seed), JSON.stringify(s)) } catch { /* segue */ } }
+// 🌍 mural "completo" pra exibição/ranking (Diego 14/08): junta o mural LOCAL
+// (fonte de verdade do jogo) com o espelho que anda no save da nuvem
+// (`state.copaMundoMural`) — dedup por temporada. Assim, títulos de Copa do
+// Mundo continuam contando mesmo se a pessoa trocar de aparelho ou limpar o
+// navegador (antes, só existiam no aparelho de origem).
+export function mergedMundialMural(seed: number, cloudMural?: { season: number; selecao: string; campeao: string; voce: boolean }[]) {
+  const local = loadCopaSave(seed)?.mural ?? []
+  const seen = new Set(local.map(m => m.season))
+  const extra = (cloudMural ?? []).filter(m => !seen.has(m.season))
+  return [...local, ...extra]
+}
 // âncora do calendário: a 1ª Copa do Mundo é na temporada 100, e depois de 10 em
 // 10 (100, 110, 120…). Save que ainda NÃO jogou nenhuma Copa é realinhado pra 100
 // (corrige o save antigo que tinha nascido com âncora 110). Quem já jogou uma Copa
@@ -240,13 +251,19 @@ function MiniLive({ nmH, nmA, hPais, aPais, ev, min, bold }: { nmH: string; nmA:
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, agenciaOn, onGoRank }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, agenciaOn, onGoRank, onMural }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void }) {
   // 🔗 "(aba Rank)" virou link de verdade (Diego 14/08): antes era só texto
   // solto, a pessoa tinha que sair da tela e procurar a aba na mão.
   const rankLink = onGoRank
     ? <button onClick={onGoRank} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontWeight: 900, color: RED, textDecoration: 'underline', cursor: 'pointer' }}>→ ver aba Rank</button>
     : <>(aba Rank)</>
   const save = useMemo(() => ensureSave(seed), [seed])
+  // 🌍 BACKFILL do espelho (Diego 14/08): toda vez que essa tela abre, aproveita
+  // pra mandar o mural LOCAL inteiro pro save (a ação já dedupa por temporada —
+  // só entra o que ainda não tinha). Sem isso, só entrariam títulos NOVOS a
+  // partir de hoje; assim, o histórico de quem já tem Copa do Mundo ganha
+  // registra também, sem esperar a próxima edição.
+  useEffect(() => { if (save.mural.length) onMural?.(save.mural) }, [seed, save.mural.length]) // eslint-disable-line react-hooks/exhaustive-deps
   const [open, setOpen] = useState(false)
   const copaNow = isCopaSeason(save, seasonNo) && !save.played.includes(seasonNo)
   const inTop16 = myPos >= 0
@@ -291,7 +308,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
         <span style={{ position: 'relative' }}>🌍 DISPUTAR A COPA DO MUNDO</span>
         <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>chegou a hora — ela só volta na temporada {seasonNo + 10}!</span>
       </button>
-      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onCard={onCard} agenciaOn={agenciaOn} onClose={() => setOpen(false)} />}
+      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onCard={onCard} onMural={onMural} agenciaOn={agenciaOn} onClose={() => setOpen(false)} />}
     </>
   )
 }
@@ -309,7 +326,7 @@ const CMModal = ({ children, wide = false }: { children: React.ReactNode; wide?:
     </div>
   </div>, document.body)
 
-function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, agenciaOn, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onClose: () => void }) {
+function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onMural, agenciaOn, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
   // um gerador compartilhado com estado fazia o resultado mudar sozinho)
   const [phase, setPhase] = useState<'select' | 'convoke' | 'cup'>('select')
@@ -348,7 +365,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
   )
   if (phase === 'cup' && entrants) return (
     <CMModal wide>
-      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onCard={onCard} agenciaOn={agenciaOn} onClose={onClose} />
+      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onCard={onCard} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
     </CMModal>
   )
   return null
@@ -569,7 +586,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
   }
 }
 
-function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onClose: () => void }) {
+function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo), [entrants, seed, seasonNo])
@@ -670,7 +687,9 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, agenciaOn,
       : world.qf.some(t => t.h === myIdx || t.a === myIdx) ? 32
       : 10
     if (cmPrize > 0) onPrize?.(cmPrize)
-    saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }] })
+    const novaEntrada = { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }
+    saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, novaEntrada] })
+    onMural?.([novaEntrada]) // 🌍 espelha a conquista NOVA pro save (nuvem) na hora, sem esperar reabrir a tela
     // 🏆 REGRA DO DIEGO (04/08): campeão do MUNDO também é TÍTULO no ranking
     // Carreira — grava a linha co:solo…:copamundo (mesmo padrão da liga/Copa).
     // 🔒 09/08: só carreira NOVA (agenciaOn) conta pro ranking — mesma regra da
