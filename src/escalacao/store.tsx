@@ -255,7 +255,7 @@ function escadaAfterPlacements(s: EscState) {
 const TV_COTA: Record<string, number> = { A: 20, B: 15, C: 10, D: 5, V: 1 }
 // 🕴️ BICO DE FOLGA (Guia da Carreira, 13/08): renda extra fixa enquanto o clube
 // tá na Várzea/D, a partir da T3 — 3 patrocinadores reais do jogo, escolha livre.
-const BICO_BRANDS: Record<'vadico' | 'maxjoias' | 'ero', string> = { vadico: 'Vadico Veículos', maxjoias: 'Max Jóias', ero: 'Ero Dentista' }
+const BICO_BRANDS: Record<'vadico' | 'maxjoias' | 'ero' | 'reidastintas', string> = { vadico: 'Vadico Veículos', maxjoias: 'Max Jóias', ero: 'Ero Dentista', reidastintas: 'Rei das Tintas' }
 const BICO_VALOR: Record<'V' | 'D', number> = { V: 2, D: 4 }
 function applyTVIncome(s: EscState) {
   const online = s.onlineMode === 'online'
@@ -2649,7 +2649,7 @@ type Action =
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
-  | { type: 'SET_BICO'; brand: 'vadico' | 'maxjoias' | 'ero' | null } // 🕴️ Bico de Folga: escolhe/troca (ou larga, null) o patrocinador do bico — renda entra sozinha na virada de temporada
+  | { type: 'SET_BICO'; brand: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas' | null } // 🕴️ Bico de Folga: escolhe/troca (ou larga, null) o patrocinador do bico — renda entra sozinha na virada de temporada
   | { type: 'BICO_NEWS'; kind: 'saiu' | 'voltou' } // 🕴️ notícia de virada (subiu pra C = desligou · caiu pra D de novo = reabriu) — repete quantas vezes acontecer, não é banner de uma vez só
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
   | { type: 'EVENTO_DECIDE_CRIA'; nome: string; xi: string[] } // 🌱 evento sem reserva na posição: o técnico ESCOLHE 1 de 3 nomes de Cria da Base (ev.criaOptions) pra tapar o buraco — acaba o truque de jogar sempre só com 11, sem pular a decisão do técnico

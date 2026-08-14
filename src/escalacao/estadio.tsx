@@ -8,6 +8,7 @@ import type { StadiumSave, SponsorBetTier, SponsorBrand } from './estadiodata'
 import { VADICO_LOGO } from './vadico'
 import { ERO_LOGO } from './ero'
 import { MAXJOIAS_LOGO } from './maxjoias'
+import { REIDASTINTAS_LOGO } from './reidastintas'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { useMeuSocio, batizarEstadio } from './manto'
@@ -35,7 +36,7 @@ const P = (a: number[][]) => a.map(p => p.join(',')).join(' ')
 // meta escolhida → ganha o valor dela. Ficou aquém → NADA. Superou (mirou
 // baixo) → só o valor apostado mesmo assim. 3 marcas por nível (identidade).
 const TIER_BG: Record<SponsorBetTier, string> = { 1: '#EAF3FF', 2: '#FFF3CF', 3: 'linear-gradient(90deg,#FFE79A,#FFC400)' }
-const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : undefined
+const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : undefined
 
 // cartão de UM nível (usado dentro do banner de escolha)
 function SponsorTierCard({ tier, div, chosen, onPick }: { tier: SponsorBetTier; div: string; chosen?: { tier: SponsorBetTier; brandId: string }; onPick: (brandId: string) => void }) {

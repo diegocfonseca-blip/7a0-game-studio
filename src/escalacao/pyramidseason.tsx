@@ -4882,10 +4882,11 @@ export function PyramidSeasonScreen() {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
                   const bicoOn = (state.seasonNo ?? 1) >= 3 && (myDiv === 'V' || myDiv === 'D')
                   const valor = myDiv === 'V' ? 2 : 4
-                  const BRANDS: { k: 'vadico' | 'maxjoias' | 'ero'; ic: string; bg: string; nome: string; cargo: string }[] = [
+                  const BRANDS: { k: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; ic: string; bg: string; nome: string; cargo: string }[] = [
                     { k: 'vadico', ic: '🚗', bg: '#FDE68A', nome: 'Vadico Veículos', cargo: 'vendedor nas folgas' },
                     { k: 'maxjoias', ic: '💍', bg: '#F5D0E8', nome: 'Max Jóias', cargo: 'atendente na loja' },
                     { k: 'ero', ic: '🦷', bg: '#CFE8FB', nome: 'Ero Dentista', cargo: 'recepcionista' },
+                    { k: 'reidastintas', ic: '🎨', bg: '#FBD0C6', nome: 'Rei das Tintas', cargo: 'pintor de parede nas folgas' },
                   ]
                   return (
                     <div style={{ marginTop: 10 }}>

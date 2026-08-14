@@ -73,14 +73,14 @@ export const SPONSOR_BET_META: Record<SponsorBetTier, { label: string; emoji: st
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
   V: [2, 4, 6], D: [4, 8, 12], C: [8, 16, 24], B: [16, 32, 48], A: [32, 64, 96],
 }
-export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' }
+export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
 export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', tier: 1 },
   { id: 'acougue',     name: 'Açougue Bom Corte',    emoji: '🥩', color: '#8A1E1E', tier: 1 },
   { id: 'maxjoias',    name: 'Max Joias',            emoji: '💍', color: '#B8860B', tier: 1, logo: 'maxjoias' }, // amigo do Diego (07/08)
   { id: 'espetinho',   name: 'Espetinho do Baixinho', emoji: '🍗', color: '#8A1E1E', tier: 2 },
-  { id: 'borracharia', name: 'Borracharia do Gordo',  emoji: '🛞', color: '#1C1C1C', tier: 2 },
+  { id: 'reidastintas', name: 'Rei das Tintas',       emoji: '🎨', color: '#C2452F', tier: 2, logo: 'reidastintas' }, // amigo do Diego (14/08)
   { id: 'guarana',     name: 'Guaraná Craque',        emoji: '🥤', color: '#127A33', tier: 2 },
   { id: 'vadico',      name: 'Vadico Veículos',       emoji: '🚗', color: '#0E3E86', tier: 3, logo: 'vadico' },
   { id: 'ero',         name: 'ERO Odontologia',       emoji: '🦷', color: '#2E6C9E', tier: 3, logo: 'ero' }, // amigo do Diego (05/08)
