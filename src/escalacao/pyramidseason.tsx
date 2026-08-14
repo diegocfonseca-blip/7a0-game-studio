@@ -2024,7 +2024,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 // ── 🔁 BANNER DO INTERVALO (carreira offline): pausa aos 45' e deixa o técnico
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
-function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG, awayG, youIsHome, onConfirm }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void }) {
+function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG, awayG, youIsHome, onConfirm, suspensoId }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void; suspensoId?: string }) {
   const [formation, setFormation] = useState<FormationKey>(mgr.formation)
   const [tactic, setTactic] = useState<Tac>(baseTactic)
   const [baseline, setBaseline] = useState<string[]>(baseXIids) // conta as trocas contra isto (reinicia se troca formação)
@@ -2042,10 +2042,13 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
   const missFor = (f: FormationKey) => SECTORS.filter(pos => availByPos(pos) < FORMATIONS[f][pos])
   const pickForm = (f: FormationKey) => {
     if (f === formation || missFor(f).length) return
-    const ids = bestXI(mgr.squad, f).map(c => c.id) // nova formação: melhor XI real pra ela (reinicia a contagem de trocas)
+    // 🎭 suspenso (banco/gancho/lesão) fica FORA da remontagem do melhor XI —
+    // bug 14/08: a troca de formação no intervalo trazia o machucado de volta.
+    const ids = bestXI(suspensoId ? mgr.squad.filter(c => c.id !== suspensoId) : mgr.squad, f).map(c => c.id)
     setFormation(f); setXi(ids); setBaseline(ids); setSel(null)
   }
   const tap = (id: string) => {
+    if (suspensoId && id === suspensoId) return // 🎭 suspenso não entra em troca (mesma regra da escalação normal)
     if (sel === id) { setSel(null); return }
     if (sel == null) { setSel(id); return }
     const a = byId.get(sel), b = byId.get(id)
@@ -4514,6 +4517,7 @@ export function PyramidSeasonScreen() {
           const awayG = g1.length - homeG              // visitante à direita
           return <HalftimeBanner mgr={mgrMe} baseXIids={myXI.map(c => c.id)} baseTactic={myTactic}
             homeName={myMatch.h} awayName={myMatch.a} homeG={homeG} awayG={awayG} youIsHome={iAmHome}
+            suspensoId={suspenso?.cardId}
             onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round: curMatchIdx, xi2: ids, formation, tactic }); setHalftimeOpen(false) }} />
         })()}
         {/* ⚽ BANNER DO PÊNALTI (carreira offline): jogo decisivo de última hora, um gol

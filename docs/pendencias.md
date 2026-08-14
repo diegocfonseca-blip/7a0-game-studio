@@ -1,5 +1,23 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🎭🐛 FIX: machucado voltava pro time pela troca de formação/intervalo — ✅ NO AR (14/08)
+Relato de usuário (via Diego): jogador se lesionou, o Cria da Base entrou,
+o machucado foi pro banco — mas ao "alterar a escalação" o usuário
+conseguiu colocar o machucado DE VOLTA no time antes da rodada da volta.
+Investigação: a troca direta no campinho já era travada (tela + motor),
+mas existiam DUAS portas laterais sem trava:
+1. **Troca de formação** (a principal): o `CHANGE_FORMATION` remontava o
+   "melhor XI" da formação nova com o elenco INTEIRO — incluindo o
+   suspenso (lesão/gancho/noitada). Agora o suspenso fica fora da
+   remontagem até a rodada da volta.
+2. **Intervalo** (2º tempo): a troca de jogador e a troca de formação do
+   `HalftimeBanner` não checavam o suspenso. Agora a tela bloqueia o
+   toque nele (mesma regra da escalação normal) e o motor (`SET_HALFTIME`)
+   tem a trava de verdade — mesma dupla proteção do `SET_LINEUP`.
+Regra preservada: trava sempre com o aviso do porquê (o banner "fulano
+está fora — volta na rodada X" já existia e continua). Reversível:
+`git revert`, não muda nenhuma regra de jogo além de fechar o furo.
+
 ## 🤝📊 MEDIA KIT pra apresentar a marcas/patrocinadores — ✅ entregue v1 (14/08)
 Diego pediu um media kit de alta qualidade pra apresentar o jogo a
 empresas (bets e outras) e buscar patrocínio. Entregue como página HTML

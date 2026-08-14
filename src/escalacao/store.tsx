@@ -4462,6 +4462,13 @@ export function reducer(state: EscState, action: Action): EscState {
       if (ids.length !== 11) return s // não são 11 distintos
       const cards = ids.map(id => byId.get(id)).filter((c): c is NonNullable<typeof c> => !!c)
       if (cards.length !== 11 || cards.some(c => c.fake)) return s // algum id não é do elenco ou é fake
+      // 🎭 SUSPENSO NÃO VOLTA NO INTERVALO (bug 14/08, relato de usuário): o
+      // machucado/expulso/noitada que está fora até a rodada da volta não pode
+      // entrar no time do 2º tempo — era a outra porta lateral (junto com a
+      // troca de formação) por onde ele voltava pro jogo. Mesma regra do
+      // SET_LINEUP: a tela bloqueia, aqui é a trava de verdade.
+      const evH = s.eventoTemporada
+      if (evH && evH.season === s.seasonNo && evH.status === 'banco' && (evH.volta ?? 0) > s.round && evH.mgrId === action.mgrId && ids.includes(evH.cardId)) return s
       if (action.formation) {
         const need = FORMATIONS[action.formation]
         if (!need) return s
@@ -4862,7 +4869,14 @@ export function reducer(state: EscState, action: Action): EscState {
       // sobrescrevia a troca manual pelo bestXI e por isso os gols ainda mudavam.
       for (let r = 0; r < s.round; r++) if (mineCl[r] == null) mineCl[r] = frozenXIids(mineCl, r, m.squad, antiga)
       m.formation = action.formation
-      mineCl[s.round] = bestXIids(m.squad, action.formation)
+      // 🎭 SUSPENSO NÃO VOLTA PELA FORMAÇÃO (bug 14/08, relato de usuário): o
+      // bestXI da formação nova remontava o "melhor time" com o elenco INTEIRO —
+      // inclusive o machucado/expulso/noitada que estava fora até a rodada da
+      // volta. Ele saía do banco por uma porta lateral. Agora o suspenso fica de
+      // fora da remontagem (mesma regra da troca manual, que já bloqueava).
+      const evF = s.eventoTemporada
+      const suspensoIdF = evF && evF.season === s.seasonNo && evF.status === 'banco' && (evF.volta ?? 0) > s.round && evF.mgrId === m.id ? evF.cardId : null
+      mineCl[s.round] = bestXIids(suspensoIdF ? m.squad.filter(c => c.id !== suspensoIdF) : m.squad, action.formation)
       s.careerLineup = { ...(s.careerLineup ?? {}), [m.id]: mineCl }
       return s
     }
