@@ -1,5 +1,16 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🌍 Copa do Mundo: "(aba Rank)" virou link de verdade — ✅ NO AR (14/08)
+Item 4 da auditoria de UX, mockup aprovado — mas o Diego pediu escopo
+menor: só o link, sem o cartão de status fixo que eu tinha sugerido junto.
+No texto que explica a regra da Copa do Mundo Legends (precisa estar no
+TOP 20 do ranking de clubes), "(aba Rank)" agora é um link de verdade —
+toca e já cai direto na aba Rank › Local. Aparece nos dois avisos que
+citam essa regra (antes da temporada 100 destravar, e quando a temporada
+é de Copa mas seu clube não tá no Top 20). Não mexi em mais nada — sem
+cartão fixo, sem ícone novo, só o texto virou clicável. Reversível:
+`git revert`.
+
 ## 🚨 Fila de avisos (1 por vez) no Modo Carreira — ✅ NO AR (14/08)
 Item 3 da auditoria de UX, com mockup aprovado pelo Diego antes de codar.
 Quando bate mais de um aviso "que some quando resolve" na mesma hora

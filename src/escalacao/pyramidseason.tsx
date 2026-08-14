@@ -4684,7 +4684,8 @@ export function PyramidSeasonScreen() {
             return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [youId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
-              agenciaOn={!!state.agenciaOn} />
+              agenciaOn={!!state.agenciaOn}
+              onGoRank={() => { setTab('ranking'); setRankSub('clubes') }} />
           })()
           // 🗳️ a VOTAÇÃO é só do ONLINE (vários técnicos na sala decidem juntos).
           // No SOLO/carreira offline NUNCA vota — mesmo com 2º clube (multiclube),
