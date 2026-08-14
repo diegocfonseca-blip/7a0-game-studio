@@ -1,5 +1,33 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🌍☁️ COPA DO MUNDO agora "anda" com o save na nuvem (14/08)
+Continuação da investigação do ranking global: um usuário (Dérick FC) notou
+que, depois do bug do 2º clube corrigido, o número de Copa do Mundo dele
+tinha CAÍDO (tinha 6, apareceu 2). Analisei a fundo — Diego perguntou se
+tinha algo errado com mais gente, então audite a tabela inteira:
+- **A causa raiz** (bem diferente do bug do multiclube): TUDO no jogo já
+  sincroniza pela nuvem (títulos de liga, Copa Legends, dinheiro) — MENOS a
+  Copa do Mundo Legends, que sempre foi guardada só no APARELHO da pessoa
+  (decisão antiga, feita de propósito isolada pra ser fácil de reverter se
+  desse problema). Resultado: quem troca de aparelho, limpa o navegador etc.
+  perde a CONTAGEM de Copa do Mundo no ranking (o resto continua intacto).
+- **Conferi todo mundo**: só essa 1 conta tinha uma queda registrada — não é
+  espalhado, mas o RISCO é de todo mundo (é estrutural, não um bug pontual).
+- **O que já não dava mais pra recuperar**: o histórico perdido dele (as 4
+  conquistas que sumiram) já não existe em lugar nenhum acessível — nunca
+  foi salvo fora do aparelho antigo dele. Isso não tem conserto.
+- **O que consertei pra não acontecer de novo com ninguém**: agora, toda vez
+  que a Copa do Mundo é disputada (ou a tela dela é aberta), uma CÓPIA do
+  "mural" (histórico de conquistas) viaja junto com o save que já sincroniza
+  na nuvem — sem mexer no motor de verdade da Copa do Mundo (que continua
+  100% isolado, do jeito que foi feito por segurança). O ranking passa a
+  somar as duas fontes (aparelho + nuvem), então a partir de agora ninguém
+  mais perde essa contagem trocando de aparelho — e quem AINDA tem o
+  histórico intacto no aparelho vai "sincronizar" ele automaticamente na
+  próxima vez que abrir a tela da Copa do Mundo (sem precisar fazer nada).
+- Reversível: `git revert` (é só um campo novo espelhando, não mexe em nada
+  que já existia).
+
 ## 🐛🌍 RANKING GLOBAL: achado e corrigido o bug do "time some do rank" (14/08)
 Diego reportou reclamação real (dono do "Xurupitas FC", que tem 232 títulos
 de Série A — muito provavelmente o time mais decorado do jogo — sumindo do
