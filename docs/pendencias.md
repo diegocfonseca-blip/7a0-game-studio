@@ -1,5 +1,15 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🏅 SELOS de troféu: ordem visual agora bate com a ordem de desempate — ✅ NO AR (14/08)
+Diego mandou print de grupo (Gabriel comentando "caí pra terceiro mas olha a
+diferença") — reparou que os selos apareciam Mundo→Copa→A→B..., mas quem
+decide quem fica na frente é Mundo→A→Copa→B→C→D (mudança de hoje mais cedo).
+Reordenei o visual dos selos pra bater com o peso de verdade — Mundo, depois
+A, depois Copa, depois B/C/D/V — nos DOIS rankings (local `RankingTab` e
+`GlobalRankTab`). Dinheiro continua por último em tudo (ele confirmou).
+Reversível: `git revert`. Só troca a ORDEM que os selos aparecem, não muda
+nenhum número nem a lógica de quem ganha de quem (isso já tava certo).
+
 ## 🌍 RANKING GLOBAL: Copa do Mundo decide ANTES da Série A — ✅ NO AR (14/08)
 Diego pediu explicitamente (só o rank GLOBAL, não mexeu no local do save):
 Copa do Mundo Legends na frente da Série A no desempate. Ordem nova:

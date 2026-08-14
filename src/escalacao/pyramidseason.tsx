@@ -2844,9 +2844,11 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
                 </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                    {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › B › C › D), pra bater com o que decide quem fica na frente */}
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
+                    {(r.h.A ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.h.A}</span>}
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copas > 1 ? r.copas : ''}</span>}
-                    {(['A', 'B', 'C', 'D', 'V'] as Div[]).map(d => (r.h[d] ?? 0) > 0 ? (
+                    {(['B', 'C', 'D', 'V'] as Div[]).map(d => (r.h[d] ?? 0) > 0 ? (
                       <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{r.h[d]}</span>
                     ) : null)}
                   </>}
@@ -2992,9 +2994,11 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
                   </td>
                   <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                     {totalTit === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                      {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › B › C › D) */}
                       {r.world_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.world_titles > 1 ? r.world_titles : ''}</span>}
+                      {r.honors_a > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.honors_a}</span>}
                       {r.copa_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copa_titles > 1 ? r.copa_titles : ''}</span>}
-                      {([['A', r.honors_a], ['B', r.honors_b], ['C', r.honors_c], ['D', r.honors_d], ['V', r.honors_v]] as [Div, number][]).map(([d, n]) => n > 0 ? (
+                      {([['B', r.honors_b], ['C', r.honors_c], ['D', r.honors_d], ['V', r.honors_v]] as [Div, number][]).map(([d, n]) => n > 0 ? (
                         <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{n}</span>
                       ) : null)}
                     </>}
