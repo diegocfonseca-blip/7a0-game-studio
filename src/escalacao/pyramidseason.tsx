@@ -35,6 +35,14 @@ const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
 const COPA_LEG_GREEN = '#14401f' // 🎨 identidade da Copa Legends (Diego 11/08): verde escuro + dourado
+// 🎨 verde brilhante (Diego 14/08): mesmo mecanismo de brilho da carta Promessa
+// (degradê + feixe de luz varrendo), só que puxando pro dourado da Copa Legends.
+const COPA_LEG_HOLO = 'linear-gradient(150deg,#3E8F5C,#14401f 55%,#0a2612)'
+function CopaLegSheen({ dur = 3.4 }: { dur?: number }) {
+  return <div style={{ position: 'absolute', top: '-60%', bottom: '-60%', left: 0, width: '30%',
+    background: 'linear-gradient(105deg,transparent,rgba(255,214,120,.55),transparent)',
+    animation: `apoioSheen ${dur}s ease-in-out infinite`, pointerEvents: 'none', zIndex: 1 }} />
+}
 const SLATE = '#3E4A5A' // 🔄 marca de EMPRÉSTIMO (cinza-ardósia): NEUTRA de propósito — cor é sagrada dos tiers, então o emprestado não empresta cor de tier nenhum
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
@@ -3281,12 +3289,12 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
   const justScored = !done && lastG != null && legMin - lastG.min <= 1
   const barPct = Math.max(0, Math.min(100, Math.round((legMin / 90) * 100)))
   return (
-    <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${justScored ? GOLD : you ? '#B23B2E' : !done ? COPA_LEG_GREEN : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, marginBottom: big ? 9 : 6 }}>
+    <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${justScored ? GOLD : you ? '#B23B2E' : !done ? '#3E8F5C' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, marginBottom: big ? 9 : 6 }}>
       {/* 🎨 identidade da Copa Legends (Diego 11/08): moldura verde-escura só
           enquanto o jogo tá AO VIVO; barra de progresso no TOPO do card. */}
       {!done && (
         <div style={{ height: 4, background: 'rgba(0,0,0,.15)' }}>
-          <div style={{ height: '100%', width: `${barPct}%`, background: COPA_LEG_GREEN }} />
+          <div style={{ height: '100%', width: `${barPct}%`, background: 'linear-gradient(90deg,#3E8F5C,#FFC400)' }} />
         </div>
       )}
       {/* 🎨 faixa branca no meio com o placar, escudo em cima e nome embaixo —
@@ -3364,9 +3372,10 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
   // em destaque). Sem toggle — as duas ficam empilhadas na mesma aba.
   return (
     <div>
-      <div style={{ ...box(`linear-gradient(150deg,${COPA_LEG_GREEN},#0a1f13)`), padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0, color: GOLD }}>🏆 COPA LEGENDS</p>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '2px 0 0' }}>Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório</p>
+      <div style={{ ...box(COPA_LEG_HOLO), position: 'relative', overflow: 'hidden', padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
+        <CopaLegSheen />
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2 }}>🏆 COPA LEGENDS</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório</p>
       </div>
       {finished && champ && (
         <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>

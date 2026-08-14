@@ -1,5 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## ✨🏆 Brilho holográfico na Copa dos 8 (roxo) e Copa Legends (verde) — ✅ NO AR (14/08)
+Mockup aprovado (artifact enviado no chat). Diego pediu "roxo brilhante,
+igual ao Promessa" pra Copa dos 8 (online) e o mesmo brilho no verde-escuro
+da Copa Legends (carreira) — reaproveitando o MESMO mecanismo de brilho que
+a carta 💎 Promessa já usa (degradê + feixe de luz varrendo em diagonal),
+sem inventar efeito novo:
+- **Copa dos 8** (`screens.tsx`): `PURPLE_HOLO` = mesmo degradê da carta
+  Promessa (`#C9A9FF → #8B5CF6 → #5B2FB0`). Aplicado nos 2 banners de
+  cabeçalho ("COPA DOS 8"/"Chegou a Copa dos 8!") com `ApoioSheen`
+  reaproveitado de `apoio.tsx`, e na borda/barra de progresso do card do
+  jogo ao vivo.
+- **Copa Legends** (`pyramidseason.tsx`): `COPA_LEG_HOLO` = degradê verde
+  (`#3E8F5C → #14401f → #0a2612`) com um brilho novo `CopaLegSheen`
+  (mesma keyframe `apoioSheen` global, só que o feixe sai dourado/quente em
+  vez de branco — reforça "troféu"). Aplicado no banner "COPA LEGENDS" da
+  aba Tabelas e na borda/barra do card do jogo ao vivo.
+- **NÃO mexi** no cabeçalho grande do clube (torcidômetro/moedas/rodada, que
+  também fica verde durante a Copa Legends) — não estava no mockup aprovado
+  e é uma área densa demais pra arriscar sem Diego ver antes.
+- **NÃO mexi** na tabela de divisão da carreira (Série A/B/C/D) — o G4/Z4 de
+  lá já é a regra real de acesso/queda, sem descompasso pra corrigir.
+Reversível: `git revert`, é só cor/gradiente/CSS, nenhuma regra mudou.
+
 ## 🏆 Tabela do Jogo Rápido/Online: faixa "classifica" única (Copa dos 8) — ✅ NO AR (14/08)
 Mockup aprovado (`docs` — ver artifact enviado no chat). A tabela (Modo Rápido
 offline/online, `TableBox` em `screens.tsx`) tinha 4 faixas de cor proporcionais

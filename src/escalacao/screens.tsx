@@ -71,6 +71,9 @@ const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', bo
 const GREEN = '#1B7A3D'
 const RED = '#E8503A'
 const PURPLE = '#7C3AED'
+// 🎨 identidade da Copa dos 8 (Diego 14/08): roxo brilhante, MESMO degradê da
+// carta 💎 Promessa (não é um brilho novo, é o mesmo mecanismo reaproveitado).
+const PURPLE_HOLO = 'linear-gradient(150deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
 
 // ícone do Instagram (traço, herda a cor do texto — fica sutil onde for usado)
@@ -4102,13 +4105,13 @@ export function EscSeason() {
           const justScored = live && lastGoalMin >= 0 && copaMin - lastGoalMin <= 1
           const barPct = Math.max(0, Math.min(100, Math.round((copaMin / 90) * 100)))
           return (
-            <Box key={`${tie.aId}-${tie.bId}`} bg="transparent" style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? PURPLE : undefined }} shadow={4}>
-              {/* 🎨 identidade da Copa dos 8 (Diego 11/08): moldura roxa só enquanto o
-                  jogo tá AO VIVO (decidido volta pro preto, senão briga com o "avança");
-                  barra de progresso agora no TOPO do card, não mais no meio. */}
+            <Box key={`${tie.aId}-${tie.bId}`} bg="transparent" style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
+              {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): moldura roxa
+                  só enquanto o jogo tá AO VIVO (decidido volta pro preto, senão briga
+                  com o "avança"); barra de progresso no TOPO, agora com o degradê. */}
               {live && (
                 <div style={{ height: 4, background: 'rgba(0,0,0,.15)' }}>
-                  <div style={{ height: '100%', width: `${barPct}%`, background: PURPLE }} />
+                  <div style={{ height: '100%', width: `${barPct}%`, background: PURPLE_HOLO }} />
                 </div>
               )}
               {/* 🎨 faixa branca no meio com o placar, escudo em cima e nome embaixo
@@ -4147,10 +4150,11 @@ export function EscSeason() {
         }
         return (
           <>
-            {/* 🎨 identidade da Copa dos 8 (Diego 11/08): roxo, nome original mantido */}
-            <Box bg={`linear-gradient(100deg,${PURPLE},#5b21b6)`} className="p-3 text-center" shadow={4}>
-              <p className="font-black text-sm" style={{ ...OSWALD, color: GOLD }}>🏆 {bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA DOS 8'} · {phaseLabel.toUpperCase()}</p>
-              <p className="font-black text-[11px]" style={{ color: 'rgba(255,255,255,.75)' }}>{legLabel}</p>
+            {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
+            <Box bg={PURPLE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
+              <ApoioSheen holo={1} dur={3.2} />
+              <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>🏆 {bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA DOS 8'} · {phaseLabel.toUpperCase()}</p>
+              <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.8)', zIndex: 2 }}>{legLabel}</p>
             </Box>
             {/* 🎯 tática também na Copa dos 8 (pedido de jogador, 12/08) — mesmo botão
                 da liga; a simulação já lia state.tactics aqui, só faltava o controle
@@ -4171,21 +4175,24 @@ export function EscSeason() {
               </Box>
             )}
             {firstLegPending && (
-              <Box bg={`linear-gradient(150deg,${PURPLE},#5b21b6)`} className="p-4 space-y-2" shadow={6}>
-                <p className="font-black text-base text-center" style={{ ...OSWALD, color: GOLD }}>🏆 {bbS ? LS('Chegaram os Playoffs!', 'Playoffs are here!') : 'Chegou a Copa dos 8!'}</p>
-                <p className="text-sm font-bold text-center" style={{ color: 'rgba(255,255,255,.85)' }}>
-                  {bbS
-                    ? (seasonLang === 'en'
-                      ? <>The top 8 face off in the bracket: 1×8, 2×7, 3×6, 4×5. Winners reach the semis — the final is one game. The champion takes the <b style={{ color: GOLD }}>ring</b> to the album! 🏀</>
-                      : <>Os 8 melhores da temporada se enfrentam no mata-mata: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passa vai à semi — e a decisão é jogo único. O campeão leva o <b style={{ color: GOLD }}>anel</b> pro álbum! 🏀</>)
-                    : <>Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b style={{ color: GOLD }}>outra carta</b> pro álbum, além da carta da liga!</>}
-                </p>
-                {!manual && !streamRoom && (
-                  <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>⚽ A primeira partida começa em {copaFirstLeft}s</p>
-                )}
-                {streamRoom && !canAdvance && (
-                  <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>⏳ O host começa a Copa quando quiser…</p>
-                )}
+              <Box bg={PURPLE_HOLO} className="p-4 space-y-2" shadow={6} style={{ position: 'relative', overflow: 'hidden' }}>
+                <ApoioSheen holo={1} dur={3.4} />
+                <div className="relative space-y-2" style={{ zIndex: 2 }}>
+                  <p className="font-black text-base text-center" style={{ ...OSWALD, color: GOLD }}>🏆 {bbS ? LS('Chegaram os Playoffs!', 'Playoffs are here!') : 'Chegou a Copa dos 8!'}</p>
+                  <p className="text-sm font-bold text-center" style={{ color: 'rgba(255,255,255,.85)' }}>
+                    {bbS
+                      ? (seasonLang === 'en'
+                        ? <>The top 8 face off in the bracket: 1×8, 2×7, 3×6, 4×5. Winners reach the semis — the final is one game. The champion takes the <b style={{ color: GOLD }}>ring</b> to the album! 🏀</>
+                        : <>Os 8 melhores da temporada se enfrentam no mata-mata: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passa vai à semi — e a decisão é jogo único. O campeão leva o <b style={{ color: GOLD }}>anel</b> pro álbum! 🏀</>)
+                      : <>Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b style={{ color: GOLD }}>outra carta</b> pro álbum, além da carta da liga!</>}
+                  </p>
+                  {!manual && !streamRoom && (
+                    <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>⚽ A primeira partida começa em {copaFirstLeft}s</p>
+                  )}
+                  {streamRoom && !canAdvance && (
+                    <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>⏳ O host começa a Copa quando quiser…</p>
+                  )}
+                </div>
               </Box>
             )}
             {myTie ? (
