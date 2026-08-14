@@ -4530,14 +4530,16 @@ function CopaScorersBox({ highlight }: { highlight: number }) {
 // liga fechada menor, as faixas encolhem na mesma proporção.
 function zoneN(n: number): number { return Math.max(1, Math.round(n / 5)) }
 function zoneBot(n: number): number { return n - zoneN(n) + 1 } // 1ª posição da zona de baixo (Z4 proporcional)
+// 🏆 quem classifica pra Copa dos 8 — top 40% da liga (8 de 20, igual sempre foi
+// a régua real da Copa). Diego 14/08: virou UMA cor só (não mais degradê G4/Pré/
+// Meio/Z4) — o 1-4 (G4) ganha só uma etiquetinha dentro da faixa verde.
+function copaN(n: number): number { return Math.max(1, Math.round(n * 0.4)) }
 function zoneColor(rank: number, n = 20): string | undefined {
-  const top = zoneN(n)                          // G4 (20% de cima)
-  const pre = top + Math.max(1, Math.round(n * 0.3)) // faixa "pré" (~30%)
-  const bot = n - top                           // início do Z4 (20% de baixo)
-  if (rank <= top) return '#D6E9FA'
-  if (rank <= pre) return '#FFF3B8'
-  if (rank <= bot) return undefined
-  return '#F9D8D3'
+  const copa = copaN(n)                          // classifica pra Copa dos 8 (~40% de cima)
+  const bot = zoneBot(n)                         // 1ª posição da zona de risco (20% de baixo)
+  if (rank >= bot) return '#F9D8D3'
+  if (rank <= copa) return '#D8F0DE'
+  return undefined
 }
 
 // desfaz os resultados de UMA rodada na tabela — pra mostrar a classificação
@@ -4571,9 +4573,9 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D6E9FA' }} />G{zoneN(table.length)}</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFF3B8' }} />Pré</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />Meio</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D8F0DE' }} />{L('Classifica', 'Qualifies')}</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFC400', border: '1px solid rgba(0,0,0,.3)' }} />G{zoneN(table.length)}</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />{L('Meio', 'Mid')}</span>
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z{zoneN(table.length)}</span>
         </div>
       </div>
@@ -4610,7 +4612,12 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
             return (
               <tr key={t.id} className="border-t border-black/10 font-semibold"
                 style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
-                <td className="pr-1">{rank}</td>
+                <td className="pr-1">
+                  <span className="flex items-center gap-1">
+                    {rank}
+                    {rank <= zoneN(table.length) && <span className="text-[7px] font-black rounded px-1" style={{ background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>G{zoneN(table.length)}</span>}
+                  </span>
+                </td>
                 {/* 🛡️ escudo do clube (gerado do nome) — só no futebol; o basquete
                     segue sem, o visual dele ainda não passou pelo Diego */}
                 <td className="max-w-[150px]">

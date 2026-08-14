@@ -1,5 +1,24 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🏆 Tabela do Jogo Rápido/Online: faixa "classifica" única (Copa dos 8) — ✅ NO AR (14/08)
+Mockup aprovado (`docs` — ver artifact enviado no chat). A tabela (Modo Rápido
+offline/online, `TableBox` em `screens.tsx`) tinha 4 faixas de cor proporcionais
+(G4 azul/Pré amarelo/Meio branco/Z4 vermelho) que NÃO batiam com a regra real
+da Copa dos 8 (top 8 = 40%, não os 20% do G4 antigo). Trocado por:
+- **Faixa verde única (1 a 8 numa liga de 20)** = "Classifica" pra Copa dos 8
+  — `copaN(n)`, proporcional (40% de cima), nova função em `screens.tsx`.
+- **Etiqueta dourada "G4"** só no número da posição das 4 primeiras linhas —
+  não é mais uma cor de fundo própria, fica dentro da faixa verde.
+- **Faixa vermelha nos últimos 4** (zona de risco) — mantida exatamente como
+  já era (`zoneBot`, 20% de baixo — não mexi nessa conta).
+- Tabela continua **inteira** (todas as linhas, todos os dados: P/V/E/D/SG) —
+  Diego pediu explicitamente pra NÃO resumir depois de ver a 1ª proposta.
+- Artilharia (`TopScorersBox`) já usava a mesma linguagem visual (caixa/
+  colunas #·Jogador·Time·Gols) — não precisou mexer.
+- Não toquei nas tabelas de DIVISÃO da carreira (`DivTable`, pyramidseason.tsx)
+  — lá o G4/Z4 já É a regra real de acesso/queda, sem descompasso. Reversível:
+  `git revert`.
+
 ## 🎭🐛 FIX: machucado voltava pro time pela troca de formação/intervalo — ✅ NO AR (14/08)
 Relato de usuário (via Diego): jogador se lesionou, o Cria da Base entrou,
 o machucado foi pro banco — mas ao "alterar a escalação" o usuário
