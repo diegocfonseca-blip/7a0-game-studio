@@ -1,5 +1,17 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🎨 Rei das Tintas — novo patrocinador real — ✅ NO AR (14/08)
+Diego mandou a logo real (`src/escalacao/reidastintas.ts`, embutida como
+data URI igual Vadico/Ero/Max Joias). Entrou em dois lugares:
+- **Bico de Folga** (Clube › Patrocínio): 4ª opção ao lado de Vadico/Max
+  Joias/Ero — "pintor de parede nas folgas", mesmo valor por divisão de
+  sempre (2🪙 Várzea · 4🪙 Série D, não muda por marca).
+- **Patrocínio por aposta** (tier 2, tela de início de temporada): substituiu
+  a Borracharia do Gordo — agora mostra a logo real do Rei das Tintas.
+Saves antigos que tinham escolhido a Borracharia como aposta da temporada
+não quebram (nome só fica em branco no card antigo, sem crashar) —
+reversível: `git revert`.
+
 ## 🐛🌍 RANKING GLOBAL: achado e corrigido o bug do "time some do rank" (14/08)
 Diego reportou reclamação real (dono do "Xurupitas FC", que tem 232 títulos
 de Série A — muito provavelmente o time mais decorado do jogo — sumindo do
