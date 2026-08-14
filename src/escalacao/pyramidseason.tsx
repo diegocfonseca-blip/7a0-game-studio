@@ -2802,8 +2802,9 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
     // e o 🌍 sumia da linha ao renomear (bug 10/08).
     return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0) }
   })
-  // ordem: Série A · Copa do Mundo · Copa Legends · Série B · Série C · Série D · Dinheiro
-  rows.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  // ordem (Diego 14/08 — Várzea entra como ÚLTIMO título, antes só do dinheiro):
+  // Copa do Mundo · Série A · Copa Legends · Série B · Série C · Série D · Várzea · Dinheiro
+  rows.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || (b.h.V ?? 0) - (a.h.V ?? 0) || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
@@ -4677,8 +4678,8 @@ export function PyramidSeasonScreen() {
               const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
               return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, money, wc }
             })
-            // ordem IDÊNTICA à do Rank: Copa do Mundo · A · Copa Legends · B · C · D · dinheiro
-            rws.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+            // ordem IDÊNTICA à do Rank: Copa do Mundo · A · Copa Legends · B · C · D · Várzea · dinheiro
+            rws.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || (b.h.V ?? 0) - (a.h.V ?? 0) || b.money - a.money || a.t.name.localeCompare(b.t.name))
             // 🏛️ MULTICLUBES (regra do Diego 04/08): os DOIS clubes seus contam —
             // qualquer um deles no top-20 marca "você", e o prêmio vai pra CADA
             // clube seu classificado (independentes até na Copa do Mundo).
