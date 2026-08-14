@@ -38,13 +38,17 @@ colado embaixo de "← Menu inicial" que só volta) agora pergunta antes
 que outros botões de sair já usam no jogo. Não mudei o resto: não trocou
 a aba padrão do Online, não mudou cor de nada. Reversível: `git revert`.
 
-## 🔜 PRÓXIMOS da auditoria de UX, na ordem que o Diego pediu (14/08)
+## 🔜 Status da auditoria de UX (14/08)
 1. ~~Avisos empilhados~~ — ✅ feito (ver acima).
-2. **Copa do Mundo sem "porta"** (texto "(aba Rank)" sem link, sem status
-   fixo) — próximo a fazer.
-3. **Indicador de fase do leilão (X de 4)**: Diego questionou se vale a
-   pena — jogador só vai acompanhando o jogo, talvez não repare/não
-   precise. Combinamos discutir de novo antes de fazer (não é prioridade).
+2. ~~Copa do Mundo sem "porta"~~ — ✅ feito (ver acima).
+3. ~~Indicador de fase do leilão (X de 4)~~ — ❌ **DECIDIDO NÃO FAZER**
+   (14/08). Diego: quem joga só vai acompanhando o leilão, não repara/não
+   precisa desse contador extra. Fechado de vez, não é pendência — não
+   precisa remexer nisso em sessão futura.
+4. **Leilão de reservas com cara igual ao leilão inicial** (mesmo
+   cabeçalho dourado, só um textinho pequeno avisa que é outro leilão) —
+   combinado com o Diego trocar a cor do cabeçalho pra ficar diferente de
+   cara. Vou mandar mockup antes de mexer. PRÓXIMO a fazer.
 
 ## 🕴️ Reorganização Elenco/Agência (passo 2 e 3 da auditoria de UX) — ✅ NO AR (14/08)
 Continuação da auditoria de organização (ver entrada abaixo). Diego aprovou
