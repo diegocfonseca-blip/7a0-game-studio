@@ -2785,8 +2785,9 @@ type Honors = { A: number; B: number; C: number; D: number; V?: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0, V: 0 }
 function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number }) {
   // 🌍 títulos da COPA DO MUNDO LEGENDS (mural local por save): entram no rank e
-  // no Hall de Troféus. Ordem do ranking (pedido do Diego): Série A → Copa do
-  // Mundo → Copa Legends → Série B → Série C → Série D → Dinheiro.
+  // no Hall de Troféus. Ordem do ranking (pedido do Diego 13/08 — Copa do Mundo
+  // vira o 1º critério): Copa do Mundo → Série A → Copa Legends → Série B →
+  // Série C → Série D → Dinheiro.
   const cmMural = seed != null ? (loadCopaSave(seed)?.mural ?? []) : []
   const cmTitles: Record<string, number> = {}
   for (const m of cmMural) cmTitles[m.campeao] = (cmTitles[m.campeao] ?? 0) + 1
@@ -2802,7 +2803,7 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
     return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, money, wc: [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0) }
   })
   // ordem: Série A · Copa do Mundo · Copa Legends · Série B · Série C · Série D · Dinheiro
-  rows.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  rows.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
@@ -4627,8 +4628,8 @@ export function PyramidSeasonScreen() {
               const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
               return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, money, wc }
             })
-            // ordem IDÊNTICA à do Rank: A · Copa do Mundo · Copa Legends · B · C · D · dinheiro
-            rws.sort((a, b) => b.h.A - a.h.A || b.wc - a.wc || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
+            // ordem IDÊNTICA à do Rank: Copa do Mundo · A · Copa Legends · B · C · D · dinheiro
+            rws.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || b.money - a.money || a.t.name.localeCompare(b.t.name))
             // 🏛️ MULTICLUBES (regra do Diego 04/08): os DOIS clubes seus contam —
             // qualquer um deles no top-20 marca "você", e o prêmio vai pra CADA
             // clube seu classificado (independentes até na Copa do Mundo).
