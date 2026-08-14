@@ -1,5 +1,19 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🏆 Tabela: badge G8/Z4 simétrico + legenda embaixo — ✅ NO AR (14/08)
+Diego testou no ar e achou que só o G4 (1-4) ter etiqueta e o Z4 não ter
+ficava capenga, e que o rótulo devia ser G8 (bate com quem classifica de
+verdade pra Copa dos 8), não G4. Ajustado em `screens.tsx` (`TableBox`):
+- Etiqueta dourada nas linhas agora é `G{copaN(n)}` (G8 numa liga de 20) e
+  cobre as MESMAS 8 linhas do fundo verde — não é mais um subconjunto de 4.
+- Etiqueta vermelha `Z{zoneN(n)}` (Z4) adicionada nas últimas 4 linhas,
+  simétrica à G8 (antes só tinha a cor de fundo, sem etiqueta).
+- Legenda do cabeçalho da tabela ajustada pra bater (G8 em vez de G4).
+- Frase nova embaixo da tabela (só no futebol): "🏆 G8 = os 8 primeiros —
+  quando a liga acaba, disputam a Copa dos 8." Proporcional ao tamanho da
+  liga (`copaN`/`zoneN`), igual o resto do sistema de zonas.
+Reversível: `git revert`, só rótulo/legenda, nenhum dado mudou.
+
 ## ✨🏆 Brilho holográfico na Copa dos 8 (roxo) e Copa Legends (verde) — ✅ NO AR (14/08)
 Mockup aprovado (artifact enviado no chat). Diego pediu "roxo brilhante,
 igual ao Promessa" pra Copa dos 8 (online) e o mesmo brilho no verde-escuro

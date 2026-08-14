@@ -4580,10 +4580,9 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D8F0DE' }} />{L('Classifica', 'Qualifies')}</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFC400', border: '1px solid rgba(0,0,0,.3)' }} />G{zoneN(table.length)}</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFC400', border: '1px solid rgba(0,0,0,.3)' }} />G{copaN(table.length)}</span>
           <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />{L('Meio', 'Mid')}</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3' }} />Z{zoneN(table.length)}</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3', border: '1px solid rgba(0,0,0,.3)' }} />Z{zoneN(table.length)}</span>
         </div>
       </div>
       {confTier && <p className="text-[10px] font-bold text-black/55 mb-1.5">{L('🔵 Leste · 🔴 Oeste — top 4 de cada conferência vai aos playoffs', '🔵 East · 🔴 West — top 4 of each conference makes the playoffs')}</p>}
@@ -4622,7 +4621,8 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
                 <td className="pr-1">
                   <span className="flex items-center gap-1">
                     {rank}
-                    {rank <= zoneN(table.length) && <span className="text-[7px] font-black rounded px-1" style={{ background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>G{zoneN(table.length)}</span>}
+                    {rank <= copaN(table.length) && <span className="text-[7px] font-black rounded px-1" style={{ background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>G{copaN(table.length)}</span>}
+                    {rank >= zoneBot(table.length) && <span className="text-[7px] font-black rounded px-1" style={{ background: '#F9D8D3', border: '1px solid rgba(0,0,0,.4)', color: INK }}>Z{zoneN(table.length)}</span>}
                   </span>
                 </td>
                 {/* 🛡️ escudo do clube (gerado do nome) — só no futebol; o basquete
@@ -4652,6 +4652,7 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
           })}
         </tbody>
       </table>
+      {!bb && <p className="text-[10px] font-bold text-black/45 text-center mt-2">🏆 G{copaN(table.length)} = os {copaN(table.length)} primeiros — quando a liga acaba, disputam a Copa dos 8.</p>}
     </Box>
   )
 }
