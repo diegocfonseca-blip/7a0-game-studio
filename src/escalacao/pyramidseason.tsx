@@ -4424,22 +4424,76 @@ export function PyramidSeasonScreen() {
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
         )}
         {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} />}
-        {/* 🎭 EVENTO DE JOGADOR: banner de decisão — a rodada SÓ anda depois da escolha.
-            Elenco/XI vêm do clube DO EVENTO (ev.mgrId): se o técnico trocar de clube
-            (multiclube) com o banner aberto, a decisão segue no clube certo. */}
-        {eventoPendente && (() => {
-          const evMgr = state.managers.find(m => m.id === eventoPendente.mgrId)
-          if (!evMgr) return null
-          const evXI = lineupAt(careerLineup, eventoPendente.mgrId, round, evMgr.squad, evMgr.formation)
-          const evXIids = new Set(evXI.map(c => c.id))
-          if (eventoPendente.criaOptions) {
-            return <EventoSemReservaBanner ev={eventoPendente}
-              onEscolher={nome => dispatch({ type: 'EVENTO_DECIDE_CRIA', nome, xi: evXI.map(c => c.id) })}
-              onCampo={eventoPendente.tipo === 'noitada' ? () => dispatch({ type: 'EVENTO_DECIDE', escolha: 'campo', xi: evXI.map(c => c.id) }) : undefined} />
-          }
-          return <EventoBanner ev={eventoPendente}
-            reservas={evMgr.squad.filter(c => c.pos === eventoPendente.pos && !evXIids.has(c.id))}
-            onDecide={(escolha, subId) => dispatch({ type: 'EVENTO_DECIDE', escolha, subId, xi: evXI.map(c => c.id) })} />
+        {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
+            quando resolve" na mesma hora (evento de jogador + crise financeira +
+            contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
+            de empilhar tudo antes das abas, forçando rolar a tela passando por
+            todo mundo. Resolveu o de cima → o de baixo já aparece sozinho.
+            Patrocínio fica FORA da fila de propósito: ele continua na tela mesmo
+            depois de escolher (não "some" como os outros), então não faz sentido
+            como item de fila — segue exatamente onde já estava, mais abaixo. */}
+        {(() => {
+          const temTV = round === 0 && me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div)
+          type FilaItem = { key: string; render: () => React.ReactNode }
+          const fila: FilaItem[] = []
+          // 🎭 EVENTO DE JOGADOR: banner de decisão — a rodada SÓ anda depois da
+          // escolha. Elenco/XI vêm do clube DO EVENTO (ev.mgrId): se o técnico
+          // trocar de clube (multiclube) com o banner aberto, a decisão segue no
+          // clube certo.
+          if (eventoPendente) fila.push({
+            key: 'evento', render: () => {
+              const evMgr = state.managers.find(m => m.id === eventoPendente.mgrId)
+              if (!evMgr) return null
+              const evXI = lineupAt(careerLineup, eventoPendente.mgrId, round, evMgr.squad, evMgr.formation)
+              const evXIids = new Set(evXI.map(c => c.id))
+              if (eventoPendente.criaOptions) {
+                return <EventoSemReservaBanner ev={eventoPendente}
+                  onEscolher={nome => dispatch({ type: 'EVENTO_DECIDE_CRIA', nome, xi: evXI.map(c => c.id) })}
+                  onCampo={eventoPendente.tipo === 'noitada' ? () => dispatch({ type: 'EVENTO_DECIDE', escolha: 'campo', xi: evXI.map(c => c.id) }) : undefined} />
+              }
+              return <EventoBanner ev={eventoPendente}
+                reservas={evMgr.squad.filter(c => c.pos === eventoPendente.pos && !evXIids.has(c.id))}
+                onDecide={(escolha, subId) => dispatch({ type: 'EVENTO_DECIDE', escolha, subId, xi: evXI.map(c => c.id) })} />
+            },
+          })
+          // 🚨 CRISE FINANCEIRA: o melhor jogador do elenco avisa que vai embora
+          // (caixa cruzou uma barreira nova de -500) — trava até o técnico
+          // escolher quem entra no lugar, de graça.
+          if (criseAtual) fila.push({
+            key: 'crise', render: () => <CriseBanner crise={criseAtual} opcoes={folcOpcoes}
+              onResolve={(choice, folclorico) => dispatch({ type: 'RESOLVE_CAREER_CRISE', mgrId: youId, choice, folclorico })} />,
+          })
+          // 📺 BANNER DA TV (Diego 11/08): 1x por divisão nova (D/C/B/A), no fim de
+          // temporada ANTES do patrocínio. A cota já entra no caixa sozinha — o
+          // banner é só a história/aviso. Só carreira SOLO (online tem estado
+          // compartilhado).
+          if (temTV) fila.push({
+            key: 'tv', render: () => {
+              const cota = ({ D: 5, C: 10, B: 15, A: 20 } as Record<string, number>)[me!.div] ?? 0
+              const primeira = !(state.tvBannerSeen ?? []).length
+              return (
+                <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
+                  <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Contrato de TV</span>
+                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{primeira ? <>A <span style={{ color: GOLD }}>TV descobriu</span> seu clube!</> : <>Contrato de TV <span style={{ color: GOLD }}>melhorou</span>!</>}</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me!.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Pelada</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me!.div}</b> e a audiência cresceu — a <b>Rede Pelada</b> renovou por mais grana. 📡</>}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} por temporada <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>· direto no caixa</span></div>
+                  <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me!.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 12, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Bora! 📺</button>
+                </div>
+              )
+            },
+          })
+          if (!fila.length) return null
+          return (
+            <div>
+              {fila.length > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                  {fila.map((it, i) => <div key={it.key} style={{ width: 7, height: 7, borderRadius: 999, background: i === 0 ? INK : 'rgba(12,12,12,0.18)' }} />)}
+                  <span style={{ ...OSWALD, fontWeight: 800, fontSize: 10.5, textTransform: 'uppercase', color: 'rgba(0,0,0,.55)' }}>1 de {fila.length} avisos pendentes</span>
+                </div>
+              )}
+              {fila[0].render()}
+            </div>
+          )
         })()}
         {/* 🔁 BANNER DO INTERVALO (carreira offline, toggle "só no intervalo"): pausa
             aos 45' e deixa mexer no 2º tempo. Enquanto aberto, a rodada não anda. */}
@@ -4461,35 +4515,13 @@ export function PyramidSeasonScreen() {
             mascote={penMascArt}
             onDone={(scored, takerId) => { dispatch({ type: 'SET_PENALTY', mgrId: youId, round: penIdx, scored, taker: takerId }); setPenaltyOpen(false) }} />
         })()}
-        {/* 🚨 CRISE FINANCEIRA: o melhor jogador do elenco avisa que vai embora
-            (caixa cruzou uma barreira nova de -500) — trava até o técnico escolher
-            quem entra no lugar, de graça. */}
-        {criseAtual && (
-          <CriseBanner crise={criseAtual} opcoes={folcOpcoes}
-            onResolve={(choice, folclorico) => dispatch({ type: 'RESOLVE_CAREER_CRISE', mgrId: youId, choice, folclorico })} />
-        )}
-        {/* 🎭 aviso do suspenso (o porquê + quando volta) — a trava explica sempre */}
+        {/* 🎭 aviso do suspenso (o porquê + quando volta) — a trava explica sempre.
+            Fica FORA da fila (não é decisão, é só um lembrete curto). */}
         {!done && suspenso && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 11px', marginBottom: 10, background: '#FDE9C8', fontWeight: 800, fontSize: 11, lineHeight: 1.4 }}>
             {eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> está fora ({suspenso.tipo === 'noitada' ? 'foi pro banco depois da noitada' : suspenso.tipo === 'expulsao' ? 'cumprindo gancho' : 'se recuperando da lesão'}) — volta na <b>rodada {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} segura a vaga.</> : null}
           </div>
         )}
-        {/* 📺 BANNER DA TV (Diego 11/08): 1x por divisão nova (D/C/B/A), no fim de
-            temporada ANTES do patrocínio. A cota já entra no caixa sozinha — o banner
-            é só a história/aviso. Só carreira SOLO (online tem estado compartilhado). */}
-        {round === 0 && me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div) && (() => {
-          const cota = ({ D: 5, C: 10, B: 15, A: 20 } as Record<string, number>)[me.div] ?? 0
-          const primeira = !(state.tvBannerSeen ?? []).length
-          return (
-            <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
-              <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Contrato de TV</span>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{primeira ? <>A <span style={{ color: GOLD }}>TV descobriu</span> seu clube!</> : <>Contrato de TV <span style={{ color: GOLD }}>melhorou</span>!</>}</p>
-              <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Pelada</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me.div}</b> e a audiência cresceu — a <b>Rede Pelada</b> renovou por mais grana. 📡</>}</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} por temporada <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>· direto no caixa</span></div>
-              <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 12, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Bora! 📺</button>
-            </div>
-          )
-        })()}
         {/* 🤝 PATROCÍNIO POR APOSTA (05/08): banner de início de temporada — aparece
             pra TODO humano (cada um aposta o seu), logo após o leilão/mesmo-time,
             ANTES de "Começar a temporada". O resultado da aposta PASSADA vem junto. */}

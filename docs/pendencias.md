@@ -1,5 +1,24 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🚨 Fila de avisos (1 por vez) no Modo Carreira — ✅ NO AR (14/08)
+Item 3 da auditoria de UX, com mockup aprovado pelo Diego antes de codar.
+Quando bate mais de um aviso "que some quando resolve" na mesma hora
+(exemplo real dele: evento de jogador/lesão + crise financeira + contrato
+de TV), agora aparece **UM POR VEZ**, com um contadorzinho ("1 de 3 avisos
+pendentes") — em vez de empilhar tudo antes da barra de abas, obrigando
+rolar a tela passando por todo mundo. Resolveu o de cima, o de baixo já
+aparece sozinho, sem precisar de botão extra de "próximo".
+- Entram na fila: 🎭 evento de jogador, 🚨 crise financeira, 📺 contrato de
+  TV — os três "somem" da tela assim que resolvidos.
+- **Fora da fila, de propósito**: 🤝 patrocínio (continua na tela mesmo
+  depois de escolher, não é um item que "some" como os outros — misturar
+  ia confundir mais que ajudar) e o aviso de suspenso (não é decisão, é só
+  um lembrete curto, continua aparecendo normal).
+- Não mexi em nada do intervalo/pênalti (banners de partida ao vivo) —
+  ficam como sempre foram, essa fila é só pros avisos de temporada.
+- A regra de "não pode fugir de decisão pendente" continua 100% igual —
+  só mudou COMO aparece na tela. Reversível: `git revert`.
+
 ## 🚪 Confirmação antes de "Sair da conta" no Online — ✅ NO AR (14/08)
 Item 6 da auditoria de UX (ver mais abaixo), só a parte que o Diego topou:
 o botão "Sair da conta" da tela de Online (deslogava direto, sem aviso,
@@ -9,10 +28,9 @@ que outros botões de sair já usam no jogo. Não mudei o resto: não trocou
 a aba padrão do Online, não mudou cor de nada. Reversível: `git revert`.
 
 ## 🔜 PRÓXIMOS da auditoria de UX, na ordem que o Diego pediu (14/08)
-1. **Avisos empilhados** (evento/crise/patrocínio/TV etc. aparecendo todos
-   juntos antes das abas) — próximo a fazer. Vou mandar mockup antes.
+1. ~~Avisos empilhados~~ — ✅ feito (ver acima).
 2. **Copa do Mundo sem "porta"** (texto "(aba Rank)" sem link, sem status
-   fixo) — depois do item 1.
+   fixo) — próximo a fazer.
 3. **Indicador de fase do leilão (X de 4)**: Diego questionou se vale a
    pena — jogador só vai acompanhando o jogo, talvez não repare/não
    precise. Combinamos discutir de novo antes de fazer (não é prioridade).
