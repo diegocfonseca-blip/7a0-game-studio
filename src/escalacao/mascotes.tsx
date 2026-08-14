@@ -16,6 +16,43 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🐈💛💙 O GATÃO do Barcenite FC (batismo do ricardopessoafreire, Sócio nº 12) —
+  // aprovado pelo Diego 14/08: gato-selvagem amarelo/azul inspirado no CAT (o
+  // mascote real do Barcelona dos 125 anos): orelhas pontudas, tufos na bochecha,
+  // listras na testa, presinha no sorriso, camisa listrada do clube e bola no pé.
+  // Desenhado em código (mesma linguagem do leao_thor). mascote_key = "gatao_bfc".
+  gatao_bfc: (
+    <svg width="140" height="168" viewBox="0 0 200 240">
+      <ellipse cx="100" cy="232" rx="54" ry="9" fill="rgba(0,0,0,.15)"/>
+      <path d="M162 178 Q188 168 184 140 Q182 124 168 122 Q178 138 170 152 Q164 164 150 170 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
+      <path d="M184 140 Q183 128 168 122 L174 132 Z" fill="#0E3E86" stroke={INK} strokeWidth="4"/>
+      <path d="M64 148 Q64 132 82 128 L118 128 Q136 132 136 148 L136 190 L64 190 Z" fill="#FFC400" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
+      <rect x="76" y="128" width="14" height="62" fill="#0E3E86"/>
+      <rect x="110" y="128" width="14" height="62" fill="#0E3E86"/>
+      <path d="M64 148 Q64 132 82 128 L118 128 Q136 132 136 148 L136 190 L64 190 Z" fill="none" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
+      <path d="M64 140 Q46 148 44 166 Q44 176 54 176 Q62 174 64 162 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
+      <path d="M136 140 Q154 148 156 166 Q156 176 146 176 Q138 174 136 162 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
+      <rect x="68" y="188" width="64" height="20" rx="6" fill="#0E3E86" stroke={INK} strokeWidth="5"/>
+      <rect x="74" y="206" width="16" height="18" rx="6" fill="#F0B446" stroke={INK} strokeWidth="5"/>
+      <rect x="110" y="206" width="16" height="18" rx="6" fill="#F0B446" stroke={INK} strokeWidth="5"/>
+      <circle cx="146" cy="222" r="14" fill="#fff" stroke={INK} strokeWidth="5"/>
+      <path d="M146 214 L153 219 L150 227 L142 227 L139 219 Z" fill={INK}/>
+      <path d="M52 52 L68 24 L84 44 L116 44 L132 24 L148 52 Q160 68 158 88 Q156 104 144 112 L140 116 Q150 118 154 114 L148 126 Q138 130 130 124 Q116 132 84 132 Q70 130 60 124 L52 126 Q46 122 46 114 Q50 118 60 116 L56 112 Q44 104 42 88 Q40 68 52 52 Z" fill="#F0B446" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
+      <path d="M62 42 L69 31 L76 40 Z" fill="#0E3E86"/>
+      <path d="M138 42 L131 31 L124 40 Z" fill="#0E3E86"/>
+      <path d="M74 92 Q76 78 100 78 Q124 78 126 92 Q126 112 100 116 Q74 112 74 92 Z" fill="#FFF6E0" stroke={INK} strokeWidth="4"/>
+      <ellipse cx="80" cy="72" rx="11" ry="12" fill="#fff" stroke={INK} strokeWidth="4"/>
+      <ellipse cx="120" cy="72" rx="11" ry="12" fill="#fff" stroke={INK} strokeWidth="4"/>
+      <circle cx="82" cy="74" r="4.5" fill={INK}/>
+      <circle cx="118" cy="74" r="4.5" fill={INK}/>
+      <path d="M70 58 L90 54 M130 58 L110 54" stroke={INK} strokeWidth="4" strokeLinecap="round"/>
+      <path d="M94 90 L106 90 L100 97 Z" fill={INK}/>
+      <path d="M100 97 Q100 104 92 105 M100 97 Q100 104 108 105" stroke={INK} strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+      <path d="M106 105 L110 111 L113 104" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M60 88 L40 84 M60 96 L42 98 M140 88 L160 84 M140 96 L158 98" stroke={INK} strokeWidth="3.5" strokeLinecap="round"/>
+      <path d="M92 48 L92 58 M100 46 L100 58 M108 48 L108 58" stroke={INK} strokeWidth="4" strokeLinecap="round" opacity=".8"/>
+    </svg>
+  ),
   // 🏎️⚽ Ferrari SC (adriano.ferrari) — ARTE PRÓPRIA do dono (imagem webp): o cavalo-
   // piloto comemorando GOL, de macacão vermelho e capacete do Brasil. Pro festão do
   // campeão. mascote_key = "piloto_bola".

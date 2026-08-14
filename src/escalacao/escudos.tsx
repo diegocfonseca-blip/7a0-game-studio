@@ -483,6 +483,33 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Eros Reis FC': erosEscudoRender,
   'Eros Reis': erosEscudoRender,
   'Eros': erosEscudoRender,
+  // 🛡️🐈 Barcenite FC (batismo do ricardopessoafreire, Sócio Barão nº 12) —
+  // aprovado pelo Diego 14/08: formato que LEMBRA o brasão do Barcelona (dois
+  // "ombros" com vinco no topo — sem copiar nada do escudo real), topo azul com
+  // BFC dourado, faixa dourada e base listrada amarelo/azul com a bola.
+  // O nome velho (Milanesa FC) resolve sozinho via newestTeamName.
+  'Barcenite FC': (size: number) => {
+    const w = Math.round(size * 200 / 240)
+    return (
+      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Barcenite FC" role="img" style={{ flex: 'none', display: 'block' }}>
+        <defs><clipPath id="bfcEscClip"><path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z"/></clipPath></defs>
+        <path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z" fill="#0E3E86"/>
+        <g clipPath="url(#bfcEscClip)">
+          <text x="100" y="68" textAnchor="middle" fontFamily="Oswald,'Arial Narrow',sans-serif" fontWeight="700" fontSize="46" fill="#FFC400" letterSpacing="4">BFC</text>
+          <rect x="0" y="84" width="200" height="26" fill="#FFC400"/>
+          <rect x="0" y="84" width="200" height="26" fill="none" stroke={INK} strokeWidth="4"/>
+          <rect x="29" y="110" width="28.4" height="130" fill="#FFC400"/>
+          <rect x="57.4" y="110" width="28.4" height="130" fill="#0E3E86"/>
+          <rect x="85.8" y="110" width="28.4" height="130" fill="#FFC400"/>
+          <rect x="114.2" y="110" width="28.4" height="130" fill="#0E3E86"/>
+          <rect x="142.6" y="110" width="28.4" height="130" fill="#FFC400"/>
+          <circle cx="100" cy="162" r="26" fill="#fff" stroke={INK} strokeWidth="5"/>
+          <path d="M100 148 L112 157 L107 171 L93 171 L88 157 Z" fill={INK}/>
+        </g>
+        <path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z" fill="none" stroke={INK} strokeWidth="7" strokeLinejoin="round"/>
+      </svg>
+    )
+  },
   'Remoçada': (size: number) => {
     const w = Math.round(size * 200 / 240)
     return (
