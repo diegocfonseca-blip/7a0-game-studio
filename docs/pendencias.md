@@ -1,5 +1,19 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🥅 Várzea entra no desempate do Ranking (última posição, antes do dinheiro) — ✅ NO AR (14/08)
+Pedido do Diego: título de Várzea (V) passa a contar no desempate — como
+ÚLTIMO critério de título, depois de D e antes do dinheiro. Ordem final
+(igual nos 3 lugares): Copa do Mundo · Série A · Copa Legends · Série B ·
+Série C · Série D · **Várzea** · dinheiro.
+- Ajustado no Ranking Local (Rank › Local), no cálculo de quem entra na
+  Copa do Mundo (Top 20), e nas duas funções do banco (`esc_pyramid_rank`
+  e `esc_pyramid_my_rank`) que alimentam o Rank Global — os 3 ficam
+  consistentes entre si.
+- Os selos visuais (🏆B 🏆C 🏆D 🏆V) já apareciam nessa ordem antes — só o
+  CRITÉRIO de desempate que não usava Várzea, agora usa.
+- Reversível: `git revert` no código; a função do banco tem a versão
+  anterior salva no histórico de migrations do Supabase.
+
 ## 🔧 Copa do Mundo perdida: recuperados 3 casos reais (dado verificado, não invenção) (14/08)
 Diego pediu pra tentar repor a Copa do Mundo que o dono do "Dérick FC"
 tinha perdido. Achei uma saída honesta: existe uma tabela separada
