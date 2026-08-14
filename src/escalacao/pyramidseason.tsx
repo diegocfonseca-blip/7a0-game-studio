@@ -3671,6 +3671,7 @@ export function PyramidSeasonScreen() {
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
+  const [bicoTrocando, setBicoTrocando] = useState(false) // 🕴️ Bico de Folga: lista de troca abre no lugar do botão (visual novo, 14/08)
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
   const agenciaOk = !!state.agenciaOn && agLib // 🏗️ Clube vira "Estrutura" (estádio→patrocínio→agência) SÓ na Agência 2.0
@@ -4901,18 +4902,50 @@ export function PyramidSeasonScreen() {
                             {(state.seasonNo ?? 1) < 3 ? 'Destrava na Temporada 3, enquanto o clube tiver na Várzea ou Série D.' : 'Só vale na Várzea ou Série D — clube grande já se sustenta sozinho.'}
                           </p>
                         </div>
-                      ) : state.careerBico ? (
-                        <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #0e4a22)`, color: '#fff', padding: 12 }}>
-                          <p style={{ fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800, margin: 0 }}>🕴️ Seu bico de folga</p>
-                          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: '2px 0 5px' }}>{BRANDS.find(b => b.k === state.careerBico!.brandId)?.ic} {BRANDS.find(b => b.k === state.careerBico!.brandId)?.nome}</p>
-                          <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: 0 }}>Rendendo <b>+{valor}🪙</b> por temporada ({myDiv === 'V' ? 'Várzea' : 'Série D'}).</p>
-                          <div style={{ marginTop: 9, display: 'flex', gap: 6 }}>
-                            {BRANDS.filter(b => b.k !== state.careerBico!.brandId).map(b => (
-                              <button key={b.k} onClick={() => dispatch({ type: 'SET_BICO', brand: b.k })} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 2px', fontWeight: 800, fontSize: 9, ...OSWALD, background: GOLD, color: INK, cursor: 'pointer' }}>{b.ic} trocar</button>
-                            ))}
+                      ) : state.careerBico ? (() => {
+                        const atual = BRANDS.find(b => b.k === state.careerBico!.brandId)!
+                        return (
+                          <div style={{ ...box(), overflow: 'hidden' }}>
+                            <div style={{ background: `linear-gradient(160deg, ${GREEN}, #0e4a22)`, padding: '13px 14px', display: 'flex', alignItems: 'center', gap: 11, color: '#fff' }}>
+                              <span style={{ width: 44, height: 44, borderRadius: 11, border: `2.5px solid ${INK}`, background: atual.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{atual.ic}</span>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>🕴️ seu bico de folga</p>
+                                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '1px 0 0' }}>{atual.nome}</p>
+                                <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', margin: '1px 0 0' }}>{atual.cargo}</p>
+                              </div>
+                              <div style={{ textAlign: 'center', flexShrink: 0, background: 'rgba(255,196,0,.15)', border: `2px solid ${GOLD}`, borderRadius: 9, padding: '5px 9px' }}>
+                                <b style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 14, color: GOLD }}>+{valor}🪙</b>
+                                <span style={{ fontSize: 7, fontWeight: 800, color: 'rgba(255,255,255,.65)', textTransform: 'uppercase' }}>{myDiv === 'V' ? 'Várzea' : 'Série D'}</span>
+                              </div>
+                            </div>
+                            <div style={{ padding: '9px 12px' }}>
+                              {!bicoTrocando ? (
+                                <button onClick={() => setBicoTrocando(true)} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', background: GOLD, color: INK, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>🔁 Trocar de bico</button>
+                              ) : (
+                                <>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 7px' }}>
+                                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: 0 }}>Escolher outro:</p>
+                                    <span onClick={() => setBicoTrocando(false)} style={{ fontSize: 9.5, fontWeight: 800, color: '#8a8069', textDecoration: 'underline', cursor: 'pointer' }}>cancelar</span>
+                                  </div>
+                                  {BRANDS.map(b => {
+                                    const isCur = b.k === state.careerBico!.brandId
+                                    return (
+                                      <button key={b.k} disabled={isCur} onClick={() => { dispatch({ type: 'SET_BICO', brand: b.k }); setBicoTrocando(false) }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 9px', marginBottom: 6, background: isCur ? '#EAF7EE' : '#FBF6E9', borderColor: isCur ? GREEN : INK, cursor: isCur ? 'default' : 'pointer', textAlign: 'left' }}>
+                                        <span style={{ width: 28, height: 28, borderRadius: 7, border: `2px solid ${INK}`, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>{b.ic}</span>
+                                        <span style={{ minWidth: 0, flex: 1 }}>
+                                          <span style={{ display: 'block', fontWeight: 800, fontSize: 10, ...OSWALD }}>{b.nome}</span>
+                                          <span style={{ fontSize: 8, color: '#8a8069', fontWeight: 700 }}>{b.cargo}</span>
+                                        </span>
+                                        {isCur && <span style={{ fontSize: 8, fontWeight: 900, color: GREEN, textTransform: 'uppercase' }}>atual</span>}
+                                      </button>
+                                    )
+                                  })}
+                                </>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ) : (
+                        )
+                      })() : (
                         <div style={{ ...box('#fff'), padding: 12 }}>
                           <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px' }}>Escolha seu bico — de graça</p>
                           {BRANDS.map(b => (

@@ -1,5 +1,16 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🕴️ Bico de Folga: visual novo (card "emprego" + 1 botão) — ✅ NO AR (14/08)
+Diego não gostou do card de status do Bico (texto corrido + 2-3 botõezinhos
+"trocar" espremidos, piorou com a 4ª marca). Mockup aprovado, implementado:
+- Vira um cartão de "carteirinha" — ícone grande, nome, cargo e valor em
+  destaque num topo verde, igual à cara dos outros cards do jogo.
+- Embaixo, **um botão só**: "🔁 Trocar de bico". Ao tocar, o botão vira a
+  lista das 4 marcas (a atual marcada em verde "atual"), com "cancelar" pra
+  fechar sem trocar. Escolheu outra → troca na hora e a lista fecha sozinha.
+- Só mudou layout/CSS — valor, regra de desbloqueio (T3+ Várzea/D) e a
+  lista de marcas continuam 100% iguais. Reversível: `git revert`.
+
 ## 🔧 Copa do Mundo perdida: recuperados 3 casos reais (dado verificado, não invenção) (14/08)
 Diego pediu pra tentar repor a Copa do Mundo que o dono do "Dérick FC"
 tinha perdido. Achei uma saída honesta: existe uma tabela separada
