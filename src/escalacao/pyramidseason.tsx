@@ -5018,10 +5018,13 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'ranking' ? (
           <>
-            {/* sub-abas do Rank: Clubes | Artilheiros (temporada + todos os tempos) | Global
-                (usuários, só Agência 2.0 — carreira sem Agência não mostra essa aba) */}
+            {/* sub-abas do Rank: Local (você + bots da sua carreira) | Artilheiros
+                (temporada + todos os tempos) | Global (usuários de verdade, só
+                Agência 2.0 — carreira sem Agência não mostra essa aba). Nome
+                "Local" pra não confundir com a aba-mãe "Clube" nem soar só
+                divisão/liga (pedido do Diego 14/08) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {([['arti', '⚽', 'Artilheiros'], ['clubes', '🥇', 'Clubes'], ...(agenciaOk ? [['global', '🌍', 'Global']] as const : [])] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+              {([['arti', '⚽', 'Artilheiros'], ['clubes', '🥇', 'Local'], ...(agenciaOk ? [['global', '🌍', 'Global']] as const : [])] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>

@@ -19,11 +19,13 @@ os 3 pontos da aba Clube/Elenco:
 - Reversível: `git revert`. Não mexe em nenhuma regra/valor de jogo, só
   onde cada painel aparece e como se chama a sub-aba/ícone.
 
-## 🥇 PENDENTE (aguardando OK do Diego, 14/08): renomear sub-aba "Clubes" do Rank
-Diego notou que a sub-aba "🥇 Clubes" do Rank (ranking local: você + os
-times CPU da SUA carreira, por títulos) tem nome parecido com a aba-mãe
-"Clube" (finanças/estádio) — confunde. Sugeri trocar para **"🥇 Liga"**
-(fica: Artilheiros | Liga | Global). Esperando confirmação antes de mexer.
+## 🥇 Sub-aba "Clubes" do Rank renomeada pra "Local" — ✅ NO AR (14/08)
+Diego notou que "🥇 Clubes" (ranking com você + os bots da SUA carreira,
+por títulos) tinha nome parecido com a aba-mãe "Clube" (finanças/estádio) —
+confundia. Sugeri "Liga", ele recusou (dava impressão de só divisão/tabela).
+Escolha final dele: **"🥇 Local"** — fica: Artilheiros | Local | Global.
+Só troca o rótulo do botão, o conteúdo/ordenação do ranking não mudou em
+nada. Reversível: `git revert`.
 
 ## 🗂️ AUDITORIA DE ORGANIZAÇÃO/UX do jogo inteiro (14/08) — análise feita, aprovado só o passo 1
 Diego pediu análise MUITO a fundo de toda a navegação (Home, Carreira offline,
