@@ -2887,10 +2887,11 @@ function RankingTab({ tables, honors, copaHonors, coins, clubCash, colors, youId
 }
 
 // ── RANKING GLOBAL (14/08, pedido do Diego): top 50 usuários (nunca bots — bots
-// já têm o ranking local acima). ⚠️ Ordem PRÓPRIA (Diego pediu 14/08: Copa do
-// Mundo decide ANTES da Série A aqui) — diferente do rank LOCAL do save
-// (RankingTab, que segue A › Mundo › Copa). Ordem de verdade é a da função
-// `esc_pyramid_rank` no banco (fonte única — não duplicar aqui). Trava
+// já têm o ranking local acima). Ordem: Mundo › A › Copa Legends › B › C › D ›
+// dinheiro — Diego pediu Mundo na frente da Série A (14/08), e o rank LOCAL do
+// save (RankingTab) recebeu a MESMA mudança (outra sessão, mesmo commit day) —
+// hoje os dois batem. Ordem de verdade aqui é a da função `esc_pyramid_rank`
+// no banco (fonte única — não duplicar a lista aqui). Trava
 // anti-spoiler: o rank vem SEMPRE capado na temporada de quem está olhando (RPC
 // `esc_pyramid_rank`, ver comentário no banco) — ninguém vê o futuro de ninguém,
 // só o que cada um já tinha feito até ali. Só conta quem jogou com Agência 2.0.
