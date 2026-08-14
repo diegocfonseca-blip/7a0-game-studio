@@ -187,6 +187,89 @@
   .f h4 { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 17px; text-transform: uppercase; margin: 0 0 5px; }
   .f p { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0; line-height: 1.5; }
 
+  /* ── artes dos espaços (recriações fiéis das telas do jogo) ── */
+  .arts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+  @media (max-width: 680px) { .arts { grid-template-columns: 1fr; } }
+  .art {
+    background: var(--paper); border: 3px solid var(--ink); border-radius: 16px;
+    box-shadow: 4px 4px 0 0 var(--ink); overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .art .stage { padding: 14px 14px 0; flex: 1; }
+  .art .why {
+    border-top: 2.5px solid var(--ink); background: var(--ink); color: rgba(255,255,255,0.88);
+    padding: 10px 13px; font-size: 11.5px; font-weight: 600; line-height: 1.45;
+  }
+  .art .why b { color: var(--gold); font-family: 'Oswald', sans-serif; text-transform: uppercase; display: block; font-size: 11px; letter-spacing: 0.6px; margin-bottom: 2px; }
+
+  /* arte 1: campinho com a placa */
+  .pitch { border: 2.5px solid var(--ink); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .pitch .grass {
+    background: linear-gradient(180deg, #2E8B4F, #1B7A3D); position: relative;
+    padding: 12px 10px 14px; display: flex; flex-direction: column; gap: 7px; align-items: center;
+  }
+  .pitch .grass::before {
+    content: ''; position: absolute; left: 50%; top: -26px; transform: translateX(-50%);
+    width: 74px; height: 74px; border: 2px solid rgba(255,255,255,0.35); border-radius: 999px;
+  }
+  .pitch .row { display: flex; gap: 6px; justify-content: center; position: relative; }
+  .pitch .slot {
+    background: rgba(255,255,255,0.16); border: 1.5px solid rgba(255,255,255,0.45);
+    border-radius: 7px; padding: 3px 8px; color: #fff;
+    font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 8.5px; text-transform: uppercase;
+  }
+  .pitch .board {
+    background: #fff; border-top: 3px solid var(--ink); height: 34px;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .pitch .board span {
+    font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px;
+    text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold-deep);
+    border: 2px dashed var(--gold-deep); border-radius: 7px; padding: 2px 12px;
+  }
+
+  /* arte 2: card do patrocínio de temporada */
+  .sponsor-art .head {
+    background: var(--ink); color: var(--gold); border: 2.5px solid var(--ink);
+    border-radius: 12px 12px 0 0; text-align: center; padding: 7px 8px;
+    font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 12.5px; text-transform: uppercase;
+  }
+  .sponsor-art .body {
+    border: 2.5px solid var(--ink); border-top: none; border-radius: 0 0 12px 12px;
+    background: var(--cream); padding: 12px; margin-bottom: 12px;
+  }
+  .logo-slot {
+    border: 2.5px dashed var(--gold-deep); border-radius: 10px; background: #fff;
+    text-align: center; padding: 13px 8px;
+    font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 15px;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--gold-deep);
+  }
+  .sponsor-art .meta { margin: 9px 0 0; font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; }
+  .sponsor-art .cta {
+    margin-top: 9px; background: var(--gold); border: 2.5px solid var(--ink); border-radius: 9px;
+    text-align: center; padding: 7px 4px; font-family: 'Oswald', sans-serif; font-weight: 700;
+    font-size: 11.5px; text-transform: uppercase; box-shadow: 2px 2px 0 0 var(--ink);
+  }
+
+  /* arte 3: carteirinha do bico */
+  .bico-art { border: 2.5px solid var(--ink); border-radius: 12px; overflow: hidden; margin-bottom: 12px; background: #fff; }
+  .bico-art .top {
+    background: var(--green); color: #fff; padding: 11px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .bico-art .top .ic { font-size: 25px; }
+  .bico-art .top .nm { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; text-transform: uppercase; line-height: 1.15; }
+  .bico-art .top .nm small { display: block; font-size: 9.5px; font-weight: 600; opacity: 0.85; text-transform: none; font-family: inherit; }
+  .bico-art .pay {
+    padding: 9px 12px; font-size: 12px; font-weight: 800; color: var(--ink);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .bico-art .pay .btn {
+    border: 2px solid var(--ink); border-radius: 8px; background: var(--cream);
+    font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 10px;
+    text-transform: uppercase; padding: 3px 10px;
+  }
+
   /* ── contato ── */
   .contact {
     margin-top: 76px; text-align: center;
@@ -221,7 +304,7 @@
     <p class="site">leilaolegends.com · grátis, direto no navegador, sem instalar nada</p>
   </div>
 
-  <p class="lead">Um jogo brasileiro onde amigos disputam <b>leilões às cegas</b> por lendas do futebol — Pelé, Romário, Ronaldinho — sem ver o nível da carta antes do martelo. Nasceu num grupo de WhatsApp, virou hábito diário: em <b>2 meses</b>, são milhares de técnicos gerenciando clubes, temporada após temporada.</p>
+  <p class="lead">Um jogo brasileiro onde amigos disputam <b>leilões às cegas</b> por lendas do futebol — Pelé, Romário, Ronaldinho — sem ver o nível da carta antes do martelo. Nasceu num grupo de WhatsApp, virou hábito diário: em <b>menos de 30 dias</b> desde a abertura ao público, são milhares de técnicos gerenciando clubes, temporada após temporada.</p>
 
   <!-- 1 · O JOGO -->
   <div class="sec">
@@ -239,22 +322,22 @@
     <div class="sec-head"><span class="n">2</span><h2>Os números — reais, do banco de produção</h2></div>
     <p class="sec-sub">Extraídos diretamente do banco de dados do jogo em 14/08/2026. Nada estimado.</p>
     <div class="stats">
-      <div class="stat hero"><div class="v">7.030</div><div class="l">contas criadas desde o lançamento (jun/2026)</div></div>
+      <div class="stat hero"><div class="v">7.030</div><div class="l">contas criadas — 99% delas nos 30 dias desde a abertura ao público (17/07)</div></div>
       <div class="stat hero"><div class="v">178.808</div><div class="l">títulos conquistados por jogadores desde 15/07</div></div>
       <div class="stat hero"><div class="v">104.411</div><div class="l">temporadas de carreira em andamento hoje</div></div>
       <div class="stat"><div class="v">1.128</div><div class="l">técnicos ativos no Modo Carreira nos últimos 7 dias</div></div>
-      <div class="stat"><div class="v">443</div><div class="l">técnicos de carreira jogando nas últimas 24 horas</div></div>
+      <div class="stat"><div class="v">1.080</div><div class="l">técnicos conquistaram títulos num único dia (pico · 28/07)</div></div>
       <div class="stat"><div class="v">+565</div><div class="l">contas novas só na última semana — crescimento 100% orgânico</div></div>
     </div>
   </div>
 
   <!-- 3 · GRÁFICO -->
   <div class="sec">
-    <div class="sec-head"><span class="n">3</span><h2>Volume de jogo, todo dia</h2></div>
+    <div class="sec-head"><span class="n">3</span><h2>7 mil contas em 30 dias — e subindo</h2></div>
     <div class="chart-card">
-      <h3>Títulos conquistados por dia</h3>
-      <p class="cap">Últimos 30 dias · cada título = uma temporada inteira disputada e vencida · registro começou em 15/07</p>
-      <div class="chart-scroll"><svg id="chart" width="808" height="300" role="img" aria-label="Gráfico de barras: títulos conquistados por dia nos últimos 30 dias, variando de 3 mil a 12,8 mil por dia"></svg></div>
+      <h3>Contas criadas (acumulado)</h3>
+      <p class="cap">Da abertura ao público (17/07) até 14/08 · crescimento 100% orgânico, zero mídia paga</p>
+      <div class="chart-scroll"><svg id="chart" width="808" height="300" role="img" aria-label="Gráfico de linha: total acumulado de contas criadas, saindo de cerca de 70 em 16 de julho para 7.030 em 14 de agosto"></svg></div>
       <details class="tbl"><summary>ver tabela de dados</summary><table id="dtable"></table></details>
     </div>
   </div>
@@ -298,6 +381,47 @@
   <!-- 7 · FORMATOS -->
   <div class="sec">
     <div class="sec-head"><span class="n">7</span><h2>Formatos disponíveis</h2></div>
+    <p class="sec-sub">Assim a sua marca aparece dentro do jogo — reproduções fiéis das telas reais, com o espaço à venda destacado.</p>
+    <div class="arts">
+      <!-- placa do campinho -->
+      <div class="art">
+        <div class="stage">
+          <div class="pitch">
+            <div class="grass">
+              <div class="row"><span class="slot">GOL</span></div>
+              <div class="row"><span class="slot">LAT</span><span class="slot">ZAG</span><span class="slot">ZAG</span><span class="slot">LAT</span></div>
+              <div class="row"><span class="slot">MEI</span><span class="slot">MEI</span><span class="slot">ATA</span></div>
+            </div>
+            <div class="board"><span>📣 Patrocine aqui</span></div>
+          </div>
+        </div>
+        <div class="why"><b>Placa do campinho</b>Visível durante o pregão INTEIRO, em todos os modos com leilão — Rápido, Online e Carreira. É a tela que o técnico mais olha no jogo.</div>
+      </div>
+      <!-- patrocínio da temporada -->
+      <div class="art">
+        <div class="stage">
+          <div class="sponsor-art">
+            <div class="head">🤝 Patrocínio da temporada</div>
+            <div class="body">
+              <div class="logo-slot">Sua logo aqui</div>
+              <p class="meta">Meta: título da divisão · paga se bater</p>
+              <div class="cta">Fechar com essa marca</div>
+            </div>
+          </div>
+        </div>
+        <div class="why"><b>Escolha de início de temporada</b>1× por temporada, cada técnico ESCOLHE o patrocinador do clube e joga pela meta da marca — 104 mil temporadas em andamento hoje.</div>
+      </div>
+      <!-- bico de folga -->
+      <div class="art">
+        <div class="stage">
+          <div class="bico-art">
+            <div class="top"><span class="ic">📣</span><span class="nm">Sua Marca<small>o craque trabalha pra você nas folgas</small></span></div>
+            <div class="pay"><span>+4 🪙 por temporada</span><span class="btn">🔁 Trocar de bico</span></div>
+          </div>
+        </div>
+        <div class="why"><b>Bico de Folga (aba Clube)</b>Presença fixa na área de gestão do clube, que o técnico visita toda temporada — hoje ocupada por 4 marcas reais parceiras.</div>
+      </div>
+    </div>
     <div class="fmt">
       <div class="f"><span class="tag destaque">Principal</span><h4>🤝 Patrocínio Master jogável</h4><p>Sua marca entra como patrocinadora que os técnicos escolhem no início de cada temporada, com logo real e meta atrelada ao desempenho — o formato que as marcas parceiras já usam hoje.</p></div>
       <div class="f"><span class="tag destaque">Principal</span><h4>🏆 Naming rights de competição</h4><p>"Copa [Sua Marca]": uma competição inteira com o nome e a identidade da sua marca, disputada por milhares de técnicos.</p></div>
@@ -314,46 +438,59 @@
     <a class="mail" href="mailto:diego.c.fonseca@gmail.com">diego.c.fonseca@gmail.com</a>
   </div>
 
-  <p class="foot">Todas as métricas deste documento foram extraídas do banco de dados de produção do Leilão Legends em 14 de agosto de 2026 e podem ser auditadas sob NDA. · leilaolegends.com</p>
+  <p class="foot">Abertura ao público em 17 de julho de 2026. Todas as métricas deste documento foram extraídas do banco de dados de produção do Leilão Legends em 14 de agosto de 2026 e podem ser auditadas sob NDA. · leilaolegends.com</p>
 </div>
 
 <script>
-  // 📊 títulos conquistados por dia (15/07 → 14/08) — dados reais do banco
-  const DATA = [
-    ['15/07',3],['16/07',60],['17/07',315],['18/07',3757],['19/07',2391],['20/07',3627],
-    ['21/07',5507],['22/07',7400],['23/07',8045],['24/07',12817],['25/07',10432],['26/07',7388],
-    ['27/07',9966],['28/07',11531],['29/07',9594],['30/07',8552],['31/07',8187],['01/08',7122],
-    ['02/08',6007],['03/08',7441],['04/08',6983],['05/08',6453],['06/08',5501],['07/08',4904],
-    ['08/08',3617],['09/08',2502],['10/08',3308],['11/08',4130],['12/08',4086],['13/08',3867],['14/08',2988],
+  // 📈 contas criadas por dia (16/07 = base pré-abertura de 72 contas de teste;
+  // 17/07 em diante = dados reais diários do banco). Curva = total ACUMULADO.
+  const NOVAS = [
+    ['16/07',72],['17/07',120],['18/07',851],['19/07',288],['20/07',398],['21/07',303],
+    ['22/07',332],['23/07',330],['24/07',412],['25/07',314],['26/07',295],['27/07',446],
+    ['28/07',413],['29/07',317],['30/07',281],['31/07',168],['01/08',192],['02/08',175],
+    ['03/08',196],['04/08',211],['05/08',165],['06/08',94],['07/08',102],['08/08',51],
+    ['09/08',70],['10/08',79],['11/08',126],['12/08',87],['13/08',89],['14/08',53],
   ]
+  let acc = 0
+  const DATA = NOVAS.map(([d, v]) => { acc += v; return [d, acc] })
   const svg = document.getElementById('chart')
-  const W = 808, H = 300, PAD_L = 46, PAD_B = 34, PAD_T = 26, PAD_R = 26
+  const W = 808, H = 300, PAD_L = 50, PAD_B = 34, PAD_T = 26, PAD_R = 30
   const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B
-  const maxV = 13000
+  const maxV = 7500
   const n = DATA.length
-  const gap = 2
-  const bw = (plotW - gap * (n - 1)) / n
+  const x = i => PAD_L + (i / (n - 1)) * plotW
   const y = v => PAD_T + plotH - (v / maxV) * plotH
   const fmt = v => v.toLocaleString('pt-BR')
   let s = ''
   // grid recessivo + eixo y
-  for (const gv of [0, 4000, 8000, 12000]) {
+  for (const gv of [0, 2000, 4000, 6000]) {
     const gy = y(gv)
     s += `<line x1="${PAD_L}" y1="${gy}" x2="${W - PAD_R}" y2="${gy}" stroke="rgba(12,12,12,0.10)" stroke-width="1"/>`
     s += `<text x="${PAD_L - 7}" y="${gy + 4}" text-anchor="end" font-size="10.5" font-weight="600" fill="rgba(12,12,12,0.45)" style="font-variant-numeric:tabular-nums">${gv === 0 ? '0' : (gv / 1000) + ' mil'}</text>`
   }
-  const peakIdx = DATA.reduce((best, d, i) => d[1] > DATA[best][1] ? i : best, 0)
-  DATA.forEach(([dia, v], i) => {
-    const x = PAD_L + i * (bw + gap)
-    const by = y(v), bh = PAD_T + plotH - by
-    s += `<g class="bar"><rect x="${x.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, bh).toFixed(1)}" rx="3" fill="#1B7A3D"><title>${dia} · ${fmt(v)} títulos</title></rect></g>`
-    if (i % 5 === 0 || i === n - 1) s += `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 14}" text-anchor="middle" font-size="10" font-weight="600" fill="rgba(12,12,12,0.5)">${dia}</text>`
+  // área + linha
+  const pts = DATA.map(([, v], i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+  s += `<path d="M ${pts.join(' L ')} L ${x(n - 1).toFixed(1)},${y(0)} L ${x(0).toFixed(1)},${y(0)} Z" fill="rgba(27,122,61,0.16)"/>`
+  s += `<path d="M ${pts.join(' L ')}" fill="none" stroke="#1B7A3D" stroke-width="2.5" stroke-linejoin="round"/>`
+  // anotação da abertura ao público (17/07 = índice 1)
+  s += `<line x1="${x(1).toFixed(1)}" y1="${PAD_T}" x2="${x(1).toFixed(1)}" y2="${y(0)}" stroke="rgba(12,12,12,0.3)" stroke-width="1.5" stroke-dasharray="4 4"/>`
+  s += `<text x="${(x(1) + 7).toFixed(1)}" y="${PAD_T + 12}" font-size="10.5" font-weight="800" fill="rgba(12,12,12,0.55)">🚀 abertura ao público</text>`
+  // ponto final destacado + rótulo
+  const lastY = y(DATA[n - 1][1])
+  s += `<circle cx="${x(n - 1).toFixed(1)}" cy="${lastY.toFixed(1)}" r="5.5" fill="#1B7A3D" stroke="#FCFBF4" stroke-width="2.5"/>`
+  s += `<text x="${(x(n - 1) - 9).toFixed(1)}" y="${(lastY - 12).toFixed(1)}" text-anchor="end" font-size="14" font-weight="800" fill="#0C0C0C" style="font-variant-numeric:tabular-nums">7.030 contas</text>`
+  // rótulos do eixo x
+  DATA.forEach(([dia], i) => {
+    if (i % 5 === 0 || i === n - 1) s += `<text x="${x(i).toFixed(1)}" y="${H - 14}" text-anchor="middle" font-size="10" font-weight="600" fill="rgba(12,12,12,0.5)">${dia}</text>`
   })
-  // rótulos seletivos: pico + último dia
-  const px = PAD_L + peakIdx * (bw + gap) + bw / 2
-  s += `<text x="${px.toFixed(1)}" y="${(y(DATA[peakIdx][1]) - 8).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="800" fill="#0C0C0C" style="font-variant-numeric:tabular-nums">pico: ${fmt(DATA[peakIdx][1])}</text>`
+  // camada de hover: uma faixa invisível por dia com tooltip nativo
+  DATA.forEach(([dia, v], i) => {
+    const bw = plotW / n
+    s += `<rect x="${(x(i) - bw / 2).toFixed(1)}" y="${PAD_T}" width="${bw.toFixed(1)}" height="${plotH}" fill="transparent"><title>${dia} · ${fmt(v)} contas no total</title></rect>`
+  })
   svg.innerHTML = s
   // tabela acessível
   document.getElementById('dtable').innerHTML =
-    '<tr><th>Dia</th><th>Títulos</th></tr>' + DATA.map(([d, v]) => `<tr><td>${d}</td><td>${fmt(v)}</td></tr>`).join('')
+    '<tr><th>Dia</th><th>Novas contas</th><th>Total acumulado</th></tr>' +
+    NOVAS.map(([d, v], i) => `<tr><td>${d}</td><td>${fmt(v)}</td><td>${fmt(DATA[i][1])}</td></tr>`).join('')
 </script>
