@@ -18,6 +18,28 @@ da Copa dos 8 (top 8 = 40%, não os 20% do G4 antigo). Trocado por:
 - Não toquei nas tabelas de DIVISÃO da carreira (`DivTable`, pyramidseason.tsx)
   — lá o G4/Z4 já É a regra real de acesso/queda, sem descompasso. Reversível:
   `git revert`.
+## 🛡️ BATISMO Barcenite FC (Ricardo, ricardopessoafreire@gmail.com) — em andamento (14/08)
+Ricardo é o Sócio Barão nº 12; o NOME já estava batizado (Barcenite FC,
+ex-Milanesa FC, Série D). Diego pediu o kit completo:
+- ✅ **Manto**: amarelo #FFC400 + azul #0E3E86 — JÁ APLICADO no banco
+  (esc_socios, entrega sem deploy). Time de coração (Flamengo) registrado
+  no campo time_coracao.
+- ⏳ **Escudo**: proposta desenhada (mockup enviado pro Diego 14/08) —
+  formato que LEMBRA o brasão do Barcelona sem copiar nada (regra da casa:
+  escudo de clube real é marca registrada): topo azul com "BFC" dourado,
+  faixa dourada, base listrada amarelo/azul com bola. AGUARDANDO OK do
+  Diego pra entrar em LOGOS_PRONTAS (escudos.tsx).
+- ⏳ **Mascote**: será um gato caricato amarelo/azul inspirado no CAT
+  (gato-selvagem, mascote real do Barcelona desde os 125 anos do clube).
+  A ferramenta de gerar imagem (OpenArt MCP) estava FORA DO AR em 14/08 —
+  gerar quando reconectar, mandar pra aprovação, aí converter pra webp
+  ≤40KB e registrar em mascotes.tsx + mascote_key no esc_socios.
+- 📋 Série D — times ainda LIVRES pra futuros batismos (lista pedida pelo
+  Diego): principais = Paris São Geraldo · Pardemeias · Flamengo do
+  Sertão; leva extra (carreiras novas com Várzea) = Ferroviário da Serra,
+  Operário do Sul, Comercial da Baixada, Nacional do Agreste, Independente
+  do Norte, Esportivo da Colônia, União da Fronteira, Guarani do Cerrado,
+  Marítimo da Ilha, Rural EC (10, todos livres).
 
 ## 🎭🐛 FIX: machucado voltava pro time pela troca de formação/intervalo — ✅ NO AR (14/08)
 Relato de usuário (via Diego): jogador se lesionou, o Cria da Base entrou,
