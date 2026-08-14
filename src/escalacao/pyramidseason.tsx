@@ -3757,6 +3757,14 @@ export function PyramidSeasonScreen() {
   const rankSnapSeasonRef = useRef(-1)
   useEffect(() => {
     if (!state.agenciaOn || state.onlineMode === 'online' || !state.careerOnline) return
+    // 🏛️ MULTICLUBES (Diego 14/08 — bug real, achado numa conta com 232 títulos de
+    // Série A "sumindo" do rank): "troca de comando" faz `youIdx` apontar ora pro
+    // clube principal, ora pro 2º clube comprado (multiClubeAtivo=true = 2º clube
+    // no comando). Sem essa trava, o retrato gravava os troféus do time ERRADO
+    // (o 2º, quase zerado) por cima do histórico do principal — o rank achava que
+    // o técnico tinha regredido de repente. O 2º clube NUNCA deve contar aqui
+    // (regra do Diego): só grava quando o clube ativo é o PRINCIPAL.
+    if (state.multiClubeAtivo) return
     if (rankSnapSeasonRef.current === state.seasonNo) return
     rankSnapSeasonRef.current = state.seasonNo
     ;(async () => {
@@ -3777,7 +3785,7 @@ export function PyramidSeasonScreen() {
       } catch { /* melhor esforço — nunca trava o jogo por causa do rank */ }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.agenciaOn, state.onlineMode, state.careerOnline, state.seasonNo, youId])
+  }, [state.agenciaOn, state.onlineMode, state.careerOnline, state.seasonNo, youId, state.multiClubeAtivo])
   // 🎽 destrava PERMANENTE da troca de formação na 1ª vez que o elenco chega a 22
   // reais (fica destravado mesmo se depois cair de 22). Só marca o selo — a trava
   // por-posição segue valendo em cada troca.

@@ -1,5 +1,34 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🐛🌍 RANKING GLOBAL: achado e corrigido o bug do "time some do rank" (14/08)
+Diego reportou reclamação real (dono do "Xurupitas FC", que tem 232 títulos
+de Série A — muito provavelmente o time mais decorado do jogo — sumindo do
+ranking global de todo mundo). Investiguei a fundo, achei a causa raiz:
+- **A causa**: quando um técnico usa o Multiclube (compra um 2º clube e
+  troca o comando pra ele — recurso oficial, "troca livre"), o retrato do
+  ranking global gravava os troféus do clube QUE ESTIVER NO COMANDO
+  naquele momento — inclusive quando era o 2º clube (fraco, recém-
+  comprado, quase sem título nenhum). Isso sobrescrevia o histórico do
+  clube PRINCIPAL: o Xurupitas FC (232 títulos) sumiu do rank porque a
+  última gravação, com o 2º clube ("Excelsior SAF") no comando, tinha 0
+  títulos — o sistema achou que ele tinha "regredido" do nada.
+- **Confirmei que não é só ele**: auditei TODA a tabela e achei mais 3
+  contas com o mesmíssimo problema (2 delas trocando de comando várias
+  vezes, iam e voltavam entre os 2 clubes o tempo todo).
+- **Consertei os dois lados**:
+  1. Código: agora o retrato SÓ grava quando o clube PRINCIPAL está no
+     comando — o 2º clube (multiclube) nunca mais entra no ranking global,
+     exatamente a regra que o Diego pediu ("segundo time não conta").
+  2. Dados: apaguei as 32 linhas erradas (gravadas com o 2º clube) das 4
+     contas afetadas — o histórico do clube principal delas volta a valer.
+     Conferido: Xurupitas FC já aparece de novo em 1º lugar no rank.
+- Achei também 2 casos bem menores (diferença de 1 troféu, times quase
+  zerados) que são outro bug já conhecido e registrado antes (dado velho
+  de `careerCopaHonors` às vezes ficando torto num restart de carreira) —
+  não mexi, é separado e de impacto bem menor.
+- Reversível: o código é `git revert`; os dados apagados eram só as linhas
+  erradas (o histórico bom continua intacto — nada foi perdido).
+
 ## 🔁 Leilão de Reservas com cara diferente do inicial — ✅ NO AR (14/08)
 Último item da auditoria de UX (item 5, parte 2). O leilão de reservas/
 transferências (meio da carreira, repõe o elenco) usava o MESMO topo
