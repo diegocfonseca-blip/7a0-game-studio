@@ -2366,7 +2366,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Zênite', team: 'Zênite United' },
     { name: 'Excélsior', team: 'Excelsior SAF' },
     { name: 'Prestígio', team: 'Prestígio FC' },
-    { name: 'Legado', team: 'Tricolor do Arruda' }, // ⚽ clube BATIZADO por apoiador (Geovanni/souzact12 — Tricolor do Arruda, ex-Legado EC; homenagem ao Santa Cruz, time do coração dele; Lenda + fundador nº43, 16/08)
+    { name: 'Legado', team: 'Tricolor do Arruda' }, // ⚽ clube BATIZADO por apoiador (Geovani GS/souzact12 — Tricolor do Arruda, ex-Legado EC; homenagem ao Santa Cruz, time do coração dele; Lenda + fundador nº43, 16/08)
     { name: 'Apogeu', team: 'Seven City' }, // ⚽ clube BATIZADO por apoiador (glaucomiranda — Seven City, ex-Apogeu FC; homenagem ao Seven Gamer @sevengamersp, Lenda + fundador nº42, 15/08)
   ],
 }

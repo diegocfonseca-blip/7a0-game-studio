@@ -103,7 +103,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'danielmanfre5@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Manfré FC, ex-Livre-pool) (08/08)
   'marcomak03@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual (08/08)
   'luiz.maia.luiz@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (08/08)
-  'souzact12@gmail.com': 'ouro', // 👑 Lenda (pago) — Geovanni: tudo do ouro + FUNDADOR + batismo (Tricolor do Arruda, ex-Legado EC; cobra de cachimbo no escudo e de mascote; coração Santa Cruz) — era Craque prata, subiu no batismo (16/08)
+  'souzact12@gmail.com': 'ouro', // 👑 Lenda (pago) — Geovani GS: tudo do ouro + FUNDADOR + batismo (Tricolor do Arruda, ex-Legado EC; cobra de cachimbo no escudo e de mascote; coração Santa Cruz) — era Craque prata, subiu no batismo (16/08)
   'lucassrribeiroo2023@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Scorporila FC) (11/08)
   'paisagensetrilha@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marolados FC — molecada da várzea) (11/08)
   'agrostinho88@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (Leandro/Obina; nome reservado "Papão United Madrid") (11/08)
@@ -152,7 +152,7 @@ const FUNDADOR_N: Record<string, number> = {
   'erosreis@outlook.com.br': 40, // 🖋️ Eros Reis — batismo Eros FC (influencer @erosreis, mascote Nina 🐶) (12/08)
   'tiosapeka@gmail.com': 41, // 🖋️ Tio Sapeka — batismo Sapekeiros FC (influencer @tiosapekagg, mascote abelha coroada 🐝) (12/08)
   'glaucomiranda@outlook.com': 42, // 🖋️ Glauco — Lenda + sócio nº22; batismo Seven FC (15/08)
-  'souzact12@gmail.com': 43, // 🖋️ Geovanni — batismo Tricolor do Arruda (ex-Legado EC, Série A); cobra de cachimbo no escudo e de mascote (16/08)
+  'souzact12@gmail.com': 43, // 🖋️ Geovani GS — batismo Tricolor do Arruda (ex-Legado EC, Série A); cobra de cachimbo no escudo e de mascote (16/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
