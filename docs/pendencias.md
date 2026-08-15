@@ -58,6 +58,15 @@ guardam a carta inteira (ident = nome|clube), nada quebra em elenco existente.
   Evair 93/Adriano-Fla 2009 (e subir Adriano-Inter 2005 no lugar), subir
   Tostão 70; casos borderline Renato Gaúcho 83 e Dirceu Lopes 76; zoeira
   Vozinha (Cabo Verde 2026) mantida como está até ele decidir.
+- 💎 **CRITÉRIO DO DIEGO PRA PROMESSA (15/08, gravar)**: 💎 = carta cujo ano
+  é a fase de JOVEM/hype do jogador naquele clube (padrão Pato-no-Inter /
+  Kaká-no-SP), "apenas os tops". Decisão aplicada (NO AR): TIRARAM o selo
+  Júlio César (Fla 2003, já era titular consolidado), Pato do MILAN 2009
+  (já era estrela — a promessa dele é o do Inter 2007) e Götze (Bayern
+  2014, já herói de Copa); GANHARAM o selo Ronaldo (Cruzeiro 93), Lucas
+  Moura (SPFC 2012), Paquetá (Fla 2018), Alex Teixeira (Vasco 2009) e
+  Antony (SPFC 2020). Reinier ficou de fora (Diego não incluiu). Flops
+  lendários (Adu, Mamute, Neilton) MANTÊM o 💎 — a aposta/risco é a graça.
 - ✅ **DECISÃO DO DIEGO APLICADA (15/08, NO AR)**: subiram pra 👑 LENDA
   **Tostão** (Cruzeiro 70) e **Adriano Imperador** (Inter 2005); desceram
   pra ⭐ CRAQUE **Evair**, **Adriano** (Fla 2009) e **Cássio**. Mauro Galvão
