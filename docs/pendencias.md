@@ -1,5 +1,33 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🏆 Tabela da CARREIRA (Série A/B/C/D): mesma cara da tabela nova — ✅ NO AR (14/08)
+Diego reclamou que a carreira não tinha mudado nada visualmente. Certo: eu
+tinha só mexido no Jogo Rápido/Online de propósito (lá tinha um descompasso
+real G4≠Copa dos 8; na carreira G4=4 já é a Copa Legends E o acesso, sem
+descompasso). Mas fiquei devendo a MESMA CARA visual. Ajustado em
+`pyramidseason.tsx` (`DivTable`/`zone`/`ZoneLegend`):
+- G4 (topo) de azul → **verde** (`#D8F0DE`, mesmo tom da tabela do rápido).
+- Etiquetas **G4** (dourada) e **Z4** (vermelha) nas linhas, do mesmo jeito
+  que a tabela do rápido — antes só tinha a cor de fundo, sem etiqueta.
+- Legenda do topo (G4/Meio/Z4) com as mesmas cores/bordas.
+- **Número do G4 continua 4** (não vira G8) — na carreira é 4 mesmo, tanto
+  pra acesso de divisão quanto pra vaga na Copa Legends (top-4 de cada
+  série = 16 no mata-mata). Não tinha bug de régua aqui, só de visual.
+Reversível: `git revert`, só cor/etiqueta.
+
+## ⚽ Placar animado: NÃO precisa implementar, JÁ EXISTE (`LiveScoreCard`)
+Confusão minha numa sessão anterior: cheguei a dizer ao Diego que o placar
+com relógio/GOOOL/flash "só existia no mockup". Errado — o `LiveScoreCard`
+(`pyramidseason.tsx`) é real, já roda na carreira E no jogo rápido/online
+(`myLast` em `screens.tsx`), com relógio 0→93 em tempo real, flash+bump no
+gol, narração variada (apito inicial/intervalo/final). O que o Diego via
+nos prints era o jogo já em "FIM" (93') — não tem animação porque já
+acabou, não porque não existe. **Giro da rodada** também não é bug: mostra
+uma lista fixa das últimas 4 manchetes (não gira uma por vez) DE PROPÓSITO,
+por causa da trava anti-spoiler (só troca no apito). Se o Diego quiser o
+efeito de "girar uma de cada vez" tipo o mockup, é uma mudança de ESTILO a
+pedir explicitamente — não uma correção de bug.
+
 ## 🏆 Tabela: badge G8/Z4 simétrico + legenda embaixo — ✅ NO AR (14/08)
 Diego testou no ar e achou que só o G4 (1-4) ter etiqueta e o Z4 não ter
 ficava capenga, e que o rótulo devia ser G8 (bate com quem classifica de

@@ -1583,11 +1583,14 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
     </>
   )
 }
-const zone = (rank: number) => rank <= 4 ? '#D6E9FA' : rank >= 17 ? '#F9D8D3' : undefined
+// 🎨 mesma cara da tabela do Jogo Rápido (Diego 14/08): verde pra quem tá bem
+// (G4 continua sendo 4 mesmo — na carreira é o G4 de verdade, acesso E vaga na
+// Copa Legends, não tem descompasso com "8" igual tinha no Jogo Rápido).
+const zone = (rank: number) => rank <= 4 ? '#D8F0DE' : rank >= 17 ? '#F9D8D3' : undefined
 const th: React.CSSProperties = { color: 'rgba(0,0,0,0.7)', fontWeight: 900, fontSize: 10.5 }
 function ZoneLegend() {
-  const chip = (bg: string, label: string, border = false) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><i style={{ width: 10, height: 10, borderRadius: 3, display: 'inline-block', background: bg, border: border ? '1px solid rgba(0,0,0,0.2)' : 'none' }} />{label}</span>
-  return <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{chip('#D6E9FA', 'G4')}{chip('#fff', 'Meio', true)}{chip('#F9D8D3', 'Z4')}</div>
+  const chip = (bg: string, label: string, border = false) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><i style={{ width: 10, height: 10, borderRadius: 3, display: 'inline-block', background: bg, border: border ? '1px solid rgba(0,0,0,0.3)' : 'none' }} />{label}</span>
+  return <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{chip(GOLD, 'G4', true)}{chip('#fff', 'Meio', true)}{chip('#F9D8D3', 'Z4', true)}</div>
 }
 const UP_OF: Partial<Record<Div, Div>> = { B: 'A', C: 'B', D: 'C' }
 const DOWN_OF: Partial<Record<Div, Div>> = { A: 'B', B: 'C', C: 'D' }
@@ -1625,7 +1628,14 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
             const nameColor = colored ? (fc?.solid ?? INK) : isSaf ? safCol!.solid : INK
             return (
               <tr key={t.name + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: bg, fontWeight: colored || isSaf ? 800 : 500 }}>
-                <td style={{ paddingRight: 4, whiteSpace: 'nowrap' }}>{i + 1}{final && i < 4 && UP_OF[div] && <span style={{ display: 'inline-block', color: '#1B7A3D', fontWeight: 900, marginLeft: 2, animation: 'divUp 1.4s ease-in-out infinite' }}>▲</span>}{final && i === 0 && div === 'A' && <span style={{ marginLeft: 2 }}>🏆</span>}{final && i >= teams.length - 4 && DOWN_OF[div] && <span style={{ display: 'inline-block', color: '#B23B2E', fontWeight: 900, marginLeft: 2, animation: 'divDown 1.4s ease-in-out infinite' }}>▼</span>}</td>
+                <td style={{ paddingRight: 4, whiteSpace: 'nowrap' }}>
+                  {i + 1}
+                  {i + 1 <= 4 && <span style={{ fontSize: 7, fontWeight: 900, borderRadius: 4, padding: '1px 3px', marginLeft: 2, background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>G4</span>}
+                  {i + 1 >= 17 && <span style={{ fontSize: 7, fontWeight: 900, borderRadius: 4, padding: '1px 3px', marginLeft: 2, background: '#F9D8D3', border: '1px solid rgba(0,0,0,.4)', color: INK }}>Z4</span>}
+                  {final && i < 4 && UP_OF[div] && <span style={{ display: 'inline-block', color: '#1B7A3D', fontWeight: 900, marginLeft: 2, animation: 'divUp 1.4s ease-in-out infinite' }}>▲</span>}
+                  {final && i === 0 && div === 'A' && <span style={{ marginLeft: 2 }}>🏆</span>}
+                  {final && i >= teams.length - 4 && DOWN_OF[div] && <span style={{ display: 'inline-block', color: '#B23B2E', fontWeight: 900, marginLeft: 2, animation: 'divDown 1.4s ease-in-out infinite' }}>▼</span>}
+                </td>
                 <td style={{ maxWidth: 150, color: nameColor }}>
                   {/* 🛡️ escudo do clube (gerado do nome) + o selo de quem é quem */}
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
