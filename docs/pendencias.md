@@ -17,6 +17,28 @@ preview:
 Nada disso foi commitado ainda (só a troca do motor — item "🔌 Copa do
 Brasil LIGADA ao jogo" mais abaixo — está no ar, atrás da trava).
 
+## 🦁7️⃣ BATISMO Seven FC (glaucomiranda) — ✅ NO AR (15/08, mockup aprovado)
+Homenagem ao **Seven Gamer** (@sevengamersp), criador de conteúdo de games.
+Aprovado no formato oficial de prévia (o mesmo do Remoçada) depois de 4
+rodadas de ajuste (rosto do leão, corpo forte, bola no PÉ, cabeça colada,
+faixa única de listras, placar do 7 junto do festão).
+- **Série A:** `Apogeu FC` → **`Seven FC`** (`data.ts`), com `OLD_NAME`
+  ('Seven FC': 'Apogeu FC') pra save antigo carregar sem quebrar.
+- **Escudo** (`escudos.tsx`, LOGOS_PRONTAS['Seven FC']): coroa dourada + 7
+  dourado no escudo azul-marinho, inspirado na arte que o Glauco mandou.
+- **Mascote** (`mascotes.tsx`, `leao_seven`): leão forte de uniforme
+  completo, juba azul-marinho, 7 no peito e no calção, bola dominada no pé.
+  ⚠️ Os "7" são **path desenhado**, não `<text>` — não depende de fonte.
+- **Banco** (`esc_socios`, sócio nº22): manto_c1 `#C9A227` (dourado fosco) +
+  manto_c2 `#12256B` (o mesmo azul do Remoçada), mascote_key `leao_seven`,
+  escudo_time `Seven FC`.
+- ⏳ **Combinado e NÃO codado ainda**: a comemoração de gol com o **7 dourado
+  carimbando a tela** quando o Seven FC marca (estava no mockup aprovado).
+  Mexe no `LiveScoreCard` (futebol ao vivo, código sensível) — fazer como
+  commit isolado e revertível, e só depois de conferir com o Diego se ele
+  quer só pro Seven FC ou um sistema de "carimbo do clube" pra todo batismo.
+Reversível: `git revert` do commit + `update esc_socios set manto_c1=null...`.
+
 ## 👑 Novo Lenda fundador nº42 + sócio nº22: glaucomiranda@outlook.com (15/08)
 Glauco — tier ouro (user_colors já estava ouro/manual no banco), fundador
 nº42 no código (apoio.tsx), sócio nº22 criado no esc_socios (origem
