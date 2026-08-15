@@ -471,6 +471,20 @@ const ferrariSCRender = (size: number) => (
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
+  // 🦁7️⃣ Seven FC (glaucomiranda, Lenda fundador nº42, ex-Apogeu FC) — homenagem ao
+  // Seven Gamer (@sevengamersp). Coroa + 7 dourado no escudo azul-marinho.
+  'Seven FC': (size: number) => {
+    const w = Math.round(size * 190 / 220)
+    return (
+      <svg width={w} height={size} viewBox="0 0 190 220" aria-label="Seven FC" role="img" style={{ flex: 'none', display: 'block' }}>
+        <path d="M55 38 L64 16 L80 32 L95 8 L110 32 L126 16 L135 38 Z" fill="#C9A227" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <rect x="55" y="36" width="80" height="10" rx="4" fill="#C9A227" stroke={INK} strokeWidth="4" />
+        <path d="M30 58 Q95 44 160 58 L156 140 Q150 185 95 208 Q40 185 34 140 Z" fill="#C9A227" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+        <path d="M42 68 Q95 56 148 68 L145 138 Q139 175 95 194 Q51 175 45 138 Z" fill="#12256B" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+        <path d="M66 92 L128 92 L124 112 L98 174 L74 174 L100 114 L63 114 Z" fill="#C9A227" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      </svg>
+    )
+  },
   // 🏎️⚽ Ferrari SC (adriano) — piloto na bola (mesma arte da mascote), todos os nomes
   // 🐛 FIX 14/08 (relato do Diego: "logo não aparece"): o time DE VERDADE se chama
   // 'SC Ferrari' (data.ts, ex-Painitto FC) — o registro só tinha 'Ferrari SC'
