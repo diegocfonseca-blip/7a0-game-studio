@@ -18,6 +18,7 @@ import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaR
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
+import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard, SponsorLoyaltyBanner } from './estadio'
 import { UnlockBanner } from './unlockbanner'
@@ -4117,6 +4118,40 @@ export function PyramidSeasonScreen() {
   const nCopaRounds = copa?.rounds.length ?? 0
   const copaPlaying = done && !!copa && nCopaRounds > 0 && copaRound < nCopaRounds
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // 📰 A SUA CAMPANHA NA COPA pro jornal (Diego 16/08: "como é que o cara foi
+  // na Copa do Brasil, em que fase que ele caiu, se ganhou"). Varre as fases
+  // procurando a ÚLTIMA em que você apareceu — daí sai campeão/vice/onde caiu.
+  // A Supercopa fica de fora dessa conta (ela é outra competição) e vira um
+  // bloco próprio, só se você chegou a jogá-la.
+  const copaRun = useMemo<CopaRun | undefined>(() => {
+    if (!copa) return undefined
+    const rds = copa.rounds.filter(r => r.name !== 'Supercopa')
+    let lastIdx = -1, lastTie: CopaTie | null = null
+    rds.forEach((r, i) => { const t = r.ties.find(x => x.a.you || x.b.you); if (t) { lastIdx = i; lastTie = t } })
+    if (lastIdx < 0 || !lastTie) return undefined
+    const tie: CopaTie = lastTie
+    const youIsA = !!tie.a.you
+    const won = (tie.win === 'a') === youIsA
+    const isFinal = rds[lastIdx].name === 'Final'
+    if (isFinal && won) return { status: 'campeao' }
+    const opp = youIsA ? tie.b : tie.a
+    if (isFinal) return { status: 'vice', vs: opp.name }
+    const oppDiv = youIsA ? tie.bDiv : tie.aDiv, myDivT = youIsA ? tie.aDiv : tie.bDiv
+    return { status: 'caiu', fase: rds[lastIdx].name, vs: opp.name, zebra: DIV_RANKN[oppDiv] < DIV_RANKN[myDivT] }
+  }, [copa])
+  // 👑 Supercopa: `superRun` só existe se VOCÊ jogou a final; `superChamp` diz
+  // quem levou (pra linha dos "donos da temporada", mesmo sem você lá).
+  const superTie = useMemo(() => copa?.rounds.find(r => r.name === 'Supercopa')?.ties[0] ?? null, [copa])
+  const superChamp = useMemo(() => {
+    if (!superTie) return null
+    const champ = superTie.win === 'a' ? superTie.a : superTie.b, vice = superTie.win === 'a' ? superTie.b : superTie.a
+    return { name: champ.name, you: !!champ.you, vs: vice.name }
+  }, [superTie])
+  const superRun = useMemo<SuperRun | undefined>(() => {
+    if (!superTie || !(superTie.a.you || superTie.b.you)) return undefined
+    const youIsA = !!superTie.a.you
+    return { campeao: (superTie.win === 'a') === youIsA, vs: youIsA ? superTie.b.name : superTie.a.name, placar: `${superTie.aggA}×${superTie.aggB}`, pens: superTie.pens }
+  }, [superTie])
   // 🚫 ANTI-SPOILER na ARTILHARIA da Copa: o torneio inteiro é pré-calculado, mas
   // a artilharia mostrada conta SÓ as fases JÁ APITADAS (reveladas). Enquanto as
   // oitavas rolam (copaRound=0), a artilharia da Copa fica vazia — cai na do
@@ -4708,6 +4743,7 @@ export function PyramidSeasonScreen() {
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
           <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={cbUnlocked}
+            copaRun={copaRun} superRun={superRun} superChamp={superChamp}
             /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
                na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
                temporada exata (pedido do Diego 05/08). */

@@ -49,6 +49,56 @@ const J_DIV_COLOR: Record<Div, string> = { A: '#B8892B', B: '#3E8E4E', C: '#9A7B
 const SERIF = { fontFamily: "Georgia, 'Times New Roman', serif" } as const
 const COND = { fontFamily: 'Oswald, sans-serif' } as const
 
+// ── 🏆 A SUA CAMPANHA NA COPA (Diego 16/08: "tem que aparecer também como é
+// que o cara foi na Copa do Brasil, em que fase que ele caiu, se ganhou, não
+// ganhou... criar frases também sobre quedas"). Igual as manchetes da liga:
+// humor BR, provocação, uma frase diferente por temporada pra não repetir. ──
+export interface CopaRun {
+  status: 'campeao' | 'vice' | 'caiu'
+  fase?: string // nome da fase em que caiu
+  vs?: string // contra quem
+  zebra?: boolean // caiu pra time de divisão MAIS BAIXA (vergonha extra)
+}
+export interface SuperRun { campeao: boolean; vs: string; placar: string; pens?: [number, number] }
+function copaNota(run: CopaRun, nome: string, seasonNo: number, brasil?: boolean): { h: string; s: string } {
+  const cup = brasil ? 'Copa do Brasil' : 'Copa Legends'
+  const pick = <T,>(arr: T[]): T => arr[seasonNo % arr.length]
+  if (run.status === 'campeao') return pick([
+    { h: `🏆 ${nome} É CAMPEÃO DA ${cup.toUpperCase()}!`, s: 'Passou por todo mundo no mata-mata e levantou a taça. Escreve aí: esse ano é dele.' },
+    { h: `🏆 A TAÇA DA ${cup.toUpperCase()} É DO ${nome}!`, s: 'Ninguém segurou. Do primeiro jogo à final, atropelou o chaveamento inteiro.' },
+    { h: `🏆 ${nome} CAMPEÃO — E COM AUTORIDADE`, s: 'A Copa acabou e o nome do campeão não surpreendeu ninguém que acompanhou.' },
+  ])
+  if (run.status === 'vice') return pick([
+    { h: `🥈 VICE: ${nome} PARA NA FINAL`, s: `Chegou até a decisão e viu o ${run.vs} levantar a taça na frente dele. Dói.` },
+    { h: `🥈 TÃO PERTO: ${nome} É VICE DA ${cup.toUpperCase()}`, s: `Um jogo separava da glória. O ${run.vs} não deixou passar.` },
+    { h: `🥈 A PRATA FICOU COM O ${nome}`, s: `Final perdida pro ${run.vs} — o time chorou, a torcida também.` },
+  ])
+  // caiu no meio do caminho
+  const fase = run.fase ?? 'Copa'
+  if (run.zebra) return pick([
+    { h: `🦓 VERGONHA: ${nome} LEVA ZEBRA NA ${fase.toUpperCase()}`, s: `Eliminado pelo ${run.vs}, time de divisão mais baixa. A torcida ainda não acredita.` },
+    { h: `🦓 ${nome} CAI PRO ${run.vs} — E OLHA A DIVISÃO`, s: `Favorito no papel, eliminado no campo. Na ${fase}, ainda por cima.` },
+    { h: `🦓 DEU ZEBRA: ${nome} FORA NA ${fase.toUpperCase()}`, s: `O ${run.vs} não leu o roteiro e mandou o favorito pra casa.` },
+  ])
+  return pick([
+    { h: `❌ ${nome} CAI NA ${fase.toUpperCase()}`, s: `Fim de linha na Copa: o ${run.vs} passou e a temporada ficou só com a liga.` },
+    { h: `❌ ACABOU A COPA PRO ${nome}`, s: `Eliminado na ${fase} pelo ${run.vs}. Ano que vem tem mais.` },
+    { h: `❌ ${nome} DÁ ADEUS À ${cup.toUpperCase()}`, s: `Parou na ${fase}, barrado pelo ${run.vs}. A taça vai ficar pra outro.` },
+  ])
+}
+function superNota(run: SuperRun, nome: string, seasonNo: number): { h: string; s: string } {
+  const pick = <T,>(arr: T[]): T => arr[seasonNo % arr.length]
+  const pen = run.pens ? ` (pênaltis ${run.pens[0]}×${run.pens[1]})` : ''
+  if (run.campeao) return pick([
+    { h: `👑 ${nome} LEVANTA A SUPERCOPA!`, s: `Bateu o ${run.vs} por ${run.placar}${pen} no jogo único e fechou o ano com mais uma na estante.` },
+    { h: `👑 SUPERCOPA É DO ${nome}`, s: `Decisão em jogo único contra o ${run.vs}: ${run.placar}${pen}. Coroou a temporada.` },
+  ])
+  return pick([
+    { h: `😤 ${nome} PERDE A SUPERCOPA`, s: `O ${run.vs} venceu por ${run.placar}${pen} na decisão. Faltou pouco pro ano perfeito.` },
+    { h: `😤 SUPERCOPA ESCAPA DAS MÃOS DO ${nome}`, s: `Derrota pro ${run.vs} (${run.placar}${pen}) no jogo que valia tudo.` },
+  ])
+}
+
 interface Headline { h: string; s: string }
 // 80 manchetes: uma pra CADA posição (índice 0 = campeão ... 19 = lanterna).
 // Sobem 4 / caem 4 — o tom acompanha: glória, acesso, meio-tabela, sufoco, queda.
@@ -183,7 +233,7 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, mundial, brasil }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, mundial, brasil, copaRun, superRun, superChamp }: {
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
   copa: CopaResult | null
@@ -193,6 +243,9 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   eventos?: AgNews[] // 🎭 manchetes dos EVENTOS DE JOGADOR — página "Aconteceu na temporada"
   mundial?: { campeao: string; selecao: string; voce: boolean } | null // 🌍 Copa do Mundo Legends — só quando ela ACONTECE (a cada 10 temporadas) e termina nesta
   brasil?: boolean // 🏆🇧🇷 true = a Copa que rolou foi a do Brasil (não a Legends) — só troca o nome exibido, mesmo dado
+  copaRun?: CopaRun // 🏆 como VOCÊ foi na Copa (fase que caiu / vice / campeão)
+  superRun?: SuperRun // 👑 só existe se VOCÊ jogou a final da Supercopa
+  superChamp?: { name: string; you: boolean; vs: string } | null // 👑 quem levou a Supercopa (pra linha dos donos da temporada)
 }) {
   // abre EXPANDIDO por padrão (a manchete é a estrela do fim de temporada);
   // o "Fechar" recolhe pro botãozinho se a pessoa quiser limpar a tela.
@@ -493,6 +546,34 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         </div>
       </div>
 
+      {/* 🏆 A SUA CAMPANHA NA COPA (Diego 16/08) — nota curta na capa contando
+          até onde você foi. A Supercopa só entra se você jogou a final dela;
+          quem não chegou lá não vê nada sobre ela. */}
+      {(copaRun || superRun) && (
+        <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>
+          <div style={{ background: brasil ? '#0EA658' : GOLD_HEX, color: brasil ? '#fff' : INK, fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>{brasil ? '🏆🇧🇷 Sua campanha na Copa do Brasil' : '🏆 Sua campanha na Copa'}</div>
+          {copaRun && (() => {
+            const n = copaNota(copaRun, me.team, seasonNo, brasil)
+            return (
+              <div style={{ padding: '7px 9px' }}>
+                <div style={{ ...SERIF, fontWeight: 900, fontSize: 14, lineHeight: 1.15, color: INK }}>{n.h}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', marginTop: 2, lineHeight: 1.35 }}>{n.s}</div>
+              </div>
+            )
+          })()}
+          {superRun && (() => {
+            const n = superNota(superRun, me.team, seasonNo)
+            return (
+              <div style={{ padding: '7px 9px', borderTop: '1.5px solid rgba(0,0,0,.12)', background: '#EFF4FF' }}>
+                <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: '#0D4FCC' }}>👑 Supercopa Legends</div>
+                <div style={{ ...SERIF, fontWeight: 900, fontSize: 14, lineHeight: 1.15, color: INK, marginTop: 1 }}>{n.h}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', marginTop: 2, lineHeight: 1.35 }}>{n.s}</div>
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
       {/* os donos da temporada: campeão + artilheiro de CADA série (+ Copa) */}
       <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>
         <div style={{ background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>🏆 Os donos da temporada</div>
@@ -518,12 +599,25 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         })}
         {copa?.champion && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px 7px 0', borderTop: '1.5px solid rgba(0,0,0,.12)', background: copa.champion.you ? '#fdf6dd' : undefined }}>
-            <div style={{ width: 5, alignSelf: 'stretch', flex: 'none', background: '#F5B301' }} />
-            <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: '#F5B301' }}>🏆</div>
+            <div style={{ width: 5, alignSelf: 'stretch', flex: 'none', background: brasil ? '#0EA658' : '#F5B301' }} />
+            <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: brasil ? '#0EA658' : '#F5B301' }}>🏆</div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: '#b98600' }}>🏆 Copa Legends</div>
+              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: brasil ? '#0a6b3c' : '#b98600' }}>{brasil ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'}</div>
               <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.1 }}>{copa.champion.name} <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: copa.champion.you ? '#b98600' : '#8a8266', marginLeft: 3 }}>campeão da Copa{copa.champion.you ? ' ⭐ você' : ''}</span></div>
               {copa.topScorer && <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 1.5 }}>⚽ Artilheiro da Copa: <b>{copa.topScorer.name}</b> ({copa.topScorer.teamName}) · {copa.topScorer.goals} gols</div>}
+            </div>
+          </div>
+        )}
+        {/* 👑 SUPERCOPA LEGENDS: campeão da Liga × campeão da Copa do Brasil.
+            Só aparece nas temporadas em que ela rolou (Diego 16/08). */}
+        {superChamp && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px 7px 0', borderTop: '1.5px solid rgba(0,0,0,.12)', background: superChamp.you ? '#fdf6dd' : undefined }}>
+            <div style={{ width: 5, alignSelf: 'stretch', flex: 'none', background: '#0D4FCC' }} />
+            <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: '#0D4FCC' }}>👑</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: '#0D4FCC' }}>👑 Supercopa Legends</div>
+              <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.1 }}>{superChamp.name} <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: superChamp.you ? '#b98600' : '#8a8266', marginLeft: 3 }}>campeão da Supercopa{superChamp.you ? ' ⭐ você' : ''}</span></div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 1.5 }}>Jogo único contra o <b>{superChamp.vs}</b>.</div>
             </div>
           </div>
         )}
