@@ -111,8 +111,52 @@ varrendo, `ApoioSheen`/`apoioSheen` keyframe):
   cores) já enviado e aprovado no chat — replicar essa forma exata na
   construção.
 
+## 7. Premiação — proposta (15/08, baseada na régua real da Copa Legends)
+A Copa Legends hoje paga por FASE, valor fixo, igual em toda divisão
+(`COPA_PAY` em `pyramidseason.tsx`): participação 2 · quartas 4 · semi 8 ·
+vice 10 · campeão 30 · artilheiro +16 (caixa) e +10 (piso fixo). A Copa do
+Brasil é uma competição BEM maior (96 clubes, 6 fases até o título vindo
+da peneira, contra as ~4 da Copa Legends com 16 clubes) — a régua precisa
+ter mais degraus e pagar mais no topo, pra refletir o tamanho do desafio:
+
+| Até onde foi | Copa Legends (hoje) | Copa do Brasil (proposta) |
+|---|---|---|
+| Caiu na fase de grupos | — | 2 |
+| Caiu na 1ª rodada da chave de 64 | — | 4 |
+| Caiu nas oitavas | (junto no "resto": 2) | 6 |
+| Caiu nas quartas | 4 | 10 |
+| Caiu na semifinal | 8 | 16 |
+| Vice (perdeu a final) | 10 | 25 |
+| Campeão | 30 | **50** |
+| Artilheiro da Copa | +16 caixa / +10 piso | +20 caixa / +12 piso |
+
+Mantém a mesma lógica de hoje: valor FIXO por fase (não escala por
+divisão), campeão ganha carta extra pro álbum, artilheiro sobe o piso.
+💡 Ideia extra (não decidida ainda): um bônus pontual de "zebra" — moedas
+a mais pra quem elimina um time de um Pote mais forte que o seu, prêmio
+mecânico pro upset, não só cosmético. Perguntar ao Diego se quer isso.
+
+### 7.1 Supercopa Legends — premiação proposta
+Jogo único, então não tem "fase" — só dois resultados possíveis:
+- **Vice** (perdeu a Supercopa): 8 moedas.
+- **Campeão**: 20 moedas + o troféu conta pro Hall/ranking (posição no
+  ranking AINDA não decidida — ver pendência abaixo).
+
+### 7.2 Ordem confirmada: Copa do Brasil primeiro, Supercopa logo atrás
+Sequência dentro da MESMA temporada, sem intercalar com a Liga (calendário
+já fechado na seção 4): **Liga (38 rodadas) → Copa do Brasil Legends
+(todas as fases) → Supercopa Legends (jogo único, usa os 2 campeões que
+acabaram de sair)**. A Supercopa só pode rodar depois que a Copa do
+Brasil tem um campeão definido — por isso vem por último, não dá pra
+inverter a ordem.
+
 ## Pendências antes de codar
-- [ ] Fechar calendário: sequencial ou misturada?
+- [ ] Confirmar os números da premiação (seção 7) — é proposta minha, o
+      Diego ainda não bateu o martelo nos valores exatos.
+- [ ] Onde a Supercopa entra na ordem do ranking (seção "posição no
+      ranking" do jogo) — hoje é 🌍 Mundo → 🏆Série A → 🏆Copa (do
+      Brasil) → 🏆B → 🏆C → 🏆D → 🏆Várzea → 💰 dinheiro; falta decidir se
+      a Supercopa vira um critério à parte (e onde) ou só soma nas moedas.
 - [ ] Mando de campo das oitavas em diante: campanha acumulada ou sorteio
       puro?
 - [ ] Nome definitivo (Copa do Brasil Legends? outro nome pra não
