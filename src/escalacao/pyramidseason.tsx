@@ -4644,46 +4644,36 @@ export function PyramidSeasonScreen() {
             {!cbUnlocked && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
           </div>
         )}
-        {/* 🎉 BANNER GRANDE "chegou a Copa" (Diego 16/08: "tem que ter um
-            brilhante temático... igual a gente já viu" — o mockup aprovado tinha
-            um banner de verdade nesse momento, não só uma linha de texto).
-            Aparece 1x só, exatamente na hora que cada competição começa: Copa do
-            Brasil na 1ª fase (Peneira), Supercopa quando chega a vez dela. */}
+        {/* 🎉 BANNER "chegou a Copa" — 1x só, na 1ª fase. Diego 16/08: pediu
+            banner grande + explicação das etapas + quem joga, MAS depois achou
+            "nojento... muita informação" quando virou 3 caixas empilhadas (cada
+            uma com moldura/sombra própria). Consolidado num card SÓ: banner
+            colorido em cima, explicação compacta (funil + quem joga, 1 linha
+            cada) embaixo, mesma moldura única. */}
         {copaPlaying && cbUnlocked && copaRound === 0 && (
-          <>
-          <div style={{ ...box(COPA_BR_HOLO), position: 'relative', overflow: 'hidden', padding: '16px 14px', marginBottom: 8, textAlign: 'center' }}>
+          <div style={{ ...box(COPA_BR_HOLO), position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
             <CopaLegSheen />
-            <p style={{ fontWeight: 900, fontSize: 19, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🇧🇷 CHEGOU A COPA DO BRASIL LEGENDS!</p>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '8px 0 0', padding: '4px 12px', borderRadius: 999, position: 'relative', zIndex: 2 }}>100 clubes · a caçada pela taça começa</p>
+            <div style={{ padding: '14px 14px 10px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
+              <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0, color: GOLD, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🇧🇷 CHEGOU A COPA DO BRASIL LEGENDS!</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '7px 0 0', padding: '3px 10px', borderRadius: 999 }}>100 clubes · a caçada pela taça começa</p>
+            </div>
+            <div style={{ padding: '9px 14px 12px', borderTop: '1px solid rgba(255,255,255,.2)', position: 'relative', zIndex: 2, fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', lineHeight: 1.6 }}>
+              <p style={{ margin: '0 0 3px' }}>🗺️ Peneira → Chave de 64 → Rodada de 32 (jogo único) → Oitavas → Quartas → Semi (ida e volta) → Final.</p>
+              <p style={{ margin: 0 }}>👥 Direto (28): Série A + 8 melhores da B. Na peneira (72): Várzea + C + D + 12 piores da B.</p>
+            </div>
           </div>
-          {/* 🗺️ explicação das etapas (Diego 16/08: "não deveria ter explicação...
-              como é que seria cada etapa, vai ficar mais claro") — o banner sozinho
-              não bastava, precisa dizer o CAMINHO que vem pela frente. */}
-          <div style={{ ...box('#fff'), padding: '9px 12px', marginBottom: 12, fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.7)', textAlign: 'center', lineHeight: 1.7 }}>
-            <b>Como funciona:</b> Peneira → Chave de 64 → Rodada de 32 → Oitavas → Quartas → Semifinal → Final.<br />
-            Até a Rodada de 32: jogo único, sorteio a cada fase. Das oitavas em diante: ida e volta (final é jogo único), chave já travada.
-          </div>
-          {/* 👥 regras de quem participa (Diego 16/08, 1ª tentativa: listar TODOS
-              os 100 nomes — achou demais. Correção: só a REGRA de quem vai pra
-              cada balde + o que "peneira" quer dizer, sem despejar nome nenhum. */}
-          <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 12, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.72)', lineHeight: 1.6 }}>
-            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 8px', textAlign: 'center' }}>👥 Quem tá jogando</p>
-            <p style={{ margin: '0 0 6px' }}><b style={{ color: '#0EA658' }}>🎟️ Direto na chave (28)</b> — Série A inteira + os 8 melhores da Série B. Não jogam a peneira: prêmio por terminar bem a Liga.</p>
-            <p style={{ margin: 0 }}><b style={{ color: '#B8892B' }}>⚔️ Na Peneira (72)</b> — Várzea + Série C + Série D inteiras, mais os 12 piores da Série B (13º-20º). "Peneira" é a 1ª fase: mata-mata de jogo único que corta pela metade antes de entrar na chave principal de 64.</p>
-          </div>
-          </>
         )}
         {copaFase?.name === 'Supercopa' && (
-          <>
-          <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', padding: '16px 14px', marginBottom: 8, textAlign: 'center' }}>
+          <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
             <CopaLegSheen />
-            <p style={{ fontWeight: 900, fontSize: 19, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🔵 CHEGOU A SUPERCOPA LEGENDS!</p>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '8px 0 0', padding: '4px 12px', borderRadius: 999, position: 'relative', zIndex: 2 }}>Campeão da Liga × Campeão da Copa do Brasil</p>
+            <div style={{ padding: '14px 14px 10px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
+              <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0, color: GOLD, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🔵 CHEGOU A SUPERCOPA LEGENDS!</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '7px 0 0', padding: '3px 10px', borderRadius: 999 }}>Campeão da Liga × Campeão da Copa do Brasil</p>
+            </div>
+            <div style={{ padding: '9px 14px 12px', borderTop: '1px solid rgba(255,255,255,.2)', position: 'relative', zIndex: 2, fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', textAlign: 'center' }}>
+              Jogo único. Se o mesmo time ganhar a Liga E a Copa do Brasil, o vice da Liga joga essa final no lugar dele.
+            </div>
           </div>
-          <div style={{ ...box('#fff'), padding: '9px 12px', marginBottom: 12, fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.7)', textAlign: 'center', lineHeight: 1.7 }}>
-            <b>Como funciona:</b> jogo único. Se o mesmo time ganhar a Liga E a Copa do Brasil, o vice da Liga joga essa final no lugar dele.
-          </div>
-          </>
         )}
         {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). No
             FIM, o painel de campeões da temporada (Copa + séries + artilheiros)
