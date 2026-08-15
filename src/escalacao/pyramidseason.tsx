@@ -25,7 +25,7 @@ import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenh
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada } from './sport'
-import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards } from './copa-brasil'
+import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
@@ -49,6 +49,10 @@ function CopaLegSheen({ dur = 3.4 }: { dur?: number }) {
 // brilho + amarelo só de detalhe — MESMO mecanismo de sheen da Copa
 // Legends, só a cor muda (pra dar pra saber qual Copa é só de olhar).
 const COPA_BR_HOLO = 'linear-gradient(150deg,#1FAE63,#0EA658 55%,#0a6b3c)'
+// 🔵 Supercopa Legends: identidade INVERTIDA de propósito (azul carregando
+// o brilho + amarelo só de detalhe) — o oposto da Copa do Brasil, pra dar
+// pra saber qual competição é só pela cor (docs/conceito-copa-brasil.md §6).
+const SUPERCOPA_HOLO = 'linear-gradient(150deg,#4C86FF,#0D4FCC 55%,#062B75)'
 const SLATE = '#3E4A5A' // 🔄 marca de EMPRÉSTIMO (cinza-ardósia): NEUTRA de propósito — cor é sagrada dos tiers, então o emprestado não empresta cor de tier nenhum
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
@@ -3551,7 +3555,16 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
       {/* CAMPEÕES DA TEMPORADA: campeão + artilheiro (com o time do artilheiro). */}
       {finished && <ChampionsPanel copa={copa} tables={tables} scorers={scorers} seasonNo={seasonNo} brasil={brasil} />}
       {shown.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', textAlign: 'center' }}>A Copa está começando… 🔴</p>}
-      {rounds.map(r => (
+      {rounds.map(r => r.name === 'Supercopa' ? (
+        <div key={r.name} style={{ marginBottom: 10 }}>
+          <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', padding: '9px 12px', marginBottom: 8, textAlign: 'center' }}>
+            <CopaLegSheen />
+            <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2 }}>🏆🔵 SUPERCOPA LEGENDS</p>
+            <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.75)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>Campeão da Liga × Campeão da Copa do Brasil · jogo único</p>
+          </div>
+          {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} colors={colors} safName={safTeam} />)}
+        </div>
+      ) : (
         <div key={r.name} style={{ marginBottom: 10 }}>
           <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 5px' }}>{r.name === 'Final' ? '🏁 Final' : r.name}</p>
           {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} colors={colors} safName={safTeam} />)}
@@ -4023,14 +4036,20 @@ export function PyramidSeasonScreen() {
   // precisar saber qual das duas Copas está rolando.
   const cbUnlocked = useCopaBrasilLiberada()
   const copaBR = useMemo(() => (done && cbUnlocked) ? computeCopaBrasil(tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup) : null, [done, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
+  // 🏆🔵 SUPERCOPA LEGENDS: campeão da Série A × campeão da Copa do Brasil,
+  // jogo único, logo depois que a Copa do Brasil termina (docs/conceito-
+  // copa-brasil.md § 5). Já sai calculada junto (é determinística — não
+  // precisa esperar a revelação fase a fase da Copa terminar de VERDADE na
+  // tela, só precisa saber quem é o campeão, que já está decidido aqui).
+  const supercopaTie = useMemo(() => (cbUnlocked && copaBR?.champion) ? computeSupercopa(tables, copaBR.champion, state.seed, state.seasonNo, capElite, realGoals, careerLineup) : null, [cbUnlocked, copaBR, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
   const copa = useMemo(() => {
     if (!done) return null
-    if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR)
+    if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
     return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup)
-  }, [done, cbUnlocked, copaBR, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
+  }, [done, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de
@@ -4105,7 +4124,7 @@ export function PyramidSeasonScreen() {
     if (!copaFinished || !state.careerOnline || state.onlineMode === 'online') return
     if (state.booksSeason === state.seasonNo) return
     const sb = scorerRewards(divTop)
-    const cr = cbUnlocked && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
+    const cr = cbUnlocked && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
     const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
     const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult)
     // 🎟️ ocupação por técnico (carreira nova) — colocação final vira renda do estádio
@@ -4833,7 +4852,7 @@ export function PyramidSeasonScreen() {
           const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
           // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
           const sb = scorerRewards(divTop)
-          const cr = cbUnlocked && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
+          const cr = cbUnlocked && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
           const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
           const newPlacements = computePromotions(tables)

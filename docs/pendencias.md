@@ -1,5 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🔵🏆 Supercopa Legends construída (16/08)
+Peça seguinte depois do chaveamento novo da Copa do Brasil. Campeão da
+Série A × campeão da Copa do Brasil da mesma temporada, jogo único, azul
+brilhante (identidade INVERTIDA da Copa do Brasil de propósito — verde lá,
+azul aqui — pra dar pra saber qual é qual só de olhar). Empate técnico
+(mesmo time ganha as duas): joga o VICE da Série A no lugar.
+- `computeSupercopa` / `supercopaRewards` novos em `copa-brasil.ts` —
+  genérico por design (recebe "quem é o campeão da copa" como parâmetro,
+  não hard-coded pra Copa do Brasil especificamente, igual o doc pedia).
+- **Zero state machine nova**: a Supercopa entra como a 8ª (e última)
+  "página" no mesmo mecanismo de revelação fase-a-fase que a Copa do
+  Brasil já usa (`copaRound`/reveal) — reaproveita 100% o ritmo, sync
+  online, anti-spoiler. A temporada só "fecha" de verdade depois que a
+  Supercopa também for revelada.
+- Prêmio: vice 8 · campeão 20 (docs/conceito-copa-brasil.md §7.1).
+- Testado isolado: 119 verificações, 0 falhas (jogo normal, empate
+  técnico troca pro vice certo, sem campeão de copa ainda retorna null).
+- Continua atrás da mesma trava de teste — zero risco pra quem não é
+  tester.
+
+⏳ **Ainda falta**: ranking (Copa do Brasil e Supercopa ainda não são
+critério próprio no desempate — soma tudo meio misturado hoje), o
+ranking GLOBAL vive no Supabase (fora deste repo).
+
 ## 🔨 Copa do Brasil: chaveamento REFEITO do zero — mata-mata puro (16/08)
 Depois de uma sessão LONGA de idas-e-vindas com o Diego (ele foi mudando
 de ideia várias vezes, testei simulações e mockups no meio do caminho),

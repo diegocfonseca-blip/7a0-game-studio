@@ -230,23 +230,96 @@ export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number
   return { rewards, clubRewards, championKey }
 }
 
+// ─── 🏆🔵 SUPERCOPA LEGENDS (docs/conceito-copa-brasil.md § 5) — campeão
+// da Série A × campeão da Copa do Brasil da MESMA temporada, jogo único,
+// logo depois que a Copa do Brasil termina. Empate técnico: se o MESMO
+// time ganhar as duas, quem joga no lugar dele é o VICE da Série A.
+// Genérico por design — recebe "quem é o campeão da copa" como parâmetro,
+// não fica hard-coded pra Copa do Brasil especificamente. ──
+export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: SimTeam | null, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}): CBTie | null {
+  if (!copaChampion) return null
+  const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t
+  const ligaChamp = tables.A?.[0]
+  const ligaVice = tables.A?.[1]
+  if (!ligaChamp) return null
+  // empate técnico: o mesmo time não joga duas posições na mesma final — o vice da Série A entra no lugar
+  const ligaEnt: Entrant = teamKey(ligaChamp) === teamKey(copaChampion) && ligaVice
+    ? { t: withXI(ligaVice), div: 'A' }
+    : { t: withXI(ligaChamp), div: 'A' }
+  const copaEnt: Entrant = { t: copaChampion, div: 'A' } // divisão só decorativa aqui pro tipo bater
+  const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0x5C0DA) >>> 0)
+  const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
+  // jogo único, sem acumular artilharia entre jogadores (é só 1 partida) —
+  // cada gol sorteia quem marcou, direto pro placar.
+  const credit = (xi: PoolCard[], goals: number): { name: string; min: number }[] => {
+    const evs: { name: string; min: number }[] = []
+    const day = new Map<string, number>()
+    for (const c of xi) day.set(c.id, 0.4 + rng() * 2.2)
+    for (let g = 0; g < goals; g++) {
+      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
+      const total = pool.reduce((s, p) => s + p.w, 0); let r = rng() * total, pick = pool[0]?.c
+      for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
+      if (!pick) continue
+      evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90) })
+    }
+    return evs
+  }
+  const th = TACS[Math.floor(rng() * 3)] as Tac, ta = TACS[Math.floor(rng() * 3)] as Tac
+  const fh = rollForm(ligaEnt.t.xi, th, ta, rng), fa = rollForm(copaEnt.t.xi, ta, th, rng)
+  const lkH = 0.85 + rng() * 0.30, lkA = 0.85 + rng() * 0.30
+  fh.atk *= lkH; fh.def *= lkH; fa.atk *= lkA; fa.def *= lkA
+  const qual = (atk: number) => Math.max(0.5, Math.min(capElite, atk / 66))
+  const G = realGoals ? GOAL_TUNE.v3 : GOAL_TUNE.v2
+  const lh = Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + G.home) * qual(fh.atk))
+  const la = Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk))
+  const hg = poisson(lh, rng), ag = poisson(la, rng)
+  const hEvs = credit(ligaEnt.t.xi, hg), aEvs = credit(copaEnt.t.xi, ag)
+  const goals: Goal[] = [...hEvs.map(e => ({ ...e, home: true })), ...aEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
+  let pens: [number, number] | undefined, win: 'a' | 'b'
+  if (hg === ag) { let x = 2 + Math.floor(rng() * 4), y = 2 + Math.floor(rng() * 4); if (x === y) (rng() < 0.5 ? x++ : y++); pens = [x, y]; win = x > y ? 'a' : 'b' }
+  else win = hg > ag ? 'a' : 'b'
+  return { a: ligaEnt.t, b: copaEnt.t, aDiv: 'A', bDiv: 'A', aggA: hg, aggB: ag, pens, win, goals, legs: [[hg, ag]], legGoals: [goals] }
+}
+
+export const SUPERCOPA_PAY = { vice: 8, camp: 20 }
+
+export function supercopaRewards(tie: CBTie | null): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
+  const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}
+  if (!tie) return { rewards, clubRewards, championKey: null }
+  const champ = tie.win === 'a' ? tie.a : tie.b, vice = tie.win === 'a' ? tie.b : tie.a
+  const paga = (tm: SimTeam, val: number) => {
+    if (tm.human && tm.teamId >= 0) rewards[tm.teamId] = (rewards[tm.teamId] ?? 0) + val
+    else clubRewards[teamKey(tm)] = (clubRewards[teamKey(tm)] ?? 0) + val
+  }
+  paga(champ, SUPERCOPA_PAY.camp)
+  paga(vice, SUPERCOPA_PAY.vice)
+  return { rewards, clubRewards, championKey: teamKey(champ) }
+}
+
 // ─── ADAPTADORES pra Copa do Brasil encaixar 1:1 nos componentes/telas/
 // reducer que já existem pra Copa Legends (CopaBracket, CopaTieRow,
 // CopaLiveMatch, ChampionsPanel, o relógio de fases `copaRound`, o
 // fechamento de temporada) SEM mudar nenhuma linha delas — só troca QUAL
 // motor alimenta a mesma "forma" de dado. A Peneira (round64) vira a 1ª
 // entrada de `rounds`, seguida das 6 fases da chave — 7 fases reveladas
-// ao todo, cada uma mais uma "página" que a tela já sabe folhear. ──
-export function copaBrasilAsCopaResult(r: CopaBrasilResult): CopaResult {
+// ao todo, cada uma mais uma "página" que a tela já sabe folhear. Se a
+// Supercopa já foi calculada (campeão da Copa do Brasil definido), entra
+// como a 8ª e última página, na mesma esteira de revelação. ──
+export function copaBrasilAsCopaResult(r: CopaBrasilResult, supercopa?: CBTie | null): CopaResult {
   const rounds: CopaRound[] = []
   if (r.round64) rounds.push({ name: r.round64.name, ties: r.round64.ties })
   rounds.push(...r.rounds)
+  if (supercopa) rounds.push({ name: 'Supercopa', ties: [supercopa] })
   return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, topScorer: r.topScorer }
 }
 
-export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {
+export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult, supercopa?: CBTie | null): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {
   const base = copaBrasilRewards(r)
   const values: Record<string, number> = {}
   if (r.topScorer) values[r.topScorer.name] = (values[r.topScorer.name] ?? 0) + CB_SCORER_FLOOR_BONUS
-  return { ...base, values }
+  if (!supercopa) return { ...base, values }
+  const sc = supercopaRewards(supercopa)
+  const mrgN = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
+  const mrgS = (a: Record<string, number>, b: Record<string, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
+  return { rewards: mrgN(base.rewards, sc.rewards), clubRewards: mrgS(base.clubRewards, sc.clubRewards), values, championKey: base.championKey }
 }

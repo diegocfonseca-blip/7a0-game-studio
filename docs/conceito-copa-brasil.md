@@ -16,17 +16,21 @@ mais pra nada, é preciso trocar pela lógica da seção 1-NOVA.
 
 ## 🚧 Status da construção (16/08)
 1. ✅ **Placar com goleadores** — no ar.
-2. ⚠️ **Motor do chaveamento v1 (grupos)** — construído, testado e até
-   ligado ao jogo atrás de trava de teste (`COPA_BRASIL_TESTERS` em
-   `sport.ts`) — mas **DESCARTADO**, ver acima. Precisa reconstruir do
-   zero com a lógica da seção 1-NOVA (mata-mata puro, sem grupos).
-3. ⏳ Motor v2 (mata-mata puro): a construir.
-4. ⏳ Falta: telas (a peneira/chave nova ainda não tem UI própria —
-   reaproveita bastante da Copa Legends, mas o número de fases mudou),
-   ranking (Copa do Brasil ainda somaria no mesmo contador da Copa
-   Legends se não for separado; ranking GLOBAL vive no Supabase, fora
-   deste repo), Supercopa Legends (não existe ainda, mas é o próximo
-   passo natural assim que a Copa do Brasil sair do papel).
+2. ⚠️ **Motor do chaveamento v1 (grupos)** — DESCARTADO, ver acima.
+3. ✅ **Motor v2 (mata-mata puro)** — reconstruído, testado (522
+   verificações, 0 falhas), ligado ao jogo atrás da trava de teste. Peneira
+   (72→36) + direto (28) = 64, funil trava a partir das oitavas.
+4. ✅ **Supercopa Legends** — construída (`computeSupercopa` +
+   `supercopaRewards`), campeão da Liga × campeão da Copa do Brasil, azul
+   brilhante, empate técnico troca pro vice da Liga. Entra como a 8ª fase
+   da mesma esteira de revelação da Copa do Brasil (zero state machine
+   nova). Testado: 119 verificações, 0 falhas.
+5. ⏳ Falta: telas dedicadas pra peneira/potes (hoje reaproveita 100% os
+   componentes da Copa Legends via adaptador — funciona, mas não tem
+   nenhuma tela EXTRA explicando o funil pro jogador dentro do jogo em
+   si, só nos mockups fora dele), ranking (Copa do Brasil e Supercopa
+   ainda não são critério próprio no desempate; ranking GLOBAL vive no
+   Supabase, fora deste repo).
 
 > Decidido com o Diego em 14-16/08/2026, em cima de muito brainstorm e
 > idas-e-vindas. **AINDA NÃO CODAR sem reconfirmar com o Diego** — este
