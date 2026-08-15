@@ -19,12 +19,19 @@ Inter→Grêmio + bio, Finazzi Barueri→América-SP + bio, Leynny→Lenny (graf
 Necaxa→Cruz Azul). Folclóricos PROPOSITAIS mantidos: Adriano Gol Contra,
 Zina (Ceará), GarrinSha. Só exibição — lo/hi, fama e regras intactos; saves
 guardam a carta inteira (ident = nome|clube), nada quebra em elenco existente.
-- ⏳ **2 casos pro Diego decidir**: (1) "Digão (irmão do Kaká)" Fluminense
-  2008 — o irmão do Kaká NUNCA jogou no Flu (Milan/empréstimos/NY Red Bulls;
-  o Digão do Flu 2013-16 é outra pessoa). Opções: deixar a zoeira, virar
-  Milan 2007 (real, mundial no elenco), ou virar o Digão do Flu 2014 sem o
-  "irmão do Kaká". (2) Evandro Roncatto "Dinamo Bucareste" — nunca jogou na
-  Romênia (era Chipre); trocar pra quê?
+- ✅ **2 casos decididos pelo Diego (15/08)**: Digão → **Milan 2007** (é o
+  irmão do Kaká mesmo, que nunca jogou no Flu; bio conta os 3 jogos + elenco
+  campeão mundial 2007) e Evandro Roncatto → **Guarani 2004** (cria da base,
+  craque do mundial sub-17 de 2003, 2º melhor atrás só do Fàbregas). NO AR.
+- 📏 **CRITÉRIO DO DIEGO PRA CATEGORIA (15/08, gravar)**: 👑 LENDA não é pra
+  ídolo de clube ("foi lenda NO clube", tipo Fernandão no Inter, Bobô no
+  Bahia, Hulk no Galo — esses são ⭐ CRAQUE). LENDA = jogador que seria lenda
+  em QUALQUER clube NAQUELE ano da carta (grandeza universal, avaliada no
+  ano). Diego pediu análise SEM mexer — parecer entregue no chat 15/08:
+  sugestões de descer Cássio 2012/Mauro Galvão 97/Marcelinho Carioca 95/
+  Evair 93/Adriano-Fla 2009 (e subir Adriano-Inter 2005 no lugar), subir
+  Tostão 70; casos borderline Renato Gaúcho 83 e Dirceu Lopes 76; zoeira
+  Vozinha (Cabo Verde 2026) mantida como está até ele decidir. NADA aplicado.
 - ⏳ **PRÓXIMA ETAPA combinada (15/08)**: auditoria de NÍVEL (lo/hi) e
   CATEGORIA (fame: 👑5/⭐4/🎯2-3/🪵1/💎promessa) — entregar LISTA de sugestões
   pro Diego bater o martelo ANTES de mudar (nível mexe no equilíbrio).
