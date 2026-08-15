@@ -5802,16 +5802,40 @@ export function ReserveListScreen() {
                   por jogador. */}
               {(expirados.length + expDorm.length) > 1 && (() => {
                 const alvos: { c: WonCard; dono: Manager }[] = [...expirados.map(c => ({ c, dono: mgr })), ...(dormM ? expDorm.map(c => ({ c, dono: dormM })) : [])]
-                const bulkRenovar = (anos: 10 | 5) => { for (const { c, dono } of alvos) dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos }) }
+                // 🐛 FIX 15/08 (relato do Diego: "apertou renovar todos e não renovou"):
+                // este botão mandava SEMPRE 5 ou 10 anos pra todo mundo — mas jogador
+                // barato não tem esses prazos na tabela (valor 2 só tem 1 e 3 anos;
+                // valor 1/3/4 não têm 10). O reducer devolvia o estado sem mexer e o
+                // jogador ficava SEM RENOVAR, em silêncio. Agora cada um renova pelo
+                // prazo MAIS PRÓXIMO que existe pro valor dele — "renovar TODOS"
+                // renova todos de verdade.
+                const bulkRenovar = (anos: 10 | 5) => {
+                  for (const { c, dono } of alvos) {
+                    const ops = renewOptions(valorOficial(state, c))
+                    if (!ops.length) continue
+                    const escolhido = ops.includes(anos)
+                      ? anos
+                      : [...ops].sort((x, y) => Math.abs(x - anos) - Math.abs(y - anos) || y - x)[0]
+                    dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: escolhido })
+                  }
+                }
                 const bulkDeixarIr = () => {
                   const jaSolto = new Set(state.contratoRelease ?? [])
                   for (const { c, dono } of alvos) if (!jaSolto.has(c.id)) dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })
                 }
                 return (
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
-                    <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>5️⃣ Renovar TODOS{<br />}5 anos</button>
-                    <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar TODOS{<br />}10 anos (-10%)</button>
-                    <button onClick={bulkDeixarIr} style={btn('#FDECEA', '#a23325', false)}>😢 Deixar TODOS ir{<br />}vão pro leilão</button>
+                  <div style={{ marginBottom: 9 }}>
+                    {/* 🎨 Diego 15/08: "renovar todos" e "deixar todos ir" pareciam a
+                        mesma coisa. Agora os dois de RENOVAR ficam juntos em cima
+                        (verde/dourado) e o de SOLTAR fica embaixo, sozinho, em
+                        vermelho forte com texto branco — cor E lugar diferentes, pra
+                        ninguém soltar o elenco inteiro sem querer. (Dá pra desfazer:
+                        cada jogador solto vira botão "desfazer" no card dele.) */}
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>5️⃣ Renovar TODOS{<br />}5 anos</button>
+                      <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar TODOS{<br />}10 anos (-10%)</button>
+                    </div>
+                    <button onClick={bulkDeixarIr} style={{ ...btn('#C2452F', '#fff', false), width: '100%', marginTop: 6 }}>😢 Deixar TODOS ir · vão pro leilão</button>
                   </div>
                 )
               })()}

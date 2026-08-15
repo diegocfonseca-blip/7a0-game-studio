@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 📝🐛 "Apertei RENOVAR TODOS e não renovou" — ✅ CORRIGIDO (15/08, relato via Diego)
+**O bug era real e tinha causa exata.** Os botões em massa mandavam SEMPRE
+`anos: 5` ou `anos: 10` pra todo mundo — mas a tabela `RENEW_TABLE_LOW` não tem
+esses prazos pra jogador barato:
+| valor | prazos que existem |
+|---|---|
+| 1 🪙 | 1 e 5 — **sem 10** |
+| **2 🪙** | 1 e 3 — **sem 5 E sem 10** |
+| 3 🪙 | 1, 2, 5 — sem 10 |
+| 4 🪙 | 1, 2, 3, 5 — sem 10 |
+O reducer tem `if (custo <= 0) return s` → o jogador era **pulado em silêncio**.
+Medido no elenco REAL do print do leodiniz85 (22 jogadores): apertando "renovar
+todos 10 anos", o goleiro **Milagres (valor 1)** ficava de fora sem nenhum aviso.
+- ✅ **Fix:** o botão em massa agora escolhe, POR JOGADOR, o prazo mais próximo
+  que existe pro valor dele (valor 2 pedindo 10 → renova por 3). "Renovar TODOS"
+  renova todos de verdade. Testado: **nenhum valor de 1 a 200 fica de fora**.
+- ℹ️ **A renovação AUTOMÁTICA (avançar sem decidir) NUNCA teve esse buraco** —
+  ela usa `valorOficial/2` direto, não a tabela. Ninguém perdeu jogador por isso.
+- 🎨 **Visual (pedido do Diego na mesma mensagem):** os 3 botões pareciam iguais.
+  Agora os dois de RENOVAR ficam juntos em cima (verde claro / dourado) e o de
+  SOLTAR fica sozinho embaixo, **largura total, vermelho forte #C2452F com texto
+  branco** — cor E posição diferentes. (Segue reversível: cada jogador solto vira
+  botão "desfazer" no card dele.)
+Reversível: `git revert`.
+
+
 ## 🌍 VARREDURA: quem mais perdeu Copa do Mundo no ranking (15/08, ordem do Diego)
 Diego: *"tem que consertar pra todo mundo né cara? Como é que ganha a copa e não
 ganha porra do troféu?"*. Feita a varredura **casando carreira com carreira**
