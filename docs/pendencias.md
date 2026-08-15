@@ -62,9 +62,15 @@ Relato via Diego. Status de cada um:
    está completando e manda o técnico escolher. Some sozinho quando ele
    salva a escalação de novo. Regra do Diego: completar pode (nunca joga
    com 10), mas NUNCA em silêncio.
-   ⏳ PARTE (b) pendente: o contador de gols ainda inclui a rodada que
-   está animando (spoiler) — corrigir com cuidado em sessão futura (mexe
-   na fonte compartilhada com tabela/artilharia).
+   ✅ PARTE (b) CORRIGIDA (14/08): o anti-spoiler (`revealed`) já existia
+   pra tabela/artilharia/contador, mas o relógio dele era FIXO — quando a
+   partida PAUSAVA no meio (intervalo dos 45' ou pênalti decisivo
+   esperando o técnico), o relógio disparava mesmo assim e entregava os
+   gols com o placar parado em 0x0 (o caso exato do relato). Agora, com
+   pendência aberta, o relógio nem arma — só depois que o técnico resolve
+   o intervalo/pênalti é que a contagem pro reveal começa. Atraso é
+   seguro; vazamento, nunca. (Efeito movido pra depois das definições de
+   halfMode/penMode no pyramidseason.tsx.)
 2. **✅ CORRIGIDO — "hack" do F5 na Copa do Mundo**: dava pra assistir o
    torneio, não gostar, atualizar a página e escolher OUTRA seleção (a
    escolha só era gravada no FIM, na final). Agora a escolha é CARIMBADA

@@ -3750,16 +3750,9 @@ export function PyramidSeasonScreen() {
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
   // `revealed` = rodada cuja pontuação já pode aparecer (a atual só depois da anim).
   const [revealed, setRevealed] = useState(round)
-  useEffect(() => {
-    if (done || round <= 0) { setRevealed(round); return }
-    setRevealed(round - 1) // segura a rodada atual enquanto a partida anima
-    // 🙈 ANTI-SPOILER: o segurador tem que acompanhar a VELOCIDADE (🐢/⚡), igual ao
-    // card do jogo (dur = roundMs*0.82) e ao fim de temporada (endShown). Antes usava
-    // ROUND_MS FIXO: na marcha lenta o jogo animava 15-30s mas a tabela/artilharia
-    // soltavam aos ~7,7s — entregava a rodada com a partida ainda rolando.
-    const t = setTimeout(() => setRevealed(round), Math.round((ROUND_MS / speedFactor) * 0.86))
-    return () => clearTimeout(t)
-  }, [round, done, speedFactor])
+  // (o efeito que controla o `revealed` mora mais abaixo, DEPOIS das definições de
+  // intervalo/pênalti — ele precisa saber se a partida está PAUSADA esperando o
+  // técnico, senão o relógio do reveal dispara com o jogo parado. Bug 14/08.)
   // 🙈 ANTI-SPOILER: a artilharia, os gols por jogador (ex.: "Romário 3") e os
   // líderes de artilharia saem da rodada JÁ REVELADA — não da atual. Sem isto,
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
@@ -4288,6 +4281,22 @@ export function PyramidSeasonScreen() {
   const penMode = soloCareer && !!myMatch && !done && !seasonOver && !copaPlaying && (penPlanned || penTeste) && penDecisive
   const [penaltyOpen, setPenaltyOpen] = useState(false)
   useEffect(() => { setPenaltyOpen(false) }, [round])
+  // 🙈 ANTI-SPOILER do `revealed` (efeito mora AQUI porque precisa do intervalo/
+  // pênalti): segura a rodada atual enquanto a partida anima, acompanhando a
+  // VELOCIDADE (🐢/⚡, igual ao card do jogo). 🐞 BUG 14/08 (o "reserva fez gol
+  // com o jogo 0x0" do leodiniz85): o relógio do reveal era FIXO — quando a
+  // partida PAUSAVA no meio (intervalo dos 45' ou pênalti esperando o técnico),
+  // ele disparava mesmo assim e a artilharia/contador entregavam os gols com o
+  // placar parado em 0x0. Agora, com pendência aberta, o relógio NEM arma — só
+  // depois que o técnico resolve (halftimeDone/penaltyDone) o efeito re-roda e
+  // arma. Atrasar o reveal é seguro; vazar antes do apito, nunca.
+  useEffect(() => {
+    if (done || round <= 0) { setRevealed(round); return }
+    setRevealed(round - 1) // segura a rodada atual enquanto a partida anima
+    if ((halfMode && !halftimeDone) || (penMode && !penaltyDone)) return // pausado esperando o técnico — não arma
+    const t = setTimeout(() => setRevealed(round), Math.round((ROUND_MS / speedFactor) * 0.86))
+    return () => clearTimeout(t)
+  }, [round, done, speedFactor, halfMode, halftimeDone, penMode, penaltyDone])
   // 🐊 mascote do usuário pra comemorar o gol de pênalti (SÓ quem tem mascote)
   const penMascArt = meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? MASCOTES[meuSocFesta.mascoteKey] : null
 
