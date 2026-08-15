@@ -1979,14 +1979,14 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     const bg = perk ? perk.grad : color
     const ink = perk ? TIER_INK[perk.tier] : _inkFor(color)
     return (
-    <div style={{ position: 'relative', overflow: 'hidden', padding: '22px 8px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center', background: bg, minWidth: 0 }}>
+    <div style={{ position: 'relative', overflow: 'hidden', padding: '10px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, textAlign: 'center', background: bg, minWidth: 0 }}>
       {flash && <div style={{ position: 'absolute', inset: 0, background: '#fff', animation: 'coGoalFlash 1.6s ease', pointerEvents: 'none' }} />}
       {perk && <ApoioSheen holo={perk.holo} dur={4.2} />}
       {/* 🛡️ escudo do clube no placar (o basquete segue com a inicial — visual dele
           ainda não foi aprovado) */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: flash ? 'coBump .6s ease' : undefined, ...(basket ? { width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 13, ...OSWALD } : null) }}>{basket ? ini(name) : <Escudo nome={name} size={34} />}</div>
-      <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: ink, lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{perk ? apoioName(name) : name}</div>
-      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? 'você' : 'rival'}</div>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: flash ? 'coBump .6s ease' : undefined, ...(basket ? { width: 24, height: 24, borderRadius: 7, border: `2px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 12, ...OSWALD } : null) }}>{basket ? ini(name) : <Escudo nome={name} size={26} />}</div>
+      <div style={{ position: 'relative', fontSize: 11.5, fontWeight: 900, ...OSWALD, color: ink, lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{perk ? apoioName(name) : name}</div>
+      <div style={{ position: 'relative', fontSize: 8.5, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? 'você' : 'rival'}</div>
     </div>
     )
   }
@@ -2005,25 +2005,37 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const golSide = temGolNaTela ? goal : null
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
-      <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coStamp{0%{transform:translateX(-50%) scale(0) rotate(-14deg);opacity:0}45%{transform:translateX(-50%) scale(1.18) rotate(-7deg);opacity:1}70%{transform:translateX(-50%) scale(.94) rotate(-7deg)}100%{transform:translateX(-50%) scale(1) rotate(-7deg);opacity:1}}'}</style>
+      <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}'}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
-      {/* selo GOOOL! — surge sobre o lado de quem marcou */}
-      {golSide && <div style={{ position: 'absolute', top: 4, left: golSide === 'h' ? '25%' : '75%', transform: 'translateX(-50%) rotate(-7deg)', zIndex: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '3px 12px', ...OSWALD, fontWeight: 900, fontSize: 17, letterSpacing: 0.5, boxShadow: `2px 2px 0 0 ${INK}`, animation: 'coStamp .5s cubic-bezier(.2,1.4,.5,1) both', whiteSpace: 'nowrap', ...(lateGoal ? { background: '#FF5B4D', color: '#fff' } : {}) }}>{goalStamp}</div>}
-      <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
-        <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : 'FIM') : minLabel}
+      {/* 🎨 GOOOL! agora é uma FAIXA no topo (Diego 14/08, igual o mockup aprovado)
+          — antes era um carimbo tombado em cima do time. Some sozinha. */}
+      <div style={{ maxHeight: golSide ? 34 : 0, overflow: 'hidden', transition: 'max-height .3s ease', background: lateGoal ? '#FF5B4D' : GOLD, textAlign: 'center' }}>
+        {golSide && (
+          <p style={{ margin: 0, padding: '7px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, letterSpacing: 0.4, color: lateGoal ? '#fff' : INK, animation: 'coBanner .3s ease', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {goalStamp}{last ? ` ${last.name} ${last.min > 90 ? `90+${last.min - 90}` : last.min}'` : ''}
+          </p>
+        )}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
         <Team name={homeName} color={homeCol} you={youIsHome} flash={golSide === 'h'} />
         {/* placar central limpo (sem tarja preta) — número grande no creme; cada
             número dá um "bump" quando MUDA (key = valor → remonta e reanima) */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '22px 6px 8px', minWidth: 88, ...OSWALD, fontWeight: 900, fontSize: 34, color: INK, lineHeight: 1 }}>
-          <span key={'h' + hg} style={{ padding: '0 8px', display: 'inline-block', animation: 'coBump .55s ease' }}>{hg}</span><span style={{ color: '#b8b0a0', fontSize: 16 }}>×</span><span key={'a' + ag} style={{ padding: '0 8px', display: 'inline-block', animation: 'coBump .55s ease' }}>{ag}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 6px', minWidth: 80, ...OSWALD, fontWeight: 900, fontSize: 28, color: INK, lineHeight: 1 }}>
+          <span key={'h' + hg} style={{ padding: '0 7px', display: 'inline-block', animation: 'coBump .55s ease' }}>{hg}</span><span style={{ color: '#b8b0a0', fontSize: 15 }}>×</span><span key={'a' + ag} style={{ padding: '0 7px', display: 'inline-block', animation: 'coBump .55s ease' }}>{ag}</span>
         </div>
         <Team name={awayName} color={awayCol} you={!youIsHome} flash={golSide === 'a'} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
+      {/* 🎨 relógio numa linha própria embaixo do placar (Diego 14/08) — antes era
+          uma pílula flutuando por cima, fácil de não notar. */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 12px', borderTop: '2px solid #e6dcbf', background: '#FBF6E8' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9.5, fontWeight: 800, color: '#8a8069', ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+          <span style={{ width: 6, height: 6, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite', display: 'inline-block' }} />{done ? (basket ? 'final' : 'fim') : 'ao vivo'}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 900, ...OSWALD, color: INK }}>{minLabel}</span>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', background: '#efe4c8' }}>
         <span key={ritualTxt ?? 'g'} style={{ fontSize: 11, fontWeight: ritualTxt ? 900 : 700, ...OSWALD, color: ritualTxt ? INK : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: ritualTxt ? 'coFade .4s ease' : undefined }}>
-          {ritualTxt ?? (last ? <>{basket ? '🏀' : '⚽'} {last.name}{!basket && <> <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></>}</> : (done ? (basket ? 'sem cestas' : 'sem gols') : (basket ? '🟢 bola quicando…' : '🟢 bola rolando…')))}
+          {ritualTxt ?? (last ? <>{basket ? '🏀' : '⚡'} {last.name}{!basket && <> <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></>}</> : (done ? (basket ? 'sem cestas' : 'sem gols') : (basket ? '🟢 bola quicando…' : '🟢 bola rolando…')))}
         </span>
       </div>
     </div>

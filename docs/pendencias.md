@@ -1,5 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## ⚽ Placar ao vivo (`LiveScoreCard`) refeito na forma exata do mockup — ✅ NO AR (14/08)
+Diego pediu explicitamente a forma EXATA do mockup animado que ele já tinha
+aprovado. Reskin do `LiveScoreCard` (`pyramidseason.tsx`, usado em TUDO: liga
+da carreira, jogo rápido/online, Copa dos 8 e Copa do Mundo Legends — 1
+componente só, muda em todo lugar de uma vez):
+- **GOOOL virou faixa no topo** (largura total, some sozinha) — antes era um
+  carimbo tombado em cima do time que marcou.
+- **Relógio ganhou linha própria** embaixo do placar (●AO VIVO … minuto) —
+  antes era uma pílula preta flutuando por cima, fácil de não notar.
+- Painel de time mais compacto (escudo menor, menos respiro) — cara mais
+  parecida com o card "mini" do mockup.
+- **NADA da lógica mudou**: frases variadas de gol (GOOOL/PINGOU/GOLAÇO/gol
+  nos acréscimos), narração de apito inicial/intervalo/final, selo 🥊
+  CLÁSSICO, cor do TIER de quem paga (sagrado — não virou gradiente único
+  como no mockup, cada lado mantém a cor de verdade) e a trava anti-spoiler
+  seguem 100% como estavam — só toquei no JSX/CSS do render final.
+- **Testado de verdade antes de subir**: montei o componente isolado com um
+  jogo simulado (gol aos 21', empate aos 58', fim aos 90') e conferi
+  print a print que a faixa de gol aparece/some, o placar dá bump, o
+  relógio sobe e o apito final aparece — sem precisar jogar uma temporada
+  inteira pra validar.
+Reversível: `git revert`. Se algo parecer estranho no celular, é só falar.
+
 ## 📣 Giro da rodada agora GIRA sozinho (uma manchete por vez) — ✅ NO AR (14/08)
 Diego insistiu (com print do mockup do lado) que o giro da rodada devia
 "rolar" igual o mockup mostrava, não ficar empilhado. Antes: lista fixa
