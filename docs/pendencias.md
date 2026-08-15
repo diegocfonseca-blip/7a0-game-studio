@@ -1,5 +1,33 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🔓🏆🇧🇷 COPA DO BRASIL LEGENDS + SUPERCOPA NO AR PRA TODO MUNDO (16/08)
+Ordem do Diego: "atualiza já p td mundo pow". `COPA_BRASIL_GERAL = true`
+em `src/escalacao/sport.ts` — a trava por conta saiu, vale pra todos os
+jogadores. **A Copa Legends saiu de cena** (o motor dela, `computeCopa`,
+continua no código mas não é mais chamado — só o histórico de títulos
+segue valendo, no mesmo contador).
+
+O que todo jogador vê agora, ao terminar a rodada 38:
+- Banner grande verde/amarelo "chegou a Copa do Brasil Legends" (1x, com
+  o passo a passo das fases e quem entra direto vs quem joga a peneira).
+- Peneira (72) → chave de 64 → rodada de 32 → oitavas → quartas → semi
+  (ida e volta) → final. Seu jogo no MESMO placar grande da liga; os
+  outros numa lista compacta com o relógio rolando.
+- Supercopa Legends logo depois (azul/amarelo), campeão da Liga ×
+  campeão da Copa do Brasil, jogo único.
+- Jornal com a sua campanha na Copa (fase que caiu / vice / campeão, com
+  tom próprio quando foi zebra) + Supercopa (só se você jogou a final).
+- Ranking: Supercopa virou critério próprio; a Copa mantém o MESMO
+  contador de títulos de antes (ninguém perdeu nada na troca de nome).
+
+**Pra reverter**: `COPA_BRASIL_GERAL = false` em `sport.ts` — volta na
+hora pra Copa Legends pra todo mundo, sem perder save nem título.
+
+⏳ Ainda pendente: ranking GLOBAL (RPC `esc_pyramid_rank` no Supabase,
+fora deste repo) não conhece a Supercopa — precisa de 1 coluna nova
+(`supercopa_titles`) + ajuste da função, mudança em produção que só faço
+com o Diego confirmando. O `copa_titles` de lá continua correto.
+
 ## 📝🐛 "Apertei RENOVAR TODOS e não renovou" — ✅ CORRIGIDO (15/08, relato via Diego)
 **O bug era real e tinha causa exata.** Os botões em massa mandavam SEMPRE
 `anos: 5` ou `anos: 10` pra todo mundo — mas a tabela `RENEW_TABLE_LOW` não tem

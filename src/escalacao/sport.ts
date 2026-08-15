@@ -205,17 +205,17 @@ export function usePenaltiTeste(): boolean {
   return penTestOk
 }
 
-// 🏆🇧🇷 COPA DO BRASIL LEGENDS (em construção, 15/08): substitui a Copa
-// Legends no lugar da pirâmide de carreira. Enquanto está sendo construída
-// "em pedaços" (pedido do Diego), SÓ a conta dele vê/joga — pra todo mundo
-// a Copa Legends de sempre continua exatamente igual, sem UMA vírgula a
-// mais na tela. Mesma trava por CONTA logada (não por save/temporada).
-// Liberar geral: esvaziar a lista ou trocar por uma flag *_GERAL=true,
-// igual o padrão da Agência/Revelação Cinema acima.
+// 🏆🇧🇷 COPA DO BRASIL LEGENDS: substitui a Copa Legends na pirâmide de
+// carreira — 100 clubes, mata-mata puro, + a Supercopa Legends no fim.
+// 🔓 LIBERADO GERAL (16/08, ordem do Diego: "atualiza já p td mundo") —
+// vale pra TODO MUNDO; a Copa Legends saiu de cena. Pra voltar ao teste
+// fechado: COPA_BRASIL_GERAL = false e a lista de testers reassume
+// (mesmo padrão da Agência/Revelação Cinema acima).
+const COPA_BRASIL_GERAL = true
 const COPA_BRASIL_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-let copaBrasilOk = false
+let copaBrasilOk = COPA_BRASIL_GERAL
 function applyCopaBrasilUnlock(email?: string | null): void {
-  const u = !!email && COPA_BRASIL_TESTERS.has(email.toLowerCase())
+  const u = COPA_BRASIL_GERAL || (!!email && COPA_BRASIL_TESTERS.has(email.toLowerCase()))
   if (u === copaBrasilOk) return
   copaBrasilOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
