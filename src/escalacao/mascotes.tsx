@@ -655,6 +655,58 @@ export const MASCOTES: Record<string, ReactNode> = {
   ),
 }
 
+// ⚽🎉 CARIMBO DO GOL (Diego 15/08, depois de aprovar o "7" do Seven City: "já faça
+// o de todos os mascotes tb aparecer alguma coisa deles no gol"): quando um clube
+// BATIZADO marca, a carinha dele carimba o placar por ~1,7s e some sozinha.
+// Regras que valem aqui (as mesmas do martelo/festão):
+//   · só de QUEM MARCA — gol do rival não carimba nada;
+//   · NÃO adiciona passo nem espera: é overlay por cima do que já está rolando,
+//     o relógio não para e ninguém precisa tocar em nada;
+//   · time sem batismo = nada muda (o placar fica exatamente como sempre foi).
+// Nome do clube → chave em MASCOTES. Quem tem nome antigo no save cai aqui pelo
+// `newestTeamName` (quem chama resolve antes de procurar).
+// ⚠️ NÃO "limpar" Marinheiros AS / Eros FC / Sapekeiros FC por não acharem na
+// pirâmide: esses são batismos de RESERVA DE NOME (o clube do próprio jogador, que
+// não substitui time de CPU) — o carimbo deles dispara quando o dono marca.
+export const CARIMBO_GOL: Record<string, string> = {
+  'Neymarzetti': 'moicano',
+  'Manfré FC': 'gralha',
+  'Alfacehh': 'alface',
+  'Império Samambaia': 'samambaia',
+  'Bicho da Seda': 'mariposa',
+  'Nightfull FC': 'galo',
+  'Murriz FC': 'careca_ruivo',
+  'Tôka10': 'toka',
+  'SC Ferrari': 'piloto_bola',
+  'Barcenite FC': 'gatao_bfc',
+  'La Bestia Negra': 'raposa',
+  'Xurupitas FC': 'porco',
+  'Marinheiros AS': 'porco_marinheiro',
+  'Scorporila FC': 'scorporila',
+  'Deportivo Montreal': 'maite',
+  'Marolados FC': 'marolado',
+  'Remoçada': 'leao_thor',
+  'Eros FC': 'eros_nina',
+  'Sapekeiros FC': 'sapek_abelha',
+  'Seven City': 'sete_seven', // 7️⃣ o Seven City carimba com o SETE (mockup aprovado), não com o leão
+}
+
+// 7️⃣ carimbo exclusivo do Seven City: o sete dourado com borda preta grossa.
+// Fica fora de MASCOTES de propósito — não é mascote de festão, é só o carimbo.
+const SETE_SEVEN = (
+  <svg width="134" height="168" viewBox="0 0 120 150" aria-hidden="true">
+    <path d="M22 18 L104 18 L98 46 L62 140 L28 140 L64 50 L18 50 Z" fill="#C9A227" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
+  </svg>
+)
+
+// arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)
+export const carimboDoTime = (time: string): ReactNode | null => {
+  const k = CARIMBO_GOL[time]
+  if (!k) return null
+  if (k === 'sete_seven') return SETE_SEVEN
+  return MASCOTES[k] ?? null
+}
+
 // 🎉 FESTÃO: overlay de ~4,2s por cima da tela de fim — versão viva do GIF.
 // `nome` = time campeão · `mascote` = chave em MASCOTES. Toque pula.
 export function FestaoMascote({ nome, mascote, onDone }: { nome: string; mascote: string; onDone: () => void }) {
