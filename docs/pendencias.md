@@ -31,7 +31,12 @@ guardam a carta inteira (ident = nome|clube), nada quebra em elenco existente.
   sugestões de descer Cássio 2012/Mauro Galvão 97/Marcelinho Carioca 95/
   Evair 93/Adriano-Fla 2009 (e subir Adriano-Inter 2005 no lugar), subir
   Tostão 70; casos borderline Renato Gaúcho 83 e Dirceu Lopes 76; zoeira
-  Vozinha (Cabo Verde 2026) mantida como está até ele decidir. NADA aplicado.
+  Vozinha (Cabo Verde 2026) mantida como está até ele decidir.
+- ✅ **DECISÃO DO DIEGO APLICADA (15/08, NO AR)**: subiram pra 👑 LENDA
+  **Tostão** (Cruzeiro 70) e **Adriano Imperador** (Inter 2005); desceram
+  pra ⭐ CRAQUE **Evair**, **Adriano** (Fla 2009) e **Cássio**. Mauro Galvão
+  e Marcelinho Carioca ele NÃO mandou mexer — continuam 👑. Renato Gaúcho,
+  Dirceu Lopes e Vozinha ficaram como estavam (sem decisão = sem mexer).
 - ⏳ **PRÓXIMA ETAPA combinada (15/08)**: auditoria de NÍVEL (lo/hi) e
   CATEGORIA (fame: 👑5/⭐4/🎯2-3/🪵1/💎promessa) — entregar LISTA de sugestões
   pro Diego bater o martelo ANTES de mudar (nível mexe no equilíbrio).
