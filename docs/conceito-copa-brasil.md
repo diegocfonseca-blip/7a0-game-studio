@@ -29,11 +29,11 @@ Diego depois de eu apontar que a conta original não fechava):
 
 **Fase 1 — fase de grupos (peneira inicial)**: 16 grupos de 4 times (64
 times disputando). Top 2 de cada grupo avança (16×2 = 32 classificados).
-Sorteio dos grupos: os 64 times divididos em **5 potes de força** (nº de
-potes por grupo de 4 a ajustar na construção — o Diego pediu 5 potes
-pensando em grupos de 5; com grupo de 4, revisar se vira 4 potes ou se
-mantém 5 com alguma rotação), cada grupo recebe times de potes
-diferentes pra equilibrar força.
+Sorteio dos grupos: os 64 times divididos em **4 potes de força**
+(fechado 15/08 — eram 5 potes na ideia original, pensada pra grupos de 5;
+ajustado pra 4 potes pra bater com o grupo de 4: cada grupo recebe
+exatamente 1 time de cada pote, e 64 ÷ 4 potes = 16 times por pote =
+exatamente os 16 grupos, uma conta redonda).
 
 **Fase 2 — sorteio da chave de 64**: os 32 classificados dos grupos se
 juntam aos 32 times de bye, formando a chave de 64 com 2 potes:
@@ -109,8 +109,6 @@ varrendo, `ApoioSheen`/`apoioSheen` keyframe):
 
 ## Pendências antes de codar
 - [ ] Fechar calendário: sequencial ou misturada?
-- [ ] Nº de potes de força pra grupos de 4 (o Diego pensou em 5 potes pra
-      grupos de 5 — com grupo de 4 revisar isso)
 - [ ] Mando de campo das oitavas em diante: campanha acumulada ou sorteio
       puro?
 - [ ] Nome definitivo (Copa do Brasil Legends? outro nome pra não
