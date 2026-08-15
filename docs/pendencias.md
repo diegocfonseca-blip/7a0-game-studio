@@ -106,9 +106,11 @@ guardam a carta inteira (ident = nome|clube), nada quebra em elenco existente.
   Alaba, Willian, Oscar, Ramires, Arshavin, Coman, Giroud, Bierhoff, Andy
   Cole, Paquetá-West Ham 80-87→76-84). ⚠️ Força mexe no desempenho em
   partidas futuras (elenco existente mantém o nível já revelado). Pepe
-  (Real 2012) intocado (folk/zoeira). ⏳ Pro martelo do Diego ainda: Sol
-  Campbell (50/50) e os volantes Fernandinho/Fabinho/Gilberto Silva (régua
-  estrita = 🎯, mas o Casemiro do Real já é ⭐ — decidir consistência).
+  (Real 2012) intocado (folk/zoeira). ✅ **ENCERRADO pelo Diego ("deixa
+  assim msm", 15/08)**: Sol Campbell, Fernandinho/Fabinho/Gilberto Silva,
+  Léo Lima e Henrique Dourado FICAM COMO ESTÃO — decisão tomada, não é
+  pendência. A revisão de categorias (👑⭐💎🎯🪵) está COMPLETA; só resta a
+  varredura fina de força lo/hi das 1.351 (aguardando limite da conta).
 - ⭐ **PACOTE 2 DA REVISÃO (15/08, aprovado pelo Diego, NO AR)**: subiram pra
   ⭐ CRAQUE 12 cartas cuja força já era de craque mas o selo ficou pra trás —
   BR: Washington Coração Valente (ATH 2004, artilheiro-recorde), Jhon Arias
