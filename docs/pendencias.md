@@ -98,6 +98,17 @@ guardam a carta inteira (ident = nome|clube), nada quebra em elenco existente.
   Júlio César (Fla 2003) e Götze (Bayern 2014) também subiram pra ⭐ (pedido
   dele na mesma conversa). Zoeiras intocáveis confirmadas: Balotelli,
   Materazzi, Dudek, Heurelho Gomes, Kaiser, Ali Dia etc.
+- ⭐ **PACOTE 3 — força 80+ com selo 🎯 no baralho EU (15/08, "aprovo tudo",
+  NO AR)**: subiram pra ⭐ CRAQUE 12 (Fowler, Aimar, Payet, Élber, Amoroso,
+  Yorke, Maignan, Saliba, Lizarazu, Gattuso, Seaman, Walter Samuel — eram A
+  estrela do time naquele ano). Tiveram a FORÇA reduzida ~3 pts mantendo 🎯
+  15 coadjuvantes de luxo (Onana, Lloris, Costacurta, Laporte, Giménez,
+  Alaba, Willian, Oscar, Ramires, Arshavin, Coman, Giroud, Bierhoff, Andy
+  Cole, Paquetá-West Ham 80-87→76-84). ⚠️ Força mexe no desempenho em
+  partidas futuras (elenco existente mantém o nível já revelado). Pepe
+  (Real 2012) intocado (folk/zoeira). ⏳ Pro martelo do Diego ainda: Sol
+  Campbell (50/50) e os volantes Fernandinho/Fabinho/Gilberto Silva (régua
+  estrita = 🎯, mas o Casemiro do Real já é ⭐ — decidir consistência).
 - ⭐ **PACOTE 2 DA REVISÃO (15/08, aprovado pelo Diego, NO AR)**: subiram pra
   ⭐ CRAQUE 12 cartas cuja força já era de craque mas o selo ficou pra trás —
   BR: Washington Coração Valente (ATH 2004, artilheiro-recorde), Jhon Arias
