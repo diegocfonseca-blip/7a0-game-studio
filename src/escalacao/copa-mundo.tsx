@@ -263,7 +263,17 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
   const rankLink = onGoRank
     ? <button onClick={onGoRank} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontWeight: 900, color: RED, textDecoration: 'underline', cursor: 'pointer' }}>→ ver aba Rank</button>
     : <>(aba Rank)</>
-  const save = useMemo(() => ensureSave(seed), [seed])
+  // 🐛 FIX 15/08 (relato do leodiniz85: "ganhei a Copa do Mundo 2× e nenhuma
+  // contou"): este `save` era memoizado SÓ pelo seed — depois que o torneio
+  // terminava e gravava `played`, o memo continuava VELHO, então `copaNow`
+  // seguia true e o botão "DISPUTAR A COPA DO MUNDO" CONTINUAVA NA TELA. A
+  // pessoa entrava de novo, escolhia outra seleção (chaveamento novo), ganhava
+  // — e a gravação era barrada por `played`, porque a edição já estava
+  // decidida. Resultado: a tela cantava "VOCÊ É CAMPEÃO DO MUNDO + 100 moedas"
+  // e o jogo não registrava NADA. Agora o portão relê o save quando a Copa
+  // fecha: edição decidida = botão some, ninguém joga a mesma Copa 2 vezes.
+  const [saveVer, setSaveVer] = useState(0)
+  const save = useMemo(() => ensureSave(seed), [seed, saveVer])
   // 🌍 BACKFILL do espelho (Diego 14/08): toda vez que essa tela abre, aproveita
   // pra mandar o mural LOCAL inteiro pro save (a ação já dedupa por temporada —
   // só entra o que ainda não tinha). Sem isso, só entrariam títulos NOVOS a
@@ -314,7 +324,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
         <span style={{ position: 'relative' }}>🌍 DISPUTAR A COPA DO MUNDO</span>
         <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>chegou a hora — ela só volta na temporada {seasonNo + 10}!</span>
       </button>
-      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onCard={onCard} onMural={onMural} agenciaOn={agenciaOn} onClose={() => setOpen(false)} />}
+      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onCard={onCard} onMural={onMural} agenciaOn={agenciaOn} onClose={() => { setOpen(false); setSaveVer(v => v + 1) }} />}
     </>
   )
 }
@@ -701,10 +711,14 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
 
   // persiste os prêmios UMA vez — assim que o placar da FINAL aparece (não
   // precisa esperar o clique extra da cerimônia — ver comentário no `finalSeen`).
+  // 🛡️ 15/08: a edição já estava GRAVADA antes desta partida? Então este
+  // torneio é uma re-jogada e não vale — a tela precisa dizer isso na cara, e
+  // NUNCA prometer título/prêmio (era o caso do leodiniz85).
+  const [jaGravada, setJaGravada] = useState(false)
   useEffect(() => {
     if (!finalSeen) return
     const cur = loadCopaSave(seed) ?? save
-    if (cur.played.includes(seasonNo)) return
+    if (cur.played.includes(seasonNo)) { setJaGravada(true); return }
     const c = world.final.champion
     // 🧯 CREDITA ANTES de marcar "já joguei" (bug 10/08): se o app fechar entre os
     // dois, o prêmio não some — o reducer é idempotente por temporada, então
@@ -906,13 +920,13 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
           {isYou(world.final.champion) && <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />}
           <p style={{ fontSize: 34, margin: 0, position: 'relative' }}>🏆</p>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{nm(world.final.champion)} CAMPEÃO DO MUNDO!</p>
-          <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{isYou(world.final.champion) ? <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela eterna no mural{onPrize ? ' + 💰 100 MOEDAS no caixa do clube' : ''}. 🎉</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{jaGravada ? <>⚠️ Esta edição JÁ tinha sido decidida antes — o que vale é o resultado que está no mural. Este torneio foi só um treino: <b>não conta título nem prêmio</b>.</> : isYou(world.final.champion) ? <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela eterna no mural{onPrize ? ' + 💰 100 MOEDAS no caixa do clube' : ''}. 🎉</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>}</p>
           <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', position: 'relative' }}>final: {nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` (pên. ${world.final.pen[0]}×${world.final.pen[1]})` : ''}</p>
         </div>
       )}
       {/* 🎴 CARTA DO CAMPEÃO DO MUNDO — só pra quem venceu (privada). Igual às
           outras copas: a carta é gravada na conta NA HORA (conta mesmo sem abrir). */}
-      {finalSeen && isYou(world.final.champion) && (
+      {finalSeen && isYou(world.final.champion) && !jaGravada && (
         <div style={{ marginBottom: 10 }}>
           {/* 🌍 REGRA DO DIEGO (04/08): "tudo que é campeão conta carta" — chave de
               CARREIRA (co:solo…:copamundo): a carta SOMA no ranking Carreira da
