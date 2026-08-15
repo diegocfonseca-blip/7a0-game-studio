@@ -1,5 +1,25 @@
 # 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
 
+## 🎨 Placar ao vivo: barra de baixo com a cor de cada Copa — ✅ NO AR (15/08)
+Diego pediu pra estender a ideia (barra de baixo brilhante com a cor da
+competição) que mockei pra Copa do Brasil também pras copas que JÁ EXISTEM
+de verdade: Copa do Mundo Legends e Copa dos 8 (online). Implementado:
+- `LiveScoreCard` (`pyramidseason.tsx`) ganhou um prop novo opcional
+  `footTint={{ bg, border, holo }}` — quando não passado, a barra de baixo
+  continua bege de sempre (Liga normal, carreira e online, **sem
+  mudança**). Reusa o mesmo `ApoioSheen` (brilho holográfico) já usado em
+  todo canto.
+- **Copa dos 8** (`screens.tsx`): barra de baixo agora roxo clarinho
+  brilhante, mesma família de cor do roxo já usado no banner/borda dela.
+- **Copa do Mundo** (`copa-mundo.tsx`): barra de baixo dourada brilhante —
+  ela já usa dourado no botão de entrada, então é a MESMA identidade,
+  só chegando também no placar ao vivo.
+- Testado isolado (3 cards lado a lado: sem tint / roxo / dourado) antes
+  de subir — confirmado que o tint normal não mudou em nada.
+Reversível: `git revert`, é só cor de fundo + brilho, nenhuma lógica de
+jogo mudou. Quando a Copa do Brasil/Supercopa saírem do papel, é só
+passar `footTint` verde/azul nelas também — o prop já tá pronto pra isso.
+
 ## 🧪 SIMULAÇÃO COMPLETA dos 3 bugs relatados — 14 ✅ · 0 ❌ (15/08, pedido do Diego)
 Diego: "Rode uma simulação e teste tudo isso q falamos p ver se vc encontra
 os erros exatos... se vc encontrar outros me fale". Montado harness Node
@@ -32,6 +52,21 @@ mecanismos de TELA já corrigidos (aviso do buraco + reveal esperando
 pendência + carimbo da Copa). Único ❌ da 1ª rodada do teste era erro do
 PRÓPRIO teste (não fazia a aposta de patrocínio — a trava do jogo estava
 certa).
+
+## 💭 Copa do Brasil Legends + Supercopa Legends (3ª/4ª competição da carreira) — CONCEITO AVANÇADO, ainda não codado
+Evoluiu bastante desde o brainstorm inicial (14/08): o Diego mandou a
+**especificação COMPLETA e literal** do chaveamento (64 clubes: 16 Série A
+de bye + fase de grupos com 16 grupos de 5 peneirando 80 times até 32,
+sorteio em 2 potes pra formar a chave de 64, regra de mando de campo) —
+essa Copa do Brasil **SUBSTITUI a Copa Legends**. Também fechou a
+**Supercopa Legends** (Liga × Copa do Brasil, jogo único, vice da Série A
+entra se o mesmo time ganhar as duas) e a **identidade visual das duas**
+(Copa do Brasil = verde brilhante + amarelo detalhe; Supercopa = azul
+brilhante + amarelo detalhe — invertida de propósito pra não confundir).
+Mockup de tabela/potes/funil/placar das duas já **mostrado e aprovado no
+visual**. **AINDA NÃO aprovado pra codar** — falta fechar o calendário
+(sequencial x misturada) e outros detalhes. Tudo documentado em
+**`docs/conceito-copa-brasil.md`** — ler antes de qualquer trabalho nisso.
 
 ## 🎯 Copa dos 8: tática pra DEPOIS do placar + box mais clean (igual liga) — ✅ NO AR (14/08)
 Dois pedidos direto do celular do Diego, na tela da Copa dos 8 (`screens.tsx`):
