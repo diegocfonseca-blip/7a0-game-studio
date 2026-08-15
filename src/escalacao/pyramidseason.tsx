@@ -3428,6 +3428,66 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
   )
 }
 
+// ── 📋 OS OUTROS JOGOS DA FASE, em LISTA COMPACTA (Diego 16/08, ideia dele:
+// "mantém o padrão visual dos jogos da liga, só que simulados... o mesmo
+// tamanho, mesma organização, mas passando o tempinho deles lá"). Antes eram
+// 32 CopaLiveMatch GRANDES empilhados (cada um com moldura+sombra própria) —
+// virava uma parede. Agora é o MESMO card branco de `DivMatches`, uma linha
+// por confronto, com o relógio de cada jogo correndo de verdade.
+// 🚫 ANTI-SPOILER: o placar exibido é o placar NAQUELE minuto (gols filtrados
+// por `min <= legMin`, mesma conta do card grande) — nunca o resultado final.
+function CopaMatchList({ ties, pos, colors, safName, title }: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
+  const nameCol = (t: SimTeam) => t.you ? (colors[t.teamId]?.solid ?? INK) : (safName && t.name === safName) ? (colors[t.teamId]?.solid ?? INK) : (t.human || t.rival) ? (colors[t.teamId]?.solid ?? INK) : INK
+  const markOf = (t: SimTeam) => t.you ? '👤 ' : (safName && t.name === safName) ? '💼 ' : t.rival ? '⚔️ ' : t.dorm ? '🏛️ ' : t.human ? '🔥 ' : ''
+  return (
+    <div style={{ ...box('#fff'), padding: 9, marginBottom: 8 }}>
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 6px' }}>{title}</p>
+      <div>
+        {ties.map((tie, i) => {
+          const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
+          const nLegs = legG.length
+          const done = pos >= nLegs * 90
+          const legIdx = Math.min(nLegs - 1, Math.floor(pos / 90))
+          const legMin = Math.min(90, Math.round(pos - legIdx * 90))
+          const g = legG[legIdx] ?? []
+          const showA = done ? tie.aggA : g.filter(x => x.home && x.min <= legMin).length
+          const showB = done ? tie.aggB : g.filter(x => !x.home && x.min <= legMin).length
+          const aWin = tie.win === 'a'
+          // pênaltis: só risca o perdedor DEPOIS que a disputa termina de pipocar
+          const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens) : 0
+          const dimStyle = (win: boolean): React.CSSProperties => {
+            if (!done || win) return {}
+            if (pensDelay > 0) return { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` }
+            return { opacity: 0.55, textDecoration: 'line-through' }
+          }
+          const mine = tie.a.you || tie.b.you
+          const lastG = [...g].filter(x => x.min <= legMin).sort((x, y) => x.min - y.min).pop()
+          const phaseLbl = nLegs === 2 ? (legIdx === 0 ? 'ida ' : 'volta ') : ''
+          return (
+            <div key={i} style={{ padding: '3px 4px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: mine ? '#FFF3CF' : undefined, borderRadius: mine ? 5 : 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, minWidth: 0, fontWeight: mine ? 900 : 600, fontSize: 11.5, ...OSWALD, color: nameCol(tie.a), ...dimStyle(aWin) }}>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{markOf(tie.a)}{tie.a.name}</span><Escudo nome={tie.a.name} size={16} />
+                </span>
+                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                  <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: done ? INK : '#eee', color: done ? '#fff' : INK, borderRadius: 5, padding: '0 7px', whiteSpace: 'nowrap' }}>{showA}×{showB}</span>
+                  <span style={{ fontWeight: 800, fontSize: 8, ...OSWALD, color: done ? 'rgba(0,0,0,.45)' : '#C2452F', whiteSpace: 'nowrap' }}>{done ? 'FIM' : `🔴 ${phaseLbl}${legMin}'`}</span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, fontWeight: mine ? 900 : 600, fontSize: 11.5, ...OSWALD, color: nameCol(tie.b), ...dimStyle(!aWin) }}>
+                  <Escudo nome={tie.b.name} size={16} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{markOf(tie.b)}{tie.b.name}</span>
+                </span>
+              </div>
+              {!done && lastG && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {lastG.name} <span style={{ opacity: 0.7 }}>{lastG.min > 90 ? `90+${lastG.min - 90}'` : `${lastG.min}'`}</span></p>}
+              {done && tie.pens && <p style={{ fontSize: 9, fontWeight: 800, color: '#C2452F', margin: '1px 0 0', textAlign: 'center' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
+            </div>
+          )
+        })}
+      </div>
+      {ties.some(t => t.pens) && <style>{'@keyframes copaLoserFade{to{opacity:.55;text-decoration:line-through}}'}</style>}
+    </div>
+  )
+}
+
 // painel "Campeões da temporada": campeão + artilheiro (com o time do artilheiro)
 // da Copa e de cada série A/B/C/D. Reutilizado na aba Tabelas e na tela de fim.
 function ChampionsPanel({ copa, tables, scorers, seasonNo, brasil }: { copa: CopaResult; tables: Record<Div, SimTeam[]>; scorers?: SeasonScorer[]; seasonNo?: number; brasil?: boolean }) {
@@ -4593,9 +4653,13 @@ export function PyramidSeasonScreen() {
           {copaPlaying && <CopaLegSheen />}
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, position: 'relative', zIndex: 2 }}>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{copaPlaying ? `Temporada ${state.seasonNo} · ${label}` : <>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</>}</div>
+              {/* 🏷️ (16/08) o campeonato de pontos corridos ganhou nome próprio
+                  no topo — "Liga Legends" — pra dar par com a Copa do Brasil
+                  Legends. A divisão desce pra linha de baixo (mesmo lugar onde
+                  a Copa mostra o formato da fase). */}
+              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>Temporada {state.seasonNo} · {copaPlaying ? label : '⚽ Liga Legends'}</div>
               <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? copaFaseName : done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
-              {copaPlaying && <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.3 }}>{sub} · {copaNLegs === 1 ? 'jogo único' : 'ida e volta'}</div>}
+              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.3 }}>{copaPlaying ? `${sub} · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'}` : me ? DIV_NAME[me.div] : ''}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
               {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
@@ -5533,12 +5597,8 @@ export function PyramidSeasonScreen() {
             /* Durante a COPA: SEU jogo já está no placar em cima das abas. Aqui na
                aba Jogos ficam os OUTROS jogos da fase, rolando junto (mesmo relógio),
                como os jogos das outras divisões apareciam na liga. */
-            <>
-              <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '2px 0 7px' }}>🏆 Copa · {copaFaseName} · {copaNLegs === 1 ? 'jogo único' : 'ida e volta'}</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
-                {otherCopaTies.map((t, i) => <CopaLiveMatch key={i} tie={t} pos={copaPos} colors={colors} safName={safTeamName} />)}
-              </div>
-            </>
+            <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName}
+              title={`${cbUnlocked ? '🏆🇧🇷' : '🏆'} ${copaFaseName} · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'}`} />
           ) : (
           <>
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
