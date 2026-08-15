@@ -4653,12 +4653,20 @@ export function PyramidSeasonScreen() {
             sentido aparecer na Copa" — esse cartão é sobre a colocação na
             LIGA, então some assim que a Copa entra em cena (o banner grande
             dela toma o lugar). */}
-        {done && me && !copaPlaying && (
-          <div style={{ ...box(me.champ ? GOLD : '#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
-            {me.champ
-              ? <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>🏆 CAMPEÃO DA {DIV_NAME[me.div].toUpperCase()}!</p>
-              : <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 {me.team} — {me.pos}º na {DIV_NAME[me.div]}</p>}
-            {!cbUnlocked && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
+        {/* 🐛 (16/08) o cartão "🏁 seu time — Nº na Série X" saiu daqui: o JORNAL
+            (O Martelo, logo abaixo) já dá a colocação com manchete e tudo —
+            Diego: "não precisa porque já tem no jornal também". Só o CAMPEÃO
+            mantém o cartão, porque aí é comemoração, não informação repetida. */}
+        {done && me && me.champ && !copaPlaying && (
+          <div style={{ ...box(GOLD), padding: 12, marginBottom: 12, textAlign: 'center' }}>
+            <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>🏆 CAMPEÃO DA {DIV_NAME[me.div].toUpperCase()}!</p>
+          </div>
+        )}
+        {/* quem ainda NÃO é tester continua com o aviso de que a Copa Legends
+            começou (o banner grande abaixo é só da Copa do Brasil). */}
+        {copaPlaying && copaRound === 0 && !cbUnlocked && (
+          <div style={{ ...box('#fff'), padding: '9px 12px', marginBottom: 12, textAlign: 'center' }}>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', margin: 0 }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>
           </div>
         )}
         {/* 🎉 BANNER "chegou a Copa" — 1x só, na 1ª fase. Diego 16/08: pediu
