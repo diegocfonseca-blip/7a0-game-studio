@@ -56,8 +56,15 @@ Relato via Diego. Status de cada um:
       placar — por isso "fez gol com o jogo 0x0" (spoiler, que o Diego
       odeia). Correção precisa de cuidado: atrasar a estatística até o
       apito sem quebrar tabela/artilharia (mexem na mesma fonte).
-   Próximo passo: reproduzir o caso do buraco na escalação + decidir o
-   visual (ex.: avisar "fulano completou a vaga X" em vez de silêncio).
+   ✅ PARTE (a) CORRIGIDA (14/08): aviso visível na aba Elenco › Time
+   sempre que a escalação salva tem buraco (titular saiu do clube) e
+   alguém do banco está completando a vaga automaticamente — lista QUEM
+   está completando e manda o técnico escolher. Some sozinho quando ele
+   salva a escalação de novo. Regra do Diego: completar pode (nunca joga
+   com 10), mas NUNCA em silêncio.
+   ⏳ PARTE (b) pendente: o contador de gols ainda inclui a rodada que
+   está animando (spoiler) — corrigir com cuidado em sessão futura (mexe
+   na fonte compartilhada com tabela/artilharia).
 2. **✅ CORRIGIDO — "hack" do F5 na Copa do Mundo**: dava pra assistir o
    torneio, não gostar, atualizar a página e escolher OUTRA seleção (a
    escolha só era gravada no FIM, na final). Agora a escolha é CARIMBADA

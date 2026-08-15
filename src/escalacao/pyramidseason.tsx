@@ -5216,6 +5216,32 @@ export function PyramidSeasonScreen() {
                 <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
               </>
             )}
+            {/* ⚠️ ESCALAÇÃO FANTASMA (bug 14/08, print do leodiniz85 — "Roberto
+                Carlos reserva fez gol"): quando um titular SAI do clube (deixou
+                ir na janela de contratos, venda), a escalação salva fica com
+                buraco e o jogo completa a vaga com o melhor do banco NA SURDINA
+                — o jogador entrava em campo e marcava sem o dono saber. Regra do
+                Diego: completar pode (nunca deixa o time com 10), mas TEM que
+                avisar. O aviso some sozinho quando o técnico salvar a escalação
+                de novo (qualquer troca regrava os 11 atuais). */}
+            {mgrMe && (() => {
+              const byRound = (state.careerLineup ?? {})[youId]
+              if (!byRound) return null
+              let bk = -1; let savedIds: string[] | null = null
+              for (const k in byRound) { const kn = +k; if (kn <= state.round && kn > bk) { bk = kn; savedIds = byRound[k] } }
+              if (!savedIds) return null
+              const squadIds = new Set(mgrMe.squad.map(c => c.id))
+              const buracos = savedIds.filter(id => !squadIds.has(id)).length
+              if (buracos === 0) return null
+              const saved = new Set(savedIds)
+              const fills = myXI.filter(c => !saved.has(c.id))
+              if (!fills.length) return null
+              return (
+                <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, background: '#FDE9C8', fontWeight: 800, fontSize: 11, lineHeight: 1.45 }}>
+                  ⚠️ <b>{buracos === 1 ? 'Um titular seu saiu do clube' : `${buracos} titulares seus saíram do clube`}</b> e a escalação ficou com {buracos === 1 ? 'buraco' : 'buracos'} — {fills.map(c => `${c.name} (${c.pos})`).join(', ')} {fills.length === 1 ? 'está completando a vaga' : 'estão completando as vagas'} automaticamente. Toque nos jogadores abaixo pra escolher você mesmo quem joga.
+                </div>
+              )
+            })()}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
