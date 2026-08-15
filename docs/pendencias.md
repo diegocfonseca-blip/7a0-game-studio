@@ -1,5 +1,37 @@
 # 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
 
+## 🃏 AUDITORIA DO BARALHO INTEIRO (1.351 cartas) — 108 correções ✅ NO AR (15/08)
+Diego pediu conferir Marcos/Juninho Paulista/Luís Fabiano/Valdivia; 3 dos 4
+estavam com ano errado → ele mandou checar TODAS ("devem ter mts jogadores
+errados"). Processo em 2 etapas: 16 auditores em paralelo (carta por carta,
+web nos incertos) + re-verificação de cada suspeita antes de mexer (teve
+alarme falso, ex. Marta/Antony). Placar final: 1.237 cartas ok de primeira,
+**95 anos corrigidos** (Ibra Milan 2013→2012, Hagi Gala 1994→2000, Zizinho
+Fla 1950→1943, Gérson Botafogo 1970→1968 — na Copa de 70 ele era do São
+Paulo!, Renato Augusto Cor. 2018→2015, Grafite SPFC 2008→2005, Elano Santos
+2009→2004, Ochoa América 2014→2009 etc.) e **13 trocas de clube/nome** onde
+o jogador NUNCA jogou no clube impresso (Apodi Fortaleza→Ceará, Fumagalli
+Goiás→Guarani + bio, Vladimir Coritiba→Santos, Cláudio Pitbull
+Coritiba→Grêmio, Ceará-lateral Fluminense→Cruzeiro, Marcelinho Paraíba
+Corinthians→São Paulo, Nonato Bahia→Fluminense + bio, Rodrigo Alvim
+Inter→Grêmio + bio, Finazzi Barueri→América-SP + bio, Leynny→Lenny (grafia),
+"Nacho"→Gianluca Prestianni, Joel Sánchez Necaxa→Guadalajara, Caniza
+Necaxa→Cruz Azul). Folclóricos PROPOSITAIS mantidos: Adriano Gol Contra,
+Zina (Ceará), GarrinSha. Só exibição — lo/hi, fama e regras intactos; saves
+guardam a carta inteira (ident = nome|clube), nada quebra em elenco existente.
+- ⏳ **2 casos pro Diego decidir**: (1) "Digão (irmão do Kaká)" Fluminense
+  2008 — o irmão do Kaká NUNCA jogou no Flu (Milan/empréstimos/NY Red Bulls;
+  o Digão do Flu 2013-16 é outra pessoa). Opções: deixar a zoeira, virar
+  Milan 2007 (real, mundial no elenco), ou virar o Digão do Flu 2014 sem o
+  "irmão do Kaká". (2) Evandro Roncatto "Dinamo Bucareste" — nunca jogou na
+  Romênia (era Chipre); trocar pra quê?
+- ⏳ **PRÓXIMA ETAPA combinada (15/08)**: auditoria de NÍVEL (lo/hi) e
+  CATEGORIA (fame: 👑5/⭐4/🎯2-3/🪵1/💎promessa) — entregar LISTA de sugestões
+  pro Diego bater o martelo ANTES de mudar (nível mexe no equilíbrio).
+  ⚠️ Travou no limite mensal de gastos da conta Claude (os verificadores
+  morreram no meio; terminei a verificação na mão). Rodar quando o limite
+  for aumentado/renovar (claude.ai/settings/usage).
+
 ## 🎨 Placar ao vivo: barra de baixo com a cor de cada Copa — ✅ NO AR (15/08)
 Diego pediu pra estender a ideia (barra de baixo brilhante com a cor da
 competição) que mockei pra Copa do Brasil também pras copas que JÁ EXISTEM
