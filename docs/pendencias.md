@@ -27,6 +27,32 @@ hora pra Copa Legends pra todo mundo, sem perder save nem título.
 fora deste repo) não conhece a Supercopa — precisa de 1 coluna nova
 (`supercopa_titles`) + ajuste da função, mudança em produção que só faço
 com o Diego confirmando. O `copa_titles` de lá continua correto.
+## 🐛🧊 Trava do leilão (caixa negativa) — RODADA 2, causa ESTRUTURAL achada (15/08)
+O conserto de 14/08 era um CHUTE (aba em 2º plano) e o Diego confirmou que
+continua. Com o relato novo dele (*"trava na PRIMEIRA carta, F5 destrava, aí vai"*)
+achei um caminho sem saída de verdade no código:
+- `EscAuction` (screens.tsx ~2276) roteia assim: envelope → `<Envelope/>`,
+  tiebreak → `<Tiebreak/>`, **e TODO O RESTO cai em `<Reveal/>`** (catch-all).
+- Quando o jogo vai pro **monte/cerimônia**, o reducer muda só o `screen` — a
+  `phase` fica pra trás (conferido: `advanceSectorOrFinish` e `enterCerimonia`
+  mexem em `screen`, não em `phase`). Se a tela ficar em `auction` com a fase já
+  passada, o app renderiza a REVELAÇÃO **sem carta** → "Preparando o pregão…".
+- A auto-cura dessa tela era **UMA tentativa de 80ms** de `ADVANCE_REVEAL` — e
+  essa ação é **recusada** se a fase não for `reveal`/`resq_reveal`. Resultado:
+  preso pra sempre, sem timer e sem retry. O F5 resolve porque re-roteia do zero.
+- Pior: a auto-cura só rodava pra quem CONDUZ (`canDrive = solo || host`). No
+  online, o **convidado** que perdesse o sync ficava esperando eternamente.
+- ✅ **Fix:** (1) a auto-cura agora **insiste** a cada 700ms em vez de uma vez só;
+  (2) depois de **5s preso**, aparece um botão **"🔄 Destravar o pregão"** pra
+  TODO MUNDO (inclusive convidado), com o aviso de que **nada se perde**. Ninguém
+  mais precisa adivinhar sozinho que o F5 resolve.
+- ⚠️ **Honestidade:** o harness NÃO conseguiu reproduzir a trava dirigindo o
+  leilão por reducer com caixa -5, 0 e 100 (os três terminam igual) — o buraco é
+  de TELA, não de regra. Por isso o fix ataca a tela e garante a saída, em vez de
+  fingir que achou a causa raiz. Se voltar a acontecer, pedir print da tela
+  travada: agora ela mostra há quanto tempo está presa.
+- Ritmo normal intocado (`AutoAdvance` não mudou). Reversível: `git revert`.
+
 
 ## 📝🐛 "Apertei RENOVAR TODOS e não renovou" — ✅ CORRIGIDO (15/08, relato via Diego)
 **O bug era real e tinha causa exata.** Os botões em massa mandavam SEMPRE
