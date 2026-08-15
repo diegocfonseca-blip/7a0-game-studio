@@ -4154,7 +4154,12 @@ export function PyramidSeasonScreen() {
   // fase da Copa tocando agora (pra mostrar DISCRETO no cabeçalho, no lugar da divisão)
   const copaFase = copaPlaying && copa ? copa.rounds[copaRound] : null
   const copaFaseName = copaFase ? (copaFase.name === 'Final' ? 'Final' : copaFase.name) : ''
-  const copaNLegs = copaFase ? (copaFase.name === 'Final' ? 1 : 2) : 1
+  // 🐛 (16/08) antes assumia "só a Final é jogo único, resto é ida e volta" —
+  // válido pra Copa Legends (4 fases) mas ERRADO pra Copa do Brasil (Peneira,
+  // Rodada de 64 e Rodada de 32 também são jogo único) e pra Supercopa (jogo
+  // único também). Lendo direto do próprio confronto (`legs.length`) em vez de
+  // adivinhar pelo nome da fase — sempre bate com o que o motor calculou.
+  const copaNLegs = copaFase ? (copaFase.ties[0]?.legs.length ?? 1) : 1
   const copaFaseTotal = copaNLegs * 90
   const myCopaTie = copaFase?.ties.find(t => t.a.you || t.b.you) ?? null
   const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
@@ -4398,8 +4403,8 @@ export function PyramidSeasonScreen() {
         const champ = tables[d]?.[0]
         if (champ) for (const p of champ.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} foi campeão da ${DIV_NAME[d]} pelo ${champ.name}`, coins: 1, nome: p.name })
       }
-      if (copa.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} levou a Copa Legends pelo ${copa.champion.name}`, coins: 1, nome: p.name })
-      if (copa.topScorer && nomes.has(copa.topScorer.name)) rows.push({ emoji: '🥇', texto: `${copa.topScorer.name} foi o artilheiro da Copa Legends`, coins: 1, nome: copa.topScorer.name })
+      if (copa.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} levou a ${cbUnlocked ? 'Copa do Brasil' : 'Copa Legends'} pelo ${copa.champion.name}`, coins: 1, nome: p.name })
+      if (copa.topScorer && nomes.has(copa.topScorer.name)) rows.push({ emoji: '🥇', texto: `${copa.topScorer.name} foi o artilheiro da ${cbUnlocked ? 'Copa do Brasil' : 'Copa Legends'}`, coins: 1, nome: copa.topScorer.name })
     }
     dispatch({ type: 'AGENCIA_SEASON_EVENTS', season: state.seasonNo ?? 1, rows })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -4571,13 +4576,26 @@ export function PyramidSeasonScreen() {
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <SocioBaraoBanner />
-        {/* 🎨 identidade da Copa Legends (Diego 11/08): verde escuro na fase da Copa */}
-        <div style={{ ...box(copaPlaying ? `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)` : INK), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
-          <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+        {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
+            do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
+            saber qual é qual só de olhar), verde escuro na Copa Legends (quem
+            ainda não é tester). Esse cabeçalho fica FIXO em cima de toda aba —
+            é o único lugar sempre visível, então é aqui que precisa ficar claro
+            em qual fase/competição a pessoa está (Diego 16/08: "não sabe aonde
+            que ela entrou"). */}
+        {(() => {
+          const supercopaFase = copaFase?.name === 'Supercopa'
+          const bg = !copaPlaying ? INK : supercopaFase ? SUPERCOPA_HOLO : cbUnlocked ? COPA_BR_HOLO : `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)`
+          const label = supercopaFase ? '🏆🔵 Supercopa Legends' : cbUnlocked ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
+          const sub = supercopaFase ? 'Campeão da Liga × Campeão da Copa do Brasil' : cbUnlocked ? '100 clubes · mata-mata puro, sem grupos' : 'Os 4 melhores de cada série (A·B·C·D) no mata-mata'
+          return (
+        <div style={{ ...box(bg), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
+          {copaPlaying && <CopaLegSheen />}
+          <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, position: 'relative', zIndex: 2 }}>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{copaPlaying ? `Temporada ${state.seasonNo} · 🏆 Copa Legends` : <>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</>}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{copaPlaying ? `Temporada ${state.seasonNo} · ${label}` : <>Temporada {state.seasonNo}{me ? ` · ${DIV_NAME[me.div]}` : ''}</>}</div>
               <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? copaFaseName : done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
-              {copaPlaying && <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.55)', marginTop: 4, lineHeight: 1.3 }}>Os 4 melhores de cada série (A·B·C·D) no mata-mata</div>}
+              {copaPlaying && <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.3 }}>{sub} · {copaNLegs === 1 ? 'jogo único' : 'ida e volta'}</div>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
               {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
@@ -4608,6 +4626,8 @@ export function PyramidSeasonScreen() {
               é mais um risquinho solto — lê como barra que está começando) */}
           {!done && <div style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: '100%', background: '#2b2721' }}><div style={{ height: '100%', minWidth: 3, width: `${Math.min(100, Math.round(round / 38 * 100))}%`, background: `linear-gradient(90deg, ${GOLD}, #ffde5c)` }} /></div>}
         </div>
+          )
+        })()}
 
         {/* FIM da temporada: banner de campeão/colocação. AO VIVO: placar FIXO da
             sua partida — fica no topo em TODAS as abas, então dá pra trocar de aba
@@ -4617,7 +4637,11 @@ export function PyramidSeasonScreen() {
             {me.champ
               ? <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>🏆 CAMPEÃO DA {DIV_NAME[me.div].toUpperCase()}!</p>
               : <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 {me.team} — {me.pos}º na {DIV_NAME[me.div]}</p>}
-            {copaPlaying && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
+            {/* 🐛 (16/08) esse aviso "agora começa a Copa" ficava repetindo em TODA
+                fase (peneira, rodada de 64, oitavas... até a Supercopa), o tempo
+                todo — Diego: "você não precisa aparecer ali" (virava poluição,
+                a mesma frase 8 vezes). Agora só aparece 1x, na primeira fase. */}
+            {copaPlaying && copaRound === 0 && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>{cbUnlocked ? 'Copa do Brasil Legends' : 'Copa Legends'}</b> — outro campeonato 👇</p>}
           </div>
         )}
         {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). No
@@ -4627,7 +4651,7 @@ export function PyramidSeasonScreen() {
             uma das 80 posições + os donos da temporada (campeões e artilheiros).
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
-          <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo}
+          <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={cbUnlocked}
             /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
                na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
                temporada exata (pedido do Diego 05/08). */
@@ -4652,7 +4676,7 @@ export function PyramidSeasonScreen() {
                 const champ = tables[d]?.[0]
                 if (champ) for (const p of champ.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} levanta a taça pelo ${champ.name}`, sub: `Campeão da ${DIV_NAME[d]}! Ergueu o troféu e apontou pra tribuna: "esse aí é do meu agente!" 😎` })
               }
-              if (copa?.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} campeão da Copa Legends`, sub: `Taça pelo ${copa.champion.name} — cria da sua agência dando show no mata-mata.` })
+              if (copa?.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} campeão da ${cbUnlocked ? 'Copa do Brasil' : 'Copa Legends'}`, sub: `Taça pelo ${copa.champion.name} — cria da sua agência dando show no mata-mata.` })
               if (copa?.topScorer && nomes.has(copa.topScorer.name)) nn.push({ ic: '🥇', titulo: `${copa.topScorer.name} é o artilheiro da Copa`, sub: `${copa.topScorer.goals} gols no mata-mata — o país inteiro quer saber quem agencia esse craque.` })
               for (const r of (state.agenciaFatura?.rows ?? []).filter(x => x.emoji === '💸').slice(0, 3)) if (r.nome) nn.push({ ic: '✍️', titulo: `${r.nome} de casa nova`, sub: 'Negociação fechada no mercado — com a bênção da sua agência.' })
               return nn.length ? nn.slice(0, 6) : undefined
@@ -5350,7 +5374,7 @@ export function PyramidSeasonScreen() {
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copaScorersShown.length > 0
-                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title="🏆 ARTILHARIA · COPA LEGENDS" sub={copaFinished ? 'Gols do mata-mata da Copa — top 20.' : `Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`} foot="🏅 O artilheiro da Copa rende +16 ao clube e sobe +10 no piso do jogador." />
+                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`🏆 ARTILHARIA · ${cbUnlocked ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? 'Gols do mata-mata da Copa — top 20.' : `Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`} foot={`🏅 O artilheiro da Copa rende +${cbUnlocked ? 10 : 16} ao clube e sobe +10 no piso do jogador.`} />
                   : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Várzea +6 · D +10 · C +15 · B +20 · A +30." />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>

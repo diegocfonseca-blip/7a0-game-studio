@@ -183,7 +183,7 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, mundial }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, mundial, brasil }: {
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
   copa: CopaResult | null
@@ -192,6 +192,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   agenciaNews?: AgNews[]
   eventos?: AgNews[] // 🎭 manchetes dos EVENTOS DE JOGADOR — página "Aconteceu na temporada"
   mundial?: { campeao: string; selecao: string; voce: boolean } | null // 🌍 Copa do Mundo Legends — só quando ela ACONTECE (a cada 10 temporadas) e termina nesta
+  brasil?: boolean // 🏆🇧🇷 true = a Copa que rolou foi a do Brasil (não a Legends) — só troca o nome exibido, mesmo dado
 }) {
   // abre EXPANDIDO por padrão (a manchete é a estrela do fim de temporada);
   // o "Fechar" recolhe pro botãozinho se a pessoa quiser limpar a tela.
@@ -338,7 +339,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       const c = tables[d]?.[0]; const a = divTop[d]
       if (c) donos.push({ tag: d, col: J_DIV_COLOR[d], label: J_DIV_NAME[d].toUpperCase(), champ: c.name, isYou: !!c.you, art: a ? `⚽ ${a.name} (${a.teamName}) · ${a.goals} gols` : undefined })
     }
-    if (copa?.champion) donos.push({ tag: '🏆', col: '#F5B301', label: 'COPA LEGENDS', champ: copa.champion.name, isYou: !!copa.champion.you, art: copa.topScorer ? `⚽ ${copa.topScorer.name} (${copa.topScorer.teamName}) · ${copa.topScorer.goals} gols` : undefined })
+    if (copa?.champion) donos.push({ tag: '🏆', col: brasil ? '#0EA658' : '#F5B301', label: brasil ? 'COPA DO BRASIL' : 'COPA LEGENDS', champ: copa.champion.name, isYou: !!copa.champion.you, art: copa.topScorer ? `⚽ ${copa.topScorer.name} (${copa.topScorer.teamName}) · ${copa.topScorer.goals} gols` : undefined })
     if (mundial) donos.push({ tag: '🌍', col: '#2563EB', label: 'COPA DO MUNDO LEGENDS', champ: mundial.selecao, isYou: !!mundial.voce, art: mundial.campeao })
     const dh = 46 + donos.length * 78
     x.fillStyle = '#fff'; x.fillRect(L, y, R - L, dh)

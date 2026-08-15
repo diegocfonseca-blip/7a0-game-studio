@@ -1,5 +1,35 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🐛 Bugs de tela achados pelo Diego jogando de verdade — corrigidos (16/08)
+Ele testou ao vivo e mandou print: a tela toda ainda tava com a cara
+(cores, textos) da Copa Legends, mesmo com a Copa do Brasil rolando por
+baixo — muito confuso, "não sabe aonde que ela entrou". Achei 3 bugs
+reais:
+1. **`copaNLegs` errado** — o código assumia "só a Final é jogo único, o
+   resto é sempre ida e volta" (verdade pra Copa Legends, com só 4 fases).
+   Na Copa do Brasil (Peneira/Rodada de 64/Rodada de 32 também são jogo
+   único) isso fazia aparecer "IDA E VOLTA" errado em telas de jogo único.
+   Corrigido pra ler direto do confronto (`ties[0].legs.length`) em vez de
+   adivinhar pelo nome da fase.
+2. **Cabeçalho fixo do topo nunca trocava de cara** — sempre mostrava
+   "🏆 Copa Legends" + o texto antigo "Os 4 melhores de cada série", não
+   importa se era Copa do Brasil ou Supercopa rolando. Esse cabeçalho
+   fica em cima de TODA aba, é a única coisa sempre visível — agora troca
+   de verdade: verde/amarelo brilhante na Copa do Brasil, azul/amarelo na
+   Supercopa (cores já combinadas), mostrando fase atual + jogo único/ida
+   e volta.
+3. **Aviso "agora começa a Copa Legends" repetindo em toda fase** — 8
+   vezes a mesma frase (uma por fase) virava poluição. Agora só aparece
+   1x, na primeira fase, com o nome certo.
+   Também corrigi textos soltos com "Copa Legends" hardcoded (artilharia,
+   jornal/O Martelo, notícias da Agência) pra todos trocarem de nome
+   dinamicamente.
+
+⚠️ Não consegui fazer um teste visual automatizado dessa parte (o
+harness de screenshot bate num bug de import circular quando carrega
+`pyramidseason.tsx` isolado, mesmo problema de antes) — só `tsc -b` e
+`build` limpos. Pedir pro Diego conferir ao vivo se ficou bom.
+
 ## 🏆📊 Ranking LOCAL: Supercopa vira critério próprio (Copa do Brasil é RENOMEAÇÃO, não nova) (16/08)
 Peça seguinte depois da Supercopa — **corrigida** depois que o Diego
 esclareceu um ponto importante: a Copa do Brasil **NÃO é uma competição
