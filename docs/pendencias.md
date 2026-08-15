@@ -98,6 +98,18 @@ guardam a carta inteira (ident = nome|clube), nada quebra em elenco existente.
   Júlio César (Fla 2003) e Götze (Bayern 2014) também subiram pra ⭐ (pedido
   dele na mesma conversa). Zoeiras intocáveis confirmadas: Balotelli,
   Materazzi, Dudek, Heurelho Gomes, Kaiser, Ali Dia etc.
+- ⭐ **PACOTE 2 DA REVISÃO (15/08, aprovado pelo Diego, NO AR)**: subiram pra
+  ⭐ CRAQUE 12 cartas cuja força já era de craque mas o selo ficou pra trás —
+  BR: Washington Coração Valente (ATH 2004, artilheiro-recorde), Jhon Arias
+  (Flu 2023, melhor da Libertadores), Paulinho (Galo 2024, artilheiro da
+  Libertadores), Emerson Sheik (Corinthians 2012); EU: Grafite (Wolfsburg
+  2009, artilheiro+melhor da Bundesliga), Zé Roberto (Bayern 2004, estava
+  invertido com o do Palmeiras), Desailly, Makélélé, Cambiasso, Klose,
+  Simeone, Mendieta. Desceram pra 🪵: Defederico (flop famoso) e Kerlon
+  Foquinha. ⏳ AINDA EM ABERTO (Diego não decidiu): Léo Lima (Vasco 2003) e
+  Henrique Dourado (Flu 2017, ARTILHEIRO do Brasileirão como 🪵!) subirem
+  pra 🎯; ~30 cartas EU com força 80+ e selo 🎯 (Fowler, Gattuso, Aimar,
+  Morientes, Élber...) — resolver subindo selo OU baixando força, um dia.
 - ✅ **DECISÃO DO DIEGO APLICADA (15/08, NO AR)**: subiram pra 👑 LENDA
   **Tostão** (Cruzeiro 70) e **Adriano Imperador** (Inter 2005); desceram
   pra ⭐ CRAQUE **Evair**, **Adriano** (Fla 2009) e **Cássio**. Mauro Galvão
