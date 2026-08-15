@@ -751,7 +751,8 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
   const live = (h: number, a: number, ev: ScoreGoal[]) => (
     <div style={{ marginBottom: 8 }}>
       <LiveScoreCard homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
-        youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={roundMs} finished={liveDone} />
+        youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={roundMs} finished={liveDone}
+        footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} />
     </div>
   )
   // linha compacta de confronto resolvido (ida+volta+pênaltis) — só pós-apito.

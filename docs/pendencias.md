@@ -1,5 +1,25 @@
 # 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
 
+## 🎨 Placar ao vivo: barra de baixo com a cor de cada Copa — ✅ NO AR (15/08)
+Diego pediu pra estender a ideia (barra de baixo brilhante com a cor da
+competição) que mockei pra Copa do Brasil também pras copas que JÁ EXISTEM
+de verdade: Copa do Mundo Legends e Copa dos 8 (online). Implementado:
+- `LiveScoreCard` (`pyramidseason.tsx`) ganhou um prop novo opcional
+  `footTint={{ bg, border, holo }}` — quando não passado, a barra de baixo
+  continua bege de sempre (Liga normal, carreira e online, **sem
+  mudança**). Reusa o mesmo `ApoioSheen` (brilho holográfico) já usado em
+  todo canto.
+- **Copa dos 8** (`screens.tsx`): barra de baixo agora roxo clarinho
+  brilhante, mesma família de cor do roxo já usado no banner/borda dela.
+- **Copa do Mundo** (`copa-mundo.tsx`): barra de baixo dourada brilhante —
+  ela já usa dourado no botão de entrada, então é a MESMA identidade,
+  só chegando também no placar ao vivo.
+- Testado isolado (3 cards lado a lado: sem tint / roxo / dourado) antes
+  de subir — confirmado que o tint normal não mudou em nada.
+Reversível: `git revert`, é só cor de fundo + brilho, nenhuma lógica de
+jogo mudou. Quando a Copa do Brasil/Supercopa saírem do papel, é só
+passar `footTint` verde/azul nelas também — o prop já tá pronto pra isso.
+
 ## 🧪 SIMULAÇÃO COMPLETA dos 3 bugs relatados — 14 ✅ · 0 ❌ (15/08, pedido do Diego)
 Diego: "Rode uma simulação e teste tudo isso q falamos p ver se vc encontra
 os erros exatos... se vc encontrar outros me fale". Montado harness Node

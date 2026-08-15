@@ -4199,7 +4199,8 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman} />
+                      roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman}
+                      footTint={{ bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1">↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
                     )}

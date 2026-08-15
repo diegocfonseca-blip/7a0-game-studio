@@ -1837,8 +1837,12 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
 // ── PLACAR AO VIVO (reutilizável): relógio animado, selo GOOOL, flash e bump.
 // Usado na carreira (pirâmide) E no jogo rápido (offline/online) — mesmo visual.
 export interface ScoreGoal { name: string; min: number; home: boolean }
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf }:
-  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean }) {
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint }:
+  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+  // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
+  // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
+  // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
+  footTint?: { bg: string; border: string; holo?: number } }) {
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
@@ -2033,8 +2037,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
           <Team name={awayName} color={awayCol} you={!youIsHome} flash={golSide === 'a'} />
         </div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: '2px solid #e6dcbf', background: '#efe4c8' }}>
-        <span key={ritualTxt ?? 'g'} style={{ fontSize: 11, fontWeight: ritualTxt ? 900 : 700, ...OSWALD, color: ritualTxt ? INK : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: ritualTxt ? 'coFade .4s ease' : undefined }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: `2px solid ${footTint?.border ?? '#e6dcbf'}`, background: footTint?.bg ?? '#efe4c8', position: 'relative', overflow: 'hidden' }}>
+        {footTint && (footTint.holo ?? 0) > 0 && <ApoioSheen holo={footTint.holo!} dur={4} />}
+        <span key={ritualTxt ?? 'g'} style={{ position: 'relative', fontSize: 11, fontWeight: ritualTxt ? 900 : 700, ...OSWALD, color: ritualTxt ? INK : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: ritualTxt ? 'coFade .4s ease' : undefined }}>
           {ritualTxt ?? (last ? <>{basket ? '🏀' : '⚡'} {last.name}{!basket && <> <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></>}</> : (done ? (basket ? 'sem cestas' : 'sem gols') : (basket ? '🟢 bola quicando…' : '🟢 bola rolando…')))}
         </span>
       </div>
