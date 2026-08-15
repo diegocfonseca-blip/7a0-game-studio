@@ -5778,19 +5778,22 @@ export function ReserveListScreen() {
           // sai da caixa DELE. Sem 2º clube, a janela fica exatamente como era.
           const dormM = state.multiClube ? state.managers.find(mm => mm.id === state.multiClube!.id) : undefined
           const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo) : []
-          const sq = mgr.squad as WonCard[]
           const expirados = expOf(mgr)
           const expDorm = expOf(dormM)
-          const ultimoAno = sq.filter(c => !c.fake && c.contratoAte === state.seasonNo)
-          const uaDorm = dormM ? (dormM.squad as WonCard[]).filter(c => !c.fake && c.contratoAte === state.seasonNo) : []
-          if (expirados.length + expDorm.length + ultimoAno.length + uaDorm.length === 0) return null
+          // 📝 REGRA DO DIEGO (15/08): este banner é SÓ de contrato ENCERRADO — quem
+          // ainda está no último ano NÃO aparece aqui (ele segue jogando normal, não
+          // tem decisão nenhuma a tomar). Antes o "último ano" também abria a janela,
+          // então ela aparecia sem ninguém ter vencido e a pessoa apertava "renovar
+          // todos" achando que ia renovar aquele nome também. O aviso de último ano
+          // continua onde faz sentido: no card do jogador, na aba Elenco.
+          if (expirados.length + expDorm.length === 0) return null
           const saldoDorm = dormM ? (state.careerCoins?.[dormM.id] ?? 0) : 0
           const coins = state.careerCoins?.[youId] ?? 0
           const primeira = state.seasonNo <= 6 // estreia do recurso: explica com mais calma
           const btn = (bg: string, fg: string, dis: boolean): React.CSSProperties => ({ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 10.5, ...OSWALD, background: dis ? '#d8cfb5' : bg, color: dis ? 'rgba(0,0,0,.4)' : fg, boxShadow: dis ? 'none' : `2px 2px 0 0 ${INK}`, cursor: dis ? 'not-allowed' : 'pointer', textTransform: 'uppercase' as const, lineHeight: 1.15 })
           return (
             <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{primeira ? '📝 CONTRATOS CHEGARAM!' : '⏳ CONTRATOS ENCERRANDO'}{expDorm.length > 0 ? ' — decida clube por clube' : ''}</p>
+              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{primeira ? '📝 CONTRATOS CHEGARAM!' : `📝 CONTRATO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} ENCERRADO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} — DECIDA`}{expDorm.length > 0 ? ' — decida clube por clube' : ''}</p>
               {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</p>}
               {/* ⚡ AÇÃO EM MASSA (07/08, pedido do Diego): com muito contrato vencendo de
                   uma vez, um botão por CATEGORIA aplica a mesma decisão em TODOS de uma
@@ -5908,9 +5911,6 @@ export function ReserveListScreen() {
                     : <><b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>}
                   {' '}💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.{dormM ? <> 😤 <b>Vale pros DOIS clubes:</b> jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
                 </p>
-              )}
-              {(ultimoAno.length > 0 || uaDorm.length > 0) && !state.reserveListMesmo && (
-                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: (expirados.length + expDorm.length) ? '7px 0 0' : 0, lineHeight: 1.4 }}>⏳ <b>Último ano de contrato:</b> {[...ultimoAno.map(c => c.name), ...uaDorm.map(c => `${c.name} 💤`)].join(', ')} — encerra{(ultimoAno.length + uaDorm.length) > 1 ? 'm' : ''} no fim desta temporada. ⚠️ <b>Esses não entram no botão de renovar</b> — só dá pra renovar depois que o contrato encerra (eles aparecem aqui na próxima janela). Quer garantir a grana cheia? <b>Venda antes de vencer.</b></p>
               )}
             </div>
           )

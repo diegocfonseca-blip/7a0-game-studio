@@ -34,6 +34,17 @@ aperta) deixava perna-de-pau barato pra trás, sem aviso.
      achava que falhou. **Fix:** o botão agora diz **quantos** vai renovar
      ("Renovar os 6 encerrados") e o aviso do último ano explica que eles NÃO
      entram e que aparecem na próxima janela.
+  1b. **✅ REGRA FINAL DO DIEGO (15/08, ele foi categórico):** *"só deve aparecer
+     contrato ENCERRADO. Contrato encerrando não precisa aparecer — o cara ainda
+     pode continuar jogando"*. Então o "último ano" saiu de vez do banner: a
+     janela agora só abre com contrato **vencido** (`expirados + expDorm === 0`
+     → não renderiza), o parágrafo de último ano foi removido e o título virou
+     **"CONTRATO(S) ENCERRADO(S) — DECIDA"**. Antes o banner abria SEM ninguém
+     ter vencido, só porque alguém estava no último ano — era isso que fazia a
+     pessoa apertar "renovar todos" e achar que tinha falhado.
+     ⚠️ O aviso "⏳ último ano" **continua no card do jogador, na aba Elenco** —
+     lá ele é informação, não decisão. A regra de 1 vencido = card só / 2+ =
+     botão "renovar todos" segue igual.
   2. **Time na VÁRZEA:** o reducer recusa renovar (regra do Diego 14/08), mas o
      botão aparecia igual — apertava e **nada acontecia, sem aviso nenhum**.
      **Fix:** na Várzea o botão some e entra a explicação (por quê + o caminho):
