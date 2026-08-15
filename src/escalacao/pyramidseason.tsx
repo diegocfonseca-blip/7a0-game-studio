@@ -4650,18 +4650,32 @@ export function PyramidSeasonScreen() {
             Aparece 1x só, exatamente na hora que cada competição começa: Copa do
             Brasil na 1ª fase (Peneira), Supercopa quando chega a vez dela. */}
         {copaPlaying && cbUnlocked && copaRound === 0 && (
-          <div style={{ ...box(COPA_BR_HOLO), position: 'relative', overflow: 'hidden', padding: '16px 14px', marginBottom: 12, textAlign: 'center' }}>
+          <>
+          <div style={{ ...box(COPA_BR_HOLO), position: 'relative', overflow: 'hidden', padding: '16px 14px', marginBottom: 8, textAlign: 'center' }}>
             <CopaLegSheen />
             <p style={{ fontWeight: 900, fontSize: 19, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🇧🇷 CHEGOU A COPA DO BRASIL LEGENDS!</p>
             <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '8px 0 0', padding: '4px 12px', borderRadius: 999, position: 'relative', zIndex: 2 }}>100 clubes · a caçada pela taça começa</p>
           </div>
+          {/* 🗺️ explicação das etapas (Diego 16/08: "não deveria ter explicação...
+              como é que seria cada etapa, vai ficar mais claro") — o banner sozinho
+              não bastava, precisa dizer o CAMINHO que vem pela frente. */}
+          <div style={{ ...box('#fff'), padding: '9px 12px', marginBottom: 12, fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.7)', textAlign: 'center', lineHeight: 1.7 }}>
+            <b>Como funciona:</b> Peneira → Chave de 64 → Rodada de 32 → Oitavas → Quartas → Semifinal → Final.<br />
+            Até a Rodada de 32: jogo único, sorteio a cada fase. Das oitavas em diante: ida e volta (final é jogo único), chave já travada.
+          </div>
+          </>
         )}
         {copaFase?.name === 'Supercopa' && (
-          <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', padding: '16px 14px', marginBottom: 12, textAlign: 'center' }}>
+          <>
+          <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', padding: '16px 14px', marginBottom: 8, textAlign: 'center' }}>
             <CopaLegSheen />
             <p style={{ fontWeight: 900, fontSize: 19, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🔵 CHEGOU A SUPERCOPA LEGENDS!</p>
             <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '8px 0 0', padding: '4px 12px', borderRadius: 999, position: 'relative', zIndex: 2 }}>Campeão da Liga × Campeão da Copa do Brasil</p>
           </div>
+          <div style={{ ...box('#fff'), padding: '9px 12px', marginBottom: 12, fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.7)', textAlign: 'center', lineHeight: 1.7 }}>
+            <b>Como funciona:</b> jogo único. Se o mesmo time ganhar a Liga E a Copa do Brasil, o vice da Liga joga essa final no lugar dele.
+          </div>
+          </>
         )}
         {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). No
             FIM, o painel de campeões da temporada (Copa + séries + artilheiros)
