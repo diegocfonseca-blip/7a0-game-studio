@@ -466,7 +466,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // cachimbo fumegando, isqueiro na mão). Arte própria do dono; o recorte do
   // escudo de trás foi feito aqui. mascote_key = "cobra_arruda".
   cobra_arruda: (
-    <img src={arrudaCobraImg} height={176} width={176} alt="Cobra — Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={arrudaCobraImg} height={176} width={Math.round(176 * 364 / 502)} alt="Cobra — Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐶🎮 a NINA (mascote do Eros FC — erosreis/@erosreis, aprovado 12/08): a
   // cachorrinha do dono, de coleira vermelha, sentada na pilha de cartuchos com o
