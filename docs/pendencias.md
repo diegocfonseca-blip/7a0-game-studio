@@ -1,5 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
 
+## ⚽🎉 CARIMBO DO GOL: todo clube batizado estampa a cara dele — ✅ NO AR (15/08)
+Nasceu do batismo do Seven City: o Diego viu o mockup animado do "7 carimbando a
+tela", adorou ("pqp mt bom") e mandou estender — *"já faça o de todos os mascotes
+tb aparecer alguma coisa deles no gol"*.
+- **Como funciona:** `CARIMBO_GOL` (mascotes.tsx) liga NOME DO CLUBE → arte. Quando
+  esse clube marca, a arte carimba o placar (`LiveScoreCard`) por 1,7s e some.
+  20 clubes mapeados. O **Seven City carimba com o SETE dourado** (`SETE_SEVEN`,
+  fica fora de MASCOTES de propósito — é carimbo, não mascote de festão); todos os
+  outros carimbam com o **próprio mascote**.
+- **Travas (as mesmas do martelo/festão):** só de QUEM MARCA (gol do rival não
+  carimba nada) · **não adiciona passo nem espera** (overlay por cima do que já
+  rola, o relógio não para, ninguém toca em nada) · clube SEM batismo = placar
+  exatamente como sempre foi · **basquete intocado** (gate `!basket`).
+- Nome antigo de save resolve sozinho (`newestTeamName`): Olimpo FC → Remoçada,
+  Apogeu FC → Seven City, Painitto FC → SC Ferrari etc., todos carimbam.
+- 🩹 Arte em `scale(.55)`: as artes nascem com 168px (tamanho do festão) e o corpo
+  do placar tem ~103px — sem encolher, o carimbo **cortava a cabeça do mascote**.
+  Conferido num teste que renderiza cada arte dentro de uma caixa do tamanho real.
+- ⚠️ Marinheiros AS / Eros FC / Sapekeiros FC estão no mapa e **não** aparecem na
+  pirâmide de propósito: são batismos de RESERVA DE NOME (clube do próprio
+  jogador). NÃO limpar do mapa.
+- **Reverter:** commit isolado — `git revert` tira só a comemoração, o batismo do
+  Seven City e todo o resto ficam de pé.
+
 ## 📊 Tela da fase de grupos da Copa do Brasil — EM REVISÃO (15/08)
 4ª peça, ainda não finalizada. Primeira versão mostrava a tabela do grupo já
 pronta (calculada em silêncio). Diego pediu 3 ajustes depois de ver o
