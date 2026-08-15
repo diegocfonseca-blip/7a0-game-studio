@@ -472,6 +472,10 @@ const ferrariSCRender = (size: number) => (
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🏎️⚽ Ferrari SC (adriano) — piloto na bola (mesma arte da mascote), todos os nomes
+  // 🐛 FIX 14/08 (relato do Diego: "logo não aparece"): o time DE VERDADE se chama
+  // 'SC Ferrari' (data.ts, ex-Painitto FC) — o registro só tinha 'Ferrari SC'
+  // (ordem trocada), então o lookup falhava e caía no escudo automático.
+  'SC Ferrari': ferrariSCRender,
   'Ferrari SC': ferrariSCRender,
   'Ferrari FC': ferrariSCRender,
   'Ferrari': ferrariSCRender,
