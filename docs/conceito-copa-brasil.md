@@ -51,11 +51,12 @@ juntam aos 32 times de bye, formando a chave de 64 com 2 potes:
   (bye) + 16 vice-líderes de grupo (2º lugar).
 - Sorteio livre entre os potes, sem trava de repetição de grupo.
 
-**Mando de campo**:
+**Mando de campo** — FECHADO 15/08:
 - 1ª rodada da chave de 64 (64→32): quem veio do Pote 1 manda o jogo (casa
   no jogo único, ou a volta se for ida-e-volta).
-- Das oitavas em diante: mando por melhor campanha acumulada, ou por
-  ordem de sorteio puro (decidir na construção — o Diego topou os dois).
+- Das oitavas em diante: **sorteio puro** (não é campanha acumulada) —
+  mesma simplicidade da 1ª rodada, sem precisar calcular ranking de
+  campanha a cada fase.
 
 **O funil**: 64 → (1ª rodada) → 32 → (oitavas) → 16 → (quartas) → 8 →
 (semi) → 4 → (final única) → campeão. A partir de oitavas/quartas isso
@@ -162,9 +163,15 @@ Vale pros DOIS rankings (local `RankingTab` e global `esc_pyramid_rank`) —
 os dois sempre andaram juntos desde a mudança do Mundo em 14/08, não faz
 sentido separar agora.
 
-## Pendências antes de codar
-- [ ] Mando de campo das oitavas em diante: campanha acumulada ou sorteio
-      puro?
-- [ ] Nome definitivo (Copa do Brasil Legends? outro nome pra não
-      confundir com "Legends" já usado em Copa Legends, que está sendo
-      substituída?)
+## ✅ Especificação FECHADA (15/08) — pronta pra construção
+Últimos dois pontos travados pelo Diego:
+- **Nome definitivo: Copa do Brasil Legends** (mantém o nome de trabalho,
+  sem trocar por outro).
+- **Mando de campo das oitavas em diante: sorteio puro** (não é campanha
+  acumulada — ver seção 1, "Mando de campo").
+
+Não sobrou nenhuma pendência de DESIGN. Antes de codar: reler o doc
+inteiro (protocolo do CLAUDE.md), ir em pedaços/checkpoints (não subir a
+substituição da Copa Legends inteira de uma vez — é mudança grande e
+mexe em ranking/premiação/telas espalhadas), e mostrar mockup de qualquer
+tela nova que ainda não tenha sido aprovada no visual antes de comitar.
