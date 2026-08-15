@@ -105,9 +105,19 @@ function saveCopaSave(seed: number, s: CopaSave) { try { localStorage.setItem(sk
 // navegador (antes, só existiam no aparelho de origem).
 export function mergedMundialMural(seed: number, cloudMural?: { season: number; selecao: string; campeao: string; voce: boolean }[]) {
   const local = loadCopaSave(seed)?.mural ?? []
-  const seen = new Set(local.map(m => m.season))
-  const extra = (cloudMural ?? []).filter(m => !seen.has(m.season))
-  return [...local, ...extra]
+  // 🏆 REGRA (15/08): TÍTULO SEU GANHA DO RESTO. Antes, quando a mesma edição
+  // existia no aparelho e na nuvem, o aparelho vencia sempre — e quem tinha a
+  // vitória gravada só na nuvem (trocou de celular, limpou o navegador, ou o
+  // aparelho ficou com o resultado de uma re-jogada) aparecia com ZERO Copa do
+  // Mundo. Agora, se QUALQUER um dos dois lados diz que VOCÊ foi campeão
+  // naquela temporada, é isso que vale. Só dá pra gravar `voce:true` ganhando
+  // de verdade (a re-jogada nunca grava nada), então isso não abre brecha.
+  const porTemporada = new Map<number, { season: number; selecao: string; campeao: string; voce: boolean }>()
+  for (const m of [...local, ...(cloudMural ?? [])]) {
+    const atual = porTemporada.get(m.season)
+    if (!atual || (m.voce && !atual.voce)) porTemporada.set(m.season, m)
+  }
+  return [...porTemporada.values()].sort((a, b) => a.season - b.season)
 }
 // âncora do calendário: a 1ª Copa do Mundo é na temporada 100, e depois de 10 em
 // 10 (100, 110, 120…). Save que ainda NÃO jogou nenhuma Copa é realinhado pra 100
