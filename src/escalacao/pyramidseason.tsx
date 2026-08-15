@@ -98,24 +98,28 @@ const CPU_DIV_BOOST_FAIR: Record<Div, number> = { A: 2, B: 4, C: 5, D: 3, V: 4 }
 // comprimida, sem mudar QUEM ganha — o melhor time segue na frente). v2 = fórmula
 // antiga; temporada EM ANDAMENTO (simV<3) termina no modelo antigo e a próxima já
 // nasce no novo. NÃO mexe em leilão, divisões nem dificuldade.
-const GOAL_TUNE = { v2: { base: 1.35, home: 0.25, coef: 0.055 }, v3: { base: 1.15, home: 0.16, coef: 0.038 } }
+export const GOAL_TUNE = { v2: { base: 1.35, home: 0.25, coef: 0.055 }, v3: { base: 1.15, home: 0.16, coef: 0.038 } }
 
 // ── motor de simulação por elenco (espelha o da Dinastia) ──
 const NEED: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
-type PoolCard = Card
-const mid = (c: PoolCard) => (c.lo + c.hi) / 2
-function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
-function poisson(l: number, rng: () => number): number { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= rng() } while (p > L && k < 12); return Math.min(k - 1, 7) } // teto de 7 gols: num jogo muito desigual evita goleada irreal (8×0, 9×0)
+export type PoolCard = Card
+export const mid = (c: PoolCard) => (c.lo + c.hi) / 2
+// 🔓 exportados (Diego 15/08, sem mudar nenhuma linha de lógica): a Copa do
+// Brasil (`copa-brasil.ts`) precisa do MESMO motor de simulação (mesma
+// matemática de gol/artilheiro que a Copa Legends já usa), pra não duplicar
+// ~150 linhas de física do jogo num arquivo novo.
+export function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+export function poisson(l: number, rng: () => number): number { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= rng() } while (p > L && k < 12); return Math.min(k - 1, 7) } // teto de 7 gols: num jogo muito desigual evita goleada irreal (8×0, 9×0)
 function sectorPow(rolls: number[]): number { if (rolls.length === 0) return 40; const avg = rolls.reduce((a, b) => a + b, 0) / rolls.length; const min = Math.min(...rolls); return avg - (avg - min) * 0.35 }
-function shuffle<T>(arr: T[], rng: () => number): T[] { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
+export function shuffle<T>(arr: T[], rng: () => number): T[] { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
 let filCounter = 0
 const FIL_NAMES = ['Perna-de-pau', 'Ferro Velho', 'Pé de Anjo', 'Canela Seca', 'Zé Ninguém', 'Trapalhão', 'Bola Murcha', 'Meia-Boca']
 // fillers de várzea: nível bem baixo (abaixo de semi-pro) — perna-de-pau mesmo,
 // pra não brigarem na artilharia com os craques de verdade.
 function filler(pos: Sector, rng: () => number): PoolCard { const lo = 30 + Math.floor(rng() * 6); return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4) } }
-type Tac = 'retranca' | 'equilibrio' | 'ataque'
-const TACS: Tac[] = ['retranca', 'equilibrio', 'ataque']
-function rollForm(squad: PoolCard[], tac: Tac, _opp: Tac, rng: () => number) {
+export type Tac = 'retranca' | 'equilibrio' | 'ataque'
+export const TACS: Tac[] = ['retranca', 'equilibrio', 'ataque']
+export function rollForm(squad: PoolCard[], tac: Tac, _opp: Tac, rng: () => number) {
   const rolls = squad.map(c => ({ c, lvl: c.lo + rng() * (c.hi - c.lo) }))
   const by = (p: Sector) => sectorPow(rolls.filter(r => r.c.pos === p).map(r => r.lvl))
   const gol = by('GOL'), lat = by('LAT'), zag = by('ZAG'), mei = by('MEI'), ata = by('ATA')
@@ -476,7 +480,7 @@ function EnsinoPilula({ k, pill, seasonNo, children }: { k: string; pill: string
 // mapa rodada→ids; na rodada r vale a última escolha numa rodada <= r. Se não há
 // escolha (ou a escalação não tem 11 válidos), cai pro bestXI automático.
 export type RoundLineups = Record<number, Record<number, string[]>>
-function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolCard[], formation?: FormationKey): PoolCard[] {
+export function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolCard[], formation?: FormationKey): PoolCard[] {
   const need4 = formation ? FORMATIONS[formation] : NEED
   const byRound = lineups[teamId]
   let bestK = -1, ids: string[] | null = null

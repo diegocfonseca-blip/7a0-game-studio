@@ -1,5 +1,30 @@
 # 🏆 Copa do Brasil Legends + Supercopa Legends — conceito
 
+## 🚧 Status da construção (15/08)
+Indo "em pedaços", como o Diego pediu:
+1. ✅ **Placar com goleadores** — no ar (ver `docs/pendencias.md`).
+2. ✅ **Motor do chaveamento** — `src/escalacao/copa-brasil.ts`, construído
+   e TESTADO isolado (harness Node com Vite SSR, 30 temporadas sintéticas,
+   421 verificações, 0 falhas — grupos fecham matematicamente, 1ª rodada
+   sem time duplicado, funil de tamanhos certo, zebra só quando é
+   realmente empate, premiação paga o campeão certo). **AINDA NÃO ligado
+   ao jogo** — ninguém chama essa função de lugar nenhum ainda, zero risco
+   pro que já está no ar.
+3. ⏳ Não começado: trocar a Copa Legends pela Copa do Brasil de fato
+   (integração com a tela/reducer/save), telas novas, ranking, Supercopa.
+
+⚠️ **Duas contas que não fechavam sozinhas na especificação do Diego —
+resolvidas com uma escolha minha, sinalizando pra ele conferir**:
+- A pirâmide tem **100 clubes de verdade** (20 por série), mas a conta do
+  Diego precisa de **96**. Escolhi excluir os **4 últimos da Várzea**
+  (constante `VARZEA_EXCLUI_ULTIMOS` em `copa-brasil.ts` — fácil de mudar).
+- O funil original pula uma fase: "Semifinal: 8 clubes → sobram 4" seguido
+  direto de "Final entre os 2 finalistas" — falta o passo que reduz de 4
+  pra 2. Completei com a nomenclatura padrão (oitavas=16 · quartas=8 ·
+  semifinal=4 · final=2) e nomeei a fase que faltava de **"Rodada dos
+  32"**. Também precisou de mais um degrau na premiação (`CB_PAY.r32 = 5`,
+  entre o valor da 1ª rodada e o das oitavas).
+
 > Decidido com o Diego em 14-15/08/2026, em cima de um brainstorm. A
 > **especificação do chaveamento (seção 1) veio pronta do próprio Diego,
 > por escrito** — é a fonte de verdade, não inventar variação. O resto

@@ -1,5 +1,27 @@
 # 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
 
+## 🏆 Motor da Copa do Brasil construído e TESTADO — ainda NÃO ligado ao jogo (15/08)
+2ª peça da construção (indo "em pedaços", pedido do Diego — ver
+`docs/conceito-copa-brasil.md` pro plano completo). `src/escalacao/copa-brasil.ts`
+novo: simula os 96 clubes (32 de bye pela posição real da tabela + 64 na
+fase de grupos com 4 potes de força), a fase de grupos (16 grupos de 4,
+round-robin), a chave de 64 com a regra do azarão no empate da 1ª rodada,
+e o mata-mata até o campeão (sorteio puro do mando das oitavas em diante,
+pênaltis reaproveitando a mesma trava da Copa Legends). Reusa o MESMO
+motor de simulação de jogo da Copa Legends (`rollForm`/`poisson`/etc.,
+exportados de `pyramidseason.tsx` sem mudar nenhuma linha de lógica).
+**Testado isolado**: harness Node com Vite SSR, 30 temporadas sintéticas,
+421 verificações, 0 falhas. **Zero risco pro jogo ao vivo** — nada chama
+essa função ainda, bundle de produção não mudou de tamanho (confirmado).
+Achei 2 furos na conta da especificação original e resolvi com uma
+escolha minha, sinalizada no código e no doc de conceito (Várzea perde os
+4 últimos pra fechar 96, e uma fase sem nome virou "Rodada dos 32") — o
+Diego ainda não confirmou essas duas escolhas.
+
+**Próxima peça**: integrar de fato (trocar a Copa Legends pela Copa do
+Brasil no reducer/telas) — essa é a parte que precisa de mais cuidado,
+porque mexe em coisa que já está no ar.
+
 ## ⚽ Placar ao vivo: goleadores deslizando embaixo de cada time — ✅ NO AR (15/08)
 1ª peça da construção da Copa do Brasil (ver `docs/conceito-copa-brasil.md`
 — Diego pediu pra ir "em pedaços", começando pelo mais seguro). Reskin
