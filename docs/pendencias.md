@@ -1,5 +1,17 @@
 # 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
 
+## 👑 Novo Lenda fundador nº42 + sócio nº22: glaucomiranda@outlook.com (15/08)
+Glauco — tier ouro (user_colors já estava ouro/manual no banco), fundador
+nº42 no código (apoio.tsx), sócio nº22 criado no esc_socios (origem
+batismo, válido até 2099). ⏳ **Batismo pendente**: Diego vai escolher o
+time da SÉRIE A pra trocar (lista enviada no chat — livres: Metrópole FC,
+Soberano Nacional, Coliseu United, Galáxia EC, Imperador SAF, Fênix
+Dourada, Continental Real, Monarca EC, Vanguarda Nacional, Aurora Suprema,
+Dragão Imperial, Cosmopolita FC, Zênite United, Excelsior SAF, Prestígio
+FC, Legado EC, Apogeu FC; já batizados: Scorporila, Deportivo Montreal,
+Remoçada). Quando ele mandar nome/cores/escudo/mascote, fazer igual aos
+outros batismos (mockup vertical → OK → shipping).
+
 ## 🏆 Motor da Copa do Brasil construído e TESTADO — ainda NÃO ligado ao jogo (15/08)
 2ª peça da construção (indo "em pedaços", pedido do Diego — ver
 `docs/conceito-copa-brasil.md` pro plano completo). `src/escalacao/copa-brasil.ts`
