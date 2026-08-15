@@ -80,11 +80,21 @@ Relato via Diego. Status de cada um:
    gravada de verdade. ⚠️ Não dá pra desfazer os títulos que já foram
    "farmados" assim — sem registro de quantas vezes cada um refez.
 3. **⏳ Pontos da classificação "não atualizam" nas rodadas finais da
-   liga** (intermitente, "vira e mexe"). Sem causa confirmada ainda —
-   hipóteses: gate de animação segurando o refresh da tabela, ou modal
-   pendente (pênalti/intervalo) travando o PLAY_ROUND. PRECISA de
-   detalhe: qual divisão, se acontece com a Copa Legends rolando, e se
-   os pontos aparecem depois de trocar de aba/recarregar.
+   liga** (intermitente). Detalhe novo do Diego 14/08: era a SÉRIE A do
+   próprio usuário, últimas rodadas, ele não lembra mais que isso.
+   Análise: as últimas rodadas de Série A são exatamente onde o PÊNALTI
+   DECISIVO é sorteado ("jogo de última hora que um gol empata/vira") —
+   e a tabela é segurada DE PROPÓSITO (anti-spoiler `revealed`) enquanto
+   a rodada anima/tem pendência. O auto já pausa e os banners abrem
+   sozinhos (conferido: linhas ~4356-4363), então não é rodada travada
+   muda. Possibilidades restantes: (a) percepção — a tabela fica mesmo
+   parada até o apito/decisão, e nas retas finais o usuário olha ela sem
+   parar; (b) algum caso raro que os fixes de 13-14/08 (sincronia do
+   pênalti + reveal esperando pendência) já mudaram. COMBINADO: observar
+   — se acontecer DE NOVO depois do deploy de 14/08, pedir print da
+   tabela congelada + o que a aba Jogos mostrava no momento (tem banner
+   aberto? partida animando?). Sem novo caso, considerar resolvido pelos
+   fixes de sincronia.
 
 ## ⚽ Placar ao vivo (`LiveScoreCard`) refeito na forma exata do mockup — ✅ NO AR (14/08)
 Diego pediu explicitamente a forma EXATA do mockup animado que ele já tinha
