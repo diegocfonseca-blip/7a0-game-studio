@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import tokaMascoteImg from './img/toka10-mascote.webp'
 import erosNinaImg from './img/eros-nina-mascote.webp'
 import sapekAbelhaImg from './img/sapek-mascote.webp'
+import arrudaCobraImg from './img/arruda-mascote.webp'
 import ferrariMascoteImg from './img/ferrari-mascote.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 
 const INK = '#0C0C0C'
@@ -459,6 +460,13 @@ export const MASCOTES: Record<string, ReactNode> = {
   // (webp, gerada no estilo do escudo, fundo transparente). mascote_key = "sapek_abelha".
   sapek_abelha: (
     <img src={sapekAbelhaImg} height={176} width={Math.round(176 * 500 / 424)} alt="Abelha — Sapekeiros FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐍💨 a COBRA DO ARRUDA (mascote do Tricolor do Arruda — souzact12, aprovado
+  // 16/08): a MESMA cobra que aparece no escudo, recortada dele (boné virado,
+  // cachimbo fumegando, isqueiro na mão). Arte própria do dono; o recorte do
+  // escudo de trás foi feito aqui. mascote_key = "cobra_arruda".
+  cobra_arruda: (
+    <img src={arrudaCobraImg} height={176} width={176} alt="Cobra — Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐶🎮 a NINA (mascote do Eros FC — erosreis/@erosreis, aprovado 12/08): a
   // cachorrinha do dono, de coleira vermelha, sentada na pilha de cartuchos com o

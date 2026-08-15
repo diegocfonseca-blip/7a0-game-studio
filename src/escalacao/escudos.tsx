@@ -19,6 +19,7 @@ import type { ReactNode } from 'react'
 import tokaEscudoImg from './img/toka10-escudo.webp'
 import erosEscudoImg from './img/eros-escudo.webp'
 import sapekEscudoImg from './img/sapek-escudo.webp'
+import arrudaEscudoImg from './img/arruda-escudo.webp'
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
@@ -418,6 +419,15 @@ const sapekEscudoRender = (size: number) => (
   <img src={sapekEscudoImg} height={size} width={size} alt="Sapekeiros FC" style={{ flex: 'none', display: 'block', objectFit: 'contain', borderRadius: '50%' }} />
 )
 
+// 🐍🇧🇷 Tricolor do Arruda (batismo do souzact12@gmail.com, aprovado pelo Diego
+// 16/08): escudo tricolor (preto/branco/vermelho) com a cobra de cachimbo na
+// frente — arte enviada pelo próprio dono, fundo recortado aqui. Homenagem ao
+// time do coração dele. A MESMA cobra, recortada do escudo, vira a mascote
+// (ver mascotes.tsx, chave "cobra_arruda").
+const arrudaEscudoRender = (size: number) => (
+  <img src={arrudaEscudoImg} height={size} width={size} alt="Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🏎️⚽ Ferrari SC (batismo do adriano.ferrari, aprovado pelo Diego 14/08): a arte é
 // o PILOTO dirigindo uma bola de futebol gigante — macacão vermelho, capacete do
 // Brasil, bola com rodas de aro vermelho. Arte AUTORAL do jogo (NÃO usa marca: sem
@@ -504,6 +514,10 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🐝👑 Sapekeiros FC (Tio Sapeka) — mesmo escudo pros dois nomes
   'Sapekeiros FC': sapekEscudoRender,
   'Sapekeiros': sapekEscudoRender,
+  // 🐍🇧🇷 Tricolor do Arruda (souzact12) — ex-Legado EC, Série A
+  'Tricolor do Arruda': arrudaEscudoRender,
+  'Tricolor Arruda': arrudaEscudoRender,
+  'Arruda': arrudaEscudoRender,
   // 🎮🐶 Eros FC + variações reservadas (todas puxam o MESMO escudo)
   'Eros FC': erosEscudoRender,
   'Eros Reis FC': erosEscudoRender,

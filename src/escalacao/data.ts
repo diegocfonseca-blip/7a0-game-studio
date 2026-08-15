@@ -2218,6 +2218,7 @@ export const OLD_NAME: Record<string, string> = {
   'Remoçada': 'Olimpo FC', // ⚽ batismo do luiz.maia.luiz: save antigo com Olimpo FC vira Remoçada ao carregar
   'Seven City': 'Seven FC', // ⚽ 15/08: o nome certo é Seven CITY (o "Seven FC" ficou no ar por ~1h); quem pegou o nome errado vira Seven City ao carregar
   'Seven FC': 'Apogeu FC', // ⚽ batismo do glaucomiranda: elo da corrente Apogeu FC → Seven FC → Seven City
+  'Tricolor do Arruda': 'Legado EC', // ⚽ batismo do souzact12: save antigo com Legado EC vira Tricolor do Arruda ao carregar
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -2365,7 +2366,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Zênite', team: 'Zênite United' },
     { name: 'Excélsior', team: 'Excelsior SAF' },
     { name: 'Prestígio', team: 'Prestígio FC' },
-    { name: 'Legado', team: 'Legado EC' },
+    { name: 'Legado', team: 'Tricolor do Arruda' }, // ⚽ clube BATIZADO por apoiador (souzact12 — Tricolor do Arruda, ex-Legado EC; homenagem ao time do coração dele, Lenda + fundador nº43, 16/08)
     { name: 'Apogeu', team: 'Seven City' }, // ⚽ clube BATIZADO por apoiador (glaucomiranda — Seven City, ex-Apogeu FC; homenagem ao Seven Gamer @sevengamersp, Lenda + fundador nº42, 15/08)
   ],
 }
