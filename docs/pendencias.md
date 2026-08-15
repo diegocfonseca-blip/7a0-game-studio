@@ -1,5 +1,30 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🏆📊 Ranking LOCAL: Copa do Brasil e Supercopa viram critério próprio (16/08)
+Peça seguinte depois da Supercopa. Novos contadores separados
+`careerCopaBrasilHonors`/`careerSupercopaHonors` (types.ts) — a Copa
+Legends continua com o contador dela (`careerCopaHonors`), sem misturar.
+- Nova ordem do desempate (`RankingTab`, o "copaGate" da Copa do Mundo, e
+  o Hall de Troféus — os 3 lugares que usavam a lista antiga foram
+  atualizados juntos, pra nunca ficarem incoerentes entre si): 🌍 Mundo →
+  🏆 Série A → 🏆🇧🇷 Copa do Brasil → 🏆🔵 Supercopa → 🏆 Copa Legends
+  (legado, continua valendo pra quem não é tester) → 🏆 B → C → D →
+  Várzea → 💰 dinheiro.
+- Selos novos na tabela do ranking (🏆🇧🇷 verde, 🏆🔵 azul) e cards novos no
+  Hall de Troféus.
+- Testado: `tsc -b`+`build` limpos + teste rápido confirmando que 1
+  título de Copa do Brasil pesa mais no desempate que 3 títulos de Copa
+  Legends (bate com a ordem nova).
+
+⚠️ **NÃO MEXI no ranking GLOBAL** (a tela "Rank Global", RPC
+`esc_pyramid_rank` no Supabase) — ele vive fora deste repositório, no
+banco de dados. Pra ele também respeitar a ordem nova, precisaria: (1)
+adicionar colunas novas na tabela `esc_pyramid_rank_snap` (hoje só tem
+`copa_titles`), (2) atualizar a função `esc_pyramid_rank` no banco pra
+usar as colunas novas na ordenação, (3) mandar os contadores novos no
+upsert que já existe em `pyramidseason.tsx` (~linha 3970). É uma mudança
+em PRODUÇÃO fora do site — só faço com o Diego confirmando antes.
+
 ## 🔵🏆 Supercopa Legends construída (16/08)
 Peça seguinte depois do chaveamento novo da Copa do Brasil. Campeão da
 Série A × campeão da Copa do Brasil da mesma temporada, jogo único, azul

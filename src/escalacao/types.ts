@@ -568,6 +568,8 @@ export interface EscState {
   copaRound?: number // 🌐 ONLINE (Diego 11/08): fase da Copa Legends ao vivo AGORA (0=oitavas), sincronizada pelo host — sem isto, cada convidado avançava a fase sozinho no próprio relógio e via um placar diferente do host num F5/reconexão.
   stadiums?: Record<number, { inv: Record<string, number>; ext: string[] }> // 🏟️ estádio da carreira por técnico (mgrId): moedas investidas por setor + melhorias prontas. Rende no fim de cada temporada.
   careerCopaHonors?: Record<string, number> // 🏆 títulos da COPA LEGENDS por time (teamKey → nº de Copas) — o campeão agora fica registrado, não só embolsa as moedas
+  careerCopaBrasilHonors?: Record<string, number> // 🏆🇧🇷 títulos da COPA DO BRASIL LEGENDS por time — critério PRÓPRIO no ranking, separado da Copa Legends (docs/conceito-copa-brasil.md §7.3)
+  careerSupercopaHonors?: Record<string, number> // 🏆🔵 títulos da SUPERCOPA LEGENDS por time — critério PRÓPRIO no ranking, logo depois da Copa do Brasil
   cpuSquads?: Record<string, Card[]> // pirâmide: a "ficha" (elenco guardado) dos 60 times de fundo, por NOME. Antes eram recalculados na hora (receita fixa); agora têm MEMÓRIA — 11 fixos que só o mercado mexe (troca), pra negociarem de verdade. Reserva de bot só quando houver mais cartas. Semeado 1x pela receita determinística.
   dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
   dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
