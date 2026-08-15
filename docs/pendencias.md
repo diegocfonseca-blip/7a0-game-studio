@@ -1,4 +1,49 @@
-# 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
+
+## 🔨 Copa do Brasil: chaveamento REFEITO do zero — mata-mata puro (16/08)
+Depois de uma sessão LONGA de idas-e-vindas com o Diego (ele foi mudando
+de ideia várias vezes, testei simulações e mockups no meio do caminho),
+a especificação da Copa do Brasil mudou BASTANTE — ver
+`docs/conceito-copa-brasil.md` seção "1-NOVA" (fonte de verdade agora; a
+seção 1 antiga com fase de grupos está marcada como histórico/descartada).
+
+**Resumo da mudança**: SEM fase de grupos nenhuma (a versão de 16 grupos
+de 4 que eu tinha construído e até ligado ao jogo atrás de trava de teste
+foi jogada fora — o Diego achou complicado demais de acompanhar). Agora é
+mata-mata puro: peneira (72 times: Várzea+C+D+12 piores da B) → chave de
+64 (junta com Série A inteira + 8 melhores da B) → rodada de 64 → rodada
+de 32 → oitavas (aqui trava o chaveamento, estilo olímpico) → quartas →
+semi (ida e volta) → final (jogo único). **Tudo roda de uma vez, só
+depois que a rodada 38 termina** (Diego cogitou adiantar parte pro meio
+da temporada, mas descartou — não economizava tempo de exibição, só
+mudava quando se assiste).
+
+**Estado atual**: `src/escalacao/copa-brasil.ts` (o motor v1, de grupos)
+está DESATUALIZADO — precisa reconstruir do zero com a lógica nova. A
+trava de teste (`COPA_BRASIL_TESTERS` em `sport.ts`) e os adaptadores em
+`pyramidseason.tsx` continuam valendo como MECANISMO (zero risco, só a
+conta liberada testa) — só a lógica de dentro do motor muda.
+
+**✅ Feito (16/08)**: `computeCopaBrasil` reconstruído do zero com o funil
+novo (peneira 72→36 + direto 28 = 64 · Rodada de 64 · Rodada de 32 ·
+Oitavas · Quartas · Semifinal · Final — 7 fases, chave trava a partir das
+oitavas). `tsc -b`+`build` limpos. Testado isolado: harness Node/Vite-SSR
+com 40 temporadas sintéticas, **522 verificações, 0 falhas** (peneira sem
+duplicata, funil de tamanhos certo [32,16,8,4,2,1], pernas certas por
+fase, chave travada de verdade da Rodada de 32 pras Oitavas — conferido
+que ninguém é reembaralhado —, premiação paga o campeão certo, adaptador
+produz as 7 fases). Os adaptadores (`copaBrasilAsCopaResult` /
+`copaBrasilRewardsAsCopaRewards`) e a trava de teste continuam os mesmos
+de antes, só a lógica de dentro do motor mudou — zero risco extra pra
+quem não está em `COPA_BRASIL_TESTERS`.
+
+⏳ **Ainda pendente**: os componentes de tela da fase de grupos
+(`CopaBrasilGroupTable`/`CopaBrasilGroupsSummary`/`CopaBrasilGroupsBlock`
+em `pyramidseason.tsx`) ficaram órfãos — nunca mais renderizam nada,
+porque `groups` agora é sempre `[]`. Não atrapalham (não rodam, zero
+risco), mas é lixo de código — limpar numa próxima passada. Falta também:
+ranking (Copa do Brasil ainda soma no mesmo contador da Copa Legends),
+Supercopa Legends (ainda não existe).
 
 ## ⚽🎉 CARIMBO DO GOL: todo clube batizado estampa a cara dele — ✅ NO AR (15/08)
 Nasceu do batismo do Seven City: o Diego viu o mockup animado do "7 carimbando a

@@ -1,48 +1,87 @@
 # 🏆 Copa do Brasil Legends + Supercopa Legends — conceito
 
-## 🚧 Status da construção (15/08)
-Indo "em pedaços", como o Diego pediu:
-1. ✅ **Placar com goleadores** — no ar (ver `docs/pendencias.md`).
-2. ✅ **Motor do chaveamento** — `src/escalacao/copa-brasil.ts`, construído
-   e TESTADO isolado (harness Node com Vite SSR, 30 temporadas sintéticas,
-   421 verificações, 0 falhas — grupos fecham matematicamente, 1ª rodada
-   sem time duplicado, funil de tamanhos certo, zebra só quando é
-   realmente empate, premiação paga o campeão certo). **AINDA NÃO ligado
-   ao jogo** — ninguém chama essa função de lugar nenhum ainda, zero risco
-   pro que já está no ar.
-3. ✅ **Motor LIGADO ao jogo** — mas atrás de trava por conta
-   (`COPA_BRASIL_TESTERS` em `sport.ts`, só `diego.c.fonseca@gmail.com`);
-   pra todo mundo continua 100% Copa Legends. Reaproveita a tela inteira
-   da Copa Legends via 2 adaptadores (`copaBrasilAsCopaResult` /
-   `copaBrasilRewardsAsCopaRewards`) — zero UI nova reescrita, zero risco
-   pra quem não está na lista. Testado: `tsc -b`+`build` limpos, harness
-   novo confirma a forma do dado (261 verificações, 0 falhas).
-4. ⏳ Falta: tela da fase de grupos/potes (a peneira já roda e paga
-   certo, mas ainda não tem NENHUMA tela mostrando os grupos — pula
-   direto pra chave de 64), ranking (Copa do Brasil ainda soma no mesmo
-   contador da Copa Legends, e o ranking GLOBAL vive no banco Supabase,
-   fora deste repo), Supercopa Legends (não existe ainda).
+## 🚨 ATUALIZAÇÃO 16/08 — chaveamento REFEITO, versão de grupos DESCARTADA
+Depois de MUITA iteração com o Diego (ele foi trocando de ideia várias
+vezes, mockups e simulações no meio do caminho), a seção 1 abaixo (grupos
+de 4, 96 clubes) está **DESATUALIZADA/SUBSTITUÍDA**. A especificação
+FECHADA de verdade agora é 100% mata-mata puro, sem fase de grupos
+nenhuma — ver a nova seção **1-NOVA** logo abaixo desta caixa, ela é a
+fonte de verdade agora. Motivo da troca: o Diego achou a fase de grupos
+complicada demais de acompanhar e preferiu manter tudo no formato
+eliminatório simples que o resto do jogo já usa.
 
-⚠️ **Duas contas que não fechavam sozinhas na especificação do Diego —
-resolvidas com uma escolha minha, sinalizando pra ele conferir**:
-- A pirâmide tem **100 clubes de verdade** (20 por série), mas a conta do
-  Diego precisa de **96**. Escolhi excluir os **4 últimos da Várzea**
-  (constante `VARZEA_EXCLUI_ULTIMOS` em `copa-brasil.ts` — fácil de mudar).
-- O funil original pula uma fase: "Semifinal: 8 clubes → sobram 4" seguido
-  direto de "Final entre os 2 finalistas" — falta o passo que reduz de 4
-  pra 2. Completei com a nomenclatura padrão (oitavas=16 · quartas=8 ·
-  semifinal=4 · final=2) e nomeei a fase que faltava de **"Rodada dos
-  32"**. Também precisou de mais um degrau na premiação (`CB_PAY.r32 = 5`,
-  entre o valor da 1ª rodada e o das oitavas).
+**Isso exige reconstruir `src/escalacao/copa-brasil.ts` do zero** — o
+motor que existe hoje (grupos de 4, 16 grupos, potes de força) não serve
+mais pra nada, é preciso trocar pela lógica da seção 1-NOVA.
 
-> Decidido com o Diego em 14-15/08/2026, em cima de um brainstorm. A
-> **especificação do chaveamento (seção 1) veio pronta do próprio Diego,
-> por escrito** — é a fonte de verdade, não inventar variação. O resto
-> (potes de força, calendário, cores) foi decidido junto no chat. Mockup
-> de tabela/potes/funil/placar já mostrado e aprovado no visual (ver
-> `scratchpad` da sessão — replicar essa forma quando for construir).
-> **AINDA NÃO CODAR** sem reconfirmar com o Diego — este doc é memória
-> entre sessões (protocolo do CLAUDE.md), não uma ordem de serviço.
+## 🚧 Status da construção (16/08)
+1. ✅ **Placar com goleadores** — no ar.
+2. ⚠️ **Motor do chaveamento v1 (grupos)** — construído, testado e até
+   ligado ao jogo atrás de trava de teste (`COPA_BRASIL_TESTERS` em
+   `sport.ts`) — mas **DESCARTADO**, ver acima. Precisa reconstruir do
+   zero com a lógica da seção 1-NOVA (mata-mata puro, sem grupos).
+3. ⏳ Motor v2 (mata-mata puro): a construir.
+4. ⏳ Falta: telas (a peneira/chave nova ainda não tem UI própria —
+   reaproveita bastante da Copa Legends, mas o número de fases mudou),
+   ranking (Copa do Brasil ainda somaria no mesmo contador da Copa
+   Legends se não for separado; ranking GLOBAL vive no Supabase, fora
+   deste repo), Supercopa Legends (não existe ainda, mas é o próximo
+   passo natural assim que a Copa do Brasil sair do papel).
+
+> Decidido com o Diego em 14-16/08/2026, em cima de muito brainstorm e
+> idas-e-vindas. **AINDA NÃO CODAR sem reconfirmar com o Diego** — este
+> doc é memória entre sessões (protocolo do CLAUDE.md), não ordem de
+> serviço. A seção 1-NOVA é a especificação atual; a seção 1 antiga (logo
+> depois) fica só de registro histórico, não usar mais.
+
+## 1-NOVA. Especificação do chaveamento — FECHADA v2 (16/08, mata-mata puro)
+**100 clubes reais (20 por série: A, B, C, D, Várzea) — NINGUÉM é
+excluído.** Tudo roda de uma vez só, **depois que a rodada 38 termina**
+(nada acontece no meio da temporada — o Diego cogitou adiantar parte da
+peneira pro meio da temporada, mas descartou: o tempo total de exibição
+seria o mesmo, só mudaria QUANDO se assiste, então não compensa a
+complexidade extra).
+
+**Peneira (72 clubes)** — mata-mata, jogo único, sorteio livre a cada
+rodada:
+- Várzea inteira (20) + Série C inteira (20) + Série D inteira (20) +
+  **12 piores da Série B** (13º ao 20º) = 72
+- 72 → 36 sobreviventes
+
+**Direto na chave, sem jogar a peneira (28 clubes)**:
+- Série A inteira (20) + **8 melhores da Série B** (1º ao 8º) = 28
+- ⚠️ Isso muda o corte antigo da Série B (era 12 melhores/8 piores —
+  agora é **8 melhores/12 piores**, ajustado pra fechar a conta exata em
+  64 na chave principal, sem precisar excluir ninguém nem ter "passe
+  direto" avulso no meio do caminho).
+
+**Forma a chave principal**: 36 (peneira) + 28 (direto) = **64 clubes**
+
+**O funil completo, do fim da Liga ao campeão** (7 fases):
+1. Peneira: 72 → 36 (jogo único, sorteio)
+2. Rodada de 64: 64 → 32 (jogo único, sorteio)
+3. Rodada de 32: 32 → 16 (jogo único, sorteio)
+4. **Oitavas: 16 → 8** (ida e volta) — **a partir daqui o chaveamento
+   TRAVA** (estilo olímpico/árvore clássica: Chave A de um lado, Chave B
+   do outro, convergindo pra Final no meio — vencedor do jogo A encara
+   vencedor do jogo B na fase seguinte, sem sortear de novo)
+5. Quartas: 8 → 4 (ida e volta, chave travada)
+6. Semifinal: 4 → 2 (ida e volta, chave travada)
+7. Final: 2 → 1 🏆 (jogo único, chave travada)
+
+Empate (agregado ou na final): pênaltis, mesma trava de sempre da Copa
+Legends. Tempo total estimado no automático: **~1min45** (calculado com a
+régua de ~9s por jogo que a Copa Legends já usa).
+
+**Divisões que dependem de posição**: só a Série B (corte 8º/9º) precisa
+esperar a rodada 38 fechar pra saber quem é quem — Várzea, C e D entram
+inteiras, não importa a posição de ninguém nelas. Série A inteira também
+não depende de corte (todo mundo dela vai direto).
+
+Logo depois do campeão da Copa do Brasil sair, entra a **Supercopa
+Legends** (ver seção 5) — sequência única, sem intercalar com mais nada.
+
+---
 
 ## A ideia geral
 Hoje a carreira tem Liga (Séries A/B/C/D/V) + Copa Legends (mata-mata só
@@ -51,7 +90,8 @@ Copa Legends** — chaveamento aberto, favorecendo zebra, com 64 times na
 chave principal. Depois dela, mais uma novidade: a **Supercopa Legends**
 (Liga × Copa do Brasil), jogo único.
 
-## 1. Especificação do chaveamento (Copa do Brasil) — FECHADA (96 clubes, 15/08)
+## 1 (ANTIGA, histórico — SUBSTITUÍDA pela seção 1-NOVA lá em cima, não usar)
+### Especificação do chaveamento (Copa do Brasil) — versão com grupos, 96 clubes, 15/08
 **Total geral do ecossistema: 96 clubes.** Quebra exata (confirmada pelo
 Diego depois de eu apontar que a conta original não fechava):
 - **32 clubes entram de BYE**, direto na chave de 64, sem jogar peneira:
@@ -147,18 +187,21 @@ varrendo, `ApoioSheen`/`apoioSheen` keyframe):
   cores) já enviado e aprovado no chat — replicar essa forma exata na
   construção.
 
-## 7. Premiação — proposta (15/08, baseada na régua real da Copa Legends)
+## 7. Premiação — proposta (16/08, atualizada pro chaveamento v2/mata-mata puro)
 A Copa Legends hoje paga por FASE, valor fixo, igual em toda divisão
 (`COPA_PAY` em `pyramidseason.tsx`): participação 2 · quartas 4 · semi 8 ·
 vice 10 · campeão 30 · artilheiro +16 (caixa) e +10 (piso fixo). A Copa do
-Brasil é uma competição BEM maior (96 clubes, 6 fases até o título vindo
+Brasil é uma competição BEM maior (100 clubes, 7 fases até o título vindo
 da peneira, contra as ~4 da Copa Legends com 16 clubes) — a régua precisa
-ter mais degraus e pagar mais no topo, pra refletir o tamanho do desafio:
+ter mais degraus e pagar mais no topo, pra refletir o tamanho do desafio.
+⚠️ Tabela ajustada 16/08 pro novo funil (seção 1-NOVA: peneira → rodada de
+64 → rodada de 32 → oitavas → quartas → semi → final), sem fase de grupos:
 
 | Até onde foi | Copa Legends (hoje) | Copa do Brasil (proposta) |
 |---|---|---|
-| Caiu na fase de grupos | — | 2 |
-| Caiu na 1ª rodada da chave de 64 | — | 4 |
+| Caiu na peneira (72→36) | — | 2 |
+| Caiu na rodada de 64 | — | 4 |
+| Caiu na rodada de 32 | — | 5 |
 | Caiu nas oitavas | (junto no "resto": 2) | 6 |
 | Caiu nas quartas | 4 | 10 |
 | Caiu na semifinal | 8 | 16 |
