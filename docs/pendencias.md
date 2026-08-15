@@ -1,5 +1,26 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## ⚽ Placar ao vivo: 2 ajustes finos depois do reskin — ✅ NO AR (14/08)
+Diego testou o reskin (item abaixo) no ar e pediu 2 ajustes pontuais:
+1. **Escudo tava pequeno demais** — tinha reduzido de 34→26px pra "arejar" o
+   card; voltei pro tamanho original (34px, 28px no basquete).
+2. **A linha do relógio embaixo do placar "não fazia sentido"** — perguntei
+   e ele confirmou: queria o relógio DE VOLTA como pilulazinha flutuando por
+   cima do placar (como sempre foi), não uma linha própria separada. Voltei
+   exatamente pro pill original — só que agora ele flutua sobre uma área
+   `position:relative` própria (não mais sobre o card inteiro), porque a
+   faixa de GOOOL no topo (essa sim ficou, ele gostou) agora ocupa espaço
+   de verdade acima em vez de ficar por baixo de tudo.
+Testado de novo isolado (mesmo método: jogo simulado, prints a cada 150ms)
+antes de subir. Reversível: `git revert`.
+
+⚠️ Diego também comentou que "a arte do giro da rodada e da área de tática
+não mudou" — conferido: a tática JÁ batia com o mockup desde antes (não
+precisava mudar) e o giro JÁ está girando sozinho com bolinhas (dá pra ver
+no print dele mesmo). Deixei uma pergunta pra ele: o que falta é a ROTAÇÃO
+(que já existe) ou ele quer uma ARTE nova pros dois quadros (cores/ícones
+diferentes, tipo um mockup novo)? Não mexer sem essa resposta.
+
 ## ⚽ Placar ao vivo (`LiveScoreCard`) refeito na forma exata do mockup — ✅ NO AR (14/08)
 Diego pediu explicitamente a forma EXATA do mockup animado que ele já tinha
 aprovado. Reskin do `LiveScoreCard` (`pyramidseason.tsx`, usado em TUDO: liga
