@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
 
+## ⚽ Placar ao vivo: goleadores deslizando embaixo de cada time — ✅ NO AR (15/08)
+1ª peça da construção da Copa do Brasil (ver `docs/conceito-copa-brasil.md`
+— Diego pediu pra ir "em pedaços", começando pelo mais seguro). Reskin
+final do `LiveScoreCard` (`pyramidseason.tsx`), mockup já aprovado antes:
+- **Escudos maiores** (34→40px, 28→32 no basquete).
+- **Topo virou o único lugar de narração** (apito inicial/intervalo/final
+  + o flash de gol) — fundo escuro, vira dourado/vermelho só durante o
+  flash do gol. Antes eram 2 lugares repetindo o nome do artilheiro.
+- **Embaixo agora é a lista de GOLEADORES** de cada time (nome + minuto),
+  deslizando sozinha quando passa de 2, no fundo/brilho da competição
+  (`footTint`, já existia). Usa `shown` (a lista de gols já travada pelo
+  relógio) — **sem risco de spoiler**: nenhum nome aparece antes do
+  minuto certo, mesma trava de sempre.
+- Testado isolado antes de subir (jogo simulado com 4 gols, print a
+  print) — confirmado que escudo, narração e lista de goleadores batem
+  certinho, inclusive o alinhamento (casa à direita, visitante à
+  esquerda, coluna do meio do tamanho do placar).
+Vale pra TODO mundo que usa o `LiveScoreCard`: liga da carreira, jogo
+rápido/online, Copa dos 8 e Copa do Mundo — 1 componente só. Reversível:
+`git revert`.
+
+**Próximas peças da Copa do Brasil** (não começadas ainda): motor do
+chaveamento (96 clubes, potes, fase de grupos) e depois a troca de fato
+da Copa Legends pela Copa do Brasil. Especificação inteira já fechada em
+`docs/conceito-copa-brasil.md`.
+
 ## 🃏 AUDITORIA DO BARALHO INTEIRO (1.351 cartas) — 108 correções ✅ NO AR (15/08)
 Diego pediu conferir Marcos/Juninho Paulista/Luís Fabiano/Valdivia; 3 dos 4
 estavam com ano errado → ele mandou checar TODAS ("devem ter mts jogadores

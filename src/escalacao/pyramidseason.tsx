@@ -1986,9 +1986,10 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     <div style={{ position: 'relative', overflow: 'hidden', padding: '22px 8px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center', background: bg, minWidth: 0 }}>
       {flash && <div style={{ position: 'absolute', inset: 0, background: '#fff', animation: 'coGoalFlash 1.6s ease', pointerEvents: 'none' }} />}
       {perk && <ApoioSheen holo={perk.holo} dur={4.2} />}
-      {/* 🛡️ escudo do clube no placar (o basquete segue com a inicial — visual dele
-          ainda não foi aprovado) */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: flash ? 'coBump .6s ease' : undefined, ...(basket ? { width: 28, height: 28, borderRadius: 8, border: `2px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 13, ...OSWALD } : null) }}>{basket ? ini(name) : <Escudo nome={name} size={34} />}</div>
+      {/* 🛡️ escudo do clube no placar — maior (Diego 15/08: "os escudos tem que
+          ser maiores"). O basquete segue com a inicial (visual dele ainda não
+          foi aprovado). */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: flash ? 'coBump .6s ease' : undefined, ...(basket ? { width: 32, height: 32, borderRadius: 9, border: `2px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 15, ...OSWALD } : null) }}>{basket ? ini(name) : <Escudo nome={name} size={40} />}</div>
       <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: ink, lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{perk ? apoioName(name) : name}</div>
       <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? 'você' : 'rival'}</div>
     </div>
@@ -2007,22 +2008,44 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   //    nenhum selo e nenhum flash, aconteça o que acontecer com o estado.
   const temGolNaTela = (basket ? hg + ag : evH + evA) > 0
   const golSide = temGolNaTela ? goal : null
+  // 🎯 lista de GOLEADORES embaixo de cada time (Diego 15/08 — substitui a
+  // narração de baixo, que agora mora só em cima). Usa `shown`, que já é
+  // travado pelo relógio (min <= relógio) — mesma trava anti-spoiler de
+  // sempre, nunca revela um gol antes da hora.
+  const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
+  const GoalsCol = ({ list, align }: { list: ScoreGoal[]; align: 'left' | 'right' }) => {
+    if (list.length === 0) return <div style={{ height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.35)' }}>{basket ? 'sem cestas ainda' : 'sem gols ainda'}</div>
+    const scroll = list.length > 2
+    const rowsOf = (key: string) => list.map((g, i) => (
+      <p key={key + i} style={{ margin: 0, padding: '5px 0', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <b>{g.name}</b> <span style={{ opacity: 0.6, fontWeight: 700 }}>{g.min > 90 ? `90+${g.min - 90}` : g.min}'</span>
+      </p>
+    ))
+    return (
+      <div style={{ height: 42, overflow: 'hidden', position: 'relative', textAlign: align }}>
+        <div style={{ position: 'absolute', left: 10, right: 10, top: 0, animation: scroll ? 'goalsScroll 7s linear infinite' : undefined }}>
+          {rowsOf('a')}{scroll && rowsOf('b')}
+        </div>
+      </div>
+    )
+  }
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
-      <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}'}</style>
+      <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}'}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
-      {/* 🎨 GOOOL! agora é uma FAIXA no topo (Diego 14/08, igual o mockup aprovado)
-          — antes era um carimbo tombado em cima do time. Some sozinha. */}
-      <div style={{ maxHeight: golSide ? 34 : 0, overflow: 'hidden', transition: 'max-height .3s ease', background: lateGoal ? '#FF5B4D' : GOLD, textAlign: 'center' }}>
-        {golSide && (
-          <p style={{ margin: 0, padding: '7px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, letterSpacing: 0.4, color: lateGoal ? '#fff' : INK, animation: 'coBanner .3s ease', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {goalStamp}{last ? ` ${last.name} ${last.min > 90 ? `90+${last.min - 90}` : last.min}'` : ''}
-          </p>
-        )}
+      {/* 🎨 topo agora acumula os dois papéis (Diego 15/08): narração (apito
+          inicial/intervalo/final, sempre visível, fundo escuro) E o flash de
+          GOL (fundo dourado/vermelho, alguns segundos). Antes eram 2 lugares
+          (faixa só de gol + barra de baixo só de narração) repetindo texto —
+          agora é um lugar só, e a barra de baixo virou os goleadores. */}
+      <div style={{ background: golSide ? (lateGoal ? '#FF5B4D' : GOLD) : INK, textAlign: 'center', transition: 'background .3s ease' }}>
+        <p key={golSide ? 'g' + goalSeed : (ritualTxt ?? 'idle')} style={{ margin: 0, padding: '7px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, letterSpacing: 0.4, color: golSide ? (lateGoal ? '#fff' : INK) : '#fff', animation: golSide ? 'coBanner .3s ease' : (ritualTxt ? 'coFade .4s ease' : undefined), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {golSide
+            ? `${goalStamp}${last ? ` ${last.name} ${last.min > 90 ? `90+${last.min - 90}` : last.min}'` : ''}`
+            : (ritualTxt ?? (done ? (basket ? 'sem cestas' : 'sem gols') : (basket ? '🟢 bola quicando…' : '🟢 bola rolando…')))}
+        </p>
       </div>
-      {/* 🎨 relógio VOLTOU a ser a pilulazinha flutuando por cima do placar (Diego
-          14/08 — a linha própria embaixo "não fazia sentido"). A faixa de GOOOL
-          continua em cima, sem brigar com a pílula (áreas diferentes). */}
+      {/* 🎨 relógio é a pilulazinha flutuando por cima do placar. */}
       <div style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
           <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : 'FIM') : minLabel}
@@ -2037,11 +2060,13 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
           <Team name={awayName} color={awayCol} you={!youIsHome} flash={golSide === 'a'} />
         </div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '7px 12px', borderTop: `2px solid ${footTint?.border ?? '#e6dcbf'}`, background: footTint?.bg ?? '#efe4c8', position: 'relative', overflow: 'hidden' }}>
+      {/* 🎯 embaixo: goleadores de cada time (nome + minuto), deslizando quando
+          passa de 2, no fundo/brilho da competição (footTint). */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 84px 1fr', borderTop: `2px solid ${footTint?.border ?? '#e6dcbf'}`, background: footTint?.bg ?? '#efe4c8', position: 'relative', overflow: 'hidden' }}>
         {footTint && (footTint.holo ?? 0) > 0 && <ApoioSheen holo={footTint.holo!} dur={4} />}
-        <span key={ritualTxt ?? 'g'} style={{ position: 'relative', fontSize: 11, fontWeight: ritualTxt ? 900 : 700, ...OSWALD, color: ritualTxt ? INK : 'rgba(0,0,0,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', animation: ritualTxt ? 'coFade .4s ease' : undefined }}>
-          {ritualTxt ?? (last ? <>{basket ? '🏀' : '⚡'} {last.name}{!basket && <> <span style={{ opacity: 0.6 }}>{last.min > 90 ? `90+${last.min - 90}'` : `${last.min}'`}</span></>}</> : (done ? (basket ? 'sem cestas' : 'sem gols') : (basket ? '🟢 bola quicando…' : '🟢 bola rolando…')))}
-        </span>
+        <GoalsCol list={homeGoals} align="right" />
+        <div />
+        <GoalsCol list={awayGoals} align="left" />
       </div>
     </div>
   )
