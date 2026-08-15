@@ -23,6 +23,20 @@ todos 10 anos", o goleiro **Milagres (valor 1)** ficava de fora sem nenhum aviso
   SOLTAR fica sozinho embaixo, **largura total, vermelho forte #C2452F com texto
   branco** — cor E posição diferentes. (Segue reversível: cada jogador solto vira
   botão "desfazer" no card dele.)
+- ➕ **RODADA 2 (15/08, Diego perguntou: "e quando ele olha o time e não parece
+  ter renovado todos?")** — achei mais DOIS casos, os dois confirmados por teste
+  do reducer:
+  1. **Jogador no "⏳ último ano"** aparece na MESMA janela, mas o botão não
+     renova ele (nem pode: só dá pra renovar depois que o contrato ENCERRA). A
+     pessoa apertava "Renovar TODOS", olhava o Elenco e via "último ano" ali →
+     achava que falhou. **Fix:** o botão agora diz **quantos** vai renovar
+     ("Renovar os 6 encerrados") e o aviso do último ano explica que eles NÃO
+     entram e que aparecem na próxima janela.
+  2. **Time na VÁRZEA:** o reducer recusa renovar (regra do Diego 14/08), mas o
+     botão aparecia igual — apertava e **nada acontecia, sem aviso nenhum**.
+     **Fix:** na Várzea o botão some e entra a explicação (por quê + o caminho):
+     "contrato acaba → jogador vai pro leilão e o clube embolsa; subiu pra Série
+     D, os contratos passam a valer".
 Reversível: `git revert`.
 
 
