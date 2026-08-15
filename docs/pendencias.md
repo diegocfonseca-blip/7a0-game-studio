@@ -1,5 +1,39 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🌍🐛 "Ganhei a Copa do Mundo 2× e nenhuma contou" (leodiniz85) — ✅ CORRIGIDO (15/08)
+**Investigação no banco (conta leonardodiniz403@gmail.com, carreira seed
+791372628, FLAMENGO SAF):** 0 linhas `:copamundo` em `esc_results`; mural na
+nuvem com as 8 edições (100…170) TODAS com `voce:false`; `world_titles = 0` em
+todos os 42 snapshots. A liga e a Copa Legends da MESMA temporada 170 gravaram
+normal (18:55 e 18:57) — não era falha geral de gravação (o jogo inteiro tem
+66 títulos de Copa do Mundo, de 28 usuários).
+**Causa (achada no código, não no chute):** `CopaMundoGate` memoizava o save
+SÓ por `seed` (`useMemo(..., [seed])`). Quando o torneio terminava e gravava
+`played`, o memo continuava VELHO → `copaNow` seguia true → **o botão
+"DISPUTAR A COPA DO MUNDO" continuava na tela**. Entrando de novo, a
+convocação sorteava outra seleção → chaveamento DIFERENTE → dava pra "ganhar".
+Só que a gravação é barrada por `cur.played.includes(seasonNo)` — então NADA
+era registrado (nem título, nem 100 moedas, nem esc_results) **enquanto a
+cerimônia continuava cantando "VOCÊ É CAMPEÃO DO MUNDO + 100 MOEDAS"**.
+A tela mentia. Mesmo tronco do "hack do F5" de 14/08 (aquele fechou só o caso
+do refresh no meio do torneio, não o do botão que sobrava depois).
+**Consertos (commit isolado, revertível):**
+1. O portão RELÊ o save quando a Copa fecha (`saveVer` + `onClose`) — edição
+   decidida, botão some. Ninguém joga a mesma Copa duas vezes.
+2. Se por qualquer caminho a edição já estiver gravada, a cerimônia mostra
+   **"esta edição já tinha sido decidida — foi só treino, não conta título nem
+   prêmio"** em vez de prometer o que não vai cumprir.
+3. A **carta do campeão** também não sai nesse caso (era farm de carta).
+Testado com o save REAL dele reproduzido no harness: 7 checagens ✅.
+- ⏳ **PRO DIEGO DECIDIR — títulos dele:** as provas dizem que TODAS as 8
+  edições que ele jogou foram vencidas pela CPU na 1ª ida; as vitórias dele
+  foram re-jogadas (que a regra anti-hack não conta). **Não restaurei nada** —
+  seria inventar título, e a regra é nunca inventar número. MAS a culpa do
+  engano é do JOGO (o botão ficou lá e a tela cantou o título). Se quiser
+  compensar, sugiro **moedas** e não título — título falso sujaria o ranking
+  global que ele faz questão de manter verdadeiro.
+
+
 ## 🐛 Bugs de tela achados pelo Diego jogando de verdade — corrigidos (16/08)
 Ele testou ao vivo e mandou print: a tela toda ainda tava com a cara
 (cores, textos) da Copa Legends, mesmo com a Copa do Brasil rolando por
