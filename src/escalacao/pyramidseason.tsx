@@ -4663,6 +4663,18 @@ export function PyramidSeasonScreen() {
             <b>Como funciona:</b> Peneira → Chave de 64 → Rodada de 32 → Oitavas → Quartas → Semifinal → Final.<br />
             Até a Rodada de 32: jogo único, sorteio a cada fase. Das oitavas em diante: ida e volta (final é jogo único), chave já travada.
           </div>
+          {/* 👥 lista de quem participa (Diego 16/08: "não está claro quem são os
+              times... deixa mais organizado, listado") — antes só mostrava os
+              CONFRONTOS depois de jogados, nunca o ELENCO de clubes por trás. */}
+          <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 12, fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.72)', lineHeight: 1.7 }}>
+            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 8px', textAlign: 'center' }}>👥 Quem tá jogando</p>
+            <p style={{ margin: '0 0 8px' }}><b style={{ color: '#0EA658' }}>🎟️ Direto na chave (28)</b> — não jogam a peneira:<br /><span style={{ color: 'rgba(0,0,0,.55)', fontWeight: 600 }}>Série A inteira + os 8 melhores da Série B</span></p>
+            <p style={{ margin: '0 0 4px' }}><b style={{ color: '#B8892B' }}>⚔️ Na Peneira (72)</b> — jogo único, sorteio:</p>
+            <p style={{ margin: '0 0 3px' }}><b>Várzea (20):</b> {tables.V.map(t => t.name).join(', ')}</p>
+            <p style={{ margin: '0 0 3px' }}><b>Série C (20):</b> {tables.C.map(t => t.name).join(', ')}</p>
+            <p style={{ margin: '0 0 3px' }}><b>Série D (20):</b> {tables.D.map(t => t.name).join(', ')}</p>
+            <p style={{ margin: 0 }}><b>Série B, 12 piores (13º-20º):</b> {tables.B.slice(8, 20).map(t => t.name).join(', ')}</p>
+          </div>
           </>
         )}
         {copaFase?.name === 'Supercopa' && (
