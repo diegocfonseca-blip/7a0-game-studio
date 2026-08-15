@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🌍 VARREDURA: quem mais perdeu Copa do Mundo no ranking (15/08, ordem do Diego)
+Diego: *"tem que consertar pra todo mundo né cara? Como é que ganha a copa e não
+ganha porra do troféu?"*. Feita a varredura **casando carreira com carreira**
+(título é da SEMENTE, não da conta — sem isso o resultado engana: título de uma
+carreira aparecia como "faltando" na outra).
+**Achados (só 2 divergências em todo o jogo):**
+- **mickael (Dérick FC, seed 696865076):** 7 títulos gravados pelo próprio jogo
+  em `esc_results`, ranking mostrava **6** → **+1 restaurado**. Mural da nuvem
+  populado com as 7 edições provadas (seleção vai neutra: o jogo não grava qual
+  seleção foi, e inventar país seria mentir) + snapshots ≥390 pra 7.
+- **denilson (Xurupitas FC):** ranking mostra **9** e `esc_results` só tem 6 —
+  **NÃO é bug e não se mexe**: o registro em `esc_results` só existe pra carreira
+  com Agência 2.0 (regra de 09/08), então títulos anteriores existem só no mural.
+  ⚠️ **`esc_results` NÃO é registro completo** — nunca usar sozinho pra "corrigir
+  pra baixo". Regra: só ADICIONA título provado, nunca tira.
+- **leodiniz85:** +1 título da temporada 170 (Inglaterra/FLAMENGO SAF, print como
+  prova), gravado nos 3 lugares (mural da nuvem, `esc_results`, snapshots ≥170).
+  A carta do campeão do mundo daquela edição ele não recebe (a janela passou).
+- Os outros 3 casos que apareceram na 1ª busca (souzact12, gaabriel, victordudu)
+  eram **falso positivo**: o título é de uma carreira diferente da que está no
+  ranking (ou de carreira apagada). Nada a fazer.
+**Conserto de código junto:** `mergedMundialMural` agora deixa o TÍTULO vencer o
+empate entre aparelho e nuvem (antes o aparelho ganhava sempre e apagava vitória
+de quem trocou de celular/limpou navegador) + bandeira ganha fallback 🏳️.
+
+
 ## 🌍🐛 "Ganhei a Copa do Mundo 2× e nenhuma contou" (leodiniz85) — ✅ CORRIGIDO (15/08)
 **Investigação no banco (conta leonardodiniz403@gmail.com, carreira seed
 791372628, FLAMENGO SAF):** 0 linhas `:copamundo` em `esc_results`; mural na

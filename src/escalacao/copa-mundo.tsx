@@ -974,7 +974,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
             .filter((m, i, arr) => arr.findIndex(x => x.season === m.season) === i)
             .map(m => (
               <p key={m.season} style={{ fontSize: 10.5, fontWeight: m.voce ? 900 : 700, color: m.voce ? GOLD : 'rgba(255,255,255,.85)', margin: '2px 0 0' }}>
-                temporada {m.season} · {FLAG[m.selecao]} {m.selecao} — {m.campeao}{m.voce ? ' ⭐ (VOCÊ)' : ''}
+                temporada {m.season} · {FLAG[m.selecao] ?? '🏳️'} {m.selecao} — {m.campeao}{m.voce ? ' ⭐ (VOCÊ)' : ''}
               </p>
             ))}
         </div>
