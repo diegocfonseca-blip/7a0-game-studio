@@ -3079,10 +3079,22 @@ function Reveal() {
   // faixa — ex.: um save antigo gravado nesse instante), em vez de tela em branco,
   // quem conduz (solo/host) empurra pro próximo passo; convidado espera o sync do
   // host. Junto com a guarda na causa-raiz, ninguém trava mais numa revelação vazia.
+  // 🐛 FIX 15/08 (relato do Diego: "trava na 1ª carta e só o F5 resolve"): antes
+  // era UMA tentativa de 80ms. Se ela não pegasse (ex.: a fase não é mais de
+  // revelação — ADVANCE_REVEAL é recusado; ou o convidado esperando um sync do
+  // host que não chegou), a tela ficava PRESA pra sempre no "Preparando o
+  // pregão…", sem timer, sem retry e sem saída. Agora: (1) quem conduz INSISTE
+  // a cada 700ms; (2) depois de 5s preso, TODO MUNDO (inclusive convidado) ganha
+  // um botão de destravar — ninguém mais precisa adivinhar que o F5 resolve.
+  const [presoHa, setPresoHa] = useState(0)
   useEffect(() => {
-    if (item || !canDrive) return
-    const t = setTimeout(() => dispatch({ type: 'ADVANCE_REVEAL' }), 80)
-    return () => clearTimeout(t)
+    if (item) { setPresoHa(0); return }
+    const t0 = Date.now()
+    const iv = setInterval(() => {
+      if (canDrive) dispatch({ type: 'ADVANCE_REVEAL' })
+      setPresoHa(Math.floor((Date.now() - t0) / 1000))
+    }, 700)
+    return () => clearInterval(iv)
   }, [item, canDrive, dispatch])
   // 🔨 martelada quando a carta é vendida + ✨ chime dourado se for LENDA,
   // sincronizados com o momento que o martelo bate na tela (hammerDelay).
@@ -3130,6 +3142,18 @@ function Reveal() {
         <p className="text-4xl">⚽</p>
         <p className="font-black text-lg" style={OSWALD}>Preparando o pregão…</p>
         <p className="text-sm font-bold text-black/60">{online ? 'Sincronizando com o host…' : 'Só um instante.'}</p>
+        {presoHa >= 5 && (
+          <div className="pt-4 px-6 space-y-2">
+            <p className="text-xs font-bold text-black/70 leading-snug">
+              Demorou mais que o normal pra destravar. Pode ser conexão. <b>Nada se perde</b> — o leilão volta de onde parou.
+            </p>
+            <button onClick={() => window.location.reload()}
+              className="w-full border-[3px] border-black rounded-xl py-2.5 font-black uppercase active:translate-y-0.5"
+              style={{ ...OSWALD, background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
+              🔄 Destravar o pregão
+            </button>
+          </div>
+        )}
       </div>
     </Shell>
   )
