@@ -74,6 +74,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
   meias — contrate no leilão ou traga da SAF").
+- **"Saber o que pode e o que não pode"** (14/08): as regras do jogo são lei —
+  antes de explicar um comportamento ou mexer numa regra, CONFERIR no código o
+  que realmente pode e o que não pode acontecer (nada de achismo). E o JOGO
+  também tem que ser assim: nenhum comportamento "emergente" fora das regras
+  mapeadas — se algo acontece que nenhuma regra previu (jogador entrando em
+  campo sem o dono saber, contagem furando animação), é bug, não feature.
 - **Odeia spoiler**: tabela, giro, artilharia — NADA revela resultado antes da
   animação/apito na tela.
 - **Nada pode atrasar o ritmo do jogo**: zoeira/interação nova entra nos tempos
