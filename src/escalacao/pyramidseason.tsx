@@ -3334,96 +3334,49 @@ function CopaTieRow({ tie, colors = {}, safName }: { tie: CopaTie; colors?: Reco
   )
 }
 
-// Um jogo da fase TOCANDO AO VIVO na posição `pos` do relógio da fase
-// (0..nLegs*90). Mostra o placar do jogo ATUAL subindo minuto a minuto; no fim,
-// o agregado, ida/volta e quem avançou. `big` = é o SEU jogo (destaque).
-function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; pos: number; big?: boolean; colors?: Record<number, FCol>; safName?: string }) {
+// ── ⭐ O SEU JOGO NA COPA — usa o MESMO `LiveScoreCard` da liga (Diego 16/08:
+// "o meu placar deve manter igual quando com a liga também... deve ser padrão
+// tamanho da liga"). Antes era o `CopaLiveMatch` grande, um card diferente,
+// menor e com outra cara. Agora vem tudo de graça: escudo maior, goleadores
+// deslizando, narração do apito, cor/brilho da competição no rodapé.
+// ⏱️ Sincronia: o LiveScoreCard tem relógio PRÓPRIO (0→93' em `roundMs*0.82`),
+// e a lista dos outros jogos anda no `copaPos`. Pra os dois baterem, o roundMs
+// é calculado ao contrário (COPA_LEG_MS ÷ 0.82) — mesmo padrão que a Copa do
+// Mundo já usa há tempo (`useLiveMin` lá em copa-mundo.tsx).
+// 🔁 Ida e volta: o card mostra UM jogo por vez. Quando o relógio passa dos 90'
+// (vira a volta), o `roundKey` muda e ele reinicia com os gols do 2º jogo — e
+// os lados trocam, porque na volta quem manda é o outro.
+function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, footTint }: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; footTint?: { bg: string; border: string; holo?: number } }) {
   const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
   const nLegs = legG.length
   const total = nLegs * 90
   const done = pos >= total
   const legIdx = Math.min(nLegs - 1, Math.floor(pos / 90))
-  const legMin = Math.min(90, Math.round(pos - legIdx * 90))
+  const swap = nLegs === 2 && legIdx === 1 // na VOLTA o mandante é o B — mandante fica à esquerda, como na vida real
   const g = legG[legIdx] ?? []
-  const curA = g.filter(x => x.home && x.min <= legMin).length
-  const curB = g.filter(x => !x.home && x.min <= legMin).length
-  const showA = done ? tie.aggA : curA
-  const showB = done ? tie.aggB : curB
-  const you = tie.a.you || tie.b.you
+  // nos legGoals, `home` sempre significa "o time A marcou" — na volta inverte
+  // pra bater com quem está de fato à esquerda no card.
+  const goals: ScoreGoal[] = g.map(e => ({ name: e.name, min: e.min, home: swap ? !e.home : e.home }))
+  const homeT = swap ? tie.b : tie.a, awayT = swap ? tie.a : tie.b
+  const colOf = (t: SimTeam) => t.you || (safName && t.name === safName) ? myColor : (colors[t.teamId]?.solid ?? copaSideColor(t.name))
+  const sf = simSpeed && simSpeed > 0 ? simSpeed : 1
+  const roundMs = Math.max(400, (COPA_LEG_MS / sf) / 0.82)
   const aWin = tie.win === 'a'
-  const lastG = [...g].filter(x => x.min <= legMin).sort((x, y) => x.min - y.min).pop()
-  const phaseLbl = nLegs === 1 ? '' : legIdx === 0 ? 'IDA' : 'VOLTA'
   const winName = aWin ? copaName(tie.a) : copaName(tie.b)
-  // 🚫 ANTI-SPOILER DOS PÊNALTIS: com decisão nos pênaltis, o riscado do perdedor E
-  // o "✅ avança" só entram DEPOIS que a última cobrança pipoca (senão o card
-  // entregava quem passou já no 1º chute). Mesmo atraso que a Copa dos 8 já usa.
   const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens) : 0
-  // no jogo de VOLTA (ao vivo), o mandante é o B — e mandante joga na ESQUERDA,
-  // igual na vida real. Então inverte os lados (e o placar) só nesse leg.
-  const swap = !done && legIdx === 1
-  const teamL = swap ? tie.b : tie.a, teamR = swap ? tie.a : tie.b
-  const L = { name: copaName(teamL), win: swap ? !aWin : aWin, score: swap ? showB : showA, f: copaSideFill(teamL, colors, safName) }
-  const R = { name: copaName(teamR), win: swap ? aWin : !aWin, score: swap ? showA : showB, f: copaSideFill(teamR, colors, safName) }
-  const nameStyle = (s: typeof L): React.CSSProperties => {
-    const base: React.CSSProperties = { fontWeight: big ? 900 : 800, fontSize: big ? 13.5 : 11.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: s.f.ink }
-    if (!done || s.win) return { ...base, opacity: 1, textDecoration: 'none' }
-    if (pensDelay > 0) return { ...base, animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } // perdedor por pênaltis: espera a disputa
-    return { ...base, opacity: 0.6, textDecoration: 'line-through' }
-  }
-  // 🛡️ mesmo apagar anti-spoiler do nome, mas pro escudo (sem o risco de texto)
-  const escDim = (s: typeof L): React.CSSProperties => {
-    if (!done || s.win) return {}
-    if (pensDelay > 0) return { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` }
-    return { opacity: 0.6 }
-  }
-  // ⚡ "acabou de fazer gol": olha só pro que JÁ apareceu no placar (min <=
-  // legMin) — nunca antecipa nada, só destaca visualmente o que o placar já
-  // mostrou. Janela de 1' (mesmo passo do relógio da Copa).
-  const justScored = !done && lastG != null && legMin - lastG.min <= 1
-  const barPct = Math.max(0, Math.min(100, Math.round((legMin / 90) * 100)))
   return (
-    <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `${big ? 3 : 2}px solid ${justScored ? GOLD : you ? '#B23B2E' : !done ? '#3E8F5C' : INK}`, boxShadow: `${big ? 4 : 2}px ${big ? 4 : 2}px 0 0 ${INK}`, marginBottom: big ? 9 : 6 }}>
-      {/* 🎨 identidade da Copa Legends (Diego 11/08): moldura verde-escura só
-          enquanto o jogo tá AO VIVO; barra de progresso no TOPO do card. */}
-      {!done && (
-        <div style={{ height: 4, background: 'rgba(0,0,0,.15)' }}>
-          <div style={{ height: '100%', width: `${barPct}%`, background: 'linear-gradient(90deg,#3E8F5C,#FFC400)' }} />
+    <div style={{ marginBottom: 12 }}>
+      <LiveScoreCard homeName={copaName(homeT)} awayName={copaName(awayT)} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
+        youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} finished={done} footTint={footTint} />
+      {done && (
+        <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
+          {nLegs === 2 && <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][1]}×{tie.legs[1][0]} · <b>agregado {tie.aggA}×{tie.aggB}</b></p>}
+          {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
+          <p style={{ margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}>
+            <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} avança</span>
+          </p>
         </div>
       )}
-      {/* 🎨 faixa branca no meio com o placar, escudo em cima e nome embaixo —
-          cor cheia só nas laterais. */}
-      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch', overflow: 'hidden' }}>
-        <div style={{ position: 'relative', overflow: 'hidden', background: L.f.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, minWidth: 0, padding: big ? '8px 8px' : '6px 6px' }}>
-          {L.f.holo > 0 && <ApoioSheen holo={L.f.holo} />}
-          <span style={{ ...escDim(L) }}><Escudo nome={L.name} size={big ? 22 : 17} /></span>
-          <span style={{ ...nameStyle(L), textAlign: 'center', maxWidth: '100%' }}>{L.f.mark}{L.name}</span>
-        </div>
-        <div style={{ background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: big ? '4px 11px' : '3px 9px', gap: 1 }}>
-          {!done && <span style={{ fontSize: big ? 9 : 8, fontWeight: 900, color: '#C2452F', ...OSWALD }}>🔴 {phaseLbl ? phaseLbl + ' · ' : ''}{legMin}'</span>}
-          <span style={{ fontWeight: 900, fontSize: big ? 18 : 13, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{L.score} × {R.score}</span>
-        </div>
-        <div style={{ position: 'relative', overflow: 'hidden', background: R.f.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, minWidth: 0, padding: big ? '8px 8px' : '6px 6px' }}>
-          {R.f.holo > 0 && <ApoioSheen holo={R.f.holo} />}
-          <span style={{ ...escDim(R) }}><Escudo nome={R.name} size={big ? 22 : 17} /></span>
-          <span style={{ ...nameStyle(R), textAlign: 'center', maxWidth: '100%' }}>{R.f.mark}{R.name}</span>
-        </div>
-        {justScored && (
-          <>
-            <style>{'@keyframes copaGoalFlash{0%{opacity:1}100%{opacity:0}}'}</style>
-            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, rgba(255,255,255,.5), transparent 70%)', animation: 'copaGoalFlash 1.1s ease', pointerEvents: 'none' }} />
-          </>
-        )}
-      </div>
-      <div style={{ padding: big ? '6px 12px 9px' : '5px 9px 7px' }}>
-        {!done
-          ? (lastG ? <p style={{ textAlign: 'center', margin: 0 }}><span style={{ ...copaCenterChip, fontSize: big ? 10 : 9, fontWeight: 900, ...OSWALD, color: justScored ? '#FFD778' : '#fff' }}>⚽ {justScored ? 'GOOOL! ' : ''}{lastG.name}</span></p> : null)
-          : <>
-              {nLegs === 2 && <p style={{ textAlign: 'center', margin: '0 0 3px' }}><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 800 }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][1]}×{tie.legs[1][0]}</span></p>}
-              {tie.pens && <style>{'@keyframes copaLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>}
-              {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
-              <p style={{ textAlign: 'center', margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}><span style={{ ...copaCenterChip, fontSize: 9.5, fontWeight: 900, color: '#8ff0a8', ...OSWALD }}>✅ {winName} avança</span></p>
-            </>}
-      </div>
     </div>
   )
 }
@@ -4936,7 +4889,8 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && <div style={{ marginBottom: 12 }}><CopaLiveMatch tie={myCopaTie} pos={copaPos} big colors={colors} safName={safTeamName} /></div>}
+        {copaPlaying && myCopaTie && <MyCopaMatch tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed}
+          footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : cbUnlocked ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
             sozinha (só aparece o botão de ativar o manual). */}
