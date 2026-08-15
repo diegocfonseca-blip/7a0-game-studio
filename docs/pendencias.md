@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🐍🔴⚫⚪ Batismo Tricolor do Arruda (Geovani GS · souzact12@gmail.com) — 16/08
+Homenagem ao **Santa Cruz** (time do coração dele) e ao Arruda. Substituiu o
+**Legado EC** na Série A. Dono virou **ouro/Lenda** (era prata/Craque) +
+**fundador nº43**.
+
+Feito no repo (já na main, já no ar):
+- `img/arruda-escudo.webp` + `img/arruda-mascote.webp` (recortados da arte que
+  o Diego mandou); registrados em `escudos.tsx` e `mascotes.tsx`
+  (`mascote_key = cobra_arruda`).
+- `data.ts`: `OLD_NAME['Tricolor do Arruda'] = 'Legado EC'` + entrada na Série A.
+- `mascotes.tsx`: `CARIMBO_GOL['Tricolor do Arruda'] = 'cobra_arruda'` — a cobra
+  **carimba o placar** quando o clube faz gol (isso funciona já, é só código).
+
+⏳ **PENDENTE — precisa de escrita no Supabase (`esc_socios`), fora do repo.**
+Sem essa linha, DUAS coisas do batismo NÃO acontecem pro Geovani:
+- o **FESTÃO de campeão** (a cobra tomando a tela após o apito) e
+- a **cobra pulando no pênalti convertido**,
+
+porque as duas leem `mascote_key` da conta no banco, não do código. Também
+falta gravar o **manto**: branco → vermelho → branco → preto.
+Valores: `p_email = souzact12@gmail.com` · `p_mascote = cobra_arruda` ·
+`p_time = Santa Cruz` · manto `p_c1 = #C2001E` (vermelho), `p_c2 = #0C0C0C`
+(preto). Dá pra fazer pelo painel de admin (`🎨 Personalizar sócio`) ou eu
+faço se o Diego liberar o acesso ao banco (a chamada foi recusada por
+aprovação pendente).
+
 ## 🔓🏆🇧🇷 COPA DO BRASIL LEGENDS + SUPERCOPA NO AR PRA TODO MUNDO (16/08)
 Ordem do Diego: "atualiza já p td mundo pow". `COPA_BRASIL_GERAL = true`
 em `src/escalacao/sport.ts` — a trava por conta saiu, vale pra todos os
