@@ -16,6 +16,47 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
+  // 🦁7️⃣ O LEÃO SEVEN do Seven FC (batismo do glaucomiranda, Sócio nº 22) — aprovado
+  // pelo Diego 15/08: leão forte de uniforme completo (juba azul-marinho, camisa e
+  // calção com o 7 dourado, chuteira preta) com a bola dominada no pé. Homenagem ao
+  // Seven Gamer (@sevengamersp). mascote_key = "leao_seven".
+  leao_seven: (
+    <svg width="140" height="168" viewBox="0 0 200 240">
+      <ellipse cx="100" cy="234" rx="54" ry="8" fill="rgba(0,0,0,.15)"/>
+      <g transform="translate(4,0) scale(0.8)">
+        <path d="M76 138 Q46 146 40 172 Q38 190 52 198 L70 190 Q64 172 80 158 Z" fill="#E0A93E" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
+        <path d="M52 172 q-8 10 2 20" stroke={INK} strokeWidth="3" fill="none"/>
+        <path d="M164 138 Q194 146 200 172 Q202 190 188 198 L170 190 Q176 172 160 158 Z" fill="#E0A93E" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
+        <path d="M188 172 q8 10 -2 20" stroke={INK} strokeWidth="3" fill="none"/>
+        <path d="M76 134 L68 224 L172 224 L164 134 Q120 152 76 134 Z" fill="#12256B" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
+        <path d="M96 164 Q120 176 144 164" stroke="#0B1B52" strokeWidth="4" fill="none"/>
+        <path d="M133 176 L100 176 L100 190 L120 190 L104 214 L122 214 L140 184 Z" fill="#C9A227" stroke={INK} strokeWidth="4" strokeLinejoin="round"/>
+        <path d="M68 224 L64 254 L102 254 L118 236 L120 254 L176 254 L172 224 Z" fill="#12256B" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
+        <path d="M162 234 L148 234 L148 240 L156 240 L148 250 L157 250 L166 238 Z" fill="#C9A227" stroke={INK} strokeWidth="2.5" strokeLinejoin="round"/>
+        <path d="M78 254 L76 274 L98 274 L98 254 Z" fill="#12256B" stroke={INK} strokeWidth="4"/>
+        <path d="M142 254 L142 274 L164 274 L162 254 Z" fill="#12256B" stroke={INK} strokeWidth="4"/>
+        <path d="M74 274 L100 274 L102 286 L70 286 Z" fill={INK}/>
+        <path d="M140 274 L166 274 L172 286 L138 286 Z" fill={INK}/>
+        <path d="M172 228 Q206 236 208 258" stroke={INK} strokeWidth="7" fill="none" strokeLinecap="round"/>
+        <path d="M200 250 L218 252 L210 268 Z" fill="#12256B" stroke={INK} strokeWidth="4" strokeLinejoin="round"/>
+        <circle cx="186" cy="276" r="17" fill="#fff" stroke={INK} strokeWidth="4"/>
+        <path d="M186 268 L193 273 L190 281 L182 281 L179 273 Z" fill={INK}/>
+        <g transform="translate(0,6)">
+          <path d="M120 2 L137 22 L161 12 L165 38 L193 38 L183 62 L207 76 L183 90 L191 114 L165 112 L161 138 L135 128 L120 146 L105 128 L79 138 L75 112 L49 114 L57 90 L33 76 L57 62 L47 38 L75 38 L79 12 L103 22 Z" fill="#12256B" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
+          <circle cx="85" cy="40" r="12" fill="#E0A93E" stroke={INK} strokeWidth="4"/>
+          <circle cx="155" cy="40" r="12" fill="#E0A93E" stroke={INK} strokeWidth="4"/>
+          <circle cx="120" cy="76" r="44" fill="#E0A93E" stroke={INK} strokeWidth="5"/>
+          <path d="M92 60 L114 68" stroke={INK} strokeWidth="6" strokeLinecap="round"/>
+          <path d="M148 60 L126 68" stroke={INK} strokeWidth="6" strokeLinecap="round"/>
+          <circle cx="105" cy="76" r="6" fill={INK}/>
+          <circle cx="135" cy="76" r="6" fill={INK}/>
+          <ellipse cx="120" cy="94" rx="17" ry="12" fill="#F4D9A0" stroke={INK} strokeWidth="4"/>
+          <path d="M114 90 L126 90 L120 98 Z" fill={INK}/>
+          <path d="M120 98 L120 104 M112 108 Q120 114 128 108" stroke={INK} strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+        </g>
+      </g>
+    </svg>
+  ),
   // 🐈💛💙 O GATÃO do Barcenite FC (batismo do ricardopessoafreire, Sócio nº 12) —
   // aprovado pelo Diego 14/08: gato-selvagem amarelo/azul inspirado no CAT (o
   // mascote real do Barcelona dos 125 anos): orelhas pontudas, tufos na bochecha,
