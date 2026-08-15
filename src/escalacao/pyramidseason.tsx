@@ -5802,6 +5802,11 @@ export function ReserveListScreen() {
                   por jogador. */}
               {(expirados.length + expDorm.length) > 1 && (() => {
                 const alvos: { c: WonCard; dono: Manager }[] = [...expirados.map(c => ({ c, dono: mgr })), ...(dormM ? expDorm.map(c => ({ c, dono: dormM })) : [])]
+                // 🌱 VÁRZEA NÃO RENOVA (regra do Diego 14/08) — o reducer recusa. Antes o
+                // botão aparecia do mesmo jeito: a pessoa apertava e NADA acontecia, sem
+                // aviso. Agora quem está na Várzea nem vê o botão, vê a explicação.
+                const divDe = (mm: Manager) => (state.careerPlacements?.[`m${mm.id}`] ?? state.careerDivision ?? 'V') as string
+                const renovaveis = alvos.filter(({ dono }) => divDe(dono) !== 'V')
                 // 🐛 FIX 15/08 (relato do Diego: "apertou renovar todos e não renovou"):
                 // este botão mandava SEMPRE 5 ou 10 anos pra todo mundo — mas jogador
                 // barato não tem esses prazos na tabela (valor 2 só tem 1 e 3 anos;
@@ -5810,7 +5815,7 @@ export function ReserveListScreen() {
                 // prazo MAIS PRÓXIMO que existe pro valor dele — "renovar TODOS"
                 // renova todos de verdade.
                 const bulkRenovar = (anos: 10 | 5) => {
-                  for (const { c, dono } of alvos) {
+                  for (const { c, dono } of renovaveis) {
                     const ops = renewOptions(valorOficial(state, c))
                     if (!ops.length) continue
                     const escolhido = ops.includes(anos)
@@ -5824,6 +5829,11 @@ export function ReserveListScreen() {
                   for (const { c, dono } of alvos) if (!jaSolto.has(c.id)) dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })
                 }
                 return (
+                  renovaveis.length === 0 ? (
+                    <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#EAF6EE', padding: '8px 10px', marginBottom: 9 }}>
+                      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, color: '#1B5E32', lineHeight: 1.45 }}>🌱 <b>Na Várzea não tem renovação.</b> Quando o contrato acaba, o jogador vai pro leilão e o <b>clube embolsa</b> a venda — por isso não tem botão de renovar aqui. <b>Subiu pra Série D?</b> Aí os contratos passam a valer e você decide renovar ou deixar ir.</p>
+                    </div>
+                  ) : (
                   <div style={{ marginBottom: 9 }}>
                     {/* 🎨 Diego 15/08: "renovar todos" e "deixar todos ir" pareciam a
                         mesma coisa. Agora os dois de RENOVAR ficam juntos em cima
@@ -5832,11 +5842,12 @@ export function ReserveListScreen() {
                         ninguém soltar o elenco inteiro sem querer. (Dá pra desfazer:
                         cada jogador solto vira botão "desfazer" no card dele.) */}
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>5️⃣ Renovar TODOS{<br />}5 anos</button>
-                      <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar TODOS{<br />}10 anos (-10%)</button>
+                      <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>5️⃣ Renovar os {renovaveis.length}{<br />}encerrados · 5 anos</button>
+                      <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar os {renovaveis.length}{<br />}encerrados · 10 anos (-10%)</button>
                     </div>
                     <button onClick={bulkDeixarIr} style={{ ...btn('#C2452F', '#fff', false), width: '100%', marginTop: 6 }}>😢 Deixar TODOS ir · vão pro leilão</button>
                   </div>
+                  )
                 )
               })()}
               {(() => {
@@ -5903,7 +5914,7 @@ export function ReserveListScreen() {
                 </p>
               )}
               {(ultimoAno.length > 0 || uaDorm.length > 0) && !state.reserveListMesmo && (
-                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: (expirados.length + expDorm.length) ? '7px 0 0' : 0, lineHeight: 1.4 }}>⏳ <b>Último ano de contrato:</b> {[...ultimoAno.map(c => c.name), ...uaDorm.map(c => `${c.name} 💤`)].join(', ')} — encerra{(ultimoAno.length + uaDorm.length) > 1 ? 'm' : ''} no fim desta temporada. Quer garantir a grana cheia? <b>Venda antes de vencer.</b></p>
+                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: (expirados.length + expDorm.length) ? '7px 0 0' : 0, lineHeight: 1.4 }}>⏳ <b>Último ano de contrato:</b> {[...ultimoAno.map(c => c.name), ...uaDorm.map(c => `${c.name} 💤`)].join(', ')} — encerra{(ultimoAno.length + uaDorm.length) > 1 ? 'm' : ''} no fim desta temporada. ⚠️ <b>Esses não entram no botão de renovar</b> — só dá pra renovar depois que o contrato encerra (eles aparecem aqui na próxima janela). Quer garantir a grana cheia? <b>Venda antes de vencer.</b></p>
               )}
             </div>
           )
