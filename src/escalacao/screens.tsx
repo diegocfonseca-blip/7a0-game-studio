@@ -4366,12 +4366,7 @@ export function EscSeason() {
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
         if (shownNews.length === 0) return null
-        return (
-          <Box bg="#FFF6DC" className="p-3 space-y-1">
-            <p className="font-black text-xs uppercase tracking-wide mb-1" style={OSWALD}>{copaLive ? '🏆 Giro da Copa' : '📣 Giro da rodada'}</p>
-            {shownNews.slice(0, 4).map((n, i) => <p key={i} className="text-xs font-bold">{n}</p>)}
-          </Box>
-        )
+        return <GiroDaRodada news={shownNews} isCopa={copaLive} />
       })()}
 
       {state.careerOnline && (
@@ -4562,6 +4557,36 @@ function leagueBeforeResults<T extends { id: number; pts: number; w: number; d: 
     else { h.pts -= 1; a.pts -= 1; h.d -= 1; a.d -= 1 }
   }
   return league.map(t => map.get(t.id)!)
+}
+
+// 📣 giro da rodada: gira UMA manchete por vez sozinho (Diego 14/08 pediu pra
+// "rolar" igual o mockup, em vez de empilhar as 4 numa lista parada). Reseta
+// pro início toda vez que a lista muda (rodada nova/apito) — a trava
+// anti-spoiler continua sendo quem monta `news` lá fora, aqui é só vitrine.
+function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
+  const list = news.slice(0, 5)
+  const key = list.join('|')
+  const [idx, setIdx] = useState(0)
+  const keyRef = useRef(key)
+  if (keyRef.current !== key) { keyRef.current = key; setIdx(0) }
+  useEffect(() => {
+    if (list.length <= 1) return
+    const iv = setInterval(() => setIdx(i => (i + 1) % list.length), 3200)
+    return () => clearInterval(iv)
+  }, [key, list.length])
+  if (list.length === 0) return null
+  return (
+    <Box bg="#FFF6DC" className="p-3">
+      <style>{'@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}'}</style>
+      <p className="font-black text-xs uppercase tracking-wide mb-2" style={OSWALD}>{isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada'}</p>
+      <p key={idx} className="text-xs font-bold" style={{ minHeight: '2.4em', animation: 'giroFade .35s ease' }}>{list[idx]}</p>
+      {list.length > 1 && (
+        <div className="flex justify-center gap-1 mt-2">
+          {list.map((_, i) => <span key={i} className="rounded-full" style={{ width: 5, height: 5, background: i === idx ? '#8a8069' : '#e2d8b8', display: 'inline-block' }} />)}
+        </div>
+      )}
+    </Box>
+  )
 }
 
 function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: number; holdResults?: boolean; title?: string }) {

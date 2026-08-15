@@ -1,5 +1,26 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 📣 Giro da rodada agora GIRA sozinho (uma manchete por vez) — ✅ NO AR (14/08)
+Diego insistiu (com print do mockup do lado) que o giro da rodada devia
+"rolar" igual o mockup mostrava, não ficar empilhado. Antes: lista fixa
+com até 4 manchetes juntas. Agora: componente novo `GiroDaRodada`
+(`screens.tsx`) mostra UMA manchete por vez, troca sozinha a cada ~3,2s com
+fade, bolinhas embaixo marcando qual tá ativa — igual o mockup animado.
+A trava anti-spoiler NÃO mudou (quem decide o que pode aparecer continua
+sendo a mesma lógica de antes, `giroReady`/`isCopaReveal`); só a VITRINE
+virou carrossel. Usado no Jogo Rápido/Online (liga e Copa dos 8); a
+carreira não tem esse quadro de notícias (nunca teve, fora de escopo).
+Reversível: `git revert`.
+
+⚠️ Nota pro Diego: o placar com relógio/GOOOL/flash (`LiveScoreCard`) já
+existe e funciona nos dois modos — mas só anima ENQUANTO o jogo está
+rolando (relógio contando). Se olhar depois do apito ("FIM"), não tem mais
+nada pra animar. Se depois de ver ao vivo ele achar que o ESTILO (não a
+existência) devia ficar mais parecido com o mockup (faixa colorida por
+time, banner de GOOOL em vez de carimbo), é um pedido de reskin — avisar
+explicitamente, não mexer sem ver de novo (componente já é bem afinado,
+com direito a frases variadas de gol/apito e trava anti-spoiler própria).
+
 ## 🏆 Tabela da CARREIRA (Série A/B/C/D): mesma cara da tabela nova — ✅ NO AR (14/08)
 Diego reclamou que a carreira não tinha mudado nada visualmente. Certo: eu
 tinha só mexido no Jogo Rápido/Online de propósito (lá tinha um descompasso
