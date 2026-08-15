@@ -1,5 +1,23 @@
 # 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
 
+## 🎯 Copa dos 8: tática pra DEPOIS do placar + box mais clean (igual liga) — ✅ NO AR (14/08)
+Dois pedidos direto do celular do Diego, na tela da Copa dos 8 (`screens.tsx`):
+1. **Ordem errada**: a caixa "Sua tática na Copa" vinha ANTES do placar ao
+   vivo (o jogo principal) — Diego: "tá errado". Movida pra DEPOIS do placar
+   (banner da Copa → intro "chegou a copa" quando aplicável → placar ao vivo
+   → tática → todos os jogos da fase). Bate com o padrão da Liga, onde o
+   placar sempre vem primeiro.
+2. **Box de tática mais limpo**: comparando os dois (Copa × Liga), o da Copa
+   é mais clean — só título + botões + explicação. O da Liga tinha, além
+   disso, uma barra de progresso da temporada + "⏱️ Temporada rolando
+   sozinha — sente e assista." (decorativo, a Copa nunca teve isso). Tirei
+   essa barra+texto da Liga também, pra ficar igual. Mantive a linha
+   "PRÓXIMO: Time × Time (casa/fora)" — é informação real (quem é o
+   próximo adversário), não decoração; só a Copa não tinha porque ali o
+   próximo jogo já é óbvio pelo contexto do mata-mata.
+Reversível: `git revert`. Só reordenação/remoção de elementos, nenhuma
+regra ou dado mudou.
+
 ## ⚽ Placar ao vivo: 2 ajustes finos depois do reskin — ✅ NO AR (14/08)
 Diego testou o reskin (item abaixo) no ar e pediu 2 ajustes pontuais:
 1. **Escudo tava pequeno demais** — tinha reduzido de 34→26px pra "arejar" o

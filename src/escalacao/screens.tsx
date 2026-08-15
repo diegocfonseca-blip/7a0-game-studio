@@ -4156,24 +4156,6 @@ export function EscSeason() {
               <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>🏆 {bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA DOS 8'} · {phaseLabel.toUpperCase()}</p>
               <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.8)', zIndex: 2 }}>{legLabel}</p>
             </Box>
-            {/* 🎯 tática também na Copa dos 8 (pedido de jogador, 12/08) — mesmo botão
-                da liga; a simulação já lia state.tactics aqui, só faltava o controle
-                pra trocar DURANTE a Copa (antes ficava travado na última escolha da liga). */}
-            {myTie && (
-              <Box bg="#fff" className="p-4 space-y-3" shadow={4}>
-                <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🎯 Sua tática na Copa</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
-                    <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
-                      className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
-                      style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
-                      {tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? 'Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.' : 'Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.'}</p>
-              </Box>
-            )}
             {firstLegPending && (
               <Box bg={PURPLE_HOLO} className="p-4 space-y-2" shadow={6} style={{ position: 'relative', overflow: 'hidden' }}>
                 <ApoioSheen holo={1} dur={3.4} />
@@ -4231,6 +4213,24 @@ export function EscSeason() {
             ) : (
               <Box bg="#fff" className="p-4" shadow={6}>
                 <p className="text-center font-black text-sm" style={OSWALD}>Acompanhe a Copa dos 8 chegando ao fim…</p>
+              </Box>
+            )}
+            {/* 🎯 tática (pedido de jogador, 12/08) — DEPOIS do placar ao vivo agora
+                (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
+                principal é a estrela, a tática é apoio). */}
+            {myTie && (
+              <Box bg="#fff" className="p-4 space-y-3" shadow={4}>
+                <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🎯 Sua tática na Copa</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
+                    <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
+                      className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
+                      style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
+                      {tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? 'Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.' : 'Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.'}</p>
               </Box>
             )}
             {qc.ties.length > 0 && (
@@ -4325,12 +4325,9 @@ export function EscSeason() {
               </button>
             ))}
           </div>
-          <div className="space-y-1">
-            <div className="h-2 rounded-full border-2 border-black overflow-hidden bg-white">
-              <div className="h-full transition-all" style={{ width: `${(state.round / totalRounds) * 100}%`, backgroundColor: GREEN }} />
-            </div>
-            <p className="text-center text-xs font-bold text-black/60">⏱️ Temporada rolando sozinha — sente e assista.</p>
-          </div>
+          {/* 🎨 Diego 14/08: box mais clean, igual o da Copa — tirei a barra de
+              progresso + o textão "temporada rolando sozinha" (decorativo, a
+              Copa nunca teve isso e ficava mais poluído aqui). */}
           <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? 'Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.' : 'Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.'}</p>
         </Box>
       )}
