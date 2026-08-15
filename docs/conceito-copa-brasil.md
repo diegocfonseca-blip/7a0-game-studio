@@ -1,82 +1,117 @@
-# 🏆 Copa do Brasil Legends — conceito (RASCUNHO, ainda em discussão)
+# 🏆 Copa do Brasil Legends + Supercopa Legends — conceito
 
-> Brainstorm com o Diego em 14/08/2026 — **NADA aqui está aprovado pra
-> codar**. É só pra não perder o fio da meada entre sessões (protocolo de
-> memória do CLAUDE.md). Antes de escrever qualquer linha de código disto,
-> reler este doc inteiro e confirmar com o Diego que ainda vale.
+> Decidido com o Diego em 14-15/08/2026, em cima de um brainstorm. A
+> **especificação do chaveamento (seção 1) veio pronta do próprio Diego,
+> por escrito** — é a fonte de verdade, não inventar variação. O resto
+> (potes de força, calendário, cores) foi decidido junto no chat. Mockup
+> de tabela/potes/funil/placar já mostrado e aprovado no visual (ver
+> `scratchpad` da sessão — replicar essa forma quando for construir).
+> **AINDA NÃO CODAR** sem reconfirmar com o Diego — este doc é memória
+> entre sessões (protocolo do CLAUDE.md), não uma ordem de serviço.
 
-## A ideia
-Uma 3ª competição da carreira. Hoje a carreira tem:
-1. **Liga** (Séries A/B/C/D/V, pontos corridos)
-2. **Copa Legends** (mata-mata só com o G4 de CADA série — 16 times)
+## A ideia geral
+Hoje a carreira tem Liga (Séries A/B/C/D/V) + Copa Legends (mata-mata só
+com o G4 de cada série, 16 times). A **Copa do Brasil Legends SUBSTITUI a
+Copa Legends** — chaveamento aberto, favorecendo zebra, com 64 times na
+chave principal. Depois dela, mais uma novidade: a **Supercopa Legends**
+(Liga × Copa do Brasil), jogo único.
 
-A Copa do Brasil seria um chaveamento **aberto pra todo mundo** (da Série A
-até a Série V/várzea) — o contraste com a Copa Legends é justamente esse:
-lá só entra quem já tá bem na Liga, aqui entra TODO MUNDO, favorecendo a
-zebra.
+## 1. Especificação do chaveamento (Copa do Brasil) — texto do Diego, literal
+**Estrutura geral**: 64 clubes na chave do mata-mata. Os 16 times da Série
+A entram DIRETO na 1ª rodada da chave de 64 (bye, sem jogar fase de
+grupos).
 
-## A regra de ouro puxada da Copa do Brasil de verdade
-Nas fases iniciais, **empate favorece o time de divisão mais baixa**
-(mesmo critério de desempate do torneio real) — é a máquina de fabricar
-zebra: "time de várzea elimina gigante da Série A com um 0×0". Bate direto
-com o gosto do Diego por zebra (giro da rodada já tem essa categoria de
-notícia).
+**Fase 1 — fase de grupos (peneira inicial)**: objetivo é filtrar os times
+menores pra classificar 32. 16 grupos de 5 times (80 times disputando).
+Top 2 de cada grupo avança (16×2 = 32 classificados). Sorteio dos grupos:
+80 times divididos em **5 potes de força**, cada grupo recebe
+obrigatoriamente 1 time de cada pote (equilíbrio).
 
-## Formato do chaveiro (rascunho)
-- ~100 times (5 séries × 20 cada, número exato depende do tamanho real de
-  cada série hoje).
-- **Fases iniciais**: só Série V/D/C se enfrentando, jogo único, empate
-  favorece o de baixo.
-- **Fase intermediária**: Série B entra (sugestão do Claude 14/08: nas
-  quartas).
-- **Fase final**: Série A entra de bye (sugestão do Claude 14/08: nas
-  oitavas) — igual clube grande de verdade, que só estreia depois que os
-  menores já se decantaram. Diego perguntou se vale a pena dar essa
-  vantagem pra A/B: SIM, é o que sustenta a emoção da zebra (upset só dói
-  gostoso quando o favorito tinha vantagem e caiu mesmo assim) — mas sem
-  dar bye ATÉ A FINAL, senão quem joga Série A só disputa 2 jogos de Copa
-  no total (pouco pra chamar de competição). Com A nas oitavas e B nas
-  quartas, cada um pega uns 3-4 jogos reais — parecido em quantidade com a
-  Copa Legends de hoje. Ainda não é decisão FINAL, é recomendação.
-- **A partir de oitavas/quartas**: vira ida-e-volta, reaproveitando 100% o
-  motor que a Copa Legends já tem — `CopaTie`, `LiveScoreCard`,
-  `PensShootout`, tudo em `pyramidseason.tsx`. Não é construir do zero.
-- Fases que não envolvem o SEU time resolvem sozinhas (igual a Liga já faz
-  hoje com os outros 19 times da sua série — só o seu jogo anima de
-  verdade). O resto vira manchete de zebra no giro da rodada. Só quando
-  chega a vez do seu time é que vira tela de verdade, com tática e tudo.
+**Fase 2 — sorteio da chave de 64**: quando os 32 classificados dos grupos
+se juntam aos times da elite, a chave de 64 é formada com 2 potes:
+- **Pote 1 (Favoritos, 32 times)**: 16 Série A + 16 líderes de grupo (1º
+  lugar).
+- **Pote 2 (Desafiantes, 32 times)**: 16 times de apoio (ex.: Série B) +
+  16 vice-líderes de grupo (2º lugar).
+- Sorteio livre entre os potes, sem trava de repetição de grupo.
 
-## 🚧 DECISÃO EM ABERTO — calendário (NENHUMA opção fechada ainda)
-1. **Sequencial** (recomendação do Claude, 14/08): depois que Liga + Copa
-   Legends + Supercopa terminam na mesma temporada — mesma lógica de hoje
-   (Copa Legends já roda assim, tacada isolada no fim). Mais seguro: não
-   toca no cálculo de rodada da Liga pra ninguém, então não esbarra na
-   regra #1 do Diego ("nunca quebrar o futebol").
+**Mando de campo**:
+- 1ª rodada da chave de 64 (64→32): quem veio do Pote 1 manda o jogo (casa
+  no jogo único, ou a volta se for ida-e-volta).
+- Das oitavas em diante: mando por melhor campanha acumulada, ou por
+  ordem de sorteio puro (decidir na construção — o Diego topou os dois).
+
+**O funil**: 64 → (1ª rodada) → 32 → (oitavas) → 16 → (quartas) → 8 →
+(semi) → 4 → (final única) → campeão. A partir de oitavas/quartas isso
+vira ida-e-volta reaproveitando 100% o motor que a Copa Legends já tem —
+`CopaTie`, `LiveScoreCard`, `PensShootout`, tudo em `pyramidseason.tsx`.
+Não é construir do zero.
+
+⚠️ **Conta pendente**: hoje as séries têm ~20 times cada (100 no total).
+A conta do Diego usa só 80 na fase de grupos (presumivelmente C+D+V) +
+16 Série A de bye + 16 "times de apoio, ex. Série B" de bye direto = 112
+times "de origem" mapeados pros 64 vagas — precisa fechar na construção
+QUAIS séries exatamente alimentam cada pote/fase (o texto dele usa "ex:
+Série B" — não 100% travado que é B, só um exemplo).
+
+## 2. A regra de ouro puxada da Copa do Brasil de verdade
+Nas fases de grupo/iniciais, **empate favorece o time de divisão mais
+baixa** (mesmo critério de desempate do torneio real) — máquina de
+fabricar zebra: "time de várzea elimina gigante da Série A com um 0×0".
+Bate direto com o gosto do Diego por zebra.
+
+## 3. Simulação e ritmo
+Fases/jogos que não envolvem o SEU time resolvem sozinhas (igual a Liga já
+faz hoje com os outros 19 times da sua série — só o seu jogo anima de
+verdade). O resto vira manchete de zebra no giro da rodada. Só quando
+chega a vez do seu time é que vira tela de verdade, com tática e tudo.
+
+## 4. 🚧 DECISÃO EM ABERTO — calendário
+1. **Sequencial** (recomendação do Claude): depois que Liga termina, na
+   mesma temporada — mesma lógica de hoje (Copa Legends já roda assim,
+   tacada isolada no fim). Mais seguro: não toca no cálculo de rodada da
+   Liga pra ninguém, não esbarra na regra #1 do Diego ("nunca quebrar o
+   futebol").
 2. **Misturada** (preferência inicial do Diego): rodadas de Copa
    intercaladas nas rodadas da Liga, tipo a Copa do Brasil de verdade
-   rodando junto com o Brasileirão. Mais fiel à vida real, mas mexe direto
-   no motor de rodadas pra TODO MUNDO — mais arriscado. Mesmo comprimida
-   (fases que não são suas resolvem nos bastidores, sem tomar rodada do
-   calendário), a temporada cresce uns 3-4 capítulos pra quem tá na Série A
-   (mais pra quem tá numa divisão baixa, já que a campanha dele começa mais
-   cedo no chaveamento).
-👉 Perguntar de novo pro Diego quando for pra construção de verdade.
+   rodando junto com o Brasileirão. Mais fiel à vida real, mais arriscado
+   (mexe no motor de rodadas pra todo mundo). Mesmo comprimida (fases que
+   não são suas resolvem nos bastidores), a temporada cresce uns capítulos
+   a mais pra quem tá na Série A, mais ainda pra divisão baixa.
+👉 Ainda NÃO fechada. Perguntar de novo quando for pra construção.
 
-## Relação com a Supercopa (outra ideia do mesmo brainstorm)
-A Supercopa (campeão da Liga × campeão da Copa daquela temporada) deve ser
-montada de forma **genérica** — um parâmetro "campeão da copa da vez", não
-hard-coded pra Copa Legends especificamente. Assim, se a Copa do Brasil
-nascer depois, é só trocar quem entra nesse espaço (bate com a Supercopa do
-Brasil de verdade: Brasileirão × Copa do Brasil, não Brasileirão × copa
-interna). A Copa Legends viraria um troféu à parte, sem Supercopa vinculada
-a ela. Se o 1º lugar da Série A ganhar Liga E Copa no mesmo ano, o 2º lugar
-da Série A joga a Supercopa no lugar dele.
+## 5. Supercopa Legends (decidido 15/08)
+- **Quem joga**: campeão da Série A × campeão da Copa do Brasil daquela
+  temporada, jogo único, DEPOIS que a Copa do Brasil termina.
+- **Empate técnico**: se o MESMO time ganhar a Liga E a Copa do Brasil na
+  mesma temporada, quem joga a final no lugar dele é o **VICE da Série
+  A**.
+- Deve ser montada de forma **genérica** no código — parâmetro "campeão da
+  copa da vez" — não hard-coded. Bate com a Supercopa do Brasil de
+  verdade (Brasileirão × Copa do Brasil, a copa aberta, não uma copa
+  interna).
 
-## Pendências antes de codar (nenhuma resolvida ainda)
+## 6. Identidade visual (decidido 15/08, mockup aprovado)
+Cada competição tem cor própria, sempre com o brilho holográfico (mesmo
+mecanismo já usado em Copa dos 8/Copa Legends — degradê + feixe de luz
+varrendo, `ApoioSheen`/`apoioSheen` keyframe):
+- **Copa dos 8** (online, já no ar): roxo brilhante.
+- **Copa do Brasil Legends** (carreira): **verde carregando o brilho +
+  amarelo só de detalhe** (testamos as 3 cores da bandeira brigando em
+  peso igual e ficou poluído num card pequeno — por isso só 2 fortes).
+- **Supercopa Legends**: identidade **INVERTIDA** de propósito — **azul
+  carregando o brilho + amarelo só de detalhe**. Assim dá pra saber qual
+  competição é só pela cor, sem ler texto.
+- Mockup completo (funil, potes, tabela de grupo, placar ao vivo das duas
+  cores) já enviado e aprovado no chat — replicar essa forma exata na
+  construção.
+
+## Pendências antes de codar (nenhuma travada ainda)
 - [ ] Fechar calendário: sequencial ou misturada?
-- [ ] Confirmar se TODAS as séries entram ou só até uma certa divisão
-- [ ] Final: jogo único ou ida-e-volta?
-- [ ] Mockup da tela ANTES de qualquer código (regra de ouro do Diego:
-      visual novo precisa de OK dele antes de commitar)
-- [ ] Nome definitivo (Copa do Brasil Legends? outro nome pra não confundir
-      com o "Legends" já usado em Copa Legends?)
+- [ ] Fechar exatamente quais séries alimentam cada pote/fase (ver nota
+      da "conta pendente" na seção 1)
+- [ ] Mando de campo das oitavas em diante: campanha acumulada ou sorteio
+      puro?
+- [ ] Nome definitivo (Copa do Brasil Legends? outro nome pra não
+      confundir com "Legends" já usado em Copa Legends, que está sendo
+      substituída?)

@@ -33,16 +33,19 @@ pendência + carimbo da Copa). Único ❌ da 1ª rodada do teste era erro do
 PRÓPRIO teste (não fazia a aposta de patrocínio — a trava do jogo estava
 certa).
 
-## 💭 Brainstorm: Copa do Brasil Legends (3ª competição da carreira) — RASCUNHO
-Sessão de ideias com o Diego (14/08) sobre uma possível 3ª competição da
-carreira (hoje: Liga + Copa Legends), inspirada na Copa do Brasil de
-verdade — chaveamento aberto pra todo mundo (Série A até V/várzea), regra
-do empate favorecendo o azarão, zebra como tema central. Junto surgiu a
-ideia de uma **Supercopa** (campeão da Liga × campeão da copa da vez,
-montada de forma genérica pra não travar em qual copa). **NADA disso foi
-aprovado pra codar ainda** — é só brainstorm registrado pra não se perder.
-Conceito completo (com a decisão de calendário AINDA em aberto: sequencial
-x misturada, e a decisão de dar bye/vantagem pras séries A/B) está em
+## 💭 Copa do Brasil Legends + Supercopa Legends (3ª/4ª competição da carreira) — CONCEITO AVANÇADO, ainda não codado
+Evoluiu bastante desde o brainstorm inicial (14/08): o Diego mandou a
+**especificação COMPLETA e literal** do chaveamento (64 clubes: 16 Série A
+de bye + fase de grupos com 16 grupos de 5 peneirando 80 times até 32,
+sorteio em 2 potes pra formar a chave de 64, regra de mando de campo) —
+essa Copa do Brasil **SUBSTITUI a Copa Legends**. Também fechou a
+**Supercopa Legends** (Liga × Copa do Brasil, jogo único, vice da Série A
+entra se o mesmo time ganhar as duas) e a **identidade visual das duas**
+(Copa do Brasil = verde brilhante + amarelo detalhe; Supercopa = azul
+brilhante + amarelo detalhe — invertida de propósito pra não confundir).
+Mockup de tabela/potes/funil/placar das duas já **mostrado e aprovado no
+visual**. **AINDA NÃO aprovado pra codar** — falta fechar o calendário
+(sequencial x misturada) e outros detalhes. Tudo documentado em
 **`docs/conceito-copa-brasil.md`** — ler antes de qualquer trabalho nisso.
 
 ## 🎯 Copa dos 8: tática pra DEPOIS do placar + box mais clean (igual liga) — ✅ NO AR (14/08)
