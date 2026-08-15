@@ -1,4 +1,37 @@
-# 📌 Pendências combinadas com o Diego (atualizado 14/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
+
+## 🧪 SIMULAÇÃO COMPLETA dos 3 bugs relatados — 14 ✅ · 0 ❌ (15/08, pedido do Diego)
+Diego: "Rode uma simulação e teste tudo isso q falamos p ver se vc encontra
+os erros exatos... se vc encontrar outros me fale". Montado harness Node
+(scratchpad `bugtest.mjs`, mesmo método Vite/ssrLoadModule do agenciatest)
+que monta uma carreira REAL via reducer (leilão inteiro dirigido por actions)
+e roda a temporada com o `simulatePyramid` de produção. 14 invariantes, TODOS
+passando:
+- **A) Gol só de quem está em campo** (cobre o bug do "reserva fez gol"):
+  38 rodadas × todos os jogos — nenhum gol do meu time fora do XI travado,
+  nenhum gol de jogador fora do elenco, e placar do jogo == soma da lista
+  de gols em TODOS os jogos (cobre "gol com o jogo 0x0": o motor NUNCA
+  registra gol que o placar não tenha — era exibição/spoiler, já corrigido).
+- **C) Tabela atualiza TODA rodada** (cobre o bug "pontos não atualizam nas
+  finais"): pontos somados crescem nas 38 rodadas, inclusive 35→38. No
+  MOTOR não existe rodada que não pontua — reforça que o relato era a
+  segurada anti-spoiler da tela (fixes de 13-14/08) e segue o plano de
+  observação.
+- **D) Determinismo**: mesma semente 2× = tabelas e gols byte-idênticos
+  (garante que F5 não muda resultado — base do carimbo da Copa do Mundo).
+- **E) Buraco na escalação** (o caso Roberto Carlos): escalação salva com
+  id fantasma (jogador que "saiu do clube") não crasha, o fantasma NUNCA
+  marca, e a vaga é completada só por gente do ELENCO.
+- **F) Temporada inteira via reducer + varredura**: a rodada 0 NÃO avança
+  sem a aposta de patrocínio (o cinto de segurança do reducer de 07/08
+  funcionando — virou teste positivo), 38 rodadas via PLAY_ROUND, nenhum
+  NaN no estado, caixas todas finitas, nenhum artilheiro negativo, nenhum
+  jogador duplicado no elenco.
+**Nenhum bug novo encontrado no motor.** Os 3 relatos batem com os
+mecanismos de TELA já corrigidos (aviso do buraco + reveal esperando
+pendência + carimbo da Copa). Único ❌ da 1ª rodada do teste era erro do
+PRÓPRIO teste (não fazia a aposta de patrocínio — a trava do jogo estava
+certa).
 
 ## 🎯 Copa dos 8: tática pra DEPOIS do placar + box mais clean (igual liga) — ✅ NO AR (14/08)
 Dois pedidos direto do celular do Diego, na tela da Copa dos 8 (`screens.tsx`):
