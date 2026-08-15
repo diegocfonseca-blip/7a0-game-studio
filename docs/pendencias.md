@@ -3,16 +3,18 @@
 ## 📝🐛 "Apertei RENOVAR TODOS e não renovou" — ✅ CORRIGIDO (15/08, relato via Diego)
 **O bug era real e tinha causa exata.** Os botões em massa mandavam SEMPRE
 `anos: 5` ou `anos: 10` pra todo mundo — mas a tabela `RENEW_TABLE_LOW` não tem
-esses prazos pra jogador barato:
-| valor | prazos que existem |
+esses prazos pra jogador barato, e o reducer tem `if (custo <= 0) return s` → o
+jogador era **pulado em silêncio**.
+⚠️ **NÚMEROS EXATOS (medidos 15/08, corrigindo a 1ª análise que era teórica):** o
+valor oficial tem PISO por categoria (`CONTRATO_TABELA`): 🪵 foi profissional = 3 ·
+🎯 bom jogador = 8 · 💎 promessa = 12 · ⭐ craque = 20 · 👑 lenda = 30. Então valor
+1 e 2 são IMPOSSÍVEIS no jogo. O que dava pra acontecer de verdade:
+| botão | quem era pulado |
 |---|---|
-| 1 🪙 | 1 e 5 — **sem 10** |
-| **2 🪙** | 1 e 3 — **sem 5 E sem 10** |
-| 3 🪙 | 1, 2, 5 — sem 10 |
-| 4 🪙 | 1, 2, 3, 5 — sem 10 |
-O reducer tem `if (custo <= 0) return s` → o jogador era **pulado em silêncio**.
-Medido no elenco REAL do print do leodiniz85 (22 jogadores): apertando "renovar
-todos 10 anos", o goleiro **Milagres (valor 1)** ficava de fora sem nenhum aviso.
+| Renovar todos **5 anos** | **ninguém** — todo valor ≥3 tem 5 anos |
+| Renovar todos **10 anos** | **🪵 de valor 3 e 4** (os prazos 3/4 não têm 10 anos) |
+Ou seja: só o botão **DOURADO de 10 anos** (o mais chamativo, o que a pessoa
+aperta) deixava perna-de-pau barato pra trás, sem aviso.
 - ✅ **Fix:** o botão em massa agora escolhe, POR JOGADOR, o prazo mais próximo
   que existe pro valor dele (valor 2 pedindo 10 → renova por 3). "Renovar TODOS"
   renova todos de verdade. Testado: **nenhum valor de 1 a 200 fica de fora**.
