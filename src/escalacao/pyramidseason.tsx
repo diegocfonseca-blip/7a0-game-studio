@@ -26,6 +26,7 @@ import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada } from './sport'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards } from './copa-brasil'
+import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
@@ -3424,7 +3425,91 @@ function ChampionsPanel({ copa, tables, scorers, seasonNo, brasil }: { copa: Cop
     </div>
   )
 }
-function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers, seasonNo, safTeam, safCol, brasil }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number; scorers?: SeasonScorer[]; seasonNo?: number; safTeam?: string; safCol?: FCol; brasil?: boolean }) {
+// ── 📊 FASE DE GRUPOS DA COPA DO BRASIL — a Copa Legends não tinha isso (só
+// mata-mata direto). 16 grupos de 4, top-2 avança. Mostra o SEU grupo por
+// inteiro (tabela completa, igual as outras tabelas do jogo) e um resumo
+// compacto de quem passou nos outros 15 — 16 tabelinhas completas empilhadas
+// viraria uma parede antes mesmo de chegar no mata-mata de verdade. ──
+function CopaBrasilGroupTable({ group, highlight }: { group: CBGroup; highlight?: boolean }) {
+  return (
+    <div style={{ ...box('#fff'), padding: '9px 11px 10px', marginBottom: 10, border: `2.5px solid ${highlight ? '#0EA658' : INK}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>GRUPO {group.idx + 1}</p>
+        <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', gap: 4 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: '#DFF6E8', display: 'inline-block', border: '1px solid rgba(0,0,0,.15)' }} />classifica</span>
+      </div>
+      <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse' }}>
+        <thead><tr>
+          <th style={{ ...th, textAlign: 'left', paddingBottom: 4 }}>#</th>
+          <th style={{ ...th, textAlign: 'left', paddingBottom: 4 }}>Time</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>P</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>V</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>E</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>D</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>SG</th>
+        </tr></thead>
+        <tbody>
+          {group.table.map((row, i) => {
+            const classifica = i < 2
+            const sg = row.gf - row.ga
+            return (
+              <tr key={teamKey(row.t)} style={{ borderTop: '1px solid rgba(0,0,0,.08)', background: row.t.you ? '#FFF3CF' : classifica ? '#DFF6E8' : undefined, fontWeight: row.t.you ? 900 : 600 }}>
+                <td style={{ padding: '4px 3px' }}>{i + 1}</td>
+                <td style={{ padding: '4px 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>
+                  <span style={{ display: 'inline-block', fontSize: 7.5, fontWeight: 900, color: '#fff', background: DIV_TAG[row.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[row.div].l}</span>
+                  {row.t.you ? '👤 ' : ''}{row.t.name}
+                </td>
+                <td style={{ padding: '4px 3px', textAlign: 'center', fontWeight: 900 }}>{row.pts}</td>
+                <td style={{ padding: '4px 3px', textAlign: 'center' }}>{row.w}</td>
+                <td style={{ padding: '4px 3px', textAlign: 'center' }}>{row.d}</td>
+                <td style={{ padding: '4px 3px', textAlign: 'center' }}>{row.l}</td>
+                <td style={{ padding: '4px 3px', textAlign: 'center' }}>{sg >= 0 ? '+' : ''}{sg}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+function CopaBrasilGroupsSummary({ groups, skipIdx }: { groups: CBGroup[]; skipIdx?: number }) {
+  const rest = groups.filter(g => g.idx !== skipIdx)
+  if (rest.length === 0) return null
+  return (
+    <div style={{ ...box('#fff'), padding: '10px 12px 11px', marginBottom: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 7px', color: 'rgba(0,0,0,.5)' }}>📋 Quem passou nos outros grupos</p>
+      {rest.map(g => (
+        <p key={g.idx} style={{ fontSize: 10, fontWeight: 700, margin: '3px 0', display: 'flex', gap: 6 }}>
+          <span style={{ fontWeight: 900, color: 'rgba(0,0,0,.45)', minWidth: 50, flexShrink: 0 }}>Grupo {g.idx + 1}</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.table[0]?.t.name} <span style={{ color: 'rgba(0,0,0,.4)' }}>e</span> {g.table[1]?.t.name}</span>
+        </p>
+      ))}
+    </div>
+  )
+}
+function CopaBrasilPotesBox() {
+  return (
+    <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
+      <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>Como se chega na chave de 64</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, margin: '3px 0', color: '#2a2a2a' }}>🟢 <b>32 já classificados direto</b> — 16 melhores da Série A + (4 últimos da Série A + 12 melhores da Série B)</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, margin: '3px 0', color: '#2a2a2a' }}>⚔️ <b>64 disputam a fase de grupos</b> — resto da Série B + C + D + Várzea, em 16 grupos de 4 (top-2 avança pra chave)</p>
+    </div>
+  )
+}
+// bloco completo da fase de grupos: potes + seu grupo (se você caiu na
+// peneira) + resumo dos outros. Só aparece na Copa do Brasil — a Legends
+// nunca teve fase de grupos.
+export function CopaBrasilGroupsBlock({ copaBR }: { copaBR: CopaBrasilResult }) {
+  if (copaBR.groups.length === 0) return null
+  const myGroup = copaBR.groups.find(g => g.teams.some(e => e.t.you))
+  return (
+    <div>
+      <CopaBrasilPotesBox />
+      {myGroup && <CopaBrasilGroupTable group={myGroup} highlight />}
+      <CopaBrasilGroupsSummary groups={copaBR.groups} skipIdx={myGroup?.idx} />
+    </div>
+  )
+}
+function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers, seasonNo, safTeam, safCol, brasil, copaBR }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number; scorers?: SeasonScorer[]; seasonNo?: number; safTeam?: string; safCol?: FCol; brasil?: boolean; copaBR?: CopaBrasilResult | null }) {
   const champ = copa.champion
   const finished = reveal >= copa.rounds.length
   const shown = copa.rounds.slice(0, reveal) // fases já decididas
@@ -3438,6 +3523,7 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2 }}>{brasil ? '🏆🇧🇷 COPA DO BRASIL LEGENDS' : '🏆 COPA LEGENDS'}</p>
         <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>{brasil ? 'Chave de 64 · zebra pode tudo · sorteio a partir das oitavas' : 'Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório'}</p>
       </div>
+      {brasil && copaBR && <CopaBrasilGroupsBlock copaBR={copaBR} />}
       {finished && champ && (
         <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
           <p style={{ fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
@@ -5459,7 +5545,7 @@ export function PyramidSeasonScreen() {
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
-          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={cbUnlocked} />
+          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={cbUnlocked} copaBR={copaBR} />
         ) : (
           <>
             <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />

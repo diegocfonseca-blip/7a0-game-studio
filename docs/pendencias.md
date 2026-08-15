@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 15/08/2026)
 
+## 📊 Tela da fase de grupos da Copa do Brasil — EM REVISÃO (15/08)
+4ª peça, ainda não finalizada. Primeira versão mostrava a tabela do grupo já
+pronta (calculada em silêncio). Diego pediu 3 ajustes depois de ver o
+preview:
+1. **Progressiva**: a fase de grupos deve tocar em rodadas (como a Liga),
+   não aparecer pronta de uma vez — dá suspense de verdade.
+2. **Sem a palavra "bye"** em lugar nenhum visível ao jogador — ninguém
+   entende esse termo. Já corrigido no texto que existia ("32 já
+   classificados direto" / "64 disputam a fase de grupos").
+3. **Pra TODOS, não só teste**: Diego não quer manter isso atrás da trava
+   `COPA_BRASIL_TESTERS` pra sempre — a intenção é substituir a Copa Legends
+   de vez, pra todo mundo. Perguntei se é AGORA (mesmo faltando ranking
+   separado e Supercopa) ou depois de eu terminar essas peças — aguardando
+   resposta.
+Nada disso foi commitado ainda (só a troca do motor — item "🔌 Copa do
+Brasil LIGADA ao jogo" mais abaixo — está no ar, atrás da trava).
+
 ## 👑 Novo Lenda fundador nº42 + sócio nº22: glaucomiranda@outlook.com (15/08)
 Glauco — tier ouro (user_colors já estava ouro/manual no banco), fundador
 nº42 no código (apoio.tsx), sócio nº22 criado no esc_socios (origem
