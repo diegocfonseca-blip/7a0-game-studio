@@ -128,7 +128,7 @@ ter mais degraus e pagar mais no topo, pra refletir o tamanho do desafio:
 | Caiu na semifinal | 8 | 16 |
 | Vice (perdeu a final) | 10 | 25 |
 | Campeão | 30 | **50** |
-| Artilheiro da Copa | +16 caixa / +10 piso | +20 caixa / +12 piso |
+| Artilheiro da Copa | +16 caixa / +10 piso | **+10 caixa / +10 piso** (ajustado pelo Diego 15/08) |
 
 Mantém a mesma lógica de hoje: valor FIXO por fase (não escala por
 divisão), campeão ganha carta extra pro álbum, artilheiro sobe o piso.
@@ -139,8 +139,8 @@ mecânico pro upset, não só cosmético. Perguntar ao Diego se quer isso.
 ### 7.1 Supercopa Legends — premiação proposta
 Jogo único, então não tem "fase" — só dois resultados possíveis:
 - **Vice** (perdeu a Supercopa): 8 moedas.
-- **Campeão**: 20 moedas + o troféu conta pro Hall/ranking (posição no
-  ranking AINDA não decidida — ver pendência abaixo).
+- **Campeão**: 20 moedas + o troféu conta pro Hall/ranking (posição
+  confirmada abaixo, 7.3).
 
 ### 7.2 Ordem confirmada: Copa do Brasil primeiro, Supercopa logo atrás
 Sequência dentro da MESMA temporada, sem intercalar com a Liga (calendário
@@ -150,13 +150,19 @@ acabaram de sair)**. A Supercopa só pode rodar depois que a Copa do
 Brasil tem um campeão definido — por isso vem por último, não dá pra
 inverter a ordem.
 
+### 7.3 Posição no RANKING (local e global) — FECHADO 15/08
+Confirmado pelo Diego: a Supercopa vira um critério PRÓPRIO na fila de
+desempate, logo depois da Copa do Brasil. Ordem nova (era: Mundo → Série A
+→ Copa Legends → B → C → D → Várzea → dinheiro):
+
+**🌍 Copa do Mundo → 🏆 Série A → 🏆 Copa do Brasil → 🏆 Supercopa → 🏆 Série B
+→ 🏆 Série C → 🏆 Série D → 🏆 Várzea → 💰 Dinheiro**
+
+Vale pros DOIS rankings (local `RankingTab` e global `esc_pyramid_rank`) —
+os dois sempre andaram juntos desde a mudança do Mundo em 14/08, não faz
+sentido separar agora.
+
 ## Pendências antes de codar
-- [ ] Confirmar os números da premiação (seção 7) — é proposta minha, o
-      Diego ainda não bateu o martelo nos valores exatos.
-- [ ] Onde a Supercopa entra na ordem do ranking (seção "posição no
-      ranking" do jogo) — hoje é 🌍 Mundo → 🏆Série A → 🏆Copa (do
-      Brasil) → 🏆B → 🏆C → 🏆D → 🏆Várzea → 💰 dinheiro; falta decidir se
-      a Supercopa vira um critério à parte (e onde) ou só soma nas moedas.
 - [ ] Mando de campo das oitavas em diante: campanha acumulada ou sorteio
       puro?
 - [ ] Nome definitivo (Copa do Brasil Legends? outro nome pra não
