@@ -16,23 +16,31 @@ Copa Legends** — chaveamento aberto, favorecendo zebra, com 64 times na
 chave principal. Depois dela, mais uma novidade: a **Supercopa Legends**
 (Liga × Copa do Brasil), jogo único.
 
-## 1. Especificação do chaveamento (Copa do Brasil) — texto do Diego, literal
-**Estrutura geral**: 64 clubes na chave do mata-mata. Os 16 times da Série
-A entram DIRETO na 1ª rodada da chave de 64 (bye, sem jogar fase de
-grupos).
+## 1. Especificação do chaveamento (Copa do Brasil) — FECHADA (96 clubes, 15/08)
+**Total geral do ecossistema: 96 clubes.** Quebra exata (confirmada pelo
+Diego depois de eu apontar que a conta original não fechava):
+- **32 clubes entram de BYE**, direto na chave de 64, sem jogar peneira:
+  - **Pote 1 — Favoritos (16)**: os 16 MELHORES colocados da Série A.
+  - **Pote 2 — Desafiantes (16)**: os 4 ÚLTIMOS colocados da Série A + 12
+    da Série B.
+- **64 clubes jogam a fase de grupos** (o resto da Série B + Séries
+  C/D/V) — **16 grupos de 4 clubes** (não 5 — ajustado pra fechar a
+  conta: 96 − 32 bye = 64 na peneira; 16 grupos × 4 = 64 ✓).
 
-**Fase 1 — fase de grupos (peneira inicial)**: objetivo é filtrar os times
-menores pra classificar 32. 16 grupos de 5 times (80 times disputando).
-Top 2 de cada grupo avança (16×2 = 32 classificados). Sorteio dos grupos:
-80 times divididos em **5 potes de força**, cada grupo recebe
-obrigatoriamente 1 time de cada pote (equilíbrio).
+**Fase 1 — fase de grupos (peneira inicial)**: 16 grupos de 4 times (64
+times disputando). Top 2 de cada grupo avança (16×2 = 32 classificados).
+Sorteio dos grupos: os 64 times divididos em **5 potes de força** (nº de
+potes por grupo de 4 a ajustar na construção — o Diego pediu 5 potes
+pensando em grupos de 5; com grupo de 4, revisar se vira 4 potes ou se
+mantém 5 com alguma rotação), cada grupo recebe times de potes
+diferentes pra equilibrar força.
 
-**Fase 2 — sorteio da chave de 64**: quando os 32 classificados dos grupos
-se juntam aos times da elite, a chave de 64 é formada com 2 potes:
-- **Pote 1 (Favoritos, 32 times)**: 16 Série A + 16 líderes de grupo (1º
-  lugar).
-- **Pote 2 (Desafiantes, 32 times)**: 16 times de apoio (ex.: Série B) +
-  16 vice-líderes de grupo (2º lugar).
+**Fase 2 — sorteio da chave de 64**: os 32 classificados dos grupos se
+juntam aos 32 times de bye, formando a chave de 64 com 2 potes:
+- **Pote 1 (Favoritos, 32 times)**: 16 melhores da Série A (bye) + 16
+  líderes de grupo (1º lugar).
+- **Pote 2 (Desafiantes, 32 times)**: 4 últimos da Série A + 12 da Série B
+  (bye) + 16 vice-líderes de grupo (2º lugar).
 - Sorteio livre entre os potes, sem trava de repetição de grupo.
 
 **Mando de campo**:
@@ -46,13 +54,6 @@ se juntam aos times da elite, a chave de 64 é formada com 2 potes:
 vira ida-e-volta reaproveitando 100% o motor que a Copa Legends já tem —
 `CopaTie`, `LiveScoreCard`, `PensShootout`, tudo em `pyramidseason.tsx`.
 Não é construir do zero.
-
-⚠️ **Conta pendente**: hoje as séries têm ~20 times cada (100 no total).
-A conta do Diego usa só 80 na fase de grupos (presumivelmente C+D+V) +
-16 Série A de bye + 16 "times de apoio, ex. Série B" de bye direto = 112
-times "de origem" mapeados pros 64 vagas — precisa fechar na construção
-QUAIS séries exatamente alimentam cada pote/fase (o texto dele usa "ex:
-Série B" — não 100% travado que é B, só um exemplo).
 
 ## 2. A regra de ouro puxada da Copa do Brasil de verdade
 Nas fases de grupo/iniciais, **empate favorece o time de divisão mais
@@ -106,10 +107,10 @@ varrendo, `ApoioSheen`/`apoioSheen` keyframe):
   cores) já enviado e aprovado no chat — replicar essa forma exata na
   construção.
 
-## Pendências antes de codar (nenhuma travada ainda)
+## Pendências antes de codar
 - [ ] Fechar calendário: sequencial ou misturada?
-- [ ] Fechar exatamente quais séries alimentam cada pote/fase (ver nota
-      da "conta pendente" na seção 1)
+- [ ] Nº de potes de força pra grupos de 4 (o Diego pensou em 5 potes pra
+      grupos de 5 — com grupo de 4 revisar isso)
 - [ ] Mando de campo das oitavas em diante: campanha acumulada ou sorteio
       puro?
 - [ ] Nome definitivo (Copa do Brasil Legends? outro nome pra não
