@@ -67,6 +67,15 @@ guardam a carta inteira (ident = nome|clube), nada quebra em elenco existente.
   Moura (SPFC 2012), Paquetá (Fla 2018), Alex Teixeira (Vasco 2009) e
   Antony (SPFC 2020). Reinier ficou de fora (Diego não incluiu). Flops
   lendários (Adu, Mamute, Neilton) MANTÊM o 💎 — a aposta/risco é a graça.
+- 🎯🪵 **REVISÃO FOI PROFISSIONAL/BOM JOGADOR (15/08, decisões aplicadas, NO
+  AR)**: subiram pra ⭐ CRAQUE **Conca** (Flu 2010, melhor do Brasileirão
+  daquele ano — estava fame 2!) e **Hulk do Porto 2012**; subiram pra 🎯 BOM
+  JOGADOR (fame 2) **Velloso** (Palmeiras 94), **Durval** (Santos 2013) e
+  **Marcelo Lomba** (Bahia 2012). Diego NÃO incluiu Léo Lima nem Henrique
+  Dourado (artilheiro 2017 segue 🪵 folk) — ficam como estão até ele querer.
+  Júlio César (Fla 2003) e Götze (Bayern 2014) também subiram pra ⭐ (pedido
+  dele na mesma conversa). Zoeiras intocáveis confirmadas: Balotelli,
+  Materazzi, Dudek, Heurelho Gomes, Kaiser, Ali Dia etc.
 - ✅ **DECISÃO DO DIEGO APLICADA (15/08, NO AR)**: subiram pra 👑 LENDA
   **Tostão** (Cruzeiro 70) e **Adriano Imperador** (Inter 2005); desceram
   pra ⭐ CRAQUE **Evair**, **Adriano** (Fla 2009) e **Cássio**. Mauro Galvão

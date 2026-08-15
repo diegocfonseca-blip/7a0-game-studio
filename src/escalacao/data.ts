@@ -628,7 +628,7 @@ const GOL: C[] = [
   { name: "Zetti", club: "São Paulo", year: 1993, fame: 3, lo: 77, hi: 84 },
   { name: "Carlos Germano", club: "Vasco", year: 1998, fame: 3, lo: 74, hi: 83 },
   { name: "Ronaldo Giovanelli", club: "Corinthians", year: 1990, fame: 2, lo: 62, hi: 81 },
-  { name: "Velloso", club: "Palmeiras", year: 1994, fame: 1, lo: 61, hi: 78 },
+  { name: "Velloso", club: "Palmeiras", year: 1994, fame: 2, lo: 61, hi: 78 },
   { name: "Sérgio", club: "Palmeiras", year: 1993, fame: 2, lo: 68, hi: 84, bio: "Goleiro que quebrou o jejum de 16 anos do Palmeiras no Paulista de 1993 e virou ídolo da geração Parmalat — bi paulista e campeão brasileiro." },
   { name: "Emerson Leão", club: "Palmeiras", year: 1974, fame: 4, lo: 87, hi: 93 },
   { name: "Félix", club: "Fluminense", year: 1970, fame: 4, lo: 80, hi: 84 },
@@ -798,7 +798,7 @@ const ZAG: C[] = [
   { name: "Digão (irmão do Kaká)", club: "Milan", year: 2007, fame: 1, lo: 50, hi: 74, folk: true, bio: "Carregou o sobrenome mais famoso do futebol brasileiro — 3 jogos pelo Milan, mas estava no elenco campeão mundial de 2007 junto do irmão. Folclore puro." },
   { name: "Werley", club: "Grêmio", year: 2013, fame: 1, lo: 56, hi: 78, bio: "O convocado-surpresa do Felipão que fez o Brasil inteiro perguntar 'quem?' — bom zagueiro, história melhor ainda." },
   { name: "Edu Dracena", club: "Santos", year: 2011, fame: 3, lo: 76, hi: 84, bio: "Zagueiro seguro e capitão — leitura de jogo e saída limpa no Santos de Neymar, depois de erguer o tri do Cruzeiro em 2003." },
-  { name: "Durval", club: "Santos", year: 2013, fame: 1, lo: 56, hi: 78, bio: "Zagueiro veterano e capitão raçudo do Santos — cabeçada firme e liderança de vestiário por vários anos na Vila." },
+  { name: "Durval", club: "Santos", year: 2013, fame: 2, lo: 56, hi: 78, bio: "Zagueiro veterano e capitão raçudo do Santos — cabeçada firme e liderança de vestiário por vários anos na Vila." },
   { name: "Arboleda", club: "São Paulo", year: 2022, fame: 3, lo: 74, hi: 84, bio: "Zagueirão equatoriano do São Paulo — imponente no jogo aéreo e ídolo da fiel, soma raça e saída de bola." },
   { name: "Paulo Miranda", club: "São Paulo", year: 2015, fame: 2, lo: 72, hi: 83, bio: "Viveu o auge no São Paulo por volta de 2015 — sólido o bastante pra ser convocado à Seleção do Dunga. Depois foi campeão da Copa do Brasil pelo Grêmio em 2016." },
   { name: "Leandro Eusébio", club: "Cruzeiro", year: 2009, fame: 2, lo: 63, hi: 82, bio: "Zagueiro firme e regular — peça da defesa do Cruzeiro campeão brasileiro de 2003 e também ídolo no Vasco." },
@@ -845,7 +845,7 @@ const MEI: C[] = [
   { name: "Djalminha", club: "Palmeiras", year: 1996, fame: 4, lo: 82, hi: 91, folk: true },
   { name: "Marcelinho Carioca", club: "Corinthians", year: 1995, fame: 5, lo: 90, hi: 95, folk: true },
   { name: "Petkovic", club: "Fluminense", year: 2002, fame: 4, lo: 85, hi: 92, folk: true },
-  { name: "Dario Conca", club: "Fluminense", year: 2010, fame: 2, lo: 63, hi: 82 },
+  { name: "Dario Conca", club: "Fluminense", year: 2010, fame: 4, lo: 63, hi: 82 },
   { name: "Paulo Henrique Ganso", club: "Santos", year: 2010, fame: 2, lo: 60, hi: 82 },
   { name: "Felipe", club: "Vasco", year: 2000, fame: 2, lo: 61, hi: 81 },
   { name: "Léo Lima", club: "Vasco", year: 2003, fame: 1, lo: 54, hi: 78, bio: "Meia de toque refinado da geração vascaína dos anos 2000 — lampejos de craque em São Januário." },
@@ -1238,7 +1238,7 @@ const NOVOS_BR_ZAG: C[] = [
 // 🆕 leva 2 de cartas novas (baralho BR) — pedidas pelo Diego, ago/2026.
 const NOVOS_BR2_GOL: C[] = [
   { name: "Lucas Arcanjo", club: "Vitória", year: 2022, fame: 2, lo: 66, hi: 82, bio: "Goleiro cria da base do Vitória — virou titular a partir de 2021 e é um dos xodós recentes do Barradão." },
-  { name: "Marcelo Lomba", club: "Bahia", year: 2012, fame: 1, lo: 58, hi: 78, bio: "Goleiro gaúcho que começou a carreira no Esquadrão antes de virar ídolo e capitão do Internacional." },
+  { name: "Marcelo Lomba", club: "Bahia", year: 2012, fame: 2, lo: 58, hi: 78, bio: "Goleiro gaúcho que começou a carreira no Esquadrão antes de virar ídolo e capitão do Internacional." },
 ]
 const NOVOS_BR2_LAT: C[] = [
   { name: "Cuiabano", club: "Botafogo", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo raçudo do Botafogo campeão brasileiro e da Libertadores em 2024 — força física e chegada ao ataque." },
@@ -1723,7 +1723,7 @@ const ATA_EU: C[] = [
   { name: "Fernando Torres", club: "Liverpool", year: 2008, fame: 4, lo: 85, hi: 91 },
   { name: "David Villa", club: "Barcelona", year: 2010, fame: 4, lo: 85, hi: 91 },
   { name: "Robinho", club: "Real Madrid", year: 2007, fame: 4, lo: 83, hi: 89 },
-  { name: "Hulk", club: "Porto", year: 2012, fame: 3, lo: 82, hi: 88 },
+  { name: "Hulk", club: "Porto", year: 2012, fame: 4, lo: 82, hi: 88 },
   { name: "Filippo Inzaghi", club: "Milan", year: 2003, fame: 4, lo: 83, hi: 89 },
   { name: "David Trezeguet", club: "Juventus", year: 2002, fame: 4, lo: 83, hi: 89 },
   { name: "Michael Owen", club: "Liverpool", year: 2001, fame: 4, lo: 84, hi: 90 },
