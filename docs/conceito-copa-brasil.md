@@ -27,6 +27,14 @@ Diego depois de eu apontar que a conta original não fechava):
   C/D/V) — **16 grupos de 4 clubes** (não 5 — ajustado pra fechar a
   conta: 96 − 32 bye = 64 na peneira; 16 grupos × 4 = 64 ✓).
 
+⚠️ **Requisito que o Diego marcou como crítico (15/08)**: quem vai pra
+cada balde tem que sair **DIRETO da posição final da tabela daquela
+temporada** (tela de Tabelas) — 1º ao 16º da Série A = Pote 1; 17º ao 20º
+da Série A (os 4 últimos) = Pote 2; 1º ao 12º da Série B = Pote 2; 13º ao
+20º da Série B + todo mundo de C/D/V = fase de grupos. NADA de sorteio ou
+aleatoriedade nessa parte — é decidido pelo desempenho real na Liga. Isso
+já está mockado (Série A e B com a etiqueta de destino em cada linha).
+
 **Fase 1 — fase de grupos (peneira inicial)**: 16 grupos de 4 times (64
 times disputando). Top 2 de cada grupo avança (16×2 = 32 classificados).
 Sorteio dos grupos: os 64 times divididos em **4 potes de força**
@@ -67,19 +75,15 @@ faz hoje com os outros 19 times da sua série — só o seu jogo anima de
 verdade). O resto vira manchete de zebra no giro da rodada. Só quando
 chega a vez do seu time é que vira tela de verdade, com tática e tudo.
 
-## 4. 🚧 DECISÃO EM ABERTO — calendário
-1. **Sequencial** (recomendação do Claude): depois que Liga termina, na
-   mesma temporada — mesma lógica de hoje (Copa Legends já roda assim,
-   tacada isolada no fim). Mais seguro: não toca no cálculo de rodada da
-   Liga pra ninguém, não esbarra na regra #1 do Diego ("nunca quebrar o
-   futebol").
-2. **Misturada** (preferência inicial do Diego): rodadas de Copa
-   intercaladas nas rodadas da Liga, tipo a Copa do Brasil de verdade
-   rodando junto com o Brasileirão. Mais fiel à vida real, mais arriscado
-   (mexe no motor de rodadas pra todo mundo). Mesmo comprimida (fases que
-   não são suas resolvem nos bastidores), a temporada cresce uns capítulos
-   a mais pra quem tá na Série A, mais ainda pra divisão baixa.
-👉 Ainda NÃO fechada. Perguntar de novo quando for pra construção.
+## 4. Calendário — FECHADO (15/08): sequencial, no mesmo gatilho da Copa Legends
+Diego decidiu: entra **exatamente no mesmo momento em que a Copa Legends
+entrava** — a Liga termina a rodada 38 e, no lugar do banner "Chegou a
+Copa Legends!", aparece "Chegou a Copa do Brasil Legends!". Não muda NADA
+na estrutura/duração da temporada, é troca de CONTEÚDO no mesmo gatilho
+— não precisa intercalar rodada de Copa com rodada de Liga (a opção
+"misturada" foi descartada). Mais seguro: não toca no cálculo de rodada
+da Liga pra ninguém, não esbarra na regra #1 do Diego ("nunca quebrar o
+futebol").
 
 ## 5. Supercopa Legends (decidido 15/08)
 - **Quem joga**: campeão da Série A × campeão da Copa do Brasil daquela
