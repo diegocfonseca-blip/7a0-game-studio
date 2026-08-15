@@ -1,29 +1,39 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
-## 🏆📊 Ranking LOCAL: Copa do Brasil e Supercopa viram critério próprio (16/08)
-Peça seguinte depois da Supercopa. Novos contadores separados
-`careerCopaBrasilHonors`/`careerSupercopaHonors` (types.ts) — a Copa
-Legends continua com o contador dela (`careerCopaHonors`), sem misturar.
-- Nova ordem do desempate (`RankingTab`, o "copaGate" da Copa do Mundo, e
-  o Hall de Troféus — os 3 lugares que usavam a lista antiga foram
-  atualizados juntos, pra nunca ficarem incoerentes entre si): 🌍 Mundo →
-  🏆 Série A → 🏆🇧🇷 Copa do Brasil → 🏆🔵 Supercopa → 🏆 Copa Legends
-  (legado, continua valendo pra quem não é tester) → 🏆 B → C → D →
-  Várzea → 💰 dinheiro.
-- Selos novos na tabela do ranking (🏆🇧🇷 verde, 🏆🔵 azul) e cards novos no
-  Hall de Troféus.
-- Testado: `tsc -b`+`build` limpos + teste rápido confirmando que 1
-  título de Copa do Brasil pesa mais no desempate que 3 títulos de Copa
-  Legends (bate com a ordem nova).
+## 🏆📊 Ranking LOCAL: Supercopa vira critério próprio (Copa do Brasil é RENOMEAÇÃO, não nova) (16/08)
+Peça seguinte depois da Supercopa — **corrigida** depois que o Diego
+esclareceu um ponto importante: a Copa do Brasil **NÃO é uma competição
+nova pro histórico** — é a MESMA Copa Legends, só com nome e formato
+novos. "Não são coisas novas, só alterou o nome e o formato... tudo que a
+pessoa ganhou não vai perder." Só a **Supercopa** é de fato nova.
+- **Reverti** a ideia inicial de um contador separado
+  (`careerCopaBrasilHonors`) — voltou a usar o MESMO `careerCopaHonors`
+  pras duas (Legends e Copa do Brasil), preservando o histórico contínuo
+  de quem já tinha títulos.
+- **Continua novo** (de verdade): `careerSupercopaHonors`.
+- Ordem do desempate (sem mudar a POSIÇÃO da Copa — só insere a Supercopa
+  logo depois dela): 🌍 Mundo → 🏆 Série A → 🏆 Copa (Legends/do Brasil,
+  mesmo contador) → 🏆🔵 Supercopa → 🏆 B → C → D → Várzea → 💰 dinheiro.
+- O nome exibido do troféu/selo troca sozinho conforme a conta é tester
+  ou não (`brasil` prop no `RankingTab`): "Copa do Brasil" 🏆🇧🇷 verde pra
+  quem já está na Copa do Brasil, "Copa Legends" 🏆 dourado pra quem ainda
+  não — mas é o MESMO número por baixo, ninguém perde nada na troca.
+- Atualizado nos 3 lugares que usam essa lista (`RankingTab`, o "copaGate"
+  da Copa do Mundo, Hall de Troféus) — sempre juntos, pra nunca ficarem
+  incoerentes entre si.
+- Testado: `tsc -b`+`build` limpos + teste rápido confirmando a ordem
+  nova do comparador.
 
 ⚠️ **NÃO MEXI no ranking GLOBAL** (a tela "Rank Global", RPC
 `esc_pyramid_rank` no Supabase) — ele vive fora deste repositório, no
-banco de dados. Pra ele também respeitar a ordem nova, precisaria: (1)
-adicionar colunas novas na tabela `esc_pyramid_rank_snap` (hoje só tem
-`copa_titles`), (2) atualizar a função `esc_pyramid_rank` no banco pra
-usar as colunas novas na ordenação, (3) mandar os contadores novos no
-upsert que já existe em `pyramidseason.tsx` (~linha 3970). É uma mudança
-em PRODUÇÃO fora do site — só faço com o Diego confirmando antes.
+banco de dados. `copa_titles` já existe lá e não precisa mudar (mesmo
+contador, Legends+Copa do Brasil somados). Só falta a Supercopa: pra ela
+também aparecer no rank global, precisaria (1) adicionar 1 coluna nova
+(`supercopa_titles`) na tabela `esc_pyramid_rank_snap`, (2) atualizar a
+função `esc_pyramid_rank` no banco pra usar essa coluna na ordenação, (3)
+mandar o contador novo no upsert que já existe em `pyramidseason.tsx`
+(~linha 3970). É uma mudança em PRODUÇÃO fora do site — só faço com o
+Diego confirmando antes.
 
 ## 🔵🏆 Supercopa Legends construída (16/08)
 Peça seguinte depois do chaveamento novo da Copa do Brasil. Campeão da

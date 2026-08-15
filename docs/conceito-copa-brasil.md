@@ -25,12 +25,14 @@ mais pra nada, é preciso trocar pela lógica da seção 1-NOVA.
    brilhante, empate técnico troca pro vice da Liga. Entra como a 8ª fase
    da mesma esteira de revelação da Copa do Brasil (zero state machine
    nova). Testado: 119 verificações, 0 falhas.
-5. ⏳ Falta: telas dedicadas pra peneira/potes (hoje reaproveita 100% os
+5. ✅ **Ranking LOCAL** — Supercopa é critério próprio no desempate; a
+   Copa do Brasil usa o MESMO contador da Copa Legends (é renomeação, não
+   competição nova — ver §7.3).
+6. ⏳ Falta: telas dedicadas pra peneira/potes (hoje reaproveita 100% os
    componentes da Copa Legends via adaptador — funciona, mas não tem
    nenhuma tela EXTRA explicando o funil pro jogador dentro do jogo em
-   si, só nos mockups fora dele), ranking (Copa do Brasil e Supercopa
-   ainda não são critério próprio no desempate; ranking GLOBAL vive no
-   Supabase, fora deste repo).
+   si, só nos mockups fora dele), ranking GLOBAL (vive no Supabase, fora
+   deste repo — só falta a Supercopa lá, o resto já está certo).
 
 > Decidido com o Diego em 14-16/08/2026, em cima de muito brainstorm e
 > idas-e-vindas. **AINDA NÃO CODAR sem reconfirmar com o Diego** — este
@@ -233,13 +235,19 @@ acabaram de sair)**. A Supercopa só pode rodar depois que a Copa do
 Brasil tem um campeão definido — por isso vem por último, não dá pra
 inverter a ordem.
 
-### 7.3 Posição no RANKING (local e global) — FECHADO 15/08
+### 7.3 Posição no RANKING (local e global) — FECHADO 15/08, esclarecido 16/08
 Confirmado pelo Diego: a Supercopa vira um critério PRÓPRIO na fila de
-desempate, logo depois da Copa do Brasil. Ordem nova (era: Mundo → Série A
-→ Copa Legends → B → C → D → Várzea → dinheiro):
+desempate, logo depois da Copa. ⚠️ **Esclarecido 16/08**: a Copa do
+Brasil **NÃO é uma competição nova pro histórico/ranking** — é a MESMA
+Copa Legends renomeada (mesmo contador de títulos, ninguém perde nada na
+troca). Só a Supercopa é nova de verdade. Então a "Copa" NÃO muda de
+posição no desempate — só a Supercopa entra como novidade logo depois
+dela. Ordem nova (era: Mundo → Série A → Copa Legends → B → C → D →
+Várzea → dinheiro):
 
-**🌍 Copa do Mundo → 🏆 Série A → 🏆 Copa do Brasil → 🏆 Supercopa → 🏆 Série B
-→ 🏆 Série C → 🏆 Série D → 🏆 Várzea → 💰 Dinheiro**
+**🌍 Copa do Mundo → 🏆 Série A → 🏆 Copa (Legends/do Brasil, mesmo
+contador) → 🏆 Supercopa → 🏆 Série B → 🏆 Série C → 🏆 Série D → 🏆 Várzea
+→ 💰 Dinheiro**
 
 Vale pros DOIS rankings (local `RankingTab` e global `esc_pyramid_rank`) —
 os dois sempre andaram juntos desde a mudança do Mundo em 14/08, não faz
