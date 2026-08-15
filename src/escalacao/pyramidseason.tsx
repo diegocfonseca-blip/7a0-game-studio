@@ -4641,7 +4641,26 @@ export function PyramidSeasonScreen() {
                 fase (peneira, rodada de 64, oitavas... até a Supercopa), o tempo
                 todo — Diego: "você não precisa aparecer ali" (virava poluição,
                 a mesma frase 8 vezes). Agora só aparece 1x, na primeira fase. */}
-            {copaPlaying && copaRound === 0 && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>{cbUnlocked ? 'Copa do Brasil Legends' : 'Copa Legends'}</b> — outro campeonato 👇</p>}
+            {copaPlaying && copaRound === 0 && !cbUnlocked && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
+          </div>
+        )}
+        {/* 🎉 BANNER GRANDE "chegou a Copa" (Diego 16/08: "tem que ter um
+            brilhante temático... igual a gente já viu" — o mockup aprovado tinha
+            um banner de verdade nesse momento, não só uma linha de texto).
+            Aparece 1x só, exatamente na hora que cada competição começa: Copa do
+            Brasil na 1ª fase (Peneira), Supercopa quando chega a vez dela. */}
+        {copaPlaying && cbUnlocked && copaRound === 0 && (
+          <div style={{ ...box(COPA_BR_HOLO), position: 'relative', overflow: 'hidden', padding: '16px 14px', marginBottom: 12, textAlign: 'center' }}>
+            <CopaLegSheen />
+            <p style={{ fontWeight: 900, fontSize: 19, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🇧🇷 CHEGOU A COPA DO BRASIL LEGENDS!</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '8px 0 0', padding: '4px 12px', borderRadius: 999, position: 'relative', zIndex: 2 }}>100 clubes · a caçada pela taça começa</p>
+          </div>
+        )}
+        {copaFase?.name === 'Supercopa' && (
+          <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', padding: '16px 14px', marginBottom: 12, textAlign: 'center' }}>
+            <CopaLegSheen />
+            <p style={{ fontWeight: 900, fontSize: 19, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🔵 CHEGOU A SUPERCOPA LEGENDS!</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '8px 0 0', padding: '4px 12px', borderRadius: 999, position: 'relative', zIndex: 2 }}>Campeão da Liga × Campeão da Copa do Brasil</p>
           </div>
         )}
         {/* A Copa ao vivo agora toca DENTRO da aba Jogos (em cima dos jogos). No
