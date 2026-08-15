@@ -41,16 +41,23 @@ diferentes, tipo um mockup novo)? Não mexer sem essa resposta.
 
 ## 🚨 3 BUGS SÉRIOS relatados por usuário no Carreira (14/08) — 1 corrigido, 2 investigando
 Relato via Diego. Status de cada um:
-1. **⏳ Gol de jogador NO BANCO com o jogo 0x0** (ex.: Roberto Carlos
-   reserva "marcando" 2 gols enquanto o placar seguia 0x0). Investigação
-   inicial: a simulação escolhe artilheiro certinho do XI da rodada
-   (`simDivTo`/`lineupAt`) — a suspeita é DESCOMPASSO DE EXIBIÇÃO: a
-   estatística da rodada em andamento aparece em outra tela ANTES da
-   animação do placar terminar (spoiler + inconsistência), possivelmente
-   combinada com troca de escalação no meio da rodada. PRECISA de mais
-   detalhe do usuário pra reproduzir: EM QUAL TELA ele viu os gols do
-   reserva (aba Elenco? artilharia? card do jogo?) e se usa sub no
-   intervalo/pênalti/eventos.
+1. **⏳ Gol de jogador NO BANCO com o jogo 0x0** (Roberto Carlos reserva
+   com ⚽5 na aba Elenco › Time — print do leodiniz85 recebido 14/08).
+   Diagnóstico REFINADO com o print (2 mecanismos combinados, ambos reais):
+   a) **Auto-preenchimento silencioso**: quando a escalação salva fica com
+      buraco (titular vendido/emprestado/contrato vencido — o elenco dele
+      tem Cerezo "vencido" e Beckenbauer "último ano"!), o `lineupAt`
+      completa a vaga com o MELHOR do banco na posição — que no caso é o
+      Roberto Carlos (LAT 94, o melhor reserva). Ele entra em campo pela
+      porta dos fundos SEM o usuário saber, marca, e "volta pro banco"
+      quando o usuário arruma a escalação. Os gols ficam no contador.
+   b) **Contador na frente da animação**: o ⚽ da aba Elenco vem do
+      `goalsByCard`, que já inclui a rodada que AINDA está animando no
+      placar — por isso "fez gol com o jogo 0x0" (spoiler, que o Diego
+      odeia). Correção precisa de cuidado: atrasar a estatística até o
+      apito sem quebrar tabela/artilharia (mexem na mesma fonte).
+   Próximo passo: reproduzir o caso do buraco na escalação + decidir o
+   visual (ex.: avisar "fulano completou a vaga X" em vez de silêncio).
 2. **✅ CORRIGIDO — "hack" do F5 na Copa do Mundo**: dava pra assistir o
    torneio, não gostar, atualizar a página e escolher OUTRA seleção (a
    escolha só era gravada no FIM, na final). Agora a escolha é CARIMBADA
