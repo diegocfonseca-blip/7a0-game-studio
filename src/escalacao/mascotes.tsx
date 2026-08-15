@@ -16,7 +16,7 @@ const INK = '#0C0C0C'
 // registro das mascotes prontas (chave → desenho). Cada sócio que pedir ganha
 // a dele aqui — 1ª da casa: a alface brava do Alfacehh FC.
 export const MASCOTES: Record<string, ReactNode> = {
-  // 🦁7️⃣ O LEÃO SEVEN do Seven FC (batismo do glaucomiranda, Sócio nº 22) — aprovado
+  // 🦁7️⃣ O LEÃO SEVEN do Seven City (batismo do glaucomiranda, Sócio nº 22) — aprovado
   // pelo Diego 15/08: leão forte de uniforme completo (juba azul-marinho, camisa e
   // calção com o 7 dourado, chuteira preta) com a bola dominada no pé. Homenagem ao
   // Seven Gamer (@sevengamersp). mascote_key = "leao_seven".
