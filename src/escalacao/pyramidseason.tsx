@@ -4723,6 +4723,45 @@ export function PyramidSeasonScreen() {
             </div>
           </div>
         )}
+        {/* 🎟️ A SUA COPA (Diego 16/08, mockup aprovado — problema real visto numa
+            live: um amigo dele era top-8 da Série B, entrou DIRETO na chave, e
+            "não entendeu nada... só começou a ver do nada já ele jogando"). O
+            banner acima explica a regra GERAL; este card fala com o jogador:
+            onde VOCÊ entra, POR QUE, e o que acontece agora. */}
+        {copaPlaying && cbUnlocked && copaRound === 0 && me && (() => {
+          const direto = me.div === 'A' || (me.div === 'B' && me.pos <= 8)
+          const motivo = me.div === 'A'
+            ? <>Terminou em <b>{me.pos}º na Série A</b> — a <b>Série A inteira</b> entra direto, sem passar pela peneira.</>
+            : me.div === 'B' && me.pos <= 8
+              ? <>Terminou em <b>{me.pos}º na Série B</b> — os <b>8 melhores da Série B</b> entram direto, sem passar pela peneira. Foi o prêmio pela campanha na Liga.</>
+              : me.div === 'B'
+                ? <>Terminou em <b>{me.pos}º na Série B</b> — os <b>12 piores da Série B</b> jogam a peneira junto com Várzea, Série C e Série D.</>
+                : <>Você é da <b>{DIV_NAME[me.div]}</b> — <b>Várzea, Série C e Série D inteiras</b> jogam a peneira, não importa a colocação.</>
+          return (
+            <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 12 }}>
+              <div style={{ background: direto ? '#0EA658' : '#B8892B', color: '#fff', fontSize: 10, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', padding: '6px 12px', ...OSWALD }}>{direto ? '🎟️ A sua Copa' : '⚔️ A sua Copa'}</div>
+              <div style={{ padding: '11px 13px 12px' }}>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, lineHeight: 1.15, margin: '0 0 5px' }}>{direto ? 'VOCÊ JÁ ESTÁ NA CHAVE DE 64' : 'VOCÊ COMEÇA NA PENEIRA'}</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.72)', lineHeight: 1.45, margin: 0 }}>{motivo}</p>
+                <div style={{ marginTop: 9, padding: '8px 10px', borderRadius: 9, fontSize: 10.5, fontWeight: 800, lineHeight: 1.4, background: direto ? '#DFF6E8' : '#FFF3CF', border: `2px solid ${direto ? '#9adcb6' : '#e6c96a'}`, color: direto ? '#0a6b3c' : '#7a5f14' }}>
+                  {direto ? '⏳ Você não joga a peneira. Sente e assista: ela decide quem vai te enfrentar na sua estreia.' : '⚔️ Ganhou, entra na chave de 64. Perdeu, acabou a Copa. Jogo único, sem volta.'}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+        {/* ⏳ AVISO DE FASE SEM JOGO: sem isto, quem está classificado fica olhando
+            jogo dos outros sem entender por que não tem o dele na tela. */}
+        {copaPlaying && cbUnlocked && !myCopaTie && copaFase && (
+          <div style={{ background: '#DFF6E8', border: '3px solid #0EA658', borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, padding: '11px 13px', textAlign: 'center', marginBottom: 12 }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#0a6b3c', margin: 0 }}>⏳ VOCÊ NÃO JOGA ESTA FASE</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0' }}>
+              {copaRound === 0
+                ? 'Já está classificado — sua estreia é na próxima (Chave de 64). Abaixo, os jogos que estão decidindo seus adversários.'
+                : 'Seu time já foi eliminado da Copa. Abaixo, os jogos que continuam valendo a taça.'}
+            </p>
+          </div>
+        )}
         {copaFase?.name === 'Supercopa' && (
           <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
             <CopaLegSheen />
