@@ -39,6 +39,33 @@ no print dele mesmo). Deixei uma pergunta pra ele: o que falta é a ROTAÇÃO
 (que já existe) ou ele quer uma ARTE nova pros dois quadros (cores/ícones
 diferentes, tipo um mockup novo)? Não mexer sem essa resposta.
 
+## 🚨 3 BUGS SÉRIOS relatados por usuário no Carreira (14/08) — 1 corrigido, 2 investigando
+Relato via Diego. Status de cada um:
+1. **⏳ Gol de jogador NO BANCO com o jogo 0x0** (ex.: Roberto Carlos
+   reserva "marcando" 2 gols enquanto o placar seguia 0x0). Investigação
+   inicial: a simulação escolhe artilheiro certinho do XI da rodada
+   (`simDivTo`/`lineupAt`) — a suspeita é DESCOMPASSO DE EXIBIÇÃO: a
+   estatística da rodada em andamento aparece em outra tela ANTES da
+   animação do placar terminar (spoiler + inconsistência), possivelmente
+   combinada com troca de escalação no meio da rodada. PRECISA de mais
+   detalhe do usuário pra reproduzir: EM QUAL TELA ele viu os gols do
+   reserva (aba Elenco? artilharia? card do jogo?) e se usa sub no
+   intervalo/pênalti/eventos.
+2. **✅ CORRIGIDO — "hack" do F5 na Copa do Mundo**: dava pra assistir o
+   torneio, não gostar, atualizar a página e escolher OUTRA seleção (a
+   escolha só era gravada no FIM, na final). Agora a escolha é CARIMBADA
+   no momento em que o torneio começa (`emAndamento` no save local da
+   Copa): F5 volta pro MESMO torneio, mesma seleção, mesmo time, mesmo
+   resultado (a simulação é semeada). O carimbo limpa quando a final é
+   gravada de verdade. ⚠️ Não dá pra desfazer os títulos que já foram
+   "farmados" assim — sem registro de quantas vezes cada um refez.
+3. **⏳ Pontos da classificação "não atualizam" nas rodadas finais da
+   liga** (intermitente, "vira e mexe"). Sem causa confirmada ainda —
+   hipóteses: gate de animação segurando o refresh da tabela, ou modal
+   pendente (pênalti/intervalo) travando o PLAY_ROUND. PRECISA de
+   detalhe: qual divisão, se acontece com a Copa Legends rolando, e se
+   os pontos aparecem depois de trocar de aba/recarregar.
+
 ## ⚽ Placar ao vivo (`LiveScoreCard`) refeito na forma exata do mockup — ✅ NO AR (14/08)
 Diego pediu explicitamente a forma EXATA do mockup animado que ele já tinha
 aprovado. Reskin do `LiveScoreCard` (`pyramidseason.tsx`, usado em TUDO: liga

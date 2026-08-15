@@ -86,7 +86,13 @@ function bestXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
 const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.hi) / 2, 0) / Math.max(1, xi.length)
 
 // ── persistência própria (fora do estado do jogo!) ──
-type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[] }
+// 🔒 `emAndamento` (anti-hack 14/08): a escolha de seleção/convocação fica
+// CARIMBADA no momento em que o torneio começa — antes, só gravávamos no FIM
+// (final vista), então dava pra assistir os jogos, não gostar, dar F5 e escolher
+// OUTRA seleção (relato de usuário: "quando não dá certo eu atualizo e troco").
+// Com o carimbo, o F5 volta pro MESMO torneio (mesma seleção, mesmo time, mesmo
+// resultado — a simulação é semeada). Limpa quando a final é gravada.
+type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation } | null }
 const skey = (seed: number) => `llcopa:${seed}`
 export function loadCopaSave(seed: number): CopaSave | null {
   try { const r = localStorage.getItem(skey(seed)); return r ? JSON.parse(r) as CopaSave : null } catch { return null }
@@ -329,10 +335,31 @@ const CMModal = ({ children, wide = false }: { children: React.ReactNode; wide?:
 function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onMural, agenciaOn, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
   // um gerador compartilhado com estado fazia o resultado mudar sozinho)
-  const [phase, setPhase] = useState<'select' | 'convoke' | 'cup'>('select')
-  const [myPais, setMyPais] = useState<string | null>(null)
-  const [myXI, setMyXI] = useState<PoolCard[] | null>(null)
-  const [myForm, setMyForm] = useState<Formation>('4-3-3')
+  // 🔒 ANTI-HACK DO F5 (14/08): se ESTA temporada já tem torneio carimbado
+  // (emAndamento), volta DIRETO pro torneio com a MESMA seleção e o MESMO time —
+  // sem passar pela escolha de novo. Recupera o XI pelo nome|clube|ano no pool
+  // do país (catálogo estável); se alguma carta sumir do catálogo, o buraco é
+  // preenchido pelo melhor disponível (nunca crasha).
+  const carimbo = save.emAndamento && save.emAndamento.season === seasonNo ? save.emAndamento : null
+  const restoreXI = (): PoolCard[] | null => {
+    if (!carimbo) return null
+    const pool = countryPool(carimbo.pais)
+    const all: PoolCard[] = Object.values(pool).flat()
+    const byKey = new Map(all.map(c => [`${c.name}|${c.club}|${c.year}`, c]))
+    const xi = carimbo.xiKeys.map(k => byKey.get(k)).filter((c): c is PoolCard => !!c)
+    if (xi.length === 11) return xi
+    const used = new Set(xi.map(c => `${c.name}|${c.club}|${c.year}`))
+    for (const c of all.sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))) {
+      if (xi.length >= 11) break
+      if (!used.has(`${c.name}|${c.club}|${c.year}`)) { xi.push(c); used.add(`${c.name}|${c.club}|${c.year}`) }
+    }
+    return xi.length === 11 ? xi : null
+  }
+  const restored = carimbo ? restoreXI() : null
+  const [phase, setPhase] = useState<'select' | 'convoke' | 'cup'>(restored ? 'cup' : 'select')
+  const [myPais, setMyPais] = useState<string | null>(carimbo && restored ? carimbo.pais : null)
+  const [myXI, setMyXI] = useState<PoolCard[] | null>(restored)
+  const [myForm, setMyForm] = useState<Formation>(carimbo && restored ? carimbo.form : '4-3-3')
 
   // bots recebem depois de você: cada um leva a melhor seleção livre da posição
   // dele pra baixo (fallback: melhor livre) — só usuário REAL escolhe.
@@ -360,7 +387,13 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
   )
   if (phase === 'convoke' && myPais) return (
     <CMModal>
-      <ConvocacaoScreen pais={myPais} onBack={() => setPhase('select')} onDone={(xi, f) => { setMyXI(xi); setMyForm(f); setPhase('cup') }} />
+      <ConvocacaoScreen pais={myPais} onBack={() => setPhase('select')} onDone={(xi, f) => {
+        // 🔒 CARIMBA a escolha AGORA (antes do 1º jogo): F5 daqui pra frente
+        // volta pro MESMO torneio — acabou o "atualiza e troca de seleção".
+        const cur = loadCopaSave(seed) ?? save
+        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f } })
+        setMyXI(xi); setMyForm(f); setPhase('cup')
+      }} />
     </CMModal>
   )
   if (phase === 'cup' && entrants) return (
@@ -688,7 +721,8 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
       : 10
     if (cmPrize > 0) onPrize?.(cmPrize)
     const novaEntrada = { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }
-    saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, novaEntrada] })
+    // (emAndamento: limpa o carimbo anti-F5 — o torneio desta temporada acabou de verdade)
+    saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, novaEntrada], emAndamento: null })
     onMural?.([novaEntrada]) // 🌍 espelha a conquista NOVA pro save (nuvem) na hora, sem esperar reabrir a tela
     // 🏆 REGRA DO DIEGO (04/08): campeão do MUNDO também é TÍTULO no ranking
     // Carreira — grava a linha co:solo…:copamundo (mesmo padrão da liga/Copa).
