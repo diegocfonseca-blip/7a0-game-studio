@@ -24,7 +24,8 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada } from './sport'
+import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards } from './copa-brasil'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
@@ -43,6 +44,10 @@ function CopaLegSheen({ dur = 3.4 }: { dur?: number }) {
     background: 'linear-gradient(105deg,transparent,rgba(255,214,120,.55),transparent)',
     animation: `apoioSheen ${dur}s ease-in-out infinite`, pointerEvents: 'none', zIndex: 1 }} />
 }
+// 🇧🇷 Copa do Brasil Legends (mockup aprovado 15/08): verde carregando o
+// brilho + amarelo só de detalhe — MESMO mecanismo de sheen da Copa
+// Legends, só a cor muda (pra dar pra saber qual Copa é só de olhar).
+const COPA_BR_HOLO = 'linear-gradient(150deg,#1FAE63,#0EA658 55%,#0a6b3c)'
 const SLATE = '#3E4A5A' // 🔄 marca de EMPRÉSTIMO (cinza-ardósia): NEUTRA de propósito — cor é sagrada dos tiers, então o emprestado não empresta cor de tier nenhum
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
@@ -3393,7 +3398,7 @@ function CopaLiveMatch({ tie, pos, big, colors = {}, safName }: { tie: CopaTie; 
 
 // painel "Campeões da temporada": campeão + artilheiro (com o time do artilheiro)
 // da Copa e de cada série A/B/C/D. Reutilizado na aba Tabelas e na tela de fim.
-function ChampionsPanel({ copa, tables, scorers, seasonNo }: { copa: CopaResult; tables: Record<Div, SimTeam[]>; scorers?: SeasonScorer[]; seasonNo?: number }) {
+function ChampionsPanel({ copa, tables, scorers, seasonNo, brasil }: { copa: CopaResult; tables: Record<Div, SimTeam[]>; scorers?: SeasonScorer[]; seasonNo?: number; brasil?: boolean }) {
   const champ = copa.champion
   const divs: Div[] = (tables.V?.length ?? 0) > 0 ? ['A', 'B', 'C', 'D', 'V'] : ['A', 'B', 'C', 'D']
   const topOf = (d: Div) => (scorers ?? []).filter(s => s.div === d).sort((a, b) => b.goals - a.goals)[0]
@@ -3414,12 +3419,12 @@ function ChampionsPanel({ copa, tables, scorers, seasonNo }: { copa: CopaResult;
   return (
     <div style={{ ...box('linear-gradient(150deg,#FFF3CF,#FFE79A)'), padding: '10px 12px 12px', marginBottom: 12 }}>
       <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 4px', textAlign: 'center' }}>🥇 Campeões da temporada{seasonNo ? ` ${seasonNo}` : ''}</p>
-      {champ && line('🏆', 'Copa Legends', copaName(champ), !!champ.you, copa.topScorer ?? undefined)}
+      {champ && line('🏆', brasil ? 'Copa do Brasil' : 'Copa Legends', copaName(champ), !!champ.you, copa.topScorer ?? undefined)}
       {divs.map(d => line('🥇', DIV_NAME[d], tables[d]?.[0]?.name, !!tables[d]?.[0]?.you, topOf(d)))}
     </div>
   )
 }
-function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers, seasonNo, safTeam, safCol }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number; scorers?: SeasonScorer[]; seasonNo?: number; safTeam?: string; safCol?: FCol }) {
+function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers, seasonNo, safTeam, safCol, brasil }: { copa: CopaResult; colors: Record<number, FCol>; youId: number; tables: Record<Div, SimTeam[]>; ord: Div[]; myDiv: Div | null; reveal: number; scorers?: SeasonScorer[]; seasonNo?: number; safTeam?: string; safCol?: FCol; brasil?: boolean }) {
   const champ = copa.champion
   const finished = reveal >= copa.rounds.length
   const shown = copa.rounds.slice(0, reveal) // fases já decididas
@@ -3428,21 +3433,21 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
   // em destaque). Sem toggle — as duas ficam empilhadas na mesma aba.
   return (
     <div>
-      <div style={{ ...box(COPA_LEG_HOLO), position: 'relative', overflow: 'hidden', padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
+      <div style={{ ...box(brasil ? COPA_BR_HOLO : COPA_LEG_HOLO), position: 'relative', overflow: 'hidden', padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
         <CopaLegSheen />
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2 }}>🏆 COPA LEGENDS</p>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório</p>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2 }}>{brasil ? '🏆🇧🇷 COPA DO BRASIL LEGENDS' : '🏆 COPA LEGENDS'}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>{brasil ? 'Chave de 64 · zebra pode tudo · sorteio a partir das oitavas' : 'Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório'}</p>
       </div>
       {finished && champ && (
         <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
           <p style={{ fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
           <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: '2px 0 0', color: champ.you ? (colors[youId]?.solid ?? INK) : INK }}>{copaName(champ)}</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>CAMPEÃO DA COPA{copa.championDiv && copa.championDiv !== 'A' ? ` — e da Série ${copa.championDiv}! 🐣🔥` : '!'} <span style={{ color: '#8a6d1f' }}>+25 🪙</span></p>
-          {copa.vice && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>🥈 Vice: {copaName(copa.vice)} <span style={{ color: '#8a6d1f' }}>+15 🪙</span></p>}
+          <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>CAMPEÃO DA COPA{copa.championDiv && copa.championDiv !== 'A' ? ` — e da Série ${copa.championDiv}! 🐣🔥` : '!'} <span style={{ color: '#8a6d1f' }}>+{brasil ? 50 : 25} 🪙</span></p>
+          {copa.vice && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>🥈 Vice: {copaName(copa.vice)} <span style={{ color: '#8a6d1f' }}>+{brasil ? 25 : 15} 🪙</span></p>}
         </div>
       )}
       {/* CAMPEÕES DA TEMPORADA: campeão + artilheiro (com o time do artilheiro). */}
-      {finished && <ChampionsPanel copa={copa} tables={tables} scorers={scorers} seasonNo={seasonNo} />}
+      {finished && <ChampionsPanel copa={copa} tables={tables} scorers={scorers} seasonNo={seasonNo} brasil={brasil} />}
       {shown.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', textAlign: 'center' }}>A Copa está começando… 🔴</p>}
       {rounds.map(r => (
         <div key={r.name} style={{ marginBottom: 10 }}>
@@ -3906,10 +3911,24 @@ export function PyramidSeasonScreen() {
     if (multiId == null || multiId < 0) return baseColors
     return { ...baseColors, [multiId]: myCol }
   }, [baseColors, multiTeamName, tables, myCol])
+  // 🏆🇧🇷 COPA DO BRASIL LEGENDS (em construção, 15/08): só a conta liberada
+  // (copaBrasilLiberada, ver sport.ts) joga essa Copa no lugar da Legends —
+  // pra todo mundo o resto desta tela nem sabe que ela existe. `copaBR` é o
+  // resultado CRU (grupos + chave de 64) — ainda não tem tela pra fase de
+  // grupos (pedaço seguinte); o `copa` abaixo usa o ADAPTADOR pra encaixar
+  // no MESMO formato que a Copa Legends sempre teve, então toda a UI de
+  // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
+  // precisar saber qual das duas Copas está rolando.
+  const cbUnlocked = useCopaBrasilLiberada()
+  const copaBR = useMemo(() => (done && cbUnlocked) ? computeCopaBrasil(tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup) : null, [done, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
-  const copa = useMemo(() => done ? computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup) : null, [done, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
+  const copa = useMemo(() => {
+    if (!done) return null
+    if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR)
+    return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup)
+  }, [done, cbUnlocked, copaBR, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de
@@ -3984,7 +4003,7 @@ export function PyramidSeasonScreen() {
     if (!copaFinished || !state.careerOnline || state.onlineMode === 'online') return
     if (state.booksSeason === state.seasonNo) return
     const sb = scorerRewards(divTop)
-    const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
+    const cr = cbUnlocked && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
     const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
     const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult)
     // 🎟️ ocupação por técnico (carreira nova) — colocação final vira renda do estádio
@@ -4712,7 +4731,7 @@ export function PyramidSeasonScreen() {
           const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
           // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
           const sb = scorerRewards(divTop)
-          const cr = copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // campeão +25 · vice +15 · artilheiro +16 (caixa+piso)
+          const cr = cbUnlocked && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
           const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
           const newPlacements = computePromotions(tables)
@@ -5440,7 +5459,7 @@ export function PyramidSeasonScreen() {
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
-          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
+          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={cbUnlocked} />
         ) : (
           <>
             <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />

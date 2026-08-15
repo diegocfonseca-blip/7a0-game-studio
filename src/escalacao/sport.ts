@@ -205,8 +205,30 @@ export function usePenaltiTeste(): boolean {
   return penTestOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email) })
+// 🏆🇧🇷 COPA DO BRASIL LEGENDS (em construção, 15/08): substitui a Copa
+// Legends no lugar da pirâmide de carreira. Enquanto está sendo construída
+// "em pedaços" (pedido do Diego), SÓ a conta dele vê/joga — pra todo mundo
+// a Copa Legends de sempre continua exatamente igual, sem UMA vírgula a
+// mais na tela. Mesma trava por CONTA logada (não por save/temporada).
+// Liberar geral: esvaziar a lista ou trocar por uma flag *_GERAL=true,
+// igual o padrão da Agência/Revelação Cinema acima.
+const COPA_BRASIL_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let copaBrasilOk = false
+function applyCopaBrasilUnlock(email?: string | null): void {
+  const u = !!email && COPA_BRASIL_TESTERS.has(email.toLowerCase())
+  if (u === copaBrasilOk) return
+  copaBrasilOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function copaBrasilLiberada(): boolean { return copaBrasilOk }
+export function useCopaBrasilLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return copaBrasilOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

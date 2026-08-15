@@ -12,6 +12,44 @@ FC, Legado EC, Apogeu FC; já batizados: Scorporila, Deportivo Montreal,
 Remoçada). Quando ele mandar nome/cores/escudo/mascote, fazer igual aos
 outros batismos (mockup vertical → OK → shipping).
 
+## 🔌 Copa do Brasil LIGADA ao jogo — só na conta do Diego por enquanto (15/08)
+3ª peça da construção (Diego autorizou "pode sim amigo meu"). A pirâmide de
+carreira agora RODA a Copa do Brasil de verdade no lugar da Copa Legends,
+mas atrás de trava por CONTA (`COPA_BRASIL_TESTERS` em `src/escalacao/sport.ts`
+— mesmo padrão do teste do basquete): só `diego.c.fonseca@gmail.com` joga a
+Copa do Brasil; **todo mundo continua na Copa Legends de sempre, sem
+mudar NADA pra eles.**
+- Dois adaptadores novos em `copa-brasil.ts` (`copaBrasilAsCopaResult`,
+  `copaBrasilRewardsAsCopaRewards`) encaixam o resultado da Copa do Brasil
+  na MESMA forma que a Copa Legends sempre teve — por isso deu pra
+  REAPROVEITAR 100% da tela que já existe (chaveamento, placar ao vivo,
+  ritmo manual/auto, sincronização online, prêmios, carta de campeão) sem
+  reescrever nada dela. A "Rodada de 64" virou só mais uma fase da lista
+  (como oitavas/quartas/semi/final já eram) — a tela nem precisa saber
+  qual das duas Copas está rolando.
+- Reskin já aplicado (mockup aprovado antes): título "COPA DO BRASIL
+  LEGENDS" + verde/amarelo brilhante no lugar do verde-escuro da Legends,
+  premiação certa (+50 campeão / +25 vice, batendo com `CB_PAY`).
+- **Testado**: `tsc -b` + `npm run build` limpos (bundle sem crescer fora
+  do esperado); harness Node/Vite-SSR novo conferindo que o adaptador
+  produz exatamente a forma que os componentes da tela esperam (6 fases,
+  32→16→8→4→2→1, campos de cada confronto, prêmios) — 261 verificações,
+  0 falhas, em 20 temporadas sintéticas.
+- **Ainda FALTA** (próximas peças, "em pedaços"):
+  - Tela da fase de grupos/potes (hoje os 64 clubes da peneira já entram
+    calculados e pagos certinho, mas não tem NENHUMA tela mostrando os
+    grupos — o jogo pula direto pra chave de 64). Mockup já aprovado,
+    falta construir.
+  - Ranking (local e global): a Copa do Brasil ainda soma no MESMO
+    contador da Copa Legends (`careerCopaHonors`) — não é um critério
+    próprio ainda como a especificação pede. O ranking GLOBAL de verdade
+    vive numa função dentro do banco (Supabase, fora deste repo) —
+    precisa mexer lá também, com cuidado, fora do site.
+  - Supercopa Legends (ainda não existe em lugar nenhum).
+- **Reversível**: sim, fácil — é só apagar `diego.c.fonseca@gmail.com` de
+  `COPA_BRASIL_TESTERS` (ou `git revert` deste commit) que volta 100% pra
+  Copa Legends pra todo mundo, sem sobrar rastro.
+
 ## 🏆 Motor da Copa do Brasil construído e TESTADO — ainda NÃO ligado ao jogo (15/08)
 2ª peça da construção (indo "em pedaços", pedido do Diego — ver
 `docs/conceito-copa-brasil.md` pro plano completo). `src/escalacao/copa-brasil.ts`

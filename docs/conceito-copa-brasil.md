@@ -10,8 +10,18 @@ Indo "em pedaços", como o Diego pediu:
    realmente empate, premiação paga o campeão certo). **AINDA NÃO ligado
    ao jogo** — ninguém chama essa função de lugar nenhum ainda, zero risco
    pro que já está no ar.
-3. ⏳ Não começado: trocar a Copa Legends pela Copa do Brasil de fato
-   (integração com a tela/reducer/save), telas novas, ranking, Supercopa.
+3. ✅ **Motor LIGADO ao jogo** — mas atrás de trava por conta
+   (`COPA_BRASIL_TESTERS` em `sport.ts`, só `diego.c.fonseca@gmail.com`);
+   pra todo mundo continua 100% Copa Legends. Reaproveita a tela inteira
+   da Copa Legends via 2 adaptadores (`copaBrasilAsCopaResult` /
+   `copaBrasilRewardsAsCopaRewards`) — zero UI nova reescrita, zero risco
+   pra quem não está na lista. Testado: `tsc -b`+`build` limpos, harness
+   novo confirma a forma do dado (261 verificações, 0 falhas).
+4. ⏳ Falta: tela da fase de grupos/potes (a peneira já roda e paga
+   certo, mas ainda não tem NENHUMA tela mostrando os grupos — pula
+   direto pra chave de 64), ranking (Copa do Brasil ainda soma no mesmo
+   contador da Copa Legends, e o ranking GLOBAL vive no banco Supabase,
+   fora deste repo), Supercopa Legends (não existe ainda).
 
 ⚠️ **Duas contas que não fechavam sozinhas na especificação do Diego —
 resolvidas com uma escolha minha, sinalizando pra ele conferir**:

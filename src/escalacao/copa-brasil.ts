@@ -4,11 +4,15 @@
 // motor de simulação que a Copa Legends usa (`pyramidseason.tsx`, funções
 // exportadas 15/08 só pra isso, sem mudar nenhuma linha de lógica delas).
 //
-// ⚠️ ESTE ARQUIVO AINDA NÃO ESTÁ LIGADO AO JOGO. É só o motor/simulação,
-// construído isolado (pedido do Diego: ir "em pedaços"). Ninguém chama
-// `computeCopaBrasil` de lugar nenhum ainda — zero risco pro que já está
-// no ar. Os próximos pedaços: (1) trocar a Copa Legends por isto de
-// verdade, (2) telas/mockup já aprovado, (3) prêmios/ranking.
+// 🔌 LIGADO ao jogo (15/08), mas atrás de trava por CONTA — só o Diego
+// (COPA_BRASIL_TESTERS em sport.ts) joga a Copa do Brasil de verdade; todo
+// mundo continua vendo a Copa Legends de sempre, sem mudar nada. Os
+// adaptadores no fim deste arquivo (copaBrasilAsCopaResult /
+// copaBrasilRewardsAsCopaRewards) encaixam o resultado nos MESMOS
+// componentes/telas da Copa Legends (pyramidseason.tsx), sem duplicar UI.
+// Falta ainda: tela da fase de grupos/potes (pedaço seguinte), ranking
+// (Copa do Brasil como critério próprio, hoje ainda soma no mesmo contador
+// da Copa Legends), Supercopa.
 //
 // 🔢 UMA CONTA QUE NÃO FECHOU SOZINHA (decisão minha, sinalizando pro
 // Diego conferir): a pirâmide tem 100 clubes de verdade (20 por série,
@@ -20,7 +24,7 @@
 // Diego nunca disse isso explicitamente. Fácil de mudar (é só a constante
 // `VARZEA_EXCLUI_ULTIMOS`), só avisar se ele quiser outra régua.
 
-import type { Div, SimTeam, Goal, SeasonScorer, RoundLineups, PoolCard, Tac } from './pyramidseason'
+import type { Div, SimTeam, Goal, SeasonScorer, RoundLineups, PoolCard, Tac, CopaResult, CopaRound } from './pyramidseason'
 import { mulberry, shuffle, poisson, rollForm, lineupAt, TACS, GOAL_TUNE, teamKey, mid } from './pyramidseason'
 
 export const VARZEA_EXCLUI_ULTIMOS = 4
@@ -259,4 +263,26 @@ export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number
     if (scorerTeam) paga(scorerTeam, CB_SCORER_BONUS)
   }
   return { rewards, clubRewards, championKey }
+}
+
+// ─── ADAPTADORES pra Copa do Brasil encaixar 1:1 nos componentes/telas/
+// reducer que já existem pra Copa Legends (CopaBracket, CopaTieRow,
+// CopaLiveMatch, ChampionsPanel, o relógio de fases `copaRound`, o
+// fechamento de temporada) SEM mudar nenhuma linha delas — só troca QUAL
+// motor alimenta a mesma "forma" de dado. round64 vira a 1ª entrada de
+// `rounds` (mais uma fase, igual as outras); a fase de grupos ainda não
+// tem tela própria (isso é o pedaço seguinte) — os times que caem nela já
+// saem embutidos no `champion`/`rewards`, só não tem UI de tabela ainda. ──
+export function copaBrasilAsCopaResult(r: CopaBrasilResult): CopaResult {
+  const rounds: CopaRound[] = []
+  if (r.round64) rounds.push({ name: 'Rodada de 64', ties: r.round64.ties })
+  rounds.push(...r.rounds)
+  return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, topScorer: r.topScorer }
+}
+
+export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {
+  const base = copaBrasilRewards(r)
+  const values: Record<string, number> = {}
+  if (r.topScorer) values[r.topScorer.name] = (values[r.topScorer.name] ?? 0) + CB_SCORER_FLOOR_BONUS
+  return { ...base, values }
 }
