@@ -419,13 +419,16 @@ const sapekEscudoRender = (size: number) => (
   <img src={sapekEscudoImg} height={size} width={size} alt="Sapekeiros FC" style={{ flex: 'none', display: 'block', objectFit: 'contain', borderRadius: '50%' }} />
 )
 
-// 🐍🇧🇷 Tricolor do Arruda (batismo do souzact12@gmail.com, aprovado pelo Diego
-// 16/08): escudo tricolor (preto/branco/vermelho) com a cobra de cachimbo na
-// frente — arte enviada pelo próprio dono, fundo recortado aqui. Homenagem ao
-// time do coração dele. A MESMA cobra, recortada do escudo, vira a mascote
-// (ver mascotes.tsx, chave "cobra_arruda").
+// 🏟️🇧🇷 Tricolor do Arruda (batismo do souzact12@gmail.com — Geovani GS).
+// TROCA DE ESCUDO (16/08, 2ª arte do dono): saiu o escudo com a cobra na frente,
+// entrou o ANEL DO ARRUDA visto de cima (arquibancada vermelha/preta/branca) com
+// o "T" de Tricolor no meio do gramado. Arte enviada pelo próprio dono; aqui só
+// tiramos o fundo quadriculado e reduzimos pra 360px (o escudo nunca aparece
+// maior que 78px na tela, então 360 já é o dobro do necessário em retina).
+// A cobra de cachimbo da 1ª arte CONTINUA sendo a mascote (mascotes.tsx,
+// chave "cobra_arruda") — ela só não mora mais dentro do escudo.
 const arrudaEscudoRender = (size: number) => (
-  <img src={arrudaEscudoImg} height={size} width={size} alt="Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={arrudaEscudoImg} height={size} width={Math.round(size * 304 / 360)} alt="Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
 // 🏎️⚽ Ferrari SC (batismo do adriano.ferrari, aprovado pelo Diego 14/08): a arte é
