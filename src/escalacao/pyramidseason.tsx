@@ -4632,16 +4632,16 @@ export function PyramidSeasonScreen() {
         {/* FIM da temporada: banner de campeão/colocação. AO VIVO: placar FIXO da
             sua partida — fica no topo em TODAS as abas, então dá pra trocar de aba
             e continuar vendo o resultado ao vivo. */}
-        {done && me && (
+        {/* 🐛 (16/08) Diego: "aquela área do Neymarzetti 3º na liga não tem
+            sentido aparecer na Copa" — esse cartão é sobre a colocação na
+            LIGA, então some assim que a Copa entra em cena (o banner grande
+            dela toma o lugar). */}
+        {done && me && !copaPlaying && (
           <div style={{ ...box(me.champ ? GOLD : '#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
             {me.champ
               ? <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>🏆 CAMPEÃO DA {DIV_NAME[me.div].toUpperCase()}!</p>
               : <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🏁 {me.team} — {me.pos}º na {DIV_NAME[me.div]}</p>}
-            {/* 🐛 (16/08) esse aviso "agora começa a Copa" ficava repetindo em TODA
-                fase (peneira, rodada de 64, oitavas... até a Supercopa), o tempo
-                todo — Diego: "você não precisa aparecer ali" (virava poluição,
-                a mesma frase 8 vezes). Agora só aparece 1x, na primeira fase. */}
-            {copaPlaying && copaRound === 0 && !cbUnlocked && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
+            {!cbUnlocked && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '5px 0 0' }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>}
           </div>
         )}
         {/* 🎉 BANNER GRANDE "chegou a Copa" (Diego 16/08: "tem que ter um
@@ -4663,17 +4663,13 @@ export function PyramidSeasonScreen() {
             <b>Como funciona:</b> Peneira → Chave de 64 → Rodada de 32 → Oitavas → Quartas → Semifinal → Final.<br />
             Até a Rodada de 32: jogo único, sorteio a cada fase. Das oitavas em diante: ida e volta (final é jogo único), chave já travada.
           </div>
-          {/* 👥 lista de quem participa (Diego 16/08: "não está claro quem são os
-              times... deixa mais organizado, listado") — antes só mostrava os
-              CONFRONTOS depois de jogados, nunca o ELENCO de clubes por trás. */}
-          <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 12, fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.72)', lineHeight: 1.7 }}>
+          {/* 👥 regras de quem participa (Diego 16/08, 1ª tentativa: listar TODOS
+              os 100 nomes — achou demais. Correção: só a REGRA de quem vai pra
+              cada balde + o que "peneira" quer dizer, sem despejar nome nenhum. */}
+          <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 12, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.72)', lineHeight: 1.6 }}>
             <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 8px', textAlign: 'center' }}>👥 Quem tá jogando</p>
-            <p style={{ margin: '0 0 8px' }}><b style={{ color: '#0EA658' }}>🎟️ Direto na chave (28)</b> — não jogam a peneira:<br /><span style={{ color: 'rgba(0,0,0,.55)', fontWeight: 600 }}>Série A inteira + os 8 melhores da Série B</span></p>
-            <p style={{ margin: '0 0 4px' }}><b style={{ color: '#B8892B' }}>⚔️ Na Peneira (72)</b> — jogo único, sorteio:</p>
-            <p style={{ margin: '0 0 3px' }}><b>Várzea (20):</b> {tables.V.map(t => t.name).join(', ')}</p>
-            <p style={{ margin: '0 0 3px' }}><b>Série C (20):</b> {tables.C.map(t => t.name).join(', ')}</p>
-            <p style={{ margin: '0 0 3px' }}><b>Série D (20):</b> {tables.D.map(t => t.name).join(', ')}</p>
-            <p style={{ margin: 0 }}><b>Série B, 12 piores (13º-20º):</b> {tables.B.slice(8, 20).map(t => t.name).join(', ')}</p>
+            <p style={{ margin: '0 0 6px' }}><b style={{ color: '#0EA658' }}>🎟️ Direto na chave (28)</b> — Série A inteira + os 8 melhores da Série B. Não jogam a peneira: prêmio por terminar bem a Liga.</p>
+            <p style={{ margin: 0 }}><b style={{ color: '#B8892B' }}>⚔️ Na Peneira (72)</b> — Várzea + Série C + Série D inteiras, mais os 12 piores da Série B (13º-20º). "Peneira" é a 1ª fase: mata-mata de jogo único que corta pela metade antes de entrar na chave principal de 64.</p>
           </div>
           </>
         )}
