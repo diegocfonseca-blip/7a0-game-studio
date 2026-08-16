@@ -2913,7 +2913,10 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   const myCopas = copaHonors[`m${youId}`] ?? 0
   const mySupercopa = supercopaHonors?.[`m${youId}`] ?? 0
   const myWorld = cmMural.filter(m => m.voce).length
-  const totalT = myH.A + myH.B + myH.C + myH.D + myCopas + mySupercopa + myWorld
+  // ⚠️ o total TEM que somar a VÁRZEA também (faltava — o título de Várzea
+  // aparecia na fileira de troféus embaixo mas NÃO entrava no "Total: X 🏆",
+  // então quem começou a carreira na Várzea via um troféu a menos na conta).
+  const totalT = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + mySupercopa + myWorld
   const trofeus = [
     ...(myWorld > 0 ? [{ key: 'mundo', label: 'Copa do Mundo', n: myWorld, bg: INK, c: GOLD }] : []),
     ...(myCopas > 0 ? [{ key: 'copa', label: copaLabel, n: myCopas, bg: brasil ? '#0EA658' : GOLD, c: brasil ? '#fff' : INK }] : []),
