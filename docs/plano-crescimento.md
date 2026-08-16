@@ -205,6 +205,30 @@ mal. Ainda **não aprovado**.
 
 ---
 
+## ⚠️ Lembrete do Diego (16/08): carreira ANTIGA não conta em ranking nenhum
+
+Confirmado no código — carreira sem **Agência 2.0** (`state.agenciaOn`) não grava
+em lugar nenhum:
+
+| Onde | Linha | Trava |
+|---|---|---|
+| Título de liga → `esc_results` | `pyramidseason.tsx:4419` | `if (… \|\| !state.agenciaOn) return` |
+| Título de Copa → `esc_results` | `pyramidseason.tsx:4450` | idem |
+| Retrato do rank global | `pyramidseason.tsx:4001` | idem |
+| Copa do Mundo → `esc_results` | `copa-mundo.tsx` | `if (isYou(c) && agenciaOn)` |
+
+**Consequências que valem pro plano:**
+- Carreira antiga **não entra no rank global** e **não cresce mais no rank da
+  home** (as linhas que ela já gravou antes da trava existir ficam congeladas).
+- A regra da **"melhor carreira"** (§5) só enxerga carreiras com Agência 2.0 —
+  carreira antiga não disputa, porque nunca esteve lá.
+- ✅ O fluxo novo (§1, jogar 1ª temporada sem login) cria carreira **nova**, então
+  entra normalmente. Nada a fazer.
+- A carta de campeão **continua saindo pra qualquer carreira** — a trava é só de
+  ranking.
+
+---
+
 ## 📋 Ordem de trabalho aprovada
 
 1. **Janela de cadastro sem sair do lugar** + formulário novo (nome do time,
