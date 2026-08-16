@@ -2927,7 +2927,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     <>
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🏆 RANKING GERAL</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Títulos (Série A › B › C › D) e depois dinheiro — top 20.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Ordem: 🌍 Copa do Mundo › 🏆 Série A › 🏆 Copa › 🏆🔵 Supercopa › 🏆 B › 🏆 C › 🏆 D › 🌱 Várzea › 💰 dinheiro — top 20.</p>
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
@@ -3006,7 +3006,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
 // anti-spoiler: o rank vem SEMPRE capado na temporada de quem está olhando (RPC
 // `esc_pyramid_rank`, ver comentário no banco) — ninguém vê o futuro de ninguém,
 // só o que cada um já tinha feito até ali. Só conta quem jogou com Agência 2.0.
-interface GlobalRankRow { user_id: string; season_no: number; team_name: string; honors_a: number; honors_b: number; honors_c: number; honors_d: number; honors_v: number; copa_titles: number; world_titles: number; money: number }
+interface GlobalRankRow { user_id: string; season_no: number; team_name: string; honors_a: number; honors_b: number; honors_c: number; honors_d: number; honors_v: number; copa_titles: number; supercopa_titles?: number; world_titles: number; money: number }
 function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo: number }) {
   const [rows, setRows] = useState<GlobalRankRow[] | null>(null)
   const [down, setDown] = useState(false)
@@ -3056,7 +3056,7 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Ordem: 🌍 Copa do Mundo › 🏆 Série A › 🏆 Copa Legends › 🏆 B › 🏆 C › 🏆 D › 💰 dinheiro — só gente de verdade, top 50. Só conta quem joga com a Agência 2.0.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Ordem: 🌍 Copa do Mundo › 🏆 Série A › 🏆 Copa › 🏆🔵 Supercopa › 🏆 B › 🏆 C › 🏆 D › 🌱 Várzea › 💰 dinheiro — a MESMA ordem do ranking do seu save. Só gente de verdade, top 50, e só quem joga com a Agência 2.0.</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
         <span style={{ fontSize: 19, lineHeight: 1.2 }}>📍</span>
         <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.4, color: INK }}>
@@ -3079,7 +3079,7 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
           <tbody>
             {rows!.map((r, i) => {
               const you = r.user_id === meUid
-              const totalTit = r.honors_a + r.honors_b + r.honors_c + r.honors_d + r.copa_titles + r.world_titles
+              const totalTit = r.honors_a + r.honors_b + r.honors_c + r.honors_d + r.honors_v + r.copa_titles + (r.supercopa_titles ?? 0) + r.world_titles
               const pos = i + 1
               const was = prevPos?.get(r.user_id)
               const delta = was != null ? was - pos : null // positivo = subiu (passou gente)
@@ -3107,6 +3107,7 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
                       {r.world_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.world_titles > 1 ? r.world_titles : ''}</span>}
                       {r.honors_a > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.honors_a}</span>}
                       {r.copa_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copa_titles > 1 ? r.copa_titles : ''}</span>}
+                      {(r.supercopa_titles ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆🔵{(r.supercopa_titles ?? 0) > 1 ? r.supercopa_titles : ''}</span>}
                       {([['B', r.honors_b], ['C', r.honors_c], ['D', r.honors_d], ['V', r.honors_v]] as [Div, number][]).map(([d, n]) => n > 0 ? (
                         <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{n}</span>
                       ) : null)}
@@ -4016,12 +4017,13 @@ export function PyramidSeasonScreen() {
         if (!you) return
         const h = (state.careerHonors as Record<string, Honors> | undefined)?.[`m${youId}`] ?? EMPTY_HONORS
         const copas = state.careerCopaHonors?.[`m${youId}`] ?? 0
+        const supercopas = state.careerSupercopaHonors?.[`m${youId}`] ?? 0
         const world = mergedMundialMural(state.seed, state.copaMundoMural).filter(m => m.voce).length
         const money = Math.round(state.careerCoins?.[youId] ?? 0)
         await supabase.from('esc_pyramid_rank_snap').upsert({
           user_id: data.user.id, season_no: state.seasonNo, team_name: you.teamName,
           honors_a: h.A ?? 0, honors_b: h.B ?? 0, honors_c: h.C ?? 0, honors_d: h.D ?? 0, honors_v: h.V ?? 0,
-          copa_titles: copas, world_titles: world, money,
+          copa_titles: copas, supercopa_titles: supercopas, world_titles: world, money,
         })
       } catch { /* melhor esforço — nunca trava o jogo por causa do rank */ }
     })()

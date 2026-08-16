@@ -1,5 +1,36 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🏆🔵 SUPERCOPA ENTROU NO RANKING GLOBAL (16/08)
+Correção de uma coisa que eu (sessão) tinha dito ERRADO pro Diego: falei que a
+Copa do Brasil "só o Diego enxerga". **Não é.** `sport.ts` tem
+`COPA_BRASIL_GERAL = true` desde 16/08 ("atualiza já p td mundo") — está
+**liberada pra todo mundo** e a lista de testers virou só reserva.
+
+Consequência real: o rank **local** desempata por Mundo · A · Copa · **Supercopa**
+· B · C · D · Várzea · $ (§7.3), mas o **global** não tinha nem a coluna de
+Supercopa. Medido no banco: **73 pessoas já somam 396 títulos de Supercopa**.
+Era ao vivo, não hipotético. E já estava anotado como pendência no
+`docs/conceito-copa-brasil.md` (linha 34-35: "ranking GLOBAL — só falta a
+Supercopa lá").
+
+✅ Feito:
+- Supabase: coluna `supercopa_titles` na `esc_pyramid_rank_snap` (default 0) +
+  `esc_pyramid_rank` e `esc_pyramid_my_rank` recriadas desempatando por ela
+  **logo depois da Copa**, igual ao local.
+- `pyramidseason.tsx`: o retrato por temporada passa a gravar `supercopa_titles`;
+  a linha do rank global ganhou o selo 🏆🔵 (mesmo selo do rank local) e o total
+  passou a somar Supercopa **e Várzea** (faltavam os dois).
+- Legenda dos DOIS rankings corrigida: a do local dizia "Série A › B › C › D e
+  depois dinheiro" (ordem antiga, errada há tempo) e a do global não citava
+  Supercopa nem Várzea.
+
+⚠️ **Sem backfill de propósito**: o retrato é por temporada e a gente não sabe
+EM QUE temporada cada Supercopa foi ganha. Preencher o passado com o total de
+hoje quebraria a trava anti-spoiler (mostraria troféu que a pessoa ainda não
+tinha naquela temporada). Cada um entra no rank com a Supercopa na próxima
+temporada que jogar.
+
+
 ## 🌍🏆 VARREDURA DAS COPAS DO MUNDO NO RANKING (16/08) — 10 títulos devolvidos
 Pergunta do Diego depois do caso do Gabriel: *"e as copas do mundo que ele disse
 que ganhou e não contou?"*
