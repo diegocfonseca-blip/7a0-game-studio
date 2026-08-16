@@ -3516,18 +3516,19 @@ export function reducer(state: EscState, action: Action): EscState {
       s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
       // 🕴️ AGÊNCIA 2.0: SÓ carreira NOVA — convoca até 22 do álbum; renda SEMPRE no
       // 1º clube (o da fundação). Save antigo segue no empresário clássico.
-      // 🔒 Por enquanto SÓ a conta do Diego (AGENCIA_TESTERS) — carreira de conta
-      // comum nasce SEM a flag e fica 100% igual ao jogo de sempre.
+      // 🔓 Liberada pra TODA CONTA desde 03/08. ⚠️ "geral" vale só pra carreira
+      // criada DAQUI PRA FRENTE — carreira antiga não ganha a flag e continua
+      // fora dos rankings (global e da home). Ver sport.ts.
       s.agenciaOn = agenciaLiberada() || undefined
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
-      // 🪜 ESCADA DE CATEGORIAS: SÓ carreira NOVA de conta liberada (teste do Diego).
+      // 🪜 ESCADA DE CATEGORIAS: SÓ carreira NOVA (de qualquer conta, desde 03/08).
       // Começa presa ao degrau da divisão; libera geral após 2 temporadas na Série A.
       s.escadaOn = escadaLiberada() || undefined
       s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
       s.careerEra = MANUAL_ERA // 🎮 carreira NOVA: o Modo Manual pede apoio. Saves ANTIGOS não têm esse campo → seguem com o manual liberado (grandfather).
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
       s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
-      // 🌍 conta liberada (teste do Diego): carreira nova usa BR+Europa+MUNDO juntos
+      // 🌍 carreira nova usa BR+Europa+MUNDO juntos (vale pra qualquer conta desde 03/08)
       s.deckLeague = escadaLiberada() ? 'todos' : (action.league ?? 'br'); setActiveCatalog(s.deckLeague)
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)

@@ -241,3 +241,30 @@ Depois: nome único entre saves · renomear na Presidência · ranking global ·
 Sala da Presidência.
 
 **Um commit por item**, pra dar pra voltar atrás em qualquer um sozinho.
+
+
+### ✅ Item 3 — FEITO (16/08)
+1. **`startCareer` não pede mais login** (`screens.tsx`). Era um cadeado na porta
+   exatamente da parte que segura as pessoas. O save já era local (a nuvem é
+   backup), então nada precisou mudar embaixo.
+2. **`AvisoContaCarreira`** (`pyramidseason.tsx`, no topo da tela da temporada,
+   antes do `SocioBaraoBanner`):
+   - **sem conta, temporada 1**: faixinha amarela discreta — *"carreira só neste
+     aparelho — criar conta"*, clicável;
+   - **da temporada 2 em diante**: o convite, mostrando **o que a pessoa já tem**
+     (clube, temporada, títulos, moedas, tamanho do elenco). "Agora não" fecha e
+     **o jogo segue**;
+   - o convite volta **a cada 3 temporadas** (2, 5, 8, 11…), não toda vez;
+   - **com conta, não aparece nada.**
+
+Conferido no navegador: clicar em Carreira sem login **entra direto** (nenhum
+cadeado). O aviso dentro da carreira não deu pra fotografar sem jogar um pregão
+inteiro; confirmado que os textos estão no build e que a montagem está no lugar.
+
+### 🧹 Comentários velhos acertados (16/08)
+`sport.ts`, `store.tsx`: vários comentários ainda diziam *"por enquanto só o
+Diego testa"* sobre Agência/Escada — desatualizados desde **03/08**, quando o
+Diego liberou geral. **Já enganaram esta sessão duas vezes.** Agora dizem o que
+o código faz, e deixam explícito o que "geral" NÃO significa:
+**carreira ANTIGA não ganhou a Agência e não grava em ranking nenhum** (nem
+global, nem da home) — só carreira criada depois de 03/08.

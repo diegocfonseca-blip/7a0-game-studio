@@ -27,6 +27,7 @@ import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada } from './sport'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
+import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
@@ -3829,6 +3830,80 @@ function CoinsBadge({ coins }: { coins: number }) {
     </span>
   )
 }
+// ─── 💾 CARREIRA SEM CONTA (Diego 16/08 — plano-crescimento §1) ───────────
+// A carreira deixou de exigir login pra COMEÇAR: a pessoa joga a 1ª temporada
+// inteira e só então o jogo pede a conta. Medido: 56% de quem joga nunca abre
+// uma carreira, e quem abre volta 3× mais — o cadeado na porta custava caro.
+//
+// Enquanto ela não cria a conta, este bloco faz duas coisas:
+//  1. um aviso FIXO e discreto: a carreira está só neste aparelho (honesto — se
+//     ela limpar o navegador, some mesmo);
+//  2. da 2ª temporada em diante, o convite — mostrando o que ela JÁ conquistou,
+//     que é o que dá vontade de guardar. Recusou? Segue jogando; o convite só
+//     volta a cada 3 temporadas (se voltar toda hora, vira chatice).
+function AvisoContaCarreira() {
+  const { state } = useEsc()
+  const [logado, setLogado] = useState<boolean | null>(null)
+  const [abrirConta, setAbrirConta] = useState(false)
+  const [adiado, setAdiado] = useState(false)
+  useEffect(() => {
+    let vivo = true
+    const ver = async () => {
+      try { const { data } = await supabase.auth.getSession(); if (vivo) setLogado(!!data.session) }
+      catch { if (vivo) setLogado(null) }
+    }
+    ver()
+    const { data: sub } = supabase.auth.onAuthStateChange((_, sess) => { if (vivo) setLogado(!!sess) })
+    return () => { vivo = false; sub.subscription.unsubscribe() }
+  }, [])
+  const solo = state.careerOnline && state.onlineMode !== 'online'
+  if (!solo || logado !== false) return null
+  const you = state.managers[state.youIdx]
+  const temporada = state.seasonNo ?? 1
+  const h = (state.careerHonors as Record<string, { A: number; B: number; C: number; D: number; V?: number }> | undefined)?.[`m${you?.id ?? 0}`]
+  const titulos = h ? (h.A ?? 0) + (h.B ?? 0) + (h.C ?? 0) + (h.D ?? 0) + (h.V ?? 0) : 0
+  const moedas = Math.round(state.careerCoins?.[you?.id ?? 0] ?? 0)
+  const elenco = you?.squad?.length ?? 0
+  // convite: da 2ª temporada em diante, e depois a cada 3 (2, 5, 8, 11…)
+  const horaDoConvite = temporada >= 2 && (temporada - 2) % 3 === 0 && !adiado
+  return (
+    <>
+      {horaDoConvite ? (
+        <div style={{ ...box('linear-gradient(150deg,#F3EBFF,#E7D9FF)'), padding: 13, marginBottom: 12 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0 }}>💾 Guarde sua carreira</p>
+          <div style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 11px', margin: '8px 0', fontSize: 12.5, fontWeight: 700, lineHeight: 1.5 }}>
+            <b>{you?.teamName ?? 'Seu time'}</b> · temporada {temporada}<br />
+            {titulos > 0 && <>🏆 <b>{titulos}</b> {titulos === 1 ? 'título' : 'títulos'} · </>}
+            🪙 <b>{moedas}</b> em caixa · 👥 <b>{elenco}</b> no elenco
+          </div>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '0 0 9px', lineHeight: 1.4 }}>
+            Crie sua conta grátis pra <b>não perder isso</b> e jogar de qualquer aparelho.
+          </p>
+          <button onClick={() => setAbrirConta(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>
+            ✏️ Criar conta grátis
+          </button>
+          <button onClick={() => setAdiado(true)} style={{ width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 12, color: 'rgba(0,0,0,.45)', cursor: 'pointer', marginTop: 7 }}>
+            agora não
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => setAbrirConta(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, background: '#FFF3C2', padding: '6px 10px', marginBottom: 10, cursor: 'pointer', fontWeight: 800, fontSize: 11.5, color: 'rgba(0,0,0,.72)' }}>
+          <span>⚠️</span><span style={{ flex: 1 }}>carreira só neste aparelho — <b style={{ textDecoration: 'underline' }}>criar conta</b></span>
+        </button>
+      )}
+      {abrirConta && (
+        <JanelaConta
+          titulo="💾 Guardar sua carreira"
+          contexto={`${you?.teamName ?? 'Seu time'} · temporada ${temporada}`}
+          comecarEmCriar
+          onPronto={() => setAbrirConta(false)}
+          onFechar={() => setAbrirConta(false)} />
+      )}
+    </>
+  )
+}
+
 // 🖋️🎫 BRINDES DO SÓCIO (pedido do Diego 09/08, ampliado 16/08): ao abrir a
 // carreira solo, quem é sócio ativo recebe sozinho, sem apertar nada:
 //   (a) 🎟️ BOAS-VINDAS — 39 🪙, UMA VEZ SÓ na vida da conta (RPC esc_socio_boas_vindas);
@@ -4658,6 +4733,7 @@ export function PyramidSeasonScreen() {
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
+        <AvisoContaCarreira />
         <SocioBaraoBanner />
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra

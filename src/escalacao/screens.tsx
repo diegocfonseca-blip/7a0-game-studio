@@ -1511,13 +1511,15 @@ export function EscIntro() {
   const [showManual, setShowManual] = useState(false) // 📖 Manual do Técnico (overlay)
   const [tema, setTema] = useState<string>(() => { try { return localStorage.getItem('esc-tema') ?? 'claro' } catch { return 'claro' } }) // 🌙 tema atual (rótulo do botão)
   const temaLiberado = useTemaLiberado() // 🔒 noturno: por enquanto só a conta do Diego (vira regalia de plano pago)
-  // 🔒 toda entrada de CARREIRA passa por aqui: se não tem login ATIVO reconhecido
-  // agora (conta nova, ou sessão caiu por cache), mostra a tela de login em vez de
-  // deixar entrar. getSession() lê do aparelho (rápido, sem rede).
-  const startCareer = async (fn: () => void) => {
-    try { const { data } = await supabase.auth.getSession(); if (data.session) { fn(); return } } catch { /* trata como sem login */ }
-    setCareerGate(() => fn) // segura o que ela queria — ao logar, retoma daqui mesmo
-  }
+  // 🔓 A CARREIRA NÃO PEDE MAIS LOGIN PRA COMEÇAR (Diego 16/08 — plano §1).
+  // Antes, toda entrada de carreira batia num cadeado. Medido: 56% de quem joga
+  // NUNCA abre uma carreira, e quem abre volta 3× mais e some 2,5× menos — o
+  // cadeado na porta estava custando exatamente a parte que segura as pessoas.
+  // Agora ela joga; o save fica no aparelho (que é como já funcionava — a nuvem
+  // é backup) e o convite pra criar conta aparece DENTRO da carreira, no fim da
+  // 1ª temporada (`AvisoContaCarreira`, pyramidseason.tsx), mostrando o que ela
+  // já conquistou. Enquanto isso, um aviso fixo diz que está só neste aparelho.
+  const startCareer = (fn: () => void) => { fn() }
   const shareGame = async () => {
     const data = { title: 'Leilão Legends', text: 'Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', url: 'https://leilaolegends.com' }
     try {

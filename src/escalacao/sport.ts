@@ -122,19 +122,22 @@ export function useTemaLiberado(): boolean {
 }
 
 // 🕴️ AGÊNCIA 2.0 — decisão do Diego (03/08): por enquanto SÓ contas de teste.
-// Carreira nova só nasce com a agência se a conta logada estiver na lista; e
-// mesmo um save que tenha a flag (criado na janela em que ficou público) não
-// MOSTRA nada pra conta comum — o jogo fica 100% igual ao de sempre pros outros.
-// Quando o Diego liberar geral, é só esvaziar a checagem (um lugar só).
-// A MESMA lista libera a ESCADA (Várzea + régua) e o baralho 'todos' — o pacote
-// completo da carreira nova de teste.
+// (histórico: nasceu como teste fechado por lista de conta. Desde 03/08 está
+// geral — a lista abaixo virou só o plano B.)
+// A MESMA chave libera a ESCADA (Várzea + régua) e o baralho 'todos'.
 // 🔓 LIBERADO GERAL (03/08, ordem do Diego: "pode liberar já pra todos o novo
 // carreira") — a carreira nova (Agência 2.0 + Escada/Várzea + baralho todos +
 // Estrutura) vale pra TODO MUNDO. Pra voltar ao teste fechado: AGENCIA_GERAL
 // = false e a lista de testers reassume.
 const AGENCIA_GERAL = true
-// A Agência segue LIBERADA GERAL (AGENCIA_GERAL=true) — TODO MUNDO tem. Esta lista
-// é só o fallback caso um dia volte ao teste fechado; mantemos os convidados aqui.
+// ⚠️ LEIA O VALOR, NÃO O COMENTÁRIO. `AGENCIA_GERAL = true` desde 03/08: a
+// Agência 2.0 vale pra TODA CONTA. Esta lista é só o fallback caso volte ao
+// teste fechado.
+// 🚧 O QUE "GERAL" NÃO QUER DIZER (Diego 16/08, e ele tem razão): NÃO liberou
+// pra carreira ANTIGA. Só carreira criada DEPOIS de 03/08 nasce com a flag —
+// "saves antigos intocados", nas palavras do commit. Carreira sem a flag segue
+// 100% como era e NÃO grava nada em ranking (nem no global, nem no da home):
+// as travas estão em pyramidseason.tsx (4001, 4419, 4450) e copa-mundo.tsx.
 const AGENCIA_TESTERS = new Set([
   'diego.c.fonseca@gmail.com',
   'msb102010@hotmail.com',
@@ -148,9 +151,11 @@ function applyAgenciaUnlock(email?: string | null): void {
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
 export function agenciaLiberada(): boolean { return agenciaOk }
-// 🪜 ESCADA DE CATEGORIAS na carreira (03/08): mesma trava — por enquanto SÓ o
-// Diego testa. Carreira nova de conta comum nasce sem a escada (jogo de sempre).
-export function escadaLiberada(): boolean { return agenciaOk } // mesma lista/conta da agência (AGENCIA_TESTERS)
+// 🪜 ESCADA DE CATEGORIAS na carreira: anda junto com a Agência (mesma chave).
+// ⚠️ o comentário antigo aqui dizia "por enquanto SÓ o Diego testa" e ficou pra
+// trás em 03/08 — já enganou sessão (16/08). Hoje: carreira NOVA de qualquer
+// conta nasce com a escada; carreira antiga continua sem.
+export function escadaLiberada(): boolean { return agenciaOk }
 export function useEscadaLiberada(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
