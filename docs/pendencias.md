@@ -19,10 +19,11 @@ Sem essa linha, DUAS coisas do batismo NÃO acontecem pro Geovany:
 - a **cobra pulando no pênalti convertido**,
 
 porque as duas leem `mascote_key` da conta no banco, não do código. Também
-falta gravar o **manto**: branco → vermelho → branco → preto.
+falta gravar o **manto**: TRÊS listras — preto → branco → vermelho
+(a 3ª cor já vem do código, em `MANTO_TRI`; faltam as duas primeiras).
 Valores: `p_email = souzact12@gmail.com` · `p_mascote = cobra_arruda` ·
-`p_time = Santa Cruz` · manto `p_c1 = #C2001E` (vermelho), `p_c2 = #0C0C0C`
-(preto). Dá pra fazer pelo painel de admin (`🎨 Personalizar sócio`) ou eu
+`p_time = Santa Cruz` · manto `p_c1 = #0C0C0C` (preto), `p_c2 = #FFFFFF`
+(branco) — o vermelho é a 3ª cor e sai do código. Dá pra fazer pelo painel de admin (`🎨 Personalizar sócio`) ou eu
 faço se o Diego liberar o acesso ao banco (a chamada foi recusada por
 aprovação pendente).
 
