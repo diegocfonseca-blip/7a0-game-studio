@@ -809,6 +809,8 @@ const ZAG: C[] = [
 ]
 
 const MEI: C[] = [
+  { name: "Givanildo Oliveira", club: "Santa Cruz", year: 1976, fame: 4, lo: 76, hi: 87, bio: "Volante-símbolo do Santa Cruz, dono do recorde de jogos pelo clube (599, em duas passagens) e 7× campeão pernambucano. Em 1976, direto do Arruda, foi convocado pra Seleção e ganhou o Torneio do Bicentenário dos EUA — raridade pra época fora do eixo Rio-SP." },
+  { name: "Mazinho Deus Ébano", club: "Santa Cruz", year: 1975, fame: 2, lo: 62, hi: 83, folk: true, bio: "Armador batizado 'Deus de Ébano' pela imprensa assim que chegou ao Arruda em 1975 — peça-chave na melhor campanha da história do Santa Cruz: 4º lugar no Brasileirão daquele ano." },
   { name: "Roger Flores", club: "Fluminense", year: 2002, fame: 3, lo: 74, hi: 84, bio: "Meia canhoto de técnica e liderança revelado no Fluminense — dribles, passe e chute forte. Capitão raçudo; depois campeão brasileiro pelo Corinthians em 2005." },
   { name: "Mineiro", club: "São Paulo", year: 2005, fame: 3, lo: 74, hi: 85, bio: "Volante raçudo do São Paulo campeão de tudo em 2005 — dele o gol do título Mundial sobre o Liverpool em Yokohama. Tri pela Seleção na Copa América 2007." },
   { name: "Edenílson", club: "Internacional", year: 2021, fame: 3, lo: 75, hi: 85, bio: "Volante box-to-box do Internacional — chegada ao gol e passe decisivo. Duas vezes Bola de Prata como melhor volante do Brasil; 2021 foi seu auge, com 15 gols." },
