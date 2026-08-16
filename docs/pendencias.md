@@ -82,6 +82,16 @@ preso como "enviado" e o setor resolvia com lance ZERO).
   sumido antes de trocar a coroa — uma piscada de rede não basta mais.
 - Uma sala com o dono REALMENTE fora ainda se recupera em menos de meio minuto.
 
+**Segunda pergunta do Diego — "e se ele demorar 45s pra dar lance, troca o
+host?" — resposta: NÃO.** Com o app ABERTO o dono manda um "tô vivo" a cada 4s
+mesmo parado (`host_ping`), então pode pensar o tempo que quiser. O relógio do
+sumiço só corre quando o celular vai pro FUNDO (tela apagada / trocou de app),
+que é quando o navegador congela os cronômetros.
+
+Mesmo assim, apertei mais onde dói: **60s de sumiço no LEILÃO, 25s no resto.**
+Trocar de dono no meio do pregão custa caro (todo mundo que já lacrou o envelope
+reenvia o lance); fora dele é barato, ninguém perde nada.
+
 ## 👥🐛 RÁPIDO ONLINE: fantasma no leilão + partida que não contava (16/08)
 Relato do Diego jogando com dois amigos (B e C), passo a passo dele:
 1. Acabou a liga + Copa dos 8. O **amigo C saiu** da sala e não votou. Certo.

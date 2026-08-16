@@ -6885,7 +6885,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // ele morreu e tomar a coroa — e a troca de dono faz quem está no
             // envelope reenviar o lance. 25s dá folga pra distração e continua
             // devolvendo a sala em menos de meio minuto se o dono sumiu de verdade.
-            const hostBeatFresh = !!upAt && (Date.now() - new Date(upAt).getTime() < 25_000)
+            // ⏳ NO LEILÃO A PACIÊNCIA É MAIOR (Diego 16/08: "e se ele demorar 45s
+            // pra dar lance?"). Trocar de dono no meio do pregão custa CARO: todo
+            // mundo que já lacrou o envelope tem que dar o lance de novo. Fora do
+            // pregão (temporada, monte, cerimônia) trocar é barato — ninguém perde
+            // nada. Então: 60s de sumiço no leilão, 25s no resto.
+            // ⚠️ Isto NÃO tem a ver com demorar pra jogar: com o app ABERTO o dono
+            // manda "tô vivo" a cada 4s mesmo parado, e a coroa nunca sai dele.
+            // Este relógio só corre quando o celular dele vai pro FUNDO (tela
+            // apagada / trocou de app), que é quando o navegador congela tudo.
+            const noLeilao = st.screen === 'auction' || st.phase === 'envelope' || st.phase === 'resq_envelope'
+            const limiteSumico = noLeilao ? 60_000 : 25_000
+            const hostBeatFresh = !!upAt && (Date.now() - new Date(upAt).getTime() < limiteSumico)
             // (2) 👻 HOST FANTASMA: o host_id aponta pra alguém que NÃO está mais na
             // sala (fechou o app / caiu / saiu sem passar a coroa — o bug do Diego
             // 11/08) E o batimento do banco secou (dono realmente sumiu). Elejo um novo
