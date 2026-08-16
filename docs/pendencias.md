@@ -92,6 +92,24 @@ Mesmo assim, apertei mais onde dói: **60s de sumiço no LEILÃO, 25s no resto.*
 Trocar de dono no meio do pregão custa caro (todo mundo que já lacrou o envelope
 reenvia o lance); fora dele é barato, ninguém perde nada.
 
+### 📢 E o aviso passou a dizer a VERDADE
+O Diego: *"o erro que deu com o Manfré foi isso, tive que lacrar de novo um lance
+novo… aí pareceu bug brabo"*. E parecia mesmo — porque a tela **não explicava**:
+- o aviso dizia *"o host anterior SAIU da sala e passou o comando"*. **Mentira**:
+  ele não saiu nem passou nada, o celular dele foi pro fundo;
+- e **não falava uma palavra sobre o lance** que tinha acabado de sumir.
+
+Agora o aviso conta o que aconteceu de verdade e, **só quando a virada pega o
+pregão**, abre uma tarja vermelha com o porquê e o caminho (regra do Diego):
+*"🔨 Dá o seu lance de novo neste setor. Na troca de comando os envelopes voltam
+pra mão de cada um — se ficassem lacrados no dono antigo, o setor fecharia com
+lance ZERO. Ninguém viu o que você tinha mandado: lance secreto continua
+secreto. 🔒"*
+
+**Em aberto (decisão do Diego):** guardar os envelopes já lacrados durante a
+troca acabaria com o reenvio de vez — mas significa gravar o lance secreto de
+todo mundo em algum lugar. **Não mexi nisso sem ele decidir.**
+
 ## 👥🐛 RÁPIDO ONLINE: fantasma no leilão + partida que não contava (16/08)
 Relato do Diego jogando com dois amigos (B e C), passo a passo dele:
 1. Acabou a liga + Copa dos 8. O **amigo C saiu** da sala e não votou. Certo.

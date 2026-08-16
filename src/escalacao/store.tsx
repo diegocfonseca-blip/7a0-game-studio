@@ -6426,6 +6426,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
   const [becameHost, setBecameHost] = useState(false)
+  // 🔨 virei host NO MEIO DO PREGÃO? é o único caso em que o lance é reaberto —
+  // o aviso precisa dizer isso, senão parece bug (Diego 16/08: "tive que lacrar
+  // de novo um lance novo... aí pareceu bug brabo").
+  const [viradaNoLeilao, setViradaNoLeilao] = useState(false)
   // "fui expulso pelo host": banner vermelho na tela (troca o alert() antigo, que o
   // celular às vezes engolia e a pessoa continuava vendo a partida). A saída da sala
   // já aconteceu (KICKED_OUT resetou pro menu) — o banner só explica o porquê.
@@ -6913,7 +6917,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
             if (!hostPresente && !hostBeatFresh && souOEleito) {
               if (!sumicoConfirmadoRef.current) { sumicoConfirmadoRef.current = true; return } // 1ª vez: anota e espera confirmar
               try { await supabase.from('game_rooms').update({ host_id: uid }).eq('id', st.roomId) } catch { /* best effort */ }
-              if (!stateRef.current.isHost) { rawDispatch({ type: 'BECOME_HOST' }); setBecameHost(true) } // aviso "você virou host"
+              if (!stateRef.current.isHost) {
+                const sc = stateRef.current
+                setViradaNoLeilao(sc.screen === 'auction' || sc.phase === 'envelope' || sc.phase === 'resq_envelope')
+                rawDispatch({ type: 'BECOME_HOST' }); setBecameHost(true) // aviso "você virou host"
+              }
             } else {
               sumicoConfirmadoRef.current = false // deu sinal de vida: zera a contagem
             }
@@ -7051,7 +7059,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
           }}>
             <div style={{ fontSize: 52, lineHeight: 1 }}>🎖️</div>
             <p style={{ fontWeight: 900, fontSize: 26, color: '#0C0C0C', margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ VIROU O HOST!</p>
-            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O host anterior saiu da sala e passou o comando pra você. Agora é <b>você</b> quem toca a partida: avançar fases, começar o leilão e decidir depois da votação. 🎮</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O dono da sala <b>sumiu do ar</b> (fechou o app, travou ou ficou sem sinal) e a partida ia parar. Pra não travar todo mundo, o comando passou pra <b>você</b>: avançar fases, tocar o leilão e decidir depois da votação. 🎮</p>
+            {viradaNoLeilao && (
+              <p style={{ fontWeight: 800, fontSize: 13, color: '#7a2418', background: '#FFF1E8', border: '2.5px solid #C2452F', borderRadius: 12, padding: '9px 11px', margin: '10px 0 0', lineHeight: 1.4, textAlign: 'left' }}>
+                🔨 <b>Dá o seu lance de novo neste setor.</b> Na troca de comando os envelopes voltam pra mão de cada um — se ficassem lacrados no dono antigo, o setor fecharia com lance ZERO. <b>Ninguém viu o que você tinha mandado</b>: lance secreto continua secreto. 🔒
+              </p>
+            )}
             <button onClick={() => setBecameHost(false)}
               style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
               👑 OK, ENTENDI — SOU O HOST
