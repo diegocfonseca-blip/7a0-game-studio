@@ -55,6 +55,63 @@ livre → home nova.
   ranking global melhor carreira + linha de hoje (§5) · Sala da Presidência (§7).
 
 
+## 🏆🐛 TÍTULO DE COPA QUE SUMIA — ACHADO E CONSERTADO (16/08)
+Dois relatos que chegaram pro Diego: *"ganhou a Copa do Brasil e não contou"* e
+*"um amigo dele nem ganhou a Supercopa e apareceu que ganhou"*.
+
+### ✅ O bug REAL, reproduzido e consertado
+Em `store.tsx` existia uma "cura" de 04/08 (feita pra um bug antigo em que
+carreira nova herdava as Copas da anterior). Ela rodava **toda vez que a pessoa
+CONTINUAVA a carreira**: somava as Copas de TODO MUNDO e, se a soma passasse do
+número de temporadas, **jogava tudo fora** e reconstruía as Copas do jogador só
+pelos recibos de CARTA. **Quem ganhou a Copa e não pegou a carta perdia o
+título.**
+
+**Medido no teste (`scratchpad/teste-copa.mjs`):** save com **3 Copas + 2
+Supercopas** → depois de simplesmente CONTINUAR a carreira: **0 e 0**.
+
+**Conserto:** todo título de Copa/Supercopa agora nasce com **recibo por
+temporada** (`careerCopaSeasons` / `careerSupercopaSeasons`, novos em
+`types.ts`), gravado por `creditaCopa()`:
+- **não duplica** — se a temporada já está na lista, não soma de novo (toque
+  dublado, F5 na hora errada, dispatch repetido: nada inventa título);
+- **não some** — a conta agora só SOBE, nunca desce (regra de ouro do Diego:
+  *título ganho não some*). Se a lista tiver menos que o contador, quem manda é
+  o contador e a lista é completada — o contrário do que a cura antiga fazia.
+- **save antigo não perde nada**: a lista nasce do que já estava gravado.
+- De quebra: a **Supercopa agora acompanha o rename de clube** (o mapeamento de
+  nomes cuidava de liga e Copa, mas passava batido pela Supercopa — renomear
+  apagava a Supercopa do clube).
+
+### 🔬 Simulação de 120 temporadas (passando da Copa do Mundo, T100)
+`scratchpad/audit-titulos.mjs` — roda o MESMO reducer e o MESMO motor de copa da
+tela, e compara temporada a temporada o campeão que a tela mostra com o título
+que o jogo grava, **pra TODOS os 100 clubes**, não só pro jogador:
+
+| O que foi conferido | Resultado |
+|---|---|
+| Título de liga (A · B · C · D · Várzea) — todos os clubes | ✅ bate 100% |
+| Copa do Brasil — todos os clubes | ✅ bate 100% |
+| Supercopa — todos os clubes | ✅ bate 100% |
+| Supercopa premiou quem venceu no placar (60 finais) | ✅ 60/60 |
+| Campeão da Copa é estável (não muda depois de mostrado) | ✅ mexendo escalação e elenco de bot, mesmo campeão |
+| Rank local · sala de troféus · total da home | ✅ saem todos da MESMA conta (`meusTrofeus`) |
+| Carta por título (liga e copa) | ✅ 1 chave única por título, nenhuma colisão |
+
+### ⏳ Ainda em aberto (achados NOVOS desta auditoria)
+1. **4 de 120 temporadas ficaram SEM Copa do Brasil** (T27, T52, T76, T80): o
+   motor exige 20 times em CADA divisão e devolve vazio se faltar alguém. Num
+   teste separado (`check-piramide.mjs`) a pirâmide veio completa 120/120, então
+   falta achar o que difere. **Ninguém perde título por isso** — simplesmente
+   não há Copa naquela temporada.
+2. **2 de 120 temporadas o prêmio não caiu no caixa** — nas duas o caixa estava
+   NEGATIVO (−5 e −167). Suspeita: a trava de fechamento (`booksSeason`).
+3. **Supercopa continua sem dar carta** — decisão do Diego pendente.
+4. **O "apareceu que ganhou" não foi reproduzido.** O motor está certo (60/60) e
+   as chaves de título não trocam de dono (testado, 15 temporadas, 20 chaves).
+   Suspeita principal: o **ranking GLOBAL**, onde duas carreiras da mesma conta
+   colidem na chave `(user_id, season_no)` — já medido antes: 5 ocorrências.
+
 ## 📢 NOVIDADES AUTOMÁTICAS + baralho automático (16/08)
 Pedido do Diego olhando a home no ar: *"as novidades lá embaixo está muito
 exagerado… novidade não deve ficar sempre lá, vai reduzindo aos poucos, tem que

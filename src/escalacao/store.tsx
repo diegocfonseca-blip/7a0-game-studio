@@ -1778,6 +1778,29 @@ function trimFilialLoansToDivision(s: EscState): number {
   return returned
 }
 
+// 🧾 GRAVA UM TÍTULO DE COPA COM RECIBO (16/08 — conserto do "ganhei e não contou").
+// Além de somar no contador por time (que o ranking e os bots usam), guarda a
+// TEMPORADA em que VOCÊ ganhou. Duas garantias que o contador sozinho não dava:
+//  • não DUPLICA — se a temporada já está na lista, não soma de novo (um toque
+//    dublado, um F5 na hora errada, um dispatch repetido: nada disso inventa
+//    título);
+//  • não SOME — a lista é a verdade; nenhuma "cura" precisa mais adivinhar se o
+//    número está certo, e por isso nenhuma pode apagar o que você ganhou.
+function creditaCopa(s: EscState, champKey: string | undefined | null, qual: 'copa' | 'supercopa') {
+  if (!champKey) return
+  const meuKey = `m${s.managers?.[s.youIdx]?.id ?? 0}`
+  const temporada = s.seasonNo ?? 1
+  const ehMeu = champKey === meuKey
+  if (ehMeu) {
+    const campo = qual === 'copa' ? 'careerCopaSeasons' : 'careerSupercopaSeasons'
+    const lista = s[campo] ?? []
+    if (lista.includes(temporada)) return // já contado nesta temporada — não duplica
+    s[campo] = [...lista, temporada]
+  }
+  if (qual === 'copa') s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [champKey]: (s.careerCopaHonors?.[champKey] ?? 0) + 1 }
+  else s.careerSupercopaHonors = { ...(s.careerSupercopaHonors ?? {}), [champKey]: (s.careerSupercopaHonors?.[champKey] ?? 0) + 1 }
+}
+
 function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -1807,29 +1830,52 @@ function migrateTeamNames(st: EscState): EscState {
   st.clubCash = mapKeys(st.clubCash) ?? st.clubCash
   st.careerHonors = mapKeys(st.careerHonors) ?? st.careerHonors
   st.careerCopaHonors = mapKeys(st.careerCopaHonors) ?? st.careerCopaHonors
-  // 🏆 CURA (04/08, print do leodiniz85): carreiras novas herdavam as COPAS das
-  // carreiras anteriores do aparelho (o START zerava careerHonors mas esquecia
-  // careerCopaHonors) — dava "Copa21" na temporada 8. Só existe 1 Copa por
-  // temporada: soma acima do nº de temporadas = histórico contaminado.
-  // ⚖️ REGRA DO DIEGO ("cada carreira é independente; título ganho NÃO some"):
-  // as SUAS Copas são RECONSTRUÍDAS pelos recibos de carta DESTA carreira (todo
-  // título de Copa gerou um pacote — empresarioClaimKeys guarda ':copa' por
-  // temporada, e o stash do 2º clube idem). Só os BOTS recomeçam do zero (não
-  // existe registro por temporada deles). Cartas e ranking da home nunca
-  // usaram este contador — sempre estiveram certos.
+  // 🏆🧾 A CONTA DAS SUAS COPAS SAI DO RECIBO (16/08) — e nunca mais de adivinhação.
+  //
+  // O que existia aqui: uma "cura" pro bug de 04/08 (carreira nova herdava as
+  // Copas da anterior). Ela olhava a soma de Copas de TODO MUNDO; se passasse do
+  // número de temporadas, jogava tudo fora e reconstruía as SUAS Copas só pelos
+  // recibos de CARTA. Quem ganhou a Copa e não pegou a carta perdia o título.
+  // Medido nesta sessão: **3 Copas viravam 0 só de CONTINUAR a carreira** — é
+  // quase certo o "ganhei a Copa do Brasil e não contou" que chegou pro Diego.
+  //
+  // Agora: quem manda é `careerCopaSeasons` / `careerSupercopaSeasons` (a lista
+  // das temporadas em que VOCÊ foi campeão, gravada na hora do título).
+  //  • save NOVO: o contador é reescrito pelo tamanho da lista — some o que
+  //    estiver inflado, fica exatamente o que você ganhou;
+  //  • save ANTIGO (sem lista): a lista NASCE do que o save já tem. Ou seja,
+  //    ninguém perde nada na virada — e a partir daí está tudo blindado.
+  // O bug de origem (04/08) já foi consertado no START, então não há mais de
+  // onde vir contaminação nova.
   {
-    const somaCopas = Object.values(st.careerCopaHonors ?? {}).reduce((a, b) => a + (b || 0), 0)
-    if (somaCopas > (st.seasonNo ?? 1)) {
-      const rebuilt: Record<string, number> = {}
-      const conta = (keys: string[] | undefined, donoId: number) => {
-        const n = (keys ?? []).filter(k => k.endsWith(':copa')).length
-        if (n > 0) rebuilt['m' + donoId] = (rebuilt['m' + donoId] ?? 0) + n
-      }
-      conta(st.empresarioClaimKeys, st.managers?.[st.youIdx]?.id ?? 0)
-      if (st.multiClube) conta(st.multiClube.empresarioClaims, st.multiClube.id)
-      st.careerCopaHonors = rebuilt
+    const meuKey = `m${st.managers?.[st.youIdx]?.id ?? 0}`
+    const ajusta = (campo: 'careerCopaSeasons' | 'careerSupercopaSeasons', honors: 'careerCopaHonors' | 'careerSupercopaHonors') => {
+      const contador = st[honors]?.[meuKey] ?? 0
+      const limpa = [...new Set(st[campo] ?? [])].sort((a, b) => a - b) // uma por temporada, sem repetir
+      // ⚖️ REGRA DE OURO DO DIEGO: **título ganho NUNCA some.** Então esta conta
+      // só sobe, nunca desce. Se a lista tem MENOS que o contador, quem manda é o
+      // contador (save antigo, ou algum caminho de gravação que a lista ainda não
+      // conhece) e a lista é completada — em vez de apagar o troféu, como a
+      // "cura" antiga fazia. Duplicata já é impossível na origem: `creditaCopa`
+      // não grava a mesma temporada duas vezes.
+      const n = Math.max(limpa.length, contador)
+      const atual = st.seasonNo ?? 1
+      const faltam = n - limpa.length
+      const completa = faltam > 0
+        ? [...limpa, ...Array.from({ length: faltam }, (_, i) => Math.max(1, atual - faltam + i))].sort((a, b) => a - b)
+        : limpa
+      st[campo] = completa
+      const rec = { ...(st[honors] ?? {}) }
+      if (n > 0) rec[meuKey] = n; else delete rec[meuKey]
+      st[honors] = rec
     }
+    ajusta('careerCopaSeasons', 'careerCopaHonors')
+    ajusta('careerSupercopaSeasons', 'careerSupercopaHonors')
   }
+  // 🏷️ a Supercopa também segue o rename de clube (faltava — o mapeamento de
+  // nomes cuidava de honors e Copa, mas passava batido pela Supercopa, então
+  // renomear um clube apagava a Supercopa dele).
+  st.careerSupercopaHonors = mapKeys(st.careerSupercopaHonors) ?? st.careerSupercopaHonors
   // 🏢 saves antigos gravavam UM empréstimo (objeto); agora são LISTAS por divisão
   if (st.careerFilial) st.careerFilial = { ...st.careerFilial, loanOut: loanList(st.careerFilial.loanOut), loanIn: loanList(st.careerFilial.loanIn) }
   return st
@@ -3561,7 +3607,7 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const nm of dNames) pl[nm] = 'D'
       }
       s.careerPlacements = pl
-      s.careerHonors = {}; s.careerCopaHonors = {}; s.marketValues = {}; s.marketLog = []
+      s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
@@ -3751,7 +3797,7 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const m of s.managers) pl[`m${m.id}`] = 'D'
         for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
         s.careerPlacements = pl
-        s.careerHonors = {}; s.careerCopaHonors = {} // títulos (liga E Copa) começam do zero
+        s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = [] // títulos (liga, Copa e Supercopa) começam do zero — e o RECIBO por temporada também
         s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
         s.marketLog = []
         s.careerScorersAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
@@ -5107,8 +5153,8 @@ export function reducer(state: EscState, action: Action): EscState {
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
-      if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador)
-      if (action.supercopaChampion) s.careerSupercopaHonors = { ...(s.careerSupercopaHonors ?? {}), [action.supercopaChampion]: (s.careerSupercopaHonors?.[action.supercopaChampion] ?? 0) + 1 } // 🏆🔵 Supercopa no histórico (essa sim é critério novo)
+      creditaCopa(s, action.copaChampion, 'copa') // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador) — com recibo por temporada
+      creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
       s.seasonNo++
       s.careerPlacements = action.placements
@@ -5180,8 +5226,8 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const k in action.torcidaHist) h[k] = [...(h[k] ?? []), ...action.torcidaHist[k]].slice(-6)
         s.careerTorcidaHist = h
       }
-      if (action.copaChampion) s.careerCopaHonors = { ...(s.careerCopaHonors ?? {}), [action.copaChampion]: (s.careerCopaHonors?.[action.copaChampion] ?? 0) + 1 } // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador)
-      if (action.supercopaChampion) s.careerSupercopaHonors = { ...(s.careerSupercopaHonors ?? {}), [action.supercopaChampion]: (s.careerSupercopaHonors?.[action.supercopaChampion] ?? 0) + 1 } // 🏆🔵 Supercopa no histórico (essa sim é critério novo)
+      creditaCopa(s, action.copaChampion, 'copa') // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador) — com recibo por temporada
+      creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
       // 🌱 cria que não é mais necessário SOME do jogo ("volta pra base"): se a

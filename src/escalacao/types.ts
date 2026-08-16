@@ -569,6 +569,15 @@ export interface EscState {
   stadiums?: Record<number, { inv: Record<string, number>; ext: string[] }> // 🏟️ estádio da carreira por técnico (mgrId): moedas investidas por setor + melhorias prontas. Rende no fim de cada temporada.
   careerCopaHonors?: Record<string, number> // 🏆 títulos da Copa (teamKey → nº de Copas) — MESMO contador serve pra Copa Legends E Copa do Brasil (Diego 16/08: "não são coisas novas, só alterou o nome e o formato" — quem já tinha títulos de Copa Legends não perde nada, o histórico é o mesmo, só troca a etiqueta exibida)
   careerSupercopaHonors?: Record<string, number> // 🏆🔵 títulos da SUPERCOPA LEGENDS por time — essa sim é NOVA de verdade, critério próprio no ranking, logo depois da Copa (docs/conceito-copa-brasil.md §7.3)
+  // 🧾 O RECIBO DOS SEUS TÍTULOS DE COPA (16/08 — relato "ganhei a Copa do Brasil
+  // e não contou"). Lista das TEMPORADAS em que VOCÊ foi campeão. Existe porque
+  // um contador solto não sabe se um número está inflado (título contado duas
+  // vezes) ou furado (título perdido) — e a "cura" que tentava adivinhar isso
+  // APAGAVA título de verdade (medido: 3 Copas viravam 0 só de continuar a
+  // carreira). Com a lista, a conta é o tamanho dela: não duplica (a temporada
+  // já está lá) e não some (nada apaga a lista).
+  careerCopaSeasons?: number[]
+  careerSupercopaSeasons?: number[]
   cpuSquads?: Record<string, Card[]> // pirâmide: a "ficha" (elenco guardado) dos 60 times de fundo, por NOME. Antes eram recalculados na hora (receita fixa); agora têm MEMÓRIA — 11 fixos que só o mercado mexe (troca), pra negociarem de verdade. Reserva de bot só quando houver mais cartas. Semeado 1x pela receita determinística.
   dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
   dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
