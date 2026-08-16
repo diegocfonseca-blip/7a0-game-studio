@@ -1,5 +1,30 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 💰 AUDITORIA DAS PREMIAÇÕES ATÉ O CAIXA (16/08) — 18/18 ✅
+Pedido do Diego: não bastava conferir a tabela, tinha que conferir se o dinheiro
+**cai mesmo no caixa**. Teste dirige o REDUCER de verdade na virada de temporada
+(`OPEN_RESERVE_LIST` com `mesmo:true`), com uma carreira solo completa (sala de
+20 na Várzea, Copa do Brasil + Supercopa rodando).
+
+Conferido e passando:
+- **O extrato fecha com a variação do caixa** (soma dos lançamentos = delta real).
+- Linha **"Prêmios da temporada"** = exatamente o que `seasonRewards` +
+  `copaBrasilRewardsAsCopaRewards` + `scorerRewards` calcularam.
+- Linha **"Cota de TV"** = a régua da divisão (A 20 · B 15 · C 10 · D 5 · V 1).
+- Linha **"Folha salarial"** = a folha do elenco.
+- **Cada linha tem rótulo próprio** — nada cai no rótulo genérico do `kind`
+  (o render usa `e.label || lbl(e.kind)`; a TV é `kind: 'reward'` mas com rótulo
+  próprio, então aparece separada dos prêmios, e não somada).
+- **Trava anti-dobra**: disparar a virada 2× NÃO credita de novo nem duplica
+  linha (`booksSeason`).
+- Título de divisão, Copa do Brasil e Supercopa entram no histórico na virada.
+- A régua de campeão + G4 conferida nas **5 divisões**: A 95 · B 75 · C 55 ·
+  D 35 · Várzea 25 (campeão + zona somados).
+
+⚠️ Armadilha de teste anotada: a **cota de TV também é `kind: 'reward'`**. Somar
+por `kind` mistura TV com prêmios — comparar pelo RÓTULO.
+
+
 ## 🔬 SIMULAÇÃO DEFINITIVA DE 150 TEMPORADAS (16/08) — o que ela achou
 Refeita a pedido do Diego. Time com as melhores lendas do jogo, começando na
 Várzea, 150 temporadas. **Nada gravado no Supabase** (roda em memória).
