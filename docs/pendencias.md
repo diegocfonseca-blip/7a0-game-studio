@@ -1,5 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🚀 PLANO DE CRESCIMENTO — tudo aprovado 16/08, ver `docs/plano-crescimento.md`
+Conversa longa do Diego em 16/08 virou doc próprio. Resumo do que foi aprovado
+(detalhe, números e motivos estão no doc):
+
+1. **Cadastro: jogar primeiro, pedir depois** — 1ª temporada roda SEM login;
+   convite no fim dela; janela por cima da carreira, não manda pro lobby online.
+2. **Cadastro novo**: nome do TIME + time de coração + e-mail + senha.
+   O nome da pessoa sai.
+3. **Nome único entre os SEUS saves**, com banner pra renomear a outra.
+   Os 462 que já têm repetido ficam como estão.
+4. **Renomear o clube na Presidência** — leva escudo, carimbo e o assento no
+   mural da Copa do Mundo junto (senão a arte paga do batismo SOME).
+5. **Ranking global**: os outros veem UMA linha (a melhor carreira); você vê a
+   sua + uma linha fininha da carreira de agora, comparadas na MESMA temporada.
+6. **Home enxuta** — Continuar no topo, carreira antes da partida rápida,
+   "Jogar com amigos (online)" SEM número de gente online.
+7. **Sala da Presidência** (4ª sub-aba do Clube) com técnicos reais e a garagem
+   marcada "em breve".
+
+⏳ **NADA disso estava codado quando o doc foi escrito.** Ordem combinada:
+janela de cadastro → continuar com esse time → 1ª temporada livre → home nova.
+
+
 ## 💰 AUDITORIA DAS PREMIAÇÕES ATÉ O CAIXA (16/08) — 18/18 ✅
 Pedido do Diego: não bastava conferir a tabela, tinha que conferir se o dinheiro
 **cai mesmo no caixa**. Teste dirige o REDUCER de verdade na virada de temporada
