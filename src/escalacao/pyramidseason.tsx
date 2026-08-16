@@ -3371,7 +3371,15 @@ function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, foot
         youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} finished={done} footTint={footTint} />
       {done && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
-          {nLegs === 2 && <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][1]}×{tie.legs[1][0]} · <b>agregado {tie.aggA}×{tie.aggB}</b></p>}
+          {/* 🧮 os TRÊS placares na MESMA ordem (A × B), com os nomes em cima —
+              antes a volta saía invertida (pra bater com o card, que troca de
+              lado no jogo de volta) e o agregado não fechava com o que estava
+              escrito: dava pra somar e "provar" que quem passou foi o outro.
+              Mesmo conserto da Copa do Mundo (bug do Gabriel, 15/08). */}
+          {nLegs === 2 && <>
+            <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, color: 'rgba(0,0,0,.45)', margin: '0 0 1px', textTransform: 'uppercase' }}>{copaName(tie.a)} × {copaName(tie.b)}</p>
+            <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][0]}×{tie.legs[1][1]} · <b>agregado {tie.aggA}×{tie.aggB}</b></p>
+          </>}
           {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
           <p style={{ margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}>
             <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} avança</span>

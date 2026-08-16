@@ -159,6 +159,19 @@ type GMatch = { h: number; a: number; gh?: number; ga?: number; ev?: ScoreGoal[]
 type Group = { teams: number[]; matches: GMatch[][] } // matches[rodada][jogo]
 type KoTie = { h: number; a: number; g1?: [number, number]; g2?: [number, number]; ev1?: ScoreGoal[]; ev2?: ScoreGoal[]; pen?: [number, number]; winner?: number }
 
+// 🧮 PLACARES DO CONFRONTO SEMPRE NA MESMA ORDEM (bug do Gabriel, 15/08).
+// `g1` nasce na ordem [mandante da IDA, visitante] e `g2` na ordem [mandante da
+// VOLTA, visitante] — ou seja, g2 vem INVERTIDO em relação a g1. A tela escrevia
+// os dois crus, um embaixo do outro, sob o mesmo cabeçalho "H × A": quem lia
+// somava a coluna errada, chegava num agregado diferente do jogo e achava que o
+// vencedor estava trocado ("fiz 10 no agregado e contou 8"). O motor SEMPRE
+// esteve certo — o que mentia era a linha. Daqui pra frente todo mundo lê pelo
+// mesmo lugar: ida, volta e agregado saem os três na ordem H × A.
+export function placaresDoConfronto(t: KoTie): { ida: [number, number]; volta: [number, number]; agregado: [number, number] } {
+  const g1 = t.g1 ?? [0, 0], g2 = t.g2 ?? [0, 0]
+  return { ida: [g1[0], g1[1]], volta: [g2[1], g2[0]], agregado: [g1[0] + g2[1], g1[1] + g2[0]] }
+}
+
 // quem marca: sorteio ponderado no XI (ATA pesa 4 · MEI 2 · defesa 1 · GOL nunca)
 function scorerPick(r: () => number, xi: PoolCard[]): string {
   const pool: PoolCard[] = []
@@ -796,12 +809,20 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
           <div style={{ flex: 'none', background: '#fff', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px 9px', fontWeight: 900 }}>{t.g1![0]}×{t.g1![1]}</div>
           <div style={{ flex: 1, minWidth: 0, background: fA.bg, color: fA.ink, padding: '5px 8px', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(t.a)}</div>
         </div>
-        {showVolta && (
-          <div style={{ padding: '3px 8px 5px', textAlign: 'center', color: INK }}>
-            {winDelay > 0 && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
-            volta: {t.g2![0]}×{t.g2![1]}<span style={winDelay > 0 ? { opacity: 0, animation: `cmWinPop .35s ease ${winDelay.toFixed(2)}s forwards` } : undefined}>{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: '#1B7A3D' }}>{nm(t.winner!)} avança</b></span>
-          </div>
-        )}
+        {showVolta && (() => {
+          // 🧮 os TRÊS placares na MESMA ordem do cabeçalho (mandante da ida à
+          // esquerda). Antes a volta saía invertida e sem agregado nenhum: dava
+          // pra somar e "provar" que quem passou foi o outro. Agora o agregado
+          // aparece sempre, em negrito, pra conferência bater na hora.
+          const p = placaresDoConfronto(t)
+          return (
+            <div style={{ padding: '3px 8px 5px', textAlign: 'center', color: INK }}>
+              {winDelay > 0 && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
+              volta: {p.volta[0]}×{p.volta[1]} · <b>agregado {p.agregado[0]}×{p.agregado[1]}</b>
+              <span style={winDelay > 0 ? { opacity: 0, animation: `cmWinPop .35s ease ${winDelay.toFixed(2)}s forwards` } : undefined}>{showPens && t.pen ? ` · pênaltis ${t.pen[0]}×${t.pen[1]}` : ''} → <b style={{ color: '#1B7A3D' }}>{nm(t.winner!)} avança</b></span>
+            </div>
+          )
+        })()}
       </div>
     )
   }
@@ -811,7 +832,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
       {live(t.a, t.h, t.ev2!)}
       {liveDone && t.pen && (
         <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 AGREGADO {t.g1![0] + t.g2![1]}×{t.g1![1] + t.g2![0]} — DECISÃO NOS PÊNALTIS</p>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 AGREGADO {placaresDoConfronto(t).agregado[0]}×{placaresDoConfronto(t).agregado[1]} — DECISÃO NOS PÊNALTIS</p>
           <PensShootout pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} colorOf={paisColor} />
         </div>
       )}

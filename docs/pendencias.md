@@ -1,5 +1,42 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🐛🏆 BUG DO AGREGADO DA COPA (Gabriel Cozendey, 15/08) — CONSERTADO 16/08
+Ele relatou: *"fiz 10 no agregado e contou 8"* · *"ganhei o título e deu vice
+pra mim"*.
+
+**O motor NUNCA esteve errado.** Auditado com script: 18.000 confrontos da Copa
+Legends (agregado = soma dos jogos · quem passa = maior agregado · campeão =
+vencedor da final · vice = perdedor da final · gols animados = placar) — **zero
+erros**. Idem no motor da Copa do Mundo.
+
+**O que mentia era a LINHA da tela.** Em `copa-mundo.tsx` o `g2` (jogo de volta)
+nasce na ordem `[mandante da volta, visitante]`, ou seja INVERTIDO em relação ao
+`g1` da ida. A tela escrevia `volta: {g2[0]}×{g2[1]}` cru, embaixo de um
+cabeçalho `H × A`, **sem agregado nenhum**. Quem somava a coluna chegava num
+total diferente do jogo — e num vencedor diferente. Medido: em **41% dos
+confrontos de ida e volta** somar a coluna dava o vencedor ERRADO.
+
+Correção (só exibição, não muda resultado nenhum):
+- `copa-mundo.tsx`: helper puro **`placaresDoConfronto(t)`** devolve ida, volta e
+  agregado SEMPRE na mesma ordem (H × A). A linha agora mostra o **agregado
+  sempre**, não só quando vai a pênaltis.
+- `pyramidseason.tsx` (`MyCopaMatch`, Copa Legends + Copa do Brasil): a volta
+  saía invertida pelo mesmo motivo (pra bater com o card, que troca de lado no
+  jogo de volta) e não fechava com o agregado escrito ao lado. Agora os três
+  placares saem em A × B, **com os nomes dos dois times por cima**.
+
+**O que NÃO era bug** (conferido no banco antes de responder): a carta de
+campeão. Nos ~1.000 registros do Gabriel, **todo título gravado gerou carta** —
+inclusive a temporada 480, em que ele ganhou os três (liga + Copa Legends + Copa
+do Mundo) e recebeu as três cartas. Na noite de 15/08 ele não ganhou três: a
+temporada 545 foi Copa sim, liga não. Ele acreditou que tinha ganhado por causa
+da linha invertida acima.
+
+⚠️ Regra que continua valendo (não é bug, mas vale saber): o título da Copa do
+Mundo só entra no RANKING se a carreira for nova (`agenciaOn`). A carta vem de
+qualquer jeito.
+
+
 ## 🃏⚫⚪ Batismo CORINGAS DO DINIZ (Lucas Calefi · lucas_calefi@outlook.com) — 16/08
 Lenda **fundador nº44** + **sócio nº24**. ❤️ **Corinthians**, manto **branco e
 preto** (só as listras). Substituiu o **Vanguarda Nacional** na Série A.
