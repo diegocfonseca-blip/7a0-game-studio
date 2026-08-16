@@ -517,7 +517,9 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🐝👑 Sapekeiros FC (Tio Sapeka) — mesmo escudo pros dois nomes
   'Sapekeiros FC': sapekEscudoRender,
   'Sapekeiros': sapekEscudoRender,
-  // 🐍🇧🇷 Tricolor do Arruda (souzact12) — ex-Legado EC, Série A
+  // 🏟️🇧🇷 Tricolor do Arruda FC (souzact12) — ex-Legado EC, Série A. Os nomes
+  // sem "FC" continuam registrados: quem pegou o save da 1ª hora não fica sem escudo.
+  'Tricolor do Arruda FC': arrudaEscudoRender,
   'Tricolor do Arruda': arrudaEscudoRender,
   'Tricolor Arruda': arrudaEscudoRender,
   'Arruda': arrudaEscudoRender,

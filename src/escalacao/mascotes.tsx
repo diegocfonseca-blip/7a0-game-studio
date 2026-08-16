@@ -696,7 +696,7 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Remoçada': 'leao_thor',
   'Eros FC': 'eros_nina',
   'Sapekeiros FC': 'sapek_abelha',
-  'Tricolor do Arruda': 'cobra_arruda', // 🐍 a cobra do cachimbo carimba o placar (16/08)
+  'Tricolor do Arruda FC': 'cobra_arruda', // 🐍 a cobra do cachimbo carimba o placar (16/08)
   'Seven City': 'sete_seven', // 7️⃣ o Seven City carimba com o SETE (mockup aprovado), não com o leão
 }
 

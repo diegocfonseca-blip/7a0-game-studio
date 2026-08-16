@@ -1,6 +1,6 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
-## 🐍🔴⚫⚪ Batismo Tricolor do Arruda (Geovani GS · souzact12@gmail.com) — 16/08
+## 🐍🔴⚫⚪ Batismo Tricolor do Arruda FC (Geovany Souza · souzact12@gmail.com) — 16/08
 Homenagem ao **Santa Cruz** (time do coração dele) e ao Arruda. Substituiu o
 **Legado EC** na Série A. Dono virou **ouro/Lenda** (era prata/Craque) +
 **fundador nº43**.
@@ -14,7 +14,7 @@ Feito no repo (já na main, já no ar):
   **carimba o placar** quando o clube faz gol (isso funciona já, é só código).
 
 ⏳ **PENDENTE — precisa de escrita no Supabase (`esc_socios`), fora do repo.**
-Sem essa linha, DUAS coisas do batismo NÃO acontecem pro Geovani:
+Sem essa linha, DUAS coisas do batismo NÃO acontecem pro Geovany:
 - o **FESTÃO de campeão** (a cobra tomando a tela após o apito) e
 - a **cobra pulando no pênalti convertido**,
 
