@@ -2220,6 +2220,7 @@ export const OLD_NAME: Record<string, string> = {
   'Seven FC': 'Apogeu FC', // ⚽ batismo do glaucomiranda: elo da corrente Apogeu FC → Seven FC → Seven City
   'Tricolor do Arruda': 'Legado EC', // ⚽ batismo do souzact12: save antigo com Legado EC vira Tricolor do Arruda ao carregar
   'Tricolor do Arruda FC': 'Tricolor do Arruda', // ⚽ 16/08: o nome certo é com FC no fim (o "Tricolor do Arruda" pelado ficou no ar por ~1h); elo da corrente Legado EC → Tricolor do Arruda → Tricolor do Arruda FC
+  'Coringas do Diniz': 'Vanguarda Nacional', // ⚽ batismo do lucas_calefi: save antigo com Vanguarda Nacional vira Coringas do Diniz ao carregar (16/08)
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -2360,7 +2361,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Luiz', team: 'Remoçada' }, // ⚽ clube BATIZADO por apoiador (luiz.maia.luiz — Remoçada, ex-Olimpo FC; Leão do Remo/Thor, Lenda + fundador nº35, 12/08)
     { name: 'Continental', team: 'Continental Real' },
     { name: 'Monarca', team: 'Monarca EC' },
-    { name: 'Vanguarda', team: 'Vanguarda Nacional' },
+    { name: 'Coringa', team: 'Coringas do Diniz' }, // ⚽ clube BATIZADO por apoiador (lucas_calefi — Coringas do Diniz, ex-Vanguarda Nacional; Lenda + fundador nº44 + sócio nº24, coração Corinthians, 16/08)
     { name: 'Aurora', team: 'Aurora Suprema' },
     { name: 'Dragão', team: 'Dragão Imperial' },
     { name: 'Cosmo', team: 'Cosmopolita FC' },

@@ -161,6 +161,11 @@ function chargeSalaries(s: EscState) {
   }
   s.careerCoins = cc
 }
+// 🎟️🪙 BRINDES DE SÓCIO — os DOIS valores moram aqui e em lugar nenhum mais.
+// A action SOCIO_CREDIT não aceita número de fora justamente pra ninguém
+// conseguir pedir um valor inventado; quem trava a repetição é o Supabase.
+export const SOCIO_MENSAL = 30       // 🪙 todo mês, pra todo sócio ativo (RPC esc_socio_resgatar)
+export const SOCIO_BOAS_VINDAS = 39  // 🪙 UMA VEZ SÓ na vida da conta, quando o sócio entra (RPC esc_socio_boas_vindas, Diego 16/08)
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
@@ -2598,6 +2603,7 @@ type Action =
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
   | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
+  | { type: 'SOCIO_CREDIT'; motivo: 'mensal' | 'boas-vindas' } // 🎟️ brinde de sócio (RPC já travou no Supabase, 1× por mês / 1× na vida) — o VALOR vem do código, nunca de fora
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
   | { type: 'SET_AGENCIA_CLUBE'; mgrId: number; dividir?: boolean } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (ou dividir meio a meio) — toggle na tela dos Agenciados
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
@@ -4931,6 +4937,23 @@ export function reducer(state: EscState, action: Action): EscState {
       const yb = s.managers[s.youIdx]?.id ?? 0
       s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + action.coins }
       logFin(s, 'banco', `🏦 Empréstimo do Banco Legends (ficha ${action.code})`, action.coins, undefined, yb)
+      return s
+    }
+    case 'SOCIO_CREDIT': {
+      // 🎟️🪙 BRINDE DE SÓCIO. Quem valida e trava é o Supabase (RPC atômica:
+      // 1× por mês no mensal, 1× na vida da conta nas boas-vindas). Aqui só
+      // entra o crédito — e o VALOR é fixo NO CÓDIGO (nunca vem da action), pra
+      // ninguém conseguir pedir um número inventado. Só carreira solo, igual ao
+      // Banco Legends. ⚠️ Antes disto o mensal ia pelo BANCO_CREDIT, que só
+      // aceita os valores de ficha [10,50,100,500,1000] — as 30 do mês eram
+      // silenciosamente RECUSADAS e nunca caíam no caixa (corrigido 16/08).
+      if (s.onlineMode === 'online' || !s.careerOnline) return s
+      const coins = action.motivo === 'boas-vindas' ? SOCIO_BOAS_VINDAS : SOCIO_MENSAL
+      const yb = s.managers[s.youIdx]?.id ?? 0
+      s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + coins }
+      logFin(s, 'socio', action.motivo === 'boas-vindas'
+        ? '🎟️ Boas-vindas de sócio (uma vez só)'
+        : '🎟️ Moedas de sócio do mês', coins, undefined, yb)
       return s
     }
     case 'SET_AGENCIA_CLUBE': {

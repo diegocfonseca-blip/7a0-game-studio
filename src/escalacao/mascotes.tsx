@@ -10,6 +10,7 @@ import tokaMascoteImg from './img/toka10-mascote.webp'
 import erosNinaImg from './img/eros-nina-mascote.webp'
 import sapekAbelhaImg from './img/sapek-mascote.webp'
 import arrudaCobraImg from './img/arruda-mascote.webp'
+import coringasMascoteImg from './img/coringas-mascote.webp'
 import ferrariMascoteImg from './img/ferrari-mascote.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 
 const INK = '#0C0C0C'
@@ -468,6 +469,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   cobra_arruda: (
     <img src={arrudaCobraImg} height={176} width={Math.round(176 * 319 / 440)} alt="Cobra Coral — Tricolor do Arruda FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🃏⚫⚪ o CORINGA (mascote dos Coringas do Diniz — lucas_calefi, aprovado 16/08):
+  // o coringa de camisa listrada preto e branco, com a bola no braço e a carta na
+  // mão. Arte própria do dono (webp, fora do bundle). mascote_key = "coringa_diniz".
+  coringa_diniz: (
+    <img src={coringasMascoteImg} height={176} width={Math.round(176 * 248 / 320)} alt="O Coringa — Coringas do Diniz" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🐶🎮 a NINA (mascote do Eros FC — erosreis/@erosreis, aprovado 12/08): a
   // cachorrinha do dono, de coleira vermelha, sentada na pilha de cartuchos com o
   // controle no peito. Arte própria do dono (webp, exceção aprovada). mascote_key = "eros_nina".
@@ -698,6 +705,7 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Sapekeiros FC': 'sapek_abelha',
   'Tricolor do Arruda FC': 'cobra_arruda', // 🐍 a cobra do cachimbo carimba o placar (16/08)
   'Seven City': 'sete_seven', // 7️⃣ o Seven City carimba com o SETE (mockup aprovado), não com o leão
+  'Coringas do Diniz': 'coringa_diniz', // 🃏 o coringa carimba o placar (16/08)
 }
 
 // 7️⃣ carimbo exclusivo do Seven City: o sete dourado com borda preta grossa.
@@ -714,6 +722,7 @@ const SETE_SEVEN = (
 // não estiver nesta lista continua caindo no "mascote" genérico de sempre.
 export const MASCOTE_NOME: Record<string, string> = {
   cobra_arruda: 'Cobra Coral', // 🐍 Tricolor do Arruda FC (Geovany Souza, 16/08)
+  coringa_diniz: 'O Coringa',  // 🃏 Coringas do Diniz (Lucas Calefi, 16/08)
   eros_nina: 'Nina',           // 🐶 Eros FC — a cachorrinha do dono
   maite: 'Maitê',              // 💚 Desportivo Montreal — homenagem à filha do Gabriel
 }

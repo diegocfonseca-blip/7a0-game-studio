@@ -1,23 +1,55 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
-## 👑🖋️ Novo Lenda fundador nº44 + sócio nº24: lucas_calefi@outlook.com (16/08)
-Lucas Calefi — ❤️ **Corinthians**, manto **branco e preto**.
-- `apoio.tsx`: FOUNDERS **ouro** + FUNDADOR_N **nº44**.
-- `esc_socios`: **sócio nº24**, manto_c1 `#FFFFFF` (branco) + manto_c2 `#0C0C0C`
-  (preto), time_coracao `Corinthians`, origem `batismo`, válido até 2099.
-- 🔒 **CLUBE ESCOLHIDO (16/08): `Vanguarda Nacional`** — RESERVADO pro Lucas.
-  Nenhuma outra sessão pode dar esse time pra outro apoiador.
-- ⏳ **PENDENTE — o resto do batismo:** faltam **nome novo do clube**, **escudo**
-  e **mascote** (o Diego vai passar).
-  Quando ele escolher, seguir o padrão de sempre (mockup vertical → OK do Diego
-  → escudo em `escudos.tsx` + mascote em `mascotes.tsx` + `OLD_NAME` no
-  `data.ts` + `CARIMBO_GOL` + gravar `mascote_key`/`escudo_time` no `esc_socios`).
-- **Série A LIVRE quando ele escolheu** (16/08): Metrópole FC · Soberano Nacional
-  · Coliseu United · Galáxia EC · Imperador SAF · Fênix Dourada · Continental
-  Real · Monarca EC · Vanguarda Nacional · Aurora Suprema · Dragão Imperial ·
-  Cosmopolita FC · Zênite United · Excelsior SAF · Prestígio FC (15 livres).
-  Já batizados (não dá): Scorporila FC · Deportivo Montreal · Remoçada ·
-  Tricolor do Arruda FC · Seven City.
+## 🃏⚫⚪ Batismo CORINGAS DO DINIZ (Lucas Calefi · lucas_calefi@outlook.com) — 16/08
+Lenda **fundador nº44** + **sócio nº24**. ❤️ **Corinthians**, manto **branco e
+preto** (só as listras). Substituiu o **Vanguarda Nacional** na Série A.
+Mockup vertical aprovado pelo Diego antes de subir.
+
+✅ **FEITO (16/08)** — código:
+- `img/coringas-escudo.webp` (219×248, 30,3 KB) + `img/coringas-mascote.webp`
+  (248×320, 44,0 KB). Arte **do próprio dono**, só recortada/reduzida/convertida
+  — nada redesenhado. Os dois dentro dos tetos do CLAUDE.md.
+- `escudos.tsx`: `coringasEscudoRender` sob `Coringas do Diniz` / `Coringas` /
+  `Coringas do Diniz FC`.
+- `mascotes.tsx`: `MASCOTES.coringa_diniz`, `MASCOTE_NOME` = "O Coringa",
+  `CARIMBO_GOL['Coringas do Diniz'] = 'coringa_diniz'` (carimba o placar no gol).
+- `data.ts`: entrada na Série A + `OLD_NAME['Coringas do Diniz'] = 'Vanguarda
+  Nacional'` (save antigo é renomeado ao carregar, ninguém perde carreira).
+- `apoio.tsx`: comentários atualizados (ouro nº44 já estava).
+
+✅ **FEITO (16/08)** — Supabase (`esc_socios`, sócio nº24):
+`escudo_time = Coringas do Diniz` · `mascote_key = coringa_diniz` ·
+`time_coracao = Corinthians` · manto `#FFFFFF` + `#0C0C0C` · origem `batismo`.
+
+⏳ Falta (mesma fila de todos os batismos): **festão de campeão** e **coringa do
+pênalti** dependem de o `mascote_key` estar no banco — já está, então entram
+na próxima carreira que ele abrir.
+
+🎽 O arquivo `kit.webp` (228×280, 23,4 KB) da arte do manto **não foi pro repo**:
+hoje o manto no jogo é listra em CSS (0 KB), não imagem. A arte fica guardada
+como referência; se um dia tiver tela de uniforme, é só subir.
+
+
+## 🎟️🪙 BRINDE DE BOAS-VINDAS DE SÓCIO — 39 moedas, uma vez só (16/08)
+Decisão do Diego: **todo sócio que entrar ganha 39 🪙 UMA VEZ SÓ** (não é
+mensal), e isso aparece **no extrato** como ganho.
+- Supabase: RPC **`esc_socio_boas_vindas()`** — devolve 39 na primeira vez e 0
+  nas seguintes. A trava é a PK `(email, mes)` da `esc_socio_resgates`, com a
+  linha `mes = 'boas-vindas'`. Testado: 1ª = 39, 2ª = 0.
+- `store.tsx`: action **`SOCIO_CREDIT`** (`motivo: 'mensal' | 'boas-vindas'`).
+  O **valor vem do código** (`SOCIO_MENSAL = 30`, `SOCIO_BOAS_VINDAS = 39`),
+  nunca da action — ninguém consegue pedir um número inventado.
+- `types.ts`: novo `kind: 'socio'` no extrato · `pyramidseason.tsx`: rótulo
+  "🎟️ Moedas de sócio" + toast amarelo somando o que caiu.
+
+🐛 **BUG ANTIGO CORRIGIDO JUNTO**: as **30 🪙 mensais de sócio nunca caíam**.
+Elas eram despachadas via `BANCO_CREDIT`, que só aceita os valores de ficha
+`[10, 50, 100, 500, 1000]` — 30 não está na lista, então o reducer **recusava
+em silêncio** desde 09/08. Agora vão por `SOCIO_CREDIT` e caem de verdade.
+⚠️ Consequência: quem já tinha resgate marcado no servidor nos meses passados
+**não recebe retroativo** (a linha do mês já existe na `esc_socio_resgates`).
+Se o Diego quiser compensar, é apagar as linhas antigas da tabela ou creditar
+por ficha do Banco Legends.
 
 
 ## 🐍🔴⚫⚪ Batismo Tricolor do Arruda FC (Geovany Souza · souzact12@gmail.com) — 16/08

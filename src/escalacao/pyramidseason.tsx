@@ -13,7 +13,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -1480,7 +1480,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
   const noElenco = squad.filter(c => !c.fake && !isFillerClub(c.club) && !c.emprestado && (c.buyPrice != null || c.paid != null))
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'empresario' ? '💼 Renda do Empresário' : k === 'opening' ? '🏁 Saldo inicial' : k === 'bico' ? '🕴️ Bico de Folga' : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'empresario' ? '💼 Renda do Empresário' : k === 'opening' ? '🏁 Saldo inicial' : k === 'bico' ? '🕴️ Bico de Folga' : k === 'socio' ? '🎟️ Moedas de sócio' : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
@@ -3817,11 +3817,12 @@ function CoinsBadge({ coins }: { coins: number }) {
     </span>
   )
 }
-// 🖋️🎫 BANNER DO BARÃO (pedido do Diego 09/08): quem tem BATISMO virou sócio
-// incluso — ao abrir a carreira: (a) resgata as 30 🪙 do mês sozinho (RPC com
-// trava servidor, 1× por conta/mês) e credita no caixa via BANCO_CREDIT;
-// (b) mostra o banner de boas-vindas com as vantagens + chamada pro direct.
-// SÓ contas de batismo veem (origem='batismo' no esc_socios). Dispensável.
+// 🖋️🎫 BRINDES DO SÓCIO (pedido do Diego 09/08, ampliado 16/08): ao abrir a
+// carreira solo, quem é sócio ativo recebe sozinho, sem apertar nada:
+//   (a) 🎟️ BOAS-VINDAS — 39 🪙, UMA VEZ SÓ na vida da conta (RPC esc_socio_boas_vindas);
+//   (b) 🪙 MENSAL — 30 🪙 por mês (RPC esc_socio_resgatar).
+// As duas travas são do SERVIDOR (linha na esc_socio_resgates); o localStorage é
+// só cache pra não repetir a chamada. Cai no caixa e vira linha no EXTRATO.
 function SocioBaraoBanner() {
   // 🗑️ REMOVIDO (pedido do Diego 12/08): o banner preto de boas-vindas do
   // sócio-batismo (lista de vantagens + botão de chamar no Instagram) saiu de
@@ -3830,7 +3831,8 @@ function SocioBaraoBanner() {
   // grande em preto foi tirada. O aviso de "as moedas caíram" vira um toast
   // pequeno e discreto, sem o resto da lista de vantagens.
   const { state, dispatch } = useEsc()
-  const [moedas, setMoedas] = useState(0) // 30 = caíram agora (nesta sessão)
+  const [moedas, setMoedas] = useState(0)     // total que caiu agora (nesta sessão)
+  const [boasVindas, setBoasVindas] = useState(false) // veio o brinde de entrada?
   const solo = state.careerOnline && state.onlineMode !== 'online'
   useEffect(() => {
     if (!solo) return
@@ -3840,15 +3842,26 @@ function SocioBaraoBanner() {
         const { data } = await supabase.rpc('esc_meu_socio')
         const row = (Array.isArray(data) ? data[0] : data) as { socio_n?: number; ativo?: boolean; origem?: string } | undefined
         if (!alive || !row?.ativo) return
+        // 🎟️ BOAS-VINDAS (uma vez só na vida da conta) — trava no servidor; o
+        // localStorage aqui é só cache pra não bater na RPC toda abertura.
+        if (localStorage.getItem('esc-socio-boas-vindas') !== '1') {
+          const { data: b } = await supabase.rpc('esc_socio_boas_vindas')
+          if (b === SOCIO_BOAS_VINDAS && alive) {
+            dispatch({ type: 'SOCIO_CREDIT', motivo: 'boas-vindas' })
+            setMoedas(n => n + SOCIO_BOAS_VINDAS)
+            setBoasVindas(true)
+          }
+          if (b === SOCIO_BOAS_VINDAS || b === 0) try { localStorage.setItem('esc-socio-boas-vindas', '1') } catch { /* segue */ }
+        }
         // 🪙 resgate do mês (qualquer sócio ativo): guarda local só pra não repetir a chamada
         const chave = `esc-socio-resgate-${new Date().toISOString().slice(0, 7)}`
         if (localStorage.getItem(chave) !== '1') {
           const { data: r } = await supabase.rpc('esc_socio_resgatar')
-          if (r === 30 && alive) {
-            dispatch({ type: 'BANCO_CREDIT', coins: 30, code: `SÓCIO ${new Date().toLocaleDateString('pt-BR', { month: 'long' })}` })
-            setMoedas(30)
+          if (r === SOCIO_MENSAL && alive) {
+            dispatch({ type: 'SOCIO_CREDIT', motivo: 'mensal' })
+            setMoedas(n => n + SOCIO_MENSAL)
           }
-          if (r === 30 || r === 0) try { localStorage.setItem(chave, '1') } catch { /* segue */ }
+          if (r === SOCIO_MENSAL || r === 0) try { localStorage.setItem(chave, '1') } catch { /* segue */ }
         }
       } catch { /* sem rede — tenta na próxima aberta */ }
     })()
@@ -3856,7 +3869,16 @@ function SocioBaraoBanner() {
   }, [solo]) // eslint-disable-line react-hooks/exhaustive-deps
   if (!solo || moedas <= 0) return null
   return (
-    <div style={{ border: `3px solid ${INK}`, borderRadius: 13, background: 'linear-gradient(150deg,#FFE79A,#FFC400)', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 12px', marginBottom: 12, fontWeight: 900, fontSize: 12.5, fontFamily: 'Oswald, sans-serif' }}>🪙 As 30 moedas de sócio deste mês caíram no caixa!</div>
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 13, background: 'linear-gradient(150deg,#FFE79A,#FFC400)', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 12px', marginBottom: 12, fontWeight: 900, fontSize: 12.5, fontFamily: 'Oswald, sans-serif' }}>
+      🪙 +{moedas} moedas de sócio caíram no caixa!
+      <span style={{ display: 'block', fontFamily: 'inherit', fontWeight: 700, fontSize: 10.5, opacity: .75, marginTop: 2 }}>
+        {boasVindas
+          ? (moedas > SOCIO_BOAS_VINDAS
+            ? `${SOCIO_BOAS_VINDAS} de boas-vindas (uma vez só) + ${SOCIO_MENSAL} deste mês. Veja em Clube › Finanças.`
+            : 'Brinde de boas-vindas — uma vez só. Veja em Clube › Finanças.')
+          : 'Moedas deste mês. Veja em Clube › Finanças.'}
+      </span>
+    </div>
   )
 }
 

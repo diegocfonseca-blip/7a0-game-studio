@@ -104,7 +104,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'marcomak03@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual (08/08)
   'luiz.maia.luiz@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (08/08)
   'souzact12@gmail.com': 'ouro', // 👑 Lenda (pago) — Geovany Souza: tudo do ouro + FUNDADOR + batismo (Tricolor do Arruda FC, ex-Legado EC; anel do Arruda com o T no escudo, cobra de cachimbo de mascote; coração Santa Cruz) — era Craque prata, subiu no batismo (16/08)
-  'lucas_calefi@outlook.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº44 + sócio nº24; batismo de clube da Série A a definir; coração Corinthians, manto preto e branco (16/08)
+  'lucas_calefi@outlook.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº44 + sócio nº24; batizou os CORINGAS DO DINIZ (ex-Vanguarda Nacional, Série A); coração Corinthians, manto preto e branco (16/08)
   'lucassrribeiroo2023@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Scorporila FC) (11/08)
   'paisagensetrilha@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marolados FC — molecada da várzea) (11/08)
   'agrostinho88@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (Leandro/Obina; nome reservado "Papão United Madrid") (11/08)
@@ -154,7 +154,7 @@ const FUNDADOR_N: Record<string, number> = {
   'tiosapeka@gmail.com': 41, // 🖋️ Tio Sapeka — batismo Sapekeiros FC (influencer @tiosapekagg, mascote abelha coroada 🐝) (12/08)
   'glaucomiranda@outlook.com': 42, // 🖋️ Glauco — Lenda + sócio nº22; batismo Seven FC (15/08)
   'souzact12@gmail.com': 43, // 🖋️ Geovany Souza — batismo Tricolor do Arruda FC (ex-Legado EC, Série A); anel do Arruda com o T no escudo, cobra de cachimbo de mascote (16/08)
-  'lucas_calefi@outlook.com': 44, // 🖋️ Lucas Calefi — Lenda + sócio nº24; batismo na Série A a definir; coração Corinthians (16/08)
+  'lucas_calefi@outlook.com': 44, // 🖋️ Lucas Calefi — Lenda + sócio nº24; batizou os Coringas do Diniz (Série A); coração Corinthians (16/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
