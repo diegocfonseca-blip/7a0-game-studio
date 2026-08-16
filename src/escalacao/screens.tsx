@@ -5010,8 +5010,8 @@ const MICO_FRASES: ((t: string) => string)[] = [
   t => `O ${t} defendeu tão pouco que a rede pediu férias. 🥅`,
   t => `Dizem que o ${t} ainda procura a bola até hoje. 🔍`,
 ]
-function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals }: {
-  roomId: string; isHost: boolean; seasonNo: number; champName: string; scorerName?: string; scorerGoals?: number
+function HallDaFama({ roomId, isHost, seasonNo, matchSeed, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals }: {
+  roomId: string; isHost: boolean; seasonNo: number; matchSeed?: number; champName: string; scorerName?: string; scorerGoals?: number
   scorerTeamName?: string; micoName?: string
   copaChampName?: string; copaScorerName?: string; copaScorerGoals?: number
 }) {
@@ -5029,10 +5029,20 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
         // fácil e o campeão novo não sobrescrevia o antigo → Hall da Fama travava no
         // campeão de um jogo anterior). Com o retry, a regravação do host vinga.
         for (let i = 0; i < 3; i++) {
-          const { data: existing } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
+          // 🏆 A LINHA É DA PARTIDA, não do número da temporada (Diego 16/08 —
+          // "joguei a segunda e não contou no hall"). Antes procurava por
+          // (sala, temporada); como o "novo leilão" zerava a temporada pra 1, a
+          // 2ª partida achava a linha da 1ª e escrevia POR CIMA. Agora a busca é
+          // pela SEMENTE da partida (muda a cada novo leilão): partida diferente
+          // = linha nova, sempre. Sem semente (save/aba antiga), cai na regra
+          // velha — nada quebra.
+          const busca = matchSeed != null
+            ? supabase.from('game_champions').select('id').eq('room_id', roomId).eq('match_seed', matchSeed).maybeSingle()
+            : supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
+          const { data: existing } = await busca
           const { error } = existing
             ? await supabase.from('game_champions').update(payload).eq('id', existing.id)
-            : await supabase.from('game_champions').insert({ room_id: roomId, season_no: seasonNo, ...payload })
+            : await supabase.from('game_champions').insert({ room_id: roomId, season_no: seasonNo, ...(matchSeed != null ? { match_seed: matchSeed } : {}), ...payload })
           if (!error) break
           await new Promise(r => setTimeout(r, 400 * (i + 1)))
         }
@@ -5051,7 +5061,7 @@ function HallDaFama({ roomId, isHost, seasonNo, champName, scorerName, scorerGoa
       setRows(list)
     })()
     return () => { alive = false }
-  }, [isHost, roomId, seasonNo, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals])
+  }, [isHost, roomId, seasonNo, matchSeed, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals])
 
   if (!rows || rows.length === 0) return null
   // 🏆 estante: soma os troféus de cada nome ao longo das temporadas da sala
@@ -6578,7 +6588,35 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       const temDono = (uid?: string | null) => !!uid && sorted.some(d => d.user_id === uid && !d.dupla_partner_of)
       const donos = state.duplasMode ? sorted.filter(p => !temDono(p.dupla_partner_of)) : sorted
       const seen = new Set<string>()
-      const uniq = donos.filter(p => (seen.has(p.user_id) ? false : (seen.add(p.user_id), true)))
+      const semRepetir = donos.filter(p => (seen.has(p.user_id) ? false : (seen.add(p.user_id), true)))
+      // 🚪 QUEM SAIU NÃO VOLTA (Diego 16/08 — relato jogando com dois amigos):
+      // esta lista vem do BANCO (`room_players`), que guarda todo mundo que um dia
+      // entrou na sala. Quem fechou o app continuava lá — então, no "novo leilão",
+      // o amigo que tinha SAÍDO (e nem votou) ganhava um assento de novo e o
+      // pregão ficava esperando o envelope de um fantasma. O host tinha que ir no
+      // "gerenciar" e remover na mão, no meio do jogo.
+      //
+      // Régua: entra quem está ONLINE agora (presença) ou quem VOTOU (votar prova
+      // que estava lá) — e o host sempre. É a mesma régua que a lista de cima da
+      // tela usa pra marcar "🚪 saiu", então o que o host vê é o que acontece.
+      //
+      // 🛡️ Trava de segurança: se a presença não chegou (realtime caindo,
+      // `presenceUids` vazio), NÃO corta ninguém — melhor um a mais, que o host
+      // remove, do que cortar quem estava jogando.
+      const uidsPresentes = new Set<string>((state.presenceUids ?? []).filter((u): u is string => !!u))
+      // quem VOTOU: a linha do banco guarda o assento (`player_index`), e o voto é
+      // guardado pelo crachá do técnico daquele assento — dá pra casar os dois.
+      const uidsQueVotaram = new Set<string>()
+      for (const p of sorted) {
+        const crachá = state.managers[p.player_index]?.id
+        if (crachá != null && (state.seasonVotes ?? {})[crachá]) uidsQueVotaram.add(p.user_id)
+      }
+      const meuUidAgora = auth?.user?.id
+      const podeCortar = uidsPresentes.size > 0
+      const uniq = podeCortar
+        ? semRepetir.filter(p => p.user_id === meuUidAgora || uidsPresentes.has(p.user_id) || uidsQueVotaram.has(p.user_id))
+        : semRepetir
+      const cortados = semRepetir.length - uniq.length
       const duplas: Record<number, DuplaSeat> = {}
       const playerNames = uniq.map((p, i) => {
         if (!state.duplasMode) return p.manager_name
@@ -6600,6 +6638,10 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         dispatch({ type: 'REMATCH' })
         return
       }
+      if (cortados > 0) {
+        // 📢 nada acontece no escuro: o host fica sabendo quem não entrou.
+        try { alert(`${cortados === 1 ? 'Uma pessoa saiu da sala e não entrou' : `${cortados} pessoas saíram da sala e não entraram`} no novo leilão. Se alguém voltar, é só chamar de novo pelo código. 👋`) } catch { /* ignora */ }
+      }
       await supabase.from('game_rooms').update({ status: 'started' }).eq('id', state.roomId)
       // meu assento = a posição do meu DONO (se eu for parceiro, é o assento dele —
       // o time é o mesmo dos dois, igual a sala de espera já resolve).
@@ -6613,6 +6655,10 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
         duplasMode: state.duplasMode, duplas: state.duplasMode ? duplas : undefined, youUid: meuUid ?? state.youUid,
         deck: state.deckLeague, varzea: state.varzea, rematch: Date.now(), copaMode: state.copaMode, // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
+        // 🏆 a sala CONTINUA a contagem: o "novo leilão" é a próxima temporada da
+        // mesma resenha, não um recomeço do zero. Sem isto o `seasonNo` voltava
+        // pra 1 e a partida nova apagava a anterior no Hall da Fama.
+        seasonNo: (state.seasonNo ?? 1) + 1,
         // 🎥 08/08 (relato do Diego): o "novo leilão" ESQUECIA o modo stream — a sala
         // começou com valores escondidos e, na revanche, os lances apareciam. O
         // START_ONLINE zera o que não vier na ação, então TODAS as escolhas da sala
@@ -7098,7 +7144,7 @@ export function EscEnd() {
       {online && state.roomId && !copaPending && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
         return (
-          <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} champName={champ.name}
+          <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} matchSeed={state.seed} champName={champ.name}
             scorerName={myScorer?.name} scorerGoals={myScorer?.goals}
             scorerTeamName={state.managers.find(m => m.id === myScorer?.teamId)?.teamName}
             micoName={table.length > 1 ? table[table.length - 1]?.name : undefined}

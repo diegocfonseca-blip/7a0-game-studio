@@ -55,6 +55,42 @@ livre → home nova.
   ranking global melhor carreira + linha de hoje (§5) · Sala da Presidência (§7).
 
 
+## 👥🐛 RÁPIDO ONLINE: fantasma no leilão + partida que não contava (16/08)
+Relato do Diego jogando com dois amigos (B e C), passo a passo dele:
+1. Acabou a liga + Copa dos 8. O **amigo C saiu** da sala e não votou. Certo.
+2. O host começou o **novo leilão** com o amigo B — e **o amigo C entrou junto**,
+   mesmo tendo saído e sem ter votado. Ele ficou aparecendo no pregão e
+   **atrasando todo mundo**; o host teve que ir no "gerenciar" e remover na mão.
+3. Depois disso, jogaram a **2ª partida** (só ele e o B) — e ela **não apareceu**
+   no Hall da Fama da sala.
+
+### ✅ Bug 1 — o fantasma no leilão (`screens.tsx`, `startLeilao`)
+A montagem do novo leilão lia `room_players` **do banco**, que guarda todo mundo
+que um dia entrou na sala. Quem fechou o app continuava lá, então ganhava assento
+de novo e o pregão ficava esperando o envelope de alguém que nem estava.
+
+**Régua nova:** entra quem está **online agora** (presença) **ou quem votou**
+(votar prova que estava lá) — e o host sempre. É a MESMA régua que a lista de cima
+da tela já usa pra marcar "🚪 saiu", então o que o host vê é o que acontece.
+**Trava de segurança:** se a presença não chegou (realtime caindo), **não corta
+ninguém** — melhor um a mais, que o host remove, do que cortar quem estava
+jogando. E o host recebe um aviso dizendo quantos ficaram de fora: nada acontece
+no escuro. Testado nos 5 casos (`scratchpad/teste-sala.mjs`), 5/5.
+
+### ✅ Bug 2 — a 2ª partida apagava a 1ª no Hall da Fama
+A linha do Hall era gravada por **(sala, número da temporada)**. O "novo leilão"
+(`START_ONLINE` com rematch) **zerava o `seasonNo` de volta pra 1** — então a 2ª
+partida achava a linha da 1ª e escrevia **por cima**. Só o "mesmo time"
+(`REPLAY_SEASON`) somava temporada, por isso aquele caminho nunca deu problema.
+
+**Conserto, em duas pontas:**
+- `game_champions` ganhou **`match_seed`** (a semente do leilão, que muda a cada
+  novo leilão) + índice único `(room_id, match_seed)`. **Partida diferente = linha
+  diferente, sempre.** Linhas antigas ficam com NULL e seguem pela regra velha.
+- O "novo leilão" agora **continua a contagem da sala** (`seasonNo + 1`) em vez de
+  voltar pra 1 — é a próxima temporada da mesma resenha, e a linha do tempo do
+  Hall fica na ordem certa.
+
 ## 🌍🏷️ RANKING GLOBAL POR CARREIRA — servidor PRONTO (16/08)
 Aprovado pelo Diego com mockup (`scratchpad/rankglobal.png`). A raiz de TODA a
 confusão de nomes: **o ranking identificava a pessoa pelo NOME do time**. Daí
