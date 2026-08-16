@@ -2878,12 +2878,139 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
 type Honors = { A: number; B: number; C: number; D: number; V?: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0, V: 0 }
+
+// 🏆 OS SEUS TROFÉUS — fonte ÚNICA da estante. Vive aqui fora porque agora duas
+// telas mostram a mesma estante: a aba Rank (onde ela sempre morou) e a Sala da
+// Presidência. Duas contas separadas viravam duas verdades — e o Diego já pegou
+// esse tipo de furo antes (a Várzea que não entrava no total).
+export interface MeuTrofeu { key: string; label: string; n: number; bg: string; c: string }
+function meusTrofeus(opts: {
+  honors: Record<string, Honors>; copaHonors: Record<string, number>
+  supercopaHonors?: Record<string, number>; youId: number; seed?: number; brasil?: boolean
+}): { trofeus: MeuTrofeu[]; total: number; myH: Honors; myWorld: number } {
+  const { honors, copaHonors, supercopaHonors, youId, seed, brasil } = opts
+  const myH = honors[`m${youId}`] ?? EMPTY_HONORS
+  const myCopas = copaHonors[`m${youId}`] ?? 0
+  const mySupercopa = supercopaHonors?.[`m${youId}`] ?? 0
+  const myWorld = (seed != null ? (loadCopaSave(seed)?.mural ?? []) : []).filter(m => m.voce).length
+  // ⚠️ o total soma a VÁRZEA também (já foi bug: o título de Várzea aparecia na
+  // fileira mas ficava de fora do "Total: X 🏆").
+  const total = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + mySupercopa + myWorld
+  const trofeus: MeuTrofeu[] = [
+    ...(myWorld > 0 ? [{ key: 'mundo', label: 'Copa do Mundo', n: myWorld, bg: INK, c: GOLD }] : []),
+    ...(myCopas > 0 ? [{ key: 'copa', label: brasil ? 'Copa do Brasil' : 'Copa Legends', n: myCopas, bg: brasil ? '#0EA658' : GOLD, c: brasil ? '#fff' : INK }] : []),
+    ...(mySupercopa > 0 ? [{ key: 'super', label: 'Supercopa', n: mySupercopa, bg: '#0D4FCC', c: '#fff' }] : []),
+    ...(['A', 'B', 'C', 'D', 'V'] as Div[]).filter(d => (myH[d] ?? 0) > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d] ?? 0, bg: CDTAG[d].bg, c: CDTAG[d].c })),
+  ]
+  return { trofeus, total, myH, myWorld }
+}
+
+// a estante desenhada (mesmo visual nos dois lugares)
+function EstanteTrofeus({ trofeus, total, myH, myDiv, legenda }: { trofeus: MeuTrofeu[]; total: number; myH: Honors; myDiv?: Div | null; legenda: string }) {
+  return (
+    <div style={{ ...box('linear-gradient(160deg,#FFF7E0,#FFEBB0)'), padding: 12, marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: '0 0 2px' }}>🏆 Hall de Troféus</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '0 0 10px' }}>{legenda}</p>
+      {total === 0 ? (
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', padding: '10px 0' }}>Estante vazia por enquanto… 🏆 Ganhe um título e ele fica guardado aqui pra sempre.</p>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {trofeus.map(t => (
+            <div key={t.key} style={{ width: 82, border: `2.5px solid ${INK}`, borderRadius: 12, background: t.bg, color: t.c, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 6px 8px', textAlign: 'center' }}>
+              <div style={{ fontSize: 30, lineHeight: 1 }}>🏆</div>
+              <div style={{ fontWeight: 900, fontSize: 15, ...OSWALD, marginTop: 2 }}>×{t.n}</div>
+              <div style={{ fontWeight: 800, fontSize: 9, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.2, marginTop: 1, opacity: 0.92 }}>{t.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12, alignItems: 'center' }}>
+        <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: INK, color: '#fff', borderRadius: 8, padding: '3px 8px' }}>Total: {total} 🏆</span>
+        {myH.A > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>{'⭐'.repeat(Math.min(myH.A, 5))}{myH.A > 5 ? ` ×${myH.A}` : ''} Série A</span>}
+        {myDiv && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>Hoje na {DIV_NAME[myDiv]}</span>}
+      </div>
+    </div>
+  )
+}
+// ─── 🎩 SALA DA PRESIDÊNCIA (mockup aprovado pelo Diego 16/08) ───────────
+// A ideia que fechou a conversa do "técnico": **você não é o técnico do time,
+// você é o DONO do clube**. Então esta é a sala do presidente — 4ª sub-aba do
+// Clube. Abrir o Clube continua caindo na Estrutura: o desenho do estádio é
+// sagrado e não sai da frente.
+//
+// ⚠️ Nada aqui atrasa o jogo (regra de ouro do Diego): é tela de CONSULTA. Não
+// tem passo novo, não tem espera, e o leilão não muda em nada.
+//
+// 🎩 Técnico e 🚗 garagem entram marcados **EM BREVE** (pedido do Diego): a
+// pessoa já vê que vem, sem promessa de data — e sem nada que funcione pela
+// metade.
+function PresidenciaTab({ caixa, stadium, squad, marketValues, safValue, safTeam, teamName, trofeus, totalT, myH, myDiv, seasonNo }: {
+  caixa: number; stadium?: StadiumSave; squad: WonCard[]; marketValues: Record<string, number>
+  safValue: number; safTeam?: string; teamName: string
+  trofeus: MeuTrofeu[]; totalT: number; myH: Honors; myDiv?: Div | null; seasonNo?: number
+}) {
+  // 🏟️ o estádio vale o que foi INVESTIDO nele: o que está posto em cada setor
+  // + o custo de cada melhoria construída. É o mesmo dinheiro que saiu do caixa
+  // (nada de número inventado — o Diego confere).
+  const vEstadio = STADIUM_SECTORS.reduce((n, sec) => n + Math.min(stadium?.inv[sec.k] ?? 0, sec.cost), 0)
+    + STADIUM_EXTRAS.filter(e => stadium?.ext.includes(e.k)).reduce((n, e) => n + e.cost, 0)
+  // 👥 o elenco vale o valor de mercado de cada jogador (o mesmo que a aba
+  // Finanças usa); quem não tem cotação vale o que você pagou nele.
+  const vElenco = squad.filter(c => !c.fake && !c.emprestado).reduce((n, c) => n + (marketValues[ident(c)] ?? c.paid ?? 0), 0)
+  const total = caixa + vEstadio + vElenco + safValue
+  const linha = (ic: string, nome: string, valor: number, obs?: string) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid rgba(0,0,0,.1)', padding: '7px 0' }}>
+      <span style={{ fontSize: 15, flex: 'none' }}>{ic}</span>
+      <span style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: 12.5 }}>{nome}{obs && <span style={{ fontWeight: 700, fontSize: 10, color: 'rgba(0,0,0,.45)' }}> · {obs}</span>}</span>
+      <span style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, whiteSpace: 'nowrap' }}>{valor.toLocaleString('pt-BR')}</span>
+    </div>
+  )
+  // cartão de coisa que ainda não existe: cinza, com o selo e a explicação do
+  // que vem — sem botão nenhum, pra ninguém clicar no vazio.
+  const emBreve = (ic: string, titulo: string, texto: string) => (
+    <div style={{ ...box('#EFEADA'), padding: 12, marginBottom: 10, display: 'flex', gap: 11, alignItems: 'flex-start' }}>
+      <span style={{ fontSize: 30, lineHeight: 1, flex: 'none', filter: 'grayscale(.35)' }}>{ic}</span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <p style={{ fontWeight: 900, fontSize: 14.5, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{titulo}</p>
+          <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, textTransform: 'uppercase', border: `2px solid ${INK}`, borderRadius: 6, padding: '1px 6px', background: '#EDE7FF', color: '#7C3AED' }}>em breve</span>
+        </div>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 0', lineHeight: 1.4 }}>{texto}</p>
+      </div>
+    </div>
+  )
+  return (
+    <>
+      <div style={{ ...box('#fff'), padding: 12, marginBottom: 10 }}>
+        <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>🎩 Sala da Presidência</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>Você não é o técnico. <b style={{ color: INK }}>Você é o dono do {teamName}.</b></p>
+      </div>
+      {emBreve('🎩', 'Técnico', 'Contrate um treinador de verdade pro clube. Cada um tem um jeito que muda alguma coisa em campo — e você vai VER ele agindo, no jornal, toda vez que valer.')}
+      {emBreve('🚗', 'Garagem do presidente', 'O carro do presidente. Clube maior, carreata melhor — e todo mundo vê o seu na hora do título.')}
+      <div style={{ ...box('#fff'), padding: 12, marginBottom: 10 }}>
+        <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: '0 0 1px' }}>💰 Patrimônio do clube</p>
+        <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 4px' }}>Tudo que é seu hoje, somado. Só leitura — nada aqui gasta nem rende.</p>
+        {linha('🪙', 'Caixa', caixa)}
+        {linha('🏟️', 'Estádio', vEstadio, 'o que você já investiu')}
+        {linha('👥', 'Elenco', vElenco, `${squad.filter(c => !c.fake && !c.emprestado).length} jogadores`)}
+        {safValue > 0 && linha('🏢', 'SAF', safValue, safTeam)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: `2.5px solid ${INK}`, marginTop: 4, paddingTop: 7 }}>
+          <span style={{ flex: 1, fontWeight: 900, fontSize: 13.5, ...OSWALD, textTransform: 'uppercase' }}>Patrimônio</span>
+          <span style={{ fontWeight: 900, fontSize: 18, ...OSWALD, color: GREEN }}>{total.toLocaleString('pt-BR')} 🪙</span>
+        </div>
+      </div>
+      <EstanteTrofeus trofeus={trofeus} total={totalT} myH={myH} myDiv={myDiv}
+        legenda={`A estante do ${teamName} — guardada pra sempre${seasonNo ? ` · temporada ${seasonNo}` : ''}.`} />
+    </>
+  )
+}
+
 function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed, brasil }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; supercopaHonors?: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number; brasil?: boolean }) {
-  // 🏆 o nome exibido do troféu de Copa troca conforme a conta é tester ou
-  // não (mesmo contador careerCopaHonors serve pras duas — Diego 16/08:
-  // "não são coisas novas, só alterou o nome e o formato", ninguém perde
-  // título nenhum na troca).
-  const copaLabel = brasil ? 'Copa do Brasil' : 'Copa Legends'
+  // 🏆 o nome exibido do troféu de Copa troca conforme a Copa do Brasil está
+  // liberada ou não (mesmo contador `careerCopaHonors` serve pras duas — Diego
+  // 16/08: "não são coisas novas, só alterou o nome e o formato", ninguém perde
+  // título nenhum na troca). Quem decide o rótulo é o `brasil`, dentro do
+  // `meusTrofeus`.
   // 🌍 títulos da COPA DO MUNDO LEGENDS (mural local por save): entram no rank e
   // no Hall de Troféus. Ordem do ranking (pedido do Diego 13/08 — Copa do Mundo
   // vira o 1º critério): Copa do Mundo → Série A → Copa Legends → Série B →
@@ -2909,21 +3036,8 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   // Copa do Mundo · Série A · Copa · Supercopa · Série B · Série C · Série D · Várzea · Dinheiro
   rows.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.supercopa - a.supercopa || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || (b.h.V ?? 0) - (a.h.V ?? 0) || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
-  // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
-  const myH = honors[`m${youId}`] ?? EMPTY_HONORS
-  const myCopas = copaHonors[`m${youId}`] ?? 0
-  const mySupercopa = supercopaHonors?.[`m${youId}`] ?? 0
-  const myWorld = cmMural.filter(m => m.voce).length
-  // ⚠️ o total TEM que somar a VÁRZEA também (faltava — o título de Várzea
-  // aparecia na fileira de troféus embaixo mas NÃO entrava no "Total: X 🏆",
-  // então quem começou a carreira na Várzea via um troféu a menos na conta).
-  const totalT = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + mySupercopa + myWorld
-  const trofeus = [
-    ...(myWorld > 0 ? [{ key: 'mundo', label: 'Copa do Mundo', n: myWorld, bg: INK, c: GOLD }] : []),
-    ...(myCopas > 0 ? [{ key: 'copa', label: copaLabel, n: myCopas, bg: brasil ? '#0EA658' : GOLD, c: brasil ? '#fff' : INK }] : []),
-    ...(mySupercopa > 0 ? [{ key: 'super', label: 'Supercopa', n: mySupercopa, bg: '#0D4FCC', c: '#fff' }] : []),
-    ...(['A', 'B', 'C', 'D', 'V'] as Div[]).filter(d => (myH[d] ?? 0) > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d] ?? 0, bg: CDTAG[d].bg, c: CDTAG[d].c })),
-  ]
+  // 🏆 SEUS troféus — mesmo cálculo que a Sala da Presidência usa (`meusTrofeus`).
+  const { trofeus, total: totalT, myH } = meusTrofeus({ honors, copaHonors, supercopaHonors, youId, seed, brasil })
   return (
     <>
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
@@ -2971,29 +3085,10 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
       </table>
     </div>
     {/* 🏆 HALL DE TROFÉUS: a estante PESSOAL do seu clube (só os SEUS títulos) —
-        conquistas ganhas nesta carreira, guardadas pra sempre. */}
-    <div style={{ ...box('linear-gradient(160deg,#FFF7E0,#FFEBB0)'), padding: 12, marginBottom: 12 }}>
-      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: '0 0 2px' }}>🏆 Hall de Troféus</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '0 0 10px' }}>A estante do seu clube — o que você conquistou nesta carreira{seasonNo ? ` · temporada ${seasonNo}` : ''}.</p>
-      {totalT === 0 ? (
-        <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', padding: '10px 0' }}>Estante vazia por enquanto… 🏆 Ganhe um título e ele fica guardado aqui pra sempre.</p>
-      ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {trofeus.map(t => (
-            <div key={t.key} style={{ width: 82, border: `2.5px solid ${INK}`, borderRadius: 12, background: t.bg, color: t.c, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 6px 8px', textAlign: 'center' }}>
-              <div style={{ fontSize: 30, lineHeight: 1 }}>🏆</div>
-              <div style={{ fontWeight: 900, fontSize: 15, ...OSWALD, marginTop: 2 }}>×{t.n}</div>
-              <div style={{ fontWeight: 800, fontSize: 9, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.2, marginTop: 1, opacity: 0.92 }}>{t.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12, alignItems: 'center' }}>
-        <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: INK, color: '#fff', borderRadius: 8, padding: '3px 8px' }}>Total: {totalT} 🏆</span>
-        {myH.A > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>{'⭐'.repeat(Math.min(myH.A, 5))}{myH.A > 5 ? ` ×${myH.A}` : ''} Série A</span>}
-        {myDiv && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>Hoje na {DIV_NAME[myDiv]}</span>}
-      </div>
-    </div>
+        conquistas ganhas nesta carreira, guardadas pra sempre. A MESMA estante
+        aparece na Sala da Presidência (Clube › Presidência). */}
+    <EstanteTrofeus trofeus={trofeus} total={totalT} myH={myH} myDiv={myDiv}
+      legenda={`A estante do seu clube — o que você conquistou nesta carreira${seasonNo ? ` · temporada ${seasonNo}` : ''}.`} />
     </>
   )
 }
@@ -3993,7 +4088,7 @@ export function PyramidSeasonScreen() {
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'global'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia'>('estadio') // 🏟️/💰/💼/🤝/🎩 sub-abas da aba Clube
   const [bicoTrocando, setBicoTrocando] = useState(false) // 🕴️ Bico de Folga: lista de troca abre no lugar do botão (visual novo, 14/08)
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
@@ -5364,7 +5459,7 @@ export function PyramidSeasonScreen() {
                 Agora tudo (Estádio · Finanças · Agência) vale online também,
                 por-técnico (Passo 2c completa a paridade com o offline). */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['presidencia', '🎩', 'Presidência'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
                 .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
@@ -5381,6 +5476,24 @@ export function PyramidSeasonScreen() {
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
               <BancoLegends />
               </>
+            ) : clubeSub === 'presidencia' ? (
+              // 🎩 SALA DA PRESIDÊNCIA — só leitura (técnico e garagem "em breve").
+              (() => {
+                const { trofeus, total } = meusTrofeus({ honors: (state.careerHonors ?? {}) as Record<string, Honors>, copaHonors: state.careerCopaHonors ?? {}, supercopaHonors: state.careerSupercopaHonors ?? {}, youId, seed: state.seed, brasil: cbUnlocked })
+                return (
+                  <PresidenciaTab
+                    caixa={state.careerCoins?.[youId] ?? 0}
+                    stadium={state.stadiums?.[youId]}
+                    squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]}
+                    marketValues={state.marketValues ?? {}}
+                    safValue={myFilial ? filialSaleValue(state, myFilial).value : 0}
+                    safTeam={myFilial?.team}
+                    teamName={meMgr?.teamName ?? 'seu clube'}
+                    trofeus={trofeus} totalT={total}
+                    myH={((state.careerHonors ?? {}) as Record<string, Honors>)[`m${youId}`] ?? EMPTY_HONORS}
+                    myDiv={myDiv} seasonNo={state.seasonNo} />
+                )
+              })()
             ) : clubeSub === 'patrocinio' ? (
               <>
                 {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
