@@ -5,8 +5,10 @@ Lucas Calefi — ❤️ **Corinthians**, manto **branco e preto**.
 - `apoio.tsx`: FOUNDERS **ouro** + FUNDADOR_N **nº44**.
 - `esc_socios`: **sócio nº24**, manto_c1 `#FFFFFF` (branco) + manto_c2 `#0C0C0C`
   (preto), time_coracao `Corinthians`, origem `batismo`, válido até 2099.
-- ⏳ **PENDENTE — o batismo do clube:** o Diego mandou a lista da Série A livre
-  pro Lucas escolher. Faltam: **nome do clube**, **escudo** e **mascote**.
+- 🔒 **CLUBE ESCOLHIDO (16/08): `Vanguarda Nacional`** — RESERVADO pro Lucas.
+  Nenhuma outra sessão pode dar esse time pra outro apoiador.
+- ⏳ **PENDENTE — o resto do batismo:** faltam **nome novo do clube**, **escudo**
+  e **mascote** (o Diego vai passar).
   Quando ele escolher, seguir o padrão de sempre (mockup vertical → OK do Diego
   → escudo em `escudos.tsx` + mascote em `mascotes.tsx` + `OLD_NAME` no
   `data.ts` + `CARIMBO_GOL` + gravar `mascote_key`/`escudo_time` no `esc_socios`).
