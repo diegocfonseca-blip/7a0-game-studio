@@ -1589,7 +1589,7 @@ export function EscIntro() {
           <Btn onClick={() => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) })} className="w-full text-left" bg={PURPLE}>
             <span className="block text-lg leading-none text-white">🪜 {solo ? 'Nova carreira' : 'Começar carreira'}</span>
             <span className="block text-[11px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.82)' }}>
-              {escadaLiberada() ? 'Comece na Várzea e suba até a Série A' : 'Comece na Série D e suba até a Série A'} · sem cadastro
+              {escadaLiberada() ? 'Comece na Várzea e suba até a Série A' : 'Comece na Série D e suba até a Série A'}
             </span>
           </Btn>
         </motion.div>
@@ -1598,10 +1598,18 @@ export function EscIntro() {
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-left" bg={GREEN}>
           <span className="block text-lg leading-none text-white">👥 Jogar com amigos (online)</span>
           <span className="block text-[11px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.82)' }}>
-            Crie a sala, mande o código no zap — até 8 no mesmo pregão
+            Crie a sala, mande o código no zap — até 20 no mesmo pregão
           </span>
         </Btn>
-        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full" bg="#fff">⚡ Só uma partida rápida (vs CPU)</Btn>
+        {/* mesmo formato dos dois de cima (pedido do Diego 16/08): título grande
+            + linha de explicação, tudo alinhado à esquerda. Só a cor muda — ela
+            é branca porque é o modo menor, não o principal. */}
+        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-left" bg="#fff">
+          <span className="block text-lg leading-none">⚡ Só uma partida rápida</span>
+          <span className="block text-[11px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(12,12,12,.6)' }}>
+            Uma temporada contra a CPU — rapidinho, pra treinar o dedo
+          </span>
+        </Btn>
         {/* fileira de ícones: ver, não jogar */}
         <div className="grid grid-cols-4 gap-2">
           {([['📖', 'Álbum', () => dispatch({ type: 'GO_ALBUM' })],
