@@ -3700,10 +3700,14 @@ banner desligado) — só um F5 manual pega a versão nova. A partir de agora
   (Regras em eventos.ts: baladeiro→noitada, pavio→expulsão, peso 4× cada.)
 - **Copa dos 8 — visual mais bonito dos jogos simulados** (os que você NÃO tá):
   Diego achou "muito feio". Mockup em scratchpad/copa-bonita.html. Aguardando.
-- **Modo Libertadores temático** (gated pro Diego testar): 32 times, 8 grupos de
-  4, mata-mata, baralho SÓ de quem jogou a Liberta (clube+ano corretos), jogos
-  simulados AO VIVO minuto a minuto (igual Copa, não resultado pronto nem só
-  tabela). Visual "cara da Liberta". Mockups: scratchpad/liberta-*.html.
+- **Modo Libertadores** — conceito agora tem doc próprio:
+  **`docs/conceito-libertadores.md`** (16/08). Mockup refeito e mostrado ao
+  Diego: ele gostou ("gostei bastante") mas **mandou NÃO fazer agora** — quer
+  pensar no lado do negócio (as 12 vagas além das 20 mexem com o preço do
+  batismo). O doc guarda o formato fechado, a regra de encher a tabela (humanos
+  até 20 + clubes do jogo completando 32, igual à sala de leilão), a contagem
+  real de batismos por divisão e as 4 decisões que faltam dele (nome — marca
+  registrada —, cor, quem completa, e se mora no rápido ou também na carreira).
 
 
 ## ⚽ Batismo: Bicho da Seda (04/08)
