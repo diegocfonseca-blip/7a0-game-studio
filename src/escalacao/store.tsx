@@ -6849,12 +6849,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // verdade: game_rooms.host_id) se o host é ELE — se for, reassume o comando
   // sozinho (BECOME_HOST) e a sala destrava sem ninguém atualizar a página.
   const lastOwnerCheckRef = useRef(0)
+  // 🔁 o host precisa estar sumido em DUAS checagens seguidas pra perder a coroa
+  const sumicoConfirmadoRef = useRef(false)
   useEffect(() => {
     if (state.onlineMode !== 'online' || state.isHost || !state.roomId) { setHostStale(false); return }
     if (state.screen === 'intro' || state.screen === 'lobby') { setHostStale(false); return }
     lastHostMsgRef.current = Date.now() // zera ao (re)entrar nessa vigília
     const iv = setInterval(() => {
-      const stale = Date.now() - lastHostMsgRef.current > 10_000
+      const stale = Date.now() - lastHostMsgRef.current > 10_000 // 10s calados: já pede o estado (barato e inofensivo)
       setHostStale(stale)
       if (stale) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       if (stale && Date.now() - lastOwnerCheckRef.current > 10_000) {
@@ -6875,7 +6877,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // Realtime pra economizar egress. NÃO se rouba host de quem está batendo:
             // era exatamente o bug do Sapekeiro (demorou pra jogar → viraram DOIS donos).
             const upAt = (r as { updated_at?: string } | null)?.updated_at
-            const hostBeatFresh = !!upAt && (Date.now() - new Date(upAt).getTime() < 9000)
+            // ⏱️ 25s, não 9s (Diego 16/08 — sala com o Manfré: "de repente apareceu
+            // que virei host no leilão e tive que dar lance de novo"). O host grava
+            // o batimento a cada ~3s, MAS celular que vai pro fundo (a pessoa abriu
+            // o zap, a tela apagou) CONGELA os cronômetros na hora. Com 9s, bastava
+            // o dono olhar uma mensagem por 10 segundos pra o convidado achar que
+            // ele morreu e tomar a coroa — e a troca de dono faz quem está no
+            // envelope reenviar o lance. 25s dá folga pra distração e continua
+            // devolvendo a sala em menos de meio minuto se o dono sumiu de verdade.
+            const hostBeatFresh = !!upAt && (Date.now() - new Date(upAt).getTime() < 25_000)
             // (2) 👻 HOST FANTASMA: o host_id aponta pra alguém que NÃO está mais na
             // sala (fechou o app / caiu / saiu sem passar a coroa — o bug do Diego
             // 11/08) E o batimento do banco secou (dono realmente sumiu). Elejo um novo
@@ -6884,9 +6894,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // vencedor grava o host_id e vira autoritativo; os outros recebem o estado dele.
             const present = (stateRef.current.presenceUids ?? []).filter((u2): u2 is string => !!u2)
             const hostPresente = !!hostId && present.includes(hostId)
-            if (!hostPresente && !hostBeatFresh && present.length > 0 && [...present].sort()[0] === uid) {
+            const souOEleito = present.length > 0 && [...present].sort()[0] === uid
+            // 🔁 DUAS CONFIRMAÇÕES seguidas (~10s de intervalo) antes de tomar a
+            // coroa. Uma leitura só era frágil demais: uma piscada de rede podia
+            // esvaziar a presença por um instante e isso bastava. Agora a sala só
+            // troca de dono se o host continuar sumido na checagem seguinte.
+            if (!hostPresente && !hostBeatFresh && souOEleito) {
+              if (!sumicoConfirmadoRef.current) { sumicoConfirmadoRef.current = true; return } // 1ª vez: anota e espera confirmar
               try { await supabase.from('game_rooms').update({ host_id: uid }).eq('id', st.roomId) } catch { /* best effort */ }
               if (!stateRef.current.isHost) { rawDispatch({ type: 'BECOME_HOST' }); setBecameHost(true) } // aviso "você virou host"
+            } else {
+              sumicoConfirmadoRef.current = false // deu sinal de vida: zera a contagem
             }
           } catch { /* segue pedindo estado; a próxima volta tenta de novo */ }
         })()

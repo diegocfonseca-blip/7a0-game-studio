@@ -55,6 +55,33 @@ livre → home nova.
   ranking global melhor carreira + linha de hoje (§5) · Sala da Presidência (§7).
 
 
+## 👑🐛 "DE REPENTE VIREI HOST NO LEILÃO" — régua da coroa afrouxada (16/08)
+Relato do Diego, ao vivo, na sala do Manfré (código `4FTOS5`, ele e o Manfré):
+*"do nada apareceu na minha tela que virei host no leilão, e tive que dar lance
+novamente"*.
+
+**Conferido no banco na hora:** a sala estava sã (rodada 30, temporada 1, host =
+Manfré, batimento de 1,8s). Ou seja, houve uma troca de dono e a sala voltou
+sozinha — o estrago foi só o susto e o lance refeito.
+
+**Causa:** a eleição de "host fantasma" era **rápida demais**. Ela assumia a
+coroa quando: 10s sem mensagem do host + o host fora da presença + o batimento
+do banco parado há **9s**. O host grava esse batimento a cada ~3s — **mas
+celular que vai pro fundo (abriu o zap, tela apagou) CONGELA os cronômetros na
+hora**. Com 9s, bastava o dono olhar uma mensagem por dez segundos pra o
+convidado achar que ele tinha morrido. E como o Diego tem o menor uid da sala,
+era sempre ELE o eleito.
+
+O "tive que dar lance novamente" é consequência: na troca de dono, quem está na
+fase de envelope reabre o input e reenvia (isso é de propósito — senão ficaria
+preso como "enviado" e o setor resolvia com lance ZERO).
+
+**Conserto (`store.tsx`):**
+- batimento do host: **9s → 25s**;
+- e agora exige **duas checagens seguidas** (~10s de intervalo) com o host
+  sumido antes de trocar a coroa — uma piscada de rede não basta mais.
+- Uma sala com o dono REALMENTE fora ainda se recupera em menos de meio minuto.
+
 ## 👥🐛 RÁPIDO ONLINE: fantasma no leilão + partida que não contava (16/08)
 Relato do Diego jogando com dois amigos (B e C), passo a passo dele:
 1. Acabou a liga + Copa dos 8. O **amigo C saiu** da sala e não votou. Certo.
