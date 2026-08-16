@@ -1,5 +1,40 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🔬 SIMULAÇÃO DEFINITIVA DE 150 TEMPORADAS (16/08) — o que ela achou
+Refeita a pedido do Diego. Time com as melhores lendas do jogo, começando na
+Várzea, 150 temporadas. **Nada gravado no Supabase** (roda em memória).
+
+⚠️ **A 1ª versão da simulação estava errada em 2 pontos** (registrado pra
+ninguém repetir):
+1. Usou `computeCopa` (Copa Legends). **Hoje é COPA DO BRASIL** — o
+   `COPA_BRASIL_GERAL = true` liberou pra todo mundo, e ela vem com a
+   **Supercopa** junto.
+2. O mundo foi montado com `placements = { m0: 'V' }` só. A Várzea **não tem
+   times de fundo no `data.ts`** (o `DIVISION_TEAMS` só tem A/B/C/D): quem
+   preenche a V é a SALA do jogador. Com 1 manager só, a Várzea ficava com 1
+   time e a **Copa do Brasil nem rodava** (ela exige 20 em cada divisão).
+   → Ao simular carreira com escada, criar os **20 assentos da sala**.
+
+**Resultado válido (v2):** 216 troféus · 138 cartas · 19.746 moedas de premiação.
+Chegou na Série A na T5. Copa do Brasil ganha 44% das vezes (66/150) mesmo com o
+melhor elenco possível — mata-mata de 100 clubes é loteria de verdade.
+
+### 🚨 FURO ENCONTRADO — a Supercopa não dá carta
+Ganhou **78 Supercopas**, ganhou **0 cartas** por elas. A conta fecha exata:
+`216 troféus − 138 cartas = 78 = nº de Supercopas`. Nenhum outro troféu está
+sem carta.
+
+A Supercopa hoje: sala de troféus ✅ · rank local ✅ · rank global ✅ (desde
+hoje) · **carta ❌** · **linha no `esc_results` ❌** (então não conta como
+título no botão Ranking da home).
+
+Contradiz a regra escrita no código com data do Diego: *"tudo que é campeão
+conta carta" (04/08)*. A Supercopa nasceu 16/08 e ficou de fora.
+⏳ **NÃO IMPLEMENTAR sem OK do Diego** — é regra de jogo, não bug óbvio. Se ele
+aprovar: montar `CardCollectPrompt` com `seasonKey` sufixo `:supercopa` +
+gravar a linha em `esc_results` (mesmo padrão da `:copa`).
+
+
 ## 🏆🔵 SUPERCOPA ENTROU NO RANKING GLOBAL (16/08)
 Correção de uma coisa que eu (sessão) tinha dito ERRADO pro Diego: falei que a
 Copa do Brasil "só o Diego enxerga". **Não é.** `sport.ts` tem
