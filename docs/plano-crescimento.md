@@ -301,3 +301,18 @@ baixo mesmo"*. Ele contava a MESMA coisa que o `NewsSection` do rodapé já cont
 era alto demais pra ficar entre a pessoa e o botão de jogar. O componente
 `NewsBanner` (e o `NEWS_ITEMS` dele) foi apagado do `screens.tsx`; se um dia
 quiser de volta, está no histórico do git.
+
+### 🚫 Correção do Diego (16/08): time de coração NÃO pinta manto
+
+A 1ª versão do cadastro mostrava a listra nas cores do time do coração e dizia
+*"o manto do seu clube vai ter essas cores"*. **O Diego cortou:** *"não quero que
+coloque cores de manto que isso é dos sócios apenas"*.
+
+**Regra gravada:** **cor de manto é regalia de SÓCIO.** Dar de graça no cadastro
+apagaria exatamente o que o sócio paga pra ter — mesma lógica da fidelidade de
+tier (gratuito é bege, ouro é ouro, ninguém empresta cor de ninguém).
+
+Feito: saiu a listra e saiu a promessa. A pergunta **fica** (o Diego quis saber
+de que time é a torcida), agora com o texto honesto: *"Opcional — é só pra gente
+saber de que time é a torcida daqui."* As cores continuam no `coracao.ts`
+guardadas, **sem nenhum uso**, até o Diego decidir o contrário.

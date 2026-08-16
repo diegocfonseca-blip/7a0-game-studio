@@ -133,7 +133,6 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
     } catch (e) { setErro(erroAmigavel(e instanceof Error ? e.message : String(e))) }
   }
 
-  const clube = coracao ? CORACAO_CLUBES.find(c => c.nome === coracao) : null
   const campo: React.CSSProperties = { width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '9px 11px', fontWeight: 700, fontSize: 15, background: '#fff', color: INK, outline: 'none' }
   const rot: React.CSSProperties = { ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(12,12,12,.45)', margin: '0 0 3px' }
 
@@ -188,16 +187,15 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
                   </button>
                 )}
               </div>
-              {/* 🎽 o brinde: ver a listra nascer nas cores do time do coração. É o
-                  que faz o campo valer a pena responder — sem isso ele é só mais
-                  uma pergunta chata no cadastro. */}
-              {clube && (
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ height: 26, border: `2.5px solid ${INK}`, borderRadius: 8, background: `repeating-linear-gradient(90deg, ${clube.c1} 0 9px, ${clube.c2} 9px 18px)` }} />
-                  <p style={{ margin: '3px 0 0', fontSize: 11.5, fontWeight: 800, color: GREEN }}>🎽 O manto do seu clube vai ter essas cores.</p>
-                </div>
-              )}
-              {!clube && <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>Escolhendo, o manto do seu clube ganha as cores dele.</p>}
+              {/* ⚠️ AQUI NÃO PROMETE MANTO (Diego 16/08: "não quero que coloque
+                  cores de manto que isso é dos sócios apenas"). Escolher o time
+                  de coração NÃO pinta o clube de ninguém — as cores do manto
+                  continuam sendo regalia de SÓCIO. Este campo é só pra saber de
+                  quem é a torcida da casa; por isso o texto abaixo não fala em
+                  nenhum prêmio, e é opcional. */}
+              <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>
+                Opcional — é só pra gente saber de que time é a torcida daqui. 💚
+              </p>
             </>
           )}
 

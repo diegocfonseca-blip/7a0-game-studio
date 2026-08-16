@@ -1,6 +1,13 @@
-// ─── ❤️🎽 TIME DE CORAÇÃO (Diego 16/08 — docs/plano-crescimento.md §2) ───
-// A pessoa diz de qual time ela torce no cadastro, e o MANTO do clube dela no
-// jogo passa a usar essas duas cores (o que hoje só o sócio tem).
+// ─── ❤️ TIME DE CORAÇÃO (Diego 16/08 — docs/plano-crescimento.md §2) ───
+// A pessoa diz de qual time ela torce no cadastro. Só isso: é informação, não
+// prêmio.
+//
+// 🚫 NÃO PINTA MANTO NENHUM. A primeira versão prometia que o manto do clube
+// ganharia essas cores; o Diego cortou na hora (16/08): *"não quero que coloque
+// cores de manto que isso é dos sócios apenas"*. **Cor de manto é regalia de
+// SÓCIO** — dar de graça no cadastro apagaria o que o sócio paga pra ter. As
+// cores ficam guardadas aqui pra um uso futuro que o Diego aprovar; hoje
+// NINGUÉM as usa (o cadastro só grava o NOME em `time_coracao`).
 //
 // ⚠️ REGRA DA CASA, sem exceção: **nome de clube real NUNCA aparece dentro do
 // jogo — só as CORES.** O nome vive aqui só pra pessoa se achar na hora de
