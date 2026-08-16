@@ -1116,37 +1116,11 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
 }
 
 // ─── NOVIDADES ───────────────────────────────────────────────────────
-// Mostra SÓ a novidade mais recente, com X pra fechar. Ao fechar, guarda o id
-// no aparelho — só reaparece quando eu trocar o LATEST_NEWS por um id novo.
-// avisos do topo (só informativos — não levam a lugar nenhum). Ao fechar, guarda
-// o id no aparelho; troque o NEWS_ID por um novo pra reaparecer pra todos.
-const NEWS_ID = '2026-08-duplas'
-const NEWS_ITEMS = [
-  { emoji: '🤝', title: 'Duplas (beta) — Rápido Online', text: 'Chame um amigo pra dividir o comando do MESMO time: cada um manda em 3 das 6 posições (goleiro, zagueiro, lateral, meia, atacante, monte). Ative "🤝 Duplas" ao criar a sala.' },
-  { emoji: '💰', title: 'Patrocínio virou aposta', text: 'No Modo Carreira: escolha a META da temporada (não cair, acesso ou título) e fature de acordo — apostou seguro e foi além, só ganha o combinado.' },
-  { emoji: '🚀', title: 'Contratos em massa', text: 'Vencendo vários contratos de uma vez? Renove ou libere TODOS com um botão só, sem clicar jogador por jogador.' },
-  { emoji: '🏆', title: 'Hall da Fama — Sala de Troféus', text: 'No Modo Carreira, na aba Rank (embaixo do rank de clubes): a estante do seu clube com TODOS os títulos que você conquistou, guardados pra sempre.' },
-]
-function NewsBanner() {
-  const [dismissed, setDismissed] = useState(() => {
-    try { return localStorage.getItem('esc_news_seen') === NEWS_ID } catch { return false }
-  })
-  if (dismissed) return null
-  const close = () => { try { localStorage.setItem('esc_news_seen', NEWS_ID) } catch { /* ignore */ } setDismissed(true) }
-  return (
-    <div className="relative rounded-2xl border-[3px] border-black p-3 pr-9 mb-1 space-y-2.5" style={{ background: '#EDE7FF', boxShadow: `4px 4px 0 0 ${INK}` }}>
-      <button onClick={close} aria-label="Fechar novidades"
-        className="absolute top-2 right-2 w-6 h-6 rounded-full border-2 border-black bg-white font-black text-xs leading-none active:translate-y-0.5">✕</button>
-      <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: PURPLE }}>✨ Novidades</p>
-      {NEWS_ITEMS.map(n => (
-        <div key={n.title}>
-          <p className="font-black text-sm leading-tight" style={OSWALD}>{n.emoji} {n.title}</p>
-          <p className="text-xs font-bold text-black/70 mt-0.5">{n.text}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
+// 🗞️ O BANNER ROXO DE NOVIDADES DO TOPO SAIU (Diego 16/08: "tire o banner de
+// novidades superior, só deixe os lá de baixo mesmo"). Ele contava a MESMA coisa
+// que o `NewsSection` do rodapé já conta, e era alto: ficava no caminho de quem
+// abre o jogo pra JOGAR. O código dele está no histórico do git (commit da "home
+// nova") — se um dia quiser de volta, dá pra ressuscitar de lá.
 
 // 🆕 RECÉM-CHEGADOS automáticos: puxa as ÚLTIMAS cartas de cada baralho (as novas
 // entram no FIM de cada posição no data.ts) com o selo do tier — sem lista à mão,
@@ -1642,9 +1616,8 @@ export function EscIntro() {
         <CareerOnlineButton />
         <LigaFechadaButton />
       </div>
-      {/* o painel de novidades desceu pra DEPOIS dos botões: ele é alto e
-          empurrava o "jogar" pra fora da primeira tela. */}
-      <NewsBanner />
+      {/* (aqui ficava o banner roxo de novidades — saiu a pedido do Diego 16/08;
+          as novidades continuam no `NewsSection`, no rodapé.) */}
       {/* vitrine: a coleção é a estrela — cartas reais do álbum (nível/cor/bio do
           catálogo). Desceu pra baixo dos botões, mas NÃO saiu: é ela que mostra
           o que a pessoa vai colecionar. */}

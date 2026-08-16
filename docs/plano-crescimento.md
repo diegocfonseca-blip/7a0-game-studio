@@ -294,3 +294,10 @@ a ordem da página).
 
 **Dá pra voltar atrás:** é um commit só, e só de layout — `git revert` devolve a
 home antiga sem mexer em save, conta, ranking ou carta de ninguém.
+
+**Ajuste do Diego (16/08, depois de ver a foto):** o **banner roxo de novidades
+do topo saiu de vez** — *"tire o banner de novidades superior, só deixe os lá de
+baixo mesmo"*. Ele contava a MESMA coisa que o `NewsSection` do rodapé já conta e
+era alto demais pra ficar entre a pessoa e o botão de jogar. O componente
+`NewsBanner` (e o `NEWS_ITEMS` dele) foi apagado do `screens.tsx`; se um dia
+quiser de volta, está no histórico do git.
