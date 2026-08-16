@@ -36,8 +36,21 @@ livre → home nova.
   da partida rápida, cada botão dizendo o que ganha, "👥 Jogar com amigos
   (online)" **sem contador de gente**, e Álbum/Ranking/Manual/Apoiar numa
   fileira de ícones.
-- ⏳ **Itens 2, 3 e 4 estão na branch, esperando o OK visual do Diego** pra ir
-  pra `main` — mexem na porta de entrada de todo mundo.
+- ✅ **NO AR na `main` (16/08)** — o Diego viu as fotos e mandou publicar
+  (*"Fazendo isso dps sobe a home aí"* / *"vamos fazer a home publique a home"*).
+  Foi tudo junto: itens 2, 3 e 4 + o banner de novidades fora + o cadastro sem a
+  promessa de manto. Cada um é um commit sozinho, então dá pra reverter um sem
+  desfazer os outros.
+- ⏸️ **Sala da Presidência: PARADA a pedido do Diego (16/08)** — *"eu falei pra
+  não fazer isso agora, falar que fazemos depois... deixa salvo aí"*. O começo do
+  código está guardado na branch **`claude/presidencia-em-breve`**, LONGE da
+  `main` (ela nem compila como está — falta trocar `PURPLE` por `'#7C3AED'`
+  naquele arquivo). Mockups aprovados: técnico e garagem os dois com selo **EM
+  BREVE**, patrimônio do clube e sala de troféus dentro.
+  **Decisão que falta do Diego:** 4 sub-abas no Clube (Estrutura · Finanças ·
+  Patrocínio · Presidência) ou 3, com a Presidência engolindo o Patrocínio
+  (recomendação desta sessão: 3, porque 4 fica apertado no celular e fechar
+  patrocínio é trabalho de presidente).
 - ⏳ Falta: nome único entre saves (§3) · renomear na Presidência (§4) ·
   ranking global melhor carreira + linha de hoje (§5) · Sala da Presidência (§7).
 
