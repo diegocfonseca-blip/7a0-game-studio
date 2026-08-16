@@ -268,3 +268,29 @@ Diego liberou geral. **Já enganaram esta sessão duas vezes.** Agora dizem o qu
 o código faz, e deixam explícito o que "geral" NÃO significa:
 **carreira ANTIGA não ganhou a Agência e não grava em ranking nenhum** (nem
 global, nem da home) — só carreira criada depois de 03/08.
+
+### ✅ Item 4 — FEITO (16/08) — home nova
+
+Tudo em `screens.tsx`, dentro de `EscIntro` (nenhuma regra de jogo tocada — é só
+a ordem da página).
+
+| Antes | Agora |
+|---|---|
+| 4 cartas + legenda + novidades **antes** de qualquer botão | **botões de jogar primeiro**; vitrine e novidades descem |
+| 1º botão = `⚡ PARTIDA RÁPIDA (VS CPU)` | 1º botão = **carreira** (roxo, com brilho) |
+| `🪜 CARREIRA POR DIVISÕES (new)` | **`🪜 Começar carreira`** — e vira **`Nova carreira`** quando já existe save — com a linha *"Comece na Várzea e suba até a Série A · sem cadastro"* |
+| `👥 JOGAR ONLINE (CHAMA OS AMIGOS!)` | **`👥 Jogar com amigos (online)`** + *"Crie a sala, mande o código no zap — até 8 no mesmo pregão"*. ⚠️ **sem contador de gente online** (pedido do Diego) |
+| partida rápida em amarelo, no topo | **`⚡ Só uma partida rápida (vs CPU)`**, botão branco, embaixo |
+| Álbum e Ranking em botões grandes + Manual e Apoiar soltos lá no fim | **uma fileira de 4 quadradinhos**: 📖 Álbum · 🏆 Ranking · 📘 Manual · 💛 Apoiar (`HomeIconTile`) |
+
+- **"Continuar carreira" já era o 1º bloco da página** (o `{solo && …}` roxo vem
+  antes do título) — conferido no navegador com um save de teste; não precisou
+  mudar nada.
+- O **Manual** e o **Apoiar** são os MESMOS de sempre, só chamados de outro
+  lugar: o overlay do manual não mudou, e o `ApoieButton` entrou pelo `trigger`,
+  então **a Área do Sócio continua abrindo igualzinho** pra quem é sócio.
+- O painel `NewsBanner` (✨ Novidades) desceu pra **depois** dos botões: ele é
+  alto e sozinho jogava o "jogar" pra fora da primeira tela.
+
+**Dá pra voltar atrás:** é um commit só, e só de layout — `git revert` devolve a
+home antiga sem mexer em save, conta, ranking ou carta de ninguém.

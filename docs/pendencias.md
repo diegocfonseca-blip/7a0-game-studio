@@ -19,8 +19,27 @@ Conversa longa do Diego em 16/08 virou doc próprio. Resumo do que foi aprovado
 7. **Sala da Presidência** (4ª sub-aba do Clube) com técnicos reais e a garagem
    marcada "em breve".
 
-⏳ **NADA disso estava codado quando o doc foi escrito.** Ordem combinada:
-janela de cadastro → continuar com esse time → 1ª temporada livre → home nova.
+Ordem combinada: janela de cadastro → continuar com esse time → 1ª temporada
+livre → home nova.
+
+**Andamento (branch `claude/denis-save-file-x1osct`, um commit por item):**
+- ✅ **Item 1 — Janela de conta** (`conta.tsx` + `coracao.ts`): entrar/criar sem
+  sair de onde a pessoa está; cadastro novo = nome do TIME (com "✓ livre" ao
+  vivo) + time de coração + e-mail + senha. Já está na `main`.
+- ✅ **Item 2 — "Continuar com esse time"** no fim da partida rápida
+  (`CAREER_FROM_QUICK`): o time que ela acabou de montar vira carreira, com a
+  liga inteira do jeito que estava.
+- ✅ **Item 3 — 1ª temporada livre**: a carreira NÃO pede mais login pra
+  começar; aviso fixo "só neste aparelho" e convite pra criar conta no fim da
+  1ª temporada, mostrando o que ela já conquistou (`AvisoContaCarreira`).
+- ✅ **Item 4 — Home nova**: botões de jogar antes das cartas, carreira em cima
+  da partida rápida, cada botão dizendo o que ganha, "👥 Jogar com amigos
+  (online)" **sem contador de gente**, e Álbum/Ranking/Manual/Apoiar numa
+  fileira de ícones.
+- ⏳ **Itens 2, 3 e 4 estão na branch, esperando o OK visual do Diego** pra ir
+  pra `main` — mexem na porta de entrada de todo mundo.
+- ⏳ Falta: nome único entre saves (§3) · renomear na Presidência (§4) ·
+  ranking global melhor carreira + linha de hoje (§5) · Sala da Presidência (§7).
 
 
 ## 💰 AUDITORIA DAS PREMIAÇÕES ATÉ O CAIXA (16/08) — 18/18 ✅

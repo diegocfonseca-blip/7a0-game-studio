@@ -1496,6 +1496,20 @@ function BidLegendsHome() {
 // (conta.tsx): abre POR CIMA, com o fundo atrás, e ao terminar retoma
 // exatamente a ação que a pessoa tinha pedido (ver `startCareer`).
 
+// 🔳 quadradinho de ícone da home (álbum · ranking · manual · apoiar). Mesma
+// borda grossa e sombra dura dos botões — só que pequeno, porque isso é coisa
+// de VER, não de jogar (Diego 16/08, plano §4).
+function HomeIconTile({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick}
+      className="border-[3px] border-black rounded-xl bg-white py-2 active:translate-y-0.5 flex flex-col items-center justify-center gap-0.5"
+      style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+      <span className="text-xl leading-none">{icon}</span>
+      <span className="text-[10.5px] font-black uppercase tracking-wide" style={OSWALD}>{label}</span>
+    </button>
+  )
+}
+
 export function EscIntro() {
   const [sport] = useSport()
   const unlocked = useSportUnlocked() // 🔒 só o Diego vê qualquer coisa de basquete
@@ -1584,7 +1598,56 @@ export function EscIntro() {
         <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
         <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">Dê lance no <b>nome</b>, sem ver o nível. Monte o time no pregão, ganhe o campeonato e colecione os craques no seu álbum.</p>
       </div>
-      {/* vitrine: a coleção é a estrela — cartas reais do álbum (nível/cor/bio do catálogo) */}
+      {/* 🎯 O QUE FAZER AGORA (Diego 16/08 — docs/plano-crescimento.md §4).
+          Antes a home abria com 4 cartas e a primeira coisa clicável era a
+          PARTIDA RÁPIDA — o modo que acaba em 20 min e não deixa nada. Agora:
+          1) quem já tem carreira vê "continuar" LÁ EM CIMA (blocos acima);
+          2) os botões de JOGAR vêm antes da vitrine e cada um DIZ o que a
+             pessoa ganha ali (nada de nome solto);
+          3) a carreira (o modo que segura quem joga) fica em cima da rápida;
+          4) álbum/ranking/manual/apoiar viram uma fileirinha de ícones — são
+             coisas de VER, não de jogar, e estavam roubando o lugar do jogo. */}
+      <div className="space-y-3">
+        {/* carreira em destaque: brilho pulsante na própria cor (roxo) */}
+        <motion.div className="rounded-xl"
+          animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
+          <Btn onClick={() => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) })} className="w-full text-left" bg={PURPLE}>
+            <span className="block text-lg leading-none text-white">🪜 {solo ? 'Nova carreira' : 'Começar carreira'}</span>
+            <span className="block text-[11px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.82)' }}>
+              {escadaLiberada() ? 'Comece na Várzea e suba até a Série A' : 'Comece na Série D e suba até a Série A'} · sem cadastro
+            </span>
+          </Btn>
+        </motion.div>
+        {/* ⚠️ o Diego pediu SEM contador de gente online e com "(online)" entre
+            parênteses no rótulo (16/08) — sala vazia com "0 online" espanta. */}
+        <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-left" bg={GREEN}>
+          <span className="block text-lg leading-none text-white">👥 Jogar com amigos (online)</span>
+          <span className="block text-[11px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.82)' }}>
+            Crie a sala, mande o código no zap — até 8 no mesmo pregão
+          </span>
+        </Btn>
+        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full" bg="#fff">⚡ Só uma partida rápida (vs CPU)</Btn>
+        {/* fileira de ícones: ver, não jogar */}
+        <div className="grid grid-cols-4 gap-2">
+          {([['📖', 'Álbum', () => dispatch({ type: 'GO_ALBUM' })],
+             ['🏆', 'Ranking', () => dispatch({ type: 'GO_RANKING' })],
+             ['📘', 'Manual', () => setShowManual(true)]] as [string, string, () => void][]).map(([ic, lb, fn]) => (
+            <HomeIconTile key={lb} icon={ic} label={lb} onClick={fn} />
+          ))}
+          <ApoieButton trigger={open => <HomeIconTile icon="💛" label="Apoiar" onClick={open} />} />
+        </div>
+        <AdminButton />
+        <DinastiaButton />
+        <CareerOnlineButton />
+        <LigaFechadaButton />
+      </div>
+      {/* o painel de novidades desceu pra DEPOIS dos botões: ele é alto e
+          empurrava o "jogar" pra fora da primeira tela. */}
+      <NewsBanner />
+      {/* vitrine: a coleção é a estrela — cartas reais do álbum (nível/cor/bio do
+          catálogo). Desceu pra baixo dos botões, mas NÃO saiu: é ela que mostra
+          o que a pessoa vai colecionar. */}
       <div className="grid grid-cols-2 gap-3">
         <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} showBio /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Gabigol" club="Flamengo" year={2019} pos="ATA" fame={4} showBio /></div>
@@ -1592,29 +1655,6 @@ export function EscIntro() {
         <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Obina" club="Flamengo" year={2005} pos="ATA" fame={2} folk showBio /></div>
       </div>
       <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos</p>
-      <NewsBanner />
-      <div className="space-y-3">
-        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-lg">⚡ PARTIDA RÁPIDA (VS CPU)</Btn>
-        {/* carreira nova em destaque: brilho pulsante na própria cor (roxo) + tag (new) */}
-        <motion.div className="rounded-xl"
-          animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
-          <Btn onClick={() => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) })} className="w-full text-lg" bg={PURPLE}>
-            <span className="text-white">🪜 CARREIRA POR DIVISÕES <span className="text-yellow-300">(new)</span></span>
-          </Btn>
-        </motion.div>
-        <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
-          <span className="text-white">👥 JOGAR ONLINE (CHAMA OS AMIGOS!)</span>
-        </Btn>
-        <div className="flex gap-3">
-          <div className="flex-1"><Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} className="w-full" bg="#fff">📖 Álbum</Btn></div>
-          <div className="flex-1"><Btn onClick={() => dispatch({ type: 'GO_RANKING' })} className="w-full" bg="#fff">🏆 Ranking</Btn></div>
-        </div>
-        <AdminButton />
-        <DinastiaButton />
-        <CareerOnlineButton />
-        <LigaFechadaButton />
-      </div>
       {/* como funciona — 4 cartões enxutos em grade 2×2 */}
       <div className="grid grid-cols-2 gap-2.5">
         {([['🔨', 'O Pregão', '5 rodadas de leilão cego: goleiro, lateral, zaga, meio e ataque. Ninguém vê o lance de ninguém.'],
@@ -1628,7 +1668,8 @@ export function EscIntro() {
           </div>
         ))}
       </div>
-      <Btn onClick={() => setShowManual(true)} className="w-full" bg="#fff">📖 Manual do Técnico (as regras completas)</Btn>
+      {/* (o botão do Manual e o de Apoiar viraram ícones lá em cima — o overlay
+          continua o mesmo, só mudou de onde ele é chamado.) */}
       {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} />}
       {/* 🌙 tema noturno: SÓ pra conta liberada (Diego; vira regalia de plano pago). O claro é o padrão e não muda. */}
       {temaLiberado && <div className="flex justify-center">
@@ -1641,7 +1682,6 @@ export function EscIntro() {
         </button>
       </div>}
       <CardAccountNote />
-      <ApoieButton big />
       <Btn onClick={shareGame} className="w-full" bg="#fff">
         📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
       </Btn>
