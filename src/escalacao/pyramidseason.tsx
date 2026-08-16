@@ -6,7 +6,7 @@
 // resultado. A Série D tem os humanos com os times montados no pregão; A/B/C são
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
@@ -3008,8 +3008,28 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
 // `esc_pyramid_rank`, ver comentário no banco) — ninguém vê o futuro de ninguém,
 // só o que cada um já tinha feito até ali. Só conta quem jogou com Agência 2.0.
 interface GlobalRankRow { user_id: string; season_no: number; team_name: string; honors_a: number; honors_b: number; honors_c: number; honors_d: number; honors_v: number; copa_titles: number; supercopa_titles?: number; world_titles: number; money: number }
-function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo: number }) {
+// ordem oficial do ranking (a MESMA do servidor e a MESMA do rank local):
+// Mundo · Série A · Copa · Supercopa · B · C · D · Várzea · dinheiro.
+// Existe aqui porque a SUA linha é trocada pela carreira de agora (veja abaixo) —
+// e a lista tem que ser reordenada com o mesmo critério, senão as posições que
+// você vê não batem com as que todo mundo vê.
+function cmpRank(a: GlobalRankRow, b: GlobalRankRow): number {
+  return b.world_titles - a.world_titles || b.honors_a - a.honors_a || b.copa_titles - a.copa_titles
+    || (b.supercopa_titles ?? 0) - (a.supercopa_titles ?? 0)
+    || b.honors_b - a.honors_b || b.honors_c - a.honors_c || b.honors_d - a.honors_d
+    || b.honors_v - a.honors_v || b.money - a.money
+}
+
+// 🌍 RANKING GLOBAL (regra do Diego, 16/08 — mockup `rankglobal2.png`):
+//  • pras OUTRAS pessoas você aparece UMA vez, com a sua MELHOR carreira;
+//  • pra VOCÊ, a linha grande é a carreira que você está JOGANDO AGORA, na
+//    posição que ela merece hoje — e logo embaixo, fininha, a sua melhor, com a
+//    posição dela. A fininha SOME quando a de agora vira a melhor.
+// A linha fininha não ocupa posição e ninguém mais a enxerga.
+function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string; seasonNo: number; careerId?: number }) {
   const [rows, setRows] = useState<GlobalRankRow[] | null>(null)
+  // a carreira que você está jogando AGORA (posição + títulos dela)
+  const [atual, setAtual] = useState<(GlobalRankRow & { pos: number; total: number }) | null>(null)
   const [down, setDown] = useState(false)
   const [meUid, setMeUid] = useState<string | null>(null)
   // 🔼🔽 quantas posições cada um subiu/desceu desde a temporada anterior (a
@@ -3023,7 +3043,7 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
   const [myRank, setMyRank] = useState<{ pos: number; total: number } | null>(null)
   useEffect(() => {
     let alive = true
-    setRows(null); setDown(false); setPrevPos(null); setMyRank(null)
+    setRows(null); setDown(false); setPrevPos(null); setMyRank(null); setAtual(null)
     ;(async () => {
       try {
         const { data: auth } = await supabase.auth.getUser()
@@ -3041,6 +3061,13 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
           ;((prev.data ?? []) as GlobalRankRow[]).forEach((r, i) => m.set(r.user_id, i + 1))
           setPrevPos(m)
         }
+        // 🪄 a carreira de AGORA: onde ela ficaria na tabela dos outros. Busca à
+        // parte porque é informação SÓ SUA — não entra no ranking de ninguém.
+        if (uid && careerId != null) {
+          const { data: cr } = await supabase.rpc('esc_pyramid_career_rank', { p_season: seasonNo, p_user_id: uid, p_career_id: careerId })
+          const row = (cr ?? [])[0] as (GlobalRankRow & { pos: number; total: number }) | undefined
+          if (alive && row) setAtual({ ...row, user_id: uid })
+        }
         if (uid && !curRows.some(r => r.user_id === uid)) {
           const { data: mr } = await supabase.rpc('esc_pyramid_my_rank', { p_season: seasonNo, p_user_id: uid })
           const row = (mr ?? [])[0] as { pos: number; total: number } | undefined
@@ -3051,9 +3078,22 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
       }
     })()
     return () => { alive = false }
-  }, [seasonNo])
+  }, [seasonNo, careerId])
   const loading = rows === null
-  const meInList = !!meUid && (rows ?? []).some(r => r.user_id === meUid)
+  // 🔁 A TROCA: na SUA linha entra a carreira de agora, no lugar da sua melhor.
+  // Depois a lista é reordenada pelo mesmo critério do servidor, pra a posição
+  // que você vê ser a posição de verdade.
+  const minhaMelhor = (rows ?? []).find(r => r.user_id === meUid) ?? null
+  const lista = (() => {
+    const base = rows ?? []
+    if (!meUid || !atual) return base
+    const semMim = base.filter(r => r.user_id !== meUid)
+    return [...semMim, atual].sort(cmpRank).slice(0, 50)
+  })()
+  // a fininha só aparece se a melhor for REALMENTE melhor que a de agora
+  const melhorPos = minhaMelhor ? (rows ?? []).findIndex(r => r.user_id === meUid) + 1 : 0
+  const mostraMelhor = !!(minhaMelhor && atual && cmpRank(minhaMelhor, atual) < 0)
+  const meInList = !!meUid && lista.some(r => r.user_id === meUid)
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
@@ -3068,7 +3108,7 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
         <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Carregando…</p>
       ) : down ? (
         <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Não consegui buscar o ranking agora — tenta de novo mais tarde.</p>
-      ) : rows!.length === 0 ? (
+      ) : lista.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Ninguém no ranking ainda até a temporada {seasonNo} — seja o primeiro!</p>
       ) : (
         <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
@@ -3078,14 +3118,23 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
             <th style={{ ...th, textAlign: 'right' }}>💰</th>
           </tr></thead>
           <tbody>
-            {rows!.map((r, i) => {
+            {lista.map((r, i) => {
               const you = r.user_id === meUid
               const totalTit = r.honors_a + r.honors_b + r.honors_c + r.honors_d + r.honors_v + r.copa_titles + (r.supercopa_titles ?? 0) + r.world_titles
               const pos = i + 1
+              // ⚠️ a seta compara com a temporada PASSADA, e lá cada um estava
+              // com a MELHOR carreira dele. Aqui a MINHA linha é a carreira de
+              // agora — se eu comparasse posição desta lista com a de ontem,
+              // todo mundo entre as duas ganharia um ▲1 falso só porque eu troquei
+              // de carreira. Então a seta dos outros sai da posição deles entre as
+              // MELHORES, e a minha linha não leva seta (a carreira de agora não
+              // tem "ontem" pra comparar).
+              const posEntreMelhores = (rows ?? []).findIndex(x => x.user_id === r.user_id) + 1
               const was = prevPos?.get(r.user_id)
-              const delta = was != null ? was - pos : null // positivo = subiu (passou gente)
+              const delta = (!you && was != null && posEntreMelhores > 0) ? was - posEntreMelhores : null
               return (
-                <tr key={r.user_id} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: you ? '#FFF3D6' : undefined, fontWeight: you ? 800 : 500 }}>
+                <Fragment key={r.user_id}>
+                <tr style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: you ? '#FFF3D6' : undefined, fontWeight: you ? 800 : 500 }}>
                   <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>
                     {pos}
                     {delta != null && delta !== 0 && (
@@ -3094,7 +3143,7 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
                       </span>
                     )}
                     {delta === 0 && <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 9, fontWeight: 900, color: 'rgba(0,0,0,.35)' }}>–</span>}
-                    {delta == null && seasonNo > 1 && <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 8, fontWeight: 900, color: '#7C3AED', background: '#F3EBFF', border: '1px solid #7C3AED', borderRadius: 4, padding: '0 3px' }}>novo</span>}
+                    {delta == null && !you && seasonNo > 1 && <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 8, fontWeight: 900, color: '#7C3AED', background: '#F3EBFF', border: '1px solid #7C3AED', borderRadius: 4, padding: '0 3px' }}>novo</span>}
                   </td>
                   <td style={{ maxWidth: 150, color: you ? '#C2452F' : INK }}>
                     <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -3116,23 +3165,64 @@ function GlobalRankTab({ myTeamName, seasonNo }: { myTeamName: string; seasonNo:
                   </td>
                   <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
                 </tr>
+                {/* 🪄 A LINHA FININHA — só sua, COLADA embaixo da sua. Diz onde
+                    você já chegou com a sua melhor carreira, pra saber o quanto
+                    falta. Some sozinha quando a de agora vira a melhor. Não ocupa
+                    posição e ninguém mais enxerga. */}
+                {you && mostraMelhor && minhaMelhor && (
+                  <tr style={{ background: '#F3EFFF', borderTop: '1px dashed rgba(124,58,237,.55)' }}>
+                    <td style={{ paddingRight: 4 }}></td>
+                    <td style={{ maxWidth: 150 }}>
+                      <span style={{ display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 10, fontWeight: 800, color: '#7C3AED' }}>
+                        ↳ sua melhor: {melhorPos}º · {minhaMelhor.team_name || 'Time sem nome'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontSize: 9, fontWeight: 900, color: '#7C3AED' }}>
+                      {minhaMelhor.world_titles > 0 && <span style={{ marginLeft: 2 }}>🌍{minhaMelhor.world_titles}</span>}
+                      {minhaMelhor.honors_a > 0 && <span style={{ marginLeft: 3 }}>🏆A{minhaMelhor.honors_a}</span>}
+                      {minhaMelhor.copa_titles > 0 && <span style={{ marginLeft: 3 }}>🏆Copa{minhaMelhor.copa_titles}</span>}
+                      {(minhaMelhor.supercopa_titles ?? 0) > 0 && <span style={{ marginLeft: 3 }}>🏆🔵{minhaMelhor.supercopa_titles}</span>}
+                    </td>
+                    <td style={{ textAlign: 'right', fontSize: 9.5, fontWeight: 800, color: '#7C3AED' }}>{minhaMelhor.money}</td>
+                  </tr>
+                )}
+                </Fragment>
               )
             })}
-            {!meInList && meUid && (
-              <tr style={{ borderTop: `2px solid ${INK}`, background: '#FFF3D6', fontWeight: 800 }}>
-                <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>{myRank ? `${myRank.pos}º` : '—'}</td>
-                <td style={{ maxWidth: 150, color: '#C2452F' }}>
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    🫵 {myTeamName || 'Seu time'}
-                    <span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>
-                      VOCÊ · {myRank ? `${myRank.pos}º de ${myRank.total}` : 'fora do Top 50'}
-                    </span>
-                  </span>
-                </td>
-                <td style={{ textAlign: 'center' }}>—</td>
-                <td style={{ textAlign: 'right' }}>—</td>
-              </tr>
-            )}
+            {/* 🫵 FORA DO TOP 50 — a posição mostrada é a da carreira que você
+                está JOGANDO AGORA (é ela que está na linha grande). Se a sua
+                melhor está mais na frente, a fininha aparece embaixo do mesmo
+                jeito, com a posição DELA. */}
+            {!meInList && meUid && (() => {
+              const pos = atual?.pos ?? myRank?.pos ?? null
+              const total = atual?.total ?? myRank?.total ?? null
+              const nome = atual?.team_name || myTeamName || 'Seu time'
+              return (
+                <>
+                  <tr style={{ borderTop: `2px solid ${INK}`, background: '#FFF3D6', fontWeight: 800 }}>
+                    <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>{pos ? `${pos}º` : '—'}</td>
+                    <td style={{ maxWidth: 150, color: '#C2452F' }}>
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        🫵 {nome}
+                        <span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>
+                          VOCÊ · {pos ? `${pos}º de ${total}` : 'fora do Top 50'}
+                        </span>
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>—</td>
+                    <td style={{ textAlign: 'right' }}>—</td>
+                  </tr>
+                  {mostraMelhor && minhaMelhor && (
+                    <tr style={{ background: '#F3EFFF', borderTop: '1px dashed rgba(124,58,237,.55)' }}>
+                      <td style={{ paddingRight: 4 }}></td>
+                      <td colSpan={3} style={{ fontSize: 10.5, fontWeight: 800, color: '#7C3AED' }}>
+                        ↳ sua melhor: {minhaMelhor.team_name || 'Time sem nome'} · {melhorPos}º
+                      </td>
+                    </tr>
+                  )}
+                </>
+              )
+            })()}
           </tbody>
         </table>
       )}
@@ -5617,7 +5707,7 @@ export function PyramidSeasonScreen() {
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={cbUnlocked} />
             ) : rankSub === 'global' && agenciaOk ? (
-              <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} />
+              <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
             ) : (
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no

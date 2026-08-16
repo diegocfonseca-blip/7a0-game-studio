@@ -80,9 +80,28 @@ passa a ser CONTA + CARREIRA; o nome vira só a plaquinha.**
    pessoa vê, não entra na tabela e não empurra ninguém**.
 4. **Cliente já manda o `career_id`** no snapshot (`pyramidseason.tsx`).
 
+### ✅ A TELA (16/08) — regra final do Diego, invertida na segunda rodada
+O Diego mudou o desenho depois do 1º mockup: *"pro usuário que tá jogando deve
+mostrar a carreira dele ATUAL na linha principal, e a linha abaixo mostrar a
+melhor caso esteja melhor"*. Mockup aprovado: `scratchpad/rankglobal2.png`.
+
+- **Sua linha grande é a carreira de AGORA**, na posição que ela merece hoje. A
+  lista é reordenada localmente pelo mesmo critério do servidor (`cmpRank`), pra
+  a posição que você vê ser a de verdade.
+- **Logo embaixo, colada, a fininha roxa**: `↳ sua melhor: 3º · Coringas do
+  Diniz` com os troféus dela. **Some sozinha** quando a de agora vira a melhor.
+- **Não ocupa posição** e **ninguém mais enxerga** — os outros continuam vendo
+  uma linha por pessoa (a melhor dela).
+- ⚠️ **Setinha ▲▼ arrumada junto**: ela compara com a temporada passada, onde
+  cada um estava com a MELHOR carreira. Se comparasse com esta lista, todo mundo
+  entre as duas posições ganhava um ▲1 FALSO só porque você trocou de carreira.
+  Agora a seta dos outros sai da posição deles entre as melhores, e a sua linha
+  não leva seta (a carreira de agora não tem "ontem" pra comparar).
+- Fotografado na tela de verdade (`scratchpad/rr-4-tabela.png`), com as
+  respostas do servidor simuladas — o navegador desta máquina não alcança o
+  Supabase.
+
 ### ⏳ Falta (só depois de OK visual do Diego)
-- A **linha fininha na tela** do ranking global (mockup aprovado, código não
-  escrito).
 - **Renomear o clube na carreira** — agora é seguro: o título está preso na
   carreira, não no nome.
 - **Nome único entre os seus saves** — com a identidade consertada, isso deixa de
