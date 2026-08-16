@@ -1,5 +1,37 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 🌍🏆 VARREDURA DAS COPAS DO MUNDO NO RANKING (16/08) — 10 títulos devolvidos
+Pergunta do Diego depois do caso do Gabriel: *"e as copas do mundo que ele disse
+que ganhou e não contou?"*
+
+**Prova usada**: o `copaMundoMural` do save de cada um (registro do próprio jogo,
+com `voce: true`). É o mesmo critério do caso do leodiniz85.
+
+**Gabriel Cozendey**: jogou 14 Copas do Mundo, ganhou **1** (temporada 480) — e
+essa **já estava** no ranking, com carta (Raphaël Guerreiro). **Nenhuma perdida.**
+O que ele viu foi o bug do agregado invertido (seção acima).
+
+**Mas a varredura geral achou 10 títulos de OUTRAS pessoas fora do ranking:**
+- `denilson.stifler10` — temporadas 200, 210, 240
+- `eltonfrossard45` — 130, 190, 270
+- `santospedreiraantonio958` — 120, 130
+- `diegodsgalindo` — 160
+- `zeroseisjulio` — 100
+
+Todos de temporadas ANTIGAS (100-270): são anteriores à gravação do título de
+Copa do Mundo no ranking. O mesmo denilson tem as de 320+ registradas certinho —
+ou seja, é corte de época, não problema de conta.
+
+✅ **Gravados no `esc_results` em 16/08** (autorização do Diego de 15/08: "tem que
+consertar pra todo mundo"). A varredura foi **só ADITIVA** — nenhuma linha
+apagada ou alterada, `on conflict do nothing`. Conferido depois: **50 Copas do
+Mundo ganhas no mural, 0 fora do ranking.**
+
+⏳ Falta (decisão do Diego): esses 10 **não ganharam a carta** de campeão da
+época. Se ele quiser compensar, é ficha do Banco Legends ou moedas — dizer
+quanto. (Mesma pendência aberta do leodiniz85.)
+
+
 ## 🐛🏆 BUG DO AGREGADO DA COPA (Gabriel Cozendey, 15/08) — CONSERTADO 16/08
 Ele relatou: *"fiz 10 no agregado e contou 8"* · *"ganhei o título e deu vice
 pra mim"*.
