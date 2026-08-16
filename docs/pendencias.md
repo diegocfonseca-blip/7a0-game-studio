@@ -1,5 +1,23 @@
 # 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
+## 👑🖋️ Novo Lenda fundador nº44 + sócio nº24: lucas_calefi@outlook.com (16/08)
+Lucas Calefi — ❤️ **Corinthians**, manto **branco e preto**.
+- `apoio.tsx`: FOUNDERS **ouro** + FUNDADOR_N **nº44**.
+- `esc_socios`: **sócio nº24**, manto_c1 `#FFFFFF` (branco) + manto_c2 `#0C0C0C`
+  (preto), time_coracao `Corinthians`, origem `batismo`, válido até 2099.
+- ⏳ **PENDENTE — o batismo do clube:** o Diego mandou a lista da Série A livre
+  pro Lucas escolher. Faltam: **nome do clube**, **escudo** e **mascote**.
+  Quando ele escolher, seguir o padrão de sempre (mockup vertical → OK do Diego
+  → escudo em `escudos.tsx` + mascote em `mascotes.tsx` + `OLD_NAME` no
+  `data.ts` + `CARIMBO_GOL` + gravar `mascote_key`/`escudo_time` no `esc_socios`).
+- **Série A LIVRE quando ele escolheu** (16/08): Metrópole FC · Soberano Nacional
+  · Coliseu United · Galáxia EC · Imperador SAF · Fênix Dourada · Continental
+  Real · Monarca EC · Vanguarda Nacional · Aurora Suprema · Dragão Imperial ·
+  Cosmopolita FC · Zênite United · Excelsior SAF · Prestígio FC (15 livres).
+  Já batizados (não dá): Scorporila FC · Deportivo Montreal · Remoçada ·
+  Tricolor do Arruda FC · Seven City.
+
+
 ## 🐍🔴⚫⚪ Batismo Tricolor do Arruda FC (Geovany Souza · souzact12@gmail.com) — 16/08
 Homenagem ao **Santa Cruz** (time do coração dele) e ao Arruda. Substituiu o
 **Legado EC** na Série A. Dono virou **ouro/Lenda** (era prata/Craque) +
