@@ -104,6 +104,7 @@ export function meuMantoAngle(): number {
 const MANTO_TRI: Record<string, string> = {
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
   piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
+  cobra_arruda: '#C2001E', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho, 16/08)
 }
 export function meuMantoC3(): string | null {
   const k = meu?.ativo ? meu.mascoteKey : null
