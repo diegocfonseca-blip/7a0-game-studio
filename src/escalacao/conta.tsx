@@ -62,6 +62,9 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
   const [carregando, setCarregando] = useState(false)
   // ✓/✗ do nome do time enquanto digita (a mesma trava do resto do jogo)
   const [nomeSit, setNomeSit] = useState<'vazio' | 'checando' | 'livre' | 'ocupado'>('vazio')
+  // 📱 a lista inteira são 40 clubes — no celular isso empurra e-mail e senha
+  // pra fora da tela. Mostra os primeiros e abre o resto só se pedir.
+  const [todosClubes, setTodosClubes] = useState(false)
   const nomeSeq = useRef(0)
 
   // 🔎 checa o nome enquanto digita, com respiro de 500ms pra não bater no
@@ -145,8 +148,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
         <div style={{ padding: '13px 15px 16px' }}>
           {contexto && (
             <p style={{ margin: '0 0 10px', fontWeight: 800, fontSize: 13.5, color: 'rgba(12,12,12,.72)', lineHeight: 1.35 }}>
-              <b style={{ color: INK }}>{contexto}</b><br />
-              Cria a conta e isso passa a te seguir em qualquer aparelho.
+              <b style={{ color: INK }}>{contexto}</b>
             </p>
           )}
 
@@ -173,12 +175,18 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
 
               <p style={rot}>Time de coração</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 6 }}>
-                {CORACAO_CLUBES.map(c => (
+                {(todosClubes ? CORACAO_CLUBES : CORACAO_CLUBES.slice(0, 12)).map(c => (
                   <button key={c.nome} onClick={() => setCoracao(cor => cor === c.nome ? null : c.nome)}
                     style={{ border: `2px solid ${INK}`, borderRadius: 8, padding: '4px 9px', fontWeight: 800, fontSize: 11.5, cursor: 'pointer', background: coracao === c.nome ? INK : '#fff', color: coracao === c.nome ? '#fff' : INK }}>
                     {c.nome}
                   </button>
                 ))}
+                {!todosClubes && (
+                  <button onClick={() => setTodosClubes(true)}
+                    style={{ border: `2px dashed ${INK}`, borderRadius: 8, padding: '4px 9px', fontWeight: 800, fontSize: 11.5, cursor: 'pointer', background: '#F4F1E6', color: INK }}>
+                    ⋯ mais times
+                  </button>
+                )}
               </div>
               {/* 🎽 o brinde: ver a listra nascer nas cores do time do coração. É o
                   que faz o campo valer a pena responder — sem isso ele é só mais
