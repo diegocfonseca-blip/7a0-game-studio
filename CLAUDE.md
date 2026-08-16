@@ -32,6 +32,35 @@ responde melhor a explicações simples, sem jargão).
   PRÓPRIO tier pra todo canto; gratuito = bege; NUNCA dourado fixo pra todos.
 - Cartas do basquete = MESMO visual das cartas do futebol (só muda o conteúdo).
 
+## 🛡️📏 Arte de BATISMO: regra de peso (decidida com o Diego 16/08)
+O Diego quer escalar pra **10 mil batismos**. Isso só fecha se a arte ficar
+FORA do bundle. Então, sem exceção:
+
+1. **Batismo NASCE como arquivo `.webp` em `src/escalacao/img/`** — nunca como
+   SVG desenhado à mão no meio do `.tsx`. SVG à mão vira código, entra no
+   bundle e é baixado por TODO jogador, mesmo quem nunca vê o clube; `.webp`
+   é arquivo separado e só desce pra quem cruza com o clube. Se o dono não
+   mandar arte, **gerar uma imagem** — não desenhar em SVG.
+2. **Tetos de peso** (medidos nos tamanhos reais que o jogo usa):
+   - **Escudo**: 360px no maior lado · **≤ 30 KB** (na tela ele nunca passa
+     de 78px, então 360 já é o dobro do necessário em retina).
+   - **Mascote**: 440px no maior lado · **≤ 45 KB** (na tela: 176px).
+   - **Total por batismo: ≤ 75 KB.** Passou disso, reduzir/recomprimir antes
+     de commitar (`quality=88, method=6` costuma bater o alvo).
+3. **Recortar no limite do desenho** (bbox do alfa) antes de salvar — moldura
+   transparente sobrando faz a arte renderizar menor que as outras e ainda
+   ocupa KB à toa.
+4. **Largura declarada pela proporção REAL** do arquivo
+   (`width={Math.round(size * w / h)}`), nunca `width={size}` chutado.
+5. **Animação de escudo/mascote é feita em CSS**, nunca em webp animado
+   (medido: o mesmo escudo animado em webp deu 136–176 KB contra 27 KB
+   parado — 6× o teto). Brilho passando/pulso em CSS custa **0 KB**; já
+   existe o padrão em `ApoioSheen`.
+6. Os **16 mascotes antigos em SVG** ficam onde estão (66 KB somados, ninguém
+   sente). Só não nascem mais. Antes de chegar perto de ~500 batismos,
+   converter esses 16 em `.webp` e **tirar a lista de nomes do código pro
+   banco** — é o último pedaço que ainda multiplica por jogador.
+
 ## 📁 Mapa do código
 - `src/escalacao/` — o jogo todo: `store.tsx` (estado/reducer/online),
   `screens.tsx` (leilão/home/jogo rápido), `pyramidseason.tsx` (carreira
