@@ -4095,8 +4095,14 @@ export function PyramidSeasonScreen() {
         const supercopas = state.careerSupercopaHonors?.[`m${youId}`] ?? 0
         const world = mergedMundialMural(state.seed, state.copaMundoMural).filter(m => m.voce).length
         const money = Math.round(state.careerCoins?.[youId] ?? 0)
+        // 🏷️ `career_id` = o número do SAVE (o mesmo que separa as suas carreiras
+        // em "Minhas carreiras"). É o que faz cada carreira ter a linha DELA no
+        // ranking (Diego 16/08). Antes, duas carreiras da mesma conta escreviam
+        // na mesma linha e uma apagava a outra — e o ranking te reconhecia pelo
+        // NOME do time, então trocar de nome bagunçava tudo. Agora o nome é só a
+        // plaquinha: os títulos ficam presos na carreira.
         await supabase.from('esc_pyramid_rank_snap').upsert({
-          user_id: data.user.id, season_no: state.seasonNo, team_name: you.teamName,
+          user_id: data.user.id, career_id: state.seed ?? 0, season_no: state.seasonNo, team_name: you.teamName,
           honors_a: h.A ?? 0, honors_b: h.B ?? 0, honors_c: h.C ?? 0, honors_d: h.D ?? 0, honors_v: h.V ?? 0,
           copa_titles: copas, supercopa_titles: supercopas, world_titles: world, money,
         })

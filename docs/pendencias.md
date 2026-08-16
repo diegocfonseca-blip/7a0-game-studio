@@ -55,6 +55,39 @@ livre → home nova.
   ranking global melhor carreira + linha de hoje (§5) · Sala da Presidência (§7).
 
 
+## 🌍🏷️ RANKING GLOBAL POR CARREIRA — servidor PRONTO (16/08)
+Aprovado pelo Diego com mockup (`scratchpad/rankglobal.png`). A raiz de TODA a
+confusão de nomes: **o ranking identificava a pessoa pelo NOME do time**. Daí
+vinham as três dúvidas dele de uma vez (dois saves com o mesmo nome, deixar ou
+não renomear, separar ou não os modos). A resposta é uma só: **a identidade
+passa a ser CONTA + CARREIRA; o nome vira só a plaquinha.**
+
+### ✅ Feito (invisível — nenhuma tela mudou)
+1. **`esc_pyramid_rank_snap` ganhou `career_id`** (o *seed* do save, o mesmo
+   número que separa "Minhas carreiras"). Chave nova:
+   `(user_id, career_id, season_no)` — era `(user_id, season_no)`, e por isso
+   duas carreiras da mesma conta se apagavam. Linhas antigas ficaram com
+   `career_id = 0`: **ninguém perdeu nada**, e o cliente velho (quem não
+   recarregou a página) continua escrevendo normalmente em 0.
+2. **`esc_pyramid_rank` / `esc_pyramid_my_rank` reescritas**: cada carreira vira
+   uma candidata (a foto mais nova dela) e de cada pessoa entra **só a MELHOR**,
+   pelo mesmo desempate do rank local (Mundo · A · Copa · Supercopa · B · C · D ·
+   Várzea · $). Antes entrava a carreira com a temporada mais ALTA — era a
+   reclamação do Diego: *"o cara se matou pra gabaritar e quando faz uma nova não
+   conta mais as coisas dele?"*.
+3. **`esc_pyramid_career_rank` (NOVA)**: diz em que posição a carreira que você
+   está jogando AGORA ficaria. É a linha fininha roxa do mockup — **só a própria
+   pessoa vê, não entra na tabela e não empurra ninguém**.
+4. **Cliente já manda o `career_id`** no snapshot (`pyramidseason.tsx`).
+
+### ⏳ Falta (só depois de OK visual do Diego)
+- A **linha fininha na tela** do ranking global (mockup aprovado, código não
+  escrito).
+- **Renomear o clube na carreira** — agora é seguro: o título está preso na
+  carreira, não no nome.
+- **Nome único entre os seus saves** — com a identidade consertada, isso deixa de
+  ser obrigatório; virou preferência do Diego, ainda sem decisão.
+
 ## 🏆🐛 TÍTULO DE COPA QUE SUMIA — ACHADO E CONSERTADO (16/08)
 Dois relatos que chegaram pro Diego: *"ganhou a Copa do Brasil e não contou"* e
 *"um amigo dele nem ganhou a Supercopa e apareceu que ganhou"*.
