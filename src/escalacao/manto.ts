@@ -79,9 +79,17 @@ export function useMeuSocio(): MeuSocio | null {
 // (90 = verticais, padrão camisa; 0 = horizontais/marujo; 45 = diagonais).
 // `c3` (opcional) = 3ª cor: quando passado, a listra vira de 3 cores (ex.: Desportivo
 // Montreal preto/branco/verde). Sem c3, segue o padrão de 2 cores de sempre.
-export const mantoStripes = (c: [string, string], w = 9, angle = 90, c3?: string | null) =>
+// `bufferC3` (pedido do Diego 16/08, Tricolor do Arruda FC): o padrão normal de
+// 3 cores REPETE em ciclo (c0,c1,c3,c0,c1,c3…) e isso faz c3 encostar em c0 na
+// costura do ciclo — pro Arruda (preto/vermelho) isso é proibido. Com bufferC3,
+// a c1 entra de novo DEPOIS da c3 (c0,c1,c3,c1,repete), então c0 e c3 nunca ficam
+// vizinhas — sempre tem c1 no meio. Só afeta quem estiver marcado como buffered;
+// Desportivo Montreal e Ferrari SC continuam no padrão de sempre.
+export const mantoStripes = (c: [string, string], w = 9, angle = 90, c3?: string | null, bufferC3 = false) =>
   c3
-    ? `repeating-linear-gradient(${angle}deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px, ${c3} ${w * 2}px ${w * 3}px)`
+    ? (bufferC3
+      ? `repeating-linear-gradient(${angle}deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px, ${c3} ${w * 2}px ${w * 3}px, ${c[1]} ${w * 3}px ${w * 4}px)`
+      : `repeating-linear-gradient(${angle}deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px, ${c3} ${w * 2}px ${w * 3}px)`)
     : `repeating-linear-gradient(${angle}deg, ${c[0]} 0 ${w}px, ${c[1]} ${w}px ${w * 2}px)`
 
 // 🎽 direção da listra por mascote do clube (pedido do Diego 10/08). Batismo que
@@ -109,6 +117,14 @@ const MANTO_TRI: Record<string, string> = {
 export function meuMantoC3(): string | null {
   const k = meu?.ativo ? meu.mascoteKey : null
   return (k && MANTO_TRI[k]) ? MANTO_TRI[k] : null
+}
+
+// 🚫🔴⚫ quem precisa do "amortecedor" (ver `bufferC3` em mantoStripes) — hoje só
+// o Tricolor do Arruda FC, porque vermelho não pode encostar em preto.
+const MANTO_TRI_BUFFER = new Set(['cobra_arruda'])
+export function meuMantoC3Buffer(): boolean {
+  const k = meu?.ativo ? meu.mascoteKey : null
+  return !!(k && MANTO_TRI_BUFFER.has(k))
 }
 
 // ─── 🔒 NOME DE TIME ÚNICO (tipo @ do Instagram — pedido do Diego 10/08) ───
