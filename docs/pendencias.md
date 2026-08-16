@@ -55,6 +55,34 @@ livre → home nova.
   ranking global melhor carreira + linha de hoje (§5) · Sala da Presidência (§7).
 
 
+## 📢 NOVIDADES AUTOMÁTICAS + baralho automático (16/08)
+Pedido do Diego olhando a home no ar: *"as novidades lá embaixo está muito
+exagerado… novidade não deve ficar sempre lá, vai reduzindo aos poucos, tem que
+ser menos que metade do tamanho daquele banner"*, + *"todas novidades você vai
+lançando lá automaticamente, menos bugs que nunca lance"*, + *"jogadores mesma
+coisa: sempre que eu incluir, remover ou mudar níveis ou categorias, joga
+automático na área de recém-lançados também"*.
+
+**Feito:**
+- `src/escalacao/novidades.ts` — a lista ÚNICA, com data. A home mostra só os
+  **últimos 45 dias, no máximo 5** (`novidadesDaVez`): novidade velha some
+  sozinha. **Bug nunca entra** (está escrito no topo do arquivo e no CLAUDE.md).
+- `npm run novidades` (`scripts/novidades-jogadores.mjs`) — compara o baralho de
+  hoje com a foto `scripts/catalogo-snapshot.json` e **escreve sozinho** quem
+  entrou, quem saiu e quem mudou de nível/categoria em
+  `src/escalacao/novidades-jogadores.ts`. Testado: mudei um jogador de craque
+  pra lenda e ele apareceu como `Dida: craque → lenda` sem eu escrever nada.
+  A foto fica FORA do `src/` — **0 KB no bundle**.
+- A caixa da home caiu de **17 avisos** empilhados pra **5 linhas + o baralho**:
+  **391 px** medidos na tela (era mais que o dobro disso).
+- Partida rápida voltou a ser **uma linha só**, agora alinhada à esquerda igual
+  aos outros dois.
+- Online: **até 20** (o texto dizia 8 — estava errado, `MAX_PLAYERS` é 20).
+
+**Pra próxima sessão:** mexeu em jogador? Roda `npm run novidades` e commita os
+três arquivos juntos (`data.ts` + foto + gerado). Ligou uma feature? Escreve UMA
+linha em `novidades.ts`. Consertou bug? **Não escreve nada lá.**
+
 ## 💰 AUDITORIA DAS PREMIAÇÕES ATÉ O CAIXA (16/08) — 18/18 ✅
 Pedido do Diego: não bastava conferir a tabela, tinha que conferir se o dinheiro
 **cai mesmo no caixa**. Teste dirige o REDUCER de verdade na virada de temporada

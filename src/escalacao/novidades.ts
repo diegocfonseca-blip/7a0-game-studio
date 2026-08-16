@@ -1,0 +1,57 @@
+// ─── 📢 NOVIDADES DO JOGO — a lista ÚNICA (Diego 16/08) ──────────────────
+//
+// Regras que o Diego deu, em ordem de importância:
+//
+// 1. **TODA novidade do jogo entra aqui, sozinha.** Ligou uma coisa nova pro
+//    pessoal? A mesma entrega que liga escreve a linha aqui. Não existe
+//    "depois eu aviso" — o que não está aqui, ninguém fica sabendo.
+// 2. **BUG NUNCA ENTRA.** *"Menos bugs q nunca lance"*. Conserto não é
+//    novidade: quem joga não quer ler que alguma coisa estava quebrada. Se a
+//    entrega é só conserto, ela NÃO ganha linha aqui — vai pro
+//    `docs/pendencias.md` e pro commit, que é onde isso mora.
+// 3. **Novidade não fica pra sempre.** A tela mostra só o que é RECENTE e some
+//    sozinho com o tempo (ver `novidadesDaVez` embaixo). Antes eram 17 avisos
+//    empilhados, alguns de meses atrás — virou um paredão que ninguém lia.
+//
+// Como escrever a linha: o QUE mudou pra quem joga, em uma frase, com o modo
+// entre parênteses. Sem tecniquês, sem nome de arquivo, sem "implementamos".
+export interface Novidade {
+  /** dia em que ISSO ficou disponível pra galera (YYYY-MM-DD) — é o que faz a lista encolher sozinha */
+  data: string
+  emoji: string
+  titulo: string
+  /** uma frase. Se não couber numa frase, provavelmente são duas novidades. */
+  texto: string
+}
+
+// ⚠️ SEMPRE em ordem: a mais NOVA em cima.
+export const NOVIDADES: Novidade[] = [
+  { data: '2026-08-16', emoji: '🏠', titulo: 'Home nova', texto: 'A tela de abertura mudou: quem já tem carreira continua de cara, e cada botão diz o que você ganha ali.' },
+  { data: '2026-08-16', emoji: '🔓', titulo: 'Carreira sem cadastro', texto: 'Dá pra jogar a primeira temporada inteira sem criar conta — o time fica guardado no aparelho.' },
+  { data: '2026-08-16', emoji: '🪜', titulo: 'Continuar com esse time', texto: 'No fim da partida rápida, o time que você montou pode virar uma carreira, com a liga inteira junto.' },
+  { data: '2026-08-16', emoji: '🏆', titulo: 'Copa do Brasil e Supercopa', texto: 'No Modo Carreira: a Copa virou Copa do Brasil, e o campeão dela encara o campeão da Série A na Supercopa.' },
+  { data: '2026-08-08', emoji: '🤝', titulo: 'Duplas (beta)', texto: 'No Rápido Online: chame um amigo pra dividir o comando do MESMO time — cada um manda em 3 das 6 posições.' },
+  { data: '2026-08-05', emoji: '💰', titulo: 'Patrocínio virou aposta', texto: 'No Modo Carreira: escolha a meta da temporada (não cair, acesso ou título) e fature de acordo.' },
+  { data: '2026-08-04', emoji: '🏥', titulo: 'Departamento Médico', texto: 'No Modo Carreira: a última obra do estádio acaba com as lesões do seu elenco pra sempre.' },
+  { data: '2026-08-02', emoji: '🚀', titulo: 'Contratos em massa', texto: 'Venceram vários contratos de uma vez? Renove ou libere TODOS num botão só.' },
+  { data: '2026-07-28', emoji: '💰', titulo: 'Finanças do clube', texto: 'No Modo Carreira: extrato de tudo que entra e sai, e o lucro de cada venda.' },
+  { data: '2026-07-20', emoji: '💼', titulo: 'SAF', texto: 'No Modo Carreira: compre a SAF de um clube da Série D, leve metade dos lucros dele e empreste jogadores.' },
+  { data: '2026-07-12', emoji: '🏟️', titulo: 'Estádio', texto: 'No Modo Carreira: construa arquibancada, refletor, telão e cobertura — o desenho cresce e a bilheteria rende.' },
+]
+
+/**
+ * As novidades que a HOME mostra — e é isto que faz ela encolher sozinha:
+ * só entra o que é recente, e nunca mais que `max`. Novidade velha some sem
+ * ninguém precisar apagar nada (era o problema: 17 avisos empilhados pra
+ * sempre). O piso de `min` existe só pra tela nunca ficar vazia numa semana
+ * parada.
+ */
+export function novidadesDaVez(hoje = new Date(), dias = 45, max = 5, min = 3): Novidade[] {
+  const corte = hoje.getTime() - dias * 86400000
+  const recentes = NOVIDADES.filter(n => {
+    const t = Date.parse(n.data)
+    return Number.isFinite(t) && t >= corte
+  })
+  const lista = recentes.length >= min ? recentes : NOVIDADES.slice(0, min)
+  return lista.slice(0, max)
+}

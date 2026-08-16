@@ -21,6 +21,8 @@ import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
+import { novidadesDaVez } from './novidades'
+import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
@@ -1133,41 +1135,60 @@ function recentArrivals(cat: Record<Sector, Recruit[]>): Recruit[] {
   return out
 }
 
-// seção detalhada lá embaixo: novidades do jogo + jogadores que entraram
+// ─── 📢 NOVIDADES (rodapé da home) ───────────────────────────────────
+// Reescrita em 16/08 a pedido do Diego: *"as novidades lá embaixo está muito
+// exagerado... novidade não deve ficar sempre lá, vai reduzindo aos poucos, tem
+// que ser menos que metade do tamanho daquele banner"*.
+//
+// O que era: **17 avisos** empilhados na mão, alguns de meses atrás, um
+// paredão de texto que ninguém lia. Nada saía dali sozinho.
+//
+// O que é agora, e por que encolhe sozinho:
+// • **Novidades do jogo** — vêm de `novidades.ts` (lista única, com data). A
+//   tela mostra só as dos últimos 45 dias, no máximo 5. Novidade velha some
+//   sozinha, sem ninguém apagar nada. **Bug nunca entra na lista** (regra do
+//   Diego — conserto não é novidade).
+// • **Mudanças de jogador** — vêm de `novidades-jogadores.ts`, que é GERADO
+//   pelo `npm run novidades`: ele compara o baralho com a foto anterior e
+//   escreve sozinho quem entrou, quem saiu e quem mudou de nível/categoria.
+//   Ninguém escreve isso na mão.
+// • **Recém-chegados** — as últimas cartas de cada posição, como já era.
 function NewsSection() {
-  const recentBR = recentArrivals(CATALOG)
-  const recentEU = recentArrivals(CATALOG_EU)
+  const recentBR = recentArrivals(CATALOG).slice(0, 6)
+  const recentEU = recentArrivals(CATALOG_EU).slice(0, 4)
+  const novidades = novidadesDaVez()
+  // só as mudanças de jogador dos últimos 30 dias, no máximo 4 linhas — o
+  // resto vira história velha e cai fora sozinho.
+  const mud = MUDANCAS_JOGADORES.filter(m => Date.parse(m.data) >= Date.now() - 30 * 86400000).slice(0, 4)
+  const frase = (m: typeof mud[number]) => {
+    const bar = m.baralho === 'EU' ? '🌍' : '🇧🇷'
+    if (m.tipo === 'entrou') return `${bar} ${m.nome} entrou no baralho${m.nivel ? ` como ${m.nivel}` : ''}`
+    if (m.tipo === 'saiu') return `${bar} ${m.nome} saiu do baralho`
+    if (m.tipo === 'nivel') return `${bar} ${m.nome}: ${m.de} → ${m.para}`
+    if (m.tipo === 'virou-folk') return `${bar} ${m.nome} virou folclórico 🃏`
+    return `${bar} ${m.nome} deixou de ser folclórico`
+  }
   return (
-    <Box bg="#F6F2FF" className="p-4 space-y-3">
-      <p className="font-black text-base" style={OSWALD}>📢 Últimas novidades</p>
-      <div>
-        <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>✨ No jogo</p>
-        <div className="mt-1 space-y-1">
-          <p className="text-xs font-bold text-black/75">🤝 <b>Duplas (beta)</b> — no <b>Rápido Online</b>: ative "🤝 Duplas" ao criar a sala e chame um amigo pra dividir o comando do <b>mesmo time</b>. Cada um manda em 3 das 6 posições (goleiro, zagueiro, lateral, meia, atacante, monte) — dá pra ter várias duplas na mesma sala.</p>
-          <p className="text-xs font-bold text-black/75">💰 <b>Patrocínio virou aposta</b> — no <b>Modo Carreira</b>: no início de cada temporada, escolha a meta (não cair de divisão, acesso ou título) e fature de acordo. Apostou seguro e foi além? Só ganha o combinado.</p>
-          <p className="text-xs font-bold text-black/75">🚀 <b>Contratos em massa</b> — quando vencem vários contratos de uma vez, três botões renovam ou liberam <b>TODOS</b> de um clique, sem precisar ir jogador por jogador.</p>
-          <p className="text-xs font-bold text-black/75">💰 <b>Finanças do clube</b> — no <b>Modo Carreira</b>: a aba Estádio virou <b>🏟️ Clube</b>. Tem um <b>Extrato</b> de tudo que entra e sai (prêmios, bilheteria, salários, <b>patrocínio</b>, <b>prêmios da SAF</b>, compras e vendas) e uma aba de <b>Transferências</b> com o <b>lucro/prejuízo</b> de cada venda e a valorização de quem está no elenco.</p>
-          <p className="text-xs font-bold text-black/75">💬 <b>Chat de verdade na sala de espera</b> — no <b>online</b>: as mensagens agora <b>ficam</b> (não somem mais) e seguem você se recarregar a página. As frases prontas de "zoar a galera" continuam.</p>
-          <p className="text-xs font-bold text-black/75">⏱️ <b>Tempo do leilão</b> — no <b>online</b> com <b>Modo Stream</b>: o host escolhe quantos <b>segundos</b> dura cada envelope do pregão (20 a 90s), ou deixa <b>sem tempo</b> e <b>avança cada negociação no botão</b> — todo mundo segue sincronizado.</p>
-          <p className="text-xs font-bold text-black/75">🎮 <b>Controles de ritmo na Copa</b> — no <b>Modo Carreira</b> em modo manual: velocidade, <b>pular</b> e avançar cada fase agora valem também na <b>Copa Legends</b>.</p>
-          <p className="text-xs font-bold text-black/75">🏆 <b>Copa dos 8</b> — no <b>jogo rápido</b> (offline e online): quando a liga acaba, os <b>8 primeiros</b> disputam um mata-mata de <b>ida e volta</b> (final única). O campeão da Copa leva uma <b>carta nova</b> pro álbum e um <b>título no ranking</b>! Escolha "Liga + Copa" ao começar.</p>
-          <p className="text-xs font-bold text-black/75">💼 <b>SAF</b> — no <b>Modo Carreira</b>: compre a SAF de um clube da Série D, leve <b>50% dos lucros de título e acesso</b> dele e veja ele subir na pirâmide. Os <b>empréstimos crescem com a divisão</b> (Série D <b>1</b> · C <b>2</b> · B <b>3</b> · A <b>4</b> por lado — seu elenco chega a <b>26</b> na Série A!). Destrava com o Estádio 100%.</p>
-          <p className="text-xs font-bold text-black/75">🏟️ <b>Estádio</b> — no <b>Modo Carreira</b>: construa arquibancadas, refletores, telão e cobertura. O desenho cresce a cada compra e a bilheteria rende toda temporada!</p>
-          <p className="text-xs font-bold text-black/75">🏆 <b>Copa Legends</b> — no <b>Modo Carreira</b>, no fim de cada temporada os 16 melhores das 4 divisões se enfrentam num mata-mata sorteado. Série D pode eliminar Série A!</p>
-          <p className="text-xs font-bold text-black/75">🪜 <b>Modo Carreira liberado</b> — pirâmide de 4 divisões (Série D → A), com leilão de reservas, transferências e substituições.</p>
-          <p className="text-xs font-bold text-black/75">🎴 <b>Álbum + placar novo</b> — cartas dos craques colecionáveis e o placar ao vivo com selo de GOOOL também no jogo rápido.</p>
-          <p className="text-xs font-bold text-black/75">🌍 <b>Dois baralhos</b> — escolha Auges do Brasileirão ou da Liga Europa na partida rápida e na carreira.</p>
-          <p className="text-xs font-bold text-black/75">🔴 <b>Salas ao vivo</b> — a lista de salas abertas mostra também as partidas já rolando.</p>
-          <p className="text-xs font-bold text-black/75">🔁 <b>Jogar de novo no online</b> — o host traz todo mundo de volta pra sala sem recomeçar do zero.</p>
-          <p className="text-xs font-bold text-black/75">🎁 <b>Jogador Surpresa</b> no leilão — nome escondido, revelado só no martelo.</p>
-          <p className="text-xs font-bold text-black/75">🏆 <b>Leilão mais claro</b> — quem dá o maior lance leva, e dá pra apostar em várias vagas de uma vez.</p>
-        </div>
+    <Box bg="#F6F2FF" className="p-3.5 space-y-2.5">
+      <p className="font-black text-[13px]" style={OSWALD}>📢 O que mudou por aqui</p>
+      <div className="space-y-1">
+        {novidades.map(n => (
+          <p key={n.titulo + n.data} className="text-[11.5px] font-bold text-black/75 leading-snug">
+            {n.emoji} <b>{n.titulo}</b> — {n.texto}
+          </p>
+        ))}
       </div>
+      {mud.length > 0 && (
+        <div>
+          <p className="text-[10px] font-black uppercase" style={{ color: PURPLE }}>🎴 No baralho</p>
+          {mud.map((m, i) => <p key={i} className="text-[11.5px] font-bold text-black/75 leading-snug mt-0.5">{frase(m)}</p>)}
+        </div>
+      )}
       <div>
-        <p className="text-[11px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🇧🇷 BR:</b> {recentBR.map(c => c.name).join(', ')}.</p>
-        <p className="text-xs font-bold text-black/75 mt-1"><b>🌍 Europa:</b> {recentEU.map(c => c.name).join(', ')}.</p>
-        <p className="text-[11px] font-bold text-black/50 mt-1">O baralho só cresce — sempre entrando craque novo. 🔨</p>
+        <p className="text-[10px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
+        <p className="text-[11.5px] font-bold text-black/75 mt-0.5 leading-snug">
+          <b>🇧🇷</b> {recentBR.map(c => c.name).join(', ')} · <b>🌍</b> {recentEU.map(c => c.name).join(', ')}.
+        </p>
       </div>
     </Box>
   )
@@ -1601,15 +1622,10 @@ export function EscIntro() {
             Crie a sala, mande o código no zap — até 20 no mesmo pregão
           </span>
         </Btn>
-        {/* mesmo formato dos dois de cima (pedido do Diego 16/08): título grande
-            + linha de explicação, tudo alinhado à esquerda. Só a cor muda — ela
-            é branca porque é o modo menor, não o principal. */}
-        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-left" bg="#fff">
-          <span className="block text-lg leading-none">⚡ Só uma partida rápida</span>
-          <span className="block text-[11px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(12,12,12,.6)' }}>
-            Uma temporada contra a CPU — rapidinho, pra treinar o dedo
-          </span>
-        </Btn>
+        {/* uma linha só, como era (Diego 16/08: "deixe como estava antes o só uma
+            partida rápida mesmo, só deixe alinhado") — o que mudou foi só o
+            alinhamento: encostado na esquerda igual aos dois de cima. */}
+        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-left text-lg" bg="#fff">⚡ Só uma partida rápida (vs CPU)</Btn>
         {/* fileira de ícones: ver, não jogar */}
         <div className="grid grid-cols-4 gap-2">
           {([['📖', 'Álbum', () => dispatch({ type: 'GO_ALBUM' })],

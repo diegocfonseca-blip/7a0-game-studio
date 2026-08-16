@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "novidades": "node scripts/novidades-jogadores.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

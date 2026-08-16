@@ -86,6 +86,23 @@ FORA do bundle. Então, sem exceção:
   aparece pra `diego.c.fonseca@gmail.com` logado (trava por conta em
   `src/escalacao/sport.ts`, `BASQUETE_TESTERS`). Não fundir na main sem OK visual.
 
+## 📢 Novidades: automáticas, e bug NUNCA entra (regra do Diego 16/08)
+Antes as novidades da home eram 17 avisos escritos na mão que nunca saíam.
+Agora:
+1. **Toda feature nova ganha UMA linha em `src/escalacao/novidades.ts`**, na
+   mesma entrega que a liga pro pessoal. Formato: o que mudou pra quem joga, em
+   uma frase, com o modo entre parênteses. A mais nova em cima, com a data.
+2. **BUG NUNCA VIRA NOVIDADE.** Palavras do Diego: *"menos bugs, que nunca
+   lance"*. Conserto vai pro `docs/pendencias.md` e pro commit — nunca pra tela
+   do jogador.
+3. **Novidade some sozinha**: a home mostra só os últimos 45 dias, no máximo 5
+   (`novidadesDaVez`). Ninguém precisa apagar nada.
+4. **Mexeu em JOGADOR** (entrou, saiu, mudou de nível ou de categoria)? Rode
+   **`npm run novidades`** — ele compara o baralho com a foto anterior
+   (`scripts/catalogo-snapshot.json`) e escreve sozinho o que mudou em
+   `src/escalacao/novidades-jogadores.ts` (arquivo GERADO, não editar na mão).
+   Commitar os três juntos: `data.ts`, a foto e o gerado.
+
 ## 🔄 Protocolo de memória compartilhada (OBRIGATÓRIO em toda sessão)
 As sessões não se veem — o repo é a memória comum. Então TODA sessão deve:
 1. **Ao começar**: `git pull` e ler `git log --oneline -15` (o que as outras
