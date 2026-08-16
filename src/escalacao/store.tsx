@@ -2603,6 +2603,7 @@ type Action =
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
   | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
+  | { type: 'CAREER_FROM_QUICK' } // 🪜 "continuar com esse time": o jogo rápido que acabou vira uma CARREIRA — a liga inteira (você + adversários, com os elencos) vira a divisão de estreia. Sem pregão: o time já está montado.
   | { type: 'SOCIO_CREDIT'; motivo: 'mensal' | 'boas-vindas' } // 🎟️ brinde de sócio (RPC já travou no Supabase, 1× por mês / 1× na vida) — o VALOR vem do código, nunca de fora
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
   | { type: 'SET_AGENCIA_CLUBE'; mgrId: number; dividir?: boolean } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (ou dividir meio a meio) — toggle na tela dos Agenciados
@@ -3612,6 +3613,82 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.intro) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
+      return s
+    }
+    case 'CAREER_FROM_QUICK': {
+      // 🪜 "QUER CONTINUAR COM ESSE TIME?" (Diego 16/08 — plano-crescimento §1).
+      // O fim da partida rápida era um beco sem saída: a pessoa montava um time
+      // no pregão, ganhava, e o jogo jogava tudo fora. Medido: 56% de quem joga
+      // NUNCA abre uma carreira, e quem abre volta 3× mais. Então aqui a liga que
+      // acabou de rolar VIRA a divisão de estreia da carreira.
+      //
+      // 🔑 A LIGA INTEIRA vem junto — você E os adversários, com os elencos como
+      // estão. É o que segura o equilíbrio: são os MESMOS times que você acabou de
+      // enfrentar, não um elenco forte jogado numa divisão fraca.
+      //
+      // Sem pregão: o time já está montado. O leilão volta no fim da temporada,
+      // como em qualquer carreira.
+      if (s.careerOnline || s.onlineMode === 'online' || s.dinastia || s.nbaCareer) return s // só do jogo rápido offline
+      s.isHost = true
+      s.careerOnline = true
+      s.simV = 4
+      s.contratosOn = true
+      s.agenciaOn = agenciaLiberada() || undefined
+      s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
+      s.escadaOn = escadaLiberada() || undefined
+      s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
+      s.careerEra = MANUAL_ERA
+      s.roomId = ''; s.roomCode = ''; s.roomName = undefined
+      s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
+      s.humanCount = 1
+      s.agenciaClubeId = s.managers[s.youIdx]?.id ?? 0
+      // 🎲 semente nova: a carreira é outra história, não a repetição da liga que acabou
+      s.seed = Math.floor(Math.random() * 1e9)
+      // colocação: a SALA inteira (você + adversários) vira a divisão de estreia;
+      // A/B/C (e D, quando tem Várzea) ficam com os times fixos do baralho.
+      const plQ: Record<string, string> = {}
+      const divIniQ = s.escadaOn ? 'V' : 'D'
+      for (const m of s.managers) plQ[`m${m.id}`] = divIniQ
+      for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) plQ[t.team] = d
+      if (s.escadaOn) {
+        const nomesQ = new Set(s.managers.map(m => m.teamName))
+        const dNomesQ = [...DIVISION_TEAMS.D.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)].filter(nm => !nomesQ.has(nm)).slice(0, 20)
+        for (const nm of dNomesQ) plQ[nm] = 'D'
+      }
+      s.careerPlacements = plQ
+      s.careerDivision = divIniQ
+      // 🧹 mesma faxina anti-herança da carreira nova (START): nada de save velho
+      // vazando pra cá. Só o que NÃO se apaga é o elenco — que é o ponto disto.
+      s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
+      s.marketValues = {}; s.marketLog = []
+      s.careerScorersAll = {}; s.statsSeason = 0
+      s.empresarioCards = []; s.empresarioClaimKeys = []
+      s.careerSponsorBet = undefined; s.careerSponsorResult = undefined
+      s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
+      s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
+      s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
+      s.agenciaDividir = false
+      s.stadiums = {}; s.careerFilial = undefined
+      s.multiClube = undefined; s.multiClubePendingCards = undefined
+      s.careerTitles = 0; s.careerTitlesA = 0
+      s.clubCash = seedClubCash({}, plQ)
+      s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}
+      s.reserveAuction = false; s.reserveListed = {}
+      s.quickCopa = null; s.streamChampCard = null
+      s.seasonVotes = {}; s.restartPending = false; s.restartReady = []
+      { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
+      const ccQ: Record<number, number> = {}
+      for (const m of s.managers) if (m.isHuman) { ccQ[m.id] = 100; m.money = 100 }
+      s.careerCoins = ccQ
+      s.seasonNo = 1
+      s.careerLedger = []
+      logFin(s, 'opening', '🏁 Saldo inicial', 100)
+      // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
+      s.league = buildLeague(s.managers, !s.ligaFechada)
+      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.round = 0; s.champion = null; s.scorers = []; s.lastResults = []; s.news = []; s.tactics = {}
+      s.screen = 'season'
       return s
     }
     case 'RESUME_CAREER_SOLO': {

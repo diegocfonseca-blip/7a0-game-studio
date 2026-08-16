@@ -4687,6 +4687,48 @@ type ShareBlobOpts = {
   nTeams?: number // tamanho da liga (pra faixa 🏅/🪦 proporcional; ausente = 20)
   card?: ShareCard // carta-lembrança do campeão (só quando você venceu e escolheu)
 }
+// 🪜 "QUER CONTINUAR COM ESSE TIME?" — leva a liga que acabou pra uma carreira.
+// Fica no fim da partida rápida OFFLINE (online tem a votação da sala; dinastia,
+// NBA e carreira já têm o próprio caminho). Se a pessoa não tem conta, a
+// JanelaConta abre por cima e retoma daqui mesmo — ela nunca sai do lugar.
+function ContinuarComEsseTime() {
+  const { state, dispatch } = useEsc()
+  const [pedindoConta, setPedindoConta] = useState(false)
+  const you = state.managers[state.youIdx]
+  const nome = you?.teamName ?? 'seu time'
+  const virar = () => dispatch({ type: 'CAREER_FROM_QUICK' })
+  const clicar = async () => {
+    // conta NÃO é obrigatória pra jogar (a 1ª temporada é livre — §1 do plano).
+    // O convite só aparece se ela ainda não tem conta, e dá pra recusar.
+    try {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) { virar(); return }
+    } catch { /* sem rede: deixa jogar, o save fica no aparelho */ }
+    setPedindoConta(true)
+  }
+  return (
+    <>
+      <Box bg={PURPLE} className="p-4 space-y-2" shadow={6}>
+        <p className="font-black text-lg text-center text-white" style={OSWALD}>🪜 QUER CONTINUAR COM ESSE TIME?</p>
+        <p className="text-sm font-bold text-center text-white/85">
+          Leva o <b className="text-white">{nome}</b> e essa liga inteira pra uma <b className="text-white">carreira</b>:
+          suba de divisão, construa estádio, renove contrato e dispute a Copa do Brasil.
+          <br /><span className="text-white/70">Sem novo pregão — o time já é seu.</span>
+        </p>
+        <Btn onClick={clicar} bg={GOLD} className="w-full text-lg">🪜 Continuar com o {nome}</Btn>
+      </Box>
+      {pedindoConta && (
+        <JanelaConta
+          titulo="🪜 Levar esse time pra carreira"
+          contexto={`${nome} — sua carreira começa agora`}
+          comecarEmCriar
+          onPronto={() => { setPedindoConta(false); virar() }}
+          onFechar={() => { setPedindoConta(false); virar() }} />
+      )}
+    </>
+  )
+}
+
 // 🏆 CAMPEÃO (jogo rápido): a imagem de compartilhar é a CARTA BONITA do craque-troféu
 // (mesma cara holográfica/bio da carta colecionável) com uma faixa dourada "🏆 CAMPEÃO
 // + time" em cima e uma linha de stats logo abaixo. Só pra QUEM GANHA e tem carta; o
@@ -7056,6 +7098,12 @@ export function EscEnd() {
             </>
           )
           : <p className="text-center text-sm font-bold text-black/60">Aguardando o host começar a próxima temporada…</p>}
+      {/* 🪜 NÃO JOGA O TIME FORA (Diego 16/08 — plano-crescimento §1). O fim da
+          partida rápida era beco sem saída: a pessoa montava o time no pregão e o
+          jogo descartava tudo. Medido: 56% de quem joga nunca abre uma carreira,
+          e quem abre volta 3× mais. Aqui a liga inteira vira a divisão de estreia
+          — com os MESMOS adversários, então o equilíbrio fica de pé. */}
+      <ContinuarComEsseTime />
       <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">NOVO PREGÃO 🔨</Btn>
       </>)}
     </Shell>
