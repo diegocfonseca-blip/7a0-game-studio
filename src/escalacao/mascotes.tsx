@@ -466,7 +466,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // cachimbo fumegando, isqueiro na mão). Arte própria do dono; o recorte do
   // escudo de trás foi feito aqui. mascote_key = "cobra_arruda".
   cobra_arruda: (
-    <img src={arrudaCobraImg} height={176} width={Math.round(176 * 319 / 440)} alt="Cobra — Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={arrudaCobraImg} height={176} width={Math.round(176 * 319 / 440)} alt="Cobra Coral — Tricolor do Arruda FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐶🎮 a NINA (mascote do Eros FC — erosreis/@erosreis, aprovado 12/08): a
   // cachorrinha do dono, de coleira vermelha, sentada na pilha de cartuchos com o
@@ -707,6 +707,16 @@ const SETE_SEVEN = (
     <path d="M22 18 L104 18 L98 46 L62 140 L28 140 L64 50 L18 50 Z" fill="#C9A227" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
   </svg>
 )
+
+// 🏷️ NOME PRÓPRIO da mascote (o dono batiza a mascote, não só o clube).
+// Hoje isso ainda NÃO aparece na tela — o card do perfil escreve só "mascote".
+// Fica registrado aqui pra virar rótulo quando o Diego aprovar o mockup; quem
+// não estiver nesta lista continua caindo no "mascote" genérico de sempre.
+export const MASCOTE_NOME: Record<string, string> = {
+  cobra_arruda: 'Cobra Coral', // 🐍 Tricolor do Arruda FC (Geovany Souza, 16/08)
+  eros_nina: 'Nina',           // 🐶 Eros FC — a cachorrinha do dono
+  maite: 'Maitê',              // 💚 Desportivo Montreal — homenagem à filha do Gabriel
+}
 
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)
 export const carimboDoTime = (time: string): ReactNode | null => {
