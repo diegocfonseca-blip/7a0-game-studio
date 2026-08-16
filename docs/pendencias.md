@@ -13,7 +13,16 @@ Feito no repo (já na main, já no ar):
 - `mascotes.tsx`: `CARIMBO_GOL['Tricolor do Arruda'] = 'cobra_arruda'` — a cobra
   **carimba o placar** quando o clube faz gol (isso funciona já, é só código).
 
-⏳ **PENDENTE — precisa de escrita no Supabase (`esc_socios`), fora do repo.**
+✅ **RESOLVIDO 16/08** — gravado no Supabase por outra sessão (a que tinha o
+acesso liberado), a pedido do Diego: `esc_socios` **sócio nº23** ·
+`mascote_key = cobra_arruda` · `escudo_time = Tricolor do Arruda FC` ·
+`time_coracao = Santa Cruz` · manto `#0C0C0C` + `#FFFFFF` (o vermelho sai do
+código, `MANTO_TRI`). Conferido ANTES de gravar: a chave `cobra_arruda` existe
+mesmo em `MASCOTES` e o tier ouro + fundador nº43 já estavam em `apoio.tsx` —
+então nada ficou apontando pra arte inexistente. Ele não tinha linha de sócio
+ainda (foi INSERT, não update). Texto original do pedido abaixo, pra histórico:
+
+~~PENDENTE — precisa de escrita no Supabase (`esc_socios`), fora do repo.~~
 Sem essa linha, DUAS coisas do batismo NÃO acontecem pro Geovany:
 - o **FESTÃO de campeão** (a cobra tomando a tela após o apito) e
 - a **cobra pulando no pênalti convertido**,
