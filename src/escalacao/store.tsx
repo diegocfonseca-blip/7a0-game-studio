@@ -3242,7 +3242,30 @@ export function reducer(state: EscState, action: Action): EscState {
     // o host anterior saiu de vez e me passou a batuta: viro autoritativo. O
     // canal realtime re-inscreve como host (reage a s.isHost) e passo a emitir
     // e persistir o estado da sala.
-    case 'BECOME_HOST': { s.isHost = true; return s }
+    case 'BECOME_HOST': {
+      // 👑 ASSUMI O COMANDO NO MEIO DO JOGO (o dono sumiu). O detalhe perigoso
+      // (Diego 16/08): eu herdo a LISTA de quem já lacrou o envelope, mas NÃO
+      // herdo os envelopes — os lances secretos dos outros só existiam na memória
+      // do dono antigo, nunca trafegam pra mais ninguém. Se eu fechasse o setor
+      // assim, todo mundo que já tinha lacrado entraria com **lance ZERO** e
+      // perderia o jogador calado. Isso é bem pior que reenviar.
+      //
+      // Então, ao assumir DENTRO da fase de envelope: fico só com o MEU lance (que
+      // está aqui comigo, no meu aparelho) e devolvo o envelope de todo mundo —
+      // o input reabre na tela de cada um, com aviso (`SYNC_STATE` leva a lista
+      // nova; a tela do convidado explica). Fora da fase de envelope não mexe em
+      // nada: não há envelope pendente pra perder.
+      s.isHost = true
+      if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
+        const meu = s.managers[s.youIdx]?.id
+        const souEu = (id: number) => id === meu
+        s.submitted = s.submitted.filter(souEu)
+        const meusEnv: typeof s.pendingEnvelopes = {}
+        for (const k in s.pendingEnvelopes) if (souEu(Number(k))) meusEnv[Number(k)] = s.pendingEnvelopes[Number(k)]
+        s.pendingEnvelopes = meusEnv
+      }
+      return s
+    }
     // 🪑 host antigo cede o comando: volto a ser convidado. O efeito do canal
     // (dep. isHost) re-inscreve como ouvinte e pede o estado do novo dono. Assim
     // NUNCA ficam dois hosts rodando a própria liga/Copa (bug do Sapekeiro).
@@ -6430,6 +6453,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // o aviso precisa dizer isso, senão parece bug (Diego 16/08: "tive que lacrar
   // de novo um lance novo... aí pareceu bug brabo").
   const [viradaNoLeilao, setViradaNoLeilao] = useState(false)
+  // 🔨 MEU LANCE FOI REABERTO (Diego 16/08): "as outras pessoas da sala teriam que
+  // dar lance e não entenderiam nada". Verdade — o aviso grande só aparecia pra
+  // quem virou host. Quem não virou via o botão de lance voltar do nada, sem
+  // explicação: cara de bug. Este vigia percebe quando eu ESTAVA lacrado e deixei
+  // de estar, ainda na fase de envelope, e mostra o porquê pra ELE também.
+  const [lanceReaberto, setLanceReaberto] = useState(false)
+  const euLacradoRef = useRef(false)
   // "fui expulso pelo host": banner vermelho na tela (troca o alert() antigo, que o
   // celular às vezes engolia e a pessoa continuava vendo a partida). A saída da sala
   // já aconteceu (KICKED_OUT resetou pro menu) — o banner só explica o porquê.
@@ -6932,6 +6962,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId, state.screen])
 
+  // 🔨 vigia do MEU envelope: lacrado → reaberto, ainda no envelope = o dono da
+  // sala trocou e o meu lance voltou pra minha mão. Mostra o porquê (senão o
+  // botão "reaparece do nada" e parece bug).
+  useEffect(() => {
+    const noEnvelope = state.phase === 'envelope' || state.phase === 'resq_envelope'
+    const meu = state.managers[state.youIdx]?.id
+    const lacrado = meu != null && state.submitted.includes(meu)
+    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current && !lacrado && !state.isHost) setLanceReaberto(true)
+    euLacradoRef.current = !!(noEnvelope && lacrado)
+  }, [state.submitted, state.phase, state.youIdx, state.onlineMode, state.isHost, state.managers])
+
   // 🔒 o aparelho lembra de qual sala ele é DONO (host). Serve SÓ pra não mostrar o
   // aviso "host caiu" pra ele mesmo — se a rede piscar no reconectar e o "sou host?"
   // ler errado por um instante, o dono não leva susto. NÃO muda quem é autoritativo
@@ -7068,6 +7109,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
             <button onClick={() => setBecameHost(false)}
               style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
               👑 OK, ENTENDI — SOU O HOST
+            </button>
+          </div>
+        </div>
+      )}
+      {lanceReaberto && (
+        <div style={{ position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 92, fontFamily: 'Oswald, sans-serif' }}>
+          <div style={{ background: '#FFF1E8', border: '3px solid #C2452F', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#7a2418' }}>🔨 MANDA SEU LANCE DE NOVO</p>
+            <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: '#7a2418', lineHeight: 1.4 }}>
+              O dono da sala sumiu do ar e outra pessoa assumiu o comando. Os envelopes voltaram pra mão de cada um — se ficassem lacrados com o dono antigo, o setor fecharia com <b>lance ZERO</b>. <b>Ninguém viu o seu</b>: lance secreto continua secreto. 🔒
+            </p>
+            <button onClick={() => setLanceReaberto(false)}
+              style={{ marginTop: 9, width: '100%', background: '#C2452F', color: '#fff', border: '2.5px solid #0C0C0C', borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
+              ENTENDI — VOU LANÇAR DE NOVO
             </button>
           </div>
         </div>

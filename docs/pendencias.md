@@ -106,9 +106,34 @@ pra mão de cada um — se ficassem lacrados no dono antigo, o setor fecharia co
 lance ZERO. Ninguém viu o que você tinha mandado: lance secreto continua
 secreto. 🔒"*
 
-**Em aberto (decisão do Diego):** guardar os envelopes já lacrados durante a
-troca acabaria com o reenvio de vez — mas significa gravar o lance secreto de
-todo mundo em algum lugar. **Não mexi nisso sem ele decidir.**
+### 🚨 O Diego achou algo PIOR olhando isso (e estava certo)
+*"Mas as outras pessoas da sala teriam que dar lance e não entenderiam nada… o
+novo host ainda vê essa msg. Tem necessidade mesmo de dar de novo lance?"*
+
+Fui atrás e havia **dois furos**, não um:
+
+**1. Lance ZERO silencioso (grave).** `BECOME_HOST` só fazia `isHost = true`. O
+novo dono **herdava a LISTA de quem já lacrou**, mas **não os envelopes** — os
+lances secretos só existiam na memória do dono antigo e nunca trafegam. Se o
+setor fechasse assim, **todo mundo que já tinha lacrado entrava com lance ZERO** e
+perdia o jogador calado. Bem pior que reenviar.
+**Conserto:** ao assumir DENTRO da fase de envelope, o novo dono fica só com o
+PRÓPRIO lance (que está no aparelho dele) e devolve o envelope dos outros, que
+reabre na tela de cada um. Fora da fase de envelope, não mexe em nada.
+Testado (`scratchpad/teste-becomehost.mjs`), 4/4.
+
+**2. Quem NÃO virou host não via explicação nenhuma** — o aviso grande só
+aparecia pra quem pegou a coroa. Os outros viam o botão de lance voltar do nada.
+**Conserto:** um vigia percebe quando o MEU envelope estava lacrado e deixou de
+estar, ainda na fase de envelope, e mostra a tarja com o porquê e a garantia de
+que ninguém viu o lance.
+
+**E respondendo a pergunta dele — "tem necessidade mesmo?":**
+- **Pra quem virou host: NÃO, e isso foi consertado.** O lance dele está no
+  aparelho dele; agora ele segue lacrado.
+- **Pros outros: hoje sim.** O lance deles só existia no aparelho do dono que
+  sumiu. Acabar com isso significa **gravar o lance secreto de todo mundo** em
+  algum lugar, nem que por segundos. **Decisão do Diego — não mexi.**
 
 ## 👥🐛 RÁPIDO ONLINE: fantasma no leilão + partida que não contava (16/08)
 Relato do Diego jogando com dois amigos (B e C), passo a passo dele:
