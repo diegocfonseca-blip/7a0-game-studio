@@ -55,6 +55,61 @@ livre → home nova.
   ranking global melhor carreira + linha de hoje (§5) · Sala da Presidência (§7).
 
 
+## 📡 MARKETING: o diagnóstico e o Radar do Reddit (16/08)
+O Diego: *"o nosso marketing está muito ruim… preciso entrar no Reddit, mandar
+bastante mensagem, procurar bastante comunidade — não tem como automatizar?"*.
+
+### 📉 O diagnóstico (medido no banco, não achismo)
+| Cadastros por dia | |
+|---|---|
+| 27/07 | **446** |
+| 30/07 | 281 |
+| 05/08 | 165 |
+| 16/08 | **64** |
+
+**Caiu 86% em 3 semanas.** Total: **7.200 contas**.
+
+**Mas o jogo NÃO é o problema:** das 1.920 pessoas que entraram no pico (26 a
+31/07), **91,4% chegaram a jogar de verdade**. Isso é conversão altíssima.
+**A torneira é que fechou** — algo trouxe 446 pessoas num dia no fim de julho e
+parou. ⏳ **Perguntei ao Diego o que foi e ele não respondeu ainda** — descobrir
+isso vale mais que qualquer estratégia nova, porque já está provado que funciona
+com o público dele.
+
+### 💤 O ativo parado
+- **7.202** contas com e-mail · **2.890** já jogaram carreira
+- **1.196** jogaram e **sumiram há 14+ dias** ← o melhor alvo que ele tem
+- **509** jogaram nas últimas 48h ← alcançáveis por recado dentro do jogo
+
+### ✅ Feito: `npm run reddit` (`scripts/reddit-radar.mjs`)
+Automatiza a parte que DEMORA — achar onde falar — **sem publicar nada**:
+1. procura comunidades que combinam com o jogo (PT e EN);
+2. **lê as REGRAS de cada uma** e marca 🟢 aceita divulgação · 🔴 proíbe ·
+   🟡 leia antes — postar no lugar errado é o que queima o domínio;
+3. acha **conversas abertas** onde alguém está pedindo justamente um jogo assim
+   (responder quem perguntou nunca é spam e é o que converte);
+4. gera `reddit-radar.html` pra ele abrir e sair respondendo.
+
+⚠️ **Roda na máquina DELE** — o sandbox do Claude não alcança o Reddit (só passa
+npm/pypi). Testado aqui com respostas simuladas; a lógica e o relatório
+funcionam, a chamada real nunca foi exercitada.
+
+### 🚫 O que NÃO foi feito, e por quê
+O Diego insistiu 3× em disparo automático (*"escrever a mensagem aqui e chegar
+automática em vários locais"*). **Não montei** — mandar o mesmo texto pra vários
+subs/DMs banem o **DOMÍNIO** `leilaolegends.com`, e aí o link dele some de todo
+lugar de uma vez, sem volta fácil. Trocaria semanas de trabalho por um problema
+permanente. O que existe de legítimo pra esse desejo (uma escrita → vários
+lugares) é **agendador nos canais DELE** (Postiz/Buffer/Metricool: Instagram, X,
+Facebook, TikTok, subreddit próprio, Discord).
+
+### ⏳ Ofertado e ainda não feito
+1. **Recado dentro do jogo** — ele escreve e aparece pra quem está jogando (509
+   em 48h). É o canal mais forte dele e está desligado.
+2. **E-mail pros 1.196 que sumiram** (o Diego disse "do e-mail já entendi").
+3. **Marcar a origem dos links** (`?de=insta`, `?de=grupo`) — hoje ele não sabe
+   de onde vem ninguém, então qualquer marketing é chute.
+
 ## 👑🐛 "DE REPENTE VIREI HOST NO LEILÃO" — régua da coroa afrouxada (16/08)
 Relato do Diego, ao vivo, na sala do Manfré (código `4FTOS5`, ele e o Manfré):
 *"do nada apareceu na minha tela que virei host no leilão, e tive que dar lance
