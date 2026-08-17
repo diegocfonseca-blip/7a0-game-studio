@@ -1044,7 +1044,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     ? ESCADA_RARITY[escada] // 🪜 cotas do degrau da escada (catálogo já filtrado acima)
     : varzea
     ? { legend: 0, star: 0, promessa: 0, low: 0.40 }
-    : { legend: 0.16, star: 0.43, promessa: 0, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
+    : { legend: 0.16, star: 0.38, promessa: 0, low: 0.29 } // % por posição (o resto = bom jogador ~17%; pedido do Diego 16/08: tirou 5pt do craque+promessa — que tem baralho grande e sobrava — e deu pro bom jogador, que é o maior baralho de todos (303 cartas no BR) e tinha a menor cota)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
   const availOf = (pos: Sector, pred: (c: (typeof CATALOG)[Sector][number]) => boolean) =>
