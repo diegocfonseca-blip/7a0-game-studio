@@ -946,29 +946,39 @@ mandado pro Diego pra ele postar.
 NULL). Sem ele o card do clube não mostra o time de coração — o resto todo
 (escudo, mascote, manto e as três animações) já funciona.
 
-## 🏆 CADA MASCOTE COMEMORA O TÍTULO DO SEU JEITO (17/08)
-Regra fechada com o Diego, e ele corrigiu meu excesso no meio do caminho:
+## 🎬 CADA MASCOTE COMEMORA DO SEU JEITO — gol E título (17/08)
+Pedido do Diego: *"na comemoração do gol cada mascote tem que ter suas
+individualidades. Se é águia tem que ser algo relacionado a águia. Cada um
+depende do que ele é, as coisas que faz"*.
 
-> *"No gol tem que ser igual pra todos. O que eu disse diferente é quando é
-> campeão."*
+⚠️ **Teve ida e volta, e o histórico fica registrado pra ninguém desfazer sem
+querer**: no meio do caminho ele disse *"no gol tem que ser igual pra todos, o
+que eu disse diferente é quando é campeão"*, eu tirei o do gol — e logo depois
+ele mandou *"volte o gol como estava, que você tinha feito no anterior"*.
+**Vale o estado atual: os DOIS momentos são por mascote.**
 
-Eu tinha feito os DOIS por mascote (a águia mergulhando no carimbo do gol, o
-palhaço quicando, a cobra rastejando). Ele cortou: o **carimbo do gol é a marca
-da casa**, aparece o tempo todo e tem que ser igual pra todo mundo. A
-individualidade fica onde o momento é único — **o festão de campeão**.
+**⚽ No GOL** (`CARIMBO_ANIM` + `CARIMBO_KEYFRAMES` em `mascotes.tsx`, usados
+pelo `LiveScoreCard`): antes todo mundo entrava igual (`coCarimba` — caía girado
+e sumia). Agora:
+- 🦅 águia `coVoa` — mergulha de cima e sobe planando de volta
+- 🤡 palhaço `coQuica` — entra quicando, gingando pros dois lados
+- 🐍 cobra `coRasteja` — entra pelo lado ondulando
+- 🃏 coringa `coCarta` — vira no ar como carta sendo dada
+- 🐝 abelha `coZumbe` · 🐶 cachorrinha `coPulinho`
 
-- ⚽ **GOL**: `coCarimba` pra todos, como sempre foi. Nada mudou.
-- 🏆 **TÍTULO**: `FESTA_JEITO` em `mascotes.tsx` — `voa` · `rasteja` · `quica`.
-  - **voa** (águia, abelha): plana lá no alto e **sem sombra no chão**. Era o
-    mais errado de todos: a águia atravessava a tela **quicando no gramado**,
-    com sombra, feito bola.
-  - **rasteja** (cobra): ondula rente ao chão.
-  - **quica**: o de sempre — quem não está na lista não perde nada, e batismo
-    novo já nasce funcionando antes de alguém pensar num movimento pra ele.
+**🏆 No TÍTULO** (`FESTA_JEITO`, usado pelo `FestaoMascote`): `voa` · `rasteja`
+· `quica`. Quem voa plana lá no alto e **sem sombra no chão** — era o mais
+errado de todos: a águia atravessava a tela **quicando no gramado**, com
+sombrinha, feito bola.
+
+🛡️ **O que NÃO mudou, e não pode mudar:** o tempo é o mesmo (1,7s no carimbo) e
+nada pede toque — regra de ouro do Diego, zoeira nova nunca atrasa o ritmo do
+jogo. E mascote fora das listas cai no comportamento de sempre, então ninguém
+perde o que tinha e batismo novo já nasce funcionando.
 
 ⏳ **Ainda genérico de propósito**: no **pênalti convertido** o mascote pula
-igual pra todos. O mockup também fala genérico ali — post não pode prometer o
-que a tela não faz. Se o Diego quiser, é o mesmo padrão do festão.
+igual pra todos (`penJump`). O mockup também fala genérico ali — post não pode
+prometer o que a tela não faz. Se o Diego quiser, é o mesmo padrão.
 
 ## 🎨 MOCKUP PADRÃO DE BATISMO — agora mora no repo (17/08)
 O Diego mandou o modelo (o do Nata de SP) e foi direto: *"esse aqui é o mockup

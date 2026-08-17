@@ -63,21 +63,20 @@ const resto = partes.slice(1).join(' ').toUpperCase()
 
 const cores = [o.c1nome, o.c2nome].filter(Boolean).join(' e ') || 'as cores do clube'
 
-// 🏆 CADA MASCOTE COMEMORA O TÍTULO DO SEU JEITO (Diego, 17/08). Ele foi claro
-// sobre onde a individualidade entra: *"no gol tem que ser igual pra todos. O
-// que eu disse diferente é quando é campeão"*. Então o texto do GOL é o mesmo
-// pra todo batismo, e só o do TÍTULO muda de bicho pra bicho — igualzinho ao
-// que o jogo faz (FESTA_JEITO em mascotes.tsx).
-const FESTAS = {
-  aguia:   'atravessa a tela PLANANDO lá no alto',
-  abelha:  'atravessa a tela VOANDO',
-  cobra:   'atravessa ONDULANDO, rente ao chão',
-  palhaco: 'atravessa a tela aos pulos',
-  coringa: 'atravessa a tela aos pulos',
-  generico:'atravessa a tela aos pulos',
+// 🎬 CADA MASCOTE COMEMORA DO SEU JEITO (Diego, 17/08): *"se é águia tem que ser
+// algo relacionado a águia. Cada um depende do que ele é, as coisas que faz"*.
+// O jogo já anima cada uma diferente (CARIMBO_ANIM em mascotes.tsx) — aqui o
+// post CONTA isso com o verbo do bicho. Mascote sem verbo próprio cai no
+// genérico, então batismo novo nunca sai com o post quebrado.
+const JEITOS = {
+  aguia:   { gol: 'MERGULHA de cima', festa: 'atravessa a tela PLANANDO lá no alto' },
+  palhaco: { gol: 'entra QUICANDO, gingando pros dois lados', festa: 'atravessa a tela aos pulos' },
+  cobra:   { gol: 'RASTEJA por cima do placar', festa: 'atravessa ONDULANDO, rente ao chão' },
+  coringa: { gol: 'VIRA NO AR feito carta sendo dada', festa: 'atravessa a tela aos pulos' },
+  abelha:  { gol: 'chega ZUMBINDO e para no ar', festa: 'atravessa a tela VOANDO' },
+  generico:{ gol: 'CARIMBA a tela', festa: 'atravessa a tela aos pulos' },
 }
-const festa = FESTAS[arg('jeito', 'generico')] || FESTAS.generico
-
+const jeito = JEITOS[arg('jeito', 'generico')] || JEITOS.generico
 const art = /^[AÁE]/i.test(o.mascoteNome.replace(/^(O|A)\s+/i, '')) || /^A\s/i.test(o.mascoteNome)
 const mascCurto = o.mascoteNome.replace(/^(O|A)\s+/i, '')
 
@@ -171,7 +170,7 @@ h1 .r{color:#C2452F}
 <div class="dois">
   <div class="card"><div class="tit">${o.mascoteEmoji} Mascote</div>
     <div class="corpo"><img src="${img(o.mascote)}">
-      <div class="leg"><b>${o.mascoteNome}</b><br>carimba o placar no gol</div></div></div>
+      <div class="leg"><b>${o.mascoteNome}</b><br>${jeito.gol.toLowerCase()} no gol</div></div></div>
   <div class="card"><div class="tit">👕 Manto</div>
     <div class="corpo">
       <div class="manto">
@@ -183,8 +182,8 @@ h1 .r{color:#C2452F}
 
 <div class="card anim">
   <div class="tit">🎬 Onde ${art ? 'a' : 'o'} ${mascCurto} aparece</div>
-  <div class="linha"><div class="ic">⚽</div><p><b>No placar, quando o time faz gol:</b> ${art ? 'a' : 'o'} ${mascCurto} <b>carimba a tela</b> por cima do resultado e some sozinh${art ? 'a' : 'o'}. Não para o relógio, não pede toque.</p></div>
-  <div class="linha"><div class="ic">🏆</div><p><b>Quando é CAMPEÃO:</b> depois do apito, ${art ? 'a' : 'o'} ${mascCurto} toma a tela inteira e <b>${festa}</b>, com chuva de confete e o nome do clube. Só o campeão vê, uma vez só.</p></div>
+  <div class="linha"><div class="ic">⚽</div><p><b>No placar, quando o time faz gol:</b> ${art ? 'a' : 'o'} ${mascCurto} <b>${jeito.gol}</b> por cima do resultado e some sozinh${art ? 'a' : 'o'}. Não para o relógio, não pede toque.</p></div>
+  <div class="linha"><div class="ic">🏆</div><p><b>Quando é CAMPEÃO:</b> depois do apito, ${art ? 'a' : 'o'} ${mascCurto} toma a tela inteira e <b>${jeito.festa}</b>, com chuva de confete e o nome do clube. Só o campeão vê, uma vez só.</p></div>
   <div class="linha"><div class="ic">🥅</div><p><b>No pênalti decisivo:</b> converteu? ${art ? 'A' : 'O'} ${mascCurto} aparece <b>comemorando na narração</b>, junto com o gol.</p></div>
 </div>
 
