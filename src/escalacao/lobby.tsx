@@ -1669,23 +1669,40 @@ export function EscLobby() {
           <Section num={1} title="O básico" icon="📋">
             <div>
               <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
-                {canCareer || salaElenco ? (
-                  <Seg options={[
-                    ['rapido', '⚡ Rápido'],
-                    ...(canCareer ? [['carreira', '🌐 Carreira']] as [typeof roomMode, string][] : []),
-                    ...(salaElenco ? [['elenco', '👔 Elencos']] as [typeof roomMode, string][] : []),
-                  ] as [typeof roomMode, string][]} value={roomMode} onSet={v => setRoomMode(v)} />
-                ) : (
-                  // Carreira ainda em teste fechado: aparece pra TODOS como "em breve",
-                  // apagada e sem clique (só desperta o interesse). Sempre fica no Rápido.
-                  <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
-                    <button className="flex-1 font-black" style={{ padding: '9px 2px', fontSize: 12.5, background: GOLD, color: '#000', ...OSWALD }}>⚡ Rápido</button>
-                    <button disabled className="flex-1 font-black border-l-[2.5px] border-black" style={{ padding: '9px 2px', fontSize: 11, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', ...OSWALD }}>🌐 Carreira · em breve</button>
-                  </div>
-                )}
+                {/* 🎛️ OS TRÊS MODOS SEMPRE À VISTA (Diego 17/08: "pode deixar esse
+                    modo aparecendo e também o do carreira, e os dois coloque em
+                    breve — mas pode usar somente eu com meu usuário").
+                    Quem não está liberado VÊ os dois, apagados e sem clique: desperta
+                    o interesse sem prometer o que ainda não dá pra entregar, e sem
+                    NUNCA deixar entrar num modo que não está pronto (a trava real é
+                    por conta, em sport.ts — o botão apagado é só a cara dela). */}
+                {(() => {
+                  const abas: { v: typeof roomMode; label: string; liberado: boolean }[] = [
+                    { v: 'rapido', label: '⚡ Rápido', liberado: true },
+                    { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
+                    { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
+                  ]
+                  return (
+                    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
+                      {abas.map((a, i) => a.liberado ? (
+                        <button key={a.v} onClick={() => setRoomMode(a.v)}
+                          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
+                          style={{ padding: '9px 1px', fontSize: 11.5, background: roomMode === a.v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
+                          {a.label}
+                        </button>
+                      ) : (
+                        <button key={a.v} disabled
+                          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
+                          style={{ padding: '9px 1px', fontSize: 9.5, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', lineHeight: 1.15, ...OSWALD }}>
+                          {a.label}<br /><span style={{ fontSize: 8 }}>em breve</span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {isElenco ? '👔 Sem leilão: cada um traz o time da PRÓPRIA carreira. Só liga de 38 rodadas — sem Copa.' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+                {isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do cofre de cartas. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
@@ -1796,7 +1813,7 @@ export function EscLobby() {
                 <SegField label="Depois da liga">
                   <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
                     <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>📊 Só a liga · 38 rodadas</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">Neste modo <b>não tem Copa</b> — é a tabela do começo ao fim, e o campeão sai dela.</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">No Bafo <b>não tem Copa</b> — é a tabela do começo ao fim, e a classificação final é o que decide quem entrega carta pra quem.</p>
                   </div>
                 </SegField>
               ) : (

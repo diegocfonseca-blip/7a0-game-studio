@@ -232,9 +232,13 @@ export function useCopaBrasilLiberada(): boolean {
   return copaBrasilOk
 }
 
-// 👔🃏 SALA DE ELENCO (17/08) — modo NOVO do rápido online: em vez de leiloar,
+// 🃏 BAFO (batizado pelo Diego 17/08) — modo NOVO do rápido online: em vez de leiloar,
 // cada um traz o time da PRÓPRIA carreira (os 22 do elenco ou 22 convocados do
-// cofre). Desenho fechado em docs/pendencias.md.
+// cofre) e joga VALENDO CARTA. Desenho fechado em docs/pendencias.md.
+// O nome é o do jogo de figurinha de rua: você joga valendo a carta do outro —
+// todo brasileiro entende sem explicação, e não colide com a Carreira Online real
+// que o Diego vai lançar (essa é UMA partida com o que você já construiu; a outra
+// é construir junto, temporada após temporada).
 // 🔒 EM CONSTRUÇÃO: só a conta do Diego enxerga. Pra abrir pra todo mundo depois,
 // é o mesmo caminho da Copa do Brasil — vira SALA_ELENCO_GERAL = true.
 const SALA_ELENCO_GERAL = false
