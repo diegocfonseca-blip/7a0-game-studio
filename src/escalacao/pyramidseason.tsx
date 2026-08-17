@@ -1765,7 +1765,7 @@ export const RIVAL_COL: FCol = { solid: '#9B4D2E', light: '#EBD5C6' }
 // 💎 roxo) — é o que TODOS já veem, então serve pra cruzar a cor de cada humano
 // entre os aparelhos, sem depender de lookup extra. Sem selo → sem tier (bege).
 export function perkFromSelo(name: string): ApoioPerk | null {
-  return name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null
+  return name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : name.includes('🟢') ? APOIO_PERKS.verde : null
 }
 // perkById: tier de CADA humano (por id), pra colorir amigos com a cor do login
 // deles — não só você. Sem entrada = bege (sem fallback: dois sem tier ficam bege).

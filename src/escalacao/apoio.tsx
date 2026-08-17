@@ -22,7 +22,12 @@ export interface ApoioPerk {
 export const APOIO_PERKS: Record<ApoioTier, ApoioPerk> = {
   bege:  { tier: 'bege',  selo: '',   solid: '#B2A583', light: '#EFE9D6', holo: 0,
            grad: 'linear-gradient(160deg,#DBD1B5,#CBBF9E 55%,#B2A583)', svgFull: ['#DBD1B5', '#B2A583'], svgPart: ['#cbbf9e', '#948967'] },
-  verde: { tier: 'verde', selo: '',   solid: '#2E9E5B', light: '#CBEFD7', holo: 0,
+  // 🟢 selo (pedido do Diego 17/08): sem NENHUM sinal no nome, os outros
+  // jogadores não têm como saber a cor de quem não é a própria conta — o jogo
+  // não consulta o banco pra isso, lê um sinalzinho junto do nome (mesmo
+  // esquema de ⭐💎👑). Verde nasceu sem selo (junto do bege); agora ganha um
+  // discreto, só pra isso funcionar — não muda nada de sócio/plano/preço.
+  verde: { tier: 'verde', selo: '🟢', solid: '#2E9E5B', light: '#CBEFD7', holo: 0,
            grad: 'linear-gradient(160deg,#41C07A,#2E9E5B 55%,#1E7A45)', svgFull: ['#41C07A', '#1E7A45'], svgPart: ['#2fa85c', '#15612f'] },
   roxo:  { tier: 'roxo',  selo: '💎', solid: '#8B5CF6', light: '#E4D6FB', holo: 0.3,
            grad: 'linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', svgFull: ['#C9A9FF', '#7C3AED'], svgPart: ['#a98be0', '#5B2FB0'] },

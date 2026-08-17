@@ -28,9 +28,10 @@ interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // Chat é pra escrever; emoji/zoeira flutua por cima de tudo (inclusive do chat aberto).
 interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x: number }
 // tier de apoio de um jogador da sala, lido pelo SELO que viaja no nome dele
-// (👑 ouro · ⭐ prata · 💎 roxo) — assim TODOS veem a bolinha brilhando, não só o dono
+// (👑 ouro · ⭐ prata · 💎 roxo · 🟢 verde) — assim TODOS veem a bolinha
+// brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
-  n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : null
+  n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('🟢') ? APOIO_PERKS.verde : null
 type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
@@ -2033,17 +2034,22 @@ export function EscLobby() {
             // mesmo ainda não estou em dupla nem tenho outro pedido em aberto.
             const livreProMim = duplasOn && !par && !souEu && p.dupla_seek !== 'privada' && (!pedidoPara || euPediParaEla)
             const posso = livreProMim && !souParceiro && !parceiroDe(user?.id ?? '') && !meuRow?.dupla_request_to
+            // 🎨 cor do NOME (não só a bolinha do avatar — pedido do Diego 17/08):
+            // só pinta o texto quando tem um selo de verdade no nome (👑⭐💎🟢);
+            // sem selo, o nome continua preto igual sempre foi — não muda a cara
+            // de ninguém que não tem tier.
+            const pk = perkFromName(p.manager_name)
             return (
             <div key={p.user_id} className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
               <div className="flex items-center gap-3">
-                {(() => { const pk = perkFromName(p.manager_name) ?? APOIO_PERKS.bege; return (
+                {(() => { const pkAv = pk ?? APOIO_PERKS.bege; return (
                   <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
-                    style={{ background: pk.grad, position: 'relative', overflow: 'hidden', color: '#0C0C0C' }}>
+                    style={{ background: pkAv.grad, position: 'relative', overflow: 'hidden', color: '#0C0C0C' }}>
                     <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(p.manager_name).trim()[0]?.toUpperCase()}</span>
-                    {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
+                    {pkAv.holo > 0 && <ApoioSheen holo={pkAv.holo} dur={2.6} />}
                   </div>
                 ) })()}
-                <span className="font-black text-black text-sm flex-1">{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>
+                <span className="font-black text-black text-sm flex-1" style={pk ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>
                 {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}
                 {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
                 {isHost && p.user_id !== user?.id && (
