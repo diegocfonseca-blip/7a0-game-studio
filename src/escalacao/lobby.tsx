@@ -36,7 +36,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco'; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco'; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -564,6 +564,10 @@ export function EscLobby() {
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
   const [rapidoVarzea, setRapidoVarzea] = useState(false) // 🥅 rápido online + BR: categoria "Sem craques" (várzea) — só bom jogador + foi profissional
+  // 🃏 BAFO: o host decide se a partida vale carta (padrão) ou se é amistoso.
+  // Ausente/antigo = VALENDO — é a identidade do modo; só o "não" é gravado.
+  const [bafoValendo, setBafoValendo] = useState(true)
+  const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa'>('liga_copa') // 🏆 rápido online: liga só, ou liga + Copa dos 8 no fim (padrão)
   const [ligaFechada, setLigaFechada] = useState(false) // 🏆 liga só com a galera (sem bots) — só quem tem Lenda cria
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
@@ -1008,6 +1012,20 @@ export function EscLobby() {
         })
         return out
       })() : undefined,
+      // 🃏 e QUEM é o dono de cada time: a conta e a carreira que ele trouxe. É
+      // o que a cascata do fim usa pra tirar a carta da carreira CERTA e pôr na
+      // carreira CERTA — pela MESMA posição na lista (uniq), nunca por outra.
+      bafoDonos: gs?.mode === 'elenco' ? (() => {
+        const out: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }> = {}
+        uniq.forEach((p, i) => {
+          const b = (p as RoomPlayer & { bafo?: BafoTime | null }).bafo
+          if (b && (b.squad?.length ?? 0) >= 11) out[i] = { uid: p.user_id, seed: b.seed, via: b.via }
+        })
+        return out
+      })() : undefined,
+      // 🃏 valendo carta? Só o "não" viaja gravado — sala antiga/sem o campo é
+      //    VALENDO, que é como o modo foi desenhado.
+      bafoValendo: gs?.mode === 'elenco' ? !gs?.bafoSemCarta : undefined,
       rivals: gs?.rivals, // 🌐 carreira online: nº de rivais CPU no leilão (escolha do host)
       rivalTeams: gs?.rivalTeams, // 🌐 carreira online: times da Série D escolhidos como rivais
       ligaFechada: !!(gs as GS & { ligaFechada?: boolean })?.ligaFechada, // 🏆 liga só com a galera, sem bots
@@ -1162,7 +1180,7 @@ export function EscLobby() {
     // será apenas divisão de 38 rodadas nesse modo"). Por isso entra com
     // copaMode:'liga' TRAVADO, e o seletor de Copa nem aparece na criação.
     const elenco = salaElenco && roomMode === 'elenco'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga' } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1431,6 +1449,19 @@ export function EscLobby() {
       const dn = players.filter(p => !p.dupla_partner_of)
       const temPar = (uid: string) => players.some(p => p.dupla_partner_of === uid)
       if (dn.filter(d => temPar(d.user_id)).length < 2) return
+    }
+    // 🃏 BAFO: só entra em campo quem MONTOU o time (11+). Quem não montou fica
+    // de fora de verdade — a vaga sai da sala ANTES da renumeração, então ele
+    // nunca vira "time fantasma" nem entra com elenco sorteado (a regra da casa:
+    // nada de perna-de-pau entrando em campo por regra nova). O host já foi
+    // avisado no banner de quem ia ficar de fora antes de chegar aqui.
+    if (room.game_state?.mode === 'elenco') {
+      const aptos = players.filter(p => ((p.bafo?.squad?.length ?? 0) >= BAFO_MIN))
+      if (aptos.length < 2) return
+      for (const p of players) {
+        if (aptos.some(a => a.user_id === p.user_id)) continue
+        await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', p.user_id).then(() => {}, () => {})
+      }
     }
     // LIMPA as vagas ANTES de começar (o jogo monta os times pela POSIÇÃO na lista):
     // (1) DEDUPLICA por usuário. Se o mesmo técnico ficou com DUAS vagas (leitura
@@ -1960,12 +1991,25 @@ export function EscLobby() {
                   torto que a casa não aceita — o seletor SAI da tela e o motivo fica
                   escrito. A sala já nasce com copaMode:'liga' travado. */}
               {isElenco ? (
+                <>
                 <SegField label="Depois da liga">
                   <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
                     <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>📊 Só a liga · 38 rodadas</p>
                     <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">No Bafo <b>não tem Copa</b> — é a tabela do começo ao fim, e a classificação final é o que decide quem entrega carta pra quem.</p>
                   </div>
                 </SegField>
+                {/* 🃏 O host decide se a partida vale carta de verdade. Amistoso
+                    existe pra galera experimentar o modo sem medo de perder carta
+                    — e é o Diego quem sempre pede o caminho de volta. */}
+                <SegField label="No fim da liga">
+                  <Seg options={[[true, '🃏 Valendo carta'], [false, '🤝 Amistoso']] as [boolean, string][]} value={bafoValendo} onSet={v => setBafoValendo(v)} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {bafoValendo
+                      ? <>Quem ficou atrás entrega <b>uma carta sorteada</b> da carreira que trouxe pro time logo acima — e a carta <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>
+                      : <>Ninguém perde nem ganha carta. Só a tabela, pra brincar sem risco.</>}
+                  </p>
+                </SegField>
+                </>
               ) : (
                 <SegField label="Depois da liga">
                   <Seg options={[['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']] as ['liga_copa' | 'liga', string][]} value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
@@ -2174,8 +2218,14 @@ export function EscLobby() {
     // pelo menos DUAS duplas fechadas. Mais nada segura o host — quem ficou sem
     // parceiro não trava a sala (senão, com gente ímpar, ninguém jogaria nunca).
     const duplasCompletas = duplasOn ? donos.filter(d => !!parceiroDe(d.user_id)).length : 0
-    const ready = duplasOn ? duplasCompletas >= 2 : players.length >= 2
-    const travaMsg = !duplasOn || ready ? '' :
+    // 🃏 BAFO: a sala anda com 2 times MONTADOS (11+). Quem não montou não conta.
+    const elencoOn = room.game_state?.mode === 'elenco'
+    const bafoAptos = elencoOn ? players.filter(p => (p.bafo?.squad?.length ?? 0) >= BAFO_MIN) : []
+    const bafoFaltam = elencoOn ? players.filter(p => (p.bafo?.squad?.length ?? 0) < BAFO_MIN) : []
+    const ready = elencoOn ? bafoAptos.length >= 2 : duplasOn ? duplasCompletas >= 2 : players.length >= 2
+    const travaMsg = elencoOn
+      ? (ready ? '' : `🃏 O Bafo começa com 2 times montados. ${bafoAptos.length === 0 ? 'Ninguém montou ainda' : 'Só 1 montou até agora'} — cada um escolhe a carreira que traz aí em cima.`)
+      : !duplasOn || ready ? '' :
       `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
     return wrap(<>
@@ -2214,6 +2264,21 @@ export function EscLobby() {
           escolher, ele fica "montando" — e o host vê isso na lista.
           A escolha vai pro banco na hora (coluna `bafo` do room_players): é assim
           que o time viaja pro host e que todo mundo vê quem já está apto. */}
+      {/* 🃏 e ANTES de escolher, o aviso do que está em jogo nesta sala. Ninguém
+          pode descobrir só no fim que a carta ia mudar de dono de verdade. */}
+      {room.game_state?.mode === 'elenco' && (
+        <div className="border-[3px] border-black rounded-2xl px-3 py-2.5 mb-3"
+          style={{ background: room.game_state?.bafoSemCarta ? '#EAF4EC' : '#FFF6D6', boxShadow: `3px 3px 0 ${INK}` }}>
+          <p className="font-black text-[13px]" style={OSWALD}>
+            {room.game_state?.bafoSemCarta ? '🤝 Sala AMISTOSA' : '🃏 Sala VALENDO CARTA'}
+          </p>
+          <p className="text-black/60 text-[10.5px] font-bold leading-snug mt-0.5">
+            {room.game_state?.bafoSemCarta
+              ? 'Ninguém perde nem ganha carta aqui. É só a tabela.'
+              : <>No fim da liga, quem ficar atrás <b>entrega uma carta sorteada</b> da carreira que trouxe pro time logo acima — e ela <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>}
+          </p>
+        </div>
+      )}
       {room.game_state?.mode === 'elenco' && (
         <BafoEscolha escolha={bafoEscolha} onEscolha={async (e) => {
           setBafoEscolha(e)
@@ -2460,14 +2525,40 @@ export function EscLobby() {
           </div>
         )
       })()}
+      {/* 🃏 BAFO: o host mandou começar com gente ainda montando. Mesmo padrão da
+          votação do fim de jogo: diz QUEM falta e deixa ele escolher esperar ou
+          seguir. Quem fica de fora sai da sala — não vira time sorteado. */}
+      {bafoAviso && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100001, background: 'rgba(0,0,0,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+          <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}`, maxWidth: 400, width: '100%', padding: 20 }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, color: INK, textAlign: 'center' }}>⏳ Ainda tem gente montando</p>
+            <p style={{ fontWeight: 700, fontSize: 12.5, color: 'rgba(0,0,0,.68)', marginTop: 8, lineHeight: 1.45 }}>
+              Não escolheram a carreira ainda: <b>{bafoFaltam.map(p => stripEmoji(p.manager_name)).join(', ')}</b>.
+            </p>
+            <p style={{ fontWeight: 700, fontSize: 11.5, color: 'rgba(0,0,0,.5)', marginTop: 6, lineHeight: 1.45 }}>
+              Se seguir agora, <b>eles ficam de fora desta partida</b> (ninguém entra em campo com time sorteado). Dá pra chamar de novo depois.
+            </p>
+            <button onClick={() => { setBafoAviso(false); void startOnline() }}
+              style={{ ...OSWALD, fontWeight: 900, fontSize: 14.5, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', width: '100%', marginTop: 14, cursor: 'pointer' }}>
+              ▶️ Seguir sem eles
+            </button>
+            <button onClick={() => setBafoAviso(false)}
+              style={{ ...OSWALD, fontWeight: 900, fontSize: 14.5, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', width: '100%', marginTop: 8, cursor: 'pointer' }}>
+              ⏳ Aguardar mais um pouco
+            </button>
+          </div>
+        </div>
+      )}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
-        const startLabel = carreira ? '🌐 Começar Carreira!' : '🔨 Abrir o Pregão!'
-        const waitMsg = carreira ? 'Aguardando o host começar a carreira…' : 'Aguardando o host abrir o pregão…'
-        const esperaLabel = duplasOn ? 'Aguardando…' : `Aguardando… (${players.length}/2 mín)`
+        const startLabel = carreira ? '🌐 Começar Carreira!' : elencoOn ? '🃏 Começar o Bafo!' : '🔨 Abrir o Pregão!'
+        const waitMsg = carreira ? 'Aguardando o host começar a carreira…' : elencoOn ? 'Aguardando o host começar o Bafo…' : 'Aguardando o host abrir o pregão…'
+        const esperaLabel = elencoOn ? `Aguardando… (${bafoAptos.length}/2 montados)` : duplasOn ? 'Aguardando…' : `Aguardando… (${players.length}/2 mín)`
+        // 🃏 se falta alguém montar, o toque abre o banner em vez de começar
+        const onStart = () => { if (elencoOn && bafoFaltam.length > 0) setBafoAviso(true); else void startOnline() }
         return isHost
           ? <>
-              <Big onClick={startOnline} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
+              <Big onClick={onStart} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
               {/* explicação EMBAIXO do botão, no lugar exato — dizendo o porquê e o caminho pra destravar */}
               {!ready && !!travaMsg && <p className="text-white/60 text-[11.5px] font-bold text-center leading-snug mt-1.5 px-2">{travaMsg}</p>}
             </>

@@ -1,6 +1,72 @@
 # 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
 
-## 👔🃏 SALA DE ELENCO — modo novo DESENHADO com o Diego (17/08), falta codar
+## 🃏 BAFO — ✅ CODADO INTEIRO (17/08), invisível pra todo mundo menos o Diego
+
+O modo abaixo foi desenhado no dia 17/08 e **está codado do começo ao fim** —
+passos 1 a 5. Trava por conta: `SALA_ELENCO_TESTERS` em `src/escalacao/sport.ts`
+(só `diego.c.fonseca@gmail.com` vê o modo). O leilão normal **não foi tocado**.
+
+### O que já está de pé
+1. **Modo na criação da sala** (`🃏 Bafo`, ao lado de Leilão e Carreira) + a Copa
+   sai da tela (o Bafo é só a liga de 38 rodadas) + **🃏 Valendo carta / 🤝
+   Amistoso** (escolha do host). Sala antiga/sem o campo = **valendo**.
+2. **Escolha da carreira dentro da sala** (`BafoEscolha`), com a trava dos 11
+   explicada e o caminho pra destravar, por porta (elenco × cofre).
+3. **A escolha vai pro banco** (coluna `bafo` jsonb em `room_players`) e o host vê
+   quem está apto (`✅ N jog.` / `⏳ montando`).
+4. **Trava do início**: o botão só liga com **2 times montados**; se alguém ainda
+   está montando, abre o banner *"Ainda tem gente montando — seguir sem eles ou
+   aguardar?"*. Quem não montou **sai da sala antes da renumeração** — nunca
+   entra em campo com time sorteado.
+5. **A partida começa SEM leilão**, com os times trazidos (ids novos por carta,
+   `bafo{mgrId}-{i}`, pra não colidir com o save do adversário).
+6. **A CASCATA no fim** (`BafoCascata` em `screens.tsx`) + a troca de dono de
+   verdade no servidor.
+
+### Como a troca de dono funciona (conferido no banco, com teste)
+- Função `bafo_cascata(p_room, p_ordem, p_casa)` no Supabase, `security definer`.
+  **Só o host** chama (`auth.uid() = game_rooms.host_id`), **uma vez por sala**
+  (trava na tabela `esc_bafo_trocas`, que também guarda o resultado — todo mundo
+  da sala lê a MESMA cascata).
+- Ela **muda o `user_id` da linha em `user_cards`** e **re-etiqueta o
+  `season_key`** pro seed da carreira do vencedor (`co:solo{seed}:bafo{CODIGO}:{i}`),
+  então a carta some do cofre de um e aparece no do outro — inclusive no filtro
+  "esta carreira" do álbum.
+- Colunas novas em `user_cards`: `taken_from`, `taken_from_name`, `taken_at`. O
+  álbum mostra **"🃏 arrancada do Fulano"** embaixo da carta, pra sempre.
+- **Piso de 1**: quem tem 1 (ou 0) carta naquela carreira **não entrega**; a casa
+  cobre e o de cima ganha uma carta do baralho que ele ainda não tem (o jogo
+  manda os candidatos em `p_casa`, porque o servidor não conhece o baralho).
+- **Teste rodado no banco de produção dentro de transação com ROLLBACK** (nada
+  ficou gravado): 3 técnicos, um deles com carta única. Resultado — cascata certa
+  (3º→2º→1º), piso respeitado (a carta única ficou), marca gravada, carta da casa
+  sem `taken_from`, **2ª chamada devolve o mesmo e não move nada** (idempotente),
+  convidado barrado, deslogado barrado, ordem com repetido barrada.
+- **No aparelho**, o cofre da carreira (`empresarioCards`, que mora no save) é
+  ajustado por `patchCareerCofre()` — cada celular aplica só o que é DELE,
+  idempotente por chave da troca, e **sem quebrar o lacre** (o carimbo é feito de
+  moedas/títulos/divisão/temporada, o cofre não entra nele).
+
+### ⚠️ O que ainda NÃO está resolvido
+- **Se o host sair antes da tela do fim, a cascata não fecha.** Nenhuma carta
+  troca de dono (é seguro), mas o convidado vê o aviso *"o host precisa chegar
+  nesta tela"*. Fechar sozinho exigiria um robô no servidor.
+- **Host-autoritativo, como o resto do jogo**: a ordem da cascata é a que o
+  aparelho do host manda. O servidor confere que são jogadores daquela sala e que
+  não tem repetido, mas não recalcula a tabela. Mesmo modelo do leilão.
+- **`patchCareerCofre` só mexe no aparelho de quem está na tela.** Se a pessoa
+  nunca voltar, o **álbum já está certo** (o servidor mandou), mas o cofre do save
+  dela fica desatualizado até a caixa de entrada existir (ver abaixo).
+- As **duas decisões abertas** continuam abertas (fim desta seção).
+
+### 🔁 Dá pra reverter?
+Sim, em dois níveis: (1) o modo inteiro some pra todo mundo com uma linha em
+`sport.ts`; (2) o commit é isolado — `git revert` volta o código sem tocar no
+leilão. O que **não volta sozinho** é carta já trocada de dono (por design: "não
+tem como desfazer" foi a decisão). Se precisar, dá pra desfazer no banco à mão
+(`taken_from`/`taken_at` dizem exatamente o que foi, de quem e quando).
+
+## 👔🃏 SALA DE ELENCO — o desenho original (17/08), pra consulta
 
 Ideia dele, e é a melhor que apareceu na conversa: **no rápido online, em vez de
 leiloar, cada um traz o time da PRÓPRIA carreira**. Resolve três coisas de uma
