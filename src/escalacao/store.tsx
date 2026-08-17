@@ -521,13 +521,22 @@ function hashCode(s: string): number {
 // ⚖️ identidade da carta: nome + clube CANÔNICO (grafia velha de save antigo
 // conta como o mesmo clube — senão o mundo entrega o jogador em dobro).
 export const ident = (c: { name: string; club: string }) => `${c.name}|${clubCanon(c.club)}`
-// 🔄 RODÍZIO DO LEILÃO: memória das cartas que caíram na leva ANTERIOR (só idents).
-// A montagem do baralho joga essas pro fim do catálogo, então elas têm menos chance
-// de voltar já na próxima temporada — dá mais variedade. NÃO mexe nas % de raridade
-// (só muda QUAIS cartas preenchem cada cota). Quando as "não-recentes" acabam, elas
-// voltam a entrar (repetir de vez tá ok). Vive no módulo (o host monta o baralho no
-// online e transmite pronto; o guest não remonta, então não desincroniza).
+// 🔄 RODÍZIO DO LEILÃO: memória das cartas que caíram nas ÚLTIMAS 3 levas (só
+// idents). A montagem do baralho joga essas pro fim do catálogo, então elas têm
+// menos chance de voltar já nas próximas temporadas — dá mais variedade. NÃO
+// mexe nas % de raridade (só muda QUAIS cartas preenchem cada cota). Quando as
+// "não-recentes" acabam, elas voltam a entrar (repetir de vez tá ok). Vive no
+// módulo (o host monta o baralho no online e transmite pronto; o guest não
+// remonta, então não desincroniza).
+// Antes lembrava só 1 leva (a imediatamente anterior) — pedido do Diego 16/08
+// depois de amigos reclamarem "sempre os mesmos": medido que em posições com
+// baralho pequeno (ex.: goleiro lenda no BR tem só 6 cartas no total), lembrar
+// só 1 leva deixava o MESMO nome repetir 3× numa sessão de 8 leilões seguidos.
+// Com 3 levas de memória, o sorteio passa a circular pelo elenco quase inteiro
+// antes de repetir qualquer nome (testado: 6/6 goleiros aparecem antes de
+// repetir, contra repetição tripla de antes).
 let RECENT_DECK = new Set<string>()
+let RECENT_HISTORY: Set<string>[] = []
 // 🧹 PENEIRA FINAL anti-duplicata do baralho do leilão: por mais que cada fonte
 // (mercado, listados, sobras, fichas de fundo) já tente não repetir, uma cópia do
 // MESMO jogador real (nome+clube) pode escapar por uma brecha — ou vir de um save
@@ -1098,10 +1107,10 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // dava pra "ler" o nível pela posição — furando o leilão às cegas.
     deck[pos] = shuffle(cards, rng)
   }
-  // 🔄 guarda esta leva como memória do rodízio pra próxima — só nas levas PRINCIPAIS
-  // (a de reservas, noFake, não sobrescreve: senão a próxima principal deixaria de
-  // rodiziar de verdade). Substitui (não acumula): "recente" = só a leva anterior.
-  if (!noFake && takenNow.size) RECENT_DECK = takenNow
+  // 🔄 guarda esta leva na memória do rodízio (janela das últimas 3) — só nas
+  // levas PRINCIPAIS (a de reservas, noFake, não entra: senão a próxima
+  // principal deixaria de rodiziar de verdade).
+  if (!noFake && takenNow.size) { RECENT_HISTORY.push(takenNow); if (RECENT_HISTORY.length > 3) RECENT_HISTORY.shift(); RECENT_DECK = new Set(RECENT_HISTORY.flatMap(s => [...s])) }
   return deck
 }
 
