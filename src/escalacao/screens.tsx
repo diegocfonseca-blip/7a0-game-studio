@@ -3107,13 +3107,24 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro }
   managers: { id: number; teamName: string; name: string }[]
   centro: React.ReactNode
 }) {
+  // 🏅 A FILA É A ORDEM DE LEITURA (Diego 17/08). Ele viu que a mesa tinha COMIDO
+  // o ranking que a lista antiga dava de graça ("só não sei se tá claro a ordem de
+  // quem pagou mais"). Conserto: os assentos são preenchidos ALTERNANDO esquerda e
+  // direita na ordem do maior lance — então ler a mesa como se lê um texto (linha
+  // por linha, esquerda→direita) JÁ dá a classificação. E cada assento carrega o
+  // SELO da posição (🥇 · 2º · 3º…), pra ninguém precisar comparar número.
+  //
+  // 🫵 VOCÊ NÃO TEM LUGAR FIXO. Antes o teu assento ficava sempre embaixo, e o
+  // Diego cortou: *"acho que a minha não deve ser preferencial embaixo, porque
+  // confunde"* — com razão: se a leitura é o ranking, te prender no fim faz você
+  // parecer último mesmo quando levou a carta. Agora você senta na SUA posição,
+  // como todo mundo; o que te acha na mesa é o "🫵 VOCÊ", a moldura mais grossa e
+  // a cor do teu tier — nunca o lugar.
   const ordem = [...bids].sort((a, b) => b.amount - a.amount)
-  const rivais = ordem.filter(b => b.mgr !== youId)
-  const meu = ordem.find(b => b.mgr === youId)
   // sala cheia aperta o assento (a carta do meio NUNCA encolhe)
-  const mini = rivais.length > 6
-  const esq = rivais.filter((_, i) => i % 2 === 0)
-  const dir = rivais.filter((_, i) => i % 2 === 1)
+  const mini = ordem.length > 7
+  const esq = ordem.filter((_, i) => i % 2 === 0)
+  const dir = ordem.filter((_, i) => i % 2 === 1)
   const perkDe = (mgr: number, teamName: string) => (mgr === youId ? myApoioPerk() : perkFromSelo(teamName)) ?? APOIO_PERKS.bege
 
   const assento = (b: { mgr: number; amount: number }, ordIdx: number) => {
@@ -3121,15 +3132,20 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro }
     if (!m) return null
     const anulado = voided.includes(b.mgr)
     const venceu = winner === b.mgr && hammered
+    const souEu = b.mgr === youId
     const perk = perkDe(b.mgr, m.teamName)
     const nome = m.teamName || m.name
+    // 🥇 a medalha só nasce DEPOIS do martelo — antes do apito ninguém é campeão.
+    const selo = ordIdx === 0 && venceu ? '🥇' : `${ordIdx + 1}º`
     return (
       <motion.div key={b.mgr} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: ordIdx * 0.25 }}
         className="relative overflow-hidden text-center rounded-xl"
-        style={{ background: '#fff', border: `2.5px solid ${venceu ? GREEN : INK}`, boxShadow: `2.5px 2.5px 0 0 ${venceu ? GREEN : INK}`, padding: mini ? '4px 3px 4px' : '6px 4px 5px' }}>
+        style={{ background: '#fff', border: `${souEu ? 3 : 2.5}px solid ${venceu ? GREEN : INK}`, boxShadow: `2.5px 2.5px 0 0 ${venceu ? GREEN : INK}`, padding: mini ? '4px 3px 4px' : '6px 4px 5px' }}>
         {perk.holo > 0 && <ApoioSheen holo={perk.holo} />}
+        <span className="absolute z-10 font-black" style={{ ...OSWALD, top: -1, left: -1, fontSize: mini ? 7.5 : 8.5, letterSpacing: 0.3, lineHeight: 1.5,
+          background: selo === '🥇' ? GOLD : INK, color: selo === '🥇' ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: '0 0 9px 0', padding: '0 5px 1px' }}>{selo}</span>
         <div className="flex justify-center relative"><Escudo nome={nome} size={mini ? 24 : 32} /></div>
-        <p className="font-bold truncate relative" style={{ fontSize: mini ? 8.5 : 10, marginTop: 2 }}>{stripEmoji(nome)}</p>
+        <p className="font-bold truncate relative" style={{ fontSize: mini ? 8.5 : 10, marginTop: 2 }}>{souEu ? '🫵 VOCÊ' : stripEmoji(nome)}</p>
         <div className="rounded-lg font-black relative" style={{ ...OSWALD, marginTop: 3, border: `2px solid ${INK}`, fontSize: mini ? 11 : 13, lineHeight: 1.35,
           background: venceu ? GREEN : anulado ? '#ddd' : perk.grad, color: venceu ? '#fff' : TIER_INK[perk.tier] }}>{b.amount}</div>
         {anulado && <p className="font-bold relative" style={{ fontSize: 7.5, marginTop: 1, color: 'rgba(0,0,0,.55)' }}>anulado (setor cheio)</p>}
@@ -3137,35 +3153,13 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro }
     )
   }
 
-  const meuPerk = perkDe(youId, managers.find(m => m.id === youId)?.teamName ?? '')
-  const meuVenceu = meu != null && winner === youId && hammered
-  const meuAnulado = meu != null && voided.includes(youId)
   return (
     <div className="mt-3">
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', gap: 6, alignItems: 'center' }}>
-        <div style={{ display: 'grid', gap: 6, minWidth: 0 }}>{esq.map((b, i) => assento(b, i * 2))}</div>
+        <div style={{ display: 'grid', gap: 6, minWidth: 0, alignContent: 'center' }}>{esq.map((b, i) => assento(b, i * 2))}</div>
         <div style={{ width: 116 }}>{centro}</div>
-        <div style={{ display: 'grid', gap: 6, minWidth: 0 }}>{dir.map((b, i) => assento(b, i * 2 + 1))}</div>
+        <div style={{ display: 'grid', gap: 6, minWidth: 0, alignContent: 'center' }}>{dir.map((b, i) => assento(b, i * 2 + 1))}</div>
       </div>
-      {/* 🫵 VOCÊ fecha a mesa, embaixo — MESMO assento dos outros, só mais largo.
-          Diego (17/08): "meu escudo não está menor que os outros? acho que ele
-          deveria ser padrão também, com o do Tôka centralizado". Então o teu
-          escudo tem o MESMO tamanho e vem CENTRALIZADO em cima do nome, igual a
-          todo mundo — o que marca que a mesa é tua é a largura e a moldura, nunca
-          um escudo de tamanho diferente. */}
-      {meu && (
-        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: ordem.findIndex(b => b.mgr === youId) * 0.25 }}
-          className="relative overflow-hidden rounded-2xl text-center"
-          style={{ marginTop: 7, background: '#fff', border: `3px solid ${meuVenceu ? GREEN : INK}`, boxShadow: `3px 3px 0 0 ${meuVenceu ? GREEN : INK}`,
-            padding: mini ? '5px 8px 5px' : '7px 9px 6px' }}>
-          {meuPerk.holo > 0 && <ApoioSheen holo={meuPerk.holo} />}
-          <div className="flex justify-center relative"><Escudo nome={managers.find(m => m.id === youId)?.teamName || 'Você'} size={mini ? 24 : 32} /></div>
-          <p className="font-bold truncate relative" style={{ fontSize: mini ? 8.5 : 10, marginTop: 2 }}>🫵 Você</p>
-          <div className="rounded-lg font-black relative mx-auto" style={{ ...OSWALD, marginTop: 3, border: `2px solid ${INK}`, fontSize: mini ? 11 : 13, lineHeight: 1.35, maxWidth: 120,
-            background: meuVenceu ? GREEN : meuAnulado ? '#ddd' : meuPerk.grad, color: meuVenceu ? '#fff' : TIER_INK[meuPerk.tier] }}>{meu.amount}</div>
-          {meuAnulado && <p className="font-bold relative" style={{ fontSize: 7.5, marginTop: 1, color: 'rgba(0,0,0,.55)' }}>anulado (setor cheio)</p>}
-        </motion.div>
-      )}
     </div>
   )
 }
