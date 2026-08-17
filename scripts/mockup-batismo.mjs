@@ -62,6 +62,21 @@ const destaque = partes[0].toUpperCase()
 const resto = partes.slice(1).join(' ').toUpperCase()
 
 const cores = [o.c1nome, o.c2nome].filter(Boolean).join(' e ') || 'as cores do clube'
+
+// 🎬 CADA MASCOTE COMEMORA DO SEU JEITO (Diego, 17/08): *"se é águia tem que ser
+// algo relacionado a águia. Cada um depende do que ele é, as coisas que faz"*.
+// O jogo já anima cada uma diferente (CARIMBO_ANIM em mascotes.tsx) — aqui o
+// post CONTA isso com o verbo do bicho. Mascote sem verbo próprio cai no
+// genérico, então batismo novo nunca sai com o post quebrado.
+const JEITOS = {
+  aguia:   { gol: 'MERGULHA de cima', festa: 'atravessa a tela PLANANDO lá no alto' },
+  palhaco: { gol: 'entra QUICANDO, gingando pros dois lados', festa: 'atravessa a tela aos pulos' },
+  cobra:   { gol: 'RASTEJA por cima do placar', festa: 'atravessa ONDULANDO, rente ao chão' },
+  coringa: { gol: 'VIRA NO AR feito carta sendo dada', festa: 'atravessa a tela aos pulos' },
+  abelha:  { gol: 'chega ZUMBINDO e para no ar', festa: 'atravessa a tela VOANDO' },
+  generico:{ gol: 'CARIMBA a tela', festa: 'atravessa a tela aos pulos' },
+}
+const jeito = JEITOS[arg('jeito', 'generico')] || JEITOS.generico
 const art = /^[AÁE]/i.test(o.mascoteNome.replace(/^(O|A)\s+/i, '')) || /^A\s/i.test(o.mascoteNome)
 const mascCurto = o.mascoteNome.replace(/^(O|A)\s+/i, '')
 
@@ -76,7 +91,10 @@ const camisa = `
   </g>
   <path d="M100 16c-10 0-18 5-28 7L28 34 12 76l30 12 6-10v134c0 4 3 7 7 7h90c4 0 7-3 7-7V78l6 10 30-12-16-42-44-11c-10-2-18-7-28-7z" fill="none" stroke="#0C0C0C" stroke-width="6" stroke-linejoin="round"/>
   <path d="M72 23c8 12 20 18 28 18s20-6 28-18" fill="none" stroke="#0C0C0C" stroke-width="6" stroke-linejoin="round"/>
-  <image href="${img(o.escudo)}" x="112" y="96" width="46" height="46" preserveAspectRatio="xMidYMid meet"/>
+  <!-- ⚠️ o corpo da camisa vai de x=48 a x=152. O escudo TEM que caber aí dentro:
+       antes ele estava em x=112 com 46 de largura (ia até 158) e vazava pra fora
+       do desenho, que foi o que o Diego viu. -->
+  <image href="${img(o.escudo)}" x="106" y="92" width="38" height="38" preserveAspectRatio="xMidYMid meet"/>
 </svg>`
 
 const html = `<!doctype html><meta charset="utf-8"><style>
@@ -109,6 +127,11 @@ h1 .r{color:#C2452F}
   font-size:17px;letter-spacing:.14em;padding:11px 18px;display:flex;align-items:center;gap:9px}
 .corpo{padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px}
 .corpo img{max-height:186px;max-width:100%;display:block}
+/* 🎽 o MANTO mostra as DUAS coisas (pedido do Diego 17/08): a faixa de listras
+   lisas, que é como o jogo pinta o time, E a camisa montada com o escudo. */
+.manto{display:flex;align-items:center;gap:16px}
+.listras{width:74px;height:186px;border:3px solid #0C0C0C;border-radius:12px;flex:none;
+  background:repeating-linear-gradient(90deg,${o.c1} 0 15px,${o.c2} 15px 26px)}
 .leg{text-align:center;font-size:14.5px;line-height:1.35;color:rgba(12,12,12,.62);margin-top:12px}
 .leg b{color:#0C0C0C}
 .anim{margin-top:20px}
@@ -147,17 +170,21 @@ h1 .r{color:#C2452F}
 <div class="dois">
   <div class="card"><div class="tit">${o.mascoteEmoji} Mascote</div>
     <div class="corpo"><img src="${img(o.mascote)}">
-      <div class="leg"><b>${o.mascoteNome}</b><br>carimba o placar no gol</div></div></div>
+      <div class="leg"><b>${o.mascoteNome}</b><br>${jeito.gol.toLowerCase()} no gol</div></div></div>
   <div class="card"><div class="tit">👕 Manto</div>
-    <div class="corpo">${camisa}
+    <div class="corpo">
+      <div class="manto">
+        <div class="listras"></div>
+        ${camisa}
+      </div>
       <div class="leg">Listras:<br>${cores} (igual no jogador)</div></div></div>
 </div>
 
 <div class="card anim">
   <div class="tit">🎬 Onde ${art ? 'a' : 'o'} ${mascCurto} aparece</div>
-  <div class="linha"><div class="ic">⚽</div><p><b>No placar, quando o time faz gol:</b> ${art ? 'a' : 'o'} ${mascCurto} <b>carimba a tela</b> por cima do resultado e some sozinh${art ? 'a' : 'o'}. Não para o relógio, não pede toque.</p></div>
-  <div class="linha"><div class="ic">🏆</div><p><b>Quando é CAMPEÃO:</b> depois do apito, ${art ? 'a' : 'o'} ${mascCurto} <b>invade a tela inteira</b> pulando, com chuva de confete e o nome do clube. Só o campeão vê, uma vez só.</p></div>
-  <div class="linha"><div class="ic">🥅</div><p><b>No pênalti decisivo:</b> converteu? ${art ? 'A' : 'O'} ${mascCurto} aparece <b>pulando na narração</b> junto com o gol.</p></div>
+  <div class="linha"><div class="ic">⚽</div><p><b>No placar, quando o time faz gol:</b> ${art ? 'a' : 'o'} ${mascCurto} <b>${jeito.gol}</b> por cima do resultado e some sozinh${art ? 'a' : 'o'}. Não para o relógio, não pede toque.</p></div>
+  <div class="linha"><div class="ic">🏆</div><p><b>Quando é CAMPEÃO:</b> depois do apito, ${art ? 'a' : 'o'} ${mascCurto} toma a tela inteira e <b>${jeito.festa}</b>, com chuva de confete e o nome do clube. Só o campeão vê, uma vez só.</p></div>
+  <div class="linha"><div class="ic">🥅</div><p><b>No pênalti decisivo:</b> converteu? ${art ? 'A' : 'O'} ${mascCurto} aparece <b>comemorando na narração</b>, junto com o gol.</p></div>
 </div>
 
 <div class="card pe">
