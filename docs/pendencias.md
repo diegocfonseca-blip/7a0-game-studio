@@ -1,5 +1,102 @@
 # 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
 
+## 👔🃏 SALA DE ELENCO — modo novo DESENHADO com o Diego (17/08), falta codar
+
+Ideia dele, e é a melhor que apareceu na conversa: **no rápido online, em vez de
+leiloar, cada um traz o time da PRÓPRIA carreira**. Resolve três coisas de uma
+vez — a carreira ganha plateia (hoje você monta um elenco por 179 temporadas e
+**ninguém nunca vê**), o veterano joga com amigos **sem repetir o pregão** (o
+enjoo que o próprio Diego relatou), e a partida com amigos passa a caber em
+minutos.
+
+Mockups aprovados: `scratchpad/lobby-a.png` (lobby) e `lobby-b.png` (a cascata).
+
+### 🎛️ O LOBBY
+Ao criar a sala, o host escolhe o modo: **🔨 Leilão** (como é hoje) · **👔 Elenco
+da carreira** · **🧢 Convocar 22 do cofre**. Depois, **já dentro da sala**, cada
+um (host inclusive) faz o mesmo caminho:
+
+1. **escolhe QUAL carreira** traz (o save já guarda várias em `careers[]`);
+2. **escolhe como entra**: os 22 do elenco atual **ou** 22 convocados do cofre;
+3. vira **✅ apto**.
+
+- **Mistura pode**: quem trouxe elenco joga contra quem convocou agenciados. Pro
+  motor são 22 cartas dos dois lados; é escolha de arma.
+- **Mínimo pra começar**: host + pelo menos 1 apto (a regra que a sala já tem).
+- **Se o host tentar começar com gente faltando**, abre o banner no MESMO padrão
+  do leilão (`waitingFor` → *"Faltam lacrar: X, Y"*): diz quem falta e oferece
+  **aguardar** ou **seguir sem eles**. Quem não montou **fica de fora da partida**
+  — nunca vira bot com time sorteado (regra do Diego: nada de perna-de-pau
+  entrando em campo por regra nova).
+- **Trocar de carreira depois de apto volta pra "montando"** — senão entra o
+  time errado.
+- **Mínimo de 11 jogadores** pra ficar apto (elenco ou convocados). Quem não tem
+  **entra na sala mesmo assim** e vê a trava explicada, com o caminho:
+  *"Sua carreira tem 8 jogadores — precisa de 11. Jogue mais uma temporada ou
+  convoque 11 do cofre."* Na lista do host ele aparece como **⚠️ sem elenco**,
+  não como "pensando". E o card da sala já avisa antes de entrar.
+
+### 🔻 O PRÊMIO: a cascata (regra do Diego, e é melhor que a minha)
+Eu propus pares (1º↔último); ele corrigiu pra **cascata**, que é melhor:
+
+> **Cada um paga uma carta pro que está logo acima.** Só o 1º não paga; só o
+> último não recebe.
+
+Com 5: 5º→4º→3º→2º→1º. Saldo: **+1 só pro campeão, −1 só pro lanterna, o meio
+troca**. Com 2 pessoas vira "1º pega do 2º" **sem precisar de regra especial**.
+Uma regra só, de 2 a 20 — e todo mundo tem os dois lados (medo de cair, vontade
+de subir).
+
+- **É SORTEIO**, não escolha (decisão dele) — e sorteio **entre as cartas
+  DAQUELA carreira**, não do álbum inteiro. Ponto que ele levantou: *"o João pode
+  ter uma carreira com 3 cartas e um álbum com 500"*.
+- 🛡️ **Piso de 1 carta: ninguém zera.** Quem está com 1 ou 0 não perde nada e
+  **a casa cobre** (o de cima ganha uma carta do baralho que ainda não tem).
+  Isso importa: **37% das contas não têm nenhuma carta**, e punir justo o mais
+  frágil piora o número que o modo quer melhorar.
+- Toda carta trocada fica **marcada**: *"arrancada do Tôka10 · 17/08"*.
+- 🎛️ Host **liga/desliga "valendo carta"** ao criar a sala.
+
+### ✅ O QUE DÁ e ❌ O QUE NÃO DÁ (conferido no banco, não é achismo)
+- ✅ **Roubo no ÁLBUM dá.** `user_cards` é gravado **linha por linha** no servidor
+  (`resilientWrite`, uma linha por carta) e tem leitura pública. Uma função no
+  banco move a linha e **não tem como desfazer**.
+- ✅ **Dá pra saber de qual CARREIRA é cada carta**: o `season_key` traz o seed —
+  `co:solo791372628:178`. Medido: **30.187 cartas** do jogo seguem esse formato.
+  Prova numa conta real (leodiniz85): álbum de 108 cartas → **85 da carreira
+  791372628** e **23 da 915673221**. Filtrar por carreira é uma linha de SQL.
+- ❌ **Tirar do ELENCO da carreira NÃO dá** (hoje). `esc_pyramid_saves` é
+  **upsert do save inteiro** feito pelo aparelho do dono → o celular dele
+  sobrescreve por cima. **Isso não é teoria**: em 16/08 eu troquei o nome do time
+  do Gabriel direto no servidor e **o aparelho dele desfez em 3 minutos**.
+  - O que faltaria: uma **caixa de entrada no servidor** — mudanças pendentes que
+    o aparelho APLICA ao abrir, em vez de sobrescrever cego. É **a mesma peça que
+    falta pra trocar o nome do clube**, que já está pendente. Não é trabalho
+    perdido: resolve os dois.
+- ⚠️ **10.330 cartas vieram de jogo rápido** (sem carreira) e **3.776 de formatos
+  antigos** — essas ficam **fora** do sorteio, não pertencem a carreira nenhuma.
+- 🔧 Falta uma **coluna nova** em `room_players` pro convidado mandar os 22 pro
+  host (migração pequena). O `is_ready` **já existe** na tabela — hoje entra
+  sempre `true`, é só passar a usar de verdade.
+
+### 🚫 TETO DE FORÇA — DESCARTADO pelo Diego (17/08)
+Eu insisti duas vezes num teto (orçamento por time, usando o `valorOficial` que
+já existe) porque **o cofre pode ser mais forte que o elenco**: o pacote de
+campeão sorteia *"entre todas as cartas do jogo"*, então quem foi campeão 30
+vezes tem 30 sorteios no baralho inteiro — inclusive Lendas que ele nunca
+compraria no leilão. **O Diego decidiu que NÃO tem teto.** Fica registrado que a
+consequência é conhecida e aceita: **quem construiu mais ganha mais**, e novato
+em sala de veterano toma baile.
+- Alternativa guardada, se um dia incomodar: **mostrar a força de cada time no
+  lobby** — informação em vez de trava, pra pessoa decidir se entra.
+
+### ⏳ Falta decidir
+- **Quem não tem carreira nenhuma** (⚠️ **88% das contas**) — entra com elenco
+  emprestado ou só vê um convite pra começar uma carreira? Sem resposta, o modo
+  nasce sem gente pra jogar.
+- **O sorteio vale o cofre inteiro da carreira** ou **só os 22 convocados**?
+  (Sugestão: cofre inteiro, pra não virar mais uma decisão no lobby.)
+
 ## 🔨 A MESA DO MARTELO — visual APROVADO, falta codar (17/08)
 
 Ideia do Diego, a partir de uma imagem que ele viu: no rápido online, os técnicos
