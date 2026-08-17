@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud } from './store'
+import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -5755,8 +5755,8 @@ function StreamSpectatorCard({ champName, card }: { champName: string; card?: Wo
 }
 
 // ─── álbum: coleção de cartas ganhas sendo campeão, entre partidas ────
-interface UserCardRow { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number; origin: string | null; obtained_at: string; season_key?: string }
-interface AlbumCard { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean; origin: 'cpu' | 'online'; at: number; sk?: string }
+interface UserCardRow { card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number; origin: string | null; obtained_at: string; season_key?: string; taken_from_name?: string | null }
+interface AlbumCard { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean; origin: 'cpu' | 'online'; at: number; sk?: string; tomadaDe?: string }
 type AlbumFilter = 'all' | 'cpu' | 'online'
 
 // 🗂️ organização do álbum: raridade (melhores primeiro), posição, clube ou
@@ -5954,7 +5954,7 @@ export function EscRanking() {
     }, () => setViewPerfil({ tier: null, fundadorN: null, socioN: null, socioDesde: null, socioAtivo: false, mascoteKey: null, escudoTime: null, timeCoracao: null }))
     try {
       const { data } = await supabase.from('user_cards')
-        .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at, season_key')
+        .select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at, season_key, taken_from_name')
         .eq('user_id', userId).order('obtained_at', { ascending: false })
       // guarda SEM deduplicar — a deduplicação é por visão (carreira × conta),
       // senão uma carta repetida em duas carreiras sumiria da visão da carreira
@@ -5963,6 +5963,7 @@ export function EscRanking() {
         ...(CARD_META.get(c.card_name) ?? {}),
         origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online',
         at: new Date(c.obtained_at).getTime(), sk: c.season_key,
+        ...(c.taken_from_name ? { tomadaDe: c.taken_from_name } : {}), // 🃏 Bafo: de quem esta carta foi arrancada
       })))
     } catch {
       setViewCards([]) // backend fora: não trava em "Carregando…"
@@ -6221,7 +6222,14 @@ export function EscRanking() {
               {albumShown && albumShown.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
                   {sortAlbum(albumShown, viewSort).map((c, i) => (
-                    <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
+                    <div key={i}>
+                      <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
+                      {/* 🃏 BAFO: carta que MUDOU DE DONO fica marcada pra sempre com
+                          de quem ela foi arrancada — é a graça do modo. */}
+                      {c.tomadaDe && (
+                        <p className="text-[9.5px] font-black text-center mt-1 leading-snug" style={{ color: '#8E2A1B' }}>🃏 arrancada do {c.tomadaDe}</p>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -6980,6 +6988,176 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   )
 }
 
+// ─── 🃏 BAFO · A CASCATA (o prêmio do modo) ──────────────────────────────────
+// Regra fechada com o Diego (17/08), nas palavras dele: "c 5 por exemplo, o 5
+// perde pro 4, o 4 perde pro 3, o 3 perde pro 2, e o segundo perde pro 1. E o 1
+// não perde pra ninguém." Ou seja: cada um paga UMA carta pro que ficou logo
+// acima. O 1º só recebe; o último só paga.
+//
+// 🎲 A carta é SORTEADA (ninguém escolhe) entre as cartas DAQUELA carreira que
+//    entrou na sala — nunca do álbum inteiro da pessoa.
+// 🛡️ PISO DE 1: ninguém zera. Quem só tem uma carta naquela carreira não
+//    entrega nada — a CASA cobre e o vencedor ganha uma carta nova do baralho.
+// 🔒 Quem fecha a cascata é o HOST, UMA vez por sala (trava no banco). Todo
+//    mundo lê o MESMO resultado gravado — ninguém vê uma versão diferente.
+// 🏷️ A carta não é copiada: ela troca de dono de verdade (o servidor muda o
+//    user_id da linha) e fica marcada com de quem foi arrancada.
+interface BafoTroca {
+  de: string; para: string; deNome: string; paraNome: string
+  casa: boolean; key: string
+  carta: { name: string; club: string; year: number; pos: string; fame: number }
+}
+function BafoCascata() {
+  const { state } = useEsc()
+  const [trocas, setTrocas] = useState<BafoTroca[] | null>(null)
+  const [erro, setErro] = useState('')
+  const [esperou, setEsperou] = useState(false) // convidado cansou de esperar o host fechar
+  const rodou = useRef(false)   // o host só dispara UMA vez por montagem
+  const aplicado = useRef(false) // e o cofre local só é mexido UMA vez
+
+  // a fila da cascata: a classificação final, SÓ com quem trouxe time de carreira
+  // (bot no meio da tabela não entra — a cascata é entre a galera).
+  const fila = useMemo(() => {
+    const donos = state.bafoDonos ?? {}
+    return sortedTable(state.league)
+      .map(t => ({ t, dono: donos[t.id] }))
+      .filter((x): x is { t: typeof x.t; dono: NonNullable<typeof x.dono> } => !!x.dono)
+      .map(({ t, dono }) => ({ mgrId: t.id, nome: t.name, ...dono }))
+  }, [state.league, state.bafoDonos])
+
+  // HOST: fecha a cascata no servidor. Manda também uma carta "da casa" por
+  // possível vencedor (uma que ele ainda NÃO tem) pro caso do piso de 1 — o
+  // servidor não conhece o baralho, quem conhece é o jogo.
+  useEffect(() => {
+    if (!state.isHost || rodou.current || fila.length < 2 || !state.roomId) return
+    rodou.current = true
+    ;(async () => {
+      try {
+        const uids = fila.map(f => f.uid)
+        const { data: donas } = await supabase.from('user_cards').select('user_id, card_name').in('user_id', uids)
+        const tem = new Map<string, Set<string>>()
+        for (const r of (donas ?? []) as { user_id: string; card_name: string }[]) {
+          if (!tem.has(r.user_id)) tem.set(r.user_id, new Set())
+          tem.get(r.user_id)!.add(r.card_name)
+        }
+        const casa: Record<string, { name: string; club: string; year: number; pos: string; fame: number }> = {}
+        for (const f of fila.slice(0, -1)) { // todo mundo menos o último pode receber
+          const meu = tem.get(f.uid) ?? new Set<string>()
+          const faltam = ALL_POOL.filter(c => !meu.has(c.name))
+          const p = (faltam.length ? faltam : ALL_POOL)[Math.floor(Math.random() * (faltam.length || ALL_POOL.length))]
+          if (p) casa[f.uid] = { name: p.name, club: p.club, year: p.year, pos: p.pos, fame: p.fame }
+        }
+        const { data, error } = await supabase.rpc('bafo_cascata', { p_room: state.roomId, p_ordem: uids, p_casa: casa })
+        if (error) throw error
+        setTrocas((data ?? []) as BafoTroca[])
+      } catch {
+        setErro('Não deu pra fechar o Bafo agora — a internet oscilou. Nenhuma carta trocou de dono. Volte a esta tela pra tentar de novo.')
+        rodou.current = false
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.isHost, fila.length, state.roomId])
+
+  // TODO MUNDO (host incluído): lê o resultado gravado. É a MESMA fonte pra
+  // todos — ninguém vê uma cascata diferente da do vizinho.
+  useEffect(() => {
+    if (trocas || !state.roomId) return
+    let vivo = true, voltas = 0
+    const olha = async () => {
+      const { data } = await supabase.from('esc_bafo_trocas').select('trocas').eq('room_id', state.roomId).maybeSingle()
+      const t = (data?.trocas ?? null) as BafoTroca[] | null
+      if (vivo && t && t.length) { setTrocas(t); return true }
+      return false
+    }
+    const iv = setInterval(async () => {
+      voltas++
+      if (await olha()) { clearInterval(iv); return }
+      // desistiu de esperar: quase sempre é o host que saiu antes de fechar.
+      // Diz a verdade em vez de girar pra sempre — e o caminho de volta.
+      if (voltas > 40) { clearInterval(iv); if (vivo && !state.isHost) setEsperou(true) }
+    }, 2500)
+    void olha()
+    return () => { vivo = false; clearInterval(iv) }
+  }, [trocas, state.roomId, state.isHost])
+
+  // 🃏 e agora o ÁLBUM DA CARREIRA, no aparelho: sai de um, entra no outro.
+  // Cada aparelho aplica só o que é DELE — nunca mexe na carreira de ninguém.
+  useEffect(() => {
+    if (!trocas || aplicado.current) return
+    const eu = state.youUid
+    const minha = state.bafoDonos?.[state.managers[state.youIdx]?.id ?? -1]
+    if (!eu || !minha) return
+    aplicado.current = true
+    for (const t of trocas) {
+      if (t.de === eu && !t.casa) patchCareerCofre(minha.seed, t.key, t.carta, null)
+      if (t.para === eu) patchCareerCofre(minha.seed, t.key, null, { ...t.carta, pos: t.carta.pos as Sector })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trocas])
+
+  if (fila.length < 2) return null
+  const eu = state.youUid
+  return (
+    <Box bg="#FFF6D6" className="p-4 space-y-2.5" shadow={6}>
+      <p className="font-black text-xl text-center" style={OSWALD}>🃏 BAFO · A HORA DA VERDADE</p>
+      <p className="text-[11.5px] font-bold text-center text-black/60 leading-snug">
+        Quem ficou atrás entrega <b>uma carta</b> da carreira que trouxe pro time logo acima. O 1º só recebe. A carta <b>troca de dono de verdade</b>: sai do álbum daquela carreira e entra no álbum da carreira do outro.
+      </p>
+
+      {erro && (
+        <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: '#FFF1E8' }}>
+          <p className="text-[11.5px] font-bold leading-snug" style={{ color: '#8E2A1B' }}>⚠️ {erro}</p>
+        </div>
+      )}
+
+      {!trocas && !erro && !esperou && (
+        <div className="border-[2.5px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>
+          ⏳ Separando as cartas…
+        </div>
+      )}
+
+      {!trocas && esperou && (
+        <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: '#FFF1E8' }}>
+          <p className="text-[11.5px] font-bold leading-snug" style={{ color: '#8E2A1B' }}>
+            ⏳ O Bafo ainda não foi fechado — quem fecha é o host, e ele precisa chegar nesta tela. <b>Nenhuma carta trocou de dono</b> até agora. Se ele voltar, some sozinho.
+          </p>
+        </div>
+      )}
+
+      {trocas?.map((t, i) => {
+        const euPerdi = t.de === eu
+        const euGanhei = t.para === eu
+        const cor = euGanhei ? GREEN : euPerdi ? RED : INK
+        return (
+          <div key={t.key ?? i} className="rounded-xl p-3" style={{ border: `3px solid ${cor}`, background: '#fff', boxShadow: `3px 3px 0 0 ${cor}` }}>
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-[13px] truncate flex-1" style={OSWALD}>{t.deNome}{euPerdi && ' (você)'}</span>
+              <span className="font-black text-[15px] shrink-0">➜</span>
+              <span className="font-black text-[13px] truncate flex-1 text-right" style={OSWALD}>{t.paraNome}{euGanhei && ' (você)'}</span>
+            </div>
+            <div className="flex justify-center mt-2">
+              <CollectibleCard name={t.carta.name} club={t.carta.club} year={t.carta.year} pos={t.carta.pos} fame={t.carta.fame} />
+            </div>
+            <p className="text-[10.5px] font-bold text-center mt-2 leading-snug" style={{ color: t.casa ? '#8E6A00' : cor }}>
+              {t.casa
+                ? <>🏠 <b>{t.deNome}</b> só tinha uma carta nessa carreira — ninguém zera, então a <b>casa cobriu</b> e a carta saiu do baralho.</>
+                : euGanhei ? <>🏆 Arrancada do <b>{t.deNome}</b> — a carta é sua e já está no álbum desta sua carreira.</>
+                : euPerdi ? <>💔 Foi pro <b>{t.paraNome}</b>. Saiu do álbum desta carreira — volte no Bafo pra buscar de volta.</>
+                : <>Arrancada do <b>{t.deNome}</b>.</>}
+            </p>
+          </div>
+        )
+      })}
+
+      {trocas && (
+        <p className="text-[10.5px] font-bold text-center text-black/50 leading-snug">
+          🥇 <b>{fila[0].nome}</b> não entregou carta pra ninguém.
+        </p>
+      )}
+    </Box>
+  )
+}
+
 export function EscEnd() {
   const { state, dispatch } = useEsc()
   const [manualPref] = useSimMode()
@@ -7252,6 +7430,14 @@ export function EscEnd() {
       ) : (
       <>
       {!copaPending && (state.careerDivision ? placementHeader('pt-8') : ligaOnlyHeader())}
+      {/* 🃏 BAFO: a cascata é O prêmio deste modo — vem logo depois da colocação,
+          antes da tabela, porque é a primeira coisa que a galera quer ver. */}
+      {state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
+        <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
+          <p className="font-black text-base" style={OSWALD}>🤝 BAFO AMISTOSO</p>
+          <p className="text-[11.5px] font-bold text-black/60 leading-snug mt-0.5">Esta sala foi criada <b>sem valer carta</b> — ninguém perdeu nem ganhou nada do álbum. Foi só a tabela.</p>
+        </Box>
+      ))}
       {ligaChampionCard}
       {copaPending && state.quickCopa && (
         <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>

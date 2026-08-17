@@ -2661,7 +2661,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[] }
+  | { type: 'START_ONLINE'; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -3971,6 +3971,35 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira, moedas, o auge, quem tá jogando) — os dois se veem online e o
       // HOST decide quando começar o leilão (START_STREAM_AUCTION). No rápido
       // normal/manual cai direto no leilão, como sempre.
+      // 🃏 BAFO: aqui NÃO tem leilão. Cada humano já chegou com o time da própria
+      // carreira (mandado pelo lobby), então o pregão é pulado inteiro e a sala cai
+      // DIRETO no campeonato de 38 rodadas. Sem Copa — decisão do Diego 17/08.
+      //
+      // 🛡️ O que este bloco NÃO faz, de propósito: não inventa jogador. Se um time
+      // veio com menos de 11 (save torto, carta que sumiu do baralho), ele fica com
+      // o elenco de bot que já foi montado acima — nunca entra em campo com
+      // perna-de-pau vindo do Bafo. A trava de verdade é no lobby, que não deixa
+      // ficar apto sem 11; isto aqui é o cinto de segurança.
+      if (action.bafo) {
+        for (const m of s.managers) {
+          if (!m.isHuman) continue
+          const trazido = action.bafo[m.id]
+          if (!trazido || trazido.length < 11) continue
+          // id novo por carta: os ids vêm de OUTRO save e não podem colidir com os
+          // do adversário (dois "c3" no mesmo jogo = escalação trocando de dono, a
+          // família de bug mais cara desta casa).
+          m.squad = trazido.slice(0, 22).map((c, i) => ({ ...c, id: `bafo${m.id}-${i}` }))
+        }
+        s.copaMode = 'liga' // 🃏 no Bafo é só a liga, do começo ao fim
+        s.bafoOn = true
+        // 🃏 quem é o dono de cada time (conta + carreira). Sem isto a cascata do
+        // fim não teria como saber de QUEM sai a carta nem pra QUAL carreira ela
+        // vai — e carta trocando de dono errado é o pior bug possível aqui.
+        s.bafoDonos = action.bafoDonos ?? {}
+        s.bafoValendo = action.bafoValendo !== false // sala antiga/sem o campo = VALENDO
+        s.screen = 'season'
+        return s
+      }
       if (s.streamMode || s.careerOnline) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -6257,6 +6286,50 @@ export function deleteCareerSlot(seed: number) {
   }
   writeCareerArchive(readCareerArchive().filter(s => s.save.seed !== seed))
   removeCareerFromCloud(seed) // tira SÓ essa carreira da nuvem, com precisão
+}
+
+// ─── 🃏 BAFO · a carta muda de dono TAMBÉM no cofre da carreira ──────────────
+// No servidor a carta já trocou de dono (RPC bafo_cascata: muda o user_id da
+// linha em user_cards). Mas o COFRE da carreira mora no SAVE, no aparelho — e o
+// Diego foi claro: "é exatamente trocar o nome do dono, e isso deve sair de um
+// ir pro outro". Então cada aparelho aplica a troca na PRÓPRIA carreira: quem
+// perdeu tira a carta do cofre daquela carreira, quem ganhou põe no cofre da
+// carreira que ele trouxe. Mexe SÓ na carreira daquele seed (ativa ou
+// arquivada) e em NENHUMA outra. Idempotente por `marca` (a chave da troca):
+// aplicar de novo não repete a carta nem apaga outra.
+// 🔒 Não mexe no lacre: o carimbo é feito de moedas/títulos/divisão/temporada —
+// o cofre não entra nele, então o save não passa a ser acusado de "mexido".
+export function patchCareerCofre(seed: number, marca: string, tira: { name: string; club: string; year: number } | null, poe: EmpCard | null): boolean {
+  const aplica = (save: EscState): EscState | null => {
+    if ((save.bafoTrocasFeitas ?? []).includes(marca)) return null // já aplicada
+    const cofre = [...(save.empresarioCards ?? [])]
+    if (tira) {
+      const i = cofre.findIndex(c => c.name === tira.name && c.club === tira.club && c.year === tira.year)
+      if (i >= 0) cofre.splice(i, 1) // não achou (save antigo) = não inventa nada, só não tira
+    }
+    if (poe) cofre.push({ ...poe, season: save.seasonNo ?? 1 })
+    return { ...save, empresarioCards: cofre, bafoTrocasFeitas: [...(save.bafoTrocasFeitas ?? []), marca] }
+  }
+  const act = readActiveCareer()
+  if (act && act.save.seed === seed) {
+    const novo = aplica(act.save)
+    if (!novo) return false
+    try { localStorage.setItem('esc-solo-career', JSON.stringify(novo)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota — o servidor já tem a verdade */ }
+    void savePyramidCloud(novo, true)
+    return true
+  }
+  const arch = readCareerArchive()
+  const idx = arch.findIndex(s => s.save.seed === seed)
+  if (idx < 0) return false
+  const novo = aplica(arch[idx].save)
+  if (!novo) return false
+  const lista = [...arch]
+  // `at` novo de propósito: é assim que a junção nuvem↔aparelho sabe que ESTA
+  // versão da carreira é a mais nova (a temporada não mudou, só o cofre).
+  lista[idx] = { save: novo, at: Date.now() }
+  writeCareerArchive(lista)
+  void savePyramidCloud(act?.save ?? novo, true) // sobe o conjunto (o arquivo já vai junto lá dentro)
+  return true
 }
 
 // além do save local (esc-solo-career), quem está logado espelha o save inteiro

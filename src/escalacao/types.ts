@@ -450,6 +450,12 @@ export interface EscState {
   // da votação; 'liga' pula direto pro fim, como sempre foi.
   copaMode?: 'liga' | 'liga_copa'
   ligaFechada?: boolean // 🏆 LIGA FECHADA: sala online só com os humanos, SEM bots na tabela. A liga tem o tamanho da galera (returno duplo); ímpar folga. Copa só destrava com 8+.
+  // 🃏 BAFO: sala sem leilão, cada um traz o time da própria carreira e no fim
+  // quem ficou atrás entrega UMA carta daquela carreira pro de cima (cascata).
+  bafoOn?: boolean
+  bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }> // mgrId → dono do time (conta + carreira que ele trouxe). É por aqui que a cascata sabe de QUEM sai a carta e pra QUAL carreira ela vai.
+  bafoValendo?: boolean // 🃏 a partida vale carta de verdade (padrão) ou é amistoso — escolha do host na criação da sala
+  bafoTrocasFeitas?: string[] // 🃏 idempotência do COFRE da carreira: chaves das trocas de Bafo já aplicadas neste save (o servidor já trocou o dono; isto evita tirar/pôr a carta duas vezes no aparelho).
   quickCopa?: QuickCopaState | null
   phaseDeadline: number | null // timestamp (ms) do fim do envelope
   monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
