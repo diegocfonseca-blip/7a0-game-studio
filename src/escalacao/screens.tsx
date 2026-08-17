@@ -3147,17 +3147,23 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro }
         <div style={{ width: 116 }}>{centro}</div>
         <div style={{ display: 'grid', gap: 6, minWidth: 0 }}>{dir.map((b, i) => assento(b, i * 2 + 1))}</div>
       </div>
-      {/* 🫵 VOCÊ fecha a mesa, embaixo e maior — é o teu assento na roda */}
+      {/* 🫵 VOCÊ fecha a mesa, embaixo — MESMO assento dos outros, só mais largo.
+          Diego (17/08): "meu escudo não está menor que os outros? acho que ele
+          deveria ser padrão também, com o do Tôka centralizado". Então o teu
+          escudo tem o MESMO tamanho e vem CENTRALIZADO em cima do nome, igual a
+          todo mundo — o que marca que a mesa é tua é a largura e a moldura, nunca
+          um escudo de tamanho diferente. */}
       {meu && (
         <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: ordem.findIndex(b => b.mgr === youId) * 0.25 }}
-          className="relative overflow-hidden rounded-2xl"
+          className="relative overflow-hidden rounded-2xl text-center"
           style={{ marginTop: 7, background: '#fff', border: `3px solid ${meuVenceu ? GREEN : INK}`, boxShadow: `3px 3px 0 0 ${meuVenceu ? GREEN : INK}`,
-            padding: '6px 9px', display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 9 }}>
+            padding: mini ? '5px 8px 5px' : '7px 9px 6px' }}>
           {meuPerk.holo > 0 && <ApoioSheen holo={meuPerk.holo} />}
-          <span className="relative flex"><Escudo nome={managers.find(m => m.id === youId)?.teamName || 'Você'} size={34} /></span>
-          <span className="relative font-black uppercase truncate" style={{ ...OSWALD, fontSize: 13 }}>🫵 Você{meuAnulado ? <span className="font-bold normal-case" style={{ fontSize: 9.5, color: 'rgba(0,0,0,.55)' }}> · anulado (setor cheio)</span> : null}</span>
-          <span className="relative rounded-lg font-black" style={{ ...OSWALD, border: `2.5px solid ${INK}`, fontSize: 19, padding: '1px 12px 2px',
-            background: meuVenceu ? GREEN : meuAnulado ? '#ddd' : meuPerk.grad, color: meuVenceu ? '#fff' : TIER_INK[meuPerk.tier] }}>{meu.amount}</span>
+          <div className="flex justify-center relative"><Escudo nome={managers.find(m => m.id === youId)?.teamName || 'Você'} size={mini ? 24 : 32} /></div>
+          <p className="font-bold truncate relative" style={{ fontSize: mini ? 8.5 : 10, marginTop: 2 }}>🫵 Você</p>
+          <div className="rounded-lg font-black relative mx-auto" style={{ ...OSWALD, marginTop: 3, border: `2px solid ${INK}`, fontSize: mini ? 11 : 13, lineHeight: 1.35, maxWidth: 120,
+            background: meuVenceu ? GREEN : meuAnulado ? '#ddd' : meuPerk.grad, color: meuVenceu ? '#fff' : TIER_INK[meuPerk.tier] }}>{meu.amount}</div>
+          {meuAnulado && <p className="font-bold relative" style={{ fontSize: 7.5, marginTop: 1, color: 'rgba(0,0,0,.55)' }}>anulado (setor cheio)</p>}
         </motion.div>
       )}
     </div>
