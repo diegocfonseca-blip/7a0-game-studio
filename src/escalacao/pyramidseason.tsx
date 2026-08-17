@@ -492,27 +492,6 @@ function EnsinoPilula({ k, pill, seasonNo, children }: { k: string; pill: string
 // mapa rodada→ids; na rodada r vale a última escolha numa rodada <= r. Se não há
 // escolha (ou a escalação não tem 11 válidos), cai pro bestXI automático.
 export type RoundLineups = Record<number, Record<number, string[]>>
-
-// 🔒 A ESCALAÇÃO QUE A COPA USA — a da ÚLTIMA rodada REALMENTE jogada.
-//
-// A liga simula as rodadas 0..37 (38 no total). Quando a temporada acaba,
-// `state.round` vira 38 — e é EXATAMENTE nesse slot 38 que o jogo grava a
-// escalação salva DEPOIS do fim (pra você começar a próxima temporada com o
-// time montado). A Copa lia o slot 38.
-//
-// 🐛 O QUE ISSO CAUSAVA (bug do leodiniz85, 17/08 — "ganhei a Copa do Brasil e
-// o rank não contou"): a Copa nasce inteira de uma vez a partir da força dos
-// times, e a força do SEU time vem da escalação. Encostar no ELENCO (ou trocar
-// de formação) DEPOIS da final reescrevia o slot 38 → a Copa inteira era
-// RE-SORTEADA → quem tinha acabado de ganhar a final deixava de ser campeão, e
-// o rank contava o campeão novo. Medido nesta sessão: com UMA troca de titular,
-// o campeão da Copa mudou em 7% das temporadas testadas (e a Supercopa junto —
-// é também o "meu amigo nem ganhou a Supercopa e apareceu que ganhou").
-//
-// Lendo 37, a Copa fica congelada no time que FECHOU A LIGA — que sempre foi a
-// intenção declarada aqui — e nada que o técnico faça depois da final consegue
-// mudar um resultado que ele já viu na tela.
-export const XI_FIM_DA_LIGA = 37
 export function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad: PoolCard[], formation?: FormationKey): PoolCard[] {
   const need4 = formation ? FORMATIONS[formation] : NEED
   const byRound = lineups[teamId]
@@ -768,7 +747,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   for (const d of DIVS) {
     if (d === 'V') continue
     for (const t of (tables[d] ?? []).slice(0, 4)) {
-      field.push({ t: t.human ? { ...t, xi: lineupAt(lineups, t.teamId, XI_FIM_DA_LIGA, t.squad, t.formation) } : t, div: d })
+      field.push({ t: t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t, div: d })
     }
   }
   if (field.length < 2) return { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }

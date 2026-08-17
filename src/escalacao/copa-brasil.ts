@@ -30,7 +30,7 @@
 //   Final (2→1, jogo único, travada)
 
 import type { Div, SimTeam, Goal, SeasonScorer, RoundLineups, PoolCard, Tac, CopaResult, CopaRound } from './pyramidseason'
-import { mulberry, shuffle, poisson, rollForm, lineupAt, XI_FIM_DA_LIGA, TACS, GOAL_TUNE, teamKey, mid } from './pyramidseason'
+import { mulberry, shuffle, poisson, rollForm, lineupAt, TACS, GOAL_TUNE, teamKey, mid } from './pyramidseason'
 
 type Entrant = { t: SimTeam; div: Div }
 
@@ -65,7 +65,7 @@ const FREE_DRAW = new Set(['Rodada de 64', 'Rodada de 32']) // sorteio livre só
 export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}): CopaBrasilResult {
   const empty: CopaBrasilResult = { groups: [], round64: null, rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xB0A5111) >>> 0)
-  const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, XI_FIM_DA_LIGA, t.squad, t.formation) } : t
+  const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t
   const of = (d: Div): Entrant[] => (tables[d] ?? []).map(t => ({ t: withXI(t), div: d }))
   const A = of('A'), B = of('B'), C = of('C'), D = of('D'), V = of('V')
   if (A.length < 20 || B.length < 20 || C.length < 20 || D.length < 20 || V.length < 20) return empty // pirâmide incompleta (save velho/incomum) — sem Copa
@@ -238,7 +238,7 @@ export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number
 // não fica hard-coded pra Copa do Brasil especificamente. ──
 export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: SimTeam | null, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}): CBTie | null {
   if (!copaChampion) return null
-  const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, XI_FIM_DA_LIGA, t.squad, t.formation) } : t
+  const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t
   const ligaChamp = tables.A?.[0]
   const ligaVice = tables.A?.[1]
   if (!ligaChamp) return null

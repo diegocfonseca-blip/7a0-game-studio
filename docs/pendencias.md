@@ -1,63 +1,4 @@
-# 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
-
-## 🏆🐛 "GANHEI A COPA DO BRASIL E O RANK NÃO CONTOU" — CAUSA REAL ACHADA (17/08)
-
-O leodiniz85 (`leonardodiniz403@gmail.com`) insistiu que continuava sem contar,
-**e ele estava certo** — o conserto de 16/08 (recibo por temporada) tapou UM
-buraco, mas não era este. Este é outro, e é o de verdade.
-
-### 🔍 O que acontecia
-A Copa do Brasil inteira (e a Supercopa junto) é **calculada de uma vez** a
-partir da força dos times. A força do time humano vem da **escalação**, lida no
-slot da **rodada 38**.
-
-O problema: a liga joga as rodadas **0 a 37**. Quando a temporada acaba,
-`state.round` vira **38** — e é justamente nesse slot 38 que o jogo grava a
-escalação que você salva **DEPOIS** do fim (pra você começar a próxima
-temporada com o time montado). Dois caminhos escreviam ali sem ninguém
-perceber: **mexer no ELENCO** e **trocar de FORMAÇÃO**.
-
-Resultado: você assistia à final, ganhava, ia no elenco encostar em qualquer
-coisa — e a **Copa inteira era re-sorteada por baixo**. O campeão podia virar
-outro, e o rank contava o campeão novo. Você viu a taça na tela e o rank
-mostrava outra coisa.
-
-**Medido (`scratchpad/prova-copa.mjs`, semente real da carreira dele):** com
-**UMA** troca de titular depois da final, o campeão da Copa mudou em **7%** das
-temporadas testadas — e no caso que mudou foi exatamente *"eu era campeão e
-deixei de ser"*. A Supercopa mudou junto: é também a explicação do outro relato,
-*"meu amigo nem ganhou a Supercopa e apareceu que ganhou"* (o mesmo sorteio,
-virando pro outro lado).
-
-### ✅ Conserto
-A Copa passou a ler a escalação da rodada **37** — a última REALMENTE jogada
-(`XI_FIM_DA_LIGA`, em `pyramidseason.tsx`; usado nos 3 lugares: Copa do Brasil,
-Supercopa e Copa Legends). O slot 38 deixou de ser lido, então nada que o
-técnico faça depois da final alcança um resultado que ele já viu.
-
-Isso é exatamente o que o comentário do código **já dizia ser a intenção** desde
-09/08 (*"a escalação vale a mesma do fim da liga"*) — só que o número estava um
-a mais.
-
-**Verificado (`scratchpad/prova-copa2.mjs`):** 40 temporadas, mexendo no elenco
-depois da final → Copa e Supercopa **iguais em 40/40**.
-
-### ↩️ Dá pra voltar atrás?
-Dá: é um commit isolado, 4 linhas em 2 arquivos. `git revert` e volta como era.
-
-### ⚠️ Correção de rota: a auditoria de 16/08 errou aqui
-A tabela da auditoria de 120 temporadas marcava *"Campeão da Copa é estável
-✅"*. **Aquele teste estava errado** — ele mexia na escalação num slot que a
-Copa não lia, então nunca reproduzia o problema. Marcado como ❌ lá embaixo.
-
-### ⏳ O que este achado NÃO resolve
-- As **31 Copas do leodiniz85 estão certas** no banco e no rank (conferido no
-  save e nos snapshots: a Copa da temporada 178 contou, 30 → 31). O que não dá
-  pra saber é quantas ele perdeu nas temporadas anteriores por causa deste bug —
-  **título perdido no passado não tem como devolver**, porque não ficou registro
-  de qual era o campeão antes do re-sorteio. Daqui pra frente não acontece mais.
-- Falta avisar ele. Sugestão pro Diego: contar que achamos, que era real, e que
-  a partir de agora o que aparece na tela é o que vai pro rank.
+# 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
 
 ## 🚀 PLANO DE CRESCIMENTO — tudo aprovado 16/08, ver `docs/plano-crescimento.md`
 Conversa longa do Diego em 16/08 virou doc próprio. Resumo do que foi aprovado
@@ -376,7 +317,7 @@ que o jogo grava, **pra TODOS os 100 clubes**, não só pro jogador:
 | Copa do Brasil — todos os clubes | ✅ bate 100% |
 | Supercopa — todos os clubes | ✅ bate 100% |
 | Supercopa premiou quem venceu no placar (60 finais) | ✅ 60/60 |
-| Campeão da Copa é estável (não muda depois de mostrado) | ❌ **este teste estava ERRADO** — ver a seção de 17/08 abaixo |
+| Campeão da Copa é estável (não muda depois de mostrado) | ✅ mexendo escalação e elenco de bot, mesmo campeão |
 | Rank local · sala de troféus · total da home | ✅ saem todos da MESMA conta (`meusTrofeus`) |
 | Carta por título (liga e copa) | ✅ 1 chave única por título, nenhuma colisão |
 
