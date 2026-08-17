@@ -907,7 +907,43 @@ Valores: `p_email = souzact12@gmail.com` · `p_mascote = cobra_arruda` ·
 faço se o Diego liberar o acesso ao banco (a chamada foi recusada por
 aprovação pendente).
 
-## ☁️ Batismo Skyy FC (matheusncruz1@gmail.com) — ⏳ ESPERANDO AS ARTES (17/08)
+## 🦅 Batismo Skyy FC (matheusncruz1@gmail.com) — ✅ FECHADO 17/08
+
+O Diego mandou a arte (uma imagem só, com águia + escudo + camisa) e disse:
+*"faça com o mesmo padrão de qualidade e locais pra pôr igual fizemos com
+Coringas do Diniz. Aliás todas logos serão mesmo formato e ideia"*. Feito
+exatamente assim.
+
+**Arte** (recorte feito aqui, a partir da imagem única):
+- `img/skyy-escudo.webp` — 348×360, **28,2 KB** (teto 30) — o escudo azul-piscina
+  com a águia de asas abertas segurando a bola, borda dourada.
+- `img/skyy-mascote.webp` — 354×440, **41,2 KB** (teto 45) — a águia de pé.
+- **Total 69,4 KB**, dentro do teto de 75 KB. Os dois saem do bundle (viram
+  arquivo à parte), como manda a regra de peso.
+- 🧹 Dois passes de limpeza do quadriculado falso: o normal (a partir da borda)
+  **e um segundo pra buracos PRESOS dentro do desenho** — sobrava um retângulo
+  cinza entre as pernas da águia, que o preenchimento de borda não alcança. O
+  segundo passe só apaga região que tem os **dois tons** do xadrez, então pena
+  cinza do bicho não some. Fica registrado: **toda arte de mascote com vão
+  fechado (pernas, alças, alça de caneca) precisa desse segundo passe.**
+
+**Código** (mesmos lugares do Coringas):
+- `escudos.tsx`: `skyyEscudoRender` + `LOGOS_PRONTAS['Skyy FC'/'Skyy'/'Skyy FC SAF']`.
+- `mascotes.tsx`: `MASCOTES.skyy_aguia` + `MASCOTE_NOME.skyy_aguia = 'A Águia'`
+  + `CARIMBO_GOL['Skyy FC'] = 'skyy_aguia'`.
+- `data.ts` e `apoio.tsx` **já estavam prontos** de antes (clube na Série D,
+  `OLD_NAME`, ouro 👑, fundador nº24).
+
+**Banco** (`esc_socios`, UPDATE — ele já era sócio **nº9**, permanente):
+`mascote_key = skyy_aguia` · `escudo_time = Skyy FC` · manto **`#237581`**
+(azul-piscina) + **`#0D3558`** (azul-marinho) — as duas cores foram **medidas na
+camisa** que ele mandou, não chutadas.
+
+⏳ **Única coisa que falta: o TIME DO CORAÇÃO do Matheus** (`time_coracao` está
+NULL). Sem ele o card do clube não mostra o time de coração — o resto todo
+(escudo, mascote, manto e as três animações) já funciona.
+
+## ☁️ ~~Batismo Skyy FC — esperando as artes~~ (histórico do pedido, 17/08)
 Pedido do Diego: *"o time Sky irá também agora ser sócio, e quando é sócio ganha
 escudo, mascote, mantos, animações etc"*. Conferido no repo e no banco — metade
 já está de pé, e o que falta **depende de arte que ele vai mandar**.

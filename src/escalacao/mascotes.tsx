@@ -13,6 +13,7 @@ import arrudaCobraImg from './img/arruda-mascote.webp'
 import coringasMascoteImg from './img/coringas-mascote.webp'
 import ferrariMascoteImg from './img/ferrari-mascote.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import nataMascoteImg from './img/nata-mascote.webp' // 🤡 Nata de SP (pedrinhocamisa8): arte própria do dono
+import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 
 const INK = '#0C0C0C'
 
@@ -476,6 +477,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   coringa_diniz: (
     <img src={coringasMascoteImg} height={176} width={Math.round(176 * 248 / 320)} alt="O Coringa — Coringas do Diniz" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🦅🩵 a ÁGUIA (mascote do Skyy FC — matheusncruz1, aprovado 17/08): a águia de
+  // peito branco e asas azul-piscina, garras douradas, olhando de frente. Arte
+  // própria do dono (webp, fora do bundle). mascote_key = "skyy_aguia".
+  skyy_aguia: (
+    <img src={skyyMascoteImg} height={176} width={Math.round(176 * 354 / 440)} alt="A Águia — Skyy FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🤡🟡⚫ o PALHAÇO (mascote do Nata de SP — pedrinhocamisa8, aprovado 17/08):
   // arte própria do dono (webp, fora do bundle). mascote_key = "nata_palhaco".
   nata_palhaco: (
@@ -713,6 +720,7 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Seven City': 'sete_seven', // 7️⃣ o Seven City carimba com o SETE (mockup aprovado), não com o leão
   'Coringas do Diniz': 'coringa_diniz', // 🃏 o coringa carimba o placar (16/08)
   'Nata de SP': 'nata_palhaco', // 🤡 o palhaço carimba o placar (pedrinhocamisa8, 17/08)
+  'Skyy FC': 'skyy_aguia', // 🦅 a águia carimba o placar (matheusncruz1, 17/08)
 }
 
 // 7️⃣ carimbo exclusivo do Seven City: o sete dourado com borda preta grossa.
@@ -733,6 +741,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   eros_nina: 'Nina',           // 🐶 Eros FC — a cachorrinha do dono
   maite: 'Maitê',              // 💚 Desportivo Montreal — homenagem à filha do Gabriel
   nata_palhaco: 'O Palhaço',   // 🤡 Nata de SP (pedrinhocamisa8, 17/08)
+  skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
 }
 
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)
