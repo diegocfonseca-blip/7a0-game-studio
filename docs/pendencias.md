@@ -939,9 +939,42 @@ exatamente assim.
 (azul-piscina) + **`#0D3558`** (azul-marinho) — as duas cores foram **medidas na
 camisa** que ele mandou, não chutadas.
 
+**Mockup do post**: gerado pelo padrão novo (`scripts/mockup-batismo.py`),
+mandado pro Diego pra ele postar.
+
 ⏳ **Única coisa que falta: o TIME DO CORAÇÃO do Matheus** (`time_coracao` está
 NULL). Sem ele o card do clube não mostra o time de coração — o resto todo
 (escudo, mascote, manto e as três animações) já funciona.
+
+## 🎨 MOCKUP PADRÃO DE BATISMO — agora mora no repo (17/08)
+Ordem do Diego: *"e quando tiver pronto me mande o mockup padrão também, igual
+fizemos só do Coringas do Diniz, pra postar. Sempre irei falar arte padrão de
+formato pra escudo, manto e mascote. E mockup padrão também"*.
+
+O mockup do Coringas tinha sido montado **à mão**, e morava só no scratchpad
+daquela sessão — quando a máquina trocou, **sumiu**. Por isso o formato virou
+arquivo versionado: **`scripts/mockup-batismo.py`**.
+
+```
+python3 scripts/mockup-batismo.py \
+  --clube "Skyy FC" --serie D --antigo "Fortuna SAF" \
+  --escudo src/escalacao/img/skyy-escudo.webp \
+  --mascote src/escalacao/img/skyy-mascote.webp --mascote-nome "A Águia" \
+  --c1 "#237581" --c2 "#0D3558" \
+  --dono "matheusncruz1" --socio 9 --fundador 24 \
+  --saida /tmp/skyy-post.png
+```
+
+Sai um PNG **1080×1350** (4:5, o formato de post que aparece maior no feed) na
+identidade da casa: creme `#F4ECD6`, tinta preta, bordas grossas, sombra dura
+deslocada. A ordem de leitura é: faixa "NOVO CLUBE BATIZADO" → **escudo grande**
+→ nome do clube + divisão + de quem ele tomou o lugar → **mascote** e **manto**
+lado a lado → rodapé com o dono, os selos e o endereço do site.
+
+⚠️ **Fonte**: a Oswald não pode ser baixada neste ambiente (o proxy bloqueia o
+Google Fonts), então o título é a DejaVu Bold **espremida a 78%** na horizontal,
+que imita a condensada. Se um dia a Oswald entrar no repo, é só apontar
+`OSWALD_TTF` no topo do script e o aperto se desliga sozinho.
 
 ## ☁️ ~~Batismo Skyy FC — esperando as artes~~ (histórico do pedido, 17/08)
 Pedido do Diego: *"o time Sky irá também agora ser sócio, e quando é sócio ganha
