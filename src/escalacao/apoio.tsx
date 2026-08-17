@@ -112,6 +112,13 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'tiosapeka@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Sapekeiros FC — influencer @tiosapekagg; mascote abelha coroada 🐝; coração Santos) (12/08)
   'chiarentin.dyno127@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N) (12/08)
   'glaucomiranda@outlook.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + sócio nº22 (Glauco; batismo Série A a definir) (15/08)
+
+  // 🎨 COR DE RECONHECIMENTO (pedido do Diego 17/08) — NÃO é sócio, NÃO é
+  // Craque/Lenda, NÃO tem batismo nem entra no FUNDADOR_N. É só a cor do nome
+  // brilhando quando jogam online, de presente por jogarem MUITO o jogo — o
+  // tier aqui é usado só pra pintar (nenhum outro benefício vem junto).
+  'brunomontoya011@gmail.com': 'verde', // 🟢 Bruno — reconhecimento, joga muito (17/08)
+  'beatrizsilvavieira624@gmail.com': 'roxo', // 💜 Beatriz — reconhecimento, joga muito (17/08)
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
