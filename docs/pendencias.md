@@ -947,70 +947,45 @@ NULL). Sem ele o card do clube não mostra o time de coração — o resto todo
 (escudo, mascote, manto e as três animações) já funciona.
 
 ## 🎨 MOCKUP PADRÃO DE BATISMO — agora mora no repo (17/08)
-Ordem do Diego: *"e quando tiver pronto me mande o mockup padrão também, igual
-fizemos só do Coringas do Diniz, pra postar. Sempre irei falar arte padrão de
-formato pra escudo, manto e mascote. E mockup padrão também"*.
+O Diego mandou o modelo (o do Nata de SP) e foi direto: *"esse aqui é o mockup
+padrão cara powww, e tem que ter as animações também"*. Então **o formato é
+esse**, e virou arquivo versionado: **`scripts/mockup-batismo.mjs`**.
 
-O mockup do Coringas tinha sido montado **à mão**, e morava só no scratchpad
-daquela sessão — quando a máquina trocou, **sumiu**. Por isso o formato virou
-arquivo versionado: **`scripts/mockup-batismo.py`**.
+Antes ele era montado à mão a cada batismo e morava só no scratchpad da sessão
+— o do Coringas do Diniz **sumiu** quando a máquina trocou. Agora não some mais,
+e nenhuma sessão inventa layout novo.
 
 ```
-python3 scripts/mockup-batismo.py \
+node scripts/mockup-batismo.mjs \
   --clube "Skyy FC" --serie D --antigo "Fortuna SAF" \
   --escudo src/escalacao/img/skyy-escudo.webp \
-  --mascote src/escalacao/img/skyy-mascote.webp --mascote-nome "A Águia" \
-  --c1 "#237581" --c2 "#0D3558" \
-  --dono "matheusncruz1" --socio 9 --fundador 24 \
+  --mascote src/escalacao/img/skyy-mascote.webp \
+  --mascote-nome "A Águia" --mascote-emoji "🦅" \
+  --c1 "#237581" --c1-nome "azul-piscina" --c2 "#0D3558" --c2-nome "azul-marinho" \
+  --dono "Matheus" --coracao "Corinthians" --fundador 24 \
   --saida /tmp/skyy-post.png
 ```
 
-Sai um PNG **1080×1350** (4:5, o formato de post que aparece maior no feed) na
-identidade da casa: creme `#F4ECD6`, tinta preta, bordas grossas, sombra dura
-deslocada. A ordem de leitura é: faixa "NOVO CLUBE BATIZADO" → **escudo grande**
-→ nome do clube + divisão + de quem ele tomou o lugar → **mascote** e **manto**
-lado a lado → rodapé com o dono, os selos e o endereço do site.
+**A ordem do post (não mexer sem o Diego mandar):** pílula "BATISMO DE LENDA" →
+manchete "NASCEU O <CLUBE>" (a 1ª palavra em vermelho) → a frase de quem é o
+dono, a divisão e de quem tomou a vaga → cartão dourado com escudo + nome +
+❤️ coração → **mascote e manto lado a lado** → 🎬 **"ONDE A <MASCOTE> APARECE"**,
+com as **TRÊS animações** escritas pro jogador (carimbo no gol · festão de
+campeão · pulo no pênalti) → rodapé com quem batizou + selos Lenda/fundador.
 
-⚠️ **Fonte**: a Oswald não pode ser baixada neste ambiente (o proxy bloqueia o
-Google Fonts), então o título é a DejaVu Bold **espremida a 78%** na horizontal,
-que imita a condensada. Se um dia a Oswald entrar no repo, é só apontar
-`OSWALD_TTF` no topo do script e o aperto se desliga sozinho.
-
-## ☁️ ~~Batismo Skyy FC — esperando as artes~~ (histórico do pedido, 17/08)
-Pedido do Diego: *"o time Sky irá também agora ser sócio, e quando é sócio ganha
-escudo, mascote, mantos, animações etc"*. Conferido no repo e no banco — metade
-já está de pé, e o que falta **depende de arte que ele vai mandar**.
-
-✅ **Já pronto (não precisa mexer):**
-- O clube existe: **Skyy FC**, Série D, técnico *Duda Fortuna* (ex-`Fortuna SAF`;
-  `OLD_NAME['Skyy FC']` já converte save antigo ao carregar).
-- `apoio.tsx`: tier **ouro 👑** + **fundador nº24** já gravados.
-- `esc_socios`: ele **já é sócio** — **nº9**, `origem = batismo`,
-  `valido_ate = 2099-12-31` (permanente). Não precisa criar linha, é UPDATE.
-
-❌ **Falta (é isto que o "ganha escudo/mascote/manto/animação" quer dizer):**
-- **Escudo próprio**: hoje ele usa o escudo genérico gerado do nome. Falta
-  `img/skyy-escudo.webp` + `LOGOS_PRONTAS['Skyy FC']` (e as variações do nome,
-  tipo `'Skyy'`, igual foi feito no Nata de SP).
-- **Mascote**: não existe nenhuma chave dele em `MASCOTES`. Sem isso ficam de
-  fora **as três animações**: o carimbo no placar quando o clube faz gol
-  (`CARIMBO_GOL`), o **festão de campeão** e o **pulo no pênalti convertido**.
-  Falta `img/skyy-mascote.webp` + `MASCOTES.<chave>` + `MASCOTE_NOME` +
-  `CARIMBO_GOL['Skyy FC']`.
-- **Manto e coração**: as colunas `manto_c1`, `manto_c2`, `mascote_key`,
-  `escudo_time` e `time_coracao` da linha dele estão **todas NULL**.
-
-📋 **O que o Diego precisa mandar** (sem isso não dá pra fechar, e a casa não
-inventa arte de batismo nem chuta cor):
-1. as **duas artes** (escudo e mascote) — ou o OK pra gerar uma imagem;
-2. o **nome do mascote** (o do Nata é "O Palhaço");
-3. as **cores do manto** (2 cores; se forem 3, entra em `MANTO_TRI`);
-4. o **time do coração** do Matheus.
-
-⚖️ Lembrete dos tetos (regra de peso do CLAUDE.md, pra escalar até 10 mil
-batismos): escudo **360px / ≤30 KB** · mascote **440px / ≤45 KB** · total
-**≤75 KB**, recortado no limite do desenho, `.webp` sempre — **nunca SVG na
-mão**, e animação em CSS, nunca webp animado.
+Detalhes de como foi feito, pra próxima sessão não penar:
+- **HTML + Chromium** (Playwright), não PIL — é o único jeito de bater o
+  espaçamento e o degradê do modelo. `playwright-core` está no `devDependencies`;
+  o Chromium do ambiente fica em `/opt/pw-browsers/chromium` (dá pra sobrescrever
+  com a variável `PW_CHROME`).
+- **A Oswald de verdade** mora em `scripts/fonts/` (4 pesos, **64 KB no total**).
+  Veio do npm (`@fontsource/oswald`) porque o proxy bloqueia o Google Fonts.
+  ⚠️ Isso **não pesa no jogo**: é `scripts/`, nunca entra no bundle nem é baixado
+  por jogador nenhum.
+- **A camisa do manto é desenhada no próprio script** (SVG, listras nas 2 cores
+  do clube + o escudo no peito). É molde do post, não arte de batismo — por isso
+  não vale a regra de peso nem vai pra `src/escalacao/img/`.
+- O artigo da mascote ("**a** Águia" × "**o** Palhaço") sai automático do nome.
 
 ## 🤡🟡⚫ Batismo Nata de SP (pedrinhocamisa8@gmail.com) — 17/08
 Substituiu o **Paris São Geraldo** na Série D. Dono vira **ouro/Lenda +

@@ -72,10 +72,12 @@ FORA do bundle. Então, sem exceção:
      via `MANTO_TRI`). Sempre os MESMOS lugares no código: `LOGOS_PRONTAS`
      (com as variações do nome + o nome velho) · `MASCOTES` + `MASCOTE_NOME` +
      `CARIMBO_GOL` · `data.ts` (`OLD_NAME` + a divisão) · `apoio.tsx`.
-   - **Mockup do post**: gerado por **`scripts/mockup-batismo.py`** (1080×1350).
-     Não inventar layout novo a cada batismo — é esse arquivo, e ele mora no
-     repo justamente porque o mockup do Coringas foi feito à mão e **se perdeu**
-     com o scratchpad da sessão. Mandar pro Diego junto com a entrega.
+   - **Mockup do post**: `node scripts/mockup-batismo.mjs` — formato aprovado
+     pelo Diego (o do Nata de SP). **Tem que ter a seção das ANIMAÇÕES** ("onde
+     a mascote aparece": carimbo no gol · festão de campeão · pulo no pênalti) —
+     foi o que ele cobrou. Não inventar layout novo a cada batismo: é esse
+     arquivo, e ele mora no repo justamente porque o mockup do Coringas foi feito
+     à mão e **se perdeu** com o scratchpad. Mandar pro Diego junto com a entrega.
    - **Limpeza da arte**: recortar o quadriculado falso em **DOIS passes** — o
      normal (a partir da borda) **e** o de buracos PRESOS dentro do desenho
      (entre pernas, alças, vãos fechados). Só apagar região que tenha os **dois
