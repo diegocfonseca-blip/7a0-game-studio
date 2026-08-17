@@ -3098,7 +3098,7 @@ function LendaParty({ delay }: { delay: number }) {
 // nasce do NOME (escudos.tsx) e quem batizou entra com a arte que pagou. A cor do
 // PRÓPRIO tier veste a barra do lance (degradê do APOIO_PERKS + o brilho holo dos
 // pagos), nunca dourado emprestado pra todos.
-function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro }: {
+function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro, passo, total }: {
   bids: { mgr: number; amount: number }[]
   winner: number | null
   voided: number[]
@@ -3106,6 +3106,8 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro }
   youId: number
   managers: { id: number; teamName: string; name: string }[]
   centro: React.ReactNode
+  passo: number // revelação atual dentro da leva (0-based)
+  total: number // quantas revelações a leva tem
 }) {
   // 🏅 A FILA É A ORDEM DE LEITURA (Diego 17/08). Ele viu que a mesa tinha COMIDO
   // o ranking que a lista antiga dava de graça ("só não sei se tá claro a ordem de
@@ -3155,9 +3157,29 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro }
 
   return (
     <div className="mt-3">
+      {/* 🔒 A FAIXA DO MOMENTO (ideia que o GPT deu e o Diego aprovou, 17/08): antes
+          a mesa abria em silêncio e ninguém sabia o que estava rolando nem quanto
+          faltava. Agora diz o momento em uma linha e mostra as BOLINHAS da leva —
+          uma por revelação, a de agora acesa. Custo de tempo: ZERO (é só leitura
+          do estado que já existe). */}
+      <div className="text-center" style={{ marginBottom: 7 }}>
+        <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 10.5, letterSpacing: '.06em' }}>
+          🔒 Todos lacraram!{' '}
+          <span className="font-bold" style={{ color: 'rgba(0,0,0,.5)', letterSpacing: 0 }}>{hammered ? 'martelo batido.' : 'revelando lances…'}</span>
+        </p>
+        {total > 1 && (
+          <div className="flex justify-center items-center" style={{ gap: 4, marginTop: 4 }}>
+            {Array.from({ length: Math.min(total, 12) }, (_, i) => (
+              <span key={i} style={{ width: i === passo ? 9 : 6, height: i === passo ? 9 : 6, borderRadius: 999,
+                background: i === passo ? GOLD : i < passo ? INK : 'rgba(0,0,0,.18)',
+                border: i === passo ? `1.5px solid ${INK}` : 'none', display: 'block' }} />
+            ))}
+          </div>
+        )}
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', gap: 6, alignItems: 'center' }}>
         <div style={{ display: 'grid', gap: 6, minWidth: 0, alignContent: 'center' }}>{esq.map((b, i) => assento(b, i * 2))}</div>
-        <div style={{ width: 116 }}>{centro}</div>
+        <div style={{ width: 122 }}>{centro}</div>
         <div style={{ display: 'grid', gap: 6, minWidth: 0, alignContent: 'center' }}>{dir.map((b, i) => assento(b, i * 2 + 1))}</div>
       </div>
     </div>
@@ -3297,13 +3319,37 @@ function Reveal() {
               "🔨 VENDIDO pro X por Y!" que já existe embaixo. O festão da Lenda fica.) */}
           {mesaOn ? (
             <MesaMartelo bids={item.bids} winner={item.winner} voided={item.voided} hammered={hammered}
-              youId={you.id} managers={state.managers}
-              centro={(
-                <div className="rounded-2xl text-center relative overflow-hidden"
-                  style={{ border: `3px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 6px 9px', background: item.card.fame >= 5 ? GOLD : '#fff' }}>
-                  <div className="flex justify-center"><CardFace c={item.card} surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} /></div>
-                </div>
-              )} />
+              youId={you.id} managers={state.managers} passo={state.revealIdx} total={state.revealQueue.length}
+              centro={(() => {
+                // 🃏 A CARTA DO MEIO COM CARA DE CARTA (17/08): faixa de raridade em
+                // cima, tag da posição, nome grande e clube·ano embaixo. Antes era
+                // uma caixinha de texto — agora é o que está sendo leiloado, no
+                // centro da mesa, do tamanho que merece.
+                // 🙈 O anti-spoiler da SURPRESA é o MESMO do CardFace: o nome real
+                // nem entra no HTML enquanto não bate o martelo com vencedor.
+                const escondido = item.card.id === state.surpriseId && !(hammered && sold)
+                const lenda = item.card.fame >= 5
+                return (
+                  <div className="rounded-2xl text-center relative overflow-hidden"
+                    style={{ border: `3px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}`, background: lenda ? GOLD : '#fff' }}>
+                    {(lenda || item.card.id === state.surpriseId) && (
+                      <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 8.5, letterSpacing: '.14em', padding: '2px 0 3px',
+                        background: item.card.id === state.surpriseId ? PURPLE : INK, color: item.card.id === state.surpriseId ? '#fff' : GOLD }}>
+                        {item.card.id === state.surpriseId ? '🎁 Surpresa' : '👑 Lenda'}
+                      </p>
+                    )}
+                    <div style={{ padding: '7px 6px 8px' }}>
+                      <span className="inline-block border-2 border-black rounded-full font-black"
+                        style={{ ...OSWALD, fontSize: 9, padding: '0 7px 1px', background: INK, color: '#fff' }}>{posTag(item.card.pos)}</span>
+                      {escondido
+                        ? <p className="font-black" style={{ ...OSWALD, fontSize: 17, lineHeight: 1.05, marginTop: 4, color: PURPLE }}>
+                            🎁 <span aria-hidden style={{ filter: 'blur(4px)', letterSpacing: 3, userSelect: 'none' }}>? ? ?</span></p>
+                        : <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 15, lineHeight: 1.05, marginTop: 4 }}>{item.card.name}</p>}
+                      <p className="font-bold" style={{ fontSize: 9, marginTop: 3, color: 'rgba(0,0,0,.55)' }}>{item.card.club} · {item.card.year}</p>
+                    </div>
+                  </div>
+                )
+              })()} />
           ) : (
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
@@ -3414,10 +3460,19 @@ function Reveal() {
             <motion.div className="mt-3 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: hammerDelay }}>
               {sold && (
                 <>
-                  <motion.div className="text-5xl leading-none"
-                    initial={{ y: -55, rotate: -75, opacity: 0 }}
-                    animate={{ y: [-55, 6, 0], rotate: [-75, 8, 0], opacity: 1 }}
-                    transition={{ delay: hammerDelay, duration: 0.5, type: 'spring', bounce: 0.55 }}>🔨</motion.div>
+                  {/* ✨ RAIOS ATRÁS DO MARTELO (17/08): o martelo já caía do céu; os
+                      raios só dão o estouro da batida. CSS puro, 0 KB, e nascem
+                      JUNTO com a martelada — não adianta nem atrasa nada. */}
+                  <div className="relative flex justify-center">
+                    <motion.span aria-hidden className="absolute" style={{ width: 120, height: 120, top: -18, borderRadius: 999, pointerEvents: 'none',
+                      background: 'repeating-conic-gradient(rgba(255,196,0,.55) 0 9deg, transparent 9deg 26deg)' }}
+                      initial={{ scale: 0, opacity: 0 }} animate={{ scale: [0, 1.15, 1], opacity: [0, 1, 0.55] }}
+                      transition={{ delay: hammerDelay + 0.1, duration: 0.5 }} />
+                    <motion.div className="text-5xl leading-none relative"
+                      initial={{ y: -55, rotate: -75, opacity: 0 }}
+                      animate={{ y: [-55, 6, 0], rotate: [-75, 8, 0], opacity: 1 }}
+                      transition={{ delay: hammerDelay, duration: 0.5, type: 'spring', bounce: 0.55 }}>🔨</motion.div>
+                  </div>
                   <motion.p className="font-black text-3xl -mt-1" style={{ ...OSWALD, color: RED }}
                     initial={{ scale: 0 }} animate={{ scale: [0, 1.3, 1] }} transition={{ delay: hammerDelay + 0.12, duration: 0.35 }}>
                     MARTELO!
@@ -3458,6 +3513,9 @@ function Reveal() {
       <p className="text-center text-xs font-bold text-black/60 py-1">
         {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
       </p>
+      {/* 🏟️ rótulo do campinho: sem ele o gramado aparecia solto e não ficava claro
+          que aquele time é o SEU (outra ideia boa do GPT, 17/08). */}
+      <p className="text-center font-black uppercase" style={{ ...OSWALD, fontSize: 10, letterSpacing: '.1em', color: 'rgba(0,0,0,.45)', marginBottom: 3 }}>Sua escalação</p>
       <YourPitch small />
     </Shell>
   )
