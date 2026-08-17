@@ -12,6 +12,7 @@ import sapekAbelhaImg from './img/sapek-mascote.webp'
 import arrudaCobraImg from './img/arruda-mascote.webp'
 import coringasMascoteImg from './img/coringas-mascote.webp'
 import ferrariMascoteImg from './img/ferrari-mascote.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
+import nataMascoteImg from './img/nata-mascote.webp' // 🤡 Nata de SP (pedrinhocamisa8): arte própria do dono
 
 const INK = '#0C0C0C'
 
@@ -475,6 +476,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   coringa_diniz: (
     <img src={coringasMascoteImg} height={176} width={Math.round(176 * 248 / 320)} alt="O Coringa — Coringas do Diniz" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🤡🟡⚫ o PALHAÇO (mascote do Nata de SP — pedrinhocamisa8, aprovado 17/08):
+  // arte própria do dono (webp, fora do bundle). mascote_key = "nata_palhaco".
+  nata_palhaco: (
+    <img src={nataMascoteImg} height={176} width={Math.round(176 * 369 / 440)} alt="O Palhaço — Nata de SP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🐶🎮 a NINA (mascote do Eros FC — erosreis/@erosreis, aprovado 12/08): a
   // cachorrinha do dono, de coleira vermelha, sentada na pilha de cartuchos com o
   // controle no peito. Arte própria do dono (webp, exceção aprovada). mascote_key = "eros_nina".
@@ -706,6 +712,7 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Tricolor do Arruda FC': 'cobra_arruda', // 🐍 a cobra do cachimbo carimba o placar (16/08)
   'Seven City': 'sete_seven', // 7️⃣ o Seven City carimba com o SETE (mockup aprovado), não com o leão
   'Coringas do Diniz': 'coringa_diniz', // 🃏 o coringa carimba o placar (16/08)
+  'Nata de SP': 'nata_palhaco', // 🤡 o palhaço carimba o placar (pedrinhocamisa8, 17/08)
 }
 
 // 7️⃣ carimbo exclusivo do Seven City: o sete dourado com borda preta grossa.
@@ -725,6 +732,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   coringa_diniz: 'O Coringa',  // 🃏 Coringas do Diniz (Lucas Calefi, 16/08)
   eros_nina: 'Nina',           // 🐶 Eros FC — a cachorrinha do dono
   maite: 'Maitê',              // 💚 Desportivo Montreal — homenagem à filha do Gabriel
+  nata_palhaco: 'O Palhaço',   // 🤡 Nata de SP (pedrinhocamisa8, 17/08)
 }
 
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)

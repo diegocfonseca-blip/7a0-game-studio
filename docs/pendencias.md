@@ -836,6 +836,37 @@ Valores: `p_email = souzact12@gmail.com` · `p_mascote = cobra_arruda` ·
 faço se o Diego liberar o acesso ao banco (a chamada foi recusada por
 aprovação pendente).
 
+## 🤡🟡⚫ Batismo Nata de SP (pedrinhocamisa8@gmail.com) — 17/08
+Substituiu o **Paris São Geraldo** na Série D. Dono vira **ouro/Lenda +
+fundador nº45** (regra nova: todo batismo já nasce sócio + fundador, ver
+CLAUDE.md). Time do coração: **Corinthians**. Manto: duas cores, amarelo e
+preto (arte enviada pelo próprio dono, sem 3ª cor).
+
+Feito no repo:
+- `img/nata-escudo.webp` (312×360, 28,3 KB) + `img/nata-mascote.webp`
+  (369×440, 42,8 KB) — recortados da arte que o Diego mandou (removido o
+  fundo quadriculado falso); total 71,1 KB, dentro do teto de 75 KB.
+- `escudos.tsx`: `nataEscudoRender` + `LOGOS_PRONTAS['Nata de SP'/'Nata SP'/'Nata de SP FC']`.
+- `mascotes.tsx`: `MASCOTES.nata_palhaco` + `CARIMBO_GOL['Nata de SP'] = 'nata_palhaco'`
+  + `MASCOTE_NOME.nata_palhaco = 'O Palhaço'` — o palhaço carimba o placar no gol (funciona já, é código).
+- `data.ts`: `OLD_NAME['Nata de SP'] = 'Paris São Geraldo'` + troca do time na
+  Série D (`DIVISION_TEAMS.D`, mantendo o técnico "Cabeção da Vila" — só o
+  clube muda, igual nos outros batismos).
+- `apoio.tsx`: `FOUNDERS['pedrinhocamisa8@gmail.com'] = 'ouro'` +
+  `FUNDADOR_N['pedrinhocamisa8@gmail.com'] = 45`.
+
+⏳ **PENDENTE — precisa de escrita no Supabase (`esc_socios`), fora do repo**
+(mesmo bloqueio do caso Arruda: acesso ao banco recusado por aprovação
+pendente neste ambiente). Sem essa linha, o **festão de campeão** e o
+**palhaço pulando no pênalti convertido** não acontecem pro Pedrinho (leem
+`mascote_key` da conta no banco, não do código), e o **card do clube do
+coração** não mostra Corinthians. Valores pra gravar: `p_email =
+pedrinhocamisa8@gmail.com` · `p_mascote = nata_palhaco` · `p_time =
+Corinthians` · `escudo_time = Nata de SP` · manto `p_c1 = #FFC400` (amarelo),
+`p_c2 = #0C0C0C` (preto) · sócio nº a definir (próximo disponível) ·
+`origem = 'batismo'`. Dá pra fazer pelo painel de admin (🎨 Personalizar
+sócio) ou outra sessão com acesso ao banco grava.
+
 ## 🔓🏆🇧🇷 COPA DO BRASIL LEGENDS + SUPERCOPA NO AR PRA TODO MUNDO (16/08)
 Ordem do Diego: "atualiza já p td mundo pow". `COPA_BRASIL_GERAL = true`
 em `src/escalacao/sport.ts` — a trava por conta saiu, vale pra todos os

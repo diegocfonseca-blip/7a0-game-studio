@@ -2223,6 +2223,7 @@ export const OLD_NAME: Record<string, string> = {
   'Tricolor do Arruda': 'Legado EC', // ⚽ batismo do souzact12: save antigo com Legado EC vira Tricolor do Arruda ao carregar
   'Tricolor do Arruda FC': 'Tricolor do Arruda', // ⚽ 16/08: o nome certo é com FC no fim (o "Tricolor do Arruda" pelado ficou no ar por ~1h); elo da corrente Legado EC → Tricolor do Arruda → Tricolor do Arruda FC
   'Coringas do Diniz': 'Vanguarda Nacional', // ⚽ batismo do lucas_calefi: save antigo com Vanguarda Nacional vira Coringas do Diniz ao carregar (16/08)
+  'Nata de SP': 'Paris São Geraldo', // ⚽ batismo do pedrinhocamisa8: save antigo com Paris São Geraldo vira Nata de SP ao carregar (17/08)
 }
 // corrente de nomes antigos: 'White Thigs do GuGu' → ['Astronáutico', 'Sinhô Futebol']
 export const oldChain = (name: string): string[] => {
@@ -2320,7 +2321,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Neguinho do Apito', team: 'Xurupitas FC' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Xurupitas FC, ex-Tokyo City Esperion, ex-FC Galáticos; porco/Palmeiras)
     { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
     { name: 'Tião Bagre', team: 'Império Samambaia' }, // ⚽ clube BATIZADO por apoiador (jorgericardo777 — Império Samambaia, ex-Cuiabagre)
-    { name: 'Cabeção da Vila', team: 'Paris São Geraldo' },
+    { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
     { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)

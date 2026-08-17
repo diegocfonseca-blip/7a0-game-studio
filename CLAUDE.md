@@ -60,6 +60,10 @@ FORA do bundle. Então, sem exceção:
    sente). Só não nascem mais. Antes de chegar perto de ~500 batismos,
    converter esses 16 em `.webp` e **tirar a lista de nomes do código pro
    banco** — é o último pedaço que ainda multiplica por jogador.
+7. **Regra permanente (17/08): todo batismo JÁ NASCE sócio + fundador.**
+   Sempre que alguém vira dono de um clube batizado, ele automaticamente leva
+   tier ouro (👑 Lenda) + o próximo número de `FUNDADOR_N` em `apoio.tsx` —
+   não precisa o Diego pedir de novo caso a caso.
 
 ## 📁 Mapa do código
 - `src/escalacao/` — o jogo todo: `store.tsx` (estado/reducer/online),

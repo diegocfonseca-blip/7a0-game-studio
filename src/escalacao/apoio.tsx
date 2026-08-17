@@ -119,6 +119,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'tiosapeka@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Sapekeiros FC — influencer @tiosapekagg; mascote abelha coroada 🐝; coração Santos) (12/08)
   'chiarentin.dyno127@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N) (12/08)
   'glaucomiranda@outlook.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + sócio nº22 (Glauco; batismo Série A a definir) (15/08)
+  'pedrinhocamisa8@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº45; batizou o NATA DE SP (ex-Paris São Geraldo, Série D); coração Corinthians (17/08)
 
   // 🎨 COR DE RECONHECIMENTO (pedido do Diego 17/08) — NÃO é sócio, NÃO é
   // Craque/Lenda, NÃO tem batismo nem entra no FUNDADOR_N. É só a cor do nome
@@ -172,6 +173,7 @@ const FUNDADOR_N: Record<string, number> = {
   'glaucomiranda@outlook.com': 42, // 🖋️ Glauco — Lenda + sócio nº22; batismo Seven FC (15/08)
   'souzact12@gmail.com': 43, // 🖋️ Geovany Souza — batismo Tricolor do Arruda FC (ex-Legado EC, Série A); anel do Arruda com o T no escudo, cobra de cachimbo de mascote (16/08)
   'lucas_calefi@outlook.com': 44, // 🖋️ Lucas Calefi — Lenda + sócio nº24; batizou os Coringas do Diniz (Série A); coração Corinthians (16/08)
+  'pedrinhocamisa8@gmail.com': 45, // 🖋️ batizou o Nata de SP (ex-Paris São Geraldo, Série D); coração Corinthians (17/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
