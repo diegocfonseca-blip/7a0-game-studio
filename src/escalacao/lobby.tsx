@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG } from './manto'
 import { useEsc, listAllCareers } from './store'
 import type { PoolCard } from './pyramidseason'
+import type { WonCard } from './types'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, emailProblema } from './apoio'
 import { isMuted } from './sound'
@@ -994,6 +995,19 @@ export function EscLobby() {
       deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
       varzea: !!gs?.varzea, // 🥅 rápido + BR, categoria "Sem craques" (só bom jogador + foi profissional)
       career: gs?.mode === 'carreira',
+      // 🃏 BAFO: os times que cada técnico trouxe da carreira dele. A chave é a
+      // POSIÇÃO na lista (uniq), que é exatamente o id do manager humano lá dentro
+      // — a mesma amarração que as duplas usam. Errar isso é o bug clássico da
+      // casa ("virei bot", "dei lance por outro"), então vai pelo índice da MESMA
+      // lista que monta os playerNames, nunca por player_index do banco.
+      bafo: gs?.mode === 'elenco' ? (() => {
+        const out: Record<number, WonCard[]> = {}
+        uniq.forEach((p, i) => {
+          const sq = (p as RoomPlayer & { bafo?: BafoTime | null }).bafo?.squad
+          if (sq && sq.length >= 11) out[i] = sq as unknown as WonCard[]
+        })
+        return out
+      })() : undefined,
       rivals: gs?.rivals, // 🌐 carreira online: nº de rivais CPU no leilão (escolha do host)
       rivalTeams: gs?.rivalTeams, // 🌐 carreira online: times da Série D escolhidos como rivais
       ligaFechada: !!(gs as GS & { ligaFechada?: boolean })?.ligaFechada, // 🏆 liga só com a galera, sem bots
