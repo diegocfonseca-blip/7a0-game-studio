@@ -15,16 +15,17 @@ os HTMLs que geraram estão descritos aqui).
    `escudos.tsx` nasce do nome), então **ninguém fica sem** — e quem batizou entra
    com a arte que pagou.
 3. **Nome EMBAIXO da figura** (do lado ele corta: virava "Manfr…", "Sapek…").
-4. **NENHUM número ao lado de ninguém** — nem caixa, nem lance. O único valor da
-   tela é **o seu**. Cada assento mostra só o estado: `perdeu` · `😱 quase` ·
-   `✅ é seu`. O Diego confirmou duas vezes e recusou o meio-termo de abrir só o
-   lance do 2º colocado ("Não. Deixe igual").
-   - ⚠️ **Isso é mudança de REGRA, não de tela.** Hoje o bloco "A sala"
-     (`RivalsStrip`, `screens.tsx`) mostra `💰 {m.money}` de cada rival, e o
-     martelo abre o lance de todo mundo. Tem que sair dos DOIS lugares, senão um
-     esconde e o outro entrega. Efeito no jogo: ninguém sabe quem ainda pode
-     cobrir → leilão mais cego, blefe passa a valer, e o `😱 QUASE` vira aviso
-     ("chegou perto") **sem dizer por quanto**.
+4. **NADA DE REGRA MUDA — é SÓ moldura.** O Diego cortou isso com todas as
+   letras (17/08): *"quero tudo igual sem mudar nada, nada nada. Só tô mudando
+   visualmente o resultado da oferta que vai ser revelado, só isso, com
+   animações"*.
+   - ⚠️ **Correção de rota:** numa volta anterior desta conversa eu entendi que
+     ele queria ESCONDER o dinheiro (tirar o `💰 {m.money}` do bloco "A sala" e os
+     lances do martelo) e cheguei a montar mockup assim. **Estava errado.** Ele
+     falava do caixa no mockup, não de mudar o jogo. **Fica tudo como está:** os
+     lances continuam abrindo no martelo, o "A sala" continua mostrando o dinheiro
+     de cada rival, o `😱 QUASE` continua dizendo por quanto. Não encostar em
+     `RivalsStrip`.
 5. **Cor do tier**: como o escudo ocupa o lugar do quadradinho colorido, o tier
    desce pra **barra do assento** (degradê do `APOIO_PERKS`, + `ApoioSheen` nos
    pagos). Fidelidade de tier continua sagrada.
@@ -46,10 +47,9 @@ os HTMLs que geraram estão descritos aqui).
   **A carta nunca encolhe** e **ninguém some da mesa**.
 
 ### ⏳ Falta
-- **OK do Diego pra começar a codar** (regra: mockup aprovado antes de commitar
-  visual — o visual ele já viu e aprovou; falta o "pode ir").
 - Decidir se os envelopes viram **todos juntos** (mockup, sem custo de tempo) ou
   **um por um** (mais suspense, ~1 s a mais). O Diego ainda não respondeu.
+- Mostrar print da tela DE VERDADE (não mockup) antes de fundir na main.
 
 ## 🏆🔒 "GANHEI A COPA E O RANK NÃO CONTOU" — CAUSA REAL ACHADA E CONSERTADA (17/08)
 
