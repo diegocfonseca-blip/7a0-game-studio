@@ -946,6 +946,30 @@ mandado pro Diego pra ele postar.
 NULL). Sem ele o card do clube não mostra o time de coração — o resto todo
 (escudo, mascote, manto e as três animações) já funciona.
 
+## 🏆 CADA MASCOTE COMEMORA O TÍTULO DO SEU JEITO (17/08)
+Regra fechada com o Diego, e ele corrigiu meu excesso no meio do caminho:
+
+> *"No gol tem que ser igual pra todos. O que eu disse diferente é quando é
+> campeão."*
+
+Eu tinha feito os DOIS por mascote (a águia mergulhando no carimbo do gol, o
+palhaço quicando, a cobra rastejando). Ele cortou: o **carimbo do gol é a marca
+da casa**, aparece o tempo todo e tem que ser igual pra todo mundo. A
+individualidade fica onde o momento é único — **o festão de campeão**.
+
+- ⚽ **GOL**: `coCarimba` pra todos, como sempre foi. Nada mudou.
+- 🏆 **TÍTULO**: `FESTA_JEITO` em `mascotes.tsx` — `voa` · `rasteja` · `quica`.
+  - **voa** (águia, abelha): plana lá no alto e **sem sombra no chão**. Era o
+    mais errado de todos: a águia atravessava a tela **quicando no gramado**,
+    com sombra, feito bola.
+  - **rasteja** (cobra): ondula rente ao chão.
+  - **quica**: o de sempre — quem não está na lista não perde nada, e batismo
+    novo já nasce funcionando antes de alguém pensar num movimento pra ele.
+
+⏳ **Ainda genérico de propósito**: no **pênalti convertido** o mascote pula
+igual pra todos. O mockup também fala genérico ali — post não pode prometer o
+que a tela não faz. Se o Diego quiser, é o mesmo padrão do festão.
+
 ## 🎨 MOCKUP PADRÃO DE BATISMO — agora mora no repo (17/08)
 O Diego mandou o modelo (o do Nata de SP) e foi direto: *"esse aqui é o mockup
 padrão cara powww, e tem que ter as animações também"*. Então **o formato é

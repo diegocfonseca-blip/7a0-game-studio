@@ -752,51 +752,23 @@ export const carimboDoTime = (time: string): ReactNode | null => {
   return MASCOTES[k] ?? null
 }
 
-// ─── 🎬 CADA MASCOTE COMEMORA DO SEU JEITO (Diego, 17/08) ───────────────────
-// Palavras dele: *"na comemoração do gol cada mascote tem que ter suas
-// individualidades. Se é águia tem que ser algo relacionado a águia. Cada um é
-// o que depende do outro, as coisas que faz"*. Antes TODO mundo entrava com o
-// mesmo carimbo (`coCarimba`): caía girado e sumia. Agora o movimento combina
-// com o bicho — a águia MERGULHA de cima, o palhaço QUICA, a cobra RASTEJA
-// pelo lado, o coringa vira no ar feito carta sendo dada.
+// ─── 🏆 CADA MASCOTE COMEMORA O TÍTULO DO SEU JEITO (Diego, 17/08) ──────────
+// Palavras dele: *"no gol tem que ser igual pra todos. O que eu disse diferente
+// é quando é campeão"*. Então:
+//   ⚽ GOL  → o carimbo é o MESMO pra todo mundo (`coCarimba`). É a marca da
+//             casa, aparece o tempo todo e não pode virar bagunça.
+//   🏆 TÍTULO → aí sim cada bicho é o bicho. O festão é uma vez só, é o momento
+//             da glória, e é onde a individualidade cabe.
 //
-// 🛡️ Duas regras que não mudam, custe o que custar:
-//   1. o tempo é o MESMO (1,7s) e o carimbo continua `pointer-events:none` —
-//      regra de ouro do Diego: zoeira nova nunca atrasa o ritmo do jogo;
-//   2. mascote sem entrada própria cai no `coCarimba` de sempre — ninguém
-//      perde o que já tinha, e batismo novo nasce funcionando mesmo antes de
-//      alguém pensar numa animação pra ele.
-export const CARIMBO_ANIM: Record<string, string> = {
-  skyy_aguia: 'coVoa',        // 🦅 mergulha de cima e sobe planando de volta
-  nata_palhaco: 'coQuica',    // 🤡 entra quicando, gingando pros dois lados
-  cobra_arruda: 'coRasteja',  // 🐍 entra rastejando pelo lado, ondulando
-  coringa_diniz: 'coCarta',   // 🃏 vira no ar como carta sendo dada na mesa
-  sapek_abelha: 'coZumbe',    // 🐝 chega vibrando, parando no ar
-  eros_nina: 'coPulinho',     // 🐶 pulinho curto e feliz
-}
-export const carimboAnimDoTime = (time: string): string =>
-  CARIMBO_ANIM[CARIMBO_GOL[time] ?? ''] ?? 'coCarimba'
-
-// 🏆 e no FESTÃO de campeão a mesma ideia: o bicho atravessa a tela do jeito
-// DELE. Quem VOA plana no alto e não tem sombra no chão (era o mais errado de
-// todos: a águia quicando no gramado feito bola). Quem RASTEJA ondula colado no
-// chão. O resto continua quicando, igual sempre foi.
+// Quem VOA plana no alto e não tem sombra no chão (era o mais errado de todos:
+// a águia atravessava a tela QUICANDO no gramado, feito bola). Quem RASTEJA
+// ondula rente ao chão. O resto continua quicando, exatamente como sempre foi —
+// mascote sem jeito próprio não perde nada e batismo novo já nasce funcionando.
 export const FESTA_JEITO: Record<string, 'voa' | 'rasteja' | 'quica'> = {
   skyy_aguia: 'voa',
   sapek_abelha: 'voa',
   cobra_arruda: 'rasteja',
 }
-
-// as entradas em si. Ficam aqui (do lado de quem sabe qual mascote é qual) e
-// são injetadas pelo placar ao vivo junto com os keyframes que já existiam.
-export const CARIMBO_KEYFRAMES = `
-@keyframes coVoa{0%{opacity:0;transform:translate(70px,-96px) scale(1.5) rotate(16deg)}22%{opacity:1;transform:translate(0,6px) scale(1) rotate(-4deg)}34%{transform:translate(0,-4px) scale(1) rotate(2deg)}46%{transform:translate(0,2px) scale(1) rotate(-2deg)}72%{opacity:1;transform:translate(0,0) scale(1) rotate(0)}100%{opacity:0;transform:translate(-46px,-70px) scale(.86) rotate(-12deg)}}
-@keyframes coQuica{0%{opacity:0;transform:translateY(-90px) scale(.8) rotate(-16deg)}20%{opacity:1;transform:translateY(0) scale(1.12,.86) rotate(0)}30%{transform:translateY(-26px) scale(.94,1.08) rotate(7deg)}42%{transform:translateY(0) scale(1.08,.9) rotate(0)}52%{transform:translateY(-12px) scale(1) rotate(-6deg)}64%{transform:translateY(0) scale(1.04,.96) rotate(0)}80%{opacity:1;transform:translateY(0) scale(1) rotate(0)}100%{opacity:0;transform:translateY(-30px) scale(1.1) rotate(0)}}
-@keyframes coRasteja{0%{opacity:0;transform:translate(-120px,14px) scale(.9) rotate(-6deg)}18%{opacity:1;transform:translate(-30px,-6px) rotate(5deg)}30%{transform:translate(-4px,8px) rotate(-5deg)}42%{transform:translate(14px,-4px) rotate(4deg)}54%{transform:translate(0,4px) rotate(-2deg)}74%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(96px,10px) scale(.92) rotate(6deg)}}
-@keyframes coCarta{0%{opacity:0;transform:translateY(-40px) rotateY(-540deg) scale(.5)}26%{opacity:1;transform:translateY(0) rotateY(0) scale(1.06)}36%{transform:scale(1) rotate(-6deg)}72%{opacity:1;transform:scale(1) rotate(-6deg)}100%{opacity:0;transform:rotateY(180deg) scale(.8)}}
-@keyframes coZumbe{0%{opacity:0;transform:translate(60px,-40px) scale(.7)}18%{opacity:1;transform:translate(0,0) scale(1)}24%{transform:translate(-3px,2px)}30%{transform:translate(3px,-2px)}36%{transform:translate(-2px,-2px)}42%{transform:translate(2px,2px)}48%{transform:translate(-2px,1px)}72%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(-40px,-34px) scale(.85)}}
-@keyframes coPulinho{0%{opacity:0;transform:translateY(26px) scale(.8)}18%{opacity:1;transform:translateY(0) scale(1)}30%{transform:translateY(-16px) rotate(-6deg)}42%{transform:translateY(0) rotate(0)}52%{transform:translateY(-9px) rotate(5deg)}62%{transform:translateY(0) rotate(0)}78%{opacity:1}100%{opacity:0;transform:translateY(-18px) scale(1.08)}}
-`
 
 // 🎉 FESTÃO: overlay de ~4,2s por cima da tela de fim — versão viva do GIF.
 // `nome` = time campeão · `mascote` = chave em MASCOTES. Toque pula.
