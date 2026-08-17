@@ -3292,11 +3292,20 @@ function Reveal() {
   // 🔨 A MESA DO MARTELO só vale no RÁPIDO ONLINE (pedido do Diego 17/08: "isso é
   // só pro modo online rápido"). Solo e carreira seguem na lista de sempre, byte
   // por byte — se a mesa der qualquer problema, ela não alcança o resto do jogo.
-  const mesaOn = online && !state.careerOnline && item.bids.length > 0
+  const mesaModo = online && !state.careerOnline
+  const mesaOn = mesaModo && item.bids.length > 0
 
   return (
     <Shell bar={<AuctionBar />}>
-      {state.sport !== 'basquete' && <NarradorDica fase="revelacao" texto="👀 Abriram os envelopes! O maior lance leva a carta. Cobriram o seu? QUASE! Se recompõe e vem mais esperto na próxima leva. 🔨" />}
+      {/* 🎙️ A DICA DO NARRADOR SAI DA REVELAÇÃO ONDE A MESA MANDA (Diego 17/08).
+          A dica existia porque a lista não contava nada: era ela que explicava que
+          o maior lance leva a carta e que perder por pouco vira QUASE. A mesa passou
+          a contar isso sozinha — a faixa diz o momento, as bolinhas dizem quanto
+          falta, o selo diz a posição de cada um. Manter a dica aqui virava texto de
+          guia por cima do martelo, comendo meia tela no melhor momento do jogo.
+          Ela continua VIVA em todo o resto (solo, carreira, outras fases) e o
+          conteúdo segue no Manual. */}
+      {state.sport !== 'basquete' && !mesaModo && <NarradorDica fase="revelacao" texto="👀 Abriram os envelopes! O maior lance leva a carta. Cobriram o seu? QUASE! Se recompõe e vem mais esperto na próxima leva. 🔨" />}
       <p className="text-center text-xs font-black uppercase text-black/70 pt-1">
         Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
       </p>
