@@ -885,18 +885,6 @@ export type CopaFill = { bg: string; ink: string; holo: number; mark: string }
 const _lum = (r: number, g: number, b: number) => 0.3 * r + 0.59 * g + 0.11 * b
 export const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }
 const TIER_INK: Record<string, string> = { bege: '#0c0c0c', verde: '#ffffff', roxo: '#ffffff', prata: '#0c0c0c', ouro: '#0c0c0c' }
-type TeamKind = 'you' | 'saf' | 'human' | 'rival' | 'bot'
-function fillFor(kind: TeamKind, name: string, humanColor?: string): CopaFill {
-  if (kind === 'you' || kind === 'saf') { const p = myApoioPerk() ?? APOIO_PERKS.bege; return { bg: p.grad, ink: TIER_INK[p.tier], holo: p.holo, mark: kind === 'you' ? '👤' : '💼' } }
-  if (kind === 'human') { const solid = humanColor ?? '#3A7CA5'; return { bg: solid, ink: _inkFor(solid), holo: 0, mark: '🔥' } }
-  const hex = copaSideColor(name)
-  if (kind === 'rival') return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '⚔️' }
-  return { bg: hex, ink: _inkFor(hex), holo: 0, mark: '' }
-}
-function copaSideFill(t: SimTeam, colors: Record<number, FCol>, safName?: string): CopaFill {
-  const kind: TeamKind = t.you ? 'you' : (safName && t.name === safName) ? 'saf' : t.human ? 'human' : t.rival ? 'rival' : 'bot'
-  return fillFor(kind, t.name, colors[t.teamId]?.solid)
-}
 // pílula translúcida escura pra textos centrais (relógio/artilheiro/ida-volta) ficarem legíveis sobre qualquer cor
 export const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', borderRadius: 7, padding: '1px 7px', color: '#fff' }
 
@@ -3388,47 +3376,6 @@ export function PensShootout({ pens, aName, bName, colorOf }: { pens: [number, n
   )
 }
 
-// linha de um confronto JÁ DECIDIDO (agregado, pênaltis, zebra) — reusada no
-// chaveamento e na lista "outros jogos da fase" ao vivo.
-function CopaTieRow({ tie, colors = {}, safName }: { tie: CopaTie; colors?: Record<number, FCol>; safName?: string }) {
-  const you = tie.a.you || tie.b.you, aWin = tie.win === 'a'
-  // 🚫 ANTI-SPOILER DOS PÊNALTIS: o perdedor riscado + zebra só aparecem DEPOIS
-  // que a última cobrança pipoca na tela (antes, o card entregava quem passou
-  // desde o primeiro segundo da disputa).
-  const pensDelay = tie.pens ? pensRevealDelay(tie.pens) : 0
-  const winDiv = aWin ? tie.aDiv : tie.bDiv, loseDiv = aWin ? tie.bDiv : tie.aDiv
-  const zebra = DIV_RANKN[winDiv] < DIV_RANKN[loseDiv]
-  const fA = copaSideFill(tie.a, colors, safName), fB = copaSideFill(tie.b, colors, safName)
-  const side = (t: SimTeam, win: boolean, f: CopaFill) => {
-    // mesmo dim do nome (anti-spoiler: só risca/apaga o perdedor quando os pênaltis
-    // terminam de animar). Aplicado também ao escudo pra não entregar o resultado.
-    const dim = win ? {} : pensDelay > 0 ? { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` } : { opacity: 0.62, textDecoration: 'line-through' as const }
-    // 🛡️ escudo em cima, nome embaixo (Diego 11/08) — igual ao card ao vivo
-    return (
-      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 0 }}>
-        <span style={{ ...dim }}><Escudo nome={copaName(t)} size={20} /></span>
-        <span style={{ fontWeight: 800, fontSize: 10.5, ...OSWALD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', textAlign: 'center', color: f.ink, ...dim }}>{f.mark}{copaName(t)}</span>
-      </span>
-    )
-  }
-  return (
-    <div style={{ ...box('transparent'), position: 'relative', overflow: 'hidden', border: `2.5px solid ${you ? '#B23B2E' : INK}`, boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 7 }}>
-      {/* 🎨 faixa branca no meio com o placar, escudo em cima e nome embaixo
-          (Diego 11/08) — mesmo padrão do resto da Copa. */}
-      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch', overflow: 'hidden' }}>
-        <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: fA.bg, padding: '7px 6px', minWidth: 0 }}>{fA.holo > 0 && <ApoioSheen holo={fA.holo} />}{side(tie.a, aWin, fA)}</div>
-        <div style={{ background: '#fff', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, whiteSpace: 'nowrap' }}>{tie.aggA} × {tie.aggB}</div>
-        <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: fB.bg, padding: '7px 6px', minWidth: 0 }}>{fB.holo > 0 && <ApoioSheen holo={fB.holo} />}{side(tie.b, !aWin, fB)}</div>
-      </div>
-      <div style={{ padding: '5px 9px 7px' }}>
-        <p style={{ fontSize: 9, fontWeight: 800, textAlign: 'center', margin: 0 }}><span style={copaCenterChip}>{tie.legs.length === 2 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}` : 'jogo único'}</span></p>
-        {tie.pens && <style>{'@keyframes copaLoserFade{to{opacity:.62;text-decoration:line-through}}'}</style>}
-        {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
-        {zebra && <p style={{ fontSize: 9.5, fontWeight: 800, textAlign: 'center', margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}><span style={{ ...copaCenterChip, color: '#ffb4a6' }}>💥 zebra — Série {winDiv} eliminou Série {loseDiv}</span></p>}
-      </div>
-    </div>
-  )
-}
 
 // ── ⭐ O SEU JOGO NA COPA — usa o MESMO `LiveScoreCard` da liga (Diego 16/08:
 // "o meu placar deve manter igual quando com a liga também... deve ser padrão
@@ -3690,13 +3637,16 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
             <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2 }}>🏆🔵 SUPERCOPA LEGENDS</p>
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.75)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>Campeão da Liga × Campeão da Copa do Brasil · jogo único</p>
           </div>
-          {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} colors={colors} safName={safTeam} />)}
+          <CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeam} title="Resultado" />
         </div>
       ) : (
-        <div key={r.name} style={{ marginBottom: 10 }}>
-          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 5px' }}>{r.name === 'Final' ? '🏁 Final' : r.name}</p>
-          {r.ties.map((t, i) => <CopaTieRow key={i} tie={t} colors={colors} safName={safTeam} />)}
-        </div>
+        // 🧾 aba Tabelas: fase já decidida, ninguém tá simulando nada aqui — não
+        // tem por que empilhar o CARD GRANDE (CopaTieRow) 32× seguidas na Rodada
+        // de 64 e virar uma parede (pedido do Diego 16/08, mesmo motivo que já
+        // valeu pra tela ao vivo). Reusa a MESMA lista compacta (CopaMatchList,
+        // pos alto = força "tudo decidido") — 1 confronto por linha, seu jogo
+        // continua destacado em amarelo dentro da lista.
+        <CopaMatchList key={r.name} ties={r.ties} pos={9999} colors={colors} safName={safTeam} title={r.name === 'Final' ? '🏁 Final' : r.name} />
       ))}
       {/* CLASSIFICAÇÃO das divisões logo abaixo da Copa — a sua em destaque */}
       <div style={{ borderTop: `2px dashed ${INK}22`, margin: '14px 0 10px' }} />
