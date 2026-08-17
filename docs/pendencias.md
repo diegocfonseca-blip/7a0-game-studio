@@ -907,6 +907,42 @@ Valores: `p_email = souzact12@gmail.com` · `p_mascote = cobra_arruda` ·
 faço se o Diego liberar o acesso ao banco (a chamada foi recusada por
 aprovação pendente).
 
+## ☁️ Batismo Skyy FC (matheusncruz1@gmail.com) — ⏳ ESPERANDO AS ARTES (17/08)
+Pedido do Diego: *"o time Sky irá também agora ser sócio, e quando é sócio ganha
+escudo, mascote, mantos, animações etc"*. Conferido no repo e no banco — metade
+já está de pé, e o que falta **depende de arte que ele vai mandar**.
+
+✅ **Já pronto (não precisa mexer):**
+- O clube existe: **Skyy FC**, Série D, técnico *Duda Fortuna* (ex-`Fortuna SAF`;
+  `OLD_NAME['Skyy FC']` já converte save antigo ao carregar).
+- `apoio.tsx`: tier **ouro 👑** + **fundador nº24** já gravados.
+- `esc_socios`: ele **já é sócio** — **nº9**, `origem = batismo`,
+  `valido_ate = 2099-12-31` (permanente). Não precisa criar linha, é UPDATE.
+
+❌ **Falta (é isto que o "ganha escudo/mascote/manto/animação" quer dizer):**
+- **Escudo próprio**: hoje ele usa o escudo genérico gerado do nome. Falta
+  `img/skyy-escudo.webp` + `LOGOS_PRONTAS['Skyy FC']` (e as variações do nome,
+  tipo `'Skyy'`, igual foi feito no Nata de SP).
+- **Mascote**: não existe nenhuma chave dele em `MASCOTES`. Sem isso ficam de
+  fora **as três animações**: o carimbo no placar quando o clube faz gol
+  (`CARIMBO_GOL`), o **festão de campeão** e o **pulo no pênalti convertido**.
+  Falta `img/skyy-mascote.webp` + `MASCOTES.<chave>` + `MASCOTE_NOME` +
+  `CARIMBO_GOL['Skyy FC']`.
+- **Manto e coração**: as colunas `manto_c1`, `manto_c2`, `mascote_key`,
+  `escudo_time` e `time_coracao` da linha dele estão **todas NULL**.
+
+📋 **O que o Diego precisa mandar** (sem isso não dá pra fechar, e a casa não
+inventa arte de batismo nem chuta cor):
+1. as **duas artes** (escudo e mascote) — ou o OK pra gerar uma imagem;
+2. o **nome do mascote** (o do Nata é "O Palhaço");
+3. as **cores do manto** (2 cores; se forem 3, entra em `MANTO_TRI`);
+4. o **time do coração** do Matheus.
+
+⚖️ Lembrete dos tetos (regra de peso do CLAUDE.md, pra escalar até 10 mil
+batismos): escudo **360px / ≤30 KB** · mascote **440px / ≤45 KB** · total
+**≤75 KB**, recortado no limite do desenho, `.webp` sempre — **nunca SVG na
+mão**, e animação em CSS, nunca webp animado.
+
 ## 🤡🟡⚫ Batismo Nata de SP (pedrinhocamisa8@gmail.com) — 17/08
 Substituiu o **Paris São Geraldo** na Série D. Dono vira **ouro/Lenda +
 fundador nº45** (regra nova: todo batismo já nasce sócio + fundador, ver
