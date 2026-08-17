@@ -128,7 +128,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   // painel de admin (admin.tsx) — NUNCA usar roxo pra essa lista de
   // reconhecimento, senão parece que a pessoa é sócia sem ser.
   'brunomontoya011@gmail.com': 'verde', // Bruno — reconhecimento, joga muito (17/08)
-  // Beatriz: aguardando o Diego escolher a cor dela (não pode ser roxo — é o Promessa)
+  'beatrizsilvavieira624@gmail.com': 'verde', // Beatriz — reconhecimento, joga muito; mesma cor do Bruno (17/08)
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
