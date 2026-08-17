@@ -1,4 +1,81 @@
-# 📌 Pendências combinadas com o Diego (atualizado 16/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
+
+## 🏆🔒 "GANHEI A COPA E O RANK NÃO CONTOU" — CAUSA REAL ACHADA E CONSERTADA (17/08)
+
+O leodiniz85 (`leonardodiniz403@gmail.com`) insistiu que continuava sem contar —
+**e ele estava certo**. O conserto de 16/08 (recibo por temporada) tapou um
+buraco de verdade, mas não era este. Este é o de verdade.
+
+### 🔍 O que acontecia
+A Copa do Brasil (e a Supercopa) nascem **inteiras de uma vez**, a partir da
+FORÇA dos times — e a força do time humano sai da **escalação**, lida no slot da
+rodada 38.
+
+Só que a liga joga as rodadas **0 a 37**. Quando a temporada acaba,
+`state.round` vira **38** — o MESMO slot onde o jogo grava a escalação que você
+salva **depois** do fim (pra começar a próxima temporada com o time montado).
+Dois caminhos escreviam ali: **mexer no ELENCO** e **trocar de FORMAÇÃO**.
+
+Resultado: você assistia à final, ganhava, ia ajeitar o time — e a **Copa
+inteira era re-sorteada por baixo**. O campeão podia virar outro e o rank
+contava o novo. Você via a taça na tela e o rank mostrava outra coisa.
+
+**Medido (`scratchpad/prova-copa.mjs`, com a semente real da carreira dele):**
+com UMA troca de titular depois da final, o campeão da Copa mudou em **7%** das
+temporadas testadas — e no caso que mudou foi exatamente *"eu era campeão e
+deixei de ser"*. A Supercopa mudava junto: é também a explicação do outro
+relato, *"meu amigo nem ganhou a Supercopa e apareceu que ganhou"*.
+
+### ❌ A 1ª tentativa foi REPROVADA pelo Diego (e ele estava certo)
+A primeira versão fazia a Copa ler a escalação da rodada 37, ignorando o que
+fosse salvo depois. Funcionava, mas resolvia **tirando liberdade do técnico**.
+Palavras dele:
+
+> *"O técnico tem que ter liberdade pra mudar no intervalo ou no modelo dinâmico,
+> que seja... O que importa é o título: se aparecer pra ele, tem que contar.
+> Não tem essa de XI não. A substituição deve contar naturalmente. E o que
+> aparecer no final, se ele ganhou o título, ele ganha sala de troféu, ganha
+> título nos ranks, ganha premiações. Não importa se ele substituiu ou não."*
+
+Revertida (commit de revert no histórico) e refeita pelo lado certo.
+
+### ✅ O conserto que ficou: congela o RESULTADO, não a liberdade
+Na hora em que a liga acaba — que é exatamente quando a Copa nasce — a
+escalação de cada humano é **congelada no save** (`copaXi` / `copaXiSeason`, em
+`types.ts`; ação `FREEZE_COPA_XI` no `store.tsx`). A Copa passa a ser sempre
+recalculada a partir dela.
+
+Com isso:
+- **chave, placares, artilheiros, campeão, Supercopa, prêmios e carta** ficam
+  idênticos pra sempre — o que apareceu na tela é o que vai pro rank, pra sala
+  de troféus e pra premiação;
+- **o técnico segue 100% livre** pra mexer no elenco, trocar formação e
+  substituir quando quiser. Nada foi bloqueado;
+- **congela UMA vez por temporada e nunca regrava** (toque dublado, F5,
+  re-render: não regravam). É essa trava que garante que título já visto não
+  some.
+
+**Verificado (`scratchpad/prova-copa3.mjs`):** 40 temporadas, mexendo no elenco
+depois da final → **Copa inteira idêntica em 40/40** (comparando chave jogo a
+jogo, artilheiro, campeão, Supercopa e prêmios). Mais a trava do reducer testada
+à parte. `tsc` e `npm run build` passando.
+
+### ↩️ Dá pra voltar atrás?
+Dá: commit isolado. `git revert` e volta como estava. O campo novo no save é
+opcional — save antigo sem ele funciona igual.
+
+### ⚠️ Correção de rota: a auditoria de 16/08 errou aqui
+A tabela das 120 temporadas marcava *"Campeão da Copa é estável ✅"*. **Aquele
+teste estava errado**: ele mexia na escalação num slot que a Copa não lia, então
+nunca reproduzia o problema. Corrigido pra ❌ lá embaixo.
+
+### ⏳ O que este achado NÃO resolve
+- As **31 Copas do leodiniz85 estão certas** no banco e no rank (conferido no
+  save e nos snapshots: a Copa da temporada 178 contou, 30 → 31).
+- **Título perdido no passado não tem como devolver**: quando a Copa era
+  re-sorteada, o campeão anterior não ficava guardado em lugar nenhum. Não
+  existe registro pra restaurar. Daqui pra frente não acontece mais.
+- Falta **avisar o Leonardo** — combinar com o Diego o recado.
 
 ## 🚀 PLANO DE CRESCIMENTO — tudo aprovado 16/08, ver `docs/plano-crescimento.md`
 Conversa longa do Diego em 16/08 virou doc próprio. Resumo do que foi aprovado
@@ -317,7 +394,7 @@ que o jogo grava, **pra TODOS os 100 clubes**, não só pro jogador:
 | Copa do Brasil — todos os clubes | ✅ bate 100% |
 | Supercopa — todos os clubes | ✅ bate 100% |
 | Supercopa premiou quem venceu no placar (60 finais) | ✅ 60/60 |
-| Campeão da Copa é estável (não muda depois de mostrado) | ✅ mexendo escalação e elenco de bot, mesmo campeão |
+| Campeão da Copa é estável (não muda depois de mostrado) | ❌ **este teste estava ERRADO** — ver a seção de 17/08 no topo |
 | Rank local · sala de troféus · total da home | ✅ saem todos da MESMA conta (`meusTrofeus`) |
 | Carta por título (liga e copa) | ✅ 1 chave única por título, nenhuma colisão |
 

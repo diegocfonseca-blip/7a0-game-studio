@@ -557,6 +557,17 @@ export interface EscState {
   simV?: number // versão da fórmula da simulação: 2+ = teto de elite 1.28 (só vale de temporada NOVA em diante — a que está rolando termina na fórmula em que começou)
   careerPlacements?: Record<string, string> | null // pirâmide: chave do time → divisão ('A'..'D'). Compacto (só a colocação). Atualiza a cada temporada.
   copaDoneSeason?: number // pirâmide: nº da temporada cuja Copa Legends JÁ foi assistida até o fim — ao retomar o save, não re-anima a Copa do zero (mostra direto os campeões/decisão).
+  // 🔒 A COPA, DEPOIS DE SORTEADA, NÃO MUDA MAIS (regra do Diego 17/08:
+  // "o que aparecer no final, se ele ganhou o título, ele ganha — não importa se
+  // substituiu ou não"). A Copa/Supercopa nascem inteiras a partir da FORÇA dos
+  // times, e a força do humano vem da escalação. Sem isto, encostar no elenco ou
+  // trocar de formação DEPOIS da liga re-sorteava a Copa por baixo e o campeão
+  // que você viu na tela podia virar outro (bug do leodiniz85).
+  // Congelamos a ESCALAÇÃO que gerou a Copa — assim a Copa inteira (chave,
+  // placares, artilheiros, campeão, prêmios e carta) fica idêntica pra sempre, e
+  // o técnico segue 100% livre pra mexer no time quando quiser.
+  copaXiSeason?: number // temporada cuja escalação da Copa já foi congelada
+  copaXi?: Record<number, string[]> // mgrId → os 11 que entraram na Copa daquela temporada
   copaPrizeDone?: Record<string, boolean> // 🌍 Copa do Mundo: chave `${mgrId}:${temporada}` já creditada (+100) — trava anti-perda/anti-dobro no próprio estado do jogo (persiste no autosave), pra o prêmio não sumir se o app fechar entre creditar e marcar "já joguei".
   // 🌍 ESPELHO do mural da Copa do Mundo (Diego 14/08): o mural "de verdade" segue
   // vivendo local (localStorage `llcopa:<seed>`, ver copa-mundo.tsx — motor isolado

@@ -4257,6 +4257,35 @@ export function PyramidSeasonScreen() {
     if (multiId == null || multiId < 0) return baseColors
     return { ...baseColors, [multiId]: myCol }
   }, [baseColors, multiTeamName, tables, myCol])
+  // 🔒 A COPA NÃO MUDA DEPOIS DE SORTEADA (Diego 17/08: "o técnico tem que ter
+  // liberdade pra mudar... o que aparecer no final, se ele ganhou o título, ele
+  // ganha — não importa se substituiu ou não").
+  //
+  // A Copa/Supercopa nascem INTEIRAS de uma vez, a partir da força dos times — e
+  // a força do time humano sai da escalação. Como a escalação salva depois do fim
+  // da liga cai no MESMO slot que a Copa lê (rodada 38), encostar no elenco ou
+  // trocar de formação depois da final re-sorteava a Copa por baixo: o campeão que
+  // apareceu na tela podia virar outro e o rank contava o novo.
+  //
+  // Conserto SEM tirar liberdade de ninguém: na hora em que a liga acaba (que é
+  // quando a Copa nasce), a escalação de cada humano é CONGELADA no save. A Copa
+  // passa a ser sempre recalculada a partir dela — chave, placares, artilheiros,
+  // campeão, prêmios e carta ficam idênticos pra sempre — e o técnico segue
+  // mexendo no time à vontade, que nada disso alcança o que já foi decidido.
+  const copaXiFixo = state.copaXiSeason === state.seasonNo ? state.copaXi : undefined
+  const lineupsCopa = useMemo<RoundLineups>(() => {
+    if (!copaXiFixo) return careerLineup // 1ª vez: a Copa nasce da escalação de agora (é ela que vai ser congelada logo abaixo)
+    const out: RoundLineups = { ...careerLineup }
+    for (const k in copaXiFixo) out[+k] = { ...(out[+k] ?? {}), 38: copaXiFixo[+k] }
+    return out
+  }, [careerLineup, copaXiFixo])
+  useEffect(() => {
+    if (!done || !state.careerOnline || state.copaXiSeason === state.seasonNo) return
+    const xi: Record<number, string[]> = {}
+    for (const m of state.managers) if (m.isHuman) xi[m.id] = lineupAt(careerLineup, m.id, 38, m.squad, m.formation).map(c => c.id)
+    dispatch({ type: 'FREEZE_COPA_XI', season: state.seasonNo ?? 1, xi })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done, state.seasonNo, state.copaXiSeason])
   // 🏆🇧🇷 COPA DO BRASIL LEGENDS (em construção, 15/08): só a conta liberada
   // (copaBrasilLiberada, ver sport.ts) joga essa Copa no lugar da Legends —
   // pra todo mundo o resto desta tela nem sabe que ela existe. `copaBR` é o
@@ -4266,21 +4295,21 @@ export function PyramidSeasonScreen() {
   // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
   // precisar saber qual das duas Copas está rolando.
   const cbUnlocked = useCopaBrasilLiberada()
-  const copaBR = useMemo(() => (done && cbUnlocked) ? computeCopaBrasil(tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup) : null, [done, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
+  const copaBR = useMemo(() => (done && cbUnlocked) ? computeCopaBrasil(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa) : null, [done, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
   // 🏆🔵 SUPERCOPA LEGENDS: campeão da Série A × campeão da Copa do Brasil,
   // jogo único, logo depois que a Copa do Brasil termina (docs/conceito-
   // copa-brasil.md § 5). Já sai calculada junto (é determinística — não
   // precisa esperar a revelação fase a fase da Copa terminar de VERDADE na
   // tela, só precisa saber quem é o campeão, que já está decidido aqui).
-  const supercopaTie = useMemo(() => (cbUnlocked && copaBR?.champion) ? computeSupercopa(tables, copaBR.champion, state.seed, state.seasonNo, capElite, realGoals, careerLineup) : null, [cbUnlocked, copaBR, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
+  const supercopaTie = useMemo(() => (cbUnlocked && copaBR?.champion) ? computeSupercopa(tables, copaBR.champion, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa) : null, [cbUnlocked, copaBR, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
   const copa = useMemo(() => {
     if (!done) return null
     if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
-    return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup)
-  }, [done, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, careerLineup])
+    return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa)
+  }, [done, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de

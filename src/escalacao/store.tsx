@@ -2662,6 +2662,7 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[]; uids?: string[] } // uids = 🤝 quem está online pelo crachá (numa dupla, os dois dividem o mesmo assento)
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'FREEZE_COPA_XI'; season: number; xi: Record<number, string[]> } // 🔒 congela a escalação que gerou a Copa daquela temporada — a Copa não muda mais depois de sorteada
   | { type: 'SET_COPA_ROUND'; round: number }
   | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
@@ -3187,6 +3188,31 @@ export function reducer(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    // 🔒 A COPA NÃO MUDA DEPOIS DE SORTEADA (Diego 17/08: "o que aparecer no
+    // final, se ele ganhou o título, ele ganha — não importa se substituiu ou
+    // não"). A Copa/Supercopa nascem de uma vez a partir da FORÇA dos times, e a
+    // força do humano sai da escalação; então mexer no elenco (ou trocar de
+    // formação) DEPOIS que a liga acabou re-sorteava a Copa inteira por baixo e
+    // o campeão que apareceu na tela podia virar outro — era o "ganhei a Copa do
+    // Brasil e o rank não contou" do leodiniz85 (medido: mudava o campeão em 7%
+    // das temporadas com UMA troca de titular).
+    //
+    // Aqui guardamos a escalação EXATA que gerou a Copa. Com ela, a Copa é
+    // sempre recalculada igualzinha: mesma chave, mesmos placares, mesmos
+    // artilheiros, mesmo campeão, mesmos prêmios e mesma carta. E o técnico
+    // continua 100% livre pra mexer no time quando quiser — a liberdade dele não
+    // toca mais em nada que já foi decidido.
+    //
+    // 🛡️ SÓ ESCREVE UMA VEZ POR TEMPORADA. Nunca regrava (nem por toque dublado,
+    // nem por F5, nem por re-render): se já congelou, o que valeu foi o que
+    // valeu. É esta linha que garante que ninguém perde um título já visto.
+    case 'FREEZE_COPA_XI': {
+      if (!s.careerOnline) return s
+      if (s.copaXiSeason === action.season) return s
+      s.copaXiSeason = action.season
+      s.copaXi = action.xi
+      return s
+    }
     // 🌐 ONLINE: fase da Copa Legends ao vivo — SÓ o host dispara isto (gate na
     // tela), pra não ter cada convidado avançando sozinho e vendo fase diferente.
     case 'SET_COPA_ROUND': { s.copaRound = action.round; return s }
