@@ -21,6 +21,7 @@ import erosEscudoImg from './img/eros-escudo.webp'
 import sapekEscudoImg from './img/sapek-escudo.webp'
 import arrudaEscudoImg from './img/arruda-escudo.webp'
 import coringasEscudoImg from './img/coringas-escudo.webp'
+import nataEscudoImg from './img/nata-escudo.webp'
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
@@ -439,6 +440,14 @@ const coringasEscudoRender = (size: number) => (
   <img src={coringasEscudoImg} height={size} width={Math.round(size * 219 / 248)} alt="Coringas do Diniz" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🤡🟡⚫ Nata de SP (pedrinhocamisa8) — ex-Paris São Geraldo, Série D. Escudo
+// amarelo/preto com o palhaço e faixas de risco; arte enviada pelo próprio dono,
+// aqui só tiramos o fundo quadriculado falso, cortamos no limite do desenho e
+// reduzimos (o escudo nunca passa de 78px na tela).
+const nataEscudoRender = (size: number) => (
+  <img src={nataEscudoImg} height={size} width={Math.round(size * 312 / 360)} alt="Nata de SP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🏎️⚽ Ferrari SC (batismo do adriano.ferrari, aprovado pelo Diego 14/08): a arte é
 // o PILOTO dirigindo uma bola de futebol gigante — macacão vermelho, capacete do
 // Brasil, bola com rodas de aro vermelho. Arte AUTORAL do jogo (NÃO usa marca: sem
@@ -536,6 +545,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Coringas do Diniz': coringasEscudoRender,
   'Coringas': coringasEscudoRender,
   'Coringas do Diniz FC': coringasEscudoRender,
+  // 🤡🟡⚫ Nata de SP (pedrinhocamisa8) — ex-Paris São Geraldo, Série D. O nome
+  // velho fica registrado: quem já tinha carreira com o Paris não fica sem escudo.
+  'Nata de SP': nataEscudoRender,
+  'Nata SP': nataEscudoRender,
+  'Nata de SP FC': nataEscudoRender,
   // 🎮🐶 Eros FC + variações reservadas (todas puxam o MESMO escudo)
   'Eros FC': erosEscudoRender,
   'Eros Reis FC': erosEscudoRender,
