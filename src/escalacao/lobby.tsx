@@ -411,13 +411,28 @@ function BafoEscolha({ escolha, onEscolha }: {
     <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
       <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-1">🃏 Bafo · seu time</p>
       <p className="text-black/55 text-[11px] font-bold leading-snug mb-3">
-        Aqui não tem leilão: você traz o time de uma carreira sua. <b>A carreira que entra é a que joga e é a que paga</b> — se rolar Bafo, a carta sai dela.
+        Aqui não tem leilão: você traz o time de uma carreira sua. <b>A carreira que entra é a que joga e é a que paga</b> — se rolar Bafo, a carta sorteada sai do <b>cofre inteiro dessa carreira</b> (não do seu álbum todo).
       </p>
 
-      {dados.length === 0 && (
+      {/* 🚪 QUEM NÃO PODE JOGAR SÓ VÊ O CONVITE (decisão do Diego, 17/08): nada de
+          elenco emprestado nem de time sorteado. São dois casos, e cada um tem o
+          SEU caminho escrito — nunca uma porta fechada sem saída:
+          1) nunca começou carreira    → convite pra começar;
+          2) começou, mas nenhuma tem 11 no elenco NEM 11 no cofre → convite pra
+             completar o time (e o que falta em cada uma aparece na lista abaixo). */}
+      {dados.length === 0 ? (
         <div className="border-[2.5px] border-dashed border-black rounded-xl p-3" style={{ background: '#FFF1E8' }}>
-          <p className="font-black text-[13px] text-black" style={OSWALD}>⚠️ Você ainda não tem carreira</p>
-          <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">O Bafo é jogado com o time que você monta na carreira. Comece uma no menu principal — dá pra voltar aqui depois.</p>
+          <p className="font-black text-[13px] text-black" style={OSWALD}>🪜 Comece uma carreira pra jogar o Bafo</p>
+          <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">
+            Aqui não tem leilão: o time que entra é o que <b>você montou na sua carreira</b>. Toque em <b>Carreira</b> no menu e jogue uma temporada — depois é só voltar pra sala com o mesmo código. <b>Você pode ficar assistindo</b> esta partida.
+          </p>
+        </div>
+      ) : dados.every(d => d.elenco < BAFO_MIN && d.cofre < BAFO_MIN) && (
+        <div className="border-[2.5px] border-dashed border-black rounded-xl p-3" style={{ background: '#FFF1E8' }}>
+          <p className="font-black text-[13px] text-black" style={OSWALD}>🧩 Falta completar o time</p>
+          <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">
+            Nenhuma carreira sua chegou nos <b>{BAFO_MIN} jogadores</b> ainda — nem no elenco, nem no cofre de cartas. Jogue mais uma temporada (o elenco cresce) ou ganhe mais cartas nessa carreira. <b>Você fica na sala assistindo</b>, e na próxima já entra.
+          </p>
         </div>
       )}
 

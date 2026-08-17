@@ -156,12 +156,17 @@ em sala de veterano toma baile.
 - Alternativa guardada, se um dia incomodar: **mostrar a força de cada time no
   lobby** — informação em vez de trava, pra pessoa decidir se entra.
 
-### ⏳ Falta decidir
-- **Quem não tem carreira nenhuma** (⚠️ **88% das contas**) — entra com elenco
-  emprestado ou só vê um convite pra começar uma carreira? Sem resposta, o modo
-  nasce sem gente pra jogar.
-- **O sorteio vale o cofre inteiro da carreira** ou **só os 22 convocados**?
-  (Sugestão: cofre inteiro, pra não virar mais uma decisão no lobby.)
+### ✅ DECIDIDO pelo Diego (17/08) — as duas últimas dúvidas fecharam
+1. **Quem não pode jogar SÓ VÊ O CONVITE.** Palavras dele: *"quem não tem só vê o
+   convite de começar carreira ou completar time"*. Nada de elenco emprestado,
+   nada de time sorteado. São dois textos, um por caso:
+   - **nunca começou carreira** → convite pra começar (e volta pra sala depois);
+   - **começou, mas nenhuma carreira tem 11 no elenco NEM 11 no cofre** → convite
+     pra completar o time, dizendo o que falta em cada carreira.
+   Nos dois casos a pessoa **fica na sala assistindo** — não leva porta na cara.
+2. **O sorteio vale o COFRE DA CARREIRA** (inteiro), não só os 22 convocados —
+   e nunca o álbum todo da conta. Já era assim no código (o filtro é
+   `season_key like 'co:solo{seed}:%'`); agora está escrito na tela também.
 
 ## 🔨 A MESA DO MARTELO — visual APROVADO, falta codar (17/08)
 
