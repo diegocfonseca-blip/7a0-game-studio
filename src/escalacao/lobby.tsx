@@ -28,10 +28,11 @@ interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // Chat é pra escrever; emoji/zoeira flutua por cima de tudo (inclusive do chat aberto).
 interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x: number }
 // tier de apoio de um jogador da sala, lido pelo SELO que viaja no nome dele
-// (👑 ouro · ⭐ prata · 💎 roxo · 🟢 verde) — assim TODOS veem a bolinha
-// brilhando, não só o dono
+// (👑 ouro · ⭐ prata · 💎 roxo · ⁣ verde — o do verde é INVISÍVEL de
+// propósito, pedido do Diego 17/08: cor sem símbolo nenhum aparecendo) —
+// assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
-  n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('🟢') ? APOIO_PERKS.verde : null
+  n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
 type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }

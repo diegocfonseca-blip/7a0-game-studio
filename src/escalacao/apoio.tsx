@@ -22,12 +22,14 @@ export interface ApoioPerk {
 export const APOIO_PERKS: Record<ApoioTier, ApoioPerk> = {
   bege:  { tier: 'bege',  selo: '',   solid: '#B2A583', light: '#EFE9D6', holo: 0,
            grad: 'linear-gradient(160deg,#DBD1B5,#CBBF9E 55%,#B2A583)', svgFull: ['#DBD1B5', '#B2A583'], svgPart: ['#cbbf9e', '#948967'] },
-  // 🟢 selo (pedido do Diego 17/08): sem NENHUM sinal no nome, os outros
-  // jogadores não têm como saber a cor de quem não é a própria conta — o jogo
-  // não consulta o banco pra isso, lê um sinalzinho junto do nome (mesmo
-  // esquema de ⭐💎👑). Verde nasceu sem selo (junto do bege); agora ganha um
-  // discreto, só pra isso funcionar — não muda nada de sócio/plano/preço.
-  verde: { tier: 'verde', selo: '🟢', solid: '#2E9E5B', light: '#CBEFD7', holo: 0,
+  // 🫥 selo INVISÍVEL (pedido do Diego 17/08 — "sem emoji"): sem NENHUM sinal
+  // no nome, os outros jogadores não têm como saber a cor de quem não é a
+  // própria conta — o jogo não consulta o banco pra isso, lê um sinalzinho
+  // junto do nome (mesmo esquema de ⭐💎👑). Verde nasceu sem selo (junto do
+  // bege); agora ganha o caractere U+2063 (SEPARADOR INVISÍVEL) — funciona
+  // igual aos outros selos pro jogo detectar, mas não aparece NADA na tela.
+  // Não muda nada de sócio/plano/preço.
+  verde: { tier: 'verde', selo: '⁣', solid: '#2E9E5B', light: '#CBEFD7', holo: 0,
            grad: 'linear-gradient(160deg,#41C07A,#2E9E5B 55%,#1E7A45)', svgFull: ['#41C07A', '#1E7A45'], svgPart: ['#2fa85c', '#15612f'] },
   roxo:  { tier: 'roxo',  selo: '💎', solid: '#8B5CF6', light: '#E4D6FB', holo: 0.3,
            grad: 'linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', svgFull: ['#C9A9FF', '#7C3AED'], svgPart: ['#a98be0', '#5B2FB0'] },
@@ -122,8 +124,11 @@ const FOUNDERS: Record<string, ApoioTier> = {
   // Craque/Lenda, NÃO tem batismo nem entra no FUNDADOR_N. É só a cor do nome
   // brilhando quando jogam online, de presente por jogarem MUITO o jogo — o
   // tier aqui é usado só pra pintar (nenhum outro benefício vem junto).
-  'brunomontoya011@gmail.com': 'verde', // 🟢 Bruno — reconhecimento, joga muito (17/08)
-  'beatrizsilvavieira624@gmail.com': 'roxo', // 💜 Beatriz — reconhecimento, joga muito (17/08)
+  // ⚠️ ROXO é o tier real "💎 Promessa" que sócios pagantes recebem pelo
+  // painel de admin (admin.tsx) — NUNCA usar roxo pra essa lista de
+  // reconhecimento, senão parece que a pessoa é sócia sem ser.
+  'brunomontoya011@gmail.com': 'verde', // Bruno — reconhecimento, joga muito (17/08)
+  // Beatriz: aguardando o Diego escolher a cor dela (não pode ser roxo — é o Promessa)
 }
 
 // 🖋️ FUNDADORES (os 100 primeiros Lendas): e-mail → número do fundador.
@@ -318,7 +323,10 @@ export function apoioName(name: string): string {
 // tira emoji/pictogramas dos nomes digitados (cadastro, sala, time): os selos
 // 💎⭐👑 são EXCLUSIVOS de quem apoia — ninguém "se promove" digitando emoji.
 export function stripEmoji(s: string): string {
-  return s.replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u200D\uFE0F\uFE0E\u20E3]/gu, '')
+  // \u2063 = selo INVIS\u00CDVEL do tier verde (ver APOIO_PERKS) \u2014 tem que sair
+  // daqui tamb\u00E9m, sen\u00E3o dava pra "forjar" a cor verde digitando esse caractere
+  // escondido no pr\u00F3prio nome (mesma trava que j\u00E1 existe pros selos vis\u00EDveis).
+  return s.replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u200D\uFE0F\uFE0E\u20E3\u2063]/gu, '')
 }
 
 // ── BRILHO ────────────────────────────────────────────────────────────────
