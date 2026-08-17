@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG } from './manto'
-import { useEsc } from './store'
+import { useEsc, listAllCareers } from './store'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, emailProblema } from './apoio'
 import { isMuted } from './sound'
@@ -342,6 +342,104 @@ function Section({ num, title, icon, children }: { num: number; title: string; i
   )
 }
 // rótulo + controle (mesmo estilo do Field)
+// ─── 🃏 BAFO · PASSO 1 DO JOGADOR: qual carreira eu trago ───────────────────
+// Regra do Diego (17/08): "só permitirá jogar quem tem save com pelo menos 11
+// jogadores; se escolher agenciados, com pelo menos 11 também". E o jeito de
+// travar é o dele: **não bloqueia a entrada na sala** — a pessoa entra, VÊ o
+// porquê e o caminho pra destravar, e simplesmente não fica apta. Levar porta na
+// cara no link do amigo é o pior jeito.
+// Lê os saves com `listAllCareers()`, o MESMO leitor da tela "Minhas Carreiras" —
+// nada de inventar um segundo jeito de achar carreira.
+const BAFO_MIN = 11
+function BafoEscolha({ escolha, onEscolha }: {
+  escolha: { seed: number; via: 'elenco' | 'convocados' } | null
+  onEscolha: (e: { seed: number; via: 'elenco' | 'convocados' } | null) => void
+}) {
+  const lista = listAllCareers()
+  const dados = lista.map(({ slot, active }) => {
+    const eu = slot.save.managers?.[slot.save.youIdx ?? 0]
+    // 🚫 jogador FAKE (perna-de-pau) não conta pra fechar os 11 — regra da casa.
+    const elenco = (eu?.squad ?? []).filter(c => !(c as { fake?: boolean }).fake).length
+    const cofre = (slot.save.empresarioCards ?? []).length
+    return {
+      seed: Number(slot.save.seed ?? 0), at: slot.at, active,
+      time: eu?.teamName || eu?.name || 'Meu time',
+      temporada: slot.save.seasonNo ?? 1,
+      div: (slot.save.careerPlacements?.['m' + (eu?.id ?? 0)] as string) ?? slot.save.careerDivision ?? 'D',
+      elenco, cofre,
+    }
+  }).sort((a, b) => b.at - a.at)
+  const sel = dados.find(d => d.seed === escolha?.seed) ?? null
+
+  return (
+    <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+      <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-1">🃏 Bafo · seu time</p>
+      <p className="text-black/55 text-[11px] font-bold leading-snug mb-3">
+        Aqui não tem leilão: você traz o time de uma carreira sua. <b>A carreira que entra é a que joga e é a que paga</b> — se rolar Bafo, a carta sai dela.
+      </p>
+
+      {dados.length === 0 && (
+        <div className="border-[2.5px] border-dashed border-black rounded-xl p-3" style={{ background: '#FFF1E8' }}>
+          <p className="font-black text-[13px] text-black" style={OSWALD}>⚠️ Você ainda não tem carreira</p>
+          <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">O Bafo é jogado com o time que você monta na carreira. Comece uma no menu principal — dá pra voltar aqui depois.</p>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {dados.map(d => {
+          const podeElenco = d.elenco >= BAFO_MIN
+          const podeCofre = d.cofre >= BAFO_MIN
+          const travado = !podeElenco && !podeCofre
+          const escolhida = escolha?.seed === d.seed
+          return (
+            <div key={d.seed}
+              className="rounded-xl p-3"
+              style={{ border: `${escolhida ? 3 : 2.5}px ${travado ? 'dashed' : 'solid'} ${escolhida ? GREEN : INK}`,
+                background: travado ? '#FFF1E8' : escolhida ? '#EFF9F2' : '#fff',
+                boxShadow: `2.5px 2.5px 0 0 ${escolhida ? GREEN : INK}` }}>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-[14.5px] text-black flex-1 truncate" style={OSWALD}>{d.time}</span>
+                {d.active && <span className="text-[9px] font-black uppercase border-2 border-black rounded-md px-1.5" style={{ background: GOLD, color: INK, ...OSWALD }}>última</span>}
+                <span className="text-[15px]">{travado ? '🔒' : escolhida ? '✅' : '○'}</span>
+              </div>
+              <p className="text-black/55 text-[10.5px] font-bold mt-1">
+                Série {d.div} · Temporada {d.temporada} · <b className="text-black">{d.elenco} jogadores</b> · <b className="text-black">{d.cofre} cartas</b>
+              </p>
+              {travado ? (
+                <p className="text-[10.5px] font-bold leading-snug mt-2" style={{ color: '#8E2A1B' }}>
+                  ⚠️ Precisa de {BAFO_MIN} pra entrar — você tem {d.elenco} no elenco e {d.cofre} no cofre. Jogue mais uma temporada ou ganhe mais cartas nesta carreira.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <button onClick={() => onEscolha(escolhida && escolha?.via === 'elenco' ? null : { seed: d.seed, via: 'elenco' })}
+                    disabled={!podeElenco}
+                    className="border-[2.5px] border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
+                    style={{ background: escolhida && escolha?.via === 'elenco' ? GREEN : '#fff', color: escolhida && escolha?.via === 'elenco' ? '#fff' : '#000', opacity: podeElenco ? 1 : 0.4, ...OSWALD }}>
+                    👔 Elenco{!podeElenco && <span className="block text-[8.5px]">só {d.elenco}</span>}
+                  </button>
+                  <button onClick={() => onEscolha(escolhida && escolha?.via === 'convocados' ? null : { seed: d.seed, via: 'convocados' })}
+                    disabled={!podeCofre}
+                    className="border-[2.5px] border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
+                    style={{ background: escolhida && escolha?.via === 'convocados' ? GREEN : '#fff', color: escolhida && escolha?.via === 'convocados' ? '#fff' : '#000', opacity: podeCofre ? 1 : 0.4, ...OSWALD }}>
+                    🧢 Convocar 22{!podeCofre && <span className="block text-[8.5px]">só {d.cofre}</span>}
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="mt-3 border-[2.5px] border-black rounded-xl px-3 py-2 text-center"
+        style={{ background: sel ? GREEN : '#fff' }}>
+        <p className="font-black text-[12.5px]" style={{ color: sel ? '#fff' : 'rgba(0,0,0,.5)', ...OSWALD }}>
+          {sel ? `✅ Apto — ${sel.time} ${escolha?.via === 'elenco' ? '(elenco)' : '(convocados)'}` : '⏳ Montando — escolha a carreira e como entra'}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function SegField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
@@ -414,6 +512,9 @@ export function EscLobby() {
   // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
   const salaElenco = useSalaElencoLiberada()
   const [roomMode, setRoomMode] = useState<'rapido' | 'carreira' | 'elenco'>('rapido')
+  // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
+  // mandar os 22 pro host é o passo seguinte.
+  const [bafoEscolha, setBafoEscolha] = useState<{ seed: number; via: 'elenco' | 'convocados' } | null>(null)
   // 🤝 DUPLAS (beta): 2 pessoas dividindo o comando de UM time. Escolha da SALA,
   // na criação — sala Solo é a de sempre e não muda em nada. Por enquanto só no
   // Rápido: a Carreira online tem caixa/temporada por técnico e merece um passo
@@ -2059,6 +2160,12 @@ export function EscLobby() {
           </p>
         )}
       </div>
+
+      {/* 🃏 BAFO: antes de tudo, o técnico escolhe qual carreira traz. Enquanto não
+          escolher, ele fica "montando" — e o host vê isso na lista. */}
+      {room.game_state?.mode === 'elenco' && (
+        <BafoEscolha escolha={bafoEscolha} onEscolha={setBafoEscolha} />
+      )}
 
       <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">
