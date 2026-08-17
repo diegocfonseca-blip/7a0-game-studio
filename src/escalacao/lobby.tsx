@@ -379,7 +379,7 @@ function montarBafo(seed: number, via: 'elenco' | 'convocados'): BafoTime | null
   const sv = slot.slot.save
   const eu = sv.managers?.[sv.youIdx ?? 0]
   const time = eu?.teamName || eu?.name || 'Meu time'
-  // 🚫 perna-de-pau (fake) NUNCA entra — nem pelo elenco, nem pelo cofre.
+  // 🚫 perna-de-pau (fake) NUNCA entra — nem pelo elenco, nem pelo álbum da carreira.
   const squad: PoolCard[] = via === 'elenco'
     ? ((eu?.squad ?? []) as PoolCard[]).filter(c => !(c as { fake?: boolean }).fake)
     : (sv.empresarioCards ?? []).map(c => cartaDoBaralho(c.name)).filter((c): c is PoolCard => !!c)
@@ -411,7 +411,7 @@ function BafoEscolha({ escolha, onEscolha }: {
     <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
       <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-1">🃏 Bafo · seu time</p>
       <p className="text-black/55 text-[11px] font-bold leading-snug mb-3">
-        Aqui não tem leilão: você traz o time de uma carreira sua. <b>A carreira que entra é a que joga e é a que paga</b> — se rolar Bafo, a carta sorteada sai do <b>cofre inteiro dessa carreira</b> (não do seu álbum todo).
+        Aqui não tem leilão: você traz o time de uma carreira sua. <b>A carreira que entra é a que joga e é a que paga</b> — se rolar Bafo, a carta sorteada sai do <b>álbum de cartas dessa carreira</b> (não do seu álbum todo).
       </p>
 
       {/* 🚪 QUEM NÃO PODE JOGAR SÓ VÊ O CONVITE (decisão do Diego, 17/08): nada de
@@ -431,7 +431,7 @@ function BafoEscolha({ escolha, onEscolha }: {
         <div className="border-[2.5px] border-dashed border-black rounded-xl p-3" style={{ background: '#FFF1E8' }}>
           <p className="font-black text-[13px] text-black" style={OSWALD}>🧩 Falta completar o time</p>
           <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">
-            Nenhuma carreira sua chegou nos <b>{BAFO_MIN} jogadores</b> ainda — nem no elenco, nem no cofre de cartas. Jogue mais uma temporada (o elenco cresce) ou ganhe mais cartas nessa carreira. <b>Você fica na sala assistindo</b>, e na próxima já entra.
+            Nenhuma carreira sua chegou nos <b>{BAFO_MIN} jogadores</b> ainda — nem no elenco, nem no álbum de cartas da carreira. Jogue mais uma temporada (o elenco cresce) ou ganhe mais cartas nessa carreira. <b>Você fica na sala assistindo</b>, e na próxima já entra.
           </p>
         </div>
       )}
@@ -454,11 +454,11 @@ function BafoEscolha({ escolha, onEscolha }: {
                 <span className="text-[15px]">{travado ? '🔒' : escolhida ? '✅' : '○'}</span>
               </div>
               <p className="text-black/55 text-[10.5px] font-bold mt-1">
-                Série {d.div} · Temporada {d.temporada} · <b className="text-black">{d.elenco} jogadores</b> · <b className="text-black">{d.cofre} cartas</b>
+                Série {d.div} · Temporada {d.temporada} · <b className="text-black">{d.elenco} jogadores</b> no elenco · <b className="text-black">{d.cofre} cartas</b> no álbum
               </p>
               {travado ? (
                 <p className="text-[10.5px] font-bold leading-snug mt-2" style={{ color: '#8E2A1B' }}>
-                  ⚠️ Precisa de {BAFO_MIN} pra entrar — você tem {d.elenco} no elenco e {d.cofre} no cofre. Jogue mais uma temporada ou ganhe mais cartas nesta carreira.
+                  ⚠️ Precisa de {BAFO_MIN} pra entrar — você tem {d.elenco} no elenco e {d.cofre} no álbum desta carreira. Jogue mais uma temporada ou ganhe mais cartas nesta carreira.
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-2 mt-2">
@@ -1898,7 +1898,7 @@ export function EscLobby() {
                 })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do cofre de cartas. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+                {isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}

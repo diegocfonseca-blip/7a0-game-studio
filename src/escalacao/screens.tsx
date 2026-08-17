@@ -7080,7 +7080,7 @@ function BafoCascata() {
     return () => { vivo = false; clearInterval(iv) }
   }, [trocas, state.roomId, state.isHost])
 
-  // 🃏 e agora o cofre DA CARREIRA, no aparelho: sai de um, entra no outro.
+  // 🃏 e agora o ÁLBUM DA CARREIRA, no aparelho: sai de um, entra no outro.
   // Cada aparelho aplica só o que é DELE — nunca mexe na carreira de ninguém.
   useEffect(() => {
     if (!trocas || aplicado.current) return
@@ -7101,7 +7101,7 @@ function BafoCascata() {
     <Box bg="#FFF6D6" className="p-4 space-y-2.5" shadow={6}>
       <p className="font-black text-xl text-center" style={OSWALD}>🃏 BAFO · A HORA DA VERDADE</p>
       <p className="text-[11.5px] font-bold text-center text-black/60 leading-snug">
-        Quem ficou atrás entrega <b>uma carta</b> da carreira que trouxe pro time logo acima. O 1º só recebe. A carta <b>troca de dono de verdade</b>: sai do cofre de um e entra no do outro.
+        Quem ficou atrás entrega <b>uma carta</b> da carreira que trouxe pro time logo acima. O 1º só recebe. A carta <b>troca de dono de verdade</b>: sai do álbum daquela carreira e entra no álbum da carreira do outro.
       </p>
 
       {erro && (
@@ -7141,8 +7141,8 @@ function BafoCascata() {
             <p className="text-[10.5px] font-bold text-center mt-2 leading-snug" style={{ color: t.casa ? '#8E6A00' : cor }}>
               {t.casa
                 ? <>🏠 <b>{t.deNome}</b> só tinha uma carta nessa carreira — ninguém zera, então a <b>casa cobriu</b> e a carta saiu do baralho.</>
-                : euGanhei ? <>🏆 Arrancada do <b>{t.deNome}</b> — a carta é sua e já está no cofre da sua carreira.</>
-                : euPerdi ? <>💔 Foi pro <b>{t.paraNome}</b>. Saiu do cofre desta carreira — volte no Bafo pra buscar de volta.</>
+                : euGanhei ? <>🏆 Arrancada do <b>{t.deNome}</b> — a carta é sua e já está no álbum desta sua carreira.</>
+                : euPerdi ? <>💔 Foi pro <b>{t.paraNome}</b>. Saiu do álbum desta carreira — volte no Bafo pra buscar de volta.</>
                 : <>Arrancada do <b>{t.deNome}</b>.</>}
             </p>
           </div>
@@ -7435,7 +7435,7 @@ export function EscEnd() {
       {state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
         <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
           <p className="font-black text-base" style={OSWALD}>🤝 BAFO AMISTOSO</p>
-          <p className="text-[11.5px] font-bold text-black/60 leading-snug mt-0.5">Esta sala foi criada <b>sem valer carta</b> — ninguém perdeu nem ganhou nada do cofre. Foi só a tabela.</p>
+          <p className="text-[11.5px] font-bold text-black/60 leading-snug mt-0.5">Esta sala foi criada <b>sem valer carta</b> — ninguém perdeu nem ganhou nada do álbum. Foi só a tabela.</p>
         </Box>
       ))}
       {ligaChampionCard}
