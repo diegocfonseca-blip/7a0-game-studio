@@ -10,6 +10,7 @@ import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS } from './data'
+import { useSalaElencoLiberada } from './sport' // 👔 Sala de Elenco: modo novo, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -31,7 +32,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // (👑 ouro · ⭐ prata · 💎 roxo) — assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira'; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco'; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -407,7 +408,10 @@ export function EscLobby() {
   const [loading, setLoading] = useState(false)
 
   const canCareer = useCanCareerOnline()
-  const [roomMode, setRoomMode] = useState<'rapido' | 'carreira'>('rapido')
+  // 👔🃏 SALA DE ELENCO (17/08): 3º modo — em vez de leiloar, cada um traz o time
+  // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
+  const salaElenco = useSalaElencoLiberada()
+  const [roomMode, setRoomMode] = useState<'rapido' | 'carreira' | 'elenco'>('rapido')
   // 🤝 DUPLAS (beta): 2 pessoas dividindo o comando de UM time. Escolha da SALA,
   // na criação — sala Solo é a de sempre e não muda em nada. Por enquanto só no
   // Rápido: a Carreira online tem caixa/temporada por técnico e merece um passo
@@ -1002,7 +1006,11 @@ export function EscLobby() {
     const locked = roomLocked && !!roomPw.trim()
     const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, copaMode: rapidoCopaMode, ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    // 👔 Sala de Elenco: NÃO tem Copa (decisão do Diego 17/08 — "não terá copa,
+    // será apenas divisão de 38 rodadas nesse modo"). Por isso entra com
+    // copaMode:'liga' TRAVADO, e o seletor de Copa nem aparece na criação.
+    const elenco = salaElenco && roomMode === 'elenco'
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga' } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1652,14 +1660,19 @@ export function EscLobby() {
 
       {tab === 'create' && (() => {
         const isCareer = canCareer && roomMode === 'carreira'
+        const isElenco = salaElenco && roomMode === 'elenco'
         return (
         <div className="space-y-3">
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
           <Section num={1} title="O básico" icon="📋">
             <div>
               <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
-                {canCareer ? (
-                  <Seg options={[['rapido', '⚡ Rápido'], ['carreira', '🌐 Carreira']] as [typeof roomMode, string][]} value={roomMode} onSet={v => setRoomMode(v)} />
+                {canCareer || salaElenco ? (
+                  <Seg options={[
+                    ['rapido', '⚡ Rápido'],
+                    ...(canCareer ? [['carreira', '🌐 Carreira']] as [typeof roomMode, string][] : []),
+                    ...(salaElenco ? [['elenco', '👔 Elencos']] as [typeof roomMode, string][] : []),
+                  ] as [typeof roomMode, string][]} value={roomMode} onSet={v => setRoomMode(v)} />
                 ) : (
                   // Carreira ainda em teste fechado: aparece pra TODOS como "em breve",
                   // apagada e sem clique (só desperta o interesse). Sempre fica no Rápido.
@@ -1670,7 +1683,7 @@ export function EscLobby() {
                 )}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {!canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+                {isElenco ? '👔 Sem leilão: cada um traz o time da PRÓPRIA carreira. Só liga de 38 rodadas — sem Copa.' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
@@ -1772,9 +1785,23 @@ export function EscLobby() {
                 )}
               </SegField>
               )}
-              <SegField label="Depois da liga">
-                <Seg options={[['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']] as ['liga_copa' | 'liga', string][]} value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
-              </SegField>
+              {/* 🏆 A COPA NÃO EXISTE NA SALA DE ELENCO (Diego 17/08: "não terá copa,
+                  será apenas divisão de 38 rodadas nesse modo"). Em vez de deixar o
+                  seletor ligado e ignorar a escolha depois — que é o tipo de estado
+                  torto que a casa não aceita — o seletor SAI da tela e o motivo fica
+                  escrito. A sala já nasce com copaMode:'liga' travado. */}
+              {isElenco ? (
+                <SegField label="Depois da liga">
+                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>📊 Só a liga · 38 rodadas</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">Neste modo <b>não tem Copa</b> — é a tabela do começo ao fim, e o campeão sai dela.</p>
+                  </div>
+                </SegField>
+              ) : (
+                <SegField label="Depois da liga">
+                  <Seg options={[['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']] as ['liga_copa' | 'liga', string][]} value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
+                </SegField>
+              )}
               {!roomStream && (
                 <SegField label="Ritmo">
                   <Seg options={[[false, '⚡ Auto'], [true, '🎮 Manual']] as [boolean, string][]} value={roomManual} onSet={v => setRoomManual(v)} />

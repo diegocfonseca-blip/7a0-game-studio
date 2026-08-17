@@ -232,8 +232,29 @@ export function useCopaBrasilLiberada(): boolean {
   return copaBrasilOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email) })
+// 👔🃏 SALA DE ELENCO (17/08) — modo NOVO do rápido online: em vez de leiloar,
+// cada um traz o time da PRÓPRIA carreira (os 22 do elenco ou 22 convocados do
+// cofre). Desenho fechado em docs/pendencias.md.
+// 🔒 EM CONSTRUÇÃO: só a conta do Diego enxerga. Pra abrir pra todo mundo depois,
+// é o mesmo caminho da Copa do Brasil — vira SALA_ELENCO_GERAL = true.
+const SALA_ELENCO_GERAL = false
+const SALA_ELENCO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let salaElencoOk = SALA_ELENCO_GERAL
+function applySalaElencoUnlock(email?: string | null): void {
+  const u = SALA_ELENCO_GERAL || (!!email && SALA_ELENCO_TESTERS.has(email.toLowerCase()))
+  if (u === salaElencoOk) return
+  salaElencoOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function salaElencoLiberada(): boolean { return salaElencoOk }
+export function useSalaElencoLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return salaElencoOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
