@@ -1,5 +1,56 @@
 # 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
 
+## 🔨 A MESA DO MARTELO — visual APROVADO, falta codar (17/08)
+
+Ideia do Diego, a partir de uma imagem que ele viu: no rápido online, os técnicos
+ficam **em volta da carta** no momento do martelo, em vez da lista de hoje.
+Mockups aprovados na conversa (`scratchpad/mesa*.png`, somem na troca de máquina;
+os HTMLs que geraram estão descritos aqui).
+
+⚠️ **Só do RÁPIDO ONLINE.** Não encosta na carreira.
+
+### ✅ O que ficou DECIDIDO
+1. **A mesa**: carta no meio, rivais em volta, **você embaixo** num assento maior.
+2. **Escudo, não mascote**, no assento. Todo mundo já tem escudo (o automático do
+   `escudos.tsx` nasce do nome), então **ninguém fica sem** — e quem batizou entra
+   com a arte que pagou.
+3. **Nome EMBAIXO da figura** (do lado ele corta: virava "Manfr…", "Sapek…").
+4. **NADA DE REGRA MUDA — é SÓ moldura.** O Diego cortou isso com todas as
+   letras (17/08): *"quero tudo igual sem mudar nada, nada nada. Só tô mudando
+   visualmente o resultado da oferta que vai ser revelado, só isso, com
+   animações"*.
+   - ⚠️ **Correção de rota:** numa volta anterior desta conversa eu entendi que
+     ele queria ESCONDER o dinheiro (tirar o `💰 {m.money}` do bloco "A sala" e os
+     lances do martelo) e cheguei a montar mockup assim. **Estava errado.** Ele
+     falava do caixa no mockup, não de mudar o jogo. **Fica tudo como está:** os
+     lances continuam abrindo no martelo, o "A sala" continua mostrando o dinheiro
+     de cada rival, o `😱 QUASE` continua dizendo por quanto. Não encostar em
+     `RivalsStrip`.
+5. **Cor do tier**: como o escudo ocupa o lugar do quadradinho colorido, o tier
+   desce pra **barra do assento** (degradê do `APOIO_PERKS`, + `ApoioSheen` nos
+   pagos). Fidelidade de tier continua sagrada.
+6. **A festa de quem leva o lote** — pedido do Diego ("igual quando tem gol no
+   placar"): o **mascote SALTA de dentro do escudo**, quica com confete e some
+   sozinho. **Reusar o CARIMBO DO GOL que já existe** (`CARIMBO_GOL` em
+   `mascotes.tsx`, no ar desde 15/08) — mesmas regras: só de quem ganha, overlay
+   por cima, ~1,7 s, não adiciona passo nem espera.
+   - **Quem NÃO tem mascote**: o **escudo dele** é que pula, mesmo confete. Ganha
+     festa, mas sem personagem — é a diferença que vende o batismo sem cobrar
+     nada na cara de quem acabou de ganhar. Palavras dele: *"a ideia é justamente
+     pra comprarem hehe"*.
+   - Animação **em CSS puro (0 KB)** — regra de peso do `CLAUDE.md` §5.
+
+### 📐 Como a mesa cresce (2 → 20)
+- **até 6**: assento grande (escudo 44px, nome, barra de estado).
+- **7 a 12**: assento médio, 2 colunas.
+- **13 a 20**: fichinhas — 5 de cada lado da carta + fileiras embaixo.
+  **A carta nunca encolhe** e **ninguém some da mesa**.
+
+### ⏳ Falta
+- Decidir se os envelopes viram **todos juntos** (mockup, sem custo de tempo) ou
+  **um por um** (mais suspense, ~1 s a mais). O Diego ainda não respondeu.
+- Mostrar print da tela DE VERDADE (não mockup) antes de fundir na main.
+
 ## 🏆🔒 "GANHEI A COPA E O RANK NÃO CONTOU" — CAUSA REAL ACHADA E CONSERTADA (17/08)
 
 O leodiniz85 (`leonardodiniz403@gmail.com`) insistiu que continuava sem contar —

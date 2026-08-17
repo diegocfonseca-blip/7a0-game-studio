@@ -3082,6 +3082,94 @@ function LendaParty({ delay }: { delay: number }) {
   )
 }
 
+// ─── 🔨 A MESA DO MARTELO (Diego 17/08) ─────────────────────────────────────
+// Ideia dele, a partir de uma imagem que viu: no rápido online os técnicos param
+// de ser uma LISTA embaixo da carta e passam a sentar EM VOLTA dela, com a carta
+// no meio e VOCÊ embaixo fechando a mesa.
+//
+// ⚠️ É SÓ MOLDURA — regra nenhuma muda. Palavras do Diego: *"quero tudo igual sem
+// mudar nada, nada nada. Só tô mudando visualmente o resultado da oferta que vai
+// ser revelado, com animações"*. Então continua idêntico: os MESMOS lances, os
+// MESMOS valores à vista, a MESMA ordem (maior primeiro), o MESMO anti-spoiler
+// (verde só depois que o martelo bate), o MESMO "anulado (setor cheio)", o MESMO
+// 😱 QUASE, os MESMOS sons e os MESMOS tempos (delay i*0.25, igual à lista).
+//
+// Cada técnico senta com o ESCUDO do clube — ninguém fica sem, porque o escudo
+// nasce do NOME (escudos.tsx) e quem batizou entra com a arte que pagou. A cor do
+// PRÓPRIO tier veste a barra do lance (degradê do APOIO_PERKS + o brilho holo dos
+// pagos), nunca dourado emprestado pra todos.
+function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro }: {
+  bids: { mgr: number; amount: number }[]
+  winner: number | null
+  voided: number[]
+  hammered: boolean
+  youId: number
+  managers: { id: number; teamName: string; name: string }[]
+  centro: React.ReactNode
+}) {
+  const ordem = [...bids].sort((a, b) => b.amount - a.amount)
+  const rivais = ordem.filter(b => b.mgr !== youId)
+  const meu = ordem.find(b => b.mgr === youId)
+  // sala cheia aperta o assento (a carta do meio NUNCA encolhe)
+  const mini = rivais.length > 6
+  const esq = rivais.filter((_, i) => i % 2 === 0)
+  const dir = rivais.filter((_, i) => i % 2 === 1)
+  const perkDe = (mgr: number, teamName: string) => (mgr === youId ? myApoioPerk() : perkFromSelo(teamName)) ?? APOIO_PERKS.bege
+
+  const assento = (b: { mgr: number; amount: number }, ordIdx: number) => {
+    const m = managers.find(x => x.id === b.mgr)
+    if (!m) return null
+    const anulado = voided.includes(b.mgr)
+    const venceu = winner === b.mgr && hammered
+    const perk = perkDe(b.mgr, m.teamName)
+    const nome = m.teamName || m.name
+    return (
+      <motion.div key={b.mgr} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: ordIdx * 0.25 }}
+        className="relative overflow-hidden text-center rounded-xl"
+        style={{ background: '#fff', border: `2.5px solid ${venceu ? GREEN : INK}`, boxShadow: `2.5px 2.5px 0 0 ${venceu ? GREEN : INK}`, padding: mini ? '4px 3px 4px' : '6px 4px 5px' }}>
+        {perk.holo > 0 && <ApoioSheen holo={perk.holo} />}
+        <div className="flex justify-center relative"><Escudo nome={nome} size={mini ? 24 : 32} /></div>
+        <p className="font-bold truncate relative" style={{ fontSize: mini ? 8.5 : 10, marginTop: 2 }}>{stripEmoji(nome)}</p>
+        <div className="rounded-lg font-black relative" style={{ ...OSWALD, marginTop: 3, border: `2px solid ${INK}`, fontSize: mini ? 11 : 13, lineHeight: 1.35,
+          background: venceu ? GREEN : anulado ? '#ddd' : perk.grad, color: venceu ? '#fff' : TIER_INK[perk.tier] }}>{b.amount}</div>
+        {anulado && <p className="font-bold relative" style={{ fontSize: 7.5, marginTop: 1, color: 'rgba(0,0,0,.55)' }}>anulado (setor cheio)</p>}
+      </motion.div>
+    )
+  }
+
+  const meuPerk = perkDe(youId, managers.find(m => m.id === youId)?.teamName ?? '')
+  const meuVenceu = meu != null && winner === youId && hammered
+  const meuAnulado = meu != null && voided.includes(youId)
+  return (
+    <div className="mt-3">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', gap: 6, alignItems: 'center' }}>
+        <div style={{ display: 'grid', gap: 6, minWidth: 0 }}>{esq.map((b, i) => assento(b, i * 2))}</div>
+        <div style={{ width: 116 }}>{centro}</div>
+        <div style={{ display: 'grid', gap: 6, minWidth: 0 }}>{dir.map((b, i) => assento(b, i * 2 + 1))}</div>
+      </div>
+      {/* 🫵 VOCÊ fecha a mesa, embaixo — MESMO assento dos outros, só mais largo.
+          Diego (17/08): "meu escudo não está menor que os outros? acho que ele
+          deveria ser padrão também, com o do Tôka centralizado". Então o teu
+          escudo tem o MESMO tamanho e vem CENTRALIZADO em cima do nome, igual a
+          todo mundo — o que marca que a mesa é tua é a largura e a moldura, nunca
+          um escudo de tamanho diferente. */}
+      {meu && (
+        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: ordem.findIndex(b => b.mgr === youId) * 0.25 }}
+          className="relative overflow-hidden rounded-2xl text-center"
+          style={{ marginTop: 7, background: '#fff', border: `3px solid ${meuVenceu ? GREEN : INK}`, boxShadow: `3px 3px 0 0 ${meuVenceu ? GREEN : INK}`,
+            padding: mini ? '5px 8px 5px' : '7px 9px 6px' }}>
+          {meuPerk.holo > 0 && <ApoioSheen holo={meuPerk.holo} />}
+          <div className="flex justify-center relative"><Escudo nome={managers.find(m => m.id === youId)?.teamName || 'Você'} size={mini ? 24 : 32} /></div>
+          <p className="font-bold truncate relative" style={{ fontSize: mini ? 8.5 : 10, marginTop: 2 }}>🫵 Você</p>
+          <div className="rounded-lg font-black relative mx-auto" style={{ ...OSWALD, marginTop: 3, border: `2px solid ${INK}`, fontSize: mini ? 11 : 13, lineHeight: 1.35, maxWidth: 120,
+            background: meuVenceu ? GREEN : meuAnulado ? '#ddd' : meuPerk.grad, color: meuVenceu ? '#fff' : TIER_INK[meuPerk.tier] }}>{meu.amount}</div>
+          {meuAnulado && <p className="font-bold relative" style={{ fontSize: 7.5, marginTop: 1, color: 'rgba(0,0,0,.55)' }}>anulado (setor cheio)</p>}
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
 function Reveal() {
   const { state, dispatch } = useEsc()
   const cinema = useRevealCinema() // 🔨🎬 festão da Lenda: só na conta liberada (Diego)
@@ -3185,6 +3273,10 @@ function Reveal() {
   // "MARTELO!": só quando teve venda de verdade (houve lance vencedor)
   const sold = winnerMgr !== null && item.bids.length > 0
   const hammerDelay = item.bids.length * 0.25 + (tie ? 1.2 : 0.2)
+  // 🔨 A MESA DO MARTELO só vale no RÁPIDO ONLINE (pedido do Diego 17/08: "isso é
+  // só pro modo online rápido"). Solo e carreira seguem na lista de sempre, byte
+  // por byte — se a mesa der qualquer problema, ela não alcança o resto do jogo.
+  const mesaOn = online && !state.careerOnline && item.bids.length > 0
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -3205,10 +3297,20 @@ function Reveal() {
           {/* 🎁 SURPRESA anti-spoiler: o nome fica BORRADO até alguém GANHAR de fato
               (martelo com vencedor). Sem lance = nunca revela (vai pro Monte às cegas);
               com lance = borrado até o martelo bater. */}
-          <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />
+          {!mesaOn && <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />}
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
           {/* (carimbo grande "VENDIDO!" removido — vazava da carta e repetia o texto
               "🔨 VENDIDO pro X por Y!" que já existe embaixo. O festão da Lenda fica.) */}
+          {mesaOn ? (
+            <MesaMartelo bids={item.bids} winner={item.winner} voided={item.voided} hammered={hammered}
+              youId={you.id} managers={state.managers}
+              centro={(
+                <div className="rounded-2xl text-center relative overflow-hidden"
+                  style={{ border: `3px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 6px 9px', background: item.card.fame >= 5 ? GOLD : '#fff' }}>
+                  <div className="flex justify-center"><CardFace c={item.card} surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} /></div>
+                </div>
+              )} />
+          ) : (
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
               <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
@@ -3232,6 +3334,7 @@ function Reveal() {
               )
             })}
           </div>
+          )}
           {/* 😱 QUASE!: facada revelada — perdeu por 1-2 moedas. Frase BEM variada,
               sorteada de forma determinística pela carta (a sala toda vê a mesma).
               Só drama no reveal que já existe (empate no topo vira desempate). */}
