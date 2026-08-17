@@ -4,12 +4,13 @@ import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG } from './manto'
 import { useEsc, listAllCareers } from './store'
+import type { PoolCard } from './pyramidseason'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, emailProblema } from './apoio'
 import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
-import { DIVISION_TEAMS } from './data'
+import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { useSalaElencoLiberada } from './sport' // 👔 Sala de Elenco: modo novo, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
@@ -22,7 +23,7 @@ const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
-interface RoomPlayer { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
+interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoTime | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
 interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
@@ -350,6 +351,40 @@ function Section({ num, title, icon, children }: { num: number; title: string; i
 // cara no link do amigo é o pior jeito.
 // Lê os saves com `listAllCareers()`, o MESMO leitor da tela "Minhas Carreiras" —
 // nada de inventar um segundo jeito de achar carreira.
+// 🃏 BAFO — o time que o técnico traz da carreira dele, do jeito que viaja pro
+// host (coluna `bafo` em room_players; NULL em todos os outros modos).
+export interface BafoTime { seed: number; via: 'elenco' | 'convocados'; squad: PoolCard[]; cartas: number; time: string }
+
+// 🃏 carta do COFRE não guarda força (EmpCard só tem nome/clube/ano) — quem tem
+// lo/hi é o baralho. Resolve pelo nome, varrendo os três catálogos, que é a
+// MESMA fonte que a Copa do Mundo usa pra montar seleção. Carta que não bate em
+// nenhum baralho (nome antigo, carta removida) simplesmente não entra: melhor
+// faltar jogador e a trava dos 11 avisar do que inventar força e o time jogar
+// com um fantasma.
+function cartaDoBaralho(nome: string): PoolCard | null {
+  for (const cat of [CATALOG, CATALOG_EU, CATALOG_WORLD] as Record<string, { name: string; club: string; year: number; fame: number; lo: number; hi: number }[]>[]) {
+    for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) {
+      const c = (cat[pos] ?? []).find(x => x.name === nome)
+      if (c) return { id: `bafo-${pos}-${nome}`, name: c.name, club: c.club, year: c.year, pos: pos as PoolCard['pos'], fame: c.fame, lo: c.lo, hi: c.hi, paid: 0 } as PoolCard
+    }
+  }
+  return null
+}
+
+// monta o time que vai pro host, a partir da carreira escolhida
+function montarBafo(seed: number, via: 'elenco' | 'convocados'): BafoTime | null {
+  const slot = listAllCareers().find(c => Number(c.slot.save.seed ?? 0) === seed)
+  if (!slot) return null
+  const sv = slot.slot.save
+  const eu = sv.managers?.[sv.youIdx ?? 0]
+  const time = eu?.teamName || eu?.name || 'Meu time'
+  // 🚫 perna-de-pau (fake) NUNCA entra — nem pelo elenco, nem pelo cofre.
+  const squad: PoolCard[] = via === 'elenco'
+    ? ((eu?.squad ?? []) as PoolCard[]).filter(c => !(c as { fake?: boolean }).fake)
+    : (sv.empresarioCards ?? []).map(c => cartaDoBaralho(c.name)).filter((c): c is PoolCard => !!c)
+  return { seed, via, squad: squad.slice(0, 22), cartas: (sv.empresarioCards ?? []).length, time }
+}
+
 const BAFO_MIN = 11
 function BafoEscolha({ escolha, onEscolha }: {
   escolha: { seed: number; via: 'elenco' | 'convocados' } | null
@@ -2162,9 +2197,19 @@ export function EscLobby() {
       </div>
 
       {/* 🃏 BAFO: antes de tudo, o técnico escolhe qual carreira traz. Enquanto não
-          escolher, ele fica "montando" — e o host vê isso na lista. */}
+          escolher, ele fica "montando" — e o host vê isso na lista.
+          A escolha vai pro banco na hora (coluna `bafo` do room_players): é assim
+          que o time viaja pro host e que todo mundo vê quem já está apto. */}
       {room.game_state?.mode === 'elenco' && (
-        <BafoEscolha escolha={bafoEscolha} onEscolha={setBafoEscolha} />
+        <BafoEscolha escolha={bafoEscolha} onEscolha={async (e) => {
+          setBafoEscolha(e)
+          if (!user) return
+          const time = e ? montarBafo(e.seed, e.via) : null
+          // 🛡️ trava de verdade (a tela é só a cara dela): time com menos de 11
+          // NÃO grava — ninguém fica apto com elenco furado, nem por caminho torto.
+          const ok = time && time.squad.length >= BAFO_MIN ? time : null
+          await supabase.from('room_players').update({ bafo: ok }).eq('room_id', room.id).eq('user_id', user.id).then(() => {}, () => {})
+        }} />
       )}
 
       <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
@@ -2203,6 +2248,14 @@ export function EscLobby() {
                 ) })()}
                 <span className="font-black text-black text-sm flex-1" style={pk ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>
                 {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}
+                {/* 🃏 BAFO: o estado de cada um, na lista — o host bate o olho e sabe
+                    quem é demora e quem é problema. Três estados só, sem meio-termo. */}
+                {room.game_state?.mode === 'elenco' && (
+                  <span className="text-[9.5px] font-black uppercase border-2 border-black rounded-full px-2 py-0.5 whitespace-nowrap"
+                    style={p.bafo ? { background: GREEN, color: '#fff' } : { background: '#FFD9CE', color: '#8E2A1B' }}>
+                    {p.bafo ? `✅ ${p.bafo.squad?.length ?? 0} jog.` : '⏳ montando'}
+                  </span>
+                )}
                 {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
                 {isHost && p.user_id !== user?.id && (
                   <button onClick={() => kickFromRoom(p)} aria-label={`Remover ${p.manager_name}`}
