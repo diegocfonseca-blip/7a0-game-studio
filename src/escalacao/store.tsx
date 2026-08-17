@@ -521,13 +521,22 @@ function hashCode(s: string): number {
 // ⚖️ identidade da carta: nome + clube CANÔNICO (grafia velha de save antigo
 // conta como o mesmo clube — senão o mundo entrega o jogador em dobro).
 export const ident = (c: { name: string; club: string }) => `${c.name}|${clubCanon(c.club)}`
-// 🔄 RODÍZIO DO LEILÃO: memória das cartas que caíram na leva ANTERIOR (só idents).
-// A montagem do baralho joga essas pro fim do catálogo, então elas têm menos chance
-// de voltar já na próxima temporada — dá mais variedade. NÃO mexe nas % de raridade
-// (só muda QUAIS cartas preenchem cada cota). Quando as "não-recentes" acabam, elas
-// voltam a entrar (repetir de vez tá ok). Vive no módulo (o host monta o baralho no
-// online e transmite pronto; o guest não remonta, então não desincroniza).
+// 🔄 RODÍZIO DO LEILÃO: memória das cartas que caíram nas ÚLTIMAS 3 levas (só
+// idents). A montagem do baralho joga essas pro fim do catálogo, então elas têm
+// menos chance de voltar já nas próximas temporadas — dá mais variedade. NÃO
+// mexe nas % de raridade (só muda QUAIS cartas preenchem cada cota). Quando as
+// "não-recentes" acabam, elas voltam a entrar (repetir de vez tá ok). Vive no
+// módulo (o host monta o baralho no online e transmite pronto; o guest não
+// remonta, então não desincroniza).
+// Antes lembrava só 1 leva (a imediatamente anterior) — pedido do Diego 16/08
+// depois de amigos reclamarem "sempre os mesmos": medido que em posições com
+// baralho pequeno (ex.: goleiro lenda no BR tem só 6 cartas no total), lembrar
+// só 1 leva deixava o MESMO nome repetir 3× numa sessão de 8 leilões seguidos.
+// Com 3 levas de memória, o sorteio passa a circular pelo elenco quase inteiro
+// antes de repetir qualquer nome (testado: 6/6 goleiros aparecem antes de
+// repetir, contra repetição tripla de antes).
 let RECENT_DECK = new Set<string>()
+let RECENT_HISTORY: Set<string>[] = []
 // 🧹 PENEIRA FINAL anti-duplicata do baralho do leilão: por mais que cada fonte
 // (mercado, listados, sobras, fichas de fundo) já tente não repetir, uma cópia do
 // MESMO jogador real (nome+clube) pode escapar por uma brecha — ou vir de um save
@@ -1028,11 +1037,23 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
   // ou acima dos bots). Como o usuário ESCOLHE no leilão, ele monta um time acima
   // da média e briga de igual. Sem cartas novas obrigatórias e sem fake. Fora da
   // várzea, tudo igual.
+  // 💎⭐ NO RÁPIDO (offline e online — nem escada nem várzea), craque e promessa
+  // disputam o MESMO balde (pedido do Diego 16/08): medido que GOL e defesa
+  // quase não têm promessa no catálogo (BR: só 1 goleiro promessa; Europa: 0),
+  // então a cota separada de 17% ou vinha vazia (some, vira "bom jogador" à
+  // toa) ou, quando tinha 1 carta só, saía sempre a MESMA — zero variedade.
+  // Juntando as duas cotas (26%+17%=43%, a soma não muda) num balde só, o
+  // sorteio passa a poder puxar de todos os craques E promessas juntos — a
+  // carta rara de promessa concorre junto em vez de ficar isolada e travada.
+  // Não muda nada da carta em si (continua craque ou promessa, selo e teto de
+  // valor de sempre) — só de qual balde ela é sorteada. Escada (carreira) e
+  // Várzea continuam com suas cotas próprias, sem mudança nenhuma.
+  const mergeSP = !escada && !varzea
   const RARITY = escada
     ? ESCADA_RARITY[escada] // 🪜 cotas do degrau da escada (catálogo já filtrado acima)
     : varzea
     ? { legend: 0, star: 0, promessa: 0, low: 0.40 }
-    : { legend: 0.16, star: 0.26, promessa: 0.17, low: 0.29 } // % por posição (o resto = bom jogador ~12%)
+    : { legend: 0.16, star: 0.38, promessa: 0, low: 0.29 } // % por posição (o resto = bom jogador ~17%; pedido do Diego 16/08: tirou 5pt do craque+promessa — que tem baralho grande e sobrava — e deu pro bom jogador, que é o maior baralho de todos (303 cartas no BR) e tinha a menor cota)
   const stoch = (x: number) => { const f = Math.floor(x); return f + (rng() < x - f ? 1 : 0) } // arredonda por sorteio (mantém a média)
   const alloc = {} as Record<Sector, { legend: number; star: number; promessa: number; low: number }>
   const availOf = (pos: Sector, pred: (c: (typeof CATALOG)[Sector][number]) => boolean) =>
@@ -1041,7 +1062,7 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     const cnt = plan[pos].count
     // pede a fração (por sorteio) de cada nível, nunca mais do que existe no setor
     let legend = Math.min(availOf(pos, c => c.fame === 5), stoch(cnt * RARITY.legend))
-    let star = Math.min(availOf(pos, c => c.fame === 4 && !c.promessa), stoch(cnt * RARITY.star)) // craque
+    let star = Math.min(availOf(pos, c => mergeSP ? (c.fame === 4 || !!c.promessa) : (c.fame === 4 && !c.promessa)), stoch(cnt * RARITY.star)) // craque (+ promessa junto no rápido)
     let promessa = Math.min(availOf(pos, c => !!c.promessa), stoch(cnt * RARITY.promessa))
     let low = Math.min(availOf(pos, c => c.fame === 1), stoch(cnt * RARITY.low))                  // foi profissional
     // se a soma passar do tamanho do setor, corta primeiro dos mais comuns
@@ -1061,10 +1082,11 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // 1) LENDA
     let needL = alloc[pos].legend
     for (const c of catalog) { if (needL <= 0) break; if (c.fame !== 5 || used.has(ident(c))) continue; take(c); needL-- }
-    // 2) CRAQUE (fame 4 — folk entra normal, é só selo)
+    // 2) CRAQUE (fame 4 — folk entra normal, é só selo; no rápido junta com PROMESSA no mesmo sorteio)
     let needS = alloc[pos].star
-    for (const c of catalog) { if (needS <= 0) break; if (c.fame !== 4 || c.promessa || used.has(ident(c))) continue; take(c); needS-- }
-    // 3) PROMESSAS (5º tier)
+    for (const c of catalog) { if (needS <= 0) break; if (used.has(ident(c))) continue; const okCraque = c.fame === 4 && !c.promessa; const okProm = mergeSP && !!c.promessa; if (!okCraque && !okProm) continue; take(c); needS-- }
+    // 3) PROMESSAS (5º tier) — só entra separado fora do rápido (escada/várzea); no rápido a cota já é 0 e o passo 2 já cobriu
+
     let needP = alloc[pos].promessa
     for (const c of catalog) { if (needP <= 0) break; if (!c.promessa || used.has(ident(c))) continue; take(c); needP-- }
     // 4) FOI PROFISSIONAL (fame 1)
@@ -1085,10 +1107,10 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // dava pra "ler" o nível pela posição — furando o leilão às cegas.
     deck[pos] = shuffle(cards, rng)
   }
-  // 🔄 guarda esta leva como memória do rodízio pra próxima — só nas levas PRINCIPAIS
-  // (a de reservas, noFake, não sobrescreve: senão a próxima principal deixaria de
-  // rodiziar de verdade). Substitui (não acumula): "recente" = só a leva anterior.
-  if (!noFake && takenNow.size) RECENT_DECK = takenNow
+  // 🔄 guarda esta leva na memória do rodízio (janela das últimas 3) — só nas
+  // levas PRINCIPAIS (a de reservas, noFake, não entra: senão a próxima
+  // principal deixaria de rodiziar de verdade).
+  if (!noFake && takenNow.size) { RECENT_HISTORY.push(takenNow); if (RECENT_HISTORY.length > 3) RECENT_HISTORY.shift(); RECENT_DECK = new Set(RECENT_HISTORY.flatMap(s => [...s])) }
   return deck
 }
 
