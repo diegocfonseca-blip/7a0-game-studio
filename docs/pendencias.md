@@ -761,9 +761,17 @@ título no botão Ranking da home).
 
 Contradiz a regra escrita no código com data do Diego: *"tudo que é campeão
 conta carta" (04/08)*. A Supercopa nasceu 16/08 e ficou de fora.
-⏳ **NÃO IMPLEMENTAR sem OK do Diego** — é regra de jogo, não bug óbvio. Se ele
-aprovar: montar `CardCollectPrompt` com `seasonKey` sufixo `:supercopa` +
-gravar a linha em `esc_results` (mesmo padrão da `:copa`).
+~~⏳ **NÃO IMPLEMENTAR sem OK do Diego**~~
+
+✅ **RESOLVIDO 18/08 — a carta da Supercopa está no ar.** O OK veio do próprio
+Diego, do jeito que ele costuma dar: *"toda hora estão reclamando também que
+não está contando carta quando você ganha a Copa do Brasil ou a Supercopa"*.
+`CardCollectPrompt` com `seasonKey` sufixo `:supercopa` em `pyramidseason.tsx`,
+logo abaixo do da Copa, usando o `superChamp.you` que já existia. Quem ganhar
+divisão + Copa + Supercopa na mesma temporada pega as **três** cartas (as três
+seasonKeys são diferentes, então uma não come a outra).
+⏳ **Ainda falta** a linha em `esc_results` pra Supercopa (o botão Ranking da
+home ainda não conta ela como título) — é escrita no Supabase, fora do repo.
 
 
 ## 🏆🔵 SUPERCOPA ENTROU NO RANKING GLOBAL (16/08)
