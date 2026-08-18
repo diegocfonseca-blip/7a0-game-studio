@@ -1842,6 +1842,39 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
 // ── PLACAR AO VIVO (reutilizável): relógio animado, selo GOOOL, flash e bump.
 // Usado na carreira (pirâmide) E no jogo rápido (offline/online) — mesmo visual.
 export interface ScoreGoal { name: string; min: number; home: boolean }
+// ─── ⚽ OS GOLEADORES EMBAIXO DO PLACAR ──────────────────────────────────────
+// 🐛 BUG (achado pelo Giovani Picolo, 18/08): a partir do 3º gol a lista "dava
+// uma tremidinha" e o goleador NOVO nunca aparecia — no print, 3 a 0 mostrando
+// só os dois primeiros.
+//
+// A causa não era a rolagem: era o LUGAR onde este componente estava declarado.
+// Ele nascia DENTRO do LiveScoreCard, então a cada render virava um componente
+// NOVO pro React — que desmontava e remontava tudo, e a animação de CSS voltava
+// pro zero. Como o placar ao vivo re-renderiza a cada tique do relógio, a
+// rolagem reiniciava umas vezes por segundo e nunca saía do lugar. Aquela
+// "tremidinha" era exatamente isso.
+//
+// Aqui fora, o componente é o MESMO entre renders e a animação corre até o fim.
+// 🕐 A duração também passou a crescer com o número de gols (7s fixos ficavam
+// rápidos demais numa goleada) e a janela agora tem a altura EXATA de 2 linhas.
+const GOL_LINHA = 22 // altura de uma linha (12 de texto + 5+5 de respiro)
+function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 'right'; basket?: { h: number; a: number } }) {
+  if (list.length === 0) return <div style={{ height: GOL_LINHA * 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.35)' }}>{basket ? 'sem cestas ainda' : 'sem gols ainda'}</div>
+  const scroll = list.length > 2
+  const rowsOf = (key: string) => list.map((g, i) => (
+    <p key={key + i} style={{ margin: 0, padding: '5px 0', height: GOL_LINHA, lineHeight: '12px', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <b>{g.name}</b> <span style={{ opacity: 0.6, fontWeight: 700 }}>{g.min > 90 ? `90+${g.min - 90}` : g.min}'</span>
+    </p>
+  ))
+  return (
+    <div style={{ height: GOL_LINHA * 2, overflow: 'hidden', position: 'relative', textAlign: align }}>
+      <div style={{ position: 'absolute', left: 10, right: 10, top: 0, animation: scroll ? `goalsScroll ${Math.max(6, list.length * 2.6).toFixed(1)}s linear infinite` : undefined }}>
+        {rowsOf('a')}{scroll && rowsOf('b')}
+      </div>
+    </div>
+  )
+}
+
 export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
@@ -2026,22 +2059,6 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // travado pelo relógio (min <= relógio) — mesma trava anti-spoiler de
   // sempre, nunca revela um gol antes da hora.
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
-  const GoalsCol = ({ list, align }: { list: ScoreGoal[]; align: 'left' | 'right' }) => {
-    if (list.length === 0) return <div style={{ height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.35)' }}>{basket ? 'sem cestas ainda' : 'sem gols ainda'}</div>
-    const scroll = list.length > 2
-    const rowsOf = (key: string) => list.map((g, i) => (
-      <p key={key + i} style={{ margin: 0, padding: '5px 0', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        <b>{g.name}</b> <span style={{ opacity: 0.6, fontWeight: 700 }}>{g.min > 90 ? `90+${g.min - 90}` : g.min}'</span>
-      </p>
-    ))
-    return (
-      <div style={{ height: 42, overflow: 'hidden', position: 'relative', textAlign: align }}>
-        <div style={{ position: 'absolute', left: 10, right: 10, top: 0, animation: scroll ? 'goalsScroll 7s linear infinite' : undefined }}>
-          {rowsOf('a')}{scroll && rowsOf('b')}
-        </div>
-      </div>
-    )
-  }
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
@@ -2089,9 +2106,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
           passa de 2, no fundo/brilho da competição (footTint). */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 84px 1fr', borderTop: `2px solid ${footTint?.border ?? '#e6dcbf'}`, background: footTint?.bg ?? '#efe4c8', position: 'relative', overflow: 'hidden' }}>
         {footTint && (footTint.holo ?? 0) > 0 && <ApoioSheen holo={footTint.holo!} dur={4} />}
-        <GoalsCol list={homeGoals} align="right" />
+        <GoalsCol list={homeGoals} align="right" basket={basket} />
         <div />
-        <GoalsCol list={awayGoals} align="left" />
+        <GoalsCol list={awayGoals} align="left" basket={basket} />
       </div>
     </div>
   )
@@ -2909,7 +2926,13 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
   })
   rows.sort((a, b) => ptsLinha(b) - ptsLinha(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
-  const top = rows.slice(0, 20)
+// 🐛 (Giovani Picolo, 18/08): o aviso diz que a Copa do Mundo leva os
+  // 24 primeiros do ranking, mas esta lista mostrava só 20 — quem estava em
+  // 21º-24º se classificava e NÃO SE VIA. Mesma família do bug de 10/08: o que
+  // aparece na tela tem que ser o que qualifica. Agora mostra 24, e a linha do
+  // 24º ganha o corte visível da vaga.
+  const VAGAS_MUNDO = 24
+  const top = rows.slice(0, VAGAS_MUNDO)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
   const myCopas = copaHonors[`m${youId}`] ?? 0
@@ -2929,12 +2952,15 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     <>
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🏆 RANKING GERAL</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata — top 20.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata. Os <b>{VAGAS_MUNDO} primeiros</b> pegam vaga na 🌍 Copa do Mundo.</p>
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>PTS</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
           {top.map((r, i) => {
             const you = r.t.teamId === youId && r.t.teamId >= 0
+            // 🌍 a linha do último classificado ganha o corte da vaga da Copa do
+            // Mundo — quem está em cima dela está dentro, quem está embaixo não.
+            const ultimaVaga = i === VAGAS_MUNDO - 1
             // 🏢 a SUA SAF veste a sua cor no rank também (💼) — ela está no mapa
             // de cores com a sua cor, então basta ler colors[teamId] direto.
             const isSaf = !you && !!safTeam && r.t.name === safTeam
@@ -2944,7 +2970,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
             // inteiro ficava dourado por causa do id -1 compartilhado por todo bot.
             const fc = isSaf ? colors[youId] : ((r.t.human || r.t.rival) ? colors[r.t.teamId] : undefined)
             return (
-              <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: colored ? 800 : 500 }}>
+              <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: ultimaVaga ? '3px dashed #7C3AED' : undefined, background: fc?.light, fontWeight: colored ? 800 : 500 }} title={ultimaVaga ? 'Última vaga na Copa do Mundo' : undefined}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
                 <td style={{ maxWidth: 150, color: fc?.solid ?? INK }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>

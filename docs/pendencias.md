@@ -1,5 +1,43 @@
 # 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
 
+## 🐛 DOIS BUGS REPORTADOS PELO GIOVANI PICOLO (18/08) — ✅ CORRIGIDOS
+Ele mandou áudio + prints. Os dois eram reais, e o primeiro estava escondido
+num erro clássico de React.
+
+### 1. A partir do 3º gol, o goleador novo não aparecia
+Palavras dele: *"o jogo registra dois gols; quando sai o terceiro ele fica meio
+que dando aquela tremidinha e não mostra quem fez o terceiro"*. No print: **3 a 0
+mostrando só os dois primeiros**.
+
+**A causa não era a rolagem — era o LUGAR onde o componente estava declarado.**
+`GoalsCol` nascia DENTRO do `LiveScoreCard`. A cada render ele virava um
+componente NOVO pro React, que desmontava e remontava a subárvore — e a animação
+CSS voltava pro zero. Como o placar ao vivo re-renderiza **a cada tique do
+relógio**, a rolagem reiniciava várias vezes por segundo e nunca saía do lugar.
+A "tremidinha" era exatamente esse reinício.
+
+**Corrigido:** `GoalsCol` foi pra fora do componente (escopo do módulo), então é
+o MESMO entre renders e a animação corre até o fim. De quebra: a duração agora
+cresce com o número de gols (7s fixos ficavam rápidos demais numa goleada) e a
+janela tem a altura EXATA de 2 linhas (`GOL_LINHA * 2`), que antes cortava.
+
+⚠️ **Lição pra próxima sessão:** componente declarado dentro de outro componente
+**quebra qualquer animação CSS** em tela que re-renderiza sozinha. Se aparecer
+"animação tremendo/reiniciando", é o primeiro lugar pra olhar.
+
+### 2. O aviso dizia 24 clubes, mas o ranking mostrava 20
+Palavras dele: *"veio o aviso que são 24 clubes de acordo com o ranking. Só que
+no ranking tem 20 times, aí fica meio complicadinho"*.
+
+Ele estava certo: a Copa do Mundo passou a levar o **TOP 24** (mudança da outra
+sessão, 17/08), mas a tela do **RANKING GERAL** continuou com `slice(0, 20)`.
+Quem ficava em **21º-24º se classificava e não se via na lista**. É a MESMA
+família do bug de 10/08 (o que aparece na tela ≠ o que qualifica).
+
+**Corrigido:** o Ranking Geral mostra **24**, a legenda diz *"os 24 primeiros
+pegam vaga na 🌍 Copa do Mundo"*, e a linha do **24º ganha um corte tracejado
+roxo** marcando a última vaga.
+
 ## 🏅 RANKING VIROU PONTUAÇÃO (decisão do Diego, 17/08) — ✅ NO AR
 Antes o ranking era uma **fila de desempate**: olhava a Copa do Mundo; se
 empatasse, a Série A; depois a Copa… O problema apareceu quando o Diego viu um
