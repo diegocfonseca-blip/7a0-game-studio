@@ -357,6 +357,23 @@ export const PAIS: Record<string, string> = {
   'Idrissa Gana Gueye': 'Senegal', 'Khalilou Fadiga': 'Senegal', 'Aliou Cissé': 'Senegal',
   'Salif Diao': 'Senegal', 'Cheikhou Kouyaté': 'Senegal', 'Demba Ba': 'Senegal',
   'Papiss Cissé': 'Senegal', 'Ismaïla Sarr': 'Senegal',
+
+  // ── 🌍 Etiquetas que faltavam (auditoria 17/08, pedido do Diego: 29 cartas
+  // do EU/MUNDO caindo em '??' e sumindo da contagem de seleção) ──
+  'Danijel Subašić': 'Croácia', 'Kiko Casilla': 'Espanha',
+  'Leighton Baines': 'Inglaterra', 'Lucas Digne': 'França',
+  'Marcel Schmelzer': 'Alemanha', 'Łukasz Piszczek': 'Polônia',
+  'Matthias Ginter': 'Alemanha', 'Presnel Kimpembe': 'França',
+  'Taribo West': 'Nigéria', 'Ivan Rakitić': 'Croácia',
+  'Aaron Ramsey': 'País de Gales', 'Marcelo Brozović': 'Croácia',
+  'Mateo Kovačić': 'Croácia', 'Joe Cole': 'Inglaterra', 'Dele Alli': 'Inglaterra',
+  'Kevin-Prince Boateng': 'Gana', // naturalizado — escolheu jogar por Gana (nasceu na Alemanha)
+  'Lucas Piazón': 'Brasil', 'Jobe Bellingham': 'Inglaterra', // irmão do Jude, base da Inglaterra
+  'Gianluca Prestianni': 'Argentina', 'Theo Walcott': 'Inglaterra',
+  'Ivan Perišić': 'Croácia', 'Raheem Sterling': 'Inglaterra',
+  'Pierre-Emerick Aubameyang': 'Gabão', 'Mario Mandžukić': 'Croácia',
+  'Gervinho': 'Costa do Marfim', 'Thorgan Hazard': 'Bélgica',
+  'Willian José': 'Brasil', 'Mancini': 'Brasil', 'Papa Waigo': 'Senegal',
 }
 
 // Mesmo NOME em baralhos diferentes com país diferente (hoje só estes dois):
