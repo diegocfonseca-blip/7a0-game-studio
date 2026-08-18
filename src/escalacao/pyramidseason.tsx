@@ -5286,6 +5286,18 @@ export function PyramidSeasonScreen() {
             <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
+        {/* 🏆🔵 Campeão da SUPERCOPA ganha carta também (conserto 18/08 — reclamação
+            do pessoal). A Supercopa nasceu 16/08 e ficou de fora da regra do Diego
+            de 04/08 ("tudo que é campeão conta carta"): outra sessão mediu numa
+            carreira simulada 78 Supercopas ganhas e 0 cartas por elas (216 troféus
+            − 138 cartas = 78, a conta fechava exata). seasonKey com sufixo
+            ":supercopa" pra não colidir com a do título de divisão nem com a da Copa
+            — quem ganhar as três na mesma temporada pega as três cartas. */}
+        {copaFinished && superChamp?.you && state.careerOnline && (
+          <div style={{ marginBottom: 12 }}>
+            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+          </div>
+        )}
         {copaFinished && (() => {
           // 🏛️ MULTICLUBES: o 2º clube dormindo é `isHuman` (assento meu), mas NÃO conta
           // como técnico na votação — senão o SOLO cairia no fluxo online. Fica de fora aqui.
