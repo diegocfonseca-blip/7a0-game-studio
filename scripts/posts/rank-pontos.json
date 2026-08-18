@@ -1,0 +1,23 @@
+{
+  "pill": "🏅 Regra nova no ranking",
+  "titulo": "Agora cada",
+  "destaque": "título",
+  "titulo2": "vale ponto",
+  "lead": "O ranking global do Modo Carreira <b>somava por ordem</b>: olhava a Copa do Mundo, depois a Série A, depois a Copa… e o segundo critério quase nunca era comparado. <b>Agora ele SOMA.</b> Cada taça que você levanta vira ponto, e o total decide a sua posição.",
+  "tabelaTitulo": "🏆 Quanto vale cada taça",
+  "tabela": [
+    { "emoji": "🌍", "selo": "Mundo",     "bg": "#0C0C0C", "cor": "#FFC400", "nome": "Copa do Mundo Legends",  "valor": "200" },
+    { "emoji": "🏆", "selo": "Copa",      "bg": "#0EA658", "cor": "#ffffff", "nome": "Copa do Brasil Legends", "valor": "30" },
+    { "emoji": "🏆", "selo": "Série A",   "bg": "#B8892B", "cor": "#ffffff", "nome": "Liga Legends · Série A", "valor": "20" },
+    { "emoji": "🏆", "selo": "Supercopa", "bg": "#0D4FCC", "cor": "#ffffff", "nome": "Supercopa Legends",      "valor": "15" },
+    { "emoji": "🏆", "selo": "Série B",   "bg": "#3E8E4E", "cor": "#ffffff", "nome": "Liga Legends · Série B", "valor": "10" },
+    { "emoji": "🏆", "selo": "Série C",   "bg": "#9A7B33", "cor": "#ffffff", "nome": "Liga Legends · Série C", "valor": "5" },
+    { "emoji": "🏆", "selo": "Série D",   "bg": "#7A7460", "cor": "#ffffff", "nome": "Liga Legends · Série D", "valor": "3" },
+    { "emoji": "🌱", "selo": "Várzea",    "bg": "#8B5E3C", "cor": "#ffffff", "nome": "Várzea",                 "valor": "1" }
+  ],
+  "antesDepois": {
+    "antes": "Quem tinha 1 Copa do Mundo passava na frente de quem tinha 44 Séries A. O resto nem era olhado.",
+    "depois": "44 Séries A = 880 pontos. Uma Copa do Mundo = 200. Quem levantou mais taça, fica na frente."
+  },
+  "nota": "Empatou nos pontos, o <b>💰 dinheiro</b> desempata. E a coluna <b>PTS</b> agora aparece no ranking — dá pra ver a conta de cada um."
+}
