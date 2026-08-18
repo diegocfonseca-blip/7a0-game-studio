@@ -1,4 +1,37 @@
-# 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 18/08/2026)
+
+## 🧑 ROSTO DE JOGADOR (18/08) — ⏳ MOCKUP ENTREGUE, AGUARDA O OK DO DIEGO
+O Diego viu o `meuonze.app.br` e gostou da arte dos jogadores. Pediu algo
+parecido **na personalidade da casa**, não igual: *"não sendo idêntico ao do
+jogo q mandei… o cabelo parecido C jogador camisa de time Tb parecida mas sem
+escudo… Faça um C a nossa personalidade"*.
+
+### A decisão de peso (é o coração disso)
+**NÃO é uma figura por jogador.** São 1.414 jogadores — 1.414 arquivos seria
+insustentável. É **um boneco só, desenhado em código**, com PEÇAS trocáveis:
+pele · cabelo · barba · as 2 cores do clube + o padrão da camisa (lisa, listras,
+faixa, meio, banda). Cada jogador guarda ~4 letrinhas no baralho. O desenho
+entra **uma vez** no bundle e vale pros 1.414 — **0 KB por jogador novo**.
+É a mesma lógica do MANTO do jogo, que já é listra em CSS.
+
+⚠️ Isto é o OPOSTO da regra de batismo (lá a arte TEM que ser `.webp` fora do
+bundle). Não é contradição: batismo é arte ÚNICA de um clube só (pesada, e só
+desce pra quem cruza com ele); rosto é arte GENÉRICA reaproveitada por todos.
+
+### Onde está
+- `scripts/rosto/rosto.mjs` — as peças (6 peles · 10 cabelos · 4 barbas · 5
+  padrões de camisa) e o boneco montado, no traço da casa (tinta `#0C0C0C`,
+  borda 4–4.5px, cores chapadas, sem degradê).
+- `scripts/rosto/folha.mjs` — a folha de mockup com os 17 que o Diego escolheu:
+  `node scripts/rosto/folha.mjs --saida /tmp/rostos.png`
+
+### Falta (só depois do OK visual)
+1. Mover as peças pro jogo (`src/escalacao/rosto.tsx`) e ligar na
+   `CollectibleCard`.
+2. Preencher as peças dos 1.414 no `data.ts` (campo opcional; quem não tiver
+   cai num rosto neutro sorteado pelo nome — nunca fica sem cara).
+3. ↩️ **Reverter é fácil**: é um arquivo novo + um campo opcional no baralho.
+   Tirando o campo, a carta volta exatamente como está hoje.
 
 ## 🐛 DOIS BUGS REPORTADOS PELO GIOVANI PICOLO (18/08) — ✅ CORRIGIDOS
 Ele mandou áudio + prints. Os dois eram reais, e o primeiro estava escondido
