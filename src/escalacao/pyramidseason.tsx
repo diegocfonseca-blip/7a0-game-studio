@@ -1842,6 +1842,39 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
 // ── PLACAR AO VIVO (reutilizável): relógio animado, selo GOOOL, flash e bump.
 // Usado na carreira (pirâmide) E no jogo rápido (offline/online) — mesmo visual.
 export interface ScoreGoal { name: string; min: number; home: boolean }
+// ─── ⚽ OS GOLEADORES EMBAIXO DO PLACAR ──────────────────────────────────────
+// 🐛 BUG (achado pelo Giovani Picolo, 18/08): a partir do 3º gol a lista "dava
+// uma tremidinha" e o goleador NOVO nunca aparecia — no print, 3 a 0 mostrando
+// só os dois primeiros.
+//
+// A causa não era a rolagem: era o LUGAR onde este componente estava declarado.
+// Ele nascia DENTRO do LiveScoreCard, então a cada render virava um componente
+// NOVO pro React — que desmontava e remontava tudo, e a animação de CSS voltava
+// pro zero. Como o placar ao vivo re-renderiza a cada tique do relógio, a
+// rolagem reiniciava umas vezes por segundo e nunca saía do lugar. Aquela
+// "tremidinha" era exatamente isso.
+//
+// Aqui fora, o componente é o MESMO entre renders e a animação corre até o fim.
+// 🕐 A duração também passou a crescer com o número de gols (7s fixos ficavam
+// rápidos demais numa goleada) e a janela agora tem a altura EXATA de 2 linhas.
+const GOL_LINHA = 22 // altura de uma linha (12 de texto + 5+5 de respiro)
+function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 'right'; basket?: { h: number; a: number } }) {
+  if (list.length === 0) return <div style={{ height: GOL_LINHA * 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.35)' }}>{basket ? 'sem cestas ainda' : 'sem gols ainda'}</div>
+  const scroll = list.length > 2
+  const rowsOf = (key: string) => list.map((g, i) => (
+    <p key={key + i} style={{ margin: 0, padding: '5px 0', height: GOL_LINHA, lineHeight: '12px', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <b>{g.name}</b> <span style={{ opacity: 0.6, fontWeight: 700 }}>{g.min > 90 ? `90+${g.min - 90}` : g.min}'</span>
+    </p>
+  ))
+  return (
+    <div style={{ height: GOL_LINHA * 2, overflow: 'hidden', position: 'relative', textAlign: align }}>
+      <div style={{ position: 'absolute', left: 10, right: 10, top: 0, animation: scroll ? `goalsScroll ${Math.max(6, list.length * 2.6).toFixed(1)}s linear infinite` : undefined }}>
+        {rowsOf('a')}{scroll && rowsOf('b')}
+      </div>
+    </div>
+  )
+}
+
 export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
@@ -2026,22 +2059,6 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // travado pelo relógio (min <= relógio) — mesma trava anti-spoiler de
   // sempre, nunca revela um gol antes da hora.
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
-  const GoalsCol = ({ list, align }: { list: ScoreGoal[]; align: 'left' | 'right' }) => {
-    if (list.length === 0) return <div style={{ height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.35)' }}>{basket ? 'sem cestas ainda' : 'sem gols ainda'}</div>
-    const scroll = list.length > 2
-    const rowsOf = (key: string) => list.map((g, i) => (
-      <p key={key + i} style={{ margin: 0, padding: '5px 0', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        <b>{g.name}</b> <span style={{ opacity: 0.6, fontWeight: 700 }}>{g.min > 90 ? `90+${g.min - 90}` : g.min}'</span>
-      </p>
-    ))
-    return (
-      <div style={{ height: 42, overflow: 'hidden', position: 'relative', textAlign: align }}>
-        <div style={{ position: 'absolute', left: 10, right: 10, top: 0, animation: scroll ? 'goalsScroll 7s linear infinite' : undefined }}>
-          {rowsOf('a')}{scroll && rowsOf('b')}
-        </div>
-      </div>
-    )
-  }
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
@@ -2089,9 +2106,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
           passa de 2, no fundo/brilho da competição (footTint). */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 84px 1fr', borderTop: `2px solid ${footTint?.border ?? '#e6dcbf'}`, background: footTint?.bg ?? '#efe4c8', position: 'relative', overflow: 'hidden' }}>
         {footTint && (footTint.holo ?? 0) > 0 && <ApoioSheen holo={footTint.holo!} dur={4} />}
-        <GoalsCol list={homeGoals} align="right" />
+        <GoalsCol list={homeGoals} align="right" basket={basket} />
         <div />
-        <GoalsCol list={awayGoals} align="left" />
+        <GoalsCol list={awayGoals} align="left" basket={basket} />
       </div>
     </div>
   )
@@ -2900,8 +2917,22 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   // (Copa do Brasil é a MESMA Copa Legends renomeada, mesmo contador —
   // Diego 16/08 — então continua exatamente onde já estava):
   // Copa do Mundo · Série A · Copa · Supercopa · Série B · Série C · Série D · Várzea · Dinheiro
-  rows.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.supercopa - a.supercopa || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || (b.h.V ?? 0) - (a.h.V ?? 0) || b.money - a.money || a.t.name.localeCompare(b.t.name))
-  const top = rows.slice(0, 20)
+  // 🏅 MESMA CONTA DE PONTOS do Rank global (Diego 17/08). Este é o TERCEIRO
+  // lugar onde a ordem aparece — global, mural da Copa e este "Ranking Geral" do
+  // save. Os três TÊM que usar a mesma conta, senão a pessoa vê uma colocação
+  // numa tela e outra na outra (foi assim o bug de 10/08).
+  const ptsLinha = (x: typeof rows[number]) => pontosDeTitulos({
+    world: x.wc, copa: x.copas, supercopa: x.supercopa,
+    A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
+  })
+  rows.sort((a, b) => ptsLinha(b) - ptsLinha(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
+// 🐛 (Giovani Picolo, 18/08): o aviso diz que a Copa do Mundo leva os
+  // 24 primeiros do ranking, mas esta lista mostrava só 20 — quem estava em
+  // 21º-24º se classificava e NÃO SE VIA. Mesma família do bug de 10/08: o que
+  // aparece na tela tem que ser o que qualifica. Agora mostra 24, e a linha do
+  // 24º ganha o corte visível da vaga.
+  const VAGAS_MUNDO = 24
+  const top = rows.slice(0, VAGAS_MUNDO)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
   const myCopas = copaHonors[`m${youId}`] ?? 0
@@ -2921,12 +2952,15 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     <>
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🏆 RANKING GERAL</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Ordem: 🌍 Copa do Mundo › 🏆 Série A › 🏆 Copa › 🏆🔵 Supercopa › 🏆 B › 🏆 C › 🏆 D › 🌱 Várzea › 💰 dinheiro — top 20.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata. Os <b>{VAGAS_MUNDO} primeiros</b> pegam vaga na 🌍 Copa do Mundo.</p>
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
+        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>PTS</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
           {top.map((r, i) => {
             const you = r.t.teamId === youId && r.t.teamId >= 0
+            // 🌍 a linha do último classificado ganha o corte da vaga da Copa do
+            // Mundo — quem está em cima dela está dentro, quem está embaixo não.
+            const ultimaVaga = i === VAGAS_MUNDO - 1
             // 🏢 a SUA SAF veste a sua cor no rank também (💼) — ela está no mapa
             // de cores com a sua cor, então basta ler colors[teamId] direto.
             const isSaf = !you && !!safTeam && r.t.name === safTeam
@@ -2936,7 +2970,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
             // inteiro ficava dourado por causa do id -1 compartilhado por todo bot.
             const fc = isSaf ? colors[youId] : ((r.t.human || r.t.rival) ? colors[r.t.teamId] : undefined)
             return (
-              <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: fc?.light, fontWeight: colored ? 800 : 500 }}>
+              <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: ultimaVaga ? '3px dashed #7C3AED' : undefined, background: fc?.light, fontWeight: colored ? 800 : 500 }} title={ultimaVaga ? 'Última vaga na Copa do Mundo' : undefined}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
                 <td style={{ maxWidth: 150, color: fc?.solid ?? INK }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
@@ -2956,6 +2990,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
                     ) : null)}
                   </>}
                 </td>
+                <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: INK }}>{ptsLinha(r).toLocaleString('pt-BR')}</td>
                 <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
               </tr>
             )
@@ -3006,11 +3041,45 @@ interface GlobalRankRow { user_id: string; season_no: number; team_name: string;
 // Existe aqui porque a SUA linha é trocada pela carreira de agora (veja abaixo) —
 // e a lista tem que ser reordenada com o mesmo critério, senão as posições que
 // você vê não batem com as que todo mundo vê.
+// ─── 🏅 PONTUAÇÃO DOS TÍTULOS (decisão do Diego, 17/08) ─────────────────────
+// ANTES o ranking era uma FILA DE DESEMPATE: olhava a Copa do Mundo; se
+// empatasse, a Série A; se empatasse, a Copa… O problema disso ficou escancarado
+// quando o Diego viu um time com UMA Copa do Mundo e mais nada passando na
+// frente de quem tinha 44 Séries A — porque o 2º critério nunca chegava a ser
+// comparado.
+//
+// AGORA cada título vale PONTO e o ranking soma. Os pesos foram escolhidos por
+// ele em cima dos números reais dos melhores jogadores:
+//   • a COPA vale mais que a LIGA (30 × 20) porque é medido: TODOS os 10
+//     melhores ganham menos Copa do que Série A — mata-mata perdoa menos que
+//     38 rodadas;
+//   • a SUPERCOPA vale MENOS que a liga (15) porque é UM jogo, e você só entra
+//     nela por já ter ganho a liga ou a copa (o ponto grande já veio antes);
+//   • a COPA DO MUNDO segue valendo muito (200) por ser o endgame — só existe
+//     da T100 em diante e só uma vez a cada 10 temporadas.
+//
+// ⚠️ ESTA MESMA CONTA decide o TOP 24 que se classifica pra Copa do Mundo (o
+// mural de clubes usa `pontosDeTitulos` também). Os dois têm que andar JUNTOS —
+// já teve bug nessa família em 10/08, quando a colocação exibida não era a que
+// qualificava. Mexeu aqui, confere lá.
+export const PTS_TITULO = { mundo: 200, copa: 30, A: 20, supercopa: 15, B: 10, C: 5, D: 3, V: 1 } as const
+export function pontosDeTitulos(t: {
+  world?: number; copa?: number; supercopa?: number; A?: number; B?: number; C?: number; D?: number; V?: number
+}): number {
+  return (t.world ?? 0) * PTS_TITULO.mundo + (t.copa ?? 0) * PTS_TITULO.copa
+    + (t.A ?? 0) * PTS_TITULO.A + (t.supercopa ?? 0) * PTS_TITULO.supercopa
+    + (t.B ?? 0) * PTS_TITULO.B + (t.C ?? 0) * PTS_TITULO.C
+    + (t.D ?? 0) * PTS_TITULO.D + (t.V ?? 0) * PTS_TITULO.V
+}
+export function pontosDaLinha(r: GlobalRankRow): number {
+  return pontosDeTitulos({
+    world: r.world_titles, copa: r.copa_titles, supercopa: r.supercopa_titles ?? 0,
+    A: r.honors_a, B: r.honors_b, C: r.honors_c, D: r.honors_d, V: r.honors_v,
+  })
+}
+// empate de pontos: o dinheiro desempata, como já era antes.
 function cmpRank(a: GlobalRankRow, b: GlobalRankRow): number {
-  return b.world_titles - a.world_titles || b.honors_a - a.honors_a || b.copa_titles - a.copa_titles
-    || (b.supercopa_titles ?? 0) - (a.supercopa_titles ?? 0)
-    || b.honors_b - a.honors_b || b.honors_c - a.honors_c || b.honors_d - a.honors_d
-    || b.honors_v - a.honors_v || b.money - a.money
+  return pontosDaLinha(b) - pontosDaLinha(a) || b.money - a.money
 }
 
 // 🌍 RANKING GLOBAL (regra do Diego, 16/08 — mockup `rankglobal2.png`):
@@ -3090,7 +3159,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Ordem: 🌍 Copa do Mundo › 🏆 Série A › 🏆 Copa › 🏆🔵 Supercopa › 🏆 B › 🏆 C › 🏆 D › 🌱 Várzea › 💰 dinheiro — a MESMA ordem do ranking do seu save. Só gente de verdade, top 50, e só quem joga com a Agência 2.0.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Cada título vale ponto e o ranking SOMA: 🌍 Copa do Mundo <b>{PTS_TITULO.mundo}</b> · 🏆 Copa do Brasil <b>{PTS_TITULO.copa}</b> · 🏆 Série A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · 🏆 B <b>{PTS_TITULO.B}</b> · 🏆 C <b>{PTS_TITULO.C}</b> · 🏆 D <b>{PTS_TITULO.D}</b> · 🌱 Várzea <b>{PTS_TITULO.V}</b>. Empatou nos pontos, o 💰 desempata. A MESMA conta do ranking do seu save. Só gente de verdade, top 50, e só quem joga com a Agência 2.0.</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
         <span style={{ fontSize: 19, lineHeight: 1.2 }}>📍</span>
         <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.4, color: INK }}>
@@ -3108,6 +3177,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
           <thead><tr style={{ textAlign: 'left' }}>
             <th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Usuário</th>
             <th style={{ ...th, textAlign: 'center' }}>Títulos <span style={{ textTransform: 'none', fontWeight: 700, color: '#7C3AED' }}>(até T{seasonNo})</span></th>
+            <th style={{ ...th, textAlign: 'right' }}>PTS</th>
             <th style={{ ...th, textAlign: 'right' }}>💰</th>
           </tr></thead>
           <tbody>
@@ -3156,6 +3226,9 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
                       ) : null)}
                     </>}
                   </td>
+                  {/* 🏅 o TOTAL que define a posição — fica na tela pra ninguém
+                      precisar adivinhar por que está em tal lugar. */}
+                  <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: INK }}>{pontosDaLinha(r).toLocaleString('pt-BR')}</td>
                   <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
                 </tr>
                 {/* 🪄 A LINHA FININHA — só sua, COLADA embaixo da sua. Diz onde
@@ -4138,7 +4211,19 @@ export function PyramidSeasonScreen() {
         const h = (state.careerHonors as Record<string, Honors> | undefined)?.[`m${youId}`] ?? EMPTY_HONORS
         const copas = state.careerCopaHonors?.[`m${youId}`] ?? 0
         const supercopas = state.careerSupercopaHonors?.[`m${youId}`] ?? 0
-        const world = mergedMundialMural(state.seed, state.copaMundoMural).filter(m => m.voce).length
+        // 🌍 SÓ CONTA COPA DO MUNDO QUE CABE NESTA CARREIRA (17/08). Duas travas
+        // no mesmo lugar, e as duas são "não dá pra ter o que ainda não jogou":
+        //   • a Copa do Mundo só existe da temporada 100 em diante;
+        //   • e ninguém pode ter ganho uma edição FUTURA da própria carreira —
+        //     é o mesmo princípio do ranking ("ninguém vê o futuro de ninguém").
+        // Isto é o cinto de segurança do bug que o Diego achou: o mural vazava da
+        // carreira velha pra nova e a carreira de temporada 1 nascia campeã do
+        // mundo, indo pro TOPO do ranking global. O reset em `store.tsx` já
+        // impede casos novos; esta linha LIMPA sozinho quem já ficou sujo, na
+        // próxima temporada que a pessoa jogar — sem precisar mexer no aparelho
+        // dela nem apagar nada à mão.
+        const world = mergedMundialMural(state.seed, state.copaMundoMural)
+          .filter(m => m.voce && m.season >= 100 && m.season <= (state.seasonNo ?? 0)).length
         const money = Math.round(state.careerCoins?.[youId] ?? 0)
         // 🏷️ `career_id` = o número do SAVE (o mesmo que separa as suas carreiras
         // em "Minhas carreiras"). É o que faz cada carreira ter a linha DELA no
@@ -5273,8 +5358,15 @@ export function PyramidSeasonScreen() {
               const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
               return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc }
             })
-            // ordem IDÊNTICA à do Rank: Copa do Mundo · A · Copa (Legends/do Brasil, mesmo contador) · Supercopa · B · C · D · Várzea · dinheiro
-            rws.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.supercopa - a.supercopa || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || (b.h.V ?? 0) - (a.h.V ?? 0) || b.money - a.money || a.t.name.localeCompare(b.t.name))
+            // 🏅 MESMA CONTA DE PONTOS do Rank (Diego 17/08) — e isto aqui não é
+            // detalhe: é este sort que escolhe o TOP 24 que entra na Copa do
+            // Mundo. Se a ordem daqui discordar da do Rank, a pessoa vê uma
+            // colocação e se classifica por outra (bug de 10/08).
+            const ptsDe = (x: typeof rws[number]) => pontosDeTitulos({
+              world: x.wc, copa: x.copas, supercopa: x.supercopa,
+              A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
+            })
+            rws.sort((a, b) => ptsDe(b) - ptsDe(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
             // 🏛️ MULTICLUBES (regra do Diego 04/08): os DOIS clubes seus contam —
             // qualquer um deles no top-20 marca "você", e o prêmio vai pra CADA
             // clube seu classificado (independentes até na Copa do Mundo).

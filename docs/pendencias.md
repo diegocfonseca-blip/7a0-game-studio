@@ -1,5 +1,143 @@
 # 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
 
+## 🐛 DOIS BUGS REPORTADOS PELO GIOVANI PICOLO (18/08) — ✅ CORRIGIDOS
+Ele mandou áudio + prints. Os dois eram reais, e o primeiro estava escondido
+num erro clássico de React.
+
+### 1. A partir do 3º gol, o goleador novo não aparecia
+Palavras dele: *"o jogo registra dois gols; quando sai o terceiro ele fica meio
+que dando aquela tremidinha e não mostra quem fez o terceiro"*. No print: **3 a 0
+mostrando só os dois primeiros**.
+
+**A causa não era a rolagem — era o LUGAR onde o componente estava declarado.**
+`GoalsCol` nascia DENTRO do `LiveScoreCard`. A cada render ele virava um
+componente NOVO pro React, que desmontava e remontava a subárvore — e a animação
+CSS voltava pro zero. Como o placar ao vivo re-renderiza **a cada tique do
+relógio**, a rolagem reiniciava várias vezes por segundo e nunca saía do lugar.
+A "tremidinha" era exatamente esse reinício.
+
+**Corrigido:** `GoalsCol` foi pra fora do componente (escopo do módulo), então é
+o MESMO entre renders e a animação corre até o fim. De quebra: a duração agora
+cresce com o número de gols (7s fixos ficavam rápidos demais numa goleada) e a
+janela tem a altura EXATA de 2 linhas (`GOL_LINHA * 2`), que antes cortava.
+
+⚠️ **Lição pra próxima sessão:** componente declarado dentro de outro componente
+**quebra qualquer animação CSS** em tela que re-renderiza sozinha. Se aparecer
+"animação tremendo/reiniciando", é o primeiro lugar pra olhar.
+
+### 2. O aviso dizia 24 clubes, mas o ranking mostrava 20
+Palavras dele: *"veio o aviso que são 24 clubes de acordo com o ranking. Só que
+no ranking tem 20 times, aí fica meio complicadinho"*.
+
+Ele estava certo: a Copa do Mundo passou a levar o **TOP 24** (mudança da outra
+sessão, 17/08), mas a tela do **RANKING GERAL** continuou com `slice(0, 20)`.
+Quem ficava em **21º-24º se classificava e não se via na lista**. É a MESMA
+família do bug de 10/08 (o que aparece na tela ≠ o que qualifica).
+
+**Corrigido:** o Ranking Geral mostra **24**, a legenda diz *"os 24 primeiros
+pegam vaga na 🌍 Copa do Mundo"*, e a linha do **24º ganha um corte tracejado
+roxo** marcando a última vaga.
+
+## 🏅 RANKING VIROU PONTUAÇÃO (decisão do Diego, 17/08) — ✅ NO AR
+Antes o ranking era uma **fila de desempate**: olhava a Copa do Mundo; se
+empatasse, a Série A; depois a Copa… O problema apareceu quando o Diego viu um
+time com **1 Copa do Mundo e mais nada** na frente de quem tinha **44 Séries A** —
+porque o 2º critério nunca chegava a ser comparado.
+
+**Agora cada título vale ponto e o ranking SOMA:**
+
+| Título | Pontos |
+|---|---|
+| 🌍 Copa do Mundo | **200** |
+| 🏆 Copa do Brasil | **30** |
+| 🏆 Série A | **20** |
+| 🏆🔵 Supercopa | **15** |
+| 🏆 Série B | **10** |
+| 🏆 Série C | **5** |
+| 🏆 Série D | **3** |
+| 🌱 Várzea | **1** |
+
+Empatou nos pontos, o 💰 desempata (como já era).
+
+**Por que esses pesos** (medido nos 10 melhores, não chutado):
+- **Copa > Série A (30 × 20)**: TODOS os 10 melhores ganham **menos Copa do que
+  Série A** — Xurupitas 23% × 35%, Paduz 33% × 56%. Mata-mata perdoa menos que 38
+  rodadas. A razão medida (~1,4-1,5×) bate com 30/20.
+- **Supercopa < Série A (15)**: é **UM jogo**, e você só entra nela por já ter
+  ganho a liga ou a copa — o ponto grande já veio antes.
+- **Mundo 200**: endgame (só da T100, 1 a cada 10 temporadas). Vale 10 Séries A.
+  ⚠️ Fica registrado que ele tem MUITA sorte no meio: entre os melhores, o
+  aproveitamento vai de **0%** (Império Samambaia, 8 chances) a **62,5%** (5°
+  Série "B"). Quem escolhe o país primeiro pega o Brasil e passeia.
+- **Supercopa NÃO dá pra medir por raridade hoje**: ela é recente. O Xurupitas
+  jogou **750 temporadas** e tem 11; o Império jogou **179** e tem 43. O número
+  dela mede idade da funcionalidade, não dificuldade. Remedir daqui a 1-2 meses.
+
+### ⚠️ SÃO TRÊS LUGARES, e os três TÊM que usar a mesma conta
+`PTS_TITULO` + `pontosDeTitulos()` em `pyramidseason.tsx` são a fonte única:
+1. **Ranking global** (`cmpRank`) — o mural entre contas;
+2. **Ranking Geral do save** (o `rows.sort` do top 20 da carreira);
+3. **O mural que classifica pra COPA DO MUNDO** (o `rws.sort` do top 24).
+
+O nº 3 é o perigoso: **é ele que decide quem entra na Copa do Mundo**. Se as
+ordens discordarem, a pessoa vê uma colocação e se classifica por outra — foi
+exatamente o bug de 10/08. Mexeu numa, confere as três.
+
+### O que mudou na prática (rodado nos dados reais)
+Quem ganha **Copa** subiu, quem vive de **Supercopa** desceu: Paduz 8º→6º,
+Marinheiros 9º→11º→ subiu vs a 1ª ideia, FLAMENGO SAF (Diego) 14º→12º; Império
+Samambaia (43 supercopas) e Tôka10 (34) desceram. O topo (Xurupitas, Derisvits,
+Dérick) não mudou — monstro é monstro em tudo.
+
+**Na tela:** as duas tabelas ganharam a coluna **PTS** com o total de cada um, e
+a legenda agora explica quanto vale cada troféu — ninguém precisa adivinhar por
+que está naquela posição.
+
+**Reverter:** é um commit isolado; `git revert` volta pra fila de desempate.
+
+## 🐛🌍 BUG ACHADO PELO DIEGO (17/08): Copa do Mundo VAZAVA pra carreira nova
+Ele estranhou no ranking global: o **"Real Manha"** aparecia lá em cima, acima de
+gente com **A44 + Copa33**, tendo **só 1 🌍 Copa do Mundo e nenhum outro título**.
+Conferido no código e no banco — não era impressão.
+
+**Duas coisas diferentes, e só uma é bug:**
+
+1. ✅ **NÃO é bug o Mundo passar na frente de tudo.** A ordem do ranking é regra
+   do Diego (16/08) e está escrita na própria tela: 🌍 Copa do Mundo › 🏆 Série A
+   › 🏆 Copa › 🏆🔵 Supercopa › B › C › D › Várzea › 💰. É uma fila de desempate —
+   **1 Mundo passa na frente de QUALQUER quantidade de Série A**.
+2. 🐛 **É bug ele TER o Mundo.** A Copa do Mundo só desbloqueia na **temporada
+   100** (`COPA_ANCHOR` em `copa-mundo.tsx`). O Real Manha tem `world_titles = 1`
+   **desde a temporada 1** — o que nenhuma regra do jogo permite.
+
+**Causa:** `state.copaMundoMural` **não era zerado ao começar carreira nova**. Os
+dois blocos de "FAXINA ANTI-HERANÇA" do `store.tsx` limpavam honras, copas,
+supercopas, agência, elencos de CPU… e esse campo tinha ficado de fora. Quem
+ganhou um Mundo numa carreira antiga levava o título pra carreira nova — e, como
+🌍 é o PRIMEIRO critério, a carreira recém-nascida (sem título, sem dinheiro)
+pulava pro TOPO do ranking mundial. Mesma família do bug "Copa21 em 8
+temporadas" (04/08).
+
+**Corrigido:** `s.copaMundoMural = undefined` nos dois blocos de reset.
+
+**Tamanho do estrago (medido, não estimado):** de **646 linhas** do ranking com
+Copa do Mundo, só **9** estão antes da T100 — e são todas da **mesma carreira, de
+uma conta só**. Ou seja: raro, mas real, e bem visível porque joga a pessoa pro
+primeiro lugar do mundo.
+
+✅ **ZERADO (17/08, com OK do Diego):** `update esc_pyramid_rank_snap set
+world_titles = 0 where world_titles > 0 and season_no < 100` — 9 linhas, todas da
+career_id 261025288. Conferido depois: **0 linhas tortas**, e a menor temporada
+com Copa do Mundo agora é a **115** (dentro da regra da T100).
+
+🛡️ **E foi posto um cinto de segurança**, senão voltava sozinho: o UPDATE limpa o
+banco, mas o mural continua no APARELHO do jogador — na próxima temporada dele o
+jogo regravaria `world_titles = 1`. Agora a contagem do rank só aceita edição que
+**cabe na carreira**: `m.season >= 100 && m.season <= seasonNo` (a Copa não existe
+antes da T100, e ninguém ganha uma edição futura — mesmo princípio do "ninguém vê
+o futuro de ninguém" que o ranking já usa). Isso **limpa sozinho** qualquer save
+já contaminado na próxima temporada jogada, sem ninguém precisar mexer no
+aparelho de ninguém.
 ## 🌍 COPA DO MUNDO VIROU 24 SELEÇÕES (17/08) — ✅ NO AR
 
 A Copa era de **20 seleções** (4 grupos de 5). Agora são **24** (4 grupos de 6).

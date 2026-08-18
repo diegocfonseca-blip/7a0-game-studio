@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-08-17', emoji: '🏅', titulo: 'Ranking agora é por pontos', texto: 'No Modo Carreira: Copa do Mundo vale 200, Copa do Brasil 30, Série A 20, Supercopa 15, B 10, C 5, D 3 e Várzea 1 — quem tem mais título soma mais, e a coluna PTS mostra a conta.' },
   { data: '2026-08-17', emoji: '🌍', titulo: 'Copa do Mundo com 24 seleções', texto: 'No Modo Carreira: entraram Croácia, Dinamarca, Peru e Equador — agora são 4 grupos de 6, e o TOP 24 do ranking de clubes garante vaga.' },
   { data: '2026-08-16', emoji: '🏠', titulo: 'Home nova', texto: 'A tela de abertura mudou: quem já tem carreira continua de cara, e cada botão diz o que você ganha ali.' },
   { data: '2026-08-16', emoji: '🔓', titulo: 'Carreira sem cadastro', texto: 'Dá pra jogar a primeira temporada inteira sem criar conta — o time fica guardado no aparelho.' },

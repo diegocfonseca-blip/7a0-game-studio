@@ -3687,6 +3687,16 @@ export function reducer(state: EscState, action: Action): EscState {
       // TUDO que é por-carreira zera aqui — senão vaza do save anterior.
       s.cpuSquads = undefined // fichas dos times de fundo: re-semeia do zero (antes REUSAVA os elencos da carreira velha!)
       s.copaDoneSeason = undefined // senão a Copa da temporada de mesmo nº era PULADA na carreira nova
+      // 🌍 O MURAL DA COPA DO MUNDO TAMBÉM ZERA (bug achado 17/08 pelo Diego).
+      // Ele tinha ficado de fora desta faxina, e era o pior de todos pra passar
+      // batido: a Copa do Mundo só existe da TEMPORADA 100 em diante, mas quem
+      // ganhou uma numa carreira velha levava o título pra carreira NOVA — e,
+      // como 🌍 é o PRIMEIRO critério do ranking global (na frente de qualquer
+      // quantidade de Série A), a carreira recém-nascida, sem título nenhum e
+      // sem dinheiro, pulava pro TOPO do ranking mundial na temporada 1.
+      // Foi exatamente o caso do "Real Manha" que apareceu acima de gente com
+      // 44 títulos da Série A.
+      s.copaMundoMural = undefined
       s.varzea = false // modo várzea do rápido não pode pintar o campo da carreira
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined // 🌱 crias/janela zerados
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
@@ -3783,6 +3793,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.empresarioCards = []; s.empresarioClaimKeys = []
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
+      s.copaMundoMural = undefined // 🌍 idem: título de Copa do Mundo não atravessa pra carreira nova
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
