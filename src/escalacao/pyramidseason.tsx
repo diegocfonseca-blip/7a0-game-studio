@@ -4138,7 +4138,19 @@ export function PyramidSeasonScreen() {
         const h = (state.careerHonors as Record<string, Honors> | undefined)?.[`m${youId}`] ?? EMPTY_HONORS
         const copas = state.careerCopaHonors?.[`m${youId}`] ?? 0
         const supercopas = state.careerSupercopaHonors?.[`m${youId}`] ?? 0
-        const world = mergedMundialMural(state.seed, state.copaMundoMural).filter(m => m.voce).length
+        // 🌍 SÓ CONTA COPA DO MUNDO QUE CABE NESTA CARREIRA (17/08). Duas travas
+        // no mesmo lugar, e as duas são "não dá pra ter o que ainda não jogou":
+        //   • a Copa do Mundo só existe da temporada 100 em diante;
+        //   • e ninguém pode ter ganho uma edição FUTURA da própria carreira —
+        //     é o mesmo princípio do ranking ("ninguém vê o futuro de ninguém").
+        // Isto é o cinto de segurança do bug que o Diego achou: o mural vazava da
+        // carreira velha pra nova e a carreira de temporada 1 nascia campeã do
+        // mundo, indo pro TOPO do ranking global. O reset em `store.tsx` já
+        // impede casos novos; esta linha LIMPA sozinho quem já ficou sujo, na
+        // próxima temporada que a pessoa jogar — sem precisar mexer no aparelho
+        // dela nem apagar nada à mão.
+        const world = mergedMundialMural(state.seed, state.copaMundoMural)
+          .filter(m => m.voce && m.season >= 100 && m.season <= (state.seasonNo ?? 0)).length
         const money = Math.round(state.careerCoins?.[youId] ?? 0)
         // 🏷️ `career_id` = o número do SAVE (o mesmo que separa as suas carreiras
         // em "Minhas carreiras"). É o que faz cada carreira ter a linha DELA no

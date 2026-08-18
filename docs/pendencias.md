@@ -30,10 +30,19 @@ Copa do Mundo, só **9** estão antes da T100 — e são todas da **mesma carrei
 uma conta só**. Ou seja: raro, mas real, e bem visível porque joga a pessoa pro
 primeiro lugar do mundo.
 
-⏳ **Falta decidir com o Diego:** zerar o `world_titles` dessa carreira no banco
-(`esc_pyramid_rank_snap`, career_id 261025288). É 1 UPDATE, mas o jogador **perde
-o 🌍 que ele vê hoje** — por isso não foi feito sem o OK. Enquanto não zerar, ele
-continua no topo do ranking global.
+✅ **ZERADO (17/08, com OK do Diego):** `update esc_pyramid_rank_snap set
+world_titles = 0 where world_titles > 0 and season_no < 100` — 9 linhas, todas da
+career_id 261025288. Conferido depois: **0 linhas tortas**, e a menor temporada
+com Copa do Mundo agora é a **115** (dentro da regra da T100).
+
+🛡️ **E foi posto um cinto de segurança**, senão voltava sozinho: o UPDATE limpa o
+banco, mas o mural continua no APARELHO do jogador — na próxima temporada dele o
+jogo regravaria `world_titles = 1`. Agora a contagem do rank só aceita edição que
+**cabe na carreira**: `m.season >= 100 && m.season <= seasonNo` (a Copa não existe
+antes da T100, e ninguém ganha uma edição futura — mesmo princípio do "ninguém vê
+o futuro de ninguém" que o ranking já usa). Isso **limpa sozinho** qualquer save
+já contaminado na próxima temporada jogada, sem ninguém precisar mexer no
+aparelho de ninguém.
 ## 🌍 COPA DO MUNDO VIROU 24 SELEÇÕES (17/08) — ✅ NO AR
 
 A Copa era de **20 seleções** (4 grupos de 5). Agora são **24** (4 grupos de 6).
