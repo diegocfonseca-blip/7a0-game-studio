@@ -14,6 +14,7 @@ import coringasMascoteImg from './img/coringas-mascote.webp'
 import ferrariMascoteImg from './img/ferrari-mascote.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import nataMascoteImg from './img/nata-mascote.webp' // 🤡 Nata de SP (pedrinhocamisa8): arte própria do dono
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
+import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 
 const INK = '#0C0C0C'
 
@@ -483,6 +484,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   skyy_aguia: (
     <img src={skyyMascoteImg} height={176} width={Math.round(176 * 354 / 440)} alt="A Águia — Skyy FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🧢💙💛 o BIGÃO (mascote dos Crias do Bigão — giovannecastro784, 17/08): o
+  // próprio dono de boné, camisa azul e amarela, chutando a bola. Arte própria
+  // do dono (webp, fora do bundle). mascote_key = "bigao".
+  bigao: (
+    <img src={bigaoMascoteImg} height={176} width={Math.round(176 * 319 / 440)} alt="O Bigão — Crias do Bigão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🤡🟡⚫ o PALHAÇO (mascote do Nata de SP — pedrinhocamisa8, aprovado 17/08):
   // arte própria do dono (webp, fora do bundle). mascote_key = "nata_palhaco".
   nata_palhaco: (
@@ -721,6 +728,7 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Coringas do Diniz': 'coringa_diniz', // 🃏 o coringa carimba o placar (16/08)
   'Nata de SP': 'nata_palhaco', // 🤡 o palhaço carimba o placar (pedrinhocamisa8, 17/08)
   'Skyy FC': 'skyy_aguia', // 🦅 a águia carimba o placar (matheusncruz1, 17/08)
+  'Crias do Bigão': 'bigao', // 🧢 o Bigão carimba o placar (giovannecastro784, 17/08)
 }
 
 // 7️⃣ carimbo exclusivo do Seven City: o sete dourado com borda preta grossa.
@@ -742,6 +750,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   maite: 'Maitê',              // 💚 Desportivo Montreal — homenagem à filha do Gabriel
   nata_palhaco: 'O Palhaço',   // 🤡 Nata de SP (pedrinhocamisa8, 17/08)
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
+  bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
 }
 
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)

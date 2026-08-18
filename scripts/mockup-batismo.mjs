@@ -107,7 +107,7 @@ body{width:890px;background:#F4ECD6;font-family:system-ui,'Segoe UI',Roboto,sans
 .osw{font-family:Oswald,sans-serif;text-transform:uppercase}
 .pill{display:inline-flex;align-items:center;gap:9px;background:#FFC400;border:3px solid #0C0C0C;border-radius:999px;
   padding:9px 20px;font-weight:700;font-size:17px;letter-spacing:.10em;box-shadow:4px 4px 0 #0C0C0C}
-h1{font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:700;font-size:74px;line-height:.88;letter-spacing:-.01em;margin:22px 0 0}
+h1{font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:700;font-size:74px;line-height:.98;letter-spacing:-.01em;margin:22px 0 0}
 h1 .r{color:#C2452F}
 .lead{font-size:19px;line-height:1.45;color:rgba(12,12,12,.72);margin-top:16px;max-width:800px}
 .lead b{color:#0C0C0C}
@@ -117,8 +117,11 @@ h1 .r{color:#C2452F}
 .hero .esc{background:#fff;border:4px solid #0C0C0C;border-radius:18px;padding:12px;flex:none;
   width:186px;height:186px;display:flex;align-items:center;justify-content:center}
 .hero .esc img{max-width:100%;max-height:100%;display:block}
-.hero h2{font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:700;font-size:46px;line-height:.9}
-.hero h2 small{display:block;font-size:29px;font-weight:600;opacity:.82}
+.hero h2{font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:700;font-size:46px;line-height:1.02}
+/* ⚠️ line-height apertado CORTA o til/acento das maiúsculas (o "Ã" de BIGÃO
+   sumia no cartão dourado). Nome de clube brasileiro tem acento — o respiro
+   aqui não é estética, é pra não sair errado no post. */
+.hero h2 small{display:block;font-size:29px;font-weight:600;opacity:.82;line-height:1.12}
 .cor{display:inline-flex;align-items:center;gap:8px;background:rgba(12,12,12,.10);border-radius:999px;
   padding:7px 16px;font-weight:700;font-size:16px;margin-top:12px}
 .hero p{font-size:15.5px;line-height:1.45;color:rgba(12,12,12,.72);margin-top:12px;max-width:420px}

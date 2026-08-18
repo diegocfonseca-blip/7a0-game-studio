@@ -23,6 +23,7 @@ import arrudaEscudoImg from './img/arruda-escudo.webp'
 import coringasEscudoImg from './img/coringas-escudo.webp'
 import nataEscudoImg from './img/nata-escudo.webp'
 import skyyEscudoImg from './img/skyy-escudo.webp'
+import bigaoEscudoImg from './img/bigao-escudo.webp'
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
@@ -450,6 +451,14 @@ const skyyEscudoRender = (size: number) => (
   <img src={skyyEscudoImg} height={size} width={Math.round(size * 348 / 360)} alt="Skyy FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🧢💙💛 Crias do Bigão (giovannecastro784) — ex-Ferroviária do Vale, Série B.
+// Escudo azul/amarelo com a cara do próprio dono de boné e a faixa com o nome.
+// Arte enviada pelo próprio dono; aqui só tiramos o fundo branco, cortamos no
+// limite do desenho e reduzimos (o escudo nunca passa de 78px na tela).
+const bigaoEscudoRender = (size: number) => (
+  <img src={bigaoEscudoImg} height={size} width={Math.round(size * 302 / 360)} alt="Crias do Bigão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🤡🟡⚫ Nata de SP (pedrinhocamisa8) — ex-Paris São Geraldo, Série D. Escudo
 // amarelo/preto com o palhaço e faixas de risco; arte enviada pelo próprio dono,
 // aqui só tiramos o fundo quadriculado falso, cortamos no limite do desenho e
@@ -565,6 +574,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Skyy FC': skyyEscudoRender,
   'Skyy': skyyEscudoRender,
   'Skyy FC SAF': skyyEscudoRender,
+  // 🧢💙💛 Crias do Bigão (giovannecastro784) — ex-Ferroviária do Vale, Série B.
+  // O nome velho fica registrado: quem já tinha carreira com a Ferroviária não
+  // fica sem escudo.
+  'Crias do Bigão': bigaoEscudoRender,
+  'Crias do Bigao': bigaoEscudoRender,
+  'Crias': bigaoEscudoRender,
+  'Crias do Bigão FC': bigaoEscudoRender,
   // 🎮🐶 Eros FC + variações reservadas (todas puxam o MESMO escudo)
   'Eros FC': erosEscudoRender,
   'Eros Reis FC': erosEscudoRender,

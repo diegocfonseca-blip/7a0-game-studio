@@ -2208,6 +2208,7 @@ export const OLD_NAME: Record<string, string> = {
   'Tokyo City Esperion': 'FC Galáticos', // ⚽ elo da corrente do denilson: FC Galáticos → Tokyo City Esperion → Xurupitas FC
   'Tôka10': 'Biriba United', // ⚽ batismo do ofc.toka10: save antigo com Biriba United vira Tôka10 ao carregar
   'Skyy FC': 'Fortuna SAF', // ⚽ batismo do matheusncruz1: save antigo com Fortuna SAF vira Skyy FC ao carregar
+  'Crias do Bigão': 'Ferroviária do Vale', // ⚽ batismo do giovannecastro784: save antigo com Ferroviária do Vale vira Crias do Bigão ao carregar (17/08)
   'SC Ferrari': 'Painitto FC', // ⚽ batismo do adriano.ferrari: save antigo com Painitto FC vira SC Ferrari ao carregar
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
   'Bicho da Seda': 'Red Bull Diet', // ⚽ batismo do davisantana1312 (Davi) — mariposa. Corrente direta Red Bull Diet → Bicho da Seda (o elo "Xurupitas FC" saiu em 10/08: esse nome agora é do denilson).
@@ -2331,7 +2332,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Val do Buraco', team: 'Flamengo do Sertão' },
   ],
   B: [
-    { name: 'Seu Ferreira', team: 'Ferroviária do Vale' },
+    { name: 'Seu Ferreira', team: 'Crias do Bigão' }, // ⚽ clube BATIZADO por apoiador (giovannecastro784 — Crias do Bigão, ex-Ferroviária do Vale, 17/08)
     { name: 'Mr. Porto', team: 'Athletico do Porto' },
     { name: 'Serrano', team: 'Nacional da Serra' },
     { name: 'Cerradão', team: 'Esporte do Cerrado' },
@@ -2378,7 +2379,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
 
 // ─── Clubes clássicos que completam a liga de 20 ─────────────────────
 export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
-  { name: 'Ferroviária do Vale', atk: 78, def: 76 },
+  { name: 'Crias do Bigão', atk: 78, def: 76 }, // ⚽ ex-Ferroviária do Vale (batismo 17/08) — mesma força, só o nome muda
   { name: 'Athletico do Porto', atk: 76, def: 78 },
   { name: 'Nacional da Serra', atk: 75, def: 73 },
   { name: 'Esporte do Cerrado', atk: 73, def: 75 },

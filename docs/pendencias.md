@@ -907,6 +907,42 @@ Valores: `p_email = souzact12@gmail.com` · `p_mascote = cobra_arruda` ·
 faço se o Diego liberar o acesso ao banco (a chamada foi recusada por
 aprovação pendente).
 
+## 🧢 Batismo Crias do Bigão (giovannecastro784@hotmail.com) — ✅ FECHADO 17/08
+Substituiu a **Ferroviária do Vale** na **Série B** (técnico *Seu Ferreira*
+continua — só o clube muda, como em todo batismo). O dono virou **ouro 👑 +
+fundador nº46 + sócio nº26**, pela regra permanente do CLAUDE.md.
+
+⚡ O charme deste: **a mascote é o próprio dono**. O escudo é a cara dele de
+boné, e a mascote é ele mesmo de uniforme chutando a bola.
+
+**Arte** (recortada das imagens que ele mandou):
+- `img/bigao-escudo.webp` — 302×360, **28,0 KB** (teto 30)
+- `img/bigao-mascote.webp` — 319×440, **38,1 KB** (teto 45) — total **66,1 KB**
+- 🧹 Fundo era **BRANCO** (não o quadriculado dos outros). Limpeza só a partir
+  da BORDA, de propósito: aqui o branco preso dentro do desenho é **parte da
+  arte** (dente, olho, brilho do escudo). É o inverso do caso Skyy, onde o
+  buraco preso era fundo. **Olhar a arte antes de escolher o método.**
+
+**Código** (os lugares de sempre):
+- `escudos.tsx`: `bigaoEscudoRender` + `LOGOS_PRONTAS` nos 4 nomes
+  (`Crias do Bigão` / `Crias do Bigao` / `Crias` / `Crias do Bigão FC`).
+- `mascotes.tsx`: `MASCOTES.bigao` + `MASCOTE_NOME.bigao = 'O Bigão'` +
+  `CARIMBO_GOL['Crias do Bigão'] = 'bigao'`.
+- `data.ts`: Série B + `OLD_NAME['Crias do Bigão'] = 'Ferroviária do Vale'`
+  (save antigo é renomeado ao carregar, ninguém perde carreira).
+- `apoio.tsx`: ouro + `FUNDADOR_N = 46`.
+
+**Banco** (`esc_socios`, INSERT — sócio **nº26**, permanente):
+`mascote_key = bigao` · `escudo_time = Crias do Bigão` · manto **`#0E62AA`**
+(azul) + **`#FCD111`** (amarelo), **medidas na camisa** que ele mandou.
+
+**Mockup**: gerado pelo padrão (`scripts/mockup-batismo.mjs`).
+🐛 Achado e corrigido no gerador durante este batismo: `line-height` apertado
+no cartão dourado **cortava o til** — saía "DO BIGAO". Nome de clube brasileiro
+tem acento, então isso ia acontecer de novo. Corrigido pra todos.
+
+⏳ **Falta só o TIME DO CORAÇÃO do Giovanne** (`time_coracao` NULL).
+
 ## 🦅 Batismo Skyy FC (matheusncruz1@gmail.com) — ✅ FECHADO 17/08
 
 O Diego mandou a arte (uma imagem só, com águia + escudo + camisa) e disse:
