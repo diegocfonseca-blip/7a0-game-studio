@@ -5237,9 +5237,9 @@ export function PyramidSeasonScreen() {
           // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
           const noVermelho = (state.careerCoins?.[youId] ?? 0) < 0
           // 🌍 COPA DO MUNDO LEGENDS: trava/contagem/botão dourado no fim da
-          // temporada (SOLO e ONLINE). Vaga e ordem = TOP 20 do ranking de clubes
+          // temporada (SOLO e ONLINE). Vaga e ordem = TOP 24 do ranking de clubes
           // (mural). No ONLINE cada técnico disputa a SUA Copa no próprio aparelho
-          // (os demais clubes do top 20 entram como CPU) — nada é sincronizado,
+          // (os demais clubes do top 24 entram como CPU) — nada é sincronizado,
           // então zero risco pro estado da sala; a Copa em sala (votação) é fase futura.
           const copaGate = (() => {
             const hn = (state.careerHonors ?? {}) as Record<string, Honors>
@@ -5268,8 +5268,8 @@ export function PyramidSeasonScreen() {
             // clube seu classificado (independentes até na Copa do Mundo).
             const dormeId = state.multiClube?.id
             const meu = (id: number) => id >= 0 && (id === youId || id === dormeId)
-            const top16 = rws.slice(0, 20).map(r => ({ name: r.t.name, you: meu(r.t.teamId) })) // 🌍 Copa de 20 seleções (era 16)
-            const meusNoTop = rws.slice(0, 20).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
+            const top16 = rws.slice(0, 24).map(r => ({ name: r.t.name, you: meu(r.t.teamId) })) // 🌍 Copa de 24 seleções (era 16, depois 20 — 17/08)
+            const meusNoTop = rws.slice(0, 24).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
             // 💰 prêmio da Copa (+100): dispatch normal — no SOLO aplica direto; no
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.

@@ -1,6 +1,6 @@
 // ─── 🌍 COPA DO MUNDO LEGENDS (v1 · carreira SOLO) ───────────────────────────
 // O endgame dos veteranos: desbloqueia na TEMPORADA 100, rola de 10 em 10.
-// Vaga e ordem de escolha = TOP 20 do RANKING DE CLUBES (o mural do Rank).
+// Vaga e ordem de escolha = TOP 24 do RANKING DE CLUBES (o mural do Rank).
 // Dentro da seleção NÃO tem leilão: é CONVOCAÇÃO pura — TODAS as cartas do país
 // aparecem (sem categoria na tela!) e o técnico escolhe SÓ 11.
 // Formato: 4 grupos ida-e-volta (desempate vitórias > saldo) → sorteio → quartas
@@ -34,7 +34,16 @@ const FLAG: Record<string, string> = {
   'Inglaterra': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Itália': '🇮🇹', 'Alemanha': '🇩🇪', 'Holanda': '🇳🇱',
   'Portugal': '🇵🇹', 'México': '🇲🇽', 'Colômbia': '🇨🇴', 'Uruguai': '🇺🇾',
   'Chile': '🇨🇱', 'Bélgica': '🇧🇪', 'EUA': '🇺🇸', 'Coreia do Sul': '🇰🇷', 'Paraguai': '🇵🇾',
+  // 🚩 estas FALTAVAM (17/08): Japão, Camarões e Senegal entraram na Copa em
+  // 02/08 e ficaram sem bandeira esse tempo todo — em 4 lugares o texto é
+  // montado com crase, então saía a palavra "undefined" na tela (ex.: no placar
+  // da rodada do grupo). As 4 últimas entraram na Copa de 24 (17/08).
+  'Japão': '🇯🇵', 'Camarões': '🇨🇲', 'Senegal': '🇸🇳',
+  'Croácia': '🇭🇷', 'Dinamarca': '🇩🇰', 'Peru': '🇵🇪', 'Equador': '🇪🇨',
 }
+// 🏳️ bandeira SEMPRE com rede: seleção sem bandeira cadastrada mostra a branca,
+// nunca "undefined". Todo lugar que desenha bandeira passa por aqui.
+const flagOf = (pais: string): string => FLAG[pais] ?? '🏳️'
 // 🎨 COR REAL de cada seleção (pedido do Diego 11/08: "tipo França azul
 // vermelho e branco, Japão vermelho e branco" — a cor mais icônica do manto
 // de cada país, não mais um hash genérico). Usada nos jogos e nas tabelas.
@@ -43,6 +52,10 @@ const PAIS_COLORS: Record<string, string> = {
   'Inglaterra': '#C8102E', 'Itália': '#0066CC', 'Alemanha': '#0a0a0a', 'Holanda': '#F36C21',
   'Portugal': '#C8102E', 'México': '#006341', 'Colômbia': '#FCD116', 'Uruguai': '#6CACE4',
   'Chile': '#D52B1E', 'Bélgica': '#ED2939', 'EUA': '#002868', 'Coreia do Sul': '#C60C30', 'Paraguai': '#D52B1E',
+  // 🎨 mesmas 7 que faltavam na bandeira — sem isso caíam num tom sorteado por
+  // hash (copaSideColor), em vez da cor de verdade do manto.
+  'Japão': '#BC002D', 'Camarões': '#007A5E', 'Senegal': '#00853F',
+  'Croácia': '#E8112D', 'Dinamarca': '#C60C30', 'Peru': '#D91023', 'Equador': '#FFDD00',
 }
 const paisColor = (pais: string): string => PAIS_COLORS[pais] ?? copaSideColor(pais)
 
@@ -190,9 +203,12 @@ function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away
   return evs.sort((a, b) => a.min - b.min)
 }
 
-// 🌍 formato da Copa: 4 grupos de 5 (turno único = 5 rodadas) → top 2 de cada = 8
-// → quartas/semis/final. (Era 4 grupos de 4 ida-volta = 16; expandido pra 20 seleções.)
-const NUM_GROUPS = 4, GROUP_SIZE = 5, GROUP_ROUNDS = 5, COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 20
+// 🌍 formato da Copa: 4 grupos de 6 (turno único = 5 rodadas) → top 2 de cada = 8
+// → quartas/semis/final. (Era 4 grupos de 4 ida-volta = 16; depois 4 de 5 = 20;
+// desde 17/08 são 4 de 6 = 24, quando Croácia/Dinamarca/Peru/Equador fecharam 22
+// cartas cada.) Com 6 (par) o turno único continua dando 5 rodadas, só que sem o
+// "bye" que sobrava no grupo de 5 — o mata-mata não muda em nada.
+const NUM_GROUPS = 4, GROUP_SIZE = 6, GROUP_ROUNDS = 5, COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 24
 
 // turno único (round-robin) pra N times — cada um joga contra todos UMA vez. N ímpar
 // ganha um "bye" por rodada (o -1 é descartado). Determinístico (a ordem vem de fora).
@@ -314,7 +330,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
   if (seasonNo < COPA_ANCHOR) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>🔒 Copa do Mundo Legends</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 20 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 24 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</p>
       <div style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${Math.min(100, seasonNo)}%`, background: `linear-gradient(90deg,#FFE79A,${GOLD})`, borderRight: `2px solid ${INK}` }} />
         <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 8.5, fontWeight: 900, color: INK }}>temporada {seasonNo} de 100</b>
@@ -335,7 +351,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
   if (!inTop16) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>🔒 Copa do Mundo Legends — temporada {seasonNo}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>É temporada de Copa, mas <b>seu clube não está no TOP 20 do ranking de clubes</b> {rankLink}. Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>É temporada de Copa, mas <b>seu clube não está no TOP 24 do ranking de clubes</b> {rankLink}. Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</p>
     </div>
   )
 
@@ -450,7 +466,7 @@ function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose }: { paises16:
         return (
           <button key={p} disabled={locked} onClick={() => onPick(p)}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 11px', marginBottom: 6, cursor: locked ? 'not-allowed' : 'pointer', background: locked ? '#CBBF9E' : '#fff', boxShadow: locked ? 'none' : `3px 3px 0 0 ${INK}`, opacity: locked ? 0.75 : 1, textAlign: 'left' }}>
-            <span style={{ fontSize: 21 }}>{FLAG[p] ?? '🏳️'}</span>
+            <span style={{ fontSize: 21 }}>{flagOf(p)}</span>
             <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, color: locked ? 'rgba(0,0,0,.5)' : INK }}>{i + 1}º · {p}</span>
             {locked
               ? <span style={{ fontSize: 8.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', textAlign: 'right', lineHeight: 1.25 }}>🔒 só pra quem chegou<br />em {i + 1}º ou melhor</span>
@@ -503,7 +519,7 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
   return (
     <>
       <div style={{ ...box('#0C0C0C'), padding: '9px 11px', display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, borderRadius: 13 }}>
-        <span style={{ fontSize: 28 }}>{FLAG[pais] ?? '🏳️'}</span>
+        <span style={{ fontSize: 28 }}>{flagOf(pais)}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, color: '#fff', textTransform: 'uppercase' }}>Convocação · {pais}</p>
           <p style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', margin: '2px 0 0' }}>{totalCards} jogadores na lista — só nome, clube e ano. Convoque 11.</p>
@@ -567,7 +583,7 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
       {/* campinho compacto: convocados por linha (ATA/MEI/DEF/GOL, padrão do pregão) */}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 10 }}>
         <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{FLAG[pais]} sua seleção · {total}/11 · {form}</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{flagOf(pais)} sua seleção · {total}/11 · {form}</span>
         </div>
         <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 7 }}>
           {(['ATA', 'MEI', 'DEF', 'GOL'] as (Sec | 'DEF')[]).map(row => {
@@ -677,7 +693,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
   // placar da FINAL aparece na tela — sem depender do clique da cerimônia.
   const finalSeen = step >= GR + 6 && liveDone
   const myIdx = entrants.findIndex(isYouE)
-  const nm = (i: number) => `${FLAG[entrants[i].pais]} ${entrants[i].pais}`
+  const nm = (i: number) => `${flagOf(entrants[i].pais)} ${entrants[i].pais}`
   const club = (i: number) => entrants[i].club
   const isYou = (i: number) => entrants[i].you
 
@@ -876,7 +892,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
               ))}
               {shownRounds > 0 && liveDone && (
                 <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', margin: '4px 0 0' }}>
-                  rodada {shownRounds}: {g.matches[shownRounds - 1].map(m => `${FLAG[entrants[m.h].pais]} ${m.gh}×${m.ga} ${FLAG[entrants[m.a].pais]}`).join(' · ')}
+                  rodada {shownRounds}: {g.matches[shownRounds - 1].map(m => `${flagOf(entrants[m.h].pais)} ${m.gh}×${m.ga} ${flagOf(entrants[m.a].pais)}`).join(' · ')}
                 </p>
               )}
             </div>
@@ -981,7 +997,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
             {top.map((r, i) => (
               <div key={r.name + r.team} style={{ display: 'flex', gap: 6, fontSize: 10.5, fontWeight: entrants[r.team].you ? 900 : 600, background: entrants[r.team].you ? '#FFE9B0' : 'transparent', borderRadius: 6, padding: '2px 5px' }}>
                 <span style={{ width: 16 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`}</span>
-                <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name} <span style={{ fontSize: 9, color: 'rgba(0,0,0,.5)' }}>{FLAG[entrants[r.team].pais]}</span></span>
+                <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name} <span style={{ fontSize: 9, color: 'rgba(0,0,0,.5)' }}>{flagOf(entrants[r.team].pais)}</span></span>
                 <span style={{ fontWeight: 900 }}>{r.goals} gol{r.goals > 1 ? 's' : ''}</span>
               </div>
             ))}
@@ -995,7 +1011,7 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
             .filter((m, i, arr) => arr.findIndex(x => x.season === m.season) === i)
             .map(m => (
               <p key={m.season} style={{ fontSize: 10.5, fontWeight: m.voce ? 900 : 700, color: m.voce ? GOLD : 'rgba(255,255,255,.85)', margin: '2px 0 0' }}>
-                temporada {m.season} · {FLAG[m.selecao] ?? '🏳️'} {m.selecao} — {m.campeao}{m.voce ? ' ⭐ (VOCÊ)' : ''}
+                temporada {m.season} · {flagOf(m.selecao)} {m.selecao} — {m.campeao}{m.voce ? ' ⭐ (VOCÊ)' : ''}
               </p>
             ))}
         </div>

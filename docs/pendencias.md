@@ -34,6 +34,52 @@ primeiro lugar do mundo.
 (`esc_pyramid_rank_snap`, career_id 261025288). É 1 UPDATE, mas o jogador **perde
 o 🌍 que ele vê hoje** — por isso não foi feito sem o OK. Enquanto não zerar, ele
 continua no topo do ranking global.
+## 🌍 COPA DO MUNDO VIROU 24 SELEÇÕES (17/08) — ✅ NO AR
+
+A Copa era de **20 seleções** (4 grupos de 5). Agora são **24** (4 grupos de 6).
+Entraram **Croácia, Dinamarca, Peru e Equador**, cada uma fechando as 22 cartas.
+
+**Como a decisão foi tomada** (pra outra sessão não refazer a conta):
+- Só entra na Copa quem tem **22 cartas** no molde `2 GOL · 4 LAT · 4 ZAG ·
+  6 MEI · 6 ATA`. Antes eram exatamente 20 seleções nesse patamar.
+- Com 20 vagas fixas, completar 2 seleções novas **derrubaria 2 antigas**
+  (o desempate é ordem de inserção, não mérito — cairiam Coreia do Sul e Japão).
+  Por isso subimos as vagas junto: 24 seleções ↔ **TOP 24 do ranking de clubes**
+  (os dois números andam JUNTOS, `COPA_TEAMS` e o `slice` do gate).
+- O Diego escolheu as 4: começou com Equador/Peru/Suécia/Dinamarca, **vetou a
+  Bolívia** ("muito ruim") e depois **trocou a Suécia pela Croácia**.
+- Hoje há exatamente 24 seleções com 22+; a 25ª tem 4 cartas. O corte no top 24
+  é limpo (tem um abismo natural ali) — não é corte arbitrário.
+
+**⚠️ Regra nova do Diego (17/08) — em que baralho a carta nasce:**
+> *"colocar esses jogadores no jogo mas de maneira inteligente.. Trauco por
+> exemplo no Flamengo no ano certo então é baralho do Brasil mas seleção Peru"*
+
+A carta nasce no baralho de **ONDE O CARA JOGOU** (BR/EU/MUNDO), e a
+**nacionalidade** vem da etiqueta em `paises.ts`. Os dois são independentes.
+Por isso a leva ficou espalhada: 45 no EU, 17 no MUNDO, **3 no BR** (Trauco e
+Cueva no Peru, Erazo no Equador). O `countryPool` da Copa já varre os três
+baralhos e junta pela etiqueta, então isso funciona sem gambiarra.
+
+**O que foi mexido:** `data.ts` (blocos `L24_BR_*`, `L24_EU_*`, `L24_WORLD_*`) ·
+`paises.ts` (65 etiquetas + as 29 que estavam faltando, abaixo) ·
+`copa-mundo.tsx` (`GROUP_SIZE 5→6`, textos "TOP 20"→"TOP 24") ·
+`pyramidseason.tsx` (`slice(0, 20)`→`slice(0, 24)`).
+
+**Conferido antes de subir:** as 4 seleções batem 22 exatos no molde certo e
+escalam 4-3-3 e 4-4-2 · zero carta repetida (nome+clube) · zero carta sem país ·
+grupo de 6 dá turno completo (5 rodadas, 15 jogos, todos se enfrentam 1×, e
+**cada seleção joga 5 jogos em vez de 4** — no grupo de 5 sobrava um "bye").
+O mata-mata NÃO mudou: top 2 de cada grupo = 8 → quartas/semi/final.
+
+**Antes disso, no mesmo dia:** 29 cartas dos baralhos EU/MUNDO estavam **sem
+etiqueta de país** (caíam em `'??'` e sumiam da contagem de seleção). Corrigidas
+— entre elas Rakitić, Perišić, Mandžukić, Brozović e Kovačić, que sozinhas
+puxaram a Croácia de 3 pra 8 cartas e mudaram a ordem da fila.
+
+**⏳ Próximas da fila** (se o Diego quiser 28 um dia): Bolívia, Polônia, Costa
+do Marfim, Egito, Arábia Saudita — todas com 4 cartas, faltando 18 cada.
+A Bolívia está **vetada** por ele.
 
 ## 🃏 BAFO — ✅ CODADO INTEIRO (17/08), invisível pra todo mundo menos o Diego
 

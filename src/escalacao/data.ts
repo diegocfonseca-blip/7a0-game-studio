@@ -1298,7 +1298,21 @@ const NOVOS_BR2_ATA: C[] = [
   { name: "Alex Alves", club: "Cruzeiro", year: 1999, fame: 3, lo: 74, hi: 84, bio: "\u0022Capoeira\u0022 — centroavante artilheiro do Cruzeiro, comemorava os gols com golpes de capoeira. Artilheiro do time no Brasileirão de 1999, foi vendido pro Hertha Berlin por US$ 7 milhões." },
   { name: "Osvaldo", club: "Ceará", year: 2011, fame: 2, lo: 64, hi: 80, bio: "Centroavante de área — campeão cearense de 2011 pelo Ceará, antes do bom momento que rendeu a convocação pra Seleção jogando pelo São Paulo." },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA] }
+// 🌍 LOTE COPA 24 (17/08) — parte BRASIL. Regra do Diego: a carta nasce no baralho
+// de ONDE O CARA JOGOU. Estes três fizeram carreira no Brasil, então são carta do
+// baralho BR mesmo sendo de outra seleção (a nacionalidade sai da etiqueta em
+// paises.ts — sem ela, o baralho BR assume "brasileiro" por padrão).
+// Ver o comentário completo da leva no bloco L24_WORLD_*.
+const L24_BR_LAT: C[] = [
+  { name: 'Miguel Trauco', club: 'Flamengo', year: 2019, fame: 2, lo: 66, hi: 81, bio: 'Lateral-esquerdo peruano de bom pé — anos de Flamengo e titular da seleção que voltou às Copas.' },
+]
+const L24_BR_ZAG: C[] = [
+  { name: 'Frickson Erazo', club: 'Flamengo', year: 2014, fame: 2, lo: 66, hi: 80, bio: 'Zagueiro equatoriano que rodou o Brasil — Flamengo, Grêmio e a seleção nas eliminatórias.' },
+]
+const L24_BR_MEI: C[] = [
+  { name: 'Christian Cueva', club: 'São Paulo', year: 2018, fame: 2, lo: 68, hi: 82, bio: 'Meia driblador peruano que passou por São Paulo e Santos — talento e polêmica na mesma medida.' },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -1883,7 +1897,65 @@ const NOVOS_EU_ATA: C[] = [
   { name: 'Rummenigge', club: 'Bayern', year: 1981, fame: 5, lo: 90, hi: 95, bio: 'Karl-Heinz Rummenigge — atacante alemão duas vezes Bola de Ouro (1980 e 1981), craque elegante e ídolo máximo do Bayern de Munique, vice-campeão do mundo com a Alemanha.' },
   { name: 'Mancini', club: 'Roma', year: 2006, fame: 4, lo: 82, hi: 89, bio: 'Lateral brasileiro que virou ala na Itália — auge vestindo a Roma (2003-2008), ídolo da torcida com o golaço de calcanhar que virou "Tacco di Dio". Começou como lateral-direito no Atlético-MG, onde chegou a fazer 15 gols numa única Brasileirão.' },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL], LAT: LAT_EU, ZAG: ZAG_EU, MEI: [...MEI_EU, ...NOVOS_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA] }
+// 🌍 LOTE COPA 24 (17/08) — parte EUROPA. Croácia e Dinamarca inteiras caem aqui
+// (jogaram a vida toda na Europa), mais os peruanos e equatorianos que fizeram
+// carreira europeia. Ver o comentário completo da leva no bloco L24_WORLD_*.
+const L24_EU_GOL: C[] = [
+  { name: 'Dominik Livaković', club: 'Dinamo Zagreb', year: 2022, fame: 3, lo: 76, hi: 85, bio: 'Paredão croata da Copa de 2022 — pegou três pênaltis contra o Japão e ainda defendeu o do Brasil nas quartas.' },
+  { name: 'Kasper Schmeichel', club: 'Leicester', year: 2016, fame: 3, lo: 78, hi: 86, bio: 'Filho do Peter e campeão inglês no milagre do Leicester — provou que o sobrenome não pesou.' },
+]
+const L24_EU_LAT: C[] = [
+  { name: 'Robert Jarni', club: 'Real Betis', year: 1998, fame: 3, lo: 76, hi: 85, bio: 'Canhota afiada do 3º lugar da Croácia em 98 — dele saiu o gol que derrubou a Alemanha nas quartas.' },
+  { name: 'Vedran Ćorluka', club: 'Tottenham', year: 2010, fame: 2, lo: 68, hi: 82, bio: 'Lateral/zagueiro croata de cabelo platinado — Manchester City, Tottenham e anos de Rússia.' },
+  { name: 'Šime Vrsaljko', club: 'Atlético de Madrid', year: 2018, fame: 2, lo: 68, hi: 82, bio: 'Lateral-direito do vice da Copa de 2018 e do Atlético de Simeone — marcação e fôlego.' },
+  { name: 'Ivan Strinić', club: 'Napoli', year: 2018, fame: 2, lo: 64, hi: 80, bio: 'Lateral-esquerdo croata do vice-campeonato de 2018, com passagem por Napoli e Milan.' },
+  { name: 'Thomas Helveg', club: 'Milan', year: 1999, fame: 3, lo: 74, hi: 84, bio: 'Lateral-direito dinamarquês campeão italiano pelo Milan — regularidade de relógio suíço.' },
+  { name: 'Joakim Mæhle', club: 'Atalanta', year: 2021, fame: 3, lo: 74, hi: 84, bio: 'Explodiu na Euro 2020 com gols na campanha emocionante da Dinamarca até a semifinal.' },
+  { name: 'Jan Heintze', club: 'PSV', year: 1997, fame: 2, lo: 66, hi: 81, bio: 'Capitão canhoto do PSV que jogou a Copa de 2002 aos 38 anos — carreira sem fim.' },
+  { name: 'Daniel Wass', club: 'Valencia', year: 2019, fame: 2, lo: 66, hi: 81, bio: 'Curinga dinamarquês do Valencia — jogava de lateral, de volante e de meia sem perder nada.' },
+  { name: 'Ulises de la Cruz', club: 'Aston Villa', year: 2003, fame: 3, lo: 74, hi: 84, bio: 'Lateral da primeira Copa do Equador — ficou tão famoso pelo futebol quanto por reconstruir a própria vila com o dinheiro que ganhou.' },
+  { name: 'Pervis Estupiñán', club: 'Brighton', year: 2023, fame: 3, lo: 76, hi: 85, bio: 'Lateral-esquerdo equatoriano de subida infinita — brilhou no Brighton e foi parar no Milan.' },
+]
+const L24_EU_ZAG: C[] = [
+  { name: 'Joško Gvardiol', club: 'Man City', year: 2024, fame: 4, lo: 80, hi: 88, bio: 'Zagueiro croata que joga de lateral e vira atacante — um dos defensores mais caros da história, peça do City de Guardiola.' },
+  { name: 'Dejan Lovren', club: 'Liverpool', year: 2019, fame: 3, lo: 74, hi: 84, bio: 'Campeão da Champions pelo Liverpool e vice do mundo com a Croácia em 2018.' },
+  { name: 'Domagoj Vida', club: 'Beşiktaş', year: 2018, fame: 3, lo: 72, hi: 83, bio: 'Zagueiro de raça do vice-campeonato croata de 2018 — jogava com a cabeça enfaixada se precisasse.' },
+  { name: 'Igor Štimac', club: 'Derby County', year: 1998, fame: 2, lo: 68, hi: 82, bio: 'Xerife da Croácia do 3º lugar em 98 — durão na Inglaterra e no Hajduk Split.' },
+  { name: 'Simon Kjær', club: 'Milan', year: 2021, fame: 3, lo: 76, hi: 85, bio: 'Capitão dinamarquês que socorreu Eriksen em campo na Euro 2020 e virou herói fora do futebol — em campo, líder do Milan.' },
+  { name: 'Daniel Agger', club: 'Liverpool', year: 2012, fame: 3, lo: 76, hi: 85, bio: 'Zagueiro canhoto de saída de bola limpa e corpo tatuado dos pés à cabeça — ídolo de Anfield.' },
+  { name: 'Andreas Christensen', club: 'Barcelona', year: 2023, fame: 3, lo: 76, hi: 85, bio: 'Campeão da Champions pelo Chelsea e titular do Barcelona — zagueiro elegante que sai jogando.' },
+  { name: 'Morten Olsen', club: 'Anderlecht', year: 1983, fame: 3, lo: 76, hi: 85, bio: "Líbero elegante e capitão do 'Danish Dynamite' dos anos 80 — depois virou o técnico mais longevo da história da seleção." },
+  { name: 'Alberto Rodríguez', club: 'Sporting Braga', year: 2015, fame: 2, lo: 68, hi: 82, bio: "'El Mudo' — xerife calado da zaga peruana que voltou às Copas, com anos de Portugal." },
+]
+const L24_EU_MEI: C[] = [
+  { name: 'Zvonimir Boban', club: 'Milan', year: 1998, fame: 4, lo: 82, hi: 90, bio: 'Capitão da Croácia do 3º lugar em 98 e do Milan multicampeão — elegância pura no meio-campo.' },
+  { name: 'Robert Prosinečki', club: 'Estrela Vermelha', year: 1991, fame: 4, lo: 82, hi: 90, bio: 'Campeão europeu aos 22 e único jogador a marcar em Copas por dois países (Iugoslávia em 90, Croácia em 98). Passou por Real Madrid e Barcelona.' },
+  { name: 'Brian Laudrup', club: 'Rangers', year: 1996, fame: 4, lo: 82, hi: 90, bio: 'Irmão do Michael e herói da Eurocopa de 92 — ídolo máximo do Rangers, drible e velocidade de craque.' },
+  { name: 'Pierre-Emile Højbjerg', club: 'Tottenham', year: 2021, fame: 3, lo: 76, hi: 85, bio: 'Volante dinamarquês de pulmão infinito — capitão precoce e motor do Tottenham.' },
+  { name: 'Thomas Delaney', club: 'Dortmund', year: 2019, fame: 2, lo: 68, hi: 82, bio: 'Volante de marcação e chegada — Werder, Dortmund e o meio-campo da Dinamarca da Euro 2020.' },
+  { name: 'Christian Poulsen', club: 'Sevilla', year: 2007, fame: 2, lo: 68, hi: 82, bio: 'Volante dinamarquês de trincheira, campeão da Copa da UEFA pelo Sevilla.' },
+  { name: 'Nolberto Solano', club: 'Newcastle', year: 2002, fame: 3, lo: 76, hi: 85, bio: "'Ñol' — cruzamento e falta de primeira no Newcastle. Fora de campo, tocava trompete em banda de salsa." },
+  { name: 'Renato Tapia', club: 'Celta de Vigo', year: 2021, fame: 2, lo: 70, hi: 82, bio: 'Volante peruano de contenção, dono do meio-campo no Celta e na seleção.' },
+  { name: 'Christian Noboa', club: 'Zenit', year: 2012, fame: 2, lo: 70, hi: 82, bio: 'Meia equatoriano de bom pé e bola parada — mais de uma década jogando na Rússia.' },
+  { name: 'Renato Ibarra', club: 'Vitesse', year: 2015, fame: 2, lo: 66, hi: 80, bio: 'Ponta driblador equatoriano formado no Ajax, com anos de destaque no América do México.' },
+]
+const L24_EU_ATA: C[] = [
+  { name: 'Alen Bokšić', club: 'Marseille', year: 1993, fame: 3, lo: 78, hi: 86, bio: 'Campeão da Champions e artilheiro do Francês pelo Marseille em 93 — depois Lazio e Juventus.' },
+  { name: 'Ivica Olić', club: 'Bayern', year: 2010, fame: 3, lo: 74, hi: 84, bio: 'Guerreiro croata que não parava nunca — hat-trick na semi da Champions contra o Lyon.' },
+  { name: 'Eduardo da Silva', club: 'Arsenal', year: 2007, fame: 3, lo: 76, hi: 85, bio: 'Brasileiro naturalizado croata, artilheiro nato do Arsenal de Wenger — a carreira virou do avesso depois de uma fratura brutal em 2008.' },
+  { name: 'Allan Simonsen', club: 'Mönchengladbach', year: 1977, fame: 4, lo: 82, hi: 90, bio: 'Bola de Ouro de 1977 e o único jogador a marcar nas finais das três copas europeias — o maior dinamarquês de todos.' },
+  { name: 'Preben Elkjær', club: 'Verona', year: 1985, fame: 4, lo: 82, hi: 90, bio: "Centroavante bruto e genial do Verona campeão italiano surpresa de 85 — símbolo do 'Danish Dynamite'." },
+  { name: 'Jon Dahl Tomasson', club: 'Milan', year: 2003, fame: 3, lo: 76, hi: 85, bio: 'Campeão da Champions pelo Milan e maior artilheiro da história da Dinamarca — faro de área puro.' },
+  { name: 'Rasmus Højlund', club: 'Man United', year: 2024, fame: 3, lo: 76, hi: 85, bio: 'Centroavante jovem e forte que saiu da Atalanta pro Manchester United por uma fortuna.' },
+  { name: 'Ebbe Sand', club: 'Schalke', year: 2001, fame: 2, lo: 70, hi: 83, folk: true, bio: 'Artilheiro do Schalke e dono do gol mais rápido de quem entra do banco em Copas: 16 segundos depois de pisar no campo, em 98.' },
+  { name: 'Claudio Pizarro', club: 'Bayern', year: 2008, fame: 4, lo: 80, hi: 88, bio: 'O maior artilheiro estrangeiro da história da Bundesliga — ídolo de Bayern e Werder, jogou até os 41 anos.' },
+  { name: 'Jefferson Farfán', club: 'Schalke', year: 2012, fame: 3, lo: 76, hi: 85, bio: "'La Foquita' — ponta explosivo do PSV e do Schalke, parceiro de Guerrero no Peru que voltou às Copas." },
+  { name: 'Hugo Sotil', club: 'Barcelona', year: 1974, fame: 3, lo: 76, hi: 85, bio: "'El Cholo' — parceiro de Cruyff no Barcelona campeão espanhol de 74 e craque do Peru da Copa de 70." },
+  { name: 'Gianluca Lapadula', club: 'Cagliari', year: 2022, fame: 2, lo: 68, hi: 82, bio: 'Ítalo-peruano que escolheu jogar pelo Peru e virou paixão nacional — comemorava chorando com a bandeira.' },
+  { name: 'Felipe Caicedo', club: 'Lazio', year: 2020, fame: 3, lo: 74, hi: 84, bio: "'Panterone' — especialista em gol salvador nos acréscimos pela Lazio, terror dos times que já achavam que tinham ganhado." },
+  { name: 'Jefferson Montero', club: 'Swansea', year: 2015, fame: 2, lo: 68, hi: 82, bio: 'Ponta equatoriano de drible seco — dava trabalho aos melhores laterais da Premier League.' },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -2070,7 +2142,44 @@ const NOVOS_WORLD_ATA: C[] = [
   { name: 'Papiss Cissé', club: 'Newcastle', year: 2012, fame: 3, lo: 74, hi: 84, bio: 'Parceiro de Demba Ba no Newcastle — autor de um dos gols mais lindos da história da Premier.' },
   { name: 'Ismaïla Sarr', club: 'Watford', year: 2020, fame: 3, lo: 74, hi: 84, bio: 'Ponta veloz de Senegal, campeão africano — pesadelo dos laterais pelo Watford.' },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA] }
+// 🌍 LOTE COPA 24 (17/08, escolha do Diego) — parte MUNDO. A leva inteira são 65
+// famosos de Croácia/Dinamarca/Peru/Equador pra cada seleção fechar 22 e a Copa
+// do Mundo virar 24 (4 grupos de 6). A Suécia estava na lista e o Diego trocou
+// pela Croácia; a Bolívia foi vetada por ele ("muito ruim").
+// ⚠️ Regra do Diego (17/08): a carta nasce no BARALHO DE ONDE O CARA JOGOU, não
+// no da nacionalidade — "Trauco por exemplo no Flamengo no ano certo, então é
+// baralho do Brasil mas seleção Peru". Por isso esta leva está espalhada nos três
+// baralhos (BR/EU/MUNDO); quem amarra tudo é a etiqueta de país em paises.ts.
+// Aqui ficam os que jogaram FORA do Brasil e da Europa (América do Sul, México,
+// MLS, Arábia). Molde de cada seleção: 2 GOL · 4 LAT · 4 ZAG · 6 MEI · 6 ATA = 22.
+const L24_WORLD_GOL: C[] = [
+  { name: 'Pedro Gallese', club: 'Orlando City', year: 2022, fame: 2, lo: 70, hi: 82, bio: "'El Pulpo' — goleiro do Peru nas Copas Américas de vice e semifinal, especialista em pênalti." },
+  { name: 'Ramón Quiroga', club: 'Sporting Cristal', year: 1978, fame: 2, lo: 66, hi: 81, folk: true, bio: "'El Loco' — argentino naturalizado peruano que saía driblando até o campo adversário. Levou cartão por falta no ataque, coisa de goleiro nenhum." },
+  { name: 'Alexander Domínguez', club: 'LDU Quito', year: 2015, fame: 2, lo: 68, hi: 81, bio: 'Goleirão equatoriano de 1,95m — dono do gol da seleção por uma década.' },
+  { name: 'Máximo Banguera', club: 'Barcelona SC', year: 2014, fame: 1, lo: 62, hi: 78, bio: 'Goleiro ídolo do Barcelona de Guayaquil, presença constante na seleção equatoriana.' },
+]
+const L24_WORLD_LAT: C[] = [
+  { name: 'Luis Advíncula', club: 'Boca Juniors', year: 2022, fame: 3, lo: 72, hi: 83, bio: 'Um dos laterais mais velozes da América — ídolo da Boca e motor da direita peruana.' },
+  { name: 'Aldo Corzo', club: 'Universitario', year: 2018, fame: 2, lo: 62, hi: 79, bio: 'Lateral raçudo, capitão do Universitario e marcador de confiança do Peru.' },
+  { name: 'Neicer Reasco', club: 'LDU Quito', year: 2008, fame: 2, lo: 68, hi: 82, bio: 'Lateral campeão da Libertadores de 2008 pela LDU, com passagem pelo São Paulo.' },
+  { name: 'Mario Pineida', club: 'Barcelona SC', year: 2017, fame: 1, lo: 62, hi: 78, bio: 'Lateral-esquerdo equatoriano rodado, titular do Barcelona de Guayaquil por muitos anos.' },
+]
+const L24_WORLD_ZAG: C[] = [
+  { name: 'Carlos Zambrano', club: 'Boca Juniors', year: 2021, fame: 2, lo: 68, hi: 82, bio: "'El Káiser' — zagueiro peruano de marcação pesada, formado no futebol alemão." },
+  { name: 'Luis Abram', club: 'Vélez', year: 2021, fame: 2, lo: 66, hi: 80, bio: 'Zagueiro canhoto peruano revelado no Vélez — bom no jogo aéreo e na saída de bola.' },
+]
+const L24_WORLD_MEI: C[] = [
+  { name: 'César Cueto', club: 'Alianza Lima', year: 1978, fame: 3, lo: 76, hi: 85, bio: "'O Poeta da Canhota' — meia mágico do Peru na Copa de 78, ídolo também no Atlético Nacional." },
+  { name: 'Pedro Aquino', club: 'América do México', year: 2021, fame: 2, lo: 66, hi: 80, bio: 'Volante peruano de chute forte de fora da área — canhão de longa distância.' },
+  { name: 'Edison Méndez', club: 'LDU Quito', year: 2008, fame: 3, lo: 76, hi: 85, bio: 'O maior camisa 10 da história do Equador — cérebro da LDU campeã da Libertadores de 2008, com passagem pelo Santos.' },
+]
+const L24_WORLD_ATA: C[] = [
+  { name: 'André Carrillo', club: 'Al-Hilal', year: 2021, fame: 2, lo: 70, hi: 82, bio: "'La Culebra' — ponta peruano de drible curto, passou por Benfica e Watford antes de reinar na Arábia." },
+  { name: 'Agustín Delgado', club: 'Necaxa', year: 2001, fame: 3, lo: 74, hi: 84, bio: "'El Tín' — os gols dele levaram o Equador à primeira Copa do Mundo da história, em 2002." },
+  { name: 'Ángel Mena', club: 'León', year: 2019, fame: 2, lo: 66, hi: 80, bio: 'Ponta-goleador equatoriano, campeão e ídolo no México pelo León.' },
+  { name: 'Michael Estrada', club: 'Toluca', year: 2021, fame: 2, lo: 64, hi: 79, bio: 'Centroavante equatoriano de força e velocidade, goleador no futebol mexicano.' },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
