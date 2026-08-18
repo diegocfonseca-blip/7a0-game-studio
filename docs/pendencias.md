@@ -1,5 +1,62 @@
 # 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
 
+## 🏅 RANKING VIROU PONTUAÇÃO (decisão do Diego, 17/08) — ✅ NO AR
+Antes o ranking era uma **fila de desempate**: olhava a Copa do Mundo; se
+empatasse, a Série A; depois a Copa… O problema apareceu quando o Diego viu um
+time com **1 Copa do Mundo e mais nada** na frente de quem tinha **44 Séries A** —
+porque o 2º critério nunca chegava a ser comparado.
+
+**Agora cada título vale ponto e o ranking SOMA:**
+
+| Título | Pontos |
+|---|---|
+| 🌍 Copa do Mundo | **200** |
+| 🏆 Copa do Brasil | **30** |
+| 🏆 Série A | **20** |
+| 🏆🔵 Supercopa | **15** |
+| 🏆 Série B | **10** |
+| 🏆 Série C | **5** |
+| 🏆 Série D | **3** |
+| 🌱 Várzea | **1** |
+
+Empatou nos pontos, o 💰 desempata (como já era).
+
+**Por que esses pesos** (medido nos 10 melhores, não chutado):
+- **Copa > Série A (30 × 20)**: TODOS os 10 melhores ganham **menos Copa do que
+  Série A** — Xurupitas 23% × 35%, Paduz 33% × 56%. Mata-mata perdoa menos que 38
+  rodadas. A razão medida (~1,4-1,5×) bate com 30/20.
+- **Supercopa < Série A (15)**: é **UM jogo**, e você só entra nela por já ter
+  ganho a liga ou a copa — o ponto grande já veio antes.
+- **Mundo 200**: endgame (só da T100, 1 a cada 10 temporadas). Vale 10 Séries A.
+  ⚠️ Fica registrado que ele tem MUITA sorte no meio: entre os melhores, o
+  aproveitamento vai de **0%** (Império Samambaia, 8 chances) a **62,5%** (5°
+  Série "B"). Quem escolhe o país primeiro pega o Brasil e passeia.
+- **Supercopa NÃO dá pra medir por raridade hoje**: ela é recente. O Xurupitas
+  jogou **750 temporadas** e tem 11; o Império jogou **179** e tem 43. O número
+  dela mede idade da funcionalidade, não dificuldade. Remedir daqui a 1-2 meses.
+
+### ⚠️ SÃO TRÊS LUGARES, e os três TÊM que usar a mesma conta
+`PTS_TITULO` + `pontosDeTitulos()` em `pyramidseason.tsx` são a fonte única:
+1. **Ranking global** (`cmpRank`) — o mural entre contas;
+2. **Ranking Geral do save** (o `rows.sort` do top 20 da carreira);
+3. **O mural que classifica pra COPA DO MUNDO** (o `rws.sort` do top 24).
+
+O nº 3 é o perigoso: **é ele que decide quem entra na Copa do Mundo**. Se as
+ordens discordarem, a pessoa vê uma colocação e se classifica por outra — foi
+exatamente o bug de 10/08. Mexeu numa, confere as três.
+
+### O que mudou na prática (rodado nos dados reais)
+Quem ganha **Copa** subiu, quem vive de **Supercopa** desceu: Paduz 8º→6º,
+Marinheiros 9º→11º→ subiu vs a 1ª ideia, FLAMENGO SAF (Diego) 14º→12º; Império
+Samambaia (43 supercopas) e Tôka10 (34) desceram. O topo (Xurupitas, Derisvits,
+Dérick) não mudou — monstro é monstro em tudo.
+
+**Na tela:** as duas tabelas ganharam a coluna **PTS** com o total de cada um, e
+a legenda agora explica quanto vale cada troféu — ninguém precisa adivinhar por
+que está naquela posição.
+
+**Reverter:** é um commit isolado; `git revert` volta pra fila de desempate.
+
 ## 🐛🌍 BUG ACHADO PELO DIEGO (17/08): Copa do Mundo VAZAVA pra carreira nova
 Ele estranhou no ranking global: o **"Real Manha"** aparecia lá em cima, acima de
 gente com **A44 + Copa33**, tendo **só 1 🌍 Copa do Mundo e nenhum outro título**.

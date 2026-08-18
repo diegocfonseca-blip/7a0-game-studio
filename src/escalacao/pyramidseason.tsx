@@ -2900,7 +2900,15 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   // (Copa do Brasil é a MESMA Copa Legends renomeada, mesmo contador —
   // Diego 16/08 — então continua exatamente onde já estava):
   // Copa do Mundo · Série A · Copa · Supercopa · Série B · Série C · Série D · Várzea · Dinheiro
-  rows.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.supercopa - a.supercopa || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || (b.h.V ?? 0) - (a.h.V ?? 0) || b.money - a.money || a.t.name.localeCompare(b.t.name))
+  // 🏅 MESMA CONTA DE PONTOS do Rank global (Diego 17/08). Este é o TERCEIRO
+  // lugar onde a ordem aparece — global, mural da Copa e este "Ranking Geral" do
+  // save. Os três TÊM que usar a mesma conta, senão a pessoa vê uma colocação
+  // numa tela e outra na outra (foi assim o bug de 10/08).
+  const ptsLinha = (x: typeof rows[number]) => pontosDeTitulos({
+    world: x.wc, copa: x.copas, supercopa: x.supercopa,
+    A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
+  })
+  rows.sort((a, b) => ptsLinha(b) - ptsLinha(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
   const top = rows.slice(0, 20)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
@@ -2921,9 +2929,9 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     <>
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🏆 RANKING GERAL</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Ordem: 🌍 Copa do Mundo › 🏆 Série A › 🏆 Copa › 🏆🔵 Supercopa › 🏆 B › 🏆 C › 🏆 D › 🌱 Várzea › 💰 dinheiro — top 20.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata — top 20.</p>
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
+        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>PTS</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
           {top.map((r, i) => {
             const you = r.t.teamId === youId && r.t.teamId >= 0
@@ -2956,6 +2964,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
                     ) : null)}
                   </>}
                 </td>
+                <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: INK }}>{ptsLinha(r).toLocaleString('pt-BR')}</td>
                 <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
               </tr>
             )
@@ -3006,11 +3015,45 @@ interface GlobalRankRow { user_id: string; season_no: number; team_name: string;
 // Existe aqui porque a SUA linha é trocada pela carreira de agora (veja abaixo) —
 // e a lista tem que ser reordenada com o mesmo critério, senão as posições que
 // você vê não batem com as que todo mundo vê.
+// ─── 🏅 PONTUAÇÃO DOS TÍTULOS (decisão do Diego, 17/08) ─────────────────────
+// ANTES o ranking era uma FILA DE DESEMPATE: olhava a Copa do Mundo; se
+// empatasse, a Série A; se empatasse, a Copa… O problema disso ficou escancarado
+// quando o Diego viu um time com UMA Copa do Mundo e mais nada passando na
+// frente de quem tinha 44 Séries A — porque o 2º critério nunca chegava a ser
+// comparado.
+//
+// AGORA cada título vale PONTO e o ranking soma. Os pesos foram escolhidos por
+// ele em cima dos números reais dos melhores jogadores:
+//   • a COPA vale mais que a LIGA (30 × 20) porque é medido: TODOS os 10
+//     melhores ganham menos Copa do que Série A — mata-mata perdoa menos que
+//     38 rodadas;
+//   • a SUPERCOPA vale MENOS que a liga (15) porque é UM jogo, e você só entra
+//     nela por já ter ganho a liga ou a copa (o ponto grande já veio antes);
+//   • a COPA DO MUNDO segue valendo muito (200) por ser o endgame — só existe
+//     da T100 em diante e só uma vez a cada 10 temporadas.
+//
+// ⚠️ ESTA MESMA CONTA decide o TOP 24 que se classifica pra Copa do Mundo (o
+// mural de clubes usa `pontosDeTitulos` também). Os dois têm que andar JUNTOS —
+// já teve bug nessa família em 10/08, quando a colocação exibida não era a que
+// qualificava. Mexeu aqui, confere lá.
+export const PTS_TITULO = { mundo: 200, copa: 30, A: 20, supercopa: 15, B: 10, C: 5, D: 3, V: 1 } as const
+export function pontosDeTitulos(t: {
+  world?: number; copa?: number; supercopa?: number; A?: number; B?: number; C?: number; D?: number; V?: number
+}): number {
+  return (t.world ?? 0) * PTS_TITULO.mundo + (t.copa ?? 0) * PTS_TITULO.copa
+    + (t.A ?? 0) * PTS_TITULO.A + (t.supercopa ?? 0) * PTS_TITULO.supercopa
+    + (t.B ?? 0) * PTS_TITULO.B + (t.C ?? 0) * PTS_TITULO.C
+    + (t.D ?? 0) * PTS_TITULO.D + (t.V ?? 0) * PTS_TITULO.V
+}
+export function pontosDaLinha(r: GlobalRankRow): number {
+  return pontosDeTitulos({
+    world: r.world_titles, copa: r.copa_titles, supercopa: r.supercopa_titles ?? 0,
+    A: r.honors_a, B: r.honors_b, C: r.honors_c, D: r.honors_d, V: r.honors_v,
+  })
+}
+// empate de pontos: o dinheiro desempata, como já era antes.
 function cmpRank(a: GlobalRankRow, b: GlobalRankRow): number {
-  return b.world_titles - a.world_titles || b.honors_a - a.honors_a || b.copa_titles - a.copa_titles
-    || (b.supercopa_titles ?? 0) - (a.supercopa_titles ?? 0)
-    || b.honors_b - a.honors_b || b.honors_c - a.honors_c || b.honors_d - a.honors_d
-    || b.honors_v - a.honors_v || b.money - a.money
+  return pontosDaLinha(b) - pontosDaLinha(a) || b.money - a.money
 }
 
 // 🌍 RANKING GLOBAL (regra do Diego, 16/08 — mockup `rankglobal2.png`):
@@ -3090,7 +3133,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Ordem: 🌍 Copa do Mundo › 🏆 Série A › 🏆 Copa › 🏆🔵 Supercopa › 🏆 B › 🏆 C › 🏆 D › 🌱 Várzea › 💰 dinheiro — a MESMA ordem do ranking do seu save. Só gente de verdade, top 50, e só quem joga com a Agência 2.0.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Cada título vale ponto e o ranking SOMA: 🌍 Copa do Mundo <b>{PTS_TITULO.mundo}</b> · 🏆 Copa do Brasil <b>{PTS_TITULO.copa}</b> · 🏆 Série A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · 🏆 B <b>{PTS_TITULO.B}</b> · 🏆 C <b>{PTS_TITULO.C}</b> · 🏆 D <b>{PTS_TITULO.D}</b> · 🌱 Várzea <b>{PTS_TITULO.V}</b>. Empatou nos pontos, o 💰 desempata. A MESMA conta do ranking do seu save. Só gente de verdade, top 50, e só quem joga com a Agência 2.0.</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
         <span style={{ fontSize: 19, lineHeight: 1.2 }}>📍</span>
         <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.4, color: INK }}>
@@ -3108,6 +3151,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
           <thead><tr style={{ textAlign: 'left' }}>
             <th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Usuário</th>
             <th style={{ ...th, textAlign: 'center' }}>Títulos <span style={{ textTransform: 'none', fontWeight: 700, color: '#7C3AED' }}>(até T{seasonNo})</span></th>
+            <th style={{ ...th, textAlign: 'right' }}>PTS</th>
             <th style={{ ...th, textAlign: 'right' }}>💰</th>
           </tr></thead>
           <tbody>
@@ -3156,6 +3200,9 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
                       ) : null)}
                     </>}
                   </td>
+                  {/* 🏅 o TOTAL que define a posição — fica na tela pra ninguém
+                      precisar adivinhar por que está em tal lugar. */}
+                  <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: INK }}>{pontosDaLinha(r).toLocaleString('pt-BR')}</td>
                   <td style={{ textAlign: 'right', fontWeight: 900, whiteSpace: 'nowrap', color: '#5a5647' }}>{r.money}</td>
                 </tr>
                 {/* 🪄 A LINHA FININHA — só sua, COLADA embaixo da sua. Diz onde
@@ -5273,8 +5320,15 @@ export function PyramidSeasonScreen() {
               const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
               return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc }
             })
-            // ordem IDÊNTICA à do Rank: Copa do Mundo · A · Copa (Legends/do Brasil, mesmo contador) · Supercopa · B · C · D · Várzea · dinheiro
-            rws.sort((a, b) => b.wc - a.wc || b.h.A - a.h.A || b.copas - a.copas || b.supercopa - a.supercopa || b.h.B - a.h.B || b.h.C - a.h.C || b.h.D - a.h.D || (b.h.V ?? 0) - (a.h.V ?? 0) || b.money - a.money || a.t.name.localeCompare(b.t.name))
+            // 🏅 MESMA CONTA DE PONTOS do Rank (Diego 17/08) — e isto aqui não é
+            // detalhe: é este sort que escolhe o TOP 24 que entra na Copa do
+            // Mundo. Se a ordem daqui discordar da do Rank, a pessoa vê uma
+            // colocação e se classifica por outra (bug de 10/08).
+            const ptsDe = (x: typeof rws[number]) => pontosDeTitulos({
+              world: x.wc, copa: x.copas, supercopa: x.supercopa,
+              A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
+            })
+            rws.sort((a, b) => ptsDe(b) - ptsDe(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
             // 🏛️ MULTICLUBES (regra do Diego 04/08): os DOIS clubes seus contam —
             // qualquer um deles no top-20 marca "você", e o prêmio vai pra CADA
             // clube seu classificado (independentes até na Copa do Mundo).
