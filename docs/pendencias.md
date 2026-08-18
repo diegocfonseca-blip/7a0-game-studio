@@ -936,7 +936,8 @@ boné, e a mascote é ele mesmo de uniforme chutando a bola.
 `mascote_key = bigao` · `escudo_time = Crias do Bigão` · manto **`#0E62AA`**
 (azul) + **`#FCD111`** (amarelo), **medidas na camisa** que ele mandou.
 
-**Mockup**: gerado pelo padrão (`scripts/mockup-batismo.mjs`).
+**Mockup**: gerado pelo padrão (`scripts/mockup-batismo.mjs`), agora **com a
+camisa DE VERDADE** que ele mandou (`scripts/kits/bigao-camisa.webp`).
 🐛 Achado e corrigido no gerador durante este batismo: `line-height` apertado
 no cartão dourado **cortava o til** — saía "DO BIGAO". Nome de clube brasileiro
 tem acento, então isso ia acontecer de novo. Corrigido pra todos.

@@ -43,6 +43,7 @@ const o = {
   mascoteNome: arg('mascote-nome', 'a mascote'), mascoteEmoji: arg('mascote-emoji', '⭐'),
   c1: arg('c1', '#FFC400'), c1nome: arg('c1-nome', ''),
   c2: arg('c2', '#0C0C0C'), c2nome: arg('c2-nome', ''),
+  camisa: arg('camisa', ''), // 🎽 a camisa DE VERDADE, quando o dono manda uma
   dono: arg('dono', ''), coracao: arg('coracao', ''), fundador: arg('fundador', ''),
   saida: arg('saida', 'mockup-batismo.png'),
 }
@@ -80,9 +81,14 @@ const jeito = JEITOS[arg('jeito', 'generico')] || JEITOS.generico
 const art = /^[AÁE]/i.test(o.mascoteNome.replace(/^(O|A)\s+/i, '')) || /^A\s/i.test(o.mascoteNome)
 const mascCurto = o.mascoteNome.replace(/^(O|A)\s+/i, '')
 
-// 🎽 o MANTO é desenhado aqui (camisa genérica, listras nas 2 cores do clube).
-// É molde do POST, não arte de batismo — não entra no jogo nem pesa no bundle.
-const camisa = `
+// 🎽 O MANTO NO POST: se o dono mandou a CAMISA, é ela que aparece — foi o que
+// o Diego cobrou ("a camisa eu mandei pra você, cara"), e ele tem razão: a arte
+// que o dono pagou/pediu é sempre melhor que qualquer desenho meu.
+// O desenho abaixo é só o PLANO B, pra batismo que não veio com camisa.
+// As camisas ficam em `scripts/kits/` — NÃO em `src/escalacao/img/`: elas são
+// do post, não do jogo (no jogo o manto é listra em CSS, 0 KB), então não
+// entram no bundle nem contam no teto de peso do batismo.
+const camisaDesenhada = `
 <svg viewBox="0 0 200 230" style="width:190px;height:auto">
   <defs><clipPath id="c"><path d="M100 16c-10 0-18 5-28 7L28 34 12 76l30 12 6-10v134c0 4 3 7 7 7h90c4 0 7-3 7-7V78l6 10 30-12-16-42-44-11c-10-2-18-7-28-7z"/></clipPath></defs>
   <g clip-path="url(#c)">
@@ -91,11 +97,11 @@ const camisa = `
   </g>
   <path d="M100 16c-10 0-18 5-28 7L28 34 12 76l30 12 6-10v134c0 4 3 7 7 7h90c4 0 7-3 7-7V78l6 10 30-12-16-42-44-11c-10-2-18-7-28-7z" fill="none" stroke="#0C0C0C" stroke-width="6" stroke-linejoin="round"/>
   <path d="M72 23c8 12 20 18 28 18s20-6 28-18" fill="none" stroke="#0C0C0C" stroke-width="6" stroke-linejoin="round"/>
-  <!-- ⚠️ o corpo da camisa vai de x=48 a x=152. O escudo TEM que caber aí dentro:
-       antes ele estava em x=112 com 46 de largura (ia até 158) e vazava pra fora
-       do desenho, que foi o que o Diego viu. -->
   <image href="${img(o.escudo)}" x="106" y="92" width="38" height="38" preserveAspectRatio="xMidYMid meet"/>
 </svg>`
+const camisa = o.camisa
+  ? `<img class="kit" src="${img(o.camisa)}" alt="Manto do ${o.clube}">`
+  : camisaDesenhada
 
 const html = `<!doctype html><meta charset="utf-8"><style>
 @font-face{font-family:Oswald;src:url(${fonte(400)}) format('woff2');font-weight:400}
@@ -128,12 +134,13 @@ h1 .r{color:#C2452F}
 .dois{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
 .tit{background:#0C0C0C;color:#fff;font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:600;
   font-size:17px;letter-spacing:.14em;padding:11px 18px;display:flex;align-items:center;gap:9px}
-.corpo{padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px}
+.corpo{padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:274px}
 .corpo img{max-height:186px;max-width:100%;display:block}
 /* 🎽 o MANTO mostra as DUAS coisas (pedido do Diego 17/08): a faixa de listras
    lisas, que é como o jogo pinta o time, E a camisa montada com o escudo. */
 .manto{display:flex;align-items:center;gap:16px}
-.listras{width:74px;height:186px;border:3px solid #0C0C0C;border-radius:12px;flex:none;
+.manto .kit{max-height:210px;width:auto;display:block}
+.listras{width:74px;height:200px;border:3px solid #0C0C0C;border-radius:12px;flex:none;
   background:repeating-linear-gradient(90deg,${o.c1} 0 15px,${o.c2} 15px 26px)}
 .leg{text-align:center;font-size:14.5px;line-height:1.35;color:rgba(12,12,12,.62);margin-top:12px}
 .leg b{color:#0C0C0C}
@@ -180,7 +187,7 @@ h1 .r{color:#C2452F}
         <div class="listras"></div>
         ${camisa}
       </div>
-      <div class="leg">Listras:<br>${cores} (igual no jogador)</div></div></div>
+      <div class="leg">${o.camisa ? 'O manto do clube' : 'Listras'}:<br>${cores} (igual no jogador)</div></div></div>
 </div>
 
 <div class="card anim">

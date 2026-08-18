@@ -78,6 +78,12 @@ FORA do bundle. Então, sem exceção:
      foi o que ele cobrou. Não inventar layout novo a cada batismo: é esse
      arquivo, e ele mora no repo justamente porque o mockup do Coringas foi feito
      à mão e **se perdeu** com o scratchpad. Mandar pro Diego junto com a entrega.
+   - 🎽 **A CAMISA que o dono mandou VAI no post** (`--camisa`), sempre. O
+     gerador só desenha uma camisa genérica quando o batismo veio sem arte de
+     manto. Cobrança do Diego: *"a camisa eu mandei pra você, cara"*. As camisas
+     ficam em `scripts/kits/` — **nunca** em `src/escalacao/img/`: elas são do
+     POST, não do jogo (no jogo o manto é listra em CSS, 0 KB), então não entram
+     no bundle nem contam no teto de peso do batismo.
    - **Limpeza da arte**: recortar o quadriculado falso em **DOIS passes** — o
      normal (a partir da borda) **e** o de buracos PRESOS dentro do desenho
      (entre pernas, alças, vãos fechados). Só apagar região que tenha os **dois
