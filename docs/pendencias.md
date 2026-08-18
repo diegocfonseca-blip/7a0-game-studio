@@ -25,6 +25,15 @@ desce pra quem cruza com ele); rosto é arte GENÉRICA reaproveitada por todos.
 - `scripts/rosto/folha.mjs` — a folha de mockup com os 17 que o Diego escolheu:
   `node scripts/rosto/folha.mjs --saida /tmp/rostos.png`
 
+### 🚫 Regra que nasceu aqui (18/08): não inventar cara de gente real
+Eu chutei o rosto do **Vozinha** (goleiro de Cabo Verde) — pele, careca, barba
+cheia — sem ter referência nenhuma. O Diego: *"qd vc N souber qm é a pessoa é
+como é me fala pow"*. Virou regra permanente no `CLAUDE.md`. Na prática, no
+sistema de rosto: **quem eu não conheço leva a peça NEUTRA e a carta fica
+marcada** (❓), em vez de um chute com cara de retrato.
+Dos 17 do mockup, o único sem referência é o **Vozinha** — falta o Diego mandar
+uma foto (ou dizer como ele é) pra montar as peças dele.
+
 ### Falta (só depois do OK visual)
 1. Mover as peças pro jogo (`src/escalacao/rosto.tsx`) e ligar na
    `CollectibleCard`.

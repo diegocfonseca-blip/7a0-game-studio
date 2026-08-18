@@ -46,14 +46,18 @@ const JOGADORES = [
   { n: 'Adriano Imperador',   club: 'Inter',          ano: 2005, f: 5, pele: 'e', cabelo: 'raspado',  cc: PRETO,    barba: 'cavan',  c1: '#0B1560', c2: '#0C0C0C', tipo: 'listras' },
   { n: 'Romário',             club: 'Vasco',          ano: 2000, f: 5, pele: 'd', cabelo: 'curto',    cc: PRETO,    barba: 'nao',    c1: '#FFFFFF', c2: '#0C0C0C', tipo: 'faixa' },
   { n: 'Gabriel Batistuta',   club: 'Fiorentina',     ano: 1998, f: 4, pele: 'a', cabelo: 'longo',    cc: CASTANHO, barba: 'nao',    c1: '#7C3AED', c2: '#FFFFFF', tipo: 'lisa' },
-  { n: 'Vozinha',             club: 'Cabo Verde',     ano: 2026, f: 5, pele: 'e', cabelo: 'raspado',  cc: PRETO,    barba: 'cheia',  c1: '#143A87', c2: '#C2452F', tipo: 'banda' },
+  // ❓ NÃO SEI COMO ELE É. Goleiro de Cabo Verde, não tenho referência do rosto.
+  // O que está aqui é o rosto NEUTRO (a peça padrão), não um chute de como ele
+  // seria — regra do Diego (18/08): quando não souber, FALAR, não inventar.
+  { n: 'Vozinha',             club: 'Cabo Verde',     ano: 2026, f: 5, pele: 'c', cabelo: 'curto',    cc: PRETO,    barba: 'nao',    c1: '#143A87', c2: '#C2452F', tipo: 'banda', semRef: true },
 ]
 
 const estrelas = f => '★'.repeat(f) + '<span class="off">' + '★'.repeat(5 - f) + '</span>'
 
 const cartas = JOGADORES.map((j, i) => `
-<div class="carta">
-  <div class="janela">${rosto({ pele: j.pele, cabelo: j.cabelo, corCabelo: j.cc, pintado: j.pint, barba: j.barba, c1: j.c1, c2: j.c2, tipo: j.tipo, id: 'j' + i })}</div>
+<div class="carta${j.semRef ? ' duvida' : ''}">
+  <div class="janela">${rosto({ pele: j.pele, cabelo: j.cabelo, corCabelo: j.cc, pintado: j.pint, barba: j.barba, c1: j.c1, c2: j.c2, tipo: j.tipo, id: 'j' + i })}
+    ${j.semRef ? '<div class="tag">❓ rosto neutro</div>' : ''}</div>
   <div class="pe">
     <div class="nome">${j.n}</div>
     <div class="clube">${j.club} · ${j.ano}</div>
@@ -76,7 +80,11 @@ h1 .r{color:#C2452F}
 .lead b{color:#0C0C0C}
 .grade{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:26px}
 .carta{background:#fff;border:4px solid #0C0C0C;border-radius:16px;box-shadow:4px 4px 0 #0C0C0C;overflow:hidden}
-.janela{background:#FFF6DF;border-bottom:4px solid #0C0C0C;padding:8px 8px 0}
+.janela{background:#FFF6DF;border-bottom:4px solid #0C0C0C;padding:8px 8px 0;position:relative}
+.carta.duvida .janela{background:#F1EDE2}
+.tag{position:absolute;left:6px;right:6px;bottom:6px;background:#FFC400;border:2.5px solid #0C0C0C;border-radius:8px;
+  font-family:Oswald,sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;
+  text-align:center;padding:3px 2px;box-shadow:2px 2px 0 #0C0C0C}
 .pe{padding:7px 8px 9px;text-align:center}
 .nome{font-family:Oswald,sans-serif;font-weight:700;text-transform:uppercase;font-size:14px;line-height:1.22;
   letter-spacing:.01em;min-height:34px;display:flex;align-items:center;justify-content:center}
@@ -86,7 +94,7 @@ h1 .r{color:#C2452F}
 .nota{margin-top:24px;border:4px solid #0C0C0C;border-radius:18px;box-shadow:5px 5px 0 #0C0C0C;background:#fff;overflow:hidden}
 .nota .tit{background:#0C0C0C;color:#fff;font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:600;
   font-size:15px;letter-spacing:.14em;padding:10px 16px}
-.nota .corpo{padding:14px 18px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.nota .corpo{padding:14px 18px 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
 .nota h4{font-family:Oswald,sans-serif;text-transform:uppercase;font-size:13px;letter-spacing:.12em;opacity:.55;font-weight:600}
 .nota p{font-size:15px;line-height:1.4;margin-top:5px;font-weight:600;color:rgba(12,12,12,.8)}
 .rodape{display:flex;align-items:center;justify-content:space-between;margin-top:22px;padding:0 4px}
@@ -103,10 +111,11 @@ Cabelo parecido com o do jogador, camisa parecida com a do time, <b>sem escudo</
 <div class="grade">${cartas}</div>
 
 <div class="nota">
-  <div class="tit">Por que assim e não figura pronta</div>
+  <div class="tit">Como isso funciona</div>
   <div class="corpo">
     <div><h4>Peso</h4><p>Figura pronta = 1.414 arquivos pra baixar. Peça = 4 letrinhas por jogador. <b>Zero KB novo.</b></p></div>
     <div><h4>Cara do jogo</h4><p>Mesmo traço preto grosso, creme e sombra dura das cartas — não parece de outro jogo.</p></div>
+    <div><h4>❓ Quando eu não sei quem é</h4><p>Entra o <b>rosto neutro</b> e a carta fica marcada, como o Vozinha aqui. <b>Nada de inventar</b> cabelo e barba de quem eu nunca vi.</p></div>
     <div><h4>Reversível</h4><p>É um arquivo só e um campo no baralho. Não gostou? Tira e o jogo volta como estava.</p></div>
   </div>
 </div>

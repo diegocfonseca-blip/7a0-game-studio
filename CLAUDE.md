@@ -155,6 +155,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   também tem que ser assim: nenhum comportamento "emergente" fora das regras
   mapeadas — se algo acontece que nenhuma regra previu (jogador entrando em
   campo sem o dono saber, contagem furando animação), é bug, não feature.
+- **🚫 NÃO INVENTAR COMO UMA PESSOA REAL É** (18/08, palavras dele: *"qd vc N
+  souber qm é a pessoa é como é me fala pow.. pq fazer algo q N trm nd ver e
+  foda"*). Vale pra rosto de jogador, escudo, mascote, bio — qualquer coisa
+  ligada a gente de verdade. Se não tem referência, **falar na hora e usar a
+  peça NEUTRA**, marcando na tela que é neutra (foi o que aconteceu com o
+  Vozinha, goleiro de Cabo Verde). Chute com cara de retrato é pior que rosto
+  genérico: o Diego prefere "não sei" do que algo que não tem nada a ver.
 - **Odeia spoiler**: tabela, giro, artilharia — NADA revela resultado antes da
   animação/apito na tela.
 - **Nada pode atrasar o ritmo do jogo**: zoeira/interação nova entra nos tempos

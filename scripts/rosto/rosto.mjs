@@ -117,12 +117,12 @@ export const CABELO = {
       '<circle cx="62" cy="24" r="9.5"/><circle cx="72" cy="34" r="9"/>', c),
   },
 
-  // mullet cacheado (Maradona): mata-cachorro CURTO na nuca + mop cacheado em
-  // cima. A 1ª versão descia até o ombro pelos dois lados do rosto e virava um
-  // chanel — o Diego reclamou ("olha q ridículo tá o Maradona"). O rabo agora
-  // é estreito e para logo abaixo do maxilar.
+  // mop cacheado volumoso (Maradona). SEM camada de trás de propósito:
+  // eu tentei desenhar o mata-cachorro do mullet e, de frente, ele aparecia
+  // dos dois lados do pescoço parecendo uma gola. O Diego: "N entendi oq tem
+  // no pescoço do maradona". De frente, mullet não lê — o que identifica o
+  // Maradona é o volume cacheado em cima. Então é só isso.
   mullet: {
-    atras: c => uni('<path d="M34 54 C34 46 40 42 50 42 C60 42 66 46 66 54 L66 70 C66 78 64 84 61 85 C58 86 55.5 84.5 55.5 82 L44.5 82 C44.5 84.5 42 86 39 85 C36 84 34 78 34 70 Z"/>', c),
     frente: c => uni(TOUCA_G +
       '<circle cx="27" cy="38" r="8"/><circle cx="36" cy="26" r="9.5"/>' +
       '<circle cx="50" cy="21" r="10"/><circle cx="64" cy="26" r="9.5"/>' +
