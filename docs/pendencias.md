@@ -907,6 +907,157 @@ Valores: `p_email = souzact12@gmail.com` · `p_mascote = cobra_arruda` ·
 faço se o Diego liberar o acesso ao banco (a chamada foi recusada por
 aprovação pendente).
 
+## 🧢 Batismo Crias do Bigão (giovannecastro784@hotmail.com) — ✅ FECHADO 17/08
+Substituiu a **Ferroviária do Vale** na **Série B** (técnico *Seu Ferreira*
+continua — só o clube muda, como em todo batismo). O dono virou **ouro 👑 +
+fundador nº46 + sócio nº26**, pela regra permanente do CLAUDE.md.
+
+⚡ O charme deste: **a mascote é o próprio dono**. O escudo é a cara dele de
+boné, e a mascote é ele mesmo de uniforme chutando a bola.
+
+**Arte** (recortada das imagens que ele mandou):
+- `img/bigao-escudo.webp` — 302×360, **28,0 KB** (teto 30)
+- `img/bigao-mascote.webp` — 319×440, **38,1 KB** (teto 45) — total **66,1 KB**
+- 🧹 Fundo era **BRANCO** (não o quadriculado dos outros). Limpeza só a partir
+  da BORDA, de propósito: aqui o branco preso dentro do desenho é **parte da
+  arte** (dente, olho, brilho do escudo). É o inverso do caso Skyy, onde o
+  buraco preso era fundo. **Olhar a arte antes de escolher o método.**
+
+**Código** (os lugares de sempre):
+- `escudos.tsx`: `bigaoEscudoRender` + `LOGOS_PRONTAS` nos 4 nomes
+  (`Crias do Bigão` / `Crias do Bigao` / `Crias` / `Crias do Bigão FC`).
+- `mascotes.tsx`: `MASCOTES.bigao` + `MASCOTE_NOME.bigao = 'O Bigão'` +
+  `CARIMBO_GOL['Crias do Bigão'] = 'bigao'`.
+- `data.ts`: Série B + `OLD_NAME['Crias do Bigão'] = 'Ferroviária do Vale'`
+  (save antigo é renomeado ao carregar, ninguém perde carreira).
+- `apoio.tsx`: ouro + `FUNDADOR_N = 46`.
+
+**Banco** (`esc_socios`, INSERT — sócio **nº26**, permanente):
+`mascote_key = bigao` · `escudo_time = Crias do Bigão` · manto **`#0E62AA`**
+(azul) + **`#FCD111`** (amarelo), **medidas na camisa** que ele mandou.
+
+**Mockup**: gerado pelo padrão (`scripts/mockup-batismo.mjs`), agora **com a
+camisa DE VERDADE** que ele mandou (`scripts/kits/bigao-camisa.webp`).
+🐛 Achado e corrigido no gerador durante este batismo: `line-height` apertado
+no cartão dourado **cortava o til** — saía "DO BIGAO". Nome de clube brasileiro
+tem acento, então isso ia acontecer de novo. Corrigido pra todos.
+
+⏳ **Falta só o TIME DO CORAÇÃO do Giovanne** (`time_coracao` NULL).
+
+## 🦅 Batismo Skyy FC (matheusncruz1@gmail.com) — ✅ FECHADO 17/08
+
+O Diego mandou a arte (uma imagem só, com águia + escudo + camisa) e disse:
+*"faça com o mesmo padrão de qualidade e locais pra pôr igual fizemos com
+Coringas do Diniz. Aliás todas logos serão mesmo formato e ideia"*. Feito
+exatamente assim.
+
+**Arte** (recorte feito aqui, a partir da imagem única):
+- `img/skyy-escudo.webp` — 348×360, **28,2 KB** (teto 30) — o escudo azul-piscina
+  com a águia de asas abertas segurando a bola, borda dourada.
+- `img/skyy-mascote.webp` — 354×440, **41,2 KB** (teto 45) — a águia de pé.
+- **Total 69,4 KB**, dentro do teto de 75 KB. Os dois saem do bundle (viram
+  arquivo à parte), como manda a regra de peso.
+- 🧹 Dois passes de limpeza do quadriculado falso: o normal (a partir da borda)
+  **e um segundo pra buracos PRESOS dentro do desenho** — sobrava um retângulo
+  cinza entre as pernas da águia, que o preenchimento de borda não alcança. O
+  segundo passe só apaga região que tem os **dois tons** do xadrez, então pena
+  cinza do bicho não some. Fica registrado: **toda arte de mascote com vão
+  fechado (pernas, alças, alça de caneca) precisa desse segundo passe.**
+
+**Código** (mesmos lugares do Coringas):
+- `escudos.tsx`: `skyyEscudoRender` + `LOGOS_PRONTAS['Skyy FC'/'Skyy'/'Skyy FC SAF']`.
+- `mascotes.tsx`: `MASCOTES.skyy_aguia` + `MASCOTE_NOME.skyy_aguia = 'A Águia'`
+  + `CARIMBO_GOL['Skyy FC'] = 'skyy_aguia'`.
+- `data.ts` e `apoio.tsx` **já estavam prontos** de antes (clube na Série D,
+  `OLD_NAME`, ouro 👑, fundador nº24).
+
+**Banco** (`esc_socios`, UPDATE — ele já era sócio **nº9**, permanente):
+`mascote_key = skyy_aguia` · `escudo_time = Skyy FC` · manto **`#237581`**
+(azul-piscina) + **`#0D3558`** (azul-marinho) — as duas cores foram **medidas na
+camisa** que ele mandou, não chutadas.
+
+**Mockup do post**: gerado pelo padrão novo (`scripts/mockup-batismo.py`),
+mandado pro Diego pra ele postar.
+
+⏳ **Única coisa que falta: o TIME DO CORAÇÃO do Matheus** (`time_coracao` está
+NULL). Sem ele o card do clube não mostra o time de coração — o resto todo
+(escudo, mascote, manto e as três animações) já funciona.
+
+## 🎬 CADA MASCOTE COMEMORA DO SEU JEITO — gol E título (17/08)
+Pedido do Diego: *"na comemoração do gol cada mascote tem que ter suas
+individualidades. Se é águia tem que ser algo relacionado a águia. Cada um
+depende do que ele é, as coisas que faz"*.
+
+⚠️ **Teve ida e volta, e o histórico fica registrado pra ninguém desfazer sem
+querer**: no meio do caminho ele disse *"no gol tem que ser igual pra todos, o
+que eu disse diferente é quando é campeão"*, eu tirei o do gol — e logo depois
+ele mandou *"volte o gol como estava, que você tinha feito no anterior"*.
+**Vale o estado atual: os DOIS momentos são por mascote.**
+
+**⚽ No GOL** (`CARIMBO_ANIM` + `CARIMBO_KEYFRAMES` em `mascotes.tsx`, usados
+pelo `LiveScoreCard`): antes todo mundo entrava igual (`coCarimba` — caía girado
+e sumia). Agora:
+- 🦅 águia `coVoa` — mergulha de cima e sobe planando de volta
+- 🤡 palhaço `coQuica` — entra quicando, gingando pros dois lados
+- 🐍 cobra `coRasteja` — entra pelo lado ondulando
+- 🃏 coringa `coCarta` — vira no ar como carta sendo dada
+- 🐝 abelha `coZumbe` · 🐶 cachorrinha `coPulinho`
+
+**🏆 No TÍTULO** (`FESTA_JEITO`, usado pelo `FestaoMascote`): `voa` · `rasteja`
+· `quica`. Quem voa plana lá no alto e **sem sombra no chão** — era o mais
+errado de todos: a águia atravessava a tela **quicando no gramado**, com
+sombrinha, feito bola.
+
+🛡️ **O que NÃO mudou, e não pode mudar:** o tempo é o mesmo (1,7s no carimbo) e
+nada pede toque — regra de ouro do Diego, zoeira nova nunca atrasa o ritmo do
+jogo. E mascote fora das listas cai no comportamento de sempre, então ninguém
+perde o que tinha e batismo novo já nasce funcionando.
+
+⏳ **Ainda genérico de propósito**: no **pênalti convertido** o mascote pula
+igual pra todos (`penJump`). O mockup também fala genérico ali — post não pode
+prometer o que a tela não faz. Se o Diego quiser, é o mesmo padrão.
+
+## 🎨 MOCKUP PADRÃO DE BATISMO — agora mora no repo (17/08)
+O Diego mandou o modelo (o do Nata de SP) e foi direto: *"esse aqui é o mockup
+padrão cara powww, e tem que ter as animações também"*. Então **o formato é
+esse**, e virou arquivo versionado: **`scripts/mockup-batismo.mjs`**.
+
+Antes ele era montado à mão a cada batismo e morava só no scratchpad da sessão
+— o do Coringas do Diniz **sumiu** quando a máquina trocou. Agora não some mais,
+e nenhuma sessão inventa layout novo.
+
+```
+node scripts/mockup-batismo.mjs \
+  --clube "Skyy FC" --serie D --antigo "Fortuna SAF" \
+  --escudo src/escalacao/img/skyy-escudo.webp \
+  --mascote src/escalacao/img/skyy-mascote.webp \
+  --mascote-nome "A Águia" --mascote-emoji "🦅" \
+  --c1 "#237581" --c1-nome "azul-piscina" --c2 "#0D3558" --c2-nome "azul-marinho" \
+  --dono "Matheus" --coracao "Corinthians" --fundador 24 \
+  --saida /tmp/skyy-post.png
+```
+
+**A ordem do post (não mexer sem o Diego mandar):** pílula "BATISMO DE LENDA" →
+manchete "NASCEU O <CLUBE>" (a 1ª palavra em vermelho) → a frase de quem é o
+dono, a divisão e de quem tomou a vaga → cartão dourado com escudo + nome +
+❤️ coração → **mascote e manto lado a lado** → 🎬 **"ONDE A <MASCOTE> APARECE"**,
+com as **TRÊS animações** escritas pro jogador (carimbo no gol · festão de
+campeão · pulo no pênalti) → rodapé com quem batizou + selos Lenda/fundador.
+
+Detalhes de como foi feito, pra próxima sessão não penar:
+- **HTML + Chromium** (Playwright), não PIL — é o único jeito de bater o
+  espaçamento e o degradê do modelo. `playwright-core` está no `devDependencies`;
+  o Chromium do ambiente fica em `/opt/pw-browsers/chromium` (dá pra sobrescrever
+  com a variável `PW_CHROME`).
+- **A Oswald de verdade** mora em `scripts/fonts/` (4 pesos, **64 KB no total**).
+  Veio do npm (`@fontsource/oswald`) porque o proxy bloqueia o Google Fonts.
+  ⚠️ Isso **não pesa no jogo**: é `scripts/`, nunca entra no bundle nem é baixado
+  por jogador nenhum.
+- **A camisa do manto é desenhada no próprio script** (SVG, listras nas 2 cores
+  do clube + o escudo no peito). É molde do post, não arte de batismo — por isso
+  não vale a regra de peso nem vai pra `src/escalacao/img/`.
+- O artigo da mascote ("**a** Águia" × "**o** Palhaço") sai automático do nome.
+
 ## 🤡🟡⚫ Batismo Nata de SP (pedrinhocamisa8@gmail.com) — 17/08
 Substituiu o **Paris São Geraldo** na Série D. Dono vira **ouro/Lenda +
 fundador nº45** (regra nova: todo batismo já nasce sócio + fundador, ver
@@ -926,17 +1077,32 @@ Feito no repo:
 - `apoio.tsx`: `FOUNDERS['pedrinhocamisa8@gmail.com'] = 'ouro'` +
   `FUNDADOR_N['pedrinhocamisa8@gmail.com'] = 45`.
 
-⏳ **PENDENTE — precisa de escrita no Supabase (`esc_socios`), fora do repo**
-(mesmo bloqueio do caso Arruda: acesso ao banco recusado por aprovação
-pendente neste ambiente). Sem essa linha, o **festão de campeão** e o
-**palhaço pulando no pênalti convertido** não acontecem pro Pedrinho (leem
-`mascote_key` da conta no banco, não do código), e o **card do clube do
-coração** não mostra Corinthians. Valores pra gravar: `p_email =
-pedrinhocamisa8@gmail.com` · `p_mascote = nata_palhaco` · `p_time =
-Corinthians` · `escudo_time = Nata de SP` · manto `p_c1 = #FFC400` (amarelo),
-`p_c2 = #0C0C0C` (preto) · sócio nº a definir (próximo disponível) ·
-`origem = 'batismo'`. Dá pra fazer pelo painel de admin (🎨 Personalizar
-sócio) ou outra sessão com acesso ao banco grava.
+✅ **RESOLVIDO 17/08** — gravado no Supabase por outra sessão (a que tinha o
+acesso liberado), a pedido do Diego: `esc_socios` **sócio nº25** ·
+`mascote_key = nata_palhaco` · `escudo_time = Nata de SP` ·
+`time_coracao = Corinthians` · manto `#FFC400` (amarelo) + `#0C0C0C` (preto),
+**duas cores só** (este batismo não tem 3ª cor, não entra em `MANTO_TRI`) ·
+`origem = 'batismo'` · `valido_ate = 2099-12-31` (permanente, igual a todo
+batismo/fundador — não é assinatura de 33 dias).
+
+Conferido ANTES de gravar, pra não apontar pra arte que não existe:
+`nata_palhaco` existe mesmo em `MASCOTES` e em `CARIMBO_GOL['Nata de SP']`;
+`FOUNDERS` e `FUNDADOR_N` (nº45) já estavam em `apoio.tsx`; e o Pedrinho **não
+tinha linha nenhuma** em `esc_socios` (foi INSERT, não update). O nº25 é o
+próximo livre — o maior até então era o 24 (lucas_calefi). Depois de gravar,
+conferido de novo: 25 sócios, 25 números distintos, uma linha só pra ele.
+
+📝 Detalhe pra quem for gravar o próximo: o RPC `esc_admin_socio_perso` **não
+serve sozinho** aqui — ele só faz UPDATE (dá erro *"esse e-mail não é sócio
+ainda"* em quem não tem linha), não tem parâmetro pro `escudo_time`, e exige o
+e-mail do Diego no JWT. Por isso o caminho foi o mesmo do Arruda: INSERT direto
+na tabela. Texto original do pedido abaixo, pra histórico:
+
+~~PENDENTE — precisa de escrita no Supabase (`esc_socios`), fora do repo.~~
+Sem essa linha, o **festão de campeão** e o **palhaço pulando no pênalti
+convertido** não aconteciam pro Pedrinho (leem `mascote_key` da conta no banco,
+não do código), e o **card do clube do coração** não mostrava Corinthians.
+Agora os três funcionam.
 
 ## 🔓🏆🇧🇷 COPA DO BRASIL LEGENDS + SUPERCOPA NO AR PRA TODO MUNDO (16/08)
 Ordem do Diego: "atualiza já p td mundo pow". `COPA_BRASIL_GERAL = true`

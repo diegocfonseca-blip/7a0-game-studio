@@ -33,7 +33,7 @@ import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
-import { MASCOTES, FestaoMascote, carimboDoTime } from './mascotes'
+import { MASCOTES, FestaoMascote, carimboDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -2016,7 +2016,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // ⚽🎉 arte do CARIMBO de quem acabou de marcar (só clube batizado; nome antigo
   // do save é resolvido pelo newestTeamName). Futebol só — no basquete o placar
   // sobe o tempo todo e nada muda por lá.
-  const carimboArt = (!basket && golSide) ? carimboDoTime(newestTeamName(golSide === 'h' ? homeName : awayName)) : null
+  const carimboTime = (!basket && golSide) ? newestTeamName(golSide === 'h' ? homeName : awayName) : ''
+  const carimboArt = carimboTime ? carimboDoTime(carimboTime) : null
+  // 🎬 cada mascote entra do SEU jeito (águia mergulha, palhaço quica, cobra
+  // rasteja…). Quem não tem entrada própria cai no carimbo de sempre.
+  const carimboAnim = carimboTime ? carimboAnimDoTime(carimboTime) : 'coCarimba'
   // 🎯 lista de GOLEADORES embaixo de cada time (Diego 15/08 — substitui a
   // narração de baixo, que agora mora só em cima). Usa `shown`, que já é
   // travado pelo relógio (min <= relógio) — mesma trava anti-spoiler de
@@ -2040,7 +2044,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   }
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
-      <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}'}</style>
+      <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
       {/* 🎨 topo agora acumula os dois papéis (Diego 15/08): narração (apito
           inicial/intervalo/final, sempre visível, fundo escuro) E o flash de
@@ -2073,7 +2077,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
             quem marca, por cima do que já rola — o relógio não para, nenhum passo
             novo, nenhum toque. Clube sem batismo: nada aparece (tudo como sempre). */}
         {carimboArt && (
-          <div key={'cb' + goalSeed} aria-hidden style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 3, animation: 'coCarimba 1.7s cubic-bezier(.2,.9,.3,1) forwards', filter: 'drop-shadow(0 5px 0 rgba(0,0,0,.32))' }}>
+          <div key={'cb' + goalSeed} aria-hidden style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 3, animation: `${carimboAnim} 1.7s cubic-bezier(.2,.9,.3,1) forwards`, filter: 'drop-shadow(0 5px 0 rgba(0,0,0,.32))' }}>
             {/* 🩹 as artes nascem com 168px de altura (tamanho do festão) e o corpo do
                 placar tem ~103px — sem encolher, o carimbo cortava a cabeça do
                 mascote. O 0.55 deixa a arte INTEIRA dentro do card. */}

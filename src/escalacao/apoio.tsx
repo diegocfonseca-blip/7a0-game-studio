@@ -92,6 +92,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N)
   'alvarolino7712@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'matheusncruz1@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Skyy FC)
+  'giovannecastro784@hotmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR + batismo (Crias do Bigão)
   'adriano.ferrari@quepazseguros.com.br': 'ouro', // 👑 Lenda (pago) — tudo do ouro + batismo (SC Ferrari)
   'vt6.wallace@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'gabriel.cozendey92@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
@@ -174,6 +175,7 @@ const FUNDADOR_N: Record<string, number> = {
   'souzact12@gmail.com': 43, // 🖋️ Geovany Souza — batismo Tricolor do Arruda FC (ex-Legado EC, Série A); anel do Arruda com o T no escudo, cobra de cachimbo de mascote (16/08)
   'lucas_calefi@outlook.com': 44, // 🖋️ Lucas Calefi — Lenda + sócio nº24; batizou os Coringas do Diniz (Série A); coração Corinthians (16/08)
   'pedrinhocamisa8@gmail.com': 45, // 🖋️ batizou o Nata de SP (ex-Paris São Geraldo, Série D); coração Corinthians (17/08)
+  'giovannecastro784@hotmail.com': 46, // 🖋️ batizou os Crias do Bigão (ex-Ferroviária do Vale, Série B) — mascote é o próprio dono (17/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

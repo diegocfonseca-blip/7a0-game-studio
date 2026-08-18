@@ -64,6 +64,31 @@ FORA do bundle. Então, sem exceção:
    Sempre que alguém vira dono de um clube batizado, ele automaticamente leva
    tier ouro (👑 Lenda) + o próximo número de `FUNDADOR_N` em `apoio.tsx` —
    não precisa o Diego pedir de novo caso a caso.
+8. **Regra permanente (17/08): TODO batismo tem FORMATO PADRÃO.** Palavras do
+   Diego: *"sempre irei falar arte padrão de formato pra escudo manto e mascote…
+   e mockup padrão também"*. Traduzindo, e sem exceção:
+   - **Arte**: escudo `.webp` 360px/≤30 KB · mascote `.webp` 440px/≤45 KB · manto
+     = **2 cores medidas na arte que o dono mandou** (nunca chutadas; 3ª cor só
+     via `MANTO_TRI`). Sempre os MESMOS lugares no código: `LOGOS_PRONTAS`
+     (com as variações do nome + o nome velho) · `MASCOTES` + `MASCOTE_NOME` +
+     `CARIMBO_GOL` · `data.ts` (`OLD_NAME` + a divisão) · `apoio.tsx`.
+   - **Mockup do post**: `node scripts/mockup-batismo.mjs` — formato aprovado
+     pelo Diego (o do Nata de SP). **Tem que ter a seção das ANIMAÇÕES** ("onde
+     a mascote aparece": carimbo no gol · festão de campeão · pulo no pênalti) —
+     foi o que ele cobrou. Não inventar layout novo a cada batismo: é esse
+     arquivo, e ele mora no repo justamente porque o mockup do Coringas foi feito
+     à mão e **se perdeu** com o scratchpad. Mandar pro Diego junto com a entrega.
+   - 🎽 **A CAMISA que o dono mandou VAI no post** (`--camisa`), sempre. O
+     gerador só desenha uma camisa genérica quando o batismo veio sem arte de
+     manto. Cobrança do Diego: *"a camisa eu mandei pra você, cara"*. As camisas
+     ficam em `scripts/kits/` — **nunca** em `src/escalacao/img/`: elas são do
+     POST, não do jogo (no jogo o manto é listra em CSS, 0 KB), então não entram
+     no bundle nem contam no teto de peso do batismo.
+   - **Limpeza da arte**: recortar o quadriculado falso em **DOIS passes** — o
+     normal (a partir da borda) **e** o de buracos PRESOS dentro do desenho
+     (entre pernas, alças, vãos fechados). Só apagar região que tenha os **dois
+     tons** do xadrez, senão pena/pelo cinza do bicho some junto. Aconteceu no
+     Skyy FC: sobrou um retângulo cinza entre as pernas da águia.
 
 ## 📁 Mapa do código
 - `src/escalacao/` — o jogo todo: `store.tsx` (estado/reducer/online),

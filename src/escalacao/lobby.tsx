@@ -1270,8 +1270,11 @@ export function EscLobby() {
     // carreira online é EM TESTE (só os e-mails liberados): não aparece na lista
     // pública — entra por convite/código ou por "Minhas carreiras" (host).
     const isCareer = (r: RoomInfo) => r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
+    // 🃏 BAFO também fica FORA da lista pública enquanto está em construção —
+    // mesmo tratamento da carreira online. Quem tem o modo liberado vê normal.
+    const isBafo = (r: RoomInfo) => r.game_state?.mode === 'elenco' && !salaElenco
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r))
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -1384,6 +1387,12 @@ export function EscLobby() {
     // carreira online em teste: só os e-mails liberados entram
     if ((rd.game_state?.mode === 'carreira' || (rd.game_state as GS & { careerOnline?: boolean })?.careerOnline) && !canCareer) {
       setRoomError('Esse modo (Carreira Online) ainda está em teste fechado.'); setLoading(false); return
+    }
+    // 🃏 BAFO em construção: a trava é aqui, no FUNIL de entrada (enterRoom é por
+    // onde passa TUDO — lista, código e link do zap). Esconder da lista não basta:
+    // com o código na mão qualquer um entraria numa sala que vale carta de verdade.
+    if (rd.game_state?.mode === 'elenco' && !salaElenco) {
+      setRoomError('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
     }
     if (rd.status === 'started') {
       const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
