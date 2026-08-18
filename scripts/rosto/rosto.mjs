@@ -58,15 +58,29 @@ export const CABELO = {
   // aparado, com franjinha
   curto: { frente: c => uni(TOUCA, c) },
 
+  // curto com a risca de lado (pra 6 caras de cabelo curto não virarem clones)
+  risca: {
+    frente: c => uni(TOUCA, c) +
+      `<path d="M37 30 C36 24 35.5 20 36 16" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round" opacity=".8"/>`,
+  },
+
+  // curto com topetinho na frente
+  topete: {
+    frente: c => uni('<path d="M22.5 47 A27.5 31.5 0 0 1 77.5 47 C75 36 70 31 63 30 C61 21 51 18 45 22 C42 25 41 28 40 31 C31 31 25 36 22.5 47 Z"/>', c),
+  },
+
   // raspado rente ao crânio
   raspado: { frente: c => uni(TOUCA_R, c) },
 
-  // cacheado curto: touca com caroços em cima (união, sem risco no meio)
+  // cacheado curto: touca com caroços em cima (união, sem risco no meio).
+  // Aceita 2ª cor = CABELO PINTADO: base escura embaixo, cacho descolorido em
+  // cima (é o visual do Yamal — o Diego cobrou: "o yamal q tem cabelo pintado
+  // N tá").
   cacheado: {
-    frente: c => uni(TOUCA_G +
-      '<circle cx="27" cy="38" r="8.5"/><circle cx="35" cy="26" r="9.5"/>' +
-      '<circle cx="50" cy="21" r="10.5"/><circle cx="65" cy="26" r="9.5"/>' +
-      '<circle cx="73" cy="38" r="8.5"/>', c),
+    frente: (c, c2) => uni(TOUCA_G, c) +
+      uni('<circle cx="27" cy="38" r="8.5"/><circle cx="35" cy="26" r="9.5"/>' +
+        '<circle cx="50" cy="21" r="10.5"/><circle cx="65" cy="26" r="9.5"/>' +
+        '<circle cx="73" cy="38" r="8.5"/>', c2 || c),
   },
 
   // afro: o volumão fica ATRÁS (halo), na frente só a touca — assim a testa
@@ -103,15 +117,18 @@ export const CABELO = {
       '<circle cx="62" cy="24" r="9.5"/><circle cx="72" cy="34" r="9"/>', c),
   },
 
-  // mullet: curto na frente, cai na nuca (Maradona)
+  // mullet cacheado (Maradona): mata-cachorro CURTO na nuca + mop cacheado em
+  // cima. A 1ª versão descia até o ombro pelos dois lados do rosto e virava um
+  // chanel — o Diego reclamou ("olha q ridículo tá o Maradona"). O rabo agora
+  // é estreito e para logo abaixo do maxilar.
   mullet: {
-    atras: c => uni('<path d="M27 46 C27 28 37 18 50 18 C63 18 73 28 73 46 L73 64 C73 78 70 86 66 90 C62 93 56 92 55 88 L45 88 C44 92 38 93 34 90 C30 86 27 78 27 64 Z"/>', c),
-    frente: c => uni(TOUCA +
-      '<circle cx="30" cy="33" r="7"/><circle cx="40" cy="24" r="8"/>' +
-      '<circle cx="60" cy="24" r="8"/><circle cx="70" cy="33" r="7"/>', c),
+    atras: c => uni('<path d="M34 54 C34 46 40 42 50 42 C60 42 66 46 66 54 L66 70 C66 78 64 84 61 85 C58 86 55.5 84.5 55.5 82 L44.5 82 C44.5 84.5 42 86 39 85 C36 84 34 78 34 70 Z"/>', c),
+    frente: c => uni(TOUCA_G +
+      '<circle cx="27" cy="38" r="8"/><circle cx="36" cy="26" r="9.5"/>' +
+      '<circle cx="50" cy="21" r="10"/><circle cx="64" cy="26" r="9.5"/>' +
+      '<circle cx="73" cy="38" r="8"/>', c),
   },
 
-  // trança/cornrow: touca + os riscos das tranças indo pra trás
   // trança/cornrow: a touca com as divisões das tranças. Riscos CURTOS e
   // finos — riscos longos viravam uma rede na cabeça.
   tranca: {
@@ -157,14 +174,16 @@ function camisa({ c1, c2 = c1, tipo = 'lisa' }, id) {
 }
 
 // 🧑 o boneco montado — a ordem aqui é o que faz o cabelo funcionar
-export function rosto({ pele = 'b', cabelo = 'curto', corCabelo = '#2B2118', barba = 'nao', c1 = '#fff', c2, tipo = 'lisa', id = 'x' }) {
+// `pintado` = 2ª cor do cabelo (descolorido/tingido). Só os cortes que sabem
+// usar duas cores olham pra ela; os outros ignoram.
+export function rosto({ pele = 'b', cabelo = 'curto', corCabelo = '#2B2118', pintado, barba = 'nao', c1 = '#fff', c2, tipo = 'lisa', id = 'x' }) {
   const p = PELE[pele] ?? PELE.b
   const cab = CABELO[cabelo] ?? CABELO.curto
   // boca preta em cima de barba cheia preta = boca some. Aí ela vira clara.
   const boca = barba === 'cheia' ? '#F4ECD6' : INK
   return `<svg viewBox="0 0 100 120" width="100%" style="display:block">
   ${camisa({ c1, c2, tipo }, id)}
-  ${cab.atras ? cab.atras(corCabelo) : ''}
+  ${cab.atras ? cab.atras(corCabelo, pintado) : ''}
   <rect x="42" y="60" width="16" height="20" fill="${p}" stroke="${INK}" stroke-width="4"/>
   <ellipse cx="24" cy="48" rx="5" ry="7" fill="${p}" stroke="${INK}" stroke-width="3.5"/>
   <ellipse cx="76" cy="48" rx="5" ry="7" fill="${p}" stroke="${INK}" stroke-width="3.5"/>
@@ -175,6 +194,6 @@ export function rosto({ pele = 'b', cabelo = 'curto', corCabelo = '#2B2118', bar
   <path d="M34 36c3-2 8-2 11 0M55 36c3-2 8-2 11 0" stroke="${INK}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
   <path d="M50 50v6" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>
   <path d="M42 64c3 3 13 3 16 0" stroke="${boca}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-  ${cab.frente(corCabelo)}
+  ${cab.frente(corCabelo, pintado)}
 </svg>`
 }

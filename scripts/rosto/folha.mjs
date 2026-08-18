@@ -26,19 +26,20 @@ const fonte = w => `data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w
 
 // cores de cabelo
 const PRETO = '#241A12', CASTANHO = '#4A3018', LOIRO = '#E0A83C', GRISALHO = '#6B6357'
+const OXIGENADO = '#EBC66A' // cabelo pintado/descolorido
 
 // ── os 17, com clube/ano/fama REAIS do data.ts ──────────────────────────────
 const JOGADORES = [
   { n: 'Pelé',                club: 'Santos',         ano: 1962, f: 5, pele: 'd', cabelo: 'curto',    cc: PRETO,    barba: 'nao',    c1: '#FFFFFF', c2: '#0C0C0C', tipo: 'lisa' },
-  { n: 'Ronaldo Fenômeno',    club: 'Inter',          ano: 1998, f: 5, pele: 'c', cabelo: 'curto',    cc: PRETO,    barba: 'nao',    c1: '#0B1560', c2: '#0C0C0C', tipo: 'listras' },
-  { n: 'Lamine Yamal',        club: 'Barcelona',      ano: 2025, f: 4, pele: 'c', cabelo: 'cacheado', cc: PRETO,    barba: 'nao',    c1: '#A50044', c2: '#143A87', tipo: 'listras' },
+  { n: 'Ronaldo Fenômeno',    club: 'Inter',          ano: 1998, f: 5, pele: 'c', cabelo: 'topete',    cc: PRETO,    barba: 'nao',    c1: '#0B1560', c2: '#0C0C0C', tipo: 'listras' },
+  { n: 'Lamine Yamal',        club: 'Barcelona',      ano: 2025, f: 4, pele: 'c', cabelo: 'cacheado', cc: PRETO,    pint: OXIGENADO, barba: 'nao',    c1: '#A50044', c2: '#143A87', tipo: 'listras' },
   { n: 'Neymar',              club: 'Santos',         ano: 2011, f: 5, pele: 'b', cabelo: 'moicano',  cc: PRETO,    barba: 'nao',    c1: '#FFFFFF', c2: '#0C0C0C', tipo: 'lisa' },
   { n: 'Vinícius Júnior',     club: 'Real Madrid',    ano: 2024, f: 5, pele: 'd', cabelo: 'tranca',   cc: PRETO,    barba: 'nao',    c1: '#FFFFFF', c2: '#C9A227', tipo: 'lisa' },
-  { n: 'Lionel Messi',        club: 'Barcelona',      ano: 2012, f: 5, pele: 'a', cabelo: 'curto',    cc: CASTANHO, barba: 'nao',    c1: '#A50044', c2: '#143A87', tipo: 'listras' },
+  { n: 'Lionel Messi',        club: 'Barcelona',      ano: 2012, f: 5, pele: 'a', cabelo: 'topete',    cc: CASTANHO, barba: 'nao',    c1: '#A50044', c2: '#143A87', tipo: 'listras' },
   { n: 'Ronaldinho Gaúcho',   club: 'Barcelona',      ano: 2005, f: 5, pele: 'd', cabelo: 'cachos',   cc: PRETO,    barba: 'nao',    c1: '#A50044', c2: '#143A87', tipo: 'listras' },
-  { n: 'Kaká',                club: 'Milan',          ano: 2007, f: 5, pele: 'a', cabelo: 'curto',    cc: CASTANHO, barba: 'nao',    c1: '#B3132A', c2: '#0C0C0C', tipo: 'listras' },
+  { n: 'Kaká',                club: 'Milan',          ano: 2007, f: 5, pele: 'a', cabelo: 'risca',     cc: CASTANHO, barba: 'nao',    c1: '#B3132A', c2: '#0C0C0C', tipo: 'listras' },
   { n: 'Zinedine Zidane',     club: 'Real Madrid',    ano: 2002, f: 5, pele: 'b', cabelo: 'coroa',    cc: GRISALHO, barba: 'nao',    c1: '#FFFFFF', c2: '#C9A227', tipo: 'lisa' },
-  { n: 'Paolo Maldini',       club: 'Milan',          ano: 1994, f: 5, pele: 'a', cabelo: 'curto',    cc: PRETO,    barba: 'nao',    c1: '#B3132A', c2: '#0C0C0C', tipo: 'listras' },
+  { n: 'Paolo Maldini',       club: 'Milan',          ano: 1994, f: 5, pele: 'a', cabelo: 'risca',     cc: PRETO,    barba: 'nao',    c1: '#B3132A', c2: '#0C0C0C', tipo: 'listras' },
   { n: 'Kylian Mbappé',       club: 'PSG',            ano: 2022, f: 5, pele: 'd', cabelo: 'raspado',  cc: PRETO,    barba: 'nao',    c1: '#0A1A44', c2: '#C2452F', tipo: 'meio' },
   { n: 'Carlos Valderrama',   club: 'Deportivo Cali', ano: 1988, f: 5, pele: 'c', cabelo: 'afro',     cc: LOIRO,    barba: 'bigode', c1: '#FFFFFF', c2: '#1B7A3D', tipo: 'faixa' },
   { n: 'Diego Maradona',      club: 'Napoli',         ano: 1987, f: 5, pele: 'b', cabelo: 'mullet',   cc: PRETO,    barba: 'nao',    c1: '#1E9BD6', c2: '#FFFFFF', tipo: 'lisa' },
@@ -52,7 +53,7 @@ const estrelas = f => '★'.repeat(f) + '<span class="off">' + '★'.repeat(5 - 
 
 const cartas = JOGADORES.map((j, i) => `
 <div class="carta">
-  <div class="janela">${rosto({ pele: j.pele, cabelo: j.cabelo, corCabelo: j.cc, barba: j.barba, c1: j.c1, c2: j.c2, tipo: j.tipo, id: 'j' + i })}</div>
+  <div class="janela">${rosto({ pele: j.pele, cabelo: j.cabelo, corCabelo: j.cc, pintado: j.pint, barba: j.barba, c1: j.c1, c2: j.c2, tipo: j.tipo, id: 'j' + i })}</div>
   <div class="pe">
     <div class="nome">${j.n}</div>
     <div class="clube">${j.club} · ${j.ano}</div>
