@@ -1,5 +1,40 @@
 # 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
 
+## 🐛🌍 BUG ACHADO PELO DIEGO (17/08): Copa do Mundo VAZAVA pra carreira nova
+Ele estranhou no ranking global: o **"Real Manha"** aparecia lá em cima, acima de
+gente com **A44 + Copa33**, tendo **só 1 🌍 Copa do Mundo e nenhum outro título**.
+Conferido no código e no banco — não era impressão.
+
+**Duas coisas diferentes, e só uma é bug:**
+
+1. ✅ **NÃO é bug o Mundo passar na frente de tudo.** A ordem do ranking é regra
+   do Diego (16/08) e está escrita na própria tela: 🌍 Copa do Mundo › 🏆 Série A
+   › 🏆 Copa › 🏆🔵 Supercopa › B › C › D › Várzea › 💰. É uma fila de desempate —
+   **1 Mundo passa na frente de QUALQUER quantidade de Série A**.
+2. 🐛 **É bug ele TER o Mundo.** A Copa do Mundo só desbloqueia na **temporada
+   100** (`COPA_ANCHOR` em `copa-mundo.tsx`). O Real Manha tem `world_titles = 1`
+   **desde a temporada 1** — o que nenhuma regra do jogo permite.
+
+**Causa:** `state.copaMundoMural` **não era zerado ao começar carreira nova**. Os
+dois blocos de "FAXINA ANTI-HERANÇA" do `store.tsx` limpavam honras, copas,
+supercopas, agência, elencos de CPU… e esse campo tinha ficado de fora. Quem
+ganhou um Mundo numa carreira antiga levava o título pra carreira nova — e, como
+🌍 é o PRIMEIRO critério, a carreira recém-nascida (sem título, sem dinheiro)
+pulava pro TOPO do ranking mundial. Mesma família do bug "Copa21 em 8
+temporadas" (04/08).
+
+**Corrigido:** `s.copaMundoMural = undefined` nos dois blocos de reset.
+
+**Tamanho do estrago (medido, não estimado):** de **646 linhas** do ranking com
+Copa do Mundo, só **9** estão antes da T100 — e são todas da **mesma carreira, de
+uma conta só**. Ou seja: raro, mas real, e bem visível porque joga a pessoa pro
+primeiro lugar do mundo.
+
+⏳ **Falta decidir com o Diego:** zerar o `world_titles` dessa carreira no banco
+(`esc_pyramid_rank_snap`, career_id 261025288). É 1 UPDATE, mas o jogador **perde
+o 🌍 que ele vê hoje** — por isso não foi feito sem o OK. Enquanto não zerar, ele
+continua no topo do ranking global.
+
 ## 🃏 BAFO — ✅ CODADO INTEIRO (17/08), invisível pra todo mundo menos o Diego
 
 O modo abaixo foi desenhado no dia 17/08 e **está codado do começo ao fim** —
