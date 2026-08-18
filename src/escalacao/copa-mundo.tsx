@@ -1,6 +1,6 @@
 // ─── 🌍 COPA DO MUNDO LEGENDS (v1 · carreira SOLO) ───────────────────────────
 // O endgame dos veteranos: desbloqueia na TEMPORADA 100, rola de 10 em 10.
-// Vaga e ordem de escolha = TOP 20 do RANKING DE CLUBES (o mural do Rank).
+// Vaga e ordem de escolha = TOP 24 do RANKING DE CLUBES (o mural do Rank).
 // Dentro da seleção NÃO tem leilão: é CONVOCAÇÃO pura — TODAS as cartas do país
 // aparecem (sem categoria na tela!) e o técnico escolhe SÓ 11.
 // Formato: 4 grupos ida-e-volta (desempate vitórias > saldo) → sorteio → quartas
@@ -190,9 +190,12 @@ function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away
   return evs.sort((a, b) => a.min - b.min)
 }
 
-// 🌍 formato da Copa: 4 grupos de 5 (turno único = 5 rodadas) → top 2 de cada = 8
-// → quartas/semis/final. (Era 4 grupos de 4 ida-volta = 16; expandido pra 20 seleções.)
-const NUM_GROUPS = 4, GROUP_SIZE = 5, GROUP_ROUNDS = 5, COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 20
+// 🌍 formato da Copa: 4 grupos de 6 (turno único = 5 rodadas) → top 2 de cada = 8
+// → quartas/semis/final. (Era 4 grupos de 4 ida-volta = 16; depois 4 de 5 = 20;
+// desde 17/08 são 4 de 6 = 24, quando Croácia/Dinamarca/Peru/Equador fecharam 22
+// cartas cada.) Com 6 (par) o turno único continua dando 5 rodadas, só que sem o
+// "bye" que sobrava no grupo de 5 — o mata-mata não muda em nada.
+const NUM_GROUPS = 4, GROUP_SIZE = 6, GROUP_ROUNDS = 5, COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 24
 
 // turno único (round-robin) pra N times — cada um joga contra todos UMA vez. N ímpar
 // ganha um "bye" por rodada (o -1 é descartado). Determinístico (a ordem vem de fora).
@@ -314,7 +317,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
   if (seasonNo < COPA_ANCHOR) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>🔒 Copa do Mundo Legends</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 20 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 24 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</p>
       <div style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${Math.min(100, seasonNo)}%`, background: `linear-gradient(90deg,#FFE79A,${GOLD})`, borderRight: `2px solid ${INK}` }} />
         <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 8.5, fontWeight: 900, color: INK }}>temporada {seasonNo} de 100</b>
@@ -335,7 +338,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
   if (!inTop16) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>🔒 Copa do Mundo Legends — temporada {seasonNo}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>É temporada de Copa, mas <b>seu clube não está no TOP 20 do ranking de clubes</b> {rankLink}. Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>É temporada de Copa, mas <b>seu clube não está no TOP 24 do ranking de clubes</b> {rankLink}. Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</p>
     </div>
   )
 

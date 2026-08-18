@@ -374,6 +374,43 @@ export const PAIS: Record<string, string> = {
   'Pierre-Emerick Aubameyang': 'Gabão', 'Mario Mandžukić': 'Croácia',
   'Gervinho': 'Costa do Marfim', 'Thorgan Hazard': 'Bélgica',
   'Willian José': 'Brasil', 'Mancini': 'Brasil', 'Papa Waigo': 'Senegal',
+
+  // ── 🌍 LOTE COPA 24 (17/08): 4 seleções novas a 22 cada, pra Copa do Mundo
+  // virar 24 (4 grupos de 6). As cartas estão espalhadas nos TRÊS baralhos
+  // (regra do Diego: a carta nasce no baralho de onde o cara jogou), então é
+  // esta etiqueta que junta cada uma na seleção certa. Ex.: Trauco é carta do
+  // baralho BR (Flamengo) mas joga pelo PERU.
+  // Croácia (14 novos — tinha 8: Modrić, Rakitić, Brozović, Kovačić, Perišić,
+  // Mandžukić, Šuker, Subašić)
+  'Dominik Livaković': 'Croácia', 'Robert Jarni': 'Croácia', 'Vedran Ćorluka': 'Croácia',
+  'Šime Vrsaljko': 'Croácia', 'Ivan Strinić': 'Croácia', 'Joško Gvardiol': 'Croácia',
+  'Dejan Lovren': 'Croácia', 'Domagoj Vida': 'Croácia', 'Igor Štimac': 'Croácia',
+  'Zvonimir Boban': 'Croácia', 'Robert Prosinečki': 'Croácia', 'Alen Bokšić': 'Croácia',
+  'Ivica Olić': 'Croácia',
+  'Eduardo da Silva': 'Croácia', // nasceu no Brasil, naturalizado — jogou Copa e Euro pela Croácia
+  // Dinamarca (18 novos — tinha 4: Peter Schmeichel, Michael Laudrup, Eriksen, Bendtner)
+  'Kasper Schmeichel': 'Dinamarca', 'Thomas Helveg': 'Dinamarca', 'Joakim Mæhle': 'Dinamarca',
+  'Jan Heintze': 'Dinamarca', 'Daniel Wass': 'Dinamarca', 'Simon Kjær': 'Dinamarca',
+  'Daniel Agger': 'Dinamarca', 'Andreas Christensen': 'Dinamarca', 'Morten Olsen': 'Dinamarca',
+  'Brian Laudrup': 'Dinamarca', 'Pierre-Emile Højbjerg': 'Dinamarca', 'Thomas Delaney': 'Dinamarca',
+  'Christian Poulsen': 'Dinamarca', 'Allan Simonsen': 'Dinamarca', 'Preben Elkjær': 'Dinamarca',
+  'Jon Dahl Tomasson': 'Dinamarca', 'Rasmus Højlund': 'Dinamarca', 'Ebbe Sand': 'Dinamarca',
+  // Peru (18 novos — tinha 4: Guerrero, Chumpitaz, Cubillas, Yotún)
+  'Pedro Gallese': 'Peru',
+  'Ramón Quiroga': 'Peru', // argentino naturalizado — defendeu o Peru na Copa de 78
+  'Luis Advíncula': 'Peru', 'Miguel Trauco': 'Peru', 'Aldo Corzo': 'Peru',
+  'Carlos Zambrano': 'Peru', 'Alberto Rodríguez': 'Peru', 'Luis Abram': 'Peru',
+  'Nolberto Solano': 'Peru', 'César Cueto': 'Peru', 'Christian Cueva': 'Peru',
+  'Renato Tapia': 'Peru', 'Pedro Aquino': 'Peru', 'Claudio Pizarro': 'Peru',
+  'Jefferson Farfán': 'Peru', 'Hugo Sotil': 'Peru', 'André Carrillo': 'Peru',
+  'Gianluca Lapadula': 'Peru', // ítalo-peruano — escolheu jogar pelo Peru
+  // Equador (15 novos — tinha 7: Arboleda, Félix Torres, Iván Hurtado, Enner
+  // Valencia, Moisés Caicedo, Álex Aguinaga, Juan Cazares)
+  'Alexander Domínguez': 'Equador', 'Máximo Banguera': 'Equador', 'Ulises de la Cruz': 'Equador',
+  'Pervis Estupiñán': 'Equador', 'Neicer Reasco': 'Equador', 'Mario Pineida': 'Equador',
+  'Frickson Erazo': 'Equador', 'Edison Méndez': 'Equador', 'Christian Noboa': 'Equador',
+  'Renato Ibarra': 'Equador', 'Agustín Delgado': 'Equador', 'Felipe Caicedo': 'Equador',
+  'Jefferson Montero': 'Equador', 'Ángel Mena': 'Equador', 'Michael Estrada': 'Equador',
 }
 
 // Mesmo NOME em baralhos diferentes com país diferente (hoje só estes dois):
