@@ -252,9 +252,11 @@ html.noturno .palco :is([class*="bg-white"],
   /* 6) CAMPINHO do Elenco (07/08, Diego: "tá muito apertado"): no monitor sobra
      espaço dos dois lados enquanto as casinhas dos jogadores ficam espremidas —
      dá mais respiro entre elas e engorda a casinha (sem mexer em fonte/lógica). */
-  .campinho-field { padding: 18px 22px !important; gap: 16px !important; }
+  .campinho-field { padding: 18px 22px !important; gap: 20px !important; }
   .campinho-row { gap: 16px !important; }
-  .campinho-slot { min-width: 108px !important; padding: 10px 12px !important; }
+  /* `.campinho-slot` saiu em 19/08: a casinha branca não existe mais — o jogador
+     agora fica solto na grama (`jogadorcampo.tsx`). A regra virou letra morta e
+     foi removida pra não enganar quem ler. */
 }
 
 /* ═══ 🖥️ MODO DESKTOP — FASE 2 "duas colunas" (05/08) ══════════════════════
