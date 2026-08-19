@@ -282,3 +282,49 @@ os 32 clubes · tela dos grupos.
 **Recomendação: A agora, B depois.** A lista de quem jogou a Libertadores — que é
 o trabalho grande — **serve pros dois**, então nada se perde. E o A dá pro Diego
 JOGAR a coisa e sentir se é isso, gastando pouco.
+
+---
+
+## 10. ✅ DECIDIDO (20/08): os DOIS caminhos, com trava de exclusão
+
+> *"Poderíamos fazer os dois né temático ao lado da várzea e a liga… Aí o cara
+> decide se joga direto a libertadores ou joga liga e libertadores.. Só N dá p
+> jogar liga copa e libertadores ou copa e libertadores… E baralho é de jogadores
+> q jogaram a libertadores C o clube da sua carta e ano… O time tem q ter jogado
+> libertadores aquele ano"*
+
+### Como fica a criação da sala
+- **Categoria** (do lado da várzea): `Todos · 🥅 Várzea · 🌎 Libertadores`.
+- **Competição** (só aparece com a categoria Libertadores ligada):
+  `🏁 Liga + Libertadores` (44 jogos) **ou** `🌎 Libertadores direto` (19 jogos).
+- ⛔ **Regra dura do Diego**: **nunca** Copa dos 8 junto da Libertadores. Ligou
+  Libertadores, a Copa dos 8 **sai da tela** (mesmo padrão do Bafo, que já faz
+  isso e escreve o porquê). Combinações proibidas, que o código tem que impedir
+  (não só esconder): liga+copa+liberta e copa+liberta.
+
+### Regra do baralho (palavra dele)
+A carta entra **se o clube da carta disputou a Libertadores naquele ano**. Não é
+"foi campeão" e não é "o jogador é bom". É clube + ano.
+
+## 11. 🔍 A PESQUISA (em andamento) — e o aviso honesto
+
+O Diego pediu: *"pesquise a fundo pra N ter erros"*. Situação real:
+- **pt.wikipedia, en.wikipedia, futdados, campeoesdofutebol: BLOQUEADOS** pelo
+  proxy de rede desta sessão. Só a **busca** funciona (devolve resumo + links).
+- **O resumo da busca já se contradisse uma vez**: em 2005 ele afirmou que o
+  Atlético Paranaense jogou a Sul-Americana "e não a Libertadores" e, duas linhas
+  depois, que o Atlético Paranaense foi **vice da Libertadores 2005** (o que é o
+  correto — a final de 2005 foi São Paulo × Atlético-PR). **Fonte única não
+  serve**: cada ano precisa de 2 buscas e, no fim, do olho do Diego.
+
+**São 66 anos e 343 combinações clube+ano** pra checar (mapa completo em
+`scratchpad/anos-br.txt`, gerado do `data.ts`). O trabalho é esse, e é longo.
+
+### Já checado (1ª passada)
+- **1997** → Cruzeiro (atual campeão), **Vasco**, **Grêmio**. Ou seja: **São Paulo
+  1997, Flamengo 1997 e América-MG 1997 FICAM DE FORA** — 4 das 11 cartas do ano.
+- **2005** → Corinthians, Internacional, Goiás, Palmeiras, São Paulo (campeão) e
+  **Atlético-PR** (vice). Santos 2005 **fora** (jogou a Sul-Americana).
+
+Já dá pra ver o efeito: **o ano da carta é o AUGE do jogador, não o ano de
+Libertadores do clube** — então muita carta de clube grande vai cair.
