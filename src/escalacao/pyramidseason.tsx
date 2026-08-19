@@ -4233,6 +4233,32 @@ export function PyramidSeasonScreen() {
         // dela nem apagar nada à mão.
         const world = mergedMundialMural(state.seed, state.copaMundoMural)
           .filter(m => m.voce && m.season >= 100 && m.season <= (state.seasonNo ?? 0)).length
+        // 🛡️ TRAVA DE SANIDADE (19/08, caso do Paduz): NINGUÉM PODE TER MAIS
+        // TÍTULO DO QUE TEMPORADA JOGADA. Ele começou carreira nova e ela nasceu
+        // com 31 Séries A e 28 Copas — dá pra ver nos saves dele no banco: a
+        // carreira `460592162` está na temporada 3 com honors A=31. Alguma coisa
+        // ainda vaza os títulos da carreira velha pra nova (a faxina do
+        // `START_CAREER_SOLO` zera `careerHonors`, então a sujeira entra por
+        // outro caminho, e eu ainda não achei qual).
+        //
+        // Enquanto eu caço a origem, esta trava impede o ESTRAGO — que é o
+        // ranking global virar mentira. A conta é a mais óbvia que existe: em N
+        // temporadas concluídas não dá pra levantar mais que N taças de cada
+        // competição, e nem mais que N somando todas as divisões (só se joga uma
+        // divisão por temporada). É o mesmo remédio que já usei na Copa do Mundo:
+        // além de barrar o caso novo, LIMPA sozinho quem já está sujo na próxima
+        // temporada que a pessoa jogar — sem mexer no aparelho de ninguém.
+        //
+        // ⚠️ De propósito NÃO mexe no que a pessoa vê dentro da carreira dela:
+        // isto vale só pro que sai daqui pro ranking. Tirar troféu da tela de
+        // alguém sem entender a origem seria pior que o bug.
+        const jogadas = Math.max(0, (state.seasonNo ?? 1) - 1)
+        let sobra = jogadas
+        const capDiv = (n?: number) => { const v = Math.max(0, Math.min(n ?? 0, sobra)); sobra -= v; return v }
+        const hA = capDiv(h.A), hB = capDiv(h.B), hC = capDiv(h.C), hD = capDiv(h.D), hV = capDiv(h.V)
+        const copasOk = Math.max(0, Math.min(copas, jogadas))
+        const supersOk = Math.max(0, Math.min(supercopas, jogadas))
+        const worldOk = Math.max(0, Math.min(world, jogadas))
         const money = Math.round(state.careerCoins?.[youId] ?? 0)
         // 🏷️ `career_id` = o número do SAVE (o mesmo que separa as suas carreiras
         // em "Minhas carreiras"). É o que faz cada carreira ter a linha DELA no
@@ -4242,8 +4268,8 @@ export function PyramidSeasonScreen() {
         // plaquinha: os títulos ficam presos na carreira.
         await supabase.from('esc_pyramid_rank_snap').upsert({
           user_id: data.user.id, career_id: state.seed ?? 0, season_no: state.seasonNo, team_name: you.teamName,
-          honors_a: h.A ?? 0, honors_b: h.B ?? 0, honors_c: h.C ?? 0, honors_d: h.D ?? 0, honors_v: h.V ?? 0,
-          copa_titles: copas, supercopa_titles: supercopas, world_titles: world, money,
+          honors_a: hA, honors_b: hB, honors_c: hC, honors_d: hD, honors_v: hV,
+          copa_titles: copasOk, supercopa_titles: supersOk, world_titles: worldOk, money,
         })
       } catch { /* melhor esforço — nunca trava o jogo por causa do rank */ }
     })()
