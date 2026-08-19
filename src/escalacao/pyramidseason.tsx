@@ -176,7 +176,11 @@ function pickCatalog(deck: 'br' | 'eu' | 'both' | 'todos') { return deck === 'eu
 
 // elencos determinísticos dos 60 times de CPU (A/B/C), por NOME — estável entre
 // temporadas: quando um time sobe/desce, leva o mesmo elenco (chave = nome).
-function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos', comVarzea = false): Map<string, PoolCard[]> {
+// `divOut` (opcional) devolve em QUAL divisão cada time de fundo foi montado — é o
+// que faz um clube RESERVA (o que entra no lugar de um bot com nome de técnico)
+// nascer na divisão certa, com elenco da força certa, em vez de cair na divisão de
+// origem do nome dele.
+function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos', comVarzea = false, divOut?: Map<string, Div>): Map<string, PoolCard[]> {
   const rng = mulberry((seed ^ 0x9E3779B1) >>> 0)
   // dedup por AUGE (nome+clube+ano): auges diferentes do mesmo nome (Vini Flamengo
   // x Real) são jogadores distintos — cabem os dois, mais cartas pra encher os times.
@@ -199,13 +203,35 @@ function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | '
   // divisão) NÃO pode também nascer como time de fundo — senão apareceria DUPLICADO
   // na pirâmide. Normalmente nenhum time A/B/C é manager, então isto é no-op.
   const mgrNames = new Set(managers.map(m => m.teamName))
+  // 🔁 BOT REPETIDO É TROCADO, NÃO APAGADO (regra do Diego, 19/08): *"entrou um time
+  // de batismo que já tem outro no jogo, o bot do jogo é trocado por outro… o jogo
+  // tem que ser como deve ser"*. Antes o bot homônimo era só REMOVIDO e a divisão
+  // ficava com 19 clubes PRA SEMPRE. Foi assim que o Gabriel — que batizou o time de
+  // "Deportivo Montreal", nome de um clube da Série A — perdeu um clube da pirâmide
+  // e, junto com ele, a Copa do Brasil inteira por 106 temporadas (a Copa exigia 20
+  // por divisão e desistia calada). Agora entra uma RESERVA no lugar: cada divisão
+  // sempre fecha com 20.
+  // A/B/C puxam reserva do FIM da lista de extras e a D do começo, pra não brigarem
+  // pelo mesmo nome; `usadas` impede que a mesma reserva caia em duas divisões.
+  const reservas = EXTRA_D_TEAMS.map(t => t.team).reverse()
+  const usadas = new Set<string>()
   for (const d of (comVarzea ? ['A', 'B', 'C', 'D'] as const : ['A', 'B', 'C'] as const)) {
     // na D (escada), rivais escolhidos "ocupam" nomes da lista — completa com os extras
-    const names = d === 'D'
-      ? [...DIVISION_TEAMS.D.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)].filter(nm => !mgrNames.has(nm)).slice(0, 20)
-      : DIVISION_TEAMS[d].map(t => t.team).slice(0, 20)
+    const base = d === 'D'
+      ? [...DIVISION_TEAMS.D.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)]
+      : DIVISION_TEAMS[d].map(t => t.team)
+    const names: string[] = []
+    const pega = (lista: string[]) => {
+      for (const nm of lista) {
+        if (names.length >= 20) return
+        if (mgrNames.has(nm) || usadas.has(nm)) continue
+        names.push(nm); usadas.add(nm)
+      }
+    }
+    pega(base)
+    pega(reservas) // só entra se a divisão perdeu alguém pro nome de um técnico
     const dealt = dealSquads(bucket[d], 20, rng)
-    names.forEach((nm, i) => { if (!mgrNames.has(nm)) map.set(nm, dealt[i]) })
+    names.forEach((nm, i) => { map.set(nm, dealt[i]); divOut?.set(nm, d) })
   }
   return map
 }
@@ -229,7 +255,8 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
     const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival, !!m.dormindo, m.formation)
     world[divOf(`m${m.id}`, hasV ? 'V' : 'D')].push(t)
   }
-  const cpu = buildCpuSquads(managers, seed, deck, hasV)
+  const cpuDiv = new Map<string, Div>()
+  const cpu = buildCpuSquads(managers, seed, deck, hasV, cpuDiv)
   // usa a FICHA salva do time de fundo se existir (memória de mercado); senão, a
   // receita determinística (base). Assim vender/comprar cola entre temporadas.
   // Times RENOMEADOS: se o save antigo guardou colocação/ficha no nome VELHO,
@@ -238,7 +265,7 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
     const olds = oldChain(name)
     const plKey = placements?.[name] != null ? name : (olds.find(o => placements?.[o] != null) ?? name)
     const squad = cpuSquads?.[name] ?? olds.map(o => cpuSquads?.[o]).find(Boolean) ?? base
-    world[divOf(plKey, cpuOrigDiv(name))].push(mk(name, squad as PoolCard[], false, false, -1))
+    world[divOf(plKey, cpuDiv.get(name) ?? cpuOrigDiv(name))].push(mk(name, squad as PoolCard[], false, false, -1))
   }
   // REDE DE SEGURANÇA: cada série precisa de EXATAMENTE 20 times. Save fora do
   // padrão (qualquer causa) desequilibrava (19/21) e derrubava a simulação
