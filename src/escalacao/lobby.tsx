@@ -36,7 +36,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga'; ligaAt?: string; ligaRegras?: unknown; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga'; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -1547,6 +1547,19 @@ export function EscLobby() {
     const liga = ligaOn && roomMode === 'liga'
     const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
     const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : (canLiga && ligaFechada ? { ligaFechada: true } : {})), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
+    // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
+    // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
+    // abandonadas. O aviso diz o número e o caminho pra destravar.
+    if (liga) {
+      const { count } = await supabase.from('game_rooms')
+        .select('id', { count: 'exact', head: true })
+        .eq('host_id', user.id).eq('game_state->>mode', 'liga')
+      if ((count ?? 0) >= 2) {
+        setRoomError('Você já tem 2 ligas — é o máximo por pessoa. Pra criar outra, entre numa delas em "🏆 Minhas ligas" e use "🗑️ Excluir a liga".')
+        setLoading(false); return
+      }
+    }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1645,18 +1658,32 @@ export function EscLobby() {
   // excluir. Tudo dentro da própria sala, que é onde a pessoa está quando lembra
   // de remarcar.
   const [ligaEdit, setLigaEdit] = useState(false)
+  const [ligaAdmAberto, setLigaAdmAberto] = useState(false)
+  // 👑 quem MANDA na liga: o dono e os adms que ele escolheu. Excluir a liga
+  // continua SÓ do dono — adm ajuda a tocar, não desfaz o que é do outro.
+  const ligaAdmins = ((room?.game_state as GS)?.ligaAdmins ?? []) as string[]
+  const mandaNaLiga = !!user && !!room && (room.host_id === user.id || ligaAdmins.includes(user.id))
   const [ligaEditData, setLigaEditData] = useState('')
   const [ligaEditHora, setLigaEditHora] = useState('')
   // Mexe SÓ nos campos da liga dentro do game_state, sem reescrever o resto: o
   // estado da sala pode ser o JOGO INTEIRO, e sobrescrever seria perder tudo.
   // Por isso lê, junta e grava.
-  async function patchLiga(campos: Record<string, unknown>) {
+  // Salva pela FUNÇÃO do banco (`liga_patch`), não escrevendo na sala direto.
+  // Motivo: o estado da sala é a PARTIDA INTEIRA e o online é host-autoritativo —
+  // deixar mais gente escrever ali daria pra sobrescrever o jogo da galera no
+  // meio. A função troca só o horário, as regras e a lista de adms, e confere na
+  // entrada se quem chamou é o dono ou um adm.
+  async function patchLiga(campos: { ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; ligaFechada?: boolean }) {
     if (!room) return
-    const { data } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
-    const gs = { ...((data?.game_state ?? {}) as Record<string, unknown>), ...campos }
-    const { error } = await supabase.from('game_rooms').update({ game_state: gs, updated_at: new Date().toISOString() }).eq('id', room.id)
-    if (error) { setRoomError('Não deu pra salvar agora — tente de novo.'); return }
-    setRoom(r => (r ? { ...r, game_state: gs as unknown as GS } : r))
+    const { data, error } = await supabase.rpc('liga_patch', {
+      p_room: room.id,
+      p_at: campos.ligaAt ?? null,
+      p_regras: (campos.ligaRegras ?? null) as never,
+      p_admins: (campos.ligaAdmins ?? null) as never,
+      p_fechada: campos.ligaFechada ?? null,
+    })
+    if (error || data === false) { setRoomError('Não deu pra salvar agora — tente de novo.'); return }
+    setRoom(r => (r ? { ...r, game_state: { ...(r.game_state as GS), ...campos } as GS } : r))
     fetchMyLigas()
   }
   async function excluirLiga() {
@@ -2775,7 +2802,7 @@ export function EscLobby() {
                 <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? '🚫 sem bots — só a galera na tabela' : '🤖 com bots até 20 times'}</p>
               </div>
             </div>
-            {isHost && (
+            {mandaNaLiga && (
               <div className="grid grid-cols-2 gap-2 mt-3">
                 <button onClick={() => {
                   const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
@@ -2790,13 +2817,66 @@ export function EscLobby() {
                   className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
                   🤖 {gs?.ligaFechada ? 'Pôr bots' : 'Tirar bots'}
                 </button>
-                <button onClick={excluirLiga}
-                  className="col-span-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: '#B23B2E' }}>
-                  🗑️ Excluir a liga
-                </button>
+                {isHost && (
+                  <button onClick={excluirLiga}
+                    className="col-span-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: '#B23B2E' }}>
+                    🗑️ Excluir a liga
+                  </button>
+                )}
               </div>
             )}
-            {isHost && ligaEdit && (
+            {/* 📅 REMARCAR EM UM TOQUE. O Diego: *"deve poder remarcar fácil pra
+                qualquer dia e hora, seja dia seguinte, uma semana, tanto faz"*.
+                Os atalhos empurram a MESMA hora pra frente; pra trocar a hora é
+                o "mudar dia e hora" logo acima. E se ninguém remarcar, a data
+                velha FICA — o jogo não inventa data por conta própria. */}
+            {mandaNaLiga && !ligaEdit && (
+              <div className="flex gap-2 mt-2">
+                {([['+1 dia', 1], ['+1 semana', 7], ['+15 dias', 15]] as [string, number][]).map(([rot, dias]) => (
+                  <button key={rot} onClick={() => {
+                    const base = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
+                    const d = new Date(base.getTime() + dias * 864e5)
+                    void patchLiga({ ligaAt: d.toISOString() })
+                  }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                    📅 {rot}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* ⭐ ADMS DA LIGA — só o DONO escolhe. Adm ajuda a tocar a liga
+                (remarcar, arrumar troféu, mexer nas regras), mas não exclui a
+                liga e não mexe na lista de adms: isso é do dono. */}
+            {isHost && (
+              <div className="mt-2">
+                <button onClick={() => setLigaAdmAberto(v => !v)}
+                  className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                  ⭐ {ligaAdmAberto ? 'Fechar' : `Quem mais pode mexer (${ligaAdmins.length})`}
+                </button>
+                {ligaAdmAberto && (
+                  <div className="mt-2 rounded-xl border-2 border-black bg-white p-3">
+                    <p className="text-black/55 text-[11px] font-bold leading-snug mb-2">
+                      Adm ajuda a tocar a liga: <b>remarcar, arrumar troféu e mexer nas regras</b>. Só você exclui a liga e escolhe quem é adm.
+                    </p>
+                    {players.filter(p => p.user_id !== room.host_id).length === 0 ? (
+                      <p className="text-black/40 text-[11.5px] font-bold">Ninguém mais na sala ainda — chame a galera primeiro.</p>
+                    ) : players.filter(p => p.user_id !== room.host_id).map(pl => {
+                      const eAdm = ligaAdmins.includes(pl.user_id)
+                      return (
+                        <div key={pl.user_id} className="flex items-center gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 mb-1.5">
+                          <span className="flex-1 min-w-0 font-black text-[13px] truncate" style={OSWALD}>{pl.manager_name}</span>
+                          <button onClick={() => void patchLiga({ ligaAdmins: eAdm ? ligaAdmins.filter(x => x !== pl.user_id) : [...ligaAdmins, pl.user_id] })}
+                            className="shrink-0 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] active:translate-y-0.5"
+                            style={{ ...OSWALD, background: eAdm ? GREEN : '#fff', color: eAdm ? '#fff' : 'rgba(12,12,12,.5)' }}>
+                            {eAdm ? '⭐ é adm' : '＋ tornar adm'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+            {mandaNaLiga && ligaEdit && (
               <div className="mt-3 rounded-xl border-2 border-black bg-white p-3">
                 <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
                 <div className="flex gap-2">
@@ -3138,7 +3218,7 @@ export function EscLobby() {
         </div>
       )}
       {room.game_state?.mode === 'liga' && (
-        <TrofeusDaLiga roomId={room.id} isHost={isHost}
+        <TrofeusDaLiga roomId={room.id} isHost={mandaNaLiga}
           nomes={players.map(p => p.manager_name).filter(Boolean)}
           regras={lerRegras((room.game_state as GS)?.ligaRegras)}
           salvarRegras={r => { void patchLiga({ ligaRegras: r }) }} />
