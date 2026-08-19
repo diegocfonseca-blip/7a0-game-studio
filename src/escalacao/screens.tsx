@@ -13,6 +13,8 @@ import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
 import type { ApoioTier } from './apoio'
+import { fotoDoJogador } from './rostos'
+import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -22,6 +24,7 @@ import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDela
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
+import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
@@ -963,29 +966,27 @@ function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90
           <span className="font-black uppercase tracking-wide" style={{ ...OSWALD, fontSize: small ? 10 : 12, textShadow: manto ? '1px 1px 0 rgba(0,0,0,.85)' : undefined }}>{title}</span>
         </div>
       )}
-      <div className="campinho-field px-3 py-2.5 flex flex-col gap-2.5" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 34px, ${g2} 34px 68px)` }}>
+      {/* ⚽🧍 JOGADOR SOLTO NA GRAMA (aprovado 19/08). Antes cada um era uma
+          fichinha branca com borda; o Diego cortou: *"o jogador é ele LIVRE"*.
+          A peça mora em `jogadorcampo.tsx` e é a MESMA do elenco da carreira —
+          um lugar só pra mexer, os dois campinhos mudam juntos.
+          A bolinha leva o MANTO do dono; sem manto, bege. */}
+      <div className="campinho-field px-3 py-3.5 flex flex-col gap-3" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 ${small ? 34 : 38}px, ${g2} ${small ? 34 : 38}px ${small ? 68 : 76}px)` }}>
         {rows.map(row => (
-          <div key={row.key} className="campinho-row flex justify-center gap-2.5">
-            {row.slots.map((slot, i) => (
-              <div
+          <div key={row.key} className="campinho-row flex justify-center items-end gap-2">
+            {row.slots.map((slot, i) => slot.card ? (
+              <JogadorNoCampo
                 key={i}
-                className={`campinho-slot border-2 border-black rounded-lg text-center ${small ? 'px-1.5 py-1 min-w-[56px]' : 'px-2.5 py-1.5 min-w-[76px]'}`}
-                style={{ backgroundColor: slot.card ? '#fff' : 'rgba(255,255,255,0.25)', ...(manto && slot.card ? { position: 'relative', overflow: 'hidden', paddingTop: small ? 16 : 20 } : {}) }}
-              >
-                {/* 🎽 Opção C (aprovada 10/08): o topo do card É o manto e a posição
-                    entra por cima num selinho — mesma altura de antes (a linha da
-                    posição foi PRA DENTRO da faixa, nada cresce). */}
-                {manto && slot.card && (
-                  <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: small ? 13 : 16, background: mantoStripes(manto, 9, mantoDir, mantoC3, mantoC3Buf), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="font-black" style={{ ...OSWALD, fontSize: small ? 7 : 8, color: '#fff', background: 'rgba(0,0,0,.42)', borderRadius: 6, padding: '0 5px', letterSpacing: .5, lineHeight: '1.5' }}>{slot.pos}</span>
-                  </span>
-                )}
-                {!(manto && slot.card) && <p className="text-[9px] font-black" style={{ color: slot.card ? RED : '#fff' }}>{slot.pos}</p>}
-                <p className={`font-bold leading-tight ${small ? 'text-[9px]' : 'text-[11px]'}`} style={{ color: slot.card ? INK : 'rgba(255,255,255,0.95)' }}>
-                  {slot.card ? slot.card.name : 'Vazio'}
-                </p>
-                {slot.card && !small && <p className="text-[8px] text-black/60 font-medium">{slot.card.club} {slot.card.year}</p>}
-              </div>
+                nome={slot.card.name}
+                clube={small ? undefined : slot.card.club}
+                ano={small ? undefined : slot.card.year}
+                tag={slot.pos}
+                alt={small ? 48 : 58}
+                fonteNome={small ? 10 : 11}
+                mantoCss={manto ? mantoStripes(manto, 6, mantoDir, mantoC3, mantoC3Buf) : null}
+              />
+            ) : (
+              <VagaNoCampo key={i} tag={slot.pos} alt={small ? 48 : 58} />
             ))}
           </div>
         ))}
@@ -1544,6 +1545,10 @@ export function EscIntro() {
   return (
     <Shell>
       {unlocked && <SportTabs />}
+      {/* 📣 recado temporário do Diego pra todo mundo (ver `aviso.tsx`): fica no
+          TOPO da home porque é o primeiro que precisa ser lido, some sozinho na
+          data marcada e some de vez pra quem fechar. */}
+      <AvisoDaVez />
       {resumable && (
         <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#1B7A3D', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
@@ -1808,9 +1813,15 @@ export function EscSetup() {
       setNameErr('')
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
     }
-    // rivais escolhidos + completa com os padrões da Série D se faltar
+    // rivais escolhidos + completa com os padrões da Série D se faltar.
+    // 🪞 SEM SE ENFRENTAR (19/08, print do Diego): o preenchimento automático pegava
+    // os primeiros clubes da Série D — e o clube do PRÓPRIO jogador está lá. Deu
+    // dois "Neymarzetti" na mesma tabela, um dele e um robô. Aqui o seu clube sai
+    // da lista de rivais; a trava final está no `makeCareerManagers`.
+    const meuNome = stripEmoji(clean).trim().toLowerCase()
+    const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome
     const picks = career
-      ? [...rivalPicks, ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t))].slice(0, rivals)
+      ? [...rivalPicks.filter(naoSouEu), ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
       : undefined
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
@@ -5328,6 +5339,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
   const isProm = promessa ?? PROMESSA_SET.has(name)
   const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
+  const foto = fotoDoJogador(name)
   const text = bio ?? BIOS[name] ?? (isProm ? `Promessa ${({ GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' } as Record<string, string>)[pos] ?? 'do futebol'} — brilhou aqui jovem e virou estrela.` : fallbackBio(fame, pos))
   return (
     <div className="relative overflow-hidden border-[3px] border-black rounded-2xl flex flex-col justify-between"
@@ -5347,9 +5359,15 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           )}
         </div>
       </div>
-      <div className="relative self-center rounded-full flex items-center justify-center"
+      {/* 📸 o retrato. Jogador COM foto mostra a foto; SEM foto fica a letra do
+          nome, exatamente como sempre foi. Como quase todo mundo ainda não tem,
+          o normal é cair na letra — e a carta não muda em nada. Ver
+          `rostos.ts`: o Diego vai fazendo os rostos aos poucos. */}
+      <div className="relative self-center rounded-full flex items-center justify-center overflow-hidden"
         style={{ width: big ? 100 : 66, height: big ? 100 : 66, background: t.crestBg, color: t.crestInk, border: '3px solid rgba(0,0,0,.28)', ...OSWALD, fontWeight: 900, fontSize: big ? 42 : 27, boxShadow: t.holo ? 'inset 0 0 14px rgba(255,255,255,.7)' : 'none' }}>
-        {initial}
+        {foto
+          ? <img src={foto} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
+          : initial}
       </div>
       <div className="relative">
         <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{name}</p>
@@ -6312,8 +6330,20 @@ function RankResultWriter() {
 
 // ─── CARREIRA: salvar/carregar + modais ──────────────────────────────
 const CAREER_LS = 'esc-career'
-function saveCareerLocal(save: CareerSave) { try { localStorage.setItem(CAREER_LS, JSON.stringify(save)) } catch { /* ignora */ } }
-function loadCareerLocal(): CareerSave | null { try { const r = localStorage.getItem(CAREER_LS); return r ? JSON.parse(r) as CareerSave : null } catch { return null } }
+// ⚠️ ESTE É O SAVE DA CARREIRA ANTIGA (a de 4 divisões, `esc_careers`) — NÃO é a
+// carreira de hoje. A carreira atual é a PIRÂMIDE, que mora em outro lugar
+// (`esc_pyramid_saves` / "Minhas Carreiras"). Desde 30/07 ninguém consegue mais
+// CRIAR uma carreira antiga: o botão da tela de setup manda `START_CAREER_SOLO`
+// (pirâmide). Ou seja, todo save daqui pra frente nesta caixa é FANTASMA — foi
+// escrito por engano no fim de uma sala online que herdou o `careerDivision`
+// (bug consertado em 19/08). Por isso o banner "Continuar carreira" só oferece
+// save mais VELHO que essa data: o que veio depois não existe de verdade.
+const PIRAMIDE_DESDE = '2026-07-30'
+type CareerSaveRow = CareerSave & { savedAt?: string }
+/** save escrito depois que a pirâmide nasceu = fantasma (nunca foi criado por ninguém) */
+function saveFantasma(s: CareerSaveRow): boolean { return !s.savedAt || s.savedAt.slice(0, 10) >= PIRAMIDE_DESDE }
+function saveCareerLocal(save: CareerSave) { try { localStorage.setItem(CAREER_LS, JSON.stringify({ ...save, savedAt: new Date().toISOString() })) } catch { /* ignora */ } }
+function loadCareerLocal(): CareerSaveRow | null { try { const r = localStorage.getItem(CAREER_LS); return r ? JSON.parse(r) as CareerSaveRow : null } catch { return null } }
 
 // salva sempre no aparelho; se logado, também na conta (nuvem, multi-aparelho).
 // devolve true se salvou na conta.
@@ -6332,12 +6362,12 @@ async function saveCareer(save: CareerSave): Promise<boolean> {
     return !error
   } catch { return false }
 }
-async function loadCareer(): Promise<CareerSave | null> {
+async function loadCareer(): Promise<CareerSaveRow | null> {
   try {
     const { data } = await supabase.auth.getUser()
     if (data?.user) {
       const { data: row } = await supabase.from('esc_careers').select('*').eq('user_id', data.user.id).maybeSingle()
-      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, titlesA: row.titles_a ?? 0, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivals: (row.rival_teams as CareerSave['rivals']) ?? undefined, rivalCount: row.rival_count ?? undefined }
+      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, titlesA: row.titles_a ?? 0, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivals: (row.rival_teams as CareerSave['rivals']) ?? undefined, rivalCount: row.rival_count ?? undefined, savedAt: (row.updated_at as string | undefined) ?? undefined }
     }
   } catch { /* ignora */ }
   return loadCareerLocal()
@@ -6402,7 +6432,7 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
 // depois de tocar em "Carreira por Divisões" — não fica mais na home.
 function CareerContinueBanner() {
   const { dispatch } = useEsc()
-  const [save, setSave] = useState<CareerSave | null>(null)
+  const [save, setSave] = useState<CareerSaveRow | null>(null)
   const [decideOpen, setDecideOpen] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false) // confirma no app (window.confirm é bloqueado no navegador do zap/insta)
   const onDelete = async () => {
@@ -6414,6 +6444,12 @@ function CareerContinueBanner() {
     ;(async () => {
       const s = await loadCareer()
       if (!s) return
+      // 👻 save fantasma (nasceu no fim de uma sala online, não é carreira de
+      // ninguém): não oferece. Só APAGA quando dá pra provar pela data — save
+      // escrito depois de 30/07 é impossível de ter sido criado por alguém. Sem
+      // data (aparelho de quem nunca logou), só esconde: não apaga o que não dá
+      // pra ter certeza.
+      if (saveFantasma(s)) { if (s.savedAt) deleteCareer(); return }
       // se logado, o time carrega com o nome ATUAL da conta (fonte única) —
       // renomear em qualquer lugar reflete aqui também.
       const { data } = await supabase.auth.getUser()
@@ -7507,9 +7543,13 @@ export function EscEnd() {
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
       {online && !copaPending && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
+      {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
+          Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira
+          fantasma com o elenco da sala (a origem do caso do Paduz). A raiz já está
+          fechada no START_ONLINE — este `!online` é a segunda trava. */}
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : state.careerDivision ? <CareerEndPanel /> : state.nbaCareer ? (copaPending ? null : <NbaCareerEndPanel />) : (online || copaPending) ? null : (<>
+      ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending ? null : <NbaCareerEndPanel />) : (online || copaPending) ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>

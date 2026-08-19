@@ -17,13 +17,22 @@
 //     --saida /tmp/skyy-post.png
 //
 // ── O QUE O POST TEM, DE CIMA PRA BAIXO (não mexer sem o Diego mandar) ──────
-//   1. pílula "BATISMO DE LENDA"
+//   1. pílula "BATISMO DE LENDA" (ou "CLUBE DE SÓCIO", com --socio)
 //   2. manchete "NASCEU O <CLUBE>" (a 1ª palavra do nome sai em vermelho)
 //   3. uma frase explicando quem é o dono, a divisão e de quem tomou a vaga
 //   4. cartão dourado: escudo + nome + coração + o resumo do clube
 //   5. mascote e manto lado a lado
 //   6. 🎬 "ONDE A <MASCOTE> APARECE" — as TRÊS animações, escritas pro jogador
-//   7. rodapé: quem batizou + os selos (Lenda / fundador nº)
+//   7. rodapé: quem batizou + os selos (Lenda / sócio nº / fundador nº)
+//
+// ── 🎫 MODO SÓCIO (--socio) ─────────────────────────────────────────────────
+// Nem todo clube de apoiador é BATISMO. Batismo = o clube toma o lugar de um
+// time de CPU na pirâmide (e o dono ganha número de FUNDADOR). Sócio = o clube
+// é do dono e NÃO tira o lugar de ninguém (mesmo caso do Eros FC, Sapekeiros FC
+// e Marinheiros AS). Confundir os dois deu ruim no Futpoint FC (19/08): o Diego
+// avisou *"eu N pedi p ele entrar no lugar de ng... eu disse q ele era sócio e
+// N batismo"*. Com --socio o post troca a pílula, a manchete e some com o
+// "entra no lugar de" e com a divisão.
 //
 // A Oswald vem de `scripts/fonts/` (64 KB, fora do bundle do jogo — isto aqui
 // nunca é baixado por jogador nenhum, só roda na máquina de quem gera o post).
@@ -45,6 +54,7 @@ const o = {
   c2: arg('c2', '#0C0C0C'), c2nome: arg('c2-nome', ''),
   camisa: arg('camisa', ''), // 🎽 a camisa DE VERDADE, quando o dono manda uma
   dono: arg('dono', ''), coracao: arg('coracao', ''), fundador: arg('fundador', ''),
+  socio: process.argv.includes('--socio'), socioN: arg('socio-n', ''),
   saida: arg('saida', 'mockup-batismo.png'),
 }
 if (!o.clube || !o.escudo || !o.mascote) {
@@ -164,16 +174,18 @@ h1 .r{color:#C2452F}
 .marca span{color:#C2452F}
 .site{font-size:14px;color:rgba(12,12,12,.42)}
 </style>
-<div class="pill">${o.mascoteEmoji} BATISMO DE LENDA</div>
-<h1>Nasceu o<br><span class="r">${destaque}</span>${resto ? `<br>${resto}` : ''}</h1>
-<p class="lead">O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} chega na <b>Série ${o.serie}</b>${o.antigo ? ` no lugar do ${o.antigo}` : ''} — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote.</p>
+<div class="pill">${o.mascoteEmoji} ${o.socio ? 'CLUBE DE SÓCIO' : 'BATISMO DE LENDA'}</div>
+<h1>${o.socio ? 'Chegou o' : 'Nasceu o'}<br><span class="r">${destaque}</span>${resto ? `<br>${resto}` : ''}</h1>
+<p class="lead">${o.socio
+  ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} agora tem <b>escudo, mascote e manto no jogo</b> — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote. Clube próprio de sócio: <b>não tira o lugar de ninguém</b> na pirâmide.`
+  : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} chega na <b>Série ${o.serie}</b>${o.antigo ? ` no lugar do ${o.antigo}` : ''} — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}</p>
 
 <div class="card hero">
   <div class="esc"><img src="${img(o.escudo)}"></div>
   <div>
     <h2>${destaque}${resto ? `<small>${resto}</small>` : ''}</h2>
     ${o.coracao ? `<div class="cor">❤️ Coração: ${o.coracao}</div>` : ''}
-    <p>${cores[0].toUpperCase() + cores.slice(1)}.${o.antigo ? ` Entra no lugar do ${o.antigo} — mesma vaga, mesmo elenco, cara nova.` : ''}</p>
+    <p>${cores[0].toUpperCase() + cores.slice(1)}.${o.socio ? ' Clube próprio do sócio — entra em campo com a cara dele, sem tirar o lugar de nenhum time.' : (o.antigo ? ` Entra no lugar do ${o.antigo} — mesma vaga, mesmo elenco, cara nova.` : '')}</p>
   </div>
 </div>
 
@@ -198,9 +210,10 @@ h1 .r{color:#C2452F}
 </div>
 
 <div class="card pe">
-  <div><div class="q">Batizado por</div><div class="n">${o.dono || '—'}</div></div>
+  <div><div class="q">${o.socio ? 'Clube de' : 'Batizado por'}</div><div class="n">${o.dono || '—'}</div></div>
   <div class="selos">
     <div class="selo"><div class="e">👑</div><div class="t">Lenda</div></div>
+    ${o.socioN ? `<div class="selo"><div class="e">🎫</div><div class="t">Sócio nº${o.socioN}</div></div>` : ''}
     ${o.fundador ? `<div class="selo"><div class="e">🏛️</div><div class="t">Fundador nº${o.fundador}</div></div>` : ''}
   </div>
 </div>

@@ -1941,19 +1941,27 @@ function migrateTeamNames(st: EscState): EscState {
 function makeCareerManagers(teamName: string, formation: FormationKey, div: Division, rivalDefs: CareerTeam[], otherRivalDefs: CareerTeam[], rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const human: Manager = { id: 0, name: teamName, teamName, isHuman: true, auctionRival: true, formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5 }
-  const usedTeams = new Set(rivalDefs.map(r => r.team))
-  const fillerNeeded = LEAGUE_SIZE - 1 - rivalDefs.length
+  // 🪞 REGRA DO CLONE — AGORA TAMBÉM NOS RIVAIS (19/08, print do Diego).
+  // O preenchimento da liga já tirava o robô com o nome do time do jogador, mas os
+  // RIVAIS entravam crus. Como a lista de rivais é preenchida com os primeiros
+  // clubes da Série D quando a pessoa não escolhe, o PRÓPRIO clube dela podia virar
+  // rival — e a tabela mostrava DOIS times com o mesmo nome (dois "Neymarzetti",
+  // um com o troféu do dono e outro robô). Ninguém joga contra si mesmo.
+  const rivais = tiraClones(rivalDefs, [teamName])
+  const outrosRivais = tiraClones(otherRivalDefs, [teamName])
+  const usedTeams = new Set(rivais.map(r => r.team))
+  const fillerNeeded = LEAGUE_SIZE - 1 - rivais.length
   const fillerDefs = tiraClones(DIVISION_TEAMS[div === 'V' ? 'D' : div], [teamName]).filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
   const cpus: Manager[] = []
   const botPlans: BotPlan[] = []
   let id = 1
-  for (const r of rivalDefs) {
+  for (const r of rivais) {
     cpus.push({ id, name: r.name, teamName: r.team, isHuman: false, auctionRival: true, formation: forms[Math.floor(rng() * forms.length)], money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng() })
     id++
   }
   // rivais de OUTRA divisão: bidders "auction-only" — brigam no pregão mas não
   // entram na sua liga (buildLeague os ignora; saem dos managers na cerimônia).
-  for (const r of otherRivalDefs) {
+  for (const r of outrosRivais) {
     cpus.push({ id, name: r.name, teamName: r.team, isHuman: false, auctionRival: true, auctionOnly: true, formation: forms[Math.floor(rng() * forms.length)], money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng() })
     id++
   }
@@ -3180,7 +3188,21 @@ export function reducer(state: EscState, action: Action): EscState {
       // sala sem stream continua sem stream — zero regressão.
       streamMode: action.newState.streamMode ?? !!(action.newState as { stream?: boolean }).stream,
       manualRoom: action.newState.manualRoom ?? !!(action.newState as { manual?: boolean }).manual,
-      youIdx: state.youIdx,
+      // 🪑 ÂNCORA POR CRACHÁ, não pela cadeira (bug ao vivo 19/08 na sala do Paduz:
+      // *"gente trocada pqp"*). O `youIdx` é LOCAL e continua sendo — mas ele é uma
+      // POSIÇÃO no array `managers`, e o host pode mandar esse array em outra ordem
+      // (carreira online reordena os times entre temporadas; entrada/saída de gente
+      // na sala também mexe). Guardando o número cru, o convidado passava a olhar
+      // pro time de OUTRA pessoa depois de um sync — o histórico de "virei bot" /
+      // "dei lance por outro".
+      // Agora: acha a posição ATUAL do MEU técnico pelo id (que é estável) e reancora.
+      // Se não achar (estado muito diferente), fica no valor de antes — zero regressão.
+      youIdx: (() => {
+        const meuId = state.managers[state.youIdx]?.id
+        if (meuId == null) return state.youIdx
+        const i = action.newState.managers?.findIndex(m => m.id === meuId) ?? -1
+        return i >= 0 ? i : state.youIdx
+      })(),
       youUid: state.youUid, // 🤝 meu crachá da dupla é LOCAL, igual ao youIdx
       isHost: state.isHost,
       roomId: state.roomId,
@@ -3858,6 +3880,9 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'RESUME_CAREER_SOLO': {
       // retoma a carreira offline salva: restaura o jogo inteiro e reancora o
       // baralho. Identidade sempre local (você é o host, sem sala).
+      // 🧮 e passa a trava de sanidade: título a mais que temporada jogada é
+      // sujeira de outra carreira — some aqui, na abertura (ver `sanearTitulos`).
+      sanearTitulos(action.saved)
       setActiveCatalog(action.saved.deckLeague)
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
@@ -3907,6 +3932,31 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      // 🧹 FAXINA ANTI-CARREIRA (bug achado pelo Diego 19/08, testando na conta dele).
+      // O reducer clona o estado ANTERIOR. Quem saía de uma carreira (ou da Dinastia)
+      // e entrava numa SALA ONLINE levava o `careerDivision` junto — e a sala online
+      // passava a se comportar como carreira por fora: selo 🪜 SÉRIE D na tabela,
+      // rastreador de rivais e, no fim, o painel de fim de temporada da CARREIRA no
+      // lugar do painel do online.
+      //
+      // O estrago grande vinha desse painel: ele AUTO-SALVA um save de carreira — só
+      // que com o elenco da SALA ONLINE. Era esse save fantasma que aparecia depois
+      // como "🪜 Carreira em andamento · Série D · Temporada 2" na tela de criar
+      // carreira, de uma carreira que NÃO está em "Minhas Carreiras" (não é o mesmo
+      // arquivo). E quem tocava em "Continuar carreira" abria um jogo com elenco e
+      // títulos que ninguém ganhou — a origem do caso do Paduz.
+      //
+      // O online NUNCA usa `careerDivision`: a carreira online se orienta pela
+      // colocação (`careerPlacements`). Então aqui zera, sempre.
+      s.careerDivision = null
+      s.careerIntent = false
+      s.careerTitles = 0; s.careerTitlesA = 0
+      s.careerRivals = []
+      if (!action.career) {
+        // sala RÁPIDA: nada de carreira sobra — nem colocação, nem títulos de ninguém
+        s.careerPlacements = null
+        s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
+      }
       if (action.career) {
         // colocação da temporada 1: todos os técnicos na Série D; A/B/C com os
         // times de CPU fixos. Compacto (só a divisão) — os elencos são derivados.
@@ -5922,6 +5972,25 @@ export function reducer(state: EscState, action: Action): EscState {
       const sv = action.save
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.roomId = ''; s.roomCode = ''; s.streamMode = false; s.manualRoom = false
+      // 🧹 FAXINA (19/08): a carreira ANTIGA (4 divisões) é um jogo à parte — não pode
+      // herdar NADA do que estava em tela antes. Sem isto, retomar um save aqui logo
+      // depois de uma carreira-pirâmide carregava junto os títulos (careerHonors), a
+      // colocação e o `careerOnline` da outra — e o jogo passava a tratar aquilo como
+      // uma carreira NOVA da pirâmide, nascida com elenco pronto e títulos que ninguém
+      // ganhou. Regra do Diego: nunca mais títulos do que temporadas jogadas.
+      s.careerOnline = false; s.careerLedger = []
+      s.dinastia = false; s.dinastiaBudget = undefined
+      s.careerPlacements = null
+      s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
+      s.careerCopaSeasons = []; s.careerSupercopaSeasons = []
+      s.careerCoins = {}; s.stadiums = {}; s.careerFilial = undefined
+      s.multiClube = undefined; s.multiClubePendingCards = undefined
+      s.copaMundoMural = undefined
+      s.careerScorersAll = {}; s.statsSeason = 0
+      s.marketValues = {}; s.marketLog = []
+      s.cpuSquads = undefined; s.copaDoneSeason = undefined
+      s.reserveAuction = false; s.reserveListed = {}
+      s.quickCopa = null
       s.deckLeague = sv.deckLeague ?? 'br'; setActiveCatalog(s.deckLeague) // baralho da carreira salva
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles; s.careerTitlesA = sv.titlesA ?? 0
       s.seasonNo = sv.seasonNo
@@ -6206,6 +6275,44 @@ function normalizeMultiSeats(s: EscState): EscState {
   s.youIdx = activeSeatIdx(s)
   return s
 }
+// 🧮 TRAVA DE SANIDADE DOS TÍTULOS (19/08, caso do Paduz — regra dita pelo Diego:
+// *"N quero que NG tenha mais títulos do que temporadas... não tem como ganhar
+// uma Série A e B por exemplo na mesma temporada"*).
+//
+// A conta é a mais simples que existe e não depende de descobrir a origem do bug:
+//   · em N temporadas concluídas, dá pra levantar no MÁXIMO N taças de divisão
+//     no total (só se disputa UMA divisão por temporada);
+//   · e no máximo N Copas, N Supercopas e N Copas do Mundo.
+// Título acima disso não é conquista: é sujeira que vazou de outra carreira.
+//
+// Roda ao ABRIR a carreira. Quem está limpo não sente nada (o clamp só morde no
+// impossível); quem já está sujo se cura sozinho na primeira vez que abrir, sem
+// ninguém precisar mexer no aparelho dele. É o mesmo remédio que já usamos na
+// Copa do Mundo em 17/08.
+function sanearTitulos(s: EscState): void {
+  const jogadas = Math.max(0, (s.seasonNo ?? 1) - 1)
+  const youId = s.managers?.[s.youIdx]?.id ?? 0
+  const k = 'm' + youId
+  const h = s.careerHonors?.[k]
+  if (h) {
+    let sobra = jogadas
+    const cap = (n?: number) => { const v = Math.max(0, Math.min(n ?? 0, sobra)); sobra -= v; return v }
+    const limpo = { A: cap(h.A), B: cap(h.B), C: cap(h.C), D: cap(h.D), V: cap(h.V) }
+    const mudou = limpo.A !== (h.A ?? 0) || limpo.B !== (h.B ?? 0) || limpo.C !== (h.C ?? 0)
+      || limpo.D !== (h.D ?? 0) || limpo.V !== (h.V ?? 0)
+    if (mudou) s.careerHonors = { ...(s.careerHonors ?? {}), [k]: limpo }
+  }
+  const capN = (n?: number) => Math.max(0, Math.min(n ?? 0, jogadas))
+  if (s.careerCopaHonors?.[k] != null && s.careerCopaHonors[k] > jogadas) {
+    s.careerCopaHonors = { ...s.careerCopaHonors, [k]: capN(s.careerCopaHonors[k]) }
+  }
+  if (s.careerSupercopaHonors?.[k] != null && s.careerSupercopaHonors[k] > jogadas) {
+    s.careerSupercopaHonors = { ...s.careerSupercopaHonors, [k]: capN(s.careerSupercopaHonors[k]) }
+  }
+  if ((s.careerTitles ?? 0) > jogadas) s.careerTitles = jogadas
+  if ((s.careerTitlesA ?? 0) > jogadas) s.careerTitlesA = jogadas
+}
+
 function loadSoloInProgress(): EscState | null {
   try {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
@@ -6302,7 +6409,29 @@ export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
   return out.sort((a, b) => b.slot.at - a.slot.at)
 }
 // vai começar uma carreira NOVA: arquiva a atual (não perde) antes do START zerar.
-export function stashActiveBeforeNew() { archiveActiveCareer() }
+//
+// 🐛 CONSERTO 19/08 (caso do Paduz: *"como q ele cria carreira e já tava C time…
+// já C Suárez"*). Ele confirmou o caminho: **acabou de jogar a carreira antiga e
+// foi direto criar a nova, na mesma conta**. O furo estava aqui:
+//
+// arquivar NÃO limpava o ponteiro da carreira ATIVA (`esc-solo-career`). Então,
+// logo depois do START criar a carreira nova, a antiga continuava lá como
+// "ativa". E o `syncCareersWithCloud` — que roda ao abrir a home E toda vez que
+// a aba volta pro foco — reescreve esse ponteiro com a carreira de `at` mais
+// recente, que é justamente a que a pessoa ACABOU de jogar. Resultado: a
+// carreira nova era atropelada pela velha, com elenco e tudo.
+//
+// Agora, ao arquivar pra começar outra, o ponteiro é ZERADO. A carreira antiga
+// não some — ela está no arquivo ("Minhas carreiras") e na nuvem; o que some é
+// só o "esta é a que você está jogando", que passa a ser a nova assim que o
+// primeiro autosave dela roda.
+export function stashActiveBeforeNew() {
+  archiveActiveCareer()
+  try {
+    localStorage.removeItem('esc-solo-career')
+    localStorage.removeItem('esc-solo-career-at')
+  } catch { /* aparelho sem storage: o autosave da carreira nova assume em seguida */ }
+}
 // troca a carreira ATIVA por uma do arquivo (a atual vai pro arquivo). Devolve o save.
 export function activateCareerSlot(seed: number): EscState | null {
   archiveActiveCareer()
@@ -6628,7 +6757,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // explicação: cara de bug. Este vigia percebe quando eu ESTAVA lacrado e deixei
   // de estar, ainda na fase de envelope, e mostra o porquê pra ELE também.
   const [lanceReaberto, setLanceReaberto] = useState(false)
-  const euLacradoRef = useRef(false)
+  // guarda EM QUAL RODADA eu estava lacrado ('' = não estava). Antes era só um
+  // true/false, e isso fazia o aviso de troca de host pipocar toda hora — ver
+  // o comentário do efeito lá embaixo.
+  const euLacradoRef = useRef('')
   // "fui expulso pelo host": banner vermelho na tela (troca o alert() antigo, que o
   // celular às vezes engolia e a pessoa continuava vendo a partida). A saída da sala
   // já aconteceu (KICKED_OUT resetou pro menu) — o banner só explica o porquê.
@@ -6649,9 +6781,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // avisa TODO MUNDO agora, com o canal ainda vivo (antes do GO_LOBBY derrubar)
         channelRef.current?.send({ type: 'broadcast', event: 'host_change', payload: { newHostIndex } })
         // passa a posse no banco (host_id) pra reconexão funcionar — best effort
+        // 🐛 CONSERTO 19/08 (sala do Paduz, bagunça geral): aqui misturava DOIS
+        // sistemas de numeração. `newHostIndex` vem da presença, que é a CADEIRA
+        // (o `youIdx` que cada aparelho publica). Já `room_players.player_index` é
+        // o CRACHÁ (o id inicial do técnico) — os dois só coincidem enquanto
+        // ninguém reordena. Quando divergiam, o banco recebia o `host_id` da
+        // PESSOA ERRADA; aí o poll dela lia "a posse é minha" e ela virava host
+        // sem o host de verdade largar a coroa. Dois donos na mesma sala = os
+        // envelopes de todo mundo voltando pra mão (BECOME_HOST limpa o
+        // `submitted`), que é o "tive que repetir o lance várias vezes".
+        // Agora converte cadeira → crachá antes de procurar no banco.
         try {
           const { data: rows } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', rid)
-          const nh = (rows ?? []).find((r: { player_index: number; user_id: string }) => r.player_index === newHostIndex)
+          const nhCracha = st.managers[newHostIndex]?.id ?? newHostIndex
+          const nh = (rows ?? []).find((r: { player_index: number; user_id: string }) => r.player_index === nhCracha)
           if (nh?.user_id) await supabase.from('game_rooms').update({ host_id: nh.user_id }).eq('id', rid)
         } catch { /* silencioso */ }
       } else {
@@ -7134,13 +7277,24 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // 🔨 vigia do MEU envelope: lacrado → reaberto, ainda no envelope = o dono da
   // sala trocou e o meu lance voltou pra minha mão. Mostra o porquê (senão o
   // botão "reaparece do nada" e parece bug).
+  // ⚠️ CONSERTO 19/08 (bug ao vivo na sala do Paduz: *"toda hr aparecendo essa
+  // msg"*): antes bastava eu ter lacrado e depois aparecer DESLACRADO na fase de
+  // envelope pra o aviso subir. Só que isso acontece SEM host nenhum ter caído —
+  // a cada SETOR e a cada LEVA novos o `submitted` zera, e o convidado, que lê o
+  // estado de 2 em 2,5s, muitas vezes pula a fase de revelação no meio e vê
+  // "envelope lacrado → envelope deslacrado" direto. Resultado: o aviso pipocava
+  // entre um setor e outro, assustando quem estava jogando.
+  // Agora o vigia guarda A RODADA (setor + leva + fase) em que eu lacrei. Só avisa
+  // se eu continuo NA MESMA rodada e o meu envelope voltou pra minha mão — que é
+  // o único caso em que o lance realmente precisa ser refeito.
   useEffect(() => {
     const noEnvelope = state.phase === 'envelope' || state.phase === 'resq_envelope'
     const meu = state.managers[state.youIdx]?.id
     const lacrado = meu != null && state.submitted.includes(meu)
-    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current && !lacrado && !state.isHost) setLanceReaberto(true)
-    euLacradoRef.current = !!(noEnvelope && lacrado)
-  }, [state.submitted, state.phase, state.youIdx, state.onlineMode, state.isHost, state.managers])
+    const rodada = `${state.sectorIdx}:${state.sectorCursor}:${state.phase}`
+    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current === rodada && !lacrado && !state.isHost) setLanceReaberto(true)
+    euLacradoRef.current = (noEnvelope && lacrado) ? rodada : ''
+  }, [state.submitted, state.phase, state.youIdx, state.onlineMode, state.isHost, state.managers, state.sectorIdx, state.sectorCursor])
 
   // 🔒 o aparelho lembra de qual sala ele é DONO (host). Serve SÓ pra não mostrar o
   // aviso "host caiu" pra ele mesmo — se a rede piscar no reconectar e o "sou host?"

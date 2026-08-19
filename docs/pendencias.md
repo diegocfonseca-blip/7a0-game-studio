@@ -1,4 +1,5 @@
-# 📌 Pendências combinadas com o Diego (atualizado 18/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 19/08/2026)
+
 
 ## 🏢⏳ HACK DO "ESCONDE NA SAF" — FECHADO (18/08) ✅ NO AR
 
@@ -36,6 +37,325 @@ longe → empresta normal sem cobrar · prazo inexistente pro valor → bloqueia
 E no próximo pega eles"* — a regra vale só pra quem emprestar daqui pra frente;
 ninguém é punido retroativamente.
 
+
+## 🏆❌ A COPA DO BRASIL SUMIA CALADA — ✅ CONSERTADO (19/08)
+Reportado pelo **Gabriel** (`nevesgabriel95@gmail.com`) via Diego: carreira NOVA,
+com Agência 2.0, **106 temporadas sem UMA Copa do Brasil nem UMA Supercopa** — e
+nenhum time da carreira dele tinha título de Copa no rank local.
+
+### A causa
+`computeCopaBrasil` abria com uma trava seca: se **qualquer** das cinco divisões
+não tivesse **exatamente 20** times, devolvia vazio. E quem chama não caía na
+Copa Legends — `if (cbUnlocked && copaBR)` era verdade mesmo com o resultado
+vazio. Resultado: **nenhuma copa, temporada após temporada, sem nenhum aviso**.
+
+### Quanta gente (medido no banco)
+| pirâmide | carreiras | tinha Copa? |
+|---|---|---|
+| 100 clubes (certa) | 1.276 | ✅ |
+| 80 (save antigo, sem Várzea) | 2.785 | ❌ |
+| 99 · 91 · 81 · 79 (torta) | 24 | ❌ |
+
+### Por que a pirâmide do Gabriel ficou com 99
+Ele batizou o time de **"Deportivo Montreal"** — que é o nome de um **clube da
+Série A** do jogo. Existe uma regra (certa) que impede um clube homônimo de um
+manager de nascer também como time de fundo; ela foi escrita pensando no 2º clube
+do Multiclubes, com o comentário *"normalmente nenhum time A/B/C é manager, então
+isto é no-op"*. Só que quando o JOGADOR escolhe um nome igual ao de um clube do
+catálogo, esse clube é retirado e **nada entra no lugar** — a Série A dele ficou
+com 19 pra sempre. É a mesma família do bug dos "dois Neymarzetti".
+
+### O conserto
+Chave **elástica**: se molda ao tamanho real da pirâmide e sempre fecha em 64.
+`diretos = 128 − N` · `peneira = 2 × (N − 64)` (sempre par). Com a pirâmide cheia
+(N=100) a conta dá **exatamente** o de hoje — 28 diretos (Série A + 8 melhores da
+B) e 72 na peneira, nos mesmos arrays e na mesma ordem, então o sorteio sai
+idêntico e **nenhum campeão já visto muda** (conferido por teste numérico em
+100/99/91/88/81/80/79). Fora da faixa 68–128, cai na **Copa Legends** em vez de
+ficar sem copa, e os rótulos passaram a seguir a copa que REALMENTE rodou
+(`copaBrOk`), não o desbloqueio global.
+
+### ⏳ FALTA DECIDIR COM O DIEGO
+O buraco na pirâmide (o clube que sai e não é reposto) **não** foi tapado: só o
+efeito na Copa. Tapar significa **um clube novo aparecer na Série A** dessas 24
+carreiras em andamento — mudança visível, então é decisão dele. Vale lembrar que
+uma divisão com 19 times também deixa a tabela com número ímpar de clubes.
+
+## 🐛👻 A CARREIRA FANTASMA — CAUSA RAIZ ACHADA E FECHADA (19/08) ✅
+O Diego achou testando na conta dele: apertou **Nova carreira**, e na tela de
+montar a carreira apareceu um **banner roxo "🪜 Carreira em andamento · Série D ·
+Temporada 2 · Continuar carreira (Neymarzetti)"** — de uma carreira que **não
+está em "Minhas Carreiras"**. Palavras dele: *"é do modo rápido online isso...
+ficou como se fosse save de carreira. Jogo do modo rápido virou um continua
+carreira no modo carreira... foi oq fez essa confusão toda"*. Ele estava certo.
+
+### O caminho do bug (linha por linha)
+1. O reducer **clona o estado anterior**. Quem saía de uma **carreira** (ou da
+   Dinastia) e entrava numa **sala online** levava o `careerDivision` junto —
+   `START_ONLINE` zerava `careerOnline`, `sport`, `varzea`… mas **nunca zerou o
+   `careerDivision`**.
+2. Com esse campo preenchido, a sala online passava a se comportar como carreira
+   por fora: selo 🪜 SÉRIE D na tabela, rastreador de rivais, e — no fim da
+   temporada — o **painel de fim de carreira** no lugar do painel do online.
+3. Esse painel **auto-salva** um save de carreira assim que aparece
+   (`CareerEndPanel`, o `autoSaved`). Só que o elenco ali era o da **sala
+   online**. Nascia uma carreira que ninguém criou, gravada em `esc_careers` —
+   uma tabela **diferente** de `esc_pyramid_saves`, que é a de "Minhas
+   Carreiras". Por isso o fantasma não aparecia na lista.
+4. Quem tocasse em **"Continuar carreira"** naquele banner abria um jogo com
+   elenco pronto (Suárez e cia., do leilão online) e com os **títulos que
+   estavam no estado** — porque `RESTORE_CAREER` também não fazia faxina.
+   **É a origem do caso do Paduz.**
+
+### A prova (banco, não achismo)
+524 linhas em `esc_careers`; **474 com `season_no = 2`** (= uma temporada jogada)
+e **linhas gravadas no MESMO segundo por usuários diferentes** (16:58:51,
+16:58:52, 16:58:55…) — gente da **mesma sala online** terminando junto. Ninguém
+consegue **criar** uma carreira antiga desde **30/07**, quando a pirâmide entrou
+(`START_CAREER_SOLO`): a tela de setup manda pra pirâmide. Ou seja, tudo que foi
+escrito ali depois de 30/07 é fantasma.
+
+### E o modo rápido OFFLINE? (pergunta do Diego, 19/08)
+**Não é a origem** — e isso está provado no código, não no achismo: o `START`
+(que é a ÚNICA porta do rápido offline) tem a linha
+`s.careerDivision = action.career ? 'D' : null`. Rápido offline **sempre** nasce
+com esse campo zerado. O que faltava era exatamente essa linha no `START_ONLINE`.
+
+**Mas o offline mantinha o fantasma vivo, no 2º passo**: quem tocava no banner
+roxo abria a carreira fantasma e jogava **offline** — e no fim de cada temporada
+ela era regravada. Dá pra ver nos dados: das 384 linhas, **364 estão na
+temporada 2** (a 1ª gravação, saída da sala online) e **20 passaram da 3**
+(chegando à T10) — essas 20 são as que a pessoa continuou jogando offline.
+Fechando a origem e o banner, as duas pontas caem.
+
+Achado de quebra: o `esc-solo-inprogress-v1` (o "continuar de onde parou")
+guarda **também a carreira**, então o jogo podia ABRIR já com a divisão da
+carreira na memória, sem a pessoa ter jogado nada naquela aba. Era o segundo
+caminho pra dentro da sala online — a faxina do `START_ONLINE` fecha os dois.
+
+### 🌍 O ranking global NUNCA foi afetado (conferido 19/08)
+Dúvida do Diego: *"essas carreiras não aparecerão mais no ranking global né?"*.
+Conferido nos dois lugares:
+- **Ranking global da carreira** (`esc_pyramid_rank_snap`, o com divisões): quem
+  grava tem porta na entrada — `if (!agenciaOn || onlineMode === 'online' ||
+  !careerOnline) return`. Modo rápido não é carreira-pirâmide, então **nunca**
+  escreveu ali. Olhado o topo do rank: só carreiras longas de verdade (T752,
+  T549, T521, T451…), nenhum modo rápido. A única exceção foi o Paduz, quando o
+  fantasma foi aberto com o `careerOnline` ainda ligado — linhas já removidas, e
+  a faxina do `RESTORE_CAREER` fecha esse caminho.
+- **Ranking de títulos do rápido** (`esc_results` via `esc_ranking`, separado por
+  modo cpu/online): não tem divisão, não se mistura com a carreira e **não foi
+  tocado** — sala de troféus do rápido segue igual (ordem do Diego).
+
+O "Série C / Série D" que ele e o Paduz viram na tela era o **próprio fantasma
+aberto** (o selo de divisão vinha colado nele), não o ranking.
+
+### 🔎 Varredura do ranking — sobrou mais alguém? NÃO (19/08)
+Pergunta do Diego: *"e não tem mais times assim no rank não?"*. Varridas as
+**1.513 carreiras** do `esc_pyramid_rank_snap`:
+- **mais título do que temporada: 0 linhas** (as do Paduz já tinham sido
+  removidas; a trava barra as novas e cura as antigas na próxima temporada);
+- **topo do rank**: só carreira longa de verdade (T752, T549, T521, T451, T187);
+- cruzando os **384 fantasmas** com o rank, procurando "carreira novinha que já
+  entrou com taça": sobraram **9 casos**, todos entraram com **1 título** e o
+  maior hoje tem **3 títulos em 16 temporadas** — número normal de quem joga.
+
+**Por que só o Paduz apareceu feio**: o fantasma levava pro rank o que a pessoa
+já tinha ATRÁS dela. Ele tinha carreira de T187 com 106 Séries A, então a
+herança virou 31. Quem não tinha carreira grande não levava quase nada.
+
+### O conserto (3 travas + limpeza)
+1. **Raiz** — `START_ONLINE` agora faz faxina de carreira: `careerDivision`,
+   `careerIntent`, `careerTitles/TitlesA` e `careerRivals` zerados sempre; sala
+   **rápida** também zera `careerPlacements` e os títulos de todo mundo.
+2. **Cinto** — o painel de fim de carreira nunca mais renderiza numa sala online
+   (`state.careerDivision && !online`), então não tem como auto-salvar de novo.
+3. **Cinto 2** — `RESTORE_CAREER` faz faxina completa (honras, colocação, caixa,
+   estádio, `careerOnline`…). Retomar um save velho não pode mais parir uma
+   carreira com títulos de outra.
+4. **Banner** — só oferece save **anterior a 30/07**. O que veio depois é
+   apagado sozinho ao abrir a tela (dá pra provar pela data que é fantasma).
+5. **Limpeza no banco**: 384 linhas fantasmas removidas de `esc_careers`, todas
+   **copiadas antes** pra `esc_backup_saves` (motivo `carreira-fantasma…`).
+   Ficaram as 140 anteriores a 30/07, que podem ser carreiras de verdade da
+   época em que esse modo existia.
+
+**Dá pra reverter?** Sim: o código é um commit isolado, e as 384 linhas estão
+inteiras no backup.
+
+## 🐛🪜 CARREIRA NOVA NASCENDO COM TÍTULOS — ✅ CAUSA FECHADA (ver seção acima)
+Reportado pelo Diego em 19/08 (usuário **Paduz**): *"como q ele cria carreira e
+já tava C time.. já C Suárez e etc... e já C títulos"*.
+
+### A prova (saves dele no banco, não é achismo)
+| carreira (seed) | temporada | Série A | Copa |
+|---|---|---|---|
+| `809022121` (a antiga, legítima) | 187 | 106 | 60 |
+| `460592162` (**nova, suja**) | 3 | **31** | **28** |
+| `372711797` (**nova, suja**) | 14 | 37 | 28 |
+
+Carreira nova nascia com **31 Séries A e 28 Copas**. Detalhe que aponta o
+caminho: o botão "Continuar carreira" mostrava **1 título** (certo) enquanto o
+`careerHonors` tinha 31 — ou seja, **o jogo guarda a conta em dois lugares e só
+um vazou**.
+
+### ❌ O que NÃO é a causa (já conferido linha por linha)
+O reducer `START_CAREER_SOLO` zera `careerHonors`, `careerCopaHonors`,
+`careerSupercopaHonors` e todo o resto. A sujeira entra **depois** do início.
+
+### ✅ CAUSA DO ELENCO — ACHADA E CONSERTADA (19/08)
+O Paduz confirmou o caminho: **acabou de jogar a carreira antiga e foi direto
+criar a nova, na mesma conta**. Com isso o furo ficou visível:
+
+`stashActiveBeforeNew()` arquivava a carreira atual mas **não limpava o ponteiro
+da carreira ATIVA** (`esc-solo-career`). Então, logo depois do START criar a
+nova, a antiga continuava marcada como "a que você está jogando". E o
+`syncCareersWithCloud` — que roda ao abrir a home **e toda vez que a aba volta
+pro foco** — reescreve esse ponteiro com a carreira de `at` mais recente, que é
+exatamente a que a pessoa acabou de jogar. Resultado: a carreira nova era
+atropelada pela velha, com elenco e tudo.
+
+**Conserto**: ao arquivar pra começar outra, o ponteiro é zerado. A carreira
+antiga não some (fica no arquivo e na nuvem); some só o "esta é a ativa", que
+passa a ser a nova no primeiro autosave dela.
+
+### ✅ CAUSA DOS TÍTULOS — ACHADA EM 19/08 (a carreira fantasma)
+Faltava explicar o **número** (31 Séries A / 28 Copas, quando a antiga tinha
+106). Fechou com a seção **"A CARREIRA FANTASMA"** no topo deste arquivo: o
+`RESTORE_CAREER` do banner roxo não fazia faxina, então a carreira aberta ali
+saía com o `careerHonors` que estivesse em memória — de qualquer partida
+anterior daquela aba, não necessariamente da carreira mais recente. Daí o número
+não bater com 106: não era cópia da última, era o que sobrou na memória.
+As duas travas abaixo continuam de pé como cinto de segurança.
+
+### ✅ O que já está no ar (contenção)
+**Regra ditada pelo Diego:** *"N quero q NG tenha mais títulos do q temporadas...
+não tem como ganhar uma Série A e B na mesma temporada"*. Virou trava em dois
+lugares:
+- **no ranking** (`pyramidseason.tsx`, commit `5dde174`);
+- **dentro da carreira**, ao abrir (`sanearTitulos` em `store.tsx`, `cd888f4`).
+
+Em N temporadas concluídas: no máximo **N taças de divisão no total** (só se
+disputa uma divisão por temporada), N Copas, N Supercopas e N Copas do Mundo.
+Quem está limpo não sente nada; quem está sujo se cura sozinho ao abrir.
+
+### 🧹 Limpeza feita à mão (só o Paduz, autorizada pelo Diego 19/08)
+- **Backup primeiro**: o save inteiro dele foi copiado pra `esc_backup_saves`
+  (id 1) — dá pra restaurar tudo.
+- Removidas do `esc_pyramid_saves` as carreiras **`460592162`** e
+  **`372711797`**. A antiga **`809022121` (T187) NÃO foi tocada** — ordem
+  explícita do Diego.
+- Removidas as linhas dessas duas carreiras do `esc_pyramid_rank_snap`.
+  Sobraram só `career_id 0` (T140-174) e `809022121` (T175-187), que são dele
+  de verdade.
+
+⚠️ **A carreira bugada pode voltar**: ela também vive no **aparelho** do Paduz.
+Se ele abrir o jogo com ela ainda lá, a junção com a nuvem republica. Por isso a
+mensagem pede que ele apague no ✕ ao lado de "Continuar carreira".
+
+## 📸 ROSTO PRONTO (GPT/Gemini) × PEÇA DESENHADA — a conta (19/08)
+Pergunta do Diego: *"e se o chat gpt fizer as imagens dos jogadores? c base no
+tamanho q precisamos... pq hj tem mais d mil jogadores mas em breve terão 3 mil"*.
+
+### Os números MEDIDOS (não chute)
+- Na carta, o espaço do rosto é um círculo de **66px** (carta normal) e **100px**
+  (carta grande). Então o arquivo só precisa de **200px** no lado maior (2× pra
+  retina). Mais que isso é peso jogado fora.
+- Peso real de uma arte chapada nesse tamanho, medido aqui: **~10 KB** a 200px
+  (7 KB a 160px · 14 KB a 256px · 19 KB a 320px), webp q85.
+- Baralho hoje: **1.419 linhas de jogador**. Por fama: **108 são fama 5** (7,6%),
+  400 fama 4, 410 fama 3, 326 fama 2, 175 fama 1.
+
+### A conta
+| | Foto pronta em TODOS | Foto só nos CRAQUES (fama 5) | Peça desenhada |
+|---|---|---|---|
+| Arquivos hoje | 1.419 | **108** | 0 |
+| Arquivos a 3.000 jogadores | 3.000 | **~230** | 0 |
+| Peso no repositório | **~30 MB** | **~2,3 MB** | **0 KB** |
+| O Diego consegue conferir um a um? | ❌ não | ✅ sim | ✅ (são ~12 peças) |
+| Jogador novo custa | +10 KB pra sempre | +10 KB só se for craque | **0 KB** |
+
+⚠️ O peso **não é o maior problema** — imagem separada só desce pra quem cruza
+com o jogador, então 30 MB no repo não viram 30 MB no celular de ninguém. Os
+dois problemas de verdade são:
+1. **TRABALHO**: 3.000 imagens pra pedir, baixar, nomear e conferir. A 1 minuto
+   cada, são **50 horas** — e cada jogador novo repete o ciclo pra sempre.
+2. **A REGRA DO DIEGO (18/08)**: *"qd vc N souber qm é a pessoa é como é me fala"*.
+   O GPT **não sabe** quem é o lateral folclórico do Série D — e não avisa: ele
+   desenha qualquer um com cara de retrato. Rosto errado com cara de foto é pior
+   que rosto genérico, que foi exatamente o que ele falou do Vozinha.
+
+### ✅ O caminho recomendado: HÍBRIDO
+1. **PEÇA desenhada pra todos os 1.419 (e pros 3.000)** — 0 KB, ninguém fica sem
+   cara, e nada quebra quando entra jogador novo.
+2. **FOTO pronta só pros ~108 fama 5** — os que todo mundo reconhece e o GPT
+   sabe desenhar. 108 × 10 KB = **1,1 MB**, e dá pra conferir os 108 no olho.
+3. Regra no código: **tem foto → usa foto; não tem → cai na peça.** Nunca falha.
+
+### A esteira já está pronta: `scripts/rosto/foto-jogador.py`
+O Diego joga a pasta de imagens do GPT e sai tudo no formato do jogo:
+```
+python3 scripts/rosto/foto-jogador.py --pasta ~/rostos-gpt
+```
+Ele casa o nome do arquivo com o jogador REAL do `data.ts` (ignora acento e
+caixa: `Pele.png` acha o "Pelé"), tira o fundo branco, corta no limite do
+desenho, reduz pra 200px, salva webp e **avisa todo arquivo que passar de
+12 KB**. Arquivo que não casa com jogador nenhum é recusado — não nasce rosto
+órfão no jogo. Testado.
+
+### 📋 O que pedir pro GPT/Gemini (pra vir no formato certo de primeira)
+> Ilustração de busto (cabeça e ombros) do jogador **[NOME]** no **[CLUBE, ANO]**.
+> Estilo vetorial chapado, cores sólidas, **sem fundo** (ou fundo branco liso),
+> de frente, centralizado, com pouca margem sobrando. Cabelo e barba fiéis ao
+> jogador naquele ano; camisa nas cores do clube, **sem escudo e sem patrocínio**.
+> Entregar em **PNG 1024×1024**.
+
+Nome do arquivo = **nome do jogador igualzinho ao do jogo** (`Lionel Messi.png`).
+
+⏳ **Falta o Diego decidir**: (a) fica o híbrido? (b) o estilo do rosto (a última
+peça foi a SEM olho/boca/nariz, que ele mandou fazer e ainda não avaliou).
+
+## 🧑 ROSTO DE JOGADOR (18/08) — ⏳ MOCKUP ENTREGUE, AGUARDA O OK DO DIEGO
+O Diego viu o `meuonze.app.br` e gostou da arte dos jogadores. Pediu algo
+parecido **na personalidade da casa**, não igual: *"não sendo idêntico ao do
+jogo q mandei… o cabelo parecido C jogador camisa de time Tb parecida mas sem
+escudo… Faça um C a nossa personalidade"*.
+
+### A decisão de peso (é o coração disso)
+**NÃO é uma figura por jogador.** São 1.414 jogadores — 1.414 arquivos seria
+insustentável. É **um boneco só, desenhado em código**, com PEÇAS trocáveis:
+pele · cabelo · barba · as 2 cores do clube + o padrão da camisa (lisa, listras,
+faixa, meio, banda). Cada jogador guarda ~4 letrinhas no baralho. O desenho
+entra **uma vez** no bundle e vale pros 1.414 — **0 KB por jogador novo**.
+É a mesma lógica do MANTO do jogo, que já é listra em CSS.
+
+⚠️ Isto é o OPOSTO da regra de batismo (lá a arte TEM que ser `.webp` fora do
+bundle). Não é contradição: batismo é arte ÚNICA de um clube só (pesada, e só
+desce pra quem cruza com ele); rosto é arte GENÉRICA reaproveitada por todos.
+
+### Onde está
+- `scripts/rosto/rosto.mjs` — as peças (6 peles · 10 cabelos · 4 barbas · 5
+  padrões de camisa) e o boneco montado, no traço da casa (tinta `#0C0C0C`,
+  borda 4–4.5px, cores chapadas, sem degradê).
+- `scripts/rosto/folha.mjs` — a folha de mockup com os 17 que o Diego escolheu:
+  `node scripts/rosto/folha.mjs --saida /tmp/rostos.png`
+
+### 🚫 Regra que nasceu aqui (18/08): não inventar cara de gente real
+Eu chutei o rosto do **Vozinha** (goleiro de Cabo Verde) — pele, careca, barba
+cheia — sem ter referência nenhuma. O Diego: *"qd vc N souber qm é a pessoa é
+como é me fala pow"*. Virou regra permanente no `CLAUDE.md`. Na prática, no
+sistema de rosto: **quem eu não conheço leva a peça NEUTRA e a carta fica
+marcada** (❓), em vez de um chute com cara de retrato.
+Dos 17 do mockup, o único sem referência é o **Vozinha** — falta o Diego mandar
+uma foto (ou dizer como ele é) pra montar as peças dele.
+
+### Falta (só depois do OK visual)
+1. Mover as peças pro jogo (`src/escalacao/rosto.tsx`) e ligar na
+   `CollectibleCard`.
+2. Preencher as peças dos 1.414 no `data.ts` (campo opcional; quem não tiver
+   cai num rosto neutro sorteado pelo nome — nunca fica sem cara).
+3. ↩️ **Reverter é fácil**: é um arquivo novo + um campo opcional no baralho.
+   Tirando o campo, a carta volta exatamente como está hoje.
 
 ## 🐛 DOIS BUGS REPORTADOS PELO GIOVANI PICOLO (18/08) — ✅ CORRIGIDOS
 Ele mandou áudio + prints. Os dois eram reais, e o primeiro estava escondido

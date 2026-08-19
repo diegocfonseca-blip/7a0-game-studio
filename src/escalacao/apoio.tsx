@@ -89,7 +89,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'diogoluz2309@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'msb102010@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Murriz FC)
   'ofc.toka10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Tôka10)
-  'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N)
+  'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) + SÓCIO nº27 do Futpoint FC (o Diego deu, 19/08). NÃO é batismo: não entra no FUNDADOR_N e não tira o lugar de nenhum clube.
   'alvarolino7712@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'matheusncruz1@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Skyy FC)
   'giovannecastro784@hotmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR + batismo (Crias do Bigão)
