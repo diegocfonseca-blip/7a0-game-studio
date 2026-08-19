@@ -4967,21 +4967,6 @@ export function PyramidSeasonScreen() {
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <AvisoContaCarreira />
         <SocioBaraoBanner />
-        {/* ⚠️ A COPA NÃO PODE SUMIR CALADA (Diego, 19/08: *"não deve ter Copa Legends
-            de jeito nenhum. Se vier erro o usuário que me avise"*). Antes, quando a
-            Copa do Brasil não conseguia montar a chave, a temporada acabava SEM COPA
-            e sem uma palavra — o Gabriel passou 106 temporadas assim. Agora, se um
-            dia isso acontecer, a pessoa VÊ e sabe pra onde avisar. Com a pirâmide
-            sempre em 20 por divisão, este aviso não deve aparecer nunca. */}
-        {done && cbUnlocked && !copaBrOk && (
-          <div style={{ ...box('#FFE9E4'), border: `4px solid ${FIN_RED}`, padding: '12px 14px', marginBottom: 8 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: FIN_RED, lineHeight: 1.1 }}>⚠️ A COPA DO BRASIL NÃO ABRIU NESTA TEMPORADA</p>
-            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(12,12,12,.7)', lineHeight: 1.4, marginTop: 5 }}>
-              Isso é um erro do jogo — não é nada que você fez, e o seu time não perdeu nada.
-              Manda um print no Instagram <b>@leilaolegendscom</b> que a gente conserta.
-            </p>
-          </div>
-        )}
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
             saber qual é qual só de olhar), verde escuro na Copa Legends (quem
