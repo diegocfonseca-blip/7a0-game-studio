@@ -4380,11 +4380,16 @@ export function PyramidSeasonScreen() {
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
+  // 🛟 NUNCA FICAR SEM COPA (19/08, bug do Gabriel): se a Copa do Brasil não
+  // conseguiu montar a chave (pirâmide fora de qualquer tamanho aproveitável), a
+  // temporada cai na COPA LEGENDS de sempre em vez de ficar SEM COPA NENHUMA —
+  // que foi o que aconteceu com ele por 106 temporadas, sem nenhum aviso.
+  const copaBrOk = !!copaBR?.champion
   const copa = useMemo(() => {
     if (!done) return null
-    if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
+    if (copaBrOk && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
     return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa)
-  }, [done, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
+  }, [done, copaBrOk, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de
@@ -4493,7 +4498,7 @@ export function PyramidSeasonScreen() {
     if (!copaFinished || !state.careerOnline || state.onlineMode === 'online') return
     if (state.booksSeason === state.seasonNo) return
     const sb = scorerRewards(divTop)
-    const cr = cbUnlocked && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
+    const cr = copaBrOk && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
     const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
     const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult)
     // 🎟️ ocupação por técnico (carreira nova) — colocação final vira renda do estádio
@@ -4761,8 +4766,8 @@ export function PyramidSeasonScreen() {
         const champ = tables[d]?.[0]
         if (champ) for (const p of champ.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} foi campeão da ${DIV_NAME[d]} pelo ${champ.name}`, coins: 1, nome: p.name })
       }
-      if (copa.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} levou a ${cbUnlocked ? 'Copa do Brasil' : 'Copa Legends'} pelo ${copa.champion.name}`, coins: 1, nome: p.name })
-      if (copa.topScorer && nomes.has(copa.topScorer.name)) rows.push({ emoji: '🥇', texto: `${copa.topScorer.name} foi o artilheiro da ${cbUnlocked ? 'Copa do Brasil' : 'Copa Legends'}`, coins: 1, nome: copa.topScorer.name })
+      if (copa.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} levou a ${copaBrOk ? 'Copa do Brasil' : 'Copa Legends'} pelo ${copa.champion.name}`, coins: 1, nome: p.name })
+      if (copa.topScorer && nomes.has(copa.topScorer.name)) rows.push({ emoji: '🥇', texto: `${copa.topScorer.name} foi o artilheiro da ${copaBrOk ? 'Copa do Brasil' : 'Copa Legends'}`, coins: 1, nome: copa.topScorer.name })
     }
     dispatch({ type: 'AGENCIA_SEASON_EVENTS', season: state.seasonNo ?? 1, rows })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -4944,9 +4949,9 @@ export function PyramidSeasonScreen() {
             que ela entrou"). */}
         {(() => {
           const supercopaFase = copaFase?.name === 'Supercopa'
-          const bg = !copaPlaying ? INK : supercopaFase ? SUPERCOPA_HOLO : cbUnlocked ? COPA_BR_HOLO : `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)`
-          const label = supercopaFase ? '🏆🔵 Supercopa Legends' : cbUnlocked ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
-          const sub = supercopaFase ? 'Campeão da Liga × Campeão da Copa do Brasil' : cbUnlocked ? '100 clubes · mata-mata puro, sem grupos' : 'Os 4 melhores de cada série (A·B·C·D) no mata-mata'
+          const bg = !copaPlaying ? INK : supercopaFase ? SUPERCOPA_HOLO : copaBrOk ? COPA_BR_HOLO : `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)`
+          const label = supercopaFase ? '🏆🔵 Supercopa Legends' : copaBrOk ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
+          const sub = supercopaFase ? 'Campeão da Liga × Campeão da Copa do Brasil' : copaBrOk ? '100 clubes · mata-mata puro, sem grupos' : 'Os 4 melhores de cada série (A·B·C·D) no mata-mata'
           return (
         <div style={{ ...box(bg), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           {copaPlaying && <CopaLegSheen />}
@@ -5010,7 +5015,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* quem ainda NÃO é tester continua com o aviso de que a Copa Legends
             começou (o banner grande abaixo é só da Copa do Brasil). */}
-        {copaPlaying && copaRound === 0 && !cbUnlocked && (
+        {copaPlaying && copaRound === 0 && !copaBrOk && (
           <div style={{ ...box('#fff'), padding: '9px 12px', marginBottom: 12, textAlign: 'center' }}>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', margin: 0 }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>
           </div>
@@ -5021,7 +5026,7 @@ export function PyramidSeasonScreen() {
             uma com moldura/sombra própria). Consolidado num card SÓ: banner
             colorido em cima, explicação compacta (funil + quem joga, 1 linha
             cada) embaixo, mesma moldura única. */}
-        {copaPlaying && cbUnlocked && copaRound === 0 && (
+        {copaPlaying && copaBrOk && copaRound === 0 && (
           <div style={{ ...box(COPA_BR_HOLO), position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
             <CopaLegSheen />
             <div style={{ padding: '14px 14px 10px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
@@ -5039,7 +5044,7 @@ export function PyramidSeasonScreen() {
             "não entendeu nada... só começou a ver do nada já ele jogando"). O
             banner acima explica a regra GERAL; este card fala com o jogador:
             onde VOCÊ entra, POR QUE, e o que acontece agora. */}
-        {copaPlaying && cbUnlocked && copaRound === 0 && me && (() => {
+        {copaPlaying && copaBrOk && copaRound === 0 && me && (() => {
           const direto = me.div === 'A' || (me.div === 'B' && me.pos <= 8)
           const motivo = me.div === 'A'
             ? <>Terminou em <b>{me.pos}º na Série A</b> — a <b>Série A inteira</b> entra direto, sem passar pela peneira.</>
@@ -5063,7 +5068,7 @@ export function PyramidSeasonScreen() {
         })()}
         {/* ⏳ AVISO DE FASE SEM JOGO: sem isto, quem está classificado fica olhando
             jogo dos outros sem entender por que não tem o dele na tela. */}
-        {copaPlaying && cbUnlocked && !myCopaTie && copaFase && (
+        {copaPlaying && copaBrOk && !myCopaTie && copaFase && (
           <div style={{ background: '#DFF6E8', border: '3px solid #0EA658', borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, padding: '11px 13px', textAlign: 'center', marginBottom: 12 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#0a6b3c', margin: 0 }}>⏳ VOCÊ NÃO JOGA ESTA FASE</p>
             <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0' }}>
@@ -5092,7 +5097,7 @@ export function PyramidSeasonScreen() {
             uma das 80 posições + os donos da temporada (campeões e artilheiros).
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
-          <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={cbUnlocked}
+          <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
             copaRun={copaRun} superRun={superRun} superChamp={superChamp}
             /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
                na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
@@ -5118,7 +5123,7 @@ export function PyramidSeasonScreen() {
                 const champ = tables[d]?.[0]
                 if (champ) for (const p of champ.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} levanta a taça pelo ${champ.name}`, sub: `Campeão da ${DIV_NAME[d]}! Ergueu o troféu e apontou pra tribuna: "esse aí é do meu agente!" 😎` })
               }
-              if (copa?.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} campeão da ${cbUnlocked ? 'Copa do Brasil' : 'Copa Legends'}`, sub: `Taça pelo ${copa.champion.name} — cria da sua agência dando show no mata-mata.` })
+              if (copa?.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} campeão da ${copaBrOk ? 'Copa do Brasil' : 'Copa Legends'}`, sub: `Taça pelo ${copa.champion.name} — cria da sua agência dando show no mata-mata.` })
               if (copa?.topScorer && nomes.has(copa.topScorer.name)) nn.push({ ic: '🥇', titulo: `${copa.topScorer.name} é o artilheiro da Copa`, sub: `${copa.topScorer.goals} gols no mata-mata — o país inteiro quer saber quem agencia esse craque.` })
               for (const r of (state.agenciaFatura?.rows ?? []).filter(x => x.emoji === '💸').slice(0, 3)) if (r.nome) nn.push({ ic: '✍️', titulo: `${r.nome} de casa nova`, sub: 'Negociação fechada no mercado — com a bênção da sua agência.' })
               return nn.length ? nn.slice(0, 6) : undefined
@@ -5284,7 +5289,7 @@ export function PyramidSeasonScreen() {
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
         {copaPlaying && myCopaTie && <MyCopaMatch tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed}
-          footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : cbUnlocked ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
+          footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
             sozinha (só aparece o botão de ativar o manual). */}
@@ -5342,7 +5347,7 @@ export function PyramidSeasonScreen() {
           const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
           // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
           const sb = scorerRewards(divTop)
-          const cr = cbUnlocked && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
+          const cr = copaBrOk && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
           const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
           const newPlacements = computePromotions(tables)
@@ -5359,7 +5364,7 @@ export function PyramidSeasonScreen() {
           // resolve pra qual das duas) continua indo pro MESMO careerCopaHonors —
           // Diego 16/08: "não são coisas novas, só alterou o nome" — quem já tinha
           // títulos de Copa Legends não perde nada, o histórico é contínuo.
-          const supercopaChampionKey = cbUnlocked && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
+          const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
           const args = () => ({ placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
@@ -5828,7 +5833,7 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             {rankSub === 'clubes' ? (
-              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={cbUnlocked} />
+              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} />
             ) : rankSub === 'global' && agenciaOk ? (
               <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
             ) : (
@@ -5836,7 +5841,7 @@ export function PyramidSeasonScreen() {
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copaScorersShown.length > 0
-                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`🏆 ARTILHARIA · ${cbUnlocked ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? 'Gols do mata-mata da Copa — top 20.' : `Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`} foot={`🏅 O artilheiro da Copa rende +${cbUnlocked ? 10 : 16} ao clube e sobe +10 no piso do jogador.`} />
+                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`🏆 ARTILHARIA · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? 'Gols do mata-mata da Copa — top 20.' : `Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`} foot={`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube e sobe +10 no piso do jogador.`} />
                   : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Várzea +6 · D +10 · C +15 · B +20 · A +30." />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
               </>
@@ -5965,7 +5970,7 @@ export function PyramidSeasonScreen() {
                aba Jogos ficam os OUTROS jogos da fase, rolando junto (mesmo relógio),
                como os jogos das outras divisões apareciam na liga. */
             <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName}
-              title={`${cbUnlocked ? '🏆🇧🇷' : '🏆'} ${copaFaseName} · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'}`} />
+              title={`${copaBrOk ? '🏆🇧🇷' : '🏆'} ${copaFaseName} · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'}`} />
           ) : (
           <>
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
@@ -6080,7 +6085,7 @@ export function PyramidSeasonScreen() {
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
-          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={cbUnlocked} copaBR={copaBR} />
+          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
         ) : (
           <>
             <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />

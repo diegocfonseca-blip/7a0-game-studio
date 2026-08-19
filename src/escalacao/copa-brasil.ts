@@ -68,14 +68,35 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
   const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t
   const of = (d: Div): Entrant[] => (tables[d] ?? []).map(t => ({ t: withXI(t), div: d }))
   const A = of('A'), B = of('B'), C = of('C'), D = of('D'), V = of('V')
-  if (A.length < 20 || B.length < 20 || C.length < 20 || D.length < 20 || V.length < 20) return empty // pirâmide incompleta (save velho/incomum) — sem Copa
-
-  // ── Série B se divide pela posição final: 8 melhores vão DIRETO na
-  //    chave (prêmio pela boa campanha), os 12 piores jogam a peneira.
-  //    (16/08: era 12/8 antes; ajustado pra fechar 64 sem excluir
-  //    ninguém e sem "passe direto" avulso no meio do caminho.) ──
-  const bDireto = B.slice(0, 8)
-  const bPeneira = B.slice(8, 20)
+  // ── 🔧 CHAVE ELÁSTICA (19/08) — o conserto do bug do Gabriel ────────────────
+  // ANTES: se QUALQUER divisão não tivesse exatamente 20 times, a função devolvia
+  // vazio e a Copa simplesmente NÃO ACONTECIA — calada, temporada após temporada.
+  // O Gabriel passou 106 temporadas sem uma Copa do Brasil nem uma Supercopa e
+  // sem entender por quê: a Série A da carreira dele tinha ficado com 19 clubes
+  // (99 no total). Medido no banco: 24 carreiras tortas + 2.785 saves antigos sem
+  // Várzea estavam sem Copa nenhuma desde 16/08. Sumiço silencioso é o pior tipo
+  // de bug pela régua do Diego.
+  //
+  // AGORA a chave se molda ao tamanho REAL da pirâmide e sempre fecha em 64:
+  //     diretos = 128 − N        peneira = 2 × (N − 64)        (N = total de clubes)
+  // A peneira sempre dá par (2N−128), e (N−64) vencedores + (128−N) diretos = 64.
+  //
+  // ⚠️ COM A PIRÂMIDE CHEIA (N=100) A CONTA DÁ EXATAMENTE O DE HOJE: 28 diretos
+  // (Série A inteira + 8 melhores da B) e 72 na peneira, nos MESMOS arrays e na
+  // MESMA ordem — então o sorteio sai igualzinho e NENHUM campeão já visto muda.
+  const N = A.length + B.length + C.length + D.length + V.length
+  if (N < 68 || N > 128) return empty // fora disso não dá pra fechar 64 — quem chama cai na Copa Legends
+  const nDireto = 128 - N
+  // Prestígio manda em quem entra direto: Série A → B (pela colocação) → C → D →
+  // Várzea. Os primeiros `nDireto` já estão na chave de 64; TODO o resto passa
+  // pela peneira — ninguém fica de fora e ninguém sobra sem adversário.
+  const ordem: Entrant[] = [...A, ...B, ...C, ...D, ...V]
+  const direto: Entrant[] = ordem.slice(0, nDireto)
+  const naChave = new Set(direto)
+  const sobra = (list: Entrant[]) => list.filter(e => !naChave.has(e))
+  // a ordem de montagem da peneira é a MESMA de sempre (V → C → D → B → A) pra o
+  // sorteio sair idêntico ao de hoje em quem está com a pirâmide cheia.
+  const peneiraSets = [sobra(V), sobra(C), sobra(D), sobra(B), sobra(A)]
 
   const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
   const scorers = new Map<string, SeasonScorer>()
@@ -143,10 +164,10 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals }
   }
 
-  // ── FASE 1 — PENEIRA: 72 times (Várzea + Série C + Série D + 12 piores
-  //    da B), jogo único, sorteio livre. 72 é par, então sempre dá 36
-  //    vencedores certinho, sem sobrar ninguém. ──
-  const peneiraPool = shuffle([...V, ...C, ...D, ...bPeneira], rng)
+  // ── FASE 1 — PENEIRA: com a pirâmide cheia são 72 times (Várzea + Série C +
+  //    Série D + 12 piores da B), jogo único, sorteio livre. O tamanho é sempre
+  //    2×(N−64), ou seja SEMPRE par — nunca sobra ninguém sem adversário. ──
+  const peneiraPool = shuffle(peneiraSets.flat(), rng)
   const peneiraTies: CBTie[] = [], peneiraWinners: Entrant[] = []
   for (let i = 0; i + 1 < peneiraPool.length; i += 2) {
     const tie = playSingle(peneiraPool[i], peneiraPool[i + 1])
@@ -154,9 +175,9 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     peneiraWinners.push(tie.win === 'a' ? peneiraPool[i] : peneiraPool[i + 1])
   }
 
-  // ── forma a chave de 64: 36 (peneira) + 28 (Série A inteira + 8
-  //    melhores da B, direto, sem jogar peneira) ──
-  const direto: Entrant[] = [...A, ...bDireto]
+  // ── forma a chave de 64: (N−64) vencedores da peneira + (128−N) diretos. Com a
+  //    pirâmide cheia isso é o de sempre: 36 + 28 (Série A inteira + 8 melhores
+  //    da B, sem jogar peneira). ──
   let cur: Entrant[] = shuffle([...peneiraWinners, ...direto], rng)
 
   const rounds: CBRound[] = []
