@@ -252,3 +252,33 @@ Escrever a **lista clube+ano de quem DISPUTOU a Libertadores**, com o nível de
 certeza marcado linha a linha, e o Diego conferir. Onde nenhum dos dois tiver
 certeza, a carta fica de fora (regra dele de 18/08). Sem essa lista o baralho não
 existe. Tamanho esperado: entre 91 (só campeões, já contado) e 560 (teto medido).
+
+---
+
+## 9. 🛣️ LIGA-PRIMEIRO × LIBERTADORES-DIRETO (dúvida do Diego, 20/08)
+
+> *"Tô na dúvida se faço jogando liga normal e dps os 8 melhores jogam a
+> libertadores e sendo baralho temático ou começa direto libertadores"*
+
+Folha: `scripts/mockup-libertadores-caminho.mjs`.
+
+| | Caminho A · liga primeiro | Caminho B · direto |
+|---|---|---|
+| Jogos | 38 liga + 6 mata-mata = **44** | 6 pré + 6 grupos + 7 mata = **19** |
+| Tempo de tela | **4min30** | 4min09 |
+| Motor | **já existe** | novo |
+| Títulos por sala | 2 (liga + Liberta) | 1 |
+
+**O achado que decide: o caminho A já está construído.** A Copa dos 8 do rápido
+(`seedQuickCopa`, store.tsx:2232 + `resolveQuickCopaTie`) É literalmente "os 8
+melhores da liga jogam mata-mata de ida e volta, com pênalti no empate". Pra
+virar Libertadores falta só (1) o filtro do baralho e (2) trocar nome/cor quando
+a categoria for Libertadores. Nada de motor novo.
+
+O caminho B precisa de: sorteio de grupos por potes · 8 tabelas simultâneas ·
+classificação de grupo · chave de 16 (hoje o mata-mata só sabe começar com 8) ·
+os 32 clubes · tela dos grupos.
+
+**Recomendação: A agora, B depois.** A lista de quem jogou a Libertadores — que é
+o trabalho grande — **serve pros dois**, então nada se perde. E o A dá pro Diego
+JOGAR a coisa e sentir se é isso, gastando pouco.
