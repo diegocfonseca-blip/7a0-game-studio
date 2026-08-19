@@ -85,21 +85,32 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 2011 | Santos (campeão), Internacional, Cruzeiro, Grêmio, Fluminense — **Corinthians NÃO** (caiu na pré pro Tolima) | ✅ |
 | 2012 | Corinthians (campeão), Santos, Vasco, Fluminense, Flamengo? | 🟡 |
 | 2013 | Atlético-MG (campeão), Corinthians, Fluminense, Grêmio, Palmeiras, São Paulo | 🟡 |
-| 2014 | não checado | ❓ |
-| 2015 | não checado | ❓ |
-| 2016 | não checado | ❓ |
+| 2014 | Atlético-MG, Cruzeiro, Grêmio, Flamengo, Atlético-PR, Botafogo | 🟡 |
+| 2015 | Cruzeiro, Atlético-MG, São Paulo, Internacional, Corinthians | 🟡 |
+| 2016 | Corinthians, Palmeiras, Atlético-MG, Grêmio, São Paulo | 🟡 |
 | 2017 | Palmeiras, Grêmio (campeão), Chapecoense, Santos, Flamengo, Atlético-MG + Botafogo e Atlético-PR (pela 2ª fase) | 🟡 |
-| 2018 | não checado | ❓ |
+| 2018 | Grêmio, Corinthians, Cruzeiro, Palmeiras, Santos, Flamengo, Vasco, Chapecoense | 🟡 |
 | 2019 | Flamengo (campeão), Palmeiras, Internacional, Athletico-PR, Grêmio, Cruzeiro, São Paulo, Atlético-MG | 🟡 |
 | 2020 | Flamengo, Palmeiras (campeão), Athletico-PR, Santos (vice), São Paulo, Internacional, Grêmio, Corinthians | 🟡 |
-| 2021 | não checado | ❓ |
+| 2021 | Atlético-MG, Flamengo, Fluminense, Internacional, Palmeiras, São Paulo, Santos (passou pela pré) — **Grêmio NÃO** (caiu pro Del Valle) | ✅ |
 | 2022 | Palmeiras, Athletico-PR, Atlético-MG, América-MG, Flamengo (campeão), Corinthians, Fortaleza, Red Bull Bragantino — **Fluminense NÃO** (caiu na pré) | 🟡 |
 | 2023 | Flamengo, Internacional, Palmeiras, Fluminense (campeão), Corinthians, Athletico-PR, Atlético-MG | ✅ |
-| 2024 | Botafogo (campeão) e Atlético-MG (vice) confirmados; resto a fechar | ❓ |
+| 2024 | Botafogo (campeão), Atlético-MG (vice), Flamengo, Fluminense, Grêmio, Palmeiras, São Paulo — **Bragantino NÃO** (caiu na pré) | ✅ |
 | 2025 | Botafogo, Flamengo, Fortaleza, Internacional, Palmeiras, São Paulo, Bahia | ✅ |
 | 2026 | Flamengo, Palmeiras, Cruzeiro, Corinthians, Fluminense, Mirassol (estreante) | ✅ |
 
-## 📉 O efeito medido nos primeiros anos checados
+## 📊 PROJEÇÃO DO BARALHO (com 57 dos 66 anos checados)
+
+Aplicando a lista de hoje nas 595 cartas brasileiras:
+- **506 cartas** estão em anos já checados → **236 passam (47%)**
+- 89 cartas ainda em anos não checados
+- **Projeção final: ~278 cartas** no baralho temático da Libertadores
+
+Pra comparar: a **várzea** (o modo temático que já funciona) tem 421 cartas. Então
+o baralho da Libertadores fica menor que a várzea, mas **três vezes maior** que a
+ideia de "só campeões" (91), e confortável pro tamanho real das salas.
+
+## 📉 O efeito por ano nos primeiros anos checados
 
 | Ano | Cartas do ano | Passam | % |
 |---|---|---|---|
@@ -117,7 +128,7 @@ clube dele jogou a Libertadores. Caso mais duro: o **Flamengo 2009** tem 8 carta
 Libertadores **de 2010**.
 
 ## Próximo passo
-Fechar os anos ainda ❓ (1966, 1972, 1988, 1990, 1991, 1994, 2003, 2008, 2012, 2014, 2015, 2016, 2018, 2021, 2024), fazer a 2ª passada nos 🟡 (com atenção ao
+Fechar os anos ainda ❓ (1966, 1972, 1988, 1990, 1991, 1994, 2003, 2008, 2012), fazer a 2ª passada nos 🟡 (com atenção ao
 deslocamento de um ano) e mandar a lista inteira pro Diego conferir. Só depois
 disso o filtro entra no código.
 
