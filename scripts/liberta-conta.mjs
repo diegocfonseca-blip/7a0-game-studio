@@ -1,17 +1,26 @@
-// 🌎 conta o baralho temático da Libertadores a partir da lista clube+ano.
-// A lista vive em `docs/libertadores-participantes.md` (fonte única) — este
-// script LÊ a tabela de lá, então corrigir o doc já corrige a conta.
+// 🌎 conta o baralho temático da Libertadores.
+//
+// REGRA (Diego, 20/08): a carta entra se **o clube dela disputou a Libertadores
+// naquele ano**. *"N importa a nacionalidade"* — então o filtro olha o CLUBE da
+// carta, não o baralho (BR/Europa/Mundo) em que ela mora. Marzolini/Boca/1965
+// está no baralho Mundo e entra, porque o Boca jogou a Libertadores de 1965.
+//
+// FONTE: `docs/libertadores-por-clube.txt` — a lista que o Diego mandou, todos
+// os países, até a edição de 2026. Corrigir uma linha lá corrige tudo aqui.
 import { readFileSync } from 'node:fs'
 
-const txt = readFileSync('docs/libertadores-br-por-clube.txt', 'utf8')
+const txt = readFileSync('docs/libertadores-por-clube.txt', 'utf8')
 const PART = {}
-for (const l of txt.trim().split('\n')) {
+for (const l of txt.split('\n')) {
+  if (!l.includes('—') || l.startsWith('#')) continue
   const [clube, anos] = l.split('—').map(x => x.trim())
-  for (const a of anos.split(',').map(x => +x.trim())) (PART[a] = PART[a] || []).push(clube)
+  for (const a of anos.split(',').map(x => +x.trim())) {
+    if (a) (PART[a] = PART[a] || new Set()).add(clube)
+  }
 }
 // 🚫 caiu na PRÉ e não chegou aos grupos → regra do Diego: NÃO conta
 const CAIU_NA_PRE = { 2011: ['Corinthians'], 2020: ['Corinthians'], 2021: ['Grêmio'], 2022: ['Fluminense'], 2024: ['Red Bull Bragantino'] }
-for (const a of Object.keys(CAIU_NA_PRE)) PART[a] = (PART[a] ?? []).filter(c => !CAIU_NA_PRE[a].includes(c))
+for (const a of Object.keys(CAIU_NA_PRE)) for (const c of CAIU_NA_PRE[a]) PART[a]?.delete(c)
 
 const data = readFileSync('src/escalacao/data.ts', 'utf8')
 const blocos = [...data.matchAll(/const (\w+): C\[\] = \[/g)].map(m => ({ n: m[1], p: m.index }))
@@ -19,27 +28,18 @@ const blocoDe = p => { let r = ''; for (const b of blocos) { if (b.p < p) r = b.
 const re = /\{[^{}]*?name:\s*("[^"]+"|'[^']+'),\s*club:\s*("[^"]*"|'[^']*'),\s*year:\s*(\d+),\s*fame:\s*(\d)/g
 const st = x => x.slice(1, -1)
 const all = [...data.matchAll(re)].map(m => ({ bl: blocoDe(m.index), nome: st(m[1]), club: st(m[2]), year: +m[3], fame: +m[4] }))
-const BR = all.filter(c => /^(GOL|LAT|ZAG|MEI|ATA|NOVOS_BR_)/.test(c.bl) && !/_EU|_WORLD/.test(c.bl))
-const pos = c => c.bl.includes('GOL') ? 'GOL' : c.bl.includes('LAT') ? 'LAT' : c.bl.includes('ZAG') ? 'ZAG' : c.bl.includes('MEI') ? 'MEI' : 'ATA'
-// o baralho aceita as duas grafias do Athletico/Atlético Paranaense
-const mesmo = (a, b) => a === b || [a, b].every(x => /^(Athletico|Atlético)-PR$/.test(x))
-const passa = c => (PART[c.year] ?? []).some(p => mesmo(p, c.club))
+const pos = c => /GOL/.test(c.bl) ? 'GOL' : /LAT/.test(c.bl) ? 'LAT' : /ZAG/.test(c.bl) ? 'ZAG' : /MEI/.test(c.bl) ? 'MEI' : 'ATA'
 
-const dentro = BR.filter(passa)
+const dentro = all.filter(c => PART[c.year]?.has(c.club))
 const cnt = l => { const m = { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 }; for (const c of l) m[pos(c)]++; return m }
-// ⚠️ O QUE MEDIR (correção do Diego, 20/08: *"a liga tem 20 times como sempre foi
-// pow"*): a sala continua com 20 times, sempre. O número que importa NÃO é
-// "quantas pessoas cabem" — é se o baralho dá pra vestir a LIGA INTEIRA com
-// jogador de verdade. `makeManagers` (store.tsx) diz: *"A tabela SEMPRE tem
-// leagueSize times com elenco nomeado"*, e `botSquad` completa com INCÓGNITA
-// (perna-de-pau) quando o catálogo acaba — que é o que a casa não aceita.
-// Logo: a conta é 20 times × as vagas da posição.
-const S = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
 const m = cnt(dentro)
-console.log(`baralho 🌎 Libertadores: ${dentro.length} de ${BR.length} cartas BR (${Math.round(100 * dentro.length / BR.length)}%)`)
+console.log(`baralho 🌎 Libertadores: ${dentro.length} cartas (de ${all.length} do jogo inteiro)`)
 console.log(`lendas: ${dentro.filter(c => c.fame === 5).length} · craques: ${dentro.filter(c => c.fame === 4).length}`)
 console.log('')
-console.log('vestir a liga de 20 times (todo time tem elenco com nome):')
+// ⚠️ os 20 times da liga TÊM elenco nomeado (makeManagers) e o botSquad completa
+// com incógnita quando o catálogo acaba — então a conta é 20 × vagas da posição.
+const S = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+console.log('vestir a liga de 20 times:')
 let falta = 0
 for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) {
   const tem = m[p], precisa = 20 * S[p]
@@ -47,6 +47,10 @@ for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) {
   console.log(`  ${p}: tem ${String(tem).padStart(3)} · precisa ${String(precisa).padStart(3)} → ` +
     (tem >= precisa ? `✅ sobra ${tem - precisa}` : `❌ faltam ${precisa - tem}`))
 }
-console.log(falta === 0
-  ? '\n✅ DÁ: a liga de 20 fecha inteira com jogador de verdade.'
-  : `\n⚠️ faltam ${falta} cartas pra fechar os 20 times sem nenhum perna-de-pau.`)
+console.log(falta === 0 ? '\n✅ DÁ: a liga de 20 fecha inteira com jogador de verdade.'
+  : `\n⚠️ faltam ${falta} cartas.`)
+if (process.argv.includes('--estrangeiros')) {
+  const est = dentro.filter(c => !/^(GOL|LAT|ZAG|MEI|ATA)$|_BR/.test(c.bl))
+  console.log(`\n🌎 dos ${dentro.length}, ${est.length} vieram dos baralhos Europa/Mundo:`)
+  console.log(est.map(c => `${c.nome} (${c.club} ${c.year})`).join(' · '))
+}

@@ -6,29 +6,49 @@ aos grupos conta; quem caiu na pré, não.
 
 ## 📋 A FONTE: a lista que o Diego mandou (20/08)
 
-O Diego mandou a base histórica **completa, por clube, até a Libertadores de
-2026**. Ela virou a **fonte oficial** e está guardada crua em
-`docs/libertadores-br-por-clube.txt` — a tabela abaixo é gerada dela.
+Ele mandou a base histórica **completa, por clube, de TODOS os países, até a
+Libertadores de 2026**. Virou a fonte oficial e está guardada crua em
+`docs/libertadores-por-clube.txt`. A conta sai de `node scripts/liberta-conta.mjs`.
 
-**Cruzei a lista dele com a minha pesquisa de 66 anos: 49 anos bateram
-exatamente.** Dos 18 que diferiram:
-- **A lista dele confirmou 6 correções que eu já tinha achado sozinho** — Vasco
-  FORA de 1997, Bangu e Coritiba em 1986, e o deslocamento de 2000, 2001 e 2002.
-  Duas apurações independentes chegando na mesma correção é o melhor sinal
-  possível de que estão certas.
-- **A lista dele achou um erro meu em 2005**: o certo é Santos, Santo André,
-  Palmeiras, São Paulo e Athletico-PR (os 4 primeiros do Brasileirão de 2004 +
-  o campeão da Copa do Brasil). Corinthians, Goiás e Internacional jogaram foi
-  **2006**. Eram 6 cartas entrando erradas.
-- O resto das diferenças (1966/67, 1977, 1982, 1984, 1999, 2000, 2023, 2025,
-  2026) **não muda carta nenhuma** do baralho.
+**Cruzei a parte brasileira dela com a minha pesquisa de 66 anos: 49 anos
+bateram exatamente.** Dos 18 que diferiram:
+- **A lista dele confirmou 6 correções que eu tinha achado sozinho** — Vasco FORA
+  de 1997, Bangu e Coritiba em 1986, e o deslocamento de 2000, 2001 e 2002. Duas
+  apurações independentes chegando na mesma correção é o melhor sinal possível.
+- **Ela achou um erro meu em 2005**: o certo é Santos, Santo André, Palmeiras,
+  São Paulo e Athletico-PR. Corinthians, Goiás e Internacional jogaram foi 2006.
+- O resto (1966/67, 1977, 1982, 1984, 1999, 2000, 2023, 2025, 2026) não muda
+  carta nenhuma.
 
-⚠️ **Uma ressalva honesta**: a lista dele conta *"clubes que disputaram ao menos
-uma partida"*, então **inclui quem caiu na pré**. Como a regra do Diego é o
-contrário, esses saem — e estão marcados linha a linha abaixo. Os que eu conheço
-são Corinthians 2011 e 2020, Grêmio 2021, Fluminense 2022 e Bragantino 2024. **Se
-houver outro caso de pré em ano antigo, ele ainda está passando** — é o único
-ponto que a lista não resolve sozinha.
+## 🔑 O FILTRO OLHA O CLUBE, NÃO O BARALHO
+
+Palavras do Diego: *"N importa a nacionalidade"*. Então a carta entra pelo CLUBE
+dela, esteja ela no baralho Brasil, Europa ou Mundo. É isso que traz pro modo
+gente como **Higuita (Atlético Nacional 1990)**, **Bochini (Independiente 1984)**,
+**Cubillas (Alianza Lima 1978)**, **Marzolini (Boca 1965)**, **Chumpitaz
+(Universitario 1975)** e **Caszely (Colo-Colo 1973)** — 30 cartas que já existiam
+no jogo e que eu estava deixando de fora à toa.
+
+🏷️ **Cuidado com homônimo**: clube sul-americano com nome igual a europeu leva o
+país no nome na lista (`Liverpool (URU)`, `Arsenal de Sarandí`, `Everton (CHI)`,
+`Rangers (CHI)`, `Valencia (VEN)`). Sem isso, **o Liverpool da Inglaterra entrava
+no baralho da Libertadores** — foram 5 cartas erradas que só apareceram porque eu
+fui conferir.
+
+## ✅ O BARALHO FECHA — não precisa inventar jogador
+
+| Posição | Tem | A liga de 20 precisa | |
+|---|---|---|---|
+| GOL | 35 | 20 | ✅ sobra 15 |
+| LAT | 47 | 40 | ✅ sobra 7 |
+| ZAG | 44 | 40 | ✅ sobra 4 |
+| MEI | 80 | 60 | ✅ sobra 20 |
+| ATA | 93 | 60 | ✅ sobra 33 |
+
+**299 cartas · 17 lendas · 68 craques.** Aqueles 7 jogadores que faltavam
+(4 laterais e 3 zagueiros) **não precisam mais ser criados**: eles já estavam no
+jogo, só não estavam sendo vistos porque o filtro olhava o baralho em vez do
+clube.
 
 ## Os anos
 
