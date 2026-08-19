@@ -7464,3 +7464,37 @@ fácil e barato de tapar, símbolico mas tira o zero. `TV_COTA` em
 ocupação só na Várzea (hoje 18% no rebaixamento — ficaria tipo 40%) pra
 quem tá começando não ficar preso no fundo do poço.
 Build ok, no ar em `main`.
+
+## 🔒 BATISMO SEM RESERVA DE NOME — 8 clubes achados (20/08) ✅ 6 consertados
+
+Relato do Diego: o Lucas (lucas_calefi@outlook.com) não conseguia pôr **Coringas
+do Diniz** como nome do time — a tela dizia *"⚠️ Já existe um técnico com esse
+nome"*. Investigado, eram **dois problemas somados**:
+
+1. **O batismo dele nunca foi cadastrado na tabela de reserva** (`esc_nomes_batismo`).
+   A RPC `esc_nome_livre` (manto.ts:137) olha ESSA tabela primeiro: se o nome é de
+   batismo e o e-mail bate, libera. Como a linha não existia, o nome caiu na regra
+   comum de "nome único" e foi tratado como nome de estranho.
+2. **Outra conta já usava o nome**: `brenodinoliveira@gmail.com`, com "Coringas do
+   diniz", conta criada em **17/07** — um mês ANTES do batismo (16/08).
+
+Auditoria: dos **26 clubes batizados no código, 8 estavam SEM reserva** —
+Coringas do Diniz · Crias do Bigão · Futpoint FC · Nata de SP · Seven City ·
+Tricolor do Arruda FC · Vasco da Grana · White Thigs do GuGu. Ou seja, não era
+caso isolado: **o cadastro da reserva estava saindo do roteiro do batismo**.
+
+✅ **Consertado agora** (insert só-adiciona, reversível): Coringas do Diniz →
+lucas_calefi@outlook.com · Crias do Bigão → giovannecastro784@hotmail.com ·
+Futpoint FC → gfpicolo13@gmail.com · Nata de SP → pedrinhocamisa8@gmail.com ·
+Seven City → glaucomiranda@outlook.com · Tricolor do Arruda FC → souzact12@gmail.com.
+
+⏳ **Falta o Diego decidir**:
+- **Breno × Lucas**: o Lucas agora consegue salvar o nome, mas o Breno continua
+  com "Coringas do diniz" — dois técnicos com o mesmo nome, o que fura a regra do
+  "@ único". O que fazer com o Breno?
+- **Vasco da Grana**: quem é o dono? Hoje quem usa o nome é `caiovvzmx@gmail.com`.
+- **White Thigs do GuGu**: qual o e-mail do GuGu? Ninguém usa o nome hoje.
+
+📌 **Pra não repetir**: cadastrar em `esc_nomes_batismo` tem que virar passo FIXO
+do roteiro de batismo, junto com `LOGOS_PRONTAS`, `MASCOTES`, `data.ts` e
+`apoio.tsx` (a regra 8 do CLAUDE.md).
