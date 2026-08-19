@@ -99,24 +99,39 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 2025 | Botafogo, Flamengo, Fortaleza, Internacional, Palmeiras, São Paulo, Bahia | ✅ |
 | 2026 | Flamengo, Palmeiras, Cruzeiro, Corinthians, Fluminense, Mirassol (estreante) | ✅ |
 
-## 📊 O BARALHO CONTADO (1ª passada dos 66 anos completa)
+## 📊 O BARALHO CONTADO — e o que REALMENTE importa medir
 
-`node scripts/liberta-conta.mjs` — o script LÊ a tabela deste arquivo, então
-corrigir uma linha aqui já corrige a conta.
+🩹 **Correção (20/08).** Eu tinha reportado "cabe até 15 técnicos na sala" e o
+Diego cortou na hora: *"a liga tem 20 times como sempre foi pow… já funciona lá
+c até 20"*. Ele está certo e eu estava medindo a coisa errada — eu contei só as
+vagas dos HUMANOS no leilão, e ainda usei um número de tamanho de sala tirado das
+salas que **ainda existem** no banco (o faxineiro apaga sala parada há 2 dias,
+então aquela contagem estava viciada e não valia nada).
 
-| | |
-|---|---|
-| Cartas no baralho 🌎 Libertadores | **257** de 595 brasileiras (43%) |
-| Por posição | GOL 31 · LAT 35 · ZAG 39 · MEI 66 · ATA 86 |
-| Cabe até | **16 técnicos** na sala |
-| Nível | 17 lendas · 66 craques |
+**O que importa medir é outra coisa.** `makeManagers` (store.tsx) diz: *"A tabela
+SEMPRE tem leagueSize times com elenco nomeado"* — ou seja, **os 20 times da liga
+têm elenco de verdade**, não só os humanos. E `botSquad` completa com
+**incógnita (perna-de-pau)** quando o catálogo acaba. Então a pergunta certa é:
+**o baralho dá pra vestir os 20 times?**
 
-**Cabe folgado**: a maior sala da história do jogo teve **9 pessoas** (465 salas
-medidas), e o baralho aguenta 16. Nenhuma trava vai precisar disparar na prática.
+`node scripts/liberta-conta.mjs`:
 
-Pra comparar: a **várzea** (o temático que já funciona) tem 421 cartas. O da
-Libertadores fica menor que ela, mas **quase 3× maior** que a ideia de "só
-campeões" (91).
+| Posição | Tem | A liga de 20 precisa | |
+|---|---|---|---|
+| GOL | 31 | 20 | ✅ sobra 11 |
+| LAT | 36 | 40 | ❌ **faltam 4** |
+| ZAG | 37 | 40 | ❌ **faltam 3** |
+| MEI | 62 | 60 | ✅ sobra 2 |
+| ATA | 83 | 60 | ✅ sobra 23 |
+
+**249 cartas no baralho · a liga inteira consome 220 · faltam 7** (4 laterais e
+3 zagueiros) pra fechar os 20 times sem nenhum perna-de-pau.
+
+**A sala continua com 20 e com quantas pessoas quiser** — isso nunca esteve em
+risco. O buraco é só de lateral e zagueiro, e é pequeno. Vai mudar conforme a 2ª
+passada da lista terminar (cada ano corrigido tira ou devolve carta). Se no fim
+ainda faltar, é decisão do Diego — e a saída NÃO pode ser deixar entrar jogador
+que não jogou a Libertadores.
 
 ## 📉 O efeito por ano nos primeiros anos checados
 

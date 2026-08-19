@@ -32,10 +32,26 @@ const passa = c => (PART[c.year] ?? []).some(p => mesmo(p, c.club))
 
 const dentro = BR.filter(passa)
 const cnt = l => { const m = { GOL: 0, LAT: 0, ZAG: 0, MEI: 0, ATA: 0 }; for (const c of l) m[pos(c)]++; return m }
-const F = { '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }, '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 } }
+// ⚠️ O QUE MEDIR (correção do Diego, 20/08: *"a liga tem 20 times como sempre foi
+// pow"*): a sala continua com 20 times, sempre. O número que importa NÃO é
+// "quantas pessoas cabem" — é se o baralho dá pra vestir a LIGA INTEIRA com
+// jogador de verdade. `makeManagers` (store.tsx) diz: *"A tabela SEMPRE tem
+// leagueSize times com elenco nomeado"*, e `botSquad` completa com INCÓGNITA
+// (perna-de-pau) quando o catálogo acaba — que é o que a casa não aceita.
+// Logo: a conta é 20 times × as vagas da posição.
+const S = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
 const m = cnt(dentro)
-const teto = f => Math.min(...Object.keys(F[f]).map(p => Math.floor(m[p] / F[f][p])))
 console.log(`baralho 🌎 Libertadores: ${dentro.length} de ${BR.length} cartas BR (${Math.round(100 * dentro.length / BR.length)}%)`)
-console.log('por posição:', JSON.stringify(m))
-console.log(`cabe até ${Math.min(teto('4-3-3'), teto('4-4-2'))} técnicos na sala (4-3-3: ${teto('4-3-3')} · 4-4-2: ${teto('4-4-2')})`)
 console.log(`lendas: ${dentro.filter(c => c.fame === 5).length} · craques: ${dentro.filter(c => c.fame === 4).length}`)
+console.log('')
+console.log('vestir a liga de 20 times (todo time tem elenco com nome):')
+let falta = 0
+for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) {
+  const tem = m[p], precisa = 20 * S[p]
+  if (tem < precisa) falta += precisa - tem
+  console.log(`  ${p}: tem ${String(tem).padStart(3)} · precisa ${String(precisa).padStart(3)} → ` +
+    (tem >= precisa ? `✅ sobra ${tem - precisa}` : `❌ faltam ${precisa - tem}`))
+}
+console.log(falta === 0
+  ? '\n✅ DÁ: a liga de 20 fecha inteira com jogador de verdade.'
+  : `\n⚠️ faltam ${falta} cartas pra fechar os 20 times sem nenhum perna-de-pau.`)
