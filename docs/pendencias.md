@@ -52,6 +52,23 @@ guarda **também a carreira**, então o jogo podia ABRIR já com a divisão da
 carreira na memória, sem a pessoa ter jogado nada naquela aba. Era o segundo
 caminho pra dentro da sala online — a faxina do `START_ONLINE` fecha os dois.
 
+### 🌍 O ranking global NUNCA foi afetado (conferido 19/08)
+Dúvida do Diego: *"essas carreiras não aparecerão mais no ranking global né?"*.
+Conferido nos dois lugares:
+- **Ranking global da carreira** (`esc_pyramid_rank_snap`, o com divisões): quem
+  grava tem porta na entrada — `if (!agenciaOn || onlineMode === 'online' ||
+  !careerOnline) return`. Modo rápido não é carreira-pirâmide, então **nunca**
+  escreveu ali. Olhado o topo do rank: só carreiras longas de verdade (T752,
+  T549, T521, T451…), nenhum modo rápido. A única exceção foi o Paduz, quando o
+  fantasma foi aberto com o `careerOnline` ainda ligado — linhas já removidas, e
+  a faxina do `RESTORE_CAREER` fecha esse caminho.
+- **Ranking de títulos do rápido** (`esc_results` via `esc_ranking`, separado por
+  modo cpu/online): não tem divisão, não se mistura com a carreira e **não foi
+  tocado** — sala de troféus do rápido segue igual (ordem do Diego).
+
+O "Série C / Série D" que ele e o Paduz viram na tela era o **próprio fantasma
+aberto** (o selo de divisão vinha colado nele), não o ranking.
+
 ### O conserto (3 travas + limpeza)
 1. **Raiz** — `START_ONLINE` agora faz faxina de carreira: `careerDivision`,
    `careerIntent`, `careerTitles/TitlesA` e `careerRivals` zerados sempre; sala
