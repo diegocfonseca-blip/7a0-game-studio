@@ -235,6 +235,17 @@ function TrofeusDaLiga({ roomId, isHost, nomes, regras, salvarRegras }: {
         </div>
       )}
 
+      {/* ⚖️ a regra que está valendo, em uma linha — pra TODO MUNDO, não só o dono.
+          Sem isto o convidado vê o ranking e não entende por que fulano está na
+          frente. */}
+      {ranking.length > 0 && (
+        <p className="text-black/50 text-[10.5px] font-bold leading-snug -mt-1">
+          ⚖️ {regras.modo === 'pontos'
+            ? `Conta por pontos: ${(['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).filter(k => regras.ativos.includes(k)).map(k => `${LIGA_ROTULO[k]} ${regras.pontos[k]}`).join(' · ')}`
+            : `Conta por títulos: ${regras.ordem.filter(k => regras.ativos.includes(k)).map(k => LIGA_ROTULO[k]).join(' > ')}${regras.rebaixaTira && regras.ativos.includes('rebaixamento') ? ' · cair de divisão tira um título' : ''}`}
+        </p>
+      )}
+
       {/* 🏆 os troféus, temporada por temporada */}
       <div>
         <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Sala de troféus da liga</p>
@@ -1814,6 +1825,15 @@ export function EscLobby() {
     // 🃏 BAFO em construção: a trava é aqui, no FUNIL de entrada (enterRoom é por
     // onde passa TUDO — lista, código e link do zap). Esconder da lista não basta:
     // com o código na mão qualquer um entraria numa sala que vale carta de verdade.
+    // 🏆 LIGA FECHADA — a trava do Diego, e ela é NA ENTRADA, não só na lista:
+    // *"todos têm que ser Lenda ou batismo, ninguém consegue ver a sala se não
+    // for"*. Tirar a liga da lista pública não bastava — quem recebesse o código
+    // ou o link entrava assim mesmo. Aqui fecha pra valer.
+    // (Todo batismo já nasce tier ouro pela regra de 17/08, então a conta é uma
+    // só. E CRIAR liga continua preso à conta do Diego, em `sport.ts`.)
+    if (rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
+      setRoomError('Essa é uma 🏆 Liga Fechada — só entra quem é 👑 Lenda ou dono de clube batizado.'); setLoading(false); return
+    }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
       setRoomError('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
     }
