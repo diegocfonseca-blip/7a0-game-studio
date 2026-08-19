@@ -33,6 +33,23 @@ const uni = (formas, c, w = 8) =>
 export const PELE = {
   a: '#F3C9A0', b: '#E0A97B', c: '#C07E4E', d: '#8A5430', e: '#5A3418', f: '#FAD9BC',
 }
+// 2º tom da pele: o que dá volume no queixo/pescoço sem mudar o desenho
+export const PELE_S = {
+  a: '#DCAE83', b: '#C7935F', c: '#A66A3D', d: '#6E4222', e: '#42260F', f: '#E6C09B',
+}
+// escurece uma cor (mecha do cabelo)
+const escurecer = (hex, f = .6) => {
+  const n = parseInt(hex.slice(1), 16)
+  return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+    .map(v => Math.round(v * f).toString(16).padStart(2, '0')).join('')
+}
+// mecha: risco fino DENTRO do cabelo. É o detalhe que tira a cara de adesivo.
+const mecha = (d, c, w = 1.8) =>
+  `<g fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" opacity=".5">${d}</g>`
+const M_TOPO = '<path d="M32 31 C33 23 39 17 50 15"/><path d="M41 29 C42 22 46 18 51 15"/>' +
+  '<path d="M68 31 C67 23 61 17 50 15"/><path d="M59 29 C58 22 54 18 49 15"/>'
+const M_TRAS = '<path d="M35 32 C36 22 42 16 50 14"/><path d="M65 32 C64 22 58 16 50 14"/>' +
+  '<path d="M50 14 L50 30"/>'
 
 // ── formas reaproveitadas ───────────────────────────────────────────────────
 // A cabeça é uma elipse (50,45) raio 26x30 → topo y=15, queixo y=75.
@@ -56,17 +73,19 @@ const JUBA_G  = '<path d="M17 50 C17 24 32 11 50 11 C68 11 83 24 83 50 L83 90 C8
 // (a chave é o que o jogador guarda no baralho: ~3 letras, ~3 bytes)
 export const CABELO = {
   // aparado, com franjinha
-  curto: { frente: c => uni(TOUCA, c) },
+  curto: { frente: c => uni(TOUCA, c), mechas: M_TOPO },
 
   // curto com a risca de lado (pra 6 caras de cabelo curto não virarem clones)
   risca: {
     frente: c => uni(TOUCA, c) +
       `<path d="M37 30 C36 24 35.5 20 36 16" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round" opacity=".8"/>`,
+    mechas: M_TOPO,
   },
 
   // curto com topetinho na frente
   topete: {
     frente: c => uni('<path d="M22.5 47 A27.5 31.5 0 0 1 77.5 47 C75 36 70 31 63 30 C61 21 51 18 45 22 C42 25 41 28 40 31 C31 31 25 36 22.5 47 Z"/>', c),
+    mechas: M_TOPO,
   },
 
   // raspado rente ao crânio
@@ -94,6 +113,7 @@ export const CABELO = {
 
   // moicano: laterais rentes + a crista no meio
   moicano: {
+    mechas: '<path d="M47 40 C47 26 48.5 16 50 13"/><path d="M53 40 C53 26 51.5 16 50 13"/>',
     frente: c => uni('<path d="M24.5 47 A26.5 30.5 0 0 1 75.5 47 C74 41 70 38 64 37 C56 39 44 39 36 37 C30 38 26 41 24.5 47 Z"/>' +
       '<path d="M41 44 C41 24 45 10 50 10 C55 10 59 24 59 44 C56 41 44 41 41 44 Z"/>', c),
   },
@@ -102,6 +122,7 @@ export const CABELO = {
   longo: {
     atras: c => uni(JUBA, c),
     frente: c => uni(TOUCA_T, c),
+    mechas: M_TRAS,
   },
 
   // comprido cacheado: mesma juba, mas com cachos na borda (Ronaldinho)
@@ -161,33 +182,44 @@ export const BARBA = {
 }
 
 // 👕 CAMISA — as cores do clube, sem escudo (o desenho é o mesmo pra todos)
-function camisa({ c1, c2 = c1, tipo = 'lisa' }, id) {
+function camisa({ c1, c2 = c1, tipo = 'lisa' }, id, cap = true) {
   const ombro = 'M8 120c2-22 14-34 26-38 5 6 10 9 16 9s11-3 16-9c12 4 24 16 26 38z'
   let dentro = `<rect x="0" y="70" width="100" height="50" fill="${c1}"/>`
   if (tipo === 'listras') dentro += [0,1,2,3,4].map(i => `<rect x="${10 + i*18}" y="70" width="9" height="50" fill="${c2}"/>`).join('')
   if (tipo === 'faixa')   dentro += `<path d="M14 120 78 70h16L30 120z" fill="${c2}"/>`
   if (tipo === 'meio')    dentro += `<rect x="42" y="70" width="16" height="50" fill="${c2}"/>`
   if (tipo === 'banda')   dentro += `<rect x="0" y="96" width="100" height="13" fill="${c2}"/>`
+  // manga: um tom escuro nas pontas, pra ler o braço (não é peça nova, é sombra)
+  const manga = '<path d="M8 120 C9 103 14 92 23 86 L30 120 Z"/><path d="M92 120 C91 103 86 92 77 86 L70 120 Z"/>'
+  const gola = 'M34 82 c5 6 10 9 16 9 s11-3 16-9 l-3.5-1.2 c-4 5.4-8 7.4-12.5 7.4 s-8.5-2-12.5-7.4 z'
   return `<clipPath id="cam${id}"><path d="${ombro}"/></clipPath>
-    <g clip-path="url(#cam${id})">${dentro}</g>
-    <path d="${ombro}" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linejoin="round"/>`
+    <g clip-path="url(#cam${id})">${dentro}${cap ? `
+      <g fill="#000" opacity=".09">${manga}</g>
+      <path d="${gola}" fill="#fff" opacity=".9"/>` : ''}
+    </g>
+    <path d="${ombro}" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linejoin="round"/>
+    ${cap ? `<path d="${gola}" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"/>` : ''}`
 }
 
 // 🧑 o boneco montado — a ordem aqui é o que faz o cabelo funcionar
 // `pintado` = 2ª cor do cabelo (descolorido/tingido). Só os cortes que sabem
 // usar duas cores olham pra ela; os outros ignoram.
-export function rosto({ pele = 'b', cabelo = 'curto', corCabelo = '#2B2118', pintado, barba = 'nao', c1 = '#fff', c2, tipo = 'lisa', id = 'x' }) {
+export function rosto({ pele = 'b', cabelo = 'curto', corCabelo = '#2B2118', pintado, barba = 'nao', c1 = '#fff', c2, tipo = 'lisa', id = 'x', capricho = true }) {
   const p = PELE[pele] ?? PELE.b
+  const ps = PELE_S[pele] ?? PELE_S.b
   const cab = CABELO[cabelo] ?? CABELO.curto
   // boca preta em cima de barba cheia preta = boca some. Aí ela vira clara.
   const boca = barba === 'cheia' ? '#F4ECD6' : INK
   return `<svg viewBox="0 0 100 120" width="100%" style="display:block">
-  ${camisa({ c1, c2, tipo }, id)}
+  ${camisa({ c1, c2, tipo }, id, capricho)}
   ${cab.atras ? cab.atras(corCabelo, pintado) : ''}
   <rect x="42" y="60" width="16" height="20" fill="${p}" stroke="${INK}" stroke-width="4"/>
+  ${capricho ? `<path d="M42 60 C45 67 55 67 58 60 L58 68 C55 73 45 73 42 68 Z" fill="${ps}"/>` : ''}
   <ellipse cx="24" cy="48" rx="5" ry="7" fill="${p}" stroke="${INK}" stroke-width="3.5"/>
   <ellipse cx="76" cy="48" rx="5" ry="7" fill="${p}" stroke="${INK}" stroke-width="3.5"/>
   <ellipse cx="50" cy="45" rx="26" ry="30" fill="${p}" stroke="${INK}" stroke-width="4.5"/>
+  ${capricho ? `<path d="M25 48 C27 63 34 72 44 75 C34 75 26 64 25 48 Z" fill="${ps}" opacity=".8"/>
+  <path d="M75 48 C73 63 66 72 56 75 C66 75 74 64 75 48 Z" fill="${ps}" opacity=".45"/>` : ''}
   ${(BARBA[barba] ?? BARBA.nao)(corCabelo)}
   <ellipse cx="40" cy="45" rx="3" ry="4" fill="${INK}"/>
   <ellipse cx="60" cy="45" rx="3" ry="4" fill="${INK}"/>
@@ -195,5 +227,6 @@ export function rosto({ pele = 'b', cabelo = 'curto', corCabelo = '#2B2118', pin
   <path d="M50 50v6" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>
   <path d="M42 64c3 3 13 3 16 0" stroke="${boca}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
   ${cab.frente(corCabelo, pintado)}
+  ${capricho && cab.mechas ? mecha(cab.mechas, escurecer(corCabelo)) : ''}
 </svg>`
 }
