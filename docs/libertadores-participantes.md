@@ -38,12 +38,12 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 1963 | Santos, Botafogo | 🟡 |
 | 1964 | Santos, Bahia | 🟡 |
 | 1965 | Santos | 🟡 |
-| 1966 | Cruzeiro, Santos — **fontes se contradizem** (uma diz que o Brasil não foi) | ❓ |
+| 1966 | Cruzeiro (o Santos desistiu) | 🟡 |
 | 1968 | Palmeiras, Náutico | 🟡 |
 | 1969 | ⛔ Brasil não participou (briga CBD × Conmebol) | ✅ |
 | 1970 | ⛔ Brasil não participou | ✅ |
 | 1971 | Fluminense, Palmeiras | 🟡 |
-| 1972 | São Paulo (+ 1 a confirmar) | ❓ |
+| 1972 | Atlético-MG, São Paulo | 🟡 |
 | 1973 | Palmeiras, Botafogo | 🟡 |
 | 1974 | Palmeiras, São Paulo | 🟡 |
 | 1975 | Vasco, Cruzeiro | 🟡 |
@@ -57,15 +57,15 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 1983 | Flamengo, Grêmio | 🟡 |
 | 1984 | Flamengo, Santos | 🟡 |
 | 1985 | Fluminense, Vasco | 🟡 |
-| 1986 | São Paulo, Guarani | 🟡 |
-| 1987 | Sport, Guarani | 🟡 |
-| 1988 | **suspeita de deslocamento de 1 ano** | ❓ |
+| 1986 | **Coritiba, Bangu** ← 🩹 corrigido: estava deslocado 1 ano | 🟡 |
+| 1987 | São Paulo, Guarani ← 🩹 corrigido | 🟡 |
+| 1988 | Sport, Guarani | 🟡 |
 | 1989 | Bahia, Internacional | 🟡 |
-| 1990 | **suspeita de deslocamento** | ❓ |
-| 1991 | não checado | ❓ |
+| 1990 | Vasco, Grêmio | 🟡 |
+| 1991 | Corinthians, Flamengo | 🟡 |
 | 1992 | São Paulo, Criciúma | 🟡 |
 | 1993 | São Paulo, Flamengo, Internacional | 🟡 |
-| 1994 | não checado | ❓ |
+| 1994 | São Paulo, Palmeiras, Cruzeiro | 🟡 |
 | 1995 | Palmeiras, Grêmio | 🟡 |
 | 1996 | Botafogo, Corinthians, Grêmio, Cruzeiro | 🟡 |
 | 1997 | Cruzeiro, Vasco, Grêmio | 🟡 |
@@ -74,16 +74,16 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 2000 | Vasco, Palmeiras, Cruzeiro, São Caetano | 🟡 |
 | 2001 | Atlético-PR, São Caetano, Grêmio, Flamengo | 🟡 |
 | 2002 | Grêmio, Corinthians, São Caetano (vice), Paysandu | 🟡 |
-| 2003 | **lista veio IDÊNTICA à de 2004 → é a armadilha, refazer** | ❓ |
+| 2003 | **Santos, Corinthians, Paysandu, Grêmio** ← 🩹 refeito | 🟡 |
 | 2004 | Cruzeiro, São Paulo, Santos, São Caetano, Coritiba | ✅ |
 | 2005 | São Paulo (campeão), Atlético-PR (vice), Corinthians, Internacional, Goiás, Palmeiras | 🟡 |
 | 2006 | Internacional (campeão), São Paulo, Corinthians, Palmeiras, Goiás, Paulista | ✅ |
 | 2007 | Internacional, Flamengo, São Paulo, Grêmio, Santos, Paraná | ✅ |
-| 2008 | não checado | ❓ |
+| 2008 | Fluminense, São Paulo, Santos, Flamengo, Cruzeiro (entrou pela 1ª fase) | 🟡 |
 | 2009 | Cruzeiro, Grêmio, Palmeiras, São Paulo, Sport | 🟡 |
 | 2010 | Corinthians, Flamengo, Internacional, São Paulo, Cruzeiro | ✅ |
 | 2011 | Santos (campeão), Internacional, Cruzeiro, Grêmio, Fluminense — **Corinthians NÃO** (caiu na pré pro Tolima) | ✅ |
-| 2012 | Corinthians (campeão), Santos, Vasco, Fluminense, Flamengo? | 🟡 |
+| 2012 | Corinthians (campeão), Flamengo, Fluminense, Internacional, Santos, Vasco | 🟡 |
 | 2013 | Atlético-MG (campeão), Corinthians, Fluminense, Grêmio, Palmeiras, São Paulo | 🟡 |
 | 2014 | Atlético-MG, Cruzeiro, Grêmio, Flamengo, Atlético-PR, Botafogo | 🟡 |
 | 2015 | Cruzeiro, Atlético-MG, São Paulo, Internacional, Corinthians | 🟡 |
@@ -99,16 +99,24 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 2025 | Botafogo, Flamengo, Fortaleza, Internacional, Palmeiras, São Paulo, Bahia | ✅ |
 | 2026 | Flamengo, Palmeiras, Cruzeiro, Corinthians, Fluminense, Mirassol (estreante) | ✅ |
 
-## 📊 PROJEÇÃO DO BARALHO (com 57 dos 66 anos checados)
+## 📊 O BARALHO CONTADO (1ª passada dos 66 anos completa)
 
-Aplicando a lista de hoje nas 595 cartas brasileiras:
-- **506 cartas** estão em anos já checados → **236 passam (47%)**
-- 89 cartas ainda em anos não checados
-- **Projeção final: ~278 cartas** no baralho temático da Libertadores
+`node scripts/liberta-conta.mjs` — o script LÊ a tabela deste arquivo, então
+corrigir uma linha aqui já corrige a conta.
 
-Pra comparar: a **várzea** (o modo temático que já funciona) tem 421 cartas. Então
-o baralho da Libertadores fica menor que a várzea, mas **três vezes maior** que a
-ideia de "só campeões" (91), e confortável pro tamanho real das salas.
+| | |
+|---|---|
+| Cartas no baralho 🌎 Libertadores | **257** de 595 brasileiras (43%) |
+| Por posição | GOL 31 · LAT 35 · ZAG 39 · MEI 66 · ATA 86 |
+| Cabe até | **16 técnicos** na sala |
+| Nível | 17 lendas · 66 craques |
+
+**Cabe folgado**: a maior sala da história do jogo teve **9 pessoas** (465 salas
+medidas), e o baralho aguenta 16. Nenhuma trava vai precisar disparar na prática.
+
+Pra comparar: a **várzea** (o temático que já funciona) tem 421 cartas. O da
+Libertadores fica menor que ela, mas **quase 3× maior** que a ideia de "só
+campeões" (91).
 
 ## 📉 O efeito por ano nos primeiros anos checados
 
@@ -127,10 +135,12 @@ clube dele jogou a Libertadores. Caso mais duro: o **Flamengo 2009** tem 8 carta
 **todas caem** — aquele time ganhou o Brasileirão de 2009 e foi jogar a
 Libertadores **de 2010**.
 
-## Próximo passo
-Fechar os anos ainda ❓ (1966, 1972, 1988, 1990, 1991, 1994, 2003, 2008, 2012), fazer a 2ª passada nos 🟡 (com atenção ao
-deslocamento de um ano) e mandar a lista inteira pro Diego conferir. Só depois
-disso o filtro entra no código.
+## ✅ 1ª PASSADA COMPLETA — os 66 anos estão preenchidos (20/08)
+
+**Nenhum ano ficou em branco.** Faltam agora: (1) a **2ª passada** nos marcados 🟡,
+com atenção especial ao deslocamento de um ano, e (2) **o Diego bater o olho**.
+Três anos já foram pegos deslocados e corrigidos (1986, 1987 e 2003) — o que
+mostra que a 2ª passada não é frescura.
 
 ## ✅ RESPONDIDO pelo Diego (20/08): a pré NÃO conta se caiu
 
