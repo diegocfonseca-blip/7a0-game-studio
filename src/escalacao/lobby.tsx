@@ -12,7 +12,7 @@ import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
-import { useSalaElencoLiberada } from './sport' // 👔 Sala de Elenco: modo novo, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada } from './sport' // 👔 Sala de Elenco: modo novo, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -36,7 +36,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco'; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga'; ligaAt?: string; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -562,7 +562,15 @@ export function EscLobby() {
   // 👔🃏 SALA DE ELENCO (17/08): 3º modo — em vez de leiloar, cada um traz o time
   // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
   const salaElenco = useSalaElencoLiberada()
-  const [roomMode, setRoomMode] = useState<'rapido' | 'carreira' | 'elenco'>('rapido')
+  const [roomMode, setRoomMode] = useState<'rapido' | 'liga' | 'carreira' | 'elenco'>('rapido')
+  // 🏆 LIGA FECHADA (20/08): a sala que fica de pé. O que ela guarda a mais que
+  // uma sala rápida é só ISTO — quando vocês jogam e se tem bot. O resto (leilão,
+  // temporada, fim de jogo) é o rápido de sempre, sem uma linha diferente.
+  const hoje = new Date()
+  const emDias = (n: number) => new Date(hoje.getTime() + n * 864e5).toISOString().slice(0, 10)
+  const [ligaData, setLigaData] = useState(emDias(1)) // amanhã, pra já vir preenchido
+  const [ligaHora, setLigaHora] = useState('21:00')
+  const [ligaComBots, setLigaComBots] = useState(false) // liga fechada nasce SEM bot
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
   // mandar os 22 pro host é o passo seguinte.
   const [bafoEscolha, setBafoEscolha] = useState<{ seed: number; via: 'elenco' | 'convocados' } | null>(null)
@@ -595,6 +603,7 @@ export function EscLobby() {
     return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
+  const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
   // 🏆 Liga Fechada ainda NÃO liberada: esconde o seletor da tela de criar sala
   // (o Diego decide quando abrir). Toda sala nasce Aberta. Pra liberar de novo,
   // basta trocar pra `true` — o resto do código continua pronto.
@@ -1195,7 +1204,13 @@ export function EscLobby() {
     // será apenas divisão de 38 rodadas nesse modo"). Por isso entra com
     // copaMode:'liga' TRAVADO, e o seletor de Copa nem aparece na criação.
     const elenco = salaElenco && roomMode === 'elenco'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    // 🏆 LIGA FECHADA: por baixo é a MESMA sala rápida — o que ela leva a mais é
+    // o horário marcado (`ligaAt`) e o `mode: 'liga'`, que é o que faz ela não
+    // sumir da lista e ganhar a sala de troféus na espera. Sem bot = a liga
+    // fechada que o jogo já sabia fazer (`ligaFechada`).
+    const liga = ligaOn && roomMode === 'liga'
+    const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : (canLiga && ligaFechada ? { ligaFechada: true } : {})), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1890,7 +1905,7 @@ export function EscLobby() {
                   // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
                   const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
                     { v: 'rapido', label: '⚡ Rápido', liberado: true },
-                    { v: null, label: '🏆 Liga', liberado: false },
+                    { v: 'liga', label: '🏆 Liga', liberado: ligaOn },
                     { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
@@ -1914,8 +1929,32 @@ export function EscLobby() {
                 })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+                {roomMode === 'liga' ? '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.' : isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
+              {/* 🏆 LIGA FECHADA — o que ela guarda a mais que a sala rápida.
+                  Fica aqui em cima, colado no modo, porque é o que a pessoa
+                  precisa decidir ANTES de pensar em baralho e formação. */}
+              {roomMode === 'liga' && (
+                <div className="mt-3 rounded-xl border-[2.5px] border-black p-3" style={{ background: 'rgba(255,196,0,.10)' }}>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
+                  <div className="flex gap-2">
+                    <input type="date" value={ligaData} min={emDias(0)} onChange={e => setLigaData(e.target.value)}
+                      className="flex-1 min-w-0 border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                    <input type="time" value={ligaHora} onChange={e => setLigaHora(e.target.value)}
+                      className="w-[104px] border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                  </div>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🤖 Bots na tabela</p>
+                  <Seg options={[[false, 'Sem bots — só vocês'], [true, 'Com bots até 20']] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
+                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {ligaComBots
+                      ? '🤖 Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.'
+                      : '🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.'}
+                  </p>
+                  <p className="text-white/35 text-[10px] font-bold mt-2 leading-snug">
+                    Dá pra trocar o dia, a hora e os bots depois — na mesma sala, sem perder troféu nenhum.
+                  </p>
+                </div>
+              )}
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
             {!isCareer && (
