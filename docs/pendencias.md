@@ -7561,3 +7561,11 @@ escrever só **"Eros"** pega o escudo. É consequência da regra do "FC" — e a
 variações (Eros, Eros FC, Eros Reis, Eros Reis FC) estão reservadas pro
 erosreis@outlook.com.br no banco, então ninguém novo consegue tomar. Só quem já
 tinha o nome antes da trava é que passaria.
+
+**Decisão do Diego (20/08): "deixa assim mesmo"** — os dois casos que sobraram
+ficam como estão, sem renomear:
+- `alexandrelourenco1238@gmail.com` com "Nata de SP fc" (tem carreira jogada);
+- `danielnfilho@gmail.com` com "Manfré" (é sobrenome, pode ser parente/2ª conta
+  do próprio dono).
+Não reabrir esses dois sem ele pedir. A trava nova já impede que apareçam NOVOS
+casos — estes dois são de antes dela.
