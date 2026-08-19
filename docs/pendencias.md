@@ -19,10 +19,20 @@ Mockup: `scripts/mockup-libertadores.mjs`. Desenho proposto:
 - Desempate de grupo = o MESMO do resto do jogo (pts → vitórias → saldo → gols).
 - Liga do rápido, Carreira, Bafo e Liga Fechada **não são tocados**; nasce
   invisível (só a conta do Diego), igual à Liga Fechada.
-⏳ **Falta o Diego decidir**: (1) OK no desenho e nos nomes dos 24 clubes;
-(2) quem é eliminado no grupo **assiste** o mata-mata (como já assiste a Copa
-dos 8 hoje) **ou** cai numa **segunda chave tipo Sul-Americana** e continua
-jogando. Sem essa resposta o modo não começa.
+**Ele reagiu ao tamanho** (20/08): *"13 rodadas ficou mt rápido… E agora"*. Ele
+está certo — copa continental é curta por natureza; na vida real ela não
+substitui o campeonato, roda JUNTO com ele no meio de semana. Folha de decisão:
+`scripts/mockup-libertadores-calendario.mjs`, com três tamanhos, todos reais:
+- **A** só o torneio → **13 jogos** (o desenho de cima).
+- **B** + pré-Libertadores na frente + Sul-Americana pra quem cai → **19 jogos**.
+- **C** ⭐ **temporada completa**: a liga de 38 rodadas **+ a Libertadores no meio
+  de semana** → **51 jogos**, dois títulos na mesma sala. É a recomendada porque
+  resolve os DOIS problemas de uma vez: acaba o "ficou rápido" e acaba o "quem cai
+  fica sem jogo" (a liga continua pra quem foi eliminado). O seletor de Copa
+  continua sumindo da tela, como o Diego pediu — na C a liga vem de fábrica, não é
+  escolha, é o calendário.
+⏳ **Falta o Diego decidir**: (1) qual dos três tamanhos; (2) OK nos nomes dos 24
+clubes do continente. Sem essa resposta o modo não começa.
 
 ## 🏆 LIGA FECHADA — em construção (só a conta do Diego)
 A sala que fica de pé: horário marcado, sempre a MESMA sala, só a turma entra e
