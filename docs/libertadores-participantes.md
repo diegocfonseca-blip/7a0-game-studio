@@ -82,7 +82,7 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 2008 | não checado | ❓ |
 | 2009 | Cruzeiro, Grêmio, Palmeiras, São Paulo, Sport | 🟡 |
 | 2010 | Corinthians, Flamengo, Internacional, São Paulo, Cruzeiro | ✅ |
-| 2011 | Santos (campeão), Internacional, Cruzeiro, Grêmio, Fluminense, Corinthians | ✅ |
+| 2011 | Santos (campeão), Internacional, Cruzeiro, Grêmio, Fluminense — **Corinthians NÃO** (caiu na pré pro Tolima) | ✅ |
 | 2012 | Corinthians (campeão), Santos, Vasco, Fluminense, Flamengo? | 🟡 |
 | 2013 | Atlético-MG (campeão), Corinthians, Fluminense, Grêmio, Palmeiras, São Paulo | 🟡 |
 | 2014 | não checado | ❓ |
@@ -93,7 +93,7 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 2019 | Flamengo (campeão), Palmeiras, Internacional, Athletico-PR, Grêmio, Cruzeiro, São Paulo, Atlético-MG | 🟡 |
 | 2020 | Flamengo, Palmeiras (campeão), Athletico-PR, Santos (vice), São Paulo, Internacional, Grêmio, Corinthians | 🟡 |
 | 2021 | não checado | ❓ |
-| 2022 | Palmeiras, Athletico-PR, Atlético-MG, América-MG, Flamengo (campeão), Corinthians, Fortaleza, Red Bull Bragantino + Fluminense (caiu na pré) | 🟡 |
+| 2022 | Palmeiras, Athletico-PR, Atlético-MG, América-MG, Flamengo (campeão), Corinthians, Fortaleza, Red Bull Bragantino — **Fluminense NÃO** (caiu na pré) | 🟡 |
 | 2023 | Flamengo, Internacional, Palmeiras, Fluminense (campeão), Corinthians, Athletico-PR, Atlético-MG | ✅ |
 | 2024 | Botafogo (campeão) e Atlético-MG (vice) confirmados; resto a fechar | ❓ |
 | 2025 | Botafogo, Flamengo, Fortaleza, Internacional, Palmeiras, São Paulo, Bahia | ✅ |
@@ -121,8 +121,15 @@ Fechar os anos ainda ❓ (1966, 1972, 1988, 1990, 1991, 1994, 2003, 2008, 2012, 
 deslocamento de um ano) e mandar a lista inteira pro Diego conferir. Só depois
 disso o filtro entra no código.
 
-## 🤔 Uma pergunta que só o Diego responde
-Em 2022 o **Fluminense caiu na pré-Libertadores** e não chegou à fase de grupos.
-As 3 cartas de Fluminense 2022 do baralho **contam ou não**? A pré-Libertadores É
-Libertadores (é a fase classificatória dela), então eu contaria — mas é chamada
-dele, e o mesmo caso vai voltar em outros anos.
+## ✅ RESPONDIDO pelo Diego (20/08): a pré NÃO conta se caiu
+
+> *"Pré N conta se desclassificou"*
+
+Ou seja, a regra da pré-Libertadores é:
+- Clube passou pela pré e **chegou à fase de grupos** → **CONTA** (ex.: Botafogo e
+  Atlético-PR em 2017, que entraram pela 2ª fase e jogaram os grupos).
+- Clube **caiu na pré** e não chegou aos grupos → **NÃO conta**.
+
+Efeito imediato na lista: as **3 cartas de Fluminense 2022 estão FORA** (ele caiu
+na pré daquele ano). Mesma régua vale pro Corinthians 2011, que caiu na pré pro
+Deportes Tolima — as cartas de Corinthians 2011 saem também.

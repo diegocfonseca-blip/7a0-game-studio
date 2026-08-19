@@ -328,3 +328,35 @@ O Diego pediu: *"pesquise a fundo pra N ter erros"*. Situação real:
 
 Já dá pra ver o efeito: **o ano da carta é o AUGE do jogador, não o ano de
 Libertadores do clube** — então muita carta de clube grande vai cair.
+
+
+---
+
+## 12. ✅ ESPECIFICAÇÃO FECHADA (20/08)
+
+Palavras do Diego, encerrando o desenho:
+
+> *"Pré N conta se desclassificou… Teria o modo temático ao lado da várzea e a
+> pessoa escolheria liga + libertadores ou só libertadores.. Copa não nesse
+> caso.. Da mesma forma qd a pessoa não escolher o temático libertadores ao lado
+> da várzea."*
+
+### Como fica a tela de criar sala
+1. **Categoria** (o mesmo bloco da várzea): `Todos · 🥅 Várzea · 🌎 Libertadores`.
+2. **Só quando a categoria for 🌎 Libertadores**, aparece a escolha da competição:
+   - `🏁 Liga + Libertadores` (a liga de 38 e a Libertadores no fim) **ou**
+   - `🌎 Só Libertadores` (direto no torneio).
+   - ⛔ **Copa dos 8 não existe nesse caso** — o seletor "Depois da liga" **some
+     da tela**, com o porquê escrito (mesmo padrão do Bafo).
+3. **Se a categoria NÃO for Libertadores, nada muda**: a sala segue exatamente
+   como hoje, com `🏆 Liga + Copa` / `📊 Só liga`. O futebol que está no ar não
+   sente nada.
+
+### Regra do baralho (fechada)
+A carta entra se **o clube dela disputou a Libertadores naquele ano**.
+**A pré-Libertadores só conta se o clube passou dela e chegou à fase de grupos**;
+quem caiu na pré, não conta.
+
+### O que falta
+Só a **lista clube+ano** (`docs/libertadores-participantes.md`), hoje com 51 dos
+66 anos levantados. Sem ela o baralho não existe. Nada de código antes disso.
