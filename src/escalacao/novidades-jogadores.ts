@@ -5,6 +5,70 @@
 export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
+    "tipo": "nivel",
+    "nome": "Steven Gerrard",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Frank Lampard",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Toni Kroos",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Francesco Totti",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "David Beckham",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Raúl",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Harry Kane",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Luis Suárez",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
     "tipo": "entrou",
     "nome": "Miguel Trauco",
     "baralho": "BR",
