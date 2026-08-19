@@ -166,3 +166,45 @@ e a regra é não chutar. O Diego confirma e eu incluo.
 1. **Nível 1 (só campeão, 91 cartas, sala até 11) ou nível 2 (jogou, sala de 20)?**
 2. Segue valendo o resto do §5: nome (marca registrada), cor, e se mora só no
    rápido online ou também na carreira.
+
+---
+
+## 7. 🏆 A MISTURA (Libertadores + Champions) — números medidos 20/08
+
+O Diego travou na decisão: *"N sei oq fazer pq são poucos jogos né… N sei se
+misturamos libertadores C liga dos campeões… Mas aí Tb teriam mts times no jogo…
+E demoraria MT"*. Duas coisas estavam emboladas, e vale deixar escrito:
+
+> **Baralho temático ≠ formato de copa.** O filtro de cartas NÃO cria clube e NÃO
+> alonga o jogo — a sala continua com 20 times e as mesmas rodadas, igual à
+> várzea. O medo do "muitos times / demora muito" vem do FORMATO (§1-4), que é
+> outro projeto e que o modo temático não precisa.
+
+Folha da decisão: `scripts/mockup-campeoes.mjs`.
+
+### Tamanho dos três baralhos (contado no `data.ts`)
+| Categoria 🏆 Só campeões | Cartas | GOL | LAT | ZAG | MEI | ATA | Cabe até |
+|---|---|---|---|---|---|---|---|
+| 🇧🇷 Brasil → campeões da Libertadores | 91 | 11 | 12 | 13 | 25 | 30 | **6** |
+| 🌍 Europa → campeões da Champions | 116 | 13 | 18 | 21 | 29 | 35 | **7** |
+| 🌎 Todos → **a mistura** | **207** | 24 | 30 | 34 | 54 | 65 | **13** |
+
+⚠️ **Correção de um número que eu tinha passado errado**: falei "sala até 11" pro
+baralho só da Libertadores olhando só o goleiro. Está errado — **lateral e
+zagueiro são 2 por técnico**, então o gargalo é 12 laterais ÷ 2 = **6 técnicos**.
+"Cabe até" = `min(cartas[pos] ÷ vagas[pos])` em cima de `FORMATIONS`; o 4-4-2
+aperta ainda mais o meio (4 MEI por técnico), e o número da tabela já é o pior
+caso dos dois.
+
+### O achado que destrava a decisão: as salas são PEQUENAS
+`select count(*) from room_players group by room_id` — **465 salas na história**:
+1 pessoa: 210 · 2: 132 · 3: 73 · 4: 28 · 5: 10 · 6: 8 · 7: 3 · **9: 1 (a maior)**.
+Só **4 salas em 465** passaram de 6 pessoas. Ou seja: até o baralho MENOR (só
+Libertadores, teto 6) atenderia 99% das salas — e a mistura (teto 13) atende 100%
+com folga. **O "são poucos jogadores" era um problema muito menor do que parecia.**
+
+### Desenho recomendado
+A categoria vira **`Todos · 🥅 Várzea · 🏆 Só campeões`** e **segue o baralho que o
+host escolheu** (BR = Libertadores · Europa = Champions · Todos = os dois). Assim
+o Diego não precisa escolher um: os três existem de graça, com uma regra só.
+Trava por tamanho de sala junto, com o porquê escrito.
