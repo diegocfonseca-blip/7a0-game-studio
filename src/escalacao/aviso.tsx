@@ -9,7 +9,8 @@
 // gente tendo que repetir o lance). O Diego pediu: *"mande um banner dps p todos
 // q tivemos instabilidades pq estamos lançando mais novidades. Atualize. E peça
 // pra atualizarem o navegador pra ver os novos campinhos já. Caso tenha algum
-// bug mande no Instagram msg @leilaolegends"*.
+// bug mande no Instagram msg @leilaolegends"* — e logo depois corrigiu o @:
+// é **@leilaolegendscom**.
 //
 // ── DUAS TRAVAS PRA ISTO NUNCA VIRAR PARADÃO ───────────────────────────────
 // 1. **Some sozinho** na data de `ATE`. Aviso sem prazo apodrece na tela — foi
@@ -32,7 +33,7 @@ const AVISO = {
   corpo: 'Foi enquanto a gente subia um monte de novidade — já está consertado. '
     + 'Se você jogou e viu algo estranho, foi isso.',
   acao: 'Feche e abra o jogo pra pegar a versão nova — já vem com o campinho novo. 🆕',
-  insta: '@leilaolegends',
+  insta: '@leilaolegendscom',
 }
 
 const K = `esc-aviso-${AVISO.chave}`
@@ -70,7 +71,7 @@ export function AvisoDaVez() {
         </p>
         <p className="font-bold" style={{ fontSize: 12, lineHeight: 1.4, color: 'rgba(12,12,12,.62)', marginTop: 9 }}>
           Achou algum bug? Manda mensagem no Instagram{' '}
-          <a href="https://instagram.com/leilaolegends" target="_blank" rel="noreferrer"
+          <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noreferrer"
             className="font-black" style={{ color: '#7C3AED', textDecoration: 'underline' }}>{AVISO.insta}</a>
           {' '}— a gente conserta rápido.
         </p>
