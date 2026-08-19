@@ -1352,6 +1352,33 @@ export function EscLobby() {
   // falta em português de gente ("é HOJE", "amanhã", "faltam 3 dias"). Liga cuja
   // data já passou não some — vira "já passou", porque a sala continua valendo e
   // o dono pode remarcar.
+  // ✏️ O DONO MANDA NA LIGA (peça 3.5): mudar o dia/hora, trocar com/sem bots e
+  // excluir. Tudo dentro da própria sala, que é onde a pessoa está quando lembra
+  // de remarcar.
+  const [ligaEdit, setLigaEdit] = useState(false)
+  const [ligaEditData, setLigaEditData] = useState('')
+  const [ligaEditHora, setLigaEditHora] = useState('')
+  // Mexe SÓ nos campos da liga dentro do game_state, sem reescrever o resto: o
+  // estado da sala pode ser o JOGO INTEIRO, e sobrescrever seria perder tudo.
+  // Por isso lê, junta e grava.
+  async function patchLiga(campos: Record<string, unknown>) {
+    if (!room) return
+    const { data } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
+    const gs = { ...((data?.game_state ?? {}) as Record<string, unknown>), ...campos }
+    const { error } = await supabase.from('game_rooms').update({ game_state: gs, updated_at: new Date().toISOString() }).eq('id', room.id)
+    if (error) { setRoomError('Não deu pra salvar agora — tente de novo.'); return }
+    setRoom(r => (r ? { ...r, game_state: gs as unknown as GS } : r))
+    fetchMyLigas()
+  }
+  async function excluirLiga() {
+    if (!room || !user || room.host_id !== user.id) return
+    const nome = (room.game_state as GS)?.roomName ?? room.code
+    if (!window.confirm(`Excluir a liga "${nome}"?\n\nA sala e a SALA DE TROFÉUS dela somem pra todo mundo. Não dá pra desfazer.`)) return
+    await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
+    await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+    clearSavedRoom(); setRoom(null); setPlayers([]); setPhase('menu'); fetchMyLigas()
+  }
+
   const quandoLiga = (iso?: string): { txt: string; cor: string } => {
     if (!iso) return { txt: 'sem horário marcado', cor: 'rgba(12,12,12,.5)' }
     const d = new Date(iso)
@@ -2435,6 +2462,68 @@ export function EscLobby() {
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
       </div>
+
+      {/* 🏆 A LIGA TEM HORA MARCADA — e é a primeira coisa que a pessoa precisa ver
+          ao abrir a sala. Sem isto o combinado só vivia na cabeça da turma. */}
+      {room.game_state?.mode === 'liga' && (() => {
+        const gs = room.game_state as GS
+        const q = quandoLiga(gs?.ligaAt)
+        return (
+          <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>🏆 Liga fechada · próximo jogo</p>
+                <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
+                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? '🚫 sem bots — só a galera na tabela' : '🤖 com bots até 20 times'}</p>
+              </div>
+            </div>
+            {isHost && (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <button onClick={() => {
+                  const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
+                  const pad = (n: number) => String(n).padStart(2, '0')
+                  setLigaEditData(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
+                  setLigaEditHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
+                  setLigaEdit(true)
+                }} className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                  📅 Mudar dia e hora
+                </button>
+                <button onClick={() => patchLiga({ ligaFechada: !gs?.ligaFechada })}
+                  className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                  🤖 {gs?.ligaFechada ? 'Pôr bots' : 'Tirar bots'}
+                </button>
+                <button onClick={excluirLiga}
+                  className="col-span-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: '#B23B2E' }}>
+                  🗑️ Excluir a liga
+                </button>
+              </div>
+            )}
+            {isHost && ligaEdit && (
+              <div className="mt-3 rounded-xl border-2 border-black bg-white p-3">
+                <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
+                <div className="flex gap-2">
+                  <input type="date" value={ligaEditData} onChange={e => setLigaEditData(e.target.value)}
+                    className="flex-1 min-w-0 border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+                  <input type="time" value={ligaEditHora} onChange={e => setLigaEditHora(e.target.value)}
+                    className="w-[96px] border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button onClick={async () => {
+                    const d = new Date(`${ligaEditData}T${ligaEditHora}`)
+                    if (isNaN(d.getTime())) return
+                    await patchLiga({ ligaAt: d.toISOString() }); setLigaEdit(false)
+                  }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>Salvar</button>
+                  <button onClick={() => setLigaEdit(false)}
+                    className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>Cancelar</button>
+                </div>
+                <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
+                  Mudar a data <b>não perde troféu nenhum</b> — a liga é a mesma sala de sempre.
+                </p>
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Convite: manda o link direto no zap — o amigo cai na sala automaticamente
           (se já tem conta) ou no cadastro rápido e depois na sala. */}
