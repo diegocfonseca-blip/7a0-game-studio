@@ -9,9 +9,12 @@
 // O que muda e o que FICA:
 //   ❌ sai a fichinha branca com borda (era ela que "engaiolava" o jogador)
 //   ✅ fica o gramado listrado, o traço preto grosso e a moldura do campinho
-//   ✅ fica o MANTO do dono — vira o brasãozinho ao lado da cabeça, no lugar
-//      da bandeirinha que o concorrente usa (a cor do clube DELE, não a do
-//      jogador). Regra do Diego: cada um leva a cor do próprio tier/manto.
+//   ✅ fica o MANTO do dono, mas SÓ em quem ainda não tem rosto: a bolinha da
+//      inicial vira o manto listrado. Quem tem foto não leva bolinha nenhuma —
+//      correção do Diego (19/08): *"N precisa ter a bolinha c manto.. só
+//      coloque bolinha c manto no jogador q N tem foto"*. Faz sentido: com a
+//      foto ali, a bolinha só poluía; sem foto, ela vira a cara do jogador e
+//      ainda carrega a cor do dono.
 //   ✅ fica a posição, agora num selinho preto colado no nome
 //   ✅ vaga vazia = círculo tracejado com "+", que é o que faz o time
 //      incompleto parecer "falta gente aqui" em vez de "bug"
@@ -65,8 +68,7 @@ const boneco = (j, k, alt, fonteNome) => j.n === null ? `
     <div class="corpo" style="height:${alt}px">
       <span class="fig">
         ${j.f ? `<img src="${j.f}" style="height:${alt}px">`
-              : `<span class="semfoto" style="width:${Math.round(alt * .60)}px;height:${Math.round(alt * .60)}px;font-size:${Math.round(alt * .32)}px">${j.n[0]}</span>`}
-        <span class="brasao" style="width:${Math.round(alt * .30)}px;height:${Math.round(alt * .30)}px;background:${MANTO}"></span>
+              : `<span class="semfoto" style="width:${Math.round(alt * .66)}px;height:${Math.round(alt * .66)}px;font-size:${Math.round(alt * .34)}px;background:${MANTO}">${j.n[0]}</span>`}
         ${j.g ? `<span class="gol">⚽${j.g}</span>` : ''}
       </span>
     </div>
@@ -124,10 +126,9 @@ h2 small{font-family:system-ui,sans-serif;font-size:13px;font-weight:600;text-tr
 .corpo{display:flex;align-items:flex-end;justify-content:center}
 .fig{position:relative;display:inline-block;line-height:0}
 .fig img{display:block;width:auto;object-fit:contain;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.45))}
-.semfoto{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:#F4ECD6;
-  border:2.5px solid #0C0C0C;font-family:Oswald,sans-serif;font-weight:700;color:#0C0C0C;line-height:1;
-  box-shadow:2px 2px 0 rgba(0,0,0,.45)}
-.brasao{position:absolute;left:-9px;top:8%;border-radius:50%;border:2.5px solid #0C0C0C;box-shadow:1.5px 1.5px 0 rgba(0,0,0,.5)}
+.semfoto{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;
+  border:3px solid #0C0C0C;font-family:Oswald,sans-serif;font-weight:700;color:#fff;line-height:1;
+  box-shadow:2px 3px 0 rgba(0,0,0,.45);text-shadow:1.5px 1.5px 0 #0C0C0C,-1.5px 1.5px 0 #0C0C0C,1.5px -1.5px 0 #0C0C0C,-1.5px -1.5px 0 #0C0C0C}
 .gol{position:absolute;right:-10px;top:4%;font-family:Oswald,sans-serif;font-weight:700;font-size:9px;color:#0C0C0C;
   background:#FFC400;border:2px solid #0C0C0C;border-radius:7px;padding:0 4px;line-height:1.6;white-space:nowrap}
 .nome{font-family:Oswald,sans-serif;font-weight:700;text-transform:uppercase;color:#fff;margin-top:3px;
@@ -167,8 +168,8 @@ h2 small{font-family:system-ui,sans-serif;font-size:13px;font-weight:600;text-tr
 <h1>Sem gaiola, <span class="r">só o jogador</span></h1>
 <p class="lead">Você tem razão: a fichinha branca engaiolava o boneco. Agora ele fica <b>solto na grama</b>, com o nome
 embaixo e o clube menor. O que é nosso <b>fica</b>: gramado listrado, traço preto grosso e o <b>seu manto</b> —
-ele virou o <b>brasãozinho ao lado da cabeça</b> (no lugar da bandeirinha do outro jogo). O campinho fica
-<b>mais alto</b> que hoje, que é o preço de o boneco caber.</p>
+que agora aparece <b>só em quem ainda não tem rosto</b>: a bolinha da inicial ficou nas suas cores. Quem já tem
+foto não leva bolinha nenhuma. O campinho fica <b>mais alto</b> que hoje, que é o preço de o boneco caber.</p>
 
 <h2>1 · Campinho do ELENCO da carreira <small>o de olhar o time com calma</small></h2>
 <div class="par">
@@ -191,10 +192,10 @@ ele virou o <b>brasãozinho ao lado da cabeça</b> (no lugar da bandeirinha do o
   <div class="corpo2">
     <div><h4>✅ Continua nosso</h4><p>Gramado listrado verde, moldura preta grossa do campinho, Oswald no nome,
       e a <b>vaga vazia com o "+"</b> — é ela que faz time incompleto parecer "falta gente", não bug.</p></div>
-    <div><h4>🎽 O manto virou brasão</h4><p>A faixa listrada saiu do topo da fichinha e virou a <b>bolinha ao lado da
-      cabeça</b>, nas cores do SEU clube. Cada dono vê a cor dele — a regra de sempre.</p></div>
-    <div><h4>👤 Quem ainda não tem rosto</h4><p>Entra a bolinha creme com a inicial, do mesmo tamanho — o campinho
-      fica <b>alinhado</b> mesmo com metade dos rostos prontos.</p></div>
+    <div><h4>🎽 O manto só onde falta rosto</h4><p>Quem tem foto <b>não leva bolinha</b>. Quem não tem ganha a
+      bolinha da inicial <b>nas cores do SEU clube</b> — ela vira a cara dele até o rosto chegar.</p></div>
+    <div><h4>👤 Quem ainda não tem rosto</h4><p>A bolinha do manto entra do mesmo tamanho do boneco, então o
+      campinho fica <b>alinhado</b> mesmo com metade dos rostos prontos.</p></div>
     <div><h4>📏 Fica mais alto</h4><p>No elenco o boneco tem 74px; no leilão, 56px (lá o campinho divide a tela com
       o lance). Se achar alto demais, é só baixar o número — não mexe em mais nada.</p></div>
   </div>
