@@ -26,3 +26,18 @@ dist-ssr
 
 # segredos locais (nunca commitar)
 .env
+
+# 🖼️ Mockups gerados pelos scripts (mockup-batismo, mockup-lendas, campinho,
+# padrão visual, folhas de rosto…). O SCRIPT mora no repo — a imagem não, porque
+# ela é refeita com um comando e são centenas de KB cada. Pra mandar pro Diego,
+# roda o script e manda o arquivo; pra guardar de vez, usa --saida num caminho
+# fora da raiz do repo.
+/mockup-batismo.png
+/lendas.png
+/campinho.png
+/padrao-visual.png
+/post-regra.png
+/compara.png
+/rostos.png
+/rostos2.png
+/rostos3.png
