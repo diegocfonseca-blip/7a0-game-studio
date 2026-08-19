@@ -6,6 +6,142 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
+    "nome": "Carles Puyol",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Nemanja Vidić",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "John Terry",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Pavel Nedvěd",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Rodri",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Gabriel Batistuta",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Didier Drogba",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Wayne Rooney",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Alessandro Del Piero",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Alan Shearer",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Arjen Robben",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Franck Ribéry",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "David Trezeguet",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Michael Owen",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Robin van Persie",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Jean-Pierre Papin",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Allan Simonsen",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
     "nome": "Ryan Giggs",
     "baralho": "EU",
     "de": "craque",
@@ -314,124 +450,5 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Renato Ibarra",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Alen Bokšić",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ivica Olić",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Eduardo da Silva",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Allan Simonsen",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Preben Elkjær",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jon Dahl Tomasson",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Rasmus Højlund",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ebbe Sand",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Claudio Pizarro",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jefferson Farfán",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Hugo Sotil",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Gianluca Lapadula",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Felipe Caicedo",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jefferson Montero",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Givanildo Oliveira",
-    "baralho": "BR",
-    "nivel": "craque",
-    "data": "2026-08-16"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Mazinho Deus Ébano",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-08-16"
   }
 ]
