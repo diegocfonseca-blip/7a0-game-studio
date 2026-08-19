@@ -79,19 +79,19 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 2005 | São Paulo (campeão), Atlético-PR (vice), Corinthians, Internacional, Goiás, Palmeiras | 🟡 |
 | 2006 | Internacional (campeão), São Paulo, Corinthians, Palmeiras, Goiás, Paulista | ✅ |
 | 2007 | Internacional, Flamengo, São Paulo, Grêmio, Santos, Paraná | ✅ |
-| 2008 | Fluminense, São Paulo, Santos, Flamengo, Cruzeiro (entrou pela 1ª fase) | 🟡 |
+| 2008 | Fluminense (vice), São Paulo, Santos, Flamengo, Cruzeiro | ✅ |
 | 2009 | Cruzeiro, Grêmio, Palmeiras, São Paulo, Sport | 🟡 |
 | 2010 | Corinthians, Flamengo, Internacional, São Paulo, Cruzeiro | ✅ |
 | 2011 | Santos (campeão), Internacional, Cruzeiro, Grêmio, Fluminense — **Corinthians NÃO** (caiu na pré pro Tolima) | ✅ |
 | 2012 | Corinthians (campeão), Flamengo, Fluminense, Internacional, Santos, Vasco | 🟡 |
-| 2013 | Atlético-MG (campeão), Corinthians, Fluminense, Grêmio, Palmeiras, São Paulo | 🟡 |
+| 2013 | Atlético-MG (campeão), Corinthians, Fluminense, Grêmio, Palmeiras, São Paulo | ✅ |
 | 2014 | Atlético-MG, Cruzeiro, Grêmio, Flamengo, Atlético-PR, Botafogo | 🟡 |
 | 2015 | Cruzeiro, Atlético-MG, São Paulo, Internacional, Corinthians | 🟡 |
 | 2016 | Corinthians, Palmeiras, Atlético-MG, Grêmio, São Paulo | 🟡 |
 | 2017 | Palmeiras, Grêmio (campeão), Chapecoense, Santos, Flamengo, Atlético-MG + Botafogo e Atlético-PR (pela 2ª fase) | 🟡 |
 | 2018 | Grêmio, Corinthians, Cruzeiro, Palmeiras, Santos, Flamengo, Vasco, Chapecoense | 🟡 |
 | 2019 | Flamengo (campeão), Palmeiras, Internacional, Athletico-PR, Grêmio, Cruzeiro, São Paulo, Atlético-MG | 🟡 |
-| 2020 | Flamengo, Palmeiras (campeão), Athletico-PR, Santos (vice), São Paulo, Internacional, Grêmio, Corinthians | 🟡 |
+| 2020 | Flamengo, Palmeiras (campeão), Athletico-PR, Santos (vice), São Paulo, Grêmio, Internacional (passou pela pré) — **Corinthians NÃO** (caiu na pré pro Guaraní) | ✅ |
 | 2021 | Atlético-MG, Flamengo, Fluminense, Internacional, Palmeiras, São Paulo, Santos (passou pela pré) — **Grêmio NÃO** (caiu pro Del Valle) | ✅ |
 | 2022 | Palmeiras, Athletico-PR, Atlético-MG, América-MG, Flamengo (campeão), Corinthians, Fortaleza, Red Bull Bragantino — **Fluminense NÃO** (caiu na pré) | 🟡 |
 | 2023 | Flamengo, Internacional, Palmeiras, Fluminense (campeão), Corinthians, Athletico-PR, Atlético-MG | ✅ |
