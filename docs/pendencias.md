@@ -7498,3 +7498,33 @@ Seven City → glaucomiranda@outlook.com · Tricolor do Arruda FC → souzact12@
 📌 **Pra não repetir**: cadastrar em `esc_nomes_batismo` tem que virar passo FIXO
 do roteiro de batismo, junto com `LOGOS_PRONTAS`, `MASCOTES`, `data.ts` e
 `apoio.tsx` (a regra 8 do CLAUDE.md).
+
+### 🛡️ O ESCUDO COLA PELO NOME, NÃO PELA CONTA (achado 20/08)
+
+Pergunta do Diego: *"o Breno ganha o escudo do Coringas do Diniz, ou não?"*
+Conferido no código: `Escudo()` (escudos.tsx:1130) faz
+`LOGOS_PRONTAS[nome] ?? LOGOS_PRONTAS[newestTeamName(nome)]` — **bate pelo NOME
+EXATO da string, sem olhar quem é a conta**. Então:
+
+- **O Breno NÃO tem o escudo hoje** — por sorte: o nome dele é "Coringas do
+  **d**iniz", com d minúsculo, e a chave no código é "Coringas do **D**iniz".
+- ⚠️ **A ideia de renomear o Breno pra "…FC" é justamente a pior saída**:
+  `'Coringas do Diniz FC'` **é uma das chaves do escudo** (as variações existem
+  pro DONO não perder o escudo se acrescentar FC). Renomear ele pra FC
+  **entregaria o escudo do Lucas pra ele**. Nome novo do Breno tem que ser um que
+  não bata em NENHUMA das 48 chaves de `LOGOS_PRONTAS`.
+
+**Auditoria completa das 48 chaves × todas as contas** achou 2 estranhos já com
+escudo de batizado (ambos criaram conta ANTES da trava de nome único, de 10/08,
+então passaram por baixo dela):
+- `lucasjogomes@gmail.com` está com **"Marolados FC"** (batismo do paisagensetrilha) — criou 02/08.
+- `arrudabernardo213076@gmail.com` está com **"Arruda"**, que é chave do escudo do
+  **Tricolor do Arruda FC** (Geovany) — criou 06/08. Provável coincidência de sobrenome.
+
+E **"Marinheiros AS"** (`feehcamp11@gmail.com`) tem escudo artesanal no código e
+**nenhuma reserva** — falta descobrir de quem é esse batismo.
+
+**Correção de raiz sugerida (não feita — precisa de OK do Diego)**: o escudo
+artesanal só aparecer pra quem é o DONO (cruzar com `esc_nomes_batismo`), em vez
+de bater só pela string. Mexe em tela que está no ar, então entra em commit
+isolado e revertível.
