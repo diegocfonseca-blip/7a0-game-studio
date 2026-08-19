@@ -101,3 +101,68 @@ Reusa tudo que já foi feito e aprovado, sem arte nova:
 3. **Quem completa os 32** (§3 — recomendação acima, sem decisão dele).
 4. **Onde mora**: rápido online (foi o que ele descreveu) ou também na carreira,
    como a Copa do Brasil.
+
+---
+
+## 6. 🥅 O MODO TEMÁTICO — o que o Diego quis dizer (20/08)
+
+Correção de rota. Nesta data eu voltei ao assunto e desenhei a **competição**
+(32 clubes, grupos, mata-mata). Não era isso. Palavras dele:
+
+> *"Mas eu tava falando de modo temático. Igual na várzea.. Q lá são apenas
+> jogadores da várzea... Na Libertadores só apenas jogadores q jogaram a
+> libertadores no clube dele. Tipo neymar 2011 santos"*
+
+Ou seja: **é um FILTRO DE BARALHO**, exatamente na forma da várzea. A várzea é
+uma linha em `filterVarzea` (`store.tsx:32`): `c.fame <= 3 && !c.promessa`. A
+Libertadores é a mesma forma — muda só o critério.
+
+### A diferença que dá trabalho
+A várzea lê um número **que já está na carta** (`fame`). A Libertadores precisa
+de um **fato que o jogo não guarda em lugar nenhum**: aquele clube jogou a
+Libertadores naquele ano? Hoje isso só existe em texto solto de bio. Então o
+modo precisa de uma **lista clube+ano** escrita à mão — e vale a regra do Diego
+(18/08): *onde eu não tiver certeza, a carta FICA DE FORA*. Libertadores menor e
+certa é melhor que grande com jogador que nunca pisou lá.
+
+### Tamanho MEDIDO do baralho (20/08, contado no `data.ts`)
+Baralho BR inteiro: **595 cartas** — GOL 70 · LAT 74 · ZAG 80 · MEI 159 · ATA 212.
+Referência da várzea (o modo que já funciona): **421** — GOL 52.
+
+| Nível | Critério | Cartas | GOL | LAT | ZAG | MEI | ATA |
+|---|---|---|---|---|---|---|---|
+| **1 · Campeão** | o clube foi CAMPEÃO da Liberta naquele ano | **91** | 11 | 12 | 13 | 25 | 30 |
+| **2 · Jogou** | o clube DISPUTOU a Liberta naquele ano | 91–560* | ? | ? | ? | ? | ? |
+
+\* teto medido (clube que já jogou Liberta, ano ≥ 1960) = 560 cartas. O número
+real depende da lista clube+ano; deve cair entre 250 e 350.
+
+### ⚠️ A TRAVA que o nível 1 exige (medida, não achismo)
+`buildDeck` (`store.tsx:1018`) pede `demand` = soma das vagas de todos os
+técnicos. **GOL é 1 por técnico em toda formação** (`FORMATIONS`, `types.ts:176`).
+Quando `demand > cartas reais`, o motor **completa com incógnito/perna-de-pau** —
+justamente o que o Diego proíbe. Logo:
+- **Nível 1 (11 goleiros) → sala de no máximo 11 técnicos.** Acima disso entra
+  fake. Se for esse o nível escolhido, a sala precisa **travar em 11 com aviso
+  claro** ("a Libertadores só tem 11 goleiros campeões — abra outra sala ou use
+  o baralho completo"), nunca deixar o fake entrar calado.
+- **Nível 2** provavelmente cabe nos 20 de hoje, mas **só depois de contar** a
+  lista clube+ano de verdade.
+
+### As 21 temporadas campeãs que o baralho já tem (nível 1)
+Santos 1962 (5: Gilmar, Zito, **Pelé**, Coutinho, Pepe) · Cruzeiro 1976 (1) ·
+Flamengo 1981 (5: Júnior, **Zico**, Adílio, Andrade, Nunes) · Grêmio 1983 (1) ·
+São Paulo 1992 (1: Raí) · São Paulo 1993 (3: Zetti, Cafu, Leonardo) ·
+Grêmio 1995 (0 cartas) · Cruzeiro 1997 (1) · Vasco 1998 (3) · Palmeiras 1999 (3) ·
+São Paulo 2005 (7: Rogério Ceni…) · Internacional 2006 (6) · Internacional 2010 (3) ·
+**Santos 2011 (6: Neymar, Ganso não, Aranha, Rafael Cabral, Pará, Edu Dracena, Borges)** ·
+Corinthians 2012 (8: Cássio, Paulinho…) · Atlético-MG 2013 (5: Victor, Ronaldinho…) ·
+Grêmio 2017 (4) · Flamengo 2019 (**13** — a maior) · Palmeiras 2021 (5) ·
+Flamengo 2022 (4) · Fluminense 2023 (3) · Botafogo 2024 (4).
+⚠️ **2025 ficou de fora de propósito**: não tenho certeza do campeão daquele ano
+e a regra é não chutar. O Diego confirma e eu incluo.
+
+### ⏳ O que falta o Diego decidir
+1. **Nível 1 (só campeão, 91 cartas, sala até 11) ou nível 2 (jogou, sala de 20)?**
+2. Segue valendo o resto do §5: nome (marca registrada), cor, e se mora só no
+   rápido online ou também na carreira.
