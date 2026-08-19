@@ -24,6 +24,7 @@ import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDela
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
+import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
@@ -1544,6 +1545,10 @@ export function EscIntro() {
   return (
     <Shell>
       {unlocked && <SportTabs />}
+      {/* 📣 recado temporário do Diego pra todo mundo (ver `aviso.tsx`): fica no
+          TOPO da home porque é o primeiro que precisa ser lido, some sozinho na
+          data marcada e some de vez pra quem fechar. */}
+      <AvisoDaVez />
       {resumable && (
         <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#1B7A3D', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
