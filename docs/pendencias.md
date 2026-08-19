@@ -69,6 +69,20 @@ Conferido nos dois lugares:
 O "Série C / Série D" que ele e o Paduz viram na tela era o **próprio fantasma
 aberto** (o selo de divisão vinha colado nele), não o ranking.
 
+### 🔎 Varredura do ranking — sobrou mais alguém? NÃO (19/08)
+Pergunta do Diego: *"e não tem mais times assim no rank não?"*. Varridas as
+**1.513 carreiras** do `esc_pyramid_rank_snap`:
+- **mais título do que temporada: 0 linhas** (as do Paduz já tinham sido
+  removidas; a trava barra as novas e cura as antigas na próxima temporada);
+- **topo do rank**: só carreira longa de verdade (T752, T549, T521, T451, T187);
+- cruzando os **384 fantasmas** com o rank, procurando "carreira novinha que já
+  entrou com taça": sobraram **9 casos**, todos entraram com **1 título** e o
+  maior hoje tem **3 títulos em 16 temporadas** — número normal de quem joga.
+
+**Por que só o Paduz apareceu feio**: o fantasma levava pro rank o que a pessoa
+já tinha ATRÁS dela. Ele tinha carreira de T187 com 106 Séries A, então a
+herança virou 31. Quem não tinha carreira grande não levava quase nada.
+
 ### O conserto (3 travas + limpeza)
 1. **Raiz** — `START_ONLINE` agora faz faxina de carreira: `careerDivision`,
    `careerIntent`, `careerTitles/TitlesA` e `careerRivals` zerados sempre; sala
