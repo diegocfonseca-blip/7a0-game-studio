@@ -88,16 +88,16 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 2014 | não checado | ❓ |
 | 2015 | não checado | ❓ |
 | 2016 | não checado | ❓ |
-| 2017 | não checado | ❓ |
+| 2017 | Palmeiras, Grêmio (campeão), Chapecoense, Santos, Flamengo, Atlético-MG + Botafogo e Atlético-PR (pela 2ª fase) | 🟡 |
 | 2018 | não checado | ❓ |
 | 2019 | Flamengo (campeão), Palmeiras, Internacional, Athletico-PR, Grêmio, Cruzeiro, São Paulo, Atlético-MG | 🟡 |
-| 2020 | não checado | ❓ |
+| 2020 | Flamengo, Palmeiras (campeão), Athletico-PR, Santos (vice), São Paulo, Internacional, Grêmio, Corinthians | 🟡 |
 | 2021 | não checado | ❓ |
-| 2022 | não checado | ❓ |
-| 2023 | não checado | ❓ |
-| 2024 | não checado | ❓ |
-| 2025 | não checado | ❓ |
-| 2026 | não checado (Mirassol aparece como estreante) | ❓ |
+| 2022 | Palmeiras, Athletico-PR, Atlético-MG, América-MG, Flamengo (campeão), Corinthians, Fortaleza, Red Bull Bragantino + Fluminense (caiu na pré) | 🟡 |
+| 2023 | Flamengo, Internacional, Palmeiras, Fluminense (campeão), Corinthians, Athletico-PR, Atlético-MG | ✅ |
+| 2024 | Botafogo (campeão) e Atlético-MG (vice) confirmados; resto a fechar | ❓ |
+| 2025 | Botafogo, Flamengo, Fortaleza, Internacional, Palmeiras, São Paulo, Bahia | ✅ |
+| 2026 | Flamengo, Palmeiras, Cruzeiro, Corinthians, Fluminense, Mirassol (estreante) | ✅ |
 
 ## 📉 O efeito medido nos primeiros anos checados
 
@@ -117,6 +117,12 @@ clube dele jogou a Libertadores. Caso mais duro: o **Flamengo 2009** tem 8 carta
 Libertadores **de 2010**.
 
 ## Próximo passo
-Fechar os anos ainda ❓ (1988, 1990, 1991, 1994, 2003, 2008, 2014–2018, 2020–2026), fazer a 2ª passada nos 🟡 (com atenção ao
+Fechar os anos ainda ❓ (1966, 1972, 1988, 1990, 1991, 1994, 2003, 2008, 2012, 2014, 2015, 2016, 2018, 2021, 2024), fazer a 2ª passada nos 🟡 (com atenção ao
 deslocamento de um ano) e mandar a lista inteira pro Diego conferir. Só depois
 disso o filtro entra no código.
+
+## 🤔 Uma pergunta que só o Diego responde
+Em 2022 o **Fluminense caiu na pré-Libertadores** e não chegou à fase de grupos.
+As 3 cartas de Fluminense 2022 do baralho **contam ou não**? A pré-Libertadores É
+Libertadores (é a fase classificatória dela), então eu contaria — mas é chamada
+dele, e o mesmo caso vai voltar em outros anos.
