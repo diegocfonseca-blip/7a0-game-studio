@@ -3,20 +3,15 @@
 // script LÊ a tabela de lá, então corrigir o doc já corrige a conta.
 import { readFileSync } from 'node:fs'
 
-const md = readFileSync('docs/libertadores-participantes.md', 'utf8')
+const txt = readFileSync('docs/libertadores-br-por-clube.txt', 'utf8')
 const PART = {}
-for (const l of md.split('\n')) {
-  const m = l.match(/^\|\s*(\d{4})\s*\|\s*(.+?)\s*\|\s*[✅🟡❓⛔]/)
-  if (!m) continue
-  const ano = +m[1]
-  let txt = m[2]
-  if (/Brasil não participou|só começou/.test(txt)) { PART[ano] = []; continue }
-  // "Clube NÃO (motivo)" = quem caiu na pré ou não jogou → sai da lista
-  txt = txt.replace(/\*\*([^*]+?)\s*NÃO\*\*\s*\([^)]*\)/g, '').replace(/—\s*$/, '')
-  PART[ano] = txt.split(',').map(t => t
-    .replace(/\*\*/g, '').replace(/\([^)]*\)/g, '').replace(/←.*$/, '')
-    .replace(/^\s*[–—-]\s*/, '').trim()).filter(t => t && !/^(não checado|resto)/i.test(t))
+for (const l of txt.trim().split('\n')) {
+  const [clube, anos] = l.split('—').map(x => x.trim())
+  for (const a of anos.split(',').map(x => +x.trim())) (PART[a] = PART[a] || []).push(clube)
 }
+// 🚫 caiu na PRÉ e não chegou aos grupos → regra do Diego: NÃO conta
+const CAIU_NA_PRE = { 2011: ['Corinthians'], 2020: ['Corinthians'], 2021: ['Grêmio'], 2022: ['Fluminense'], 2024: ['Red Bull Bragantino'] }
+for (const a of Object.keys(CAIU_NA_PRE)) PART[a] = (PART[a] ?? []).filter(c => !CAIU_NA_PRE[a].includes(c))
 
 const data = readFileSync('src/escalacao/data.ts', 'utf8')
 const blocos = [...data.matchAll(/const (\w+): C\[\] = \[/g)].map(m => ({ n: m[1], p: m.index }))
