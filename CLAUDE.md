@@ -64,7 +64,24 @@ FORA do bundle. Então, sem exceção:
    Sempre que alguém vira dono de um clube batizado, ele automaticamente leva
    tier ouro (👑 Lenda) + o próximo número de `FUNDADOR_N` em `apoio.tsx` —
    não precisa o Diego pedir de novo caso a caso.
-8. **Regra permanente (17/08): TODO batismo tem FORMATO PADRÃO.** Palavras do
+9. **Regra permanente (20/08): batismo RESERVA 4 FORMAS do nome.** Palavras do
+   Diego: *"qd eu te falar o time dele você já deve reservar o escudo pra esse
+   nome seja letras minúscula ou maiúsculas e tb c fc e ec no final do nome do
+   time. E c isso ng poderia ter esses 4 nomes"*. Na prática:
+   - **O banco faz sozinho** — o gatilho `esc_batismo_reserva_variacoes` cria as
+     linhas com **FC** e **EC** assim que o nome puro entra em
+     `esc_nomes_batismo`; a caixa já está coberta porque a chave é minúscula.
+     **Mas alguém tem que inserir o nome puro** — isso virou passo FIXO do
+     roteiro de batismo, do lado de `LOGOS_PRONTAS`/`MASCOTES`/`data.ts`.
+     (Em 20/08 achamos **8 batismos sem reserva nenhuma**, e por isso o dono do
+     Coringas do Diniz não conseguia usar o próprio nome.)
+   - **Escudo/mimos são do E-MAIL do dono**, não da palavra. Nunca registrar
+     APELIDO como chave de escudo: em 20/08 um usuário chamado só "Arruda" estava
+     jogando com o escudo do Tricolor do Arruda FC. Palavras dele: *"não tem nada
+     a ver o cara escreveu o nome de Arruda… está errado"*. Só o **nome inteiro**
+     vale (`chaveEscudo()` em `escudos.tsx` ignora caixa, acento e FC/EC/SC).
+
+10. **Regra permanente (17/08): TODO batismo tem FORMATO PADRÃO.** Palavras do
    Diego: *"sempre irei falar arte padrão de formato pra escudo manto e mascote…
    e mockup padrão também"*. Traduzindo, e sem exceção:
    - **Arte**: escudo `.webp` 360px/≤30 KB · mascote `.webp` 440px/≤45 KB · manto

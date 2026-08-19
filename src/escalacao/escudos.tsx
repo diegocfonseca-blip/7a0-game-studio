@@ -1108,10 +1108,17 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   },
 }
 
-// 🔑 CHAVE DO ESCUDO ARTESANAL — regra ditada pelo Diego (20/08): *"a chave igual
-// é nome seja maiúsculo ou minúsculas e fc"*. Ou seja, o escudo do dono aparece
-// mesmo que ele escreva com outra caixa, sem acento ou acrescentando FC — e
-// SÓ pelo nome INTEIRO do clube.
+// 🔑 CHAVE DO ESCUDO ARTESANAL — regra ditada pelo Diego (20/08): *"qd eu te
+// falar o time dele você já deve reservar o escudo pra esse nome seja letras
+// minúscula ou maiúsculas e tb c fc e ec no final do nome do time. E c isso ng
+// poderia ter esses 4 nomes"*.
+//
+// Traduzindo: cada batismo/sócio **reserva 4 formas do MESMO nome** — o nome
+// puro (em qualquer caixa), com **FC** e com **EC** no fim. Ninguém mais pode
+// ter nenhuma das 4. Aqui no desenho, a chave normaliza essas 4 formas pra uma
+// só; a trava que IMPEDE outra pessoa de pegar mora no banco
+// (`esc_nomes_batismo` + RPC `esc_nome_livre`), com uma linha por forma.
+// SC entra junto porque já existiam clubes registrados assim ('SC Ferrari').
 //
 // 🐛 O que isso conserta (achado em 20/08): a busca era pela string EXATA e a
 // lista tinha APELIDOS registrados ('Arruda', 'Coringas', 'Ferrari', 'Seven',
@@ -1124,7 +1131,7 @@ const chaveEscudo = (n: string): string => n
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // tira acento (Bigão = Bigao)
   .toLowerCase().trim()
   .replace(/\s+/g, ' ')
-  .replace(/\s+f\.?\s?c\.?$/, '')                    // "FC" no fim não muda o dono
+  .replace(/\s+(f\.?\s?c\.?|e\.?\s?c\.?|s\.?\s?c\.?)$/, '') // FC/EC/SC no fim não mudam o dono
 const LOGOS_POR_CHAVE: Map<string, (size: number) => ReactNode> =
   new Map(Object.entries(LOGOS_PRONTAS).map(([k, v]) => [chaveEscudo(k), v]))
 const logoPronta = (n: string) => LOGOS_POR_CHAVE.get(chaveEscudo(n))
