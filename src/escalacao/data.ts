@@ -1492,7 +1492,7 @@ const ZAG_EU: C[] = [
   { name: "Alessandro Costacurta", club: "Milan", year: 1994, fame: 3, lo: 78, hi: 85 },
   { name: "Sol Campbell", club: "Arsenal", year: 2004, fame: 3, lo: 80, hi: 87 },
   { name: "Bobby Moore", club: "West Ham", year: 1966, fame: 5, lo: 88, hi: 93 },
-  { name: "Daniel Passarella", club: "Fiorentina", year: 1985, fame: 4, lo: 84, hi: 90 },
+  { name: "Daniel Passarella", club: "Fiorentina", year: 1985, fame: 5, lo: 84, hi: 90 },
   { name: "Matthijs de Ligt", club: "Ajax", year: 2019, fame: 4, lo: 80, hi: 89, promessa: true },
   { name: "Marco Materazzi", club: "Inter", year: 2006, fame: 1, lo: 72, hi: 83, folk: true },
   { name: "Fernando Hierro", club: "Real Madrid", year: 1998, fame: 4, lo: 84, hi: 90 },
