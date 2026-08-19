@@ -604,6 +604,7 @@ export function EscLobby() {
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
+  const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
   // 🏆 Liga Fechada ainda NÃO liberada: esconde o seletor da tela de criar sala
   // (o Diego decide quando abrir). Toda sala nasce Aberta. Pra liberar de novo,
   // basta trocar pra `true` — o resto do código continua pronto.
@@ -791,7 +792,7 @@ export function EscLobby() {
   // saves de carreira online do host: carrega ao abrir o menu
   useEffect(() => {
     if (phase !== 'menu' || !user) return
-    fetchMyCareers()
+    fetchMyCareers(); fetchMyLigas()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, user])
 
@@ -1288,8 +1289,12 @@ export function EscLobby() {
     // 🃏 BAFO também fica FORA da lista pública enquanto está em construção —
     // mesmo tratamento da carreira online. Quem tem o modo liberado vê normal.
     const isBafo = (r: RoomInfo) => r.game_state?.mode === 'elenco' && !salaElenco
+    // 🏆 LIGA FECHADA nunca entra na lista pública: ela é a sala PRIVADA da turma.
+    // Quem é da liga chega por "Minhas ligas" (abaixo) ou pelo código. Regra do
+    // Diego: *"ninguém consegue ver a sala se não for Lenda — fica bloqueado"*.
+    const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r))
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && !isLiga(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -1297,6 +1302,58 @@ export function EscLobby() {
   // saves de CARREIRA ONLINE: salas em andamento onde EU participo — como host
   // (crio/continuo) OU como membro (volto quando o host retomar). A vaga do save
   // persiste mesmo depois de sair, então o amigo também vê e volta.
+  // 📅 como a data marcada aparece pra quem joga: dia da semana + hora, e o quanto
+  // falta em português de gente ("é HOJE", "amanhã", "faltam 3 dias"). Liga cuja
+  // data já passou não some — vira "já passou", porque a sala continua valendo e
+  // o dono pode remarcar.
+  const quandoLiga = (iso?: string): { txt: string; cor: string } => {
+    if (!iso) return { txt: 'sem horário marcado', cor: 'rgba(12,12,12,.5)' }
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return { txt: 'sem horário marcado', cor: 'rgba(12,12,12,.5)' }
+    const DIA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
+    const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const base = `${DIA[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1} · ${hora}`
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
+    const alvo = new Date(d); alvo.setHours(0, 0, 0, 0)
+    const dias = Math.round((alvo.getTime() - hoje.getTime()) / 864e5)
+    if (dias < 0) return { txt: `${base} · já passou`, cor: '#B23B2E' }
+    if (dias === 0) return { txt: `${base} · É HOJE`, cor: '#B23B2E' }
+    if (dias === 1) return { txt: `${base} · amanhã`, cor: GREEN }
+    return { txt: `${base} · faltam ${dias} dias`, cor: GREEN }
+  }
+
+  // 🏆 MINHAS LIGAS: as salas de liga onde EU estou — como dono ou como convidado.
+  // Precisa de lista PRÓPRIA porque a lista de salas abertas só mostra sala mexida
+  // nas últimas 6 horas: uma liga marcada pra sábado sumiria antes da hora. Aqui a
+  // busca é por PARTICIPAÇÃO, não por "sala recente", então ela fica de pé o tempo
+  // todo — que é justamente o ponto da liga.
+  async function fetchMyLigas() {
+    if (!user) { setMyLigas([]); return }
+    const sel = 'id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gtag:game_state->>__game, gat:game_state->>ligaAt, gliga:game_state->>ligaFechada'
+    const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
+    const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
+    const [hosted, member] = await Promise.all([
+      supabase.from('game_rooms').select(sel).eq('host_id', user.id).eq('game_state->>mode', 'liga').limit(30),
+      memberIds.length ? supabase.from('game_rooms').select(sel).in('id', memberIds).eq('game_state->>mode', 'liga').limit(30) : Promise.resolve({ data: [] }),
+    ])
+    type SlimLiga = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null }
+    const seen = new Set<string>(); const rooms: RoomInfo[] = []
+    for (const r of [...((hosted.data ?? []) as unknown as SlimLiga[]), ...((member.data ?? []) as unknown as SlimLiga[])]) {
+      if (seen.has(r.id) || r.gtag !== GAME_TAG) continue
+      seen.add(r.id)
+      rooms.push({ id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
+        game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined } as GS })
+    }
+    // a próxima da agenda primeiro (liga sem horário vai pro fim)
+    rooms.sort((a, b) => ((a.game_state as GS).ligaAt ?? '9') .localeCompare((b.game_state as GS).ligaAt ?? '9'))
+    const contagem: Record<string, number> = {}
+    if (rooms.length) {
+      const { data: pls } = await supabase.from('room_players').select('room_id').in('room_id', rooms.map(r => r.id))
+      for (const pl of (pls ?? []) as { room_id: string }[]) contagem[pl.room_id] = (contagem[pl.room_id] ?? 0) + 1
+    }
+    setMyLigas(rooms.map(r => ({ ...r, count: contagem[r.id] ?? 0 })))
+  }
+
   async function fetchMyCareers() {
     if (!user) return
     const isCareer = (r: RoomInfo) => r.game_state?.__game === GAME_TAG && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline)
@@ -1356,7 +1413,7 @@ export function EscLobby() {
     const e2 = (await supabase.from('game_rooms').delete().eq('id', r.id)).error
     if (e1 || e2) { setRoomError(`Não consegui apagar: ${(e2 ?? e1)?.message}`); return }
     dismissRoom(r.id); if (loadSavedRoom() === r.id) clearSavedRoom()
-    fetchMyCareers()
+    fetchMyCareers(); fetchMyLigas()
   }
 
   // abrir um save: HOST vê o painel de retomada (3 opções); PARTICIPANTE volta
@@ -1835,6 +1892,34 @@ export function EscLobby() {
               🚪 Sair da sala
             </button>
           </div>
+        </div>
+      )}
+
+      {/* 🏆 MINHAS LIGAS — a sala que fica de pé. Vem ANTES das carreiras porque
+          é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}
+      {ligaOn && myLigas.length > 0 && (
+        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Minhas ligas</p>
+          {myLigas.map(r => {
+            const gs = r.game_state as GS
+            const nm = gs?.roomName ?? r.code
+            const q = quandoLiga(gs?.ligaAt)
+            const souDono = r.host_id === user?.id
+            return (
+              <div key={r.id} className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-2 bg-white">
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
+                  <p className="text-black/60 text-[11px] font-bold">👥 {r.count} · {r.code} · {gs?.ligaFechada ? 'sem bots' : 'com bots'}{souDono ? '' : ' · você é convidado'}</p>
+                  <p className="font-black text-[11.5px]" style={{ ...OSWALD, color: q.cor }}>📅 {q.txt}</p>
+                </div>
+                <button onClick={() => joinFromList(r)} disabled={loading}
+                  className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
+                  style={{ background: GREEN, color: '#fff', ...OSWALD }}>
+                  {r.status === 'started' ? '↩️ Voltar' : '▶️ Entrar'}
+                </button>
+              </div>
+            )
+          })}
         </div>
       )}
 
