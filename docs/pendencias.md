@@ -1,47 +1,59 @@
 # 📌 Pendências combinadas com o Diego (atualizado 19/08/2026)
 
-## 📍 FUTPOINT FC — SÓCIO (não batismo) — ✅ FEITO E NO AR (19/08)
-Clube do **gfpicolo13@gmail.com** (Giovani Picolo — o mesmo que reportou os dois
-bugs de 18/08). O Diego deu.
+## 🐛🪜 CARREIRA NOVA NASCENDO COM TÍTULOS — ⏳ CONTIDO, CAUSA AINDA ABERTA
+Reportado pelo Diego em 19/08 (usuário **Paduz**): *"como q ele cria carreira e
+já tava C time.. já C Suárez e etc... e já C títulos"*.
 
-### ⚠️ SÓCIO ≠ BATISMO — a confusão que eu fiz e ele corrigiu
-Eu li "sócio" e entreguei **batismo**: troquei o Serrano FC pelo Futpoint FC na
-Série B e dei número de fundador. O Diego cortou na hora: *"eu N pedi p ele
-entrar no lugar de ng... eu disse q ele era sócio e N batismo"* e depois
-*"ele continua lenda e agora sócio (que ganha escudos mantos mascote e etc)
-porém N é fundador e nem batismo q troca time do jogo"*.
+### A prova (saves dele no banco, não é achismo)
+| carreira (seed) | temporada | Série A | Copa |
+|---|---|---|---|
+| `809022121` (a antiga, legítima) | 187 | 106 | 60 |
+| `460592162` (**nova, suja**) | 3 | **31** | **28** |
+| `372711797` (**nova, suja**) | 14 | 37 | 28 |
 
-**A diferença, pra nunca mais errar:**
+Carreira nova nascia com **31 Séries A e 28 Copas**. Detalhe que aponta o
+caminho: o botão "Continuar carreira" mostrava **1 título** (certo) enquanto o
+`careerHonors` tinha 31 — ou seja, **o jogo guarda a conta em dois lugares e só
+um vazou**.
 
-| | 🎫 SÓCIO | 🖋️ BATISMO |
-|---|---|---|
-| Escudo, mascote, manto, animações | ✅ sim | ✅ sim |
-| Troca um time de CPU da pirâmide | ❌ **não** | ✅ sim |
-| Entra em `data.ts` (divisão + `OLD_NAME`) | ❌ **não** | ✅ sim |
-| Número de **FUNDADOR** (`apoio.tsx`) | ❌ **não** | ✅ sim |
-| `esc_socios.origem` | `assinatura` | `batismo` |
-| Vira "barão" (8 fichas em vez de 6) | ❌ não | ✅ sim |
-| Linha em `novidades.ts` | ❌ não (nada muda pra quem joga) | ✅ sim |
+### ❌ O que NÃO é a causa (já conferido linha por linha)
+O reducer `START_CAREER_SOLO` zera `careerHonors`, `careerCopaHonors`,
+`careerSupercopaHonors` e todo o resto. A sujeira entra **depois** do início.
 
-Sócio com clube próprio é **reserva de nome**: o escudo/mascote aparecem quando
-o dono usa o nome dele, e nenhum time de CPU some. Já era assim com **Eros FC**,
-**Sapekeiros FC** e **Marinheiros AS** — o Futpoint FC entra nesse mesmo grupo.
+### 🔎 Suspeita principal (não confirmada)
+A junção local↔nuvem (`syncCareersWithCloud` → `mergeCareers`) escolhe a
+carreira "ativa" pelo `at` mais recente e a escreve em `esc-solo-career`. Se
+logo após criar a nova a antiga for eleita ativa, ela volta por cima. Falta
+reproduzir.
 
-### O que ficou no ar
-- **Sócio nº27**, `origem = 'assinatura'`, manto **preto `#181818` + dourado
-  `#B89040`** (medidos na camisa que ele mandou) + **branco** como 3ª cor
-  (`MANTO_TRI`). Continua **Lenda paga** (👑 ouro) como já era.
-- Mascote **O Pontinho** (`futpoint_bola`) — bola de boné dando joinha. No gol
-  entra **quicando** (`coQuica`), porque é uma bola.
-- Arte: escudo 293×360 · 26,5 KB · mascote 310×440 · 29,3 KB (**56 KB no
-  total**, teto é 75). Camisa do post em `scripts/kits/` (fora do bundle).
-- **Nenhum clube do jogo foi trocado.** `data.ts` está intacto.
-- `scripts/mockup-batismo.mjs` ganhou o modo **`--socio`** (+ `--socio-n`): a
-  pílula vira "CLUBE DE SÓCIO", a manchete vira "Chegou o…" e some o "entra no
-  lugar de" e a divisão. Batismo continua saindo igual como sempre.
+**Pra fechar, o Diego vai perguntar ao Paduz:** (1) tinha acabado de jogar a
+carreira antiga antes de criar a nova? (2) estava logado nas duas? (3) saiu e
+voltou ao jogo depois de criar?
 
-⏳ **Falta**: `time_coracao` NULL — mesma pendência do Skyy (matheusncruz1) e do
-Bigão (giovannecastro784).
+### ✅ O que já está no ar (contenção)
+**Regra ditada pelo Diego:** *"N quero q NG tenha mais títulos do q temporadas...
+não tem como ganhar uma Série A e B na mesma temporada"*. Virou trava em dois
+lugares:
+- **no ranking** (`pyramidseason.tsx`, commit `5dde174`);
+- **dentro da carreira**, ao abrir (`sanearTitulos` em `store.tsx`, `cd888f4`).
+
+Em N temporadas concluídas: no máximo **N taças de divisão no total** (só se
+disputa uma divisão por temporada), N Copas, N Supercopas e N Copas do Mundo.
+Quem está limpo não sente nada; quem está sujo se cura sozinho ao abrir.
+
+### 🧹 Limpeza feita à mão (só o Paduz, autorizada pelo Diego 19/08)
+- **Backup primeiro**: o save inteiro dele foi copiado pra `esc_backup_saves`
+  (id 1) — dá pra restaurar tudo.
+- Removidas do `esc_pyramid_saves` as carreiras **`460592162`** e
+  **`372711797`**. A antiga **`809022121` (T187) NÃO foi tocada** — ordem
+  explícita do Diego.
+- Removidas as linhas dessas duas carreiras do `esc_pyramid_rank_snap`.
+  Sobraram só `career_id 0` (T140-174) e `809022121` (T175-187), que são dele
+  de verdade.
+
+⚠️ **A carreira bugada pode voltar**: ela também vive no **aparelho** do Paduz.
+Se ele abrir o jogo com ela ainda lá, a junção com a nuvem republica. Por isso a
+mensagem pede que ele apague no ✕ ao lado de "Continuar carreira".
 
 ## 📸 ROSTO PRONTO (GPT/Gemini) × PEÇA DESENHADA — a conta (19/08)
 Pergunta do Diego: *"e se o chat gpt fizer as imagens dos jogadores? c base no
