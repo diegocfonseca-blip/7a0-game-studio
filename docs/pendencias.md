@@ -1,5 +1,48 @@
 # 📌 Pendências combinadas com o Diego (atualizado 19/08/2026)
 
+## 🏆❌ A COPA DO BRASIL SUMIA CALADA — ✅ CONSERTADO (19/08)
+Reportado pelo **Gabriel** (`nevesgabriel95@gmail.com`) via Diego: carreira NOVA,
+com Agência 2.0, **106 temporadas sem UMA Copa do Brasil nem UMA Supercopa** — e
+nenhum time da carreira dele tinha título de Copa no rank local.
+
+### A causa
+`computeCopaBrasil` abria com uma trava seca: se **qualquer** das cinco divisões
+não tivesse **exatamente 20** times, devolvia vazio. E quem chama não caía na
+Copa Legends — `if (cbUnlocked && copaBR)` era verdade mesmo com o resultado
+vazio. Resultado: **nenhuma copa, temporada após temporada, sem nenhum aviso**.
+
+### Quanta gente (medido no banco)
+| pirâmide | carreiras | tinha Copa? |
+|---|---|---|
+| 100 clubes (certa) | 1.276 | ✅ |
+| 80 (save antigo, sem Várzea) | 2.785 | ❌ |
+| 99 · 91 · 81 · 79 (torta) | 24 | ❌ |
+
+### Por que a pirâmide do Gabriel ficou com 99
+Ele batizou o time de **"Deportivo Montreal"** — que é o nome de um **clube da
+Série A** do jogo. Existe uma regra (certa) que impede um clube homônimo de um
+manager de nascer também como time de fundo; ela foi escrita pensando no 2º clube
+do Multiclubes, com o comentário *"normalmente nenhum time A/B/C é manager, então
+isto é no-op"*. Só que quando o JOGADOR escolhe um nome igual ao de um clube do
+catálogo, esse clube é retirado e **nada entra no lugar** — a Série A dele ficou
+com 19 pra sempre. É a mesma família do bug dos "dois Neymarzetti".
+
+### O conserto
+Chave **elástica**: se molda ao tamanho real da pirâmide e sempre fecha em 64.
+`diretos = 128 − N` · `peneira = 2 × (N − 64)` (sempre par). Com a pirâmide cheia
+(N=100) a conta dá **exatamente** o de hoje — 28 diretos (Série A + 8 melhores da
+B) e 72 na peneira, nos mesmos arrays e na mesma ordem, então o sorteio sai
+idêntico e **nenhum campeão já visto muda** (conferido por teste numérico em
+100/99/91/88/81/80/79). Fora da faixa 68–128, cai na **Copa Legends** em vez de
+ficar sem copa, e os rótulos passaram a seguir a copa que REALMENTE rodou
+(`copaBrOk`), não o desbloqueio global.
+
+### ⏳ FALTA DECIDIR COM O DIEGO
+O buraco na pirâmide (o clube que sai e não é reposto) **não** foi tapado: só o
+efeito na Copa. Tapar significa **um clube novo aparecer na Série A** dessas 24
+carreiras em andamento — mudança visível, então é decisão dele. Vale lembrar que
+uma divisão com 19 times também deixa a tabela com número ímpar de clubes.
+
 ## 🐛👻 A CARREIRA FANTASMA — CAUSA RAIZ ACHADA E FECHADA (19/08) ✅
 O Diego achou testando na conta dele: apertou **Nova carreira**, e na tela de
 montar a carreira apareceu um **banner roxo "🪜 Carreira em andamento · Série D ·
