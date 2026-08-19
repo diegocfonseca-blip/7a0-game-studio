@@ -6320,7 +6320,29 @@ export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
   return out.sort((a, b) => b.slot.at - a.slot.at)
 }
 // vai começar uma carreira NOVA: arquiva a atual (não perde) antes do START zerar.
-export function stashActiveBeforeNew() { archiveActiveCareer() }
+//
+// 🐛 CONSERTO 19/08 (caso do Paduz: *"como q ele cria carreira e já tava C time…
+// já C Suárez"*). Ele confirmou o caminho: **acabou de jogar a carreira antiga e
+// foi direto criar a nova, na mesma conta**. O furo estava aqui:
+//
+// arquivar NÃO limpava o ponteiro da carreira ATIVA (`esc-solo-career`). Então,
+// logo depois do START criar a carreira nova, a antiga continuava lá como
+// "ativa". E o `syncCareersWithCloud` — que roda ao abrir a home E toda vez que
+// a aba volta pro foco — reescreve esse ponteiro com a carreira de `at` mais
+// recente, que é justamente a que a pessoa ACABOU de jogar. Resultado: a
+// carreira nova era atropelada pela velha, com elenco e tudo.
+//
+// Agora, ao arquivar pra começar outra, o ponteiro é ZERADO. A carreira antiga
+// não some — ela está no arquivo ("Minhas carreiras") e na nuvem; o que some é
+// só o "esta é a que você está jogando", que passa a ser a nova assim que o
+// primeiro autosave dela roda.
+export function stashActiveBeforeNew() {
+  archiveActiveCareer()
+  try {
+    localStorage.removeItem('esc-solo-career')
+    localStorage.removeItem('esc-solo-career-at')
+  } catch { /* aparelho sem storage: o autosave da carreira nova assume em seguida */ }
+}
 // troca a carreira ATIVA por uma do arquivo (a atual vai pro arquivo). Devolve o save.
 export function activateCareerSlot(seed: number): EscState | null {
   archiveActiveCareer()

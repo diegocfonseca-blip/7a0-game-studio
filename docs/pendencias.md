@@ -20,15 +20,29 @@ um vazou**.
 O reducer `START_CAREER_SOLO` zera `careerHonors`, `careerCopaHonors`,
 `careerSupercopaHonors` e todo o resto. A sujeira entra **depois** do início.
 
-### 🔎 Suspeita principal (não confirmada)
-A junção local↔nuvem (`syncCareersWithCloud` → `mergeCareers`) escolhe a
-carreira "ativa" pelo `at` mais recente e a escreve em `esc-solo-career`. Se
-logo após criar a nova a antiga for eleita ativa, ela volta por cima. Falta
-reproduzir.
+### ✅ CAUSA DO ELENCO — ACHADA E CONSERTADA (19/08)
+O Paduz confirmou o caminho: **acabou de jogar a carreira antiga e foi direto
+criar a nova, na mesma conta**. Com isso o furo ficou visível:
 
-**Pra fechar, o Diego vai perguntar ao Paduz:** (1) tinha acabado de jogar a
-carreira antiga antes de criar a nova? (2) estava logado nas duas? (3) saiu e
-voltou ao jogo depois de criar?
+`stashActiveBeforeNew()` arquivava a carreira atual mas **não limpava o ponteiro
+da carreira ATIVA** (`esc-solo-career`). Então, logo depois do START criar a
+nova, a antiga continuava marcada como "a que você está jogando". E o
+`syncCareersWithCloud` — que roda ao abrir a home **e toda vez que a aba volta
+pro foco** — reescreve esse ponteiro com a carreira de `at` mais recente, que é
+exatamente a que a pessoa acabou de jogar. Resultado: a carreira nova era
+atropelada pela velha, com elenco e tudo.
+
+**Conserto**: ao arquivar pra começar outra, o ponteiro é zerado. A carreira
+antiga não some (fica no arquivo e na nuvem); some só o "esta é a ativa", que
+passa a ser a nova no primeiro autosave dela.
+
+### ⚠️ O QUE AINDA NÃO ESTÁ EXPLICADO
+O **número** dos títulos. A carreira nova nasceu com **31** Séries A, e a antiga
+tinha **106** — se fosse cópia direta seriam 106. Então 31/28 veio de outro
+lugar (provavelmente uma carreira mais velha ainda, guardada no arquivo do
+aparelho dele). Não vou fingir que fechei isso.
+O estrago, porém, está contido pelas duas travas abaixo — mesmo sem a origem,
+número impossível não passa mais.
 
 ### ✅ O que já está no ar (contenção)
 **Regra ditada pelo Diego:** *"N quero q NG tenha mais títulos do q temporadas...
