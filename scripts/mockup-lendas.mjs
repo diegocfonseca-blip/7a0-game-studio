@@ -23,6 +23,12 @@ const FONTES = [400, 500, 600, 700].map(w =>
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d }
 const SAIDA = arg('--saida', 'lendas.png')
+// 📋 lista pronta, separada por vírgula. Serve pra REMONTAR uma leva que já foi
+// absorvida pela foto do baralho (`catalogo-snapshot.json`): depois que o
+// `npm run novidades` roda, a leva anterior some do arquivo gerado e o mockup
+// dela não teria como ser refeito. Aconteceu em 19/08 — duas sessões
+// promoveram no mesmo dia e o Diego quis as duas levas num mockup só.
+const NOMES = arg('--nomes', null)
 
 // ── quem subiu: lê do arquivo GERADO pelo `npm run novidades` (fonte única —
 //    assim o mockup nunca discorda do que a home vai anunciar pro jogador) ──
@@ -33,7 +39,8 @@ const viraramLenda = mudancas.filter(m => m.tipo === 'nivel' && m.para === 'lend
 // só a leva MAIS NOVA por padrão (o arquivo guarda o histórico das levas
 // anteriores também). `--tudo` mostra todas as promoções que ainda estão lá.
 const ultima = viraramLenda.map(m => m.data).sort().pop()
-const subiram = (process.argv.includes('--tudo') ? viraramLenda : viraramLenda.filter(m => m.data === ultima)).map(m => m.nome)
+const subiram = NOMES ? NOMES.split(',').map(x => x.trim()).filter(Boolean)
+  : (process.argv.includes('--tudo') ? viraramLenda : viraramLenda.filter(m => m.data === ultima)).map(m => m.nome)
 
 // ── dados da carta (nome/clube/ano/posição) direto do baralho ──
 const data = readFileSync('src/escalacao/data.ts', 'utf8')
