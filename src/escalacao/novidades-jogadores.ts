@@ -78,6 +78,14 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "nivel",
+    "nome": "Samuel Eto'o",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
+  },
+  {
+    "tipo": "nivel",
     "nome": "Alan Shearer",
     "baralho": "EU",
     "de": "craque",
@@ -95,14 +103,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
     "nome": "Franck Ribéry",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "David Trezeguet",
     "baralho": "EU",
     "de": "craque",
     "para": "lenda",
