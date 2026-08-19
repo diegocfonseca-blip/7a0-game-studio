@@ -23,8 +23,25 @@ os troféus se empilham ali. Desenho aprovado em `scripts/mockup-liga-fechada.mj
   sala parada há 6h.
 - ✅ **Peça 3** (`1a3c809`): sala de troféus na ESPERA (só leitura; quem grava
   continua sendo o fim de jogo).
-- ⏳ **Peça 4**: o dono arrumar/escrever troféu.
-- ⏳ **Peça 5**: as regras do ranking da liga.
+- ✅ **Peça 4**: o dono (e os adms) arrumam/escrevem troféu — ✏️ por temporada,
+  "➕ escrever uma temporada" e 🗑️. A trava de verdade é no BANCO (políticas
+  `champions_update`/`champions_delete`: host OU quem está em `ligaAdmins`), então
+  mexer no navegador não adianta.
+- ✅ **Peça 5**: as regras do ranking da liga (o que vale ponto) + o ranking
+  calculado na hora, na própria espera.
+- ✅ **Extras pedidos depois** (`8f2b1e4` e antes): remarcar dia/hora quando quiser
+  (RPC `liga_patch`, que só mexe nas chaves da liga e nunca no jogo em andamento) ·
+  **adm** (o dono promove quem quiser) · **teto de 2 ligas por dono** (pra criar a
+  3ª tem que excluir uma) · **o dono sair não apaga a liga** (só o "excluir" apaga,
+  e só ele pode).
+- ✅ **Quem abre o pregão** (`1867bb6`): o Diego escolheu a **opção A** — *só o
+  DONO abre*, igual às salas de hoje ("quero algo q N dê novela pro host"). O motor
+  não mudou; só a TELA passou a dizer se o dono já chegou ou não, pra ninguém ficar
+  olhando um "aguardando…" sem saber o quê. **Adm nunca abre o pregão nem exclui a
+  liga** — adm é só remarcar, arrumar troféu e mexer nas regras.
+- ⏳ **Falta**: notificação na hora marcada — o Diego adiou de propósito
+  (*"N tem notificação ainda não. Isso é pra mais pra frente"*). E o OK visual dele
+  pra liberar pra todo mundo (hoje `LIGA_GERAL = false`, só a conta dele vê).
 
 ### 🧹 A FAXINA IA COMER A LIGA — consertado no banco (20/08)
 Pergunta do Diego: *"e se o cara nunca apagar a liga mais??"*. Ao medir, achei
