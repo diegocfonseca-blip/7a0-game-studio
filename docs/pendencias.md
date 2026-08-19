@@ -1,5 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 20/08/2026)
 
+## 🌎 LIBERTADORES no rápido online — PROPOSTA, esperando o Diego (20/08)
+Pergunta dele: *"conseguimos fazer a Libertadores? no modo rápido online?…
+quais clubes entrariam de bots? pq são 32 né e não 20 igual na liga… qd ativar
+esse modo libertadores N teria liga e nem copa ao criar sala"*.
+Resposta medida no código: **dá, e o motor já tem quase tudo** —
+`seedQuickCopa`/`resolveQuickCopaTie` já fazem ida-e-volta com pênalti, e o Bafo
+já é o precedente de "seletor de Copa SOME da tela e o porquê fica escrito".
+Mockup: `scripts/mockup-libertadores.mjs`. Desenho proposto:
+- **32 clubes**: 24 continentais INVENTADOS (novos, no estilo dos 16
+  `CLASSIC_CLUBS` — a casa não usa clube real em conteúdo de mentira) + **8 vagas
+  do Brasil**, ocupadas primeiro por quem está na sala e o resto **sorteado entre
+  os clubes batizados**.
+- **8 grupos de 4**, ida e volta (6 jogos), passam 2. Quem joga nunca cai no
+  mesmo grupo (espelha a regra de "mesmo país não se enfrenta na 1ª fase").
+- Oitavas/quartas/semi em ida e volta, **final única**. **13 rodadas** no total
+  contra as 38 da liga.
+- Desempate de grupo = o MESMO do resto do jogo (pts → vitórias → saldo → gols).
+- Liga do rápido, Carreira, Bafo e Liga Fechada **não são tocados**; nasce
+  invisível (só a conta do Diego), igual à Liga Fechada.
+⏳ **Falta o Diego decidir**: (1) OK no desenho e nos nomes dos 24 clubes;
+(2) quem é eliminado no grupo **assiste** o mata-mata (como já assiste a Copa
+dos 8 hoje) **ou** cai numa **segunda chave tipo Sul-Americana** e continua
+jogando. Sem essa resposta o modo não começa.
+
 ## 🏆 LIGA FECHADA — em construção (só a conta do Diego)
 A sala que fica de pé: horário marcado, sempre a MESMA sala, só a turma entra e
 os troféus se empilham ali. Desenho aprovado em `scripts/mockup-liga-fechada.mjs`
