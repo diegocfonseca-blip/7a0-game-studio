@@ -62,22 +62,69 @@ function chatColor(name: string): string {
 // (`game_champions`, gravado no fim de cada temporada por sala) — o que muda é
 // ONDE ele aparece: numa liga que se repete toda semana, o valor está em ver
 // quem é o dono da liga ANTES de começar, não depois.
-// ⚠️ Este bloco só LÊ. Quem escreve continua sendo a tela de fim de jogo, sem
-// uma linha diferente — então não há risco de mexer no troféu de ninguém.
-function TrofeusDaLiga({ roomId }: { roomId: string }) {
+//
+// ✏️ E O DONO ARRUMA (20/08, pedido do Diego: *"às vezes pode dar erro, aí eles
+// mesmos podem arrumar"*). Só o DONO da sala vê o lápis e o "escrever uma
+// temporada" — a trava de verdade é no banco (política que checa o host da
+// sala), então nem convidado nem gente de fora consegue mexer, mesmo mexendo no
+// navegador. Convidado só lê.
+function TrofeusDaLiga({ roomId, isHost, nomes }: { roomId: string; isHost: boolean; nomes: string[] }) {
   type Linha = { season_no: number; champion_name: string | null; top_scorer_name: string | null; top_scorer_goals: number | null; mico_name: string | null; copa_champion_name: string | null }
   const [rows, setRows] = useState<Linha[] | null>(null)
-  useEffect(() => {
-    let vivo = true
+  const [edit, setEdit] = useState<Linha | null>(null) // temporada aberta pra arrumar
+  const [busy, setBusy] = useState(false)
+  const [erro, setErro] = useState('')
+  const listaId = `trofeu-nomes-${roomId}`
+
+  const carregar = useCallback(() => {
     void supabase.from('game_champions')
       .select('season_no, champion_name, top_scorer_name, top_scorer_goals, mico_name, copa_champion_name')
       .eq('room_id', roomId).order('season_no', { ascending: true })
-      .then(({ data }) => { if (vivo) setRows((data ?? []) as Linha[]) }, () => { if (vivo) setRows([]) })
-    return () => { vivo = false }
+      .then(({ data }) => setRows((data ?? []) as Linha[]), () => setRows([]))
   }, [roomId])
+  useEffect(() => { carregar() }, [carregar])
+
+  const vazia = (t: number): Linha => ({ season_no: t, champion_name: '', top_scorer_name: '', top_scorer_goals: null, mico_name: '', copa_champion_name: '' })
+  const limpo = (v: string | null) => { const t = (v ?? '').trim(); return t ? t : null }
+
+  async function salvar() {
+    if (!edit || busy) return
+    setBusy(true); setErro('')
+    const payload = {
+      champion_name: limpo(edit.champion_name), copa_champion_name: limpo(edit.copa_champion_name),
+      top_scorer_name: limpo(edit.top_scorer_name), top_scorer_goals: edit.top_scorer_goals ?? null,
+      mico_name: limpo(edit.mico_name),
+    }
+    const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', edit.season_no).maybeSingle()
+    const { error } = existe
+      ? await supabase.from('game_champions').update(payload).eq('id', existe.id)
+      : await supabase.from('game_champions').insert({ room_id: roomId, season_no: edit.season_no, ...payload })
+    setBusy(false)
+    if (error) { setErro('Não deu pra salvar. Tente de novo.'); return }
+    setEdit(null); carregar()
+  }
+  async function apagar(t: number) {
+    if (busy) return
+    if (!window.confirm(`Apagar a temporada ${t} da sala de troféus?\n\nSó esta linha some — o resto da liga fica.`)) return
+    setBusy(true); setErro('')
+    const { error } = await supabase.from('game_champions').delete().eq('room_id', roomId).eq('season_no', t)
+    setBusy(false)
+    if (error) { setErro('Não deu pra apagar. Tente de novo.'); return }
+    setEdit(null); carregar()
+  }
+
   if (rows == null) return null
+  const proxima = rows.length ? Math.max(...rows.map(r => r.season_no)) + 1 : 1
+  const campo = (rot: string, val: string, set: (v: string) => void, ph = '') => (
+    <div className="flex-1 min-w-0">
+      <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1" style={OSWALD}>{rot}</p>
+      <input value={val} list={listaId} placeholder={ph} onChange={e => set(e.target.value)}
+        className="w-full border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+    </div>
+  )
   return (
     <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
+      <datalist id={listaId}>{nomes.map(n => <option key={n} value={n} />)}</datalist>
       <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Sala de troféus da liga</p>
       {rows.length === 0 ? (
         <p className="text-black/55 text-[11.5px] font-bold leading-snug">
@@ -96,8 +143,52 @@ function TrofeusDaLiga({ roomId }: { roomId: string }) {
                   {l.mico_name ? ` · 🤡 ${l.mico_name}` : ''}
                 </p>
               </div>
+              {isHost && (
+                <button onClick={() => { setErro(''); setEdit({ ...l }) }} aria-label={`Arrumar a temporada ${l.season_no}`}
+                  className="shrink-0 w-8 h-8 rounded-lg border-2 border-black bg-white font-black text-sm leading-none active:translate-y-0.5">✏️</button>
+              )}
             </div>
           ))}
+        </div>
+      )}
+      {isHost && !edit && (
+        <button onClick={() => { setErro(''); setEdit(vazia(proxima)) }}
+          className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: PURPLE }}>
+          ➕ Escrever uma temporada
+        </button>
+      )}
+      {isHost && edit && (
+        <div className="mt-2 rounded-xl border-2 border-black bg-white p-3">
+          <p className="font-black text-[12.5px] mb-2" style={OSWALD}>✏️ Temporada {edit.season_no}</p>
+          <div className="space-y-2">
+            {campo('🏆 Campeão da liga', edit.champion_name ?? '', v => setEdit({ ...edit, champion_name: v }), 'nome do time')}
+            {campo('🏆🇧🇷 Campeão da Copa', edit.copa_champion_name ?? '', v => setEdit({ ...edit, copa_champion_name: v }), 'deixe vazio se não teve')}
+            <div className="flex gap-2">
+              {campo('⚽ Artilheiro', edit.top_scorer_name ?? '', v => setEdit({ ...edit, top_scorer_name: v }), 'nome do jogador')}
+              <div className="w-[74px] shrink-0">
+                <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1" style={OSWALD}>Gols</p>
+                <input value={edit.top_scorer_goals ?? ''} inputMode="numeric" onChange={e => {
+                  const n = e.target.value.replace(/\D/g, '')
+                  setEdit({ ...edit, top_scorer_goals: n ? Number(n) : null })
+                }} className="w-full border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+              </div>
+            </div>
+            {campo('🤡 Mico da temporada', edit.mico_name ?? '', v => setEdit({ ...edit, mico_name: v }), 'último colocado')}
+          </div>
+          {erro && <p className="text-[11.5px] font-bold mt-2" style={{ color: '#B23B2E' }}>{erro}</p>}
+          <div className="flex gap-2 mt-3">
+            <button onClick={salvar} disabled={busy}
+              className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>{busy ? '...' : 'Salvar'}</button>
+            <button onClick={() => setEdit(null)} disabled={busy}
+              className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>Cancelar</button>
+            {rows.some(r => r.season_no === edit.season_no) && (
+              <button onClick={() => apagar(edit.season_no)} disabled={busy}
+                className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs bg-white" style={{ ...OSWALD, color: '#B23B2E' }}>🗑️</button>
+            )}
+          </div>
+          <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
+            Só o <b>dono da liga</b> arruma — e o que você escrever aqui vale só <b>dentro desta liga</b>: o ranking do jogo não muda.
+          </p>
         </div>
       )}
     </div>
@@ -2839,7 +2930,7 @@ export function EscLobby() {
           </div>
         </div>
       )}
-      {room.game_state?.mode === 'liga' && <TrofeusDaLiga roomId={room.id} />}
+      {room.game_state?.mode === 'liga' && <TrofeusDaLiga roomId={room.id} isHost={isHost} nomes={players.map(p => p.manager_name).filter(Boolean)} />}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
         const startLabel = carreira ? '🌐 Começar Carreira!' : elencoOn ? '🃏 Começar o Bafo!' : '🔨 Abrir o Pregão!'
