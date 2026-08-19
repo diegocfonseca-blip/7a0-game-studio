@@ -43,7 +43,7 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 1969 | ⛔ Brasil não participou (briga CBD × Conmebol) | ✅ |
 | 1970 | ⛔ Brasil não participou | ✅ |
 | 1971 | Fluminense, Palmeiras | 🟡 |
-| 1972 | São Paulo (+ 1 a confirmar: provável Atlético-MG) | 🟡 |
+| 1972 | São Paulo (+ 1 a confirmar) | ❓ |
 | 1973 | Palmeiras, Botafogo | 🟡 |
 | 1974 | Palmeiras, São Paulo | 🟡 |
 | 1975 | Vasco, Cruzeiro | 🟡 |
@@ -59,45 +59,45 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 1985 | Fluminense, Vasco | 🟡 |
 | 1986 | São Paulo, Guarani | 🟡 |
 | 1987 | Sport, Guarani | 🟡 |
-| 1988 | Sport, Guarani? — **suspeita de deslocamento de 1 ano** | ❓ |
+| 1988 | **suspeita de deslocamento de 1 ano** | ❓ |
 | 1989 | Bahia, Internacional | 🟡 |
-| 1990 | Corinthians, Flamengo? — **suspeita de deslocamento** | ❓ |
-| 1991 | ❓ | ❓ |
+| 1990 | **suspeita de deslocamento** | ❓ |
+| 1991 | não checado | ❓ |
 | 1992 | São Paulo, Criciúma | 🟡 |
 | 1993 | São Paulo, Flamengo, Internacional | 🟡 |
-| 1994 | ❓ | ❓ |
-| 1995 | ❓ (Grêmio campeão) | ❓ |
-| 1996 | ❓ | ❓ |
+| 1994 | não checado | ❓ |
+| 1995 | Palmeiras, Grêmio | 🟡 |
+| 1996 | Botafogo, Corinthians, Grêmio, Cruzeiro | 🟡 |
 | 1997 | Cruzeiro, Vasco, Grêmio | 🟡 |
-| 1998 | ❓ | ❓ |
-| 1999 | ❓ | ❓ |
-| 2000 | ❓ | ❓ |
-| 2001 | ❓ | ❓ |
-| 2002 | ❓ | ❓ |
-| 2003 | ❓ | ❓ |
-| 2004 | ❓ | ❓ |
-| 2005 | São Paulo, Atlético-PR, Corinthians, Internacional, Goiás, Palmeiras | 🟡 |
-| 2006 | ❓ | ❓ |
-| 2007 | ❓ | ❓ |
-| 2008 | ❓ | ❓ |
+| 1998 | Vasco, Corinthians, Palmeiras | 🟡 |
+| 1999 | Palmeiras, Corinthians, Atlético-MG, Juventude, Atlético-PR | 🟡 |
+| 2000 | Vasco, Palmeiras, Cruzeiro, São Caetano | 🟡 |
+| 2001 | Atlético-PR, São Caetano, Grêmio, Flamengo | 🟡 |
+| 2002 | Grêmio, Corinthians, São Caetano (vice), Paysandu | 🟡 |
+| 2003 | **lista veio IDÊNTICA à de 2004 → é a armadilha, refazer** | ❓ |
+| 2004 | Cruzeiro, São Paulo, Santos, São Caetano, Coritiba | ✅ |
+| 2005 | São Paulo (campeão), Atlético-PR (vice), Corinthians, Internacional, Goiás, Palmeiras | 🟡 |
+| 2006 | Internacional (campeão), São Paulo, Corinthians, Palmeiras, Goiás, Paulista | ✅ |
+| 2007 | Internacional, Flamengo, São Paulo, Grêmio, Santos, Paraná | ✅ |
+| 2008 | não checado | ❓ |
 | 2009 | Cruzeiro, Grêmio, Palmeiras, São Paulo, Sport | 🟡 |
-| 2010 | ❓ | ❓ |
-| 2011 | Santos, Internacional, Cruzeiro, Grêmio, Fluminense, Corinthians | 🟡 |
-| 2012 | ❓ | ❓ |
-| 2013 | Atlético-MG, Corinthians, Fluminense, Grêmio, Palmeiras, São Paulo | 🟡 |
-| 2014 | ❓ | ❓ |
-| 2015 | ❓ | ❓ |
-| 2016 | ❓ | ❓ |
-| 2017 | ❓ | ❓ |
-| 2018 | ❓ | ❓ |
-| 2019 | Flamengo, Palmeiras, Internacional, Athletico-PR, Grêmio, Cruzeiro, São Paulo, Atlético-MG | 🟡 |
-| 2020 | ❓ | ❓ |
-| 2021 | ❓ | ❓ |
-| 2022 | ❓ | ❓ |
-| 2023 | ❓ | ❓ |
-| 2024 | ❓ | ❓ |
-| 2025 | ❓ | ❓ |
-| 2026 | ❓ | ❓ |
+| 2010 | Corinthians, Flamengo, Internacional, São Paulo, Cruzeiro | ✅ |
+| 2011 | Santos (campeão), Internacional, Cruzeiro, Grêmio, Fluminense, Corinthians | ✅ |
+| 2012 | Corinthians (campeão), Santos, Vasco, Fluminense, Flamengo? | 🟡 |
+| 2013 | Atlético-MG (campeão), Corinthians, Fluminense, Grêmio, Palmeiras, São Paulo | 🟡 |
+| 2014 | não checado | ❓ |
+| 2015 | não checado | ❓ |
+| 2016 | não checado | ❓ |
+| 2017 | não checado | ❓ |
+| 2018 | não checado | ❓ |
+| 2019 | Flamengo (campeão), Palmeiras, Internacional, Athletico-PR, Grêmio, Cruzeiro, São Paulo, Atlético-MG | 🟡 |
+| 2020 | não checado | ❓ |
+| 2021 | não checado | ❓ |
+| 2022 | não checado | ❓ |
+| 2023 | não checado | ❓ |
+| 2024 | não checado | ❓ |
+| 2025 | não checado | ❓ |
+| 2026 | não checado (Mirassol aparece como estreante) | ❓ |
 
 ## 📉 O efeito medido nos primeiros anos checados
 
@@ -117,6 +117,6 @@ clube dele jogou a Libertadores. Caso mais duro: o **Flamengo 2009** tem 8 carta
 Libertadores **de 2010**.
 
 ## Próximo passo
-Fechar os 28 anos ainda ❓, fazer a 2ª passada nos 🟡 (com atenção ao
+Fechar os anos ainda ❓ (1988, 1990, 1991, 1994, 2003, 2008, 2014–2018, 2020–2026), fazer a 2ª passada nos 🟡 (com atenção ao
 deslocamento de um ano) e mandar a lista inteira pro Diego conferir. Só depois
 disso o filtro entra no código.
