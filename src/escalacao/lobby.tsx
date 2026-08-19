@@ -58,6 +58,52 @@ function chatColor(name: string): string {
   return CHAT_COLORS[h % CHAT_COLORS.length]
 }
 
+// 🏆 SALA DE TROFÉUS DA LIGA na ESPERA. O histórico já existe no jogo
+// (`game_champions`, gravado no fim de cada temporada por sala) — o que muda é
+// ONDE ele aparece: numa liga que se repete toda semana, o valor está em ver
+// quem é o dono da liga ANTES de começar, não depois.
+// ⚠️ Este bloco só LÊ. Quem escreve continua sendo a tela de fim de jogo, sem
+// uma linha diferente — então não há risco de mexer no troféu de ninguém.
+function TrofeusDaLiga({ roomId }: { roomId: string }) {
+  type Linha = { season_no: number; champion_name: string | null; top_scorer_name: string | null; top_scorer_goals: number | null; mico_name: string | null; copa_champion_name: string | null }
+  const [rows, setRows] = useState<Linha[] | null>(null)
+  useEffect(() => {
+    let vivo = true
+    void supabase.from('game_champions')
+      .select('season_no, champion_name, top_scorer_name, top_scorer_goals, mico_name, copa_champion_name')
+      .eq('room_id', roomId).order('season_no', { ascending: true })
+      .then(({ data }) => { if (vivo) setRows((data ?? []) as Linha[]) }, () => { if (vivo) setRows([]) })
+    return () => { vivo = false }
+  }, [roomId])
+  if (rows == null) return null
+  return (
+    <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
+      <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Sala de troféus da liga</p>
+      {rows.length === 0 ? (
+        <p className="text-black/55 text-[11.5px] font-bold leading-snug">
+          Ainda sem troféu nenhum — <b>o primeiro campeão sai no fim deste jogo</b>. Daqui pra frente tudo fica guardado aqui.
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          {rows.map(l => (
+            <div key={l.season_no} className="flex items-center gap-2 border-2 border-black rounded-xl px-2.5 py-1.5 bg-white">
+              <span className="font-black text-[11px] text-black/40 shrink-0" style={OSWALD}>T{l.season_no}</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-black text-[13px] truncate" style={OSWALD}>🏆 {l.champion_name ?? '—'}</p>
+                <p className="text-black/55 text-[10.5px] font-bold truncate">
+                  {l.copa_champion_name ? `🏆🇧🇷 ${l.copa_champion_name} · ` : ''}
+                  {l.top_scorer_name ? `⚽ ${l.top_scorer_name}${l.top_scorer_goals ? ` · ${l.top_scorer_goals}` : ''}` : ''}
+                  {l.mico_name ? ` · 🤡 ${l.mico_name}` : ''}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // 💬 Gaveta de chat da sala de espera — MESMO desenho do chat do leilão
 // (ChatWidget): botão flutuante no canto + gaveta que sobe de baixo com a lista
 // de mensagens (que ficam), a caixa de digitar e o crachá de não-lidas.
@@ -2704,6 +2750,7 @@ export function EscLobby() {
           </div>
         </div>
       )}
+      {room.game_state?.mode === 'liga' && <TrofeusDaLiga roomId={room.id} />}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
         const startLabel = carreira ? '🌐 Começar Carreira!' : elencoOn ? '🃏 Começar o Bafo!' : '🔨 Abrir o Pregão!'
