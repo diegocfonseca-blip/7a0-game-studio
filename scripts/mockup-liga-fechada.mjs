@@ -52,18 +52,36 @@ const chip = (t, on) => `<span style="display:inline-flex;align-items:center;gap
   background:${on ? GREEN : '#fff'};color:${on ? '#fff' : 'rgba(12,12,12,.4)'};${OSW};font-size:13px;box-shadow:2px 2px 0 ${INK}">${on ? '✓' : '＋'} ${t}</span>`
 
 // ── 1 · criar a liga ─────────────────────────────────────────────────────────
+// 🎛️ (20/08) O Diego cortou: a Liga Fechada NÃO é um detalhe da partida, é MODO
+// DE JOGO — fica na mesma fileira do Rápido, Carreira e Bafo. Palavras dele:
+// *"tem q ser rápido, liga fechada, carreira e bafo"*. E cai como uma luva no
+// padrão que já existe ali: quem não está liberado VÊ o botão apagado e sem
+// clique — desperta o interesse sem deixar entrar no que não é dele.
+const modo = (label, sel, apagado, sub) => `<div style="flex:1;padding:9px 3px;text-align:center;${OSW};font-size:12px;
+  background:${sel ? GOLD : '#fff'};color:${INK};opacity:${apagado ? .4 : 1};line-height:1.15;border-left:3px solid ${INK}">
+  ${label}${sub ? `<br><span style="font-size:8.5px">${sub}</span>` : ''}</div>`
+const fileira = inner => `<div style="display:flex;border:3px solid ${INK};border-radius:12px;overflow:hidden;box-shadow:3px 3px 0 ${INK}">
+  <div style="display:flex;flex:1;margin-left:-3px">${inner}</div></div>`
+
 const p1 = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
-  ${caixa(`${rot(`Escolha da sala ${JA}`)}
-    ${seg(['🌍 Aberta', '🏆 Liga Fechada'], 1)}
-    <p style="font-size:12.5px;font-weight:600;color:rgba(12,12,12,.62);line-height:1.4;margin:9px 0 0">
-      Isto <b>já está no jogo hoje</b> e já é benefício de quem é 👑 Lenda — quem não é, nem vê a opção.</p>`, '#F8F4E8')}
-  ${caixa(`${rot(`O que abre ao ligar a Liga Fechada ${NOVO}`)}
+  ${caixa(`${rot(`Modo de jogo — pra quem é 👑 Lenda ${NOVO}`)}
+    ${fileira(modo('⚡ Rápido', false) + modo('🏆 Liga', true) + modo('🌐 Carreira', false) + modo('🃏 Bafo', false))}
+    <p style="font-size:12.5px;font-weight:600;color:rgba(12,12,12,.7);line-height:1.4;margin:9px 0 0">
+      🏆 <b>A liga da sua turma:</b> mesma sala toda vez, horário marcado, e os troféus ficam guardados ali dentro.</p>
+    <div style="height:14px"></div>
+    ${rot('Pra quem ainda não é Lenda')}
+    ${fileira(modo('⚡ Rápido', true) + modo('🏆 Liga', false, true, '👑 só Lenda') + modo('🌐 Carreira', false) + modo('🃏 Bafo', false))}
+    <p style="font-size:12px;font-weight:600;color:rgba(12,12,12,.55);line-height:1.4;margin:9px 0 0">
+      Ele <b>vê</b> que existe, mas não clica — do mesmo jeito que o jogo já faz hoje com a Carreira e o Bafo.</p>`, '#F8F4E8')}
+  ${caixa(`${rot(`O que abre ao escolher 🏆 Liga ${NOVO}`)}
     <p style="${OSW};font-size:14px;margin:0 0 6px">📅 Quando vocês jogam</p>
     <div style="display:flex;gap:8px"><div style="flex:1.4">${btn('Sábado, 23 de agosto')}</div><div style="flex:.8">${btn('21:00')}</div></div>
     <p style="${OSW};font-size:14px;margin:14px 0 6px">🤖 Bots na tabela</p>
     ${seg(['Sem bots — só vocês', 'Com bots até 20'], 0)}
+    <p style="${OSW};font-size:14px;margin:14px 0 6px">🏷️ Nome da liga</p>
+    ${btn('Resenha dos Cria')}
     <p style="font-size:12px;font-weight:600;color:rgba(12,12,12,.62);line-height:1.4;margin:9px 0 0">
-      <b>Dá pra trocar tudo depois</b>, na mesma sala.</p>`)}
+      <b>Dá pra trocar tudo depois</b>, na mesma sala. O resto (baralho, formação, ritmo) é igualzinho ao Rápido.</p>`)}
 </div>`
 
 // ── 2 · como aparece ─────────────────────────────────────────────────────────
@@ -242,7 +260,7 @@ h1{${OSW};text-transform:uppercase;font-size:56px;line-height:.98;margin:14px 0 
     temporada após temporada. E o dono da liga <b>manda nela</b> — arruma um troféu que saiu errado e decide como
     o ranking conta. O jogo é o mesmo de sempre; muda a porta de entrada e quem escreve as regras.</p>
 
-  ${h2(1, 'Criar a liga', 'quem é 👑 Lenda ou dono de clube batizado')}
+  ${h2(1, 'Criar a liga', 'ela é um MODO, do lado do Rápido')}
   ${p1}
   ${h2(2, 'Como ela aparece', 'quem não é da turma nem vê')}
   ${p2}
