@@ -3837,6 +3837,9 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'RESUME_CAREER_SOLO': {
       // retoma a carreira offline salva: restaura o jogo inteiro e reancora o
       // baralho. Identidade sempre local (você é o host, sem sala).
+      // 🧮 e passa a trava de sanidade: título a mais que temporada jogada é
+      // sujeira de outra carreira — some aqui, na abertura (ver `sanearTitulos`).
+      sanearTitulos(action.saved)
       setActiveCatalog(action.saved.deckLeague)
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
@@ -6183,6 +6186,44 @@ function normalizeMultiSeats(s: EscState): EscState {
   s.youIdx = activeSeatIdx(s)
   return s
 }
+// 🧮 TRAVA DE SANIDADE DOS TÍTULOS (19/08, caso do Paduz — regra dita pelo Diego:
+// *"N quero que NG tenha mais títulos do que temporadas... não tem como ganhar
+// uma Série A e B por exemplo na mesma temporada"*).
+//
+// A conta é a mais simples que existe e não depende de descobrir a origem do bug:
+//   · em N temporadas concluídas, dá pra levantar no MÁXIMO N taças de divisão
+//     no total (só se disputa UMA divisão por temporada);
+//   · e no máximo N Copas, N Supercopas e N Copas do Mundo.
+// Título acima disso não é conquista: é sujeira que vazou de outra carreira.
+//
+// Roda ao ABRIR a carreira. Quem está limpo não sente nada (o clamp só morde no
+// impossível); quem já está sujo se cura sozinho na primeira vez que abrir, sem
+// ninguém precisar mexer no aparelho dele. É o mesmo remédio que já usamos na
+// Copa do Mundo em 17/08.
+function sanearTitulos(s: EscState): void {
+  const jogadas = Math.max(0, (s.seasonNo ?? 1) - 1)
+  const youId = s.managers?.[s.youIdx]?.id ?? 0
+  const k = 'm' + youId
+  const h = s.careerHonors?.[k]
+  if (h) {
+    let sobra = jogadas
+    const cap = (n?: number) => { const v = Math.max(0, Math.min(n ?? 0, sobra)); sobra -= v; return v }
+    const limpo = { A: cap(h.A), B: cap(h.B), C: cap(h.C), D: cap(h.D), V: cap(h.V) }
+    const mudou = limpo.A !== (h.A ?? 0) || limpo.B !== (h.B ?? 0) || limpo.C !== (h.C ?? 0)
+      || limpo.D !== (h.D ?? 0) || limpo.V !== (h.V ?? 0)
+    if (mudou) s.careerHonors = { ...(s.careerHonors ?? {}), [k]: limpo }
+  }
+  const capN = (n?: number) => Math.max(0, Math.min(n ?? 0, jogadas))
+  if (s.careerCopaHonors?.[k] != null && s.careerCopaHonors[k] > jogadas) {
+    s.careerCopaHonors = { ...s.careerCopaHonors, [k]: capN(s.careerCopaHonors[k]) }
+  }
+  if (s.careerSupercopaHonors?.[k] != null && s.careerSupercopaHonors[k] > jogadas) {
+    s.careerSupercopaHonors = { ...s.careerSupercopaHonors, [k]: capN(s.careerSupercopaHonors[k]) }
+  }
+  if ((s.careerTitles ?? 0) > jogadas) s.careerTitles = jogadas
+  if ((s.careerTitlesA ?? 0) > jogadas) s.careerTitlesA = jogadas
+}
+
 function loadSoloInProgress(): EscState | null {
   try {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
