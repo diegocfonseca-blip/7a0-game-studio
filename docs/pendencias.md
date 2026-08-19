@@ -1,30 +1,47 @@
 # 📌 Pendências combinadas com o Diego (atualizado 19/08/2026)
 
-## 📍 BATISMO FUTPOINT FC (19/08) — ✅ FEITO E NO AR
-Presente do Diego pro **gfpicolo13@gmail.com** (Giovani Picolo — o mesmo que
-reportou os dois bugs de 18/08). Palavras dele: *"add esse e-mail aqui do time
-Futpoint fc como socio mas sem ser sócio. Pq tô dando p ele"*.
+## 📍 FUTPOINT FC — SÓCIO (não batismo) — ✅ FEITO E NO AR (19/08)
+Clube do **gfpicolo13@gmail.com** (Giovani Picolo — o mesmo que reportou os dois
+bugs de 18/08). O Diego deu.
 
-**"Sócio mas sem ser sócio"** = ele NÃO comprou o batismo, o Diego deu. Ele já
-era **Lenda paga** (👑 ouro) desde antes. Então: ganhou tudo que sócio tem
-(manto/mascote/escudo do próprio clube), a linha em `esc_socios` é
-`origem = 'batismo'` como todas as outras, e o comentário no `apoio.tsx` diz
-que foi **dado, não vendido** — pra ninguém contabilizar como venda depois.
+### ⚠️ SÓCIO ≠ BATISMO — a confusão que eu fiz e ele corrigiu
+Eu li "sócio" e entreguei **batismo**: troquei o Serrano FC pelo Futpoint FC na
+Série B e dei número de fundador. O Diego cortou na hora: *"eu N pedi p ele
+entrar no lugar de ng... eu disse q ele era sócio e N batismo"* e depois
+*"ele continua lenda e agora sócio (que ganha escudos mantos mascote e etc)
+porém N é fundador e nem batismo q troca time do jogo"*.
 
-- Clube: **Futpoint FC**, ex-**Serrano FC**, **Série B**. ⚠️ O Diego não disse
-  qual clube trocar — escolhi o Serrano FC porque o nome era quase igual ao
-  "Nacional da Serra" (dava confusão) e ele não estava em `CLASSIC_CLUBS`.
-  Trocar de clube é UMA linha, se ele preferir outro.
-- Mascote: **O Pontinho** (`futpoint_bola`) — bola de boné dando joinha.
-  Animação de gol: `coQuica` (é uma BOLA, entra quicando).
-- Manto: **preto `#181818` + dourado `#B89040`**, medidos na camisa que ele
-  mandou; 3ª cor **branca** via `MANTO_TRI`.
-- Arte: escudo 293×360 · 26,5 KB · mascote 310×440 · 29,3 KB (**total 56 KB**,
-  dentro do teto de 75 KB). Camisa do post em `scripts/kits/` (não vai no jogo).
-- Fundador **nº47** · sócio **nº27**.
+**A diferença, pra nunca mais errar:**
 
-⏳ **Falta**: `time_coracao` está NULL — mesma pendência do Skyy (matheusncruz1)
-e do Bigão (giovannecastro784). É só perguntar pra que time cada um torce.
+| | 🎫 SÓCIO | 🖋️ BATISMO |
+|---|---|---|
+| Escudo, mascote, manto, animações | ✅ sim | ✅ sim |
+| Troca um time de CPU da pirâmide | ❌ **não** | ✅ sim |
+| Entra em `data.ts` (divisão + `OLD_NAME`) | ❌ **não** | ✅ sim |
+| Número de **FUNDADOR** (`apoio.tsx`) | ❌ **não** | ✅ sim |
+| `esc_socios.origem` | `assinatura` | `batismo` |
+| Vira "barão" (8 fichas em vez de 6) | ❌ não | ✅ sim |
+| Linha em `novidades.ts` | ❌ não (nada muda pra quem joga) | ✅ sim |
+
+Sócio com clube próprio é **reserva de nome**: o escudo/mascote aparecem quando
+o dono usa o nome dele, e nenhum time de CPU some. Já era assim com **Eros FC**,
+**Sapekeiros FC** e **Marinheiros AS** — o Futpoint FC entra nesse mesmo grupo.
+
+### O que ficou no ar
+- **Sócio nº27**, `origem = 'assinatura'`, manto **preto `#181818` + dourado
+  `#B89040`** (medidos na camisa que ele mandou) + **branco** como 3ª cor
+  (`MANTO_TRI`). Continua **Lenda paga** (👑 ouro) como já era.
+- Mascote **O Pontinho** (`futpoint_bola`) — bola de boné dando joinha. No gol
+  entra **quicando** (`coQuica`), porque é uma bola.
+- Arte: escudo 293×360 · 26,5 KB · mascote 310×440 · 29,3 KB (**56 KB no
+  total**, teto é 75). Camisa do post em `scripts/kits/` (fora do bundle).
+- **Nenhum clube do jogo foi trocado.** `data.ts` está intacto.
+- `scripts/mockup-batismo.mjs` ganhou o modo **`--socio`** (+ `--socio-n`): a
+  pílula vira "CLUBE DE SÓCIO", a manchete vira "Chegou o…" e some o "entra no
+  lugar de" e a divisão. Batismo continua saindo igual como sempre.
+
+⏳ **Falta**: `time_coracao` NULL — mesma pendência do Skyy (matheusncruz1) e do
+Bigão (giovannecastro784).
 
 ## 🧑 ROSTO DE JOGADOR (18/08) — ⏳ MOCKUP ENTREGUE, AGUARDA O OK DO DIEGO
 O Diego viu o `meuonze.app.br` e gostou da arte dos jogadores. Pediu algo

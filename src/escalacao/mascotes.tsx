@@ -490,6 +490,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // do dono (webp, fora do bundle). mascote_key = "bigao".
   // 📍⚽ o PONTINHO (mascote do Futpoint FC — gfpicolo13, 19/08): bola de boné
   // dando joinha. Arte própria do dono (webp, fora do bundle).
+  // SÓCIO, não batismo: o clube é o dele e não substitui time de CPU nenhum.
   // mascote_key = "futpoint_bola".
   futpoint_bola: (
     <img src={futpointMascoteImg} height={176} width={Math.round(176 * 310 / 440)} alt="O Pontinho — Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -707,7 +708,7 @@ export const MASCOTES: Record<string, ReactNode> = {
 //   · time sem batismo = nada muda (o placar fica exatamente como sempre foi).
 // Nome do clube → chave em MASCOTES. Quem tem nome antigo no save cai aqui pelo
 // `newestTeamName` (quem chama resolve antes de procurar).
-// ⚠️ NÃO "limpar" Marinheiros AS / Eros FC / Sapekeiros FC por não acharem na
+// ⚠️ NÃO "limpar" Marinheiros AS / Eros FC / Sapekeiros FC / Futpoint FC por não acharem na
 // pirâmide: esses são batismos de RESERVA DE NOME (o clube do próprio jogador, que
 // não substitui time de CPU) — o carimbo deles dispara quando o dono marca.
 export const CARIMBO_GOL: Record<string, string> = {
@@ -736,7 +737,7 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Nata de SP': 'nata_palhaco', // 🤡 o palhaço carimba o placar (pedrinhocamisa8, 17/08)
   'Skyy FC': 'skyy_aguia', // 🦅 a águia carimba o placar (matheusncruz1, 17/08)
   'Crias do Bigão': 'bigao', // 🧢 o Bigão carimba o placar (giovannecastro784, 17/08)
-  'Futpoint FC': 'futpoint_bola', // 📍 o Pontinho carimba o placar (gfpicolo13, 19/08)
+  'Futpoint FC': 'futpoint_bola', // 📍 o Pontinho carimba o placar (gfpicolo13, 19/08) — RESERVA DE NOME (sócio, não batismo)
 }
 
 // 7️⃣ carimbo exclusivo do Seven City: o sete dourado com borda preta grossa.
