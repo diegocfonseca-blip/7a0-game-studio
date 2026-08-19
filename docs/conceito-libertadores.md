@@ -208,3 +208,47 @@ A categoria vira **`Todos · 🥅 Várzea · 🏆 Só campeões`** e **segue o b
 host escolheu** (BR = Libertadores · Europa = Champions · Todos = os dois). Assim
 o Diego não precisa escolher um: os três existem de graça, com uma regra só.
 Trava por tamanho de sala junto, com o porquê escrito.
+
+---
+
+## 8. ✅ FECHADO com o Diego (20/08): é o PACOTE inteiro
+
+Palavras dele, encerrando a dúvida das seções 6 e 7:
+
+> *"Primeiro q N seria só campeão... E segundo q seria categoria libertadores e
+> partida N seria liga e nem copa. Seria libertadores Tb... Porém acho q seriam
+> poucos jogos né"*
+
+Ou seja, **as duas coisas juntas** (e não é só campeão):
+1. **Categoria 🏆 Libertadores** = baralho só de quem **JOGOU** a Libertadores
+   pelo clube daquele ano (não só campeão — campeão é um subconjunto).
+2. **A partida também é a Libertadores**: grupos + mata-mata. Sem liga e sem
+   copa, e o seletor "Depois da liga" some da tela.
+
+### O "poucos jogos" — respondido com relógio (medido no código)
+`SEASON_TOTAL_MS = 180_000` e `ROUND_MS = SEASON_TOTAL_MS/38` (`screens.tsx:3901`)
+→ **1 rodada de liga = 4,7s**. `QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000`
+(`screens.tsx:3905`) → **1 jogo de mata-mata = 15s**: o motor JÁ dá 3× mais tempo
+pro jogo que vale. Então, em tempo de TELA:
+
+| | Jogos | Tempo de tela |
+|---|---|---|
+| Hoje · só liga | 38 | **3min00** |
+| Hoje · liga + Copa dos 8 | 44 | **4min30** |
+| Libertadores curta (grupos + mata-mata) | 13 | 2min39 |
+| **Libertadores com pré-Liberta** | **19** | **4min09** |
+
+**A Libertadores de 19 jogos empata com a temporada completa de hoje** — e todo
+jogo dela vale alguma coisa, enquanto na liga a maioria das 38 rodadas é rotina.
+"Poucos jogos" não vira "acaba rápido": vira "nenhum jogo à toa".
+
+### E "muitos times" não custa nada
+Os clubes-bot da tabela **não têm elenco** — só `atk`/`def` (`CLASSIC_CLUBS` em
+`data.ts`, usados em `buildLeague`). Passar de 20 pra 32 clubes **não pesa e não
+alonga**: o que dá tempo de tela é RODADA, não clube.
+
+### ⏳ Próximo passo (o único bloqueio)
+Escrever a **lista clube+ano de quem DISPUTOU a Libertadores**, com o nível de
+certeza marcado linha a linha, e o Diego conferir. Onde nenhum dos dois tiver
+certeza, a carta fica de fora (regra dele de 18/08). Sem essa lista o baralho não
+existe. Tamanho esperado: entre 91 (só campeões, já contado) e 560 (teto medido).
