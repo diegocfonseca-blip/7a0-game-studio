@@ -1989,6 +1989,15 @@ export function EscLobby() {
   }
   async function leaveRoom() {
     if (!room || !user) return
+    // 🏆 LIGA: o dono sair NÃO apaga nada. A liga é feita pra ficar de pé — ele
+    // sai, volta semana que vem e está tudo lá. (Bug achado em 20/08 pelo Diego:
+    // como sala comum some quando o dono sai, a liga inteira — troféus incluídos —
+    // ia junto. Uma saída da sala apagava meses de história da turma.)
+    if (room.host_id === user.id && room.game_state?.mode === 'liga') {
+      await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', user.id).then(() => {}, () => {})
+      clearSavedRoom(); setRoom(null); setPlayers([]); setPhase('menu'); fetchMyLigas()
+      return
+    }
     // HOST saiu da sala de espera: NÃO passa a coroa — a sala não faz sentido sem o
     // dono (só ele abre o pregão). Avisa a galera (banner) e encerra a sala.
     if (room.host_id === user.id) {
