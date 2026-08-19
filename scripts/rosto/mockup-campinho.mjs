@@ -37,6 +37,8 @@ const arg = (n, d = '') => {
 }
 const saida = arg('saida', 'campinho.png')
 const dir = arg('fotos', '')
+const semFotos = process.argv.includes('--sem-fotos') // o estado do lançamento: ninguém tem rosto ainda
+const BEGE = 'linear-gradient(160deg,#DBD1B5,#CBBF9E 55%,#B2A583)'
 const b64 = p => fs.readFileSync(p).toString('base64')
 const fonte = w => `data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}`
 const img = p => `data:image/${path.extname(p).slice(1)};base64,${b64(p)}`
@@ -44,7 +46,7 @@ const img = p => `data:image/${path.extname(p).slice(1)};base64,${b64(p)}`
 // manto de exemplo: preto e dourado (o do Futpoint FC)
 const MANTO = 'repeating-linear-gradient(90deg,#181818 0 6px,#B89040 6px 12px)'
 
-const F = k => (dir ? img(path.join(dir, k)) : '')
+const F = k => (semFotos || !dir ? '' : img(path.join(dir, k)))
 const XI = {
   ATA: [{ n: 'Neymar', c: 'Santos · 2011', f: F('face-a.png'), g: 2 },
         { n: 'Mbappé', c: 'PSG · 2022', f: F('face-d.png'), g: 1 },
@@ -59,7 +61,7 @@ const XI = {
 const TAG = { ATA: 'ATA', MEI: 'MEI', DEF: 'ZAG', GOL: 'GOL' }
 
 // ── um jogador SOLTO no gramado ────────────────────────────────────────────
-const boneco = (j, k, alt, fonteNome) => j.n === null ? `
+const boneco = (j, k, alt, fonteNome, fundo = MANTO) => j.n === null ? `
   <div class="vaga">
     <span class="anel" style="width:${alt * .8}px;height:${alt * .8}px">+</span>
     <span class="selo">${TAG[k]}</span>
@@ -68,7 +70,7 @@ const boneco = (j, k, alt, fonteNome) => j.n === null ? `
     <div class="corpo" style="height:${alt}px">
       <span class="fig">
         ${j.f ? `<img src="${j.f}" style="height:${alt}px">`
-              : `<span class="semfoto" style="width:${Math.round(alt * .66)}px;height:${Math.round(alt * .66)}px;font-size:${Math.round(alt * .34)}px;background:${MANTO}">${j.n[0]}</span>`}
+              : `<span class="semfoto" style="width:${Math.round(alt * .66)}px;height:${Math.round(alt * .66)}px;font-size:${Math.round(alt * .34)}px;background:${fundo}">${j.n[0]}</span>`}
         ${j.g ? `<span class="gol">⚽${j.g}</span>` : ''}
       </span>
     </div>
@@ -77,13 +79,13 @@ const boneco = (j, k, alt, fonteNome) => j.n === null ? `
   </div>`
 
 // ── campinho: `livre` = proposta nova · senão o de hoje (fichinha branca) ──
-const pitch = ({ listra, alt, fonteNome, titulo, livre }) => `
+const pitch = ({ listra, alt, fonteNome, titulo, livre, fundo = MANTO, topo = MANTO }) => `
 <div class="pitch">
-  ${titulo ? `<div class="topo"><span>${titulo}</span></div>` : ''}
+  ${titulo ? `<div class="topo" style="background:${topo}"><span>${titulo}</span></div>` : ''}
   <div class="grama" style="background:repeating-linear-gradient(180deg,#1B7A3D 0 ${listra}px,#166332 ${listra}px ${listra * 2}px)">
     ${['ATA', 'MEI', 'DEF', 'GOL'].map(k => `
     <div class="linha">${XI[k].map(j => livre
-      ? boneco(j, k, alt, fonteNome)
+      ? boneco(j, k, alt, fonteNome, fundo)
       : `<div class="ficha">
            <span class="faixa" style="background:${MANTO}"><b>${TAG[k]}</b></span>
            <p class="fn" style="font-size:${fonteNome}px">${j.n ?? 'Vazio'}</p>
@@ -164,40 +166,39 @@ h2 small{font-family:system-ui,sans-serif;font-size:13px;font-weight:600;text-tr
 .marca span{color:#C2452F}
 .site{font-size:13px;color:rgba(12,12,12,.42)}
 </style>
-<div class="pill">🖼️ Mockup 2 · jogador solto no gramado</div>
-<h1>Sem gaiola, <span class="r">só o jogador</span></h1>
-<p class="lead">Você tem razão: a fichinha branca engaiolava o boneco. Agora ele fica <b>solto na grama</b>, com o nome
-embaixo e o clube menor. O que é nosso <b>fica</b>: gramado listrado, traço preto grosso e o <b>seu manto</b> —
-que agora aparece <b>só em quem ainda não tem rosto</b>: a bolinha da inicial ficou nas suas cores. Quem já tem
-foto não leva bolinha nenhuma. O campinho fica <b>mais alto</b> que hoje, que é o preço de o boneco caber.</p>
+<div class="pill">🖼️ Mockup 3 · o campinho no dia do lançamento</div>
+<h1>Como vai <span class="r">ao ar agora</span></h1>
+<p class="lead">Este é o estado real do lançamento: <b>ninguém tem rosto ainda</b>. Todo mundo entra com a bolinha da
+inicial <b>nas cores do manto do dono</b> — e <b>bege</b> pra quem não tem manto. O rosto entra depois, um a um,
+sem mexer em mais nada.</p>
 
-<h2>1 · Campinho do ELENCO da carreira <small>o de olhar o time com calma</small></h2>
+<h2>1 · Com manto <small>quem é sócio/batizado vê as cores do próprio clube</small></h2>
 <div class="par">
   <div class="col"><div class="rot">Como está hoje</div><div class="cx">
     ${pitch({ listra: 38, alt: 0, fonteNome: 10.5, livre: false })}</div></div>
-  <div class="col"><div class="rot ok">▶ Proposta — jogador livre</div><div class="cx">
+  <div class="col"><div class="rot ok">▶ Elenco da carreira — no ar</div><div class="cx">
     ${pitch({ listra: 44, alt: 74, fonteNome: 12.5, titulo: '⭐ Titulares', livre: true })}</div></div>
 </div>
 
-<h2>2 · Campinho do LEILÃO <small>divide a tela com o lance, então o boneco entra menor</small></h2>
+<h2>2 · Sem manto <small>bege, a cor de quem ainda não apoia — nada de cor emprestada</small></h2>
 <div class="par">
   <div class="col"><div class="rot">Como está hoje</div><div class="cx">
     ${pitch({ listra: 34, alt: 0, fonteNome: 11, livre: false })}</div></div>
-  <div class="col"><div class="rot ok">▶ Proposta — jogador livre</div><div class="cx">
-    ${pitch({ listra: 38, alt: 56, fonteNome: 11, titulo: '⭐ Titulares', livre: true })}</div></div>
+  <div class="col"><div class="rot ok">▶ Campinho do leilão — no ar</div><div class="cx">
+    ${pitch({ listra: 38, alt: 56, fonteNome: 11, titulo: '⭐ Titulares', livre: true, fundo: BEGE, topo: '#0C0C0C' })}</div></div>
 </div>
 
 <div class="nota">
-  <div class="tit">O que eu mantive do nosso e o que peguei da referência</div>
+  <div class="tit">O que entra agora e o que fica pra depois</div>
   <div class="corpo2">
-    <div><h4>✅ Continua nosso</h4><p>Gramado listrado verde, moldura preta grossa do campinho, Oswald no nome,
-      e a <b>vaga vazia com o "+"</b> — é ela que faz time incompleto parecer "falta gente", não bug.</p></div>
-    <div><h4>🎽 O manto só onde falta rosto</h4><p>Quem tem foto <b>não leva bolinha</b>. Quem não tem ganha a
-      bolinha da inicial <b>nas cores do SEU clube</b> — ela vira a cara dele até o rosto chegar.</p></div>
-    <div><h4>👤 Quem ainda não tem rosto</h4><p>A bolinha do manto entra do mesmo tamanho do boneco, então o
-      campinho fica <b>alinhado</b> mesmo com metade dos rostos prontos.</p></div>
-    <div><h4>📏 Fica mais alto</h4><p>No elenco o boneco tem 74px; no leilão, 56px (lá o campinho divide a tela com
-      o lance). Se achar alto demais, é só baixar o número — não mexe em mais nada.</p></div>
+    <div><h4>✅ Entra agora</h4><p>O desenho novo do campinho — jogador solto, nome em Oswald com contorno,
+      clube · ano, e a bolinha do manto. Vale no <b>leilão, no rápido, no online e na carreira</b>.</p></div>
+    <div><h4>⏸️ Fica pra depois</h4><p><b>Os rostos.</b> A pasta nasce vazia de propósito: ligar isto hoje
+      <b>não muda a cara de ninguém</b>, só o desenho do campo.</p></div>
+    <div><h4>🎽 A cor é sempre a do dono</h4><p>Sócio vê o manto dele; quem não tem manto vê <b>bege</b>.
+      Ninguém pega cor emprestada — a regra de tier de sempre.</p></div>
+    <div><h4>↩️ Reverter</h4><p>É <b>um commit isolado</b>. Voltar devolve a fichinha branca em todos os modos,
+      e nenhuma carreira é afetada — isto é só desenho.</p></div>
   </div>
 </div>
 
