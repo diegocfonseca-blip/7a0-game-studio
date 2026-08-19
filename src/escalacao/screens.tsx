@@ -1813,9 +1813,15 @@ export function EscSetup() {
       setNameErr('')
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
     }
-    // rivais escolhidos + completa com os padrões da Série D se faltar
+    // rivais escolhidos + completa com os padrões da Série D se faltar.
+    // 🪞 SEM SE ENFRENTAR (19/08, print do Diego): o preenchimento automático pegava
+    // os primeiros clubes da Série D — e o clube do PRÓPRIO jogador está lá. Deu
+    // dois "Neymarzetti" na mesma tabela, um dele e um robô. Aqui o seu clube sai
+    // da lista de rivais; a trava final está no `makeCareerManagers`.
+    const meuNome = stripEmoji(clean).trim().toLowerCase()
+    const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome
     const picks = career
-      ? [...rivalPicks, ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t))].slice(0, rivals)
+      ? [...rivalPicks.filter(naoSouEu), ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
       : undefined
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.

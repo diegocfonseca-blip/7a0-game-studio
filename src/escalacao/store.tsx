@@ -1906,19 +1906,27 @@ function migrateTeamNames(st: EscState): EscState {
 function makeCareerManagers(teamName: string, formation: FormationKey, div: Division, rivalDefs: CareerTeam[], otherRivalDefs: CareerTeam[], rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const human: Manager = { id: 0, name: teamName, teamName, isHuman: true, auctionRival: true, formation, money: START_MONEY, squad: [], aggression: 0.5, starHunger: 0.5 }
-  const usedTeams = new Set(rivalDefs.map(r => r.team))
-  const fillerNeeded = LEAGUE_SIZE - 1 - rivalDefs.length
+  // 🪞 REGRA DO CLONE — AGORA TAMBÉM NOS RIVAIS (19/08, print do Diego).
+  // O preenchimento da liga já tirava o robô com o nome do time do jogador, mas os
+  // RIVAIS entravam crus. Como a lista de rivais é preenchida com os primeiros
+  // clubes da Série D quando a pessoa não escolhe, o PRÓPRIO clube dela podia virar
+  // rival — e a tabela mostrava DOIS times com o mesmo nome (dois "Neymarzetti",
+  // um com o troféu do dono e outro robô). Ninguém joga contra si mesmo.
+  const rivais = tiraClones(rivalDefs, [teamName])
+  const outrosRivais = tiraClones(otherRivalDefs, [teamName])
+  const usedTeams = new Set(rivais.map(r => r.team))
+  const fillerNeeded = LEAGUE_SIZE - 1 - rivais.length
   const fillerDefs = tiraClones(DIVISION_TEAMS[div === 'V' ? 'D' : div], [teamName]).filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
   const cpus: Manager[] = []
   const botPlans: BotPlan[] = []
   let id = 1
-  for (const r of rivalDefs) {
+  for (const r of rivais) {
     cpus.push({ id, name: r.name, teamName: r.team, isHuman: false, auctionRival: true, formation: forms[Math.floor(rng() * forms.length)], money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng() })
     id++
   }
   // rivais de OUTRA divisão: bidders "auction-only" — brigam no pregão mas não
   // entram na sua liga (buildLeague os ignora; saem dos managers na cerimônia).
-  for (const r of otherRivalDefs) {
+  for (const r of outrosRivais) {
     cpus.push({ id, name: r.name, teamName: r.team, isHuman: false, auctionRival: true, auctionOnly: true, formation: forms[Math.floor(rng() * forms.length)], money: START_MONEY, squad: [], aggression: 0.25 + rng() * 0.7, starHunger: rng() })
     id++
   }
