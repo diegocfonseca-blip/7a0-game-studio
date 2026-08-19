@@ -1,6 +1,59 @@
 # 📌 Pendências combinadas com o Diego (atualizado 19/08/2026)
 
-## 🐛🪜 CARREIRA NOVA NASCENDO COM TÍTULOS — ⏳ CONTIDO, CAUSA AINDA ABERTA
+## 🐛👻 A CARREIRA FANTASMA — CAUSA RAIZ ACHADA E FECHADA (19/08) ✅
+O Diego achou testando na conta dele: apertou **Nova carreira**, e na tela de
+montar a carreira apareceu um **banner roxo "🪜 Carreira em andamento · Série D ·
+Temporada 2 · Continuar carreira (Neymarzetti)"** — de uma carreira que **não
+está em "Minhas Carreiras"**. Palavras dele: *"é do modo rápido online isso...
+ficou como se fosse save de carreira. Jogo do modo rápido virou um continua
+carreira no modo carreira... foi oq fez essa confusão toda"*. Ele estava certo.
+
+### O caminho do bug (linha por linha)
+1. O reducer **clona o estado anterior**. Quem saía de uma **carreira** (ou da
+   Dinastia) e entrava numa **sala online** levava o `careerDivision` junto —
+   `START_ONLINE` zerava `careerOnline`, `sport`, `varzea`… mas **nunca zerou o
+   `careerDivision`**.
+2. Com esse campo preenchido, a sala online passava a se comportar como carreira
+   por fora: selo 🪜 SÉRIE D na tabela, rastreador de rivais, e — no fim da
+   temporada — o **painel de fim de carreira** no lugar do painel do online.
+3. Esse painel **auto-salva** um save de carreira assim que aparece
+   (`CareerEndPanel`, o `autoSaved`). Só que o elenco ali era o da **sala
+   online**. Nascia uma carreira que ninguém criou, gravada em `esc_careers` —
+   uma tabela **diferente** de `esc_pyramid_saves`, que é a de "Minhas
+   Carreiras". Por isso o fantasma não aparecia na lista.
+4. Quem tocasse em **"Continuar carreira"** naquele banner abria um jogo com
+   elenco pronto (Suárez e cia., do leilão online) e com os **títulos que
+   estavam no estado** — porque `RESTORE_CAREER` também não fazia faxina.
+   **É a origem do caso do Paduz.**
+
+### A prova (banco, não achismo)
+524 linhas em `esc_careers`; **474 com `season_no = 2`** (= uma temporada jogada)
+e **linhas gravadas no MESMO segundo por usuários diferentes** (16:58:51,
+16:58:52, 16:58:55…) — gente da **mesma sala online** terminando junto. Ninguém
+consegue **criar** uma carreira antiga desde **30/07**, quando a pirâmide entrou
+(`START_CAREER_SOLO`): a tela de setup manda pra pirâmide. Ou seja, tudo que foi
+escrito ali depois de 30/07 é fantasma.
+
+### O conserto (3 travas + limpeza)
+1. **Raiz** — `START_ONLINE` agora faz faxina de carreira: `careerDivision`,
+   `careerIntent`, `careerTitles/TitlesA` e `careerRivals` zerados sempre; sala
+   **rápida** também zera `careerPlacements` e os títulos de todo mundo.
+2. **Cinto** — o painel de fim de carreira nunca mais renderiza numa sala online
+   (`state.careerDivision && !online`), então não tem como auto-salvar de novo.
+3. **Cinto 2** — `RESTORE_CAREER` faz faxina completa (honras, colocação, caixa,
+   estádio, `careerOnline`…). Retomar um save velho não pode mais parir uma
+   carreira com títulos de outra.
+4. **Banner** — só oferece save **anterior a 30/07**. O que veio depois é
+   apagado sozinho ao abrir a tela (dá pra provar pela data que é fantasma).
+5. **Limpeza no banco**: 384 linhas fantasmas removidas de `esc_careers`, todas
+   **copiadas antes** pra `esc_backup_saves` (motivo `carreira-fantasma…`).
+   Ficaram as 140 anteriores a 30/07, que podem ser carreiras de verdade da
+   época em que esse modo existia.
+
+**Dá pra reverter?** Sim: o código é um commit isolado, e as 384 linhas estão
+inteiras no backup.
+
+## 🐛🪜 CARREIRA NOVA NASCENDO COM TÍTULOS — ✅ CAUSA FECHADA (ver seção acima)
 Reportado pelo Diego em 19/08 (usuário **Paduz**): *"como q ele cria carreira e
 já tava C time.. já C Suárez e etc... e já C títulos"*.
 
@@ -36,13 +89,14 @@ atropelada pela velha, com elenco e tudo.
 antiga não some (fica no arquivo e na nuvem); some só o "esta é a ativa", que
 passa a ser a nova no primeiro autosave dela.
 
-### ⚠️ O QUE AINDA NÃO ESTÁ EXPLICADO
-O **número** dos títulos. A carreira nova nasceu com **31** Séries A, e a antiga
-tinha **106** — se fosse cópia direta seriam 106. Então 31/28 veio de outro
-lugar (provavelmente uma carreira mais velha ainda, guardada no arquivo do
-aparelho dele). Não vou fingir que fechei isso.
-O estrago, porém, está contido pelas duas travas abaixo — mesmo sem a origem,
-número impossível não passa mais.
+### ✅ CAUSA DOS TÍTULOS — ACHADA EM 19/08 (a carreira fantasma)
+Faltava explicar o **número** (31 Séries A / 28 Copas, quando a antiga tinha
+106). Fechou com a seção **"A CARREIRA FANTASMA"** no topo deste arquivo: o
+`RESTORE_CAREER` do banner roxo não fazia faxina, então a carreira aberta ali
+saía com o `careerHonors` que estivesse em memória — de qualquer partida
+anterior daquela aba, não necessariamente da carreira mais recente. Daí o número
+não bater com 106: não era cópia da última, era o que sobrou na memória.
+As duas travas abaixo continuam de pé como cinto de segurança.
 
 ### ✅ O que já está no ar (contenção)
 **Regra ditada pelo Diego:** *"N quero q NG tenha mais títulos do q temporadas...

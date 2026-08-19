@@ -3889,6 +3889,31 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      // 🧹 FAXINA ANTI-CARREIRA (bug achado pelo Diego 19/08, testando na conta dele).
+      // O reducer clona o estado ANTERIOR. Quem saía de uma carreira (ou da Dinastia)
+      // e entrava numa SALA ONLINE levava o `careerDivision` junto — e a sala online
+      // passava a se comportar como carreira por fora: selo 🪜 SÉRIE D na tabela,
+      // rastreador de rivais e, no fim, o painel de fim de temporada da CARREIRA no
+      // lugar do painel do online.
+      //
+      // O estrago grande vinha desse painel: ele AUTO-SALVA um save de carreira — só
+      // que com o elenco da SALA ONLINE. Era esse save fantasma que aparecia depois
+      // como "🪜 Carreira em andamento · Série D · Temporada 2" na tela de criar
+      // carreira, de uma carreira que NÃO está em "Minhas Carreiras" (não é o mesmo
+      // arquivo). E quem tocava em "Continuar carreira" abria um jogo com elenco e
+      // títulos que ninguém ganhou — a origem do caso do Paduz.
+      //
+      // O online NUNCA usa `careerDivision`: a carreira online se orienta pela
+      // colocação (`careerPlacements`). Então aqui zera, sempre.
+      s.careerDivision = null
+      s.careerIntent = false
+      s.careerTitles = 0; s.careerTitlesA = 0
+      s.careerRivals = []
+      if (!action.career) {
+        // sala RÁPIDA: nada de carreira sobra — nem colocação, nem títulos de ninguém
+        s.careerPlacements = null
+        s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
+      }
       if (action.career) {
         // colocação da temporada 1: todos os técnicos na Série D; A/B/C com os
         // times de CPU fixos. Compacto (só a divisão) — os elencos são derivados.
@@ -5902,6 +5927,25 @@ export function reducer(state: EscState, action: Action): EscState {
       const sv = action.save
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       s.roomId = ''; s.roomCode = ''; s.streamMode = false; s.manualRoom = false
+      // 🧹 FAXINA (19/08): a carreira ANTIGA (4 divisões) é um jogo à parte — não pode
+      // herdar NADA do que estava em tela antes. Sem isto, retomar um save aqui logo
+      // depois de uma carreira-pirâmide carregava junto os títulos (careerHonors), a
+      // colocação e o `careerOnline` da outra — e o jogo passava a tratar aquilo como
+      // uma carreira NOVA da pirâmide, nascida com elenco pronto e títulos que ninguém
+      // ganhou. Regra do Diego: nunca mais títulos do que temporadas jogadas.
+      s.careerOnline = false; s.careerLedger = []
+      s.dinastia = false; s.dinastiaBudget = undefined
+      s.careerPlacements = null
+      s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
+      s.careerCopaSeasons = []; s.careerSupercopaSeasons = []
+      s.careerCoins = {}; s.stadiums = {}; s.careerFilial = undefined
+      s.multiClube = undefined; s.multiClubePendingCards = undefined
+      s.copaMundoMural = undefined
+      s.careerScorersAll = {}; s.statsSeason = 0
+      s.marketValues = {}; s.marketLog = []
+      s.cpuSquads = undefined; s.copaDoneSeason = undefined
+      s.reserveAuction = false; s.reserveListed = {}
+      s.quickCopa = null
       s.deckLeague = sv.deckLeague ?? 'br'; setActiveCatalog(s.deckLeague) // baralho da carreira salva
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles; s.careerTitlesA = sv.titlesA ?? 0
       s.seasonNo = sv.seasonNo

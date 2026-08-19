@@ -6324,8 +6324,20 @@ function RankResultWriter() {
 
 // ─── CARREIRA: salvar/carregar + modais ──────────────────────────────
 const CAREER_LS = 'esc-career'
-function saveCareerLocal(save: CareerSave) { try { localStorage.setItem(CAREER_LS, JSON.stringify(save)) } catch { /* ignora */ } }
-function loadCareerLocal(): CareerSave | null { try { const r = localStorage.getItem(CAREER_LS); return r ? JSON.parse(r) as CareerSave : null } catch { return null } }
+// ⚠️ ESTE É O SAVE DA CARREIRA ANTIGA (a de 4 divisões, `esc_careers`) — NÃO é a
+// carreira de hoje. A carreira atual é a PIRÂMIDE, que mora em outro lugar
+// (`esc_pyramid_saves` / "Minhas Carreiras"). Desde 30/07 ninguém consegue mais
+// CRIAR uma carreira antiga: o botão da tela de setup manda `START_CAREER_SOLO`
+// (pirâmide). Ou seja, todo save daqui pra frente nesta caixa é FANTASMA — foi
+// escrito por engano no fim de uma sala online que herdou o `careerDivision`
+// (bug consertado em 19/08). Por isso o banner "Continuar carreira" só oferece
+// save mais VELHO que essa data: o que veio depois não existe de verdade.
+const PIRAMIDE_DESDE = '2026-07-30'
+type CareerSaveRow = CareerSave & { savedAt?: string }
+/** save escrito depois que a pirâmide nasceu = fantasma (nunca foi criado por ninguém) */
+function saveFantasma(s: CareerSaveRow): boolean { return !s.savedAt || s.savedAt.slice(0, 10) >= PIRAMIDE_DESDE }
+function saveCareerLocal(save: CareerSave) { try { localStorage.setItem(CAREER_LS, JSON.stringify({ ...save, savedAt: new Date().toISOString() })) } catch { /* ignora */ } }
+function loadCareerLocal(): CareerSaveRow | null { try { const r = localStorage.getItem(CAREER_LS); return r ? JSON.parse(r) as CareerSaveRow : null } catch { return null } }
 
 // salva sempre no aparelho; se logado, também na conta (nuvem, multi-aparelho).
 // devolve true se salvou na conta.
@@ -6344,12 +6356,12 @@ async function saveCareer(save: CareerSave): Promise<boolean> {
     return !error
   } catch { return false }
 }
-async function loadCareer(): Promise<CareerSave | null> {
+async function loadCareer(): Promise<CareerSaveRow | null> {
   try {
     const { data } = await supabase.auth.getUser()
     if (data?.user) {
       const { data: row } = await supabase.from('esc_careers').select('*').eq('user_id', data.user.id).maybeSingle()
-      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, titlesA: row.titles_a ?? 0, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivals: (row.rival_teams as CareerSave['rivals']) ?? undefined, rivalCount: row.rival_count ?? undefined }
+      if (row) return { division: row.division, seasonNo: row.season_no, teamName: row.team_name, formation: row.formation, squad: row.squad as CareerSave['squad'], titles: row.titles, titlesA: row.titles_a ?? 0, pendingDecision: !!row.pending_decision, result: row.result ?? undefined, prevDivision: row.prev_division ?? undefined, rivals: (row.rival_teams as CareerSave['rivals']) ?? undefined, rivalCount: row.rival_count ?? undefined, savedAt: (row.updated_at as string | undefined) ?? undefined }
     }
   } catch { /* ignora */ }
   return loadCareerLocal()
@@ -6414,7 +6426,7 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
 // depois de tocar em "Carreira por Divisões" — não fica mais na home.
 function CareerContinueBanner() {
   const { dispatch } = useEsc()
-  const [save, setSave] = useState<CareerSave | null>(null)
+  const [save, setSave] = useState<CareerSaveRow | null>(null)
   const [decideOpen, setDecideOpen] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false) // confirma no app (window.confirm é bloqueado no navegador do zap/insta)
   const onDelete = async () => {
@@ -6426,6 +6438,12 @@ function CareerContinueBanner() {
     ;(async () => {
       const s = await loadCareer()
       if (!s) return
+      // 👻 save fantasma (nasceu no fim de uma sala online, não é carreira de
+      // ninguém): não oferece. Só APAGA quando dá pra provar pela data — save
+      // escrito depois de 30/07 é impossível de ter sido criado por alguém. Sem
+      // data (aparelho de quem nunca logou), só esconde: não apaga o que não dá
+      // pra ter certeza.
+      if (saveFantasma(s)) { if (s.savedAt) deleteCareer(); return }
       // se logado, o time carrega com o nome ATUAL da conta (fonte única) —
       // renomear em qualquer lugar reflete aqui também.
       const { data } = await supabase.auth.getUser()
@@ -7519,9 +7537,13 @@ export function EscEnd() {
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
       {online && !copaPending && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
+      {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
+          Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira
+          fantasma com o elenco da sala (a origem do caso do Paduz). A raiz já está
+          fechada no START_ONLINE — este `!online` é a segunda trava. */}
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : state.careerDivision ? <CareerEndPanel /> : state.nbaCareer ? (copaPending ? null : <NbaCareerEndPanel />) : (online || copaPending) ? null : (<>
+      ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending ? null : <NbaCareerEndPanel />) : (online || copaPending) ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
