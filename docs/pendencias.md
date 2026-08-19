@@ -1,4 +1,45 @@
-# 📌 Pendências combinadas com o Diego (atualizado 19/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 20/08/2026)
+
+## 🏆 LIGA FECHADA — em construção (só a conta do Diego)
+A sala que fica de pé: horário marcado, sempre a MESMA sala, só a turma entra e
+os troféus se empilham ali. Desenho aprovado em `scripts/mockup-liga-fechada.mjs`
+(rode pra ver a folha). Regras ditadas pelo Diego:
+1. **Sempre a mesma sala** — é o que faz o troféu acumular.
+2. Só entra quem é **👑 Lenda ou dono de clube batizado**; quem não é nem vê a
+   sala (como todo batismo já nasce ouro, a conta é uma só: `tier === 'ouro'`).
+3. **O host começa quando quiser**, igual às salas de hoje (com 2 já dá).
+4. Ao ligar a liga ele escolhe **com ou sem bot**, e pode trocar depois.
+5. **O dono manda na liga**: arruma qualquer troféu de qualquer um, liga/desliga
+   quais troféus existem, e escreve a **regra do ranking** (por ordem de títulos
+   ou por pontos que ele define; e se cair de divisão tira título). O jogo sugere,
+   ele decide, e vale toda vez que a turma entrar.
+
+### Onde está
+- ✅ **Peça 1** (`11c645c`): 🏆 Liga virou MODO de jogo, do lado do Rápido. Cria a
+  sala com dia, hora e com/sem bots. Aba apagada com "em breve" pra todo mundo
+  menos o Diego (`LIGA_TESTERS` em `sport.ts`).
+- ✅ **Peça 2** (`079e66e`): liga sai da lista pública (é privada) e nasce a lista
+  **"Minhas ligas"**, que busca por PARTICIPAÇÃO — por isso não some como some
+  sala parada há 6h.
+- ✅ **Peça 3** (`1a3c809`): sala de troféus na ESPERA (só leitura; quem grava
+  continua sendo o fim de jogo).
+- ⏳ **Peça 4**: o dono arrumar/escrever troféu.
+- ⏳ **Peça 5**: as regras do ranking da liga.
+
+### 🧹 A FAXINA IA COMER A LIGA — consertado no banco (20/08)
+Pergunta do Diego: *"e se o cara nunca apagar a liga mais??"*. Ao medir, achei
+coisa pior que acumular: existe um **cron diário às 8h** que **apagava toda sala
+parada há 2 dias** (só a carreira escapava). Uma liga marcada pra sábado seria
+apagada na quarta, com os troféus junto, sem ninguém saber.
+Agora são duas regras no mesmo cron:
+- **sala comum**: 2 dias parada, como sempre;
+- **liga fechada**: só depois de **90 dias sem ninguém jogar**.
+Tudo que sai continua sendo copiado pro `game_rooms_cleanup_log` antes.
+
+**Custo de guardar**: medido — 467 salas ocupam 74 MB, ~**39 kB por sala**. Mil
+ligas guardadas dariam ~39 MB, e a sala NÃO cresce por temporada (é sempre o
+estado atual). Ou seja, guardar liga é barato; o problema era o contrário.
+
 
 
 ## 🏢⏳ HACK DO "ESCONDE NA SAF" — FECHADO (18/08) ✅ NO AR

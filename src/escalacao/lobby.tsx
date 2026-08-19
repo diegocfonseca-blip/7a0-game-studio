@@ -12,7 +12,7 @@ import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
-import { useSalaElencoLiberada } from './sport' // 👔 Sala de Elenco: modo novo, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada } from './sport' // 👔 Sala de Elenco: modo novo, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -36,7 +36,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco'; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga'; ligaAt?: string; ligaRegras?: unknown; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -56,6 +56,330 @@ function chatColor(name: string): string {
   let h = 0
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
   return CHAT_COLORS[h % CHAT_COLORS.length]
+}
+
+// ─── ⚖️ AS REGRAS DA LIGA SÃO DO DONO (20/08) ────────────────────────────────
+// Pedido do Diego: *"ele pode definir a regra do ranking… por ordem de títulos e
+// qual vale mais, liga ou copa… e se zona de rebaixamento tira título… ou por
+// ordem de pontuação que ele decidir. O jogo pode dar a sugestão de início mas
+// ele decidiria. E quando ele decidir fica decidido daquele jeito toda vez que
+// entrarem nessa sala"*.
+//
+// ⚠️ Vale SÓ DENTRO DA LIGA. O ranking global do jogo não olha nada disto — senão
+// cada um inventaria a própria pontuação e o rank geral virava mentira.
+type LigaChave = 'liga' | 'copa' | 'artilheiro' | 'rebaixamento'
+export type LigaRegras = { modo: 'titulos' | 'pontos'; ordem: LigaChave[]; pontos: Record<LigaChave, number>; rebaixaTira: boolean; ativos: LigaChave[] }
+const LIGA_REGRAS_PADRAO: LigaRegras = {
+  modo: 'titulos',
+  ordem: ['liga', 'copa', 'artilheiro'],
+  // sugestão do jogo (a mesma conta do rank de hoje: copa vale mais que liga)
+  pontos: { liga: 20, copa: 30, artilheiro: 5, rebaixamento: -10 },
+  rebaixaTira: true,
+  ativos: ['liga', 'copa', 'artilheiro', 'rebaixamento'],
+}
+const LIGA_ROTULO: Record<LigaChave, string> = { liga: '🏆 Título da liga', copa: '🏆🇧🇷 Copa', artilheiro: '⚽ Artilheiro', rebaixamento: '🔻 Rebaixamento' }
+const lerRegras = (v: unknown): LigaRegras => {
+  const r = (v ?? {}) as Partial<LigaRegras>
+  return {
+    modo: r.modo === 'pontos' ? 'pontos' : 'titulos',
+    ordem: Array.isArray(r.ordem) && r.ordem.length ? r.ordem : LIGA_REGRAS_PADRAO.ordem,
+    pontos: { ...LIGA_REGRAS_PADRAO.pontos, ...(r.pontos ?? {}) },
+    rebaixaTira: r.rebaixaTira ?? LIGA_REGRAS_PADRAO.rebaixaTira,
+    ativos: Array.isArray(r.ativos) ? r.ativos : LIGA_REGRAS_PADRAO.ativos,
+  }
+}
+
+// 🏆 SALA DE TROFÉUS DA LIGA na ESPERA. O histórico já existe no jogo
+// (`game_champions`, gravado no fim de cada temporada por sala) — o que muda é
+// ONDE ele aparece: numa liga que se repete toda semana, o valor está em ver
+// quem é o dono da liga ANTES de começar, não depois.
+//
+// ✏️ E O DONO ARRUMA (*"às vezes pode dar erro, aí eles mesmos podem arrumar"*).
+// Só o DONO da sala vê o lápis e o "escrever uma temporada" — a trava de verdade
+// é no banco (política que checa o host da sala), então nem convidado nem gente
+// de fora consegue mexer, mesmo mexendo no navegador. Convidado só lê.
+//
+// 📊 O RANKING sai daqui de dentro: é contado das MESMAS linhas de troféu, com a
+// regra que o dono escolheu. Um lugar só, então arrumar um troféu já arruma o
+// ranking na mesma hora.
+function TrofeusDaLiga({ roomId, isHost, nomes, regras, salvarRegras }: {
+  roomId: string; isHost: boolean; nomes: string[]
+  regras: LigaRegras; salvarRegras: (r: LigaRegras) => void
+}) {
+  type Linha = { season_no: number; champion_name: string | null; top_scorer_name: string | null; top_scorer_goals: number | null; top_scorer_team: string | null; mico_name: string | null; copa_champion_name: string | null }
+  const [rows, setRows] = useState<Linha[] | null>(null)
+  const [edit, setEdit] = useState<Linha | null>(null)
+  const [abrirRegras, setAbrirRegras] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [erro, setErro] = useState('')
+  const listaId = `trofeu-nomes-${roomId}`
+
+  const carregar = useCallback(() => {
+    void supabase.from('game_champions')
+      .select('season_no, champion_name, top_scorer_name, top_scorer_goals, top_scorer_team, mico_name, copa_champion_name')
+      .eq('room_id', roomId).order('season_no', { ascending: true })
+      .then(({ data }) => setRows((data ?? []) as Linha[]), () => setRows([]))
+  }, [roomId])
+  useEffect(() => { carregar() }, [carregar])
+
+  const vazia = (t: number): Linha => ({ season_no: t, champion_name: '', top_scorer_name: '', top_scorer_goals: null, top_scorer_team: '', mico_name: '', copa_champion_name: '' })
+  const limpo = (v: string | null) => { const t = (v ?? '').trim(); return t ? t : null }
+
+  async function salvar() {
+    if (!edit || busy) return
+    setBusy(true); setErro('')
+    const payload = {
+      champion_name: limpo(edit.champion_name), copa_champion_name: limpo(edit.copa_champion_name),
+      top_scorer_name: limpo(edit.top_scorer_name), top_scorer_goals: edit.top_scorer_goals ?? null,
+      top_scorer_team: limpo(edit.top_scorer_team), mico_name: limpo(edit.mico_name),
+    }
+    const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', edit.season_no).maybeSingle()
+    const { error } = existe
+      ? await supabase.from('game_champions').update(payload).eq('id', existe.id)
+      : await supabase.from('game_champions').insert({ room_id: roomId, season_no: edit.season_no, ...payload })
+    setBusy(false)
+    if (error) { setErro('Não deu pra salvar. Tente de novo.'); return }
+    setEdit(null); carregar()
+  }
+  async function apagar(t: number) {
+    if (busy) return
+    if (!window.confirm(`Apagar a temporada ${t} da sala de troféus?\n\nSó esta linha some — o resto da liga fica.`)) return
+    setBusy(true); setErro('')
+    const { error } = await supabase.from('game_champions').delete().eq('room_id', roomId).eq('season_no', t)
+    setBusy(false)
+    if (error) { setErro('Não deu pra apagar. Tente de novo.'); return }
+    setEdit(null); carregar()
+  }
+
+  // ── 📊 o ranking, contado das mesmas linhas ────────────────────────────────
+  const ranking = (() => {
+    if (!rows || rows.length === 0) return []
+    const conta: Record<string, Record<LigaChave, number>> = {}
+    const pega = (n?: string | null) => {
+      const t = (n ?? '').trim(); if (!t) return null
+      if (!conta[t]) conta[t] = { liga: 0, copa: 0, artilheiro: 0, rebaixamento: 0 }
+      return conta[t]
+    }
+    for (const l of rows) {
+      pega(l.champion_name)!.liga++
+      const c = pega(l.copa_champion_name); if (c) c.copa++
+      const a = pega(l.top_scorer_team); if (a) a.artilheiro++
+      const m = pega(l.mico_name); if (m) m.rebaixamento++
+    }
+    const on = (k: LigaChave) => regras.ativos.includes(k)
+    const ligaDe = (v: Record<LigaChave, number>) =>
+      regras.modo === 'titulos' && regras.rebaixaTira && on('rebaixamento') ? Math.max(0, v.liga - v.rebaixamento) : v.liga
+    const pts = (v: Record<LigaChave, number>) =>
+      (['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[])
+        .filter(on).reduce((s, k) => s + (k === 'liga' ? v.liga : v[k]) * (regras.pontos[k] ?? 0), 0)
+    const lista = Object.entries(conta).map(([time, v]) => ({ time, v, pts: pts(v) }))
+    lista.sort((A, B) => {
+      if (regras.modo === 'pontos') return B.pts - A.pts || A.time.localeCompare(B.time)
+      for (const k of regras.ordem) {
+        if (!on(k)) continue
+        const a = k === 'liga' ? ligaDe(A.v) : A.v[k]
+        const b = k === 'liga' ? ligaDe(B.v) : B.v[k]
+        if (a !== b) return b - a
+      }
+      return A.time.localeCompare(B.time)
+    })
+    return lista
+  })()
+
+  if (rows == null) return null
+  const proxima = rows.length ? Math.max(...rows.map(r => r.season_no)) + 1 : 1
+  const campo = (rot: string, val: string, set: (v: string) => void, ph = '') => (
+    <div className="flex-1 min-w-0">
+      <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1" style={OSWALD}>{rot}</p>
+      <input value={val} list={listaId} placeholder={ph} onChange={e => set(e.target.value)}
+        className="w-full border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+    </div>
+  )
+  const troca = (k: LigaChave) => {
+    const tem = regras.ativos.includes(k)
+    salvarRegras({ ...regras, ativos: tem ? regras.ativos.filter(x => x !== k) : [...regras.ativos, k] })
+  }
+  const sobe = (k: LigaChave) => {
+    const i = regras.ordem.indexOf(k); if (i <= 0) return
+    const o = [...regras.ordem]; [o[i - 1], o[i]] = [o[i], o[i - 1]]
+    salvarRegras({ ...regras, ordem: o })
+  }
+
+  return (
+    <div className="rounded-2xl border-[3px] border-black p-3 space-y-3" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
+      <datalist id={listaId}>{nomes.map(n => <option key={n} value={n} />)}</datalist>
+
+      {/* 📊 RANKING — o que a regra do dono produz. Só aparece quando já tem troféu. */}
+      {ranking.length > 0 && (
+        <div>
+          <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#7a4d00' }}>📊 Ranking da liga</p>
+          <div className="space-y-1.5">
+            {ranking.map((r, i) => (
+              <div key={r.time} className="flex items-center gap-2 border-2 border-black rounded-xl px-2.5 py-1.5 bg-white">
+                <span className="font-black text-[13px] shrink-0 w-6 text-center" style={{ ...OSWALD, color: i === 0 ? '#7a4d00' : 'rgba(12,12,12,.4)' }}>{i === 0 ? '🥇' : `${i + 1}º`}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-[13px] truncate" style={OSWALD}>{r.time}</p>
+                  <p className="text-black/55 text-[10.5px] font-bold truncate">
+                    {regras.ativos.includes('liga') ? `🏆 ${r.v.liga}` : ''}
+                    {regras.ativos.includes('copa') ? ` · 🏆🇧🇷 ${r.v.copa}` : ''}
+                    {regras.ativos.includes('artilheiro') ? ` · ⚽ ${r.v.artilheiro}` : ''}
+                    {regras.ativos.includes('rebaixamento') ? ` · 🔻 ${r.v.rebaixamento}` : ''}
+                  </p>
+                </div>
+                {regras.modo === 'pontos' && (
+                  <span className="shrink-0 font-black text-[13px] border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: GOLD }}>{r.pts}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 🏆 os troféus, temporada por temporada */}
+      <div>
+        <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Sala de troféus da liga</p>
+        {rows.length === 0 ? (
+          <p className="text-black/55 text-[11.5px] font-bold leading-snug">
+            Ainda sem troféu nenhum — <b>o primeiro campeão sai no fim deste jogo</b>. Daqui pra frente tudo fica guardado aqui.
+          </p>
+        ) : (
+          <div className="space-y-1.5">
+            {rows.map(l => (
+              <div key={l.season_no} className="flex items-center gap-2 border-2 border-black rounded-xl px-2.5 py-1.5 bg-white">
+                <span className="font-black text-[11px] text-black/40 shrink-0" style={OSWALD}>T{l.season_no}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-[13px] truncate" style={OSWALD}>🏆 {l.champion_name ?? '—'}</p>
+                  <p className="text-black/55 text-[10.5px] font-bold truncate">
+                    {l.copa_champion_name ? `🏆🇧🇷 ${l.copa_champion_name} · ` : ''}
+                    {l.top_scorer_name ? `⚽ ${l.top_scorer_name}${l.top_scorer_goals ? ` · ${l.top_scorer_goals}` : ''}` : ''}
+                    {l.mico_name ? ` · 🔻 ${l.mico_name}` : ''}
+                  </p>
+                </div>
+                {isHost && (
+                  <button onClick={() => { setErro(''); setEdit({ ...l }) }} aria-label={`Arrumar a temporada ${l.season_no}`}
+                    className="shrink-0 w-8 h-8 rounded-lg border-2 border-black bg-white font-black text-sm leading-none active:translate-y-0.5">✏️</button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {isHost && !edit && (
+          <button onClick={() => { setErro(''); setEdit(vazia(proxima)) }}
+            className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: PURPLE }}>
+            ➕ Escrever uma temporada
+          </button>
+        )}
+        {isHost && edit && (
+          <div className="mt-2 rounded-xl border-2 border-black bg-white p-3">
+            <p className="font-black text-[12.5px] mb-2" style={OSWALD}>✏️ Temporada {edit.season_no}</p>
+            <div className="space-y-2">
+              {campo('🏆 Campeão da liga', edit.champion_name ?? '', v => setEdit({ ...edit, champion_name: v }), 'nome do time')}
+              {campo('🏆🇧🇷 Campeão da Copa', edit.copa_champion_name ?? '', v => setEdit({ ...edit, copa_champion_name: v }), 'vazio se não teve')}
+              <div className="flex gap-2">
+                {campo('⚽ Artilheiro', edit.top_scorer_name ?? '', v => setEdit({ ...edit, top_scorer_name: v }), 'nome do jogador')}
+                <div className="w-[70px] shrink-0">
+                  <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1" style={OSWALD}>Gols</p>
+                  <input value={edit.top_scorer_goals ?? ''} inputMode="numeric" onChange={e => {
+                    const n = e.target.value.replace(/\D/g, '')
+                    setEdit({ ...edit, top_scorer_goals: n ? Number(n) : null })
+                  }} className="w-full border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+                </div>
+              </div>
+              {campo('⚽ Time do artilheiro', edit.top_scorer_team ?? '', v => setEdit({ ...edit, top_scorer_team: v }), 'é ele que pontua no ranking')}
+              {campo('🔻 Rebaixado / mico', edit.mico_name ?? '', v => setEdit({ ...edit, mico_name: v }), 'último colocado')}
+            </div>
+            {erro && <p className="text-[11.5px] font-bold mt-2" style={{ color: '#B23B2E' }}>{erro}</p>}
+            <div className="flex gap-2 mt-3">
+              <button onClick={salvar} disabled={busy}
+                className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>{busy ? '...' : 'Salvar'}</button>
+              <button onClick={() => setEdit(null)} disabled={busy}
+                className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>Cancelar</button>
+              {rows.some(r => r.season_no === edit.season_no) && (
+                <button onClick={() => apagar(edit.season_no)} disabled={busy}
+                  className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs bg-white" style={{ ...OSWALD, color: '#B23B2E' }}>🗑️</button>
+              )}
+            </div>
+            <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
+              Só o <b>dono da liga</b> arruma — e o que você escrever vale só <b>dentro desta liga</b>: o ranking do jogo não muda.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* ⚖️ AS REGRAS — só o dono mexe; todo mundo vê o resultado no ranking acima */}
+      {isHost && (
+        <div>
+          <button onClick={() => setAbrirRegras(v => !v)}
+            className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: PURPLE }}>
+            ⚖️ {abrirRegras ? 'Fechar as regras' : 'Regras do ranking'}
+          </button>
+          {abrirRegras && (
+            <div className="mt-2 rounded-xl border-2 border-black bg-white p-3 space-y-3">
+              <div>
+                <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>Como conta</p>
+                <Seg options={[['titulos', '🏆 Por títulos'], ['pontos', '🔢 Por pontos']] as ['titulos' | 'pontos', string][]}
+                  value={regras.modo} onSet={v => salvarRegras({ ...regras, modo: v })} />
+              </div>
+              {regras.modo === 'titulos' ? (
+                <div>
+                  <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>O que vale mais (⌃ pra subir)</p>
+                  {regras.ordem.filter(k => regras.ativos.includes(k)).map((k, i) => (
+                    <div key={k} className="flex items-center justify-between gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 mb-1.5 bg-white">
+                      <span className="font-black text-[12.5px]" style={OSWALD}>{i + 1}º · {LIGA_ROTULO[k]}</span>
+                      <button onClick={() => sobe(k)} disabled={i === 0} aria-label={`Subir ${LIGA_ROTULO[k]}`}
+                        className="w-7 h-7 rounded-md border-2 border-black bg-white font-black text-xs leading-none disabled:opacity-25">⌃</button>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between gap-2 mt-2">
+                    <span className="font-black text-[12px]" style={OSWALD}>🔻 Cair de divisão tira um título?</span>
+                    <div className="w-[130px] shrink-0">
+                      <Seg options={[[false, 'Não'], [true, 'Tira']] as [boolean, string][]}
+                        value={regras.rebaixaTira} onSet={v => salvarRegras({ ...regras, rebaixaTira: v })} />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>Quanto vale cada coisa</p>
+                  {(['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).filter(k => regras.ativos.includes(k)).map(k => (
+                    <div key={k} className="flex items-center justify-between gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 mb-1.5 bg-white">
+                      <span className="font-black text-[12.5px]" style={OSWALD}>{LIGA_ROTULO[k]}</span>
+                      <input value={regras.pontos[k]} inputMode="numeric"
+                        onChange={e => {
+                          const t = e.target.value.replace(/[^\d-]/g, '')
+                          salvarRegras({ ...regras, pontos: { ...regras.pontos, [k]: t === '' || t === '-' ? 0 : Number(t) } })
+                        }}
+                        className="w-[64px] text-center border-2 border-black rounded-md px-1 py-1 font-black text-[13px]" style={{ ...OSWALD, background: GOLD }} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div>
+                <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>O que conta nesta liga</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).map(k => {
+                    const on = regras.ativos.includes(k)
+                    return (
+                      <button key={k} onClick={() => troca(k)}
+                        className="border-2 border-black rounded-full px-2.5 py-1 font-black text-[11px] active:translate-y-0.5"
+                        style={{ ...OSWALD, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(12,12,12,.45)' }}>
+                        {on ? '✓' : '＋'} {LIGA_ROTULO[k]}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <p className="text-black/45 text-[10.5px] font-bold leading-snug">
+                O jogo entra com uma sugestão pronta; <b>quem decide é você</b>. O que ficar aqui vale <b>toda vez</b> que a
+                turma entrar — e dá pra mudar de novo quando quiser, sem perder troféu nenhum.
+                <br />Isto vale <b>só dentro desta liga</b>: o ranking do jogo não é tocado.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // 💬 Gaveta de chat da sala de espera — MESMO desenho do chat do leilão
@@ -562,7 +886,15 @@ export function EscLobby() {
   // 👔🃏 SALA DE ELENCO (17/08): 3º modo — em vez de leiloar, cada um traz o time
   // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
   const salaElenco = useSalaElencoLiberada()
-  const [roomMode, setRoomMode] = useState<'rapido' | 'carreira' | 'elenco'>('rapido')
+  const [roomMode, setRoomMode] = useState<'rapido' | 'liga' | 'carreira' | 'elenco'>('rapido')
+  // 🏆 LIGA FECHADA (20/08): a sala que fica de pé. O que ela guarda a mais que
+  // uma sala rápida é só ISTO — quando vocês jogam e se tem bot. O resto (leilão,
+  // temporada, fim de jogo) é o rápido de sempre, sem uma linha diferente.
+  const hoje = new Date()
+  const emDias = (n: number) => new Date(hoje.getTime() + n * 864e5).toISOString().slice(0, 10)
+  const [ligaData, setLigaData] = useState(emDias(1)) // amanhã, pra já vir preenchido
+  const [ligaHora, setLigaHora] = useState('21:00')
+  const [ligaComBots, setLigaComBots] = useState(false) // liga fechada nasce SEM bot
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
   // mandar os 22 pro host é o passo seguinte.
   const [bafoEscolha, setBafoEscolha] = useState<{ seed: number; via: 'elenco' | 'convocados' } | null>(null)
@@ -595,6 +927,8 @@ export function EscLobby() {
     return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
+  const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
+  const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
   // 🏆 Liga Fechada ainda NÃO liberada: esconde o seletor da tela de criar sala
   // (o Diego decide quando abrir). Toda sala nasce Aberta. Pra liberar de novo,
   // basta trocar pra `true` — o resto do código continua pronto.
@@ -782,7 +1116,7 @@ export function EscLobby() {
   // saves de carreira online do host: carrega ao abrir o menu
   useEffect(() => {
     if (phase !== 'menu' || !user) return
-    fetchMyCareers()
+    fetchMyCareers(); fetchMyLigas()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, user])
 
@@ -1195,7 +1529,13 @@ export function EscLobby() {
     // será apenas divisão de 38 rodadas nesse modo"). Por isso entra com
     // copaMode:'liga' TRAVADO, e o seletor de Copa nem aparece na criação.
     const elenco = salaElenco && roomMode === 'elenco'
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(canLiga && ligaFechada ? { ligaFechada: true } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    // 🏆 LIGA FECHADA: por baixo é a MESMA sala rápida — o que ela leva a mais é
+    // o horário marcado (`ligaAt`) e o `mode: 'liga'`, que é o que faz ela não
+    // sumir da lista e ganhar a sala de troféus na espera. Sem bot = a liga
+    // fechada que o jogo já sabia fazer (`ligaFechada`).
+    const liga = ligaOn && roomMode === 'liga'
+    const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : (canLiga && ligaFechada ? { ligaFechada: true } : {})), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1273,8 +1613,12 @@ export function EscLobby() {
     // 🃏 BAFO também fica FORA da lista pública enquanto está em construção —
     // mesmo tratamento da carreira online. Quem tem o modo liberado vê normal.
     const isBafo = (r: RoomInfo) => r.game_state?.mode === 'elenco' && !salaElenco
+    // 🏆 LIGA FECHADA nunca entra na lista pública: ela é a sala PRIVADA da turma.
+    // Quem é da liga chega por "Minhas ligas" (abaixo) ou pelo código. Regra do
+    // Diego: *"ninguém consegue ver a sala se não for Lenda — fica bloqueado"*.
+    const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r))
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && !isLiga(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -1282,6 +1626,85 @@ export function EscLobby() {
   // saves de CARREIRA ONLINE: salas em andamento onde EU participo — como host
   // (crio/continuo) OU como membro (volto quando o host retomar). A vaga do save
   // persiste mesmo depois de sair, então o amigo também vê e volta.
+  // 📅 como a data marcada aparece pra quem joga: dia da semana + hora, e o quanto
+  // falta em português de gente ("é HOJE", "amanhã", "faltam 3 dias"). Liga cuja
+  // data já passou não some — vira "já passou", porque a sala continua valendo e
+  // o dono pode remarcar.
+  // ✏️ O DONO MANDA NA LIGA (peça 3.5): mudar o dia/hora, trocar com/sem bots e
+  // excluir. Tudo dentro da própria sala, que é onde a pessoa está quando lembra
+  // de remarcar.
+  const [ligaEdit, setLigaEdit] = useState(false)
+  const [ligaEditData, setLigaEditData] = useState('')
+  const [ligaEditHora, setLigaEditHora] = useState('')
+  // Mexe SÓ nos campos da liga dentro do game_state, sem reescrever o resto: o
+  // estado da sala pode ser o JOGO INTEIRO, e sobrescrever seria perder tudo.
+  // Por isso lê, junta e grava.
+  async function patchLiga(campos: Record<string, unknown>) {
+    if (!room) return
+    const { data } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
+    const gs = { ...((data?.game_state ?? {}) as Record<string, unknown>), ...campos }
+    const { error } = await supabase.from('game_rooms').update({ game_state: gs, updated_at: new Date().toISOString() }).eq('id', room.id)
+    if (error) { setRoomError('Não deu pra salvar agora — tente de novo.'); return }
+    setRoom(r => (r ? { ...r, game_state: gs as unknown as GS } : r))
+    fetchMyLigas()
+  }
+  async function excluirLiga() {
+    if (!room || !user || room.host_id !== user.id) return
+    const nome = (room.game_state as GS)?.roomName ?? room.code
+    if (!window.confirm(`Excluir a liga "${nome}"?\n\nA sala e a SALA DE TROFÉUS dela somem pra todo mundo. Não dá pra desfazer.`)) return
+    await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
+    await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+    clearSavedRoom(); setRoom(null); setPlayers([]); setPhase('menu'); fetchMyLigas()
+  }
+
+  const quandoLiga = (iso?: string): { txt: string; cor: string } => {
+    if (!iso) return { txt: 'sem horário marcado', cor: 'rgba(12,12,12,.5)' }
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return { txt: 'sem horário marcado', cor: 'rgba(12,12,12,.5)' }
+    const DIA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
+    const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const base = `${DIA[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1} · ${hora}`
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
+    const alvo = new Date(d); alvo.setHours(0, 0, 0, 0)
+    const dias = Math.round((alvo.getTime() - hoje.getTime()) / 864e5)
+    if (dias < 0) return { txt: `${base} · já passou`, cor: '#B23B2E' }
+    if (dias === 0) return { txt: `${base} · É HOJE`, cor: '#B23B2E' }
+    if (dias === 1) return { txt: `${base} · amanhã`, cor: GREEN }
+    return { txt: `${base} · faltam ${dias} dias`, cor: GREEN }
+  }
+
+  // 🏆 MINHAS LIGAS: as salas de liga onde EU estou — como dono ou como convidado.
+  // Precisa de lista PRÓPRIA porque a lista de salas abertas só mostra sala mexida
+  // nas últimas 6 horas: uma liga marcada pra sábado sumiria antes da hora. Aqui a
+  // busca é por PARTICIPAÇÃO, não por "sala recente", então ela fica de pé o tempo
+  // todo — que é justamente o ponto da liga.
+  async function fetchMyLigas() {
+    if (!user) { setMyLigas([]); return }
+    const sel = 'id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gtag:game_state->>__game, gat:game_state->>ligaAt, gliga:game_state->>ligaFechada'
+    const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
+    const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
+    const [hosted, member] = await Promise.all([
+      supabase.from('game_rooms').select(sel).eq('host_id', user.id).eq('game_state->>mode', 'liga').limit(30),
+      memberIds.length ? supabase.from('game_rooms').select(sel).in('id', memberIds).eq('game_state->>mode', 'liga').limit(30) : Promise.resolve({ data: [] }),
+    ])
+    type SlimLiga = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null }
+    const seen = new Set<string>(); const rooms: RoomInfo[] = []
+    for (const r of [...((hosted.data ?? []) as unknown as SlimLiga[]), ...((member.data ?? []) as unknown as SlimLiga[])]) {
+      if (seen.has(r.id) || r.gtag !== GAME_TAG) continue
+      seen.add(r.id)
+      rooms.push({ id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
+        game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined } as GS })
+    }
+    // a próxima da agenda primeiro (liga sem horário vai pro fim)
+    rooms.sort((a, b) => ((a.game_state as GS).ligaAt ?? '9') .localeCompare((b.game_state as GS).ligaAt ?? '9'))
+    const contagem: Record<string, number> = {}
+    if (rooms.length) {
+      const { data: pls } = await supabase.from('room_players').select('room_id').in('room_id', rooms.map(r => r.id))
+      for (const pl of (pls ?? []) as { room_id: string }[]) contagem[pl.room_id] = (contagem[pl.room_id] ?? 0) + 1
+    }
+    setMyLigas(rooms.map(r => ({ ...r, count: contagem[r.id] ?? 0 })))
+  }
+
   async function fetchMyCareers() {
     if (!user) return
     const isCareer = (r: RoomInfo) => r.game_state?.__game === GAME_TAG && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline)
@@ -1341,7 +1764,7 @@ export function EscLobby() {
     const e2 = (await supabase.from('game_rooms').delete().eq('id', r.id)).error
     if (e1 || e2) { setRoomError(`Não consegui apagar: ${(e2 ?? e1)?.message}`); return }
     dismissRoom(r.id); if (loadSavedRoom() === r.id) clearSavedRoom()
-    fetchMyCareers()
+    fetchMyCareers(); fetchMyLigas()
   }
 
   // abrir um save: HOST vê o painel de retomada (3 opções); PARTICIPANTE volta
@@ -1823,6 +2246,34 @@ export function EscLobby() {
         </div>
       )}
 
+      {/* 🏆 MINHAS LIGAS — a sala que fica de pé. Vem ANTES das carreiras porque
+          é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}
+      {ligaOn && myLigas.length > 0 && (
+        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Minhas ligas</p>
+          {myLigas.map(r => {
+            const gs = r.game_state as GS
+            const nm = gs?.roomName ?? r.code
+            const q = quandoLiga(gs?.ligaAt)
+            const souDono = r.host_id === user?.id
+            return (
+              <div key={r.id} className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-2 bg-white">
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
+                  <p className="text-black/60 text-[11px] font-bold">👥 {r.count} · {r.code} · {gs?.ligaFechada ? 'sem bots' : 'com bots'}{souDono ? '' : ' · você é convidado'}</p>
+                  <p className="font-black text-[11.5px]" style={{ ...OSWALD, color: q.cor }}>📅 {q.txt}</p>
+                </div>
+                <button onClick={() => joinFromList(r)} disabled={loading}
+                  className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
+                  style={{ background: GREEN, color: '#fff', ...OSWALD }}>
+                  {r.status === 'started' ? '↩️ Voltar' : '▶️ Entrar'}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {/* Minhas carreiras (saves do host) — só aparece pra quem tem carreira em andamento */}
       {canCareer && myCareers.length > 0 && (
         <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
@@ -1882,23 +2333,30 @@ export function EscLobby() {
                     NUNCA deixar entrar num modo que não está pronto (a trava real é
                     por conta, em sport.ts — o botão apagado é só a cara dela). */}
                 {(() => {
-                  const abas: { v: typeof roomMode; label: string; liberado: boolean }[] = [
+                  // 🏆 LIGA FECHADA (20/08): o Diego cortou que ela é MODO DE JOGO, não
+                  // detalhe da partida — *"tem q ser rápido, liga fechada, carreira e
+                  // bafo"*. Entra aqui na fileira, por enquanto APAGADA e sem clique:
+                  // o resto da liga (horário marcado, troféus na sala de espera, o dono
+                  // arrumando troféu e escrevendo a regra do ranking) ainda está sendo
+                  // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
+                  const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
                     { v: 'rapido', label: '⚡ Rápido', liberado: true },
+                    { v: 'liga', label: '🏆 Liga', liberado: ligaOn },
                     { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
                   return (
                     <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
-                      {abas.map((a, i) => a.liberado ? (
-                        <button key={a.v} onClick={() => setRoomMode(a.v)}
+                      {abas.map((a, i) => (a.liberado && a.v) ? (
+                        <button key={a.label} onClick={() => setRoomMode(a.v!)}
                           className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-                          style={{ padding: '9px 1px', fontSize: 11.5, background: roomMode === a.v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
+                          style={{ padding: '9px 1px', fontSize: 11, minWidth: 0, background: roomMode === a.v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
                           {a.label}
                         </button>
                       ) : (
-                        <button key={a.v} disabled
+                        <button key={a.label} disabled
                           className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-                          style={{ padding: '9px 1px', fontSize: 9.5, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', lineHeight: 1.15, ...OSWALD }}>
+                          style={{ padding: '9px 1px', fontSize: 9, minWidth: 0, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', lineHeight: 1.15, ...OSWALD }}>
                           {a.label}<br /><span style={{ fontSize: 8 }}>em breve</span>
                         </button>
                       ))}
@@ -1907,8 +2365,32 @@ export function EscLobby() {
                 })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+                {roomMode === 'liga' ? '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.' : isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
+              {/* 🏆 LIGA FECHADA — o que ela guarda a mais que a sala rápida.
+                  Fica aqui em cima, colado no modo, porque é o que a pessoa
+                  precisa decidir ANTES de pensar em baralho e formação. */}
+              {roomMode === 'liga' && (
+                <div className="mt-3 rounded-xl border-[2.5px] border-black p-3" style={{ background: 'rgba(255,196,0,.10)' }}>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
+                  <div className="flex gap-2">
+                    <input type="date" value={ligaData} min={emDias(0)} onChange={e => setLigaData(e.target.value)}
+                      className="flex-1 min-w-0 border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                    <input type="time" value={ligaHora} onChange={e => setLigaHora(e.target.value)}
+                      className="w-[104px] border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                  </div>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🤖 Bots na tabela</p>
+                  <Seg options={[[false, 'Sem bots — só vocês'], [true, 'Com bots até 20']] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
+                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {ligaComBots
+                      ? '🤖 Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.'
+                      : '🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.'}
+                  </p>
+                  <p className="text-white/35 text-[10px] font-bold mt-2 leading-snug">
+                    Dá pra trocar o dia, a hora e os bots depois — na mesma sala, sem perder troféu nenhum.
+                  </p>
+                </div>
+              )}
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
             {!isCareer && (
@@ -2259,6 +2741,68 @@ export function EscLobby() {
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
       </div>
 
+      {/* 🏆 A LIGA TEM HORA MARCADA — e é a primeira coisa que a pessoa precisa ver
+          ao abrir a sala. Sem isto o combinado só vivia na cabeça da turma. */}
+      {room.game_state?.mode === 'liga' && (() => {
+        const gs = room.game_state as GS
+        const q = quandoLiga(gs?.ligaAt)
+        return (
+          <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>🏆 Liga fechada · próximo jogo</p>
+                <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
+                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? '🚫 sem bots — só a galera na tabela' : '🤖 com bots até 20 times'}</p>
+              </div>
+            </div>
+            {isHost && (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <button onClick={() => {
+                  const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
+                  const pad = (n: number) => String(n).padStart(2, '0')
+                  setLigaEditData(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
+                  setLigaEditHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
+                  setLigaEdit(true)
+                }} className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                  📅 Mudar dia e hora
+                </button>
+                <button onClick={() => patchLiga({ ligaFechada: !gs?.ligaFechada })}
+                  className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                  🤖 {gs?.ligaFechada ? 'Pôr bots' : 'Tirar bots'}
+                </button>
+                <button onClick={excluirLiga}
+                  className="col-span-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: '#B23B2E' }}>
+                  🗑️ Excluir a liga
+                </button>
+              </div>
+            )}
+            {isHost && ligaEdit && (
+              <div className="mt-3 rounded-xl border-2 border-black bg-white p-3">
+                <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
+                <div className="flex gap-2">
+                  <input type="date" value={ligaEditData} onChange={e => setLigaEditData(e.target.value)}
+                    className="flex-1 min-w-0 border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+                  <input type="time" value={ligaEditHora} onChange={e => setLigaEditHora(e.target.value)}
+                    className="w-[96px] border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button onClick={async () => {
+                    const d = new Date(`${ligaEditData}T${ligaEditHora}`)
+                    if (isNaN(d.getTime())) return
+                    await patchLiga({ ligaAt: d.toISOString() }); setLigaEdit(false)
+                  }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>Salvar</button>
+                  <button onClick={() => setLigaEdit(false)}
+                    className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>Cancelar</button>
+                </div>
+                <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
+                  Mudar a data <b>não perde troféu nenhum</b> — a liga é a mesma sala de sempre.
+                </p>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {/* Convite: manda o link direto no zap — o amigo cai na sala automaticamente
           (se já tem conta) ou no cadastro rápido e depois na sala. */}
       <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
@@ -2572,6 +3116,12 @@ export function EscLobby() {
             </button>
           </div>
         </div>
+      )}
+      {room.game_state?.mode === 'liga' && (
+        <TrofeusDaLiga roomId={room.id} isHost={isHost}
+          nomes={players.map(p => p.manager_name).filter(Boolean)}
+          regras={lerRegras((room.game_state as GS)?.ligaRegras)}
+          salvarRegras={r => { void patchLiga({ ligaRegras: r }) }} />
       )}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'

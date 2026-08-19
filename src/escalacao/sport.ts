@@ -257,8 +257,31 @@ export function useSalaElencoLiberada(): boolean {
   return salaElencoOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email) })
+// ─── 🏆 LIGA FECHADA — a sala que fica de pé ─────────────────────────────────
+// A liga da turma: horário marcado, sempre a MESMA sala (é o que faz o troféu
+// acumular), só entra quem é 👑 Lenda ou dono de clube batizado, e o dono manda
+// nela (arruma troféu, escreve a regra do ranking).
+// 🔒 EM CONSTRUÇÃO (20/08): só a conta do Diego abre — ordem dele, *"quando
+// terminar deixe também só pra mim"*. Pra todo mundo a aba aparece APAGADA com
+// "em breve", igual a Carreira e o Bafo. Pra liberar geral: LIGA_GERAL = true.
+const LIGA_GERAL = false
+const LIGA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let ligaOk = LIGA_GERAL
+function applyLigaUnlock(email?: string | null): void {
+  const u = LIGA_GERAL || (!!email && LIGA_TESTERS.has(email.toLowerCase()))
+  if (u === ligaOk) return
+  ligaOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function ligaLiberada(): boolean { return ligaOk }
+export function useLigaLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return ligaOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
