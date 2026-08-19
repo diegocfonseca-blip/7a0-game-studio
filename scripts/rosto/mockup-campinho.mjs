@@ -166,11 +166,10 @@ h2 small{font-family:system-ui,sans-serif;font-size:13px;font-weight:600;text-tr
 .marca span{color:#C2452F}
 .site{font-size:13px;color:rgba(12,12,12,.42)}
 </style>
-<div class="pill">🖼️ Mockup 3 · o campinho no dia do lançamento</div>
+<div class="pill">🖼️ Mockup · o campinho novo</div>
 <h1>Como vai <span class="r">ao ar agora</span></h1>
-<p class="lead">Este é o estado real do lançamento: <b>ninguém tem rosto ainda</b>. Todo mundo entra com a bolinha da
-inicial <b>nas cores do manto do dono</b> — e <b>bege</b> pra quem não tem manto. O rosto entra depois, um a um,
-sem mexer em mais nada.</p>
+<p class="lead">O jogador fica <b>solto no gramado</b>, com o nome em Oswald contornado e o clube · ano embaixo.
+A bolinha leva a <b>inicial nas cores do manto do dono</b> — e <b>bege</b> pra quem ainda não tem manto.</p>
 
 <h2>1 · Com manto <small>quem é sócio/batizado vê as cores do próprio clube</small></h2>
 <div class="par">
@@ -189,12 +188,12 @@ sem mexer em mais nada.</p>
 </div>
 
 <div class="nota">
-  <div class="tit">O que entra agora e o que fica pra depois</div>
+  <div class="tit">O que muda pra quem joga</div>
   <div class="corpo2">
     <div><h4>✅ Entra agora</h4><p>O desenho novo do campinho — jogador solto, nome em Oswald com contorno,
       clube · ano, e a bolinha do manto. Vale no <b>leilão, no rápido, no online e na carreira</b>.</p></div>
-    <div><h4>⏸️ Fica pra depois</h4><p><b>Os rostos.</b> A pasta nasce vazia de propósito: ligar isto hoje
-      <b>não muda a cara de ninguém</b>, só o desenho do campo.</p></div>
+    <div><h4>🟢 Vaga vazia continua clara</h4><p>Time incompleto mostra o <b>círculo tracejado com “+”</b> e o selo
+      da posição — parece “falta gente aqui”, nunca um bug.</p></div>
     <div><h4>🎽 A cor é sempre a do dono</h4><p>Sócio vê o manto dele; quem não tem manto vê <b>bege</b>.
       Ninguém pega cor emprestada — a regra de tier de sempre.</p></div>
     <div><h4>↩️ Reverter</h4><p>É <b>um commit isolado</b>. Voltar devolve a fichinha branca em todos os modos,
