@@ -1,4 +1,41 @@
-# 📌 Pendências combinadas com o Diego (atualizado 17/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 18/08/2026)
+
+## 🏢⏳ HACK DO "ESCONDE NA SAF" — FECHADO (18/08) ✅ NO AR
+
+Relato de jogador que o Diego trouxe: *"quando um jogador é emprestado pra SAF
+o contrato não acaba... ele sabe que vai encerrar o contrato do jogador aí ele
+empresta. Mó hack. Aí nunca tem o banner de renovação ou deixar sair"*.
+
+**Era verdade, e a causa é simples:** `LOAN_TO_FILIAL` faz
+`you.squad = you.squad.filter(...)` — a carta SAI do elenco e vai pro elenco da
+SAF. E a conferência de contrato vencido roda em cima do ELENCO
+(`(m.squad).filter(c => c.contratoAte < s.seasonNo)`). Carta fora do elenco =
+contrato que ninguém confere. Não era conta errada, era **esconderijo**.
+
+Atenuante medido: as vagas de empréstimo são poucas (D1·C2·B3·A4) e cada
+escondido é um jogador que não joga — o hack é pequeno e custa elenco.
+
+**Solução escolhida pelo Diego** (ele pediu a trava, mas com a saída junto):
+na hora de emprestar alguém com contrato **vencendo nesta temporada ou já
+vencido**, em vez de barrar, abre uma caixa com **renovar (5/10 anos, preço
+real) e emprestar** ou **deixar no elenco** — aí ele cai na janela de contratos
+normal no fim da temporada. Mockup aprovado por ele antes de codar.
+
+**Onde está:** `travaContratoSaf()` em `store.tsx` (a trava mora no REDUCER de
+propósito — pela tela não dá pra burlar), chamada nos dois caminhos do
+`LOAN_TO_FILIAL` (solo e online); `LOAN_TO_FILIAL` ganhou `renovarAnos?`;
+a caixa em `estadio.tsx` (`travaCt` + props `loanContratoAviso` /
+`onLoanToRenovando`), ligada em `pyramidseason.tsx`.
+
+**Testado no reducer** (4 casos): sem renovar → bloqueia e não cobra · com
+renovação → vai pra SAF, cobra metade do valor e estende o contrato · contrato
+longe → empresta normal sem cobrar · prazo inexistente pro valor → bloqueia
+(não dá pra passar de graça mandando prazo inválido).
+
+**Decisão do Diego sobre quem já está escondido:** *"deixa quieto por enquanto.
+E no próximo pega eles"* — a regra vale só pra quem emprestar daqui pra frente;
+ninguém é punido retroativamente.
+
 
 ## 🐛 DOIS BUGS REPORTADOS PELO GIOVANI PICOLO (18/08) — ✅ CORRIGIDOS
 Ele mandou áudio + prints. Os dois eram reais, e o primeiro estava escondido

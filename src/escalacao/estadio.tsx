@@ -301,7 +301,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje }: {
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
@@ -321,6 +321,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   loanableOutIds?: Set<string>
   loanableInIds?: Set<string>
   onLoanTo?: (cardId: string) => void
+  // ⏳ TRAVA DO CONTRATO ACABANDO (18/08): antes de emprestar, a tela pergunta se
+  // aquele jogador está com o contrato vencendo. Se estiver, em vez de emprestar
+  // direto abre a caixa pra renovar ali mesmo — porque na SAF o contrato sai da
+  // janela de renovação e ele nunca mais venceria (era o hack do "esconde na SAF").
+  // Sem esta prop, a tela se comporta como sempre.
+  loanContratoAviso?: (cardId: string) => { nome: string; pos: string; clube: string; ano: number; jaVenceu: boolean; opcoes: { anos: number; custo: number }[] } | null
+  onLoanToRenovando?: (cardId: string, anos: number) => void
   onLoanFrom?: (cardId: string) => void
   onReturnLoan?: (cardId: string) => void // 🏢 traz UM empréstimo de volta na hora
   loanSlots?: number // 🏢 vagas de empréstimo por lado (cresce com a divisão)
@@ -336,6 +343,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
 }) {
   const [buying, setBuying] = useState(false)
   const [pickOut, setPickOut] = useState(false)
+  // ⏳ jogador escolhido pra emprestar que está com o contrato acabando (null = ninguém)
+  const [travaCt, setTravaCt] = useState<{ cardId: string; nome: string; pos: string; clube: string; ano: number; jaVenceu: boolean; opcoes: { anos: number; custo: number }[] } | null>(null)
   const [pickIn, setPickIn] = useState(false)
   const [sellingSaf, setSellingSaf] = useState(false)
   const lvl = stadiumLevel(st)
@@ -576,7 +585,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0, padding: '4px 2px', lineHeight: 1.35 }}>🔒 Ninguém disponível agora: emprestar não pode deixar seu <b>time titular incompleto</b> em nenhuma posição. Contrate reservas (ou traga alguém de volta) e tente de novo.</p>
                       )}
                       {(mySquad ?? []).filter(c => loanableOutIds?.has(c.id)).map(c => (
-                        <button key={c.id} onClick={() => { onLoanTo(c.id); setPickOut(false) }}
+                        <button key={c.id} onClick={() => {
+                          // ⏳ contrato acabando? não empresta direto — abre a caixa
+                          // pra decidir (renovar agora ou deixar no elenco).
+                          const av = loanContratoAviso?.(c.id)
+                          if (av) { setTravaCt({ cardId: c.id, ...av }); setPickOut(false); return }
+                          onLoanTo(c.id); setPickOut(false)
+                        }}
                           style={{ display: 'flex', justifyContent: 'space-between', border: '1.5px solid rgba(0,0,0,.25)', borderRadius: 7, padding: '5px 8px', fontSize: 10.5, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>
                           <span>{c.name}</span><span style={{ opacity: .5 }}>{LOAN_POS[c.pos] ?? c.pos}</span>
                         </button>
@@ -588,6 +603,35 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                   )}
                 </div>
               ) : null}
+
+              {/* ⏳🏢 CAIRA DA TRAVA: o técnico escolheu emprestar alguém com o contrato
+                  acabando. Em vez de só barrar, resolve aqui: renova e empresta num
+                  toque, ou deixa no elenco pra decidir na janela de contratos.
+                  (Mockup aprovado pelo Diego 18/08.) */}
+              {travaCt && (
+                <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: 11, marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 ${INK}` }}>
+                  <span style={{ display: 'inline-block', ...OSW, fontWeight: 900, fontSize: 10, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '2px 9px', marginBottom: 7 }}>⏳ Contrato {travaCt.jaVenceu ? 'encerrado' : 'acabando'}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2 }}>
+                    <span style={{ ...OSW, fontWeight: 900, fontSize: 9.5, background: INK, color: '#fff', borderRadius: 5, padding: '2px 6px' }}>{travaCt.pos}</span>
+                    <span style={{ ...OSW, fontWeight: 900, fontSize: 15 }}>{travaCt.nome}</span>
+                  </div>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 9px' }}>{travaCt.clube} · {travaCt.ano} — contrato {travaCt.jaVenceu ? 'já encerrou' : 'vence no fim desta temporada'}</p>
+                  <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#FFF3CF', padding: '9px 10px', marginBottom: 9 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>Na SAF o contrato dele <b>não corre</b> — some da sua janela de renovação e você não decide mais nada sobre ele. Pra emprestar, <b>renove antes</b>.</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                    {travaCt.opcoes.map(o => (
+                      <button key={o.anos} onClick={() => { onLoanToRenovando?.(travaCt.cardId, o.anos); setTravaCt(null) }}
+                        style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', ...OSW, fontWeight: 900, fontSize: 12, lineHeight: 1.25, cursor: 'pointer', background: o.anos >= 10 ? GOLD : '#EAF6EE', color: INK }}>
+                        Renovar {o.anos} ano{o.anos > 1 ? 's' : ''}<br />{o.custo} 🪙 · e emprestar
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={() => setTravaCt(null)}
+                    style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', ...OSW, fontWeight: 900, fontSize: 12.5, background: '#fff', color: INK, cursor: 'pointer' }}>↩️ Deixar no elenco por enquanto</button>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '8px 0 0', lineHeight: 1.45, textAlign: 'center' }}>Deixando no elenco, ele aparece normal na <b>janela de contratos</b> no fim da temporada, com renovar ou deixar ir.</p>
+                </div>
+              )}
 
               {/* pega emprestado DA SAF (várias vagas conforme a divisão) */}
               {(filial.loanIn ?? []).map(li => (

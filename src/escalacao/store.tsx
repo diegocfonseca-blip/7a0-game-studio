@@ -1823,6 +1823,41 @@ function creditaCopa(s: EscState, champKey: string | undefined | null, qual: 'co
   else s.careerSupercopaHonors = { ...(s.careerSupercopaHonors ?? {}), [champKey]: (s.careerSupercopaHonors?.[champKey] ?? 0) + 1 }
 }
 
+// ⏳🏢 TRAVA DO CONTRATO ACABANDO NA HORA DE EMPRESTAR PRA SAF (18/08).
+// Relato de jogador que virou hack: emprestar TIRA a carta do elenco (a linha
+// `you.squad = you.squad.filter(...)` logo abaixo), e a conferência de contrato
+// vencido roda em cima do ELENCO. Ou seja: quem via o contrato chegando ao fim
+// mandava o cara pra SAF e ele sumia da janela de renovação — nunca vencia,
+// nunca cobrava, nunca aparecia o banner de renovar/deixar ir. Não era conta
+// errada, era esconderijo.
+//
+// Agora, se o contrato vence NESTA temporada (ou já venceu), o empréstimo só
+// passa junto com a renovação: a tela abre a caixa com os prazos e reenvia a
+// ação com `renovarAnos`. Sem isso, devolve 'bloqueia' e nada acontece — e a
+// trava mora AQUI, no reducer, justamente pra não dar pra burlar pela tela.
+//
+// Quem JÁ está escondido na SAF de antes não é mexido (decisão do Diego:
+// "deixa quieto por enquanto, e no próximo pega eles") — a regra vale pra
+// quem for emprestar daqui pra frente.
+function travaContratoSaf(s: EscState, mgr: Manager, card: WonCard, anos?: RenewAnos): 'ok' | 'bloqueia' {
+  const temporada = s.seasonNo ?? 1
+  const vencendo = !!s.contratosOn && card.contratoAte != null && card.contratoAte <= temporada
+  if (!vencendo) return 'ok'
+  if (!anos) return 'bloqueia'
+  const oficial = valorOficial(s, card)
+  if (!renewOptions(oficial).includes(anos)) return 'bloqueia' // prazo que não existe pra esse valor
+  const custo = renewCost(oficial, anos)
+  // renovar por ESCOLHA pode negativar (mesma regra da janela de contratos, 03/08)
+  s.careerCoins = { ...(s.careerCoins ?? {}), [mgr.id]: (s.careerCoins?.[mgr.id] ?? 0) - custo }
+  // mesmo sorteio determinístico das outras renovações (não usa o rng do leilão:
+  // esta tela é a da SAF, onde o estado de pregão nem existe)
+  const ctrRng = mulberry((s.seed ^ (temporada * 65537) ^ 0x5EED) >>> 0)
+  card.contratoAte = temporada + contratoDur(anos, ctrRng) - 1
+  ;(s.marketLog = s.marketLog ?? []).push(`📝 ${mgr.teamName}: ${card.name} renovou por ${custo} 🪙 (${anos} anos) antes de ir pra SAF`)
+  logFin(s, 'buy', `📝 Renovação antes do empréstimo: ${card.name}`, -custo, { player: card.name, pos: card.pos }, mgr.id)
+  return 'ok'
+}
+
 function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -2714,7 +2749,7 @@ type Action =
   | { type: 'CLEAR_MULTICLUBE_PENDING'; mgrId: number; season: number; copa?: boolean } // 🏛️ MULTICLUBES: risca a carta guardada depois que você abriu o pacote
   | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
   | { type: 'ADD_EMPRESARIO_CARD'; card: EmpCard; key?: string; mgrId?: number } // 💼 registra uma carta ganha (pacote de campeão) na agência do Empresário. `key` = seasonKey do pacote (dedup por temporada — aceita repetida entre temporadas). `mgrId` = técnico dono (online: por-técnico)
-  | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda; agora PERSISTE entre temporadas)
+  | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number; renovarAnos?: RenewAnos } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda; agora PERSISTE entre temporadas). `renovarAnos` = renovar ANTES de emprestar, num passo só (ver a trava do contrato acabando no reducer)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string; mgrId?: number } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'RETURN_FILIAL_LOAN'; cardId: string; mgrId?: number } // 🏢 traz UM empréstimo de volta na hora (seu volta pro elenco / o da SAF volta pra SAF)
   | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
@@ -4344,6 +4379,7 @@ export function reducer(state: EscState, action: Action): EscState {
         if (!card || card.emprestado) return s
         const need = FORMATIONS[you.formation]
         if (you.squad.filter(c => c.pos === card.pos && !c.fake).length - 1 < need[card.pos]) return s
+        if (travaContratoSaf(s, you, card, action.renovarAnos) === 'bloqueia') return s
         you.squad = you.squad.filter(c => c.id !== action.cardId)
         const loaned = { ...card, emprestado: 'dono' } as WonCard
         const cpuSq = { ...(s.cpuSquads ?? {}) }
@@ -4367,6 +4403,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const need = FORMATIONS[you.formation]
       const filled = you.squad.filter(c => c.pos === card.pos && !c.fake).length
       if (filled - 1 < need[card.pos]) return s
+      if (travaContratoSaf(s, you, card, action.renovarAnos) === 'bloqueia') return s
       you.squad = you.squad.filter(c => c.id !== action.cardId)
       const loaned = { ...card, emprestado: 'dono', byClub: you.id } as WonCard // 🏛️ carimba o clube que emprestou (multiclube)
       const cpuSq = { ...(s.cpuSquads ?? {}) }

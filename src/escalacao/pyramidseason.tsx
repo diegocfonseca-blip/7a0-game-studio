@@ -13,6 +13,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
+import type { RenewAnos } from './store'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -5695,6 +5696,19 @@ export function PyramidSeasonScreen() {
                 return new Set(safSq.filter(c => !c.emprestado && safSq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
               })()}
               onLoanTo={cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
+              loanContratoAviso={cardId => {
+                // ⏳ contrato acabando? a tela abre a caixa em vez de emprestar. A trava
+                // de VERDADE está no reducer (travaContratoSaf) — aqui é só o aviso,
+                // com os preços/prazos reais daquele jogador.
+                if (!state.contratosOn) return null
+                const c = (mgrMe?.squad as WonCard[] | undefined)?.find(x => x.id === cardId)
+                if (!c || c.contratoAte == null || c.contratoAte > state.seasonNo) return null
+                const oficial = valorOficial(state, c)
+                const opcoes = renewOptions(oficial).map(anos => ({ anos, custo: renewCost(oficial, anos) }))
+                if (!opcoes.length) return null // sem prazo possível: deixa emprestar como antes
+                return { nome: c.name, pos: c.pos, clube: c.club, ano: c.year, jaVenceu: c.contratoAte < state.seasonNo, opcoes }
+              }}
+              onLoanToRenovando={(cardId, anos) => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId, renovarAnos: anos as RenewAnos })}
               onLoanFrom={cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
               onReturnLoan={cardId => dispatch({ type: 'RETURN_FILIAL_LOAN', cardId, mgrId: youId })}
               trimNotice={state.filialTrimNotice}
