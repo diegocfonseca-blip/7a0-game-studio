@@ -34,6 +34,24 @@ consegue **criar** uma carreira antiga desde **30/07**, quando a pirâmide entro
 (`START_CAREER_SOLO`): a tela de setup manda pra pirâmide. Ou seja, tudo que foi
 escrito ali depois de 30/07 é fantasma.
 
+### E o modo rápido OFFLINE? (pergunta do Diego, 19/08)
+**Não é a origem** — e isso está provado no código, não no achismo: o `START`
+(que é a ÚNICA porta do rápido offline) tem a linha
+`s.careerDivision = action.career ? 'D' : null`. Rápido offline **sempre** nasce
+com esse campo zerado. O que faltava era exatamente essa linha no `START_ONLINE`.
+
+**Mas o offline mantinha o fantasma vivo, no 2º passo**: quem tocava no banner
+roxo abria a carreira fantasma e jogava **offline** — e no fim de cada temporada
+ela era regravada. Dá pra ver nos dados: das 384 linhas, **364 estão na
+temporada 2** (a 1ª gravação, saída da sala online) e **20 passaram da 3**
+(chegando à T10) — essas 20 são as que a pessoa continuou jogando offline.
+Fechando a origem e o banner, as duas pontas caem.
+
+Achado de quebra: o `esc-solo-inprogress-v1` (o "continuar de onde parou")
+guarda **também a carreira**, então o jogo podia ABRIR já com a divisão da
+carreira na memória, sem a pessoa ter jogado nada naquela aba. Era o segundo
+caminho pra dentro da sala online — a faxina do `START_ONLINE` fecha os dois.
+
 ### O conserto (3 travas + limpeza)
 1. **Raiz** — `START_ONLINE` agora faz faxina de carreira: `careerDivision`,
    `careerIntent`, `careerTitles/TitlesA` e `careerRivals` zerados sempre; sala
