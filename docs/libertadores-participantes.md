@@ -66,10 +66,10 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 1992 | São Paulo, Criciúma | 🟡 |
 | 1993 | São Paulo, Flamengo, Internacional | 🟡 |
 | 1994 | São Paulo, Palmeiras, Cruzeiro | 🟡 |
-| 1995 | Palmeiras, Grêmio | 🟡 |
-| 1996 | Botafogo, Corinthians, Grêmio, Cruzeiro | 🟡 |
-| 1997 | Cruzeiro, Vasco, Grêmio | 🟡 |
-| 1998 | Vasco, Corinthians, Palmeiras | 🟡 |
+| 1995 | Palmeiras, Grêmio (campeão) | ✅ |
+| 1996 | **Grêmio, Botafogo, Corinthians** ← 🩹 tirado o Cruzeiro (jogou foi 1997) | ✅ |
+| 1997 | **Grêmio, Cruzeiro (campeão)** ← 🩹 tirado o Vasco: ele ganhou o Brasileirão de 97 e jogou a Liberta de **98** | ✅ |
+| 1998 | **Cruzeiro, Vasco (campeão), Grêmio** ← 🩹 corrigido (Corinthians e Palmeiras jogaram 99) | ✅ |
 | 1999 | Palmeiras, Corinthians, Atlético-MG, Juventude, Atlético-PR | 🟡 |
 | 2000 | **Corinthians, Palmeiras, Atlético-MG, Juventude** ← 🩹 corrigido (Palmeiras × Corinthians foi semifinal brasileira em 2000) | 🟡 |
 | 2001 | **Vasco, São Caetano, Cruzeiro, Palmeiras** ← 🩹 corrigido | ✅ |
