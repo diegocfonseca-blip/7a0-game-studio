@@ -14,6 +14,7 @@ import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
 import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
+import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -964,29 +965,27 @@ function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90
           <span className="font-black uppercase tracking-wide" style={{ ...OSWALD, fontSize: small ? 10 : 12, textShadow: manto ? '1px 1px 0 rgba(0,0,0,.85)' : undefined }}>{title}</span>
         </div>
       )}
-      <div className="campinho-field px-3 py-2.5 flex flex-col gap-2.5" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 34px, ${g2} 34px 68px)` }}>
+      {/* ⚽🧍 JOGADOR SOLTO NA GRAMA (aprovado 19/08). Antes cada um era uma
+          fichinha branca com borda; o Diego cortou: *"o jogador é ele LIVRE"*.
+          A peça mora em `jogadorcampo.tsx` e é a MESMA do elenco da carreira —
+          um lugar só pra mexer, os dois campinhos mudam juntos.
+          A bolinha leva o MANTO do dono; sem manto, bege. */}
+      <div className="campinho-field px-3 py-3.5 flex flex-col gap-3" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 ${small ? 34 : 38}px, ${g2} ${small ? 34 : 38}px ${small ? 68 : 76}px)` }}>
         {rows.map(row => (
-          <div key={row.key} className="campinho-row flex justify-center gap-2.5">
-            {row.slots.map((slot, i) => (
-              <div
+          <div key={row.key} className="campinho-row flex justify-center items-end gap-2">
+            {row.slots.map((slot, i) => slot.card ? (
+              <JogadorNoCampo
                 key={i}
-                className={`campinho-slot border-2 border-black rounded-lg text-center ${small ? 'px-1.5 py-1 min-w-[56px]' : 'px-2.5 py-1.5 min-w-[76px]'}`}
-                style={{ backgroundColor: slot.card ? '#fff' : 'rgba(255,255,255,0.25)', ...(manto && slot.card ? { position: 'relative', overflow: 'hidden', paddingTop: small ? 16 : 20 } : {}) }}
-              >
-                {/* 🎽 Opção C (aprovada 10/08): o topo do card É o manto e a posição
-                    entra por cima num selinho — mesma altura de antes (a linha da
-                    posição foi PRA DENTRO da faixa, nada cresce). */}
-                {manto && slot.card && (
-                  <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: small ? 13 : 16, background: mantoStripes(manto, 9, mantoDir, mantoC3, mantoC3Buf), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="font-black" style={{ ...OSWALD, fontSize: small ? 7 : 8, color: '#fff', background: 'rgba(0,0,0,.42)', borderRadius: 6, padding: '0 5px', letterSpacing: .5, lineHeight: '1.5' }}>{slot.pos}</span>
-                  </span>
-                )}
-                {!(manto && slot.card) && <p className="text-[9px] font-black" style={{ color: slot.card ? RED : '#fff' }}>{slot.pos}</p>}
-                <p className={`font-bold leading-tight ${small ? 'text-[9px]' : 'text-[11px]'}`} style={{ color: slot.card ? INK : 'rgba(255,255,255,0.95)' }}>
-                  {slot.card ? slot.card.name : 'Vazio'}
-                </p>
-                {slot.card && !small && <p className="text-[8px] text-black/60 font-medium">{slot.card.club} {slot.card.year}</p>}
-              </div>
+                nome={slot.card.name}
+                clube={small ? undefined : slot.card.club}
+                ano={small ? undefined : slot.card.year}
+                tag={slot.pos}
+                alt={small ? 48 : 58}
+                fonteNome={small ? 10 : 11}
+                mantoCss={manto ? mantoStripes(manto, 6, mantoDir, mantoC3, mantoC3Buf) : null}
+              />
+            ) : (
+              <VagaNoCampo key={i} tag={slot.pos} alt={small ? 48 : 58} />
             ))}
           </div>
         ))}

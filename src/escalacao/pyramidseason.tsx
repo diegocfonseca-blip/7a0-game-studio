@@ -33,6 +33,7 @@ import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
+import { JogadorNoCampo, type EstadoJogador } from './jogadorcampo'
 import { MASCOTES, FestaoMascote, carimboDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
 
 const INK = '#0C0C0C'
@@ -2621,26 +2622,34 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
         {/* 🌱 campinho mais vertical (09/08, pedido do Diego: "parece achatado")
             — só o CAMPO cresce (listras + respiro entre as linhas); o balão
             branco do jogador (padding do botão, mais abaixo) fica igual. */}
-        <div style={{ padding: '14px 5px', display: 'flex', flexDirection: 'column', gap: 9, background: `repeating-linear-gradient(180deg, ${GREEN} 0 38px, #166332 38px 76px)` }}>
+        {/* ⚽🧍 JOGADOR SOLTO NA GRAMA (aprovado pelo Diego 19/08): saiu a
+            fichinha branca, que "engaiolava" o boneco. A peça é a MESMA do
+            campinho do leilão (`jogadorcampo.tsx`), então os dois mudam juntos.
+            A bolinha da inicial leva o MANTO do dono; sem manto, bege.
+            A troca por toque continua igual: toca num, acende os da mesma
+            posição — o anel dourado/verde saiu da borda da ficha e foi pra
+            volta da bolinha. */}
+        <div style={{ padding: '16px 5px 18px', display: 'flex', flexDirection: 'column', gap: 14, background: `repeating-linear-gradient(180deg, ${GREEN} 0 44px, #166332 44px 88px)` }}>
           {rows.map(r => (
-            // 🥅 linha ÚNICA por setor (nunca quebra): a defesa tem 4 cartas (LAT-ZAG-
-            // ZAG-LAT) e no celular a 4ª "pulava" pra baixo, parecendo formação errada
-            // (um lateral em cima do goleiro). Com nowrap + flex, as cartas ENCOLHEM
-            // pra caber lado a lado — a linha de trás fica reta, como um 4-3-3 de verdade.
-            <div key={r.key} style={{ display: 'flex', justifyContent: 'center', gap: 5, flexWrap: 'nowrap' }}>
-              {r.cards.map(c => { const st = stateOf(c); return (
-                <button key={c.id} onClick={() => onTap?.(c.id)} disabled={!onTap} style={{ position: 'relative', flex: '1 1 0', minWidth: 0, border: `2px solid ${borderOf(st)}`, borderRadius: 8, background: st === 'sel' ? '#FFF6D6' : '#fff', padding: manto ? '17px 6px 3px' : '3px 6px', maxWidth: 96, textAlign: 'center', cursor: onTap ? 'pointer' : 'default', opacity: st === 'dim' ? 0.5 : 1, boxShadow: st === 'target' ? `0 0 0 2px ${GREEN}` : 'none', overflow: 'hidden', ...OSWALD }}>
-                  {/* 🎽 Opção C (aprovada 10/08): topo do card vira manto com a posição
-                      no selinho — altura igual (a linha da posição foi pra dentro). */}
-                  {manto && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 14, background: mantoStripes(manto, 9, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()), borderBottom: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 7, fontWeight: 900, color: '#fff', background: 'rgba(0,0,0,.42)', borderRadius: 5, padding: '0 4px', letterSpacing: .5, lineHeight: '1.6' }}>{c.pos}</span>
-                  </span>}
-                  {c.emprestado && <EmpTag mini />}
-                  {!manto && <span style={{ display: 'block', fontSize: 8, fontWeight: 900, color: col.solid }}>{c.pos}</span>}
-                  <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</span>
-                  {goalsOf(c) > 0 && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 900, color: GREEN }}>⚽ {goalsOf(c)}</span>}
-                </button>
-              ) })}
+            // 🥅 linha ÚNICA por setor (nunca quebra): a defesa tem 4 (LAT-ZAG-ZAG-LAT)
+            // e no celular a 4ª "pulava" pra baixo, parecendo formação errada.
+            <div key={r.key} style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 5, flexWrap: 'nowrap' }}>
+              {r.cards.map(c => (
+                <JogadorNoCampo
+                  key={c.id}
+                  nome={c.name}
+                  clube={c.club}
+                  ano={c.year}
+                  tag={c.pos}
+                  gols={goalsOf(c)}
+                  alt={64}
+                  fonteNome={11}
+                  estado={stateOf(c) as EstadoJogador}
+                  onClick={onTap ? () => onTap(c.id) : undefined}
+                  mantoCss={manto ? mantoStripes(manto, 6, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : null}
+                  extra={c.emprestado ? <EmpTag mini /> : undefined}
+                />
+              ))}
             </div>
           ))}
         </div>
