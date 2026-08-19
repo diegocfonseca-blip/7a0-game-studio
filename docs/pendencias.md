@@ -7528,3 +7528,36 @@ E **"Marinheiros AS"** (`feehcamp11@gmail.com`) tem escudo artesanal no código 
 artesanal só aparecer pra quem é o DONO (cruzar com `esc_nomes_batismo`), em vez
 de bater só pela string. Mexe em tela que está no ar, então entra em commit
 isolado e revertível.
+
+### ✅ CONSERTADO (20/08): chave do escudo passa a ser o NOME INTEIRO
+
+Ordem do Diego: *"não tem nada a ver o cara escreveu o nome de Arruda, e isso ser
+uma chave dos escudos do tricolor do Arruda, está errado. A chave igual é nome
+seja maiusculo ou minúsculas e fc"*.
+
+**No código** (`escudos.tsx`):
+1. **Apagadas as 11 chaves-APELIDO** que gente de fora digita sem querer:
+   `Arruda` · `Tricolor Arruda` · `Coringas` · `Ferrari` · `Ferrari FC` ·
+   `Ferrari SC` · `Seven` · `Seven FC` · `Crias` · `Nata SP` · `Eros`.
+2. **A busca virou `chaveEscudo()`**: ignora maiúscula/minúscula, ignora acento
+   (Bigão = Bigao) e ignora o "FC" no fim. Então o dono acha o escudo dele
+   escrevendo como quiser, e **só o nome COMPLETO vale**.
+
+**No banco** (tudo reversível numa linha; o nome velho ficou guardado em
+`raw_user_meta_data->>'nome_antigo_ccr'`):
+- `brenodinoliveira@gmail.com`: "Coringas do diniz" → **"Coringas do Breno"**.
+  Conta com **1 acesso só (17/07)**, 1 carreira, 0 linhas de rank, 0 salas. A
+  troca era obrigatória: com a chave ignorando maiúscula, ele passaria a usar o
+  escudo do Lucas.
+- `lucasjogomes@gmail.com`: "Marolados FC" → **"Time do Lucas G"**. Conta com
+  **1 acesso (02/08) e ZERO carreira** — estava com o escudo do paisagensetrilha.
+- `arrudabernardo213076@gmail.com`: **não precisou mexer** — só apagar a chave
+  'Arruda' já resolveu. Ele fica com o nome dele e escudo automático.
+- Reserva criada pra **"Marinheiros AS"** (`feehcamp11@gmail.com`): não é batismo,
+  é **assinatura paga de personalização**, e o nome estava sem proteção.
+
+⚠️ **Sobra um caso pro Diego olhar**: `Eros FC` normaliza pra `eros`, então quem
+escrever só **"Eros"** pega o escudo. É consequência da regra do "FC" — e as 4
+variações (Eros, Eros FC, Eros Reis, Eros Reis FC) estão reservadas pro
+erosreis@outlook.com.br no banco, então ninguém novo consegue tomar. Só quem já
+tinha o nome antes da trava é que passaria.
