@@ -1882,23 +1882,30 @@ export function EscLobby() {
                     NUNCA deixar entrar num modo que não está pronto (a trava real é
                     por conta, em sport.ts — o botão apagado é só a cara dela). */}
                 {(() => {
-                  const abas: { v: typeof roomMode; label: string; liberado: boolean }[] = [
+                  // 🏆 LIGA FECHADA (20/08): o Diego cortou que ela é MODO DE JOGO, não
+                  // detalhe da partida — *"tem q ser rápido, liga fechada, carreira e
+                  // bafo"*. Entra aqui na fileira, por enquanto APAGADA e sem clique:
+                  // o resto da liga (horário marcado, troféus na sala de espera, o dono
+                  // arrumando troféu e escrevendo a regra do ranking) ainda está sendo
+                  // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
+                  const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
                     { v: 'rapido', label: '⚡ Rápido', liberado: true },
+                    { v: null, label: '🏆 Liga', liberado: false },
                     { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
                   return (
                     <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
-                      {abas.map((a, i) => a.liberado ? (
-                        <button key={a.v} onClick={() => setRoomMode(a.v)}
+                      {abas.map((a, i) => (a.liberado && a.v) ? (
+                        <button key={a.label} onClick={() => setRoomMode(a.v!)}
                           className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-                          style={{ padding: '9px 1px', fontSize: 11.5, background: roomMode === a.v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
+                          style={{ padding: '9px 1px', fontSize: 11, minWidth: 0, background: roomMode === a.v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
                           {a.label}
                         </button>
                       ) : (
-                        <button key={a.v} disabled
+                        <button key={a.label} disabled
                           className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-                          style={{ padding: '9px 1px', fontSize: 9.5, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', lineHeight: 1.15, ...OSWALD }}>
+                          style={{ padding: '9px 1px', fontSize: 9, minWidth: 0, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', lineHeight: 1.15, ...OSWALD }}>
                           {a.label}<br /><span style={{ fontSize: 8 }}>em breve</span>
                         </button>
                       ))}
