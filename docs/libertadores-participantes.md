@@ -71,9 +71,9 @@ Legenda: ✅ confirmado em 2 fontes · 🟡 1 fonte só, precisa de 2ª passada 
 | 1997 | Cruzeiro, Vasco, Grêmio | 🟡 |
 | 1998 | Vasco, Corinthians, Palmeiras | 🟡 |
 | 1999 | Palmeiras, Corinthians, Atlético-MG, Juventude, Atlético-PR | 🟡 |
-| 2000 | Vasco, Palmeiras, Cruzeiro, São Caetano | 🟡 |
-| 2001 | Atlético-PR, São Caetano, Grêmio, Flamengo | 🟡 |
-| 2002 | Grêmio, Corinthians, São Caetano (vice), Paysandu | 🟡 |
+| 2000 | **Corinthians, Palmeiras, Atlético-MG, Juventude** ← 🩹 corrigido (Palmeiras × Corinthians foi semifinal brasileira em 2000) | 🟡 |
+| 2001 | **Vasco, São Caetano, Cruzeiro, Palmeiras** ← 🩹 corrigido | ✅ |
+| 2002 | **Atlético-PR, São Caetano (vice), Grêmio, Flamengo** ← 🩹 corrigido | ✅ |
 | 2003 | **Santos, Corinthians, Paysandu, Grêmio** ← 🩹 refeito | 🟡 |
 | 2004 | Cruzeiro, São Paulo, Santos, São Caetano, Coritiba | ✅ |
 | 2005 | São Paulo (campeão), Atlético-PR (vice), Corinthians, Internacional, Goiás, Palmeiras | 🟡 |
