@@ -3145,7 +3145,21 @@ export function reducer(state: EscState, action: Action): EscState {
       // sala sem stream continua sem stream — zero regressão.
       streamMode: action.newState.streamMode ?? !!(action.newState as { stream?: boolean }).stream,
       manualRoom: action.newState.manualRoom ?? !!(action.newState as { manual?: boolean }).manual,
-      youIdx: state.youIdx,
+      // 🪑 ÂNCORA POR CRACHÁ, não pela cadeira (bug ao vivo 19/08 na sala do Paduz:
+      // *"gente trocada pqp"*). O `youIdx` é LOCAL e continua sendo — mas ele é uma
+      // POSIÇÃO no array `managers`, e o host pode mandar esse array em outra ordem
+      // (carreira online reordena os times entre temporadas; entrada/saída de gente
+      // na sala também mexe). Guardando o número cru, o convidado passava a olhar
+      // pro time de OUTRA pessoa depois de um sync — o histórico de "virei bot" /
+      // "dei lance por outro".
+      // Agora: acha a posição ATUAL do MEU técnico pelo id (que é estável) e reancora.
+      // Se não achar (estado muito diferente), fica no valor de antes — zero regressão.
+      youIdx: (() => {
+        const meuId = state.managers[state.youIdx]?.id
+        if (meuId == null) return state.youIdx
+        const i = action.newState.managers?.findIndex(m => m.id === meuId) ?? -1
+        return i >= 0 ? i : state.youIdx
+      })(),
       youUid: state.youUid, // 🤝 meu crachá da dupla é LOCAL, igual ao youIdx
       isHost: state.isHost,
       roomId: state.roomId,
@@ -6591,7 +6605,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // explicação: cara de bug. Este vigia percebe quando eu ESTAVA lacrado e deixei
   // de estar, ainda na fase de envelope, e mostra o porquê pra ELE também.
   const [lanceReaberto, setLanceReaberto] = useState(false)
-  const euLacradoRef = useRef(false)
+  // guarda EM QUAL RODADA eu estava lacrado ('' = não estava). Antes era só um
+  // true/false, e isso fazia o aviso de troca de host pipocar toda hora — ver
+  // o comentário do efeito lá embaixo.
+  const euLacradoRef = useRef('')
   // "fui expulso pelo host": banner vermelho na tela (troca o alert() antigo, que o
   // celular às vezes engolia e a pessoa continuava vendo a partida). A saída da sala
   // já aconteceu (KICKED_OUT resetou pro menu) — o banner só explica o porquê.
@@ -6612,9 +6629,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // avisa TODO MUNDO agora, com o canal ainda vivo (antes do GO_LOBBY derrubar)
         channelRef.current?.send({ type: 'broadcast', event: 'host_change', payload: { newHostIndex } })
         // passa a posse no banco (host_id) pra reconexão funcionar — best effort
+        // 🐛 CONSERTO 19/08 (sala do Paduz, bagunça geral): aqui misturava DOIS
+        // sistemas de numeração. `newHostIndex` vem da presença, que é a CADEIRA
+        // (o `youIdx` que cada aparelho publica). Já `room_players.player_index` é
+        // o CRACHÁ (o id inicial do técnico) — os dois só coincidem enquanto
+        // ninguém reordena. Quando divergiam, o banco recebia o `host_id` da
+        // PESSOA ERRADA; aí o poll dela lia "a posse é minha" e ela virava host
+        // sem o host de verdade largar a coroa. Dois donos na mesma sala = os
+        // envelopes de todo mundo voltando pra mão (BECOME_HOST limpa o
+        // `submitted`), que é o "tive que repetir o lance várias vezes".
+        // Agora converte cadeira → crachá antes de procurar no banco.
         try {
           const { data: rows } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', rid)
-          const nh = (rows ?? []).find((r: { player_index: number; user_id: string }) => r.player_index === newHostIndex)
+          const nhCracha = st.managers[newHostIndex]?.id ?? newHostIndex
+          const nh = (rows ?? []).find((r: { player_index: number; user_id: string }) => r.player_index === nhCracha)
           if (nh?.user_id) await supabase.from('game_rooms').update({ host_id: nh.user_id }).eq('id', rid)
         } catch { /* silencioso */ }
       } else {
@@ -7097,13 +7125,24 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // 🔨 vigia do MEU envelope: lacrado → reaberto, ainda no envelope = o dono da
   // sala trocou e o meu lance voltou pra minha mão. Mostra o porquê (senão o
   // botão "reaparece do nada" e parece bug).
+  // ⚠️ CONSERTO 19/08 (bug ao vivo na sala do Paduz: *"toda hr aparecendo essa
+  // msg"*): antes bastava eu ter lacrado e depois aparecer DESLACRADO na fase de
+  // envelope pra o aviso subir. Só que isso acontece SEM host nenhum ter caído —
+  // a cada SETOR e a cada LEVA novos o `submitted` zera, e o convidado, que lê o
+  // estado de 2 em 2,5s, muitas vezes pula a fase de revelação no meio e vê
+  // "envelope lacrado → envelope deslacrado" direto. Resultado: o aviso pipocava
+  // entre um setor e outro, assustando quem estava jogando.
+  // Agora o vigia guarda A RODADA (setor + leva + fase) em que eu lacrei. Só avisa
+  // se eu continuo NA MESMA rodada e o meu envelope voltou pra minha mão — que é
+  // o único caso em que o lance realmente precisa ser refeito.
   useEffect(() => {
     const noEnvelope = state.phase === 'envelope' || state.phase === 'resq_envelope'
     const meu = state.managers[state.youIdx]?.id
     const lacrado = meu != null && state.submitted.includes(meu)
-    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current && !lacrado && !state.isHost) setLanceReaberto(true)
-    euLacradoRef.current = !!(noEnvelope && lacrado)
-  }, [state.submitted, state.phase, state.youIdx, state.onlineMode, state.isHost, state.managers])
+    const rodada = `${state.sectorIdx}:${state.sectorCursor}:${state.phase}`
+    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current === rodada && !lacrado && !state.isHost) setLanceReaberto(true)
+    euLacradoRef.current = (noEnvelope && lacrado) ? rodada : ''
+  }, [state.submitted, state.phase, state.youIdx, state.onlineMode, state.isHost, state.managers, state.sectorIdx, state.sectorCursor])
 
   // 🔒 o aparelho lembra de qual sala ele é DONO (host). Serve SÓ pra não mostrar o
   // aviso "host caiu" pra ele mesmo — se a rede piscar no reconectar e o "sou host?"
