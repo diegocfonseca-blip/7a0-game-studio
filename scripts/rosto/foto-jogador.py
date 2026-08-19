@@ -5,9 +5,11 @@
 # com base no tamanho que precisamos... porque hoje tem mais de mil jogadores
 # mas em breve terão 3 mil também"*.
 #
-# Resposta curta: DÁ, mas só pros CRAQUES. A conta está no `docs/pendencias.md`.
-# O resto do elenco continua na PEÇA desenhada (0 KB por jogador). Quem tem
-# foto usa foto; quem não tem cai na peça — ninguém fica sem cara.
+# Eu recomendei fazer só os craques (a conta está no `docs/pendencias.md`), mas
+# ele decidiu fazer TODOS: *"não se importe com o tempo que vai demorar, mas eu
+# vou fazer de todos sim... posso lançar aos poucos"*. Decisão dele, e o sistema
+# foi montado pra isso: **quem tem foto usa foto, quem não tem fica exatamente
+# como está hoje**. Com 10 prontos, só esses 10 mudam. Nunca fica meio quebrado.
 #
 # Este script é a esteira: o Diego joga a pasta de imagens que o GPT gerou, e
 # aqui sai tudo no formato do jogo, com o peso conferido.
@@ -24,14 +26,16 @@
 #   3. corta no limite do desenho (bbox do alfa), senão a margem transparente
 #      faz o rosto renderizar menor que os outros e ainda ocupa KB à toa.
 #   4. reduz pro lado máximo (padrão 200px = 2× os 100px do card grande).
-#   5. salva .webp (quality 85, method 6) em src/escalacao/img/rostos/.
+#   5. salva .webp (quality 85, method 6) em `public/rostos/` — fora do bundle.
 #   6. avisa TODO arquivo que passar do teto de peso, com o nome, pra ninguém
 #      commitar sem ver.
+#   7. reescreve `src/escalacao/rostos-lista.ts` (arquivo GERADO) olhando a
+#      pasta — é assim que o jogo fica sabendo quem já tem rosto.
 #
 # ⚠️ REGRA DO DIEGO QUE VALE AQUI (18/08): não inventar como uma pessoa real é.
-# Se o GPT não souber quem é o jogador, ele vai desenhar QUALQUER coisa — e aí
-# é pior que rosto genérico. Por isso a lista de quem ganha foto é curta e
-# conferida no olho: craque que todo mundo reconhece. Na dúvida, fica a peça.
+# Se o GPT não souber quem é o jogador, ele vai desenhar QUALQUER coisa — e não
+# avisa. Então, na dúvida sobre um jogador obscuro/folclórico, é melhor NÃO
+# gerar: sem foto, a carta fica como sempre foi, e isso nunca fica errado.
 import argparse, collections, os, re, sys, unicodedata
 
 try:
@@ -41,7 +45,11 @@ except ImportError:
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(RAIZ, 'src', 'escalacao', 'data.ts')
-SAIDA = os.path.join(RAIZ, 'src', 'escalacao', 'img', 'rostos')
+# 📸 as fotos moram em public/ (copiadas como estão, SEM entrar no bundle).
+# Ver o cabeçalho de src/escalacao/rostos.ts: com 3.000 imports o bundle
+# carregaria 3.000 endereços que TODO jogador baixa. Assim, custo zero.
+SAIDA = os.path.join(RAIZ, 'public', 'rostos')
+LISTA = os.path.join(RAIZ, 'src', 'escalacao', 'rostos-lista.ts')
 
 
 def chave(s: str) -> str:
@@ -152,6 +160,33 @@ def main():
         for f in orfaos:
             print(f'   · {f}')
         print('   → o nome do arquivo tem que ser o nome do jogador, igualzinho ao do jogo.')
+
+    escreve_lista()
+
+
+def escreve_lista(_base=None):
+    """reescreve `rostos-lista.ts` olhando o que EXISTE em public/rostos/.
+
+    A lista é a única coisa que o jogo carrega — ela diz quem já tem foto. Quem
+    não está nela cai no visual de sempre. Como é gerada a partir da PASTA (e
+    não de uma lista escrita à mão), apagar um arquivo já tira o rosto do jogo:
+    não dá pra ficar dessincronizado.
+    """
+    slugs = sorted(os.path.splitext(f)[0] for f in os.listdir(SAIDA)
+                   if f.lower().endswith('.webp'))
+    corpo = ''.join(f"  '{s}',\n" for s in slugs)
+    with open(LISTA, 'w', encoding='utf-8') as fp:
+        fp.write(
+            '// ⚠️ ARQUIVO GERADO — não editar na mão.\n'
+            '// Escrito por `scripts/rosto/foto-jogador.py` toda vez que o Diego passa uma\n'
+            '// pasta de rostos novos pela esteira. É só a lista de QUEM já tem foto em\n'
+            '// `public/rostos/`; quem não está aqui cai no visual de sempre.\n'
+            '//\n'
+            f'// Rostos: {len(slugs)}\n'
+            'export const ROSTOS_PRONTOS: ReadonlySet<string> = new Set([\n'
+            f'{corpo}'
+            '])\n')
+    print(f'\n📝 rostos-lista.ts atualizado: {len(slugs)} jogador(es) com foto no jogo.')
 
 
 if __name__ == '__main__':

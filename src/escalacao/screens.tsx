@@ -13,6 +13,7 @@ import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
 import type { ApoioTier } from './apoio'
+import { fotoDoJogador } from './rostos'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
@@ -5328,6 +5329,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
   const isProm = promessa ?? PROMESSA_SET.has(name)
   const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
+  const foto = fotoDoJogador(name)
   const text = bio ?? BIOS[name] ?? (isProm ? `Promessa ${({ GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' } as Record<string, string>)[pos] ?? 'do futebol'} — brilhou aqui jovem e virou estrela.` : fallbackBio(fame, pos))
   return (
     <div className="relative overflow-hidden border-[3px] border-black rounded-2xl flex flex-col justify-between"
@@ -5347,9 +5349,15 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           )}
         </div>
       </div>
-      <div className="relative self-center rounded-full flex items-center justify-center"
+      {/* 📸 o retrato. Jogador COM foto mostra a foto; SEM foto fica a letra do
+          nome, exatamente como sempre foi. Como quase todo mundo ainda não tem,
+          o normal é cair na letra — e a carta não muda em nada. Ver
+          `rostos.ts`: o Diego vai fazendo os rostos aos poucos. */}
+      <div className="relative self-center rounded-full flex items-center justify-center overflow-hidden"
         style={{ width: big ? 100 : 66, height: big ? 100 : 66, background: t.crestBg, color: t.crestInk, border: '3px solid rgba(0,0,0,.28)', ...OSWALD, fontWeight: 900, fontSize: big ? 42 : 27, boxShadow: t.holo ? 'inset 0 0 14px rgba(255,255,255,.7)' : 'none' }}>
-        {initial}
+        {foto
+          ? <img src={foto} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
+          : initial}
       </div>
       <div className="relative">
         <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{name}</p>
