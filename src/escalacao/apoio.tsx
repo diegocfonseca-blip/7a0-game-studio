@@ -89,7 +89,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'diogoluz2309@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'msb102010@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Murriz FC)
   'ofc.toka10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Tôka10)
-  'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N)
+  'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) — e desde 19/08 também FUNDADOR nº47 pelo batismo do Futpoint FC (presente do Diego)
   'alvarolino7712@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'matheusncruz1@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Skyy FC)
   'giovannecastro784@hotmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR + batismo (Crias do Bigão)
@@ -176,6 +176,7 @@ const FUNDADOR_N: Record<string, number> = {
   'lucas_calefi@outlook.com': 44, // 🖋️ Lucas Calefi — Lenda + sócio nº24; batizou os Coringas do Diniz (Série A); coração Corinthians (16/08)
   'pedrinhocamisa8@gmail.com': 45, // 🖋️ batizou o Nata de SP (ex-Paris São Geraldo, Série D); coração Corinthians (17/08)
   'giovannecastro784@hotmail.com': 46, // 🖋️ batizou os Crias do Bigão (ex-Ferroviária do Vale, Série B) — mascote é o próprio dono (17/08)
+  'gfpicolo13@gmail.com': 47, // 🖋️ Futpoint FC (ex-Serrano FC, Série B) — batismo DADO pelo Diego, não vendido; ele já era Lenda paga (19/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

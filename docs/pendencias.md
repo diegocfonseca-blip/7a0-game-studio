@@ -1,4 +1,30 @@
-# 📌 Pendências combinadas com o Diego (atualizado 18/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 19/08/2026)
+
+## 📍 BATISMO FUTPOINT FC (19/08) — ✅ FEITO E NO AR
+Presente do Diego pro **gfpicolo13@gmail.com** (Giovani Picolo — o mesmo que
+reportou os dois bugs de 18/08). Palavras dele: *"add esse e-mail aqui do time
+Futpoint fc como socio mas sem ser sócio. Pq tô dando p ele"*.
+
+**"Sócio mas sem ser sócio"** = ele NÃO comprou o batismo, o Diego deu. Ele já
+era **Lenda paga** (👑 ouro) desde antes. Então: ganhou tudo que sócio tem
+(manto/mascote/escudo do próprio clube), a linha em `esc_socios` é
+`origem = 'batismo'` como todas as outras, e o comentário no `apoio.tsx` diz
+que foi **dado, não vendido** — pra ninguém contabilizar como venda depois.
+
+- Clube: **Futpoint FC**, ex-**Serrano FC**, **Série B**. ⚠️ O Diego não disse
+  qual clube trocar — escolhi o Serrano FC porque o nome era quase igual ao
+  "Nacional da Serra" (dava confusão) e ele não estava em `CLASSIC_CLUBS`.
+  Trocar de clube é UMA linha, se ele preferir outro.
+- Mascote: **O Pontinho** (`futpoint_bola`) — bola de boné dando joinha.
+  Animação de gol: `coQuica` (é uma BOLA, entra quicando).
+- Manto: **preto `#181818` + dourado `#B89040`**, medidos na camisa que ele
+  mandou; 3ª cor **branca** via `MANTO_TRI`.
+- Arte: escudo 293×360 · 26,5 KB · mascote 310×440 · 29,3 KB (**total 56 KB**,
+  dentro do teto de 75 KB). Camisa do post em `scripts/kits/` (não vai no jogo).
+- Fundador **nº47** · sócio **nº27**.
+
+⏳ **Falta**: `time_coracao` está NULL — mesma pendência do Skyy (matheusncruz1)
+e do Bigão (giovannecastro784). É só perguntar pra que time cada um torce.
 
 ## 🧑 ROSTO DE JOGADOR (18/08) — ⏳ MOCKUP ENTREGUE, AGUARDA O OK DO DIEGO
 O Diego viu o `meuonze.app.br` e gostou da arte dos jogadores. Pediu algo

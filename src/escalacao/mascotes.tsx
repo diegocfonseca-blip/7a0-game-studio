@@ -15,6 +15,7 @@ import ferrariMascoteImg from './img/ferrari-mascote.webp' // 🏎️ Ferrari SC
 import nataMascoteImg from './img/nata-mascote.webp' // 🤡 Nata de SP (pedrinhocamisa8): arte própria do dono
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
+import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
 
 const INK = '#0C0C0C'
 
@@ -487,6 +488,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 🧢💙💛 o BIGÃO (mascote dos Crias do Bigão — giovannecastro784, 17/08): o
   // próprio dono de boné, camisa azul e amarela, chutando a bola. Arte própria
   // do dono (webp, fora do bundle). mascote_key = "bigao".
+  // 📍⚽ o PONTINHO (mascote do Futpoint FC — gfpicolo13, 19/08): bola de boné
+  // dando joinha. Arte própria do dono (webp, fora do bundle).
+  // mascote_key = "futpoint_bola".
+  futpoint_bola: (
+    <img src={futpointMascoteImg} height={176} width={Math.round(176 * 310 / 440)} alt="O Pontinho — Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   bigao: (
     <img src={bigaoMascoteImg} height={176} width={Math.round(176 * 319 / 440)} alt="O Bigão — Crias do Bigão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -729,6 +736,7 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Nata de SP': 'nata_palhaco', // 🤡 o palhaço carimba o placar (pedrinhocamisa8, 17/08)
   'Skyy FC': 'skyy_aguia', // 🦅 a águia carimba o placar (matheusncruz1, 17/08)
   'Crias do Bigão': 'bigao', // 🧢 o Bigão carimba o placar (giovannecastro784, 17/08)
+  'Futpoint FC': 'futpoint_bola', // 📍 o Pontinho carimba o placar (gfpicolo13, 19/08)
 }
 
 // 7️⃣ carimbo exclusivo do Seven City: o sete dourado com borda preta grossa.
@@ -751,6 +759,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   nata_palhaco: 'O Palhaço',   // 🤡 Nata de SP (pedrinhocamisa8, 17/08)
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
+  futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
 }
 
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)
@@ -788,6 +797,7 @@ export const CARIMBO_ANIM: Record<string, string> = {
   coringa_diniz: 'coCarta',   // 🃏 vira no ar como carta sendo dada na mesa
   sapek_abelha: 'coZumbe',    // 🐝 chega vibrando, parando no ar
   eros_nina: 'coPulinho',     // 🐶 pulinho curto e feliz
+  futpoint_bola: 'coQuica',   // 📍 é uma BOLA: entra quicando, como bola faz
 }
 export const carimboAnimDoTime = (time: string): string =>
   CARIMBO_ANIM[CARIMBO_GOL[time] ?? ''] ?? 'coCarimba'

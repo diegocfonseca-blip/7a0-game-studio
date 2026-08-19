@@ -2318,6 +2318,7 @@ export const OLD_NAME: Record<string, string> = {
   'Tôka10': 'Biriba United', // ⚽ batismo do ofc.toka10: save antigo com Biriba United vira Tôka10 ao carregar
   'Skyy FC': 'Fortuna SAF', // ⚽ batismo do matheusncruz1: save antigo com Fortuna SAF vira Skyy FC ao carregar
   'Crias do Bigão': 'Ferroviária do Vale', // ⚽ batismo do giovannecastro784: save antigo com Ferroviária do Vale vira Crias do Bigão ao carregar (17/08)
+  'Futpoint FC': 'Serrano FC', // ⚽ batismo do gfpicolo13: save antigo com Serrano FC vira Futpoint FC ao carregar (19/08)
   'SC Ferrari': 'Painitto FC', // ⚽ batismo do adriano.ferrari: save antigo com Painitto FC vira SC Ferrari ao carregar
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
   'Bicho da Seda': 'Red Bull Diet', // ⚽ batismo do davisantana1312 (Davi) — mariposa. Corrente direta Red Bull Diet → Bicho da Seda (o elo "Xurupitas FC" saiu em 10/08: esse nome agora é do denilson).
@@ -2460,7 +2461,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Nortista', team: 'Comercial do Norte' },
     { name: 'Litorâneo', team: 'Litoral United' },
     { name: 'Ferroviário', team: 'Ferroviário do Sul' },
-    { name: 'Serrote', team: 'Serrano FC' },
+    { name: 'Serrote', team: 'Futpoint FC' }, // ⚽ clube BATIZADO por apoiador (gfpicolo13 — Futpoint FC, ex-Serrano FC; presente do Diego: Lenda + fundador nº47 + sócio nº27, 19/08)
   ],
   A: [
     { name: 'Barão', team: 'Metrópole FC' },

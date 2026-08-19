@@ -24,6 +24,7 @@ import coringasEscudoImg from './img/coringas-escudo.webp'
 import nataEscudoImg from './img/nata-escudo.webp'
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
+import futpointEscudoImg from './img/futpoint-escudo.webp'
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
@@ -459,6 +460,14 @@ const bigaoEscudoRender = (size: number) => (
   <img src={bigaoEscudoImg} height={size} width={Math.round(size * 302 / 360)} alt="Crias do Bigão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 📍⚫🟡 Futpoint FC (gfpicolo13) — ex-Serrano FC, Série B. Escudo preto/dourado
+// com o alfinete de mapa e a bola dentro, faixa com o nome e "EST. 2024". Arte
+// enviada pelo próprio dono; aqui só tiramos o fundo branco, cortamos no limite
+// do desenho e reduzimos (o escudo nunca passa de 78px na tela).
+const futpointEscudoRender = (size: number) => (
+  <img src={futpointEscudoImg} height={size} width={Math.round(size * 293 / 360)} alt="Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🤡🟡⚫ Nata de SP (pedrinhocamisa8) — ex-Paris São Geraldo, Série D. Escudo
 // amarelo/preto com o palhaço e faixas de risco; arte enviada pelo próprio dono,
 // aqui só tiramos o fundo quadriculado falso, cortamos no limite do desenho e
@@ -581,6 +590,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Crias do Bigao': bigaoEscudoRender,
   'Crias': bigaoEscudoRender,
   'Crias do Bigão FC': bigaoEscudoRender,
+  // 📍⚫🟡 Futpoint FC (gfpicolo13) — ex-Serrano FC, Série B. O nome velho fica
+  // registrado: quem já tinha carreira com o Serrano não fica sem escudo.
+  'Futpoint FC': futpointEscudoRender,
+  'Futpoint': futpointEscudoRender,
+  'FutPoint FC': futpointEscudoRender,
+  'Fut Point FC': futpointEscudoRender,
+  'Serrano FC': futpointEscudoRender,
   // 🎮🐶 Eros FC + variações reservadas (todas puxam o MESMO escudo)
   'Eros FC': erosEscudoRender,
   'Eros Reis FC': erosEscudoRender,
