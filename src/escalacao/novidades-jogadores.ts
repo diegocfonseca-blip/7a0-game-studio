@@ -6,449 +6,82 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
-    "nome": "Carles Puyol",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Nemanja Vidić",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "John Terry",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Pavel Nedvěd",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Rodri",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Gabriel Batistuta",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Didier Drogba",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Wayne Rooney",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Alessandro Del Piero",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Samuel Eto'o",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Alan Shearer",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Arjen Robben",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Franck Ribéry",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Michael Owen",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Robin van Persie",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Jean-Pierre Papin",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Allan Simonsen",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Ryan Giggs",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Karim Benzema",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Steven Gerrard",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Frank Lampard",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Toni Kroos",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Francesco Totti",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "David Beckham",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Raúl",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Harry Kane",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Luis Suárez",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Miguel Trauco",
+    "nome": "Emerson Leão",
     "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Frickson Erazo",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Christian Cueva",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dominik Livaković",
+    "tipo": "nivel",
+    "nome": "Peter Schmeichel",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Kasper Schmeichel",
+    "tipo": "nivel",
+    "nome": "Dida",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "bom jogador",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Robert Jarni",
+    "tipo": "nivel",
+    "nome": "Alessandro Nesta",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Vedran Ćorluka",
+    "tipo": "nivel",
+    "nome": "Thiago Silva",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Šime Vrsaljko",
+    "tipo": "nivel",
+    "nome": "Virgil van Dijk",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Ivan Strinić",
+    "tipo": "nivel",
+    "nome": "Dani Alves",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Thomas Helveg",
+    "tipo": "nivel",
+    "nome": "Javier Zanetti",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Joakim Mæhle",
+    "tipo": "nivel",
+    "nome": "Marcelo Vieira",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   },
   {
-    "tipo": "entrou",
-    "nome": "Jan Heintze",
+    "tipo": "nivel",
+    "nome": "Lilian Thuram",
     "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Daniel Wass",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ulises de la Cruz",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Pervis Estupiñán",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Joško Gvardiol",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dejan Lovren",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Domagoj Vida",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Igor Štimac",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Simon Kjær",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Daniel Agger",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Andreas Christensen",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Morten Olsen",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Alberto Rodríguez",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Zvonimir Boban",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Robert Prosinečki",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Brian Laudrup",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Pierre-Emile Højbjerg",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Thomas Delaney",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Christian Poulsen",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Nolberto Solano",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Renato Tapia",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Christian Noboa",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-18"
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-08-19"
   }
 ]
