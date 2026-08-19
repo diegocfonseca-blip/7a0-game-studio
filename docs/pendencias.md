@@ -43,6 +43,68 @@ o dono usa o nome dele, e nenhum time de CPU some. Já era assim com **Eros FC**
 ⏳ **Falta**: `time_coracao` NULL — mesma pendência do Skyy (matheusncruz1) e do
 Bigão (giovannecastro784).
 
+## 📸 ROSTO PRONTO (GPT/Gemini) × PEÇA DESENHADA — a conta (19/08)
+Pergunta do Diego: *"e se o chat gpt fizer as imagens dos jogadores? c base no
+tamanho q precisamos... pq hj tem mais d mil jogadores mas em breve terão 3 mil"*.
+
+### Os números MEDIDOS (não chute)
+- Na carta, o espaço do rosto é um círculo de **66px** (carta normal) e **100px**
+  (carta grande). Então o arquivo só precisa de **200px** no lado maior (2× pra
+  retina). Mais que isso é peso jogado fora.
+- Peso real de uma arte chapada nesse tamanho, medido aqui: **~10 KB** a 200px
+  (7 KB a 160px · 14 KB a 256px · 19 KB a 320px), webp q85.
+- Baralho hoje: **1.419 linhas de jogador**. Por fama: **108 são fama 5** (7,6%),
+  400 fama 4, 410 fama 3, 326 fama 2, 175 fama 1.
+
+### A conta
+| | Foto pronta em TODOS | Foto só nos CRAQUES (fama 5) | Peça desenhada |
+|---|---|---|---|
+| Arquivos hoje | 1.419 | **108** | 0 |
+| Arquivos a 3.000 jogadores | 3.000 | **~230** | 0 |
+| Peso no repositório | **~30 MB** | **~2,3 MB** | **0 KB** |
+| O Diego consegue conferir um a um? | ❌ não | ✅ sim | ✅ (são ~12 peças) |
+| Jogador novo custa | +10 KB pra sempre | +10 KB só se for craque | **0 KB** |
+
+⚠️ O peso **não é o maior problema** — imagem separada só desce pra quem cruza
+com o jogador, então 30 MB no repo não viram 30 MB no celular de ninguém. Os
+dois problemas de verdade são:
+1. **TRABALHO**: 3.000 imagens pra pedir, baixar, nomear e conferir. A 1 minuto
+   cada, são **50 horas** — e cada jogador novo repete o ciclo pra sempre.
+2. **A REGRA DO DIEGO (18/08)**: *"qd vc N souber qm é a pessoa é como é me fala"*.
+   O GPT **não sabe** quem é o lateral folclórico do Série D — e não avisa: ele
+   desenha qualquer um com cara de retrato. Rosto errado com cara de foto é pior
+   que rosto genérico, que foi exatamente o que ele falou do Vozinha.
+
+### ✅ O caminho recomendado: HÍBRIDO
+1. **PEÇA desenhada pra todos os 1.419 (e pros 3.000)** — 0 KB, ninguém fica sem
+   cara, e nada quebra quando entra jogador novo.
+2. **FOTO pronta só pros ~108 fama 5** — os que todo mundo reconhece e o GPT
+   sabe desenhar. 108 × 10 KB = **1,1 MB**, e dá pra conferir os 108 no olho.
+3. Regra no código: **tem foto → usa foto; não tem → cai na peça.** Nunca falha.
+
+### A esteira já está pronta: `scripts/rosto/foto-jogador.py`
+O Diego joga a pasta de imagens do GPT e sai tudo no formato do jogo:
+```
+python3 scripts/rosto/foto-jogador.py --pasta ~/rostos-gpt
+```
+Ele casa o nome do arquivo com o jogador REAL do `data.ts` (ignora acento e
+caixa: `Pele.png` acha o "Pelé"), tira o fundo branco, corta no limite do
+desenho, reduz pra 200px, salva webp e **avisa todo arquivo que passar de
+12 KB**. Arquivo que não casa com jogador nenhum é recusado — não nasce rosto
+órfão no jogo. Testado.
+
+### 📋 O que pedir pro GPT/Gemini (pra vir no formato certo de primeira)
+> Ilustração de busto (cabeça e ombros) do jogador **[NOME]** no **[CLUBE, ANO]**.
+> Estilo vetorial chapado, cores sólidas, **sem fundo** (ou fundo branco liso),
+> de frente, centralizado, com pouca margem sobrando. Cabelo e barba fiéis ao
+> jogador naquele ano; camisa nas cores do clube, **sem escudo e sem patrocínio**.
+> Entregar em **PNG 1024×1024**.
+
+Nome do arquivo = **nome do jogador igualzinho ao do jogo** (`Lionel Messi.png`).
+
+⏳ **Falta o Diego decidir**: (a) fica o híbrido? (b) o estilo do rosto (a última
+peça foi a SEM olho/boca/nariz, que ele mandou fazer e ainda não avaliou).
+
 ## 🧑 ROSTO DE JOGADOR (18/08) — ⏳ MOCKUP ENTREGUE, AGUARDA O OK DO DIEGO
 O Diego viu o `meuonze.app.br` e gostou da arte dos jogadores. Pediu algo
 parecido **na personalidade da casa**, não igual: *"não sendo idêntico ao do
