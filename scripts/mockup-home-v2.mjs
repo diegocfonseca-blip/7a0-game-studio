@@ -101,14 +101,31 @@ const nova = `
       desliza sozinho · 148 craques pra colecionar</div>
   </div>
 
-  <!-- ANDAR 3 · O botão. Um só. -->
+  <!-- ANDAR 3 · os TRÊS modos — a CARREIRA é a principal (Diego 20/08:
+       *"quero fazer as pessoas jogarem mais o carreira"*). Os três continuam ali;
+       o que muda é o TAMANHO. Hierarquia é o jeito de empurrar sem esconder. -->
   <div style="padding:26px 18px 0">
-    <div style="border:4px solid ${INK};border-radius:16px;background:${GREEN};color:#fff;
-      box-shadow:5px 5px 0 ${INK};padding:19px 12px;text-align:center">
-      <div style="${OSW};font-size:23px;text-transform:uppercase;line-height:1">▶️ Jogar agora</div>
+    <div style="border:4px solid ${INK};border-radius:16px;background:${PURPLE};color:#fff;
+      box-shadow:5px 5px 0 ${INK};padding:17px 14px">
+      <div style="${OSW};font-size:22px;text-transform:uppercase;line-height:1.02">🪜 Começar carreira</div>
+      <div style="font-family:system-ui;font-weight:600;font-size:11.5px;opacity:.88;line-height:1.35;margin-top:5px">
+        Comece na <b>Várzea</b> e suba até a Série A. Cada título vira carta no seu álbum.</div>
+      <div style="display:inline-block;background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);
+        border-radius:999px;padding:2px 9px;${OSW};font-size:9.5px;margin-top:9px;letter-spacing:.05em">
+        🆓 SEM PRECISAR DE CONTA</div>
     </div>
-    <div style="text-align:center;font-family:system-ui;font-weight:600;font-size:11px;color:rgba(12,12,12,.55);margin-top:8px">
-      não precisa de conta · uns 6 minutos</div>
+    <div style="display:flex;gap:9px;margin-top:11px">
+      <div style="flex:1;border:3px solid ${INK};border-radius:14px;background:${GREEN};color:#fff;
+        box-shadow:3px 3px 0 ${INK};padding:12px 9px;text-align:center">
+        <div style="${OSW};font-size:14px;text-transform:uppercase;line-height:1.05">👥 Com<br>amigos</div>
+        <div style="font-family:system-ui;font-weight:600;font-size:9.5px;opacity:.85;margin-top:3px">até 20 na sala</div>
+      </div>
+      <div style="flex:1;border:3px solid ${INK};border-radius:14px;background:#fff;
+        box-shadow:3px 3px 0 ${INK};padding:12px 9px;text-align:center">
+        <div style="${OSW};font-size:14px;text-transform:uppercase;line-height:1.05">⚡ Partida<br>rápida</div>
+        <div style="font-family:system-ui;font-weight:600;font-size:9.5px;color:rgba(12,12,12,.6);margin-top:3px">uns 6 minutos</div>
+      </div>
+    </div>
   </div>
 
   <!-- ANDAR 4 · as portas (regra é PORTA, não texto) -->
@@ -120,16 +137,7 @@ const nova = `
     </div>
   </div>
 
-  <!-- ANDAR 5 · os outros modos, sem gritar -->
-  <div style="padding:28px 18px 0">
-    <div style="${OSW};font-size:11px;letter-spacing:.11em;color:rgba(12,12,12,.45);margin-bottom:10px">OUTROS JEITOS DE JOGAR</div>
-    <div style="display:flex;flex-direction:column;gap:9px">
-      ${modo('👥', 'Com os amigos', 'Manda o código no zap · até 20 na mesma sala', '#DDEFE3')}
-      ${modo('🪜', 'Modo carreira', 'Começa na Várzea e sobe até a Série A', '#EFE4FB')}
-    </div>
-  </div>
-
-  <!-- ANDAR 6 · continuar (só aparece pra quem tem) -->
+  <!-- ANDAR 5 · continuar (só pra quem já tem — fica colado na carreira) -->
   <div style="padding:22px 18px 0">
     <div style="border:3px solid ${INK};border-radius:14px;background:${PURPLE};color:#fff;
       box-shadow:3px 3px 0 ${INK};padding:12px 13px">
@@ -142,7 +150,7 @@ const nova = `
       só aparece pra quem já tem carreira</div>
   </div>
 
-  <!-- ANDAR 7 · novidades, fechadas -->
+  <!-- ANDAR 6 · novidades, fechadas -->
   <div style="padding:24px 18px 0">
     <div style="border:3px solid ${INK};border-radius:13px;background:#fff;box-shadow:3px 3px 0 ${INK};
       padding:11px 13px;display:flex;justify-content:space-between;align-items:center">
@@ -152,7 +160,7 @@ const nova = `
     </div>
   </div>
 
-  <!-- ANDAR 8 · o apoio, com o espaço que merece -->
+  <!-- ANDAR 7 · o apoio, com o espaço que merece -->
   <div style="padding:30px 18px 0">
     <div style="border:4px solid ${INK};border-radius:18px;background:#FFF6D6;box-shadow:4px 4px 0 ${INK};padding:17px 16px">
       <div style="${OSW};font-size:16px;text-transform:uppercase;line-height:1.05">💛 Quem faz esse jogo</div>
@@ -198,13 +206,14 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
     jogar) e a regra vira <b>uma porta</b>, não um texto na cara.</p>
 
   <div style="display:flex;gap:46px;align-items:flex-start">
-    ${fone(nova, '🟢 A home v2', GREEN, 'oito andares, um assunto cada · role pra ver tudo')}
+    ${fone(nova, '🟢 A home v2', GREEN, 'sete andares, um assunto cada · role pra ver tudo')}
     <div style="flex:1;min-width:320px;max-width:520px">
 
       <div style="border:4px solid ${INK};border-radius:18px;background:#fff;box-shadow:4px 4px 0 ${INK};padding:16px 18px;margin-bottom:16px">
         <div style="${OSW};font-size:17px;text-transform:uppercase;margin-bottom:12px">O que eu tinha errado</div>
         ${[['Tirei as cartas do alto', 'Você cortou e tem razão: a carta é o <b>motivo de jogar</b>. Voltaram — mas <b>deitadas</b>, deslizando sozinhas, ocupando 1/3 da altura em vez de uma tela inteira.'],
-           ['Enfiei as regras na cara', 'Ninguém chega num jogo querendo ler manual. A regra virou <b>um botão</b> — 📘 Como se joga — do lado do Álbum e do Ranking. Quem quer, abre.']]
+           ['Enfiei as regras na cara', 'Ninguém chega num jogo querendo ler manual. A regra virou <b>um botão</b> — 📘 Como se joga — do lado do Álbum e do Ranking. Quem quer, abre.'],
+           ['Deixei um botão só', 'Você cortou de novo: quer os <b>três modos</b> visíveis e a galera na <b>Carreira</b>. Agora os três estão lá — a Carreira grande, Amigos e Rápida menores do lado dela.']]
           .map(([t, d]) => `<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:11px">
             <span style="color:${RED};${OSW};font-size:15px;line-height:1.1">✕</span>
             <p style="font-size:12.5px;font-weight:600;line-height:1.45;margin:0"><b style="${OSW};text-transform:uppercase;font-size:13px">${t}</b><br>${d}</p></div>`).join('')}
@@ -212,11 +221,22 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
 
       <div style="border:4px solid ${INK};border-radius:18px;background:#F6FBF7;box-shadow:4px 4px 0 ${INK};padding:16px 18px;margin-bottom:16px">
         <div style="${OSW};font-size:17px;text-transform:uppercase;margin-bottom:12px">Como o "clean" acontece</div>
-        ${conta('hoje', '11', RED, '<b>botões na primeira tela</b>, amontoados. A pessoa escolhe antes de saber o que está escolhendo.')}
-        ${conta('v2', '1', GREEN, '<b>botão principal</b> — Jogar agora. Os outros modos descem pra uma faixa calma, e as portas (regras/álbum/ranking) viram três iguais.')}
+        ${conta('hoje', '11', RED, '<b>botões na primeira tela</b>, todos do mesmo peso. Sem hierarquia, a pessoa não sabe por onde começar — e escolhe qualquer um.')}
+        ${conta('v2', '3', GREEN, '<b>modos, com tamanhos diferentes</b>: a <b>Carreira</b> grande (é onde você quer a galera), Amigos e Rápida menores do lado. Os três continuam ali — muda o peso, não a existência.')}
         <p style="font-size:12.5px;font-weight:600;line-height:1.45;margin:14px 0 0;padding-top:12px;border-top:2px solid rgba(12,12,12,.12)">
           <b>Cada andar tem um assunto só</b> e respiro entre eles. É isso que faz parecer limpo — não ter menos coisa,
           e sim <b>nunca ter duas coisas disputando o mesmo olhar</b>.</p>
+      </div>
+
+      <div style="border:4px solid ${INK};border-radius:18px;background:#EFE4FB;box-shadow:4px 4px 0 ${INK};padding:16px 18px;margin-bottom:16px">
+        <div style="${OSW};font-size:16px;text-transform:uppercase;margin-bottom:8px">🪜 Por que a Carreira grande está certa</div>
+        <p style="font-size:12.5px;font-weight:600;line-height:1.5;margin:0">
+          Você quer a galera na Carreira — e os números te dão razão: são <b>118.219 temporadas</b> jogadas,
+          média na <b>26ª</b>, e 349 carreiras passaram das 100. É o modo onde a pessoa <b>fica</b>.<br><br>
+          E tem o lado comercial: é na Carreira que o <b>patrocinador aparece toda temporada</b>. Empurrar ela
+          é empurrar retenção <b>e</b> receita ao mesmo tempo.<br><br>
+          <b>O jeito de empurrar é o TAMANHO, não esconder os outros.</b> Amigos e Rápida continuam na mesma
+          tela, do lado, só menores.</p>
       </div>
 
       <div style="border:4px solid ${INK};border-radius:18px;background:#FFF6D6;box-shadow:4px 4px 0 ${INK};padding:16px 18px;margin-bottom:16px">
