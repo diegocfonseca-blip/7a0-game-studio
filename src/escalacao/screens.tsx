@@ -22,7 +22,7 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -1159,6 +1159,37 @@ function recentArrivals(cat: Record<Sector, Recruit[]>): Recruit[] {
 //   escreve sozinho quem entrou, quem saiu e quem mudou de nível/categoria.
 //   Ninguém escreve isso na mão.
 // • **Recém-chegados** — as últimas cartas de cada posição, como já era.
+// 📣 versão CURTA das novidades, pra home nova: 3 linhas à mostra e o resto no
+// toque. O `NewsSection` inteiro (com baralho e recém-chegados) continua sendo o
+// da home de hoje — aqui a gente só não deixa ele virar o maior bloco da tela.
+function NovidadesCurtas() {
+  const [abertas, setAbertas] = useState(false)
+  const todas = novidadesDaVez()
+  if (todas.length === 0) return null
+  const mostra = abertas ? todas : todas.slice(0, 3)
+  return (
+    <div>
+      <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>📣 O que mudou por aqui</p>
+      <Box bg="#fff" className="p-3 space-y-2">
+        {mostra.map(n => (
+          <div key={n.titulo + n.data} className="flex gap-2 items-start">
+            <span className="text-[15px] leading-tight">{n.emoji}</span>
+            <div className="min-w-0">
+              <p className="font-black text-[12.5px] leading-tight" style={OSWALD}>{n.titulo}</p>
+              <p className="text-[10.5px] font-semibold text-black/60 leading-snug">{n.texto}</p>
+            </div>
+          </div>
+        ))}
+        {todas.length > 3 && (
+          <button onClick={() => setAbertas(a => !a)} className="w-full text-center pt-1 text-[11px] font-black text-black/45" style={OSWALD}>
+            {abertas ? 'mostrar menos ›' : `ver as ${todas.length} ›`}
+          </button>
+        )}
+      </Box>
+    </div>
+  )
+}
+
 function NewsSection() {
   const recentBR = recentArrivals(CATALOG).slice(0, 6)
   const recentEU = recentArrivals(CATALOG_EU).slice(0, 4)
@@ -1511,9 +1542,56 @@ function HomeIconTile({ icon, label, onClick }: { icon: string; label: string; o
   )
 }
 
+// ─── 🏠 HOME NOVA (só a conta do Diego, 20/08) ───────────────────────────────
+// Desenho aprovado no mockup `scripts/mockup-home-v2.mjs`. A ideia, em uma frase:
+// **calma vem de espaço, não de tirar coisa**. Scroll longo, um assunto por
+// "andar", tudo ABERTO — e um MENU FIXO no rodapé (ideia do Diego), que é o que
+// destrava o resto: se navegar não depende de rolar de volta, o scroll pode ser
+// comprido e nada precisa se esconder atrás de clique.
+//
+// Ordem dos andares e o porquê de cada um:
+//   1 · o que é o jogo (uma frase, só)
+//   2 · as CARTAS deitadas — são o motivo de jogar, ficam no alto (o Diego cortou
+//       minha 1ª versão, que tinha tirado elas dali, e ele estava certo)
+//   3 · os TRÊS modos, com a CARREIRA grande (é onde ele quer a galera: 118 mil
+//       temporadas jogadas, e é o modo onde o patrocinador aparece toda temporada)
+//   4 · continuar carreira / voltar pra sala (só pra quem tem)
+//   5 · COMO FUNCIONA UMA PARTIDA — aberto, mas lá embaixo. Não está na cara
+//       (quem quer jogar já apertou em cima) nem escondido (quem rolou até aqui
+//       quer entender). Era a queixa dele: "as pessoas não entendem o leilão,
+//       as moedas, a disputa, e que depois tem uma simulação".
+//   6 · novidades · 7 · apoiar (a história de quem faz o jogo mora DENTRO dele)
+function HomeMenuFixo({ onJogar, onRegras, onAlbum, onRanking, apoiar }: {
+  onJogar: () => void; onRegras: () => void; onAlbum: () => void; onRanking: () => void; apoiar: React.ReactNode
+}) {
+  const item = (ic: string, txt: string, fn?: () => void, on = false) => (
+    <button key={txt} onClick={fn} className="flex-1 rounded-lg py-1 active:translate-y-0.5"
+      style={{ background: on ? INK : 'transparent', color: on ? '#fff' : INK }}>
+      <span className="block text-[17px] leading-tight">{ic}</span>
+      <span className="block text-[8.5px] font-black tracking-wide" style={{ ...OSWALD, opacity: on ? 1 : .58 }}>{txt}</span>
+    </button>
+  )
+  return (
+    // 🔇 o `paddingRight` abre espaço pro botão de som, que é fixo no canto de
+    // baixo à direita e ficaria em cima do último item da barra.
+    <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#F4ECD6',
+      borderTop: `4px solid ${INK}`, display: 'flex', gap: 4, padding: '7px 62px 9px 8px',
+      boxShadow: '0 -6px 14px rgba(0,0,0,.10)' }}>
+      {/* 🔇 o botão de som é fixo no canto de baixo à direita; o padding-right
+          acima abre a faixa dele pra ele não cair em cima do último item. */}
+      {item('▶️', 'JOGAR', onJogar, true)}
+      {item('📘', 'REGRAS', onRegras)}
+      {item('📖', 'ÁLBUM', onAlbum)}
+      {item('🏆', 'RANKING', onRanking)}
+      {apoiar}
+    </div>
+  )
+}
+
 export function EscIntro() {
   const [sport] = useSport()
   const unlocked = useSportUnlocked() // 🔒 só o Diego vê qualquer coisa de basquete
+  const homeNova = useHomeNova() // 🏠 home redesenhada — por enquanto só a conta do Diego
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
   const solo = useResumableSolo()
@@ -1547,6 +1625,125 @@ export function EscIntro() {
   // carrega — seguro). Pra qualquer outra conta, `unlocked` é false e nada disso
   // existe: a home é EXATAMENTE a de hoje.
   if (unlocked && sport === 'basquete') return <BidLegendsHome />
+  // 🏠 HOME NOVA — só a conta do Diego (ver `useHomeNova` em sport.ts). Todo o
+  // resto do mundo cai no `return` de baixo, que é a home de hoje intacta.
+  if (homeNova) {
+    const passo = (n: number, ic: string, titulo: string, txt: React.ReactNode) => (
+      <div key={n} className="flex items-center gap-2.5 border-[2.5px] border-black rounded-xl bg-white px-3 py-2.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+        <span className="flex-none w-[30px] h-[30px] rounded-[9px] border-[2.5px] border-black grid place-items-center text-[15px]" style={{ background: GOLD }}>{ic}</span>
+        <div className="min-w-0">
+          <p className="font-black text-[12.5px] uppercase leading-tight" style={OSWALD}><span className="text-black/30">{n}.</span> {titulo}</p>
+          <p className="text-[10.5px] font-semibold text-black/60 leading-snug">{txt}</p>
+        </div>
+      </div>
+    )
+    return (
+      <Shell>
+        {unlocked && <SportTabs />}
+        <AvisoDaVez />
+        {/* 1 · o que é o jogo */}
+        <div className="text-center pt-6">
+          <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            ⚽ Leilão às cegas de lendas
+          </span>
+          <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>LEILÃO LEGENDS</h1>
+          <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
+          <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">Dê lance <b>no nome</b>, sem ver o nível. Monte o time e colecione as lendas.</p>
+        </div>
+        {/* 2 · as cartas, DEITADAS — o motivo de jogar fica no alto */}
+        <div className="-mx-4">
+          <div className="flex gap-3 px-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex-none w-[150px]"><CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} /></div>
+            <div className="flex-none w-[150px]"><CollectibleCard name="Gabigol" club="Flamengo" year={2019} pos="ATA" fame={4} /></div>
+            <div className="flex-none w-[150px]"><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa /></div>
+            <div className="flex-none w-[150px]"><CollectibleCard name="Obina" club="Flamengo" year={2005} pos="ATA" fame={2} folk /></div>
+          </div>
+          <p className="text-center text-[11px] font-bold text-black/45 mt-2">👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos</p>
+        </div>
+        {/* 3 · os três modos, com a CARREIRA grande */}
+        <div className="space-y-2.5 pt-2">
+          <Btn onClick={() => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) })} className="w-full text-left" bg={PURPLE}>
+            <span className="block text-xl leading-none text-white">🪜 {solo ? 'Nova carreira' : 'Começar carreira'}</span>
+            <span className="block text-[11.5px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.85)' }}>
+              {escadaLiberada() ? 'Comece na Várzea e suba até a Série A.' : 'Comece na Série D e suba até a Série A.'} Cada título vira carta no seu álbum.
+            </span>
+            <span className="inline-block mt-2 rounded-full px-2 py-0.5 text-[9.5px] font-black tracking-wide"
+              style={{ ...OSWALD, background: 'rgba(255,255,255,.18)', border: '2px solid rgba(255,255,255,.4)', color: '#fff' }}>🆓 SEM PRECISAR DE CONTA</span>
+          </Btn>
+          <div className="grid grid-cols-2 gap-2.5">
+            <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-center" bg={GREEN}>
+              <span className="block text-sm leading-tight text-white">👥 Com<br />amigos</span>
+              <span className="block text-[9.5px] font-bold normal-case tracking-normal mt-1" style={{ color: 'rgba(255,255,255,.85)' }}>até 20 na sala</span>
+            </Btn>
+            <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="text-center" bg="#fff">
+              <span className="block text-sm leading-tight">⚡ Partida<br />rápida</span>
+              <span className="block text-[9.5px] font-bold normal-case tracking-normal mt-1 text-black/60">uns 6 minutos</span>
+            </Btn>
+          </div>
+        </div>
+        {/* 4 · continuar (só pra quem tem) */}
+        {resumable && (
+          <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: GREEN, boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-sm text-white leading-tight" style={OSWALD}>⏳ Você tem uma partida em andamento<br /><span className="opacity-80 text-xs">Sala {resumable.code}</span></p>
+            <button onClick={resumable.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Voltar pra sala {resumable.code}</button>
+            <button onClick={resumable.leave} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>🚪 Sair da sala</button>
+          </div>
+        )}
+        {solo && (
+          <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-[11px] uppercase tracking-wide text-white/85" style={OSWALD}>Sua carreira · Temporada {solo.seasonNo}</p>
+            <p className="font-black text-lg text-white leading-none -mt-1" style={OSWALD}>{solo.teamName}</p>
+            <button onClick={() => startCareer(solo.resume)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar de onde parei</button>
+            <button onClick={() => startCareer(() => setShowCarreiras(true))} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-[12.5px] py-2 active:translate-y-0.5" style={OSWALD}>🪜 Minhas carreiras · trocar de save</button>
+          </div>
+        )}
+        {/* 5 · como funciona — ABERTO, e aqui embaixo */}
+        <div className="pt-2">
+          <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>Como funciona uma partida</p>
+          <div className="space-y-2">
+            {passo(1, '🪙', '100 moedas', <>O baralho vem por posição. Você só vê o <b>nome</b>.</>)}
+            {passo(2, '✉️', 'Lance secreto', <>Escreve quanto vale e lacra. Ninguém vê o lance de ninguém.</>)}
+            {passo(3, '🔨', 'O martelo revela', <>Quem pagou mais leva — e <b>só aí</b> aparece o nível.</>)}
+            {passo(4, '👕', 'Fecha os 11', <>Faltou posição? O Monte tem as sobras, de graça.</>)}
+            {passo(5, '⚽', 'O campeonato roda', <>38 rodadas em 3 minutos. Campeão leva <b>carta</b>.</>)}
+          </div>
+        </div>
+        {/* 6 · novidades — ABERTAS, mas ENXUTAS. Na home de hoje este bloco é o
+            MAIOR da página (foi a queixa nº1 do Diego). Aqui ele mostra as 3
+            primeiras e abre o resto no toque: continua visível sem virar paredão. */}
+        <NovidadesCurtas />
+        {/* 7 · apoiar — a história de quem faz o jogo mora DENTRO dele */}
+        <ApoieButton big />
+        <CardAccountNote />
+        <Btn onClick={shareGame} className="w-full" bg="#fff">
+          📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
+        </Btn>
+        <AdminButton />
+        <DinastiaButton />
+        <CareerOnlineButton />
+        <LigaFechadaButton />
+        {/* espaço pro menu fixo não tapar o fim da página */}
+        <div style={{ height: 74 }} />
+        <HomeMenuFixo
+          onJogar={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onRegras={() => setShowManual(true)}
+          onAlbum={() => dispatch({ type: 'GO_ALBUM' })}
+          onRanking={() => dispatch({ type: 'GO_RANKING' })}
+          apoiar={<ApoieButton trigger={open => (
+            <button onClick={open} className="flex-1 rounded-lg py-1 active:translate-y-0.5">
+              <span className="block text-[17px] leading-tight">💛</span>
+              <span className="block text-[8.5px] font-black tracking-wide" style={{ ...OSWALD, opacity: .58 }}>APOIAR</span>
+            </button>
+          )} />} />
+        {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); startCareer(() => dispatch({ type: 'GO_SETUP_CAREER' })) }} />}
+        {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} />}
+        {careerGate && (
+          <JanelaConta titulo="🪜 Sua carreira mora na conta" contexto="Entre ou crie sua conta — te levo direto pra carreira." comecarEmCriar
+            onPronto={() => { const fn = careerGate; setCareerGate(null); fn?.() }} onFechar={() => setCareerGate(null)} />
+        )}
+      </Shell>
+    )
+  }
   return (
     <Shell>
       {unlocked && <SportTabs />}

@@ -304,8 +304,32 @@ export function useLibertaLiberada(): boolean {
   return libertaOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email) })
+// ─── 🏠 HOME NOVA — a tela de abertura redesenhada ──────────────────────────
+// Reclamação do Diego (20/08): *"o visual da home ainda acho que não tá legal,
+// ainda acho que tá poluído e desorganizado, e o jogo não está claro as regras"*.
+// A home nova é scroll longo com tudo ABERTO e um MENU FIXO no rodapé (ideia
+// dele) — assim navegar não depende de rolar de volta, e nada precisa ficar
+// escondido atrás de clique.
+// 🔒 Só a conta dele enxerga, pra ver rodando antes de trocar pra todo mundo.
+// Todo o resto continua com a home de hoje, sem UMA vírgula de diferença.
+// Liberar geral: HOME_NOVA_GERAL = true.
+const HOME_NOVA_GERAL = false
+const HOME_NOVA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let homeNovaOk = HOME_NOVA_GERAL
+function applyHomeNovaUnlock(email?: string | null): void {
+  const u = HOME_NOVA_GERAL || (!!email && HOME_NOVA_TESTERS.has(email.toLowerCase()))
+  if (u === homeNovaOk) return
+  homeNovaOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useHomeNova(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return homeNovaOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
