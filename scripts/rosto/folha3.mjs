@@ -7,6 +7,9 @@ import { rosto3 } from './rosto3.mjs'
 
 const arg = (n, d = '') => { const i = process.argv.indexOf(`--${n}`); return i > 0 && process.argv[i + 1] ? process.argv[i + 1] : d }
 const saida = arg('saida', 'rostos3.png')
+// 🎯 --so "Neymar,Lionel Messi": desenha SÓ esses, na ordem pedida (a folha
+// inteira tem 18 e fica pequena). Sem o argumento, sai a folha completa.
+const SO = arg('so', '')
 const b64 = p => fs.readFileSync(p).toString('base64')
 const fonte = w => `data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}`
 
@@ -18,6 +21,7 @@ const J = [
   { n: 'Lamine Yamal',      c: 'Barcelona · 2025',      f: 4, pele: 'c', cab: 'cacheado', cc: PRETO, pint: OXI, b: 'nao', fundo: '#A50044', c1: '#A50044', c2: '#143A87', gola: '#F5C542', tipo: 'listras' },
   { n: 'Neymar',            c: 'Santos · 2011',         f: 5, pele: 'b', cab: 'moicano',  cc: PRETO,    b: 'nao',    fundo: '#1B7A3D', c1: '#FFFFFF', c2: '#0C0C0C', gola: '#0C0C0C', tipo: 'lisa' },
   { n: 'Vinícius Júnior',   c: 'Real Madrid · 2024',    f: 5, pele: 'd', cab: 'tranca',   cc: PRETO,    b: 'nao',    fundo: '#4C2E86', c1: '#FFFFFF', c2: '#C9A227', gola: '#C9A227', tipo: 'lisa' },
+  { n: 'Cristiano Ronaldo',  c: 'Real Madrid · 2014',    f: 5, pele: 'b', cab: 'topete',   cc: PRETO,    b: 'nao',    fundo: '#4C2E86', c1: '#FFFFFF', c2: '#C9A227', gola: '#C9A227', tipo: 'lisa' },
   { n: 'Lionel Messi',      c: 'Barcelona · 2012',      f: 5, pele: 'a', cab: 'topete',   cc: CASTANHO, b: 'nao',    fundo: '#143A87', c1: '#A50044', c2: '#143A87', gola: '#F5C542', tipo: 'listras' },
   { n: 'Ronaldinho Gaúcho', c: 'Barcelona · 2005',      f: 5, pele: 'd', cab: 'cachos',   cc: PRETO,    b: 'nao',    fundo: '#E8503A', c1: '#A50044', c2: '#143A87', gola: '#F5C542', tipo: 'listras' },
   { n: 'Kaká',              c: 'Milan · 2007',          f: 5, pele: 'a', cab: 'risca',    cc: CASTANHO, b: 'nao',    fundo: '#8E1B2A', c1: '#B3132A', c2: '#0C0C0C', gola: '#0C0C0C', tipo: 'listras' },
@@ -32,6 +36,11 @@ const J = [
   // ❓ sem referência do rosto — peça neutra, não chute (regra do Diego 18/08)
   { n: 'Vozinha',           c: 'Cabo Verde · 2026',     f: 5, pele: 'c', cab: 'curto',    cc: PRETO,    b: 'nao',    fundo: '#143A87', c1: '#143A87', c2: '#C2452F', gola: '#C2452F', tipo: 'banda', semRef: true },
 ]
+
+const escolhidos = SO
+  ? SO.split(',').map(x => x.trim()).filter(Boolean)
+      .map(n => J.find(j => j.n.toLowerCase() === n.toLowerCase())).filter(Boolean)
+  : J
 
 const estrelas = f => '★'.repeat(f) + '<span class="off">' + '★'.repeat(5 - f) + '</span>'
 const carta = (j, i) => `
@@ -83,7 +92,7 @@ h1 .r{color:#C2452F}
 <b>cabelo</b>, a <b>barba</b> e as <b>cores do clube</b> (o fundo é a cor do time). Some a cara de emoji,
 e some também o risco de eu inventar o traço de alguém.</p>
 
-<div class="grade">${J.map(carta).join('')}</div>
+<div class="grade" style="grid-template-columns:repeat(${Math.min(escolhidos.length, 6)},1fr)">${escolhidos.map(carta).join('')}</div>
 
 <div class="nota">
   <div class="tit">Como isso funciona</div>
