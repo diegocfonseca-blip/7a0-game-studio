@@ -284,11 +284,11 @@ export function useLigaLiberada(): boolean {
 // A liga de 20 roda igual; no fim, os 8 primeiros entram numa Libertadores de 32
 // (8 grupos de 4 com os clubes do continente, passam 2, mata-mata até a final
 // única). Desenho fechado com o Diego em 20/08.
-// 🔒 EM CONSTRUÇÃO: o seletor só aparece pra conta do Diego, porque o futebol
-// está AO VIVO e ele quer ver jogando antes de abrir. Quem não é tester nem vê a
-// opção — e sala nenhuma nasce com 'liga_liberta' sem passar por aqui. Pra abrir
-// pra todo mundo: LIBERTA_GERAL = true (uma linha, e nada mais muda).
-const LIBERTA_GERAL = false
+// 🔓 LIBERADO GERAL (20/08, ordem do Diego: *"pode por p todos"*) — a
+// Libertadores aparece pra TODA CONTA no "Depois da liga", online e offline.
+// A lista abaixo virou só o plano B: pra voltar ao teste fechado é
+// LIBERTA_GERAL = false, e aí só a conta dele enxerga de novo.
+const LIBERTA_GERAL = true
 const LIBERTA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let libertaOk = LIBERTA_GERAL
 function applyLibertaUnlock(email?: string | null): void {

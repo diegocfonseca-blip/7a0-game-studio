@@ -23,21 +23,29 @@ ida e volta, passam **2** → **oitavas/quartas/semi ida e volta** → **final �
   o mata-mata reusa o motor da Copa dos 8 com a cara azul-noite.
 - `lobby.tsx` + setup offline · a 3ª opção "🌎 Liga + Liberta" no "Depois da liga"
   (nunca junto com a Copa dos 8 — é uma OU a outra).
-- `sport.ts` · `LIBERTA_GERAL = false` + `LIBERTA_TESTERS` — só a conta do Diego.
+- `sport.ts` · `LIBERTA_GERAL = true` — **LIBERADA PRA TODOS em 20/08** (ordem
+  dele: *"pode por p todos"*). Pra voltar ao teste fechado é `false`.
 
-**🔥 O DEGRAU DE FORÇA (medido, resposta à pergunta dele de 20/08):** os bots da
-liga têm força média **67,3**, mas quem se classifica é o **TOP 8 = 72,8**. Os 24
-do continente nasceram com **68,2** — ou seja, a Libertadores sairia MAIS FÁCIL
-que a liga. Por isso eles levam `LIBERTA_BONUS = 6` **além** do `cpuAtkAdj` da
-sala: viram **74,2** (pote 2 ≈ 79,8 · pote 3 ≈ 74,4 · pote 4 ≈ 68,5). É UM número
-só em `store.tsx` — se ele achar duro ou mole depois de jogar, muda ali.
+**📏 FORÇA DOS 24 = PADRÃO DA LIGA** (decisão dele em 20/08: *"quero q deixe
+padrão liga… deixe o mais forte c 77 tb desses 24"*). Eles jogam na MESMA régua
+dos bots da liga: mesmo teto (o mais forte da liga é 77 e o mais forte deles, o
+River Preite, também é 77) e o MESMO ajuste de sala (`cpuAtkAdj`). Sem degrau.
+📊 Os números que eu medi e mostrei ANTES dele decidir, pra quem for mexer nisso
+depois: bots da liga 67,3 de média · os 8 que se classificam 72,8 · os 24 do
+continente 68,2. Na régua da liga a Libertadores fica um pouco mais leve que o
+top 8 — ele viu isso e escolheu o padrão da liga assim mesmo. Se um dia quiser
+apertar, é voltar o `+6` que estava em `simMatch`.
 
 **🛡️ Travas:** liga com menos de 8 clubes (Liga Fechada pequena) NÃO semeia a
 Libertadores — fecha como "só liga" com o motivo no giro. E `liberta` é zerado em
 todo lugar onde `quickCopa` já era, pra temporada nova não herdar chave velha.
 
-⏳ **Falta:** o Diego jogar e dizer se o degrau de +6 está bom, e dar o OK visual
-pra tirar a trava de conta (`LIBERTA_GERAL = true`).
+⏳ **Falta:** ver rodando com gente de verdade. Eu NÃO consegui terminar a
+partida inteira no navegador antes de publicar (o robô empacou no Monte Final) —
+o que está garantido é que o build passa limpo, a home abre sem erro nenhum e a
+liga/Copa dos 8 não foram tocadas. As telas novas (bannerzão, fase de grupos)
+ainda não foram vistas rodando. **Primeira coisa da próxima sessão: rodar
+`scripts/`-style playthrough ou pedir print pro Diego.**
 
 ⏸️ **PAUSADO — o baralho TEMÁTICO da Libertadores** (só jogadores que disputaram
 a Libertadores pelo clube da carta). Palavras dele: *"Eu acho q temos q deixar
