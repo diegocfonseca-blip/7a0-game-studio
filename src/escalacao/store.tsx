@@ -1290,7 +1290,10 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     // vencedor único: fecha na hora
     const wid = tiedTop[0]
     const m = managers.find(x => x.id === wid)!
-    m.money -= top
+    // 🛟 piso: comprar no leilão NUNCA deixa a caixa negativa. O envelope já foi
+    // conferido antes, então isto é a segunda rede — se um dia entrar um caminho
+    // novo de lance, ele não consegue mais criar dívida do nada.
+    m.money = Math.max(0, m.money - top)
     // 📝 clube novo = contrato novo: limpa selo/prazo — a próxima cerimônia sorteia 5-10
     m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
     queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
@@ -1319,7 +1322,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   if (top.length === 1) { winner = top[0]; tb.viaRoulette = false }
   else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
   const m = state.managers.find(x => x.id === winner)!
-  m.money -= max
+  m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
   m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   recordPrice(state, tb.card, max) // livro de preços
@@ -3142,6 +3145,35 @@ function sealAndResolve(state: EscState) {
 // todo humano com vaga aberta e dinheiro precisa enviar (não filtra por presença:
 // presença é um sinal instável de rede e causava avanço prematuro/dessincronizado
 // entre jogadores — um "piscar" de conexão fazia o jogo achar que só faltava um).
+// 💰 SANEIA UM ENVELOPE antes de guardar: devolve só os lances que REALMENTE
+// cabem na caixa do técnico, na ordem em que ele mandou.
+// Regras, e o porquê de cada uma:
+//  · lance tem que ser número inteiro e >= 0 — texto, quebrado, negativo ou
+//    infinito é lixo e não vira dinheiro;
+//  · a SOMA nunca passa do que ele tem: assim que um lance não couber no que
+//    sobrou, ele e os seguintes ficam de fora (em vez de virar dívida);
+//  · o que fica de fora é registrado no marketLog, pra nunca sumir em silêncio.
+// A tela já faz essa mesma conta e mostra o teto ao vivo — então em jogo normal
+// isto NUNCA corta nada. Ele existe pra o caso do número da tela estar errado.
+function envelopeQueCabe(s: EscState, mgrId: number, bids: { cardId: string; amount: number }[]): { cardId: string; amount: number }[] {
+  const m = s.managers.find(x => x.id === mgrId)
+  if (!m) return []
+  const caixa = Math.max(0, Math.floor(m.money))
+  const ok: { cardId: string; amount: number }[] = []
+  let gasto = 0, cortados = 0
+  for (const b of Array.isArray(bids) ? bids : []) {
+    const v = Math.floor(Number(b?.amount))
+    if (!Number.isFinite(v) || v < 0) { cortados++; continue }
+    if (gasto + v > caixa) { cortados++; continue }
+    gasto += v
+    ok.push({ cardId: b.cardId, amount: v })
+  }
+  if (cortados > 0 && m.isHuman) {
+    ;(s.marketLog = s.marketLog ?? []).push(`⚠️ ${m.teamName}: ${cortados} lance(s) não couberam na caixa (${caixa} 🪙) e ficaram de fora.`)
+  }
+  return ok
+}
+
 function humansToSubmit(state: EscState, pos: Sector): number[] {
   const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && openSlots(m, pos) > 0 && m.money > 0)
   // 🏛️ MULTICLUBES / SOLO: no solo SÓ o assento ATIVO (youIdx) consegue lacrar
@@ -4282,7 +4314,15 @@ export function reducer(state: EscState, action: Action): EscState {
       // na tela do parceiro não basta — é exatamente essa a família de bug de
       // assento que já mordeu antes ("dei lance por outro").
       if (!duplaPodeAgir(s.duplas, action.mgrId, SECTORS[s.sectorIdx], action.by)) return s
-      s.pendingEnvelopes[action.mgrId] = action.bids
+      // 💰 A CAIXA É CONFERIDA AQUI, NO MOTOR — não só na tela.
+      // 🐛 CAUSA DO "PAGUEI E NÃO LEVEI JOGADOR" (relato do Pedro pelo Diego, 20/08):
+      // a conta de "só posso lançar até onde tenho" existia SÓ na tela. O motor
+      // engolia o envelope como viesse e o pagamento descontava sem piso — então
+      // um número errado na tela virava cobrança de verdade, e a caixa ia pro
+      // negativo. Comprar sem ter não existe: aqui a soma dos lances NUNCA passa da
+      // caixa. É a mesma razão já escrita logo acima pra dupla: "esconder o botão na
+      // tela não basta".
+      s.pendingEnvelopes[action.mgrId] = envelopeQueCabe(s, action.mgrId, action.bids)
       s.submitted.push(action.mgrId)
       const pos = SECTORS[s.sectorIdx]
       const need = humansToSubmit(s, pos)
@@ -4307,7 +4347,15 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🤝 dupla: só quem MANDA na categoria da carta empatada pode relançar (mesma
       // trava do envelope/monte — fecha o "dei lance por outro" no re-lance). 10/08.
       if (!duplaPodeAgir(s.duplas, action.mgrId, tb.card.pos, action.by)) return s
-      s.tiebreakPending[action.mgrId] = action.amount
+      // 💰 mesma conferência do envelope: o re-lance do desempate também não pode
+      // passar da caixa (aqui é UMA carta só, então é um teto simples). Sem isto o
+      // desempate era a porta dos fundos do mesmo problema.
+      {
+        const mTb = s.managers.find(x => x.id === action.mgrId)
+        const caixaTb = Math.max(0, Math.floor(mTb?.money ?? 0))
+        const bruto = Math.floor(Number(action.amount))
+        s.tiebreakPending[action.mgrId] = Math.max(0, Math.min(Number.isFinite(bruto) ? bruto : 0, caixaTb))
+      }
       tb.submitted = [...tb.submitted, action.mgrId]
       maybeResolveTiebreak(s)
       return s
@@ -6544,8 +6592,29 @@ function ensureCareerOwner(uid: string) {
   try { const raw = localStorage.getItem(CAREER_VAULT_PREFIX + uid); if (raw) restoreLocalCareers(JSON.parse(raw) as CareerVault) } catch { /* ignora */ }
   try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ }
 }
+// 🧹 FAXINA DA CAIXA ao abrir uma carreira (Diego 20/08, caso do "−9999").
+// A tela desenha o que vem do save. Se o save trouxer no lugar do dinheiro algo
+// que NÃO é dinheiro — texto, número quebrado, infinito, ou um valor tão grande
+// que nenhuma carreira alcança — o jogador via aquilo na cara e achava que o jogo
+// tinha bugado. Aqui isso morre antes de chegar na tela.
+// ⚠️ O QUE ELA **NÃO** FAZ: mexer em caixa negativa de verdade. Dívida é estado
+// previsto (opção B do Diego) e continua valendo — quem deve, deve.
+const CAIXA_TETO = 1_000_000 // nenhuma carreira honesta chega perto; acima disso é lixo
+function faxinaCaixa(save: EscState): EscState {
+  const cc = save?.careerCoins
+  if (!cc || typeof cc !== 'object') return save
+  let sujo = false
+  const limpo: Record<number, number> = {}
+  for (const [k, v] of Object.entries(cc)) {
+    const n = Math.round(Number(v))
+    if (!Number.isFinite(n) || Math.abs(n) > CAIXA_TETO) { limpo[+k] = 0; sujo = true } // valor impossível → zera
+    else limpo[+k] = n
+  }
+  if (!sujo) return save
+  return { ...save, careerCoins: limpo, news: ['🧹 Achamos um erro no seu caixa e arrumamos — o resto da carreira está intacto.', ...(save.news ?? [])].slice(0, 12) }
+}
 export function readActiveCareer(): CareerSlot | null {
-  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); return { save, at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
+  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); return { save: faxinaCaixa(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
   return null
 }
 // guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa.

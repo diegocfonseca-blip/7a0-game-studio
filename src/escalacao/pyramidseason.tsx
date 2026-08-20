@@ -3976,7 +3976,17 @@ function CoinsBadge({ coins }: { coins: number }) {
   }, [coins])
   return (
     <span style={{ position: 'relative', display: 'inline-flex' }}>
-      <span key={bump} title="Sua caixa de moedas (pra o leilão/mercado)" style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap', animation: bump ? 'coinBump .45s ease-out' : undefined }}>💰 {coins}</span>
+      {/* 🔴 CAIXA NO VERMELHO = DÍVIDA, e a tela precisa DIZER isso (decisão do
+          Diego 20/08, opção B). Antes aparecia só um número negativo solto e quem
+          via achava que o jogo tinha bugado — foi o caso do "−9999" que chegou por
+          print. Agora o selo troca de cor e escreve a palavra: é um estado que o
+          jogo previu, não um erro. O caminho pra sair está no quadro do transfer
+          ban, na virada da temporada. */}
+      <span key={bump} title={coins < 0
+        ? `Sua caixa está no vermelho: ${coins} 🪙. Isso é DÍVIDA (folha salarial e renovação de contrato podem deixar negativo). Você não compra até zerar — venda um jogador, ou ganhe prêmios e bilheteria.`
+        : 'Sua caixa de moedas (pra o leilão/mercado)'}
+        style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: coins < 0 ? '#C2452F' : GOLD, color: coins < 0 ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap', animation: bump ? 'coinBump .45s ease-out' : undefined }}>
+        💰 {coins}{coins < 0 ? ' · dívida' : ''}</span>
       {pops.map(p => (
         <span key={p.id} style={{ position: 'absolute', left: '50%', top: '100%', fontWeight: 900, fontSize: 13.5, ...OSWALD, color: p.delta > 0 ? '#2ECC71' : '#FF5A4D', whiteSpace: 'nowrap', pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,.55)', animation: 'coinPop 1.2s ease-out forwards' }}>
           {p.delta > 0 ? `+${p.delta}` : p.delta} 🪙
