@@ -2062,13 +2062,27 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     if (m.isHuman) return state.tactics[id] ?? 'equilibrio'
     return CPU_TACTICS[Math.floor(rng() * 3)]
   }
+  // 🌎 NOME DO TIME — procura na liga E na Libertadores.
+  // 🐛 BUG QUE FOI PRO AR (20/08, print do wfreitasp): a narração e o placar
+  // pegavam o nome SÓ em `state.league`, que continua com os 20 da liga. Os 24
+  // clubes do continente vivem em `state.liberta.times`, então na 1ª partida da
+  // Libertadores a busca voltava vazia e o jogo quebrava na tela de erro
+  // ("Cannot read properties of undefined (reading 'name')") logo depois que os
+  // grupos apareciam. Agora é UMA função só, usada nos 6 lugares — e o `?? '?'`
+  // garante que, mesmo com um id estranho, o pior caso é um nome feio na tela,
+  // NUNCA mais a tela de erro.
+  const nomeDoTime = (id: number): string =>
+    (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id))?.name ?? '?'
   const homeTactic = tacticOf(homeId)
   const awayTactic = tacticOf(awayId)
   const form = (id: number, opp: Tactic, own: Tactic): TeamForm => {
     // 🌎 os 24 clubes da Libertadores não estão em `league` (a tabela da liga
     // continua com 20) — então procura neles também. Fora da Liberta, `liberta`
     // é null e nada muda.
-    const team = (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id))!
+    const team = state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id)
+    // 🛟 REDE DE SEGURANÇA (irmã do bug do nome, 20/08): id que não está em lugar
+    // nenhum não pode derrubar a tela. Joga como time mediano e o jogo segue.
+    if (!team) return { atk: 70 + state.cpuAtkAdj + (rng() * 6 - 3), def: 70 + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
     // bot da liga OU clube do continente: os dois levam o MESMO ajuste de sala
     // (padrão da liga, decisão do Diego 20/08) — ninguém tem degrau escondido.
     if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
@@ -2098,8 +2112,8 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     let hp = scoreOf(fh, fa, true)
     let ap = scoreOf(fa, fh, false)
     while (hp === ap) { if (rng() < 0.5) hp += 2; else ap += 2 } // prorrogação: nunca empata
-    const hNameB = state.league.find(t => t.id === homeId)!.name
-    const aNameB = state.league.find(t => t.id === awayId)!.name
+    const hNameB = nomeDoTime(homeId)
+    const aNameB = nomeDoTime(awayId)
     const POS_W: Record<string, number> = { GOL: 3, LAT: 4, ZAG: 3.5, MEI: 3, ATA: 3 } // PG/SG/SF/PF/C
     const creditPts = (id: number, pts: number, prefix: string) => {
       const m = state.managers.find(x => x.id === id)
@@ -2143,7 +2157,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       highlights.sort((a, b) => a.min - b.min)
       for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
         if (f.inspired && isHuman(id)) {
-          const tn = state.league.find(t => t.id === id)!.name
+          const tn = nomeDoTime(id)
           state.news.unshift(`🔥 NOITE INSPIRADA: ${f.inspired} (${tn}) acordou astro na rodada ${state.round + 1}!`)
         }
       }
@@ -2195,15 +2209,15 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       }
     }
   }
-  const hName = state.league.find(t => t.id === homeId)!.name
-  const aName = state.league.find(t => t.id === awayId)!.name
+  const hName = nomeDoTime(homeId)
+  const aName = nomeDoTime(awayId)
   creditGoals(homeId, hg, hName)
   creditGoals(awayId, ag, aName)
   if (involveHuman) {
     highlights.sort((a, b) => a.min - b.min)
     for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
       if (f.inspired && isHuman(id)) {
-        const tn = state.league.find(t => t.id === id)!.name
+        const tn = nomeDoTime(id)
         state.news.unshift(`🔥 DIA INSPIRADO: ${f.inspired} (${tn}) acordou craque na rodada ${state.round + 1}!`)
       }
     }
@@ -2319,7 +2333,8 @@ function playLibertaRodada(s: EscState) {
     // liga fica intacta). Na virada pro mata-mata esta lista passa pro quickCopa.
     const r = simMatch(s, h, a, rng, lb.scorers)
     res.push(r)
-    const th = lb.times.find(t => t.id === h)!, ta = lb.times.find(t => t.id === a)!
+    const th = lb.times.find(t => t.id === h), ta = lb.times.find(t => t.id === a)
+    if (!th || !ta) continue // 🛟 confronto com id estranho: pula o jogo, nunca quebra a tela
     th.gf += r.hg; th.ga += r.ag; ta.gf += r.ag; ta.ga += r.hg
     if (r.hg > r.ag) { th.pts += 3; th.w++; ta.l++ }
     else if (r.hg < r.ag) { ta.pts += 3; ta.w++; th.l++ }
@@ -2331,7 +2346,14 @@ function playLibertaRodada(s: EscState) {
   if (lb.rodada >= 6) {
     lb.fase = 'mata'
     const primeiros: LibertaTeam[] = [], segundos: LibertaTeam[] = []
-    for (let g = 0; g < 8; g++) { const cl = libertaGrupo(lb, g); primeiros.push(cl[0]); segundos.push(cl[1]) }
+    for (let g = 0; g < 8; g++) { const cl = libertaGrupo(lb, g); if (cl[0]) primeiros.push(cl[0]); if (cl[1]) segundos.push(cl[1]) }
+    // 🛟 se por qualquer motivo não fecharem 8 e 8, a Libertadores acaba aqui em
+    // vez de montar uma chave torta (o giro explica). Melhor não ter do que quebrar.
+    if (primeiros.length < 8 || segundos.length < 8) {
+      s.news = ['⚠️ A Libertadores foi encerrada na fase de grupos — não deu pra fechar as oitavas.']
+      s.screen = 'end'
+      return
+    }
     // 1º de um grupo pega o 2º de OUTRO (nunca do mesmo) — regra de verdade
     const mk = (a: LibertaTeam, b: LibertaTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
     const ties = primeiros.map((p, i) => mk(p, segundos[(i + 1) % 8]))

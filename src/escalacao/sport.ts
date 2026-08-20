@@ -284,10 +284,10 @@ export function useLigaLiberada(): boolean {
 // A liga de 20 roda igual; no fim, os 8 primeiros entram numa Libertadores de 32
 // (8 grupos de 4 com os clubes do continente, passam 2, mata-mata até a final
 // única). Desenho fechado com o Diego em 20/08.
-// 🔓 LIBERADO GERAL (20/08, ordem do Diego: *"pode por p todos"*) — a
-// Libertadores aparece pra TODA CONTA no "Depois da liga", online e offline.
-// A lista abaixo virou só o plano B: pra voltar ao teste fechado é
-// LIBERTA_GERAL = false, e aí só a conta dele enxerga de novo.
+// 🔓 LIBERADO GERAL (20/08): a Libertadores aparece pra TODA CONTA no "Depois
+// da liga", online e offline. Ordem do Diego, inclusive DEPOIS do primeiro erro
+// que foi pro ar (*"deixa aberto e arruma"*) — o conserto veio no mesmo dia.
+// Pra voltar ao teste fechado é LIBERTA_GERAL = false.
 const LIBERTA_GERAL = true
 const LIBERTA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let libertaOk = LIBERTA_GERAL
