@@ -14,7 +14,7 @@
 // velho de batismo (`OLD_NAME`) nem com chave de escudo.
 // ⚠️ "River Prato" NÃO deu: é o nome velho do La Bestia Negra (batismo do
 // eltonfrossard45) — quem carregasse um save veria virar La Bestia Negra e ainda
-// pegaria o escudo dele. Virou **River Pratão**.
+// pegaria o escudo dele. Virou **River Preite**.
 //
 //   node scripts/mockup-liberta-32.mjs --saida /tmp/liberta32.png
 //
@@ -33,7 +33,7 @@ const OURO = '#FFC400', VERDE = '#1B7A3D', VERM = '#C2452F', ROXO = '#7C3AED'
 // então os 24 se dividem 8 · 8 · 8 nos potes 2, 3 e 4 — do mais forte pro mais
 // fraco. 8 grupos × 4 = 32, um de cada pote por grupo.
 const CONTINENTE = [
-  ['🇦🇷', 'River Pratão', 78, 76, 2], ['🇦🇷', 'Bocazudo', 77, 77, 2],
+  ['🇦🇷', 'River Preite', 78, 76, 2], ['🇦🇷', 'Boca Xuniors', 77, 77, 2],
   ['🇺🇾', 'Penhalol', 75, 74, 2], ['🇺🇾', 'Nassional', 74, 73, 2],
   ['🇨🇱', 'Colo do Colo', 73, 72, 2], ['🇨🇴', 'Atlético Cafezal', 73, 71, 2],
   ['🇦🇷', 'Independente da Grana', 72, 73, 2], ['🇵🇾', 'Serro Portenho', 71, 72, 2],
@@ -179,7 +179,7 @@ chave</b> — um em cada grupo, então dois deles só se cruzam no mata-mata.</p
 <p style="font-size:13.5px;font-weight:600;line-height:1.45;color:rgba(12,12,12,.72);margin-top:12px">
   ⚠️ <b>"River Prato" não deu</b>: esse nome já existe no jogo como o nome VELHO do <b>La Bestia Negra</b> (batismo do
   eltonfrossard45). Se eu usasse, quem abrisse um save antigo veria virar La Bestia Negra e ainda pegaria o escudo dele.
-  Virou <b>River Pratão</b>. Os outros 23 eu conferi um por um — nenhum bate com clube do jogo, nome velho de batismo
+  Virou <b>River Preite</b>. Os outros 23 eu conferi um por um — nenhum bate com clube do jogo, nome velho de batismo
   ou chave de escudo.</p>
 
 <h2>3 · A fase de grupos</h2>

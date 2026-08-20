@@ -1,38 +1,49 @@
 # 📌 Pendências combinadas com o Diego (atualizado 20/08/2026)
 
-## 🌎 LIBERTADORES no rápido online — PROPOSTA, esperando o Diego (20/08)
-Pergunta dele: *"conseguimos fazer a Libertadores? no modo rápido online?…
-quais clubes entrariam de bots? pq são 32 né e não 20 igual na liga… qd ativar
-esse modo libertadores N teria liga e nem copa ao criar sala"*.
-Resposta medida no código: **dá, e o motor já tem quase tudo** —
-`seedQuickCopa`/`resolveQuickCopaTie` já fazem ida-e-volta com pênalti, e o Bafo
-já é o precedente de "seletor de Copa SOME da tela e o porquê fica escrito".
-Mockup: `scripts/mockup-libertadores.mjs`. Desenho proposto:
-- **32 clubes**: 24 continentais INVENTADOS (novos, no estilo dos 16
-  `CLASSIC_CLUBS` — a casa não usa clube real em conteúdo de mentira) + **8 vagas
-  do Brasil**, ocupadas primeiro por quem está na sala e o resto **sorteado entre
-  os clubes batizados**.
-- **8 grupos de 4**, ida e volta (6 jogos), passam 2. Quem joga nunca cai no
-  mesmo grupo (espelha a regra de "mesmo país não se enfrenta na 1ª fase").
-- Oitavas/quartas/semi em ida e volta, **final única**. **13 rodadas** no total
-  contra as 38 da liga.
-- Desempate de grupo = o MESMO do resto do jogo (pts → vitórias → saldo → gols).
-- Liga do rápido, Carreira, Bafo e Liga Fechada **não são tocados**; nasce
-  invisível (só a conta do Diego), igual à Liga Fechada.
-**Ele reagiu ao tamanho** (20/08): *"13 rodadas ficou mt rápido… E agora"*. Ele
-está certo — copa continental é curta por natureza; na vida real ela não
-substitui o campeonato, roda JUNTO com ele no meio de semana. Folha de decisão:
-`scripts/mockup-libertadores-calendario.mjs`, com três tamanhos, todos reais:
-- **A** só o torneio → **13 jogos** (o desenho de cima).
-- **B** + pré-Libertadores na frente + Sul-Americana pra quem cai → **19 jogos**.
-- **C** ⭐ **temporada completa**: a liga de 38 rodadas **+ a Libertadores no meio
-  de semana** → **51 jogos**, dois títulos na mesma sala. É a recomendada porque
-  resolve os DOIS problemas de uma vez: acaba o "ficou rápido" e acaba o "quem cai
-  fica sem jogo" (a liga continua pra quem foi eliminado). O seletor de Copa
-  continua sumindo da tela, como o Diego pediu — na C a liga vem de fábrica, não é
-  escolha, é o calendário.
-⏳ **Falta o Diego decidir**: (1) qual dos três tamanhos; (2) OK nos nomes dos 24
-clubes do continente. Sem essa resposta o modo não começa.
+## 🌎 LIBERTADORES no rápido — CONSTRUÍDA (20/08), só a conta do Diego vê
+Desenho FECHADO com ele (palavras dele: *"a libertadores tem q ter 32 times pow!
+Deveria se classificar os primeiros 8 e dps se juntar numa tabela c outros times
+formando 32 c grupos.. Se classificando 2 primeiros e etc"* · *"ideal que os 8
+classificados fossem cabeças de chave"* · *"Sim pode fazer tudo ja"*):
+
+**A liga de 20 roda IGUAL** (nada mudou nela) → acaba → **bannerzão** de abertura
+com as regras + 30s (ou o host aperta) → **Libertadores de 32**: os 8 primeiros
+da liga como POTE 1 (cabeça de chave, um por grupo) + os 24 clubes do continente
+(`LIBERTA_CLUBS` em `data.ts`) nos potes 2/3/4 → **8 grupos de 4**, 6 rodadas de
+ida e volta, passam **2** → **oitavas/quartas/semi ida e volta** → **final única**.
+
+**O que está no código (tudo commitado e buildando):**
+- `data.ts` · `LIBERTA_CLUBS` — os 24 (River Preite, Boca Xuniors, Penhalol,
+  Nassional, Colo do Colo…). Nomes conferidos um a um contra clube do jogo,
+  `OLD_NAME` e chaves de `LOGOS_PRONTAS`.
+- `store.tsx` · `seedLiberta` (sorteio por potes) · `libertaGrupo` (tabela, mesmo
+  desempate do resto do jogo) · `playLibertaRodada` (16 jogos por rodada; na 6ª
+  semeia as oitavas e devolve pra tela da temporada) · `LIBERTA_BONUS`.
+- `screens.tsx` · `EscLiberta` (tela dos 8 grupos) · bannerzão no fim da liga ·
+  o mata-mata reusa o motor da Copa dos 8 com a cara azul-noite.
+- `lobby.tsx` + setup offline · a 3ª opção "🌎 Liga + Liberta" no "Depois da liga"
+  (nunca junto com a Copa dos 8 — é uma OU a outra).
+- `sport.ts` · `LIBERTA_GERAL = false` + `LIBERTA_TESTERS` — só a conta do Diego.
+
+**🔥 O DEGRAU DE FORÇA (medido, resposta à pergunta dele de 20/08):** os bots da
+liga têm força média **67,3**, mas quem se classifica é o **TOP 8 = 72,8**. Os 24
+do continente nasceram com **68,2** — ou seja, a Libertadores sairia MAIS FÁCIL
+que a liga. Por isso eles levam `LIBERTA_BONUS = 6` **além** do `cpuAtkAdj` da
+sala: viram **74,2** (pote 2 ≈ 79,8 · pote 3 ≈ 74,4 · pote 4 ≈ 68,5). É UM número
+só em `store.tsx` — se ele achar duro ou mole depois de jogar, muda ali.
+
+**🛡️ Travas:** liga com menos de 8 clubes (Liga Fechada pequena) NÃO semeia a
+Libertadores — fecha como "só liga" com o motivo no giro. E `liberta` é zerado em
+todo lugar onde `quickCopa` já era, pra temporada nova não herdar chave velha.
+
+⏳ **Falta:** o Diego jogar e dizer se o degrau de +6 está bom, e dar o OK visual
+pra tirar a trava de conta (`LIBERTA_GERAL = true`).
+
+⏸️ **PAUSADO — o baralho TEMÁTICO da Libertadores** (só jogadores que disputaram
+a Libertadores pelo clube da carta). Palavras dele: *"Eu acho q temos q deixar
+isso pausado e apenas criar a copa libertadores lá junto com o de liga e copa"*.
+A pesquisa está salva em `docs/libertadores-por-clube.txt` e
+`docs/libertadores-participantes.md` — se voltar, é só ligar o filtro.
 
 ## 🏆 LIGA FECHADA — em construção (só a conta do Diego)
 A sala que fica de pé: horário marcado, sempre a MESMA sala, só a turma entra e

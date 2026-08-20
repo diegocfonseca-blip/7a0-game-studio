@@ -2069,9 +2069,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     // continua com 20) — então procura neles também. Fora da Liberta, `liberta`
     // é null e nada muda.
     const team = (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id))!
-    // 🔥 clube do continente (id 900+) leva o degrau da Libertadores por cima
-    const degrau = id >= LIBERTA_ID0 ? LIBERTA_BONUS : 0
-    if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + degrau + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + degrau + (rng() * 6 - 3), inspired: null }
+    // bot da liga OU clube do continente: os dois levam o MESMO ajuste de sala
+    // (padrão da liga, decisão do Diego 20/08) — ninguém tem degrau escondido.
+    if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
     const m = state.managers.find(x => x.id === id)!
     const f = rollManagerForm(m, own, opp, rng)
     // só os BOTS DE FUNDO (não-rivais) levam o ajuste, pra bater no nível-base da
@@ -2235,9 +2235,18 @@ function finishSeason(s: EscState) {
   // 🌎 LIBERTADORES: os 8 primeiros da liga se classificam e caem numa chave de
   // 32 com os clubes do continente. Copa dos 8 e Libertadores nunca rodam juntas
   // (a sala escolhe uma OU a outra na criação), então o `else if` é a trava.
+  // 🛡️ TRAVA: a Libertadores precisa de 8 cabeças de chave, uma por grupo. Numa
+  // liga MENOR que 8 (Liga Fechada com pouca gente) o sorteio ficaria com grupo
+  // de 3 e calendário torto — então ela simplesmente NÃO acontece e a temporada
+  // fecha como "só liga", com o motivo escrito no giro. Melhor não ter do que
+  // ter quebrado.
   else if (s.copaMode === 'liga_liberta' && !s.liberta) {
-    s.liberta = seedLiberta(s.league, mulberry((s.seed ^ 0x11BE47A) >>> 0))
-    s.news = ['🌎 A liga acabou — os 8 primeiros estão na LIBERTADORES! 32 clubes, 8 grupos de 4.']
+    if (s.league.length >= 8) {
+      s.liberta = seedLiberta(s.league, mulberry((s.seed ^ 0x11BE47A) >>> 0))
+      s.news = ['🌎 A liga acabou — os 8 primeiros estão na LIBERTADORES! 32 clubes, 8 grupos de 4.']
+    } else {
+      s.news = [`⚠️ Sem Libertadores desta vez: ela precisa de 8 classificados e esta liga tem só ${s.league.length} clubes.`]
+    }
   }
   s.screen = 'end'
 }
@@ -2253,18 +2262,17 @@ function finishSeason(s: EscState) {
 // mesmo grupo; só se cruzam no mata-mata.
 const LIBERTA_ID0 = 900 // ids dos clubes do continente (não colidem com a liga)
 
-// 🔥 O DEGRAU DA LIBERTADORES (pergunta do Diego, 20/08: *"esses times q estão de
-// fora aguardando seria como? … sempre falamos sobre % em relação a liga"*).
-// MEDIDO: os bots da liga (`CLASSIC_CLUBS`) têm força média 67,3, mas os **8
-// que se classificam** são o topo dela — média **72,8**. Os 24 do continente
-// nascem com média 68,2. Sem degrau, a Libertadores sairia MAIS FÁCIL que a
-// própria liga, que é o contrário do que ela é.
-// Então os clubes do continente levam +6 por cima do ajuste que os bots da liga
-// já recebem (`cpuAtkAdj`, que cola o nível da sala). Com isso a média deles vai
-// a **74,2** — acima dos 8 classificados — e os potes ficam com cara própria:
-// pote 2 ≈ 81 (pesos do continente) · pote 3 ≈ 74 · pote 4 ≈ 68 (dá pra bater).
-// É UM número só: se o Diego achar duro ou mole depois de jogar, muda aqui.
-const LIBERTA_BONUS = 6
+// 📏 FORÇA DOS 24 = **PADRÃO DA LIGA** (decisão do Diego, 20/08: *"quero q deixe
+// padrão liga… deixe o mais forte c 77 tb desses 24"*).
+// Traduzindo: os clubes do continente jogam na MESMA régua dos bots da liga —
+// mesmo teto (o mais forte da liga é 77, e o mais forte deles, o River Preite,
+// também é 77) e o MESMO ajuste de sala (`cpuAtkAdj`/`cpuDefAdj`, que cola o
+// nível da sala neles igual cola nos bots). Nenhum degrau extra, nada inventado.
+// 📊 O que eu tinha medido e mostrei pra ele antes de ele decidir: bots da liga
+// 67,3 de média · os 8 que se classificam 72,8 · os 24 do continente 68,2. Ou
+// seja, na régua da liga a Libertadores fica um pouco mais leve que o top 8. Ele
+// viu os números e escolheu o padrão da liga assim mesmo — se depois de jogar
+// quiser apertar, é só voltar um degrau aqui (era `+6`).
 
 function seedLiberta(league: LeagueTeam[], rng: () => number): LibertaState {
   const oito = sortedTable(league).slice(0, 8)
@@ -2305,8 +2313,11 @@ function playLibertaRodada(s: EscState) {
   if (!lb || lb.fase !== 'grupos' || lb.rodada >= 6) return
   const rng = mulberry((s.seed ^ (0x11BE47A + lb.rodada * 7919)) >>> 0)
   const res: MatchResult[] = []
+  if (!lb.scorers) lb.scorers = [] // saves antigos sem o campo
   for (const [h, a] of lb.fixtures[lb.rodada]) {
-    const r = simMatch(s, h, a, rng, s.quickCopa?.scorers ?? [])
+    // 🥇 artilharia DA LIBERTADORES: junta grupos + mata-mata num ranking só (a da
+    // liga fica intacta). Na virada pro mata-mata esta lista passa pro quickCopa.
+    const r = simMatch(s, h, a, rng, lb.scorers)
     res.push(r)
     const th = lb.times.find(t => t.id === h)!, ta = lb.times.find(t => t.id === a)!
     th.gf += r.hg; th.ga += r.ag; ta.gf += r.ag; ta.ga += r.hg
@@ -2324,8 +2335,11 @@ function playLibertaRodada(s: EscState) {
     // 1º de um grupo pega o 2º de OUTRO (nunca do mesmo) — regra de verdade
     const mk = (a: LibertaTeam, b: LibertaTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
     const ties = primeiros.map((p, i) => mk(p, segundos[(i + 1) % 8]))
-    s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: s.quickCopa?.scorers ?? [] }
+    s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: lb.scorers ?? [] }
     s.news = ['🌎 Fim da fase de grupos — chegaram as OITAVAS da Libertadores!']
+    // ▶️ o mata-mata roda no MESMO motor da Copa dos 8, que vive na tela da
+    // temporada. Volta pra lá com quickCopa semeado e a Copa começa sozinha.
+    s.screen = 'season'
   }
 }
 
@@ -2882,6 +2896,7 @@ type Action =
   | { type: 'FINISH_SEASON' } // 🏁 rápido: encerra a liga DEPOIS da última partida animar
   | { type: 'PLAY_COPA_LEG' } // 🏆 Copa dos 8 (rápido): joga a perna atual de todas as ties da fase
   | { type: 'PLAY_LIBERTA_RODADA' } // 🌎 Libertadores: joga uma rodada da fase de grupos (os 8 grupos de uma vez)
+  | { type: 'START_LIBERTA' } // 🌎 Libertadores: sai do bannerzão de abertura e entra na fase de grupos
   | { type: 'START_COPA' } // 🏆 Copa dos 8: sai da tela de fim de liga e entra na Copa (botão ou tempo de leitura)
   | { type: 'FINISH_CEREMONY' }
   | { type: 'NEW_GAME' }
@@ -3204,6 +3219,7 @@ function redraftSeason(s: EscState): EscState {
   s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
   s.tactics = {}
   s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
+  s.liberta = null // 🌎 idem pra Libertadores: temporada nova, chave nova
   s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
   s.submitted = []; s.pendingEnvelopes = {}
   s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
@@ -3702,6 +3718,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const newTier = NBA_TIERS[tier].next as NbaTier
         s.nbaTier = newTier
         s.quickCopa = null // zera o chaveamento da temporada passada
+        s.liberta = null // 🌎 e a Libertadores da temporada passada junto
         const tierTeams = NBA_TIERS[newTier].teams
         // novos adversários do andar (CPUs recebem elenco, não dão lance); VOCÊ fica.
         const { managers, botPlans } = makeManagers([you.teamName], '4-3-3', 0, tierTeams.length, rng, tierTeams)
@@ -3717,6 +3734,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // ao vivo, tudo simula, zero spoiler). A Street League é só pontos corridos.
       s.copaMode = (s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa'
       s.quickCopa = null // reseeda o chaveamento a cada temporada
+      s.liberta = null // 🌎 a Libertadores também é semeada de novo a cada temporada
       // 🏀 VENDER: tira do elenco as reservas que você DISPENSOU (marcadas na tela
       // de fim) — as vagas voltam a abrir e o leilão de reservas repõe.
       const released = new Set(s.reserveListed?.[you.id] ?? [])
@@ -3884,6 +3902,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
+      s.liberta = null // 🌎 idem pra Libertadores
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.seasonVotes = {}
       const cc: Record<number, number> = {}
@@ -3962,7 +3981,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.clubCash = seedClubCash({}, plQ)
       s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveAuction = false; s.reserveListed = {}
-      s.quickCopa = null; s.streamChampCard = null
+      s.quickCopa = null; s.liberta = null; s.streamChampCard = null
       s.seasonVotes = {}; s.restartPending = false; s.restartReady = []
       { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
       const ccQ: Record<number, number> = {}
@@ -4130,6 +4149,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
+      s.liberta = null // 🌎 idem pra Libertadores
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
@@ -5191,6 +5211,12 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.quickCopa && s.quickCopa.phase !== 'done') s.screen = 'season'
       return s
     }
+    case 'START_LIBERTA': {
+      // 🌎 sai do fim de liga e entra na fase de grupos da Libertadores (botão do
+      // host, ou o cronômetro de 30s do bannerzão de abertura).
+      if (s.liberta && s.liberta.fase === 'grupos') s.screen = 'liberta'
+      return s
+    }
     case 'PLAY_LIBERTA_RODADA': {
       playLibertaRodada(s)
       return s
@@ -5214,21 +5240,22 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} É CAMPEÃO DA COPA DOS 8!`, ...s.news].slice(0, 12)
+          s.news = [`👑 ${champName} É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : 'DA COPA DOS 8'}!`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
         } else {
+          // 🌎 casa os vencedores DE DOIS EM DOIS, na ordem da chave. Assim a mesma
+          // conta serve pra Copa dos 8 (4→2→1) e pra Libertadores (8→4→2→1) — antes
+          // isto era escrito na mão só pra 'quartas', e as OITAVAS de 8 confrontos
+          // teriam virado UM jogo só (a final direto).
           const winnerName = (t: QuickCopaTie) => t.winner === t.aId ? t.aName : t.bName
-          const nextTies: QuickCopaTie[] = qc.phase === 'quartas'
-            ? [
-                { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
-                { aId: qc.ties[2].winner!, bId: qc.ties[3].winner!, aName: winnerName(qc.ties[2]), bName: winnerName(qc.ties[3]), legs: [], winner: null },
-              ]
-            : [
-                { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
-              ]
-          qc.phase = qc.phase === 'quartas' ? 'semis' : 'final'
+          const nextTies: QuickCopaTie[] = []
+          for (let i = 0; i + 1 < qc.ties.length; i += 2) {
+            const a = qc.ties[i], b = qc.ties[i + 1]
+            nextTies.push({ aId: a.winner!, bId: b.winner!, aName: winnerName(a), bName: winnerName(b), legs: [], winner: null })
+          }
+          qc.phase = qc.phase === 'oitavas' ? 'quartas' : qc.phase === 'quartas' ? 'semis' : 'final'
           qc.ties = nextTies
           qc.legIdx = 0
         }
@@ -5255,7 +5282,8 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
       // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga.
-      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : 'QUARTAS'
+      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : 'QUARTAS'
+      const copaWord = s.copaMode === 'liga_liberta' ? 'Liberta' : 'Copa'
       const legWord = isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
@@ -5266,11 +5294,11 @@ export function reducer(state: EscState, action: Action): EscState {
         const swap = qc.legIdx === 1 // volta
         const mand = swap ? tie.bName : tie.aName, vis = swap ? tie.aName : tie.bName
         const mandG = swap ? leg[1] : leg[0], visG = swap ? leg[0] : leg[1]
-        copaHeads.push(`⚽ Copa ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
+        copaHeads.push(`⚽ ${copaWord} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
-          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na Copa — adeus, ${l}!`)
+          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na ${copaWord === 'Copa' ? 'Copa' : 'Libertadores'} — adeus, ${l}!`)
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)
@@ -6095,7 +6123,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
       s.reserveAuction = false; s.reserveListed = {}
-      s.quickCopa = null
+      s.quickCopa = null; s.liberta = null
       s.deckLeague = sv.deckLeague ?? 'br'; setActiveCatalog(s.deckLeague) // baralho da carreira salva
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles; s.careerTitlesA = sv.titlesA ?? 0
       s.seasonNo = sv.seasonNo
@@ -6189,8 +6217,8 @@ export function reducer(state: EscState, action: Action): EscState {
       s.news = []
       s.champion = null
       s.tactics = {}
-      s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
-  s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
+      s.quickCopa = null; s.liberta = null // 🏆🌎 Copa dos 8 / Libertadores são POR TEMPORADA — senão a próxima liga nunca semeia de novo
+      s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.seasonNo++
       s.restartPending = false
       s.restartReady = []

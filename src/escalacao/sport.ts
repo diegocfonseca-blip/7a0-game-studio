@@ -280,8 +280,32 @@ export function useLigaLiberada(): boolean {
   return ligaOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email) })
+// ─── 🌎 LIBERTADORES — a terceira opção do "Depois da liga" ──────────────────
+// A liga de 20 roda igual; no fim, os 8 primeiros entram numa Libertadores de 32
+// (8 grupos de 4 com os clubes do continente, passam 2, mata-mata até a final
+// única). Desenho fechado com o Diego em 20/08.
+// 🔒 EM CONSTRUÇÃO: o seletor só aparece pra conta do Diego, porque o futebol
+// está AO VIVO e ele quer ver jogando antes de abrir. Quem não é tester nem vê a
+// opção — e sala nenhuma nasce com 'liga_liberta' sem passar por aqui. Pra abrir
+// pra todo mundo: LIBERTA_GERAL = true (uma linha, e nada mais muda).
+const LIBERTA_GERAL = false
+const LIBERTA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let libertaOk = LIBERTA_GERAL
+function applyLibertaUnlock(email?: string | null): void {
+  const u = LIBERTA_GERAL || (!!email && LIBERTA_TESTERS.has(email.toLowerCase()))
+  if (u === libertaOk) return
+  libertaOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function libertaLiberada(): boolean { return libertaOk }
+export function useLibertaLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return libertaOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

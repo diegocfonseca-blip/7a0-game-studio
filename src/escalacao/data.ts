@@ -2519,12 +2519,12 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
 // ⚠️ "River Prato" NÃO deu: esse nome já existe em `OLD_NAME` como o nome VELHO
 // do **La Bestia Negra** (batismo do eltonfrossard45). Se fosse usado, quem
 // abrisse um save antigo veria o clube virar La Bestia Negra e ainda pegaria o
-// escudo dele. Virou **River Pratão**. Os outros 23 foram conferidos um a um
+// escudo dele. Virou **River Preite**. Os outros 23 foram conferidos um a um
 // contra os clubes do jogo, o `OLD_NAME` e as chaves de `LOGOS_PRONTAS`.
 export const LIBERTA_CLUBS: { name: string; atk: number; def: number; pote: 2 | 3 | 4 }[] = [
   // pote 2 — os pesos do continente
-  { name: 'River Pratão', atk: 78, def: 76, pote: 2 },
-  { name: 'Bocazudo', atk: 77, def: 77, pote: 2 },
+  { name: 'River Preite', atk: 78, def: 76, pote: 2 },
+  { name: 'Boca Xuniors', atk: 77, def: 77, pote: 2 },
   { name: 'Penhalol', atk: 75, def: 74, pote: 2 },
   { name: 'Nassional', atk: 74, def: 73, pote: 2 },
   { name: 'Colo do Colo', atk: 73, def: 72, pote: 2 },

@@ -12,7 +12,7 @@ import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
-import { useLigaLiberada, useSalaElencoLiberada } from './sport' // 👔 Sala de Elenco: modo novo, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -926,7 +926,7 @@ export function EscLobby() {
   // Ausente/antigo = VALENDO — é a identidade do modo; só o "não" é gravado.
   const [bafoValendo, setBafoValendo] = useState(true)
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa'>('liga_copa') // 🏆 rápido online: liga só, ou liga + Copa dos 8 no fim (padrão)
+  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
   const [ligaFechada, setLigaFechada] = useState(false) // 🏆 liga só com a galera (sem bots) — só quem tem Lenda cria
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
@@ -939,6 +939,7 @@ export function EscLobby() {
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
+  const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
   // 🏆 Liga Fechada ainda NÃO liberada: esconde o seletor da tela de criar sala
   // (o Diego decide quando abrir). Toda sala nasce Aberta. Pra liberar de novo,
@@ -2574,7 +2575,22 @@ export function EscLobby() {
                 </>
               ) : (
                 <SegField label="Depois da liga">
-                  <Seg options={[['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']] as ['liga_copa' | 'liga', string][]} value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
+                  {/* 🌎 A Libertadores é a TERCEIRA opção — e nunca vem junto com a
+                      Copa dos 8: é uma OU a outra, porque as duas ocupam o mesmo
+                      lugar (o que acontece quando a liga acaba). Como é um botão
+                      só, não tem estado torto possível. 🔒 Enquanto está em
+                      construção, só a conta do Diego enxerga a opção. */}
+                  <Seg options={(libertaOn
+                    ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga', '📊 Só liga']]
+                    : [['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga', string][]}
+                    value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {rapidoCopaMode === 'liga_liberta'
+                      ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
+                      : rapidoCopaMode === 'liga_copa'
+                        ? <>🏆 Acabou a liga, os 8 primeiros disputam a Copa dos 8 — ida e volta até a final única.</>
+                        : <>📊 Só a tabela, do começo ao fim. Campeão é quem fizer mais pontos.</>}
+                  </p>
                 </SegField>
               )}
               {!roomStream && (
@@ -2646,7 +2662,7 @@ export function EscLobby() {
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto
-            const copaLbl = r.game_state?.copaMode === 'liga' ? '📊 só liga' : '🏆 liga+copa' // padrão = liga+copa
+            const copaLbl = r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             return (
