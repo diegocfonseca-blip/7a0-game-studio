@@ -38,12 +38,23 @@ const OSW = 'font-family:Oswald,sans-serif;font-weight:700'
 const CREME = '#F4ECD6'
 
 // ── telefone ────────────────────────────────────────────────────────────────
-const fone = (inner, rot, cor, nota) => `
+const menuFixo = `
+  <div style="position:sticky;bottom:0;background:${CREME};border-top:4px solid ${INK};
+    display:flex;padding:9px 8px 11px;gap:5px;box-shadow:0 -6px 14px rgba(0,0,0,.10)">
+    ${[['▶️','JOGAR', true], ['📘','REGRAS', false], ['📖','ÁLBUM', false], ['🏆','RANKING', false], ['💛','APOIAR', false]]
+      .map(([ic, t, on]) => `<div style="flex:1;text-align:center;padding:4px 0;border-radius:9px;
+        background:${on ? INK : 'transparent'};color:${on ? '#fff' : INK}">
+        <div style="font-size:15px;line-height:1.1">${ic}</div>
+        <div style="${OSW};font-size:8.5px;letter-spacing:.03em;margin-top:1px;${on ? '' : 'opacity:.55'}">${t}</div>
+      </div>`).join('')}
+  </div>`
+
+const fone = (inner, rot, cor, nota, comMenu) => `
 <div style="flex:0 0 380px">
   <div style="${OSW};font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:${cor}">${rot}</div>
   ${nota ? `<div style="font-family:system-ui;font-weight:600;font-size:11.5px;color:rgba(12,12,12,.5);margin:3px 0 9px">${nota}</div>` : '<div style="height:9px"></div>'}
   <div style="width:380px;border:5px solid ${INK};border-radius:26px;background:${CREME};box-shadow:6px 6px 0 ${INK};
-    overflow:hidden">${inner}</div>
+    overflow:hidden">${inner}${comMenu ? menuFixo : ''}</div>
 </div>`
 
 // ── peças ───────────────────────────────────────────────────────────────────
@@ -73,6 +84,18 @@ const modo = (ic, nome, sub, cor) => `
       <div style="font-family:system-ui;font-weight:600;font-size:10.5px;color:rgba(12,12,12,.6);margin-top:1px">${sub}</div>
     </div>
     <div style="${OSW};font-size:16px;color:rgba(12,12,12,.28)">›</div>
+  </div>`
+
+const passoH = (n, ic, titulo, txt) => `
+  <div style="display:flex;gap:10px;align-items:center;border:2.5px solid ${INK};border-radius:12px;
+    background:#fff;box-shadow:2px 2px 0 ${INK};padding:9px 11px">
+    <div style="flex:none;width:30px;height:30px;border:2.5px solid ${INK};border-radius:9px;background:${GOLD};
+      display:grid;place-items:center;font-size:15px">${ic}</div>
+    <div style="min-width:0">
+      <div style="${OSW};font-size:12.5px;text-transform:uppercase;line-height:1.05">
+        <span style="color:rgba(12,12,12,.3)">${n}.</span> ${titulo}</div>
+      <div style="font-family:system-ui;font-weight:600;font-size:10px;color:rgba(12,12,12,.62);line-height:1.35">${txt}</div>
+    </div>
   </div>`
 
 // ── 🟢 A HOME NOVA ──────────────────────────────────────────────────────────
@@ -128,14 +151,6 @@ const nova = `
     </div>
   </div>
 
-  <!-- ANDAR 4 · as portas (regra é PORTA, não texto) -->
-  <div style="padding:26px 18px 0">
-    <div style="display:flex;gap:9px">
-      ${miniBtn('📘', 'COMO SE JOGA')}
-      ${miniBtn('📖', 'ÁLBUM')}
-      ${miniBtn('🏆', 'RANKING')}
-    </div>
-  </div>
 
   <!-- ANDAR 5 · continuar (só pra quem já tem — fica colado na carreira) -->
   <div style="padding:22px 18px 0">
@@ -150,30 +165,46 @@ const nova = `
       só aparece pra quem já tem carreira</div>
   </div>
 
-  <!-- ANDAR 6 · novidades, fechadas -->
-  <div style="padding:24px 18px 0">
-    <div style="border:3px solid ${INK};border-radius:13px;background:#fff;box-shadow:3px 3px 0 ${INK};
-      padding:11px 13px;display:flex;justify-content:space-between;align-items:center">
-      <div><div style="${OSW};font-size:12.5px">📣 O que mudou por aqui</div>
-        <div style="font-family:system-ui;font-weight:600;font-size:10px;color:rgba(12,12,12,.5)">5 novidades novas</div></div>
-      <div style="${OSW};font-size:15px;color:rgba(12,12,12,.35)">▾</div>
+  <!-- ANDAR 6 · COMO SE JOGA — ABERTO, e lá embaixo. Não está na cara (quem quer
+       jogar já apertou lá em cima) e não está escondido atrás de clique: quem
+       rolou até aqui é porque quer entender. -->
+  <div style="padding:30px 18px 0">
+    <div style="${OSW};font-size:11px;letter-spacing:.11em;color:rgba(12,12,12,.45);margin-bottom:11px">COMO FUNCIONA UMA PARTIDA</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${passoH(1, '🪙', '100 moedas', 'O baralho vem por posição. Você só vê o <b>nome</b>.')}
+      ${passoH(2, '✉️', 'Lance secreto', 'Escreve quanto vale e lacra. Ninguém vê o lance de ninguém.')}
+      ${passoH(3, '🔨', 'O martelo revela', 'Quem pagou mais leva — e <b>só aí</b> aparece o nível.')}
+      ${passoH(4, '👕', 'Fecha os 11', 'Faltou posição? O Monte tem as sobras, de graça.')}
+      ${passoH(5, '⚽', 'O campeonato roda', '38 rodadas em 3 minutos. Campeão leva <b>carta</b>.')}
     </div>
   </div>
 
-  <!-- ANDAR 7 · o apoio, com o espaço que merece -->
+  <!-- ANDAR 7 · novidades — ABERTAS também -->
+  <div style="padding:28px 18px 0">
+    <div style="${OSW};font-size:11px;letter-spacing:.11em;color:rgba(12,12,12,.45);margin-bottom:11px">📣 O QUE MUDOU POR AQUI</div>
+    <div style="border:3px solid ${INK};border-radius:14px;background:#fff;box-shadow:3px 3px 0 ${INK};padding:12px 13px">
+      ${[['🌎','Libertadores','os 8 primeiros da liga vão pra uma chave de 32 clubes'],
+         ['🏅','Ranking por pontos','cada título vale um tanto, e a conta aparece na tabela'],
+         ['🌍','Copa do Mundo com 24','entraram Croácia, Dinamarca, Peru e Equador']]
+        .map(([e,t,d]) => `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:9px">
+          <span style="font-size:14px;line-height:1.1">${e}</span>
+          <div style="min-width:0"><div style="${OSW};font-size:12px">${t}</div>
+          <div style="font-family:system-ui;font-weight:600;font-size:10px;color:rgba(12,12,12,.6);line-height:1.35">${d}</div></div>
+        </div>`).join('')}
+      <div style="${OSW};font-size:11px;color:rgba(12,12,12,.45);text-align:center;padding-top:4px">ver as 5 ›</div>
+    </div>
+  </div>
+
+  <!-- ANDAR 8 · o apoio é UM BOTÃO. A história de quem faz o jogo mora DENTRO
+       dele (Diego 20/08: *"o que faz esse jogo deve estar dentro do apoie
+       projeto"*) — e faz sentido: ela aparece pra quem já está pensando em
+       apoiar, não pra quem só quer jogar. -->
   <div style="padding:30px 18px 0">
-    <div style="border:4px solid ${INK};border-radius:18px;background:#FFF6D6;box-shadow:4px 4px 0 ${INK};padding:17px 16px">
-      <div style="${OSW};font-size:16px;text-transform:uppercase;line-height:1.05">💛 Quem faz esse jogo</div>
-      <div style="border:2.5px dashed ${RED};border-radius:11px;background:rgba(194,69,47,.07);padding:10px 11px;margin-top:10px">
-        <div style="${OSW};font-size:10px;color:${RED};letter-spacing:.06em">⚠️ TEXTO PENDENTE — O DIEGO PRECISA ME CONTAR</div>
-        <div style="font-family:system-ui;font-weight:600;font-size:11px;color:rgba(12,12,12,.62);line-height:1.4;margin-top:4px">
-          Aqui entra a sua história e a do seu filho. <b>Eu não invento isso.</b> Você me conta em duas linhas
-          e eu escrevo — ou você mesmo escreve e eu só encaixo.</div>
-      </div>
-      <div style="border:3px solid ${INK};border-radius:12px;background:${GOLD};box-shadow:3px 3px 0 ${INK};
-        ${OSW};font-size:14px;text-align:center;padding:11px;margin-top:11px">💛 APOIAR O PROJETO (PIX)</div>
-      <div style="font-family:system-ui;font-weight:600;font-size:10.5px;color:rgba(12,12,12,.55);text-align:center;margin-top:8px;line-height:1.4">
-        O jogo é de graça e vai continuar. Quem apoia<br>ganha cor de tier, clube batizado e mimos.</div>
+    <div style="border:4px solid ${INK};border-radius:16px;background:${GOLD};box-shadow:4px 4px 0 ${INK};
+      padding:15px 12px;text-align:center">
+      <div style="${OSW};font-size:18px;text-transform:uppercase;line-height:1">💛 Apoiar o projeto</div>
+      <div style="font-family:system-ui;font-weight:600;font-size:11px;color:rgba(12,12,12,.7);margin-top:4px">
+        o jogo é de graça e vai continuar assim</div>
     </div>
   </div>
 
@@ -181,6 +212,62 @@ const nova = `
   <div style="padding:22px 18px 0;text-align:center">
     <div style="font-family:system-ui;font-weight:600;font-size:10.5px;color:rgba(12,12,12,.45);line-height:1.5">
       📤 Compartilhar com os amigos · 📲 @leilaolegendscom</div>
+  </div>
+</div>`
+
+// ── 💛 A TELA DO APOIAR (onde a história de quem faz o jogo mora) ───────────
+const perk = (ic, nome, txt) => `
+  <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:8px">
+    <div style="flex:none;width:28px;height:28px;border:2.5px solid ${INK};border-radius:9px;background:#fff;
+      display:grid;place-items:center;font-size:14px">${ic}</div>
+    <div style="min-width:0">
+      <div style="${OSW};font-size:12px;text-transform:uppercase;line-height:1.05">${nome}</div>
+      <div style="font-family:system-ui;font-weight:600;font-size:10px;color:rgba(12,12,12,.6);line-height:1.35">${txt}</div>
+    </div>
+  </div>`
+
+const apoiar = `
+<div style="padding:0 0 18px">
+  <div style="background:${INK};color:#fff;padding:13px 16px;display:flex;align-items:center;gap:9px">
+    <span style="${OSW};font-size:15px;opacity:.5">‹</span>
+    <span style="${OSW};font-size:15px;text-transform:uppercase;letter-spacing:.04em">💛 Apoiar o projeto</span>
+  </div>
+
+  <!-- 1 · QUEM FAZ ESSE JOGO — a história, aqui dentro -->
+  <div style="padding:20px 18px 0">
+    <div style="border:4px solid ${INK};border-radius:18px;background:#FFF6D6;box-shadow:4px 4px 0 ${INK};padding:16px 15px">
+      <div style="${OSW};font-size:17px;text-transform:uppercase;line-height:1.05">Quem faz esse jogo</div>
+      <div style="border:2.5px dashed ${RED};border-radius:11px;background:rgba(194,69,47,.07);padding:11px 12px;margin-top:11px">
+        <div style="${OSW};font-size:10px;color:${RED};letter-spacing:.06em">⚠️ TEXTO PENDENTE — O DIEGO PRECISA ME CONTAR</div>
+        <div style="font-family:system-ui;font-weight:600;font-size:11px;color:rgba(12,12,12,.62);line-height:1.45;margin-top:5px">
+          Aqui entra a <b>sua história</b> e a do <b>seu filho</b>.<br><br>
+          <b>Eu não invento isso.</b> Você me conta em duas linhas e eu escrevo — ou você mesmo escreve e eu só encaixo.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · o que o apoio muda -->
+  <div style="padding:20px 18px 0">
+    <div style="${OSW};font-size:11px;letter-spacing:.11em;color:rgba(12,12,12,.45);margin-bottom:10px">O QUE VOCÊ GANHA</div>
+    <div style="border:3px solid ${INK};border-radius:15px;background:#fff;box-shadow:3px 3px 0 ${INK};padding:13px 13px 6px">
+      ${perk('🎨', 'A sua cor', 'Seu nome e seu time aparecem com a cor do seu tier em toda sala — bege, verde, roxo, prata ou ouro.')}
+      ${perk('🛡️', 'Clube batizado', 'Você dá nome ao clube, e ele ganha escudo, mascote e manto próprios dentro do jogo.')}
+      ${perk('🏟️', 'Nome no estádio', 'O estádio do seu clube passa a se chamar o que você quiser.')}
+      ${perk('🪙', 'Moedas todo mês', 'Caem direto no caixa da sua carreira.')}
+    </div>
+  </div>
+
+  <!-- 3 · o pix -->
+  <div style="padding:20px 18px 0">
+    <div style="border:4px solid ${INK};border-radius:16px;background:${GOLD};box-shadow:4px 4px 0 ${INK};
+      padding:15px 12px;text-align:center">
+      <div style="${OSW};font-size:18px;text-transform:uppercase;line-height:1">💛 Apoiar com Pix</div>
+      <div style="font-family:system-ui;font-weight:600;font-size:10.5px;color:rgba(12,12,12,.7);margin-top:4px">
+        a partir de R$ 5 · sem assinatura, sem pegadinha</div>
+    </div>
+    <div style="font-family:system-ui;font-weight:600;font-size:10.5px;color:rgba(12,12,12,.5);text-align:center;
+      margin-top:11px;line-height:1.45">
+      O jogo <b>é e continua de graça</b> pra todo mundo.<br>Apoiar é escolha, não porta.</div>
   </div>
 </div>`
 
@@ -205,8 +292,9 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
     O scroll fica maior — e tudo bem, <b>scroll é barato, tela lotada não</b>. As cartas ficam (são o motivo de
     jogar) e a regra vira <b>uma porta</b>, não um texto na cara.</p>
 
-  <div style="display:flex;gap:46px;align-items:flex-start">
-    ${fone(nova, '🟢 A home v2', GREEN, 'sete andares, um assunto cada · role pra ver tudo')}
+  <div style="display:flex;gap:40px;align-items:flex-start">
+    ${fone(nova, '🟢 A home v3', GREEN, 'scroll longo, tudo aberto · o menu fica colado embaixo', true)}
+    ${fone(apoiar, '💛 O que abre no Apoiar', '#9a6d00', 'a sua história mora aqui dentro, não na home')}
     <div style="flex:1;min-width:320px;max-width:520px">
 
       <div style="border:4px solid ${INK};border-radius:18px;background:#fff;box-shadow:4px 4px 0 ${INK};padding:16px 18px;margin-bottom:16px">
@@ -249,12 +337,14 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
       </div>
 
       <div style="border:4px solid ${INK};border-radius:18px;background:#FDF0EE;box-shadow:4px 4px 0 ${INK};padding:16px 18px;margin-bottom:16px">
-        <div style="${OSW};font-size:16px;text-transform:uppercase;margin-bottom:8px;color:${RED}">⚠️ O bloco do apoio está em branco</div>
+        <div style="${OSW};font-size:16px;text-transform:uppercase;margin-bottom:8px;color:${RED}">⚠️ Ainda falta o seu texto</div>
         <p style="font-size:12.5px;font-weight:600;line-height:1.5;margin:0">
-          Você falou do <b>"negócio emocional do meu filho"</b> no apoio. <b>Eu não sei essa história</b> e não vou
-          inventar — inventar a vida de alguém de verdade é pior que não ter nada escrito.<br><br>
-          Me conta em duas linhas o que você quer que apareça ali, ou escreve do seu jeito que eu só encaixo.
-          <b>E o "sobre" eu deixei de fora</b>, como você decidiu no fim.</p>
+          O <b>"Quem faz esse jogo"</b> saiu da home e foi pra <b>dentro do Apoiar</b>, como você pediu — é lá que
+          ele funciona, na frente de quem já está pensando em ajudar.<br><br>
+          Mas o texto continua em branco: você falou do <b>"negócio emocional do meu filho"</b> e <b>eu não sei essa
+          história</b>. Não vou inventar — inventar a vida de alguém de verdade é pior que não ter nada escrito.<br><br>
+          Me conta em duas linhas, ou escreve do seu jeito que eu só encaixo. <b>O "sobre" ficou de fora</b>,
+          como você decidiu.</p>
       </div>
 
       <div style="border:4px solid ${INK};border-radius:18px;background:#F1EDE0;box-shadow:4px 4px 0 ${INK};padding:16px 18px">
@@ -272,7 +362,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
 const tmp = `/tmp/mockup-home2-${process.pid}.html`
 writeFileSync(tmp, html)
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-const p = await b.newPage({ viewport: { width: 1180, height: 1000 }, deviceScaleFactor: 2 })
+const p = await b.newPage({ viewport: { width: 1560, height: 1000 }, deviceScaleFactor: 2 })
 await p.goto('file://' + tmp)
 await p.evaluate(() => document.fonts.ready)
 await p.waitForTimeout(600)
