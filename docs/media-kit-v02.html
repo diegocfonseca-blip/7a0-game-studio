@@ -311,6 +311,15 @@
     border-radius:14px;box-shadow:3px 3px 0 #0C0C0C;padding:13px 14px;font-size:14px;line-height:1.45}
   .gam .item .ic{flex:none;width:30px;height:30px;border-radius:9px;border:2.5px solid #0C0C0C;
     display:grid;place-items:center;font-size:15px;background:#EFE5CB}
+
+  /* ── v02: chips das marcas reais dentro do jogo ─────────────────────── */
+  .marcas-reais{display:grid;gap:10px;margin-top:16px}
+  @media(min-width:620px){.marcas-reais{grid-template-columns:repeat(4,1fr)}}
+  .marcas-reais .mr{display:flex;align-items:center;gap:10px;background:#fff;border:3px solid #0C0C0C;
+    border-radius:13px;box-shadow:3px 3px 0 #0C0C0C;padding:10px 12px}
+  .marcas-reais .mr .e{font-size:21px;line-height:1;flex:none}
+  .marcas-reais .mr b{display:block;font-family:'Oswald',sans-serif;font-weight:700;font-size:14.5px;line-height:1.1;color:#0C0C0C}
+  .marcas-reais .mr small{display:block;font-size:11px;font-weight:600;color:rgba(12,12,12,.55);margin-top:1px}
 </style>
 
 <div class="page">
@@ -450,7 +459,27 @@
   <!-- 7 · FORMATOS -->
   <div class="sec">
     <div class="sec-head"><span class="n">9</span><h2>Onde a sua marca entra</h2></div>
-    <p class="sec-sub">Assim a sua marca aparece dentro do jogo — reproduções fiéis das telas reais, com o espaço à venda destacado.</p>
+
+    <!-- 🔥 v02: as marcas REAIS primeiro (pedido do Diego 20/08) — antes de falar
+         de possibilidade, mostrar o que JÁ acontece e o benefício de estar ali. -->
+    <div class="thesis" style="margin-bottom:22px">
+      <h3>Quatro marcas reais já estão<br>dentro do jogo hoje.</h3>
+      <p>Elas não estão num banner: estão na <u>mecânica da carreira</u>. Todo início de temporada, o técnico
+      abre a tela do patrocínio e <b>escolhe uma delas</b> pro clube — com logo de verdade — e passa a temporada
+      inteira jogando pela meta da marca.</p>
+      <div class="marcas-reais">
+        <div class="mr"><span class="e">💍</span><div><b>Max Joias</b><small>patrocínio nível 1</small></div></div>
+        <div class="mr"><span class="e">🎨</span><div><b>Rei das Tintas</b><small>patrocínio nível 2</small></div></div>
+        <div class="mr"><span class="e">🚗</span><div><b>Vadico Veículos</b><small>patrocínio nível 3</small></div></div>
+        <div class="mr"><span class="e">🦷</span><div><b>ERO Odontologia</b><small>patrocínio nível 3</small></div></div>
+      </div>
+      <div class="proof" style="margin-top:16px"><b>🎯 O benefício de estar aí:</b> quem joga carreira <b>não passa, fica</b>.
+      São <b>118.219 temporadas</b> já jogadas em <b>4.474 carreiras</b> — média na 26ª temporada, e 349 delas passaram
+      das 100. A cada temporada a tela do patrocínio abre de novo: a mesma marca, vista pela mesma pessoa,
+      <b>dezenas de vezes</b>. E o jogador ainda <b>torce pra bater a meta</b>, porque é ela que paga o contrato.</div>
+    </div>
+
+    <p class="sec-sub" style="margin-top:26px"><b>E onde mais dá pra entrar.</b> Reproduções fiéis das telas reais do jogo, com o espaço à venda destacado.</p>
     <div class="arts">
       <!-- placa do campinho -->
       <div class="art">
