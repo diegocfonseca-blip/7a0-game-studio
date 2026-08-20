@@ -1,0 +1,338 @@
+<title>Leilão Legends · Media Kit v02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   MEDIA KIT v02 · Leilão Legends
+   A identidade NÃO é inventada aqui: é a do jogo (CLAUDE.md) — creme, tinta,
+   dourado, bordas grossas, sombra dura deslocada, Oswald condensada. Um media
+   kit que parecesse outra marca seria um erro de design, não uma liberdade.
+   ───────────────────────────────────────────────────────────────────────── */
+:root{
+  --creme:#F4ECD6; --papel:#FFFFFF; --tinta:#0C0C0C;
+  --ouro:#FFC400; --verde:#1B7A3D; --verm:#C2452F; --roxo:#7C3AED; --noite:#1B2A5B;
+  /* neutros com viés quente, puxados do creme — nunca cinza puro */
+  --fraco:rgba(12,12,12,.62); --tenue:rgba(12,12,12,.42); --linha:rgba(12,12,12,.14);
+  --campo:#EFE5CB;
+  --sombra:4px 4px 0 var(--tinta);
+  --disp:'Oswald','Arial Narrow',system-ui,sans-serif;
+  --texto:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --creme:#14120E; --papel:#1E1B15; --tinta:#F4ECD6;
+    --fraco:rgba(244,236,214,.66); --tenue:rgba(244,236,214,.44); --linha:rgba(244,236,214,.16);
+    --campo:#262117; --sombra:4px 4px 0 rgba(0,0,0,.55);
+    --verde:#3FA463; --verm:#E8503A; --noite:#7C9BE0;
+  }
+}
+:root[data-theme="dark"]{
+  --creme:#14120E; --papel:#1E1B15; --tinta:#F4ECD6;
+  --fraco:rgba(244,236,214,.66); --tenue:rgba(244,236,214,.44); --linha:rgba(244,236,214,.16);
+  --campo:#262117; --sombra:4px 4px 0 rgba(0,0,0,.55);
+  --verde:#3FA463; --verm:#E8503A; --noite:#7C9BE0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--creme);color:var(--tinta);font-family:var(--texto);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding:38px 22px 70px}
+h1,h2,h3,.disp{font-family:var(--disp);font-weight:700;text-transform:uppercase;text-wrap:balance;margin:0}
+h1{font-size:clamp(40px,7.4vw,74px);line-height:.94;letter-spacing:-.01em}
+h2{font-size:clamp(23px,3.4vw,31px);line-height:1.05}
+h3{font-size:17px;line-height:1.15}
+p{margin:0}
+b,strong{font-weight:700}
+.eyebrow{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--fraco)}
+.selo{display:inline-flex;align-items:center;gap:8px;background:var(--ouro);color:#0C0C0C;
+  border:3px solid #0C0C0C;border-radius:999px;padding:5px 15px;font-family:var(--disp);
+  font-weight:700;font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;
+  box-shadow:3px 3px 0 #0C0C0C}
+section{margin-top:52px}
+.cabeca{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:11px;
+  border-bottom:3px solid var(--tinta);margin-bottom:20px}
+.cabeca .n{font-family:var(--disp);font-weight:700;font-size:14px;background:var(--tinta);
+  color:var(--creme);border-radius:7px;padding:2px 9px}
+.caixa{background:var(--papel);border:3.5px solid var(--tinta);border-radius:17px;
+  box-shadow:var(--sombra);padding:18px 20px}
+.grade{display:grid;gap:13px}
+@media(min-width:640px){.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}}
+/* número grande — o coração de um media kit */
+.num{font-family:var(--disp);font-weight:700;font-size:clamp(30px,5vw,42px);line-height:1;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.num small{font-size:.44em;letter-spacing:.04em}
+.rot{font-size:12.5px;font-weight:600;color:var(--fraco);line-height:1.32;margin-top:5px}
+.destaque{background:var(--ouro);color:#0C0C0C}
+.destaque .rot{color:rgba(12,12,12,.7)}
+.escuro{background:var(--noite);color:#fff;border-color:var(--tinta)}
+.escuro .rot{color:rgba(255,255,255,.78)}
+.lead{font-size:clamp(17px,2.3vw,20px);line-height:1.5;color:var(--fraco);font-weight:500}
+.lead b{color:var(--tinta)}
+/* barras do crescimento */
+.chart{display:flex;align-items:flex-end;gap:6px;height:190px;padding-top:8px}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;min-width:0}
+.bar i{display:block;width:100%;background:var(--verde);border:2.5px solid var(--tinta);
+  border-radius:5px 5px 0 0}
+.bar b{font-family:var(--disp);font-weight:600;font-size:11.5px;font-variant-numeric:tabular-nums}
+.bar span{font-size:9.5px;color:var(--tenue);font-weight:600;white-space:nowrap}
+/* barras do público */
+.dem{display:flex;flex-direction:column;gap:9px}
+.dem .l{display:flex;align-items:center;gap:11px}
+.dem .k{font-family:var(--disp);font-weight:600;font-size:13px;width:58px;flex:none;
+  font-variant-numeric:tabular-nums}
+.dem .t{flex:1;height:17px;background:var(--campo);border:2.5px solid var(--tinta);border-radius:999px;overflow:hidden}
+.dem .t i{display:block;height:100%;background:var(--roxo)}
+.dem .v{font-family:var(--disp);font-weight:700;font-size:14px;width:54px;text-align:right;flex:none;
+  font-variant-numeric:tabular-nums}
+.dem .l.forte .t i{background:var(--ouro)}
+ul.lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+ul.lista li{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;line-height:1.45}
+ul.lista .ic{flex:none;width:27px;height:27px;border-radius:8px;border:2.5px solid var(--tinta);
+  display:grid;place-items:center;font-size:14px;background:var(--campo)}
+.marca-chip{display:flex;align-items:center;gap:9px;border:3px solid var(--tinta);border-radius:12px;
+  background:var(--papel);padding:9px 12px;box-shadow:3px 3px 0 var(--tinta)}
+.marca-chip .e{font-size:20px;line-height:1}
+.marca-chip .n2{font-family:var(--disp);font-weight:700;font-size:14.5px;line-height:1.1}
+.marca-chip .t2{font-size:11px;color:var(--fraco);font-weight:600}
+.nota{font-size:12.5px;line-height:1.5;color:var(--fraco);font-weight:500}
+.nota b{color:var(--tinta)}
+.fonte{border-left:4px solid var(--tenue);padding-left:12px;font-size:12px;line-height:1.5;
+  color:var(--tenue);font-weight:500;font-style:italic}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:2px solid var(--linha)}
+th{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fraco)}
+td.n3{font-family:var(--disp);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.rodape{margin-top:56px;padding-top:22px;border-top:3px solid var(--tinta);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-end}
+a{color:inherit;text-underline-offset:3px}
+a:focus-visible{outline:3px solid var(--roxo);outline-offset:3px;border-radius:4px}
+.tab{overflow-x:auto}
+@media print{body{background:#fff}.caixa{box-shadow:none}}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <span class="selo">📊 Media Kit · versão 02 · 20 ago 2026</span>
+    <h1 style="margin-top:18px">Leilão<br><span style="color:var(--verm)">Legends</span></h1>
+    <p class="lead" style="margin-top:16px;max-width:64ch">
+      Um jogo de <b>leilão às cegas de lendas do futebol</b>, feito no Brasil, jogado no navegador e
+      <b>de graça</b>. Em pouco mais de dois meses no ar, <b>7.522 pessoas criaram conta</b> e
+      <b>47.768 cartas</b> foram colecionadas. Este documento mostra quem está jogando — e como uma
+      marca entra nisso.
+    </p>
+  </header>
+
+  <!-- ── 1 · OS NÚMEROS ─────────────────────────────────────────────────── -->
+  <section>
+    <div class="cabeca"><span class="n">1</span><h2>Os números</h2>
+      <span class="eyebrow">medidos no banco de produção · 20/08/2026</span></div>
+
+    <div class="grade g4">
+      <div class="caixa destaque"><div class="num">7.522</div><div class="rot">contas criadas desde 11 de junho</div></div>
+      <div class="caixa"><div class="num" style="color:var(--verde)">5.804</div><div class="rot">pessoas entraram nos últimos 30 dias</div></div>
+      <div class="caixa"><div class="num" style="color:var(--verde)">47.768</div><div class="rot">cartas colecionadas no álbum</div></div>
+      <div class="caixa"><div class="num" style="color:var(--verde)">3.054</div><div class="rot">carreiras salvas na nuvem</div></div>
+    </div>
+
+    <div class="grade g4" style="margin-top:13px">
+      <div class="caixa"><div class="num">4.693</div><div class="rot">pessoas têm ao menos uma carta</div></div>
+      <div class="caixa"><div class="num">10,2</div><div class="rot">cartas por colecionador, na média</div></div>
+      <div class="caixa"><div class="num">530</div><div class="rot">salas online criadas pra jogar com amigos</div></div>
+      <div class="caixa"><div class="num">564</div><div class="rot">contas novas só nos últimos 7 dias</div></div>
+    </div>
+
+    <p class="fonte" style="margin-top:16px">
+      Todos os números desta página saem de uma consulta direta ao banco de produção do jogo, na data do
+      cabeçalho. Não há estimativa, projeção nem número arredondado pra cima.
+    </p>
+  </section>
+
+  <!-- ── 2 · CRESCIMENTO ────────────────────────────────────────────────── -->
+  <section>
+    <div class="cabeca"><span class="n">2</span><h2>De 25 para 7.522 em dez semanas</h2></div>
+    <div class="caixa">
+      <p class="eyebrow" style="margin-bottom:4px">Contas novas por semana</p>
+      <div class="chart" role="img" aria-label="Contas novas por semana: 25, 1, 24, 1.281, 2.384, 1.992, 889, 622, 304.">
+        <div class="bar"><b>25</b><i style="height:2%"></i><span>08/06</span></div>
+        <div class="bar"><b>1</b><i style="height:1%"></i><span>29/06</span></div>
+        <div class="bar"><b>24</b><i style="height:2%"></i><span>06/07</span></div>
+        <div class="bar"><b>1.281</b><i style="height:54%"></i><span>13/07</span></div>
+        <div class="bar"><b>2.384</b><i style="height:100%;background:var(--ouro)"></i><span>20/07</span></div>
+        <div class="bar"><b>1.992</b><i style="height:84%"></i><span>27/07</span></div>
+        <div class="bar"><b>889</b><i style="height:37%"></i><span>03/08</span></div>
+        <div class="bar"><b>622</b><i style="height:26%"></i><span>10/08</span></div>
+        <div class="bar"><b>304</b><i style="height:13%"></i><span>17/08</span></div>
+      </div>
+      <p class="nota" style="margin-top:14px">
+        O pico de julho veio de divulgação orgânica no Instagram, <b>sem nenhum real investido em anúncio</b>.
+        A curva depois desce — é o comportamento normal de um lançamento — e o que sustenta hoje são as
+        <b>5.804 pessoas que voltaram a entrar nos últimos 30 dias</b>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── 3 · QUEM JOGA ──────────────────────────────────────────────────── -->
+  <section>
+    <div class="cabeca"><span class="n">3</span><h2>Quem está do outro lado da tela</h2></div>
+
+    <div class="grade g2">
+      <div class="caixa">
+        <p class="eyebrow" style="margin-bottom:12px">Faixa etária</p>
+        <div class="dem">
+          <div class="l"><span class="k">13–17</span><span class="t"><i style="width:0.5%"></i></span><span class="v">0,3%</span></div>
+          <div class="l forte"><span class="k">18–24</span><span class="t"><i style="width:49%"></i></span><span class="v">28,3%</span></div>
+          <div class="l forte"><span class="k">25–34</span><span class="t"><i style="width:100%"></i></span><span class="v">57,7%</span></div>
+          <div class="l"><span class="k">35–44</span><span class="t"><i style="width:22%"></i></span><span class="v">12,6%</span></div>
+          <div class="l"><span class="k">45–54</span><span class="t"><i style="width:2%"></i></span><span class="v">1,0%</span></div>
+          <div class="l"><span class="k">55+</span><span class="t"><i style="width:0.4%"></i></span><span class="v">0,2%</span></div>
+        </div>
+        <p class="nota" style="margin-top:15px">
+          <b>86% do público tem entre 18 e 34 anos.</b> É a faixa que decide a própria compra, mora no
+          celular e é a mais cara de alcançar por anúncio.
+        </p>
+      </div>
+
+      <div class="caixa">
+        <p class="eyebrow" style="margin-bottom:12px">Gênero</p>
+        <div class="dem">
+          <div class="l forte"><span class="k">Homens</span><span class="t"><i style="width:99.4%"></i></span><span class="v">99,4%</span></div>
+          <div class="l"><span class="k">Mulheres</span><span class="t"><i style="width:0.6%"></i></span><span class="v">0,6%</span></div>
+        </div>
+        <p class="nota" style="margin-top:15px">
+          Público <b>masculino, brasileiro e torcedor</b>. Quem joga vem por futebol de raiz: conhece
+          Zico e conhece Obina, e a resenha entre amigos é metade da graça.
+        </p>
+        <p class="fonte" style="margin-top:14px">
+          Idade e gênero vêm do Instagram Insights de <b>@leilaolegendscom</b>, o canal por onde o jogo
+          cresceu. O jogo em si não pergunta idade a ninguém — então este é o retrato da comunidade,
+          não um cadastro dos jogadores.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4 · A BASE ─────────────────────────────────────────────────────── -->
+  <section>
+    <div class="cabeca"><span class="n">4</span><h2>Base de e-mail própria</h2></div>
+    <div class="grade g3">
+      <div class="caixa escuro"><div class="num" style="color:var(--ouro)">7.522</div><div class="rot">e-mails válidos e confirmados</div></div>
+      <div class="caixa"><div class="num">100<small>%</small></div><div class="rot">das contas têm e-mail — é o próprio login do jogo</div></div>
+      <div class="caixa"><div class="num">0</div><div class="rot">lista comprada, importada ou de terceiro</div></div>
+    </div>
+    <p class="nota" style="margin-top:15px">
+      Não é lista alugada: <b>cada e-mail é de alguém que criou conta pra jogar</b> e voltou pra colecionar
+      carta. É um canal direto, sem algoritmo no meio — e hoje ele está <b>sem uso comercial nenhum</b>.
+    </p>
+  </section>
+
+  <!-- ── 5 · GAMIFICAÇÃO ────────────────────────────────────────────────── -->
+  <section>
+    <div class="cabeca"><span class="n">5</span><h2>Por que a pessoa volta</h2>
+      <span class="eyebrow">a gamificação, em coisas que dá pra contar</span></div>
+
+    <div class="grade g2">
+      <div class="caixa">
+        <ul class="lista">
+          <li><span class="ic">🃏</span><div><b>Álbum de figurinhas.</b> Só ganha carta quem é campeão. São <b>47.768 cartas</b> nas mãos de <b>4.693 pessoas</b> — 10,2 por cabeça. Carta não se compra: se conquista.</div></li>
+          <li><span class="ic">🪜</span><div><b>Carreira que não acaba.</b> Começa na Várzea e sobe até a Série A. São <b>3.054 carreiras</b> salvas, e a média de quem joga já vai na <b>26ª temporada</b> — tem gente na 783ª.</div></li>
+          <li><span class="ic">🛡️</span><div><b>Clube com o nome do jogador.</b> <b>28 pessoas</b> já batizaram um clube dentro do jogo, com escudo, mascote e manto próprios — e o nome fica reservado só pra elas.</div></li>
+        </ul>
+      </div>
+      <div class="caixa">
+        <ul class="lista">
+          <li><span class="ic">👥</span><div><b>Sala com os amigos.</b> <b>530 salas</b> criadas: cria a sala, manda o código no zap, até 20 no mesmo pregão. O jogo é melhor com gente conhecida — e é assim que ele se espalha.</div></li>
+          <li><span class="ic">🏆</span><div><b>Ranking e troféu.</b> Título de liga, copa, artilharia e Copa do Mundo somam pontos num ranking público. Perder dói, e é por isso que se volta.</div></li>
+          <li><span class="ic">💛</span><div><b>Gente pagando por gosto.</b> <b>27 pessoas</b> viraram sócias sem precisar — o jogo é inteiro de graça. Apoiam porque querem que exista.</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 6 · MARCAS DENTRO DO JOGO ──────────────────────────────────────── -->
+  <section>
+    <div class="cabeca"><span class="n">6</span><h2>Marca dentro do jogo não é promessa</h2>
+      <span class="eyebrow">já funciona, com marcas reais</span></div>
+
+    <div class="caixa" style="background:var(--campo)">
+      <p style="font-size:15px;line-height:1.5">
+        No Modo Carreira, o técnico <b>escolhe um patrocinador</b> no começo da temporada e <b>aposta uma meta</b>:
+        não cair, subir de divisão ou ser campeão. Bateu a meta, a marca paga. A pessoa vê o nome do patrocinador
+        na tela de abertura da temporada, no resultado, e a marca ainda pode <b>propor fidelidade</b> pra
+        temporada seguinte.
+      </p>
+      <p style="font-size:15px;line-height:1.5;margin-top:12px">
+        <b>Quatro marcas de verdade já estão lá dentro, com logo próprio:</b>
+      </p>
+      <div class="grade g4" style="margin-top:13px">
+        <div class="marca-chip"><span class="e">💍</span><div><div class="n2">Max Joias</div><div class="t2">patrocínio nível 1</div></div></div>
+        <div class="marca-chip"><span class="e">🎨</span><div><div class="n2">Rei das Tintas</div><div class="t2">patrocínio nível 2</div></div></div>
+        <div class="marca-chip"><span class="e">🚗</span><div><div class="n2">Vadico Veículos</div><div class="t2">patrocínio nível 3</div></div></div>
+        <div class="marca-chip"><span class="e">🦷</span><div><div class="n2">ERO Odontologia</div><div class="t2">patrocínio nível 3</div></div></div>
+      </div>
+      <p class="nota" style="margin-top:15px">
+        A marca não é um banner no canto da tela: ela <b>faz parte da história da temporada</b>. O jogador
+        escolhe, torce pra bater a meta, e lembra de quem pagou.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── 7 · ONDE A SUA MARCA ENTRA ─────────────────────────────────────── -->
+  <section>
+    <div class="cabeca"><span class="n">7</span><h2>Onde a sua marca entra</h2></div>
+    <div class="tab">
+      <table>
+        <thead><tr><th>Formato</th><th>O que é</th><th class="n3" style="text-align:left">Alcance</th></tr></thead>
+        <tbody>
+          <tr><td><b>Patrocinador da temporada</b></td><td>Sua marca entra na lista que o jogador escolhe, com logo, na abertura e no resultado de cada temporada</td><td class="n3">3.054 carreiras</td></tr>
+          <tr><td><b>Clube batizado</b></td><td>Um clube do jogo com o nome da marca, escudo e mascote próprios, dentro da pirâmide</td><td class="n3">28 já existem</td></tr>
+          <tr><td><b>Carta especial no álbum</b></td><td>Uma carta de colecionador criada com a marca, que só o campeão ganha</td><td class="n3">47.768 cartas</td></tr>
+          <tr><td><b>E-mail pra base</b></td><td>Disparo direto pra quem criou conta — sem algoritmo no meio</td><td class="n3">7.522 e-mails</td></tr>
+          <tr><td><b>Estádio e placa</b></td><td>Presença na área do clube, onde o jogador constrói o estádio dele</td><td class="n3">3.054 carreiras</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota" style="margin-top:15px">
+      Nenhum desses formatos interrompe o jogo. <b>Não existe anúncio no meio da partida</b>, e não vai existir —
+      a regra da casa é que nada pode atrapalhar o ritmo do pregão. A marca entra como <b>parte do jogo</b>,
+      não como intervalo comercial.
+    </p>
+  </section>
+
+  <!-- ── 8 · O QUE VEM ──────────────────────────────────────────────────── -->
+  <section>
+    <div class="cabeca"><span class="n">8</span><h2>O que vem agora</h2></div>
+    <div class="grade g3">
+      <div class="caixa"><h3>🌎 Libertadores</h3><p class="nota" style="margin-top:7px">Já no ar: acabou a liga, os 8 primeiros entram numa Libertadores de 32 clubes.</p></div>
+      <div class="caixa"><h3>🏆 Liga fechada</h3><p class="nota" style="margin-top:7px">A liga da turma: dia marcado, sempre a mesma sala, troféus se empilhando.</p></div>
+      <div class="caixa"><h3>🏀 BidLegends</h3><p class="nota" style="margin-top:7px">O mesmo jogo no basquete, em português e inglês, mirando fora do Brasil.</p></div>
+    </div>
+  </section>
+
+  <!-- ── CONTATO ────────────────────────────────────────────────────────── -->
+  <section>
+    <div class="caixa escuro" style="padding:26px 24px">
+      <h2 style="color:var(--ouro)">Vamos conversar?</h2>
+      <p style="font-size:16px;line-height:1.5;margin-top:10px;color:rgba(255,255,255,.86);max-width:58ch">
+        O jogo é feito por uma pessoa só, e cada patrocínio vira feature nova pra quem joga.
+        Se a sua marca fala com homem de 18 a 34 que ama futebol, tem lugar aqui dentro.
+      </p>
+      <p style="margin-top:16px;font-family:var(--disp);font-weight:600;font-size:16px;color:#fff">
+        📩 diego.c.fonseca@gmail.com<br>
+        📲 <a href="https://instagram.com/leilaolegendscom" style="color:var(--ouro)">@leilaolegendscom</a><br>
+        🌐 <a href="https://leilaolegends.com" style="color:#fff">leilaolegends.com</a>
+      </p>
+    </div>
+  </section>
+
+  <div class="rodape">
+    <div>
+      <p class="disp" style="font-size:19px">⚽ Leilão <span style="color:var(--verm)">Legends</span></p>
+      <p class="nota" style="margin-top:4px">Media kit versão 02 · dados de 20 de agosto de 2026</p>
+    </div>
+    <p class="nota" style="text-align:right">
+      A versão 01 continua valendo<br>e está guardada em <b>docs/media-kit.html</b>
+    </p>
+  </div>
+</div>
