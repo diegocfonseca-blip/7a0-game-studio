@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { useEsc, libertaGrupo, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre } from './store'
+import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -5376,13 +5376,23 @@ export function EscLiberta() {
   const humano = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const tag = (id: number) => id === you.id ? ' (você)' : humano(id) ? ' 🔥' : ''
   const meuJogo = lb.lastResults.find(r => r.homeId === you.id || r.awayId === you.id)
+  // 🙈 ANTI-SPOILER (relato do Walace via Diego, 20/08: *"a tabela tá atualizando
+  // antes do jogo acabar"*). É a MESMA trava da liga: enquanto a partida anima na
+  // tela, as tabelinhas mostram como o grupo estava ANTES desta rodada — os
+  // pontos só entram quando o apito soa. Sem isto, dava pra ler o resultado do
+  // seu próprio jogo na tabela antes de ele terminar de rolar.
+  const timesShown = !revealed && lb.lastResults.length > 0
+    ? leagueBeforeResults(lb.times, lb.lastResults)
+    : lb.times
+  const grupoShown = (g: number) => timesShown.filter(t => t.grupo === g).sort((a, c) =>
+    c.pts - a.pts || c.w - a.w || (c.gf - c.ga) - (a.gf - a.ga) || c.gf - a.gf || a.name.localeCompare(c.name))
   const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
   const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
   const acabou = lb.rodada >= LIBERTA_RODADAS
 
   // uma tabelinha de grupo (4 linhas). `destaque` = o SEU grupo (fundo creme).
   const tabelaGrupo = (g: number, destaque: boolean) => {
-    const cl = libertaGrupo(lb, g)
+    const cl = grupoShown(g)
     return (
       <Box key={g} bg={destaque ? '#FFF6D6' : '#fff'} className="p-2" shadow={destaque ? 5 : 3}
         style={destaque ? { borderColor: NOITE } : undefined}>
@@ -5412,7 +5422,7 @@ export function EscLiberta() {
         </span>
         {meuTime && (
           <span className="font-black text-sm" style={OSWALD}>
-            Grupo {GRUPO_LETRA[meuGrupo]} · {libertaGrupo(lb, meuGrupo).findIndex(t => t.id === you.id) + 1}º · {meuTime.pts} pts
+            Grupo {GRUPO_LETRA[meuGrupo]} · {grupoShown(meuGrupo).findIndex(t => t.id === you.id) + 1}º · {grupoShown(meuGrupo).find(t => t.id === you.id)?.pts ?? 0} pts
           </span>
         )}
       </div>
@@ -7731,7 +7741,7 @@ export function EscEnd() {
                 {regra('🥅', 'Os grupos', <>8 grupos de 4, <b>6 rodadas</b> de ida e volta. Passam os <b>2 primeiros</b> de cada um.</>)}
                 {regra('⚔️', 'O mata-mata', <>16 clubes: oitavas, quartas e semi em <b>ida e volta</b>. Empatou no agregado, vai pros <b>pênaltis</b>.</>)}
                 {regra('🏆', 'A final', <><b>jogo único</b>, em campo neutro. Quem levantar a taça leva <b>outra carta</b> pro álbum.</>)}
-                {regra('🔥', 'A força deles', <>os clubes do continente são <b>mais fortes que a média da liga</b> — o pote 2 é osso duro de verdade.</>)}
+                {regra('🔥', 'A força deles', <>os clubes do continente jogam na <b>mesma régua da liga</b> — o mais forte deles é do tamanho do mais forte daqui.</>)}
               </div>
               <div>
                 <p className="text-[10.5px] font-black uppercase text-center mb-1" style={{ ...OSWALD, color: GOLD }}>🎟️ Os 8 classificados</p>
