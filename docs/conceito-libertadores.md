@@ -401,3 +401,47 @@ mais tensa do jogo.
 - `docs/libertadores-participantes.md` — os 66 anos do lado brasileiro conferidos.
 - `scripts/liberta-conta.mjs` — conta o baralho temático a qualquer momento.
 Se um dia ele quiser o modo temático, **o trabalho pesado já está feito**.
+
+---
+
+## 14. ✅ O DESENHO FINAL (Diego, 20/08) — liga classifica 8, Libertadores tem 32
+
+> *"Mas a libertadores tem q ter 32 times pow! Deveria se classificar os
+> primeiros 8 e dps se juntar numa tabela c outros times formando 32 c grupos..
+> Se classificando 2 primeiros e etc..."*
+
+Isso junta as duas metades que estavam separadas nas seções anteriores e resolve
+o que faltava: a Libertadores fica com os **32 times de verdade** sem precisar de
+sala gigante, porque **20 vêm da liga (os 8 melhores) + 24 clubes do continente**.
+
+### Como roda, do começo ao fim
+1. **Liga normal**: 20 clubes, 38 rodadas, exatamente como hoje.
+2. **Classificam os 8 melhores** da tabela — humano só vai se ganhar a vaga
+   jogando (é a regra de verdade, e é o que dá sentido à liga inteira).
+3. **Libertadores de 32**: os 8 classificados + **24 clubes do continente**
+   (inventados, no estilo dos `CLASSIC_CLUBS` — a casa não usa clube real em
+   conteúdo de mentira). Lista já desenhada em `scripts/mockup-libertadores.mjs`.
+4. **8 grupos de 4**, ida e volta (6 jogos), **passam os 2 primeiros**.
+5. **Oitavas · quartas · semi** em ida e volta; **final em jogo único**.
+
+### Tamanho (medido)
+| Etapa | Jogos | Tela |
+|---|---|---|
+| Liga | 38 | 3min00 |
+| Grupos | 6 | 0min54 |
+| Oitavas + quartas + semi | 6 | 1min30 |
+| Final única | 1 | 0min15 |
+| **Total** | **51** | **5min39** |
+
+Contra os 44 jogos / 4min30 da liga + Copa dos 8 de hoje. **É a temporada mais
+longa que o jogo já teve**, e o baralho é o NORMAL (o temático segue pausado).
+
+### O que falta construir
+1. Os **24 clubes do continente** (nome + força) — já desenhados no mockup.
+2. **Sorteio dos grupos** por potes, com os 8 da liga espalhados.
+3. **8 tabelas** simultâneas + a classificação de cada uma.
+4. **Chave de 16** — hoje `seedQuickCopa` só sabe começar com 8.
+5. **Telas**: os 8 grupos numa tela só (o seu em destaque) e a chave rolando.
+
+⚠️ Regra do Diego que vale aqui: **UI nova = mockup primeiro**. Nada de código de
+tela antes de ele ver e aprovar a folha dos grupos e da chave.
