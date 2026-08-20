@@ -6294,6 +6294,22 @@ function AlbumSortBar({ value, onChange }: { value: AlbumSort; onChange: (s: Alb
 // só as reais). É de mentirinha, não conta em lugar nenhum.
 const EXAMPLE_CARD = { name: 'Rayan', club: 'Exemplo FC', year: 2025, pos: 'ATA', fame: 3, bio: 'Oi, boa noite! 👋 Sou só um exemplo pra você ver como é a carta. Faça seu cadastro, seja campeão e colecione craques de verdade — no CPU e no online.' }
 
+// ⬅️ VOLTAR no canto de cima à esquerda (pedido do Diego 20/08: *"precisa que o
+// botão de voltar fique no canto superior esquerdo também dessas páginas. Mais
+// fácil de achar e claro"*). No Álbum e no Ranking o único jeito de sair era o
+// botão lá no FIM da página — e o álbum tem centenas de cartas até chegar lá.
+// O botão de baixo continua onde estava: quem termina de rolar acha ali também.
+function VoltarInicio() {
+  const { dispatch } = useEsc()
+  return (
+    <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
+      className="flex items-center gap-1.5 border-[2.5px] border-black rounded-xl bg-white px-3 py-1.5 font-black text-[12.5px] active:translate-y-0.5"
+      style={{ ...OSWALD, boxShadow: `2.5px 2.5px 0 0 ${INK}` }}>
+      <span className="text-[15px] leading-none">🏠</span> Início
+    </button>
+  )
+}
+
 export function EscAlbum() {
   const { dispatch } = useEsc()
   const [cards, setCards] = useState<AlbumCard[] | null>(null)
@@ -6348,7 +6364,8 @@ export function EscAlbum() {
 
   return (
     <Shell>
-      <div className="text-center pt-4">
+      <div className="pt-4"><VoltarInicio /></div>
+      <div className="text-center -mt-1">
         <h2 className="font-black text-4xl" style={OSWALD}>📖 MEU ÁLBUM</h2>
         <p className="font-semibold text-black/60 mt-1">Campeão ganha uma carta-lembrança por título — no CPU ou no online. Vai colecionando os craques.</p>
         {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{CATALOG_TOTAL} craques{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
@@ -6529,7 +6546,8 @@ export function EscRanking() {
 
   return (
     <Shell>
-      <div className="text-center pt-4">
+      <div className="pt-4"><VoltarInicio /></div>
+      <div className="text-center -mt-1">
         <h2 className="font-black text-4xl" style={OSWALD}>🏆 RANKING</h2>
         <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. Ranking por títulos. 🏆</p>
         {/* 🕐 aviso sutil do ranking diário (decisão do Diego 04/08) */}
