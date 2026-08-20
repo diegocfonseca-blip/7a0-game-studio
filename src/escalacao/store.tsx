@@ -6593,13 +6593,16 @@ function ensureCareerOwner(uid: string) {
   try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ }
 }
 // 🧹 FAXINA DA CAIXA ao abrir uma carreira (Diego 20/08, caso do "−9999").
-// A tela desenha o que vem do save. Se o save trouxer no lugar do dinheiro algo
-// que NÃO é dinheiro — texto, número quebrado, infinito, ou um valor tão grande
-// que nenhuma carreira alcança — o jogador via aquilo na cara e achava que o jogo
-// tinha bugado. Aqui isso morre antes de chegar na tela.
-// ⚠️ O QUE ELA **NÃO** FAZ: mexer em caixa negativa de verdade. Dívida é estado
-// previsto (opção B do Diego) e continua valendo — quem deve, deve.
-const CAIXA_TETO = 1_000_000 // nenhuma carreira honesta chega perto; acima disso é lixo
+// Ela só mata o que NÃO É NÚMERO: texto, NaN, infinito. Nada mais.
+//
+// ⛔ ELA NUNCA ENCOSTA EM DINHEIRO DE VERDADE — nem grande, nem negativo.
+// Ordem do Diego, com todas as letras: *"vc N pode mexer na conta dos outros pq
+// MT gente realmente pode fazer essa grana aí positiva… tem gente q já tem até
+// mais, igual o Xurupitas"*. E ele está certo: MEDIDO no banco, a maior caixa
+// legítima do jogo é **999.999**. Eu tinha posto um teto de 1 milhão aqui —
+// encostado nela. Bastava alguém passar disso jogando pra eu apagar a grana de um
+// jogador honesto. Teto REMOVIDO: número é número, e o jogo respeita.
+// Dívida também fica: é estado previsto (opção B) — quem deve, deve.
 function faxinaCaixa(save: EscState): EscState {
   const cc = save?.careerCoins
   if (!cc || typeof cc !== 'object') return save
@@ -6607,7 +6610,7 @@ function faxinaCaixa(save: EscState): EscState {
   const limpo: Record<number, number> = {}
   for (const [k, v] of Object.entries(cc)) {
     const n = Math.round(Number(v))
-    if (!Number.isFinite(n) || Math.abs(n) > CAIXA_TETO) { limpo[+k] = 0; sujo = true } // valor impossível → zera
+    if (!Number.isFinite(n)) { limpo[+k] = 0; sujo = true } // não é número → não é dinheiro
     else limpo[+k] = n
   }
   if (!sujo) return save
