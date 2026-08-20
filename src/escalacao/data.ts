@@ -2317,6 +2317,7 @@ export const OLD_NAME: Record<string, string> = {
   'Tokyo City Esperion': 'FC Galáticos', // ⚽ elo da corrente do denilson: FC Galáticos → Tokyo City Esperion → Xurupitas FC
   'Tôka10': 'Biriba United', // ⚽ batismo do ofc.toka10: save antigo com Biriba United vira Tôka10 ao carregar
   'Skyy FC': 'Fortuna SAF', // ⚽ batismo do matheusncruz1: save antigo com Fortuna SAF vira Skyy FC ao carregar
+  'Sapekeiros FC': 'Pardemeias', // ⚽ batismo do tiosapeka: save antigo com Pardemeias vira Sapekeiros FC ao carregar (20/08)
   'Crias do Bigão': 'Ferroviária do Vale', // ⚽ batismo do giovannecastro784: save antigo com Ferroviária do Vale vira Crias do Bigão ao carregar (17/08)
   'SC Ferrari': 'Painitto FC', // ⚽ batismo do adriano.ferrari: save antigo com Painitto FC vira SC Ferrari ao carregar
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
@@ -2436,7 +2437,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
     { name: 'Piu do Grêmio', team: 'Barcenite FC' },
-    { name: 'Tico do Bar', team: 'Pardemeias' },
+    { name: 'Tico do Bar', team: 'Sapekeiros FC' }, // 🐝👑 clube BATIZADO por apoiador (tiosapeka@gmail.com / @tiosapekagg — Sapekeiros FC, ex-Pardemeias; abelha coroada, manto preto+dourado, 20/08)
     { name: 'Xandão da Bola', team: 'Manfré FC' }, // ⚽ clube BATIZADO por apoiador (danielmanfre5 — Manfré FC, ex-Livre-pool)
     { name: 'Val do Buraco', team: 'Flamengo do Sertão' },
   ],

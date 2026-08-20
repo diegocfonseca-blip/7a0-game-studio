@@ -53,6 +53,25 @@ isso pausado e apenas criar a copa libertadores lá junto com o de liga e copa"*
 A pesquisa está salva em `docs/libertadores-por-clube.txt` e
 `docs/libertadores-participantes.md` — se voltar, é só ligar o filtro.
 
+## 🐝 SAPEKEIROS FC entrou na Série D (20/08) ✅ NO AR
+Batismo do **tiosapeka@gmail.com / @tiosapekagg** (influencer). Ele já tinha
+escudo, mascote (abelha coroada), manto preto+dourado, estádio "Clube dos
+Sapekeiros", tier ouro 👑, sócio nº21 e fundador nº41 desde 12/08 — só faltava a
+DIVISÃO. O Diego escolheu a vaga: **entrou no lugar do Pardemeias** (`data.ts`
+Série D + `OLD_NAME`, então save antigo com Pardemeias vira Sapekeiros ao abrir).
+
+⚠️ **A Série D acabou.** Só sobrou **1 vaga livre**: `Flamengo do Sertão`
+(técnico "Val do Buraco"). Todas as outras 19 já têm dono. O próximo batismo que
+pedir Série D pega essa — e depois disso **não tem mais**: ou abre vaga em outra
+série, ou o desenho da pirâmide precisa crescer. Vale avisar o Diego ANTES de
+prometer Série D pra alguém.
+
+📏 A arte dele estava **acima do teto da casa** (escudo 49,4 KB/480px contra
+30 KB/360px · mascote 47,1 KB contra 45 KB). Recomprimida no mesmo commit:
+29,6 KB e 42,5 KB, sem diferença visível (comparação antes/depois foi pro Diego).
+A largura declarada do mascote foi corrigida pra proporção real do arquivo novo
+(440/373), como manda a regra 4.
+
 ## 🏆 LIGA FECHADA — em construção (só a conta do Diego)
 A sala que fica de pé: horário marcado, sempre a MESMA sala, só a turma entra e
 os troféus se empilham ali. Desenho aprovado em `scripts/mockup-liga-fechada.mjs`
