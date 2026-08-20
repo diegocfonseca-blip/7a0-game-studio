@@ -6595,14 +6595,18 @@ function ensureCareerOwner(uid: string) {
 // 🧹 FAXINA DA CAIXA ao abrir uma carreira (Diego 20/08, caso do "−9999").
 // Ela só mata o que NÃO É NÚMERO: texto, NaN, infinito. Nada mais.
 //
-// ⛔ ELA NUNCA ENCOSTA EM DINHEIRO DE VERDADE — nem grande, nem negativo.
-// Ordem do Diego, com todas as letras: *"vc N pode mexer na conta dos outros pq
-// MT gente realmente pode fazer essa grana aí positiva… tem gente q já tem até
-// mais, igual o Xurupitas"*. E ele está certo: MEDIDO no banco, a maior caixa
-// legítima do jogo é **999.999**. Eu tinha posto um teto de 1 milhão aqui —
-// encostado nela. Bastava alguém passar disso jogando pra eu apagar a grana de um
-// jogador honesto. Teto REMOVIDO: número é número, e o jogo respeita.
-// Dívida também fica: é estado previsto (opção B) — quem deve, deve.
+// ⛔ ELA NÃO MEXE NA GRANA DE NINGUÉM. Ordem do Diego: *"vc N pode mexer na
+// conta dos outros pq MT gente realmente pode fazer essa grana aí positiva… tem
+// gente q já tem até mais, igual o Xurupitas"*. Caixa negativa também fica:
+// dívida é estado previsto (opção B) — quem deve, deve.
+//
+// 🔢 O TETO É DECISÃO DELE (20/08: *"pode deixar o teto de um milhão sim"*),
+// tomada JÁ SABENDO do número abaixo. Fica registrado pra quem mexer depois:
+// ⚠️ MEDIDO no banco em 20/08 — a MAIOR caixa legítima do jogo é **999.999**,
+// ou seja, a um passo do teto. Se um dia alguém passar de 1 milhão jogando
+// limpo, a grana dele é zerada aqui. Quando a economia crescer (ou aparecer o
+// primeiro caso), SUBIR ESTE NÚMERO — não é lei, é uma régua que envelhece.
+const CAIXA_TETO = 1_000_000
 function faxinaCaixa(save: EscState): EscState {
   const cc = save?.careerCoins
   if (!cc || typeof cc !== 'object') return save
@@ -6610,7 +6614,7 @@ function faxinaCaixa(save: EscState): EscState {
   const limpo: Record<number, number> = {}
   for (const [k, v] of Object.entries(cc)) {
     const n = Math.round(Number(v))
-    if (!Number.isFinite(n)) { limpo[+k] = 0; sujo = true } // não é número → não é dinheiro
+    if (!Number.isFinite(n) || Math.abs(n) > CAIXA_TETO) { limpo[+k] = 0; sujo = true } // não é número, ou passou do teto
     else limpo[+k] = n
   }
   if (!sujo) return save
