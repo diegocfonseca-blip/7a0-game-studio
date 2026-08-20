@@ -1730,7 +1730,7 @@ export function EscIntro() {
               {/* 🌐 "(online)" no rótulo a pedido do Diego (20/08) — "com amigos"
                   sozinho dá a entender que dá pra jogar com os amigos no MESMO
                   aparelho, que não é o caso: é sala online, com código. */}
-              <span className="block text-sm leading-tight text-white">👥 Com amigos<br /><span className="text-[12px]">(online)</span></span>
+              <span className="block text-sm leading-tight text-white">👥 Com amigos<br />online</span>
               <span className="block text-[9.5px] font-bold normal-case tracking-normal mt-1" style={{ color: 'rgba(255,255,255,.85)' }}>até 20 na sala</span>
             </Btn>
             <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="text-center" bg="#fff">

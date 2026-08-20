@@ -310,10 +310,11 @@ export function useLibertaLiberada(): boolean {
 // A home nova é scroll longo com tudo ABERTO e um MENU FIXO no rodapé (ideia
 // dele) — assim navegar não depende de rolar de volta, e nada precisa ficar
 // escondido atrás de clique.
-// 🔒 Só a conta dele enxerga, pra ver rodando antes de trocar pra todo mundo.
-// Todo o resto continua com a home de hoje, sem UMA vírgula de diferença.
-// Liberar geral: HOME_NOVA_GERAL = true.
-const HOME_NOVA_GERAL = false
+// 🔓 LIBERADA GERAL (20/08, depois de ele ver rodando na conta dele: *"coloque
+// pra todos já verem normal, e não mais só travado pra mim não"*).
+// A lista abaixo virou só o plano B: HOME_NOVA_GERAL = false devolve pra teste
+// fechado na conta dele, e a home de hoje volta pra todo mundo — num commit.
+const HOME_NOVA_GERAL = true
 const HOME_NOVA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let homeNovaOk = HOME_NOVA_GERAL
 function applyHomeNovaUnlock(email?: string | null): void {

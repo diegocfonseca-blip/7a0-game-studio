@@ -72,6 +72,44 @@ prometer Série D pra alguém.
 A largura declarada do mascote foi corrigida pra proporção real do arquivo novo
 (440/373), como manda a regra 4.
 
+## 🏠 HOME NOVA — no ar pra TODO MUNDO (20/08)
+Queixa do Diego: *"o visual da home ainda acho que não tá legal, ainda acho que
+tá poluído e desorganizado! E ainda acho que o jogo não está claro as regras
+dele. As pessoas começam o jogo e não entendem o que tem que fazer no leilão, as
+moedas, a disputa… e que depois tem uma simulação"*.
+
+**A ideia que ficou (dele, e é a boa):** *scroll longo com tudo ABERTO e um MENU
+FIXO no rodapé*. O menu é o que destrava o resto — se navegar não depende de
+rolar de volta, o scroll pode ser comprido e nada precisa se esconder atrás de
+clique. Calma vem de **espaço**, não de tirar coisa.
+
+**Os andares:** (1) o que é o jogo · (2) as cartas deitadas, deslizando · (3) os
+TRÊS modos com a CARREIRA grande · (4) continuar carreira/sala · (5) COMO
+FUNCIONA UMA PARTIDA (aberto, mas embaixo) · (6) novidades enxutas · (7) apoiar.
+
+**Duas coisas que EU errei e ele cortou** — ficam registradas pra não repetir:
+1. Tirei as cartas do alto. **Errado**: a carta é o MOTIVO de jogar. Voltaram.
+2. Enfiei as regras na cara. **Errado**: ninguém chega num jogo querendo ler
+   manual. Viraram uma PORTA (o botão Regras).
+E uma terceira: deixei **um botão só** ("Jogar agora"). Ele quer os TRÊS modos
+visíveis, com a **Carreira** grande — é onde a galera fica (118 mil temporadas)
+e é o modo onde o patrocinador aparece toda temporada.
+
+**A barra de baixo FOGE do padrão visual de propósito** (fio fino, fundo quase
+branco, ícones desenhados em vez de emoji, ativo em roxo sem retângulo preto).
+O resto do jogo é borda grossa e sombra dura; na barra isso brigava com tudo.
+É exceção consciente — não "consertar" de volta.
+
+**O Manual do Técnico** virou a MESMA lista do "como funciona" (componente
+`PassoLinha`, usado nos dois lugares): 6 passos + os 3 modos. O antigo era
+quadro dentro de quadro, com texto de 8px.
+
+**🏠 Botão Início** no canto de cima do Álbum e do Ranking (antes só havia saída
+no fim da página — e o álbum tem centenas de cartas até lá).
+
+↩️ **Reverter:** `HOME_NOVA_GERAL = false` em `sport.ts` devolve a home de hoje
+pra todo mundo num commit.
+
 ## 🏆 LIGA FECHADA — em construção (só a conta do Diego)
 A sala que fica de pé: horário marcado, sempre a MESMA sala, só a turma entra e
 os troféus se empilham ali. Desenho aprovado em `scripts/mockup-liga-fechada.mjs`
