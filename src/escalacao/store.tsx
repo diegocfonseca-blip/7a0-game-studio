@@ -3,12 +3,12 @@ import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
-  QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
+  QuickCopaState, QuickCopaTie, LibertaState, LibertaTeam, LedgerEntry, EmpCard, AgCard, AgEvento,
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, clubCanon } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
@@ -2065,8 +2065,13 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const homeTactic = tacticOf(homeId)
   const awayTactic = tacticOf(awayId)
   const form = (id: number, opp: Tactic, own: Tactic): TeamForm => {
-    const team = state.league.find(t => t.id === id)!
-    if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
+    // 🌎 os 24 clubes da Libertadores não estão em `league` (a tabela da liga
+    // continua com 20) — então procura neles também. Fora da Liberta, `liberta`
+    // é null e nada muda.
+    const team = (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id))!
+    // 🔥 clube do continente (id 900+) leva o degrau da Libertadores por cima
+    const degrau = id >= LIBERTA_ID0 ? LIBERTA_BONUS : 0
+    if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + degrau + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + degrau + (rng() * 6 - 3), inspired: null }
     const m = state.managers.find(x => x.id === id)!
     const f = rollManagerForm(m, own, opp, rng)
     // só os BOTS DE FUNDO (não-rivais) levam o ajuste, pra bater no nível-base da
@@ -2227,8 +2232,103 @@ function finishSeason(s: EscState) {
       ? '🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.'
       : '🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
   }
+  // 🌎 LIBERTADORES: os 8 primeiros da liga se classificam e caem numa chave de
+  // 32 com os clubes do continente. Copa dos 8 e Libertadores nunca rodam juntas
+  // (a sala escolhe uma OU a outra na criação), então o `else if` é a trava.
+  else if (s.copaMode === 'liga_liberta' && !s.liberta) {
+    s.liberta = seedLiberta(s.league, mulberry((s.seed ^ 0x11BE47A) >>> 0))
+    s.news = ['🌎 A liga acabou — os 8 primeiros estão na LIBERTADORES! 32 clubes, 8 grupos de 4.']
+  }
   s.screen = 'end'
 }
+
+// ─── 🌎 LIBERTADORES (modo rápido) ─────────────────────────────────────────
+// Desenho do Diego (20/08): a liga de 20 roda igual; no fim, os **8 primeiros**
+// se classificam e entram numa Libertadores de **32** com os 24 clubes do
+// continente (`LIBERTA_CLUBS`). 8 grupos de 4, passam 2, e o mata-mata (oitavas
+// → final única) reusa o motor da Copa dos 8.
+//
+// 🎱 SORTEIO POR POTES: os 8 da liga são o POTE 1 — **cabeça de chave, um por
+// grupo**, como ele pediu. Assim dois classificados da mesma sala NUNCA caem no
+// mesmo grupo; só se cruzam no mata-mata.
+const LIBERTA_ID0 = 900 // ids dos clubes do continente (não colidem com a liga)
+
+// 🔥 O DEGRAU DA LIBERTADORES (pergunta do Diego, 20/08: *"esses times q estão de
+// fora aguardando seria como? … sempre falamos sobre % em relação a liga"*).
+// MEDIDO: os bots da liga (`CLASSIC_CLUBS`) têm força média 67,3, mas os **8
+// que se classificam** são o topo dela — média **72,8**. Os 24 do continente
+// nascem com média 68,2. Sem degrau, a Libertadores sairia MAIS FÁCIL que a
+// própria liga, que é o contrário do que ela é.
+// Então os clubes do continente levam +6 por cima do ajuste que os bots da liga
+// já recebem (`cpuAtkAdj`, que cola o nível da sala). Com isso a média deles vai
+// a **74,2** — acima dos 8 classificados — e os potes ficam com cara própria:
+// pote 2 ≈ 81 (pesos do continente) · pote 3 ≈ 74 · pote 4 ≈ 68 (dá pra bater).
+// É UM número só: se o Diego achar duro ou mole depois de jogar, muda aqui.
+const LIBERTA_BONUS = 6
+
+function seedLiberta(league: LeagueTeam[], rng: () => number): LibertaState {
+  const oito = sortedTable(league).slice(0, 8)
+  const times: LibertaTeam[] = []
+  const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
+  // pote 1: os classificados, embaralhados entre os grupos (o 1º da liga não cai
+  // sempre no grupo A — senão o sorteio não seria sorteio)
+  shuffle(oito.map((t, i) => ({ t, i })), rng).forEach(({ t }, g) => {
+    times.push({ id: t.id, name: t.name, pote: 1, grupo: g, isManager: t.isManager, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero })
+  })
+  // potes 2, 3 e 4: 8 clubes cada, um por grupo
+  for (const pote of [2, 3, 4] as const) {
+    shuffle(LIBERTA_CLUBS.filter(c => c.pote === pote), rng).forEach((c, g) => {
+      times.push({ id: LIBERTA_ID0 + times.length, name: c.name, pote, grupo: g, isManager: false, baseAtk: c.atk, baseDef: c.def, ...zero })
+    })
+  }
+  // calendário: cada grupo faz turno e returno (6 rodadas × 2 jogos). As rodadas
+  // dos 8 grupos são EMPILHADAS — rodada 1 do grupo A junto com a rodada 1 do B,
+  // etc. — pra a tela mostrar "rodada 3 de 6" com todos os grupos andando juntos.
+  const fixtures: [number, number][][] = Array.from({ length: 6 }, () => [])
+  for (let g = 0; g < 8; g++) {
+    const ids = shuffle(times.filter(t => t.grupo === g).map(t => t.id), rng)
+    oneDoubleRR(ids).forEach((rodada, r) => { if (r < 6) fixtures[r].push(...rodada) })
+  }
+  return { fase: 'grupos', times, rodada: 0, fixtures, lastResults: [] }
+}
+
+// classificação de um grupo — MESMO desempate do resto do jogo
+// (pontos → vitórias → saldo → gols), pra ninguém ter que decorar regra nova.
+export function libertaGrupo(lb: LibertaState, g: number): LibertaTeam[] {
+  return lb.times.filter(t => t.grupo === g).sort((a, b) =>
+    b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name))
+}
+
+// 🥅 joga UMA rodada de grupo (16 jogos de uma vez, um por confronto)
+function playLibertaRodada(s: EscState) {
+  const lb = s.liberta
+  if (!lb || lb.fase !== 'grupos' || lb.rodada >= 6) return
+  const rng = mulberry((s.seed ^ (0x11BE47A + lb.rodada * 7919)) >>> 0)
+  const res: MatchResult[] = []
+  for (const [h, a] of lb.fixtures[lb.rodada]) {
+    const r = simMatch(s, h, a, rng, s.quickCopa?.scorers ?? [])
+    res.push(r)
+    const th = lb.times.find(t => t.id === h)!, ta = lb.times.find(t => t.id === a)!
+    th.gf += r.hg; th.ga += r.ag; ta.gf += r.ag; ta.ga += r.hg
+    if (r.hg > r.ag) { th.pts += 3; th.w++; ta.l++ }
+    else if (r.hg < r.ag) { ta.pts += 3; ta.w++; th.l++ }
+    else { th.pts++; ta.pts++; th.d++; ta.d++ }
+  }
+  lb.lastResults = res
+  lb.rodada++
+  // acabou a fase de grupos → semeia as OITAVAS com os 2 primeiros de cada grupo
+  if (lb.rodada >= 6) {
+    lb.fase = 'mata'
+    const primeiros: LibertaTeam[] = [], segundos: LibertaTeam[] = []
+    for (let g = 0; g < 8; g++) { const cl = libertaGrupo(lb, g); primeiros.push(cl[0]); segundos.push(cl[1]) }
+    // 1º de um grupo pega o 2º de OUTRO (nunca do mesmo) — regra de verdade
+    const mk = (a: LibertaTeam, b: LibertaTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
+    const ties = primeiros.map((p, i) => mk(p, segundos[(i + 1) % 8]))
+    s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: s.quickCopa?.scorers ?? [] }
+    s.news = ['🌎 Fim da fase de grupos — chegaram as OITAVAS da Libertadores!']
+  }
+}
+
 function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
   const sorted = sortedTable(league)
   const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
@@ -2781,6 +2881,7 @@ type Action =
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_SEASON' } // 🏁 rápido: encerra a liga DEPOIS da última partida animar
   | { type: 'PLAY_COPA_LEG' } // 🏆 Copa dos 8 (rápido): joga a perna atual de todas as ties da fase
+  | { type: 'PLAY_LIBERTA_RODADA' } // 🌎 Libertadores: joga uma rodada da fase de grupos (os 8 grupos de uma vez)
   | { type: 'START_COPA' } // 🏆 Copa dos 8: sai da tela de fim de liga e entra na Copa (botão ou tempo de leitura)
   | { type: 'FINISH_CEREMONY' }
   | { type: 'NEW_GAME' }
@@ -5088,6 +5189,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // sai do fim de liga e volta pra tela da temporada — que, com quickCopa
       // já semeado e round=38, passa a tocar a Copa (ver EscSeason).
       if (s.quickCopa && s.quickCopa.phase !== 'done') s.screen = 'season'
+      return s
+    }
+    case 'PLAY_LIBERTA_RODADA': {
+      playLibertaRodada(s)
       return s
     }
     case 'PLAY_COPA_LEG': {
