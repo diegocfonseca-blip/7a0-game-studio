@@ -1561,28 +1561,73 @@ function HomeIconTile({ icon, label, onClick }: { icon: string; label: string; o
 //       quer entender). Era a queixa dele: "as pessoas não entendem o leilão,
 //       as moedas, a disputa, e que depois tem uma simulação".
 //   6 · novidades · 7 · apoiar (a história de quem faz o jogo mora DENTRO dele)
-function HomeMenuFixo({ onJogar, onRegras, onAlbum, onRanking, apoiar }: {
-  onJogar: () => void; onRegras: () => void; onAlbum: () => void; onRanking: () => void; apoiar: React.ReactNode
+// 🎨 ÍCONES DA BARRA — desenhados (não emoji). O Diego mandou uma referência de
+// app e o pedido foi: *"mais suave, sei lá, com mais cara de aplicativo embaixo"*.
+// Emoji na barra fica com cara de rascunho: cada um tem um estilo, um peso e uma
+// cor própria, e não dá pra pintar de roxo quando está ativo. Estes são traço
+// arredondado com um "miolo" claro (duotone) — ativo pinta de roxo, parado fica
+// tinta apagada. Mesmo espírito do jogo (traço grosso, canto redondo), só que sem
+// a moldura preta pesada, que na barra de baixo brigava com o conteúdo.
+function IconeBarra({ nome, cor }: { nome: 'inicio' | 'regras' | 'album' | 'ranking' | 'apoiar'; cor: string }) {
+  const fill = cor === PURPLE ? 'rgba(124,58,237,.22)' : 'rgba(12,12,12,.10)'
+  const p = { fill: 'none', stroke: cor, strokeWidth: 2, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" style={{ display: 'block', margin: '0 auto' }} aria-hidden="true">
+      {nome === 'inicio' && (<>
+        <path d="M3.5 10.5 12 3.5l8.5 7v9a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1z" {...p} fill={fill} />
+        <path d="M9.5 20.5v-5.5h5v5.5" {...p} />
+      </>)}
+      {nome === 'regras' && (<>
+        <path d="M3.5 5.2c2.8-1 5.6-1 8.5.6 2.9-1.6 5.7-1.6 8.5-.6v13c-2.8-1-5.6-1-8.5.6-2.9-1.6-5.7-1.6-8.5-.6z" {...p} fill={fill} />
+        <path d="M12 5.8v13" {...p} />
+      </>)}
+      {nome === 'album' && (<>
+        <rect x="4" y="3.5" width="12" height="17" rx="2.2" {...p} fill={fill} />
+        <path d="M18.2 6.6l2 .7a1.6 1.6 0 0 1 1 2l-3.6 11" {...p} />
+        <path d="M10 8.6l1.1 2.3 2.5.3-1.9 1.8.5 2.5-2.2-1.2-2.2 1.2.5-2.5-1.9-1.8 2.5-.3z" {...p} />
+      </>)}
+      {nome === 'ranking' && (<>
+        <path d="M7 3.5h10v5.2a5 5 0 0 1-10 0z" {...p} fill={fill} />
+        <path d="M7 5.2H4.3v1.6A3.2 3.2 0 0 0 7 9.9M17 5.2h2.7v1.6A3.2 3.2 0 0 1 17 9.9" {...p} />
+        <path d="M12 13.7v3.1M8.6 20.5h6.8" {...p} />
+      </>)}
+      {nome === 'apoiar' && (
+        <path d="M12 20.3S3.8 15.6 3.8 9.9A4.4 4.4 0 0 1 12 7.4a4.4 4.4 0 0 1 8.2 2.5c0 5.7-8.2 10.4-8.2 10.4z" {...p} fill={fill} />
+      )}
+    </svg>
+  )
+}
+
+// 📱 BARRA DE BAIXO — suave, "cara de app" (pedido do Diego 20/08, com referência).
+// O que ficou diferente do resto do jogo, de propósito:
+//   · a moldura preta grossa virou um fio fino — a barra é MOLDURA da tela, não
+//     um card; borda pesada ali brigava com todo o conteúdo acima dela;
+//   · o item ativo não é mais um retângulo preto preenchido: só o ícone e o
+//     rótulo pintados de roxo, como na referência;
+//   · fundo quase branco (não o creme), pra a barra "sumir" e o conteúdo mandar.
+function HomeMenuFixo({ onInicio, onRegras, onAlbum, onRanking, apoiar }: {
+  onInicio: () => void; onRegras: () => void; onAlbum: () => void; onRanking: () => void; apoiar: React.ReactNode
 }) {
-  const item = (ic: string, txt: string, fn?: () => void, on = false) => (
-    <button key={txt} onClick={fn} className="flex-1 rounded-lg py-1 active:translate-y-0.5"
-      style={{ background: on ? INK : 'transparent', color: on ? '#fff' : INK }}>
-      <span className="block text-[17px] leading-tight">{ic}</span>
-      <span className="block text-[8.5px] font-black tracking-wide" style={{ ...OSWALD, opacity: on ? 1 : .58 }}>{txt}</span>
+  const item = (nome: 'inicio' | 'regras' | 'album' | 'ranking', txt: string, fn: () => void, on = false) => (
+    <button key={txt} onClick={fn} className="flex-1 py-1.5 active:opacity-60" style={{ background: 'transparent' }}>
+      <IconeBarra nome={nome} cor={on ? PURPLE : 'rgba(12,12,12,.55)'} />
+      <span className="block text-[10.5px] font-black mt-1" style={{ ...OSWALD, color: on ? PURPLE : 'rgba(12,12,12,.6)' }}>{txt}</span>
     </button>
   )
   return (
-    // 🔇 o `paddingRight` abre espaço pro botão de som, que é fixo no canto de
-    // baixo à direita e ficaria em cima do último item da barra.
-    <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#F4ECD6',
-      borderTop: `4px solid ${INK}`, display: 'flex', gap: 4, padding: '7px 62px 9px 8px',
-      boxShadow: '0 -6px 14px rgba(0,0,0,.10)' }}>
-      {/* 🔇 o botão de som é fixo no canto de baixo à direita; o padding-right
-          acima abre a faixa dele pra ele não cair em cima do último item. */}
-      {item('▶️', 'JOGAR', onJogar, true)}
-      {item('📘', 'REGRAS', onRegras)}
-      {item('📖', 'ÁLBUM', onAlbum)}
-      {item('🏆', 'RANKING', onRanking)}
+    <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989,
+      background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)',
+      borderTop: '1.5px solid rgba(12,12,12,.13)', display: 'flex', gap: 2,
+      padding: '6px 6px 8px', boxShadow: '0 -2px 12px rgba(0,0,0,.05)' }}>
+      {/* 🔇 O botão de som é fixo no canto de baixo à direita (mora no index.tsx,
+          fora daqui) e caía EM CIMA da barra — ficava um disco preto grandão
+          colado no último item. Enquanto esta barra existe, ele sobe pra cima
+          dela. Some junto com a barra: é só nesta tela. */}
+      <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
+      {item('inicio', 'Início', onInicio, true)}
+      {item('regras', 'Regras', onRegras)}
+      {item('album', 'Álbum', onAlbum)}
+      {item('ranking', 'Ranking', onRanking)}
       {apoiar}
     </div>
   )
@@ -1725,14 +1770,14 @@ export function EscIntro() {
         {/* espaço pro menu fixo não tapar o fim da página */}
         <div style={{ height: 74 }} />
         <HomeMenuFixo
-          onJogar={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onInicio={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           onRegras={() => setShowManual(true)}
           onAlbum={() => dispatch({ type: 'GO_ALBUM' })}
           onRanking={() => dispatch({ type: 'GO_RANKING' })}
           apoiar={<ApoieButton trigger={open => (
-            <button onClick={open} className="flex-1 rounded-lg py-1 active:translate-y-0.5">
-              <span className="block text-[17px] leading-tight">💛</span>
-              <span className="block text-[8.5px] font-black tracking-wide" style={{ ...OSWALD, opacity: .58 }}>APOIAR</span>
+            <button onClick={open} className="flex-1 py-1.5 active:opacity-60">
+              <IconeBarra nome="apoiar" cor="rgba(194,69,47,.85)" />
+              <span className="block text-[10.5px] font-black mt-1" style={{ ...OSWALD, color: 'rgba(194,69,47,.9)' }}>Apoiar</span>
             </button>
           )} />} />
         {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); startCareer(() => dispatch({ type: 'GO_SETUP_CAREER' })) }} />}
