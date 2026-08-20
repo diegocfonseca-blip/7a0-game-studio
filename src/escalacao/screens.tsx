@@ -7741,7 +7741,10 @@ export function EscEnd() {
                 {regra('🥅', 'Os grupos', <>8 grupos de 4, <b>6 rodadas</b> de ida e volta. Passam os <b>2 primeiros</b> de cada um.</>)}
                 {regra('⚔️', 'O mata-mata', <>16 clubes: oitavas, quartas e semi em <b>ida e volta</b>. Empatou no agregado, vai pros <b>pênaltis</b>.</>)}
                 {regra('🏆', 'A final', <><b>jogo único</b>, em campo neutro. Quem levantar a taça leva <b>outra carta</b> pro álbum.</>)}
-                {regra('🔥', 'A força deles', <>os clubes do continente jogam na <b>mesma régua da liga</b> — o mais forte deles é do tamanho do mais forte daqui.</>)}
+                {/* 🚫 NÃO ENTRA AQUI (Diego 20/08: *"nem coloque essa aí de força e
+                    etc, nada a ver por isso lá"*): nada de força/nível dos clubes.
+                    O banner é o REGULAMENTO — como funciona o torneio. Número de
+                    força é papo de bastidor, não de tela de abertura. */}
               </div>
               <div>
                 <p className="text-[10.5px] font-black uppercase text-center mb-1" style={{ ...OSWALD, color: GOLD }}>🎟️ Os 8 classificados</p>
