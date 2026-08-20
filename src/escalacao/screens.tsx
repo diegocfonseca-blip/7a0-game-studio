@@ -7327,11 +7327,12 @@ export function EscEnd() {
     const qc = state.quickCopa
     if (!qc) return ''
     if (qc.champion?.id === you.id) return '🏆 Campeão!'
-    let last: 'quartas' | 'semis' | 'final' | null = null, lost = false
+    // 🌎 'oitavas' só aparece na Libertadores (a Copa dos 8 começa nas quartas)
+    let last: 'oitavas' | 'quartas' | 'semis' | 'final' | null = null, lost = false
     for (const b of qc.bracket) { const t = b.ties.find(x => x.aId === you.id || x.bId === you.id); if (t) { last = b.phase; lost = t.winner != null && t.winner !== you.id } }
-    if (!last) return 'Fora do top 8'
+    if (!last) return state.copaMode === 'liga_liberta' ? 'Não se classificou' : 'Fora do top 8'
     if (last === 'final') return lost ? '🥈 Vice' : '🏆 Campeão!'
-    return last === 'semis' ? 'Caiu na semi' : 'Caiu nas quartas'
+    return last === 'semis' ? 'Caiu na semi' : last === 'quartas' ? 'Caiu nas quartas' : 'Caiu nas oitavas'
   })()
   // 👀 "VOCÊ!" é por quem VÊ (compara o id do campeão com o MEU time), não pelo
   // flag global champion.you (que no online marcava todo humano como "você").

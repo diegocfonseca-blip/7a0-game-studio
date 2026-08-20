@@ -2505,3 +2505,48 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Real Tabuleiro', atk: 58, def: 59 },
   { name: 'Íbis da Mata', atk: 55, def: 54 },
 ]
+
+// ─── 🌎 LIBERTADORES: os 24 clubes do continente ──────────────────────────
+// Desenho fechado com o Diego em 20/08: a liga classifica os **8 primeiros**,
+// que entram como CABEÇA DE CHAVE (pote 1, um por grupo), e estes 24 completam
+// os 32. Palavras dele: *"Faça times tipo river prato. Boca zudo, Penhalol
+// coisas assim"* — ou seja, **quase-nome**, o mesmo estilo que a casa já usa
+// (Vasco da Grana, Livre-pool, Cuiabagre, Paris São Geraldo). Nenhum clube real.
+//
+// 🎱 POTES: 8 grupos × 4 = 32. O pote 1 é dos classificados da liga, então estes
+// 24 se dividem 8 · 8 · 8 nos potes 2, 3 e 4, do mais forte pro mais fraco.
+//
+// ⚠️ "River Prato" NÃO deu: esse nome já existe em `OLD_NAME` como o nome VELHO
+// do **La Bestia Negra** (batismo do eltonfrossard45). Se fosse usado, quem
+// abrisse um save antigo veria o clube virar La Bestia Negra e ainda pegaria o
+// escudo dele. Virou **River Pratão**. Os outros 23 foram conferidos um a um
+// contra os clubes do jogo, o `OLD_NAME` e as chaves de `LOGOS_PRONTAS`.
+export const LIBERTA_CLUBS: { name: string; atk: number; def: number; pote: 2 | 3 | 4 }[] = [
+  // pote 2 — os pesos do continente
+  { name: 'River Pratão', atk: 78, def: 76, pote: 2 },
+  { name: 'Bocazudo', atk: 77, def: 77, pote: 2 },
+  { name: 'Penhalol', atk: 75, def: 74, pote: 2 },
+  { name: 'Nassional', atk: 74, def: 73, pote: 2 },
+  { name: 'Colo do Colo', atk: 73, def: 72, pote: 2 },
+  { name: 'Atlético Cafezal', atk: 73, def: 71, pote: 2 },
+  { name: 'Independente da Grana', atk: 72, def: 73, pote: 2 },
+  { name: 'Serro Portenho', atk: 71, def: 72, pote: 2 },
+  // pote 3 — os do meio
+  { name: 'Estudantes da Prata', atk: 70, def: 72, pote: 3 },
+  { name: 'Olímpia do Tereré', atk: 70, def: 70, pote: 3 },
+  { name: 'The Fortão', atk: 69, def: 69, pote: 3 },
+  { name: 'Barcelona da Linha', atk: 69, def: 68, pote: 3 },
+  { name: 'Rachando Club', atk: 68, def: 69, pote: 3 },
+  { name: 'Universidade do Chilique', atk: 67, def: 68, pote: 3 },
+  { name: 'Milionários FC', atk: 67, def: 66, pote: 3 },
+  { name: 'Aliança Limão', atk: 66, def: 66, pote: 3 },
+  // pote 4 — os azarões
+  { name: 'Liberdade FC', atk: 65, def: 67, pote: 4 },
+  { name: 'Liga de Quitanda', atk: 65, def: 65, pote: 4 },
+  { name: 'Defensor Suplente', atk: 63, def: 65, pote: 4 },
+  { name: 'Cobra Loka', atk: 63, def: 63, pote: 4 },
+  { name: 'América do Calil', atk: 62, def: 62, pote: 4 },
+  { name: 'Sporting Cristaleira', atk: 61, def: 62, pote: 4 },
+  { name: 'Bolívar 3.600', atk: 60, def: 60, pote: 4 },
+  { name: 'Deportivo Tá Xiro', atk: 58, def: 59, pote: 4 },
+]

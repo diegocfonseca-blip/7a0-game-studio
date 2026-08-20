@@ -303,13 +303,36 @@ export interface QuickCopaTie {
   winner: number | null    // id de quem passou (null = ainda rolando)
   lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
 }
+// 🌎 'oitavas' existe SÓ pra Libertadores, que começa o mata-mata com 16 clubes
+// (a Copa dos 8 continua começando nas quartas — nada muda pra ela).
+export type CopaFase = 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
 export interface QuickCopaState {
-  phase: 'quartas' | 'semis' | 'final' | 'done'
+  phase: CopaFase
   ties: QuickCopaTie[]  // confrontos da fase ATUAL
   legIdx: 0 | 1          // perna sendo jogada agora (final usa só a 0 — jogo único)
-  bracket: { phase: 'quartas' | 'semis' | 'final'; ties: QuickCopaTie[] }[] // fases já fechadas
+  bracket: { phase: Exclude<CopaFase, 'done'>; ties: QuickCopaTie[] }[] // fases já fechadas
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
+}
+
+// 🌎 LIBERTADORES — a fase de GRUPOS. O mata-mata depois dela reusa o
+// `QuickCopaState` (mesmo motor de ida-e-volta com pênalti da Copa dos 8),
+// entrando pela fase 'oitavas'.
+export interface LibertaTeam {
+  id: number          // humanos/bots da liga mantêm o id deles; os 24 do continente usam 900+
+  name: string
+  pote: 1 | 2 | 3 | 4 // pote 1 = os 8 classificados da liga (cabeças de chave)
+  grupo: number       // 0..7  (A..H)
+  isManager: boolean  // veio da liga (tem elenco) ou é clube do continente (só atk/def)
+  baseAtk: number; baseDef: number
+  pts: number; w: number; d: number; l: number; gf: number; ga: number
+}
+export interface LibertaState {
+  fase: 'grupos' | 'mata'
+  times: LibertaTeam[]              // os 32
+  rodada: number                    // 0..6 da fase de grupos
+  fixtures: [number, number][][]    // 6 rodadas × 16 jogos (todos os grupos juntos)
+  lastResults: MatchResult[]        // resultados da última rodada de grupo
 }
 
 export interface ScorerRow {
@@ -448,7 +471,11 @@ export interface EscState {
   // 🏆 COPA DOS 8 (modo rápido — online e offline): escolhida na criação da
   // sala/jogo. 'liga_copa' (padrão) roda a Copa logo que a liga termina, antes
   // da votação; 'liga' pula direto pro fim, como sempre foi.
-  copaMode?: 'liga' | 'liga_copa'
+  // 🌎 'liga_liberta' (20/08): quando a liga acaba, os 8 primeiros se classificam
+  // pra uma LIBERTADORES DE 32 — eles + os 24 clubes do continente
+  // (`LIBERTA_CLUBS`), em 8 grupos de 4. Copa dos 8 e Libertadores nunca rodam
+  // juntas: é uma OU a outra, e o seletor da tela reflete isso.
+  copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'
   ligaFechada?: boolean // 🏆 LIGA FECHADA: sala online só com os humanos, SEM bots na tabela. A liga tem o tamanho da galera (returno duplo); ímpar folga. Copa só destrava com 8+.
   // 🃏 BAFO: sala sem leilão, cada um traz o time da própria carreira e no fim
   // quem ficou atrás entrega UMA carta daquela carreira pro de cima (cascata).
@@ -457,6 +484,7 @@ export interface EscState {
   bafoValendo?: boolean // 🃏 a partida vale carta de verdade (padrão) ou é amistoso — escolha do host na criação da sala
   bafoTrocasFeitas?: string[] // 🃏 idempotência do COFRE da carreira: chaves das trocas de Bafo já aplicadas neste save (o servidor já trocou o dono; isto evita tirar/pôr a carta duas vezes no aparelho).
   quickCopa?: QuickCopaState | null
+  liberta?: LibertaState | null // 🌎 fase de grupos da Libertadores (o mata-mata dela usa o quickCopa)
   phaseDeadline: number | null // timestamp (ms) do fim do envelope
   monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
   cerimoniaDeadline: number | null // timestamp (ms) do fim da cerimônia (auto-começa o campeonato)
