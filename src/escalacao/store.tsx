@@ -6620,8 +6620,38 @@ function faxinaCaixa(save: EscState): EscState {
   if (!sujo) return save
   return { ...save, careerCoins: limpo, news: ['🧹 Achamos um erro no seu caixa e arrumamos — o resto da carreira está intacto.', ...(save.news ?? [])].slice(0, 12) }
 }
+// 🔎 DIAGNÓSTICO DA CAIXA (20/08 — caso do "±9999" do Pedro).
+// O que sabemos: a tela dele mostrou 9999 e -9999, o save na nuvem tem -261, e o
+// LACRE do save bate (ou seja: ninguém editou o arquivo — o valor da tela nunca
+// chegou a ser gravado). Faltava saber o que o APARELHO dele tem de verdade, e
+// ele não consegue abrir console. Então o jogo passa a contar sozinho: quando
+// abre uma carreira com caixa fora do normal, manda o número e o contexto mínimo
+// pra uma tabela de diagnóstico.
+// ⚠️ Isto NÃO acusa ninguém e NÃO muda nada no jogo — é termômetro, não trava.
+// Quando a causa aparecer, some daqui.
+const CAIXA_ESTRANHA = 9000 // acima disso em módulo já é fora da curva (a maior legítima medida é 999.999, mas quase todo mundo vive abaixo de 10 mil)
+function reportaCaixaEstranha(save: EscState, de: 'load') {
+  try {
+    const youId = save.managers?.[save.youIdx]?.id ?? 0
+    const caixa = Number(save.careerCoins?.[youId] ?? 0)
+    if (!Number.isFinite(caixa) || Math.abs(caixa) < CAIXA_ESTRANHA) return
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!data?.user) return
+      supabase.from('esc_caixa_estranha').upsert({
+        user_id: data.user.id,
+        seed: save.seed ?? 0,
+        caixa,
+        temporada: save.seasonNo ?? null,
+        divisao: save.careerDivision ?? null,
+        de_onde: de,
+        lacre_ok: !saveMexido(save),
+        ultima_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,seed,de_onde' }).then(() => {}, () => {})
+    }, () => {})
+  } catch { /* silencioso — diagnóstico nunca atrapalha o jogo */ }
+}
 export function readActiveCareer(): CareerSlot | null {
-  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); return { save: faxinaCaixa(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
+  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); reportaCaixaEstranha(save, 'load'); return { save: faxinaCaixa(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
   return null
 }
 // guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa.
