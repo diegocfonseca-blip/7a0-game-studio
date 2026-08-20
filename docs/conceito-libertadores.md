@@ -471,3 +471,30 @@ Deportivo Tá Xiro 58
 quem abrisse um save antigo veria o clube virar La Bestia Negra e ainda pegaria o
 escudo dele. Virou **River Pratão**. Os outros 23 foram conferidos um a um contra
 `data.ts` (clubes, `OLD_NAME`) e `escudos.tsx` (chaves de escudo) — nenhum bate.
+
+### ✅ APROVADO pelo Diego (20/08) + o bannerzão de abertura
+
+> *"Aprovado, mas precisamos de um banner grande também qd acaba a liga igual a
+> copa dos 8, q entraria o banner grande da libertadores c visual bonito e
+> brilhante e c as regras... E dps de 30s de contagem se inicia ou o host aperta
+> o avançar tb"*
+
+Aprovados: o desenho da Libertadores de 32, os 24 quase-nomes, as telas de jogo e
+o story de lançamento. Mockup do banner: `scripts/mockup-liberta-banner.mjs`.
+
+**O banner não é peça nova — é a da Copa dos 8 com outra cor.** Tudo já está em
+`screens.tsx`:
+- `:4372` a caixa `PURPLE_HOLO` + `<ApoioSheen holo={1}>` — o MESMO brilho da
+  carta 💎 Promessa, mecanismo reaproveitado, **0 KB**.
+- `:4385` *"⚽ A primeira partida começa em {copaFirstLeft}s"* — a contagem, hoje
+  `COPA_INTRO_SECONDS = 10`. A Libertadores entra com **30**.
+- `:4387` em sala com host mandando, a contagem some e aparece o ▶️ pra ele.
+
+Muda: **a cor** (roxo → azul-noite `linear-gradient(150deg,#8FAEF0,#2E4A8F 52%,#0F1A38)`,
+espelhando o `PURPLE_HOLO`), **o texto** (a Copa cabe num parágrafo, a Liberta vira
+4 linhas — uma por etapa) e **o número da contagem**.
+
+🚫 **Sem spoiler**: o banner NÃO mostra grupo nem adversário. O sorteio só aparece
+depois que a contagem acaba.
+⏱️ **Sem atraso**: os 30s rodam no tempo morto entre a liga e o primeiro jogo —
+nenhum passo novo, nenhum toque a mais (regra de ouro do Diego).
