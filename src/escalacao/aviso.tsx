@@ -27,6 +27,13 @@ const INK = '#0C0C0C'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 const AVISO = {
+  // 🔌 CHAVE GERAL. `false` = este arquivo não desenha NADA pra ninguém.
+  // Desligado em 20/08 a pedido do Diego ("remove o banner de instabilidade lá do
+  // jogo tb"): o problema das salas passou, e recado velho na home vira paredão —
+  // que é exatamente o que a gente tinha acabado de matar nas novidades.
+  // Pra mandar um recado novo: escreve o texto abaixo, troca a `chave`, põe uma
+  // data nova em `ate` e volta isto pra `true`. Nada mais.
+  ligado: false,
   chave: 'inst-19-08',      // muda junto com o texto (reabre pra quem fechou o anterior)
   ate: '2026-08-26',        // some sozinho depois desta data
   titulo: 'Tivemos instabilidade nas salas online',
@@ -42,6 +49,7 @@ export function AvisoDaVez() {
   const [fechado, setFechado] = useState(() => {
     try { return localStorage.getItem(K) === '1' } catch { return false }
   })
+  if (!AVISO.ligado) return null // chave geral desligada
   if (fechado) return null
   if (new Date().toISOString().slice(0, 10) > AVISO.ate) return null // venceu: some sozinho
   const fechar = () => {
