@@ -551,16 +551,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🩹 15/08: registrado nos 3 nomes (o clube nasceu como "Seven FC" por engano e
   // ficou ~1h no ar) — assim nenhum save antigo cai no escudo automático.
   'Seven City': sevenCityRender,
-  'Seven FC': sevenCityRender,
-  'Seven': sevenCityRender,
   // 🏎️⚽ Ferrari SC (adriano) — piloto na bola (mesma arte da mascote), todos os nomes
   // 🐛 FIX 14/08 (relato do Diego: "logo não aparece"): o time DE VERDADE se chama
   // 'SC Ferrari' (data.ts, ex-Painitto FC) — o registro só tinha 'Ferrari SC'
   // (ordem trocada), então o lookup falhava e caía no escudo automático.
   'SC Ferrari': ferrariSCRender,
-  'Ferrari SC': ferrariSCRender,
-  'Ferrari FC': ferrariSCRender,
-  'Ferrari': ferrariSCRender,
   // 🐝👑 Sapekeiros FC (Tio Sapeka) — mesmo escudo pros dois nomes
   'Sapekeiros FC': sapekEscudoRender,
   'Sapekeiros': sapekEscudoRender,
@@ -568,17 +563,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // sem "FC" continuam registrados: quem pegou o save da 1ª hora não fica sem escudo.
   'Tricolor do Arruda FC': arrudaEscudoRender,
   'Tricolor do Arruda': arrudaEscudoRender,
-  'Tricolor Arruda': arrudaEscudoRender,
-  'Arruda': arrudaEscudoRender,
   // 🃏⚫⚪ Coringas do Diniz (lucas_calefi) — ex-Vanguarda Nacional, Série A. O nome
   // velho fica registrado: quem já tinha carreira com o Vanguarda não fica sem escudo.
   'Coringas do Diniz': coringasEscudoRender,
-  'Coringas': coringasEscudoRender,
   'Coringas do Diniz FC': coringasEscudoRender,
   // 🤡🟡⚫ Nata de SP (pedrinhocamisa8) — ex-Paris São Geraldo, Série D. O nome
   // velho fica registrado: quem já tinha carreira com o Paris não fica sem escudo.
   'Nata de SP': nataEscudoRender,
-  'Nata SP': nataEscudoRender,
   'Nata de SP FC': nataEscudoRender,
   // 🦅🩵 Skyy FC (matheusncruz1) — ex-Fortuna SAF, Série D. O nome velho fica
   // registrado: quem já tinha carreira com o Fortuna não fica sem escudo.
@@ -590,7 +581,6 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // fica sem escudo.
   'Crias do Bigão': bigaoEscudoRender,
   'Crias do Bigao': bigaoEscudoRender,
-  'Crias': bigaoEscudoRender,
   'Crias do Bigão FC': bigaoEscudoRender,
   // 📍⚫🟡 Futpoint FC (gfpicolo13) — SÓCIO com clube próprio (reserva de nome):
   // não tira o lugar de ninguém na pirâmide, o escudo aparece quando o dono usa
@@ -603,7 +593,6 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Eros FC': erosEscudoRender,
   'Eros Reis FC': erosEscudoRender,
   'Eros Reis': erosEscudoRender,
-  'Eros': erosEscudoRender,
   // 🛡️🐈 Barcenite FC (batismo do ricardopessoafreire, Sócio Barão nº 12) —
   // aprovado pelo Diego 14/08: formato que LEMBRA o brasão do Barcelona (dois
   // "ombros" com vinco no topo — sem copiar nada do escudo real), topo azul com
@@ -1119,6 +1108,34 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   },
 }
 
+// 🔑 CHAVE DO ESCUDO ARTESANAL — regra ditada pelo Diego (20/08): *"qd eu te
+// falar o time dele você já deve reservar o escudo pra esse nome seja letras
+// minúscula ou maiúsculas e tb c fc e ec no final do nome do time. E c isso ng
+// poderia ter esses 4 nomes"*.
+//
+// Traduzindo: cada batismo/sócio **reserva 4 formas do MESMO nome** — o nome
+// puro (em qualquer caixa), com **FC** e com **EC** no fim. Ninguém mais pode
+// ter nenhuma das 4. Aqui no desenho, a chave normaliza essas 4 formas pra uma
+// só; a trava que IMPEDE outra pessoa de pegar mora no banco
+// (`esc_nomes_batismo` + RPC `esc_nome_livre`), com uma linha por forma.
+// SC entra junto porque já existiam clubes registrados assim ('SC Ferrari').
+//
+// 🐛 O que isso conserta (achado em 20/08): a busca era pela string EXATA e a
+// lista tinha APELIDOS registrados ('Arruda', 'Coringas', 'Ferrari', 'Seven',
+// 'Crias', 'Eros', 'Nata SP'). Resultado: `arrudabernardo213076@gmail.com`, que
+// só pôs o próprio sobrenome de time, jogava com o escudo do Tricolor do Arruda
+// FC do Geovany. Palavras do Diego: *"não tem nada a ver o cara escreveu o nome
+// de Arruda, e isso ser uma chave dos escudos do tricolor do Arruda, está
+// errado"*. Os apelidos foram APAGADOS: agora só o nome completo vale.
+const chaveEscudo = (n: string): string => n
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // tira acento (Bigão = Bigao)
+  .toLowerCase().trim()
+  .replace(/\s+/g, ' ')
+  .replace(/\s+(f\.?\s?c\.?|e\.?\s?c\.?|s\.?\s?c\.?)$/, '') // FC/EC/SC no fim não mudam o dono
+const LOGOS_POR_CHAVE: Map<string, (size: number) => ReactNode> =
+  new Map(Object.entries(LOGOS_PRONTAS).map(([k, v]) => [chaveEscudo(k), v]))
+const logoPronta = (n: string) => LOGOS_POR_CHAVE.get(chaveEscudo(n))
+
 // ─── 🛡️ o componente ──────────────────────────────────────────────────────
 // `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos
 // e com traço mais grosso (o que lê na tabela é a silhueta + a cor).
@@ -1127,7 +1144,7 @@ export function Escudo({ nome: nomeCru, size = 30, title }: { nome: string; size
   // logo artesanal: bate pelo nome EXATO; se não achar, tenta o nome ATUAL do
   // batismo (save antigo que ficou com o nome velho — ex.: "Cuiabagre" →
   // "Império Samambaia"). Assim a logo comprada aparece mesmo em carreira antiga.
-  const pronta = LOGOS_PRONTAS[nome] ?? LOGOS_PRONTAS[newestTeamName(nome)]
+  const pronta = logoPronta(nome) ?? logoPronta(newestTeamName(nome))
   if (pronta) return <>{pronta(size)}</>
   const d = escudoDe(nome)
   const mini = size < 40

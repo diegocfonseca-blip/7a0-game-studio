@@ -1,5 +1,39 @@
 # 📌 Pendências combinadas com o Diego (atualizado 20/08/2026)
 
+## 🌎 LIBERTADORES no rápido online — PROPOSTA, esperando o Diego (20/08)
+Pergunta dele: *"conseguimos fazer a Libertadores? no modo rápido online?…
+quais clubes entrariam de bots? pq são 32 né e não 20 igual na liga… qd ativar
+esse modo libertadores N teria liga e nem copa ao criar sala"*.
+Resposta medida no código: **dá, e o motor já tem quase tudo** —
+`seedQuickCopa`/`resolveQuickCopaTie` já fazem ida-e-volta com pênalti, e o Bafo
+já é o precedente de "seletor de Copa SOME da tela e o porquê fica escrito".
+Mockup: `scripts/mockup-libertadores.mjs`. Desenho proposto:
+- **32 clubes**: 24 continentais INVENTADOS (novos, no estilo dos 16
+  `CLASSIC_CLUBS` — a casa não usa clube real em conteúdo de mentira) + **8 vagas
+  do Brasil**, ocupadas primeiro por quem está na sala e o resto **sorteado entre
+  os clubes batizados**.
+- **8 grupos de 4**, ida e volta (6 jogos), passam 2. Quem joga nunca cai no
+  mesmo grupo (espelha a regra de "mesmo país não se enfrenta na 1ª fase").
+- Oitavas/quartas/semi em ida e volta, **final única**. **13 rodadas** no total
+  contra as 38 da liga.
+- Desempate de grupo = o MESMO do resto do jogo (pts → vitórias → saldo → gols).
+- Liga do rápido, Carreira, Bafo e Liga Fechada **não são tocados**; nasce
+  invisível (só a conta do Diego), igual à Liga Fechada.
+**Ele reagiu ao tamanho** (20/08): *"13 rodadas ficou mt rápido… E agora"*. Ele
+está certo — copa continental é curta por natureza; na vida real ela não
+substitui o campeonato, roda JUNTO com ele no meio de semana. Folha de decisão:
+`scripts/mockup-libertadores-calendario.mjs`, com três tamanhos, todos reais:
+- **A** só o torneio → **13 jogos** (o desenho de cima).
+- **B** + pré-Libertadores na frente + Sul-Americana pra quem cai → **19 jogos**.
+- **C** ⭐ **temporada completa**: a liga de 38 rodadas **+ a Libertadores no meio
+  de semana** → **51 jogos**, dois títulos na mesma sala. É a recomendada porque
+  resolve os DOIS problemas de uma vez: acaba o "ficou rápido" e acaba o "quem cai
+  fica sem jogo" (a liga continua pra quem foi eliminado). O seletor de Copa
+  continua sumindo da tela, como o Diego pediu — na C a liga vem de fábrica, não é
+  escolha, é o calendário.
+⏳ **Falta o Diego decidir**: (1) qual dos três tamanhos; (2) OK nos nomes dos 24
+clubes do continente. Sem essa resposta o modo não começa.
+
 ## 🏆 LIGA FECHADA — em construção (só a conta do Diego)
 A sala que fica de pé: horário marcado, sempre a MESMA sala, só a turma entra e
 os troféus se empilham ali. Desenho aprovado em `scripts/mockup-liga-fechada.mjs`
@@ -23,8 +57,25 @@ os troféus se empilham ali. Desenho aprovado em `scripts/mockup-liga-fechada.mj
   sala parada há 6h.
 - ✅ **Peça 3** (`1a3c809`): sala de troféus na ESPERA (só leitura; quem grava
   continua sendo o fim de jogo).
-- ⏳ **Peça 4**: o dono arrumar/escrever troféu.
-- ⏳ **Peça 5**: as regras do ranking da liga.
+- ✅ **Peça 4**: o dono (e os adms) arrumam/escrevem troféu — ✏️ por temporada,
+  "➕ escrever uma temporada" e 🗑️. A trava de verdade é no BANCO (políticas
+  `champions_update`/`champions_delete`: host OU quem está em `ligaAdmins`), então
+  mexer no navegador não adianta.
+- ✅ **Peça 5**: as regras do ranking da liga (o que vale ponto) + o ranking
+  calculado na hora, na própria espera.
+- ✅ **Extras pedidos depois** (`8f2b1e4` e antes): remarcar dia/hora quando quiser
+  (RPC `liga_patch`, que só mexe nas chaves da liga e nunca no jogo em andamento) ·
+  **adm** (o dono promove quem quiser) · **teto de 2 ligas por dono** (pra criar a
+  3ª tem que excluir uma) · **o dono sair não apaga a liga** (só o "excluir" apaga,
+  e só ele pode).
+- ✅ **Quem abre o pregão** (`1867bb6`): o Diego escolheu a **opção A** — *só o
+  DONO abre*, igual às salas de hoje ("quero algo q N dê novela pro host"). O motor
+  não mudou; só a TELA passou a dizer se o dono já chegou ou não, pra ninguém ficar
+  olhando um "aguardando…" sem saber o quê. **Adm nunca abre o pregão nem exclui a
+  liga** — adm é só remarcar, arrumar troféu e mexer nas regras.
+- ⏳ **Falta**: notificação na hora marcada — o Diego adiou de propósito
+  (*"N tem notificação ainda não. Isso é pra mais pra frente"*). E o OK visual dele
+  pra liberar pra todo mundo (hoje `LIGA_GERAL = false`, só a conta dele vê).
 
 ### 🧹 A FAXINA IA COMER A LIGA — consertado no banco (20/08)
 Pergunta do Diego: *"e se o cara nunca apagar a liga mais??"*. Ao medir, achei
@@ -7413,3 +7464,108 @@ fácil e barato de tapar, símbolico mas tira o zero. `TV_COTA` em
 ocupação só na Várzea (hoje 18% no rebaixamento — ficaria tipo 40%) pra
 quem tá começando não ficar preso no fundo do poço.
 Build ok, no ar em `main`.
+
+## 🔒 BATISMO SEM RESERVA DE NOME — 8 clubes achados (20/08) ✅ 6 consertados
+
+Relato do Diego: o Lucas (lucas_calefi@outlook.com) não conseguia pôr **Coringas
+do Diniz** como nome do time — a tela dizia *"⚠️ Já existe um técnico com esse
+nome"*. Investigado, eram **dois problemas somados**:
+
+1. **O batismo dele nunca foi cadastrado na tabela de reserva** (`esc_nomes_batismo`).
+   A RPC `esc_nome_livre` (manto.ts:137) olha ESSA tabela primeiro: se o nome é de
+   batismo e o e-mail bate, libera. Como a linha não existia, o nome caiu na regra
+   comum de "nome único" e foi tratado como nome de estranho.
+2. **Outra conta já usava o nome**: `brenodinoliveira@gmail.com`, com "Coringas do
+   diniz", conta criada em **17/07** — um mês ANTES do batismo (16/08).
+
+Auditoria: dos **26 clubes batizados no código, 8 estavam SEM reserva** —
+Coringas do Diniz · Crias do Bigão · Futpoint FC · Nata de SP · Seven City ·
+Tricolor do Arruda FC · Vasco da Grana · White Thigs do GuGu. Ou seja, não era
+caso isolado: **o cadastro da reserva estava saindo do roteiro do batismo**.
+
+✅ **Consertado agora** (insert só-adiciona, reversível): Coringas do Diniz →
+lucas_calefi@outlook.com · Crias do Bigão → giovannecastro784@hotmail.com ·
+Futpoint FC → gfpicolo13@gmail.com · Nata de SP → pedrinhocamisa8@gmail.com ·
+Seven City → glaucomiranda@outlook.com · Tricolor do Arruda FC → souzact12@gmail.com.
+
+⏳ **Falta o Diego decidir**:
+- **Breno × Lucas**: o Lucas agora consegue salvar o nome, mas o Breno continua
+  com "Coringas do diniz" — dois técnicos com o mesmo nome, o que fura a regra do
+  "@ único". O que fazer com o Breno?
+- **Vasco da Grana**: quem é o dono? Hoje quem usa o nome é `caiovvzmx@gmail.com`.
+- **White Thigs do GuGu**: qual o e-mail do GuGu? Ninguém usa o nome hoje.
+
+📌 **Pra não repetir**: cadastrar em `esc_nomes_batismo` tem que virar passo FIXO
+do roteiro de batismo, junto com `LOGOS_PRONTAS`, `MASCOTES`, `data.ts` e
+`apoio.tsx` (a regra 8 do CLAUDE.md).
+
+### 🛡️ O ESCUDO COLA PELO NOME, NÃO PELA CONTA (achado 20/08)
+
+Pergunta do Diego: *"o Breno ganha o escudo do Coringas do Diniz, ou não?"*
+Conferido no código: `Escudo()` (escudos.tsx:1130) faz
+`LOGOS_PRONTAS[nome] ?? LOGOS_PRONTAS[newestTeamName(nome)]` — **bate pelo NOME
+EXATO da string, sem olhar quem é a conta**. Então:
+
+- **O Breno NÃO tem o escudo hoje** — por sorte: o nome dele é "Coringas do
+  **d**iniz", com d minúsculo, e a chave no código é "Coringas do **D**iniz".
+- ⚠️ **A ideia de renomear o Breno pra "…FC" é justamente a pior saída**:
+  `'Coringas do Diniz FC'` **é uma das chaves do escudo** (as variações existem
+  pro DONO não perder o escudo se acrescentar FC). Renomear ele pra FC
+  **entregaria o escudo do Lucas pra ele**. Nome novo do Breno tem que ser um que
+  não bata em NENHUMA das 48 chaves de `LOGOS_PRONTAS`.
+
+**Auditoria completa das 48 chaves × todas as contas** achou 2 estranhos já com
+escudo de batizado (ambos criaram conta ANTES da trava de nome único, de 10/08,
+então passaram por baixo dela):
+- `lucasjogomes@gmail.com` está com **"Marolados FC"** (batismo do paisagensetrilha) — criou 02/08.
+- `arrudabernardo213076@gmail.com` está com **"Arruda"**, que é chave do escudo do
+  **Tricolor do Arruda FC** (Geovany) — criou 06/08. Provável coincidência de sobrenome.
+
+E **"Marinheiros AS"** (`feehcamp11@gmail.com`) tem escudo artesanal no código e
+**nenhuma reserva** — falta descobrir de quem é esse batismo.
+
+**Correção de raiz sugerida (não feita — precisa de OK do Diego)**: o escudo
+artesanal só aparecer pra quem é o DONO (cruzar com `esc_nomes_batismo`), em vez
+de bater só pela string. Mexe em tela que está no ar, então entra em commit
+isolado e revertível.
+
+### ✅ CONSERTADO (20/08): chave do escudo passa a ser o NOME INTEIRO
+
+Ordem do Diego: *"não tem nada a ver o cara escreveu o nome de Arruda, e isso ser
+uma chave dos escudos do tricolor do Arruda, está errado. A chave igual é nome
+seja maiusculo ou minúsculas e fc"*.
+
+**No código** (`escudos.tsx`):
+1. **Apagadas as 11 chaves-APELIDO** que gente de fora digita sem querer:
+   `Arruda` · `Tricolor Arruda` · `Coringas` · `Ferrari` · `Ferrari FC` ·
+   `Ferrari SC` · `Seven` · `Seven FC` · `Crias` · `Nata SP` · `Eros`.
+2. **A busca virou `chaveEscudo()`**: ignora maiúscula/minúscula, ignora acento
+   (Bigão = Bigao) e ignora o "FC" no fim. Então o dono acha o escudo dele
+   escrevendo como quiser, e **só o nome COMPLETO vale**.
+
+**No banco** (tudo reversível numa linha; o nome velho ficou guardado em
+`raw_user_meta_data->>'nome_antigo_ccr'`):
+- `brenodinoliveira@gmail.com`: "Coringas do diniz" → **"Coringas do Breno"**.
+  Conta com **1 acesso só (17/07)**, 1 carreira, 0 linhas de rank, 0 salas. A
+  troca era obrigatória: com a chave ignorando maiúscula, ele passaria a usar o
+  escudo do Lucas.
+- `lucasjogomes@gmail.com`: "Marolados FC" → **"Time do Lucas G"**. Conta com
+  **1 acesso (02/08) e ZERO carreira** — estava com o escudo do paisagensetrilha.
+- `arrudabernardo213076@gmail.com`: **não precisou mexer** — só apagar a chave
+  'Arruda' já resolveu. Ele fica com o nome dele e escudo automático.
+- Reserva criada pra **"Marinheiros AS"** (`feehcamp11@gmail.com`): não é batismo,
+  é **assinatura paga de personalização**, e o nome estava sem proteção.
+
+⚠️ **Sobra um caso pro Diego olhar**: `Eros FC` normaliza pra `eros`, então quem
+escrever só **"Eros"** pega o escudo. É consequência da regra do "FC" — e as 4
+variações (Eros, Eros FC, Eros Reis, Eros Reis FC) estão reservadas pro
+erosreis@outlook.com.br no banco, então ninguém novo consegue tomar. Só quem já
+tinha o nome antes da trava é que passaria.
+
+**Decisão do Diego (20/08): "deixa assim mesmo"** — os dois casos que sobraram
+ficam como estão, sem renomear:
+- `alexandrelourenco1238@gmail.com` com "Nata de SP fc" (tem carreira jogada);
+- `danielnfilho@gmail.com` com "Manfré" (é sobrenome, pode ser parente/2ª conta
+  do próprio dono).
+Não reabrir esses dois sem ele pedir. A trava nova já impede que apareçam NOVOS
+casos — estes dois são de antes dela.
