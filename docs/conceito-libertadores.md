@@ -445,3 +445,29 @@ longa que o jogo já teve**, e o baralho é o NORMAL (o temático segue pausado)
 
 ⚠️ Regra do Diego que vale aqui: **UI nova = mockup primeiro**. Nada de código de
 tela antes de ele ver e aprovar a folha dos grupos e da chave.
+
+### 🏷️ Os 24 clubes do continente (quase-nome) — mockup em `scripts/mockup-liberta-32.mjs`
+
+Pedido do Diego: *"Faça times tipo river prato. Boca zudo, Penhalol coisas
+assim"* — ou seja, **quase-nome**, o estilo que a casa já usa (Vasco da Grana,
+Livre-pool, Cuiabagre, Paris São Geraldo). E: *"ideal que os 8 classificados
+fossem cabeças de chave"*.
+
+**Pote 2** River Pratão 78 · Bocazudo 77 · Penhalol 75 · Nassional 74 ·
+Colo do Colo 73 · Atlético Cafezal 73 · Independente da Grana 72 · Serro Portenho 71
+**Pote 3** Estudantes da Prata 70 · Olímpia do Tereré 70 · The Fortão 69 ·
+Barcelona da Linha 69 · Rachando Club 68 · Universidade do Chilique 67 ·
+Milionários FC 67 · Aliança Limão 66
+**Pote 4** Liberdade FC 65 · Liga de Quitanda 65 · Defensor Suplente 63 ·
+Cobra Loka 63 · América do Calil 62 · Sporting Cristaleira 61 · Bolívar 3.600 60 ·
+Deportivo Tá Xiro 58
+
+**Pote 1 = os 8 da liga** (cabeças de chave, um por grupo). Então 8 grupos × 4 =
+32, com um clube de cada pote em cada grupo — e dois classificados da mesma sala
+**só se cruzam no mata-mata**.
+
+⚠️ **"River Prato" não deu.** Esse nome já existe no jogo como o nome VELHO do
+**La Bestia Negra** (batismo do eltonfrossard45, em `OLD_NAME`). Se eu usasse,
+quem abrisse um save antigo veria o clube virar La Bestia Negra e ainda pegaria o
+escudo dele. Virou **River Pratão**. Os outros 23 foram conferidos um a um contra
+`data.ts` (clubes, `OLD_NAME`) e `escudos.tsx` (chaves de escudo) — nenhum bate.
