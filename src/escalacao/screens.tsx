@@ -1561,6 +1561,25 @@ function HomeIconTile({ icon, label, onClick }: { icon: string; label: string; o
 //       quer entender). Era a queixa dele: "as pessoas não entendem o leilão,
 //       as moedas, a disputa, e que depois tem uma simulação".
 //   6 · novidades · 7 · apoiar (a história de quem faz o jogo mora DENTRO dele)
+// 📋 A LINHA DE PASSO — a mesma peça na home e no Manual do Técnico.
+// Foi pedido do Diego (20/08): *"as regras estão com muita firula no botão de
+// regras… tem que ser mais parecido com a foto do como funciona"*. O manual
+// antigo era quadro dentro de quadro (uma caixa dourada, com uma fileira de 4
+// cartõezinhos dentro, com texto de 8px dentro deles). Agora os dois lugares
+// usam LITERALMENTE o mesmo componente — não é "parecido", é o mesmo.
+// `n` vazio = linha sem número (os modos, no manual).
+function PassoLinha({ n, ic, titulo, children }: { n?: number; ic: string; titulo: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5 border-[2.5px] border-black rounded-xl bg-white px-3 py-2.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+      <span className="flex-none w-[30px] h-[30px] rounded-[9px] border-[2.5px] border-black grid place-items-center text-[15px]" style={{ background: GOLD }}>{ic}</span>
+      <div className="min-w-0">
+        <p className="font-black text-[12.5px] uppercase leading-tight" style={OSWALD}>{n != null && <span className="text-black/30">{n}. </span>}{titulo}</p>
+        <p className="text-[10.5px] font-semibold text-black/60 leading-snug">{children}</p>
+      </div>
+    </div>
+  )
+}
+
 // 🎨 ÍCONES DA BARRA — desenhados (não emoji). O Diego mandou uma referência de
 // app e o pedido foi: *"mais suave, sei lá, com mais cara de aplicativo embaixo"*.
 // Emoji na barra fica com cara de rascunho: cada um tem um estilo, um peso e uma
@@ -1673,15 +1692,6 @@ export function EscIntro() {
   // 🏠 HOME NOVA — só a conta do Diego (ver `useHomeNova` em sport.ts). Todo o
   // resto do mundo cai no `return` de baixo, que é a home de hoje intacta.
   if (homeNova) {
-    const passo = (n: number, ic: string, titulo: string, txt: React.ReactNode) => (
-      <div key={n} className="flex items-center gap-2.5 border-[2.5px] border-black rounded-xl bg-white px-3 py-2.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-        <span className="flex-none w-[30px] h-[30px] rounded-[9px] border-[2.5px] border-black grid place-items-center text-[15px]" style={{ background: GOLD }}>{ic}</span>
-        <div className="min-w-0">
-          <p className="font-black text-[12.5px] uppercase leading-tight" style={OSWALD}><span className="text-black/30">{n}.</span> {titulo}</p>
-          <p className="text-[10.5px] font-semibold text-black/60 leading-snug">{txt}</p>
-        </div>
-      </div>
-    )
     return (
       <Shell>
         {unlocked && <SportTabs />}
@@ -1717,7 +1727,10 @@ export function EscIntro() {
           </Btn>
           <div className="grid grid-cols-2 gap-2.5">
             <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-center" bg={GREEN}>
-              <span className="block text-sm leading-tight text-white">👥 Com<br />amigos</span>
+              {/* 🌐 "(online)" no rótulo a pedido do Diego (20/08) — "com amigos"
+                  sozinho dá a entender que dá pra jogar com os amigos no MESMO
+                  aparelho, que não é o caso: é sala online, com código. */}
+              <span className="block text-sm leading-tight text-white">👥 Com amigos<br /><span className="text-[12px]">(online)</span></span>
               <span className="block text-[9.5px] font-bold normal-case tracking-normal mt-1" style={{ color: 'rgba(255,255,255,.85)' }}>até 20 na sala</span>
             </Btn>
             <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="text-center" bg="#fff">
@@ -1746,11 +1759,11 @@ export function EscIntro() {
         <div className="pt-2">
           <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>Como funciona uma partida</p>
           <div className="space-y-2">
-            {passo(1, '🪙', '100 moedas', <>O baralho vem por posição. Você só vê o <b>nome</b>.</>)}
-            {passo(2, '✉️', 'Lance secreto', <>Escreve quanto vale e lacra. Ninguém vê o lance de ninguém.</>)}
-            {passo(3, '🔨', 'O martelo revela', <>Quem pagou mais leva — e <b>só aí</b> aparece o nível.</>)}
-            {passo(4, '👕', 'Fecha os 11', <>Faltou posição? O Monte tem as sobras, de graça.</>)}
-            {passo(5, '⚽', 'O campeonato roda', <>38 rodadas em 3 minutos. Campeão leva <b>carta</b>.</>)}
+            <PassoLinha n={1} ic="🪙" titulo="100 moedas">O baralho vem por posição. Você só vê o <b>nome</b>.</PassoLinha>
+            <PassoLinha n={2} ic="✉️" titulo="Lance secreto">Escreve quanto vale e lacra. Ninguém vê o lance de ninguém.</PassoLinha>
+            <PassoLinha n={3} ic="🔨" titulo="O martelo revela">Quem pagou mais leva — e <b>só aí</b> aparece o nível.</PassoLinha>
+            <PassoLinha n={4} ic="👕" titulo="Fecha os 11">Faltou posição? O Monte tem as sobras, de graça.</PassoLinha>
+            <PassoLinha n={5} ic="⚽" titulo="O campeonato roda">38 rodadas em 3 minutos. Campeão leva <b>carta</b>.</PassoLinha>
           </div>
         </div>
         {/* 6 · novidades — ABERTAS, mas ENXUTAS. Na home de hoje este bloco é o
@@ -1781,7 +1794,7 @@ export function EscIntro() {
             </button>
           )} />} />
         {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); startCareer(() => dispatch({ type: 'GO_SETUP_CAREER' })) }} />}
-        {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} />}
+        {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo />}
         {careerGate && (
           <JanelaConta titulo="🪜 Sua carreira mora na conta" contexto="Entre ou crie sua conta — te levo direto pra carreira." comecarEmCriar
             onPronto={() => { const fn = careerGate; setCareerGate(null); fn?.() }} onFechar={() => setCareerGate(null)} />
@@ -1944,7 +1957,7 @@ export function EscIntro() {
 // o que muda. Modos ainda não liberados (Dinastia/Carreira online/Liga Fechada)
 // ficam de fora até o Diego liberar. É um complemento — o ensino de verdade
 // continua sendo contextual, dentro do jogo.
-function ManualDoTecnico({ onClose }: { onClose: () => void }) {
+function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: boolean }) {
   const fases: [string, string, string][] = [
     ['✉️', 'Envelope', 'lance secreto — ninguém vê o seu'],
     ['👀', 'Revelação', 'abrem todos juntos'],
@@ -1963,6 +1976,28 @@ function ManualDoTecnico({ onClose }: { onClose: () => void }) {
           <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>📖 Manual do Técnico</p>
           <button onClick={onClose} aria-label="Fechar" style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
+        {/* 🧼 VERSÃO LIMPA (home nova) — sem firula: a MESMA lista de passos da
+            home, e os modos na mesma linha. O manual velho continua igual pra
+            quem ainda está na home de hoje. */}
+        {limpo ? (
+          <>
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>Como funciona uma partida</p>
+            <div className="space-y-2">
+              <PassoLinha n={1} ic="🪙" titulo="100 moedas">O baralho vem por posição. Você só vê o <b>nome</b>, nunca o nível.</PassoLinha>
+              <PassoLinha n={2} ic="✉️" titulo="Lance secreto">Escreve quanto vale cada nome e lacra o envelope. Ninguém vê o lance de ninguém.</PassoLinha>
+              <PassoLinha n={3} ic="👀" titulo="Abrem todos juntos">Na Cerimônia os envelopes abrem de uma vez — e <b>só aí</b> aparece se era craque ou perna-de-pau.</PassoLinha>
+              <PassoLinha n={4} ic="🔨" titulo="O martelo bate">Quem pagou mais leva. Empatou no maior lance? Tem <b>desempate</b>, também às cegas.</PassoLinha>
+              <PassoLinha n={5} ic="🃏" titulo="Fecha os 11 no Monte">Sobrou jogador sem dono? Na sua vez você pega <b>de graça</b>, até fechar o time.</PassoLinha>
+              <PassoLinha n={6} ic="⚽" titulo="O campeonato roda">38 rodadas em uns 3 minutos, com o placar subindo ao vivo. Campeão leva <b>uma carta</b> pro álbum.</PassoLinha>
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-4 mb-2.5" style={OSWALD}>Onde dá pra jogar isso</p>
+            <div className="space-y-2">
+              <PassoLinha ic="⚡" titulo="Rápido (offline)">Você contra a CPU. Uma temporada só — liga + Copa dos 8. Bom pra pegar o jeito.</PassoLinha>
+              <PassoLinha ic="👥" titulo="Rápido (online)">Mesma coisa, mas os lances são dos seus amigos na sala. Até 20 no mesmo pregão.</PassoLinha>
+              <PassoLinha ic="🪜" titulo="Carreira">{escadaLiberada() ? 'Começa na Várzea' : 'Começa na Série D'} e sobe a pirâmide até a Série A. Temporada a temporada abre reservas, vendas, folha, contratos, estádio e SAF.</PassoLinha>
+            </div>
+          </>
+        ) : (<>
         {/* a regra-mãe: o leilão */}
         <div style={{ border: `3px solid ${INK}`, borderRadius: 14, background: GOLD, padding: '10px 11px', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
           <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>🔨 Como funciona o leilão (a base de tudo)</p>
@@ -1988,6 +2023,7 @@ function ManualDoTecnico({ onClose }: { onClose: () => void }) {
           </div>
         ))}
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>Outros modos entram no manual quando forem liberados. 😉</p>
+        </>)}
       </div>
     </div>
   )
