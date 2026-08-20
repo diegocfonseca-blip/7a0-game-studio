@@ -360,3 +360,44 @@ quem caiu na pré, não conta.
 ### O que falta
 Só a **lista clube+ano** (`docs/libertadores-participantes.md`), hoje com 51 dos
 66 anos levantados. Sem ela o baralho não existe. Nada de código antes disso.
+
+---
+
+## 13. ⏸️ PAUSADO o baralho temático — vale só a COPA (decisão do Diego, 20/08)
+
+> *"Eu acho q temos q deixar isso pausado e apenas criar a copa libertadores lá
+> junto com o de liga e copa.. Mais fácil sabia.. Pq é só criar o tipo de copa e
+> acabou e continua tudo igual... Até pq N sei se vai ter tanta graça assim não
+> c esses jogadores"*
+
+**Ele está certo, e tem número que prova o instinto dele.** O jogo inteiro tem
+**148 lendas**. O baralho temático da Libertadores teria **17**. Ou seja: o leilão
+sairia com **as mesmas 17 lendas em todo jogo**, e o resto do pregão viraria nome
+que quase ninguém reconhece. A graça do leilão é justamente a briga por craque
+conhecido — o filtro tirava isso.
+
+E o custo era o inverso do benefício: o baralho temático é a parte CARA (lista de
+clube+ano de 66 anos, homônimos, régua da pré) e a de menor retorno.
+
+### O que vale fazer: a Libertadores como TIPO DE COPA
+Fica no seletor que já existe (`Depois da liga`), do lado de Liga+Copa e Só liga.
+**Nada mais muda**: baralho normal, liga de 20, 38 rodadas.
+
+| | Copa dos 8 (hoje) | 🌎 Libertadores (nova) |
+|---|---|---|
+| Quem entra | os **8** melhores | os **16** melhores |
+| Fases | quartas · semi · final | oitavas · quartas · semi · final |
+| Ida e volta | todas | oitavas, quartas e semi |
+| Final | ida e volta | **jogo único** ← a cara dela |
+| Jogos | 6 | 7 |
+
+Assim a escolha do host tem sentido de verdade: **Copa dos 8** = curta e fechada;
+**Libertadores** = mais gente classificada e a **final única**, que é a decisão
+mais tensa do jogo.
+
+### O que fica guardado (não se perde)
+- `docs/libertadores-por-clube.txt` — a lista completa que o Diego mandou, todos
+  os países, até 2026.
+- `docs/libertadores-participantes.md` — os 66 anos do lado brasileiro conferidos.
+- `scripts/liberta-conta.mjs` — conta o baralho temático a qualquer momento.
+Se um dia ele quiser o modo temático, **o trabalho pesado já está feito**.
