@@ -335,8 +335,11 @@ export function useHomeNova(): boolean {
 // Tabelas, Elenco, Rank e Clube — saem do meio da página (onde rolam e somem) e
 // vão coladas no rodapé; e o cabeçalho preto ganha uma faixa fina que gruda no
 // topo quando a pessoa rola, com rodada, posição e caixa.
-// 🔒 Só a conta do Diego, pra ele ver rodando antes. Liberar: BARRA_CARR_GERAL = true.
-const BARRA_CARR_GERAL = false
+// ✅ LIBERADA PRA TODOS em 21/08 (o Diego viu rodando na conta dele e aprovou:
+// *"acho q ficou bem melhor assim c abas em baixo… publique p todos já"*).
+// Pra voltar ao teste fechado é `false` — a Carreira volta com as pílulas no
+// meio da página, exatamente como era.
+const BARRA_CARR_GERAL = true
 const BARRA_CARR_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let barraCarrOk = BARRA_CARR_GERAL
 function applyBarraCarrUnlock(email?: string | null): void {
