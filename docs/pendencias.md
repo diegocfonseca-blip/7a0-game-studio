@@ -2,7 +2,43 @@
 
 ## 🔴🔴 ABERTO E URGENTE — sala online travando e lance refeito (21/08)
 
-### 🔥 FLAGRANTE AO VIVO (sala `GP0LN1` "leilao", 21/08 ~17:48)
+### 🎯 CAUSA RAIZ ACHADA (sala `GP0LN1` "leilao", 21/08 ~17:51)
+⚠️ Primeiro eu li errado e disse pro Diego que o Braguinha tinha saído da sala.
+**Ele NÃO saiu** — o Diego corrigiu (*"ele sempre esteve na sala cara, ele nunca
+saiu"*) e a segunda leitura provou que ele tem razão:
+
+```
+presence      = [4, 2, 1, 3, 0]   ← 5 pessoas, TODAS lá (o 0 é o Braguinha)
+presenceUids  = 3 uids             ← faltam DOIS crachás
+```
+
+**Todo mundo está presente; o que some é o CRACHÁ (uid) de alguns.** Em
+`store.tsx` (~7183) o canal faz `ch.track({ playerIndex, uid: state.youUid })`
+lendo `youUid` do closure do efeito — as dependências são
+`[roomId, onlineMode, isHost]`, então quando o `youUid` ainda não chegou na hora
+que o canal assina, ele vai `undefined`. E logo acima, o `sync` **descarta quem
+não tem uid** (`.filter(u => !!u)`).
+
+**A cadeia completa do estrago:**
+1. O crachá do host não entra em `presenceUids`.
+2. Todo convidado calcula `hostPresente = false` → **acha que o dono é fantasma**,
+   mesmo com ele ali na frente (o índice dele está em `presence`!).
+3. A única coisa segurando a coroa vira o batimento de 60s. Aba de PC em segundo
+   plano congela os timers do Chrome → 60s passam → **um convidado toma a coroa
+   de alguém que nunca saiu**.
+4. `BECOME_HOST` **devolve o envelope de todo mundo de propósito** (senão o setor
+   fecharia com lance ZERO) → *"dei lance e depois aparece que não dei"*.
+5. Dois donos mandando estado ao mesmo tempo → **a listagem dos goleiros troca
+   antes do tempo acabar** e **pipoca erro vermelho**.
+
+**Conserto proposto (E) — dois passos, os dois pequenos:**
+- **(E1) o crachá nunca some:** `ch.track` lê `stateRef.current.youUid` (fresco) e,
+  se ainda faltar, busca no `supabase.auth.getUser()` antes de anunciar presença.
+- **(E2) rede de segurança:** só tratar o dono como fantasma se ele estiver fora
+  de `presenceUids` **E** o índice dele estiver fora de `presence`. Crachá
+  faltando, sozinho, nunca mais condena quem está visivelmente na sala.
+
+### 🔥 (leitura anterior, incompleta) FLAGRANTE AO VIVO (sala `GP0LN1`, ~17:48)
 Peguei a sala rodando, com o Diego dentro. O banco mostra a causa exata:
 
 | técnico | é host no banco | está presente |
