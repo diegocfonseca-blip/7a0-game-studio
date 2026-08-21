@@ -101,7 +101,20 @@ body{margin:0;background:${CREME};color:${INK};font-family:system-ui,-apple-syst
       Futevôlei Depressão<br><span style="color:${GREEN}">dentro do Leilão Legends</span></h1>
   </div>
 </div>
-<p style="font-size:21px;font-weight:600;line-height:1.45;margin:14px 0 34px;max-width:930px">
+<!-- o cara do outro lado NÃO conhece o jogo: essa faixa é o "o que é isso" -->
+<div style="${box('#fff')};padding:18px 22px;margin:16px 0 18px;display:flex;gap:22px;align-items:center">
+  <div style="flex:1">
+    <p style="${OSW};font-weight:700;font-size:19px;margin:0 0 5px;text-transform:uppercase">O que é o Leilão Legends</p>
+    <p style="font-size:16.5px;font-weight:600;line-height:1.4;margin:0">Um jogo de <b>leilão às cegas de lendas do futebol</b>: você dá lance escondido, monta um time com as cartas que arrematar e disputa uma carreira, de várzea até a Série A. Roda <b>direto no navegador</b>, de graça, sem baixar nada.</p>
+  </div>
+  <div style="display:flex;gap:10px;flex-shrink:0">
+    ${[['~7 mil', 'contas no 1º mês'], ['700+', 'jogadores no baralho'], ['0', 'download']]
+      .map(([n, s]) => `<span style="text-align:center;background:#FBF6E9;border:3px solid ${INK};border-radius:12px;padding:9px 13px;min-width:104px">
+        <b style="display:block;${OSW};font-weight:700;font-size:24px;line-height:1">${n}</b>
+        <b style="display:block;font-size:11px;font-weight:800;opacity:.6;text-transform:uppercase;margin-top:2px">${s}</b></span>`).join('')}
+  </div>
+</div>
+<p style="font-size:21px;font-weight:600;line-height:1.45;margin:0 0 34px;max-width:930px">
   Cinco lugares onde a marca entra — <b>sem virar banner</b>. Em todos eles a piada é a mesma da página:
   quem não tem mais nada pra fazer no futebol vai parar na areia.
 </p>
@@ -244,24 +257,42 @@ ${titulo(4, '🤝', 'Patrocinador do clube', 'Outro lugar que já existe: no com
 </div>
 
 <!-- ═══ 5 · A ZOEIRA ═══ -->
-${titulo(5, '😂', 'A zoeira dos folclóricos', 'Alguns nomes do baralho já têm o selo 🃏 FOLCLÓRICO no jogo hoje. Quando eles caem na areia, a marca entra na piada.')}
-<div style="display:flex;gap:14px;margin-bottom:34px">
-  ${[['Renato Gaúcho', 'Grêmio · 1983', '"Faltou no treino. Estava na rede da praia — e ganhou lá também."'],
-     ['Romário', 'Vasco · 2000', '"Chegou 10 minutos antes do jogo. Na areia, chegou 3 horas antes."'],
-     ['Edmundo', 'Vasco · 1997', '"Perdeu a cabeça no futebol. Na areia perdeu também — mas foi o sol."']]
-    .map(([n, c, f]) => `
-    <div style="${box('#fff')};flex:1;padding:16px 18px">
-      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
-        <span style="width:36px;height:36px;border-radius:50%;background:linear-gradient(150deg,#41C07A,#1E7A45);border:2.5px solid ${INK};color:#fff;${OSW};font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center">${n[0]}</span>
-        <span><b style="display:block;${OSW};font-weight:700;font-size:16px;line-height:1.1">${n}</b>
-        <b style="display:block;font-size:11.5px;font-weight:800;opacity:.55">${c}</b></span>
-        <span style="margin-left:auto;font-size:10px;${OSW};font-weight:700;background:${GOLD};border:2px solid ${INK};border-radius:999px;padding:2px 8px">🃏 FOLK</span>
+${titulo(5, '😂', 'O jogador faltou no treino — foi jogar futevôlei', 'Alguns nomes do baralho já têm o selo 🃏 FOLCLÓRICO no jogo. Antes da partida, o clube recebe um AVISO: o cara sumiu. E o aviso vem assinado pela marca.')}
+<div style="display:flex;gap:14px;margin-bottom:14px">
+  ${[['Renato Gaúcho', 'Grêmio · 1983', 'R',
+      'Faltou no treino da semana inteira. Foi visto na rede da praia — e ganhou lá também.',
+      '❌ Fora da próxima partida'],
+     ['Romário', 'Vasco · 2000', 'R',
+      'Chegou 10 minutos antes do jogo. Na areia, chegou 3 horas antes e ficou até o sol cair.',
+      '❌ Fora da próxima partida'],
+     ['Edmundo', 'Vasco · 1997', 'E',
+      'Sumiu com a bola pra jogar futevôlei e voltou torrado de sol. Não vai render nada hoje.',
+      '⚠️ Joga, mas rende menos']]
+    .map(([n, c, ini, f, efeito]) => `
+    <div style="${box('#fff')};flex:1;overflow:hidden">
+      <div style="background:${MARINHO};color:#fff;padding:8px 14px;display:flex;align-items:center;gap:8px">
+        ${marca(26)}<b style="${OSW};font-weight:700;font-size:12.5px;letter-spacing:.8px;text-transform:uppercase">Aviso antes da partida</b>
       </div>
-      <p style="font-size:15px;font-weight:600;font-style:italic;line-height:1.4;margin:0 0 10px;min-height:84px">${f}</p>
-      <div style="display:flex;align-items:center;gap:7px;border-top:2px dashed rgba(0,0,0,.15);padding-top:9px">
-        ${marca(24)}<b style="font-size:11.5px;font-weight:800;opacity:.6">Futevôlei Depressão</b>
+      <div style="padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+          <span style="width:38px;height:38px;border-radius:50%;background:linear-gradient(150deg,#41C07A,#1E7A45);border:2.5px solid ${INK};color:#fff;${OSW};font-weight:700;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ini}</span>
+          <span style="min-width:0;flex:1"><b style="display:block;${OSW};font-weight:700;font-size:16px;line-height:1.1">${n}</b>
+          <b style="display:block;font-size:11.5px;font-weight:800;opacity:.55">${c}</b></span>
+          <span style="font-size:10px;${OSW};font-weight:700;background:${GOLD};border:2px solid ${INK};border-radius:999px;padding:2px 8px;flex-shrink:0">🃏 FOLK</span>
+        </div>
+        <p style="font-size:15px;font-weight:600;font-style:italic;line-height:1.4;margin:0 0 12px;min-height:88px">“${f}”</p>
+        <div style="background:#FBF6E9;border:2.5px solid ${INK};border-radius:10px;padding:8px 11px;text-align:center">
+          <b style="${OSW};font-weight:700;font-size:14.5px">${efeito}</b>
+        </div>
       </div>
     </div>`).join('')}
+</div>
+<div style="${box('#FBF6E9')};padding:16px 20px;margin-bottom:34px;display:flex;gap:20px;align-items:center">
+  <span style="font-size:34px;flex-shrink:0">🛟</span>
+  <div>
+    <p style="${OSW};font-weight:700;font-size:17px;margin:0 0 4px;text-transform:uppercase">E ninguém é pego de surpresa</p>
+    <p style="font-size:15.5px;font-weight:600;line-height:1.4;margin:0">O aviso aparece <b>ANTES de você escalar o time</b>, não no meio do jogo. Só acontece com carta <b>🃏 folclórico</b>, e só na <b>Várzea e Série D</b> — carreira grande não é atrapalhada. Você troca o cara e joga normal.</p>
+  </div>
 </div>
 
 <!-- ═══ RODAPÉ ═══ -->
