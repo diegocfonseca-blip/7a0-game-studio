@@ -146,28 +146,46 @@ ${titulo(1, '🏐', 'O torneio dos últimos 4 da Várzea', 'Fim da temporada do 
 </div>
 
 <!-- ═══ 2 · A QUADRA ═══ -->
-${titulo(2, '🏖️', 'A quadra é de vocês', 'A marca na rede, na areia e no troféu. Aparece em toda partida — não é banner de canto, é o cenário.')}
+${titulo(2, '🏖️', 'A tela da partida — a quadra é de vocês', 'É ISTO que aparece na hora do jogo: sua dupla de um lado da rede, a dupla do adversário do outro, o placar rolando. A marca fica NA REDE, no meio da tela.')}
 <div style="${box('#fff')};overflow:hidden;margin-bottom:38px">
-  <div style="background:linear-gradient(180deg,#BFE3F5 0%,#BFE3F5 26%,${AREIA} 26%,${AREIA2} 100%);padding:22px 26px 26px;position:relative;min-height:310px">
-    <div style="position:absolute;left:0;right:0;top:78px;height:52px;background:${MARINHO};border-top:4px solid ${INK};border-bottom:4px solid ${INK};
-                display:flex;align-items:center;justify-content:center;gap:14px;color:#fff;${OSW};font-weight:700;font-size:22px;letter-spacing:2px">
-      ${marca(38)} FUTEVÔLEI DEPRESSÃO ${marca(38)}
+  <div style="background:linear-gradient(180deg,#BFE3F5 0%,#BFE3F5 14%,${AREIA} 14%,${AREIA2} 100%);padding:16px 26px 20px">
+
+    <!-- placar -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;background:${INK};border:3px solid ${INK};border-radius:14px;box-shadow:4px 4px 0 rgba(0,0,0,.25);padding:9px 18px;color:#fff;max-width:640px;margin:0 auto 14px">
+      <b style="${OSW};font-weight:700;font-size:17px;flex:1;text-align:right">Canelada Real</b>
+      <b style="${OSW};font-weight:700;font-size:30px;color:#9AA6B8">15</b>
+      <b style="${OSW};font-weight:700;font-size:14px;opacity:.45">SET 1</b>
+      <b style="${OSW};font-weight:700;font-size:30px;color:${GOLD}">18</b>
+      <b style="${OSW};font-weight:700;font-size:17px;flex:1">Perna de Pau City</b>
     </div>
-    <div style="position:absolute;left:34px;top:44px;width:12px;height:150px;background:${INK};border-radius:4px"></div>
-    <div style="position:absolute;right:34px;top:44px;width:12px;height:150px;background:${INK};border-radius:4px"></div>
-    <div style="position:absolute;left:26px;bottom:22px;display:flex;gap:12px;align-items:flex-end">
-      ${mini('Edmundo', 'ATA', 'Vasco · 1997')}
-      ${mini('Renato Gaúcho', 'ATA', 'Grêmio · 1983')}
-      <div style="padding-bottom:6px">
-        <p style="${OSW};font-weight:700;font-size:16px;margin:0;text-transform:uppercase">🎲 Dupla sorteada</p>
-        <p style="font-size:13.5px;font-weight:700;opacity:.65;margin:2px 0 0;line-height:1.3;max-width:150px">2 do elenco, na sorte.<br>Não dá pra escolher.</p>
+
+    <!-- LADO DE LÁ: dupla do adversário -->
+    <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px">
+      <b style="${OSW};font-weight:700;font-size:14px;text-transform:uppercase;opacity:.55;width:150px;text-align:right">Dupla do adversário</b>
+      ${mini('Sarrafo', 'ZAG', 'Canelada Real', 92)}
+      ${mini('Torto', 'MEI', 'Canelada Real', 92)}
+      <span style="width:150px"></span>
+    </div>
+
+    <!-- A REDE, com a marca -->
+    <div style="position:relative;margin:8px -26px 10px">
+      <div style="position:absolute;left:24px;top:-26px;width:11px;height:74px;background:${INK};border-radius:4px"></div>
+      <div style="position:absolute;right:24px;top:-26px;width:11px;height:74px;background:${INK};border-radius:4px"></div>
+      <div style="background:${MARINHO};border-top:4px solid ${INK};border-bottom:4px solid ${INK};height:54px;
+                  display:flex;align-items:center;justify-content:center;gap:14px;color:#fff;${OSW};font-weight:700;font-size:22px;letter-spacing:2px">
+        ${marca(38)} FUTEVÔLEI DEPRESSÃO ${marca(38)}
       </div>
+      <b style="position:absolute;right:34px;top:60px;${OSW};font-weight:700;font-size:12px;background:${GOLD};border:2px solid ${INK};border-radius:999px;padding:2px 10px">☝️ a rede é o espaço da marca</b>
     </div>
-    <div style="position:absolute;right:26px;bottom:22px;width:300px;background:rgba(255,255,255,.94);border:3px solid ${INK};border-radius:14px;box-shadow:4px 4px 0 ${INK};padding:12px 14px">
-      <div style="display:flex;align-items:center;gap:10px">
-        ${marca(40)}
-        <div><p style="${OSW};font-weight:700;font-size:15px;margin:0;line-height:1.1">🎾 O busca-bola</p>
-        <p style="font-size:12.5px;font-weight:700;opacity:.65;margin:2px 0 0;line-height:1.25">Quem é bico na areia não joga:<br>vai catar bola pro Depressão.</p></div>
+
+    <!-- LADO DE CÁ: a SUA dupla -->
+    <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-top:22px">
+      <b style="${OSW};font-weight:700;font-size:14px;text-transform:uppercase;width:150px;text-align:right">🎲 A sua dupla<br><span style="font-weight:700;font-size:12px;opacity:.6;text-transform:none">sorteada do seu elenco</span></b>
+      ${mini('Edmundo', 'ATA', 'Vasco · 1997', 106)}
+      ${mini('Renato Gaúcho', 'ATA', 'Grêmio · 1983', 106)}
+      <div style="width:150px;background:rgba(255,255,255,.94);border:3px solid ${INK};border-radius:12px;box-shadow:3px 3px 0 ${INK};padding:9px 10px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">${marca(28)}<b style="${OSW};font-weight:700;font-size:13px">🎾 Busca-bola</b></div>
+        <b style="font-size:11.5px;font-weight:700;opacity:.65;line-height:1.25;display:block">Quem é bico na areia não joga: cata bola pro Depressão.</b>
       </div>
     </div>
   </div>
