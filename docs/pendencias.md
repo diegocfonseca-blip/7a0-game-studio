@@ -1,6 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
-## 🏛️ SALA DO PRESIDENTE — mockup novo (21/08), aguardando OK
+## 🏛️ SALA DA PRESIDÊNCIA — o mockup APROVADO foi recuperado (21/08)
+Ele disse: *"eu tinha feito outro mockup da sala de presidente contigo q tinha
+gostado"*. Tinha mesmo, em 16/08 — e a **imagem se perdeu** (foi feita no chat,
+nunca virou script no repo). É o MESMO acidente do mockup do Coringas, que é a
+razão da regra "mockup mora no repo" existir. ⚠️ Lição reforçada: TODO mockup
+vira arquivo em `scripts/`, sem exceção.
+
+✅ **O desenho não se perdeu:** o começo do código nasceu dele e está na branch
+`claude/presidencia-em-breve` (commit 02d2d5c). `scripts/mockup-presidencia-v1.mjs`
+reconstrói a tela **fiel a esse código**:
+- título + a frase que fechou a conversa do técnico: *"Você não é o técnico.
+  **Você é o dono do <clube>.**"*
+- 🎩 Técnico e 🚗 Garagem em cinza com selo **EM BREVE** (sem botão);
+- 💰 Patrimônio do clube (caixa + estádio investido + elenco a preço de mercado
+  + SAF), só leitura;
+- 🏆 **Hall de Troféus** com ×N por competição — a MESMA estante da aba Rank
+  (fonte única `meusTrofeus`, de propósito: duas contas viravam duas verdades).
+
+**Decisão desta sessão:** ficar com a versão DELE e só encaixar 3 peças novas,
+sem tirar nada: retrato de posse (dentro do cabeçalho que já existe), números do
+mandato (tira de 3 no mesmo cartão) e a linha do mandato (no fim).
+
+## 🏛️ (descartado) primeira tentativa desta sessão — mockup novo, aguardando OK
 `scripts/mockup-sala-presidente.mjs`. Retoma o que ficou parado em 16/08 (o
 começo do código está na branch `claude/presidencia-em-breve`) com o pedido novo
 dele: *"quero q a sala fosse algo tb pessoal do presidente e do usuário"*.
