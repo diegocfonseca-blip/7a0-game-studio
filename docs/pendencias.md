@@ -1,5 +1,30 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 🛡️ CLÃS — desenhado, ainda NÃO codado
+Mockup principal: `scripts/mockup-clas.mjs` (a ideia inteira).
+Conserto: `scripts/mockup-clas-escudo.mjs`.
+
+**A ideia:** clã é uma CASA — você entra, veste o selo dela, e o que você ganha
+em qualquer sala vira ponto pra casa. NÃO é a Liga Fechada (aquilo é uma SALA;
+o clã é uma IDENTIDADE que anda com você). Reaproveita a arte do batismo e o
+ranking que já existem; o motor do jogo não é tocado.
+
+**🚨 REGRA QUE NASCEU DO FURO QUE ELE PEGOU (21/08):** no 1º mockup as listas
+mostravam SÓ o escudo do CLÃ do lado do nome. Palavras dele: *"gostei bastante
+mas o problema q tá sumindo o escudo do jogador q ele fez"*. Ele está certo, e
+isso quebrava regra dele mesmo (escudo do batismo é do E-MAIL do dono, custa
+arte de verdade e vem com sócio + fundador).
+👉 **O ESCUDO DO JOGADOR NUNCA SAI DA TELA — por causa de nada.** O clã vira um
+**SELO REDONDO** (redondo de propósito, pra não confundir com escudo), pequeno,
+no canto do escudo do dono. Quem não tem batismo mostra o selo do clã sozinho —
+e aí GANHA identidade em vez de perder (hoje são só 28 batismos no jogo todo).
+Sair do clã tira só o selo: escudo, manto, mascote e títulos ficam.
+
+⏳ **Falta ele decidir 3 coisas** (estão em amarelo no mockup, com minha sugestão):
+1. quem pode ABRIR um clã (sugestão: só 👑 Lenda — entrar, qualquer um);
+2. quantos cabem (sugestão: 12);
+3. se a Guerra de Clãs entra já (sugestão: depois — primeiro a casa existir).
+
 ## 🏆 TELA DE DESFECHO DA TEMPORADA (opção 5) — só a conta do Diego (21/08)
 Mockup `scripts/mockup-fim-temporada.mjs`, resposta dele: *"ok pode fazer tb"*.
 `sport.ts` · `useTelaDesfecho` / `FIMTEMP_GERAL` (hoje `false`).
