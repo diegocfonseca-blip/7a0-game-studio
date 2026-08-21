@@ -1,6 +1,42 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
 ## 🔴🔴 ABERTO E URGENTE — sala online travando e lance refeito (21/08)
+
+### 🔥 FLAGRANTE AO VIVO (sala `GP0LN1` "leilao", 21/08 ~17:48)
+Peguei a sala rodando, com o Diego dentro. O banco mostra a causa exata:
+
+| técnico | é host no banco | está presente |
+| --- | :---: | :---: |
+| **Braguinha** (criou a sala) | ✅ **SIM** | ❌ **NÃO** |
+| Intervarcional | não | sim |
+| Jurema FC | não | sim |
+| CHELSEA DA GAMA | não | sim |
+| Neymarzetti 👑🖋️ (Diego) | não | sim |
+
+**O dono registrado da sala não está na sala** — e mesmo assim a sala continua
+sendo gravada de 5 em 5 segundos, ou seja, ALGUÉM dos quatro presentes está
+agindo como host localmente.
+
+**Por que não se resolve sozinho (o furo de verdade):** o teste "o host está
+vivo?" olha `game_rooms.updated_at`. Só que **quem grava essa coluna é quem
+estiver agindo como host** — então o batimento parece SEMPRE fresco, o
+`hostBeatFresh` dá `true` e a eleição de host novo (👻 host fantasma) **nunca
+dispara**. Ao mesmo tempo, a regra "UM DONO SÓ" manda quem está gravando
+abaixar a bola (porque `host_id` não é dele). Resultado: a coroa fica
+pingue-pongando e dois estados brigam — é isso que faz **a listagem dos
+goleiros trocar antes do tempo acabar**, o **lance sumir** e a **mensagem
+vermelha de erro pipocar**.
+
+➡️ **Conserto (D), agora o mais importante:** o batimento do host não pode ser
+`updated_at` da sala (qualquer um escreve nela). Tem que ser um carimbo do
+DONO — ex.: `game_state.hostBeat = { uid, at }` gravado só por quem se acha
+host, e a checagem compara o uid do carimbo com o `host_id`. Assim host
+fantasma é detectado em segundos e a eleição funciona.
+
+**Destrava na hora, sem código:** o Braguinha voltar pra sala (ele é o dono no
+banco → o cliente dele reassume) OU apontar `game_rooms.host_id` pra alguém que
+esteja presente (aí a auto-cura `hostId === uid` dispara em ~10s).
+
 Relato do Diego: *"a sala szalai deu vários erros… O host braguinha criou a sala
 mas travou no goleiro no PC. E o amigo no celular ficava recebendo msg de segura
 onda… E vira e mexe tinham q fazer lance novamente"*. Ele lembrou, com razão, que
