@@ -17,6 +17,18 @@ responde melhor a explicações simples, sem jargão).
 5. Online é **host-autoritativo** (guest roteia ações pro host). Identidade
    (youIdx) é LOCAL — nunca sincronizar. Cuidado extremo com índices de
    assento (histórico de bugs: "virei bot", "dei lance por outro").
+6. 👑 **A COROA NÃO TROCA SOZINHA (regra permanente, 21/08).** Palavras do
+   Diego: *"eu não quero q ng assuma. Tem q ser sempre o host. Se o host q
+   criou tem q ser sempre ele sem trocar"*. **Quem criou a sala manda do começo
+   ao fim.** A eleição automática de host novo está DESLIGADA
+   (`ELEICAO_AUTOMATICA = false` em `store.tsx`) e **não se religa sem ele
+   pedir**. Motivo: toda troca de dono devolve o envelope de todo mundo (senão
+   o setor fecharia com lance ZERO), e um falso positivo — dono dado como
+   sumido sem ter saído — estraga o pregão inteiro (noite da sala do
+   Braguinha). Ele prefere a sala ESPERAR o dono a embolar do nada.
+   Continuam valendo, porque são decisão de gente e não troca automática: o
+   dono aperta SAIR e passa a coroa; e quem já é dono no banco reassume sozinho
+   ao voltar.
 
 ## 🎨 Identidade visual (OBRIGATÓRIA — não inventar arte nova)
 - Fundo creme `#F4ECD6` · tinta `#0C0C0C` · dourado `#FFC400` · verde `#1B7A3D`

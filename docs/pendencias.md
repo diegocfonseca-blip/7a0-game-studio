@@ -1,5 +1,19 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 👑 REGRA NOVA (21/08): a coroa não troca sozinha
+Depois do conserto do crachá, o Diego fechou a regra: *"eu não quero q ng
+assuma. Tem q ser sempre o host. Se o host q criou tem q ser sempre ele sem
+trocar"*. **Feito**: `ELEICAO_AUTOMATICA = false` em `store.tsx`. Está em
+CLAUDE.md como regra permanente — não religar sem ele pedir.
+- ⚖️ **O preço, dito na cara dele:** se o dono fechar o app de vez, a sala
+  **para e espera**. Ninguém assume. A saída é todo mundo sair e o dono abrir
+  outra sala. Ele preferiu isso a ver o pregão embolar com o dono ali presente.
+- 🟥 O aviso vermelho do "segura a onda" foi reescrito pra dizer a verdade nova:
+  *"a partida espera por ele… ninguém assume no lugar (era isso que fazia o seu
+  lance voltar)"*.
+- Continuam de pé (é decisão de gente, não troca automática): o dono aperta SAIR
+  e passa a coroa; e quem já é dono no banco reassume sozinho ao voltar.
+
 ## 🔴🔴 ABERTO E URGENTE — sala online travando e lance refeito (21/08)
 
 ### 🎯 CAUSA RAIZ ACHADA (sala `GP0LN1` "leilao", 21/08 ~17:51)
