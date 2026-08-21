@@ -254,27 +254,6 @@ export function SponsorBetStatus({ bet, div, completo }: { bet?: { tier: Sponsor
     </div>
   )
 }
-// 🏁 resultado da aposta da temporada PASSADA — FAIXA FINA (antes era um quadro
-// grande no meio do caminho; virou uma linha, pedido do Diego 21/08).
-// floored = não bateu a meta, mas a garantia de fidelidade pagou o mínimo.
-export function SponsorBetResultCard({ result }: { result: { tier: SponsorBetTier; brandId: string; hit: boolean; amount: number; floored?: boolean } }) {
-  const meta = SPONSOR_BET_META[result.tier]
-  const brand = sponsorBrandOf(result.brandId)
-  const paid = result.hit || result.floored
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: paid ? '#E6F3EA' : '#FBE7E3', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '8px 10px', marginBottom: 11 }}>
-      <span style={{ fontSize: 17 }}>{result.hit ? meta.emoji : result.floored ? '🎖️' : '🚫'}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ ...OSW, fontWeight: 900, fontSize: 11.5, margin: 0, lineHeight: 1.1 }}>
-          Temporada passada: {result.hit ? 'aposta certeira' : result.floored ? 'não bateu — a fidelidade pagou' : 'meta não batida'}
-        </p>
-        <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '1px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{brand?.name} · {meta.label.toLowerCase()}</p>
-      </div>
-      <span style={{ ...OSW, fontWeight: 900, fontSize: 12.5, background: paid ? GREEN : '#B23A2A', color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 9px', whiteSpace: 'nowrap' }}>{paid ? '+' : ''}{result.amount} 🪙</span>
-    </div>
-  )
-}
-
 // 🌱 barro (0%) → grama de elite (100%, um triz mais viva que o verde de sempre —
 // pedido do Diego: "igual quase", só um pouco mais bonita quando completa).
 const DIRT: [RGB, RGB] = [[138, 106, 69], [122, 78, 46]]

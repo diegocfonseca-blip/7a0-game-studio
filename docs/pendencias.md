@@ -1,5 +1,41 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 🧹 TOPO DA TEMPORADA — regra "decisão · recibo · aba" (21/08), no ar
+Mockup aprovado (`scripts/mockup-topo-temporada.mjs`), resposta dele: *"ok mas a
+parte do criar conta deixe um pouco mais chamativo e pode fazer"*.
+
+**⚠️ ACHADO IMPORTANTE PRA QUEM PEGAR ISSO DEPOIS:** o mockup mostrou numa tela
+só duas telas que na verdade são SEPARADAS no código —
+- **FIM da temporada** (`done`): jornal (`SeasonJornal`, aberto) + link do
+  chaveamento + a caixa "Próxima temporada" (que continha o FECHAMENTO);
+- **COMEÇO** (`round === 0`): resultado do patrocínio + contrato + botão verde.
+`copaFinished = done && …`, então jornal e fechamento NUNCA aparecem junto do
+contrato do patrocínio. Eu avisei o Diego. A regra foi aplicada nas DUAS telas,
+cada uma no que ela tinha de excesso.
+
+**O que foi feito:**
+- `ReciboLinha` · `CaixaRecibos` · `SeloSuaVez` (topo do `pyramidseason.tsx`).
+- **FIM**: o quadro do FECHAMENTO DA TEMPORADA (lista inteira de lançamentos)
+  virou UMA linha com o saldo → leva pra Clube › Finanças, onde o extrato mora
+  inteiro. Selo 👉 SUA VEZ na caixa "Próxima temporada".
+- **COMEÇO**: selo 👉 SUA VEZ no contrato do patrocínio (só enquanto não
+  escolheu); o resultado da temporada passada saiu da frente e virou recibo
+  DEPOIS do botão verde → leva pra Clube › Patrocínio. A frase "dava pra mirar
+  mais alto 😉" foi preservada dentro da linha.
+- **🎴 Criar conta mais chamativo** (pedido dele): a tirinha amarela fininha
+  virou um convite com a carta dourada, o que a pessoa GANHA (não só o que
+  perde) e botão verde de verdade. A versão grande de 3 em 3 temporadas
+  (`horaDoConvite`) continua igual.
+- **🔴 na barra de baixo**: a aba Clube ganha o pontinho quando tem recibo
+  esperando; some quando a pessoa abre a aba e volta na temporada seguinte.
+- `SponsorBetResultCard` deixou de existir (virou recibo).
+
+**Regra que ele bateu o martelo:** momento de EMOÇÃO nunca vira recibo — campeão,
+acesso, carta ganha e o jornal continuam grandes e com festa. Recibo é rotina.
+
+⏳ **Não testado com carreira de verdade rodando** (o robô não termina o pregão
+a tempo). Testado: build limpo + as peças novas fotografadas no navegador.
+
 ## 🤝 PATROCÍNIO DA TEMPORADA — REFEITO (21/08), no ar pra todos
 Reclamação dele: *"a hora do patrocínio que o usuário tem que escolher na
 temporada… acho que tá sem graça o visual. E também MUITA informação perante as
