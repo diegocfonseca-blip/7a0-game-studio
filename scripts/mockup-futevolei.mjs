@@ -35,6 +35,12 @@ const FONTES = [400, 500, 600, 700].map(w =>
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d }
 const SAIDA = arg('--saida', 'futevolei.png')
 const LOGO = arg('--logo', null)
+// 📊 números REAIS do jogo — nunca chutar. Saem do Supabase (a SQL está em
+// docs/pendencias.md, 21/08). Sem os flags, o mockup mostra "—" de propósito,
+// pra ninguém mandar pro patrocinador um número inventado.
+const CONTAS = arg('--contas', '—')
+const RECORDE = arg('--recorde', '—')
+const MEDIA = arg('--media', '—')
 const logoSrc = LOGO ? `data:image/png;base64,${readFileSync(LOGO).toString('base64')}` : null
 
 // identidade da casa
@@ -108,10 +114,10 @@ body{margin:0;background:${CREME};color:${INK};font-family:system-ui,-apple-syst
     <p style="font-size:16.5px;font-weight:600;line-height:1.4;margin:0">Um jogo de <b>leilão às cegas de lendas do futebol</b>: você dá lance escondido, monta um time com as cartas que arrematar e disputa uma carreira, de várzea até a Série A. Roda <b>direto no navegador</b>, de graça, sem baixar nada.</p>
   </div>
   <div style="display:flex;gap:10px;flex-shrink:0">
-    ${[['~7 mil', 'contas no 1º mês'], ['700+', 'jogadores no baralho'], ['0', 'download']]
-      .map(([n, s]) => `<span style="text-align:center;background:#FBF6E9;border:3px solid ${INK};border-radius:12px;padding:9px 13px;min-width:104px">
-        <b style="display:block;${OSW};font-weight:700;font-size:24px;line-height:1">${n}</b>
-        <b style="display:block;font-size:11px;font-weight:800;opacity:.6;text-transform:uppercase;margin-top:2px">${s}</b></span>`).join('')}
+    ${[[CONTAS, 'contas em 30 dias'], [RECORDE, 'temporadas · a carreira mais longa'], [MEDIA, 'temporadas · média por carreira']]
+      .map(([n, s]) => `<span style="text-align:center;background:#FBF6E9;border:3px solid ${INK};border-radius:12px;padding:9px 13px;width:132px">
+        <b style="display:block;${OSW};font-weight:700;font-size:26px;line-height:1">${n}</b>
+        <b style="display:block;font-size:10.5px;font-weight:800;opacity:.6;text-transform:uppercase;margin-top:3px;line-height:1.2">${s}</b></span>`).join('')}
   </div>
 </div>
 <p style="font-size:21px;font-weight:600;line-height:1.45;margin:0 0 34px;max-width:930px">

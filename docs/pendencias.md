@@ -8281,3 +8281,62 @@ entrar mais gente é só rodar de novo** e o post se atualiza sozinho:
 ⚠️ Detalhe do gerador: o `Ã` do Oswald em corpo grande precisa de
 `line-height >= 1.2`, senão o til escapa da linha e aparece solto na linha de
 cima. Não baixar disso.
+
+---
+
+## 🏐 21/08 — Parceria Futevôlei Depressão (@futevoleidepressao, 266 mil)
+
+Patrocinador que o Diego trouxe: página de humor de futevôlei, o Pedrinho.
+Mockup da proposta: **`scripts/mockup-futevolei.mjs`** (roda com `--logo` e os
+números). Cinco encaixes desenhados e aprovados visualmente pelo Diego:
+1. **Torneio dos 4 últimos da Várzea** — 2 semis + final, **jogo único, set até
+   18**, **dupla SORTEADA** do elenco. Prêmio: 🩴 Chinelo de Ouro (0 ponto no ranking).
+2. **A quadra** — a marca NA REDE, no meio da tela da partida. Mais o "busca-bola".
+3. **Bico de Folga** — a marca vira o 5º bico (`BICO_BRANDS` em store.tsx +
+   a lista `BRANDS` em pyramidseason.tsx). Cargo: "busca-bola na quadra de areia".
+   👉 **É o menor de todos** — dá pra subir sozinho, sem tela nova.
+4. **Patrocinador do clube** — entra em `SPONSOR_BRANDS` (estadiodata.ts), na
+   meta tier 1 ("não cair").
+5. **Zoeira do folclórico** — aviso ANTES da partida: o cara faltou o treino pra
+   jogar futevôlei. Trava combinada: só carta `folk`, só Várzea/Série D, e o
+   aviso aparece antes de escalar (nunca no meio do jogo).
+
+⚠️ **FATO CONFERIDO NO CÓDIGO**: o Diego achava que a Várzea não jogava a Copa do
+Brasil. Joga sim — `copa-brasil.ts` diz explicitamente *"Várzea joga a Copa do
+Brasil inteira, ao contrário da Copa Legends, que a exclui"*. Quem exclui a
+Várzea é a Copa **Legends**, a antiga. Por isso o critério do torneio virou
+"os 4 últimos da Várzea" (fundo do mundo: não sobem, não caem, já caíram da copa).
+
+🖼️ O **logo** usado no mockup foi recortado do print do Instagram. Pra valer,
+**pedir o arquivo original** ao Pedrinho (igual foi feito com o Rei das Tintas).
+
+### 📊 SQL dos números do mockup (esta sessão não tem acesso ao Supabase)
+O mockup mostra "—" enquanto ninguém rodar isto. **Não inventar número.**
+
+```sql
+-- 1) contas criadas nos últimos 30 dias
+select count(*) as contas_30d
+from auth.users
+where created_at >= now() - interval '30 days';
+
+-- 2) carreira mais longa + média de temporadas
+--    (o save é { __multi:1, careers:[{save:{seasonNo,...}}, ...] };
+--     rows antigas guardam o EscState cru, por isso o CASE)
+with c as (
+  select (car->'save'->>'seasonNo')::int as temporada
+  from esc_pyramid_saves s,
+       lateral jsonb_array_elements(
+         case when jsonb_typeof(s.save->'careers') = 'array'
+              then s.save->'careers'
+              else jsonb_build_array(jsonb_build_object('save', s.save)) end
+       ) as car
+)
+select max(temporada) as carreira_mais_longa,
+       round(avg(temporada), 1) as media_temporadas,
+       count(*) as total_carreiras
+from c
+where temporada is not null;
+```
+
+Com os números na mão:
+`node scripts/mockup-futevolei.mjs --logo fd_logo.png --contas "7.1 mil" --recorde 106 --media 4.2`
