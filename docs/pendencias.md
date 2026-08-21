@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 🧭 SUB-ABAS FINAS (opção 2) — só a conta do Diego (21/08)
+Mockup `scripts/mockup-subabas.mjs`, ordem dele: *"faça só p mim… p eu ver
+primeiro como ficaria"*. `sport.ts` · `useSubAbasFinas` / `SUBABAS_GERAL`
+(hoje `false`; liberar pra todos = `true`).
+
+**A regra:** em cima é ONDE EU ESTOU, embaixo é PRA ONDE EU VOU. A barra de
+baixo manda na navegação (mudar de LUGAR); a tirinha só troca de ASSUNTO dentro
+do lugar — por isso é de propósito mais leve: sem borda, sem sombra, só texto
+com sublinhado na ativa (`TirinhaSub` em `pyramidseason.tsx`).
+
+**Onde vale:** 🏟️ Clube (Estrutura · Finanças · Patrocínio, + Agência nos saves
+antigos) e 👥 Elenco (Time · Agenciados, na Agência 2.0). As sub-abas são as
+MESMAS, na mesma ordem, com o mesmo conteúdo — só mudaram de casca. Com o portão
+desligado tudo volta a ser as pílulas de sempre (os dois caminhos convivem no
+código, é um `subFinas ? … : …`).
+
+**Ela GRUDA no topo** (`position: sticky`), logo abaixo da faixa fina
+(`FAIXA_H = 31`) quando a faixa está na tela, senão no 0. Era o problema real:
+antes as pílulas rolavam junto e sumiam, e quem descia até o fim das Finanças
+tinha que rolar tudo de volta pra ir no Patrocínio.
+
+⏳ **Falta:** o Diego dizer se gostou. Eu avisei o CONTRA no mockup — a tirinha é
+mais discreta que as pílulas coloridas. Se ele achar apagado, o **meio-termo já
+combinado** é manter a tirinha grudando no topo mas com a ativa em **pílula roxa
+cheia** dentro dela (só mexer no `TirinhaSub`).
+
 ## 🧹 TOPO DA TEMPORADA — regra "decisão · recibo · aba" (21/08), no ar
 Mockup aprovado (`scripts/mockup-topo-temporada.mjs`), resposta dele: *"ok mas a
 parte do criar conta deixe um pouco mais chamativo e pode fazer"*.

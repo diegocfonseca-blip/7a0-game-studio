@@ -354,8 +354,30 @@ export function useBarraCarreira(): boolean {
   return barraCarrOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email) })
+// ─── 🧭 SUB-ABAS FINAS (opção 2) ────────────────────────────────────────────
+// Com a navegação no rodapé, as sub-abas de dentro do Clube (Estrutura ·
+// Finanças · Patrocínio) e do Elenco (Time · Agenciados) viraram uma segunda
+// navegação em cima, mais pesada que a barra que manda — e que ainda rola junto
+// com o conteúdo e some. Aqui elas viram uma TIRINHA FINA que gruda no topo:
+// em cima é ONDE EU ESTOU, embaixo é PRA ONDE EU VOU.
+// 🔒 Só a conta do Diego, pra ele ver rodando antes. Liberar: SUBABAS_GERAL = true.
+const SUBABAS_GERAL = false
+const SUBABAS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let subAbasOk = SUBABAS_GERAL
+function applySubAbasUnlock(email?: string | null): void {
+  const u = SUBABAS_GERAL || (!!email && SUBABAS_TESTERS.has(email.toLowerCase()))
+  if (u === subAbasOk) return
+  subAbasOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useSubAbasFinas(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return subAbasOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applySubAbasUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applySubAbasUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
