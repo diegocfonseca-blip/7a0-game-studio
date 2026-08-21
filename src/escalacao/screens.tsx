@@ -769,7 +769,7 @@ export function GameFooter() {
         <p className="text-xs font-bold">
           <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/65 underline"><InstaIcon /> @leilaolegendscom</a>
           <span className="text-black/30"> · </span>
-          <a href="mailto:diego.c.fonseca@gmail.com" className="text-black/65 underline">✉️ diego.c.fonseca@gmail.com</a>
+          <a href="mailto:contato@leilaolegends.com" className="text-black/65 underline">✉️ contato@leilaolegends.com</a>
         </p>
         {canEscape && (
           <p className="text-[11px] font-bold pt-0.5">
