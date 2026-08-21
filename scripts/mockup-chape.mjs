@@ -38,35 +38,29 @@ const cartas = [...data.matchAll(re)]
   .filter(c => c.club === 'Chapecoense')
   .sort((a, b) => ORD.indexOf(a.pos) - ORD.indexOf(b.pos) || b.fame - a.fame)
 
-// ── tiers IGUAIS aos do jogo (FAME_TIER em screens.tsx) ──
-const TIER = {
-  5: { label: '👑 LENDA', grad: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', ink: '#0C0C0C', tierInk: '#7a4d00', crestBg: 'rgba(255,255,255,.42)', crestInk: '#7a4d00', holo: .55 },
-  4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#F4F7FB,#CBD4DE 45%,#9BA7B5 78%,#EAEFF4)', ink: '#0C0C0C', tierInk: '#44546a', crestBg: 'rgba(255,255,255,.5)', crestInk: '#44546a', holo: .35 },
-  3: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45)', ink: '#fff', tierInk: 'rgba(255,255,255,.92)', crestBg: 'rgba(255,255,255,.35)', crestInk: '#14532d', holo: 0 },
-  1: { label: '🪵 FOI PROFISSIONAL', grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E 60%,#B2A583)', ink: '#0C0C0C', tierInk: '#655c43', crestBg: 'rgba(255,255,255,.5)', crestInk: '#655c43', holo: 0 },
-}
-const tierDe = f => TIER[f >= 5 ? 5 : f === 4 ? 4 : f >= 2 ? 3 : 1]
+// ── 💚 TODAS VERDES, SEM NÍVEL (decisão do Diego, 21/08) ────────────────────
+// No JOGO cada carta sai na cor do tier dela (verde = bom jogador, bege = foi
+// profissional, dourado = lenda). NESTE POST, não: as sete saem no MESMO verde,
+// sem estrela e sem o nome da categoria. É homenagem — aqui ninguém é melhor
+// que ninguém, e o post não fica parecendo tabela de ranking dos mortos e dos
+// sobreviventes. O verde é o do tier "bom jogador" do jogo, que por acaso é o
+// verde da Chape. O NOME vem maior justamente porque é ele que importa aqui.
+const VERDE_CARTA = 'linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45)'
 
-const carta = c => {
-  const t = tierDe(c.fame)
-  return `
+const carta = c => `
   <div style="width:234px;position:relative;overflow:hidden;border:3px solid #0C0C0C;border-radius:16px;display:flex;flex-direction:column;justify-content:space-between;
-              background:${t.grad};aspect-ratio:3/4.2;box-shadow:5px 6px 0 0 #0C0C0C;padding:11px">
-    ${t.holo ? `<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,${t.holo}) 50%,transparent 64%)"></div>` : ''}
-    <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:4px">
+              background:${VERDE_CARTA};aspect-ratio:3/4.2;box-shadow:5px 6px 0 0 #0C0C0C;padding:11px">
+    <div style="position:relative">
       <span style="font-family:Oswald,sans-serif;font-weight:700;background:#0C0C0C;color:#fff;border:2px solid rgba(255,255,255,.25);border-radius:8px;font-size:11px;padding:2px 7px">${c.pos}</span>
-      <span style="font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.4px;color:${t.tierInk};font-size:8.5px;text-align:right">${t.label}</span>
     </div>
-    <div style="position:relative;align-self:center;width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-                background:${t.crestBg};color:${t.crestInk};border:3px solid rgba(0,0,0,.28);font-family:Oswald,sans-serif;font-weight:700;font-size:26px;
+    <div style="position:relative;align-self:center;width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+                background:rgba(255,255,255,.35);color:#14532d;border:3px solid rgba(0,0,0,.28);font-family:Oswald,sans-serif;font-weight:700;font-size:28px;
                 box-shadow:inset 0 0 14px rgba(255,255,255,.6)">${c.nome.trim()[0].toUpperCase()}</div>
     <div style="position:relative;text-align:center">
-      <p style="font-family:Oswald,sans-serif;font-weight:700;color:${t.ink};font-size:14px;line-height:1.15;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</p>
-      <p style="font-weight:800;color:${t.ink};opacity:.66;font-size:9.5px;margin:2px 0 0">${c.club} · ${c.year}</p>
-      <p style="font-size:10px;letter-spacing:1px;margin:3px 0 0">${'⭐'.repeat(Math.max(1, c.fame))}</p>
+      <p style="font-family:Oswald,sans-serif;font-weight:700;color:#fff;font-size:20px;line-height:1.12;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</p>
+      <p style="font-weight:800;color:#fff;opacity:.7;font-size:11px;margin:3px 0 0">${c.club} · ${c.year}</p>
     </div>
   </div>`
-}
 
 const VERDE = '#1B7A3D'
 const html = `<!doctype html><html><head><meta charset="utf-8">
