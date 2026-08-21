@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 🔴 ABERTO — pílula grudada boiando na tela do intervalo (21/08)
+Vídeo de usuário: a fileira **TIME | AGENCIADOS** aparece **no meio da tela**,
+por cima da lista de jogadores do intervalo, quando rola pra cima e pra baixo.
+Palavras do Diego: *"Deu ruim na tela de alguns usuários sobre a pílula aí qd
+eles sobem e descem"*.
+
+**Ação já tomada (mesmo dia):** `PILULAS_GERAL = false` em `sport.ts`. Todo
+mundo voltou ao comportamento de antes (pílulas rolam junto com o conteúdo).
+Continua ligado só na conta do Diego, pra dar pra reproduzir.
+
+**Causa mapeada no código (falta CONFIRMAR rodando):** o `HalftimeBanner` é
+desenhado na linha ~5572 do `pyramidseason.tsx`, **antes** do bloco
+`{tab === 'estadio' ? … : tab === 'jogos' …}` (linha ~5960). Ou seja: o banner
+do intervalo aparece em **qualquer aba**, não só na Jogos. Se o usuário estiver
+na aba **Elenco** ou **Clube** quando o intervalo abre, as sub-abas grudadas
+(`position: sticky`, `zIndex: 60`) ficam boiando por cima do banner.
+
+**Conserto proposto (não feito ainda):** o mesmo `sagrado` que já esconde a
+barra de baixo tem que desligar o grudar também — enquanto banner de
+intervalo/pênalti/festa está na tela, `SubAbasGrudadas` sai de sticky. Depois
+disso, religar o portão.
+
+⚠️ **Lição pra quem mexer:** qualquer coisa `sticky`/`fixed` dentro do conteúdo
+das abas convive com banners que são desenhados FORA do bloco das abas. Antes de
+grudar algo, conferir o que mais pode estar na tela ao mesmo tempo.
+
 ## 🏛️ SALA DA PRESIDÊNCIA — o mockup APROVADO foi recuperado (21/08)
 Ele disse: *"eu tinha feito outro mockup da sala de presidente contigo q tinha
 gostado"*. Tinha mesmo, em 16/08 — e a **imagem se perdeu** (foi feita no chat,
