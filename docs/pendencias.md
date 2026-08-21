@@ -31,12 +31,22 @@ não tem uid** (`.filter(u => !!u)`).
 5. Dois donos mandando estado ao mesmo tempo → **a listagem dos goleiros troca
    antes do tempo acabar** e **pipoca erro vermelho**.
 
-**Conserto proposto (E) — dois passos, os dois pequenos:**
-- **(E1) o crachá nunca some:** `ch.track` lê `stateRef.current.youUid` (fresco) e,
-  se ainda faltar, busca no `supabase.auth.getUser()` antes de anunciar presença.
-- **(E2) rede de segurança:** só tratar o dono como fantasma se ele estiver fora
-  de `presenceUids` **E** o índice dele estiver fora de `presence`. Crachá
-  faltando, sozinho, nunca mais condena quem está visivelmente na sala.
+**✅ CONSERTO (E) APLICADO em 21/08** (ordem do Diego: *"ok arrume agora"*):
+- **(E1) o crachá nunca some:** os três `ch.track` passaram a usar o helper
+  `meuCracha()` — lê `stateRef.current.youUid` (fresco, não o closure) e, se
+  ainda faltar, busca no `supabase.auth.getUser()` ANTES de anunciar presença.
+- **(E2) rede de segurança:** antes de destronar alguém, compara **cadeiras**
+  (`presence`) com **crachás** (`presenceUids`). Sobrou cadeira sem crachá = tem
+  gente na sala que não dá pra identificar → **ninguém perde a coroa**. Errar pro
+  lado de manter o dono é sempre mais barato que trocar de host no meio do pregão.
+- ⚖️ **O preço, assumido de propósito:** se um crachá ficar faltando de verdade,
+  a eleição automática de host novo não roda. Continuam funcionando: o handoff
+  voluntário (host que sai passa a coroa) e a auto-cura "a posse no banco já é
+  minha". Ficar sem eleição automática é MUITO mais barato que destronar quem
+  está jogando.
+- 🔁 **Reverter:** commit isolado, só `store.tsx`, não toca em regra de jogo.
+- ⚠️ **Só vale pra quem recarregar depois do deploy** — partida em andamento
+  segue com o código velho até dar F5.
 
 ### 🔥 (leitura anterior, incompleta) FLAGRANTE AO VIVO (sala `GP0LN1`, ~17:48)
 Peguei a sala rodando, com o Diego dentro. O banco mostra a causa exata:

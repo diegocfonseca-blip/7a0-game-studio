@@ -7111,6 +7111,24 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // 🪪 MEU CRACHÁ, SEMPRE PREENCHIDO (Diego 21/08 — sala do Braguinha).
+  // O `ch.track` anunciava `uid: state.youUid` lido do CLOSURE do efeito, cujas
+  // dependências não incluem o youUid. Quando o canal assinava antes do crachá
+  // chegar, ia `undefined` — e o `sync` logo abaixo DESCARTA quem não tem uid.
+  // Resultado no banco da sala ao vivo: `presence` com as 5 cadeiras (todo mundo
+  // lá) e `presenceUids` com só 3 crachás. Como a checagem "o dono ainda está na
+  // sala?" olha os CRACHÁS, o host virava "fantasma" sem ter saído do lugar — e
+  // aí um convidado tomava a coroa, o que devolve o envelope de todo mundo
+  // ("dei lance e depois aparece que não dei") e põe dois donos mandando estado
+  // ao mesmo tempo (listagem trocando antes do tempo + erro vermelho).
+  // Agora: lê o valor FRESCO do ref e, se ainda faltar, busca na conta antes de
+  // anunciar presença. Anunciar sem crachá é o que não pode mais acontecer.
+  const meuCracha = useCallback(async (): Promise<string | undefined> => {
+    const local = stateRef.current.youUid
+    if (local) return local
+    try { const { data } = await supabase.auth.getUser(); return data?.user?.id ?? undefined } catch { return undefined }
+  }, [])
+
   // canal realtime quando online
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
@@ -7180,7 +7198,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       rawDispatch({ type: 'SET_PRESENCE', indices, uids })
     })
     ch.subscribe(async () => {
-      await ch.track({ playerIndex: state.youIdx, uid: state.youUid })
+      await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() })
       if (!state.isHost) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
     })
     channelRef.current = ch
@@ -7197,7 +7215,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: stateRef.current.youUid }); resync() }) } catch { /* tenta de novo na próxima volta */ }
+      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }); resync() }) } catch { /* tenta de novo na próxima volta */ }
     }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
     return () => { if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); ch.unsubscribe(); channelRef.current = null }
@@ -7293,7 +7311,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: stateRef.current.youUid }); resync() }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }); resync() }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -7513,6 +7531,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
             const present = (stateRef.current.presenceUids ?? []).filter((u2): u2 is string => !!u2)
             const hostPresente = !!hostId && present.includes(hostId)
             const souOEleito = present.length > 0 && [...present].sort()[0] === uid
+            // 🛟 REDE DE SEGURANÇA DO CRACHÁ (Diego 21/08, sala do Braguinha:
+            // *"ele sempre esteve na sala cara, ele nunca saiu"* — e ele tinha
+            // razão). A lista de CADEIRAS (`presence`) trazia as 5 pessoas e a de
+            // CRACHÁS (`presenceUids`) só 3: o dono estava lá, mas sem crachá. Como
+            // o teste acima só olha crachá, ele virava "fantasma" sentado na
+            // cadeira — e perder a coroa devolve o envelope de todo mundo.
+            // Regra nova: se tem MAIS cadeira do que crachá, tem gente na sala que
+            // eu não sei identificar → NÃO dá pra afirmar que alguém sumiu, então
+            // ninguém é destronado. Errar pro lado de manter o dono é sempre mais
+            // barato do que trocar de dono no meio do pregão.
+            const cadeiras = (stateRef.current.presence ?? []).length
+            const crachasCompletos = cadeiras > 0 && present.length >= cadeiras
+            if (!crachasCompletos) { sumicoConfirmadoRef.current = false; return }
             // 🔁 DUAS CONFIRMAÇÕES seguidas (~10s de intervalo) antes de tomar a
             // coroa. Uma leitura só era frágil demais: uma piscada de rede podia
             // esvaziar a presença por um instante e isso bastava. Agora a sala só
