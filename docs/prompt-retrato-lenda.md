@@ -48,20 +48,51 @@ visto de frente, ocupando bem o quadro.
 - Sem gradiente, sem brilho, sem textura, sem sombra suave, sem luz. Tudo cor
   chapada, no máximo 6 cores na imagem inteira.
 
-A CAMISA: retrô, gola em V, listras ou blocos de cor conforme os DADOS abaixo.
-- PROIBIDO: escudo, brasão, logo, nome, número, patrocinador ou qualquer marca de
-  clube ou de time REAL. Nada de Real Madrid, Inter, Barcelona, seleção nenhuma.
-  Só as CORES da camisa.
+A CAMISA: o jogador veste a camisa DO TIME E DO ANO que estão nos DADOS abaixo.
+- Use as CORES e o desenho daquele uniforme naquele ano (listras, faixas,
+  gola, punhos), do jeito que a camisa era NAQUELA época — não do jeito que é
+  hoje. Exemplo: "Pelé · Santos · 1958" = camisa branca lisa do Santos daquele
+  tempo, gola de época, SEM escudo.
+- REGRA DO ANO: se o ano for ANTERIOR A 2000, a camisa é estilo RETRÔ — corte
+  antigo, gola em V ou gola polo de época, mangas mais soltas e mais compridas,
+  tecido liso e opaco, nada de recorte moderno. Se o ano for de 2000 em diante,
+  a camisa é do corte moderno daquele ano (mais justa, gola menor).
+- PROIBIDO em qualquer caso: escudo, brasão, logo, nome do clube, número,
+  patrocinador, marca de material esportivo ou qualquer marca escrita. NADA
+  disso aparece. Só as CORES e o formato da camisa. Cor não é marca; escudo é.
 - Se a camisa for branca ou clara, o contorno preto em volta dela tem que ser
   bem visível e fechado, pra ela não se misturar com o fundo.
 
 DADOS DO JOGADOR:
-- Nome: <NOME>
+- Jogador: <NOME> · <TIME> · <ANO>
 - Pele: <tom de pele>
 - Cabelo: <descrição chapada>
 - Barba: <descrição, ou "sem barba">
-- Camisa: <cores, sem citar clube>
 ```
+
+### Exemplo do bloco de dados
+
+```
+DADOS DO JOGADOR:
+- Jogador: Pelé · Santos · 1958
+- Pele: negra
+- Cabelo: preto bem curto, forma chapada
+- Barba: sem barba
+```
+
+Ano 1958 = antes de 2000 → o gerador já sabe que é camisa retrô, branca lisa do
+Santos daquela época, gola de época, **sem escudo**.
+
+```
+DADOS DO JOGADOR:
+- Jogador: Lamine Yamal · Barcelona · 2025
+- Pele: morena
+- Cabelo: preto cacheado curto, forma chapada
+- Barba: sem barba
+```
+
+Ano 2025 = de 2000 pra frente → corte moderno, listras azul-grená daquele
+uniforme, **sem escudo**.
 
 ## ⚠️ Os dois detalhes que estragam a imagem se escaparem
 
