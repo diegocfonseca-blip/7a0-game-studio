@@ -1641,7 +1641,11 @@ function Duvidas() {
   ]
   return (
     <>
-      <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-4 mb-2.5" style={OSWALD}>❓ Dúvidas de quem joga</p>
+      {/* ␣ RESPIRO (Diego 21/08: *"dê um espaço bom pra não ficar colado"*): as
+          Dúvidas são OUTRO assunto, não a continuação das regras — então ganham
+          um fio separando e bastante ar antes. */}
+      <div className="mt-7 pt-6" style={{ borderTop: '2.5px solid rgba(12,12,12,.14)' }}>
+        <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>❓ Dúvidas de quem joga</p>
       <div className="space-y-2">
         {QA.map(([q, a], i) => (
           <div key={i} className="border-[2.5px] border-black rounded-xl bg-white overflow-hidden" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
@@ -1655,6 +1659,7 @@ function Duvidas() {
             )}
           </div>
         ))}
+        </div>
       </div>
     </>
   )
@@ -2089,7 +2094,7 @@ function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: bool
               <PassoLinha n={5} ic="🃏" titulo="Fecha os 11 no Monte">Sobrou jogador sem dono? Na sua vez você pega <b>de graça</b>, até fechar o time.</PassoLinha>
               <PassoLinha n={6} ic="⚽" titulo="O campeonato roda">38 rodadas em uns 3 minutos, com o placar subindo ao vivo. Campeão leva <b>uma carta</b> pro álbum.</PassoLinha>
             </div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-4 mb-2.5" style={OSWALD}>Onde dá pra jogar isso</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-6 mb-2.5" style={OSWALD}>Onde dá pra jogar isso</p>
             <div className="space-y-2">
               <PassoLinha ic="⚡" titulo="Rápido (offline)">Você contra a CPU. Uma temporada só — liga + Copa dos 8. Bom pra pegar o jeito.</PassoLinha>
               <PassoLinha ic="👥" titulo="Rápido (online)">Mesma coisa, mas os lances são dos seus amigos na sala. Até 20 no mesmo pregão.</PassoLinha>
