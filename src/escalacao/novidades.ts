@@ -26,6 +26,8 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-08-21', emoji: '🪜', titulo: 'Carreira com menu embaixo', texto: 'No Modo Carreira: Jogos, Tabelas, Elenco, Rank e Clube saíram do meio da página e viraram um menu fixo no rodapé — role até onde rolar, você troca de aba na hora e continua vendo rodada, posição e caixa numa faixa fina no topo.' },
+  { data: '2026-08-21', emoji: '🤝', titulo: 'Patrocínio mais direto', texto: 'No Modo Carreira: a escolha do patrocínio virou dois toques — primeiro a meta da temporada, depois a marca que estampa a camisa — e a tabela de quanto cada divisão paga foi pra aba Clube › Patrocínio.' },
   { data: '2026-08-20', emoji: '🏠', titulo: 'Home nova, com menu embaixo', texto: 'A tela de abertura ficou mais limpa: um menu fixo no rodapé (Início, Regras, Álbum, Ranking, Apoiar) e o passo a passo de como funciona uma partida, pra quem está chegando agora entender o jogo sem precisar perguntar.' },
   { data: '2026-08-20', emoji: '🌎', titulo: 'Libertadores', texto: 'No Rápido (online e contra a CPU): escolha "Liga + Liberta" e, quando a liga acabar, os 8 primeiros entram numa Libertadores de 32 clubes — 8 grupos de 4, passam 2, e a final é jogo único.' },
   { data: '2026-08-17', emoji: '🏅', titulo: 'Ranking agora é por pontos', texto: 'No Modo Carreira: Copa do Mundo vale 200, Copa do Brasil 30, Série A 20, Supercopa 15, B 10, C 5, D 3 e Várzea 1 — quem tem mais título soma mais, e a coluna PTS mostra a conta.' },
