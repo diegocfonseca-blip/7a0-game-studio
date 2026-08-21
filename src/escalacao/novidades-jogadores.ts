@@ -6,6 +6,20 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
+    "nome": "Cléber Santana",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-08-21"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Bruno Rangel",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-08-21"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Follmann",
     "baralho": "BR",
     "nivel": "foi profissional",

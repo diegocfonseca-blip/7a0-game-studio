@@ -1182,9 +1182,11 @@ const NOVOS_BR_MEI: C[] = [
   { name: 'Élvis', club: 'Santo André', year: 2004, fame: 2, lo: 66, hi: 80, bio: 'Meia-maestro do Santo André — cérebro da campanha histórica que levou o clube do ABC ao título da Copa do Brasil de 2004.' },
   { name: 'Tchê Tchê', club: 'Palmeiras', year: 2016, fame: 2, lo: 66, hi: 80, bio: 'Volante/meia brasileiro de fôlego e boa saída de bola — peça do Palmeiras campeão brasileiro de 2016; também passou por São Paulo e Botafogo.' },
   { name: 'Douglas Barriga de Cadela', club: 'Corinthians', year: 2014, fame: 1, lo: 52, hi: 68, folk: true, bio: 'O meia que a Fiel judiava pela forma física — ganhou o apelido cruel e virou meme eterno da arquibancada.' },
+  { name: 'Cléber Santana', club: 'Chapecoense', year: 2016, fame: 3, lo: 76, hi: 84, bio: 'A braçadeira da Chape de 2016. Meia de passe e liderança, subiu do Sport pro Santos, o São Paulo, o Flamengo e o Atlético de Madrid — e escolheu Chapecó pra ser capitão. Eterno.' },
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: "Marcelo Ramos", club: "Cruzeiro", year: 1997, fame: 3, lo: 76, hi: 86, bio: "O Matador — centroavante goleador e quinto maior artilheiro do Cruzeiro, campeão da Libertadores de 1997." },
+  { name: "Bruno Rangel", club: "Chapecoense", year: 2016, fame: 3, lo: 76, hi: 85, bio: "O maior artilheiro da história da Chapecoense. Artilheiro da Série B de 2013 com 31 gols, largou o dinheiro do Catar pra voltar e dar alegria pro povo de Chapecó. Goleador eterno do Verdão do Oeste. 💚" },
   { name: "Biel", club: "Bahia", year: 2023, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e gols que renderam a ida ao Sporting de Portugal." },
   { name: "Pimpão", club: "Botafogo", year: 2016, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado (Rodrigo Pimpão) — faro de gol e cabeceio, xodó folclórico no Botafogo e no Vasco." },
   { name: "Kieza", club: "Bahia", year: 2015, fame: 2, lo: 64, hi: 82, bio: "Centroavante artilheiro do Nordeste — goleador por Bahia, Botafogo e ABC." },
