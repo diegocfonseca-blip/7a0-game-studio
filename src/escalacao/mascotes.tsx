@@ -13,6 +13,7 @@ import arrudaCobraImg from './img/arruda-mascote.webp'
 import coringasMascoteImg from './img/coringas-mascote.webp'
 import ferrariMascoteImg from './img/ferrari-mascote.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import nataMascoteImg from './img/nata-mascote.webp' // 🤡 Nata de SP (pedrinhocamisa8): arte própria do dono
+import theuzudoMascoteImg from './img/theuzudo-mascote.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
@@ -500,6 +501,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   ),
   // 🤡🟡⚫ o PALHAÇO (mascote do Nata de SP — pedrinhocamisa8, aprovado 17/08):
   // arte própria do dono (webp, fora do bundle). mascote_key = "nata_palhaco".
+  // 🦇 Theuzudo FC — o morcego de boné (coração Valência, laranja e preto).
+  // arte própria do dono (webp, fora do bundle). mascote_key = "theuzudo_morcego".
+  // 264x351 no arquivo: a 176px de altura ele fica no tamanho certo, sem esticar.
+  theuzudo_morcego: (
+    <img src={theuzudoMascoteImg} height={176} width={Math.round(176 * 264 / 351)} alt="Theuzinho — Theuzudo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   nata_palhaco: (
     <img src={nataMascoteImg} height={176} width={Math.round(176 * 369 / 440)} alt="O Palhaço — Nata de SP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -735,6 +742,9 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Seven City': 'sete_seven', // 7️⃣ o Seven City carimba com o SETE (mockup aprovado), não com o leão
   'Coringas do Diniz': 'coringa_diniz', // 🃏 o coringa carimba o placar (16/08)
   'Nata de SP': 'nata_palhaco', // 🤡 o palhaço carimba o placar (pedrinhocamisa8, 17/08)
+  'Theuzudo FC': 'theuzudo_morcego', // 🦇 o morcego carimba o placar (matheusfilipealves, 21/08)
+  'Theuzudo': 'theuzudo_morcego',
+  'Theuzudo EC': 'theuzudo_morcego',
   'Skyy FC': 'skyy_aguia', // 🦅 a águia carimba o placar (matheusncruz1, 17/08)
   'Crias do Bigão': 'bigao', // 🧢 o Bigão carimba o placar (giovannecastro784, 17/08)
   'Futpoint FC': 'futpoint_bola', // 📍 o Pontinho carimba o placar (gfpicolo13, 19/08) — RESERVA DE NOME (sócio, não batismo)
@@ -758,6 +768,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   eros_nina: 'Nina',           // 🐶 Eros FC — a cachorrinha do dono
   maite: 'Maitê',              // 💚 Desportivo Montreal — homenagem à filha do Gabriel
   nata_palhaco: 'O Palhaço',   // 🤡 Nata de SP (pedrinhocamisa8, 17/08)
+  theuzudo_morcego: 'Theuzinho', // 🦇 Theuzudo FC (matheusfilipealves, 21/08)
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
@@ -794,6 +805,7 @@ export const carimboDoTime = (time: string): ReactNode | null => {
 export const CARIMBO_ANIM: Record<string, string> = {
   skyy_aguia: 'coVoa',        // 🦅 mergulha de cima e sobe planando de volta
   nata_palhaco: 'coQuica',    // 🤡 entra quicando, gingando pros dois lados
+  theuzudo_morcego: 'coVoa',  // 🦇 morcego: mergulha de cima e sobe planando
   cobra_arruda: 'coRasteja',  // 🐍 entra rastejando pelo lado, ondulando
   coringa_diniz: 'coCarta',   // 🃏 vira no ar como carta sendo dada na mesa
   sapek_abelha: 'coZumbe',    // 🐝 chega vibrando, parando no ar

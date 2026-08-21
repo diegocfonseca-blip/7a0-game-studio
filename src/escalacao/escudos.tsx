@@ -22,6 +22,7 @@ import sapekEscudoImg from './img/sapek-escudo.webp'
 import arrudaEscudoImg from './img/arruda-escudo.webp'
 import coringasEscudoImg from './img/coringas-escudo.webp'
 import nataEscudoImg from './img/nata-escudo.webp'
+import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
 import futpointEscudoImg from './img/futpoint-escudo.webp'
@@ -474,6 +475,10 @@ const futpointEscudoRender = (size: number) => (
 // amarelo/preto com o palhaço e faixas de risco; arte enviada pelo próprio dono,
 // aqui só tiramos o fundo quadriculado falso, cortamos no limite do desenho e
 // reduzimos (o escudo nunca passa de 78px na tela).
+// 🦇 Theuzudo FC — morcego (coração Valência), laranja e preto. 293x360 no arquivo.
+const theuzudoEscudoRender = (size: number) => (
+  <img src={theuzudoEscudoImg} height={size} width={Math.round(size * 293 / 360)} alt="Theuzudo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const nataEscudoRender = (size: number) => (
   <img src={nataEscudoImg} height={size} width={Math.round(size * 312 / 360)} alt="Nata de SP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -569,6 +574,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Coringas do Diniz FC': coringasEscudoRender,
   // 🤡🟡⚫ Nata de SP (pedrinhocamisa8) — ex-Paris São Geraldo, Série D. O nome
   // velho fica registrado: quem já tinha carreira com o Paris não fica sem escudo.
+  // 🦇🟠⚫ Theuzudo FC (matheusfilipealves) — ex-Comercial do Norte, Série B. O nome
+  // velho fica registrado: quem já tinha carreira com o Comercial não fica sem escudo.
+  'Theuzudo FC': theuzudoEscudoRender,
+  'Theuzudo': theuzudoEscudoRender,
+  'Theuzudo EC': theuzudoEscudoRender,
+  'Comercial do Norte': theuzudoEscudoRender,
   'Nata de SP': nataEscudoRender,
   'Nata de SP FC': nataEscudoRender,
   // 🦅🩵 Skyy FC (matheusncruz1) — ex-Fortuna SAF, Série D. O nome velho fica

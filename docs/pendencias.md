@@ -1,39 +1,25 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
-## 🛡️ BATISMO EM ANDAMENTO — Theuzudo FC (21/08)
-Dono: **matheusfilipealves@hotmail.com** · vira **sócio + fundador** (ouro 👑 +
-o próximo `FUNDADOR_N`), como manda a regra de 17/08.
+## ✅ BATISMO ENTREGUE — Theuzudo FC (21/08)
+Dono **matheusfilipealves@hotmail.com** · 👑 ouro + **fundador nº47** · entrou na
+**Série B no lugar do Comercial do Norte** (técnico "Nortista" fica).
+Mascote: **Theuzinho**, morcego de boné (coração Valência), animação `coVoa`.
+Manto: **laranja `#F06000` e preto**, medidos NA ARTE que o dono mandou.
+Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB**
+(teto 75). Nome reservado no banco nas 4 formas.
 
-**Decidido com o Diego:**
-- Entra na **Série B**, no lugar do **Comercial do Norte** (técnico "Nortista").
-- Time de coração dele: **Valência** → mascote **morcego**, no estilo do morcego
-  do Valência, mas em **laranja e preto**.
-- Ele quer **algo da Paraíba no escudo**.
-- 🎽 No post vai **SÓ A FRENTE** da camisa — o Diego pediu pra tirar a traseira
-  ("remove essa camisa traseira"). A arte que o dono mandou tem frente + costas
-  na mesma imagem; recortar só a frente pra `scripts/kits/`.
-- Formato: padrão do **Coringas do Diniz** + **mockup padrão**
-  (`scripts/mockup-batismo.mjs`, com a seção das animações).
+⚠️ **Dois consertos que EU tive que fazer na arte, e o Diego precisa saber:**
+1. O escudinho do peito da camisa vinha com o texto **embolado**
+   ("FRIGCINIATE"). Cobri com o escudo GRANDE dele, reduzido — arte do próprio
+   dono, nada inventado.
+2. Minha limpeza do xadrez **comeu as letras brancas** do escudo (o Diego pegou:
+   *"o d e o tá preenchido branco"*). Virou regra no CLAUDE.md: conferir arte
+   recortada sobre FUNDO COLORIDO, nunca sobre branco.
 
-**✅ Já feito:** nome reservado no banco — `esc_nomes_batismo` recebeu
-`theuzudo`, e o gatilho criou sozinho `theuzudo fc` e `theuzudo ec`. As 4 formas
-estão travadas (a chave é minúscula, então caixa não importa).
-
-**⛔ TRAVADO ESPERANDO A ARTE.** A imagem colada no chat **não vira arquivo no
-disco** desta sessão — dá pra ver, não dá pra abrir os pixels. Sem o arquivo não
-tem como recortar/comprimir dentro do teto (escudo 360px/≤30 KB · mascote
-440px/≤45 KB). Caminho combinado: o Diego sobe o PNG no GitHub e avisa.
-
-**Quando o arquivo chegar, falta:** recortar escudo + mascote (limpeza do
-quadriculado em DOIS passes) · medir as 2 cores do manto NA ARTE · `LOGOS_PRONTAS`
-· `MASCOTES` + `MASCOTE_NOME` + `CARIMBO_GOL` · `data.ts` (`OLD_NAME` +
-Série B) · `apoio.tsx` · rodar o mockup e mandar pro Diego.
-
-**❓ Duas dúvidas abertas com ele:**
-1. O escudo da arte está **vermelho/amarelo** (Valência) e a camisa **laranja/preto**
-   (o que ele pediu). São dois esquemas. Manto do jogo: laranja/preto?
-2. O texto na camisa parece dizer outra coisa que não "Theuzudo FC" — conferir no
-   tamanho real antes de commitar, porque isso vai pro post.
+❓ **Fica anotado, sem resposta ainda:** o escudo é **vermelho/amarelo**
+(Valência) e o manto **laranja/preto**; o Diego falou em **Paraíba** (vermelho e
+preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
+alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
 ## 👑 REGRA NOVA (21/08): a coroa não troca sozinha
 Depois do conserto do crachá, o Diego fechou a regra: *"eu não quero q ng

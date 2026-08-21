@@ -118,6 +118,13 @@ FORA do bundle. Então, sem exceção:
      (entre pernas, alças, vãos fechados). Só apagar região que tenha os **dois
      tons** do xadrez, senão pena/pelo cinza do bicho some junto. Aconteceu no
      Skyy FC: sobrou um retângulo cinza entre as pernas da águia.
+   - 🔍 **CONFERIR A ARTE RECORTADA SOBRE FUNDO COLORIDO, NUNCA SOBRE BRANCO**
+     (erro que o Diego pegou no Theuzudo FC, 21/08). A limpeza comeu as LETRAS
+     BRANCAS do escudo — o "D" e o "O" viraram buraco transparente. Sobre fundo
+     branco isso é **invisível**; no jogo, com fundo creme, apareceria o furo.
+     Vale pro branco todo do desenho: contorno, bola, dente, olho. Regra do
+     passe 2: só é xadrez se tiver fatia GORDA dos DOIS tons (branco **e** o
+     cinza ~206) — letra branca não tem cinza, então nunca mais é apagada.
 
 ## 📁 Mapa do código
 - `src/escalacao/` — o jogo todo: `store.tsx` (estado/reducer/online),
