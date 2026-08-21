@@ -26,7 +26,7 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho } from './sport'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
@@ -4250,6 +4250,83 @@ function CaixaRecibos({ titulo, children }: { titulo: string; children: React.Re
     </div>
   )
 }
+// ─── 🏆 TELA DE DESFECHO DA TEMPORADA (21/08) ───────────────────────────────
+// UMA tela, UM toque. Antes disto: o campeão tinha uma faixa dourada de uma
+// linha; quem SUBIA ou CAÍA de divisão não tinha NADA — descobria pela setinha
+// ▲/▼ na tabela. A tela só CONTA o que já aconteceu: nenhum prêmio, nenhuma
+// regra e nenhum número mudam.
+// ⚠️ De propósito NÃO é uma sequência de telinhas: seria 5 toques pra ver o que
+// hoje aparece de uma vez, e a regra de ouro do Diego é que nada atrasa o ritmo.
+type DesfechoTipo = 'campeao' | 'acesso' | 'queda' | 'ficou'
+const DESF: Record<DesfechoTipo, { titulo: string; grad: string; escuro: string; cor: string; sub: (p: number) => string }> = {
+  campeao: { titulo: 'CAMPEÃO!', grad: 'linear-gradient(160deg,#FFD250,#B37E00)', escuro: '#6b4c00', cor: '#fff', sub: () => 'Levantou a taça — e ainda subiu de divisão' },
+  acesso: { titulo: 'ACESSO!', grad: 'linear-gradient(160deg,#1F8C4A,#0d3f21)', escuro: '#123d24', cor: GOLD, sub: p => `Terminou em ${p}º lugar e subiu de divisão` },
+  // 🙅 nada de zoar quem caiu (decisão minha, avisada ao Diego): vermelho, curto
+  // e uma frase de virada. Zoeira é a alma do jogo, mas não em cima da derrota.
+  queda: { titulo: 'CAIU', grad: 'linear-gradient(160deg,#C2452F,#5e1c12)', escuro: '#5e1c12', cor: '#FFD9D2', sub: p => `Terminou em ${p}º lugar. Ano que vem a gente volta.` },
+  ficou: { titulo: 'TEMPORADA FECHADA', grad: 'linear-gradient(160deg,#3a352c,#16130e)', escuro: '#16130e', cor: GOLD, sub: p => `Terminou em ${p}º lugar e segue na divisão` },
+}
+function LinhaLevou({ ic, txt, val, cor }: { ic: string; txt: string; val: string; cor: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 13px', borderTop: '1.5px solid rgba(255,255,255,.14)' }}>
+      <span style={{ fontSize: 15 }}>{ic}</span>
+      <span style={{ flex: 1, ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#fff' }}>{txt}</span>
+      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12, color: cor, whiteSpace: 'nowrap' }}>{val}</span>
+    </div>
+  )
+}
+function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, torcidaPara, onFechar }: {
+  tipo: DesfechoTipo; time: string; de: string; para: string; pos: number; temporada: number
+  levou: { ic: string; txt: string; val: string; bom: boolean }[]; torcidaDe: number; torcidaPara: number; onFechar: () => void
+}) {
+  const d = DESF[tipo]
+  const mudou = de !== para
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+      <div style={{ width: '100%', maxWidth: 392, maxHeight: '92vh', overflowY: 'auto', border: `4px solid ${INK}`, borderRadius: 20, background: '#F4ECD6', boxShadow: `5px 5px 0 0 ${INK}`, overflowX: 'hidden' }}>
+        <div style={{ background: d.grad, padding: '20px 14px 0', color: '#fff', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          {/* listras do manto, mesma linguagem do jogo — 0 KB */}
+          <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(110deg,rgba(255,255,255,.05) 0 8px,transparent 8px 30px)' }} />
+          <div style={{ position: 'relative' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.12em', color: 'rgba(255,255,255,.6)', margin: 0 }}>TEMPORADA {temporada} ENCERRADA</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: tipo === 'ficou' ? 27 : 42, lineHeight: 1, margin: '5px 0 0', color: d.cor, textShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{d.titulo}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '6px 0 0' }}>{d.sub(pos)}</p>
+            {mudou ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 11, margin: '14px 0 4px' }}>
+                <span style={{ border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, padding: '6px 13px', ...OSWALD, fontWeight: 900, fontSize: 14, color: 'rgba(255,255,255,.6)' }}>{de}</span>
+                <span style={{ fontSize: 24, lineHeight: 1 }}>{tipo === 'queda' ? '⬇️' : '⬆️'}</span>
+                {/* fundo dourado do campeão pede pílula branca — dourado no dourado some */}
+                <span style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 13px', ...OSWALD, fontWeight: 900, fontSize: 17, background: tipo === 'acesso' ? GOLD : '#fff', color: INK, boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{para}</span>
+              </div>
+            ) : (
+              <div style={{ margin: '13px 0 4px' }}>
+                <span style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 14px', ...OSWALD, fontWeight: 900, fontSize: 16, background: GOLD, color: INK, boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{para}</span>
+              </div>
+            )}
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: 0, padding: '0 0 14px' }}>{time}</p>
+          </div>
+        </div>
+        {(levou.length > 0 || torcidaDe !== torcidaPara) && (
+          <div style={{ background: d.escuro, padding: '2px 0 8px' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: '.1em', color: 'rgba(255,255,255,.45)', margin: 0, padding: '8px 13px 2px' }}>O QUE VOCÊ LEVOU</p>
+            {levou.map(l => <LinhaLevou key={l.txt} ic={l.ic} txt={l.txt} val={l.val} cor={l.bom ? '#7BE59B' : '#FFB1A2'} />)}
+            {torcidaDe !== torcidaPara && (
+              <LinhaLevou ic="🎪" txt="Torcida" val={`${torcidaDe}% → ${torcidaPara}%`} cor={torcidaPara >= torcidaDe ? '#7BE59B' : '#FFB1A2'} />
+            )}
+          </div>
+        )}
+        <div style={{ padding: '11px 12px 13px', borderTop: `3px solid ${INK}` }}>
+          <button onClick={onFechar}
+            style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, background: GREEN, color: '#fff', padding: 12, ...OSWALD, fontWeight: 900, fontSize: 15, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>
+            ▶️ Continuar
+          </button>
+          <p style={{ textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.4)', margin: '7px 0 0' }}>Um toque e você cai no jornal e na decisão da próxima temporada.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // 👉 selo da decisão da vez — a ÚNICA coisa em vermelho na tela
 function SeloSuaVez({ texto }: { texto: string }) {
   return (
@@ -5106,6 +5183,43 @@ export function PyramidSeasonScreen() {
   // MOMENTO SAGRADO: pênalti decisivo, intervalo, Copa rolando e festa de
   // campeão tomam a tela inteira — a barra e a faixa somem, nada disputa com o
   // jogo. Fora disso, elas ficam sempre à mão.
+  // ─── 🏆 desfecho da temporada (só a conta do Diego por enquanto) ───────────
+  // Só entra DEPOIS que tudo acabou de verdade (liga + copas + a festa do
+  // mascote do campeão): nada pode aparecer por cima do jogo rolando.
+  const telaDesfechoOk = useTelaDesfecho()
+  const desfecho = useMemo(() => {
+    if (!done || !me) return null
+    const tm = (tables[me.div] ?? []).find(t => t.you)
+    if (!tm) return null
+    const nova = (computePromotions(tables)[teamKey(tm)] ?? me.div) as Div
+    const subiu = DIV_RANK[nova] > DIV_RANK[me.div]
+    const caiu = DIV_RANK[nova] < DIV_RANK[me.div]
+    const tipo: DesfechoTipo = me.champ ? 'campeao' : subiu ? 'acesso' : caiu ? 'queda' : 'ficou'
+    return { tipo, de: DIV_NAME[me.div], para: DIV_NAME[nova], pos: me.pos, time: tm.name }
+  }, [done, me, tables])
+  const desfKey = `esc-desfecho-${state.seed}-${state.seasonNo}`
+  const [desfechoOn, setDesfechoOn] = useState(false)
+  const podeDesfecho = telaDesfechoOk && !!desfecho && done && copaFinished && !copaPlaying && !festaOnC
+  useEffect(() => {
+    if (!podeDesfecho) return
+    try { if (sessionStorage.getItem(desfKey) === '1') return } catch { /* segue */ }
+    setDesfechoOn(true)
+  }, [podeDesfecho, desfKey])
+  const fecharDesfecho = () => { setDesfechoOn(false); try { sessionStorage.setItem(desfKey, '1') } catch { /* segue */ } }
+  // "o que você levou": lido do EXTRATO da temporada que acabou (mesmos números
+  // de Clube › Finanças — nada é recalculado aqui, só contado).
+  const levou = useMemo(() => {
+    if (state.booksSeason !== state.seasonNo) return []
+    const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo)
+    const soma = (k: string) => led.filter(e => e.kind === k).reduce((n, e) => n + e.amount, 0)
+    const linhas: { ic: string; txt: string; val: string; bom: boolean }[] = []
+    const add = (ic: string, txt: string, v: number) => { if (v !== 0) linhas.push({ ic, txt, val: `${v > 0 ? '+' : ''}${v} 🪙`, bom: v > 0 }) }
+    add('🏅', 'Premiação da temporada', soma('reward'))
+    add('🎟️', 'Bilheteria', soma('gate'))
+    add('🛡️', 'Patrocínio', soma('sponsor'))
+    add('💸', 'Salários', soma('salary'))
+    return linhas
+  }, [state.booksSeason, state.seasonNo, state.careerLedger])
   const barraCarr = useBarraCarreira()
   // 🔴 tem recibo esperando no Clube? (patrocínio pago na virada · fechamento do
   // caixa no fim da temporada). Some assim que a pessoa abre a aba Clube, e
@@ -5135,6 +5249,11 @@ export function PyramidSeasonScreen() {
           texto={done ? 'Encerrada' : round === 0 ? 'Começando…' : `Rodada ${round}/38`} />
       )}
       {barraOn && <BarraCarreira tab={tab} setTab={setTab} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} />}
+      {desfechoOn && desfecho && (
+        <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
+          temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
+          onFechar={fecharDesfecho} />
+      )}
       <div className="max-w-xl mx-auto" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <AvisoContaCarreira />

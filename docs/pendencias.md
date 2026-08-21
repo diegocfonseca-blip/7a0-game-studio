@@ -1,5 +1,40 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 🏆 TELA DE DESFECHO DA TEMPORADA (opção 5) — só a conta do Diego (21/08)
+Mockup `scripts/mockup-fim-temporada.mjs`, resposta dele: *"ok pode fazer tb"*.
+`sport.ts` · `useTelaDesfecho` / `FIMTEMP_GERAL` (hoje `false`).
+
+**O achado que motivou:** quando a temporada fecha, o CAMPEÃO ganha uma faixa
+dourada de uma linha (`pyramidseason.tsx:5213`) + a carta; quem **SOBE** de
+divisão não ganha **NADA** e quem **CAI** não ganha **NADA** — a pessoa descobre
+pela setinha ▲/▼ na tabela. O jogo é uma pirâmide de 5 divisões: subir é a razão
+de existir do Modo Carreira e não tinha momento nenhum.
+
+**O que foi feito:** `TelaDesfecho` — UMA tela sobreposta, UM toque, com o
+desfecho grande, de onde saiu → pra onde vai e "o que você levou" (premiação ·
+bilheteria · patrocínio · salários, lidos do EXTRATO da temporada, mais a
+torcida antes→depois). 4 versões: `campeao` (dourado) · `acesso` (verde) ·
+`queda` (vermelho) · `ficou` (escuro, discreto).
+
+**Só entra quando tudo acabou de verdade:** `done && copaFinished &&
+!copaPlaying && !festaOnC` — nada aparece por cima de jogo rolando nem da festa
+do mascote. Dispensa gravada em `sessionStorage` (`esc-desfecho-<seed>-<temp>`),
+então não volta a cada re-render.
+
+**⚠️ DUAS DECISÕES QUE EU TOMEI SOZINHO (ele mandou fazer sem responder):**
+1. **QUEDA = respeito, não zoeira.** Vermelho, curto, "Ano que vem a gente
+   volta". Zoeira é a alma do jogo, mas não em cima da derrota do cara. Trocar é
+   uma linha no `DESF.queda.sub`.
+2. **"FICOU na divisão" também mostra tela**, mas discreta: fundo escuro, título
+   menor ("TEMPORADA FECHADA"), sem seta. Pular direto = `if (tipo === 'ficou')
+   return null` no `podeDesfecho`.
+
+**De propósito NÃO é uma sequência de telinhas** — seriam 5 toques pra ver o que
+hoje aparece de uma vez, contra a regra de ouro dele (nada atrasa o ritmo).
+
+✅ As 4 versões fotografadas no navegador. ⏳ **Falta:** ver rodando numa
+temporada de verdade (o robô não chega até lá) e o Diego dizer se gostou.
+
 ## 🔨 PREGÃO LIMPO (opção 4) — só a conta do Diego (21/08)
 Mockup `scripts/mockup-pregao.mjs`, resposta dele: *"ok pode fazer"*.
 `sport.ts` · `usePregaoLimpo` / `PREGAO_GERAL` (hoje `false`).
