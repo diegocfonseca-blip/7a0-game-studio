@@ -668,6 +668,7 @@ const GOL: C[] = [
   { name: "Denis", club: "São Paulo", year: 2016, fame: 1, lo: 56, hi: 77 },
   { name: "Everson", club: "Atlético-MG", year: 2021, fame: 3, lo: 72, hi: 84, bio: "Paredão e pegador de pênaltis do Galo campeão de tudo em 2021 — segurança que virou ídolo." },
   { name: "Danilo (Chape)", club: "Chapecoense", year: 2016, fame: 3, lo: 72, hi: 84, bio: "Goleiro-herói da Chapecoense na campanha mágica da Sul-Americana de 2016 — pegou o pênalti que levou o time à final. Homenagem eterna." },
+  { name: "Follmann", club: "Chapecoense", year: 2016, fame: 1, lo: 52, hi: 76, bio: "Goleiro da Chape e um dos sobreviventes de 2016. Perdeu a perna direita e a carreira aos 24 anos, mas nunca perdeu a voz: hoje canta, e leva o Verdão do Oeste pra onde vai. Vamos, Chape. 💚" },
   { name: "Felipe", club: "Corinthians", year: 2009, fame: 3, lo: 63, hi: 83, bio: "Goleiro de reflexo firme e saída segura, com passagens marcantes por Corinthians (o auge) e Flamengo — confiança embaixo das traves." },
   { name: "Carlos Miguel", club: "Corinthians", year: 2024, fame: 2, lo: 70, hi: 84, bio: "Goleirão de reflexo e presença na área — teve seu auge no Corinthians em 2024 antes de rumar ao futebol inglês." },
   { name: "Marcelo Boeck", club: "Fortaleza", year: 2019, fame: 1, lo: 58, hi: 80, bio: "Goleiro rodado e seguro — regularidade que marcou passagens por Sporting, Chapecoense e o Fortaleza da elite." }
@@ -1184,7 +1185,6 @@ const NOVOS_BR_MEI: C[] = [
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: "Marcelo Ramos", club: "Cruzeiro", year: 1997, fame: 3, lo: 76, hi: 86, bio: "O Matador — centroavante goleador e quinto maior artilheiro do Cruzeiro, campeão da Libertadores de 1997." },
-  { name: "Everaldo", club: "Chapecoense", year: 2019, fame: 2, lo: 64, hi: 82, bio: "Atacante de briga e faro de gol — explodiu na Chapecoense de 2019 (19 gols) antes de brilhar no Bahia." },
   { name: "Biel", club: "Bahia", year: 2023, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e gols que renderam a ida ao Sporting de Portugal." },
   { name: "Pimpão", club: "Botafogo", year: 2016, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado (Rodrigo Pimpão) — faro de gol e cabeceio, xodó folclórico no Botafogo e no Vasco." },
   { name: "Kieza", club: "Bahia", year: 2015, fame: 2, lo: 64, hi: 82, bio: "Centroavante artilheiro do Nordeste — goleador por Bahia, Botafogo e ABC." },
