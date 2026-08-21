@@ -7660,3 +7660,29 @@ ficam como estão, sem renomear:
   do próprio dono).
 Não reabrir esses dois sem ele pedir. A trava nova já impede que apareçam NOVOS
 casos — estes dois são de antes dela.
+
+---
+
+## ✅ 21/08 — Desempate das tabelas: VITÓRIA antes do saldo
+
+Usuário (Guilherme) mandou print do Modo Carreira: três times com **68 pontos**,
+e a tabela colocou em 1º quem tinha **19 vitórias e saldo 32**, na frente de
+quem tinha **20 vitórias e saldo 25**. Palavras do Diego: *"Tá errado esse 2º
+lugar… o desempate tem q ser qm tem mais vitórias. E dps é por gols. E não gol
+primeiro não"* — e vale pra **qualquer tabela do jogo**.
+
+Regra oficial agora, em TODA classificação:
+**1º pontos · 2º mais vitórias · 3º saldo de gols · 4º gols marcados.**
+
+Quatro tabelas estavam pulando a vitória e já foram corrigidas:
+- `pyramidseason.tsx` → `sortDiv` (Modo Carreira — a da foto)
+- `careeronline.tsx` → `sortDiv` (carreira online antiga)
+- `pyramid.tsx` → `sortSim` (pirâmide simulada)
+- `dinastia.tsx` → `sortTable` (Dinastia; o sorteio aleatório continua por último)
+
+Já estavam certas (não mexer): `store.tsx` (liga e grupos da Libertadores do
+Rápido), `screens.tsx` (tabela do Rápido) e `copa-mundo.tsx` (grupos da Copa).
+
+⚠️ Isso muda a ORDEM de tabelas de carreiras já em andamento (G4, Z4, acesso).
+É de propósito: a tabela passa a mostrar o que sempre deveria. Não é novidade de
+home — é conserto.

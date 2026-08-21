@@ -194,7 +194,8 @@ function playRound(c: Career): { world: Record<Div, Team[]>; last: Record<Div, M
   }
   return { world, last: res }
 }
-function sortDiv(ts: Team[]) { return [...ts].sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf) }
+// desempate: pontos · MAIS VITÓRIAS · saldo · gols marcados (regra do Diego 21/08)
+function sortDiv(ts: Team[]) { return [...ts].sort((x, y) => y.pts - x.pts || y.w - x.w || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf) }
 
 function pickScorers(world: Record<Div, Team[]>, deck: DeckChoice, seed: number): Scorer[] {
   const cat = deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : CATALOG

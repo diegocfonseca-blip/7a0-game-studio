@@ -143,7 +143,8 @@ function simFixtures(teams: SimTeam[], div: Division, rng: () => number, scorers
     if (hg > ag) { H.pts += 3; H.w++; A.l++ } else if (ag > hg) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
   }
 }
-const sortTable = (t: SimTeam[], rng: () => number) => t.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || rng() - 0.5)
+// desempate: pontos · MAIS VITÓRIAS · saldo · gols marcados (regra do Diego 21/08)
+const sortTable = (t: SimTeam[], rng: () => number) => t.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || rng() - 0.5)
 
 // ─── mundo fixo ──────────────────────────────────────────────────────
 interface WTeam { name: string; div: Division; squad: PoolCard[]; rival?: boolean; coins?: number }

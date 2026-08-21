@@ -705,7 +705,11 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     }
   }
 }
-export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
+// desempate (regra do Diego 21/08, vale pra TODA tabela do jogo):
+// 1º pontos · 2º MAIS VITÓRIAS · 3º saldo de gols · 4º gols marcados.
+// Vitória vem ANTES do saldo: quem venceu mais jogos fica na frente de quem
+// empatou muito e goleou pouca gente.
+export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
 export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {

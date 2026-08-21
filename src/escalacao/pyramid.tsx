@@ -57,7 +57,8 @@ function simDivTo(seed: number, div: Div, round: number): Sim[] {
   }
   return teams
 }
-function sortSim(ts: Sim[]) { return [...ts].sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf) }
+// desempate: pontos · MAIS VITÓRIAS · saldo · gols marcados (regra do Diego 21/08)
+function sortSim(ts: Sim[]) { return [...ts].sort((x, y) => y.pts - x.pts || y.w - x.w || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf) }
 
 // artilheiros das divisões de CPU (nomes do baralho, gols ~ proporção dos gols do time)
 interface Goal { name: string; team: string; div: 'A' | 'B' | 'C' | 'D'; goals: number }
