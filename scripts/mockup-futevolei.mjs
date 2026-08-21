@@ -41,6 +41,12 @@ const LOGO = arg('--logo', null)
 const CONTAS = arg('--contas', '—')
 const RECORDE = arg('--recorde', '—')
 const MEDIA = arg('--media', '—')
+// 📄 PDF pra mandar no Direct/WhatsApp: o PNG comprido (quase 8 mil px) é
+// espremido pelos apps e o texto borra justo na hora que o patrocinador abre.
+// No PDF o texto é VETOR — abre nítido em qualquer zoom, e o WhatsApp manda
+// como documento, sem recomprimir. Uma página só, do tamanho do conteúdo,
+// pra nenhum quadro ser cortado no meio.
+const PDF = arg('--pdf', null)
 const logoSrc = LOGO ? `data:image/png;base64,${readFileSync(LOGO).toString('base64')}` : null
 
 // identidade da casa
@@ -323,5 +329,9 @@ await p.goto('file://' + tmp)
 await p.evaluate(() => document.fonts.ready)
 await p.waitForTimeout(600)
 await p.screenshot({ path: SAIDA, fullPage: true })
+if (PDF) {
+  const alt = await p.evaluate(() => document.documentElement.scrollHeight)
+  await p.pdf({ path: PDF, width: '1080px', height: `${alt}px`, printBackground: true, pageRanges: '1' })
+}
 await b.close()
-console.log(SAIDA + (logoSrc ? ' · com logo real' : ' · SEM logo (passe --logo)'))
+console.log(SAIDA + (PDF ? ` + ${PDF}` : '') + (logoSrc ? ' · com logo real' : ' · SEM logo (passe --logo)'))
