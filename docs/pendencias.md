@@ -1,6 +1,20 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
-## 🔴 ABERTO — pílula grudada boiando na tela do intervalo (21/08)
+## ✅ RESOLVIDO — pílula grudada boiando na tela do intervalo (21/08)
+**REPRODUZIDO no navegador e consertado.** A receita exata pra ver o bug (guardar,
+porque vai servir de novo): carreira nova → aba **Elenco** → ligar **"⏸️ Só no
+intervalo"** → escolher meta + marca do patrocínio → **Começar a temporada** →
+**ficar na aba Elenco** e esperar o jogo parar aos 45'. A fileira
+`🎽 TIME | 🕴️ AGENCIADOS` aparece boiando no meio do banner, mais larga que o
+card, escondendo dois jogadores. Medido: com a aba Elenco aberta a fileira ficava
+por cima do banner em TODAS as rolagens testadas (0, 400, 900, 1500, 2200).
+⚠️ O detalhe que quase me enganou: se você TROCA pra aba Elenco depois que o
+intervalo já abriu, o bug NÃO aparece. Só aparece se você já estava lá.
+Conserto aplicado: `grudaOk = subGrudadas && !sagrado`. Falta só religar o portão
+(`PILULAS_GERAL = true`) depois do OK do Diego. O texto abaixo é o diagnóstico
+original, mantido porque explica o porquê.
+
+## 🔴 (histórico) pílula grudada boiando na tela do intervalo (21/08)
 Vídeo de usuário: a fileira **TIME | AGENCIADOS** aparece **no meio da tela**,
 por cima da lista de jogadores do intervalo, quando rola pra cima e pra baixo.
 Palavras do Diego: *"Deu ruim na tela de alguns usuários sobre a pílula aí qd
