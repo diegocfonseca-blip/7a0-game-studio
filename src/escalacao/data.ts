@@ -2312,6 +2312,7 @@ export const OLD_NAME: Record<string, string> = {
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Alfacehh': 'Santos Dumont', // ⚽ batismo do matheus223lms: save antigo com Santos Dumont (ou Tonhão FC) vira Alfacehh ao carregar
+  'Theuzudo FC': 'Comercial do Norte', // ⚽ batismo do matheusfilipealves: save antigo com Comercial do Norte vira Theuzudo FC ao carregar (21/08)
 
   'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
   'White Thigs do GuGu': 'Astronáutico',
@@ -2462,7 +2463,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Seringueiro', team: 'Atlético Seringueiro' },
     { name: 'Tabuleiro', team: 'Real Tabuleiro' },
     { name: 'Mata', team: 'Íbis da Mata' },
-    { name: 'Nortista', team: 'Comercial do Norte' },
+    { name: 'Nortista', team: 'Theuzudo FC' }, // ⚽ clube BATIZADO por apoiador (matheusfilipealves — Theuzudo FC, ex-Comercial do Norte; coração Valência, mascote morcego 🦇, 21/08)
     { name: 'Litorâneo', team: 'Litoral United' },
     { name: 'Ferroviário', team: 'Ferroviário do Sul' },
     { name: 'Serrote', team: 'Serrano FC' },

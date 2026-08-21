@@ -354,8 +354,103 @@ export function useBarraCarreira(): boolean {
   return barraCarrOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email) })
+// ─── 🔨 PREGÃO LIMPO (opção 4) ──────────────────────────────────────────────
+// O pregão é a ÚNICA tela do jogo com relógio (42s), e hoje ela abre com 4
+// quadros de regra antes da primeira carta — cada segundo lendo é um segundo
+// sem dar lance. Com isto ligado:
+//   · moedas · VAGAS · tempo ficam fixos na barra (não rolam com as cartas);
+//   · as regras saem da frente e viram o botão ❓ ao lado do dinheiro;
+//   · o quadro do piso some (a carta já mostra "mín 🔒 7") e o do surpresa
+//     também (a carta já mostra 🎁 com o nome borrado);
+//   · o ensino INTEIRO volta no 1º pregão de CADA CARREIRA (hoje a marca é do
+//     aparelho, então quem começa a 2ª carreira não recebe ensino nenhum).
+// ⚠️ Mexe na ferida que o Diego apontou ("as pessoas não entendem o leilão"):
+// nenhuma regra some, todas ficam a UM toque.
+// ✅ LIBERADO PRA TODOS em 21/08 (*"esses daí pode abrir tb p todos"*). Pra
+// voltar ao teste fechado é `false` — os 4 quadros de regra voltam pra frente
+// das cartas, exatamente como era.
+const PREGAO_GERAL = true
+const PREGAO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let pregaoOk = PREGAO_GERAL
+function applyPregaoUnlock(email?: string | null): void {
+  const u = PREGAO_GERAL || (!!email && PREGAO_TESTERS.has(email.toLowerCase()))
+  if (u === pregaoOk) return
+  pregaoOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function usePregaoLimpo(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return pregaoOk
+}
+
+// ─── 🏆 TELA DE DESFECHO DA TEMPORADA (opção 5) ─────────────────────────────
+// Achado que motivou isto: quando a temporada fecha, o CAMPEÃO ganha uma faixa
+// dourada de uma linha + a carta; quem SOBE de divisão não ganha NADA e quem
+// CAI não ganha NADA — a pessoa descobre olhando a setinha ▲/▼ na tabela. O
+// jogo inteiro é uma pirâmide de 5 divisões: subir é a razão de existir do Modo
+// Carreira e não tinha momento nenhum.
+// Com isto ligado: UMA tela (não uma sequência — a regra do Diego é que nada
+// atrasa o ritmo), UM toque, com o desfecho grande, de onde saiu → pra onde vai
+// e o que a pessoa levou. Nenhum número/prêmio muda: a tela só CONTA.
+// ✅ LIBERADO PRA TODOS em 21/08 (*"esses daí pode abrir tb p todos"*), com o
+// aviso dado a ele de que eu NÃO consegui ver a tela rodando numa temporada de
+// verdade aqui (o robô não joga 38 rodadas). Pra desligar é `false`.
+const FIMTEMP_GERAL = true
+const FIMTEMP_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let fimTempOk = FIMTEMP_GERAL
+function applyFimTempUnlock(email?: string | null): void {
+  const u = FIMTEMP_GERAL || (!!email && FIMTEMP_TESTERS.has(email.toLowerCase()))
+  if (u === fimTempOk) return
+  fimTempOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useTelaDesfecho(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return fimTempOk
+}
+
+// ─── 📌 SUB-ABAS GRUDADAS (sub-abas · rodada 2, "Ideia 1") ──────────────────
+// HISTÓRICO IMPORTANTE PRA NÃO REPETIR ERRO: na 1ª tentativa (21/08) eu troquei
+// as pílulas do Clube/Elenco por uma tirinha fina (só texto + sublinhado) e o
+// Diego REPROVOU: *"ficou meio apagada… não ficou muito clara onde tá a sub aba.
+// Principalmente p quem nunca jogou ainda"*. Ele está certo: pra quem chega
+// agora é o PESO (borda grossa, sombra dura, pílula roxa cheia) que diz "isto é
+// um botão e você está NESTE".
+// Então aqui NADA muda de visual: são as MESMAS pílulas, mesmo tamanho, mesma
+// cor, mesma borda, mesma sombra. A única diferença é que elas GRUDAM no topo e
+// param de sumir na rolagem — que era o problema real (quem descia até o fim das
+// Finanças tinha que rolar tudo de volta pra trocar de sub-aba).
+// ✅ Liberado pra todos em 21/08 (*"perfeito pode fazer p todos já tb em relação
+// às pílulas"*) e 🔴 DESLIGADO no MESMO dia: o Diego recebeu vídeo de usuário com
+// a fileira de pílulas aparecendo NO MEIO da tela do intervalo, por cima da lista
+// de jogadores, ao rolar pra cima e pra baixo. Não é o grudar em si que está
+// errado — é o `position: sticky` sobrevivendo em cima do BANNER DO INTERVALO,
+// que é desenhado ANTES do bloco das abas (linha ~5572 do pyramidseason.tsx) e
+// portanto aparece em QUALQUER aba. Com a aba Elenco/Clube aberta, as pílulas
+// grudadas ficam boiando sobre o banner.
+// Voltar pra `true` só depois de: (1) reproduzir com o banner do intervalo
+// aberto, (2) desligar o grudar enquanto banner de intervalo/pênalti/festa está
+// na tela. Com `false` fica exatamente como era antes: as pílulas rolam junto
+// com o conteúdo e nada boia. Reversível numa linha.
+const PILULAS_GERAL = false
+const PILULAS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let pilulasOk = PILULAS_GERAL
+function applyPilulasUnlock(email?: string | null): void {
+  const u = PILULAS_GERAL || (!!email && PILULAS_TESTERS.has(email.toLowerCase()))
+  if (u === pilulasOk) return
+  pilulasOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useSubAbasGrudadas(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return pilulasOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

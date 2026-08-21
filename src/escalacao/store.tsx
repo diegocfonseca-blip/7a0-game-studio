@@ -7111,6 +7111,24 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // 🪪 MEU CRACHÁ, SEMPRE PREENCHIDO (Diego 21/08 — sala do Braguinha).
+  // O `ch.track` anunciava `uid: state.youUid` lido do CLOSURE do efeito, cujas
+  // dependências não incluem o youUid. Quando o canal assinava antes do crachá
+  // chegar, ia `undefined` — e o `sync` logo abaixo DESCARTA quem não tem uid.
+  // Resultado no banco da sala ao vivo: `presence` com as 5 cadeiras (todo mundo
+  // lá) e `presenceUids` com só 3 crachás. Como a checagem "o dono ainda está na
+  // sala?" olha os CRACHÁS, o host virava "fantasma" sem ter saído do lugar — e
+  // aí um convidado tomava a coroa, o que devolve o envelope de todo mundo
+  // ("dei lance e depois aparece que não dei") e põe dois donos mandando estado
+  // ao mesmo tempo (listagem trocando antes do tempo + erro vermelho).
+  // Agora: lê o valor FRESCO do ref e, se ainda faltar, busca na conta antes de
+  // anunciar presença. Anunciar sem crachá é o que não pode mais acontecer.
+  const meuCracha = useCallback(async (): Promise<string | undefined> => {
+    const local = stateRef.current.youUid
+    if (local) return local
+    try { const { data } = await supabase.auth.getUser(); return data?.user?.id ?? undefined } catch { return undefined }
+  }, [])
+
   // canal realtime quando online
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
@@ -7180,7 +7198,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       rawDispatch({ type: 'SET_PRESENCE', indices, uids })
     })
     ch.subscribe(async () => {
-      await ch.track({ playerIndex: state.youIdx, uid: state.youUid })
+      await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() })
       if (!state.isHost) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
     })
     channelRef.current = ch
@@ -7197,7 +7215,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: stateRef.current.youUid }); resync() }) } catch { /* tenta de novo na próxima volta */ }
+      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }); resync() }) } catch { /* tenta de novo na próxima volta */ }
     }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
     return () => { if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); ch.unsubscribe(); channelRef.current = null }
@@ -7293,7 +7311,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: stateRef.current.youUid }); resync() }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }); resync() }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -7504,20 +7522,45 @@ export function EscProvider({ children }: { children: ReactNode }) {
             const noLeilao = st.screen === 'auction' || st.phase === 'envelope' || st.phase === 'resq_envelope'
             const limiteSumico = noLeilao ? 60_000 : 25_000
             const hostBeatFresh = !!upAt && (Date.now() - new Date(upAt).getTime() < limiteSumico)
-            // (2) 👻 HOST FANTASMA: o host_id aponta pra alguém que NÃO está mais na
-            // sala (fechou o app / caiu / saiu sem passar a coroa — o bug do Diego
-            // 11/08) E o batimento do banco secou (dono realmente sumiu). Elejo um novo
-            // host DETERMINÍSTICO: o MENOR uid presente vira host. Todo aparelho calcula
-            // o mesmo vencedor → exatamente UM assume (sem sorteio, sem dois hosts). O
-            // vencedor grava o host_id e vira autoritativo; os outros recebem o estado dele.
+            // 🚫 A COROA NÃO TROCA SOZINHA — REGRA DO DIEGO (21/08). Palavras dele:
+            // *"eu não quero q ng assuma. Tem q ser sempre o host. Se o host q criou
+            // tem q ser sempre ele sem trocar"*. Depois da noite da sala do Braguinha
+            // ficou claro o porquê: TODA troca automática de dono devolve o envelope
+            // de todo mundo (senão o setor fecharia com lance ZERO), e um falso
+            // positivo — dono dado como sumido sem ter saído — estraga o pregão
+            // inteiro. Entre "a sala para quando o dono some de verdade" e "a sala
+            // embola do nada com o dono ali", o Diego escolheu o primeiro.
+            // O que CONTINUA valendo (não é troca automática, é decisão de gente):
+            //   · o dono aperta SAIR → ele mesmo passa a coroa antes de sair;
+            //   · a posse no banco já é minha (handoff explícito) → eu reassumo,
+            //     que é o caso (1) logo acima e é como o dono legítimo se recupera.
+            // Pra religar a eleição automática um dia: ELEICAO_AUTOMATICA = true.
+            const ELEICAO_AUTOMATICA = false
+            // (2) 👻 HOST FANTASMA (desligado pela regra acima): o host_id aponta pra
+            // alguém que NÃO está mais na sala E o batimento do banco secou. Elegia um
+            // novo host DETERMINÍSTICO: o MENOR uid presente. Todo aparelho calculava o
+            // mesmo vencedor → exatamente UM assumia (sem sorteio, sem dois hosts).
             const present = (stateRef.current.presenceUids ?? []).filter((u2): u2 is string => !!u2)
             const hostPresente = !!hostId && present.includes(hostId)
             const souOEleito = present.length > 0 && [...present].sort()[0] === uid
+            // 🛟 REDE DE SEGURANÇA DO CRACHÁ (Diego 21/08, sala do Braguinha:
+            // *"ele sempre esteve na sala cara, ele nunca saiu"* — e ele tinha
+            // razão). A lista de CADEIRAS (`presence`) trazia as 5 pessoas e a de
+            // CRACHÁS (`presenceUids`) só 3: o dono estava lá, mas sem crachá. Como
+            // o teste acima só olha crachá, ele virava "fantasma" sentado na
+            // cadeira — e perder a coroa devolve o envelope de todo mundo.
+            // Regra nova: se tem MAIS cadeira do que crachá, tem gente na sala que
+            // eu não sei identificar → NÃO dá pra afirmar que alguém sumiu, então
+            // ninguém é destronado. Errar pro lado de manter o dono é sempre mais
+            // barato do que trocar de dono no meio do pregão.
+            const cadeiras = (stateRef.current.presence ?? []).length
+            const crachasCompletos = cadeiras > 0 && present.length >= cadeiras
+            if (!crachasCompletos) { sumicoConfirmadoRef.current = false; return }
             // 🔁 DUAS CONFIRMAÇÕES seguidas (~10s de intervalo) antes de tomar a
             // coroa. Uma leitura só era frágil demais: uma piscada de rede podia
             // esvaziar a presença por um instante e isso bastava. Agora a sala só
             // troca de dono se o host continuar sumido na checagem seguinte.
-            if (!hostPresente && !hostBeatFresh && souOEleito) {
+            if (ELEICAO_AUTOMATICA && !hostPresente && !hostBeatFresh && souOEleito) {
               if (!sumicoConfirmadoRef.current) { sumicoConfirmadoRef.current = true; return } // 1ª vez: anota e espera confirmar
               try { await supabase.from('game_rooms').update({ host_id: uid }).eq('id', st.roomId) } catch { /* best effort */ }
               if (!stateRef.current.isHost) {
@@ -7738,7 +7781,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
           padding: '8px 12px', fontWeight: 800, fontSize: 13,
           fontFamily: 'Oswald, sans-serif', borderBottom: '3px solid #0C0C0C',
         }}>
-          ⏳ Segura a onda! O host trocou de tela ou caiu — já tá voltando. Enquanto isso, reclama com ele! 😤
+          ⏳ Segura a onda! O <b>dono da sala</b> trocou de tela ou caiu — a partida espera por ele.<br />
+          <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .92 }}>O comando é dele do começo ao fim: ninguém assume no lugar (era isso que fazia o seu lance voltar). Chama ele pra deixar a aba do jogo na frente! 😤</span>
           <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
             style={{ display: 'block', margin: '6px auto 0', border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '4px 14px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
             🔄 Travou? Atualiza a página — a partida continua de onde parou

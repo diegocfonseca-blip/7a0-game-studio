@@ -15,18 +15,18 @@ import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './event
 import type { EventoCard } from './eventos'
 import type { RenewAnos } from './store'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS } from './store'
-import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy } from './estadiodata'
+import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, SPONSOR_BET_META } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus } from './estadio'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas } from './sport'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
@@ -4055,10 +4055,28 @@ function AvisoContaCarreira() {
           </button>
         </div>
       ) : (
-        <button onClick={() => setAbrirConta(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, background: '#FFF3C2', padding: '6px 10px', marginBottom: 10, cursor: 'pointer', fontWeight: 800, fontSize: 11.5, color: 'rgba(0,0,0,.72)' }}>
-          <span>⚠️</span><span style={{ flex: 1 }}>carreira só neste aparelho — <b style={{ textDecoration: 'underline' }}>criar conta</b></span>
-        </button>
+        // 🎴 CHAMARIZ DA CONTA (21/08, pedido do Diego: *"a parte do criar conta
+        // deixe um pouco mais chamativo"*). Antes era uma tirinha amarela fininha
+        // que sumia no meio dos quadros. Agora tem cara de convite: a carta
+        // dourada, o que a pessoa GANHA (não só o que ela perde) e um botão de
+        // verdade. Continua UMA peça só, sem virar quadrão.
+        <div style={{ ...box('linear-gradient(150deg,#FFF6DE,#FFE7A8)'), overflow: 'hidden', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px 0' }}>
+            <span style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}>🎴</span>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, lineHeight: 1.1 }}>Sua carreira só existe neste aparelho</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.35 }}>
+                Com conta você <b>não perde o time</b>, joga de qualquer celular e <b>ganha carta de craque</b> quando for campeão.
+              </p>
+            </div>
+          </div>
+          <div style={{ padding: '10px 12px 12px' }}>
+            <button onClick={() => setAbrirConta(true)}
+              style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 10px', ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>
+              ✏️ Criar conta grátis
+            </button>
+          </div>
+        </div>
       )}
       {abrirConta && (
         <JanelaConta
@@ -4160,7 +4178,7 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
   )
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
-function BarraCarreira({ tab, setTab, cor, ponto }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean }) {
+function BarraCarreira({ tab, setTab, cor, ponto, pontoClube }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean }) {
   return (
     <>
       {/* 🔊 o botão de som mora no canto de baixo — sobe pra não brigar com a barra
@@ -4174,8 +4192,9 @@ function BarraCarreira({ tab, setTab, cor, ponto }: { tab: AbaCarr; setTab: (t: 
               style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: on ? cor : 'rgba(12,12,12,.45)' }}>
               <IconeCarr nome={t} cor={on ? cor : 'rgba(12,12,12,.45)'} />
               <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{label}</span>
-              {/* 🔴 rodada rolando: o pontinho chama de volta pros Jogos */}
-              {t === 'jogos' && ponto && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
+              {/* 🔴 pontinho: rodada rolando (Jogos) · recibo novo esperando (Clube).
+                  Some assim que a pessoa abre a aba — nunca fica pedindo atenção à toa. */}
+              {((t === 'jogos' && ponto) || (t === 'estadio' && pontoClube)) && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
             </button>
           )
         })}
@@ -4193,6 +4212,145 @@ function FaixaCarr({ temporada, texto, div, pos, coins, cor }: { temporada: numb
       <span style={{ flex: 1, minWidth: 0, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{div}</span>
       {pos != null && <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>{pos === 1 ? '🥇' : '🏅'} {pos}º</span>}
       <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', color: coins < 0 ? '#FF9B8A' : GOLD }}>🪙 {coins}</span>
+    </div>
+  )
+}
+
+// ─── 🧹 RECIBO (21/08) ──────────────────────────────────────────────────────
+// Regra combinada com o Diego, em uma frase: **decisão em cima · recibo em
+// linha · resto na aba**.
+//   · DECISÃO = o que TRAVA o jogo até você escolher → fica grande, no topo,
+//     com o selo "👉 SUA VEZ", e só pode ter uma por vez.
+//   · RECIBO = já aconteceu, não depende de você → vira UMA linha clicável.
+//   · CONTEÚDO = jornal, finanças, cartas → mora na aba dele.
+// ⚠️ MOMENTO DE EMOÇÃO NUNCA VIRA RECIBO (regra que ele bateu o martelo):
+// campeão, acesso, carta ganha e o jornal continuam grandes e com festa.
+// Recibo é pra ROTINA: fechamento do caixa, patrocínio pago, manchete.
+function ReciboLinha({ ic, titulo, sub, valor, valorCor, onClick, ultimo }: {
+  ic: string; titulo: string; sub?: string; valor?: string; valorCor?: string; onClick?: () => void; ultimo?: boolean
+}) {
+  return (
+    <button onClick={onClick} disabled={!onClick}
+      style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: ultimo ? 'none' : '1.5px solid rgba(12,12,12,.10)', padding: '9px 11px', cursor: onClick ? 'pointer' : 'default' }}>
+      <span style={{ fontSize: 16, flexShrink: 0 }}>{ic}</span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 11.5, lineHeight: 1.15 }}>{titulo}</span>
+        {sub && <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.48)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</span>}
+      </span>
+      {valor && <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: valorCor ?? INK, whiteSpace: 'nowrap' }}>{valor}</span>}
+      {onClick && <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: 'rgba(0,0,0,.3)' }}>›</span>}
+    </button>
+  )
+}
+function CaixaRecibos({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.06em', color: 'rgba(0,0,0,.42)', margin: '0 2px 6px' }}>{titulo}</p>
+      <div style={{ ...box('#fff'), overflow: 'hidden' }}>{children}</div>
+    </div>
+  )
+}
+// ─── 🏆 TELA DE DESFECHO DA TEMPORADA (21/08) ───────────────────────────────
+// UMA tela, UM toque. Antes disto: o campeão tinha uma faixa dourada de uma
+// linha; quem SUBIA ou CAÍA de divisão não tinha NADA — descobria pela setinha
+// ▲/▼ na tabela. A tela só CONTA o que já aconteceu: nenhum prêmio, nenhuma
+// regra e nenhum número mudam.
+// ⚠️ De propósito NÃO é uma sequência de telinhas: seria 5 toques pra ver o que
+// hoje aparece de uma vez, e a regra de ouro do Diego é que nada atrasa o ritmo.
+type DesfechoTipo = 'campeao' | 'acesso' | 'queda' | 'ficou'
+const DESF: Record<DesfechoTipo, { titulo: string; grad: string; escuro: string; cor: string; sub: (p: number) => string }> = {
+  campeao: { titulo: 'CAMPEÃO!', grad: 'linear-gradient(160deg,#FFD250,#B37E00)', escuro: '#6b4c00', cor: '#fff', sub: () => 'Levantou a taça — e ainda subiu de divisão' },
+  acesso: { titulo: 'ACESSO!', grad: 'linear-gradient(160deg,#1F8C4A,#0d3f21)', escuro: '#123d24', cor: GOLD, sub: p => `Terminou em ${p}º lugar e subiu de divisão` },
+  // 🙅 nada de zoar quem caiu (decisão minha, avisada ao Diego): vermelho, curto
+  // e uma frase de virada. Zoeira é a alma do jogo, mas não em cima da derrota.
+  queda: { titulo: 'CAIU', grad: 'linear-gradient(160deg,#C2452F,#5e1c12)', escuro: '#5e1c12', cor: '#FFD9D2', sub: p => `Terminou em ${p}º lugar. Ano que vem a gente volta.` },
+  ficou: { titulo: 'TEMPORADA FECHADA', grad: 'linear-gradient(160deg,#3a352c,#16130e)', escuro: '#16130e', cor: GOLD, sub: p => `Terminou em ${p}º lugar e segue na divisão` },
+}
+function LinhaLevou({ ic, txt, val, cor }: { ic: string; txt: string; val: string; cor: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 13px', borderTop: '1.5px solid rgba(255,255,255,.14)' }}>
+      <span style={{ fontSize: 15 }}>{ic}</span>
+      <span style={{ flex: 1, ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#fff' }}>{txt}</span>
+      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12, color: cor, whiteSpace: 'nowrap' }}>{val}</span>
+    </div>
+  )
+}
+function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, torcidaPara, onFechar }: {
+  tipo: DesfechoTipo; time: string; de: string; para: string; pos: number; temporada: number
+  levou: { ic: string; txt: string; val: string; bom: boolean }[]; torcidaDe: number; torcidaPara: number; onFechar: () => void
+}) {
+  const d = DESF[tipo]
+  const mudou = de !== para
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+      <div style={{ width: '100%', maxWidth: 392, maxHeight: '92vh', overflowY: 'auto', border: `4px solid ${INK}`, borderRadius: 20, background: '#F4ECD6', boxShadow: `5px 5px 0 0 ${INK}`, overflowX: 'hidden' }}>
+        <div style={{ background: d.grad, padding: '20px 14px 0', color: '#fff', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          {/* listras do manto, mesma linguagem do jogo — 0 KB */}
+          <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(110deg,rgba(255,255,255,.05) 0 8px,transparent 8px 30px)' }} />
+          <div style={{ position: 'relative' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.12em', color: 'rgba(255,255,255,.6)', margin: 0 }}>TEMPORADA {temporada} ENCERRADA</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: tipo === 'ficou' ? 27 : 42, lineHeight: 1, margin: '5px 0 0', color: d.cor, textShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{d.titulo}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '6px 0 0' }}>{d.sub(pos)}</p>
+            {mudou ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 11, margin: '14px 0 4px' }}>
+                <span style={{ border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, padding: '6px 13px', ...OSWALD, fontWeight: 900, fontSize: 14, color: 'rgba(255,255,255,.6)' }}>{de}</span>
+                <span style={{ fontSize: 24, lineHeight: 1 }}>{tipo === 'queda' ? '⬇️' : '⬆️'}</span>
+                {/* fundo dourado do campeão pede pílula branca — dourado no dourado some */}
+                <span style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 13px', ...OSWALD, fontWeight: 900, fontSize: 17, background: tipo === 'acesso' ? GOLD : '#fff', color: INK, boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{para}</span>
+              </div>
+            ) : (
+              <div style={{ margin: '13px 0 4px' }}>
+                <span style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 14px', ...OSWALD, fontWeight: 900, fontSize: 16, background: GOLD, color: INK, boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{para}</span>
+              </div>
+            )}
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: 0, padding: '0 0 14px' }}>{time}</p>
+          </div>
+        </div>
+        {(levou.length > 0 || torcidaDe !== torcidaPara) && (
+          <div style={{ background: d.escuro, padding: '2px 0 8px' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: '.1em', color: 'rgba(255,255,255,.45)', margin: 0, padding: '8px 13px 2px' }}>O QUE VOCÊ LEVOU</p>
+            {levou.map(l => <LinhaLevou key={l.txt} ic={l.ic} txt={l.txt} val={l.val} cor={l.bom ? '#7BE59B' : '#FFB1A2'} />)}
+            {torcidaDe !== torcidaPara && (
+              <LinhaLevou ic="🎪" txt="Torcida" val={`${torcidaDe}% → ${torcidaPara}%`} cor={torcidaPara >= torcidaDe ? '#7BE59B' : '#FFB1A2'} />
+            )}
+          </div>
+        )}
+        <div style={{ padding: '11px 12px 13px', borderTop: `3px solid ${INK}` }}>
+          <button onClick={onFechar}
+            style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, background: GREEN, color: '#fff', padding: 12, ...OSWALD, fontWeight: 900, fontSize: 15, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>
+            ▶️ Continuar
+          </button>
+          <p style={{ textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.4)', margin: '7px 0 0' }}>Um toque e você cai no jornal e na decisão da próxima temporada.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── 📌 SUB-ABAS GRUDADAS (21/08, "Ideia 1") ────────────────────────────────
+// ⚠️ ATENÇÃO PRA QUEM MEXER AQUI: a 1ª tentativa foi trocar as pílulas por uma
+// tirinha fina de texto. O Diego REPROVOU — *"ficou meio apagada, não ficou
+// muito clara onde tá a sub aba, principalmente p quem nunca jogou"*. NÃO tire
+// peso das sub-abas.
+// Este wrapper NÃO muda as pílulas: ele só faz a fileira GRUDAR no topo, logo
+// abaixo da faixa fina, pra ela não sumir na rolagem. Fundo creme sólido (o
+// conteúdo passa por baixo) e a sombra dura das pílulas cabe no padding.
+const FAIXA_H = 31 // altura da faixa fina do topo quando está grudada
+function SubAbasGrudadas({ ligado, topo, children }: { ligado: boolean; topo: number; children: React.ReactNode }) {
+  if (!ligado) return <>{children}</>
+  return (
+    <div style={{ position: 'sticky', top: topo, zIndex: 60, margin: '0 -14px 10px', padding: '9px 14px 11px', background: '#F4ECD6', borderBottom: '2.5px solid rgba(12,12,12,.16)', boxShadow: '0 3px 10px rgba(0,0,0,.06)' }}>
+      {children}
+    </div>
+  )
+}
+
+// 👉 selo da decisão da vez — a ÚNICA coisa em vermelho na tela
+function SeloSuaVez({ texto }: { texto: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
+      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: '.08em', background: '#C2452F', color: '#fff', borderRadius: 999, padding: '2px 9px', whiteSpace: 'nowrap' }}>👉 SUA VEZ</span>
+      <span style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)' }}>{texto}</span>
     </div>
   )
 }
@@ -4981,6 +5139,10 @@ export function PyramidSeasonScreen() {
   // técnico escolher a meta do patrocínio — senão os 9s do ROUND_MS viravam um
   // cronômetro escondido pra escolher (Diego pediu SEM tempo nenhum nessa área).
   const sponsorBetOk = round > 0 || !!(state.careerSponsorBet?.[youId] && state.careerSponsorBet[youId].season === state.seasonNo)
+  // 🧹 recibo do patrocínio da temporada PASSADA (rotina, não conquista): sai do
+  // caminho da decisão e vira linha depois do botão verde.
+  const sponsorResult = state.careerSponsorResult?.[youId]
+  const sponsorResultFresh = !!(sponsorResult && sponsorResult.season === (state.seasonNo ?? 1) - 1)
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [roundReady, setRoundReady] = useState(false)
@@ -5039,8 +5201,67 @@ export function PyramidSeasonScreen() {
   // MOMENTO SAGRADO: pênalti decisivo, intervalo, Copa rolando e festa de
   // campeão tomam a tela inteira — a barra e a faixa somem, nada disputa com o
   // jogo. Fora disso, elas ficam sempre à mão.
+  // ─── 🏆 desfecho da temporada (só a conta do Diego por enquanto) ───────────
+  // Só entra DEPOIS que tudo acabou de verdade (liga + copas + a festa do
+  // mascote do campeão): nada pode aparecer por cima do jogo rolando.
+  const telaDesfechoOk = useTelaDesfecho()
+  const desfecho = useMemo(() => {
+    if (!done || !me) return null
+    const tm = (tables[me.div] ?? []).find(t => t.you)
+    if (!tm) return null
+    const nova = (computePromotions(tables)[teamKey(tm)] ?? me.div) as Div
+    const subiu = DIV_RANK[nova] > DIV_RANK[me.div]
+    const caiu = DIV_RANK[nova] < DIV_RANK[me.div]
+    const tipo: DesfechoTipo = me.champ ? 'campeao' : subiu ? 'acesso' : caiu ? 'queda' : 'ficou'
+    return { tipo, de: DIV_NAME[me.div], para: DIV_NAME[nova], pos: me.pos, time: tm.name }
+  }, [done, me, tables])
+  const desfKey = `esc-desfecho-${state.seed}-${state.seasonNo}`
+  const [desfechoOn, setDesfechoOn] = useState(false)
+  const podeDesfecho = telaDesfechoOk && !!desfecho && done && copaFinished && !copaPlaying && !festaOnC
+  useEffect(() => {
+    if (!podeDesfecho) return
+    try { if (sessionStorage.getItem(desfKey) === '1') return } catch { /* segue */ }
+    setDesfechoOn(true)
+  }, [podeDesfecho, desfKey])
+  const fecharDesfecho = () => { setDesfechoOn(false); try { sessionStorage.setItem(desfKey, '1') } catch { /* segue */ } }
+  // "o que você levou": lido do EXTRATO da temporada que acabou (mesmos números
+  // de Clube › Finanças — nada é recalculado aqui, só contado).
+  const levou = useMemo(() => {
+    // ⚠️ o extrato mora em lugares DIFERENTES: solo em `careerLedger`, online
+    // em `careerLedgers[seuId]` (mesma fonte que a aba Clube › Finanças usa).
+    // Sem isto, quem joga carreira ONLINE via a tela sem nenhuma linha de grana.
+    const fonte = (state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []
+    const led = fonte.filter(e => e.season === state.seasonNo)
+    const soma = (k: string) => led.filter(e => e.kind === k).reduce((n, e) => n + e.amount, 0)
+    const linhas: { ic: string; txt: string; val: string; bom: boolean }[] = []
+    const add = (ic: string, txt: string, v: number) => { if (v !== 0) linhas.push({ ic, txt, val: `${v > 0 ? '+' : ''}${v} 🪙`, bom: v > 0 }) }
+    add('🏅', 'Premiação da temporada', soma('reward'))
+    add('🎟️', 'Bilheteria', soma('gate'))
+    add('🛡️', 'Patrocínio', soma('sponsor'))
+    add('💸', 'Salários', soma('salary'))
+    return linhas
+  }, [state.seasonNo, state.careerLedger, state.careerLedgers, state.onlineMode, youId])
+  // 📌 sub-abas do Clube/Elenco grudando no topo (só a conta do Diego)
+  const subGrudadas = useSubAbasGrudadas()
   const barraCarr = useBarraCarreira()
-  const sagrado = penMode || halfMode || copaPlaying || festaOnC
+  // 🔴 tem recibo esperando no Clube? (patrocínio pago na virada · fechamento do
+  // caixa no fim da temporada). Some assim que a pessoa abre a aba Clube, e
+  // volta a valer na temporada seguinte.
+  const [viuClube, setViuClube] = useState(false)
+  useEffect(() => { setViuClube(false) }, [state.seasonNo])
+  useEffect(() => { if (tab === 'estadio') setViuClube(true) }, [tab])
+  const temRecibo = (round === 0 && sponsorResultFresh) || (done && state.booksSeason === state.seasonNo)
+  const reciboNoClube = temRecibo && !viuClube
+  // 🐛 CONSERTO (21/08, o Diego achou): a barra sumia MUITO mais do que devia.
+  // Eu tinha escrito `penMode || halfMode || copaPlaying`, mas nenhum desses três
+  // é um "momento" — são ESTADOS LONGOS:
+  //   · `copaPlaying` vale a COPA INTEIRA (foi o que ele viu: começou a Copa do
+  //     Brasil e as abas voltaram pro meio da página);
+  //   · `halfMode` vale a PARTIDA INTEIRA de quem joga no modo "só no intervalo";
+  //   · `penMode` vale a partida inteira quando ela é decisiva.
+  // O momento sagrado de verdade é quando o BANNER está ABERTO na cara da pessoa
+  // (aí sim nada pode competir), mais a festa do campeão.
+  const sagrado = (halftimeOpen && halfMode) || (penaltyOpen && penMode) || festaOnC
   const barraOn = barraCarr && !sagrado
   const cabRef = useRef<HTMLDivElement | null>(null)
   const [cabFora, setCabFora] = useState(false)
@@ -5052,6 +5273,18 @@ export function PyramidSeasonScreen() {
     io.observe(el)
     return () => io.disconnect()
   }, [barraOn])
+  // A fileira gruda logo abaixo da faixa fina. De propósito ela para 6px ACIMA
+  // do fim da faixa: assim o padding de cima do wrapper fica ESCONDIDO atrás da
+  // faixa (que é opaca e vem por cima) e não sobra nenhuma fresta pro conteúdo
+  // aparecer entre as duas. As pílulas continuam inteiras.
+  const topoSub = (barraOn && cabFora) ? FAIXA_H - 6 : 0
+  // 🐛 CONSERTO (21/08, vídeo de usuário): a fileira de pílulas aparecia BOIANDO
+  // por cima da tela do intervalo. O banner do intervalo (e o do pênalti, e a
+  // festa de campeão) é desenhado ANTES do bloco das abas, então ele fica na
+  // tela em QUALQUER aba — com Elenco ou Clube aberta, a fileira grudada ficava
+  // por cima dele. Nos momentos sagrados nada gruda: as pílulas voltam a rolar
+  // junto com o conteúdo, que é como era antes da mudança.
+  const grudaOk = subGrudadas && !sagrado
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
@@ -5059,7 +5292,12 @@ export function PyramidSeasonScreen() {
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? 'Encerrada' : round === 0 ? 'Começando…' : `Rodada ${round}/38`} />
       )}
-      {barraOn && <BarraCarreira tab={tab} setTab={setTab} cor={myCol.solid} ponto={round > 0 && !done} />}
+      {barraOn && <BarraCarreira tab={tab} setTab={setTab} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} />}
+      {desfechoOn && desfecho && (
+        <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
+          temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
+          onFechar={fecharDesfecho} />
+      )}
       <div className="max-w-xl mx-auto" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <AvisoContaCarreira />
@@ -5367,16 +5605,16 @@ export function PyramidSeasonScreen() {
             botão da marca e a tabela de valores mudou pra aba 🤝 Patrocínio. */}
         {round === 0 && me && (() => {
           const myBet = state.careerSponsorBet?.[youId]
-          const myResult = state.careerSponsorResult?.[youId]
-          const resultFresh = myResult && myResult.season === (state.seasonNo ?? 1) - 1
           return (
             <>
-              {resultFresh && <SponsorBetResultCard result={myResult!} />}
+              {/* 👉 A DECISÃO DA VEZ fica sozinha em cima. O resultado da temporada
+                  passada desceu pros recibos, depois do botão verde. */}
+              {!sponsorBetOk && <SeloSuaVez texto={`1 decisão pra começar a T${state.seasonNo ?? 1}`} />}
               {/* 🎖️ fielBrandId segue a MESMA regra que sponsorBetRewards usa pra
                   garantir o mínimo: acertou a meta na temporada PASSADA com essa marca. */}
               <SponsorBetBanner div={me.div}
                 chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
-                fielBrandId={resultFresh && myResult!.hit ? myResult!.brandId : undefined}
+                fielBrandId={sponsorResultFresh && sponsorResult!.hit ? sponsorResult!.brandId : undefined}
                 onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
             </>
           )
@@ -5406,6 +5644,19 @@ export function PyramidSeasonScreen() {
               nextLabel={halfMode && !halftimeDone ? '⏸️ Resolva o intervalo primeiro' : penMode && !penaltyDone ? '⚽ Bata o pênalti primeiro' : !roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
           </div>
           ) : <ManualLockButton />
+        )}
+        {/* 🧹 RECIBOS DA VIRADA: o que já aconteceu e não depende de você — uma
+            linha cada, DEPOIS da decisão e do botão verde. Nada some: cada linha
+            leva pro lugar onde a coisa mora inteira. */}
+        {round === 0 && sponsorResultFresh && sponsorResult && me && (
+          <CaixaRecibos titulo={`ENQUANTO ISSO, NA TEMPORADA ${(state.seasonNo ?? 2) - 1}`}>
+            <ReciboLinha ic={sponsorResult.hit ? '🛡️' : sponsorResult.floored ? '🎖️' : '🚫'}
+              titulo={sponsorResult.hit ? 'O patrocínio pagou' : sponsorResult.floored ? 'Não bateu — a fidelidade pagou' : 'A aposta do patrocínio não vingou'}
+              sub={`${sponsorBrandOf(sponsorResult.brandId)?.name ?? 'patrocinador'} · ${SPONSOR_BET_META[sponsorResult.tier].label.toLowerCase()}${sponsorResult.hit && sponsorResult.tier < 3 && sponsorResult.amount < sponsorBetValue(me.div, 3) ? ' · dava pra mirar mais alto 😉' : ''}`}
+              valor={`${sponsorResult.amount > 0 ? '+' : ''}${sponsorResult.amount} 🪙`}
+              valorCor={sponsorResult.amount > 0 ? GREEN : '#B23A2A'}
+              onClick={() => { setTab('estadio'); setClubeSub('patrocinio') }} ultimo />
+          </CaixaRecibos>
         )}
         {/* 🎮 CONVIDADO (online): NÃO controla o ritmo (só o host), mas VÊ o estado —
             e a mudança reflete na hora quando o host troca manual↔auto (manualRoom
@@ -5564,24 +5815,20 @@ export function PyramidSeasonScreen() {
               {copaGate}
               {/* 💰 FECHAMENTO DA TEMPORADA — o que entrou e o que saiu, na hora em
                   que a temporada (liga + copas) acabou. Sem surpresa depois no leilão. */}
+              {/* 🧹 (21/08) o FECHAMENTO virou RECIBO: era um quadro com a lista
+                  inteira bem no meio do caminho da decisão. Agora é uma linha com
+                  o saldo, e o extrato completo continua onde ele mora de verdade —
+                  Clube › Finanças. Nada de número mudou. */}
               {state.booksSeason === state.seasonNo && (() => {
                 const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario', 'saf'].includes(e.kind))
                 if (!led.length) return null
                 const total = led.reduce((n, e) => n + e.amount, 0)
                 return (
-                  <div style={{ ...box('#FFFDF3'), padding: 11, marginBottom: 10 }}>
-                    <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 6px' }}>💰 FECHAMENTO DA TEMPORADA {state.seasonNo}</p>
-                    {led.map(e => (
-                      <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, padding: '2px 0', borderBottom: '1px dashed rgba(0,0,0,.12)' }}>
-                        <span style={{ color: 'rgba(0,0,0,.75)' }}>{e.label}</span>
-                        <span style={{ color: e.amount < 0 ? '#C2452F' : e.amount > 0 ? '#1B7A3D' : 'rgba(0,0,0,.4)', fontWeight: 900 }}>{e.amount > 0 ? '+' : ''}{e.amount} 🪙</span>
-                      </div>
-                    ))}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 900, marginTop: 6, ...OSWALD }}>
-                      <span>SALDO DA TEMPORADA</span>
-                      <span style={{ color: total < 0 ? '#C2452F' : '#1B7A3D' }}>{total > 0 ? '+' : ''}{total} 🪙</span>
-                    </div>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(0,0,0,.5)', margin: '5px 0 0' }}>Já caiu no caixa ({state.careerCoins?.[youId] ?? 0} 🪙). Compra e venda no leilão contam na hora, uma a uma.</p>
+                  <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 10 }}>
+                    <ReciboLinha ic="💰" titulo={`Fechamento da temporada ${state.seasonNo}`}
+                      sub={`${led.length} lançamento${led.length > 1 ? 's' : ''} · já caiu no caixa (${Math.round(state.careerCoins?.[youId] ?? 0)} 🪙)`}
+                      valor={`${total > 0 ? '+' : ''}${total} 🪙`} valorCor={total < 0 ? '#C2452F' : GREEN}
+                      onClick={() => { setTab('estadio'); setClubeSub('financas') }} ultimo />
                   </div>
                 )
               })()}
@@ -5591,6 +5838,9 @@ export function PyramidSeasonScreen() {
                   <p style={{ fontWeight: 700, fontSize: 10.5, margin: '3px 0 0', lineHeight: 1.35, color: 'rgba(255,255,255,.9)' }}>Você ainda entra no leilão, mas <b>sem grana pra comprar</b>: dá pra <b>vender pra recuperar</b> e tentar a sorte pegando <b>jogador de graça no monte</b>. Ganhando prêmios e bilheteria você sai do vermelho.</p>
                 </div>
               )}
+              {/* 👉 a decisão que TRAVA a carreira agora: abrir o leilão ou seguir
+                  com o mesmo time. É a única coisa em vermelho na tela. */}
+              <SeloSuaVez texto="decida como monta o time da próxima" />
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>📅 Próxima temporada</p>
               {/* 🏛️ MULTICLUBES · seletor (só entre temporadas, só testers) */}
               {state.onlineMode !== 'online' && state.multiClube && (() => {
@@ -5719,7 +5969,10 @@ export function PyramidSeasonScreen() {
             {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
                 Agora tudo (Estádio · Finanças · Agência) vale online também,
                 por-técnico (Passo 2c completa a paridade com o offline). */}
-            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {/* 📌 as MESMAS pílulas de sempre — o wrapper só faz elas grudarem no
+                topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
+            <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
               {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
@@ -5727,6 +5980,7 @@ export function PyramidSeasonScreen() {
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
+            </SubAbasGrudadas>
             {clubeSub === 'escritorio' && !agenciaOk ? (
               // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
@@ -6001,11 +6255,13 @@ export function PyramidSeasonScreen() {
                 sub-aba do elenco em si NÃO se chama mais "Elenco" — tinha o MESMO
                 nome/ícone da aba-mãe "Elenco", confundindo (14/08, pedido do Diego). */}
             {state.agenciaOn && agLib && (
-              <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
                 {(([['elenco', '🎽', 'Time'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
                   <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
                 ))}
               </div>
+              </SubAbasGrudadas>
             )}
             {state.agenciaOn && agLib && elencoSub === 'agencia' ? (
               <>

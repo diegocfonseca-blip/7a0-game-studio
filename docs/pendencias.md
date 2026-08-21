@@ -1,5 +1,530 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## ✅ BATISMO ENTREGUE — Theuzudo FC (21/08)
+Dono **matheusfilipealves@hotmail.com** · 👑 ouro + **fundador nº47** · entrou na
+**Série B no lugar do Comercial do Norte** (técnico "Nortista" fica).
+Mascote: **Theuzinho**, morcego de boné (coração Valência), animação `coVoa`.
+Manto: **laranja `#F06000` e preto**, medidos NA ARTE que o dono mandou.
+Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB**
+(teto 75). Nome reservado no banco nas 4 formas.
+
+⚠️ **Dois consertos que EU tive que fazer na arte, e o Diego precisa saber:**
+1. O escudinho do peito da camisa vinha com o texto **embolado**
+   ("FRIGCINIATE"). Cobri com o escudo GRANDE dele, reduzido — arte do próprio
+   dono, nada inventado.
+2. Minha limpeza do xadrez **comeu as letras brancas** do escudo (o Diego pegou:
+   *"o d e o tá preenchido branco"*). Virou regra no CLAUDE.md: conferir arte
+   recortada sobre FUNDO COLORIDO, nunca sobre branco.
+
+❓ **Fica anotado, sem resposta ainda:** o escudo é **vermelho/amarelo**
+(Valência) e o manto **laranja/preto**; o Diego falou em **Paraíba** (vermelho e
+preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
+alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
+
+## 👑 REGRA NOVA (21/08): a coroa não troca sozinha
+Depois do conserto do crachá, o Diego fechou a regra: *"eu não quero q ng
+assuma. Tem q ser sempre o host. Se o host q criou tem q ser sempre ele sem
+trocar"*. **Feito**: `ELEICAO_AUTOMATICA = false` em `store.tsx`. Está em
+CLAUDE.md como regra permanente — não religar sem ele pedir.
+- ⚖️ **O preço, dito na cara dele:** se o dono fechar o app de vez, a sala
+  **para e espera**. Ninguém assume. A saída é todo mundo sair e o dono abrir
+  outra sala. Ele preferiu isso a ver o pregão embolar com o dono ali presente.
+- 🟥 O aviso vermelho do "segura a onda" foi reescrito pra dizer a verdade nova:
+  *"a partida espera por ele… ninguém assume no lugar (era isso que fazia o seu
+  lance voltar)"*.
+- Continuam de pé (é decisão de gente, não troca automática): o dono aperta SAIR
+  e passa a coroa; e quem já é dono no banco reassume sozinho ao voltar.
+
+## 🔴🔴 ABERTO E URGENTE — sala online travando e lance refeito (21/08)
+
+### 🎯 CAUSA RAIZ ACHADA (sala `GP0LN1` "leilao", 21/08 ~17:51)
+⚠️ Primeiro eu li errado e disse pro Diego que o Braguinha tinha saído da sala.
+**Ele NÃO saiu** — o Diego corrigiu (*"ele sempre esteve na sala cara, ele nunca
+saiu"*) e a segunda leitura provou que ele tem razão:
+
+```
+presence      = [4, 2, 1, 3, 0]   ← 5 pessoas, TODAS lá (o 0 é o Braguinha)
+presenceUids  = 3 uids             ← faltam DOIS crachás
+```
+
+**Todo mundo está presente; o que some é o CRACHÁ (uid) de alguns.** Em
+`store.tsx` (~7183) o canal faz `ch.track({ playerIndex, uid: state.youUid })`
+lendo `youUid` do closure do efeito — as dependências são
+`[roomId, onlineMode, isHost]`, então quando o `youUid` ainda não chegou na hora
+que o canal assina, ele vai `undefined`. E logo acima, o `sync` **descarta quem
+não tem uid** (`.filter(u => !!u)`).
+
+**A cadeia completa do estrago:**
+1. O crachá do host não entra em `presenceUids`.
+2. Todo convidado calcula `hostPresente = false` → **acha que o dono é fantasma**,
+   mesmo com ele ali na frente (o índice dele está em `presence`!).
+3. A única coisa segurando a coroa vira o batimento de 60s. Aba de PC em segundo
+   plano congela os timers do Chrome → 60s passam → **um convidado toma a coroa
+   de alguém que nunca saiu**.
+4. `BECOME_HOST` **devolve o envelope de todo mundo de propósito** (senão o setor
+   fecharia com lance ZERO) → *"dei lance e depois aparece que não dei"*.
+5. Dois donos mandando estado ao mesmo tempo → **a listagem dos goleiros troca
+   antes do tempo acabar** e **pipoca erro vermelho**.
+
+**✅ CONSERTO (E) APLICADO em 21/08** (ordem do Diego: *"ok arrume agora"*):
+- **(E1) o crachá nunca some:** os três `ch.track` passaram a usar o helper
+  `meuCracha()` — lê `stateRef.current.youUid` (fresco, não o closure) e, se
+  ainda faltar, busca no `supabase.auth.getUser()` ANTES de anunciar presença.
+- **(E2) rede de segurança:** antes de destronar alguém, compara **cadeiras**
+  (`presence`) com **crachás** (`presenceUids`). Sobrou cadeira sem crachá = tem
+  gente na sala que não dá pra identificar → **ninguém perde a coroa**. Errar pro
+  lado de manter o dono é sempre mais barato que trocar de host no meio do pregão.
+- ⚖️ **O preço, assumido de propósito:** se um crachá ficar faltando de verdade,
+  a eleição automática de host novo não roda. Continuam funcionando: o handoff
+  voluntário (host que sai passa a coroa) e a auto-cura "a posse no banco já é
+  minha". Ficar sem eleição automática é MUITO mais barato que destronar quem
+  está jogando.
+- 🔁 **Reverter:** commit isolado, só `store.tsx`, não toca em regra de jogo.
+- ⚠️ **Só vale pra quem recarregar depois do deploy** — partida em andamento
+  segue com o código velho até dar F5.
+
+### 🔥 (leitura anterior, incompleta) FLAGRANTE AO VIVO (sala `GP0LN1`, ~17:48)
+Peguei a sala rodando, com o Diego dentro. O banco mostra a causa exata:
+
+| técnico | é host no banco | está presente |
+| --- | :---: | :---: |
+| **Braguinha** (criou a sala) | ✅ **SIM** | ❌ **NÃO** |
+| Intervarcional | não | sim |
+| Jurema FC | não | sim |
+| CHELSEA DA GAMA | não | sim |
+| Neymarzetti 👑🖋️ (Diego) | não | sim |
+
+**O dono registrado da sala não está na sala** — e mesmo assim a sala continua
+sendo gravada de 5 em 5 segundos, ou seja, ALGUÉM dos quatro presentes está
+agindo como host localmente.
+
+**Por que não se resolve sozinho (o furo de verdade):** o teste "o host está
+vivo?" olha `game_rooms.updated_at`. Só que **quem grava essa coluna é quem
+estiver agindo como host** — então o batimento parece SEMPRE fresco, o
+`hostBeatFresh` dá `true` e a eleição de host novo (👻 host fantasma) **nunca
+dispara**. Ao mesmo tempo, a regra "UM DONO SÓ" manda quem está gravando
+abaixar a bola (porque `host_id` não é dele). Resultado: a coroa fica
+pingue-pongando e dois estados brigam — é isso que faz **a listagem dos
+goleiros trocar antes do tempo acabar**, o **lance sumir** e a **mensagem
+vermelha de erro pipocar**.
+
+➡️ **Conserto (D), agora o mais importante:** o batimento do host não pode ser
+`updated_at` da sala (qualquer um escreve nela). Tem que ser um carimbo do
+DONO — ex.: `game_state.hostBeat = { uid, at }` gravado só por quem se acha
+host, e a checagem compara o uid do carimbo com o `host_id`. Assim host
+fantasma é detectado em segundos e a eleição funciona.
+
+**Destrava na hora, sem código:** o Braguinha voltar pra sala (ele é o dono no
+banco → o cliente dele reassume) OU apontar `game_rooms.host_id` pra alguém que
+esteja presente (aí a auto-cura `hostId === uid` dispara em ~10s).
+
+Relato do Diego: *"a sala szalai deu vários erros… O host braguinha criou a sala
+mas travou no goleiro no PC. E o amigo no celular ficava recebendo msg de segura
+onda… E vira e mexe tinham q fazer lance novamente"*. Ele lembrou, com razão, que
+isso já tinha sido consertado uma vez (commit `dfc1832`, 19/08 — "dois donos").
+**Aquele furo foi fechado; este é OUTRA porta pra mesma dor.**
+
+### O que o banco mostra (não é achismo — são as salas deles)
+Salas do grupo (Braguinha · Jurema FC · Intervarcional · Vaxcão da Gama):
+`SLDEX1` ("Feijao") e `1BX1D7` ("To colocando"). As duas param em
+**`resq_envelope`** (a rodada de RESGATE das sobras), com `submitted: []`, e o
+**último gravado é ~35s ANTES do prazo do envelope**. Ou seja: o prazo estourou e
+**ninguém escreveu mais nada**. Outras 2 salas de hoje (`LOL5E0`, `X50B4Y`)
+morreram exatamente do mesmo jeito.
+
+### A cadeia (lida no código)
+1. **Tudo depende da aba do host.** `dispatch` em `store.tsx` (~7100): convidado
+   NÃO aplica nada localmente — dispara `broadcast` pro host e pronto, sem
+   confirmação (`ack: false`). Host parado = ação do convidado some no ar.
+2. **A revelação só anda no host** (`canDrive = state.isHost`). Por isso o
+   convidado fica eterno no *"🔨 O host está conduzindo a revelação…"* — é o
+   "segura onda" do print.
+3. **O vigia de prazo não salva a sala.** O comentário diz "qualquer cliente pode
+   forçar o selamento", mas como o dispatch do convidado é roteado pro host, o
+   `FORCE_SEAL` dele só funciona se o host estiver vivo. **O comentário está
+   desatualizado.**
+4. **Aba de PC em segundo plano congela o batimento.** O host grava `updated_at`
+   a cada ~3s; o Chrome estrangula timer de aba escondida. Passando de 60s (o
+   limite no leilão), o convidado eleito **toma a coroa** — e `BECOME_HOST`
+   **devolve o envelope de todo mundo de propósito** (senão o setor fechava com
+   lance ZERO). É exatamente o *"vira e mexe tinham q fazer lance novamente"*.
+   O Braguinha volta, acha que ainda é host, e a briga recomeça.
+
+### Conserto proposto (em ordem de segurança)
+- **(A) BAIXO RISCO — o lance não se perde mais.** Guardar o envelope lacrado no
+  próprio aparelho e **reenviar sozinho** quando `submitted` for zerado ainda na
+  MESMA rodada (setor + leva + fase). Já existe o `euLacradoRef` (store.tsx
+  ~7024) marcando a rodada — é só pendurar o reenvio nele. Resolve a dor
+  independente do motivo (troca de host, host recarregou, reconexão).
+- **(B) MÉDIO — a coroa não escorrega por aba escondida.** Manter o batimento do
+  host vivo com a aba em segundo plano (Web Worker ou `visibilitychange`), pra
+  não haver troca de dono por engano no meio do pregão.
+- **(C) MÉDIO — sala não morre com o host mudo.** Se o prazo estourou e o host
+  não escreve há X segundos, o convidado eleito pode aplicar o `FORCE_SEAL`
+  local e assumir, em vez de mandar pro vazio.
+⚠️ Nada disso foi feito ainda — está esperando o OK do Diego, porque é código
+online ao vivo.
+
+## ✅ RESOLVIDO — pílula grudada boiando na tela do intervalo (21/08)
+**REPRODUZIDO no navegador e consertado.** A receita exata pra ver o bug (guardar,
+porque vai servir de novo): carreira nova → aba **Elenco** → ligar **"⏸️ Só no
+intervalo"** → escolher meta + marca do patrocínio → **Começar a temporada** →
+**ficar na aba Elenco** e esperar o jogo parar aos 45'. A fileira
+`🎽 TIME | 🕴️ AGENCIADOS` aparece boiando no meio do banner, mais larga que o
+card, escondendo dois jogadores. Medido: com a aba Elenco aberta a fileira ficava
+por cima do banner em TODAS as rolagens testadas (0, 400, 900, 1500, 2200).
+⚠️ O detalhe que quase me enganou: se você TROCA pra aba Elenco depois que o
+intervalo já abriu, o bug NÃO aparece. Só aparece se você já estava lá.
+Conserto aplicado: `grudaOk = subGrudadas && !sagrado`. Falta só religar o portão
+(`PILULAS_GERAL = true`) depois do OK do Diego. O texto abaixo é o diagnóstico
+original, mantido porque explica o porquê.
+
+## 🔴 (histórico) pílula grudada boiando na tela do intervalo (21/08)
+Vídeo de usuário: a fileira **TIME | AGENCIADOS** aparece **no meio da tela**,
+por cima da lista de jogadores do intervalo, quando rola pra cima e pra baixo.
+Palavras do Diego: *"Deu ruim na tela de alguns usuários sobre a pílula aí qd
+eles sobem e descem"*.
+
+**Ação já tomada (mesmo dia):** `PILULAS_GERAL = false` em `sport.ts`. Todo
+mundo voltou ao comportamento de antes (pílulas rolam junto com o conteúdo).
+Continua ligado só na conta do Diego, pra dar pra reproduzir.
+
+**Causa mapeada no código (falta CONFIRMAR rodando):** o `HalftimeBanner` é
+desenhado na linha ~5572 do `pyramidseason.tsx`, **antes** do bloco
+`{tab === 'estadio' ? … : tab === 'jogos' …}` (linha ~5960). Ou seja: o banner
+do intervalo aparece em **qualquer aba**, não só na Jogos. Se o usuário estiver
+na aba **Elenco** ou **Clube** quando o intervalo abre, as sub-abas grudadas
+(`position: sticky`, `zIndex: 60`) ficam boiando por cima do banner.
+
+**Conserto proposto (não feito ainda):** o mesmo `sagrado` que já esconde a
+barra de baixo tem que desligar o grudar também — enquanto banner de
+intervalo/pênalti/festa está na tela, `SubAbasGrudadas` sai de sticky. Depois
+disso, religar o portão.
+
+⚠️ **Lição pra quem mexer:** qualquer coisa `sticky`/`fixed` dentro do conteúdo
+das abas convive com banners que são desenhados FORA do bloco das abas. Antes de
+grudar algo, conferir o que mais pode estar na tela ao mesmo tempo.
+
+## 🏛️ SALA DA PRESIDÊNCIA — o mockup APROVADO foi recuperado (21/08)
+Ele disse: *"eu tinha feito outro mockup da sala de presidente contigo q tinha
+gostado"*. Tinha mesmo, em 16/08 — e a **imagem se perdeu** (foi feita no chat,
+nunca virou script no repo). É o MESMO acidente do mockup do Coringas, que é a
+razão da regra "mockup mora no repo" existir. ⚠️ Lição reforçada: TODO mockup
+vira arquivo em `scripts/`, sem exceção.
+
+✅ **O desenho não se perdeu:** o começo do código nasceu dele e está na branch
+`claude/presidencia-em-breve` (commit 02d2d5c). `scripts/mockup-presidencia-v1.mjs`
+reconstrói a tela **fiel a esse código**:
+- título + a frase que fechou a conversa do técnico: *"Você não é o técnico.
+  **Você é o dono do <clube>.**"*
+- 🎩 Técnico e 🚗 Garagem em cinza com selo **EM BREVE** (sem botão);
+- 💰 Patrimônio do clube (caixa + estádio investido + elenco a preço de mercado
+  + SAF), só leitura;
+- 🏆 **Hall de Troféus** com ×N por competição — a MESMA estante da aba Rank
+  (fonte única `meusTrofeus`, de propósito: duas contas viravam duas verdades).
+
+**Decisão desta sessão:** ficar com a versão DELE e só encaixar 3 peças novas,
+sem tirar nada: retrato de posse (dentro do cabeçalho que já existe), números do
+mandato (tira de 3 no mesmo cartão) e a linha do mandato (no fim).
+
+### 💡 "O algo a mais" — 7 ideias (`scripts/mockup-presidencia-ideias.mjs`)
+Ele pediu (21/08): *"queria mais coisas pessoais… como se ele fosse presidente de
+um clube mesmo… acho que falta aquele algo a mais"*.
+
+**🔎 ACHADOS NO SAVE que destravam quase tudo (`types.ts`):**
+- ✅ `careerScorersAll` — **artilharia de TODOS OS TEMPOS** por jogador;
+- ✅ `careerLedger` — extrato com `player`, `pos` e `buyPrice` → dá a
+  **contratação mais cara** e a **venda mais lucrativa** da história do clube;
+- ✅ `careerRivals` — o rival fixo já existe e tem vida própria;
+- ⚠️ **NÃO existe histórico de placar jogo a jogo** — "maior goleada", "maior
+  sequência" e o retrospecto do rival precisam guardar números novos por carreira,
+  e **só valem da temporada em que entrarem pra frente** (carreira antiga não
+  recupera o passado). Isso foi dito a ele no mockup.
+
+**As 7:** 1) 🙋 você, o presidente (nome + apelido de imprensa) · 2) 📖 **Livro de
+Recordes do clube** · 3) ⚔️ o retrospecto contra o rival · 4) 🏟️ **batizar o
+estádio** (o nome entra no jornal) · 5) 🪑 a sala que cresce (cadeira/mesa/quadro
+pelo patrimônio — emoji+CSS, 0 KB) · 6) 👑 galeria de ídolos · 7) 📤 cartão do
+mandato pra postar (vira marketing de graça).
+
+**Minhas 3 favoritas:** o Livro de Recordes · batizar o estádio · você, o
+presidente. ⏳ Aguardando ele escolher.
+
+### 🧍 O BONECO DO PRESIDENTE (`scripts/mockup-presidente-boneco.mjs`)
+Ideia DELE (21/08): *"pensei: primeiro o usuário, quando clicar pela primeira vez
+na sala do presidente, ele criar o boneco. Seria a primeira coisa"*. A sala hoje
+fala do CLUBE; o boneco faz ela falar de VOCÊ, e a 1ª entrada vira uma **POSSE**.
+
+**Fluxo:** ① prontos (6 bonecos + 🎲 surpreenda-me + ✏️ personalizar + **pular**)
+→ ② criador com **3 escolhas numa tela só** (pele · cabelo/barba · jeitão) → ③
+**a posse** ("É OFICIAL!", nome, clube, data — aparece UMA vez) → ④ a sala.
+
+**⚖️ DECISÃO DE PESO — SVG PARAMÉTRICO, e é o INVERSO da regra do batismo (está
+escrito no mockup pra não confundir sessão futura):** batismo é arte de UM clube,
+então tem que ser `.webp` fora do bundle; o boneco é UM desenho que TODO MUNDO
+usa com peças trocando de cor/forma — em `.webp` seriam dezenas de arquivos e
+combinações impossíveis, em SVG é um punhado de paths com **zero download**.
+
+**Travas combinadas:** nunca bloqueia (dá pra pular, a sala abre igual) · sem
+rolagem infinita de opções · sem padrão "certo" (5 tons de pele, cabelos
+variados) · a posse aparece fora de partida e fora de pregão, sem passo novo.
+**Terno/gravata vêm do TIER e a faixa das cores do coração** — não se escolhem.
+
+**🚫 Onde o boneco NÃO entra:** listas de sala e tabelas — ali quem manda é o
+ESCUDO do clube (a mesma regra do furo dos clãs que o Diego pegou).
+
+**Passos sugeridos:** 1) boneco + prontos + posse · 2) nome + apelido de imprensa
+· 3) o boneco aparecendo fora da sala (festa de campeão primeiro).
+
+## 🏛️ (descartado) primeira tentativa desta sessão — mockup novo, aguardando OK
+`scripts/mockup-sala-presidente.mjs`. Retoma o que ficou parado em 16/08 (o
+começo do código está na branch `claude/presidencia-em-breve`) com o pedido novo
+dele: *"quero q a sala fosse algo tb pessoal do presidente e do usuário"*.
+
+**🔢 MEDIDO NO BANCO ANTES DE DESENHAR** (é o que decidiu o que entra):
+7.564 contas · 3.072 com carreira · 4.700 com carta · 27 sócios ·
+68 linhas de nome batizado · **56 com time de coração (0,7%)**.
+
+**A sala (tudo sai do save, zero dependência de fora):** retrato de posse (você
+de terno, gravata na cor do tier, escudo do clube, "presidente desde <data da
+conta>") · números do mandato · **linha do mandato** (T1 assumiu · T3 subiu · T7
+campeão · T9 caiu…) · sala de troféus · patrimônio somado · faixa nas cores do
+coração + o convite pra quem não disse. 🎩 técnico e 🚗 garagem seguem com selo
+**EM BREVE**, como ele já tinha aprovado.
+
+**🚫 A TABELA/JOGO AO VIVO DO TIME REAL FICOU DE FORA** — ele perguntou, e eu
+disse não com 3 motivos: (1) **regra dele mesmo**, escrita em `coracao.ts` e
+`manto.ts`: *"nome de clube real NUNCA aparece dentro do jogo — só as CORES"*;
+(2) viraria um segundo produto (API de fora paga/instável + escudo de marca
+registrada); (3) não é o que deixa a sala pessoal — a tabela do time é igual pra
+milhões, a história de 12 temporadas é só dele.
+
+**🚫 Não reapresentados** (lista de descartados de 08/08): recado do presidente ·
+faixa da torcida · placas · aniversário · pacote coração.
+
+⏳ **Falta ele decidir:** 3 ou 4 sub-abas no Clube. Recomendação (a mesma de
+16/08): **3**, com a Presidência engolindo o Patrocínio. O mockup foi desenhado
+assim.
+
+## 🛡️ CLÃS — desenhado, ainda NÃO codado
+Mockup principal: `scripts/mockup-clas.mjs` (a ideia inteira).
+Conserto: `scripts/mockup-clas-escudo.mjs`.
+
+**A ideia:** clã é uma CASA — você entra, veste o selo dela, e o que você ganha
+em qualquer sala vira ponto pra casa. NÃO é a Liga Fechada (aquilo é uma SALA;
+o clã é uma IDENTIDADE que anda com você). Reaproveita a arte do batismo e o
+ranking que já existem; o motor do jogo não é tocado.
+
+**🚨 REGRA QUE NASCEU DO FURO QUE ELE PEGOU (21/08):** no 1º mockup as listas
+mostravam SÓ o escudo do CLÃ do lado do nome. Palavras dele: *"gostei bastante
+mas o problema q tá sumindo o escudo do jogador q ele fez"*. Ele está certo, e
+isso quebrava regra dele mesmo (escudo do batismo é do E-MAIL do dono, custa
+arte de verdade e vem com sócio + fundador).
+👉 **O ESCUDO DO JOGADOR NUNCA SAI DA TELA — por causa de nada.** O clã vira um
+**SELO REDONDO** (redondo de propósito, pra não confundir com escudo), pequeno,
+no canto do escudo do dono. Quem não tem batismo mostra o selo do clã sozinho —
+e aí GANHA identidade em vez de perder (hoje são só 28 batismos no jogo todo).
+Sair do clã tira só o selo: escudo, manto, mascote e títulos ficam.
+
+⏳ **Falta ele decidir 3 coisas** (estão em amarelo no mockup, com minha sugestão):
+1. quem pode ABRIR um clã (sugestão: só 👑 Lenda — entrar, qualquer um);
+2. quantos cabem (sugestão: 12);
+3. se a Guerra de Clãs entra já (sugestão: depois — primeiro a casa existir).
+
+## 🏆 TELA DE DESFECHO DA TEMPORADA (opção 5) — só a conta do Diego (21/08)
+Mockup `scripts/mockup-fim-temporada.mjs`, resposta dele: *"ok pode fazer tb"*.
+`sport.ts` · `useTelaDesfecho` / `FIMTEMP_GERAL` (hoje `false`).
+
+**O achado que motivou:** quando a temporada fecha, o CAMPEÃO ganha uma faixa
+dourada de uma linha (`pyramidseason.tsx:5213`) + a carta; quem **SOBE** de
+divisão não ganha **NADA** e quem **CAI** não ganha **NADA** — a pessoa descobre
+pela setinha ▲/▼ na tabela. O jogo é uma pirâmide de 5 divisões: subir é a razão
+de existir do Modo Carreira e não tinha momento nenhum.
+
+**O que foi feito:** `TelaDesfecho` — UMA tela sobreposta, UM toque, com o
+desfecho grande, de onde saiu → pra onde vai e "o que você levou" (premiação ·
+bilheteria · patrocínio · salários, lidos do EXTRATO da temporada, mais a
+torcida antes→depois). 4 versões: `campeao` (dourado) · `acesso` (verde) ·
+`queda` (vermelho) · `ficou` (escuro, discreto).
+
+**Só entra quando tudo acabou de verdade:** `done && copaFinished &&
+!copaPlaying && !festaOnC` — nada aparece por cima de jogo rolando nem da festa
+do mascote. Dispensa gravada em `sessionStorage` (`esc-desfecho-<seed>-<temp>`),
+então não volta a cada re-render.
+
+**⚠️ DUAS DECISÕES QUE EU TOMEI SOZINHO (ele mandou fazer sem responder):**
+1. **QUEDA = respeito, não zoeira.** Vermelho, curto, "Ano que vem a gente
+   volta". Zoeira é a alma do jogo, mas não em cima da derrota do cara. Trocar é
+   uma linha no `DESF.queda.sub`.
+2. **"FICOU na divisão" também mostra tela**, mas discreta: fundo escuro, título
+   menor ("TEMPORADA FECHADA"), sem seta. Pular direto = `if (tipo === 'ficou')
+   return null` no `podeDesfecho`.
+
+**De propósito NÃO é uma sequência de telinhas** — seriam 5 toques pra ver o que
+hoje aparece de uma vez, contra a regra de ouro dele (nada atrasa o ritmo).
+
+✅ As 4 versões fotografadas no navegador.
+✅ **LIBERADO PRA TODOS em 21/08** (*"esses daí pode abrir tb p todos"*) — com o
+aviso dado a ele de que eu **não vi a tela rodando numa temporada de verdade**
+(o robô não joga 38 rodadas aqui). Ele mandou abrir mesmo assim. Se aparecer
+qualquer coisa estranha no fim de temporada, `FIMTEMP_GERAL = false` desliga.
+🐛 **Dois consertos feitos ANTES de abrir**, achados relendo o código:
+- o extrato mora em `careerLedger` (solo) e `careerLedgers[id]` (online) — eu só
+  lia o solo, então **carreira online veria a tela sem nenhuma linha de grana**;
+- o ensino do pregão passava a voltar em TODA partida rápida nova (a chave virou
+  a seed). Agora a chave por-partida vale **só na carreira**; no rápido continua
+  sendo do aparelho, senão quem joga várias seguidas levava a mesma aula sempre.
+
+## 🔨 PREGÃO LIMPO (opção 4) — só a conta do Diego (21/08)
+Mockup `scripts/mockup-pregao.mjs`, resposta dele: *"ok pode fazer"*.
+`sport.ts` · `usePregaoLimpo` / `PREGAO_GERAL` (hoje `false`).
+
+**Por que:** o pregão é a ÚNICA tela do jogo com relógio (42s) e abria com 4
+quadros de regra antes da primeira carta — ali a explicação **cobra pedágio**.
+E os quadros voltavam em todo setor de toda temporada.
+
+**O que mudou (com o portão ligado):**
+- **VAGAS subiram pra barra** (`AuctionBar` agora aceita `vagas` e `ajuda`),
+  junto das moedas — sempre na tela, não rolam com as cartas.
+- **`RegrasDoPregao`** (novo, `screens.tsx`): a folha do ❓ com as 5 regras.
+  Avisa que **o relógio não para** e fecha com "Fechar e dar lance 👊".
+- **Saíram da frente**: o quadro 🏆 + o quadro das vagas + o quadro do 🎁
+  surpresa (o bloco `!rescue && canBid && bidLimit > 0`) e o quadro do 🔒 piso.
+  Os dois últimos eram **redundantes**: a carta já mostra "mín 🔒 7" e o 🎁 com
+  o nome borrado (`CardFace`).
+- **🎓 Ensino no lugar certo**: a marca de "já ensinei" era do APARELHO
+  (`esc-tip-lance-v1`) — quem começava a 2ª carreira não via ensino nenhum.
+  Com o portão ligado a chave passa a ser da PARTIDA (`esc-tip-lance-s<seed>`),
+  e o primeiro pregão mostra a folha dourada "SEU PRIMEIRO PREGÃO" com a regra
+  de ouro + as vagas + "Entendi, bora dar lance 👊" + "o ❓ lá em cima abre isso
+  de novo".
+
+⚠️ **O risco que eu falei pra ele e ele mandou seguir:** ele mesmo disse que
+*"as pessoas começam e não entendem o que fazer no leilão"*. Nenhuma regra
+sumiu — todas ficam a UM toque no ❓ — mas se ele achar que ficou seco, o
+**passo intermediário combinado** é ligar só metade: tirar o quadro do piso
+(redundante) e subir as vagas pra barra, mantendo o 🏆 no caminho.
+
+**🌐 VALE EM TODOS OS MODOS** (ele perguntou em 21/08: *"faça em todos modos q
+tem leilão né tipo o rápido online e etc tb"*). Não precisou de nada novo: existe
+**UMA tela de leilão só** — `EscAuction` (`index.tsx`, `case 'auction'`) — usada
+por rápido offline, rápido online, carreira, liga fechada, duplas e basquete. A
+trava é por CONTA, então vale onde ele jogar. **Conferido rodando** no jogo
+rápido contra CPU, além da carreira.
+
+🐛 **Um detalhe que ia irritar e foi corrigido junto:** `tipClosed` zerava a cada
+setor (`useEffect ... [state.sectorIdx]`), então a folha do ensino voltaria
+**5 vezes seguidas** na mesma partida (uma por posição), com o relógio correndo.
+Agora, com o pregão limpo, o ensino aparece **só no setor 0** e, uma vez fechado,
+não volta naquela partida.
+
+✅ Testado no navegador de verdade (carreira nova E jogo rápido, setor GOL):
+barra com "1 vaga · ❓ · 💰100", a folha do ensino no 1º pregão e o ❓ abrindo as
+5 regras.
+✅ **LIBERADO PRA TODOS em 21/08** (*"esses daí pode abrir tb p todos"*).
+
+## 🐛 CONSERTO: a barra de baixo sumia demais (21/08, achado pelo Diego)
+Print dele na **Copa do Brasil Legends**: *"quando começou as copas as abas
+voltaram pro meio. E não estão no rodapé mais"*. Era erro meu na condição do
+"momento sagrado" — eu tinha escrito:
+
+```
+const sagrado = penMode || halfMode || copaPlaying || festaOnC
+```
+
+Nenhum desses três primeiros é um MOMENTO; são **estados longos**:
+- `copaPlaying` vale a **Copa inteira** (foi o que ele viu);
+- `halfMode` vale a **partida inteira** de quem joga no modo "só no intervalo";
+- `penMode` vale a partida inteira quando ela é decisiva.
+
+Ou seja: a barra sumia em situações onde a pessoa MAIS precisa navegar. Agora:
+
+```
+const sagrado = (halftimeOpen && halfMode) || (penaltyOpen && penMode) || festaOnC
+```
+
+— o momento sagrado é quando o **banner está ABERTO** na cara da pessoa (aí sim
+nada compete), mais a festa do campeão. Os dois banners já zeram a cada rodada
+(`useEffect ... [round]`), então a barra volta sozinha.
+⚠️ Lição pra próxima: antes de usar uma flag pra "esconder UI num momento",
+conferir se ela é um INSTANTE ou um ESTADO que dura a fase inteira.
+
+## 📌 SUB-ABAS GRUDADAS ("Ideia 1") — só a conta do Diego (21/08)
+Depois da reprovada (logo abaixo), ofereci 3 ideias novas
+(`scripts/mockup-subabas-v2.mjs`) e ele escolheu a 1: *"faz a 1 code só pra mim
+por enquanto pra eu ver como fica antes"*. `sport.ts` · `useSubAbasGrudadas` /
+`PILULAS_GERAL` — **LIBERADO PRA TODOS em 21/08** (*"perfeito pode fazer p todos
+já tb em relação às pílulas"*). Voltar ao teste fechado = `false`.
+
+**A regra que saiu disso, e vale pra sempre:** *o remédio não pode ser TIRAR
+PESO das sub-abas.* Pra quem nunca jogou é o peso (borda grossa, sombra dura,
+pílula cheia na cor do tier) que diz "isto é um botão e você está NESTE".
+
+**O que foi feito:** `SubAbasGrudadas` (wrapper, `pyramidseason.tsx`). As
+pílulas do 🏟️ Clube e do 👥 Elenco **não mudaram em nada** — mesmo tamanho, cor,
+borda e sombra. O wrapper só faz a fileira **grudar no topo** (`position:
+sticky`) pra ela parar de sumir na rolagem, que era o problema real.
+
+🔧 **Detalhe medido no navegador:** a fileira gruda em `FAIXA_H - 6`, não em
+`FAIXA_H`. Assim o padding de cima do wrapper fica **escondido atrás da faixa**
+(opaca, z 99988) e não sobra fresta pro conteúdo aparecer entre as duas.
+Medido: faixa 0→30 · wrapper 25→83, sem buraco.
+
+✅ Testado no navegador (rolagem + troca de sub-aba com a página parada) e
+aprovado por ele rodando na conta dele antes de abrir pra geral.
+
+## ❌ SUB-ABAS FINAS (opção 2) — REPROVADA, NÃO REFAZER
+Foi codada em 21/08 só na conta do Diego e ele **não gostou**: *"esse 2 n gostei.
+Tire do meu tb"*. O commit foi **revertido inteiro** no mesmo dia — o Clube e o
+Elenco continuam com as **pílulas coloridas** de sempre, pra todo mundo.
+
+O que foi tentado (pra ninguém gastar tempo repetindo): trocar as pílulas das
+sub-abas do 🏟️ Clube e do 👥 Elenco por uma **tirinha fina** grudada no topo, só
+texto com sublinhado na ativa, com a ideia de "em cima é onde eu estou, embaixo é
+pra onde eu vou". O problema técnico que ela resolvia é REAL (as pílulas rolam
+junto com o conteúdo e somem), mas o remédio ficou **apagado demais** pro gosto
+dele. O mockup segue no repo em `scripts/mockup-subabas.mjs` só como registro.
+
+⚠️ Se um dia voltar ao assunto: ele NÃO chegou a pedir o meio-termo que eu tinha
+oferecido (tirinha grudando no topo, mas com a ativa em pílula roxa cheia).
+Perguntar antes de codar de novo.
+
+## 🧹 TOPO DA TEMPORADA — regra "decisão · recibo · aba" (21/08), no ar
+Mockup aprovado (`scripts/mockup-topo-temporada.mjs`), resposta dele: *"ok mas a
+parte do criar conta deixe um pouco mais chamativo e pode fazer"*.
+
+**⚠️ ACHADO IMPORTANTE PRA QUEM PEGAR ISSO DEPOIS:** o mockup mostrou numa tela
+só duas telas que na verdade são SEPARADAS no código —
+- **FIM da temporada** (`done`): jornal (`SeasonJornal`, aberto) + link do
+  chaveamento + a caixa "Próxima temporada" (que continha o FECHAMENTO);
+- **COMEÇO** (`round === 0`): resultado do patrocínio + contrato + botão verde.
+`copaFinished = done && …`, então jornal e fechamento NUNCA aparecem junto do
+contrato do patrocínio. Eu avisei o Diego. A regra foi aplicada nas DUAS telas,
+cada uma no que ela tinha de excesso.
+
+**O que foi feito:**
+- `ReciboLinha` · `CaixaRecibos` · `SeloSuaVez` (topo do `pyramidseason.tsx`).
+- **FIM**: o quadro do FECHAMENTO DA TEMPORADA (lista inteira de lançamentos)
+  virou UMA linha com o saldo → leva pra Clube › Finanças, onde o extrato mora
+  inteiro. Selo 👉 SUA VEZ na caixa "Próxima temporada".
+- **COMEÇO**: selo 👉 SUA VEZ no contrato do patrocínio (só enquanto não
+  escolheu); o resultado da temporada passada saiu da frente e virou recibo
+  DEPOIS do botão verde → leva pra Clube › Patrocínio. A frase "dava pra mirar
+  mais alto 😉" foi preservada dentro da linha.
+- **🎴 Criar conta mais chamativo** (pedido dele): a tirinha amarela fininha
+  virou um convite com a carta dourada, o que a pessoa GANHA (não só o que
+  perde) e botão verde de verdade. A versão grande de 3 em 3 temporadas
+  (`horaDoConvite`) continua igual.
+- **🔴 na barra de baixo**: a aba Clube ganha o pontinho quando tem recibo
+  esperando; some quando a pessoa abre a aba e volta na temporada seguinte.
+- `SponsorBetResultCard` deixou de existir (virou recibo).
+
+**Regra que ele bateu o martelo:** momento de EMOÇÃO nunca vira recibo — campeão,
+acesso, carta ganha e o jornal continuam grandes e com festa. Recibo é rotina.
+
+⏳ **Não testado com carreira de verdade rodando** (o robô não termina o pregão
+a tempo). Testado: build limpo + as peças novas fotografadas no navegador.
+
 ## 🤝 PATROCÍNIO DA TEMPORADA — REFEITO (21/08), no ar pra todos
 Reclamação dele: *"a hora do patrocínio que o usuário tem que escolher na
 temporada… acho que tá sem graça o visual. E também MUITA informação perante as
