@@ -30,8 +30,22 @@ sumiu — todas ficam a UM toque no ❓ — mas se ele achar que ficou seco, o
 **passo intermediário combinado** é ligar só metade: tirar o quadro do piso
 (redundante) e subir as vagas pra barra, mantendo o 🏆 no caminho.
 
-✅ Testado no navegador de verdade (carreira nova, setor GOL): barra com
-"1 vaga · ❓ · 💰100", a folha do ensino no 1º pregão e o ❓ abrindo as 5 regras.
+**🌐 VALE EM TODOS OS MODOS** (ele perguntou em 21/08: *"faça em todos modos q
+tem leilão né tipo o rápido online e etc tb"*). Não precisou de nada novo: existe
+**UMA tela de leilão só** — `EscAuction` (`index.tsx`, `case 'auction'`) — usada
+por rápido offline, rápido online, carreira, liga fechada, duplas e basquete. A
+trava é por CONTA, então vale onde ele jogar. **Conferido rodando** no jogo
+rápido contra CPU, além da carreira.
+
+🐛 **Um detalhe que ia irritar e foi corrigido junto:** `tipClosed` zerava a cada
+setor (`useEffect ... [state.sectorIdx]`), então a folha do ensino voltaria
+**5 vezes seguidas** na mesma partida (uma por posição), com o relógio correndo.
+Agora, com o pregão limpo, o ensino aparece **só no setor 0** e, uma vez fechado,
+não volta naquela partida.
+
+✅ Testado no navegador de verdade (carreira nova E jogo rápido, setor GOL):
+barra com "1 vaga · ❓ · 💰100", a folha do ensino no 1º pregão e o ❓ abrindo as
+5 regras.
 ⏳ **Falta:** o Diego dizer se gostou.
 
 ## ❌ SUB-ABAS FINAS (opção 2) — REPROVADA, NÃO REFAZER

@@ -2789,7 +2789,10 @@ function Envelope() {
     } catch { return false }
   })
   const [tipClosed, setTipClosed] = useState(false)
-  useEffect(() => { setTipClosed(false) }, [state.sectorIdx])
+  // 🔨 PREGÃO LIMPO: o ensino é UMA VEZ por partida, e ponto. Sem esta trava o
+  // `tipClosed` zerava a cada setor e a folha do ensino voltava 5 vezes seguidas
+  // (uma por posição) — chato pra caramba, e com o relógio correndo.
+  useEffect(() => { if (!pregaoLimpo) setTipClosed(false) }, [state.sectorIdx, pregaoLimpo])
   // "enviei mas ainda não veio confirmação do host" — sem isso, se o host
   // demorar (ou tiver caído), o jogador ficava vendo os lances dele
   // somem sem nunca lacrar de verdade: um clique em LACRAR sempre limpava
@@ -2995,7 +2998,9 @@ function Envelope() {
   const bidLimit = myOpen
   const chosenCount = Object.keys(bids).length
 
-  const showLanceTip = firstGame && !tipClosed
+  // com o pregão limpo o ensino só aparece na PRIMEIRA posição da partida —
+  // nunca no meio do pregão, nunca de novo depois de fechado.
+  const showLanceTip = firstGame && !tipClosed && (!pregaoLimpo || state.sectorIdx === 0)
   // 🏀 basquete: rápido = quinteto (5, 50 moedas); carreira/Street League = rotação
   // de 10 (100 moedas). Distingo pelo total de vagas do elenco (10 → carreira).
   const nbaRotacao = totalHoles(you) >= 8
