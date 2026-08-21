@@ -354,8 +354,35 @@ export function useBarraCarreira(): boolean {
   return barraCarrOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email) })
+// ─── 🔨 PREGÃO LIMPO (opção 4) ──────────────────────────────────────────────
+// O pregão é a ÚNICA tela do jogo com relógio (42s), e hoje ela abre com 4
+// quadros de regra antes da primeira carta — cada segundo lendo é um segundo
+// sem dar lance. Com isto ligado:
+//   · moedas · VAGAS · tempo ficam fixos na barra (não rolam com as cartas);
+//   · as regras saem da frente e viram o botão ❓ ao lado do dinheiro;
+//   · o quadro do piso some (a carta já mostra "mín 🔒 7") e o do surpresa
+//     também (a carta já mostra 🎁 com o nome borrado);
+//   · o ensino INTEIRO volta no 1º pregão de CADA CARREIRA (hoje a marca é do
+//     aparelho, então quem começa a 2ª carreira não recebe ensino nenhum).
+// ⚠️ Mexe na ferida que o Diego apontou ("as pessoas não entendem o leilão"):
+// nenhuma regra some, todas ficam a UM toque. 🔒 Só a conta dele por enquanto.
+const PREGAO_GERAL = false
+const PREGAO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let pregaoOk = PREGAO_GERAL
+function applyPregaoUnlock(email?: string | null): void {
+  const u = PREGAO_GERAL || (!!email && PREGAO_TESTERS.has(email.toLowerCase()))
+  if (u === pregaoOk) return
+  pregaoOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function usePregaoLimpo(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return pregaoOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

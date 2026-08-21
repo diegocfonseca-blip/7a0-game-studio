@@ -22,7 +22,7 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -2565,20 +2565,75 @@ function pendingSpend(state: EscState, you: Manager): number {
   if (!pendingIds.size) return 0
   return you.squad.reduce((sum, c) => pendingIds.has(c.id) ? sum + (c.paid ?? 0) : sum, 0)
 }
-function AuctionBar() {
+// 🔨 barra do pregão. Com o PREGÃO LIMPO ligado ela ganha duas coisas que hoje
+// vivem em quadros que rolam com as cartas: as VAGAS e o ❓ das regras. O que a
+// pessoa precisa AGORA (moedas · vagas · tempo) fica sempre na tela.
+function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
+  const [regras, setRegras] = useState(false)
   return (
-    <div className="flex items-center justify-between max-w-xl mx-auto">
-      <div className="flex gap-1.5">
-        {SECTORS.map((p, i) => (
-          <span key={p} className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
-            style={{ backgroundColor: i < state.sectorIdx ? INK : i === state.sectorIdx ? GOLD : '#fff', color: i < state.sectorIdx ? '#fff' : INK }}>
-            {posTag(p)}
-          </span>
-        ))}
+    <>
+      <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
+        <div className="flex gap-1.5">
+          {SECTORS.map((p, i) => (
+            <span key={p} className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
+              style={{ backgroundColor: i < state.sectorIdx ? INK : i === state.sectorIdx ? GOLD : '#fff', color: i < state.sectorIdx ? '#fff' : INK }}>
+              {posTag(p)}
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5">
+          {vagas != null && vagas > 0 && (
+            <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black whitespace-nowrap"
+              style={{ background: '#E7F7EC', color: '#146c33', ...OSWALD }}>{vagas} {vagas === 1 ? 'vaga' : 'vagas'}</span>
+          )}
+          {ajuda && (
+            <button onClick={() => setRegras(true)} aria-label="Regras do pregão"
+              className="border-2 border-black rounded-full w-6 h-6 flex items-center justify-center text-[11px] font-black bg-white"
+              style={{ cursor: 'pointer' }}>❓</button>
+          )}
+          <CoinCounter value={you.money + pendingSpend(state, you)} />
+        </div>
       </div>
-      <CoinCounter value={you.money + pendingSpend(state, you)} />
+      {regras && <RegrasDoPregao onFechar={() => setRegras(false)} />}
+    </>
+  )
+}
+// ❓ as regras do pregão, a UM toque. Nada aqui é novo — é o que hoje fica
+// empilhado em quadros na frente das cartas, escrito melhor e fora do caminho.
+// ⏱️ O relógio NÃO para: por isso o aviso honesto no rodapé da folha.
+function RegrasDoPregao({ onFechar }: { onFechar: () => void }) {
+  const linhas: [string, string, string][] = [
+    ['🏆', 'Ganha quem dá o maior lance', 'Não é 1 moeda que leva — é quem paga mais. Empate? Re-lance às cegas.'],
+    ['✉️', 'O lance é cego', 'Ninguém vê o seu, você não vê o dos outros. Tudo aparece só na revelação.'],
+    ['🎟️', 'Suas vagas', 'Dá pra dar lance em vários jogadores DE UMA VEZ na mesma leva — até o número de vagas que aparece na barra, não só em um.'],
+    ['🔒', 'O piso', 'O número apagado é o mínimo do jogador, não um lance. Vira lance quando você aperta +. Abaixo do piso fica vermelho e é anulado.'],
+    ['🎁', 'Jogador surpresa', 'O nome fica escondido: você só vê posição, clube e ano. Sai no martelo.'],
+  ]
+  return (
+    <div onClick={onFechar} style={{ position: 'fixed', inset: 0, zIndex: 99995, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 380, maxHeight: '86vh', overflowY: 'auto', border: `4px solid ${INK}`, borderRadius: 18, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
+        <div style={{ background: INK, padding: '10px 13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0 }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: GOLD }}>❓ REGRAS DO PREGÃO</span>
+          <button onClick={onFechar} aria-label="Fechar" style={{ background: 'none', border: 'none', color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 18, cursor: 'pointer', lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ padding: '11px 13px' }}>
+          {linhas.map(([ic, t, s], i) => (
+            <div key={t} style={{ display: 'flex', gap: 9, padding: '9px 0', borderBottom: i < linhas.length - 1 ? '1.5px solid rgba(12,12,12,.10)' : 'none' }}>
+              <span style={{ fontSize: 17, flexShrink: 0 }}>{ic}</span>
+              <div>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, margin: 0, lineHeight: 1.15 }}>{t}</p>
+                <p style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(0,0,0,.55)', margin: '2px 0 0', lineHeight: 1.45 }}>{s}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ background: '#E7F7EC', borderTop: `3px solid ${INK}`, padding: '10px 13px', textAlign: 'center' }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: '#146c33', margin: '0 0 8px', lineHeight: 1.4 }}>⏱️ O relógio <b>não para</b> enquanto isso está aberto — feche e dê seu lance na hora.</p>
+          <button onClick={onFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '9px 10px', ...OSWALD, fontWeight: 900, fontSize: 13.5, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>Fechar e dar lance 👊</button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -2719,10 +2774,17 @@ function Envelope() {
   // PRIMEIRA partida da vida: dica dourada que alterna por setor (moedas ↔ auge).
   // HOOKS AQUI NO TOPO, antes de qualquer return condicional — colocar depois
   // derrubava o online com React #300 quando o envelope era lacrado.
+  // 🔨 pregão limpo (só a conta do Diego por enquanto)
+  const pregaoLimpo = usePregaoLimpo()
   const [firstGame] = useState(() => {
     try {
-      if (localStorage.getItem('esc-tip-lance-v1')) return false
-      localStorage.setItem('esc-tip-lance-v1', '1')
+      // 🎓 QUANDO ENSINAR. Hoje a marca é do APARELHO: quem termina a 1ª carreira
+      // e começa a 2ª não recebe ensino NENHUM. Com o pregão limpo a marca passa
+      // a ser desta PARTIDA/CARREIRA (a seed), então todo começo ensina de novo —
+      // que é justamente quando a pessoa precisa.
+      const k = pregaoLimpo && state.seed != null ? `esc-tip-lance-s${state.seed}` : 'esc-tip-lance-v1'
+      if (localStorage.getItem(k)) return false
+      localStorage.setItem(k, '1')
       return true
     } catch { return false }
   })
@@ -2945,15 +3007,34 @@ function Envelope() {
     ? <>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</>
     : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>
   return (
-    <Shell bar={<AuctionBar />}>
+    <Shell bar={<AuctionBar vagas={pregaoLimpo && canBid ? bidLimit : undefined} ajuda={pregaoLimpo} />}>
       {sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
-      {showLanceTip && !rescue && (
+      {/* 🎓 O ENSINO. Com o pregão limpo as regras saem da frente das cartas — mas
+          QUEM ESTÁ COMEÇANDO vê tudo aqui, uma vez, no começo da partida/carreira,
+          com um "entendi" pra fechar. É a troca: ensina no momento certo em vez de
+          empurrar a mesma regra em todo setor de toda temporada. */}
+      {showLanceTip && !rescue && (pregaoLimpo ? (
+        <div className="border-[3px] border-black rounded-xl p-3 text-center" style={{ background: `linear-gradient(180deg,#FFE07A,${GOLD})`, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p className="text-[9px] font-black uppercase tracking-wide text-black/50" style={OSWALD}>{L('Seu primeiro pregão', 'Your first auction')}</p>
+          <p className="text-[16px] font-black leading-tight mt-0.5" style={OSWALD}>🏆 {L('GANHA QUEM DÁ O MAIOR LANCE', 'HIGHEST BID WINS')}</p>
+          <p className="text-[11px] font-bold text-black/70 mt-1 leading-snug">
+            {L('Não é 1 moeda que leva — é quem ', "It's not one coin that wins — it's who ")}<b>{L('paga mais', 'pays most')}</b>{L('. Empate? Re-lance às cegas. O lance é ', '. Tie? Blind re-bid. Bids are ')}<b>{L('cego', 'blind')}</b>{L(': ninguém vê nada até a revelação.', ': nobody sees anything until the reveal.')}
+            {canBid && bidLimit > 0 && <> {L('Você tem ', 'You have ')}<b>{bidLimit === 1 ? L('1 vaga', '1 slot') : L(`${bidLimit} vagas`, `${bidLimit} slots`)}</b>{bidLimit > 1 ? L(' — dá pra dar lance em vários DE UMA VEZ.', ' — you can bid on several AT ONCE.') : '.'}</>}
+          </p>
+          <button onClick={() => setTipClosed(true)}
+            className="w-full border-[3px] border-black rounded-xl py-2 mt-2.5 font-black text-[13px] active:translate-y-0.5"
+            style={{ background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD, cursor: 'pointer' }}>
+            {L('Entendi, bora dar lance 👊', 'Got it, let me bid 👊')}
+          </button>
+          <p className="text-[9px] font-bold text-black/45 mt-1.5">{L('Esqueceu? O ❓ lá em cima abre isso de novo, a qualquer hora.', 'Forgot? The ❓ up top reopens this any time.')}</p>
+        </div>
+      ) : (
         <div className="relative border-[3px] border-black rounded-xl p-3 pr-8" style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p className="text-[12.5px] font-black leading-snug" style={OSWALD}>{tipTxt}</p>
           <button onClick={() => setTipClosed(true)} aria-label="Fechar"
             className="absolute top-1 right-2 text-lg font-black" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
         </div>
-      )}
+      ))}
       <div className="pt-1 flex items-start justify-between gap-3">
         <div className="flex-1">
           <h2 className="font-black text-3xl" style={OSWALD}>
@@ -3014,8 +3095,12 @@ function Envelope() {
       )}
 
       {/* REGRA DE OURO + VAGAS — brilhante e centralizado logo acima dos lances,
-          pra ninguém achar que 1 moeda leva nem que só dá pra apostar em um. */}
-      {!rescue && canBid && bidLimit > 0 && (
+          pra ninguém achar que 1 moeda leva nem que só dá pra apostar em um.
+          🔨 PREGÃO LIMPO: isto sai da frente das cartas — a regra de ouro vai pro
+          ❓ da barra (a um toque, com o relógio correndo do mesmo jeito) e as
+          VAGAS sobem pra barra, onde ficam sempre visíveis. O 🎁 surpresa também
+          sai: a carta JÁ mostra o presente com o nome borrado. */}
+      {!pregaoLimpo && !rescue && canBid && bidLimit > 0 && (
         <div className="space-y-2">
           <div className="text-center border-[3px] border-black rounded-xl px-3 py-2"
             style={{ background: `linear-gradient(180deg, #FFE07A 0%, ${GOLD} 100%)`, boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -3038,7 +3123,9 @@ function Envelope() {
         </div>
       )}
 
-      {!state.streamMode && canBid && cards.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
+      {/* 🔨 PREGÃO LIMPO: este quadro é REDUNDANTE — a própria carta já mostra
+          "mín 🔒 7" logo em cima da caixa do lance. A explicação foi pro ❓. */}
+      {!pregaoLimpo && !state.streamMode && canBid && cards.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
         <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5" style={{ background: '#FFF3D6', boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p className="text-[11px] font-bold text-black/75">🔒 O número esmaecido é o <b>piso</b> do jogador — <b>não é lance</b>. Só vira lance quando você aperta <b>+</b> (aí fica preto). Abaixo do piso fica vermelho e é anulado.</p>
         </div>

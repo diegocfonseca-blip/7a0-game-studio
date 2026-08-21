@@ -1,5 +1,39 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 🔨 PREGÃO LIMPO (opção 4) — só a conta do Diego (21/08)
+Mockup `scripts/mockup-pregao.mjs`, resposta dele: *"ok pode fazer"*.
+`sport.ts` · `usePregaoLimpo` / `PREGAO_GERAL` (hoje `false`).
+
+**Por que:** o pregão é a ÚNICA tela do jogo com relógio (42s) e abria com 4
+quadros de regra antes da primeira carta — ali a explicação **cobra pedágio**.
+E os quadros voltavam em todo setor de toda temporada.
+
+**O que mudou (com o portão ligado):**
+- **VAGAS subiram pra barra** (`AuctionBar` agora aceita `vagas` e `ajuda`),
+  junto das moedas — sempre na tela, não rolam com as cartas.
+- **`RegrasDoPregao`** (novo, `screens.tsx`): a folha do ❓ com as 5 regras.
+  Avisa que **o relógio não para** e fecha com "Fechar e dar lance 👊".
+- **Saíram da frente**: o quadro 🏆 + o quadro das vagas + o quadro do 🎁
+  surpresa (o bloco `!rescue && canBid && bidLimit > 0`) e o quadro do 🔒 piso.
+  Os dois últimos eram **redundantes**: a carta já mostra "mín 🔒 7" e o 🎁 com
+  o nome borrado (`CardFace`).
+- **🎓 Ensino no lugar certo**: a marca de "já ensinei" era do APARELHO
+  (`esc-tip-lance-v1`) — quem começava a 2ª carreira não via ensino nenhum.
+  Com o portão ligado a chave passa a ser da PARTIDA (`esc-tip-lance-s<seed>`),
+  e o primeiro pregão mostra a folha dourada "SEU PRIMEIRO PREGÃO" com a regra
+  de ouro + as vagas + "Entendi, bora dar lance 👊" + "o ❓ lá em cima abre isso
+  de novo".
+
+⚠️ **O risco que eu falei pra ele e ele mandou seguir:** ele mesmo disse que
+*"as pessoas começam e não entendem o que fazer no leilão"*. Nenhuma regra
+sumiu — todas ficam a UM toque no ❓ — mas se ele achar que ficou seco, o
+**passo intermediário combinado** é ligar só metade: tirar o quadro do piso
+(redundante) e subir as vagas pra barra, mantendo o 🏆 no caminho.
+
+✅ Testado no navegador de verdade (carreira nova, setor GOL): barra com
+"1 vaga · ❓ · 💰100", a folha do ensino no 1º pregão e o ❓ abrindo as 5 regras.
+⏳ **Falta:** o Diego dizer se gostou.
+
 ## ❌ SUB-ABAS FINAS (opção 2) — REPROVADA, NÃO REFAZER
 Foi codada em 21/08 só na conta do Diego e ele **não gostou**: *"esse 2 n gostei.
 Tire do meu tb"*. O commit foi **revertido inteiro** no mesmo dia — o Clube e o
