@@ -7727,3 +7727,32 @@ Rápido), `screens.tsx` (tabela do Rápido) e `copa-mundo.tsx` (grupos da Copa).
 ⚠️ Isso muda a ORDEM de tabelas de carreiras já em andamento (G4, Z4, acesso).
 É de propósito: a tabela passa a mostrar o que sempre deveria. Não é novidade de
 home — é conserto.
+
+---
+
+## ✅ 21/08 — A Chape no jogo (7 cartas) + gerador do post
+
+Diego pediu pra completar a homenagem à Chapecoense e postar marcando o clube,
+a família e os sobreviventes. Entraram no baralho BR:
+- **Follmann** (GOL 2016, foi profissional) — fecha o trio de sobreviventes do voo
+  junto de Alan Ruschel e Neto, que já estavam.
+- **Cléber Santana** (MEI 2016, bom jogador) — o capitão de 2016.
+- **Bruno Rangel** (ATA 2016, bom jogador) — maior artilheiro da história do clube.
+- **Kempes** (ATA 2016, bom jogador) — entrou como `Kempes (Chape)` porque o
+  baralho europeu já tem o **Mario Kempes**, e ele foi batizado em homenagem a ele.
+- **Everaldo saiu** do baralho a pedido do Diego.
+
+Total hoje: 7 cartas com `club: 'Chapecoense'`.
+
+**Toda bio saiu de fato conferido em pesquisa** — nada de chute. É gente real e
+uma tragédia real: a regra do Diego (*"não inventar como uma pessoa real é"*)
+vale em dobro aqui. Se entrar mais alguém da Chape, pesquisar ANTES de escrever.
+
+📸 O post mora em **`scripts/mockup-chape.mjs`** (1080×1920, Stories). Ele lê a
+lista direto do `data.ts` filtrando `club === 'Chapecoense'`, então **quando
+entrar mais gente é só rodar de novo** e o post se atualiza sozinho:
+`node scripts/mockup-chape.mjs --saida chape.png`
+
+⚠️ Detalhe do gerador: o `Ã` do Oswald em corpo grande precisa de
+`line-height >= 1.2`, senão o til escapa da linha e aparece solto na linha de
+cima. Não baixar disso.
