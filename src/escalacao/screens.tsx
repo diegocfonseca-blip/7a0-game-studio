@@ -1561,6 +1561,90 @@ function HomeIconTile({ icon, label, onClick }: { icon: string; label: string; o
 //       quer entender). Era a queixa dele: "as pessoas não entendem o leilão,
 //       as moedas, a disputa, e que depois tem uma simulação".
 //   6 · novidades · 7 · apoiar (a história de quem faz o jogo mora DENTRO dele)
+// ❓ DÚVIDAS — a terceira seção do Manual (Diego 20/08, inspirado no FAQ que ele
+// mandou). Ele cortou a minha primeira lista: *"as respostas estão muito fracas"*
+// — e estava certo, eram linhas soltas. Aqui cada resposta diz O QUE FAZER, com
+// o número e o caminho.
+//
+// 🔢 A ORDEM É POR GENTE AFETADA, medido no banco em 20/08 — não por palpite:
+//   · 2.832 contas (38% de todas) NUNCA ganharam uma carta → a nº1 do jogo;
+//   · 4.474 contas (59%) nunca abriram uma carreira;
+//   · 192 carreiras estão com a caixa negativa hoje;
+//   · 28 clubes batizados — e "como o fulano tem escudo?" é a que mais leva
+//     alguém a apoiar, por isso as duas do batismo abrem a lista (pedido dele).
+// ⚠️ Toda resposta aqui é conferida NO CÓDIGO. Se uma regra mudar, esta lista
+// muda junto — FAQ que mente é pior que FAQ nenhum.
+function Duvidas() {
+  const [aberta, setAberta] = useState<number | null>(null)
+  const QA: [string, React.ReactNode][] = [
+    ['Como faço pra ter meu escudo e mascote personalizado?', <>
+      É o <b>Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o seu clube passa a ter <b>escudo, mascote, manto e até o nome do estádio</b> — tudo desenhado só pra ele.<br /><br />
+      O caminho: <b>💛 Apoiar → 🖋️ Batismo</b>. Custa <b>R$ 59,90</b> (Série A, B, C ou Várzea) ou <b>R$ 69,90</b> (Série D, que é a mais concorrida). Você paga no Pix, manda o comprovante e o nome no direct, e a gente confirma <b>em até 24h</b>.<br /><br />
+      Vem junto: <b>tudo do 👑 Lenda</b> + o <b>🎫 Sócio</b> — sua cor dourada em todo canto, moedas todo mês e seu número de fundador. E o nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula): mais ninguém pode usar.
+    </>],
+    ['Como faço pra meu time aparecer pra todos no jogo?', <>
+      Também é o Batismo — e essa é a melhor parte dele. Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo mundo que joga</b>, não só pra você.<br /><br />
+      Na prática: qualquer pessoa, em qualquer partida, pode cair na mesma tabela que o seu time. Vai ver o seu escudo, o seu manto, e a sua mascote comemorando quando ele faz gol. Quem ganhar de você vai lembrar do nome.<br /><br />
+      A <b>Série D custa mais</b> (R$ 69,90) porque é onde ficam os <b>rivais escolhidos</b> — todo jogador enfrenta eles logo na primeira temporada. As outras séries custam R$ 59,90.<br /><br />
+      Depois de confirmado, ele entra <b>na atualização seguinte</b> e já começa a jogar.
+    </>],
+    ['Por que eu não ganhei nenhuma carta ainda?', <>
+      Porque <b>carta é prêmio de campeão</b>. Não ganha por jogar, ganha por <b>ganhar</b>.<br /><br />
+      Quem levanta o troféu da liga leva <b>uma carta</b> pro álbum. Quem for campeão da Copa dos 8 (ou da Libertadores) leva <b>outra</b>, à parte. Vale nas partidas contra a CPU e nas online, do mesmo jeito.<br /><br />
+      ⚠️ E tem um detalhe que pega muita gente: <b>sem conta criada, a carta não é guardada</b>. Você joga à vontade, mas o álbum fica vazio. Se você já foi campeão antes de criar a conta, aquelas cartas não voltam — mas da próxima vez ficam.
+    </>],
+    ['Preciso criar conta pra jogar?', <>
+      <b>Não.</b> Dá pra jogar tudo sem cadastro: partida rápida, sala com os amigos, e até a <b>primeira temporada inteira da carreira</b>.<br /><br />
+      O que muda com conta: você <b>ganha e guarda as cartas</b>, aparece no ranking, e a sua carreira fica salva na nuvem — se trocar de celular, ela vai junto.<br /><br />
+      Sem conta, o save mora <b>só naquele aparelho</b>. Limpou o navegador, perdeu.
+    </>],
+    ['O que é o Modo Carreira? Vale a pena?', <>
+      É a vida de técnico, temporada após temporada. Você começa lá embaixo, na <b>Várzea</b>, e vai subindo até a <b>Série A</b>.<br /><br />
+      A cada temporada abre coisa nova: banco de reservas, vender jogador, folha salarial, contrato, <b>construir o estádio</b>, comprar uma SAF, escolher patrocinador. O time que você monta <b>continua com você</b> — não recomeça do zero.<br /><br />
+      É o modo onde a maioria fica: tem gente aqui na <b>temporada 180</b>. Se você só jogou partida rápida, é o que você ainda não viu do jogo.
+    </>],
+    ['Como eu chamo meus amigos pra jogar?', <>
+      Toca em <b>👥 Com amigos online</b> e crie a sala. O jogo te dá um <b>código de 6 letras</b>.<br /><br />
+      Manda esse código no zap. Quem receber entra na mesma tela, digita o código e cai na sua sala. <b>Cabem até 20 no mesmo pregão.</b><br /><br />
+      Ninguém precisa baixar nada — é o mesmo link do site, abre no navegador do celular.
+    </>],
+    ['Por que não dá pra ver o nível do jogador antes do lance?', <>
+      <b>Não é bug — é o jogo.</b> É um leilão <b>às cegas</b>: você vê só o nome e aposta no que você acha que aquele nome vale.<br /><br />
+      O nível só abre na <b>Cerimônia da Revelação</b>, quando todos os envelopes abrem juntos. É ali que você descobre se pagou 30 moedas num craque ou num perna-de-pau — e todo mundo descobre ao mesmo tempo.<br /><br />
+      É de propósito: se desse pra ver o nível, não teria blefe, não teria risco, e não teria resenha.
+    </>],
+    ['Meu clube ficou no vermelho. E agora?', <>
+      Vermelho é <b>dívida</b>, não bug — e tem saída.<br /><br />
+      Ele acontece quando a <b>folha salarial</b> (ou uma renovação de contrato) fica maior que o seu caixa. Enquanto estiver negativo, você <b>não consegue contratar</b> — mas continua jogando normal.<br /><br />
+      Pra sair: <b>venda um jogador</b> no leilão, pegue reforço <b>de graça no Monte</b>, e siga ganhando prêmio e bilheteria. Assim que zerar, o mercado destrava sozinho.
+    </>],
+    ['Troquei de celular / sumiu minha carreira', <>
+      Se você tem <b>conta criada</b>, ela não sumiu: entre com o mesmo e-mail no aparelho novo e a carreira <b>baixa da nuvem</b> sozinha.<br /><br />
+      Se você jogava <b>sem conta</b>, o save ficava guardado só naquele navegador — e aí não tem como recuperar. É o motivo nº 1 pra criar a conta antes de investir muitas temporadas.<br /><br />
+      Tem mais de uma carreira? Toca em <b>🪜 Minhas carreiras</b> na tela inicial pra trocar entre elas.
+    </>],
+  ]
+  return (
+    <>
+      <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-4 mb-2.5" style={OSWALD}>❓ Dúvidas de quem joga</p>
+      <div className="space-y-2">
+        {QA.map(([q, a], i) => (
+          <div key={i} className="border-[2.5px] border-black rounded-xl bg-white overflow-hidden" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+            <button onClick={() => setAberta(aberta === i ? null : i)}
+              className="w-full flex items-center gap-2 px-3 py-2.5 text-left active:opacity-70">
+              <span className="flex-1 font-black text-[12px] leading-snug" style={OSWALD}>{q}</span>
+              <span className="flex-none text-[13px] font-black" style={{ color: PURPLE, transform: aberta === i ? 'rotate(180deg)' : undefined, transition: 'transform .18s' }}>⌄</span>
+            </button>
+            {aberta === i && (
+              <p className="text-[11px] font-semibold text-black/70 leading-relaxed px-3 pb-3 -mt-0.5" style={{ borderTop: '2px solid rgba(0,0,0,.08)', paddingTop: 9 }}>{a}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
 // 📋 A LINHA DE PASSO — a mesma peça na home e no Manual do Técnico.
 // Foi pedido do Diego (20/08): *"as regras estão com muita firula no botão de
 // regras… tem que ser mais parecido com a foto do como funciona"*. O manual
@@ -1996,6 +2080,7 @@ function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: bool
               <PassoLinha ic="👥" titulo="Rápido (online)">Mesma coisa, mas os lances são dos seus amigos na sala. Até 20 no mesmo pregão.</PassoLinha>
               <PassoLinha ic="🪜" titulo="Carreira">{escadaLiberada() ? 'Começa na Várzea' : 'Começa na Série D'} e sobe a pirâmide até a Série A. Temporada a temporada abre reservas, vendas, folha, contratos, estádio e SAF.</PassoLinha>
             </div>
+            <Duvidas />
           </>
         ) : (<>
         {/* a regra-mãe: o leilão */}
