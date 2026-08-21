@@ -453,7 +453,7 @@ assim"* — ou seja, **quase-nome**, o estilo que a casa já usa (Vasco da Grana
 Livre-pool, Cuiabagre, Paris São Geraldo). E: *"ideal que os 8 classificados
 fossem cabeças de chave"*.
 
-**Pote 2** River Pratão 78 · Bocazudo 77 · Penhalol 75 · Nassional 74 ·
+**Pote 2** River Preite 78 · Boca Xuniors 77 · Penhalol 75 · Nassional 74 ·
 Colo do Colo 73 · Atlético Cafezal 73 · Independente da Grana 72 · Serro Portenho 71
 **Pote 3** Estudantes da Prata 70 · Olímpia do Tereré 70 · The Fortão 69 ·
 Barcelona da Linha 69 · Rachando Club 68 · Universidade do Chilique 67 ·
@@ -469,7 +469,7 @@ Deportivo Tá Xiro 58
 ⚠️ **"River Prato" não deu.** Esse nome já existe no jogo como o nome VELHO do
 **La Bestia Negra** (batismo do eltonfrossard45, em `OLD_NAME`). Se eu usasse,
 quem abrisse um save antigo veria o clube virar La Bestia Negra e ainda pegaria o
-escudo dele. Virou **River Pratão**. Os outros 23 foram conferidos um a um contra
+escudo dele. Virou **River Preite**. Os outros 23 foram conferidos um a um contra
 `data.ts` (clubes, `OLD_NAME`) e `escudos.tsx` (chaves de escudo) — nenhum bate.
 
 ### ✅ APROVADO pelo Diego (20/08) + o bannerzão de abertura

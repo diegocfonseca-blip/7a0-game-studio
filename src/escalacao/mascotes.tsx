@@ -464,7 +464,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 12/08): abelha/vespa coroada de asas abertas agarrando a bola. Arte própria do dono
   // (webp, gerada no estilo do escudo, fundo transparente). mascote_key = "sapek_abelha".
   sapek_abelha: (
-    <img src={sapekAbelhaImg} height={176} width={Math.round(176 * 500 / 424)} alt="Abelha — Sapekeiros FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={sapekAbelhaImg} height={176} width={Math.round(176 * 440 / 373)} alt="Abelha — Sapekeiros FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐍💨 a COBRA DO ARRUDA (mascote do Tricolor do Arruda — souzact12, aprovado
   // 16/08): a MESMA cobra que aparece no escudo, recortada dele (boné virado,

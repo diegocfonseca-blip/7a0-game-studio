@@ -2317,6 +2317,7 @@ export const OLD_NAME: Record<string, string> = {
   'Tokyo City Esperion': 'FC Galáticos', // ⚽ elo da corrente do denilson: FC Galáticos → Tokyo City Esperion → Xurupitas FC
   'Tôka10': 'Biriba United', // ⚽ batismo do ofc.toka10: save antigo com Biriba United vira Tôka10 ao carregar
   'Skyy FC': 'Fortuna SAF', // ⚽ batismo do matheusncruz1: save antigo com Fortuna SAF vira Skyy FC ao carregar
+  'Sapekeiros FC': 'Pardemeias', // ⚽ batismo do tiosapeka: save antigo com Pardemeias vira Sapekeiros FC ao carregar (20/08)
   'Crias do Bigão': 'Ferroviária do Vale', // ⚽ batismo do giovannecastro784: save antigo com Ferroviária do Vale vira Crias do Bigão ao carregar (17/08)
   'SC Ferrari': 'Painitto FC', // ⚽ batismo do adriano.ferrari: save antigo com Painitto FC vira SC Ferrari ao carregar
   'Barcenite FC': 'Milanesa FC', // ⚽ batismo do ricardopessoafreire: save antigo com Milanesa FC vira Barcenite FC ao carregar
@@ -2436,7 +2437,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
     { name: 'Piu do Grêmio', team: 'Barcenite FC' },
-    { name: 'Tico do Bar', team: 'Pardemeias' },
+    { name: 'Tico do Bar', team: 'Sapekeiros FC' }, // 🐝👑 clube BATIZADO por apoiador (tiosapeka@gmail.com / @tiosapekagg — Sapekeiros FC, ex-Pardemeias; abelha coroada, manto preto+dourado, 20/08)
     { name: 'Xandão da Bola', team: 'Manfré FC' }, // ⚽ clube BATIZADO por apoiador (danielmanfre5 — Manfré FC, ex-Livre-pool)
     { name: 'Val do Buraco', team: 'Flamengo do Sertão' },
   ],
@@ -2519,12 +2520,12 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
 // ⚠️ "River Prato" NÃO deu: esse nome já existe em `OLD_NAME` como o nome VELHO
 // do **La Bestia Negra** (batismo do eltonfrossard45). Se fosse usado, quem
 // abrisse um save antigo veria o clube virar La Bestia Negra e ainda pegaria o
-// escudo dele. Virou **River Pratão**. Os outros 23 foram conferidos um a um
+// escudo dele. Virou **River Preite**. Os outros 23 foram conferidos um a um
 // contra os clubes do jogo, o `OLD_NAME` e as chaves de `LOGOS_PRONTAS`.
 export const LIBERTA_CLUBS: { name: string; atk: number; def: number; pote: 2 | 3 | 4 }[] = [
   // pote 2 — os pesos do continente
-  { name: 'River Pratão', atk: 78, def: 76, pote: 2 },
-  { name: 'Bocazudo', atk: 77, def: 77, pote: 2 },
+  { name: 'River Preite', atk: 78, def: 76, pote: 2 },
+  { name: 'Boca Xuniors', atk: 77, def: 77, pote: 2 },
   { name: 'Penhalol', atk: 75, def: 74, pote: 2 },
   { name: 'Nassional', atk: 74, def: 73, pote: 2 },
   { name: 'Colo do Colo', atk: 73, def: 72, pote: 2 },

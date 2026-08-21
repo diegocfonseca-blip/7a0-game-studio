@@ -3,12 +3,12 @@ import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
-  QuickCopaState, QuickCopaTie, LedgerEntry, EmpCard, AgCard, AgEvento,
+  QuickCopaState, QuickCopaTie, LibertaState, LibertaTeam, LedgerEntry, EmpCard, AgCard, AgEvento,
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, clubCanon } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
@@ -1290,7 +1290,10 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     // vencedor único: fecha na hora
     const wid = tiedTop[0]
     const m = managers.find(x => x.id === wid)!
-    m.money -= top
+    // 🛟 piso: comprar no leilão NUNCA deixa a caixa negativa. O envelope já foi
+    // conferido antes, então isto é a segunda rede — se um dia entrar um caminho
+    // novo de lance, ele não consegue mais criar dívida do nada.
+    m.money = Math.max(0, m.money - top)
     // 📝 clube novo = contrato novo: limpa selo/prazo — a próxima cerimônia sorteia 5-10
     m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
     queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
@@ -1319,7 +1322,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   if (top.length === 1) { winner = top[0]; tb.viaRoulette = false }
   else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
   const m = state.managers.find(x => x.id === winner)!
-  m.money -= max
+  m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
   m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   recordPrice(state, tb.card, max) // livro de preços
@@ -2062,10 +2065,29 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     if (m.isHuman) return state.tactics[id] ?? 'equilibrio'
     return CPU_TACTICS[Math.floor(rng() * 3)]
   }
+  // 🌎 NOME DO TIME — procura na liga E na Libertadores.
+  // 🐛 BUG QUE FOI PRO AR (20/08, print do wfreitasp): a narração e o placar
+  // pegavam o nome SÓ em `state.league`, que continua com os 20 da liga. Os 24
+  // clubes do continente vivem em `state.liberta.times`, então na 1ª partida da
+  // Libertadores a busca voltava vazia e o jogo quebrava na tela de erro
+  // ("Cannot read properties of undefined (reading 'name')") logo depois que os
+  // grupos apareciam. Agora é UMA função só, usada nos 6 lugares — e o `?? '?'`
+  // garante que, mesmo com um id estranho, o pior caso é um nome feio na tela,
+  // NUNCA mais a tela de erro.
+  const nomeDoTime = (id: number): string =>
+    (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id))?.name ?? '?'
   const homeTactic = tacticOf(homeId)
   const awayTactic = tacticOf(awayId)
   const form = (id: number, opp: Tactic, own: Tactic): TeamForm => {
-    const team = state.league.find(t => t.id === id)!
+    // 🌎 os 24 clubes da Libertadores não estão em `league` (a tabela da liga
+    // continua com 20) — então procura neles também. Fora da Liberta, `liberta`
+    // é null e nada muda.
+    const team = state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id)
+    // 🛟 REDE DE SEGURANÇA (irmã do bug do nome, 20/08): id que não está em lugar
+    // nenhum não pode derrubar a tela. Joga como time mediano e o jogo segue.
+    if (!team) return { atk: 70 + state.cpuAtkAdj + (rng() * 6 - 3), def: 70 + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
+    // bot da liga OU clube do continente: os dois levam o MESMO ajuste de sala
+    // (padrão da liga, decisão do Diego 20/08) — ninguém tem degrau escondido.
     if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
     const m = state.managers.find(x => x.id === id)!
     const f = rollManagerForm(m, own, opp, rng)
@@ -2093,8 +2115,8 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     let hp = scoreOf(fh, fa, true)
     let ap = scoreOf(fa, fh, false)
     while (hp === ap) { if (rng() < 0.5) hp += 2; else ap += 2 } // prorrogação: nunca empata
-    const hNameB = state.league.find(t => t.id === homeId)!.name
-    const aNameB = state.league.find(t => t.id === awayId)!.name
+    const hNameB = nomeDoTime(homeId)
+    const aNameB = nomeDoTime(awayId)
     const POS_W: Record<string, number> = { GOL: 3, LAT: 4, ZAG: 3.5, MEI: 3, ATA: 3 } // PG/SG/SF/PF/C
     const creditPts = (id: number, pts: number, prefix: string) => {
       const m = state.managers.find(x => x.id === id)
@@ -2138,7 +2160,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       highlights.sort((a, b) => a.min - b.min)
       for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
         if (f.inspired && isHuman(id)) {
-          const tn = state.league.find(t => t.id === id)!.name
+          const tn = nomeDoTime(id)
           state.news.unshift(`🔥 NOITE INSPIRADA: ${f.inspired} (${tn}) acordou astro na rodada ${state.round + 1}!`)
         }
       }
@@ -2190,15 +2212,15 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       }
     }
   }
-  const hName = state.league.find(t => t.id === homeId)!.name
-  const aName = state.league.find(t => t.id === awayId)!.name
+  const hName = nomeDoTime(homeId)
+  const aName = nomeDoTime(awayId)
   creditGoals(homeId, hg, hName)
   creditGoals(awayId, ag, aName)
   if (involveHuman) {
     highlights.sort((a, b) => a.min - b.min)
     for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
       if (f.inspired && isHuman(id)) {
-        const tn = state.league.find(t => t.id === id)!.name
+        const tn = nomeDoTime(id)
         state.news.unshift(`🔥 DIA INSPIRADO: ${f.inspired} (${tn}) acordou craque na rodada ${state.round + 1}!`)
       }
     }
@@ -2227,8 +2249,125 @@ function finishSeason(s: EscState) {
       ? '🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.'
       : '🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
   }
+  // 🌎 LIBERTADORES: os 8 primeiros da liga se classificam e caem numa chave de
+  // 32 com os clubes do continente. Copa dos 8 e Libertadores nunca rodam juntas
+  // (a sala escolhe uma OU a outra na criação), então o `else if` é a trava.
+  // 🛡️ TRAVA: a Libertadores precisa de 8 cabeças de chave, uma por grupo. Numa
+  // liga MENOR que 8 (Liga Fechada com pouca gente) o sorteio ficaria com grupo
+  // de 3 e calendário torto — então ela simplesmente NÃO acontece e a temporada
+  // fecha como "só liga", com o motivo escrito no giro. Melhor não ter do que
+  // ter quebrado.
+  else if (s.copaMode === 'liga_liberta' && !s.liberta) {
+    if (s.league.length >= 8) {
+      s.liberta = seedLiberta(s.league, mulberry((s.seed ^ 0x11BE47A) >>> 0))
+      s.news = ['🌎 A liga acabou — os 8 primeiros estão na LIBERTADORES! 32 clubes, 8 grupos de 4.']
+    } else {
+      s.news = [`⚠️ Sem Libertadores desta vez: ela precisa de 8 classificados e esta liga tem só ${s.league.length} clubes.`]
+    }
+  }
   s.screen = 'end'
 }
+
+// ─── 🌎 LIBERTADORES (modo rápido) ─────────────────────────────────────────
+// Desenho do Diego (20/08): a liga de 20 roda igual; no fim, os **8 primeiros**
+// se classificam e entram numa Libertadores de **32** com os 24 clubes do
+// continente (`LIBERTA_CLUBS`). 8 grupos de 4, passam 2, e o mata-mata (oitavas
+// → final única) reusa o motor da Copa dos 8.
+//
+// 🎱 SORTEIO POR POTES: os 8 da liga são o POTE 1 — **cabeça de chave, um por
+// grupo**, como ele pediu. Assim dois classificados da mesma sala NUNCA caem no
+// mesmo grupo; só se cruzam no mata-mata.
+const LIBERTA_ID0 = 900 // ids dos clubes do continente (não colidem com a liga)
+
+// 📏 FORÇA DOS 24 = **PADRÃO DA LIGA** (decisão do Diego, 20/08: *"quero q deixe
+// padrão liga… deixe o mais forte c 77 tb desses 24"*).
+// Traduzindo: os clubes do continente jogam na MESMA régua dos bots da liga —
+// mesmo teto (o mais forte da liga é 77, e o mais forte deles, o River Preite,
+// também é 77) e o MESMO ajuste de sala (`cpuAtkAdj`/`cpuDefAdj`, que cola o
+// nível da sala neles igual cola nos bots). Nenhum degrau extra, nada inventado.
+// 📊 O que eu tinha medido e mostrei pra ele antes de ele decidir: bots da liga
+// 67,3 de média · os 8 que se classificam 72,8 · os 24 do continente 68,2. Ou
+// seja, na régua da liga a Libertadores fica um pouco mais leve que o top 8. Ele
+// viu os números e escolheu o padrão da liga assim mesmo — se depois de jogar
+// quiser apertar, é só voltar um degrau aqui (era `+6`).
+
+function seedLiberta(league: LeagueTeam[], rng: () => number): LibertaState {
+  const oito = sortedTable(league).slice(0, 8)
+  const times: LibertaTeam[] = []
+  const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
+  // pote 1: os classificados, embaralhados entre os grupos (o 1º da liga não cai
+  // sempre no grupo A — senão o sorteio não seria sorteio)
+  shuffle(oito.map((t, i) => ({ t, i })), rng).forEach(({ t }, g) => {
+    times.push({ id: t.id, name: t.name, pote: 1, grupo: g, isManager: t.isManager, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero })
+  })
+  // potes 2, 3 e 4: 8 clubes cada, um por grupo
+  for (const pote of [2, 3, 4] as const) {
+    shuffle(LIBERTA_CLUBS.filter(c => c.pote === pote), rng).forEach((c, g) => {
+      times.push({ id: LIBERTA_ID0 + times.length, name: c.name, pote, grupo: g, isManager: false, baseAtk: c.atk, baseDef: c.def, ...zero })
+    })
+  }
+  // calendário: cada grupo faz turno e returno (6 rodadas × 2 jogos). As rodadas
+  // dos 8 grupos são EMPILHADAS — rodada 1 do grupo A junto com a rodada 1 do B,
+  // etc. — pra a tela mostrar "rodada 3 de 6" com todos os grupos andando juntos.
+  const fixtures: [number, number][][] = Array.from({ length: 6 }, () => [])
+  for (let g = 0; g < 8; g++) {
+    const ids = shuffle(times.filter(t => t.grupo === g).map(t => t.id), rng)
+    oneDoubleRR(ids).forEach((rodada, r) => { if (r < 6) fixtures[r].push(...rodada) })
+  }
+  return { fase: 'grupos', times, rodada: 0, fixtures, lastResults: [] }
+}
+
+// classificação de um grupo — MESMO desempate do resto do jogo
+// (pontos → vitórias → saldo → gols), pra ninguém ter que decorar regra nova.
+export function libertaGrupo(lb: LibertaState, g: number): LibertaTeam[] {
+  return lb.times.filter(t => t.grupo === g).sort((a, b) =>
+    b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name))
+}
+
+// 🥅 joga UMA rodada de grupo (16 jogos de uma vez, um por confronto)
+function playLibertaRodada(s: EscState) {
+  const lb = s.liberta
+  if (!lb || lb.fase !== 'grupos' || lb.rodada >= 6) return
+  const rng = mulberry((s.seed ^ (0x11BE47A + lb.rodada * 7919)) >>> 0)
+  const res: MatchResult[] = []
+  if (!lb.scorers) lb.scorers = [] // saves antigos sem o campo
+  for (const [h, a] of lb.fixtures[lb.rodada]) {
+    // 🥇 artilharia DA LIBERTADORES: junta grupos + mata-mata num ranking só (a da
+    // liga fica intacta). Na virada pro mata-mata esta lista passa pro quickCopa.
+    const r = simMatch(s, h, a, rng, lb.scorers)
+    res.push(r)
+    const th = lb.times.find(t => t.id === h), ta = lb.times.find(t => t.id === a)
+    if (!th || !ta) continue // 🛟 confronto com id estranho: pula o jogo, nunca quebra a tela
+    th.gf += r.hg; th.ga += r.ag; ta.gf += r.ag; ta.ga += r.hg
+    if (r.hg > r.ag) { th.pts += 3; th.w++; ta.l++ }
+    else if (r.hg < r.ag) { ta.pts += 3; ta.w++; th.l++ }
+    else { th.pts++; ta.pts++; th.d++; ta.d++ }
+  }
+  lb.lastResults = res
+  lb.rodada++
+  // acabou a fase de grupos → semeia as OITAVAS com os 2 primeiros de cada grupo
+  if (lb.rodada >= 6) {
+    lb.fase = 'mata'
+    const primeiros: LibertaTeam[] = [], segundos: LibertaTeam[] = []
+    for (let g = 0; g < 8; g++) { const cl = libertaGrupo(lb, g); if (cl[0]) primeiros.push(cl[0]); if (cl[1]) segundos.push(cl[1]) }
+    // 🛟 se por qualquer motivo não fecharem 8 e 8, a Libertadores acaba aqui em
+    // vez de montar uma chave torta (o giro explica). Melhor não ter do que quebrar.
+    if (primeiros.length < 8 || segundos.length < 8) {
+      s.news = ['⚠️ A Libertadores foi encerrada na fase de grupos — não deu pra fechar as oitavas.']
+      s.screen = 'end'
+      return
+    }
+    // 1º de um grupo pega o 2º de OUTRO (nunca do mesmo) — regra de verdade
+    const mk = (a: LibertaTeam, b: LibertaTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
+    const ties = primeiros.map((p, i) => mk(p, segundos[(i + 1) % 8]))
+    s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: lb.scorers ?? [] }
+    s.news = ['🌎 Fim da fase de grupos — chegaram as OITAVAS da Libertadores!']
+    // ▶️ o mata-mata roda no MESMO motor da Copa dos 8, que vive na tela da
+    // temporada. Volta pra lá com quickCopa semeado e a Copa começa sozinha.
+    s.screen = 'season'
+  }
+}
+
 function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
   const sorted = sortedTable(league)
   const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
@@ -2781,6 +2920,8 @@ type Action =
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_SEASON' } // 🏁 rápido: encerra a liga DEPOIS da última partida animar
   | { type: 'PLAY_COPA_LEG' } // 🏆 Copa dos 8 (rápido): joga a perna atual de todas as ties da fase
+  | { type: 'PLAY_LIBERTA_RODADA' } // 🌎 Libertadores: joga uma rodada da fase de grupos (os 8 grupos de uma vez)
+  | { type: 'START_LIBERTA' } // 🌎 Libertadores: sai do bannerzão de abertura e entra na fase de grupos
   | { type: 'START_COPA' } // 🏆 Copa dos 8: sai da tela de fim de liga e entra na Copa (botão ou tempo de leitura)
   | { type: 'FINISH_CEREMONY' }
   | { type: 'NEW_GAME' }
@@ -3004,6 +3145,35 @@ function sealAndResolve(state: EscState) {
 // todo humano com vaga aberta e dinheiro precisa enviar (não filtra por presença:
 // presença é um sinal instável de rede e causava avanço prematuro/dessincronizado
 // entre jogadores — um "piscar" de conexão fazia o jogo achar que só faltava um).
+// 💰 SANEIA UM ENVELOPE antes de guardar: devolve só os lances que REALMENTE
+// cabem na caixa do técnico, na ordem em que ele mandou.
+// Regras, e o porquê de cada uma:
+//  · lance tem que ser número inteiro e >= 0 — texto, quebrado, negativo ou
+//    infinito é lixo e não vira dinheiro;
+//  · a SOMA nunca passa do que ele tem: assim que um lance não couber no que
+//    sobrou, ele e os seguintes ficam de fora (em vez de virar dívida);
+//  · o que fica de fora é registrado no marketLog, pra nunca sumir em silêncio.
+// A tela já faz essa mesma conta e mostra o teto ao vivo — então em jogo normal
+// isto NUNCA corta nada. Ele existe pra o caso do número da tela estar errado.
+function envelopeQueCabe(s: EscState, mgrId: number, bids: { cardId: string; amount: number }[]): { cardId: string; amount: number }[] {
+  const m = s.managers.find(x => x.id === mgrId)
+  if (!m) return []
+  const caixa = Math.max(0, Math.floor(m.money))
+  const ok: { cardId: string; amount: number }[] = []
+  let gasto = 0, cortados = 0
+  for (const b of Array.isArray(bids) ? bids : []) {
+    const v = Math.floor(Number(b?.amount))
+    if (!Number.isFinite(v) || v < 0) { cortados++; continue }
+    if (gasto + v > caixa) { cortados++; continue }
+    gasto += v
+    ok.push({ cardId: b.cardId, amount: v })
+  }
+  if (cortados > 0 && m.isHuman) {
+    ;(s.marketLog = s.marketLog ?? []).push(`⚠️ ${m.teamName}: ${cortados} lance(s) não couberam na caixa (${caixa} 🪙) e ficaram de fora.`)
+  }
+  return ok
+}
+
 function humansToSubmit(state: EscState, pos: Sector): number[] {
   const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && openSlots(m, pos) > 0 && m.money > 0)
   // 🏛️ MULTICLUBES / SOLO: no solo SÓ o assento ATIVO (youIdx) consegue lacrar
@@ -3103,6 +3273,7 @@ function redraftSeason(s: EscState): EscState {
   s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
   s.tactics = {}
   s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
+  s.liberta = null // 🌎 idem pra Libertadores: temporada nova, chave nova
   s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
   s.submitted = []; s.pendingEnvelopes = {}
   s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
@@ -3601,6 +3772,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const newTier = NBA_TIERS[tier].next as NbaTier
         s.nbaTier = newTier
         s.quickCopa = null // zera o chaveamento da temporada passada
+        s.liberta = null // 🌎 e a Libertadores da temporada passada junto
         const tierTeams = NBA_TIERS[newTier].teams
         // novos adversários do andar (CPUs recebem elenco, não dão lance); VOCÊ fica.
         const { managers, botPlans } = makeManagers([you.teamName], '4-3-3', 0, tierTeams.length, rng, tierTeams)
@@ -3616,6 +3788,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // ao vivo, tudo simula, zero spoiler). A Street League é só pontos corridos.
       s.copaMode = (s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa'
       s.quickCopa = null // reseeda o chaveamento a cada temporada
+      s.liberta = null // 🌎 a Libertadores também é semeada de novo a cada temporada
       // 🏀 VENDER: tira do elenco as reservas que você DISPENSOU (marcadas na tela
       // de fim) — as vagas voltam a abrir e o leilão de reservas repõe.
       const released = new Set(s.reserveListed?.[you.id] ?? [])
@@ -3783,6 +3956,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
+      s.liberta = null // 🌎 idem pra Libertadores
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.seasonVotes = {}
       const cc: Record<number, number> = {}
@@ -3861,7 +4035,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.clubCash = seedClubCash({}, plQ)
       s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveAuction = false; s.reserveListed = {}
-      s.quickCopa = null; s.streamChampCard = null
+      s.quickCopa = null; s.liberta = null; s.streamChampCard = null
       s.seasonVotes = {}; s.restartPending = false; s.restartReady = []
       { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
       const ccQ: Record<number, number> = {}
@@ -4029,6 +4203,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
+      s.liberta = null // 🌎 idem pra Libertadores
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
@@ -4139,7 +4314,15 @@ export function reducer(state: EscState, action: Action): EscState {
       // na tela do parceiro não basta — é exatamente essa a família de bug de
       // assento que já mordeu antes ("dei lance por outro").
       if (!duplaPodeAgir(s.duplas, action.mgrId, SECTORS[s.sectorIdx], action.by)) return s
-      s.pendingEnvelopes[action.mgrId] = action.bids
+      // 💰 A CAIXA É CONFERIDA AQUI, NO MOTOR — não só na tela.
+      // 🐛 CAUSA DO "PAGUEI E NÃO LEVEI JOGADOR" (relato do Pedro pelo Diego, 20/08):
+      // a conta de "só posso lançar até onde tenho" existia SÓ na tela. O motor
+      // engolia o envelope como viesse e o pagamento descontava sem piso — então
+      // um número errado na tela virava cobrança de verdade, e a caixa ia pro
+      // negativo. Comprar sem ter não existe: aqui a soma dos lances NUNCA passa da
+      // caixa. É a mesma razão já escrita logo acima pra dupla: "esconder o botão na
+      // tela não basta".
+      s.pendingEnvelopes[action.mgrId] = envelopeQueCabe(s, action.mgrId, action.bids)
       s.submitted.push(action.mgrId)
       const pos = SECTORS[s.sectorIdx]
       const need = humansToSubmit(s, pos)
@@ -4164,7 +4347,15 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🤝 dupla: só quem MANDA na categoria da carta empatada pode relançar (mesma
       // trava do envelope/monte — fecha o "dei lance por outro" no re-lance). 10/08.
       if (!duplaPodeAgir(s.duplas, action.mgrId, tb.card.pos, action.by)) return s
-      s.tiebreakPending[action.mgrId] = action.amount
+      // 💰 mesma conferência do envelope: o re-lance do desempate também não pode
+      // passar da caixa (aqui é UMA carta só, então é um teto simples). Sem isto o
+      // desempate era a porta dos fundos do mesmo problema.
+      {
+        const mTb = s.managers.find(x => x.id === action.mgrId)
+        const caixaTb = Math.max(0, Math.floor(mTb?.money ?? 0))
+        const bruto = Math.floor(Number(action.amount))
+        s.tiebreakPending[action.mgrId] = Math.max(0, Math.min(Number.isFinite(bruto) ? bruto : 0, caixaTb))
+      }
       tb.submitted = [...tb.submitted, action.mgrId]
       maybeResolveTiebreak(s)
       return s
@@ -5090,6 +5281,16 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.quickCopa && s.quickCopa.phase !== 'done') s.screen = 'season'
       return s
     }
+    case 'START_LIBERTA': {
+      // 🌎 sai do fim de liga e entra na fase de grupos da Libertadores (botão do
+      // host, ou o cronômetro de 30s do bannerzão de abertura).
+      if (s.liberta && s.liberta.fase === 'grupos') s.screen = 'liberta'
+      return s
+    }
+    case 'PLAY_LIBERTA_RODADA': {
+      playLibertaRodada(s)
+      return s
+    }
     case 'PLAY_COPA_LEG': {
       const qc = s.quickCopa
       if (!qc || qc.phase === 'done') return s
@@ -5109,21 +5310,22 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} É CAMPEÃO DA COPA DOS 8!`, ...s.news].slice(0, 12)
+          s.news = [`👑 ${champName} É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : 'DA COPA DOS 8'}!`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
         } else {
+          // 🌎 casa os vencedores DE DOIS EM DOIS, na ordem da chave. Assim a mesma
+          // conta serve pra Copa dos 8 (4→2→1) e pra Libertadores (8→4→2→1) — antes
+          // isto era escrito na mão só pra 'quartas', e as OITAVAS de 8 confrontos
+          // teriam virado UM jogo só (a final direto).
           const winnerName = (t: QuickCopaTie) => t.winner === t.aId ? t.aName : t.bName
-          const nextTies: QuickCopaTie[] = qc.phase === 'quartas'
-            ? [
-                { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
-                { aId: qc.ties[2].winner!, bId: qc.ties[3].winner!, aName: winnerName(qc.ties[2]), bName: winnerName(qc.ties[3]), legs: [], winner: null },
-              ]
-            : [
-                { aId: qc.ties[0].winner!, bId: qc.ties[1].winner!, aName: winnerName(qc.ties[0]), bName: winnerName(qc.ties[1]), legs: [], winner: null },
-              ]
-          qc.phase = qc.phase === 'quartas' ? 'semis' : 'final'
+          const nextTies: QuickCopaTie[] = []
+          for (let i = 0; i + 1 < qc.ties.length; i += 2) {
+            const a = qc.ties[i], b = qc.ties[i + 1]
+            nextTies.push({ aId: a.winner!, bId: b.winner!, aName: winnerName(a), bName: winnerName(b), legs: [], winner: null })
+          }
+          qc.phase = qc.phase === 'oitavas' ? 'quartas' : qc.phase === 'quartas' ? 'semis' : 'final'
           qc.ties = nextTies
           qc.legIdx = 0
         }
@@ -5150,7 +5352,8 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
       // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga.
-      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : 'QUARTAS'
+      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : 'QUARTAS'
+      const copaWord = s.copaMode === 'liga_liberta' ? 'Liberta' : 'Copa'
       const legWord = isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
@@ -5161,11 +5364,11 @@ export function reducer(state: EscState, action: Action): EscState {
         const swap = qc.legIdx === 1 // volta
         const mand = swap ? tie.bName : tie.aName, vis = swap ? tie.aName : tie.bName
         const mandG = swap ? leg[1] : leg[0], visG = swap ? leg[0] : leg[1]
-        copaHeads.push(`⚽ Copa ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
+        copaHeads.push(`⚽ ${copaWord} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
-          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na Copa — adeus, ${l}!`)
+          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na ${copaWord === 'Copa' ? 'Copa' : 'Libertadores'} — adeus, ${l}!`)
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)
@@ -5990,7 +6193,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
       s.reserveAuction = false; s.reserveListed = {}
-      s.quickCopa = null
+      s.quickCopa = null; s.liberta = null
       s.deckLeague = sv.deckLeague ?? 'br'; setActiveCatalog(s.deckLeague) // baralho da carreira salva
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles; s.careerTitlesA = sv.titlesA ?? 0
       s.seasonNo = sv.seasonNo
@@ -6084,8 +6287,8 @@ export function reducer(state: EscState, action: Action): EscState {
       s.news = []
       s.champion = null
       s.tactics = {}
-      s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
-  s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
+      s.quickCopa = null; s.liberta = null // 🏆🌎 Copa dos 8 / Libertadores são POR TEMPORADA — senão a próxima liga nunca semeia de novo
+      s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.seasonNo++
       s.restartPending = false
       s.restartReady = []
@@ -6389,8 +6592,66 @@ function ensureCareerOwner(uid: string) {
   try { const raw = localStorage.getItem(CAREER_VAULT_PREFIX + uid); if (raw) restoreLocalCareers(JSON.parse(raw) as CareerVault) } catch { /* ignora */ }
   try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ }
 }
+// 🧹 FAXINA DA CAIXA ao abrir uma carreira (Diego 20/08, caso do "−9999").
+// Ela só mata o que NÃO É NÚMERO: texto, NaN, infinito. Nada mais.
+//
+// ⛔ ELA NÃO MEXE NA GRANA DE NINGUÉM. Ordem do Diego: *"vc N pode mexer na
+// conta dos outros pq MT gente realmente pode fazer essa grana aí positiva… tem
+// gente q já tem até mais, igual o Xurupitas"*. Caixa negativa também fica:
+// dívida é estado previsto (opção B) — quem deve, deve.
+//
+// 🔢 O TETO É DECISÃO DELE (20/08: *"pode deixar o teto de um milhão sim"*),
+// tomada JÁ SABENDO do número abaixo. Fica registrado pra quem mexer depois:
+// ⚠️ MEDIDO no banco em 20/08 — a MAIOR caixa legítima do jogo é **999.999**,
+// ou seja, a um passo do teto. Se um dia alguém passar de 1 milhão jogando
+// limpo, a grana dele é zerada aqui. Quando a economia crescer (ou aparecer o
+// primeiro caso), SUBIR ESTE NÚMERO — não é lei, é uma régua que envelhece.
+const CAIXA_TETO = 1_000_000
+function faxinaCaixa(save: EscState): EscState {
+  const cc = save?.careerCoins
+  if (!cc || typeof cc !== 'object') return save
+  let sujo = false
+  const limpo: Record<number, number> = {}
+  for (const [k, v] of Object.entries(cc)) {
+    const n = Math.round(Number(v))
+    if (!Number.isFinite(n) || Math.abs(n) > CAIXA_TETO) { limpo[+k] = 0; sujo = true } // não é número, ou passou do teto
+    else limpo[+k] = n
+  }
+  if (!sujo) return save
+  return { ...save, careerCoins: limpo, news: ['🧹 Achamos um erro no seu caixa e arrumamos — o resto da carreira está intacto.', ...(save.news ?? [])].slice(0, 12) }
+}
+// 🔎 DIAGNÓSTICO DA CAIXA (20/08 — caso do "±9999" do Pedro).
+// O que sabemos: a tela dele mostrou 9999 e -9999, o save na nuvem tem -261, e o
+// LACRE do save bate (ou seja: ninguém editou o arquivo — o valor da tela nunca
+// chegou a ser gravado). Faltava saber o que o APARELHO dele tem de verdade, e
+// ele não consegue abrir console. Então o jogo passa a contar sozinho: quando
+// abre uma carreira com caixa fora do normal, manda o número e o contexto mínimo
+// pra uma tabela de diagnóstico.
+// ⚠️ Isto NÃO acusa ninguém e NÃO muda nada no jogo — é termômetro, não trava.
+// Quando a causa aparecer, some daqui.
+const CAIXA_ESTRANHA = 9000 // acima disso em módulo já é fora da curva (a maior legítima medida é 999.999, mas quase todo mundo vive abaixo de 10 mil)
+function reportaCaixaEstranha(save: EscState, de: 'load') {
+  try {
+    const youId = save.managers?.[save.youIdx]?.id ?? 0
+    const caixa = Number(save.careerCoins?.[youId] ?? 0)
+    if (!Number.isFinite(caixa) || Math.abs(caixa) < CAIXA_ESTRANHA) return
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!data?.user) return
+      supabase.from('esc_caixa_estranha').upsert({
+        user_id: data.user.id,
+        seed: save.seed ?? 0,
+        caixa,
+        temporada: save.seasonNo ?? null,
+        divisao: save.careerDivision ?? null,
+        de_onde: de,
+        lacre_ok: !saveMexido(save),
+        ultima_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,seed,de_onde' }).then(() => {}, () => {})
+    }, () => {})
+  } catch { /* silencioso — diagnóstico nunca atrapalha o jogo */ }
+}
 export function readActiveCareer(): CareerSlot | null {
-  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); return { save, at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
+  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); reportaCaixaEstranha(save, 'load'); return { save: faxinaCaixa(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
   return null
 }
 // guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa.

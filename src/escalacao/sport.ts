@@ -280,8 +280,57 @@ export function useLigaLiberada(): boolean {
   return ligaOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email) })
+// ─── 🌎 LIBERTADORES — a terceira opção do "Depois da liga" ──────────────────
+// A liga de 20 roda igual; no fim, os 8 primeiros entram numa Libertadores de 32
+// (8 grupos de 4 com os clubes do continente, passam 2, mata-mata até a final
+// única). Desenho fechado com o Diego em 20/08.
+// 🔓 LIBERADO GERAL (20/08): a Libertadores aparece pra TODA CONTA no "Depois
+// da liga", online e offline. Ordem do Diego, inclusive DEPOIS do primeiro erro
+// que foi pro ar (*"deixa aberto e arruma"*) — o conserto veio no mesmo dia.
+// Pra voltar ao teste fechado é LIBERTA_GERAL = false.
+const LIBERTA_GERAL = true
+const LIBERTA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let libertaOk = LIBERTA_GERAL
+function applyLibertaUnlock(email?: string | null): void {
+  const u = LIBERTA_GERAL || (!!email && LIBERTA_TESTERS.has(email.toLowerCase()))
+  if (u === libertaOk) return
+  libertaOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function libertaLiberada(): boolean { return libertaOk }
+export function useLibertaLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return libertaOk
+}
+
+// ─── 🏠 HOME NOVA — a tela de abertura redesenhada ──────────────────────────
+// Reclamação do Diego (20/08): *"o visual da home ainda acho que não tá legal,
+// ainda acho que tá poluído e desorganizado, e o jogo não está claro as regras"*.
+// A home nova é scroll longo com tudo ABERTO e um MENU FIXO no rodapé (ideia
+// dele) — assim navegar não depende de rolar de volta, e nada precisa ficar
+// escondido atrás de clique.
+// 🔓 LIBERADA GERAL (20/08, depois de ele ver rodando na conta dele: *"coloque
+// pra todos já verem normal, e não mais só travado pra mim não"*).
+// A lista abaixo virou só o plano B: HOME_NOVA_GERAL = false devolve pra teste
+// fechado na conta dele, e a home de hoje volta pra todo mundo — num commit.
+const HOME_NOVA_GERAL = true
+const HOME_NOVA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let homeNovaOk = HOME_NOVA_GERAL
+function applyHomeNovaUnlock(email?: string | null): void {
+  const u = HOME_NOVA_GERAL || (!!email && HOME_NOVA_TESTERS.has(email.toLowerCase()))
+  if (u === homeNovaOk) return
+  homeNovaOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useHomeNova(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return homeNovaOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

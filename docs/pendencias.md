@@ -1,38 +1,114 @@
 # 📌 Pendências combinadas com o Diego (atualizado 20/08/2026)
 
-## 🌎 LIBERTADORES no rápido online — PROPOSTA, esperando o Diego (20/08)
-Pergunta dele: *"conseguimos fazer a Libertadores? no modo rápido online?…
-quais clubes entrariam de bots? pq são 32 né e não 20 igual na liga… qd ativar
-esse modo libertadores N teria liga e nem copa ao criar sala"*.
-Resposta medida no código: **dá, e o motor já tem quase tudo** —
-`seedQuickCopa`/`resolveQuickCopaTie` já fazem ida-e-volta com pênalti, e o Bafo
-já é o precedente de "seletor de Copa SOME da tela e o porquê fica escrito".
-Mockup: `scripts/mockup-libertadores.mjs`. Desenho proposto:
-- **32 clubes**: 24 continentais INVENTADOS (novos, no estilo dos 16
-  `CLASSIC_CLUBS` — a casa não usa clube real em conteúdo de mentira) + **8 vagas
-  do Brasil**, ocupadas primeiro por quem está na sala e o resto **sorteado entre
-  os clubes batizados**.
-- **8 grupos de 4**, ida e volta (6 jogos), passam 2. Quem joga nunca cai no
-  mesmo grupo (espelha a regra de "mesmo país não se enfrenta na 1ª fase").
-- Oitavas/quartas/semi em ida e volta, **final única**. **13 rodadas** no total
-  contra as 38 da liga.
-- Desempate de grupo = o MESMO do resto do jogo (pts → vitórias → saldo → gols).
-- Liga do rápido, Carreira, Bafo e Liga Fechada **não são tocados**; nasce
-  invisível (só a conta do Diego), igual à Liga Fechada.
-**Ele reagiu ao tamanho** (20/08): *"13 rodadas ficou mt rápido… E agora"*. Ele
-está certo — copa continental é curta por natureza; na vida real ela não
-substitui o campeonato, roda JUNTO com ele no meio de semana. Folha de decisão:
-`scripts/mockup-libertadores-calendario.mjs`, com três tamanhos, todos reais:
-- **A** só o torneio → **13 jogos** (o desenho de cima).
-- **B** + pré-Libertadores na frente + Sul-Americana pra quem cai → **19 jogos**.
-- **C** ⭐ **temporada completa**: a liga de 38 rodadas **+ a Libertadores no meio
-  de semana** → **51 jogos**, dois títulos na mesma sala. É a recomendada porque
-  resolve os DOIS problemas de uma vez: acaba o "ficou rápido" e acaba o "quem cai
-  fica sem jogo" (a liga continua pra quem foi eliminado). O seletor de Copa
-  continua sumindo da tela, como o Diego pediu — na C a liga vem de fábrica, não é
-  escolha, é o calendário.
-⏳ **Falta o Diego decidir**: (1) qual dos três tamanhos; (2) OK nos nomes dos 24
-clubes do continente. Sem essa resposta o modo não começa.
+## 🌎 LIBERTADORES no rápido — CONSTRUÍDA (20/08), só a conta do Diego vê
+Desenho FECHADO com ele (palavras dele: *"a libertadores tem q ter 32 times pow!
+Deveria se classificar os primeiros 8 e dps se juntar numa tabela c outros times
+formando 32 c grupos.. Se classificando 2 primeiros e etc"* · *"ideal que os 8
+classificados fossem cabeças de chave"* · *"Sim pode fazer tudo ja"*):
+
+**A liga de 20 roda IGUAL** (nada mudou nela) → acaba → **bannerzão** de abertura
+com as regras + 30s (ou o host aperta) → **Libertadores de 32**: os 8 primeiros
+da liga como POTE 1 (cabeça de chave, um por grupo) + os 24 clubes do continente
+(`LIBERTA_CLUBS` em `data.ts`) nos potes 2/3/4 → **8 grupos de 4**, 6 rodadas de
+ida e volta, passam **2** → **oitavas/quartas/semi ida e volta** → **final única**.
+
+**O que está no código (tudo commitado e buildando):**
+- `data.ts` · `LIBERTA_CLUBS` — os 24 (River Preite, Boca Xuniors, Penhalol,
+  Nassional, Colo do Colo…). Nomes conferidos um a um contra clube do jogo,
+  `OLD_NAME` e chaves de `LOGOS_PRONTAS`.
+- `store.tsx` · `seedLiberta` (sorteio por potes) · `libertaGrupo` (tabela, mesmo
+  desempate do resto do jogo) · `playLibertaRodada` (16 jogos por rodada; na 6ª
+  semeia as oitavas e devolve pra tela da temporada) · `LIBERTA_BONUS`.
+- `screens.tsx` · `EscLiberta` (tela dos 8 grupos) · bannerzão no fim da liga ·
+  o mata-mata reusa o motor da Copa dos 8 com a cara azul-noite.
+- `lobby.tsx` + setup offline · a 3ª opção "🌎 Liga + Liberta" no "Depois da liga"
+  (nunca junto com a Copa dos 8 — é uma OU a outra).
+- `sport.ts` · `LIBERTA_GERAL = true` — **LIBERADA PRA TODOS em 20/08** (ordem
+  dele: *"pode por p todos"*). Pra voltar ao teste fechado é `false`.
+
+**📏 FORÇA DOS 24 = PADRÃO DA LIGA** (decisão dele em 20/08: *"quero q deixe
+padrão liga… deixe o mais forte c 77 tb desses 24"*). Eles jogam na MESMA régua
+dos bots da liga: mesmo teto (o mais forte da liga é 77 e o mais forte deles, o
+River Preite, também é 77) e o MESMO ajuste de sala (`cpuAtkAdj`). Sem degrau.
+📊 Os números que eu medi e mostrei ANTES dele decidir, pra quem for mexer nisso
+depois: bots da liga 67,3 de média · os 8 que se classificam 72,8 · os 24 do
+continente 68,2. Na régua da liga a Libertadores fica um pouco mais leve que o
+top 8 — ele viu isso e escolheu o padrão da liga assim mesmo. Se um dia quiser
+apertar, é voltar o `+6` que estava em `simMatch`.
+
+**🛡️ Travas:** liga com menos de 8 clubes (Liga Fechada pequena) NÃO semeia a
+Libertadores — fecha como "só liga" com o motivo no giro. E `liberta` é zerado em
+todo lugar onde `quickCopa` já era, pra temporada nova não herdar chave velha.
+
+⏳ **Falta:** ver rodando com gente de verdade. Eu NÃO consegui terminar a
+partida inteira no navegador antes de publicar (o robô empacou no Monte Final) —
+o que está garantido é que o build passa limpo, a home abre sem erro nenhum e a
+liga/Copa dos 8 não foram tocadas. As telas novas (bannerzão, fase de grupos)
+ainda não foram vistas rodando. **Primeira coisa da próxima sessão: rodar
+`scripts/`-style playthrough ou pedir print pro Diego.**
+
+⏸️ **PAUSADO — o baralho TEMÁTICO da Libertadores** (só jogadores que disputaram
+a Libertadores pelo clube da carta). Palavras dele: *"Eu acho q temos q deixar
+isso pausado e apenas criar a copa libertadores lá junto com o de liga e copa"*.
+A pesquisa está salva em `docs/libertadores-por-clube.txt` e
+`docs/libertadores-participantes.md` — se voltar, é só ligar o filtro.
+
+## 🐝 SAPEKEIROS FC entrou na Série D (20/08) ✅ NO AR
+Batismo do **tiosapeka@gmail.com / @tiosapekagg** (influencer). Ele já tinha
+escudo, mascote (abelha coroada), manto preto+dourado, estádio "Clube dos
+Sapekeiros", tier ouro 👑, sócio nº21 e fundador nº41 desde 12/08 — só faltava a
+DIVISÃO. O Diego escolheu a vaga: **entrou no lugar do Pardemeias** (`data.ts`
+Série D + `OLD_NAME`, então save antigo com Pardemeias vira Sapekeiros ao abrir).
+
+⚠️ **A Série D acabou.** Só sobrou **1 vaga livre**: `Flamengo do Sertão`
+(técnico "Val do Buraco"). Todas as outras 19 já têm dono. O próximo batismo que
+pedir Série D pega essa — e depois disso **não tem mais**: ou abre vaga em outra
+série, ou o desenho da pirâmide precisa crescer. Vale avisar o Diego ANTES de
+prometer Série D pra alguém.
+
+📏 A arte dele estava **acima do teto da casa** (escudo 49,4 KB/480px contra
+30 KB/360px · mascote 47,1 KB contra 45 KB). Recomprimida no mesmo commit:
+29,6 KB e 42,5 KB, sem diferença visível (comparação antes/depois foi pro Diego).
+A largura declarada do mascote foi corrigida pra proporção real do arquivo novo
+(440/373), como manda a regra 4.
+
+## 🏠 HOME NOVA — no ar pra TODO MUNDO (20/08)
+Queixa do Diego: *"o visual da home ainda acho que não tá legal, ainda acho que
+tá poluído e desorganizado! E ainda acho que o jogo não está claro as regras
+dele. As pessoas começam o jogo e não entendem o que tem que fazer no leilão, as
+moedas, a disputa… e que depois tem uma simulação"*.
+
+**A ideia que ficou (dele, e é a boa):** *scroll longo com tudo ABERTO e um MENU
+FIXO no rodapé*. O menu é o que destrava o resto — se navegar não depende de
+rolar de volta, o scroll pode ser comprido e nada precisa se esconder atrás de
+clique. Calma vem de **espaço**, não de tirar coisa.
+
+**Os andares:** (1) o que é o jogo · (2) as cartas deitadas, deslizando · (3) os
+TRÊS modos com a CARREIRA grande · (4) continuar carreira/sala · (5) COMO
+FUNCIONA UMA PARTIDA (aberto, mas embaixo) · (6) novidades enxutas · (7) apoiar.
+
+**Duas coisas que EU errei e ele cortou** — ficam registradas pra não repetir:
+1. Tirei as cartas do alto. **Errado**: a carta é o MOTIVO de jogar. Voltaram.
+2. Enfiei as regras na cara. **Errado**: ninguém chega num jogo querendo ler
+   manual. Viraram uma PORTA (o botão Regras).
+E uma terceira: deixei **um botão só** ("Jogar agora"). Ele quer os TRÊS modos
+visíveis, com a **Carreira** grande — é onde a galera fica (118 mil temporadas)
+e é o modo onde o patrocinador aparece toda temporada.
+
+**A barra de baixo FOGE do padrão visual de propósito** (fio fino, fundo quase
+branco, ícones desenhados em vez de emoji, ativo em roxo sem retângulo preto).
+O resto do jogo é borda grossa e sombra dura; na barra isso brigava com tudo.
+É exceção consciente — não "consertar" de volta.
+
+**O Manual do Técnico** virou a MESMA lista do "como funciona" (componente
+`PassoLinha`, usado nos dois lugares): 6 passos + os 3 modos. O antigo era
+quadro dentro de quadro, com texto de 8px.
+
+**🏠 Botão Início** no canto de cima do Álbum e do Ranking (antes só havia saída
+no fim da página — e o álbum tem centenas de cartas até lá).
+
+↩️ **Reverter:** `HOME_NOVA_GERAL = false` em `sport.ts` devolve a home de hoje
+pra todo mundo num commit.
 
 ## 🏆 LIGA FECHADA — em construção (só a conta do Diego)
 A sala que fica de pé: horário marcado, sempre a MESMA sala, só a turma entra e

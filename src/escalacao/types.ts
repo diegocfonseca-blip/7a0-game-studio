@@ -333,6 +333,7 @@ export interface LibertaState {
   rodada: number                    // 0..6 da fase de grupos
   fixtures: [number, number][][]    // 6 rodadas × 16 jogos (todos os grupos juntos)
   lastResults: MatchResult[]        // resultados da última rodada de grupo
+  scorers?: ScorerRow[]             // artilharia DA LIBERTADORES (grupos; passa pro quickCopa no mata-mata)
 }
 
 export interface ScorerRow {
@@ -352,6 +353,7 @@ export type Screen =
   | 'cerimonia'
   | 'reserveList'
   | 'season'
+  | 'liberta' // 🌎 fase de grupos da Libertadores (o mata-mata dela roda na 'season')
   | 'end'
   | 'album'
   | 'ranking'

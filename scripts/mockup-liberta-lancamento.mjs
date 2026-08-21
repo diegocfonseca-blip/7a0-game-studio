@@ -20,7 +20,7 @@ const b64 = p => fs.readFileSync(p).toString('base64')
 const fonte = w => `data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}`
 const INK = '#0C0C0C', OURO = '#FFC400', VERDE = '#1B7A3D', VERM = '#C2452F', NOITE = '#1B2A5B'
 
-const CLUBES = ['🇦🇷 River Pratão', '🇦🇷 Bocazudo', '🇺🇾 Penhalol', '🇺🇾 Nassional', '🇨🇱 Colo do Colo',
+const CLUBES = ['🇦🇷 River Preite', '🇦🇷 Boca Xuniors', '🇺🇾 Penhalol', '🇺🇾 Nassional', '🇨🇱 Colo do Colo',
   '🇨🇴 Atlético Cafezal', '🇵🇾 Serro Portenho', '🇧🇴 The Fortão', '🇵🇪 Aliança Limão', '🇨🇱 Cobra Loka',
   '🇪🇨 Liga de Quitanda', '🇻🇪 Deportivo Tá Xiro']
 

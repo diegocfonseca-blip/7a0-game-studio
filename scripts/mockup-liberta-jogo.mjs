@@ -56,7 +56,7 @@ const placar = ({ narra, narraCor, narraTxt, min, casa, casaCor, fora, foraCor, 
 
 const OUTROS = [
   ['🇦🇷 Independente da Grana', 2, 1, '🇻🇪 Deportivo Tá Xiro'],
-  ['🇨🇱 Universidade do Chilique', 0, 0, '🇦🇷 River Pratão'],
+  ['🇨🇱 Universidade do Chilique', 0, 0, '🇦🇷 River Preite'],
   ['🇺🇾 Penhalol', 3, 1, '🇧🇴 Bolívar 3.600'],
   ['🇵🇾 Serro Portenho', 1, 2, '🇨🇴 Milionários FC'],
 ]
@@ -154,7 +154,7 @@ baixo: hoje a família é 🟢 Copa do Brasil · 🔵 Supercopa · 🟣 Copa dos
 <div class="telas">
   <div>
     ${placar({ narra: 'gol', narraCor: OURO, narraTxt: '⚽ GOOOL! Neymar 67\'', min: "71'",
-      casa: 'SEU TIME', casaCor: '#1B7A3D', fora: 'River Pratão', foraCor: '#C2452F',
+      casa: 'SEU TIME', casaCor: '#1B7A3D', fora: 'River Preite', foraCor: '#C2452F',
       hg: 2, ag: 1, golsCasa: ["Neymar 23'", "Neymar 67'"], golsFora: ["Bochini 52'"], vc: 'casa' })}
     <p style="font-size:12.5px;font-weight:600;color:rgba(12,12,12,.6);margin-top:8px">
       ⚽ <b>Gol</b>: a faixa de cima acende dourada com o autor e o minuto — igual hoje.</p>
@@ -162,7 +162,7 @@ baixo: hoje a família é 🟢 Copa do Brasil · 🔵 Supercopa · 🟣 Copa dos
   <div>
     <div style="margin-bottom:12px"><span class="chip" style="background:${VERM}">🏆 Libertadores · Oitavas · Volta</span></div>
     ${placar({ narra: 'fim', narraCor: INK, narraTxt: '🔔 FIM DE JOGO — agregado 3 × 3, vai pra pênaltis', min: 'FIM',
-      casa: 'Bocazudo', casaCor: '#1B2A5B', fora: 'SEU TIME', foraCor: '#1B7A3D',
+      casa: 'Boca Xuniors', casaCor: '#1B2A5B', fora: 'SEU TIME', foraCor: '#1B7A3D',
       hg: 2, ag: 1, golsCasa: ["Bochini 12'", "Cubillas 80'"], golsFora: ["Neymar 55'"], vc: 'fora' })}
     <p style="font-size:12.5px;font-weight:600;color:rgba(12,12,12,.6);margin-top:8px">
       🔔 <b>Mata-mata</b>: a narração passa a somar a ida e a volta e avisa quando vai pra pênaltis.</p>
