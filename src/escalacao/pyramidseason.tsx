@@ -26,7 +26,7 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira } from './sport'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
@@ -4137,6 +4137,66 @@ function SocioBaraoBanner() {
   )
 }
 
+// ─── 🪜 BARRA DE BAIXO DA CARREIRA (21/08) ──────────────────────────────────
+// Mesma ideia que deu certo na home: a navegação vai pro rodapé, onde a mão
+// alcança sem pensar. As 5 abas são AS MESMAS que já existiam (Jogos · Tabelas
+// · Elenco · Rank · Clube) — só saíram do meio da página, onde rolavam junto
+// com o conteúdo e sumiam (quem estava no fim do Elenco tinha que rolar tudo
+// de volta pra ver os Jogos).
+// 🔒 Por enquanto só na conta do Diego (`useBarraCarreira`), pra ele ver antes.
+type AbaCarr = 'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'
+// ícones desenhados (duotone) — mesmo traço da barra da home, 0 KB de imagem
+function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
+  const fill = cor === '#7C3AED' ? 'rgba(124,58,237,.22)' : 'rgba(12,12,12,.10)'
+  const p = { fill: 'none', stroke: cor, strokeWidth: 2, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
+  return (
+    <svg width={24} height={24} viewBox="0 0 24 24" style={{ display: 'block', margin: '0 auto' }}>
+      {nome === 'jogos' && <><rect x={3.5} y={5} width={17} height={15.5} rx={2.4} {...p} fill={fill} /><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" {...p} /><circle cx={12} cy={15} r={2.4} {...p} /></>}
+      {nome === 'tabelas' && <><rect x={3.5} y={4} width={17} height={16} rx={2.4} {...p} fill={fill} /><path d="M3.5 9h17M3.5 14.5h17M9 4v16" {...p} /></>}
+      {nome === 'elenco' && <><path d="M12 3.5l7 2.6v5.3c0 4.3-3 7.6-7 9.1-4-1.5-7-4.8-7-9.1V6.1z" {...p} fill={fill} /><path d="M9.2 12.3l1.9 1.9 3.7-3.9" {...p} /></>}
+      {nome === 'ranking' && <><path d="M7 3.5h10v5.2a5 5 0 0 1-10 0z" {...p} fill={fill} /><path d="M7 5.2H4.3v1.6A3.2 3.2 0 0 0 7 9.9M17 5.2h2.7v1.6A3.2 3.2 0 0 1 17 9.9M12 13.7v3.1M8.6 20.5h6.8" {...p} /></>}
+      {nome === 'estadio' && <><path d="M4 20.5V10l8-5.5 8 5.5v10.5z" {...p} fill={fill} /><path d="M8.5 20.5v-4.6h7v4.6M8.5 12.4h7" {...p} /></>}
+    </svg>
+  )
+}
+const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
+function BarraCarreira({ tab, setTab, cor, ponto }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean }) {
+  return (
+    <>
+      {/* 🔊 o botão de som mora no canto de baixo — sobe pra não brigar com a barra
+          (mesmo remendo já usado na barra da home) */}
+      <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+        {ABAS_CARR.map(([t, label]) => {
+          const on = tab === t
+          return (
+            <button key={t} onClick={() => setTab(t)} aria-label={label}
+              style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: on ? cor : 'rgba(12,12,12,.45)' }}>
+              <IconeCarr nome={t} cor={on ? cor : 'rgba(12,12,12,.45)'} />
+              <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{label}</span>
+              {/* 🔴 rodada rolando: o pontinho chama de volta pros Jogos */}
+              {t === 'jogos' && ponto && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
+            </button>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+// faixa fina que GRUDA no topo quando o cabeçalho preto sai da tela: role até
+// onde rolar, a pessoa nunca perde de vista rodada, posição e caixa.
+function FaixaCarr({ temporada, texto, div, pos, coins, cor }: { temporada: number; texto: string; div: string; pos?: number; coins: number; cor: string }) {
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99988, background: 'rgba(12,12,12,.96)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', color: '#fff', padding: '7px 12px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 2px 10px rgba(0,0,0,.18)' }}>
+      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, background: cor, borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap' }}>T{temporada}</span>
+      <span style={{ ...OSWALD, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap' }}>{texto}</span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{div}</span>
+      {pos != null && <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>{pos === 1 ? '🥇' : '🏅'} {pos}º</span>}
+      <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', color: coins < 0 ? '#FF9B8A' : GOLD }}>🪙 {coins}</span>
+    </div>
+  )
+}
+
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   // 🟢 liga o "contexto verde" da carreira OFFLINE (feehcamp etc. veem verde SÓ aqui;
@@ -4975,9 +5035,32 @@ export function PyramidSeasonScreen() {
   // por seed+temporada+rodada+clube (mesmo save sempre dá o mesmo resultado; sem
   // Camarote, chuva esfria a lotação SÓ desse jogo — a bilheteria fixa não muda).
   const chuvaHoje = useMemo(() => mulberry((state.seed ^ (round * 7919) ^ (youId * 104729) ^ ((state.seasonNo ?? 1) * 65537) ^ 0xC0FFEE) >>> 0)() < 0.28, [state.seed, round, youId, state.seasonNo])
+  // ─── 🪜 barra de baixo (só na conta do Diego por enquanto) ──────────────────
+  // MOMENTO SAGRADO: pênalti decisivo, intervalo, Copa rolando e festa de
+  // campeão tomam a tela inteira — a barra e a faixa somem, nada disputa com o
+  // jogo. Fora disso, elas ficam sempre à mão.
+  const barraCarr = useBarraCarreira()
+  const sagrado = penMode || halfMode || copaPlaying || festaOnC
+  const barraOn = barraCarr && !sagrado
+  const cabRef = useRef<HTMLDivElement | null>(null)
+  const [cabFora, setCabFora] = useState(false)
+  useEffect(() => {
+    if (!barraOn) { setCabFora(false); return }
+    const el = cabRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => setCabFora(!e.isIntersecting), { threshold: 0 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [barraOn])
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
-      <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
+      {barraOn && cabFora && (
+        <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
+          coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
+          texto={done ? 'Encerrada' : round === 0 ? 'Começando…' : `Rodada ${round}/38`} />
+      )}
+      {barraOn && <BarraCarreira tab={tab} setTab={setTab} cor={myCol.solid} ponto={round > 0 && !done} />}
+      <div className="max-w-xl mx-auto" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <AvisoContaCarreira />
         <SocioBaraoBanner />
@@ -5037,6 +5120,9 @@ export function PyramidSeasonScreen() {
         </div>
           )
         })()}
+        {/* 🪜 sentinela invisível: quando ela sai da tela (a pessoa rolou pra baixo
+            do cabeçalho preto), a faixa fina gruda no topo. Custa 1px. */}
+        {barraOn && <div ref={cabRef} style={{ height: 1, marginTop: -1 }} aria-hidden />}
 
         {/* FIM da temporada: banner de campeão/colocação. AO VIVO: placar FIXO da
             sua partida — fica no topo em TODAS as abas, então dá pra trocar de aba
@@ -5620,7 +5706,9 @@ export function PyramidSeasonScreen() {
         {/* abas em pílulas — a ativa fica na SUA cor. 🏟️ Clube (Estádio) agora vale
             também no ONLINE (Passo 1): construir + renda já sincronizam por-técnico.
             SAF · Patrocínio · Finanças · Agência ainda são só SOLO (Passo 2). */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+        {/* 🪜 com a barra de baixo ligada as pílulas somem daqui — são as MESMAS 5
+            abas, só que agora no rodapé (não rolam junto com o conteúdo). */}
+        <div style={{ display: barraOn ? 'none' : 'flex', gap: 6, marginBottom: 12 }}>
           {([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank'], ['estadio', '🏟️', 'Clube']] as [typeof tab, string, string][]).map(([t, ic, label]) => (
             <button key={t} onClick={() => setTab(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
           ))}

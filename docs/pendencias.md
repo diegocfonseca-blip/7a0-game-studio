@@ -1,4 +1,45 @@
-# 📌 Pendências combinadas com o Diego (atualizado 20/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
+
+## 🤝 PATROCÍNIO DA TEMPORADA — REFEITO (21/08), no ar pra todos
+Reclamação dele: *"a hora do patrocínio que o usuário tem que escolher na
+temporada… acho que tá sem graça o visual. E também MUITA informação perante as
+coisas em volta"* + *"não quero mais aparecendo a tabela de valores aí — coloque
+na aba de patrocínio que já existe. Além disso esse visual tá muito morto, não
+sei, é pouco organizado"*. Mockup aprovado (`scripts/mockup-patrocinio.mjs`),
+resposta dele: *"Ok pode fazer"*.
+
+**O que virou** (`estadio.tsx`, `SponsorBetBanner` / `SponsorBetStatus` /
+`SponsorBetResultCard`):
+- **Passo 1** = a META (3 fichas, valor grande, uma linha). A escolhida acende na
+  cor dela. **Passo 2** = só as **3 marcas daquele nível** (antes, as 9 de uma vez).
+- A **fidelidade deixou de ser banner** e virou **selo 🎖️ dentro do botão da
+  marca** ("garante X 🪙"). Um selinho no passo 1 avisa em QUAL meta a marca fiel
+  mora — senão quem mudasse de meta nunca descobriria que perdeu a garantia.
+- Resultado da temporada passada → **faixa fina**. Fechou → carimbo **ASSINADO**.
+- Mudou a meta com contrato já fechado? A tela avisa em vermelho o que ainda está
+  valendo até escolher a marca nova (trava explicada, do jeito que ele gosta).
+- **A régua de valores mudou de casa**: aba 🏟️ Clube › 🤝 Patrocínio
+  (`SponsorBetStatus ... completo`), junto do "como funciona". A tela de início
+  diz onde ela está.
+- ⚠️ Nada de motor mudou: valores (2/4/6 · 4/8/12 · 8/16/24 · 16/32/48 ·
+  32/64/96), as 9 marcas e a regra de fidelidade seguem iguais.
+- `SponsorPayTable` e `SponsorLoyaltyBanner` deixaram de existir (viraram parte
+  dos dois componentes acima).
+
+## 🪜 BARRA DE BAIXO NA CARREIRA — só a conta do Diego (21/08)
+Mockup aprovado (`scripts/mockup-carreira-barra.mjs`), ordem dele: *"Faça só no
+meu primeiro p eu ver"*. `sport.ts` · `useBarraCarreira` / `BARRA_CARR_GERAL`
+(hoje `false`; liberar pra todos = `true`, igual foi feito com a home).
+- As **mesmas 5 abas** (Jogos · Tabelas · Elenco · Rank · Clube) saíram do meio da
+  página e viraram **barra fixa no rodapé**, com ícones desenhados (0 KB) e a
+  ativa na cor do tier do usuário.
+- **Faixa fina que gruda no topo** quando o cabeçalho preto sai da tela
+  (T{n} · rodada · divisão · posição · caixa), via `IntersectionObserver` numa
+  sentinela de 1px.
+- 🔴 **pontinho em Jogos** enquanto a rodada está rolando.
+- **Momento sagrado**: pênalti, intervalo, Copa rolando e festa de campeão fazem
+  a barra e a faixa **sumirem** — nada disputa a tela com o jogo.
+- ⏳ **Falta:** o Diego dizer se gostou, e então trocar o `false` por `true`.
 
 ## 🌎 LIBERTADORES no rápido — CONSTRUÍDA (20/08), só a conta do Diego vê
 Desenho FECHADO com ele (palavras dele: *"a libertadores tem q ter 32 times pow!
