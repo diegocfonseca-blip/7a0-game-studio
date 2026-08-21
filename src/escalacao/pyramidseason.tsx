@@ -26,7 +26,7 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas } from './sport'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
@@ -4327,6 +4327,24 @@ function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, 
   )
 }
 
+// ─── 📌 SUB-ABAS GRUDADAS (21/08, "Ideia 1") ────────────────────────────────
+// ⚠️ ATENÇÃO PRA QUEM MEXER AQUI: a 1ª tentativa foi trocar as pílulas por uma
+// tirinha fina de texto. O Diego REPROVOU — *"ficou meio apagada, não ficou
+// muito clara onde tá a sub aba, principalmente p quem nunca jogou"*. NÃO tire
+// peso das sub-abas.
+// Este wrapper NÃO muda as pílulas: ele só faz a fileira GRUDAR no topo, logo
+// abaixo da faixa fina, pra ela não sumir na rolagem. Fundo creme sólido (o
+// conteúdo passa por baixo) e a sombra dura das pílulas cabe no padding.
+const FAIXA_H = 31 // altura da faixa fina do topo quando está grudada
+function SubAbasGrudadas({ ligado, topo, children }: { ligado: boolean; topo: number; children: React.ReactNode }) {
+  if (!ligado) return <>{children}</>
+  return (
+    <div style={{ position: 'sticky', top: topo, zIndex: 60, margin: '0 -14px 10px', padding: '9px 14px 11px', background: '#F4ECD6', borderBottom: '2.5px solid rgba(12,12,12,.16)', boxShadow: '0 3px 10px rgba(0,0,0,.06)' }}>
+      {children}
+    </div>
+  )
+}
+
 // 👉 selo da decisão da vez — a ÚNICA coisa em vermelho na tela
 function SeloSuaVez({ texto }: { texto: string }) {
   return (
@@ -5220,6 +5238,8 @@ export function PyramidSeasonScreen() {
     add('💸', 'Salários', soma('salary'))
     return linhas
   }, [state.booksSeason, state.seasonNo, state.careerLedger])
+  // 📌 sub-abas do Clube/Elenco grudando no topo (só a conta do Diego)
+  const subGrudadas = useSubAbasGrudadas()
   const barraCarr = useBarraCarreira()
   // 🔴 tem recibo esperando no Clube? (patrocínio pago na virada · fechamento do
   // caixa no fim da temporada). Some assim que a pessoa abre a aba Clube, e
@@ -5241,6 +5261,11 @@ export function PyramidSeasonScreen() {
     io.observe(el)
     return () => io.disconnect()
   }, [barraOn])
+  // A fileira gruda logo abaixo da faixa fina. De propósito ela para 6px ACIMA
+  // do fim da faixa: assim o padding de cima do wrapper fica ESCONDIDO atrás da
+  // faixa (que é opaca e vem por cima) e não sobra nenhuma fresta pro conteúdo
+  // aparecer entre as duas. As pílulas continuam inteiras.
+  const topoSub = (barraOn && cabFora) ? FAIXA_H - 6 : 0
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
@@ -5925,7 +5950,10 @@ export function PyramidSeasonScreen() {
             {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
                 Agora tudo (Estádio · Finanças · Agência) vale online também,
                 por-técnico (Passo 2c completa a paridade com o offline). */}
-            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {/* 📌 as MESMAS pílulas de sempre — o wrapper só faz elas grudarem no
+                topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
+            <SubAbasGrudadas ligado={subGrudadas} topo={topoSub}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
               {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
@@ -5933,6 +5961,7 @@ export function PyramidSeasonScreen() {
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
+            </SubAbasGrudadas>
             {clubeSub === 'escritorio' && !agenciaOk ? (
               // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
@@ -6207,11 +6236,13 @@ export function PyramidSeasonScreen() {
                 sub-aba do elenco em si NÃO se chama mais "Elenco" — tinha o MESMO
                 nome/ícone da aba-mãe "Elenco", confundindo (14/08, pedido do Diego). */}
             {state.agenciaOn && agLib && (
-              <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <SubAbasGrudadas ligado={subGrudadas} topo={topoSub}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
                 {(([['elenco', '🎽', 'Time'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
                   <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
                 ))}
               </div>
+              </SubAbasGrudadas>
             )}
             {state.agenciaOn && agLib && elencoSub === 'agencia' ? (
               <>

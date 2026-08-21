@@ -406,8 +406,35 @@ export function useTelaDesfecho(): boolean {
   return fimTempOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email) })
+// ─── 📌 SUB-ABAS GRUDADAS (sub-abas · rodada 2, "Ideia 1") ──────────────────
+// HISTÓRICO IMPORTANTE PRA NÃO REPETIR ERRO: na 1ª tentativa (21/08) eu troquei
+// as pílulas do Clube/Elenco por uma tirinha fina (só texto + sublinhado) e o
+// Diego REPROVOU: *"ficou meio apagada… não ficou muito clara onde tá a sub aba.
+// Principalmente p quem nunca jogou ainda"*. Ele está certo: pra quem chega
+// agora é o PESO (borda grossa, sombra dura, pílula roxa cheia) que diz "isto é
+// um botão e você está NESTE".
+// Então aqui NADA muda de visual: são as MESMAS pílulas, mesmo tamanho, mesma
+// cor, mesma borda, mesma sombra. A única diferença é que elas GRUDAM no topo e
+// param de sumir na rolagem — que era o problema real (quem descia até o fim das
+// Finanças tinha que rolar tudo de volta pra trocar de sub-aba).
+// 🔒 Só a conta do Diego por enquanto.
+const PILULAS_GERAL = false
+const PILULAS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let pilulasOk = PILULAS_GERAL
+function applyPilulasUnlock(email?: string | null): void {
+  const u = PILULAS_GERAL || (!!email && PILULAS_TESTERS.has(email.toLowerCase()))
+  if (u === pilulasOk) return
+  pilulasOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useSubAbasGrudadas(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return pilulasOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
