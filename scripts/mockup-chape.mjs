@@ -9,9 +9,9 @@
 // ser desenhada do zero. Quando entrar mais gente, é só rodar de novo — a lista
 // sai do próprio `data.ts`, então o post nunca discorda do jogo.
 //
-// A carta aqui é a MESMA do jogo (`FAME_TIER` em `screens.tsx`): degradê por
-// tier, borda preta grossa, sombra dura, Oswald, selo da posição, bolinha com a
-// inicial e as estrelas. Nada de arte inventada.
+// A carta aqui é a do jogo (borda preta grossa, sombra dura, Oswald, selo da
+// posição, bolinha com a inicial), só que TODAS no mesmo verde — ver o bloco
+// "todas verdes" embaixo. Nada de arte inventada.
 //
 //   node scripts/mockup-chape.mjs                → chape.png (1080×1920, Stories)
 //   node scripts/mockup-chape.mjs --saida x.png
@@ -40,7 +40,7 @@ const cartas = [...data.matchAll(re)]
 
 // ── 💚 TODAS VERDES, SEM NÍVEL (decisão do Diego, 21/08) ────────────────────
 // No JOGO cada carta sai na cor do tier dela (verde = bom jogador, bege = foi
-// profissional, dourado = lenda). NESTE POST, não: as sete saem no MESMO verde,
+// profissional, dourado = lenda). NESTE POST, não: todas saem no MESMO verde,
 // sem estrela e sem o nome da categoria. É homenagem — aqui ninguém é melhor
 // que ninguém, e o post não fica parecendo tabela de ranking dos mortos e dos
 // sobreviventes. O verde é o do tier "bom jogador" do jogo, que por acaso é o
@@ -78,7 +78,7 @@ body{margin:0;background:#F4ECD6;color:#0C0C0C;font-family:system-ui,-apple-syst
       A Chape está<br>no <span style="color:${VERDE}">Leilão Legends</span></h1>
 
     <p style="font-size:27px;font-weight:600;line-height:1.42;margin:26px 0 0">
-      Sete cartas do <b>Verdão do Oeste</b> dentro do jogo — do goleiro-herói da campanha de 2016
+      ${cartas.length} cartas do <b>Verdão do Oeste</b> dentro do jogo — do goleiro-herói da campanha de 2016
       ao maior artilheiro da história do clube. Cada um com a <b>história dele escrita na carta</b>.
     </p>
   </div>

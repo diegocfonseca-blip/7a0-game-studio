@@ -6,6 +6,13 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
+    "nome": "Alan Ruschel",
+    "baralho": "BR",
+    "nivel": "foi profissional",
+    "data": "2026-08-21"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Kempes (Chape)",
     "baralho": "BR",
     "nivel": "bom jogador",
