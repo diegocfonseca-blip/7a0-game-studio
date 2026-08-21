@@ -21,7 +21,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard, SponsorLoyaltyBanner } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard } from './estadio'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
@@ -5269,21 +5269,24 @@ export function PyramidSeasonScreen() {
             {eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> está fora ({suspenso.tipo === 'noitada' ? 'foi pro banco depois da noitada' : suspenso.tipo === 'expulsao' ? 'cumprindo gancho' : 'se recuperando da lesão'}) — volta na <b>rodada {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} segura a vaga.</> : null}
           </div>
         )}
-        {/* 🤝 PATROCÍNIO POR APOSTA (05/08): banner de início de temporada — aparece
+        {/* 🤝 PATROCÍNIO POR APOSTA (05/08): contrato de início de temporada — aparece
             pra TODO humano (cada um aposta o seu), logo após o leilão/mesmo-time,
-            ANTES de "Começar a temporada". O resultado da aposta PASSADA vem junto. */}
+            ANTES de "Começar a temporada". O resultado da aposta PASSADA vem junto.
+            21/08: virou UM contrato de dois passos (meta → marca). O quadrão do
+            resultado virou faixa fina, o banner de fidelidade virou selo dentro do
+            botão da marca e a tabela de valores mudou pra aba 🤝 Patrocínio. */}
         {round === 0 && me && (() => {
           const myBet = state.careerSponsorBet?.[youId]
           const myResult = state.careerSponsorResult?.[youId]
-          const jaEscolheu = !!(myBet && myBet.season === state.seasonNo)
           const resultFresh = myResult && myResult.season === (state.seasonNo ?? 1) - 1
           return (
             <>
-              {resultFresh && <SponsorBetResultCard result={myResult!} div={me.div} />}
-              {/* 🎖️ FIDELIDADE: só antes de escolher de novo (some depois de decidir) */}
-              {resultFresh && !jaEscolheu && <SponsorLoyaltyBanner result={myResult!} div={me.div} />}
+              {resultFresh && <SponsorBetResultCard result={myResult!} />}
+              {/* 🎖️ fielBrandId segue a MESMA regra que sponsorBetRewards usa pra
+                  garantir o mínimo: acertou a meta na temporada PASSADA com essa marca. */}
               <SponsorBetBanner div={me.div}
                 chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
+                fielBrandId={resultFresh && myResult!.hit ? myResult!.brandId : undefined}
                 onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
             </>
           )
@@ -5644,7 +5647,10 @@ export function PyramidSeasonScreen() {
               </>
             ) : clubeSub === 'patrocinio' ? (
               <>
-                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
+                {/* 🤝 aqui mora a RÉGUA: a tabela de valores e o "como funciona"
+                    saíram da tela de início de temporada (Diego 21/08: "não quero
+                    mais a tabela de valores aí, coloque na aba de patrocínio"). */}
+                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} completo />}
                 {agenciaOk && (() => {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
                   const bicoOn = (state.seasonNo ?? 1) >= 3 && (myDiv === 'V' || myDiv === 'D')
