@@ -45,6 +45,32 @@ mandato pra postar (vira marketing de graça).
 **Minhas 3 favoritas:** o Livro de Recordes · batizar o estádio · você, o
 presidente. ⏳ Aguardando ele escolher.
 
+### 🧍 O BONECO DO PRESIDENTE (`scripts/mockup-presidente-boneco.mjs`)
+Ideia DELE (21/08): *"pensei: primeiro o usuário, quando clicar pela primeira vez
+na sala do presidente, ele criar o boneco. Seria a primeira coisa"*. A sala hoje
+fala do CLUBE; o boneco faz ela falar de VOCÊ, e a 1ª entrada vira uma **POSSE**.
+
+**Fluxo:** ① prontos (6 bonecos + 🎲 surpreenda-me + ✏️ personalizar + **pular**)
+→ ② criador com **3 escolhas numa tela só** (pele · cabelo/barba · jeitão) → ③
+**a posse** ("É OFICIAL!", nome, clube, data — aparece UMA vez) → ④ a sala.
+
+**⚖️ DECISÃO DE PESO — SVG PARAMÉTRICO, e é o INVERSO da regra do batismo (está
+escrito no mockup pra não confundir sessão futura):** batismo é arte de UM clube,
+então tem que ser `.webp` fora do bundle; o boneco é UM desenho que TODO MUNDO
+usa com peças trocando de cor/forma — em `.webp` seriam dezenas de arquivos e
+combinações impossíveis, em SVG é um punhado de paths com **zero download**.
+
+**Travas combinadas:** nunca bloqueia (dá pra pular, a sala abre igual) · sem
+rolagem infinita de opções · sem padrão "certo" (5 tons de pele, cabelos
+variados) · a posse aparece fora de partida e fora de pregão, sem passo novo.
+**Terno/gravata vêm do TIER e a faixa das cores do coração** — não se escolhem.
+
+**🚫 Onde o boneco NÃO entra:** listas de sala e tabelas — ali quem manda é o
+ESCUDO do clube (a mesma regra do furo dos clãs que o Diego pegou).
+
+**Passos sugeridos:** 1) boneco + prontos + posse · 2) nome + apelido de imprensa
+· 3) o boneco aparecendo fora da sala (festa de campeão primeiro).
+
 ## 🏛️ (descartado) primeira tentativa desta sessão — mockup novo, aguardando OK
 `scripts/mockup-sala-presidente.mjs`. Retoma o que ficou parado em 16/08 (o
 começo do código está na branch `claude/presidencia-em-breve`) com o pedido novo
