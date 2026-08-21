@@ -32,8 +32,17 @@ então não volta a cada re-render.
 **De propósito NÃO é uma sequência de telinhas** — seriam 5 toques pra ver o que
 hoje aparece de uma vez, contra a regra de ouro dele (nada atrasa o ritmo).
 
-✅ As 4 versões fotografadas no navegador. ⏳ **Falta:** ver rodando numa
-temporada de verdade (o robô não chega até lá) e o Diego dizer se gostou.
+✅ As 4 versões fotografadas no navegador.
+✅ **LIBERADO PRA TODOS em 21/08** (*"esses daí pode abrir tb p todos"*) — com o
+aviso dado a ele de que eu **não vi a tela rodando numa temporada de verdade**
+(o robô não joga 38 rodadas aqui). Ele mandou abrir mesmo assim. Se aparecer
+qualquer coisa estranha no fim de temporada, `FIMTEMP_GERAL = false` desliga.
+🐛 **Dois consertos feitos ANTES de abrir**, achados relendo o código:
+- o extrato mora em `careerLedger` (solo) e `careerLedgers[id]` (online) — eu só
+  lia o solo, então **carreira online veria a tela sem nenhuma linha de grana**;
+- o ensino do pregão passava a voltar em TODA partida rápida nova (a chave virou
+  a seed). Agora a chave por-partida vale **só na carreira**; no rápido continua
+  sendo do aparelho, senão quem joga várias seguidas levava a mesma aula sempre.
 
 ## 🔨 PREGÃO LIMPO (opção 4) — só a conta do Diego (21/08)
 Mockup `scripts/mockup-pregao.mjs`, resposta dele: *"ok pode fazer"*.
@@ -81,7 +90,7 @@ não volta naquela partida.
 ✅ Testado no navegador de verdade (carreira nova E jogo rápido, setor GOL):
 barra com "1 vaga · ❓ · 💰100", a folha do ensino no 1º pregão e o ❓ abrindo as
 5 regras.
-⏳ **Falta:** o Diego dizer se gostou.
+✅ **LIBERADO PRA TODOS em 21/08** (*"esses daí pode abrir tb p todos"*).
 
 ## 🐛 CONSERTO: a barra de baixo sumia demais (21/08, achado pelo Diego)
 Print dele na **Copa do Brasil Legends**: *"quando começou as copas as abas

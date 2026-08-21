@@ -5227,8 +5227,11 @@ export function PyramidSeasonScreen() {
   // "o que você levou": lido do EXTRATO da temporada que acabou (mesmos números
   // de Clube › Finanças — nada é recalculado aqui, só contado).
   const levou = useMemo(() => {
-    if (state.booksSeason !== state.seasonNo) return []
-    const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo)
+    // ⚠️ o extrato mora em lugares DIFERENTES: solo em `careerLedger`, online
+    // em `careerLedgers[seuId]` (mesma fonte que a aba Clube › Finanças usa).
+    // Sem isto, quem joga carreira ONLINE via a tela sem nenhuma linha de grana.
+    const fonte = (state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []
+    const led = fonte.filter(e => e.season === state.seasonNo)
     const soma = (k: string) => led.filter(e => e.kind === k).reduce((n, e) => n + e.amount, 0)
     const linhas: { ic: string; txt: string; val: string; bom: boolean }[] = []
     const add = (ic: string, txt: string, v: number) => { if (v !== 0) linhas.push({ ic, txt, val: `${v > 0 ? '+' : ''}${v} 🪙`, bom: v > 0 }) }
@@ -5237,7 +5240,7 @@ export function PyramidSeasonScreen() {
     add('🛡️', 'Patrocínio', soma('sponsor'))
     add('💸', 'Salários', soma('salary'))
     return linhas
-  }, [state.booksSeason, state.seasonNo, state.careerLedger])
+  }, [state.seasonNo, state.careerLedger, state.careerLedgers, state.onlineMode, youId])
   // 📌 sub-abas do Clube/Elenco grudando no topo (só a conta do Diego)
   const subGrudadas = useSubAbasGrudadas()
   const barraCarr = useBarraCarreira()

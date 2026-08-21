@@ -26,6 +26,8 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-08-21', emoji: '🏆', titulo: 'O fim da temporada virou momento', texto: 'No Modo Carreira: quando a temporada fecha, uma tela conta o que aconteceu com o clube — subiu de divisão, caiu, foi campeão — com a divisão de onde saiu, pra onde vai e o que você levou de prêmio, caixa, patrocínio e torcida.' },
+  { data: '2026-08-21', emoji: '🔨', titulo: 'Pregão mais direto', texto: 'No leilão de todos os modos: suas vagas e o dinheiro ficam sempre na barra de cima, as regras do pregão viraram um botão ❓ ali do lado — e quem está começando ganha a explicação inteira no primeiro pregão da partida.' },
   { data: '2026-08-21', emoji: '🧹', titulo: 'Virada de temporada mais limpa', texto: 'No Modo Carreira: a escolha que trava o jogo agora fica sozinha em cima, com o selo "sua vez" — e o que já aconteceu (fechamento do caixa, patrocínio pago) virou uma linha que leva direto pro lugar onde a coisa está inteira.' },
   { data: '2026-08-21', emoji: '🪜', titulo: 'Carreira com menu embaixo', texto: 'No Modo Carreira: Jogos, Tabelas, Elenco, Rank e Clube saíram do meio da página e viraram um menu fixo no rodapé — e dentro do Clube e do Elenco as abas de dentro também param de sumir quando você rola. Role até onde rolar, você troca de aba na hora e continua vendo rodada, posição e caixa numa faixa fina no topo.' },
   { data: '2026-08-21', emoji: '🤝', titulo: 'Patrocínio mais direto', texto: 'No Modo Carreira: a escolha do patrocínio virou dois toques — primeiro a meta da temporada, depois a marca que estampa a camisa — e a tabela de quanto cada divisão paga foi pra aba Clube › Patrocínio.' },

@@ -365,8 +365,11 @@ export function useBarraCarreira(): boolean {
 //   · o ensino INTEIRO volta no 1º pregão de CADA CARREIRA (hoje a marca é do
 //     aparelho, então quem começa a 2ª carreira não recebe ensino nenhum).
 // ⚠️ Mexe na ferida que o Diego apontou ("as pessoas não entendem o leilão"):
-// nenhuma regra some, todas ficam a UM toque. 🔒 Só a conta dele por enquanto.
-const PREGAO_GERAL = false
+// nenhuma regra some, todas ficam a UM toque.
+// ✅ LIBERADO PRA TODOS em 21/08 (*"esses daí pode abrir tb p todos"*). Pra
+// voltar ao teste fechado é `false` — os 4 quadros de regra voltam pra frente
+// das cartas, exatamente como era.
+const PREGAO_GERAL = true
 const PREGAO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let pregaoOk = PREGAO_GERAL
 function applyPregaoUnlock(email?: string | null): void {
@@ -390,8 +393,10 @@ export function usePregaoLimpo(): boolean {
 // Com isto ligado: UMA tela (não uma sequência — a regra do Diego é que nada
 // atrasa o ritmo), UM toque, com o desfecho grande, de onde saiu → pra onde vai
 // e o que a pessoa levou. Nenhum número/prêmio muda: a tela só CONTA.
-// 🔒 Só a conta do Diego por enquanto.
-const FIMTEMP_GERAL = false
+// ✅ LIBERADO PRA TODOS em 21/08 (*"esses daí pode abrir tb p todos"*), com o
+// aviso dado a ele de que eu NÃO consegui ver a tela rodando numa temporada de
+// verdade aqui (o robô não joga 38 rodadas). Pra desligar é `false`.
+const FIMTEMP_GERAL = true
 const FIMTEMP_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let fimTempOk = FIMTEMP_GERAL
 function applyFimTempUnlock(email?: string | null): void {

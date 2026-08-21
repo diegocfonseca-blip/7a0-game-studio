@@ -2782,7 +2782,11 @@ function Envelope() {
       // e começa a 2ª não recebe ensino NENHUM. Com o pregão limpo a marca passa
       // a ser desta PARTIDA/CARREIRA (a seed), então todo começo ensina de novo —
       // que é justamente quando a pessoa precisa.
-      const k = pregaoLimpo && state.seed != null ? `esc-tip-lance-s${state.seed}` : 'esc-tip-lance-v1'
+      // 🎓 O ensino volta a cada CARREIRA nova (era o buraco: a marca ficava no
+      // APARELHO, então quem começava a 2ª carreira não via ensino nenhum).
+      // ⚠️ No JOGO RÁPIDO a marca continua sendo do aparelho — senão quem joga
+      // várias partidas seguidas levaria a mesma aula em TODA partida nova.
+      const k = pregaoLimpo && state.careerOnline && state.seed != null ? `esc-tip-lance-s${state.seed}` : 'esc-tip-lance-v1'
       if (localStorage.getItem(k)) return false
       localStorage.setItem(k, '1')
       return true
