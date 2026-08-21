@@ -113,7 +113,8 @@ conferir se ela é um INSTANTE ou um ESTADO que dura a fase inteira.
 Depois da reprovada (logo abaixo), ofereci 3 ideias novas
 (`scripts/mockup-subabas-v2.mjs`) e ele escolheu a 1: *"faz a 1 code só pra mim
 por enquanto pra eu ver como fica antes"*. `sport.ts` · `useSubAbasGrudadas` /
-`PILULAS_GERAL` (hoje `false`).
+`PILULAS_GERAL` — **LIBERADO PRA TODOS em 21/08** (*"perfeito pode fazer p todos
+já tb em relação às pílulas"*). Voltar ao teste fechado = `false`.
 
 **A regra que saiu disso, e vale pra sempre:** *o remédio não pode ser TIRAR
 PESO das sub-abas.* Pra quem nunca jogou é o peso (borda grossa, sombra dura,
@@ -129,8 +130,8 @@ sticky`) pra ela parar de sumir na rolagem, que era o problema real.
 (opaca, z 99988) e não sobra fresta pro conteúdo aparecer entre as duas.
 Medido: faixa 0→30 · wrapper 25→83, sem buraco.
 
-✅ Testado no navegador (rolagem + troca de sub-aba com a página parada).
-⏳ **Falta:** o Diego dizer se gostou.
+✅ Testado no navegador (rolagem + troca de sub-aba com a página parada) e
+aprovado por ele rodando na conta dele antes de abrir pra geral.
 
 ## ❌ SUB-ABAS FINAS (opção 2) — REPROVADA, NÃO REFAZER
 Foi codada em 21/08 só na conta do Diego e ele **não gostou**: *"esse 2 n gostei.

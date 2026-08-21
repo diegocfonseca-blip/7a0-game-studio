@@ -417,8 +417,10 @@ export function useTelaDesfecho(): boolean {
 // cor, mesma borda, mesma sombra. A única diferença é que elas GRUDAM no topo e
 // param de sumir na rolagem — que era o problema real (quem descia até o fim das
 // Finanças tinha que rolar tudo de volta pra trocar de sub-aba).
-// 🔒 Só a conta do Diego por enquanto.
-const PILULAS_GERAL = false
+// ✅ LIBERADO PRA TODOS em 21/08 (ele viu rodando na conta dele e aprovou:
+// *"perfeito pode fazer p todos já tb em relação às pílulas"*). Pra voltar ao
+// teste fechado é `false` — as pílulas voltam a rolar junto com o conteúdo.
+const PILULAS_GERAL = true
 const PILULAS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let pilulasOk = PILULAS_GERAL
 function applyPilulasUnlock(email?: string | null): void {
