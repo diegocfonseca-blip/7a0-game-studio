@@ -422,10 +422,19 @@ export function useTelaDesfecho(): boolean {
 // cor, mesma borda, mesma sombra. A única diferença é que elas GRUDAM no topo e
 // param de sumir na rolagem — que era o problema real (quem descia até o fim das
 // Finanças tinha que rolar tudo de volta pra trocar de sub-aba).
-// ✅ LIBERADO PRA TODOS em 21/08 (ele viu rodando na conta dele e aprovou:
-// *"perfeito pode fazer p todos já tb em relação às pílulas"*). Pra voltar ao
-// teste fechado é `false` — as pílulas voltam a rolar junto com o conteúdo.
-const PILULAS_GERAL = true
+// ✅ Liberado pra todos em 21/08 (*"perfeito pode fazer p todos já tb em relação
+// às pílulas"*) e 🔴 DESLIGADO no MESMO dia: o Diego recebeu vídeo de usuário com
+// a fileira de pílulas aparecendo NO MEIO da tela do intervalo, por cima da lista
+// de jogadores, ao rolar pra cima e pra baixo. Não é o grudar em si que está
+// errado — é o `position: sticky` sobrevivendo em cima do BANNER DO INTERVALO,
+// que é desenhado ANTES do bloco das abas (linha ~5572 do pyramidseason.tsx) e
+// portanto aparece em QUALQUER aba. Com a aba Elenco/Clube aberta, as pílulas
+// grudadas ficam boiando sobre o banner.
+// Voltar pra `true` só depois de: (1) reproduzir com o banner do intervalo
+// aberto, (2) desligar o grudar enquanto banner de intervalo/pênalti/festa está
+// na tela. Com `false` fica exatamente como era antes: as pílulas rolam junto
+// com o conteúdo e nada boia. Reversível numa linha.
+const PILULAS_GERAL = false
 const PILULAS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let pilulasOk = PILULAS_GERAL
 function applyPilulasUnlock(email?: string | null): void {
