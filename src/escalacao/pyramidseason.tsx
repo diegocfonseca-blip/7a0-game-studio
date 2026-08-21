@@ -21,7 +21,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard, SponsorLoyaltyBanner } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, SponsorBetResultCard } from './estadio'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
@@ -3980,17 +3980,16 @@ function CoinsBadge({ coins }: { coins: number }) {
   }, [coins])
   return (
     <span style={{ position: 'relative', display: 'inline-flex' }}>
-      {/* 🔴 CAIXA NO VERMELHO = DÍVIDA, e a tela precisa DIZER isso (decisão do
-          Diego 20/08, opção B). Antes aparecia só um número negativo solto e quem
-          via achava que o jogo tinha bugado — foi o caso do "−9999" que chegou por
-          print. Agora o selo troca de cor e escreve a palavra: é um estado que o
-          jogo previu, não um erro. O caminho pra sair está no quadro do transfer
-          ban, na virada da temporada. */}
+      {/* 🔴 CAIXA NO VERMELHO: o selo troca de cor, e SÓ ISSO.
+          ⛔ NADA DE ESCREVER "dívida" (Diego 21/08: *"não precisa escrever nada de
+          dívida"*). Eu tinha posto a palavra do lado do número achando que ajudava
+          a pessoa a entender que não era bug — ele cortou. A cor já dá o recado, e
+          o caminho pra sair continua explicado no quadro da virada de temporada. */}
       <span key={bump} title={coins < 0
-        ? `Sua caixa está no vermelho: ${coins} 🪙. Isso é DÍVIDA (folha salarial e renovação de contrato podem deixar negativo). Você não compra até zerar — venda um jogador, ou ganhe prêmios e bilheteria.`
+        ? `Sua caixa está no vermelho: ${coins} 🪙. Você não compra até zerar — venda um jogador, ou ganhe prêmios e bilheteria.`
         : 'Sua caixa de moedas (pra o leilão/mercado)'}
         style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: coins < 0 ? '#C2452F' : GOLD, color: coins < 0 ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap', animation: bump ? 'coinBump .45s ease-out' : undefined }}>
-        💰 {coins}{coins < 0 ? ' · dívida' : ''}</span>
+        💰 {coins}</span>
       {pops.map(p => (
         <span key={p.id} style={{ position: 'absolute', left: '50%', top: '100%', fontWeight: 900, fontSize: 13.5, ...OSWALD, color: p.delta > 0 ? '#2ECC71' : '#FF5A4D', whiteSpace: 'nowrap', pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,.55)', animation: 'coinPop 1.2s ease-out forwards' }}>
           {p.delta > 0 ? `+${p.delta}` : p.delta} 🪙
@@ -5274,21 +5273,24 @@ export function PyramidSeasonScreen() {
             {eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> está fora ({suspenso.tipo === 'noitada' ? 'foi pro banco depois da noitada' : suspenso.tipo === 'expulsao' ? 'cumprindo gancho' : 'se recuperando da lesão'}) — volta na <b>rodada {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} segura a vaga.</> : null}
           </div>
         )}
-        {/* 🤝 PATROCÍNIO POR APOSTA (05/08): banner de início de temporada — aparece
+        {/* 🤝 PATROCÍNIO POR APOSTA (05/08): contrato de início de temporada — aparece
             pra TODO humano (cada um aposta o seu), logo após o leilão/mesmo-time,
-            ANTES de "Começar a temporada". O resultado da aposta PASSADA vem junto. */}
+            ANTES de "Começar a temporada". O resultado da aposta PASSADA vem junto.
+            21/08: virou UM contrato de dois passos (meta → marca). O quadrão do
+            resultado virou faixa fina, o banner de fidelidade virou selo dentro do
+            botão da marca e a tabela de valores mudou pra aba 🤝 Patrocínio. */}
         {round === 0 && me && (() => {
           const myBet = state.careerSponsorBet?.[youId]
           const myResult = state.careerSponsorResult?.[youId]
-          const jaEscolheu = !!(myBet && myBet.season === state.seasonNo)
           const resultFresh = myResult && myResult.season === (state.seasonNo ?? 1) - 1
           return (
             <>
-              {resultFresh && <SponsorBetResultCard result={myResult!} div={me.div} />}
-              {/* 🎖️ FIDELIDADE: só antes de escolher de novo (some depois de decidir) */}
-              {resultFresh && !jaEscolheu && <SponsorLoyaltyBanner result={myResult!} div={me.div} />}
+              {resultFresh && <SponsorBetResultCard result={myResult!} />}
+              {/* 🎖️ fielBrandId segue a MESMA regra que sponsorBetRewards usa pra
+                  garantir o mínimo: acertou a meta na temporada PASSADA com essa marca. */}
               <SponsorBetBanner div={me.div}
                 chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
+                fielBrandId={resultFresh && myResult!.hit ? myResult!.brandId : undefined}
                 onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
             </>
           )
@@ -5649,7 +5651,10 @@ export function PyramidSeasonScreen() {
               </>
             ) : clubeSub === 'patrocinio' ? (
               <>
-                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
+                {/* 🤝 aqui mora a RÉGUA: a tabela de valores e o "como funciona"
+                    saíram da tela de início de temporada (Diego 21/08: "não quero
+                    mais a tabela de valores aí, coloque na aba de patrocínio"). */}
+                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} completo />}
                 {agenciaOk && (() => {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
                   const bicoOn = (state.seasonNo ?? 1) >= 3 && (myDiv === 'V' || myDiv === 'D')
