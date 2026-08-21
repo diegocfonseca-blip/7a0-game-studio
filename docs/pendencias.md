@@ -1,5 +1,53 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 🔴🔴 ABERTO E URGENTE — sala online travando e lance refeito (21/08)
+Relato do Diego: *"a sala szalai deu vários erros… O host braguinha criou a sala
+mas travou no goleiro no PC. E o amigo no celular ficava recebendo msg de segura
+onda… E vira e mexe tinham q fazer lance novamente"*. Ele lembrou, com razão, que
+isso já tinha sido consertado uma vez (commit `dfc1832`, 19/08 — "dois donos").
+**Aquele furo foi fechado; este é OUTRA porta pra mesma dor.**
+
+### O que o banco mostra (não é achismo — são as salas deles)
+Salas do grupo (Braguinha · Jurema FC · Intervarcional · Vaxcão da Gama):
+`SLDEX1` ("Feijao") e `1BX1D7` ("To colocando"). As duas param em
+**`resq_envelope`** (a rodada de RESGATE das sobras), com `submitted: []`, e o
+**último gravado é ~35s ANTES do prazo do envelope**. Ou seja: o prazo estourou e
+**ninguém escreveu mais nada**. Outras 2 salas de hoje (`LOL5E0`, `X50B4Y`)
+morreram exatamente do mesmo jeito.
+
+### A cadeia (lida no código)
+1. **Tudo depende da aba do host.** `dispatch` em `store.tsx` (~7100): convidado
+   NÃO aplica nada localmente — dispara `broadcast` pro host e pronto, sem
+   confirmação (`ack: false`). Host parado = ação do convidado some no ar.
+2. **A revelação só anda no host** (`canDrive = state.isHost`). Por isso o
+   convidado fica eterno no *"🔨 O host está conduzindo a revelação…"* — é o
+   "segura onda" do print.
+3. **O vigia de prazo não salva a sala.** O comentário diz "qualquer cliente pode
+   forçar o selamento", mas como o dispatch do convidado é roteado pro host, o
+   `FORCE_SEAL` dele só funciona se o host estiver vivo. **O comentário está
+   desatualizado.**
+4. **Aba de PC em segundo plano congela o batimento.** O host grava `updated_at`
+   a cada ~3s; o Chrome estrangula timer de aba escondida. Passando de 60s (o
+   limite no leilão), o convidado eleito **toma a coroa** — e `BECOME_HOST`
+   **devolve o envelope de todo mundo de propósito** (senão o setor fechava com
+   lance ZERO). É exatamente o *"vira e mexe tinham q fazer lance novamente"*.
+   O Braguinha volta, acha que ainda é host, e a briga recomeça.
+
+### Conserto proposto (em ordem de segurança)
+- **(A) BAIXO RISCO — o lance não se perde mais.** Guardar o envelope lacrado no
+  próprio aparelho e **reenviar sozinho** quando `submitted` for zerado ainda na
+  MESMA rodada (setor + leva + fase). Já existe o `euLacradoRef` (store.tsx
+  ~7024) marcando a rodada — é só pendurar o reenvio nele. Resolve a dor
+  independente do motivo (troca de host, host recarregou, reconexão).
+- **(B) MÉDIO — a coroa não escorrega por aba escondida.** Manter o batimento do
+  host vivo com a aba em segundo plano (Web Worker ou `visibilitychange`), pra
+  não haver troca de dono por engano no meio do pregão.
+- **(C) MÉDIO — sala não morre com o host mudo.** Se o prazo estourou e o host
+  não escreve há X segundos, o convidado eleito pode aplicar o `FORCE_SEAL`
+  local e assumir, em vez de mandar pro vazio.
+⚠️ Nada disso foi feito ainda — está esperando o OK do Diego, porque é código
+online ao vivo.
+
 ## ✅ RESOLVIDO — pílula grudada boiando na tela do intervalo (21/08)
 **REPRODUZIDO no navegador e consertado.** A receita exata pra ver o bug (guardar,
 porque vai servir de novo): carreira nova → aba **Elenco** → ligar **"⏸️ Só no
