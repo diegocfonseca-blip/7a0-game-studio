@@ -1625,7 +1625,7 @@ function Duvidas() {
       Sem conta, o save mora <b>só naquele aparelho</b>. Limpou o navegador, perdeu.
     </>],
     ['Meu clube ficou no vermelho. E agora?', <>
-      Vermelho é <b>dívida</b>, não bug — e tem saída.<br /><br />
+      <b>Não é bug</b> — e tem saída.<br /><br />
       Acontece quando a <b>folha salarial</b> (ou uma renovação de contrato) fica maior que o seu caixa. Enquanto estiver negativo você <b>não consegue contratar</b>, mas continua jogando normal.<br /><br />
       Pra sair: <b>venda um jogador</b> no leilão, pegue reforço <b>de graça no Monte</b>, e siga ganhando prêmio e bilheteria. Zerou, o mercado destrava sozinho.
     </>],

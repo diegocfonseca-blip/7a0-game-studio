@@ -3976,17 +3976,16 @@ function CoinsBadge({ coins }: { coins: number }) {
   }, [coins])
   return (
     <span style={{ position: 'relative', display: 'inline-flex' }}>
-      {/* 🔴 CAIXA NO VERMELHO = DÍVIDA, e a tela precisa DIZER isso (decisão do
-          Diego 20/08, opção B). Antes aparecia só um número negativo solto e quem
-          via achava que o jogo tinha bugado — foi o caso do "−9999" que chegou por
-          print. Agora o selo troca de cor e escreve a palavra: é um estado que o
-          jogo previu, não um erro. O caminho pra sair está no quadro do transfer
-          ban, na virada da temporada. */}
+      {/* 🔴 CAIXA NO VERMELHO: o selo troca de cor, e SÓ ISSO.
+          ⛔ NADA DE ESCREVER "dívida" (Diego 21/08: *"não precisa escrever nada de
+          dívida"*). Eu tinha posto a palavra do lado do número achando que ajudava
+          a pessoa a entender que não era bug — ele cortou. A cor já dá o recado, e
+          o caminho pra sair continua explicado no quadro da virada de temporada. */}
       <span key={bump} title={coins < 0
-        ? `Sua caixa está no vermelho: ${coins} 🪙. Isso é DÍVIDA (folha salarial e renovação de contrato podem deixar negativo). Você não compra até zerar — venda um jogador, ou ganhe prêmios e bilheteria.`
+        ? `Sua caixa está no vermelho: ${coins} 🪙. Você não compra até zerar — venda um jogador, ou ganhe prêmios e bilheteria.`
         : 'Sua caixa de moedas (pra o leilão/mercado)'}
         style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: coins < 0 ? '#C2452F' : GOLD, color: coins < 0 ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap', animation: bump ? 'coinBump .45s ease-out' : undefined }}>
-        💰 {coins}{coins < 0 ? ' · dívida' : ''}</span>
+        💰 {coins}</span>
       {pops.map(p => (
         <span key={p.id} style={{ position: 'absolute', left: '50%', top: '100%', fontWeight: 900, fontSize: 13.5, ...OSWALD, color: p.delta > 0 ? '#2ECC71' : '#FF5A4D', whiteSpace: 'nowrap', pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,.55)', animation: 'coinPop 1.2s ease-out forwards' }}>
           {p.delta > 0 ? `+${p.delta}` : p.delta} 🪙
