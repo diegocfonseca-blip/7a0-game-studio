@@ -1186,6 +1186,7 @@ const NOVOS_BR_MEI: C[] = [
 ]
 const NOVOS_BR_ATA: C[] = [
   { name: "Marcelo Ramos", club: "Cruzeiro", year: 1997, fame: 3, lo: 76, hi: 86, bio: "O Matador — centroavante goleador e quinto maior artilheiro do Cruzeiro, campeão da Libertadores de 1997." },
+  { name: "Kempes (Chape)", club: "Chapecoense", year: 2016, fame: 2, lo: 68, hi: 82, bio: "Ganhou o nome do Matador argentino e passou a vida rodando: Ceará, Criciúma, Portuguesa, Joinville e até o Japão. Achou casa no ataque da Chape de 2016. Eterno." },
   { name: "Bruno Rangel", club: "Chapecoense", year: 2016, fame: 3, lo: 76, hi: 85, bio: "O maior artilheiro da história da Chapecoense. Artilheiro da Série B de 2013 com 31 gols, largou o dinheiro do Catar pra voltar e dar alegria pro povo de Chapecó. Goleador eterno do Verdão do Oeste. 💚" },
   { name: "Biel", club: "Bahia", year: 2023, fame: 2, lo: 64, hi: 82, bio: "Ponta veloz revelado no Bahia — dribles e gols que renderam a ida ao Sporting de Portugal." },
   { name: "Pimpão", club: "Botafogo", year: 2016, fame: 2, lo: 64, hi: 82, bio: "Atacante rodado (Rodrigo Pimpão) — faro de gol e cabeceio, xodó folclórico no Botafogo e no Vasco." },
