@@ -1,30 +1,20 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
-## 🧭 SUB-ABAS FINAS (opção 2) — só a conta do Diego (21/08)
-Mockup `scripts/mockup-subabas.mjs`, ordem dele: *"faça só p mim… p eu ver
-primeiro como ficaria"*. `sport.ts` · `useSubAbasFinas` / `SUBABAS_GERAL`
-(hoje `false`; liberar pra todos = `true`).
+## ❌ SUB-ABAS FINAS (opção 2) — REPROVADA, NÃO REFAZER
+Foi codada em 21/08 só na conta do Diego e ele **não gostou**: *"esse 2 n gostei.
+Tire do meu tb"*. O commit foi **revertido inteiro** no mesmo dia — o Clube e o
+Elenco continuam com as **pílulas coloridas** de sempre, pra todo mundo.
 
-**A regra:** em cima é ONDE EU ESTOU, embaixo é PRA ONDE EU VOU. A barra de
-baixo manda na navegação (mudar de LUGAR); a tirinha só troca de ASSUNTO dentro
-do lugar — por isso é de propósito mais leve: sem borda, sem sombra, só texto
-com sublinhado na ativa (`TirinhaSub` em `pyramidseason.tsx`).
+O que foi tentado (pra ninguém gastar tempo repetindo): trocar as pílulas das
+sub-abas do 🏟️ Clube e do 👥 Elenco por uma **tirinha fina** grudada no topo, só
+texto com sublinhado na ativa, com a ideia de "em cima é onde eu estou, embaixo é
+pra onde eu vou". O problema técnico que ela resolvia é REAL (as pílulas rolam
+junto com o conteúdo e somem), mas o remédio ficou **apagado demais** pro gosto
+dele. O mockup segue no repo em `scripts/mockup-subabas.mjs` só como registro.
 
-**Onde vale:** 🏟️ Clube (Estrutura · Finanças · Patrocínio, + Agência nos saves
-antigos) e 👥 Elenco (Time · Agenciados, na Agência 2.0). As sub-abas são as
-MESMAS, na mesma ordem, com o mesmo conteúdo — só mudaram de casca. Com o portão
-desligado tudo volta a ser as pílulas de sempre (os dois caminhos convivem no
-código, é um `subFinas ? … : …`).
-
-**Ela GRUDA no topo** (`position: sticky`), logo abaixo da faixa fina
-(`FAIXA_H = 31`) quando a faixa está na tela, senão no 0. Era o problema real:
-antes as pílulas rolavam junto e sumiam, e quem descia até o fim das Finanças
-tinha que rolar tudo de volta pra ir no Patrocínio.
-
-⏳ **Falta:** o Diego dizer se gostou. Eu avisei o CONTRA no mockup — a tirinha é
-mais discreta que as pílulas coloridas. Se ele achar apagado, o **meio-termo já
-combinado** é manter a tirinha grudando no topo mas com a ativa em **pílula roxa
-cheia** dentro dela (só mexer no `TirinhaSub`).
+⚠️ Se um dia voltar ao assunto: ele NÃO chegou a pedir o meio-termo que eu tinha
+oferecido (tirinha grudando no topo, mas com a ativa em pílula roxa cheia).
+Perguntar antes de codar de novo.
 
 ## 🧹 TOPO DA TEMPORADA — regra "decisão · recibo · aba" (21/08), no ar
 Mockup aprovado (`scripts/mockup-topo-temporada.mjs`), resposta dele: *"ok mas a

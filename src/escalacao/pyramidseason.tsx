@@ -26,7 +26,7 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useSubAbasFinas } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira } from './sport'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
@@ -4250,35 +4250,6 @@ function CaixaRecibos({ titulo, children }: { titulo: string; children: React.Re
     </div>
   )
 }
-// ─── 🧭 TIRINHA DE SUB-ABAS (21/08) ─────────────────────────────────────────
-// "Em cima é ONDE EU ESTOU, embaixo é PRA ONDE EU VOU."
-// A barra de baixo manda na NAVEGAÇÃO (mudar de lugar); a tirinha só troca de
-// ASSUNTO dentro do lugar. Por isso ela é de propósito mais leve: sem borda,
-// sem sombra, só texto com um sublinhado na ativa — nunca dois estilos de botão
-// brigando pela mesma função. E ela GRUDA no topo: antes as pílulas rolavam
-// junto e sumiam, então quem descia até o fim das Finanças tinha que rolar tudo
-// de volta pra ir no Patrocínio.
-// `offsetTopo` = altura da faixa fina quando ela está grudada (senão 0).
-const FAIXA_H = 31
-function TirinhaSub<T extends string>({ itens, ativa, onPick, cor, offsetTopo }: {
-  itens: [T, string, string][]; ativa: T; onPick: (t: T) => void; cor: string; offsetTopo: number
-}) {
-  return (
-    <div style={{ position: 'sticky', top: offsetTopo, zIndex: 60, display: 'flex', margin: '0 -14px 11px', padding: '0 6px', background: 'rgba(250,247,238,.98)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderBottom: '1.5px solid rgba(12,12,12,.13)' }}>
-      {itens.map(([k, ic, label]) => {
-        const on = k === ativa
-        return (
-          <button key={k} onClick={() => onPick(k)}
-            style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '9px 2px 8px', cursor: 'pointer', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.02em', color: on ? cor : 'rgba(12,12,12,.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            <span style={{ marginRight: 3 }}>{ic}</span>{label}
-            {on && <span style={{ position: 'absolute', left: '14%', right: '14%', bottom: 0, height: 3, borderRadius: 3, background: cor }} />}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
 // 👉 selo da decisão da vez — a ÚNICA coisa em vermelho na tela
 function SeloSuaVez({ texto }: { texto: string }) {
   return (
@@ -5156,10 +5127,6 @@ export function PyramidSeasonScreen() {
     io.observe(el)
     return () => io.disconnect()
   }, [barraOn])
-  // 🧭 sub-abas finas (opção 2) — só a conta do Diego por enquanto. A tirinha
-  // gruda logo abaixo da faixa fina quando ela está na tela.
-  const subFinas = useSubAbasFinas() && barraCarr
-  const topoSub = cabFora ? FAIXA_H : 0
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
@@ -5839,22 +5806,14 @@ export function PyramidSeasonScreen() {
             {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
                 Agora tudo (Estádio · Finanças · Agência) vale online também,
                 por-técnico (Passo 2c completa a paridade com o offline). */}
-            {(() => {
-              const itens = (([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
-                .filter(([sb]) => !(sb === 'escritorio' && agenciaOk))
-              // 🧭 tirinha fina que gruda no topo (opção 2) × as pílulas de sempre
-              return subFinas ? (
-                <TirinhaSub itens={itens} ativa={clubeSub} onPick={setClubeSub} cor={myCol.solid} offsetTopo={topoSub} />
-              ) : (
-                <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-                  {itens.map(([s, ic, label]) => (
-                    <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
-                  ))}
-                </div>
-              )
-            })()}
+                .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
+                <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+              ))}
+            </div>
             {clubeSub === 'escritorio' && !agenciaOk ? (
               // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
@@ -6128,19 +6087,13 @@ export function PyramidSeasonScreen() {
             {/* 🕴️ AGÊNCIA 2.0: sub-abas Time | Agenciados (só carreira nova). A
                 sub-aba do elenco em si NÃO se chama mais "Elenco" — tinha o MESMO
                 nome/ícone da aba-mãe "Elenco", confundindo (14/08, pedido do Diego). */}
-            {state.agenciaOn && agLib && (() => {
-              const itens = ([['elenco', '🎽', 'Time'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]
-              // 🧭 mesma tirinha fina do Clube (opção 2) × as pílulas de sempre
-              return subFinas ? (
-                <TirinhaSub itens={itens} ativa={elencoSub} onPick={setElencoSub} cor={myCol.solid} offsetTopo={topoSub} />
-              ) : (
-                <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-                  {itens.map(([sb, ic, label]) => (
-                    <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
-                  ))}
-                </div>
-              )
-            })()}
+            {state.agenciaOn && agLib && (
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+                {(([['elenco', '🎽', 'Time'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
+                  <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+                ))}
+              </div>
+            )}
             {state.agenciaOn && agLib && elencoSub === 'agencia' ? (
               <>
               {/* 🪜 escada de desbloqueios da Agência: mudou de Clube›Estrutura pra
