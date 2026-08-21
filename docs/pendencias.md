@@ -72,6 +72,21 @@ prometer Série D pra alguém.
 A largura declarada do mascote foi corrigida pra proporção real do arquivo novo
 (440/373), como manda a regra 4.
 
+## ✉️ contato@leilaolegends.com — CONFIRMADO (21/08)
+O Diego confirmou: *"sim, esse e-mail agora existe sim"*. É o canal oficial de
+**patrocínio**. Já está em três lugares e todos batem:
+· `docs/media-kit.html` (v01) e `docs/media-kit-v02.html` — a seção de contato;
+· a pergunta "Como faço pra patrocinar minha empresa no jogo?" no FAQ do jogo
+  (`Duvidas`, em `screens.tsx`).
+
+⚠️ **NÃO confundir com estes dois, que continuam sendo o gmail dele e NÃO devem
+ser trocados sem ele mandar:**
+· `PIX_KEY` / `BL_PIX` = **chave Pix de verdade**. Trocar isso manda dinheiro de
+  apoiador pro lugar errado.
+· o rodapé do jogo (`GameFooter`), que é o canal de **bug e sugestão** — é
+  pessoal de propósito, combina com o "sou o Diego, faço sozinho na unha".
+  (Se um dia a caixa pessoal encher, dá pra migrar esse — mas é decisão dele.)
+
 ## 🏠 HOME NOVA — no ar pra TODO MUNDO (20/08)
 Queixa do Diego: *"o visual da home ainda acho que não tá legal, ainda acho que
 tá poluído e desorganizado! E ainda acho que o jogo não está claro as regras
