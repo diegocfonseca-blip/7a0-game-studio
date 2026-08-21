@@ -22,6 +22,29 @@ reconstrói a tela **fiel a esse código**:
 sem tirar nada: retrato de posse (dentro do cabeçalho que já existe), números do
 mandato (tira de 3 no mesmo cartão) e a linha do mandato (no fim).
 
+### 💡 "O algo a mais" — 7 ideias (`scripts/mockup-presidencia-ideias.mjs`)
+Ele pediu (21/08): *"queria mais coisas pessoais… como se ele fosse presidente de
+um clube mesmo… acho que falta aquele algo a mais"*.
+
+**🔎 ACHADOS NO SAVE que destravam quase tudo (`types.ts`):**
+- ✅ `careerScorersAll` — **artilharia de TODOS OS TEMPOS** por jogador;
+- ✅ `careerLedger` — extrato com `player`, `pos` e `buyPrice` → dá a
+  **contratação mais cara** e a **venda mais lucrativa** da história do clube;
+- ✅ `careerRivals` — o rival fixo já existe e tem vida própria;
+- ⚠️ **NÃO existe histórico de placar jogo a jogo** — "maior goleada", "maior
+  sequência" e o retrospecto do rival precisam guardar números novos por carreira,
+  e **só valem da temporada em que entrarem pra frente** (carreira antiga não
+  recupera o passado). Isso foi dito a ele no mockup.
+
+**As 7:** 1) 🙋 você, o presidente (nome + apelido de imprensa) · 2) 📖 **Livro de
+Recordes do clube** · 3) ⚔️ o retrospecto contra o rival · 4) 🏟️ **batizar o
+estádio** (o nome entra no jornal) · 5) 🪑 a sala que cresce (cadeira/mesa/quadro
+pelo patrimônio — emoji+CSS, 0 KB) · 6) 👑 galeria de ídolos · 7) 📤 cartão do
+mandato pra postar (vira marketing de graça).
+
+**Minhas 3 favoritas:** o Livro de Recordes · batizar o estádio · você, o
+presidente. ⏳ Aguardando ele escolher.
+
 ## 🏛️ (descartado) primeira tentativa desta sessão — mockup novo, aguardando OK
 `scripts/mockup-sala-presidente.mjs`. Retoma o que ficou parado em 16/08 (o
 começo do código está na branch `claude/presidencia-em-breve`) com o pedido novo
