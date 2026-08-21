@@ -1576,51 +1576,66 @@ function HomeIconTile({ icon, label, onClick }: { icon: string; label: string; o
 // muda junto — FAQ que mente é pior que FAQ nenhum.
 function Duvidas() {
   const [aberta, setAberta] = useState<number | null>(null)
+  // 📋 A ORDEM É A QUE O DIEGO DITOU (20/08): sala online → carta → escudo e
+  // mascote → nome pra todo mundo ver → planos → patrocínio. Ele cortou a minha
+  // primeira versão duas vezes ("as respostas estão muito fracas", "não sei se
+  // está claro") — então aqui a pergunta é a que a pessoa faria em voz alta, e a
+  // resposta diz o NÚMERO e o CAMINHO, não uma frase bonita.
   const QA: [string, React.ReactNode][] = [
-    ['Como faço pra ter meu escudo e mascote personalizado?', <>
-      É o <b>Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o seu clube passa a ter <b>escudo, mascote, manto e até o nome do estádio</b> — tudo desenhado só pra ele.<br /><br />
-      O caminho: <b>💛 Apoiar → 🖋️ Batismo</b>. Custa <b>R$ 59,90</b> (Série A, B, C ou Várzea) ou <b>R$ 69,90</b> (Série D, que é a mais concorrida). Você paga no Pix, manda o comprovante e o nome no direct, e a gente confirma <b>em até 24h</b>.<br /><br />
-      Vem junto: <b>tudo do 👑 Lenda</b> + o <b>🎫 Sócio</b> — sua cor dourada em todo canto, moedas todo mês e seu número de fundador. E o nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula): mais ninguém pode usar.
+    ['Quantas pessoas cabem numa sala online?', <>
+      <b>Até 20 técnicos</b> no mesmo pregão.<br /><br />
+      Você toca em <b>👥 Com amigos online</b>, cria a sala e o jogo te dá um <b>código</b>. Manda o código no zap: quem receber abre o mesmo site, digita o código e cai na sua sala.<br /><br />
+      Ninguém precisa baixar nada nem criar conta pra entrar. Dá pra começar com <b>2 pessoas</b> — não precisa encher.
     </>],
-    ['Como faço pra meu time aparecer pra todos no jogo?', <>
-      Também é o Batismo — e essa é a melhor parte dele. Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo mundo que joga</b>, não só pra você.<br /><br />
-      Na prática: qualquer pessoa, em qualquer partida, pode cair na mesma tabela que o seu time. Vai ver o seu escudo, o seu manto, e a sua mascote comemorando quando ele faz gol. Quem ganhar de você vai lembrar do nome.<br /><br />
-      A <b>Série D custa mais</b> (R$ 69,90) porque é onde ficam os <b>rivais escolhidos</b> — todo jogador enfrenta eles logo na primeira temporada. As outras séries custam R$ 59,90.<br /><br />
-      Depois de confirmado, ele entra <b>na atualização seguinte</b> e já começa a jogar.
+    ['Como eu ganho as cartas do álbum?', <>
+      <b>Carta é prêmio de campeão.</b> Não ganha por jogar, ganha por <b>ganhar</b>.<br /><br />
+      • Campeão da <b>liga</b> → 1 carta.<br />
+      • Campeão da <b>Copa dos 8</b> (ou da Libertadores) → mais 1, à parte.<br /><br />
+      Vale igual contra a CPU e no online.<br /><br />
+      ⚠️ <b>Sem conta criada, a carta não é guardada.</b> Você joga à vontade, mas o álbum fica vazio. Se você já foi campeão antes de criar a conta, aquelas não voltam — mas da próxima vez ficam.
     </>],
-    ['Por que eu não ganhei nenhuma carta ainda?', <>
-      Porque <b>carta é prêmio de campeão</b>. Não ganha por jogar, ganha por <b>ganhar</b>.<br /><br />
-      Quem levanta o troféu da liga leva <b>uma carta</b> pro álbum. Quem for campeão da Copa dos 8 (ou da Libertadores) leva <b>outra</b>, à parte. Vale nas partidas contra a CPU e nas online, do mesmo jeito.<br /><br />
-      ⚠️ E tem um detalhe que pega muita gente: <b>sem conta criada, a carta não é guardada</b>. Você joga à vontade, mas o álbum fica vazio. Se você já foi campeão antes de criar a conta, aquelas cartas não voltam — mas da próxima vez ficam.
+    ['Como faço pra ter escudo e mascote do meu jeito?', <>
+      É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
+      <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
+      <b>Quanto:</b> R$ 59,90 (Série A, B, C ou Várzea) · R$ 69,90 (Série D).<br />
+      <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
+      O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
+    </>],
+    ['Como faço pro meu time aparecer pra todo mundo no jogo?', <>
+      É o mesmo <b>Batismo</b> — e essa é a melhor parte dele.<br /><br />
+      Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo jogador do Leilão Legends</b>, não só pra você. Qualquer pessoa pode cair na mesma tabela que ele, ver o seu escudo, o seu manto, e a sua mascote comemorando o gol.<br /><br />
+      A <b>Série D custa mais</b> (R$ 69,90) porque é onde ficam os <b>rivais escolhidos</b>: todo mundo enfrenta eles logo na primeira temporada, então é o clube que mais aparece.
+    </>],
+    ['Quais são os planos de apoio?', <>
+      São <b>4</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
+      🎫 <b>Sócio Legends — R$ 9,90 por mês.</b> O único mensal.<br />
+      ⭐ <b>Craque — R$ 19,90, uma vez só.</b><br />
+      👑 <b>Lenda — R$ 39,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
+      🖋️ <b>Batismo — a partir de R$ 59,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br /><br />
+      Nenhum plano dá vantagem dentro das quatro linhas — <b>o jogo é igual pra todos</b>. O que muda é cor, brilho, história e mimos.
+    </>],
+    ['Como faço pra patrocinar minha empresa no jogo?', <>
+      A sua marca pode virar <b>parte do jogo</b>, não um banner: todo início de temporada cada técnico <b>escolhe um patrocinador</b> pro clube e joga a temporada inteira pela meta dele.<br /><br />
+      Marcas reais já estão lá dentro hoje, escolhidas pelos jogadores.<br /><br />
+      <b>Manda um e-mail pra <span style={{ color: PURPLE }}>contato@leilaolegends.com</span></b> que a gente te responde com os números do jogo e os formatos. Se preferir, chama no direct <b>@leilaolegendscom</b>.
     </>],
     ['Preciso criar conta pra jogar?', <>
       <b>Não.</b> Dá pra jogar tudo sem cadastro: partida rápida, sala com os amigos, e até a <b>primeira temporada inteira da carreira</b>.<br /><br />
-      O que muda com conta: você <b>ganha e guarda as cartas</b>, aparece no ranking, e a sua carreira fica salva na nuvem — se trocar de celular, ela vai junto.<br /><br />
+      Com conta você <b>ganha e guarda as cartas</b>, aparece no ranking, e a carreira fica salva na nuvem — trocou de celular, ela vai junto.<br /><br />
       Sem conta, o save mora <b>só naquele aparelho</b>. Limpou o navegador, perdeu.
-    </>],
-    ['O que é o Modo Carreira? Vale a pena?', <>
-      É a vida de técnico, temporada após temporada. Você começa lá embaixo, na <b>Várzea</b>, e vai subindo até a <b>Série A</b>.<br /><br />
-      A cada temporada abre coisa nova: banco de reservas, vender jogador, folha salarial, contrato, <b>construir o estádio</b>, comprar uma SAF, escolher patrocinador. O time que você monta <b>continua com você</b> — não recomeça do zero.<br /><br />
-      É o modo onde a maioria fica: tem gente aqui na <b>temporada 180</b>. Se você só jogou partida rápida, é o que você ainda não viu do jogo.
-    </>],
-    ['Como eu chamo meus amigos pra jogar?', <>
-      Toca em <b>👥 Com amigos online</b> e crie a sala. O jogo te dá um <b>código de 6 letras</b>.<br /><br />
-      Manda esse código no zap. Quem receber entra na mesma tela, digita o código e cai na sua sala. <b>Cabem até 20 no mesmo pregão.</b><br /><br />
-      Ninguém precisa baixar nada — é o mesmo link do site, abre no navegador do celular.
-    </>],
-    ['Por que não dá pra ver o nível do jogador antes do lance?', <>
-      <b>Não é bug — é o jogo.</b> É um leilão <b>às cegas</b>: você vê só o nome e aposta no que você acha que aquele nome vale.<br /><br />
-      O nível só abre na <b>Cerimônia da Revelação</b>, quando todos os envelopes abrem juntos. É ali que você descobre se pagou 30 moedas num craque ou num perna-de-pau — e todo mundo descobre ao mesmo tempo.<br /><br />
-      É de propósito: se desse pra ver o nível, não teria blefe, não teria risco, e não teria resenha.
     </>],
     ['Meu clube ficou no vermelho. E agora?', <>
       Vermelho é <b>dívida</b>, não bug — e tem saída.<br /><br />
-      Ele acontece quando a <b>folha salarial</b> (ou uma renovação de contrato) fica maior que o seu caixa. Enquanto estiver negativo, você <b>não consegue contratar</b> — mas continua jogando normal.<br /><br />
-      Pra sair: <b>venda um jogador</b> no leilão, pegue reforço <b>de graça no Monte</b>, e siga ganhando prêmio e bilheteria. Assim que zerar, o mercado destrava sozinho.
+      Acontece quando a <b>folha salarial</b> (ou uma renovação de contrato) fica maior que o seu caixa. Enquanto estiver negativo você <b>não consegue contratar</b>, mas continua jogando normal.<br /><br />
+      Pra sair: <b>venda um jogador</b> no leilão, pegue reforço <b>de graça no Monte</b>, e siga ganhando prêmio e bilheteria. Zerou, o mercado destrava sozinho.
     </>],
-    ['Troquei de celular / sumiu minha carreira', <>
+    ['Por que não dá pra ver o nível do jogador antes do lance?', <>
+      <b>Não é bug — é o jogo.</b> O leilão é <b>às cegas</b>: você vê só o nome e aposta no que acha que aquele nome vale.<br /><br />
+      O nível só abre na <b>Cerimônia da Revelação</b>, quando todos os envelopes abrem juntos. É ali que você descobre se pagou 30 moedas num craque ou num perna-de-pau — e todo mundo descobre ao mesmo tempo.
+    </>],
+    ['Troquei de celular e sumiu minha carreira', <>
       Se você tem <b>conta criada</b>, ela não sumiu: entre com o mesmo e-mail no aparelho novo e a carreira <b>baixa da nuvem</b> sozinha.<br /><br />
-      Se você jogava <b>sem conta</b>, o save ficava guardado só naquele navegador — e aí não tem como recuperar. É o motivo nº 1 pra criar a conta antes de investir muitas temporadas.<br /><br />
+      Se jogava <b>sem conta</b>, o save ficava só naquele navegador — aí não tem como recuperar. É o motivo nº 1 pra criar a conta antes de investir muitas temporadas.<br /><br />
       Tem mais de uma carreira? Toca em <b>🪜 Minhas carreiras</b> na tela inicial pra trocar entre elas.
     </>],
   ]
