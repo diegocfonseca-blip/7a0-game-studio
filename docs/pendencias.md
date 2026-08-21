@@ -1,5 +1,35 @@
 # 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
 
+## 🏛️ SALA DO PRESIDENTE — mockup novo (21/08), aguardando OK
+`scripts/mockup-sala-presidente.mjs`. Retoma o que ficou parado em 16/08 (o
+começo do código está na branch `claude/presidencia-em-breve`) com o pedido novo
+dele: *"quero q a sala fosse algo tb pessoal do presidente e do usuário"*.
+
+**🔢 MEDIDO NO BANCO ANTES DE DESENHAR** (é o que decidiu o que entra):
+7.564 contas · 3.072 com carreira · 4.700 com carta · 27 sócios ·
+68 linhas de nome batizado · **56 com time de coração (0,7%)**.
+
+**A sala (tudo sai do save, zero dependência de fora):** retrato de posse (você
+de terno, gravata na cor do tier, escudo do clube, "presidente desde <data da
+conta>") · números do mandato · **linha do mandato** (T1 assumiu · T3 subiu · T7
+campeão · T9 caiu…) · sala de troféus · patrimônio somado · faixa nas cores do
+coração + o convite pra quem não disse. 🎩 técnico e 🚗 garagem seguem com selo
+**EM BREVE**, como ele já tinha aprovado.
+
+**🚫 A TABELA/JOGO AO VIVO DO TIME REAL FICOU DE FORA** — ele perguntou, e eu
+disse não com 3 motivos: (1) **regra dele mesmo**, escrita em `coracao.ts` e
+`manto.ts`: *"nome de clube real NUNCA aparece dentro do jogo — só as CORES"*;
+(2) viraria um segundo produto (API de fora paga/instável + escudo de marca
+registrada); (3) não é o que deixa a sala pessoal — a tabela do time é igual pra
+milhões, a história de 12 temporadas é só dele.
+
+**🚫 Não reapresentados** (lista de descartados de 08/08): recado do presidente ·
+faixa da torcida · placas · aniversário · pacote coração.
+
+⏳ **Falta ele decidir:** 3 ou 4 sub-abas no Clube. Recomendação (a mesma de
+16/08): **3**, com a Presidência engolindo o Patrocínio. O mockup foi desenhado
+assim.
+
 ## 🛡️ CLÃS — desenhado, ainda NÃO codado
 Mockup principal: `scripts/mockup-clas.mjs` (a ideia inteira).
 Conserto: `scripts/mockup-clas-escudo.mjs`.
