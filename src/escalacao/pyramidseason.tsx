@@ -5249,7 +5249,16 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (tab === 'estadio') setViuClube(true) }, [tab])
   const temRecibo = (round === 0 && sponsorResultFresh) || (done && state.booksSeason === state.seasonNo)
   const reciboNoClube = temRecibo && !viuClube
-  const sagrado = penMode || halfMode || copaPlaying || festaOnC
+  // 🐛 CONSERTO (21/08, o Diego achou): a barra sumia MUITO mais do que devia.
+  // Eu tinha escrito `penMode || halfMode || copaPlaying`, mas nenhum desses três
+  // é um "momento" — são ESTADOS LONGOS:
+  //   · `copaPlaying` vale a COPA INTEIRA (foi o que ele viu: começou a Copa do
+  //     Brasil e as abas voltaram pro meio da página);
+  //   · `halfMode` vale a PARTIDA INTEIRA de quem joga no modo "só no intervalo";
+  //   · `penMode` vale a partida inteira quando ela é decisiva.
+  // O momento sagrado de verdade é quando o BANNER está ABERTO na cara da pessoa
+  // (aí sim nada pode competir), mais a festa do campeão.
+  const sagrado = (halftimeOpen && halfMode) || (penaltyOpen && penMode) || festaOnC
   const barraOn = barraCarr && !sagrado
   const cabRef = useRef<HTMLDivElement | null>(null)
   const [cabFora, setCabFora] = useState(false)

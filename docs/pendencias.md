@@ -83,6 +83,32 @@ barra com "1 vaga · ❓ · 💰100", a folha do ensino no 1º pregão e o ❓ a
 5 regras.
 ⏳ **Falta:** o Diego dizer se gostou.
 
+## 🐛 CONSERTO: a barra de baixo sumia demais (21/08, achado pelo Diego)
+Print dele na **Copa do Brasil Legends**: *"quando começou as copas as abas
+voltaram pro meio. E não estão no rodapé mais"*. Era erro meu na condição do
+"momento sagrado" — eu tinha escrito:
+
+```
+const sagrado = penMode || halfMode || copaPlaying || festaOnC
+```
+
+Nenhum desses três primeiros é um MOMENTO; são **estados longos**:
+- `copaPlaying` vale a **Copa inteira** (foi o que ele viu);
+- `halfMode` vale a **partida inteira** de quem joga no modo "só no intervalo";
+- `penMode` vale a partida inteira quando ela é decisiva.
+
+Ou seja: a barra sumia em situações onde a pessoa MAIS precisa navegar. Agora:
+
+```
+const sagrado = (halftimeOpen && halfMode) || (penaltyOpen && penMode) || festaOnC
+```
+
+— o momento sagrado é quando o **banner está ABERTO** na cara da pessoa (aí sim
+nada compete), mais a festa do campeão. Os dois banners já zeram a cada rodada
+(`useEffect ... [round]`), então a barra volta sozinha.
+⚠️ Lição pra próxima: antes de usar uma flag pra "esconder UI num momento",
+conferir se ela é um INSTANTE ou um ESTADO que dura a fase inteira.
+
 ## 📌 SUB-ABAS GRUDADAS ("Ideia 1") — só a conta do Diego (21/08)
 Depois da reprovada (logo abaixo), ofereci 3 ideias novas
 (`scripts/mockup-subabas-v2.mjs`) e ele escolheu a 1: *"faz a 1 code só pra mim
