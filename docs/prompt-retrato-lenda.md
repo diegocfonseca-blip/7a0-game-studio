@@ -1,4 +1,4 @@
-# 🎴 Prompt padrão — RETRATO DE LENDA (card sem rosto)
+# 🎴 Prompt padrão — RETRATO DE LENDA
 
 Prompt pronto pra colar no Gemini/Midjourney/OpenArt. É a arte que o Diego
 aprovou (Pelé/Valderrama/Zidane/Ronaldo), **com as correções da conferência de
@@ -6,6 +6,92 @@ aprovou (Pelé/Valderrama/Zidane/Ronaldo), **com as correções da conferência 
 folha de estilo, nome quebrado em duas linhas, barba liberada.
 
 Mora aqui no repo porque prompt que só existe no chat **se perde**.
+
+**São DOIS prompts diferentes, não confundir:**
+- **A) PRA ENTRAR NO JOGO (sem fundo)** — é o de baixo, o principal. Só o busto,
+  fundo vazio, sem card, sem texto nenhum. Passa pela esteira
+  `scripts/rosto/foto-jogador.py` e vira rosto de jogador de verdade.
+- **B) PRA POST** — o card completo, com moldura creme, pílula e ficha. Está
+  mais pra baixo neste arquivo. Esse NÃO entra no jogo.
+
+---
+
+# A) 📸 PROMPT PRA ENTRAR NO JOGO — SEM FUNDO
+
+Este é o formato que a esteira come. Um arquivo por jogador, e **o nome do
+arquivo tem que ser o nome do jogador** (`neymar.png`, `lamine-yamal.png`) —
+é assim que a esteira casa com o baralho do `data.ts`. Arquivo que não casa com
+ninguém é avisado e não entra (pra não nascer rosto órfão no jogo).
+
+```
+Ilustração vetorial chapada (flat vector), estilo mascote de card colecionável.
+Enquadramento quadrado 1:1.
+
+FUNDO: TOTALMENTE VAZIO. Fundo transparente (PNG com alpha). Se não for possível
+gerar transparência, usar branco puro #FFFFFF liso, absolutamente nada mais.
+- SEM cenário, SEM moldura, SEM card, SEM borda, SEM sombra atrás do
+  personagem, SEM gradiente, SEM textura, SEM piso, SEM círculo, SEM vinheta.
+- SEM nenhum texto, nenhum nome, nenhum número, nenhuma etiqueta, nenhuma ficha,
+  nenhuma pílula, nenhuma estrela. A imagem tem SÓ o personagem.
+
+O PERSONAGEM: busto de jogador de futebol (cabeça, ombros e peito), centralizado,
+visto de frente, ocupando bem o quadro.
+- Deixar uma margem de uns 6% de espaço vazio em volta: o busto NÃO pode encostar
+  em nenhuma das quatro bordas da imagem.
+- ROSTO TOTALMENTE VAZIO: SEM olhos, SEM boca, SEM nariz, SEM sobrancelha, SEM
+  orelha desenhada por dentro. A pele é um formato chapado de uma cor só.
+  Isso é obrigatório e não pode ser suavizado.
+- Pode ter CABELO e pode ter BARBA/BIGODE, desenhados como formas chapadas de cor
+  sólida com contorno preto — nunca com fios, textura, brilho ou sombreado.
+- Contorno preto #0C0C0C grosso, fechado e uniforme em TUDO (cabelo, barba,
+  cabeça, pescoço, ombros, camisa). Nenhuma linha pode ficar aberta.
+- Sem gradiente, sem brilho, sem textura, sem sombra suave, sem luz. Tudo cor
+  chapada, no máximo 6 cores na imagem inteira.
+
+A CAMISA: retrô, gola em V, listras ou blocos de cor conforme os DADOS abaixo.
+- PROIBIDO: escudo, brasão, logo, nome, número, patrocinador ou qualquer marca de
+  clube ou de time REAL. Nada de Real Madrid, Inter, Barcelona, seleção nenhuma.
+  Só as CORES da camisa.
+- Se a camisa for branca ou clara, o contorno preto em volta dela tem que ser
+  bem visível e fechado, pra ela não se misturar com o fundo.
+
+DADOS DO JOGADOR:
+- Nome: <NOME>
+- Pele: <tom de pele>
+- Cabelo: <descrição chapada>
+- Barba: <descrição, ou "sem barba">
+- Camisa: <cores, sem citar clube>
+```
+
+## ⚠️ Os dois detalhes que estragam a imagem se escaparem
+
+1. **Camisa branca encostando na borda.** A esteira apaga o branco *a partir da
+   borda* (flood fill) — miolo branco fica, mas branco que toca a borda some
+   junto com o fundo. Por isso o prompt exige margem em volta e contorno preto
+   fechado. Se vier uma camisa branca cortada no rabo da imagem, ela perde o
+   peito na hora de tirar o fundo.
+2. **Sombra atrás do personagem.** Vira uma mancha cinza flutuando, porque não é
+   branca o bastante pra esteira apagar. Sombra dura é do CARD, não do busto.
+
+## 🔧 Como eu ponho no jogo depois
+
+Você me manda a pasta com as imagens. Eu rodo:
+
+```
+python3 scripts/rosto/foto-jogador.py --pasta <pasta>
+```
+
+A esteira sozinha: casa o nome com o jogador do baralho · tira o fundo · corta no
+limite do desenho · reduz pro **lado maior 200px** · salva `.webp` (q85) em
+`public/rostos/` · **avisa todo arquivo que passar de 12 KB** · e reescreve
+`src/escalacao/rostos-lista.ts`. Quem tem rosto usa rosto; quem não tem fica
+exatamente como está hoje — nunca fica meio quebrado.
+
+---
+
+# B) 🖼️ PROMPT PRA POST (card completo, com fundo creme)
+
+⚠️ Este NÃO entra no jogo — é só pra divulgação.
 
 ---
 
