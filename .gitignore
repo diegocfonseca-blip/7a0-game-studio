@@ -43,3 +43,7 @@ dist-ssr
 /rostos3.png
 
 /liga-fechada.png
+
+# 🔬 scripts de teste descartáveis (ficam DENTRO do repo só pra achar o
+# node_modules; não são entrega e não devem ser versionados)
+scripts/_tmp-*.mjs
