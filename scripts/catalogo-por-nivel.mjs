@@ -46,7 +46,10 @@ for (const [cat, baralho] of [[data.CATALOG, 'BR'], [data.CATALOG_EU, 'EU']]) {
 }
 
 const marca = c => `${c.promessa ? ' 💎' : ''}${c.folk ? ' 🃏' : ''}`
-const linha = c => `| ${c.name}${marca(c)} | ${c.club} | ${c.year} | ${c.baralho} |`
+// 💪 força da carta = a MESMA conta que o jogo usa pra ordenar (copa-mundo.tsx):
+// nível, depois o teto (hi), depois o piso (lo). Nada inventado aqui.
+const forca = (a, b) => b.fame - a.fame || b.hi - a.hi || b.lo - a.lo
+const media = c => ((c.lo + c.hi) / 2).toFixed(1)
 
 const out = []
 out.push('# 🎴 Baralho do Leilão Legends — todo mundo, por nível')
@@ -59,6 +62,11 @@ out.push('')
 out.push('Quem está nos **dois baralhos aparece duas vezes** — são duas cartas diferentes')
 out.push('dentro do jogo, com clube e ano próprios. A coluna da direita diz de qual baralho é.')
 out.push('💎 = promessa · 🃏 = folclórico.')
+out.push('')
+out.push('**Ordem: do melhor pro pior**, com a MESMA conta que o jogo usa pra ordenar')
+out.push('elenco (`copa-mundo.tsx`): primeiro o nível, depois o teto da carta, depois o')
+out.push('piso. A coluna **Força** mostra `piso–teto (média)` — é a faixa em que a carta')
+out.push('rende dentro do jogo.')
 out.push('')
 out.push('## Resumo')
 out.push('')
@@ -77,15 +85,27 @@ for (const f of [5, 4, 3, 2, 1]) {
   out.push('')
   out.push(`_${NIVEL[f].txt}_`)
   out.push('')
+  // 🥇 GERAL do nível, do melhor pro pior — é o que o Diego pediu.
+  out.push(`## 🥇 Do melhor pro pior — os ${doNivel.length}`)
+  out.push('')
+  out.push('| # | Jogador | Clube da carta | Ano | Pos | Força | Baralho |')
+  out.push('| ---: | --- | --- | ---: | :---: | :---: | :---: |')
+  ;[...doNivel].sort(forca).forEach((c, i) => {
+    out.push(`| ${i + 1} | ${c.name}${marca(c)} | ${c.club} | ${c.year} | ${c.pos} | ${c.lo}–${c.hi} (${media(c)}) | ${c.baralho} |`)
+  })
+  out.push('')
+
+  // e o mesmo nível quebrado por posição, também do melhor pro pior
   for (const pos of ORDEM_POS) {
-    const doPos = doNivel.filter(c => c.pos === pos)
-      .sort((a, b) => a.name.localeCompare(b.name, 'pt') || a.year - b.year)
+    const doPos = doNivel.filter(c => c.pos === pos).sort(forca)
     if (!doPos.length) continue
-    out.push(`## ${POS[pos]} — ${doPos.length}`)
+    out.push(`### ${POS[pos]} — ${doPos.length}`)
     out.push('')
-    out.push('| Jogador | Clube da carta | Ano | Baralho |')
-    out.push('| --- | --- | ---: | :---: |')
-    for (const c of doPos) out.push(linha(c))
+    out.push('| # | Jogador | Clube da carta | Ano | Força | Baralho |')
+    out.push('| ---: | --- | --- | ---: | :---: | :---: |')
+    doPos.forEach((c, i) => {
+      out.push(`| ${i + 1} | ${c.name}${marca(c)} | ${c.club} | ${c.year} | ${c.lo}–${c.hi} (${media(c)}) | ${c.baralho} |`)
+    })
     out.push('')
   }
 }
