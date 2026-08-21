@@ -113,18 +113,13 @@ body{margin:0;background:${CREME};color:${INK};font-family:system-ui,-apple-syst
       Futevôlei Depressão<br><span style="color:${GREEN}">dentro do Leilão Legends</span></h1>
   </div>
 </div>
-<!-- o cara do outro lado NÃO conhece o jogo: essa faixa é o "o que é isso" -->
-<div style="${box('#fff')};padding:18px 22px;margin:16px 0 18px;display:flex;gap:22px;align-items:center">
-  <div style="flex:1">
-    <p style="${OSW};font-weight:700;font-size:19px;margin:0 0 5px;text-transform:uppercase">O que é o Leilão Legends</p>
-    <p style="font-size:16.5px;font-weight:600;line-height:1.4;margin:0">Um jogo de <b>leilão às cegas de lendas do futebol</b>: você dá lance escondido, monta um time com as cartas que arrematar e disputa uma carreira, de várzea até a Série A. Roda <b>direto no navegador</b>, de graça, sem baixar nada.</p>
-  </div>
-  <div style="display:flex;gap:10px;flex-shrink:0">
-    ${[[CONTAS, 'contas em 30 dias'], [RECORDE, 'temporadas · a carreira mais longa'], [MEDIA, 'temporadas · média por carreira']]
-      .map(([n, s]) => `<span style="text-align:center;background:#FBF6E9;border:3px solid ${INK};border-radius:12px;padding:9px 13px;width:132px">
-        <b style="display:block;${OSW};font-weight:700;font-size:26px;line-height:1">${n}</b>
-        <b style="display:block;font-size:10.5px;font-weight:800;opacity:.6;text-transform:uppercase;margin-top:3px;line-height:1.2">${s}</b></span>`).join('')}
-  </div>
+<!-- o cara do outro lado NÃO conhece o jogo: essa faixa é o "o que é isso".
+     Diego (21/08) tirou os números daqui: sem dado de banco na proposta, só o
+     texto curto explicando o jogo. Os flags --contas/--recorde/--media ficam
+     no arquivo caso ele volte a querer, mas HOJE não aparecem. -->
+<div style="${box('#fff')};padding:18px 24px;margin:16px 0 18px">
+  <p style="${OSW};font-weight:700;font-size:19px;margin:0 0 5px;text-transform:uppercase">O que é o Leilão Legends</p>
+  <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0">Um <b>leilão às cegas de lendas do futebol</b>: você dá lance escondido, monta seu time com as cartas que arrematar e leva ele da várzea até a Série A. Roda <b>direto no navegador</b>, de graça.</p>
 </div>
 <p style="font-size:21px;font-weight:600;line-height:1.45;margin:0 0 34px;max-width:930px">
   Cinco lugares onde a marca entra — <b>sem virar banner</b>. Em todos eles a piada é a mesma da página:
