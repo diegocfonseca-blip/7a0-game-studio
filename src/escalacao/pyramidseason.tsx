@@ -5278,6 +5278,13 @@ export function PyramidSeasonScreen() {
   // faixa (que é opaca e vem por cima) e não sobra nenhuma fresta pro conteúdo
   // aparecer entre as duas. As pílulas continuam inteiras.
   const topoSub = (barraOn && cabFora) ? FAIXA_H - 6 : 0
+  // 🐛 CONSERTO (21/08, vídeo de usuário): a fileira de pílulas aparecia BOIANDO
+  // por cima da tela do intervalo. O banner do intervalo (e o do pênalti, e a
+  // festa de campeão) é desenhado ANTES do bloco das abas, então ele fica na
+  // tela em QUALQUER aba — com Elenco ou Clube aberta, a fileira grudada ficava
+  // por cima dele. Nos momentos sagrados nada gruda: as pílulas voltam a rolar
+  // junto com o conteúdo, que é como era antes da mudança.
+  const grudaOk = subGrudadas && !sagrado
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
@@ -5964,7 +5971,7 @@ export function PyramidSeasonScreen() {
                 por-técnico (Passo 2c completa a paridade com o offline). */}
             {/* 📌 as MESMAS pílulas de sempre — o wrapper só faz elas grudarem no
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
-            <SubAbasGrudadas ligado={subGrudadas} topo={topoSub}>
+            <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
             <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
               {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
@@ -6248,7 +6255,7 @@ export function PyramidSeasonScreen() {
                 sub-aba do elenco em si NÃO se chama mais "Elenco" — tinha o MESMO
                 nome/ícone da aba-mãe "Elenco", confundindo (14/08, pedido do Diego). */}
             {state.agenciaOn && agLib && (
-              <SubAbasGrudadas ligado={subGrudadas} topo={topoSub}>
+              <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
               <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
                 {(([['elenco', '🎽', 'Time'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
                   <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
