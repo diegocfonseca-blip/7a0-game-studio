@@ -938,6 +938,13 @@ export function EscLobby() {
     return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
+  // 🚪 QUEM ENTRA NA LIGA — mudou em 22/08, por decisão do Diego. Antes (regra de
+  // 19/08) só Lenda/dono de batismo ENTRAVA. Ele reviu: *"vamos supor q só qm pode
+  // criar e o lenda"* e, mais cedo, *"qm entra se tiver aberta pode ser qlqr um"*.
+  // Faz sentido: quem paga é dono da liga; os amigos dele só precisam ser
+  // convidados. Cobrar de quem só quer jogar espantava a turma inteira.
+  // Pra voltar ao que era: `true` aqui.
+  const LIGA_SO_LENDA_ENTRA = false
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
@@ -1562,6 +1569,15 @@ export function EscLobby() {
     // sumir da lista e ganhar a sala de troféus na espera. Sem bot = a liga
     // fechada que o jogo já sabia fazer (`ligaFechada`).
     const liga = ligaOn && roomMode === 'liga'
+    // 👑 CRIAR LIGA É SÓ DO LENDA — e até 22/08 isso NÃO estava travado de verdade:
+    // o código só olhava `ligaOn` (quem enxerga o modo), nunca o tier. Como enxergar
+    // era privilégio da conta do Diego, ninguém tinha notado; na hora de abrir pra
+    // todos, qualquer um criaria liga. Trava explícita, com o porquê e o caminho —
+    // e é ela que o Diego quer VER com a 2ª conta dele.
+    if (liga && !canLiga) {
+      setRoomError('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".')
+      setLoading(false); return
+    }
     const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
     const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : (canLiga && ligaFechada ? { ligaFechada: true } : {})), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
@@ -1900,7 +1916,7 @@ export function EscLobby() {
     // ou o link entrava assim mesmo. Aqui fecha pra valer.
     // (Todo batismo já nasce tier ouro pela regra de 17/08, então a conta é uma
     // só. E CRIAR liga continua preso à conta do Diego, em `sport.ts`.)
-    if (rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
+    if (LIGA_SO_LENDA_ENTRA && rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
       setRoomError('Essa é uma 🏆 Liga Fechada — só entra quem é 👑 Lenda ou dono de clube batizado.'); setLoading(false); return
     }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {

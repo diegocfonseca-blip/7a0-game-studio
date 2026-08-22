@@ -167,6 +167,28 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
+## 🧪 LIGA — 2ª conta do Diego pra testar, e a REGRA MUDOU (22/08)
+Pedido: *"Permita o usuário diego.c.fonseca2@gmail.com poder ver as coisas do liga
+fechada tb como se fosse um usuário normal sem o lenda… vou testar esse usuário c o
+diego.c.fonseca@gmail.com q criou uma sala agora. Aí já quero ver como ele vê tb"*.
+
+**Feito:**
+- `sport.ts` → `diego.c.fonseca2@gmail.com` entra em **`LIGA_TESTERS`** (enxerga o
+  modo). ⚠️ E **NÃO** entra na lista de ouro do `apoio.tsx`, de propósito: assim ela
+  é um jogador COMUM e bate na trava de criar — que é o que ele quer ver.
+
+**🔁 REGRA DE ENTRADA MUDOU (decisão dele, hoje):** antes (19/08) só Lenda/dono de
+batismo **ENTRAVA** numa liga. Ele reviu: *"vamos supor q só qm pode criar e o
+lenda"* + *"qm entra se tiver aberta pode ser qlqr um"*. Agora **qualquer conta
+entra** com o código; só **CRIAR** é do Lenda. Interruptor:
+`LIGA_SO_LENDA_ENTRA = false` em `lobby.tsx` (voltar = `true`).
+
+**🐛 ACHADO NO CAMINHO:** **criar liga NUNCA esteve travado no Lenda.** O código só
+olhava `ligaOn` (quem enxerga o modo), nunca o tier — como enxergar era privilégio
+da conta do Diego, ninguém notou; na hora de abrir pra todos, **qualquer um criaria
+liga**. Agora tem trava explícita, com o porquê e o caminho ("pra JOGAR numa liga
+você não precisa ser Lenda: peça o código pra quem criou").
+
 ## 🏆 LIGA FECHADA — criação igual ao mockup + editar/excluir POR FORA (22/08)
 Depois do conserto do erro abaixo, o Diego olhou o modo Liga de verdade e cobrou:
 *"ainda n tá legal… eu lembro q vc tinha feito um mockup maneiro mas n parece igual
