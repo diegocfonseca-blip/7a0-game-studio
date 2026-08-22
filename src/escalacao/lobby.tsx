@@ -1126,13 +1126,31 @@ export function EscLobby() {
     ;(async () => {
       const rd = (await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()).data
       if (!rd || rd.game_state?.__game !== GAME_TAG) { clearSavedRoom(); return }
-      if (rd.status === 'started') {
+      // 🩹 SALA PRESA: diz que COMEÇOU mas não tem jogo nenhum dentro (nenhum
+      // técnico montado). Acontecia quando o aviso do banco se perdia entre marcar
+      // "começou" e montar a partida — e deixava a sala num beco sem saída: sem
+      // botão de abrir o pregão (a sala já "começou") e sem partida pra voltar.
+      // Foi o que travou a liga do Diego em 22/08. Aqui a sala é tratada como se
+      // ainda estivesse ESPERANDO, e o dono consegue abrir o pregão de novo.
+      // ⏱️ só depois de 20s parada: nos primeiros segundos de um início NORMAL o
+      // estado ainda não subiu, e confundir os dois faria alguém remontar por cima
+      // de uma partida de verdade.
+      const semJogo = (rd.game_state?.managers?.length ?? 0) === 0
+        && Date.now() - new Date(rd.updated_at ?? 0).getTime() > 20_000
+      if (rd.status === 'started' && !semJogo) {
         // partida em andamento: NÃO entra direto. Confirma que ainda sou da
         // sala e mostra a pergunta "voltar pra partida ou sair" no menu.
         const { data: mySlot } = await supabase.from('room_players').select('user_id').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
         if (!mySlot) { clearSavedRoom(); return }
         setResumeRoom(rd)
         return
+      }
+      if (rd.status === 'started' && semJogo) {
+        // desfaz a marca errada pra o botão voltar (e pra sala não ficar "em jogo"
+        // na lista de todo mundo, enganando quem tenta entrar).
+        await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', rd.id)
+          .eq('status', 'started').then(() => {}, () => {})
+        rd.status = 'waiting'
       }
       if (rd.status === 'waiting') {
         const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
@@ -1274,6 +1292,9 @@ export function EscLobby() {
   // autoritativo, arrasta todo mundo pro início — o bug relatado. O início de
   // verdade (waiting→started) vem do evento realtime, com allowFresh=true.
   // Devolve true se conseguiu entrar (restaurou ou começou).
+  // 🧯 já montei o jogo desta sala? (guarda contra montar DUAS vezes quando o
+  // início direto do host e o eco do banco chegam juntos)
+  const jaIniciouRef = useRef<string | null>(null)
   async function triggerStart(roomData: RoomInfo, allowFresh = true): Promise<boolean> {
     if (!user) return false
     // pega o estado salvo MAIS recente (não confia no payload do evento, que
@@ -1323,6 +1344,7 @@ export function EscLobby() {
       return true
     }
     if (!allowFresh) return false // reconexão sem estado salvo ainda: não recomeça
+    if (jaIniciouRef.current === roomData.id) return true // já montei esta sala agora há pouco
     // SEGURANÇA (mesmo se uma vaga duplicada escapou): um assento por usuário.
     // Deduplica de forma DETERMINÍSTICA (mesma ordem em todo cliente) e usa a
     // POSIÇÃO na lista como número do técnico — o time é montado pela posição, não
@@ -1356,6 +1378,7 @@ export function EscLobby() {
         }
       })
     }
+    jaIniciouRef.current = roomData.id
     dispatch({
       type: 'START_ONLINE',
       roomId: roomData.id, roomCode: roomData.code,
@@ -2055,6 +2078,18 @@ export function EscLobby() {
       }
     }
     await supabase.from('game_rooms').update({ status: 'started' }).eq('id', room.id)
+    // 🐛 O HOST NÃO ESPERA MAIS O ECO DO BANCO (Diego 22/08, na liga dele: *"o
+    // usuário que criou, Neymarzetti, eu não tô conseguindo abrir o pregão"*).
+    // Até aqui, quem apertava o botão só marcava a sala como "começou" e ficava
+    // esperando o aviso do banco VOLTAR pra, aí sim, montar o jogo. Se esse aviso
+    // se perdesse (rede, canal do lobby piscando), a sala ficava no PIOR estado
+    // possível: `started` no banco e SEM jogo dentro. O botão sumia (a sala já
+    // "começou"), e "voltar pra sala" não fazia nada — porque não havia partida
+    // pra voltar. Foi exatamente o que travou a liga F1UALH.
+    // Agora o dono monta o jogo NA HORA, com a linha fresca do banco. Se o eco
+    // chegar depois, a guarda `jaIniciouRef` impede montar de novo.
+    const { data: agora } = await supabase.from('game_rooms').select('*').eq('id', room.id).maybeSingle()
+    if (agora) await triggerStart(agora as RoomInfo)
   }
   async function leaveRoom() {
     if (!room || !user) return

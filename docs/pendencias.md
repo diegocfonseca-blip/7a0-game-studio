@@ -184,6 +184,30 @@ verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 
 (Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
 rápida.)
 
+## 🩹 SALA PRESA — "começou" no banco, SEM jogo dentro (22/08, liga F1UALH)
+Diego: *"o usuário q criou, Neymarzetti, eu não tô conseguindo abrir o pregão"*.
+
+**O banco mostrou o beco sem saída:** `status = 'started'`, 2 técnicos na sala
+(ele + a 2ª conta, os dois prontos) e **`managers = 0`, `screen = null`** — ou
+seja, a sala dizia que a partida começou e **não existia partida nenhuma**.
+Sem saída pelos dois lados: o botão "Abrir o Pregão" some (a sala já "começou") e
+"voltar pra sala" não faz nada (não há partida pra restaurar).
+
+**Causa** — quem apertava o botão só marcava `status = 'started'` no banco e
+**ficava esperando o aviso do banco VOLTAR** (`postgres_changes`) pra, aí sim,
+montar o jogo. O dono dependia do eco da própria jogada. Se esse aviso se perdesse
+(rede, canal do lobby piscando), a sala congelava exatamente nesse meio-termo.
+
+**Consertos:**
+1. **O dono monta o jogo NA HORA**, com a linha fresca do banco, em vez de esperar
+   o eco. Guarda `jaIniciouRef` impede montar duas vezes se o eco chegar depois.
+2. **Autocura**: sala `started` com **zero técnicos** e parada há **mais de 20s** é
+   tratada como se ainda estivesse esperando — volta pra `waiting` sozinha e o
+   botão reaparece. Os 20s existem pra não confundir com um início NORMAL, em que
+   o estado ainda não subiu (remontar por cima de partida de verdade seria pior).
+3. **A sala dele foi destravada na mão** (`F1UALH` → `waiting`), já que não havia
+   partida nenhuma pra perder.
+
 ## 🔒 FURO MEU (durou 1 deploy) — a liga do Diego apareceria pra TODO MUNDO
 Minutos depois de eu pôr a liga na lista, o Diego perguntou: *"mas hj só o secundário
 q vai ver né a sala aberta ne"*. **Não era.** Eu tirei a liga da lista SEM pôr nada no
