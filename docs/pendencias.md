@@ -8625,8 +8625,17 @@ outro: quando alguém arremata, a carta é **copiada pro save** com o nível
 daquele dia (`WonCard extends Card`), e congela. Quem já tinha o Marcelo no
 elenco continuava vendo ⭐ CRAQUE numa carta que virou 👑 LENDA.
 
+🎯 **A CAUSA DE VERDADE (corrigido depois que o Diego insistiu):** minha
+primeira explicação foi a carta já ganha, e estava incompleta — ele viu **AO
+VIVO, no leilão**. Na carreira, **da 2ª temporada em diante o baralho do pregão
+NÃO é montado do catálogo**: ele é montado a partir do **elenco guardado dos
+bots** (`managers[].squad` dos bots de mercado) e dos **60 times de fundo**
+(`cpuSquads`, que o próprio comentário diz que é *"semeado 1x"*). Ou seja: um
+Marcelo Vieira parado no elenco de um bot desde que a carreira começou vai a
+leilão com o nível daquele dia. Por isso apareceu ⭐ CRAQUE no martelo.
+
 O **álbum** já resolvia isso sozinho (`CARD_META` em `screens.tsx` regrava o
-nível do catálogo por cima do salvo). Faltava o **elenco**.
+nível do catálogo por cima do salvo). Faltava o resto do save.
 
 Agora `sincronizaNiveis()` (store.tsx) faz o mesmo ao ABRIR a carreira — nos
 três caminhos: carreira ativa, arquivo ("Minhas carreiras") e nuvem.
@@ -8642,5 +8651,12 @@ divisão e temporada — carta não entra na conta. Testado: caixa e temporada
 intactos depois do sync.
 
 Testado por SSR pelo caminho REAL de load (`readActiveCareer` com localStorage
-de mentira): elenco, monte e emprestados pra SAF sobem juntos; quem não foi
-promovido (Gabigol) não muda; carta que não existe no baralho é deixada em paz.
+de mentira). Sobem juntos: seu elenco, o **elenco dos bots**, o **cpuSquads dos
+times de fundo**, o **deck do pregão em andamento**, o monte e os emprestados
+pra SAF. Quem não foi promovido (Gabigol) não muda; carta que não existe no
+baralho é deixada em paz. É por isso que a varredura é genérica no save inteiro
+em vez de lista de campos: carta mora em lugar demais pra enumerar.
+
+⚠️ **Sobra um caso que o código não alcança:** quem estiver com a ABA ABERTA
+desde antes de 19/08 tem o baralho velho na memória do navegador — só recarregar
+a página resolve. Não tem service worker no projeto, então basta o F5.
