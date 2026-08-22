@@ -1,4 +1,34 @@
-# 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 22/08/2026)
+
+## ✅ RESOLVIDO — o aviso "o dono sumiu" subia MENTINDO (sala NOYI87, 22/08)
+O Diego mandou print: banner vermelho **"MANDA SEU LANCE DE NOVO — o dono da sala
+sumiu do ar e outra pessoa assumiu o comando"**, na revelação 4/4.
+
+**O banco desmentiu o aviso na hora** (`game_rooms` code `NOYI87`): **3 cadeiras,
+3 crachás, presence `[1,2,0]` — todo mundo no ar, incluindo o dono
+(Gustavinson, `player_index` 0)**. Ninguém perdeu a coroa: a trava
+`ELEICAO_AUTOMATICA = false` está fazendo o trabalho dela. O que sobrou foi um
+**alarme falso** de um vigia antigo.
+
+**Causa raiz** — `RESTORE_ONLINE` (`store.tsx`, o "▶️ Voltar pra sala"
+`lobby.tsx:612` e a entrada normal `lobby.tsx:1298`) zerava `submitted` nas fases
+de envelope **pra todo mundo**. Isso existe porque o **dono** perde os envelopes
+secretos ao recarregar (eles não são persistidos). Só que o **convidado** não
+guarda envelope nenhum — o dele continua lacrado na mão do dono. Resultado: quem
+lacrava e depois voltava pra sala se via "deslacrado", e o vigia do envelope
+(`lanceReaberto`) concluía "trocou de dono" e cuspia o texto errado.
+
+**Consertos (3, todos pequenos e revertíveis):**
+1. `RESTORE_ONLINE` **só zera `submitted` se `action.isHost`**. Se o dono tiver
+   mesmo perdido os envelopes, o estado VIVO dele chega em ~1s e deslacra o
+   convidado — aí com motivo.
+2. O vigia só pode acusar **depois que o primeiro estado vivo do dono chegou**
+   (`jaRecebiEstadoRef`) — a foto do banco pode estar atrasada e não vale como
+   prova de nada.
+3. **Textos corrigidos** (não podem mais falar em "sumiu do ar / outra pessoa
+   assumiu", que com a coroa travada não acontece): o aviso do envelope agora diz
+   que **o dono atualizou a página** no meio da coleta, e o aviso grande de virar
+   host diz que **o dono saiu da partida e passou o comando**.
 
 ## ✅ BATISMO ENTREGUE — Theuzudo FC (21/08)
 Dono **matheusfilipealves@hotmail.com** · 👑 ouro + **fundador nº47** · entrou na

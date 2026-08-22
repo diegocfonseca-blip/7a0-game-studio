@@ -3417,7 +3417,14 @@ export function reducer(state: EscState, action: Action): EscState {
       // "enviado" e o setor resolveria com lance ZERO. Zerando `submitted` só nas
       // fases de coleta, eles reabrem o input e reenviam o lance. (Fora dessas
       // fases, mantém — pra não bagunçar revelação/desempate.)
-      submitted: (action.state.phase === 'envelope' || action.state.phase === 'resq_envelope') ? [] : action.state.submitted,
+      // ⚠️ SÓ O DONO ZERA (Diego 22/08, sala NOYI87 — banco provou: 3 cadeiras, 3
+      // crachás, o dono DENTRO da sala, e mesmo assim subiu "o dono sumiu e outra
+      // pessoa assumiu"). Quem perde os envelopes ao recarregar é o DONO, que é
+      // quem os guarda. Pro convidado, o envelope continua lacrado na mão do dono:
+      // zerar aqui só fazia o aviso vermelho mentir e mandar ele lançar de novo à
+      // toa. E se o dono realmente tiver perdido os envelopes, o estado VIVO dele
+      // chega em ~1s e desmarca o convidado — aí sim com motivo.
+      submitted: (action.isHost && (action.state.phase === 'envelope' || action.state.phase === 'resq_envelope')) ? [] : action.state.submitted,
       presence: [],
     })
   }
@@ -7621,7 +7628,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meu = state.managers[state.youIdx]?.id
     const lacrado = meu != null && state.submitted.includes(meu)
     const rodada = `${state.sectorIdx}:${state.sectorCursor}:${state.phase}`
-    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current === rodada && !lacrado && !state.isHost) setLanceReaberto(true)
+    // 🔇 e SÓ depois que o estado VIVO do dono chegou neste canal. Ao entrar/voltar
+    // pra sala o jogo é restaurado da FOTO do banco, que pode estar atrasada — era
+    // aí que o aviso subia sozinho, sem ninguém ter perdido a coroa.
+    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current === rodada && !lacrado && !state.isHost && jaRecebiEstadoRef.current) setLanceReaberto(true)
     euLacradoRef.current = (noEnvelope && lacrado) ? rodada : ''
   }, [state.submitted, state.phase, state.youIdx, state.onlineMode, state.isHost, state.managers, state.sectorIdx, state.sectorCursor])
 
@@ -7752,7 +7762,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           }}>
             <div style={{ fontSize: 52, lineHeight: 1 }}>🎖️</div>
             <p style={{ fontWeight: 900, fontSize: 26, color: '#0C0C0C', margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ VIROU O HOST!</p>
-            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O dono da sala <b>sumiu do ar</b> (fechou o app, travou ou ficou sem sinal) e a partida ia parar. Pra não travar todo mundo, o comando passou pra <b>você</b>: avançar fases, tocar o leilão e decidir depois da votação. 🎮</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O dono da sala <b>saiu da partida</b> e passou o comando pra <b>você</b>: avançar fases, tocar o leilão e decidir depois da votação. 🎮</p>
             {viradaNoLeilao && (
               <p style={{ fontWeight: 800, fontSize: 13, color: '#7a2418', background: '#FFF1E8', border: '2.5px solid #C2452F', borderRadius: 12, padding: '9px 11px', margin: '10px 0 0', lineHeight: 1.4, textAlign: 'left' }}>
                 🔨 <b>Dá o seu lance de novo neste setor.</b> Na troca de comando os envelopes voltam pra mão de cada um — se ficassem lacrados no dono antigo, o setor fecharia com lance ZERO. <b>Ninguém viu o que você tinha mandado</b>: lance secreto continua secreto. 🔒
@@ -7770,7 +7780,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           <div style={{ background: '#FFF1E8', border: '3px solid #C2452F', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>
             <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#7a2418' }}>🔨 MANDA SEU LANCE DE NOVO</p>
             <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: '#7a2418', lineHeight: 1.4 }}>
-              O dono da sala sumiu do ar e outra pessoa assumiu o comando. Os envelopes voltaram pra mão de cada um — se ficassem lacrados com o dono antigo, o setor fecharia com <b>lance ZERO</b>. <b>Ninguém viu o seu</b>: lance secreto continua secreto. 🔒
+              O <b>dono da sala</b> atualizou a página no meio da coleta, e os envelopes deste setor voltaram pra mão de <b>todo mundo</b> — se ficassem lacrados com ele, o setor fecharia com <b>lance ZERO</b>. <b>Ninguém viu o seu</b>: lance secreto continua secreto. 🔒
             </p>
             <button onClick={() => setLanceReaberto(false)}
               style={{ marginTop: 9, width: '100%', background: '#C2452F', color: '#fff', border: '2.5px solid #0C0C0C', borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
