@@ -21,6 +21,23 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
+## 🎙️ PROPOSTA — De La Ó FUT (influencer, 21/08) · NADA NO JOGO AINDA
+O Diego quer batizar um clube pro **Guilherme De la Ó** (@delaofut, 64,4 mil
+seguidores). Palavras dele: *"não faz nada ainda no jogo pq quero mandar primeiro
+pra ele aprovar o mockup padrão nosso"*. Então isto é **só o mockup** — nenhuma
+linha de `data.ts`, `escudos.tsx`, `apoio.tsx` ou banco foi tocada, e o nome NÃO
+foi reservado (ele ainda pode mudar).
+
+Arte que o dono mandou, já limpa e dentro do teto (guardada no scratchpad, não no
+repo): escudo 277×323 = **24,4 KB** · mascote 206×440 = **26,2 KB** · **total
+50,5 KB**. Manto medido na camisa: **amarelo `#F0C000` + verde `#186C30`**.
+O mascote é a caricatura do próprio Guilherme (a arte veio assim).
+
+**Chutes MEUS que ele precisa confirmar:** o nome do clube saiu do escudo
+("DE LA Ó FUT"); a divisão (pus **Série A**, no lugar do Metrópole FC, porque é a
+vitrine e tem 14 vagas); o nome do mascote ("O De La Ó"); e o **time de coração
+ficou de fora** — não sei qual é e não invento.
+
 ## ✅ BATISMO ENTREGUE — São Luiz FC (21/08)
 Dono **gabrielnegreirosamaral99@hotmail.com** (**Gabriel Amaral**) · pagou
 **R$ 69,90** · 👑 ouro + **fundador nº48** · coração **Flamengo**.

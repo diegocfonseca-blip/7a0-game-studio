@@ -69,8 +69,14 @@ const fonte = (w) => `data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-$
 // a manchete quebra o nome do clube: 1ª palavra em VERMELHO, o resto embaixo.
 // "Nata de SP" → NATA / DE SP · "Skyy FC" → SKYY / FC
 const partes = o.clube.trim().split(/\s+/)
-const destaque = partes[0].toUpperCase()
-const resto = partes.slice(1).join(' ').toUpperCase()
+// 🔤 QUEBRA DO NOME: por padrão é 1ª palavra em vermelho e o resto embaixo
+// ("NATA / DE SP", "SKYY / FC"). Mas quando a 1ª palavra é curtinha e o nome tem
+// 3+ pedaços, isso deixava uma sílaba solta e feia no vermelho — "DE / LA Ó FUT",
+// "SÃO / LUIZ FC". Nesses casos o vermelho leva tudo menos a última palavra:
+// "DE LA Ó / FUT", "SÃO LUIZ / FC".
+const corte = (partes[0].length <= 3 && partes.length >= 3) ? partes.length - 1 : 1
+const destaque = partes.slice(0, corte).join(' ').toUpperCase()
+const resto = partes.slice(corte).join(' ').toUpperCase()
 
 const cores = [o.c1nome, o.c2nome].filter(Boolean).join(' e ') || 'as cores do clube'
 
