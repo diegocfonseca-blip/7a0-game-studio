@@ -21,6 +21,25 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
+## 🏆 LIGA FECHADA — ligada SÓ na conta do Diego (22/08)
+Ele pediu: *"liga fechada pode codar p mim por favor só p eu ver como tá lá e eu
+já poder abrir?"*.
+
+**Não faltava código — faltava APARECER.** O seletor **🌍 Aberta × 🏆 Liga
+Fechada** na criação da sala rápida estava escondido por um `const
+LIGA_FECHADA_LIBERADA = false` cravado no `lobby.tsx`, que escondia de todo
+mundo, inclusive dele. Virou trava por CONTA (`useLigaFechadaLiberada()` em
+`sport.ts`), no padrão da casa.
+
+O motor já respeitava tudo (conferido em `store.tsx`):
+`buildLeague(managers, !ligaFechada)` não põe bot nenhum · o tamanho da liga vira
+o número de jogadores · a Copa só destrava com 8+ · a liga não entra na lista
+pública · e a trava de ENTRADA (só 👑 Lenda ou dono de batismo, mesmo com o
+código na mão) já estava no `lobby.tsx`.
+
+**Pra abrir pra todos:** `LIGA_FECHADA_GERAL = true` em `sport.ts`. Uma linha.
+**Criar** continua sendo benefício do 👑 Lenda — isso não mudou.
+
 ## 🎙️ PROPOSTA — De La Ó FUT (influencer, 21/08) · NADA NO JOGO AINDA
 O Diego quer batizar um clube pro **Guilherme De la Ó** (@delaofut, 64,4 mil
 seguidores). Palavras dele: *"não faz nada ainda no jogo pq quero mandar primeiro

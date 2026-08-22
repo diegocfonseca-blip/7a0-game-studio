@@ -12,7 +12,7 @@ import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useLigaFechadaLiberada } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -939,12 +939,14 @@ export function EscLobby() {
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
+  const ligaFechadaOn = useLigaFechadaLiberada() // 🏆 seletor Aberta × Liga Fechada: só a conta do Diego por enquanto
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
-  // 🏆 Liga Fechada ainda NÃO liberada: esconde o seletor da tela de criar sala
-  // (o Diego decide quando abrir). Toda sala nasce Aberta. Pra liberar de novo,
-  // basta trocar pra `true` — o resto do código continua pronto.
-  const LIGA_FECHADA_LIBERADA = false
+  // 🏆 O seletor Aberta × Liga Fechada. Era um `false` cravado aqui, que escondia
+  // o botão de TODO MUNDO — inclusive do Diego, que não conseguia nem ver como
+  // tinha ficado. Virou trava por CONTA (`sport.ts`), no padrão da casa: ele vê
+  // rodando na conta dele e abre pra todos numa linha (LIGA_FECHADA_GERAL = true).
+  const LIGA_FECHADA_LIBERADA = ligaFechadaOn
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
