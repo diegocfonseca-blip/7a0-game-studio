@@ -131,11 +131,20 @@ banco (`donoForaSeg`):
   caminhos: **🔄 Ele voltou? Atualiza** e **🚪 Sair da sala** (usa o `leaveRoom`,
   que libera a vaga e vira o time em CPU pra quem ficar).
 
-**⚠️ PERGUNTA ABERTA PRO DIEGO:** neste caso (dono foi embora de vez), ele quer um
-botão **manual** de "eu assumo o comando" pra sala não morrer? Hoje NÃO existe, de
-propósito — a regra 21/08 é que a coroa não troca. Como seria decisão de gente e
-não troca automática, caberia na regra; mas custa o envelope de todo mundo voltar
-se acontecer no meio do pregão. **Não fazer sem ele pedir.**
+**✅ DECIDIDO 22/08 — NÃO VAI TER botão "eu assumo o comando".** Palavras do Diego:
+*"acho q a melhor coisa é deixar pelo host msm e ng assume comando n"*. Antes disso
+ele levantou a dúvida certa: *"é um saco ter q dar lance dnovo"*. **Assunto
+encerrado — não propor de novo.** Sala sem dono PARA, e isso é o comportamento
+desejado; o dever da sala é AVISAR direito e dar o botão de sair (feito acima).
+
+**🔁 SOBROU UMA IDEIA BOA, e ela vale SOZINHA (não foi pedida ainda):** a **cópia
+local do lance**. Hoje o envelope só existe na mão do dono; se ele ATUALIZA A
+PÁGINA no meio da coleta, todo mundo lança de novo. Mas o aparelho de cada um sabe
+o que mandou — se guardasse uma cópia (só do setor+leva atuais), o jogo reenviaria
+sozinho pro dono, sem ninguém digitar nada, e o leilão continua às cegas (cada
+aparelho só conhece o lance dele). Isso mataria o *"é um saco ter q dar lance
+dnovo"* no caso que mais acontece. **Proposto em 22/08, ele respondeu sobre o botão
+e não sobre a cópia — perguntar de novo numa próxima, sem insistir.**
 
 ## ✅ BATISMO ENTREGUE — Theuzudo FC (21/08)
 Dono **matheusfilipealves@hotmail.com** · 👑 ouro + **fundador nº47** · entrou na

@@ -29,6 +29,13 @@ responde melhor a explicações simples, sem jargão).
    Continuam valendo, porque são decisão de gente e não troca automática: o
    dono aperta SAIR e passa a coroa; e quem já é dono no banco reassume sozinho
    ao voltar.
+   **RECONFIRMADO 22/08 e agora ENCERRADO:** ofereci a ele um botão MANUAL de
+   "eu assumo o comando" (pra sala não morrer quando o dono fecha o jogo e some
+   de vez). Resposta: *"acho q a melhor coisa é deixar pelo host msm e ng assume
+   comando n"*. **Não propor de novo.** Sala sem dono PARA — e isso é o
+   comportamento desejado, não bug. O que a sala deve fazer é AVISAR direito
+   (faixa vermelha nível 2, depois de 1 min: "o dono saiu, faz X minutos, a
+   partida parou aqui, ela fica guardada") e dar o botão de SAIR.
 
 ## 🎨 Identidade visual (OBRIGATÓRIA — não inventar arte nova)
 - Fundo creme `#F4ECD6` · tinta `#0C0C0C` · dourado `#FFC400` · verde `#1B7A3D`
