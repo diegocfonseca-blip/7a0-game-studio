@@ -6926,6 +6926,24 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // 📥 já chegou ALGUM estado do host nesta sala? (o ping não conta: ele diz que o
   // dono está vivo, não que a partida chegou na minha tela)
   const jaRecebiEstadoRef = useRef(false)
+  // 🔌 CANAL NOVO EM FOLHA (Diego 22/08: *"mas sempre deu p jogar c o host trocando
+  // de tela no celular"* — e ele tem razão, isso nunca foi problema). O que trava de
+  // verdade é a linha DE QUEM ESTÁ VENDO cair e NÃO VOLTAR. O remédio antigo era
+  // mandar `subscribe()` de novo no MESMO canal já morto — e canal morto do Supabase
+  // não ressuscita: ele fica lá, calado, e a pessoa só volta a jogar apertando F5
+  // (por isso o botão "atualiza a página" resolvia). Agora, canal morto é JOGADO FORA
+  // e um novo nasce pelo mesmo caminho de sempre — sem F5.
+  const [reconexao, setReconexao] = useState(0)
+  const ultimaReconexaoRef = useRef(0)
+  const pedeCanalNovo = useCallback(() => {
+    if (Date.now() - ultimaReconexaoRef.current < 5000) return // no máximo um canal novo a cada 5s
+    ultimaReconexaoRef.current = Date.now()
+    setReconexao(n => n + 1)
+  }, [])
+  const canalMorto = useCallback(() => {
+    const c = channelRef.current as unknown as { state?: string } | null
+    return !c || c.state !== 'joined'
+  }, [])
   const [hostStale, setHostStale] = useState(false)
 
   // 🎫 âncoras estáveis de identidade (setadas pela auto-cura mais abaixo): meu
@@ -7265,11 +7283,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
-      try { ch.subscribe(async () => { resync(); await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo na próxima volta */ }
+      pedeCanalNovo() // canal morto não ressuscita: nasce um novo (ver comentário lá em cima)
     }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
-    return () => { repergunta.forEach(clearTimeout); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); ch.unsubscribe(); channelRef.current = null }
-  }, [state.roomId, state.onlineMode, state.isHost]) // eslint-disable-line react-hooks/exhaustive-deps
+    // 🧹 `removeChannel` (e não só `unsubscribe`): tira o canal do registro do
+    // Supabase também. Sem isso o canal velho fica guardado com o MESMO nome, e o
+    // canal novo nasce brigando com o fantasma do antigo.
+    return () => { repergunta.forEach(clearTimeout); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); try { supabase.removeChannel(ch) } catch { ch.unsubscribe() } channelRef.current = null }
+  }, [state.roomId, state.onlineMode, state.isHost, reconexao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // host retransmite estado (sanitizado: envelopes pendentes não vazam)
   const prevRef = useRef<EscState | null>(null)
@@ -7557,17 +7578,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // 🔌 meu canal pode ter morrido calado (celular no bolso, 4G do ônibus).
         // Mandar recado por um canal morto não chega em ninguém: primeiro RELIGA,
         // aí sim pede o estado. Mesmo remédio que já funciona ao voltar pro app.
-        const c = channelRef.current as unknown as { state?: string } | null
-        if (c && c.state !== 'joined') {
-          try {
-            channelRef.current?.subscribe(async () => {
-              channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
-              await channelRef.current?.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() })
-            })
-          } catch { /* tenta de novo na próxima volta */ }
-        } else {
-          channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
-        }
+        if (canalMorto()) pedeCanalNovo()
+        else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (stale && Date.now() - lastOwnerCheckRef.current > 10_000) {
         lastOwnerCheckRef.current = Date.now()
