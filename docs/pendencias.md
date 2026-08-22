@@ -70,6 +70,36 @@ sumiu da sala enquanto ele seguia jogando — cadeira 1 ficou livre no banco com
 gente sentada nela. Investigar quem apaga a vaga (`GO_LOBBY`/`NEW_GAME` →
 `leaveOnlineRoom`) sem tirar a pessoa da partida.
 
+## ✅ RESOLVIDO — dono saiu de vez e a sala não avisava NEM dava saída (22/08)
+Diego, ainda na NOYI87: *"eu acho q tô sozinho na sala. E travado na rodada 9 pq
+os dois já saíram… Mas n tive tb nenhum aviso q o host saiu e por isso travou"*.
+
+**Ele estava certo, e o banco confirma:** `updated_at` da sala parada em
+**17:38:31**, ou seja **9min30 sem batimento** do dono (Gustavinson). Sumiço real
+desta vez — e o jogo não falava nada de útil.
+
+**O buraco:** a faixa vermelha dizia, PARA SEMPRE, *"segura a onda, a partida
+espera por ele"*. Isso é verdade nos primeiros segundos e é sacanagem depois de
+10 minutos: a pessoa fica olhando uma tela parada sem saber que acabou, e **sem
+caminho nenhum pra sair** (o "sair da sala" nem sempre está à mão na tela em que
+ela travou). Fere a regra do Diego: toda trava explica O PORQUÊ e O CAMINHO.
+
+**Conserto:** a faixa passou a ter DOIS níveis, medindo o batimento do dono no
+banco (`donoForaSeg`):
+- **até 1 minuto** → segue o texto de sempre ("segura a onda", ele deve voltar);
+- **passou de 1 minuto** → o texto muda e fala a verdade: **"o dono da sala
+  saiu — faz X minutos que ele não dá sinal, e a partida parou aqui"**, explica o
+  porquê (quem cria a sala comanda do começo ao fim), garante que **a partida
+  fica guardada** (se ele voltar, continua deste ponto) e mostra os dois
+  caminhos: **🔄 Ele voltou? Atualiza** e **🚪 Sair da sala** (usa o `leaveRoom`,
+  que libera a vaga e vira o time em CPU pra quem ficar).
+
+**⚠️ PERGUNTA ABERTA PRO DIEGO:** neste caso (dono foi embora de vez), ele quer um
+botão **manual** de "eu assumo o comando" pra sala não morrer? Hoje NÃO existe, de
+propósito — a regra 21/08 é que a coroa não troca. Como seria decisão de gente e
+não troca automática, caberia na regra; mas custa o envelope de todo mundo voltar
+se acontecer no meio do pregão. **Não fazer sem ele pedir.**
+
 ## ✅ BATISMO ENTREGUE — Theuzudo FC (21/08)
 Dono **matheusfilipealves@hotmail.com** · 👑 ouro + **fundador nº47** · entrou na
 **Série B no lugar do Comercial do Norte** (técnico "Nortista" fica).

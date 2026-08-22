@@ -7158,6 +7158,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (!next || typeof next !== 'object') return
         lastHostMsgRef.current = Date.now() // notícia fresca do host
         donoSumidoNoBancoRef.current = false // deu as caras: a acusação cai na hora
+        setDonoForaSeg(0)
         jaRecebiEstadoRef.current = true
         rawDispatch({ type: 'SYNC_STATE', newState: next })
       })
@@ -7170,7 +7171,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // aqui — assim ficar quieto pra economizar egress NÃO parece mais que o dono
     // caiu (era o gatilho do bug: host demorava e viravam dois donos). Não toca no
     // banco; custo insignificante (vs. reemitir o estado inteiro de ~100 KB).
-    ch.on('broadcast', { event: 'host_ping' }, () => { lastHostMsgRef.current = Date.now(); donoSumidoNoBancoRef.current = false })
+    ch.on('broadcast', { event: 'host_ping' }, () => { lastHostMsgRef.current = Date.now(); donoSumidoNoBancoRef.current = false; setDonoForaSeg(0) })
     // host removeu alguém: se for EU, saio da partida DE VEZ e caio no menu online.
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       // payload.playerIndex é o CRACHÁ (id) do expulso — comparo com o MEU id, não com
@@ -7528,6 +7529,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // batimento dele SECO. Sem isso o aviso vermelho "o dono caiu" não sobe — silêncio
   // no Realtime não é prova de nada (era o que fazia o aviso mentir).
   const donoSumidoNoBancoRef = useRef(false)
+  // ⏱️ segundos desde o último sinal do dono no banco (0 = ele está vivo). Depois de
+  // 1 minuto o aviso deixa de ser "segura a onda" e vira "ele saiu; a sala te espera
+  // ou você sai" — com o caminho pra sair na própria faixa.
+  const [donoForaSeg, setDonoForaSeg] = useState(0)
   useEffect(() => {
     if (state.onlineMode !== 'online' || state.isHost || !state.roomId) { setHostStale(false); return }
     if (state.screen === 'intro' || state.screen === 'lobby') { setHostStale(false); return }
@@ -7607,6 +7612,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // certo é nenhum (o religa-canal acima já cuida). Só quando o batimento
             // dele seca é que a sala pode dizer "o dono caiu".
             donoSumidoNoBancoRef.current = !hostBeatFresh
+            // ⏱️ HÁ QUANTO TEMPO ele não dá sinal. Serve pra parar de dizer "já já
+            // ele volta" quando faz 10 minutos que ele foi embora (Diego 22/08,
+            // sala NOYI87: *"tô sozinho, travado na rodada 9 porque os dois já
+            // saíram… mas não tive nenhum aviso que o host saiu e por isso travou"*).
+            setDonoForaSeg(hostBeatFresh || !upAt ? 0 : Math.round((Date.now() - new Date(upAt).getTime()) / 1000))
             // 🚫 A COROA NÃO TROCA SOZINHA — REGRA DO DIEGO (21/08). Palavras dele:
             // *"eu não quero q ng assuma. Tem q ser sempre o host. Se o host q criou
             // tem q ser sempre ele sem trocar"*. Depois da noite da sala do Braguinha
@@ -7869,12 +7879,41 @@ export function EscProvider({ children }: { children: ReactNode }) {
           padding: '8px 12px', fontWeight: 800, fontSize: 13,
           fontFamily: 'Oswald, sans-serif', borderBottom: '3px solid #0C0C0C',
         }}>
-          ⏳ Segura a onda! O <b>dono da sala</b> trocou de tela ou caiu — a partida espera por ele.<br />
-          <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .92 }}>O comando é dele do começo ao fim: ninguém assume no lugar (era isso que fazia o seu lance voltar). Chama ele pra deixar a aba do jogo na frente! 😤</span>
-          <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
-            style={{ display: 'block', margin: '6px auto 0', border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '4px 14px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
-            🔄 Travou? Atualiza a página — a partida continua de onde parou
-          </button>
+          {/* 🚪 DEPOIS DE 1 MINUTO O AVISO FALA A VERDADE (Diego 22/08, sala NOYI87:
+              *"tô sozinho e travado na rodada 9 porque os dois já saíram… mas não
+              tive nenhum aviso que o host saiu e por isso travou"*). Antes o texto
+              dizia pra sempre "segura a onda, a partida espera por ele" — o que é
+              certo nos primeiros segundos e vira sacanagem depois de 10 minutos.
+              Agora, com o dono sumido de verdade, a faixa diz O PORQUÊ (o comando é
+              só dele), o que acontece com a partida (fica guardada, ninguém perde
+              nada) e O CAMINHO pra sair dali. */}
+          {donoForaSeg >= 60 ? (
+            <>
+              🚪 O <b>dono da sala</b> saiu — faz <b>{donoForaSeg >= 120 ? `${Math.round(donoForaSeg / 60)} minutos` : '1 minuto'}</b> que ele não dá sinal, e a partida <b>parou aqui</b>.<br />
+              <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .94 }}>
+                Quem criou a sala é quem comanda do começo ao fim — sem ele, ninguém avança as rodadas. <b>A partida fica guardada:</b> se ele voltar, continua exatamente deste ponto. Você não perde nada saindo.
+              </span>
+              <span style={{ display: 'flex', gap: 8, justifyContent: 'center', margin: '7px auto 0', maxWidth: 420 }}>
+                <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
+                  style={{ flex: 1, border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '5px 10px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
+                  🔄 Ele voltou? Atualiza
+                </button>
+                <button onClick={() => { void leaveRoom() }}
+                  style={{ flex: 1, border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#0C0C0C', color: '#fff', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '5px 10px', cursor: 'pointer', boxShadow: '2px 2px 0 0 rgba(0,0,0,.35)' }}>
+                  🚪 Sair da sala
+                </button>
+              </span>
+            </>
+          ) : (
+            <>
+              ⏳ Segura a onda! O <b>dono da sala</b> trocou de tela ou caiu — a partida espera por ele.<br />
+              <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .92 }}>O comando é dele do começo ao fim: ninguém assume no lugar (era isso que fazia o seu lance voltar). Chama ele pra deixar a aba do jogo na frente! 😤</span>
+              <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
+                style={{ display: 'block', margin: '6px auto 0', border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '4px 14px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
+                🔄 Travou? Atualiza a página — a partida continua de onde parou
+              </button>
+            </>
+          )}
         </div>
       )}
     </Ctx.Provider>
