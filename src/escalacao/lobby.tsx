@@ -1677,8 +1677,16 @@ export function EscLobby() {
     // entrar é de qualquer um**. Com a entrada aberta, esconder a sala só servia pra
     // ninguém achar a liga do amigo. Ela entra marcada com o selo 🏆 LIGA e o dia
     // marcado, pra não se confundir com sala rápida.
+    // 🔒 ...MAS SÓ PRA QUEM TEM O MODO LIGA LIBERADO. Furo que o Diego pegou com uma
+    // pergunta, minutos depois de eu subir isto: *"mas hj só o secundário q vai ver
+    // né a sala aberta ne"*. Eu tinha tirado a liga da lista SEM pôr nada no lugar —
+    // ou seja, JOGADOR NENHUM tinha o modo, e todos veriam a liga do Diego na lista
+    // e (com a entrada liberada) entrariam nela. Enquanto a Liga está em construção
+    // (`LIGA_GERAL = false`), ela só aparece pra quem enxerga o modo. Quando abrir
+    // pra todos, `ligaOn` vira true pra todo mundo e a linha continua valendo.
+    const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r))
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && (ligaOn || !isLiga(r)))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }

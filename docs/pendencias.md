@@ -184,6 +184,23 @@ verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 
 (Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
 rápida.)
 
+## 🔒 FURO MEU (durou 1 deploy) — a liga do Diego apareceria pra TODO MUNDO
+Minutos depois de eu pôr a liga na lista, o Diego perguntou: *"mas hj só o secundário
+q vai ver né a sala aberta ne"*. **Não era.** Eu tirei a liga da lista SEM pôr nada no
+lugar: como jogador nenhum tem o modo Liga, **todos** veriam a "Liga do Neymarzetti"
+em Salas Abertas — e, com a entrada agora liberada (`LIGA_SO_LENDA_ENTRA = false`),
+**entrariam nela**.
+
+**Conserto:** o filtro virou `(ligaOn || !isLiga(r))` — enquanto a Liga está em
+construção (`LIGA_GERAL = false`), ela só aparece pra quem enxerga o modo (hoje: as
+duas contas do Diego). Quando abrir pra todos, `ligaOn` vira true pra todo mundo e a
+mesma linha continua valendo, sem mexer em nada.
+
+**Lição pra registrar:** ao TIRAR uma trava, conferir quem sobra enxergando. A trava
+velha ("liga nunca entra na lista") estava segurando duas coisas ao mesmo tempo —
+esconder de quem não é da turma **e** esconder o modo em construção. Tirei a primeira
+e derrubei a segunda junto.
+
 ## 🧪 LIGA — 2ª conta do Diego pra testar, e a REGRA MUDOU (22/08)
 Pedido: *"Permita o usuário diego.c.fonseca2@gmail.com poder ver as coisas do liga
 fechada tb como se fosse um usuário normal sem o lenda… vou testar esse usuário c o
