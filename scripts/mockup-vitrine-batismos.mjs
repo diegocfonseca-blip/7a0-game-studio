@@ -2,10 +2,19 @@
 //
 // Palavras dele: *"quero fazer as pessoas verem os clubes no jogo"* — uma aba
 // na home listando as 100 vagas da pirâmide, quem já batizou e o que está livre,
-// com o preço de cada divisão. Nasceu da conversa sobre o outbid.lol: eles vendem
-// posição num quadro; a gente tem uma coisa melhor, que é ESTOQUE ESCASSO COM
-// HIERARQUIA — 100 clubes, e a Série A vale mais que a Várzea sem precisar
-// explicar nada pra ninguém.
+// com o preço de cada divisão. Nasceu da conversa sobre o outbid.lol.
+//
+// ⚠️ CORREÇÃO DO DIEGO (21/08): eu tinha desenhado "batismo é pra sempre". Ele
+// corrigiu: *"n é pra sempre... esqueceu q dps q lotar qm pagar mais entra? Mas
+// a pessoa pode cobrir"*. Ou seja: a vaga é DISPUTÁVEL, e quem está nela tem o
+// direito de COBRIR pra ficar.
+//
+// 🛡️ O jeito que isso vira jogo sem quebrar ninguém: quem perde a disputa NÃO
+// perde o clube — ele CAI UMA DIVISÃO. Isso já é a linguagem da pirâmide
+// (acesso e rebaixamento), a arte e o nome da pessoa continuam vivos, e mesmo
+// assim a briga por dinheiro nunca acaba (a Série A é sempre disputada). Só
+// quem cai da Várzea é que fica sem clube — e ainda guarda 👑 Lenda, o número
+// de fundador e a arte no álbum.
 //
 //   node scripts/mockup-vitrine-batismos.mjs --saida vitrine.png
 //
@@ -72,35 +81,50 @@ const DIVS = [
   { k: 'A', nome: 'SÉRIE A', ic: '🏆', preco: 'R$ 69,90', cor: '#FFC400', escuro: '#8A6A00',
     linha: 'A elite. É a lista que aparece no ONLINE, na hora de escolher os rivais da sala.', online: true },
   { k: 'B', nome: 'SÉRIE B', ic: '🥈', preco: 'R$ 59,90', cor: '#C9CDD4', escuro: '#5A5F68',
-    linha: 'Um degrau da elite. Sobe pra Série A quando o time é campeão.' },
+    linha: 'Um degrau da elite. Quem cobre o lance mais baixo da Série A, sobe.' },
   { k: 'C', nome: 'SÉRIE C', ic: '🥉', preco: 'R$ 49,90', cor: '#D08B4A', escuro: '#7A4B18',
     linha: 'O meio da pirâmide. Time de tradição brigando pra voltar.' },
   { k: 'D', nome: 'SÉRIE D', ic: '⚽', preco: 'R$ 39,90', cor: '#7FB77E', escuro: '#2F5E2E',
     linha: 'Onde quase todo mundo começa a carreira. Muito jogo, muito clássico.' },
   { k: 'V', nome: 'VÁRZEA', ic: '🍺', preco: 'R$ 29,90', cor: '#B79CD6', escuro: '#4A2F70',
-    linha: 'O peladão raiz. O começo de tudo — e o mais barato pra botar o nome.' },
+    linha: 'O peladão raiz. O degrau mais barato pra botar o nome no jogo.' },
 ]
 
 const dados = DIVS.map(d => ({ ...d, vagas: lista(d.k) }))
 const totalBat = dados.reduce((s, d) => s + d.vagas.filter(v => v.dono).length, 0)
 
-const chip = (v, d) => {
+// 💰 valores de EXEMPLO só pro mockup — o Diego ainda não fechou a tabela.
+// Numa tela de verdade isso vem do banco (o lance que segura a vaga).
+const exemploLance = (d, i) => {
+  const base = Number(d.preco.replace(/[^0-9,]/g, '').replace(',', '.'))
+  return (base + (i % 5) * 10).toFixed(2).replace('.', ',')
+}
+// 🔥 uma vaga EM DISPUTA no mockup, pra mostrar o direito de cobrir
+const EM_DISPUTA = 'Coringas do Diniz'
+
+const chip = (v, d, i) => {
   if (v.dono) {
     const img = escudoImg(v.time)
     const brasao = img
       ? `<img class="esc" src="${img}" alt="">`
       : `<span class="esc neutro" style="--c:${d.escuro}">${v.time.replace(/^(O |A |Os )/, '').charAt(0)}</span>`
+    if (v.time === EM_DISPUTA) {
+      return `<div class="chip disputa">
+        ${brasao}
+        <div class="txt"><b>${v.time}</b><small class="fogo">🔥 EM DISPUTA · cobrir até 23h</small></div>
+        <span class="val">R$ 120,00</span>
+      </div>`
+    }
     return `<div class="chip tem">
       ${brasao}
       <div class="txt"><b>${v.time}</b><small>🖋️ ${v.dono}</small></div>
+      <span class="val">R$ ${exemploLance(d, i)}</span>
     </div>`
   }
-  // 🟢 vaga livre mostra o clube que está lá HOJE — é ele que vira o seu nome.
-  // Sem isso o mockup vira uma parede de "LIVRE" e ninguém VÊ os clubes, que é
-  // justamente o que o Diego quer ("quero fazer as pessoas verem os clubes").
   return `<div class="chip livre">
     <span class="esc vazio">${v.time.replace(/^(O |A |Os )/, '').charAt(0)}</span>
-    <div class="txt"><b>${v.time}</b><small>🟢 LIVRE · ${d.preco}</small></div>
+    <div class="txt"><b>${v.time}</b><small>🟢 LIVRE</small></div>
+    <span class="val livre">${d.preco}</span>
   </div>`
 }
 
@@ -122,7 +146,7 @@ const blocos = dados.map(d => {
         <span class="conta"><b>${livres}</b> livre${livres === 1 ? '' : 's'} · ${bat} batizada${bat === 1 ? '' : 's'}</span>
       </div>
     </div>
-    <div class="grade">${d.vagas.map(v => chip(v, d)).join('')}</div>
+    <div class="grade">${d.vagas.map((v, i) => chip(v, d, i)).join('')}</div>
   </section>`
 }).join('')
 
@@ -158,7 +182,7 @@ const html = `<style>
    font-family:Oswald;font-weight:700;font-size:19px;box-shadow:2px 2px 0 #0C0C0C;white-space:nowrap}
  .conta{font-size:10.5px;font-weight:800;color:rgba(12,12,12,.7);text-align:right;line-height:1.2;white-space:nowrap}
  .conta b{font-size:15px;display:block}
- .grade{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;background:#fff;
+ .grade{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;background:#fff;
    border:3.5px solid #0C0C0C;border-radius:0 0 18px 18px;box-shadow:5px 5px 0 #0C0C0C;padding:11px}
  .chip{display:flex;align-items:center;gap:8px;border-radius:11px;padding:6px 8px;min-width:0}
  .chip.tem{background:#F7F2E4;border:2.5px solid #0C0C0C}
@@ -175,6 +199,13 @@ const html = `<style>
    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .txt small{display:block;font-size:9.5px;font-weight:700;color:rgba(0,0,0,.5);
    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .chip{position:relative}
+ .chip.disputa{background:#FFF1E8;border:2.5px solid #C2452F;box-shadow:0 0 0 3px rgba(232,80,58,.18)}
+ .val{margin-left:auto;flex:none;font-family:Oswald;font-weight:700;font-size:12px;
+   background:#0C0C0C;color:#fff;border-radius:7px;padding:2px 7px;white-space:nowrap}
+ .val.livre{background:#1B7A3D}
+ .chip.disputa .val{background:#C2452F}
+ .fogo{color:#C2452F!important;font-weight:800!important}
  .chip.livre .txt b{color:rgba(12,12,12,.55)}
  .chip.livre .txt small{color:#1B7A3D;font-weight:800}
  .como{background:#0C0C0C;color:#fff;border-radius:18px;padding:15px 18px;margin-top:4px}
@@ -189,28 +220,30 @@ const html = `<style>
 </style>
 <span class="pill">🔨 os 100 clubes do leilão legends</span>
 <h1>Bota o seu nome<br><em>na pirâmide.</em></h1>
-<p class="sub">São <b>100 clubes</b>, da Várzea à Série A, e cada um pode levar o nome de uma pessoa —
-com escudo, mascote e manto próprios, pra sempre. Quanto mais alta a divisão, mais gente vê o seu clube jogando.</p>
+<p class="sub">São <b>100 clubes</b>, da Várzea à Série A, e cada um leva o nome de uma pessoa — com escudo,
+mascote e manto próprios. <b>Quem paga mais fica na divisão mais alta</b>, que é onde mais gente vê o seu clube
+jogando. Chegou alguém cobrindo o seu lance? <b>Você tem 24h pra cobrir de volta e ficar.</b></p>
 
 <div class="resumo">
   <div class="rz"><b>100</b><small>clubes na pirâmide</small></div>
   <div class="rz"><b>${totalBat}</b><small>já batizados</small></div>
   <div class="rz" style="background:#DFF3E3"><b style="color:#1B7A3D">${100 - totalBat}</b><small>vagas livres</small></div>
-  <div class="rz" style="background:#FFF3CC"><b>1</b><small>dono por clube — pra sempre</small></div>
+  <div class="rz" style="background:#FFF1E8"><b style="color:#C2452F">1</b><small>vaga em disputa agora</small></div>
 </div>
 
 ${blocos}
 
-<p class="nota">🛡️ Clube batizado é <b>do dono, pra sempre</b> — ninguém toma de ninguém depois.
-Escudo com desenho é a arte de verdade do clube; a bolinha com a letra é só um espaço reservado
-neste mockup, pros clubes cujo escudo ainda mora no código.</p>
+<p class="nota">🛡️ <b>Ninguém fica sem clube por ser coberto.</b> Perdeu a disputa e não cobriu? O clube
+<b>cai uma divisão</b> — o nome, o escudo e o mascote continuam seus, no jogo. Escudo com desenho é a arte de
+verdade do clube; a bolinha com a letra é só espaço reservado neste mockup. Valores aqui são exemplo.</p>
 
 <div class="como">
-  <h3>🔨 Como funciona</h3>
+  <h3>🔨 Como funciona a disputa</h3>
   <div class="passos">
-    <div class="passo"><b>1. Escolhe a vaga</b><span>Qualquer clube marcado como LIVRE, na divisão que você quiser.</span></div>
-    <div class="passo"><b>2. Manda o nome e a arte</b><span>O nome do clube, o teu time de coração e como você quer o mascote.</span></div>
-    <div class="passo"><b>3. Vira lenda</b><span>O clube entra no jogo com o teu nome, escudo e mascote — e você ganha 👑 Lenda + número de fundador.</span></div>
+    <div class="passo"><b>1. Tem vaga livre? É sua</b><span>Paga o preço do degrau e o clube entra no jogo com o teu nome, escudo e mascote.</span></div>
+    <div class="passo"><b>2. Lotou? Você cobre</b><span>Dá um lance acima do <b>menor lance daquela divisão</b> — mínimo R$ 5 a mais. Não dá pra pular de R$ 70 pra R$ 1.000 e matar a briga.</span></div>
+    <div class="passo"><b>3. Quem tá lá tem 24h</b><span>O dono recebe o aviso e pode <b>cobrir de volta</b>. Cobriu, fica. Não cobriu, <b>cai uma divisão</b> — e nunca perde o clube.</span></div>
+    <div class="passo"><b>4. Sempre dá pra subir</b><span>A Série A é a que aparece no online. Enquanto tiver alguém querendo subir, a briga não acaba.</span></div>
   </div>
 </div>
 
