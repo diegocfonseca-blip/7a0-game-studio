@@ -13,6 +13,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'diego.c.fonseca@gmail.com': ['#C2452F', '#141414'], // ❤️🖤 vermelho e preto
   'adriano.ferrari@quepazseguros.com.br': ['#C2452F', '#141414'], // 🏎️ Ferrari SC — vermelho e preto
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
+  'gabrielnegreirosamaral99@hotmail.com': ['#E00000', '#0C0C0C'], // 🐶 São Luiz FC — vermelho e preto, MEDIDOS na arte do dono (branco é a 3ª cor, em MANTO_TRI) (21/08)
 }
 
 // cache do MEU sócio (mesmo padrão do myEmail do apoio: pontos de uso são
@@ -115,6 +116,7 @@ const MANTO_TRI: Record<string, string> = {
   piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
   cobra_arruda: '#C2001E', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho, 16/08)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)
+  saoluiz_pitbull: '#FFFFFF', // 🐶 São Luiz FC — 3ª cor BRANCA (vermelho/preto/branco, medidas na camisa dele, 21/08)
 }
 export function meuMantoC3(): string | null {
   const k = meu?.ativo ? meu.mascoteKey : null
@@ -123,7 +125,7 @@ export function meuMantoC3(): string | null {
 
 // 🚫🔴⚫ quem precisa do "amortecedor" (ver `bufferC3` em mantoStripes) — hoje só
 // o Tricolor do Arruda FC, porque vermelho não pode encostar em preto.
-const MANTO_TRI_BUFFER = new Set(['cobra_arruda'])
+const MANTO_TRI_BUFFER = new Set(['cobra_arruda', 'saoluiz_pitbull']) // 🐶 São Luiz FC entra aqui pelo mesmo motivo do Arruda: vermelho não pode encostar em preto
 export function meuMantoC3Buffer(): boolean {
   const k = meu?.ativo ? meu.mascoteKey : null
   return !!(k && MANTO_TRI_BUFFER.has(k))

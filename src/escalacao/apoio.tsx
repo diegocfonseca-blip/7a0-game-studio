@@ -89,6 +89,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'diogoluz2309@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'msb102010@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Murriz FC)
   'ofc.toka10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Tôka10)
+  'gabrielnegreirosamaral99@hotmail.com': 'ouro', // 👑 Lenda — batismo São Luiz FC (Série D) + fundador nº48 (21/08)
   'matheusfilipealves@hotmail.com': 'ouro', // 👑 Lenda — batismo Theuzudo FC (Série B) + fundador nº47 (21/08). Regra 17/08: todo batismo já nasce sócio + fundador.
   'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) + SÓCIO nº27 do Futpoint FC (o Diego deu, 19/08). NÃO é batismo: não entra no FUNDADOR_N e não tira o lugar de nenhum clube.
   'alvarolino7712@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
@@ -178,6 +179,7 @@ const FUNDADOR_N: Record<string, number> = {
   'pedrinhocamisa8@gmail.com': 45, // 🖋️ batizou o Nata de SP (ex-Paris São Geraldo, Série D); coração Corinthians (17/08)
   'giovannecastro784@hotmail.com': 46, // 🖋️ batizou os Crias do Bigão (ex-Ferroviária do Vale, Série B) — mascote é o próprio dono (17/08)
   'matheusfilipealves@hotmail.com': 47, // 🖋️ batizou o Theuzudo FC (ex-Comercial do Norte, Série B); coração Valência, mascote morcego 🦇 laranja e preto (21/08)
+  'gabrielnegreirosamaral99@hotmail.com': 48, // 🖋️ batizou o São Luiz FC (ex-Flamengo do Sertão, Série D); coração Flamengo, mascote pitbull 🐶 (21/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null
