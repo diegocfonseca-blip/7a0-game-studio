@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-08-21', emoji: '🐶', titulo: 'Nasceu o São Luiz FC', texto: 'Mais um clube batizado por apoiador: o São Luiz FC entra na Série D no lugar do Flamengo do Sertão, com escudo e mascote próprios — o Luizão, um pitbull que carimba a tela quando o time faz gol. Quem já tinha carreira com o Flamengo do Sertão continua no mesmo time, só com a cara nova.' },
   { data: '2026-08-21', emoji: '🦇', titulo: 'Nasceu o Theuzudo FC', texto: 'Mais um clube batizado por apoiador: o Theuzudo FC entra na Série B no lugar do Comercial do Norte, com escudo e mascote próprios — o Theuzinho, um morcego laranja e preto que carimba a tela quando o time faz gol. Quem já tinha carreira com o Comercial do Norte continua no mesmo time, só com a cara nova.' },
   { data: '2026-08-21', emoji: '🏆', titulo: 'O fim da temporada virou momento', texto: 'No Modo Carreira: quando a temporada fecha, uma tela conta o que aconteceu com o clube — subiu de divisão, caiu, foi campeão — com a divisão de onde saiu, pra onde vai e o que você levou de prêmio, caixa, patrocínio e torcida.' },
   { data: '2026-08-21', emoji: '🔨', titulo: 'Pregão mais direto', texto: 'No leilão de todos os modos: suas vagas e o dinheiro ficam sempre na barra de cima, as regras do pregão viraram um botão ❓ ali do lado — e quem está começando ganha a explicação inteira no primeiro pregão da partida.' },

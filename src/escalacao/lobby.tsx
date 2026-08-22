@@ -941,9 +941,22 @@ export function EscLobby() {
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
-  // 🏆 Liga Fechada ainda NÃO liberada: esconde o seletor da tela de criar sala
-  // (o Diego decide quando abrir). Toda sala nasce Aberta. Pra liberar de novo,
-  // basta trocar pra `true` — o resto do código continua pronto.
+  // 🏆 SELETOR "Aberta × Liga Fechada" — DESENHO RECUSADO, NÃO RELIGAR.
+  // ⚠️ Recado pras próximas sessões (e pra mim mesmo, que errei nisso em 22/08):
+  // isto NÃO é uma feature esquecida esperando ser ligada. É o RESTO do desenho
+  // ANTIGO, em que a Liga Fechada era um detalhezinho da sala rápida. O Diego
+  // cortou esse desenho em 20/08, com estas palavras: *"tem q ser rápido, liga
+  // fechada, carreira e bafo"* — ou seja, **Liga Fechada é MODO DE JOGO**, na
+  // mesma fileira do Rápido/Carreira/Bafo, e é isso que está em
+  // `scripts/mockup-liga-fechada.mjs` (o mockup que ele aprovou).
+  // O modo de verdade JÁ EXISTE e funciona: `roomMode === 'liga'` (trava
+  // `useLigaLiberada`), com data/hora marcada, o dono mandando nos troféus e o
+  // SEU PRÓPRIO seletor de bots ("🤖 Bots na tabela").
+  // Em 22/08 eu liguei este resto por engano e o Diego pegou na hora: *"mostra
+  // duas vezes sobre bots ou não ao criar a sala e qd eu crio tá mt diferente do
+  // mockup"*. Estava certo — a seção "A partida" aparece TAMBÉM no modo Liga, e
+  // as duas perguntas de bot caíam na mesma tela.
+  // Fica `false` fixo. Quem for mexer em Liga Fechada, mexe no MODO.
   const LIGA_FECHADA_LIBERADA = false
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
@@ -1531,7 +1544,10 @@ export function EscLobby() {
       const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle()
       if (!data) break; code = randCode()
     }
-    const name = cutName(roomName.trim() || `Sala do ${nameOf()}`)
+    // 🏆 no modo Liga o padrão é "Liga do Fulano" (não "Sala do Fulano"): é o nome
+    // que aparece no card de "Minhas ligas" e na sala de troféus, temporada após
+    // temporada. O campo fica no quadro da liga, lá na criação.
+    const name = cutName(roomName.trim() || `${roomMode === 'liga' ? 'Liga' : 'Sala'} do ${nameOf()}`)
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
     const locked = roomLocked && !!roomPw.trim()
@@ -1664,6 +1680,13 @@ export function EscLobby() {
   // continua SÓ do dono — adm ajuda a tocar, não desfaz o que é do outro.
   const ligaAdmins = ((room?.game_state as GS)?.ligaAdmins ?? []) as string[]
   const mandaNaLiga = !!user && !!room && (room.host_id === user.id || ligaAdmins.includes(user.id))
+  // ✏️ editor do card de "Minhas ligas" (edição POR FORA): guarda o id da liga
+  // aberta pra edição e os 4 campos que dá pra mudar sem entrar na sala.
+  const [cardEdit, setCardEdit] = useState<string | null>(null)
+  const [cardNome, setCardNome] = useState('')
+  const [cardData, setCardData] = useState('')
+  const [cardHora, setCardHora] = useState('')
+  const [cardBots, setCardBots] = useState(false)
   const [ligaEditData, setLigaEditData] = useState('')
   const [ligaEditHora, setLigaEditHora] = useState('')
   // Mexe SÓ nos campos da liga dentro do game_state, sem reescrever o resto: o
@@ -1674,26 +1697,44 @@ export function EscLobby() {
   // deixar mais gente escrever ali daria pra sobrescrever o jogo da galera no
   // meio. A função troca só o horário, as regras e a lista de adms, e confere na
   // entrada se quem chamou é o dono ou um adm.
-  async function patchLiga(campos: { ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; ligaFechada?: boolean }) {
-    if (!room) return
+  type LigaCampos = { ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; ligaFechada?: boolean; roomName?: string }
+  // 📝 versão por ID: serve pra editar a liga DE FORA, direto no card de
+  // "🏆 Minhas ligas", sem precisar entrar na sala (Diego 22/08: *"dps q ele entra
+  // ele pode excluir claramente dentro e fora tb... Editar e etc"*).
+  async function patchLigaId(id: string, campos: LigaCampos): Promise<boolean> {
     const { data, error } = await supabase.rpc('liga_patch', {
-      p_room: room.id,
+      p_room: id,
       p_at: campos.ligaAt ?? null,
       p_regras: (campos.ligaRegras ?? null) as never,
       p_admins: (campos.ligaAdmins ?? null) as never,
       p_fechada: campos.ligaFechada ?? null,
+      p_nome: campos.roomName ?? null,
     })
-    if (error || data === false) { setRoomError('Não deu pra salvar agora — tente de novo.'); return }
+    if (error || data === false) { setRoomError('Não deu pra salvar agora — tente de novo.'); return false }
+    return true
+  }
+  async function patchLiga(campos: LigaCampos) {
+    if (!room) return
+    if (!await patchLigaId(room.id, campos)) return
     setRoom(r => (r ? { ...r, game_state: { ...(r.game_state as GS), ...campos } as GS } : r))
     fetchMyLigas()
   }
+  // 🗑️ excluir a liga — o MESMO caminho por dentro e por fora, pra não existirem
+  // duas regras diferentes pra mesma coisa. Só o DONO exclui (adm ajuda a tocar,
+  // não desfaz o que é do outro), e sempre com o aviso do que se perde.
+  async function excluirLigaId(id: string, nome: string, souDono: boolean): Promise<boolean> {
+    if (!souDono) { setRoomError('Só quem criou a liga pode excluir.'); return false }
+    if (!window.confirm(`Excluir a liga "${nome}"?\n\nA sala e a SALA DE TROFÉUS dela somem pra todo mundo. Não dá pra desfazer.`)) return false
+    await supabase.from('room_players').delete().eq('room_id', id).then(() => {}, () => {})
+    await supabase.from('game_rooms').delete().eq('id', id).then(() => {}, () => {})
+    fetchMyLigas()
+    return true
+  }
   async function excluirLiga() {
-    if (!room || !user || room.host_id !== user.id) return
+    if (!room || !user) return
     const nome = (room.game_state as GS)?.roomName ?? room.code
-    if (!window.confirm(`Excluir a liga "${nome}"?\n\nA sala e a SALA DE TROFÉUS dela somem pra todo mundo. Não dá pra desfazer.`)) return
-    await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
-    await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
-    clearSavedRoom(); setRoom(null); setPlayers([]); setPhase('menu'); fetchMyLigas()
+    if (!await excluirLigaId(room.id, nome, room.host_id === user.id)) return
+    clearSavedRoom(); setRoom(null); setPlayers([]); setPhase('menu')
   }
 
   const quandoLiga = (iso?: string): { txt: string; cor: string } => {
@@ -2314,17 +2355,87 @@ export function EscLobby() {
             const q = quandoLiga(gs?.ligaAt)
             const souDono = r.host_id === user?.id
             return (
-              <div key={r.id} className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-2 bg-white">
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
-                  <p className="text-black/60 text-[11px] font-bold">👥 {r.count} · {r.code} · {gs?.ligaFechada ? 'sem bots' : 'com bots'}{souDono ? '' : ' · você é convidado'}</p>
-                  <p className="font-black text-[11.5px]" style={{ ...OSWALD, color: q.cor }}>📅 {q.txt}</p>
+              <div key={r.id} className="border-2 border-black rounded-xl px-3 py-2 bg-white">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
+                    <p className="text-black/60 text-[11px] font-bold">👥 {r.count} · {r.code} · {gs?.ligaFechada ? 'sem bots' : 'com bots'}{souDono ? '' : ' · você é convidado'}</p>
+                    <p className="font-black text-[11.5px]" style={{ ...OSWALD, color: q.cor }}>📅 {q.txt}</p>
+                  </div>
+                  <button onClick={() => joinFromList(r)} disabled={loading}
+                    className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
+                    style={{ background: GREEN, color: '#fff', ...OSWALD }}>
+                    {r.status === 'started' ? '↩️ Voltar' : '▶️ Entrar'}
+                  </button>
                 </div>
-                <button onClick={() => joinFromList(r)} disabled={loading}
-                  className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
-                  style={{ background: GREEN, color: '#fff', ...OSWALD }}>
-                  {r.status === 'started' ? '↩️ Voltar' : '▶️ Entrar'}
-                </button>
+                {/* ✏️🗑️ MEXER NA LIGA SEM ENTRAR NELA (Diego 22/08). Só pro DONO:
+                    convidado nem vê os botões, pra não dar a entender que ele pode
+                    apagar a liga dos outros. */}
+                {souDono && cardEdit !== r.id && (
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => {
+                      const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
+                      const pad = (n: number) => String(n).padStart(2, '0')
+                      setCardNome(nm)
+                      setCardData(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
+                      setCardHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
+                      setCardBots(!gs?.ligaFechada)
+                      setCardEdit(r.id)
+                    }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                      ✏️ Editar
+                    </button>
+                    <button onClick={() => { void excluirLigaId(r.id, nm, souDono) }}
+                      className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5"
+                      style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
+                      🗑️ Excluir a liga
+                    </button>
+                  </div>
+                )}
+                {souDono && cardEdit === r.id && (
+                  <div className="mt-2 rounded-xl border-2 border-black p-2.5" style={{ background: '#FFF4CF' }}>
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mb-1" style={OSWALD}>🖋️ Nome da liga</p>
+                    <input value={cardNome} maxLength={24} onChange={e => setCardNome(stripEmoji(e.target.value))}
+                      className="w-full border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>📅 Quando vocês jogam</p>
+                    <div className="flex gap-2">
+                      <input type="date" value={cardData} onChange={e => setCardData(e.target.value)}
+                        className="flex-1 min-w-0 border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
+                      <input type="time" value={cardHora} onChange={e => setCardHora(e.target.value)}
+                        className="w-[96px] border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
+                    </div>
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>🤖 Bots na tabela</p>
+                    <div className="flex border-2 border-black rounded-lg overflow-hidden">
+                      {([[false, 'Sem bots'], [true, 'Com bots até 20']] as [boolean, string][]).map(([v, lb], i) => (
+                        <button key={lb} onClick={() => setCardBots(v)}
+                          className={`flex-1 font-black ${i ? 'border-l-2 border-black' : ''}`}
+                          style={{ padding: '7px 2px', fontSize: 11, background: cardBots === v ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+                          {lb}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-2 mt-2.5">
+                      <button onClick={async () => {
+                        const nome = cardNome.trim()
+                        if (!nome) { setRoomError('A liga precisa de um nome.'); return }
+                        const quando = new Date(`${cardData}T${cardHora}`)
+                        if (isNaN(quando.getTime())) { setRoomError('Confira o dia e a hora.'); return }
+                        const ok = await patchLigaId(r.id, { roomName: nome, ligaAt: quando.toISOString(), ligaFechada: !cardBots })
+                        if (!ok) return
+                        setCardEdit(null); fetchMyLigas()
+                      }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-[11.5px]"
+                        style={{ background: GREEN, color: '#fff', ...OSWALD }}>
+                        ✅ Salvar
+                      </button>
+                      <button onClick={() => setCardEdit(null)}
+                        className="flex-1 border-2 border-black rounded-lg py-2 font-black text-[11.5px] bg-white text-black" style={OSWALD}>
+                        Cancelar
+                      </button>
+                    </div>
+                    <p className="text-black/45 text-[10px] font-bold mt-2 leading-snug">
+                      Muda tudo isso quando quiser, na mesma liga — <b>nenhum troféu se perde</b>.
+                    </p>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -2426,10 +2537,21 @@ export function EscLobby() {
               </p>
               {/* 🏆 LIGA FECHADA — o que ela guarda a mais que a sala rápida.
                   Fica aqui em cima, colado no modo, porque é o que a pessoa
-                  precisa decidir ANTES de pensar em baralho e formação. */}
+                  precisa decidir ANTES de pensar em baralho e formação.
+                  🏆 ARRUMADO EM 22/08 pra bater com o mockup que o Diego aprovou
+                  (scripts/mockup-liga-fechada.mjs, quadro "O QUE ABRE AO ESCOLHER
+                  🏆 LIGA"). Ele cobrou: *"ainda n tá legal… n parece igual qd se
+                  cria a sala"*. As TRÊS coisas da liga ficam JUNTAS aqui — nome,
+                  dia/hora e bots — em vez de o nome estar lá embaixo, solto e
+                  chamado de "Nome da sala" como numa sala qualquer. */}
               {roomMode === 'liga' && (
-                <div className="mt-3 rounded-xl border-[2.5px] border-black p-3" style={{ background: 'rgba(255,196,0,.10)' }}>
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
+                <div className="mt-3 rounded-xl border-[3px] border-black p-3" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-2" style={OSWALD}>🏆 A sua liga</p>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>🖋️ Nome da liga</p>
+                  <input value={roomName} maxLength={24} onChange={e => setRoomName(stripEmoji(e.target.value))}
+                    placeholder={`Liga do ${nameOf()}`}
+                    className="w-full border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
                   <div className="flex gap-2">
                     <input type="date" value={ligaData} min={emDias(0)} onChange={e => setLigaData(e.target.value)}
                       className="flex-1 min-w-0 border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
@@ -2462,7 +2584,12 @@ export function EscLobby() {
                 </p>
               </div>
             )}
-            <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
+            {/* 🚫 no modo Liga o nome já foi pedido no quadro da liga, lá em cima.
+                Deixar este campo aqui perguntaria a MESMA coisa duas vezes — foi
+                exatamente a bronca que o Diego deu sobre os bots em 22/08. */}
+            {roomMode !== 'liga' && (
+              <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
+            )}
             {isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>🌎 Baralho fixo: Brasil + Europa</p>

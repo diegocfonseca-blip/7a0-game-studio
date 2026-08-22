@@ -23,6 +23,7 @@ import arrudaEscudoImg from './img/arruda-escudo.webp'
 import coringasEscudoImg from './img/coringas-escudo.webp'
 import nataEscudoImg from './img/nata-escudo.webp'
 import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
+import saoluizEscudoImg from './img/saoluiz-escudo.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
 import futpointEscudoImg from './img/futpoint-escudo.webp'
@@ -475,6 +476,10 @@ const futpointEscudoRender = (size: number) => (
 // amarelo/preto com o palhaço e faixas de risco; arte enviada pelo próprio dono,
 // aqui só tiramos o fundo quadriculado falso, cortamos no limite do desenho e
 // reduzimos (o escudo nunca passa de 78px na tela).
+// 🐶 São Luiz FC — pitbull (coração Flamengo), vermelho/preto/branco. 283x279 no arquivo.
+const saoluizEscudoRender = (size: number) => (
+  <img src={saoluizEscudoImg} height={size} width={Math.round(size * 283 / 279)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🦇 Theuzudo FC — morcego (coração Valência), laranja e preto. 293x360 no arquivo.
 const theuzudoEscudoRender = (size: number) => (
   <img src={theuzudoEscudoImg} height={size} width={Math.round(size * 293 / 360)} alt="Theuzudo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -574,6 +579,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Coringas do Diniz FC': coringasEscudoRender,
   // 🤡🟡⚫ Nata de SP (pedrinhocamisa8) — ex-Paris São Geraldo, Série D. O nome
   // velho fica registrado: quem já tinha carreira com o Paris não fica sem escudo.
+  // 🐶🔴⚫ São Luiz FC (gabrielnegreirosamaral99) — ex-Flamengo do Sertão, Série D. O
+  // nome velho fica registrado: quem já tinha carreira com o Flamengo do Sertão
+  // não fica sem escudo.
+  'São Luiz FC': saoluizEscudoRender,
+  'São Luiz': saoluizEscudoRender,
+  'São Luiz EC': saoluizEscudoRender,
+  'Sao Luiz FC': saoluizEscudoRender,
+  'Flamengo do Sertão': saoluizEscudoRender,
   // 🦇🟠⚫ Theuzudo FC (matheusfilipealves) — ex-Comercial do Norte, Série B. O nome
   // velho fica registrado: quem já tinha carreira com o Comercial não fica sem escudo.
   'Theuzudo FC': theuzudoEscudoRender,

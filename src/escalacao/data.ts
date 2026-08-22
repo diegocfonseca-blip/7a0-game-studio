@@ -2272,7 +2272,7 @@ export const CPU_MANAGERS = [
   { name: 'Zorra Total FC', team: 'Zorra FC' },
   { name: 'Tião Bagre', team: 'Bagre do Rio' },
   { name: 'Nego do Xote', team: 'Mano Paulista' },
-  { name: 'Val do Buraco', team: 'Flamengo do Sertão' },
+  { name: 'Val do Buraco', team: 'São Luiz FC' }, // ⚽ clube BATIZADO (gabrielnegreirosamaral99) — a reserva carrega o nome ATUAL, senão o clube aparecia 2× na mesma temporada
   { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
   { name: 'Zé Chapéu', team: 'Brodeiragem' },
 ]
@@ -2313,6 +2313,7 @@ export const OLD_NAME: Record<string, string> = {
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Alfacehh': 'Santos Dumont', // ⚽ batismo do matheus223lms: save antigo com Santos Dumont (ou Tonhão FC) vira Alfacehh ao carregar
   'Theuzudo FC': 'Comercial do Norte', // ⚽ batismo do matheusfilipealves: save antigo com Comercial do Norte vira Theuzudo FC ao carregar (21/08)
+  'São Luiz FC': 'Flamengo do Sertão', // ⚽ batismo do gabrielnegreirosamaral99: save antigo com Flamengo do Sertão vira São Luiz FC ao carregar (21/08)
 
   'Pardemeias': 'Tico do Bar FR', 'Livre-pool': 'Xandão EC',
   'White Thigs do GuGu': 'Astronáutico',
@@ -2441,10 +2442,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
-    { name: 'Piu do Grêmio', team: 'Barcenite FC' },
+    { name: 'Piu do Grêmio', team: 'Barcenite FC' }, // ⚽ clube BATIZADO por apoiador (ricardopessoafreire — Barcenite FC, ex-Milanesa FC; fundador nº31). 🩹 21/08: o comentário faltava e a vaga aparecia como LIVRE na contagem — quase foi vendida duas vezes.
     { name: 'Tico do Bar', team: 'Sapekeiros FC' }, // 🐝👑 clube BATIZADO por apoiador (tiosapeka@gmail.com / @tiosapekagg — Sapekeiros FC, ex-Pardemeias; abelha coroada, manto preto+dourado, 20/08)
     { name: 'Xandão da Bola', team: 'Manfré FC' }, // ⚽ clube BATIZADO por apoiador (danielmanfre5 — Manfré FC, ex-Livre-pool)
-    { name: 'Val do Buraco', team: 'Flamengo do Sertão' },
+    { name: 'Val do Buraco', team: 'São Luiz FC' }, // ⚽ clube BATIZADO por apoiador (gabrielnegreirosamaral99 — São Luiz FC, ex-Flamengo do Sertão; coração Flamengo, mascote pitbull 🐶, 21/08)
   ],
   B: [
     { name: 'Seu Ferreira', team: 'Crias do Bigão' }, // ⚽ clube BATIZADO por apoiador (giovannecastro784 — Crias do Bigão, ex-Ferroviária do Vale, 17/08)

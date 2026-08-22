@@ -77,17 +77,25 @@ const escudoImg = time => {
 const fonte = w => `data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}`
 
 // ── as 5 divisões, de cima pra baixo ────────────────────────────────────────
+// 💵 SÓ OS DOIS PREÇOS QUE EXISTEM DE VERDADE (o Diego corrigiu 21/08:
+// *"não temos valores de 39.90 e 49.90 não"* — e ele tem razão). Conferido no
+// banco (`apoio_intents`), a tabela de batismo é só esta:
+//   R$ 59,90 = batismo série A/B/C   ·   R$ 69,90 = batismo série D
+// (o 39,90 é o tier LENDA / cor ouro, NÃO é batismo — não pode virar preço de
+// divisão, senão embola com o tier na cabeça de quem compra.)
+// Depois da troca A↔D o 69,90 passa a ser o da SÉRIE A, que é a que aparece no
+// online — aí o nome, o preço e a visibilidade finalmente combinam.
 const DIVS = [
   { k: 'A', nome: 'SÉRIE A', ic: '🏆', preco: 'R$ 69,90', cor: '#FFC400', escuro: '#8A6A00',
     linha: 'A elite. É a lista que aparece no ONLINE, na hora de escolher os rivais da sala.', online: true },
   { k: 'B', nome: 'SÉRIE B', ic: '🥈', preco: 'R$ 59,90', cor: '#C9CDD4', escuro: '#5A5F68',
     linha: 'Um degrau da elite. Quem cobre o lance mais baixo da Série A, sobe.' },
-  { k: 'C', nome: 'SÉRIE C', ic: '🥉', preco: 'R$ 49,90', cor: '#D08B4A', escuro: '#7A4B18',
+  { k: 'C', nome: 'SÉRIE C', ic: '🥉', preco: 'R$ 59,90', cor: '#D08B4A', escuro: '#7A4B18',
     linha: 'O meio da pirâmide. Time de tradição brigando pra voltar.' },
-  { k: 'D', nome: 'SÉRIE D', ic: '⚽', preco: 'R$ 39,90', cor: '#7FB77E', escuro: '#2F5E2E',
+  { k: 'D', nome: 'SÉRIE D', ic: '⚽', preco: 'R$ 59,90', cor: '#7FB77E', escuro: '#2F5E2E',
     linha: 'Onde quase todo mundo começa a carreira. Muito jogo, muito clássico.' },
-  { k: 'V', nome: 'VÁRZEA', ic: '🍺', preco: 'R$ 29,90', cor: '#B79CD6', escuro: '#4A2F70',
-    linha: 'O peladão raiz. O degrau mais barato pra botar o nome no jogo.' },
+  { k: 'V', nome: 'VÁRZEA', ic: '🍺', preco: 'R$ 59,90', cor: '#B79CD6', escuro: '#4A2F70',
+    linha: 'O peladão raiz. O começo de tudo, e o degrau mais fácil de pegar.' },
 ]
 
 const dados = DIVS.map(d => ({ ...d, vagas: lista(d.k) }))
@@ -142,7 +150,7 @@ const blocos = dados.map(d => {
       </div>
       <div class="cabR">
         ${d.online ? '<span class="badge">📺 aparece no online</span>' : ''}
-        <span class="preco">${d.preco}</span>
+        <span class="preco">${d.preco}<i>entrada</i></span>
         <span class="conta"><b>${livres}</b> livre${livres === 1 ? '' : 's'} · ${bat} batizada${bat === 1 ? '' : 's'}</span>
       </div>
     </div>
@@ -178,8 +186,11 @@ const html = `<style>
  .cabR{display:flex;align-items:center;gap:8px;flex:none}
  .badge{background:#0C0C0C;color:#fff;border-radius:999px;padding:4px 10px;font-family:Oswald;
    font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
- .preco{background:#fff;border:2.5px solid #0C0C0C;border-radius:11px;padding:5px 11px;
-   font-family:Oswald;font-weight:700;font-size:19px;box-shadow:2px 2px 0 #0C0C0C;white-space:nowrap}
+ .preco{background:#fff;border:2.5px solid #0C0C0C;border-radius:11px;padding:4px 11px 5px;
+   font-family:Oswald;font-weight:700;font-size:19px;box-shadow:2px 2px 0 #0C0C0C;white-space:nowrap;
+   text-align:center;line-height:1.05}
+ .preco i{display:block;font-style:normal;font-size:8.5px;font-weight:600;letter-spacing:.1em;
+   text-transform:uppercase;color:rgba(12,12,12,.5)}
  .conta{font-size:10.5px;font-weight:800;color:rgba(12,12,12,.7);text-align:right;line-height:1.2;white-space:nowrap}
  .conta b{font-size:15px;display:block}
  .grade{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;background:#fff;
@@ -221,8 +232,9 @@ const html = `<style>
 <span class="pill">🔨 os 100 clubes do leilão legends</span>
 <h1>Bota o seu nome<br><em>na pirâmide.</em></h1>
 <p class="sub">São <b>100 clubes</b>, da Várzea à Série A, e cada um leva o nome de uma pessoa — com escudo,
-mascote e manto próprios. <b>Quem paga mais fica na divisão mais alta</b>, que é onde mais gente vê o seu clube
-jogando. Chegou alguém cobrindo o seu lance? <b>Você tem 24h pra cobrir de volta e ficar.</b></p>
+mascote e manto próprios. <b>R$ 59,90 põe o seu nome em qualquer vaga livre.</b> Quando lotar, quem paga mais fica na divisão mais
+alta — e a Série A é onde mais gente vê o seu clube jogando. Chegou alguém cobrindo o seu lance?
+<b>Você tem 24h pra cobrir de volta e ficar.</b></p>
 
 <div class="resumo">
   <div class="rz"><b>100</b><small>clubes na pirâmide</small></div>
@@ -240,7 +252,7 @@ verdade do clube; a bolinha com a letra é só espaço reservado neste mockup. V
 <div class="como">
   <h3>🔨 Como funciona a disputa</h3>
   <div class="passos">
-    <div class="passo"><b>1. Tem vaga livre? É sua</b><span>Paga o preço do degrau e o clube entra no jogo com o teu nome, escudo e mascote.</span></div>
+    <div class="passo"><b>1. Tem vaga livre? É sua</b><span>R$ 59,90 em qualquer divisão (Série A, R$ 69,90) e o clube entra no jogo com o teu nome, escudo e mascote.</span></div>
     <div class="passo"><b>2. Lotou? Você cobre</b><span>Dá um lance acima do <b>menor lance daquela divisão</b> — mínimo R$ 5 a mais. Não dá pra pular de R$ 70 pra R$ 1.000 e matar a briga.</span></div>
     <div class="passo"><b>3. Quem tá lá tem 24h</b><span>O dono recebe o aviso e pode <b>cobrir de volta</b>. Cobriu, fica. Não cobriu, <b>cai uma divisão</b> — e nunca perde o clube.</span></div>
     <div class="passo"><b>4. Sempre dá pra subir</b><span>A Série A é a que aparece no online. Enquanto tiver alguém querendo subir, a briga não acaba.</span></div>

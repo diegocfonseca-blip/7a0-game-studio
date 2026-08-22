@@ -280,6 +280,42 @@ export function useLigaLiberada(): boolean {
   return ligaOk
 }
 
+// ─── 🏆 TABELA "LIGA FECHADA" na sala RÁPIDA ────────────────────────────────
+// Não confundir com o MODO Liga acima (aquele é a sala que fica de pé, com
+// horário marcado). Isto aqui é o seletor **Aberta × Liga Fechada** que aparece
+// na criação da sala rápida:
+//   · 🌍 Aberta       = tabela de 20, os que faltam entram como CPU (como sempre)
+//   · 🏆 Liga Fechada = só a galera na tabela, NENHUM bot; a liga tem o tamanho
+//                       de vocês (ida e volta) e a Copa destrava com 8+
+// Tudo isso já está construído e testado — o que faltava era só APARECER.
+// Antes era um `const LIGA_FECHADA_LIBERADA = false` cravado no `lobby.tsx`, que
+// escondia o seletor de todo mundo, inclusive do Diego. Agora é trava por CONTA,
+// no padrão da casa: ele vê rodando, e abre pra todos quando quiser.
+// 🔓 PRA ABRIR PRA TODO MUNDO: LIGA_FECHADA_GERAL = true. É só isso.
+// (Criar continua sendo benefício do 👑 Lenda, e a trava de ENTRADA na liga —
+// só Lenda ou dono de batismo — já está no `lobby.tsx` e não muda.)
+const LIGA_FECHADA_GERAL = false
+const LIGA_FECHADA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let ligaFechadaOk = LIGA_FECHADA_GERAL
+function applyLigaFechadaUnlock(email?: string | null): void {
+  const u = LIGA_FECHADA_GERAL || (!!email && LIGA_FECHADA_TESTERS.has(email.toLowerCase()))
+  if (u === ligaFechadaOk) return
+  ligaFechadaOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+// ⚠️ PARADO — NÃO USAR (22/08). Esta trava foi criada por mim pra mostrar o
+// seletor "🌍 Aberta × 🏆 Liga Fechada" dentro da sala rápida. Só que esse
+// desenho o Diego RECUSOU em 20/08: Liga Fechada é MODO DE JOGO, não detalhe da
+// partida (ver o comentarão em `lobby.tsx`). O seletor ficou `false` fixo lá, e
+// esta função não é mais chamada por ninguém. Quem for mexer em Liga Fechada
+// usa `useLigaLiberada` (o MODO). Deixo aqui, sem uso, só pra ninguém recriar a
+// mesma coisa achando que faltava.
+export function useLigaFechadaLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return ligaFechadaOk
+}
+
 // ─── 🌎 LIBERTADORES — a terceira opção do "Depois da liga" ──────────────────
 // A liga de 20 roda igual; no fim, os 8 primeiros entram numa Libertadores de 32
 // (8 grupos de 4 com os clubes do continente, passam 2, mata-mata até a final
@@ -434,7 +470,20 @@ export function useTelaDesfecho(): boolean {
 // aberto, (2) desligar o grudar enquanto banner de intervalo/pênalti/festa está
 // na tela. Com `false` fica exatamente como era antes: as pílulas rolam junto
 // com o conteúdo e nada boia. Reversível numa linha.
-const PILULAS_GERAL = false
+//
+// ✅ LIGADO PRA TODOS em 22/08, com o OK do Diego (*"pílula pode fazer sim"*).
+// As DUAS condições acima foram cumpridas em 21/08: o bug foi reproduzido num
+// navegador de verdade (carreira montada do zero, ficando na aba Elenco até o
+// apito dos 45' — só reproduz assim) e o conserto é o `grudaOk = subGrudadas &&
+// !sagrado` em `pyramidseason.tsx`: enquanto o banner do intervalo, o do pênalti
+// ou a festa de campeão estão na tela, NADA gruda.
+// 🩹 De quebra, isto conserta uma promessa furada: a novidade de 21/08 ("Carreira
+// com menu embaixo") já dizia à galera que *"dentro do Clube e do Elenco as abas
+// de dentro também param de sumir quando você rola"* — e estava desligado pra
+// todo mundo. Agora o que está escrito na tela de novidades é verdade. Por isso
+// esta entrega NÃO ganha linha nova em `novidades.ts`: ela já tem a dela.
+// Pra desligar de novo, se aparecer qualquer coisa estranha: `false` aqui.
+const PILULAS_GERAL = true
 const PILULAS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let pilulasOk = PILULAS_GERAL
 function applyPilulasUnlock(email?: string | null): void {
@@ -449,8 +498,8 @@ export function useSubAbasGrudadas(): boolean {
   return pilulasOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email) })
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

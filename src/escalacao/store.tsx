@@ -3417,7 +3417,14 @@ export function reducer(state: EscState, action: Action): EscState {
       // "enviado" e o setor resolveria com lance ZERO. Zerando `submitted` só nas
       // fases de coleta, eles reabrem o input e reenviam o lance. (Fora dessas
       // fases, mantém — pra não bagunçar revelação/desempate.)
-      submitted: (action.state.phase === 'envelope' || action.state.phase === 'resq_envelope') ? [] : action.state.submitted,
+      // ⚠️ SÓ O DONO ZERA (Diego 22/08, sala NOYI87 — banco provou: 3 cadeiras, 3
+      // crachás, o dono DENTRO da sala, e mesmo assim subiu "o dono sumiu e outra
+      // pessoa assumiu"). Quem perde os envelopes ao recarregar é o DONO, que é
+      // quem os guarda. Pro convidado, o envelope continua lacrado na mão do dono:
+      // zerar aqui só fazia o aviso vermelho mentir e mandar ele lançar de novo à
+      // toa. E se o dono realmente tiver perdido os envelopes, o estado VIVO dele
+      // chega em ~1s e desmarca o convidado — aí sim com motivo.
+      submitted: (action.isHost && (action.state.phase === 'envelope' || action.state.phase === 'resq_envelope')) ? [] : action.state.submitted,
       presence: [],
     })
   }
@@ -6975,6 +6982,27 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // "host caiu?": convidado marca quando recebeu a última atualização do host.
   // Sem heartbeat por ~10s, mostra aviso (o host reemite estado a cada 3s).
   const lastHostMsgRef = useRef(Date.now())
+  // 📥 já chegou ALGUM estado do host nesta sala? (o ping não conta: ele diz que o
+  // dono está vivo, não que a partida chegou na minha tela)
+  const jaRecebiEstadoRef = useRef(false)
+  // 🔌 CANAL NOVO EM FOLHA (Diego 22/08: *"mas sempre deu p jogar c o host trocando
+  // de tela no celular"* — e ele tem razão, isso nunca foi problema). O que trava de
+  // verdade é a linha DE QUEM ESTÁ VENDO cair e NÃO VOLTAR. O remédio antigo era
+  // mandar `subscribe()` de novo no MESMO canal já morto — e canal morto do Supabase
+  // não ressuscita: ele fica lá, calado, e a pessoa só volta a jogar apertando F5
+  // (por isso o botão "atualiza a página" resolvia). Agora, canal morto é JOGADO FORA
+  // e um novo nasce pelo mesmo caminho de sempre — sem F5.
+  const [reconexao, setReconexao] = useState(0)
+  const ultimaReconexaoRef = useRef(0)
+  const pedeCanalNovo = useCallback(() => {
+    if (Date.now() - ultimaReconexaoRef.current < 5000) return // no máximo um canal novo a cada 5s
+    ultimaReconexaoRef.current = Date.now()
+    setReconexao(n => n + 1)
+  }, [])
+  const canalMorto = useCallback(() => {
+    const c = channelRef.current as unknown as { state?: string } | null
+    return !c || c.state !== 'joined'
+  }, [])
   const [hostStale, setHostStale] = useState(false)
 
   // 🎫 âncoras estáveis de identidade (setadas pela auto-cura mais abaixo): meu
@@ -7207,6 +7235,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
         try { next = readState(payload) } catch { return }
         if (!next || typeof next !== 'object') return
         lastHostMsgRef.current = Date.now() // notícia fresca do host
+        donoSumidoNoBancoRef.current = false // deu as caras: a acusação cai na hora
+        setDonoForaSeg(0)
+        jaRecebiEstadoRef.current = true
         rawDispatch({ type: 'SYNC_STATE', newState: next })
       })
     }
@@ -7218,7 +7249,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // aqui — assim ficar quieto pra economizar egress NÃO parece mais que o dono
     // caiu (era o gatilho do bug: host demorava e viravam dois donos). Não toca no
     // banco; custo insignificante (vs. reemitir o estado inteiro de ~100 KB).
-    ch.on('broadcast', { event: 'host_ping' }, () => { lastHostMsgRef.current = Date.now() })
+    ch.on('broadcast', { event: 'host_ping' }, () => { lastHostMsgRef.current = Date.now(); donoSumidoNoBancoRef.current = false; setDonoForaSeg(0) })
     // host removeu alguém: se for EU, saio da partida DE VEZ e caio no menu online.
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       // payload.playerIndex é o CRACHÁ (id) do expulso — comparo com o MEU id, não com
@@ -7253,15 +7284,51 @@ export function EscProvider({ children }: { children: ReactNode }) {
     ch.on('presence', { event: 'sync' }, () => {
       const pState = ch.presenceState()
       const todos = Object.values(pState).flat() as unknown as { playerIndex: number; uid?: string }[]
-      const indices = todos.map(p => p.playerIndex)
-      const uids = todos.map(p => p.uid).filter((u): u is string => !!u)
+      // 👥 UMA PESSOA = UM CRACHÁ (Diego 22/08, sala NOYI87). O banco mostrou a
+      // lista de crachás assim: [tomás, Diego, tomás] — o MESMO crachá DUAS vezes,
+      // uma delas sentado na cadeira 0, que é a do dono. Acontece quando o aparelho
+      // reconecta (ou a pessoa abre o jogo numa segunda aba): a inscrição velha
+      // ainda não expirou e a nova entra do lado. Consequências reais: a sala
+      // parecia ter 3 pessoas com só 2 no ar, o dono sumia da lista sem ter saído,
+      // e a rede de segurança do crachá ("tem cadeira demais pra pouco crachá?")
+      // era enganada por um crachá repetido. Agora só entra a PRIMEIRA inscrição
+      // de cada pessoa; quem não tem crachá segue contando como cadeira ocupada.
+      const vistos = new Set<string>()
+      const unicos = todos.filter(p => {
+        if (!p.uid) return true
+        if (vistos.has(p.uid)) return false
+        vistos.add(p.uid); return true
+      })
+      const indices = unicos.map(p => p.playerIndex)
+      const uids = unicos.map(p => p.uid).filter((u): u is string => !!u)
       rawDispatch({ type: 'SET_PRESENCE', indices, uids })
     })
     ch.subscribe(async () => {
+      // 🐛 REGRESSÃO MINHA, 21/08 → consertada 22/08 (o Diego pegou: *"de cara já
+      // apareceu erro c banner vermelho"* ao ENTRAR numa sala). Ao ligar o
+      // `meuCracha()`, o pedido "me manda o estado" passou a esperar uma chamada
+      // de REDE (`supabase.auth.getUser()`) antes de sair. Em celular com sinal
+      // ruim isso atrasa segundos: o convidado entra, não pede o estado, não
+      // recebe nada, e em 10s sobe o banner vermelho de "o dono sumiu" — com a
+      // sala funcionando do outro lado. Pior: quando o estado enfim chegava, vinha
+      // vários passos à frente, e a leva do leilão "trocava sozinha" na cara do
+      // jogador ("o goleiro foi trocado durante o leilão").
+      // ORDEM CERTA: pedir o estado PRIMEIRO (é o que destrava a tela), anunciar
+      // presença DEPOIS. O crachá pode demorar; a partida não pode.
+      if (!isHostRef.current) ch.send({ type: 'broadcast', event: 'request_state', payload: {} })
       await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() })
-      if (!state.isHost) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
     })
     channelRef.current = ch
+    // 🔁 O PRIMEIRO PEDIDO PODE SE PERDER (o convidado entra antes do canal do host
+    // estar ouvindo, ou o pacote some no 4G do ônibus). Sem isto ele fica olhando
+    // pra tela parada até o vigia de 10s acordar — e aí já subiu o banner vermelho
+    // de "o dono sumiu" com a sala rodando normal do outro lado. Repergunta em 2s e
+    // 5s, e só enquanto NENHUM estado tiver chegado. São dois pacotinhos.
+    jaRecebiEstadoRef.current = false
+    const repergunta = [2000, 5000].map(ms => setTimeout(() => {
+      if (isHostRef.current || jaRecebiEstadoRef.current) return
+      channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+    }, ms))
     // 📱 TROCAR DE APP NÃO DERRUBA NINGUÉM (bug 28/07: sala travava quando alguém
     // dava uma volta em outro app e voltava): o celular mata a conexão em 2º plano
     // EM SILÊNCIO. Ao voltar pra tela: se o canal morreu, RECONECTA na hora; host
@@ -7275,11 +7342,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }); resync() }) } catch { /* tenta de novo na próxima volta */ }
+      pedeCanalNovo() // canal morto não ressuscita: nasce um novo (ver comentário lá em cima)
     }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
-    return () => { if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); ch.unsubscribe(); channelRef.current = null }
-  }, [state.roomId, state.onlineMode, state.isHost]) // eslint-disable-line react-hooks/exhaustive-deps
+    // 🧹 `removeChannel` (e não só `unsubscribe`): tira o canal do registro do
+    // Supabase também. Sem isso o canal velho fica guardado com o MESMO nome, e o
+    // canal novo nasce brigando com o fantasma do antigo.
+    return () => { repergunta.forEach(clearTimeout); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); try { supabase.removeChannel(ch) } catch { ch.unsubscribe() } channelRef.current = null }
+  }, [state.roomId, state.onlineMode, state.isHost, reconexao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // host retransmite estado (sanitizado: envelopes pendentes não vazam)
   const prevRef = useRef<EscState | null>(null)
@@ -7371,7 +7441,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }); resync() }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { resync(); await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -7536,14 +7606,40 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const lastOwnerCheckRef = useRef(0)
   // 🔁 o host precisa estar sumido em DUAS checagens seguidas pra perder a coroa
   const sumicoConfirmadoRef = useRef(false)
+  // 🧾 PROVA DE QUE O DONO SUMIU MESMO: só vira true quando a consulta ao banco vê o
+  // batimento dele SECO. Sem isso o aviso vermelho "o dono caiu" não sobe — silêncio
+  // no Realtime não é prova de nada (era o que fazia o aviso mentir).
+  const donoSumidoNoBancoRef = useRef(false)
+  // ⏱️ segundos desde o último sinal do dono no banco (0 = ele está vivo). Depois de
+  // 1 minuto o aviso deixa de ser "segura a onda" e vira "ele saiu; a sala te espera
+  // ou você sai" — com o caminho pra sair na própria faixa.
+  const [donoForaSeg, setDonoForaSeg] = useState(0)
   useEffect(() => {
     if (state.onlineMode !== 'online' || state.isHost || !state.roomId) { setHostStale(false); return }
     if (state.screen === 'intro' || state.screen === 'lobby') { setHostStale(false); return }
     lastHostMsgRef.current = Date.now() // zera ao (re)entrar nessa vigília
+    donoSumidoNoBancoRef.current = false // entrou agora: ninguém é acusado sem prova
     const iv = setInterval(() => {
       const stale = Date.now() - lastHostMsgRef.current > 10_000 // 10s calados: já pede o estado (barato e inofensivo)
-      setHostStale(stale)
-      if (stale) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+      // 🔴 O BANNER SÓ SOBE COM PROVA (Diego 22/08, sala NOYI87). O print dele
+      // mostrava "o dono da sala caiu" às 17:39 — e o banco mostrava o dono
+      // GRAVANDO a partida às 17:38:31. Ou seja: o dono estava vivo, e o aviso
+      // mentia. O aviso olhava SÓ o silêncio no Realtime (10s sem recado), que
+      // some por mil motivos que não são o dono cair: o canal DO CONVIDADO morre
+      // no 4G, o celular volta do 2º plano, o dono fica quieto pra economizar.
+      // Agora o silêncio sozinho não acusa ninguém: o aviso só aparece depois que
+      // a consulta ao banco (logo abaixo) confirmar que o batimento do dono secou
+      // de verdade. Enquanto a prova não vem, a tela fica limpa e a gente tenta
+      // RECONECTAR — que é o que realmente destravava (o convidado ficava preso
+      // olhando um aviso e sem conseguir apertar nada).
+      setHostStale(stale && donoSumidoNoBancoRef.current)
+      if (stale) {
+        // 🔌 meu canal pode ter morrido calado (celular no bolso, 4G do ônibus).
+        // Mandar recado por um canal morto não chega em ninguém: primeiro RELIGA,
+        // aí sim pede o estado. Mesmo remédio que já funciona ao voltar pro app.
+        if (canalMorto()) pedeCanalNovo()
+        else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+      }
       if (stale && Date.now() - lastOwnerCheckRef.current > 10_000) {
         lastOwnerCheckRef.current = Date.now()
         ;(async () => {
@@ -7582,6 +7678,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
             const noLeilao = st.screen === 'auction' || st.phase === 'envelope' || st.phase === 'resq_envelope'
             const limiteSumico = noLeilao ? 60_000 : 25_000
             const hostBeatFresh = !!upAt && (Date.now() - new Date(upAt).getTime() < limiteSumico)
+            // 🧾 A PROVA que libera (ou não) o aviso vermelho lá em cima. Batimento
+            // fresco no banco = o dono está VIVO, por mais calado que ele esteja no
+            // Realtime; nesse caso quem está com problema de linha sou EU, e o aviso
+            // certo é nenhum (o religa-canal acima já cuida). Só quando o batimento
+            // dele seca é que a sala pode dizer "o dono caiu".
+            donoSumidoNoBancoRef.current = !hostBeatFresh
+            // ⏱️ HÁ QUANTO TEMPO ele não dá sinal. Serve pra parar de dizer "já já
+            // ele volta" quando faz 10 minutos que ele foi embora (Diego 22/08,
+            // sala NOYI87: *"tô sozinho, travado na rodada 9 porque os dois já
+            // saíram… mas não tive nenhum aviso que o host saiu e por isso travou"*).
+            setDonoForaSeg(hostBeatFresh || !upAt ? 0 : Math.round((Date.now() - new Date(upAt).getTime()) / 1000))
             // 🚫 A COROA NÃO TROCA SOZINHA — REGRA DO DIEGO (21/08). Palavras dele:
             // *"eu não quero q ng assuma. Tem q ser sempre o host. Se o host q criou
             // tem q ser sempre ele sem trocar"*. Depois da noite da sala do Braguinha
@@ -7656,7 +7763,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meu = state.managers[state.youIdx]?.id
     const lacrado = meu != null && state.submitted.includes(meu)
     const rodada = `${state.sectorIdx}:${state.sectorCursor}:${state.phase}`
-    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current === rodada && !lacrado && !state.isHost) setLanceReaberto(true)
+    // 🔇 e SÓ depois que o estado VIVO do dono chegou neste canal. Ao entrar/voltar
+    // pra sala o jogo é restaurado da FOTO do banco, que pode estar atrasada — era
+    // aí que o aviso subia sozinho, sem ninguém ter perdido a coroa.
+    if (state.onlineMode === 'online' && noEnvelope && euLacradoRef.current === rodada && !lacrado && !state.isHost && jaRecebiEstadoRef.current) setLanceReaberto(true)
     euLacradoRef.current = (noEnvelope && lacrado) ? rodada : ''
   }, [state.submitted, state.phase, state.youIdx, state.onlineMode, state.isHost, state.managers, state.sectorIdx, state.sectorCursor])
 
@@ -7787,7 +7897,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           }}>
             <div style={{ fontSize: 52, lineHeight: 1 }}>🎖️</div>
             <p style={{ fontWeight: 900, fontSize: 26, color: '#0C0C0C', margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ VIROU O HOST!</p>
-            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O dono da sala <b>sumiu do ar</b> (fechou o app, travou ou ficou sem sinal) e a partida ia parar. Pra não travar todo mundo, o comando passou pra <b>você</b>: avançar fases, tocar o leilão e decidir depois da votação. 🎮</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O dono da sala <b>saiu da partida</b> e passou o comando pra <b>você</b>: avançar fases, tocar o leilão e decidir depois da votação. 🎮</p>
             {viradaNoLeilao && (
               <p style={{ fontWeight: 800, fontSize: 13, color: '#7a2418', background: '#FFF1E8', border: '2.5px solid #C2452F', borderRadius: 12, padding: '9px 11px', margin: '10px 0 0', lineHeight: 1.4, textAlign: 'left' }}>
                 🔨 <b>Dá o seu lance de novo neste setor.</b> Na troca de comando os envelopes voltam pra mão de cada um — se ficassem lacrados no dono antigo, o setor fecharia com lance ZERO. <b>Ninguém viu o que você tinha mandado</b>: lance secreto continua secreto. 🔒
@@ -7805,7 +7915,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           <div style={{ background: '#FFF1E8', border: '3px solid #C2452F', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>
             <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#7a2418' }}>🔨 MANDA SEU LANCE DE NOVO</p>
             <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: '#7a2418', lineHeight: 1.4 }}>
-              O dono da sala sumiu do ar e outra pessoa assumiu o comando. Os envelopes voltaram pra mão de cada um — se ficassem lacrados com o dono antigo, o setor fecharia com <b>lance ZERO</b>. <b>Ninguém viu o seu</b>: lance secreto continua secreto. 🔒
+              O <b>dono da sala</b> atualizou a página no meio da coleta, e os envelopes deste setor voltaram pra mão de <b>todo mundo</b> — se ficassem lacrados com ele, o setor fecharia com <b>lance ZERO</b>. <b>Ninguém viu o seu</b>: lance secreto continua secreto. 🔒
             </p>
             <button onClick={() => setLanceReaberto(false)}
               style={{ marginTop: 9, width: '100%', background: '#C2452F', color: '#fff', border: '2.5px solid #0C0C0C', borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
@@ -7841,12 +7951,41 @@ export function EscProvider({ children }: { children: ReactNode }) {
           padding: '8px 12px', fontWeight: 800, fontSize: 13,
           fontFamily: 'Oswald, sans-serif', borderBottom: '3px solid #0C0C0C',
         }}>
-          ⏳ Segura a onda! O <b>dono da sala</b> trocou de tela ou caiu — a partida espera por ele.<br />
-          <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .92 }}>O comando é dele do começo ao fim: ninguém assume no lugar (era isso que fazia o seu lance voltar). Chama ele pra deixar a aba do jogo na frente! 😤</span>
-          <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
-            style={{ display: 'block', margin: '6px auto 0', border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '4px 14px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
-            🔄 Travou? Atualiza a página — a partida continua de onde parou
-          </button>
+          {/* 🚪 DEPOIS DE 1 MINUTO O AVISO FALA A VERDADE (Diego 22/08, sala NOYI87:
+              *"tô sozinho e travado na rodada 9 porque os dois já saíram… mas não
+              tive nenhum aviso que o host saiu e por isso travou"*). Antes o texto
+              dizia pra sempre "segura a onda, a partida espera por ele" — o que é
+              certo nos primeiros segundos e vira sacanagem depois de 10 minutos.
+              Agora, com o dono sumido de verdade, a faixa diz O PORQUÊ (o comando é
+              só dele), o que acontece com a partida (fica guardada, ninguém perde
+              nada) e O CAMINHO pra sair dali. */}
+          {donoForaSeg >= 60 ? (
+            <>
+              🚪 O <b>dono da sala</b> saiu — faz <b>{donoForaSeg >= 120 ? `${Math.round(donoForaSeg / 60)} minutos` : '1 minuto'}</b> que ele não dá sinal, e a partida <b>parou aqui</b>.<br />
+              <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .94 }}>
+                Quem criou a sala é quem comanda do começo ao fim — sem ele, ninguém avança as rodadas. <b>A partida fica guardada:</b> se ele voltar, continua exatamente deste ponto. Você não perde nada saindo.
+              </span>
+              <span style={{ display: 'flex', gap: 8, justifyContent: 'center', margin: '7px auto 0', maxWidth: 420 }}>
+                <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
+                  style={{ flex: 1, border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '5px 10px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
+                  🔄 Ele voltou? Atualiza
+                </button>
+                <button onClick={() => { void leaveRoom() }}
+                  style={{ flex: 1, border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#0C0C0C', color: '#fff', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '5px 10px', cursor: 'pointer', boxShadow: '2px 2px 0 0 rgba(0,0,0,.35)' }}>
+                  🚪 Sair da sala
+                </button>
+              </span>
+            </>
+          ) : (
+            <>
+              ⏳ Segura a onda! O <b>dono da sala</b> trocou de tela ou caiu — a partida espera por ele.<br />
+              <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .92 }}>O comando é dele do começo ao fim: ninguém assume no lugar (era isso que fazia o seu lance voltar). Chama ele pra deixar a aba do jogo na frente! 😤</span>
+              <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
+                style={{ display: 'block', margin: '6px auto 0', border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '4px 14px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
+                🔄 Travou? Atualiza a página — a partida continua de onde parou
+              </button>
+            </>
+          )}
         </div>
       )}
     </Ctx.Provider>

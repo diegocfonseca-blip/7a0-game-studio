@@ -1,4 +1,150 @@
-# 📌 Pendências combinadas com o Diego (atualizado 21/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 22/08/2026)
+
+## ✅ RESOLVIDO — o aviso "o dono sumiu" subia MENTINDO (sala NOYI87, 22/08)
+O Diego mandou print: banner vermelho **"MANDA SEU LANCE DE NOVO — o dono da sala
+sumiu do ar e outra pessoa assumiu o comando"**, na revelação 4/4.
+
+**O banco desmentiu o aviso na hora** (`game_rooms` code `NOYI87`): **3 cadeiras,
+3 crachás, presence `[1,2,0]` — todo mundo no ar, incluindo o dono
+(Gustavinson, `player_index` 0)**. Ninguém perdeu a coroa: a trava
+`ELEICAO_AUTOMATICA = false` está fazendo o trabalho dela. O que sobrou foi um
+**alarme falso** de um vigia antigo.
+
+**Causa raiz** — `RESTORE_ONLINE` (`store.tsx`, o "▶️ Voltar pra sala"
+`lobby.tsx:612` e a entrada normal `lobby.tsx:1298`) zerava `submitted` nas fases
+de envelope **pra todo mundo**. Isso existe porque o **dono** perde os envelopes
+secretos ao recarregar (eles não são persistidos). Só que o **convidado** não
+guarda envelope nenhum — o dele continua lacrado na mão do dono. Resultado: quem
+lacrava e depois voltava pra sala se via "deslacrado", e o vigia do envelope
+(`lanceReaberto`) concluía "trocou de dono" e cuspia o texto errado.
+
+**Consertos (3, todos pequenos e revertíveis):**
+1. `RESTORE_ONLINE` **só zera `submitted` se `action.isHost`**. Se o dono tiver
+   mesmo perdido os envelopes, o estado VIVO dele chega em ~1s e deslacra o
+   convidado — aí com motivo.
+2. O vigia só pode acusar **depois que o primeiro estado vivo do dono chegou**
+   (`jaRecebiEstadoRef`) — a foto do banco pode estar atrasada e não vale como
+   prova de nada.
+3. **Textos corrigidos** (não podem mais falar em "sumiu do ar / outra pessoa
+   assumiu", que com a coroa travada não acontece): o aviso do envelope agora diz
+   que **o dono atualizou a página** no meio da coleta, e o aviso grande de virar
+   host diz que **o dono saiu da partida e passou o comando**.
+
+## ✅ RESOLVIDO — o aviso "o dono caiu" subia SEM PROVA e prendia o convidado (22/08)
+Segundo print do Diego na mesma sala NOYI87, agora na temporada: banner vermelho
+**"Segura a onda! O dono da sala trocou de tela ou caiu"** às **17:39**.
+**O banco desmente de novo:** o dono (Gustavinson) tinha GRAVADO a partida às
+**17:38:31** — vivo, jogando. E o Diego relatou o efeito colateral: *"na hora do
+monte eu não consegui apertar pra pegar jogador"*, *"na simulação travou"*.
+
+**Causa raiz** — `hostStale` era calculado **só pelo silêncio no Realtime**
+(10s sem recado do dono). Silêncio no Realtime não é prova de nada: o canal que
+morre pode ser o **do convidado** (4G, celular no bolso, volta do 2º plano), e o
+dono continua vivo do outro lado. Pior: o remédio era mandar `request_state`
+**por um canal morto** — não chegava em ninguém. Resultado: convidado preso
+debaixo de um aviso mentiroso, sem conseguir apertar nada. Repare que o batimento
+REAL do dono (`game_rooms.updated_at`, gravado a cada ~3s) já era lido no
+código — mas só dentro do bloco da eleição, que está DESLIGADO. Ninguém
+consultava a prova.
+
+**Descoberta extra do mesmo print** — a lista de crachás da sala estava
+`[tomás, Diego, tomás]`: **o mesmo crachá DUAS vezes**, uma delas sentado na
+**cadeira 0, a do dono**, e o crachá do dono **ausente**. Vem de inscrição velha
+que não expirou (reconexão / segunda aba). Isso engana a rede de segurança do
+crachá (3 crachás para 3 cadeiras "bate", mas são 2 pessoas) e faz o dono
+"sumir" da lista sem ter saído.
+
+**Consertos:**
+1. **O banner só sobe com prova.** `hostStale` agora exige que a consulta ao banco
+   confirme o batimento do dono **seco**. Recado do dono (estado ou `host_ping`)
+   derruba a acusação na hora.
+2. **Silêncio agora RELIGA o canal** em vez de só reclamar: se o canal do
+   convidado não está `joined`, ele reinscreve, pede o estado e reanuncia
+   presença — mesmo remédio que já funciona ao voltar pro app. É isto que
+   destrava o "não consigo apertar nada".
+3. **Uma pessoa = um crachá**: a presença descarta inscrição repetida do mesmo
+   crachá.
+
+**Ainda aberto (não é o que travou, mas é real):** o `room_players` do tomás
+sumiu da sala enquanto ele seguia jogando — cadeira 1 ficou livre no banco com
+gente sentada nela. Investigar quem apaga a vaga (`GO_LOBBY`/`NEW_GAME` →
+`leaveOnlineRoom`) sem tirar a pessoa da partida.
+
+## ✅ RESOLVIDO — a raiz de verdade: canal morto não ressuscita (22/08)
+O Diego derrubou a minha teoria com um fato: *"mas sempre deu p jogar c o host
+trocando de tela no celular"*. **Ele estava certo.** Eu tinha culpado a aba de
+fundo do dono (navegador freando o `setInterval` do "tô vivo") e cheguei a
+escrever um `ticker.ts` batendo em Web Worker.
+
+**MEDI ANTES DE SUBIR, e a medição me desmentiu** (Chromium, aba no fundo, 8
+minutos, contando batida por batida):
+```
+tempo real: 481s   PÁGINA: 481 batidas (100%)   WORKER: 481 batidas (100%)
+último minuto isolado → PÁGINA: 60 · WORKER: 60
+```
+Nenhuma freada. **O Web Worker foi revertido** — não resolvia nada e só
+adicionaria peça nova no caminho crítico das salas.
+⚠️ **Pra próxima sessão: não re-tentar essa ideia.** A aba de fundo do dono NÃO é
+o problema, está medido.
+
+**A causa real** — não é a linha do DONO que cai, é a de **quem está vendo**.
+Quando a conexão do convidado morre (bolso, 4G, trocou de app), o código chamava
+`subscribe()` **no mesmo canal já morto**. Canal morto do Supabase **não
+ressuscita**: fica ali, calado, parecendo vivo. Daí tudo o que ele relatou —
+banner vermelho toda hora, botão que não responde, e **F5 resolvendo** (o próprio
+banner tinha o botão "atualiza a página": era a pista na nossa cara).
+
+E isso explica a noite inteira na ordem certa, como ele disse: *"eles só saíram de
+sala pq tinha dado erros"* — o pessoal cansou do banner e saiu; só ENTÃO o dono
+foi embora e a partida morreu na rodada 9. O dono sumir foi consequência.
+
+**Conserto:** canal morto é **jogado fora** e nasce um novo pelo caminho normal.
+- estado `reconexao` entra nas dependências do efeito do canal (sobe o contador →
+  desmonta o velho, monta um limpo com presença, pedido de estado e as
+  reperguntas de 2s/5s);
+- `pedeCanalNovo()` no máximo 1x a cada 5s (não vira loop);
+- limpeza agora é `supabase.removeChannel(ch)`, não só `unsubscribe()` — senão o
+  canal velho fica no registro com o MESMO nome e o novo briga com o fantasma;
+- chamam: o retorno pra tela (`visibilitychange`) e o vigia do convidado.
+
+## ✅ RESOLVIDO — dono saiu de vez e a sala não avisava NEM dava saída (22/08)
+Diego, ainda na NOYI87: *"eu acho q tô sozinho na sala. E travado na rodada 9 pq
+os dois já saíram… Mas n tive tb nenhum aviso q o host saiu e por isso travou"*.
+
+**Ele estava certo, e o banco confirma:** `updated_at` da sala parada em
+**17:38:31**, ou seja **9min30 sem batimento** do dono (Gustavinson). Sumiço real
+desta vez — e o jogo não falava nada de útil.
+
+**O buraco:** a faixa vermelha dizia, PARA SEMPRE, *"segura a onda, a partida
+espera por ele"*. Isso é verdade nos primeiros segundos e é sacanagem depois de
+10 minutos: a pessoa fica olhando uma tela parada sem saber que acabou, e **sem
+caminho nenhum pra sair** (o "sair da sala" nem sempre está à mão na tela em que
+ela travou). Fere a regra do Diego: toda trava explica O PORQUÊ e O CAMINHO.
+
+**Conserto:** a faixa passou a ter DOIS níveis, medindo o batimento do dono no
+banco (`donoForaSeg`):
+- **até 1 minuto** → segue o texto de sempre ("segura a onda", ele deve voltar);
+- **passou de 1 minuto** → o texto muda e fala a verdade: **"o dono da sala
+  saiu — faz X minutos que ele não dá sinal, e a partida parou aqui"**, explica o
+  porquê (quem cria a sala comanda do começo ao fim), garante que **a partida
+  fica guardada** (se ele voltar, continua deste ponto) e mostra os dois
+  caminhos: **🔄 Ele voltou? Atualiza** e **🚪 Sair da sala** (usa o `leaveRoom`,
+  que libera a vaga e vira o time em CPU pra quem ficar).
+
+**✅ DECIDIDO 22/08 — NÃO VAI TER botão "eu assumo o comando".** Palavras do Diego:
+*"acho q a melhor coisa é deixar pelo host msm e ng assume comando n"*. Antes disso
+ele levantou a dúvida certa: *"é um saco ter q dar lance dnovo"*. **Assunto
+encerrado — não propor de novo.** Sala sem dono PARA, e isso é o comportamento
+desejado; o dever da sala é AVISAR direito e dar o botão de sair (feito acima).
+
+**🔁 SOBROU UMA IDEIA BOA, e ela vale SOZINHA (não foi pedida ainda):** a **cópia
+local do lance**. Hoje o envelope só existe na mão do dono; se ele ATUALIZA A
+PÁGINA no meio da coleta, todo mundo lança de novo. Mas o aparelho de cada um sabe
+o que mandou — se guardasse uma cópia (só do setor+leva atuais), o jogo reenviaria
+sozinho pro dono, sem ninguém digitar nada, e o leilão continua às cegas (cada
+aparelho só conhece o lance dele). Isso mataria o *"é um saco ter q dar lance
+dnovo"* no caso que mais acontece. **Proposto em 22/08, ele respondeu sobre o botão
+e não sobre a cópia — perguntar de novo numa próxima, sem insistir.**
 
 ## ✅ BATISMO ENTREGUE — Theuzudo FC (21/08)
 Dono **matheusfilipealves@hotmail.com** · 👑 ouro + **fundador nº47** · entrou na
@@ -20,6 +166,120 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 (Valência) e o manto **laranja/preto**; o Diego falou em **Paraíba** (vermelho e
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
+
+## 🏆 LIGA FECHADA — criação igual ao mockup + editar/excluir POR FORA (22/08)
+Depois do conserto do erro abaixo, o Diego olhou o modo Liga de verdade e cobrou:
+*"ainda n tá legal… eu lembro q vc tinha feito um mockup maneiro mas n parece igual
+qd se cria a sala"*. Comparei a tela real com
+`scripts/mockup-liga-fechada.mjs` (o aprovado em 20/08) e achei DUAS diferenças
+reais na criação:
+1. O mockup junta as **três** coisas da liga num quadro só — **nome da liga**,
+   dia/hora e bots. Na tela real o nome estava lá embaixo, solto, chamado de
+   **"Nome da sala"**, como numa sala rápida qualquer.
+2. Por isso a Liga *parecia a rápida com um extra*, não um modo.
+
+Ele aprovou (*"Sim"*) e pediu mais: *"qd criar a sala, dps q ele entra ele pode
+excluir claramente dentro e fora tb… Editar e etc"*.
+
+**Feito:**
+- **Criação**: o quadro da Liga agora tem `🖋️ Nome da liga` no topo, depois
+  `📅 Quando vocês jogam` e `🤖 Bots na tabela` — os três juntos, com borda e
+  sombra dura. E o campo genérico "Nome da sala" **some** no modo Liga (senão
+  perguntaria o nome DUAS vezes — a mesma bronca dos bots). Nome padrão virou
+  **"Liga do Fulano"**.
+- **Por fora** (card de 🏆 Minhas ligas), só pro DONO: **✏️ Editar** (abre ali
+  mesmo nome + dia + hora + bots, sem entrar na sala) e **🗑️ Excluir a liga**.
+  Convidado não vê os botões.
+- **Por dentro**: já existia e continua (`🗑️ Excluir a liga`, mudar dia/hora,
+  regras do ranking). O excluir de dentro e o de fora agora passam pela MESMA
+  função (`excluirLigaId`) — uma regra só, com o mesmo aviso do que se perde.
+- **Banco**: `liga_patch` ganhou `p_nome` (renomear sem entrar na sala), com teto
+  de 24 e recusa de nome vazio. As DUAS assinaturas antigas foram derrubadas de
+  propósito: com um parâmetro novo opcional, a chamada antiga ficaria ambígua e o
+  PostgREST recusaria. Sobrou uma assinatura só.
+
+⚠️ Tudo isto está atrás de `LIGA_GERAL = false` (só a conta do Diego), então
+ninguém mais vê. Abrir pra todos = `LIGA_GERAL = true` em `sport.ts`.
+
+## ❌ ERRO MEU, JÁ CONSERTADO — liguei o desenho RECUSADO da Liga Fechada (22/08)
+O Diego pediu: *"Liga fechada pode codar p mim por favor só o eu ver como tá lá"*.
+Eu achei um `false` cravado em `lobby.tsx` e liguei — **sem conferir que aquilo era
+o desenho velho, que ele já tinha recusado.**
+
+Ele pegou na hora: *"aí cria está estranho pq mostra duas vezes sobre bots ou não ao
+criar a sala e qd eu crio tá mt diferente do mockup q vc tinha feito tb"*. Certíssimo,
+nos dois pontos:
+1. **Duas perguntas de bot na mesma tela** — a seção ② "A partida" aparece também no
+   modo Liga, então o "🤖 Bots na tabela" (do modo) e o "🌍 Aberta × 🏆 Liga Fechada"
+   (o resto velho) caíam juntos.
+2. **Diferente do mockup** — porque o mockup aprovado
+   (`scripts/mockup-liga-fechada.mjs`) tem a Liga Fechada como **MODO DE JOGO**, na
+   fileira do Rápido/Carreira/Bafo. Palavras dele em 20/08: *"tem q ser rápido, liga
+   fechada, carreira e bafo"*. O que eu liguei era a versão "detalhe da sala rápida",
+   que é justamente a que ele cortou.
+
+**Conserto:** `LIGA_FECHADA_LIBERADA = false` fixo em `lobby.tsx`, com um comentário
+grande explicando que aquilo é desenho RECUSADO e não feature esquecida — pra
+nenhuma sessão (nem eu de novo) religar achando que faltava. `useLigaFechadaLiberada`
+em `sport.ts` ficou marcada como PARADA e sem uso.
+
+**O que vale de verdade:** o MODO Liga (`roomMode === 'liga'`, trava
+`useLigaLiberada`, `LIGA_GERAL = false`, testers = Diego) — esse já está ligado na
+conta dele, com data/hora marcada, dono mandando nos troféus e o próprio seletor de
+bots. **É esse que ele tem que olhar e é esse que abre pra todos** (`LIGA_GERAL = true`)
+quando ele mandar.
+
+## 🎙️ De La Ó (Guilherme) — SÓCIO + LENDA feito (22/08) · batismo NÃO
+Ordem do Diego: *"Add esse time aqui delaofut@gmail.com naquele usuário q eu te
+falei... apenas como sócio e lenda. Sem batismo de trocar time do jogo por ele"*.
+
+**Feito, e SÓ isto:**
+- `apoio.tsx` → `'delaofut@gmail.com': 'ouro'` (👑 Lenda: cor, selo e brilho de ouro
+  em todo canto).
+- Banco `esc_socios` → **sócio nº28**, `desde` 22/08, `valido_ate` 2099-12-31,
+  `origem` = **`assinatura`** (NÃO `batismo`). Isso importa: `souBarao()` olha
+  `origem === 'batismo'`, então ele NÃO leva as regalias de dono de batismo.
+- Linhas em branco de propósito: `escudo_time`, `manto_c1/c2`, `mascote_key` — nada
+  de arte, porque não há batismo.
+
+**O que NÃO foi mexido (conferido no código):** `data.ts`, `LOGOS_PRONTAS`,
+`MASCOTES`, `FUNDADOR_N`, `esc_nomes_batismo`. **Nenhum clube do jogo saiu do lugar.**
+Precedente idêntico: gfpicolo13 (sócio nº27, 19/08).
+
+**⚠️ Ele ainda NÃO tem conta.** `auth.users` não tem `delaofut@gmail.com`. A linha do
+sócio é por E-MAIL, então **vale sozinha no instante em que ele se cadastrar com esse
+e-mail** — nada a fazer depois. Mas o 👑 dourado só aparece pra ele quando ele entrar.
+
+**Continua em aberto:** o batismo "DE LA Ó FUT" propriamente dito — mockup pronto
+(`scripts/mockup-batismo.mjs`), esperando o Guilherme aprovar. Se aprovar, aí sim
+entram as 4 formas do nome em `esc_nomes_batismo`, a arte, o `FUNDADOR_N` e a troca
+de clube em `data.ts`.
+
+## ✅ BATISMO ENTREGUE — São Luiz FC (21/08)
+Dono **gabrielnegreirosamaral99@hotmail.com** (**Gabriel Amaral**) · pagou
+**R$ 69,90** · 👑 ouro + **fundador nº48** · coração **Flamengo**.
+Entrou na **Série D no lugar do Flamengo do Sertão** (técnico "Val do Buraco" fica).
+Mascote **Luizão**, o pitbull da **2ª arte** (o sozinho, de uniforme preto — escolha
+do Diego), animação `coPulinho`. Manto **vermelho `#E00000` + preto**, com **branco
+de 3ª cor** e o amortecedor do Arruda (vermelho não encosta em preto).
+Peso: escudo 283×279 = **11,2 KB** · mascote 267×440 = **34,6 KB** · **total 45,8 KB**
+(teto 75). Nome reservado nas 4 formas.
+
+⚠️ **A vaga pedida não era essa.** O Diego pediu o **Pardemeias**, que já era o
+**Sapekeiros FC** desde 20/08. Ele escolheu o Flamengo do Sertão no lugar.
+
+🩹 **Dois furos consertados de quebra:**
+1. O **Barcenite FC** aparecia como vaga LIVRE na contagem, mas é batismo do
+   `ricardopessoafreire` (fundador nº31) — faltava o comentário na linha dele.
+   **Quase foi vendido duas vezes.**
+2. O `EXTRA_D_TEAMS` (a reserva da Série D) ainda tinha o nome VELHO
+   "Flamengo do Sertão" — com o novo na divisão, o MESMO clube apareceria duas
+   vezes na temporada, com o mesmo escudo. A reserva carrega o nome ATUAL.
+
+❓ **Fica anotado:** o escudo é praticamente o do **São Paulo FC** (mesma forma,
+faixas e arco de estrelas, trocando SPFC por SLFC) — avisei o Diego duas vezes e
+ele seguiu com a arte do dono. É a mesma regra que barrou o Real Madrid no Zidane
+hoje de manhã. Se um dia quiser trocar, é aqui que mexe.
 
 ## 👑 REGRA NOVA (21/08): a coroa não troca sozinha
 Depois do conserto do crachá, o Diego fechou a regra: *"eu não quero q ng
@@ -164,6 +424,17 @@ morreram exatamente do mesmo jeito.
   local e assumir, em vez de mandar pro vazio.
 ⚠️ Nada disso foi feito ainda — está esperando o OK do Diego, porque é código
 online ao vivo.
+
+## ✅ LIGADA PRA TODOS — pílula grudada (22/08, OK do Diego)
+*"Pílula pode fazer sim"*. `PILULAS_GERAL = true` em `sport.ts`.
+Conserto que destravou: `grudaOk = subGrudadas && !sagrado` — com banner de
+intervalo, de pênalti ou festa de campeão na tela, NADA gruda.
+🩹 De quebra conserta uma **promessa furada**: a novidade de 21/08 ("Carreira com
+menu embaixo") já dizia à galera que *"dentro do Clube e do Elenco as abas de
+dentro também param de sumir quando você rola"* — e estava desligado pra todo
+mundo. Agora o que está escrito na tela de novidades é verdade. Por isso **não
+ganhou linha nova** em `novidades.ts`: ela já tem a dela.
+Pra desligar: `false` na mesma linha.
 
 ## ✅ RESOLVIDO — pílula grudada boiando na tela do intervalo (21/08)
 **REPRODUZIDO no navegador e consertado.** A receita exata pra ver o bug (guardar,
