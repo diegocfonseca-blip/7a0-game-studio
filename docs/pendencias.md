@@ -70,6 +70,43 @@ sumiu da sala enquanto ele seguia jogando — cadeira 1 ficou livre no banco com
 gente sentada nela. Investigar quem apaga a vaga (`GO_LOBBY`/`NEW_GAME` →
 `leaveOnlineRoom`) sem tirar a pessoa da partida.
 
+## ✅ RESOLVIDO — a raiz de verdade: canal morto não ressuscita (22/08)
+O Diego derrubou a minha teoria com um fato: *"mas sempre deu p jogar c o host
+trocando de tela no celular"*. **Ele estava certo.** Eu tinha culpado a aba de
+fundo do dono (navegador freando o `setInterval` do "tô vivo") e cheguei a
+escrever um `ticker.ts` batendo em Web Worker.
+
+**MEDI ANTES DE SUBIR, e a medição me desmentiu** (Chromium, aba no fundo, 8
+minutos, contando batida por batida):
+```
+tempo real: 481s   PÁGINA: 481 batidas (100%)   WORKER: 481 batidas (100%)
+último minuto isolado → PÁGINA: 60 · WORKER: 60
+```
+Nenhuma freada. **O Web Worker foi revertido** — não resolvia nada e só
+adicionaria peça nova no caminho crítico das salas.
+⚠️ **Pra próxima sessão: não re-tentar essa ideia.** A aba de fundo do dono NÃO é
+o problema, está medido.
+
+**A causa real** — não é a linha do DONO que cai, é a de **quem está vendo**.
+Quando a conexão do convidado morre (bolso, 4G, trocou de app), o código chamava
+`subscribe()` **no mesmo canal já morto**. Canal morto do Supabase **não
+ressuscita**: fica ali, calado, parecendo vivo. Daí tudo o que ele relatou —
+banner vermelho toda hora, botão que não responde, e **F5 resolvendo** (o próprio
+banner tinha o botão "atualiza a página": era a pista na nossa cara).
+
+E isso explica a noite inteira na ordem certa, como ele disse: *"eles só saíram de
+sala pq tinha dado erros"* — o pessoal cansou do banner e saiu; só ENTÃO o dono
+foi embora e a partida morreu na rodada 9. O dono sumir foi consequência.
+
+**Conserto:** canal morto é **jogado fora** e nasce um novo pelo caminho normal.
+- estado `reconexao` entra nas dependências do efeito do canal (sobe o contador →
+  desmonta o velho, monta um limpo com presença, pedido de estado e as
+  reperguntas de 2s/5s);
+- `pedeCanalNovo()` no máximo 1x a cada 5s (não vira loop);
+- limpeza agora é `supabase.removeChannel(ch)`, não só `unsubscribe()` — senão o
+  canal velho fica no registro com o MESMO nome e o novo briga com o fantasma;
+- chamam: o retorno pra tela (`visibilitychange`) e o vigia do convidado.
+
 ## ✅ RESOLVIDO — dono saiu de vez e a sala não avisava NEM dava saída (22/08)
 Diego, ainda na NOYI87: *"eu acho q tô sozinho na sala. E travado na rodada 9 pq
 os dois já saíram… Mas n tive tb nenhum aviso q o host saiu e por isso travou"*.
