@@ -8340,3 +8340,36 @@ where temporada is not null;
 
 Com os números na mão:
 `node scripts/mockup-futevolei.mjs --logo fd_logo.png --contas "7.1 mil" --recorde 106 --media 4.2`
+
+---
+
+## ✅ 21/08 — O nível da carta agora acompanha o baralho (elenco da carreira)
+
+Diego viu um usuário na carreira com **Marcelo Vieira e John Terry** e perguntou:
+*"mas lembra que a gente adicionou várias lendas? Não atualizou não???"*
+
+**Conferido no código antes de responder:** o baralho ESTÁ certo — os dois são
+`fame: 5` desde 19/08 (commits `6efc7a8` e `e451253`) e estão no ar. O furo era
+outro: quando alguém arremata, a carta é **copiada pro save** com o nível
+daquele dia (`WonCard extends Card`), e congela. Quem já tinha o Marcelo no
+elenco continuava vendo ⭐ CRAQUE numa carta que virou 👑 LENDA.
+
+O **álbum** já resolvia isso sozinho (`CARD_META` em `screens.tsx` regrava o
+nível do catálogo por cima do salvo). Faltava o **elenco**.
+
+Agora `sincronizaNiveis()` (store.tsx) faz o mesmo ao ABRIR a carreira — nos
+três caminhos: carreira ativa, arquivo ("Minhas carreiras") e nuvem.
+
+⚠️ **Só o RÓTULO** (`fame`, `folk`, `promessa`). **`lo` e `hi` NÃO são tocados**
+— são a força do jogador, e mexer neles mudaria resultado de carreira em
+andamento. Conferido nas duas promoções de 19/08: das 27 cartas, **26 só
+trocaram de rótulo**; a única que também subiu de teto foi o **Dida** (79-86 →
+85-92), que fica com o teto antigo pra quem já o tinha e sai certo em leilão novo.
+
+🔒 O **lacre anti-trapaça** não é afetado: `lacreDe()` só soma caixa, títulos,
+divisão e temporada — carta não entra na conta. Testado: caixa e temporada
+intactos depois do sync.
+
+Testado por SSR pelo caminho REAL de load (`readActiveCareer` com localStorage
+de mentira): elenco, monte e emprestados pra SAF sobem juntos; quem não foi
+promovido (Gabigol) não muda; carta que não existe no baralho é deixada em paz.

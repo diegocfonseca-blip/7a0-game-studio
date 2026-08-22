@@ -6551,7 +6551,7 @@ export function careerSlotLimit(count: number): number {
 }
 const isCareerSave = (s: unknown): s is EscState => !!s && typeof s === 'object' && !!(s as EscState).careerOnline && Array.isArray((s as EscState).managers) && (s as EscState).managers.length > 0
 export function readCareerArchive(): CareerSlot[] {
-  try { const r = localStorage.getItem(CAREER_ARCHIVE_KEY); if (r) { const arr = JSON.parse(r); if (Array.isArray(arr)) return arr.filter((x: CareerSlot) => isCareerSave(x?.save)) } } catch { /* ignora */ }
+  try { const r = localStorage.getItem(CAREER_ARCHIVE_KEY); if (r) { const arr = JSON.parse(r); if (Array.isArray(arr)) return arr.filter((x: CareerSlot) => isCareerSave(x?.save)).map((x: CareerSlot) => ({ ...x, save: sincronizaNiveis(x.save) })) } } catch { /* ignora */ }
   return []
 }
 function writeCareerArchive(slots: CareerSlot[]) {
@@ -6620,6 +6620,66 @@ function faxinaCaixa(save: EscState): EscState {
   if (!sujo) return save
   return { ...save, careerCoins: limpo, news: ['🧹 Achamos um erro no seu caixa e arrumamos — o resto da carreira está intacto.', ...(save.news ?? [])].slice(0, 12) }
 }
+
+// ─── 👑 O NÍVEL DA CARTA ACOMPANHA O BARALHO (Diego 21/08) ───────────────────
+// O caso dele: *"um usuário pegou Marcelo Vieira e Terry — mas a gente não
+// promoveu várias lendas? Não atualizou?"*. Atualizou o BARALHO (os dois estão
+// `fame: 5` desde 19/08). O que não atualizava era a CARTA JÁ GANHA: quando
+// alguém arremata, a carta é COPIADA pro save com o nível daquele dia, e
+// congela ali pra sempre. Quem tinha o Marcelo no elenco continuava vendo
+// ⭐ CRAQUE numa carta que virou 👑 LENDA no jogo.
+//
+// O ÁLBUM já resolvia isso (o `CARD_META` em screens.tsx regrava o nível do
+// catálogo por cima do que foi salvo — o comentário lá cita o Lúcio, que fez o
+// caminho contrário e DEIXOU de ser lenda). Aqui é a mesma ideia, pro elenco.
+//
+// ⚠️ SÓ o RÓTULO (fame/folclórico/promessa). **`lo` e `hi` NÃO são tocados** —
+// eles são a FORÇA do jogador, e mexer neles mudaria resultado de jogo de
+// carreira em andamento. Conferido nas duas promoções de 19/08: das 27 cartas,
+// 26 só trocaram de rótulo e nenhuma ficou mais forte (a única exceção é o
+// Dida, que também subiu de teto; ele fica com o teto antigo no elenco de quem
+// já o tinha, e sai certo em qualquer leilão novo).
+//
+// Varredura genérica de propósito: carta mora em MUITO lugar do save (elenco,
+// baralho da rodada, monte, sobras do setor, elenco dos bots, emprestados pra
+// SAF...). Andar no objeto inteiro pega todos, inclusive os que vierem depois.
+const NIVEL_ATUAL = (() => {
+  const m = new Map<string, { fame: number; folk?: boolean; promessa?: boolean }>()
+  for (const cat of [CATALOG_WORLD, CATALOG_EU, CATALOG]) {
+    for (const lista of Object.values(cat)) {
+      for (const c of lista as { name: string; club: string; year: number; fame: number; folk?: boolean; promessa?: boolean }[]) {
+        m.set(`${c.name}|${clubCanon(c.club)}|${c.year}`, { fame: c.fame, folk: c.folk, promessa: c.promessa })
+      }
+    }
+  }
+  return m
+})()
+function sincronizaNiveis(save: EscState): EscState {
+  let mexeu = 0
+  const vistos = new Set<object>()
+  const anda = (v: unknown, prof: number): void => {
+    if (prof > 12 || !v || typeof v !== 'object') return
+    if (vistos.has(v as object)) return
+    vistos.add(v as object)
+    if (Array.isArray(v)) { for (const item of v) anda(item, prof + 1); return }
+    const o = v as Record<string, unknown>
+    if (typeof o.name === 'string' && typeof o.club === 'string' && typeof o.year === 'number' && typeof o.fame === 'number') {
+      const meta = NIVEL_ATUAL.get(`${o.name}|${clubCanon(o.club)}|${o.year}`)
+      if (meta && (o.fame !== meta.fame || !!o.folk !== !!meta.folk || !!o.promessa !== !!meta.promessa)) {
+        o.fame = meta.fame
+        if (meta.folk) o.folk = true; else delete o.folk
+        if (meta.promessa) o.promessa = true; else delete o.promessa
+        mexeu++
+      }
+      return // carta não tem carta dentro
+    }
+    for (const k of Object.keys(o)) anda(o[k], prof + 1)
+  }
+  try { anda(save, 0) } catch { /* save torto: melhor não sincronizar do que quebrar o load */ }
+  return mexeu > 0 ? { ...save } : save
+}
+/** tudo que um save de carreira leva ao ser aberto: faxina do caixa + nível das cartas em dia. */
+function saveAtualizado(save: EscState): EscState { return sincronizaNiveis(faxinaCaixa(save)) }
 // 🔎 DIAGNÓSTICO DA CAIXA (20/08 — caso do "±9999" do Pedro).
 // O que sabemos: a tela dele mostrou 9999 e -9999, o save na nuvem tem -261, e o
 // LACRE do save bate (ou seja: ninguém editou o arquivo — o valor da tela nunca
@@ -6651,7 +6711,7 @@ function reportaCaixaEstranha(save: EscState, de: 'load') {
   } catch { /* silencioso — diagnóstico nunca atrapalha o jogo */ }
 }
 export function readActiveCareer(): CareerSlot | null {
-  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); reportaCaixaEstranha(save, 'load'); return { save: faxinaCaixa(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
+  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); reportaCaixaEstranha(save, 'load'); return { save: saveAtualizado(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
   return null
 }
 // guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa.
@@ -6779,8 +6839,8 @@ let lastPyrCloud = 0
 function careersFromCloudRaw(raw: unknown, fallbackAt: number): CareerSlot[] {
   if (!raw || typeof raw !== 'object') return []
   const multi = raw as { __multi?: number; careers?: CareerSlot[] }
-  if (multi.__multi && Array.isArray(multi.careers)) return multi.careers.filter(c => isCareerSave(c?.save))
-  if (isCareerSave(raw)) return [{ save: raw as EscState, at: fallbackAt }]
+  if (multi.__multi && Array.isArray(multi.careers)) return multi.careers.filter(c => isCareerSave(c?.save)).map(c => ({ ...c, save: sincronizaNiveis(c.save) }))
+  if (isCareerSave(raw)) return [{ save: sincronizaNiveis(raw as EscState), at: fallbackAt }]
   return []
 }
 // quão avançada está a carreira (nº de temporadas). Progresso SÓ anda pra frente
