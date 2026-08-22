@@ -21,6 +21,31 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
+## 🛡️ BATISMO EM ANDAMENTO — São Luiz FC (21/08)
+Dono **gabrielnegreirosamaral99@hotmail.com** · pagou **R$ 69,90** · vira ouro 👑
++ **fundador nº48**. Coração: São Paulo. Mascote: o pitbull da **2ª foto** (o
+sozinho, de uniforme preto) — pedido explícito do Diego.
+
+✅ **Arte pronta** (limpa, recortada e dentro do teto): escudo 283×279 = **11,2 KB**
+· mascote 267×440 = **34,6 KB** · **total 45,8 KB** (teto 75). Camisa só a frente
+pra `scripts/kits/`. Manto medido na arte: **vermelho `#E00000` + preto**, com
+**branco como 3ª cor** (`MANTO_TRI`) e o amortecedor do Arruda (vermelho não
+encosta em preto). Nome já reservado no banco nas 4 formas.
+
+🔴 **TRAVA 1 — o Pardemeias NÃO está livre.** O Diego pediu a vaga do Pardemeias,
+mas ela virou o **Sapekeiros FC** (tiosapeka/@tiosapekagg) em 20/08. Pôr o São
+Luiz ali apagaria o clube de quem pagou. **Na Série D só sobra uma vaga de
+verdade: o `Flamengo do Sertão`** — o `Barcenite FC` parece livre no `data.ts`
+mas é batismo do `ricardopessoafreire` (fundador nº31); falta o comentário
+BATIZADO na linha dele. ⚠️ Consertar isso, senão a vaga vai ser vendida duas vezes.
+
+🔴 **TRAVA 2 — o escudo é o do São Paulo FC.** Mesma forma de escudo tricolor,
+mesmas faixas e o mesmo arco de estrelas, trocando SPFC por SLFC. É a MESMA regra
+que barrou o Real Madrid no Zidane hoje de manhã (`manto.ts`/`coracao.ts`:
+*"nome/escudo de clube REAL nunca aparece: só as CORES"*). Decisão do Diego.
+
+⏸️ Nada foi commitado no jogo — só o nome reservado e a arte guardada.
+
 ## 👑 REGRA NOVA (21/08): a coroa não troca sozinha
 Depois do conserto do crachá, o Diego fechou a regra: *"eu não quero q ng
 assuma. Tem q ser sempre o host. Se o host q criou tem q ser sempre ele sem
