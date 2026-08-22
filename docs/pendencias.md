@@ -30,6 +30,46 @@ lacrava e depois voltava pra sala se via "deslacrado", e o vigia do envelope
    que **o dono atualizou a página** no meio da coleta, e o aviso grande de virar
    host diz que **o dono saiu da partida e passou o comando**.
 
+## ✅ RESOLVIDO — o aviso "o dono caiu" subia SEM PROVA e prendia o convidado (22/08)
+Segundo print do Diego na mesma sala NOYI87, agora na temporada: banner vermelho
+**"Segura a onda! O dono da sala trocou de tela ou caiu"** às **17:39**.
+**O banco desmente de novo:** o dono (Gustavinson) tinha GRAVADO a partida às
+**17:38:31** — vivo, jogando. E o Diego relatou o efeito colateral: *"na hora do
+monte eu não consegui apertar pra pegar jogador"*, *"na simulação travou"*.
+
+**Causa raiz** — `hostStale` era calculado **só pelo silêncio no Realtime**
+(10s sem recado do dono). Silêncio no Realtime não é prova de nada: o canal que
+morre pode ser o **do convidado** (4G, celular no bolso, volta do 2º plano), e o
+dono continua vivo do outro lado. Pior: o remédio era mandar `request_state`
+**por um canal morto** — não chegava em ninguém. Resultado: convidado preso
+debaixo de um aviso mentiroso, sem conseguir apertar nada. Repare que o batimento
+REAL do dono (`game_rooms.updated_at`, gravado a cada ~3s) já era lido no
+código — mas só dentro do bloco da eleição, que está DESLIGADO. Ninguém
+consultava a prova.
+
+**Descoberta extra do mesmo print** — a lista de crachás da sala estava
+`[tomás, Diego, tomás]`: **o mesmo crachá DUAS vezes**, uma delas sentado na
+**cadeira 0, a do dono**, e o crachá do dono **ausente**. Vem de inscrição velha
+que não expirou (reconexão / segunda aba). Isso engana a rede de segurança do
+crachá (3 crachás para 3 cadeiras "bate", mas são 2 pessoas) e faz o dono
+"sumir" da lista sem ter saído.
+
+**Consertos:**
+1. **O banner só sobe com prova.** `hostStale` agora exige que a consulta ao banco
+   confirme o batimento do dono **seco**. Recado do dono (estado ou `host_ping`)
+   derruba a acusação na hora.
+2. **Silêncio agora RELIGA o canal** em vez de só reclamar: se o canal do
+   convidado não está `joined`, ele reinscreve, pede o estado e reanuncia
+   presença — mesmo remédio que já funciona ao voltar pro app. É isto que
+   destrava o "não consigo apertar nada".
+3. **Uma pessoa = um crachá**: a presença descarta inscrição repetida do mesmo
+   crachá.
+
+**Ainda aberto (não é o que travou, mas é real):** o `room_players` do tomás
+sumiu da sala enquanto ele seguia jogando — cadeira 1 ficou livre no banco com
+gente sentada nela. Investigar quem apaga a vaga (`GO_LOBBY`/`NEW_GAME` →
+`leaveOnlineRoom`) sem tirar a pessoa da partida.
+
 ## ✅ BATISMO ENTREGUE — Theuzudo FC (21/08)
 Dono **matheusfilipealves@hotmail.com** · 👑 ouro + **fundador nº47** · entrou na
 **Série B no lugar do Comercial do Norte** (técnico "Nortista" fica).
