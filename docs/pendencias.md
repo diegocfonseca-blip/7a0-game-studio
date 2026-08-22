@@ -364,6 +364,17 @@ morreram exatamente do mesmo jeito.
 ⚠️ Nada disso foi feito ainda — está esperando o OK do Diego, porque é código
 online ao vivo.
 
+## ✅ LIGADA PRA TODOS — pílula grudada (22/08, OK do Diego)
+*"Pílula pode fazer sim"*. `PILULAS_GERAL = true` em `sport.ts`.
+Conserto que destravou: `grudaOk = subGrudadas && !sagrado` — com banner de
+intervalo, de pênalti ou festa de campeão na tela, NADA gruda.
+🩹 De quebra conserta uma **promessa furada**: a novidade de 21/08 ("Carreira com
+menu embaixo") já dizia à galera que *"dentro do Clube e do Elenco as abas de
+dentro também param de sumir quando você rola"* — e estava desligado pra todo
+mundo. Agora o que está escrito na tela de novidades é verdade. Por isso **não
+ganhou linha nova** em `novidades.ts`: ela já tem a dela.
+Pra desligar: `false` na mesma linha.
+
 ## ✅ RESOLVIDO — pílula grudada boiando na tela do intervalo (21/08)
 **REPRODUZIDO no navegador e consertado.** A receita exata pra ver o bug (guardar,
 porque vai servir de novo): carreira nova → aba **Elenco** → ligar **"⏸️ Só no

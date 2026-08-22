@@ -463,7 +463,20 @@ export function useTelaDesfecho(): boolean {
 // aberto, (2) desligar o grudar enquanto banner de intervalo/pênalti/festa está
 // na tela. Com `false` fica exatamente como era antes: as pílulas rolam junto
 // com o conteúdo e nada boia. Reversível numa linha.
-const PILULAS_GERAL = false
+//
+// ✅ LIGADO PRA TODOS em 22/08, com o OK do Diego (*"pílula pode fazer sim"*).
+// As DUAS condições acima foram cumpridas em 21/08: o bug foi reproduzido num
+// navegador de verdade (carreira montada do zero, ficando na aba Elenco até o
+// apito dos 45' — só reproduz assim) e o conserto é o `grudaOk = subGrudadas &&
+// !sagrado` em `pyramidseason.tsx`: enquanto o banner do intervalo, o do pênalti
+// ou a festa de campeão estão na tela, NADA gruda.
+// 🩹 De quebra, isto conserta uma promessa furada: a novidade de 21/08 ("Carreira
+// com menu embaixo") já dizia à galera que *"dentro do Clube e do Elenco as abas
+// de dentro também param de sumir quando você rola"* — e estava desligado pra
+// todo mundo. Agora o que está escrito na tela de novidades é verdade. Por isso
+// esta entrega NÃO ganha linha nova em `novidades.ts`: ela já tem a dela.
+// Pra desligar de novo, se aparecer qualquer coisa estranha: `false` aqui.
+const PILULAS_GERAL = true
 const PILULAS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let pilulasOk = PILULAS_GERAL
 function applyPilulasUnlock(email?: string | null): void {
