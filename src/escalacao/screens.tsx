@@ -1169,8 +1169,8 @@ function NovidadesCurtas() {
   const mostra = abertas ? todas : todas.slice(0, 3)
   return (
     <div>
-      <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>📣 O que mudou por aqui</p>
-      <Box bg="#fff" className="p-3 space-y-2">
+      <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>📣 O que mudou por aqui</p>
+      <Box bg="#fff" className="p-3.5 space-y-3">
         {mostra.map(n => (
           <div key={n.titulo + n.data} className="flex gap-2 items-start">
             <span className="text-[15px] leading-tight">{n.emoji}</span>
@@ -1674,7 +1674,7 @@ function Duvidas() {
 // `n` vazio = linha sem número (os modos, no manual).
 function PassoLinha({ n, ic, titulo, children }: { n?: number; ic: string; titulo: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2.5 border-[2.5px] border-black rounded-xl bg-white px-3 py-2.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+    <div className="flex items-center gap-3 border-[2.5px] border-black rounded-xl bg-white px-3.5 py-3" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
       <span className="flex-none w-[30px] h-[30px] rounded-[9px] border-[2.5px] border-black grid place-items-center text-[15px]" style={{ background: GOLD }}>{ic}</span>
       <div className="min-w-0">
         <p className="font-black text-[12.5px] uppercase leading-tight" style={OSWALD}>{n != null && <span className="text-black/30">{n}. </span>}{titulo}</p>
@@ -1800,6 +1800,13 @@ export function EscIntro() {
       <Shell>
         {unlocked && <SportTabs />}
         <AvisoDaVez />
+        {/* 🫁 RESPIRO DA HOME (Diego 21/08: "não tá tudo muito apertado aqui
+            na home? não falta um pouco mais de espaço de um item pro outro?").
+            O `Shell` dá 20px entre os blocos de TODAS as telas — nesta home a
+            lista é longa e 20px empilha tudo. Este wrapper sobe pra 28px SÓ
+            aqui: nenhuma outra tela do jogo muda. Pra reverter, é só tirar
+            esta div (e o </div> lá embaixo). */}
+        <div className="space-y-7">
         {/* 1 · o que é o jogo */}
         <div className="text-center pt-6">
           <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -1820,7 +1827,7 @@ export function EscIntro() {
           <p className="text-center text-[11px] font-bold text-black/45 mt-2">👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos</p>
         </div>
         {/* 3 · os três modos, com a CARREIRA grande */}
-        <div className="space-y-2.5 pt-2">
+        <div className="space-y-3 pt-1">
           <Btn onClick={() => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) })} className="w-full text-left" bg={PURPLE}>
             <span className="block text-xl leading-none text-white">🪜 {solo ? 'Nova carreira' : 'Começar carreira'}</span>
             <span className="block text-[11.5px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.85)' }}>
@@ -1829,7 +1836,7 @@ export function EscIntro() {
             <span className="inline-block mt-2 rounded-full px-2 py-0.5 text-[9.5px] font-black tracking-wide"
               style={{ ...OSWALD, background: 'rgba(255,255,255,.18)', border: '2px solid rgba(255,255,255,.4)', color: '#fff' }}>🆓 SEM PRECISAR DE CONTA</span>
           </Btn>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-3">
             <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-center" bg={GREEN}>
               {/* 🌐 "(online)" no rótulo a pedido do Diego (20/08) — "com amigos"
                   sozinho dá a entender que dá pra jogar com os amigos no MESMO
@@ -1861,8 +1868,8 @@ export function EscIntro() {
         )}
         {/* 5 · como funciona — ABERTO, e aqui embaixo */}
         <div className="pt-2">
-          <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>Como funciona uma partida</p>
-          <div className="space-y-2">
+          <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>Como funciona uma partida</p>
+          <div className="space-y-3">
             <PassoLinha n={1} ic="🪙" titulo="100 moedas">O baralho vem por posição. Você só vê o <b>nome</b>.</PassoLinha>
             <PassoLinha n={2} ic="✉️" titulo="Lance secreto">Escreve quanto vale e lacra. Ninguém vê o lance de ninguém.</PassoLinha>
             <PassoLinha n={3} ic="🔨" titulo="O martelo revela">Quem pagou mais leva — e <b>só aí</b> aparece o nível.</PassoLinha>
@@ -1884,6 +1891,7 @@ export function EscIntro() {
         <DinastiaButton />
         <CareerOnlineButton />
         <LigaFechadaButton />
+        </div>
         {/* espaço pro menu fixo não tapar o fim da página */}
         <div style={{ height: 74 }} />
         <HomeMenuFixo
