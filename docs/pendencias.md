@@ -195,22 +195,31 @@ conta dele, com data/hora marcada, dono mandando nos troféus e o próprio selet
 bots. **É esse que ele tem que olhar e é esse que abre pra todos** (`LIGA_GERAL = true`)
 quando ele mandar.
 
-## 🎙️ PROPOSTA — De La Ó FUT (influencer, 21/08) · NADA NO JOGO AINDA
-O Diego quer batizar um clube pro **Guilherme De la Ó** (@delaofut, 64,4 mil
-seguidores). Palavras dele: *"não faz nada ainda no jogo pq quero mandar primeiro
-pra ele aprovar o mockup padrão nosso"*. Então isto é **só o mockup** — nenhuma
-linha de `data.ts`, `escudos.tsx`, `apoio.tsx` ou banco foi tocada, e o nome NÃO
-foi reservado (ele ainda pode mudar).
+## 🎙️ De La Ó (Guilherme) — SÓCIO + LENDA feito (22/08) · batismo NÃO
+Ordem do Diego: *"Add esse time aqui delaofut@gmail.com naquele usuário q eu te
+falei... apenas como sócio e lenda. Sem batismo de trocar time do jogo por ele"*.
 
-Arte que o dono mandou, já limpa e dentro do teto (guardada no scratchpad, não no
-repo): escudo 277×323 = **24,4 KB** · mascote 206×440 = **26,2 KB** · **total
-50,5 KB**. Manto medido na camisa: **amarelo `#F0C000` + verde `#186C30`**.
-O mascote é a caricatura do próprio Guilherme (a arte veio assim).
+**Feito, e SÓ isto:**
+- `apoio.tsx` → `'delaofut@gmail.com': 'ouro'` (👑 Lenda: cor, selo e brilho de ouro
+  em todo canto).
+- Banco `esc_socios` → **sócio nº28**, `desde` 22/08, `valido_ate` 2099-12-31,
+  `origem` = **`assinatura`** (NÃO `batismo`). Isso importa: `souBarao()` olha
+  `origem === 'batismo'`, então ele NÃO leva as regalias de dono de batismo.
+- Linhas em branco de propósito: `escudo_time`, `manto_c1/c2`, `mascote_key` — nada
+  de arte, porque não há batismo.
 
-**Chutes MEUS que ele precisa confirmar:** o nome do clube saiu do escudo
-("DE LA Ó FUT"); a divisão (pus **Série A**, no lugar do Metrópole FC, porque é a
-vitrine e tem 14 vagas); o nome do mascote ("O De La Ó"); e o **time de coração
-ficou de fora** — não sei qual é e não invento.
+**O que NÃO foi mexido (conferido no código):** `data.ts`, `LOGOS_PRONTAS`,
+`MASCOTES`, `FUNDADOR_N`, `esc_nomes_batismo`. **Nenhum clube do jogo saiu do lugar.**
+Precedente idêntico: gfpicolo13 (sócio nº27, 19/08).
+
+**⚠️ Ele ainda NÃO tem conta.** `auth.users` não tem `delaofut@gmail.com`. A linha do
+sócio é por E-MAIL, então **vale sozinha no instante em que ele se cadastrar com esse
+e-mail** — nada a fazer depois. Mas o 👑 dourado só aparece pra ele quando ele entrar.
+
+**Continua em aberto:** o batismo "DE LA Ó FUT" propriamente dito — mockup pronto
+(`scripts/mockup-batismo.mjs`), esperando o Guilherme aprovar. Se aprovar, aí sim
+entram as 4 formas do nome em `esc_nomes_batismo`, a arte, o `FUNDADOR_N` e a troca
+de clube em `data.ts`.
 
 ## ✅ BATISMO ENTREGUE — São Luiz FC (21/08)
 Dono **gabrielnegreirosamaral99@hotmail.com** (**Gabriel Amaral**) · pagou
