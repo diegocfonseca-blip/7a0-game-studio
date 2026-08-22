@@ -167,6 +167,40 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
+## 🏆 LIGA FECHADA — criação igual ao mockup + editar/excluir POR FORA (22/08)
+Depois do conserto do erro abaixo, o Diego olhou o modo Liga de verdade e cobrou:
+*"ainda n tá legal… eu lembro q vc tinha feito um mockup maneiro mas n parece igual
+qd se cria a sala"*. Comparei a tela real com
+`scripts/mockup-liga-fechada.mjs` (o aprovado em 20/08) e achei DUAS diferenças
+reais na criação:
+1. O mockup junta as **três** coisas da liga num quadro só — **nome da liga**,
+   dia/hora e bots. Na tela real o nome estava lá embaixo, solto, chamado de
+   **"Nome da sala"**, como numa sala rápida qualquer.
+2. Por isso a Liga *parecia a rápida com um extra*, não um modo.
+
+Ele aprovou (*"Sim"*) e pediu mais: *"qd criar a sala, dps q ele entra ele pode
+excluir claramente dentro e fora tb… Editar e etc"*.
+
+**Feito:**
+- **Criação**: o quadro da Liga agora tem `🖋️ Nome da liga` no topo, depois
+  `📅 Quando vocês jogam` e `🤖 Bots na tabela` — os três juntos, com borda e
+  sombra dura. E o campo genérico "Nome da sala" **some** no modo Liga (senão
+  perguntaria o nome DUAS vezes — a mesma bronca dos bots). Nome padrão virou
+  **"Liga do Fulano"**.
+- **Por fora** (card de 🏆 Minhas ligas), só pro DONO: **✏️ Editar** (abre ali
+  mesmo nome + dia + hora + bots, sem entrar na sala) e **🗑️ Excluir a liga**.
+  Convidado não vê os botões.
+- **Por dentro**: já existia e continua (`🗑️ Excluir a liga`, mudar dia/hora,
+  regras do ranking). O excluir de dentro e o de fora agora passam pela MESMA
+  função (`excluirLigaId`) — uma regra só, com o mesmo aviso do que se perde.
+- **Banco**: `liga_patch` ganhou `p_nome` (renomear sem entrar na sala), com teto
+  de 24 e recusa de nome vazio. As DUAS assinaturas antigas foram derrubadas de
+  propósito: com um parâmetro novo opcional, a chamada antiga ficaria ambígua e o
+  PostgREST recusaria. Sobrou uma assinatura só.
+
+⚠️ Tudo isto está atrás de `LIGA_GERAL = false` (só a conta do Diego), então
+ninguém mais vê. Abrir pra todos = `LIGA_GERAL = true` em `sport.ts`.
+
 ## ❌ ERRO MEU, JÁ CONSERTADO — liguei o desenho RECUSADO da Liga Fechada (22/08)
 O Diego pediu: *"Liga fechada pode codar p mim por favor só o eu ver como tá lá"*.
 Eu achei um `false` cravado em `lobby.tsx` e liguei — **sem conferir que aquilo era
