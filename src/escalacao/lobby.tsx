@@ -12,7 +12,7 @@ import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useLigaFechadaLiberada } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -939,14 +939,25 @@ export function EscLobby() {
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
-  const ligaFechadaOn = useLigaFechadaLiberada() // 🏆 seletor Aberta × Liga Fechada: só a conta do Diego por enquanto
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
-  // 🏆 O seletor Aberta × Liga Fechada. Era um `false` cravado aqui, que escondia
-  // o botão de TODO MUNDO — inclusive do Diego, que não conseguia nem ver como
-  // tinha ficado. Virou trava por CONTA (`sport.ts`), no padrão da casa: ele vê
-  // rodando na conta dele e abre pra todos numa linha (LIGA_FECHADA_GERAL = true).
-  const LIGA_FECHADA_LIBERADA = ligaFechadaOn
+  // 🏆 SELETOR "Aberta × Liga Fechada" — DESENHO RECUSADO, NÃO RELIGAR.
+  // ⚠️ Recado pras próximas sessões (e pra mim mesmo, que errei nisso em 22/08):
+  // isto NÃO é uma feature esquecida esperando ser ligada. É o RESTO do desenho
+  // ANTIGO, em que a Liga Fechada era um detalhezinho da sala rápida. O Diego
+  // cortou esse desenho em 20/08, com estas palavras: *"tem q ser rápido, liga
+  // fechada, carreira e bafo"* — ou seja, **Liga Fechada é MODO DE JOGO**, na
+  // mesma fileira do Rápido/Carreira/Bafo, e é isso que está em
+  // `scripts/mockup-liga-fechada.mjs` (o mockup que ele aprovou).
+  // O modo de verdade JÁ EXISTE e funciona: `roomMode === 'liga'` (trava
+  // `useLigaLiberada`), com data/hora marcada, o dono mandando nos troféus e o
+  // SEU PRÓPRIO seletor de bots ("🤖 Bots na tabela").
+  // Em 22/08 eu liguei este resto por engano e o Diego pegou na hora: *"mostra
+  // duas vezes sobre bots ou não ao criar a sala e qd eu crio tá mt diferente do
+  // mockup"*. Estava certo — a seção "A partida" aparece TAMBÉM no modo Liga, e
+  // as duas perguntas de bot caíam na mesma tela.
+  // Fica `false` fixo. Quem for mexer em Liga Fechada, mexe no MODO.
+  const LIGA_FECHADA_LIBERADA = false
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')

@@ -167,24 +167,33 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
-## 🏆 LIGA FECHADA — ligada SÓ na conta do Diego (22/08)
-Ele pediu: *"liga fechada pode codar p mim por favor só p eu ver como tá lá e eu
-já poder abrir?"*.
+## ❌ ERRO MEU, JÁ CONSERTADO — liguei o desenho RECUSADO da Liga Fechada (22/08)
+O Diego pediu: *"Liga fechada pode codar p mim por favor só o eu ver como tá lá"*.
+Eu achei um `false` cravado em `lobby.tsx` e liguei — **sem conferir que aquilo era
+o desenho velho, que ele já tinha recusado.**
 
-**Não faltava código — faltava APARECER.** O seletor **🌍 Aberta × 🏆 Liga
-Fechada** na criação da sala rápida estava escondido por um `const
-LIGA_FECHADA_LIBERADA = false` cravado no `lobby.tsx`, que escondia de todo
-mundo, inclusive dele. Virou trava por CONTA (`useLigaFechadaLiberada()` em
-`sport.ts`), no padrão da casa.
+Ele pegou na hora: *"aí cria está estranho pq mostra duas vezes sobre bots ou não ao
+criar a sala e qd eu crio tá mt diferente do mockup q vc tinha feito tb"*. Certíssimo,
+nos dois pontos:
+1. **Duas perguntas de bot na mesma tela** — a seção ② "A partida" aparece também no
+   modo Liga, então o "🤖 Bots na tabela" (do modo) e o "🌍 Aberta × 🏆 Liga Fechada"
+   (o resto velho) caíam juntos.
+2. **Diferente do mockup** — porque o mockup aprovado
+   (`scripts/mockup-liga-fechada.mjs`) tem a Liga Fechada como **MODO DE JOGO**, na
+   fileira do Rápido/Carreira/Bafo. Palavras dele em 20/08: *"tem q ser rápido, liga
+   fechada, carreira e bafo"*. O que eu liguei era a versão "detalhe da sala rápida",
+   que é justamente a que ele cortou.
 
-O motor já respeitava tudo (conferido em `store.tsx`):
-`buildLeague(managers, !ligaFechada)` não põe bot nenhum · o tamanho da liga vira
-o número de jogadores · a Copa só destrava com 8+ · a liga não entra na lista
-pública · e a trava de ENTRADA (só 👑 Lenda ou dono de batismo, mesmo com o
-código na mão) já estava no `lobby.tsx`.
+**Conserto:** `LIGA_FECHADA_LIBERADA = false` fixo em `lobby.tsx`, com um comentário
+grande explicando que aquilo é desenho RECUSADO e não feature esquecida — pra
+nenhuma sessão (nem eu de novo) religar achando que faltava. `useLigaFechadaLiberada`
+em `sport.ts` ficou marcada como PARADA e sem uso.
 
-**Pra abrir pra todos:** `LIGA_FECHADA_GERAL = true` em `sport.ts`. Uma linha.
-**Criar** continua sendo benefício do 👑 Lenda — isso não mudou.
+**O que vale de verdade:** o MODO Liga (`roomMode === 'liga'`, trava
+`useLigaLiberada`, `LIGA_GERAL = false`, testers = Diego) — esse já está ligado na
+conta dele, com data/hora marcada, dono mandando nos troféus e o próprio seletor de
+bots. **É esse que ele tem que olhar e é esse que abre pra todos** (`LIGA_GERAL = true`)
+quando ele mandar.
 
 ## 🎙️ PROPOSTA — De La Ó FUT (influencer, 21/08) · NADA NO JOGO AINDA
 O Diego quer batizar um clube pro **Guilherme De la Ó** (@delaofut, 64,4 mil

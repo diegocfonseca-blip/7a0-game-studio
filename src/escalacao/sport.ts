@@ -303,6 +303,13 @@ function applyLigaFechadaUnlock(email?: string | null): void {
   ligaFechadaOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
+// ⚠️ PARADO — NÃO USAR (22/08). Esta trava foi criada por mim pra mostrar o
+// seletor "🌍 Aberta × 🏆 Liga Fechada" dentro da sala rápida. Só que esse
+// desenho o Diego RECUSOU em 20/08: Liga Fechada é MODO DE JOGO, não detalhe da
+// partida (ver o comentarão em `lobby.tsx`). O seletor ficou `false` fixo lá, e
+// esta função não é mais chamada por ninguém. Quem for mexer em Liga Fechada
+// usa `useLigaLiberada` (o MODO). Deixo aqui, sem uso, só pra ninguém recriar a
+// mesma coisa achando que faltava.
 export function useLigaFechadaLiberada(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
