@@ -6915,6 +6915,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // "host caiu?": convidado marca quando recebeu a última atualização do host.
   // Sem heartbeat por ~10s, mostra aviso (o host reemite estado a cada 3s).
   const lastHostMsgRef = useRef(Date.now())
+  // 📥 já chegou ALGUM estado do host nesta sala? (o ping não conta: ele diz que o
+  // dono está vivo, não que a partida chegou na minha tela)
+  const jaRecebiEstadoRef = useRef(false)
   const [hostStale, setHostStale] = useState(false)
 
   // 🎫 âncoras estáveis de identidade (setadas pela auto-cura mais abaixo): meu
@@ -7147,6 +7150,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         try { next = readState(payload) } catch { return }
         if (!next || typeof next !== 'object') return
         lastHostMsgRef.current = Date.now() // notícia fresca do host
+        jaRecebiEstadoRef.current = true
         rawDispatch({ type: 'SYNC_STATE', newState: next })
       })
     }
@@ -7198,10 +7202,31 @@ export function EscProvider({ children }: { children: ReactNode }) {
       rawDispatch({ type: 'SET_PRESENCE', indices, uids })
     })
     ch.subscribe(async () => {
+      // 🐛 REGRESSÃO MINHA, 21/08 → consertada 22/08 (o Diego pegou: *"de cara já
+      // apareceu erro c banner vermelho"* ao ENTRAR numa sala). Ao ligar o
+      // `meuCracha()`, o pedido "me manda o estado" passou a esperar uma chamada
+      // de REDE (`supabase.auth.getUser()`) antes de sair. Em celular com sinal
+      // ruim isso atrasa segundos: o convidado entra, não pede o estado, não
+      // recebe nada, e em 10s sobe o banner vermelho de "o dono sumiu" — com a
+      // sala funcionando do outro lado. Pior: quando o estado enfim chegava, vinha
+      // vários passos à frente, e a leva do leilão "trocava sozinha" na cara do
+      // jogador ("o goleiro foi trocado durante o leilão").
+      // ORDEM CERTA: pedir o estado PRIMEIRO (é o que destrava a tela), anunciar
+      // presença DEPOIS. O crachá pode demorar; a partida não pode.
+      if (!isHostRef.current) ch.send({ type: 'broadcast', event: 'request_state', payload: {} })
       await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() })
-      if (!state.isHost) channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
     })
     channelRef.current = ch
+    // 🔁 O PRIMEIRO PEDIDO PODE SE PERDER (o convidado entra antes do canal do host
+    // estar ouvindo, ou o pacote some no 4G do ônibus). Sem isto ele fica olhando
+    // pra tela parada até o vigia de 10s acordar — e aí já subiu o banner vermelho
+    // de "o dono sumiu" com a sala rodando normal do outro lado. Repergunta em 2s e
+    // 5s, e só enquanto NENHUM estado tiver chegado. São dois pacotinhos.
+    jaRecebiEstadoRef.current = false
+    const repergunta = [2000, 5000].map(ms => setTimeout(() => {
+      if (isHostRef.current || jaRecebiEstadoRef.current) return
+      channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+    }, ms))
     // 📱 TROCAR DE APP NÃO DERRUBA NINGUÉM (bug 28/07: sala travava quando alguém
     // dava uma volta em outro app e voltava): o celular mata a conexão em 2º plano
     // EM SILÊNCIO. Ao voltar pra tela: se o canal morreu, RECONECTA na hora; host
@@ -7215,10 +7240,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }); resync() }) } catch { /* tenta de novo na próxima volta */ }
+      try { ch.subscribe(async () => { resync(); await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo na próxima volta */ }
     }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
-    return () => { if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); ch.unsubscribe(); channelRef.current = null }
+    return () => { repergunta.forEach(clearTimeout); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); ch.unsubscribe(); channelRef.current = null }
   }, [state.roomId, state.onlineMode, state.isHost]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // host retransmite estado (sanitizado: envelopes pendentes não vazam)
@@ -7311,7 +7336,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }); resync() }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { resync(); await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
