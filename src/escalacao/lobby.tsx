@@ -1629,16 +1629,16 @@ export function EscLobby() {
     // JSON, e remonta um mini game_state. Quem ENTRA numa sala busca o estado
     // completo na hora (triggerStart/enterLoadedRoom já refetcham).
     const { data: rooms } = await supabase.from('game_rooms')
-      .select('id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gdeck:game_state->>deck, gvarzea:game_state->>varzea, gmode:game_state->>mode, gcareer:game_state->>careerOnline, gmanual:game_state->>manual, gcopa:game_state->>copaMode, gliga:game_state->>ligaFechada, glocked:game_state->>locked, gstream:game_state->>stream, gpw:game_state->>pwHash, gchat:game_state->>chatOff, gduplas:game_state->>duplasMode')
+      .select('id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gdeck:game_state->>deck, gvarzea:game_state->>varzea, gmode:game_state->>mode, gat:game_state->>ligaAt, gcareer:game_state->>careerOnline, gmanual:game_state->>manual, gcopa:game_state->>copaMode, gliga:game_state->>ligaFechada, glocked:game_state->>locked, gstream:game_state->>stream, gpw:game_state->>pwHash, gchat:game_state->>chatOff, gduplas:game_state->>duplasMode')
       .in('status', ['waiting', 'started'])
       .eq('game_state->>__game', GAME_TAG)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(50)
-    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null }
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
+      game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -1670,12 +1670,15 @@ export function EscLobby() {
     // 🃏 BAFO também fica FORA da lista pública enquanto está em construção —
     // mesmo tratamento da carreira online. Quem tem o modo liberado vê normal.
     const isBafo = (r: RoomInfo) => r.game_state?.mode === 'elenco' && !salaElenco
-    // 🏆 LIGA FECHADA nunca entra na lista pública: ela é a sala PRIVADA da turma.
-    // Quem é da liga chega por "Minhas ligas" (abaixo) ou pelo código. Regra do
-    // Diego: *"ninguém consegue ver a sala se não for Lenda — fica bloqueado"*.
-    const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
+    // 🏆 A LIGA AGORA APARECE NA LISTA (mudou em 22/08, com o Diego olhando ao vivo:
+    // *"o Neymarzetti botou sala aberta e msm se fosse fechada deveria aparecer"*).
+    // A regra velha (19/08) escondia a liga de todo mundo, e naquela época fazia
+    // sentido: só Lenda ENTRAVA. Hoje a regra é outra — **só CRIAR é do Lenda,
+    // entrar é de qualquer um**. Com a entrada aberta, esconder a sala só servia pra
+    // ninguém achar a liga do amigo. Ela entra marcada com o selo 🏆 LIGA e o dia
+    // marcado, pra não se confundir com sala rápida.
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && !isLiga(r))
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -2808,6 +2811,7 @@ export function EscLobby() {
             const copaLbl = r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
+            const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
@@ -2818,8 +2822,16 @@ export function EscLobby() {
                     {duplasRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title="Sala de duplas: cada time é comandado por 2 pessoas">🤝 DUPLAS</span>
                     )}
+                    {ligaRoom && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title="Liga: a sala fica de pé, com dia marcado e sala de troféus">🏆 LIGA</span>
+                    )}
                   </p>
                   <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🏆 liga fechada' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
+                  {ligaRoom && (
+                    <p className="font-black text-[11.5px] mt-0.5" style={{ ...OSWALD, color: quandoLiga((r.game_state as GS)?.ligaAt).cor }}>
+                      📅 {quandoLiga((r.game_state as GS)?.ligaAt).txt}
+                    </p>
+                  )}
                 </div>
                 {live ? (
                   <span className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>

@@ -167,6 +167,23 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
+## 👀 A LIGA PASSA A APARECER NA LISTA DE SALAS (22/08)
+Diego, testando ao vivo com as duas contas: *"mas o usuário secundário n tá vendo…
+o Neymarzetti botou sala aberta e msm se fosse fechada deveria aparecer"*.
+
+**Não era bug — era a regra de 19/08 brigando com a decisão de hoje.** A liga era
+tirada de propósito da lista pública (*"ninguém consegue ver a sala se não for
+Lenda"*), o que fazia sentido quando **entrar** também era só de Lenda. Como hoje
+**entrar é de qualquer um e só CRIAR é do Lenda**, esconder só servia pra ninguém
+achar a liga do amigo — a única porta era o código.
+
+**Feito:** a liga entra na lista de Salas Abertas como as outras, marcada com o selo
+verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 · faltam
+2 dias"), pra não se confundir com sala rápida. Liga com senha aparece igual, com o
+🔒 — palavras dele: *"msm se fosse fechada deveria aparecer"*.
+(Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
+rápida.)
+
 ## 🧪 LIGA — 2ª conta do Diego pra testar, e a REGRA MUDOU (22/08)
 Pedido: *"Permita o usuário diego.c.fonseca2@gmail.com poder ver as coisas do liga
 fechada tb como se fosse um usuário normal sem o lenda… vou testar esse usuário c o
