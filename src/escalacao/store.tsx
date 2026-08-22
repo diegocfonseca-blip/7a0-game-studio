@@ -13,7 +13,6 @@ import { stripEmoji, myApoioPerk } from './apoio'
 import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
-import { tickerVivo } from './ticker'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
 // Europa. buildDeck e makeBotSquad leem daqui. É setado no início de cada
@@ -7317,12 +7316,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // de 10s como reforço). Mesma proteção, uma fração do tráfego.
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
-    return tickerVivo(6000, () => { // relógio de worker: sobrevive à aba no fundo
+    const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       if (Date.now() - lastStateSendRef.current < 12000) return // teve jogada recente → já sincronizado
       channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
       lastStateSendRef.current = Date.now()
-    })
+    }, 6000)
+    return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 
   // 💗 PING "TÔ VIVO" do host: bem mais leve e frequente que o heartbeat de estado.
@@ -7332,12 +7332,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Realtime/Egress nem escreve no banco. self:false → só os convidados recebem.
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
-    // ⏰ relógio de WORKER: a aba no fundo não freia mais o "tô vivo" do dono —
-    // era isso que fazia o banner vermelho pipocar pra sala inteira (ver ticker.ts).
-    return tickerVivo(4000, () => {
+    const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       channelRef.current?.send({ type: 'broadcast', event: 'host_ping', payload: {} })
-    })
+    }, 4000)
+    return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 
   // 🪑 REGRA DE OURO — UM DONO SÓ: o dono confere no banco quem é o host_id (a
@@ -7757,10 +7756,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }
     lastUpRef.current = '' // sala nova/reconexão: primeiro save sempre sobe inteiro
     save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
-    // relógio de worker: este é o batimento que o convidado consulta como PROVA de
-    // que o dono está vivo. Se ele parar com a aba no fundo, a prova some junto.
-    const para = tickerVivo(3000, save)
-    return () => { save(); para() }
+    const iv = setInterval(save, 3000)
+    return () => { save(); clearInterval(iv) }
   }, [state.onlineMode, state.isHost, state.roomId])
 
   // ─── analytics: registra cada partida e mantém o "ao vivo" ───
