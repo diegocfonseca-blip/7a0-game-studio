@@ -136,9 +136,15 @@ h1 .r{color:#C2452F}
 .card{border:4px solid #0C0C0C;border-radius:22px;box-shadow:6px 6px 0 #0C0C0C;overflow:hidden;background:#fff}
 .hero{margin-top:24px;display:flex;gap:22px;align-items:center;padding:22px;
   background:linear-gradient(105deg,#FFC400 0%,#FFD84D 46%,#E8A800 100%)}
-.hero .esc{background:#fff;border:4px solid #0C0C0C;border-radius:18px;padding:12px;flex:none;
-  width:186px;height:186px;display:flex;align-items:center;justify-content:center}
-.hero .esc img{max-width:100%;max-height:100%;display:block}
+/* 📐 A CAIXA SEGUE A ARTE, não o contrário (Diego 23/08: *"dá p ver nitidamente
+   q o escudo está desproporcional ao espaço onde cabe"*). A caixa era um QUADRADO
+   fixo de 186x186: escudo alto e estreito (o do Papão é 150x360) encaixava pela
+   altura e sobrava um vazio enorme dos dois lados — parecia arte pequena, quando
+   na verdade era caixa errada. Agora a altura manda e a largura acompanha a
+   proporção REAL do arquivo; o min-width segura o caso do escudo baixinho e largo. */
+.hero .esc{background:#fff;border:4px solid #0C0C0C;border-radius:18px;padding:14px;flex:none;
+  min-width:150px;height:210px;display:flex;align-items:center;justify-content:center}
+.hero .esc img{height:100%;width:auto;max-width:260px;display:block;object-fit:contain}
 .hero h2{font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:700;font-size:46px;line-height:1.02}
 /* ⚠️ line-height apertado CORTA o til/acento das maiúsculas (o "Ã" de BIGÃO
    sumia no cartão dourado). Nome de clube brasileiro tem acento — o respiro
@@ -150,13 +156,19 @@ h1 .r{color:#C2452F}
 .dois{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
 .tit{background:#0C0C0C;color:#fff;font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:600;
   font-size:17px;letter-spacing:.14em;padding:11px 18px;display:flex;align-items:center;gap:9px}
-.corpo{padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:274px}
-.corpo img{max-height:186px;max-width:100%;display:block}
+.corpo{padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px}
+/* o mascote também ocupava pouco do cartão: 186px num corpo de 274. Sobe pra 232
+   e o cartão cresce junto, pra a fera não ficar perdida no meio do branco. */
+.corpo img{max-height:232px;max-width:100%;display:block}
 /* 🎽 o MANTO mostra as DUAS coisas (pedido do Diego 17/08): a faixa de listras
    lisas, que é como o jogo pinta o time, E a camisa montada com o escudo. */
 .manto{display:flex;align-items:center;gap:16px}
-.manto .kit{max-height:210px;width:auto;display:block}
-.listras{width:74px;height:200px;border:3px solid #0C0C0C;border-radius:12px;flex:none;
+/* 🎽 a camisa é ALTA e estreita (a do Papão é 175x620). Com teto de 210px ela
+   virava uma tirinha de ~59px do lado de uma faixa de listras de 74px — o Diego
+   pegou: *"msm coisa a camisa do manto"*. Agora as duas têm a MESMA altura, e a
+   faixa engrossa junto, pra o par ficar equilibrado. */
+.manto .kit{height:232px;width:auto;display:block;object-fit:contain}
+.listras{width:84px;height:232px;border:3px solid #0C0C0C;border-radius:12px;flex:none;
   background:repeating-linear-gradient(90deg,${o.c1} 0 15px,${o.c2} 15px 26px)}
 .leg{text-align:center;font-size:14.5px;line-height:1.35;color:rgba(12,12,12,.62);margin-top:12px}
 .leg b{color:#0C0C0C}
