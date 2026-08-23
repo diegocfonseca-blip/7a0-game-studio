@@ -511,11 +511,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   ),
   // 🐺 Papão United Madrid — o lobo chifrudo de faixa azul e branca.
   // arte própria do dono (webp, fora do bundle). mascote_key = "papao_lobo".
-  // 215x440 no arquivo. A arte trazia um bloco quadriculado colado no corpo dele
-  // (invenção do gerador): tirei só o que era NEUTRO naquele retângulo, então o
-  // pelo tinto e a faixa do peito ficaram intactos.
+  // 281x440 no arquivo — o TRIDENTE conta na largura, por isso ele é mais largo
+  // que os outros mascotes. Veio da 2ª arte que o dono mandou (peças separadas,
+  // fundo branco): a 1ª tinha um bloco quadriculado colado no corpo e o Diego
+  // reprovou. Aqui é a fera inteira, sem remendo.
   papao_lobo: (
-    <img src={papaoMascoteImg} height={176} width={Math.round(176 * 215 / 440)} alt="O Papão — Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={papaoMascoteImg} height={176} width={Math.round(176 * 281 / 440)} alt="O Papão — Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦇 Theuzudo FC — o morcego de boné (coração Valência, laranja e preto).
   // arte própria do dono (webp, fora do bundle). mascote_key = "theuzudo_morcego".

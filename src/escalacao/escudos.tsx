@@ -482,14 +482,15 @@ const saoluizEscudoRender = (size: number) => (
   <img src={saoluizEscudoImg} height={size} width={Math.round(size * 283 / 279)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🐺 Papão United Madrid — lobo chifrudo com tridente, azul-marinho e branco.
-// 212x360 no arquivo (a largura sai da proporção REAL, nunca chutada).
-// ⚠️ A arte veio com o escudo, a fera e a camisa NUMA IMAGEM SÓ, e a haste da fera
-// atravessava a borda direita do escudo. Tirei a haste e refiz aquela tira da borda
-// ESPELHANDO a borda esquerda do próprio escudo — nada inventado, é a arte do dono.
-// Conferido sobre fundo CREME (nunca sobre branco): "PAPÃO UNITED" e "DE MADRID"
-// saíram inteiros, que foi o furo que o Diego pegou no Theuzudo.
+// 150x360 no arquivo (a largura sai da proporção REAL, nunca chutada).
+// 📌 O dono mandou DUAS artes. A 1ª trazia escudo, fera e camisa grudados, com um
+// xadrez falso preto+cinza por baixo — a haste da fera atravessava a borda do
+// escudo e o Diego reprovou o resultado ("ficou ruim"). A 2ª (esta) veio com as
+// três peças SEPARADAS e fundo branco: o escudo saiu inteiro, sem remendo nenhum.
+// Conferido sobre fundo CREME, nunca sobre branco — "PAPÃO UNITED" e "DE MADRID"
+// intactos, que foi o furo que ele pegou no Theuzudo.
 const papaoEscudoRender = (size: number) => (
-  <img src={papaoEscudoImg} height={size} width={Math.round(size * 212 / 360)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 360)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🦇 Theuzudo FC — morcego (coração Valência), laranja e preto. 293x360 no arquivo.
 const theuzudoEscudoRender = (size: number) => (
