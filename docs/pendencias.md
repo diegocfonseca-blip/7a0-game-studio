@@ -167,6 +167,86 @@ Peso: escudo 293×360 = 29,2 KB · mascote 264×351 = 23,2 KB · **total 52,5 KB
 preto). E **não achei nenhum símbolo da Paraíba** no escudo — só morcego, bola,
 alfinete de mapa e listras. Se ele quiser arte nova um dia, é aqui que mexe.
 
+## 👀 A LIGA PASSA A APARECER NA LISTA DE SALAS (22/08)
+Diego, testando ao vivo com as duas contas: *"mas o usuário secundário n tá vendo…
+o Neymarzetti botou sala aberta e msm se fosse fechada deveria aparecer"*.
+
+**Não era bug — era a regra de 19/08 brigando com a decisão de hoje.** A liga era
+tirada de propósito da lista pública (*"ninguém consegue ver a sala se não for
+Lenda"*), o que fazia sentido quando **entrar** também era só de Lenda. Como hoje
+**entrar é de qualquer um e só CRIAR é do Lenda**, esconder só servia pra ninguém
+achar a liga do amigo — a única porta era o código.
+
+**Feito:** a liga entra na lista de Salas Abertas como as outras, marcada com o selo
+verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 · faltam
+2 dias"), pra não se confundir com sala rápida. Liga com senha aparece igual, com o
+🔒 — palavras dele: *"msm se fosse fechada deveria aparecer"*.
+(Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
+rápida.)
+
+## 🩹 SALA PRESA — "começou" no banco, SEM jogo dentro (22/08, liga F1UALH)
+Diego: *"o usuário q criou, Neymarzetti, eu não tô conseguindo abrir o pregão"*.
+
+**O banco mostrou o beco sem saída:** `status = 'started'`, 2 técnicos na sala
+(ele + a 2ª conta, os dois prontos) e **`managers = 0`, `screen = null`** — ou
+seja, a sala dizia que a partida começou e **não existia partida nenhuma**.
+Sem saída pelos dois lados: o botão "Abrir o Pregão" some (a sala já "começou") e
+"voltar pra sala" não faz nada (não há partida pra restaurar).
+
+**Causa** — quem apertava o botão só marcava `status = 'started'` no banco e
+**ficava esperando o aviso do banco VOLTAR** (`postgres_changes`) pra, aí sim,
+montar o jogo. O dono dependia do eco da própria jogada. Se esse aviso se perdesse
+(rede, canal do lobby piscando), a sala congelava exatamente nesse meio-termo.
+
+**Consertos:**
+1. **O dono monta o jogo NA HORA**, com a linha fresca do banco, em vez de esperar
+   o eco. Guarda `jaIniciouRef` impede montar duas vezes se o eco chegar depois.
+2. **Autocura**: sala `started` com **zero técnicos** e parada há **mais de 20s** é
+   tratada como se ainda estivesse esperando — volta pra `waiting` sozinha e o
+   botão reaparece. Os 20s existem pra não confundir com um início NORMAL, em que
+   o estado ainda não subiu (remontar por cima de partida de verdade seria pior).
+3. **A sala dele foi destravada na mão** (`F1UALH` → `waiting`), já que não havia
+   partida nenhuma pra perder.
+
+## 🔒 FURO MEU (durou 1 deploy) — a liga do Diego apareceria pra TODO MUNDO
+Minutos depois de eu pôr a liga na lista, o Diego perguntou: *"mas hj só o secundário
+q vai ver né a sala aberta ne"*. **Não era.** Eu tirei a liga da lista SEM pôr nada no
+lugar: como jogador nenhum tem o modo Liga, **todos** veriam a "Liga do Neymarzetti"
+em Salas Abertas — e, com a entrada agora liberada (`LIGA_SO_LENDA_ENTRA = false`),
+**entrariam nela**.
+
+**Conserto:** o filtro virou `(ligaOn || !isLiga(r))` — enquanto a Liga está em
+construção (`LIGA_GERAL = false`), ela só aparece pra quem enxerga o modo (hoje: as
+duas contas do Diego). Quando abrir pra todos, `ligaOn` vira true pra todo mundo e a
+mesma linha continua valendo, sem mexer em nada.
+
+**Lição pra registrar:** ao TIRAR uma trava, conferir quem sobra enxergando. A trava
+velha ("liga nunca entra na lista") estava segurando duas coisas ao mesmo tempo —
+esconder de quem não é da turma **e** esconder o modo em construção. Tirei a primeira
+e derrubei a segunda junto.
+
+## 🧪 LIGA — 2ª conta do Diego pra testar, e a REGRA MUDOU (22/08)
+Pedido: *"Permita o usuário diego.c.fonseca2@gmail.com poder ver as coisas do liga
+fechada tb como se fosse um usuário normal sem o lenda… vou testar esse usuário c o
+diego.c.fonseca@gmail.com q criou uma sala agora. Aí já quero ver como ele vê tb"*.
+
+**Feito:**
+- `sport.ts` → `diego.c.fonseca2@gmail.com` entra em **`LIGA_TESTERS`** (enxerga o
+  modo). ⚠️ E **NÃO** entra na lista de ouro do `apoio.tsx`, de propósito: assim ela
+  é um jogador COMUM e bate na trava de criar — que é o que ele quer ver.
+
+**🔁 REGRA DE ENTRADA MUDOU (decisão dele, hoje):** antes (19/08) só Lenda/dono de
+batismo **ENTRAVA** numa liga. Ele reviu: *"vamos supor q só qm pode criar e o
+lenda"* + *"qm entra se tiver aberta pode ser qlqr um"*. Agora **qualquer conta
+entra** com o código; só **CRIAR** é do Lenda. Interruptor:
+`LIGA_SO_LENDA_ENTRA = false` em `lobby.tsx` (voltar = `true`).
+
+**🐛 ACHADO NO CAMINHO:** **criar liga NUNCA esteve travado no Lenda.** O código só
+olhava `ligaOn` (quem enxerga o modo), nunca o tier — como enxergar era privilégio
+da conta do Diego, ninguém notou; na hora de abrir pra todos, **qualquer um criaria
+liga**. Agora tem trava explícita, com o porquê e o caminho ("pra JOGAR numa liga
+você não precisa ser Lenda: peça o código pra quem criou").
+
 ## 🏆 LIGA FECHADA — criação igual ao mockup + editar/excluir POR FORA (22/08)
 Depois do conserto do erro abaixo, o Diego olhou o modo Liga de verdade e cobrou:
 *"ainda n tá legal… eu lembro q vc tinha feito um mockup maneiro mas n parece igual

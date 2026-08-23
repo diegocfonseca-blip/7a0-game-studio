@@ -938,6 +938,13 @@ export function EscLobby() {
     return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
   })
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
+  // 🚪 QUEM ENTRA NA LIGA — mudou em 22/08, por decisão do Diego. Antes (regra de
+  // 19/08) só Lenda/dono de batismo ENTRAVA. Ele reviu: *"vamos supor q só qm pode
+  // criar e o lenda"* e, mais cedo, *"qm entra se tiver aberta pode ser qlqr um"*.
+  // Faz sentido: quem paga é dono da liga; os amigos dele só precisam ser
+  // convidados. Cobrar de quem só quer jogar espantava a turma inteira.
+  // Pra voltar ao que era: `true` aqui.
+  const LIGA_SO_LENDA_ENTRA = false
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
@@ -1119,13 +1126,31 @@ export function EscLobby() {
     ;(async () => {
       const rd = (await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()).data
       if (!rd || rd.game_state?.__game !== GAME_TAG) { clearSavedRoom(); return }
-      if (rd.status === 'started') {
+      // 🩹 SALA PRESA: diz que COMEÇOU mas não tem jogo nenhum dentro (nenhum
+      // técnico montado). Acontecia quando o aviso do banco se perdia entre marcar
+      // "começou" e montar a partida — e deixava a sala num beco sem saída: sem
+      // botão de abrir o pregão (a sala já "começou") e sem partida pra voltar.
+      // Foi o que travou a liga do Diego em 22/08. Aqui a sala é tratada como se
+      // ainda estivesse ESPERANDO, e o dono consegue abrir o pregão de novo.
+      // ⏱️ só depois de 20s parada: nos primeiros segundos de um início NORMAL o
+      // estado ainda não subiu, e confundir os dois faria alguém remontar por cima
+      // de uma partida de verdade.
+      const semJogo = (rd.game_state?.managers?.length ?? 0) === 0
+        && Date.now() - new Date(rd.updated_at ?? 0).getTime() > 20_000
+      if (rd.status === 'started' && !semJogo) {
         // partida em andamento: NÃO entra direto. Confirma que ainda sou da
         // sala e mostra a pergunta "voltar pra partida ou sair" no menu.
         const { data: mySlot } = await supabase.from('room_players').select('user_id').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
         if (!mySlot) { clearSavedRoom(); return }
         setResumeRoom(rd)
         return
+      }
+      if (rd.status === 'started' && semJogo) {
+        // desfaz a marca errada pra o botão voltar (e pra sala não ficar "em jogo"
+        // na lista de todo mundo, enganando quem tenta entrar).
+        await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', rd.id)
+          .eq('status', 'started').then(() => {}, () => {})
+        rd.status = 'waiting'
       }
       if (rd.status === 'waiting') {
         const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
@@ -1267,6 +1292,9 @@ export function EscLobby() {
   // autoritativo, arrasta todo mundo pro início — o bug relatado. O início de
   // verdade (waiting→started) vem do evento realtime, com allowFresh=true.
   // Devolve true se conseguiu entrar (restaurou ou começou).
+  // 🧯 já montei o jogo desta sala? (guarda contra montar DUAS vezes quando o
+  // início direto do host e o eco do banco chegam juntos)
+  const jaIniciouRef = useRef<string | null>(null)
   async function triggerStart(roomData: RoomInfo, allowFresh = true): Promise<boolean> {
     if (!user) return false
     // pega o estado salvo MAIS recente (não confia no payload do evento, que
@@ -1316,6 +1344,7 @@ export function EscLobby() {
       return true
     }
     if (!allowFresh) return false // reconexão sem estado salvo ainda: não recomeça
+    if (jaIniciouRef.current === roomData.id) return true // já montei esta sala agora há pouco
     // SEGURANÇA (mesmo se uma vaga duplicada escapou): um assento por usuário.
     // Deduplica de forma DETERMINÍSTICA (mesma ordem em todo cliente) e usa a
     // POSIÇÃO na lista como número do técnico — o time é montado pela posição, não
@@ -1349,6 +1378,7 @@ export function EscLobby() {
         }
       })
     }
+    jaIniciouRef.current = roomData.id
     dispatch({
       type: 'START_ONLINE',
       roomId: roomData.id, roomCode: roomData.code,
@@ -1562,6 +1592,15 @@ export function EscLobby() {
     // sumir da lista e ganhar a sala de troféus na espera. Sem bot = a liga
     // fechada que o jogo já sabia fazer (`ligaFechada`).
     const liga = ligaOn && roomMode === 'liga'
+    // 👑 CRIAR LIGA É SÓ DO LENDA — e até 22/08 isso NÃO estava travado de verdade:
+    // o código só olhava `ligaOn` (quem enxerga o modo), nunca o tier. Como enxergar
+    // era privilégio da conta do Diego, ninguém tinha notado; na hora de abrir pra
+    // todos, qualquer um criaria liga. Trava explícita, com o porquê e o caminho —
+    // e é ela que o Diego quer VER com a 2ª conta dele.
+    if (liga && !canLiga) {
+      setRoomError('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".')
+      setLoading(false); return
+    }
     const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
     const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : (canLiga && ligaFechada ? { ligaFechada: true } : {})), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
@@ -1613,16 +1652,16 @@ export function EscLobby() {
     // JSON, e remonta um mini game_state. Quem ENTRA numa sala busca o estado
     // completo na hora (triggerStart/enterLoadedRoom já refetcham).
     const { data: rooms } = await supabase.from('game_rooms')
-      .select('id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gdeck:game_state->>deck, gvarzea:game_state->>varzea, gmode:game_state->>mode, gcareer:game_state->>careerOnline, gmanual:game_state->>manual, gcopa:game_state->>copaMode, gliga:game_state->>ligaFechada, glocked:game_state->>locked, gstream:game_state->>stream, gpw:game_state->>pwHash, gchat:game_state->>chatOff, gduplas:game_state->>duplasMode')
+      .select('id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gdeck:game_state->>deck, gvarzea:game_state->>varzea, gmode:game_state->>mode, gat:game_state->>ligaAt, gcareer:game_state->>careerOnline, gmanual:game_state->>manual, gcopa:game_state->>copaMode, gliga:game_state->>ligaFechada, glocked:game_state->>locked, gstream:game_state->>stream, gpw:game_state->>pwHash, gchat:game_state->>chatOff, gduplas:game_state->>duplasMode')
       .in('status', ['waiting', 'started'])
       .eq('game_state->>__game', GAME_TAG)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(50)
-    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null }
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
+      game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -1654,12 +1693,23 @@ export function EscLobby() {
     // 🃏 BAFO também fica FORA da lista pública enquanto está em construção —
     // mesmo tratamento da carreira online. Quem tem o modo liberado vê normal.
     const isBafo = (r: RoomInfo) => r.game_state?.mode === 'elenco' && !salaElenco
-    // 🏆 LIGA FECHADA nunca entra na lista pública: ela é a sala PRIVADA da turma.
-    // Quem é da liga chega por "Minhas ligas" (abaixo) ou pelo código. Regra do
-    // Diego: *"ninguém consegue ver a sala se não for Lenda — fica bloqueado"*.
+    // 🏆 A LIGA AGORA APARECE NA LISTA (mudou em 22/08, com o Diego olhando ao vivo:
+    // *"o Neymarzetti botou sala aberta e msm se fosse fechada deveria aparecer"*).
+    // A regra velha (19/08) escondia a liga de todo mundo, e naquela época fazia
+    // sentido: só Lenda ENTRAVA. Hoje a regra é outra — **só CRIAR é do Lenda,
+    // entrar é de qualquer um**. Com a entrada aberta, esconder a sala só servia pra
+    // ninguém achar a liga do amigo. Ela entra marcada com o selo 🏆 LIGA e o dia
+    // marcado, pra não se confundir com sala rápida.
+    // 🔒 ...MAS SÓ PRA QUEM TEM O MODO LIGA LIBERADO. Furo que o Diego pegou com uma
+    // pergunta, minutos depois de eu subir isto: *"mas hj só o secundário q vai ver
+    // né a sala aberta ne"*. Eu tinha tirado a liga da lista SEM pôr nada no lugar —
+    // ou seja, JOGADOR NENHUM tinha o modo, e todos veriam a liga do Diego na lista
+    // e (com a entrada liberada) entrariam nela. Enquanto a Liga está em construção
+    // (`LIGA_GERAL = false`), ela só aparece pra quem enxerga o modo. Quando abrir
+    // pra todos, `ligaOn` vira true pra todo mundo e a linha continua valendo.
     const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && !isLiga(r))
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && (ligaOn || !isLiga(r)))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -1900,7 +1950,7 @@ export function EscLobby() {
     // ou o link entrava assim mesmo. Aqui fecha pra valer.
     // (Todo batismo já nasce tier ouro pela regra de 17/08, então a conta é uma
     // só. E CRIAR liga continua preso à conta do Diego, em `sport.ts`.)
-    if (rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
+    if (LIGA_SO_LENDA_ENTRA && rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
       setRoomError('Essa é uma 🏆 Liga Fechada — só entra quem é 👑 Lenda ou dono de clube batizado.'); setLoading(false); return
     }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
@@ -2028,6 +2078,18 @@ export function EscLobby() {
       }
     }
     await supabase.from('game_rooms').update({ status: 'started' }).eq('id', room.id)
+    // 🐛 O HOST NÃO ESPERA MAIS O ECO DO BANCO (Diego 22/08, na liga dele: *"o
+    // usuário que criou, Neymarzetti, eu não tô conseguindo abrir o pregão"*).
+    // Até aqui, quem apertava o botão só marcava a sala como "começou" e ficava
+    // esperando o aviso do banco VOLTAR pra, aí sim, montar o jogo. Se esse aviso
+    // se perdesse (rede, canal do lobby piscando), a sala ficava no PIOR estado
+    // possível: `started` no banco e SEM jogo dentro. O botão sumia (a sala já
+    // "começou"), e "voltar pra sala" não fazia nada — porque não havia partida
+    // pra voltar. Foi exatamente o que travou a liga F1UALH.
+    // Agora o dono monta o jogo NA HORA, com a linha fresca do banco. Se o eco
+    // chegar depois, a guarda `jaIniciouRef` impede montar de novo.
+    const { data: agora } = await supabase.from('game_rooms').select('*').eq('id', room.id).maybeSingle()
+    if (agora) await triggerStart(agora as RoomInfo)
   }
   async function leaveRoom() {
     if (!room || !user) return
@@ -2792,6 +2854,7 @@ export function EscLobby() {
             const copaLbl = r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
+            const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
@@ -2802,8 +2865,16 @@ export function EscLobby() {
                     {duplasRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title="Sala de duplas: cada time é comandado por 2 pessoas">🤝 DUPLAS</span>
                     )}
+                    {ligaRoom && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title="Liga: a sala fica de pé, com dia marcado e sala de troféus">🏆 LIGA</span>
+                    )}
                   </p>
                   <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🏆 liga fechada' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
+                  {ligaRoom && (
+                    <p className="font-black text-[11.5px] mt-0.5" style={{ ...OSWALD, color: quandoLiga((r.game_state as GS)?.ligaAt).cor }}>
+                      📅 {quandoLiga((r.game_state as GS)?.ligaAt).txt}
+                    </p>
+                  )}
                 </div>
                 {live ? (
                   <span className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>

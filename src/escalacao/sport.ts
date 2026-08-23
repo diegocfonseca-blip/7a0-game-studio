@@ -265,7 +265,13 @@ export function useSalaElencoLiberada(): boolean {
 // terminar deixe também só pra mim"*. Pra todo mundo a aba aparece APAGADA com
 // "em breve", igual a Carreira e o Bafo. Pra liberar geral: LIGA_GERAL = true.
 const LIGA_GERAL = false
-const LIGA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+// 🧪 A 2ª conta do Diego entra aqui pra ele testar a Liga com DOIS usuários ao
+// mesmo tempo (22/08): *"vou testar esse usuário c o diego.c.fonseca@gmail.com q
+// criou uma sala agora. Aí já quero ver como ele vê tb"*. Repare: ela está SÓ
+// aqui, e de propósito NÃO entra na lista de ouro do `apoio.tsx` — assim ela
+// ENXERGA a Liga como um jogador comum (sem Lenda) e bate na trava de criar,
+// que é exatamente o que ele quer ver.
+const LIGA_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 let ligaOk = LIGA_GERAL
 function applyLigaUnlock(email?: string | null): void {
   const u = LIGA_GERAL || (!!email && LIGA_TESTERS.has(email.toLowerCase()))
