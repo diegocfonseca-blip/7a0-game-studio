@@ -118,7 +118,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'lucas_calefi@outlook.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº44 + sócio nº24; batizou os CORINGAS DO DINIZ (ex-Vanguarda Nacional, Série A); coração Corinthians, manto preto e branco (16/08)
   'lucassrribeiroo2023@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Scorporila FC) (11/08)
   'paisagensetrilha@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marolados FC — molecada da várzea) (11/08)
-  'agrostinho88@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (Leandro/Obina; nome reservado "Papão United Madrid") (11/08)
+  'agrostinho88@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº39 + sócio nº29 + batismo (Papão United Madrid, ex-Santos Dumont, Série D; Leandro/Obina) (nome reservado 11/08, clube entregue 23/08)
   'erosreis@outlook.com.br': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Eros FC — influencer @erosreis; nomes: Eros Reis FC / Eros Reis / Eros; mascote Nina 🐶) (12/08)
   'tiosapeka@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Sapekeiros FC — influencer @tiosapekagg; mascote abelha coroada 🐝; coração Santos) (12/08)
   'chiarentin.dyno127@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N) (12/08)

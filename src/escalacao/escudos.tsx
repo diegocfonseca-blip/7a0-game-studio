@@ -24,6 +24,7 @@ import coringasEscudoImg from './img/coringas-escudo.webp'
 import nataEscudoImg from './img/nata-escudo.webp'
 import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
 import saoluizEscudoImg from './img/saoluiz-escudo.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
+import papaoEscudoImg from './img/papao-escudo.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
 import futpointEscudoImg from './img/futpoint-escudo.webp'
@@ -480,6 +481,16 @@ const futpointEscudoRender = (size: number) => (
 const saoluizEscudoRender = (size: number) => (
   <img src={saoluizEscudoImg} height={size} width={Math.round(size * 283 / 279)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🐺 Papão United Madrid — lobo chifrudo com tridente, azul-marinho e branco.
+// 212x360 no arquivo (a largura sai da proporção REAL, nunca chutada).
+// ⚠️ A arte veio com o escudo, a fera e a camisa NUMA IMAGEM SÓ, e a haste da fera
+// atravessava a borda direita do escudo. Tirei a haste e refiz aquela tira da borda
+// ESPELHANDO a borda esquerda do próprio escudo — nada inventado, é a arte do dono.
+// Conferido sobre fundo CREME (nunca sobre branco): "PAPÃO UNITED" e "DE MADRID"
+// saíram inteiros, que foi o furo que o Diego pegou no Theuzudo.
+const papaoEscudoRender = (size: number) => (
+  <img src={papaoEscudoImg} height={size} width={Math.round(size * 212 / 360)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🦇 Theuzudo FC — morcego (coração Valência), laranja e preto. 293x360 no arquivo.
 const theuzudoEscudoRender = (size: number) => (
   <img src={theuzudoEscudoImg} height={size} width={Math.round(size * 293 / 360)} alt="Theuzudo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -587,6 +598,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'São Luiz EC': saoluizEscudoRender,
   'Sao Luiz FC': saoluizEscudoRender,
   'Flamengo do Sertão': saoluizEscudoRender,
+  // 🐺🔵⚪ Papão United Madrid (agrostinho88) — ex-Santos Dumont, Série D. O nome
+  // velho fica registrado: quem já tinha carreira com o Santos Dumont não fica sem
+  // escudo. As 4 formas do nome (regra 20/08) já estão reservadas no banco.
+  'Papão United Madrid': papaoEscudoRender,
+  'Papão United Madrid FC': papaoEscudoRender,
+  'Papão United Madrid EC': papaoEscudoRender,
+  'Papao United Madrid': papaoEscudoRender,
+  'Santos Dumont': papaoEscudoRender,
   // 🦇🟠⚫ Theuzudo FC (matheusfilipealves) — ex-Comercial do Norte, Série B. O nome
   // velho fica registrado: quem já tinha carreira com o Comercial não fica sem escudo.
   'Theuzudo FC': theuzudoEscudoRender,

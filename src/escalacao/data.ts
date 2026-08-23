@@ -2317,7 +2317,8 @@ export const OLD_NAME: Record<string, string> = {
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
-  'Alfacehh': 'Santos Dumont', // ⚽ batismo do matheus223lms: save antigo com Santos Dumont (ou Tonhão FC) vira Alfacehh ao carregar
+  'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
+  'Papão United Madrid': 'Santos Dumont', // ⚽ batismo do agrostinho88: assumiu o assento da Série D que era do Alfacehh — save antigo com Santos Dumont (ou Tonhão FC) vira Papão United Madrid ao carregar (23/08)
   'Theuzudo FC': 'Comercial do Norte', // ⚽ batismo do matheusfilipealves: save antigo com Comercial do Norte vira Theuzudo FC ao carregar (21/08)
   'São Luiz FC': 'Flamengo do Sertão', // ⚽ batismo do gabrielnegreirosamaral99: save antigo com Flamengo do Sertão vira São Luiz FC ao carregar (21/08)
 
@@ -2445,7 +2446,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
     { name: 'Tião Bagre', team: 'Império Samambaia' }, // ⚽ clube BATIZADO por apoiador (jorgericardo777 — Império Samambaia, ex-Cuiabagre)
     { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
-    { name: 'Tonhão', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Santos Dumont)
+    { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
     { name: 'Piu do Grêmio', team: 'Barcenite FC' }, // ⚽ clube BATIZADO por apoiador (ricardopessoafreire — Barcenite FC, ex-Milanesa FC; fundador nº31). 🩹 21/08: o comentário faltava e a vaga aparecia como LIVRE na contagem — quase foi vendida duas vezes.
@@ -2455,7 +2456,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   ],
   B: [
     { name: 'Seu Ferreira', team: 'Crias do Bigão' }, // ⚽ clube BATIZADO por apoiador (giovannecastro784 — Crias do Bigão, ex-Ferroviária do Vale, 17/08)
-    { name: 'Mr. Porto', team: 'Athletico do Porto' },
+    { name: 'Mr. Porto', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Athletico do Porto). DESCEU da Série D pra cá em 23/08, por decisão do Diego, pra abrir o assento do Papão United Madrid.
     { name: 'Serrano', team: 'Nacional da Serra' },
     { name: 'Cerradão', team: 'Esporte do Cerrado' },
     { name: 'Baixada', team: 'União da Baixada' },
@@ -2502,7 +2503,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
 // ─── Clubes clássicos que completam a liga de 20 ─────────────────────
 export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Crias do Bigão', atk: 78, def: 76 }, // ⚽ ex-Ferroviária do Vale (batismo 17/08) — mesma força, só o nome muda
-  { name: 'Athletico do Porto', atk: 76, def: 78 },
+  { name: 'Alfacehh', atk: 76, def: 78 }, // ⚽ ex-Athletico do Porto (o Alfacehh desceu pra cá em 23/08) — MESMA força, só o nome muda
   { name: 'Nacional da Serra', atk: 75, def: 73 },
   { name: 'Esporte do Cerrado', atk: 73, def: 75 },
   { name: 'União da Baixada', atk: 72, def: 71 },

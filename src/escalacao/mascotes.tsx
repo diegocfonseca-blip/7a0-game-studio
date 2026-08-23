@@ -15,6 +15,7 @@ import ferrariMascoteImg from './img/ferrari-mascote.webp' // 🏎️ Ferrari SC
 import nataMascoteImg from './img/nata-mascote.webp' // 🤡 Nata de SP (pedrinhocamisa8): arte própria do dono
 import theuzudoMascoteImg from './img/theuzudo-mascote.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
 import saoluizMascoteImg from './img/saoluiz-mascote.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
+import papaoMascoteImg from './img/papao-mascote.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
@@ -508,6 +509,14 @@ export const MASCOTES: Record<string, ReactNode> = {
   saoluiz_pitbull: (
     <img src={saoluizMascoteImg} height={176} width={Math.round(176 * 267 / 440)} alt="Luizão — São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🐺 Papão United Madrid — o lobo chifrudo de faixa azul e branca.
+  // arte própria do dono (webp, fora do bundle). mascote_key = "papao_lobo".
+  // 215x440 no arquivo. A arte trazia um bloco quadriculado colado no corpo dele
+  // (invenção do gerador): tirei só o que era NEUTRO naquele retângulo, então o
+  // pelo tinto e a faixa do peito ficaram intactos.
+  papao_lobo: (
+    <img src={papaoMascoteImg} height={176} width={Math.round(176 * 215 / 440)} alt="O Papão — Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🦇 Theuzudo FC — o morcego de boné (coração Valência, laranja e preto).
   // arte própria do dono (webp, fora do bundle). mascote_key = "theuzudo_morcego".
   // 264x351 no arquivo: a 176px de altura ele fica no tamanho certo, sem esticar.
@@ -753,6 +762,9 @@ export const CARIMBO_GOL: Record<string, string> = {
   'São Luiz FC': 'saoluiz_pitbull', // 🐶 o pitbull carimba o placar (gabrielnegreirosamaral99, 21/08)
   'São Luiz': 'saoluiz_pitbull',
   'São Luiz EC': 'saoluiz_pitbull',
+  'Papão United Madrid': 'papao_lobo', // 🐺 o lobo carimba o placar (agrostinho88, 23/08)
+  'Papão United Madrid FC': 'papao_lobo',
+  'Papão United Madrid EC': 'papao_lobo',
   'Theuzudo': 'theuzudo_morcego',
   'Theuzudo EC': 'theuzudo_morcego',
   'Skyy FC': 'skyy_aguia', // 🦅 a águia carimba o placar (matheusncruz1, 17/08)
@@ -780,6 +792,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   nata_palhaco: 'O Palhaço',   // 🤡 Nata de SP (pedrinhocamisa8, 17/08)
   theuzudo_morcego: 'Theuzinho', // 🦇 Theuzudo FC (matheusfilipealves, 21/08)
   saoluiz_pitbull: 'Luizão',     // 🐶 São Luiz FC (gabrielnegreirosamaral99, 21/08)
+  papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
