@@ -539,14 +539,21 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
               </thead>
               <tbody>
                 {([
+                  // 🛡️🐊🎽 SEPARADOS (Diego 23/08): escudo, mascote e manto viraram
+                  // linhas próprias — eram um item só ("escudo + mascote"), e o
+                  // manto nem aparecia. E entrou a Carreira Online, que é do
+                  // 👑 Lenda e do 🖋️ Batismo.
                   ['Cor e brilho no nome', '💜 roxa', '⭐ prata', '👑 ouro', '👑 ouro'],
-                  ['Escudo + mascote seus', '✓', '—', '—', '✓'],
+                  ['Escudo próprio', '✓', '—', '—', '✓'],
+                  ['Mascote própria', '✓', '—', '—', '✓'],
+                  ['Manto do coração', '✓', '—', '—', '✓'],
                   ['Estádio batizado', '✓', '—', '—', '✓'],
                   ['Moedas todo mês', '30 🪙', '—', '—', '30 🪙'],
                   ['Modo Manual (ritmo)', '—', '✓', '✓', '✓'],
                   ['Nível dos jogadores', '—', 'quase tudo', 'até lendas', 'até lendas'],
                   ['Carreiras salvas', '2', '4', '6', '6'],
                   ['Grupo VIP no zap', '—', '—', '✓', '✓'],
+                  ['Carreira Online e Ligas', '—', '—', '✓', '✓'],
                   ['Clube com SEU nome', '—', '—', '—', '✓'],
                   ['Selo de Fundador', '—', '—', '—', '✓'],
                 ] as [string, string, string, string, string][]).map(([o, ...vals], i) => (
