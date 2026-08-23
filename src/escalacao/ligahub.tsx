@@ -264,10 +264,14 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
   }
 
   if (rows == null || sala == null) return null
-  // sem nenhuma temporada guardada não há o que mostrar — e o dono da liga ainda
-  // precisa dos ajustes, então a área aparece só pra ele nesse caso.
+  // 📣 A BARRA APARECE SEMPRE, mesmo sem temporada guardada (Diego 23/08: entrou
+  // numa sala nova esperando a novidade e não viu nada — *"não entendi porque não
+  // está liberado"*). Eu tinha escondido a barra em sala zerada ("ninguém abre
+  // estante vazia"), mas isso matava a descoberta: em sala NOVA ninguém jamais
+  // saberia que a estante existe. Agora as abas aparecem e cada uma explica o
+  // vazio com a promessa certa ("o primeiro campeão entra aqui quando este jogo
+  // acabar") — que é trava explicando o porquê, do jeito que a casa manda.
   const vazio = rows.length === 0
-  if (vazio && !(sala.ehLiga && souDono)) return null
 
   const abas: Aba[] = ['rank', 'estante', 'temporadas', ...(sala.ehLiga && souDono ? ['ajustes' as Aba] : [])]
 
