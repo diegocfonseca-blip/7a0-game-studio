@@ -463,6 +463,78 @@ function BancoFichasAdmin() {
   )
 }
 
+// ── 📺 COTA EXTRA DE TV · mesa de aprovação (só admin) ───────────────────────
+// O jogador filma a tela, posta no Instagram/TikTok marcando @leilaolegendscom
+// e cola o link no jogo (Clube › Patrocínio). Aqui o Diego confere QUANDO DER
+// (a fila espera, não expira) e decide: ✅ aprova (+10 🪙 caem no clube na
+// próxima vez que o jogador abrir a carreira) ou ❌ recusa com motivo (aparece
+// pro jogador, e ele pode tentar de novo na MESMA temporada).
+const TV_MOTIVOS = ['é foto / não é vídeo do jogo', 'menos de 15s', 'não marcou @leilaolegendscom', 'vídeo repetido', 'não dá pra ver o jogo no vídeo']
+function TVCotaAdmin() {
+  type Envio = { id: number; email: string; clube: string; temporada: number; link: string; status: string; motivo: string | null; criado_em: string }
+  const [lista, setLista] = useState<Envio[]>([])
+  const [recusando, setRecusando] = useState<number | null>(null) // id com o menu de motivos aberto
+  const [busy, setBusy] = useState(false)
+  const carregar = async () => {
+    const { data } = await supabase.from('tv_envios')
+      .select('id, email, clube, temporada, link, status, motivo, criado_em')
+      .order('id', { ascending: false }).limit(40)
+    setLista(data ?? [])
+  }
+  useEffect(() => { carregar() }, [])
+  const decidir = async (id: number, status: 'aprovado' | 'recusado', motivo?: string) => {
+    if (busy) return
+    setBusy(true)
+    await supabase.from('tv_envios').update({ status, motivo: motivo ?? null, decidido_em: new Date().toISOString() }).eq('id', id).eq('status', 'pendente')
+    setRecusando(null)
+    await carregar()
+    setBusy(false)
+  }
+  const pend = lista.filter(e => e.status === 'pendente')
+  const feitos = lista.filter(e => e.status !== 'pendente').slice(0, 10)
+  const ROTULO: Record<string, string> = { aprovado: '✅ aprovado', creditado: '💰 creditado', recusado: '❌ recusado' }
+  const linha = (e: Envio, pendente: boolean) => (
+    <div key={e.id} style={{ border: '1px solid rgba(242,232,207,.25)', borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 12, fontWeight: 700 }}>
+        <span style={{ color: GOLD }}>{e.clube || '(sem clube)'}</span>
+        <span style={{ opacity: .7 }}>T{e.temporada}</span>
+        <span style={{ opacity: .55, fontSize: 10.5 }}>{e.email}</span>
+        <span style={{ marginLeft: 'auto', opacity: .55, fontSize: 10 }}>{new Date(e.criado_em).toLocaleDateString('pt-BR')}</span>
+      </div>
+      <a href={e.link} target="_blank" rel="noreferrer" style={{ display: 'block', color: '#7fc4ff', fontSize: 11, fontWeight: 700, margin: '4px 0 0', wordBreak: 'break-all' }}>🎬 {e.link}</a>
+      {pendente ? (
+        recusando === e.id ? (
+          <div style={{ marginTop: 7 }}>
+            {TV_MOTIVOS.map(m => (
+              <button key={m} onClick={() => decidir(e.id, 'recusado', m)} disabled={busy} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: '1px solid rgba(255,138,117,.5)', color: '#ff8a75', borderRadius: 9, padding: '6px 9px', marginBottom: 5, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>❌ {m}</button>
+            ))}
+            <button onClick={() => setRecusando(null)} style={{ background: 'none', border: 'none', color: 'rgba(242,232,207,.6)', fontSize: 10.5, fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' }}>cancelar</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 7, marginTop: 7 }}>
+            <button onClick={() => decidir(e.id, 'aprovado')} disabled={busy} style={{ flex: 1, border: 'none', borderRadius: 10, padding: 8, ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: '#2f9e57', color: '#fff', cursor: 'pointer' }}>✅ Aprovar (+10 🪙)</button>
+            <button onClick={() => setRecusando(e.id)} disabled={busy} style={{ flex: 1, border: '1.5px solid #ff8a75', borderRadius: 10, padding: 8, ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: 'transparent', color: '#ff8a75', cursor: 'pointer' }}>❌ Recusar…</button>
+          </div>
+        )
+      ) : (
+        <div style={{ marginTop: 4, fontSize: 11, fontWeight: 800, color: e.status === 'recusado' ? '#ff8a75' : '#6fdb8f' }}>{ROTULO[e.status] ?? e.status}{e.motivo ? ` · ${e.motivo}` : ''}{e.status === 'aprovado' ? ' · cai quando o jogador abrir a carreira' : ''}</div>
+      )}
+    </div>
+  )
+  return (
+    <div style={{ border: '2px solid ' + GOLD, borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, textTransform: 'uppercase', margin: '0 0 4px' }}>📺 Cota extra de TV · mesa de aprovação</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Regras: vídeo 15s+ · Instagram/TikTok marcando @leilaolegendscom · foto não vale · 1 por temporada. Aprova quando der — a fila espera.</p>
+      {pend.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(242,232,207,.5)', margin: '0 0 8px' }}>nenhum vídeo esperando — tudo em dia 😴</p>}
+      {pend.map(e => linha(e, true))}
+      {feitos.length > 0 && <>
+        <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(242,232,207,.45)', margin: '10px 0 6px' }}>últimos decididos</p>
+        {feitos.map(e => linha(e, false))}
+      </>}
+    </div>
+  )
+}
+
 function AdminOverlay() {
   const [email, setEmail] = useState<string | null | undefined>(undefined) // undefined = carregando
   const [busy, setBusy] = useState(false)
@@ -526,7 +598,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

@@ -2895,6 +2895,8 @@ type Action =
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
+  | { type: 'TV_EXTRA_VISTO' } // 📺 marca que o aviso único da cota extra (vídeo nas redes) já foi mostrado — nunca repete
+  | { type: 'TV_EXTRA_CREDIT'; coins: number; qtd: number } // 📺 cota extra de TV: o RPC tv_resgatar já virou aprovado→creditado no Supabase (atômico) — aqui só entra o crédito no caixa. Só carreira solo
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'ADVANCE_REVEAL' }
@@ -3599,6 +3601,22 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'TV_BANNER_SEEN': {
       const arr = s.tvBannerSeen ?? []
       if (!arr.includes(action.div)) s.tvBannerSeen = [...arr, action.div]
+      return s
+    }
+    case 'TV_EXTRA_VISTO': {
+      s.tvExtraVisto = true
+      return s
+    }
+    case 'TV_EXTRA_CREDIT': {
+      // 📺 COTA EXTRA DE TV (Diego 23/08): a validação é do Supabase (tv_resgatar,
+      // atômica: aprovado→creditado uma vez só); aqui só entra o crédito. O valor
+      // é conferido contra a regra fixa (10 🪙 por vídeo) — número inventado na
+      // action não passa, igual ao Banco Legends.
+      if (s.onlineMode === 'online' || !s.careerOnline) return s
+      if (!Number.isInteger(action.qtd) || action.qtd < 1 || action.coins !== action.qtd * 10) return s
+      const yb = s.managers[s.youIdx]?.id ?? 0
+      s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + action.coins }
+      logFin(s, 'reward', action.qtd === 1 ? '📺 Cota extra de TV (vídeo nas redes)' : `📺 Cota extra de TV (${action.qtd} vídeos nas redes)`, action.coins, undefined, yb)
       return s
     }
     case 'KICK_PLAYER': {

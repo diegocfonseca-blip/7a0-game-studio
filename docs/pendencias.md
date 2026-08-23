@@ -1,6 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
-## 📺 COTA DE TV EXTRA — banner UGC da carreira (23/08) · **REGRAS FECHADAS, AGUARDANDO OK VISUAL**
+## 📺 COTA DE TV EXTRA — ✅ ENTREGUE E NO AR (23/08, "pode fazer tudo")
+O Diego deu o OK no desenho da reforma e mandou: *"pode fazer tudo — e de cara,
+quando acabar a temporada de QUALQUER usuário, conta antiga ou nova, deve
+aparecer um banner na cara dele UMA vez sobre a cota extra… libera sempre de 1
+em 1 temporada… paga 10 moedas… e dá um exemplo: 10 × 100 temporadas já são mil
+moedas de cota extra"*. Tudo isso está no ar:
+- **Banco**: tabela `tv_envios` (RLS: jogador insere no próprio nome, admin
+  decide) + RPC `tv_resgatar` (aprovado→creditado atômico, 10/vídeo). Travas
+  TESTADAS: link único global · 1 por temporada POR CONTA (índice parcial —
+  recusado NÃO queima a vez) · farm entre carreiras bloqueado (a trava é por
+  conta, não por carreira).
+- **Jogo**: card `TVContrato` em Clube › Patrocínio (escadinha da cota por
+  divisão + cota extra + regras + cola-link + estados 🕓/✅/❌-com-motivo);
+  aviso ÚNICO `temTVExtra` na fila da virada (round 0, T2+, `tvExtraVisto`);
+  banner antigo da TV ganhou a seta "mora em Clube › Patrocínio"; crédito entra
+  quando o jogador abre a aba (extrato: "📺 Cota extra de TV"); `novidades.ts`.
+- **Admin** (#admin): "📺 Cota extra de TV · mesa de aprovação" — pendentes com
+  link clicável, ✅ Aprovar / ❌ Recusar com motivos prontos, últimos decididos.
+- **Reverter**: um commit (a mesinha no banco pode ficar, vazia não incomoda).
+- ⏭️ Se um dia o Diego quiser: pagar por QUALIDADE variável (hoje é fixo 10 —
+  "qualidade e tempo" é critério de aprovação, não de valor; interpretação
+  confirmada com ele pelo exemplo 10×100=1.000).
+
+### O caminho até aqui (histórico da decisão) — **regras fechadas**
 Pedido do Diego: *"quero algum banner p qm for jogar carreira mas algo relacionado
 a futebol, tem q ser alguma coisa fingindo q é algo pro clube q ele ganha, sabe,
 uma historinha… tem q ser VÍDEO, não pode ser foto e nem foto parada… q conte uma
