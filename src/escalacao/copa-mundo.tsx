@@ -79,7 +79,7 @@ function countryPool(pais: string): Record<Sec, PoolCard[]> {
     [CATALOG as never, 'BR'], [CATALOG_EU as never, 'EU'], [CATALOG_WORLD as never, 'WORLD'],
   ]
   for (const [cat, b] of decks) for (const sec of SECS) for (const c of (cat[sec] ?? [])) {
-    if (paisDe(c.name, b) === pais) out[sec].push({ name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi, sec })
+    if (paisDe(c.name, b, c.club, c.year) === pais) out[sec].push({ name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi, sec })
   }
   for (const sec of SECS) out[sec].sort((a, b) => a.name.localeCompare(b.name, 'pt'))
   return out

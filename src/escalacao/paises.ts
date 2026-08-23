@@ -413,22 +413,130 @@ export const PAIS: Record<string, string> = {
   'Jefferson Montero': 'Equador', 'Ángel Mena': 'Equador', 'Michael Estrada': 'Equador',
 }
 
-// Mesmo NOME em baralhos diferentes com país diferente (hoje só estes dois):
-// Pepe do Santos (BR) ≠ Pepe do Real (Portugal) · Pedro do Fla (BR) ≠ Pedro do Barça/Chelsea (Espanha)
 export type Baralho = 'BR' | 'EU' | 'WORLD'
-export const PAIS_POR_BARALHO: Record<Baralho, Record<string, string>> = {
-  BR: { 'Pepe': 'Brasil', 'Pedro': 'Brasil' },
-  EU: { 'Pepe': 'Portugal', 'Pedro': 'Espanha' },
-  WORLD: {},
+
+// ─── 🚩 NACIONALIDADE POR CARTA (regra do Diego, 21/08) ─────────────────────
+// Palavras dele, depois de ver o **Pedro na seleção da ESPANHA**: *"cada carta
+// tem que ter sua nacionalidade pra não ter erro depois na Copa"*.
+//
+// O QUE ESTAVA ERRADO. A nacionalidade era do NOME, com um remendo por baralho
+// ("Pedro no baralho EU = Espanha"). Só que o Pedro que existe no baralho
+// europeu **não é o espanhol** — é o **Pedro do Flamengo**, na passagem ruim
+// pela Fiorentina em 2020 (carta folclórica). O espanhol nem está no jogo. Aí
+// ele caía na convocação da Espanha.
+//
+// COMO É AGORA. Esta tabela manda em TUDO e é por CARTA (`nome|clube|ano`).
+// Nome repetido no baralho só é seguro se cada carta estiver aqui.
+// ⚠️ Ao adicionar uma carta com nome que JÁ EXISTE no jogo, ponha as duas aqui.
+//    O `npm run paises` acusa quem ficar de fora.
+export const PAIS_POR_CARTA: Record<string, string> = {
+  // 🇧🇷 os dois Pedros do jogo são o MESMO cara: o 9 do Flamengo. A passagem
+  //     pela Fiorentina foi dele — não confundir com o Pedro Rodríguez espanhol,
+  //     que não está no baralho.
+  'Pedro|Flamengo|2022': 'Brasil',
+  'Pedro|Fiorentina|2020': 'Brasil',
+  // 🇧🇷🇵🇹 Pepe: o do Santos é brasileiro; o do Real é o português.
+  'Pepe|Santos|1962': 'Brasil',
+  'Pepe|Real Madrid|2012': 'Portugal',
+  // 🇧🇷🇬🇭 Achado pelo `npm run paises` no mesmo dia do Pedro: o "Abedi Pelé"
+  //     do Vasco NÃO é o ganês do Marseille. É o **Abedi do Vasco** (Robson
+  //     Vicente Gonçalves), meia CARIOCA, no clube entre 2005 e 2007. O ganês
+  //     tinha se aposentado em 1998. Estava sendo convocado pela GANA.
+  'Abedi Pelé|Marseille|1993': 'Gana',
+  'Abedi Pelé|Vasco|2007': 'Brasil',
 }
 
-export function paisDe(name: string, baralho: Baralho): string {
-  const o = PAIS_POR_BARALHO[baralho][name]
-  if (o) return o
+/**
+ * Seleção de uma carta. Passe SEMPRE clube e ano quando tiver — é o que separa
+ * dois jogadores de mesmo nome. Sem eles, cai no nome (compatível com o que já
+ * existia, e correto pra 99% do baralho, onde o nome é único).
+ */
+export function paisDe(name: string, baralho: Baralho, club?: string, year?: number): string {
+  if (club != null && year != null) {
+    const daCarta = PAIS_POR_CARTA[`${name}|${club}|${year}`]
+    if (daCarta) return daCarta
+  }
   const p = PAIS[name]
   if (p) return p
   // baralho BR sem etiqueta = brasileiro (padrão); EU/MUNDO sem etiqueta = buraco a corrigir
   return baralho === 'BR' ? 'Brasil' : '??'
+}
+
+
+// ─── ✅ MESMO JOGADOR EM DUAS CARTAS (conferido um a um, 21/08) ─────────────
+// O jogo tem MUITO nome repetido — e quase sempre é a MESMA pessoa em dois
+// momentos: o brasileiro no baralho BR e depois no europeu (Cafu no São Paulo
+// e no Milan), ou o mesmo craque em dois clubes (Messi no Barça e no Inter
+// Miami). Nesses casos herdar o país pelo nome está CERTO.
+//
+// Esta lista existe só pra calar o `npm run paises` nesses casos, pra o aviso
+// dele continuar valendo alguma coisa: nome repetido que NÃO está aqui é nome
+// que ninguém conferiu ainda — pode ser outra pessoa, como foi o Pedro.
+// ⚠️ Só entra aqui depois de OLHAR as duas cartas. Na dúvida, deixa de fora.
+export const MESMO_JOGADOR = new Set<string>([
+  'Dida',
+  'Júlio César',
+  'Alisson',
+  'Heurelho Gomes',
+  'Doni',
+  'Cafu',
+  'Roberto Carlos',
+  'Maicon',
+  'Dani Alves',
+  'Aldair',
+  'Lúcio',
+  'Thiago Silva',
+  'Oscar',
+  'David Luiz',
+  'Danilo',
+  'Ronaldinho Gaúcho',
+  'Rivaldo',
+  'Kaká',
+  'Juninho Pernambucano',
+  'Ramires',
+  'Juninho Paulista',
+  'Zé Roberto',
+  'Vampeta',
+  'Gerson',
+  'Fernandinho',
+  'Willian',
+  'Casemiro',
+  'Lucas Paquetá',
+  'Deco',
+  'Philippe Coutinho',
+  'Gilberto Silva',
+  'Mauro Silva',
+  'Alexandre Pato',
+  'Romário',
+  'Neymar',
+  'Bebeto',
+  'Careca',
+  'Robinho',
+  'Casagrande',
+  'Hulk',
+  'Grafite',
+  'Gabigol',
+  'Rodrygo',
+  'Endrick',
+  'Antony',
+  'Jô',
+  'Sávio',
+  'Vágner Love',
+  'Bernard',
+  'Lionel Messi',
+  'Cristiano Ronaldo',
+])
+
+/** Todo nome que aparece em mais de uma carta do jogo, com as cartas. */
+export function nomesRepetidos(cats: [Record<string, { name: string; club: string; year: number }[]>, Baralho][]): Map<string, { name: string; club: string; year: number; baralho: Baralho }[]> {
+  const porNome = new Map<string, { name: string; club: string; year: number; baralho: Baralho }[]>()
+  for (const [cat, b] of cats) for (const sec of Object.keys(cat)) for (const c of cat[sec]) {
+    const arr = porNome.get(c.name) ?? []
+    arr.push({ name: c.name, club: c.club, year: c.year, baralho: b })
+    porNome.set(c.name, arr)
+  }
+  for (const [n, arr] of porNome) if (arr.length < 2) porNome.delete(n)
+  return porNome
 }
 
 // Ranking das seleções por número de cartas (a régua do Diego: quem tem mais
@@ -436,15 +544,15 @@ export function paisDe(name: string, baralho: Baralho): string {
 // atualiza sozinho a cada carta nova).
 export function rankingSelecoes(): { pais: string; cartas: number }[] {
   const cnt: Record<string, number> = {}
-  const walk = (cat: Record<string, { name: string }[]>, b: Baralho) => {
+  const walk = (cat: Record<string, { name: string; club: string; year: number }[]>, b: Baralho) => {
     for (const sec of Object.keys(cat)) for (const c of cat[sec]) {
-      const p = paisDe(c.name, b)
+      const p = paisDe(c.name, b, c.club, c.year)
       cnt[p] = (cnt[p] ?? 0) + 1
     }
   }
-  walk(CATALOG as unknown as Record<string, { name: string }[]>, 'BR')
-  walk(CATALOG_EU as unknown as Record<string, { name: string }[]>, 'EU')
-  walk(CATALOG_WORLD as unknown as Record<string, { name: string }[]>, 'WORLD')
+  walk(CATALOG as unknown as Record<string, { name: string; club: string; year: number }[]>, 'BR')
+  walk(CATALOG_EU as unknown as Record<string, { name: string; club: string; year: number }[]>, 'EU')
+  walk(CATALOG_WORLD as unknown as Record<string, { name: string; club: string; year: number }[]>, 'WORLD')
   // 🚫 '??' (carta EU/MUNDO sem etiqueta de país) NUNCA vira seleção — senão vira um
   // "time" de nacionalidades misturadas no top 16 e empurra as seleções reais pra baixo.
   return Object.entries(cnt).filter(([pais]) => pais !== '??').map(([pais, cartas]) => ({ pais, cartas })).sort((a, b) => b.cartas - a.cartas)

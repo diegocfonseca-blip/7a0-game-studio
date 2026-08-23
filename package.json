@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "novidades": "node scripts/novidades-jogadores.mjs",
-    "reddit": "node scripts/reddit-radar.mjs"
+    "reddit": "node scripts/reddit-radar.mjs",
+    "paises": "node scripts/paises-check.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
