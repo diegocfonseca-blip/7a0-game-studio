@@ -195,6 +195,12 @@ function TrofeusDaLiga({ roomId, isHost, nomes, regras, salvarRegras }: {
         className="w-full border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
     </div>
   )
+  // ⚖️ a regra que está valendo, escrita em UMA LINHA. Vale pra todo mundo — o
+  // convidado precisa saber por que fulano está na frente no ranking.
+  const ativas = (['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).filter(k => regras.ativos.includes(k))
+  const resumoRegra = regras.modo === 'pontos'
+    ? `Por pontos · ${ativas.map(k => `${LIGA_ROTULO[k].toLowerCase()} ${regras.pontos[k]}`).join(' · ')}`
+    : `Por títulos · ${regras.ordem.filter(k => regras.ativos.includes(k)).map(k => LIGA_ROTULO[k].toLowerCase()).join(' > ')}${regras.rebaixaTira && regras.ativos.includes('rebaixamento') ? ' · cair tira um título' : ''}`
   const troca = (k: LigaChave) => {
     const tem = regras.ativos.includes(k)
     salvarRegras({ ...regras, ativos: tem ? regras.ativos.filter(x => x !== k) : [...regras.ativos, k] })
@@ -235,43 +241,45 @@ function TrofeusDaLiga({ roomId, isHost, nomes, regras, salvarRegras }: {
         </div>
       )}
 
-      {/* ⚖️ a regra que está valendo, em uma linha — pra TODO MUNDO, não só o dono.
-          Sem isto o convidado vê o ranking e não entende por que fulano está na
-          frente. */}
-      {ranking.length > 0 && (
-        <p className="text-black/50 text-[10.5px] font-bold leading-snug -mt-1">
-          ⚖️ {regras.modo === 'pontos'
-            ? `Conta por pontos: ${(['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).filter(k => regras.ativos.includes(k)).map(k => `${LIGA_ROTULO[k]} ${regras.pontos[k]}`).join(' · ')}`
-            : `Conta por títulos: ${regras.ordem.filter(k => regras.ativos.includes(k)).map(k => LIGA_ROTULO[k]).join(' > ')}${regras.rebaixaTira && regras.ativos.includes('rebaixamento') ? ' · cair de divisão tira um título' : ''}`}
-        </p>
-      )}
-
       {/* 🏆 os troféus, temporada por temporada */}
       <div>
         <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Sala de troféus da liga</p>
+        {/* 🏆 TABELA, uma linha por temporada (mockup aprovado 22/08). Era um cartão
+            empilhado por temporada, que virava uma parede na tela do celular.
+            Rola de lado se não couber — a coluna do lápis fica fixa no fim. */}
         {rows.length === 0 ? (
           <p className="text-black/55 text-[11.5px] font-bold leading-snug">
             Ainda sem troféu nenhum — <b>o primeiro campeão sai no fim deste jogo</b>. Daqui pra frente tudo fica guardado aqui.
           </p>
         ) : (
-          <div className="space-y-1.5">
-            {rows.map(l => (
-              <div key={l.season_no} className="flex items-center gap-2 border-2 border-black rounded-xl px-2.5 py-1.5 bg-white">
-                <span className="font-black text-[11px] text-black/40 shrink-0" style={OSWALD}>T{l.season_no}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-[13px] truncate" style={OSWALD}>🏆 {l.champion_name ?? '—'}</p>
-                  <p className="text-black/55 text-[10.5px] font-bold truncate">
-                    {l.copa_champion_name ? `🏆🇧🇷 ${l.copa_champion_name} · ` : ''}
-                    {l.top_scorer_name ? `⚽ ${l.top_scorer_name}${l.top_scorer_goals ? ` · ${l.top_scorer_goals}` : ''}` : ''}
-                    {l.mico_name ? ` · 🔻 ${l.mico_name}` : ''}
-                  </p>
-                </div>
-                {isHost && (
-                  <button onClick={() => { setErro(''); setEdit({ ...l }) }} aria-label={`Arrumar a temporada ${l.season_no}`}
-                    className="shrink-0 w-8 h-8 rounded-lg border-2 border-black bg-white font-black text-sm leading-none active:translate-y-0.5">✏️</button>
-                )}
-              </div>
-            ))}
+          <div className="overflow-x-auto -mx-1 px-1">
+            <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {['TEMP.', 'CAMPEÃO', 'COPA', 'ARTILHEIRO', 'MICO'].map(h => (
+                    <th key={h} className="font-black text-[9px] tracking-wider text-black/40 text-left pb-1 pr-2 whitespace-nowrap" style={OSWALD}>{h}</th>
+                  ))}
+                  {isHost && <th />}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(l => (
+                  <tr key={l.season_no} style={{ borderTop: '2px solid rgba(12,12,12,.12)' }}>
+                    <td className="font-black text-[11px] text-black/40 py-1.5 pr-2 whitespace-nowrap" style={OSWALD}>T{l.season_no}</td>
+                    <td className="font-black text-black text-[12.5px] py-1.5 pr-2" style={OSWALD}>🏆 {l.champion_name ?? '—'}</td>
+                    <td className="font-black text-black text-[12.5px] py-1.5 pr-2" style={OSWALD}>{l.copa_champion_name ? `🏆🇧🇷 ${l.copa_champion_name}` : <span className="text-black/25">—</span>}</td>
+                    <td className="font-black text-black text-[12.5px] py-1.5 pr-2 whitespace-nowrap" style={OSWALD}>{l.top_scorer_name ? `⚽ ${l.top_scorer_name}${l.top_scorer_goals ? ` · ${l.top_scorer_goals}` : ''}` : <span className="text-black/25">—</span>}</td>
+                    <td className="font-black text-[12.5px] py-1.5 pr-2" style={{ ...OSWALD, color: '#B23B2E' }}>{l.mico_name ? `🔻 ${l.mico_name}` : <span className="text-black/25">—</span>}</td>
+                    {isHost && (
+                      <td className="py-1.5">
+                        <button onClick={() => { setErro(''); setEdit({ ...l }) }} aria-label={`Arrumar a temporada ${l.season_no}`}
+                          className="w-8 h-8 rounded-lg border-2 border-black bg-white font-black text-sm leading-none active:translate-y-0.5">✏️</button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
         {isHost && !edit && (
@@ -317,14 +325,40 @@ function TrofeusDaLiga({ roomId, isHost, nomes, regras, salvarRegras }: {
         )}
       </div>
 
-      {/* ⚖️ AS REGRAS — só o dono mexe; todo mundo vê o resultado no ranking acima */}
-      {isHost && (
-        <div>
+      {/* ⚖️ AS REGRAS — agora pra TODO MUNDO (Diego 22/08: os convidados *"tb precisam
+          enxergar as regras e coisas"*). Antes a faixa inteira era `isHost &&`: o
+          convidado entrava numa liga sem saber como o ranking contava. Agora ele vê a
+          MESMA linha e pode abrir pra ler; mexer continua só do dono. */}
+      <div>
+        <div className="flex items-center gap-2.5 border-2 border-black rounded-xl px-2.5 py-2 bg-white">
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-black text-[12.5px]" style={OSWALD}>⚖️ Como o ranking conta</p>
+            <p className="text-black/55 text-[10.5px] font-bold leading-snug">{resumoRegra}</p>
+          </div>
           <button onClick={() => setAbrirRegras(v => !v)}
-            className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: PURPLE }}>
-            ⚖️ {abrirRegras ? 'Fechar as regras' : 'Regras do ranking'}
+            className="shrink-0 border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-[11px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: PURPLE }}>
+            {abrirRegras ? 'Fechar' : (isHost ? '⚖️ Mudar' : '👁️ Ver')}
           </button>
-          {abrirRegras && (
+        </div>
+          {abrirRegras && !isHost && (
+            <div className="mt-2 rounded-xl border-2 border-black bg-white p-3">
+              <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>O que conta nesta liga</p>
+              <div className="space-y-1">
+                {ativas.map(k => (
+                  <div key={k} className="flex items-center justify-between gap-2 border-2 border-black rounded-lg px-2.5 py-1.5">
+                    <span className="font-black text-[12.5px]" style={OSWALD}>{LIGA_ROTULO[k]}</span>
+                    {regras.modo === 'pontos'
+                      ? <span className="font-black text-[12.5px] border-2 border-black rounded-md px-2" style={{ ...OSWALD, background: GOLD }}>{regras.pontos[k]}</span>
+                      : <span className="font-black text-[11px] text-black/45" style={OSWALD}>{regras.ordem.filter(x => regras.ativos.includes(x)).indexOf(k) + 1}º lugar no critério</span>}
+                  </div>
+                ))}
+              </div>
+              <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
+                Quem escreve a regra é o <b>dono da liga</b>, e ela vale <b>só dentro desta liga</b> — o ranking do jogo não é tocado.
+              </p>
+            </div>
+          )}
+          {abrirRegras && isHost && (
             <div className="mt-2 rounded-xl border-2 border-black bg-white p-3 space-y-3">
               <div>
                 <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>Como conta</p>
@@ -387,8 +421,7 @@ function TrofeusDaLiga({ roomId, isHost, nomes, regras, salvarRegras }: {
               </p>
             </div>
           )}
-        </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -1708,8 +1741,24 @@ export function EscLobby() {
     // (`LIGA_GERAL = false`), ela só aparece pra quem enxerga o modo. Quando abrir
     // pra todos, `ligaOn` vira true pra todo mundo e a linha continua valendo.
     const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
+    // 🏆 A LIGA VAZIA CONTINUA NA LISTA (Diego 22/08: ele marcou a liga, entrou antes
+    // da hora com a 2ª conta, os dois saíram, e a liga sumiu da lista — *"ainda nem
+    // bateu 21h tb"*). As duas regras de "sala viva" (ter gente dentro e ter batimento
+    // recente) foram feitas pra SALA RÁPIDA, onde sala vazia é sala abandonada. A liga
+    // é o contrário: ela nasce pra ficar de pé com todo mundo fora, e entre um jogo e
+    // outro estará SEMPRE vazia — exigir gente dentro anulava a data marcada.
+    // O que mantém a liga viva é o RELÓGIO: ela fica na lista enquanto a data marcada
+    // não passou (com 6h de folga depois, pra quem atrasa). Passou, sai da lista
+    // sozinha — e continua inteira, com os troféus, no "🏆 Minhas ligas" do dono.
+    // Liga sem data marcada segue a regra antiga (precisa de gente dentro).
+    const ligaNaAgenda = (r: RoomInfo) => {
+      const at = (r.game_state as GS)?.ligaAt
+      if (!isLiga(r) || !at) return false
+      const t = new Date(at).getTime()
+      return !isNaN(t) && Date.now() < t + 6 * 3600_000
+    }
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && (ligaOn || !isLiga(r)))
+      .filter(r => (r.count >= 1 || ligaNaAgenda(r)) && (r.status === 'started' ? isFresh(r) : (waitingAlive(r) || ligaNaAgenda(r))) && !isCareer(r) && !isBafo(r) && (ligaOn || !isLiga(r)))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -3040,12 +3089,6 @@ export function EscLobby() {
                   className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
                   🤖 {gs?.ligaFechada ? 'Pôr bots' : 'Tirar bots'}
                 </button>
-                {isHost && (
-                  <button onClick={excluirLiga}
-                    className="col-span-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: '#B23B2E' }}>
-                    🗑️ Excluir a liga
-                  </button>
-                )}
               </div>
             )}
             {/* 📅 REMARCAR EM UM TOQUE. O Diego: *"deve poder remarcar fácil pra
@@ -3470,7 +3513,48 @@ export function EscLobby() {
             </>
           : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
       })()}
-      <button onClick={leaveRoom} className="text-white/75 text-[13px] font-black underline w-full text-center active:opacity-60">🚪 Sair da sala</button>
+      {/* 🚪🗑️ SAIR e EXCLUIR juntos, no PÉ DA TELA (Diego 22/08: *"eu acho q além de
+          sair da sala deve ter um botão dentro da sala de excluir sala tb não?"*).
+          O excluir da liga EXISTIA, mas morava lá em cima, dentro da faixa verde do
+          próximo jogo — ninguém procura "apagar" no topo. Os pesos são diferentes de
+          propósito: sair é um link discreto (você volta quando quiser), excluir é
+          vermelho e chapado (some com tudo, pra todo mundo).
+          🚨 E o SAIR passa a dizer a verdade na sala rápida: quando quem sai é o
+          DONO, o jogo APAGA a sala inteira — sempre apagou, só que sem avisar
+          ninguém. Sala rápida não existe sem dono. Na liga é o contrário: sair não
+          apaga nada, por isso o texto muda. */}
+      {(() => {
+        const ehLiga = room.game_state?.mode === 'liga'
+        const souDonoAqui = room.host_id === user?.id
+        const rotuloSair = ehLiga || !souDonoAqui ? '🚪 Sair da sala' : '🚪 Sair e encerrar a sala'
+        return (
+          <div className="space-y-1.5">
+            {ehLiga && isHost ? (
+              <div className="flex gap-2">
+                <button onClick={leaveRoom}
+                  className="flex-1 rounded-xl py-2 font-black text-[12px] text-white/70 border-2 border-dashed border-white/30 active:opacity-60" style={OSWALD}>
+                  🚪 Sair da sala
+                </button>
+                <button onClick={excluirLiga}
+                  className="flex-1 rounded-xl py-2 font-black text-[12px] text-white border-2 border-black active:translate-y-0.5" style={{ background: '#C2452F', ...OSWALD }}>
+                  🗑️ Excluir a liga
+                </button>
+              </div>
+            ) : (
+              <button onClick={leaveRoom} className="text-white/75 text-[13px] font-black underline w-full text-center active:opacity-60">{rotuloSair}</button>
+            )}
+            <p className="text-white/40 text-[10.5px] font-bold text-center leading-snug">
+              {ehLiga
+                ? (isHost
+                  ? <>Sair <b>não apaga nada</b> — a liga fica de pé com os troféus. Excluir some com a sala <b>e a sala de troféus</b>, pra todo mundo.</>
+                  : <>Você volta quando quiser — é só o código.</>)
+                : (souDonoAqui
+                  ? <>Sala rápida <b>não existe sem o dono</b>: ao sair, ela é encerrada pra todo mundo.</>
+                  : <>Você volta quando quiser — é só o código.</>)}
+            </p>
+          </div>
+        )
+      })()}
 
       {/* 💬 CHAT DA SALA DE ESPERA — igual ao do leilão: botãozinho flutuante que
           abre uma gaveta com as mensagens (que FICAM), a caixa de digitar e o

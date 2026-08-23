@@ -184,6 +184,45 @@ verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 
 (Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
 rápida.)
 
+## ✅ LIGA — as 3 coisas que o Diego aprovou (22-23/08)
+Ele reprovou a tela entregue (*"está péssimo pro host pqp e provavelmente vai ser um
+péssimo pros convidados tb"*), viu o mockup novo (`scripts/mockup-liga-sala.mjs`) e
+respondeu **"pode fazer as 3"**. Feito:
+
+**1. Dentro da sala, do jeito do mockup**
+- **Troféus viraram TABELA** (uma linha por temporada: campeão · copa · artilheiro ·
+  mico), com o ✏️ na ponta da linha. Era um cartão empilhado por temporada, que
+  virava uma parede no celular. **O formulário só abre no lápis** — sem troféu, só
+  uma frase calma; nada de 5 campos vazios na cara de quem entrou.
+- **As regras agora aparecem PRO CONVIDADO.** Antes a faixa inteira era `isHost &&`:
+  o convidado entrava sem saber como o ranking contava. Agora todo mundo vê a MESMA
+  linha ("⚖️ Como o ranking conta · Por pontos · liga 20 · copa 30…") e pode abrir
+  pra ler (botão **👁️ Ver**); **mexer** continua só do dono (**⚖️ Mudar**).
+- A linha-resumo da regra **saiu de dentro do "só se já tem ranking"** — antes, liga
+  nova (sem troféu) não mostrava a regra pra ninguém.
+- **🗑️ Excluir a liga desceu pro pé da tela**, colado no 🚪 Sair — o botão existia,
+  mas morava lá em cima na faixa verde do próximo jogo, e ninguém procura "apagar" no
+  topo. Pesos diferentes de propósito: sair é tracejado e discreto, excluir é
+  vermelho chapado, e embaixo o texto diz o que cada um faz.
+
+**2. Liga vazia continua na lista**
+Ele marcou a liga, entrou antes da hora com a 2ª conta, os dois saíram e a liga sumiu
+— *"ainda nem bateu 21h tb"*. As duas regras de "sala viva" (ter gente dentro, ter
+batimento recente) foram feitas pra SALA RÁPIDA, onde sala vazia é sala abandonada.
+A liga é o oposto: entre um jogo e outro está SEMPRE vazia. Agora o que a mantém na
+lista é o **relógio** — fica enquanto a data marcada não passou (+6h de folga pra
+quem atrasa). Passou, sai da lista sozinha e continua inteira no "🏆 Minhas ligas".
+Liga sem data marcada segue a regra antiga.
+
+**3. O "sair" da sala rápida passou a dizer a verdade**
+Quando o **dono** sai de uma sala rápida, o jogo **apaga a sala inteira** — sempre
+apagou, sem avisar ninguém. Agora o botão dele diz **"🚪 Sair e encerrar a sala"**,
+com a explicação embaixo. Na liga é o contrário (sair não apaga nada) e o texto
+reflete isso.
+
+⚠️ Tudo atrás de `LIGA_GERAL = false` — só as contas do Diego veem. O item 3 vale
+pra todo mundo (é só texto de botão, nenhum comportamento mudou).
+
 ## 🩹 SALA PRESA — "começou" no banco, SEM jogo dentro (22/08, liga F1UALH)
 Diego: *"o usuário q criou, Neymarzetti, eu não tô conseguindo abrir o pregão"*.
 
