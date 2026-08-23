@@ -104,8 +104,26 @@ const botoesDono = caixa(`
   ${rot('👑 Só o dono da liga vê')}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
     ${btn('📅 Dia e hora')}${btn('🤖 Bots: sem')}
-    ${btn('👥 Quem manda junto')}${btn('🗑️ Excluir a liga', '#fff', RED)}
+    ${btn('👥 Quem manda junto')}${btn('📤 Chamar a galera')}
   </div>`)
+
+// 🚪🗑️ SAIR e EXCLUIR ficam JUNTOS, no pé da tela (Diego, 22/08: *"eu acho q além
+// de sair da sala deve ter um botão dentro da sala de excluir sala tb não?"*).
+// Ele tem razão e o motivo é bom: hoje o "excluir a liga" existe, mas mora LÁ EM
+// CIMA, dentro da faixa verde do próximo jogo — e ninguém procura "apagar" no topo
+// da tela. Procura-se no pé, do lado do "sair". Repare na diferença de peso: sair é
+// discreto (você volta quando quiser), excluir é vermelho e some com tudo.
+const pesDono = `
+<div style="display:flex;gap:9px">
+  <div style="flex:1">${btn('🚪 Sair da sala', 'transparent', 'rgba(12,12,12,.55)', 'border-style:dashed;box-shadow:none')}</div>
+  <div style="flex:1">${btn('🗑️ Excluir a liga', RED, '#fff')}</div>
+</div>
+<div style="${OSW};font-weight:600;font-size:10px;opacity:.45;text-align:center;line-height:1.35">
+  Sair não apaga nada — a liga fica de pé com os troféus.<br>Excluir some com a sala e a sala de troféus, pra todo mundo.</div>`
+
+const pesConvidado = `
+<div>${btn('🚪 Sair da sala', 'transparent', 'rgba(12,12,12,.55)', 'border-style:dashed;box-shadow:none')}</div>
+<div style="${OSW};font-weight:600;font-size:10px;opacity:.45;text-align:center">Você volta quando quiser — é só o código.</div>`
 
 const abrir = `<div style="border:4px solid ${INK};border-radius:16px;background:${GREEN};color:#fff;box-shadow:4px 4px 0 ${INK};
   ${OSW};font-size:19px;text-align:center;padding:14px">🔨 ABRIR O PREGÃO!</div>`
@@ -145,9 +163,9 @@ body{background:${CREME};color:${INK};font-family:Oswald,sans-serif;padding:30px
 
   <div style="display:flex;gap:26px;flex-wrap:wrap;margin-top:26px">
     ${telefone('👑 Quem criou a liga', 'vê os troféus, as regras e os botões dele', `
-      ${faixaJogo}${salaTrofeus(true)}${regras(true)}${botoesDono}${abrir}`)}
+      ${faixaJogo}${salaTrofeus(true)}${regras(true)}${botoesDono}${abrir}${pesDono}`)}
     ${telefone('👥 Convidado', 'vê os MESMOS troféus e as MESMAS regras — só não muda', `
-      ${faixaJogo}${salaTrofeus(false)}${regras(false)}${esperaConvidado}`)}
+      ${faixaJogo}${salaTrofeus(false)}${regras(false)}${esperaConvidado}${pesConvidado}`)}
   </div>
 
   <div style="margin-top:30px">${caixa(`
@@ -161,6 +179,8 @@ body{background:${CREME};color:${INK};font-family:Oswald,sans-serif;padding:30px
       <div>✅ <b>Assim:</b> vê os dois, do jeitinho que o dono vê. Só não tem lápis nem botão.</div>
       <div>❌ <b>Hoje:</b> o "ABRIR O PREGÃO" fica lá embaixo, depois de tudo.</div>
       <div>✅ <b>Assim:</b> a tela cabe, e o botão fica logo à mão.</div>
+      <div>❌ <b>Hoje:</b> o "🗑️ Excluir a liga" mora LÁ EM CIMA, na faixa verde — ninguém acha.</div>
+      <div>✅ <b>Assim:</b> desce pro pé da tela, colado no "Sair", que é onde a pessoa procura.</div>
     </div>`)}
   </div>
   <div style="${OSW};font-weight:600;font-size:11px;opacity:.4;margin-top:20px">🔨 Leilão Legends · nada disto está no jogo ainda — é desenho pro Diego aprovar</div>
