@@ -18,7 +18,7 @@
 //
 // Hoje a TV só existe em 2 pontos e some: banner 1x por divisão nova (fim de
 // temporada) e a linha "📺 Cota de TV" no extrato. A reforma dá MORADA FIXA:
-// um card "📺 Contrato de TV — Rede Pelada" na aba 🏟️ Clube › 🤝 Patrocínio,
+// um card "📺 Contrato de TV — Rede Martelo TV" na aba 🏟️ Clube › 🤝 Patrocínio,
 // com o contrato por divisão (que já paga sozinho) + a cota extra das redes
 // (o vídeo) no MESMO card — uma emissora, uma história. Conferência manual do
 // Diego (esquema do Pix): a marcação do @ avisa ele, o link diz qual clube
@@ -88,14 +88,14 @@ const html = `<style>${FONTES}
     <div class="tv-head">
       <div class="aovivo"><span class="dot"></span> AO VIVO</div>
       <p class="tv-tag">📺 contrato de transmissão</p>
-      <p class="tv-tit">Rede Pelada</p>
+      <p class="tv-tit">Rede Martelo TV</p>
     </div>
     <div class="corpo">
       <p class="sec">🖋️ Seu contrato — paga sozinho, todo fim de temporada</p>
       <div style="display:flex;gap:5px;margin-bottom:8px">
         ${degrau('V', 1, false)}${degrau('D', 5, false)}${degrau('C', 10, false)}${degrau('B', 15, true)}${degrau('A', 20, false)}
       </div>
-      <div class="linha-cota"><span style="font-size:15px">📡</span><span>Você está na <b>Série B</b>: a Rede Pelada deposita <b>+15 🪙 por temporada</b> no caixa. Subiu de série? O contrato melhora sozinho.</span></div>
+      <div class="linha-cota"><span style="font-size:15px">📡</span><span>Você está na <b>Série B</b>: a Rede Martelo TV deposita <b>+15 🪙 por temporada</b> no caixa. Subiu de série? O contrato melhora sozinho.</span></div>
 
       <div class="divisor"></div>
       <p class="sec">📱 Cota extra: transmissão nas redes sociais</p>
@@ -118,7 +118,7 @@ const html = `<style>${FONTES}
   <div class="banner-fim">
     <span class="bf-pill">📺 Contrato de TV</span>
     <p style="${OSW};font-size:17px;text-transform:uppercase;margin:8px 0 0;line-height:1.1">A TV descobriu <span style="color:${GOLD}">seu clube!</span></p>
-    <p style="font-size:12px;font-weight:600;line-height:1.45;margin:7px 0 0;color:#EDE7D3">A <b>Rede Pelada</b> assinou o 1º contrato do seu clube: <b>cota por temporada</b> direto no caixa — e agora também paga <b>cota extra</b> por transmissão nas redes sociais. 📡</p>
+    <p style="font-size:12px;font-weight:600;line-height:1.45;margin:7px 0 0;color:#EDE7D3">A <b>Rede Martelo TV</b> assinou o 1º contrato do seu clube: <b>cota por temporada</b> direto no caixa — e agora também paga <b>cota extra</b> por transmissão nas redes sociais. 📡</p>
     <p style="font-size:10.5px;font-weight:800;margin:9px 0 0;color:${GOLD}">Tudo do contrato mora em: 🏟️ Clube › 🤝 Patrocínio</p>
   </div>
 </div>`

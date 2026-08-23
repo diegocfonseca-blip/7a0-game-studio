@@ -19,9 +19,29 @@ moedas de cota extra"*. Tudo isso está no ar:
 - **Admin** (#admin): "📺 Cota extra de TV · mesa de aprovação" — pendentes com
   link clicável, ✅ Aprovar / ❌ Recusar com motivos prontos, últimos decididos.
 - **Reverter**: um commit (a mesinha no banco pode ficar, vazia não incomoda).
-- ⏭️ Se um dia o Diego quiser: pagar por QUALIDADE variável (hoje é fixo 10 —
-  "qualidade e tempo" é critério de aprovação, não de valor; interpretação
-  confirmada com ele pelo exemplo 10×100=1.000).
+- **Ajustes do Diego depois da entrega (23/08):** a emissora se chama **REDE
+  MARTELO TV** (renomeada em todo canto — inclusive no banner antigo da cota
+  por divisão, que era "Rede Pelada" desde 11/08) · o valor é **fixo em 10** e o
+  critério de aprovar são os **REQUISITOS** (15s+, marcação, vídeo do jogo) —
+  *"não precisa falar de qualidade"* · vídeo repetido segue barrado (link único).
+
+## 🎟️ SÓCIO: boas-vindas 30 (era 39) + mensal a cada 30 DIAS CORRIDOS (23/08)
+Palavras do Diego: *"todo sócio NÃO ganha 39 moedas de boas-vindas. Ele ganha 30
+qd vira sócio (ou batismo, q já ganha o sócio). E aí daqui a 30 dias DE VERDADE
+ele ganharia mais 30 moedas em qualquer save dele no mês"*. O que mudou:
+- **Boas-vindas: 39 → 30** (`SOCIO_BOAS_VINDAS` + RPC `esc_socio_boas_vindas`).
+- **Mensal deixou de ser mês de CALENDÁRIO** (quem entrava dia 30 dobrava o
+  brinde no dia 1º) → agora o RPC `esc_socio_resgatar` olha o `claimed_at` do
+  ÚLTIMO brinde (boas-vindas conta como início do ciclo) e só paga com 30+ dias
+  corridos. Chave do resgate virou o DIA (`YYYY-MM-DD`), trava anti-corrida no
+  unique de sempre. "Em qualquer save": o crédito cai na carreira que ele abrir
+  na hora certa (já era assim).
+- Cache local novo no cliente (`esc-socio-resgate-at` + conferência 1x/dia) —
+  a trava REAL continua sendo a do servidor.
+- ⚠️ Janela de transição minúscula: aba ABERTA de antes do deploy compara o
+  retorno com 39 e não creditaria as boas-vindas novas (o RPC agora devolve 30);
+  vale só pra sócio NOVO resgatando naquele exato momento — se acontecer, é só
+  o Diego creditar na mão.
 
 ### O caminho até aqui (histórico da decisão) — **regras fechadas**
 Pedido do Diego: *"quero algum banner p qm for jogar carreira mas algo relacionado

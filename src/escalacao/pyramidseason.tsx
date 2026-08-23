@@ -1481,7 +1481,7 @@ function BancoLegends() {
   )
 }
 
-// ── 📺 CONTRATO DE TV (Clube › Patrocínio) — a casa da Rede Pelada (23/08) ────
+// ── 📺 CONTRATO DE TV (Clube › Patrocínio) — a casa da Rede Martelo TV (23/08) ────
 // Reforma pedida pelo Diego: a TV era invisível (banner 1x por divisão nova +
 // linha no extrato, e só). Agora tem MORADA FIXA: o contrato por divisão que já
 // paga sozinho (TV_COTA no store) + a COTA EXTRA das redes sociais. Regras
@@ -1548,7 +1548,7 @@ function TVContrato({ div, clube }: { div: string; clube: string }) {
       <div style={{ position: 'relative', background: 'linear-gradient(150deg,#1c1c1e,#0C0C0C 60%,#26221a)', padding: '11px 13px', color: '#fff' }}>
         <span style={{ position: 'absolute', top: 9, right: 9, background: '#C2452F', border: '2px solid rgba(255,255,255,.25)', borderRadius: 8, ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: 1, padding: '2px 7px' }}>● AO VIVO</span>
         <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>📺 contrato de transmissão</p>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', margin: '1px 0 0', color: GOLD }}>Rede Pelada</p>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', margin: '1px 0 0', color: GOLD }}>Rede Martelo TV</p>
       </div>
       <div style={{ padding: '11px 12px' }}>
         {sec('🖋️ Seu contrato — paga sozinho, todo fim de temporada')}
@@ -1566,7 +1566,7 @@ function TVContrato({ div, clube }: { div: string; clube: string }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#EAF7EE', border: `2.5px solid ${GREEN}`, borderRadius: 11, padding: '7px 10px', fontWeight: 700, fontSize: 11, lineHeight: 1.4 }}>
           <span style={{ fontSize: 14 }}>📡</span>
-          <span>Você está na <b>{div === 'V' ? 'Várzea' : `Série ${div}`}</b>: a Rede Pelada deposita <b>+{cotaDiv} 🪙 por temporada</b> no caixa. Subiu de série? O contrato melhora sozinho.</span>
+          <span>Você está na <b>{div === 'V' ? 'Várzea' : `Série ${div}`}</b>: a Rede Martelo TV deposita <b>+{cotaDiv} 🪙 por temporada</b> no caixa. Subiu de série? O contrato melhora sozinho.</span>
         </div>
         <div style={{ borderTop: '2.5px dashed rgba(12,12,12,.2)', margin: '12px 0 10px' }} />
         {sec('📱 Cota extra: transmissão nas redes sociais')}
@@ -4240,12 +4240,16 @@ function AvisoContaCarreira() {
   )
 }
 
-// 🖋️🎫 BRINDES DO SÓCIO (pedido do Diego 09/08, ampliado 16/08): ao abrir a
-// carreira solo, quem é sócio ativo recebe sozinho, sem apertar nada:
-//   (a) 🎟️ BOAS-VINDAS — 39 🪙, UMA VEZ SÓ na vida da conta (RPC esc_socio_boas_vindas);
-//   (b) 🪙 MENSAL — 30 🪙 por mês (RPC esc_socio_resgatar).
-// As duas travas são do SERVIDOR (linha na esc_socio_resgates); o localStorage é
-// só cache pra não repetir a chamada. Cai no caixa e vira linha no EXTRATO.
+// 🖋️🎫 BRINDES DO SÓCIO (pedido do Diego 09/08, ampliado 16/08, regra 23/08):
+// ao abrir a carreira solo, quem é sócio ativo recebe sozinho, sem apertar nada:
+//   (a) 🎟️ BOAS-VINDAS — 30 🪙, UMA VEZ SÓ na vida da conta (RPC esc_socio_boas_vindas);
+//   (b) 🪙 MENSAL — 30 🪙 a cada 30 DIAS CORRIDOS desde o último brinde (RPC
+//       esc_socio_resgatar). Diego 23/08: *"ele ganha 30 qd vira sócio… e daqui a
+//       30 dias DE VERDADE ele ganharia mais 30 em qualquer save dele"* — antes
+//       era mês de CALENDÁRIO (quem entrava dia 30 dobrava o brinde no dia 1º).
+// As duas travas são do SERVIDOR (linha na esc_socio_resgates, com claimed_at);
+// o localStorage é só cache pra não repetir a chamada. Cai no caixa e vira linha
+// no EXTRATO — em QUALQUER save/carreira que ele abrir na hora certa.
 function SocioBaraoBanner() {
   // 🗑️ REMOVIDO (pedido do Diego 12/08): o banner preto de boas-vindas do
   // sócio-batismo (lista de vantagens + botão de chamar no Instagram) saiu de
@@ -4276,15 +4280,22 @@ function SocioBaraoBanner() {
           }
           if (b === SOCIO_BOAS_VINDAS || b === 0) try { localStorage.setItem('esc-socio-boas-vindas', '1') } catch { /* segue */ }
         }
-        // 🪙 resgate do mês (qualquer sócio ativo): guarda local só pra não repetir a chamada
-        const chave = `esc-socio-resgate-${new Date().toISOString().slice(0, 7)}`
-        if (localStorage.getItem(chave) !== '1') {
+        // 🪙 resgate do ciclo (30 dias corridos — a trava REAL é o claimed_at no
+        // servidor). O cache local só evita bater na RPC toda abertura: guarda o
+        // dia do último crédito NESTE aparelho e, quando a resposta é "ainda não"
+        // (outro aparelho pode ter resgatado), confere no máximo 1x por dia.
+        const hoje = new Date().toISOString().slice(0, 10)
+        const ultimoCred = localStorage.getItem('esc-socio-resgate-at')
+        const jaConferiu = localStorage.getItem('esc-socio-conferido') === hoje
+        const passou30 = !ultimoCred || (Date.now() - new Date(`${ultimoCred}T00:00:00Z`).getTime()) >= 30 * 86400_000
+        if (passou30 && !jaConferiu) {
           const { data: r } = await supabase.rpc('esc_socio_resgatar')
           if (r === SOCIO_MENSAL && alive) {
             dispatch({ type: 'SOCIO_CREDIT', motivo: 'mensal' })
             setMoedas(n => n + SOCIO_MENSAL)
+            try { localStorage.setItem('esc-socio-resgate-at', hoje) } catch { /* segue */ }
           }
-          if (r === SOCIO_MENSAL || r === 0) try { localStorage.setItem(chave, '1') } catch { /* segue */ }
+          if (r === 0) try { localStorage.setItem('esc-socio-conferido', hoje) } catch { /* segue */ }
         }
       } catch { /* sem rede — tenta na próxima aberta */ }
     })()
@@ -4297,9 +4308,9 @@ function SocioBaraoBanner() {
       <span style={{ display: 'block', fontFamily: 'inherit', fontWeight: 700, fontSize: 10.5, opacity: .75, marginTop: 2 }}>
         {boasVindas
           ? (moedas > SOCIO_BOAS_VINDAS
-            ? `${SOCIO_BOAS_VINDAS} de boas-vindas (uma vez só) + ${SOCIO_MENSAL} deste mês. Veja em Clube › Finanças.`
-            : 'Brinde de boas-vindas — uma vez só. Veja em Clube › Finanças.')
-          : 'Moedas deste mês. Veja em Clube › Finanças.'}
+            ? `${SOCIO_BOAS_VINDAS} de boas-vindas (uma vez só) + ${SOCIO_MENSAL} do seu mês de sócio. Veja em Clube › Finanças.`
+            : 'Brinde de boas-vindas — uma vez só. As próximas 30 caem daqui a 30 dias. Veja em Clube › Finanças.')
+          : 'Seu mês de sócio fechou: +30. As próximas caem daqui a 30 dias. Veja em Clube › Finanças.'}
       </span>
     </div>
   )
@@ -5715,7 +5726,7 @@ export function PyramidSeasonScreen() {
                 <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
                   <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Contrato de TV</span>
                   <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{primeira ? <>A <span style={{ color: GOLD }}>TV descobriu</span> seu clube!</> : <>Contrato de TV <span style={{ color: GOLD }}>melhorou</span>!</>}</p>
-                  <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me!.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Pelada</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me!.div}</b> e a audiência cresceu — a <b>Rede Pelada</b> renovou por mais grana. 📡</>}</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me!.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Martelo TV</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me!.div}</b> e a audiência cresceu — a <b>Rede Martelo TV</b> renovou por mais grana. 📡</>}</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} por temporada <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>· direto no caixa</span></div>
                   <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Tudo do contrato mora em: 🏟️ Clube › 🤝 Patrocínio</p>
                   <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me!.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 10, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Bora! 📺</button>
@@ -5733,7 +5744,7 @@ export function PyramidSeasonScreen() {
               <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
                 <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Novidade da emissora</span>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>A TV agora paga <span style={{ color: GOLD }}>cota extra!</span></p>
-                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Pelada</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram ou TikTok</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+10 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
+                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram ou TikTok</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+10 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>🎬 1 vídeo por temporada · +10 🪙 cada<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>· 100 temporadas = 1.000 🪙 de cota extra</span></div>
                 <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Fica pra sempre em: 🏟️ Clube › 🤝 Patrocínio</p>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>

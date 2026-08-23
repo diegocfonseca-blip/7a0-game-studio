@@ -164,8 +164,8 @@ function chargeSalaries(s: EscState) {
 // 🎟️🪙 BRINDES DE SÓCIO — os DOIS valores moram aqui e em lugar nenhum mais.
 // A action SOCIO_CREDIT não aceita número de fora justamente pra ninguém
 // conseguir pedir um valor inventado; quem trava a repetição é o Supabase.
-export const SOCIO_MENSAL = 30       // 🪙 todo mês, pra todo sócio ativo (RPC esc_socio_resgatar)
-export const SOCIO_BOAS_VINDAS = 39  // 🪙 UMA VEZ SÓ na vida da conta, quando o sócio entra (RPC esc_socio_boas_vindas, Diego 16/08)
+export const SOCIO_MENSAL = 30       // 🪙 a cada 30 DIAS CORRIDOS desde o último brinde, pra todo sócio ativo (RPC esc_socio_resgatar; era mês de calendário — Diego 23/08: "daqui a 30 dias DE VERDADE")
+export const SOCIO_BOAS_VINDAS = 30  // 🪙 UMA VEZ SÓ na vida da conta, quando o sócio entra (RPC esc_socio_boas_vindas; era 39 — Diego 23/08: "ele ganha 30 qd vira sócio")
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
