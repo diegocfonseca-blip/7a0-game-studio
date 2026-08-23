@@ -1,5 +1,38 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## 📧 E-MAIL MARKETING "olha o tanto que mudou" (23/08) · AGUARDANDO OK + DNS
+Pedido do Diego: *"conseguimos enviar pra todos e-mail marketing com todas as
+novidades? … pelo nosso e-mail contato@leilaolegends.com … muita gente entrou há
+um mês e nunca mais voltou e não sabe o tanto que mudou"*.
+
+**Números do banco (23/08):** 7.706 contas com e-mail (todas confirmadas) ·
+2.611 sumidas há 30+ dias · 6.205 há 14+ dias · 4.701 entraram nos últimos 30.
+
+**Mockup desenhado e mandado**: `scripts/mockup-email-novidades.mjs` — assunto
+"Você não vai reconhecer o jogo ⚽🔨", com: várzea→Série A · escudos REAIS dos
+batismos (Papão/Leão/Theuzudo/São Luiz/Coringas) · copas · estante de troféus ·
+Rede Martelo TV · "o jogo criou vida" · CTA "voltar pro meu time" · rodapé com
+DESCADASTRO (obrigatório, LGPD).
+
+**O plano técnico combinado (esperando as decisões dele):**
+1. Enviar 7,7 mil e-mails NÃO dá pelo Gmail (limite ~500/dia + spam). Precisa de
+   serviço de disparo com o DOMÍNIO verificado: recomendação **Resend**
+   (US$ 20 no mês do disparo, 50 mil e-mails, cancela depois; alternativa Brevo
+   grátis 300/dia = lento demais pra 7,7k). Verificação = 3 registros DNS
+   (SPF/DKIM) no lugar onde o leilaolegends.com foi registrado.
+2. Caixa contato@ pra RECEBER respostas: encaminhamento grátis via DNS pro
+   Gmail dele.
+3. **Descadastro obrigatório**: tabela `esc_email_optout` + link no rodapé;
+   quem sair nunca mais recebe (vale pra qualquer campanha futura).
+4. Disparo em LOTES ao longo de uns dias (aquecer o domínio novo pra não cair
+   em spam), começando pelos mais recentes.
+5. Depois deste, dá pra mandar um por mês com as novidades do mês (a lista de
+   `novidades.ts` já é a pauta pronta).
+
+**Falta o Diego dizer:** (a) OK visual no mockup; (b) onde o domínio está
+registrado / acesso ao DNS (ou ele cola 3 registros que eu passo); (c) OK no
+custo do Resend. SEM disparo antes disso — e-mail é irreversível.
+
 ## 📺 COTA DE TV EXTRA — ✅ ENTREGUE E NO AR (23/08, "pode fazer tudo")
 O Diego deu o OK no desenho da reforma e mandou: *"pode fazer tudo — e de cara,
 quando acabar a temporada de QUALQUER usuário, conta antiga ou nova, deve
