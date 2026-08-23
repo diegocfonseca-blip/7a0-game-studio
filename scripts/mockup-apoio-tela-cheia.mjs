@@ -69,7 +69,6 @@ const CMP = [
   ['Escudo + mascote seus', '✓', '—', '—', '✓'],
   ['Estádio batizado', '✓', '—', '—', '✓'],
   ['Moedas todo mês', '30 🪙', '—', '—', '30 🪙'],
-  ['Voto nas novidades', '✓', '—', '—', '✓'],
   ['Modo Manual (ritmo)', '—', '✓', '✓', '✓'],
   ['Nível dos jogadores', '—', 'quase tudo', 'até lendas', 'até lendas'],
   ['Carreiras salvas', '2', '4', '6', '6'],
@@ -123,7 +122,7 @@ th{padding:6px 3px;font-size:9px;${OSW};text-transform:uppercase;background:#F4E
         '<b>4 carreiras salvas</b> ao mesmo tempo',
       ],
       cta: '⭐ Quero o Craque', ctaBg: PRATA,
-      extra: '<div class="combo">🎁 Quer o <b>Sócio</b> junto (escudo, mascote, estádio, 30 🪙/mês, voto)? Com o Craque ele sai por <b>R$ 4,90/mês</b> em vez de 9,90.</div>',
+      extra: '<div class="combo">🎁 Quer o <b>Sócio</b> junto (escudo, mascote, manto, estádio batizado, 30 🪙/mês)? Com o Craque ele sai por <b>R$ 4,90/mês</b> em vez de 9,90.</div>',
     })}
     ${card({
       grad: OURO, emoji: '👑', nome: 'Lenda', preco: 'R$ 39,90', quando: 'pagamento único',
@@ -161,7 +160,7 @@ th{padding:6px 3px;font-size:9px;${OSW};text-transform:uppercase;background:#F4E
         '<b>Estádio batizado</b> com o nome que você escolher, no clube e no jornal',
         '<b>Manto do coração:</b> seu elenco ganha a faixinha com as cores do seu time',
         '<b>Cor roxa</b> no nome + carteirinha de sócio numerada',
-        '<b>30 moedas todo mês</b> na caixa do clube + <b>voto</b> nas próximas novidades',
+        '<b>30 moedas todo mês</b> na caixa do clube, em qualquer carreira sua',
       ],
       cta: '🎫 Quero ser sócio', ctaBg: 'linear-gradient(150deg,#A78BFA,#7C3AED)', ctaCor: '#fff',
       extra: '<div class="combo">💳 Cartão pelo Mercado Pago · cancela quando quiser, sem multa.<br>Mais barato pra quem já apoiou: ⭐ Craque <b>R$ 4,90</b> · 👑 Lenda <b>R$ 2,90</b>.</div>',
