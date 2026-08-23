@@ -2317,6 +2317,7 @@ export const OLD_NAME: Record<string, string> = {
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
+  'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
   'Papão United Madrid': 'Santos Dumont', // ⚽ batismo do agrostinho88: assumiu o assento da Série D que era do Alfacehh — save antigo com Santos Dumont (ou Tonhão FC) vira Papão United Madrid ao carregar (23/08)
   'Theuzudo FC': 'Comercial do Norte', // ⚽ batismo do matheusfilipealves: save antigo com Comercial do Norte vira Theuzudo FC ao carregar (21/08)
@@ -2444,7 +2445,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
     { name: 'Neguinho do Apito', team: 'Xurupitas FC' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Xurupitas FC, ex-Tokyo City Esperion, ex-FC Galáticos; porco/Palmeiras)
     { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
-    { name: 'Tião Bagre', team: 'Império Samambaia' }, // ⚽ clube BATIZADO por apoiador (jorgericardo777 — Império Samambaia, ex-Cuiabagre)
+    { name: 'Tião Bagre', team: 'Leão da Estradinha' }, // ⚽🦁 clube BATIZADO por apoiador (jorgericardo777 — Leão da Estradinha, ex-Império Samambaia, ex-Cuiabagre; homenagem ao Rio Branco-PR, o Leão da Estradinha de 1913, time do coração dele; rebatismo 23/08)
     { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
     { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)

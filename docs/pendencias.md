@@ -1,5 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## 🦁 REBATISMO: Império Samambaia → LEÃO DA ESTRADINHA (23/08)
+Pedido do Diego: *"vamos trocar o time império samambaia pro nome de Leão da
+Estradinha. Só mudar nome e escudo mascote e manto"*. **Mesmo dono**
+(jorgericardo777@gmail.com, Lenda, sócio nº4, fundador nº28) — e faz todo
+sentido: o time do coração dele no banco é o **Rio Branco** ("Leão da
+Estradinha" é o apelido do Rio Branco-PR, fundado em 1913, que está na arte).
+
+Formato padrão, tudo igual Coringas do Diniz:
+- **Arte** do dono recortada da prancheta (fundo branco por alastramento da
+  borda — os brancos DE DENTRO intactos), conferida sobre VERMELHO FORTE:
+  escudo 287×360 **27,1 KB** · mascote 236×440 **33,8 KB** (total **60,9 KB**,
+  teto 75) · camisa 332×620 15,6→24,7 KB em `scripts/kits/` (só do post).
+- **Código**: `data.ts` (Série A + corrente de nomes 'Leão da Estradinha' →
+  'Império Samambaia' → 'Cuiabagre') · `escudos.tsx` (4 formas + nome velho;
+  **o SVG antigo do Império Samambaia foi APAGADO do bundle** — era pré-regra) ·
+  `mascotes.tsx` (`leao_estradinha`, "O Leão", carimbo no gol; a samambaia SVG
+  fica, regra 6) · `apoio.tsx` · `novidades.ts`.
+- **Banco**: `esc_socios` atualizado (escudo/mascote/manto `#A32A28`+`#FFFFFF`,
+  cores MEDIDAS na camisa) · `esc_nomes_batismo` reservou o nome novo (puro +
+  FC + EC via gatilho) **e o velho continua reservado** pro mesmo dono.
+- **Mockup**: gerado no padrão; ⚠️ "BATIZADO POR" ficou em BRANCO — o display
+  name da conta dele é o próprio "Império Samambaia" e ninguém sabe o nome de
+  pessoa. **Perguntar ao Diego** antes de postar (não se inventa nome).
+
 ## ✅ SALA ONLINE — "sou o host mas fica confirmando com o host" (23/08, sala 1DWIA5)
 O Diego, DONO da sala, ficou preso no "ENVIANDO… confirmando com o host", com o
 convidado (fonseca2) travado em "aguardando" — e o banner de manutenção acendeu

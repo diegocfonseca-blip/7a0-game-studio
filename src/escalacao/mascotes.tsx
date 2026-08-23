@@ -16,6 +16,7 @@ import nataMascoteImg from './img/nata-mascote.webp' // 🤡 Nata de SP (pedrinh
 import theuzudoMascoteImg from './img/theuzudo-mascote.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
 import saoluizMascoteImg from './img/saoluiz-mascote.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
 import papaoMascoteImg from './img/papao-mascote.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
+import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
@@ -515,6 +516,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // que os outros mascotes. Veio da 2ª arte que o dono mandou (peças separadas,
   // fundo branco): a 1ª tinha um bloco quadriculado colado no corpo e o Diego
   // reprovou. Aqui é a fera inteira, sem remendo.
+  // 🦁 Leão da Estradinha (jorgericardo777) — leão de camisa 1913 com a bola.
+  // Rebatismo do Império Samambaia (23/08); a samambaia coroada em SVG fica
+  // (regra 6: os SVGs antigos não nascem mais, mas ficam onde estão).
+  leao_estradinha: (
+    <img src={leaoEstradinhaMascoteImg} height={176} width={Math.round(176 * 236 / 440)} alt="O Leão — Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   papao_lobo: (
     <img src={papaoMascoteImg} height={176} width={Math.round(176 * 281 / 440)} alt="O Papão — Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -739,7 +746,10 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Neymarzetti': 'moicano',
   'Manfré FC': 'gralha',
   'Alfacehh': 'alface',
-  'Império Samambaia': 'samambaia',
+  'Leão da Estradinha': 'leao_estradinha', // 🦁 o leão carimba o placar (rebatismo 23/08)
+  'Leão da Estradinha FC': 'leao_estradinha',
+  'Leão da Estradinha EC': 'leao_estradinha',
+  'Império Samambaia': 'leao_estradinha', // nome velho → mascote novo (carreira antiga acompanha o rebatismo)
   'Bicho da Seda': 'mariposa',
   'Nightfull FC': 'galo',
   'Murriz FC': 'careca_ruivo',
@@ -794,6 +804,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   theuzudo_morcego: 'Theuzinho', // 🦇 Theuzudo FC (matheusfilipealves, 21/08)
   saoluiz_pitbull: 'Luizão',     // 🐶 São Luiz FC (gabrielnegreirosamaral99, 21/08)
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
+  leao_estradinha: 'O Leão',     // 🦁 Leão da Estradinha (jorgericardo777, 23/08)
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
