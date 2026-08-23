@@ -2059,6 +2059,12 @@ const ATA_WORLD: C[] = [
   { name: "Hwang Sun-hong", club: "Pohang Steelers", year: 1997, fame: 3, lo: 68, hi: 83, bio: "Matador coreano — abriu o placar contra a Polônia em 2002: a PRIMEIRA vitória da Coreia em Copas." },
   { name: "Eduardo Vargas", club: "U. de Chile", year: 2011, fame: 3, lo: 70, hi: 84, bio: "'Turboman' da U. de Chile campeã invicta da Sul-Americana de 2011 — na seleção virava monstro, artilheiro de duas Américas." },
   { name: "Humberto Suazo", club: "Monterrey", year: 2010, fame: 3, lo: 70, hi: 84, bio: "'Chupete' — chutava com os dois pés e mascava chiclete como quem já sabia que ia ser artilheiro do mundo em 2006." },
+  // 🌍 Os dois maiores da era moderna, mas FORA da Europa (Diego 21/08). São
+  // LENDA aqui também — só que num nível bem abaixo do que têm no baralho
+  // europeu (Messi 92-96 no Barça, CR7 91-95 no Real). É a mesma ideia do
+  // "auge na Europa" que o jogo já usa: a carta é do MOMENTO, não da lenda.
+  { name: "Cristiano Ronaldo", club: "Al-Nassr", year: 2023, fame: 5, lo: 86, hi: 92, bio: "O maior artilheiro da história do futebol foi caçar gol no deserto — e continuou fazendo em série. O Al-Nassr virou notícia no mundo inteiro por causa dele." },
+  { name: "Lionel Messi", club: "Inter Miami", year: 2023, fame: 5, lo: 87, hi: 93, bio: "Levou a magia pra Flórida e fez os Estados Unidos pararem pra ver futebol. Chegou e já foi campeão — o passe continua no lugar de sempre." },
 ]
 // 🆕 cartas novas (baralho WORLD) — pedidas pelo Diego.
 // 🌍 LOTE COPA (02/08): +62 famosos de Paraguai/Japão/Camarões/Senegal pra cada um

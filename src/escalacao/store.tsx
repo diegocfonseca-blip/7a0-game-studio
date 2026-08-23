@@ -6675,17 +6675,22 @@ type FichaJogador = { fame: number; lo: number; hi: number; folk?: boolean; prom
 const FICHA_ATUAL = (() => {
   const exato = new Map<string, FichaJogador>()
   const porNome = new Map<string, FichaJogador>()
-  // ordem: WORLD → EU → BR. O brasileiro entra por último e VENCE em nomes
-  // repetidos (mesma regra do `CARD_META` do álbum).
+  const repetidos = new Set<string>()
   for (const cat of [CATALOG_WORLD, CATALOG_EU, CATALOG]) {
     for (const lista of Object.values(cat)) {
       for (const c of lista as (FichaJogador & { name: string; club: string; year: number })[]) {
         const ficha: FichaJogador = { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bio: c.bio }
         exato.set(`${c.name}|${clubCanon(c.club)}|${c.year}`, ficha)
-        porNome.set(c.name, ficha)
+        if (porNome.has(c.name)) repetidos.add(c.name); else porNome.set(c.name, ficha)
       }
     }
   }
+  // 🚫 nome que aparece em MAIS DE UMA carta sai da queda-por-nome. O jogo tem
+  // o mesmo jogador em momentos diferentes (Messi no Barça e no Inter Miami,
+  // CR7 no Real e no Al-Nassr, Alan Ruschel em 2016 e 2017) — pegar "o Messi"
+  // pelo nome daria a ficha errada, e a de fora da Europa é MUITO mais fraca.
+  // Nesses casos só o casamento exato (nome+clube+ano) vale.
+  for (const n of repetidos) porNome.delete(n)
   return { exato, porNome }
 })()
 function sincronizaNiveis(save: EscState): EscState {
