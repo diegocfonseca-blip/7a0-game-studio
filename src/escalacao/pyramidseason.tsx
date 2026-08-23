@@ -1503,6 +1503,13 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
   const cardRef = useRef<HTMLDivElement>(null)
   const temporada = state.seasonNo ?? 1
   const cotaDiv = TV_DEGRAUS.find(([d]) => d === div)?.[1] ?? 0
+  // 🛟 SÓ CARREIRA SOLO (bug pego em 23/08, conferindo o caso do amigo do Diego):
+  // este card também renderiza na CARREIRA ONLINE, mas o crédito (TV_EXTRA_CREDIT)
+  // é recusado pelo reducer no online — e o `tv_resgatar` já teria marcado a linha
+  // como "creditado" no banco. Ou seja: abrir a aba no online QUEIMAVA a cota
+  // aprovada e o jogador nunca via a moeda. Agora, no online, não resgata nem
+  // deixa enviar: mostra só o contrato por divisão (esse sim já paga online).
+  const soloOk = state.onlineMode !== 'online'
   // 📺→🎯 veio do banner "quero televisionar": rola até o card e acende um brilho
   // curto, pra ninguém ficar caçando a TV no meio da aba (reclamação do Diego).
   useEffect(() => {
@@ -1514,6 +1521,7 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [foco])
   useEffect(() => {
+    if (!soloOk) return // 🛟 no online nem toca no banco (não queima cota aprovada)
     let vivo = true
     ;(async () => {
       try {
@@ -1587,7 +1595,9 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
           <span style={{ fontWeight: 800, fontSize: 10, lineHeight: 1.3 }}>por vídeo aprovado —<br /><b>1 vídeo por temporada</b></span>
         </div>
         <p style={{ fontWeight: 700, fontSize: 11, lineHeight: 1.45, margin: '0 0 8px' }}>A emissora também paga por jogo que passa <b>nas redes</b>: filma seu jogo, posta marcando <b>@leilaolegendscom</b>, cola o link — e a cota extra cai na caixa do clube.</p>
-        {!logado ? (
+        {!soloOk ? (
+          <div style={{ background: '#FBF6E9', border: '2.5px dashed rgba(12,12,12,.4)', borderRadius: 10, padding: '8px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.7)' }}>🤝 Aqui vocês jogam a carreira JUNTOS, e a caixa é compartilhada — a cota extra do vídeo entra na <b>sua carreira solo</b>. Abra a sua lá e televisione por ela. 🎬</div>
+        ) : !logado ? (
           <div style={{ background: '#FBF6E9', border: `2.5px dashed rgba(12,12,12,.4)`, borderRadius: 10, padding: '8px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.7)' }}>🔑 Entre com a sua conta (lá na home) pra televisionar — a emissora precisa saber qual clube recebe a cota.</div>
         ) : envio === undefined ? (
           <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.5)', padding: 6 }}>📡 sintonizando a emissora…</div>
