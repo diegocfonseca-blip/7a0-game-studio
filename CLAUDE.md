@@ -69,6 +69,18 @@ FORA do bundle. Então, sem exceção:
 3. **Recortar no limite do desenho** (bbox do alfa) antes de salvar — moldura
    transparente sobrando faz a arte renderizar menor que as outras e ainda
    ocupa KB à toa.
+   ⚠️ **O bbox CRU MENTE** (erro do Papão, 23/08). Depois de tirar o fundo sobra
+   **poeira de alfa** (pixels com alfa 1–40, invisíveis a olho nu) espalhada pela
+   moldura — pro `getbbox()` isso é desenho, então ele devolve o arquivo INTEIRO e
+   parece que já está recortado. O escudo do Papão vinha 150×360 com o desenho só
+   nas linhas 75→338, e a camisa 175×620 com o desenho nas linhas 144→465 (**mais
+   da METADE do arquivo era vazio**). O navegador encaixa o ARQUIVO, então
+   encaixava o vazio junto e a arte saía pequena dentro da janela — o Diego pegou
+   no post: *"tá mt desproporcional o escudo no encaixe da janela… a camisa está
+   mt pequena do lado do manto"*. **Sempre medir com corte de alfa (≥ 40) e
+   exigindo pelo menos 3 pixels na linha/coluna** (um pixel solto também mente), e
+   apagar a poeira antes de salvar. O `mockup-batismo.mjs` já confere sozinho e
+   avisa se sobrou ≥ 4% de moldura — mas a conferência vale pra qualquer arte.
 4. **Largura declarada pela proporção REAL** do arquivo
    (`width={Math.round(size * w / h)}`), nunca `width={size}` chutado.
 5. **Animação de escudo/mascote é feita em CSS**, nunca em webp animado

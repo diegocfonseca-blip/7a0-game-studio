@@ -42,7 +42,7 @@ export interface CBTie {
   win: 'a' | 'b'
   goals: Goal[]; legs: [number, number][]; legGoals: Goal[][]
 }
-export interface CBRound { name: string; ties: CBTie[] }
+export interface CBRound { name: string; ties: CBTie[]; slot?: number } // slot = rodada-fantasma que essa fase lê pra saber a escalação (38, 39, 40…)
 export interface CopaBrasilResult {
   groups: CBGroup[] // 🈳 sempre vazio na v2 (sem fase de grupos) — mantido só pra não quebrar tipos/telas antigas
   round64: CBRound | null // guarda a PENEIRA (72→36) — nome mantido pelo campo, mas o `.name` interno já diz "Peneira"
@@ -186,6 +186,14 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     // sorteio livre até a Rodada de 32; da Oitavas em diante a ORDEM de
     // `cur` já É o chaveamento travado (vencedor do jogo A encara
     // vencedor do jogo B na fase seguinte) — não embaralha mais.
+    // 🔁 SUBSTITUIÇÃO NA COPA (Diego 23/08) — cada FASE lê a escalação num slot
+    // próprio: 38 = grupos/peneira, 39 = Rodada de 64, 40 = Rodada de 32… Como
+    // `lineupAt` pega a última escalação de slot <= r, quem nunca mexe cai tudo
+    // no 38 e NADA muda de resultado. A troca de agora só alcança a fase que
+    // ainda não foi jogada — o que já apareceu na tela fica de pedra.
+    cur = cur.map(e => e.t.human
+      ? { ...e, t: { ...e.t, xi: lineupAt(lineups, e.t.teamId, 38 + ri + 1, e.t.squad, e.t.formation) } }
+      : e)
     const pool = FREE_DRAW.has(name) ? shuffle(cur, rng) : cur
     const legs = ROUND_LEGS[name]
     const ties: CBTie[] = [], next: Entrant[] = []
@@ -193,7 +201,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
       const tie = legs === 2 ? playTwoLegs(pool[i], pool[i + 1]) : playSingle(pool[i], pool[i + 1])
       ties.push(tie); next.push(tie.win === 'a' ? pool[i] : pool[i + 1])
     }
-    rounds.push({ name, ties })
+    rounds.push({ name, ties, slot: 38 + ri + 1 })
     cur = next
   }
 
@@ -205,7 +213,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
 
   return {
     groups: [], // sem fase de grupos na v2
-    round64: { name: 'Peneira', ties: peneiraTies },
+    round64: { name: 'Peneira', ties: peneiraTies, slot: 38 },
     rounds,
     champion: champEnt?.t ?? null,
     championDiv: champEnt?.div ?? null,
@@ -259,7 +267,11 @@ export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number
 // não fica hard-coded pra Copa do Brasil especificamente. ──
 export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: SimTeam | null, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}): CBTie | null {
   if (!copaChampion) return null
-  const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t
+  // 🔁 a Supercopa é o ÚLTIMO jogo da temporada — vem depois da final da Copa do
+  // Brasil, então lê o slot logo acima do dela (mesma regra de substituição por
+  // fase). Sem escalação nova, cai no 38 e nada muda.
+  const SLOT_SUPER = 38 + ROUND_NAMES.length + 1
+  const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, SLOT_SUPER, t.squad, t.formation) } : t
   const ligaChamp = tables.A?.[0]
   const ligaVice = tables.A?.[1]
   if (!ligaChamp) return null
@@ -328,9 +340,9 @@ export function supercopaRewards(tie: CBTie | null): { rewards: Record<number, n
 // como a 8ª e última página, na mesma esteira de revelação. ──
 export function copaBrasilAsCopaResult(r: CopaBrasilResult, supercopa?: CBTie | null): CopaResult {
   const rounds: CopaRound[] = []
-  if (r.round64) rounds.push({ name: r.round64.name, ties: r.round64.ties })
+  if (r.round64) rounds.push({ name: r.round64.name, ties: r.round64.ties, slot: r.round64.slot })
   rounds.push(...r.rounds)
-  if (supercopa) rounds.push({ name: 'Supercopa', ties: [supercopa] })
+  if (supercopa) rounds.push({ name: 'Supercopa', ties: [supercopa], slot: 38 + ROUND_NAMES.length + 1 })
   return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, topScorer: r.topScorer }
 }
 

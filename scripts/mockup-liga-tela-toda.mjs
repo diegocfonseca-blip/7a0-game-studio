@@ -1,5 +1,11 @@
 // ─── 🏆 MOCKUP: A TELA INTEIRA DA SALA DA LIGA (hoje × proposta) ────────────
 //
+// ❌❌ RECUSADO PELO DIEGO EM 23/08 — NÃO IMPLEMENTAR, NÃO PROPOR DE NOVO.
+// Depois de ver o desenho e a explicação passo a passo, a resposta foi seca:
+// *"Não, n faz isso"*. A ordem da tela da sala da liga FICA COMO ESTÁ.
+// Este arquivo continua no repo só como registro do que já foi proposto e
+// descartado — se alguém tiver a mesma ideia daqui a um mês, ela já foi recusada.
+//
 // Diego, 23/08, depois da primeira entrega: *"ainda tô achando tudo igual"*.
 // E ele está certo. Meu erro: o mockup anterior desenhou TRÊS pedaços da tela
 // (troféus, regras, botões do dono) e eu tratei como se fosse a tela toda. A

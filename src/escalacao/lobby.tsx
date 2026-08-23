@@ -12,6 +12,7 @@ import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
+import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
@@ -58,377 +59,12 @@ function chatColor(name: string): string {
   return CHAT_COLORS[h % CHAT_COLORS.length]
 }
 
-// ─── ⚖️ AS REGRAS DA LIGA SÃO DO DONO (20/08) ────────────────────────────────
-// Pedido do Diego: *"ele pode definir a regra do ranking… por ordem de títulos e
-// qual vale mais, liga ou copa… e se zona de rebaixamento tira título… ou por
-// ordem de pontuação que ele decidir. O jogo pode dar a sugestão de início mas
-// ele decidiria. E quando ele decidir fica decidido daquele jeito toda vez que
-// entrarem nessa sala"*.
-//
-// ⚠️ Vale SÓ DENTRO DA LIGA. O ranking global do jogo não olha nada disto — senão
-// cada um inventaria a própria pontuação e o rank geral virava mentira.
-type LigaChave = 'liga' | 'copa' | 'artilheiro' | 'rebaixamento'
-export type LigaRegras = { modo: 'titulos' | 'pontos'; ordem: LigaChave[]; pontos: Record<LigaChave, number>; rebaixaTira: boolean; ativos: LigaChave[] }
-const LIGA_REGRAS_PADRAO: LigaRegras = {
-  modo: 'titulos',
-  ordem: ['liga', 'copa', 'artilheiro'],
-  // sugestão do jogo (a mesma conta do rank de hoje: copa vale mais que liga)
-  pontos: { liga: 20, copa: 30, artilheiro: 5, rebaixamento: -10 },
-  rebaixaTira: true,
-  ativos: ['liga', 'copa', 'artilheiro', 'rebaixamento'],
-}
-const LIGA_ROTULO: Record<LigaChave, string> = { liga: '🏆 Título da liga', copa: '🏆🇧🇷 Copa', artilheiro: '⚽ Artilheiro', rebaixamento: '🔻 Rebaixamento' }
-const lerRegras = (v: unknown): LigaRegras => {
-  const r = (v ?? {}) as Partial<LigaRegras>
-  return {
-    modo: r.modo === 'pontos' ? 'pontos' : 'titulos',
-    ordem: Array.isArray(r.ordem) && r.ordem.length ? r.ordem : LIGA_REGRAS_PADRAO.ordem,
-    pontos: { ...LIGA_REGRAS_PADRAO.pontos, ...(r.pontos ?? {}) },
-    rebaixaTira: r.rebaixaTira ?? LIGA_REGRAS_PADRAO.rebaixaTira,
-    ativos: Array.isArray(r.ativos) ? r.ativos : LIGA_REGRAS_PADRAO.ativos,
-  }
-}
-
-// 🏆 SALA DE TROFÉUS DA LIGA na ESPERA. O histórico já existe no jogo
-// (`game_champions`, gravado no fim de cada temporada por sala) — o que muda é
-// ONDE ele aparece: numa liga que se repete toda semana, o valor está em ver
-// quem é o dono da liga ANTES de começar, não depois.
-//
-// ✏️ E O DONO ARRUMA (*"às vezes pode dar erro, aí eles mesmos podem arrumar"*).
-// Só o DONO da sala vê o lápis e o "escrever uma temporada" — a trava de verdade
-// é no banco (política que checa o host da sala), então nem convidado nem gente
-// de fora consegue mexer, mesmo mexendo no navegador. Convidado só lê.
-//
-// 📊 O RANKING sai daqui de dentro: é contado das MESMAS linhas de troféu, com a
-// regra que o dono escolheu. Um lugar só, então arrumar um troféu já arruma o
-// ranking na mesma hora.
-function TrofeusDaLiga({ roomId, isHost, nomes, regras, salvarRegras }: {
-  roomId: string; isHost: boolean; nomes: string[]
-  regras: LigaRegras; salvarRegras: (r: LigaRegras) => void
-}) {
-  type Linha = { season_no: number; champion_name: string | null; top_scorer_name: string | null; top_scorer_goals: number | null; top_scorer_team: string | null; mico_name: string | null; copa_champion_name: string | null }
-  const [rows, setRows] = useState<Linha[] | null>(null)
-  const [edit, setEdit] = useState<Linha | null>(null)
-  const [abrirRegras, setAbrirRegras] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [erro, setErro] = useState('')
-  const listaId = `trofeu-nomes-${roomId}`
-
-  const carregar = useCallback(() => {
-    void supabase.from('game_champions')
-      .select('season_no, champion_name, top_scorer_name, top_scorer_goals, top_scorer_team, mico_name, copa_champion_name')
-      .eq('room_id', roomId).order('season_no', { ascending: true })
-      .then(({ data }) => setRows((data ?? []) as Linha[]), () => setRows([]))
-  }, [roomId])
-  useEffect(() => { carregar() }, [carregar])
-
-  const vazia = (t: number): Linha => ({ season_no: t, champion_name: '', top_scorer_name: '', top_scorer_goals: null, top_scorer_team: '', mico_name: '', copa_champion_name: '' })
-  const limpo = (v: string | null) => { const t = (v ?? '').trim(); return t ? t : null }
-
-  async function salvar() {
-    if (!edit || busy) return
-    setBusy(true); setErro('')
-    const payload = {
-      champion_name: limpo(edit.champion_name), copa_champion_name: limpo(edit.copa_champion_name),
-      top_scorer_name: limpo(edit.top_scorer_name), top_scorer_goals: edit.top_scorer_goals ?? null,
-      top_scorer_team: limpo(edit.top_scorer_team), mico_name: limpo(edit.mico_name),
-    }
-    const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', edit.season_no).maybeSingle()
-    const { error } = existe
-      ? await supabase.from('game_champions').update(payload).eq('id', existe.id)
-      : await supabase.from('game_champions').insert({ room_id: roomId, season_no: edit.season_no, ...payload })
-    setBusy(false)
-    if (error) { setErro('Não deu pra salvar. Tente de novo.'); return }
-    setEdit(null); carregar()
-  }
-  async function apagar(t: number) {
-    if (busy) return
-    if (!window.confirm(`Apagar a temporada ${t} da sala de troféus?\n\nSó esta linha some — o resto da liga fica.`)) return
-    setBusy(true); setErro('')
-    const { error } = await supabase.from('game_champions').delete().eq('room_id', roomId).eq('season_no', t)
-    setBusy(false)
-    if (error) { setErro('Não deu pra apagar. Tente de novo.'); return }
-    setEdit(null); carregar()
-  }
-
-  // ── 📊 o ranking, contado das mesmas linhas ────────────────────────────────
-  const ranking = (() => {
-    if (!rows || rows.length === 0) return []
-    const conta: Record<string, Record<LigaChave, number>> = {}
-    const pega = (n?: string | null) => {
-      const t = (n ?? '').trim(); if (!t) return null
-      if (!conta[t]) conta[t] = { liga: 0, copa: 0, artilheiro: 0, rebaixamento: 0 }
-      return conta[t]
-    }
-    for (const l of rows) {
-      pega(l.champion_name)!.liga++
-      const c = pega(l.copa_champion_name); if (c) c.copa++
-      const a = pega(l.top_scorer_team); if (a) a.artilheiro++
-      const m = pega(l.mico_name); if (m) m.rebaixamento++
-    }
-    const on = (k: LigaChave) => regras.ativos.includes(k)
-    const ligaDe = (v: Record<LigaChave, number>) =>
-      regras.modo === 'titulos' && regras.rebaixaTira && on('rebaixamento') ? Math.max(0, v.liga - v.rebaixamento) : v.liga
-    const pts = (v: Record<LigaChave, number>) =>
-      (['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[])
-        .filter(on).reduce((s, k) => s + (k === 'liga' ? v.liga : v[k]) * (regras.pontos[k] ?? 0), 0)
-    const lista = Object.entries(conta).map(([time, v]) => ({ time, v, pts: pts(v) }))
-    lista.sort((A, B) => {
-      if (regras.modo === 'pontos') return B.pts - A.pts || A.time.localeCompare(B.time)
-      for (const k of regras.ordem) {
-        if (!on(k)) continue
-        const a = k === 'liga' ? ligaDe(A.v) : A.v[k]
-        const b = k === 'liga' ? ligaDe(B.v) : B.v[k]
-        if (a !== b) return b - a
-      }
-      return A.time.localeCompare(B.time)
-    })
-    return lista
-  })()
-
-  if (rows == null) return null
-  const proxima = rows.length ? Math.max(...rows.map(r => r.season_no)) + 1 : 1
-  const campo = (rot: string, val: string, set: (v: string) => void, ph = '') => (
-    <div className="flex-1 min-w-0">
-      <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1" style={OSWALD}>{rot}</p>
-      <input value={val} list={listaId} placeholder={ph} onChange={e => set(e.target.value)}
-        className="w-full border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
-    </div>
-  )
-  // ⚖️ a regra que está valendo, escrita em UMA LINHA. Vale pra todo mundo — o
-  // convidado precisa saber por que fulano está na frente no ranking.
-  const ativas = (['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).filter(k => regras.ativos.includes(k))
-  const resumoRegra = regras.modo === 'pontos'
-    ? `Por pontos · ${ativas.map(k => `${LIGA_ROTULO[k].toLowerCase()} ${regras.pontos[k]}`).join(' · ')}`
-    : `Por títulos · ${regras.ordem.filter(k => regras.ativos.includes(k)).map(k => LIGA_ROTULO[k].toLowerCase()).join(' > ')}${regras.rebaixaTira && regras.ativos.includes('rebaixamento') ? ' · cair tira um título' : ''}`
-  const troca = (k: LigaChave) => {
-    const tem = regras.ativos.includes(k)
-    salvarRegras({ ...regras, ativos: tem ? regras.ativos.filter(x => x !== k) : [...regras.ativos, k] })
-  }
-  const sobe = (k: LigaChave) => {
-    const i = regras.ordem.indexOf(k); if (i <= 0) return
-    const o = [...regras.ordem]; [o[i - 1], o[i]] = [o[i], o[i - 1]]
-    salvarRegras({ ...regras, ordem: o })
-  }
-
-  return (
-    <div className="rounded-2xl border-[3px] border-black p-3 space-y-3" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
-      <datalist id={listaId}>{nomes.map(n => <option key={n} value={n} />)}</datalist>
-
-      {/* 📊 RANKING — o que a regra do dono produz. Só aparece quando já tem troféu. */}
-      {ranking.length > 0 && (
-        <div>
-          <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#7a4d00' }}>📊 Ranking da liga</p>
-          <div className="space-y-1.5">
-            {ranking.map((r, i) => (
-              <div key={r.time} className="flex items-center gap-2 border-2 border-black rounded-xl px-2.5 py-1.5 bg-white">
-                <span className="font-black text-[13px] shrink-0 w-6 text-center" style={{ ...OSWALD, color: i === 0 ? '#7a4d00' : 'rgba(12,12,12,.4)' }}>{i === 0 ? '🥇' : `${i + 1}º`}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-[13px] truncate" style={OSWALD}>{r.time}</p>
-                  <p className="text-black/55 text-[10.5px] font-bold truncate">
-                    {regras.ativos.includes('liga') ? `🏆 ${r.v.liga}` : ''}
-                    {regras.ativos.includes('copa') ? ` · 🏆🇧🇷 ${r.v.copa}` : ''}
-                    {regras.ativos.includes('artilheiro') ? ` · ⚽ ${r.v.artilheiro}` : ''}
-                    {regras.ativos.includes('rebaixamento') ? ` · 🔻 ${r.v.rebaixamento}` : ''}
-                  </p>
-                </div>
-                {regras.modo === 'pontos' && (
-                  <span className="shrink-0 font-black text-[13px] border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: GOLD }}>{r.pts}</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 🏆 os troféus, temporada por temporada */}
-      <div>
-        <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Sala de troféus da liga</p>
-        {/* 🏆 TABELA, uma linha por temporada (mockup aprovado 22/08). Era um cartão
-            empilhado por temporada, que virava uma parede na tela do celular.
-            Rola de lado se não couber — a coluna do lápis fica fixa no fim. */}
-        {rows.length === 0 ? (
-          <p className="text-black/55 text-[11.5px] font-bold leading-snug">
-            Ainda sem troféu nenhum — <b>o primeiro campeão sai no fim deste jogo</b>. Daqui pra frente tudo fica guardado aqui.
-          </p>
-        ) : (
-          <div className="overflow-x-auto -mx-1 px-1">
-            <table className="w-full" style={{ borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  {['TEMP.', 'CAMPEÃO', 'COPA', 'ARTILHEIRO', 'MICO'].map(h => (
-                    <th key={h} className="font-black text-[9px] tracking-wider text-black/40 text-left pb-1 pr-2 whitespace-nowrap" style={OSWALD}>{h}</th>
-                  ))}
-                  {isHost && <th />}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(l => (
-                  <tr key={l.season_no} style={{ borderTop: '2px solid rgba(12,12,12,.12)' }}>
-                    <td className="font-black text-[11px] text-black/40 py-1.5 pr-2 whitespace-nowrap" style={OSWALD}>T{l.season_no}</td>
-                    <td className="font-black text-black text-[12.5px] py-1.5 pr-2" style={OSWALD}>🏆 {l.champion_name ?? '—'}</td>
-                    <td className="font-black text-black text-[12.5px] py-1.5 pr-2" style={OSWALD}>{l.copa_champion_name ? `🏆🇧🇷 ${l.copa_champion_name}` : <span className="text-black/25">—</span>}</td>
-                    <td className="font-black text-black text-[12.5px] py-1.5 pr-2 whitespace-nowrap" style={OSWALD}>{l.top_scorer_name ? `⚽ ${l.top_scorer_name}${l.top_scorer_goals ? ` · ${l.top_scorer_goals}` : ''}` : <span className="text-black/25">—</span>}</td>
-                    <td className="font-black text-[12.5px] py-1.5 pr-2" style={{ ...OSWALD, color: '#B23B2E' }}>{l.mico_name ? `🔻 ${l.mico_name}` : <span className="text-black/25">—</span>}</td>
-                    {isHost && (
-                      <td className="py-1.5">
-                        <button onClick={() => { setErro(''); setEdit({ ...l }) }} aria-label={`Arrumar a temporada ${l.season_no}`}
-                          className="w-8 h-8 rounded-lg border-2 border-black bg-white font-black text-sm leading-none active:translate-y-0.5">✏️</button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {isHost && !edit && (
-          <button onClick={() => { setErro(''); setEdit(vazia(proxima)) }}
-            className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: PURPLE }}>
-            ➕ Escrever uma temporada
-          </button>
-        )}
-        {isHost && edit && (
-          <div className="mt-2 rounded-xl border-2 border-black bg-white p-3">
-            <p className="font-black text-[12.5px] mb-2" style={OSWALD}>✏️ Temporada {edit.season_no}</p>
-            <div className="space-y-2">
-              {campo('🏆 Campeão da liga', edit.champion_name ?? '', v => setEdit({ ...edit, champion_name: v }), 'nome do time')}
-              {campo('🏆🇧🇷 Campeão da Copa', edit.copa_champion_name ?? '', v => setEdit({ ...edit, copa_champion_name: v }), 'vazio se não teve')}
-              <div className="flex gap-2">
-                {campo('⚽ Artilheiro', edit.top_scorer_name ?? '', v => setEdit({ ...edit, top_scorer_name: v }), 'nome do jogador')}
-                <div className="w-[70px] shrink-0">
-                  <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1" style={OSWALD}>Gols</p>
-                  <input value={edit.top_scorer_goals ?? ''} inputMode="numeric" onChange={e => {
-                    const n = e.target.value.replace(/\D/g, '')
-                    setEdit({ ...edit, top_scorer_goals: n ? Number(n) : null })
-                  }} className="w-full border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
-                </div>
-              </div>
-              {campo('⚽ Time do artilheiro', edit.top_scorer_team ?? '', v => setEdit({ ...edit, top_scorer_team: v }), 'é ele que pontua no ranking')}
-              {campo('🔻 Rebaixado / mico', edit.mico_name ?? '', v => setEdit({ ...edit, mico_name: v }), 'último colocado')}
-            </div>
-            {erro && <p className="text-[11.5px] font-bold mt-2" style={{ color: '#B23B2E' }}>{erro}</p>}
-            <div className="flex gap-2 mt-3">
-              <button onClick={salvar} disabled={busy}
-                className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>{busy ? '...' : 'Salvar'}</button>
-              <button onClick={() => setEdit(null)} disabled={busy}
-                className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>Cancelar</button>
-              {rows.some(r => r.season_no === edit.season_no) && (
-                <button onClick={() => apagar(edit.season_no)} disabled={busy}
-                  className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs bg-white" style={{ ...OSWALD, color: '#B23B2E' }}>🗑️</button>
-              )}
-            </div>
-            <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
-              Só o <b>dono da liga</b> arruma — e o que você escrever vale só <b>dentro desta liga</b>: o ranking do jogo não muda.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* ⚖️ AS REGRAS — agora pra TODO MUNDO (Diego 22/08: os convidados *"tb precisam
-          enxergar as regras e coisas"*). Antes a faixa inteira era `isHost &&`: o
-          convidado entrava numa liga sem saber como o ranking contava. Agora ele vê a
-          MESMA linha e pode abrir pra ler; mexer continua só do dono. */}
-      <div>
-        <div className="flex items-center gap-2.5 border-2 border-black rounded-xl px-2.5 py-2 bg-white">
-          <div className="flex-1 min-w-0">
-            <p className="font-black text-black text-[12.5px]" style={OSWALD}>⚖️ Como o ranking conta</p>
-            <p className="text-black/55 text-[10.5px] font-bold leading-snug">{resumoRegra}</p>
-          </div>
-          <button onClick={() => setAbrirRegras(v => !v)}
-            className="shrink-0 border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-[11px] bg-white active:translate-y-0.5" style={{ ...OSWALD, color: PURPLE }}>
-            {abrirRegras ? 'Fechar' : (isHost ? '⚖️ Mudar' : '👁️ Ver')}
-          </button>
-        </div>
-          {abrirRegras && !isHost && (
-            <div className="mt-2 rounded-xl border-2 border-black bg-white p-3">
-              <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>O que conta nesta liga</p>
-              <div className="space-y-1">
-                {ativas.map(k => (
-                  <div key={k} className="flex items-center justify-between gap-2 border-2 border-black rounded-lg px-2.5 py-1.5">
-                    <span className="font-black text-[12.5px]" style={OSWALD}>{LIGA_ROTULO[k]}</span>
-                    {regras.modo === 'pontos'
-                      ? <span className="font-black text-[12.5px] border-2 border-black rounded-md px-2" style={{ ...OSWALD, background: GOLD }}>{regras.pontos[k]}</span>
-                      : <span className="font-black text-[11px] text-black/45" style={OSWALD}>{regras.ordem.filter(x => regras.ativos.includes(x)).indexOf(k) + 1}º lugar no critério</span>}
-                  </div>
-                ))}
-              </div>
-              <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
-                Quem escreve a regra é o <b>dono da liga</b>, e ela vale <b>só dentro desta liga</b> — o ranking do jogo não é tocado.
-              </p>
-            </div>
-          )}
-          {abrirRegras && isHost && (
-            <div className="mt-2 rounded-xl border-2 border-black bg-white p-3 space-y-3">
-              <div>
-                <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>Como conta</p>
-                <Seg options={[['titulos', '🏆 Por títulos'], ['pontos', '🔢 Por pontos']] as ['titulos' | 'pontos', string][]}
-                  value={regras.modo} onSet={v => salvarRegras({ ...regras, modo: v })} />
-              </div>
-              {regras.modo === 'titulos' ? (
-                <div>
-                  <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>O que vale mais (⌃ pra subir)</p>
-                  {regras.ordem.filter(k => regras.ativos.includes(k)).map((k, i) => (
-                    <div key={k} className="flex items-center justify-between gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 mb-1.5 bg-white">
-                      <span className="font-black text-[12.5px]" style={OSWALD}>{i + 1}º · {LIGA_ROTULO[k]}</span>
-                      <button onClick={() => sobe(k)} disabled={i === 0} aria-label={`Subir ${LIGA_ROTULO[k]}`}
-                        className="w-7 h-7 rounded-md border-2 border-black bg-white font-black text-xs leading-none disabled:opacity-25">⌃</button>
-                    </div>
-                  ))}
-                  <div className="flex items-center justify-between gap-2 mt-2">
-                    <span className="font-black text-[12px]" style={OSWALD}>🔻 Cair de divisão tira um título?</span>
-                    <div className="w-[130px] shrink-0">
-                      <Seg options={[[false, 'Não'], [true, 'Tira']] as [boolean, string][]}
-                        value={regras.rebaixaTira} onSet={v => salvarRegras({ ...regras, rebaixaTira: v })} />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>Quanto vale cada coisa</p>
-                  {(['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).filter(k => regras.ativos.includes(k)).map(k => (
-                    <div key={k} className="flex items-center justify-between gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 mb-1.5 bg-white">
-                      <span className="font-black text-[12.5px]" style={OSWALD}>{LIGA_ROTULO[k]}</span>
-                      <input value={regras.pontos[k]} inputMode="numeric"
-                        onChange={e => {
-                          const t = e.target.value.replace(/[^\d-]/g, '')
-                          salvarRegras({ ...regras, pontos: { ...regras.pontos, [k]: t === '' || t === '-' ? 0 : Number(t) } })
-                        }}
-                        className="w-[64px] text-center border-2 border-black rounded-md px-1 py-1 font-black text-[13px]" style={{ ...OSWALD, background: GOLD }} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div>
-                <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1.5" style={OSWALD}>O que conta nesta liga</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).map(k => {
-                    const on = regras.ativos.includes(k)
-                    return (
-                      <button key={k} onClick={() => troca(k)}
-                        className="border-2 border-black rounded-full px-2.5 py-1 font-black text-[11px] active:translate-y-0.5"
-                        style={{ ...OSWALD, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(12,12,12,.45)' }}>
-                        {on ? '✓' : '＋'} {LIGA_ROTULO[k]}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-              <p className="text-black/45 text-[10.5px] font-bold leading-snug">
-                O jogo entra com uma sugestão pronta; <b>quem decide é você</b>. O que ficar aqui vale <b>toda vez</b> que a
-                turma entrar — e dá pra mudar de novo quando quiser, sem perder troféu nenhum.
-                <br />Isto vale <b>só dentro desta liga</b>: o ranking do jogo não é tocado.
-              </p>
-            </div>
-          )}
-      </div>
-    </div>
-  )
-}
-
-// 💬 Gaveta de chat da sala de espera — MESMO desenho do chat do leilão
-// (ChatWidget): botão flutuante no canto + gaveta que sobe de baixo com a lista
-// de mensagens (que ficam), a caixa de digitar e o crachá de não-lidas.
+// ⚖️🏆 AS REGRAS DA LIGA E A SALA DE TROFÉUS MUDARAM DE CASA (23/08).
+// Tudo que era `TrofeusDaLiga` (ranking + sala de troféus + editor de regras)
+// virou o **LigaHub** em `ligahub.tsx`, que aparece assim que o PREGÃO ACABA, em
+// pílulas: 🏆 Rank · 🏅 Estante · 📜 Temporadas · ⚙️ Ajustes.
+// Aqui na ESPERA ficou só o ⚖️ do dono (na faixa verde do próximo jogo), porque a
+// regra tem que ser decidida ANTES da bola rolar — depois do pregão não tem volta.
 function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: {
   open: boolean; setOpen: (o: boolean) => void; unread: number
   msgs: LobbyMsg[]; myUid?: string; listRef: React.RefObject<HTMLDivElement | null>; onSend: (t: string) => void
@@ -960,7 +596,6 @@ export function EscLobby() {
   const [bafoValendo, setBafoValendo] = useState(true)
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
-  const [ligaFechada, setLigaFechada] = useState(false) // 🏆 liga só com a galera (sem bots) — só quem tem Lenda cria
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -996,8 +631,7 @@ export function EscLobby() {
   // duas vezes sobre bots ou não ao criar a sala e qd eu crio tá mt diferente do
   // mockup"*. Estava certo — a seção "A partida" aparece TAMBÉM no modo Liga, e
   // as duas perguntas de bot caíam na mesma tela.
-  // Fica `false` fixo. Quem for mexer em Liga Fechada, mexe no MODO.
-  const LIGA_FECHADA_LIBERADA = false
+  // Fica assim pra sempre. Quem for mexer em Liga Fechada, mexe no MODO.
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
@@ -1602,6 +1236,28 @@ export function EscLobby() {
   async function createRoom() {
     if (!user) return
     setLoading(true); setRoomError('')
+    // 🧯 TETO DE 2 SALAS RÁPIDAS ABERTAS (Diego 23/08: *"limite pode ser duas sim"*).
+    // Por que: criar sala rápida NUNCA teve limite, e o banco mostrou o estrago —
+    // 484 salas guardadas, 68% paradas há mais de um dia, uma pessoa só criou 20
+    // numa semana e 52% das salas ninguém apareceu. Metade da lista de "Salas
+    // Abertas" era sala morta, e quem chegava novo achava que o jogo estava vazio.
+    // ⚠️ SÓ CONTA SALA VIVA (mexida nas últimas 3h). Sem isso, a sala que a pessoa
+    // abandonou meses atrás travaria a conta dela PRA SEMPRE — uma trava que não
+    // tem como destravar é pior que o problema que ela resolve.
+    // A liga tem o teto dela (2 ligas, mais abaixo) e não entra nesta conta; a
+    // carreira também não, porque ela é um SAVE, não uma sala de encontro.
+    if (roomMode === 'rapido' || roomMode === 'elenco') {
+      const vivasDesde = new Date(Date.now() - 3 * 3600_000).toISOString()
+      const { data: minhas } = await supabase.from('game_rooms')
+        .select('code, game_state->>mode')
+        .eq('host_id', user.id).gt('updated_at', vivasDesde)
+      const abertas = ((minhas ?? []) as { code: string; mode: string | null }[])
+        .filter(r => r.mode !== 'liga' && r.mode !== 'carreira')
+      if (abertas.length >= 2) {
+        setRoomError(`Você já tem 2 salas abertas (${abertas.map(r => r.code).join(' e ')}) — é o máximo por pessoa, pra lista de salas não encher de sala vazia. Pra abrir outra, entre numa delas e use "🚪 Sair e encerrar a sala".`)
+        setLoading(false); return
+      }
+    }
     let code = randCode()
     for (let i = 0; i < 5; i++) {
       const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle()
@@ -1635,7 +1291,7 @@ export function EscLobby() {
       setLoading(false); return
     }
     const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : (canLiga && ligaFechada ? { ligaFechada: true } : {})), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1774,11 +1430,11 @@ export function EscLobby() {
   // excluir. Tudo dentro da própria sala, que é onde a pessoa está quando lembra
   // de remarcar.
   const [ligaEdit, setLigaEdit] = useState(false)
-  const [ligaAdmAberto, setLigaAdmAberto] = useState(false)
-  // 👑 quem MANDA na liga: o dono e os adms que ele escolheu. Excluir a liga
-  // continua SÓ do dono — adm ajuda a tocar, não desfaz o que é do outro.
-  const ligaAdmins = ((room?.game_state as GS)?.ligaAdmins ?? []) as string[]
-  const mandaNaLiga = !!user && !!room && (room.host_id === user.id || ligaAdmins.includes(user.id))
+  const [ligaRegrasAberto, setLigaRegrasAberto] = useState(false) // ⚖️ painel de regras do ranking, na espera (só o dono)
+  // 👑 só o DONO manda na liga (Diego 23/08: *"só quem manda é o host mesmo, não
+  // tem adm não"*). Antes um "adm" da lista `ligaAdmins` também mandava; a lista
+  // ficou no banco pra não quebrar liga antiga, mas NÃO dá mais poder nenhum.
+  const mandaNaLiga = !!user && !!room && room.host_id === user.id
   // ✏️ editor do card de "Minhas ligas" (edição POR FORA): guarda o id da liga
   // aberta pra edição e os 4 campos que dá pra mudar sem entrar na sala.
   const [cardEdit, setCardEdit] = useState<string | null>(null)
@@ -2766,26 +2422,16 @@ export function EscLobby() {
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
             <Section num={2} title="A partida" icon="⚽">
-              {LIGA_FECHADA_LIBERADA && (
-              <SegField label="Tabela">
-                {canLiga ? (
-                  <>
-                    <Seg options={[[false, '🌍 Aberta'], [true, '🏆 Liga Fechada']] as [boolean, string][]} value={ligaFechada} onSet={v => setLigaFechada(v)} />
-                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{ligaFechada ? '🏆 Só a galera na tabela — nenhum bot. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.' : '🌍 Tabela de 20 times — os que faltam entram como CPU, como sempre.'}</p>
-                  </>
-                ) : (
-                  // Liga Fechada é benefício do Lenda 👑 — pra quem não tem, aparece
-                  // apagada como convite (sempre fica na tabela Aberta).
-                  <>
-                    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
-                      <button className="flex-1 font-black" style={{ padding: '9px 2px', fontSize: 12.5, background: GOLD, color: '#000', ...OSWALD }}>🌍 Aberta</button>
-                      <button disabled className="flex-1 font-black border-l-[2.5px] border-black" style={{ padding: '9px 2px', fontSize: 11, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', ...OSWALD }}>🏆 Liga Fechada · 👑 Lenda</button>
-                    </div>
-                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">🏆 <b>Liga Fechada</b> (liga só com amigos, sem bot) vem no <b>Lenda 👑</b> — desbloqueie no Apoie.</p>
-                  </>
-                )}
-              </SegField>
-              )}
+              {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
+                  Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
+                  fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
+                  criação da sala RÁPIDA — o desenho que ele já tinha recusado em
+                  22/08 (*"mostra duas vezes sobre bots"*), que vivia apagado atrás de
+                  LIGA_FECHADA_LIBERADA = false. Agora saiu de vez, pra ninguém
+                  religar achando que era feature esquecida.
+                  A tabela sem bots continua existindo — mas SÓ no modo Liga, onde ela
+                  é o ponto: `mode:'liga'` grava `ligaFechada: !ligaComBots`.
+                  Sala rápida = sempre 20 times, os que faltam entram como CPU. */}
               {/* 🏆 A COPA NÃO EXISTE NA SALA DE ELENCO (Diego 17/08: "não terá copa,
                   será apenas divisão de 38 rodadas nesse modo"). Em vez de deixar o
                   seletor ligado e ignorar a escolha depois — que é o tipo de estado
@@ -3109,39 +2755,37 @@ export function EscLobby() {
                 ))}
               </div>
             )}
-            {/* ⭐ ADMS DA LIGA — só o DONO escolhe. Adm ajuda a tocar a liga
-                (remarcar, arrumar troféu, mexer nas regras), mas não exclui a
-                liga e não mexe na lista de adms: isso é do dono. */}
-            {isHost && (
+            {/* ⚖️ A REGRA DO RANKING FICA AQUI, NA ESPERA (Diego 23/08): *"tem q
+                ter algo pro criador da sala tipo os ajustes ter p ele na sala de
+                espera... pq o jogo já começa no pregão"*. Ele precisa decidir ANTES
+                da bola rolar — depois do pregão não tem volta. E a regra que está
+                valendo aparece pra TODO MUNDO numa linha: o convidado não entra no
+                escuro sem saber por que fulano lidera. */}
+            <p className="text-white/60 text-[10px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '1.5px solid rgba(255,255,255,.2)' }}>
+              ⚖️ {resumoRegra(lerRegras(gs?.ligaRegras))} <span className="text-white/40">— todo mundo vê</span>
+            </p>
+            {mandaNaLiga && !ligaEdit && (
+              <button onClick={() => setLigaRegrasAberto(v => !v)}
+                className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
+                style={{ ...OSWALD, background: ligaRegrasAberto ? '#fff' : GOLD, color: INK }}>
+                ⚖️ {ligaRegrasAberto ? 'Fechar as regras' : 'Regras do ranking'}
+              </button>
+            )}
+            {mandaNaLiga && ligaRegrasAberto && (
               <div className="mt-2">
-                <button onClick={() => setLigaAdmAberto(v => !v)}
-                  className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                  ⭐ {ligaAdmAberto ? 'Fechar' : `Quem mais pode mexer (${ligaAdmins.length})`}
-                </button>
-                {ligaAdmAberto && (
-                  <div className="mt-2 rounded-xl border-2 border-black bg-white p-3">
-                    <p className="text-black/55 text-[11px] font-bold leading-snug mb-2">
-                      Adm ajuda a tocar a liga: <b>remarcar, arrumar troféu e mexer nas regras</b>. Só você exclui a liga e escolhe quem é adm.
-                    </p>
-                    {players.filter(p => p.user_id !== room.host_id).length === 0 ? (
-                      <p className="text-black/40 text-[11.5px] font-bold">Ninguém mais na sala ainda — chame a galera primeiro.</p>
-                    ) : players.filter(p => p.user_id !== room.host_id).map(pl => {
-                      const eAdm = ligaAdmins.includes(pl.user_id)
-                      return (
-                        <div key={pl.user_id} className="flex items-center gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 mb-1.5">
-                          <span className="flex-1 min-w-0 font-black text-[13px] truncate" style={OSWALD}>{pl.manager_name}</span>
-                          <button onClick={() => void patchLiga({ ligaAdmins: eAdm ? ligaAdmins.filter(x => x !== pl.user_id) : [...ligaAdmins, pl.user_id] })}
-                            className="shrink-0 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] active:translate-y-0.5"
-                            style={{ ...OSWALD, background: eAdm ? GREEN : '#fff', color: eAdm ? '#fff' : 'rgba(12,12,12,.5)' }}>
-                            {eAdm ? '⭐ é adm' : '＋ tornar adm'}
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
+                <RegrasDaLiga regras={lerRegras(gs?.ligaRegras)} salvar={(r: LigaRegras) => { void patchLiga({ ligaRegras: r }) }} />
               </div>
             )}
+            {/* 👑 NÃO EXISTE ADM NA LIGA (Diego 23/08, decisão permanente).
+                Palavras dele: *"não tem negócio de quem manda junto.. só quem manda
+                é o host mesmo. Não tem adm não"*. Tinha aqui um botão "⭐ Quem mais
+                pode mexer" que dava a outro jogador o poder de remarcar, arrumar
+                troféu e mexer nas regras — SAIU. É a mesma régua da coroa
+                (`ELEICAO_AUTOMATICA = false`): quem criou a sala manda do começo ao
+                fim, e ninguém divide o comando. NÃO REPROPOR.
+                O campo `ligaAdmins` continua existindo no banco só pra não quebrar
+                liga antiga que já tenha alguém na lista — mas ele não dá poder
+                nenhum e não tem mais tela pra mexer nele. */}
             {mandaNaLiga && ligaEdit && (
               <div className="mt-3 rounded-xl border-2 border-black bg-white p-3">
                 <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
@@ -3483,12 +3127,14 @@ export function EscLobby() {
           </div>
         </div>
       )}
-      {room.game_state?.mode === 'liga' && (
-        <TrofeusDaLiga roomId={room.id} isHost={mandaNaLiga}
-          nomes={players.map(p => p.manager_name).filter(Boolean)}
-          regras={lerRegras((room.game_state as GS)?.ligaRegras)}
-          salvarRegras={r => { void patchLiga({ ligaRegras: r }) }} />
-      )}
+      {/* 🏆 O PAREDÃO DE TROFÉUS SAIU DAQUI (Diego 23/08). Palavras dele: *"talvez
+          então n tenha nada na sala de espera... tb é uma ideia p n confundir"*.
+          A mesma informação aparecia em dois lugares com dois nomes e duas caras
+          (aqui e no fim do jogo), e nada batia. Agora é UM lugar só, em pílulas
+          (🏆 Rank · 🏅 Estante · 📜 Temporadas · ⚙️ Ajustes), e ele aparece assim
+          que o PREGÃO ACABA — ver `ligahub.tsx`. Na espera fica só o ⚖️ do dono
+          (lá em cima, na faixa verde), porque a regra tem que ser decidida ANTES
+          da bola rolar. */}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
         const startLabel = carreira ? '🌐 Começar Carreira!' : elencoOn ? '🃏 Começar o Bafo!' : '🔨 Abrir o Pregão!'

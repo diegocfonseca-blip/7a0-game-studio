@@ -1,4 +1,329 @@
-# 📌 Pendências combinadas com o Diego (atualizado 22/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
+
+## 🎬 VÍDEOS UGC (UGCdrop) — plano pronto, esperando créditos/execução (23/08)
+O Diego conectou a UGCdrop e pediu 2 vídeos UGC. Estado real da conta (lido pelo
+conector antes de ele cair): **plano free, ZERO créditos** (download/studio/premium)
+e biblioteca de demos vazia → ele **subiu uma gravação** do jogo no site depois.
+⚠️ O conector caiu no MEIO desta sessão e não voltou (conta conectada, mas
+`enabledInChat: false` — sessão nova resolve).
+
+**Roteiros APROVADOS no espírito (ele deu a ideia do 1):**
+1. Nostalgia: *"lembra do saudoso Brasfoot? 🥹 agora imagina ele ONLINE: 20 amigos
+   na mesma sala, leiloando às cegas do Pelé ao Mauro Shampoo do Íbis 💀⚽"*
+   (⚖️ avisado que "Brasfoot" é marca de terceiro; há versão sem citar:
+   *"quem jogou manager de futebol nos anos 2000 vai entender 🥹…"* — ele ainda
+   não escolheu qual).
+2. O leilão: *"o segredo é o envelope: todo mundo dá o lance no ESCURO e o martelo
+   revela quem levou o Neymar 🔨👀"*.
+
+**Conferido no baralho antes de prometer** (regra da casa): Pelé (Santos 1962,
+97–99) · Neymar (Santos 2011 e Barcelona 2015) · Obina (Flamengo 2005, folk) ·
+Mauro Shampoo (Íbis 1980, folk, o pior do jogo "com muito orgulho") · sala = 20.
+
+**Regras de execução**: hooks sugeridos = 1 reação surpresa/empolgada + 1 selfie
+casual · SEMPRE mostrar o custo em créditos e esperar OK antes de gerar · a parte
+"como funciona o leilão" vai na DEMO (envelope → martelo → revelação), não no texto.
+
+## 🏷️ NOME FECHADO (23/08): o modo se chama **🏆 MINHAS LIGAS**
+Palavras do Diego: *"acho q é melhor minhas ligas até pq o cara pode editar do
+jeito dele.. E qm tiver jogando a liga tb aparece pra ele né, o cara q entrou na
+liga"*. O nome cobre os DOIS lados — o dono, que monta a liga do jeito dele, e o
+convidado, pra quem a liga também fica guardada. **"Liga Fechada" morre como nome
+de tela** (fica só como conversa interna). Onde aparecer texto pro jogador, é
+**Minhas Ligas**.
+
+## 🚦 ORDEM DE LANÇAMENTO (23/08): sala normal PRIMEIRO, liga depois
+Palavras dele: *"vamos começar com calma.. uma coisa de cada vez. Primeiro vamos
+lançar pra salas normais as coisas novas q falamos aqui das pílulas e etc... e até
+pra eu testar também"*.
+1. **Agora**: a barra do rodapé (Rank · Estante · Temporadas) na **sala rápida
+   online**. Não precisa de Lenda, não precisa de liga, e serve de teste real.
+   → novidade escrita em `novidades.ts` (23/08) e post pronto em
+   `scripts/mockup-novidade-estante.mjs` (usa os PRINTS do jogo rodando, não
+   desenho à mão).
+2. **Depois**: 🏆 **Minhas Ligas** (`LIGA_GERAL = true`), com o post próprio.
+   Criar = 👑 Lenda; **jogar = qualquer um** (`LIGA_SO_LENDA_ENTRA = false`, já é
+   assim hoje) — ordem dele: *"a liga fechada só lenda p cima pode criar mas é
+   liberado p jogar"*.
+
+## ✅ FEITO — LIGA HUB: a liga inteira em pílulas, depois do pregão (23/08)
+*"Sim pode fazer tudo já"*. Arquivo novo: **`src/escalacao/ligahub.tsx`**.
+
+**Onde aparece:** assim que o **PREGÃO ACABA** (a tela da simulação, `EscSeason`) e
+segue até o fim do jogo (`EscEnd`). Palavras do Diego: *"as pílulas novas devem
+aparecer logo após acabar o leilão, q inicia a simulação dos jogos"*.
+🚫 **Não é spoiler**: Rank/Estante/Temporadas só mostram temporadas **encerradas**.
+Na tela da simulação ele **não grava nada** — a gravação da temporada é só no fim
+(prop `gravar`), pra nunca escrever campeão pela metade.
+
+**A FORMA — barra embaixo, igual à da carreira (Diego 23/08, com foto):** *"quero
+q essas pílulas q vc fez fique na parte de baixo igual fizemos no modo carreira"*.
+Então não é uma faixa de pílulas no meio da página: é uma **barra fixa no rodapé**
+com ícone duotone + rótulo em Oswald maiúsculo, mesmíssimo traço da `BarraCarreira`
+(🏆 Rank · 🏅 Estante · 📜 Temporadas · ⚙️ Ajustes — a última só pro dono, só na
+liga). Toque abre um painel de meia tela por cima do jogo; toque de novo (ou no ✕)
+fecha. **Começa FECHADA** — nada tapa a partida rolando.
+⚠️ Não entra na CARREIRA online: lá já existe a `BarraCarreira`, e duas barras
+fixas na mesma tela brigariam.
+
+**O que saiu de onde:**
+- `lobby.tsx`: o componente `TrofeusDaLiga` foi **apagado** (ranking + sala de
+  troféus + editor de regras). Na sala de espera sobrou só o **⚖️ Regras do
+  ranking** do dono, dentro da faixa verde — porque ele precisa decidir ANTES do
+  pregão — mais a **linha da regra que todo mundo vê**.
+- `screens.tsx`: `HallDaFama` foi **apagado**; quem grava a temporada agora é o
+  `LigaHub` com `gravar` (mesma lógica de retry e de `match_seed`).
+- O editor de regras virou um componente só (`RegrasDaLiga`), usado nos DOIS
+  lugares — uma regra só, sem duas telas divergindo.
+
+**Sala aberta também tem** (*"posso pôr no jogo da sala aberta né… acho q temos q
+fazer"*), sem a pílula de ajustes e com a linha da verdade: *"Sala rápida some
+quando a galera sai — pra ter um campeonato que continua, crie uma 🏆 Liga"*.
+
+**Conferido na tela**, não só no build: montei o `LigaHub` de verdade num navegador
+com o banco fingido e tirei print das 4 pílulas + da versão da sala aberta.
+Dois acertos de acabamento saíram daí: o texto herdava cor de fora e saía apagado,
+e a pílula "📜 Temporadas" quebrava em duas linhas no celular.
+
+⚠️ Continua tudo atrás de `LIGA_GERAL = false` (só a conta do Diego). **A sala
+aberta é a exceção**: o LigaHub aparece pra qualquer sala online — é a única parte
+desta entrega que o público veria se subisse pra main. Esperando o OK visual.
+
+## 👑 REGRA PERMANENTE (23/08) — NÃO EXISTE ADM NA LIGA
+Palavras do Diego: *"não tem negócio de quem manda junto.. só quem manda é o host
+msm. Não tem adm não"*. Existia um botão **"⭐ Quem mais pode mexer"** que dava a
+outro jogador o poder de remarcar, arrumar troféu e mexer nas regras. **SAIU.**
+É a mesma régua da coroa (`ELEICAO_AUTOMATICA = false`): **quem criou a sala manda
+do começo ao fim, e ninguém divide o comando.** NÃO REPROPOR.
+O campo `ligaAdmins` fica no banco só pra não quebrar liga antiga que já tenha
+alguém na lista — mas não dá poder nenhum e não tem mais tela pra mexer nele.
+`mandaNaLiga` agora é só `room.host_id === user.id`.
+
+## 🤔 O QUE A LIGA TEM QUE A SALA NORMAL NÃO TEM — levantado no código (23/08)
+Pergunta do Diego: *"qual a diferença da sala normal pra essa liga fechada, além de
+poder jogar só c usuários e n bots?"*. Conferido linha a linha:
+
+**É diferencial de verdade:**
+1. **Hora marcada** (`ligaAt`): a liga aparece na lista **mesmo vazia** até a hora
+   combinada (`ligaNaAgenda`). Sala normal vazia **some** da lista.
+2. **A liga não morre**: fica no card **🏆 Minhas ligas** (busca por `host_id` +
+   `mode='liga'`, e também as que você entrou). Sala normal, quando esvazia, só se
+   acha com o código na mão.
+3. **Ranking somado temporada a temporada, com REGRAS que o dono edita**
+   (`ligaRegras`: quanto vale título, copa, artilheiro, rebaixamento).
+4. **Sala de troféus editável**: o dono corrige/escreve temporada na mão.
+5. Criar é do **Lenda**, teto de **2 ligas** por pessoa.
+
+**⚠️ CORREÇÃO (eu tinha falado errado pro Diego):** cheguei a dizer que "sem bots
+já existia na sala normal". **Existia no CÓDIGO, mas desligado** — o seletor
+🌍 Aberta × 🏆 Liga Fechada da sala rápida vivia atrás de
+`LIGA_FECHADA_LIBERADA = false` (o desenho que ele recusou em 22/08), então
+**ninguém nunca viu**. Conferido no banco em 23/08: de **531 salas**, **ZERO** com
+`ligaFechada = true`. Nenhuma partida sem bot jamais aconteceu.
+**Decisão dele (23/08):** *"sem bots n deve ter na sala aberta, apenas em liga
+fechada"*. O bloco morto foi **APAGADO** de `lobby.tsx` (não só desligado), e o
+`ligaFechada` agora só é gravado por `mode:'liga'`. Sala rápida = sempre 20 times.
+
+**NÃO é diferencial (já existe na sala normal):**
+- ❌ **Histórico de campeões**: `game_champions` já é gravado em **TODA sala** no
+  fim da temporada (`screens.tsx:5737`) — o que muda é só se aparece na tela.
+  Por isso **dá pra pôr as pílulas na sala aberta**: o dado já está lá.
+
+✅ **DECIDIDO (23/08)**: *"a sala normal não deve ter em minhas salas tb não"*. A
+sala rápida **continua morrendo** — nada de "🎮 Minhas salas". Então, se as pílulas
+forem pra sala aberta, é o **caminho (a)**: mostram só a história DAQUELA sala e o
+texto avisa que ela some quando a galera sai. A liga segue sendo a única que fica
+guardada.
+
+**Placar final do diferencial da LIGA, depois destas duas decisões:**
+🕐 hora marcada · 🚫 sem bots (exclusivo) · 🏠 não morre (Minhas ligas) ·
+⚖️ regras de pontuação do dono · 🏅 sala de troféus editável.
+
+## ⏳ AGUARDANDO OK DO DIEGO — LIGA FECHADA: pílulas DEPOIS DO PREGÃO (23/08)
+Desenho: `node scripts/mockup-liga-pilulas.mjs`. **Nada disto está no jogo ainda.**
+
+⏰ **CORREÇÃO DE LEITURA MINHA (23/08).** No 1º desenho eu tinha posto as pílulas
+"no fim do jogo". Errado: o Diego disse duas vezes que é **assim que o pregão
+ACABA** — *"as pílulas novas devem aparecer logo após acabar o leilão, q inicia a
+simulação dos jogos"*. Elas aparecem quando a simulação começa e **ficam lá até o
+fim**. Não é spoiler: rank/estante/temporadas só mostram temporadas ENCERRADAS.
+
+**A forma (fechada com ele):**
+- **Sala de espera** → o paredão de troféus SAI (a tela volta a ser a de sempre).
+  O dono ganha, junto dos botões dele, o **⚖️ Regras do ranking** — ele precisa
+  disso ANTES do pregão. E a regra aparece escrita numa linha da faixa verde, pra
+  todo mundo (convidado não entra mais no escuro).
+- **Depois do pregão** → uma área só, em pílulas: 🏆 **Rank** (abre nesta) ·
+  🏅 **Estante** · 📜 **Temporadas** · ⚙️ **Ajustes** (só o dono).
+
+**Por que:** hoje a MESMA informação (`game_champions`) aparece em dois lugares,
+com dois nomes e duas caras — "Sala de troféus da liga" (espera, lista+planilha) e
+"Hall da Fama da sala" (fim, cartões). E o RANKING só existia na espera: a pessoa
+ganhava a liga e não via a classificação mudar, que é a hora que importa.
+
+**Onde mexer quando ele aprovar:** `lobby.tsx:105` `TrofeusDaLiga` (sai da espera,
+sobra o ⚖️ pro dono) · `screens.tsx:5696` `HallDaFama` (vira a área de pílulas) ·
+montar a área em `EscSeason` (`screens.tsx:4503`, é a tela logo depois do pregão) e
+mantê-la no `EscEnd` (`screens.tsx:7941`). Tudo atrás de `LIGA_GERAL = false`.
+
+🔒 **NÃO MEXER**: a ORDEM da tela de espera (ele recusou em 23/08 — *"não, não faz
+isso"*) e a sala NORMAL, que continua sem nada disso.
+
+## ⏳ AGUARDANDO OK DO DIEGO — substituição nas COPAS (branch `claude/denis-save-file-x1osct`, NÃO está na main)
+Relato dele: *"arrume na copa aí q a escalação n tá alterando certo"* → depois
+corrigiu meu rumo: *"estamos falando de SUBSTITUIÇÕES.. q vc tem q ver a copa dos
+8, copa do brasil, supercopa"*. E deu a regra: *"se for dinâmico muda p próximo
+jogo.. se for substituição no intervalo muda na hora"*.
+
+### O que estava errado (medido rodando o jogo, não no chute)
+A copa da carreira nasce **inteira de uma vez** quando a liga acaba (todas as
+fases, placares, artilheiro e campeão); a tela só REVELA fase a fase. Por isso o
+XI da copa era o do fim da liga e ficava congelado (`copaXi`, decisão do Diego de
+17/08 pra o campeão não virar outro depois de anunciado).
+Resultado na prática, reproduzido na bancada: **a aba Elenco mostrava o jogador
+novo e a copa entrava em campo com o antigo**, sem nenhum aviso.
+
+### O conserto: cada FASE lê a escalação num slot próprio
+`lineupAt` já resolve "a última escalação de rodada ≤ r". Então cada fase passou a
+ler um slot-fantasma: **38 = 1ª fase · 39 = a seguinte · 40 …** (Copa do Brasil:
+38 = peneira, 39 = Rodada de 64 …; Supercopa = 45). A tela manda a fase-alvo no
+`SET_LINEUP`/`CHANGE_FORMATION` (`slot`), e `slotDaTroca()` no reducer trava:
+nunca antes da rodada atual, teto de +12.
+- **A troca alcança só a fase que ainda não foi jogada** — o que já apareceu na
+  tela nunca muda (a regra de 17/08 continua valendo, agora sem tirar a liberdade).
+- **Compatível com todo save antigo**: quem só tem a escalação da liga (slot 38)
+  cai no 38 em todas as fases → resultado idêntico.
+
+### Provas (bancada com as funções DE VERDADE, em Chromium)
+| teste | resultado |
+|---|---|
+| troca no meio da copa — a fase já mostrada mudou? | ✅ idêntica |
+| a troca entrou nas fases seguintes? | ✅ (Jairzinho no lugar do Pelé nas quartas/semi/final) |
+| motor NOVO × motor de HOJE, mesma escalação (Copa Legends) | ✅ chave, placares, gols e artilheiro **100% iguais** |
+| mesma prova na Copa do Brasil e na Supercopa | ✅ idênticas |
+| 4-3-3 → 4-5-1 e jogar o próximo jogo (solo e online) | ✅ os atacantes tirados **não** marcaram; passado não mudou de dono |
+
+Arquivos: `pyramidseason.tsx` (computeCopa + slot na fase + aviso na aba Elenco) ·
+`copa-brasil.ts` (Copa do Brasil + Supercopa) · `store.tsx` (`slotDaTroca`, `slot`
+em SET_LINEUP/CHANGE_FORMATION) · `copa-mundo.tsx` (bônus, ver abaixo).
+
+### ✅ O CASO DO USUÁRIO — REPRODUZIDO E EXPLICADO (23/08)
+Palavras do Diego: *"um usuário disse q trocou a formação q tava 433 e botou 451
+em alguma copa e ainda assim os dois atacantes q ele tirou fizeram gol msm dps de
+trocar e msm dps no jogo seguinte tb"*.
+**Não era impressão dele — é exatamente o que o código fazia.** Rodado na bancada
+com o motor que está no ar, time forte (Pelé/Garrincha/Romário), 4-3-3 → 4-5-1:
+
+| | quem jogava no ataque | gols dos DOIS que ele tirou |
+|---|---|---|
+| **motor de hoje** | Pelé+Garrincha+Romário nas **4 fases** | Oitavas 3 · Quartas 6 · Semi 1 · **Final 3** |
+| **com o conserto** | Oitavas: Pelé+Garrincha+Romário · Quartas/Semi/Final: **só Pelé** | só os 3 da Oitavas (fase que já estava na tela) |
+
+Causa: a troca de formação gravava na rodada 38, e **toda fase da copa lia o XI
+congelado** (`copaXi`) — ou seja, a troca não alcançava fase nenhuma, nem a
+seguinte. Por isso os cortados jogavam a copa inteira.
+
+### ❓ DETALHE AINDA EM ABERTO — ida e volta
+Uma fase de mata-mata tem **2 jogos** (ida e volta). Do jeito que ficou, a troca
+alcança **os dois jogos da fase seguinte**. Se o Diego quiser que ela pegue já a
+**volta da fase que está rolando** ("próximo jogo" no sentido literal), dá pra
+fazer — mas aí o placar agregado do confronto pode mudar **no meio da animação**,
+e o vencedor do confronto viraria outro depois de a ida já ter aparecido. Fica
+esperando a palavra dele.
+
+### ⏳ FALTA (combinado, não feito)
+- **Substituição no INTERVALO dentro da copa** ("se for no intervalo muda na
+  hora"). Hoje a copa **não tem intervalo** — a pausa dos 45' só existe na liga
+  (carreira solo). É um segundo passo, maior, e ficou fora deste commit de
+  propósito pra não misturar.
+- **O caso do amigo do Diego** (4-3-3 → 4-5-1, "os atacantes que ele tirou
+  fizeram gols"): não reproduziu na liga (nem solo nem online). O único caminho
+  que produz esse sintoma é justamente **dentro da copa**, que é o que este
+  commit conserta. Falta o amigo confirmar se foi jogo de copa ou de liga.
+
+### 🐺 Bônus achado no caminho: convocação da COPA DO MUNDO
+Com a posição CHEIA, tocar em outro jogador **não fazia nada e nada explicava** —
+parecia tela travada (testado na tela real, não é teoria). Agora: quem não cabe
+aparece com 🔒, o convocado ganha "toque pra tirar", e o toque na posição cheia
+explica o porquê e o caminho ("você já convocou 3 atacantes — pra botar Fulano,
+toque primeiro em Beltrano pra tirar"). Regra do Diego: trava sempre explica.
+
+### Como reverter
+Um commit só, 4 arquivos, e a prova acima mostra que sem ninguém mexer no time o
+resultado é idêntico ao de hoje. `git revert` resolve.
+
+## 🐺 Batismo PAPÃO UNITED MADRID (agrostinho88@gmail.com) — 23/08
+Entrou no lugar do **Santos Dumont** (Série D), e o **Alfacehh desceu pra Série B**
+por ordem do Diego (o assento do Alfacehh virou do Papão; o Alfacehh ficou com o
+lugar do ex-Athletico do Porto, **mesma força, só o nome muda**). Dono nasceu
+👑 **Lenda** + **fundador nº28**, como manda a regra de batismo.
+Arte do próprio dono (2ª leva, peças separadas): escudo, a fera com o tridente e
+a camisa. ❤️ **Time de coração: PAYSANDU** (o Diego falou em 23/08). Faz todo
+sentido e não é coincidência: o **Papão da Curuzu** é o apelido do Paysandu — o
+nome do clube dele vem daí.
+
+### ✅ RESOLVIDO — a arte saía PEQUENA na janela do post (o "encaixe desproporcional")
+Palavras do Diego: *"tá mt desproporcional o escudo no encaixe da janela.. n está
+igual o do coringas. Msm coisa a camisa do time.. Está mt pequena do lado do
+manto"*. **Errei o diagnóstico na primeira tentativa** — mexi no CSS do gerador
+achando que a caixa é que estava errada, e não resolveu.
+
+**A causa era o ARQUIVO, não a caixa.** Os webp vinham com **moldura vazia por
+dentro**: o escudo era 150×360 mas o desenho estava só nas linhas 75→338, e a
+camisa era 175×620 com o desenho nas linhas 144→465 — **mais da metade do arquivo
+era vazio**. O navegador encaixa o ARQUIVO, então esticava o vazio junto e a arte
+encolhia dentro da janela. O Coringas do Diniz, que ele usou de comparação, é
+recortado justinho (219×248) — por isso um enche a janela e o outro não.
+
+**Por que passou batido:** a regra 3 do CLAUDE.md já mandava recortar no bbox do
+alfa, e o bbox **dizia que já estava recortado**. É que depois de tirar o fundo
+sobra **poeira de alfa** (pixels com alfa 1–40, invisíveis) espalhada pela
+moldura, e o `getbbox()` lê isso como desenho.
+
+**Consertos:**
+1. Poeira apagada (alfa < 40) e recorte de verdade, exigindo ≥ 3 pixels na
+   linha/coluna pra um pixel solto não mentir de novo:
+   escudo **150×360 → 150×263**, camisa **175×620 → 175×321**. O mascote já estava
+   certo (281×440, cheio).
+2. `escudos.tsx`: largura declarada pela proporção NOVA (`150 / 263`) — regra 4.
+   **No jogo o escudo passa a aparecer maior e completo**, que é o certo.
+3. `mockup-batismo.mjs` agora **confere sozinho antes de gerar o post**: o próprio
+   navegador mede o desenho de cada arte e avisa se sobrou ≥ 4% de moldura vazia.
+   Nenhum batismo repete isso.
+4. A caixa do escudo perdeu o `min-width` largo: escudo estreito ganha caixa
+   estreita e CHEIA, igual o Coringas.
+
+**Peso final** (teto 75 KB): escudo **17,8 KB** + mascote **42,3 KB** = **60,1 KB**.
+A camisa (11,3 KB) é do POST, mora em `scripts/kits/` e não entra no bundle.
+
+**Reverter:** é um commit só, e nada disso mexe em regra de jogo — `git revert`
+volta a arte e a proporção antigas.
+
+### 📣 Post publicado (23/08) — "batizado por **Leandro**"
+O Diego fechou: *"bota batizado por Leandro e pode publicar"*. O nome que vai no
+post é **Leandro** (é como o dono aparece no `apoio.tsx`: "Leandro/Obina").
+Selos do rodapé conferidos contra o código, não chutados: 👑 **Lenda** ·
+🎫 **sócio nº29** · 🏛️ **fundador nº39** (numa geração anterior eu tinha posto
+fundador 28 — errado, corrigido).
+
+Comando exato que gerou o post publicado (pra reproduzir igualzinho):
+```
+node scripts/mockup-batismo.mjs \
+  --clube "Papão United Madrid" --serie D --antigo "Santos Dumont" \
+  --escudo src/escalacao/img/papao-escudo.webp \
+  --mascote src/escalacao/img/papao-mascote.webp \
+  --camisa scripts/kits/papao-camisa.webp \
+  --mascote-nome "O Papão" --mascote-emoji "🐺" \
+  --c1 "#0C2460" --c1-nome "azul-marinho" --c2 "#FFFFFF" --c2-nome "branco" \
+  --dono "Leandro" --coracao "Paysandu" --fundador 39 --socio-n 29 \
+  --saida /tmp/papao-post.png
+```
+
+**Banco conferido no dia da publicação** (`esc_socios` + `esc_nomes_batismo`):
+sócio nº29 · `escudo_time = Papão United Madrid` · `mascote_key = papao_lobo` ·
+manto `#0C2460` + `#FFFFFF` · origem `batismo`; e as **3 linhas de reserva do
+nome** no ar (puro + **FC** + **EC**, a caixa já entra pela chave minúscula).
+`time_coracao = Paysandu`, gravado quando o Diego falou (23/08).
 
 ## ✅ RESOLVIDO — o aviso "o dono sumiu" subia MENTINDO (sala NOYI87, 22/08)
 O Diego mandou print: banner vermelho **"MANDA SEU LANCE DE NOVO — o dono da sala
@@ -183,6 +508,103 @@ verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 
 🔒 — palavras dele: *"msm se fosse fechada deveria aparecer"*.
 (Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
 rápida.)
+
+## ❌ RECUSADO — reordenar a tela da sala da liga (23/08)
+Proposta minha: subir o "ABRIR O PREGÃO" pra logo depois da lista de técnicos, juntar
+os 6 botões de data num "⚙️ Ajustes da liga" e os 8 de zoeira num "😜 Zoar a galera".
+Mockup em `scripts/mockup-liga-tela-toda.mjs`.
+
+**Resposta do Diego, depois de ver o desenho E a explicação passo a passo:**
+*"Não, n faz isso"*. **A ordem da tela FICA COMO ESTÁ. Não propor de novo.**
+O mockup fica no repo só como registro do que já foi descartado.
+
+⚠️ Isto NÃO desfaz o que já entrou e ele aprovou antes (troféus em tabela, regras
+visíveis pro convidado, excluir no pé da tela) — aquilo continua valendo.
+
+## 🧯 TETO DE 2 SALAS RÁPIDAS ABERTAS (23/08) — *"limite pode ser duas sim"*
+Criar sala rápida **nunca teve limite**. O que o banco mostrou quando ele perguntou:
+**484 salas guardadas · 68% paradas há mais de um dia · uma pessoa só criou 20 numa
+semana · 52% das salas ninguém apareceu** — e nenhuma faxina automática (a mais
+antiga era de 29/junho). Metade da lista de "Salas Abertas" era sala morta, e quem
+chegava novo achava que o jogo estava vazio.
+
+**Feito:** ao criar sala rápida (ou Bafo), se a pessoa já tem **2 salas vivas**, o
+jogo barra com o porquê e o caminho: *"Você já tem 2 salas abertas (ABC123 e
+XYZ789) — é o máximo por pessoa, pra lista de salas não encher de sala vazia. Pra
+abrir outra, entre numa delas e use 🚪 Sair e encerrar a sala."*
+
+**⚠️ A parte importante: só conta sala VIVA (mexida nas últimas 3h).** Sem isso, a
+sala que a pessoa abandonou meses atrás travaria a conta dela pra sempre — uma trava
+sem caminho de saída é pior que o problema que ela resolve. Liga tem o teto próprio
+(2 ligas) e não entra nesta conta; carreira também não, porque é um SAVE e não uma
+sala de encontro.
+
+**Ainda em aberto:** a **faxina** das salas antigas no banco (centenas de linhas
+mortas). Ele não pediu; não fazer sem ordem.
+
+## 🏆 ESTANTE DE TROFÉUS: só de gente, e só na liga (23/08)
+Duas decisões do Diego, olhando o Hall da Fama de uma partida:
+*"Troféu só entre usuários seja sala normal ou liga fechada. E sala normal continua
+igual, n precisa ter linha lá falando de títulos. Só liga fechada msm q terá na sala
+de espera e qd acaba o jogo"*.
+
+**Por que ele está certo no 1º ponto:** no print dele, os dois maiores acervos eram
+de **BOT** (São Luiz FC com 2 troféus, Xurupitas FC com o Mico), e os dois humanos
+ficaram espremidos embaixo. A estante é sobre a turma — bot ocupando o pódio é o
+oposto disso.
+
+**Por que ele está certo no 2º:** a estante da **sala rápida MORRIA com a sala** (o
+jogo apaga a sala quando o dono sai). Ela prometia história e no dia seguinte não
+tinha nada. Na liga a sala fica de pé — lá a estante é o ponto da coisa.
+
+**Feito:**
+- **Hall da Fama (fim de jogo) só aparece se a sala for LIGA.** O componente lê o
+  `mode` da sala e, fora da liga, não renderiza. Sala rápida volta a terminar como
+  terminava antes.
+- **Bot não ganha prateleira nem entra no ranking** — nem no Hall da Fama
+  (`screens.tsx`, prop `humanos` = times com `isHuman`), nem na Sala de Troféus da
+  liga (`lobby.tsx`, o set `gente` = os técnicos de `room_players`, que são sempre
+  pessoas: bot nunca tem vaga lá).
+- **A piada do 🙈 Mico só sai se o lanterna for gente.** Zoar computador não tem
+  graça — a zoeira é entre amigos.
+- **A TABELA por temporada continua verdadeira**: se quem foi campeão foi um bot, a
+  linha daquela temporada mostra o bot. O registro não mente; o bot só não ganha
+  estante.
+
+## 🔥🔥 A LIGA SE DESTRUÍA SOZINHA AO JOGAR (23/08) — consertado
+Relato do Diego, ao vivo na liga DIOGBI: *"qd acabou a simulação dos jogos da copa
+eu fui iniciar msm time p jogar e mostrou q a secundária saiu, sendo q eu tô jogando
+c os dois pra testes e n saiu a secundária. E aí apareceu esse banner… e a sala
+virou uma sala comum tb e n mais a sala criada do liga fechada"*.
+
+**O banco confirmou o estrago:** `mode`, `ligaAt`, `ligaRegras` e `ligaAdmins`
+**VAZIOS**, e o troféu da temporada 1 **órfão** em `game_champions` — guardado, mas
+invisível, porque a sala tinha deixado de ser liga.
+
+### Bug 1 — o save do host apagava a IDENTIDADE da sala (o grave)
+Não foi o "novo leilão", como parecia: foi o **save de 3 em 3 segundos**. Ele monta o
+pacote só com o que vem do estado da PARTIDA e **sobrescreve o `game_state`
+inteiro**. `mode`, `ligaAt`, `ligaRegras` e `ligaAdmins` nascem na CRIAÇÃO e não
+vinham junto — então sumiam **no primeiro save**, ou seja, no instante em que o
+pregão abria. **Toda liga morria na primeira partida**, e a sala do 🃏 Bafo
+(`mode: 'elenco'`) também.
+**Conserto:** o que é da SALA é lido UMA vez ao entrar no jogo (`salaFixaRef`) e vai
+junto em todo save. A leitura acontece ANTES do primeiro save — se rodasse depois,
+já não haveria o que preservar.
+
+### Bug 2 — o "novo leilão" cortava quem estava na sala
+`podeCortar` só se protegia de presença **VAZIA**. O buraco era a presença **pela
+metade** (crachá do host presente, do convidado faltando — o defeito da noite toda):
+aí ele cortava justamente quem estava jogando, sobrava 1 pessoa e caía no aviso *"você
+ficou sozinho na sala"*.
+**Conserto:** só corta quando os crachás estão **COMPLETOS** (um pra cada pessoa com
+vaga). Tem gente que eu não consigo identificar? Não corta ninguém — que é o que o
+próprio comentário do código já mandava: *"melhor um a mais, que o host remove, do que
+cortar quem estava jogando"*.
+
+### A liga dele foi devolvida na mão
+`DIOGBI` voltou a ter `mode: 'liga'` e o dia marcado. O troféu da T1 estava intacto em
+`game_champions` e reaparece sozinho.
 
 ## ✅ LIGA — as 3 coisas que o Diego aprovou (22-23/08)
 Ele reprovou a tela entregue (*"está péssimo pro host pqp e provavelmente vai ser um

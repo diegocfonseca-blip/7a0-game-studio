@@ -136,9 +136,18 @@ h1 .r{color:#C2452F}
 .card{border:4px solid #0C0C0C;border-radius:22px;box-shadow:6px 6px 0 #0C0C0C;overflow:hidden;background:#fff}
 .hero{margin-top:24px;display:flex;gap:22px;align-items:center;padding:22px;
   background:linear-gradient(105deg,#FFC400 0%,#FFD84D 46%,#E8A800 100%)}
-.hero .esc{background:#fff;border:4px solid #0C0C0C;border-radius:18px;padding:12px;flex:none;
-  width:186px;height:186px;display:flex;align-items:center;justify-content:center}
-.hero .esc img{max-width:100%;max-height:100%;display:block}
+/* 📐 A CAIXA SEGUE A ARTE, não o contrário (Diego 23/08: *"tá mt desproporcional
+   o escudo no encaixe da janela.. n está igual o do coringas"*).
+   ⚠️ A CAUSA REAL não era o CSS, era o ARQUIVO: o webp do Papão vinha 150x360 com
+   ~100px de MOLDURA VAZIA (poeira de alfa quase invisível, que o bbox lia como
+   desenho). O navegador encaixava a moldura, não o escudo — por isso sobrava
+   branco por todo lado. Está na regra 3 do CLAUDE.md e passou batido; a conferência
+   virou passo fixo (medir bbox com alfa >= 40, não bbox cru).
+   Aqui a altura manda e a largura acompanha a proporção REAL do arquivo. Sem
+   min-width largo: escudo estreito ganha caixa estreita e CHEIA, igual o Coringas. */
+.hero .esc{background:#fff;border:4px solid #0C0C0C;border-radius:18px;padding:14px;flex:none;
+  min-width:110px;height:210px;display:flex;align-items:center;justify-content:center}
+.hero .esc img{height:100%;width:auto;max-width:260px;display:block;object-fit:contain}
 .hero h2{font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:700;font-size:46px;line-height:1.02}
 /* ⚠️ line-height apertado CORTA o til/acento das maiúsculas (o "Ã" de BIGÃO
    sumia no cartão dourado). Nome de clube brasileiro tem acento — o respiro
@@ -150,13 +159,20 @@ h1 .r{color:#C2452F}
 .dois{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
 .tit{background:#0C0C0C;color:#fff;font-family:Oswald,sans-serif;text-transform:uppercase;font-weight:600;
   font-size:17px;letter-spacing:.14em;padding:11px 18px;display:flex;align-items:center;gap:9px}
-.corpo{padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:274px}
-.corpo img{max-height:186px;max-width:100%;display:block}
+.corpo{padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px}
+/* o mascote também ocupava pouco do cartão: 186px num corpo de 274. Sobe pra 232
+   e o cartão cresce junto, pra a fera não ficar perdida no meio do branco. */
+.corpo img{max-height:232px;max-width:100%;display:block}
 /* 🎽 o MANTO mostra as DUAS coisas (pedido do Diego 17/08): a faixa de listras
    lisas, que é como o jogo pinta o time, E a camisa montada com o escudo. */
 .manto{display:flex;align-items:center;gap:16px}
-.manto .kit{max-height:210px;width:auto;display:block}
-.listras{width:74px;height:200px;border:3px solid #0C0C0C;border-radius:12px;flex:none;
+/* 🎽 mesma história do escudo: a camisa do Papão vinha 175x620 e MAIS DA METADE
+   do arquivo era vazio (o desenho ocupava só as linhas 144→465). Encaixando pela
+   altura, o navegador esticava o VAZIO e a camisa saía uma tirinha de ~65px do
+   lado de uma faixa de listras de 84px — *"está mt pequena do lado do manto"*.
+   Recortada no limite, ela fica 175x321 e enche os 232px de altura. */
+.manto .kit{height:232px;width:auto;display:block;object-fit:contain}
+.listras{width:84px;height:232px;border:3px solid #0C0C0C;border-radius:12px;flex:none;
   background:repeating-linear-gradient(90deg,${o.c1} 0 15px,${o.c2} 15px 26px)}
 .leg{text-align:center;font-size:14.5px;line-height:1.35;color:rgba(12,12,12,.62);margin-top:12px}
 .leg b{color:#0C0C0C}
@@ -233,6 +249,39 @@ const browser = await chromium.launch({ executablePath: process.env.PW_CHROME ||
 const page = await browser.newPage({ viewport: { width: 890, height: 1400 }, deviceScaleFactor: 2 })
 await page.setContent(html, { waitUntil: 'load' })
 await page.evaluate(() => document.fonts.ready)
+
+// 📏 CONFERÊNCIA DE MOLDURA (nasceu do erro do Papão, 23/08)
+// O escudo e a camisa saíam pequenos no post e a culpa parecia do CSS. Não era:
+// os arquivos tinham MOLDURA VAZIA dentro (a camisa era metade vazio). O
+// navegador encaixa o ARQUIVO, então ele encaixava o vazio junto e a arte
+// encolhia. Aqui o próprio navegador mede o desenho de verdade (alfa >= 40) e
+// avisa antes de o post ir pro Diego — assim nenhum batismo repete isso.
+const sobras = await page.evaluate(() => {
+  const out = []
+  for (const el of document.querySelectorAll('.hero .esc img, .corpo img, .manto .kit')) {
+    const w = el.naturalWidth, h = el.naturalHeight
+    if (!w || !h) continue
+    const c = document.createElement('canvas'); c.width = w; c.height = h
+    const g = c.getContext('2d'); g.drawImage(el, 0, 0)
+    const d = g.getImageData(0, 0, w, h).data
+    let x0 = w, y0 = h, x1 = -1, y1 = -1
+    for (let y = 0; y < h; y++) {
+      let n = 0, xa = w, xb = -1
+      for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] >= 40) { n++; if (x < xa) xa = x; if (x > xb) xb = x }
+      if (n >= 3) { if (y < y0) y0 = y; y1 = y; if (xa < x0) x0 = xa; if (xb > x1) x1 = xb }
+    }
+    if (x1 < 0) continue
+    const dw = x1 - x0 + 1, dh = y1 - y0 + 1
+    out.push({ src: el.src.split('/').pop(), arquivo: `${w}x${h}`, desenho: `${dw}x${dh}`,
+               sobra: Math.round(100 * (1 - (dw * dh) / (w * h))) })
+  }
+  return out
+})
+for (const s of sobras) {
+  if (s.sobra >= 4) console.log(`⚠️  ${s.src}: arquivo ${s.arquivo} mas o desenho é só ${s.desenho} (${s.sobra}% de moldura vazia) — RECORTAR antes de mandar o post, senão a arte sai pequena na janela.`)
+}
+if (!sobras.some(s => s.sobra >= 4)) console.log('📏 arte encaixada: nenhum arquivo com moldura vazia sobrando.')
+
 await page.screenshot({ path: o.saida, fullPage: true })
 await browser.close()
 console.log(`${o.saida} · ${(fs.statSync(o.saida).size / 1024).toFixed(0)} KB`)

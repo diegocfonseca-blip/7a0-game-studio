@@ -68,6 +68,8 @@ const NEED: Record<Formation, Record<Sec, number>> = {
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
 }
 const SEC_LABEL: Record<Sec, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
+// singular pros avisos ("já convocou 1 goleiro" — 'Laterais' não vira 'lateral' sozinho)
+const SEC_UM: Record<Sec, string> = { GOL: 'goleiro', LAT: 'lateral', ZAG: 'zagueiro', MEI: 'meia', ATA: 'atacante' }
 
 // pool COMPLETO da seleção: TODAS as cartas do país nos 3 baralhos (regra do
 // Diego: todo mundo aparece, do craque ao perna-de-pau — e sem selo na tela).
@@ -493,18 +495,31 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
   const usedNames = new Set(Object.values(sel).map(c => c.name))
   const totalCards = SECS.reduce((n, s) => n + pool[s].length, 0)
 
+  // 🗣️ POR QUE O TOQUE NÃO FEZ NADA (Diego 23/08: "a escalação não tá alterando
+  // certo"). Testado na tela: com a posição CHEIA, tocar em outro jogador não
+  // fazia NADA e nada explicava — parecia tela travada. Regra do Diego: toda
+  // trava diz o PORQUÊ e o CAMINHO pra destravar. Agora diz.
+  const [aviso, setAviso] = useState<string | null>(null)
   const toggle = (c: PoolCard) => {
     const k = cardKey(c)
     setSel(prev => {
       const nx = { ...prev }
-      if (nx[k]) { delete nx[k]; return nx }
+      if (nx[k]) { delete nx[k]; setAviso(null); return nx }
       // 🧯 10/08: as guardas liam o `sel` do RENDER (velho) — dois toques rápidos
       // passavam do limite da posição e travavam o botão sem explicação. Agora
       // contam no `prev` (o estado de verdade do momento).
       const vals = Object.values(prev)
-      if (vals.filter(x => x.sec === c.sec).length >= need[c.sec]) return prev // posição cheia
-      if (vals.some(x => x.name === c.name)) return prev                       // outra versão da MESMA pessoa
-      nx[k] = c; return nx
+      const naPos = vals.filter(x => x.sec === c.sec)
+      if (naPos.length >= need[c.sec]) { // posição cheia
+        setAviso(`Você já convocou ${need[c.sec]} ${need[c.sec] === 1 ? SEC_UM[c.sec] : SEC_LABEL[c.sec].toLowerCase()} — não cabe mais. Pra botar ${c.name}, toque primeiro em ${naPos.map(x => x.name).join(' ou ')} pra tirar.`)
+        return prev
+      }
+      const igual = vals.find(x => x.name === c.name)
+      if (igual) { // outra versão da MESMA pessoa
+        setAviso(`${c.name} já está convocado (o de ${igual.club} · ${igual.year}) — ninguém joga duas vezes. Tire ele pra trocar de versão.`)
+        return prev
+      }
+      nx[k] = c; setAviso(null); return nx
     })
   }
   const missing = SECS.filter(s => bySec(s).length < need[s]).map(s => `${need[s] - bySec(s).length} ${SEC_LABEL[s].toLowerCase()}`)
@@ -555,6 +570,14 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
         })}
       </div>
 
+      {/* 🗣️ o porquê do toque que "não fez nada" — fica logo em cima da lista,
+          no lugar exato onde a pessoa tocou (jeito que o Diego pede). */}
+      {aviso && (
+        <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>
+          ✋ {aviso}
+        </div>
+      )}
+
       <input value={q} onChange={e => setQ(e.target.value)} placeholder={`🔎 buscar nos ${pool[tab].length} ${SEC_LABEL[tab].toLowerCase()}…`}
         style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
 
@@ -566,11 +589,16 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
             const otherVersion = !on && usedNames.has(c.name)
             const full = !on && bySec(c.sec).length >= need[c.sec]
             const versions = pool[c.sec].filter(o => o.name === c.name).length > 1
+            // 🔒 quem NÃO cabe mais aparece TRANCADO (cadeado + apagado), não só
+            // clarinho: antes ele parecia normal, a pessoa tocava e não acontecia
+            // nada. O botão continua clicável DE PROPÓSITO — é o toque que faz
+            // aparecer a explicação em cima da lista.
             return (
-              <button key={k} onClick={() => toggle(c)} disabled={otherVersion}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : '#fff', cursor: otherVersion ? 'not-allowed' : 'pointer', opacity: otherVersion ? 0.4 : full ? 0.65 : 1, textAlign: 'left' }}>
-                <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : ''}</span>
+              <button key={k} onClick={() => toggle(c)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : (full || otherVersion) ? '#EFE7D2' : '#fff', cursor: 'pointer', opacity: otherVersion ? 0.5 : full ? 0.62 : 1, textAlign: 'left' }}>
+                <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : (full || otherVersion) ? '🔒' : ''}</span>
                 <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                {on && <span style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>toque pra tirar</span>}
                 {versions && <span style={{ background: '#7C3AED', color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>{otherVersion ? 'já convocado' : 'versões'}</span>}
                 <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.club} · {c.year}</span>
               </button>

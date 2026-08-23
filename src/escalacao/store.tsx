@@ -665,6 +665,21 @@ function careerOpenSlots(m: Manager, pos: Sector): number {
 function careerHoles(m: Manager): number {
   return SECTORS.reduce((s, pos) => s + careerOpenSlots(m, pos), 0)
 }
+// 🔁 EM QUE "RODADA" A TROCA VAI VALER (Diego 23/08).
+// Durante a temporada é simples: a rodada atual = o próximo jogo. Só que DEPOIS
+// da liga vem a Copa, e ela é jogada em FASES que já foram calculadas. Se a
+// troca caísse na rodada 38 (a que a 1ª fase lê), ela reescreveria uma fase que
+// o jogador JÁ VIU na tela — e o campeão anunciado podia virar outro. Por isso a
+// tela manda a FASE-ALVO (`slot`): 38 = 1ª fase, 39 = a seguinte, 40… A troca
+// vale dali pra frente e não encosta em nada já jogado.
+// TRAVAS (segurança #1 do Diego — nunca deixar estado quebrado):
+//   • nunca ANTES da rodada atual (não dá pra reescrever o passado);
+//   • teto de 12 fases acima, pra uma tela/save torto não jogar a escalação pra
+//     uma rodada absurda e ela sumir do jogo.
+function slotDaTroca(s: EscState, slot?: number): number {
+  if (slot == null || !Number.isFinite(slot)) return s.round
+  return Math.min(s.round + 12, Math.max(s.round, Math.floor(slot)))
+}
 // melhor XI por NÍVEL (ids) — usado só pra FIXAR o time no começo da temporada.
 function bestXIids(squad: WonCard[], formation: FormationKey): string[] {
   const out: string[] = []
@@ -2838,7 +2853,7 @@ type Action =
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
-  | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number } // 🎽 carreira: troca 4-3-3↔4-4-2. Só libera com 22 no elenco E jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante.
+  | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number } // 🎽 carreira: troca 4-3-3↔4-4-2. Só libera com 22 no elenco E jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot).
   | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
@@ -2902,7 +2917,7 @@ type Action =
   | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
   | { type: 'MONTE_PASS'; mgrId: number; by?: string } // carreira: recusa as sobras e passa a vez (o time já tem os 11). by = 🤝 crachá (duplas)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
-  | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
+  | { type: 'SET_LINEUP'; mgrId: number; ids: string[]; slot?: number } // carreira: define os 11 titulares (escalação), vale do PRÓXIMO jogo. `slot` = rodada-fantasma da Copa (38 = 1ª fase, 39 = a seguinte…) — é assim que a substituição vale da PRÓXIMA FASE da Copa em diante, sem tocar no que já foi jogado.
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic } // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
@@ -4965,7 +4980,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // enquanto não chega a rodada da volta — a tela já bloqueia, aqui é a trava.
       const evLine = s.eventoTemporada
       if (evLine && evLine.season === s.seasonNo && evLine.status === 'banco' && (evLine.volta ?? 0) > s.round && evLine.mgrId === action.mgrId && action.ids.includes(evLine.cardId)) return s
-      const r = s.round
+      const r = slotDaTroca(s, action.slot)
       const bl = { ...(s.careerLineup ?? {}) }
       bl[action.mgrId] = { ...(bl[action.mgrId] ?? {}), [r]: action.ids }
       s.careerLineup = bl
@@ -5419,7 +5434,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // fora da remontagem (mesma regra da troca manual, que já bloqueava).
       const evF = s.eventoTemporada
       const suspensoIdF = evF && evF.season === s.seasonNo && evF.status === 'banco' && (evF.volta ?? 0) > s.round && evF.mgrId === m.id ? evF.cardId : null
-      mineCl[s.round] = bestXIids(suspensoIdF ? m.squad.filter(c => c.id !== suspensoIdF) : m.squad, action.formation)
+      // 🔁 se a Copa está rolando, a formação nova vale da PRÓXIMA FASE em diante
+      // (a tela manda o slot) — nunca reescreve fase que já apareceu na tela.
+      mineCl[slotDaTroca(s, action.slot)] = bestXIids(suspensoIdF ? m.squad.filter(c => c.id !== suspensoIdF) : m.squad, action.formation)
       s.careerLineup = { ...(s.careerLineup ?? {}), [m.id]: mineCl }
       return s
     }
@@ -7829,6 +7846,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // recomeçava o jogo do zero, quebrando a sala. Com intervalo fixo lendo o
   // stateRef, sempre há um snapshot recente pra retomar.
   const lastUpRef = useRef('') // assinatura do último game_state que subiu (economia de egress)
+  // 🪪 A IDENTIDADE DA SALA — o que NÃO é jogo e mesmo assim mora no `game_state`:
+  // que tipo de sala é (`mode`), o dia marcado da liga, as regras do ranking e quem
+  // manda junto. Isto nasce na CRIAÇÃO e o jogo nunca mais toca — mas o save do host
+  // reescreve o `game_state` INTEIRO a cada 3s, e escrevia só o que vem do estado da
+  // partida. Resultado: a identidade era apagada assim que a bola rolava.
+  const salaFixaRef = useRef<Record<string, unknown>>({})
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const save = () => {
@@ -7839,7 +7862,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
       // enredo — sem ele o supabase-js NÃO dispara a requisição (query é
       // preguiçosa), e era por isso que o estado nunca era salvo de verdade.
-      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
+      // 🩹 CONSERTO 23/08 — O DIEGO PERDEU UMA LIGA ASSIM, ao vivo (sala DIOGBI):
+      // *"a sala virou uma sala comum tb e n mais a sala criada do liga fechada"*.
+      // O banco confirmou: `mode`, `ligaAt`, `ligaRegras` e `ligaAdmins` VAZIOS, e o
+      // troféu da temporada 1 órfão em `game_champions` — guardado, mas invisível,
+      // porque a sala tinha deixado de ser liga. Não foi o "novo leilão": foi ESTE
+      // save. Ele monta o pacote só com o que vem do estado da PARTIDA e sobrescreve
+      // o `game_state` inteiro — então tudo que é da SALA sumia no primeiro save, ou
+      // seja, no instante em que o pregão abria. Valia pra TODA liga e também pra
+      // sala do Bafo (`mode: 'elenco'`).
+      // Agora o que é da sala é lido UMA vez (logo abaixo) e vai junto em todo save.
+      // Repare na ordem: a identidade entra primeiro e o `mode` da carreira, que é
+      // calculado, tem a palavra final.
+      const payload = { ...sanitize(st), ...salaFixaRef.current, __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a
@@ -7857,9 +7892,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
       }
     }
     lastUpRef.current = '' // sala nova/reconexão: primeiro save sempre sobe inteiro
-    save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
-    const iv = setInterval(save, 3000)
-    return () => { save(); clearInterval(iv) }
+    // ⚠️ A LEITURA VEM ANTES DO PRIMEIRO SAVE. Se o save rodasse primeiro, ele já
+    // teria apagado a identidade da sala — e aí não haveria o que preservar.
+    let vivo = true
+    let iv: ReturnType<typeof setInterval> | null = null
+    ;(async () => {
+      try {
+        const { data } = await supabase.from('game_rooms').select('game_state').eq('id', state.roomId!).maybeSingle()
+        const gs = (data?.game_state ?? {}) as Record<string, unknown>
+        const guarda: Record<string, unknown> = {}
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins']) {
+          if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
+        }
+        salaFixaRef.current = guarda
+      } catch { /* sem rede: segue com o que já tinha guardado */ }
+      if (!vivo) return
+      save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
+      iv = setInterval(save, 3000)
+    })()
+    return () => { vivo = false; save(); if (iv) clearInterval(iv) }
   }, [state.onlineMode, state.isHost, state.roomId])
 
   // ─── analytics: registra cada partida e mantém o "ao vivo" ───
