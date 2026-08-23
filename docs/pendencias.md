@@ -184,6 +184,35 @@ verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 
 (Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
 rápida.)
 
+## 🏆 ESTANTE DE TROFÉUS: só de gente, e só na liga (23/08)
+Duas decisões do Diego, olhando o Hall da Fama de uma partida:
+*"Troféu só entre usuários seja sala normal ou liga fechada. E sala normal continua
+igual, n precisa ter linha lá falando de títulos. Só liga fechada msm q terá na sala
+de espera e qd acaba o jogo"*.
+
+**Por que ele está certo no 1º ponto:** no print dele, os dois maiores acervos eram
+de **BOT** (São Luiz FC com 2 troféus, Xurupitas FC com o Mico), e os dois humanos
+ficaram espremidos embaixo. A estante é sobre a turma — bot ocupando o pódio é o
+oposto disso.
+
+**Por que ele está certo no 2º:** a estante da **sala rápida MORRIA com a sala** (o
+jogo apaga a sala quando o dono sai). Ela prometia história e no dia seguinte não
+tinha nada. Na liga a sala fica de pé — lá a estante é o ponto da coisa.
+
+**Feito:**
+- **Hall da Fama (fim de jogo) só aparece se a sala for LIGA.** O componente lê o
+  `mode` da sala e, fora da liga, não renderiza. Sala rápida volta a terminar como
+  terminava antes.
+- **Bot não ganha prateleira nem entra no ranking** — nem no Hall da Fama
+  (`screens.tsx`, prop `humanos` = times com `isHuman`), nem na Sala de Troféus da
+  liga (`lobby.tsx`, o set `gente` = os técnicos de `room_players`, que são sempre
+  pessoas: bot nunca tem vaga lá).
+- **A piada do 🙈 Mico só sai se o lanterna for gente.** Zoar computador não tem
+  graça — a zoeira é entre amigos.
+- **A TABELA por temporada continua verdadeira**: se quem foi campeão foi um bot, a
+  linha daquela temporada mostra o bot. O registro não mente; o bot só não ganha
+  estante.
+
 ## 🔥🔥 A LIGA SE DESTRUÍA SOZINHA AO JOGAR (23/08) — consertado
 Relato do Diego, ao vivo na liga DIOGBI: *"qd acabou a simulação dos jogos da copa
 eu fui iniciar msm time p jogar e mostrou q a secundária saiu, sendo q eu tô jogando

@@ -152,16 +152,24 @@ function TrofeusDaLiga({ roomId, isHost, nomes, regras, salvarRegras }: {
   }
 
   // ── 📊 o ranking, contado das mesmas linhas ────────────────────────────────
+  // 👥 TROFÉU É COISA DE GENTE (Diego 23/08: *"troféu só entre usuários"*). No print
+  // dele, quem tinha os dois maiores acervos era BOT, com os humanos espremidos
+  // embaixo — de cabeça pra baixo, porque a estante é sobre a turma. Bot continua na
+  // TABELA de troféus (o registro do que aconteceu de verdade, temporada a
+  // temporada); ele só não entra no ranking. `nomes` são os técnicos da sala, que
+  // são sempre pessoas — bot nunca tem vaga em `room_players`.
+  const gente = new Set(nomes.map(n => (n ?? '').trim()).filter(Boolean))
   const ranking = (() => {
     if (!rows || rows.length === 0) return []
     const conta: Record<string, Record<LigaChave, number>> = {}
     const pega = (n?: string | null) => {
       const t = (n ?? '').trim(); if (!t) return null
+      if (!gente.has(t)) return null // 👥 bot não entra no ranking (ver comentário abaixo)
       if (!conta[t]) conta[t] = { liga: 0, copa: 0, artilheiro: 0, rebaixamento: 0 }
       return conta[t]
     }
     for (const l of rows) {
-      pega(l.champion_name)!.liga++
+      const camp = pega(l.champion_name); if (camp) camp.liga++
       const c = pega(l.copa_champion_name); if (c) c.copa++
       const a = pega(l.top_scorer_team); if (a) a.artilheiro++
       const m = pega(l.mico_name); if (m) m.rebaixamento++

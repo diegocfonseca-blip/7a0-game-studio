@@ -5693,11 +5693,25 @@ const MICO_FRASES: ((t: string) => string)[] = [
   t => `O ${t} defendeu tão pouco que a rede pediu férias. 🥅`,
   t => `Dizem que o ${t} ainda procura a bola até hoje. 🔍`,
 ]
-function HallDaFama({ roomId, isHost, seasonNo, matchSeed, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals }: {
+function HallDaFama({ roomId, isHost, seasonNo, matchSeed, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals, humanos }: {
   roomId: string; isHost: boolean; seasonNo: number; matchSeed?: number; champName: string; scorerName?: string; scorerGoals?: number
   scorerTeamName?: string; micoName?: string
   copaChampName?: string; copaScorerName?: string; copaScorerGoals?: number
+  humanos: string[] // 👥 times de GENTE nesta sala — só eles ganham prateleira
 }) {
+  // 🏆 SÓ A LIGA TEM ESTANTE (Diego 23/08): *"sala normal continua igual, n precisa
+  // ter linha lá falando de títulos. Só liga fechada msm q terá na sala de espera e
+  // qd acaba o jogo"*. Faz sentido: sala rápida MORRE quando o dono sai, então a
+  // "estante" dela some no dia seguinte — prometia história e não entregava. Na liga
+  // a sala fica de pé e a estante é o ponto da coisa.
+  const [ehLiga, setEhLiga] = useState<boolean | null>(null)
+  useEffect(() => {
+    let vivo = true
+    void supabase.from('game_rooms').select('game_state->>mode').eq('id', roomId).maybeSingle()
+      .then(({ data }) => { if (vivo) setEhLiga((data as { mode?: string } | null)?.mode === 'liga') },
+            () => { if (vivo) setEhLiga(false) })
+    return () => { vivo = false }
+  }, [roomId])
   const [rows, setRows] = useState<ChampionRow[] | null>(null)
 
   useEffect(() => {
@@ -5746,13 +5760,21 @@ function HallDaFama({ roomId, isHost, seasonNo, matchSeed, champName, scorerName
     return () => { alive = false }
   }, [isHost, roomId, seasonNo, matchSeed, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals])
 
+  if (!ehLiga) return null // sala rápida não tem estante (ver comentário lá em cima)
   if (!rows || rows.length === 0) return null
+  // 👥 TROFÉU É COISA DE GENTE (Diego 23/08: *"troféu só entre usuários"*, e ele tem
+  // razão — no print dele os dois maiores acervos eram de BOT, com os dois humanos
+  // espremidos embaixo). Bot continua aparecendo na LINHA DO TEMPO, que é o registro
+  // do que aconteceu de verdade; ele só não ganha prateleira nem rende piada de Mico
+  // (zoar computador não tem graça — a zoeira é entre amigos).
+  const gente = new Set(humanos.filter(Boolean))
+  const ehGente = (nm: string | null | undefined) => !!nm && gente.has(nm)
   // 🏆 estante: soma os troféus de cada nome ao longo das temporadas da sala
   const shelf = new Map<string, { liga: number; copa: number; art: number; mico: number }>()
-  const somar = (nm: string | null | undefined, k: 'liga' | 'copa' | 'art' | 'mico') => { if (!nm) return; const e = shelf.get(nm) ?? { liga: 0, copa: 0, art: 0, mico: 0 }; e[k]++; shelf.set(nm, e) }
+  const somar = (nm: string | null | undefined, k: 'liga' | 'copa' | 'art' | 'mico') => { if (!ehGente(nm)) return; const e = shelf.get(nm!) ?? { liga: 0, copa: 0, art: 0, mico: 0 }; e[k]++; shelf.set(nm!, e) }
   for (const r of rows) { somar(r.champion_name, 'liga'); somar(r.copa_champion_name, 'copa'); somar(r.top_scorer_team, 'art'); somar(r.mico_name, 'mico') }
   const donos = [...shelf.entries()].sort((a, b) => (b[1].liga + b[1].copa + b[1].art) - (a[1].liga + a[1].copa + a[1].art) || b[1].mico - a[1].mico)
-  const ultimoMico = [...rows].reverse().find(r => r.mico_name)
+  const ultimoMico = [...rows].reverse().find(r => ehGente(r.mico_name))
   const fraseMico = ultimoMico?.mico_name ? MICO_FRASES[(ultimoMico.season_no + ultimoMico.mico_name.length) % MICO_FRASES.length](ultimoMico.mico_name) : null
   const trofeu = (emoji: string, n: number, label: string, grad: string, fg: string, opts?: { wiggle?: boolean; sheen?: boolean }) => (
     <div key={label} style={{ width: 82, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', textAlign: 'center', boxShadow: `2.5px 2.5px 0 0 ${INK}`, background: grad, color: fg, position: 'relative', overflow: 'hidden', animation: opts?.wiggle ? 'escMicoWiggle 2.6s ease-in-out infinite' : undefined }}>
@@ -8346,6 +8368,7 @@ export function EscEnd() {
           <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} matchSeed={state.seed} champName={champ.name}
             scorerName={myScorer?.name} scorerGoals={myScorer?.goals}
             scorerTeamName={state.managers.find(m => m.id === myScorer?.teamId)?.teamName}
+            humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
             micoName={table.length > 1 ? table[table.length - 1]?.name : undefined}
             copaChampName={copaDone ? (state.quickCopa?.champion?.name ?? undefined) : undefined}
             copaScorerName={copaDone ? copaSc?.name : undefined} copaScorerGoals={copaDone ? copaSc?.goals : undefined} />
