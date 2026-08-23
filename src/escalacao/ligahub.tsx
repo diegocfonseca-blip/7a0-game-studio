@@ -25,6 +25,7 @@
 // o campeonato cria uma Liga. Prometer estante numa sala que evapora seria o tipo
 // de coisa que o Diego odeia.
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { APOIO_PERKS, ApoioSheen } from './apoio'
 import { perkFromSelo } from './pyramidseason'
@@ -282,6 +283,12 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
       <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
       {/* espaço no fim da página pra a barra não tapar o último bloco */}
       <div style={{ height: 74 }} />
+      {/* 🚪 PORTAL (Diego 23/08: *"ela não está no final da tela"*): as telas do
+          jogo entram ANIMADAS (framer-motion), e `position: fixed` dentro de um
+          bloco com transform gruda NO BLOCO, não na tela — a barra ficava boiando
+          no meio do conteúdo. Desenhando direto no `document.body`, o rodapé é o
+          rodapé de verdade, igual à barra da carreira. */}
+      {createPortal(<>
 
       {/* 📜 O PAINEL — abre POR CIMA do jogo, com altura de meia tela e rolagem
           própria. Toque na mesma aba (ou no ✕) fecha. Assim a barra nunca rouba a
@@ -328,6 +335,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
           )
         })}
       </div>
+      </>, document.body)}
     </>
   )
 }
