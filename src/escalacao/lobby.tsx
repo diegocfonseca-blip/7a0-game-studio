@@ -1610,6 +1610,28 @@ export function EscLobby() {
   async function createRoom() {
     if (!user) return
     setLoading(true); setRoomError('')
+    // 🧯 TETO DE 2 SALAS RÁPIDAS ABERTAS (Diego 23/08: *"limite pode ser duas sim"*).
+    // Por que: criar sala rápida NUNCA teve limite, e o banco mostrou o estrago —
+    // 484 salas guardadas, 68% paradas há mais de um dia, uma pessoa só criou 20
+    // numa semana e 52% das salas ninguém apareceu. Metade da lista de "Salas
+    // Abertas" era sala morta, e quem chegava novo achava que o jogo estava vazio.
+    // ⚠️ SÓ CONTA SALA VIVA (mexida nas últimas 3h). Sem isso, a sala que a pessoa
+    // abandonou meses atrás travaria a conta dela PRA SEMPRE — uma trava que não
+    // tem como destravar é pior que o problema que ela resolve.
+    // A liga tem o teto dela (2 ligas, mais abaixo) e não entra nesta conta; a
+    // carreira também não, porque ela é um SAVE, não uma sala de encontro.
+    if (roomMode === 'rapido' || roomMode === 'elenco') {
+      const vivasDesde = new Date(Date.now() - 3 * 3600_000).toISOString()
+      const { data: minhas } = await supabase.from('game_rooms')
+        .select('code, game_state->>mode')
+        .eq('host_id', user.id).gt('updated_at', vivasDesde)
+      const abertas = ((minhas ?? []) as { code: string; mode: string | null }[])
+        .filter(r => r.mode !== 'liga' && r.mode !== 'carreira')
+      if (abertas.length >= 2) {
+        setRoomError(`Você já tem 2 salas abertas (${abertas.map(r => r.code).join(' e ')}) — é o máximo por pessoa, pra lista de salas não encher de sala vazia. Pra abrir outra, entre numa delas e use "🚪 Sair e encerrar a sala".`)
+        setLoading(false); return
+      }
+    }
     let code = randCode()
     for (let i = 0; i < 5; i++) {
       const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle()

@@ -184,6 +184,27 @@ verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 
 (Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
 rápida.)
 
+## 🧯 TETO DE 2 SALAS RÁPIDAS ABERTAS (23/08) — *"limite pode ser duas sim"*
+Criar sala rápida **nunca teve limite**. O que o banco mostrou quando ele perguntou:
+**484 salas guardadas · 68% paradas há mais de um dia · uma pessoa só criou 20 numa
+semana · 52% das salas ninguém apareceu** — e nenhuma faxina automática (a mais
+antiga era de 29/junho). Metade da lista de "Salas Abertas" era sala morta, e quem
+chegava novo achava que o jogo estava vazio.
+
+**Feito:** ao criar sala rápida (ou Bafo), se a pessoa já tem **2 salas vivas**, o
+jogo barra com o porquê e o caminho: *"Você já tem 2 salas abertas (ABC123 e
+XYZ789) — é o máximo por pessoa, pra lista de salas não encher de sala vazia. Pra
+abrir outra, entre numa delas e use 🚪 Sair e encerrar a sala."*
+
+**⚠️ A parte importante: só conta sala VIVA (mexida nas últimas 3h).** Sem isso, a
+sala que a pessoa abandonou meses atrás travaria a conta dela pra sempre — uma trava
+sem caminho de saída é pior que o problema que ela resolve. Liga tem o teto próprio
+(2 ligas) e não entra nesta conta; carreira também não, porque é um SAVE e não uma
+sala de encontro.
+
+**Ainda em aberto:** a **faxina** das salas antigas no banco (centenas de linhas
+mortas). Ele não pediu; não fazer sem ordem.
+
 ## 🏆 ESTANTE DE TROFÉUS: só de gente, e só na liga (23/08)
 Duas decisões do Diego, olhando o Hall da Fama de uma partida:
 *"Troféu só entre usuários seja sala normal ou liga fechada. E sala normal continua
