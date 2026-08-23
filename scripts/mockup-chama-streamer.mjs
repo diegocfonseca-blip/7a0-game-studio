@@ -1,8 +1,10 @@
 // ─── 🎥 ARTE DA CAMPANHA "CHAMA UM STREAMER" (pra POSTAR) ───────────────────
 //
-// A campanha é de 12/08: o jogador que faz um streamer POSTAR o jogo ganha
-// prêmio — e o streamer também. Prêmios por tamanho do streamer (o Diego decide
-// caso a caso): ⭐ Craque · 👑 Lenda · 🎖️ Batismo · 🛡️ escudo + mascote.
+// A campanha é de 12/08, AJUSTADA pelo Diego em 23/08: *"não fala q o streamer
+// ganha — fala só q dependendo do tamanho do streamer VOCÊ ganha planos do
+// jogo, mas o cara postando"*. Ou seja: o prêmio é DO JOGADOR que indicou, a
+// condição é o streamer POSTAR, e o tamanho do canal define o plano
+// (o Diego decide caso a caso): ⭐ Craque · 👑 Lenda · 🎖️ Batismo · 🛡️ escudo+mascote.
 // Print da prova vai no direct do @leilaolegendscom.
 //
 // Esta é a versão IMAGEM, pros próprios jogadores repostarem (zap, status,
@@ -54,10 +56,10 @@ h1 .d{color:${RED}}
 <div class="folha">
   <div class="pill">🎥 Campanha · vale pra todo mundo</div>
   <h1>CHAMA UM<br><span class="d">STREAMER!</span></h1>
-  <p class="sub">Você manda o jogo pra um streamer/influencer. Ele <b>posta</b>. Pronto: <b>VOCÊ E ELE ganham prêmio</b> dentro do jogo — e quanto maior o canal, maior o prêmio. 👀</p>
+  <p class="sub">Você manda o jogo pra um streamer/influencer. Ele <b>posta</b>. Pronto: <b>VOCÊ ganha um plano do jogo</b> — e quanto maior o canal dele, maior o seu prêmio. 👀</p>
 
   <div class="card">
-    <p class="tit">🎁 Os prêmios (pra você E pra ele)</p>
+    <p class="tit">🎁 O que VOCÊ pode ganhar (pelo tamanho do canal)</p>
     <div style="display:flex;gap:10px">
       ${premio('⭐', 'Craque', 'benefícios no jogo', '#E8E8E8')}
       ${premio('👑', 'Lenda', 'o pacote dourado inteiro', `linear-gradient(150deg,#FFE79A,${GOLD} 60%,#E8A200)`)}
@@ -71,7 +73,7 @@ h1 .d{color:${RED}}
     <div style="display:flex;flex-direction:column;gap:10px">
       ${passo(1, 'Manda o <b>leilaolegends.com</b> pro streamer que você acompanha')}
       ${passo(2, 'Ele joga e <b>posta</b> (live, story, vídeo — vale tudo)')}
-      ${passo(3, 'Você manda o <b>print</b> no direct — e os DOIS levam o prêmio 🏆')}
+      ${passo(3, 'Você manda o <b>print</b> no direct — e leva o seu prêmio 🏆')}
     </div>
   </div>
 
