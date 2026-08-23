@@ -560,7 +560,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                   ['Carreiras salvas', '2', '4', '6', '6'],
                   ['Grupo VIP no zap', '—', '—', '✓', '✓'],
                   ['Carreira Online e Ligas', '—', '—', '✓', '✓'],
-                  ['Clube com SEU nome', '—', '—', '—', '✓'],
+                  ['Seu nome no jogo', '—', '—', '—', '✓'], // Diego 23/08: "não é clube com nome, é SEU NOME no jogo"
                   ['Selo de Fundador', '—', '—', '—', '✓'],
                 ] as [string, string, string, string, string][]).map(([o, ...vals], i) => (
                   <tr key={o} style={{ background: i % 2 ? '#FBF6E9' : '#fff' }}>
