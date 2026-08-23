@@ -1,9 +1,9 @@
-// ─── 🏆 MOCKUP: LIGA — espera limpa + pílulas no fim do jogo ────────────────
+// ─── 🏆 MOCKUP: LIGA — espera limpa + pílulas DEPOIS DO PREGÃO ─────────────
 //
 // Desenho fechado com o Diego em 23/08, depois de várias voltas. As palavras dele:
 //   · *"talvez então n tenha nada na sala de espera... tb é uma ideia p n confundir"*
 //   · *"seria em pílulas no final né tipo rank estante temporadas ajustes, isso
-//      apenas qd [term]ina a simulação né? Mas tem q ter algo pro criador da sala
+//      apenas qd INICIA a simulação né? Mas tem q ter algo pro criador da sala
 //      tipo os ajustes ter p ele na sala de espera... pq o jogo já começa no pregão"*
 //
 // O PROBLEMA QUE ISTO RESOLVE: hoje a MESMA informação (a tabela `game_champions`)
@@ -17,8 +17,13 @@
 //     ganha, junto dos botões dele, o "⚖️ Regras do ranking" (que hoje mora perdido
 //     dentro do bloco de troféus). Ele precisa disso ANTES do pregão — depois que
 //     a bola rola não tem volta.
-//   · FIM DO JOGO → uma área só, com pílulas: 🏆 Rank · 🏅 Estante · 📜 Temporadas ·
-//     ⚙️ Ajustes (a última só pro dono). Abre no Rank, que é o que mudou agora.
+//   · DEPOIS DO PREGÃO → uma área só, com pílulas: 🏆 Rank · 🏅 Estante ·
+//     📜 Temporadas · ⚙️ Ajustes (a última só pro dono). Abre no Rank.
+//     ⏰ QUANDO: assim que o leilão ACABA — que é a hora em que a simulação dos
+//     jogos começa. O Diego repetiu isso em 23/08: *"as pílulas novas devem
+//     aparecer logo após acabar o leilão, q inicia a simulação dos jogos"*.
+//     (No 1º desenho eu tinha posto "no fim do jogo" — era leitura minha, errada.)
+//     Não é spoiler: rank/estante/temporadas só mostram temporadas ENCERRADAS.
 //
 // ⚠️ A ORDEM DA TELA DE ESPERA NÃO MUDA — ele recusou isso em 23/08 (ver
 // `mockup-liga-tela-toda.mjs`). Aqui a espera só PERDE um bloco e GANHA um botão.
@@ -167,23 +172,23 @@ body{background:${CREME};color:${INK};font-family:Oswald,sans-serif;padding:26px
     Hoje a MESMA informação aparece em dois lugares com dois nomes e duas caras — e o
     <b>ranking só existia na espera</b>, então você ganhava a liga e não via a classificação mudar.
     Agora: <b>espera</b> = quem chegou e começar (o dono ganha o ⚖️ ali, porque depois do pregão não tem volta);
-    <b>fim do jogo</b> = a liga inteira, em pílulas.</p>
+    <b>depois do pregão</b> = a liga inteira, em pílulas, e fica lá até o fim.</p>
 
   <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:22px">
     ${fone('① Sala de espera', 'o bloco de troféus SAI · o dono ganha o ⚖️', espera, GREEN, true)}
-    ${fone('② Fim do jogo · 🏆 Rank', 'abre nesta — é o que mudou agora', abaRank, GOLD)}
-    ${fone('③ Fim do jogo · 🏅 Estante', 'os cartões bonitos, só de gente', abaEstante, GOLD)}
+    ${fone('② Depois do pregão · 🏆 Rank', 'abre nesta — é o que mudou agora', abaRank, GOLD)}
+    ${fone('③ Depois do pregão · 🏅 Estante', 'os cartões bonitos, só de gente', abaEstante, GOLD)}
   </div>
   <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:20px">
-    ${fone('④ Fim do jogo · 📜 Temporadas', 'a tabela ano a ano, com o ✏️ do dono', abaTemp, GOLD)}
-    ${fone('⑤ Fim do jogo · ⚙️ Ajustes', 'só o dono vê esta pílula', abaAjustes, GOLD)}
+    ${fone('④ Depois do pregão · 📜 Temporadas', 'a tabela ano a ano, com o ✏️ do dono', abaTemp, GOLD)}
+    ${fone('⑤ Depois do pregão · ⚙️ Ajustes', 'só o dono vê esta pílula', abaAjustes, GOLD)}
     <div style="flex:1;min-width:300px;max-width:340px">${bl(`
       <div style="${OSW};font-size:15px;margin-bottom:7px">O que muda</div>
       <div style="${OSW};font-weight:600;font-size:11.5px;line-height:1.5">
       ✅ A espera <b>perde o paredão de troféus</b> e volta a ser a tela de sempre.<br><br>
       ✅ O dono <b>ganha o ⚖️ Regras do ranking</b> junto dos botões dele — ele precisa disso ANTES do pregão.<br><br>
       ✅ Todo mundo vê a regra <b>numa linha</b> dentro da faixa verde. O convidado não entra mais no escuro.<br><br>
-      ✅ No fim do jogo, <b>uma área só, em pílulas</b>. Abre no Rank.<br><br>
+      ✅ <b>Assim que o pregão acaba</b> (a hora em que a simulação começa), aparece <b>uma área só, em pílulas</b>. Abre no Rank, e continua lá até o fim do jogo.<br><br>
       ✅ <b>Um nome só</b> pra coisa: some o "Hall da Fama da sala" × "Sala de troféus da liga".<br><br>
       🔒 A ordem da tela de espera <b>não muda</b> — você recusou isso e eu não mexi.</div>`, '#fff')}</div>
   </div>

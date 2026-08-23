@@ -1,5 +1,35 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## ⏳ AGUARDANDO OK DO DIEGO — LIGA FECHADA: pílulas DEPOIS DO PREGÃO (23/08)
+Desenho: `node scripts/mockup-liga-pilulas.mjs`. **Nada disto está no jogo ainda.**
+
+⏰ **CORREÇÃO DE LEITURA MINHA (23/08).** No 1º desenho eu tinha posto as pílulas
+"no fim do jogo". Errado: o Diego disse duas vezes que é **assim que o pregão
+ACABA** — *"as pílulas novas devem aparecer logo após acabar o leilão, q inicia a
+simulação dos jogos"*. Elas aparecem quando a simulação começa e **ficam lá até o
+fim**. Não é spoiler: rank/estante/temporadas só mostram temporadas ENCERRADAS.
+
+**A forma (fechada com ele):**
+- **Sala de espera** → o paredão de troféus SAI (a tela volta a ser a de sempre).
+  O dono ganha, junto dos botões dele, o **⚖️ Regras do ranking** — ele precisa
+  disso ANTES do pregão. E a regra aparece escrita numa linha da faixa verde, pra
+  todo mundo (convidado não entra mais no escuro).
+- **Depois do pregão** → uma área só, em pílulas: 🏆 **Rank** (abre nesta) ·
+  🏅 **Estante** · 📜 **Temporadas** · ⚙️ **Ajustes** (só o dono).
+
+**Por que:** hoje a MESMA informação (`game_champions`) aparece em dois lugares,
+com dois nomes e duas caras — "Sala de troféus da liga" (espera, lista+planilha) e
+"Hall da Fama da sala" (fim, cartões). E o RANKING só existia na espera: a pessoa
+ganhava a liga e não via a classificação mudar, que é a hora que importa.
+
+**Onde mexer quando ele aprovar:** `lobby.tsx:105` `TrofeusDaLiga` (sai da espera,
+sobra o ⚖️ pro dono) · `screens.tsx:5696` `HallDaFama` (vira a área de pílulas) ·
+montar a área em `EscSeason` (`screens.tsx:4503`, é a tela logo depois do pregão) e
+mantê-la no `EscEnd` (`screens.tsx:7941`). Tudo atrás de `LIGA_GERAL = false`.
+
+🔒 **NÃO MEXER**: a ORDEM da tela de espera (ele recusou em 23/08 — *"não, não faz
+isso"*) e a sala NORMAL, que continua sem nada disso.
+
 ## ⏳ AGUARDANDO OK DO DIEGO — substituição nas COPAS (branch `claude/denis-save-file-x1osct`, NÃO está na main)
 Relato dele: *"arrume na copa aí q a escalação n tá alterando certo"* → depois
 corrigiu meu rumo: *"estamos falando de SUBSTITUIÇÕES.. q vc tem q ver a copa dos
