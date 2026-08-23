@@ -20,9 +20,19 @@ Formato padrão, tudo igual Coringas do Diniz:
 - **Banco**: `esc_socios` atualizado (escudo/mascote/manto `#A32A28`+`#FFFFFF`,
   cores MEDIDAS na camisa) · `esc_nomes_batismo` reservou o nome novo (puro +
   FC + EC via gatilho) **e o velho continua reservado** pro mesmo dono.
-- **Mockup**: gerado no padrão; ⚠️ "BATIZADO POR" ficou em BRANCO — o display
-  name da conta dele é o próprio "Império Samambaia" e ninguém sabe o nome de
-  pessoa. **Perguntar ao Diego** antes de postar (não se inventa nome).
+- **Mockup**: gerado no padrão, "batizado por **Jorge Ricardo**" (o Diego deu o
+  nome em 23/08). Comando exato pra reproduzir:
+  ```
+  node scripts/mockup-batismo.mjs \
+    --clube "Leão da Estradinha" --serie A --antigo "Império Samambaia" \
+    --escudo src/escalacao/img/leao-estradinha-escudo.webp \
+    --mascote src/escalacao/img/leao-estradinha-mascote.webp \
+    --camisa scripts/kits/leao-estradinha-camisa.webp \
+    --mascote-nome "O Leão" --mascote-emoji "🦁" \
+    --c1 "#A32A28" --c1-nome "vermelho" --c2 "#FFFFFF" --c2-nome "branco" \
+    --dono "Jorge Ricardo" --coracao "Rio Branco-PR" --fundador 28 --socio-n 4 \
+    --saida /tmp/leao-post.png
+  ```
 
 ## ✅ SALA ONLINE — "sou o host mas fica confirmando com o host" (23/08, sala 1DWIA5)
 O Diego, DONO da sala, ficou preso no "ENVIANDO… confirmando com o host", com o
