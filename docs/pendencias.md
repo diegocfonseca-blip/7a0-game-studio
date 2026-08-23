@@ -184,6 +184,41 @@ verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 
 (Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
 rápida.)
 
+## 🔥🔥 A LIGA SE DESTRUÍA SOZINHA AO JOGAR (23/08) — consertado
+Relato do Diego, ao vivo na liga DIOGBI: *"qd acabou a simulação dos jogos da copa
+eu fui iniciar msm time p jogar e mostrou q a secundária saiu, sendo q eu tô jogando
+c os dois pra testes e n saiu a secundária. E aí apareceu esse banner… e a sala
+virou uma sala comum tb e n mais a sala criada do liga fechada"*.
+
+**O banco confirmou o estrago:** `mode`, `ligaAt`, `ligaRegras` e `ligaAdmins`
+**VAZIOS**, e o troféu da temporada 1 **órfão** em `game_champions` — guardado, mas
+invisível, porque a sala tinha deixado de ser liga.
+
+### Bug 1 — o save do host apagava a IDENTIDADE da sala (o grave)
+Não foi o "novo leilão", como parecia: foi o **save de 3 em 3 segundos**. Ele monta o
+pacote só com o que vem do estado da PARTIDA e **sobrescreve o `game_state`
+inteiro**. `mode`, `ligaAt`, `ligaRegras` e `ligaAdmins` nascem na CRIAÇÃO e não
+vinham junto — então sumiam **no primeiro save**, ou seja, no instante em que o
+pregão abria. **Toda liga morria na primeira partida**, e a sala do 🃏 Bafo
+(`mode: 'elenco'`) também.
+**Conserto:** o que é da SALA é lido UMA vez ao entrar no jogo (`salaFixaRef`) e vai
+junto em todo save. A leitura acontece ANTES do primeiro save — se rodasse depois,
+já não haveria o que preservar.
+
+### Bug 2 — o "novo leilão" cortava quem estava na sala
+`podeCortar` só se protegia de presença **VAZIA**. O buraco era a presença **pela
+metade** (crachá do host presente, do convidado faltando — o defeito da noite toda):
+aí ele cortava justamente quem estava jogando, sobrava 1 pessoa e caía no aviso *"você
+ficou sozinho na sala"*.
+**Conserto:** só corta quando os crachás estão **COMPLETOS** (um pra cada pessoa com
+vaga). Tem gente que eu não consigo identificar? Não corta ninguém — que é o que o
+próprio comentário do código já mandava: *"melhor um a mais, que o host remove, do que
+cortar quem estava jogando"*.
+
+### A liga dele foi devolvida na mão
+`DIOGBI` voltou a ter `mode: 'liga'` e o dia marcado. O troféu da T1 estava intacto em
+`game_champions` e reaparece sozinho.
+
 ## ✅ LIGA — as 3 coisas que o Diego aprovou (22-23/08)
 Ele reprovou a tela entregue (*"está péssimo pro host pqp e provavelmente vai ser um
 péssimo pros convidados tb"*), viu o mockup novo (`scripts/mockup-liga-sala.mjs`) e

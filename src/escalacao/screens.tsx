@@ -7529,7 +7529,20 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         if (crachá != null && (state.seasonVotes ?? {})[crachá]) uidsQueVotaram.add(p.user_id)
       }
       const meuUidAgora = auth?.user?.id
-      const podeCortar = uidsPresentes.size > 0
+      // 🛡️ TRAVA NOVA (Diego 23/08, ao vivo na liga dele): *"mostrou q a secundária
+      // saiu, sendo q eu tô jogando c os dois pra testes e n saiu a secundária"* — e
+      // aí o jogo o expulsou da lista, sobrou 1 pessoa e caiu no aviso de "você ficou
+      // sozinho". A trava de cima ("se a presença não chegou, não corta") só cobria
+      // presença VAZIA. O buraco era a presença PELA METADE: com o crachá do host
+      // presente e o do convidado faltando — o defeito que atormentou a noite toda —
+      // `podeCortar` virava true e cortava justamente quem estava lá.
+      // Régua nova, a mesma da coroa: só corta quando a lista de crachás está
+      // COMPLETA (um crachá pra cada pessoa com vaga na sala). Se tem gente na sala
+      // que eu não consigo identificar, não dá pra afirmar que alguém saiu — então
+      // ninguém é cortado. É o que o comentário logo acima já mandava fazer:
+      // *"melhor um a mais, que o host remove, do que cortar quem estava jogando"*.
+      const crachasCompletos = uidsPresentes.size >= semRepetir.length
+      const podeCortar = uidsPresentes.size > 0 && crachasCompletos
       const uniq = podeCortar
         ? semRepetir.filter(p => p.user_id === meuUidAgora || uidsPresentes.has(p.user_id) || uidsQueVotaram.has(p.user_id))
         : semRepetir

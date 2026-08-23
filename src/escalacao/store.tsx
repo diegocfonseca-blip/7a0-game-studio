@@ -7829,6 +7829,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // recomeçava o jogo do zero, quebrando a sala. Com intervalo fixo lendo o
   // stateRef, sempre há um snapshot recente pra retomar.
   const lastUpRef = useRef('') // assinatura do último game_state que subiu (economia de egress)
+  // 🪪 A IDENTIDADE DA SALA — o que NÃO é jogo e mesmo assim mora no `game_state`:
+  // que tipo de sala é (`mode`), o dia marcado da liga, as regras do ranking e quem
+  // manda junto. Isto nasce na CRIAÇÃO e o jogo nunca mais toca — mas o save do host
+  // reescreve o `game_state` INTEIRO a cada 3s, e escrevia só o que vem do estado da
+  // partida. Resultado: a identidade era apagada assim que a bola rolava.
+  const salaFixaRef = useRef<Record<string, unknown>>({})
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const save = () => {
@@ -7839,7 +7845,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
       // enredo — sem ele o supabase-js NÃO dispara a requisição (query é
       // preguiçosa), e era por isso que o estado nunca era salvo de verdade.
-      const payload = { ...sanitize(st), __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
+      // 🩹 CONSERTO 23/08 — O DIEGO PERDEU UMA LIGA ASSIM, ao vivo (sala DIOGBI):
+      // *"a sala virou uma sala comum tb e n mais a sala criada do liga fechada"*.
+      // O banco confirmou: `mode`, `ligaAt`, `ligaRegras` e `ligaAdmins` VAZIOS, e o
+      // troféu da temporada 1 órfão em `game_champions` — guardado, mas invisível,
+      // porque a sala tinha deixado de ser liga. Não foi o "novo leilão": foi ESTE
+      // save. Ele monta o pacote só com o que vem do estado da PARTIDA e sobrescreve
+      // o `game_state` inteiro — então tudo que é da SALA sumia no primeiro save, ou
+      // seja, no instante em que o pregão abria. Valia pra TODA liga e também pra
+      // sala do Bafo (`mode: 'elenco'`).
+      // Agora o que é da sala é lido UMA vez (logo abaixo) e vai junto em todo save.
+      // Repare na ordem: a identidade entra primeiro e o `mode` da carreira, que é
+      // calculado, tem a palavra final.
+      const payload = { ...sanitize(st), ...salaFixaRef.current, __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a
@@ -7857,9 +7875,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
       }
     }
     lastUpRef.current = '' // sala nova/reconexão: primeiro save sempre sobe inteiro
-    save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
-    const iv = setInterval(save, 3000)
-    return () => { save(); clearInterval(iv) }
+    // ⚠️ A LEITURA VEM ANTES DO PRIMEIRO SAVE. Se o save rodasse primeiro, ele já
+    // teria apagado a identidade da sala — e aí não haveria o que preservar.
+    let vivo = true
+    let iv: ReturnType<typeof setInterval> | null = null
+    ;(async () => {
+      try {
+        const { data } = await supabase.from('game_rooms').select('game_state').eq('id', state.roomId!).maybeSingle()
+        const gs = (data?.game_state ?? {}) as Record<string, unknown>
+        const guarda: Record<string, unknown> = {}
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins']) {
+          if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
+        }
+        salaFixaRef.current = guarda
+      } catch { /* sem rede: segue com o que já tinha guardado */ }
+      if (!vivo) return
+      save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
+      iv = setInterval(save, 3000)
+    })()
+    return () => { vivo = false; save(); if (iv) clearInterval(iv) }
   }, [state.onlineMode, state.isHost, state.roomId])
 
   // ─── analytics: registra cada partida e mantém o "ao vivo" ───
