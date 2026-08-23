@@ -1804,11 +1804,10 @@ export function EscLobby() {
   // excluir. Tudo dentro da própria sala, que é onde a pessoa está quando lembra
   // de remarcar.
   const [ligaEdit, setLigaEdit] = useState(false)
-  const [ligaAdmAberto, setLigaAdmAberto] = useState(false)
-  // 👑 quem MANDA na liga: o dono e os adms que ele escolheu. Excluir a liga
-  // continua SÓ do dono — adm ajuda a tocar, não desfaz o que é do outro.
-  const ligaAdmins = ((room?.game_state as GS)?.ligaAdmins ?? []) as string[]
-  const mandaNaLiga = !!user && !!room && (room.host_id === user.id || ligaAdmins.includes(user.id))
+  // 👑 só o DONO manda na liga (Diego 23/08: *"só quem manda é o host mesmo, não
+  // tem adm não"*). Antes um "adm" da lista `ligaAdmins` também mandava; a lista
+  // ficou no banco pra não quebrar liga antiga, mas NÃO dá mais poder nenhum.
+  const mandaNaLiga = !!user && !!room && room.host_id === user.id
   // ✏️ editor do card de "Minhas ligas" (edição POR FORA): guarda o id da liga
   // aberta pra edição e os 4 campos que dá pra mudar sem entrar na sala.
   const [cardEdit, setCardEdit] = useState<string | null>(null)
@@ -3139,39 +3138,16 @@ export function EscLobby() {
                 ))}
               </div>
             )}
-            {/* ⭐ ADMS DA LIGA — só o DONO escolhe. Adm ajuda a tocar a liga
-                (remarcar, arrumar troféu, mexer nas regras), mas não exclui a
-                liga e não mexe na lista de adms: isso é do dono. */}
-            {isHost && (
-              <div className="mt-2">
-                <button onClick={() => setLigaAdmAberto(v => !v)}
-                  className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                  ⭐ {ligaAdmAberto ? 'Fechar' : `Quem mais pode mexer (${ligaAdmins.length})`}
-                </button>
-                {ligaAdmAberto && (
-                  <div className="mt-2 rounded-xl border-2 border-black bg-white p-3">
-                    <p className="text-black/55 text-[11px] font-bold leading-snug mb-2">
-                      Adm ajuda a tocar a liga: <b>remarcar, arrumar troféu e mexer nas regras</b>. Só você exclui a liga e escolhe quem é adm.
-                    </p>
-                    {players.filter(p => p.user_id !== room.host_id).length === 0 ? (
-                      <p className="text-black/40 text-[11.5px] font-bold">Ninguém mais na sala ainda — chame a galera primeiro.</p>
-                    ) : players.filter(p => p.user_id !== room.host_id).map(pl => {
-                      const eAdm = ligaAdmins.includes(pl.user_id)
-                      return (
-                        <div key={pl.user_id} className="flex items-center gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 mb-1.5">
-                          <span className="flex-1 min-w-0 font-black text-[13px] truncate" style={OSWALD}>{pl.manager_name}</span>
-                          <button onClick={() => void patchLiga({ ligaAdmins: eAdm ? ligaAdmins.filter(x => x !== pl.user_id) : [...ligaAdmins, pl.user_id] })}
-                            className="shrink-0 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] active:translate-y-0.5"
-                            style={{ ...OSWALD, background: eAdm ? GREEN : '#fff', color: eAdm ? '#fff' : 'rgba(12,12,12,.5)' }}>
-                            {eAdm ? '⭐ é adm' : '＋ tornar adm'}
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
+            {/* 👑 NÃO EXISTE ADM NA LIGA (Diego 23/08, decisão permanente).
+                Palavras dele: *"não tem negócio de quem manda junto.. só quem manda
+                é o host mesmo. Não tem adm não"*. Tinha aqui um botão "⭐ Quem mais
+                pode mexer" que dava a outro jogador o poder de remarcar, arrumar
+                troféu e mexer nas regras — SAIU. É a mesma régua da coroa
+                (`ELEICAO_AUTOMATICA = false`): quem criou a sala manda do começo ao
+                fim, e ninguém divide o comando. NÃO REPROPOR.
+                O campo `ligaAdmins` continua existindo no banco só pra não quebrar
+                liga antiga que já tenha alguém na lista — mas ele não dá poder
+                nenhum e não tem mais tela pra mexer nele. */}
             {mandaNaLiga && ligaEdit && (
               <div className="mt-3 rounded-xl border-2 border-black bg-white p-3">
                 <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>

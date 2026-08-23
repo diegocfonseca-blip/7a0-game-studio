@@ -63,7 +63,8 @@ const espera = `
     <span style="opacity:.7">— todo mundo vê</span></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">${bt('📅 Mudar dia e hora')}${bt('🤖 Tirar bots')}</div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px">${bt('📅 +1 dia')}${bt('📅 +1 semana')}${bt('📅 +15 dias')}</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">${bt('⭐ Quem mais pode mexer (0)')}${bt('⚖️ Regras do ranking', GOLD)}</div>
+  <!-- 👑 sem "quem manda junto": Diego 23/08 — "só quem manda é o host mesmo, não tem adm não" -->
+  <div style="margin-top:6px">${bt('⚖️ Regras do ranking', GOLD)}</div>
 </div>
 ${bl(`<div style="${OSW};font-size:13px;color:#fff">📣 Chame a galera</div>
   <div style="display:flex;gap:6px;margin-top:7px">${bt('📤 COMPARTILHAR CONVITE')}<div style="width:42px">${bt('📋', GOLD)}</div></div>`, PURPLE)}
@@ -149,7 +150,7 @@ const abaAjustes = `${pilulas(3)}
 ${bl(`${rot('⚙️ Só o dono da liga vê')}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
     ${bt('📅 Dia e hora')}${bt('🤖 Bots: com')}
-    ${bt('⚖️ Regras do ranking')}${bt('⭐ Quem manda junto')}</div>
+    ${bt('⚖️ Regras do ranking')}${bt('👑 Só você manda aqui', '#EFE7D2', 'rgba(12,12,12,.55)')}</div>
   <div style="margin-top:6px">${bt('🗑️ Excluir a liga', RED, '#fff')}</div>
   <div style="${OSW};font-weight:600;font-size:9.5px;opacity:.45;margin-top:7px;line-height:1.35">
     Os mesmos ajustes da sala de espera, à mão aqui também.</div>`, '#FFF9E8')}`

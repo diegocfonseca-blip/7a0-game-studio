@@ -1,5 +1,45 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## 👑 REGRA PERMANENTE (23/08) — NÃO EXISTE ADM NA LIGA
+Palavras do Diego: *"não tem negócio de quem manda junto.. só quem manda é o host
+msm. Não tem adm não"*. Existia um botão **"⭐ Quem mais pode mexer"** que dava a
+outro jogador o poder de remarcar, arrumar troféu e mexer nas regras. **SAIU.**
+É a mesma régua da coroa (`ELEICAO_AUTOMATICA = false`): **quem criou a sala manda
+do começo ao fim, e ninguém divide o comando.** NÃO REPROPOR.
+O campo `ligaAdmins` fica no banco só pra não quebrar liga antiga que já tenha
+alguém na lista — mas não dá poder nenhum e não tem mais tela pra mexer nele.
+`mandaNaLiga` agora é só `room.host_id === user.id`.
+
+## 🤔 O QUE A LIGA TEM QUE A SALA NORMAL NÃO TEM — levantado no código (23/08)
+Pergunta do Diego: *"qual a diferença da sala normal pra essa liga fechada, além de
+poder jogar só c usuários e n bots?"*. Conferido linha a linha:
+
+**É diferencial de verdade:**
+1. **Hora marcada** (`ligaAt`): a liga aparece na lista **mesmo vazia** até a hora
+   combinada (`ligaNaAgenda`). Sala normal vazia **some** da lista.
+2. **A liga não morre**: fica no card **🏆 Minhas ligas** (busca por `host_id` +
+   `mode='liga'`, e também as que você entrou). Sala normal, quando esvazia, só se
+   acha com o código na mão.
+3. **Ranking somado temporada a temporada, com REGRAS que o dono edita**
+   (`ligaRegras`: quanto vale título, copa, artilheiro, rebaixamento).
+4. **Sala de troféus editável**: o dono corrige/escreve temporada na mão.
+5. Criar é do **Lenda**, teto de **2 ligas** por pessoa.
+
+**NÃO é diferencial (já existe na sala normal):**
+- ❌ **"Sem bots"**: o seletor 🌍 Aberta × 🏆 Liga Fechada já existe na criação da
+  sala NORMAL pra quem é Lenda (`lobby.tsx:2803`, grava `ligaFechada: true`).
+  Jogar só com a galera **já dá** sem ser liga.
+- ❌ **Histórico de campeões**: `game_champions` já é gravado em **TODA sala** no
+  fim da temporada (`screens.tsx:5737`) — o que muda é só se aparece na tela.
+  Por isso **dá pra pôr as pílulas na sala aberta**: o dado já está lá.
+
+⚠️ **Cuidado ao levar pra sala aberta**: a sala normal **morre** (some da lista), e
+foi exatamente por isso que o Diego disse em 23/08 *"sala normal continua igual"* —
+estante numa sala que some promete história e não entrega. Se as pílulas forem pra
+lá, ou (a) mostram só a história DAQUELA sala e o texto avisa que ela some, ou
+(b) a sala aberta também passa a ficar guardada num "minhas salas" — e aí a liga
+perde mais um diferencial. **Decisão do Diego, ainda não tomada.**
+
 ## ⏳ AGUARDANDO OK DO DIEGO — LIGA FECHADA: pílulas DEPOIS DO PREGÃO (23/08)
 Desenho: `node scripts/mockup-liga-pilulas.mjs`. **Nada disto está no jogo ainda.**
 
