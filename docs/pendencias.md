@@ -31,9 +31,25 @@ como toda cota de TV, pode atrasar um pouco, mas cai"). Link é único: repetir 
 mesmo vídeo não paga de novo. Prêmio é sempre digital (regra de ouro: dinheiro
 nunca sai do jogo).
 
-- Desenho no repo: `scripts/mockup-cota-tv.mjs` (2ª versão, com as regras dele,
+**🏠 REFORMA DA CASA DA TV (pedido dele, 23/08):** *"podemos reformular como
+está hoje junto com o que você tá fazendo? Não tô vendo nada falando de TV no
+jogo, não tá muito clara… a história tem que ser: a TV JÁ paga, mas é cota extra
+de transmissão também nas redes sociais… organizado, hora certa… e ficar dentro
+da aba de patrocínios"*. Ele tem razão: hoje a TV só aparece 1x (banner de
+divisão nova) e some — resto é linha no extrato. O desenho da reforma:
+1. **Morada fixa**: card "📺 Contrato de transmissão — Rede Pelada" na aba
+   🏟️ Clube › 🤝 Patrocínio, ABAIXO do patrocínio da temporada que já mora lá.
+   Metade de cima = o contrato por divisão que JÁ paga (escadinha V1/D5/C10/
+   B15/A20 com "você" marcado); metade de baixo = a cota extra das redes
+   (+10🪙, botão 🎬 Televisionar meu jogo, status 🕓 da fila).
+2. **Hora certa**: NENHUM banner novo no meio do jogo — a descoberta é o banner
+   de fim de temporada que já existe ("A TV descobriu seu clube!"), que ganha a
+   frase da cota extra + a seta "tudo mora em Clube › Patrocínio". Ritmo intacto.
+3. Uma linha em `novidades.ts` quando lançar.
+
+- Desenho no repo: `scripts/mockup-cota-tv.mjs` (3ª versão: a casa completa,
   mandada 23/08).
-- **NADA está no jogo** — o banner + a mesinha (`ugc_envios`) + a tela no admin
+- **NADA está no jogo** — o card + a mesinha (`ugc_envios`) + a tela no admin
   só nascem depois do OK visual dele.
 - Se aprovar, isso substitui/absorve a ideia anterior "POSTOU, GANHOU / Desafio
   da Semana" (mesmo motor, agora com história de clube, do jeito que ele pediu).
