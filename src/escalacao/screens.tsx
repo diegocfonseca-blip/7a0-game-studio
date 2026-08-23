@@ -515,7 +515,13 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
               <p className="text-[10px] font-bold leading-snug" style={{ color: 'rgba(255,255,255,.75)' }}>🔥 <b style={{ color: GOLD }}>Restam {FUNDADOR_VAGAS} de 100 vagas</b> de fundador.</p>
             </div>
             <Ben t="💰 Quanto custa">Série A · B · C e Várzea por <b>R$ 59,90</b>; Série D por <b>R$ 69,90</b> — ela custa mais porque são os <b>rivais escolhidos</b>, que todo mundo enfrenta de cara.</Ben>
-            <Ben t="⚖️ Regra do barão">o nome é seu até alguém cobrir a oferta — e você tem a vez de igualar. Se cobrirem, perde SÓ o nome: Lenda e Sócio continuam seus.</Ben>
+            {/* ⚖️ REGRA MUDADA PELO DIEGO (23/08): ninguém perde mais o nome.
+                Palavras dele: *"na regra do barão não perde o nome. Apenas diz
+                que vai descendo de divisão, mas seu time é sempre seu, com
+                escudo, mascote e etc — algo do tipo, sutil"*. Some a ideia de
+                "cobrir a oferta e tomar o nome" (regra de 09/08). O clube é do
+                dono pra sempre; o que se move é o DEGRAU na pirâmide. */}
+            <Ben t="⚖️ Regra do barão">seu time é sempre <b>SEU</b> — nome, escudo, mascote e manto não saem de você. O que pode mudar com o tempo é a divisão: se alguém batizar mirando mais alto, o seu desce um degrau na pirâmide, com a mesma cara que você deu pra ele.</Ben>
             <button onClick={() => { logApoio('🖋️ escolheu BATISMO → nome+pagamento'); setScreen('batismo') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2.5 active:translate-y-0.5" style={{ background: '#141414', color: GOLD, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>🖋️ QUERO BATIZAR MEU CLUBE 👉</button>
           </Tier>
 

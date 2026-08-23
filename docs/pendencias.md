@@ -1,5 +1,20 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## ⚖️ REGRA DO BARÃO MUDOU (23/08) — NINGUÉM PERDE MAIS O NOME
+Palavras do Diego: *"na regra do barão N perde o nome. Apenas diz q vai descendo
+de divisão mas seu time é sempre seu c escudo mascote e etc, algo do tipo sutil"*.
+
+**Regra NOVA (vale a partir de agora):** quem batiza fica com o clube **pra
+sempre** — nome, escudo, mascote e manto. Não existe mais "cobrir a oferta e
+tomar o nome", nem o direito de igualar. O que pode mudar com o tempo é a
+**DIVISÃO**: se alguém batizar mirando mais alto, o clube já batizado desce um
+degrau na pirâmide, com a mesma identidade.
+
+⚠️ **Isto REVOGA a regra de 09/08** que está mais abaixo neste arquivo ("perdeu o
+nome no leilão dos barões… perde SÓ a placa"). Se você achar aquele trecho, ele é
+HISTÓRICO — a regra que vale é esta. O texto no jogo já está assim
+(`screens.tsx`, card do 🖋️ Batismo).
+
 ## 💛 ÁREA DE APOIO EM TELA CHEIA (23/08) · AGUARDANDO OK VISUAL
 Pedido dele: *"vamos reformular a área de planos e sobre visual vc pense oq é
 melhor mais organizado clean e claro sobre tudo e se possível EXPANDA ao invés
