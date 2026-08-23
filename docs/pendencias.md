@@ -1,5 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## 🎬 VÍDEOS UGC (UGCdrop) — plano pronto, esperando créditos/execução (23/08)
+O Diego conectou a UGCdrop e pediu 2 vídeos UGC. Estado real da conta (lido pelo
+conector antes de ele cair): **plano free, ZERO créditos** (download/studio/premium)
+e biblioteca de demos vazia → ele **subiu uma gravação** do jogo no site depois.
+⚠️ O conector caiu no MEIO desta sessão e não voltou (conta conectada, mas
+`enabledInChat: false` — sessão nova resolve).
+
+**Roteiros APROVADOS no espírito (ele deu a ideia do 1):**
+1. Nostalgia: *"lembra do saudoso Brasfoot? 🥹 agora imagina ele ONLINE: 20 amigos
+   na mesma sala, leiloando às cegas do Pelé ao Mauro Shampoo do Íbis 💀⚽"*
+   (⚖️ avisado que "Brasfoot" é marca de terceiro; há versão sem citar:
+   *"quem jogou manager de futebol nos anos 2000 vai entender 🥹…"* — ele ainda
+   não escolheu qual).
+2. O leilão: *"o segredo é o envelope: todo mundo dá o lance no ESCURO e o martelo
+   revela quem levou o Neymar 🔨👀"*.
+
+**Conferido no baralho antes de prometer** (regra da casa): Pelé (Santos 1962,
+97–99) · Neymar (Santos 2011 e Barcelona 2015) · Obina (Flamengo 2005, folk) ·
+Mauro Shampoo (Íbis 1980, folk, o pior do jogo "com muito orgulho") · sala = 20.
+
+**Regras de execução**: hooks sugeridos = 1 reação surpresa/empolgada + 1 selfie
+casual · SEMPRE mostrar o custo em créditos e esperar OK antes de gerar · a parte
+"como funciona o leilão" vai na DEMO (envelope → martelo → revelação), não no texto.
+
 ## 🏷️ NOME FECHADO (23/08): o modo se chama **🏆 MINHAS LIGAS**
 Palavras do Diego: *"acho q é melhor minhas ligas até pq o cara pode editar do
 jeito dele.. E qm tiver jogando a liga tb aparece pra ele né, o cara q entrou na
