@@ -275,14 +275,24 @@ let apoieLinkConsumido = false
 // DENTRO do ApoieButton, virava função nova a cada tecla → o React remontava o
 // modal e o campo "nome do clube" do batismo PERDIA O FOCO a cada letra (mesmo
 // bug da Copa). Fora daqui, identidade estável — digitar funciona normal.
+// 🖥️ TELA CHEIA (Diego 23/08: *"e sobre a tela do apoie quero tela cheia"* —
+// antes era uma janelinha de 390px, apertada, com tudo em sanfona). Agora ocupa
+// a tela inteira: cabeçalho preto FIXO com o ✕ (sempre à mão, não some ao rolar)
+// e o conteúdo rolando por baixo, numa coluna de leitura de 620px no máximo —
+// em celular ela usa tudo, em tela grande não estica feio.
+// ⚠️ Sem "clicar fora pra fechar": em tela cheia não existe fora, e o toque
+// perdido fechava a tela sem querer.
 function ApoieModal({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   return createPortal(
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99997, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99997, background: '#F4ECD6', color: INK, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <style>{'@keyframes escSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
-      <div onClick={e => e.stopPropagation()} className="border-[3px] border-black rounded-2xl p-5 w-full my-auto"
-        style={{ background: '#F4ECD6', color: INK, maxWidth: 390, boxShadow: `6px 6px 0 0 ${INK}`, maxHeight: '94vh', overflowY: 'auto' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 3, background: INK, padding: '11px 15px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 3px 10px rgba(0,0,0,.25)' }}>
+        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, textTransform: 'uppercase', color: GOLD, lineHeight: 1.1 }}>💛 Apoiar o Leilão Legends</span>
+        <button onClick={onClose} aria-label="fechar" style={{ marginLeft: 'auto', flexShrink: 0, background: 'transparent', color: '#fff', border: '2px solid rgba(255,255,255,.35)', borderRadius: 10, padding: '3px 11px', ...OSWALD, fontWeight: 900, fontSize: 15, cursor: 'pointer' }}>✕</button>
+      </div>
+      <div style={{ maxWidth: 620, margin: '0 auto', padding: '14px 15px 40px' }}>
         {children}
-        <p className="text-center mt-3"><button onClick={onClose} className="text-xs font-black underline text-black/50">fechar</button></p>
+        <p className="text-center mt-4"><button onClick={onClose} className="text-xs font-black underline text-black/50">fechar</button></p>
       </div>
     </div>,
     document.body
@@ -297,8 +307,16 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
   // custa mais, são os rivais escolhidos). Cards viram seletor (09/08).
   const [serieBatismo, setSerieBatismo] = useState<'abc' | 'd'>('abc')
   const precoBatismo = serieBatismo === 'd' ? 69.9 : 59.9
-  // 🪗 loja de tela ÚNICA (mockup v3 aprovado 09/08): um pacote ampliado por vez
+  // 🎯 alvo do LINK DIRETO (?apoie=lenda). Antes isto era a sanfona aberta; agora
+  // que tudo fica à vista (23/08), ele só rola até o card e acende um brilho.
   const [amp, setAmp] = useState<null | 'socio' | 'prata' | 'ouro' | 'batismo'>(null)
+  const tierRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  useEffect(() => {
+    if (!amp || screen !== 'choice') return
+    const t1 = setTimeout(() => tierRefs.current[amp]?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 180)
+    const t2 = setTimeout(() => setAmp(null), 2800)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [amp, screen])
   const [payTier, setPayTier] = useState<'prata' | 'ouro'>('prata')
   const [meuNome, setMeuNome] = useState('') // nome da conta, pra simular na cor com o nome REAL da pessoa
   useEffect(() => {
@@ -344,31 +362,42 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
         const cab = (bg: string, cor: string, txt: string) => (
           <p className="text-[9.5px] font-black uppercase tracking-wide text-center py-1" style={{ background: bg, color: cor, ...OSWALD }}>{txt}</p>
         )
-        const Tier = ({ k, grad, nome, preco, corTxt, children }: { k: 'socio' | 'prata' | 'ouro' | 'batismo'; grad: string; nome: string; preco: string; corTxt: string; children: React.ReactNode }) => (
-          <div className="border-[3px] border-black rounded-xl mt-3 overflow-hidden" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <button onClick={() => setAmp(amp === k ? null : k)} className="w-full text-left flex items-center gap-2 px-3 py-2.5 active:translate-y-0.5" style={{ background: grad, position: 'relative', overflow: 'hidden' }}>
+        // 📖 SEM SANFONA (Diego 23/08): antes cada pacote era um acordeão fechado
+        // — dava pra passar pela tela sem descobrir metade das coisas, e comparar
+        // era impossível. Agora TUDO aparece de cara. O `amp` sobreviveu só pro
+        // link direto (?apoie=lenda): em vez de "abrir", ele rola até o card e
+        // acende um brilho dourado curtinho.
+        const Tier = ({ k, grad, nome, preco, quando, corTxt, children }: { k: 'socio' | 'prata' | 'ouro' | 'batismo'; grad: string; nome: string; preco: string; quando: string; corTxt: string; children: React.ReactNode }) => (
+          <div ref={el => { tierRefs.current[k] = el }} className="border-[3px] border-black rounded-xl mt-3 overflow-hidden"
+            style={{ scrollMarginTop: 62, boxShadow: amp === k ? `0 0 0 4px ${GOLD}, 4px 4px 0 0 ${INK}` : `4px 4px 0 0 ${INK}`, transition: 'box-shadow .4s' }}>
+            <div className="flex items-center gap-2 px-3 py-2.5" style={{ background: grad, position: 'relative', overflow: 'hidden' }}>
               {k !== 'batismo' && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.6s linear infinite' }} />}
-              <p className="font-black text-[15px] uppercase relative min-w-0" style={{ ...OSWALD, color: corTxt, textShadow: corTxt === '#fff' ? '1px 1px 0 rgba(0,0,0,.4)' : 'none' }}>{nome}</p>
-              <p className="ml-auto font-black text-[12px] relative flex-shrink-0" style={{ ...OSWALD, color: corTxt }}>{preco}</p>
-              <span className="relative text-[11px] font-black rounded-md px-1.5 py-0.5 flex-shrink-0" style={{ background: 'rgba(255,255,255,.9)', color: INK, border: '1.5px solid #000' }}>{amp === k ? '👁️' : '👆'}</span>
-            </button>
-            {amp === k && <div className="bg-white border-t-[3px] border-black px-3 py-2.5">{children}</div>}
+              <p className="font-black text-[16px] uppercase relative min-w-0" style={{ ...OSWALD, color: corTxt, textShadow: corTxt === '#fff' ? '1px 1px 0 rgba(0,0,0,.4)' : 'none' }}>{nome}</p>
+              <span className="ml-auto relative flex-shrink-0 text-right">
+                <span className="block font-black text-[16px] leading-none" style={{ ...OSWALD, color: corTxt }}>{preco}</span>
+                <span className="block font-black text-[8px] uppercase tracking-wide" style={{ color: corTxt, opacity: .8 }}>{quando}</span>
+              </span>
+            </div>
+            <div className="bg-white border-t-[3px] border-black px-3 py-2.5">{children}</div>
           </div>
         )
-        return (
-        <ApoieModal onClose={close}>
-          <p className="font-black text-2xl text-center" style={OSWALD}>💛 APOIAR O LEILÃO LEGENDS</p>
-          <p className="text-[11.5px] font-bold text-black/65 text-center mt-1.5 leading-snug">Aqui é tudo de coração: o jogo é <b>grátis pra jogar</b>, nada é removido de ninguém e nenhum apoio dá vantagem em campo — quem apoia leva cor, brilho e história. Dentro das quatro linhas, o jogo é igual pra todos. 🔨</p>
-          <p className="text-[10px] font-black text-black/45 text-center mt-1.5">👇 toca num pacote pra ver TUDO que tem dentro</p>
-
-          {meuSoc?.ativo ? (
+        const Secao = ({ n, tag }: { n: string; tag: string }) => (
+          <div className="flex items-center gap-2 mt-5">
+            <span className="font-black text-[15px] uppercase" style={OSWALD}>{n}</span>
+            <span className="ml-auto font-black text-[9px] uppercase tracking-wide border-2 border-black rounded-full px-2 py-0.5 bg-white" style={OSWALD}>{tag}</span>
+          </div>
+        )
+        // 🎫 O bloco do Sócio (ou o atalho pra ÁREA dele, pra quem já é sócio)
+        // mora na seção "💳 Assinatura mensal", DEPOIS dos pagamentos únicos —
+        // separar mensal de "paga uma vez" é a dúvida nº1 de quem chega.
+        const blocoSocio = meuSoc?.ativo ? (
             <button onClick={() => { logApoio('🎫 abriu área do sócio'); setScreen('socio') }} className="w-full text-left border-[3px] border-black rounded-xl px-3 py-2.5 mt-3 active:translate-y-0.5" style={{ background: 'linear-gradient(150deg,#A78BFA,#7C3AED)', boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.6s linear infinite' }} />
               <p className="font-black text-white text-[15px] uppercase relative" style={{ ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.4)' }}>🎫 Você é o Sócio nº {meuSoc.socioN ?? '—'} <span className="float-right">👉</span></p>
-              <p className="text-[10.5px] font-bold text-white/85 relative">toca pra abrir a TUA área: 🗳️ votação + 📜 mural dos sócios</p>
+              <p className="text-[10.5px] font-bold text-white/85 relative">toca pra abrir a TUA área: 📜 mural dos sócios</p>
             </button>
           ) : (
-          <Tier k="socio" grad="linear-gradient(150deg,#A78BFA,#7C3AED)" nome="🎫 Sócio Legends" preco={`R$ ${sP}/mês`} corTxt="#fff">
+          <Tier k="socio" grad="linear-gradient(150deg,#A78BFA,#7C3AED)" nome="🎫 Sócio Legends" preco={`R$ ${sP}`} quando="por mês" corTxt="#fff">
             <p className="font-black text-[12px]">🎽 Manto do coração — teu elenco ganha a faixinha do time</p>
             <div className="border-2 border-black rounded-lg mt-1" style={{ height: 24, background: 'repeating-linear-gradient(90deg,#C2452F 0 16px,#141414 16px 32px)' }} />
             <p className="font-black text-[12px] mt-2">🛡️ Escudo à mão + 🐊 mascote com FESTÃO de título</p>
@@ -379,14 +408,21 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: '#8B5CF6', border: '2px solid #000', boxShadow: '0 0 6px 1px #8B5CF6', flexShrink: 0 }} /><b className="text-[11px]" style={OSWALD}>Alfacehh 🎫</b><span className="ml-auto text-[7.5px] font-bold text-black/40">sócio nº 7</span></div>
             <div className="flex flex-wrap gap-1.5 mt-2">
               <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>🪙 30 moedas todo mês</span>
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>🗳️ vota nas novidades</span>
+              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>💾 2 carreiras salvas</span>
             </div>
             <p className="text-[9.5px] font-bold text-black/55 mt-1.5 leading-snug">💳 cartão no Mercado Pago · cancela quando quiser · {sQuem ? <><b>{sQuem}: R$ {sP}/mês</b> (grátis paga 9,90)</> : <>grátis R$ 9,90 · ⭐ Craque R$ 4,90 · 👑 Lenda R$ 2,90</>}</p>
             <button onClick={() => { logApoio(`🎫 abriu MP sócio (${sP})`); window.open(sLink, '_blank', 'noopener') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#A78BFA,#7C3AED)', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>🎫 QUERO SER SÓCIO · R$ {sP}/mês 👉</button>
           </Tier>
-          )}
+          )
+        return (
+        <ApoieModal onClose={close}>
+          <div className="border-[3px] rounded-xl px-3 py-2.5" style={{ background: '#EAF7EE', borderColor: GREEN }}>
+            <p className="text-[11.5px] font-bold leading-relaxed">🛡️ <b>A regra de ouro:</b> o jogo é <b>grátis pra jogar</b>. Nada é tirado de ninguém e <b>nenhum apoio dá vantagem em campo</b> — dentro das quatro linhas todo mundo é igual. Quem apoia leva cor, brilho, história… e mantém o projeto vivo. 🔨</p>
+          </div>
 
-          <Tier k="prata" grad="linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)" nome="⭐ Craque" preco="R$ 19,90 · uma vez" corTxt={INK}>
+          <Secao n="⚡ Paga uma vez" tag="é seu pra sempre" />
+
+          <Tier k="prata" grad="linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)" nome="⭐ Craque" preco="R$ 19,90" quando="pagamento único" corTxt={INK}>
             <p className="font-black text-[12px]">⭐ Cor prata com brilho — teu nome e teu estádio:</p>
             <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: '#CBD4DE', border: '2px solid #000', boxShadow: '0 0 6px 1px #CBD4DE', flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} ⭐</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">no elenco, tabelas<br />e no online</span></div>
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: '#CBD4DE', backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
@@ -420,7 +456,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <button onClick={() => { logApoio('⭐ escolheu CRAQUE → pagamento'); setPayTier('prata'); setScreen('pay') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>⭐ QUERO O CRAQUE · R$ 19,90 👉</button>
           </Tier>
 
-          <Tier k="ouro" grad="linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)" nome="👑 Lenda" preco="R$ 39,90 · uma vez" corTxt={INK}>
+          <Tier k="ouro" grad="linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)" nome="👑 Lenda" preco="R$ 39,90" quando="pagamento único" corTxt={INK}>
             <p className="font-black text-[12px]">👑 Ouro com brilho (ou qualquer cor) + selo no nome:</p>
             <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: GOLD, border: '2px solid #000', boxShadow: `0 0 6px 1px ${GOLD}`, flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} 👑</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">o jogo inteiro<br />sabe quem chegou</span></div>
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: GOLD, backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
@@ -449,7 +485,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <button onClick={() => { logApoio('👑 escolheu LENDA → pagamento'); setPayTier('ouro'); setScreen('pay') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>👑 QUERO SER LENDA · R$ 39,90 👉</button>
           </Tier>
 
-          <Tier k="batismo" grad="linear-gradient(150deg,#2b2b2b,#0C0C0C)" nome="🖋️ Batismo" preco="a partir de R$ 59,90" corTxt={GOLD}>
+          <Tier k="batismo" grad="linear-gradient(150deg,#2b2b2b,#0C0C0C)" nome="🖋️ Batismo" preco="R$ 59,90" quando="a partir de · uma vez" corTxt={GOLD}>
             <p className="font-black text-[12px]">🖋️ SEU nome vira um time do jogo — na tela de TODO mundo:</p>
             <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
               {cab('#141414', GOLD, '📋 Série D · rodada 31')}
@@ -477,7 +513,50 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <button onClick={() => { logApoio('🖋️ escolheu BATISMO → nome+pagamento'); setScreen('batismo') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2.5 active:translate-y-0.5" style={{ background: '#141414', color: GOLD, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>🖋️ QUERO BATIZAR MEU CLUBE 👉</button>
           </Tier>
 
-          <button onClick={() => { logApoio('👀 abriu: só apoiar'); setScreen('pix') }} className="w-full text-left border-[3px] border-black rounded-xl px-3 py-2 mt-3 active:translate-y-0.5"
+          <Secao n="💳 Assinatura mensal" tag="cancela quando quiser" />
+          {blocoSocio}
+
+          {/* 📊 A PEÇA QUE FALTAVA (Diego 23/08, "claro sobre TUDO"): numa olhada
+              dá pra ver o que vem em cada plano. Antes, com tudo em sanfona, era
+              impossível comparar — a pessoa tinha que abrir um, decorar, abrir o
+              outro. As linhas saem do que cada card promete logo acima. */}
+          <div className="border-[3px] border-black rounded-xl overflow-hidden mt-5" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
+            <p className="font-black text-[13px] uppercase px-3 py-2" style={{ ...OSWALD, background: INK, color: '#fff' }}>📊 O que vem em cada um</p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '6px 8px', textAlign: 'left', background: '#F4ECD6', borderBottom: `2.5px solid ${INK}` }}>&nbsp;</th>
+                  {['🎫 Sócio', '⭐ Craque', '👑 Lenda', '🖋️ Batismo'].map(h => (
+                    <th key={h} className="font-black text-[9px] uppercase" style={{ ...OSWALD, padding: '6px 3px', background: '#F4ECD6', borderBottom: `2.5px solid ${INK}` }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {([
+                  ['Cor e brilho no nome', '💜 roxa', '⭐ prata', '👑 ouro', '👑 ouro'],
+                  ['Escudo + mascote seus', '✓', '—', '—', '✓'],
+                  ['Estádio batizado', '✓', '—', '—', '✓'],
+                  ['Moedas todo mês', '30 🪙', '—', '—', '30 🪙'],
+                  ['Modo Manual (ritmo)', '—', '✓', '✓', '✓'],
+                  ['Nível dos jogadores', '—', 'quase tudo', 'até lendas', 'até lendas'],
+                  ['Carreiras salvas', '2', '4', '6', '6'],
+                  ['Grupo VIP no zap', '—', '—', '✓', '✓'],
+                  ['Clube com SEU nome', '—', '—', '—', '✓'],
+                  ['Selo de Fundador', '—', '—', '—', '✓'],
+                ] as [string, string, string, string, string][]).map(([o, ...vals], i) => (
+                  <tr key={o} style={{ background: i % 2 ? '#FBF6E9' : '#fff' }}>
+                    <td className="font-black text-[10px]" style={{ padding: '6px 8px', borderTop: '1px solid rgba(0,0,0,.08)' }}>{o}</td>
+                    {vals.map((v, j) => (
+                      <td key={j} className="font-black text-[9.5px] text-center" style={{ padding: '6px 3px', borderTop: '1px solid rgba(0,0,0,.08)', color: v === '—' ? 'rgba(0,0,0,.25)' : v === '✓' ? GREEN : INK }}>{v}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-[9.5px] font-bold text-black/55 leading-snug px-2.5 py-2" style={{ borderTop: '2px solid rgba(0,0,0,.08)', background: '#fff' }}>O 🎫 Sócio é o único mensal — os outros três são pagamento único. E o nível dos jogadores só aparece <b>depois</b> de contratar: no leilão é emoção pura pra todo mundo.</p>
+          </div>
+
+          <button onClick={() => { logApoio('👀 abriu: só apoiar'); setScreen('pix') }} className="w-full text-left border-[3px] border-black rounded-xl px-3 py-2 mt-4 active:translate-y-0.5"
             style={{ background: GREEN, boxShadow: `4px 4px 0 0 ${INK}` }}>
             <p className="font-black text-white text-[13px]" style={OSWALD}>💛 Só apoiar a resenha <span className="text-[10px] font-bold text-white/80">— qualquer valor no Pix, só gratidão</span></p>
           </button>
