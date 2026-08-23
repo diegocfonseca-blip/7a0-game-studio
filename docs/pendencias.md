@@ -1,4 +1,50 @@
-# 📌 Pendências combinadas com o Diego (atualizado 22/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
+
+## 🐺 Batismo PAPÃO UNITED MADRID (agrostinho88@gmail.com) — 23/08
+Entrou no lugar do **Santos Dumont** (Série D), e o **Alfacehh desceu pra Série B**
+por ordem do Diego (o assento do Alfacehh virou do Papão; o Alfacehh ficou com o
+lugar do ex-Athletico do Porto, **mesma força, só o nome muda**). Dono nasceu
+👑 **Lenda** + **fundador nº28**, como manda a regra de batismo.
+Arte do próprio dono (2ª leva, peças separadas): escudo, a fera com o tridente e
+a camisa. ❤️ **Time de coração: em branco de propósito** — o Diego ainda não falou
+qual é, e não se inventa isso.
+
+### ✅ RESOLVIDO — a arte saía PEQUENA na janela do post (o "encaixe desproporcional")
+Palavras do Diego: *"tá mt desproporcional o escudo no encaixe da janela.. n está
+igual o do coringas. Msm coisa a camisa do time.. Está mt pequena do lado do
+manto"*. **Errei o diagnóstico na primeira tentativa** — mexi no CSS do gerador
+achando que a caixa é que estava errada, e não resolveu.
+
+**A causa era o ARQUIVO, não a caixa.** Os webp vinham com **moldura vazia por
+dentro**: o escudo era 150×360 mas o desenho estava só nas linhas 75→338, e a
+camisa era 175×620 com o desenho nas linhas 144→465 — **mais da metade do arquivo
+era vazio**. O navegador encaixa o ARQUIVO, então esticava o vazio junto e a arte
+encolhia dentro da janela. O Coringas do Diniz, que ele usou de comparação, é
+recortado justinho (219×248) — por isso um enche a janela e o outro não.
+
+**Por que passou batido:** a regra 3 do CLAUDE.md já mandava recortar no bbox do
+alfa, e o bbox **dizia que já estava recortado**. É que depois de tirar o fundo
+sobra **poeira de alfa** (pixels com alfa 1–40, invisíveis) espalhada pela
+moldura, e o `getbbox()` lê isso como desenho.
+
+**Consertos:**
+1. Poeira apagada (alfa < 40) e recorte de verdade, exigindo ≥ 3 pixels na
+   linha/coluna pra um pixel solto não mentir de novo:
+   escudo **150×360 → 150×263**, camisa **175×620 → 175×321**. O mascote já estava
+   certo (281×440, cheio).
+2. `escudos.tsx`: largura declarada pela proporção NOVA (`150 / 263`) — regra 4.
+   **No jogo o escudo passa a aparecer maior e completo**, que é o certo.
+3. `mockup-batismo.mjs` agora **confere sozinho antes de gerar o post**: o próprio
+   navegador mede o desenho de cada arte e avisa se sobrou ≥ 4% de moldura vazia.
+   Nenhum batismo repete isso.
+4. A caixa do escudo perdeu o `min-width` largo: escudo estreito ganha caixa
+   estreita e CHEIA, igual o Coringas.
+
+**Peso final** (teto 75 KB): escudo **17,8 KB** + mascote **42,3 KB** = **60,1 KB**.
+A camisa (11,3 KB) é do POST, mora em `scripts/kits/` e não entra no bundle.
+
+**Reverter:** é um commit só, e nada disso mexe em regra de jogo — `git revert`
+volta a arte e a proporção antigas.
 
 ## ✅ RESOLVIDO — o aviso "o dono sumiu" subia MENTINDO (sala NOYI87, 22/08)
 O Diego mandou print: banner vermelho **"MANDA SEU LANCE DE NOVO — o dono da sala

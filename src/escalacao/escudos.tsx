@@ -490,7 +490,7 @@ const saoluizEscudoRender = (size: number) => (
 // Conferido sobre fundo CREME, nunca sobre branco — "PAPÃO UNITED" e "DE MADRID"
 // intactos, que foi o furo que ele pegou no Theuzudo.
 const papaoEscudoRender = (size: number) => (
-  <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 360)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 263)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🦇 Theuzudo FC — morcego (coração Valência), laranja e preto. 293x360 no arquivo.
 const theuzudoEscudoRender = (size: number) => (
