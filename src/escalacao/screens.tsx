@@ -368,7 +368,10 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
         // link direto (?apoie=lenda): em vez de "abrir", ele rola até o card e
         // acende um brilho dourado curtinho.
         const Tier = ({ k, grad, nome, preco, quando, corTxt, children }: { k: 'socio' | 'prata' | 'ouro' | 'batismo'; grad: string; nome: string; preco: string; quando: string; corTxt: string; children: React.ReactNode }) => (
-          <div ref={el => { tierRefs.current[k] = el }} className="border-[3px] border-black rounded-xl mt-3 overflow-hidden"
+          /* mt-6: respiro GRANDE entre um plano e outro (Diego 23/08: *"falta um
+             espaço maior entre um plano pro outro"*) — antes era mt-3 e os cards
+             ficavam colados, parecendo um bloco só. */
+          <div ref={el => { tierRefs.current[k] = el }} className="border-[3px] border-black rounded-xl mt-6 overflow-hidden"
             style={{ scrollMarginTop: 62, boxShadow: amp === k ? `0 0 0 4px ${GOLD}, 4px 4px 0 0 ${INK}` : `4px 4px 0 0 ${INK}`, transition: 'box-shadow .4s' }}>
             <div className="flex items-center gap-2 px-3 py-2.5" style={{ background: grad, position: 'relative', overflow: 'hidden' }}>
               {k !== 'batismo' && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.6s linear infinite' }} />}
@@ -382,10 +385,22 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           </div>
         )
         const Secao = ({ n, tag }: { n: string; tag: string }) => (
-          <div className="flex items-center gap-2 mt-5">
+          <div className="flex items-center gap-2 mt-7">
             <span className="font-black text-[15px] uppercase" style={OSWALD}>{n}</span>
             <span className="ml-auto font-black text-[9px] uppercase tracking-wide border-2 border-black rounded-full px-2 py-0.5 bg-white" style={OSWALD}>{tag}</span>
           </div>
+        )
+        // 📝 O TEXTO DO GUIA DO DIEGO (o "Guia Definitivo de Apoio" que ele
+        // mandou em 23/08): cada pacote abre com "O que é?" e os benefícios vêm
+        // com o NOME em negrito na frente. Antes eram frases soltas, cada uma
+        // num tom — ele cobrou: *"as escritas do PDF que mandei não mudou"*.
+        // ⚠️ O guia dele ainda cita "votar nas novidades"; fica FORA, porque
+        // depois ele mandou tirar o voto (pedido mais novo manda).
+        const OQueE = ({ children }: { children: React.ReactNode }) => (
+          <p className="text-[11.5px] font-bold leading-snug text-black/75 pb-2 mb-0.5 border-b-2 border-black/10"><b className="text-black">O que é?</b> {children}</p>
+        )
+        const Ben = ({ t, children }: { t: string; children: React.ReactNode }) => (
+          <p className="text-[11.5px] font-bold leading-snug mt-2"><b className="font-black">{t}:</b> <span className="text-black/75">{children}</span></p>
         )
         // 🎫 O bloco do Sócio (ou o atalho pra ÁREA dele, pra quem já é sócio)
         // mora na seção "💳 Assinatura mensal", DEPOIS dos pagamentos únicos —
@@ -398,19 +413,15 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             </button>
           ) : (
           <Tier k="socio" grad="linear-gradient(150deg,#A78BFA,#7C3AED)" nome="🎫 Sócio Legends" preco={`R$ ${sP}`} quando="por mês" corTxt="#fff">
-            <p className="font-black text-[12px]">🎽 Manto do coração — teu elenco ganha a faixinha do time</p>
-            <div className="border-2 border-black rounded-lg mt-1" style={{ height: 24, background: 'repeating-linear-gradient(90deg,#C2452F 0 16px,#141414 16px 32px)' }} />
-            <p className="font-black text-[12px] mt-2">🛡️ Escudo à mão + 🐊 mascote com FESTÃO de título</p>
-            <p className="text-[10px] font-bold text-black/55 leading-snug">o Diego desenha o escudo e a mascote do TEU jeito — e quando você é campeão, a mascote invade a tela comemorando.</p>
-            <p className="font-black text-[12px] mt-2">🏟️ Teu estádio com o nome que VOCÊ escolher</p>
-            <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1 flex items-center"><b className="text-[11px]" style={OSWALD}>🏟️ Caldeirão do Alface</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right">no clube e no jornal</span></div>
-            <p className="font-black text-[12px] mt-2">💜 Cor roxa + carteirinha de sócio numerada</p>
-            <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: '#8B5CF6', border: '2px solid #000', boxShadow: '0 0 6px 1px #8B5CF6', flexShrink: 0 }} /><b className="text-[11px]" style={OSWALD}>Alfacehh 🎫</b><span className="ml-auto text-[7.5px] font-bold text-black/40">sócio nº 7</span></div>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>🪙 30 moedas todo mês</span>
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>💾 2 carreiras salvas</span>
-            </div>
-            <p className="text-[9.5px] font-bold text-black/55 mt-1.5 leading-snug">💳 cartão no Mercado Pago · cancela quando quiser · {sQuem ? <><b>{sQuem}: R$ {sP}/mês</b> (grátis paga 9,90)</> : <>grátis R$ 9,90 · ⭐ Craque R$ 4,90 · 👑 Lenda R$ 2,90</>}</p>
+            <OQueE>Apoio contínuo cobrado todo mês (via Mercado Pago), com liberdade pra <b>cancelar quando quiser</b>.</OQueE>
+            <Ben t="🎽 Manto do Coração">seu elenco ganha a faixinha personalizada com as cores do seu time.</Ben>
+            <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 24, background: 'repeating-linear-gradient(90deg,#C2452F 0 16px,#141414 16px 32px)' }} />
+            <Ben t="🛡️ Escudo e Mascote Personalizados">o Diego desenha o escudo e a mascote do seu jeito. Quando você é campeão, a mascote invade a tela comemorando!</Ben>
+            <Ben t="🏟️ Estádio Batizado">escolha o nome do seu estádio pra aparecer no clube e no jornal do jogo.</Ben>
+            <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1.5 flex items-center"><b className="text-[11px]" style={OSWALD}>🏟️ Caldeirão do Alface</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right">no clube e no jornal</span></div>
+            <Ben t="💜 Visual e Benefícios">nome em cor roxa no perfil, carteirinha de sócio numerada e <b>30 moedas todo mês</b> na caixa do clube.</Ben>
+            <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1.5 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: '#8B5CF6', border: '2px solid #000', boxShadow: '0 0 6px 1px #8B5CF6', flexShrink: 0 }} /><b className="text-[11px]" style={OSWALD}>Alfacehh 🎫</b><span className="ml-auto text-[7.5px] font-bold text-black/40">sócio nº 7</span></div>
+            <p className="text-[9.5px] font-bold text-black/55 mt-2.5 leading-snug">💳 cartão no Mercado Pago · cancela quando quiser · {sQuem ? <><b>{sQuem}: R$ {sP}/mês</b> (grátis paga 9,90)</> : <>grátis R$ 9,90 · ⭐ Craque R$ 4,90 · 👑 Lenda R$ 2,90</>}</p>
             <button onClick={() => { logApoio(`🎫 abriu MP sócio (${sP})`); window.open(sLink, '_blank', 'noopener') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#A78BFA,#7C3AED)', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>🎫 QUERO SER SÓCIO · R$ {sP}/mês 👉</button>
           </Tier>
           )
@@ -423,8 +434,9 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <Secao n="⚡ Paga uma vez" tag="é seu pra sempre" />
 
           <Tier k="prata" grad="linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)" nome="⭐ Craque" preco="R$ 19,90" quando="pagamento único" corTxt={INK}>
-            <p className="font-black text-[12px]">⭐ Cor prata com brilho — teu nome e teu estádio:</p>
-            <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: '#CBD4DE', border: '2px solid #000', boxShadow: '0 0 6px 1px #CBD4DE', flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} ⭐</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">no elenco, tabelas<br />e no online</span></div>
+            <OQueE>Pra quem quer dar um up no visual, <b>controlar o tempo</b> e <b>revelar o nível</b> dos jogadores no elenco.</OQueE>
+            <Ben t="⭐ Visual Prata com Brilho">nome e estádio brilham em prata nas tabelas, nos elencos e no modo online.</Ben>
+            <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1.5 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: '#CBD4DE', border: '2px solid #000', boxShadow: '0 0 6px 1px #CBD4DE', flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} ⭐</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">no elenco, tabelas<br />e no online</span></div>
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: '#CBD4DE', backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
             <p className="text-[8.5px] font-bold text-black/50 text-center mt-0.5">☝️ até a arquibancada do teu estádio fica prata</p>
             <div className="border-[3px] border-black rounded-xl overflow-hidden mt-2" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
@@ -444,49 +456,49 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                 <p className="text-[9.5px] font-bold text-black/60 leading-snug mt-1.5">na <b>Carreira</b> o ritmo é SEU: pausa, acelera, pula. No <b>online</b> continua grátis pra todos.</p>
               </div>
             </div>
-            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-2" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              {cab('linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)', INK, '🕵️ Overall no TEU elenco — assim, ó:')}
+            <Ben t="🎮 Modo Manual Exclusivo">controle total do tempo! Pause, acelere (2× ou 4×), pule rodadas ou vá direto pra próxima. <i>(No online normal, o ritmo continua padrão pra todos.)</i></Ben>
+            <Ben t="🕵️ Nível (Overall) Revelado no Elenco">no modo padrão, o nível dos jogadores do seu time vem oculto. Com o Craque você vê as categorias ocultas (Profissional, Bom Jogador, Promessa e Craque) <b>depois de contratá-los no leilão</b>.</Ben>
+            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+              {cab('linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)', INK, '🕵️ Assim, ó:')}
               <div className="bg-white px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>MEI</span><span>Djalminha</span><span className="text-[8.5px] font-bold text-black/40">· Palmeiras ⭐</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#F4F7FB,#CBD4DE)')}>83–88</span></div>
-              <p className="text-[9.5px] font-bold text-black/55 leading-snug bg-white px-2.5 pb-1.5">só no elenco da carreira, depois de contratar (no leilão segue emoção pura). A lenda fica em mistério — <b>só o 👑 revela</b>.</p>
+              <p className="text-[9.5px] font-bold text-black/55 leading-snug bg-white px-2.5 pb-1.5">no leilão segue emoção pura pra todo mundo. A lenda fica em mistério — <b>só o 👑 revela</b>.</p>
             </div>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>💾 4 fichas de carreira</span>
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>🎫 e vira sócio por R$ 4,90/mês</span>
+            <Ben t="💾 4 Saves (Carreiras Salvas)">quantidade de carreiras que você pode ter salvas ao mesmo tempo, pra jogar quando quiser.</Ben>
+            <div className="border-2 border-dashed border-black rounded-lg px-2.5 py-2 mt-2.5" style={{ background: '#FFF6DE' }}>
+              <p className="text-[10.5px] font-bold leading-snug">🎁 <b>Quer o 🎫 Sócio junto</b> (escudo, mascote, manto, estádio batizado, 30 🪙/mês)? Adicionando junto ao Craque, ele sai por <b>R$ 4,90/mês</b> em vez de 9,90.</p>
             </div>
             <button onClick={() => { logApoio('⭐ escolheu CRAQUE → pagamento'); setPayTier('prata'); setScreen('pay') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>⭐ QUERO O CRAQUE · R$ 19,90 👉</button>
           </Tier>
 
           <Tier k="ouro" grad="linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)" nome="👑 Lenda" preco="R$ 39,90" quando="pagamento único" corTxt={INK}>
-            <p className="font-black text-[12px]">👑 Ouro com brilho (ou qualquer cor) + selo no nome:</p>
-            <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: GOLD, border: '2px solid #000', boxShadow: `0 0 6px 1px ${GOLD}`, flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} 👑</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">o jogo inteiro<br />sabe quem chegou</span></div>
+            <OQueE>O pacote mais completo, pra quem quer <b>status máximo</b>, elenco supremo e <b>acesso antecipado</b> ao que vem por aí.</OQueE>
+            <Ben t="👑 Visual Ouro com Brilho">cor dourada brilhante (ou a cor que você quiser) e selo exclusivo no nome, pro jogo inteiro ver.</Ben>
+            <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1.5 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: GOLD, border: '2px solid #000', boxShadow: `0 0 6px 1px ${GOLD}`, flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} 👑</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">o jogo inteiro<br />sabe quem chegou</span></div>
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: GOLD, backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
-            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-2" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              {cab('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', INK, '🕵️ Overall de TUDO — até as lendas:')}
+            <Ben t="🕵️ Overall Supremo (até as Lendas)">vai além do Craque! Revela todas as categorias anteriores e destrava também o <b>nível Lenda</b> dos jogadores do seu elenco, depois da contratação no leilão.</Ben>
+            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+              {cab('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', INK, '🕵️ Assim, ó:')}
               <div className="bg-white px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>ATA</span><span>Romário</span><span className="text-[8.5px] font-bold text-black/40">· Baixinho 👑</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#FFE79A,#FFC400)')}>93–99</span></div>
               <p className="text-[9.5px] font-bold text-black/55 leading-snug bg-white px-2.5 pb-1.5">o elenco da carreira inteiro revelado — sempre depois da contratação, nunca no leilão.</p>
             </div>
-            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-2" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              {cab('#1B7A3D', '#fff', '📲 Grupo VIP no WhatsApp — direto com o criador')}
+            <Ben t="📲 Grupo VIP no WhatsApp">contato direto com o criador (Diego) pra ver bastidores e novidades antes de todo mundo.</Ben>
+            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
               <div style={{ background: '#F4ECD6', padding: 8 }}>
                 <p className="bg-white border-2 border-black rounded-lg px-2 py-1 text-[9.5px] font-bold text-black/80">👑 <b style={OSWALD}>Diego (criador):</b> sala aberta AGORA, código 7GK2 — quem vem? 🔨</p>
-                <p className="text-[9.5px] font-bold text-black/60 leading-snug mt-1">bastidores, marca partida e sabe das novidades antes de todo mundo.</p>
               </div>
             </div>
-            <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-2" style={{ background: '#141414', outline: '2.5px solid #FFC400', outlineOffset: -6, boxShadow: `2px 2px 0 0 ${INK}` }}>
-              <p className="font-black text-[12px] uppercase" style={{ ...OSWALD, color: GOLD }}>🆕 Carreira Online + Ligas Fechadas</p>
-              <p className="text-[10px] font-bold leading-snug" style={{ color: 'rgba(255,255,255,.8)' }}>os modos novos sem bots, só entre amigos — quando chegarem, você <b style={{ color: GOLD }}>JÁ está dentro</b>. Garantido.</p>
-            </div>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>🎮 Modo Manual incluso</span>
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>💾 6 fichas de carreira</span>
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>já é ⭐? vira Lenda por + R$ 20</span>
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black bg-white" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>🎫 sócio por R$ 2,90/mês</span>
+            <Ben t="🆕 Carreira Online e Ligas Fechadas">acesso garantido aos modos novos entre amigos (sem bots) assim que forem lançados — e você já pode <b>criar a sua Liga</b>.</Ben>
+            <Ben t="🎮 Modo Manual">tudo do ⭐ Craque incluso: o ritmo da carreira na sua mão.</Ben>
+            <Ben t="💾 6 Saves (Carreiras Salvas)">mais espaço pra gerenciar e salvar suas carreiras livremente.</Ben>
+            <div className="border-2 border-dashed border-black rounded-lg px-2.5 py-2 mt-2.5" style={{ background: '#FFF6DE' }}>
+              <p className="text-[10.5px] font-bold leading-snug">🎁 Já é ⭐ <b>Craque</b>? Vira Lenda pagando só a diferença: <b>+ R$ 20</b>.<br />🎫 E o <b>Sócio</b> junto da Lenda sai por <b>R$ 2,90/mês</b>.</p>
             </div>
             <button onClick={() => { logApoio('👑 escolheu LENDA → pagamento'); setPayTier('ouro'); setScreen('pay') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>👑 QUERO SER LENDA · R$ 39,90 👉</button>
           </Tier>
 
           <Tier k="batismo" grad="linear-gradient(150deg,#2b2b2b,#0C0C0C)" nome="🖋️ Batismo" preco="R$ 59,90" quando="a partir de · uma vez" corTxt={GOLD}>
-            <p className="font-black text-[12px]">🖋️ SEU nome vira um time do jogo — na tela de TODO mundo:</p>
+            <OQueE>O <b>seu nome vira um CLUBE</b> do jogo — na tela de todo mundo, temporada após temporada.</OQueE>
+            <Ben t="⚽ Um time com o SEU nome">ele joga a pirâmide inteira: sobe, briga por título e sai no jornal, na carreira de cada jogador.</Ben>
             <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
               {cab('#141414', GOLD, '📋 Série D · rodada 31')}
               {([['1º', 'Manfré FC 🖋️', '42', true], ['2º', 'Juventude da Serra', '39', false], ['3º', 'Perna-de-Pau EC', '35', false]] as const).map(([po, n, pts, me]) => (
@@ -496,20 +508,14 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
               ))}
             </div>
             <p className="border-2 border-black rounded-lg px-2 py-1 mt-1.5 text-[10px] font-bold bg-white">📰 <b style={OSWALD}>JORNAL:</b> "Manfré FC atropela e cola no G-4 da Série D!"</p>
-            <p className="text-[9.5px] font-bold text-black/55 leading-snug mt-1">teu time joga toda temporada, sobe, briga por título e sai no jornal — na carreira de cada jogador.</p>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400)', boxShadow: `2px 2px 0 0 ${INK}` }}>Série A·B·C e Várzea — R$ 59,90</span>
-              <span className="border-2 border-black rounded-lg px-2 py-0.5 text-[9.5px] font-black" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400)', boxShadow: `2px 2px 0 0 ${INK}` }}>Série D (os rivais) — R$ 69,90</span>
+            <Ben t="🛡️ Escudo e Mascote desenhados">o Diego faz a arte do clube — e a mascote carimba a tela quando o seu time faz gol.</Ben>
+            <Ben t="👑 Tudo do Lenda + 🎫 o Sócio inclusos">cor com brilho, Modo Manual, grupo VIP — e manto, escudo, mascote, estádio batizado e 30 moedas/mês, sem pagar à parte.</Ben>
+            <Ben t="🏅 Selo de Fundador">o único caminho pra ele: selo eterno + nome no mural dos 100.</Ben>
+            <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-1.5" style={{ background: '#141414', boxShadow: `2px 2px 0 0 ${INK}` }}>
+              <p className="text-[10px] font-bold leading-snug" style={{ color: 'rgba(255,255,255,.75)' }}>🔥 <b style={{ color: GOLD }}>Restam {FUNDADOR_VAGAS} de 100 vagas</b> de fundador.</p>
             </div>
-            <p className="text-[9.5px] font-bold text-black/55 leading-snug mt-1">a Série D custa mais porque são os <b>rivais escolhidos</b> — todo mundo joga contra eles de cara.</p>
-            <p className="font-black text-[12px] mt-2">👑 Tudo do Lenda incluso&nbsp; + &nbsp;🎫 Sócio Legends incluso</p>
-            <p className="text-[10px] font-bold text-black/55 leading-snug">cor com brilho, Manual, grupo VIP — e manto, escudo, mascote, estádio batizado, 30 moedas/mês.</p>
-            <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-2" style={{ background: '#141414', boxShadow: `2px 2px 0 0 ${INK}` }}>
-              <p className="font-black text-[11.5px] uppercase" style={{ ...OSWALD, color: GOLD }}>🖋️ Único caminho pra FUNDADOR</p>
-              <p className="text-[10px] font-bold leading-snug" style={{ color: 'rgba(255,255,255,.75)' }}>selo eterno + nome no mural dos 100. <span className="inline-block text-[9px] font-black rounded-full px-2 py-0.5 border-2 border-black align-middle ml-1" style={{ background: '#E8503A', color: '#fff' }}>🔥 restam {FUNDADOR_VAGAS} de 100 vagas</span></p>
-            </div>
-            <p className="font-black text-[12px] mt-2">⚖️ Regra do barão</p>
-            <p className="text-[10px] font-bold text-black/55 leading-snug">o nome é seu até alguém cobrir a oferta — e você tem a vez de igualar. Se cobrirem, você perde SÓ o nome: Lenda e Sócio continuam seus.</p>
+            <Ben t="💰 Quanto custa">Série A · B · C e Várzea por <b>R$ 59,90</b>; Série D por <b>R$ 69,90</b> — ela custa mais porque são os <b>rivais escolhidos</b>, que todo mundo enfrenta de cara.</Ben>
+            <Ben t="⚖️ Regra do barão">o nome é seu até alguém cobrir a oferta — e você tem a vez de igualar. Se cobrirem, perde SÓ o nome: Lenda e Sócio continuam seus.</Ben>
             <button onClick={() => { logApoio('🖋️ escolheu BATISMO → nome+pagamento'); setScreen('batismo') }} className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2.5 active:translate-y-0.5" style={{ background: '#141414', color: GOLD, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>🖋️ QUERO BATIZAR MEU CLUBE 👉</button>
           </Tier>
 
