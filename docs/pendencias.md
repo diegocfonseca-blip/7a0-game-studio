@@ -38,6 +38,30 @@ Arquivos: `pyramidseason.tsx` (computeCopa + slot na fase + aviso na aba Elenco)
 `copa-brasil.ts` (Copa do Brasil + Supercopa) · `store.tsx` (`slotDaTroca`, `slot`
 em SET_LINEUP/CHANGE_FORMATION) · `copa-mundo.tsx` (bônus, ver abaixo).
 
+### ✅ O CASO DO USUÁRIO — REPRODUZIDO E EXPLICADO (23/08)
+Palavras do Diego: *"um usuário disse q trocou a formação q tava 433 e botou 451
+em alguma copa e ainda assim os dois atacantes q ele tirou fizeram gol msm dps de
+trocar e msm dps no jogo seguinte tb"*.
+**Não era impressão dele — é exatamente o que o código fazia.** Rodado na bancada
+com o motor que está no ar, time forte (Pelé/Garrincha/Romário), 4-3-3 → 4-5-1:
+
+| | quem jogava no ataque | gols dos DOIS que ele tirou |
+|---|---|---|
+| **motor de hoje** | Pelé+Garrincha+Romário nas **4 fases** | Oitavas 3 · Quartas 6 · Semi 1 · **Final 3** |
+| **com o conserto** | Oitavas: Pelé+Garrincha+Romário · Quartas/Semi/Final: **só Pelé** | só os 3 da Oitavas (fase que já estava na tela) |
+
+Causa: a troca de formação gravava na rodada 38, e **toda fase da copa lia o XI
+congelado** (`copaXi`) — ou seja, a troca não alcançava fase nenhuma, nem a
+seguinte. Por isso os cortados jogavam a copa inteira.
+
+### ❓ DETALHE AINDA EM ABERTO — ida e volta
+Uma fase de mata-mata tem **2 jogos** (ida e volta). Do jeito que ficou, a troca
+alcança **os dois jogos da fase seguinte**. Se o Diego quiser que ela pegue já a
+**volta da fase que está rolando** ("próximo jogo" no sentido literal), dá pra
+fazer — mas aí o placar agregado do confronto pode mudar **no meio da animação**,
+e o vencedor do confronto viraria outro depois de a ida já ter aparecido. Fica
+esperando a palavra dele.
+
 ### ⏳ FALTA (combinado, não feito)
 - **Substituição no INTERVALO dentro da copa** ("se for no intervalo muda na
   hora"). Hoje a copa **não tem intervalo** — a pausa dos 45' só existe na liga
