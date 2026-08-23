@@ -1,5 +1,29 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## 💛 ÁREA DE APOIO EM TELA CHEIA (23/08) · AGUARDANDO OK VISUAL
+Pedido dele: *"vamos reformular a área de planos e sobre visual vc pense oq é
+melhor mais organizado clean e claro sobre tudo e se possível EXPANDA ao invés
+de ficar numa janelinha qd apertar em apoie"*.
+
+**O problema de hoje** (`ApoieModal` em `screens.tsx`): janelinha de **390px** e
+cada pacote numa SANFONA fechada — pra saber o que tem no Craque tem que tocar
+nele, e abrindo um você perde o outro de vista. Dá pra passar por ali sem
+descobrir metade das coisas, e comparar é impossível.
+
+**As 5 decisões do desenho** (`scripts/mockup-apoio-tela-cheia.mjs`):
+1. **Tela cheia** de verdade (cabeçalho fixo com ✕, conteúdo rolando por baixo).
+2. **Nada escondido** — fim das sanfonas: todo pacote mostra tudo de cara.
+3. **"⚡ Paga uma vez" separado de "💳 Assinatura mensal"** — a dúvida nº1 de
+   quem chega; cada preço leva o rótulo do que é.
+4. **Tabela de comparação** (a peça que faltava) — o "claro sobre TUDO".
+5. **A história do Diego + Luca no FIM**, inteira — depois da pessoa entender o
+   que está comprando, não antes.
+
+⚠️ Ainda **nada codado** (regra do mockup-primeiro). Quando ele aprovar: virar
+tela cheia de verdade em `screens.tsx` (o `ApoieModal` vira página, mantendo os
+sub-fluxos pix/pay/batismo/socio/manual que já existem) + versão larga com os
+cards lado a lado em tela grande.
+
 ## 📧 E-MAIL MARKETING "olha o tanto que mudou" (23/08) · AGUARDANDO OK + DNS
 Pedido do Diego: *"conseguimos enviar pra todos e-mail marketing com todas as
 novidades? … pelo nosso e-mail contato@leilaolegends.com … muita gente entrou há
