@@ -1,5 +1,64 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## ⏳ AGUARDANDO OK DO DIEGO — substituição nas COPAS (branch `claude/denis-save-file-x1osct`, NÃO está na main)
+Relato dele: *"arrume na copa aí q a escalação n tá alterando certo"* → depois
+corrigiu meu rumo: *"estamos falando de SUBSTITUIÇÕES.. q vc tem q ver a copa dos
+8, copa do brasil, supercopa"*. E deu a regra: *"se for dinâmico muda p próximo
+jogo.. se for substituição no intervalo muda na hora"*.
+
+### O que estava errado (medido rodando o jogo, não no chute)
+A copa da carreira nasce **inteira de uma vez** quando a liga acaba (todas as
+fases, placares, artilheiro e campeão); a tela só REVELA fase a fase. Por isso o
+XI da copa era o do fim da liga e ficava congelado (`copaXi`, decisão do Diego de
+17/08 pra o campeão não virar outro depois de anunciado).
+Resultado na prática, reproduzido na bancada: **a aba Elenco mostrava o jogador
+novo e a copa entrava em campo com o antigo**, sem nenhum aviso.
+
+### O conserto: cada FASE lê a escalação num slot próprio
+`lineupAt` já resolve "a última escalação de rodada ≤ r". Então cada fase passou a
+ler um slot-fantasma: **38 = 1ª fase · 39 = a seguinte · 40 …** (Copa do Brasil:
+38 = peneira, 39 = Rodada de 64 …; Supercopa = 45). A tela manda a fase-alvo no
+`SET_LINEUP`/`CHANGE_FORMATION` (`slot`), e `slotDaTroca()` no reducer trava:
+nunca antes da rodada atual, teto de +12.
+- **A troca alcança só a fase que ainda não foi jogada** — o que já apareceu na
+  tela nunca muda (a regra de 17/08 continua valendo, agora sem tirar a liberdade).
+- **Compatível com todo save antigo**: quem só tem a escalação da liga (slot 38)
+  cai no 38 em todas as fases → resultado idêntico.
+
+### Provas (bancada com as funções DE VERDADE, em Chromium)
+| teste | resultado |
+|---|---|
+| troca no meio da copa — a fase já mostrada mudou? | ✅ idêntica |
+| a troca entrou nas fases seguintes? | ✅ (Jairzinho no lugar do Pelé nas quartas/semi/final) |
+| motor NOVO × motor de HOJE, mesma escalação (Copa Legends) | ✅ chave, placares, gols e artilheiro **100% iguais** |
+| mesma prova na Copa do Brasil e na Supercopa | ✅ idênticas |
+| 4-3-3 → 4-5-1 e jogar o próximo jogo (solo e online) | ✅ os atacantes tirados **não** marcaram; passado não mudou de dono |
+
+Arquivos: `pyramidseason.tsx` (computeCopa + slot na fase + aviso na aba Elenco) ·
+`copa-brasil.ts` (Copa do Brasil + Supercopa) · `store.tsx` (`slotDaTroca`, `slot`
+em SET_LINEUP/CHANGE_FORMATION) · `copa-mundo.tsx` (bônus, ver abaixo).
+
+### ⏳ FALTA (combinado, não feito)
+- **Substituição no INTERVALO dentro da copa** ("se for no intervalo muda na
+  hora"). Hoje a copa **não tem intervalo** — a pausa dos 45' só existe na liga
+  (carreira solo). É um segundo passo, maior, e ficou fora deste commit de
+  propósito pra não misturar.
+- **O caso do amigo do Diego** (4-3-3 → 4-5-1, "os atacantes que ele tirou
+  fizeram gols"): não reproduziu na liga (nem solo nem online). O único caminho
+  que produz esse sintoma é justamente **dentro da copa**, que é o que este
+  commit conserta. Falta o amigo confirmar se foi jogo de copa ou de liga.
+
+### 🐺 Bônus achado no caminho: convocação da COPA DO MUNDO
+Com a posição CHEIA, tocar em outro jogador **não fazia nada e nada explicava** —
+parecia tela travada (testado na tela real, não é teoria). Agora: quem não cabe
+aparece com 🔒, o convocado ganha "toque pra tirar", e o toque na posição cheia
+explica o porquê e o caminho ("você já convocou 3 atacantes — pra botar Fulano,
+toque primeiro em Beltrano pra tirar"). Regra do Diego: trava sempre explica.
+
+### Como reverter
+Um commit só, 4 arquivos, e a prova acima mostra que sem ninguém mexer no time o
+resultado é idêntico ao de hoje. `git revert` resolve.
+
 ## 🐺 Batismo PAPÃO UNITED MADRID (agrostinho88@gmail.com) — 23/08
 Entrou no lugar do **Santos Dumont** (Série D), e o **Alfacehh desceu pra Série B**
 por ordem do Diego (o assento do Alfacehh virou do Papão; o Alfacehh ficou com o

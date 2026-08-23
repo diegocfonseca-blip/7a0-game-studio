@@ -665,6 +665,21 @@ function careerOpenSlots(m: Manager, pos: Sector): number {
 function careerHoles(m: Manager): number {
   return SECTORS.reduce((s, pos) => s + careerOpenSlots(m, pos), 0)
 }
+// 🔁 EM QUE "RODADA" A TROCA VAI VALER (Diego 23/08).
+// Durante a temporada é simples: a rodada atual = o próximo jogo. Só que DEPOIS
+// da liga vem a Copa, e ela é jogada em FASES que já foram calculadas. Se a
+// troca caísse na rodada 38 (a que a 1ª fase lê), ela reescreveria uma fase que
+// o jogador JÁ VIU na tela — e o campeão anunciado podia virar outro. Por isso a
+// tela manda a FASE-ALVO (`slot`): 38 = 1ª fase, 39 = a seguinte, 40… A troca
+// vale dali pra frente e não encosta em nada já jogado.
+// TRAVAS (segurança #1 do Diego — nunca deixar estado quebrado):
+//   • nunca ANTES da rodada atual (não dá pra reescrever o passado);
+//   • teto de 12 fases acima, pra uma tela/save torto não jogar a escalação pra
+//     uma rodada absurda e ela sumir do jogo.
+function slotDaTroca(s: EscState, slot?: number): number {
+  if (slot == null || !Number.isFinite(slot)) return s.round
+  return Math.min(s.round + 12, Math.max(s.round, Math.floor(slot)))
+}
 // melhor XI por NÍVEL (ids) — usado só pra FIXAR o time no começo da temporada.
 function bestXIids(squad: WonCard[], formation: FormationKey): string[] {
   const out: string[] = []
@@ -2838,7 +2853,7 @@ type Action =
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
-  | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number } // 🎽 carreira: troca 4-3-3↔4-4-2. Só libera com 22 no elenco E jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante.
+  | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number } // 🎽 carreira: troca 4-3-3↔4-4-2. Só libera com 22 no elenco E jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot).
   | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
@@ -2902,7 +2917,7 @@ type Action =
   | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
   | { type: 'MONTE_PASS'; mgrId: number; by?: string } // carreira: recusa as sobras e passa a vez (o time já tem os 11). by = 🤝 crachá (duplas)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
-  | { type: 'SET_LINEUP'; mgrId: number; ids: string[] } // carreira online: define os 11 titulares (escalação), vale do PRÓXIMO jogo
+  | { type: 'SET_LINEUP'; mgrId: number; ids: string[]; slot?: number } // carreira: define os 11 titulares (escalação), vale do PRÓXIMO jogo. `slot` = rodada-fantasma da Copa (38 = 1ª fase, 39 = a seguinte…) — é assim que a substituição vale da PRÓXIMA FASE da Copa em diante, sem tocar no que já foi jogado.
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic } // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
@@ -4965,7 +4980,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // enquanto não chega a rodada da volta — a tela já bloqueia, aqui é a trava.
       const evLine = s.eventoTemporada
       if (evLine && evLine.season === s.seasonNo && evLine.status === 'banco' && (evLine.volta ?? 0) > s.round && evLine.mgrId === action.mgrId && action.ids.includes(evLine.cardId)) return s
-      const r = s.round
+      const r = slotDaTroca(s, action.slot)
       const bl = { ...(s.careerLineup ?? {}) }
       bl[action.mgrId] = { ...(bl[action.mgrId] ?? {}), [r]: action.ids }
       s.careerLineup = bl
@@ -5419,7 +5434,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // fora da remontagem (mesma regra da troca manual, que já bloqueava).
       const evF = s.eventoTemporada
       const suspensoIdF = evF && evF.season === s.seasonNo && evF.status === 'banco' && (evF.volta ?? 0) > s.round && evF.mgrId === m.id ? evF.cardId : null
-      mineCl[s.round] = bestXIids(suspensoIdF ? m.squad.filter(c => c.id !== suspensoIdF) : m.squad, action.formation)
+      // 🔁 se a Copa está rolando, a formação nova vale da PRÓXIMA FASE em diante
+      // (a tela manda o slot) — nunca reescreve fase que já apareceu na tela.
+      mineCl[slotDaTroca(s, action.slot)] = bestXIids(suspensoIdF ? m.squad.filter(c => c.id !== suspensoIdF) : m.squad, action.formation)
       s.careerLineup = { ...(s.careerLineup ?? {}), [m.id]: mineCl }
       return s
     }

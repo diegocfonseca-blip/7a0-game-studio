@@ -755,7 +755,7 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
 // temporada + classificação), então bate igual offline e em todos os clientes
 // online. Reaproveita a MESMA simulação de jogo da liga (rollForm/poisson). ──
 export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][]; legGoals: Goal[][] }
-export interface CopaRound { name: string; ties: CopaTie[] }
+export interface CopaRound { name: string; ties: CopaTie[]; slot?: number } // slot = rodada-fantasma de onde essa fase lê a escalação (38 = 1ª fase, 39 = a seguinte…)
 export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
 // 🏆 Copa Legends PAGA POR FASE (Diego 11/08) — valores FIXOS, IGUAIS em toda
 // divisão (não escala por série): participação 2 · quartas 4 · semi 8 · vice 10
@@ -844,14 +844,25 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   const rounds: CopaRound[] = []
   let cur = field
   let ri = Math.max(0, roundNames.length - Math.ceil(Math.log2(cur.length)))
+  let fase = 0 // 0 = 1ª fase desta copa, 1 = a seguinte…
   while (cur.length > 1) {
+    // 🔁 SUBSTITUIÇÃO NA COPA (Diego 23/08: *"se for dinâmico muda p próximo
+    // jogo"*). Cada FASE lê a escalação num slot próprio: 38 = 1ª fase, 39 = a
+    // seguinte, 40… Como `lineupAt` pega a última escalação de slot <= r, quem
+    // nunca mexe segue exatamente igual (tudo cai no 38) — nenhuma copa antiga
+    // muda de resultado. E a troca feita AGORA só alcança a fase que ainda não
+    // foi jogada: o que já apareceu na tela fica de pedra, que é a regra do
+    // Diego de 17/08 ("o que aparecer no final, ele ganha").
+    cur = cur.map(e => e.t.human
+      ? { ...e, t: { ...e.t, xi: lineupAt(lineups, e.t.teamId, 38 + fase, e.t.squad, e.t.formation) } }
+      : e)
     const single = cur.length === 2 // final = jogo único
     const ties: CopaTie[] = [], next: { t: SimTeam; div: Div }[] = []
     for (let i = 0; i + 1 < cur.length; i += 2) {
       const tie = playTie(cur[i], cur[i + 1], single)
       ties.push(tie); next.push(tie.win === 'a' ? cur[i] : cur[i + 1])
     }
-    rounds.push({ name: roundNames[ri] ?? `Fase ${ri + 1}`, ties }); cur = next; ri++
+    rounds.push({ name: roundNames[ri] ?? `Fase ${ri + 1}`, ties, slot: 38 + fase }); cur = next; ri++; fase++
   }
   const champ = cur[0] ?? null
   // vice = quem perdeu a final (última fase, jogo único)
@@ -4805,7 +4816,18 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
   // escalação (XI) do SEU time pro próximo jogo — pra aba Elenco (substituição)
   const mgrMe = state.managers[state.youIdx]
-  const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, round, mgrMe.squad, mgrMe.formation) : []), [careerLineup, youId, round, mgrMe])
+  // 🔁 DURANTE A COPA, o "próximo jogo" não é uma rodada da liga — é a PRÓXIMA
+  // FASE da Copa (Diego 23/08: *"se for dinâmico muda p próximo jogo"*). Cada
+  // fase lê a escalação num slot próprio (38 = a que está rolando, 39 = a
+  // seguinte…), então a troca de agora entra na fase que ainda não foi jogada e
+  // não encosta no que já apareceu na tela. Se a Copa está na FINAL (não há
+  // próxima fase), a troca vai pro slot de cima e vale pra próxima temporada.
+  const faseAtualCopa = copaPlaying ? copa?.rounds[copaRound] : null
+  const proxFaseCopa = copaPlaying ? copa?.rounds[copaRound + 1] : null
+  const slotEscala = copaPlaying
+    ? (proxFaseCopa?.slot ?? ((faseAtualCopa?.slot ?? 38) + 1))
+    : round
+  const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, slotEscala, mgrMe.squad, mgrMe.formation) : []), [careerLineup, youId, slotEscala, mgrMe])
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
 
   // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
@@ -5055,7 +5077,7 @@ export function PyramidSeasonScreen() {
     const ids = myXI.map(c => c.id)
     const idx = ids.indexOf(titularId)
     if (idx >= 0) ids[idx] = reserveId; else ids.push(reserveId)
-    dispatch({ type: 'SET_LINEUP', mgrId: youId, ids })
+    dispatch({ type: 'SET_LINEUP', mgrId: youId, ids, slot: slotEscala })
     setSelId(null)
   }
   const myDiv = me?.div ?? null
@@ -6338,7 +6360,22 @@ export function PyramidSeasonScreen() {
                 </div>
               )
             })()}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
+            {/* 🏆 ATÉ QUANDO DÁ PRA MEXER NA COPA (Diego 23/08: *"na copa a
+                escalação não tá alterando certo"* → *"se for dinâmico muda p
+                próximo jogo"*). A fase que está ROLANDO já foi decidida e não
+                muda mais (regra dele de 17/08: o campeão que aparece na tela é o
+                campeão). A troca de agora entra na fase SEGUINTE. Sem este aviso
+                o técnico trocava, via a troca no campinho, e não entendia por que
+                em campo continuava o outro. */}
+            {mgrMe && copaPlaying && faseAtualCopa && (
+              <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, background: '#FFF3C4', fontWeight: 800, fontSize: 11, lineHeight: 1.45 }}>
+                🏆 {proxFaseCopa
+                  ? <>A <b>{faseAtualCopa.name}</b> já está decidida — quem você trocar aqui entra <b>na {proxFaseCopa.name}</b>.</>
+                  : <>A <b>{faseAtualCopa.name}</b> é o último jogo da Copa e já está decidida — quem você trocar aqui começa jogando na <b>próxima temporada</b>.</>}
+                {' '}O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.
+              </div>
+            )}
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
                 Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner
