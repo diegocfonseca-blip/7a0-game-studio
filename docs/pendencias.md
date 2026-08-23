@@ -29,9 +29,27 @@ DESCADASTRO (obrigatório, LGPD).
 5. Depois deste, dá pra mandar um por mês com as novidades do mês (a lista de
    `novidades.ts` já é a pauta pronta).
 
-**Falta o Diego dizer:** (a) OK visual no mockup; (b) onde o domínio está
-registrado / acesso ao DNS (ou ele cola 3 registros que eu passo); (c) OK no
-custo do Resend. SEM disparo antes disso — e-mail é irreversível.
+**✅ ANDAMENTO (23/08, fim do dia):**
+- Domínio **comprado na HOSTINGER**, e o Diego **JÁ PAGA o plano de e-mail deles**
+  → a caixa `contato@leilaolegends.com` existe lá e é onde as RESPOSTAS caem.
+  (Eu tinha dito que a caixa não existia — errado, corrigido com ele. Resend é só
+  o megafone do disparo; a Hostinger continua sendo o ouvido.)
+- Conta Resend criada (login com o Google dele) · chave **Full access** guardada
+  no **Supabase Vault** como `RESEND_API_KEY` (não vai pro repo, nunca).
+- Domínio `leilaolegends.com` **cadastrado no Resend**, região `sa-east-1`
+  (São Paulo — a galera é BR), id `55883d87-851a-4b86-9ae1-d231dc06b61e`.
+- ⚠️ A API do Resend **não responde pelo shell** desta sessão (proxy devolve 403);
+  o caminho que FUNCIONA é `net.http_post` (pg_net) pelo Supabase.
+- **Os 3 registros DNS foram passados pra ele** em imagem
+  (`scripts/guia-dns-hostinger.mjs`) **e em texto copiável** no chat (celular não
+  copia de imagem — lição da sessão). São ADIÇÕES; o MX é do subdomínio `send`,
+  então o MX raiz da Hostinger (e-mail dele) fica intocado.
+
+**Próximo passo quando ele avisar que colou:** conferir a verificação
+(`GET /domains/{id}` via pg_net) → montar o HTML do e-mail → tabela de optout +
+página de descadastro → disparo-teste SÓ pro e-mail dele → só então os lotes.
+**Custo:** só assina os US$ 20 no dia do disparo grande (grátis dá 100/dia, serve
+pra teste); cancela depois sem multa/fidelidade.
 
 ## 📺 COTA DE TV EXTRA — ✅ ENTREGUE E NO AR (23/08, "pode fazer tudo")
 O Diego deu o OK no desenho da reforma e mandou: *"pode fazer tudo — e de cara,
