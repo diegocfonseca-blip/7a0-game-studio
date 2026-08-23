@@ -1481,6 +1481,157 @@ function BancoLegends() {
   )
 }
 
+// ── 📺 CONTRATO DE TV (Clube › Patrocínio) — a casa da Rede Martelo TV (23/08) ────
+// Reforma pedida pelo Diego: a TV era invisível (banner 1x por divisão nova +
+// linha no extrato, e só). Agora tem MORADA FIXA: o contrato por divisão que já
+// paga sozinho (TV_COTA no store) + a COTA EXTRA das redes sociais. Regras
+// FECHADAS por ele (23/08): vídeo 15s+ · Instagram ou TikTok marcando
+// @leilaolegendscom · foto não vale · 1 vídeo por temporada · +10 🪙 por vídeo
+// aprovado · conferência MANUAL dele no admin ("como toda cota de TV, pode
+// atrasar um pouco mas vai receber" — a fila espera, não expira).
+const TV_DEGRAUS: [string, number][] = [['V', 1], ['D', 5], ['C', 10], ['B', 15], ['A', 20]]
+type TvEnvio = { id: number; temporada: number; status: string; motivo: string | null }
+function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: string; foco?: boolean; onFocoFim?: () => void }) {
+  const { state, dispatch } = useEsc()
+  const [aberto, setAberto] = useState(false) // regras + campo do link
+  const [link, setLink] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [erro, setErro] = useState('')
+  const [envio, setEnvio] = useState<TvEnvio | null | undefined>(undefined) // undefined = carregando
+  const [logado, setLogado] = useState(true)
+  const [brilho, setBrilho] = useState(false) // ✨ destaque de chegada (veio do banner)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const temporada = state.seasonNo ?? 1
+  const cotaDiv = TV_DEGRAUS.find(([d]) => d === div)?.[1] ?? 0
+  // 📺→🎯 veio do banner "quero televisionar": rola até o card e acende um brilho
+  // curto, pra ninguém ficar caçando a TV no meio da aba (reclamação do Diego).
+  useEffect(() => {
+    if (!foco) return
+    setBrilho(true)
+    const t1 = setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+    const t2 = setTimeout(() => { setBrilho(false); onFocoFim?.() }, 2600)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [foco])
+  useEffect(() => {
+    let vivo = true
+    ;(async () => {
+      try {
+        const { data: u } = await supabase.auth.getUser()
+        if (!vivo) return
+        if (!u?.user) { setLogado(false); setEnvio(null); return }
+        // 💰 resgata cotas já APROVADAS pelo Diego (atômico no banco: aprovado→
+        // creditado uma vez só; o reducer ainda confere o valor 10×qtd)
+        const { data: coins } = await supabase.rpc('tv_resgatar')
+        if (vivo && typeof coins === 'number' && coins > 0) dispatch({ type: 'TV_EXTRA_CREDIT', coins, qtd: coins / 10 })
+        const { data: rows } = await supabase.from('tv_envios')
+          .select('id, temporada, status, motivo').eq('temporada', temporada)
+          .order('id', { ascending: false }).limit(1)
+        if (vivo) setEnvio(rows?.[0] ?? null)
+      } catch { if (vivo) setEnvio(null) /* sem rede — mostra o botão; o insert vai acusar se precisar */ }
+    })()
+    return () => { vivo = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [temporada])
+  const enviar = async () => {
+    const l = link.trim()
+    if (!l || busy) return
+    if (!/^https?:\/\//i.test(l) || !/(instagram\.com|tiktok\.com)/i.test(l)) { setErro('Cola o LINK do post — tem que ser do Instagram ou do TikTok. 📲'); return }
+    setBusy(true); setErro('')
+    try {
+      const { data: u } = await supabase.auth.getUser()
+      const { data, error } = await supabase.from('tv_envios')
+        .insert({ email: u?.user?.email ?? '', clube, temporada, link: l })
+        .select('id, temporada, status, motivo').single()
+      if (error) {
+        const cod = (error as { code?: string }).code
+        if (cod === '23505') setErro(String((error as { message?: string }).message ?? '').includes('link_unico')
+          ? 'Esse vídeo já foi usado — cada vídeo vale UMA vez. Grava um novo! 🎬'
+          : `Você já televisionou na Temporada ${temporada} — temporada nova, vídeo novo. 🗓️`)
+        else setErro('A emissora está fora do ar agora — tenta de novo em instantes.')
+      } else { setEnvio(data); setAberto(false); setLink('') }
+    } catch { setErro('A emissora está fora do ar agora — tenta de novo em instantes.') }
+    setBusy(false)
+  }
+  const podeEnviar = envio === null || envio?.status === 'recusado'
+  const sec = (t: string) => <p style={{ ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: 1.2, color: 'rgba(12,12,12,.5)', margin: '0 0 7px' }}>{t}</p>
+  return (
+    <div ref={cardRef} style={{ ...box(), overflow: 'hidden', marginTop: 12, scrollMarginTop: 64, ...(brilho ? { boxShadow: `0 0 0 4px ${GOLD}, 4px 4px 0 0 ${INK}`, transition: 'box-shadow .3s' } : { transition: 'box-shadow .6s' }) }}>
+      <div style={{ position: 'relative', background: 'linear-gradient(150deg,#1c1c1e,#0C0C0C 60%,#26221a)', padding: '11px 13px', color: '#fff' }}>
+        <span style={{ position: 'absolute', top: 9, right: 9, background: '#C2452F', border: '2px solid rgba(255,255,255,.25)', borderRadius: 8, ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: 1, padding: '2px 7px' }}>● AO VIVO</span>
+        <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>📺 contrato de transmissão</p>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', margin: '1px 0 0', color: GOLD }}>Rede Martelo TV</p>
+      </div>
+      <div style={{ padding: '11px 12px' }}>
+        {sec('🖋️ Seu contrato — paga sozinho, todo fim de temporada')}
+        <div style={{ display: 'flex', gap: 5, marginBottom: 8 }}>
+          {TV_DEGRAUS.map(([d, v]) => {
+            const eu = d === div
+            return (
+              <div key={d} style={{ flex: 1, textAlign: 'center', border: `2.5px solid ${eu ? INK : 'rgba(12,12,12,.25)'}`, borderRadius: 10, padding: '4px 2px', background: eu ? GOLD : '#FBF6E9', boxShadow: eu ? `2px 2px 0 ${INK}` : undefined, opacity: eu ? 1 : .7 }}>
+                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12 }}>{d}</div>
+                <div style={{ fontWeight: 800, fontSize: 9.5, whiteSpace: 'nowrap' }}>{v} 🪙</div>
+                <div style={{ fontSize: 6.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: .5, visibility: eu ? 'visible' : 'hidden' }}>você</div>
+              </div>
+            )
+          })}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#EAF7EE', border: `2.5px solid ${GREEN}`, borderRadius: 11, padding: '7px 10px', fontWeight: 700, fontSize: 11, lineHeight: 1.4 }}>
+          <span style={{ fontSize: 14 }}>📡</span>
+          <span>Você está na <b>{div === 'V' ? 'Várzea' : `Série ${div}`}</b>: a Rede Martelo TV deposita <b>+{cotaDiv} 🪙 por temporada</b> no caixa. Subiu de série? O contrato melhora sozinho.</span>
+        </div>
+        <div style={{ borderTop: '2.5px dashed rgba(12,12,12,.2)', margin: '12px 0 10px' }} />
+        {sec('📱 Cota extra: transmissão nas redes sociais')}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: `linear-gradient(150deg,#FFE79A,${GOLD} 60%,#E8A200)`, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `2.5px 2.5px 0 ${INK}`, padding: '8px 11px', marginBottom: 8 }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, whiteSpace: 'nowrap' }}>+10 🪙</span>
+          <span style={{ fontWeight: 800, fontSize: 10, lineHeight: 1.3 }}>por vídeo aprovado —<br /><b>1 vídeo por temporada</b></span>
+        </div>
+        <p style={{ fontWeight: 700, fontSize: 11, lineHeight: 1.45, margin: '0 0 8px' }}>A emissora também paga por jogo que passa <b>nas redes</b>: filma seu jogo, posta marcando <b>@leilaolegendscom</b>, cola o link — e a cota extra cai na caixa do clube.</p>
+        {!logado ? (
+          <div style={{ background: '#FBF6E9', border: `2.5px dashed rgba(12,12,12,.4)`, borderRadius: 10, padding: '8px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.7)' }}>🔑 Entre com a sua conta (lá na home) pra televisionar — a emissora precisa saber qual clube recebe a cota.</div>
+        ) : envio === undefined ? (
+          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.5)', padding: 6 }}>📡 sintonizando a emissora…</div>
+        ) : (
+          <>
+            {envio?.status === 'pendente' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F4ECD6', border: '2.5px dashed rgba(12,12,12,.4)', borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.75)' }}><span style={{ fontSize: 14 }}>🕓</span><span><b>Vídeo da T{envio.temporada} em análise na emissora</b> — como toda cota de TV, pode atrasar um pouco… mas cai. 💰</span></div>
+            )}
+            {(envio?.status === 'aprovado' || envio?.status === 'creditado') && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EAF7EE', border: `2.5px solid ${GREEN}`, borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#14532d' }}><span style={{ fontSize: 14 }}>✅</span><span><b>Cota da T{envio.temporada} garantida: +10 🪙 no caixa.</b> Temporada nova, vídeo novo! 🎬</span></div>
+            )}
+            {envio?.status === 'recusado' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDECEA', border: '2.5px solid #C2452F', borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#7a2418', marginBottom: 8 }}><span style={{ fontSize: 14 }}>❌</span><span><b>A emissora recusou{envio.motivo ? `: ${envio.motivo}` : ''}.</b> Pode tentar de novo com outro vídeo.</span></div>
+            )}
+            {podeEnviar && !aberto && (
+              <button onClick={() => { setAberto(true); setErro('') }} style={{ width: '100%', background: INK, color: GOLD, border: `2.5px solid #000`, borderRadius: 11, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', padding: '9px 8px', cursor: 'pointer' }}>🎬 Televisionar meu jogo</button>
+            )}
+            {podeEnviar && aberto && (
+              <div style={{ ...box('#fff'), padding: 11 }}>
+                {([['1', <span key="1"><b>Grava um vídeo de 15s ou mais</b>: a tela do jogo rolando — ou você jogando, com o seu time aparecendo na tela.</span>],
+                  ['2', <span key="2"><b>Posta no Instagram ou no TikTok</b> marcando <b>@leilaolegendscom</b>.</span>],
+                  ['3', <span key="3"><b>Cola o link do post aqui embaixo</b> — a emissora confere e deposita <b>+10 🪙 na caixa do clube</b>.</span>]] as [string, React.ReactNode][]).map(([n, t]) => (
+                  <div key={n} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', marginBottom: 7 }}>
+                    <span style={{ flex: 'none', width: 22, height: 22, borderRadius: 999, background: INK, color: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 11 }}>{n}</span>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 11, lineHeight: 1.4 }}>{t}</p>
+                  </div>
+                ))}
+                <div style={{ background: '#FDECEA', border: '2px solid #C2452F', borderRadius: 9, padding: '6px 9px', fontWeight: 800, fontSize: 9.5, color: '#7a2418', lineHeight: 1.4, margin: '2px 0 8px' }}>📵 Foto não vale — a TV só paga por <b>vídeo com o jogo acontecendo</b>. E cada vídeo vale uma vez só.</div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input value={link} onChange={e => setLink(e.target.value)} placeholder="cole o link do post aqui" inputMode="url" autoCapitalize="none"
+                    style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 9px', fontWeight: 700, fontSize: 11.5, background: '#FBF6E9' }} />
+                  <button onClick={enviar} disabled={busy} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 12px', ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: busy ? '#CBBF9E' : GOLD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: busy ? 'not-allowed' : 'pointer' }}>{busy ? '…' : 'Enviar'}</button>
+                </div>
+                {erro && <p style={{ fontSize: 10, fontWeight: 800, color: '#c0392b', margin: '7px 0 0', textAlign: 'center' }}>{erro}</p>}
+                <button onClick={() => setAberto(false)} style={{ width: '100%', marginTop: 7, background: 'none', border: 'none', fontSize: 10, fontWeight: 900, textDecoration: 'underline', color: 'rgba(0,0,0,.5)', cursor: 'pointer' }}>fechar</button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function FinLine({ label, sub, amount }: { label: string; sub?: string; amount: number }) {
   const pos = amount >= 0
   return (
@@ -4101,12 +4252,16 @@ function AvisoContaCarreira() {
   )
 }
 
-// 🖋️🎫 BRINDES DO SÓCIO (pedido do Diego 09/08, ampliado 16/08): ao abrir a
-// carreira solo, quem é sócio ativo recebe sozinho, sem apertar nada:
-//   (a) 🎟️ BOAS-VINDAS — 39 🪙, UMA VEZ SÓ na vida da conta (RPC esc_socio_boas_vindas);
-//   (b) 🪙 MENSAL — 30 🪙 por mês (RPC esc_socio_resgatar).
-// As duas travas são do SERVIDOR (linha na esc_socio_resgates); o localStorage é
-// só cache pra não repetir a chamada. Cai no caixa e vira linha no EXTRATO.
+// 🖋️🎫 BRINDES DO SÓCIO (pedido do Diego 09/08, ampliado 16/08, regra 23/08):
+// ao abrir a carreira solo, quem é sócio ativo recebe sozinho, sem apertar nada:
+//   (a) 🎟️ BOAS-VINDAS — 30 🪙, UMA VEZ SÓ na vida da conta (RPC esc_socio_boas_vindas);
+//   (b) 🪙 MENSAL — 30 🪙 a cada 30 DIAS CORRIDOS desde o último brinde (RPC
+//       esc_socio_resgatar). Diego 23/08: *"ele ganha 30 qd vira sócio… e daqui a
+//       30 dias DE VERDADE ele ganharia mais 30 em qualquer save dele"* — antes
+//       era mês de CALENDÁRIO (quem entrava dia 30 dobrava o brinde no dia 1º).
+// As duas travas são do SERVIDOR (linha na esc_socio_resgates, com claimed_at);
+// o localStorage é só cache pra não repetir a chamada. Cai no caixa e vira linha
+// no EXTRATO — em QUALQUER save/carreira que ele abrir na hora certa.
 function SocioBaraoBanner() {
   // 🗑️ REMOVIDO (pedido do Diego 12/08): o banner preto de boas-vindas do
   // sócio-batismo (lista de vantagens + botão de chamar no Instagram) saiu de
@@ -4137,15 +4292,22 @@ function SocioBaraoBanner() {
           }
           if (b === SOCIO_BOAS_VINDAS || b === 0) try { localStorage.setItem('esc-socio-boas-vindas', '1') } catch { /* segue */ }
         }
-        // 🪙 resgate do mês (qualquer sócio ativo): guarda local só pra não repetir a chamada
-        const chave = `esc-socio-resgate-${new Date().toISOString().slice(0, 7)}`
-        if (localStorage.getItem(chave) !== '1') {
+        // 🪙 resgate do ciclo (30 dias corridos — a trava REAL é o claimed_at no
+        // servidor). O cache local só evita bater na RPC toda abertura: guarda o
+        // dia do último crédito NESTE aparelho e, quando a resposta é "ainda não"
+        // (outro aparelho pode ter resgatado), confere no máximo 1x por dia.
+        const hoje = new Date().toISOString().slice(0, 10)
+        const ultimoCred = localStorage.getItem('esc-socio-resgate-at')
+        const jaConferiu = localStorage.getItem('esc-socio-conferido') === hoje
+        const passou30 = !ultimoCred || (Date.now() - new Date(`${ultimoCred}T00:00:00Z`).getTime()) >= 30 * 86400_000
+        if (passou30 && !jaConferiu) {
           const { data: r } = await supabase.rpc('esc_socio_resgatar')
           if (r === SOCIO_MENSAL && alive) {
             dispatch({ type: 'SOCIO_CREDIT', motivo: 'mensal' })
             setMoedas(n => n + SOCIO_MENSAL)
+            try { localStorage.setItem('esc-socio-resgate-at', hoje) } catch { /* segue */ }
           }
-          if (r === SOCIO_MENSAL || r === 0) try { localStorage.setItem(chave, '1') } catch { /* segue */ }
+          if (r === 0) try { localStorage.setItem('esc-socio-conferido', hoje) } catch { /* segue */ }
         }
       } catch { /* sem rede — tenta na próxima aberta */ }
     })()
@@ -4158,9 +4320,9 @@ function SocioBaraoBanner() {
       <span style={{ display: 'block', fontFamily: 'inherit', fontWeight: 700, fontSize: 10.5, opacity: .75, marginTop: 2 }}>
         {boasVindas
           ? (moedas > SOCIO_BOAS_VINDAS
-            ? `${SOCIO_BOAS_VINDAS} de boas-vindas (uma vez só) + ${SOCIO_MENSAL} deste mês. Veja em Clube › Finanças.`
-            : 'Brinde de boas-vindas — uma vez só. Veja em Clube › Finanças.')
-          : 'Moedas deste mês. Veja em Clube › Finanças.'}
+            ? `${SOCIO_BOAS_VINDAS} de boas-vindas (uma vez só) + ${SOCIO_MENSAL} do seu mês de sócio. Veja em Clube › Finanças.`
+            : 'Brinde de boas-vindas — uma vez só. As próximas 30 caem daqui a 30 dias. Veja em Clube › Finanças.')
+          : 'Seu mês de sócio fechou: +30. As próximas caem daqui a 30 dias. Veja em Clube › Finanças.'}
       </span>
     </div>
   )
@@ -4391,6 +4553,7 @@ export function PyramidSeasonScreen() {
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
+  const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const [bicoTrocando, setBicoTrocando] = useState(false) // 🕴️ Bico de Folga: lista de troca abre no lugar do botão (visual novo, 14/08)
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
@@ -5530,6 +5693,11 @@ export function PyramidSeasonScreen() {
             como item de fila — segue exatamente onde já estava, mais abaixo. */}
         {(() => {
           const temTV = round === 0 && me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div)
+          // 📺 AVISO ÚNICO DA COTA EXTRA (Diego 23/08): *"quando acabar a temporada
+          // de QUALQUER usuário, conta antiga ou nova, deve aparecer um banner na
+          // cara dele UMA vez sobre a cota extra"*. Round 0 = a virada (a temporada
+          // anterior acabou de fechar) — por isso só a partir da T2. Nunca repete.
+          const temTVExtra = round === 0 && me && state.onlineMode !== 'online' && (state.seasonNo ?? 1) >= 2 && !state.tvExtraVisto
           type FilaItem = { key: string; render: () => React.ReactNode }
           const fila: FilaItem[] = []
           // 🎭 EVENTO DE JOGADOR: banner de decisão — a rodada SÓ anda depois da
@@ -5571,12 +5739,33 @@ export function PyramidSeasonScreen() {
                 <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
                   <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Contrato de TV</span>
                   <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{primeira ? <>A <span style={{ color: GOLD }}>TV descobriu</span> seu clube!</> : <>Contrato de TV <span style={{ color: GOLD }}>melhorou</span>!</>}</p>
-                  <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me!.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Pelada</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me!.div}</b> e a audiência cresceu — a <b>Rede Pelada</b> renovou por mais grana. 📡</>}</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me!.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Martelo TV</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me!.div}</b> e a audiência cresceu — a <b>Rede Martelo TV</b> renovou por mais grana. 📡</>}</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} por temporada <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>· direto no caixa</span></div>
-                  <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me!.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 12, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Bora! 📺</button>
+                  <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Tudo do contrato mora em: 🏟️ Clube › 🤝 Patrocínio</p>
+                  <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me!.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 10, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Bora! 📺</button>
                 </div>
               )
             },
+          })
+          // 📺 COTA EXTRA — aviso ÚNICO (Diego 23/08): na virada de temporada, pra
+          // conta antiga ou nova, uma vez na vida. Conta a história (a TV que já
+          // paga agora paga EXTRA por transmissão nas redes), as regras dele e o
+          // exemplo que ele pediu (10 × 100 temporadas = 1.000 🪙). Aponta pra
+          // morada fixa: Clube › Patrocínio.
+          if (temTVExtra) fila.push({
+            key: 'tvextra', render: () => (
+              <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
+                <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Novidade da emissora</span>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>A TV agora paga <span style={{ color: GOLD }}>cota extra!</span></p>
+                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram ou TikTok</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+10 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>🎬 1 vídeo por temporada · +10 🪙 cada<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>· 100 temporadas = 1.000 🪙 de cota extra</span></div>
+                <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Fica pra sempre em: 🏟️ Clube › 🤝 Patrocínio</p>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <button onClick={() => { dispatch({ type: 'TV_EXTRA_VISTO' }); setTvFoco(true); setTab('estadio'); setClubeSub('patrocinio') }} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>🎬 Quero televisionar</button>
+                  <button onClick={() => dispatch({ type: 'TV_EXTRA_VISTO' })} style={{ flex: 'none', background: 'transparent', color: '#EDE7D3', border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, fontWeight: 900, fontSize: 13, padding: '10px 14px', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Depois</button>
+                </div>
+              </div>
+            ),
           })
           if (!fila.length) return null
           return (
@@ -6018,7 +6207,13 @@ export function PyramidSeasonScreen() {
                 {/* 🤝 aqui mora a RÉGUA: a tabela de valores e o "como funciona"
                     saíram da tela de início de temporada (Diego 21/08: "não quero
                     mais a tabela de valores aí, coloque na aba de patrocínio"). */}
-                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} completo />}
+                {/* 🧭 ORDEM (ajuste do Diego 23/08, print dele: "a rede lá embaixo
+                    ficou meio estranho e confuso"): 1º o cartãozinho da aposta,
+                    2º a TV, 3º o tabelão da régua — assim quem vem do banner
+                    "quero televisionar" acha a TV de cara, sem caçar. */}
+                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} />}
+                {me && <TVContrato div={me.div} clube={me.team} foco={tvFoco} onFocoFim={() => setTvFoco(false)} />}
+                {me && <SponsorBetStatus div={me.div} soRegua />}
                 {agenciaOk && (() => {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
                   const bicoOn = (state.seasonNo ?? 1) >= 3 && (myDiv === 'V' || myDiv === 'D')

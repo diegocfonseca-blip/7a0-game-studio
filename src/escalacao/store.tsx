@@ -164,8 +164,8 @@ function chargeSalaries(s: EscState) {
 // 🎟️🪙 BRINDES DE SÓCIO — os DOIS valores moram aqui e em lugar nenhum mais.
 // A action SOCIO_CREDIT não aceita número de fora justamente pra ninguém
 // conseguir pedir um valor inventado; quem trava a repetição é o Supabase.
-export const SOCIO_MENSAL = 30       // 🪙 todo mês, pra todo sócio ativo (RPC esc_socio_resgatar)
-export const SOCIO_BOAS_VINDAS = 39  // 🪙 UMA VEZ SÓ na vida da conta, quando o sócio entra (RPC esc_socio_boas_vindas, Diego 16/08)
+export const SOCIO_MENSAL = 30       // 🪙 a cada 30 DIAS CORRIDOS desde o último brinde, pra todo sócio ativo (RPC esc_socio_resgatar; era mês de calendário — Diego 23/08: "daqui a 30 dias DE VERDADE")
+export const SOCIO_BOAS_VINDAS = 30  // 🪙 UMA VEZ SÓ na vida da conta, quando o sócio entra (RPC esc_socio_boas_vindas; era 39 — Diego 23/08: "ele ganha 30 qd vira sócio")
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
@@ -2895,6 +2895,8 @@ type Action =
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
+  | { type: 'TV_EXTRA_VISTO' } // 📺 marca que o aviso único da cota extra (vídeo nas redes) já foi mostrado — nunca repete
+  | { type: 'TV_EXTRA_CREDIT'; coins: number; qtd: number } // 📺 cota extra de TV: o RPC tv_resgatar já virou aprovado→creditado no Supabase (atômico) — aqui só entra o crédito no caixa. Só carreira solo
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'ADVANCE_REVEAL' }
@@ -3599,6 +3601,22 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'TV_BANNER_SEEN': {
       const arr = s.tvBannerSeen ?? []
       if (!arr.includes(action.div)) s.tvBannerSeen = [...arr, action.div]
+      return s
+    }
+    case 'TV_EXTRA_VISTO': {
+      s.tvExtraVisto = true
+      return s
+    }
+    case 'TV_EXTRA_CREDIT': {
+      // 📺 COTA EXTRA DE TV (Diego 23/08): a validação é do Supabase (tv_resgatar,
+      // atômica: aprovado→creditado uma vez só); aqui só entra o crédito. O valor
+      // é conferido contra a regra fixa (10 🪙 por vídeo) — número inventado na
+      // action não passa, igual ao Banco Legends.
+      if (s.onlineMode === 'online' || !s.careerOnline) return s
+      if (!Number.isInteger(action.qtd) || action.qtd < 1 || action.coins !== action.qtd * 10) return s
+      const yb = s.managers[s.youIdx]?.id ?? 0
+      s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + action.coins }
+      logFin(s, 'reward', action.qtd === 1 ? '📺 Cota extra de TV (vídeo nas redes)' : `📺 Cota extra de TV (${action.qtd} vídeos nas redes)`, action.coins, undefined, yb)
       return s
     }
     case 'KICK_PLAYER': {
@@ -6383,6 +6401,7 @@ const Ctx = createContext<{
   kickPlayer: (playerIndex: number) => void // host remove um técnico da partida
   leaveRoom: () => void // "sair da sala" de vez: se for host, passa o host pra outro (ou apaga a sala se estava sozinho) e sai
   becameHost: boolean // acabei de virar host (o anterior saiu) — mostra o aviso grande
+  hostOutroAparelho: boolean // 📱 a MESMA conta abriu a sala em outro aparelho e a coroa foi pra lá — este virou espectador
 } | null>(null)
 
 // libera a vaga do técnico na sala (apaga a linha de room_players) e limpa a
@@ -7155,6 +7174,35 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
   const [becameHost, setBecameHost] = useState(false)
+  // 📱 CRACHÁ DO APARELHO (23/08, caso do Diego host vendo "confirmando com o
+  // host"): a trava de "um dono só" comparava a CONTA — e não enxergava a MESMA
+  // conta aberta em DOIS aparelhos (PC esquecido aberto + celular). Cada aba
+  // ganha um crachá próprio; o dono grava o crachá + a HORA em que assumiu
+  // (`__hostTab`/`__hostClaimAt`) junto do save. Regra: A COROA SEGUE A ÚLTIMA
+  // MÃO — o aparelho com a posse mais NOVA manda; o antigo vira espectador com
+  // aviso (nunca dois "eu" brigando, que era o que travava o leilão).
+  const tabIdRef = useRef(Math.random().toString(36).slice(2, 10))
+  const hostClaimAtRef = useRef(0)
+  const [hostOutroAparelho, setHostOutroAparelho] = useState(false)
+  // 🤫 POSSE HUMILDE (Diego 23/08: *"se eu criei uma sala nova no aparelho D,
+  // a atual que eu tô deveria funcionar pow"*). Aba que vira host SEM um gesto
+  // seu (reload que auto-retoma, aba velha que o Android descongela) NÃO chega
+  // mandando: fica CALADA por ~10s (não salva nada por cima), espia no banco
+  // quem está tocando a sala e — se OUTRA aba da sua conta está gravando — vira
+  // espectadora sem briga. Só assume de verdade se ninguém estiver tocando.
+  // Gesto seu de verdade (criar sala, botão RETOMAR AQUI, reassunção após o
+  // sumiço confirmado do host) entra com posse PLENA, sem espera.
+  const acaoReservaTsRef = useRef(0)   // 📮 última escrita do lance no caminho reserva
+  const acoesVistasRef = useRef(0)     // 📮 último id de room_acoes que o host já aplicou
+  const claimForcadoRef = useRef(true)
+  const humildeAteRef = useRef(0)
+  useEffect(() => {
+    // virou host (criou, retomou, reassumiu): carimba a posse AGORA
+    if (state.isHost) {
+      hostClaimAtRef.current = Date.now(); setHostOutroAparelho(false)
+      humildeAteRef.current = claimForcadoRef.current ? 0 : Date.now() + 12_000
+    }
+  }, [state.isHost])
   // 🔨 virei host NO MEIO DO PREGÃO? é o único caso em que o lance é reaberto —
   // o aviso precisa dizer isso, senão parece bug (Diego 16/08: "tive que lacrar
   // de novo um lance novo... aí pareceu bug brabo").
@@ -7245,6 +7293,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
+    // 🤫 posse humilde: RESTORE (auto-retomada/reload) NÃO é gesto seu — entra
+    // calado. START (criar sala) é gesto seu — posse plena. BECOME_HOST marca
+    // forçado nos DOIS pontos que o disparam (botão RETOMAR / sumiço provado).
+    if (action.type === 'RESTORE_ONLINE' && action.isHost) claimForcadoRef.current = false
+    if (action.type === 'START_ONLINE' && action.isHost) claimForcadoRef.current = true
     // Sair de uma partida online (NOVO PREGÃO / voltar pra home) deve LIBERAR
     // sua vaga na sala. Sem isso você fica "fantasma": um restart puxa você como
     // jogador e a galera que ficou espera você lacrar pra sempre.
@@ -7253,6 +7306,22 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }
     if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM' && action.type !== 'GO_RANKING') {
       channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
+      // 📮 CAMINHO RESERVA DO LANCE (23/08, salas 1DWIA5 e 5B11LC): o convidado
+      // via o host lacrar ("✅ lacrou" na tela dele) mas o LANCE DELE nunca
+      // chegava — o rádio (canal realtime) engolia o recado numa direção só, e o
+      // reenvio de 4s insistia PELO MESMO rádio quebrado. Agora o lance também é
+      // ESCRITO NO BANCO (room_acoes, via HTTPS — outra estrada), e o host lê de
+      // 3 em 3s. O reducer continua mandando em tudo (caixa/fase/dupla), e ele já
+      // é imune a lance repetido — chegar pelas duas estradas não duplica nada.
+      // Vale só pros DOIS recados que travam a sala quando somem: o envelope e o
+      // re-lance do empate. Com folga de 5s pra não inundar o banco.
+      if ((action.type === 'SUBMIT_ENVELOPE' || action.type === 'SUBMIT_TIEBREAK') && stateRef.current.roomId) {
+        const agora = Date.now()
+        if (agora - acaoReservaTsRef.current > 5_000) {
+          acaoReservaTsRef.current = agora
+          supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+        }
+      }
     } else {
       rawDispatch(action)
     }
@@ -7473,12 +7542,71 @@ export function EscProvider({ children }: { children: ReactNode }) {
           const st = stateRef.current
           const uid = st.youUid // meu crachá (= auth uid). Sem uid não dá pra comparar → não mexe.
           if (!uid || !st.roomId || !st.isHost) return
-          const { data: r } = await supabase.from('game_rooms').select('host_id').eq('id', st.roomId).maybeSingle()
-          const hostId = (r as { host_id?: string } | null)?.host_id
-          if (hostId && hostId !== uid && stateRef.current.isHost) rawDispatch({ type: 'STEP_DOWN_HOST' })
+          const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at, tab:game_state->>__hostTab, claim:game_state->>__hostClaimAt').eq('id', st.roomId).maybeSingle()
+          const row = r as { host_id?: string; updated_at?: string; tab?: string | null; claim?: string | null } | null
+          const hostId = row?.host_id
+          if (hostId && hostId !== uid && stateRef.current.isHost) { rawDispatch({ type: 'STEP_DOWN_HOST' }); return }
+          const outraAba = !!row?.tab && row.tab !== tabIdRef.current
+          const saveFresco = !!row?.updated_at && Date.now() - new Date(row.updated_at).getTime() < 9_000
+          // 🤫 POSSE HUMILDE decidindo: acordei sozinho (sem gesto do dono) e OUTRA
+          // aba da minha conta está gravando AGORA → a sala já tem quem toque; eu
+          // viro espectador sem briga. Sala em silêncio → assumo de verdade.
+          if (hostId === uid && Date.now() < humildeAteRef.current && stateRef.current.isHost) {
+            if (outraAba && saveFresco) {
+              humildeAteRef.current = 0
+              rawDispatch({ type: 'STEP_DOWN_HOST' })
+              setHostOutroAparelho(true)
+            } else if (!saveFresco) {
+              // ninguém tocando: a posse vira plena e o save religa
+              claimForcadoRef.current = true; humildeAteRef.current = 0
+            }
+            return
+          }
+          // 📱 MESMA CONTA, DOIS APARELHOS (o buraco do dia 23/08): a posse é minha
+          // no banco, mas o save mais recente veio de OUTRA aba/aparelho com posse
+          // mais NOVA que a minha → a coroa está na outra mão. Este aqui abaixa a
+          // bola e avisa, em vez de ficar gravando por cima e travando o leilão.
+          const claimDeLa = Number(row?.claim)
+          if (hostId === uid && outraAba
+              && Number.isFinite(claimDeLa) && claimDeLa > hostClaimAtRef.current
+              && stateRef.current.isHost) {
+            rawDispatch({ type: 'STEP_DOWN_HOST' })
+            setHostOutroAparelho(true)
+          }
         } catch { /* leitura falhou: não rebaixa (evita perder o dono por rede ruim) */ }
       })()
     }, 5000)
+    return () => clearInterval(iv)
+  }, [state.onlineMode, state.isHost, state.roomId])
+
+  // 📮 O HOST LÊ O CAMINHO RESERVA (23/08): de 3 em 3s, durante o leilão, busca
+  // lances que chegaram pelo banco (room_acoes) e aplica os que faltam. É a
+  // outra ponta da estrada reserva — o canal realtime continua sendo o caminho
+  // rápido; isto aqui garante que NENHUM lacre se perde quando o rádio falha.
+  // Só dois tipos entram (whitelist), o reducer re-valida tudo, e as linhas
+  // aplicadas são apagadas na sequência (a mesinha vive vazia).
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    const iv = setInterval(() => {
+      ;(async () => {
+        try {
+          const st = stateRef.current
+          if (!st.roomId || !st.isHost) return
+          if (st.screen !== 'auction' && st.phase !== 'envelope' && st.phase !== 'resq_envelope') return
+          const { data } = await supabase.from('room_acoes').select('id, payload')
+            .eq('room_id', st.roomId).gt('id', acoesVistasRef.current)
+            .order('id', { ascending: true }).limit(25)
+          const rows = (data ?? []) as { id: number; payload: Action }[]
+          if (!rows.length) return
+          for (const r of rows) {
+            acoesVistasRef.current = Math.max(acoesVistasRef.current, r.id)
+            const a = r.payload
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK')) rawDispatch(a)
+          }
+          supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
+        } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
+      })()
+    }, 3_000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 
@@ -7703,15 +7831,22 @@ export function EscProvider({ children }: { children: ReactNode }) {
         lastOwnerCheckRef.current = Date.now()
         ;(async () => {
           try {
-            const { data: u } = await supabase.auth.getUser()
-            const uid = u?.user?.id
+            // 🧯 23/08 (Diego, sala 1DWIA5): esta checagem — a que devolve a coroa
+            // pro DONO que ficou preso como convidado — dependia SÓ do
+            // auth.getUser(), que é uma chamada de REDE. Com a rede piscando
+            // (exatamente a hora em que a sala trava), ela falhava e a função
+            // desistia CALADA: o dono ficava eterno no "confirmando com o host".
+            // Agora o crachá LOCAL (youUid, que já está no estado) vale primeiro;
+            // a rede é só o plano B.
+            let uid = stateRef.current.youUid
+            if (!uid) { const { data: u } = await supabase.auth.getUser(); uid = u?.user?.id ?? undefined }
             if (!uid) return
             const st = stateRef.current
             if (!st.roomId || st.isHost) return
             const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at').eq('id', st.roomId).maybeSingle()
             const hostId = (r as { host_id?: string } | null)?.host_id
             // (1) a posse já é MINHA no banco (handoff explícito ou eu era o dono) → assumo.
-            if (hostId === uid) { if (!stateRef.current.isHost) rawDispatch({ type: 'BECOME_HOST' }); return }
+            if (hostId === uid) { if (!stateRef.current.isHost) { claimForcadoRef.current = true; rawDispatch({ type: 'BECOME_HOST' }) } return }
             // 💓 BATIMENTO DO BANCO: o host grava updated_at a cada ~3s (mesmo PARADO
             // no leilão). Se está fresco (< 9s), o dono está VIVO — só ficou quieto no
             // Realtime pra economizar egress. NÃO se rouba host de quem está batendo:
@@ -7792,6 +7927,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
               if (!stateRef.current.isHost) {
                 const sc = stateRef.current
                 setViradaNoLeilao(sc.screen === 'auction' || sc.phase === 'envelope' || sc.phase === 'resq_envelope')
+                claimForcadoRef.current = true
                 rawDispatch({ type: 'BECOME_HOST' }); setBecameHost(true) // aviso "você virou host"
               }
             } else {
@@ -7857,6 +7993,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const save = () => {
       const st = stateRef.current
       if (st.screen === 'intro' || st.screen === 'lobby' || !st.roomId) return
+      // 🤫 posse humilde: enquanto não confirmei que a sala está SEM ninguém
+      // tocando, não escrevo por cima do save de quem estiver — é o que fazia
+      // duas abas da mesma conta se atropelarem (23/08).
+      if (Date.now() < humildeAteRef.current) return
       // sanitize devolve só o EscState — precisamos REPOR o marcador __game
       // (senão as checagens de "é sala da Escalação?" quebram no reconnect) e
       // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
@@ -7874,7 +8014,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // Agora o que é da sala é lido UMA vez (logo abaixo) e vai junto em todo save.
       // Repare na ordem: a identidade entra primeiro e o `mode` da carreira, que é
       // calculado, tem a palavra final.
-      const payload = { ...sanitize(st), ...salaFixaRef.current, __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
+      const payload = { ...sanitize(st), ...salaFixaRef.current, __game: 'escalacao', __hostTab: tabIdRef.current, __hostClaimAt: hostClaimAtRef.current, formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a
@@ -7976,8 +8116,22 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale && !iOwnThisRoom
     && state.screen !== 'intro' && state.screen !== 'lobby'
   return (
-    <Ctx.Provider value={{ state, dispatch, emote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost }}>
+    <Ctx.Provider value={{ state, dispatch, emote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}
+      {hostOutroAparelho && (
+        <div style={{ position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 93, fontFamily: 'Oswald, sans-serif' }}>
+          <div style={{ background: '#FFF7DB', border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#0C0C0C' }}>📱 VOCÊ ABRIU ESTA SALA EM OUTRO APARELHO</p>
+            <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.7)', lineHeight: 1.4 }}>
+              A coroa foi pra lá (a sala segue no outro aparelho) e <b>este aqui virou só tela</b> — dois donos ao mesmo tempo travavam o leilão. Se era pra jogar AQUI, toque no botão.
+            </p>
+            <button onClick={() => { claimForcadoRef.current = true; hostClaimAtRef.current = Date.now(); humildeAteRef.current = 0; setHostOutroAparelho(false); rawDispatch({ type: 'BECOME_HOST' }) }}
+              style={{ marginTop: 8, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '10px 0', fontWeight: 900, fontSize: 14, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
+              👑 RETOMAR AQUI
+            </button>
+          </div>
+        </div>
+      )}
       {becameHost && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center',

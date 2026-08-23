@@ -278,7 +278,7 @@ export function useResumableRoom() {
     if (inProgress) {
       // nunca restaura numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const safeGs = (gs.screen === 'album' || gs.screen === 'ranking') ? { ...gs, screen: 'season' } : gs
-      dispatch({ type: 'RESTORE_ONLINE', state: safeGs as EscState, roomId: rd.id, roomCode: rd.code, isHost: amHost, playerIndex: myPl.player_index })
+      dispatch({ type: 'RESTORE_ONLINE', state: safeGs as EscState, roomId: rd.id, roomCode: rd.code, isHost: amHost, playerIndex: myPl.player_index, youUid: user.id })
     }
   }, [dispatch])
 

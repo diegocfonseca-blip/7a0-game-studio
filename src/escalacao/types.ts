@@ -450,6 +450,7 @@ export interface EscState {
   marketLog?: string[] // carreira online: resumo do que os BOTS fizeram no leilão/monte (arrematou X, pegou Y de graça, comprou o listado Z por W) — mostrado na cerimônia pra dar visibilidade. Zera a cada leilão.
   booksSeason?: number // 💰 temporada cujo FECHAMENTO financeiro (prêmios, bilheteria, patrocínio, empresário, folha) já foi lançado no caixa. Trava anti-duplicidade: a contabilidade roda UMA vez, assim que a temporada+copas acabam.
   tvBannerSeen?: string[] // 📺 divisões (D/C/B/A) cujo banner de "a TV descobriu seu clube" já foi mostrado (1x cada, carreira solo). Depois dos 4, não aparece mais.
+  tvExtraVisto?: boolean // 📺 aviso ÚNICO da cota extra de TV (vídeo nas redes, Diego 23/08) já mostrado — aparece 1x na virada de temporada, pra conta antiga ou nova, e nunca mais.
   careerLedger?: LedgerEntry[] // 🧾 carreira SOLO: livro-caixa (extrato + transferências) — só exibição, nunca realimenta o caixa. Cresce ao longo da carreira; limitado às últimas ~250 entradas.
   careerLedgers?: Record<number, LedgerEntry[]> // 🧾 carreira ONLINE: livro-caixa por técnico (mgrId → extrato). Offline usa careerLedger (single).
   // 🤝 PATROCÍNIO POR APOSTA (05/08, substitui o antigo "marca fixa por divisão"):

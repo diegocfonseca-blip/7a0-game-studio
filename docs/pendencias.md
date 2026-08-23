@@ -1,5 +1,279 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## ⚖️ REGRA DO BARÃO MUDOU (23/08) — NINGUÉM PERDE MAIS O NOME
+Palavras do Diego: *"na regra do barão N perde o nome. Apenas diz q vai descendo
+de divisão mas seu time é sempre seu c escudo mascote e etc, algo do tipo sutil"*.
+
+**Regra NOVA (vale a partir de agora):** quem batiza fica com o clube **pra
+sempre** — nome, escudo, mascote e manto. Não existe mais "cobrir a oferta e
+tomar o nome", nem o direito de igualar. O que pode mudar com o tempo é a
+**DIVISÃO**: se alguém batizar mirando mais alto, o clube já batizado desce um
+degrau na pirâmide, com a mesma identidade.
+
+⚠️ **Isto REVOGA a regra de 09/08** que está mais abaixo neste arquivo ("perdeu o
+nome no leilão dos barões… perde SÓ a placa"). Se você achar aquele trecho, ele é
+HISTÓRICO — a regra que vale é esta. O texto no jogo já está assim
+(`screens.tsx`, card do 🖋️ Batismo).
+
+## 💛 ÁREA DE APOIO EM TELA CHEIA (23/08) · AGUARDANDO OK VISUAL
+Pedido dele: *"vamos reformular a área de planos e sobre visual vc pense oq é
+melhor mais organizado clean e claro sobre tudo e se possível EXPANDA ao invés
+de ficar numa janelinha qd apertar em apoie"*.
+
+**O problema de hoje** (`ApoieModal` em `screens.tsx`): janelinha de **390px** e
+cada pacote numa SANFONA fechada — pra saber o que tem no Craque tem que tocar
+nele, e abrindo um você perde o outro de vista. Dá pra passar por ali sem
+descobrir metade das coisas, e comparar é impossível.
+
+**As 5 decisões do desenho** (`scripts/mockup-apoio-tela-cheia.mjs`):
+1. **Tela cheia** de verdade (cabeçalho fixo com ✕, conteúdo rolando por baixo).
+2. **Nada escondido** — fim das sanfonas: todo pacote mostra tudo de cara.
+3. **"⚡ Paga uma vez" separado de "💳 Assinatura mensal"** — a dúvida nº1 de
+   quem chega; cada preço leva o rótulo do que é.
+4. **Tabela de comparação** (a peça que faltava) — o "claro sobre TUDO".
+5. **A história do Diego + Luca no FIM**, inteira — depois da pessoa entender o
+   que está comprando, não antes.
+
+⚠️ Ainda **nada codado** (regra do mockup-primeiro). Quando ele aprovar: virar
+tela cheia de verdade em `screens.tsx` (o `ApoieModal` vira página, mantendo os
+sub-fluxos pix/pay/batismo/socio/manual que já existem) + versão larga com os
+cards lado a lado em tela grande.
+
+## 📧 E-MAIL MARKETING "olha o tanto que mudou" (23/08) · AGUARDANDO OK + DNS
+Pedido do Diego: *"conseguimos enviar pra todos e-mail marketing com todas as
+novidades? … pelo nosso e-mail contato@leilaolegends.com … muita gente entrou há
+um mês e nunca mais voltou e não sabe o tanto que mudou"*.
+
+**Números do banco (23/08):** 7.706 contas com e-mail (todas confirmadas) ·
+2.611 sumidas há 30+ dias · 6.205 há 14+ dias · 4.701 entraram nos últimos 30.
+
+**Mockup desenhado e mandado**: `scripts/mockup-email-novidades.mjs` — assunto
+"Você não vai reconhecer o jogo ⚽🔨", com: várzea→Série A · escudos REAIS dos
+batismos (Papão/Leão/Theuzudo/São Luiz/Coringas) · copas · estante de troféus ·
+Rede Martelo TV · "o jogo criou vida" · CTA "voltar pro meu time" · rodapé com
+DESCADASTRO (obrigatório, LGPD).
+
+**O plano técnico combinado (esperando as decisões dele):**
+1. Enviar 7,7 mil e-mails NÃO dá pelo Gmail (limite ~500/dia + spam). Precisa de
+   serviço de disparo com o DOMÍNIO verificado: recomendação **Resend**
+   (US$ 20 no mês do disparo, 50 mil e-mails, cancela depois; alternativa Brevo
+   grátis 300/dia = lento demais pra 7,7k). Verificação = 3 registros DNS
+   (SPF/DKIM) no lugar onde o leilaolegends.com foi registrado.
+2. Caixa contato@ pra RECEBER respostas: encaminhamento grátis via DNS pro
+   Gmail dele.
+3. **Descadastro obrigatório**: tabela `esc_email_optout` + link no rodapé;
+   quem sair nunca mais recebe (vale pra qualquer campanha futura).
+4. Disparo em LOTES ao longo de uns dias (aquecer o domínio novo pra não cair
+   em spam), começando pelos mais recentes.
+5. Depois deste, dá pra mandar um por mês com as novidades do mês (a lista de
+   `novidades.ts` já é a pauta pronta).
+
+**✅ ANDAMENTO (23/08, fim do dia):**
+- Domínio **comprado na HOSTINGER**, e o Diego **JÁ PAGA o plano de e-mail deles**
+  → a caixa `contato@leilaolegends.com` existe lá e é onde as RESPOSTAS caem.
+  (Eu tinha dito que a caixa não existia — errado, corrigido com ele. Resend é só
+  o megafone do disparo; a Hostinger continua sendo o ouvido.)
+- Conta Resend criada (login com o Google dele) · chave **Full access** guardada
+  no **Supabase Vault** como `RESEND_API_KEY` (não vai pro repo, nunca).
+- Domínio `leilaolegends.com` **cadastrado no Resend**, região `sa-east-1`
+  (São Paulo — a galera é BR), id `55883d87-851a-4b86-9ae1-d231dc06b61e`.
+- ⚠️ A API do Resend **não responde pelo shell** desta sessão (proxy devolve 403);
+  o caminho que FUNCIONA é `net.http_post` (pg_net) pelo Supabase.
+- **Os 3 registros DNS foram passados pra ele** em imagem
+  (`scripts/guia-dns-hostinger.mjs`) **e em texto copiável** no chat (celular não
+  copia de imagem — lição da sessão). São ADIÇÕES; o MX é do subdomínio `send`,
+  então o MX raiz da Hostinger (e-mail dele) fica intocado.
+
+**Próximo passo quando ele avisar que colou:** conferir a verificação
+(`GET /domains/{id}` via pg_net) → montar o HTML do e-mail → tabela de optout +
+página de descadastro → disparo-teste SÓ pro e-mail dele → só então os lotes.
+**Custo:** só assina os US$ 20 no dia do disparo grande (grátis dá 100/dia, serve
+pra teste); cancela depois sem multa/fidelidade.
+
+## 📺 COTA DE TV EXTRA — ✅ ENTREGUE E NO AR (23/08, "pode fazer tudo")
+O Diego deu o OK no desenho da reforma e mandou: *"pode fazer tudo — e de cara,
+quando acabar a temporada de QUALQUER usuário, conta antiga ou nova, deve
+aparecer um banner na cara dele UMA vez sobre a cota extra… libera sempre de 1
+em 1 temporada… paga 10 moedas… e dá um exemplo: 10 × 100 temporadas já são mil
+moedas de cota extra"*. Tudo isso está no ar:
+- **Banco**: tabela `tv_envios` (RLS: jogador insere no próprio nome, admin
+  decide) + RPC `tv_resgatar` (aprovado→creditado atômico, 10/vídeo). Travas
+  TESTADAS: link único global · 1 por temporada POR CONTA (índice parcial —
+  recusado NÃO queima a vez) · farm entre carreiras bloqueado (a trava é por
+  conta, não por carreira).
+- **Jogo**: card `TVContrato` em Clube › Patrocínio (escadinha da cota por
+  divisão + cota extra + regras + cola-link + estados 🕓/✅/❌-com-motivo);
+  aviso ÚNICO `temTVExtra` na fila da virada (round 0, T2+, `tvExtraVisto`);
+  banner antigo da TV ganhou a seta "mora em Clube › Patrocínio"; crédito entra
+  quando o jogador abre a aba (extrato: "📺 Cota extra de TV"); `novidades.ts`.
+- **Admin** (#admin): "📺 Cota extra de TV · mesa de aprovação" — pendentes com
+  link clicável, ✅ Aprovar / ❌ Recusar com motivos prontos, últimos decididos.
+- **Reverter**: um commit (a mesinha no banco pode ficar, vazia não incomoda).
+- **Ajustes do Diego depois da entrega (23/08):** a emissora se chama **REDE
+  MARTELO TV** (renomeada em todo canto — inclusive no banner antigo da cota
+  por divisão, que era "Rede Pelada" desde 11/08) · o valor é **fixo em 10** e o
+  critério de aprovar são os **REQUISITOS** (15s+, marcação, vídeo do jogo) —
+  *"não precisa falar de qualidade"* · vídeo repetido segue barrado (link único).
+
+## 🎟️ SÓCIO: boas-vindas 30 (era 39) + mensal a cada 30 DIAS CORRIDOS (23/08)
+Palavras do Diego: *"todo sócio NÃO ganha 39 moedas de boas-vindas. Ele ganha 30
+qd vira sócio (ou batismo, q já ganha o sócio). E aí daqui a 30 dias DE VERDADE
+ele ganharia mais 30 moedas em qualquer save dele no mês"*. O que mudou:
+- **Boas-vindas: 39 → 30** (`SOCIO_BOAS_VINDAS` + RPC `esc_socio_boas_vindas`).
+- **Mensal deixou de ser mês de CALENDÁRIO** (quem entrava dia 30 dobrava o
+  brinde no dia 1º) → agora o RPC `esc_socio_resgatar` olha o `claimed_at` do
+  ÚLTIMO brinde (boas-vindas conta como início do ciclo) e só paga com 30+ dias
+  corridos. Chave do resgate virou o DIA (`YYYY-MM-DD`), trava anti-corrida no
+  unique de sempre. "Em qualquer save": o crédito cai na carreira que ele abrir
+  na hora certa (já era assim).
+- Cache local novo no cliente (`esc-socio-resgate-at` + conferência 1x/dia) —
+  a trava REAL continua sendo a do servidor.
+- ⚠️ Janela de transição minúscula: aba ABERTA de antes do deploy compara o
+  retorno com 39 e não creditaria as boas-vindas novas (o RPC agora devolve 30);
+  vale só pra sócio NOVO resgatando naquele exato momento — se acontecer, é só
+  o Diego creditar na mão.
+
+### O caminho até aqui (histórico da decisão) — **regras fechadas**
+Pedido do Diego: *"quero algum banner p qm for jogar carreira mas algo relacionado
+a futebol, tem q ser alguma coisa fingindo q é algo pro clube q ele ganha, sabe,
+uma historinha… tem q ser VÍDEO, não pode ser foto e nem foto parada… q conte uma
+história de pra q é e como isso ganhará moedas"*.
+
+**A historinha:** encaixa na TV que JÁ EXISTE no jogo — a **Rede Pelada**, que
+desde 11/08 paga a cota de TV por divisão no fim de temporada (A 20 · B 15 ·
+C 10 · D 5 · V 1, banner "A TV descobriu seu clube!", linha própria no extrato).
+Isto aqui é a **cota EXTRA da mesma emissora**: aparecer na "transmissão" (o
+vídeo postado) = moedas na caixa do clube. ⚠️ No 1º rascunho eu tinha inventado
+uma emissora nova ("TV Legends") sem conferir o código — corrigido pra Rede
+Pelada (regra da casa: conferir o que já existe antes de inventar).
+
+**⚖️ REGRAS FECHADAS PELO DIEGO (23/08, palavras dele):** *"vídeo de no mínimo
+15s, seja Instagram marcando @leilaolegendscom ou 15s no TikTok marcado
+@leilaolegendscom. Não pode foto. É vídeo da tela sendo jogada ou vc jogando o
+jogo aparecendo seu time na tela. Vale apenas UM vídeo por temporada. Cada vídeo
+vale 10 MOEDAS extras no clube e como toda cota de TV pode atrasar um pouco mas
+vai receber."* (Isto MATOU a tabela de views por níveis que eu tinha proposto —
+valor é FIXO: +10🪙 por vídeo aprovado. Só Instagram e TikTok.)
+
+**Controle (combinado na conversa):** igual ao Pix das fichas — nada automático.
+A marcação do @ avisa o Diego na rede social; o link colado no jogo é só pra
+dizer QUAL conta/clube recebe; ele aprova/recusa no admin QUANDO DER (a fila não
+expira — o cara pode jogar 5 temporadas e deixar 5 vídeos esperando, cada um
+carimbado com a sua temporada; status pro jogador: "🕓 em análise na emissora…
+como toda cota de TV, pode atrasar um pouco, mas cai"). Link é único: repetir o
+mesmo vídeo não paga de novo. Prêmio é sempre digital (regra de ouro: dinheiro
+nunca sai do jogo).
+
+**🏠 REFORMA DA CASA DA TV (pedido dele, 23/08):** *"podemos reformular como
+está hoje junto com o que você tá fazendo? Não tô vendo nada falando de TV no
+jogo, não tá muito clara… a história tem que ser: a TV JÁ paga, mas é cota extra
+de transmissão também nas redes sociais… organizado, hora certa… e ficar dentro
+da aba de patrocínios"*. Ele tem razão: hoje a TV só aparece 1x (banner de
+divisão nova) e some — resto é linha no extrato. O desenho da reforma:
+1. **Morada fixa**: card "📺 Contrato de transmissão — Rede Pelada" na aba
+   🏟️ Clube › 🤝 Patrocínio, ABAIXO do patrocínio da temporada que já mora lá.
+   Metade de cima = o contrato por divisão que JÁ paga (escadinha V1/D5/C10/
+   B15/A20 com "você" marcado); metade de baixo = a cota extra das redes
+   (+10🪙, botão 🎬 Televisionar meu jogo, status 🕓 da fila).
+2. **Hora certa**: NENHUM banner novo no meio do jogo — a descoberta é o banner
+   de fim de temporada que já existe ("A TV descobriu seu clube!"), que ganha a
+   frase da cota extra + a seta "tudo mora em Clube › Patrocínio". Ritmo intacto.
+3. Uma linha em `novidades.ts` quando lançar.
+
+- Desenho no repo: `scripts/mockup-cota-tv.mjs` (3ª versão: a casa completa,
+  mandada 23/08).
+- **NADA está no jogo** — o card + a mesinha (`ugc_envios`) + a tela no admin
+  só nascem depois do OK visual dele.
+- Se aprovar, isso substitui/absorve a ideia anterior "POSTOU, GANHOU / Desafio
+  da Semana" (mesmo motor, agora com história de clube, do jeito que ele pediu).
+
+## 🦁 REBATISMO: Império Samambaia → LEÃO DA ESTRADINHA (23/08)
+Pedido do Diego: *"vamos trocar o time império samambaia pro nome de Leão da
+Estradinha. Só mudar nome e escudo mascote e manto"*. **Mesmo dono**
+(jorgericardo777@gmail.com, Lenda, sócio nº4, fundador nº28) — e faz todo
+sentido: o time do coração dele no banco é o **Rio Branco** ("Leão da
+Estradinha" é o apelido do Rio Branco-PR, fundado em 1913, que está na arte).
+
+Formato padrão, tudo igual Coringas do Diniz:
+- **Arte** do dono recortada da prancheta (fundo branco por alastramento da
+  borda — os brancos DE DENTRO intactos), conferida sobre VERMELHO FORTE:
+  escudo 287×360 **27,1 KB** · mascote 236×440 **33,8 KB** (total **60,9 KB**,
+  teto 75) · camisa 332×620 15,6→24,7 KB em `scripts/kits/` (só do post).
+- **Código**: `data.ts` (Série A + corrente de nomes 'Leão da Estradinha' →
+  'Império Samambaia' → 'Cuiabagre') · `escudos.tsx` (4 formas + nome velho;
+  **o SVG antigo do Império Samambaia foi APAGADO do bundle** — era pré-regra) ·
+  `mascotes.tsx` (`leao_estradinha`, "O Leão", carimbo no gol; a samambaia SVG
+  fica, regra 6) · `apoio.tsx` · `novidades.ts`.
+- **Banco**: `esc_socios` atualizado (escudo/mascote/manto `#A32A28`+`#FFFFFF`,
+  cores MEDIDAS na camisa) · `esc_nomes_batismo` reservou o nome novo (puro +
+  FC + EC via gatilho) **e o velho continua reservado** pro mesmo dono.
+- **Mockup**: gerado no padrão, "batizado por **Jorge Ricardo**" (o Diego deu o
+  nome em 23/08). Comando exato pra reproduzir:
+  ```
+  node scripts/mockup-batismo.mjs \
+    --clube "Leão da Estradinha" --serie A --antigo "Império Samambaia" \
+    --escudo src/escalacao/img/leao-estradinha-escudo.webp \
+    --mascote src/escalacao/img/leao-estradinha-mascote.webp \
+    --camisa scripts/kits/leao-estradinha-camisa.webp \
+    --mascote-nome "O Leão" --mascote-emoji "🦁" \
+    --c1 "#A32A28" --c1-nome "vermelho" --c2 "#FFFFFF" --c2-nome "branco" \
+    --dono "Jorge Ricardo" --coracao "Rio Branco-PR" --fundador 28 --socio-n 4 \
+    --saida /tmp/leao-post.png
+  ```
+
+## ✅ SALA ONLINE — "sou o host mas fica confirmando com o host" (23/08, sala 1DWIA5)
+O Diego, DONO da sala, ficou preso no "ENVIANDO… confirmando com o host", com o
+convidado (fonseca2) travado em "aguardando" — e o banner de manutenção acendeu
+(que é o alarme de REDE do aparelho, não manutenção de verdade).
+
+**Fatos do banco (não teoria):** a coroa NUNCA saiu da conta dele; a tela que ele
+viu é a tela DO CONVIDADO (só renderiza com `isHost=false`); e enquanto o celular
+estava travado, ALGUÉM gravava a sala a cada 3s — outro contexto da MESMA conta
+(a conta dele estava logada também num PC com Windows desde 11:55; um resto de
+aba no PC ainda batia coração na sala fantasma XXPW7Y de anteontem, que apaguei).
+
+**Buracos achados e fechados (commit único):**
+1. **A trava "um dono só" comparava a CONTA** — não enxergava a MESMA conta em
+   DOIS aparelhos. Agora cada aba tem um crachá (`__hostTab`) e a hora da posse
+   (`__hostClaimAt`) vai no save. Regra nova: **a coroa segue a última mão** — o
+   aparelho com posse mais nova manda; o antigo abaixa a bola sozinho e mostra
+   "📱 você abriu esta sala em outro aparelho", com botão 👑 RETOMAR AQUI.
+   (Não fere a regra da coroa: é a MESMA pessoa, entre os aparelhos DELA.)
+2. **A reassunção do dono morria calada**: dependia do `auth.getUser()` (rede) —
+   justo na hora em que a rede pisca. Agora usa o crachá LOCAL primeiro
+   (`youUid`) e a rede é só plano B.
+3. **O reload perdia o crachá**: o resume da home não passava `youUid` no
+   RESTORE_ONLINE — depois de recarregar, o aparelho ficava sem identidade pra
+   essas checagens. Agora passa.
+
+**Reverter:** um commit só (`git revert`); os campos novos no save são ignorados
+por versões antigas.
+
+**➕ Terceiro tempo (mesmo dia) — 📮 CAMINHO RESERVA DO LANCE.** Sala NOVA
+(5B11LC), já com todos os consertos, e o erro voltou — desta vez com a direção
+exata na mão: o convidado VIA o host lacrar ("✅ lacrou" na tela dele = o canal
+host→convidado funcionava), mas o lance DELE nunca chegava (convidado→host
+morto), e o reenvio de 4s insistia PELO MESMO canal quebrado. O banco confirmou:
+`submitted [0]`, o convidado nunca entra.
+**Cura definitiva (transporte, não regra):** tabela nova `room_acoes` — quando o
+convidado lacra, o lance vai pelo canal E é escrito no banco via HTTPS (outra
+estrada); o host lê de 3 em 3s durante o leilão e aplica o que faltou. Whitelist
+de 2 tipos (`SUBMIT_ENVELOPE`/`SUBMIT_TIEBREAK`), RLS: só quem tem cadeira na
+sala escreve, sempre no próprio nome; o reducer do host segue re-validando tudo
+(caixa/fase/dupla) e já é imune a lance repetido. As linhas aplicadas são
+apagadas na hora (a mesinha vive vazia).
+
+**➕ Segundo tempo do conserto (mesmo dia) — POSSE HUMILDE.** O Diego apontou o
+furo da regra "o último que chega ganha": *"se eu criei uma sala nova no aparelho
+D, a atual que eu tô deveria funcionar pow"* — aba velha que o Android descongela
+NÃO é a mão do dono, e não pode roubar a coroa de quem está jogando. Regra final:
+- **Gesto do dono** (criar sala · botão 👑 RETOMAR AQUI · reassunção com sumiço
+  provado) = posse PLENA na hora.
+- **Acordar sozinho** (reload/auto-retomada) = posse HUMILDE: a aba fica ~10s
+  SEM gravar nada, espia no banco quem está tocando a sala; se OUTRA aba da
+  conta está gravando, vira espectadora com o aviso; só assume se a sala estiver
+  em silêncio (>9s sem save).
+
 ## 🎬 VÍDEOS UGC (UGCdrop) — plano pronto, esperando créditos/execução (23/08)
 O Diego conectou a UGCdrop e pediu 2 vídeos UGC. Estado real da conta (lido pelo
 conector antes de ele cair): **plano free, ZERO créditos** (download/studio/premium)
