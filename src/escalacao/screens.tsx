@@ -18,6 +18,7 @@ import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
+import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estante · Temporadas · Ajustes
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
@@ -5110,6 +5111,20 @@ export function EscSeason() {
         <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} manto={mm.isHuman ? mantosSala[mm.id] ?? null : null} />
       ))}
       {state.careerDivision && <RivalTracker />}
+      {/* 🏆 A LIGA NUM LUGAR SÓ — aparece assim que o PREGÃO ACABA, que é
+          exatamente esta tela (a simulação dos jogos). Pedido do Diego 23/08:
+          *"as pílulas novas devem aparecer logo após acabar o leilão, q inicia a
+          simulação dos jogos"*.
+          🚫 NÃO É SPOILER: Rank, Estante e Temporadas só mostram temporadas
+          ENCERRADAS (linhas de `game_champions`); o jogo que está rolando agora
+          só entra lá quando o apito final tocar. E AQUI ele NÃO grava nada — a
+          gravação é do fim do jogo (`gravar`), pra não escrever campeão pela
+          metade. Vale na liga E na sala rápida (lá sem a pílula de ajustes, e
+          com a linha avisando que a sala some). */}
+      {online && state.roomId && (
+        <LigaHub roomId={state.roomId} souDono={state.isHost}
+          humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)} />
+      )}
       <CreditLine className="pt-4 pb-2" />
       {showPyramid && state.careerOnline && (
         <PyramidOverlay league={state.league} scorers={state.scorers} managers={state.managers} youId={you.id}
@@ -5668,163 +5683,6 @@ function ShareResultPanel({ opts }: { opts: ShareOpts }) {
           {savedIG && <p className="text-[11px] font-bold text-black/60 text-center">📸 Imagem salva! Abra o Instagram e poste no seu story.</p>}
         </>
       )}
-    </Box>
-  )
-}
-
-// ─── Hall da Fama da sala (só online): ESTANTE de troféus entre revanches ──────
-// Visual da estante da carreira (mockup aprovado pelo Diego 04/08): cartão por
-// jogador com a faixa na COR DO TIER dele (lida pelo selo no nome), troféus
-// empilhados (🏆 liga · 🏆 copa · ⚽ artilharia por time) e o 🙈 TROFÉU MICO do
-// lanterna da temporada, com zoeira variada. Linha do tempo compacta embaixo.
-interface ChampionRow { season_no: number; champion_name: string; top_scorer_name: string | null; top_scorer_goals: number | null; copa_champion_name?: string | null; copa_top_scorer_name?: string | null; copa_top_scorer_goals?: number | null; top_scorer_team?: string | null; mico_name?: string | null }
-// frases do Mico (uma por temporada, sorteio estável pela temporada — todo mundo vê a mesma)
-const MICO_FRASES: ((t: string) => string)[] = [
-  t => `O ${t} terminou em último — a torcida pediu música no Fantástico! 🎶`,
-  t => `${t} comeu tanta poeira que subiu no pódio de MÁSCARA. 😷`,
-  t => `O ônibus do ${t} voltou DE RÉ pra garagem. 🚌`,
-  t => `${t} foi tão mal que o mascote pediu transferência. 🦴`,
-  t => `A lanterna do ${t} tá tão acesa que dá pra ver do espaço. 🔦`,
-  t => `${t} confundiu rebaixamento com mergulho: foi de cabeça. 🏊`,
-  t => `O GPS do ${t} só conhecia o caminho da derrota. 🗺️`,
-  t => `${t} levou o Mico pra casa e ainda pagou o estacionamento. 🙈`,
-  t => `Até o gandula jogou mais que o ${t} nesta temporada. 🏃`,
-  t => `${t}: campeão... de vaia. 📣`,
-  t => `O ${t} defendeu tão pouco que a rede pediu férias. 🥅`,
-  t => `Dizem que o ${t} ainda procura a bola até hoje. 🔍`,
-]
-function HallDaFama({ roomId, isHost, seasonNo, matchSeed, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals, humanos }: {
-  roomId: string; isHost: boolean; seasonNo: number; matchSeed?: number; champName: string; scorerName?: string; scorerGoals?: number
-  scorerTeamName?: string; micoName?: string
-  copaChampName?: string; copaScorerName?: string; copaScorerGoals?: number
-  humanos: string[] // 👥 times de GENTE nesta sala — só eles ganham prateleira
-}) {
-  // 🏆 SÓ A LIGA TEM ESTANTE (Diego 23/08): *"sala normal continua igual, n precisa
-  // ter linha lá falando de títulos. Só liga fechada msm q terá na sala de espera e
-  // qd acaba o jogo"*. Faz sentido: sala rápida MORRE quando o dono sai, então a
-  // "estante" dela some no dia seguinte — prometia história e não entregava. Na liga
-  // a sala fica de pé e a estante é o ponto da coisa.
-  const [ehLiga, setEhLiga] = useState<boolean | null>(null)
-  useEffect(() => {
-    let vivo = true
-    void supabase.from('game_rooms').select('game_state->>mode').eq('id', roomId).maybeSingle()
-      .then(({ data }) => { if (vivo) setEhLiga((data as { mode?: string } | null)?.mode === 'liga') },
-            () => { if (vivo) setEhLiga(false) })
-    return () => { vivo = false }
-  }, [roomId])
-  const [rows, setRows] = useState<ChampionRow[] | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    ;(async () => {
-      // 1) HOST grava (ou corrige) o campeão DESTA temporada ANTES de ler —
-      // antes a leitura corria em paralelo com a escrita e a temporada atual
-      // não aparecia, mostrando só a anterior (parecia campeão errado).
-      if (isHost) {
-        const payload = { champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null, top_scorer_team: scorerTeamName ?? null, mico_name: micoName ?? null, copa_champion_name: copaChampName ?? null, copa_top_scorer_name: copaScorerName ?? null, copa_top_scorer_goals: copaScorerGoals ?? null }
-        // RESILIENTE: re-tenta até 3x (no navegador do WhatsApp a 1ª gravação falha
-        // fácil e o campeão novo não sobrescrevia o antigo → Hall da Fama travava no
-        // campeão de um jogo anterior). Com o retry, a regravação do host vinga.
-        for (let i = 0; i < 3; i++) {
-          // 🏆 A LINHA É DA PARTIDA, não do número da temporada (Diego 16/08 —
-          // "joguei a segunda e não contou no hall"). Antes procurava por
-          // (sala, temporada); como o "novo leilão" zerava a temporada pra 1, a
-          // 2ª partida achava a linha da 1ª e escrevia POR CIMA. Agora a busca é
-          // pela SEMENTE da partida (muda a cada novo leilão): partida diferente
-          // = linha nova, sempre. Sem semente (save/aba antiga), cai na regra
-          // velha — nada quebra.
-          const busca = matchSeed != null
-            ? supabase.from('game_champions').select('id').eq('room_id', roomId).eq('match_seed', matchSeed).maybeSingle()
-            : supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', seasonNo).maybeSingle()
-          const { data: existing } = await busca
-          const { error } = existing
-            ? await supabase.from('game_champions').update(payload).eq('id', existing.id)
-            : await supabase.from('game_champions').insert({ room_id: roomId, season_no: seasonNo, ...(matchSeed != null ? { match_seed: matchSeed } : {}), ...payload })
-          if (!error) break
-          await new Promise(r => setTimeout(r, 400 * (i + 1)))
-        }
-      }
-      // 2) lê o histórico completo
-      const { data } = await supabase.from('game_champions').select('season_no, champion_name, top_scorer_name, top_scorer_goals, top_scorer_team, mico_name, copa_champion_name, copa_top_scorer_name, copa_top_scorer_goals').eq('room_id', roomId).order('season_no', { ascending: true })
-      if (!alive) return
-      const list = (data ?? []) as ChampionRow[]
-      // 3) garante que a temporada ATUAL esteja na lista mesmo que a escrita do
-      // host ainda não tenha propagado (guest lê antes) — usa o campeão local,
-      // que é o mesmo mostrado no topo da tela final.
-      if (!list.some(r => r.season_no === seasonNo)) {
-        list.push({ season_no: seasonNo, champion_name: champName, top_scorer_name: scorerName ?? null, top_scorer_goals: scorerGoals ?? null, top_scorer_team: scorerTeamName ?? null, mico_name: micoName ?? null, copa_champion_name: copaChampName ?? null, copa_top_scorer_name: copaScorerName ?? null, copa_top_scorer_goals: copaScorerGoals ?? null })
-        list.sort((a, b) => a.season_no - b.season_no)
-      }
-      setRows(list)
-    })()
-    return () => { alive = false }
-  }, [isHost, roomId, seasonNo, matchSeed, champName, scorerName, scorerGoals, scorerTeamName, micoName, copaChampName, copaScorerName, copaScorerGoals])
-
-  if (!ehLiga) return null // sala rápida não tem estante (ver comentário lá em cima)
-  if (!rows || rows.length === 0) return null
-  // 👥 TROFÉU É COISA DE GENTE (Diego 23/08: *"troféu só entre usuários"*, e ele tem
-  // razão — no print dele os dois maiores acervos eram de BOT, com os dois humanos
-  // espremidos embaixo). Bot continua aparecendo na LINHA DO TEMPO, que é o registro
-  // do que aconteceu de verdade; ele só não ganha prateleira nem rende piada de Mico
-  // (zoar computador não tem graça — a zoeira é entre amigos).
-  const gente = new Set(humanos.filter(Boolean))
-  const ehGente = (nm: string | null | undefined) => !!nm && gente.has(nm)
-  // 🏆 estante: soma os troféus de cada nome ao longo das temporadas da sala
-  const shelf = new Map<string, { liga: number; copa: number; art: number; mico: number }>()
-  const somar = (nm: string | null | undefined, k: 'liga' | 'copa' | 'art' | 'mico') => { if (!ehGente(nm)) return; const e = shelf.get(nm!) ?? { liga: 0, copa: 0, art: 0, mico: 0 }; e[k]++; shelf.set(nm!, e) }
-  for (const r of rows) { somar(r.champion_name, 'liga'); somar(r.copa_champion_name, 'copa'); somar(r.top_scorer_team, 'art'); somar(r.mico_name, 'mico') }
-  const donos = [...shelf.entries()].sort((a, b) => (b[1].liga + b[1].copa + b[1].art) - (a[1].liga + a[1].copa + a[1].art) || b[1].mico - a[1].mico)
-  const ultimoMico = [...rows].reverse().find(r => ehGente(r.mico_name))
-  const fraseMico = ultimoMico?.mico_name ? MICO_FRASES[(ultimoMico.season_no + ultimoMico.mico_name.length) % MICO_FRASES.length](ultimoMico.mico_name) : null
-  const trofeu = (emoji: string, n: number, label: string, grad: string, fg: string, opts?: { wiggle?: boolean; sheen?: boolean }) => (
-    <div key={label} style={{ width: 82, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', textAlign: 'center', boxShadow: `2.5px 2.5px 0 0 ${INK}`, background: grad, color: fg, position: 'relative', overflow: 'hidden', animation: opts?.wiggle ? 'escMicoWiggle 2.6s ease-in-out infinite' : undefined }}>
-      {opts?.sheen && <ApoioSheen holo={0.7} dur={3.2} />}
-      <span style={{ fontSize: 24, display: 'block', lineHeight: 1.1, position: 'relative' }}>{emoji}</span>
-      <span style={{ display: 'block', fontWeight: 900, fontSize: 14, ...OSWALD, position: 'relative' }}>×{n}</span>
-      <span style={{ display: 'block', fontWeight: 800, fontSize: 7.5, textTransform: 'uppercase', letterSpacing: 0.4, ...OSWALD, position: 'relative' }}>{label}</span>
-    </div>
-  )
-  return (
-    <Box className="p-3" style={{ background: 'linear-gradient(170deg,#FFF7DF,#FFEDB8)' }}>
-      <style>{'@keyframes escMicoWiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}'}</style>
-      <p className="font-black text-base" style={OSWALD}>🏆 HALL DA FAMA DA SALA</p>
-      <p className="text-[10.5px] font-bold text-black/55 mb-3">A estante da resenha — tudo que já rolou aqui nesta sala.</p>
-      {/* cartão de cada dono de troféu (cor do tier pela marca no nome) */}
-      {donos.map(([nome, t]) => {
-        const perk = perkFromSelo(nome) ?? APOIO_PERKS.bege
-        const claro = perk.tier !== 'roxo' // ouro/prata/bege = texto escuro; roxo = branco
-        const total = t.liga + t.copa + t.art
-        return (
-          <div key={nome} style={{ border: `3px solid ${INK}`, borderRadius: 14, marginBottom: 8, overflow: 'hidden', boxShadow: `3px 3px 0 0 ${INK}`, background: '#fff' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 11px', fontWeight: 900, fontSize: 13, ...OSWALD, borderBottom: `3px solid ${INK}`, background: perk.grad, color: claro ? INK : '#fff', position: 'relative', overflow: 'hidden' }}>
-              {perk.holo > 0 && <ApoioSheen holo={perk.holo} dur={3.4} />}
-              <span style={{ position: 'relative', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</span>
-              <span style={{ position: 'relative', marginLeft: 'auto', flex: 'none', background: 'rgba(0,0,0,.72)', color: GOLD, borderRadius: 8, fontSize: 10, padding: '1px 8px', ...OSWALD }}>{total > 0 ? `${total} troféu${total === 1 ? '' : 's'}` : '😬'}</span>
-            </div>
-            <div style={{ display: 'flex', gap: 7, padding: '9px 11px', flexWrap: 'wrap', background: '#FFF9E8' }}>
-              {t.liga > 0 && trofeu('🏆', t.liga, 'Liga', 'linear-gradient(170deg,#FFD84D,#F5B301)', INK, { sheen: true })}
-              {t.copa > 0 && trofeu('🏆', t.copa, 'Copa', 'linear-gradient(170deg,#FFF3C9,#FFE07A)', INK, { sheen: true })}
-              {t.art > 0 && trofeu('⚽', t.art, 'Artilharia', 'linear-gradient(170deg,#57C983,#1B7A3D)', '#fff')}
-              {t.mico > 0 && trofeu('🙈', t.mico, 'Troféu Mico', 'linear-gradient(170deg,#C9986B,#8B5E3C)', '#fff', { wiggle: true })}
-            </div>
-          </div>
-        )
-      })}
-      {/* 🙈 zoeira do último mico (frase estável por temporada — todo mundo vê a mesma) */}
-      {fraseMico && (
-        <p className="text-[10px] font-extrabold rounded-lg px-2.5 py-1.5 mb-2" style={{ background: '#FDECEA', border: '2px solid #C2452F', color: '#7a2418', lineHeight: 1.35 }}>🙈 <b>MICO DA TEMPORADA:</b> {fraseMico}</p>
-      )}
-      {/* 📜 linha do tempo (mais novo em cima) */}
-      <p className="font-black text-[11.5px] uppercase pt-1.5 mb-1.5" style={{ ...OSWALD, borderTop: `3px solid ${INK}` }}>📜 Linha do tempo da sala</p>
-      <div className="space-y-1.5">
-        {[...rows].sort((a, b) => b.season_no - a.season_no).map(r => (
-          <div key={r.season_no} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background: '#fff', border: `2.5px solid ${INK}` }}>
-            <span className="flex-none rounded-md px-1.5 font-black text-[10.5px]" style={{ ...OSWALD, background: INK, color: GOLD }}>T{r.season_no}</span>
-            <span className="min-w-0 flex-1 text-[10px] font-bold leading-snug">🏆 {r.champion_name}{r.copa_champion_name && <> · 🏆 Copa: {r.copa_champion_name}</>}{r.top_scorer_name && <> · ⚽ {r.top_scorer_name} ({r.top_scorer_goals})</>}</span>
-            {r.mico_name && <span className="flex-none text-[10px] font-extrabold" style={{ color: '#8B5E3C' }}>🙈 {r.mico_name}</span>}
-          </div>
-        ))}
-      </div>
     </Box>
   )
 }
@@ -8360,18 +8218,24 @@ export function EscEnd() {
       {ligaBlocks}
       </>
       )}
-      {/* Hall da Fama: só quando a temporada está DECIDIDA (liga-só, ou depois da
-          Copa) — durante a espera da Copa (copaPending) ainda falta o campeão dela. */}
+      {/* 🏆 A LIGA NUM LUGAR SÓ (pílulas). Aqui, no FIM, ela também GRAVA a
+          temporada — por isso vem com `gravar`. Só quando a temporada está
+          DECIDIDA (liga-só, ou depois da Copa): durante a espera da Copa
+          (copaPending) ainda falta o campeão dela, e gravar antes escreveria
+          campeão pela metade. */}
       {online && state.roomId && !copaPending && !libPending && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
         return (
-          <HallDaFama roomId={state.roomId} isHost={state.isHost} seasonNo={state.seasonNo} matchSeed={state.seed} champName={champ.name}
-            scorerName={myScorer?.name} scorerGoals={myScorer?.goals}
-            scorerTeamName={state.managers.find(m => m.id === myScorer?.teamId)?.teamName}
+          <LigaHub roomId={state.roomId} souDono={state.isHost}
             humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
-            micoName={table.length > 1 ? table[table.length - 1]?.name : undefined}
-            copaChampName={copaDone ? (state.quickCopa?.champion?.name ?? undefined) : undefined}
-            copaScorerName={copaDone ? copaSc?.name : undefined} copaScorerGoals={copaDone ? copaSc?.goals : undefined} />
+            gravar={{
+              seasonNo: state.seasonNo, matchSeed: state.seed, champName: champ.name,
+              scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
+              scorerTeamName: state.managers.find(m => m.id === myScorer?.teamId)?.teamName,
+              micoName: table.length > 1 ? table[table.length - 1]?.name : undefined,
+              copaChampName: copaDone ? (state.quickCopa?.champion?.name ?? undefined) : undefined,
+              copaScorerName: copaDone ? copaSc?.name : undefined, copaScorerGoals: copaDone ? copaSc?.goals : undefined,
+            }} />
         )
       })()}
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).

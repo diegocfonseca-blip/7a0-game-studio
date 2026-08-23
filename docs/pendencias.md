@@ -1,5 +1,41 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## ✅ FEITO — LIGA HUB: a liga inteira em pílulas, depois do pregão (23/08)
+*"Sim pode fazer tudo já"*. Arquivo novo: **`src/escalacao/ligahub.tsx`**.
+
+**Onde aparece:** assim que o **PREGÃO ACABA** (a tela da simulação, `EscSeason`) e
+segue até o fim do jogo (`EscEnd`). Palavras do Diego: *"as pílulas novas devem
+aparecer logo após acabar o leilão, q inicia a simulação dos jogos"*.
+🚫 **Não é spoiler**: Rank/Estante/Temporadas só mostram temporadas **encerradas**.
+Na tela da simulação ele **não grava nada** — a gravação da temporada é só no fim
+(prop `gravar`), pra nunca escrever campeão pela metade.
+
+**As pílulas:** 🏆 Rank · 🏅 Estante · 📜 Temporadas · ⚙️ Ajustes (só o dono, e só
+na liga). Abre no Rank.
+
+**O que saiu de onde:**
+- `lobby.tsx`: o componente `TrofeusDaLiga` foi **apagado** (ranking + sala de
+  troféus + editor de regras). Na sala de espera sobrou só o **⚖️ Regras do
+  ranking** do dono, dentro da faixa verde — porque ele precisa decidir ANTES do
+  pregão — mais a **linha da regra que todo mundo vê**.
+- `screens.tsx`: `HallDaFama` foi **apagado**; quem grava a temporada agora é o
+  `LigaHub` com `gravar` (mesma lógica de retry e de `match_seed`).
+- O editor de regras virou um componente só (`RegrasDaLiga`), usado nos DOIS
+  lugares — uma regra só, sem duas telas divergindo.
+
+**Sala aberta também tem** (*"posso pôr no jogo da sala aberta né… acho q temos q
+fazer"*), sem a pílula de ajustes e com a linha da verdade: *"Sala rápida some
+quando a galera sai — pra ter um campeonato que continua, crie uma 🏆 Liga"*.
+
+**Conferido na tela**, não só no build: montei o `LigaHub` de verdade num navegador
+com o banco fingido e tirei print das 4 pílulas + da versão da sala aberta.
+Dois acertos de acabamento saíram daí: o texto herdava cor de fora e saía apagado,
+e a pílula "📜 Temporadas" quebrava em duas linhas no celular.
+
+⚠️ Continua tudo atrás de `LIGA_GERAL = false` (só a conta do Diego). **A sala
+aberta é a exceção**: o LigaHub aparece pra qualquer sala online — é a única parte
+desta entrega que o público veria se subisse pra main. Esperando o OK visual.
+
 ## 👑 REGRA PERMANENTE (23/08) — NÃO EXISTE ADM NA LIGA
 Palavras do Diego: *"não tem negócio de quem manda junto.. só quem manda é o host
 msm. Não tem adm não"*. Existia um botão **"⭐ Quem mais pode mexer"** que dava a
