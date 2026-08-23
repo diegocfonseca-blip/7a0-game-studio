@@ -28,6 +28,20 @@ aba no PC ainda batia coração na sala fantasma XXPW7Y de anteontem, que apague
 **Reverter:** um commit só (`git revert`); os campos novos no save são ignorados
 por versões antigas.
 
+**➕ Terceiro tempo (mesmo dia) — 📮 CAMINHO RESERVA DO LANCE.** Sala NOVA
+(5B11LC), já com todos os consertos, e o erro voltou — desta vez com a direção
+exata na mão: o convidado VIA o host lacrar ("✅ lacrou" na tela dele = o canal
+host→convidado funcionava), mas o lance DELE nunca chegava (convidado→host
+morto), e o reenvio de 4s insistia PELO MESMO canal quebrado. O banco confirmou:
+`submitted [0]`, o convidado nunca entra.
+**Cura definitiva (transporte, não regra):** tabela nova `room_acoes` — quando o
+convidado lacra, o lance vai pelo canal E é escrito no banco via HTTPS (outra
+estrada); o host lê de 3 em 3s durante o leilão e aplica o que faltou. Whitelist
+de 2 tipos (`SUBMIT_ENVELOPE`/`SUBMIT_TIEBREAK`), RLS: só quem tem cadeira na
+sala escreve, sempre no próprio nome; o reducer do host segue re-validando tudo
+(caixa/fase/dupla) e já é imune a lance repetido. As linhas aplicadas são
+apagadas na hora (a mesinha vive vazia).
+
 **➕ Segundo tempo do conserto (mesmo dia) — POSSE HUMILDE.** O Diego apontou o
 furo da regra "o último que chega ganha": *"se eu criei uma sala nova no aparelho
 D, a atual que eu tô deveria funcionar pow"* — aba velha que o Android descongela

@@ -7174,6 +7174,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // espectadora sem briga. Só assume de verdade se ninguém estiver tocando.
   // Gesto seu de verdade (criar sala, botão RETOMAR AQUI, reassunção após o
   // sumiço confirmado do host) entra com posse PLENA, sem espera.
+  const acaoReservaTsRef = useRef(0)   // 📮 última escrita do lance no caminho reserva
+  const acoesVistasRef = useRef(0)     // 📮 último id de room_acoes que o host já aplicou
   const claimForcadoRef = useRef(true)
   const humildeAteRef = useRef(0)
   useEffect(() => {
@@ -7286,6 +7288,22 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }
     if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM' && action.type !== 'GO_RANKING') {
       channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
+      // 📮 CAMINHO RESERVA DO LANCE (23/08, salas 1DWIA5 e 5B11LC): o convidado
+      // via o host lacrar ("✅ lacrou" na tela dele) mas o LANCE DELE nunca
+      // chegava — o rádio (canal realtime) engolia o recado numa direção só, e o
+      // reenvio de 4s insistia PELO MESMO rádio quebrado. Agora o lance também é
+      // ESCRITO NO BANCO (room_acoes, via HTTPS — outra estrada), e o host lê de
+      // 3 em 3s. O reducer continua mandando em tudo (caixa/fase/dupla), e ele já
+      // é imune a lance repetido — chegar pelas duas estradas não duplica nada.
+      // Vale só pros DOIS recados que travam a sala quando somem: o envelope e o
+      // re-lance do empate. Com folga de 5s pra não inundar o banco.
+      if ((action.type === 'SUBMIT_ENVELOPE' || action.type === 'SUBMIT_TIEBREAK') && stateRef.current.roomId) {
+        const agora = Date.now()
+        if (agora - acaoReservaTsRef.current > 5_000) {
+          acaoReservaTsRef.current = agora
+          supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+        }
+      }
     } else {
       rawDispatch(action)
     }
@@ -7540,6 +7558,37 @@ export function EscProvider({ children }: { children: ReactNode }) {
         } catch { /* leitura falhou: não rebaixa (evita perder o dono por rede ruim) */ }
       })()
     }, 5000)
+    return () => clearInterval(iv)
+  }, [state.onlineMode, state.isHost, state.roomId])
+
+  // 📮 O HOST LÊ O CAMINHO RESERVA (23/08): de 3 em 3s, durante o leilão, busca
+  // lances que chegaram pelo banco (room_acoes) e aplica os que faltam. É a
+  // outra ponta da estrada reserva — o canal realtime continua sendo o caminho
+  // rápido; isto aqui garante que NENHUM lacre se perde quando o rádio falha.
+  // Só dois tipos entram (whitelist), o reducer re-valida tudo, e as linhas
+  // aplicadas são apagadas na sequência (a mesinha vive vazia).
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    const iv = setInterval(() => {
+      ;(async () => {
+        try {
+          const st = stateRef.current
+          if (!st.roomId || !st.isHost) return
+          if (st.screen !== 'auction' && st.phase !== 'envelope' && st.phase !== 'resq_envelope') return
+          const { data } = await supabase.from('room_acoes').select('id, payload')
+            .eq('room_id', st.roomId).gt('id', acoesVistasRef.current)
+            .order('id', { ascending: true }).limit(25)
+          const rows = (data ?? []) as { id: number; payload: Action }[]
+          if (!rows.length) return
+          for (const r of rows) {
+            acoesVistasRef.current = Math.max(acoesVistasRef.current, r.id)
+            const a = r.payload
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK')) rawDispatch(a)
+          }
+          supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
+        } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
+      })()
+    }, 3_000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 
