@@ -46,6 +46,32 @@ A camisa (11,3 KB) é do POST, mora em `scripts/kits/` e não entra no bundle.
 **Reverter:** é um commit só, e nada disso mexe em regra de jogo — `git revert`
 volta a arte e a proporção antigas.
 
+### 📣 Post publicado (23/08) — "batizado por **Leandro**"
+O Diego fechou: *"bota batizado por Leandro e pode publicar"*. O nome que vai no
+post é **Leandro** (é como o dono aparece no `apoio.tsx`: "Leandro/Obina").
+Selos do rodapé conferidos contra o código, não chutados: 👑 **Lenda** ·
+🎫 **sócio nº29** · 🏛️ **fundador nº39** (numa geração anterior eu tinha posto
+fundador 28 — errado, corrigido).
+
+Comando exato que gerou o post publicado (pra reproduzir igualzinho):
+```
+node scripts/mockup-batismo.mjs \
+  --clube "Papão United Madrid" --serie D --antigo "Santos Dumont" \
+  --escudo src/escalacao/img/papao-escudo.webp \
+  --mascote src/escalacao/img/papao-mascote.webp \
+  --camisa scripts/kits/papao-camisa.webp \
+  --mascote-nome "O Papão" --mascote-emoji "🐺" \
+  --c1 "#0C2460" --c1-nome "azul-marinho" --c2 "#FFFFFF" --c2-nome "branco" \
+  --dono "Leandro" --fundador 39 --socio-n 29 \
+  --saida /tmp/papao-post.png
+```
+
+**Banco conferido no dia da publicação** (`esc_socios` + `esc_nomes_batismo`):
+sócio nº29 · `escudo_time = Papão United Madrid` · `mascote_key = papao_lobo` ·
+manto `#0C2460` + `#FFFFFF` · origem `batismo`; e as **3 linhas de reserva do
+nome** no ar (puro + **FC** + **EC**, a caixa já entra pela chave minúscula).
+`time_coracao` segue **nulo de propósito** — falta o Diego dizer qual é.
+
 ## ✅ RESOLVIDO — o aviso "o dono sumiu" subia MENTINDO (sala NOYI87, 22/08)
 O Diego mandou print: banner vermelho **"MANDA SEU LANCE DE NOVO — o dono da sala
 sumiu do ar e outra pessoa assumiu o comando"**, na revelação 4/4.
