@@ -7166,9 +7166,22 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const tabIdRef = useRef(Math.random().toString(36).slice(2, 10))
   const hostClaimAtRef = useRef(0)
   const [hostOutroAparelho, setHostOutroAparelho] = useState(false)
+  // 🤫 POSSE HUMILDE (Diego 23/08: *"se eu criei uma sala nova no aparelho D,
+  // a atual que eu tô deveria funcionar pow"*). Aba que vira host SEM um gesto
+  // seu (reload que auto-retoma, aba velha que o Android descongela) NÃO chega
+  // mandando: fica CALADA por ~10s (não salva nada por cima), espia no banco
+  // quem está tocando a sala e — se OUTRA aba da sua conta está gravando — vira
+  // espectadora sem briga. Só assume de verdade se ninguém estiver tocando.
+  // Gesto seu de verdade (criar sala, botão RETOMAR AQUI, reassunção após o
+  // sumiço confirmado do host) entra com posse PLENA, sem espera.
+  const claimForcadoRef = useRef(true)
+  const humildeAteRef = useRef(0)
   useEffect(() => {
     // virou host (criou, retomou, reassumiu): carimba a posse AGORA
-    if (state.isHost) { hostClaimAtRef.current = Date.now(); setHostOutroAparelho(false) }
+    if (state.isHost) {
+      hostClaimAtRef.current = Date.now(); setHostOutroAparelho(false)
+      humildeAteRef.current = claimForcadoRef.current ? 0 : Date.now() + 12_000
+    }
   }, [state.isHost])
   // 🔨 virei host NO MEIO DO PREGÃO? é o único caso em que o lance é reaberto —
   // o aviso precisa dizer isso, senão parece bug (Diego 16/08: "tive que lacrar
@@ -7260,6 +7273,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
+    // 🤫 posse humilde: RESTORE (auto-retomada/reload) NÃO é gesto seu — entra
+    // calado. START (criar sala) é gesto seu — posse plena. BECOME_HOST marca
+    // forçado nos DOIS pontos que o disparam (botão RETOMAR / sumiço provado).
+    if (action.type === 'RESTORE_ONLINE' && action.isHost) claimForcadoRef.current = false
+    if (action.type === 'START_ONLINE' && action.isHost) claimForcadoRef.current = true
     // Sair de uma partida online (NOVO PREGÃO / voltar pra home) deve LIBERAR
     // sua vaga na sala. Sem isso você fica "fantasma": um restart puxa você como
     // jogador e a galera que ficou espera você lacrar pra sempre.
@@ -7488,16 +7506,32 @@ export function EscProvider({ children }: { children: ReactNode }) {
           const st = stateRef.current
           const uid = st.youUid // meu crachá (= auth uid). Sem uid não dá pra comparar → não mexe.
           if (!uid || !st.roomId || !st.isHost) return
-          const { data: r } = await supabase.from('game_rooms').select('host_id, tab:game_state->>__hostTab, claim:game_state->>__hostClaimAt').eq('id', st.roomId).maybeSingle()
-          const row = r as { host_id?: string; tab?: string | null; claim?: string | null } | null
+          const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at, tab:game_state->>__hostTab, claim:game_state->>__hostClaimAt').eq('id', st.roomId).maybeSingle()
+          const row = r as { host_id?: string; updated_at?: string; tab?: string | null; claim?: string | null } | null
           const hostId = row?.host_id
           if (hostId && hostId !== uid && stateRef.current.isHost) { rawDispatch({ type: 'STEP_DOWN_HOST' }); return }
+          const outraAba = !!row?.tab && row.tab !== tabIdRef.current
+          const saveFresco = !!row?.updated_at && Date.now() - new Date(row.updated_at).getTime() < 9_000
+          // 🤫 POSSE HUMILDE decidindo: acordei sozinho (sem gesto do dono) e OUTRA
+          // aba da minha conta está gravando AGORA → a sala já tem quem toque; eu
+          // viro espectador sem briga. Sala em silêncio → assumo de verdade.
+          if (hostId === uid && Date.now() < humildeAteRef.current && stateRef.current.isHost) {
+            if (outraAba && saveFresco) {
+              humildeAteRef.current = 0
+              rawDispatch({ type: 'STEP_DOWN_HOST' })
+              setHostOutroAparelho(true)
+            } else if (!saveFresco) {
+              // ninguém tocando: a posse vira plena e o save religa
+              claimForcadoRef.current = true; humildeAteRef.current = 0
+            }
+            return
+          }
           // 📱 MESMA CONTA, DOIS APARELHOS (o buraco do dia 23/08): a posse é minha
           // no banco, mas o save mais recente veio de OUTRA aba/aparelho com posse
           // mais NOVA que a minha → a coroa está na outra mão. Este aqui abaixa a
           // bola e avisa, em vez de ficar gravando por cima e travando o leilão.
           const claimDeLa = Number(row?.claim)
-          if (hostId === uid && row?.tab && row.tab !== tabIdRef.current
+          if (hostId === uid && outraAba
               && Number.isFinite(claimDeLa) && claimDeLa > hostClaimAtRef.current
               && stateRef.current.isHost) {
             rawDispatch({ type: 'STEP_DOWN_HOST' })
@@ -7745,7 +7779,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at').eq('id', st.roomId).maybeSingle()
             const hostId = (r as { host_id?: string } | null)?.host_id
             // (1) a posse já é MINHA no banco (handoff explícito ou eu era o dono) → assumo.
-            if (hostId === uid) { if (!stateRef.current.isHost) rawDispatch({ type: 'BECOME_HOST' }); return }
+            if (hostId === uid) { if (!stateRef.current.isHost) { claimForcadoRef.current = true; rawDispatch({ type: 'BECOME_HOST' }) } return }
             // 💓 BATIMENTO DO BANCO: o host grava updated_at a cada ~3s (mesmo PARADO
             // no leilão). Se está fresco (< 9s), o dono está VIVO — só ficou quieto no
             // Realtime pra economizar egress. NÃO se rouba host de quem está batendo:
@@ -7826,6 +7860,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
               if (!stateRef.current.isHost) {
                 const sc = stateRef.current
                 setViradaNoLeilao(sc.screen === 'auction' || sc.phase === 'envelope' || sc.phase === 'resq_envelope')
+                claimForcadoRef.current = true
                 rawDispatch({ type: 'BECOME_HOST' }); setBecameHost(true) // aviso "você virou host"
               }
             } else {
@@ -7891,6 +7926,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const save = () => {
       const st = stateRef.current
       if (st.screen === 'intro' || st.screen === 'lobby' || !st.roomId) return
+      // 🤫 posse humilde: enquanto não confirmei que a sala está SEM ninguém
+      // tocando, não escrevo por cima do save de quem estiver — é o que fazia
+      // duas abas da mesma conta se atropelarem (23/08).
+      if (Date.now() < humildeAteRef.current) return
       // sanitize devolve só o EscState — precisamos REPOR o marcador __game
       // (senão as checagens de "é sala da Escalação?" quebram no reconnect) e
       // a formação (usada como fallback). IMPORTANTE: .then() aqui não é
@@ -8019,7 +8058,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.7)', lineHeight: 1.4 }}>
               A coroa foi pra lá (a sala segue no outro aparelho) e <b>este aqui virou só tela</b> — dois donos ao mesmo tempo travavam o leilão. Se era pra jogar AQUI, toque no botão.
             </p>
-            <button onClick={() => { hostClaimAtRef.current = Date.now(); setHostOutroAparelho(false); rawDispatch({ type: 'BECOME_HOST' }) }}
+            <button onClick={() => { claimForcadoRef.current = true; hostClaimAtRef.current = Date.now(); humildeAteRef.current = 0; setHostOutroAparelho(false); rawDispatch({ type: 'BECOME_HOST' }) }}
               style={{ marginTop: 8, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '10px 0', fontWeight: 900, fontSize: 14, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
               👑 RETOMAR AQUI
             </button>

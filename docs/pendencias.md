@@ -28,6 +28,17 @@ aba no PC ainda batia coração na sala fantasma XXPW7Y de anteontem, que apague
 **Reverter:** um commit só (`git revert`); os campos novos no save são ignorados
 por versões antigas.
 
+**➕ Segundo tempo do conserto (mesmo dia) — POSSE HUMILDE.** O Diego apontou o
+furo da regra "o último que chega ganha": *"se eu criei uma sala nova no aparelho
+D, a atual que eu tô deveria funcionar pow"* — aba velha que o Android descongela
+NÃO é a mão do dono, e não pode roubar a coroa de quem está jogando. Regra final:
+- **Gesto do dono** (criar sala · botão 👑 RETOMAR AQUI · reassunção com sumiço
+  provado) = posse PLENA na hora.
+- **Acordar sozinho** (reload/auto-retomada) = posse HUMILDE: a aba fica ~10s
+  SEM gravar nada, espia no banco quem está tocando a sala; se OUTRA aba da
+  conta está gravando, vira espectadora com o aviso; só assume se a sala estiver
+  em silêncio (>9s sem save).
+
 ## 🎬 VÍDEOS UGC (UGCdrop) — plano pronto, esperando créditos/execução (23/08)
 O Diego conectou a UGCdrop e pediu 2 vídeos UGC. Estado real da conta (lido pelo
 conector antes de ele cair): **plano free, ZERO créditos** (download/studio/premium)
