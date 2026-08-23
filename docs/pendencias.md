@@ -8816,3 +8816,44 @@ pros dois lados — carta rebaixada enfraquece igual).
 Testado por SSR: elenco do humano, elenco dos bots, `cpuSquads`, `currentCards`,
 deck e monte sobem juntos; o Dida sobe de ⭐ pra 👑 **e** de 79-86 pra 85-92; o
 incógnito não é tocado; caixa e temporada intactos.
+
+---
+
+## ✅ 21/08 — Nacionalidade passa a ser DA CARTA, não do nome
+
+Diego viu o **Pedro convocado pela ESPANHA** na tela de convocação. Palavras
+dele: *"já disse que cada carta tem que ter sua nacionalidade pra não ter erro
+depois na Copa"*.
+
+**A causa.** O país saía do NOME, com um remendo por baralho
+(`PAIS_POR_BARALHO`: *"Pedro no baralho EU = Espanha"*). Só que o Pedro do
+baralho europeu **não é o espanhol** — é o **Pedro do Flamengo**, na passagem
+ruim pela Fiorentina em 2020 (carta folclórica, fame 1). O Pedro Rodríguez
+espanhol nem está no jogo.
+
+**O conserto.** Nasceu `PAIS_POR_CARTA` em `paises.ts`, chaveado por
+`nome|clube|ano`, e `paisDe(name, baralho, club?, year?)` consulta essa tabela
+ANTES de qualquer coisa. Os dois chamadores passam clube e ano:
+`countryPool()` (copa-mundo.tsx) e `rankingSelecoes()`.
+`PAIS_POR_BARALHO` foi APAGADO — remendo por baralho não resolve homônimo.
+
+🔎 **Um segundo caso apareceu na varredura, e é do mesmo tipo:**
+**"Abedi Pelé · Vasco · 2007" NÃO é o ganês do Marseille.** É o **Abedi do
+Vasco** (Robson Vicente Gonçalves), meia carioca, no clube de 2005 a 2007 — o
+ganês tinha se aposentado em 1998. Estava sendo convocado pela **Gana**.
+Corrigido pra Brasil.
+⚠️ **PENDENTE PRO DIEGO:** a carta do Vasco se chama "Abedi Pelé" e herda a BIO
+do ganês (*"o gênio ganês do Marseille"*) — a bio é por NOME. O certo seria
+renomear a carta do Vasco pra **"Abedi"**, que é o apelido de verdade dele.
+Não fiz sozinho porque renomear muda a IDENTIDADE da carta (chave do valor de
+mercado nos saves). Precisa do OK dele.
+
+🛡️ **Trava nova: `npm run paises`** (`scripts/paises-check.mjs`). Acusa:
+1. carta SEM seleção (`??`) — ficaria fora de toda Copa, calada;
+2. nome repetido no baralho que ninguém conferiu ainda.
+Pra o aviso não virar paredão (52 nomes repetidos, quase todos o MESMO
+brasileiro no baralho BR e no europeu), existe `MESMO_JOGADOR` em `paises.ts`:
+lista dos nomes já conferidos um a um. **Nome repetido novo cai no relatório até
+alguém olhar** — foi assim que o Abedi apareceu.
+
+Hoje: **1424 cartas, 0 sem seleção, 0 nome repetido pendente.**
