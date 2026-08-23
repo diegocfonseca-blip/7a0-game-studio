@@ -10,8 +10,15 @@ aparecer logo após acabar o leilão, q inicia a simulação dos jogos"*.
 Na tela da simulação ele **não grava nada** — a gravação da temporada é só no fim
 (prop `gravar`), pra nunca escrever campeão pela metade.
 
-**As pílulas:** 🏆 Rank · 🏅 Estante · 📜 Temporadas · ⚙️ Ajustes (só o dono, e só
-na liga). Abre no Rank.
+**A FORMA — barra embaixo, igual à da carreira (Diego 23/08, com foto):** *"quero
+q essas pílulas q vc fez fique na parte de baixo igual fizemos no modo carreira"*.
+Então não é uma faixa de pílulas no meio da página: é uma **barra fixa no rodapé**
+com ícone duotone + rótulo em Oswald maiúsculo, mesmíssimo traço da `BarraCarreira`
+(🏆 Rank · 🏅 Estante · 📜 Temporadas · ⚙️ Ajustes — a última só pro dono, só na
+liga). Toque abre um painel de meia tela por cima do jogo; toque de novo (ou no ✕)
+fecha. **Começa FECHADA** — nada tapa a partida rolando.
+⚠️ Não entra na CARREIRA online: lá já existe a `BarraCarreira`, e duas barras
+fixas na mesma tela brigariam.
 
 **O que saiu de onde:**
 - `lobby.tsx`: o componente `TrofeusDaLiga` foi **apagado** (ranking + sala de

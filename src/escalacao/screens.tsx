@@ -5121,7 +5121,9 @@ export function EscSeason() {
           gravação é do fim do jogo (`gravar`), pra não escrever campeão pela
           metade. Vale na liga E na sala rápida (lá sem a pílula de ajustes, e
           com a linha avisando que a sala some). */}
-      {online && state.roomId && (
+      {/* ⚠️ SÓ NO RÁPIDO/LIGA: a CARREIRA online já tem a barra dela embaixo
+          (`BarraCarreira`), e duas barras fixas na mesma tela brigariam. */}
+      {online && state.roomId && !state.careerOnline && (
         <LigaHub roomId={state.roomId} souDono={state.isHost}
           humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)} />
       )}
@@ -8223,7 +8225,7 @@ export function EscEnd() {
           DECIDIDA (liga-só, ou depois da Copa): durante a espera da Copa
           (copaPending) ainda falta o campeão dela, e gravar antes escreveria
           campeão pela metade. */}
-      {online && state.roomId && !copaPending && !libPending && (() => {
+      {online && state.roomId && !state.careerOnline && !copaPending && !libPending && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
         return (
           <LigaHub roomId={state.roomId} souDono={state.isHost}

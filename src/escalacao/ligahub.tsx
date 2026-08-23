@@ -34,11 +34,8 @@ const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif' }
 
 // ⚠️ ESTE ARQUIVO NÃO IMPORTA NADA DE `screens.tsx` DE PROPÓSITO: o screens
 // importa o LigaHub, e um import circular aqui quebraria o jogo na hora de
-// carregar (já aconteceu com constantes da Copa). Por isso a caixinha e as
-// frases do mico moram aqui dentro.
-const Caixa = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-  <div style={{ border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, padding: 12, color: INK, ...style }}>{children}</div>
-)
+// carregar (já aconteceu com constantes da Copa). Por isso o estilo e as frases
+// do mico moram aqui dentro.
 
 // ─── ⚖️ AS REGRAS DA LIGA SÃO DO DONO (20/08) ────────────────────────────────
 // Pedido do Diego: *"ele pode definir a regra do ranking… por ordem de títulos e
@@ -143,6 +140,23 @@ const MICO_FRASES: ((t: string) => string)[] = [
 // ─── a área em pílulas ──────────────────────────────────────────────────────
 type Aba = 'rank' | 'estante' | 'temporadas' | 'ajustes'
 
+// 🎨 ícones desenhados (duotone) — MESMO traço da barra da carreira, 0 KB de
+// imagem. O Diego mandou a foto da barra da carreira e pediu igual:
+// *"quero q essas pílulas fique na parte de baixo igual fizemos no modo carreira"*.
+function IconeLiga({ nome, cor }: { nome: Aba; cor: string }) {
+  const fill = 'rgba(12,12,12,.10)'
+  const p = { fill: 'none', stroke: cor, strokeWidth: 2, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
+  return (
+    <svg width={24} height={24} viewBox="0 0 24 24" style={{ display: 'block', margin: '0 auto' }}>
+      {nome === 'rank' && <><path d="M7 3.5h10v5.2a5 5 0 0 1-10 0z" {...p} fill={fill} /><path d="M7 5.2H4.3v1.6A3.2 3.2 0 0 0 7 9.9M17 5.2h2.7v1.6A3.2 3.2 0 0 1 17 9.9M12 13.7v3.1M8.6 20.5h6.8" {...p} /></>}
+      {nome === 'estante' && <><path d="M4 4.5h16v4.2H4z" {...p} fill={fill} /><path d="M5.5 8.7v11h13v-11M9 12.2h6M9 15.8h6" {...p} /></>}
+      {nome === 'temporadas' && <><path d="M6 3.5h9l4 4v13H6z" {...p} fill={fill} /><path d="M15 3.5v4h4M9 12h7M9 15.6h7" {...p} /></>}
+      {nome === 'ajustes' && <><circle cx={12} cy={12} r={3.2} {...p} fill={fill} /><path d="M12 3.2v2.4M12 18.4v2.4M4.8 12H2.4M21.6 12h-2.4M6.9 6.9L5.2 5.2M18.8 18.8l-1.7-1.7M6.9 17.1l-1.7 1.7M18.8 5.2l-1.7 1.7" {...p} /></>}
+    </svg>
+  )
+}
+const ROTULO_ABA: Record<Aba, string> = { rank: 'Rank', estante: 'Estante', temporadas: 'Temporadas', ajustes: 'Ajustes' }
+
 export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
   roomId: string
   souDono: boolean
@@ -156,7 +170,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
 }) {
   const [rows, setRows] = useState<LinhaCampeao[] | null>(null)
   const [sala, setSala] = useState<{ ehLiga: boolean; nome: string; regras: LigaRegras; ligaAt?: string; semBots: boolean } | null>(null)
-  const [aba, setAba] = useState<Aba>('rank')
+  const [aba, setAba] = useState<Aba | null>(null) // 🔽 barra começa FECHADA: nada tapa o jogo rolando
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -255,40 +269,62 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
   const vazio = rows.length === 0
   if (vazio && !(sala.ehLiga && souDono)) return null
 
-  const abas: [Aba, string][] = [
-    ['rank', '🏆 Rank'], ['estante', '🏅 Estante'], ['temporadas', '📜 Temporadas'],
-    ...(sala.ehLiga && souDono ? [['ajustes', '⚙️ Ajustes'] as [Aba, string]] : []),
-  ]
+  const abas: Aba[] = ['rank', 'estante', 'temporadas', ...(sala.ehLiga && souDono ? ['ajustes' as Aba] : [])]
 
   return (
-    <Caixa style={{ padding: 12, background: 'linear-gradient(170deg,#FFF7DF,#FFEDB8)' }}>
-      <style>{'@keyframes escMicoWiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}'}</style>
-      {/* 💊 as pílulas: uma área só pra tudo que é da liga */}
-      <div className="flex gap-1.5 mb-2.5 flex-wrap">
-        {abas.map(([k, rot]) => (
-          <button key={k} onClick={() => setAba(k)}
-            className="flex-1 border-[2.5px] border-black rounded-xl px-1 py-1.5 font-black active:translate-y-0.5 whitespace-nowrap"
-            style={{ ...OSWALD, fontSize: 10.5, background: aba === k ? GOLD : '#fff', color: INK, boxShadow: aba === k ? `2px 2px 0 0 ${INK}` : 'none', minWidth: 0 }}>
-            {rot}
-          </button>
-        ))}
-      </div>
+    <>
+      {/* 🔊 o botão de som mora no canto de baixo — sobe pra não brigar com a
+          barra (mesmo remendo da barra da carreira e da home) */}
+      <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
+      {/* espaço no fim da página pra a barra não tapar o último bloco */}
+      <div style={{ height: 74 }} />
 
-      {erro && <p className="text-[11px] font-extrabold mb-2 rounded-lg px-2.5 py-1.5" style={{ background: '#FDECEA', border: '2px solid #C2452F', color: '#7a2418' }}>{erro}</p>}
-
-      {aba === 'rank' && <AbaRank ranking={ranking} regras={regras} temLinhas={!vazio} ehLiga={sala.ehLiga} />}
-      {aba === 'estante' && <AbaEstante rows={rows} gente={gente} />}
-      {aba === 'temporadas' && <AbaTemporadas roomId={roomId} rows={rows} souDono={souDono && sala.ehLiga} nomes={humanos} recarregar={carregar} />}
-      {aba === 'ajustes' && <AbaAjustes sala={sala} regras={regras} busy={busy} salvarRegras={salvarRegras} patch={patch} excluir={excluir} />}
-
-      {/* 🌍 SALA RÁPIDA: a verdade sobre a estante. Ela some quando a galera sai —
-          prometer história numa sala que evapora seria enganar. */}
-      {!sala.ehLiga && (
-        <p className="text-[10px] font-bold text-black/55 leading-snug mt-2.5 pt-2" style={{ borderTop: `2px solid rgba(12,12,12,.15)` }}>
-          ℹ️ Isto é o histórico <b>desta sala</b>. Sala rápida <b>some</b> quando a galera sai — pra ter um campeonato que continua toda semana, com hora marcada e ranking guardado, crie uma <b>🏆 Liga</b>.
-        </p>
+      {/* 📜 O PAINEL — abre POR CIMA do jogo, com altura de meia tela e rolagem
+          própria. Toque na mesma aba (ou no ✕) fecha. Assim a barra nunca rouba a
+          tela de quem só quer ver os jogos rolando. */}
+      {aba && (
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 62, zIndex: 99988, padding: '0 8px' }}>
+          <div style={{ margin: '0 auto', maxWidth: 460, maxHeight: '62vh', overflowY: 'auto', background: 'linear-gradient(170deg,#FFF7DF,#FFEDB8)', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `0 -6px 20px rgba(0,0,0,.22)`, color: INK, padding: 12 }}>
+            <style>{'@keyframes escMicoWiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}'}</style>
+            <div className="flex items-center gap-2 mb-2">
+              <p className="flex-1 min-w-0 font-black text-[13px] truncate" style={OSWALD}>
+                {sala.ehLiga ? `🏆 ${sala.nome || 'A liga'}` : '🏆 Esta sala'} · {ROTULO_ABA[aba]}
+              </p>
+              <button onClick={() => setAba(null)} aria-label="Fechar"
+                className="flex-none border-2 border-black rounded-lg px-2.5 py-1 font-black text-[12px] bg-white active:translate-y-0.5" style={OSWALD}>✕</button>
+            </div>
+            {erro && <p className="text-[11px] font-extrabold mb-2 rounded-lg px-2.5 py-1.5" style={{ background: '#FDECEA', border: '2px solid #C2452F', color: '#7a2418' }}>{erro}</p>}
+            {aba === 'rank' && <AbaRank ranking={ranking} regras={regras} temLinhas={!vazio} ehLiga={sala.ehLiga} />}
+            {aba === 'estante' && <AbaEstante rows={rows} gente={gente} />}
+            {aba === 'temporadas' && <AbaTemporadas roomId={roomId} rows={rows} souDono={souDono && sala.ehLiga} nomes={humanos} recarregar={carregar} />}
+            {aba === 'ajustes' && <AbaAjustes sala={sala} regras={regras} busy={busy} salvarRegras={salvarRegras} patch={patch} excluir={excluir} />}
+            {/* 🌍 SALA RÁPIDA: a verdade sobre a estante — ela some quando a galera
+                sai. Prometer história numa sala que evapora seria enganar. */}
+            {!sala.ehLiga && (
+              <p className="text-[10px] font-bold text-black/55 leading-snug mt-2.5 pt-2" style={{ borderTop: '2px solid rgba(12,12,12,.15)' }}>
+                ℹ️ Isto é o histórico <b>desta sala</b>. Sala rápida <b>some</b> quando a galera sai — pra ter um campeonato que continua toda semana, com hora marcada e ranking guardado, crie uma <b>🏆 Liga</b>.
+              </p>
+            )}
+          </div>
+        </div>
       )}
-    </Caixa>
+
+      {/* 🔽 A BARRA — mesma cara da barra da carreira (foto que o Diego mandou):
+          fundo creme translúcido, ícone duotone e rótulo em Oswald maiúsculo. */}
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+        {abas.map(t => {
+          const on = aba === t
+          const cor = on ? '#B8860B' : 'rgba(12,12,12,.45)'
+          return (
+            <button key={t} onClick={() => setAba(on ? null : t)} aria-label={ROTULO_ABA[t]}
+              style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: cor }}>
+              <IconeLiga nome={t} cor={cor} />
+              <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{ROTULO_ABA[t]}</span>
+            </button>
+          )
+        })}
+      </div>
+    </>
   )
 }
 
