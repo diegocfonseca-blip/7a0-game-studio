@@ -1491,7 +1491,7 @@ function BancoLegends() {
 // atrasar um pouco mas vai receber" — a fila espera, não expira).
 const TV_DEGRAUS: [string, number][] = [['V', 1], ['D', 5], ['C', 10], ['B', 15], ['A', 20]]
 type TvEnvio = { id: number; temporada: number; status: string; motivo: string | null }
-function TVContrato({ div, clube }: { div: string; clube: string }) {
+function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: string; foco?: boolean; onFocoFim?: () => void }) {
   const { state, dispatch } = useEsc()
   const [aberto, setAberto] = useState(false) // regras + campo do link
   const [link, setLink] = useState('')
@@ -1499,8 +1499,20 @@ function TVContrato({ div, clube }: { div: string; clube: string }) {
   const [erro, setErro] = useState('')
   const [envio, setEnvio] = useState<TvEnvio | null | undefined>(undefined) // undefined = carregando
   const [logado, setLogado] = useState(true)
+  const [brilho, setBrilho] = useState(false) // ✨ destaque de chegada (veio do banner)
+  const cardRef = useRef<HTMLDivElement>(null)
   const temporada = state.seasonNo ?? 1
   const cotaDiv = TV_DEGRAUS.find(([d]) => d === div)?.[1] ?? 0
+  // 📺→🎯 veio do banner "quero televisionar": rola até o card e acende um brilho
+  // curto, pra ninguém ficar caçando a TV no meio da aba (reclamação do Diego).
+  useEffect(() => {
+    if (!foco) return
+    setBrilho(true)
+    const t1 = setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+    const t2 = setTimeout(() => { setBrilho(false); onFocoFim?.() }, 2600)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [foco])
   useEffect(() => {
     let vivo = true
     ;(async () => {
@@ -1544,7 +1556,7 @@ function TVContrato({ div, clube }: { div: string; clube: string }) {
   const podeEnviar = envio === null || envio?.status === 'recusado'
   const sec = (t: string) => <p style={{ ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase' as const, letterSpacing: 1.2, color: 'rgba(12,12,12,.5)', margin: '0 0 7px' }}>{t}</p>
   return (
-    <div style={{ ...box(), overflow: 'hidden', marginTop: 12 }}>
+    <div ref={cardRef} style={{ ...box(), overflow: 'hidden', marginTop: 12, scrollMarginTop: 64, ...(brilho ? { boxShadow: `0 0 0 4px ${GOLD}, 4px 4px 0 0 ${INK}`, transition: 'box-shadow .3s' } : { transition: 'box-shadow .6s' }) }}>
       <div style={{ position: 'relative', background: 'linear-gradient(150deg,#1c1c1e,#0C0C0C 60%,#26221a)', padding: '11px 13px', color: '#fff' }}>
         <span style={{ position: 'absolute', top: 9, right: 9, background: '#C2452F', border: '2px solid rgba(255,255,255,.25)', borderRadius: 8, ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: 1, padding: '2px 7px' }}>● AO VIVO</span>
         <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>📺 contrato de transmissão</p>
@@ -4541,6 +4553,7 @@ export function PyramidSeasonScreen() {
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
+  const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const [bicoTrocando, setBicoTrocando] = useState(false) // 🕴️ Bico de Folga: lista de troca abre no lugar do botão (visual novo, 14/08)
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
@@ -5748,7 +5761,7 @@ export function PyramidSeasonScreen() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>🎬 1 vídeo por temporada · +10 🪙 cada<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>· 100 temporadas = 1.000 🪙 de cota extra</span></div>
                 <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Fica pra sempre em: 🏟️ Clube › 🤝 Patrocínio</p>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                  <button onClick={() => { dispatch({ type: 'TV_EXTRA_VISTO' }); setTab('estadio'); setClubeSub('patrocinio') }} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>🎬 Quero televisionar</button>
+                  <button onClick={() => { dispatch({ type: 'TV_EXTRA_VISTO' }); setTvFoco(true); setTab('estadio'); setClubeSub('patrocinio') }} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>🎬 Quero televisionar</button>
                   <button onClick={() => dispatch({ type: 'TV_EXTRA_VISTO' })} style={{ flex: 'none', background: 'transparent', color: '#EDE7D3', border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, fontWeight: 900, fontSize: 13, padding: '10px 14px', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Depois</button>
                 </div>
               </div>
@@ -6194,10 +6207,13 @@ export function PyramidSeasonScreen() {
                 {/* 🤝 aqui mora a RÉGUA: a tabela de valores e o "como funciona"
                     saíram da tela de início de temporada (Diego 21/08: "não quero
                     mais a tabela de valores aí, coloque na aba de patrocínio"). */}
-                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} completo />}
-                {/* 📺 A CASA DA TV (Diego 23/08): contrato por divisão + cota extra
-                    das redes, no mesmo card — abaixo do patrocínio da temporada. */}
-                {me && <TVContrato div={me.div} clube={me.team} />}
+                {/* 🧭 ORDEM (ajuste do Diego 23/08, print dele: "a rede lá embaixo
+                    ficou meio estranho e confuso"): 1º o cartãozinho da aposta,
+                    2º a TV, 3º o tabelão da régua — assim quem vem do banner
+                    "quero televisionar" acha a TV de cara, sem caçar. */}
+                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} />}
+                {me && <TVContrato div={me.div} clube={me.team} foco={tvFoco} onFocoFim={() => setTvFoco(false)} />}
+                {me && <SponsorBetStatus div={me.div} soRegua />}
                 {agenciaOk && (() => {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
                   const bicoOn = (state.seasonNo ?? 1) >= 3 && (myDiv === 'V' || myDiv === 'D')

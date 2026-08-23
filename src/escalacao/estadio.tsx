@@ -193,19 +193,23 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId }: { div: st
 // 🧾 status pra aba Clube (só leitura — a escolha é no contrato de início).
 // `completo` (só na sub-aba 🤝 Patrocínio) traz junto a régua de valores e o
 // "como funciona", que saíram da tela de início de temporada.
-export function SponsorBetStatus({ bet, div, completo }: { bet?: { tier: SponsorBetTier; brandId: string }; div?: string; completo?: boolean }) {
-  if (!bet && !completo) return null
+// `soRegua` (23/08): só a tabela de valores + "como funciona", SEM o cabeçalho
+// da aposta — pra régua poder morar DEPOIS do card da TV na aba Patrocínio
+// (Diego achou confuso o tabelão na frente e a TV escondida lá embaixo).
+export function SponsorBetStatus({ bet, div, completo, soRegua }: { bet?: { tier: SponsorBetTier; brandId: string }; div?: string; completo?: boolean; soRegua?: boolean }) {
+  if (!bet && !completo && !soRegua) return null
   const meta = bet ? SPONSOR_BET_META[bet.tier] : undefined
   const brand = bet ? sponsorBrandOf(bet.brandId) : undefined
   const val = bet && div ? (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[bet.tier - 1] : undefined
-  if (!completo) {
+  if (!completo && !soRegua) {
     return (
       <div style={{ ...box('#fff'), padding: 12, marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 22 }}>{meta!.emoji}</span>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>🤝 Patrocínio: {meta!.label}</p>
           <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{brand?.name} · aposta da temporada</p>
         </div>
+        {val != null && <span style={{ ...OSW, fontWeight: 900, fontSize: 13, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 9px', whiteSpace: 'nowrap' }}>+{val} 🪙</span>}
       </div>
     )
   }
@@ -213,7 +217,12 @@ export function SponsorBetStatus({ bet, div, completo }: { bet?: { tier: Sponsor
   const grid: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1.25fr 1fr 1fr 1fr', gap: 4 }
   return (
     <div style={{ ...box('#fff'), overflow: 'hidden', marginTop: 10 }}>
-      {bet ? (
+      {soRegua ? (
+        <div style={{ background: '#FBF6E9', padding: '10px 12px', borderBottom: `2.5px solid ${INK}` }}>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>📊 A régua do patrocínio</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>Quanto cada aposta paga, divisão por divisão.</p>
+        </div>
+      ) : bet ? (
         <div style={{ background: '#E6F3EA', padding: '10px 12px', borderBottom: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', gap: 9 }}>
           <span style={{ fontSize: 19 }}>{meta!.emoji}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
