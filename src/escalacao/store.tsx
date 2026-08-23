@@ -4072,7 +4072,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // save pode vir torto. `normalizeMultiSeats` crava 1 humano ativo + dormindo
       // certo e reancora o youIdx — assim o solo nunca cai em votação nem mostra os
       // dois clubes com o mesmo nome. No-op sem 2º clube.
-      const restored = migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })
+      // 👑 cinto e suspensório: a ficha dos jogadores entra em dia aqui também.
+      // É idempotente — se o save já veio sincronizado do leitor, não faz nada.
+      const restored = sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }))
       normalizeMultiSeats(restored)
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
@@ -6531,7 +6533,10 @@ function loadSoloInProgress(): EscState | null {
     if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen) && Array.isArray(s.managers) && s.managers.length > 0) {
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
       normalizeMultiSeats(s) // 🏛️ multiclube: 1 humano ativo + dormindo certo (reancora youIdx; no-op sem 2º clube)
-      return s
+      // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
+      // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
+      // carreira voltava pelo aqui e o baralho continuava com o nível velho.
+      return sincronizaNiveis(s)
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }
   return null
@@ -6628,38 +6633,60 @@ function faxinaCaixa(save: EscState): EscState {
   return { ...save, careerCoins: limpo, news: ['🧹 Achamos um erro no seu caixa e arrumamos — o resto da carreira está intacto.', ...(save.news ?? [])].slice(0, 12) }
 }
 
-// ─── 👑 O NÍVEL DA CARTA ACOMPANHA O BARALHO (Diego 21/08) ───────────────────
-// O caso dele: *"um usuário pegou Marcelo Vieira e Terry — mas a gente não
-// promoveu várias lendas? Não atualizou?"*. Atualizou o BARALHO (os dois estão
-// `fame: 5` desde 19/08). O que não atualizava era a CARTA JÁ GANHA: quando
-// alguém arremata, a carta é COPIADA pro save com o nível daquele dia, e
-// congela ali pra sempre. Quem tinha o Marcelo no elenco continuava vendo
-// ⭐ CRAQUE numa carta que virou 👑 LENDA no jogo.
+// ─── 👑 A FICHA DO JOGADOR ACOMPANHA O BARALHO (regra permanente, Diego 21/08) ──
+// Palavras dele, depois de o amigo atualizar a página e o Marcelo CONTINUAR
+// craque: *"sempre que atualizarmos qualquer coisa de jogador deve atualizar,
+// seja em carreira antiga, atual, ou em times dos bots — o nível, a categoria,
+// ou qualquer coisa dele"*. Então é lei: **mexeu no `data.ts`, todo save em
+// campo passa a ver a mudança na próxima vez que abrir.**
 //
-// O ÁLBUM já resolvia isso (o `CARD_META` em screens.tsx regrava o nível do
-// catálogo por cima do que foi salvo — o comentário lá cita o Lúcio, que fez o
-// caminho contrário e DEIXOU de ser lenda). Aqui é a mesma ideia, pro elenco.
+// POR QUE ISSO SUMIA. A carta é COPIADA pro save quando entra no jogo, e
+// congela. E, na carreira, **da 2ª temporada em diante o baralho do pregão nem
+// vem do catálogo**: ele é montado do elenco guardado dos bots e dos 60 times
+// de fundo (`cpuSquads`, semeado 1x quando a carreira nasce). Um Marcelo parado
+// no elenco de um bot ia a leilão com o nível do dia em que a carreira começou
+// — foi isso que o Diego viu AO VIVO no martelo.
 //
-// ⚠️ SÓ o RÓTULO (fame/folclórico/promessa). **`lo` e `hi` NÃO são tocados** —
-// eles são a FORÇA do jogador, e mexer neles mudaria resultado de jogo de
-// carreira em andamento. Conferido nas duas promoções de 19/08: das 27 cartas,
-// 26 só trocaram de rótulo e nenhuma ficou mais forte (a única exceção é o
-// Dida, que também subiu de teto; ele fica com o teto antigo no elenco de quem
-// já o tinha, e sai certo em qualquer leilão novo).
+// O ÁLBUM já fazia isso sozinho (`CARD_META` em screens.tsx; o comentário lá
+// cita o Lúcio, que fez o caminho contrário e DEIXOU de ser lenda). Aqui é o
+// mesmo, pro save inteiro.
+//
+// O QUE SINCRONIZA (a "ficha" do jogador):
+//   `fame` (categoria) · `lo`/`hi` (nível) · `folk` · `promessa` · `bio`.
+// O QUE **NÃO** SINCRONIZA, e por quê:
+//   `name`/`club`/`year` — são a IDENTIDADE da carta. `ident()` (nome|clube) é a
+//     chave do valor de mercado e do contrato; trocar o clube apagaria o valor
+//     do jogador no save de quem já o tem.
+//   `pos` — mudar o setor de um jogador que já está escalado quebraria o time
+//     em campo (um ZAG viraria LAT no meio da temporada).
+//   Nada de economia (`paid`, `contratoAte`, `buyPrice`...) — isso é do DONO da
+//     carta, não do jogador.
+//
+// ⚠️ `lo`/`hi` entram por ordem do Diego ("o nível... ou qualquer coisa dele").
+// Isso significa que um jogador pode ficar mais forte no meio de uma carreira
+// em andamento. É o comportamento pedido, não é bug — e vale pros dois lados
+// (se um dia uma carta for rebaixada, ela enfraquece igual).
 //
 // Varredura genérica de propósito: carta mora em MUITO lugar do save (elenco,
-// baralho da rodada, monte, sobras do setor, elenco dos bots, emprestados pra
-// SAF...). Andar no objeto inteiro pega todos, inclusive os que vierem depois.
-const NIVEL_ATUAL = (() => {
-  const m = new Map<string, { fame: number; folk?: boolean; promessa?: boolean }>()
+// baralho da rodada, monte, sobras do setor, elenco dos bots, cpuSquads,
+// emprestados pra SAF...). Andar no objeto inteiro pega todos, inclusive os
+// que vierem depois — lista de campos envelhece e esquece um.
+type FichaJogador = { fame: number; lo: number; hi: number; folk?: boolean; promessa?: boolean; bio?: string }
+const FICHA_ATUAL = (() => {
+  const exato = new Map<string, FichaJogador>()
+  const porNome = new Map<string, FichaJogador>()
+  // ordem: WORLD → EU → BR. O brasileiro entra por último e VENCE em nomes
+  // repetidos (mesma regra do `CARD_META` do álbum).
   for (const cat of [CATALOG_WORLD, CATALOG_EU, CATALOG]) {
     for (const lista of Object.values(cat)) {
-      for (const c of lista as { name: string; club: string; year: number; fame: number; folk?: boolean; promessa?: boolean }[]) {
-        m.set(`${c.name}|${clubCanon(c.club)}|${c.year}`, { fame: c.fame, folk: c.folk, promessa: c.promessa })
+      for (const c of lista as (FichaJogador & { name: string; club: string; year: number })[]) {
+        const ficha: FichaJogador = { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bio: c.bio }
+        exato.set(`${c.name}|${clubCanon(c.club)}|${c.year}`, ficha)
+        porNome.set(c.name, ficha)
       }
     }
   }
-  return m
+  return { exato, porNome }
 })()
 function sincronizaNiveis(save: EscState): EscState {
   let mexeu = 0
@@ -6671,12 +6698,22 @@ function sincronizaNiveis(save: EscState): EscState {
     if (Array.isArray(v)) { for (const item of v) anda(item, prof + 1); return }
     const o = v as Record<string, unknown>
     if (typeof o.name === 'string' && typeof o.club === 'string' && typeof o.year === 'number' && typeof o.fame === 'number') {
-      const meta = NIVEL_ATUAL.get(`${o.name}|${clubCanon(o.club)}|${o.year}`)
-      if (meta && (o.fame !== meta.fame || !!o.folk !== !!meta.folk || !!o.promessa !== !!meta.promessa)) {
-        o.fame = meta.fame
-        if (meta.folk) o.folk = true; else delete o.folk
-        if (meta.promessa) o.promessa = true; else delete o.promessa
-        mexeu++
+      // 🎭 INCÓGNITO nunca entra: nome gerado, não existe no baralho.
+      if (!o.fake) {
+        // 1º pelo trio nome+clube+ano; 2º só pelo nome — assim uma correção de
+        // clube/ano no `data.ts` ainda alcança quem tem a carta velha no save.
+        const f = FICHA_ATUAL.exato.get(`${o.name}|${clubCanon(o.club)}|${o.year}`) ?? FICHA_ATUAL.porNome.get(o.name)
+        if (f) {
+          const dif = o.fame !== f.fame || o.lo !== f.lo || o.hi !== f.hi
+            || !!o.folk !== !!f.folk || !!o.promessa !== !!f.promessa || (f.bio != null && o.bio !== f.bio)
+          if (dif) {
+            o.fame = f.fame; o.lo = f.lo; o.hi = f.hi
+            if (f.folk) o.folk = true; else delete o.folk
+            if (f.promessa) o.promessa = true; else delete o.promessa
+            if (f.bio != null) o.bio = f.bio
+            mexeu++
+          }
+        }
       }
       return // carta não tem carta dentro
     }

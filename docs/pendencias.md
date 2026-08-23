@@ -8660,3 +8660,40 @@ em vez de lista de campos: carta mora em lugar demais pra enumerar.
 ⚠️ **Sobra um caso que o código não alcança:** quem estiver com a ABA ABERTA
 desde antes de 19/08 tem o baralho velho na memória do navegador — só recarregar
 a página resolve. Não tem service worker no projeto, então basta o F5.
+
+---
+
+## ✅ 21/08 (2ª rodada) — o furo que sobrou: o save da PARTIDA EM ANDAMENTO
+
+O amigo do Diego atualizou a página e o **Marcelo continuou craque**. Motivo:
+existem **dois** saves, e eu só tinha coberto um.
+- `esc-solo-career` (+ arquivo + nuvem) → a carreira guardada. **Já cobria.**
+- `esc-solo-inprogress-v1` (`SOLO_RESUME_KEY`) → **a partida em andamento**,
+  com o pregão aberto e o baralho dentro. Lido por `loadSoloInProgress()`, que
+  **não passava pelo sync**. Era exatamente o caso dele: carreira no meio,
+  martelo rolando.
+
+Agora `loadSoloInProgress()` sincroniza, e `RESUME_CAREER_SOLO` sincroniza de
+novo por garantia (é idempotente).
+
+📋 **E a regra virou lei** (ordem do Diego: *"sempre que atualizarmos qualquer
+coisa de jogador deve atualizar… o nível, a categoria, ou qualquer coisa dele"*).
+O sync deixou de ser só o rótulo e passou a regravar a FICHA inteira:
+**`fame` · `lo` · `hi` · `folk` · `promessa` · `bio`**.
+Não mexe (de propósito):
+- `name`/`club`/`year` — identidade da carta; `ident()` é a chave do valor de
+  mercado, trocar o clube apagaria o valor do jogador no save de quem já o tem;
+- `pos` — mudaria o setor de quem já está escalado, quebrando o time em campo;
+- nada de economia (`paid`, `contratoAte`, `buyPrice`) — é do dono, não do jogador.
+- carta `fake` (incógnito) nunca é tocada: nome gerado, não existe no baralho.
+
+Casamento por **nome+clube+ano**, com queda pra **só o nome** — assim uma
+correção de clube/ano no `data.ts` ainda alcança quem tem a carta velha.
+
+⚠️ Agora `lo`/`hi` ENTRAM. Um jogador pode ficar mais forte no meio de uma
+carreira em andamento: é o comportamento que o Diego pediu, não é bug (e vale
+pros dois lados — carta rebaixada enfraquece igual).
+
+Testado por SSR: elenco do humano, elenco dos bots, `cpuSquads`, `currentCards`,
+deck e monte sobem juntos; o Dida sobe de ⭐ pra 👑 **e** de 79-86 pra 85-92; o
+incógnito não é tocado; caixa e temporada intactos.
