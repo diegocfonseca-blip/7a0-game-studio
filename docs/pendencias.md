@@ -1,5 +1,27 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## 🏷️ NOME FECHADO (23/08): o modo se chama **🏆 MINHAS LIGAS**
+Palavras do Diego: *"acho q é melhor minhas ligas até pq o cara pode editar do
+jeito dele.. E qm tiver jogando a liga tb aparece pra ele né, o cara q entrou na
+liga"*. O nome cobre os DOIS lados — o dono, que monta a liga do jeito dele, e o
+convidado, pra quem a liga também fica guardada. **"Liga Fechada" morre como nome
+de tela** (fica só como conversa interna). Onde aparecer texto pro jogador, é
+**Minhas Ligas**.
+
+## 🚦 ORDEM DE LANÇAMENTO (23/08): sala normal PRIMEIRO, liga depois
+Palavras dele: *"vamos começar com calma.. uma coisa de cada vez. Primeiro vamos
+lançar pra salas normais as coisas novas q falamos aqui das pílulas e etc... e até
+pra eu testar também"*.
+1. **Agora**: a barra do rodapé (Rank · Estante · Temporadas) na **sala rápida
+   online**. Não precisa de Lenda, não precisa de liga, e serve de teste real.
+   → novidade escrita em `novidades.ts` (23/08) e post pronto em
+   `scripts/mockup-novidade-estante.mjs` (usa os PRINTS do jogo rodando, não
+   desenho à mão).
+2. **Depois**: 🏆 **Minhas Ligas** (`LIGA_GERAL = true`), com o post próprio.
+   Criar = 👑 Lenda; **jogar = qualquer um** (`LIGA_SO_LENDA_ENTRA = false`, já é
+   assim hoje) — ordem dele: *"a liga fechada só lenda p cima pode criar mas é
+   liberado p jogar"*.
+
 ## ✅ FEITO — LIGA HUB: a liga inteira em pílulas, depois do pregão (23/08)
 *"Sim pode fazer tudo já"*. Arquivo novo: **`src/escalacao/ligahub.tsx`**.
 
