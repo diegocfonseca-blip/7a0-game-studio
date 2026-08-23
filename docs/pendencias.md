@@ -1,5 +1,32 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## 📺 COTA DE TV — banner UGC da carreira (23/08) · **AGUARDANDO OK VISUAL**
+Pedido do Diego: *"quero algum banner p qm for jogar carreira mas algo relacionado
+a futebol, tem q ser alguma coisa fingindo q é algo pro clube q ele ganha, sabe,
+uma historinha… tem q ser VÍDEO, não pode ser foto e nem foto parada… q conte uma
+história de pra q é e como isso ganhará moedas"*.
+
+**A historinha escolhida (ficção de futebol de verdade):** a **TV Legends comprou
+os direitos do campeonato** — clube que aparecer na transmissão recebe a **cota de
+TV** em 🪙 na caixa do clube; quanto maior a audiência, maior a cota. "Filmar a
+tela jogando" = a transmissão. E a exigência de vídeo vira REGRA da história:
+*"📵 foto parada não é transmissão — a TV só paga por vídeo com o jogo
+acontecendo"*.
+
+**Tabela de cotas do mockup** (valores são proposta, o Diego bate o martelo):
+regional (clipe aprovado) +500🪙 · estadual (1.000 views) +2.000🪙 · nacional
+(10.000 views) 1 mês de ⭐ Craque · horário nobre (100.000+) 👑 Lenda ou 🎖️ Batismo.
+Fluxo no mockup: filma ≥15s → posta público com #LeilaoLegends @leilaolegendscom
+→ cola o link no jogo → cota depositada.
+
+- Desenho no repo: `scripts/mockup-cota-tv.mjs` (mockup mandado pro Diego 23/08).
+- **NADA está no jogo** — o banner de verdade só nasce depois do OK visual dele
+  (e aí decide: onde entra na carreira SEM atrasar ritmo, conferência do link é
+  manual pelo direct no começo, valores finais das cotas).
+- Se aprovar, isso substitui/absorve a ideia anterior "POSTOU, GANHOU / Desafio
+  da Semana" (mesmo motor: jogador filma a tela e ganha moeda — só que agora com
+  história de clube, do jeito que ele pediu).
+
 ## 🦁 REBATISMO: Império Samambaia → LEÃO DA ESTRADINHA (23/08)
 Pedido do Diego: *"vamos trocar o time império samambaia pro nome de Leão da
 Estradinha. Só mudar nome e escudo mascote e manto"*. **Mesmo dono**
