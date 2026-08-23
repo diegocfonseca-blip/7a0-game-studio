@@ -174,6 +174,19 @@ Agora:
    (`scripts/catalogo-snapshot.json`) e escreve sozinho o que mudou em
    `src/escalacao/novidades-jogadores.ts` (arquivo GERADO, não editar na mão).
    Commitar os três juntos: `data.ts`, a foto e o gerado.
+5. **Regra permanente (21/08): MEXEU NO JOGADOR, TODO SAVE ATUALIZA.** Palavras
+   do Diego: *"sempre que atualizarmos qualquer coisa de jogador deve atualizar,
+   seja em carreira antiga, atual, ou em times dos bots — o nível, a categoria,
+   ou qualquer coisa dele"*. Já é automático: `sincronizaNiveis()` em `store.tsx`
+   regrava a FICHA (`fame` · `lo`/`hi` · `folk` · `promessa` · `bio`) pelo
+   `data.ts` toda vez que um save abre — carreira ativa, arquivo, nuvem **e o
+   save da PARTIDA EM ANDAMENTO** (`esc-solo-inprogress-v1`, que foi o furo que
+   ele pegou). **Não** mexe em nome/clube/ano (identidade da carta, chave do
+   valor de mercado) nem em `pos` (quebraria o time já escalado), nem em carta
+   `fake`. Por que precisou: a carta é COPIADA pro save e congela — e, na
+   carreira, da 2ª temporada em diante o baralho do pregão vem do **elenco
+   guardado dos bots** e do `cpuSquads`, não do catálogo. Ele cobrou DUAS vezes;
+   não deixar essa regra enferrujar.
 
 ## 🔄 Protocolo de memória compartilhada (OBRIGATÓRIO em toda sessão)
 As sessões não se veem — o repo é a memória comum. Então TODA sessão deve:
