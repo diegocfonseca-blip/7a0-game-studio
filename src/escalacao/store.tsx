@@ -6383,6 +6383,7 @@ const Ctx = createContext<{
   kickPlayer: (playerIndex: number) => void // host remove um técnico da partida
   leaveRoom: () => void // "sair da sala" de vez: se for host, passa o host pra outro (ou apaga a sala se estava sozinho) e sai
   becameHost: boolean // acabei de virar host (o anterior saiu) — mostra o aviso grande
+  hostOutroAparelho: boolean // 📱 a MESMA conta abriu a sala em outro aparelho e a coroa foi pra lá — este virou espectador
 } | null>(null)
 
 // libera a vaga do técnico na sala (apaga a linha de room_players) e limpa a
@@ -7155,6 +7156,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
   const [becameHost, setBecameHost] = useState(false)
+  // 📱 CRACHÁ DO APARELHO (23/08, caso do Diego host vendo "confirmando com o
+  // host"): a trava de "um dono só" comparava a CONTA — e não enxergava a MESMA
+  // conta aberta em DOIS aparelhos (PC esquecido aberto + celular). Cada aba
+  // ganha um crachá próprio; o dono grava o crachá + a HORA em que assumiu
+  // (`__hostTab`/`__hostClaimAt`) junto do save. Regra: A COROA SEGUE A ÚLTIMA
+  // MÃO — o aparelho com a posse mais NOVA manda; o antigo vira espectador com
+  // aviso (nunca dois "eu" brigando, que era o que travava o leilão).
+  const tabIdRef = useRef(Math.random().toString(36).slice(2, 10))
+  const hostClaimAtRef = useRef(0)
+  const [hostOutroAparelho, setHostOutroAparelho] = useState(false)
+  useEffect(() => {
+    // virou host (criou, retomou, reassumiu): carimba a posse AGORA
+    if (state.isHost) { hostClaimAtRef.current = Date.now(); setHostOutroAparelho(false) }
+  }, [state.isHost])
   // 🔨 virei host NO MEIO DO PREGÃO? é o único caso em que o lance é reaberto —
   // o aviso precisa dizer isso, senão parece bug (Diego 16/08: "tive que lacrar
   // de novo um lance novo... aí pareceu bug brabo").
@@ -7473,9 +7488,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
           const st = stateRef.current
           const uid = st.youUid // meu crachá (= auth uid). Sem uid não dá pra comparar → não mexe.
           if (!uid || !st.roomId || !st.isHost) return
-          const { data: r } = await supabase.from('game_rooms').select('host_id').eq('id', st.roomId).maybeSingle()
-          const hostId = (r as { host_id?: string } | null)?.host_id
-          if (hostId && hostId !== uid && stateRef.current.isHost) rawDispatch({ type: 'STEP_DOWN_HOST' })
+          const { data: r } = await supabase.from('game_rooms').select('host_id, tab:game_state->>__hostTab, claim:game_state->>__hostClaimAt').eq('id', st.roomId).maybeSingle()
+          const row = r as { host_id?: string; tab?: string | null; claim?: string | null } | null
+          const hostId = row?.host_id
+          if (hostId && hostId !== uid && stateRef.current.isHost) { rawDispatch({ type: 'STEP_DOWN_HOST' }); return }
+          // 📱 MESMA CONTA, DOIS APARELHOS (o buraco do dia 23/08): a posse é minha
+          // no banco, mas o save mais recente veio de OUTRA aba/aparelho com posse
+          // mais NOVA que a minha → a coroa está na outra mão. Este aqui abaixa a
+          // bola e avisa, em vez de ficar gravando por cima e travando o leilão.
+          const claimDeLa = Number(row?.claim)
+          if (hostId === uid && row?.tab && row.tab !== tabIdRef.current
+              && Number.isFinite(claimDeLa) && claimDeLa > hostClaimAtRef.current
+              && stateRef.current.isHost) {
+            rawDispatch({ type: 'STEP_DOWN_HOST' })
+            setHostOutroAparelho(true)
+          }
         } catch { /* leitura falhou: não rebaixa (evita perder o dono por rede ruim) */ }
       })()
     }, 5000)
@@ -7703,8 +7730,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
         lastOwnerCheckRef.current = Date.now()
         ;(async () => {
           try {
-            const { data: u } = await supabase.auth.getUser()
-            const uid = u?.user?.id
+            // 🧯 23/08 (Diego, sala 1DWIA5): esta checagem — a que devolve a coroa
+            // pro DONO que ficou preso como convidado — dependia SÓ do
+            // auth.getUser(), que é uma chamada de REDE. Com a rede piscando
+            // (exatamente a hora em que a sala trava), ela falhava e a função
+            // desistia CALADA: o dono ficava eterno no "confirmando com o host".
+            // Agora o crachá LOCAL (youUid, que já está no estado) vale primeiro;
+            // a rede é só o plano B.
+            let uid = stateRef.current.youUid
+            if (!uid) { const { data: u } = await supabase.auth.getUser(); uid = u?.user?.id ?? undefined }
             if (!uid) return
             const st = stateRef.current
             if (!st.roomId || st.isHost) return
@@ -7874,7 +7908,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // Agora o que é da sala é lido UMA vez (logo abaixo) e vai junto em todo save.
       // Repare na ordem: a identidade entra primeiro e o `mode` da carreira, que é
       // calculado, tem a palavra final.
-      const payload = { ...sanitize(st), ...salaFixaRef.current, __game: 'escalacao', formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
+      const payload = { ...sanitize(st), ...salaFixaRef.current, __game: 'escalacao', __hostTab: tabIdRef.current, __hostClaimAt: hostClaimAtRef.current, formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a
@@ -7976,8 +8010,22 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale && !iOwnThisRoom
     && state.screen !== 'intro' && state.screen !== 'lobby'
   return (
-    <Ctx.Provider value={{ state, dispatch, emote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost }}>
+    <Ctx.Provider value={{ state, dispatch, emote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}
+      {hostOutroAparelho && (
+        <div style={{ position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 93, fontFamily: 'Oswald, sans-serif' }}>
+          <div style={{ background: '#FFF7DB', border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#0C0C0C' }}>📱 VOCÊ ABRIU ESTA SALA EM OUTRO APARELHO</p>
+            <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.7)', lineHeight: 1.4 }}>
+              A coroa foi pra lá (a sala segue no outro aparelho) e <b>este aqui virou só tela</b> — dois donos ao mesmo tempo travavam o leilão. Se era pra jogar AQUI, toque no botão.
+            </p>
+            <button onClick={() => { hostClaimAtRef.current = Date.now(); setHostOutroAparelho(false); rawDispatch({ type: 'BECOME_HOST' }) }}
+              style={{ marginTop: 8, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '10px 0', fontWeight: 900, fontSize: 14, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
+              👑 RETOMAR AQUI
+            </button>
+          </div>
+        </div>
+      )}
       {becameHost && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center',

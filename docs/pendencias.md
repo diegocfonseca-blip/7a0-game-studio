@@ -1,5 +1,33 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
+## ✅ SALA ONLINE — "sou o host mas fica confirmando com o host" (23/08, sala 1DWIA5)
+O Diego, DONO da sala, ficou preso no "ENVIANDO… confirmando com o host", com o
+convidado (fonseca2) travado em "aguardando" — e o banner de manutenção acendeu
+(que é o alarme de REDE do aparelho, não manutenção de verdade).
+
+**Fatos do banco (não teoria):** a coroa NUNCA saiu da conta dele; a tela que ele
+viu é a tela DO CONVIDADO (só renderiza com `isHost=false`); e enquanto o celular
+estava travado, ALGUÉM gravava a sala a cada 3s — outro contexto da MESMA conta
+(a conta dele estava logada também num PC com Windows desde 11:55; um resto de
+aba no PC ainda batia coração na sala fantasma XXPW7Y de anteontem, que apaguei).
+
+**Buracos achados e fechados (commit único):**
+1. **A trava "um dono só" comparava a CONTA** — não enxergava a MESMA conta em
+   DOIS aparelhos. Agora cada aba tem um crachá (`__hostTab`) e a hora da posse
+   (`__hostClaimAt`) vai no save. Regra nova: **a coroa segue a última mão** — o
+   aparelho com posse mais nova manda; o antigo abaixa a bola sozinho e mostra
+   "📱 você abriu esta sala em outro aparelho", com botão 👑 RETOMAR AQUI.
+   (Não fere a regra da coroa: é a MESMA pessoa, entre os aparelhos DELA.)
+2. **A reassunção do dono morria calada**: dependia do `auth.getUser()` (rede) —
+   justo na hora em que a rede pisca. Agora usa o crachá LOCAL primeiro
+   (`youUid`) e a rede é só plano B.
+3. **O reload perdia o crachá**: o resume da home não passava `youUid` no
+   RESTORE_ONLINE — depois de recarregar, o aparelho ficava sem identidade pra
+   essas checagens. Agora passa.
+
+**Reverter:** um commit só (`git revert`); os campos novos no save são ignorados
+por versões antigas.
+
 ## 🎬 VÍDEOS UGC (UGCdrop) — plano pronto, esperando créditos/execução (23/08)
 O Diego conectou a UGCdrop e pediu 2 vídeos UGC. Estado real da conta (lido pelo
 conector antes de ele cair): **plano free, ZERO créditos** (download/studio/premium)
