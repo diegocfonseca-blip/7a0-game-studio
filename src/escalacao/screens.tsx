@@ -439,8 +439,14 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1.5 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: '#CBD4DE', border: '2px solid #000', boxShadow: '0 0 6px 1px #CBD4DE', flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} ⭐</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">no elenco, tabelas<br />e no online</span></div>
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: '#CBD4DE', backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
             <p className="text-[8.5px] font-bold text-black/50 text-center mt-0.5">☝️ até a arquibancada do teu estádio fica prata</p>
-            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-2" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              {cab('#1B7A3D', '#fff', '🎮 Modo Manual — só o Craque tem')}
+            {/* 🧹 SEM REPETIR (Diego 23/08, com print: *"no prata diz repetidas
+                as coisas de controle do tempo e etc"*). A regra agora é fixa em
+                todos os cards: o TEXTO do guia explica UMA vez, e a caixinha
+                logo abaixo só MOSTRA — sem título repetindo o benefício e sem
+                legenda dizendo de novo o que o texto já disse. */}
+            <Ben t="🎮 Modo Manual Exclusivo">controle total do tempo! Pause, acelere (2× ou 4×), pule rodadas ou vá direto pra próxima. <i>(No online normal, o ritmo continua padrão pra todos.)</i></Ben>
+            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+              {cab('#1B7A3D', '#fff', '👀 é assim que aparece no jogo')}
               <div style={{ background: '#F4ECD6', padding: 8 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 3 }}>
                   {[['🐢', '4×'], ['🐢', '2×'], ['', 'Normal'], ['⚡', '2×'], ['⚡', '4×']].map(([ic, lb], i) => (
@@ -453,15 +459,12 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                   <div className="border-2 border-black rounded-md text-center py-1.5" style={{ background: '#2F6BAE' }}><span className="text-[10px] font-black text-white" style={OSWALD}>⏭️ Pular</span></div>
                   <div className="border-2 border-black rounded-md text-center py-1.5" style={{ background: '#1B7A3D' }}><span className="text-[10px] font-black text-white" style={OSWALD}>▶️ Próxima rodada</span></div>
                 </div>
-                <p className="text-[9.5px] font-bold text-black/60 leading-snug mt-1.5">na <b>Carreira</b> o ritmo é SEU: pausa, acelera, pula. No <b>online</b> continua grátis pra todos.</p>
               </div>
             </div>
-            <Ben t="🎮 Modo Manual Exclusivo">controle total do tempo! Pause, acelere (2× ou 4×), pule rodadas ou vá direto pra próxima. <i>(No online normal, o ritmo continua padrão pra todos.)</i></Ben>
-            <Ben t="🕵️ Nível (Overall) Revelado no Elenco">no modo padrão, o nível dos jogadores do seu time vem oculto. Com o Craque você vê as categorias ocultas (Profissional, Bom Jogador, Promessa e Craque) <b>depois de contratá-los no leilão</b>.</Ben>
+            <Ben t="🕵️ Nível (Overall) Revelado no Elenco">no modo padrão, o nível dos jogadores do seu time vem oculto. Com o Craque você vê as categorias ocultas (Profissional, Bom Jogador, Promessa e Craque) <b>depois de contratá-los no leilão</b> — a Lenda fica em mistério, só o 👑 revela.</Ben>
             <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              {cab('linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)', INK, '🕵️ Assim, ó:')}
-              <div className="bg-white px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>MEI</span><span>Djalminha</span><span className="text-[8.5px] font-bold text-black/40">· Palmeiras ⭐</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#F4F7FB,#CBD4DE)')}>83–88</span></div>
-              <p className="text-[9.5px] font-bold text-black/55 leading-snug bg-white px-2.5 pb-1.5">no leilão segue emoção pura pra todo mundo. A lenda fica em mistério — <b>só o 👑 revela</b>.</p>
+              {cab('linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)', INK, '👀 no seu elenco fica assim')}
+              <div className="bg-white px-2.5 py-2 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>MEI</span><span>Djalminha</span><span className="text-[8.5px] font-bold text-black/40">· Palmeiras ⭐</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#F4F7FB,#CBD4DE)')}>83–88</span></div>
             </div>
             <Ben t="💾 4 Saves (Carreiras Salvas)">quantidade de carreiras que você pode ter salvas ao mesmo tempo, pra jogar quando quiser.</Ben>
             <div className="border-2 border-dashed border-black rounded-lg px-2.5 py-2 mt-2.5" style={{ background: '#FFF6DE' }}>
@@ -477,9 +480,8 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: GOLD, backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
             <Ben t="🕵️ Overall Supremo (até as Lendas)">vai além do Craque! Revela todas as categorias anteriores e destrava também o <b>nível Lenda</b> dos jogadores do seu elenco, depois da contratação no leilão.</Ben>
             <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              {cab('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', INK, '🕵️ Assim, ó:')}
-              <div className="bg-white px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>ATA</span><span>Romário</span><span className="text-[8.5px] font-bold text-black/40">· Baixinho 👑</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#FFE79A,#FFC400)')}>93–99</span></div>
-              <p className="text-[9.5px] font-bold text-black/55 leading-snug bg-white px-2.5 pb-1.5">o elenco da carreira inteiro revelado — sempre depois da contratação, nunca no leilão.</p>
+              {cab('linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', INK, '👀 até a lenda abre o nível pra você')}
+              <div className="bg-white px-2.5 py-2 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>ATA</span><span>Romário</span><span className="text-[8.5px] font-bold text-black/40">· Baixinho 👑</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#FFE79A,#FFC400)')}>93–99</span></div>
             </div>
             <Ben t="📲 Grupo VIP no WhatsApp">contato direto com o criador (Diego) pra ver bastidores e novidades antes de todo mundo.</Ben>
             <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
