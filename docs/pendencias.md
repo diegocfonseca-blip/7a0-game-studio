@@ -25,20 +25,30 @@ poder jogar só c usuários e n bots?"*. Conferido linha a linha:
 4. **Sala de troféus editável**: o dono corrige/escreve temporada na mão.
 5. Criar é do **Lenda**, teto de **2 ligas** por pessoa.
 
+**⚠️ CORREÇÃO (eu tinha falado errado pro Diego):** cheguei a dizer que "sem bots
+já existia na sala normal". **Existia no CÓDIGO, mas desligado** — o seletor
+🌍 Aberta × 🏆 Liga Fechada da sala rápida vivia atrás de
+`LIGA_FECHADA_LIBERADA = false` (o desenho que ele recusou em 22/08), então
+**ninguém nunca viu**. Conferido no banco em 23/08: de **531 salas**, **ZERO** com
+`ligaFechada = true`. Nenhuma partida sem bot jamais aconteceu.
+**Decisão dele (23/08):** *"sem bots n deve ter na sala aberta, apenas em liga
+fechada"*. O bloco morto foi **APAGADO** de `lobby.tsx` (não só desligado), e o
+`ligaFechada` agora só é gravado por `mode:'liga'`. Sala rápida = sempre 20 times.
+
 **NÃO é diferencial (já existe na sala normal):**
-- ❌ **"Sem bots"**: o seletor 🌍 Aberta × 🏆 Liga Fechada já existe na criação da
-  sala NORMAL pra quem é Lenda (`lobby.tsx:2803`, grava `ligaFechada: true`).
-  Jogar só com a galera **já dá** sem ser liga.
 - ❌ **Histórico de campeões**: `game_champions` já é gravado em **TODA sala** no
   fim da temporada (`screens.tsx:5737`) — o que muda é só se aparece na tela.
   Por isso **dá pra pôr as pílulas na sala aberta**: o dado já está lá.
 
-⚠️ **Cuidado ao levar pra sala aberta**: a sala normal **morre** (some da lista), e
-foi exatamente por isso que o Diego disse em 23/08 *"sala normal continua igual"* —
-estante numa sala que some promete história e não entrega. Se as pílulas forem pra
-lá, ou (a) mostram só a história DAQUELA sala e o texto avisa que ela some, ou
-(b) a sala aberta também passa a ficar guardada num "minhas salas" — e aí a liga
-perde mais um diferencial. **Decisão do Diego, ainda não tomada.**
+✅ **DECIDIDO (23/08)**: *"a sala normal não deve ter em minhas salas tb não"*. A
+sala rápida **continua morrendo** — nada de "🎮 Minhas salas". Então, se as pílulas
+forem pra sala aberta, é o **caminho (a)**: mostram só a história DAQUELA sala e o
+texto avisa que ela some quando a galera sai. A liga segue sendo a única que fica
+guardada.
+
+**Placar final do diferencial da LIGA, depois destas duas decisões:**
+🕐 hora marcada · 🚫 sem bots (exclusivo) · 🏠 não morre (Minhas ligas) ·
+⚖️ regras de pontuação do dono · 🏅 sala de troféus editável.
 
 ## ⏳ AGUARDANDO OK DO DIEGO — LIGA FECHADA: pílulas DEPOIS DO PREGÃO (23/08)
 Desenho: `node scripts/mockup-liga-pilulas.mjs`. **Nada disto está no jogo ainda.**

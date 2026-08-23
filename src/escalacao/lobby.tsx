@@ -968,7 +968,6 @@ export function EscLobby() {
   const [bafoValendo, setBafoValendo] = useState(true)
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
-  const [ligaFechada, setLigaFechada] = useState(false) // 🏆 liga só com a galera (sem bots) — só quem tem Lenda cria
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -1004,8 +1003,7 @@ export function EscLobby() {
   // duas vezes sobre bots ou não ao criar a sala e qd eu crio tá mt diferente do
   // mockup"*. Estava certo — a seção "A partida" aparece TAMBÉM no modo Liga, e
   // as duas perguntas de bot caíam na mesma tela.
-  // Fica `false` fixo. Quem for mexer em Liga Fechada, mexe no MODO.
-  const LIGA_FECHADA_LIBERADA = false
+  // Fica assim pra sempre. Quem for mexer em Liga Fechada, mexe no MODO.
   const [joinCode, setJoinCode] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [roomName, setRoomName] = useState('')
@@ -1665,7 +1663,7 @@ export function EscLobby() {
       setLoading(false); return
     }
     const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : (canLiga && ligaFechada ? { ligaFechada: true } : {})), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -2795,26 +2793,16 @@ export function EscLobby() {
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
             <Section num={2} title="A partida" icon="⚽">
-              {LIGA_FECHADA_LIBERADA && (
-              <SegField label="Tabela">
-                {canLiga ? (
-                  <>
-                    <Seg options={[[false, '🌍 Aberta'], [true, '🏆 Liga Fechada']] as [boolean, string][]} value={ligaFechada} onSet={v => setLigaFechada(v)} />
-                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{ligaFechada ? '🏆 Só a galera na tabela — nenhum bot. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.' : '🌍 Tabela de 20 times — os que faltam entram como CPU, como sempre.'}</p>
-                  </>
-                ) : (
-                  // Liga Fechada é benefício do Lenda 👑 — pra quem não tem, aparece
-                  // apagada como convite (sempre fica na tabela Aberta).
-                  <>
-                    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
-                      <button className="flex-1 font-black" style={{ padding: '9px 2px', fontSize: 12.5, background: GOLD, color: '#000', ...OSWALD }}>🌍 Aberta</button>
-                      <button disabled className="flex-1 font-black border-l-[2.5px] border-black" style={{ padding: '9px 2px', fontSize: 11, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', ...OSWALD }}>🏆 Liga Fechada · 👑 Lenda</button>
-                    </div>
-                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">🏆 <b>Liga Fechada</b> (liga só com amigos, sem bot) vem no <b>Lenda 👑</b> — desbloqueie no Apoie.</p>
-                  </>
-                )}
-              </SegField>
-              )}
+              {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
+                  Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
+                  fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
+                  criação da sala RÁPIDA — o desenho que ele já tinha recusado em
+                  22/08 (*"mostra duas vezes sobre bots"*), que vivia apagado atrás de
+                  LIGA_FECHADA_LIBERADA = false. Agora saiu de vez, pra ninguém
+                  religar achando que era feature esquecida.
+                  A tabela sem bots continua existindo — mas SÓ no modo Liga, onde ela
+                  é o ponto: `mode:'liga'` grava `ligaFechada: !ligaComBots`.
+                  Sala rápida = sempre 20 times, os que faltam entram como CPU. */}
               {/* 🏆 A COPA NÃO EXISTE NA SALA DE ELENCO (Diego 17/08: "não terá copa,
                   será apenas divisão de 38 rodadas nesse modo"). Em vez de deixar o
                   seletor ligado e ignorar a escolha depois — que é o tipo de estado
