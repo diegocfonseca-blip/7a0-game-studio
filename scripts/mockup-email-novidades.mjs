@@ -48,6 +48,18 @@ const html = `<style>${FONTES}
 .mail{width:600px;margin:0 auto;background:#F4ECD6;border:1px solid rgba(0,0,0,.15)}
 .remet{background:#fff;border-bottom:1px solid rgba(0,0,0,.12);padding:10px 18px;font-size:11px;font-weight:700;color:rgba(0,0,0,.6)}
 .remet b{color:${INK}}
+/* 📥 a caixa de entrada — o momento que decide se ele ABRE */
+.rot{width:600px;margin:0 auto 8px;${OSW};font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:rgba(12,12,12,.5)}
+.inbox{width:600px;margin:0 auto 26px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 3px 14px rgba(0,0,0,.12)}
+.inbox .barra{background:#f1f3f4;padding:9px 16px;font-weight:700;font-size:12px;color:#5f6368;border-bottom:1px solid #e3e6e8}
+.linha{display:flex;gap:12px;padding:13px 16px;align-items:flex-start;border-bottom:1px solid #edf0f2}
+.linha.nova{background:#fff}
+.av{flex:none;width:38px;height:38px;border-radius:999px;background:${INK};color:${GOLD};display:flex;align-items:center;justify-content:center;font-size:19px}
+.linha .de{font-weight:800;font-size:13.5px;color:#202124}
+.linha .as{font-weight:800;font-size:13px;color:#202124;margin-top:1px}
+.linha .pv{font-size:12px;color:#5f6368;margin-top:1px;line-height:1.35}
+.linha .hr{margin-left:auto;font-size:11px;color:#5f6368;font-weight:700;white-space:nowrap}
+.linha.velha .de,.linha.velha .as{font-weight:600;color:#5f6368}
 .topo{background:linear-gradient(150deg,#1c1c1e,#0C0C0C 60%,#26221a);padding:22px 22px 20px;color:#fff;text-align:center}
 .marca{${OSW};font-size:20px;color:#fff}
 .marca b{color:${GOLD}}
@@ -63,6 +75,26 @@ const html = `<style>${FONTES}
 .escudos img{height:58px;width:auto}
 .escudos .leg{width:100%;text-align:center;font-weight:600;font-size:11.5px;color:rgba(12,12,12,.75);margin-top:6px;line-height:1.45}
 </style>
+<p class="rot">① Como ele CHEGA na caixa de entrada (é aqui que a pessoa decide abrir)</p>
+<div class="inbox">
+  <div class="barra">📥 Caixa de entrada</div>
+  <div class="linha nova">
+    <span class="av">⚽</span>
+    <div style="min-width:0">
+      <div class="de">Leilão Legends</div>
+      <div class="as">Você não vai reconhecer o jogo ⚽🔨</div>
+      <div class="pv">Você montou um time, deu uma olhada… e a gente não parou mais. Olha o que mudou:</div>
+    </div>
+    <span class="hr">agora</span>
+  </div>
+  <div class="linha velha">
+    <span class="av" style="background:#dadce0;color:#5f6368">▦</span>
+    <div style="min-width:0"><div class="de">outro e-mail qualquer</div><div class="as">assunto sem graça…</div></div>
+    <span class="hr">ontem</span>
+  </div>
+</div>
+
+<p class="rot">② O e-mail aberto</p>
 <div class="mail">
   <div class="remet">De: <b>Leilão Legends · contato@leilaolegends.com</b><br>Assunto: <b>Você não vai reconhecer o jogo ⚽🔨</b></div>
   <div class="topo">
