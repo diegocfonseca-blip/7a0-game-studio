@@ -184,6 +184,18 @@ verde **🏆 LIGA** e uma linha com o **dia marcado** ("📅 SEG, 24/8 · 21:00 
 (Precisou levar o `ligaAt` na consulta da lista, que só trazia os campos da sala
 rápida.)
 
+## ❌ RECUSADO — reordenar a tela da sala da liga (23/08)
+Proposta minha: subir o "ABRIR O PREGÃO" pra logo depois da lista de técnicos, juntar
+os 6 botões de data num "⚙️ Ajustes da liga" e os 8 de zoeira num "😜 Zoar a galera".
+Mockup em `scripts/mockup-liga-tela-toda.mjs`.
+
+**Resposta do Diego, depois de ver o desenho E a explicação passo a passo:**
+*"Não, n faz isso"*. **A ordem da tela FICA COMO ESTÁ. Não propor de novo.**
+O mockup fica no repo só como registro do que já foi descartado.
+
+⚠️ Isto NÃO desfaz o que já entrou e ele aprovou antes (troféus em tabela, regras
+visíveis pro convidado, excluir no pé da tela) — aquilo continua valendo.
+
 ## 🧯 TETO DE 2 SALAS RÁPIDAS ABERTAS (23/08) — *"limite pode ser duas sim"*
 Criar sala rápida **nunca teve limite**. O que o banco mostrou quando ele perguntou:
 **484 salas guardadas · 68% paradas há mais de um dia · uma pessoa só criou 20 numa
