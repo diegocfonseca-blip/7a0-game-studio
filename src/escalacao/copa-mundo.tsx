@@ -85,8 +85,13 @@ function countryPool(pais: string): Record<Sec, PoolCard[]> {
   return out
 }
 const cardKey = (c: PoolCard) => `${c.name}|${c.club}|${c.year}`
+// ⚽ AS DUAS VERSÕES DO MESMO JOGADOR PODEM JOGAR JUNTAS (Diego 21/08).
+// Palavras dele: *"na seleção do Brasil tem que ter os dois Cafu, os dois
+// Neymar — são times diferentes que ele jogou, por isso mostra o clube"*.
+// Então o que conta é a CARTA (nome|clube|ano), nunca o nome sozinho: o Cafu
+// do São Paulo e o Cafu do Milan são duas cartas, e as duas entram em campo.
 const formationFits = (pool: Record<Sec, PoolCard[]>, f: Formation) =>
-  SECS.every(s => new Set(pool[s].map(c => c.name)).size >= NEED[f][s])
+  SECS.every(s => new Set(pool[s].map(cardKey)).size >= NEED[f][s])
 
 // XI dos bots: os MELHORES 11 (nível interno; a UI nunca mostra, mas o motor usa)
 function bestXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
@@ -94,7 +99,7 @@ function bestXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
   for (const sec of SECS) {
     const sorted = [...pool[sec]].sort((a, b) => b.fame - a.fame || b.hi - a.hi || b.lo - a.lo)
     let n = 0
-    for (const c of sorted) { if (n >= NEED[f][sec]) break; if (used.has(c.name)) continue; used.add(c.name); xi.push(c); n++ }
+    for (const c of sorted) { if (n >= NEED[f][sec]) break; const k = cardKey(c); if (used.has(k)) continue; used.add(k); xi.push(c); n++ }
   }
   return xi
 }
@@ -492,7 +497,6 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
   const need = NEED[form]
   const total = Object.keys(sel).length
   const bySec = (s: Sec) => Object.values(sel).filter(c => c.sec === s)
-  const usedNames = new Set(Object.values(sel).map(c => c.name))
   const totalCards = SECS.reduce((n, s) => n + pool[s].length, 0)
 
   // 🗣️ POR QUE O TOQUE NÃO FEZ NADA (Diego 23/08: "a escalação não tá alterando
@@ -512,11 +516,6 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
       const naPos = vals.filter(x => x.sec === c.sec)
       if (naPos.length >= need[c.sec]) { // posição cheia
         setAviso(`Você já convocou ${need[c.sec]} ${need[c.sec] === 1 ? SEC_UM[c.sec] : SEC_LABEL[c.sec].toLowerCase()} — não cabe mais. Pra botar ${c.name}, toque primeiro em ${naPos.map(x => x.name).join(' ou ')} pra tirar.`)
-        return prev
-      }
-      const igual = vals.find(x => x.name === c.name)
-      if (igual) { // outra versão da MESMA pessoa
-        setAviso(`${c.name} já está convocado (o de ${igual.club} · ${igual.year}) — ninguém joga duas vezes. Tire ele pra trocar de versão.`)
         return prev
       }
       nx[k] = c; setAviso(null); return nx
@@ -586,7 +585,6 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
           {list.map(c => {
             const k = cardKey(c)
             const on = !!sel[k]
-            const otherVersion = !on && usedNames.has(c.name)
             const full = !on && bySec(c.sec).length >= need[c.sec]
             const versions = pool[c.sec].filter(o => o.name === c.name).length > 1
             // 🔒 quem NÃO cabe mais aparece TRANCADO (cadeado + apagado), não só
@@ -595,11 +593,11 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
             // aparecer a explicação em cima da lista.
             return (
               <button key={k} onClick={() => toggle(c)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : (full || otherVersion) ? '#EFE7D2' : '#fff', cursor: 'pointer', opacity: otherVersion ? 0.5 : full ? 0.62 : 1, textAlign: 'left' }}>
-                <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : (full || otherVersion) ? '🔒' : ''}</span>
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : full ? '#EFE7D2' : '#fff', cursor: 'pointer', opacity: full ? 0.62 : 1, textAlign: 'left' }}>
+                <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : full ? '🔒' : ''}</span>
                 <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                 {on && <span style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>toque pra tirar</span>}
-                {versions && <span style={{ background: '#7C3AED', color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>{otherVersion ? 'já convocado' : 'versões'}</span>}
+                {versions && <span style={{ background: '#7C3AED', color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>versões</span>}
                 <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.club} · {c.year}</span>
               </button>
             )

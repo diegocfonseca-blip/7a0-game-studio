@@ -9279,3 +9279,33 @@ lista dos nomes já conferidos um a um. **Nome repetido novo cai no relatório a
 alguém olhar** — foi assim que o Abedi apareceu.
 
 Hoje: **1424 cartas, 0 sem seleção, 0 nome repetido pendente.**
+
+---
+
+## ✅ 21/08 — Na seleção, as DUAS versões do mesmo jogador podem jogar juntas
+
+Palavras do Diego: *"sobre repetidos não tem problema aparecer. Na seleção do
+Brasil tem que ter os dois Cafu, os dois Neymar — são times diferentes que ele
+jogou, por isso tem que mostrar o clube"*.
+
+Antes o jogo **BLOQUEAVA**: ao tocar na 2ª versão vinha *"fulano já está
+convocado (o de X · ano) — ninguém joga duas vezes"*, e a linha ficava com 🔒.
+Agora **solta**, e vale pros dois lados (você e os times de CPU) — escolha dele
+na pergunta de 21/08.
+
+O que mudou em `copa-mundo.tsx`:
+- `formationFits` conta **cartas** (`cardKey` = nome|clube|ano), não nomes —
+  senão uma seleção com 2 Cafus e mais ninguém na lateral não fecharia o 4-3-3;
+- `bestXI` (o XI dos bots) dedupa por **carta**, não por nome;
+- caiu a guarda `igual` do `toggle` e o estado `otherVersion` da lista (o
+  cadeado da outra versão);
+- o selo roxo continua escrito **"versões"** nas cartas que têm mais de uma —
+  é o que avisa o jogador de que existe outra.
+
+⚠️ Consequência aceita: dá pra escalar Cafu do São Paulo E Cafu do Milan ao
+mesmo tempo, os dois em campo. É o comportamento pedido, não é bug. A trava de
+POSIÇÃO CHEIA continua igual (2 laterais é 2 laterais).
+
+📌 E fica registrado, porque eu quase entendi errado: o `MESMO_JOGADOR` do
+`npm run paises` **não esconde nada do jogo** — é só pra o aviso do script não
+virar paredão de 52 nomes. Carta repetida aparece normal pro jogador, sempre.
