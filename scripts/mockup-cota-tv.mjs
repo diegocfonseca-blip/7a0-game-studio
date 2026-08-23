@@ -6,12 +6,20 @@
 // vídeo, não pode ser foto parada — algo que tenha sentido com o jogo, que
 // conte uma história de pra que é, e com isso ganha moedas"*.
 //
-// A história escolhida é a mais natural do futebol: COTA DE TV. Clube de
-// verdade ganha dinheiro quando o jogo dele passa na TV. Aqui: a "TV Legends"
-// comprou os direitos do campeonato — quem FILMAR a tela do próprio jogo
-// (vídeo, mínimo ~15s, jogo rolando) e postar público com #LeilaoLegends
-// marcando @leilaolegendscom, cola o link no jogo e o CLUBE recebe a cota em
-// 🪙. Quanto maior a audiência (views), maior a cota — igual na vida real.
+// REGRAS FECHADAS PELO DIEGO (23/08, palavras dele):
+//   *"vídeo de no mínimo 15s, seja Instagram marcando @leilaolegendscom ou
+//   15s no TikTok marcado @leilaolegendscom. Não pode foto. É vídeo da tela
+//   sendo jogada ou vc jogando o jogo aparecendo seu time na tela. Vale
+//   apenas UM vídeo por temporada. Cada vídeo vale 10 MOEDAS extras no clube
+//   e, como toda cota de TV, pode atrasar um pouco mas vai receber."*
+//
+// A emissora é a REDE PELADA — a mesma que JÁ paga a cota de TV por divisão
+// no fim de temporada (banner "A TV descobriu seu clube!", Diego 11/08).
+// Isto aqui é a COTA EXTRA da mesma TV: aparecer na "transmissão" (o vídeo
+// postado) = +10 🪙 no caixa. A conferência é MANUAL do Diego (mesmo esquema
+// do Pix das fichas): a marcação do @ avisa ele na rede social, o link colado
+// no jogo diz QUAL conta/clube recebe, e ele aprova no admin quando der —
+// por isso o status "🕓 em análise na emissora" (a cota "atrasa" sem quebrar).
 //
 // ⚠️ SÓ DESENHO — nada disto está no jogo. Aguardando OK visual do Diego.
 //   node scripts/mockup-cota-tv.mjs [--saida x.png]
@@ -26,15 +34,6 @@ const FONTES = [400, 500, 600, 700].map(w =>
 
 const INK = '#0C0C0C', GOLD = '#FFC400', RED = '#C2452F', GREEN = '#1B7A3D'
 const OSW = 'font-family:Oswald,sans-serif;font-weight:700'
-
-const cota = (nivel, cond, valor, bg, fg = INK) => `
-<div style="display:flex;align-items:center;gap:10px;background:${bg};border:2.5px solid ${INK};border-radius:12px;padding:8px 12px;color:${fg}">
-  <div style="flex:1;min-width:0">
-    <div style="${OSW};font-size:14px;text-transform:uppercase">${nivel}</div>
-    <div style="font-weight:600;font-size:11px;opacity:.75">${cond}</div>
-  </div>
-  <div style="${OSW};font-size:16px;white-space:nowrap">${valor}</div>
-</div>`
 
 const html = `<style>${FONTES}
 *{box-sizing:border-box} body{margin:0;background:#F4ECD6;font-family:system-ui,-apple-system,sans-serif;color:${INK};padding:24px}
@@ -53,31 +52,37 @@ const html = `<style>${FONTES}
 .pn{flex:none;width:26px;height:26px;border-radius:99px;background:${INK};color:${GOLD};display:flex;align-items:center;justify-content:center;${OSW};font-size:13px}
 .pt{margin:0;font-weight:700;font-size:12.5px;line-height:1.4}
 .aviso{background:#FDECEA;border:2.5px solid ${RED};border-radius:11px;padding:8px 11px;font-weight:800;font-size:11px;color:#7a2418;line-height:1.4;margin-top:10px}
+.valor{display:flex;align-items:center;gap:10px;background:linear-gradient(150deg,#FFE79A,${GOLD} 60%,#E8A200);border:3px solid ${INK};border-radius:13px;box-shadow:3px 3px 0 ${INK};padding:11px 13px}
+.v-num{${OSW};font-size:26px;white-space:nowrap}
+.v-txt{font-weight:800;font-size:11.5px;line-height:1.35}
+.regra{display:flex;align-items:center;gap:9px;font-weight:800;font-size:12px;line-height:1.35;margin-top:9px}
+.regra .ic{flex:none;font-size:16px}
+.fila{display:flex;align-items:center;gap:9px;background:#F4ECD6;border:2.5px dashed rgba(12,12,12,.4);border-radius:11px;padding:9px 11px;font-weight:800;font-size:11.5px;color:rgba(12,12,12,.75);margin-top:10px}
 </style>
 <div class="fone">
   <p class="rotulo">① O banner, na tela da carreira</p>
   <div class="banner">
     <div class="aovivo"><span class="dot"></span> AO VIVO</div>
     <p class="b-tit">📺 A TV quer o SEU clube!</p>
-    <p class="b-txt">A <b>TV Legends</b> comprou os direitos do campeonato. Clube que aparecer na transmissão <b>recebe a cota de TV em 🪙</b> — e quanto maior a audiência, maior a cota.</p>
+    <p class="b-txt">A <b>Rede Pelada</b> paga <b>cota EXTRA</b> pra clube que aparecer na transmissão: filma seu jogo, posta, e a cota cai <b>na caixa do clube</b>. 🪙</p>
     <div class="b-cta">🎬 Televisionar meu jogo</div>
   </div>
 
   <p class="rotulo" style="margin-top:20px">② Tocou no banner: a história e as regras</p>
   <div class="card">
     <p class="tit">📺 Como o clube entra na TV</p>
-    <div class="passo"><div class="pn">1</div><p class="pt"><b>Filma a tela</b> do seu jogo rolando (grava-tela do celular) — <b>vídeo, 15s ou mais</b>. O martelo, o gol, o título, a zebra: o momento é seu.</p></div>
-    <div class="passo"><div class="pn">2</div><p class="pt"><b>Posta público</b> no TikTok, Reels ou Shorts com <b>#LeilaoLegends</b> marcando <b>@leilaolegendscom</b>.</p></div>
+    <div class="passo"><div class="pn">1</div><p class="pt"><b>Grava um vídeo de 15s ou mais</b>: a tela do jogo rolando — ou você jogando, com o seu time aparecendo na tela. O martelo, o gol, o título, a zebra: o momento é seu.</p></div>
+    <div class="passo"><div class="pn">2</div><p class="pt"><b>Posta no Instagram ou no TikTok</b> marcando <b>@leilaolegendscom</b>.</p></div>
     <div class="passo"><div class="pn">3</div><p class="pt"><b>Cola o link aqui</b> — a emissora confere e deposita a cota <b>na caixa do seu clube</b>. 💰</p></div>
-    <div class="aviso">📵 Foto parada não é transmissão — a TV só paga por <b>vídeo com o jogo acontecendo</b>.</div>
+    <div class="aviso">📵 Foto não vale — a TV só paga por <b>vídeo com o jogo acontecendo</b>.</div>
   </div>
 
-  <p class="rotulo" style="margin-top:20px">③ A tabela de cotas (audiência manda, como na vida real)</p>
-  <div class="card" style="display:flex;flex-direction:column;gap:8px">
-    ${cota('Jogo na regional', 'clipe postado e aprovado', '+500 🪙', '#F4ECD6')}
-    ${cota('Rede estadual', 'passou de 1.000 views', '+2.000 🪙', '#E8E8E8')}
-    ${cota('Rede nacional', 'passou de 10.000 views', `1 mês de ⭐ Craque`, `linear-gradient(150deg,#FFE79A,${GOLD} 60%,#E8A200)`)}
-    ${cota('Horário nobre', 'estourou: 100.000+ views', `👑 Lenda ou 🎖️ Batismo`, `linear-gradient(160deg,${GREEN},#14401f)`, '#fff')}
+  <p class="rotulo" style="margin-top:20px">③ Quanto vale (regras do Diego, 23/08)</p>
+  <div class="card">
+    <div class="valor"><div class="v-num">+10 🪙</div><div class="v-txt">extras na caixa do clube,<br>por vídeo aprovado</div></div>
+    <div class="regra"><span class="ic">🗓️</span><span>Vale <b>1 vídeo por temporada</b> — temporada nova, vídeo novo.</span></div>
+    <div class="regra"><span class="ic">🔗</span><span>Cada vídeo vale <b>uma vez só</b> — repetir o mesmo link não paga de novo.</span></div>
+    <div class="fila"><span style="font-size:15px">🕓</span><span><b>Em análise na emissora</b> — como toda cota de TV, pode atrasar um pouco… mas cai. 💰</span></div>
   </div>
 </div>`
 

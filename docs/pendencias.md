@@ -1,31 +1,42 @@
 # 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
 
-## 📺 COTA DE TV — banner UGC da carreira (23/08) · **AGUARDANDO OK VISUAL**
+## 📺 COTA DE TV EXTRA — banner UGC da carreira (23/08) · **REGRAS FECHADAS, AGUARDANDO OK VISUAL**
 Pedido do Diego: *"quero algum banner p qm for jogar carreira mas algo relacionado
 a futebol, tem q ser alguma coisa fingindo q é algo pro clube q ele ganha, sabe,
 uma historinha… tem q ser VÍDEO, não pode ser foto e nem foto parada… q conte uma
 história de pra q é e como isso ganhará moedas"*.
 
-**A historinha escolhida (ficção de futebol de verdade):** a **TV Legends comprou
-os direitos do campeonato** — clube que aparecer na transmissão recebe a **cota de
-TV** em 🪙 na caixa do clube; quanto maior a audiência, maior a cota. "Filmar a
-tela jogando" = a transmissão. E a exigência de vídeo vira REGRA da história:
-*"📵 foto parada não é transmissão — a TV só paga por vídeo com o jogo
-acontecendo"*.
+**A historinha:** encaixa na TV que JÁ EXISTE no jogo — a **Rede Pelada**, que
+desde 11/08 paga a cota de TV por divisão no fim de temporada (A 20 · B 15 ·
+C 10 · D 5 · V 1, banner "A TV descobriu seu clube!", linha própria no extrato).
+Isto aqui é a **cota EXTRA da mesma emissora**: aparecer na "transmissão" (o
+vídeo postado) = moedas na caixa do clube. ⚠️ No 1º rascunho eu tinha inventado
+uma emissora nova ("TV Legends") sem conferir o código — corrigido pra Rede
+Pelada (regra da casa: conferir o que já existe antes de inventar).
 
-**Tabela de cotas do mockup** (valores são proposta, o Diego bate o martelo):
-regional (clipe aprovado) +500🪙 · estadual (1.000 views) +2.000🪙 · nacional
-(10.000 views) 1 mês de ⭐ Craque · horário nobre (100.000+) 👑 Lenda ou 🎖️ Batismo.
-Fluxo no mockup: filma ≥15s → posta público com #LeilaoLegends @leilaolegendscom
-→ cola o link no jogo → cota depositada.
+**⚖️ REGRAS FECHADAS PELO DIEGO (23/08, palavras dele):** *"vídeo de no mínimo
+15s, seja Instagram marcando @leilaolegendscom ou 15s no TikTok marcado
+@leilaolegendscom. Não pode foto. É vídeo da tela sendo jogada ou vc jogando o
+jogo aparecendo seu time na tela. Vale apenas UM vídeo por temporada. Cada vídeo
+vale 10 MOEDAS extras no clube e como toda cota de TV pode atrasar um pouco mas
+vai receber."* (Isto MATOU a tabela de views por níveis que eu tinha proposto —
+valor é FIXO: +10🪙 por vídeo aprovado. Só Instagram e TikTok.)
 
-- Desenho no repo: `scripts/mockup-cota-tv.mjs` (mockup mandado pro Diego 23/08).
-- **NADA está no jogo** — o banner de verdade só nasce depois do OK visual dele
-  (e aí decide: onde entra na carreira SEM atrasar ritmo, conferência do link é
-  manual pelo direct no começo, valores finais das cotas).
+**Controle (combinado na conversa):** igual ao Pix das fichas — nada automático.
+A marcação do @ avisa o Diego na rede social; o link colado no jogo é só pra
+dizer QUAL conta/clube recebe; ele aprova/recusa no admin QUANDO DER (a fila não
+expira — o cara pode jogar 5 temporadas e deixar 5 vídeos esperando, cada um
+carimbado com a sua temporada; status pro jogador: "🕓 em análise na emissora…
+como toda cota de TV, pode atrasar um pouco, mas cai"). Link é único: repetir o
+mesmo vídeo não paga de novo. Prêmio é sempre digital (regra de ouro: dinheiro
+nunca sai do jogo).
+
+- Desenho no repo: `scripts/mockup-cota-tv.mjs` (2ª versão, com as regras dele,
+  mandada 23/08).
+- **NADA está no jogo** — o banner + a mesinha (`ugc_envios`) + a tela no admin
+  só nascem depois do OK visual dele.
 - Se aprovar, isso substitui/absorve a ideia anterior "POSTOU, GANHOU / Desafio
-  da Semana" (mesmo motor: jogador filma a tela e ganha moeda — só que agora com
-  história de clube, do jeito que ele pediu).
+  da Semana" (mesmo motor, agora com história de clube, do jeito que ele pediu).
 
 ## 🦁 REBATISMO: Império Samambaia → LEÃO DA ESTRADINHA (23/08)
 Pedido do Diego: *"vamos trocar o time império samambaia pro nome de Leão da
