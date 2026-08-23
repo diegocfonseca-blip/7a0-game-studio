@@ -6,8 +6,9 @@ por ordem do Diego (o assento do Alfacehh virou do Papão; o Alfacehh ficou com 
 lugar do ex-Athletico do Porto, **mesma força, só o nome muda**). Dono nasceu
 👑 **Lenda** + **fundador nº28**, como manda a regra de batismo.
 Arte do próprio dono (2ª leva, peças separadas): escudo, a fera com o tridente e
-a camisa. ❤️ **Time de coração: em branco de propósito** — o Diego ainda não falou
-qual é, e não se inventa isso.
+a camisa. ❤️ **Time de coração: PAYSANDU** (o Diego falou em 23/08). Faz todo
+sentido e não é coincidência: o **Papão da Curuzu** é o apelido do Paysandu — o
+nome do clube dele vem daí.
 
 ### ✅ RESOLVIDO — a arte saía PEQUENA na janela do post (o "encaixe desproporcional")
 Palavras do Diego: *"tá mt desproporcional o escudo no encaixe da janela.. n está
@@ -62,7 +63,7 @@ node scripts/mockup-batismo.mjs \
   --camisa scripts/kits/papao-camisa.webp \
   --mascote-nome "O Papão" --mascote-emoji "🐺" \
   --c1 "#0C2460" --c1-nome "azul-marinho" --c2 "#FFFFFF" --c2-nome "branco" \
-  --dono "Leandro" --fundador 39 --socio-n 29 \
+  --dono "Leandro" --coracao "Paysandu" --fundador 39 --socio-n 29 \
   --saida /tmp/papao-post.png
 ```
 
@@ -70,7 +71,7 @@ node scripts/mockup-batismo.mjs \
 sócio nº29 · `escudo_time = Papão United Madrid` · `mascote_key = papao_lobo` ·
 manto `#0C2460` + `#FFFFFF` · origem `batismo`; e as **3 linhas de reserva do
 nome** no ar (puro + **FC** + **EC**, a caixa já entra pela chave minúscula).
-`time_coracao` segue **nulo de propósito** — falta o Diego dizer qual é.
+`time_coracao = Paysandu`, gravado quando o Diego falou (23/08).
 
 ## ✅ RESOLVIDO — o aviso "o dono sumiu" subia MENTINDO (sala NOYI87, 22/08)
 O Diego mandou print: banner vermelho **"MANDA SEU LANCE DE NOVO — o dono da sala
