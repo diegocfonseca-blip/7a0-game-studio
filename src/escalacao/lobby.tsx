@@ -1185,7 +1185,7 @@ export function EscLobby() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) setAuthError(friendlyAuthErr(error.message))
       } else {
-        if (!displayName.trim()) { setAuthError('Escolha um nome de técnico.'); setLoading(false); return }
+        if (!displayName.trim()) { setAuthError('Escolha o nome do seu time.'); setLoading(false); return }
         // ✉️ trava anti-bounce: e-mail com cara de erro de digitação/temporário não cadastra
         const prob = emailProblema(email)
         if (prob) { setAuthError(prob); setLoading(false); return }
@@ -2022,7 +2022,13 @@ export function EscLobby() {
       </div>
     )}
     <div className="space-y-3">
-      {authTab === 'register' && <Field label="Nome de técnico" value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder="Como te chamam?" />}
+      {/* 🏷️ NOME DO TIME, não da pessoa (Diego 23/08: *"não precisa ser
+          obrigatório o nome da pessoa nem o clube de coração, mas o time da
+          pessoa e o e-mail tem que ter"*). Esta tela pedia "Nome de técnico ·
+          como te chamam?" enquanto a JanelaConta (carreira) pedia o NOME DO
+          TIME — mesmo campo (`display_name`), significados diferentes, e o
+          ranking misturava os dois. Agora as duas pedem a mesma coisa. */}
+      {authTab === 'register' && <Field label="Nome do seu time" value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder="Ex.: Lendas FC" />}
       <Field label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
       <PwField label="Senha" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
         onKeyDown={e => e.key === 'Enter' && handleAuth()} />
@@ -2073,7 +2079,7 @@ export function EscLobby() {
           {editingName ? (
             <div className="flex gap-1.5 items-stretch flex-1 ml-2">
               <input autoFocus value={nameDraft} onChange={e => setNameDraft(stripEmoji(e.target.value))} maxLength={20}
-                placeholder="Seu nome de técnico" onKeyDown={e => e.key === 'Enter' && saveName()}
+                placeholder="Nome do seu time" onKeyDown={e => e.key === 'Enter' && saveName()}
                 className="flex-1 min-w-0 border-2 border-black rounded-md px-2 py-1 font-black text-black text-xs bg-white" />
               <button onClick={saveName} disabled={loading || !nameDraft.trim()}
                 className="border-2 border-black rounded-md px-2 font-black text-xs" style={{ background: GREEN, color: '#fff', ...OSWALD }}>OK</button>
@@ -2086,7 +2092,7 @@ export function EscLobby() {
               className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border-2"
               style={{ background: hasName ? 'rgba(255,255,255,.1)' : GOLD, borderColor: hasName ? 'rgba(255,255,255,.3)' : '#000' }}>
               <span className="font-black text-xs" style={{ color: hasName ? '#fff' : '#000' }}>
-                {hasName ? nameOf() : 'Toque pra pôr seu nome'}
+                {hasName ? nameOf() : 'Toque pra pôr o nome do time'}
               </span>
               <span style={{ fontSize: 11 }}>✏️</span>
             </button>
