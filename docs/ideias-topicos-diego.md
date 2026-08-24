@@ -178,6 +178,50 @@ todos, tier = nº de formações? ③ +2 só dentro das formações dele? Fechan
 técnico vira ficha de **3 linhas** (nome · tier · formações) e dá pra escrever os
 100 rápido, porque vira DADO e não regra nova.
 
+## 1-SEXIES. 🎩 O BÔNUS CAI NUM SETOR + COMO SE CONTRATA (24/08)
+`scripts/mede-overall-setor.mjs` (medição) · `scripts/mockup-tecnico-setor-compra.mjs`
+(desenho). **Ele achou um buraco REAL na minha proposta:** *"Mas eu daria p todos
+técnicos do jogo? Como seria a compra deles? Enfim... Se o Telê é a msm coisa q
+pep guardiola então tanto faz??"*. Tinha razão: com "+2 no time inteiro" e só o
+número de formações mudando, duas lendas viram a MESMA COISA.
+
+🔧 **O CONSERTO (uma palavra):** o bônus cai num **SETOR**, não no time.
+Telê = **+3 nos ATACANTES** · Pep = **+3 nos MEIAS** · Muralha = +3 nos ZAGUEIROS.
+Continua UM número (a simplificação dele sobrevive), mas **quem decide o melhor
+técnico passa a ser o ELENCO do jogador** — com 4 atacantes craques o Telê é ótimo
+e o Pep é dinheiro fora; com o elenco invertido, troca.
+✅ **Barato no código:** `rollForm()` (pyramidseason ~136) JÁ soma por setor
+(`by('GOL')`, `by('LAT')`, `by('ZAG')`, `by('MEI')`, `by('ATA')`).
+
+📊 **MEDIDO** (elenco forte · 4-4-2 · 40 temporadas/linha): sem técnico 69,4 pts /
+19 títulos · TIME TODO +2 → 75,0 / 24 · **setor +2 → 71,7–73,0 / 21–25**.
+👉 Setor vale ~**METADE** do time todo — faixa segura.
+👉 **Nenhum setor é o "melhor"** (21–25 títulos = empate técnico): ótimo, porque
+nenhum técnico nasce automaticamente superior. Quem desempata é o elenco.
+
+🤥 **ONDE EU ESTAVA ERRADO — e falei pra ele:** eu tinha dito que "o esquema do
+técnico amplia o bônus dele" (Telê no 4-2-4 renderia mais que no 4-4-2).
+**O dado desmentiu:** mesmo +3 nos atacantes deu 4-4-2 = **26 títulos** e
+4-3-3 = **16**. Motivo: trocar de formação mexe MUITO mais no time do que o
+técnico (o 3-4-3 tira um zagueiro e a defesa despenca). Boa notícia embutida:
+**a formação já é decisão forte sozinha; o técnico é tempero, não motor.**
+⚠️ *Observação pra outra sessão:* isso também mostra que hoje algumas formações
+rendem bem mais que outras no motor (4-4-2 > 4-3-3 pro mesmo elenco). Vale
+investigar em separado — não é bug do técnico, é balanceamento antigo.
+
+🛒 **A COMPRA, em 5 regras:** ① **quando**: virada de temporada, dentro da Sala da
+Presidência — **nunca no meio do pregão** (regra de ouro do ritmo) · ② **quem
+aparece**: 3 candidatos sorteados **que aceitam a sua divisão** (Várzea não vê
+lenda) · ③ **custo**: 🪙 luvas uma vez + 💸 salário mensal na folha
+(`squadPayroll`) · ④ **contrato**: 2 temporadas, multa pra demitir antes ·
+⑤ **"sigo sem técnico"** é sempre um botão — e aí o jogo é IGUAL ao de hoje
+(nenhuma carreira antiga muda).
+
+⏳ **Falta ele responder:** ① fecha bônus por SETOR (+3)? ② fecha a mesa de 3
+candidatos com luvas + salário? ③ fecha o "sigo sem técnico" sempre disponível?
+Fechando, o técnico vira ficha de **4 linhas** (nome · tier · **setor** ·
+formações) e dá pra escrever os 100 pra ele aprovar nome por nome.
+
 ## 1. 🧠 Técnicos famosos
 - Carta de técnico com nome real (mesmo critério dos jogadores: fatos públicos,
   bio de traço largo; rosto só com referência, senão neutro).
