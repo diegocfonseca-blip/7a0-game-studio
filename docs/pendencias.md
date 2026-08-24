@@ -9690,3 +9690,56 @@ três acham escudo próprio E carimbo da mascote.
 ⚠️ **Lição pra próxima:** nome de time é CHAVE (escudo, mascote, manto,
 `newestTeamName`). Nunca concatenar marcação de tela no nome — passar flag
 separada, como o `youIsHome` que já existe no card.
+
+---
+
+## ✅ 24/08 — 🅰️ Assistência TAMBÉM em qualquer copa (pergunta do Diego)
+
+Pergunta dele: *"a assistência na carreira também vai funcionar pra qualquer
+copa né"*. **Conferido no código: NÃO funcionava.** As copas não passam pelo
+motor da liga (`simDivTo`/`scoreGoals`) — cada uma tem a atribuição de gol
+DELA. Medido antes do conserto: **0% de gols com passe** nas copas, e **1.319
+jogos com 3+ gols e zero garçom** só na amostra de 25 temporadas.
+
+**Onde estava faltando (os 4 motores):**
+| Copa | Arquivo | Função |
+|---|---|---|
+| Copa Legends | `pyramidseason.tsx` | `computeCopa` → `credit`/`leg` |
+| Copa do Brasil | `copa-brasil.ts` | `computeCopaBrasil` → `credit`/`leg` |
+| Supercopa | `copa-brasil.ts` | `computeSupercopa` → `credit` |
+| Copa do Mundo (seleções) | `copa-mundo.tsx` | `goalEvents`/`scorerPick` |
+
+**Conserto**: os quatro ganharam o passe do gol com a **MESMA regra da liga** —
+`pickAssist` (exportado agora) nos três primeiros, e um gêmeo local
+(`passePick`) na Copa do Mundo, que usa `sec` em vez de `pos` e não tem `id` de
+carta. Regras idênticas: ~25% de jogada individual, peso MEI > LAT > ATA > ZAG,
+goleador nunca serve a si mesmo, e **trava de goleada** (time com 3+ gols num
+jogo nunca fica sem nenhum garçom).
+
+**⚠️ O cuidado que mandou no desenho.** Toda copa é RECALCULADA da semente toda
+vez que a tela abre — se a assistência puxasse um número do `rng` do mata-mata,
+**toda copa já jogada mudaria de placar e de campeão** (foi exatamente o bug de
+04/08 na Copa do Mundo: *"mudou o resultado da Copa"*). Por isso ela tem **dado
+próprio**, semeado só com coisas estáveis (semente + o jogo + o autor + o
+minuto): ela só LÊ o gol que já aconteceu.
+
+**Auditoria** (`scripts/checa-assist-copa.mjs`, motor real, 25 temporadas de
+pirâmide cheia + 30 Copas do Mundo — 14.544 gols):
+- 🔒 **nada mudou**: placar de cada jogo, campeão, vice e artilheiro batem
+  LINHA POR LINHA com a foto tirada do código anterior (`scripts/copa-antes.json`);
+- 75,5% dos gols com passe nas copas de clubes · 75,9% na Copa do Mundo;
+- 0 casos de 3+ gols sem garçom · 0 casos de goleador servindo a si mesmo;
+- mesmo garçom em toda re-simulação (determinístico — vale pro online).
+
+### 🐛 Achado de quebra: garçom da Copa/Libertadores caía na lista DA LIGA (Rápido)
+No modo Rápido a artilharia da Libertadores (`lb.scorers`) e a da Copa
+(`qc.scorers`) sempre foram listas à parte, mas a assistência que eu tinha
+ligado hoje gravava SEMPRE em `state.assists` (a da liga). Resultado: passe
+dado num jogo de Copa aparecia na lista de garçons da liga e o número não
+batia com os gols dela. Consertado: `simMatch` recebe `assistsList` e ela anda
+sempre colada na `scorersList` (Liberta → `lb.assists`, Copa → `qc.assists`, e
+elas passam uma pra outra na virada pro mata-mata, igual à artilharia).
+
+**Reverter**: `git revert` do commit — é um commit isolado e nenhum dado salvo
+muda de forma (os campos novos são opcionais; save antigo simplesmente não tem
+assistência de copa e continua abrindo).

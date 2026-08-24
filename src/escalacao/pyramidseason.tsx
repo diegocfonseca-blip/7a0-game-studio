@@ -198,7 +198,7 @@ export interface SeasonAssist { name: string; teamName: string; teamId: number; 
 //    que o Diego teme: 7 gols e zero assistência).
 const A_SEM_PASSE = 0.25 // jogada individual / pênalti / rebote
 const hashStr = (s: string, h: number) => { for (let i = 0; i < s.length; i++) h = (Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0); return h >>> 0 }
-function pickAssist(base: number, teamName: string, xi: PoolCard[], scorerId: string, min: number, forcado: boolean): PoolCard | null {
+export function pickAssist(base: number, teamName: string, xi: PoolCard[], scorerId: string, min: number, forcado: boolean): PoolCard | null {
   const dado = mulberry(hashStr(`${teamName}|${scorerId}|${min}`, (base ^ 0xA551) >>> 0))
   if (!forcado && dado() < A_SEM_PASSE) return null // jogada individual
   else if (forcado) dado() // queima o mesmo número pra trava não mudar quem é o garçom
@@ -826,7 +826,7 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
 // online. Reaproveita a MESMA simulação de jogo da liga (rollForm/poisson). ──
 export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][]; legGoals: Goal[][] }
 export interface CopaRound { name: string; ties: CopaTie[]; slot?: number } // slot = rodada-fantasma de onde essa fase lê a escalação (38 = 1ª fase, 39 = a seguinte…)
-export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer }
+export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer; assists?: SeasonAssist[]; topAssist?: SeasonAssist }
 // 🏆 Copa Legends PAGA POR FASE (Diego 11/08) — valores FIXOS, IGUAIS em toda
 // divisão (não escala por série): participação 2 · quartas 4 · semi 8 · vice 10
 // · campeão 30. Antes só campeão/vice levavam; agora cada fase já rende algo.
@@ -856,9 +856,10 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   if (field.length < 2) return { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
   field = shuffle(field, rng)
   const scorers = new Map<string, SeasonScorer>()
+  const assists = new Map<string, SeasonAssist>()
   const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
-  const credit = (e: { t: SimTeam; div: Div }, xi: PoolCard[], goals: number): { name: string; min: number }[] => {
-    const evs: { name: string; min: number }[] = []
+  const credit = (e: { t: SimTeam; div: Div }, xi: PoolCard[], goals: number): { name: string; min: number; id: string }[] => {
+    const evs: { name: string; min: number; id: string }[] = []
     // "dia" do jogador também na Copa (por jogo)
     const day = new Map<string, number>()
     for (const c of xi) day.set(c.id, 0.4 + rng() * 2.2)
@@ -869,8 +870,32 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
       if (!pick) continue
       const key = `${e.t.name}:${pick.id}`, row = scorers.get(key)
       if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id })
-      evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90) })
+      evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90), id: pick.id })
     }
+    return evs
+  }
+  // 🅰️ QUEM DEU O PASSE NA COPA (Diego 24/08: *"a assistência na carreira também
+  // vai funcionar pra qualquer copa né"*). MESMAS regras da liga:
+  //  · dado PRÓPRIO (`legSeq` + time + jogador + minuto) — não encosta no `rng`
+  //    do mata-mata, então nenhum placar/artilheiro de copa já jogada muda;
+  //  · ~25% dos gols são jogada individual/pênalti, e a tela DIZ isso;
+  //  · trava: time que fez 3+ num jogo nunca fica sem nenhum garçom.
+  // `legSeq` conta os JOGOS (ida e volta são jogos diferentes, e o mesmo confronto
+  // em outra fase também) — sem ele, o mesmo autor no mesmo minuto repetiria o
+  // garçom em dois jogos diferentes.
+  let legSeq = 0
+  const marcaPasses = (e: { t: SimTeam; div: Div }, xi: PoolCard[], evs: { name: string; min: number; id: string; assist?: string }[], jogo: number) => {
+    if (!evs.length) return evs
+    const chave = `${e.t.name}#${jogo}`
+    const escolhidos = evs.map(g => pickAssist(seed, chave, xi, g.id, g.min, false))
+    if (evs.length >= 3 && !escolhidos.some(Boolean)) escolhidos[0] = pickAssist(seed, chave, xi, evs[0].id, evs[0].min, true)
+    escolhidos.forEach((a, i) => {
+      if (!a) return
+      evs[i].assist = a.name
+      const k = `${e.t.name}:${a.id}`, row = assists.get(k)
+      if (row) row.assists++
+      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id })
+    })
     return evs
   }
   const leg = (H: { t: SimTeam; div: Div }, A: { t: SimTeam; div: Div }, homeAdv: boolean) => {
@@ -889,7 +914,9 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     const lh = Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + (homeAdv ? G.home : 0)) * qual(fh.atk))
     const la = Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk))
     const hg = poisson(lh, rng), ag = poisson(la, rng)
-    return { hg, ag, hEvs: credit(H, H.t.xi, hg), aEvs: credit(A, A.t.xi, ag) }
+    const hEvs = credit(H, H.t.xi, hg), aEvs = credit(A, A.t.xi, ag)
+    const jogo = ++legSeq
+    return { hg, ag, hEvs: marcaPasses(H, H.t.xi, hEvs, jogo), aEvs: marcaPasses(A, A.t.xi, aEvs, jogo) }
   }
   const playTie = (a: { t: SimTeam; div: Div }, b: { t: SimTeam; div: Div }, single: boolean): CopaTie => {
     let aggA = 0, aggB = 0
@@ -941,7 +968,8 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   const vice = ft ? (ft.win === 'a' ? ft.b : ft.a) : null
   const viceDiv = ft ? (ft.win === 'a' ? ft.bDiv : ft.aDiv) : null
   const list = [...scorers.values()].sort((a, b) => b.goals - a.goals)
-  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), topScorer: list[0] }
+  const listA = [...assists.values()].sort((a, b) => b.assists - a.assists)
+  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), topScorer: list[0], assists: listA.slice(0, 20), topAssist: listA[0] }
 }
 
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
@@ -3864,7 +3892,7 @@ function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, foot
   const g = legG[legIdx] ?? []
   // nos legGoals, `home` sempre significa "o time A marcou" — na volta inverte
   // pra bater com quem está de fato à esquerda no card.
-  const goals: ScoreGoal[] = g.map(e => ({ name: e.name, min: e.min, home: swap ? !e.home : e.home }))
+  const goals: ScoreGoal[] = g.map(e => ({ name: e.name, min: e.min, home: swap ? !e.home : e.home, assist: e.assist }))
   const homeT = swap ? tie.b : tie.a, awayT = swap ? tie.a : tie.b
   const colOf = (t: SimTeam) => t.you || (safName && t.name === safName) ? myColor : (colors[t.teamId]?.solid ?? copaSideColor(t.name))
   const sf = simSpeed && simSpeed > 0 ? simSpeed : 1

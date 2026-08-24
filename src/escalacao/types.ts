@@ -313,6 +313,7 @@ export interface QuickCopaState {
   bracket: { phase: Exclude<CopaFase, 'done'>; ties: QuickCopaTie[] }[] // fases já fechadas
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
+  assists?: AssistRow[] // 🅰️ garçons SÓ da Copa (mesma regra: não mistura com a liga)
 }
 
 // 🌎 LIBERTADORES — a fase de GRUPOS. O mata-mata depois dela reusa o
@@ -334,6 +335,7 @@ export interface LibertaState {
   fixtures: [number, number][][]    // 6 rodadas × 16 jogos (todos os grupos juntos)
   lastResults: MatchResult[]        // resultados da última rodada de grupo
   scorers?: ScorerRow[]             // artilharia DA LIBERTADORES (grupos; passa pro quickCopa no mata-mata)
+  assists?: AssistRow[]             // 🅰️ garçons DA LIBERTADORES (anda junto com a artilharia dela)
 }
 
 export interface ScorerRow {
