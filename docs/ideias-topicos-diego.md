@@ -49,6 +49,57 @@ muda). O +4 é do MESMO tamanho que a tática já dá (retranca/ataque = ±4).
 regra dele de 18/08) ③ rota de entrada (recomendo **3 candidatos na virada**, não
 o 7º setor do pregão, que alongaria o leilão) ④ preço dos carros.
 
+## 1-TER. 📋 FORMAÇÕES-ESPELHO + OS 5 EIXOS DO TÉCNICO (24/08)
+`scripts/mockup-formacoes-espelho.mjs`. Ideia DELE, e está certa: *"formações como
+442 losango, 4231, 4321… são formações q iremos deixar bonita no campo. Como o
+usuário quer, mas na verdade é um espelho da 442… tipo N mudaria nada"*.
+
+✅ **CONFERIDO NO CÓDIGO:** `ElencoField` (pyramidseason ~2970) monta 4 linhas —
+ATA · MEI · DEF(lat+zag+lat) · GOL — e `rollForm()` só lê POSIÇÃO e NÍVEL.
+Quebrar a linha do meio em duas é **100% visual**: nenhum número muda, nenhum
+save antigo muda. Custo quase zero, risco zero.
+
+⚠️ **Correção honesta feita a ele:** 4-2-3-1 **e** 4-3-2-1 dão os dois no
+**4-5-1** (`1·2·2·5·1`), não no 5-4-1 — o 5-4-1 tem 3 ZAGUEIROS e nenhum dos dois
+tem. A conta foi desenhada na tela pra ele conferir.
+
+**A lista de 11 fechada:** JÁ EXISTEM 4-4-2 · 4-3-3 · 4-5-1 · 3-4-3 · 5-3-2 ·
+NOVAS DE VERDADE (mudam a contagem, 1 linha cada em `FORMATIONS`) 5-4-1
+`1·2·3·4·1` · 4-2-4 `1·2·2·2·4` · 3-5-2 `1·2·1·5·2` · ESPELHOS (só desenho)
+4-4-2 losango ≡ 4-4-2 · 4-2-3-1 ≡ 4-5-1 · 4-3-2-1 ≡ 4-5-1.
+🚨 **TRAVA OBRIGATÓRIA:** a tela tem que DIZER que é o mesmo time (um "≡ 4-5-1"
+pequeno do lado). Senão o cara escolhe 4-2-3-1 achando que ficou mais ofensivo,
+perde e reclama — o "comportamento que nenhuma regra previu" que ele proíbe.
+
+### 🎩 O problema que ele levantou, e a solução
+Ele: *"a Lenda Telê Santana N poderia ter apenas 5 formações e o craque Renato
+Gaúcho C 3 fosse a única diferença… preciso de mais ideias"*. Certíssimo: número
+de formação sozinho é ESCADA, e escada faz todo mundo querer só o topo.
+
+**Técnico passa a ter 5 EIXOS** (o tier mexe em uns, não em todos):
+1. 🎯 **Especialidade** — o benefício (os 6 já fechados no mockup anterior);
+2. 📋 **Formações que domina** — lenda 5 · craque 4 · bom 3 · profissional 2 · estreante 1;
+3. ⚠️ **PONTO FRACO** — todo técnico tem um. É o que impede lenda de ser só "melhor";
+4. 😤 **Temperamento** — como reage quando você muda o esquema (a zoeira ganha cara);
+5. 💰 **Salário e exigência** — lenda é CARO e COBRA título; craque é barato e FIEL.
+
+**O exemplo que responde a pergunta dele:** Telê (lenda) = atk +5 com 3 atacantes,
+MAS def −2 pra sempre, salário alto e **pede pra sair se não for campeão em 2
+temporadas**. Renato (craque) = +4 nas copas, liga desligado (−2 atk nas 10
+primeiras rodadas), salário médio, **fiel pra sempre**. → Renato é MELHOR que Telê
+pra quem quer ganhar copa. Escolher técnico vira DECISÃO, não compra do mais caro.
+
+**+4 ideias oferecidas:** ① técnico EVOLUI (cada título no seu clube destrava +1
+formação até o teto do tier — segurar um craque 8 temporadas vira história) ·
+② rival ROUBA o técnico no fim da temporada (usa a rivalidade que já existe) ·
+③ técnico demitido VOLTA anos depois com rancor no jornal · ④ frase de assinatura
+de cada um (é o que faz lembrar do técnico, não do número).
+
+⏳ **Falta ele decidir:** ① fecha as 11 formações assim? ② os 5 eixos servem?
+③ **20 ou 100 técnicos** (recomendo começar com **20** bem feitos, 4 por tier —
+adicionar depois é 1 linha de dado) ④ nome real ou apelido (se real, só fato
+público e documentado, tipo Telê = futebol-arte; nunca inventar jeito de ser).
+
 ## 1. 🧠 Técnicos famosos
 - Carta de técnico com nome real (mesmo critério dos jogadores: fatos públicos,
   bio de traço largo; rosto só com referência, senão neutro).
