@@ -1509,10 +1509,29 @@ E a arte do clube leva a **regra do barão** escrita do lado: *"cai de divisão?
 escudo, o manto e a mascote descem junto com você"* (regra revista em 20/08 — o
 barão NÃO perde mais o nome).
 
-⏳ **Falta ele responder 3 coisas do mockup v2:** ① Patrocínio dentro da
-Presidência ok? ② a zoeira "(mas aqui presidente escala time — e quem paga,
-manda)" fica? ③ ordem das mesas ok? Depois do OK: codar por partes, um commit
-por mesa, tudo reversível.
+### 📺 "CADÊ A TV E O BICO?" — a recomendação MUDOU pra B (24/08)
+`scripts/mockup-presidencia-onde-fica-tv.mjs`. Ele: *"Única coisa q N entendi q
+vc tirando aba de patrocínio eu N vejo mais a TV e N vejo mais o bico então N
+entendi"*. Eu escrevi "a Presidência **engole** o Patrocínio" e isso soou como
+APAGAR — a tela seguia inteira, só entrava por outra porta, mas a palavra
+confundiu.
+
+👉 **DECISÃO: opção B — o 🤝 Patrocínio NÃO se mexe.** A Presidência vira a **4ª
+pílula**, só somando. Dois motivos, e o segundo é o que pesa:
+1. o erro da Agência (que ele pegou) me fez achar que já havia 4 pílulas; com
+   **3**, a 4ª cabe folgada — não há motivo pra mexer no que funciona;
+2. **o próprio dono do jogo travou na explicação.** Se ele ficou em dúvida de
+   onde acha a TV, o jogador que entra 1× por semana some. Regra que fica:
+   *mexer de lugar coisa que já funciona só quando há ganho claro — e "menos um
+   botão" não é ganho claro.*
+
+Efeito colateral bom: **o patrocínio nem é tocado no código** (nenhum atalho
+`setClubeSub('patrocinio')` quebra — banner da TV, recibo de fim de temporada,
+tudo continua caindo onde caía). O que não se mexe não quebra.
+
+⏳ **Falta ele responder:** ① confirma a opção B? ② a zoeira "(mas aqui presidente
+escala time — e quem paga, manda)" fica? ③ ordem das mesas ok? Depois do OK:
+codar por partes, um commit por mesa, tudo reversível.
 
 ## 🛡️ CLÃS — desenhado, ainda NÃO codado
 Mockup principal: `scripts/mockup-clas.mjs` (a ideia inteira).
