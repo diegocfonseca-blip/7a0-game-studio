@@ -222,6 +222,52 @@ candidatos com luvas + salário? ③ fecha o "sigo sem técnico" sempre disponí
 Fechando, o técnico vira ficha de **4 linhas** (nome · tier · **setor** ·
 formações) e dá pra escrever os 100 pra ele aprovar nome por nome.
 
+## 1-SEPTIES. 🎩 BOTS E RIVAIS TÊM TÉCNICO — 100 clubes, 100 técnicos (24/08)
+`scripts/mockup-tecnico-bots-mercado.mjs`. Pedidos dele: *"preciso de algo q os
+bots e rivais tb tenham técnicos e como seria a compra deles e etc"* + *"é técnico
+do Brasil e mundo todo pow"*.
+
+🔢 **O NÚMERO QUE FECHA A IDEIA (conferido no código):** a pirâmide é
+`roundRobin(20)` × 5 divisões (`DIVS = A,B,C,D,V`) = **100 CLUBES**. E ele quer
+**100 TÉCNICOS**. É **1 pra 1** — cada clube tem o seu e **não sobra ninguém no
+banco**. Isso vira um MERCADO de verdade em vez de loja: pra contratar, você tira
+de outro clube (pagando multa) ou pega quem foi demitido.
+
+🚨 **A TRAVA MAIS IMPORTANTE — `tecnicosOn`:** se os bots ganham bônus, TODOS os
+resultados de TODAS as carreiras salvas mudam (campeão, rebaixado, artilheiro).
+Então isto nasce atrás de uma chave por carreira, **o mesmo padrão que já existe**
+pro `contratosOn` (types.ts:529) e `agenciaOn` (types.ts:534): **só carreira NOVA
+nasce com técnicos**; save antigo nunca ganha e nada muda no meio da carreira de
+ninguém. Reverter = desligar a chave.
+
+🤖 **Como o bot usa:** ① joga a **formação do técnico dele** — hoje TODO bot joga
+o padrão 4-3-3, então a liga fica variada de graça · ② leva o mesmo **+3 no setor**
+(nada de regra secreta pra bot: mesma conta pra todo mundo) · ③ dá pra **ESPIAR**
+na tabela (chapéu do técnico ao lado do escudo) — e aí escolher a própria formação
+vira leitura de jogo.
+
+🔄 **A dança das cadeiras** (na virada, ANTES da vez do jogador): bots demitem
+(quem foi mal) → bots contratam (quem subiu rouba de quem caiu) → **sua tela** com
+quem sobrou → o **jornal** conta tudo ("Fúria FC anuncia O Artilheiro").
+
+💰 **Preço em 3 regras:** desempregado = só luvas (barato) · empregado = multa pro
+clube dele (escala por tier e divisão) · **do RIVAL = DOBRO** (caro de propósito, e
+o jornal transforma em treta). Depois, salário mensal na folha (`squadPayroll`).
+
+🌎 **De onde vêm os 100:** na CARREIRA o baralho **já é sempre BR + Europa + Mundo
+juntos** (~850 nomes — precisa dos 3 pra encher os 100 times, ver screens.tsx:2364).
+Os técnicos seguem o mesmo pote misto.
+⚠️ **Cuidado com a regra dele de 18/08** (*"não inventar como uma pessoa real é"*):
+**~45 com NOME REAL**, só onde o jeito é fato público e conhecido (Telê =
+futebol-arte, Pep = posse, Bielsa = marcação alta, Luxemburgo = mercado) +
+**~55 FOLCLÓRICOS** inventados ("Seu Zé do Sacolão", "O Xerife") — e isso casa com
+a regra dele de que **folclórico > nome real em conteúdo inventado**.
+
+⏳ **Falta ele responder (5):** ① 1 técnico por clube com mercado por multa?
+② dança das cadeiras na virada? ③ dobro pra tirar do rival? ④ **a trava
+`tecnicosOn` (recomendo MUITO)** ⑤ mistura ~45 reais + ~55 folclóricos?
+Depois: escrever os 100 num doc pra ele aprovar nome por nome, ANTES de codar.
+
 ## 1. 🧠 Técnicos famosos
 - Carta de técnico com nome real (mesmo critério dos jogadores: fatos públicos,
   bio de traço largo; rosto só com referência, senão neutro).
