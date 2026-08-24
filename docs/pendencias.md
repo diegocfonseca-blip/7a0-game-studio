@@ -1529,9 +1529,31 @@ Efeito colateral bom: **o patrocínio nem é tocado no código** (nenhum atalho
 `setClubeSub('patrocinio')` quebra — banner da TV, recibo de fim de temporada,
 tudo continua caindo onde caía). O que não se mexe não quebra.
 
-⏳ **Falta ele responder:** ① confirma a opção B? ② a zoeira "(mas aqui presidente
-escala time — e quem paga, manda)" fica? ③ ordem das mesas ok? Depois do OK:
-codar por partes, um commit por mesa, tudo reversível.
+✅ **ELE CONFIRMOU A OPÇÃO B (24/08):** *"Opção B."* — o 🤝 Patrocínio **NÃO se
+mexe**, a 🎩 Presidência vira a 4ª pílula, só somando.
+
+### 🛡️🎽🦅 QUEM NÃO TEM BATISMO — regra fechada por ele (24/08)
+`scripts/mockup-presidencia-sem-batismo.mjs`. Palavras dele: *"Ah qm N tem
+mascote e manto fica Como? O escudo vem automático qd O cara N tem. Manto coloque
+da cor do tier de foi profissional. Algo básico. E mascote deixa em branco."*
+
+- 🛡️ **ESCUDO — já é automático hoje, zero trabalho novo.** `Escudo()` em
+  `escudos.tsx` tenta `logoPronta(nome)`; não achando, DESENHA pelo nome (forma +
+  2 cores + padrão + letra, tudo do hash). É o mesmo escudo que a pessoa já vê na
+  tabela e nas listas — a sala não inventa nada.
+- 🎽 **MANTO — as 2 cores do TIER do dono** (`APOIO_PERKS[tier].svgFull`: bege ·
+  verde · roxo 💎 · prata ⭐ · ouro 👑). Listra simples em SVG, **0 KB**. Respeita
+  a regra sagrada: cada um leva a cor do PRÓPRIO tier, ninguém pega emprestado.
+- 🦅 **MASCOTE — VAZIA.** Sem bicho genérico: inventar mascote pra quem não
+  escolheu seria o jogo falando pela pessoa (regra dele de 18/08).
+
+⏳ **Falta ele responder (3 coisas pequenas):** ① o **tracinho cinza** discreto na
+mascote vazia fica, ou sumo a 3ª coluna? (botei o tracinho por conta própria pra
+não parecer imagem quebrada — está marcado no mockup como decisão minha) ·
+② convite discreto "batize seu clube" no RODAPÉ da tira pra quem não tem? (minha
+recomendação: sim no rodapé, **nunca** em cima — a sala é do presidente, não
+vitrine) · ③ a zoeira "(mas aqui presidente escala time — e quem paga, manda)"
+fica? Depois disso: codar por partes, um commit por mesa, tudo reversível.
 
 ## 🛡️ CLÃS — desenhado, ainda NÃO codado
 Mockup principal: `scripts/mockup-clas.mjs` (a ideia inteira).
