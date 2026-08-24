@@ -100,6 +100,47 @@ de cada um (é o que faz lembrar do técnico, não do número).
 adicionar depois é 1 linha de dado) ④ nome real ou apelido (se real, só fato
 público e documentado, tipo Telê = futebol-arte; nunca inventar jeito de ser).
 
+## 1-QUATER. 🎩 OS 100: RARIDADE, "NÍVEL" E EXPLICAR OU NÃO (24/08)
+`scripts/mockup-tecnicos-100-niveis.mjs`. Perguntas dele: *"tem q bolar tb em
+relação a NÍVEL nessa tabela de 100, principalmente de lendas q ficariam na
+frente… de 100 técnicos quais seriam lendas e craques? como diferenciar o Telê
+Santana sendo lenda pro Pep Guardiola sendo lenda? No football manager N explica
+MT né.. então eu N sei se quero explicar tb p ng as coisas"*.
+
+**① TELÊ × PEP — a regra que responde:** *o TIER diz QUANTO, a IDENTIDADE diz O
+QUÊ.* As 5 formações de uma lenda não são "5 quaisquer" — são um **conjunto com
+cara própria**. Telê domina 5 OFENSIVAS (4-2-4 · 4-3-3 · 3-4-3 · losango · 3-5-2)
+e leva gol; Pep domina 5 DE MEIO (4-2-3-1 · 4-5-1 · 4-3-2-1 · 4-3-3 · 3-5-2) e
+precisa de elenco caro. Escolher a lenda escolhe o SEU estilo — duas lendas nunca
+competem entre si, então não existe "a melhor".
+
+**② A PIRÂMIDE DOS 100:** 👑 Lenda **8** (5 formações) · ⭐ Craque **17** (4) ·
+🟢 Bom **25** (3) · 🔵 Profissional **30** (2) · ⚪ Estreante **20** (1).
+Lenda RARA de propósito — se fosse comum ninguém olhava pro resto.
+
+**③ O "NÍVEL" SEM NÚMERO (resolve a pergunta dele):** técnico bom **não aceita
+qualquer clube**. Várzea → estreante/profissional; Série C → craque; **só A e B a
+lenda atende o telefone**. O nível vira coisa SENTIDA (subir destrava gente
+melhor) em vez de número numa tabela — e casa com a pirâmide de divisões que já
+existe.
+
+**④ EXPLICAR OU NÃO — recomendação: EXPLICA A REGRA, ESCONDE O NÚMERO.** Não é
+opinião solta, é a DNA que o jogo já tem: (a) o leilão esconde o NÍVEL até a
+revelação, mas explica as REGRAS com narrador e tudo; (b) `olheiros`
+(pyramidseason ~2950) já mostra o overall só pra prata/ouro — o número já é
+prêmio. Então: *"com 3 atacantes seu time cria muito mais"* todo mundo lê; o
+**+4** só quem tem olheiro vê.
+🚫 **Não dá pra copiar o FM:** o público do FM quer passar 3h descobrindo (gente
+de planilha); o dele joga 6 min no ônibus. E fere lei dele mesmo — *"toda trava
+explica o porquê e o caminho"* / *"saber o que pode e o que não pode"*. Técnico
+que muda o time em segredo é o "comportamento fora das regras mapeadas" que ele
+chama de bug. Risco prático: cara escolhe lenda, perde 3 jogos, não entende, some.
+
+⏳ **Falta ele responder:** ① fecha a pirâmide 8/17/25/30/20? ② fecha o filtro por
+divisão? ③ fecha regra explicada + número escondido? ④ se sim, escrever **os 20
+primeiros técnicos** (5 linhas cada) num doc pra ele aprovar nome por nome ANTES
+de qualquer código.
+
 ## 1. 🧠 Técnicos famosos
 - Carta de técnico com nome real (mesmo critério dos jogadores: fatos públicos,
   bio de traço largo; rosto só com referência, senão neutro).
