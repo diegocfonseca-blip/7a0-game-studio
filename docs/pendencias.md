@@ -1466,6 +1466,33 @@ faixa da torcida · placas · aniversário · pacote coração.
 16/08): **3**, com a Presidência engolindo o Patrocínio. O mockup foi desenhado
 assim.
 
+### 🎩 V2 CONSOLIDADA (24/08) — `scripts/mockup-sala-presidente-v2.mjs` · aguardando OK
+Diego pediu a sala de volta depois da conversa "o usuário é o PRESIDENTE, não o
+técnico — mas escala o time": a ficção assumida é o **presidente brasileiro
+mão-na-massa** (quem paga, manda 😄). Nenhum poder sai da mão do jogador; quando
+o técnico chegar, ele trabalha PRA o presidente (bônus/palpite), nunca tira a
+escalação. Pedido literal dele: *"Sim quero.. E q vai ter carros Tb em breve e
+técnicos em breve.. E veja se alguma aba ou sub entra dentro Tb ou n"*.
+
+**A resposta da análise (o que muda de casa):** com a Agência no ar o Clube já
+tem 4 sub-abas (Estrutura · Finanças · Patrocínio · Agência) — 5 pílulas não
+cabem no celular. Então a **Presidência entra no LUGAR do Patrocínio e o engole**
+(aposta do patrocinador + Rede Martelo TV viram a 1ª mesa da sala; os atalhos
+`setClubeSub('patrocinio')` — banner da TV, recibos — passam a abrir a
+Presidência já na mesa certa). **Ficam onde estão:** Estrutura (estádio primeiro,
+regra sagrada) · Finanças (rotina de caixa) · Agência (chapéu de empresário).
+
+**A sala, de cima pra baixo:** retrato de posse + números do mandato · mesa do
+patrocínio (mudou pra cá) · 🎩 Técnico **EM BREVE** · 🚗 Garagem **EM BREVE**
+(os dois cinza, sem botão — vitrine do que vem) · patrimônio · Hall de Troféus
+(mesma estante do Rank) · linha do mandato. Boneco = passo 2 (posse na 1ª
+entrada), como ele pediu em 21/08.
+
+⏳ **Falta ele responder 3 coisas do mockup v2:** ① Patrocínio dentro da
+Presidência ok? ② a zoeira "(mas aqui presidente escala time — e quem paga,
+manda)" fica? ③ ordem das mesas ok? Depois do OK: codar por partes, um commit
+por mesa, tudo reversível.
+
 ## 🛡️ CLÃS — desenhado, ainda NÃO codado
 Mockup principal: `scripts/mockup-clas.mjs` (a ideia inteira).
 Conserto: `scripts/mockup-clas-escudo.mjs`.
