@@ -2930,7 +2930,9 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   }
   const salaryOn = (seasonNo ?? 1) >= 4 // 🔓 salário/folha só aparecem a partir da 4ª temporada
   const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
-  const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) !== xiIds.has(c.id))
+  // acende como alvo: mesma posição e pelo menos um dos dois é titular — ou seja,
+  // titular↔reserva (entra no time) E titular↔titular (troca de lado no campo).
+  const isTarget = (c: WonCard) => !!sel && sel.id !== c.id && sel.pos === c.pos && (xiIds.has(sel.id) || xiIds.has(c.id))
   const stateOf = (c: WonCard) => (c.id === selId ? 'sel' : isTarget(c) ? 'target' : sel ? 'dim' : 'idle')
   const borderOf = (st: string) => (st === 'sel' ? GOLD : st === 'target' ? GREEN : INK)
   // o campinho segue a ORDEM da escalação (vaga fixa) — quando entra um reserva,
@@ -5420,15 +5422,28 @@ export function PyramidSeasonScreen() {
     const card = mgrMe.squad.find(c => c.id === cardId); if (!card) return
     if (selId === null || selId === cardId) { setSelId(selId === cardId ? null : cardId); return }
     const sel = mgrMe.squad.find(c => c.id === selId)
-    const valid = sel && sel.pos === card.pos && (myXIids.has(sel.id) !== myXIids.has(card.id))
+    // 🔁 TROCAR DE LADO (Diego 24/08): *"quando boto o Roberto Carlos de lateral
+    // às vezes ele vai pra direita automático e o Cafu na esquerda, e eu queria
+    // inverter e não dá"*. Agora dois TITULARES da mesma posição também trocam
+    // entre si — eles só trocam de LUGAR na linha (o lado do campo).
+    // ⚠️ Isso NÃO mexe na força do time: a simulação usa posição e nível, nunca a
+    // ordem do XI (ver rollForm). É organização de campo, não vantagem.
+    const bothTitulares = !!sel && myXIids.has(sel.id) && myXIids.has(card.id)
+    const valid = sel && sel.pos === card.pos && (myXIids.has(sel.id) !== myXIids.has(card.id) || bothTitulares)
     if (!valid) { setSelId(cardId); return } // remarca
-    const titularId = myXIids.has(sel.id) ? sel.id : card.id
-    const reserveId = myXIids.has(sel.id) ? card.id : sel.id
-    // o reserva entra EXATAMENTE na vaga do titular que saiu (mesmo índice do
-    // array) — assim ele fica no mesmo lugar no campinho, sem embaralhar a linha.
     const ids = myXI.map(c => c.id)
-    const idx = ids.indexOf(titularId)
-    if (idx >= 0) ids[idx] = reserveId; else ids.push(reserveId)
+    if (bothTitulares) {
+      const i = ids.indexOf(sel!.id), j = ids.indexOf(card.id)
+      if (i < 0 || j < 0) { setSelId(null); return }
+      const tmp = ids[i]; ids[i] = ids[j]; ids[j] = tmp
+    } else {
+      const titularId = myXIids.has(sel!.id) ? sel!.id : card.id
+      const reserveId = myXIids.has(sel!.id) ? card.id : sel!.id
+      // o reserva entra EXATAMENTE na vaga do titular que saiu (mesmo índice do
+      // array) — assim ele fica no mesmo lugar no campinho, sem embaralhar a linha.
+      const idx = ids.indexOf(titularId)
+      if (idx >= 0) ids[idx] = reserveId; else ids.push(reserveId)
+    }
     dispatch({ type: 'SET_LINEUP', mgrId: youId, ids, slot: slotEscala })
     setSelId(null)
   }
