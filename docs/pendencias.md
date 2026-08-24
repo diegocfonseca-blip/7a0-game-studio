@@ -1474,19 +1474,40 @@ o técnico chegar, ele trabalha PRA o presidente (bônus/palpite), nunca tira a
 escalação. Pedido literal dele: *"Sim quero.. E q vai ter carros Tb em breve e
 técnicos em breve.. E veja se alguma aba ou sub entra dentro Tb ou n"*.
 
-**A resposta da análise (o que muda de casa):** com a Agência no ar o Clube já
-tem 4 sub-abas (Estrutura · Finanças · Patrocínio · Agência) — 5 pílulas não
-cabem no celular. Então a **Presidência entra no LUGAR do Patrocínio e o engole**
-(aposta do patrocinador + Rede Martelo TV viram a 1ª mesa da sala; os atalhos
+**A resposta da análise (o que muda de casa) — CORRIGIDA na v3:** eu tinha
+desenhado 4 pílulas com a 💼 Agência no fim, e **o Diego pegou o erro na hora**:
+*"tá errado essa aba de agência aí. Até pq agência hj nova fica ao lado da aba de
+elenco"*. Ele está certo e o código confirma: na Agência 2.0 o filtro
+`.filter(([sb]) => !(sb === 'escritorio' && agenciaOk))` (pyramidseason.tsx,
+~linha 6425) TIRA a sub-aba do Clube — ela mora em **Elenco › 🕴️ Agenciados**
+(`elencoSub`). Ou seja, o Clube tem **3 pílulas** hoje, não 4. A recomendação
+segue a mesma: a **Presidência entra no LUGAR do Patrocínio e o engole** (aposta
+do patrocinador + Rede Martelo TV viram a 1ª mesa da sala; os atalhos
 `setClubeSub('patrocinio')` — banner da TV, recibos — passam a abrir a
 Presidência já na mesa certa). **Ficam onde estão:** Estrutura (estádio primeiro,
-regra sagrada) · Finanças (rotina de caixa) · Agência (chapéu de empresário).
+regra sagrada) · Finanças (rotina de caixa). Nos saves ANTIGOS (agência clássica)
+a fileira segue com 4, o 💼 no fim, e a troca é a mesma.
+⚠️ **Lição pra próxima sessão:** conferir a linha das pílulas NO CÓDIGO antes de
+desenhar sub-aba — o array literal mente, quem manda é o `.filter()` depois dele.
 
-**A sala, de cima pra baixo:** retrato de posse + números do mandato · mesa do
-patrocínio (mudou pra cá) · 🎩 Técnico **EM BREVE** · 🚗 Garagem **EM BREVE**
-(os dois cinza, sem botão — vitrine do que vem) · patrimônio · Hall de Troféus
-(mesma estante do Rank) · linha do mandato. Boneco = passo 2 (posse na 1ª
-entrada), como ele pediu em 21/08.
+**A sala, de cima pra baixo:** retrato de posse + **🛡️ escudo · 🎽 manto ·
+🦅 mascote** (pedido dele na v3: *"tem q ter o escudo do time manto e mascote
+tb"*) + números do mandato · mesa do patrocínio (mudou pra cá) · 🎩 Técnico
+**EM BREVE** · 🚗 Garagem **EM BREVE** (os dois cinza, sem botão — vitrine do que
+vem) · patrimônio · Hall de Troféus (mesma estante do Rank) · linha do mandato.
+Boneco = passo 2 (posse na 1ª entrada), como ele pediu em 21/08.
+
+**😂 A ZOEIRA DA FORMAÇÃO (pedido dele na v3):** *"tem q ser mais zueira sobre a
+formação do técnico.. Ele é técnico mas qm manda é vc algo do tipo assim"*. O
+card do Técnico ganhou um diálogo de 3 balões: o treinador defende o esquema
+preferido dele ("o 4-3-3 é o MEU esquema, trabalhei a semana toda"), o presidente
+manda mudar ("bonito. vai de 3-5-2"), e ele engole na hora ("3-5-2 é o meu
+esquema, presidente. sempre foi 😅"). Combinado: **~20 frases** pra não repetir,
+uma sorteada a cada troca de formação. É **só texto** — não toca na simulação,
+não adiciona passo nem espera (regra de ouro do ritmo).
+E a arte do clube leva a **regra do barão** escrita do lado: *"cai de divisão? o
+escudo, o manto e a mascote descem junto com você"* (regra revista em 20/08 — o
+barão NÃO perde mais o nome).
 
 ⏳ **Falta ele responder 3 coisas do mockup v2:** ① Patrocínio dentro da
 Presidência ok? ② a zoeira "(mas aqui presidente escala time — e quem paga,

@@ -9,11 +9,14 @@
 //   · a base que ele APROVOU em 16/08 (mockup-presidencia-v1.mjs): frase "você é
 //     o dono", 🎩 Técnico e 🚗 Garagem com selo EM BREVE, patrimônio, estante;
 //   · as peças pessoais de 21/08: retrato de posse + números + linha do mandato;
-//   · a RESPOSTA da análise de hoje: com a Agência no ar o Clube já tem 4
-//     sub-abas — não cabe uma 5ª no celular. A Presidência ENTRA NO LUGAR do
-//     Patrocínio e o engole: fechar patrocínio e Rede Martelo TV é trabalho de
-//     presidente. Estrutura, Finanças e Agência FICAM onde estão (o desenho do
-//     estádio continua a primeira coisa da Estrutura — regra sagrada).
+//   · a RESPOSTA da análise (CORRIGIDA 24/08 — o Diego pegou o erro: *"agência
+//     hj nova fica ao lado da aba de elenco"*): na Agência 2.0 a sub-aba 💼 SOME
+//     do Clube (mora em Elenco › 🕴️ Agenciados, filtro `agenciaOk` na linha das
+//     pílulas), então o Clube hoje tem SÓ 3 pílulas. Uma 4ª até caberia — mas a
+//     recomendação segue a de 16/08: a Presidência ENGOLE o Patrocínio (fechar
+//     contrato e Rede Martelo TV é trabalho de presidente) e a fileira fica em
+//     3. Estrutura e Finanças FICAM (estádio primeiro — regra sagrada). Só nos
+//     saves ANTIGOS (agência clássica) a fileira segue com 4, com o 💼 no fim.
 //
 //   node scripts/mockup-sala-presidente-v2.mjs [--saida x.png]
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -137,11 +140,28 @@ const presidenteSvg = (s, tier = GOLD) => `
     <path d="M40 52 L36 60 L40 74 L44 60 Z" fill="${tier}" stroke="${INK}" stroke-width="1.5"/>
   </svg>`
 
+// 🛡️ escudo do batismo (placeholder do mockup — no jogo vem do .webp do dono)
+const escudoSvg = (s) => `
+  <svg width="${s}" height="${s}" viewBox="0 0 64 72" style="display:block">
+    <path d="M32 3 L60 12 V38 C60 55 46 65 32 69 C18 65 4 55 4 38 V12 Z" fill="#1B7A3D" stroke="${INK}" stroke-width="4"/>
+    <path d="M32 3 L60 12 V38 C60 55 46 65 32 69 Z" fill="#166332"/>
+    <circle cx="32" cy="32" r="13" fill="${GOLD}" stroke="${INK}" stroke-width="3"/>
+    <text x="32" y="38" text-anchor="middle" style="${OSW};font-size:16px" fill="${INK}">N</text>
+  </svg>`
+// 🎽 manto: as 2 cores medidas na arte do dono (listra em CSS, 0 KB — igual no jogo)
+const mantoSvg = (s) => `
+  <svg width="${s}" height="${s * 1.06}" viewBox="0 0 60 64" style="display:block">
+    <defs><pattern id="lst" width="12" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+      <rect width="6" height="4" fill="#1B7A3D"/><rect x="6" width="6" height="4" fill="#FFFFFF"/></pattern></defs>
+    <path d="M20 6 L8 12 L4 26 L14 29 V58 H46 V29 L56 26 L52 12 L40 6 C40 13 20 13 20 6 Z"
+      fill="url(#lst)" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/>
+  </svg>`
+
 const retrato = `
   <div style="${box('#fff')};overflow:hidden;margin-bottom:10px">
     <div style="height:8px;background:repeating-linear-gradient(90deg,${CO1} 0 12px,${CO2} 12px 24px);border-bottom:3px solid ${INK}"></div>
-    <div style="padding:12px 12px 11px;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#FBF6E9,#fff)">
-      ${presidenteSvg(62)}
+    <div style="padding:12px 12px 11px;display:flex;align-items:center;gap:11px;background:linear-gradient(180deg,#FBF6E9,#fff)">
+      ${presidenteSvg(58)}
       <div style="min-width:0;flex:1">
         <p style="${OSW};font-size:16px;margin:0;text-transform:uppercase">🎩 Sala da Presidência</p>
         <p style="font-family:system-ui;font-size:11.5px;font-weight:700;color:rgba(0,0,0,.55);margin:2px 0 0;line-height:1.35">
@@ -150,12 +170,61 @@ const retrato = `
         <p style="font-family:system-ui;font-size:10px;font-weight:700;color:rgba(0,0,0,.45);margin:4px 0 0">Presidente desde <b>27/07/2026</b></p>
       </div>
     </div>
+    <!-- 🆕 A ARTE DO CLUBE: escudo · manto · mascote, na sala do dono -->
+    <div style="display:flex;border-top:2.5px solid ${INK};background:#FBF6E9">
+      ${[[escudoSvg(46), 'Escudo'], [mantoSvg(44), 'Manto'], ['<span style="font-size:42px;line-height:1">🦅</span>', 'Mascote']].map(([art, rot], i) => `
+        <div style="flex:1;text-align:center;padding:9px 2px 8px;${i < 2 ? 'border-right:1.5px solid rgba(12,12,12,.12)' : ''}">
+          <div style="display:flex;justify-content:center;align-items:flex-end;height:48px">${art}</div>
+          <div style="${OSW};font-size:9px;text-transform:uppercase;color:rgba(0,0,0,.5);margin-top:3px">${rot}</div>
+        </div>`).join('')}
+    </div>
+    <p style="font-family:system-ui;font-size:9.5px;font-weight:700;color:rgba(0,0,0,.45);margin:0;padding:0 12px 9px;background:#FBF6E9;text-align:center;line-height:1.4">
+      A cara do clube que <b>é sua</b> — nem a regra do barão tira. Cai de divisão? O escudo, o manto e a mascote descem junto com você.</p>
     <div style="display:flex;border-top:2.5px solid ${INK}">
       ${[['12', 'temporadas'], ['5', 'títulos'], ['146', 'contratados']].map(([n, t], i) => `
         <div style="flex:1;text-align:center;padding:8px 2px;${i < 2 ? 'border-right:1.5px solid rgba(12,12,12,.12)' : ''}">
           <div style="${OSW};font-size:17px;line-height:1">${n}</div>
           <div style="font-family:system-ui;font-size:8.5px;font-weight:700;color:rgba(0,0,0,.5);margin-top:1px">${t}</div>
         </div>`).join('')}
+    </div>
+  </div>`
+
+// 🎩 O TÉCNICO, COM A ZOEIRA QUE O DIEGO PEDIU (24/08): *"tem q ser mais zueira
+// sobre a formação do técnico.. Ele é técnico mas qm manda é vc algo do tipo"*.
+// A piada é a mais brasileira que existe: o técnico ESCOLHE a formação dele,
+// você chega e muda — e ele engole. Cada troca solta uma frase do treinador.
+const tecnicoZoeira = `
+  <div style="${box('#EFEADA')};padding:12px;margin-bottom:10px">
+    <div style="display:flex;gap:11px;align-items:flex-start">
+      <span style="font-size:30px;line-height:1;flex:none;filter:grayscale(.35)">🎩</span>
+      <div style="min-width:0;flex:1">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <p style="${OSW};font-size:14.5px;margin:0;text-transform:uppercase">Técnico</p>
+          <span style="font-size:9px;${OSW};text-transform:uppercase;border:2px solid ${INK};border-radius:6px;padding:1px 6px;background:#EDE7FF;color:${PURPLE}">em breve</span>
+        </div>
+        <p style="font-family:system-ui;font-size:11.5px;font-weight:700;color:rgba(0,0,0,.55);margin:3px 0 0;line-height:1.4">
+          Contrate um treinador de verdade. Cada um tem a <b>formação preferida</b> dele e um jeito que muda
+          alguma coisa em campo.</p>
+      </div>
+    </div>
+    <div style="border:2.5px solid ${INK};border-radius:12px;background:#fff;padding:10px 11px;margin-top:10px">
+      <p style="${OSW};font-size:11.5px;margin:0 0 6px;text-transform:uppercase">😂 E quem manda continua sendo você</p>
+      <div style="display:flex;align-items:center;gap:7px;font-family:system-ui;font-size:11px;font-weight:700;margin-bottom:5px">
+        <span style="flex:none;font-size:15px">🎩</span>
+        <span style="background:#F1EDE0;border-radius:10px;padding:5px 9px;line-height:1.35">"Presidente, o 4-3-3 é o MEU esquema. Trabalhei a semana toda nele."</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;font-family:system-ui;font-size:11px;font-weight:700;justify-content:flex-end;margin-bottom:5px">
+        <span style="background:${GOLD};border-radius:10px;padding:5px 9px;line-height:1.35;border:2px solid ${INK}">"Bonito. Vai de 3-5-2." 🫱</span>
+        <span style="flex:none;font-size:15px">🧑‍💼</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;font-family:system-ui;font-size:11px;font-weight:700">
+        <span style="flex:none;font-size:15px">🎩</span>
+        <span style="background:#F1EDE0;border-radius:10px;padding:5px 9px;line-height:1.35">"3-5-2 é o meu esquema, presidente. Sempre foi." 😅</span>
+      </div>
+      <p style="font-family:system-ui;font-size:10px;font-weight:700;color:rgba(0,0,0,.5);margin:9px 0 0;line-height:1.45;border-top:1.5px solid rgba(0,0,0,.1);padding-top:7px">
+        A escalação <b>nunca sai da sua mão</b>. O técnico sugere, reclama e cede — e cada vez que você muda a
+        formação dele, sai uma frase nova (tem umas 20, pra não repetir). Ele leva o crédito na vitória e a
+        culpa na derrota, como na vida real. 😄</p>
     </div>
   </div>`
 
@@ -177,36 +246,38 @@ const linhaMandato = `
 // ── ① ONDE ENTRA: as pílulas hoje × proposta ───────────────────────────────
 const ONDE = `${cabecinha}
   <div style="padding:13px 11px">
-    <p style="${OSW};font-size:12px;text-transform:uppercase;margin:0 0 6px;color:rgba(0,0,0,.5)">Hoje — 4 sub-abas</p>
+    <p style="${OSW};font-size:12px;text-transform:uppercase;margin:0 0 6px;color:rgba(0,0,0,.5)">Hoje — 3 sub-abas (a 💼 Agência mora em Elenco › 🕴️ Agenciados)</p>
     <div style="border:3px solid ${INK};border-radius:16px;overflow:hidden;background:#fff;margin-bottom:16px">
-      ${pilulas([['🏗️', 'Estrutura'], ['💰', 'Finanças'], ['🤝', 'Patroc.'], ['💼', 'Agência']], '')}
+      ${pilulas([['🏗️', 'Estrutura'], ['💰', 'Finanças'], ['🤝', 'Patrocínio']], '')}
     </div>
     <p style="text-align:center;font-size:22px;margin:0 0 14px">⬇️</p>
     <p style="${OSW};font-size:12px;text-transform:uppercase;margin:0 0 6px;color:${PURPLE}">Proposta — a Presidência no LUGAR do Patrocínio</p>
     <div style="border:3px solid ${INK};border-radius:16px;overflow:hidden;background:#fff;margin-bottom:14px">
-      ${pilulas([['🏗️', 'Estrutura'], ['💰', 'Finanças'], ['🎩', 'Presid.'], ['💼', 'Agência']], 'Presid.')}
+      ${pilulas([['🏗️', 'Estrutura'], ['💰', 'Finanças'], ['🎩', 'Presidência']], 'Presidência')}
     </div>
     <div style="${box('#FFF6D6')};padding:11px 12px;font-family:system-ui;font-size:11.5px;font-weight:700;line-height:1.5">
-      ⚖️ <b>Por que engolir e não somar:</b> 5 pílulas não cabem no celular (ficam do tamanho de grão de arroz). E fechar
-      patrocínio + Rede Martelo TV <b>é trabalho de presidente</b> — a mesa dele entra INTEIRA na sala, nada some.
-      Os atalhos que hoje abrem "Patrocínio" (banner da TV, recibo da temporada) passam a abrir a Presidência
-      <b>já na mesa certa</b>.
+      ⚖️ <b>Com 3 pílulas, uma 4ª até CABERIA</b> (Estrutura · Finanças · Patrocínio · Presidência). Mas recomendo
+      <b>engolir mesmo assim</b>: fechar patrocínio + Rede Martelo TV <b>é trabalho de presidente</b> — a mesa dele
+      entra INTEIRA na sala, nada some. E a fileira fica folgada. Os atalhos que hoje abrem "Patrocínio" (banner da
+      TV, recibo da temporada) passam a abrir a Presidência <b>já na mesa certa</b>.
     </div>
     <div style="${box('#EAF3FF')};padding:11px 12px;font-family:system-ui;font-size:11.5px;font-weight:700;line-height:1.5;margin-top:10px">
       🏟️ <b>O que NÃO muda de casa:</b><br>
       · <b>Estrutura</b> fica — e o desenho do estádio segue sendo a primeira coisa que aparece (regra sagrada);<br>
       · <b>Finanças</b> fica — extrato é rotina de caixa, não cerimônia;<br>
-      · <b>Agência</b> fica — lá você veste outro chapéu (empresário), não o de presidente.
+      · <b>Agência</b> não é daqui: na carreira nova ela fica em <b>Elenco › 🕴️ Agenciados</b> e não se mexe.
+        Só os saves ANTIGOS (agência clássica) seguem com 4 pílulas, com o 💼 no fim — a Presidência entra no
+        lugar do Patrocínio do mesmo jeito.
     </div>
   </div>`
 
 // ── ② A SALA COMPLETA ──────────────────────────────────────────────────────
 const SALA = `${cabecinha}
-  ${pilulas([['🏗️', 'Estrutura'], ['💰', 'Finanças'], ['🎩', 'Presid.'], ['💼', 'Agência']], 'Presid.')}
+  ${pilulas([['🏗️', 'Estrutura'], ['💰', 'Finanças'], ['🎩', 'Presidência']], 'Presidência')}
   <div style="padding:11px">
     ${retrato}
     ${mesaPatrocinio}
-    ${emBreve('🎩', 'Técnico', 'Contrate um treinador de verdade pro clube. Cada um tem um jeito que muda alguma coisa em campo — e você vai VER ele agindo, no jornal, toda vez que valer. Ele trabalha PRA você: a escalação continua sendo sua.')}
+    ${tecnicoZoeira}
     ${emBreve('🚗', 'Garagem do presidente', 'O carro do presidente. Clube maior, carreata melhor — e todo mundo vê o seu na hora do título.')}
     ${patrimonio}
     ${estante}
@@ -233,8 +304,8 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
   </p>
 
   <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;margin-bottom:28px">
-    ${fone(ONDE, '① Onde entra', GREEN, 'A Presidência pega o LUGAR do Patrocínio na fileira — continua sendo 4 pílulas, nada aperta no celular.')}
-    ${fone(SALA, '② A sala completa', PURPLE, 'De cima pra baixo: posse · patrocínio + Rede Martelo TV (mudaram pra cá) · técnico EM BREVE · garagem EM BREVE · patrimônio · troféus · linha do mandato.')}
+    ${fone(ONDE, '① Onde entra (corrigido)', GREEN, 'Você pegou o erro: a 💼 Agência NÃO é do Clube — na carreira nova ela fica em <b>Elenco › 🕴️ Agenciados</b>. O Clube tem 3 pílulas hoje, e a Presidência entra no lugar do Patrocínio.')}
+    ${fone(SALA, '② A sala completa', PURPLE, 'De cima pra baixo: posse + <b>escudo · manto · mascote</b> · patrocínio + Rede Martelo TV · técnico EM BREVE (com a zoeira) · garagem EM BREVE · patrimônio · troféus · linha do mandato.')}
     <div style="flex:1;min-width:400px">
       ${bloco('🪑 A ficção que fecha tudo', '#E6F3EA', `
         Da nossa conversa de hoje: <b>o usuário é o PRESIDENTE</b> — e presidente brasileiro escala time,
@@ -244,7 +315,18 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
       ${bloco('🎩🚗 Técnico e Garagem', '#EDE7FF', `
         Os dois entram <b>já no dia 1</b>, em cinza com selo <b>EM BREVE</b> (sem botão, ninguém clica no vazio).
         Serve de vitrine: todo mundo que abrir a sala fica sabendo o que vem por aí — e a sala já nasce
-        com espaço reservado, sem precisar redesenhar depois.`)}
+        com espaço reservado, sem precisar redesenhar depois.<br><br>
+        <b>A zoeira da formação</b> (seu pedido): o técnico tem o esquema PREFERIDO dele, defende com unhas e
+        dentes… e cede na hora que você muda. Cada troca solta uma frase nova (umas 20, pra não repetir).
+        <b>Isso é só texto</b> — não muda nada na simulação, não adiciona passo nem espera. Entra no tempo morto,
+        do jeito que você gosta.`)}
+      ${bloco('🛡️🎽🦅 A cara do clube na sala', '#E9F6FF', `
+        Escudo, manto e mascote na tira de baixo do retrato — <b>com a regra do barão escrita ali do lado</b>:
+        <i>"cai de divisão? o escudo, o manto e a mascote descem junto com você"</i>. É o lugar certo pra isso:
+        a sala é do DONO, e a arte do batismo é a coisa mais dele que existe.<br><br>
+        No mockup os desenhos são de mentirinha (placeholder). No jogo vem o <b>.webp de verdade</b> do batismo,
+        o manto sai das 2 cores medidas na arte do dono, e quem não batizou vê o escudo genérico — com o
+        convite pra batizar.`)}
       ${bloco('🧍 O boneco (sua ideia de 21/08)', '#FFF6D6', `
         Continua de pé como <b>passo 2</b>: na primeira vez que a pessoa abrir a sala, cria o boneco
         (ou pula) e rola a <b>POSSE</b>. No dia 1 a sala abre com o boneco padrão — ninguém fica travado.`)}
