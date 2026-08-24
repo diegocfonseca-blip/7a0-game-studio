@@ -7,6 +7,48 @@ sala do presidente (mockup já existe de outra sessão), cansaço/condição, e
 olheiros que aliciam por tier do usuário. Resposta completa foi no chat (24/08);
 aqui fica o resumo estrutural pra nenhuma sessão perder.
 
+## 1-BIS. 🎩🚗 BENEFÍCIOS FECHADOS (24/08) — `scripts/mockup-tecnico-carro-beneficios.mjs`
+Pedido dele: *"Sobre o técnico e o carro precisamos definir... Benefício e coisas
+práticas.."* + o anterior: *"tem q ser coisa óbvia tipo ganhar desconto em
+negociação ou salário e renovação"*. **Cada benefício foi amarrado a uma alavanca
+CONFERIDA no código** (regra dele: *"só faça se tiver sentido e funcionar, não ser
+fake"*):
+
+| Técnico | Benefício (número na cara) | Alavanca REAL |
+|---|---|---|
+| O Negociador | renovação −25% · folha −15% | `renewCost()` · `squadPayroll()` (store.tsx) |
+| O Artilheiro | 3 atacantes → atk +4 | `rollForm().atk` · `FORMATIONS` |
+| O Muralha | 3 zagueiros (5-3-2) → def +5 | `rollForm().def` · `FORMATIONS` |
+| O Copeiro | copas → +4 atk e def | `COPA_DIV_STRENGTH` |
+| O Paizão | metade dos perrengues | `sorteiaEvento()` (eventos.ts) |
+| O Olheiro | venda +20% | `marketValues` |
+
+🚫 **CORTADOS POR NÃO EXISTIR ALAVANCA** (e isso foi dito a ele na cara):
+- *"Professor: promessa evolui mais rápido"* — **jogador NÃO sobe de nível hoje**;
+  não há progressão de `lo`/`hi` no motor. Seria construir um sistema inteiro.
+- *"Ônibus/avião cansam menos"* — **cansaço não existe**. Era a amarração da ideia
+  velha de carros; sem ela, viagem vira enfeite.
+
+🚗 **REGRA DE COERÊNCIA DO CARRO (minha proposta):** *o carro é do PRESIDENTE,
+então ele mexe em **GRANA e IMAGEM — nunca na bola**.* Motivo: carro se compra com
+MOEDA; se moeda virasse gol, juntar moeda ganharia jogo e o leilão (a alma) perde
+sentido. Escada: 🚗 Fusca 40 (status) · 🛻 Picape 120 (bico +10%) · 🏎️ Esportivo
+300 (manchete) · 🚌 Ônibus 600 (bilheteria +10%) · ✈️ Avião 1.500 (os dois +10%).
+
+😂 **O PULO DO GATO — a zoeira VIRA mecânica:** cada técnico tem esquema preferido;
+jogando nele o bônus vale, e **mudar é sempre permitido** (só perde o bônus
+daquele jogo, com aviso claro na tela — nunca trava). Assim "quem manda é você"
+deixa de ser piada solta e vira DECISÃO com preço.
+
+⚖️ **Freios contra desbalanceio:** salário na folha · contrato de 2 temporadas ·
+UM técnico por vez · **sem técnico o jogo é idêntico a hoje** (carreira antiga não
+muda). O +4 é do MESMO tamanho que a tática já dá (retranca/ataque = ±4).
+
+⏳ **Falta ele decidir:** ① os 6 estão bons? ② nome real ou apelido (recomendo
+**apelido** — "o Tite dá desconto de folha" seria inventar como pessoa real é,
+regra dele de 18/08) ③ rota de entrada (recomendo **3 candidatos na virada**, não
+o 7º setor do pregão, que alongaria o leilão) ④ preço dos carros.
+
 ## 1. 🧠 Técnicos famosos
 - Carta de técnico com nome real (mesmo critério dos jogadores: fatos públicos,
   bio de traço largo; rosto só com referência, senão neutro).
