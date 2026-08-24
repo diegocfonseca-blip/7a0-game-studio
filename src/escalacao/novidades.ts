@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-08-24', emoji: '🅰️', titulo: 'Gols e assistências também no Rápido', texto: 'No Rápido (online e contra a CPU): o campinho do seu time agora mostra os selos de ⚽ gols e 🅰️ assistências em cada jogador — antes o campinho vinha sem número nenhum — e do lado da artilharia nasceu a lista dos 🅰️ Garçons, com quem mais dá passe pro gol na liga.' },
   { data: '2026-08-24', emoji: '🔁', titulo: 'Dá pra trocar os jogadores de lado', texto: 'No Modo Carreira, no campinho do Elenco: toque em dois titulares da mesma posição e eles trocam de lugar — o canhoto vai pra esquerda, o destro pra direita, os dois atacantes invertem. É só a organização do seu campinho: não muda a força do time nem o resultado.' },
   { data: '2026-08-24', emoji: '🅰️', titulo: 'Chegaram as assistências', texto: 'Todo gol agora mostra quem deu o passe — embaixo do placar, no seu elenco (⚽ e 🅰️ lado a lado) e numa aba nova no Rank com os melhores garçons de cada série. Gol de jogada individual aparece assim mesmo, com todas as letras. Nenhum resultado das suas temporadas mudou.' },
   { data: '2026-08-24', emoji: '📼', titulo: 'O jornal ganhou memória', texto: 'No Modo Carreira: o jornal do fim de temporada agora guarda a história do seu clube e abre a página "O Jornal Lembra" quando ela merece manchete — 3º título seguido, dinastia, o jejum que acabou, a 10ª temporada seguida na Série A, a primeira vez na elite, a primeira Copa. Cada taça (ou seca) vira memória.' },

@@ -1,5 +1,25 @@
 # 📌 Pendências combinadas com o Diego (atualizado 24/08/2026)
 
+## 🅰️⚽ GOLS E ASSISTÊNCIAS NO RÁPIDO — ✅ ENTREGUE (24/08)
+Pedido dele: *"o campinho de gols coloque também no modo online rápido, e
+assistências lá também"*. Achado no caminho: no rápido o campinho **nunca
+mostrou gol nenhum** (o `JogadorNoCampo` era chamado sem `gols`) — só a carreira
+mostrava. Agora os dois selos aparecem nos dois modos.
+- **Motor** (`garcomDoGol` em store.tsx): mesma regra da carreira e pelo MESMO
+  motivo — dado PRÓPRIO, semeado com time+goleador+minuto+semente da rodada, pra
+  não mexer no sorteio dos gols (nenhum placar muda, nem em temporada rolando).
+  ~75% com passe; trava do 3+ gols; garçom nunca é o próprio goleador.
+- **Estado**: `assists: AssistRow[]` (nome+time+total, igual à ScorerRow do
+  rápido, que não tem id de carta). ⚠️ **Zera nos 8 lugares onde `s.scorers`
+  zera** — senão sobrava assistência de temporada passada e o número não batia.
+  Viaja pro convidado sozinho (o `sanitize` manda o estado inteiro).
+- **Tela**: selos ⚽/🅰️ no campinho (`Campinho` em screens.tsx, busca por
+  NOME+time porque o rápido não tem cardId) + caixa **🅰️ GARÇONS** embaixo da
+  artilharia da liga. Basquete não entra (lá o placar é por pontos).
+- **Auditoria**: `scripts/checa-assist-rapido.mjs` — 20 mil gols: 74,9% com
+  passe · determinismo ok · trava do 3+ ok · goleador não serve a si mesmo ·
+  quem mais serve é meia, depois lateral. Reverter: um commit.
+
 ## 🅰️ ASSISTÊNCIAS — ✅ ENTREGUE (24/08)
 Primeira peça da engrenagem que planejamos (assistências → Bola de Ouro →
 cansaço → carros). O Diego mandou fazer e deu a regra de ouro do medo dele:
