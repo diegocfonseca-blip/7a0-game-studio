@@ -91,3 +91,52 @@ aqui fica o resumo estrutural pra nenhuma sessão perder.
 8º Editor de nomes (decidir o jurídico primeiro).
 
 **Status: NADA implementado — aguardando o Diego escolher por onde começa.**
+
+---
+
+## 🚦 VEREDITO DE VIABILIDADE (24/08, análise contra o motor real)
+Pedido do Diego: *"veja se realmente daria certo no nosso jogo, funcionar de
+verdade e ter sentido, não ser fake — só faça se tiver sentido"*.
+
+**🟢 VERDE (encaixa no motor que existe, funciona de verdade):**
+- **Assistências** — o motor já sorteia autor de gol por partida (`Goal`);
+  sortear o garçom no mesmo lugar é orgânico. `assistsByCard` espelha o
+  `goalsByCard` que já existe.
+- **Bola de Ouro / Chuteira geral** — `scorersAll` já cruza as divisões; o selo
+  que valoriza a carta usa o MESMO mecanismo do artilheiro (`applyScorerValues`
+  sobe piso). É celebrar dado que já existe e ninguém vê.
+- **Cansaço** — o motor JÁ aceita modificador por rodada (`RoundMods`, usado
+  pelos eventos: noitada = -2 na rodada). Gás por jogador + mod por rodada
+  encaixa sem tocar na fórmula. Lesão/Dep. Médico já existem pra sinergia.
+  Condição: CPUs precisam de rodízio automático silencioso (ou baseline plano)
+  pra não virar vantagem/desvantagem torta.
+- **Olheiro/aliciar** — `cpuSquads` é elenco MATERIALIZADO dos 60 times: tirar
+  jogador do Zorra FC e pôr no seu é operação real, não teatro. Trava por tier =
+  mesma escada da REVELAÇÃO de overall (precedente que não fere a regra de ouro).
+
+**🟡 AMARELO (funciona SE a condição for cumprida):**
+- **Carros** — metade da escada (ônibus/avião) só tem sentido SE o cansaço
+  existir antes. Sem cansaço, é enfeite (fake). Ordem obrigatória: cansaço → carros.
+- **Técnicos** — todos os benefícios mapeiam em alavancas que existem (folha,
+  promessas, tática, teto de goleada, copa) — mas é trabalho grande. Entrada
+  pela rota (b) (3 candidatos na virada) pra não alongar o pregão.
+- **Sala do Presidente** — VIÁVEL, mas as "metas do presidente" COLIDEM com a
+  aposta do patrocínio (que já é um sistema de metas). Tem que fundir, não
+  duplicar — senão o jogador vê dois chefes pedindo a mesma coisa = fake.
+- **Editor de nomes** — display-only por cima (NUNCA renomear as chaves:
+  placements/cpuSquads são keyed por NOME — mexer ali é a família de bug
+  "virei bot"). Jurídico resolvido antes.
+
+**🔴 VERMELHO (não fazer — seria fake ou quebra o conceito do jogo):**
+- **Envelhecimento/aposentadoria** — o baralho é de LENDAS CONGELADAS no auge
+  (a identidade da carta é nome+clube+ANO: "Pelé Santos 1962"). Envelhecer o
+  Pelé de 62 quebra o conceito central. A cura da monotonia vem por cansaço +
+  rivais que evoluem, não por idade.
+- **Data FIFA / convocações no meio da temporada** — o sim não tem calendário
+  semanal, e tirar jogador do XI no meio conflita com o pin de escalação e com
+  a regra "mexeu em jogador, todo save atualiza". Forçado = fake.
+- **Ser técnico da Seleção na Copa do Mundo** — a Copa do Mundo Legends é
+  simulação-espetáculo separada; virar modo jogável é um jogo inteiro novo.
+  Não agora.
+- **Duelo de mascotes animado, boteco, vidente etc.** — o Diego já recusou; ficam
+  fora.
