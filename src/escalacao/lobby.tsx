@@ -648,6 +648,20 @@ export function EscLobby() {
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
+  // 🚪 códigos das salas que estão travando a criação (ver a trava mais abaixo)
+  const [salasPresas, setSalasPresas] = useState<string[]>([])
+  const [encerrando, setEncerrando] = useState(false)
+  const encerrarSalasPresas = async () => {
+    if (!salasPresas.length) return
+    setEncerrando(true)
+    // apaga só as MINHAS (o filtro por host_id é a trava — ninguém encerra sala
+    // de outro), e só as que estavam travando.
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('game_rooms').delete().eq('host_id', user.id).in('code', salasPresas).then(() => {}, () => {})
+    }
+    setSalasPresas([]); setRoomError(''); setEncerrando(false)
+  }
   const [resumeRoom, setResumeRoom] = useState<RoomInfo | null>(null) // partida em andamento: pergunta voltar/sair
   const [myCareers, setMyCareers] = useState<OpenRoom[]>([]) // saves de carreira online do host (só do criador)
   const [resumingCareer, setResumingCareer] = useState<OpenRoom | null>(null) // painel "continuar carreira" com as 3 opções do amigo faltando
@@ -1254,7 +1268,17 @@ export function EscLobby() {
       const abertas = ((minhas ?? []) as { code: string; mode: string | null }[])
         .filter(r => r.mode !== 'liga' && r.mode !== 'carreira')
       if (abertas.length >= 2) {
-        setRoomError(`Você já tem 2 salas abertas (${abertas.map(r => r.code).join(' e ')}) — é o máximo por pessoa, pra lista de salas não encher de sala vazia. Pra abrir outra, entre numa delas e use "🚪 Sair e encerrar a sala".`)
+        // 🚪 O CAMINHO PRA DESTRAVAR, ALI MESMO (bug que o Diego relatou 24/08:
+        // *"o usuário não estava mais com sala aberta e apareceu esse erro"*).
+        // A CAUSA: ao sair da sala, o último save do host BATE o updated_at — ou
+        // seja, abandonar a sala a deixa marcada como VIVA bem na hora em que ela
+        // deixa de existir pra pessoa. Pelas 3h seguintes ela conta na trava, e
+        // quem fechou a aba não tem como saber disso.
+        // Enquanto o batimento não é reescrito (mexer nele é arriscado no meio de
+        // partida ao vivo), a trava passa a EXPLICAR e a DESTRAVAR na mesma tela:
+        // um toque encerra as salas paradas, sem precisar entrar em cada uma.
+        setSalasPresas(abertas.map(r => r.code))
+        setRoomError(`Você já tem 2 salas abertas (${abertas.map(r => r.code).join(' e ')}) — é o máximo por pessoa, pra lista de salas não encher de sala vazia. Se você já saiu delas, é só encerrar aqui embaixo.`)
         setLoading(false); return
       }
     }
@@ -2628,6 +2652,13 @@ export function EscLobby() {
                 {humans.length === 0 && <p className="text-black/40 text-xs italic">Sem técnicos humanos salvos.</p>}
               </div>
               {roomError && <p className="text-red-500 text-xs font-bold mb-2">{roomError}</p>}
+              {salasPresas.length > 0 && (
+                <button onClick={encerrarSalasPresas} disabled={encerrando}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase mt-2"
+                  style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
+                  {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
+                </button>
+              )}
               <button onClick={doContinueCareer} disabled={loading}
                 className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase mb-2" style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
                 {loading ? 'Abrindo…' : '▶️ Continuar (quem faltar = CPU)'}
@@ -2668,6 +2699,13 @@ export function EscLobby() {
               placeholder="Senha" onKeyDown={e => e.key === 'Enter' && enterRoom(pwModal, pwEntry)}
               className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
             {roomError && <p className="text-red-500 text-xs font-bold mt-1">{roomError}</p>}
+            {salasPresas.length > 0 && (
+                <button onClick={encerrarSalasPresas} disabled={encerrando}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase mt-2"
+                  style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
+                  {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
+                </button>
+              )}
             <div className="flex gap-2 mt-3">
               <button onClick={() => { setPwModal(null); setRoomError('') }}
                 className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>Cancelar</button>
