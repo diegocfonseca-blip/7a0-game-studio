@@ -3017,6 +3017,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                   ano={c.year}
                   tag={c.pos}
                   gols={goalsOf(c)}
+                  assist={assistsOf(c)}
                   alt={64}
                   fonteNome={11}
                   estado={stateOf(c) as EstadoJogador}

@@ -48,7 +48,7 @@ const anelDe = (st: EstadoJogador): string =>
       : '2px 3px 0 rgba(0,0,0,.45)'
 
 export function JogadorNoCampo({
-  nome, clube, ano, tag, gols = 0, alt, fonteNome,
+  nome, clube, ano, tag, gols = 0, assist = 0, alt, fonteNome,
   mantoCss, estado = 'idle', onClick, extra,
 }: {
   nome: string
@@ -57,6 +57,8 @@ export function JogadorNoCampo({
   /** o rótulo da posição no selinho (ATA/MEI/ZAG/LAT/GOL) */
   tag: string
   gols?: number
+  /** 🅰️ assistências da temporada — selo azul, irmão do de gols (24/08) */
+  assist?: number
   /** altura do boneco em px — o campinho do leilão usa menos que o do elenco */
   alt: number
   fonteNome: number
@@ -98,6 +100,16 @@ export function JogadorNoCampo({
               color: INK, background: '#FFC400', border: `2px solid ${INK}`, borderRadius: 7,
               padding: '0 4px', lineHeight: 1.6, whiteSpace: 'nowrap',
             }}>⚽{gols}</span>
+          )}
+          {/* 🅰️ ASSISTÊNCIAS (24/08): mesmo selo do gol, em azul, logo abaixo.
+              Sem gol na temporada, ele sobe e ocupa o lugar de cima — o
+              jogador nunca fica com um buraco no lugar do número. */}
+          {assist > 0 && (
+            <span style={{
+              position: 'absolute', right: -10, top: gols > 0 ? '38%' : '4%', ...OSWALD, fontWeight: 700, fontSize: 9,
+              color: '#fff', background: '#2F6BAE', border: `2px solid ${INK}`, borderRadius: 7,
+              padding: '0 4px', lineHeight: 1.6, whiteSpace: 'nowrap',
+            }}>🅰️{assist}</span>
           )}
         </span>
       </div>
