@@ -18,6 +18,7 @@ import saoluizMascoteImg from './img/saoluiz-mascote.webp' // 🐶 São Luiz FC 
 import papaoMascoteImg from './img/papao-mascote.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
 import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
+import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
 
@@ -525,6 +526,14 @@ export const MASCOTES: Record<string, ReactNode> = {
   papao_lobo: (
     <img src={papaoMascoteImg} height={176} width={Math.round(176 * 281 / 440)} alt="O Papão — Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🦇 Neymarzetti (Diego, dono do jogo) — o camisa 10 MASCARADO de manto preto
+  // e prata, com a bola no braço. arte própria do dono (webp, fora do bundle).
+  // mascote_key = "neymarzetti_mascarado". 193x440 no arquivo.
+  // 24/08: aposenta o `moicano` (SVG à mão de 09/08), que fica no arquivo só pra
+  // não quebrar save antigo que tenha a chave gravada.
+  neymarzetti_mascarado: (
+    <img src={neymarzettiMascoteImg} height={176} width={Math.round(176 * 193 / 440)} alt="O Mascarado — Neymarzetti" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🦇 Theuzudo FC — o morcego de boné (coração Valência, laranja e preto).
   // arte própria do dono (webp, fora do bundle). mascote_key = "theuzudo_morcego".
   // 264x351 no arquivo: a 176px de altura ele fica no tamanho certo, sem esticar.
@@ -743,7 +752,12 @@ export const MASCOTES: Record<string, ReactNode> = {
 // pirâmide: esses são batismos de RESERVA DE NOME (o clube do próprio jogador, que
 // não substitui time de CPU) — o carimbo deles dispara quando o dono marca.
 export const CARIMBO_GOL: Record<string, string> = {
-  'Neymarzetti': 'moicano',
+  // 🦇 24/08: o Mascarado (arte .webp do dono) toma o lugar do `moicano` (SVG à
+  // mão de 09/08). As 4 formas do nome + o nome VELHO, como manda a regra.
+  'Neymarzetti': 'neymarzetti_mascarado',
+  'Neymarzetti FC': 'neymarzetti_mascarado',
+  'Neymarzetti EC': 'neymarzetti_mascarado',
+  'Paixandu': 'neymarzetti_mascarado',
   'Manfré FC': 'gralha',
   'Alfacehh': 'alface',
   'Leão da Estradinha': 'leao_estradinha', // 🦁 o leão carimba o placar (rebatismo 23/08)
@@ -805,6 +819,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   saoluiz_pitbull: 'Luizão',     // 🐶 São Luiz FC (gabrielnegreirosamaral99, 21/08)
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   leao_estradinha: 'O Leão',     // 🦁 Leão da Estradinha (jorgericardo777, 23/08)
+  neymarzetti_mascarado: 'O Mascarado', // 🦇 Neymarzetti (diego.c.fonseca, 24/08)
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)

@@ -9832,3 +9832,45 @@ elas passam uma pra outra na virada pro mata-mata, igual à artilharia).
 **Reverter**: `git revert` do commit — é um commit isolado e nenhum dado salvo
 muda de forma (os campos novos são opcionais; save antigo simplesmente não tem
 assistência de copa e continua abrindo).
+
+## 🦇 BATISMO v2 DO NEYMARZETTI — arte própria do dono (24/08)
+Diego mandou a arte (escudo N de asa de morcego + o camisa 10 mascarado + a
+camisa preta/prata) e pediu: *"faça essa arte aí valer pro time do neymarzetti"*.
+
+**O que mudou:** o Neymarzetti já era batizado desde 09/08, mas o escudo e a
+mascote eram **SVG desenhados à mão dentro do `.tsx`** — o que a regra de peso
+proíbe pra batismo novo. Esta entrega troca os dois por `.webp` FORA do bundle.
+
+- 🛡️ `img/neymarzetti-escudo.webp` **360×299 · 23,8 KB** (teto 30) — largura
+  declarada pela proporção REAL (`size * 360/299`).
+- 🦇 `img/neymarzetti-mascote.webp` **193×440 · 28,8 KB** (teto 45) — o Mascarado.
+- **Total 52,6 KB** (teto por batismo: 75 KB). ✅
+- 🎽 `scripts/kits/neymarzetti.webp` — a camisa é do POST, **não** entra no
+  bundle nem conta no teto.
+
+**Limpeza da arte:** o fundo foi tirado por **INUNDAÇÃO a partir da borda**, não
+por "apagar todo branco" — a arte tem branco POR DENTRO (a bola, as listras
+prateadas, o brilho do metal), e um corte global comeria tudo. Conferido sobre
+**fundo CREME, nunca branco** (regra do Theuzudo 21/08): nada furado. Um respingo
+solto do original foi removido por componente conexo (<400 px).
+Moldura vazia sobrando: 0,0–0,8% (o `mockup-batismo.mjs` confirmou "arte
+encaixada: nenhum arquivo com moldura vazia sobrando").
+
+**Onde entrou no código** (os lugares FIXOS do roteiro):
+- `escudos.tsx` — import + `neymarzettiEscudoRender` + `LOGOS_PRONTAS` com as
+  **4 formas** (nome puro · FC · EC · e o nome VELHO `Paixandu`);
+- `mascotes.tsx` — import + `neymarzetti_mascarado` em `MASCOTES` +
+  `MASCOTE_NOME` ("O Mascarado") + `CARIMBO_GOL` nas 4 formas;
+- `manto.ts` — **`['#141416', '#B6B7B8']` MEDIDOS na camisa** (média dos pixels
+  do torso: escuros e listras). ⚠️ Antes era vermelho/preto `#C2452F`/`#141414`
+  — a cor pessoal do Diego MUDOU junto, porque a regra é que o manto sai da arte.
+- **Banco** (`esc_socios`, sócio nº 1): `mascote_key` `moicano` →
+  `neymarzetti_mascarado`, `manto_c1/c2` atualizados. É de onde o FESTÃO de
+  campeão e o pênalti leem a mascote.
+- `esc_nomes_batismo`: a reserva das formas **já existia** (nome + FC + EC).
+
+O `moicano` (SVG antigo) FICA no arquivo — não some, pra não quebrar save que
+tenha a chave gravada. Só não é mais usado pelo clube.
+
+**Reverter:** 1 commit. O banco volta com um UPDATE (valores antigos anotados
+acima).
