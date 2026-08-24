@@ -1642,6 +1642,56 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
   )
 }
 
+// 📼 O JORNAL LEMBRA (Diego 24/08 — a ideia que ele escolheu da simulação de
+// 250 temporadas). Transforma a crônica da carreira (careerCronica) em
+// manchetes de HISTÓRIA: sequência de títulos, jejum quebrado, jejum corrente,
+// marcos de permanência na divisão, primeira vez na divisão, título redondo e
+// primeira Copa. Recebe as temporadas JÁ gravadas (a atual ainda não está — ela
+// grava na virada) + o resultado de agora. Sem nada marcante → lista vazia e a
+// página nem nasce: pra quem está começando, o jornal fica igualzinho a hoje.
+export function manchetesDeMemoria(
+  cron: { t: number; div: string; campeao?: 1; copa?: 1; sup?: 1 }[] | undefined,
+  atual: { div: string; campeao: boolean; copa: boolean; titulosTotais?: number },
+): { ic: string; titulo: string; sub: string }[] {
+  const past = cron ?? []
+  const out: { ic: string; titulo: string; sub: string }[] = []
+  const nomeDiv = (d: string) => d === 'V' ? 'Várzea' : `Série ${d}`
+  const tAtual = past.length ? past[past.length - 1].t + 1 : 1
+  if (atual.campeao) {
+    // 🏆 sequência de títulos (contando o de agora)
+    let seq = 1
+    for (let i = past.length - 1; i >= 0 && past[i].campeao; i--) seq++
+    if (seq >= 2) {
+      out.push(seq >= 4
+        ? { ic: '👑', titulo: `${seq}º TÍTULO SEGUIDO — isso já é DINASTIA`, sub: 'O arquivo do jornal não registra nada igual. Os rivais perderam a conta.' }
+        : { ic: '🏆', titulo: `${seq}º título seguido`, sub: 'De novo eles. A taça tá criando morada.' })
+    } else {
+      // 🎉 acabou o jejum / primeira estrela
+      let ultimo = -1
+      for (let i = past.length - 1; i >= 0; i--) if (past[i].campeao) { ultimo = past[i].t; break }
+      if (ultimo > 0 && tAtual - ultimo >= 4) out.push({ ic: '🎉', titulo: `ACABOU O JEJUM: ${tAtual - ultimo} temporadas depois, a taça voltou`, sub: `A última vez tinha sido na T${ultimo}. Teve torcedor chorando no gramado.` })
+      else if (ultimo === -1 && past.length >= 3) out.push({ ic: '🎉', titulo: 'O PRIMEIRO TÍTULO DA HISTÓRIA DO CLUBE', sub: `${tAtual} temporadas de espera — a primeira estrela ninguém esquece.` })
+    }
+    // ⭐ marco redondo de títulos totais
+    const total = past.filter(p => p.campeao).length + 1
+    if ([5, 10, 20, 30, 50, 100].includes(total)) out.push({ ic: '⭐', titulo: `O ${total}º TÍTULO da história do clube`, sub: 'Sala de troféus pedindo estante nova.' })
+  } else {
+    // ⏳ jejum corrente (só cutuca a partir de 6 — cobrança, não deboche)
+    let semTitulo = 1
+    for (let i = past.length - 1; i >= 0 && !past[i].campeao; i--) semTitulo++
+    if (past.length >= 5 && semTitulo >= 6) out.push({ ic: '⏳', titulo: `${semTitulo} temporadas sem título — a torcida cobra`, sub: 'O arquivo do jornal guarda tudo. E a paciência da arquibancada tem prazo.' })
+  }
+  // 📅 marcos de permanência na mesma divisão (contando a atual)
+  let seqDiv = 1
+  for (let i = past.length - 1; i >= 0 && past[i].div === atual.div; i--) seqDiv++
+  if ([5, 10, 15, 20, 25, 30, 40, 50].includes(seqDiv)) out.push({ ic: '📅', titulo: `${seqDiv}ª temporada seguida na ${nomeDiv(atual.div)}`, sub: atual.div === 'A' ? 'Clube de elite não é quem chega — é quem FICA.' : 'História se escreve temporada por temporada.' })
+  // 🆕 primeira vez nesta divisão (com pelo menos 2 temporadas de arquivo)
+  if (past.length >= 2 && !past.some(p => p.div === atual.div)) out.push({ ic: '🆕', titulo: `PRIMEIRA VEZ na ${nomeDiv(atual.div)} em toda a história do clube`, sub: 'Página nova no arquivo do jornal.' })
+  // 🥇 primeira Copa da história
+  if (atual.copa && past.length >= 3 && !past.some(p => p.copa)) out.push({ ic: '🥇', titulo: 'A PRIMEIRA COPA da história do clube', sub: 'Mata-mata é outra vida — e agora tem taça no armário pra provar.' })
+  return out.slice(0, 3)
+}
+
 function FinLine({ label, sub, amount }: { label: string; sub?: string; amount: number }) {
   const pos = amount >= 0
   return (
@@ -5658,6 +5708,10 @@ export function PyramidSeasonScreen() {
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
           <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
+            /* 📼 O JORNAL LEMBRA (Diego 24/08): manchetes de HISTÓRIA calculadas
+               da crônica da carreira + o resultado desta temporada (que ainda
+               não está gravado — a crônica só grava na virada). */
+            memoria={manchetesDeMemoria(state.careerCronica?.[`m${youId}`], { div: me.div, campeao: me.pos === 1, copa: !!(copa?.champion && (copa.champion as { you?: boolean }).you), titulosTotais: undefined })}
             copaRun={copaRun} superRun={superRun} superChamp={superChamp}
             /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
                na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
