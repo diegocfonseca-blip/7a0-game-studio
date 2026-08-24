@@ -57,6 +57,7 @@ const o = {
   insta: arg('insta', ''), // 📸 @ do dono — entra no rodapé, do lado do nome dele
   socio: process.argv.includes('--socio'), socioN: arg('socio-n', ''),
   saida: arg('saida', 'mockup-batismo.png'),
+  escala: Number(arg('escala', '1')), // 🔍 2 = o dobro de pixels (pro Instagram)
 }
 if (!o.clube || !o.escudo || !o.mascote) {
   console.error('faltou --clube, --escudo ou --mascote (veja o cabeçalho do arquivo)')
@@ -247,7 +248,7 @@ h1 .r{color:#C2452F}
 </div>`
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-const page = await browser.newPage({ viewport: { width: 890, height: 1400 }, deviceScaleFactor: 2 })
+const page = await browser.newPage({ viewport: { width: 890, height: 1400 }, deviceScaleFactor: o.escala || 2 })
 await page.setContent(html, { waitUntil: 'load' })
 await page.evaluate(() => document.fonts.ready)
 

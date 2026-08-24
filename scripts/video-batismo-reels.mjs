@@ -33,6 +33,7 @@ const o = {
   c2: arg('c2', '#B6B7B8'), c2nome: arg('c2-nome', ''),
   dono: arg('dono', ''), fundador: arg('fundador', ''),
   saida: arg('saida', 'batismo-reels.mp4'),
+  alta: process.argv.includes('--alta'), // 🔍 qualidade de Instagram: cenas em 2x, crf 18, bitrate alto
 }
 if (!o.clube || !o.escudo || !o.mascote) { console.error('faltou --clube, --escudo ou --mascote'); process.exit(1) }
 
@@ -103,7 +104,7 @@ const CENAS = [
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reels-'))
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-const p = await b.newPage({ viewport: { width: 1080, height: 1920 } })
+const p = await b.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: o.alta ? 2 : 1 })
 const pngs = []
 for (let i = 0; i < CENAS.length; i++) {
   const f = path.join(tmpDir, `cena${i}.html`)
@@ -132,8 +133,9 @@ const clipes = pngs.map((png, i) => {
     ? `min(1.0+0.0009*on,1.10)`   // aproxima devagar
     : `max(1.10-0.0009*on,1.0)`   // afasta devagar
   execFileSync('ffmpeg', ['-v', 'error', '-loop', '1', '-framerate', String(FPS), '-t', String(DUR), '-i', png,
-    '-vf', `scale=1620:2880,zoompan=z='${z}':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${FPS},format=yuv420p`,
-    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-frames:v', String(frames), '-y', out])
+    '-vf', `scale=${o.alta ? '2160:3840' : '1620:2880'},zoompan=z='${z}':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${FPS},format=yuv420p`,
+    '-c:v', 'libx264', '-preset', o.alta ? 'slow' : 'veryfast', '-crf', o.alta ? '16' : '22',
+    '-frames:v', String(frames), '-y', out])
   return out
 })
 // costura com xfade encadeado
@@ -144,7 +146,9 @@ for (let i = 1; i < clipes.length; i++) {
   const offset = (acc - FADE).toFixed(2)
   execFileSync('ffmpeg', ['-v', 'error', '-i', atual, '-i', clipes[i],
     '-filter_complex', `[0:v][1:v]xfade=transition=fade:duration=${FADE}:offset=${offset},format=yuv420p`,
-    '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-y', out])
+    '-c:v', 'libx264', '-preset', o.alta ? 'slow' : 'medium', '-crf', o.alta ? '16' : '20',
+    ...(o.alta ? ['-maxrate', '16M', '-bufsize', '32M', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.2'] : []),
+    '-y', out])
   atual = out
   acc += DUR - FADE
 }

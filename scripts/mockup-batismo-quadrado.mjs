@@ -32,6 +32,7 @@ const o = {
   c2: arg('c2', '#0C0C0C'), c2nome: arg('c2-nome', ''),
   dono: arg('dono', ''), fundador: arg('fundador', ''),
   saida: arg('saida', 'batismo-quadrado.png'),
+  escala: Number(arg('escala', '1')), // 🔍 2 = renderiza em 2880x2880 (pro Instagram)
 }
 if (!o.clube || !o.escudo || !o.mascote) { console.error('faltou --clube, --escudo ou --mascote'); process.exit(1) }
 
@@ -107,10 +108,10 @@ body{width:1440px;height:1440px;background:${CREME};font-family:system-ui;paddin
 const tmp = `/tmp/batismo-quad-${process.pid}.html`
 fs.writeFileSync(tmp, html)
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-const p = await b.newPage({ viewport: { width: 1440, height: 1440 } })
+const p = await b.newPage({ viewport: { width: 1440, height: 1440 }, deviceScaleFactor: o.escala })
 await p.goto('file://' + tmp)
 await p.evaluate(() => document.fonts.ready)
 await p.waitForTimeout(500)
 await p.screenshot({ path: o.saida })
 await b.close()
-console.log(`${o.saida} · ${(fs.statSync(o.saida).size / 1024).toFixed(0)} KB · 1440x1440`)
+console.log(`${o.saida} · ${(fs.statSync(o.saida).size / 1024).toFixed(0)} KB · ${1440 * o.escala}x${1440 * o.escala}`)

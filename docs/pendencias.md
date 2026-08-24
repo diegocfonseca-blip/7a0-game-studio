@@ -9922,3 +9922,28 @@ Bicho continua inteiro.
 **Novo no gerador do post:** `--insta` põe o @ do dono no rodapé, do lado do nome.
 
 **Reverter:** 1 commit + 2 DELETEs no banco (esc_socios e esc_nomes_batismo).
+
+### 📸 POST EM ALTA: a arte do POST é OUTRA, não a do jogo (24/08)
+Diego, olhando o mockup ampliado: *"eu disse as artes em alta q estão dentro"*.
+Ele estava certo e o furo era meu: o gerador do post embutia os **.webp DO JOGO**
+— que nascem pequenos de propósito (escudo 360px/23,8 KB, mascote 440px/28,8 KB,
+regra de peso do batismo). Ampliar o mockup só esticava arquivo comprimido.
+
+**Conserto:** o post passa a usar um recorte **do ORIGINAL, sem passar pelo
+.webp** — PNG sem perda, ampliado com LANCZOS + realce leve. Mora em
+`scripts/kits/<clube>-escudo-post.png` / `-mascote-post.png`, junto da camisa:
+**é material de POST, não entra no bundle nem no teto de peso**.
+📏 Medido (nitidez pelo laplaciano, janela do escudo no quadrado 2880):
+**272 → 585** (mais que dobrou).
+
+**Novas chaves:** `--escala` nos dois geradores de foto (2 = 2880×2880 no
+quadrado; 3 = 2670×4542 no vertical) e `--alta` no vídeo (cenas em 2×, x264
+`crf 16`, preset slow, maxrate 16M).
+
+🚧 **O TETO QUE SOBROU, e ele é do material de origem:** a arte do Neymarzetti
+que o dono mandou tem **800×1296 no total** — o escudo dentro dela é
+**296×246 nativos**. Num quadrado de 2880 esse escudo aparece com ~600px, ou
+seja, **ainda é ampliação**. Pra post realmente grande, o dono precisa exportar
+a arte maior (a 2ª arte do Milhaça, por exemplo, veio 1024×1536 e rende bem
+mais). Isso vale pra QUALQUER batismo: **pedir a arte no maior tamanho que o
+dono tiver** já na primeira conversa.
