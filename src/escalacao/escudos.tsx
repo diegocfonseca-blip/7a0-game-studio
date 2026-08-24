@@ -374,7 +374,14 @@ const DICIO: [string[], keyof typeof SIM, number?][] = [
 // escudo mudaria quando a pessoa trocasse de tier — e o clube perderia a cara.
 // (Regex igual ao stripEmoji do apoio.tsx; cópia local pra este módulo ficar puro.)
 export function nomeLimpo(nome: string): string {
-  return nome.replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}‍️︎⃣]/gu, '').replace(/\s+/g, ' ').trim()
+  return nome
+    .replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}‍️︎⃣]/gu, '')
+    // 🧹 sufixos de TELA que algumas partes do jogo grudam no nome pra marcar
+    // quem é quem ("(você)", "🔥" pros amigos). Eles não fazem parte do nome do
+    // clube — e, colados, faziam o escudo comprado sumir (caso do São Luiz FC na
+    // Copa, 21/08). Tirar aqui protege qualquer tela nova que faça o mesmo.
+    .replace(/\s*\((você|voce)\)\s*$/i, '')
+    .replace(/\s+/g, ' ').trim()
 }
 
 // ─── 🔒 hash determinístico do nome (mesmo nome = mesmo escudo, sempre) ────
