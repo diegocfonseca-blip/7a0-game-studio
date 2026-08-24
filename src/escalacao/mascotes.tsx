@@ -19,6 +19,7 @@ import papaoMascoteImg from './img/papao-mascote.webp' // 🐺 Papão United Mad
 import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
+import milhacaMascoteImg from './img/milhaca-mascote.webp' // 🌽 Milhaça FC (igormarquesn99): arte própria do dono, 24/08
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
 
@@ -531,6 +532,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // mascote_key = "neymarzetti_mascarado". 193x440 no arquivo.
   // 24/08: aposenta o `moicano` (SVG à mão de 09/08), que fica no arquivo só pra
   // não quebrar save antigo que tenha a chave gravada.
+  // 🌽 Milhaça FC (igormarquesn99, @igumarques) — o boleiro de boné e óculos
+  // vermelhos com a bola no braço. 199x440 no arquivo.
+  milhaca_boleiro: (
+    <img src={milhacaMascoteImg} height={176} width={Math.round(176 * 199 / 440)} alt="O Milhaça — Milhaça FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   neymarzetti_mascarado: (
     <img src={neymarzettiMascoteImg} height={176} width={Math.round(176 * 193 / 440)} alt="O Mascarado — Neymarzetti" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -758,6 +764,10 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Neymarzetti FC': 'neymarzetti_mascarado',
   'Neymarzetti EC': 'neymarzetti_mascarado',
   'Paixandu': 'neymarzetti_mascarado',
+  'Milhaça FC': 'milhaca_boleiro', // 🌽 o Milhaça carimba o placar (igormarquesn99, 24/08)
+  'Milhaça': 'milhaca_boleiro',
+  'Milhaça EC': 'milhaca_boleiro',
+  'Real Bets': 'milhaca_boleiro',
   'Manfré FC': 'gralha',
   'Alfacehh': 'alface',
   'Leão da Estradinha': 'leao_estradinha', // 🦁 o leão carimba o placar (rebatismo 23/08)
@@ -820,16 +830,41 @@ export const MASCOTE_NOME: Record<string, string> = {
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   leao_estradinha: 'O Leão',     // 🦁 Leão da Estradinha (jorgericardo777, 23/08)
   neymarzetti_mascarado: 'O Mascarado', // 🦇 Neymarzetti (diego.c.fonseca, 24/08)
+  milhaca_boleiro: 'O Milhaça',  // 🌽 Milhaça FC (igormarquesn99, 24/08)
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
 }
+
+// 🎯 MASCOTE DE CORPO INTEIRO QUE CARIMBA DO **PEITO PRA CIMA** (Diego 24/08).
+// Palavras dele: *"na animação quero só q apareça do peito p cima qd faz gol…
+// pq ele vai aparecer em todos os lugares inteiro. Só no gol q é do peito p
+// cima"*.
+// Faz sentido e é de graça: mascote que é GENTE INTEIRA (cabeça aos pés) fica
+// com a cara minúscula quando espremido em 176px de altura — no carimbo, que é
+// um flash rápido, ninguém reconhece o boneco. Cortando no peito, o rosto
+// aparece grande.
+// ⚖️ E o corte é feito em CSS, no MESMO arquivo .webp: **0 KB a mais**, nenhuma
+// arte nova (a regra de peso do batismo continua respeitada).
+// Só entra aqui quem é figura humana de corpo inteiro; bicho continua inteiro.
+const CARIMBO_BUSTO: Record<string, { src: string; alt: string }> = {
+  milhaca_boleiro: { src: milhacaMascoteImg, alt: 'O Milhaça — Milhaça FC' },
+  neymarzetti_mascarado: { src: neymarzettiMascoteImg, alt: 'O Mascarado — Neymarzetti' },
+}
+const bustoDe = (src: string, alt: string) => (
+  // a janela mostra os ~38% de cima da arte (cabeça + peito) e o resto fica fora
+  <div style={{ height: 176, width: 176, overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', flex: 'none' }}>
+    <img src={src} alt={alt} style={{ height: 176 / 0.38, width: 'auto', objectFit: 'contain', display: 'block' }} />
+  </div>
+)
 
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)
 export const carimboDoTime = (time: string): ReactNode | null => {
   const k = CARIMBO_GOL[time]
   if (!k) return null
   if (k === 'sete_seven') return SETE_SEVEN
+  const busto = CARIMBO_BUSTO[k]
+  if (busto) return bustoDe(busto.src, busto.alt)
   return MASCOTES[k] ?? null
 }
 

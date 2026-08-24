@@ -26,6 +26,7 @@ import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (
 import saoluizEscudoImg from './img/saoluiz-escudo.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
 import papaoEscudoImg from './img/papao-escudo.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
 import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
+import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
@@ -507,6 +508,14 @@ const papaoEscudoRender = (size: number) => (
 // 🦇 Neymarzetti — o "N" de asa de morcego, prateado sobre preto. 360x299 no
 // arquivo. Fundo tirado por INUNDAÇÃO a partir da borda (nunca "apaga todo
 // branco"): assim o brilho claro do metal e o vinco do N ficaram inteiros.
+// 🌽 Milhaça FC — brasão de raio amarelo sobre explosão vermelha. 308x360 no
+// arquivo. A arte veio com fundo TRANSPARENTE de verdade (a 2ª que o dono
+// mandou), mas com 29.597 px de POEIRA DE ALFA — o bbox cru mentiria, então o
+// corte foi medido com alfa >= 40 e mínimo de 3 px por linha/coluna.
+// Conferido sobre fundo CREME: as letras amarelas e o contorno preto inteiros.
+const milhacaEscudoRender = (size: number) => (
+  <img src={milhacaEscudoImg} height={size} width={Math.round(size * 308 / 360)} alt="Milhaça FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const neymarzettiEscudoRender = (size: number) => (
   <img src={neymarzettiEscudoImg} height={size} width={Math.round(size * 360 / 299)} alt="Neymarzetti" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1094,6 +1103,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // claro do 'N' continuam inteiros.
   // 📛 as 4 FORMAS reservadas do nome (regra do Diego 20/08): nome puro + FC +
   // EC, e a caixa já está coberta porque a chave é comparada em minúscula.
+  // 🌽 Milhaça FC (igormarquesn99) — ex-Real Bets, Série C. As 4 formas do nome.
+  'Milhaça FC': milhacaEscudoRender,
+  'Milhaça': milhacaEscudoRender,
+  'Milhaça EC': milhacaEscudoRender,
+  'Real Bets': milhacaEscudoRender, // 🕰️ nome VELHO: save antigo abre com o escudo novo
   Neymarzetti: neymarzettiEscudoRender,
   'Neymarzetti FC': neymarzettiEscudoRender,
   'Neymarzetti EC': neymarzettiEscudoRender,

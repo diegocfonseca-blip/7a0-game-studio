@@ -17,6 +17,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'adriano.ferrari@quepazseguros.com.br': ['#C2452F', '#141414'], // 🏎️ Ferrari SC — vermelho e preto
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
   'gabrielnegreirosamaral99@hotmail.com': ['#E00000', '#0C0C0C'], // 🐶 São Luiz FC — vermelho e preto, MEDIDOS na arte do dono (branco é a 3ª cor, em MANTO_TRI) (21/08)
+  'igormarquesn99@gmail.com': ['#AE1A13', '#F3B212'], // 🌽 Milhaça FC — vermelho e amarelo, MEDIDOS na camisa que o dono mandou (24/08)
   'agrostinho88@gmail.com': ['#0C2460', '#FFFFFF'], // 🐺 Papão United Madrid — azul-marinho e branco, MEDIDOS na camisa que o dono mandou (23/08). ❤️ Paysandu (o "Papão da Curuzu", de onde vem o nome do clube)
 }
 

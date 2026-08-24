@@ -9874,3 +9874,51 @@ tenha a chave gravada. Só não é mais usado pelo clube.
 
 **Reverter:** 1 commit. O banco volta com um UPDATE (valores antigos anotados
 acima).
+
+## 🌽 BATISMO: MILHAÇA FC (igormarquesn99 / @igumarques) — 24/08
+Diego: *"faça agora o time Milhaça FC do usuário que vai virar batismo, coloque
+tb o Instagram dele"*. Igor Marques é jornalista (@igumarques, 11,2 mil
+seguidores).
+
+**Arte** (a 2ª que ele mandou, com fundo transparente DE VERDADE):
+- 🛡️ `img/milhaca-escudo.webp` **308×360 · 29,5 KB** (teto 30)
+- 🌽 `img/milhaca-mascote.webp` **199×440 · 35,2 KB** (teto 45) — **total 64,6 KB** (teto 75) ✅
+- 🎽 `scripts/kits/milhaca.webp` — do POST, fora do bundle.
+
+**Limpeza — os dois casos apareceram nesta arte:**
+1. A 1ª versão veio com **xadrez FALSO** (quadriculado achatado no JPG). Apliquei
+   a regra do CLAUDE.md: só apaga região que tenha **fatia gorda dos DOIS tons**
+   (branco ~255 **e** cinza ~206). Funcionou — a **bola branca** (98% branco, 2%
+   cinza) foi PRESERVADA, que é exatamente o furo do Theuzudo.
+2. A 2ª versão já vinha com alfa, mas com **29.597 px de POEIRA DE ALFA** — o
+   bbox cru mentiria (regra do Papão). Medido com alfa ≥ 40 e mínimo 3 px por
+   linha/coluna.
+⚠️ **Achado novo:** na 2ª arte a **camisa e a mascote se ENCOSTAM** (viram uma
+peça só) — erosão até 8 px não separou. Solução: **escudo da arte nova** (mais
+resolução, e lá ele está sozinho) + **mascote e camisa da 1ª** (onde estão
+separados). Fica registrado porque vai acontecer de novo.
+
+**Onde entrou:** `escudos.tsx` (import + render + 4 formas: Milhaça FC · Milhaça
+· Milhaça EC · **Real Bets**, o nome velho) · `mascotes.tsx` (`milhaca_boleiro` +
+MASCOTE_NOME "O Milhaça" + CARIMBO_GOL nas 4 formas) · `manto.ts`
+(`['#AE1A13','#F3B212']` MEDIDOS na camisa) · `apoio.tsx` (ouro + **fundador
+nº49**) · `data.ts` (assento da **Série C** no lugar do *Real Bets* + OLD_NAME).
+**Banco:** `esc_nomes_batismo` (o gatilho criou FC/EC sozinho) + `esc_socios`
+**sócio nº30**, origem batismo.
+📌 **Série C porque a D está LOTADA** (20 de 20 batizados). C tinha as 20 livres.
+Mudar de divisão = 1 linha.
+
+### 🎯 CARIMBO DO GOL "DO PEITO PRA CIMA" (Diego 24/08)
+Palavras dele: *"na animação quero só q apareça do peito p cima qd faz gol… pq
+ele vai aparecer em todos os lugares inteiro. Só no gol q é do peito p cima"*.
+Mascote que é GENTE INTEIRA fica com a cara minúscula espremida em 176px — no
+carimbo, que é um flash, ninguém reconhece. Cortando no peito, o rosto aparece
+grande.
+⚖️ **Feito em CSS, no MESMO arquivo .webp: 0 KB a mais** (a regra de peso segue
+respeitada). `CARIMBO_BUSTO` em `mascotes.tsx` lista quem usa — hoje
+`milhaca_boleiro` e `neymarzetti_mascarado` (os dois humanos de corpo inteiro).
+Bicho continua inteiro.
+
+**Novo no gerador do post:** `--insta` põe o @ do dono no rodapé, do lado do nome.
+
+**Reverter:** 1 commit + 2 DELETEs no banco (esc_socios e esc_nomes_batismo).
