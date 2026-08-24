@@ -172,6 +172,46 @@ function roundRobin(n: number): [number, number][][] {
 
 export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; formation?: FormationKey; pts: number; w: number; d: number; l: number; gf: number; ga: number }
 export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
+// 🅰️ GARÇOM DA TEMPORADA (assistências, 24/08). Mesma forma do artilheiro, só
+// que contando passes pro gol.
+export interface SeasonAssist { name: string; teamName: string; teamId: number; div: Div; assists: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
+// ─── 🅰️ QUEM DEU O PASSE ────────────────────────────────────────────────────
+// ⚠️ A REGRA DE OURO DESTA FUNÇÃO (medo do Diego, 24/08: *"não quero gente
+// falando: meu time fez 7 gols e não teve assistência… as coisas têm que bater
+// e ser reais"*):
+//
+// 1. **NÃO CONSOME O DADO DA PARTIDA.** O sorteio dos gols usa um `rng`
+//    compartilhado, e o consumo dele é BYTE-IDÊNTICO ao de antes (o próprio
+//    código já avisava isso). Se a assistência puxasse número dali, TODOS os
+//    placares de TODAS as carreiras salvas mudariam. Por isso ela tem dado
+//    PRÓPRIO, semeado só com coisas estáveis (semente da divisão + time +
+//    jogador + minuto). Resultado: gol, placar e artilharia continuam
+//    exatamente como estavam — a assistência só LÊ o que já aconteceu.
+// 2. **É DETERMINÍSTICA.** A tela re-simula a temporada o tempo todo (a cada
+//    rodada, a cada render). Mesma entrada → mesmo garçom, sempre. E no online
+//    todo aparelho chega no mesmo resultado, sem precisar sincronizar nada.
+// 3. **BATE COM O FUTEBOL.** ~75% dos gols saem de um passe; o resto é jogada
+//    individual/pênalti/rebote — e a tela ESCREVE "jogada individual", pra
+//    ninguém achar que faltou dado.
+// 4. **TRAVA ANTI-ESTRANHEZA:** num jogo com 3+ gols do mesmo time, pelo menos
+//    UM sai assistido (senão, uma vez a cada ~7 mil jogos, daria a cena exata
+//    que o Diego teme: 7 gols e zero assistência).
+const A_SEM_PASSE = 0.25 // jogada individual / pênalti / rebote
+const hashStr = (s: string, h: number) => { for (let i = 0; i < s.length; i++) h = (Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0); return h >>> 0 }
+function pickAssist(base: number, teamName: string, xi: PoolCard[], scorerId: string, min: number, forcado: boolean): PoolCard | null {
+  const dado = mulberry(hashStr(`${teamName}|${scorerId}|${min}`, (base ^ 0xA551) >>> 0))
+  if (!forcado && dado() < A_SEM_PASSE) return null // jogada individual
+  else if (forcado) dado() // queima o mesmo número pra trava não mudar quem é o garçom
+  // peso por posição (quem serve gol no futebol) × qualidade da carta
+  const pool = xi.filter(c => c.id !== scorerId).map(c => ({
+    c, w: (c.pos === 'MEI' ? 5 : c.pos === 'LAT' ? 3 : c.pos === 'ATA' ? 2.4 : c.pos === 'ZAG' ? 0.6 : 0.08) * (0.5 + Math.max(0, (mid(c) - 40) / 60)),
+  }))
+  const total = pool.reduce((s, p) => s + p.w, 0)
+  if (total <= 0) return null
+  let r = dado() * total
+  for (const p of pool) { r -= p.w; if (r <= 0) return p.c }
+  return pool[pool.length - 1]?.c ?? null
+}
 
 function pickCatalog(deck: 'br' | 'eu' | 'both' | 'todos') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : deck === 'todos' ? catalogTodos() : CATALOG }
 
@@ -479,7 +519,7 @@ export function torcidaBonusRewards(careerTorcida: Record<string, number> | unde
   return out
 }
 
-export interface Goal { name: string; min: number; home: boolean }
+export interface Goal { name: string; min: number; home: boolean; assist?: string } // 🅰️ assist = quem deu o passe (undefined = jogada individual/pênalti — e a tela DIZ isso, nunca fica em branco)
 export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[] }
 
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
@@ -567,7 +607,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -586,8 +626,8 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
   // 0 = jogo cheio (minuto 1..90+); 2 = SÓ o 2º tempo (minuto 46..90+), usado na
   // re-simulação do intervalo com um rng ISOLADO. Com os padrões (rng, half 0) o
   // consumo do rng é BYTE-IDÊNTICO ao de antes — nada muda nos jogos normais.
-  const scoreGoals = (t: SimTeam, xi: PoolCard[], goals: number, rngUse: () => number = rng, half: 0 | 2 = 0): { name: string; min: number; id: string }[] => {
-    const evs: { name: string; min: number; id: string }[] = []
+  const scoreGoals = (t: SimTeam, xi: PoolCard[], goals: number, rngUse: () => number = rng, half: 0 | 2 = 0): { name: string; min: number; id: string; assist?: string; assistId?: string }[] => {
+    const evs: { name: string; min: number; id: string; assist?: string; assistId?: string }[] = []
     // "DIA" do jogador (por partida): 0,4×–2,6× no peso do gol — o folclórico
     // iluminado rouba a cena hoje; na média da temporada o nível manda.
     const day = new Map<string, number>()
@@ -607,7 +647,31 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
         : (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 1 + Math.floor(rngUse() * 90)) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
       evs.push({ name: pick.name, min, id: pick.id })
     }
+    // 🅰️ QUEM DEU O PASSE — calculado DEPOIS que os gols já saíram, com dado
+    // próprio (não encosta no `rngUse`, então placar/artilharia não mudam).
+    // A trava: se o time fez 3+ e todos caíram em "jogada individual", o
+    // primeiro gol vira assistido — goleada sempre tem garçom.
+    // ⚠️ Aqui só MARCA no evento. Quem credita na tabela da temporada é o
+    // fechamento da partida, a partir da lista FINAL de gols — senão, quando o
+    // técnico mexe no intervalo (os gols do 2º tempo são refeitos), a
+    // assistência seria contada duas vezes e não bateria com os gols.
+    if (evs.length) {
+      const escolhidos: (PoolCard | null)[] = evs.map(e => pickAssist(seed, t.name, xi, e.id, e.min, false))
+      if (evs.length >= 3 && !escolhidos.some(Boolean)) escolhidos[0] = pickAssist(seed, t.name, xi, evs[0].id, evs[0].min, true)
+      escolhidos.forEach((a, i) => { if (a) { evs[i].assist = a.name; evs[i].assistId = a.id } })
+    }
     return evs
+  }
+  // credita as assistências da partida na tabela da temporada — chamado UMA vez
+  // por time, já com a lista final de gols (pós-intervalo, pós-pênalti).
+  const creditAssists = (t: SimTeam, finais: { assist?: string; assistId?: string }[]) => {
+    if (!assists) return
+    for (const e of finais) {
+      if (!e.assist || !e.assistId) continue
+      const k = `${t.name}:${e.assistId}`, row = assists.get(k)
+      if (row) row.assists++
+      else assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId })
+    }
   }
   const nr = Math.min(round, 38)
   for (let r = 0; r < nr; r++) for (const [hi, ai] of fix[r]) {
@@ -697,6 +761,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       const penEv = { name: nm, min: 90, id: pd.taker }
       if (H.human) { hgF += 1; hFinal = [...hFinal, penEv] } else { agF += 1; aFinal = [...aFinal, penEv] }
     }
+    creditAssists(H, hFinal); creditAssists(A, aFinal) // 🅰️ conta o garçom SÓ dos gols que valeram
     H.gf += hgF; H.ga += agF; A.gf += agF; A.ga += hgF
     if (hgF > agF) { H.pts += 3; H.w++; A.l++ } else if (agF > hgF) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
@@ -712,25 +777,30 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
+  const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
   const matches = {} as Record<Div, SimMatch[]>
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
   // gols por carta (todos os jogadores) — pra mostrar gols no Elenco
   const goalsByCard: Record<string, number> = {}
   for (const s of scorers.values()) if (s.cardId) goalsByCard[s.cardId] = s.goals
+  // 🅰️ assistências por carta — espelho exato do goalsByCard (mesma ideia, mesmo uso)
+  const assistsByCard: Record<string, number> = {}
+  for (const a of assists.values()) if (a.cardId) assistsByCard[a.cardId] = a.assists
   // ARTILHEIRO de cada divisão (o #1 em gols) — pra premiar time + subir piso
   const divTop = {} as Record<Div, SeasonScorer | undefined>
   for (const s of scorers.values()) if (s.goals > 0 && (!divTop[s.div] || s.goals > divTop[s.div]!.goals)) divTop[s.div] = s
   const sorted = [...scorers.values()].sort((a, b) => b.goals - a.goals)
-  return { tables, scorers: sorted.slice(0, 20), scorersAll: sorted, matches, goalsByCard, divTop }
+  const assistsSorted = [...assists.values()].sort((a, b) => b.assists - a.assists)
+  return { tables, scorers: sorted.slice(0, 20), scorersAll: sorted, matches, goalsByCard, assistsByCard, assistsAll: assistsSorted, divTop }
 }
 // prêmio do artilheiro: CAIXA do time por divisão (A 30 · B 20 · C 15 · D 10) +
 // PISO do jogador sobe SEMPRE +10 (fixo, qualquer divisão e Copa). O piso é fixo
@@ -1993,6 +2063,48 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam, safCol }:
   )
 }
 
+// 🅰️ OS GARÇONS DA TEMPORADA (24/08) — irmã gêmea da ArtilhariaByDiv, só que
+// contando quem DEU o passe. Mesmo visual, mesma leitura, top 5 por série.
+export function GarconsByDiv({ assists, colors, title, sub, foot, safTeam, safCol }: { assists: SeasonAssist[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
+  const cols = colors ?? {}
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
+      {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
+      {assists.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Nenhum passe pro gol ainda. Bola rolando…</p> : DIVS.map(d => {
+        const top = assists.filter(a => a.div === d).slice(0, 5)
+        return (
+          <div key={d} style={{ marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, margin: '2px 0 4px' }}>
+              <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 5, padding: '1px 6px' }}>{DIV_TAG[d].l}</span>
+              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{DIV_NAME[d]}</span>
+            </div>
+            {top.length === 0 ? <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.45)', fontWeight: 700, margin: '0 0 2px 4px' }}>Sem assistência nesta série ainda.</p> : (
+              <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                <tbody>
+                  {top.map((a, i) => {
+                    const isSaf = !a.you && !!safTeam && a.teamName === safTeam
+                    const fc = isSaf ? safCol : ((a.human || a.rival) ? cols[a.teamId] : undefined)
+                    return (
+                      <tr key={a.name + a.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', fontWeight: 600, background: fc?.light }}>
+                        <td style={{ paddingRight: 4, width: 16, color: 'rgba(0,0,0,0.5)', fontWeight: 800 }}>{i + 1}</td>
+                        <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{i === 0 ? '🅰️ ' : ''}{a.name}</td>
+                        <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{a.you ? '👤 ' : isSaf ? '💼 ' : a.rival ? '⚔️ ' : a.dorm ? '🏛️ ' : a.human ? '🔥 ' : ''}{(() => { const pk = a.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(a.teamName)}</span> : a.teamName })()}</td>
+                        <td style={{ textAlign: 'center', fontWeight: 900, width: 30, color: '#2F6BAE' }}>{a.assists}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )
+      })}
+      {foot && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.4)', margin: '4px 0 0', textAlign: 'center' }}>{foot}</p>}
+    </div>
+  )
+}
+
 // onde EU terminei/estou: divisão, posição, campeão
 export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: number; champ: boolean; team: string } | null {
   for (const d of DIVS) {
@@ -2096,7 +2208,7 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
 }
 // ── PLACAR AO VIVO (reutilizável): relógio animado, selo GOOOL, flash e bump.
 // Usado na carreira (pirâmide) E no jogo rápido (offline/online) — mesmo visual.
-export interface ScoreGoal { name: string; min: number; home: boolean }
+export interface ScoreGoal { name: string; min: number; home: boolean; assist?: string } // 🅰️ quem deu o passe (some quando é jogada individual)
 // ─── ⚽ OS GOLEADORES EMBAIXO DO PLACAR ──────────────────────────────────────
 // 🐛 BUG (achado pelo Giovani Picolo, 18/08): a partir do 3º gol a lista "dava
 // uma tremidinha" e o goleador NOVO nunca aparecia — no print, 3 a 0 mostrando
@@ -2119,6 +2231,10 @@ function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 
   const rowsOf = (key: string) => list.map((g, i) => (
     <p key={key + i} style={{ margin: 0, padding: '5px 0', height: GOL_LINHA, lineHeight: '12px', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
       <b>{g.name}</b> <span style={{ opacity: 0.6, fontWeight: 700 }}>{g.min > 90 ? `90+${g.min - 90}` : g.min}'</span>
+      {/* 🅰️ o garçom entra pequenininho do lado do gol; gol de jogada
+          individual simplesmente não mostra nada (nunca fica um espaço vazio
+          com cara de dado faltando). */}
+      {g.assist && <span style={{ opacity: 0.62, fontWeight: 700, fontSize: 9 }}> 🅰️ {g.assist}</span>}
     </p>
   ))
   return (
@@ -2772,7 +2888,7 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // reservas numa lista embaixo. Pra trocar: toca num jogador (fica MARCADO) e os
 // da MESMA posição do outro lado ACENDEM — toca em qual quer trocar. Vale pros
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
-function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contratosOn, olheiros }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean }) {
+function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean }) {
   // 📝 CONTRATO SUTIL (pedido do Diego 04/08): vive na coluna da DIREITA,
   // embaixo do 💰 piso e 💸 salário — ali nunca corta em tela estreita, e a
   // linha "clube · ano" da esquerda fica inteira. Cinza quando está tudo certo
@@ -2788,6 +2904,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
     return { txt: `📝 ${anos} anos`, color: 'rgba(0,0,0,0.45)' }
   }
   const goalsOf = (c: WonCard) => goals?.[c.id] ?? 0
+  // 🅰️ assistências da temporada (irmã do gol; some quando é zero, igual o gol)
+  const assistsOf = (c: WonCard) => assists?.[c.id] ?? 0
   // 🎽 manto do coração (aprovado 09/08): faixinha listrada no topo das fichinhas
   // do campinho — só pra conta com manto (o elenco aqui é sempre o do próprio usuário)
   const manto = meuManto()
@@ -2845,6 +2963,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, selId, onTap, seasonNo, contr
       </span>
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.25, gap: 1 }}>
         {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
+        {assistsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2F6BAE' }}>🅰️ {assistsOf(c)}</span>}
         <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
           <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
           {salaryOn && <span title="Salário por ano (piso ÷ 10)" style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>}
@@ -3017,7 +3136,7 @@ function GoldTeaser({ label, children }: { label: string; children: React.ReactN
 }
 
 const POS_SHORT: Record<Sector, string> = { GOL: 'goleiro', LAT: 'lateral', ZAG: 'zagueiro', MEI: 'meia', ATA: 'atacante' }
-function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
+function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -3119,7 +3238,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, onSwap, list, selId = nul
               A partir de agora o clube paga <b>salário todo mês</b> pelo elenco inteiro (o valor é o preço pago ÷ 10 de cada carta). Fique de olho na caixa — jogador caro pesa mais na folha.
             </UnlockBanner>
           )}
-          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} />
+          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} />
         </>
       ) : (<>
       {hasReserves && (
@@ -4611,7 +4730,7 @@ export function PyramidSeasonScreen() {
   }, [seasonOver, speedFactor])
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
-  const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'global'>('arti')
+  const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const [bicoTrocando, setBicoTrocando] = useState(false) // 🕴️ Bico de Folga: lista de troca abre no lugar do botão (visual novo, 14/08)
@@ -4667,7 +4786,7 @@ export function PyramidSeasonScreen() {
   // artilharia entregava). Quando a rodada termina de animar (revealed = round),
   // tudo passa a vir da simulação completa (live), sem recomputar à toa.
   const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty])
-  const { scorers, scorersAll, goalsByCard, divTop } = shown
+  const { scorers, scorersAll, goalsByCard, assistsByCard, assistsAll, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)
   // 🐊 FESTÃO DA MASCOTE na carreira: campeão da DIVISÃO (pós-apito da 38ª —
@@ -6511,12 +6630,18 @@ export function PyramidSeasonScreen() {
                 "Local" pra não confundir com a aba-mãe "Clube" nem soar só
                 divisão/liga (pedido do Diego 14/08) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {([['arti', '⚽', 'Artilheiros'], ['clubes', '🥇', 'Local'], ...(agenciaOk ? [['global', '🌍', 'Global']] as const : [])] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+              {([['arti', '⚽', 'Gols'], ['garcons', '🅰️', 'Garçons'], ['clubes', '🥇', 'Local'], ...(agenciaOk ? [['global', '🌍', 'Global']] as const : [])] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} />
+            ) : rankSub === 'garcons' ? (
+              /* 🅰️ GARÇONS (24/08): quem DÁ o passe finalmente tem tabela. O
+                 meião que ganha o campeonato sem fazer gol agora aparece. */
+              <GarconsByDiv assists={assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
+                title="🅰️ GARÇONS · TEMPORADA" sub="Assistências da temporada atual — top 5 de cada série."
+                foot="Cerca de 3 em cada 4 gols saem de um passe; o resto é jogada individual, pênalti ou rebote." />
             ) : rankSub === 'global' && agenciaOk ? (
               <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
             ) : (
@@ -6634,7 +6759,7 @@ export function PyramidSeasonScreen() {
                 {' '}O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.
               </div>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
                 Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner

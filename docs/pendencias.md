@@ -1,5 +1,37 @@
 # 📌 Pendências combinadas com o Diego (atualizado 24/08/2026)
 
+## 🅰️ ASSISTÊNCIAS — ✅ ENTREGUE (24/08)
+Primeira peça da engrenagem que planejamos (assistências → Bola de Ouro →
+cansaço → carros). O Diego mandou fazer e deu a regra de ouro do medo dele:
+*"não quero bugs de pessoas falando: ué Diego, meu time fez 7 gols e não teve
+assistência… as coisas têm que bater e ser reais"*.
+
+**Como foi resolvido (o ponto técnico que importa):**
+- A assistência tem **dado PRÓPRIO** (`pickAssist`, semeado com divisão+time+
+  jogador+minuto). ⚠️ Se ela puxasse número do `rng` da partida, TODOS os
+  placares de TODAS as carreiras salvas mudariam — o próprio código já avisava
+  que o consumo do rng tinha que ser byte-idêntico.
+- É **determinística**: a tela re-simula a temporada o tempo todo, e no online
+  cada aparelho calcula sozinho. Mesma entrada → mesmo garçom, sempre.
+- **Crédito só da lista FINAL de gols** (`creditAssists` no fim da partida) —
+  senão a substituição no intervalo, que REFAZ os gols do 2º tempo, contaria a
+  assistência duas vezes.
+- **Trava anti-estranheza**: time com 3+ gols nunca sai com zero assistência.
+- ~75% dos gols com passe; o resto aparece escrito como **jogada individual**
+  (nunca fica espaço vazio com cara de dado faltando).
+
+**Auditoria** (`scripts/checa-assistencias.mjs`, 250 temporadas · 10.175 jogos ·
+20.608 gols): 0 jogos com 3+ gols e zero assistência · 0 casos de assistência >
+gol · contas batem · placar idêntico em simulações repetidas · garçom sempre o
+mesmo. Rodar de novo: `npm run dev` + o script.
+
+**Na tela:** 🅰️ do lado do gol embaixo do placar · ⚽/🅰️ na fichinha do elenco ·
+aba nova **🅰️ Garçons** no Rank (top 5 por série) · novidade na home.
+**Artes:** `scripts/mockup-assistencias.mjs` e `scripts/story-assistencias.mjs`.
+**Reverter:** um commit.
+⏭️ Próximo da engrenagem: Bola de Ouro (usa as assistências + Chuteira de Ouro
+geral somando todas as divisões, que o Diego pediu).
+
 ## 📼 O JORNAL LEMBRA — ✅ ENTREGUE (24/08)
 Da simulação de 250 temporadas, a única ideia que o Diego aprovou de primeira
 foi o **jornal com memória** ("já faça o que falou do jornal"). Feito:
