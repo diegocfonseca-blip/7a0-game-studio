@@ -141,6 +141,43 @@ divisão? ③ fecha regra explicada + número escondido? ④ se sim, escrever **
 primeiros técnicos** (5 linhas cada) num doc pra ele aprovar nome por nome ANTES
 de qualquer código.
 
+## 1-QUINQUE. 📏 "SÓ FORMAÇÃO + OVERALL" — MEDIDO NO MOTOR (24/08)
+Pergunta dele: *"E se botarmos apenas formação q libera e overall tb?? Mas isso
+implicaria em deixar o time mais forte e etc?? Oq diz??"*.
+Ferramenta: **`scripts/mede-overall-tecnico.mjs`** (roda `buildPyramid` +
+`simulatePyramid` de verdade, 40 temporadas por linha, mesmo mundo e semente,
+mudando só `lo`/`hi` do elenco). Desenho: `scripts/mockup-overall-tecnico.mjs`.
+
+**📊 O QUE OS NÚMEROS DERAM** (elenco FORTE · títulos em 40 temporadas):
+`+0 → 19 (48%)` · `+1 → 24` · `+2 → 24` · `+3 → 27` · `+5 → 31 (78%)` ·
+**`+8 → 40 (100%)`** 🚨. Pontos/temporada: 69,4 → 82,6.
+Elenco FRACO: `+0 → 18,8 pts` … `+8 → 38 pts` (quase DOBRA).
+
+🚨 **ACHADO QUE DECIDE:** com **+8 o elenco forte ganhou TODAS as 40** — o
+campeonato deixa de existir. E o mesmo +8 quase dobra o time fraco: **bônus
+grande não é grande igual pra todo mundo** (salva o fraco, trivializa o forte).
+👉 **Teto seguro medido: +2.** Dá pra sentir (19 → 24 títulos) sem matar a graça.
+
+✅ **A SIMPLIFICAÇÃO DELE FUNCIONA, com 2 travas:** ① bônus **+2** (nunca ≥ +5) ·
+② o bônus **só vale DENTRO das formações do técnico** (jogou fora do esquema
+dele, joga sem — com aviso na tela; é a zoeira virando regra).
+
+🔑 **A SACADA QUE MATA A ESCADA:** *todo técnico dá o MESMO +2; o tier muda só
+QUANTAS formações ele domina* (lenda 5 · craque 4 · bom 3 · profissional 2 ·
+estreante 1). Assim **lenda não é mais FORTE, é mais FLEXÍVEL** — e um estreante
+cuja única formação combina com o elenco vale tanto quanto uma lenda, por uma
+fração do salário. Resolve exatamente o medo dele (Telê 5 × Renato 3).
+
+⚠️ **O que se perde simplificando** (dito a ele): somem ponto fraco, temperamento
+e exigência. Recomendação: **cortar agora tudo bem** — são campos novos na mesma
+ficha, entram depois sem refazer nada. Fazer os 5 eixos de cara é o que deixou a
+coisa "difícil" (palavra dele).
+
+⏳ **Falta ele responder:** ① fecha formação + overall +2? ② mesmo bônus pra
+todos, tier = nº de formações? ③ +2 só dentro das formações dele? Fechando, o
+técnico vira ficha de **3 linhas** (nome · tier · formações) e dá pra escrever os
+100 rápido, porque vira DADO e não regra nova.
+
 ## 1. 🧠 Técnicos famosos
 - Carta de técnico com nome real (mesmo critério dos jogadores: fatos públicos,
   bio de traço largo; rosto só com referência, senão neutro).
