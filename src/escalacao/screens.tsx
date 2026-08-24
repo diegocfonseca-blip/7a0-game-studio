@@ -1038,6 +1038,12 @@ function turfColors(state: EscState): [string, string] {
 function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90, mantoC3 = null, mantoC3Buf = false }: { m: Manager; small?: boolean; bench?: boolean; title?: string; manto?: [string, string] | null; mantoDir?: number; mantoC3?: string | null; mantoC3Buf?: boolean }) {
   const { state } = useEsc()
   const [g1, g2] = turfColors(state)
+  // ⚽🅰️ SELOS NO CAMPINHO DO RÁPIDO (Diego 24/08: *"o campinho de gols coloque
+  // também no modo online rápido, e as assistências lá também"*). Antes só a
+  // carreira mostrava; aqui o boneco vinha sempre pelado. A artilharia do rápido
+  // é por NOME+time (não tem id de carta), então é assim que se procura.
+  const golsDe = (nome: string) => state.scorers.find(x => x.name === nome && x.teamId === m.id)?.goals ?? 0
+  const assistDe = (nome: string) => state.assists?.find(x => x.name === nome && x.teamId === m.id)?.assists ?? 0
   const rows: { key: string; slots: { pos: Sector; card: WonCard | null }[] }[] = useMemo(() => {
     const filled = (p: Sector) => m.squad.filter(c => c.pos === p)
     const buildRow = (p: Sector): { pos: Sector; card: WonCard | null }[] => {
@@ -1085,6 +1091,8 @@ function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90
                 clube={small ? undefined : slot.card.club}
                 ano={small ? undefined : slot.card.year}
                 tag={slot.pos}
+                gols={golsDe(slot.card.name)}
+                assist={assistDe(slot.card.name)}
                 alt={small ? 48 : 58}
                 fonteNome={small ? 10 : 11}
                 mantoCss={manto ? mantoStripes(manto, 6, mantoDir, mantoC3, mantoC3Buf) : null}
@@ -5200,6 +5208,7 @@ export function EscSeason() {
       {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
       <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
       <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" hold={!resultRevealed} />
+      <TopAssistsBox highlight={you.id} />
       <YourPitch small />
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
           times da sala, um embaixo do outro — não só o seu. Sem spoiler: o leilão
@@ -5314,6 +5323,43 @@ function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL', hold
           )})}
         </tbody>
       </table>
+    </Box>
+  )
+}
+
+// 🅰️ GARÇONS DA LIGA (rápido, 24/08) — irmã da artilharia, contando os passes
+// pro gol. Só aparece quando já existe assistência (save antigo/começo de
+// temporada simplesmente não mostra a caixa). Basquete não tem: lá o placar é
+// por pontos e assistência não é calculada.
+function TopAssistsBox({ highlight }: { highlight: number }) {
+  const { state } = useEsc()
+  if (state.sport === 'basquete') return null
+  const rows = [...(state.assists ?? [])].sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name)).slice(0, 10)
+  if (rows.length === 0) return null
+  return (
+    <Box className="p-3">
+      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>🅰️ GARÇONS · QUEM DÁ O PASSE</p>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-left text-black/60 font-black">
+            <th className="pr-1">#</th><th>Jogador</th><th>Time</th><th className="text-center">Assist.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={`${r.teamId}-${r.name}`} className="border-t border-black/10 font-semibold text-black"
+              style={r.teamId === highlight ? { background: myApoioPerk()?.grad ?? APOIO_PERKS.bege.light, color: TIER_INK[myApoioPerk()?.tier ?? 'bege'] } : undefined}>
+              <td className="pr-1">{i + 1}</td>
+              <td className="truncate max-w-[130px]">{r.name}</td>
+              <td className={`max-w-[120px] ${r.teamId === highlight ? '' : 'text-black/70'}`}>
+                <span className="flex items-center gap-1 min-w-0"><Escudo nome={r.teamName} size={15} /><span className="truncate">{r.teamName}</span></span>
+              </td>
+              <td className="text-center font-black" style={{ color: r.teamId === highlight ? undefined : '#2F6BAE' }}>{r.assists}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="text-[10px] font-bold text-black/45 mt-1.5 text-center">Cerca de 3 em cada 4 gols saem de um passe — o resto é jogada individual.</p>
     </Box>
   )
 }

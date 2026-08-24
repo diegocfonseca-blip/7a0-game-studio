@@ -313,6 +313,7 @@ export interface QuickCopaState {
   bracket: { phase: Exclude<CopaFase, 'done'>; ties: QuickCopaTie[] }[] // fases já fechadas
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
+  assists?: AssistRow[] // 🅰️ garçons SÓ da Copa (mesma regra: não mistura com a liga)
 }
 
 // 🌎 LIBERTADORES — a fase de GRUPOS. O mata-mata depois dela reusa o
@@ -334,6 +335,7 @@ export interface LibertaState {
   fixtures: [number, number][][]    // 6 rodadas × 16 jogos (todos os grupos juntos)
   lastResults: MatchResult[]        // resultados da última rodada de grupo
   scorers?: ScorerRow[]             // artilharia DA LIBERTADORES (grupos; passa pro quickCopa no mata-mata)
+  assists?: AssistRow[]             // 🅰️ garçons DA LIBERTADORES (anda junto com a artilharia dela)
 }
 
 export interface ScorerRow {
@@ -341,6 +343,13 @@ export interface ScorerRow {
   teamId: number
   teamName: string
   goals: number
+}
+// 🅰️ GARÇOM no modo RÁPIDO (24/08) — irmã da ScorerRow, contando passes pro gol.
+export interface AssistRow {
+  name: string
+  teamId: number
+  teamName: string
+  assists: number
 }
 
 export type Screen =
@@ -638,6 +647,7 @@ export interface EscState {
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira
   careerRivals: CareerRival[] // rivais fixos (vida própria na pirâmide)
   scorers: ScorerRow[] // artilharia acumulada da temporada
+  assists?: AssistRow[] // 🅰️ garçons da temporada no modo RÁPIDO (24/08). Espelho da artilharia; ausente em save antigo = simplesmente não mostra nada.
   scorersPrev?: ScorerRow[] // 🙈 anti-spoiler (liga offline): foto da artilharia ANTES da rodada que está animando — a tela mostra esta até o apito
 
   seasonNo: number // conta quantas temporadas essa sala/sessão já jogou (revanche)

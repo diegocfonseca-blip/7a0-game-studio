@@ -201,13 +201,45 @@ function scorerPick(r: () => number, xi: PoolCard[]): string {
   }
   return (pool[Math.floor(r() * pool.length)] ?? xi[xi.length - 1])?.name ?? 'Craque Misterioso'
 }
+// ─── 🅰️ QUEM DEU O PASSE, TAMBÉM NA COPA DO MUNDO (Diego 24/08) ────────────
+// MESMA regra da liga e das outras copas, com um cuidado extra aqui: o torneio
+// inteiro sai de UM gerador com estado (`rng`), e um relatório de 04/08 já
+// contou o estrago de mexer nele ("mudou o resultado da Copa"). Por isso a
+// assistência tem DADO PRÓPRIO, semeado só com coisas estáveis (semente da
+// Copa + o jogo + o autor + o minuto): ela LÊ o gol que já aconteceu e não puxa
+// um número sequer do `rng` — placar, artilheiro e campeão continuam idênticos
+// em toda Copa do Mundo já jogada e guardada.
+const CM_SEM_PASSE = 0.25 // jogada individual / pênalti / rebote
+const cmHash = (s: string, h: number) => { for (let i = 0; i < s.length; i++) h = (Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0); return h >>> 0 }
+function passePick(base: number, chave: string, xi: PoolCard[], autor: string, min: number, forcado: boolean): string | null {
+  const dado = mulberry(cmHash(`${chave}|${autor}|${min}`, (base ^ 0xA551) >>> 0))
+  if (!forcado && dado() < CM_SEM_PASSE) return null
+  else if (forcado) dado() // queima o mesmo número pra trava não mudar quem é o garçom
+  const pool = xi.filter(c => c.name !== autor).map(c => ({
+    c, w: (c.sec === 'MEI' ? 5 : c.sec === 'LAT' ? 3 : c.sec === 'ATA' ? 2.4 : c.sec === 'ZAG' ? 0.6 : 0.08) * (0.5 + Math.max(0, ((c.lo + c.hi) / 2 - 40) / 60)),
+  }))
+  const total = pool.reduce((s, p) => s + p.w, 0)
+  if (total <= 0) return null
+  let r = dado() * total
+  for (const p of pool) { r -= p.w; if (r <= 0) return p.c.name }
+  return pool[pool.length - 1]?.c.name ?? null
+}
+// trava da goleada: seleção que fez 3+ num jogo nunca fica sem nenhum garçom.
+function marcaPasses(base: number, chave: string, xi: PoolCard[], evs: ScoreGoal[]) {
+  if (!evs.length) return
+  const escolhidos = evs.map(e => passePick(base, chave, xi, e.name, e.min, false))
+  if (evs.length >= 3 && !escolhidos.some(Boolean)) escolhidos[0] = passePick(base, chave, xi, evs[0].name, evs[0].min, true)
+  escolhidos.forEach((a, i) => { if (a) evs[i].assist = a })
+}
 // minutos + autores dos gols (seedado): alimenta o LiveScoreCard — o gol pinga
 // no minuto certo do relógio, com o NOME de quem fez (as lendas convocadas!)
-function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away: Entrant): ScoreGoal[] {
-  const evs: ScoreGoal[] = []
-  for (let i = 0; i < gh; i++) evs.push({ home: true, min: 2 + Math.floor(r() * 89), name: scorerPick(r, home.xi) })
-  for (let i = 0; i < ga; i++) evs.push({ home: false, min: 2 + Math.floor(r() * 89), name: scorerPick(r, away.xi) })
-  return evs.sort((a, b) => a.min - b.min)
+function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away: Entrant, base = 0, chave = ''): ScoreGoal[] {
+  const hEv: ScoreGoal[] = [], aEv: ScoreGoal[] = []
+  for (let i = 0; i < gh; i++) hEv.push({ home: true, min: 2 + Math.floor(r() * 89), name: scorerPick(r, home.xi) })
+  for (let i = 0; i < ga; i++) aEv.push({ home: false, min: 2 + Math.floor(r() * 89), name: scorerPick(r, away.xi) })
+  marcaPasses(base, `${chave}|C`, home.xi, hEv)
+  marcaPasses(base, `${chave}|F`, away.xi, aEv)
+  return [...hEv, ...aEv].sort((a, b) => a.min - b.min)
 }
 
 // 🌍 formato da Copa: 4 grupos de 6 (turno único = 5 rodadas) → top 2 de cada = 8
@@ -657,6 +689,7 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
 export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number) {
   {
     const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0xC0FA) >>> 0)
+    const aBase = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0x5A5511) >>> 0 // 🅰️ dado das assistências (não encosta no rng)
     const idx = entrants.map((_, i) => i)
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
     const groups: Group[] = Array.from({ length: NUM_GROUPS }, (_, g) => {
@@ -665,7 +698,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       for (const rd of matches) for (const m of rd) {
         const [gh, ga] = playMatch(rng, entrants[m.h], entrants[m.a])
         m.gh = gh; m.ga = ga
-        m.ev = goalEvents(rng, gh, ga, entrants[m.h], entrants[m.a])
+        m.ev = goalEvents(rng, gh, ga, entrants[m.h], entrants[m.a], aBase, `gr${m.h}-${m.a}`)
       }
       return { teams, matches }
     })
@@ -675,9 +708,9 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     const mkTie = (h: number, a: number): KoTie => {
       const t: KoTie = { h, a }
       t.g1 = playMatch(rng, entrants[h], entrants[a])
-      t.ev1 = goalEvents(rng, t.g1[0], t.g1[1], entrants[h], entrants[a])
+      t.ev1 = goalEvents(rng, t.g1[0], t.g1[1], entrants[h], entrants[a], aBase, `ko1-${h}-${a}`)
       t.g2 = playMatch(rng, entrants[a], entrants[h])
-      t.ev2 = goalEvents(rng, t.g2[0], t.g2[1], entrants[a], entrants[h])
+      t.ev2 = goalEvents(rng, t.g2[0], t.g2[1], entrants[a], entrants[h], aBase, `ko2-${h}-${a}`)
       const hg = t.g1[0] + t.g2[1], ag = t.g1[1] + t.g2[0]
       if (hg > ag) t.winner = h; else if (ag > hg) t.winner = a
       else { t.pen = pens(rng); t.winner = t.pen[0] > t.pen[1] ? h : a }
@@ -687,7 +720,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     const sf = [mkTie(qf[0].winner!, qf[1].winner!), mkTie(qf[2].winner!, qf[3].winner!)]
     const fh = sf[0].winner!, fa = sf[1].winner!
     const fg = playMatch(rng, entrants[fh], entrants[fa])
-    const fev = goalEvents(rng, fg[0], fg[1], entrants[fh], entrants[fa])
+    const fev = goalEvents(rng, fg[0], fg[1], entrants[fh], entrants[fa], aBase, `final-${fh}-${fa}`)
     const fpen = fg[0] === fg[1] ? pens(rng) : null
     const champion = fg[0] > fg[1] ? fh : fg[1] > fg[0] ? fa : (fpen![0] > fpen![1] ? fh : fa)
     return { groups, qf, sf, final: { h: fh, a: fa, g: fg, ev: fev, pen: fpen, champion } }

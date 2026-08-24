@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useRef, useCallback, 
 import type { ReactNode } from 'react'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
-  ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, TieBreak,
+  ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, AssistRow, TieBreak,
   QuickCopaState, QuickCopaTie, LibertaState, LibertaTeam, LedgerEntry, EmpCard, AgCard, AgEvento,
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame,
 } from './types'
@@ -2096,7 +2096,31 @@ function poisson(lambda: number, rng: () => number): number {
 
 const CPU_TACTICS: Tactic[] = ['retranca', 'equilibrio', 'ataque']
 
-function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false): MatchResult {
+// ─── 🅰️ QUEM DEU O PASSE — modo RÁPIDO (24/08) ──────────────────────────────
+// Mesma regra da carreira, e pelo MESMO motivo: dado PRÓPRIO, semeado só com
+// coisa estável (time + goleador + minuto + semente da partida). Assim o
+// sorteio dos GOLS continua idêntico — nenhum placar muda, nem numa temporada
+// que já está rolando. ~75% dos gols saem de passe; o resto é jogada individual.
+const A_HASH = (t: string, h: number) => { for (let i = 0; i < t.length; i++) h = (Math.imul(h ^ t.charCodeAt(i), 0x01000193) >>> 0); return h >>> 0 }
+export function garcomDoGol(base: number, teamId: number, squad: WonCard[], scorerName: string, min: number, forcado: boolean): string | null {
+  const dado = mulberry(A_HASH(`${teamId}|${scorerName}|${min}`, (base ^ 0xA551) >>> 0))
+  if (!forcado && dado() < 0.25) return null // jogada individual / pênalti / rebote
+  else if (forcado) dado()
+  const pool = squad.filter(c => c.name !== scorerName).map(c => ({
+    c, w: (c.pos === 'MEI' ? 5 : c.pos === 'LAT' ? 3 : c.pos === 'ATA' ? 2.4 : c.pos === 'ZAG' ? 0.6 : 0.08) * (0.5 + Math.max(0, ((c.lo + c.hi) / 2 - 40) / 60)),
+  }))
+  const total = pool.reduce((s, p) => s + p.w, 0)
+  if (total <= 0) return null
+  let r = dado() * total
+  for (const p of pool) { r -= p.w; if (r <= 0) return p.c.name }
+  return pool[pool.length - 1]?.c.name ?? null
+}
+// `assistsList`: onde as ASSISTÊNCIAS deste jogo são creditadas. Anda SEMPRE
+// junto com `scorersList` — Libertadores tem a artilharia dela, a Copa tem a
+// dela, e o garçom tem que ficar na MESMA tabela do gol. Sem isso o passe de um
+// jogo da Copa aparecia na lista de garçons DA LIGA (o número não batia com os
+// gols da liga, exatamente o tipo de coisa que o Diego não aceita).
+function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[]): MatchResult {
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
   const tacticOf = (id: number): Tactic => {
@@ -2211,6 +2235,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   // atribui os gols a um jogador real e credita na artilharia da temporada
   const creditGoals = (id: number, goals: number, prefix: string) => {
     const m = state.managers.find(x => x.id === id)
+    const golsDoJogo: { nome: string; min: number }[] = [] // 🅰️ pra sortear o garçom no fim
     // "DIA" do jogador (por PARTIDA): sorte de 0,4× a 2,6× no peso do gol — o Obina
     // iluminado pode roubar a cena do craque HOJE; na média o nível manda.
     const day = new Map<string, number>()
@@ -2246,10 +2271,26 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         const row = scorersList.find(s => s.name === scorerName && s.teamId === id)
         if (row) row.goals++
         else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
+        golsDoJogo.push({ nome: scorerName, min })
         if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id })
       } else if (involveHuman) {
         highlights.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id })
       }
+    }
+    // 🅰️ QUEM DEU O PASSE — depois que os gols já saíram, com dado próprio.
+    // Trava igual à da carreira: time com 3+ gols nunca fica sem nenhum garçom.
+    if (m && golsDoJogo.length) {
+      const base = (state.seed + 5000 + state.round * 37) >>> 0
+      const escolhidos = golsDoJogo.map(g => garcomDoGol(base, id, m.squad, g.nome, g.min, false))
+      if (golsDoJogo.length >= 3 && !escolhidos.some(Boolean)) escolhidos[0] = garcomDoGol(base, id, m.squad, golsDoJogo[0].nome, golsDoJogo[0].min, true)
+      const lista = assistsList ?? (state.assists = state.assists ?? [])
+      escolhidos.forEach((nome, i) => {
+        if (!nome) return
+        const row = lista.find(a => a.name === nome && a.teamId === id)
+        if (row) row.assists++
+        else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
+        if (involveHuman) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id })
+      })
     }
   }
   const hName = nomeDoTime(homeId)
@@ -2371,10 +2412,12 @@ function playLibertaRodada(s: EscState) {
   const rng = mulberry((s.seed ^ (0x11BE47A + lb.rodada * 7919)) >>> 0)
   const res: MatchResult[] = []
   if (!lb.scorers) lb.scorers = [] // saves antigos sem o campo
+  if (!lb.assists) lb.assists = []
   for (const [h, a] of lb.fixtures[lb.rodada]) {
     // 🥇 artilharia DA LIBERTADORES: junta grupos + mata-mata num ranking só (a da
     // liga fica intacta). Na virada pro mata-mata esta lista passa pro quickCopa.
-    const r = simMatch(s, h, a, rng, lb.scorers)
+    // 🅰️ os garçons seguem a MESMA lista — passe de jogo da Liberta não entra na liga.
+    const r = simMatch(s, h, a, rng, lb.scorers, false, lb.assists)
     res.push(r)
     const th = lb.times.find(t => t.id === h), ta = lb.times.find(t => t.id === a)
     if (!th || !ta) continue // 🛟 confronto com id estranho: pula o jogo, nunca quebra a tela
@@ -2400,7 +2443,7 @@ function playLibertaRodada(s: EscState) {
     // 1º de um grupo pega o 2º de OUTRO (nunca do mesmo) — regra de verdade
     const mk = (a: LibertaTeam, b: LibertaTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
     const ties = primeiros.map((p, i) => mk(p, segundos[(i + 1) % 8]))
-    s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: lb.scorers ?? [] }
+    s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: lb.scorers ?? [], assists: lb.assists ?? [] }
     s.news = ['🌎 Fim da fase de grupos — chegaram as OITAVAS da Libertadores!']
     // ▶️ o mata-mata roda no MESMO motor da Copa dos 8, que vive na tela da
     // temporada. Volta pra lá com quickCopa semeado e a Copa começa sozinha.
@@ -3312,7 +3355,7 @@ function redraftSeason(s: EscState): EscState {
   s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
   s.monte = []; s.monteOrder = []; s.monteIdx = 0
   s.news = []; s.round = 0; s.champion = null
-  s.league = []; s.fixtures = []; s.scorers = []; s.lastResults = []
+  s.league = []; s.fixtures = []; s.scorers = []; s.assists = []; s.lastResults = []
   s.tactics = {}
   s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
   s.liberta = null // 🌎 idem pra Libertadores: temporada nova, chave nova
@@ -3858,7 +3901,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // de fim) — as vagas voltam a abrir e o leilão de reservas repõe.
       const released = new Set(s.reserveListed?.[you.id] ?? [])
       if (released.size) you.squad = you.squad.filter(c => !released.has(c.id))
-      s.round = 0; s.champion = null; s.news = []; s.scorers = []; s.lastResults = []
+      s.round = 0; s.champion = null; s.news = []; s.scorers = []; s.assists = []; s.lastResults = []
       // ainda tem vaga de reserva pra encher (T2 5→10, T3 10→15)? ABRE o leilão
       // (mantém o quinteto, leiloa só as vagas novas). Já cheio? começa a temporada
       // com o mesmo time (o "elenco 15" e vender vêm no próximo passo).
@@ -4112,7 +4155,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
       s.league = buildLeague(s.managers, !s.ligaFechada)
       s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
-      s.round = 0; s.champion = null; s.scorers = []; s.lastResults = []; s.news = []; s.tactics = {}
+      s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
       s.screen = 'season'
       return s
     }
@@ -4964,7 +5007,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.league = buildLeague(s.managers, !s.ligaFechada)
       s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
-      s.scorers = []
+      s.scorers = []; s.assists = []
       if (s.careerOnline) {
         // carreira online: a caixa é UMA carteira só que carrega o TROCO entre os
         // leilões. No fim de QUALQUER leilão (o inicial da T1 ou o de reservas), a
@@ -5411,7 +5454,9 @@ export function reducer(state: EscState, action: Action): EscState {
         // 🏆 gols da Copa contam numa artilharia À PARTE (qc.scorers) — não mexe na da liga.
         // Final = jogo ÚNICO em campo NEUTRO (isFinal): sem vantagem de casa, mesma chance
         // pros dois. Ida/volta mantêm a casa (que se alterna, então também é justo).
-        const r = simMatch(s, homeId, awayId, rng, qc.scorers, isFinal)
+        // 🅰️ garçom da Copa vai na lista DA COPA (qc.assists), pelo mesmo motivo.
+        if (!qc.assists) qc.assists = []
+        const r = simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
         const leg: [number, number] = qc.legIdx === 0 ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [gols de A, gols de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
@@ -6203,7 +6248,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.youIdx = 0
       s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
       s.sectorUnsoldAccum = []; s.currentCards = []
-      s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
+      s.round = 0; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.champion = null
       if (action.keep) {
         // MESMO TIME: você mantém o elenco; rivais que vieram junto mantêm o
         // deles; rivais novos + preenchimento ganham elenco (sem leilão).
@@ -6281,7 +6326,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.youIdx = 0
       s.monte = []; s.monteOrder = []; s.monteIdx = 0; s.tactics = {}
       s.sectorUnsoldAccum = []; s.currentCards = []
-      s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
+      s.round = 0; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.champion = null
       if (action.redraft) {
         const used = new Set<string>()
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
@@ -6329,7 +6374,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.monte = []; s.monteOrder = []; s.monteIdx = 0
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.currentCards = []
-      s.round = 0; s.scorers = []; s.lastResults = []; s.news = []; s.champion = null
+      s.round = 0; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.champion = null
       s.tactics = {} // tática o humano escolhe DURANTE a partida (campinho), como nos outros modos
       // rivais do Dinastia → aparecem com 🔥 na tabela e no painel embaixo do campinho (igual carreira)
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
@@ -6353,7 +6398,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.league = buildLeague(s.managers, !s.ligaFechada)
       s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
-      s.scorers = []
+      s.scorers = []; s.assists = []
       s.lastResults = []
       s.news = []
       s.champion = null

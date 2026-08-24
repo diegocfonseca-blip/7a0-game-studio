@@ -1,5 +1,57 @@
 # 📌 Pendências combinadas com o Diego (atualizado 24/08/2026)
 
+## 🅰️⚽ GOLS E ASSISTÊNCIAS NO RÁPIDO — ✅ ENTREGUE (24/08)
+Pedido dele: *"o campinho de gols coloque também no modo online rápido, e
+assistências lá também"*. Achado no caminho: no rápido o campinho **nunca
+mostrou gol nenhum** (o `JogadorNoCampo` era chamado sem `gols`) — só a carreira
+mostrava. Agora os dois selos aparecem nos dois modos.
+- **Motor** (`garcomDoGol` em store.tsx): mesma regra da carreira e pelo MESMO
+  motivo — dado PRÓPRIO, semeado com time+goleador+minuto+semente da rodada, pra
+  não mexer no sorteio dos gols (nenhum placar muda, nem em temporada rolando).
+  ~75% com passe; trava do 3+ gols; garçom nunca é o próprio goleador.
+- **Estado**: `assists: AssistRow[]` (nome+time+total, igual à ScorerRow do
+  rápido, que não tem id de carta). ⚠️ **Zera nos 8 lugares onde `s.scorers`
+  zera** — senão sobrava assistência de temporada passada e o número não batia.
+  Viaja pro convidado sozinho (o `sanitize` manda o estado inteiro).
+- **Tela**: selos ⚽/🅰️ no campinho (`Campinho` em screens.tsx, busca por
+  NOME+time porque o rápido não tem cardId) + caixa **🅰️ GARÇONS** embaixo da
+  artilharia da liga. Basquete não entra (lá o placar é por pontos).
+- **Auditoria**: `scripts/checa-assist-rapido.mjs` — 20 mil gols: 74,9% com
+  passe · determinismo ok · trava do 3+ ok · goleador não serve a si mesmo ·
+  quem mais serve é meia, depois lateral. Reverter: um commit.
+
+## 🅰️ ASSISTÊNCIAS — ✅ ENTREGUE (24/08)
+Primeira peça da engrenagem que planejamos (assistências → Bola de Ouro →
+cansaço → carros). O Diego mandou fazer e deu a regra de ouro do medo dele:
+*"não quero bugs de pessoas falando: ué Diego, meu time fez 7 gols e não teve
+assistência… as coisas têm que bater e ser reais"*.
+
+**Como foi resolvido (o ponto técnico que importa):**
+- A assistência tem **dado PRÓPRIO** (`pickAssist`, semeado com divisão+time+
+  jogador+minuto). ⚠️ Se ela puxasse número do `rng` da partida, TODOS os
+  placares de TODAS as carreiras salvas mudariam — o próprio código já avisava
+  que o consumo do rng tinha que ser byte-idêntico.
+- É **determinística**: a tela re-simula a temporada o tempo todo, e no online
+  cada aparelho calcula sozinho. Mesma entrada → mesmo garçom, sempre.
+- **Crédito só da lista FINAL de gols** (`creditAssists` no fim da partida) —
+  senão a substituição no intervalo, que REFAZ os gols do 2º tempo, contaria a
+  assistência duas vezes.
+- **Trava anti-estranheza**: time com 3+ gols nunca sai com zero assistência.
+- ~75% dos gols com passe; o resto aparece escrito como **jogada individual**
+  (nunca fica espaço vazio com cara de dado faltando).
+
+**Auditoria** (`scripts/checa-assistencias.mjs`, 250 temporadas · 10.175 jogos ·
+20.608 gols): 0 jogos com 3+ gols e zero assistência · 0 casos de assistência >
+gol · contas batem · placar idêntico em simulações repetidas · garçom sempre o
+mesmo. Rodar de novo: `npm run dev` + o script.
+
+**Na tela:** 🅰️ do lado do gol embaixo do placar · ⚽/🅰️ na fichinha do elenco ·
+aba nova **🅰️ Garçons** no Rank (top 5 por série) · novidade na home.
+**Artes:** `scripts/mockup-assistencias.mjs` e `scripts/story-assistencias.mjs`.
+**Reverter:** um commit.
+⏭️ Próximo da engrenagem: Bola de Ouro (usa as assistências + Chuteira de Ouro
+geral somando todas as divisões, que o Diego pediu).
+
 ## 📼 O JORNAL LEMBRA — ✅ ENTREGUE (24/08)
 Da simulação de 250 temporadas, a única ideia que o Diego aprovou de primeira
 foi o **jornal com memória** ("já faça o que falou do jornal"). Feito:
@@ -9638,3 +9690,56 @@ três acham escudo próprio E carimbo da mascote.
 ⚠️ **Lição pra próxima:** nome de time é CHAVE (escudo, mascote, manto,
 `newestTeamName`). Nunca concatenar marcação de tela no nome — passar flag
 separada, como o `youIsHome` que já existe no card.
+
+---
+
+## ✅ 24/08 — 🅰️ Assistência TAMBÉM em qualquer copa (pergunta do Diego)
+
+Pergunta dele: *"a assistência na carreira também vai funcionar pra qualquer
+copa né"*. **Conferido no código: NÃO funcionava.** As copas não passam pelo
+motor da liga (`simDivTo`/`scoreGoals`) — cada uma tem a atribuição de gol
+DELA. Medido antes do conserto: **0% de gols com passe** nas copas, e **1.319
+jogos com 3+ gols e zero garçom** só na amostra de 25 temporadas.
+
+**Onde estava faltando (os 4 motores):**
+| Copa | Arquivo | Função |
+|---|---|---|
+| Copa Legends | `pyramidseason.tsx` | `computeCopa` → `credit`/`leg` |
+| Copa do Brasil | `copa-brasil.ts` | `computeCopaBrasil` → `credit`/`leg` |
+| Supercopa | `copa-brasil.ts` | `computeSupercopa` → `credit` |
+| Copa do Mundo (seleções) | `copa-mundo.tsx` | `goalEvents`/`scorerPick` |
+
+**Conserto**: os quatro ganharam o passe do gol com a **MESMA regra da liga** —
+`pickAssist` (exportado agora) nos três primeiros, e um gêmeo local
+(`passePick`) na Copa do Mundo, que usa `sec` em vez de `pos` e não tem `id` de
+carta. Regras idênticas: ~25% de jogada individual, peso MEI > LAT > ATA > ZAG,
+goleador nunca serve a si mesmo, e **trava de goleada** (time com 3+ gols num
+jogo nunca fica sem nenhum garçom).
+
+**⚠️ O cuidado que mandou no desenho.** Toda copa é RECALCULADA da semente toda
+vez que a tela abre — se a assistência puxasse um número do `rng` do mata-mata,
+**toda copa já jogada mudaria de placar e de campeão** (foi exatamente o bug de
+04/08 na Copa do Mundo: *"mudou o resultado da Copa"*). Por isso ela tem **dado
+próprio**, semeado só com coisas estáveis (semente + o jogo + o autor + o
+minuto): ela só LÊ o gol que já aconteceu.
+
+**Auditoria** (`scripts/checa-assist-copa.mjs`, motor real, 25 temporadas de
+pirâmide cheia + 30 Copas do Mundo — 14.544 gols):
+- 🔒 **nada mudou**: placar de cada jogo, campeão, vice e artilheiro batem
+  LINHA POR LINHA com a foto tirada do código anterior (`scripts/copa-antes.json`);
+- 75,5% dos gols com passe nas copas de clubes · 75,9% na Copa do Mundo;
+- 0 casos de 3+ gols sem garçom · 0 casos de goleador servindo a si mesmo;
+- mesmo garçom em toda re-simulação (determinístico — vale pro online).
+
+### 🐛 Achado de quebra: garçom da Copa/Libertadores caía na lista DA LIGA (Rápido)
+No modo Rápido a artilharia da Libertadores (`lb.scorers`) e a da Copa
+(`qc.scorers`) sempre foram listas à parte, mas a assistência que eu tinha
+ligado hoje gravava SEMPRE em `state.assists` (a da liga). Resultado: passe
+dado num jogo de Copa aparecia na lista de garçons da liga e o número não
+batia com os gols dela. Consertado: `simMatch` recebe `assistsList` e ela anda
+sempre colada na `scorersList` (Liberta → `lb.assists`, Copa → `qc.assists`, e
+elas passam uma pra outra na virada pro mata-mata, igual à artilharia).
+
+**Reverter**: `git revert` do commit — é um commit isolado e nenhum dado salvo
+muda de forma (os campos novos são opcionais; save antigo simplesmente não tem
+assistência de copa e continua abrindo).
