@@ -9947,3 +9947,48 @@ seja, **ainda é ampliação**. Pra post realmente grande, o dono precisa export
 a arte maior (a 2ª arte do Milhaça, por exemplo, veio 1024×1536 e rende bem
 mais). Isso vale pra QUALQUER batismo: **pedir a arte no maior tamanho que o
 dono tiver** já na primeira conversa.
+
+## 🐛 DOIS BUGS QUE O DIEGO PEGOU AO VIVO (24/08)
+
+### 🪞 1. DOIS "NEYMARZETTI" NA MESMA TABELA — ✅ CONSERTADO
+Print dele: Série D com o clube na 6ª posição (👑 o dele) **e** na 10ª (⚔️ um robô),
+os dois chamados Neymarzetti.
+
+**A causa (efeito colateral do batismo, e é sutil):** o save dele é ANTIGO e tinha
+um bot/rival chamado **Paixandu**. Quando o clube foi batizado, `OLD_NAME` passou a
+dizer *"Paixandu virou Neymarzetti"* — e `migrateTeamNames` (store.tsx ~1926)
+rebatiza TODO bot pelo nome mais novo ao abrir o save. O robô Paixandu virou
+"Neymarzetti" e passou a coexistir com o clube DELE.
+
+A trava contra clone (`tiraClones`) só rodava na CRIAÇÃO da carreira; **no
+carregamento não havia nenhuma**. Agora há, nos DOIS caminhos:
+`migrateTeamNames` e o `CONTINUE_CAREER` (~6342). Regra: **se o nome novo bater com
+o do time do jogador, o bot fica com o nome VELHO.** Nenhum outro clube é tocado.
+
+⚠️ **Conserta daqui pra frente.** O save que JÁ está com o bot gravado como
+"Neymarzetti" continua assim — se ele reclamar de novo, avaliar uma limpeza pontual
+(sem estragar a carreira).
+
+### 🚪 2. "VOCÊ JÁ TEM 2 SALAS ABERTAS" sem ter sala aberta — ⏳ AGUARDANDO OK VISUAL
+Relato: *"o usuário derick N estava mais C sala aberta e apareceu esse errro"*.
+
+**A causa, achada no banco:** ao SAIR da sala, o `return` do efeito de sync roda um
+`save()` final — e esse save **bate o `updated_at`**. Ou seja, **abandonar a sala é
+o que a marca como VIVA**. A trava conta sala mexida nas últimas 3h, então quem
+fecha a aba fica preso por 3 horas sem entender por quê.
+Medido nas salas dele: `II544U` parada há 1,0h com **ZERO jogadores**, `KFKNW1`
+parada há 0,7h. Prova de que *"mexida recentemente" ≠ "sala em uso"*.
+
+**Conserto ESCOLHIDO (o seguro):** NÃO mexer no batimento — esse mesmo save é o que
+guarda a partida pra reconexão, e mexer nele arrisca quebrar sala AO VIVO. Em vez
+disso, a trava passa a **destravar na própria tela**: botão que encerra as salas
+paradas (filtro por `host_id` — ninguém encerra sala de outro). Segue a lei dele:
+*toda trava explica o porquê E o caminho*.
+📌 **Está na branch `claude/denis-save-file-x1osct`, FORA da main**, porque é visual
+novo e a regra é mostrar mockup e esperar o OK (`scripts/mockup-salas-presas.mjs`).
+
+🔭 **Pendência de fundo pra outra sessão:** o `mode` do `game_state` é perdido em
+salas rápidas (311 salas com `duplasMode` e sem `mode`). Hoje não dói porque a
+trava do rápido não olha o `mode` — mas a de LIGA olha (`.eq('game_state->>mode',
+'liga')`). O conserto de 23/08 (`salaFixaRef`) preserva mode/ligaAt/ligaRegras/
+ligaAdmins, então liga nova está protegida; vale conferir se sobrou liga velha órfã.

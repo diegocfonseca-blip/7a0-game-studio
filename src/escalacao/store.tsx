@@ -1923,8 +1923,27 @@ function migrateTeamNames(st: EscState): EscState {
     }
     st.marketValues = mv
   }
-  if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: newestTeamName(m.teamName) })
-  if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: newestTeamName(r.team) }))
+  // 🪞 DOIS TIMES COM O MESMO NOME NA TABELA (bug que o Diego pegou 24/08, print
+  // da Série D com DOIS "Neymarzetti": o dele com a coroa 👑 e um robô com a
+  // espada ⚔️).
+  //
+  // A CAUSA, e ela é sutil: o save dele é ANTIGO e tinha um bot/rival chamado
+  // **Paixandu**. Quando o clube do Diego foi batizado, `OLD_NAME` passou a dizer
+  // "Paixandu virou Neymarzetti" — e as duas linhas abaixo rebatizam TODO bot pelo
+  // nome mais novo. Resultado: o robô Paixandu virou "Neymarzetti" e passou a
+  // existir junto com o Neymarzetti DELE.
+  //
+  // A trava contra clone (`tiraClones`) só roda na CRIAÇÃO da carreira — aqui, no
+  // carregamento do save, não tinha nenhuma. Agora tem: se o nome novo bater com o
+  // do time do jogador, o bot **fica com o nome velho**. Ninguém joga contra si
+  // mesmo, e nenhum outro clube é tocado.
+  const meuTime = Array.isArray(st.managers) ? st.managers.find(m => m.isHuman)?.teamName : undefined
+  const rebatiza = (nome: string): string => {
+    const novo = newestTeamName(nome)
+    return (meuTime && novo !== nome && mesmoNomeTime(novo, meuTime)) ? nome : novo
+  }
+  if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: rebatiza(m.teamName) })
+  if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: rebatiza(r.team) }))
   st.careerPlacements = mapKeys(st.careerPlacements) ?? st.careerPlacements
   st.cpuSquads = mapKeys(st.cpuSquads) ?? st.cpuSquads
   st.clubCash = mapKeys(st.clubCash) ?? st.clubCash
@@ -6320,7 +6339,13 @@ export function reducer(state: EscState, action: Action): EscState {
         : DIVISION_TEAMS[sv.division === 'V' ? 'D' : sv.division].slice(0, s.careerRivalCount).map(t => ({ team: t.team, name: t.name, division: sv.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      s.careerRivals = s.careerRivals.map(r => ({ ...r, team: newestTeamName(r.team) }))
+      // 🪞 mesma trava do `migrateTeamNames` (bug dos dois "Neymarzetti", 24/08):
+      // rebatizar um rival pelo nome novo NÃO pode criar um xará do time do
+      // jogador. Batendo, o rival fica com o nome velho.
+      s.careerRivals = s.careerRivals.map(r => {
+        const novo = newestTeamName(r.team)
+        return { ...r, team: mesmoNomeTime(novo, sv.teamName) ? r.team : novo }
+      })
       const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, coDivRivalDefs(s.careerRivals, sv.division), action.redraft ? otherDivRivalDefs(s.careerRivals, sv.division) : [], rng)
       s.managers = managers
       s.youIdx = 0
