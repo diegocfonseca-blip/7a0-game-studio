@@ -443,6 +443,31 @@ function applyHonors(honors: Record<string, Honors> | undefined, champions?: Rec
   }
   return out
 }
+// 📼 CRÔNICA DO JORNAL (Diego 24/08 — ideia aprovada da simulação de 250
+// temporadas: "jornal com memória"): guarda UMA linha por temporada por clube
+// humano — divisão jogada, título da divisão, Copa, Supercopa. É desta listinha
+// que o jornal puxa manchete de história ("3º título seguido", "acabou o jejum
+// de 12 temporadas", "10ª temporada seguida na Série A").
+// ⚠️ Roda ANTES do seasonNo++ e ANTES de trocar careerPlacements — a divisão
+// registrada é a que acabou de ser JOGADA. Idempotente por temporada (o 2º
+// disparo do mesmo fim de temporada não duplica a linha).
+function registraCronica(s: EscState, champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>, copaChampion?: string | null, supercopaChampion?: string | null) {
+  const cron = { ...(s.careerCronica ?? {}) }
+  const temporada = s.seasonNo ?? 1
+  for (const m of s.managers) {
+    if (!m.isHuman) continue
+    const k = `m${m.id}`
+    const antes = cron[k] ?? []
+    if (antes.length && antes[antes.length - 1].t === temporada) continue // já registrada
+    const div = s.careerPlacements?.[k] ?? s.careerDivision ?? 'D'
+    const linha: { t: number; div: string; campeao?: 1; copa?: 1; sup?: 1 } = { t: temporada, div }
+    if (champions?.[k]) linha.campeao = 1
+    if (copaChampion === k) linha.copa = 1
+    if (supercopaChampion === k) linha.sup = 1
+    cron[k] = [...antes, linha].slice(-200)
+  }
+  s.careerCronica = cron
+}
 // 🏛️ MULTICLUBES · guarda a carta do clube que DORMIA quando ele foi campeão nesta
 // temporada (título de divisão e/ou Copa Legends). Chamado no fim de temporada, ANTES
 // do seasonNo++. Keyed pelo id do clube (já separado do ativo). Ao passar o comando pra
@@ -5604,6 +5629,7 @@ export function reducer(state: EscState, action: Action): EscState {
       creditaCopa(s, action.copaChampion, 'copa') // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador) — com recibo por temporada
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
+      registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes do seasonNo++/placements
       s.seasonNo++
       s.careerPlacements = action.placements
       escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
@@ -5641,6 +5667,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
+      registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes de trocar placements
       s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
       // 🌱⏸️ VÁRZEA PAUSA O RELÓGIO DO CONTRATO (Diego 14/08): não existe renovação
       // nem dispensa na Várzea — o contrato nem CORRE lá. Pra isso, sempre que o

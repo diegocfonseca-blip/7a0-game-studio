@@ -1,4 +1,26 @@
-# 📌 Pendências combinadas com o Diego (atualizado 23/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 24/08/2026)
+
+## 📼 O JORNAL LEMBRA — ✅ ENTREGUE (24/08)
+Da simulação de 250 temporadas, a única ideia que o Diego aprovou de primeira
+foi o **jornal com memória** ("já faça o que falou do jornal"). Feito:
+- **Crônica** (`careerCronica` em types/store): na virada de temporada
+  (`REAUCTION_ONLINE` e `OPEN_RESERVE_LIST`, ANTES do `seasonNo++`), grava uma
+  linha por clube humano — divisão jogada, título, Copa, Supercopa. Idempotente
+  (anti-toque-dublado), teto 200 temporadas, chave `m<id>`.
+  ⚠️ Começa a gravar A PARTIR de agora — o passado dos saves não tem como
+  reconstruir, então as manchetes vão nascendo conforme as viradas acontecem.
+- **Manchetes** (`manchetesDeMemoria` em pyramidseason, testada caso a caso no
+  navegador): sequência de títulos (2-3 = "título seguido", 4+ = "DINASTIA") ·
+  jejum quebrado (4+) · jejum corrente (6+, cobrança) · marcos de permanência
+  na divisão (5/10/15/20…) · primeira vez na divisão · título redondo
+  (5/10/20/30/50/100) · primeira Copa. Máx 3 por edição; sem nada marcante, a
+  página NEM NASCE (quem está começando vê o jornal igualzinho).
+- **Página nova** no `SeasonJornal` ("📼 O JORNAL LEMBRA · CADERNO · MEMÓRIA"),
+  no mesmo visual das páginas Empresário/Bastidores; entrou no pager.
+- Linha em `novidades.ts`. Reverter: um commit.
+- ⏭️ Se o Diego quiser MAIS memória depois: retrospecto contra rival específico
+  (precisa guardar confrontos, mais pesado) e "arquivo perdido" (reexibir jogo
+  histórico).
 
 ## ⚖️ REGRA DO BARÃO MUDOU (23/08) — NINGUÉM PERDE MAIS O NOME
 Palavras do Diego: *"na regra do barão N perde o nome. Apenas diz q vai descendo

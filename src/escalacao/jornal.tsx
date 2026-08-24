@@ -233,7 +233,7 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, mundial, brasil, copaRun, superRun, superChamp }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, brasil, copaRun, superRun, superChamp }: {
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
   copa: CopaResult | null
@@ -241,6 +241,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   seasonNo: number
   agenciaNews?: AgNews[]
   eventos?: AgNews[] // 🎭 manchetes dos EVENTOS DE JOGADOR — página "Aconteceu na temporada"
+  memoria?: AgNews[] // 📼 manchetes de HISTÓRIA (Diego 24/08): "3º título seguido", "acabou o jejum" — vêm da careerCronica, página "O jornal lembra"
   mundial?: { campeao: string; selecao: string; voce: boolean } | null // 🌍 Copa do Mundo Legends — só quando ela ACONTECE (a cada 10 temporadas) e termina nesta
   brasil?: boolean // 🏆🇧🇷 true = a Copa que rolou foi a do Brasil (não a Legends) — só troca o nome exibido, mesmo dado
   copaRun?: CopaRun // 🏆 como VOCÊ foi na Copa (fase que caiu / vice / campeão)
@@ -258,7 +259,10 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   // 🎭 página "Aconteceu na temporada" (eventos de jogador) — só existe se teve causo.
   // As páginas são dinâmicas: capa → caderno do empresário (se tem) → eventos (se tem).
   const evs = (eventos && eventos.length > 0) ? eventos : null
-  const pags: ('capa' | 'agencia' | 'eventos')[] = ['capa', ...(news ? ['agencia' as const] : []), ...(evs ? ['eventos' as const] : [])]
+  // 📼 página "O jornal lembra" — só existe quando a história tem o que contar
+  // (streak de títulos, jejum, marco de temporadas na divisão…).
+  const mem = (memoria && memoria.length > 0) ? memoria : null
+  const pags: ('capa' | 'agencia' | 'eventos' | 'memoria')[] = ['capa', ...(news ? ['agencia' as const] : []), ...(evs ? ['eventos' as const] : []), ...(mem ? ['memoria' as const] : [])]
   const [page, setPage] = useState(0)
   const [barGo, setBarGo] = useState(false)
   const flippedRef = useRef(false)
@@ -469,13 +473,33 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       {/* cabeçalho do jornal (a pág. 2 vira "Caderno 2 · Negócios") */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `4px double ${INK}`, paddingBottom: 6 }}>
         <div style={{ ...SERIF, fontWeight: 900, fontSize: 26, letterSpacing: 1 }}>O <span style={{ color: '#B23A2A' }}>MARTELO</span></div>
-        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{pk === 'agencia' ? 'CADERNO 2 · NEGÓCIOS' : pk === 'eventos' ? 'CADERNO · BASTIDORES' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
+        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{pk === 'agencia' ? 'CADERNO 2 · NEGÓCIOS' : pk === 'eventos' ? 'CADERNO · BASTIDORES' : pk === 'memoria' ? 'CADERNO · MEMÓRIA' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', borderBottom: `1.5px solid ${INK}`, padding: '3px 1px', color: '#3a3527' }}>
-        {pk === 'agencia' ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : pk === 'eventos' ? <><span>📻 ACONTECEU NA TEMPORADA</span><span>OS BASTIDORES</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
+        {pk === 'agencia' ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : pk === 'eventos' ? <><span>📻 ACONTECEU NA TEMPORADA</span><span>OS BASTIDORES</span></> : pk === 'memoria' ? <><span>📼 O JORNAL LEMBRA</span><span>A HISTÓRIA DO CLUBE</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
       </div>
 
-      {pk === 'eventos' && evs ? (
+      {pk === 'memoria' && mem ? (
+        <>
+          {/* ── 📼 "O JORNAL LEMBRA": manchetes de HISTÓRIA, puxadas da crônica
+              da carreira (careerCronica) — streaks, jejuns e marcos. A primeira
+              manchete é a estrela; as outras entram na listinha. ── */}
+          <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 24, lineHeight: 1.05, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{mem[0].titulo.toUpperCase()}</h2>
+          <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>{mem[0].sub}</p>
+          <div style={{ border: `2.5px solid ${INK}`, background: '#fff' }}>
+            <div style={{ background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>📼 O arquivo do jornal</div>
+            {mem.map((n, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 9px', borderTop: i > 0 ? '1.5px solid rgba(0,0,0,.12)' : 'none', background: i === 0 ? '#fdf6dd' : undefined }}>
+                <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: '#F7F1DD' }}>{n.ic}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.15 }}>{n.titulo}</div>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 1.5, lineHeight: 1.3 }}>{n.sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : pk === 'eventos' && evs ? (
         <>
           {/* ── 🎭 "ACONTECEU NA TEMPORADA": os causos dos jogadores (eventos) ── */}
           <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 24, lineHeight: 1.05, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{evs[0].titulo.toUpperCase()}</h2>
@@ -654,6 +678,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
               const next = pags[(pags.indexOf(pk) + 1) % pags.length]
               if (next === 'capa') return 'toque pra voltar à capa'
               if (next === 'agencia') return pk === 'capa' && news && !flippedRef.current ? 'vira sozinho em 5s · toque pra virar já' : 'toque pra ver o Caderno do Empresário 🕴️'
+              if (next === 'memoria') return 'toque pra ver O Jornal Lembra 📼'
               return 'toque pra ver o Aconteceu na temporada 📻'
             })()}</span>
           </button>
