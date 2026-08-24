@@ -23,7 +23,7 @@ import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus } from './estadio'
 import { UnlockBanner } from './unlockbanner'
-import { Escudo, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas } from './sport'
@@ -2244,7 +2244,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // ⚽🎉 arte do CARIMBO de quem acabou de marcar (só clube batizado; nome antigo
   // do save é resolvido pelo newestTeamName). Futebol só — no basquete o placar
   // sobe o tempo todo e nada muda por lá.
-  const carimboTime = (!basket && golSide) ? newestTeamName(golSide === 'h' ? homeName : awayName) : ''
+  // 🧼 `nomeLimpo` antes de procurar o carimbo: se algum dia uma tela passar o
+  //    nome com selo de tier ou "(você)" colado, a mascote não some de novo.
+  const carimboTime = (!basket && golSide) ? newestTeamName(nomeLimpo(golSide === 'h' ? homeName : awayName)) : ''
   const carimboArt = carimboTime ? carimboDoTime(carimboTime) : null
   // 🎬 cada mascote entra do SEU jeito (águia mergulha, palhaço quica, cobra
   // rasteja…). Quem não tem entrada própria cai no carimbo de sempre.
@@ -3690,7 +3692,14 @@ function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, foot
   const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens) : 0
   return (
     <div style={{ marginBottom: 12 }}>
-      <LiveScoreCard homeName={copaName(homeT)} awayName={copaName(awayT)} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
+      {/* 🛡️ NOME CRU no card (conserto do São Luiz FC, 21/08). Aqui ia
+          `copaName()`, que gruda " (você)" no nome — e o card procura o escudo
+          e o CARIMBO DA MASCOTE pelo nome do time. Com o sufixo colado,
+          "São Luiz FC (você)" não batia com nada e o dono do clube batizado
+          via escudo genérico e gol sem mascote NA COPA, enquanto na liga (que
+          passa o nome cru) estava tudo certo. O card já escreve "VOCÊ"
+          embaixo do nome sozinho, então o sufixo era só ruído. */}
+      <LiveScoreCard homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
         youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} finished={done} footTint={footTint} />
       {done && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>

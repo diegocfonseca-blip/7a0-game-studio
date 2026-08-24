@@ -9583,3 +9583,36 @@ POSIÇÃO CHEIA continua igual (2 laterais é 2 laterais).
 📌 E fica registrado, porque eu quase entendi errado: o `MESMO_JOGADOR` do
 `npm run paises` **não esconde nada do jogo** — é só pra o aviso do script não
 virar paredão de 52 nomes. Carta repetida aparece normal pro jogador, sempre.
+
+---
+
+## ✅ 21/08 — Escudo e mascote do clube batizado sumiam NA COPA (São Luiz FC)
+
+O Gabriel (gabrielnegreirosamaral99, **São Luiz FC**) avisou pelo Diego: escudo,
+mascote e animação de gol dele **só funcionavam na liga; na Copa do Brasil não**.
+O print confirma: card ao vivo mostrando escudo genérico (círculo com "S").
+
+**A causa, exata.** Em `pyramidseason.tsx` existe
+`const copaName = (t) => t.you ? `${t.name} (você)` : t.name`, e o card da Copa
+passava `copaName(homeT)` pro `LiveScoreCard`. Só que o card procura DUAS coisas
+**pelo nome do time**:
+- o escudo (`<Escudo nome={name}>` → `LOGOS_PRONTAS`);
+- o carimbo da mascote no gol (`CARIMBO_GOL[newestTeamName(name)]`).
+
+Com o sufixo colado, a chave virava `"São Luiz FC (você)"` e não batia com nada.
+A **liga** passa `m.h`/`m.a` crus — por isso lá funcionava.
+
+**Conserto (2 camadas):**
+1. A Copa passa o **nome cru** (`homeT.name`). O sufixo era redundante: o card
+   já escreve "VOCÊ" embaixo do nome sozinho.
+2. `nomeLimpo()` (escudos.tsx) passa a tirar também um `" (você)"` no fim, além
+   dos emojis do selo de tier. E o `carimboTime` do card agora passa por
+   `nomeLimpo` antes de procurar a mascote. Assim, **qualquer tela nova** que
+   grude sufixo no nome não faz o escudo comprado sumir de novo.
+
+Testado: `São Luiz FC`, `São Luiz FC (você)` e `São Luiz FC (você) 👑🖌️` — os
+três acham escudo próprio E carimbo da mascote.
+
+⚠️ **Lição pra próxima:** nome de time é CHAVE (escudo, mascote, manto,
+`newestTeamName`). Nunca concatenar marcação de tela no nome — passar flag
+separada, como o `youIsHome` que já existe no card.
