@@ -10246,3 +10246,41 @@ Série A já tem outra cara, sem precisar sortear nada — e a escada continua
 protegendo a dificuldade, porque a MAIORIA da A segue sendo lenda.
 
 ⏳ **Nada disso foi codado.** Segue esperando o Diego fechar o desenho.
+
+## 🔬 RAIO-X DO RÁPIDO ONLINE — a simulação que virou fonte de ideia (25/08)
+Pedido do Diego: *"faça uma simulação do jogo rápido... e aí vc pode ter ideias p me
+dar em relação ao online"*.
+
+**Ferramenta:** `scripts/simula-rapido-ideias.mjs` — 40 temporadas online completas
+no motor de verdade (sala montada como a real: humanos + técnicos-robô COM elenco).
+O pregão é aproximado por um draft em serpentina com ruído (o leilão de verdade
+precisa de gente apertando botão), então a direção vale mais que o decimal.
+
+| medida | resultado |
+|---|---|
+| o leilão explica a tabela (0 a 1) | **0,269** |
+| o time mais forte do pregão foi campeão | **22,5%** |
+| campeão saiu do top 3 de força | 42,5% |
+| rodada em que o líder assume e não larga mais | **23,8ª de 38** |
+| folga do campeão pro vice | 5,2 pontos |
+| jogos decididos por 3+ gols | 17,3% |
+| **a taça ficou com um ROBÔ** | **0%** (em 40 temporadas) |
+
+### O que os números dizem (e cada ideia nasce de um deles)
+1. **A taça nunca é de robô.** Com 4 humanos numa tabela de 20, os outros 16 são
+   cenário. Isso é de projeto (o `cpuAtkAdj` nivela os robôs em 74 e o humano joga a
+   força cheia), mas significa que **a liga tem 4 competidores e 16 figurantes**.
+2. **As últimas ~14 rodadas são passeio.** O líder se define na 24ª e vence por 5,2
+   pontos. Um terço do campeonato é tempo morto.
+3. **Montar o melhor time NÃO garante o título** (22,5%). Isso é bom — não é
+   decidido no pregão —, mas hoje quem monta o melhor ataque e não é campeão **sai
+   sem nada**: só existe UMA taça pra 4 pessoas.
+
+### Ideias que saem daí (nenhuma codada — aguardando o Diego)
+- 🏁 **PLAYOFFS DOS 4** — a liga vira classificatória e o título sai no mata-mata.
+  Mata o tempo morto medido sem encurtar a sala. **Motor já existe** (Copa dos 8).
+- 😈 **O NÊMESIS DA SALA** — um robô promovido a rival de verdade (nível de gente +
+  nome + zoeira). Dá um vilão comum pra turma; hoje robô ganha 0%.
+- 🏅 **PRÊMIOS DA TEMPORADA** — artilheiro, garçom, defesa menos vazada, mico.
+  Todo mundo leva algo; hoje 3 de 4 saem de mãos vazias.
+- ⏱️ **TURNO ÚNICO** (19 rodadas) e ⚡ **COPA RELÂMPAGO** (mata-mata puro, sem liga).
