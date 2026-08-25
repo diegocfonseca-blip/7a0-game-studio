@@ -10045,3 +10045,47 @@ temporada continuam iguais.
 
 ✅ Depois de rodar: mandar um vídeo de teste pela conta do Diego, aprovar no
 `#admin` e conferir que o extrato mostra **📺 Cota extra de TV · +15**.
+
+## ⚽📈 "TÁ SAINDO GOL DEMAIS NO RÁPIDO ONLINE" (Diego, 25/08) — MEDIDO
+
+Relato: *"me parece q tá saindo gol demais.. mts goleadas toda hr... 9x0 e etc"*,
+com a dúvida se foi a assistência de 24/08.
+
+**Ferramenta nova:** `scripts/mede-goleada-rapido.mjs` — roda o `reducer` DE
+VERDADE (temporada online completa, 20 times, todas as rodadas) e conta gol a gol,
+separando humano×humano, humano×clube de fundo e fundo×fundo.
+
+### ✅ NÃO foi a assistência — provado com o código velho rodando lado a lado
+Subi um `git worktree` em `f7c81837^` (commit anterior ao das assistências), rodei
+o MESMO script nos dois e o resultado veio **idêntico dígito por dígito**
+(2,98 gols/jogo · 18,6% com 5+ · maior placar 0x7). O `garcomDoGol` tem dado
+próprio e não puxa nada do `rng` dos gols — a medição confirma o desenho.
+
+### ❌ Mas 9x0 é IMPOSSÍVEL — o teto é 7
+`poisson()` (store.tsx ~2142) tem `Math.min(k - 1, 7)` desde 31/07. O pior placar
+que o motor consegue produzir é **7x0**. O que ele viu foi no máximo isso.
+
+### 🔍 A GOLEADA É REAL, e a causa é um DEGRAU DE FORÇA (não o sorteio)
+Medido com 4 humanos: **humano atk ~92,6 / def ~91,2** contra **clubes de fundo de
+54 a 78**. Resultado: **o humano ganha do clube de fundo por 4+ de diferença em
+30% dos jogos** (1 em cada 3).
+
+**Por que o degrau existe:** `cpuAdjFor()` quer puxar os clubes de fundo pro
+`ONLINE_BASE = 74` — mas ele chama `fillerAdj(s.managers, 74)`, que mede
+**técnico-ROBÔ** (`!isHuman && !auctionRival`). **Numa sala online não existe
+técnico-robô nenhum** → `fillers.length === 0` → devolve `{atk:0, def:0}`.
+Ou seja: **o nivelamento do online nunca acontece.** No rápido OFFLINE funciona
+(lá os bots de leilão são managers de verdade).
+
+### 🧪 OS DOIS CONSERTOS, MEDIDOS
+| | goleada 4+ do humano | gols/jogo |
+|---|---|---|
+| hoje | **30,0%** | 3,15 |
+| medir a balança nos CLUBES DA TABELA (o que o código já queria) | **20,5%** | 3,11 |
+| o de cima + apertar a faixa dos clubes pela metade (74±) | **15,1%** | 3,07 |
+
+O gol/jogo quase não muda — o jogo não fica travado, só para de ser atropelo.
+
+⏳ **NÃO MEXIDO AINDA — esperando o Diego.** É mudança de equilíbrio em modo AO
+VIVO. Segurança: `cpuAtkAdj`/`cpuDefAdj` são gravados no estado no `FINISH_CEREMONY`,
+então **sala já rolando não muda** — só sala NOVA pegaria o ajuste.
