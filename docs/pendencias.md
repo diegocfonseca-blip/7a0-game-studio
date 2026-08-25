@@ -10120,3 +10120,57 @@ artilharia muda: o motor não foi tocado.
 ⚠️ **A goleada medida acima continua valendo como assunto SEPARADO** (o nivelamento
 do online que nunca roda), mas ela é bem menor do que parecia: boa parte do "goleada
 toda hora" era este placar inflado. Reavaliar com ele depois, sem pressa.
+
+### ⛔ CORREÇÃO DA MEDIÇÃO ACIMA (25/08) — EU ERREI, E O ERRO ERA MEU BANCO DE TESTE
+A conclusão *"o nivelamento do online nunca roda"* está **ERRADA**. Ela saiu de um
+defeito do `scripts/mede-goleada-rapido.mjs`: lá eu montei o estado com **só
+técnicos humanos**, então o `buildLeague` completou a tabela com `CLASSIC_CLUBS`
+(54 a 78) e o `fillerAdj` não achou robô nenhum pra medir → devolveu zero.
+
+**Numa sala online DE VERDADE não é assim.** O `makeManagers` cria
+`leagueSize - humanos` **técnicos-ROBÔ com elenco** (online: `auctionCpus = 0`,
+então TODOS são de preenchimento) usando os nomes da `DIVISION_TEAMS['D']` — que é
+onde moram os batismos. `buildLeague` não precisa completar com CLASSIC_CLUBS.
+
+**Conferido no banco, em 8 salas reais:** 20 técnicos em todas, sendo 2–8 humanos e
+12–18 robôs, e **todos os robôs entram na balança**. O `cpuAtkAdj` gravado é real:
+de **−0,74 a −3,63** (puxando os robôs PRA BAIXO, ou seja, eles nascem um pouco
+acima do alvo 74). Ou seja: **o nivelamento roda, e roda certo.**
+
+Consequência: os números de goleada da tabela acima (30% de 4+) **não valem pra
+sala online real** — eles mediram um mundo que não existe (humano contra
+CLASSIC_CLUBS). O assunto "sai gol demais" volta pra ESTACA ZERO e só deve ser
+reaberto se o Diego ainda achar estranho **depois** do conserto do placar do card
+(que era o problema de verdade). Se reabrir, medir com robôs de elenco na sala.
+
+📌 **Lição pra qualquer sessão:** montar estado na mão pro `reducer` é fácil de
+enviesar. Antes de acusar o motor, **conferir a foto REAL do `game_state` no
+banco** — foi ela que derrubou a minha conclusão.
+
+## 🏆 AS PÍLULAS DENTRO DA SALA (Rank · Estante · Temporadas · Ajustes) — regra de hoje
+Pergunta do Diego (25/08): *"qual critério é aparece bots ou n"*.
+
+- **Rank** e **Estante**: **só gente**. Regra dele de 23/08 — *"troféu só entre
+  usuários"*.
+- **Temporadas** (a linha do tempo): mostra **todo mundo, robô incluído** — é o
+  registro do que aconteceu de verdade.
+- **Como o jogo decide se é gente:** compara o **NOME DO TIME** gravado como campeão
+  (`game_champions.champion_name`) com a lista de nomes dos **humanos que estão na
+  sala naquele momento** (`state.managers.filter(isHuman).map(teamName)`, passada
+  pro LigaHub como `humanos`). Bateu string a string → gente. Não bateu → robô.
+- **Por que aparece tanto nome de BATISMO como campeão-robô:** os 12–18 robôs que
+  completam a sala tiram o nome da `DIVISION_TEAMS['D']`, que é onde moram os
+  batismos. Então "Murriz FC", "Sapekeiros FC", "Nata de SP" ganhando a sala são
+  ROBÔS com nome de clube batizado — não a pessoa dona do clube.
+- **Ordem do Rank:** a regra é do DONO da sala (`LIGA_REGRAS_PADRAO`: por títulos,
+  liga > copa > artilheiro, e cair tira um título; ele pode trocar pra pontos —
+  liga 20 · copa 30 · artilheiro 5 · rebaixamento −10). Vale **só dentro da sala**;
+  o ranking global do jogo não olha nada disso.
+
+⚠️ **RISCO ESTRUTURAL (ainda NÃO aconteceu — conferido no banco, zero casos):** como
+a comparação é por nome exato e o nome do campeão é uma FOTO do momento, quem
+**mudar o nome do time** depois (ganhar selo 👑🖋️, batizar o clube) deixa de bater e
+os títulos antigos dele somem do Rank e da Estante. Numa **liga** (que vive 90 dias
+e troca de gente toda semana) isso tende a aparecer. Conserto natural: comparar
+com `stripEmoji` + `newestTeamName` (as duas funções já existem) em vez de string
+crua. **Não mexi** — é mudança de tela em modo ao vivo e ainda não há caso real.
