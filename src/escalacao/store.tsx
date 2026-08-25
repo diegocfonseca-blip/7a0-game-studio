@@ -258,6 +258,18 @@ function escadaAfterPlacements(s: EscState) {
 // Creditada ANTES dos snapshots do extrato pra não entrar em outra
 // linha — e logada com linha própria "📺 Cota de TV".
 const TV_COTA: Record<string, number> = { A: 20, B: 15, C: 10, D: 5, V: 1 }
+// 📺💰 COTA EXTRA DE TV — quanto vale UM vídeo aprovado (Diego 23/08: era 10,
+// virou 15). Este é o ÚNICO lugar do jogo que diz o valor: reducer, card do
+// Clube › Patrocínio e banner da virada leem daqui.
+//
+// ⚠️⚠️ ELE TAMBÉM VIVE NO BANCO. O RPC `tv_resgatar` (Supabase) devolve as
+// moedas já multiplicadas, e HOJE ele multiplica por 10. Enquanto ninguém rodar
+// a SQL de atualização (está em docs/pendencias.md, 23/08), o jogador vê "15" na
+// tela e recebe 10. Por isso o `TV_EXTRA_ANTIGO`: o crédito de 10 continua
+// ACEITO durante a virada — melhor receber 10 do que o crédito ser recusado e a
+// pessoa não receber NADA. Quando a SQL rodar, dá pra apagar o antigo.
+export const TV_EXTRA_POR_VIDEO = 15
+export const TV_EXTRA_ANTIGO = 10
 // 🕴️ BICO DE FOLGA (Guia da Carreira, 13/08): renda extra fixa enquanto o clube
 // tá na Várzea/D, a partir da T3 — 3 patrocinadores reais do jogo, escolha livre.
 const BICO_BRANDS: Record<'vadico' | 'maxjoias' | 'ero' | 'reidastintas', string> = { vadico: 'Vadico Veículos', maxjoias: 'Max Jóias', ero: 'Ero Dentista', reidastintas: 'Rei das Tintas' }
@@ -3678,10 +3690,12 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'TV_EXTRA_CREDIT': {
       // 📺 COTA EXTRA DE TV (Diego 23/08): a validação é do Supabase (tv_resgatar,
       // atômica: aprovado→creditado uma vez só); aqui só entra o crédito. O valor
-      // é conferido contra a regra fixa (10 🪙 por vídeo) — número inventado na
-      // action não passa, igual ao Banco Legends.
+      // é conferido contra a regra fixa — número inventado na action não passa,
+      // igual ao Banco Legends. Aceita o valor NOVO (15) e o ANTIGO (10) enquanto
+      // o RPC do banco não é atualizado — ver TV_EXTRA_POR_VIDEO.
       if (s.onlineMode === 'online' || !s.careerOnline) return s
-      if (!Number.isInteger(action.qtd) || action.qtd < 1 || action.coins !== action.qtd * 10) return s
+      const porVideo = [TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO]
+      if (!Number.isInteger(action.qtd) || action.qtd < 1 || !porVideo.some(v => action.coins === action.qtd * v)) return s
       const yb = s.managers[s.youIdx]?.id ?? 0
       s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + action.coins }
       logFin(s, 'reward', action.qtd === 1 ? '📺 Cota extra de TV (vídeo nas redes)' : `📺 Cota extra de TV (${action.qtd} vídeos nas redes)`, action.coins, undefined, yb)

@@ -14,7 +14,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
 import type { RenewAnos } from './store'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, SPONSOR_BET_META } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -1584,7 +1584,7 @@ function BancoLegends() {
 // linha no extrato, e só). Agora tem MORADA FIXA: o contrato por divisão que já
 // paga sozinho (TV_COTA no store) + a COTA EXTRA das redes sociais. Regras
 // FECHADAS por ele (23/08): vídeo 15s+ · Instagram ou TikTok marcando
-// @leilaolegendscom · foto não vale · 1 vídeo por temporada · +10 🪙 por vídeo
+// @leilaolegendscom · foto não vale · 1 vídeo por temporada · +15 🪙 por vídeo
 // aprovado · conferência MANUAL dele no admin ("como toda cota de TV, pode
 // atrasar um pouco mas vai receber" — a fila espera, não expira).
 const TV_DEGRAUS: [string, number][] = [['V', 1], ['D', 5], ['C', 10], ['B', 15], ['A', 20]]
@@ -1629,7 +1629,12 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
         // 💰 resgata cotas já APROVADAS pelo Diego (atômico no banco: aprovado→
         // creditado uma vez só; o reducer ainda confere o valor 10×qtd)
         const { data: coins } = await supabase.rpc('tv_resgatar')
-        if (vivo && typeof coins === 'number' && coins > 0) dispatch({ type: 'TV_EXTRA_CREDIT', coins, qtd: coins / 10 })
+        // 🧮 quantos vídeos vieram nesse resgate? O BANCO manda as moedas já
+        // multiplicadas, então a conta é ao contrário. Tenta pelo valor NOVO e
+        // cai no antigo — enquanto o RPC não for atualizado ele ainda paga 10, e
+        // recusar o crédito faria a pessoa não receber nada (ver store.tsx).
+        const porVideo = [TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO].find(v => coins % v === 0)
+        if (vivo && typeof coins === 'number' && coins > 0 && porVideo) dispatch({ type: 'TV_EXTRA_CREDIT', coins, qtd: coins / porVideo })
         const { data: rows } = await supabase.from('tv_envios')
           .select('id, temporada, status, motivo').eq('temporada', temporada)
           .order('id', { ascending: false }).limit(1)
@@ -1689,7 +1694,7 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
         <div style={{ borderTop: '2.5px dashed rgba(12,12,12,.2)', margin: '12px 0 10px' }} />
         {sec('📱 Cota extra: transmissão nas redes sociais')}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: `linear-gradient(150deg,#FFE79A,${GOLD} 60%,#E8A200)`, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `2.5px 2.5px 0 ${INK}`, padding: '8px 11px', marginBottom: 8 }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, whiteSpace: 'nowrap' }}>+10 🪙</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, whiteSpace: 'nowrap' }}>+{TV_EXTRA_POR_VIDEO} 🪙</span>
           <span style={{ fontWeight: 800, fontSize: 10, lineHeight: 1.3 }}>por vídeo aprovado —<br /><b>1 vídeo por temporada</b></span>
         </div>
         <p style={{ fontWeight: 700, fontSize: 11, lineHeight: 1.45, margin: '0 0 8px' }}>A emissora também paga por jogo que passa <b>nas redes</b>: filma seu jogo, posta marcando <b>@leilaolegendscom</b>, cola o link — e a cota extra cai na caixa do clube.</p>
@@ -1705,7 +1710,7 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F4ECD6', border: '2.5px dashed rgba(12,12,12,.4)', borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.75)' }}><span style={{ fontSize: 14 }}>🕓</span><span><b>Vídeo da T{envio.temporada} em análise na emissora</b> — como toda cota de TV, pode atrasar um pouco… mas cai. 💰</span></div>
             )}
             {(envio?.status === 'aprovado' || envio?.status === 'creditado') && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EAF7EE', border: `2.5px solid ${GREEN}`, borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#14532d' }}><span style={{ fontSize: 14 }}>✅</span><span><b>Cota da T{envio.temporada} garantida: +10 🪙 no caixa.</b> Temporada nova, vídeo novo! 🎬</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EAF7EE', border: `2.5px solid ${GREEN}`, borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#14532d' }}><span style={{ fontSize: 14 }}>✅</span><span><b>Cota da T{envio.temporada} garantida: +{TV_EXTRA_POR_VIDEO} 🪙 no caixa.</b> Temporada nova, vídeo novo! 🎬</span></div>
             )}
             {envio?.status === 'recusado' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDECEA', border: '2.5px solid #C2452F', borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#7a2418', marginBottom: 8 }}><span style={{ fontSize: 14 }}>❌</span><span><b>A emissora recusou{envio.motivo ? `: ${envio.motivo}` : ''}.</b> Pode tentar de novo com outro vídeo.</span></div>
@@ -1717,7 +1722,7 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
               <div style={{ ...box('#fff'), padding: 11 }}>
                 {([['1', <span key="1"><b>Grava um vídeo de 15s ou mais</b>: a tela do jogo rolando — ou você jogando, com o seu time aparecendo na tela.</span>],
                   ['2', <span key="2"><b>Posta no Instagram ou no TikTok</b> marcando <b>@leilaolegendscom</b>.</span>],
-                  ['3', <span key="3"><b>Cola o link do post aqui embaixo</b> — a emissora confere e deposita <b>+10 🪙 na caixa do clube</b>.</span>]] as [string, React.ReactNode][]).map(([n, t]) => (
+                  ['3', <span key="3"><b>Cola o link do post aqui embaixo</b> — a emissora confere e deposita <b>+{TV_EXTRA_POR_VIDEO} 🪙 na caixa do clube</b>.</span>]] as [string, React.ReactNode][]).map(([n, t]) => (
                   <div key={n} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', marginBottom: 7 }}>
                     <span style={{ flex: 'none', width: 22, height: 22, borderRadius: 999, background: INK, color: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 11 }}>{n}</span>
                     <p style={{ margin: 0, fontWeight: 700, fontSize: 11, lineHeight: 1.4 }}>{t}</p>
@@ -5993,8 +5998,8 @@ export function PyramidSeasonScreen() {
               <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
                 <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Novidade da emissora</span>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>A TV agora paga <span style={{ color: GOLD }}>cota extra!</span></p>
-                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram ou TikTok</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+10 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>🎬 1 vídeo por temporada · +10 🪙 cada<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>· 100 temporadas = 1.000 🪙 de cota extra</span></div>
+                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram ou TikTok</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+{TV_EXTRA_POR_VIDEO} 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>🎬 1 vídeo por temporada · +{TV_EXTRA_POR_VIDEO} 🪙 cada<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>· 100 temporadas = {(TV_EXTRA_POR_VIDEO * 100).toLocaleString('pt-BR')} 🪙 de cota extra</span></div>
                 <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Fica pra sempre em: 🏟️ Clube › 🤝 Patrocínio</p>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                   <button onClick={() => { dispatch({ type: 'TV_EXTRA_VISTO' }); setTvFoco(true); setTab('estadio'); setClubeSub('patrocinio') }} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>🎬 Quero televisionar</button>

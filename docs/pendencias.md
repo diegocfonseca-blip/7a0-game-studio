@@ -171,7 +171,8 @@ aparecer um banner na cara dele UMA vez sobre a cota extra… libera sempre de 1
 em 1 temporada… paga 10 moedas… e dá um exemplo: 10 × 100 temporadas já são mil
 moedas de cota extra"*. Tudo isso está no ar:
 - **Banco**: tabela `tv_envios` (RLS: jogador insere no próprio nome, admin
-  decide) + RPC `tv_resgatar` (aprovado→creditado atômico, 10/vídeo). Travas
+  decide) + RPC `tv_resgatar` (aprovado→creditado atômico, **10/vídeo — PRECISA
+  VIRAR 15**, ver abaixo). Travas
   TESTADAS: link único global · 1 por temporada POR CONTA (índice parcial —
   recusado NÃO queima a vez) · farm entre carreiras bloqueado (a trava é por
   conta, não por carreira).
@@ -9743,3 +9744,37 @@ elas passam uma pra outra na virada pro mata-mata, igual à artilharia).
 **Reverter**: `git revert` do commit — é um commit isolado e nenhum dado salvo
 muda de forma (os campos novos são opcionais; save antigo simplesmente não tem
 assistência de copa e continua abrindo).
+
+
+---
+
+## ⚠️ 23/08 — Cota extra de TV subiu pra 15 · FALTA RODAR A SQL
+
+Diego: *"aumente a cota extra pra 15 por favor, da TV, quando alguém postar"*.
+
+**O jogo já está em 15** — o valor virou constante única `TV_EXTRA_POR_VIDEO`
+(`store.tsx`), e reducer, card do Clube › Patrocínio, banner da virada e
+`novidades.ts` leem dela. Nada mais tem "10" escrito na mão.
+
+🚨 **MAS O VALOR TAMBÉM VIVE NO BANCO.** O RPC `tv_resgatar` devolve as moedas
+JÁ multiplicadas, e hoje ele multiplica por **10**. Enquanto ninguém rodar a SQL,
+**o jogador lê 15 na tela e recebe 10.** Esta sessão não tem acesso ao Supabase
+(o MCP pede aprovação), então ficou pendente.
+
+Pra não deixar ninguém sem nada no meio da virada, o crédito de **10 continua
+aceito** (`TV_EXTRA_ANTIGO`): é melhor receber 10 do que o reducer recusar e a
+pessoa ficar sem moeda. Assim que a SQL rodar, dá pra apagar o `TV_EXTRA_ANTIGO`
+e a tolerância no reducer.
+
+### SQL pra rodar no Supabase
+```sql
+-- confere quanto o RPC paga hoje (procure o "* 10" no corpo):
+select prosrc from pg_proc where proname = 'tv_resgatar';
+```
+Depois é trocar o multiplicador de `10` para `15` no corpo da função e recriar
+com `create or replace function tv_resgatar() ...`. **Não mexer em mais nada** —
+a atomicidade (aprovado→creditado uma vez só) e as travas de link único e 1 por
+temporada continuam iguais.
+
+✅ Depois de rodar: mandar um vídeo de teste pela conta do Diego, aprovar no
+`#admin` e conferir que o extrato mostra **📺 Cota extra de TV · +15**.
