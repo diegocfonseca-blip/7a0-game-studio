@@ -2357,6 +2357,17 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   return { homeId, awayId, hg, ag, highlights }
 }
 
+// 🚨 ESTE LANCE CONTA GOL NO PLACAR? (bug do Diego 25/08)
+// Nasceu do placar inflado: a lista de LANCES do jogo tem gol E assistência, e
+// quem monta o card do jogo contava tudo como gol — um 4x0 de verdade subia pra
+// 8x0 na tela. Fica AQUI, num lugar só, porque o furo se repetiu em 4 telas
+// diferentes (liga, Libertadores, card da Copa dos 8 e as linhas do chaveamento):
+// espalhar o filtro pelas telas foi justamente o que deixou duas passarem.
+// O `kind` é opcional: no online o convidado pode receber estado de um host em
+// versão antiga, e aí o filtro cai no texto.
+export const lanceEhGol = (hl: { text: string; kind?: string }): boolean =>
+  hl.kind ? hl.kind !== 'assist' : !hl.text.startsWith('🅰️')
+
 export function topScorers(state: EscState, limit = 10): ScorerRow[] {
   return [...state.scorers].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, limit)
 }

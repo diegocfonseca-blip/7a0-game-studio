@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre } from './store'
+import { lanceEhGol, useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre } from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -4909,9 +4909,14 @@ export function EscSeason() {
             const doneB = tie.legs.slice(0, nLegs - 1).reduce((s2, l) => s2 + l[1], 0)
             const [curA, curB] = tie.legs[nLegs - 1]
             // meu jogo tem highlights reais (fica igual ao card grande); CPU usa sintético
-            const useHl = (tie.lastHighlights?.length ?? 0) > 0
-            minsA = useHl ? tie.lastHighlights!.filter(h => h.teamId === tie.aId).map(h => h.min).sort((a, b) => a - b) : synthMins(curA, tie.aId * 31 + tie.bId + nLegs)
-            minsB = useHl ? tie.lastHighlights!.filter(h => h.teamId === tie.bId).map(h => h.min).sort((a, b) => a - b) : synthMins(curB, tie.aId * 31 + tie.bId + nLegs + 7)
+            // ⚠️ SÓ LANCE DE GOL (bug do Diego 25/08: *"apareceu do nada 8x0 e
+            // depois tava 4"*). Era AQUI: enquanto o relógio corria, a linha contava
+            // TODO lance (gol + assistência) e o placar inflava; no apito final ele
+            // trocava pelo agregado de verdade (`fullAggA/B`) e "voltava" pra 4.
+            const gols = (tie.lastHighlights ?? []).filter(lanceEhGol)
+            const useHl = gols.length > 0
+            minsA = useHl ? gols.filter(h => h.teamId === tie.aId).map(h => h.min).sort((a, b) => a - b) : synthMins(curA, tie.aId * 31 + tie.bId + nLegs)
+            minsB = useHl ? gols.filter(h => h.teamId === tie.bId).map(h => h.min).sort((a, b) => a - b) : synthMins(curB, tie.aId * 31 + tie.bId + nLegs + 7)
             showA = doneA + minsA.filter(m => m <= copaMin).length
             showB = doneB + minsB.filter(m => m <= copaMin).length
           }
@@ -5019,7 +5024,7 @@ export function EscSeason() {
                 // 🎨 mesmo padrão da liga: amigo = cor do tier DELE (gratuito = bege)
                 const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
                 const hl = myTie.lastHighlights ?? []
-                const goals = hl.map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
+                const goals = hl.filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
                   <>
                     <LiveScoreCard key={`copa-${qc.phase}-${myTie.legs.length}`}
@@ -5081,14 +5086,7 @@ export function EscSeason() {
         const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
-        // 🚨 SÓ GOL ENTRA NO PLACAR (bug do Diego 25/08: *"o placar q tava estranho mas os
-        // gols contava certo"*). Desde 24/08 a lista de lances traz também a ASSISTÊNCIA,
-        // e aqui TODO lance virava gol — como ~75% dos gols têm passe, um 5x0 de verdade
-        // aparecia como 9x0 na tela. A tabela e a artilharia sempre estiveram certas.
-        // O `?? !text.startsWith('🅰️')` é pro online: convidado numa versão nova pode
-        // receber estado de host antigo, que ainda não manda o `kind`.
-        const soGol = (hl: { text: string; kind?: string }) => (hl.kind ? hl.kind !== 'assist' : !hl.text.startsWith('🅰️'))
-        const goals = myLast.highlights.filter(soGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
+        const goals = myLast.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
         return <LiveScoreCard key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
@@ -5961,14 +5959,7 @@ export function EscLiberta() {
         const oppId = homeIsYou ? meuJogo.awayId : meuJogo.homeId
         const oppIsHuman = humano(oppId)
         const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
-        // 🚨 SÓ GOL ENTRA NO PLACAR (bug do Diego 25/08: *"o placar q tava estranho mas os
-        // gols contava certo"*). Desde 24/08 a lista de lances traz também a ASSISTÊNCIA,
-        // e aqui TODO lance virava gol — como ~75% dos gols têm passe, um 5x0 de verdade
-        // aparecia como 9x0 na tela. A tabela e a artilharia sempre estiveram certas.
-        // O `?? !text.startsWith('🅰️')` é pro online: convidado numa versão nova pode
-        // receber estado de host antigo, que ainda não manda o `kind`.
-        const soGol = (hl: { text: string; kind?: string }) => (hl.kind ? hl.kind !== 'assist' : !hl.text.startsWith('🅰️'))
-        const goals = meuJogo.highlights.filter(soGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
+        const goals = meuJogo.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
         return <LiveScoreCard key={`lb-${lb.rodada}`}
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}

@@ -51,6 +51,12 @@ const r = await page.evaluate(async ([TEMPS]) => {
 
   const soGol = hl => (hl.kind ? hl.kind !== 'assist' : !hl.text.startsWith('🅰️'))
   let jogos = 0, batiaAntes = 0, batiaDepois = 0, infladoTotal = 0, piorAntes = null
+  // 🔁 O SINTOMA QUE O DIEGO DESCREVEU: *"apareceu do nada 8x0 e depois tava 4"*.
+  // Na linha do chaveamento da Copa, enquanto o relógio corre o placar conta os
+  // LANCES; no apito ele troca pelo agregado de verdade. Se os lances inflam, o
+  // número SOBE e depois VOLTA. Aqui eu meço isso: o maior placar que a tela chega
+  // a mostrar durante o jogo contra o placar final.
+  let voltouAntes = 0, voltouDepois = 0, piorVolta = null
 
   for (let t = 0; t < TEMPS; t++) {
     let st = {
@@ -73,13 +79,26 @@ const r = await page.evaluate(async ([TEMPS]) => {
         const [dh, da] = conta(true)
         if (ah === res.hg && aa === res.ag) batiaAntes++
         if (dh === res.hg && da === res.ag) batiaDepois++
+        // pico do placar durante o jogo (o relógio anda 0→93 e vai contando lances)
+        const pico = (filtro) => {
+          let h = 0, a = 0
+          for (const hl of res.highlights) { if (filtro && !soGol(hl)) continue; if (hl.teamId === res.homeId) h++; else a++ }
+          return [h, a] // no fim do relógio todos os lances já entraram: este É o pico
+        }
+        const [ph, pa] = pico(false), [qh, qa] = pico(true)
+        if (ph > res.hg || pa > res.ag) {
+          voltouAntes++
+          const queda = (ph + pa) - (res.hg + res.ag)
+          if (!piorVolta || queda > piorVolta.queda) piorVolta = { subiu: `${ph}x${pa}`, real: `${res.hg}x${res.ag}`, queda }
+        }
+        if (qh > res.hg || qa > res.ag) voltouDepois++
         const inflado = (ah + aa) - (res.hg + res.ag)
         infladoTotal += inflado
         if (!piorAntes || inflado > piorAntes.inflado) piorAntes = { real: `${res.hg}x${res.ag}`, antes: `${ah}x${aa}`, depois: `${dh}x${da}`, inflado }
       }
     }
   }
-  return { jogos, batiaAntes, batiaDepois, mediaInflada: +(infladoTotal / (jogos || 1)).toFixed(2), piorAntes }
+  return { jogos, batiaAntes, batiaDepois, mediaInflada: +(infladoTotal / (jogos || 1)).toFixed(2), piorAntes, voltouAntes, voltouDepois, piorVolta }
 }, [TEMPS])
 
 await browser.close()
@@ -89,3 +108,7 @@ console.log(`❌ ANTES  (todo lance vira gol): batia em ${(r.batiaAntes * 100 / 
 console.log(`✅ DEPOIS (só lance de gol):     batia em ${(r.batiaDepois * 100 / r.jogos).toFixed(1)}% dos jogos`)
 console.log(`gols a MAIS que a tela mostrava, por jogo: ${r.mediaInflada}`)
 if (r.piorAntes) console.log(`pior caso visto: jogo real ${r.piorAntes.real} · tela ANTES ${r.piorAntes.antes} · tela DEPOIS ${r.piorAntes.depois}`)
+console.log('\n── o "SOBE E VOLTA" do chaveamento da Copa ──')
+console.log(`❌ ANTES:  o placar subia acima do real em ${(r.voltouAntes * 100 / r.jogos).toFixed(1)}% dos jogos (e "voltava" no apito)`)
+console.log(`✅ DEPOIS: ${(r.voltouDepois * 100 / r.jogos).toFixed(1)}%`)
+if (r.piorVolta) console.log(`pior queda vista: subia até ${r.piorVolta.subiu} e voltava pro real ${r.piorVolta.real}`)

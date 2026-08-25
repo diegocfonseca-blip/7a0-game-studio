@@ -10174,3 +10174,32 @@ os títulos antigos dele somem do Rank e da Estante. Numa **liga** (que vive 90 
 e troca de gente toda semana) isso tende a aparecer. Conserto natural: comparar
 com `stripEmoji` + `newestTeamName` (as duas funções já existem) em vez de string
 crua. **Não mexi** — é mudança de tela em modo ao vivo e ainda não há caso real.
+
+### 🔁 SEGUNDA RODADA DO MESMO BUG: "apareceu 8x0 e depois tava 4" ✅ CONSERTADO
+Relato do Diego (25/08), depois do primeiro conserto: *"parece q vi um jogo q
+apareceu do nada 8 0 e dps tava 4"*.
+
+**Eu tinha consertado SÓ METADE.** O filtro entrou nos dois cards da LIGA
+(`screens.tsx` ~5089 e ~5962) e **faltou nos dois do MATA-MATA**:
+1. **card do jogo da Copa dos 8 / Libertadores** (~5027);
+2. **as linhas do CHAVEAMENTO** (~4916) — e é aqui que nasce o "sobe e volta":
+   enquanto o relógio corre, a linha conta **lances** (`showA = doneA + minsA…`);
+   no apito ela troca pelo **agregado de verdade** (`fullAggA/B`). Com a
+   assistência contando como gol, o placar **subia** e depois **voltava** pro real.
+
+**Medido** (`scripts/checa-placar-card.mjs`, 808 jogos):
+
+| | placar subia acima do real e "voltava" |
+|---|---|
+| antes | **92,3%** dos jogos |
+| depois | **0%** |
+
+Pior caso: subia até **2x14** e voltava pro real **2x7**.
+
+**A trava pra não repetir uma terceira vez:** o filtro virou **UMA função só**,
+`lanceEhGol()` em `store.tsx`, ao lado de onde os lances são criados. Antes eu
+tinha copiado o filtro dentro das telas — e foi exatamente por isso que duas
+passaram batido. Agora as 4 telas importam a mesma função.
+
+📌 **Lição:** quando o furo é "todo mundo que LÊ esta lista precisa filtrar", o
+filtro tem que morar junto de quem ESCREVE a lista, nunca copiado em cada tela.
