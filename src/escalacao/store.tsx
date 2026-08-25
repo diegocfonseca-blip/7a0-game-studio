@@ -2262,7 +2262,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         const top = pool.slice(0, 3)
         for (let k = 0; k < Math.min(6, top.length * 2); k++) {
           const p = top[k % top.length]
-          highlights.push({ min: 1 + Math.floor(rng() * 47), text: `🏀 ${p.name} anota para ${prefix}!`, teamId: id })
+          highlights.push({ min: 1 + Math.floor(rng() * 47), text: `🏀 ${p.name} anota para ${prefix}!`, teamId: id, kind: 'gol' })
         }
       }
     }
@@ -2320,9 +2320,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         if (row) row.goals++
         else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
         golsDoJogo.push({ nome: scorerName, min })
-        if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id })
+        if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
       } else if (involveHuman) {
-        highlights.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id })
+        highlights.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id, kind: 'gol' })
       }
     }
     // 🅰️ QUEM DEU O PASSE — depois que os gols já saíram, com dado próprio.
@@ -2337,7 +2337,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         const row = lista.find(a => a.name === nome && a.teamId === id)
         if (row) row.assists++
         else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
-        if (involveHuman) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id })
+        if (involveHuman) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id, kind: 'assist' })
       })
     }
   }
@@ -2356,6 +2356,17 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   }
   return { homeId, awayId, hg, ag, highlights }
 }
+
+// 🚨 ESTE LANCE CONTA GOL NO PLACAR? (bug do Diego 25/08)
+// Nasceu do placar inflado: a lista de LANCES do jogo tem gol E assistência, e
+// quem monta o card do jogo contava tudo como gol — um 4x0 de verdade subia pra
+// 8x0 na tela. Fica AQUI, num lugar só, porque o furo se repetiu em 4 telas
+// diferentes (liga, Libertadores, card da Copa dos 8 e as linhas do chaveamento):
+// espalhar o filtro pelas telas foi justamente o que deixou duas passarem.
+// O `kind` é opcional: no online o convidado pode receber estado de um host em
+// versão antiga, e aí o filtro cai no texto.
+export const lanceEhGol = (hl: { text: string; kind?: string }): boolean =>
+  hl.kind ? hl.kind !== 'assist' : !hl.text.startsWith('🅰️')
 
 export function topScorers(state: EscState, limit = 10): ScorerRow[] {
   return [...state.scorers].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, limit)

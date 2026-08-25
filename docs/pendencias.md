@@ -10045,3 +10045,161 @@ temporada continuam iguais.
 
 ✅ Depois de rodar: mandar um vídeo de teste pela conta do Diego, aprovar no
 `#admin` e conferir que o extrato mostra **📺 Cota extra de TV · +15**.
+
+## ⚽📈 "TÁ SAINDO GOL DEMAIS NO RÁPIDO ONLINE" (Diego, 25/08) — MEDIDO
+
+Relato: *"me parece q tá saindo gol demais.. mts goleadas toda hr... 9x0 e etc"*,
+com a dúvida se foi a assistência de 24/08.
+
+**Ferramenta nova:** `scripts/mede-goleada-rapido.mjs` — roda o `reducer` DE
+VERDADE (temporada online completa, 20 times, todas as rodadas) e conta gol a gol,
+separando humano×humano, humano×clube de fundo e fundo×fundo.
+
+### ✅ NÃO foi a assistência — provado com o código velho rodando lado a lado
+Subi um `git worktree` em `f7c81837^` (commit anterior ao das assistências), rodei
+o MESMO script nos dois e o resultado veio **idêntico dígito por dígito**
+(2,98 gols/jogo · 18,6% com 5+ · maior placar 0x7). O `garcomDoGol` tem dado
+próprio e não puxa nada do `rng` dos gols — a medição confirma o desenho.
+
+### ❌ Mas 9x0 é IMPOSSÍVEL — o teto é 7
+`poisson()` (store.tsx ~2142) tem `Math.min(k - 1, 7)` desde 31/07. O pior placar
+que o motor consegue produzir é **7x0**. O que ele viu foi no máximo isso.
+
+### 🔍 A GOLEADA É REAL, e a causa é um DEGRAU DE FORÇA (não o sorteio)
+Medido com 4 humanos: **humano atk ~92,6 / def ~91,2** contra **clubes de fundo de
+54 a 78**. Resultado: **o humano ganha do clube de fundo por 4+ de diferença em
+30% dos jogos** (1 em cada 3).
+
+**Por que o degrau existe:** `cpuAdjFor()` quer puxar os clubes de fundo pro
+`ONLINE_BASE = 74` — mas ele chama `fillerAdj(s.managers, 74)`, que mede
+**técnico-ROBÔ** (`!isHuman && !auctionRival`). **Numa sala online não existe
+técnico-robô nenhum** → `fillers.length === 0` → devolve `{atk:0, def:0}`.
+Ou seja: **o nivelamento do online nunca acontece.** No rápido OFFLINE funciona
+(lá os bots de leilão são managers de verdade).
+
+### 🧪 OS DOIS CONSERTOS, MEDIDOS
+| | goleada 4+ do humano | gols/jogo |
+|---|---|---|
+| hoje | **30,0%** | 3,15 |
+| medir a balança nos CLUBES DA TABELA (o que o código já queria) | **20,5%** | 3,11 |
+| o de cima + apertar a faixa dos clubes pela metade (74±) | **15,1%** | 3,07 |
+
+O gol/jogo quase não muda — o jogo não fica travado, só para de ser atropelo.
+
+⏳ **NÃO MEXIDO AINDA — esperando o Diego.** É mudança de equilíbrio em modo AO
+VIVO. Segurança: `cpuAtkAdj`/`cpuDefAdj` são gravados no estado no `FINISH_CEREMONY`,
+então **sala já rolando não muda** — só sala NOVA pegaria o ajuste.
+
+### 🧮 A CAUSA DE VERDADE: O PLACAR DO CARD CONTAVA A ASSISTÊNCIA COMO GOL ✅ CONSERTADO
+O Diego voltou e apontou o que eu tinha deixado passar: *"eu percebi q o placar q
+tava estranho mas os gols contava certo"*. **Ele estava certo e eu estava caçando a
+coisa errada** (fui atrás do equilíbrio quando o furo era de TELA).
+
+**O bug:** desde 24/08 a lista de LANCES do jogo (`highlights`) passou a levar
+também a linha 🅰️ da assistência. Só que os dois lugares que montam o card do jogo
+(`screens.tsx` ~5090 e ~5970) faziam `highlights.map(...)` — ou seja, **todo lance
+virava um gol no placar**. Como ~75% dos gols têm passe, o placar da tela inflava
+quase o dobro. Tabela, artilharia e a lista de garçons **sempre estiveram certas** —
+por isso "os gols contavam certo".
+
+**Medido** (`scripts/checa-placar-card.mjs`, 808 jogos do humano):
+| | placar do card batia com o jogo |
+|---|---|
+| antes | **7,7%** |
+| depois | **100%** |
+
+Média de **2,3 gols a mais** por jogo na tela. Pior caso visto: jogo real **2x7**
+aparecendo como **2x14**. É daí que veio o "9x0" dele.
+
+**O conserto (e a trava pra não repetir):** `MatchHighlight` ganhou `kind:
+'gol' | 'assist'` e o card filtra `kind !== 'assist'`. O campo é **opcional de
+propósito** — no online o convidado pode receber estado de um host em versão antiga,
+e aí o filtro cai no texto (`!startsWith('🅰️')`). Nenhum placar, tabela ou
+artilharia muda: o motor não foi tocado.
+
+⚠️ **A goleada medida acima continua valendo como assunto SEPARADO** (o nivelamento
+do online que nunca roda), mas ela é bem menor do que parecia: boa parte do "goleada
+toda hora" era este placar inflado. Reavaliar com ele depois, sem pressa.
+
+### ⛔ CORREÇÃO DA MEDIÇÃO ACIMA (25/08) — EU ERREI, E O ERRO ERA MEU BANCO DE TESTE
+A conclusão *"o nivelamento do online nunca roda"* está **ERRADA**. Ela saiu de um
+defeito do `scripts/mede-goleada-rapido.mjs`: lá eu montei o estado com **só
+técnicos humanos**, então o `buildLeague` completou a tabela com `CLASSIC_CLUBS`
+(54 a 78) e o `fillerAdj` não achou robô nenhum pra medir → devolveu zero.
+
+**Numa sala online DE VERDADE não é assim.** O `makeManagers` cria
+`leagueSize - humanos` **técnicos-ROBÔ com elenco** (online: `auctionCpus = 0`,
+então TODOS são de preenchimento) usando os nomes da `DIVISION_TEAMS['D']` — que é
+onde moram os batismos. `buildLeague` não precisa completar com CLASSIC_CLUBS.
+
+**Conferido no banco, em 8 salas reais:** 20 técnicos em todas, sendo 2–8 humanos e
+12–18 robôs, e **todos os robôs entram na balança**. O `cpuAtkAdj` gravado é real:
+de **−0,74 a −3,63** (puxando os robôs PRA BAIXO, ou seja, eles nascem um pouco
+acima do alvo 74). Ou seja: **o nivelamento roda, e roda certo.**
+
+Consequência: os números de goleada da tabela acima (30% de 4+) **não valem pra
+sala online real** — eles mediram um mundo que não existe (humano contra
+CLASSIC_CLUBS). O assunto "sai gol demais" volta pra ESTACA ZERO e só deve ser
+reaberto se o Diego ainda achar estranho **depois** do conserto do placar do card
+(que era o problema de verdade). Se reabrir, medir com robôs de elenco na sala.
+
+📌 **Lição pra qualquer sessão:** montar estado na mão pro `reducer` é fácil de
+enviesar. Antes de acusar o motor, **conferir a foto REAL do `game_state` no
+banco** — foi ela que derrubou a minha conclusão.
+
+## 🏆 AS PÍLULAS DENTRO DA SALA (Rank · Estante · Temporadas · Ajustes) — regra de hoje
+Pergunta do Diego (25/08): *"qual critério é aparece bots ou n"*.
+
+- **Rank** e **Estante**: **só gente**. Regra dele de 23/08 — *"troféu só entre
+  usuários"*.
+- **Temporadas** (a linha do tempo): mostra **todo mundo, robô incluído** — é o
+  registro do que aconteceu de verdade.
+- **Como o jogo decide se é gente:** compara o **NOME DO TIME** gravado como campeão
+  (`game_champions.champion_name`) com a lista de nomes dos **humanos que estão na
+  sala naquele momento** (`state.managers.filter(isHuman).map(teamName)`, passada
+  pro LigaHub como `humanos`). Bateu string a string → gente. Não bateu → robô.
+- **Por que aparece tanto nome de BATISMO como campeão-robô:** os 12–18 robôs que
+  completam a sala tiram o nome da `DIVISION_TEAMS['D']`, que é onde moram os
+  batismos. Então "Murriz FC", "Sapekeiros FC", "Nata de SP" ganhando a sala são
+  ROBÔS com nome de clube batizado — não a pessoa dona do clube.
+- **Ordem do Rank:** a regra é do DONO da sala (`LIGA_REGRAS_PADRAO`: por títulos,
+  liga > copa > artilheiro, e cair tira um título; ele pode trocar pra pontos —
+  liga 20 · copa 30 · artilheiro 5 · rebaixamento −10). Vale **só dentro da sala**;
+  o ranking global do jogo não olha nada disso.
+
+⚠️ **RISCO ESTRUTURAL (ainda NÃO aconteceu — conferido no banco, zero casos):** como
+a comparação é por nome exato e o nome do campeão é uma FOTO do momento, quem
+**mudar o nome do time** depois (ganhar selo 👑🖋️, batizar o clube) deixa de bater e
+os títulos antigos dele somem do Rank e da Estante. Numa **liga** (que vive 90 dias
+e troca de gente toda semana) isso tende a aparecer. Conserto natural: comparar
+com `stripEmoji` + `newestTeamName` (as duas funções já existem) em vez de string
+crua. **Não mexi** — é mudança de tela em modo ao vivo e ainda não há caso real.
+
+### 🔁 SEGUNDA RODADA DO MESMO BUG: "apareceu 8x0 e depois tava 4" ✅ CONSERTADO
+Relato do Diego (25/08), depois do primeiro conserto: *"parece q vi um jogo q
+apareceu do nada 8 0 e dps tava 4"*.
+
+**Eu tinha consertado SÓ METADE.** O filtro entrou nos dois cards da LIGA
+(`screens.tsx` ~5089 e ~5962) e **faltou nos dois do MATA-MATA**:
+1. **card do jogo da Copa dos 8 / Libertadores** (~5027);
+2. **as linhas do CHAVEAMENTO** (~4916) — e é aqui que nasce o "sobe e volta":
+   enquanto o relógio corre, a linha conta **lances** (`showA = doneA + minsA…`);
+   no apito ela troca pelo **agregado de verdade** (`fullAggA/B`). Com a
+   assistência contando como gol, o placar **subia** e depois **voltava** pro real.
+
+**Medido** (`scripts/checa-placar-card.mjs`, 808 jogos):
+
+| | placar subia acima do real e "voltava" |
+|---|---|
+| antes | **92,3%** dos jogos |
+| depois | **0%** |
+
+Pior caso: subia até **2x14** e voltava pro real **2x7**.
+
+**A trava pra não repetir uma terceira vez:** o filtro virou **UMA função só**,
+`lanceEhGol()` em `store.tsx`, ao lado de onde os lances são criados. Antes eu
+tinha copiado o filtro dentro das telas — e foi exatamente por isso que duas
+passaram batido. Agora as 4 telas importam a mesma função.
+
+📌 **Lição:** quando o furo é "todo mundo que LÊ esta lista precisa filtrar", o
+filtro tem que morar junto de quem ESCREVE a lista, nunca copiado em cada tela.

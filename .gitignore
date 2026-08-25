@@ -47,3 +47,4 @@ dist-ssr
 # 🔬 scripts de teste descartáveis (ficam DENTRO do repo só pra achar o
 # node_modules; não são entrega e não devem ser versionados)
 scripts/_tmp-*.mjs
+bench-sim.html
