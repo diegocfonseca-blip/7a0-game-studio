@@ -7373,7 +7373,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const st = stateRef.current
     const rid = st.roomId
     if (onlineRef.current === 'online' && isHostRef.current && rid && !st.careerOnline) {
-      const others = (st.presence || []).filter(i => i !== st.youIdx)
+      // 🤝 sem repetir cadeira: no duplas a presença traz a MESMA cadeira duas vezes
+      // (uma por aparelho), o que enviesava o sorteio pras duplas mais cheias.
+      const others = [...new Set(st.presence || [])].filter(i => i !== st.youIdx)
       if (others.length > 0) {
         const newHostIndex = others[Math.floor(Math.random() * others.length)]
         // avisa TODO MUNDO agora, com o canal ainda vivo (antes do GO_LOBBY derrubar)
@@ -7415,7 +7417,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (ficou) {
         channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'DUPLA_SOLO', mgrId: st.managers[st.youIdx]?.id ?? st.youIdx, ficouUid: ficou } })
       } else {
-        channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'KICK_PLAYER', playerIndex: st.youIdx } })
+        // ⚠️ CRACHÁ, não cadeira: o reducer procura o técnico por `id`
+        // (`managers.find(x => x.id === action.playerIndex)`). Mandar o `youIdx`
+        // daqui era a família de bug de assento que já mordeu antes ("virei bot"):
+        // com cadeira e crachá diferentes, quem virava CPU era OUTRA pessoa.
+        channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'KICK_PLAYER', playerIndex: st.managers[st.youIdx]?.id ?? st.youIdx } })
       }
       await new Promise(r => setTimeout(r, 150)) // deixa o aviso sair antes do canal cair
     }
@@ -7545,7 +7551,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // o host saiu da sala e me escolheu como novo host: viro autoritativo e mostro
     // o aviso grande. (chega pra todos; só age quem foi escolhido e ainda não é host)
     ch.on('broadcast', { event: 'host_change' }, ({ payload }: { payload: { newHostIndex: number } }) => {
-      if (payload.newHostIndex !== stateRef.current.youIdx || isHostRef.current) return
+      const st = stateRef.current
+      if (payload.newHostIndex !== st.youIdx || isHostRef.current) return
+      // 🤝👑 DUPLA = UMA CADEIRA, DUAS PESSOAS (bug ao vivo 25/08, sala 5XPVEI do
+      // Tricolor do Arruda). A coroa era entregue pela CADEIRA — e no modo duplas os
+      // DOIS aparelhos daquela cadeira publicam o mesmo `youIdx` (a presença da sala
+      // veio [2,0,0,1,2,1]: cada cadeira DUAS vezes). Resultado: os dois viravam host
+      // no mesmo instante. Dois donos na mesma sala é justamente o que devolve o
+      // envelope de todo mundo (BECOME_HOST limpa o `submitted`) e embola o pregão.
+      // Regra: dentro da dupla quem assume é o DONO dela (ou quem ficou sozinho).
+      const mgrId = st.managers[st.youIdx]?.id
+      const dp = mgrId != null ? st.duplas?.[mgrId] : undefined
+      if (dp && st.youUid && st.youUid !== (dp.soloUid ?? dp.ownerUid)) return
       rawDispatch({ type: 'BECOME_HOST' })
       // fica na tela até a pessoa dar OK (antes sumia em 6s e dava pra virar host
       // "sem saber" — aí a decisão de host assustava, tipo o voto que vira início).
