@@ -9984,8 +9984,12 @@ guarda a partida pra reconexão, e mexer nele arrisca quebrar sala AO VIVO. Em v
 disso, a trava passa a **destravar na própria tela**: botão que encerra as salas
 paradas (filtro por `host_id` — ninguém encerra sala de outro). Segue a lei dele:
 *toda trava explica o porquê E o caminho*.
-📌 **Está na branch `claude/denis-save-file-x1osct`, FORA da main**, porque é visual
-novo e a regra é mostrar mockup e esperar o OK (`scripts/mockup-salas-presas.mjs`).
+✅ **APROVADO E PUBLICADO** (Diego, 24/08: *"Ok, pode fazer"*). O mockup que ele
+aprovou está em `scripts/mockup-salas-presas.mjs`.
+⚠️ *Nota pra quem ler o histórico:* a mensagem do commit `84a0c69` diz "aguardando
+OK visual, fora da main" — ela foi escrita ANTES da aprovação e ficou desatualizada.
+NÃO foi reescrita de propósito: reescrever história da `main` (que faz deploy
+automático) é mais arriscado que uma mensagem velha. O registro certo é este aqui.
 
 🔭 **Pendência de fundo pra outra sessão:** o `mode` do `game_state` é perdido em
 salas rápidas (311 salas com `duplasMode` e sem `mode`). Hoje não dói porque a
