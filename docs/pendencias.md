@@ -10203,3 +10203,98 @@ passaram batido. Agora as 4 telas importam a mesma função.
 
 📌 **Lição:** quando o furo é "todo mundo que LÊ esta lista precisa filtrar", o
 filtro tem que morar junto de quem ESCREVE a lista, nunca copiado em cada tela.
+
+## 📐 TÉCNICO: "SÓ FORMAÇÃO É POUCO?" — MEDIDO (25/08)
+Dúvida do Diego: *"o mais certo pra mim é por formação de acordo com a categoria do
+técnico ter mais ou menos formações... mas é mt pouco eu acho pow"*.
+
+**Ferramenta:** `scripts/mede-formacao-vale-quanto.mjs` — motor real da carreira
+(`buildPyramid` + `simulatePyramid`), 4 PERFIS de elenco × 5 esquemas × 25 temporadas.
+
+⚠️ **A armadilha que me pegou na 1ª rodada (fica registrada):** os elencos de
+receita (`seedCpuSquads`) vêm no formato 4-3-3 com 11 cartas. Com isso o `bestXI`
+não consegue montar 5-3-2 (quer 3 ZAG) nem 4-4-2 (quer 4 MEI) — ele corta no que
+existe e os dois escalam os MESMOS 11. As duas linhas saíram **idênticas** e a
+formação parecia não valer nada. Só com elenco FUNDO (2 GOL · 4 LAT · 4 ZAG · 6 MEI
+· 5 ATA) o teste vira verdade.
+
+### Resultado (25 temporadas por linha)
+| elenco | melhor esquema | pior | diferença |
+|---|---|---|---|
+| equilibrado | 4-4-2 | 4-3-3 | 2,4 pts/temp · **0 títulos** |
+| cheio de ATACANTE | 5-3-2 | 4-4-2 | 2,0 pts/temp · 2 títulos |
+| cheio de MEIA | 4-5-1 / 3-4-3 | 4-4-2 | 3,8 pts/temp · 3 títulos |
+| cheio de ZAGUEIRO | 5-3-2 | 3-4-3 | 2,6 pts/temp · **6 títulos** |
+
+**Conclusão: formação NÃO é pouco — mas só vale quando o elenco tem FORMATO.**
+Time equilibrado: tanto faz (0 títulos de diferença). Time torto — que é o que o
+leilão produz o tempo todo, porque você ganha um setor e perde outro — o esquema
+certo vale **até 6 títulos em 25**. Ordem de grandeza parecida com o bônus de +2
+num setor já medido em 24/08.
+
+E **nenhum esquema é o melhor sempre**: zaga forte pede 5-3-2, meio forte pede
+4-5-1/3-4-3, e o 3-4-3 (1 zagueiro só) é o pior justamente pra quem tem zaga boa.
+Isso é o que faz existir escolha de verdade, sem meta única.
+
+### 🔁 O outro medo dele: "vai ser sempre os mesmos técnicos na divisão"
+Palavras: *"se fizer isso de cada divisão ter um nível praticamente vai ser sempre
+os msm ali"*. Tem razão se o nível for uma CERCA fixa. Proposta: o nível é um
+**piso**, não cerca — o técnico **anda junto com o clube** na pirâmide (100 clubes =
+100 técnicos). Clube caiu, o técnico cai com ele ou pede pra sair (a regra que ele
+já deu: *"o técnico na hr de meter o pé qd cai ele mete"*). Em 3-4 temporadas a
+Série A já tem outra cara, sem precisar sortear nada — e a escada continua
+protegendo a dificuldade, porque a MAIORIA da A segue sendo lenda.
+
+⏳ **Nada disso foi codado.** Segue esperando o Diego fechar o desenho.
+
+## 🔬 RAIO-X DO RÁPIDO ONLINE — a simulação que virou fonte de ideia (25/08)
+Pedido do Diego: *"faça uma simulação do jogo rápido... e aí vc pode ter ideias p me
+dar em relação ao online"*.
+
+**Ferramenta:** `scripts/simula-rapido-ideias.mjs` — 40 temporadas online completas
+no motor de verdade (sala montada como a real: humanos + técnicos-robô COM elenco).
+O pregão é aproximado por um draft em serpentina com ruído (o leilão de verdade
+precisa de gente apertando botão), então a direção vale mais que o decimal.
+
+| medida | resultado |
+|---|---|
+| o leilão explica a tabela (0 a 1) | **0,269** |
+| o time mais forte do pregão foi campeão | **22,5%** |
+| campeão saiu do top 3 de força | 42,5% |
+| rodada em que o líder assume e não larga mais | **23,8ª de 38** |
+| folga do campeão pro vice | 5,2 pontos |
+| jogos decididos por 3+ gols | 17,3% |
+| **a taça ficou com um ROBÔ** | **0%** (em 40 temporadas) |
+
+### O que os números dizem (e cada ideia nasce de um deles)
+1. **A taça nunca é de robô.** Com 4 humanos numa tabela de 20, os outros 16 são
+   cenário. Isso é de projeto (o `cpuAtkAdj` nivela os robôs em 74 e o humano joga a
+   força cheia), mas significa que **a liga tem 4 competidores e 16 figurantes**.
+2. **As últimas ~14 rodadas são passeio.** O líder se define na 24ª e vence por 5,2
+   pontos. Um terço do campeonato é tempo morto.
+3. **Montar o melhor time NÃO garante o título** (22,5%). Isso é bom — não é
+   decidido no pregão —, mas hoje quem monta o melhor ataque e não é campeão **sai
+   sem nada**: só existe UMA taça pra 4 pessoas.
+
+### Ideias que saem daí (nenhuma codada — aguardando o Diego)
+- 🏁 **PLAYOFFS DOS 4** — a liga vira classificatória e o título sai no mata-mata.
+  Mata o tempo morto medido sem encurtar a sala. **Motor já existe** (Copa dos 8).
+- 😈 **O NÊMESIS DA SALA** — um robô promovido a rival de verdade (nível de gente +
+  nome + zoeira). Dá um vilão comum pra turma; hoje robô ganha 0%.
+- 🏅 **PRÊMIOS DA TEMPORADA** — artilheiro, garçom, defesa menos vazada, mico.
+  Todo mundo leva algo; hoje 3 de 4 saem de mãos vazias.
+- ⏱️ **TURNO ÚNICO** (19 rodadas) e ⚡ **COPA RELÂMPAGO** (mata-mata puro, sem liga).
+
+### 👑 COROA NO DUPLAS — ✅ APROVADO E NO AR (Diego, 25/08: *"Deixa"*)
+O commit `aa3ee76` (só UMA pessoa da dupla assume + convidado saindo manda o crachá)
+foi pra main **sem o OK**, por engano meu: eu tinha segurado ele fora da main, mas
+outra sessão mexeu na main, eu juntei as coisas pra publicar a simulação e ele foi
+junto. Conferi DEPOIS de publicar, não antes.
+
+Contei pra ele na hora e ofereci tirar; a resposta foi **"Deixa"**. Fica no ar
+(deploy 2421, 25/08 22:56).
+
+📌 **Lição pra qualquer sessão:** commit segurado fora da main NÃO sobrevive a um
+merge feito às pressas. Antes de `push origin HEAD:main`, conferir
+`git merge-base --is-ancestor <commit-segurado> HEAD` — se der ancestral, publicar
+por cherry-pick a partir de `origin/main`, nunca empurrando o HEAD inteiro.
