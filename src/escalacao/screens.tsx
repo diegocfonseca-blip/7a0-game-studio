@@ -5081,7 +5081,14 @@ export function EscSeason() {
         const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
-        const goals = myLast.highlights.map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
+        // 🚨 SÓ GOL ENTRA NO PLACAR (bug do Diego 25/08: *"o placar q tava estranho mas os
+        // gols contava certo"*). Desde 24/08 a lista de lances traz também a ASSISTÊNCIA,
+        // e aqui TODO lance virava gol — como ~75% dos gols têm passe, um 5x0 de verdade
+        // aparecia como 9x0 na tela. A tabela e a artilharia sempre estiveram certas.
+        // O `?? !text.startsWith('🅰️')` é pro online: convidado numa versão nova pode
+        // receber estado de host antigo, que ainda não manda o `kind`.
+        const soGol = (hl: { text: string; kind?: string }) => (hl.kind ? hl.kind !== 'assist' : !hl.text.startsWith('🅰️'))
+        const goals = myLast.highlights.filter(soGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
         return <LiveScoreCard key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
@@ -5954,7 +5961,14 @@ export function EscLiberta() {
         const oppId = homeIsYou ? meuJogo.awayId : meuJogo.homeId
         const oppIsHuman = humano(oppId)
         const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
-        const goals = meuJogo.highlights.map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
+        // 🚨 SÓ GOL ENTRA NO PLACAR (bug do Diego 25/08: *"o placar q tava estranho mas os
+        // gols contava certo"*). Desde 24/08 a lista de lances traz também a ASSISTÊNCIA,
+        // e aqui TODO lance virava gol — como ~75% dos gols têm passe, um 5x0 de verdade
+        // aparecia como 9x0 na tela. A tabela e a artilharia sempre estiveram certas.
+        // O `?? !text.startsWith('🅰️')` é pro online: convidado numa versão nova pode
+        // receber estado de host antigo, que ainda não manda o `kind`.
+        const soGol = (hl: { text: string; kind?: string }) => (hl.kind ? hl.kind !== 'assist' : !hl.text.startsWith('🅰️'))
+        const goals = meuJogo.highlights.filter(soGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
         return <LiveScoreCard key={`lb-${lb.rodada}`}
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}

@@ -10089,3 +10089,34 @@ O gol/jogo quase não muda — o jogo não fica travado, só para de ser atropel
 ⏳ **NÃO MEXIDO AINDA — esperando o Diego.** É mudança de equilíbrio em modo AO
 VIVO. Segurança: `cpuAtkAdj`/`cpuDefAdj` são gravados no estado no `FINISH_CEREMONY`,
 então **sala já rolando não muda** — só sala NOVA pegaria o ajuste.
+
+### 🧮 A CAUSA DE VERDADE: O PLACAR DO CARD CONTAVA A ASSISTÊNCIA COMO GOL ✅ CONSERTADO
+O Diego voltou e apontou o que eu tinha deixado passar: *"eu percebi q o placar q
+tava estranho mas os gols contava certo"*. **Ele estava certo e eu estava caçando a
+coisa errada** (fui atrás do equilíbrio quando o furo era de TELA).
+
+**O bug:** desde 24/08 a lista de LANCES do jogo (`highlights`) passou a levar
+também a linha 🅰️ da assistência. Só que os dois lugares que montam o card do jogo
+(`screens.tsx` ~5090 e ~5970) faziam `highlights.map(...)` — ou seja, **todo lance
+virava um gol no placar**. Como ~75% dos gols têm passe, o placar da tela inflava
+quase o dobro. Tabela, artilharia e a lista de garçons **sempre estiveram certas** —
+por isso "os gols contavam certo".
+
+**Medido** (`scripts/checa-placar-card.mjs`, 808 jogos do humano):
+| | placar do card batia com o jogo |
+|---|---|
+| antes | **7,7%** |
+| depois | **100%** |
+
+Média de **2,3 gols a mais** por jogo na tela. Pior caso visto: jogo real **2x7**
+aparecendo como **2x14**. É daí que veio o "9x0" dele.
+
+**O conserto (e a trava pra não repetir):** `MatchHighlight` ganhou `kind:
+'gol' | 'assist'` e o card filtra `kind !== 'assist'`. O campo é **opcional de
+propósito** — no online o convidado pode receber estado de um host em versão antiga,
+e aí o filtro cai no texto (`!startsWith('🅰️')`). Nenhum placar, tabela ou
+artilharia muda: o motor não foi tocado.
+
+⚠️ **A goleada medida acima continua valendo como assunto SEPARADO** (o nivelamento
+do online que nunca roda), mas ela é bem menor do que parecia: boa parte do "goleada
+toda hora" era este placar inflado. Reavaliar com ele depois, sem pressa.

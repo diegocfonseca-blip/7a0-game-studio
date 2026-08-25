@@ -282,6 +282,14 @@ export interface MatchHighlight {
   min: number
   text: string
   teamId: number // de quem foi o gol — usado pro placar ao vivo no ticker de minutos
+  // 🚨 O QUE É ESTE LANCE. Nasceu do bug do placar inflado (Diego 25/08: *"o placar
+  // q tava estranho mas os gols contava certo"*): a lista de lances passou a ter
+  // também a ASSISTÊNCIA, e o card do jogo contava CADA lance como um gol — como
+  // ~75% dos gols têm passe, um 5x0 de verdade aparecia como 9x0 na tela.
+  // Agora quem monta o placar só soma `kind !== 'assist'`. Campo opcional de
+  // propósito: no online o convidado pode receber estado de um host em versão
+  // antiga (sem o campo), e lá o filtro cai no texto.
+  kind?: 'gol' | 'assist'
 }
 
 export interface MatchResult {
