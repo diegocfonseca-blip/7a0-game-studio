@@ -10284,3 +10284,17 @@ precisa de gente apertando botão), então a direção vale mais que o decimal.
 - 🏅 **PRÊMIOS DA TEMPORADA** — artilheiro, garçom, defesa menos vazada, mico.
   Todo mundo leva algo; hoje 3 de 4 saem de mãos vazias.
 - ⏱️ **TURNO ÚNICO** (19 rodadas) e ⚡ **COPA RELÂMPAGO** (mata-mata puro, sem liga).
+
+### 👑 COROA NO DUPLAS — ✅ APROVADO E NO AR (Diego, 25/08: *"Deixa"*)
+O commit `aa3ee76` (só UMA pessoa da dupla assume + convidado saindo manda o crachá)
+foi pra main **sem o OK**, por engano meu: eu tinha segurado ele fora da main, mas
+outra sessão mexeu na main, eu juntei as coisas pra publicar a simulação e ele foi
+junto. Conferi DEPOIS de publicar, não antes.
+
+Contei pra ele na hora e ofereci tirar; a resposta foi **"Deixa"**. Fica no ar
+(deploy 2421, 25/08 22:56).
+
+📌 **Lição pra qualquer sessão:** commit segurado fora da main NÃO sobrevive a um
+merge feito às pressas. Antes de `push origin HEAD:main`, conferir
+`git merge-base --is-ancestor <commit-segurado> HEAD` — se der ancestral, publicar
+por cherry-pick a partir de `origin/main`, nunca empurrando o HEAD inteiro.
