@@ -1956,9 +1956,11 @@ function migrateTeamNames(st: EscState): EscState {
   const nomeDeBot = (nome: string): string => cura(rebatiza(nome))
   if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: nomeDeBot(m.teamName) })
   if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: nomeDeBot(r.team) }))
-  // ⚠️ as CHAVES de histórico abaixo seguem só o `rebatiza` (sem a cura): o
-  // registro sob o nome do clube do jogador é DELE (títulos, posições, caixa) e
-  // não pode ser mandado pro robô por engano.
+  // ⚠️ as CHAVES de histórico abaixo NÃO recebem a cura de propósito: o `mapKeys`
+  // não sabe de quem é cada registro, e a regra dele (`nk === k` ganha) já garante
+  // que o registro gravado sob o nome do clube do jogador continua sendo o DELE
+  // (títulos, posições, caixa). Preço disso: o robô rebatizado começa com tabela e
+  // títulos zerados — de longe melhor do que mandar a história do Diego pro robô.
   st.careerPlacements = mapKeys(st.careerPlacements) ?? st.careerPlacements
   st.cpuSquads = mapKeys(st.cpuSquads) ?? st.cpuSquads
   st.clubCash = mapKeys(st.clubCash) ?? st.clubCash
