@@ -10203,3 +10203,46 @@ passaram batido. Agora as 4 telas importam a mesma função.
 
 📌 **Lição:** quando o furo é "todo mundo que LÊ esta lista precisa filtrar", o
 filtro tem que morar junto de quem ESCREVE a lista, nunca copiado em cada tela.
+
+## 📐 TÉCNICO: "SÓ FORMAÇÃO É POUCO?" — MEDIDO (25/08)
+Dúvida do Diego: *"o mais certo pra mim é por formação de acordo com a categoria do
+técnico ter mais ou menos formações... mas é mt pouco eu acho pow"*.
+
+**Ferramenta:** `scripts/mede-formacao-vale-quanto.mjs` — motor real da carreira
+(`buildPyramid` + `simulatePyramid`), 4 PERFIS de elenco × 5 esquemas × 25 temporadas.
+
+⚠️ **A armadilha que me pegou na 1ª rodada (fica registrada):** os elencos de
+receita (`seedCpuSquads`) vêm no formato 4-3-3 com 11 cartas. Com isso o `bestXI`
+não consegue montar 5-3-2 (quer 3 ZAG) nem 4-4-2 (quer 4 MEI) — ele corta no que
+existe e os dois escalam os MESMOS 11. As duas linhas saíram **idênticas** e a
+formação parecia não valer nada. Só com elenco FUNDO (2 GOL · 4 LAT · 4 ZAG · 6 MEI
+· 5 ATA) o teste vira verdade.
+
+### Resultado (25 temporadas por linha)
+| elenco | melhor esquema | pior | diferença |
+|---|---|---|---|
+| equilibrado | 4-4-2 | 4-3-3 | 2,4 pts/temp · **0 títulos** |
+| cheio de ATACANTE | 5-3-2 | 4-4-2 | 2,0 pts/temp · 2 títulos |
+| cheio de MEIA | 4-5-1 / 3-4-3 | 4-4-2 | 3,8 pts/temp · 3 títulos |
+| cheio de ZAGUEIRO | 5-3-2 | 3-4-3 | 2,6 pts/temp · **6 títulos** |
+
+**Conclusão: formação NÃO é pouco — mas só vale quando o elenco tem FORMATO.**
+Time equilibrado: tanto faz (0 títulos de diferença). Time torto — que é o que o
+leilão produz o tempo todo, porque você ganha um setor e perde outro — o esquema
+certo vale **até 6 títulos em 25**. Ordem de grandeza parecida com o bônus de +2
+num setor já medido em 24/08.
+
+E **nenhum esquema é o melhor sempre**: zaga forte pede 5-3-2, meio forte pede
+4-5-1/3-4-3, e o 3-4-3 (1 zagueiro só) é o pior justamente pra quem tem zaga boa.
+Isso é o que faz existir escolha de verdade, sem meta única.
+
+### 🔁 O outro medo dele: "vai ser sempre os mesmos técnicos na divisão"
+Palavras: *"se fizer isso de cada divisão ter um nível praticamente vai ser sempre
+os msm ali"*. Tem razão se o nível for uma CERCA fixa. Proposta: o nível é um
+**piso**, não cerca — o técnico **anda junto com o clube** na pirâmide (100 clubes =
+100 técnicos). Clube caiu, o técnico cai com ele ou pede pra sair (a regra que ele
+já deu: *"o técnico na hr de meter o pé qd cai ele mete"*). Em 3-4 temporadas a
+Série A já tem outra cara, sem precisar sortear nada — e a escada continua
+protegendo a dificuldade, porque a MAIORIA da A segue sendo lenda.
+
+⏳ **Nada disso foi codado.** Segue esperando o Diego fechar o desenho.
