@@ -9965,9 +9965,23 @@ carregamento não havia nenhuma**. Agora há, nos DOIS caminhos:
 `migrateTeamNames` e o `CONTINUE_CAREER` (~6342). Regra: **se o nome novo bater com
 o do time do jogador, o bot fica com o nome VELHO.** Nenhum outro clube é tocado.
 
-⚠️ **Conserta daqui pra frente.** O save que JÁ está com o bot gravado como
-"Neymarzetti" continua assim — se ele reclamar de novo, avaliar uma limpeza pontual
-(sem estragar a carreira).
+✅ **E O SAVE VELHO TAMBÉM SE CURA (25/08).** A trava acima só evitava o xará daqui
+pra frente — mas no save do Diego o robô JÁ estava GRAVADO como "Neymarzetti", então
+abrir o jogo de novo não desfazia nada. Agora, ao carregar, **bot gravado com o nome
+do clube do jogador volta pro nome velho da corrente** (`velhoLivre` = primeiro nome
+de `oldChain` que não seja xará → Neymarzetti volta a ser Paixandu). Vale nos dois
+caminhos (`migrateTeamNames` e `CONTINUE_CAREER`).
+
+Por que é seguro: **só dispara em cima de um nome IGUAL ao do clube do jogador**, que
+nunca é situação legítima — ninguém joga contra si mesmo (é pra isso que existe o
+`tiraClones` na criação). Quem não tem batismo não tem corrente de nome velho, então
+`velhoLivre` é nulo e **nada muda**.
+
+⚠️ O que NÃO é curado (de propósito): as CHAVES de histórico (`careerPlacements`,
+`careerHonors`, `clubCash`…) seguem só o `rebatiza`, sem a cura. O registro guardado
+sob o nome do clube do jogador é DELE — mandar isso pro robô por engano seria pior
+que o robô começar com histórico zerado. Na prática o robô rebatizado volta com
+tabela/títulos limpos; a carreira do Diego fica intacta.
 
 ### 🚪 2. "VOCÊ JÁ TEM 2 SALAS ABERTAS" sem ter sala aberta — ⏳ AGUARDANDO OK VISUAL
 Relato: *"o usuário derick N estava mais C sala aberta e apareceu esse errro"*.

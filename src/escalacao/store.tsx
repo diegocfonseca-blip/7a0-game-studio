@@ -8,7 +8,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, clubCanon, LIBERTA_CLUBS } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
@@ -1937,13 +1937,28 @@ function migrateTeamNames(st: EscState): EscState {
   // carregamento do save, não tinha nenhuma. Agora tem: se o nome novo bater com o
   // do time do jogador, o bot **fica com o nome velho**. Ninguém joga contra si
   // mesmo, e nenhum outro clube é tocado.
+  //
+  // 🩹 E A CURA DO SAVE QUE JÁ ESTÁ ESTRAGADO (25/08): a trava acima só evita o
+  // xará daqui pra frente. No save do Diego o robô JÁ estava gravado com o nome
+  // "Neymarzetti" — abrir o jogo de novo não desfazia nada. Então: bot que estiver
+  // gravado com o nome do clube do jogador VOLTA pro nome velho da corrente
+  // (Neymarzetti → Paixandu). Isso só dispara em cima de um nome IGUAL ao do
+  // clube do jogador, que nunca é situação legítima (ninguém joga contra si
+  // mesmo — é pra isso que existe o `tiraClones` na criação).
   const meuTime = Array.isArray(st.managers) ? st.managers.find(m => m.isHuman)?.teamName : undefined
   const rebatiza = (nome: string): string => {
     const novo = newestTeamName(nome)
     return (meuTime && novo !== nome && mesmoNomeTime(novo, meuTime)) ? nome : novo
   }
-  if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: rebatiza(m.teamName) })
-  if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: rebatiza(r.team) }))
+  // o primeiro nome VELHO da corrente que não seja xará do clube do jogador
+  const velhoLivre = meuTime ? (oldChain(newestTeamName(meuTime)).find(v => !mesmoNomeTime(v, meuTime)) ?? null) : null
+  const cura = (nome: string): string => (velhoLivre && meuTime && mesmoNomeTime(nome, meuTime)) ? velhoLivre : nome
+  const nomeDeBot = (nome: string): string => cura(rebatiza(nome))
+  if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: nomeDeBot(m.teamName) })
+  if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: nomeDeBot(r.team) }))
+  // ⚠️ as CHAVES de histórico abaixo seguem só o `rebatiza` (sem a cura): o
+  // registro sob o nome do clube do jogador é DELE (títulos, posições, caixa) e
+  // não pode ser mandado pro robô por engano.
   st.careerPlacements = mapKeys(st.careerPlacements) ?? st.careerPlacements
   st.cpuSquads = mapKeys(st.cpuSquads) ?? st.cpuSquads
   st.clubCash = mapKeys(st.clubCash) ?? st.clubCash
@@ -6341,10 +6356,13 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry(s.seed)
       // 🪞 mesma trava do `migrateTeamNames` (bug dos dois "Neymarzetti", 24/08):
       // rebatizar um rival pelo nome novo NÃO pode criar um xará do time do
-      // jogador. Batendo, o rival fica com o nome velho.
+      // jogador. Batendo, o rival fica com o nome velho — e o rival que JÁ estava
+      // gravado como xará volta pro nome velho da corrente (cura de 25/08).
+      const velhoLivreSv = oldChain(newestTeamName(sv.teamName)).find(v => !mesmoNomeTime(v, sv.teamName)) ?? null
       s.careerRivals = s.careerRivals.map(r => {
         const novo = newestTeamName(r.team)
-        return { ...r, team: mesmoNomeTime(novo, sv.teamName) ? r.team : novo }
+        const nome = mesmoNomeTime(novo, sv.teamName) ? r.team : novo
+        return { ...r, team: (velhoLivreSv && mesmoNomeTime(nome, sv.teamName)) ? velhoLivreSv : nome }
       })
       const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, coDivRivalDefs(s.careerRivals, sv.division), action.redraft ? otherDivRivalDefs(s.careerRivals, sv.division) : [], rng)
       s.managers = managers
