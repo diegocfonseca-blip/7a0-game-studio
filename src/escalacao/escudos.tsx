@@ -25,6 +25,8 @@ import nataEscudoImg from './img/nata-escudo.webp'
 import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
 import saoluizEscudoImg from './img/saoluiz-escudo.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
 import papaoEscudoImg from './img/papao-escudo.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
+import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
+import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
@@ -502,6 +504,20 @@ const leaoEstradinhaRender = (size: number) => (
 )
 const papaoEscudoRender = (size: number) => (
   <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 263)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🦇 Neymarzetti — o "N" de asa de morcego, prateado sobre preto. 360x299 no
+// arquivo. Fundo tirado por INUNDAÇÃO a partir da borda (nunca "apaga todo
+// branco"): assim o brilho claro do metal e o vinco do N ficaram inteiros.
+// 🌽 Milhaça FC — brasão de raio amarelo sobre explosão vermelha. 308x360 no
+// arquivo. A arte veio com fundo TRANSPARENTE de verdade (a 2ª que o dono
+// mandou), mas com 29.597 px de POEIRA DE ALFA — o bbox cru mentiria, então o
+// corte foi medido com alfa >= 40 e mínimo de 3 px por linha/coluna.
+// Conferido sobre fundo CREME: as letras amarelas e o contorno preto inteiros.
+const milhacaEscudoRender = (size: number) => (
+  <img src={milhacaEscudoImg} height={size} width={Math.round(size * 308 / 360)} alt="Milhaça FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+const neymarzettiEscudoRender = (size: number) => (
+  <img src={neymarzettiEscudoImg} height={size} width={Math.round(size * 360 / 299)} alt="Neymarzetti" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🦇 Theuzudo FC — morcego (coração Valência), laranja e preto. 293x360 no arquivo.
 const theuzudoEscudoRender = (size: number) => (
@@ -1078,52 +1094,24 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
       </svg>
     )
   },
-  // 💇‍♂️ Neymarzetti (time do Diego, aprovado 09/08 v5): perfil com a crista
-  // ÚNICA preto+loiro (moicano 2011), brincão de pérola, sorrisão com dentes.
-  Neymarzetti: (size: number) => {
-    const mini = size < 40
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Neymarzetti" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="nzClip"><path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" /></clipPath></defs>
-        <path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" fill="#ffffff" />
-        <g clipPath="url(#nzClip)">
-          <rect x="30" y="10" width="14" height="240" fill="#0C0C0C" opacity=".9" />
-          <rect x="156" y="10" width="14" height="240" fill="#0C0C0C" opacity=".9" />
-        </g>
-        <path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" fill="none" stroke={INK} strokeWidth={mini ? 9 : 7} strokeLinejoin="round" />
-        {mini ? (
-          <g>
-            <path d="M78 108 C66 122 60 132 54 144 L64 152 Q58 166 74 174 Q92 186 116 178 L142 184 Q152 148 152 130 Q150 100 122 92 Q96 84 78 108 Z" fill="#E8B98A" stroke={INK} strokeWidth="8" />
-            <path d="M74 108 L64 54 L84 82 L90 30 L106 72 L118 28 L128 72 L142 48 L144 90 L158 112 L152 152 L138 142 Q144 114 122 102 Q100 92 74 108 Z" fill="#0C0C0C" />
-            <path d="M72 88 L64 54 L84 82 L90 30 L106 72 L118 28 L128 72 L142 48 L144 90 L158 112 L152 132 Q140 102 120 92 Q98 82 72 88 Z" fill="#F2C14E" />
-            <path d="M62 124 L86 118" stroke={INK} strokeWidth="8" strokeLinecap="round" />
-            <circle cx="74" cy="132" r="5" fill={INK} />
-            <circle cx="116" cy="160" r="7" fill="#fff" stroke={INK} strokeWidth="4" />
-          </g>
-        ) : (
-          <g>
-            <path d="M84 190 L92 168 L128 168 L134 190 Z" fill="#E8B98A" stroke={INK} strokeWidth="5" />
-            <path d="M70 214 L84 186 L108 196 L132 186 L146 214 Z" fill="#ffffff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-            <path d="M84 186 L108 196 L132 186" fill="none" stroke={INK} strokeWidth="5" />
-            <path d="M76 100 C70 108 67 114 64 120 L56 134 Q54 138 58 140 L64 142 Q57 146 61 149 Q53 155 64 158 Q56 163 66 165 Q62 171 74 172 Q88 176 102 174 Q112 172 117 166 L122 176 L138 176 Q146 148 148 130 Q148 102 124 92 Q98 82 76 100 Z" fill="#E8B98A" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-            <path d="M72 102 L64 58 L80 82 L84 36 L98 74 L106 30 L116 72 L128 40 L132 76 L146 58 L146 94 L156 112 L152 146 L142 138 L146 162 L134 150 Q140 116 122 104 Q100 92 72 102 Z" fill="#0C0C0C" />
-            <path d="M70 84 L64 58 L80 82 L84 36 L98 74 L106 30 L116 72 L128 40 L132 76 L146 58 L146 94 L156 112 L151 132 L146 124 Q138 102 120 92 Q98 82 70 84 Z" fill="#F2C14E" />
-            <g fill="#0C0C0C" opacity=".3"><circle cx="102" cy="112" r="1.8" /><circle cx="112" cy="108" r="1.8" /><circle cx="122" cy="112" r="1.8" /><circle cx="108" cy="120" r="1.8" /><circle cx="118" cy="122" r="1.8" /><circle cx="128" cy="120" r="1.8" /><circle cx="132" cy="130" r="1.8" /><circle cx="124" cy="132" r="1.8" /></g>
-            <path d="M60 116 L84 109" stroke={INK} strokeWidth="5.5" strokeLinecap="round" />
-            <path d="M64 126 q9 -5 16 -1 q-7 6 -16 1 Z" fill="#fff" stroke={INK} strokeWidth="3" />
-            <circle cx="71" cy="125" r="3" fill={INK} />
-            <circle cx="60" cy="139" r="2.4" fill={INK} />
-            <path d="M58 152 q10 7 20 2" stroke={INK} strokeWidth="4" fill="none" strokeLinecap="round" />
-            <path d="M59 151 q10 6 18 3 l-3 6 q-10 2 -15 -9 Z" fill="#fff" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
-            <path d="M104 126 l8 -3 3 16 -7 2 Z" fill="#0C0C0C" opacity=".85" />
-            <path d="M112 136 q10 -6 12 4 q2 10 -8 12 q-6 1 -8 -6" fill="#E8B98A" stroke={INK} strokeWidth="4.5" />
-            <circle cx="115" cy="158" r="6" fill="#ffffff" stroke={INK} strokeWidth="3.5" />
-          </g>
-        )}
-      </svg>
-    )
-  },
+  // 🦇 Neymarzetti (time do DIEGO, dono do jogo — ex-Paixandu). 24/08: a arte
+  // que ele mandou APOSENTA o escudo que era SVG desenhado à mão aqui dentro
+  // (o moicano de 09/08). Vale a regra de peso do batismo: arte nasce .webp
+  // FORA do bundle, então só desce pra quem cruza com o clube.
+  // 360x299 no arquivo — a largura sai da proporção REAL, nunca chutada.
+  // Recorte conferido sobre fundo CREME (nunca branco): o prateado e o vinco
+  // claro do 'N' continuam inteiros.
+  // 📛 as 4 FORMAS reservadas do nome (regra do Diego 20/08): nome puro + FC +
+  // EC, e a caixa já está coberta porque a chave é comparada em minúscula.
+  // 🌽 Milhaça FC (igormarquesn99) — ex-Real Bets, Série C. As 4 formas do nome.
+  'Milhaça FC': milhacaEscudoRender,
+  'Milhaça': milhacaEscudoRender,
+  'Milhaça EC': milhacaEscudoRender,
+  'Real Bets': milhacaEscudoRender, // 🕰️ nome VELHO: save antigo abre com o escudo novo
+  Neymarzetti: neymarzettiEscudoRender,
+  'Neymarzetti FC': neymarzettiEscudoRender,
+  'Neymarzetti EC': neymarzettiEscudoRender,
+  Paixandu: neymarzettiEscudoRender, // 🕰️ o nome VELHO: save antigo abre com o escudo novo
   // 🦊 La Bestia Negra (batismo do eltonfrossard45, aprovado pelo Diego 09/08):
   // azul cruzeirense + diagonal clara, estrela creme e a cabeça da raposa.
   'La Bestia Negra': (size: number) => {

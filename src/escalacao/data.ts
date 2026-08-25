@@ -2311,6 +2311,7 @@ export const CLUB_GRAFIA: Record<string, string> = {
 export const clubCanon = (club: string): string => CLUB_GRAFIA[club] ?? club
 
 export const OLD_NAME: Record<string, string> = {
+  'Milhaça FC': 'Real Bets', // ⚽ batismo do igormarquesn99: save antigo com Real Bets vira Milhaça FC ao carregar (24/08)
   'Napolitano': 'Canela EC', 'Ponte Branca': 'Grelha SAF', 'CRBebê': 'Peteca FR',
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
   'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
@@ -2426,7 +2427,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Toninho Grelha', team: 'Ponte Branca' },
     { name: 'Vavá Peteca', team: 'CRBebê' },
     { name: 'Careca do Posto', team: 'Semervilha' },
-    { name: 'Dão da Feira', team: 'Real Bets' },
+    { name: 'Dão da Feira', team: 'Milhaça FC' }, // ⚽🌽 clube BATIZADO por apoiador (igormarquesn99 / @igumarques, jornalista — Milhaça FC, ex-Real Bets, Série C; escudo e mascote com arte própria do dono, 24/08)
     { name: 'Mão de Onça', team: 'Goiaba FC' },
     { name: 'Beto Foguete', team: 'Leve-cuscuz' },
     { name: 'Lelê da Serra', team: 'Serra Azul FR' },

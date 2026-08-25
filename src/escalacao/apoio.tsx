@@ -57,6 +57,7 @@ export function setCareerColorCtx(v: 'offline' | null) { careerColorCtx = v }
 // contas fundadoras / apoios aplicados à mão (email → tier). O criador do jogo
 // entra com tudo do tier máximo — menos o batismo de clube, que é só dos apoiadores.
 const FOUNDERS: Record<string, ApoioTier> = {
+  'igormarquesn99@gmail.com': 'ouro', // 👑 Lenda — todo batismo já nasce sócio + fundador (regra 17/08); Milhaça FC (24/08)
   'diego.c.fonseca@gmail.com': 'ouro',
   'willian.chagass@outlook.com': 'ouro',
   'gabrielcunico1909@gmail.com': 'ouro',
@@ -180,7 +181,8 @@ const FUNDADOR_N: Record<string, number> = {
   'pedrinhocamisa8@gmail.com': 45, // 🖋️ batizou o Nata de SP (ex-Paris São Geraldo, Série D); coração Corinthians (17/08)
   'giovannecastro784@hotmail.com': 46, // 🖋️ batizou os Crias do Bigão (ex-Ferroviária do Vale, Série B) — mascote é o próprio dono (17/08)
   'matheusfilipealves@hotmail.com': 47, // 🖋️ batizou o Theuzudo FC (ex-Comercial do Norte, Série B); coração Valência, mascote morcego 🦇 laranja e preto (21/08)
-  'gabrielnegreirosamaral99@hotmail.com': 48, // 🖋️ batizou o São Luiz FC (ex-Flamengo do Sertão, Série D); coração Flamengo, mascote pitbull 🐶 (21/08)
+  'gabrielnegreirosamaral99@hotmail.com': 48,
+  'igormarquesn99@gmail.com': 49, // 🖋️ batizou o Milhaça FC (ex-Real Bets, Série C); jornalista @igumarques, mascote boleiro de boné 🌽 vermelho e amarelo (24/08) // 🖋️ batizou o São Luiz FC (ex-Flamengo do Sertão, Série D); coração Flamengo, mascote pitbull 🐶 (21/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

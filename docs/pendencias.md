@@ -1467,6 +1467,95 @@ faixa da torcida · placas · aniversário · pacote coração.
 16/08): **3**, com a Presidência engolindo o Patrocínio. O mockup foi desenhado
 assim.
 
+### 🎩 V2 CONSOLIDADA (24/08) — `scripts/mockup-sala-presidente-v2.mjs` · aguardando OK
+Diego pediu a sala de volta depois da conversa "o usuário é o PRESIDENTE, não o
+técnico — mas escala o time": a ficção assumida é o **presidente brasileiro
+mão-na-massa** (quem paga, manda 😄). Nenhum poder sai da mão do jogador; quando
+o técnico chegar, ele trabalha PRA o presidente (bônus/palpite), nunca tira a
+escalação. Pedido literal dele: *"Sim quero.. E q vai ter carros Tb em breve e
+técnicos em breve.. E veja se alguma aba ou sub entra dentro Tb ou n"*.
+
+**A resposta da análise (o que muda de casa) — CORRIGIDA na v3:** eu tinha
+desenhado 4 pílulas com a 💼 Agência no fim, e **o Diego pegou o erro na hora**:
+*"tá errado essa aba de agência aí. Até pq agência hj nova fica ao lado da aba de
+elenco"*. Ele está certo e o código confirma: na Agência 2.0 o filtro
+`.filter(([sb]) => !(sb === 'escritorio' && agenciaOk))` (pyramidseason.tsx,
+~linha 6425) TIRA a sub-aba do Clube — ela mora em **Elenco › 🕴️ Agenciados**
+(`elencoSub`). Ou seja, o Clube tem **3 pílulas** hoje, não 4. A recomendação
+segue a mesma: a **Presidência entra no LUGAR do Patrocínio e o engole** (aposta
+do patrocinador + Rede Martelo TV viram a 1ª mesa da sala; os atalhos
+`setClubeSub('patrocinio')` — banner da TV, recibos — passam a abrir a
+Presidência já na mesa certa). **Ficam onde estão:** Estrutura (estádio primeiro,
+regra sagrada) · Finanças (rotina de caixa). Nos saves ANTIGOS (agência clássica)
+a fileira segue com 4, o 💼 no fim, e a troca é a mesma.
+⚠️ **Lição pra próxima sessão:** conferir a linha das pílulas NO CÓDIGO antes de
+desenhar sub-aba — o array literal mente, quem manda é o `.filter()` depois dele.
+
+**A sala, de cima pra baixo:** retrato de posse + **🛡️ escudo · 🎽 manto ·
+🦅 mascote** (pedido dele na v3: *"tem q ter o escudo do time manto e mascote
+tb"*) + números do mandato · mesa do patrocínio (mudou pra cá) · 🎩 Técnico
+**EM BREVE** · 🚗 Garagem **EM BREVE** (os dois cinza, sem botão — vitrine do que
+vem) · patrimônio · Hall de Troféus (mesma estante do Rank) · linha do mandato.
+Boneco = passo 2 (posse na 1ª entrada), como ele pediu em 21/08.
+
+**😂 A ZOEIRA DA FORMAÇÃO (pedido dele na v3):** *"tem q ser mais zueira sobre a
+formação do técnico.. Ele é técnico mas qm manda é vc algo do tipo assim"*. O
+card do Técnico ganhou um diálogo de 3 balões: o treinador defende o esquema
+preferido dele ("o 4-3-3 é o MEU esquema, trabalhei a semana toda"), o presidente
+manda mudar ("bonito. vai de 3-5-2"), e ele engole na hora ("3-5-2 é o meu
+esquema, presidente. sempre foi 😅"). Combinado: **~20 frases** pra não repetir,
+uma sorteada a cada troca de formação. É **só texto** — não toca na simulação,
+não adiciona passo nem espera (regra de ouro do ritmo).
+E a arte do clube leva a **regra do barão** escrita do lado: *"cai de divisão? o
+escudo, o manto e a mascote descem junto com você"* (regra revista em 20/08 — o
+barão NÃO perde mais o nome).
+
+### 📺 "CADÊ A TV E O BICO?" — a recomendação MUDOU pra B (24/08)
+`scripts/mockup-presidencia-onde-fica-tv.mjs`. Ele: *"Única coisa q N entendi q
+vc tirando aba de patrocínio eu N vejo mais a TV e N vejo mais o bico então N
+entendi"*. Eu escrevi "a Presidência **engole** o Patrocínio" e isso soou como
+APAGAR — a tela seguia inteira, só entrava por outra porta, mas a palavra
+confundiu.
+
+👉 **DECISÃO: opção B — o 🤝 Patrocínio NÃO se mexe.** A Presidência vira a **4ª
+pílula**, só somando. Dois motivos, e o segundo é o que pesa:
+1. o erro da Agência (que ele pegou) me fez achar que já havia 4 pílulas; com
+   **3**, a 4ª cabe folgada — não há motivo pra mexer no que funciona;
+2. **o próprio dono do jogo travou na explicação.** Se ele ficou em dúvida de
+   onde acha a TV, o jogador que entra 1× por semana some. Regra que fica:
+   *mexer de lugar coisa que já funciona só quando há ganho claro — e "menos um
+   botão" não é ganho claro.*
+
+Efeito colateral bom: **o patrocínio nem é tocado no código** (nenhum atalho
+`setClubeSub('patrocinio')` quebra — banner da TV, recibo de fim de temporada,
+tudo continua caindo onde caía). O que não se mexe não quebra.
+
+✅ **ELE CONFIRMOU A OPÇÃO B (24/08):** *"Opção B."* — o 🤝 Patrocínio **NÃO se
+mexe**, a 🎩 Presidência vira a 4ª pílula, só somando.
+
+### 🛡️🎽🦅 QUEM NÃO TEM BATISMO — regra fechada por ele (24/08)
+`scripts/mockup-presidencia-sem-batismo.mjs`. Palavras dele: *"Ah qm N tem
+mascote e manto fica Como? O escudo vem automático qd O cara N tem. Manto coloque
+da cor do tier de foi profissional. Algo básico. E mascote deixa em branco."*
+
+- 🛡️ **ESCUDO — já é automático hoje, zero trabalho novo.** `Escudo()` em
+  `escudos.tsx` tenta `logoPronta(nome)`; não achando, DESENHA pelo nome (forma +
+  2 cores + padrão + letra, tudo do hash). É o mesmo escudo que a pessoa já vê na
+  tabela e nas listas — a sala não inventa nada.
+- 🎽 **MANTO — as 2 cores do TIER do dono** (`APOIO_PERKS[tier].svgFull`: bege ·
+  verde · roxo 💎 · prata ⭐ · ouro 👑). Listra simples em SVG, **0 KB**. Respeita
+  a regra sagrada: cada um leva a cor do PRÓPRIO tier, ninguém pega emprestado.
+- 🦅 **MASCOTE — VAZIA.** Sem bicho genérico: inventar mascote pra quem não
+  escolheu seria o jogo falando pela pessoa (regra dele de 18/08).
+
+⏳ **Falta ele responder (3 coisas pequenas):** ① o **tracinho cinza** discreto na
+mascote vazia fica, ou sumo a 3ª coluna? (botei o tracinho por conta própria pra
+não parecer imagem quebrada — está marcado no mockup como decisão minha) ·
+② convite discreto "batize seu clube" no RODAPÉ da tira pra quem não tem? (minha
+recomendação: sim no rodapé, **nunca** em cima — a sala é do presidente, não
+vitrine) · ③ a zoeira "(mas aqui presidente escala time — e quem paga, manda)"
+fica? Depois disso: codar por partes, um commit por mesa, tudo reversível.
+
 ## 🛡️ CLÃS — desenhado, ainda NÃO codado
 Mockup principal: `scripts/mockup-clas.mjs` (a ideia inteira).
 Conserto: `scripts/mockup-clas-escudo.mjs`.
@@ -9744,6 +9833,184 @@ elas passam uma pra outra na virada pro mata-mata, igual à artilharia).
 **Reverter**: `git revert` do commit — é um commit isolado e nenhum dado salvo
 muda de forma (os campos novos são opcionais; save antigo simplesmente não tem
 assistência de copa e continua abrindo).
+
+## 🦇 BATISMO v2 DO NEYMARZETTI — arte própria do dono (24/08)
+Diego mandou a arte (escudo N de asa de morcego + o camisa 10 mascarado + a
+camisa preta/prata) e pediu: *"faça essa arte aí valer pro time do neymarzetti"*.
+
+**O que mudou:** o Neymarzetti já era batizado desde 09/08, mas o escudo e a
+mascote eram **SVG desenhados à mão dentro do `.tsx`** — o que a regra de peso
+proíbe pra batismo novo. Esta entrega troca os dois por `.webp` FORA do bundle.
+
+- 🛡️ `img/neymarzetti-escudo.webp` **360×299 · 23,8 KB** (teto 30) — largura
+  declarada pela proporção REAL (`size * 360/299`).
+- 🦇 `img/neymarzetti-mascote.webp` **193×440 · 28,8 KB** (teto 45) — o Mascarado.
+- **Total 52,6 KB** (teto por batismo: 75 KB). ✅
+- 🎽 `scripts/kits/neymarzetti.webp` — a camisa é do POST, **não** entra no
+  bundle nem conta no teto.
+
+**Limpeza da arte:** o fundo foi tirado por **INUNDAÇÃO a partir da borda**, não
+por "apagar todo branco" — a arte tem branco POR DENTRO (a bola, as listras
+prateadas, o brilho do metal), e um corte global comeria tudo. Conferido sobre
+**fundo CREME, nunca branco** (regra do Theuzudo 21/08): nada furado. Um respingo
+solto do original foi removido por componente conexo (<400 px).
+Moldura vazia sobrando: 0,0–0,8% (o `mockup-batismo.mjs` confirmou "arte
+encaixada: nenhum arquivo com moldura vazia sobrando").
+
+**Onde entrou no código** (os lugares FIXOS do roteiro):
+- `escudos.tsx` — import + `neymarzettiEscudoRender` + `LOGOS_PRONTAS` com as
+  **4 formas** (nome puro · FC · EC · e o nome VELHO `Paixandu`);
+- `mascotes.tsx` — import + `neymarzetti_mascarado` em `MASCOTES` +
+  `MASCOTE_NOME` ("O Mascarado") + `CARIMBO_GOL` nas 4 formas;
+- `manto.ts` — **`['#141416', '#B6B7B8']` MEDIDOS na camisa** (média dos pixels
+  do torso: escuros e listras). ⚠️ Antes era vermelho/preto `#C2452F`/`#141414`
+  — a cor pessoal do Diego MUDOU junto, porque a regra é que o manto sai da arte.
+- **Banco** (`esc_socios`, sócio nº 1): `mascote_key` `moicano` →
+  `neymarzetti_mascarado`, `manto_c1/c2` atualizados. É de onde o FESTÃO de
+  campeão e o pênalti leem a mascote.
+- `esc_nomes_batismo`: a reserva das formas **já existia** (nome + FC + EC).
+
+O `moicano` (SVG antigo) FICA no arquivo — não some, pra não quebrar save que
+tenha a chave gravada. Só não é mais usado pelo clube.
+
+**Reverter:** 1 commit. O banco volta com um UPDATE (valores antigos anotados
+acima).
+
+## 🌽 BATISMO: MILHAÇA FC (igormarquesn99 / @igumarques) — 24/08
+Diego: *"faça agora o time Milhaça FC do usuário que vai virar batismo, coloque
+tb o Instagram dele"*. Igor Marques é jornalista (@igumarques, 11,2 mil
+seguidores).
+
+**Arte** (a 2ª que ele mandou, com fundo transparente DE VERDADE):
+- 🛡️ `img/milhaca-escudo.webp` **308×360 · 29,5 KB** (teto 30)
+- 🌽 `img/milhaca-mascote.webp` **199×440 · 35,2 KB** (teto 45) — **total 64,6 KB** (teto 75) ✅
+- 🎽 `scripts/kits/milhaca.webp` — do POST, fora do bundle.
+
+**Limpeza — os dois casos apareceram nesta arte:**
+1. A 1ª versão veio com **xadrez FALSO** (quadriculado achatado no JPG). Apliquei
+   a regra do CLAUDE.md: só apaga região que tenha **fatia gorda dos DOIS tons**
+   (branco ~255 **e** cinza ~206). Funcionou — a **bola branca** (98% branco, 2%
+   cinza) foi PRESERVADA, que é exatamente o furo do Theuzudo.
+2. A 2ª versão já vinha com alfa, mas com **29.597 px de POEIRA DE ALFA** — o
+   bbox cru mentiria (regra do Papão). Medido com alfa ≥ 40 e mínimo 3 px por
+   linha/coluna.
+⚠️ **Achado novo:** na 2ª arte a **camisa e a mascote se ENCOSTAM** (viram uma
+peça só) — erosão até 8 px não separou. Solução: **escudo da arte nova** (mais
+resolução, e lá ele está sozinho) + **mascote e camisa da 1ª** (onde estão
+separados). Fica registrado porque vai acontecer de novo.
+
+**Onde entrou:** `escudos.tsx` (import + render + 4 formas: Milhaça FC · Milhaça
+· Milhaça EC · **Real Bets**, o nome velho) · `mascotes.tsx` (`milhaca_boleiro` +
+MASCOTE_NOME "O Milhaça" + CARIMBO_GOL nas 4 formas) · `manto.ts`
+(`['#AE1A13','#F3B212']` MEDIDOS na camisa) · `apoio.tsx` (ouro + **fundador
+nº49**) · `data.ts` (assento da **Série C** no lugar do *Real Bets* + OLD_NAME).
+**Banco:** `esc_nomes_batismo` (o gatilho criou FC/EC sozinho) + `esc_socios`
+**sócio nº30**, origem batismo.
+📌 **Série C porque a D está LOTADA** (20 de 20 batizados). C tinha as 20 livres.
+Mudar de divisão = 1 linha.
+
+### 🎯 CARIMBO DO GOL "DO PEITO PRA CIMA" (Diego 24/08)
+Palavras dele: *"na animação quero só q apareça do peito p cima qd faz gol… pq
+ele vai aparecer em todos os lugares inteiro. Só no gol q é do peito p cima"*.
+Mascote que é GENTE INTEIRA fica com a cara minúscula espremida em 176px — no
+carimbo, que é um flash, ninguém reconhece. Cortando no peito, o rosto aparece
+grande.
+⚖️ **Feito em CSS, no MESMO arquivo .webp: 0 KB a mais** (a regra de peso segue
+respeitada). `CARIMBO_BUSTO` em `mascotes.tsx` lista quem usa — hoje
+`milhaca_boleiro` e `neymarzetti_mascarado` (os dois humanos de corpo inteiro).
+Bicho continua inteiro.
+
+**Novo no gerador do post:** `--insta` põe o @ do dono no rodapé, do lado do nome.
+
+**Reverter:** 1 commit + 2 DELETEs no banco (esc_socios e esc_nomes_batismo).
+
+### 📸 POST EM ALTA: a arte do POST é OUTRA, não a do jogo (24/08)
+Diego, olhando o mockup ampliado: *"eu disse as artes em alta q estão dentro"*.
+Ele estava certo e o furo era meu: o gerador do post embutia os **.webp DO JOGO**
+— que nascem pequenos de propósito (escudo 360px/23,8 KB, mascote 440px/28,8 KB,
+regra de peso do batismo). Ampliar o mockup só esticava arquivo comprimido.
+
+**Conserto:** o post passa a usar um recorte **do ORIGINAL, sem passar pelo
+.webp** — PNG sem perda, ampliado com LANCZOS + realce leve. Mora em
+`scripts/kits/<clube>-escudo-post.png` / `-mascote-post.png`, junto da camisa:
+**é material de POST, não entra no bundle nem no teto de peso**.
+📏 Medido (nitidez pelo laplaciano, janela do escudo no quadrado 2880):
+**272 → 585** (mais que dobrou).
+
+**Novas chaves:** `--escala` nos dois geradores de foto (2 = 2880×2880 no
+quadrado; 3 = 2670×4542 no vertical) e `--alta` no vídeo (cenas em 2×, x264
+`crf 16`, preset slow, maxrate 16M).
+
+🚧 **O TETO QUE SOBROU, e ele é do material de origem:** a arte do Neymarzetti
+que o dono mandou tem **800×1296 no total** — o escudo dentro dela é
+**296×246 nativos**. Num quadrado de 2880 esse escudo aparece com ~600px, ou
+seja, **ainda é ampliação**. Pra post realmente grande, o dono precisa exportar
+a arte maior (a 2ª arte do Milhaça, por exemplo, veio 1024×1536 e rende bem
+mais). Isso vale pra QUALQUER batismo: **pedir a arte no maior tamanho que o
+dono tiver** já na primeira conversa.
+
+## 🐛 DOIS BUGS QUE O DIEGO PEGOU AO VIVO (24/08)
+
+### 🪞 1. DOIS "NEYMARZETTI" NA MESMA TABELA — ✅ CONSERTADO
+Print dele: Série D com o clube na 6ª posição (👑 o dele) **e** na 10ª (⚔️ um robô),
+os dois chamados Neymarzetti.
+
+**A causa (efeito colateral do batismo, e é sutil):** o save dele é ANTIGO e tinha
+um bot/rival chamado **Paixandu**. Quando o clube foi batizado, `OLD_NAME` passou a
+dizer *"Paixandu virou Neymarzetti"* — e `migrateTeamNames` (store.tsx ~1926)
+rebatiza TODO bot pelo nome mais novo ao abrir o save. O robô Paixandu virou
+"Neymarzetti" e passou a coexistir com o clube DELE.
+
+A trava contra clone (`tiraClones`) só rodava na CRIAÇÃO da carreira; **no
+carregamento não havia nenhuma**. Agora há, nos DOIS caminhos:
+`migrateTeamNames` e o `CONTINUE_CAREER` (~6342). Regra: **se o nome novo bater com
+o do time do jogador, o bot fica com o nome VELHO.** Nenhum outro clube é tocado.
+
+✅ **E O SAVE VELHO TAMBÉM SE CURA (25/08).** A trava acima só evitava o xará daqui
+pra frente — mas no save do Diego o robô JÁ estava GRAVADO como "Neymarzetti", então
+abrir o jogo de novo não desfazia nada. Agora, ao carregar, **bot gravado com o nome
+do clube do jogador volta pro nome velho da corrente** (`velhoLivre` = primeiro nome
+de `oldChain` que não seja xará → Neymarzetti volta a ser Paixandu). Vale nos dois
+caminhos (`migrateTeamNames` e `CONTINUE_CAREER`).
+
+Por que é seguro: **só dispara em cima de um nome IGUAL ao do clube do jogador**, que
+nunca é situação legítima — ninguém joga contra si mesmo (é pra isso que existe o
+`tiraClones` na criação). Quem não tem batismo não tem corrente de nome velho, então
+`velhoLivre` é nulo e **nada muda**.
+
+⚠️ O que NÃO é curado (de propósito): as CHAVES de histórico (`careerPlacements`,
+`careerHonors`, `clubCash`…) seguem só o `rebatiza`, sem a cura. O registro guardado
+sob o nome do clube do jogador é DELE — mandar isso pro robô por engano seria pior
+que o robô começar com histórico zerado. Na prática o robô rebatizado volta com
+tabela/títulos limpos; a carreira do Diego fica intacta.
+
+### 🚪 2. "VOCÊ JÁ TEM 2 SALAS ABERTAS" sem ter sala aberta — ⏳ AGUARDANDO OK VISUAL
+Relato: *"o usuário derick N estava mais C sala aberta e apareceu esse errro"*.
+
+**A causa, achada no banco:** ao SAIR da sala, o `return` do efeito de sync roda um
+`save()` final — e esse save **bate o `updated_at`**. Ou seja, **abandonar a sala é
+o que a marca como VIVA**. A trava conta sala mexida nas últimas 3h, então quem
+fecha a aba fica preso por 3 horas sem entender por quê.
+Medido nas salas dele: `II544U` parada há 1,0h com **ZERO jogadores**, `KFKNW1`
+parada há 0,7h. Prova de que *"mexida recentemente" ≠ "sala em uso"*.
+
+**Conserto ESCOLHIDO (o seguro):** NÃO mexer no batimento — esse mesmo save é o que
+guarda a partida pra reconexão, e mexer nele arrisca quebrar sala AO VIVO. Em vez
+disso, a trava passa a **destravar na própria tela**: botão que encerra as salas
+paradas (filtro por `host_id` — ninguém encerra sala de outro). Segue a lei dele:
+*toda trava explica o porquê E o caminho*.
+✅ **APROVADO E PUBLICADO** (Diego, 24/08: *"Ok, pode fazer"*). O mockup que ele
+aprovou está em `scripts/mockup-salas-presas.mjs`.
+⚠️ *Nota pra quem ler o histórico:* a mensagem do commit `84a0c69` diz "aguardando
+OK visual, fora da main" — ela foi escrita ANTES da aprovação e ficou desatualizada.
+NÃO foi reescrita de propósito: reescrever história da `main` (que faz deploy
+automático) é mais arriscado que uma mensagem velha. O registro certo é este aqui.
+
+🔭 **Pendência de fundo pra outra sessão:** o `mode` do `game_state` é perdido em
+salas rápidas (311 salas com `duplasMode` e sem `mode`). Hoje não dói porque a
+trava do rápido não olha o `mode` — mas a de LIGA olha (`.eq('game_state->>mode',
+'liga')`). O conserto de 23/08 (`salaFixaRef`) preserva mode/ligaAt/ligaRegras/
+ligaAdmins, então liga nova está protegida; vale conferir se sobrou liga velha órfã.
 
 
 ---

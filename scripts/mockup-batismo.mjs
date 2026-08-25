@@ -54,8 +54,10 @@ const o = {
   c2: arg('c2', '#0C0C0C'), c2nome: arg('c2-nome', ''),
   camisa: arg('camisa', ''), // 🎽 a camisa DE VERDADE, quando o dono manda uma
   dono: arg('dono', ''), coracao: arg('coracao', ''), fundador: arg('fundador', ''),
+  insta: arg('insta', ''), // 📸 @ do dono — entra no rodapé, do lado do nome dele
   socio: process.argv.includes('--socio'), socioN: arg('socio-n', ''),
   saida: arg('saida', 'mockup-batismo.png'),
+  escala: Number(arg('escala', '1')), // 🔍 2 = o dobro de pixels (pro Instagram)
 }
 if (!o.clube || !o.escudo || !o.mascote) {
   console.error('faltou --clube, --escudo ou --mascote (veja o cabeçalho do arquivo)')
@@ -232,7 +234,7 @@ h1 .r{color:#C2452F}
 </div>
 
 <div class="card pe">
-  <div><div class="q">${o.socio ? 'Clube de' : 'Batizado por'}</div><div class="n">${o.dono || '—'}</div></div>
+  <div><div class="q">${o.socio ? 'Clube de' : 'Batizado por'}</div><div class="n">${o.dono || '—'}${o.insta ? `<span style="font-family:system-ui;font-weight:800;font-size:15px;color:rgba(0,0,0,.55);margin-left:9px">@${o.insta.replace(/^@/, '')}</span>` : ''}</div></div>
   <div class="selos">
     <div class="selo"><div class="e">👑</div><div class="t">Lenda</div></div>
     ${o.socioN ? `<div class="selo"><div class="e">🎫</div><div class="t">Sócio nº${o.socioN}</div></div>` : ''}
@@ -246,7 +248,7 @@ h1 .r{color:#C2452F}
 </div>`
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-const page = await browser.newPage({ viewport: { width: 890, height: 1400 }, deviceScaleFactor: 2 })
+const page = await browser.newPage({ viewport: { width: 890, height: 1400 }, deviceScaleFactor: o.escala || 2 })
 await page.setContent(html, { waitUntil: 'load' })
 await page.evaluate(() => document.fonts.ready)
 
