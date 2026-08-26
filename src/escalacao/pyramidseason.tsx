@@ -2650,7 +2650,8 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
               const nomeT = escStH.careerTecnicos?.[mgr.teamName]
               const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
               if (!tt) return [...new Set<FormationKey>([...base2, mgr.formation])]
-              const motores = fichaDoTecnico(tt).formacoes.map(r => formacaoPorRotulo(r)?.motor).filter((m): m is FormationKey => !!m)
+              const daCasaR = escStH.careerFormacaoExtra?.[mgr.teamName]
+              const motores = [...fichaDoTecnico(tt).formacoes, ...(daCasaR ? [daCasaR] : [])].map(r => formacaoPorRotulo(r)?.motor).filter((m): m is FormationKey => !!m)
               return [...new Set<FormationKey>([...motores, mgr.formation])]
             })().map(f => {
               const cur = formation === f, can = cur || missFor(f).length === 0
@@ -3394,8 +3395,8 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                         return (
                           <p style={{ fontSize: 9.5, fontWeight: 700, color: dele.has(at.rotulo) ? '#2E7D46' : '#B8860B', margin: '0 0 7px', lineHeight: 1.4, background: 'rgba(255,255,255,.7)', border: `2px dashed ${INK}`, borderRadius: 9, padding: '5px 8px' }}>
                             {dele.has(at.rotulo)
-                              ? <>✅ Contratando, você passa a jogar com as formações DELE — e a sua atual (<b>{at.rotulo}</b>) está entre elas.</>
-                              : <>⚠️ Contratando, você passa a jogar com as formações DELE — e ele <b>não usa a sua atual ({at.rotulo})</b>. Sem drama: ela continua valendo até você trocar; trocou, ela tranca.</>}
+                              ? <>✅ Contratando, o cardápio vira o DELE ({dele.size} esquema{dele.size > 1 ? 's' : ''}) — e a sua atual (<b>{at.rotulo}</b>) já está entre elas (não soma em dobro).</>
+                              : <>✅ Contratando, o cardápio vira o DELE <b>+ a sua atual ({at.rotulo})</b>, que fica valendo como a formação da casa 🏠 — total de {dele.size + 1} esquemas.</>}
                           </p>
                         )
                       })()}
@@ -3519,7 +3520,10 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
           const meuTecN = escSt.careerTecnicos?.[mgr.teamName] ?? null
           const meuTecT = meuTecN ? tecnicoPorNome(meuTecN) : undefined
           const doTec = new Set(meuTecT ? fichaDoTecnico(meuTecT).formacoes : [])
-          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) : BASE5.has(rot)) || rot === atual.rotulo
+          // 🏠 a formação que o time já usava quando o técnico chegou SOMA ao
+          // cardápio (regra do Diego) — e a atual nunca tranca (segurança).
+          const daCasa = meuTecT ? (escSt.careerFormacaoExtra?.[mgr.teamName] ?? null) : null
+          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) || rot === daCasa : BASE5.has(rot)) || rot === atual.rotulo
           const bloqueadas = FORMACOES15.filter(f => f.rotulo !== atual.rotulo && liberada(f.rotulo) && missFor(f.motor).length > 0)
           return (
             <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
@@ -3533,10 +3537,11 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
                       const lib = liberada(f.rotulo)
                       const can = cur || (lib && missFor(f.motor).length === 0)
                       const doTecnico = lib && !!meuTecT && doTec.has(f.rotulo)
+                      const ehDaCasa = lib && !!meuTecT && !doTec.has(f.rotulo) && f.rotulo === daCasa
                       return (
                         <button key={f.rotulo} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
                           style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5, ...(lib ? {} : { background: '#efe9d8', color: '#b8b2a4' }) }}>
-                          {lib ? '' : '🔒 '}{doTecnico ? '🧢 ' : ''}{f.rotulo}{cur ? ' ✓' : ''}
+                          {lib ? '' : '🔒 '}{doTecnico ? '🧢 ' : ''}{ehDaCasa ? '🏠 ' : ''}{f.rotulo}{cur ? ' ✓' : ''}
                         </button>
                       )
                     })}
@@ -3547,7 +3552,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
                 : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
               <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>{meuTecT
-                ? <>🧢 Com técnico, o time joga as formações <b>DELE</b>.{doTec.has(atual.rotulo) ? '' : <> A sua atual (<b>{atual.rotulo}</b>) segue valendo até você trocar — trocou, ela tranca.</>} 🔒 = seu técnico não usa.</>
+                ? <>🧢 = formações do seu técnico{daCasa ? <> · 🏠 = a da casa (<b>{daCasa}</b>, que o time já usava quando ele chegou — fica no cardápio)</> : ''} · 🔒 = fora do cardápio.</>
                 : <>🔒 = formação de TÉCNICO: alicia um que use ela (🧢 lá no fim da aba). Sem técnico é o feijão-com-arroz: 4-3-3 e 4-4-2 — e só LENDA 👑 traz 5 esquemas.</>}</p>
             </div>
           )

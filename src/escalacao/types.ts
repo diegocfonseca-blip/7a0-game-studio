@@ -685,6 +685,11 @@ export interface EscState {
   // O efeito dele no MOTOR só vale de r em diante naquela temporada (e inteira
   // nas seguintes) — regra anti-"placar mudou": rodada já simulada nunca muda.
   careerTecnicosDesde?: Record<string, { t: number; r: number }>
+  // 🏠 formação DA CASA (regra do Diego 26/08): a formação que o time JÁ USAVA
+  // quando o técnico chegou SOMA ao cardápio dele (contratou técnico de 4-4-2
+  // jogando 4-3-3 → fica com as duas). Se o técnico já usa a atual, não soma
+  // (nada de dobrar). Recalculada a cada contratação. Chave = teamName.
+  careerFormacaoExtra?: Record<string, string>
   // resultado do último leilão de aliciar (transiente, só pra tela contar a história)
   aliciarLog?: { titulo: string; corpo: string; venceu: boolean }
   scorers: ScorerRow[] // artilharia acumulada da temporada

@@ -10,7 +10,8 @@ import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from '
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
-import { tecnicoPorNome, poolDaDiv, PISO_TECNICO } from './tecnicos'
+import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
+import { formacaoAtual } from './formacoes'
 import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -5678,6 +5679,13 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerTecnicos = map
         // ⏱️ efeito no motor só da rodada atual em diante (placar passado NUNCA muda)
         s.careerTecnicosDesde = { ...(s.careerTecnicosDesde ?? {}), [you.teamName]: { t: s.seasonNo, r: s.round }, [action.clube]: { t: s.seasonNo, r: s.round } }
+        // 🏠 formação da casa: a que o time já usava SOMA ao cardápio do técnico
+        // novo — a menos que ele já a use (aí não soma, regra do Diego).
+        const rotAtual = formacaoAtual(you).rotulo
+        const extra = { ...(s.careerFormacaoExtra ?? {}) }
+        if (fichaDoTecnico(t).formacoes.includes(rotAtual)) delete extra[you.teamName]
+        else extra[you.teamName] = rotAtual
+        s.careerFormacaoExtra = extra
         s.aliciarLog = { titulo: `🔨 ${nome} é SEU!`, corpo: `Fechou por ${lance} 🪙 — o ${action.clube} defendeu até ${donoMax}${rivalTop ? ` e o ${rivalTop.clube} chegou a ${rivalTop.lance}` : ''}.${meuAntigo ? ` Na dança das cadeiras, ${meuAntigo} assumiu o ${action.clube}.` : ` O ${action.clube} ficou sem técnico por enquanto.`}`, venceu: true }
       } else if (rivalTop && rivalTop.lance >= donoMax) {
         const antigoDoRival = map[rivalTop.clube] ?? null

@@ -10555,11 +10555,13 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       "quando contrato um técnico, só poderei usar as formações daquele técnico"):
       COM técnico o cardápio é SÓ o dele; SEM técnico, só 4-3-3 e 4-4-2 (v4, Diego:
       "não tem sentido quem não tem técnico ter 5 — ter 5 é artigo de LUXO, somente
-      lendas"). Anti-novela
-      combinada com ele: a formação ATUAL nunca tranca — se o elenco não bate com
-      as do técnico, segue jogando como está até conseguir trocar (trocou, ela
-      tranca). O aliciar AVISA antes do lance se o técnico não usa a sua atual
-      (dashed ✅/⚠️). Intervalo segue o mesmo cardápio (as do técnico + a atual).
+      lendas"). E a regra v5 da
+      FORMAÇÃO DA CASA 🏠 (Diego, na sequência): a formação que o time JÁ USAVA
+      quando o técnico chegou SOMA ao cardápio dele e FICA (contratou técnico de
+      4-4-2 jogando 4-3-3 → cardápio = as duas; Lenda → atual + 5 = 6). Se o
+      técnico já usa a atual, não soma em dobro. Recalculada a cada contratação
+      (`careerFormacaoExtra`). O aliciar mostra a conta antes do lance; o
+      intervalo segue o mesmo cardápio; a atual nunca tranca (segurança).
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.
