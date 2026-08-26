@@ -3296,7 +3296,7 @@ function LanceStepper({ v, piso, teto, onSet }: { v: number; piso: number; teto:
     </div>
   )
 }
-function AliciarSection({ mgr, col }: { mgr: Manager; col: FCol }) {
+function AliciarSection({ mgr }: { mgr: Manager }) {
   const { state, dispatch } = useEsc()
   const jogadorOn = useAliciarJogador() // 🔒 área de jogador: teste fechado à parte
   const [aberto, setAberto] = useState<string | null>(null)
@@ -3579,7 +3579,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
       })}
       </>)}
       {/* 🧢 técnicos + aliciar — 26/08, só na aba Elenco e só conta liberada */}
-      {elenco && quinze15 && <AliciarSection mgr={mgr} col={col} />}
+      {elenco && quinze15 && <AliciarSection mgr={mgr} />}
     </div>
   )
 }
