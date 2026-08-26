@@ -27,7 +27,7 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do cl
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
-import { tecnicoPorNome, fichaDoTecnico, PISO_TECNICO, CATEGORIA_TECNICO_ROTULO } from './tecnicos'
+import { tecnicoPorNome, fichaDoTecnico, PISO_TECNICO, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, ESTILO_ROTULO, formacaoAtual } from './formacoes'
 import type { EstiloFormacao } from './formacoes'
@@ -594,6 +594,10 @@ export type RoundMods = Record<number, Record<number, number>>
 // tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
 // é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
 export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac }>>
+// 🧢 técnicos ATIVOS na simulação (por NOME de time): faixa lo–hi + a partir de
+// qual rodada o efeito vale nesta temporada (0 = desde o começo). Ausente/vazio
+// = simulação byte a byte como sempre foi (ninguém sem técnico muda NADA).
+export type SimTecnicos = Record<string, { lo: number; hi: number; desdeR: number }>
 // ⚽ resultado do pênalti decisivo por jogo do humano (teamId → índice 0-based → resultado)
 export type RoundPenalty = Record<number, Record<number, { scored: boolean; taker: string }>>
 // ⚽ PLANO DE PÊNALTIS DA TEMPORADA (determinístico, só carreira offline): sorteia
@@ -611,7 +615,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -688,6 +692,23 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const hxi = H.human ? lineupAt(lineups, H.teamId, r, H.squad, H.formation) : H.xi
     const axi = A.human ? lineupAt(lineups, A.teamId, r, A.squad, A.formation) : A.xi
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
+    // 🧢 TÉCNICO = 12ª CARTA (26/08, em teste): o overall dele é sorteado na faixa
+    // lo–hi e entra na média do time com peso de UMA carta em 12 — em ataque E
+    // defesa igual (nada de bônus de setor, o Diego recusou). O dado é um rng
+    // ISOLADO por partida (mesmo padrão do intervalo): o rng compartilhado não é
+    // tocado, então times SEM técnico têm placar byte a byte idêntico ao de antes.
+    // `desdeR`: contratou no meio da temporada → só vale da rodada da contratação
+    // em diante (rodada já simulada NUNCA muda de placar).
+    let lvlH: number | null = null, lvlA: number | null = null
+    {
+      const tH = tecs?.[H.name], tA = tecs?.[A.name]
+      if ((tH && r >= tH.desdeR) || (tA && r >= tA.desdeR)) {
+        const trng = mulberry((((seed ^ 0x7EC24C0) ^ ((r + 1) * 0x2545F491)) ^ (((hi + 1) * 53 + ai) * 0x9E3779B1)) >>> 0)
+        const dH = trng(), dA = trng() // sempre DOIS dados, na mesma ordem — o do visitante não depende de o mandante ter técnico
+        if (tH && r >= tH.desdeR) { lvlH = tH.lo + dH * (tH.hi - tH.lo); fh.atk = (fh.atk * 11 + lvlH) / 12; fh.def = (fh.def * 11 + lvlH) / 12 }
+        if (tA && r >= tA.desdeR) { lvlA = tA.lo + dA * (tA.hi - tA.lo); fa.atk = (fa.atk * 11 + lvlA) / 12; fa.def = (fa.def * 11 + lvlA) / 12 }
+      }
+    }
     // times de CPU NATIVOS ganham a força-base da divisão (pra as séries serem
     // disputadas de verdade). Humano e rivais escolhidos NÃO ganham (jogam com o
     // elenco real que montaram).
@@ -730,6 +751,9 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
         const homeTac2 = H.human ? humTac2 : th
         const awayTac2 = A.human ? humTac2 : ta
         const fh2 = rollForm(homeXI2, homeTac2, awayTac2, sub), fa2 = rollForm(awayXI2, awayTac2, homeTac2, sub)
+        // 🧢 técnico vale no 2º tempo também (mesmo sorteio do jogo — ele não troca no intervalo)
+        if (lvlH != null) { fh2.atk = (fh2.atk * 11 + lvlH) / 12; fh2.def = (fh2.def * 11 + lvlH) / 12 }
+        if (lvlA != null) { fa2.atk = (fa2.atk * 11 + lvlA) / 12; fa2.def = (fa2.def * 11 + lvlA) / 12 }
         fh2.atk += bh; fh2.def += bh; fa2.atk += ba; fa2.def += ba
         fh2.atk += mh; fh2.def += mh; fa2.atk += ma; fa2.def += ma
         const lkH2 = 0.85 + sub() * 0.30, lkA2 = 0.85 + sub() * 0.30
@@ -781,7 +805,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -789,7 +813,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -2618,7 +2642,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
                 contas novas (4-2-4/5-4-1) — senão quem entrou com elas não conseguia
                 voltar depois de trocar. Aqui é sempre a CONTA do motor (sem maquiagem:
                 intervalo é ajuste rápido, o desenho fino fica pra aba Elenco). */}
-            {([...(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]), ...(quinze15 ? (['4-2-4', '5-4-1'] as FormationKey[]) : [])]).map(f => {
+            {([...(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]), ...(quinze15 ? (['4-2-4', '5-4-1'] as FormationKey[]).filter(f => f === mgr.formation) : [])]).map(f => {
               const cur = formation === f, can = cur || missFor(f).length === 0
               return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? INK : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
             })}
@@ -3421,6 +3445,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
 
 function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
   const quinze15 = useFormacoes15() // 🎭 15 formações: por enquanto só a conta do Diego
+  const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -3459,7 +3484,15 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         // todo o resto, as 5 de sempre — byte a byte como era.
         if (quinze15) {
           const atual = formacaoAtual(mgr)
-          const bloqueadas = FORMACOES15.filter(f => f.rotulo !== atual.rotulo && missFor(f.motor).length > 0)
+          // 🧢 v2 (26/08): as 5 de SEMPRE são de todo mundo; as outras 10 são do
+          // TÉCNICO — só destravam se o SEU técnico usa (fichaDoTecnico). A atual
+          // nunca tranca (trocar de técnico não quebra time escalado).
+          const BASE5 = new Set(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'])
+          const meuTecN = escSt.careerTecnicos?.[mgr.teamName] ?? null
+          const meuTecT = meuTecN ? tecnicoPorNome(meuTecN) : undefined
+          const doTec = new Set(meuTecT ? fichaDoTecnico(meuTecT).formacoes : [])
+          const liberada = (rot: string) => BASE5.has(rot) || doTec.has(rot) || rot === atual.rotulo
+          const bloqueadas = FORMACOES15.filter(f => f.rotulo !== atual.rotulo && liberada(f.rotulo) && missFor(f.motor).length > 0)
           return (
             <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
               <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: INK }}>🎽 Formação</p>
@@ -3469,11 +3502,13 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {FORMACOES15.filter(f => f.estilo === est).map(f => {
                       const cur = atual.rotulo === f.rotulo
-                      const can = cur || missFor(f.motor).length === 0
+                      const lib = liberada(f.rotulo)
+                      const can = cur || (lib && missFor(f.motor).length === 0)
+                      const doTecnico = lib && !BASE5.has(f.rotulo) && doTec.has(f.rotulo)
                       return (
                         <button key={f.rotulo} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
-                          style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5 }}>
-                          {f.rotulo}{cur ? ' ✓' : ''}
+                          style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5, ...(lib ? {} : { background: '#efe9d8', color: '#b8b2a4' }) }}>
+                          {lib ? '' : '🔒 '}{doTecnico ? '🧢 ' : ''}{f.rotulo}{cur ? ' ✓' : ''}
                         </button>
                       )
                     })}
@@ -3483,6 +3518,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
               {bloqueadas.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
                 : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
+              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>🔒 = formação de TÉCNICO: alicia um que use ela (🧢 lá no fim da aba) e ela destrava aqui.{doTec.size ? ' 🧢 = liberada pelo seu técnico.' : ''}</p>
             </div>
           )
         }
@@ -5096,7 +5132,25 @@ export function PyramidSeasonScreen() {
     if (!state.agenciaOn || !ev || ev.season !== state.seasonNo || ev.status !== 'campo') return {}
     return { [ev.mgrId]: { [ev.round]: -2 } }
   }, [state.eventoTemporada, state.seasonNo, state.agenciaOn])
-  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty])
+  // 🧢 mapa dos técnicos ATIVOS pra simulação (só conta liberada nas 15; vazio =
+  // simulação idêntica à de sempre). Contratação no meio da temporada só vale da
+  // rodada em diante (desdeR) — placar já visto nunca muda.
+  const quinzeSim = useFormacoes15()
+  const simTecs = useMemo<SimTecnicos | undefined>(() => {
+    if (!quinzeSim || !state.careerTecnicos) return undefined
+    const out: SimTecnicos = {}
+    for (const [clube, nome] of Object.entries(state.careerTecnicos)) {
+      if (!nome) continue
+      const t = tecnicoPorNome(nome)
+      if (!t) continue
+      const d = state.careerTecnicosDesde?.[clube]
+      const desdeR = !d || d.t < (state.seasonNo ?? 1) ? 0 : d.t === (state.seasonNo ?? 1) ? d.r : 999
+      const fx = FAIXA_POR_DIV[t.div]
+      out[clube] = { lo: t.lo ?? fx.lo, hi: t.hi ?? fx.hi, desdeR }
+    }
+    return Object.keys(out).length ? out : undefined
+  }, [quinzeSim, state.careerTecnicos, state.careerTecnicosDesde, state.seasonNo])
+  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -5110,7 +5164,7 @@ export function PyramidSeasonScreen() {
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
   // artilharia entregava). Quando a rodada termina de animar (revealed = round),
   // tudo passa a vir da simulação completa (live), sem recomputar à toa.
-  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty])
+  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs])
   const { scorers, scorersAll, goalsByCard, assistsByCard, assistsAll, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)

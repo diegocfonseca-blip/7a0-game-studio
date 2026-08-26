@@ -5636,10 +5636,12 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
       for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
       const clubes = s.managers.filter(m => !m.isHuman).map(m => m.teamName).sort()
+      const desde = { ...(s.careerTecnicosDesde ?? {}) }
       let mudou = false
-      for (const c of clubes) if (!(c in map)) { map[c] = livres.shift() ?? null; mudou = true }
+      for (const c of clubes) if (!(c in map)) { map[c] = livres.shift() ?? null; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true }
       if (!mudou) return s
       s.careerTecnicos = map
+      s.careerTecnicosDesde = desde
       return s
     }
     case 'ALICIAR_TECNICO': {
@@ -5674,12 +5676,15 @@ export function reducer(state: EscState, action: Action): EscState {
         map[you.teamName] = nome
         map[action.clube] = meuAntigo
         s.careerTecnicos = map
+        // ⏱️ efeito no motor só da rodada atual em diante (placar passado NUNCA muda)
+        s.careerTecnicosDesde = { ...(s.careerTecnicosDesde ?? {}), [you.teamName]: { t: s.seasonNo, r: s.round }, [action.clube]: { t: s.seasonNo, r: s.round } }
         s.aliciarLog = { titulo: `🔨 ${nome} é SEU!`, corpo: `Fechou por ${lance} 🪙 — o ${action.clube} defendeu até ${donoMax}${rivalTop ? ` e o ${rivalTop.clube} chegou a ${rivalTop.lance}` : ''}.${meuAntigo ? ` Na dança das cadeiras, ${meuAntigo} assumiu o ${action.clube}.` : ` O ${action.clube} ficou sem técnico por enquanto.`}`, venceu: true }
       } else if (rivalTop && rivalTop.lance >= donoMax) {
         const antigoDoRival = map[rivalTop.clube] ?? null
         map[rivalTop.clube] = nome
         map[action.clube] = antigoDoRival
         s.careerTecnicos = map
+        s.careerTecnicosDesde = { ...(s.careerTecnicosDesde ?? {}), [rivalTop.clube]: { t: s.seasonNo, r: s.round }, [action.clube]: { t: s.seasonNo, r: s.round } }
         s.aliciarLog = { titulo: `😤 O ${rivalTop.clube} te atropelou`, corpo: `Cobriu com ${rivalTop.lance} 🪙 (seu lance: ${lance}) e levou ${nome}. Você não pagou nada — junta moeda e volta pra briga.`, venceu: false }
       } else {
         s.aliciarLog = { titulo: `🧱 O ${action.clube} segurou`, corpo: `O clube cobriu com ${donoMax} 🪙 e ${nome} ficou onde está (seu lance: ${lance}). Nada foi cobrado de você.`, venceu: false }

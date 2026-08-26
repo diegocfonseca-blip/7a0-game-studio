@@ -681,6 +681,10 @@ export interface EscState {
   // Semeado por divisão na primeira visita à área de aliciar; null = clube ficou
   // sem técnico (perdeu no leilão e não havia ninguém livre). Você começa SEM.
   careerTecnicos?: Record<string, string | null>
+  // desde QUANDO o técnico atual do clube está lá ({t: temporada, r: rodada}).
+  // O efeito dele no MOTOR só vale de r em diante naquela temporada (e inteira
+  // nas seguintes) — regra anti-"placar mudou": rodada já simulada nunca muda.
+  careerTecnicosDesde?: Record<string, { t: number; r: number }>
   // resultado do último leilão de aliciar (transiente, só pra tela contar a história)
   aliciarLog?: { titulo: string; corpo: string; venceu: boolean }
   scorers: ScorerRow[] // artilharia acumulada da temporada

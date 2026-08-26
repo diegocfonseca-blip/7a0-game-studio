@@ -10544,9 +10544,19 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       clube em state.careerTecnicos, só o NOME — ficha vem de tecnicos.ts). Área
       de JOGADOR (gate à parte useAliciarJogador, só Diego): leilão você × dono
       com travas (contrato não sai · clube nunca fica manco · teto 2× a vaga).
-- [ ] Técnico v2: entrar no MOTOR como 12ª carta (sorteio lo–hi por partida,
-      stream de rng PRÓPRIO pra não mexer nos placares determinísticos) e as
-      formações do técnico valerem no seletor. HOJE a carta é só contratação/
-      coleção — não muda jogo nem formações ainda (dito ao Diego).
+- [x] Técnico v2 NO AR (26/08): o técnico entra no MOTOR da liga como 12ª CARTA —
+      overall sorteado na faixa lo–hi por partida e misturado na força do time com
+      peso 1/12 em ataque E defesa (sem bônus de setor, o Diego recusou). Dado num
+      rng ISOLADO por partida (mesmo padrão do intervalo): time sem técnico tem
+      placar byte a byte idêntico ao de antes, e contratação no meio da temporada
+      só vale da rodada em diante (`careerTecnicosDesde` — placar visto nunca
+      muda). Vale na LIGA; Copa/mata-mata ainda sem técnico (anotado abaixo).
+      E o seletor de formações agora é TRAVADO pelo técnico: as 5 de sempre são de
+      todos; as outras 10 só destravam se o SEU técnico usa (🔒/🧢 no seletor;
+      a formação atual nunca tranca). Intervalo: 4-2-4/5-4-1 só aparecem se você
+      já está nelas.
+- [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
+      Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
+      temporadas (vida própria); zoeira de demissão/entrevista.
 - [ ] Identidade clube·ano na carta do técnico (igual jogador) — precisa o Diego
       dizer/aprovar o clube marcante de cada um (regra da pessoa real)
