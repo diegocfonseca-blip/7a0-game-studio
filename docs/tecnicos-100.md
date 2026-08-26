@@ -79,29 +79,51 @@ documentado × chute, igual foi feito na lista de 24/08.
 
 ---
 
-## 🎽 15 FORMAÇÕES (pedido do Diego, 26/08 — proposta em aprovação)
-Palavras dele: *"precisaria de 15 formações... sendo 5 ofensivas, 5 posse de bola
-e 5 retranqueiro"*. Proposta concreta (aguardando OK):
+## 🎽 15 FORMAÇÕES — TODAS MAQUIAGEM (Diego, 26/08, decisão)
+Palavras dele: *"Teriam q ser formações q N mudasse o campo formato.. e que
+pudéssemos maquear. Tipo 4231 seria o 442 q seria segredo nosso, N contaríamos p
+usuário q é maquiagem somente"*.
 
-**⚽ OFENSIVAS:** 4-3-3 ✅ · 3-4-3 ✅ · 4-4-2 ✅ · 4-2-4 🆕 · 3-3-4 🆕
-**🎩 POSSE:** 4-5-1 ✅ · 3-5-2 🆕 · 4-4-2 losango 🪞 · 4-2-3-1 🪞 · 4-3-2-1 🪞
-**🛡️ RETRANCA:** 5-3-2 ✅ · 5-4-1 🆕 · 5-2-3 🆕 · 6-3-1 🆕 · 4-1-4-1 🪞
+Ou seja: **o motor continua com as 5 contas de sempre** (4-3-3 · 4-4-2 · 4-5-1 ·
+3-4-3 · 5-3-2). As 10 novas são **disfarces**: nome novo + desenho novo no
+campinho, por cima de uma das 5 reais. 🤫 **O mapa é SEGREDO DE PRODUÇÃO — nunca
+aparece em tela, texto de UI, novidade ou post.** Pro usuário, são 15 formações.
 
-✅ = já existe · 🆕 = conta de setores NOVA no motor · 🪞 = espelho (mesma conta de
-setores de outra formação, desenho DIFERENTE no campinho — o conceito que o próprio
-Diego trouxe em 24/08 com 442-losango/4231/4321). Espelhos: losango = conta da
-4-4-2; 4-2-3-1, 4-3-2-1 e 4-1-4-1 = conta da 4-5-1.
+| estilo | formação | por dentro é |
+|---|---|---|
+| ⚽ OFENSIVAS | 4-3-3 | ela mesma |
+| | 3-4-3 | ela mesma |
+| | 4-2-4 | 4-3-3 (um meia desenhado na frente) |
+| | 3-3-4 | 3-4-3 (um meia desenhado na frente) |
+| | 2-3-5 "à moda antiga" | 3-4-3 (a pirâmide retrô — zoeira boa) |
+| 🎩 POSSE | 4-5-1 | ela mesma |
+| | 4-4-2 losango | 4-4-2 (4 meias em losango, sem ponta) |
+| | 4-2-3-1 | 4-5-1 (2 volantes + 3 meias) |
+| | 4-3-2-1 "árvore de Natal" | 4-5-1 |
+| | 3-5-2 | 5-3-2 (os laterais desenhados como alas) |
+| 🛡️ RETRANCA | 5-3-2 | ela mesma |
+| | 4-4-2 "duas linhas" | 4-4-2 |
+| | 5-4-1 | 4-5-1 (um volante desenhado na linha de trás) |
+| | 4-1-4-1 | 4-5-1 (o volante na frente da zaga) |
+| | 6-3-1 "ônibus estacionado" | 5-3-2 (um volante desenhado entre os zagueiros) |
 
-Contas novas (GOL sempre 1, LAT sempre 2): 4-2-4 = ZAG2 MEI2 ATA4 · 3-3-4 = ZAG1
-MEI3 ATA4 · 3-5-2 = ZAG1 MEI5 ATA2 · 5-4-1 = ZAG3 MEI4 ATA1 · 5-2-3 = ZAG3 MEI2
-ATA3 · 6-3-1 = ZAG4 MEI3 ATA1.
+**As respostas às perguntas dele (26/08):**
+- *"442 é ofensivo?"* — Não: chapado (duas linhas de quatro) ele é mais defesa que
+  ataque (é o 4-4-2 do Simeone). Por isso o 4-4-2 raiz foi pro bucket RETRANCA e o
+  losango pro POSSE. ⚠️ Repare que o 4-4-2 aparece nos DOIS estilos (raiz na
+  retranca, losango na posse) — mesma conta, caras diferentes. É maquiagem
+  trabalhando a favor.
+- *"losango é posse, tem certeza?"* — Sim, bem documentado: 4 meias centrais, sem
+  ponta, meio congestionado, jogo de toque (o Milan do Ancelotti com Pirlo/Kaká).
+- Nota honesta sobre o exemplo dele "4231 = 442": na nossa conta de setores o
+  4-2-3-1 desenha mais limpo em cima do **4-5-1** (2 volantes + 3 meias = 5 MEI).
+  Como é maquiagem, o mapa é escolha nossa — ficou 4-5-1. Se ele preferir 4-4-2,
+  é trocar uma linha.
 
-**Como a categoria corta com 15:** proposta = a contagem (A5 · B4 · C3 · D2 · V1)
-passa a valer DENTRO do estilo do técnico — lenda retranqueira domina as 5
-retrancas e NÃO joga 4-2-4 (identidade até no topo). O 4-3-3 continua liberado de
-fábrica pra todo time (técnico nunca trava, só abre). ⚠️ Dentro do estilo, a ordem
-de desbloqueio traz as contas DISTINTAS primeiro e os espelhos por último — senão
-um técnico de posse com 3 esquemas ganharia três vezes a mesma 4-5-1 de roupa nova.
+**O que essa versão ganha da anterior:** zero conta nova no motor → **zero
+medição nova necessária**, zero risco de formação-deus, nada pra calibrar. O
+custo vira só DESENHO (cada disfarce precisa do seu layout no campinho — o
+trabalho já rascunhado no mockup-formacoes-espelho de 24/08).
 
-⚠️ Antes de codar: MEDIR as 6 contas novas no motor (mede-formacao-vale-quanto)
-pra nenhuma virar a formação-deus — mesmo processo das medições de 25/08.
+A regra do ESTILO continua igual (categoria corta a quantidade dentro do estilo,
+contas distintas primeiro, disfarces depois; 4-3-3 sempre liberada de fábrica).
