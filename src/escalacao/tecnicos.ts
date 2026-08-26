@@ -26,12 +26,40 @@ export interface Tecnico {
   div: DivTecnico // divisão de origem = categoria da carta
   estilo: EstiloTecnico
   chute?: boolean // ⚠️ estilo chutado (pendente de revisão do Diego) — nunca mostrar como fato
+  // ajuste fino INDIVIDUAL de overall (só quando o Diego mandar destacar um nome);
+  // sem eles, vale a faixa da categoria (FAIXA_POR_DIV).
+  lo?: number
+  hi?: number
 }
 
 export const ESQUEMAS_POR_DIV: Record<DivTecnico, number> = { A: 5, B: 4, C: 3, D: 2, V: 1 }
 
 export const DIV_TECNICO_ROTULO: Record<DivTecnico, string> = {
   A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea',
+}
+
+// ── 📊 NÍVEL (overall) do técnico — mesma régua das cartas de JOGADOR ────────
+// A categoria da carta segue a divisão de origem (A = Lenda 👑 … Várzea = base
+// bege), e a faixa lo–hi é a faixa TÍPICA dos jogadores daquela categoria no
+// baralho real (medida em data.ts: lenda ~88/95 · craque ~84/92 · 76/86 ·
+// 68/80 · várzea 55/70). Em cada partida o overall do técnico é SORTEADO dentro
+// da faixa, igual jogador — dia inspirado, dia apagado.
+// Todos os técnicos da MESMA categoria começam com a MESMA faixa (não inventei
+// ranking entre gente de verdade); quando o Diego quiser destacar um nome
+// ("Ferguson mais forte"), é preencher lo/hi na linha dele que a faixa
+// individual passa por cima.
+export const FAME_POR_DIV: Record<DivTecnico, number> = { A: 5, B: 4, C: 3, D: 2, V: 1 }
+export const FAIXA_POR_DIV: Record<DivTecnico, { lo: number; hi: number }> = {
+  A: { lo: 89, hi: 95 },
+  B: { lo: 83, hi: 91 },
+  C: { lo: 76, hi: 86 },
+  D: { lo: 68, hi: 80 },
+  V: { lo: 55, hi: 70 },
+}
+// a ficha completa pra montar a CARTA do técnico (formato de carta de jogador)
+export function fichaDoTecnico(t: Tecnico): { fame: number; lo: number; hi: number; formacoes: string[] } {
+  const faixa = FAIXA_POR_DIV[t.div]
+  return { fame: FAME_POR_DIV[t.div], lo: t.lo ?? faixa.lo, hi: t.hi ?? faixa.hi, formacoes: formacoesDoTecnico(t) }
 }
 
 // as formações (rótulos visíveis de formacoes.ts) que o técnico domina.

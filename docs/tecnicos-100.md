@@ -164,6 +164,21 @@ documentado/consagrado** do treinador na vida real; **⚠️ chute = palpite meu
 ⚖️ equilibrado). Os ⚠️ o Diego revisa e manda corrigir o que quiser — trocar é
 uma linha no arquivo. 49 dos 100 estão de chute.
 
+## 📊 NÍVEL (overall) — régua fechada com o Diego (26/08)
+Técnico tem overall IGUAL jogador: faixa lo–hi sorteada por partida. A categoria
+da carta segue a divisão de origem, e a faixa é a típica dos jogadores da mesma
+categoria no baralho (medida em data.ts):
+| categoria | fame | faixa lo–hi |
+|---|---|---|
+| A 👑 Lenda | 5 | 89–95 |
+| B ⭐ Craque | 4 | 83–91 |
+| C | 3 | 76–86 |
+| D | 2 | 68–80 |
+| Várzea | 1 | 55–70 |
+Todos da mesma categoria começam com a MESMA faixa (sem ranking inventado entre
+gente de verdade). Destacar um nome = preencher `lo`/`hi` na linha dele em
+`tecnicos.ts` (passa por cima da faixa). Dados: `FAIXA_POR_DIV`/`fichaDoTecnico`.
+
 Quantidade por categoria: A 5 · B 4 · C 3 · D 2 · Várzea 1. As formações do
 técnico saem da COLUNA DO ESTILO dele (nas 15, ver tabela acima), na ordem:
 - 🛡️ retranca: 5-3-2 → 4-4-2 → 4-1-4-1 → 5-4-1 → 5-3-2 líbero
