@@ -7,8 +7,14 @@
 // com meu usuário — os outros veem apenas o técnico."*
 //
 // E o aviso importante: NÃO copiar o visual do modo Manager oculto (os prints que
-// ele mandou) — aquilo é do início do jogo. Estas telas nascem no visual DE HOJE:
-// creme, borda preta grossa, sombra dura, Oswald, pílulas e botões da casa.
+// ele mandou) — aquilo é do início do jogo. Estas telas nascem no visual DE HOJE.
+//
+// ⚠️ ELE ME PEGOU NA 1ª VERSÃO (26/08): botei "📊 85–92" nas linhas porque VI nos
+// prints dele — mas no Elenco de hoje (PlayerRow, pyramidseason ~2906) a linha é
+// NOME + 💰 VALOR, posição vira CABEÇALHO de seção (POS_LABEL), e faixa numérica
+// não aparece em lugar nenhum fora da Cerimônia. Palavras dele: "na aba do elenco
+// N tem 📊 ao lado do overall... vc botou só pq viu nos meus anexos". Esta versão
+// copia o PlayerRow de verdade.
 //
 //   node scripts/mockup-aliciar-tecnicos.mjs [--saida aliciar-tecnicos.png]
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -39,15 +45,15 @@ const clube = (nome, rival = false) => `
     <span>${rival ? '⚔️ ' : ''}${nome}</span><span style="font-size:11px;opacity:.55">›</span>
   </button>`
 
-const jog = (pos, nome, faixa, forte, contrato) => `
-  <div style="display:flex;align-items:center;gap:8px;border:2.5px solid ${contrato ? 'rgba(0,0,0,.35)' : INK};border-radius:12px;
-    background:${contrato ? '#eee' : '#fff'};padding:7px 10px;margin-bottom:6px;${contrato ? 'opacity:.6' : `box-shadow:2px 2px 0 ${INK}`}">
-    <span style="${OSW};font-size:9.5px;background:${INK};color:#fff;border-radius:7px;padding:2px 6px;flex:none">${pos}</span>
-    <span style="${OSW};font-size:13px;flex:1">${nome}</span>
-    <span style="${OSW};font-size:10px;background:${forte ? GOLD : '#DFF3E7'};border:2px solid ${INK};border-radius:8px;padding:1px 6px">📊 ${faixa}</span>
-    ${contrato
-      ? `<span style="${OSW};font-size:9.5px;color:#a15c4e">🔒 contrato</span>`
-      : `<span style="${OSW};font-size:10.5px;color:${GREEN}">+ aliciar</span>`}
+// a MESMA linha do Elenco de hoje (PlayerRow): nome + 💰 valor, borda esquerda
+// colorida, contrato esmaecido. Nada de faixa numérica — ela só abre na Cerimônia.
+const secao = (rot) => `<p style="${OSW};font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:${GREEN};opacity:.85;margin:7px 0 3px">${rot}</p>`
+const jog = (nome, valor, contrato) => `
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 7px;border-radius:6px;
+    background:${contrato ? '#eee' : '#fff'};border-left:3px solid ${contrato ? 'transparent' : GREEN};margin-bottom:3px;${contrato ? 'opacity:.5' : ''}">
+    <span style="${OSW};font-weight:800;font-size:12px;color:${INK}">${nome}
+      <span style="${OSW};font-size:10px;margin-left:4px;color:${contrato ? 'rgba(0,0,0,.45)' : GREEN}">${contrato ? '🔒 contrato' : '+ aliciar'}</span></span>
+    <span style="${OSW};font-size:11px;color:#5a5647;flex:none">💰 ${valor}</span>
   </div>`
 
 const bloco = (tit, bg, txt) => `
@@ -83,11 +89,13 @@ const tela2 = fone('🔎 Caixote EC', `
     <div style="display:flex;gap:10px;align-items:center">
       <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;${OSW};font-size:22px;flex:none">T</div>
       <div style="flex:1;min-width:0">
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <p style="${OSW};font-size:16px;margin:0">Telê Santana</p>
-          <span style="${OSW};font-size:9px;color:#4a5a6a">GIGANTE · SÉRIE B ⭐⭐⭐⭐</span>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <span style="${OSW};font-size:10px;background:${INK};color:#fff;border:2px solid rgba(255,255,255,.25);border-radius:7px;padding:1px 7px">TEC</span>
+          <span style="${OSW};font-size:9px;color:#4a5a6a;letter-spacing:.05em">GIGANTE</span>
         </div>
-        <p style="font-family:system-ui;font-size:10px;font-weight:700;color:rgba(0,0,0,.6);margin:1px 0 0">📊 84–90 · 🎯 4 esquemas · TEC</p>
+        <p style="${OSW};font-size:16px;margin:3px 0 0">Telê Santana</p>
+        <p style="font-family:system-ui;font-size:10px;font-weight:800;color:rgba(0,0,0,.62);margin:1px 0 0">Caixote EC · Série B</p>
+        <p style="font-size:10px;letter-spacing:1px;margin:2px 0 0">⭐⭐⭐⭐ <span style="font-family:system-ui;font-weight:700;font-size:9.5px;color:rgba(0,0,0,.55)">· 🎯 4 esquemas · 💰 28</span></p>
       </div>
     </div>
     <button style="width:100%;margin-top:9px;${OSW};font-size:13px;text-transform:uppercase;background:${GOLD};
@@ -98,12 +106,17 @@ const tela2 = fone('🔎 Caixote EC', `
 
   <div style="border:3px dashed ${PURPLE};border-radius:16px;padding:10px;margin-top:12px;background:rgba(124,58,237,.06)">
     <p style="${OSW};font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:${PURPLE};margin:0 0 6px">🔒 SÓ VOCÊ VÊ (teste da sua conta) · Jogadores</p>
-    ${jog('GOL', 'Dida', '85–92', true, false)}
-    ${jog('ZAG', 'Gamarra', '85–92', true, true)}
-    ${jog('MEI', 'Adílio', '87–93', true, false)}
-    ${jog('ATA', 'Guerrero', '80–84', false, false)}
+    ${secao('Goleiros')}
+    ${jog('Dida', 14, false)}
+    ${secao('Zagueiros')}
+    ${jog('Gamarra', 12, true)}
+    ${secao('Meias')}
+    ${jog('Adílio', 16, false)}
+    ${secao('Atacantes')}
+    ${jog('Guerrero', 9, false)}
     <p style="font-family:system-ui;font-size:9.5px;font-weight:700;color:rgba(0,0,0,.5);margin:4px 2px 0;line-height:1.4">
-      Mesma regra do técnico: aliciar = <b>leilão</b>, até as vagas da posição. Sob contrato não vai. Aprovou o teste → libera geral.</p>
+      Linha igual à do Elenco de hoje: <b>nome + 💰 valor</b> — a faixa de nível NÃO aparece
+      (ela só abre na Cerimônia, como sempre). Aliciar = <b>leilão</b>, até as vagas da posição. Sob contrato não vai.</p>
   </div>
 `)
 
@@ -124,10 +137,13 @@ button{cursor:default}</style>
       ${tela2}
     </div>
     <div style="flex:1;min-width:330px;max-width:470px">
-      ${bloco('O que mudou do mockup anterior', '#fff', `
-        · O mercado de técnicos <b>SAI da Presidência</b> e vira <b>Aliciar no Elenco</b>, como você mandou.<br>
-        · <b>Nada de multa direta</b>: técnico aliciado vai pro <b>LEILÃO</b> — você × rivais × o clube dono.<br>
-        · Visual <b>zero herdado</b> do Manager oculto: tudo nos botões, cores e pílulas de HOJE.`)}
+      ${bloco('✅ O que consertei (você pegou)', '#fff', `
+        · <b>Sem 📊 e sem faixa numérica</b> — isso era do print do Manager, não existe no jogo de hoje.<br>
+        · A linha do jogador é a <b>MESMA do Elenco atual</b>: nome + 💰 valor, posição como cabeçalho de
+        seção, contrato esmaecido.<br>
+        · A faixa de nível (do jogador E do técnico) segue a regra de sempre: <b>só abre na Cerimônia</b>.<br>
+        · O resto mantido: mercado SAI da Presidência → <b>Aliciar no Elenco</b>; técnico vai pro <b>LEILÃO</b>
+        (você × rivais × o dono), nada de compra direta.`)}
       ${bloco('👁️ Quem vê o quê', '#F3EAFE', `
         · <b>Técnicos</b>: todo mundo (carreira nova, trava <code>tecnicosOn</code>).<br>
         · <b>Jogadores</b>: só a SUA conta (mesmo esquema do basquete: trava por e-mail).
