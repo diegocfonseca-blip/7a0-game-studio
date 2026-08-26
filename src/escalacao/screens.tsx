@@ -2758,13 +2758,17 @@ function RegrasDoPregao({ onFechar }: { onFechar: () => void }) {
 // presas à carta ("Fulano → Romário: TÔ NESSE 😈"). PODE ser mentira — é o table
 // talk do poker. A 💸 ainda faz CHOVER DINHEIRO na tela de todo mundo (MoneyRain).
 // Flutuam na mesma camada de sempre; opcional, um toque, não mexe em tempo nenhum.
-const CANTADAS: { k: string; t?: string }[] = [
-  { k: '😈', t: 'TÔ NESSE, vou com TUDO!' }, // diabinho roxo
-  { k: '💸', t: 'esse vai ficar CARO…' }, // + chuva de dinheiro na sala inteira
-  { k: '❤️', t: 'meu ÍDOLO — não perco por nada' },
-  { k: '🪙', t: 'relaxa, 1 moedinha leva esse 🤣' }, // desdém… ou armadilha pra galera dar lance baixo
-  { k: '🥱', t: 'nem quero…' },
-  { k: '🤣' }, // risada pura, sem frase (clássica)
+// 📉 DE 6 PRA 3 (Diego 25/08): *"esses emojis dos jogadores tô achando que tá
+// demais… tá ruim vertical"*. O menu abria com SEIS linhas de frase por baixo da
+// carta e tapava as cartas seguintes — numa leva de 6 jogadores virava paredão.
+// Ele escolheu estas três e o menu passou a abrir DEITADO (ver `CardReact`):
+// uma linha em vez de sete. Saíram do card: ❤️ meu ídolo · 🪙 1 moedinha · 🤣.
+// O rótulo curto é o que aparece no BOTÃO; a frase inteira (`t`) é a que a sala
+// lê no balão quando você manda.
+const CANTADAS: { k: string; t: string; curto: string }[] = [
+  { k: '😈', t: 'TÔ NESSE, vou com TUDO!', curto: 'TÔ NESSE' },
+  { k: '💸', t: 'esse vai ficar CARO…', curto: 'VAI FICAR CARO' }, // + chuva de dinheiro na sala inteira
+  { k: '🥱', t: 'nem quero…', curto: 'NEM QUERO' },
 ]
 
 // camada flutuante que mostra as reações de todo mundo subindo e sumindo
@@ -2802,7 +2806,25 @@ function FloatingEmotes() {
             <motion.div key={e.id} initial={{ opacity: 0, y: 24, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -34 }}
               className="flex items-center gap-1.5 bg-white border-2 border-black rounded-full px-3 py-1"
               style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              <span className="text-lg leading-none">{e.kind}</span>
+              {/* 🐊 MASCOTE COMO REAÇÃO (Diego 25/08): quando o `kind` vem com o
+                  prefixo `masc:`, o balão desenha a mascote do clube batizado no
+                  lugar do emoji. Ela nasce com 176px de altura (é a mesma arte do
+                  gol e do festão), então entra encolhida por `scale` — mesmo
+                  jeito que o perfil do sócio já faz. Bundle não cresce: a arte
+                  já está no jogo.
+                  🛟 Aparelho com versão velha (ou clube que ele não conhece) não
+                  acha a chave e cai no 🎭 — nunca fica um balão vazio. */}
+              {e.kind.startsWith('masc:')
+                ? (() => {
+                  const art = MASCOTES[e.kind.slice(5)]
+                  if (!art) return <span className="text-lg leading-none">🎭</span>
+                  return (
+                    <span style={{ display: 'inline-block', width: 40, height: 44, position: 'relative', flex: 'none' }}>
+                      <span style={{ position: 'absolute', bottom: -2, left: '50%', transform: 'translateX(-50%) scale(.25)', transformOrigin: 'bottom center' }}>{art}</span>
+                    </span>
+                  )
+                })()
+                : <span className="text-lg leading-none">{e.kind}</span>}
               {/* alfinetada (frase) → nome de quem manda NA FRENTE; reação simples → "quem → carta" */}
               {/* cantada presa à carta: "Fulano → Romário: TÔ NESSE"; alfinetada solta: "Fulano: frase" */}
               <span className="text-xs font-black text-black truncate max-w-[70vw]" style={OSWALD}>{e.text ? <><span style={{ color: chatColor(m?.teamName || m?.name || who) }}>{who}{cn ? ` → ${cn}` : ''}:</span> {e.text}</> : <>{who}{cn ? ` → ${cn}` : ''}</>}</span>
@@ -2836,6 +2858,26 @@ function MoneyRain() {
   )
 }
 
+// 🐊 SOLTA A SUA MASCOTE — só pra quem tem clube batizado (a mascote vem do
+// cadastro do sócio, `mascoteKey`). Quem não tem, não vê botão nenhum: nada de
+// placeholder pra quem não comprou (régua do Diego).
+function MascoteJab() {
+  const { emote } = useEsc()
+  const soc = useMeuSocio()
+  const key = soc?.ativo && soc.mascoteKey && MASCOTES[soc.mascoteKey] ? soc.mascoteKey : null
+  if (!key) return null
+  return (
+    <button onClick={() => emote(`masc:${key}`, undefined, 'soltou o bicho! 🔊')}
+      className="mt-1.5 mx-auto flex items-center gap-2 border-2 rounded-full pl-1.5 pr-3 py-0.5 bg-white active:translate-y-0.5"
+      style={{ borderColor: PURPLE, boxShadow: `2px 2px 0 0 ${INK}` }}>
+      <span style={{ display: 'inline-block', width: 34, height: 30, position: 'relative', flex: 'none' }}>
+        <span style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%) scale(.17)', transformOrigin: 'bottom center' }}>{MASCOTES[key]}</span>
+      </span>
+      <span className="text-xs font-black text-black" style={OSWALD}>SOLTA A SUA MASCOTE</span>
+    </button>
+  )
+}
+
 // botãozinho de reação numa carta do leilão (blefe: não revela seu lance)
 function CardReact({ cardId }: { cardId: string }) {
   const { emote } = useEsc()
@@ -2844,17 +2886,19 @@ function CardReact({ cardId }: { cardId: string }) {
     <div className="relative">
       <button onClick={() => setOpen(o => !o)} aria-label="reagir"
         className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black leading-none">😏</button>
+      {/* 🛏️ DEITADO, não em pé (Diego 25/08). As três cantadas lado a lado, com
+          o rótulo curto embaixo do emoji — ocupa UMA linha e não tapa mais as
+          cartas de baixo. A frase inteira só aparece no balão da sala. */}
       {open && (
-        <div className="absolute right-0 top-9 z-30 flex flex-col gap-1 bg-white border-2 border-black rounded-lg p-1.5 w-48"
+        <div className="absolute right-0 top-9 z-30 flex gap-1.5 bg-white border-2 border-black rounded-xl p-1.5"
           style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
           {CANTADAS.map(c => (
             <button key={c.k} onClick={() => { emote(c.k, cardId, c.t); setOpen(false) }}
-              className="flex items-center gap-1.5 border border-black/15 rounded-md px-1.5 py-1 text-left active:bg-black/5">
-              <span className="text-lg leading-none">{c.k}</span>
-              {c.t && <span className="text-[11px] font-black text-black leading-tight" style={OSWALD}>{c.t}</span>}
+              className="border-2 border-black rounded-lg px-2 py-1 text-center bg-white active:translate-y-0.5 w-[62px]">
+              <span className="block text-lg leading-none">{c.k}</span>
+              <span className="block text-[7.5px] font-black text-black leading-tight mt-0.5" style={OSWALD}>{c.curto}</span>
             </button>
           ))}
-          <p className="text-[9px] font-bold text-black/40 text-center leading-tight">a sala toda vê… mas pode ser blefe 😏</p>
         </div>
       )}
     </div>
@@ -3045,6 +3089,14 @@ function Envelope() {
                     </button>
                   ))}
                 </div>
+                {/* 🐊 A MASCOTE MORA AQUI, e não na carta (decisão do Diego 25/08):
+                    *"os mascotes eu acho que só nos emojis onde tem contando moeda,
+                    lacra logo e etc"*. Faz sentido: a cantada da carta é sobre O
+                    JOGADOR, esta barra é sobre VOCÊ cutucando a galera — e a mascote
+                    é a sua cara. De brinde, esta barra só existe DEPOIS que você
+                    lacrou, então a mascote nunca pipoca na tela de quem ainda está
+                    decidindo o lance. */}
+                <MascoteJab />
               </div>
             )
           })()}
