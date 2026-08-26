@@ -3137,7 +3137,7 @@ export function EscLobby() {
             {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
                 (contagem compartilhada) e um som por vez na sala. */}
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {([['ligar', '📞', '"Posso te ligar agora?"'], ['meme2', '🎙️', 'AQUELE áudio'], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', 'Áudio novo'], ['jacare', '🐊', 'Jacaré'], ['bomdia', '☀️', 'Bom dia']] as [string, string, string][]).map(([k, ic, tx]) => (
+              {([['ligar', '📞', '"Posso te ligar agora?"'], ['meme2', '🎙️', 'AQUELE áudio'], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', 'Áudio novo'], ['jacare', '🐊', 'Silenciar aqui'], ['bomdia', '☀️', 'Bom dia']] as [string, string, string][]).map(([k, ic, tx]) => (
                 <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
                   style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>

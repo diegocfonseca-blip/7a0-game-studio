@@ -10379,3 +10379,8 @@ rótulo. A `dur` foi de 66500 pra 5800 ms.
 📌 A `dur` de cada áudio no cardápio é a duração **REAL medida com ffprobe** — ela é
 a trava de "um som por vez". Chutar pra menos faria dois áudios tocarem por cima um
 do outro. Quem for acrescentar áudio novo: **medir antes**.
+
+**26/08 — a legenda do botão do 🐊 virou "Silenciar aqui"** (pedido dele: *"coloque
+na legenda do áudio novo: Silenciar aqui"*). É pegadinha: o botão promete silenciar
+e solta o áudio pra sala toda. Só o TEXTO do botão mudou — o emoji 🐊 e o balão
+("soltou o áudio do jacaré") seguem iguais, porque ele pediu a legenda e mais nada.
