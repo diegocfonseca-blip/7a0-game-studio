@@ -10,6 +10,7 @@ import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from '
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
+import { tecnicoPorNome, poolDaDiv, PISO_TECNICO } from './tecnicos'
 import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -2981,6 +2982,9 @@ type Action =
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
+  | { type: 'ALICIAR_SEED' } // 🧢 semeia os técnicos dos clubes da SUA divisão (1ª visita à área de aliciar; idempotente)
+  | { type: 'ALICIAR_TECNICO'; clube: string; lance: number } // 🧢 leilão do técnico: você × rivais × clube dono. Resolve na hora, dança das cadeiras.
+  | { type: 'ALICIAR_JOGADOR'; mgrId: number; cardId: string; lance: number } // 🔎 (teste, só conta do Diego) leilão de jogador de clube da divisão: você × dono
   | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
@@ -5617,6 +5621,101 @@ export function reducer(state: EscState, action: Action): EscState {
       // (a tela manda o slot) — nunca reescreve fase que já apareceu na tela.
       mineCl[slotDaTroca(s, action.slot)] = bestXIids(suspensoIdF ? m.squad.filter(c => c.id !== suspensoIdF) : m.squad, action.formation)
       s.careerLineup = { ...(s.careerLineup ?? {}), [m.id]: mineCl }
+      return s
+    }
+    // ── 🧢 ALICIAR (26/08, em teste na conta do Diego — gate formacoes15On na UI) ──
+    case 'ALICIAR_SEED': {
+      // dá um técnico a cada clube CPU da sua divisão que ainda não tem, tirando
+      // do pool da divisão (tecnicos.ts) embaralhado pela semente da carreira.
+      // Idempotente: clube já semeado (mesmo com null de "ficou sem") não muda.
+      if (!s.careerOnline) return s
+      const div = s.careerDivision ?? 'D'
+      const map = { ...(s.careerTecnicos ?? {}) }
+      const usados = new Set(Object.values(map).filter((x): x is string => !!x))
+      const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
+      const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
+      for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
+      const clubes = s.managers.filter(m => !m.isHuman).map(m => m.teamName).sort()
+      let mudou = false
+      for (const c of clubes) if (!(c in map)) { map[c] = livres.shift() ?? null; mudou = true }
+      if (!mudou) return s
+      s.careerTecnicos = map
+      return s
+    }
+    case 'ALICIAR_TECNICO': {
+      // leilão instantâneo: você dá UM lance (≥ piso da categoria); o clube dono
+      // defende e rivais da divisão podem cobrir. Ninguém paga sem levar.
+      // Determinístico pela semente (nome+temporada) — recarregar não re-rola o dado.
+      if (!s.careerOnline) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const map = { ...(s.careerTecnicos ?? {}) }
+      const nome = map[action.clube]
+      if (!nome) return s
+      const t = tecnicoPorNome(nome)
+      if (!t) return s
+      const piso = PISO_TECNICO[t.div]
+      const coins = s.careerCoins?.[you.id] ?? 0
+      const lance = Math.floor(action.lance)
+      if (lance < piso || lance > coins) return s
+      let h = 0; for (const ch of nome + action.clube) h = (h * 31 + ch.charCodeAt(0)) | 0
+      const rng = mulberry(((s.seed ^ h) + s.seasonNo * 7919) | 0)
+      const donoMax = Math.round(piso * (1 + rng() * 1.1)) // o dono briga até ~2× o piso
+      let rivalTop: { clube: string; lance: number } | null = null
+      for (const r of s.managers) {
+        if (r.isHuman || r.teamName === action.clube) continue
+        if (rng() < 0.22) { const l = Math.round(piso * (0.9 + rng() * 1.3)); if (!rivalTop || l > rivalTop.lance) rivalTop = { clube: r.teamName, lance: l } }
+      }
+      const cpuTop = Math.max(donoMax, rivalTop?.lance ?? 0)
+      if (lance > cpuTop) {
+        // 🎉 seu! Dança das cadeiras: o clube que perdeu herda o seu técnico antigo
+        s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - lance }
+        const meuAntigo = map[you.teamName] ?? null
+        map[you.teamName] = nome
+        map[action.clube] = meuAntigo
+        s.careerTecnicos = map
+        s.aliciarLog = { titulo: `🔨 ${nome} é SEU!`, corpo: `Fechou por ${lance} 🪙 — o ${action.clube} defendeu até ${donoMax}${rivalTop ? ` e o ${rivalTop.clube} chegou a ${rivalTop.lance}` : ''}.${meuAntigo ? ` Na dança das cadeiras, ${meuAntigo} assumiu o ${action.clube}.` : ` O ${action.clube} ficou sem técnico por enquanto.`}`, venceu: true }
+      } else if (rivalTop && rivalTop.lance >= donoMax) {
+        const antigoDoRival = map[rivalTop.clube] ?? null
+        map[rivalTop.clube] = nome
+        map[action.clube] = antigoDoRival
+        s.careerTecnicos = map
+        s.aliciarLog = { titulo: `😤 O ${rivalTop.clube} te atropelou`, corpo: `Cobriu com ${rivalTop.lance} 🪙 (seu lance: ${lance}) e levou ${nome}. Você não pagou nada — junta moeda e volta pra briga.`, venceu: false }
+      } else {
+        s.aliciarLog = { titulo: `🧱 O ${action.clube} segurou`, corpo: `O clube cobriu com ${donoMax} 🪙 e ${nome} ficou onde está (seu lance: ${lance}). Nada foi cobrado de você.`, venceu: false }
+      }
+      return s
+    }
+    case 'ALICIAR_JOGADOR': {
+      // 🔎 teste fechado (só a conta do Diego vê o botão): leilão você × clube dono.
+      // Travas de segurança iguais às do jogo: sob contrato não sai, o clube nunca
+      // fica abaixo da formação na posição, e o seu lado respeita o teto de 2× a vaga.
+      if (!s.careerOnline) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const alvo = s.managers.find(m => m.id === action.mgrId && !m.isHuman)
+      if (!alvo) return s
+      const card = alvo.squad.find(c => c.id === action.cardId)
+      if (!card || card.fake || card.emprestado) return s
+      if (s.contratosOn && card.contratoAte != null && card.contratoAte >= s.seasonNo) return s
+      const contaPos = (sq: WonCard[], pos: Sector) => sq.filter(c => c.pos === pos && !c.fake).length
+      if (contaPos(alvo.squad, card.pos) - 1 < FORMATIONS[alvo.formation][card.pos]) return s // deixaria o clube manco
+      if (contaPos(you.squad, card.pos) >= FORMATIONS[you.formation][card.pos] * 2) return s // seu banco da posição já está cheio
+      const piso = valorOficial(s, card)
+      const coins = s.careerCoins?.[you.id] ?? 0
+      const lance = Math.floor(action.lance)
+      if (lance < piso || lance > coins) return s
+      let h = 0; for (const ch of card.id) h = (h * 31 + ch.charCodeAt(0)) | 0
+      const rng = mulberry(((s.seed ^ h) + s.seasonNo * 6271) | 0)
+      const donoMax = Math.round(piso * (1 + rng() * 0.9))
+      if (lance > donoMax) {
+        s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - lance }
+        alvo.squad = alvo.squad.filter(c => c.id !== card.id)
+        you.squad = [...you.squad, { ...card, paid: lance }]
+        s.aliciarLog = { titulo: `🔨 ${card.name} é SEU!`, corpo: `O ${alvo.teamName} defendeu até ${donoMax} 🪙, você fechou por ${lance}. Ele já aparece no seu elenco.`, venceu: true }
+      } else {
+        s.aliciarLog = { titulo: `🧱 O ${alvo.teamName} segurou`, corpo: `O clube cobriu com ${donoMax} 🪙 e ${card.name} ficou (seu lance: ${lance}). Nada foi cobrado.`, venceu: false }
+      }
       return s
     }
     case 'FORMATION_UNLOCK': {

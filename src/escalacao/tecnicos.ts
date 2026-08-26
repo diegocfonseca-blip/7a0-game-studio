@@ -64,6 +64,12 @@ export const FAIXA_POR_DIV: Record<DivTecnico, { lo: number; hi: number }> = {
   D: { lo: 68, hi: 80 },
   V: { lo: 55, hi: 70 },
 }
+// 💰 piso do leilão de aliciar, por categoria (na régua dos preços de jogador
+// da carreira: craque de leilão sai por 20-40 🪙). O lance começa no piso e o
+// clube dono + rivais brigam por cima.
+export const PISO_TECNICO: Record<DivTecnico, number> = { A: 25, B: 18, C: 12, D: 6, V: 2 }
+export const tecnicoPorNome = (nome: string): Tecnico | undefined => TECNICOS.find(t => t.nome === nome)
+export const poolDaDiv = (div: DivTecnico): Tecnico[] => TECNICOS.filter(t => t.div === div)
 // a ficha completa pra montar a CARTA do técnico (formato de carta de jogador)
 export function fichaDoTecnico(t: Tecnico): { fame: number; promessa: boolean; lo: number; hi: number; formacoes: string[] } {
   const faixa = FAIXA_POR_DIV[t.div]

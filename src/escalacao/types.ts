@@ -675,6 +675,14 @@ export interface EscState {
   careerTitlesA: number // títulos da SÉRIE A (viram estrelas ⭐ no escudo)
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira
   careerRivals: CareerRival[] // rivais fixos (vida própria na pirâmide)
+  // 🧢 TÉCNICOS da carreira (26/08, em teste na conta do Diego): clube → NOME do
+  // técnico (a ficha inteira — categoria/faixa/formações — vem de tecnicos.ts na
+  // hora, então atualização de nível pega de graça, igual sincronizaNiveis).
+  // Semeado por divisão na primeira visita à área de aliciar; null = clube ficou
+  // sem técnico (perdeu no leilão e não havia ninguém livre). Você começa SEM.
+  careerTecnicos?: Record<string, string | null>
+  // resultado do último leilão de aliciar (transiente, só pra tela contar a história)
+  aliciarLog?: { titulo: string; corpo: string; venceu: boolean }
   scorers: ScorerRow[] // artilharia acumulada da temporada
   assists?: AssistRow[] // 🅰️ garçons da temporada no modo RÁPIDO (24/08). Espelho da artilharia; ausente em save antigo = simplesmente não mostra nada.
   scorersPrev?: ScorerRow[] // 🙈 anti-spoiler (liga offline): foto da artilharia ANTES da rodada que está animando — a tela mostra esta até o apito

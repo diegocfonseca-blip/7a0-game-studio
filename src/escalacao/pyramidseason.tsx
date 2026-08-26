@@ -26,7 +26,9 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15 } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
+import { tecnicoPorNome, fichaDoTecnico, PISO_TECNICO, CATEGORIA_TECNICO_ROTULO } from './tecnicos'
+import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, ESTILO_ROTULO, formacaoAtual } from './formacoes'
 import type { EstiloFormacao } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
@@ -3239,6 +3241,184 @@ function GoldTeaser({ label, children }: { label: string; children: React.ReactN
 }
 
 const POS_SHORT: Record<Sector, string> = { GOL: 'goleiro', LAT: 'lateral', ZAG: 'zagueiro', MEI: 'meia', ATA: 'atacante' }
+
+// ── 🧢 TÉCNICOS — carta + aliciar (26/08, gate formacoes15On: só conta do Diego) ──
+// Visual: mockup-aliciar-tecnicos.mjs v3, aprovado. Regras do Diego:
+// · a carta do técnico usa o MESMO formato/cores da carta de jogador;
+// · no ALICIAR o overall NUNCA aparece — a faixa só abre quando o técnico é SEU,
+//   no elenco (e sob a mesma regra dos olheiros dos jogadores);
+// · aliciar = LEILÃO (você × rivais × clube dono), nunca compra direta.
+const TEC_GRAD: Record<DivTec, { grad: string; ink: string }> = {
+  A: { grad: 'linear-gradient(160deg,#FFE79A,#FFC400 60%,#D99E00)', ink: INK },
+  B: { grad: 'linear-gradient(160deg,#F4F7FB,#CBD4DE 55%,#9BA7B5)', ink: INK },
+  C: { grad: 'linear-gradient(160deg,#C9A9FF,#8B5CF6)', ink: '#fff' },
+  D: { grad: 'linear-gradient(160deg,#41C07A,#2E9E5B)', ink: '#fff' },
+  V: { grad: 'linear-gradient(160deg,#DBD1B5,#B2A583)', ink: INK },
+}
+const TEC_ESTILO: Record<string, string> = { retranca: '🛡️ Retranqueiro', posse: '🎩 Posse de bola', ofensiva: '⚽ Ofensivo', equilibrado: '⚖️ Equilibrado' }
+function CartaTecnico({ nome, mostraFaixa }: { nome: string; mostraFaixa?: boolean }) {
+  const t = tecnicoPorNome(nome)
+  if (!t) return null
+  const ficha = fichaDoTecnico(t)
+  const cor = TEC_GRAD[t.div]
+  // faixa lo–hi: SÓ no seu elenco, e na mesma regra dos olheiros das cartas de
+  // jogador (👑 vê tudo · ⭐ vê de craque pra baixo · resto não vê número).
+  const tier = myApoioPerk()?.tier
+  const veFaixa = !!mostraFaixa && (tier === 'ouro' || (tier === 'prata' && ficha.fame < 5))
+  return (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 14, background: cor.grad, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 11px', color: cor.ink }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', borderRadius: 7, padding: '1px 7px' }}>TEC</span>
+        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, opacity: .8, letterSpacing: '.06em', textTransform: 'uppercase' }}>{CATEGORIA_TECNICO_ROTULO[t.div]}</span>
+      </div>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16.5, margin: '4px 0 0', lineHeight: 1.1 }}>{t.nome} <span style={{ fontSize: 12 }}>{t.pais}</span></p>
+      <p style={{ fontSize: 10, fontWeight: 800, opacity: .8, margin: '2px 0 0' }}>{TEC_ESTILO[t.estilo]}{veFaixa ? ` · 📊 ${ficha.lo}–${ficha.hi}` : ''}</p>
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 7 }}>
+        {ficha.formacoes.map(f => (
+          <span key={f} style={{ ...OSWALD, fontWeight: 800, fontSize: 9.5, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 7px', background: 'rgba(255,255,255,.85)', color: INK }}>{f}</span>
+        ))}
+      </div>
+      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{CATEGORIA_TECNICO_ROTULO[t.div]} = {ficha.formacoes.length} esquema{ficha.formacoes.length > 1 ? 's' : ''} — as formações que ele usa de verdade.</p>
+    </div>
+  )
+}
+// stepper simples de lance (piso..teto). Sem digitação: menos jeito de dar ruim no celular.
+function LanceStepper({ v, piso, teto, onSet }: { v: number; piso: number; teto: number; onSet: (n: number) => void }) {
+  const btn = (rot: string, d: number): ReactNode => (
+    <button key={rot} onClick={() => onSet(Math.max(piso, Math.min(teto, v + d)))}
+      style={{ border: `2.5px solid ${INK}`, borderRadius: 9, background: '#fff', fontWeight: 900, fontSize: 12, ...OSWALD, padding: '5px 9px', cursor: 'pointer' }}>{rot}</button>
+  )
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+      {btn('−5', -5)}{btn('−1', -1)}
+      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 17, minWidth: 64, textAlign: 'center', background: '#fff', border: `3px solid ${INK}`, borderRadius: 10, padding: '4px 8px' }}>💰 {v}</span>
+      {btn('+1', 1)}{btn('+5', 5)}
+    </div>
+  )
+}
+function AliciarSection({ mgr, col }: { mgr: Manager; col: FCol }) {
+  const { state, dispatch } = useEsc()
+  const jogadorOn = useAliciarJogador() // 🔒 área de jogador: teste fechado à parte
+  const [aberto, setAberto] = useState<string | null>(null)
+  const [lance, setLance] = useState(0)
+  const [selJog, setSelJog] = useState<string | null>(null)
+  const [lanceJog, setLanceJog] = useState(0)
+  // semeia os técnicos da divisão na primeira visita (idempotente; vai pro save)
+  useEffect(() => { dispatch({ type: 'ALICIAR_SEED' }) }, [dispatch, state.careerDivision])
+  const map = state.careerTecnicos ?? {}
+  const meu = map[mgr.teamName] ?? null
+  const coins = state.careerCoins?.[mgr.id] ?? 0
+  const rivais = new Set((state.careerRivals ?? []).map(r => r.team))
+  const clubes = state.managers.filter(m => !m.isHuman).slice().sort((a, b) => a.teamName.localeCompare(b.teamName))
+  const divRot = state.careerDivision === 'V' ? 'Várzea' : `Série ${state.careerDivision ?? '?'}`
+  const log = state.aliciarLog
+  return (
+    <div style={{ marginTop: 14 }}>
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 6px', color: INK, textTransform: 'uppercase', letterSpacing: '.08em' }}>🧢 Técnico</p>
+      {meu
+        ? <CartaTecnico nome={meu} mostraFaixa />
+        : (
+          <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
+            <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot} têm — alicia um aqui embaixo. O time joga normal sem técnico; a carta é um reforço a mais e traz as formações dela.</p>
+          </div>
+        )}
+      {log && (
+        <div style={{ border: `3px solid ${log.venceu ? GREEN : '#C2452F'}`, borderRadius: 12, background: log.venceu ? '#E9F9EF' : '#FDEEEA', padding: '9px 11px', marginTop: 8 }}>
+          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0, color: log.venceu ? GREEN : '#C2452F' }}>{log.titulo}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, margin: '2px 0 0', lineHeight: 1.4, color: INK }}>{log.corpo}</p>
+        </div>
+      )}
+      <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🔎 Aliciar · {divRot}</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube pra ver o <b>técnico</b> dele — quem você aliciar vai pro <b>LEILÃO</b> (você × seus rivais × o dono). Nada de compra direta.</p>
+      {clubes.map(c => {
+        const nome = map[c.teamName] ?? null
+        const ehRival = rivais.has(c.teamName)
+        const t = nome ? tecnicoPorNome(nome) : undefined
+        const piso = t ? PISO_TECNICO[t.div] : 0
+        const abertoAqui = aberto === c.teamName
+        return (
+          <div key={c.teamName} style={{ marginBottom: 7 }}>
+            <button onClick={() => { setAberto(abertoAqui ? null : c.teamName); setSelJog(null); if (t) setLance(Math.max(piso, Math.min(coins, piso))) }}
+              style={{ width: '100%', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 12.5, border: `3px solid ${INK}`, borderRadius: 12, background: ehRival ? '#FFF3C4' : '#fff', boxShadow: `2.5px 2.5px 0 0 ${INK}`, padding: '9px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: INK }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}</span>
+              <span style={{ fontSize: 10, opacity: .55, flex: 'none' }}>{abertoAqui ? '▾' : '›'}</span>
+            </button>
+            {abertoAqui && (
+              <div style={{ border: `3px solid ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
+                {nome && t ? (
+                  <>
+                    {/* 🙈 regra do Diego (26/08): NO ALICIAR o overall fica escondido —
+                        mostraFaixa ausente. A faixa só abre quando o técnico é SEU. */}
+                    <CartaTecnico nome={nome} />
+                    <div style={{ marginTop: 9 }}>
+                      <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '0 0 5px', textAlign: 'center' }}>Piso da categoria: <b>💰 {piso}</b> · sua caixa: <b>🪙 {coins}</b></p>
+                      {coins >= piso ? (
+                        <>
+                          <LanceStepper v={lance} piso={piso} teto={coins} onSet={setLance} />
+                          <button onClick={() => dispatch({ type: 'ALICIAR_TECNICO', clube: c.teamName, lance })}
+                            style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>🔨 Aliciar pro leilão</button>
+                          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.4 }}>Vai pro pregão: <b>você × seus rivais × o {c.teamName}</b> (o dono briga pra segurar). Só paga quem LEVA — e, levando, os técnicos <b>trocam de clube</b>.</p>
+                        </>
+                      ) : (
+                        <p style={{ fontSize: 10.5, fontWeight: 800, color: '#C2452F', margin: 0, textAlign: 'center' }}>Sua caixa não cobre o piso ({piso} 🪙) — faça caixa e volte.</p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center' }}>😶 Este clube está SEM técnico no momento.</p>
+                )}
+                {jogadorOn && (
+                  <div style={{ border: '3px dashed #7C3AED', borderRadius: 14, padding: '9px 10px', marginTop: 11, background: 'rgba(124,58,237,.06)' }}>
+                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: '#7C3AED', margin: '0 0 5px' }}>🔒 Só você vê (teste da sua conta) · Jogadores</p>
+                    {SECTORS.map(pos => {
+                      const cs = c.squad.filter(x => x.pos === pos && !x.fake && !x.emprestado)
+                      if (!cs.length) return null
+                      return (
+                        <div key={pos}>
+                          <p style={{ ...OSWALD, fontWeight: 800, fontSize: 9, textTransform: 'uppercase', color: GREEN, opacity: .85, margin: '6px 0 2px' }}>{POS_LABEL[pos]}</p>
+                          {cs.map(x => {
+                            const preso = !!state.contratosOn && x.contratoAte != null && x.contratoAte >= state.seasonNo
+                            const pisoJ = valorOficial(state, x)
+                            const selAqui = selJog === x.id
+                            return (
+                              <div key={x.id}>
+                                <div onClick={() => { if (!preso) { setSelJog(selAqui ? null : x.id); setLanceJog(Math.max(pisoJ, Math.min(coins, pisoJ))) } }}
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : selAqui ? '#FFF6D6' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: preso ? .5 : 1, cursor: preso ? 'default' : 'pointer' }}>
+                                  <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
+                                    <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: preso ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? '🔒 contrato' : '+ aliciar'}</span></span>
+                                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10.5, color: '#5a5647', flex: 'none' }}>💰 {pisoJ}</span>
+                                </div>
+                                {selAqui && (
+                                  <div style={{ padding: '6px 4px 9px' }}>
+                                    {coins >= pisoJ ? (
+                                      <>
+                                        <LanceStepper v={lanceJog} piso={pisoJ} teto={coins} onSet={setLanceJog} />
+                                        <button onClick={() => { dispatch({ type: 'ALICIAR_JOGADOR', mgrId: c.id, cardId: x.id, lance: lanceJog }); setSelJog(null) }}
+                                          style={{ width: '100%', marginTop: 7, ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 11, boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 0', cursor: 'pointer' }}>🔨 Aliciar {x.name}</button>
+                                      </>
+                                    ) : <p style={{ fontSize: 10, fontWeight: 800, color: '#C2452F', margin: 0, textAlign: 'center' }}>Caixa não cobre o valor ({pisoJ} 🪙).</p>}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    })}
+                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Linha igual à do Elenco: <b>nome + 💰 valor</b> — sem faixa de nível. Sob contrato não sai, o clube nunca fica manco na posição, e o seu lado respeita o teto do banco.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0 0' }}>⚔️ = rival seu · as outras divisões ficam no mistério</p>
+    </div>
+  )
+}
+
 function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
   const quinze15 = useFormacoes15() // 🎭 15 formações: por enquanto só a conta do Diego
   const need = FORMATIONS[mgr.formation]
@@ -3398,6 +3578,8 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         )
       })}
       </>)}
+      {/* 🧢 técnicos + aliciar — 26/08, só na aba Elenco e só conta liberada */}
+      {elenco && quinze15 && <AliciarSection mgr={mgr} col={col} />}
     </div>
   )
 }

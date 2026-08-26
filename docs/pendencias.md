@@ -10536,5 +10536,17 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       desceu pra C (contrapartida sugerida, Diego pode trocar).
 - [ ] Diego testar na conta dele (carreira → aba Elenco) e revisar os ⚠️ chutes
       de ESTILO (46 — agora só tempero da carta, as formações vêm do repertório)
-- [ ] Codar o aliciar no Elenco (técnico pra todos · jogador só pra conta do Diego) —
-      carta do técnico no formato de carta de jogador, leilão você × rivais × dono
+- [x] Aliciar v1 NO AR (26/08, gate formacoes15On — só conta do Diego): na aba
+      Elenco da carreira, seção 🧢 Técnico (sua carta COM faixa, regra dos
+      olheiros) + 🔎 Aliciar por clube da divisão (carta SEM overall — regra do
+      Diego: faixa só quando é seu) + leilão instantâneo você × rivais × dono com
+      dança das cadeiras (ALICIAR_SEED/ALICIAR_TECNICO em store.tsx; técnicos por
+      clube em state.careerTecnicos, só o NOME — ficha vem de tecnicos.ts). Área
+      de JOGADOR (gate à parte useAliciarJogador, só Diego): leilão você × dono
+      com travas (contrato não sai · clube nunca fica manco · teto 2× a vaga).
+- [ ] Técnico v2: entrar no MOTOR como 12ª carta (sorteio lo–hi por partida,
+      stream de rng PRÓPRIO pra não mexer nos placares determinísticos) e as
+      formações do técnico valerem no seletor. HOJE a carta é só contratação/
+      coleção — não muda jogo nem formações ainda (dito ao Diego).
+- [ ] Identidade clube·ano na carta do técnico (igual jogador) — precisa o Diego
+      dizer/aprovar o clube marcante de cada um (regra da pessoa real)
