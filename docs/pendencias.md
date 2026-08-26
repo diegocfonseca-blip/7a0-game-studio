@@ -10485,3 +10485,16 @@ que leva craque e leva o Saci.
       baralho EXTRA — é o mais autoral dos três e não depende de referência nenhuma.
 
 ⚠️ Nada disso está no código ainda. **É rascunho escrito.** O futebol não foi tocado.
+
+## 🪪 CRAQUE DO TAVARES13 — e-mail errado no painel (26/08) ✅ RESOLVIDO NO BANCO
+O Diego deu craque (prata ⭐) pra `guilhermeabreu66@gmail.com` pelo painel — o tier
+GRAVOU certinho no `user_colors`, mas **não existe conta com esse e-mail** (conferido
+em auth.users): o presente ficou apontando pro vazio, e o usuário reclamou que "não
+foi". O time dele é **Tavares13** → a conta real é `carlosabreu2122@gmail.com`
+(cadastro 13/08; único Tavares13 do jogo — e é um e-mail "abreu" também, daí a
+confusão). A linha do `user_colors` foi MOVIDA pro e-mail certo (tier prata,
+manual=true). Nenhuma linha órfã sobrou.
+
+📌 **Lição pro painel:** dar tier pra e-mail que não existe "funciona" em silêncio.
+Ideia barata pra depois (não feita): o painel avisar "⚠️ esse e-mail nunca logou no
+jogo" na hora de salvar — mataria essa classe de suporte.
