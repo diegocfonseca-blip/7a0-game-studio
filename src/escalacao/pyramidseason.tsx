@@ -29,7 +29,7 @@ import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
 import { tecnicoPorNome, fichaDoTecnico, PISO_TECNICO, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
-import { FORMACOES15, ESTILO_ROTULO, formacaoAtual } from './formacoes'
+import { FORMACOES15, ESTILO_ROTULO, formacaoAtual, formacaoPorRotulo } from './formacoes'
 import type { EstiloFormacao } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
@@ -2562,6 +2562,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
 function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG, awayG, youIsHome, onConfirm, suspensoId }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void; suspensoId?: string }) {
   const quinze15 = useFormacoes15() // 🎭 15 formações: contas novas no intervalo (só conta liberada)
+  const { state: escStH } = useEsc() // só leitura (cardápio de formações do SEU técnico)
   const [formation, setFormation] = useState<FormationKey>(mgr.formation)
   const [tactic, setTactic] = useState<Tac>(baseTactic)
   const [baseline, setBaseline] = useState<string[]>(baseXIids) // conta as trocas contra isto (reinicia se troca formação)
@@ -2638,11 +2639,19 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
           {/* formação */}
           <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>🎽 Formação</p>
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
-            {/* 🎭 conta liberada nas 15 formações: o intervalo também oferece as 2
-                contas novas (4-2-4/5-4-1) — senão quem entrou com elas não conseguia
-                voltar depois de trocar. Aqui é sempre a CONTA do motor (sem maquiagem:
-                intervalo é ajuste rápido, o desenho fino fica pra aba Elenco). */}
-            {([...(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]), ...(quinze15 ? (['4-2-4', '5-4-1'] as FormationKey[]).filter(f => f === mgr.formation) : [])]).map(f => {
+            {/* 🧢 conta liberada nas 15: o intervalo segue o MESMO cardápio do
+                seletor — com técnico, as contas DELE (+ a atual); sem técnico, as 5
+                de sempre (+ a atual, se for conta nova). Aqui é sempre a CONTA do
+                motor (sem maquiagem: intervalo é ajuste rápido). */}
+            {((): FormationKey[] => {
+              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]
+              if (!quinze15) return base
+              const nomeT = escStH.careerTecnicos?.[mgr.teamName]
+              const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
+              if (!tt) return [...new Set<FormationKey>([...base, mgr.formation])]
+              const motores = fichaDoTecnico(tt).formacoes.map(r => formacaoPorRotulo(r)?.motor).filter((m): m is FormationKey => !!m)
+              return [...new Set<FormationKey>([...motores, mgr.formation])]
+            })().map(f => {
               const cur = formation === f, can = cur || missFor(f).length === 0
               return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? INK : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
             })}
@@ -3377,6 +3386,18 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                     <CartaTecnico nome={nome} />
                     <div style={{ marginTop: 9 }}>
                       <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '0 0 5px', textAlign: 'center' }}>Piso da categoria: <b>💰 {piso}</b> · sua caixa: <b>🪙 {coins}</b></p>
+                      {(() => {
+                        // ⚠️ aviso de cardápio (regra do Diego): contratou, joga as formações DELE.
+                        const at = formacaoAtual(mgr)
+                        const dele = new Set(fichaDoTecnico(t).formacoes)
+                        return (
+                          <p style={{ fontSize: 9.5, fontWeight: 700, color: dele.has(at.rotulo) ? '#2E7D46' : '#B8860B', margin: '0 0 7px', lineHeight: 1.4, background: 'rgba(255,255,255,.7)', border: `2px dashed ${INK}`, borderRadius: 9, padding: '5px 8px' }}>
+                            {dele.has(at.rotulo)
+                              ? <>✅ Contratando, você passa a jogar com as formações DELE — e a sua atual (<b>{at.rotulo}</b>) está entre elas.</>
+                              : <>⚠️ Contratando, você passa a jogar com as formações DELE — e ele <b>não usa a sua atual ({at.rotulo})</b>. Sem drama: ela continua valendo até você trocar; trocou, ela tranca.</>}
+                          </p>
+                        )
+                      })()}
                       {coins >= piso ? (
                         <>
                           <LanceStepper v={lance} piso={piso} teto={coins} onSet={setLance} />
@@ -3484,14 +3505,17 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         // todo o resto, as 5 de sempre — byte a byte como era.
         if (quinze15) {
           const atual = formacaoAtual(mgr)
-          // 🧢 v2 (26/08): as 5 de SEMPRE são de todo mundo; as outras 10 são do
-          // TÉCNICO — só destravam se o SEU técnico usa (fichaDoTecnico). A atual
-          // nunca tranca (trocar de técnico não quebra time escalado).
+          // 🧢 v3 (pedido do Diego 26/08: "quando contrato um técnico, só poderei
+          // usar as formações daquele técnico"): COM técnico, o cardápio é SÓ o
+          // dele. SEM técnico, as 5 de sempre. E a regra anti-novela dele: a
+          // formação ATUAL nunca tranca — se o time não bate com as do técnico,
+          // você segue jogando como está até conseguir trocar. Nada quebra na
+          // contratação, nunca entra perna-de-pau.
           const BASE5 = new Set(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'])
           const meuTecN = escSt.careerTecnicos?.[mgr.teamName] ?? null
           const meuTecT = meuTecN ? tecnicoPorNome(meuTecN) : undefined
           const doTec = new Set(meuTecT ? fichaDoTecnico(meuTecT).formacoes : [])
-          const liberada = (rot: string) => BASE5.has(rot) || doTec.has(rot) || rot === atual.rotulo
+          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) : BASE5.has(rot)) || rot === atual.rotulo
           const bloqueadas = FORMACOES15.filter(f => f.rotulo !== atual.rotulo && liberada(f.rotulo) && missFor(f.motor).length > 0)
           return (
             <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
@@ -3504,7 +3528,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
                       const cur = atual.rotulo === f.rotulo
                       const lib = liberada(f.rotulo)
                       const can = cur || (lib && missFor(f.motor).length === 0)
-                      const doTecnico = lib && !BASE5.has(f.rotulo) && doTec.has(f.rotulo)
+                      const doTecnico = lib && !!meuTecT && doTec.has(f.rotulo)
                       return (
                         <button key={f.rotulo} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
                           style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5, ...(lib ? {} : { background: '#efe9d8', color: '#b8b2a4' }) }}>
@@ -3518,7 +3542,9 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
               {bloqueadas.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
                 : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
-              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>🔒 = formação de TÉCNICO: alicia um que use ela (🧢 lá no fim da aba) e ela destrava aqui.{doTec.size ? ' 🧢 = liberada pelo seu técnico.' : ''}</p>
+              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>{meuTecT
+                ? <>🧢 Com técnico, o time joga as formações <b>DELE</b>.{doTec.has(atual.rotulo) ? '' : <> A sua atual (<b>{atual.rotulo}</b>) segue valendo até você trocar — trocou, ela tranca.</>} 🔒 = seu técnico não usa.</>
+                : <>🔒 = formação de TÉCNICO: alicia um que use ela (🧢 lá no fim da aba). Sem técnico, valem as 5 de sempre.</>}</p>
             </div>
           )
         }

@@ -10551,10 +10551,13 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       placar byte a byte idêntico ao de antes, e contratação no meio da temporada
       só vale da rodada em diante (`careerTecnicosDesde` — placar visto nunca
       muda). Vale na LIGA; Copa/mata-mata ainda sem técnico (anotado abaixo).
-      E o seletor de formações agora é TRAVADO pelo técnico: as 5 de sempre são de
-      todos; as outras 10 só destravam se o SEU técnico usa (🔒/🧢 no seletor;
-      a formação atual nunca tranca). Intervalo: 4-2-4/5-4-1 só aparecem se você
-      já está nelas.
+      E o seletor de formações é TRAVADO pelo técnico — regra v3 (Diego 26/08:
+      "quando contrato um técnico, só poderei usar as formações daquele técnico"):
+      COM técnico o cardápio é SÓ o dele; SEM técnico, as 5 de sempre. Anti-novela
+      combinada com ele: a formação ATUAL nunca tranca — se o elenco não bate com
+      as do técnico, segue jogando como está até conseguir trocar (trocou, ela
+      tranca). O aliciar AVISA antes do lance se o técnico não usa a sua atual
+      (dashed ✅/⚠️). Intervalo segue o mesmo cardápio (as do técnico + a atual).
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.
