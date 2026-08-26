@@ -10360,3 +10360,27 @@ fake; agora filtram.
 - 📸 **Nenhum print da tela real**: o robô do Playwright não conseguiu atravessar
   o pregão até a Cerimônia (dicas de primeira partida + timers). A conta está
   testada; **falta olho humano na tela** — pedir print ao Diego.
+
+### 🔊 SALA DE ESPERA: 6 ÁUDIOS (Diego, 25/08) — ✅ APROVADO E PUBLICADO
+Ele mandou dois arquivos e pediu **🐊 no que começa com `share22`** e o texto
+**"bom dia"** no outro. Viraram `public/sfx/jacare.mp3` e `public/sfx/bom-dia.mp3`,
+mais duas entradas no cardápio da buzina (`lobby.tsx`) e dois botões na fileira —
+de 4 para **6 áudios**. O ☀️ do bom dia foi escolha minha (ele só pediu o texto) e
+está avisado.
+
+⚠️ **O jacaré tinha 1min06**, contra 3–17 s dos outros. Como a sala toca **um som por
+vez**, enquanto ele rolava ninguém mais soltava áudio. Levantei isso e ofereci cortar;
+a resposta na hora foi *"Deixe o áudio todo"*.
+✅ **RESOLVIDO EM 26/08:** ele mandou **outro arquivo** pro mesmo botão
+(*"coloque esse aqui no lugar do áudio q tem emoji do jacaré"*) — o novo tem **5,7 s**.
+O emoji 🐊 e o texto continuam os mesmos, porque ele pediu troca de ÁUDIO, não de
+rótulo. A `dur` foi de 66500 pra 5800 ms.
+
+📌 A `dur` de cada áudio no cardápio é a duração **REAL medida com ffprobe** — ela é
+a trava de "um som por vez". Chutar pra menos faria dois áudios tocarem por cima um
+do outro. Quem for acrescentar áudio novo: **medir antes**.
+
+**26/08 — a legenda do botão do 🐊 virou "Silenciar aqui"** (pedido dele: *"coloque
+na legenda do áudio novo: Silenciar aqui"*). É pegadinha: o botão promete silenciar
+e solta o áudio pra sala toda. Só o TEXTO do botão mudou — o emoji 🐊 e o balão
+("soltou o áudio do jacaré") seguem iguais, porque ele pediu a legenda e mais nada.
