@@ -10360,3 +10360,19 @@ fake; agora filtram.
 - 📸 **Nenhum print da tela real**: o robô do Playwright não conseguiu atravessar
   o pregão até a Cerimônia (dicas de primeira partida + timers). A conta está
   testada; **falta olho humano na tela** — pedir print ao Diego.
+
+### 🔊 SALA DE ESPERA: 6 ÁUDIOS (Diego, 25/08) — ✅ APROVADO E PUBLICADO
+Ele mandou dois arquivos e pediu **🐊 no que começa com `share22`** e o texto
+**"bom dia"** no outro. Viraram `public/sfx/jacare.mp3` e `public/sfx/bom-dia.mp3`,
+mais duas entradas no cardápio da buzina (`lobby.tsx`) e dois botões na fileira —
+de 4 para **6 áudios**. O ☀️ do bom dia foi escolha minha (ele só pediu o texto) e
+está avisado.
+
+⚠️ **O jacaré tem 1min06**, contra 3–17 s dos outros. Como a sala toca **um som por
+vez**, enquanto ele rola ninguém mais solta áudio. Levantei isso e ofereci cortar
+pros ~10 s da piada; resposta dele: **"Deixe o áudio todo"**. Fica inteiro, por
+decisão dele.
+
+📌 A `dur` de cada áudio no cardápio é a duração **REAL medida com ffprobe** — ela é
+a trava de "um som por vez". Chutar pra menos faria dois áudios tocarem por cima um
+do outro. Quem for acrescentar áudio novo: **medir antes**.
