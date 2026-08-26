@@ -741,7 +741,7 @@ export function EscLobby() {
       // 🐊☀️ os dois que o Diego mandou em 25/08. A `dur` é a duração REAL medida no
       // arquivo (ffprobe) — ela é a trava de "um som por vez na sala", então chutar
       // pra menos deixaria dois áudios tocando por cima um do outro.
-      jacare: { file: 'jacare.mp3', dur: 66500, emoji: '🐊', balao: 'soltou o áudio do jacaré 🐊🔊' },
+      jacare: { file: 'jacare.mp3', dur: 5800, emoji: '🐊', balao: 'soltou o áudio do jacaré 🐊🔊' }, // 26/08: o Diego trocou o arquivo (era 1min06, agora 5,7s)
       bomdia: { file: 'bom-dia.mp3', dur: 27700, emoji: '☀️', balao: 'mandou um BOM DIA pra sala ☀️🔊' },
     }
     const s = lib[key] ?? lib.ligar
