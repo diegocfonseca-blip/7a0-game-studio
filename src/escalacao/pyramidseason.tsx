@@ -26,7 +26,9 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15 } from './sport'
+import { FORMACOES15, ESTILO_ROTULO, formacaoAtual } from './formacoes'
+import type { EstiloFormacao } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
@@ -2533,6 +2535,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
 function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG, awayG, youIsHome, onConfirm, suspensoId }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void; suspensoId?: string }) {
+  const quinze15 = useFormacoes15() // 🎭 15 formações: contas novas no intervalo (só conta liberada)
   const [formation, setFormation] = useState<FormationKey>(mgr.formation)
   const [tactic, setTactic] = useState<Tac>(baseTactic)
   const [baseline, setBaseline] = useState<string[]>(baseXIids) // conta as trocas contra isto (reinicia se troca formação)
@@ -2609,7 +2612,11 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
           {/* formação */}
           <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>🎽 Formação</p>
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
-            {(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).map(f => {
+            {/* 🎭 conta liberada nas 15 formações: o intervalo também oferece as 2
+                contas novas (4-2-4/5-4-1) — senão quem entrou com elas não conseguia
+                voltar depois de trocar. Aqui é sempre a CONTA do motor (sem maquiagem:
+                intervalo é ajuste rápido, o desenho fino fica pra aba Elenco). */}
+            {([...(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]), ...(quinze15 ? (['4-2-4', '5-4-1'] as FormationKey[]) : [])]).map(f => {
               const cur = formation === f, can = cur || missFor(f).length === 0
               return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? INK : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
             })}
@@ -2979,6 +2986,39 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     { key: 'DEF', cards: defense },
     { key: 'GOL', cards: xiOf('GOL') },
   ]
+  // 🎭 15 FORMAÇÕES (só conta liberada): o campinho desenha a formação VISÍVEL
+  // (losango, alas, líbero…) com FAIXAS FIXAS — goleiro, zaga e ataque sempre na
+  // mesma altura, só o miolo redistribui (padrão do Diego, mockup campinhos-v5).
+  // Sem a trava, nada disto roda e o campinho fica byte a byte como era.
+  const quinze = useFormacoes15()
+  const fView = quinze ? formacaoAtual(mgr) : null
+  const meis = xiOf('MEI')
+  const recuadoIds = new Set<string>() // alas do 3-5-2 / líbero: descem um tiquinho
+  let meioRows: WonCard[][] = [meis]
+  let defRow = defense
+  if (fView) {
+    if (fView.alas) {
+      // 3-5-2: os laterais DE VERDADE sobem pro miolo como alas (recuados) e a
+      // zaga fica só com os zagueiros — a régua do Diego: ala é lateral.
+      meioRows = [[...(lats[0] ? [lats[0]] : []), ...meis, ...(lats[1] ? [lats[1]] : [])]]
+      for (const l of lats) if (l) recuadoIds.add(l.id)
+      defRow = xiOf('ZAG')
+    } else if (fView.meio) {
+      // miolo em linhas (losango, árvore de Natal…), de cima pra baixo; se a
+      // conta não fechar (elenco estranho), a sobra cai na última linha — nunca
+      // some jogador do desenho.
+      meioRows = []
+      let i = 0
+      for (const n of fView.meio) { meioRows.push(meis.slice(i, i + n)); i += n }
+      if (i < meis.length && meioRows.length) meioRows[meioRows.length - 1].push(...meis.slice(i))
+      meioRows = meioRows.filter(r => r.length)
+      if (!meioRows.length) meioRows = [meis]
+    }
+    if (fView.libero) {
+      const zags = xiOf('ZAG')
+      if (zags[1]) recuadoIds.add(zags[1].id) // o zagueiro do MEIO vira o líbero
+    }
+  }
   const reserves = mgr.squad.filter(c => !xiIds.has(c.id)).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || mid(b) - mid(a))
   const titulares = SECTORS.flatMap(pos => xiOf(pos)) // mesma ordem da lista de reservas (GOL→ATA)
   // linha compartilhada titular/reserva: no campinho o nome já mal cabe, então o
@@ -3039,31 +3079,56 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
             A troca por toque continua igual: toca num, acende os da mesma
             posição — o anel dourado/verde saiu da borda da ficha e foi pra
             volta da bolinha. */}
-        <div style={{ padding: '16px 5px 18px', display: 'flex', flexDirection: 'column', gap: 14, background: `repeating-linear-gradient(180deg, ${GREEN} 0 44px, #166332 44px 88px)` }}>
-          {rows.map(r => (
-            // 🥅 linha ÚNICA por setor (nunca quebra): a defesa tem 4 (LAT-ZAG-ZAG-LAT)
-            // e no celular a 4ª "pulava" pra baixo, parecendo formação errada.
-            <div key={r.key} style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 5, flexWrap: 'nowrap' }}>
-              {r.cards.map(c => (
-                <JogadorNoCampo
-                  key={c.id}
-                  nome={c.name}
-                  clube={c.club}
-                  ano={c.year}
-                  tag={c.pos}
-                  gols={goalsOf(c)}
-                  assist={assistsOf(c)}
-                  alt={64}
-                  fonteNome={11}
-                  estado={stateOf(c) as EstadoJogador}
-                  onClick={onTap ? () => onTap(c.id) : undefined}
-                  mantoCss={manto ? mantoStripes(manto, 6, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : null}
-                  extra={c.emprestado ? <EmpTag mini /> : undefined}
-                />
-              ))}
+        {(() => {
+          const peca = (c: WonCard) => {
+            const j = (
+              <JogadorNoCampo
+                key={c.id}
+                nome={c.name}
+                clube={c.club}
+                ano={c.year}
+                tag={c.pos}
+                gols={goalsOf(c)}
+                assist={assistsOf(c)}
+                alt={64}
+                fonteNome={11}
+                estado={stateOf(c) as EstadoJogador}
+                onClick={onTap ? () => onTap(c.id) : undefined}
+                mantoCss={manto ? mantoStripes(manto, 6, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : null}
+                extra={c.emprestado ? <EmpTag mini /> : undefined}
+              />
+            )
+            // recuo sutil (alas do 3-5-2 / líbero) — só um deslocamento de desenho,
+            // a troca por toque continua funcionando igual
+            return recuadoIds.has(c.id) ? <div key={c.id} style={{ transform: 'translateY(14px)' }}>{j}</div> : j
+          }
+          // 🥅 linha ÚNICA por setor (nunca quebra): a defesa tem 4 (LAT-ZAG-ZAG-LAT)
+          // e no celular a 4ª "pulava" pra baixo, parecendo formação errada.
+          const linha = (key: string, cards: WonCard[]) => (
+            <div key={key} style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 5, flexWrap: 'nowrap' }}>
+              {cards.map(peca)}
             </div>
-          ))}
-        </div>
+          )
+          const fundo = `repeating-linear-gradient(180deg, ${GREEN} 0 44px, #166332 44px 88px)`
+          if (!fView) return (
+            <div style={{ padding: '16px 5px 18px', display: 'flex', flexDirection: 'column', gap: 14, background: fundo }}>
+              {rows.map(r => linha(r.key, r.cards))}
+            </div>
+          )
+          // 🎭 15 formações: campo com ALTURA PADRÃO e faixas fixas (goleiro, zaga
+          // e ataque sempre no mesmo lugar; o miolo se espalha na faixa do meio) —
+          // o campo nunca muda de tamanho ao trocar de formação.
+          return (
+            <div style={{ padding: '16px 5px 18px', minHeight: 620, display: 'flex', flexDirection: 'column', background: fundo }}>
+              {linha('ATA', rows[0].cards)}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
+                {meioRows.map((r, i) => linha(`MEIO${i}`, r))}
+              </div>
+              <div style={{ marginBottom: 18 }}>{linha('DEF', defRow)}</div>
+              {linha('GOL', rows[3].cards)}
+            </div>
+          )
+        })()}
       </div>
       {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
           temporada. Fica aqui em cima das listas pra você ver o custo de relance. */}
@@ -3174,7 +3239,8 @@ function GoldTeaser({ label, children }: { label: string; children: React.ReactN
 }
 
 const POS_SHORT: Record<Sector, string> = { GOL: 'goleiro', LAT: 'lateral', ZAG: 'zagueiro', MEI: 'meia', ATA: 'atacante' }
-function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
+function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
+  const quinze15 = useFormacoes15() // 🎭 15 formações: por enquanto só a conta do Diego
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -3208,6 +3274,38 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         const real = mgr.squad.filter(c => !c.fake)
         const availByPos = (pos: Sector) => real.filter(c => c.pos === pos && !c.emprestado).length
         const missFor = (f: FormationKey) => SECTORS.filter(pos => availByPos(pos) < FORMATIONS[f][pos]).map(pos => `${FORMATIONS[f][pos] - availByPos(pos)} ${POS_SHORT[pos]}${FORMATIONS[f][pos] - availByPos(pos) > 1 ? 's' : ''}`)
+        const btnStyle = (cur: boolean, can: boolean): React.CSSProperties => ({ flex: '1 1 28%', minWidth: 56, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 12.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? col.solid : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.7, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' })
+        // 🎭 15 FORMAÇÕES (só conta liberada): seletor agrupado por estilo. Pra
+        // todo o resto, as 5 de sempre — byte a byte como era.
+        if (quinze15) {
+          const atual = formacaoAtual(mgr)
+          const bloqueadas = FORMACOES15.filter(f => f.rotulo !== atual.rotulo && missFor(f.motor).length > 0)
+          return (
+            <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
+              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: INK }}>🎽 Formação</p>
+              {(['ofensiva', 'posse', 'retranca'] as EstiloFormacao[]).map(est => (
+                <div key={est}>
+                  <p style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, margin: '6px 0 4px', color: '#5a5647', textTransform: 'uppercase', letterSpacing: '.06em' }}>{ESTILO_ROTULO[est]}</p>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {FORMACOES15.filter(f => f.estilo === est).map(f => {
+                      const cur = atual.rotulo === f.rotulo
+                      const can = cur || missFor(f.motor).length === 0
+                      return (
+                        <button key={f.rotulo} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
+                          style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5 }}>
+                          {f.rotulo}{cur ? ' ✓' : ''}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+              {bloqueadas.length
+                ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
+                : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
+            </div>
+          )
+        }
         // dica: as formações pra onde AINDA falta gente (pra ele saber o que buscar)
         const blocked = (['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
@@ -3219,7 +3317,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
                 const can = cur || missFor(f).length === 0
                 return (
                   <button key={f} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f) }}
-                    style={{ flex: '1 1 28%', minWidth: 56, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 12.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? col.solid : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.7, boxShadow: cur ? `2px 2px 0 0 ${INK}` : 'none' }}>
+                    style={btnStyle(cur, can)}>
                     {f}{cur ? ' ✓' : ''}
                   </button>
                 )
@@ -6817,7 +6915,7 @@ export function PyramidSeasonScreen() {
                 {' '}O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.
               </div>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={f => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
                 Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner

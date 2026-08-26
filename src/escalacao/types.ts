@@ -166,11 +166,13 @@ export interface EventoAtivo {
 }
 export interface EventoManchete { season: number; round: number; emoji: string; titulo: string; sub: string }
 
-// só duas formações — GOL/LAT/ZAG são sempre 1/2/2 nas duas (nunca variam),
-// só MEI/ATA mudam. Isso é o que sustenta o plano de rodadas por vaga.
-// 4-3-3 e 4-4-2 são as formações INICIAIS (base do leilão). 4-5-1 é uma troca
-// TÁTICA que o técnico faz na carreira quando tiver 5 meias (nunca no início).
-export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2'
+// 4-3-3 e 4-4-2 são as formações INICIAIS (base do leilão). As demais são trocas
+// TÁTICAS que o técnico faz na carreira quando tem elenco pra preencher (nunca
+// no início). GOL é sempre 1 e LAT sempre 2 — o que varia é ZAG/MEI/ATA.
+// 4-2-4 e 5-4-1 entraram em 26/08 (martelo do Diego nas 15 formações), medidas
+// no motor real (25 temporadas × 4 perfis de elenco): nenhuma passa de 48% de
+// título nem no cenário mais favorável — mesma faixa das 5 antigas.
+export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1'
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
@@ -178,6 +180,8 @@ export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
   '3-4-3': { GOL: 1, LAT: 2, ZAG: 1, MEI: 4, ATA: 3 }, // 🗡️ ousado: 3 na defesa (2 lat + 1 zag), 3 no ataque
   '5-3-2': { GOL: 1, LAT: 2, ZAG: 3, MEI: 3, ATA: 2 }, // 🧱 muralha: 5 na defesa (2 lat + 3 zag), retranca
+  '4-2-4': { GOL: 1, LAT: 2, ZAG: 2, MEI: 2, ATA: 4 }, // 🔥 tudo no ataque: 4 atacantes DE VERDADE (exigência do Diego: "424 não pode ser 433")
+  '5-4-1': { GOL: 1, LAT: 2, ZAG: 3, MEI: 4, ATA: 1 }, // 🚌 ônibus: 5 atrás + 4 meias segurando, 1 lá na frente
 }
 
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
@@ -196,6 +200,12 @@ export interface Manager {
   // vida própria na pirâmide). Bidder no pregão, mas NÃO entra na sua liga.
   auctionOnly?: boolean
   formation: FormationKey
+  // 🎭 rótulo VISÍVEL da formação quando difere da conta do motor (as "15
+  // formações", só carreira e por enquanto só conta liberada): ex '4-2-3-1'
+  // roda por dentro como uma das FormationKey. O mapa rótulo→conta vive em
+  // formacoes.ts e é segredo de produção — nunca aparece em texto de UI.
+  // Ausente = a formação é a do motor mesmo (todo save antigo).
+  formationView?: string
   // 🎽 carreira: destrava a troca de formação (4-3-3↔4-4-2) na aba Elenco.
   // Vira true na PRIMEIRA vez que o elenco chega a 22 jogadores reais e FICA true
   // pra sempre (não tranca mais se depois cair de 22). A trava por-posição segue

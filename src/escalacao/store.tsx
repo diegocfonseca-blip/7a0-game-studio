@@ -2980,7 +2980,7 @@ type Action =
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
-  | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number } // 🎽 carreira: troca 4-3-3↔4-4-2. Só libera com 22 no elenco E jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot).
+  | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
   | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
@@ -5578,7 +5578,15 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       const mid = action.mgrId ?? s.managers[s.youIdx]?.id
       const m = s.managers.find(x => x.id === mid && x.isHuman)
-      if (!m || m.formation === action.formation) return s
+      if (!m) return s
+      if (m.formation === action.formation) {
+        // 🎭 mesma conta do motor, só mudou o DESENHO (ex: 4-4-2 → 4-4-2 losango):
+        // as vagas por posição são idênticas, então nada de escalação muda — só o
+        // rótulo visível. Sem view (formação padrão), limpa o rótulo antigo.
+        if ((m.formationView ?? undefined) === (action.view ?? undefined)) return s
+        m.formationView = action.view
+        return s
+      }
       const real = m.squad.filter(c => !c.fake)
       const need = FORMATIONS[action.formation]
       if (!need) return s // formação desconhecida (save/rota estranha) — nunca quebra
@@ -5597,6 +5605,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // sobrescrevia a troca manual pelo bestXI e por isso os gols ainda mudavam.
       for (let r = 0; r < s.round; r++) if (mineCl[r] == null) mineCl[r] = frozenXIids(mineCl, r, m.squad, antiga)
       m.formation = action.formation
+      m.formationView = action.view // rótulo das 15 (undefined = a cara padrão da conta)
       // 🎭 SUSPENSO NÃO VOLTA PELA FORMAÇÃO (bug 14/08, relato de usuário): o
       // bestXI da formação nova remontava o "melhor time" com o elenco INTEIRO —
       // inclusive o machucado/expulso/noitada que estava fora até a rodada da

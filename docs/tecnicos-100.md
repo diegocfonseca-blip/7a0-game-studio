@@ -155,3 +155,141 @@ ataque em cima, miolo `flex:1` com space-evenly, zaga e gol embaixo com respiro
 fixo entre eles; `ALTURA = 560` na escala do mockup — no jogo o valor real sai
 do desenho do losango, medido lá). Enviado pro Diego (campinhos-v5.png);
 aguardando o OK visual dele antes de qualquer mexida no jogo.
+
+## 🧭 ESTILO DOS 100 — atribuído em 26/08 (⚠️ chutes pendentes de revisão do Diego)
+
+Dados vivos em `src/escalacao/tecnicos.ts`. Selo por nome: **✅ = estilo
+documentado/consagrado** do treinador na vida real; **⚠️ chute = palpite meu**
+(regra do Diego 18/08: sem referência clara eu falo, não invento — o neutro é
+⚖️ equilibrado). Os ⚠️ o Diego revisa e manda corrigir o que quiser — trocar é
+uma linha no arquivo. 49 dos 100 estão de chute.
+
+Quantidade por categoria: A 5 · B 4 · C 3 · D 2 · Várzea 1. As formações do
+técnico saem da COLUNA DO ESTILO dele (nas 15, ver tabela acima), na ordem:
+- 🛡️ retranca: 5-3-2 → 4-4-2 → 4-1-4-1 → 5-4-1 → 5-3-2 líbero
+- 🎩 posse: 4-5-1 → 4-2-3-1 → 4-3-2-1 → 4-4-2 losango → 3-5-2
+- ⚽ ofensivo: 4-3-3 → 3-4-3 → 4-2-4 → 4-3-1-2 → 3-4-3 losango
+- ⚖️ equilibrado (sem coluna própria, mistura o básico): 4-4-2 → 4-3-3 → 4-5-1 → 5-3-2 → 3-4-3
+(esta régua SUBSTITUI a ordem antiga escrita sobre as 5 formações, lá em cima —
+aquela era de antes do martelo das 15.)
+
+
+### 🅰️ Série A
+| técnico | estilo | selo |
+|---|---|---|
+| Alex Ferguson 🇬🇧 | ⚽ ofensivo | ✅ |
+| Pep Guardiola 🇪🇸 | 🎩 posse | ✅ |
+| Carlo Ancelotti 🇮🇹 | ⚖️ equilibrado | ✅ |
+| José Mourinho 🇵🇹 | 🛡️ retranca | ✅ |
+| Zinedine Zidane 🇫🇷 | ⚖️ equilibrado | ✅ |
+| Johan Cruyff 🇳🇱 | 🎩 posse | ✅ |
+| Rinus Michels 🇳🇱 | ⚽ ofensivo | ✅ |
+| Arrigo Sacchi 🇮🇹 | ⚽ ofensivo | ✅ |
+| Jupp Heynckes 🇩🇪 | ⚽ ofensivo | ✅ |
+| Marcello Lippi 🇮🇹 | ⚖️ equilibrado | ✅ |
+| Vicente del Bosque 🇪🇸 | 🎩 posse | ✅ |
+| Ottmar Hitzfeld 🇩🇪 | ⚖️ equilibrado | ⚠️ chute |
+| Giovanni Trapattoni 🇮🇹 | 🛡️ retranca | ✅ |
+| Fabio Capello 🇮🇹 | 🛡️ retranca | ✅ |
+| Jürgen Klopp 🇩🇪 | ⚽ ofensivo | ✅ |
+| Louis van Gaal 🇳🇱 | 🎩 posse | ✅ |
+| Arsène Wenger 🇫🇷 | ⚽ ofensivo | ✅ |
+| Luis Enrique 🇪🇸 | 🎩 posse | ✅ |
+| Diego Simeone 🇦🇷 | 🛡️ retranca | ✅ |
+| Brian Clough 🏴 | ⚖️ equilibrado | ⚠️ chute |
+
+### 🅱️ Série B
+| técnico | estilo | selo |
+|---|---|---|
+| Marcelo Gallardo 🇦🇷 | ⚽ ofensivo | ✅ |
+| Antonio Conte 🇮🇹 | 🛡️ retranca | ⚠️ chute |
+| Roberto Mancini 🇮🇹 | ⚖️ equilibrado | ⚠️ chute |
+| Rafael Benítez 🇪🇸 | 🛡️ retranca | ✅ |
+| Frank Rijkaard 🇳🇱 | 🎩 posse | ✅ |
+| Guus Hiddink 🇳🇱 | ⚖️ equilibrado | ⚠️ chute |
+| Unai Emery 🇪🇸 | ⚖️ equilibrado | ⚠️ chute |
+| Massimiliano Allegri 🇮🇹 | 🛡️ retranca | ✅ |
+| Thomas Tuchel 🇩🇪 | 🎩 posse | ✅ |
+| Manuel Pellegrini 🇨🇱 | ⚽ ofensivo | ✅ |
+| Luiz Felipe Scolari 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Carlos Alberto Parreira 🇧🇷 | 🛡️ retranca | ✅ |
+| Mario Zagallo 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Telê Santana 🇧🇷 | ⚽ ofensivo | ✅ |
+| César Luis Menotti 🇦🇷 | ⚽ ofensivo | ✅ |
+| Carlos Bilardo 🇦🇷 | 🛡️ retranca | ✅ |
+| Didier Deschamps 🇫🇷 | 🛡️ retranca | ✅ |
+| Luis Aragonés 🇪🇸 | 🎩 posse | ✅ |
+| Sven-Göran Eriksson 🇸🇪 | ⚖️ equilibrado | ✅ |
+| Jürgen Klinsmann 🇩🇪 | ⚽ ofensivo | ✅ |
+
+### 🅲 Série C
+| técnico | estilo | selo |
+|---|---|---|
+| Hernán Crespo 🇦🇷 | ⚽ ofensivo | ⚠️ chute |
+| Carlos Bianchi 🇦🇷 | 🛡️ retranca | ✅ |
+| Jorge Jesus 🇵🇹 | ⚽ ofensivo | ✅ |
+| Abel Ferreira 🇵🇹 | 🛡️ retranca | ✅ |
+| Tite 🇧🇷 | ⚖️ equilibrado | ✅ |
+| Muricy Ramalho 🇧🇷 | 🛡️ retranca | ⚠️ chute |
+| Vanderlei Luxemburgo 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Marcelo Bielsa 🇦🇷 | ⚽ ofensivo | ✅ |
+| Jorge Sampaoli 🇦🇷 | ⚽ ofensivo | ✅ |
+| Ramón Díaz 🇦🇷 | ⚖️ equilibrado | ⚠️ chute |
+| José Pékerman 🇦🇷 | 🎩 posse | ⚠️ chute |
+| Fernando Santos 🇵🇹 | 🛡️ retranca | ✅ |
+| Claudio Ranieri 🇮🇹 | 🛡️ retranca | ✅ |
+| Luciano Spalletti 🇮🇹 | 🎩 posse | ✅ |
+| Maurizio Sarri 🇮🇹 | 🎩 posse | ✅ |
+| Laurent Blanc 🇫🇷 | 🎩 posse | ⚠️ chute |
+| Xavi Hernández 🇪🇸 | 🎩 posse | ✅ |
+| Mikel Arteta 🇪🇸 | 🎩 posse | ✅ |
+| Xabi Alonso 🇪🇸 | 🎩 posse | ✅ |
+| Rogério Ceni 🇧🇷 | ⚽ ofensivo | ⚠️ chute |
+
+### 🅳 Série D
+| técnico | estilo | selo |
+|---|---|---|
+| Ronald Koeman 🇳🇱 | ⚖️ equilibrado | ⚠️ chute |
+| Gennaro Gattuso 🇮🇹 | 🛡️ retranca | ⚠️ chute |
+| Andrea Pirlo 🇮🇹 | 🎩 posse | ⚠️ chute |
+| Thierry Henry 🇫🇷 | 🎩 posse | ⚠️ chute |
+| Patrick Vieira 🇫🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Fabio Cannavaro 🇮🇹 | ⚖️ equilibrado | ⚠️ chute |
+| Clarence Seedorf 🇳🇱 | ⚖️ equilibrado | ⚠️ chute |
+| Diego Maradona 🇦🇷 | ⚽ ofensivo | ⚠️ chute |
+| Gary Neville 🏴 | ⚖️ equilibrado | ⚠️ chute |
+| Martín Palermo 🇦🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Dunga 🇧🇷 | 🛡️ retranca | ✅ |
+| Fernando Diniz 🇧🇷 | 🎩 posse | ✅ |
+| Mano Menezes 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Cuca 🇧🇷 | ⚽ ofensivo | ⚠️ chute |
+| Renato Gaúcho 🇧🇷 | ⚽ ofensivo | ⚠️ chute |
+| Dorival Júnior 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Paulo Autuori 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Erik ten Hag 🇳🇱 | 🎩 posse | ✅ |
+| André Villas-Boas 🇵🇹 | ⚽ ofensivo | ✅ |
+| Filippo Inzaghi 🇮🇹 | ⚖️ equilibrado | ⚠️ chute |
+
+### 🟤 Várzea
+| técnico | estilo | selo |
+|---|---|---|
+| Lisca Doido 🇧🇷 | ⚽ ofensivo | ⚠️ chute |
+| Joel Santana 🇧🇷 | 🛡️ retranca | ⚠️ chute |
+| Waldemar Lemos 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Apolinho 🇧🇷 | 🛡️ retranca | ⚠️ chute |
+| Guto Ferreira 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Celso Roth 🇧🇷 | 🛡️ retranca | ✅ |
+| Oswaldo de Oliveira 🇧🇷 | ⚽ ofensivo | ⚠️ chute |
+| Geninho 🇧🇷 | 🛡️ retranca | ⚠️ chute |
+| Levir Culpi 🇧🇷 | ⚽ ofensivo | ⚠️ chute |
+| Antônio Lopes 🇧🇷 | 🛡️ retranca | ⚠️ chute |
+| Nelsinho Baptista 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Jair Ventura 🇧🇷 | 🛡️ retranca | ✅ |
+| Vadão 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Givanildo Oliveira 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| PC Gusmão 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| Zé Ricardo 🇧🇷 | 🎩 posse | ⚠️ chute |
+| Cristóvão Borges 🇧🇷 | 🎩 posse | ⚠️ chute |
+| Romário 🇧🇷 | ⚽ ofensivo | ⚠️ chute |
+| Vágner Mancini 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+| René Simões 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |

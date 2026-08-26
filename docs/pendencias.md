@@ -10513,11 +10513,21 @@ demais formações o lateral fica na linha da zaga, sem recuo. Mockup v5
 (`scripts/mockup-campinhos-442-352.mjs`, campinhos-v5.png) enviado; detalhe
 completo em `docs/tecnicos-100.md`.
 
-**Pipeline combinado do técnico (na ordem, nada codado ainda):**
-- [ ] OK do Diego no campinho padrão v5 (enviado, aguardando)
-- [ ] Prancha com os campinhos das outras 10 formações disfarce, tudo na altura padrão
-- [ ] 4-2-4 e 5-4-1 REAIS no motor (`FORMATIONS` em types.ts — já medidas e aprovadas;
-      entrega pequena e reversível, sem aparecer no seletor até a feature ligar)
-- [ ] Classificar o ESTILO dos 100 técnicos (retranca/posse/ofensivo) com selo
-      documentado × ⚠️ chute pra ele revisar — ANTES de codar (regra da pessoa real)
-- [ ] Codar o aliciar no Elenco (técnico pra todos · jogador só pra conta do Diego)
+**Pipeline do técnico — 26/08 o Diego mandou EXECUTAR ("vamos começar a fazer
+tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):**
+- [x] Campinho padrão v5 aprovado (altura única + faixas fixas + ala recuado só no 352)
+- [x] 4-2-4 e 5-4-1 REAIS no motor (`FORMATIONS`/`FormationKey` em types.ts + FORM_NEED
+      da dinastia) — chaves existem pra todos, mas nada muda sem o seletor
+- [x] `formacoes.ts`: catálogo das 15 (rótulo→conta do motor, estilo, desenho do miolo,
+      alas/líbero) — o mapa é segredo de produção, nunca em texto de UI
+- [x] Seletor das 15 por estilo + campinho com desenhos (losango/alas/líbero) na aba
+      Elenco da carreira — TRAVADO na conta do Diego (`formacoes15On` em sport.ts);
+      pra todo o resto, seletor e campinho byte a byte como eram. `Manager.formationView`
+      guarda o rótulo; `CHANGE_FORMATION` ganhou `view`. Intervalo oferece as 2 contas
+      novas (só conta liberada).
+- [x] `tecnicos.ts`: os 100 com estilo + `formacoesDoTecnico` (A5 B4 C3 D2 V1, coluna
+      do estilo). **49 estilos estão de ⚠️ CHUTE** — tabela de revisão no
+      `docs/tecnicos-100.md`, o Diego corrige antes de qualquer técnico ir pro ar.
+- [ ] Diego testar na conta dele (carreira → aba Elenco) e revisar os ⚠️ chutes
+- [ ] Codar o aliciar no Elenco (técnico pra todos · jogador só pra conta do Diego) —
+      carta do técnico no formato de carta de jogador, leilão você × rivais × dono
