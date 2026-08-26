@@ -22,10 +22,10 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 11. Luiz Felipe Scolari 🇧🇷 · 12. Carlos Alberto Parreira 🇧🇷 · 13. Mario Zagallo 🇧🇷 ·
 14. Joachim Löw 🇩🇪 (26/08: entrou pela A no lugar do Hitzfeld e DESCEU pra B na mesma noite — uma Copa e queda no fim, naipe Deschamps/Parreira) · 15. César Luis Menotti 🇦🇷 · 16. Carlos Bilardo 🇦🇷 ·
 17. Didier Deschamps 🇫🇷 · 18. Luis Aragonés 🇪🇸 · 19. Hansi Flick 🇩🇪 (26/08: entrou no lugar do Eriksson — sêxtuplo do Bayern 2020) ·
-20. Jürgen Klinsmann 🇩🇪
+20. Carlos Bianchi 🇦🇷 (26/08: SUBIU da C — ordem do Diego: "suba Bianchi pra B")
 
 ## 🅲 SÉRIE C — GRANDES / CAMPEÕES / ASCENSÃO (3 esquemas)
-1. Hernán Crespo 🇦🇷 · 2. Carlos Bianchi 🇦🇷 · 3. Jorge Jesus 🇵🇹 · 4. Abel Ferreira 🇵🇹 ·
+1. Hernán Crespo 🇦🇷 · 2. Jürgen Klinsmann 🇩🇪 (26/08: desceu da B pra abrir a vaga do Bianchi — contrapartida sugerida pela sessão, o Diego pode trocar) · 3. Jorge Jesus 🇵🇹 · 4. Abel Ferreira 🇵🇹 ·
 5. Tite 🇧🇷 · 6. Muricy Ramalho 🇧🇷 · 7. Vanderlei Luxemburgo 🇧🇷 · 8. Marcelo Bielsa 🇦🇷 ·
 9. Jorge Sampaoli 🇦🇷 · 10. Ramón Díaz 🇦🇷 · 11. José Pékerman 🇦🇷 ·
 12. Fernando Santos 🇵🇹 · 13. Claudio Ranieri 🇮🇹 · 14. Luciano Spalletti 🇮🇹 ·
@@ -237,13 +237,13 @@ aquela era de antes do martelo das 15.)
 | Didier Deschamps 🇫🇷 | 🛡️ retranca | ✅ |
 | Luis Aragonés 🇪🇸 | 🎩 posse | ✅ |
 | Hansi Flick 🇩🇪 | ⚽ ofensivo | ✅ |
-| Jürgen Klinsmann 🇩🇪 | ⚽ ofensivo | ✅ |
+| Carlos Bianchi 🇦🇷 | 🛡️ retranca | ✅ |
 
 ### 🅲 Série C
 | técnico | estilo | selo |
 |---|---|---|
 | Hernán Crespo 🇦🇷 | ⚽ ofensivo | ⚠️ chute |
-| Carlos Bianchi 🇦🇷 | 🛡️ retranca | ✅ |
+| Jürgen Klinsmann 🇩🇪 | ⚽ ofensivo | ✅ |
 | Jorge Jesus 🇵🇹 | ⚽ ofensivo | ✅ |
 | Abel Ferreira 🇵🇹 | 🛡️ retranca | ✅ |
 | Tite 🇧🇷 | ⚖️ equilibrado | ✅ |
@@ -310,3 +310,21 @@ aquela era de antes do martelo das 15.)
 | Romário 🇧🇷 | ⚽ ofensivo | ⚠️ chute |
 | Vágner Mancini 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
 | René Simões 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
+
+
+## 🎽 REPERTÓRIO PRÓPRIO por técnico — decisão do Diego (26/08, via pesquisa dele)
+O técnico deixou de herdar a coluna genérica do estilo: agora cada um tem o
+REPERTÓRIO da vida real dele, mapeado nas nossas 15 (`REPERTORIO` em
+tecnicos.ts; 98 mapeados, Klinsmann e Sampaoli caem no fallback da coluna do
+estilo). A categoria segue cortando a QUANTIDADE (A 5 · B 4 · C 3 · D 2 · V 1)
+— a Série D usa as 2 primeiras formações do repertório. Formação NÃO é
+exclusiva de estilo: o 4-3-3 do Guardiola e o do Gattuso são a mesma opção, o
+que muda é quem usa. O estilo ficou como tempero da carta + fallback.
+Mapeamentos de formação que o jogo não tem: 4-4-1-1→4-4-2 · 3-2-4-1/3-3-4/
+3-3-1-3→3-4-3 · 3-4-1-2→3-5-2 · 3-4-2-1→3-4-3 losango · 4-2-2-2→4-4-2 losango
+· 4-1-3-2→4-3-1-2.
+⚠️ A pesquisa do GPT que o Diego trouxe também PROPUNHA re-dividir a lista
+inteira e ~35 nomes novos (Scaloni, Pochettino, Gasperini, Amorim, De Zerbi…).
+**NÃO aplicado**: a lista dos 100 é fechada pelo Diego — mudança só nome a
+nome, por ordem dele (como foi com Löw, De la Fuente, Maresca, Flick, Telê e
+Bianchi hoje).

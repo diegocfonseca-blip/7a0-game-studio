@@ -10528,6 +10528,13 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
 - [x] `tecnicos.ts`: os 100 com estilo + `formacoesDoTecnico` (A5 B4 C3 D2 V1, coluna
       do estilo). **49 estilos estão de ⚠️ CHUTE** — tabela de revisão no
       `docs/tecnicos-100.md`, o Diego corrige antes de qualquer técnico ir pro ar.
+- [x] Repertório PRÓPRIO por técnico (26/08): cada um com as formações da vida
+      real mapeadas nas nossas 15 (pesquisa do Diego via GPT; a re-divisão e os
+      nomes novos que o GPT propôs NÃO entraram — lista fechada). Trocas do dia:
+      Löw entrou e desceu pra B · De la Fuente e Telê na A · Flick e Bianchi na B
+      · Maresca na C · saíram Hitzfeld, Clough, Blanc, Eriksson · Klinsmann
+      desceu pra C (contrapartida sugerida, Diego pode trocar).
 - [ ] Diego testar na conta dele (carreira → aba Elenco) e revisar os ⚠️ chutes
+      de ESTILO (46 — agora só tempero da carta, as formações vêm do repertório)
 - [ ] Codar o aliciar no Elenco (técnico pra todos · jogador só pra conta do Diego) —
       carta do técnico no formato de carta de jogador, leilão você × rivais × dono
