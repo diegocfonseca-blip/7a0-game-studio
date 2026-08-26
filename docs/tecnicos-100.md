@@ -11,7 +11,7 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 1. Alex Ferguson 🇬🇧 · 2. Pep Guardiola 🇪🇸 · 3. Carlo Ancelotti 🇮🇹 · 4. José Mourinho 🇵🇹 ·
 5. Zinedine Zidane 🇫🇷 · 6. Johan Cruyff 🇳🇱 · 7. Rinus Michels 🇳🇱 · 8. Arrigo Sacchi 🇮🇹 ·
 9. Jupp Heynckes 🇩🇪 · 10. Marcello Lippi 🇮🇹 · 11. Vicente del Bosque 🇪🇸 ·
-12. Ottmar Hitzfeld 🇩🇪 · 13. Giovanni Trapattoni 🇮🇹 · 14. Fabio Capello 🇮🇹 ·
+12. Joachim Löw 🇩🇪 (26/08: entrou no lugar do Ottmar Hitzfeld — mesma categoria, nome que o público reconhece) · 13. Giovanni Trapattoni 🇮🇹 · 14. Fabio Capello 🇮🇹 ·
 15. Jürgen Klopp 🇩🇪 · 16. Louis van Gaal 🇳🇱 · 17. Arsène Wenger 🇫🇷 ·
 18. Luis Enrique 🇪🇸 · 19. Diego Simeone 🇦🇷 · 20. Brian Clough 🏴
 
@@ -205,7 +205,7 @@ aquela era de antes do martelo das 15.)
 | Jupp Heynckes 🇩🇪 | ⚽ ofensivo | ✅ |
 | Marcello Lippi 🇮🇹 | ⚖️ equilibrado | ✅ |
 | Vicente del Bosque 🇪🇸 | 🎩 posse | ✅ |
-| Ottmar Hitzfeld 🇩🇪 | ⚖️ equilibrado | ⚠️ chute |
+| Joachim Löw 🇩🇪 | 🎩 posse | ✅ |
 | Giovanni Trapattoni 🇮🇹 | 🛡️ retranca | ✅ |
 | Fabio Capello 🇮🇹 | 🛡️ retranca | ✅ |
 | Jürgen Klopp 🇩🇪 | ⚽ ofensivo | ✅ |

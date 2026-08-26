@@ -89,7 +89,7 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Jupp Heynckes', pais: '🇩🇪', div: 'A', estilo: 'ofensiva' },
   { nome: 'Marcello Lippi', pais: '🇮🇹', div: 'A', estilo: 'equilibrado' },
   { nome: 'Vicente del Bosque', pais: '🇪🇸', div: 'A', estilo: 'posse' },
-  { nome: 'Ottmar Hitzfeld', pais: '🇩🇪', div: 'A', estilo: 'equilibrado', chute: true },
+  { nome: 'Joachim Löw', pais: '🇩🇪', div: 'A', estilo: 'posse' },
   { nome: 'Giovanni Trapattoni', pais: '🇮🇹', div: 'A', estilo: 'retranca' },
   { nome: 'Fabio Capello', pais: '🇮🇹', div: 'A', estilo: 'retranca' },
   { nome: 'Jürgen Klopp', pais: '🇩🇪', div: 'A', estilo: 'ofensiva' },
