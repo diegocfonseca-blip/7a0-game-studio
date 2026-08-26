@@ -10564,7 +10564,13 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       intervalo segue o mesmo cardápio; a atual nunca tranca (segurança). E v6
       (Diego: "não tem que ter no seletor não, apenas as formações"): o seletor
       mostra SÓ o cardápio — botões limpos, sem cadeado/selo/grupos de estilo.
-      O que cada técnico traz aparece na carta dele, no aliciar.
+      E v7, a regra que fecha o ciclo (Diego: "quando aliciar um técnico não vai
+      aparecer a formação dele na área de aliciamento, nem overall e nem
+      categoria — apenas NOME"): o aliciar é ÀS CEGAS. A carta lá é neutra
+      (branca, sem cor de tier) com TEC + nome + bandeira, e o aviso não entrega
+      nada do repertório. Categoria/faixa/formações só se revelam quando o
+      técnico é SEU, no elenco. (O piso do lance continua aparecendo — sem ele
+      não tem leilão.)
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.

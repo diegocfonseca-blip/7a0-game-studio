@@ -3290,11 +3290,21 @@ const TEC_GRAD: Record<DivTec, { grad: string; ink: string }> = {
   V: { grad: 'linear-gradient(160deg,#DBD1B5,#B2A583)', ink: INK },
 }
 const TEC_ESTILO: Record<string, string> = { retranca: '🛡️ Retranqueiro', posse: '🎩 Posse de bola', ofensiva: '⚽ Ofensivo', equilibrado: '⚖️ Equilibrado' }
-function CartaTecnico({ nome, mostraFaixa }: { nome: string; mostraFaixa?: boolean }) {
+function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFaixa?: boolean; misterio?: boolean }) {
   const t = tecnicoPorNome(nome)
   if (!t) return null
   const ficha = fichaDoTecnico(t)
   const cor = TEC_GRAD[t.div]
+  // 🎲 MODO MISTÉRIO (regra do Diego 26/08): no ALICIAR aparece SÓ O NOME —
+  // nem categoria (nem pela COR da carta), nem formações, nem overall. Tudo
+  // se revela quando o técnico é SEU, no elenco. Carta neutra de propósito.
+  if (misterio) return (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 14, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 11px', color: INK }}>
+      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', borderRadius: 7, padding: '1px 7px' }}>TEC</span>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16.5, margin: '4px 0 0', lineHeight: 1.1 }}>{t.nome} <span style={{ fontSize: 12 }}>{t.pais}</span></p>
+      <p style={{ fontSize: 9, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>🎲 Contratação às cegas: categoria, nível e formações só se revelam quando ele for SEU.</p>
+    </div>
+  )
   // faixa lo–hi: SÓ no seu elenco, e na mesma regra dos olheiros das cartas de
   // jogador (👑 vê tudo · ⭐ vê de craque pra baixo · resto não vê número).
   const tier = myApoioPerk()?.tier
@@ -3382,23 +3392,14 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
               <div style={{ border: `3px solid ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
                 {nome && t ? (
                   <>
-                    {/* 🙈 regra do Diego (26/08): NO ALICIAR o overall fica escondido —
-                        mostraFaixa ausente. A faixa só abre quando o técnico é SEU. */}
-                    <CartaTecnico nome={nome} />
+                    {/* 🙈 regra do Diego (26/08, fechada de vez): no aliciar é SÓ O NOME —
+                        sem categoria, formações ou overall. Tudo se revela quando é seu. */}
+                    <CartaTecnico nome={nome} misterio />
                     <div style={{ marginTop: 9 }}>
                       <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '0 0 5px', textAlign: 'center' }}>Piso da categoria: <b>💰 {piso}</b> · sua caixa: <b>🪙 {coins}</b></p>
-                      {(() => {
-                        // ⚠️ aviso de cardápio (regra do Diego): contratou, joga as formações DELE.
-                        const at = formacaoAtual(mgr)
-                        const dele = new Set(fichaDoTecnico(t).formacoes)
-                        return (
-                          <p style={{ fontSize: 9.5, fontWeight: 700, color: dele.has(at.rotulo) ? '#2E7D46' : '#B8860B', margin: '0 0 7px', lineHeight: 1.4, background: 'rgba(255,255,255,.7)', border: `2px dashed ${INK}`, borderRadius: 9, padding: '5px 8px' }}>
-                            {dele.has(at.rotulo)
-                              ? <>✅ Contratando, o cardápio vira o DELE ({dele.size} esquema{dele.size > 1 ? 's' : ''}) — e a sua atual (<b>{at.rotulo}</b>) já está entre elas (não soma em dobro).</>
-                              : <>✅ Contratando, o cardápio vira o DELE <b>+ a sua atual ({at.rotulo})</b>, que fica valendo como a formação da casa 🏠 — total de {dele.size + 1} esquemas.</>}
-                          </p>
-                        )
-                      })()}
+                      <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4, background: 'rgba(255,255,255,.7)', border: `2px dashed ${INK}`, borderRadius: 9, padding: '5px 8px' }}>
+                        🎲 Contratando, o cardápio de formações vira o DELE — e se ele não usar a sua atual, ela segue valendo como a formação da casa 🏠. Você só descobre o resto quando ele for seu.
+                      </p>
                       {coins >= piso ? (
                         <>
                           <LanceStepper v={lance} piso={piso} teto={coins} onSet={setLance} />
