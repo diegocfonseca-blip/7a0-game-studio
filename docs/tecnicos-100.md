@@ -53,3 +53,26 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 ⚠️ Esta lista **substitui** o 1º lote de 24/08 (que tinha folclóricos inventados na
 Várzea e outra distribuição). Renato Gaúcho desceu pra D, Telê pra B — a categoria
 é a da LISTA, não a da fama do nome.
+
+---
+
+## 🎽 REGRA DO ESTILO (Diego, 26/08)
+As formações que cada técnico domina saem do **estilo da vida real dele** — a
+categoria corta a QUANTIDADE, o estilo define a ORDEM de entrada:
+
+- 🛡️ **Retranqueiro/defensivo**: 5-3-2 → 4-5-1 → 4-4-2 → 4-3-3 → 3-4-3
+- 🎩 **Posse/meias**: 4-5-1 → 4-4-2 → 4-3-3 → 5-3-2 → 3-4-3
+- ⚽ **Ofensivo**: 3-4-3 → 4-3-3 → 4-4-2 → 4-5-1 → 5-3-2
+- ⚖️ **Equilibrado**: 4-4-2 → 4-3-3 → 4-5-1 → 5-3-2 → 3-4-3
+
+Ex.: retranqueiro da Série D (2 esquemas) = só 5-3-2 e 4-5-1; o Telê (B, 4,
+ofensivo) = tudo menos a retranca. Palavras dele sobre o encaixe imperfeito:
+*"N temos mt [formações] então terá algumas q N têm a ver mas vai entrar tb"* —
+ou seja, quem tem 4-5 esquemas leva formação fora do estilo mesmo, é esperado.
+Lenda (5) tem todas; o estilo vira a cara do técnico nas categorias de baixo.
+
+⚠️ **O estilo de cada um dos 100 ainda NÃO foi atribuído.** É informação sobre
+GENTE DE VERDADE — vale a regra do Diego (18/08): estilo documentado entra; nome
+que eu não souber o estilo, eu marco "⚠️ chute" e ele decide (ou vira ⚖️
+equilibrado, o neutro). Fazer essa classificação ANTES de codar, com selo de
+documentado × chute, igual foi feito na lista de 24/08.

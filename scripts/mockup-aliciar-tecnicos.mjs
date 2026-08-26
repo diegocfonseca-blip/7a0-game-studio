@@ -56,6 +56,14 @@ const jog = (nome, valor, contrato) => `
     <span style="${OSW};font-size:11px;color:#5a5647;flex:none">💰 ${valor}</span>
   </div>`
 
+
+// 🎽 quais formações o técnico domina — escolhidas pelo ESTILO da vida real dele
+// (regra do Diego 26/08): retranqueiro pega as defensivas primeiro, cara de posse
+// pega as de meia, ofensivo as de atacante — cortando na QUANTIDADE da categoria.
+const chip = (nome, aberto) => `
+  <span style="${OSW};font-size:10px;border:2px solid ${INK};border-radius:8px;padding:3px 7px;
+    background:${aberto ? '#fff' : 'rgba(0,0,0,.08)'};color:${aberto ? INK : 'rgba(0,0,0,.35)'}">${aberto ? '' : '🔒 '}${nome}</span>`
+
 const bloco = (tit, bg, txt) => `
   <div style="border:4px solid ${INK};border-radius:18px;background:${bg};box-shadow:4px 4px 0 ${INK};padding:14px 16px;margin-bottom:12px">
     <div style="${OSW};font-size:14px;text-transform:uppercase;margin-bottom:6px">${tit}</div>
@@ -94,10 +102,15 @@ const tela2 = fone('🔎 Caixote EC', `
           <span style="${OSW};font-size:9px;color:#4a5a6a;letter-spacing:.05em">GIGANTE</span>
         </div>
         <p style="${OSW};font-size:16px;margin:3px 0 0">Telê Santana</p>
-        <p style="font-family:system-ui;font-size:10px;font-weight:800;color:rgba(0,0,0,.62);margin:1px 0 0">Caixote EC · Série B</p>
-        <p style="font-size:10px;letter-spacing:1px;margin:2px 0 0">⭐⭐⭐⭐ <span style="font-family:system-ui;font-weight:700;font-size:9.5px;color:rgba(0,0,0,.55)">· 🎯 4 esquemas · 💰 28</span></p>
+        <p style="font-family:system-ui;font-size:10px;font-weight:800;color:rgba(0,0,0,.62);margin:1px 0 0">São Paulo · 1992</p>
+        <p style="font-size:10px;letter-spacing:1px;margin:2px 0 0">⭐⭐⭐⭐ <span style="font-family:system-ui;font-weight:700;font-size:9.5px;color:rgba(0,0,0,.55)">· ⚽ Ofensivo · 💰 28</span></p>
       </div>
     </div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">
+      ${chip('3-4-3', true)}${chip('4-3-3', true)}${chip('4-4-2', true)}${chip('4-5-1', true)}${chip('5-3-2', false)}
+    </div>
+    <p style="font-family:system-ui;font-size:9px;font-weight:700;color:rgba(0,0,0,.5);margin:5px 2px 0;line-height:1.35">
+      Gigante (Série B) = 4 esquemas — e como o Telê é OFENSIVO, ele pega as de ataque primeiro. Só a retranca (5-3-2) fica de fora.</p>
     <button style="width:100%;margin-top:9px;${OSW};font-size:13px;text-transform:uppercase;background:${GOLD};
       border:3px solid ${INK};border-radius:12px;box-shadow:3px 3px 0 ${INK};padding:10px 0">🔨 Aliciar pro leilão</button>
     <p style="font-family:system-ui;font-size:9.5px;font-weight:700;color:rgba(0,0,0,.55);margin:6px 2px 0;line-height:1.4">
@@ -148,6 +161,15 @@ button{cursor:default}</style>
         · <b>Técnicos</b>: todo mundo (carreira nova, trava <code>tecnicosOn</code>).<br>
         · <b>Jogadores</b>: só a SUA conta (mesmo esquema do basquete: trava por e-mail).
         Os outros nem sabem que a área existe até você aprovar o teste.`)}
+      ${bloco('🎽 Formações pelo ESTILO real (regra nova sua)', '#fff', `
+        Cada técnico tem um estilo da vida real, e ele define a ORDEM em que as formações entram —
+        a categoria corta a quantidade:<br>
+        · 🛡️ <b>Retranqueiro</b>: 5-3-2 → 4-5-1 → 4-4-2 → 4-3-3 → 3-4-3<br>
+        · 🎩 <b>Posse/meias</b>: 4-5-1 → 4-4-2 → 4-3-3 → 5-3-2 → 3-4-3<br>
+        · ⚽ <b>Ofensivo</b>: 3-4-3 → 4-3-3 → 4-4-2 → 4-5-1 → 5-3-2<br>
+        Ex.: retranqueiro da Série D (2) = só 5-3-2 e 4-5-1. Como são 5 formações só, quem tem
+        4-5 esquemas acaba levando alguma fora do estilo — como você mesmo disse, entra também.
+        Lenda (5) tem todas; o estilo vira a cara dele nas categorias de baixo.`)}
       ${bloco('🧢 A lista dos 100 (fechada por você hoje)', '#FFF6D6', `
         A 20 · B 20 · C 20 · D 20 · Várzea 20 — gravada em <code>docs/tecnicos-100.md</code>.
         Esquemas por categoria: <b>A 5 · B 4 · C 3 · D 2 · Várzea 1</b>. No exemplo, o Telê

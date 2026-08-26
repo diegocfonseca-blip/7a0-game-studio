@@ -10440,3 +10440,12 @@ Ele mandou prints do modo MANAGER oculto e mudou a contratação:
 **Mockup novo**: `scripts/mockup-aliciar-tecnicos.mjs` (tela do Elenco com a seção
 Aliciar + tela dentro do clube com técnico pra todos e jogadores no quadro roxo
 "só você"). ⏳ Mandado pra ele — **aguardando o OK visual antes de codar**.
+
+### ➕ v3 do mockup do aliciar (mesmo dia): carta ganhou identidade e estilo
+Cobranças dele em cima da v2: **faltou clube · ano** na carta (identidade real,
+igual carta de jogador — Telê = "São Paulo · 1992") e a carta deve mostrar **QUAIS
+formações** ele domina, escolhidas pelo **estilo da vida real** (regra nova,
+gravada em `docs/tecnicos-100.md`: retranqueiro pega as defensivas primeiro, posse
+pega as de meia, ofensivo as de ataque; a categoria corta a quantidade).
+Pendência que isso cria: **classificar o estilo dos 100** com selo documentado ×
+chute ANTES de codar (regra do "não inventar como uma pessoa real é").
