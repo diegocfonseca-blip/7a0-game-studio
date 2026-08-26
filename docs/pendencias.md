@@ -10449,3 +10449,39 @@ gravada em `docs/tecnicos-100.md`: retranqueiro pega as defensivas primeiro, pos
 pega as de meia, ofensivo as de ataque; a categoria corta a quantidade).
 Pendência que isso cria: **classificar o estilo dos 100** com selo documentado ×
 chute ANTES de codar (regra do "não inventar como uma pessoa real é").
+
+---
+
+## 🎭 BARALHO FANTASIA (26/08) — 220 personagens, escrito e PARADO
+
+O Diego quer um **modo online só de fantasias**: em vez de jogador de futebol,
+o pregão sorteia personagem famoso. 20 times × 11 = **220 cartas**.
+
+📄 **A lista completa está em `docs/baralho-fantasia.md`.** Já fecha exatamente a
+conta do `NEED` (4-3-3): 20 GOL · 40 LAT · 40 ZAG · 60 MEI · 60 ATA.
+
+**A decisão que importa — é APELIDO, nunca o nome.** Ele começou querendo nome
+parodiado (`Picaxu`, `Gocu`), depois perguntou de nome cheio (`Pikachu`). Comparamos
+os três e ficou o apelido, por DOIS motivos, e o segundo é o que pesou:
+1. Nome (torto ou cheio) é justamente o que a marca protege — e é o que robô de
+   busca acha. Apelido é risco zero.
+2. **A carta do jogo não tem foto** (`types.ts:79`). Sem desenho, `Gocu · ATA` é só
+   uma palavra estranha parada na tela: a piada nunca acontece. Já *"O Cabelo
+   Amarelo · Guerreiros do Espaço · 1989"* é engraçado **lido**. O texto vira a arte.
+
+**Regras permanentes do baralho** (estão detalhadas no doc): nenhum nome próprio em
+lugar nenhum da carta — nem no clube, que é sempre um lugar descritivo inventado por
+nós; nenhuma cor/desenho/logo de ninguém; e **nunca misturar com o baralho real** —
+tem que ser modo escolhido na criação da sala, senão o cara paga 40 moedas achando
+que leva craque e leva o Saci.
+
+**O que falta pra virar jogo:**
+- [ ] Bio (a frase de zoeira) de cada uma das 220
+- [ ] `lo`/`hi` e `fame` de cada carta
+- [ ] Decidir o ano do folclore (hoje `1500` como "antes de tudo")
+- [ ] Código: baralho novo + escolha do modo na criação da sala
+- [ ] 💤 **Baralho da PELADA** (O Tiozão do Churrasco, O Dono da Bola, O Que Chegou
+      Bêbado…) ficou de fora porque ele pediu "os mais famosos". Guardado como
+      baralho EXTRA — é o mais autoral dos três e não depende de referência nenhuma.
+
+⚠️ Nada disso está no código ainda. **É rascunho escrito.** O futebol não foi tocado.
