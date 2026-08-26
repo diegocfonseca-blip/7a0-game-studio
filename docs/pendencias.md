@@ -10507,13 +10507,14 @@ ficava numa distância do goleiro DIFERENTE em cada formação (*"tem que ter um
 padrão"*). Regra final (v3): **uma altura só pra todas as formações** (a do losango)
 e **faixas fixas** — goleiro, zaga e ataque SEMPRE na mesma posição; só o miolo
 (linhas de meia) se distribui na faixa do meio. **O campo nunca muda de tamanho** ao
-trocar de esquema. E mais um retoque dele (v4): **laterais um tiquinho recuados**
-em relação aos zagueiros (e os alas do 3-5-2 em relação aos meias), só pra dar a
-diferença no desenho. Mockup v4 (`scripts/mockup-campinhos-442-352.mjs`,
-campinhos-v4.png) enviado; detalhe completo em `docs/tecnicos-100.md`.
+trocar de esquema. E mais um retoque dele (v4→v5): recuo sutil **SÓ nos alas do
+3-5-2** em relação aos meias (*"era só no 352, os outros deixava igual"*) — nas
+demais formações o lateral fica na linha da zaga, sem recuo. Mockup v5
+(`scripts/mockup-campinhos-442-352.mjs`, campinhos-v5.png) enviado; detalhe
+completo em `docs/tecnicos-100.md`.
 
 **Pipeline combinado do técnico (na ordem, nada codado ainda):**
-- [ ] OK do Diego no campinho padrão v4 (enviado, aguardando)
+- [ ] OK do Diego no campinho padrão v5 (enviado, aguardando)
 - [ ] Prancha com os campinhos das outras 10 formações disfarce, tudo na altura padrão
 - [ ] 4-2-4 e 5-4-1 REAIS no motor (`FORMATIONS` em types.ts — já medidas e aprovadas;
       entrega pequena e reversível, sem aparecer no seletor até a feature ligar)

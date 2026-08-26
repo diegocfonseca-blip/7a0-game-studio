@@ -36,9 +36,10 @@ const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F', CRE
 const OSW = 'font-family:Oswald,sans-serif;font-weight:700'
 
 // bolinha do campinho (mesmo traço do mockup-formacoes-espelho, aprovado em 24/08)
-// `rec` = recuado: os LATERAIS da linha de defesa descem um tiquinho em relação
-// aos zagueiros — pedido do Diego (26/08): "coloque os dois laterais um pouco
-// recuado, só até pra dar uma diferença".
+// `rec` = recuado: SÓ os ALAS do 3-5-2 descem um tiquinho em relação aos meias
+// — pedido do Diego (26/08): "coloque os dois laterais do 352 um pouco recuado,
+// até pra dar uma diferença". Nas outras formações o lateral fica NA LINHA da
+// zaga mesmo, sem recuo ("era só no 352, os outros deixava igual").
 const REC_LAT = 16
 const jog = (nome, tag, destaque, rec) => `
   <div style="text-align:center;width:60px;flex:none${rec ? `;transform:translateY(${REC_LAT}px)` : ''}">
@@ -74,7 +75,7 @@ const campo = (rotulo, cor, faixas, legenda) => `
 const F442 = campo('① 4-4-2 · como é HOJE', 'rgba(0,0,0,.55)', {
   ataque: linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')),
   meio: linha(jog('Rivelino', 'MEI') + jog('Zico', 'MEI') + jog('Falcão', 'MEI') + jog('Dunga', 'MEI')),
-  defesa: linha(jog('Cafu', 'LAT', 0, 1) + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT', 0, 1)),
+  defesa: linha(jog('Cafu', 'LAT') + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT')),
   gol: linha(jog('Taffarel', 'GOL')),
 }, 'Repare nas alturas: ataque, zaga e goleiro estão na MESMA posição nos 3 campos. A linha única de meias fica no centro da faixa do meio.')
 
@@ -85,7 +86,7 @@ const FLOS = campo('② 4-4-2 LOSANGO · novo desenho', GREEN, {
     linha(jog('Zico', 'MEI · camisa 10', 1)) +
     linha(jog('Rivelino', 'MEI', 1) + '<div style="width:66px"></div>' + jog('Falcão', 'MEI', 1)) +
     linha(jog('Dunga', 'MEI · volante', 1)),
-  defesa: linha(jog('Cafu', 'LAT', 0, 1) + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT', 0, 1)),
+  defesa: linha(jog('Cafu', 'LAT') + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT')),
   gol: linha(jog('Taffarel', 'GOL')),
 }, 'Os <b>MESMOS 4 meias</b> (em dourado) abrem em losango DENTRO da faixa do meio — zaga e goleiro não saem do lugar. O time é idêntico ao ①.')
 

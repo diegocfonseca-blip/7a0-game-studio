@@ -146,13 +146,12 @@ ficarem iguais e ajustar os espaços"*. Traduzindo:
   que a maquiagem redesenha) se distribui na faixa do meio, que é fixa.
 - **O campo nunca muda de tamanho** ao trocar de formação — nada de tela
   pulando quando o jogador testa esquemas.
-- **Laterais um tiquinho RECUADOS** (v4, pedido dele 26/08: *"coloque os dois
-  laterais um pouco recuado, só até pra dar uma diferença"* — e idem pros alas
-  do 3-5-2): na linha da zaga, os LAT descem um pouco em relação aos ZAG; no
-  3-5-2, os alas descem um pouco em relação aos MEI. Diferença sutil, só pra
-  distinguir lateral de zagueiro/meia no desenho.
+- **Recuo SÓ nos alas do 3-5-2** (v5, corrigido por ele 26/08: *"era só no 352,
+  os outros deixava igual mesmo os laterais"*): no 3-5-2 os alas descem um
+  tiquinho em relação aos meias, só pra dar a diferença. Nas demais formações o
+  lateral fica NA LINHA da zaga, sem recuo — igual sempre foi.
 Mockup do padrão: `scripts/mockup-campinhos-442-352.mjs` (v3: campo em faixas —
 ataque em cima, miolo `flex:1` com space-evenly, zaga e gol embaixo com respiro
 fixo entre eles; `ALTURA = 560` na escala do mockup — no jogo o valor real sai
-do desenho do losango, medido lá). Enviado pro Diego (campinhos-v4.png);
+do desenho do losango, medido lá). Enviado pro Diego (campinhos-v5.png);
 aguardando o OK visual dele antes de qualquer mexida no jogo.
