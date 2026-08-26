@@ -89,7 +89,7 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Jupp Heynckes', pais: '🇩🇪', div: 'A', estilo: 'ofensiva' },
   { nome: 'Marcello Lippi', pais: '🇮🇹', div: 'A', estilo: 'equilibrado' },
   { nome: 'Vicente del Bosque', pais: '🇪🇸', div: 'A', estilo: 'posse' },
-  { nome: 'Joachim Löw', pais: '🇩🇪', div: 'A', estilo: 'posse' },
+  { nome: 'Telê Santana', pais: '🇧🇷', div: 'A', estilo: 'ofensiva' }, // subiu da B (26/08, Diego: "pra mim Telê Santana é Série A") — o pai do futebol-arte com as 5 formações
   { nome: 'Giovanni Trapattoni', pais: '🇮🇹', div: 'A', estilo: 'retranca' },
   { nome: 'Fabio Capello', pais: '🇮🇹', div: 'A', estilo: 'retranca' },
   { nome: 'Jürgen Klopp', pais: '🇩🇪', div: 'A', estilo: 'ofensiva' },
@@ -112,12 +112,12 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Luiz Felipe Scolari', pais: '🇧🇷', div: 'B', estilo: 'equilibrado', chute: true },
   { nome: 'Carlos Alberto Parreira', pais: '🇧🇷', div: 'B', estilo: 'retranca' },
   { nome: 'Mario Zagallo', pais: '🇧🇷', div: 'B', estilo: 'equilibrado', chute: true },
-  { nome: 'Telê Santana', pais: '🇧🇷', div: 'B', estilo: 'ofensiva' },
+  { nome: 'Joachim Löw', pais: '🇩🇪', div: 'B', estilo: 'posse' }, // desceu da A (26/08): uma Copa (2014) e queda no fim — naipe do Deschamps/Parreira, que são B
   { nome: 'César Luis Menotti', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' },
   { nome: 'Carlos Bilardo', pais: '🇦🇷', div: 'B', estilo: 'retranca' },
   { nome: 'Didier Deschamps', pais: '🇫🇷', div: 'B', estilo: 'retranca' },
   { nome: 'Luis Aragonés', pais: '🇪🇸', div: 'B', estilo: 'posse' },
-  { nome: 'Sven-Göran Eriksson', pais: '🇸🇪', div: 'B', estilo: 'equilibrado' },
+  { nome: 'Hansi Flick', pais: '🇩🇪', div: 'B', estilo: 'ofensiva' }, // entrou no lugar do Eriksson (26/08): sêxtuplo do Bayern 2020, pressão alta
   { nome: 'Jürgen Klinsmann', pais: '🇩🇪', div: 'B', estilo: 'ofensiva' },
   // 🅲 SÉRIE C — GRANDES / CAMPEÕES / ASCENSÃO (3 esquemas)
   { nome: 'Hernán Crespo', pais: '🇦🇷', div: 'C', estilo: 'ofensiva', chute: true },

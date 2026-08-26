@@ -11,7 +11,7 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 1. Alex Ferguson 🇬🇧 · 2. Pep Guardiola 🇪🇸 · 3. Carlo Ancelotti 🇮🇹 · 4. José Mourinho 🇵🇹 ·
 5. Zinedine Zidane 🇫🇷 · 6. Johan Cruyff 🇳🇱 · 7. Rinus Michels 🇳🇱 · 8. Arrigo Sacchi 🇮🇹 ·
 9. Jupp Heynckes 🇩🇪 · 10. Marcello Lippi 🇮🇹 · 11. Vicente del Bosque 🇪🇸 ·
-12. Joachim Löw 🇩🇪 (26/08: entrou no lugar do Ottmar Hitzfeld — mesma categoria, nome que o público reconhece) · 13. Giovanni Trapattoni 🇮🇹 · 14. Fabio Capello 🇮🇹 ·
+12. Telê Santana 🇧🇷 (26/08: SUBIU da B — palavras do Diego: "pra mim Telê Santana é Série A") · 13. Giovanni Trapattoni 🇮🇹 · 14. Fabio Capello 🇮🇹 ·
 15. Jürgen Klopp 🇩🇪 · 16. Louis van Gaal 🇳🇱 · 17. Arsène Wenger 🇫🇷 ·
 18. Luis Enrique 🇪🇸 · 19. Diego Simeone 🇦🇷 · 20. Luis de la Fuente 🇪🇸 (26/08: entrou no lugar do Brian Clough — campeão do MUNDO 2026 pela Espanha + Euro 2024 + Nations League; a Copa 2026 é info do Diego, depois do meu corte de conhecimento)
 
@@ -20,8 +20,8 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 4. Rafael Benítez 🇪🇸 · 5. Frank Rijkaard 🇳🇱 · 6. Guus Hiddink 🇳🇱 · 7. Unai Emery 🇪🇸 ·
 8. Massimiliano Allegri 🇮🇹 · 9. Thomas Tuchel 🇩🇪 · 10. Manuel Pellegrini 🇨🇱 ·
 11. Luiz Felipe Scolari 🇧🇷 · 12. Carlos Alberto Parreira 🇧🇷 · 13. Mario Zagallo 🇧🇷 ·
-14. Telê Santana 🇧🇷 · 15. César Luis Menotti 🇦🇷 · 16. Carlos Bilardo 🇦🇷 ·
-17. Didier Deschamps 🇫🇷 · 18. Luis Aragonés 🇪🇸 · 19. Sven-Göran Eriksson 🇸🇪 ·
+14. Joachim Löw 🇩🇪 (26/08: entrou pela A no lugar do Hitzfeld e DESCEU pra B na mesma noite — uma Copa e queda no fim, naipe Deschamps/Parreira) · 15. César Luis Menotti 🇦🇷 · 16. Carlos Bilardo 🇦🇷 ·
+17. Didier Deschamps 🇫🇷 · 18. Luis Aragonés 🇪🇸 · 19. Hansi Flick 🇩🇪 (26/08: entrou no lugar do Eriksson — sêxtuplo do Bayern 2020) ·
 20. Jürgen Klinsmann 🇩🇪
 
 ## 🅲 SÉRIE C — GRANDES / CAMPEÕES / ASCENSÃO (3 esquemas)
@@ -205,7 +205,7 @@ aquela era de antes do martelo das 15.)
 | Jupp Heynckes 🇩🇪 | ⚽ ofensivo | ✅ |
 | Marcello Lippi 🇮🇹 | ⚖️ equilibrado | ✅ |
 | Vicente del Bosque 🇪🇸 | 🎩 posse | ✅ |
-| Joachim Löw 🇩🇪 | 🎩 posse | ✅ |
+| Telê Santana 🇧🇷 | ⚽ ofensivo | ✅ |
 | Giovanni Trapattoni 🇮🇹 | 🛡️ retranca | ✅ |
 | Fabio Capello 🇮🇹 | 🛡️ retranca | ✅ |
 | Jürgen Klopp 🇩🇪 | ⚽ ofensivo | ✅ |
@@ -231,12 +231,12 @@ aquela era de antes do martelo das 15.)
 | Luiz Felipe Scolari 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
 | Carlos Alberto Parreira 🇧🇷 | 🛡️ retranca | ✅ |
 | Mario Zagallo 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
-| Telê Santana 🇧🇷 | ⚽ ofensivo | ✅ |
+| Joachim Löw 🇩🇪 | 🎩 posse | ✅ |
 | César Luis Menotti 🇦🇷 | ⚽ ofensivo | ✅ |
 | Carlos Bilardo 🇦🇷 | 🛡️ retranca | ✅ |
 | Didier Deschamps 🇫🇷 | 🛡️ retranca | ✅ |
 | Luis Aragonés 🇪🇸 | 🎩 posse | ✅ |
-| Sven-Göran Eriksson 🇸🇪 | ⚖️ equilibrado | ✅ |
+| Hansi Flick 🇩🇪 | ⚽ ofensivo | ✅ |
 | Jürgen Klinsmann 🇩🇪 | ⚽ ofensivo | ✅ |
 
 ### 🅲 Série C
