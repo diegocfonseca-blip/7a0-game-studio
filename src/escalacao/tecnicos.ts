@@ -135,7 +135,7 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Claudio Ranieri', pais: '🇮🇹', div: 'C', estilo: 'retranca' },
   { nome: 'Luciano Spalletti', pais: '🇮🇹', div: 'C', estilo: 'posse' },
   { nome: 'Maurizio Sarri', pais: '🇮🇹', div: 'C', estilo: 'posse' },
-  { nome: 'Laurent Blanc', pais: '🇫🇷', div: 'C', estilo: 'posse', chute: true },
+  { nome: 'Enzo Maresca', pais: '🇮🇹', div: 'C', estilo: 'posse' }, // escola Guardiola: Mundial de Clubes e Conference com o Chelsea, acesso com o Leicester
   { nome: 'Xavi Hernández', pais: '🇪🇸', div: 'C', estilo: 'posse' },
   { nome: 'Mikel Arteta', pais: '🇪🇸', div: 'C', estilo: 'posse' },
   { nome: 'Xabi Alonso', pais: '🇪🇸', div: 'C', estilo: 'posse' },

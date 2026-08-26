@@ -29,7 +29,7 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 5. Tite 🇧🇷 · 6. Muricy Ramalho 🇧🇷 · 7. Vanderlei Luxemburgo 🇧🇷 · 8. Marcelo Bielsa 🇦🇷 ·
 9. Jorge Sampaoli 🇦🇷 · 10. Ramón Díaz 🇦🇷 · 11. José Pékerman 🇦🇷 ·
 12. Fernando Santos 🇵🇹 · 13. Claudio Ranieri 🇮🇹 · 14. Luciano Spalletti 🇮🇹 ·
-15. Maurizio Sarri 🇮🇹 · 16. Laurent Blanc 🇫🇷 · 17. Xavi Hernández 🇪🇸 ·
+15. Maurizio Sarri 🇮🇹 · 16. Enzo Maresca 🇮🇹 (26/08: entrou no lugar do Laurent Blanc — Mundial de Clubes e Conference pelo Chelsea, escolha do Diego) · 17. Xavi Hernández 🇪🇸 ·
 18. Mikel Arteta 🇪🇸 · 19. Xabi Alonso 🇪🇸 · 20. Rogério Ceni 🇧🇷
 
 ## 🅳 SÉRIE D — FAMOSOS / EX-CRAQUES / FLOPS (2 esquemas)
@@ -257,7 +257,7 @@ aquela era de antes do martelo das 15.)
 | Claudio Ranieri 🇮🇹 | 🛡️ retranca | ✅ |
 | Luciano Spalletti 🇮🇹 | 🎩 posse | ✅ |
 | Maurizio Sarri 🇮🇹 | 🎩 posse | ✅ |
-| Laurent Blanc 🇫🇷 | 🎩 posse | ⚠️ chute |
+| Enzo Maresca 🇮🇹 | 🎩 posse | ✅ |
 | Xavi Hernández 🇪🇸 | 🎩 posse | ✅ |
 | Mikel Arteta 🇪🇸 | 🎩 posse | ✅ |
 | Xabi Alonso 🇪🇸 | 🎩 posse | ✅ |
