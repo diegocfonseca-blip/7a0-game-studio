@@ -36,8 +36,12 @@ const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F', CRE
 const OSW = 'font-family:Oswald,sans-serif;font-weight:700'
 
 // bolinha do campinho (mesmo traço do mockup-formacoes-espelho, aprovado em 24/08)
-const jog = (nome, tag, destaque) => `
-  <div style="text-align:center;width:60px;flex:none">
+// `rec` = recuado: os LATERAIS da linha de defesa descem um tiquinho em relação
+// aos zagueiros — pedido do Diego (26/08): "coloque os dois laterais um pouco
+// recuado, só até pra dar uma diferença".
+const REC_LAT = 16
+const jog = (nome, tag, destaque, rec) => `
+  <div style="text-align:center;width:60px;flex:none${rec ? `;transform:translateY(${REC_LAT}px)` : ''}">
     <span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;
       border:3px solid ${INK};background:${destaque ? GOLD : '#DBD1B5'};color:${INK};
       ${OSW};font-size:14px">${nome[0]}</span>
@@ -70,7 +74,7 @@ const campo = (rotulo, cor, faixas, legenda) => `
 const F442 = campo('① 4-4-2 · como é HOJE', 'rgba(0,0,0,.55)', {
   ataque: linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')),
   meio: linha(jog('Rivelino', 'MEI') + jog('Zico', 'MEI') + jog('Falcão', 'MEI') + jog('Dunga', 'MEI')),
-  defesa: linha(jog('Cafu', 'LAT') + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT')),
+  defesa: linha(jog('Cafu', 'LAT', 0, 1) + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT', 0, 1)),
   gol: linha(jog('Taffarel', 'GOL')),
 }, 'Repare nas alturas: ataque, zaga e goleiro estão na MESMA posição nos 3 campos. A linha única de meias fica no centro da faixa do meio.')
 
@@ -81,14 +85,14 @@ const FLOS = campo('② 4-4-2 LOSANGO · novo desenho', GREEN, {
     linha(jog('Zico', 'MEI · camisa 10', 1)) +
     linha(jog('Rivelino', 'MEI', 1) + '<div style="width:66px"></div>' + jog('Falcão', 'MEI', 1)) +
     linha(jog('Dunga', 'MEI · volante', 1)),
-  defesa: linha(jog('Cafu', 'LAT') + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT')),
+  defesa: linha(jog('Cafu', 'LAT', 0, 1) + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT', 0, 1)),
   gol: linha(jog('Taffarel', 'GOL')),
 }, 'Os <b>MESMOS 4 meias</b> (em dourado) abrem em losango DENTRO da faixa do meio — zaga e goleiro não saem do lugar. O time é idêntico ao ①.')
 
 // ── 3) 3-5-2 COM ALAS: o time do 5-3-2, laterais adiantados ────────────────
 const F352 = campo('③ 3-5-2 · os ALAS são os laterais', GREEN, {
   ataque: linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')),
-  meio: linha(jog('Cafu', 'LAT · ala', 1) + jog('Rivelino', 'MEI') + jog('Zico', 'MEI') + jog('Falcão', 'MEI') + jog('R.Carlos', 'LAT · ala', 1)),
+  meio: linha(jog('Cafu', 'LAT · ala', 1, 1) + jog('Rivelino', 'MEI') + jog('Zico', 'MEI') + jog('Falcão', 'MEI') + jog('R.Carlos', 'LAT · ala', 1, 1)),
   defesa: linha(jog('Aldair', 'ZAG') + jog('Gamarra', 'ZAG') + jog('Lúcio', 'ZAG')),
   gol: linha(jog('Taffarel', 'GOL')),
 }, 'Os alas (em dourado) são <b>Cafu e R.Carlos, laterais DE VERDADE</b>, adiantados pra faixa do meio — e a zaga de 3 fica na MESMA altura da zaga de 4 dos outros campos.')
