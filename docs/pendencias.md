@@ -10385,6 +10385,71 @@ na legenda do áudio novo: Silenciar aqui"*). É pegadinha: o botão promete sil
 e solta o áudio pra sala toda. Só o TEXTO do botão mudou — o emoji 🐊 e o balão
 ("soltou o áudio do jacaré") seguem iguais, porque ele pediu a legenda e mais nada.
 
+## 🧢 TÉCNICO: DESENHO FECHADO PELO DIEGO (26/08) — mockups mandados, aguardando OK visual
+Depois de uma semana de ida e volta, ele bateu o martelo. Palavras dele: *"Quero
+overall igual jogador.. N quero nada de setor.. na prática vai ser apenas como mais
+uma carta normal como se fosse mais um jogador, só isso, além de ter mais formações
+por categoria"*.
+
+**O desenho (não reabrir sem ele pedir):**
+- O técnico é **UMA CARTA no formato de jogador**: categoria (como a fama, com as
+  mesmas cores de tier) + **overall em FAIXA lo–hi** que **rola por partida igual
+  jogador** (dia bom/dia ruim). **Uma vaga só** no time, como goleiro. Selo `TEC`.
+- **SEM setor de confiança.** Foi proposto e ele recusou explicitamente.
+- A categoria diz **quantos esquemas libera**: lenda 5 · craque 4 · promessa 3 ·
+  bom 2 · foi profissional 1. Sem esquema liberado, joga o 4-3-3 padrão — técnico
+  nunca trava o que já existe, só abre.
+- Efeito aceito de olhos abertos: *"às vezes um time tem o melhor técnico mas o
+  outro time tem jogadores melhores"* — 11 jogadores pesam mais que 1 técnico.
+- Por dentro: o overall rolado vira um empurrão GERAL pequeno no time. Teto já
+  medido: **+2 geral é o limite seguro** (+8 dava 100% de título). O mapeamento
+  exato (faixa → bônus) sai de medição antes de codar.
+
+**Contratação (proposta minha nos mockups, aguardando o OK dele):**
+1. 100 clubes = 100 técnicos; carreira nova começa com um fraquinho da divisão.
+2. Mercado na **Sala da Presidência**, só na **virada de temporada**.
+3. Paga a **multa** → clube dele recebe → os dois técnicos **TROCAM de clube**
+   (dança das cadeiras; cadeira nunca fica vazia).
+4. Trava da escada: só contrata técnico de clube **da sua divisão pra baixo**;
+   subiu, pode segurar o seu.
+5. Caiu → o técnico mete o pé (troca com o de um clube promovido) — é o que
+   renova as divisões sozinho (o medo do "sempre os msm").
+
+**Mockups**: `scripts/mockup-tecnico-carta.mjs` (a carta + como contrata) e
+`scripts/mockup-presidencia-tecnico.mjs` (a Presidência com o técnico + mercado).
+⏳ Nada codado no jogo — espera o OK visual e a resposta sobre a contratação.
+
+### 🔄 ATUALIZAÇÃO DO DIEGO (26/08, por cima do desenho acima): ALICIAR NO ELENCO
+Ele mandou prints do modo MANAGER oculto e mudou a contratação:
+1. **O mercado de técnicos SAI da Presidência** → vira **Aliciar dentro do ELENCO**,
+   no mesmo espírito do aliciar do Manager: lista dos clubes da SUA divisão →
+   entra no clube → alicia.
+2. **Nada de multa direta**: técnico aliciado vai pro **LEILÃO** (você × seus
+   rivais × o clube dono, que briga pra segurar).
+3. **Jogadores também têm aliciar** — mas essa parte nasce **SÓ pra conta dele**
+   (trava por e-mail, mesmo padrão do BASQUETE_TESTERS). Os outros usuários veem
+   só o aliciar de TÉCNICO. Palavras: *"somente eu vou poder ver essa área de
+   jogadores... os outros irão ver apenas o técnico"*.
+4. **Visual NÃO copia o Manager oculto** (é do início do jogo): tudo no visual de
+   hoje — creme, bordas, sombras duras, Oswald, botões da casa. Palavras: *"faça
+   da nossa forma. Nossos botões nosso estilo cores e etc"*.
+5. **A lista dos 100 técnicos foi FECHADA** → `docs/tecnicos-100.md` (A lendas ·
+   B gigantes · C grandes · D famosos/flops · Várzea personagens; substitui o
+   lote de 24/08). Esquemas: A 5 · B 4 · C 3 · D 2 · V 1.
+
+**Mockup novo**: `scripts/mockup-aliciar-tecnicos.mjs` (tela do Elenco com a seção
+Aliciar + tela dentro do clube com técnico pra todos e jogadores no quadro roxo
+"só você"). ⏳ Mandado pra ele — **aguardando o OK visual antes de codar**.
+
+### ➕ v3 do mockup do aliciar (mesmo dia): carta ganhou identidade e estilo
+Cobranças dele em cima da v2: **faltou clube · ano** na carta (identidade real,
+igual carta de jogador — Telê = "São Paulo · 1992") e a carta deve mostrar **QUAIS
+formações** ele domina, escolhidas pelo **estilo da vida real** (regra nova,
+gravada em `docs/tecnicos-100.md`: retranqueiro pega as defensivas primeiro, posse
+pega as de meia, ofensivo as de ataque; a categoria corta a quantidade).
+Pendência que isso cria: **classificar o estilo dos 100** com selo documentado ×
+chute ANTES de codar (regra do "não inventar como uma pessoa real é").
+
 ---
 
 ## 🎭 BARALHO FANTASIA (26/08) — 220 personagens, escrito e PARADO
