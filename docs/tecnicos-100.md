@@ -76,3 +76,32 @@ GENTE DE VERDADE — vale a regra do Diego (18/08): estilo documentado entra; no
 que eu não souber o estilo, eu marco "⚠️ chute" e ele decide (ou vira ⚖️
 equilibrado, o neutro). Fazer essa classificação ANTES de codar, com selo de
 documentado × chute, igual foi feito na lista de 24/08.
+
+---
+
+## 🎽 15 FORMAÇÕES (pedido do Diego, 26/08 — proposta em aprovação)
+Palavras dele: *"precisaria de 15 formações... sendo 5 ofensivas, 5 posse de bola
+e 5 retranqueiro"*. Proposta concreta (aguardando OK):
+
+**⚽ OFENSIVAS:** 4-3-3 ✅ · 3-4-3 ✅ · 4-4-2 ✅ · 4-2-4 🆕 · 3-3-4 🆕
+**🎩 POSSE:** 4-5-1 ✅ · 3-5-2 🆕 · 4-4-2 losango 🪞 · 4-2-3-1 🪞 · 4-3-2-1 🪞
+**🛡️ RETRANCA:** 5-3-2 ✅ · 5-4-1 🆕 · 5-2-3 🆕 · 6-3-1 🆕 · 4-1-4-1 🪞
+
+✅ = já existe · 🆕 = conta de setores NOVA no motor · 🪞 = espelho (mesma conta de
+setores de outra formação, desenho DIFERENTE no campinho — o conceito que o próprio
+Diego trouxe em 24/08 com 442-losango/4231/4321). Espelhos: losango = conta da
+4-4-2; 4-2-3-1, 4-3-2-1 e 4-1-4-1 = conta da 4-5-1.
+
+Contas novas (GOL sempre 1, LAT sempre 2): 4-2-4 = ZAG2 MEI2 ATA4 · 3-3-4 = ZAG1
+MEI3 ATA4 · 3-5-2 = ZAG1 MEI5 ATA2 · 5-4-1 = ZAG3 MEI4 ATA1 · 5-2-3 = ZAG3 MEI2
+ATA3 · 6-3-1 = ZAG4 MEI3 ATA1.
+
+**Como a categoria corta com 15:** proposta = a contagem (A5 · B4 · C3 · D2 · V1)
+passa a valer DENTRO do estilo do técnico — lenda retranqueira domina as 5
+retrancas e NÃO joga 4-2-4 (identidade até no topo). O 4-3-3 continua liberado de
+fábrica pra todo time (técnico nunca trava, só abre). ⚠️ Dentro do estilo, a ordem
+de desbloqueio traz as contas DISTINTAS primeiro e os espelhos por último — senão
+um técnico de posse com 3 esquemas ganharia três vezes a mesma 4-5-1 de roupa nova.
+
+⚠️ Antes de codar: MEDIR as 6 contas novas no motor (mede-formacao-vale-quanto)
+pra nenhuma virar a formação-deus — mesmo processo das medições de 25/08.
