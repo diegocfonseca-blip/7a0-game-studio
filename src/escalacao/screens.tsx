@@ -2779,6 +2779,33 @@ function chatColor(name: string): string {
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
   return CHAT_COLORS[h % CHAT_COLORS.length]
 }
+// 🐊 MASCOTE MINIATURA — a mesma arte do gol/festão, encolhida pro balão de
+// reação e pro botão. Ela NASCE grande (~176px de altura, até 170 de largura),
+// então a gente escala por `transform`. Bundle não cresce: a arte já está no jogo.
+//
+// ⚠️ TAMANHO MÍNIMO (reclamação do Diego 26/08: *"não deu certo o mascote
+// soltar ele!"*). A 1ª versão desenhava a mascote com 30px de altura, do
+// tamanho de um emoji. Só que emoji é um DESENHO SÓ, e a mascote é um bicho de
+// corpo inteiro: a 30px ela vira um risquinho e ninguém reconhece quem é —
+// medido lado a lado, 32px não dá pra distinguir o lobo do galo. Daí:
+//   · botão "solta a sua mascote" → 44px  (dá pra ver de quem é)
+//   · balão que sobe na tela      → 52px  (é a hora dela aparecer)
+// Não descer disso. Se o balão ficar alto demais com muita gente reagindo,
+// diminuir o TEXTO, não a mascote.
+//
+// A caixa de dentro tem o tamanho REAL da arte (170×204) de propósito: se ela
+// ficar estreita, o `img { max-width:100% }` do Tailwind espreme a mascote
+// ANTES do scale e ela some. Só o `scale` decide o tamanho final.
+const MASC_W = 170, MASC_H = 204
+function MascoteMini({ art, alt }: { art: React.ReactNode; alt: number }) {
+  const s = alt / MASC_H
+  return (
+    <span style={{ display: 'inline-block', width: Math.round(MASC_W * s), height: alt, position: 'relative', flex: 'none', verticalAlign: 'bottom' }}>
+      <span style={{ position: 'absolute', left: 0, top: 0, width: MASC_W, height: MASC_H, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', transform: `scale(${s})`, transformOrigin: 'top left' }}>{art}</span>
+    </span>
+  )
+}
+
 function FloatingEmotes() {
   const { state, emotes } = useEsc()
   if (state.onlineMode !== 'online' || emotes.length === 0) return null
@@ -2818,11 +2845,7 @@ function FloatingEmotes() {
                 ? (() => {
                   const art = MASCOTES[e.kind.slice(5)]
                   if (!art) return <span className="text-lg leading-none">🎭</span>
-                  return (
-                    <span style={{ display: 'inline-block', width: 40, height: 44, position: 'relative', flex: 'none' }}>
-                      <span style={{ position: 'absolute', bottom: -2, left: '50%', transform: 'translateX(-50%) scale(.25)', transformOrigin: 'bottom center' }}>{art}</span>
-                    </span>
-                  )
+                  return <MascoteMini art={art} alt={52} />
                 })()
                 : <span className="text-lg leading-none">{e.kind}</span>}
               {/* alfinetada (frase) → nome de quem manda NA FRENTE; reação simples → "quem → carta" */}
@@ -2952,9 +2975,7 @@ function MascoteJab() {
     <button onClick={() => emote(`masc:${key}`, undefined, 'soltou o bicho! 🔊')}
       className="mt-1.5 mx-auto flex items-center gap-2 border-2 rounded-full pl-1.5 pr-3 py-0.5 bg-white active:translate-y-0.5"
       style={{ borderColor: PURPLE, boxShadow: `2px 2px 0 0 ${INK}` }}>
-      <span style={{ display: 'inline-block', width: 34, height: 30, position: 'relative', flex: 'none' }}>
-        <span style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%) scale(.17)', transformOrigin: 'bottom center' }}>{MASCOTES[key]}</span>
-      </span>
+      <MascoteMini art={MASCOTES[key]} alt={44} />
       <span className="text-xs font-black text-black" style={OSWALD}>SOLTA A SUA MASCOTE</span>
     </button>
   )
