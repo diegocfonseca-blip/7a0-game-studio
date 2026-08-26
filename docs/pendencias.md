@@ -10298,3 +10298,65 @@ Contei pra ele na hora e ofereci tirar; a resposta foi **"Deixa"**. Fica no ar
 merge feito às pressas. Antes de `push origin HEAD:main`, conferir
 `git merge-base --is-ancestor <commit-segurado> HEAD` — se der ancestral, publicar
 por cherry-pick a partir de `origin/main`, nunca empurrando o HEAD inteiro.
+
+---
+
+## ✅ 25/08 — RESENHA DO RÁPIDO ONLINE (3 das ideias, escolhidas pelo Diego)
+
+Ele pediu mais zoeira no rápido online, viu os mockups e mandou fazer.
+
+### 1. Cantada da carta: de 6 pra 3, e DEITADA
+*"esses emojis dos jogadores tô achando que tá demais… tá ruim vertical"*.
+O `CardReact` abria um popover com SEIS linhas de frase por baixo da carta e
+tapava as cartas seguintes. Agora abre em FILEIRA com as três que ele escolheu:
+**😈 TÔ NESSE · 💸 VAI FICAR CARO · 🥱 NEM QUERO** (rótulo curto no botão, a
+frase inteira só no balão da sala). Saíram do card: ❤️ meu ídolo · 🪙 1 moedinha
+· 🤣 — se ele sentir falta, é uma linha em `CANTADAS` pra voltar.
+
+### 2. 🐊 A mascote como reação — na barra do "lacra logo"
+*"os mascotes eu acho que só nos emojis onde tem contando moeda, lacra logo"*.
+Novo `MascoteJab`, dentro do bloco "😈 CUTUCA QUEM TÁ PENSANDO". Só aparece pra
+quem tem clube batizado (`useMeuSocio().mascoteKey`) — sem placeholder pra quem
+não tem. Manda `emote('masc:<chave>')`; o `FloatingEmotes` reconhece o prefixo
+`masc:` e desenha a arte encolhida por `scale` (mesma arte do gol/festão, então
+**o bundle não cresce**). Aparelho velho que não conhece a chave cai no 🎭 —
+nunca fica balão vazio.
+👉 De brinde, essa barra só existe DEPOIS que você lacrou: a mascote nunca
+pipoca na tela de quem ainda está decidindo o lance.
+
+### 3. 🏆 A premiação da resenha — na CERIMÔNIA
+Dúvida dele: *"deveria aparecer depois do leilão, mas vem a Cerimônia aí"*.
+Resposta: a Cerimônia **é** o depois do leilão — tem 45s de tempo morto
+(`CEREMONY_MS`) cujo texto já é "aproveite pra ver os times de todo mundo", e já
+carregava o Achado e o Mico como duas linhas soltas. Então a premiação **tomou o
+lugar dessas duas linhas** (mesmo gatilho `isLastMgr`), sem tela nova e sem
+mexer no cronômetro.
+
+Prêmios: 🏅 Achado · 🐴 Mico (os dois que já existiam) · 💸 Mão furada ·
+🤏 Mão de vaca · 🗑️ Perna-de-pau titular.
+
+**Estado novo `s.resenha`** (types.ts): o `revealQueue` é POR SETOR e é zerado no
+setor seguinte, então o **2º lance** de cada carta se perdia — sem ele não dá pra
+fazer a Mão Furada. Agora o reducer anota `paid − 2º lance` por técnico enquanto
+o dado existe. **Não entra no lacre** (`lacreDe` só soma caixa, títulos, divisão
+e temporada) e não muda nada do pregão. Partida antiga sem `resenha` só esconde
+esse prêmio — nada quebra.
+
+🧪 A conta virou função PURA e testável: **`premiosDaResenha(mgrs, resenha)`**
+(exportada de screens.tsx), testada por SSR em `scripts/`-style.
+**O teste pegou um bug antes de subir:** com um INCÓGNITO no elenco, ele ganhava
+o Achado **e** o Mico ao mesmo tempo (custa 1 moeda, então a conta dele fica fora
+da curva). Carta `fake` agora está fora de todos os prêmios — régua do Diego de
+que fake nunca entra por regra nova. Os dois prêmios ANTIGOS também não filtravam
+fake; agora filtram.
+
+### ⏳ O que NÃO foi feito (e por quê)
+- **⚡ Afobado / 🐢 Enrolado** (tempo de lacre e de espera): o jogo não guarda
+  quando cada um lacrou. Daria pra fazer, mas é encanamento novo no caminho
+  quente do pregão — deixei fora do primeiro corte.
+- **🎙️ Narração com o nome dos amigos** (ideia 5): aprovada, ainda não começou.
+- **🏆 Rever a premiação no fim, do lado do troféu** + **📤 mandar no grupo**:
+  desenhado no mockup, ainda não implementado.
+- 📸 **Nenhum print da tela real**: o robô do Playwright não conseguiu atravessar
+  o pregão até a Cerimônia (dicas de primeira partida + timers). A conta está
+  testada; **falta olho humano na tela** — pedir print ao Diego.

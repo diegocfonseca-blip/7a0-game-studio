@@ -2870,19 +2870,47 @@ function MoneyRain() {
 //
 // ⏱️ Não mexe no cronômetro. Quem não terminou de ler não perde nada — o mesmo
 // bloco reaparece no fim, do lado do troféu.
-function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscState['resenha'] }) {
-  const all = mgrs.flatMap(mg => mg.squad.map(c => ({ mg, c, mid: (c.lo + c.hi) / 2 })))
+export interface PremiosResenha {
+  achado: { nome: string; time: string; lo: number; hi: number; pago: number }
+  mico: { nome: string; time: string; lo: number; hi: number; pago: number }
+  furada: { time: string; nome: string; pago: number; segundo: number; total: number } | null
+  vaca: { time: string; sobrou: number } | null
+  pau: { time: string; nome: string; lo: number; hi: number } | null
+}
+/**
+ * 🏆 quem leva cada prêmio do vexame. Função PURA de propósito — é a parte que
+ * pode errar (escolher o técnico errado, dividir por zero, save antigo sem
+ * `resenha`), então dá pra testar sem abrir o jogo.
+ * Devolve null quando ninguém pagou nada (pregão sem lance = sem premiação).
+ */
+export function premiosDaResenha(mgrs: Manager[], resenha?: EscState['resenha']): PremiosResenha | null {
+  // 🎭 INCÓGNITO FORA DE TODOS OS PRÊMIOS. Carta `fake` é nome gerado pra tapar
+  // buraco de elenco — não é jogador de verdade, então não pode ser "achado",
+  // nem "mico", nem "perna-de-pau". Pego num teste em 25/08: com um incógnito no
+  // elenco, ele ganhava o Achado E o Mico ao mesmo tempo (a conta dele fica fora
+  // da curva porque custa 1 moeda). Régua do Diego: fake nunca entra por regra nova.
+  const all = mgrs.flatMap(mg => mg.squad.filter(c => !c.fake).map(c => ({ mg, c, mid: (c.lo + c.hi) / 2 })))
   const paid = all.filter(x => x.c.paid > 0)
   if (!paid.length) return null
-  const achado = [...paid].sort((a, b) => (b.mid / b.c.paid) - (a.mid / a.c.paid))[0]
-  const mico = [...paid].sort((a, b) => (b.c.paid - b.mid) - (a.c.paid - a.mid))[0]
-  // 💸 mão furada: quem mais pagou ACIMA do 2º colocado no pregão inteiro
-  const furadaId = resenha ? Object.entries(resenha.furada).sort((a, b) => b[1].total - a[1].total)[0] : null
-  const furadaMgr = furadaId ? mgrs.find(m => m.id === Number(furadaId[0])) : null
-  // 🤏 mão de vaca: terminou o pregão com mais moeda no bolso (sem gastar)
-  const vaca = [...mgrs].sort((a, b) => b.money - a.money)[0]
-  // 🗑️ o pior titular REAL de alguém (carta de brincadeira não conta — não é mérito)
-  const pau = all.filter(x => !x.c.fake).sort((a, b) => a.mid - b.mid)[0]
+  const achadoX = [...paid].sort((a, b) => (b.mid / b.c.paid) - (a.mid / a.c.paid))[0]
+  const micoX = [...paid].sort((a, b) => (b.c.paid - b.mid) - (a.c.paid - a.mid))[0]
+  const fEntry = resenha ? Object.entries(resenha.furada).sort((a, b) => b[1].total - a[1].total)[0] : null
+  const fMgr = fEntry ? mgrs.find(m => m.id === Number(fEntry[0])) : null
+  const vacaX = [...mgrs].sort((a, b) => b.money - a.money)[0]
+  const pauX = [...all].sort((a, b) => a.mid - b.mid)[0]
+  const card = (x: typeof achadoX) => ({ nome: x.c.name, time: x.mg.teamName, lo: x.c.lo, hi: x.c.hi, pago: x.c.paid })
+  return {
+    achado: card(achadoX),
+    mico: card(micoX),
+    furada: fMgr && fEntry ? { time: fMgr.teamName, nome: fEntry[1].pior.nome, pago: fEntry[1].pior.pago, segundo: fEntry[1].pior.segundo, total: fEntry[1].total } : null,
+    vaca: vacaX ? { time: vacaX.teamName, sobrou: vacaX.money } : null,
+    pau: pauX ? { time: pauX.mg.teamName, nome: pauX.c.name, lo: pauX.c.lo, hi: pauX.c.hi } : null,
+  }
+}
+
+function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscState['resenha'] }) {
+  const pr = premiosDaResenha(mgrs, resenha)
+  if (!pr) return null
 
   const item = (bg: string, ic: string, titulo: string, quem: string, detalhe: React.ReactNode) => (
     <div className="border-[2.5px] border-black rounded-xl overflow-hidden" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
@@ -2902,12 +2930,12 @@ function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscSta
         <p className="font-black text-[10px] uppercase tracking-widest text-white/50" style={OSWALD}>O pregão acabou</p>
         <p className="font-black text-2xl leading-none mt-0.5" style={{ ...OSWALD, color: GOLD }}>Agora a conta.</p>
       </div>
-      {item(GREEN, '🏅', 'Achado do pregão', `${achado.c.name} · ${achado.mg.teamName}`, <>Nível {achado.c.lo}–{achado.c.hi} e pagou <b>{achado.c.paid}</b>. Roubou.</>)}
-      {item('#8B5E3C', '🐴', 'Mico do pregão', `${mico.c.name} · ${mico.mg.teamName}`, <>Nível {mico.c.lo}–{mico.c.hi} e pagou <b>{mico.c.paid}</b>. Doeu.</>)}
-      {furadaMgr && furadaId && item('#C2452F', '💸', 'Mão furada', furadaMgr.teamName,
-        <>Pagou <b>{furadaId[1].pior.pago}</b> no {furadaId[1].pior.nome} e o 2º lance era <b>{furadaId[1].pior.segundo}</b>. Jogou <b>{furadaId[1].total} 🪙</b> fora no pregão.</>)}
-      {vaca && item('#B45309', '🤏', 'Mão de vaca', vaca.teamName, <>Acabou o pregão com <b>{vaca.money} 🪙</b> no bolso. Guardou pra quê?</>)}
-      {pau && item('#6B7280', '🗑️', 'Perna-de-pau titular', pau.mg.teamName, <>Escalou o <b>{pau.c.name}</b> ({pau.c.lo}–{pau.c.hi}). De propósito?</>)}
+      {item(GREEN, '🏅', 'Achado do pregão', `${pr.achado.nome} · ${pr.achado.time}`, <>Nível {pr.achado.lo}–{pr.achado.hi} e pagou <b>{pr.achado.pago}</b>. Roubou.</>)}
+      {item('#8B5E3C', '🐴', 'Mico do pregão', `${pr.mico.nome} · ${pr.mico.time}`, <>Nível {pr.mico.lo}–{pr.mico.hi} e pagou <b>{pr.mico.pago}</b>. Doeu.</>)}
+      {pr.furada && item('#C2452F', '💸', 'Mão furada', pr.furada.time,
+        <>Pagou <b>{pr.furada.pago}</b> no {pr.furada.nome} e o 2º lance era <b>{pr.furada.segundo}</b>. Jogou <b>{pr.furada.total} 🪙</b> fora no pregão.</>)}
+      {pr.vaca && item('#B45309', '🤏', 'Mão de vaca', pr.vaca.time, <>Acabou o pregão com <b>{pr.vaca.sobrou} 🪙</b> no bolso. Guardou pra quê?</>)}
+      {pr.pau && item('#6B7280', '🗑️', 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
     </div>
   )
 }
