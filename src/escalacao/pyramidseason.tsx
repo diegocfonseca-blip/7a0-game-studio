@@ -2646,9 +2646,10 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
             {((): FormationKey[] => {
               const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]
               if (!quinze15) return base
+              const base2 = ['4-3-3', '4-4-2'] as FormationKey[] // sem técnico: só o feijão-com-arroz (regra do Diego)
               const nomeT = escStH.careerTecnicos?.[mgr.teamName]
               const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
-              if (!tt) return [...new Set<FormationKey>([...base, mgr.formation])]
+              if (!tt) return [...new Set<FormationKey>([...base2, mgr.formation])]
               const motores = fichaDoTecnico(tt).formacoes.map(r => formacaoPorRotulo(r)?.motor).filter((m): m is FormationKey => !!m)
               return [...new Set<FormationKey>([...motores, mgr.formation])]
             })().map(f => {
@@ -3506,12 +3507,15 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         if (quinze15) {
           const atual = formacaoAtual(mgr)
           // 🧢 v3 (pedido do Diego 26/08: "quando contrato um técnico, só poderei
-          // usar as formações daquele técnico"): COM técnico, o cardápio é SÓ o
-          // dele. SEM técnico, as 5 de sempre. E a regra anti-novela dele: a
-          // formação ATUAL nunca tranca — se o time não bate com as do técnico,
-          // você segue jogando como está até conseguir trocar. Nada quebra na
+          // usar as formações daquele técnico") + v4 (idem, mais tarde: "não tem
+          // sentido quem não tem técnico ter 5 — ter 5 é artigo de LUXO, somente
+          // lendas"): COM técnico, o cardápio é SÓ o dele (a categoria corta a
+          // quantidade: Lenda 5 … Várzea 1). SEM técnico, só o feijão-com-arroz
+          // de sempre: 4-3-3 e 4-4-2. E a regra anti-novela dele: a formação
+          // ATUAL nunca tranca — se o time não bate com as do técnico, você
+          // segue jogando como está até conseguir trocar. Nada quebra na
           // contratação, nunca entra perna-de-pau.
-          const BASE5 = new Set(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'])
+          const BASE5 = new Set(['4-3-3', '4-4-2'])
           const meuTecN = escSt.careerTecnicos?.[mgr.teamName] ?? null
           const meuTecT = meuTecN ? tecnicoPorNome(meuTecN) : undefined
           const doTec = new Set(meuTecT ? fichaDoTecnico(meuTecT).formacoes : [])
@@ -3544,7 +3548,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
                 : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
               <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>{meuTecT
                 ? <>🧢 Com técnico, o time joga as formações <b>DELE</b>.{doTec.has(atual.rotulo) ? '' : <> A sua atual (<b>{atual.rotulo}</b>) segue valendo até você trocar — trocou, ela tranca.</>} 🔒 = seu técnico não usa.</>
-                : <>🔒 = formação de TÉCNICO: alicia um que use ela (🧢 lá no fim da aba). Sem técnico, valem as 5 de sempre.</>}</p>
+                : <>🔒 = formação de TÉCNICO: alicia um que use ela (🧢 lá no fim da aba). Sem técnico é o feijão-com-arroz: 4-3-3 e 4-4-2 — e só LENDA 👑 traz 5 esquemas.</>}</p>
             </div>
           )
         }

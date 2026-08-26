@@ -10553,7 +10553,9 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       muda). Vale na LIGA; Copa/mata-mata ainda sem técnico (anotado abaixo).
       E o seletor de formações é TRAVADO pelo técnico — regra v3 (Diego 26/08:
       "quando contrato um técnico, só poderei usar as formações daquele técnico"):
-      COM técnico o cardápio é SÓ o dele; SEM técnico, as 5 de sempre. Anti-novela
+      COM técnico o cardápio é SÓ o dele; SEM técnico, só 4-3-3 e 4-4-2 (v4, Diego:
+      "não tem sentido quem não tem técnico ter 5 — ter 5 é artigo de LUXO, somente
+      lendas"). Anti-novela
       combinada com ele: a formação ATUAL nunca tranca — se o elenco não bate com
       as do técnico, segue jogando como está até conseguir trocar (trocou, ela
       tranca). O aliciar AVISA antes do lance se o técnico não usa a sua atual
