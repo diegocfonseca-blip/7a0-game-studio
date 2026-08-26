@@ -79,51 +79,56 @@ documentado × chute, igual foi feito na lista de 24/08.
 
 ---
 
-## 🎽 15 FORMAÇÕES — TODAS MAQUIAGEM (Diego, 26/08, decisão)
-Palavras dele: *"Teriam q ser formações q N mudasse o campo formato.. e que
-pudéssemos maquear. Tipo 4231 seria o 442 q seria segredo nosso, N contaríamos p
-usuário q é maquiagem somente"*.
+## 🎽 AS 15 FORMAÇÕES — LISTA FINAL (Diego, 26/08) ✅ MEDIDA
+Decisões dele nesta rodada: **4-2-4 e 5-4-1 entram DE VERDADE** (conta nova no
+motor — *"424 não pode ser 433, são realmente 4 atacantes"*). O resto é maquiagem
+com a régua que a bronca dele criou: **maquiagem só mexe no MEIO do desenho;
+zagueiros e atacantes têm que ser de verdade.** O mapa segue segredo de produção.
 
-Ou seja: **o motor continua com as 5 contas de sempre** (4-3-3 · 4-4-2 · 4-5-1 ·
-3-4-3 · 5-3-2). As 10 novas são **disfarces**: nome novo + desenho novo no
-campinho, por cima de uma das 5 reais. 🤫 **O mapa é SEGREDO DE PRODUÇÃO — nunca
-aparece em tela, texto de UI, novidade ou post.** Pro usuário, são 15 formações.
-
-| estilo | formação | por dentro é |
+| estilo | formação | por dentro |
 |---|---|---|
-| ⚽ OFENSIVAS | 4-3-3 | ela mesma |
-| | 3-4-3 | ela mesma |
-| | 4-2-4 | 4-3-3 (um meia desenhado na frente) |
-| | 3-3-4 | 3-4-3 (um meia desenhado na frente) |
-| | 2-3-5 "à moda antiga" | 3-4-3 (a pirâmide retrô — zoeira boa) |
-| 🎩 POSSE | 4-5-1 | ela mesma |
-| | 4-4-2 losango | 4-4-2 (4 meias em losango, sem ponta) |
-| | 4-2-3-1 | 4-5-1 (2 volantes + 3 meias) |
-| | 4-3-2-1 "árvore de Natal" | 4-5-1 |
-| | 3-5-2 | 5-3-2 (os laterais desenhados como alas) |
-| 🛡️ RETRANCA | 5-3-2 | ela mesma |
-| | 4-4-2 "duas linhas" | 4-4-2 |
-| | 5-4-1 | 4-5-1 (um volante desenhado na linha de trás) |
-| | 4-1-4-1 | 4-5-1 (o volante na frente da zaga) |
-| | 6-3-1 "ônibus estacionado" | 5-3-2 (um volante desenhado entre os zagueiros) |
+| ⚽ OFENSIVAS | 4-3-3 | real (existente) |
+| | 3-4-3 | real (existente) |
+| | **4-2-4** | **real 🆕** — ZAG2 · MEI2 · ATA4 |
+| | 4-3-1-2 | maq. 4-4-2 (o "1" é a camisa 10 atrás dos atacantes) |
+| | 3-4-3 losango | maq. 3-4-3 |
+| 🎩 POSSE | 4-5-1 | real (existente) |
+| | 4-2-3-1 | maq. 4-5-1 (2 volantes + 3 meias) |
+| | 4-3-2-1 árvore de Natal | maq. 4-5-1 |
+| | 4-4-2 losango | maq. 4-4-2 (4 meias em losango) |
+| | 3-5-2 | maq. 5-3-2 (os ALAS são os laterais DE VERDADE) |
+| 🛡️ RETRANCA | 5-3-2 | real (existente) |
+| | 4-4-2 duas linhas | maq. 4-4-2 |
+| | 4-1-4-1 | maq. 4-5-1 (volante na frente da zaga) |
+| | **5-4-1** | **real 🆕** — ZAG3 · MEI4 · ATA1 |
+| | 5-3-2 líbero | maq. 5-3-2 |
 
-**As respostas às perguntas dele (26/08):**
-- *"442 é ofensivo?"* — Não: chapado (duas linhas de quatro) ele é mais defesa que
-  ataque (é o 4-4-2 do Simeone). Por isso o 4-4-2 raiz foi pro bucket RETRANCA e o
-  losango pro POSSE. ⚠️ Repare que o 4-4-2 aparece nos DOIS estilos (raiz na
-  retranca, losango na posse) — mesma conta, caras diferentes. É maquiagem
-  trabalhando a favor.
-- *"losango é posse, tem certeza?"* — Sim, bem documentado: 4 meias centrais, sem
-  ponta, meio congestionado, jogo de toque (o Milan do Ancelotti com Pirlo/Kaká).
-- Nota honesta sobre o exemplo dele "4231 = 442": na nossa conta de setores o
-  4-2-3-1 desenha mais limpo em cima do **4-5-1** (2 volantes + 3 meias = 5 MEI).
-  Como é maquiagem, o mapa é escolha nossa — ficou 4-5-1. Se ele preferir 4-4-2,
-  é trocar uma linha.
+### 📏 A medição das 2 contas novas (26/08 · motor real · 25 temporadas × 4 elencos)
+Rodada com os 7 esquemas lado a lado (FORMATIONS estendido TEMPORARIAMENTE só pra
+medição; a edição foi revertida — nada disso está no jogo ainda):
+- **Equilibrado:** empate geral (4-5 títulos todos). Nenhuma formação-deus. ✅
+- **Cheio de ATACANTE:** 4-2-4 é a melhor (10 títulos vs 5-8) — exatamente o que
+  deve ser: a formação de quem apostou tudo em atacante. 40%, não quebra.
+- **Cheio de MEIA:** 5-4-1 é a melhor (12 títulos, 23× no top-3).
+- **Cheio de ZAGUEIRO:** 4-2-4 melhor (12) com a MELHOR defesa (31 sofridos) — os
+  2 zagueiros escalados são os melhores do estoque; curioso, mas dentro da faixa.
+**Veredito: aprovadas.** Cada uma brilha pro elenco certo e nenhuma passa de 48%
+de título no cenário mais favorável — mesma faixa das 5 de sempre.
 
-**O que essa versão ganha da anterior:** zero conta nova no motor → **zero
-medição nova necessária**, zero risco de formação-deus, nada pra calibrar. O
-custo vira só DESENHO (cada disfarce precisa do seu layout no campinho — o
-trabalho já rascunhado no mockup-formacoes-espelho de 24/08).
-
-A regra do ESTILO continua igual (categoria corta a quantidade dentro do estilo,
-contas distintas primeiro, disfarces depois; 4-3-3 sempre liberada de fábrica).
+### As 3 dúvidas dele desta rodada, respondidas
+1. *"3-5-2: e se o cara quiser 5 meias DE VERDADE?"* — Na vida real o meio do
+   3-5-2 É 2 alas + 3 meias, e alas são LATERAIS. Nossa versão escala os laterais
+   dele como alas: honesto. Um 3-5-2 com 5 meias puros seria formação com ZERO
+   lateral — não existe em nenhuma das 15 (nem nas 5 de hoje), mataria as cartas
+   de lateral no leilão (Cafu encostado) e o motor pesa LAT no ataque E na defesa.
+   Se um dia quiser, é cirurgia de motor à parte — estacionado.
+2. *"4-3-1-2 ofensiva e 4-1-3-2 defensiva, não é o contrário?"* — Os números vão
+   da defesa pro ataque. No 4-3-1-2 o "1" é a CAMISA 10, na frente do meio,
+   grudada nos 2 atacantes → ofensiva (o losango do Milan). No 4-1-3-2 o "1" é o
+   VOLANTE, atrás do meio, protegendo a zaga → defensiva. (Na lista final o
+   4-1-3-2 nem ficou — saiu pra dar lugar ao 5-4-1 real.)
+3. *"4-4-2 normal não entra na posse?"* — Não: o chapado é o time de jogo DIRETO,
+   duas linhas de quatro (Simeone) — time de posse evita ele porque o quadrado do
+   meio perde pros triângulos do 4-3-3/4-5-1 (por isso o Pep nunca jogou 4-4-2
+   puro). O 4-4-2 de posse é exatamente o LOSANGO, que está lá. Como é tudo
+   rótulo/maquiagem, mover de coluna é grátis se ele preferir.
