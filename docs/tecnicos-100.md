@@ -13,7 +13,7 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 9. Jupp Heynckes 🇩🇪 · 10. Marcello Lippi 🇮🇹 · 11. Vicente del Bosque 🇪🇸 ·
 12. Joachim Löw 🇩🇪 (26/08: entrou no lugar do Ottmar Hitzfeld — mesma categoria, nome que o público reconhece) · 13. Giovanni Trapattoni 🇮🇹 · 14. Fabio Capello 🇮🇹 ·
 15. Jürgen Klopp 🇩🇪 · 16. Louis van Gaal 🇳🇱 · 17. Arsène Wenger 🇫🇷 ·
-18. Luis Enrique 🇪🇸 · 19. Diego Simeone 🇦🇷 · 20. Brian Clough 🏴
+18. Luis Enrique 🇪🇸 · 19. Diego Simeone 🇦🇷 · 20. Luis de la Fuente 🇪🇸 (26/08: entrou no lugar do Brian Clough — campeão do MUNDO 2026 pela Espanha + Euro 2024 + Nations League; a Copa 2026 é info do Diego, depois do meu corte de conhecimento)
 
 ## 🅱️ SÉRIE B — GIGANTES (4 esquemas)
 1. Marcelo Gallardo 🇦🇷 · 2. Antonio Conte 🇮🇹 · 3. Roberto Mancini 🇮🇹 ·
@@ -213,7 +213,7 @@ aquela era de antes do martelo das 15.)
 | Arsène Wenger 🇫🇷 | ⚽ ofensivo | ✅ |
 | Luis Enrique 🇪🇸 | 🎩 posse | ✅ |
 | Diego Simeone 🇦🇷 | 🛡️ retranca | ✅ |
-| Brian Clough 🏴 | ⚖️ equilibrado | ⚠️ chute |
+| Luis de la Fuente 🇪🇸 | 🎩 posse | ✅ |
 
 ### 🅱️ Série B
 | técnico | estilo | selo |

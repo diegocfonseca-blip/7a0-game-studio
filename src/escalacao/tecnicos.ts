@@ -97,7 +97,7 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Arsène Wenger', pais: '🇫🇷', div: 'A', estilo: 'ofensiva' },
   { nome: 'Luis Enrique', pais: '🇪🇸', div: 'A', estilo: 'posse' },
   { nome: 'Diego Simeone', pais: '🇦🇷', div: 'A', estilo: 'retranca' },
-  { nome: 'Brian Clough', pais: '🏴', div: 'A', estilo: 'equilibrado', chute: true },
+  { nome: 'Luis de la Fuente', pais: '🇪🇸', div: 'A', estilo: 'posse' }, // campeão do mundo 2026 + Euro 2024 + Nations League (info do Diego 26/08)
   // 🅱️ SÉRIE B — GIGANTES (4 esquemas)
   { nome: 'Marcelo Gallardo', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' },
   { nome: 'Antonio Conte', pais: '🇮🇹', div: 'B', estilo: 'retranca', chute: true },
