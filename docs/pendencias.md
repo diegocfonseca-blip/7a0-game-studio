@@ -10561,7 +10561,10 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       4-4-2 jogando 4-3-3 → cardápio = as duas; Lenda → atual + 5 = 6). Se o
       técnico já usa a atual, não soma em dobro. Recalculada a cada contratação
       (`careerFormacaoExtra`). O aliciar mostra a conta antes do lance; o
-      intervalo segue o mesmo cardápio; a atual nunca tranca (segurança).
+      intervalo segue o mesmo cardápio; a atual nunca tranca (segurança). E v6
+      (Diego: "não tem que ter no seletor não, apenas as formações"): o seletor
+      mostra SÓ o cardápio — botões limpos, sem cadeado/selo/grupos de estilo.
+      O que cada técnico traz aparece na carta dele, no aliciar.
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.

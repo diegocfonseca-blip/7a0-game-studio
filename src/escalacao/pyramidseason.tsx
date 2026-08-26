@@ -29,8 +29,7 @@ import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
 import { tecnicoPorNome, fichaDoTecnico, PISO_TECNICO, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
-import { FORMACOES15, ESTILO_ROTULO, formacaoAtual, formacaoPorRotulo } from './formacoes'
-import type { EstiloFormacao } from './formacoes'
+import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
@@ -3507,53 +3506,39 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         // todo o resto, as 5 de sempre — byte a byte como era.
         if (quinze15) {
           const atual = formacaoAtual(mgr)
-          // 🧢 v3 (pedido do Diego 26/08: "quando contrato um técnico, só poderei
-          // usar as formações daquele técnico") + v4 (idem, mais tarde: "não tem
-          // sentido quem não tem técnico ter 5 — ter 5 é artigo de LUXO, somente
-          // lendas"): COM técnico, o cardápio é SÓ o dele (a categoria corta a
-          // quantidade: Lenda 5 … Várzea 1). SEM técnico, só o feijão-com-arroz
-          // de sempre: 4-3-3 e 4-4-2. E a regra anti-novela dele: a formação
-          // ATUAL nunca tranca — se o time não bate com as do técnico, você
-          // segue jogando como está até conseguir trocar. Nada quebra na
-          // contratação, nunca entra perna-de-pau.
-          const BASE5 = new Set(['4-3-3', '4-4-2'])
+          // 🧢 v3-v5 (Diego 26/08): o cardápio é do TÉCNICO (categoria corta a
+          // quantidade; Lenda = 5) + a formação DA CASA 🏠 (a que o time já usava
+          // quando ele chegou — não dobra se ele já a usa). Sem técnico, só o
+          // feijão-com-arroz: 4-3-3 e 4-4-2. A ATUAL nunca sai do cardápio.
+          // 🧹 v6 (Diego: "não tem que ter no seletor não, apenas as formações"):
+          // o seletor mostra SÓ o cardápio — botões limpos, sem cadeado nem selo.
+          // O que cada técnico traz aparece na carta dele, lá no aliciar.
+          const BASE2 = new Set(['4-3-3', '4-4-2'])
           const meuTecN = escSt.careerTecnicos?.[mgr.teamName] ?? null
           const meuTecT = meuTecN ? tecnicoPorNome(meuTecN) : undefined
           const doTec = new Set(meuTecT ? fichaDoTecnico(meuTecT).formacoes : [])
-          // 🏠 a formação que o time já usava quando o técnico chegou SOMA ao
-          // cardápio (regra do Diego) — e a atual nunca tranca (segurança).
           const daCasa = meuTecT ? (escSt.careerFormacaoExtra?.[mgr.teamName] ?? null) : null
-          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) || rot === daCasa : BASE5.has(rot)) || rot === atual.rotulo
-          const bloqueadas = FORMACOES15.filter(f => f.rotulo !== atual.rotulo && liberada(f.rotulo) && missFor(f.motor).length > 0)
+          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) || rot === daCasa : BASE2.has(rot)) || rot === atual.rotulo
+          const cardapio = FORMACOES15.filter(f => liberada(f.rotulo))
+          const bloqueadas = cardapio.filter(f => f.rotulo !== atual.rotulo && missFor(f.motor).length > 0)
           return (
             <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: INK }}>🎽 Formação</p>
-              {(['ofensiva', 'posse', 'retranca'] as EstiloFormacao[]).map(est => (
-                <div key={est}>
-                  <p style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, margin: '6px 0 4px', color: '#5a5647', textTransform: 'uppercase', letterSpacing: '.06em' }}>{ESTILO_ROTULO[est]}</p>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {FORMACOES15.filter(f => f.estilo === est).map(f => {
-                      const cur = atual.rotulo === f.rotulo
-                      const lib = liberada(f.rotulo)
-                      const can = cur || (lib && missFor(f.motor).length === 0)
-                      const doTecnico = lib && !!meuTecT && doTec.has(f.rotulo)
-                      const ehDaCasa = lib && !!meuTecT && !doTec.has(f.rotulo) && f.rotulo === daCasa
-                      return (
-                        <button key={f.rotulo} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
-                          style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5, ...(lib ? {} : { background: '#efe9d8', color: '#b8b2a4' }) }}>
-                          {lib ? '' : '🔒 '}{doTecnico ? '🧢 ' : ''}{ehDaCasa ? '🏠 ' : ''}{f.rotulo}{cur ? ' ✓' : ''}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
+              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎽 Formação</p>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {cardapio.map(f => {
+                  const cur = atual.rotulo === f.rotulo
+                  const can = cur || missFor(f.motor).length === 0
+                  return (
+                    <button key={f.rotulo} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
+                      style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5 }}>
+                      {f.rotulo}{cur ? ' ✓' : ''}
+                    </button>
+                  )
+                })}
+              </div>
               {bloqueadas.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
                 : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
-              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>{meuTecT
-                ? <>🧢 = formações do seu técnico{daCasa ? <> · 🏠 = a da casa (<b>{daCasa}</b>, que o time já usava quando ele chegou — fica no cardápio)</> : ''} · 🔒 = fora do cardápio.</>
-                : <>🔒 = formação de TÉCNICO: alicia um que use ela (🧢 lá no fim da aba). Sem técnico é o feijão-com-arroz: 4-3-3 e 4-4-2 — e só LENDA 👑 traz 5 esquemas.</>}</p>
             </div>
           )
         }
