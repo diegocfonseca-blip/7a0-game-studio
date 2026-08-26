@@ -10418,3 +10418,25 @@ por categoria"*.
 **Mockups**: `scripts/mockup-tecnico-carta.mjs` (a carta + como contrata) e
 `scripts/mockup-presidencia-tecnico.mjs` (a Presidência com o técnico + mercado).
 ⏳ Nada codado no jogo — espera o OK visual e a resposta sobre a contratação.
+
+### 🔄 ATUALIZAÇÃO DO DIEGO (26/08, por cima do desenho acima): ALICIAR NO ELENCO
+Ele mandou prints do modo MANAGER oculto e mudou a contratação:
+1. **O mercado de técnicos SAI da Presidência** → vira **Aliciar dentro do ELENCO**,
+   no mesmo espírito do aliciar do Manager: lista dos clubes da SUA divisão →
+   entra no clube → alicia.
+2. **Nada de multa direta**: técnico aliciado vai pro **LEILÃO** (você × seus
+   rivais × o clube dono, que briga pra segurar).
+3. **Jogadores também têm aliciar** — mas essa parte nasce **SÓ pra conta dele**
+   (trava por e-mail, mesmo padrão do BASQUETE_TESTERS). Os outros usuários veem
+   só o aliciar de TÉCNICO. Palavras: *"somente eu vou poder ver essa área de
+   jogadores... os outros irão ver apenas o técnico"*.
+4. **Visual NÃO copia o Manager oculto** (é do início do jogo): tudo no visual de
+   hoje — creme, bordas, sombras duras, Oswald, botões da casa. Palavras: *"faça
+   da nossa forma. Nossos botões nosso estilo cores e etc"*.
+5. **A lista dos 100 técnicos foi FECHADA** → `docs/tecnicos-100.md` (A lendas ·
+   B gigantes · C grandes · D famosos/flops · Várzea personagens; substitui o
+   lote de 24/08). Esquemas: A 5 · B 4 · C 3 · D 2 · V 1.
+
+**Mockup novo**: `scripts/mockup-aliciar-tecnicos.mjs` (tela do Elenco com a seção
+Aliciar + tela dentro do clube com técnico pra todos e jogadores no quadro roxo
+"só você"). ⏳ Mandado pra ele — **aguardando o OK visual antes de codar**.

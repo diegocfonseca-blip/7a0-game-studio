@@ -1,0 +1,55 @@
+# 🧢 OS 100 TÉCNICOS — lista FECHADA pelo Diego (26/08)
+
+Palavras dele: *"Agora sim. Com Bill Shankly fora, Simeone subindo para A, Gallardo
+para B, Crespo para C e Inzaghi entrando na D, fica a lista completa e fechada."*
+**Não mexer sem ele pedir.** 20 por divisão = 100.
+
+A categoria segue a divisão de ORIGEM do técnico (onde ele começa a carreira nova);
+esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
+
+## 🅰️ SÉRIE A — LENDAS (5 esquemas)
+1. Alex Ferguson 🇬🇧 · 2. Pep Guardiola 🇪🇸 · 3. Carlo Ancelotti 🇮🇹 · 4. José Mourinho 🇵🇹 ·
+5. Zinedine Zidane 🇫🇷 · 6. Johan Cruyff 🇳🇱 · 7. Rinus Michels 🇳🇱 · 8. Arrigo Sacchi 🇮🇹 ·
+9. Jupp Heynckes 🇩🇪 · 10. Marcello Lippi 🇮🇹 · 11. Vicente del Bosque 🇪🇸 ·
+12. Ottmar Hitzfeld 🇩🇪 · 13. Giovanni Trapattoni 🇮🇹 · 14. Fabio Capello 🇮🇹 ·
+15. Jürgen Klopp 🇩🇪 · 16. Louis van Gaal 🇳🇱 · 17. Arsène Wenger 🇫🇷 ·
+18. Luis Enrique 🇪🇸 · 19. Diego Simeone 🇦🇷 · 20. Brian Clough 🏴
+
+## 🅱️ SÉRIE B — GIGANTES (4 esquemas)
+1. Marcelo Gallardo 🇦🇷 · 2. Antonio Conte 🇮🇹 · 3. Roberto Mancini 🇮🇹 ·
+4. Rafael Benítez 🇪🇸 · 5. Frank Rijkaard 🇳🇱 · 6. Guus Hiddink 🇳🇱 · 7. Unai Emery 🇪🇸 ·
+8. Massimiliano Allegri 🇮🇹 · 9. Thomas Tuchel 🇩🇪 · 10. Manuel Pellegrini 🇨🇱 ·
+11. Luiz Felipe Scolari 🇧🇷 · 12. Carlos Alberto Parreira 🇧🇷 · 13. Mario Zagallo 🇧🇷 ·
+14. Telê Santana 🇧🇷 · 15. César Luis Menotti 🇦🇷 · 16. Carlos Bilardo 🇦🇷 ·
+17. Didier Deschamps 🇫🇷 · 18. Luis Aragonés 🇪🇸 · 19. Sven-Göran Eriksson 🇸🇪 ·
+20. Jürgen Klinsmann 🇩🇪
+
+## 🅲 SÉRIE C — GRANDES / CAMPEÕES / ASCENSÃO (3 esquemas)
+1. Hernán Crespo 🇦🇷 · 2. Carlos Bianchi 🇦🇷 · 3. Jorge Jesus 🇵🇹 · 4. Abel Ferreira 🇵🇹 ·
+5. Tite 🇧🇷 · 6. Muricy Ramalho 🇧🇷 · 7. Vanderlei Luxemburgo 🇧🇷 · 8. Marcelo Bielsa 🇦🇷 ·
+9. Jorge Sampaoli 🇦🇷 · 10. Ramón Díaz 🇦🇷 · 11. José Pékerman 🇦🇷 ·
+12. Fernando Santos 🇵🇹 · 13. Claudio Ranieri 🇮🇹 · 14. Luciano Spalletti 🇮🇹 ·
+15. Maurizio Sarri 🇮🇹 · 16. Laurent Blanc 🇫🇷 · 17. Xavi Hernández 🇪🇸 ·
+18. Mikel Arteta 🇪🇸 · 19. Xabi Alonso 🇪🇸 · 20. Rogério Ceni 🇧🇷
+
+## 🅳 SÉRIE D — FAMOSOS / EX-CRAQUES / FLOPS (2 esquemas)
+1. Ronald Koeman 🇳🇱 · 2. Gennaro Gattuso 🇮🇹 · 3. Andrea Pirlo 🇮🇹 · 4. Thierry Henry 🇫🇷 ·
+5. Patrick Vieira 🇫🇷 · 6. Fabio Cannavaro 🇮🇹 · 7. Clarence Seedorf 🇳🇱 ·
+8. Diego Maradona 🇦🇷 · 9. Gary Neville 🏴 · 10. Martín Palermo 🇦🇷 · 11. Dunga 🇧🇷 ·
+12. Fernando Diniz 🇧🇷 · 13. Mano Menezes 🇧🇷 · 14. Cuca 🇧🇷 · 15. Renato Gaúcho 🇧🇷 ·
+16. Dorival Júnior 🇧🇷 · 17. Paulo Autuori 🇧🇷 · 18. Erik ten Hag 🇳🇱 ·
+19. André Villas-Boas 🇵🇹 · 20. Filippo Inzaghi 🇮🇹
+
+## 🟤 VÁRZEA — OS PERSONAGENS 😂 (1 esquema)
+1. Lisca Doido 🇧🇷 · 2. Joel Santana 🇧🇷 · 3. Waldemar Lemos 🇧🇷 ·
+4. Apolinho (Washington Rodrigues) 🇧🇷 · 5. Guto Ferreira 🇧🇷 · 6. Celso Roth 🇧🇷 ·
+7. Oswaldo de Oliveira 🇧🇷 · 8. Geninho 🇧🇷 · 9. Levir Culpi 🇧🇷 · 10. Antônio Lopes 🇧🇷 ·
+11. Nelsinho Baptista 🇧🇷 · 12. Jair Ventura 🇧🇷 · 13. Vadão 🇧🇷 ·
+14. Givanildo Oliveira 🇧🇷 · 15. PC Gusmão 🇧🇷 · 16. Zé Ricardo 🇧🇷 ·
+17. Cristóvão Borges 🇧🇷 · 18. Romário 🇧🇷 · 19. Vágner Mancini 🇧🇷 · 20. René Simões 🇧🇷
+
+---
+
+⚠️ Esta lista **substitui** o 1º lote de 24/08 (que tinha folclóricos inventados na
+Várzea e outra distribuição). Renato Gaúcho desceu pra D, Telê pra B — a categoria
+é a da LISTA, não a da fama do nome.
