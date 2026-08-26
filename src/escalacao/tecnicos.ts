@@ -117,6 +117,8 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Luis de la Fuente', pais: '🇪🇸', div: 'A', estilo: 'posse' }, // campeão do mundo 2026 + Euro 2024 + Nations League (info do Diego 26/08)
   // 🅱️ SÉRIE B — GIGANTES (4 esquemas)
   { nome: 'Marcelo Gallardo', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' },
+  { nome: 'Marcelo Bielsa', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' }, // subiu da C (26/08, OK do Diego): o "mestre" do Pep e do Sampaoli
+  { nome: 'Lionel Scaloni', pais: '🇦🇷', div: 'B', estilo: 'equilibrado' }, // entrou 26/08: campeão do mundo 2022 + 2 Copa América — prateleira Deschamps/Parreira
   { nome: 'Antonio Conte', pais: '🇮🇹', div: 'B', estilo: 'retranca', chute: true },
   { nome: 'Roberto Mancini', pais: '🇮🇹', div: 'B', estilo: 'equilibrado', chute: true },
   { nome: 'Rafael Benítez', pais: '🇪🇸', div: 'B', estilo: 'retranca' },
@@ -138,13 +140,16 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Carlos Bianchi', pais: '🇦🇷', div: 'B', estilo: 'retranca' }, // subiu da C (26/08, ordem do Diego: "suba Bianchi pra B")
   // 🅲 SÉRIE C — GRANDES / CAMPEÕES / ASCENSÃO (3 esquemas)
   { nome: 'Hernán Crespo', pais: '🇦🇷', div: 'C', estilo: 'ofensiva', chute: true },
+  { nome: 'Mauricio Pochettino', pais: '🇦🇷', div: 'C', estilo: 'ofensiva' }, // entrou 26/08: pressão alta, final de Champions com o Spurs
+  { nome: 'Gian Piero Gasperini', pais: '🇮🇹', div: 'C', estilo: 'ofensiva' }, // entrou 26/08: Europa League 2024, a revolução da Atalanta
+  { nome: 'Rúben Amorim', pais: '🇵🇹', div: 'C', estilo: 'posse', chute: true }, // entrou 26/08: títulos no Sporting, 3-4-3 posicional
+  { nome: 'Roberto De Zerbi', pais: '🇮🇹', div: 'C', estilo: 'posse' }, // entrou 26/08: a saída de bola mais estudada da Europa (Brighton)
   { nome: 'Jürgen Klinsmann', pais: '🇩🇪', div: 'C', estilo: 'ofensiva' }, // desceu da B pra abrir a vaga do Bianchi (sugestão minha 26/08 — se o Diego preferir outro, é uma linha)
   { nome: 'Jorge Jesus', pais: '🇵🇹', div: 'C', estilo: 'ofensiva' },
   { nome: 'Abel Ferreira', pais: '🇵🇹', div: 'C', estilo: 'retranca' },
   { nome: 'Tite', pais: '🇧🇷', div: 'C', estilo: 'equilibrado' },
   { nome: 'Muricy Ramalho', pais: '🇧🇷', div: 'C', estilo: 'retranca', chute: true },
   { nome: 'Vanderlei Luxemburgo', pais: '🇧🇷', div: 'C', estilo: 'equilibrado', chute: true },
-  { nome: 'Marcelo Bielsa', pais: '🇦🇷', div: 'C', estilo: 'ofensiva' },
   { nome: 'Jorge Sampaoli', pais: '🇦🇷', div: 'C', estilo: 'ofensiva' },
   { nome: 'Ramón Díaz', pais: '🇦🇷', div: 'C', estilo: 'equilibrado', chute: true },
   { nome: 'José Pékerman', pais: '🇦🇷', div: 'C', estilo: 'posse', chute: true },
@@ -208,6 +213,11 @@ export const TECNICOS: Tecnico[] = [
 // 4-4-2 losango · 4-1-3-2→4-3-1-2). A ordem importa: a categoria corta daqui
 // (Série D usa as 2 primeiras). Quem não está aqui cai na coluna do estilo.
 export const REPERTORIO: Record<string, string[]> = {
+  'Lionel Scaloni': ['4-3-3', '4-4-2', '4-2-3-1', '5-3-2'],
+  'Mauricio Pochettino': ['4-2-3-1', '4-3-3', '4-4-2', '3-4-3'],
+  'Gian Piero Gasperini': ['3-5-2', '3-4-3 losango', '3-4-3'], // 3-4-1-2/3-4-2-1 da Atalanta mapeados
+  'Rúben Amorim': ['3-4-3 losango', '3-4-3', '3-5-2'], // o 3-4-2-1 do Sporting/United mapeado
+  'Roberto De Zerbi': ['4-2-3-1', '4-3-3', '3-4-3 losango'],
   'Alex Ferguson': ['4-4-2', '4-3-3', '4-2-3-1', '4-5-1'],
   'Pep Guardiola': ['4-3-3', '3-4-3', '4-1-4-1', '4-2-3-1'],
   'Carlo Ancelotti': ['4-4-2', '4-3-3', '4-4-2 losango', '4-2-3-1', '4-3-2-1'],
@@ -254,7 +264,7 @@ export const REPERTORIO: Record<string, string[]> = {
   'Tite': ['4-1-4-1', '4-2-3-1', '4-3-3', '4-4-2'],
   'Muricy Ramalho': ['4-4-2', '3-5-2'],
   'Vanderlei Luxemburgo': ['4-4-2', '4-3-3'],
-  'Marcelo Bielsa': ['4-1-4-1', '3-4-3', '4-2-3-1'],
+  'Marcelo Bielsa': ['4-1-4-1', '3-4-3', '4-2-3-1', '4-3-3'], // 4º esquema real (Newell's/Athletic) — agora é Série B, usa 4
   'Ramón Díaz': ['4-3-1-2'],
   'José Pékerman': ['4-2-3-1', '4-3-3'],
   'Fernando Santos': ['4-2-3-1', '4-3-3'],

@@ -1,4 +1,8 @@
-# 🧢 OS 100 TÉCNICOS — lista FECHADA pelo Diego (26/08)
+# 🧢 OS TÉCNICOS — lista FECHADA pelo Diego (26/08 · hoje são 105)
+⚠️ 26/08 (2ª rodada): o Diego RELAXOU a regra dos 20 por divisão — palavras
+dele: *"não importa se tem mais ou menos numa divisão"*. Entraram Scaloni e
+Bielsa(⬆️ da C) na B (22) e Pochettino, Gasperini, Amorim e De Zerbi na C (23).
+A lista continua FECHADA: entra/sai nome só por ordem dele.
 
 Palavras dele: *"Agora sim. Com Bill Shankly fora, Simeone subindo para A, Gallardo
 para B, Crespo para C e Inzaghi entrando na D, fica a lista completa e fechada."*
@@ -16,6 +20,7 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 18. Luis Enrique 🇪🇸 · 19. Diego Simeone 🇦🇷 · 20. Luis de la Fuente 🇪🇸 (26/08: entrou no lugar do Brian Clough — campeão do MUNDO 2026 pela Espanha + Euro 2024 + Nations League; a Copa 2026 é info do Diego, depois do meu corte de conhecimento)
 
 ## 🅱️ SÉRIE B — GIGANTES (4 esquemas)
+0a. Lionel Scaloni 🇦🇷 (26/08: campeão do mundo 2022) · 0b. Marcelo Bielsa 🇦🇷 (26/08: subiu da C) ·
 1. Marcelo Gallardo 🇦🇷 · 2. Antonio Conte 🇮🇹 · 3. Roberto Mancini 🇮🇹 ·
 4. Rafael Benítez 🇪🇸 · 5. Frank Rijkaard 🇳🇱 · 6. Guus Hiddink 🇳🇱 · 7. Unai Emery 🇪🇸 ·
 8. Massimiliano Allegri 🇮🇹 · 9. Thomas Tuchel 🇩🇪 · 10. Manuel Pellegrini 🇨🇱 ·
@@ -25,6 +30,7 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 20. Carlos Bianchi 🇦🇷 (26/08: SUBIU da C — ordem do Diego: "suba Bianchi pra B")
 
 ## 🅲 SÉRIE C — GRANDES / CAMPEÕES / ASCENSÃO (3 esquemas)
+0a. Mauricio Pochettino 🇦🇷 · 0b. Gian Piero Gasperini 🇮🇹 · 0c. Rúben Amorim 🇵🇹 · 0d. Roberto De Zerbi 🇮🇹 (os quatro entraram 26/08; Bielsa saiu pra B) ·
 1. Hernán Crespo 🇦🇷 · 2. Jürgen Klinsmann 🇩🇪 (26/08: desceu da B pra abrir a vaga do Bianchi — contrapartida sugerida pela sessão, o Diego pode trocar) · 3. Jorge Jesus 🇵🇹 · 4. Abel Ferreira 🇵🇹 ·
 5. Tite 🇧🇷 · 6. Muricy Ramalho 🇧🇷 · 7. Vanderlei Luxemburgo 🇧🇷 · 8. Marcelo Bielsa 🇦🇷 ·
 9. Jorge Sampaoli 🇦🇷 · 10. Ramón Díaz 🇦🇷 · 11. José Pékerman 🇦🇷 ·
@@ -218,6 +224,8 @@ aquela era de antes do martelo das 15.)
 ### 🅱️ Série B
 | técnico | estilo | selo |
 |---|---|---|
+| Lionel Scaloni 🇦🇷 | ⚖️ equilibrado | ✅ |
+| Marcelo Bielsa 🇦🇷 | ⚽ ofensivo | ✅ |
 | Marcelo Gallardo 🇦🇷 | ⚽ ofensivo | ✅ |
 | Antonio Conte 🇮🇹 | 🛡️ retranca | ⚠️ chute |
 | Roberto Mancini 🇮🇹 | ⚖️ equilibrado | ⚠️ chute |
@@ -242,6 +250,10 @@ aquela era de antes do martelo das 15.)
 ### 🅲 Série C
 | técnico | estilo | selo |
 |---|---|---|
+| Mauricio Pochettino 🇦🇷 | ⚽ ofensivo | ✅ |
+| Gian Piero Gasperini 🇮🇹 | ⚽ ofensivo | ✅ |
+| Rúben Amorim 🇵🇹 | 🎩 posse | ⚠️ chute |
+| Roberto De Zerbi 🇮🇹 | 🎩 posse | ✅ |
 | Hernán Crespo 🇦🇷 | ⚽ ofensivo | ⚠️ chute |
 | Jürgen Klinsmann 🇩🇪 | ⚽ ofensivo | ✅ |
 | Jorge Jesus 🇵🇹 | ⚽ ofensivo | ✅ |
@@ -249,7 +261,6 @@ aquela era de antes do martelo das 15.)
 | Tite 🇧🇷 | ⚖️ equilibrado | ✅ |
 | Muricy Ramalho 🇧🇷 | 🛡️ retranca | ⚠️ chute |
 | Vanderlei Luxemburgo 🇧🇷 | ⚖️ equilibrado | ⚠️ chute |
-| Marcelo Bielsa 🇦🇷 | ⚽ ofensivo | ✅ |
 | Jorge Sampaoli 🇦🇷 | ⚽ ofensivo | ✅ |
 | Ramón Díaz 🇦🇷 | ⚖️ equilibrado | ⚠️ chute |
 | José Pékerman 🇦🇷 | 🎩 posse | ⚠️ chute |
