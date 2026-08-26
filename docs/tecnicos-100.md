@@ -79,7 +79,7 @@ documentado × chute, igual foi feito na lista de 24/08.
 
 ---
 
-## 🎽 AS 15 FORMAÇÕES — LISTA FINAL (Diego, 26/08) ✅ MEDIDA
+## 🎽 AS 15 FORMAÇÕES — ✅ MARTELO BATIDO pelo Diego (26/08: "tudo certo, bate o martelo!") · medidas
 Decisões dele nesta rodada: **4-2-4 e 5-4-1 entram DE VERDADE** (conta nova no
 motor — *"424 não pode ser 433, são realmente 4 atacantes"*). O resto é maquiagem
 com a régua que a bronca dele criou: **maquiagem só mexe no MEIO do desenho;
