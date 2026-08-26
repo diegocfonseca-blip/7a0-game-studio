@@ -132,3 +132,18 @@ de título no cenário mais favorável — mesma faixa das 5 de sempre.
    meio perde pros triângulos do 4-3-3/4-5-1 (por isso o Pep nunca jogou 4-4-2
    puro). O 4-4-2 de posse é exatamente o LOSANGO, que está lá. Como é tudo
    rótulo/maquiagem, mover de coluna é grátis se ele preferir.
+
+### 🏟️ Campinho: decisão do Diego (26/08) — ALTURA ÚNICA PADRÃO
+Depois do mockup dos campinhos (4-4-2 hoje × 4-4-2 losango × 3-5-2 com alas),
+decisão dele: *"melhor você já aumentar o campinho no padrão do losango p todos
+ficarem iguais e ajustar os espaços"*. Traduzindo:
+- O campinho tem **UMA altura só pra todas as formações** — a do desenho mais
+  alto (o losango, 6 linhas).
+- As linhas se **espalham pra preencher** (space-between): formação de 4 linhas
+  ganha espaços maiores, a de 6 fica mais compacta.
+- **O campo nunca muda de tamanho** ao trocar de formação — nada de tela
+  pulando quando o jogador testa esquemas.
+Mockup do padrão: `scripts/mockup-campinhos-442-352.mjs` (v2, `ALTURA = 560` na
+escala do mockup — no jogo o valor real sai do desenho do losango, medido lá).
+Enviado pro Diego (campinhos-v2.png); aguardando o OK visual dele antes de
+qualquer mexida no jogo.
