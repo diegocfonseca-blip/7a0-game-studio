@@ -139,11 +139,15 @@ decisão dele: *"melhor você já aumentar o campinho no padrão do losango p to
 ficarem iguais e ajustar os espaços"*. Traduzindo:
 - O campinho tem **UMA altura só pra todas as formações** — a do desenho mais
   alto (o losango, 6 linhas).
-- As linhas se **espalham pra preencher** (space-between): formação de 4 linhas
-  ganha espaços maiores, a de 6 fica mais compacta.
+- **FAIXAS FIXAS** (v3, 26/08 — ele pegou o defeito da v2: *"os zagueiros no 442
+  normal estão numa distância do goleiro, no losango em outra e no 352 em outra —
+  tem que ter um padrão"*): **goleiro, zaga e ataque ficam SEMPRE na mesma
+  altura**, em qualquer formação. Só o MIOLO (as linhas de meia — exatamente o
+  que a maquiagem redesenha) se distribui na faixa do meio, que é fixa.
 - **O campo nunca muda de tamanho** ao trocar de formação — nada de tela
   pulando quando o jogador testa esquemas.
-Mockup do padrão: `scripts/mockup-campinhos-442-352.mjs` (v2, `ALTURA = 560` na
-escala do mockup — no jogo o valor real sai do desenho do losango, medido lá).
-Enviado pro Diego (campinhos-v2.png); aguardando o OK visual dele antes de
-qualquer mexida no jogo.
+Mockup do padrão: `scripts/mockup-campinhos-442-352.mjs` (v3: campo em faixas —
+ataque em cima, miolo `flex:1` com space-evenly, zaga e gol embaixo com respiro
+fixo entre eles; `ALTURA = 560` na escala do mockup — no jogo o valor real sai
+do desenho do losango, medido lá). Enviado pro Diego (campinhos-v3.png);
+aguardando o OK visual dele antes de qualquer mexida no jogo.

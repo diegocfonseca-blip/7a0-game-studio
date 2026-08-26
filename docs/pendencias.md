@@ -10502,14 +10502,16 @@ jogo" na hora de salvar — mataria essa classe de suporte.
 ## 🏟️ CAMPINHO PADRÃO ÚNICO — decisão do Diego (26/08) 🟡 AGUARDANDO OK VISUAL
 No mockup dos campinhos das formações novas (4-4-2 hoje × losango × 3-5-2), o Diego
 decidiu: *"melhor você já aumentar o campinho no padrão do losango p todos ficarem
-iguais e ajustar os espaços"*. Regra: **uma altura só pra todas as formações** (a do
-losango, o desenho mais alto), linhas distribuídas com space-between — 4 linhas =
-espaços largos, 6 linhas = compacto, e **o campo nunca muda de tamanho** ao trocar
-de esquema. Mockup v2 (`scripts/mockup-campinhos-442-352.mjs`, campinhos-v2.png)
-enviado; detalhe completo em `docs/tecnicos-100.md`.
+iguais e ajustar os espaços"*. E em cima da v2 ele pegou mais um defeito: a zaga
+ficava numa distância do goleiro DIFERENTE em cada formação (*"tem que ter um
+padrão"*). Regra final (v3): **uma altura só pra todas as formações** (a do losango)
+e **faixas fixas** — goleiro, zaga e ataque SEMPRE na mesma posição; só o miolo
+(linhas de meia) se distribui na faixa do meio. **O campo nunca muda de tamanho** ao
+trocar de esquema. Mockup v3 (`scripts/mockup-campinhos-442-352.mjs`,
+campinhos-v3.png) enviado; detalhe completo em `docs/tecnicos-100.md`.
 
 **Pipeline combinado do técnico (na ordem, nada codado ainda):**
-- [ ] OK do Diego no campinho padrão v2 (enviado, aguardando)
+- [ ] OK do Diego no campinho padrão v3 (enviado, aguardando)
 - [ ] Prancha com os campinhos das outras 10 formações disfarce, tudo na altura padrão
 - [ ] 4-2-4 e 5-4-1 REAIS no motor (`FORMATIONS` em types.ts — já medidas e aprovadas;
       entrega pequena e reversível, sem aparecer no seletor até a feature ligar)

@@ -12,9 +12,15 @@
 // 📐 DECISÃO DO DIEGO (26/08, em cima da 1ª versão): *"melhor você já aumentar o
 // campinho no padrão do losango p todos ficarem iguais e ajustar os espaços"*.
 // Ou seja: o campo tem UMA altura padrão (a do desenho mais alto) pra TODAS as
-// formações, e as linhas se espalham pra preencher — formação de 4 linhas ganha
-// espaços maiores, a de 6 linhas fica mais compacta, e o campo nunca muda de
-// tamanho ao trocar de formação.
+// formações, e o campo nunca muda de tamanho ao trocar de formação.
+//
+// 📐 v3 (26/08, ele pegou o defeito do v2): *"os zagueiros no 442 normal estão
+// numa distância do goleiro definida, já no 442 losango eles estão em outra, e
+// no 352 em outra — tem que ter um padrão"*. O space-between no campo inteiro
+// espalhava TODAS as linhas, então a zaga subia e descia conforme a formação.
+// Agora o campo tem FAIXAS FIXAS: GOL, ZAG e ATA ficam SEMPRE na mesma altura
+// em qualquer formação — só o MIOLO (as linhas de meia, exatamente o que a
+// maquiagem redesenha) se distribui na faixa do meio, que é fixa.
 //
 //   node scripts/mockup-campinhos-442-352.mjs [--saida campinhos-442-352.png]
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -39,45 +45,53 @@ const jog = (nome, tag, destaque) => `
       <span style="opacity:.75;font-size:7px">${tag}</span></p>
   </div>`
 
-const linha = (js) => `<div style="display:flex;justify-content:center;gap:4px">${js}</div>`
-// 📏 ALTURA PADRÃO única (a do losango, o desenho mais alto). As linhas se
-// distribuem com space-between: 4 linhas = espaços largos, 6 linhas = compacto,
-// e o campo NUNCA muda de tamanho ao trocar de formação.
+const linha = (js) => `<div style="display:flex;justify-content:center;gap:4px;flex:none">${js}</div>`
+// 📏 ALTURA PADRÃO única (a do losango, o desenho mais alto) + FAIXAS FIXAS:
+// ataque em cima, zaga e goleiro embaixo ficam SEMPRE na mesma altura, em
+// qualquer formação. Só o MIOLO (faixa do meio, flex:1) redistribui suas
+// linhas — 1 linha de meia fica no centro da faixa, 3 linhas se espalham nela.
 const ALTURA = 560
-const campo = (rotulo, cor, conteudo, legenda) => `
+const ZAG_GOL = 26 // respiro FIXO entre a linha da zaga e o goleiro (igual nos 3)
+const campo = (rotulo, cor, faixas, legenda) => `
   <div style="width:330px;flex:none">
     <p style="${OSW};font-size:14px;text-transform:uppercase;color:${cor};margin:0 0 7px">${rotulo}</p>
     <div style="background:repeating-linear-gradient(180deg,${GREEN} 0 ${ALTURA / 10}px,#166332 ${ALTURA / 10}px ${ALTURA / 5}px);
       border:3px solid ${INK};border-radius:14px;padding:14px 4px 10px;box-shadow:4px 4px 0 ${INK};
-      height:${ALTURA}px;display:flex;flex-direction:column;justify-content:space-between">${conteudo}</div>
+      height:${ALTURA}px;display:flex;flex-direction:column">
+      ${faixas.ataque}
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">${faixas.meio}</div>
+      <div style="margin-bottom:${ZAG_GOL}px">${faixas.defesa}</div>
+      ${faixas.gol}
+    </div>
     <p style="font-family:system-ui;font-size:11px;font-weight:700;color:rgba(0,0,0,.6);margin:8px 2px 0;line-height:1.45">${legenda}</p>
   </div>`
 
 // ── 1) 4-4-2 COMO É HOJE: meio em linha ────────────────────────────────────
-const F442 = campo('① 4-4-2 · como é HOJE', 'rgba(0,0,0,.55)',
-  linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')) +
-  linha(jog('Rivelino', 'MEI') + jog('Zico', 'MEI') + jog('Falcão', 'MEI') + jog('Dunga', 'MEI')) +
-  linha(jog('Cafu', 'LAT') + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT')) +
-  linha(jog('Taffarel', 'GOL')),
-  'Os 4 meias numa linha — e repare: o campo tem a MESMA altura dos outros, com os espaços maiores preenchendo.')
+const F442 = campo('① 4-4-2 · como é HOJE', 'rgba(0,0,0,.55)', {
+  ataque: linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')),
+  meio: linha(jog('Rivelino', 'MEI') + jog('Zico', 'MEI') + jog('Falcão', 'MEI') + jog('Dunga', 'MEI')),
+  defesa: linha(jog('Cafu', 'LAT') + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT')),
+  gol: linha(jog('Taffarel', 'GOL')),
+}, 'Repare nas alturas: ataque, zaga e goleiro estão na MESMA posição nos 3 campos. A linha única de meias fica no centro da faixa do meio.')
 
 // ── 2) 4-4-2 LOSANGO: os MESMOS 4 meias, em losango ────────────────────────
-const FLOS = campo('② 4-4-2 LOSANGO · novo desenho', GREEN,
-  linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')) +
-  linha(jog('Zico', 'MEI · camisa 10', 1)) +
-  linha(jog('Rivelino', 'MEI', 1) + '<div style="width:66px"></div>' + jog('Falcão', 'MEI', 1)) +
-  linha(jog('Dunga', 'MEI · volante', 1)) +
-  linha(jog('Cafu', 'LAT') + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT')) +
-  linha(jog('Taffarel', 'GOL')),
-  'Os <b>MESMOS 4 meias</b> (em dourado): Zico vira a camisa 10, Dunga desce de volante. Mudou só o desenho — o time é idêntico ao ①.')
+const FLOS = campo('② 4-4-2 LOSANGO · novo desenho', GREEN, {
+  ataque: linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')),
+  meio:
+    linha(jog('Zico', 'MEI · camisa 10', 1)) +
+    linha(jog('Rivelino', 'MEI', 1) + '<div style="width:66px"></div>' + jog('Falcão', 'MEI', 1)) +
+    linha(jog('Dunga', 'MEI · volante', 1)),
+  defesa: linha(jog('Cafu', 'LAT') + jog('Aldair', 'ZAG') + jog('Lúcio', 'ZAG') + jog('R.Carlos', 'LAT')),
+  gol: linha(jog('Taffarel', 'GOL')),
+}, 'Os <b>MESMOS 4 meias</b> (em dourado) abrem em losango DENTRO da faixa do meio — zaga e goleiro não saem do lugar. O time é idêntico ao ①.')
 
 // ── 3) 3-5-2 COM ALAS: o time do 5-3-2, laterais adiantados ────────────────
-const F352 = campo('③ 3-5-2 · os ALAS são os laterais', GREEN,
-  linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')) +
-  linha(jog('Cafu', 'LAT · ala', 1) + jog('Rivelino', 'MEI') + jog('Zico', 'MEI') + jog('Falcão', 'MEI') + jog('R.Carlos', 'LAT · ala', 1)) +
-  linha(jog('Aldair', 'ZAG') + jog('Gamarra', 'ZAG') + jog('Lúcio', 'ZAG')) +
-  linha(jog('Taffarel', 'GOL')),
-  'Sua régua respeitada: os alas (em dourado) são <b>Cafu e R.Carlos, laterais DE VERDADE</b>, adiantados — e atrás ficam 3 zagueiros reais. Igual o 3-5-2 da vida real.')
+const F352 = campo('③ 3-5-2 · os ALAS são os laterais', GREEN, {
+  ataque: linha(jog('Romário', 'ATA') + jog('Bebeto', 'ATA')),
+  meio: linha(jog('Cafu', 'LAT · ala', 1) + jog('Rivelino', 'MEI') + jog('Zico', 'MEI') + jog('Falcão', 'MEI') + jog('R.Carlos', 'LAT · ala', 1)),
+  defesa: linha(jog('Aldair', 'ZAG') + jog('Gamarra', 'ZAG') + jog('Lúcio', 'ZAG')),
+  gol: linha(jog('Taffarel', 'GOL')),
+}, 'Os alas (em dourado) são <b>Cafu e R.Carlos, laterais DE VERDADE</b>, adiantados pra faixa do meio — e a zaga de 3 fica na MESMA altura da zaga de 4 dos outros campos.')
 
 const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -87,7 +101,9 @@ body{background:${CREME};padding:32px;font-family:system-ui}</style>
     padding:5px 16px;${OSW};font-size:12.5px;letter-spacing:.08em">🏟️ OS CAMPINHOS · martelo batido nas 15 formações 🔨</div>
   <p style="font-size:13px;font-weight:600;max-width:1060px;line-height:1.5;margin:12px 0 20px">
     Os três campos usam <b>os mesmos jogadores</b> de propósito — é a prova de que a maquiagem não mexe em
-    quem joga, só em ONDE cada um aparece desenhado. O que está <b>em dourado</b> é o que muda de lugar.</p>
+    quem joga, só em ONDE cada um aparece desenhado. O que está <b>em dourado</b> é o que muda de lugar.
+    <br>📏 <b>Padrão das alturas</b>: goleiro, zaga e ataque ficam SEMPRE na mesma posição — só o meio-campo
+    redistribui na faixa dele.</p>
   <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
     ${F442}
     ${FLOS}
