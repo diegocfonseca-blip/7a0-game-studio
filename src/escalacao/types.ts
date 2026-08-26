@@ -432,6 +432,17 @@ export interface EscState {
   phase: AuctionPhase
   currentCards: Card[] // cartas em disputa nesta fase
   revealQueue: ResolvedCard[] // ordenado por pote crescente
+  /**
+   * 🏆😂 PREMIAÇÃO DA RESENHA — o caderninho do vexame do pregão (25/08).
+   * Preenchido setor a setor no reducer, porque o `revealQueue` é zerado a cada
+   * setor e o 2º lance se perderia. Ausente = partida antiga: a premiação
+   * simplesmente não mostra o prêmio que depende dele (nada quebra).
+   * NÃO entra no lacre anti-trapaça — é só contabilidade de zoeira.
+   */
+  resenha?: {
+    /** por técnico: quanto ele pagou A MAIS que o 2º colocado, somado e no pior caso */
+    furada: Record<number, { total: number; pior: { nome: string; pago: number; segundo: number; jogadoFora: number } }>
+  }
   revealIdx: number
   stock: Record<Sector, number> // estoque restante no baralho (contador vivo)
   sectorCursor: number // até onde já foi dealt do deck[pos] atual (levas)

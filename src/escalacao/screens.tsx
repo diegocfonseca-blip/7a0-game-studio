@@ -2858,6 +2858,60 @@ function MoneyRain() {
   )
 }
 
+// ─── 🏆😂 PREMIAÇÃO DA RESENHA (Diego 25/08) ────────────────────────────────
+// Ele pediu uma premiação de vexame e mandou JUNTAR nela os dois prêmios que já
+// existiam soltos aqui na Cerimônia (🏅 Achado e 🐴 Mico) — eram duas linhas
+// perdidas numa caixa, no card do último técnico, e ninguém via.
+//
+// POR QUE MORA NA CERIMÔNIA e não no fim: ele queria logo depois do leilão, e a
+// Cerimônia JÁ É esse momento — tem 45s de tempo morto (CEREMONY_MS) cujo texto
+// é literalmente "aproveite pra ver os times de todo mundo". E todo prêmio aqui
+// sai de dado do PREGÃO: nenhum precisa do campeonato ter rodado.
+//
+// ⏱️ Não mexe no cronômetro. Quem não terminou de ler não perde nada — o mesmo
+// bloco reaparece no fim, do lado do troféu.
+function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscState['resenha'] }) {
+  const all = mgrs.flatMap(mg => mg.squad.map(c => ({ mg, c, mid: (c.lo + c.hi) / 2 })))
+  const paid = all.filter(x => x.c.paid > 0)
+  if (!paid.length) return null
+  const achado = [...paid].sort((a, b) => (b.mid / b.c.paid) - (a.mid / a.c.paid))[0]
+  const mico = [...paid].sort((a, b) => (b.c.paid - b.mid) - (a.c.paid - a.mid))[0]
+  // 💸 mão furada: quem mais pagou ACIMA do 2º colocado no pregão inteiro
+  const furadaId = resenha ? Object.entries(resenha.furada).sort((a, b) => b[1].total - a[1].total)[0] : null
+  const furadaMgr = furadaId ? mgrs.find(m => m.id === Number(furadaId[0])) : null
+  // 🤏 mão de vaca: terminou o pregão com mais moeda no bolso (sem gastar)
+  const vaca = [...mgrs].sort((a, b) => b.money - a.money)[0]
+  // 🗑️ o pior titular REAL de alguém (carta de brincadeira não conta — não é mérito)
+  const pau = all.filter(x => !x.c.fake).sort((a, b) => a.mid - b.mid)[0]
+
+  const item = (bg: string, ic: string, titulo: string, quem: string, detalhe: React.ReactNode) => (
+    <div className="border-[2.5px] border-black rounded-xl overflow-hidden" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
+      <div className="flex items-center gap-1.5 px-2.5 py-1" style={{ background: bg }}>
+        <span className="text-sm leading-none">{ic}</span>
+        <span className="font-black text-[11px] uppercase tracking-wide text-white" style={OSWALD}>{titulo}</span>
+      </div>
+      <div className="bg-white px-2.5 py-1.5">
+        <p className="font-black text-[14px] leading-tight" style={OSWALD}>{quem}</p>
+        <p className="text-[11px] font-bold text-black/60 leading-snug mt-0.5">{detalhe}</p>
+      </div>
+    </div>
+  )
+  return (
+    <div className="space-y-2">
+      <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: INK, boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="font-black text-[10px] uppercase tracking-widest text-white/50" style={OSWALD}>O pregão acabou</p>
+        <p className="font-black text-2xl leading-none mt-0.5" style={{ ...OSWALD, color: GOLD }}>Agora a conta.</p>
+      </div>
+      {item(GREEN, '🏅', 'Achado do pregão', `${achado.c.name} · ${achado.mg.teamName}`, <>Nível {achado.c.lo}–{achado.c.hi} e pagou <b>{achado.c.paid}</b>. Roubou.</>)}
+      {item('#8B5E3C', '🐴', 'Mico do pregão', `${mico.c.name} · ${mico.mg.teamName}`, <>Nível {mico.c.lo}–{mico.c.hi} e pagou <b>{mico.c.paid}</b>. Doeu.</>)}
+      {furadaMgr && furadaId && item('#C2452F', '💸', 'Mão furada', furadaMgr.teamName,
+        <>Pagou <b>{furadaId[1].pior.pago}</b> no {furadaId[1].pior.nome} e o 2º lance era <b>{furadaId[1].pior.segundo}</b>. Jogou <b>{furadaId[1].total} 🪙</b> fora no pregão.</>)}
+      {vaca && item('#B45309', '🤏', 'Mão de vaca', vaca.teamName, <>Acabou o pregão com <b>{vaca.money} 🪙</b> no bolso. Guardou pra quê?</>)}
+      {pau && item('#6B7280', '🗑️', 'Perna-de-pau titular', pau.mg.teamName, <>Escalou o <b>{pau.c.name}</b> ({pau.c.lo}–{pau.c.hi}). De propósito?</>)}
+    </div>
+  )
+}
+
 // 🐊 SOLTA A SUA MASCOTE — só pra quem tem clube batizado (a mascote vem do
 // cadastro do sócio, `mascoteKey`). Quem não tem, não vê botão nenhum: nada de
 // placeholder pra quem não comprou (régua do Diego).
@@ -4414,11 +4468,7 @@ export function EscCerimonia() {
   }, [state.cerimoniaDeadline])
   const secsLeft = state.cerimoniaDeadline ? Math.max(0, Math.ceil((state.cerimoniaDeadline - now) / 1000)) : null
 
-  // achados e micos da sala inteira
-  const all = mgrs.flatMap(mg => mg.squad.map(c => ({ mg, c, mid: (c.lo + c.hi) / 2 })))
-  const paid = all.filter(x => x.c.paid > 0)
-  const bestDeal = paid.length ? [...paid].sort((a, b) => (b.mid / b.c.paid) - (a.mid / a.c.paid))[0] : null
-  const worstDeal = paid.length ? [...paid].sort((a, b) => (b.c.paid - b.mid) - (a.c.paid - a.mid))[0] : null
+  // 🏆 achados, micos e o resto do vexame agora moram no `PremiacaoResenha`
 
   return (
     <Shell>
@@ -4456,12 +4506,9 @@ export function EscCerimonia() {
           })}
         </div>
       </Box>
-      {isLastMgr && bestDeal && worstDeal && (
-        <Box className="p-4 space-y-1.5">
-          <p className="font-black text-sm" style={OSWALD}>🏅 ACHADO DO PREGÃO: {bestDeal.c.name} ({bestDeal.c.lo}–{bestDeal.c.hi}) por {bestDeal.c.paid} — {bestDeal.mg.teamName}</p>
-          <p className="font-black text-sm" style={OSWALD}>🐴 MICO DO PREGÃO: {worstDeal.c.name} ({worstDeal.c.lo}–{worstDeal.c.hi}) por {worstDeal.c.paid} — {worstDeal.mg.teamName}</p>
-        </Box>
-      )}
+      {/* 🏆 a premiação entra no lugar das duas linhas soltas de antes — mesmo
+          gatilho (só depois de passar por todos os elencos), tela cheia. */}
+      {isLastMgr && <PremiacaoResenha mgrs={mgrs} resenha={state.resenha} />}
       {/* 🌱 CRIA DA BASE: a historinha de quem subiu do Sub-20 nesta virada
           (o técnico deixou um contrato vencido ir e o guri tapou o buraco). */}
       {(state.criaNews ?? []).map((n, i) => (

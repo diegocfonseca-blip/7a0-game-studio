@@ -3250,6 +3250,27 @@ function sealAndResolve(state: EscState) {
     }
   }
   const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction, (b, sl) => mesmoDono(state, b, sl))
+  // 🏆😂 PREMIAÇÃO DA RESENHA (Diego 25/08) — o caderninho do vexame.
+  // O `revealQueue` é POR SETOR e é zerado no setor seguinte, então o 2º lance
+  // de cada carta se perde. Aqui a gente anota o que interessa enquanto ele
+  // ainda existe: quanto o vencedor pagou A MAIS que o segundo colocado.
+  // É só contabilidade — não entra no lacre (`lacreDe` só soma caixa, títulos,
+  // divisão e temporada) e não muda nada do pregão.
+  for (const q of queue) {
+    if (q.winner === null || q.paid <= 0) continue
+    const segundo = q.bids[1]?.amount ?? 0
+    const jogadoFora = q.paid - segundo
+    if (jogadoFora <= 0) continue
+    const r = (state.resenha = state.resenha ?? { furada: {} })
+    const atual = r.furada[q.winner]
+    r.furada[q.winner] = {
+      total: (atual?.total ?? 0) + jogadoFora,
+      // guarda o PIOR arremate isolado — é a história que dá a piada
+      pior: (atual?.pior && atual.pior.jogadoFora >= jogadoFora)
+        ? atual.pior
+        : { nome: q.card.name, pago: q.paid, segundo, jogadoFora },
+    }
+  }
   for (const q of queue) if (q.winner !== null && q.paid > 0) {
     recordPrice(state, q.card, q.paid) // livro de preços
     creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
