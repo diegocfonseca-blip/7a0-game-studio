@@ -10384,3 +10384,37 @@ do outro. Quem for acrescentar áudio novo: **medir antes**.
 na legenda do áudio novo: Silenciar aqui"*). É pegadinha: o botão promete silenciar
 e solta o áudio pra sala toda. Só o TEXTO do botão mudou — o emoji 🐊 e o balão
 ("soltou o áudio do jacaré") seguem iguais, porque ele pediu a legenda e mais nada.
+
+## 🧢 TÉCNICO: DESENHO FECHADO PELO DIEGO (26/08) — mockups mandados, aguardando OK visual
+Depois de uma semana de ida e volta, ele bateu o martelo. Palavras dele: *"Quero
+overall igual jogador.. N quero nada de setor.. na prática vai ser apenas como mais
+uma carta normal como se fosse mais um jogador, só isso, além de ter mais formações
+por categoria"*.
+
+**O desenho (não reabrir sem ele pedir):**
+- O técnico é **UMA CARTA no formato de jogador**: categoria (como a fama, com as
+  mesmas cores de tier) + **overall em FAIXA lo–hi** que **rola por partida igual
+  jogador** (dia bom/dia ruim). **Uma vaga só** no time, como goleiro. Selo `TEC`.
+- **SEM setor de confiança.** Foi proposto e ele recusou explicitamente.
+- A categoria diz **quantos esquemas libera**: lenda 5 · craque 4 · promessa 3 ·
+  bom 2 · foi profissional 1. Sem esquema liberado, joga o 4-3-3 padrão — técnico
+  nunca trava o que já existe, só abre.
+- Efeito aceito de olhos abertos: *"às vezes um time tem o melhor técnico mas o
+  outro time tem jogadores melhores"* — 11 jogadores pesam mais que 1 técnico.
+- Por dentro: o overall rolado vira um empurrão GERAL pequeno no time. Teto já
+  medido: **+2 geral é o limite seguro** (+8 dava 100% de título). O mapeamento
+  exato (faixa → bônus) sai de medição antes de codar.
+
+**Contratação (proposta minha nos mockups, aguardando o OK dele):**
+1. 100 clubes = 100 técnicos; carreira nova começa com um fraquinho da divisão.
+2. Mercado na **Sala da Presidência**, só na **virada de temporada**.
+3. Paga a **multa** → clube dele recebe → os dois técnicos **TROCAM de clube**
+   (dança das cadeiras; cadeira nunca fica vazia).
+4. Trava da escada: só contrata técnico de clube **da sua divisão pra baixo**;
+   subiu, pode segurar o seu.
+5. Caiu → o técnico mete o pé (troca com o de um clube promovido) — é o que
+   renova as divisões sozinho (o medo do "sempre os msm").
+
+**Mockups**: `scripts/mockup-tecnico-carta.mjs` (a carta + como contrata) e
+`scripts/mockup-presidencia-tecnico.mjs` (a Presidência com o técnico + mercado).
+⏳ Nada codado no jogo — espera o OK visual e a resposta sobre a contratação.
