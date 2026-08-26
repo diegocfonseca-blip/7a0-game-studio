@@ -168,13 +168,15 @@ uma linha no arquivo. 49 dos 100 estão de chute.
 Técnico tem overall IGUAL jogador: faixa lo–hi sorteada por partida. A categoria
 da carta segue a divisão de origem, e a faixa é a típica dos jogadores da mesma
 categoria no baralho (medida em data.ts):
-| categoria | fame | faixa lo–hi |
-|---|---|---|
-| A 👑 Lenda | 5 | 89–95 |
-| B ⭐ Craque | 4 | 83–91 |
-| C | 3 | 76–86 |
-| D | 2 | 68–80 |
-| Várzea | 1 | 55–70 |
+O Diego confirmou (26/08): técnico tem AS MESMAS categorias do jogador —
+lenda · craque · promessa · bom jogador · foi profissional — uma por divisão:
+| divisão | categoria (igual jogador) | fame | faixa lo–hi |
+|---|---|---|---|
+| A | 👑 Lenda (dourado) | 5 | 89–95 |
+| B | ⭐ Craque (prata) | 4 | 83–91 |
+| C | 💜 Promessa (roxo) | 3 + promessa | 76–86 |
+| D | 💚 Bom jogador (verde) | 2 | 68–80 |
+| Várzea | 🤎 Foi profissional (bege) | 1 | 55–70 |
 Todos da mesma categoria começam com a MESMA faixa (sem ranking inventado entre
 gente de verdade). Destacar um nome = preencher `lo`/`hi` na linha dele em
 `tecnicos.ts` (passa por cima da faixa). Dados: `FAIXA_POR_DIV`/`fichaDoTecnico`.

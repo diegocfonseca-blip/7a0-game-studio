@@ -39,16 +39,24 @@ export const DIV_TECNICO_ROTULO: Record<DivTecnico, string> = {
 }
 
 // ── 📊 NÍVEL (overall) do técnico — mesma régua das cartas de JOGADOR ────────
-// A categoria da carta segue a divisão de origem (A = Lenda 👑 … Várzea = base
-// bege), e a faixa lo–hi é a faixa TÍPICA dos jogadores daquela categoria no
-// baralho real (medida em data.ts: lenda ~88/95 · craque ~84/92 · 76/86 ·
-// 68/80 · várzea 55/70). Em cada partida o overall do técnico é SORTEADO dentro
+// Decisão do Diego (26/08): o técnico tem AS MESMAS categorias do jogador —
+// 👑 Lenda · ⭐ Craque · 💜 Promessa · 💚 Bom jogador · 🤎 Foi profissional —
+// uma por divisão de origem. A carta usa o MESMO visual (tier/cor) das cartas
+// de jogador: dourado, prata, roxo, verde, bege.
+// A faixa lo–hi é a típica dos jogadores da mesma categoria no baralho real
+// (medida em data.ts). Em cada partida o overall do técnico é SORTEADO dentro
 // da faixa, igual jogador — dia inspirado, dia apagado.
 // Todos os técnicos da MESMA categoria começam com a MESMA faixa (não inventei
 // ranking entre gente de verdade); quando o Diego quiser destacar um nome
 // ("Ferguson mais forte"), é preencher lo/hi na linha dele que a faixa
 // individual passa por cima.
 export const FAME_POR_DIV: Record<DivTecnico, number> = { A: 5, B: 4, C: 3, D: 2, V: 1 }
+// 💜 a promessa não é um fame — é o selo roxo (igual na carta de jogador, onde
+// `promessa: true` pinta o tier roxo, nível logo abaixo de craque).
+export const PROMESSA_POR_DIV: Record<DivTecnico, boolean> = { A: false, B: false, C: true, D: false, V: false }
+export const CATEGORIA_TECNICO_ROTULO: Record<DivTecnico, string> = {
+  A: '👑 Lenda', B: '⭐ Craque', C: '💜 Promessa', D: '💚 Bom jogador', V: '🤎 Foi profissional',
+}
 export const FAIXA_POR_DIV: Record<DivTecnico, { lo: number; hi: number }> = {
   A: { lo: 89, hi: 95 },
   B: { lo: 83, hi: 91 },
@@ -57,9 +65,9 @@ export const FAIXA_POR_DIV: Record<DivTecnico, { lo: number; hi: number }> = {
   V: { lo: 55, hi: 70 },
 }
 // a ficha completa pra montar a CARTA do técnico (formato de carta de jogador)
-export function fichaDoTecnico(t: Tecnico): { fame: number; lo: number; hi: number; formacoes: string[] } {
+export function fichaDoTecnico(t: Tecnico): { fame: number; promessa: boolean; lo: number; hi: number; formacoes: string[] } {
   const faixa = FAIXA_POR_DIV[t.div]
-  return { fame: FAME_POR_DIV[t.div], lo: t.lo ?? faixa.lo, hi: t.hi ?? faixa.hi, formacoes: formacoesDoTecnico(t) }
+  return { fame: FAME_POR_DIV[t.div], promessa: PROMESSA_POR_DIV[t.div], lo: t.lo ?? faixa.lo, hi: t.hi ?? faixa.hi, formacoes: formacoesDoTecnico(t) }
 }
 
 // as formações (rótulos visíveis de formacoes.ts) que o técnico domina.
