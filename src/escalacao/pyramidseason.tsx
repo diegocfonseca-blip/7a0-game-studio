@@ -3390,19 +3390,39 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕵️ Sondar · {divRot}</p>
         <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
       </div>
-      {clubes.map(c => {
+      {/* 🛡️ grade 2 por linha com o ESCUDO (Diego 28/08: "os times podiam ficar
+          lado a lado que tem espaço") — tocar ABRE a janelinha do clube. */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {clubes.map(c => {
+          const nome = map[c.teamName] ?? null
+          const ehRival = rivais.has(c.teamName)
+          const temMarca = (!!nome && marcadosT.includes(nome)) || c.squad.some(x => marcadosJ.includes(x.id))
+          return (
+            <button key={c.teamName} onClick={() => setAberto(c.teamName)}
+              style={{ border: `3px solid ${INK}`, borderRadius: 14, background: ehRival ? '#FFF3C4' : '#fff', boxShadow: `2.5px 2.5px 0 0 ${INK}`, padding: '11px 8px 9px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, color: INK, position: 'relative' }}>
+              <Escudo nome={c.teamName} size={40} />
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, lineHeight: 1.15, textAlign: 'center' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}</span>
+              {temMarca && <span style={{ position: 'absolute', top: 5, right: 7, fontSize: 13 }}>🕵️</span>}
+            </button>
+          )
+        })}
+      </div>
+      {/* 🪟 a JANELINHA do clube: abre por cima com o visual que a sanfona já
+          tinha (carta do técnico às cegas + contrato + jogadores). */}
+      {aberto && !aberto.startsWith('livre:') && (() => {
+        const c = clubes.find(x => x.teamName === aberto)
+        if (!c) return null
         const nome = map[c.teamName] ?? null
         const ehRival = rivais.has(c.teamName)
-        const abertoAqui = aberto === c.teamName
         return (
-          <div key={c.teamName} style={{ marginBottom: 7 }}>
-            <button onClick={() => setAberto(abertoAqui ? null : c.teamName)}
-              style={{ width: '100%', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 12.5, border: `3px solid ${INK}`, borderRadius: 12, background: ehRival ? '#FFF3C4' : '#fff', boxShadow: `2.5px 2.5px 0 0 ${INK}`, padding: '9px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: INK }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}{nome && marcadosT.includes(nome) ? ' 🎯' : ''}</span>
-              <span style={{ fontSize: 10, opacity: .55, flex: 'none' }}>{abertoAqui ? '▾' : '›'}</span>
-            </button>
-            {abertoAqui && (
-              <div style={{ border: `3px solid ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
+          <div onClick={() => setAberto(null)} style={{ position: 'fixed', inset: 0, zIndex: 99995, background: 'rgba(0,0,0,.72)', overflowY: 'auto', padding: '26px 14px 40px' }}>
+            <div onClick={e => e.stopPropagation()} style={{ maxWidth: 430, margin: '0 auto', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, background: '#F4ECD6', overflow: 'hidden' }}>
+              <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px' }}>
+                <Escudo nome={c.teamName} size={30} />
+                <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}</span>
+                <button onClick={() => setAberto(null)} style={{ background: '#fff', color: INK, border: 'none', borderRadius: 8, fontWeight: 900, fontSize: 13, padding: '2px 9px', cursor: 'pointer', ...OSWALD }}>✕</button>
+              </div>
+              <div style={{ padding: '12px 12px 14px' }}>
                 {nome ? (
                   <>
                     {/* 🙈 só o NOME (regra do Diego): categoria/nível/formações se revelam quando é seu */}
@@ -3461,10 +3481,10 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                   </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
         )
-      })}
+      })()}
       {(() => {
         // 🕴️ SEM CLUBE: os técnicos livres da divisão — mesmo esquema, só marcar
         const usados = new Set(Object.values(map).filter(Boolean))
@@ -3477,26 +3497,36 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
               <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕴️ Sem clube</p>
               <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Técnicos livres da {divRot}. No leilão deles <b>ninguém defende</b> — é você × os bots da divisão.</p>
             </div>
-            {livres.map(tt => {
-              const chave = `livre:${tt.nome}`
-              const abertoAqui = aberto === chave
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {livres.map(tt => (
+                <button key={tt.nome} onClick={() => setAberto(`livre:${tt.nome}`)}
+                  style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '11px 8px 9px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, color: INK, position: 'relative' }}>
+                  <span style={{ fontSize: 26, lineHeight: '30px' }}>🕴️</span>
+                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, lineHeight: 1.15, textAlign: 'center' }}>{tt.nome} {tt.pais}</span>
+                  {marcadosT.includes(tt.nome) && <span style={{ position: 'absolute', top: 5, right: 7, fontSize: 13 }}>🕵️</span>}
+                </button>
+              ))}
+            </div>
+            {aberto?.startsWith('livre:') && (() => {
+              const tt = livres.find(x => `livre:${x.nome}` === aberto)
+              if (!tt) return null
               return (
-                <div key={chave} style={{ marginBottom: 7 }}>
-                  <button onClick={() => setAberto(abertoAqui ? null : chave)}
-                    style={{ width: '100%', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 12.5, border: `3px dashed ${INK}`, borderRadius: 12, background: '#FBF6E8', padding: '9px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: INK }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🕴️ {tt.nome} {tt.pais}{marcadosT.includes(tt.nome) ? ' 🎯' : ''}</span>
-                    <span style={{ fontSize: 10, opacity: .55, flex: 'none' }}>{abertoAqui ? '▾' : '›'}</span>
-                  </button>
-                  {abertoAqui && (
-                    <div style={{ border: `3px dashed ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
+                <div onClick={() => setAberto(null)} style={{ position: 'fixed', inset: 0, zIndex: 99995, background: 'rgba(0,0,0,.72)', overflowY: 'auto', padding: '26px 14px 40px' }}>
+                  <div onClick={e => e.stopPropagation()} style={{ maxWidth: 430, margin: '0 auto', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, background: '#F4ECD6', overflow: 'hidden' }}>
+                    <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px' }}>
+                      <span style={{ fontSize: 20 }}>🕴️</span>
+                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tt.nome} {tt.pais} · SEM CLUBE</span>
+                      <button onClick={() => setAberto(null)} style={{ background: '#fff', color: INK, border: 'none', borderRadius: 8, fontWeight: 900, fontSize: 13, padding: '2px 9px', cursor: 'pointer', ...OSWALD }}>✕</button>
+                    </div>
+                    <div style={{ padding: '12px 12px 14px' }}>
                       <CartaTecnico nome={tt.nome} misterio />
                       <p style={{ fontSize: 10, fontWeight: 800, color: GREEN, margin: '6px 0 0', textAlign: 'center' }}>🆓 SEM contrato — pode sondar</p>
                       {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), '🕵️ Sondar pro leilão', !marcadosT.includes(tt.nome) && marcadosT.length >= 1 ? 'já sondou 1 técnico nesta temporada' : undefined, historiaSondagem(tt.nome, 'livre', null, state.seasonNo))}
                     </div>
-                  )}
+                  </div>
                 </div>
               )
-            })}
+            })()}
           </>
         )
       })()}
