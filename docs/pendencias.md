@@ -10655,6 +10655,23 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🌍 RANKING GLOBAL VIRA CONVITE NA CARREIRA ANTIGA (28/08, ideia do Diego:
+      "nas contas antigas você pode manter o ranking global, mas lá é justamente
+      pra CHAMAR — fala que é só pra contas novas, e que conta nova também tem a
+      Várzea, além das outras funções novas"; e depois, decisão final: "ele pode
+      ver a ABA do ranking global, mas NÃO pode ver os times"). Antes a aba 🌍
+      Global simplesmente NÃO EXISTIA sem agenciaOn — ninguém sabia do recurso.
+      Agora a aba aparece sempre e, sem Agência 2.0, abre `GlobalRankConvite`:
+      caixa roxa "🔒 Esta carreira não entra no ranking" + o que a carreira nova
+      traz (🌱 Várzea · 🕴️ Agência 2.0 dentro do Elenco com as pílulas TIME ·
+      AGENCIADOS · 🌍 baralho do mundo todo · 🏥 eventos + Dep. Médico · 🍔
+      estádio novo com renda por ocupação · 🏆 o próprio ranking) + o aviso
+      "💾 sua carreira de agora não some" e o caminho (🪜 Nova carreira na home).
+      ⚠️ O componente NÃO consulta o servidor e não mostra UMA linha do ranking
+      — a regra "vê a aba, não vê os times" é cumprida no código, não só na tela.
+      A lista de vantagens foi levantada do código (escadaOn · agenciaOn ·
+      deckLeague 'todos' · eventos+médico · extraNovaOnly + ocupação), não de
+      memória. Mockup aprovado pelo Diego antes do commit.
 - [x] 🧳 TÉCNICO SAIU = CARDÁPIO ZERADO (28/08, Diego: "quando ele vende o
       técnico ou demite, as formações do técnico antigo somem também, seja a de
       herança ou a do técnico atual que está saindo. E com isso fica somente a

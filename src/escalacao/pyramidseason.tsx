@@ -3982,6 +3982,44 @@ function cmpRank(a: GlobalRankRow, b: GlobalRankRow): number {
   return pontosDaLinha(b) - pontosDaLinha(a) || b.money - a.money
 }
 
+// 🌍👋 CONVITE DO RANKING GLOBAL PRA CARREIRA ANTIGA (28/08, ideia do Diego:
+// "nas contas antigas você pode manter o ranking global, mas lá é justamente
+// pra CHAMAR — você fala que é só pra contas novas, e que conta nova também tem
+// a Várzea, além das outras funções das versões novas").
+// ⚠️ REGRA DELE, mesma conversa: "ele pode ver a ABA do ranking global, mas NÃO
+// pode ver os times". Por isso este componente não busca nada no servidor e não
+// mostra uma linha sequer do ranking — é só o convite.
+// A lista de vantagens saiu do CÓDIGO (o que a carreira nova liga e a antiga
+// não tem: escadaOn/Várzea · agenciaOn · deckLeague 'todos' · eventos+médico ·
+// extras novos do estádio + renda por ocupação), nunca de memória.
+function GlobalRankConvite() {
+  const item = (ico: string, titulo: string, txt: React.ReactNode) => (
+    <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', padding: '7px 0', borderTop: '1.5px dashed rgba(0,0,0,.15)' }}>
+      <span style={{ fontSize: 17, lineHeight: 1.2, flex: 'none' }}>{ico}</span>
+      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, lineHeight: 1.4, color: '#4a4740' }}><b style={{ color: INK }}>{titulo}</b> — {txt}</p>
+    </div>
+  )
+  return (
+    <div style={{ ...box('#fff'), padding: 13, marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 8px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
+      <div style={{ background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px' }}>
+        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>🔒 Esta carreira não entra no ranking</p>
+        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, color: '#4a4740' }}>Ela começou <b>antes da Agência 2.0</b>. O ranking só conta <b>carreiras novas</b> — assim todo mundo disputa com as mesmas regras.</p>
+      </div>
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '13px 0 2px', textTransform: 'uppercase', letterSpacing: '.05em', color: GREEN }}>✨ Numa carreira NOVA você leva</p>
+      {item('🌱', 'Várzea', <>você começa lá embaixo, no campo de terra, e sobe até a Série A.</>)}
+      {item('🕴️', 'Agência 2.0', <>seus 22 na ativa dentro do <b>Elenco</b> (pílulas TIME · AGENCIADOS) — antes era tela separada.</>)}
+      {item('🌍', 'Baralho do mundo todo', <>Brasil + Europa + resto do mundo no mesmo pregão.</>)}
+      {item('🏥', 'Eventos de jogador + Departamento Médico', <>lesão, fama, confusão… e o médico pra resolver.</>)}
+      {item('🍔', 'Estádio novo', <>lanchonete, bar, metrô, hotel e teto retrátil — e a renda conta a <b>ocupação</b>.</>)}
+      {item('🏆', 'Ranking Global', <>cada título vale ponto e o ranking soma — Mundo, Copa, Série A, Várzea…</>)}
+      <div style={{ background: '#FFF7DB', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginTop: 11 }}>
+        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, color: '#4a4740' }}>💾 <b>Sua carreira de agora não some.</b> Ela fica salva inteirinha — dá pra voltar nela quando quiser. Pra começar outra: <b>🪜 Nova carreira</b>, na tela inicial do jogo.</p>
+      </div>
+    </div>
+  )
+}
+
 // 🌍 RANKING GLOBAL (regra do Diego, 16/08 — mockup `rankglobal2.png`):
 //  • pras OUTRAS pessoas você aparece UMA vez, com a sua MELHOR carreira;
 //  • pra VOCÊ, a linha grande é a carreira que você está JOGANDO AGORA, na
@@ -7186,7 +7224,9 @@ export function PyramidSeasonScreen() {
                 "Local" pra não confundir com a aba-mãe "Clube" nem soar só
                 divisão/liga (pedido do Diego 14/08) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {([['arti', '⚽', 'Gols'], ['garcons', '🅰️', 'Garçons'], ['clubes', '🥇', 'Local'], ...(agenciaOk ? [['global', '🌍', 'Global']] as const : [])] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+              {/* 🌍 a aba Global aparece SEMPRE (Diego 28/08). Carreira sem Agência
+                  2.0 abre o CONVITE (GlobalRankConvite) — vê a aba, não vê os times. */}
+              {([['arti', '⚽', 'Gols'], ['garcons', '🅰️', 'Garçons'], ['clubes', '🥇', 'Local'], ['global', '🌍', 'Global']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
@@ -7198,8 +7238,10 @@ export function PyramidSeasonScreen() {
               <GarconsByDiv assists={assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
                 title="🅰️ GARÇONS · TEMPORADA" sub="Assistências da temporada atual — top 5 de cada série."
                 foot="Cerca de 3 em cada 4 gols saem de um passe; o resto é jogada individual, pênalti ou rebote." />
-            ) : rankSub === 'global' && agenciaOk ? (
-              <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
+            ) : rankSub === 'global' ? (
+              agenciaOk
+                ? <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
+                : <GlobalRankConvite />
             ) : (
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
