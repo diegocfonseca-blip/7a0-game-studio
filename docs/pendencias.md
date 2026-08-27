@@ -10643,6 +10643,14 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🧑‍⚖️ v13 (27/08, decisão do Diego): o setor TÉCNICO usa o MESMO MOTOR de
+      participantes do leilão de jogadores — quem dá lance é auctioningManagers
+      (você + seus rivais escolhidos, de qualquer divisão, cada um decidindo se
+      entra ou não; bot de preenchimento NUNCA) + o dono defendendo. Técnico só
+      aparece no leilão quando aliciado. Com isso o técnico levado por rival de
+      outra divisão VIAJA com ele — os técnicos se espalham pelo mundo sozinhos.
+      💡 Ideia anotada (não aprovada ainda): "paraquedas" raro — técnico grande
+      demitido caindo no sem-clube de divisão de baixo, tipo 1× por carreira.
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.

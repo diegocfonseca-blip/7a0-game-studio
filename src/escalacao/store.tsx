@@ -5800,9 +5800,14 @@ export function reducer(state: EscState, action: Action): EscState {
         if (lote.tipo === 'tec') {
           const t = tecnicoPorNome(lote.nome)
           const base = t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso
-          for (const r of s.managers) {
+          // 🧑‍⚖️ MESMO MOTOR DO LEILÃO DE JOGADORES (ordem do Diego 27/08): quem
+          // pode dar lance no técnico é EXATAMENTE quem dá lance nas cartas —
+          // seus rivais escolhidos (auctioningManagers: de qualquer divisão),
+          // cada um decidindo se entra ou não. Bot de preenchimento NUNCA dá
+          // lance. E o técnico só aparece no leilão quando VOCÊ alicia.
+          for (const r of auctioningManagers(s.managers)) {
             if (r.isHuman || r.teamName === lote.clube) continue
-            if (rng() < 0.2) entrantes.push({ nome: r.teamName, lance: Math.round(base * (0.85 + rng() * 1.2)), quem: 'rival' })
+            if (rng() < 0.35) entrantes.push({ nome: r.teamName, lance: Math.round(base * (0.85 + rng() * 1.2)), quem: 'rival' })
           }
           // o dono defende COM CARA DE GENTE: nem sempre banca (às vezes deixa ir)
           if (lote.clube && rng() < 0.6) entrantes.push({ nome: lote.clube, lance: Math.round(base * (1 + rng() * 1.1)), quem: 'dono' })
