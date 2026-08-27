@@ -29,7 +29,6 @@ import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
-import type { LoteAliciado as LoteAliciadoT } from './types'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
@@ -3327,20 +3326,6 @@ function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFai
     </div>
   )
 }
-// stepper simples de lance (piso..teto). Sem digitação: menos jeito de dar ruim no celular.
-function LanceStepper({ v, piso, teto, onSet }: { v: number; piso: number; teto: number; onSet: (n: number) => void }) {
-  const btn = (rot: string, d: number): ReactNode => (
-    <button key={rot} onClick={() => onSet(Math.max(piso, Math.min(teto, v + d)))}
-      style={{ border: `2.5px solid ${INK}`, borderRadius: 9, background: '#fff', fontWeight: 900, fontSize: 12, ...OSWALD, padding: '5px 9px', cursor: 'pointer' }}>{rot}</button>
-  )
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
-      {btn('−5', -5)}{btn('−1', -1)}
-      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 17, minWidth: 64, textAlign: 'center', background: '#fff', border: `3px solid ${INK}`, borderRadius: 10, padding: '4px 8px' }}>💰 {v}</span>
-      {btn('+1', 1)}{btn('+5', 5)}
-    </div>
-  )
-}
 function AliciarSection({ mgr }: { mgr: Manager }) {
   const { state, dispatch } = useEsc()
   const jogadorOn = useAliciarJogador() // 🔒 área de jogador: teste fechado à parte
@@ -3502,78 +3487,6 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
     </div>
   )
 }
-
-// ── 🎯 O PREGÃO DOS ALICIADOS — abre o leilão de reservas (27/08) ────────────
-// Os lotes marcados no Elenco aparecem AQUI, de primeira, antes do leilão
-// normal. Envelope cego por lote (0 = passar), martelo, e a vida segue.
-export function AliciarPregaoScreen() {
-  const { state, dispatch } = useEsc()
-  const preg = state.aliciarPregao
-  const you = state.managers[state.youIdx]
-  const coins = state.careerCoins?.[you?.id ?? 0] ?? 0
-  const [lances, setLances] = useState<Record<string, number>>({})
-  if (!preg) return null
-  const chaveDe = (l: LoteAliciadoT) => l.tipo === 'tec' ? `tec:${l.nome}` : `jog:${l.cardId}`
-  const gasto = Object.values(lances).reduce((a, b) => a + b, 0)
-  return (
-    <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
-      <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
-        <div style={{ background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 14px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🧢 LEILÃO · SETOR TÉCNICO</span>
-          <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, color: '#FFC400' }}>🪙 {coins}</span>
-        </div>
-        {!preg.resultados ? (
-          <>
-            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.45 }}>O técnico aliciado abre o pregão — <b>uma posição a mais, antes dos goleiros</b>. Envelope fechado, como sempre: rivais e o dono também mandam os deles. Ninguém cobriu? Ele fica onde está. Só paga quem LEVA.</p>
-            {preg.lotes.map(l => {
-              const chave = chaveDe(l)
-              const v = lances[chave] ?? 0
-              return (
-                <div key={chave} style={{ border: `3px solid ${INK}`, borderRadius: 14, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 11px', marginBottom: 10 }}>
-                  {l.tipo === 'tec' ? (
-                    <>
-                      <CartaTecnico nome={l.nome} misterio />
-                      <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 0 0', textAlign: 'center' }}>{l.clube ? <>clube atual: <b>{l.clube}</b> (o dono pode cobrir)</> : <>🕴️ sem clube — ninguém defende</>} · lance mínimo: <b>💰 {l.piso}</b></p>
-                    </>
-                  ) : (
-                    <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: 0 }}>🎯 {l.nome} <span style={{ fontSize: 10, color: '#5a5647' }}>· {l.pos} · {l.clube}</span><span style={{ float: 'right', fontSize: 11 }}>mín 💰 {l.piso}</span></p>
-                  )}
-                  <div style={{ marginTop: 9 }}>
-                    {v === 0 ? (
-                      <button onClick={() => setLances({ ...lances, [chave]: l.piso })}
-                        style={{ width: '100%', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 11, boxShadow: `2.5px 2.5px 0 0 ${INK}`, padding: '9px 0', cursor: 'pointer' }}>✉️ Preparar envelope</button>
-                    ) : (
-                      <>
-                        <LanceStepper v={v} piso={l.piso} teto={coins} onSet={n => setLances({ ...lances, [chave]: n })} />
-                        <button onClick={() => { const nl = { ...lances }; delete nl[chave]; setLances(nl) }}
-                          style={{ width: '100%', marginTop: 7, ...OSWALD, fontWeight: 800, fontSize: 10.5, textTransform: 'uppercase', background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 0', cursor: 'pointer', color: '#5a5647' }}>✋ Tirar meu lance (passar)</button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            {gasto > coins && <p style={{ fontSize: 11, fontWeight: 800, color: '#C2452F', margin: '0 0 8px', textAlign: 'center' }}>⚠️ A soma dos seus envelopes ({gasto} 🪙) passa da caixa ({coins} 🪙) — se levar tudo, não fecha a conta.</p>}
-            <button onClick={() => dispatch({ type: 'ALICIAR_RESOLVER', lances })}
-              style={{ width: '100%', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 13, boxShadow: `3px 3px 0 0 rgba(0,0,0,.35)`, padding: '13px 0', cursor: 'pointer' }}>🔨 Bater o martelo</button>
-          </>
-        ) : (
-          <>
-            {preg.resultados.map((r, i) => (
-              <div key={i} style={{ border: `3px solid ${r.venceu ? GREEN : '#C2452F'}`, borderRadius: 12, background: r.venceu ? '#E9F9EF' : '#FDEEEA', padding: '9px 11px', marginBottom: 9 }}>
-                <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: 0, color: r.venceu ? GREEN : '#C2452F' }}>{r.titulo}</p>
-                <p style={{ fontSize: 10.5, fontWeight: 700, margin: '2px 0 0', lineHeight: 1.4, color: INK }}>{r.corpo}</p>
-              </div>
-            ))}
-            <button onClick={() => dispatch({ type: 'ALICIAR_PREGAO_FIM' })}
-              style={{ width: '100%', marginTop: 4, ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 13, boxShadow: `3px 3px 0 0 ${INK}`, padding: '13px 0', cursor: 'pointer' }}>🧤 Seguir pros goleiros ➜</button>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
 
 function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
   const quinze15 = useFormacoes15() // 🎭 15 formações: por enquanto só a conta do Diego

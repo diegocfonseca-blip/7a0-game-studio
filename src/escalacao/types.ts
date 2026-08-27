@@ -379,7 +379,6 @@ export type Screen =
   | 'monte'
   | 'cerimonia'
   | 'reserveList'
-  | 'aliciarPregao' // 🎯 lotes aliciados (técnico/jogador) ABREM o leilão de reservas — carreira offline, teste do Diego
   | 'season'
   | 'liberta' // 🌎 fase de grupos da Libertadores (o mata-mata dela roda na 'season')
   | 'end'
@@ -401,11 +400,6 @@ export interface CareerRival {
   h2h: [number, number, number]
   lastPos: number | null // posição na última temporada (pro rastreador)
 }
-
-// 🎯 um lote do pregão dos aliciados. `clube: null` = técnico sem clube (livre).
-export type LoteAliciado =
-  | { tipo: 'tec'; nome: string; clube: string | null; piso: number }
-  | { tipo: 'jog'; cardId: string; nome: string; pos: Sector; clube: string; mgrId: number; piso: number }
 
 export interface EscState {
   screen: Screen
@@ -721,9 +715,12 @@ export interface EscState {
   // Ninguém cobriu? O alvo FICA onde está. Técnico por NOME, jogador por cardId.
   aliciarTecnicos?: string[]
   aliciarJogadores?: string[]
-  // o pregão dos aliciados (tela 'aliciarPregao'): lotes montados na abertura do
-  // leilão; resultados = null enquanto espera seus envelopes
-  aliciarPregao?: { lotes: LoteAliciado[]; resultados: { titulo: string; corpo: string; venceu: boolean }[] | null }
+  // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é idêntico ao
+  // leilão normal, só vem antes do goleiro; é como uma posição nova apenas"):
+  // quando você alicia um técnico, ele vira este lote e o pregão REAL abre com
+  // o setor Técnico — mesma tela, mesmo envelope cego, mesmo martelo. Ninguém
+  // cobriu? Ele fica onde está. null/ausente = leilão normal de sempre.
+  tecLote?: { nome: string; clube: string | null; piso: number } | null
   scorers: ScorerRow[] // artilharia acumulada da temporada
   assists?: AssistRow[] // 🅰️ garçons da temporada no modo RÁPIDO (24/08). Espelho da artilharia; ausente em save antigo = simplesmente não mostra nada.
   scorersPrev?: ScorerRow[] // 🙈 anti-spoiler (liga offline): foto da artilharia ANTES da rodada que está animando — a tela mostra esta até o apito

@@ -10655,6 +10655,20 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🧢 v14 — A FORMA FINAL (27/08, bronca merecida do Diego: "é IDÊNTICO ao
+      leilão normal! Só vem antes do goleiro. Como se fosse uma posição nova
+      apenas"): a tela paralela MORREU DE VEZ. O técnico aliciado agora é
+      servido DENTRO do pregão real (EscAuction): `tecLote` no estado; o
+      startAuctionPhase abre o setor "🔨 TÉCNICO" antes dos goleiros com a MESMA
+      fase de envelope (relógio, lacre, CardFace com cara TEC às cegas, piso via
+      `paid`), sealAndResolveTec resolve com a MESMA população de bidders
+      (auctioningManagers + dono defendendo, empate = você) e a revelação usa a
+      MESMA tela de martelo (sem lance → "o técnico fica onde está"). afterReveal
+      limpa o lote e segue pros goleiros. Removidos: tela 'aliciarPregao',
+      AliciarPregaoScreen, ALICIAR_RESOLVER/ALICIAR_PREGAO_FIM, LoteAliciado.
+      Vitória humana: multa do antigo + contrato 5 + formação da casa + valor de
+      mercado + ex-dono, tudo dentro do martelo; dinheiro via m.money (vira caixa
+      na cerimônia, como toda compra de leilão).
 - [x] 🧑‍⚖️ v13 (27/08, decisão do Diego): o setor TÉCNICO usa o MESMO MOTOR de
       participantes do leilão de jogadores — quem dá lance é auctioningManagers
       (você + seus rivais escolhidos, de qualquer divisão, cada um decidindo se
