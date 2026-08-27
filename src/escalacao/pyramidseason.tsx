@@ -3385,7 +3385,11 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const jogadorOn = useAliciarJogador() // 🔒 área de jogador: teste fechado à parte
   const [aberto, setAberto] = useState<string | null>(null)
   // semeia os técnicos da divisão na primeira visita (idempotente; vai pro save)
-  useEffect(() => { dispatch({ type: 'ALICIAR_SEED' }) }, [dispatch, state.careerDivision])
+  // 🪜 a divisão de VERDADE é o placement (careerDivision fica congelado na de
+  // fundação — foi o bug do "Lisca Doido na Série A", 28/08). Re-semeia quando
+  // ela muda: subiu de série, o mercado de técnicos sobe junto.
+  const divAtual = (state.careerPlacements?.[`m${mgr.id}`] ?? state.careerDivision ?? 'D') as DivTec
+  useEffect(() => { dispatch({ type: 'ALICIAR_SEED' }) }, [dispatch, divAtual])
   // 🎯 v2 (27/08, a bronca do Diego que consertou tudo: "aliciar NÃO quer dizer
   // que o técnico vai sair do time!"): aqui só se MARCA o alvo — sem valores, sem
   // lance, sem resolução. Os marcados ABREM o próximo leilão de reservas como
@@ -3405,7 +3409,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
     () => state.managers.filter(m => !m.isHuman).slice().sort((x, y) => x.teamName.localeCompare(y.teamName)),
     [state.managers],
   )
-  const divRot = state.careerDivision === 'V' ? 'Várzea' : `Série ${state.careerDivision ?? '?'}`
+  const divRot = divAtual === 'V' ? 'Várzea' : `Série ${divAtual}`
   const totalMarcado = marcadosT.length + marcadosJ.length
   // 📰 depois de marcar, a HISTORINHA de bastidor conta por que o sondado vai
   // parar no pregão (pedido do Diego 28/08: "mesmo sem clube o técnico tá
@@ -3555,7 +3559,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
       {(() => {
         // 🕴️ SEM CLUBE: os técnicos livres da divisão — mesmo esquema, só marcar
         const usados = new Set(Object.values(map).filter(Boolean))
-        const div = (state.careerDivision ?? 'D') as DivTec
+        const div = divAtual
         const livres = poolDaDiv(div).filter(tt => !usados.has(tt.nome))
         if (!livres.length) return null
         return (

@@ -10655,6 +10655,24 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🐛🪜 TÉCNICO DA DIVISÃO ERRADA — CONSERTADO (28/08, relato do Diego: "meu
+      amigo já está na SÉRIE A e, ao olhar os técnicos, apareceu Lisca Doido,
+      Joel Santana, Guto Ferreira — técnico de VÁRZEA. Se ele estivesse na
+      várzea tudo bem"). CAUSA: eu usei `s.careerDivision` pra escolher o pool
+      de técnicos, e na PIRÂMIDE esse campo fica congelado na divisão de
+      FUNDAÇÃO (quem começou na Várzea segue 'V' pra sempre). A divisão de
+      verdade é `careerPlacements['m<id>']` — e o próprio store já avisava isso
+      em `myCareerDiv`: "⚠️ NUNCA cair em careerDivision". Erro meu, o aviso
+      estava escrito.
+      CORREÇÃO: `ALICIAR_SEED` e a tela do Sondar (rótulo da divisão + lista de
+      SEM CLUBE) agora leem o placement. Subiu de série → o mercado de técnicos
+      sobe junto, igual às cartas de jogador.
+      🩹 CURA dos saves já bagunçados, com a regra que o Diego deu: técnico de
+      categoria errada nos clubes de CPU volta pro pool e o clube pega um da
+      divisão certa (contrato reescalonado junto). O TÉCNICO QUE A PESSOA JÁ
+      COMPROU NÃO É TOCADO — palavras dele: "se ele já comprou o errado, ele
+      fica com o errado, aí depois ele troca". O laço pula `m.isHuman`.
+      Placar passado não muda: o `desde` é remarcado na troca.
 - [x] 📝 TEXTO DO SONDAR SEM JOGADOR (28/08, Diego: "tire essa informação de
       jogador"). A explicação da caixa amarela citava "máx. 1 técnico e 1
       jogador por temporada" e "o jogador entra no setor dele" — informação de

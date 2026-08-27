@@ -11,6 +11,7 @@ import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
+import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
@@ -5815,8 +5816,29 @@ export function reducer(state: EscState, action: Action): EscState {
       // do pool da divisão (tecnicos.ts) embaralhado pela semente da carreira.
       // Idempotente: clube já semeado (mesmo com null de "ficou sem") não muda.
       if (!s.careerOnline) return s
-      const div = s.careerDivision ?? 'D'
+      // 🐛 FIX 28/08 (Diego: "meu amigo já está na SÉRIE A e apareceu Lisca Doido,
+      // Joel Santana, Guto Ferreira — técnico de VÁRZEA"): eu usava
+      // `s.careerDivision`, que na PIRÂMIDE fica congelado na divisão de FUNDAÇÃO
+      // (quem começou na Várzea segue 'V' pra sempre). A divisão de VERDADE mora
+      // em `careerPlacements['m<id>']` e muda a cada acesso/queda — o próprio
+      // store já avisava isso em myCareerDiv ("NUNCA cair em careerDivision").
+      // Agora o pool de técnicos segue a divisão ATUAL: subiu de série, o mercado
+      // de técnicos sobe junto, igual acontece com as cartas de jogador.
+      const youIdSeed = s.managers[s.youIdx]?.id ?? s.youIdx
+      const div = ((s.careerPlacements?.[`m${youIdSeed}`] ?? s.careerDivision ?? 'D') as DivTecnico)
       const map = { ...(s.careerTecnicos ?? {}) }
+      // 🩹 CURA de quem já foi semeado com a divisão errada: técnico que não é da
+      // divisão de agora volta pro pool e o clube pega um da categoria certa.
+      // Só nos clubes de CPU, e o `desde` é remarcado — placar já visto não muda.
+      const desdeCura = { ...(s.careerTecnicosDesde ?? {}) }
+      let curou = false
+      for (const m of s.managers) {
+        if (m.isHuman) continue
+        const n = map[m.teamName]
+        if (!n) continue
+        const tt = tecnicoPorNome(n)
+        if (tt && tt.div !== div) { delete map[m.teamName]; curou = true }
+      }
       const usados = new Set(Object.values(map).filter((x): x is string => !!x))
       const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
       const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
@@ -5825,6 +5847,13 @@ export function reducer(state: EscState, action: Action): EscState {
       const desde = { ...(s.careerTecnicosDesde ?? {}) }
       let mudou = false
       for (const c of clubes) if (!(c in map)) { map[c] = livres.shift() ?? null; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true }
+      if (curou) {
+        // o contrato do técnico velho não vale pro novo: reescalona igual aos outros
+        const ctCura = { ...(s.careerTecnicoContrato ?? {}) }
+        for (const m of s.managers) if (!m.isHuman && map[m.teamName] && desdeCura[m.teamName]) delete ctCura[m.teamName]
+        s.careerTecnicoContrato = ctCura
+        mudou = true
+      }
       // 📝 contrato de 5 anos pra TODO técnico de CPU também (27/08): escalonado
       // pelo nome, pra não vencer tudo junto — quem está vencido é aliciável.
       const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
