@@ -10756,7 +10756,7 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
 
 ---
 
-## 📰 O MARTELO NO RÁPIDO ONLINE (ideia do Diego, 27/08) — mockup mandado, aguardando OK
+## 📰 O MARTELO NO RÁPIDO ONLINE (ideia do Diego, 27/08) — ✅ NO AR
 
 Palavras dele: *"quando acabar liga e copa, aparecer o jornal O Martelo igual quando
 tem no modo carreira… dando uma notícia grande, um banner com quem ganhou a liga, a
@@ -10817,3 +10817,49 @@ Depois de ver a 1ª capa ele pediu três coisas:
 **reprovada pelo Diego e ele tem razão** — no rápido o jogo DELE já é o foco da tela,
 e numa sala com vários humanos acontecem vários confrontos por rodada. Ia competir
 com o próprio jogo do cara. Não reabrir.
+
+
+---
+
+## ✅ 27/08 — O MARTELO DA SALA ENTROU NO AR (3 commits)
+
+O Diego mandou fazer (*"pode mandar brasa meu irmão… pode fazer e publicar já"*).
+Foi em commits separados de propósito, pra dar pra reverter um sem derrubar os outros.
+
+**1. Rodapé dourado** (`jornal.tsx`) — a tarja da IMAGEM compartilhada era verde com
+texto branco; virou dourada com tinta preta. Vale pro jornal da CARREIRA também.
+
+**2. O pacote do campeão espera o toque** (`screens.tsx`) — prop novo `esperaToque`
+no `CardCollectPrompt`. Sem ele nada muda; com ele o pacote NÃO abre sozinho quando
+o cronômetro zera. Ligado nas 4 chamadas do fim do RÁPIDO (liga/copa × online/solo).
+A carreira online tem componente próprio (`careeronline.tsx`) e **não foi tocada**.
+Não põe carta em risco: a gravação continua acontecendo antes de qualquer toque.
+
+**3. `src/escalacao/jornal-sala.tsx`** (arquivo NOVO, isolado) — a capa do fim de
+jogo. Entra em `EscEnd` só quando `online && !copaPending && !libPending &&
+(!state.liberta || copaDone)` — as três travas existem pra o jornal nunca dar
+campeão de Copa antes da Copa acontecer.
+
+**Regras de conteúdo que ficaram:**
+- **Liga e Copa na MESMA linha de cada um.** A linha só da liga MENTE: quem termina
+  em 8º e ganha a Copa não pode levar zoação de 8º lugar. Por isso a Copa manda no
+  tom (`notaDe`).
+- **O corte da Copa NÃO é 8 fixo** — é `copaN(n)` (40% da liga). As vagas chegam por
+  PROP do `screens.tsx`, sem repetir a fórmula aqui. O "a uma posição da Copa" sai
+  em `vagasCopa + 1`.
+- **Só os USUÁRIOS ganham linha**, mais o campeão e o lanterna mesmo sendo bot
+  (senão o jornal esconderia quem ganhou).
+
+**Testado antes de subir** (`scratchpad/testa-jornal.mjs` e `testa-canvas.mjs`):
+sala falsa de 12 times → conferi as linhas uma a uma, renderizei a capa e rodei o
+`buildSalaBlob` no navegador de verdade (647 KB, PNG, zero erro de página).
+🐞 O teste pegou um bug antes de subir: a frase *"entrou como o último a passar"*
+saía pra quem não era o último classificado. Corrigido pra `pos === vagasCopa`.
+
+### ⏳ O que ficou de fora (fazer depois)
+- [ ] **Escudo no banner da IMAGEM**: na tela o banner mostra o `<Escudo>`; no canvas
+      do compartilhar ele não aparece (só o nome). O jornal da carreira rasteriza o
+      escudo com `escudoMarkup`/`escudoImg` (`jornal.tsx:18`), mas essas funções são
+      privadas do arquivo. Pra fazer, exportar as duas e reusar.
+- [ ] **Nenhum olho humano viu no jogo de verdade ainda** — só no meu teste. Pedir
+      print pro Diego na primeira sala que fechar.
