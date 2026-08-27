@@ -6390,7 +6390,7 @@ const ALL_POOL: WonCard[] = (() => {
   return out
 })()
 
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, noTimer, saveCards }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; saveCards?: { name: string; club: string; year: number }[] }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, noTimer, esperaToque, saveCards }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; noTimer?: boolean; esperaToque?: boolean; saveCards?: { name: string; club: string; year: number }[] }) {
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
@@ -6508,8 +6508,14 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     setTimeout(() => { setClaimed(card); onClaimed?.(card); setStatus('revealed') }, 950)
   }
 
+  // ⏳ o pacote abre sozinho quando o tempo acaba — MENOS quando `esperaToque`.
+  // 👆 Diego 27/08: *"não tem graça aparecer automático sem o cara ver… quem for
+  // campeão já aparece de cara a carta pra ele apertar, sem ter como ele correr"*.
+  // Com `esperaToque` o pacote FICA lacrado até o campeão tocar. Isso não põe a
+  // carta em risco: ela já foi sorteada e gravada no efeito de cima, antes de
+  // qualquer toque — tocar, tocar fora ou fechar o app dão no mesmo resultado.
   useEffect(() => {
-    if (noTimer || status !== 'picking' || remaining > 0) return // 🎥 stream: sem tempo — o host/campeão abre quando quiser
+    if (noTimer || esperaToque || status !== 'picking' || remaining > 0) return // 🎥 stream: sem tempo — o host/campeão abre quando quiser
     openPack() // tempo esgotou: o pacote abre sozinho (a carta já estava garantida)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining, status])
@@ -6555,9 +6561,12 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
       <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
       <div className="flex items-center justify-between mb-1">
         <p className="font-black text-lg" style={OSWALD}>🎁 Pacote do campeão!</p>
-        {!noTimer && <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>}
+        {!noTimer && !esperaToque && <span className="border-2 border-black rounded-lg px-2 py-1 text-xs font-black bg-white">{remaining}s</span>}
       </div>
-      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva uma carta <b>surpresa</b> pro álbum — sorteada entre <b>todas as cartas do jogo</b> (sempre uma que você ainda não tem). Toque no pacote pra abrir{noTimer ? '.' : '; se o tempo acabar, ele abre sozinho.'}</p>
+      <p className="text-xs font-bold text-black/70 mb-3">Campeão leva uma carta <b>surpresa</b> pro álbum — sorteada entre <b>todas as cartas do jogo</b> (sempre uma que você ainda não tem). Toque no pacote pra abrir{(noTimer || esperaToque) ? '.' : '; se o tempo acabar, ele abre sozinho.'}</p>
+      {/* 👆 sem cronômetro: o pacote espera. A carta JÁ é sua — o aviso existe pra
+          ninguém achar que vai perder alguma coisa se fechar a tela. */}
+      {esperaToque && <p className="text-[11px] font-bold text-black/55 mb-3">Sem pressa: <b>a carta já é sua</b>. Tocar fora fecha o pacote e ela continua no álbum.</p>}
       <motion.button onClick={openPack} disabled={opening}
         className="relative mx-auto block" style={{ width: 168, height: 230, background: 'transparent', border: 'none', padding: 0, cursor: opening ? 'default' : 'pointer' }}
         animate={opening
@@ -8363,14 +8372,14 @@ export function EscEnd() {
   const ligaChampionCard = (
     <>
       {online && youWon && state.roomId && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} noTimer={streamRoom} />
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} noTimer={streamRoom} esperaToque />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
       {streamRoom && !youWon && ligaChampHuman && (
         <StreamSpectatorCard champName={champ.name} card={streamLigaCard} />
       )}
       {!online && youWon && (
-        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
+        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} esperaToque />
       )}
     </>
   )
@@ -8392,9 +8401,9 @@ export function EscEnd() {
       )}
       {copaChampIsYou && (
         online && state.roomId ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} noTimer={streamRoom} />
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} noTimer={streamRoom} esperaToque />
         ) : !online ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
+          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} esperaToque />
         ) : null
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão da Copa) assiste o pacote do campeão */}

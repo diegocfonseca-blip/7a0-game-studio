@@ -425,11 +425,17 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       dy += 78
     }
     y += dh + 40
-    // rodapé
-    x.fillStyle = '#1B7A3D'; x.fillRect(W / 2 - 300, y, 600, 76)
-    x.strokeStyle = INK; x.lineWidth = 5; x.strokeRect(W / 2 - 300, y, 600, 76)
-    x.fillStyle = '#fff'; x.font = `900 34px ${OSW}`; x.textAlign = 'center'
-    x.fillText('🔨 leilaolegends.com', W / 2, y + 50)
+    // 🥇 rodapé DOURADO (Diego 27/08: *"talvez o rodapé da imagem seja
+    // leilaolegends.com dourado"*). Era uma tarja verde com texto branco. O
+    // degradê imita o brilho das peças douradas do jogo; o texto vai em tinta
+    // preta porque branco sobre ouro some.
+    const fx0 = W / 2 - 300, fh = 76
+    const grad = x.createLinearGradient(fx0, y, fx0 + 600, y + fh)
+    grad.addColorStop(0, '#FFD44A'); grad.addColorStop(0.45, GOLD); grad.addColorStop(1, '#E0A800')
+    x.fillStyle = grad; x.fillRect(fx0, y, 600, fh)
+    x.strokeStyle = INK; x.lineWidth = 5; x.strokeRect(fx0, y, 600, fh)
+    x.fillStyle = INK; x.font = `900 34px ${OSW}`; x.textAlign = 'center'
+    x.fillText('🔨 leilaolegends.com', W / 2, y + 48)
     return new Promise(res => cv.toBlob(b => res(b), 'image/png'))
   }
 
