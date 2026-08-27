@@ -10655,6 +10655,14 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 📺 YOUTUBE VALE A COTA EXTRA DA TV (28/08, pedido do Diego: "deixa
+      YouTube também valer a cota extra, e não só TikTok e Instagram"). Mexido
+      em tudo que citava as duas redes: a VALIDAÇÃO do link (agora aceita
+      youtube.com e youtu.be — vídeo normal, Shorts ou live gravada), o passo 2
+      do "como fazer", o texto grande do Patrocínio, o painel do admin e a linha
+      da novidade de 23/08 (que ainda está na tela, então foi corrigida em vez
+      de duplicar). Regra do prêmio não mudou: vídeo 15s+, 1 por temporada,
+      +15 🪙 na caixa do clube, conferência manual do Diego no admin.
 - [x] 🎉 BANNER DE LANÇAMENTO DOS TÉCNICOS DENTRO DA CARREIRA (28/08, Diego:
       "quando a pessoa abre o Modo Carreira tem que aparecer o banner do
       técnico"). Reusa o `UnlockBanner` de sempre (não nasceu peça nova): topo

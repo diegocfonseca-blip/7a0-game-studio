@@ -464,7 +464,7 @@ function BancoFichasAdmin() {
 }
 
 // ── 📺 COTA EXTRA DE TV · mesa de aprovação (só admin) ───────────────────────
-// O jogador filma a tela, posta no Instagram/TikTok marcando @leilaolegendscom
+// O jogador filma a tela, posta no Instagram/TikTok/YouTube marcando @leilaolegendscom
 // e cola o link no jogo (Clube › Patrocínio). Aqui o Diego confere QUANDO DER
 // (a fila espera, não expira) e decide: ✅ aprova (+10 🪙 caem no clube na
 // próxima vez que o jogador abrir a carreira) ou ❌ recusa com motivo (aparece
@@ -524,7 +524,7 @@ function TVCotaAdmin() {
   return (
     <div style={{ border: '2px solid ' + GOLD, borderRadius: 16, padding: 14, marginTop: 16 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, textTransform: 'uppercase', margin: '0 0 4px' }}>📺 Cota extra de TV · mesa de aprovação</p>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Regras: vídeo 15s+ · Instagram/TikTok marcando @leilaolegendscom · foto não vale · 1 por temporada. Aprova quando der — a fila espera.</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Regras: vídeo 15s+ · Instagram/TikTok/YouTube marcando @leilaolegendscom · foto não vale · 1 por temporada. Aprova quando der — a fila espera.</p>
       {pend.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(242,232,207,.5)', margin: '0 0 8px' }}>nenhum vídeo esperando — tudo em dia 😴</p>}
       {pend.map(e => linha(e, true))}
       {feitos.length > 0 && <>

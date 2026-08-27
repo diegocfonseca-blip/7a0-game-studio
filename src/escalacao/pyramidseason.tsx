@@ -1610,7 +1610,8 @@ function BancoLegends() {
 // Reforma pedida pelo Diego: a TV era invisível (banner 1x por divisão nova +
 // linha no extrato, e só). Agora tem MORADA FIXA: o contrato por divisão que já
 // paga sozinho (TV_COTA no store) + a COTA EXTRA das redes sociais. Regras
-// FECHADAS por ele (23/08): vídeo 15s+ · Instagram ou TikTok marcando
+// FECHADAS por ele (23/08): vídeo 15s+ · Instagram, TikTok ou YouTube (o
+// YouTube entrou em 28/08 — vale vídeo, Shorts ou live gravada) marcando
 // @leilaolegendscom · foto não vale · 1 vídeo por temporada · +15 🪙 por vídeo
 // aprovado · conferência MANUAL dele no admin ("como toda cota de TV, pode
 // atrasar um pouco mas vai receber" — a fila espera, não expira).
@@ -1674,7 +1675,10 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
   const enviar = async () => {
     const l = link.trim()
     if (!l || busy) return
-    if (!/^https?:\/\//i.test(l) || !/(instagram\.com|tiktok\.com)/i.test(l)) { setErro('Cola o LINK do post — tem que ser do Instagram ou do TikTok. 📲'); return }
+    // 📺 YouTube entrou em 28/08 (pedido do Diego: "deixa YouTube também valer
+    // a cota extra, não só TikTok e Instagram"). Aceita youtube.com e youtu.be —
+    // vale vídeo normal, Shorts ou live gravada, é tudo o mesmo link.
+    if (!/^https?:\/\//i.test(l) || !/(instagram\.com|tiktok\.com|youtube\.com|youtu\.be)/i.test(l)) { setErro('Cola o LINK do post — tem que ser do Instagram, TikTok ou YouTube. 📲'); return }
     setBusy(true); setErro('')
     try {
       const { data: u } = await supabase.auth.getUser()
@@ -1748,7 +1752,7 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
             {podeEnviar && aberto && (
               <div style={{ ...box('#fff'), padding: 11 }}>
                 {([['1', <span key="1"><b>Grava um vídeo de 15s ou mais</b>: a tela do jogo rolando — ou você jogando, com o seu time aparecendo na tela.</span>],
-                  ['2', <span key="2"><b>Posta no Instagram ou no TikTok</b> marcando <b>@leilaolegendscom</b>.</span>],
+                  ['2', <span key="2"><b>Posta no Instagram, no TikTok ou no YouTube</b> marcando <b>@leilaolegendscom</b>.</span>],
                   ['3', <span key="3"><b>Cola o link do post aqui embaixo</b> — a emissora confere e deposita <b>+{TV_EXTRA_POR_VIDEO} 🪙 na caixa do clube</b>.</span>]] as [string, React.ReactNode][]).map(([n, t]) => (
                   <div key={n} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', marginBottom: 7 }}>
                     <span style={{ flex: 'none', width: 22, height: 22, borderRadius: 999, background: INK, color: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 11 }}>{n}</span>
@@ -6538,7 +6542,7 @@ export function PyramidSeasonScreen() {
               <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
                 <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Novidade da emissora</span>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>A TV agora paga <span style={{ color: GOLD }}>cota extra!</span></p>
-                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram ou TikTok</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+{TV_EXTRA_POR_VIDEO} 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
+                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram, TikTok ou YouTube</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+{TV_EXTRA_POR_VIDEO} 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>🎬 1 vídeo por temporada · +{TV_EXTRA_POR_VIDEO} 🪙 cada<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>· 100 temporadas = {(TV_EXTRA_POR_VIDEO * 100).toLocaleString('pt-BR')} 🪙 de cota extra</span></div>
                 <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Fica pra sempre em: 🏟️ Clube › 🤝 Patrocínio</p>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
