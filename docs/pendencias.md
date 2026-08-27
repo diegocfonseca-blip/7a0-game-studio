@@ -10668,6 +10668,11 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       destravar. Por isso cada tela agora exige `onlineMode !== 'online'`:
       SquadTab · ElencoField · HalftimeBanner · ReserveListScreen · simTecs.
       No online segue tudo EXATAMENTE como era (5 formações clássicas).
+      🔒 CORREÇÃO no mesmo dia: eu tinha aberto JUNTO o sondar JOGADOR — o Diego
+      pegou ("você liberou só o modo técnico né, o modo jogador não né?"). Não
+      era pedido: `aliciarJogOk` voltou a `false` com o Set só na conta dele.
+      Liberado pra todos = SÓ técnico + as 15 formações. A lista de JOGADORES
+      dos clubes na área de Sondar segue em teste fechado até ele mandar abrir.
       📢 Novidades: duas linhas em novidades.ts (🧢 técnicos · 🎽 15 formações,
       com o aviso de que sem técnico o time joga só o esquema atual). A
       MAQUIAGEM continua segredo de produção — nenhuma linha cita motor/conta.

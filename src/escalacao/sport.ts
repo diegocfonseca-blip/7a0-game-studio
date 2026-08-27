@@ -228,13 +228,15 @@ export function useFormacoes15(): boolean {
 // 🔎 ALICIAR JOGADOR (teste fechado, 26/08): dentro da área de aliciar do
 // Elenco (carreira), a lista de JOGADORES dos clubes só aparece pra estas
 // contas — todo o resto (quando a feature abrir) vê apenas o técnico.
-// 🔓 LIBERADO JUNTO em 28/08: sondar JOGADOR entra com o modo técnico (mesma
-// área, mesmo teto de 1 por temporada). Mesmo interruptor de emergência.
-const ALICIAR_JOG_TESTERS = new Set<string>([])
-let aliciarJogOk = true
+// 🔒 SONDAR JOGADOR CONTINUA FECHADO (28/08). O Diego liberou pra todos o MODO
+// TÉCNICO — e só ele: "você liberou só o modo técnico né, o modo jogador não né?
+// Só vai aparecer o modo técnico pra sondar". Então na área de Sondar todo mundo
+// vê o TÉCNICO do clube; a lista de JOGADORES do clube segue só nesta conta, até
+// ele mandar abrir.
+const ALICIAR_JOG_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let aliciarJogOk = false
 function applyAliciarJog(email?: string | null): void {
-  const u = true // liberado geral (mesmo interruptor)
-  void email; void ALICIAR_JOG_TESTERS
+  const u = !!email && ALICIAR_JOG_TESTERS.has(email.toLowerCase())
   if (u === aliciarJogOk) return
   aliciarJogOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
