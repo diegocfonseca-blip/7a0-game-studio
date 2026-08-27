@@ -29,6 +29,7 @@ import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
+import type { LoteAliciado as LoteAliciadoT } from './types'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
 import { JanelaConta } from './conta'
@@ -3344,23 +3345,30 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const { state, dispatch } = useEsc()
   const jogadorOn = useAliciarJogador() // 🔒 área de jogador: teste fechado à parte
   const [aberto, setAberto] = useState<string | null>(null)
-  const [lance, setLance] = useState(0)
-  const [selJog, setSelJog] = useState<string | null>(null)
-  const [lanceJog, setLanceJog] = useState(0)
   // semeia os técnicos da divisão na primeira visita (idempotente; vai pro save)
   useEffect(() => { dispatch({ type: 'ALICIAR_SEED' }) }, [dispatch, state.careerDivision])
+  // 🎯 v2 (27/08, a bronca do Diego que consertou tudo: "aliciar NÃO quer dizer
+  // que o técnico vai sair do time!"): aqui só se MARCA o alvo — sem valores, sem
+  // lance, sem resolução. Os marcados ABREM o próximo leilão de reservas como
+  // lotes (tela AliciarPregaoScreen), com lances de verdade você × rivais × o
+  // dono. Ninguém cobriu? O alvo fica onde está. Offline por enquanto.
+  if (state.onlineMode === 'online') return null
   const map = state.careerTecnicos ?? {}
   const meu = map[mgr.teamName] ?? null
-  const coins = state.careerCoins?.[mgr.id] ?? 0
-  // 💰 mercado igual jogador (27/08): valor nasce zerado e vira o que pagarem
-  const valorDe = (n: string) => state.careerTecnicoPago?.[n] ?? 0
-  const multa = meu ? valorDe(meu) : 0
   const meuContratoFim = state.careerTecnicoContrato?.[mgr.teamName]
-  const [armado, setArmado] = useState(false) // 🔥 confirmação da demissão (2 toques)
+  const valorMeu = meu ? (state.careerTecnicoPago?.[meu] ?? 0) : 0
+  const marcadosT = state.aliciarTecnicos ?? []
+  const marcadosJ = state.aliciarJogadores ?? []
   const rivais = new Set((state.careerRivals ?? []).map(r => r.team))
   const clubes = state.managers.filter(m => !m.isHuman).slice().sort((a, b) => a.teamName.localeCompare(b.teamName))
   const divRot = state.careerDivision === 'V' ? 'Várzea' : `Série ${state.careerDivision ?? '?'}`
-  const log = state.aliciarLog
+  const totalMarcado = marcadosT.length + marcadosJ.length
+  const btnMarcar = (marcado: boolean, onClick: () => void, rotulo: string) => (
+    <button onClick={onClick}
+      style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: marcado ? GREEN : GOLD, color: marcado ? '#fff' : INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>
+      {marcado ? '✔ Aliciado — toque pra tirar' : rotulo}
+    </button>
+  )
   return (
     <div style={{ marginTop: 14 }}>
       <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 6px', color: INK, textTransform: 'uppercase', letterSpacing: '.08em' }}>🧢 Técnico</p>
@@ -3369,7 +3377,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
           <>
             <CartaTecnico nome={meu} mostraFaixa />
             <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
-              💰 valor {valorDe(meu) || '—'} · 💸 salário {Math.round(valorDe(meu) / 10)}/temporada · 📝 contrato até a T{meuContratoFim ?? '—'}
+              💰 valor {valorMeu || '—'} · 💸 salário {Math.round(valorMeu / 10)}/temporada · 📝 contrato até a T{meuContratoFim ?? '—'}
               {meuContratoFim != null && meuContratoFim < state.seasonNo ? <b style={{ color: '#C2452F' }}> (VENCIDO — decida na janela de contratos)</b> : null}
             </p>
           </>
@@ -3377,63 +3385,29 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         : (
           <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
             <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot} têm — alicia um aqui embaixo. O time joga normal sem técnico; a carta é um reforço a mais e traz as formações dela.</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot} têm — alicia um aqui embaixo e brigue por ele no próximo leilão.</p>
           </div>
         )}
-      {log && (
-        <div style={{ border: `3px solid ${log.venceu ? GREEN : '#C2452F'}`, borderRadius: 12, background: log.venceu ? '#E9F9EF' : '#FDEEEA', padding: '9px 11px', marginTop: 8 }}>
-          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0, color: log.venceu ? GREEN : '#C2452F' }}>{log.titulo}</p>
-          <p style={{ fontSize: 10.5, fontWeight: 700, margin: '2px 0 0', lineHeight: 1.4, color: INK }}>{log.corpo}</p>
-        </div>
-      )}
       <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🔎 Aliciar · {divRot}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube pra ver o <b>técnico</b> dele — quem você aliciar vai pro <b>LEILÃO</b> (você × seus rivais × o dono). Nada de compra direta.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube e marque quem você quer. <b>Aliciar não tira ninguém do clube</b> — os marcados <b>abrem o próximo leilão</b>, com lances de verdade (você × seus rivais × o dono). Ninguém cobriu? Fica tudo como está.</p>
       {clubes.map(c => {
         const nome = map[c.teamName] ?? null
         const ehRival = rivais.has(c.teamName)
-        const t = nome ? tecnicoPorNome(nome) : undefined
-        const minL = nome ? Math.max(1, valorDe(nome)) : 0 // lance mínimo = valor de mercado (zerado = 1)
         const abertoAqui = aberto === c.teamName
         return (
           <div key={c.teamName} style={{ marginBottom: 7 }}>
-            <button onClick={() => { setAberto(abertoAqui ? null : c.teamName); setSelJog(null); setArmado(false); if (t) setLance(Math.max(minL, Math.min(coins - multa, minL))) }}
+            <button onClick={() => setAberto(abertoAqui ? null : c.teamName)}
               style={{ width: '100%', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 12.5, border: `3px solid ${INK}`, borderRadius: 12, background: ehRival ? '#FFF3C4' : '#fff', boxShadow: `2.5px 2.5px 0 0 ${INK}`, padding: '9px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: INK }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}{nome && marcadosT.includes(nome) ? ' 🎯' : ''}</span>
               <span style={{ fontSize: 10, opacity: .55, flex: 'none' }}>{abertoAqui ? '▾' : '›'}</span>
             </button>
             {abertoAqui && (
               <div style={{ border: `3px solid ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
-                {nome && t ? (
+                {nome ? (
                   <>
-                    {/* 🙈 regra do Diego (26/08, fechada de vez): no aliciar é SÓ O NOME —
-                        sem categoria, formações ou overall. Tudo se revela quando é seu. */}
+                    {/* 🙈 só o NOME (regra do Diego): categoria/nível/formações se revelam quando é seu */}
                     <CartaTecnico nome={nome} misterio />
-                    <div style={{ marginTop: 9 }}>
-                      <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '0 0 5px', textAlign: 'center' }}>💰 valor de mercado: <b>{valorDe(nome) || '— (nunca teve lance)'}</b> · sua caixa: <b>🪙 {coins}</b></p>
-                      <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4, background: 'rgba(255,255,255,.7)', border: `2px dashed ${INK}`, borderRadius: 9, padding: '5px 8px' }}>
-                        🎲 Contratando, o cardápio de formações vira o DELE — e se ele não usar a sua atual, ela segue valendo como a formação da casa 🏠. Contrato de <b>5 temporadas</b>. Você só descobre o resto quando ele for seu.
-                      </p>
-                      {meu && (
-                        <p style={{ fontSize: 9.5, fontWeight: 800, color: '#C2452F', margin: '0 0 7px', lineHeight: 1.4, background: '#FDEEEA', border: '2px solid #C2452F', borderRadius: 9, padding: '5px 8px' }}>
-                          ⚠️ Você já tem técnico (<b>{meu}</b>, contrato até a T{meuContratoFim ?? '?'}). Aliciar outro <b>DEMITE ele NA HORA</b> com multa de <b>💰 {multa}</b> — e mesmo assim você pode <b>perder o leilão</b> (rivais e o dono também dão lance). Se não quiser pagar a multa, aguarde o contrato dele acabar.
-                        </p>
-                      )}
-                      {coins >= multa + minL ? (
-                        <>
-                          <LanceStepper v={lance} piso={minL} teto={Math.max(minL, coins - multa)} onSet={setLance} />
-                          {meu && !armado ? (
-                            <button onClick={() => setArmado(true)}
-                              style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', background: '#C2452F', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>🔥 Demitir {meu} e ir pro leilão…</button>
-                          ) : (
-                            <button onClick={() => { dispatch({ type: 'ALICIAR_TECNICO', clube: c.teamName, lance }); setArmado(false) }}
-                              style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>{meu ? `🔨 Confirmar: multa 💰 ${multa} + lance 💰 ${lance}` : '🔨 Aliciar pro leilão'}</button>
-                          )}
-                          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.4 }}>Vai pro pregão: <b>você × seus rivais × o {c.teamName}</b> (o dono briga pra segurar). O lance só é cobrado de quem LEVA{meu ? ' — mas a multa da demissão é NA HORA, leve ou não' : ''}.</p>
-                        </>
-                      ) : (
-                        <p style={{ fontSize: 10.5, fontWeight: 800, color: '#C2452F', margin: 0, textAlign: 'center' }}>Sua caixa não cobre {meu ? `a multa (💰 ${multa}) + o lance mínimo (💰 ${minL})` : `o lance mínimo (💰 ${minL})`} — faça caixa e volte.</p>
-                      )}
-                    </div>
+                    {btnMarcar(marcadosT.includes(nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: nome }), '🔨 Aliciar pro leilão')}
                   </>
                 ) : (
                   <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center' }}>😶 Este clube está SEM técnico no momento.</p>
@@ -3449,34 +3423,19 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                           <p style={{ ...OSWALD, fontWeight: 800, fontSize: 9, textTransform: 'uppercase', color: GREEN, opacity: .85, margin: '6px 0 2px' }}>{POS_LABEL[pos]}</p>
                           {cs.map(x => {
                             const preso = !!state.contratosOn && x.contratoAte != null && x.contratoAte >= state.seasonNo
-                            const pisoJ = valorOficial(state, x)
-                            const selAqui = selJog === x.id
+                            const marcado = marcadosJ.includes(x.id)
                             return (
-                              <div key={x.id}>
-                                <div onClick={() => { if (!preso) { setSelJog(selAqui ? null : x.id); setLanceJog(Math.max(pisoJ, Math.min(coins, pisoJ))) } }}
-                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : selAqui ? '#FFF6D6' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: preso ? .5 : 1, cursor: preso ? 'default' : 'pointer' }}>
-                                  <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
-                                    <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: preso ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? '🔒 contrato' : '+ aliciar'}</span></span>
-                                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10.5, color: '#5a5647', flex: 'none' }}>💰 {pisoJ}</span>
-                                </div>
-                                {selAqui && (
-                                  <div style={{ padding: '6px 4px 9px' }}>
-                                    {coins >= pisoJ ? (
-                                      <>
-                                        <LanceStepper v={lanceJog} piso={pisoJ} teto={coins} onSet={setLanceJog} />
-                                        <button onClick={() => { dispatch({ type: 'ALICIAR_JOGADOR', mgrId: c.id, cardId: x.id, lance: lanceJog }); setSelJog(null) }}
-                                          style={{ width: '100%', marginTop: 7, ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 11, boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 0', cursor: 'pointer' }}>🔨 Aliciar {x.name}</button>
-                                      </>
-                                    ) : <p style={{ fontSize: 10, fontWeight: 800, color: '#C2452F', margin: 0, textAlign: 'center' }}>Caixa não cobre o valor ({pisoJ} 🪙).</p>}
-                                  </div>
-                                )}
+                              <div key={x.id} onClick={() => { if (!preso) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id }) }}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : marcado ? GREEN : GREEN}`, marginBottom: 3, opacity: preso ? .5 : 1, cursor: preso ? 'default' : 'pointer' }}>
+                                <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
+                                  <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: preso ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? '🔒 contrato' : marcado ? '✔ no leilão · tirar' : '+ aliciar'}</span></span>
                               </div>
                             )
                           })}
                         </div>
                       )
                     })}
-                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Linha igual à do Elenco: <b>nome + 💰 valor</b> — sem faixa de nível. Sob contrato não sai, o clube nunca fica manco na posição, e o seu lado respeita o teto do banco.</p>
+                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = pôr no leilão. Sob contrato não sai, e o clube nunca fica manco na posição.</p>
                   </div>
                 )}
               </div>
@@ -3485,9 +3444,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         )
       })}
       {(() => {
-        // 🕴️ ABA SEM CLUBE (27/08): os técnicos livres da divisão — os que os bots
-        // largaram na dança e os que nunca foram semeados. Leilão SÓ você × os
-        // bots da divisão (ninguém defende). Mesma vitrine às cegas: só o nome.
+        // 🕴️ SEM CLUBE: os técnicos livres da divisão — mesmo esquema, só marcar
         const usados = new Set(Object.values(map).filter(Boolean))
         const div = (state.careerDivision ?? 'D') as DivTec
         const livres = poolDaDiv(div).filter(tt => !usados.has(tt.nome))
@@ -3495,43 +3452,21 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         return (
           <>
             <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🕴️ Sem clube</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Técnicos livres da {divRot}. Aqui <b>ninguém defende</b> — o leilão é você × os bots da divisão.</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Técnicos livres da {divRot}. No leilão deles <b>ninguém defende</b> — é você × os bots da divisão.</p>
             {livres.map(tt => {
               const chave = `livre:${tt.nome}`
               const abertoAqui = aberto === chave
-              const minL = Math.max(1, valorDe(tt.nome))
               return (
                 <div key={chave} style={{ marginBottom: 7 }}>
-                  <button onClick={() => { setAberto(abertoAqui ? null : chave); setSelJog(null); setArmado(false); setLance(Math.max(minL, Math.min(coins - multa, minL))) }}
+                  <button onClick={() => setAberto(abertoAqui ? null : chave)}
                     style={{ width: '100%', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 12.5, border: `3px dashed ${INK}`, borderRadius: 12, background: '#FBF6E8', padding: '9px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: INK }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🕴️ {tt.nome} {tt.pais}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🕴️ {tt.nome} {tt.pais}{marcadosT.includes(tt.nome) ? ' 🎯' : ''}</span>
                     <span style={{ fontSize: 10, opacity: .55, flex: 'none' }}>{abertoAqui ? '▾' : '›'}</span>
                   </button>
                   {abertoAqui && (
                     <div style={{ border: `3px dashed ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
                       <CartaTecnico nome={tt.nome} misterio />
-                      <div style={{ marginTop: 9 }}>
-                        <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '0 0 5px', textAlign: 'center' }}>💰 valor de mercado: <b>{valorDe(tt.nome) || '— (nunca teve lance)'}</b> · sua caixa: <b>🪙 {coins}</b></p>
-                        {meu && (
-                          <p style={{ fontSize: 9.5, fontWeight: 800, color: '#C2452F', margin: '0 0 7px', lineHeight: 1.4, background: '#FDEEEA', border: '2px solid #C2452F', borderRadius: 9, padding: '5px 8px' }}>
-                            ⚠️ Você já tem técnico (<b>{meu}</b>). Aliciar outro <b>DEMITE ele NA HORA</b> com multa de <b>💰 {multa}</b> — e você ainda pode perder o leilão pros bots.
-                          </p>
-                        )}
-                        {coins >= multa + minL ? (
-                          <>
-                            <LanceStepper v={lance} piso={minL} teto={Math.max(minL, coins - multa)} onSet={setLance} />
-                            {meu && !armado ? (
-                              <button onClick={() => setArmado(true)}
-                                style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', background: '#C2452F', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>🔥 Demitir {meu} e ir pro leilão…</button>
-                            ) : (
-                              <button onClick={() => { dispatch({ type: 'ALICIAR_LIVRE', nome: tt.nome, lance }); setArmado(false) }}
-                                style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>{meu ? `🔨 Confirmar: multa 💰 ${multa} + lance 💰 ${lance}` : '🔨 Aliciar pro leilão'}</button>
-                            )}
-                          </>
-                        ) : (
-                          <p style={{ fontSize: 10.5, fontWeight: 800, color: '#C2452F', margin: 0, textAlign: 'center' }}>Sua caixa não cobre {meu ? `a multa (💰 ${multa}) + o lance mínimo (💰 ${minL})` : `o lance mínimo (💰 ${minL})`}.</p>
-                        )}
-                      </div>
+                      {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), '🔨 Aliciar pro leilão')}
                     </div>
                   )}
                 </div>
@@ -3540,10 +3475,85 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
           </>
         )
       })()}
-      <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0 0' }}>⚔️ = rival seu · as outras divisões ficam no mistério</p>
+      {totalMarcado > 0 && (
+        <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: GREEN, margin: '8px 0 0' }}>🎯 {totalMarcado} aliciado{totalMarcado > 1 ? 's' : ''} — eles ABREM o próximo leilão de reservas.</p>
+      )}
+      <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '4px 0 0' }}>⚔️ = rival seu · as outras divisões ficam no mistério</p>
     </div>
   )
 }
+
+// ── 🎯 O PREGÃO DOS ALICIADOS — abre o leilão de reservas (27/08) ────────────
+// Os lotes marcados no Elenco aparecem AQUI, de primeira, antes do leilão
+// normal. Envelope cego por lote (0 = passar), martelo, e a vida segue.
+export function AliciarPregaoScreen() {
+  const { state, dispatch } = useEsc()
+  const preg = state.aliciarPregao
+  const you = state.managers[state.youIdx]
+  const coins = state.careerCoins?.[you?.id ?? 0] ?? 0
+  const [lances, setLances] = useState<Record<string, number>>({})
+  if (!preg) return null
+  const chaveDe = (l: LoteAliciadoT) => l.tipo === 'tec' ? `tec:${l.nome}` : `jog:${l.cardId}`
+  const gasto = Object.values(lances).reduce((a, b) => a + b, 0)
+  return (
+    <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
+      <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
+        <div style={{ background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 14px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🎯 PREGÃO DOS ALICIADOS</span>
+          <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, color: '#FFC400' }}>🪙 {coins}</span>
+        </div>
+        {!preg.resultados ? (
+          <>
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.45 }}>Os alvos que você aliciou abrem o leilão. Dê seu lance em <b>envelope fechado</b> (ou passe) — rivais e o dono também mandam os deles. Maior lance leva; <b>ninguém cobriu, o alvo fica onde está</b>. Só paga quem LEVA.</p>
+            {preg.lotes.map(l => {
+              const chave = chaveDe(l)
+              const v = lances[chave] ?? 0
+              return (
+                <div key={chave} style={{ border: `3px solid ${INK}`, borderRadius: 14, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 11px', marginBottom: 10 }}>
+                  {l.tipo === 'tec' ? (
+                    <>
+                      <CartaTecnico nome={l.nome} misterio />
+                      <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 0 0', textAlign: 'center' }}>{l.clube ? <>clube atual: <b>{l.clube}</b> (o dono pode cobrir)</> : <>🕴️ sem clube — ninguém defende</>} · lance mínimo: <b>💰 {l.piso}</b></p>
+                    </>
+                  ) : (
+                    <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: 0 }}>🎯 {l.nome} <span style={{ fontSize: 10, color: '#5a5647' }}>· {l.pos} · {l.clube}</span><span style={{ float: 'right', fontSize: 11 }}>mín 💰 {l.piso}</span></p>
+                  )}
+                  <div style={{ marginTop: 9 }}>
+                    {v === 0 ? (
+                      <button onClick={() => setLances({ ...lances, [chave]: l.piso })}
+                        style={{ width: '100%', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 11, boxShadow: `2.5px 2.5px 0 0 ${INK}`, padding: '9px 0', cursor: 'pointer' }}>✉️ Preparar envelope</button>
+                    ) : (
+                      <>
+                        <LanceStepper v={v} piso={l.piso} teto={coins} onSet={n => setLances({ ...lances, [chave]: n })} />
+                        <button onClick={() => { const nl = { ...lances }; delete nl[chave]; setLances(nl) }}
+                          style={{ width: '100%', marginTop: 7, ...OSWALD, fontWeight: 800, fontSize: 10.5, textTransform: 'uppercase', background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 0', cursor: 'pointer', color: '#5a5647' }}>✋ Tirar meu lance (passar)</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            {gasto > coins && <p style={{ fontSize: 11, fontWeight: 800, color: '#C2452F', margin: '0 0 8px', textAlign: 'center' }}>⚠️ A soma dos seus envelopes ({gasto} 🪙) passa da caixa ({coins} 🪙) — se levar tudo, não fecha a conta.</p>}
+            <button onClick={() => dispatch({ type: 'ALICIAR_RESOLVER', lances })}
+              style={{ width: '100%', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 13, boxShadow: `3px 3px 0 0 rgba(0,0,0,.35)`, padding: '13px 0', cursor: 'pointer' }}>🔨 Bater o martelo</button>
+          </>
+        ) : (
+          <>
+            {preg.resultados.map((r, i) => (
+              <div key={i} style={{ border: `3px solid ${r.venceu ? GREEN : '#C2452F'}`, borderRadius: 12, background: r.venceu ? '#E9F9EF' : '#FDEEEA', padding: '9px 11px', marginBottom: 9 }}>
+                <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: 0, color: r.venceu ? GREEN : '#C2452F' }}>{r.titulo}</p>
+                <p style={{ fontSize: 10.5, fontWeight: 700, margin: '2px 0 0', lineHeight: 1.4, color: INK }}>{r.corpo}</p>
+              </div>
+            ))}
+            <button onClick={() => dispatch({ type: 'ALICIAR_PREGAO_FIM' })}
+              style={{ width: '100%', marginTop: 4, ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 13, boxShadow: `3px 3px 0 0 ${INK}`, padding: '13px 0', cursor: 'pointer' }}>Seguir pro leilão ➜</button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 
 function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
   const quinze15 = useFormacoes15() // 🎭 15 formações: por enquanto só a conta do Diego

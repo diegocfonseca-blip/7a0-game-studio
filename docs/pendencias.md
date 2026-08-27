@@ -10603,6 +10603,25 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       ⚠️ Limite conhecido: dentro de UMA divisão todos os técnicos têm a mesma
       categoria, então "bot troca por um melhor" só fará sentido quando técnico
       livre de outra divisão circular — anotado pra v10.
+- [x] 🎯 ALICIAR REFEITO (v10, 27/08 — bronca do Diego ao testar: "aliciar NÃO
+      quer dizer que o técnico vai sair do time! É igual o modo manager: aperta
+      e vai pro LEILÃO REAL; se ninguém pagar ele continua no mesmo time; quando
+      começar o leilão o técnico aparece de primeira"). O leilão instantâneo
+      MORREU. Agora, igual à Dinastia:
+      · Na área de aliciar só se MARCA o alvo (toggle 🎯) — sem valores, sem
+        info-box, sem stepper, sem resolução. Nada muda na hora.
+      · Os marcados viram LOTES que ABREM o leilão de reservas: tela nova
+        'aliciarPregao' (AliciarPregaoScreen) — envelope fechado por lote (ou
+        passar), martelo, resultados, e segue pro leilão normal. Ninguém cobriu
+        → o alvo FICA onde está. Dono defende com cara de gente (às vezes deixa
+        ir). Empate = você leva. Só paga quem leva.
+      · Multa de demissão: agora só é cobrada SE você LEVAR outro técnico no
+        pregão (o antigo é demitido nesse momento) — não mais na largada.
+      · Orçamento sincronizado: o que se gasta no pregão sai do m.money antes do
+        leilão normal (senão gastava o mesmo dinheiro 2×).
+      · Ações antigas ALICIAR_TECNICO/ALICIAR_JOGADOR/ALICIAR_LIVRE removidas;
+        entram ALICIAR_MARCAR / ALICIAR_RESOLVER / ALICIAR_PREGAO_FIM. Offline
+        por enquanto (no online a área não aparece).
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.
