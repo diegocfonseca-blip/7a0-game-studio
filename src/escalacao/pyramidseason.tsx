@@ -3399,7 +3399,12 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const marcadosT = state.aliciarTecnicos ?? []
   const marcadosJ = state.aliciarJogadores ?? []
   const rivais = new Set((state.careerRivals ?? []).map(r => r.team))
-  const clubes = state.managers.filter(m => !m.isHuman).slice().sort((a, b) => a.teamName.localeCompare(b.teamName))
+  // 🪶 a lista de clubes só muda quando o elenco de bots muda — sem o useMemo,
+  // toda rolagem/re-render refazia filter+sort e redesenhava os ~20 escudos.
+  const clubes = useMemo(
+    () => state.managers.filter(m => !m.isHuman).slice().sort((x, y) => x.teamName.localeCompare(y.teamName)),
+    [state.managers],
+  )
   const divRot = state.careerDivision === 'V' ? 'Várzea' : `Série ${state.careerDivision ?? '?'}`
   const totalMarcado = marcadosT.length + marcadosJ.length
   // 📰 depois de marcar, a HISTORINHA de bastidor conta por que o sondado vai
@@ -7577,7 +7582,18 @@ export function ReserveListScreen() {
   const youId = mgr?.id ?? 0
   const listed = useMemo(() => new Set(state.reserveListed?.[youId] ?? []), [state.reserveListed, youId])
   const [now, setNow] = useState(Date.now())
-  useEffect(() => { const iv = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(iv) }, [])
+  // ⏱️ o relógio só existe ONLINE (offline a janela espera o botão, sem prazo).
+  // 🐛 28/08 (Diego, vendo alguém jogar carreira SOLO: "a aba do sondar e vender
+  // apareceu e sumiu, uns errinhos"): este intervalo rodava SEMPRE, redesenhando
+  // a tela INTEIRA 4× por segundo — e hoje a tela ganhou a grade com ~20 escudos
+  // em SVG, então cada volta virou desenho caro e o celular tremia/piscava.
+  // Offline não tem relógio pra atualizar: o intervalo agora nem começa.
+  const relogioOn = state.onlineMode === 'online'
+  useEffect(() => {
+    if (!relogioOn) return
+    const iv = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(iv)
+  }, [relogioOn])
   const remaining = Math.max(0, Math.ceil(((state.phaseDeadline ?? 0) - now) / 1000))
   const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
   const nameKey = state.managers.filter(m => m.isHuman).map(m => `${m.id}:${m.teamName}`).join('|')

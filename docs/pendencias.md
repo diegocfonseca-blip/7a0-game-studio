@@ -10655,9 +10655,16 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
-- [ ] 🐛 BARRA VENDER/SONDAR PISCANDO (28/08, relato do Diego vendo alguém
-      jogar: "a aba do sondar e vender apareceu e sumiu"). NÃO reproduzi (é
-      celular de outra pessoa), então blindei as DUAS causas mais prováveis:
+- [x] 🐛 CAUSA RAIZ DO RODAPÉ TREMENDO — ACHADA (28/08). O Diego confirmou que
+      era CARREIRA SOLO, então não era sync de sala: a tela de listar rodava um
+      `setInterval` de 250 ms SEMPRE, inclusive offline, redesenhando a tela
+      INTEIRA 4× por segundo. Isso vinha de antes e não incomodava — até hoje,
+      quando a tela ganhou a GRADE COM ~20 ESCUDOS EM SVG: cada volta virou
+      desenho caro e o celular tremia/piscava. Offline não tem relógio nenhum
+      pra atualizar (a janela espera o botão), então o intervalo agora só
+      começa quando `onlineMode === 'online'`. Junto: `useMemo` na lista de
+      clubes (filter+sort saíam a cada render). A tela ficou parada de verdade.
+      Blindagens que já tinham entrado antes, e ficam:
       (a) CARREIRA ONLINE com estado ainda não sincronizado — `onlineMode` pode
       chegar um instante depois, e nesse instante a barra aparecia e sumia.
       Agora a condição também exige `!state.roomId`: com sala, nunca mostra.
