@@ -10655,6 +10655,17 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 👑 FELIPÃO E ZAGALLO VIRARAM LENDA (28/08, Diego: "acho que Felipão
+      deveria ser lenda, campeão da Copa do Mundo, Zagallo também — mesmo que
+      eles fiquem atrás dos 20 lá"). Os dois saíram da Série B e entraram na A
+      em tecnicos.ts: Série A ficou com 22 nomes e a B com 20 (teto de 20 já
+      relaxado). Como Lenda tem 5 esquemas, a 5ª de cada um é REAL, não
+      preenchimento: o 4-2-2-2 brasileiro dos dois (Felipão no Grêmio/Palmeiras;
+      Zagallo na Copa 98 com Dunga+Sampaio · Rivaldo+Leonardo · Ronaldo+Bebeto)
+      — nas nossas 15 isso é o "4-4-2 losango". Nível sobe sozinho em todo save
+      (a ficha do técnico é lida do tecnicos.ts na hora, não fica congelada).
+      ⚠️ Os dois seguem com `chute: true` no ESTILO (equilibrado) — falta o
+      Diego cravar o estilo deles.
 - [x] 🧳 v20 — "FORMAÇÃO DO TÉCNICO" + SELO DE HERANÇA (28/08, Diego: "aqui
       onde tá escrito formação agora vai se chamar formação do técnico. E em
       cima da formação atual que eu tô, coloque tipo 'herança do último
