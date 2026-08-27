@@ -10655,6 +10655,22 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🔒 SEM TÉCNICO = SÓ A FORMAÇÃO EM USO (28/08, pergunta do Diego pensando
+      na LIBERAÇÃO GERAL: "como vai funcionar com quem já tem cinco formações e
+      está jogando? O certo seria remover todas e manter só a que ele está
+      jogando — ele não vai conseguir mudar enquanto não contratar um
+      treinador"). Antes, sem técnico o cardápio era 4-3-3 + 4-4-2 + a atual (3
+      opções); agora é SÓ a atual. Vale nos dois lugares: seletor do Elenco e
+      troca do INTERVALO (HalftimeBanner).
+      Por que não quebra ninguém na virada: a formação fica salva no time
+      (`mgr.formation`), então quem joga 5-3-2 hoje continua no 5-3-2 — não
+      precisa migração de save. E quando o primeiro técnico chega, essa
+      formação é gravada como 🧳 HERANÇA (`careerFormacaoExtra`, já existia) e
+      continua no cardápio pra sempre.
+      🛟 VÁLVULA ANTI-TRAVAMENTO: se o elenco não montar a formação atual, o
+      4-3-3/4-4-2 voltam ao cardápio com aviso ("liberei o básico porque seu
+      elenco não monta o X") — o time nunca fica preso sem conseguir escalar.
+      A trava explica o porquê e o caminho, como o Diego exige.
 - [x] 👑 FELIPÃO E ZAGALLO VIRARAM LENDA (28/08, Diego: "acho que Felipão
       deveria ser lenda, campeão da Copa do Mundo, Zagallo também — mesmo que
       eles fiquem atrás dos 20 lá"). Os dois saíram da Série B e entraram na A

@@ -2645,10 +2645,12 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
             {((): FormationKey[] => {
               const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]
               if (!quinze15) return base
-              const base2 = ['4-3-3', '4-4-2'] as FormationKey[] // sem técnico: só o feijão-com-arroz (regra do Diego)
               const nomeT = escStH.careerTecnicos?.[mgr.teamName]
               const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
-              if (!tt) return [...new Set<FormationKey>([...base2, mgr.formation])]
+              // 🧢 SEM TÉCNICO = SÓ A FORMAÇÃO EM USO (Diego 28/08). Ver a nota
+              // grande no seletor do Elenco: quem não tem comandante não muda de
+              // esquema — o time só sabe treinar o que já treinava.
+              if (!tt) return [mgr.formation]
               const daCasaR = escStH.careerFormacaoExtra?.[mgr.teamName]
               const motores = [...fichaDoTecnico(tt).formacoes, ...(daCasaR ? [daCasaR] : [])].map(r => formacaoPorRotulo(r)?.motor).filter((m): m is FormationKey => !!m)
               return [...new Set<FormationKey>([...motores, mgr.formation])]
@@ -3625,12 +3627,22 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
           // 🧹 v6 (Diego: "não tem que ter no seletor não, apenas as formações"):
           // o seletor mostra SÓ o cardápio — botões limpos, sem cadeado nem selo.
           // O que cada técnico traz aparece na carta dele, lá no aliciar.
+          // 🧢 SEM TÉCNICO = SÓ A FORMAÇÃO QUE O TIME JÁ JOGA (Diego 28/08, pensando
+          // na virada pra todo mundo: "como vai funcionar com quem já tem cinco
+          // formações e está jogando? O certo seria remover todas e manter só a
+          // que ele está jogando — ele não vai conseguir mudar enquanto não
+          // contratar um treinador"). Ninguém perde o esquema em que está: a
+          // formação salva do time continua valendo e vira a herança quando o
+          // primeiro técnico chegar. 🛟 VÁLVULA: se por algum motivo o elenco não
+          // montar essa formação, o feijão-com-arroz volta pro cardápio — o time
+          // nunca fica preso sem conseguir escalar.
           const BASE2 = new Set(['4-3-3', '4-4-2'])
           const meuTecN = escSt.careerTecnicos?.[mgr.teamName] ?? null
           const meuTecT = meuTecN ? tecnicoPorNome(meuTecN) : undefined
           const doTec = new Set(meuTecT ? fichaDoTecnico(meuTecT).formacoes : [])
           const daCasa = meuTecT ? (escSt.careerFormacaoExtra?.[mgr.teamName] ?? null) : null
-          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) || rot === daCasa : BASE2.has(rot)) || rot === atual.rotulo
+          const socorro = !meuTecT && missFor(atual.motor).length > 0 // elenco não monta a atual
+          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) || rot === daCasa : socorro && BASE2.has(rot)) || rot === atual.rotulo
           const cardapio = FORMACOES15.filter(f => liberada(f.rotulo))
           const bloqueadas = cardapio.filter(f => f.rotulo !== atual.rotulo && missFor(f.motor).length > 0)
           return (
@@ -3659,6 +3671,10 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
               </div>
               {!!daCasa && !doTec.has(daCasa) && (
                 <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 0', lineHeight: 1.35 }}>🧳 O <b>{daCasa}</b> não é do {meuTecN} — é <b>herança do técnico anterior</b>: o time já jogava assim quando ele chegou, e continuou no cardápio.</p>
+              )}
+              {/* 🔒 sem técnico: explica a trava E o caminho pra destravar */}
+              {!meuTecT && (
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6d00', margin: '6px 0 0', lineHeight: 1.4 }}>🧢 <b>Sem técnico o time só joga o {atual.rotulo}</b> — é o esquema que ele já treina, ninguém no clube sabe montar outro. Pra abrir mais formações, <b>contrate um técnico</b>: na janela antes do leilão, aba <b>🕵️ Sondar</b>. O {atual.rotulo} continua no cardápio depois (vira 🧳 herança).{socorro ? <><br />🛟 <b>Liberei o básico agora</b> porque seu elenco não monta o {atual.rotulo} — escolha 4-3-3 ou 4-4-2 pra escalar o time.</> : null}</p>
               )}
               {bloqueadas.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
