@@ -1760,6 +1760,12 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
                   </div>
                 ))}
                 <div style={{ background: '#FDECEA', border: '2px solid #C2452F', borderRadius: 9, padding: '6px 9px', fontWeight: 800, fontSize: 9.5, color: '#7a2418', lineHeight: 1.4, margin: '2px 0 8px' }}>📵 Foto não vale — a TV só paga por <b>vídeo com o jogo acontecendo</b>. E cada vídeo vale uma vez só.</div>
+                {/* 🔴 LIVE (28/08, pergunta do Diego: "e a live rolando agora,
+                    funciona? ele vai botar o link"). O link entra normal — o
+                    problema é a CONFERÊNCIA, que é manual e pode ser horas
+                    depois: se a live não ficar salva, não sobra o que ver e a
+                    cota cai por falta de prova. Por isso o aviso, com o caminho. */}
+                <div style={{ background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 700, fontSize: 9.5, color: '#4a4740', lineHeight: 1.4, margin: '0 0 8px' }}>🔴 <b>Tá ao vivo?</b> Live vale sim — pode colar o link da live rolando. Só <b>deixe ela salva no canal</b> depois (o YouTube guarda sozinho, é só não apagar): a emissora confere <b>depois</b>, e se o vídeo sumir não tem como pagar.</div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <input value={link} onChange={e => setLink(e.target.value)} placeholder="cole o link do post aqui" inputMode="url" autoCapitalize="none"
                     style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 9px', fontWeight: 700, fontSize: 11.5, background: '#FBF6E9' }} />

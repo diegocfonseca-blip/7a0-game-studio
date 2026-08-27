@@ -10655,6 +10655,16 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🔴 LIVE VALE A COTA (28/08, pergunta do Diego: "e a live rolando agora,
+      funciona? ele vai botar o link"). CONFERIDO no código: sim — link de live
+      do YouTube (`youtube.com/live/...`, `watch?v=...`, `youtu.be/...`) passa
+      na validação normalmente, não precisou mexer em regex. O risco real não é
+      o link e sim a CONFERÊNCIA, que é manual e acontece depois: live que não
+      fica salva vira link morto e a cota cai por falta de prova. Entrou um
+      aviso amarelo na área de envio: "🔴 Tá ao vivo? Live vale sim — só deixe
+      ela salva no canal depois; a emissora confere depois, e se o vídeo sumir
+      não tem como pagar." Mesma lógica vale pro story do Instagram (some em
+      24h) — se virar problema, o aviso já está no lugar certo pra crescer.
 - [x] 📺 YOUTUBE VALE A COTA EXTRA DA TV (28/08, pedido do Diego: "deixa
       YouTube também valer a cota extra, e não só TikTok e Instagram"). Mexido
       em tudo que citava as duas redes: a VALIDAÇÃO do link (agora aceita
