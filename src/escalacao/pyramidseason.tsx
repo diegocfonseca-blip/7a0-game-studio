@@ -3362,27 +3362,34 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
       )}
     </>
   )
+  // 🎨 Diego 28/08 ("o padrão visual do vender tá de um jeito e o do sondar
+  // outro — deixa igual"): as seções viraram as MESMAS caixas do Vender
+  // (box branco/amarelo com título Oswald), nada de rótulo solto no creme.
   return (
     <div style={{ marginTop: 14 }}>
-      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 6px', color: INK, textTransform: 'uppercase', letterSpacing: '.08em' }}>🧢 Técnico</p>
-      {meu
-        ? (
-          <>
-            <CartaTecnico nome={meu} mostraFaixa />
-            <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
-              💰 valor {valorMeu || '—'} · 💸 salário {Math.round(valorMeu / 10)}/temporada · 📝 contrato: {meuContratoFim != null ? (meuContratoFim >= state.seasonNo ? `falta${meuContratoFim - state.seasonNo + 1 > 1 ? 'm' : ''} ${meuContratoFim - state.seasonNo + 1} temporada${meuContratoFim - state.seasonNo + 1 > 1 ? 's' : ''}` : 'VENCIDO') : '—'}
-              {meuContratoFim != null && meuContratoFim < state.seasonNo ? <b style={{ color: '#C2452F' }}> (VENCIDO — decida na janela de contratos)</b> : null}
-            </p>
-          </>
-        )
-        : (
-          <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
-            <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot} têm — sonda um aqui embaixo e brigue por ele no próximo leilão.</p>
-          </div>
-        )}
-      <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🕵️ Sondar · {divRot}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
+      <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
+        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px', color: INK }}>🧢 Seu técnico</p>
+        {meu
+          ? (
+            <>
+              <CartaTecnico nome={meu} mostraFaixa />
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
+                💰 valor {valorMeu || '—'} · 💸 salário {Math.round(valorMeu / 10)}/temporada · 📝 contrato: {meuContratoFim != null ? (meuContratoFim >= state.seasonNo ? `falta${meuContratoFim - state.seasonNo + 1 > 1 ? 'm' : ''} ${meuContratoFim - state.seasonNo + 1} temporada${meuContratoFim - state.seasonNo + 1 > 1 ? 's' : ''}` : 'VENCIDO') : '—'}
+                {meuContratoFim != null && meuContratoFim < state.seasonNo ? <b style={{ color: '#C2452F' }}> (VENCIDO — decida na janela de contratos)</b> : null}
+              </p>
+            </>
+          )
+          : (
+            <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
+              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot} têm — sonda um aqui embaixo e brigue por ele no próximo leilão.</p>
+            </div>
+          )}
+      </div>
+      <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
+        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕵️ Sondar · {divRot}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
+      </div>
       {clubes.map(c => {
         const nome = map[c.teamName] ?? null
         const ehRival = rivais.has(c.teamName)
@@ -3466,8 +3473,10 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         if (!livres.length) return null
         return (
           <>
-            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🕴️ Sem clube</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Técnicos livres da {divRot}. No leilão deles <b>ninguém defende</b> — é você × os bots da divisão.</p>
+            <div style={{ ...box('#FBF6E8'), padding: 11, margin: '12px 0 10px' }}>
+              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕴️ Sem clube</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Técnicos livres da {divRot}. No leilão deles <b>ninguém defende</b> — é você × os bots da divisão.</p>
+            </div>
             {livres.map(tt => {
               const chave = `livre:${tt.nome}`
               const abertoAqui = aberto === chave
@@ -7455,24 +7464,15 @@ export function ReserveListScreen() {
   const nAliciados = (state.aliciarTecnicos?.length ?? 0) + (state.aliciarJogadores?.length ?? 0)
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
-      <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
+      <div className="max-w-xl mx-auto" style={{ padding: mostraPills ? '16px 14px 112px' : '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>{state.reserveListMesmo ? '📝 CONTRATOS · MESMO TIME' : '📋 LISTAR PRA LEILÃO'} · TEMP. {state.seasonNo}</span>
+          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>{state.reserveListMesmo ? '📝 CONTRATOS · MESMO TIME' : abaLeilao === 'aliciar' && mostraPills ? '🕵️ SONDAR PRO LEILÃO' : '📋 LISTAR PRA LEILÃO'} · TEMP. {state.seasonNo}</span>
           {/* ⏱️ o relógio só faz sentido ONLINE (esperar todo mundo decidir) — no
               offline (só você) é tempo perdido à toa (pedido do Diego 05/08). */}
           {state.onlineMode === 'online' && (
             <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
           )}
         </div>
-        {/* 🎯 pílulas Vender · Aliciar (formato aprovado pelo Diego) */}
-        {mostraPills && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            {([['vender', '📋 Vender'], ['aliciar', `🕵️ Sondar${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, rot]) => (
-              <button key={k} onClick={() => setAbaLeilao(k)}
-                style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '9px 4px', fontWeight: 900, fontSize: 12.5, ...OSWALD, textTransform: 'uppercase', background: abaLeilao === k ? INK : '#fff', color: abaLeilao === k ? '#fff' : INK, boxShadow: abaLeilao === k ? 'none' : `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{rot}</button>
-            ))}
-          </div>
-        )}
         {(!mostraPills || abaLeilao === 'vender') && (<>
         {/* 🚫 TRANSFER BAN: no vermelho, não dá pra comprar — só vender e pegar de graça.
             Não faz sentido em "mesmo time" (não tem leilão pra comprar/vender aqui). */}
@@ -7744,6 +7744,26 @@ export function ReserveListScreen() {
           </div>
         )}
       </div>
+      {/* 🕵️ RODAPÉ Vender · Sondar (Diego 28/08: "eu disse RODAPÉ… igual tem na
+          home") — mesma barra fixa da carreira (BarraCarreira): translúcida,
+          ícone + rótulo, cor do jogador quando ativa. */}
+      {mostraPills && (
+        <>
+          <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
+          <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+            {([['vender', '📋', 'Vender'], ['aliciar', '🕵️', `Sondar${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
+              const on = abaLeilao === k
+              return (
+                <button key={k} onClick={() => setAbaLeilao(k)} aria-label={label}
+                  style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: on ? (col?.solid ?? GREEN) : 'rgba(12,12,12,.45)' }}>
+                  <span style={{ display: 'block', fontSize: 19, lineHeight: '24px', filter: on ? 'none' : 'grayscale(1) opacity(.5)' }}>{ico}</span>
+                  <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
     </div>
   )
 }

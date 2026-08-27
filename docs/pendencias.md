@@ -10655,6 +10655,15 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🕵️ v17 — RODAPÉ + PADRÃO VISUAL (28/08, correção do Diego: "eu disse
+      RODAPÉ, e você botou em cima… igual tem na home. E o padrão visual do
+      sondar tem que ser igual ao do vender"): as pílulas saíram do topo e
+      viraram BARRA FIXA no rodapé, idêntica à BarraCarreira da home
+      (translúcida com blur, ícone + rótulo Oswald, cor do jogador na ativa,
+      remendo do botão de som). Cabeçalho da tela muda junto (🕵️ SONDAR PRO
+      LEILÃO · TEMP. N). E a AliciarSection ganhou as MESMAS caixas do Vender:
+      "🧢 Seu técnico" em box branco, "🕵️ Sondar · divisão" em box amarelo,
+      "🕴️ Sem clube" em box bege — nada de rótulo solto no creme.
 - [x] ⚫⚪ CORINTHIANS PRETO E BRANCO (28/08, e-mail de jogador encaminhado pelo
       Diego: "chega dar arrepio ver meu Corinthians sccp com logo VERDE" — e o
       Diego mandou: "coloque preto e branco só p ele"). Não é batismo (não
