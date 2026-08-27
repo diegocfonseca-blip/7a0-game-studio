@@ -7563,7 +7563,11 @@ export function PyramidSeasonScreen() {
 export function ReserveListScreen() {
   const { state, dispatch } = useEsc()
   const escLib = useEscadaLiberada() // 🪜 escada de categorias: por enquanto só a conta do Diego
-  const quinzeRL = useFormacoes15() && state.onlineMode !== 'online' // 🧢 técnicos: carreira solo
+  // 🧢 técnicos: SÓ carreira solo. Checa onlineMode E roomId — se o estado da
+  // sala ainda não sincronizou, `onlineMode` pode chegar um instante depois e a
+  // barra apareceria e sumiria (relato do Diego 28/08: "a aba do sondar e vender
+  // apareceu e sumiu"). Com sala (roomId) nunca mostra, nem no piscar.
+  const quinzeRL = useFormacoes15() && state.onlineMode !== 'online' && !state.roomId
   // 🎯 Pílulas Vender/Aliciar (27/08, pedido do Diego): esta tela NÃO tem a barra
   // de abas do jogo, então o aliciamento ganha uma pílula própria aqui — "Vender
   // já é a que está aí mesmo, e Aliciar seria a nova". Só offline (o aliciar é
@@ -7919,7 +7923,10 @@ export function ReserveListScreen() {
       {mostraPills && (
         <>
           <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
-          <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+          {/* 🩹 anti-piscada: fixed + backdrop-filter no Chrome Android repinta a
+              cada rolagem e a barra "some e volta". transform/willChange põem ela
+              numa camada própria da GPU — mesma aparência, sem flicker. */}
+          <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))', transform: 'translateZ(0)', willChange: 'transform', backfaceVisibility: 'hidden' }}>
             {([['vender', '📋', 'Vender'], ['aliciar', '🕵️', `Sondar${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
               const on = abaLeilao === k
               return (

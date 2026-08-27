@@ -10655,6 +10655,20 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [ ] 🐛 BARRA VENDER/SONDAR PISCANDO (28/08, relato do Diego vendo alguém
+      jogar: "a aba do sondar e vender apareceu e sumiu"). NÃO reproduzi (é
+      celular de outra pessoa), então blindei as DUAS causas mais prováveis:
+      (a) CARREIRA ONLINE com estado ainda não sincronizado — `onlineMode` pode
+      chegar um instante depois, e nesse instante a barra aparecia e sumia.
+      Agora a condição também exige `!state.roomId`: com sala, nunca mostra.
+      (b) FLICKER de `position: fixed` + `backdrop-filter` no Chrome Android,
+      que repinta a cada rolagem — entrou `transform: translateZ(0)` +
+      `willChange` + `backfaceVisibility: hidden` (camada própria da GPU,
+      mesma aparência).
+      ⚠️ FALTA CONFIRMAR com o Diego o momento exato (rolando a tela? ao abrir?
+      era carreira online?) — se voltar a piscar, a 3ª suspeita é a tela de
+      espera "Preparando o leilão de reservas…", que aparece quando `mgr` fica
+      indefinido por um instante e leva a barra junto.
 - [x] 🔴 LIVE VALE A COTA (28/08, pergunta do Diego: "e a live rolando agora,
       funciona? ele vai botar o link"). CONFERIDO no código: sim — link de live
       do YouTube (`youtube.com/live/...`, `watch?v=...`, `youtu.be/...`) passa
