@@ -10655,6 +10655,15 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 📝 TEXTO DO SONDAR SEM JOGADOR (28/08, Diego: "tire essa informação de
+      jogador"). A explicação da caixa amarela citava "máx. 1 técnico e 1
+      jogador por temporada" e "o jogador entra no setor dele" — informação de
+      um recurso que está FECHADO, o que confunde e promete o que não tem.
+      Agora o texto é CONDICIONAL ao gate `useAliciarJogador()`: com o sondar de
+      jogador fechado fala só do técnico ("marque o técnico que você quer — máx.
+      1 por temporada… ele abre o pregão antes dos goleiros"); quando o gate
+      abrir, a frase completa volta sozinha, sem ninguém precisar lembrar de
+      editar. As travas e contadores da área já eram condicionais.
 - [x] 🐛 CAUSA RAIZ DO RODAPÉ TREMENDO — ACHADA (28/08). O Diego confirmou que
       era CARREIRA SOLO, então não era sync de sala: a tela de listar rodava um
       `setInterval` de 250 ms SEMPRE, inclusive offline, redesenhando a tela

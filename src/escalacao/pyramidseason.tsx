@@ -3447,7 +3447,15 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
       </div>
       <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
         <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕵️ Sondar · {divRot}</p>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
+        {/* 📝 o texto SEGUE O QUE ESTÁ LIGADO (Diego 28/08: "tire essa informação
+            de jogador"): com o sondar de jogador fechado, a explicação fala só
+            de técnico. Quando o gate abrir, o texto completo volta sozinho — sem
+            ninguém precisar lembrar de trocar a frase. */}
+        {jogadorOn ? (
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
+        ) : (
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque o <b>técnico</b> que você quer — <b>máx. 1 por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — ele abre o pregão como uma posição a mais, <b>antes dos goleiros</b>, e você briga por ele no envelope igual jogador. 🔨</p>
+        )}
       </div>
       {/* 🛡️ grade 2 por linha com o ESCUDO (Diego 28/08: "os times podiam ficar
           lado a lado que tem espaço") — tocar ABRE a janelinha do clube. */}
