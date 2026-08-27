@@ -10655,6 +10655,17 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🎉 BANNER DE LANÇAMENTO DOS TÉCNICOS DENTRO DA CARREIRA (28/08, Diego:
+      "quando a pessoa abre o Modo Carreira tem que aparecer o banner do
+      técnico"). Reusa o `UnlockBanner` de sempre (não nasceu peça nova): topo
+      da aba JOGOS, tag "🎉 vocês pediram muito", título "🧢 Os técnicos
+      chegaram!", corpo com as 3 coisas que importam — o que é (105 técnicos,
+      nível soma no time), as 15 formações e a regra "sem técnico o time joga
+      só o esquema que já treina", e ONDE contratar (janela antes do leilão →
+      aba 🕵️ Sondar, contrato de 5 temporadas). Chave `tecnicos-chegaram`:
+      aparece UMA vez por carreira, some no "Entendi!" e não volta. Só na
+      carreira solo (mesma condição do efeito do técnico) — no online não
+      aparece, porque lá não existe técnico.
 - [x] 🚀 LANÇAMENTO GERAL: TÉCNICOS + 15 FORMAÇÕES (28/08, ordem do Diego:
       "libera o modo técnico pra todos, que consequentemente também as novas
       formações"). Gates de sport.ts abertos (`formacoes15Ok` e `aliciarJogOk`

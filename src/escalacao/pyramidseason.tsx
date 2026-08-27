@@ -5341,6 +5341,7 @@ export function PyramidSeasonScreen() {
   // simulação idêntica à de sempre). Contratação no meio da temporada só vale da
   // rodada em diante (desdeR) — placar já visto nunca muda.
   const quinzeSim = useFormacoes15() && state.onlineMode !== 'online' // 🧢 efeito do técnico: solo
+  const quinzeCarr = quinzeSim // 🎉 mesma condição pro banner de lançamento dos técnicos
   const simTecs = useMemo<SimTecnicos | undefined>(() => {
     if (!quinzeSim || !state.careerTecnicos) return undefined
     const out: SimTecnicos = {}
@@ -7399,6 +7400,18 @@ export function PyramidSeasonScreen() {
               title={`${copaBrOk ? '🏆🇧🇷' : '🏆'} ${copaFaseName} · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'}`} />
           ) : (
           <>
+            {/* 🧢🎉 LANÇAMENTO DOS TÉCNICOS (28/08, pedido do Diego: "quando a
+                pessoa abre o Modo Carreira tem que aparecer o banner do
+                técnico"). Usa o UnlockBanner de sempre: aparece UMA vez por
+                carreira, fecha no "Entendi!" e não volta. Só onde o recurso
+                existe de verdade — carreira solo (no online não tem técnico). */}
+            {quinzeCarr && (
+              <UnlockBanner k="tecnicos-chegaram" tag="🎉 vocês pediram muito" title="🧢 Os técnicos chegaram!" ctaBg={GREEN} ctaColor="#fff">
+                Agora seu clube tem <b>técnico</b>: são <b>105 comandantes</b>, do 🤎 Foi profissional ao 👑 Lenda, e o <b>nível dele soma no seu time</b> em toda partida da liga.
+                <br /><br />🎽 E vieram junto as <b>15 formações</b> — mas <b>quem abre elas é o técnico</b>: sem técnico, o time joga só o esquema que já treina. Quanto maior a categoria dele, mais esquemas ele traz (👑 Lenda traz 5).
+                <br /><br />📍 <b>Pra contratar:</b> na janela <b>antes do leilão</b>, aba <b>🕵️ SONDAR</b> — você marca o técnico que quer e briga por ele no pregão, no envelope, igual jogador. 🔨 Contrato de <b>5 temporadas</b>, com salário na folha.
+              </UnlockBanner>
+            )}
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
             {(() => { // FRASES COM EMOÇÃO (uma linha rotativa): clássico, artilheiro, zuação, queda, liderança
               if (!me) return null
