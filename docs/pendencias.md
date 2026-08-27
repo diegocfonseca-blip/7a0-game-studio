@@ -10638,3 +10638,47 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       temporadas (vida própria); zoeira de demissão/entrevista.
 - [ ] Identidade clube·ano na carta do técnico (igual jogador) — precisa o Diego
       dizer/aprovar o clube marcante de cada um (regra da pessoa real)
+
+---
+
+## 📰 O MARTELO NO RÁPIDO ONLINE (ideia do Diego, 27/08) — mockup mandado, aguardando OK
+
+Palavras dele: *"quando acabar liga e copa, aparecer o jornal O Martelo igual quando
+tem no modo carreira… dando uma notícia grande, um banner com quem ganhou a liga, a
+copa, e rebaixamento ou lanterna. Ou quem ficou a uma posição de se classificar… e
+seria apenas sobre os USUÁRIOS, falando deles. E também mostra embaixo os títulos"*.
+
+📄 Mockup: `scripts/mockup-jornal-rapido.mjs`.
+
+**Por que é barato:** o jornal já existe inteiro em `jornal.tsx` — capa, cabeçalho,
+"Os Donos da Temporada", escudo desenhado por código, botão de mandar no grupo, e
+**80 manchetes** (uma por posição da pirâmide). Não nasce do zero: ganha uma EDIÇÃO
+nova.
+
+**O que muda:** na carreira o jornal fala do time do jogador contra CPUs. No rápido
+os outros times são GENTE. Então a manchete cita as pessoas pelo nome, e a parte
+nova é **"AS NOTAS DA REDAÇÃO"** — uma linha por usuário, da taça à lanterna.
+
+**A posição 9 é o drama da noite:** a Copa dos 8 leva os 8 primeiros, então o 9º é
+exatamente o "ficou a uma posição de se classificar" que ele pediu.
+
+### 🃏 A dúvida da carta do campeão — RESPONDIDA, não atrapalha
+Ele perguntou se o jornal atrapalharia a carta que o campeão ganha. **Não.** A carta
+é sorteada e gravada na conta no instante em que o cara vira campeão — no efeito de
+`status === 'picking'` (`screens.tsx:6465`), antes de qualquer toque, com
+`resilientWrite` (re-tenta se a rede cair). Abrir o pacote é só a cerimônia.
+⚠️ **A regra que sai disso:** o jornal entra **DEPOIS da tela do campeão, nunca no
+lugar dela** — é ao montar aquela tela que a gravação dispara.
+
+📌 Achado de passagem (não é bug, mas o comentário mente): em `screens.tsx:8138` o
+comentário do `COPA_GATE_S` diz que o cronômetro da Copa é MAIOR que o da carta pra
+evitar corrida — mas hoje `COPA_GATE_S = 30` e `CARD_PICK_SECONDS = 45`. Ficou
+inofensivo porque a trava foi solta em 30/07 (a carta grava na hora), só que o
+comentário virou mentira pra quem ler depois. Vale corrigir o texto quando alguém
+encostar ali.
+
+### ❌ Ideia descartada na mesma conversa
+"O clássico da rodada" (destacar o jogo entre dois humanos durante a simulação):
+**reprovada pelo Diego e ele tem razão** — no rápido o jogo DELE já é o foco da tela,
+e numa sala com vários humanos acontecem vários confrontos por rodada. Ia competir
+com o próprio jogo do cara. Não reabrir.
