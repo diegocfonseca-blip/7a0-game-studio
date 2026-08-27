@@ -10655,6 +10655,18 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] ⚫⚪ CORINTHIANS PRETO E BRANCO (28/08, e-mail de jogador encaminhado pelo
+      Diego: "chega dar arrepio ver meu Corinthians sccp com logo VERDE" — e o
+      Diego mandou: "coloque preto e branco só p ele"). Não é batismo (não
+      reserva nome, não tem arte própria): entrou o mecanismo `CORES_TRAVADAS`
+      em escudos.tsx — nome que contém corinthians/corintians/coringão trava a
+      paleta 12 (preto + branco), o resto do escudo (formato redondo, aro,
+      letra C) continua o sorteado. ⚠️ LIÇÃO DE SEGURANÇA gravada no código: o
+      sorteio de cores agora usa `SORTEIO_PALETAS = 12` FIXO, nunca
+      PALETAS.length — adicionar paleta nova mudava o `h % length` e trocaria a
+      cor de TODO escudo do jogo da noite pro dia. Paletas 12+ só saem por
+      trava (DICIO ou CORES_TRAVADAS). A trava de nome vence até palavra do
+      DICIO com cor própria.
 - [x] 🕵️ v16 — BATIZADO: "SONDAR" + HISTORINHAS DE BASTIDOR (28/08, decisão do
       Diego: "Sondar é melhor. E tem que criar historinha também… mesmo sem
       clube o técnico tá querendo fazer leilão e tá pedindo LUVAS, então não

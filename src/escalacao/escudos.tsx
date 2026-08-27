@@ -51,7 +51,31 @@ const PALETAS: [string, string][] = [
   ['#7a4a1e', '#FFC400'], // marrom + ouro
   ['#2b2d6e', '#8BD44A'], // azul-noite + verde
   ['#B23A2A', '#FFC400'], // telha + ouro
+  // ⚠️ daqui pra baixo as paletas NÃO entram no sorteio (SORTEIO_PALETAS trava
+  // em 12) — adicionar linha aqui não muda a cor de nenhum escudo existente.
+  // Elas só saem por TRAVA: DICIO (3º item) ou CORES_TRAVADAS (nome inteiro).
+  ['#0C0C0C', '#FDFDFB'], // 12: preto + branco (alvinegro raiz)
 ]
+// 🔒 o sorteio continua entre as 12 primeiras PRA SEMPRE. Se fosse
+// PALETAS.length, cada paleta nova mudaria o `h % length` de TODO clube do
+// jogo — todo escudo sorteado trocaria de cor da noite pro dia.
+const SORTEIO_PALETAS = 12
+
+// 🎨 COR TRAVADA POR NOME: casos em que só a COR precisa obedecer (o formato,
+// o padrão e a letra continuam os sorteados do nome). 1º caso (28/08): jogador
+// mandou e-mail pro Diego — o "Corinthians SCCP" dele tinha saído VERDE no
+// sorteio ("chega dar arrepio ver meu Corinthians com logo verde, rival do
+// Palmeiras"). Diego: "coloque preto e branco". Vale pra qualquer nome que
+// contenha a palavra (não é batismo, não reserva nome — é só a cor certa).
+const CORES_TRAVADAS: [string[], number][] = [
+  [['corinthian', 'corintian', 'coringao', 'coringão'], 12], // ⚫⚪ alvinegro
+]
+function corTravada(alvo: string): number | undefined {
+  for (const [palavras, pal] of CORES_TRAVADAS) {
+    if (palavras.some(p => alvo.includes(semAcento(p)))) return pal
+  }
+  return undefined
+}
 
 // ─── formatos do escudo ───────────────────────────────────────────────────
 const SHAPES: string[] = [
@@ -407,7 +431,9 @@ export function escudoDe(nomeCru: string): EscudoDesign {
   for (const [palavras, s, pal] of DICIO) {
     if (palavras.some(p => alvo.includes(semAcento(p)))) { sim = s; paletaFixa = pal; break }
   }
-  const [c1, c2] = PALETAS[paletaFixa ?? (h % PALETAS.length)]
+  // cor travada por nome de clube vence tudo (Corinthians NUNCA sai verde,
+  // nem que o nome também tenha uma palavra do DICIO com cor própria)
+  const [c1, c2] = PALETAS[corTravada(alvo) ?? paletaFixa ?? (h % SORTEIO_PALETAS)]
   return {
     shape: (h >> 4) % SHAPES.length,
     pat: (h >> 8) % 7,
