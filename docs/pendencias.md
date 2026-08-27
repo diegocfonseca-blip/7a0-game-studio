@@ -10655,6 +10655,21 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🕵️ v16 — BATIZADO: "SONDAR" + HISTORINHAS DE BASTIDOR (28/08, decisão do
+      Diego: "Sondar é melhor. E tem que criar historinha também… mesmo sem
+      clube o técnico tá querendo fazer leilão e tá pedindo LUVAS, então não
+      tem jeito, vai pro pregão"). (a) Toda a UI da carreira trocou
+      aliciar→sondar (pílula 🕵️ Sondar, seção "🕵️ Sondar · divisão", botões
+      "Sondar pro leilão", "✔ Sondado", travas "já sondou 1", "🆓 + sondar");
+      os NOMES INTERNOS (ALICIAR_MARCAR, aliciarTecnicos…) ficaram — save não
+      quebra, é só texto. O modo DINASTIA (no ar pra todos) ainda diz "Aliciar"
+      — NÃO mexi sem OK do Diego (regra do visual ao vivo); alinhar se ele
+      pedir. (b) `historiaSondagem()` em tecnicos.ts: 5 historinhas por tipo
+      (técnico com clube · técnico sem clube pedindo LUVAS · jogador),
+      escolha DETERMINÍSTICA por nome+clube+temporada (nada de Math.random no
+      render). Aparecem num box 📰 "Bastidor": na hora de marcar (embaixo do
+      botão / da linha do jogador) e DE NOVO no cabeçalho do setor TÉCNICO
+      dentro do pregão (Envelope, screens.tsx).
 - [x] 🎯 v15 — PÍLULAS VENDER · ALICIAR na tela de LISTAR PRA LEILÃO (27/08,
       pedido do Diego: "a aba do aliciamento deve aparecer aqui nessa parte…
       duas pílulas no rodapé — Vender e Aliciar; Vender já é a que está aí

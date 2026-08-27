@@ -27,7 +27,7 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do cl
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
-import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv } from './tecnicos'
+import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
@@ -3348,12 +3348,18 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const clubes = state.managers.filter(m => !m.isHuman).slice().sort((a, b) => a.teamName.localeCompare(b.teamName))
   const divRot = state.careerDivision === 'V' ? 'Várzea' : `Série ${state.careerDivision ?? '?'}`
   const totalMarcado = marcadosT.length + marcadosJ.length
-  const btnMarcar = (marcado: boolean, onClick: () => void, rotulo: string, trava?: string) => (
+  // 📰 depois de marcar, a HISTORINHA de bastidor conta por que o sondado vai
+  // parar no pregão (pedido do Diego 28/08: "mesmo sem clube o técnico tá
+  // querendo leilão e tá pedindo LUVAS"). Determinística por nome+temporada.
+  const btnMarcar = (marcado: boolean, onClick: () => void, rotulo: string, trava?: string, historia?: string) => (
     <>
       <button onClick={() => { if (marcado || !trava) onClick() }} disabled={!marcado && !!trava}
         style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: marcado ? GREEN : trava ? '#d8cfb5' : GOLD, color: marcado ? '#fff' : trava ? 'rgba(0,0,0,.4)' : INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: marcado || !trava ? `3px 3px 0 0 ${INK}` : 'none', padding: '10px 0', cursor: marcado || !trava ? 'pointer' : 'not-allowed' }}>
-        {marcado ? '✔ Aliciado — toque pra tirar' : trava ? `🔒 ${trava}` : rotulo}
+        {marcado ? '✔ Sondado — toque pra tirar' : trava ? `🔒 ${trava}` : rotulo}
       </button>
+      {marcado && historia && (
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 10, padding: '7px 9px', margin: '7px 0 0', lineHeight: 1.45 }}>📰 <b>Bastidor:</b> {historia}</p>
+      )}
     </>
   )
   return (
@@ -3372,11 +3378,11 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         : (
           <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
             <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot} têm — alicia um aqui embaixo e brigue por ele no próximo leilão.</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot} têm — sonda um aqui embaixo e brigue por ele no próximo leilão.</p>
           </div>
         )}
-      <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🔎 Aliciar · {divRot}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o aliciado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
+      <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🕵️ Sondar · {divRot}</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
       {clubes.map(c => {
         const nome = map[c.teamName] ?? null
         const ehRival = rivais.has(c.teamName)
@@ -3399,11 +3405,11 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                       const fim = state.careerTecnicoContrato?.[c.teamName]
                       const falta = fim != null ? fim - state.seasonNo + 1 : 0
                       const marcado = marcadosT.includes(nome)
-                      const trava = falta > 0 ? `contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : (!marcado && marcadosT.length >= 1 ? 'já aliciou 1 técnico nesta temporada' : undefined)
+                      const trava = falta > 0 ? `contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : (!marcado && marcadosT.length >= 1 ? 'já sondou 1 técnico nesta temporada' : undefined)
                       return (
                         <>
-                          <p style={{ fontSize: 10, fontWeight: 800, color: falta > 0 ? '#5a5647' : GREEN, margin: '6px 0 0', textAlign: 'center' }}>{falta > 0 ? `📝 contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : '🆓 SEM contrato — pode aliciar'}</p>
-                          {btnMarcar(marcado, () => dispatch({ type: 'ALICIAR_MARCAR', tec: nome }), '🔨 Aliciar pro leilão', trava)}
+                          <p style={{ fontSize: 10, fontWeight: 800, color: falta > 0 ? '#5a5647' : GREEN, margin: '6px 0 0', textAlign: 'center' }}>{falta > 0 ? `📝 contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : '🆓 SEM contrato — pode sondar'}</p>
+                          {btnMarcar(marcado, () => dispatch({ type: 'ALICIAR_MARCAR', tec: nome }), '🕵️ Sondar pro leilão', trava, historiaSondagem(nome, 'tec', c.teamName, state.seasonNo))}
                         </>
                       )
                     })()}
@@ -3429,10 +3435,15 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                             const tetoCheio = !marcado && marcadosJ.length >= 1
                             const pode = !preso && (!tetoCheio || marcado)
                             return (
-                              <div key={x.id} onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id }) }}
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: preso || (tetoCheio && !marcado) ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
-                                <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
-                                  <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: preso ? 'rgba(0,0,0,.45)' : marcado ? GREEN : tetoCheio ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? `📝 falta${falta > 1 ? 'm' : ''} ${falta}` : marcado ? '✔ no leilão · tirar' : tetoCheio ? '🔒 já aliciou 1' : '🆓 + aliciar'}</span></span>
+                              <div key={x.id}>
+                                <div onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id }) }}
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: preso || (tetoCheio && !marcado) ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
+                                  <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
+                                    <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: preso ? 'rgba(0,0,0,.45)' : marcado ? GREEN : tetoCheio ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? `📝 falta${falta > 1 ? 'm' : ''} ${falta}` : marcado ? '✔ no leilão · tirar' : tetoCheio ? '🔒 já sondou 1' : '🆓 + sondar'}</span></span>
+                                </div>
+                                {marcado && (
+                                  <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 8, padding: '6px 8px', margin: '0 0 5px', lineHeight: 1.45 }}>📰 <b>Bastidor:</b> {historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo)}</p>
+                                )}
                               </div>
                             )
                           })}
@@ -3470,8 +3481,8 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                   {abertoAqui && (
                     <div style={{ border: `3px dashed ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
                       <CartaTecnico nome={tt.nome} misterio />
-                      <p style={{ fontSize: 10, fontWeight: 800, color: GREEN, margin: '6px 0 0', textAlign: 'center' }}>🆓 SEM contrato — pode aliciar</p>
-                      {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), '🔨 Aliciar pro leilão', !marcadosT.includes(tt.nome) && marcadosT.length >= 1 ? 'já aliciou 1 técnico nesta temporada' : undefined)}
+                      <p style={{ fontSize: 10, fontWeight: 800, color: GREEN, margin: '6px 0 0', textAlign: 'center' }}>🆓 SEM contrato — pode sondar</p>
+                      {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), '🕵️ Sondar pro leilão', !marcadosT.includes(tt.nome) && marcadosT.length >= 1 ? 'já sondou 1 técnico nesta temporada' : undefined, historiaSondagem(tt.nome, 'livre', null, state.seasonNo))}
                     </div>
                   )}
                 </div>
@@ -3481,7 +3492,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         )
       })()}
       {totalMarcado > 0 && (
-        <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: GREEN, margin: '8px 0 0' }}>🎯 {totalMarcado} aliciado{totalMarcado > 1 ? 's' : ''} — eles ABREM o próximo leilão de reservas.</p>
+        <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: GREEN, margin: '8px 0 0' }}>🕵️ {totalMarcado} sondado{totalMarcado > 1 ? 's' : ''} — eles ABREM o próximo leilão de reservas.</p>
       )}
       <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '4px 0 0' }}>⚔️ = rival seu · as outras divisões ficam no mistério</p>
     </div>
@@ -7456,7 +7467,7 @@ export function ReserveListScreen() {
         {/* 🎯 pílulas Vender · Aliciar (formato aprovado pelo Diego) */}
         {mostraPills && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            {([['vender', '📋 Vender'], ['aliciar', `🎯 Aliciar${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, rot]) => (
+            {([['vender', '📋 Vender'], ['aliciar', `🕵️ Sondar${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, rot]) => (
               <button key={k} onClick={() => setAbaLeilao(k)}
                 style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '9px 4px', fontWeight: 900, fontSize: 12.5, ...OSWALD, textTransform: 'uppercase', background: abaLeilao === k ? INK : '#fff', color: abaLeilao === k ? '#fff' : INK, boxShadow: abaLeilao === k ? 'none' : `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{rot}</button>
             ))}
@@ -7718,8 +7729,9 @@ export function ReserveListScreen() {
           </EnsinoPilula>
         )}
         </>)}
-        {/* 🎯 aba ALICIAR: a mesma área de aliciamento da aba Elenco, agora aqui
-            na hora certa — marcou, ele ABRE o próximo leilão (que é este). */}
+        {/* 🕵️ aba SONDAR (nome escolhido pelo Diego 28/08 — era "aliciar"): a
+            mesma área da aba Elenco, agora aqui na hora certa — marcou, ele
+            ABRE o próximo leilão (que é este). */}
         {mostraPills && abaLeilao === 'aliciar' && <AliciarSection mgr={mgr} />}
         {state.isHost ? (
           <button onClick={() => dispatch({ type: state.reserveListMesmo ? 'CONFIRM_MESMO_TIME' : 'RESERVE_AUCTION_ONLINE' })}

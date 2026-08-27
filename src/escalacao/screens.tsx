@@ -31,6 +31,7 @@ import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
+import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
 import { JanelaConta } from './conta'
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
@@ -3340,6 +3341,13 @@ function Envelope() {
               ? <>{L('Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa. Suas vagas: ', 'Leftovers from this position — last chance to pay for them. Only those with an open slot join. Your slots: ')}<b>{myOpen}</b>.</>
               : L('Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.', 'Blind bid: spread your coins in secret. No one sees anything until the reveal.')}
           </p>
+          {/* 📰 setor TÉCNICO sondado: a historinha de bastidor explica por que
+              ele está na mesa (a MESMA fofoca mostrada na hora da sondagem). */}
+          {tecMesa && state.tecLote && (
+            <p className="mt-1.5 text-[11px] font-bold border-[2px] border-dashed border-black rounded-lg px-2.5 py-1.5" style={{ background: '#FFF7DB', color: INK, lineHeight: 1.45 }}>
+              📰 <b>Bastidor:</b> {historiaSondagem(state.tecLote.nome, state.tecLote.clube ? 'tec' : 'livre', state.tecLote.clube, state.seasonNo ?? 0)}
+            </p>
+          )}
           {!rescue && totalBatches > 1 && (
             <div className="mt-1.5 inline-flex items-center gap-1.5 border-[3px] border-black rounded-full px-3 py-1"
               style={{ backgroundColor: '#2E6FB0', boxShadow: `2px 2px 0 0 ${INK}` }}>
