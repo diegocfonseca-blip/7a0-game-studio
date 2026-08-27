@@ -10655,6 +10655,20 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🎯 v15 — PÍLULAS VENDER · ALICIAR na tela de LISTAR PRA LEILÃO (27/08,
+      pedido do Diego: "a aba do aliciamento deve aparecer aqui nessa parte…
+      duas pílulas no rodapé — Vender e Aliciar; Vender já é a que está aí
+      mesmo"). Motivo: essa tela não tem a barra de abas do jogo, então o
+      aliciar (que morava só no fim da aba Elenco) ficava inalcançável na hora
+      de listar. Agora, logo abaixo do cabeçalho: 📋 Vender (a tela de sempre:
+      contratos, listagem, avisos) · 🎯 Aliciar (a MESMA AliciarSection do
+      Elenco, com contador na pílula quando tem marcado). Botão "▶️ Começar o
+      leilão" visível nas duas. Só offline + conta liberada (quinzeRL) + nunca
+      em "mesmo time". A cópia do Elenco CONTINUA lá (não removida — decidir
+      com o Diego se fica nos dois lugares).
+      ❓ Diego perguntou que nome usaria no lugar de "aliciar" — sugeri
+      🕵️ SONDAR (termo real de futebol) / NA MIRA / GARIMPAR; troca é só texto,
+      nada de motor. Aguardando ele escolher (ou manter Aliciar).
 - [x] 🧢 v14 — A FORMA FINAL (27/08, bronca merecida do Diego: "é IDÊNTICO ao
       leilão normal! Só vem antes do goleiro. Como se fosse uma posição nova
       apenas"): a tela paralela MORREU DE VEZ. O técnico aliciado agora é

@@ -7375,6 +7375,11 @@ export function ReserveListScreen() {
   const { state, dispatch } = useEsc()
   const escLib = useEscadaLiberada() // 🪜 escada de categorias: por enquanto só a conta do Diego
   const quinzeRL = useFormacoes15() // 🧢 técnicos (contrato de 5 anos): só conta liberada
+  // 🎯 Pílulas Vender/Aliciar (27/08, pedido do Diego): esta tela NÃO tem a barra
+  // de abas do jogo, então o aliciamento ganha uma pílula própria aqui — "Vender
+  // já é a que está aí mesmo, e Aliciar seria a nova". Só offline (o aliciar é
+  // da carreira solo) e nunca em "mesmo time" (sem leilão, nada pra aliciar).
+  const [abaLeilao, setAbaLeilao] = useState<'vender' | 'aliciar'>('vender')
   const mgr = state.managers[state.youIdx]
   const youId = mgr?.id ?? 0
   const listed = useMemo(() => new Set(state.reserveListed?.[youId] ?? []), [state.reserveListed, youId])
@@ -7435,6 +7440,8 @@ export function ReserveListScreen() {
     </div>
   )
   const nListed = state.reserveListed?.[youId]?.length ?? 0
+  const mostraPills = quinzeRL && state.onlineMode !== 'online' && !state.reserveListMesmo
+  const nAliciados = (state.aliciarTecnicos?.length ?? 0) + (state.aliciarJogadores?.length ?? 0)
   return (
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
@@ -7446,6 +7453,16 @@ export function ReserveListScreen() {
             <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
           )}
         </div>
+        {/* 🎯 pílulas Vender · Aliciar (formato aprovado pelo Diego) */}
+        {mostraPills && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            {([['vender', '📋 Vender'], ['aliciar', `🎯 Aliciar${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, rot]) => (
+              <button key={k} onClick={() => setAbaLeilao(k)}
+                style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '9px 4px', fontWeight: 900, fontSize: 12.5, ...OSWALD, textTransform: 'uppercase', background: abaLeilao === k ? INK : '#fff', color: abaLeilao === k ? '#fff' : INK, boxShadow: abaLeilao === k ? 'none' : `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{rot}</button>
+            ))}
+          </div>
+        )}
+        {(!mostraPills || abaLeilao === 'vender') && (<>
         {/* 🚫 TRANSFER BAN: no vermelho, não dá pra comprar — só vender e pegar de graça.
             Não faz sentido em "mesmo time" (não tem leilão pra comprar/vender aqui). */}
         {!state.reserveListMesmo && (state.careerCoins?.[youId] ?? 0) < 0 && (
@@ -7700,6 +7717,10 @@ export function ReserveListScreen() {
             </div>
           </EnsinoPilula>
         )}
+        </>)}
+        {/* 🎯 aba ALICIAR: a mesma área de aliciamento da aba Elenco, agora aqui
+            na hora certa — marcou, ele ABRE o próximo leilão (que é este). */}
+        {mostraPills && abaLeilao === 'aliciar' && <AliciarSection mgr={mgr} />}
         {state.isHost ? (
           <button onClick={() => dispatch({ type: state.reserveListMesmo ? 'CONFIRM_MESMO_TIME' : 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
