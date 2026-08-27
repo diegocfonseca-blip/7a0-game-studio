@@ -10818,11 +10818,22 @@ Foi em commits separados de propósito, pra dar pra reverter um sem derrubar os 
 **1. Rodapé dourado** (`jornal.tsx`) — a tarja da IMAGEM compartilhada era verde com
 texto branco; virou dourada com tinta preta. Vale pro jornal da CARREIRA também.
 
-**2. O pacote do campeão espera o toque** (`screens.tsx`) — prop novo `esperaToque`
-no `CardCollectPrompt`. Sem ele nada muda; com ele o pacote NÃO abre sozinho quando
-o cronômetro zera. Ligado nas 4 chamadas do fim do RÁPIDO (liga/copa × online/solo).
-A carreira online tem componente próprio (`careeronline.tsx`) e **não foi tocada**.
-Não põe carta em risco: a gravação continua acontecendo antes de qualquer toque.
+**2. O pacote do campeão espera o toque** (`screens.tsx`) — começou como prop
+`esperaToque` só no rápido. **Meia hora depois o Diego mandou valer em TODO modo**
+(*"seja rápido offline, carreira ou qualquer outro"*), então o prop foi embora e o
+relógio simplesmente DEIXOU DE EXISTIR:
+- `CARD_PICK_SECONDS = 45` apagado dos DOIS arquivos que tinham cópia
+  (`screens.tsx` e `careeronline.tsx`), junto com `deadline`/`now`/`remaining`,
+  o badge de contagem e o prop `noTimer` (que só ligava/desligava esse relógio).
+- Cobre de uma vez: rápido online, rápido offline, dinastia, carreira solo
+  (liga/copa/supercopa, via `pyramidseason.tsx`), Copa do Mundo (`copa-mundo.tsx`)
+  e a carreira ONLINE (`careeronline.tsx`, que escolhe entre 3 em vez de pacote).
+- **Ninguém perde carta**: no pacote ela é gravada assim que a tela monta; na
+  carreira online a garantia é a da SAÍDA (grava uma do time se fechar sem escolher)
+  — que é exatamente o *"se ele sair aí conta automático"* que ele pediu.
+📌 De quebra corrigi um comentário que mentia em `screens.tsx` (o do `COPA_GATE_S`,
+que dizia segurar a gravação da carta — não segura desde 30/07, e agora nem existe
+relógio de carta pra segurar).
 
 **3. `src/escalacao/jornal-sala.tsx`** (arquivo NOVO, isolado) — a capa do fim de
 jogo. Entra em `EscEnd` só quando `online && !copaPending && !libPending &&

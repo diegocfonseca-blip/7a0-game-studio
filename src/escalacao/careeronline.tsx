@@ -17,7 +17,9 @@ import { useCanCareerOnline } from './admin'
 import { CollectibleCard } from './screens'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_BOTH } from './data'
 
-const CARD_PICK_SECONDS = 45
+// 🗑️ o CARD_PICK_SECONDS = 45 morreu em 27/08: era o relógio que escolhia a carta
+// sozinho. O Diego mandou tirar em TODO modo — a tela espera o campeão escolher, e
+// a garantia da saída cobre quem fecha sem escolher.
 
 const CREAM = '#F4ECD6'
 const INK = '#0C0C0C'
@@ -420,8 +422,6 @@ function Standings({ c, onBack, onExit }: { c: Career; onBack: () => void; onExi
 function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed: number; team: string; seasonKey: string }) {
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   const [claimed, setClaimed] = useState<CardOpt | null>(null)
-  const [deadline] = useState(() => Date.now() + CARD_PICK_SECONDS * 1000)
-  const [now, setNow] = useState(() => Date.now())
   const savedRef = useRef(false) // idempotência: grava a carta UMA vez
   const statusRef = useRef(status) // pro guardião de saída ler o status atual
   statusRef.current = status
@@ -437,8 +437,11 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
     })()
   }, [seasonKey])
 
-  useEffect(() => { if (status !== 'picking') return; const iv = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(iv) }, [status])
-  const remaining = Math.max(0, Math.ceil((deadline - now) / 1000))
+  // 👆 SEM CRONÔMETRO (Diego 27/08, valendo em TODO modo): a tela ESPERA o campeão
+  // escolher. Antes o relógio escolhia por ele quando zerava — e ele reclamou
+  // justamente disso ("não tem graça aparecer automático sem o cara ver").
+  // Continua sem risco de perder carta: a garantia da SAÍDA (efeito logo abaixo)
+  // grava uma carta do time se ele fechar a tela sem escolher.
 
   // grava a carta no álbum (RESILIENTE) — separado da revelação
   async function persist(card: CardOpt) {
@@ -455,12 +458,6 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
     if (!ok) { savedRef.current = false; return }
     setClaimed(card); setStatus('revealed')
   }
-  useEffect(() => {
-    if (status !== 'picking' || remaining > 0) return
-    const pick = opts[Math.floor(Math.random() * opts.length)]
-    if (pick) claim(pick)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, status])
   // 🔒 GARANTIA "conta mesmo sem escolher": se o campeão SAIR da tela sem escolher
   // (e antes do tempo estourar), grava uma carta do time na saída — ninguém perde
   // a carta por fechar/voltar antes. Só age se ainda estava escolhendo e nada foi salvo.
@@ -491,9 +488,8 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
     <div style={{ ...box(GOLD), padding: 14, marginBottom: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <p style={{ fontWeight: 900, fontSize: 15, ...OSWALD, margin: 0 }}>🎴 Escolha sua carta!</p>
-        <span style={{ border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', fontWeight: 900, fontSize: 12, background: '#fff' }}>{remaining}s</span>
       </div>
-      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginBottom: 10 }}>Campeão leva uma carta do <b>seu time</b> pro álbum. Se o tempo acabar, o jogo escolhe uma pra você.</p>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginBottom: 10 }}>Campeão leva uma carta do <b>seu time</b> pro álbum. <b>Sem pressa</b> — se você sair sem escolher, o jogo guarda uma pra você.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {opts.map(c => (
           <button key={c.name} onClick={() => claim(c)} style={{ textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
