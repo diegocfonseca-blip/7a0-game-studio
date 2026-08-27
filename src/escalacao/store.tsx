@@ -1997,9 +1997,34 @@ function migrateTeamNames(st: EscState): EscState {
     const novo = newestTeamName(nome)
     return (meuTime && novo !== nome && mesmoNomeTime(novo, meuTime)) ? nome : novo
   }
-  // o primeiro nome VELHO da corrente que não seja xará do clube do jogador
-  const velhoLivre = meuTime ? (oldChain(newestTeamName(meuTime)).find(v => !mesmoNomeTime(v, meuTime)) ?? null) : null
-  const cura = (nome: string): string => (velhoLivre && meuTime && mesmoNomeTime(nome, meuTime)) ? velhoLivre : nome
+  // 🩹 CURA v2 (27/08, print do Diego: "Paixandu tá com a logo do Neymarzetti"):
+  // a cura de 25/08 devolvia o bot-clone pro nome VELHO da corrente — só que o
+  // nome velho de clube batizado é ALIAS do escudo novo (escudos.tsx registra o
+  // nome antigo apontando pra MESMA arte, pra save antigo abrir certo). Bot com
+  // o nome velho = bot com o SEU escudo. Agora o clone (e qualquer bot preso na
+  // corrente do clube do jogador) vira um clube NEUTRO dos baralhos, sem xará na
+  // sala e fora da corrente.
+  const chainMeu = meuTime ? [newestTeamName(meuTime), ...oldChain(newestTeamName(meuTime))] : []
+  const emUso: string[] = [
+    ...(Array.isArray(st.managers) ? st.managers.map(m => m.teamName) : []),
+    ...(st.careerRivals ?? []).map(r => r.team),
+  ]
+  const neutroLivre = (): string | null => {
+    const pools = [...DIVISION_TEAMS.D, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.A, ...EXTRA_D_TEAMS, ...VARZEA_TEAMS]
+    for (const t of pools) {
+      if (chainMeu.some(v => mesmoNomeTime(v, t.team))) continue
+      if (emUso.some(u => mesmoNomeTime(u, t.team))) continue
+      emUso.push(t.team) // dois clones não podem cair no mesmo nome
+      return t.team
+    }
+    return null
+  }
+  const cura = (nome: string): string => {
+    if (!meuTime) return nome
+    const preso = mesmoNomeTime(nome, meuTime) || chainMeu.some(v => mesmoNomeTime(v, nome))
+    if (!preso) return nome
+    return neutroLivre() ?? nome
+  }
   const nomeDeBot = (nome: string): string => cura(rebatiza(nome))
   if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: nomeDeBot(m.teamName) })
   if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: nomeDeBot(r.team) }))
@@ -6754,11 +6779,25 @@ export function reducer(state: EscState, action: Action): EscState {
       // rebatizar um rival pelo nome novo NÃO pode criar um xará do time do
       // jogador. Batendo, o rival fica com o nome velho — e o rival que JÁ estava
       // gravado como xará volta pro nome velho da corrente (cura de 25/08).
-      const velhoLivreSv = oldChain(newestTeamName(sv.teamName)).find(v => !mesmoNomeTime(v, sv.teamName)) ?? null
+      // 🩹 cura v2 (27/08, escudo do Paixandu): nome velho da corrente NÃO serve
+      // (é alias do escudo novo) — clone/preso na corrente vira clube NEUTRO.
+      const chainSv = [newestTeamName(sv.teamName), ...oldChain(newestTeamName(sv.teamName))]
+      const emUsoSv: string[] = s.careerRivals.map(r => r.team)
+      const neutroSv = (): string | null => {
+        const pools = [...DIVISION_TEAMS.D, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.A, ...EXTRA_D_TEAMS, ...VARZEA_TEAMS]
+        for (const t of pools) {
+          if (chainSv.some(v => mesmoNomeTime(v, t.team))) continue
+          if (emUsoSv.some(u => mesmoNomeTime(u, t.team))) continue
+          emUsoSv.push(t.team)
+          return t.team
+        }
+        return null
+      }
       s.careerRivals = s.careerRivals.map(r => {
         const novo = newestTeamName(r.team)
         const nome = mesmoNomeTime(novo, sv.teamName) ? r.team : novo
-        return { ...r, team: (velhoLivreSv && mesmoNomeTime(nome, sv.teamName)) ? velhoLivreSv : nome }
+        const preso = mesmoNomeTime(nome, sv.teamName) || chainSv.some(v => mesmoNomeTime(v, nome))
+        return { ...r, team: preso ? (neutroSv() ?? nome) : nome }
       })
       const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, coDivRivalDefs(s.careerRivals, sv.division), action.redraft ? otherDivRivalDefs(s.careerRivals, sv.division) : [], rng)
       s.managers = managers

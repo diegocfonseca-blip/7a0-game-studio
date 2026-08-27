@@ -10486,6 +10486,18 @@ que leva craque e leva o Saci.
 
 ⚠️ Nada disso está no código ainda. **É rascunho escrito.** O futebol não foi tocado.
 
+## 🦇 ESCUDO DO PAIXANDU = ESCUDO DO NEYMARZETTI (27/08, print do Diego) ✅ CURA v2
+A cura de 25/08 do bot-clone devolvia o robô pro nome VELHO da corrente
+(Neymarzetti → Paixandu). Só que o nome velho de clube batizado é **ALIAS do
+escudo novo** (`escudos.tsx` registra `Paixandu: neymarzettiEscudoRender` de
+propósito, pra save antigo abrir com a arte nova) — então o bot "Paixandu"
+aparecia na tabela com o escudo do Diego. Cura v2 (migrateTeamNames +
+CONTINUE_CAREER): bot xará OU preso na corrente do clube do jogador vira um
+clube **NEUTRO dos baralhos** (fora da corrente, sem xará na sala; dois clones
+nunca caem no mesmo nome). Roda sozinha ao abrir o save — o Paixandu do save
+dele vira outro clube na próxima carga. 📌 Lição: nome velho de batismo NUNCA
+é "livre" — ele carrega a arte do novo.
+
 ## 🪪 CRAQUE DO TAVARES13 — e-mail errado no painel (26/08) ✅ RESOLVIDO NO BANCO
 O Diego deu craque (prata ⭐) pra `guilhermeabreu66@gmail.com` pelo painel — o tier
 GRAVOU certinho no `user_colors`, mas **não existe conta com esse e-mail** (conferido
