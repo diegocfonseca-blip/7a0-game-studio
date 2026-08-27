@@ -10655,6 +10655,26 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🧳 v20 — "FORMAÇÃO DO TÉCNICO" + SELO DE HERANÇA (28/08, Diego: "aqui
+      onde tá escrito formação agora vai se chamar formação do técnico. E em
+      cima da formação atual que eu tô, coloque tipo 'herança do último
+      técnico', bem sutil — porque adotei as formações novas do técnico novo
+      mas a que eu jogava se manteve"). No seletor das 15: título vira "🎽
+      Formação do técnico" quando há técnico; a formação da CASA
+      (careerFormacaoExtra, quando não está no repertório dele) ganha um selinho
+      pílula 🧳 HERANÇA acima do botão + uma linha cinza explicando que ela veio
+      do técnico anterior e ficou no cardápio. Só texto/selo — nada de motor.
+- [x] 🧢 v19 — SONDAR SAI DO ELENCO, TÉCNICO FICA (28/08, Diego: "como mudamos
+      de local a área do sondar pra dentro do pré-leilão, que já tem as duas
+      abas de rodapé, não precisa ter aqui na área do elenco repetido. Mas aqui
+      no elenco agora terá que pôr o técnico também, igual tem os jogadores").
+      A AliciarSection saiu da aba Elenco (só existe na tela do pré-leilão, aba
+      🕵️ Sondar). No lugar entrou `MeuTecnicoBox`: caixa branca "🧢 Seu técnico"
+      LOGO ABAIXO DO CAMPINHO (dentro do ElencoField), com a carta completa +
+      valor/salário/contrato; sem técnico, mostra a caixa tracejada explicando
+      que só dá 4-3-3/4-4-2 e onde sondar um. 💸 A FOLHA DO TIME exibida no
+      Elenco agora SOMA o salário do técnico (era só squadPayroll) — o
+      vira-temporada já cobrava isso, o número da tela é que mentia.
 - [x] 🕵️ v18 — GRADE DE ESCUDOS + JANELINHA (28/08, Diego sobre a lista de
       clubes do Sondar: "não tô gostando desse visual, os times podiam ficar
       lado a lado que tem espaço, e aí quando eu apertar abre o time com o
