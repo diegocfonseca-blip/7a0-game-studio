@@ -458,14 +458,31 @@ function ChampionCard({ deck, seed, team, seasonKey }: { deck: DeckChoice; seed:
     if (!ok) { savedRef.current = false; return }
     setClaimed(card); setStatus('revealed')
   }
-  // 🔒 GARANTIA "conta mesmo sem escolher": se o campeão SAIR da tela sem escolher
-  // (e antes do tempo estourar), grava uma carta do time na saída — ninguém perde
-  // a carta por fechar/voltar antes. Só age se ainda estava escolhendo e nada foi salvo.
-  useEffect(() => () => {
-    if (savedRef.current || statusRef.current !== 'picking') return
-    savedRef.current = true
-    const pick = opts[Math.floor(Math.random() * opts.length)]
-    if (pick) void persist(pick)
+  // 🔒 GARANTIA "conta mesmo sem escolher": se o campeão sair sem escolher, o jogo
+  // grava uma carta do time por ele. É o *"se ele sair aí conta automático"* que o
+  // Diego pediu — e o que segura a barra desde que o relógio saiu (27/08).
+  //
+  // Dispara em TRÊS saídas, porque uma só não cobre:
+  //   1. desmontar  — trocou de tela DENTRO do jogo (o React avisa)
+  //   2. `pagehide` — fechou a aba / voltou pro início / o navegador matou a página
+  //   3. `visibilitychange` pra escondido — minimizou, trocou de app, travou a tela
+  // O `savedRef` é marcado ANTES de gravar, então mesmo disparando os três só sai
+  // uma carta — e se ele escolher depois, `claim` também vê a marca e não regrava.
+  useEffect(() => {
+    const garante = () => {
+      if (savedRef.current || statusRef.current !== 'picking') return
+      savedRef.current = true
+      const pick = opts[Math.floor(Math.random() * opts.length)]
+      if (pick) void persist(pick)
+    }
+    const aoEsconder = () => { if (document.visibilityState === 'hidden') garante() }
+    window.addEventListener('pagehide', garante)
+    document.addEventListener('visibilitychange', aoEsconder)
+    return () => {
+      window.removeEventListener('pagehide', garante)
+      document.removeEventListener('visibilitychange', aoEsconder)
+      garante()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

@@ -10883,3 +10883,41 @@ saía pra quem não era o último classificado. Corrigido pra `pos === vagasCopa
       privadas do arquivo. Pra fazer, exportar as duas e reusar.
 - [ ] **Nenhum olho humano viu no jogo de verdade ainda** — só no meu teste. Pedir
       print pro Diego na primeira sala que fechar.
+
+
+---
+
+## 🃏 "E SE EU NÃO ESCOLHER E FECHAR?" — a resposta, por modo (27/08)
+
+Pergunta do Diego logo depois de tirarmos o relógio da carta. São **dois fluxos
+diferentes** e a resposta não é a mesma nos dois:
+
+### 🎁 O PACOTE (rápido online, rápido offline, dinastia, carreira solo, Copa do Mundo)
+**Blindado.** A carta é sorteada e gravada em `user_cards` **assim que a tela monta**
+(efeito de `status === 'picking'`, `screens.tsx`), antes de qualquer toque, com
+`resilientWrite` (se a rede cair, fica guardada no aparelho e re-tenta ao abrir).
+Fechar, sair, nunca tocar, perder sinal → tudo dá no mesmo. Abrir o pacote é só a
+cerimônia de VER qual foi.
+
+### 🎴 A CARREIRA ONLINE (`careeronline.tsx`) — aqui eu tinha aberto um furo
+Lá o campeão **escolhe** entre 3 cartas do time, então não dá pra pré-gravar (a
+escolha é dele). A garantia era o efeito de **desmontar**… que só dispara quando se
+troca de tela DENTRO do jogo. **Fechar a aba ou trocar de app não desmonta nada.**
+Antes o relógio de 45 s tapava esse buraco; quando tirei o relógio, o buraco ficou.
+
+✅ **Consertado no mesmo dia**: a garantia agora dispara em **três saídas** —
+`desmontar` (troca de tela), `pagehide` (fecha a aba / o navegador mata a página) e
+`visibilitychange` pra escondido (minimizou, trocou de app, travou a tela). O
+`savedRef` é marcado ANTES de gravar, então mesmo os três disparando sai **uma** carta
+só, e um `claim` depois também não regrava.
+
+⚠️ **O que ainda NÃO dá pra garantir** (e vale registrar, não é para esconder): se o
+aparelho morrer no meio da gravação — bateria acabar, app ser forçado a fechar no
+exato instante — a escrita pode não completar. Isso vale pra qualquer gravação do
+jogo e já era assim antes; não nasceu daqui.
+
+📌 **Não tentei enfileirar a gravação na saída** (`pending.ts`) de propósito: a fila
+re-tenta ao abrir o jogo, e sem confirmar que `user_cards` tem chave única em
+(`user_id`, `season_key`) isso poderia gravar carta DUPLICADA. Prefiro o furo raro ao
+risco de dar duas cartas. Se alguém confirmar a constraint no banco, dá pra fechar
+esse último caso.
