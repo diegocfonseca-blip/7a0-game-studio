@@ -27,7 +27,7 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do cl
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
-import { tecnicoPorNome, fichaDoTecnico, PISO_TECNICO, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV } from './tecnicos'
+import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
@@ -3352,6 +3352,11 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const map = state.careerTecnicos ?? {}
   const meu = map[mgr.teamName] ?? null
   const coins = state.careerCoins?.[mgr.id] ?? 0
+  // 💰 mercado igual jogador (27/08): valor nasce zerado e vira o que pagarem
+  const valorDe = (n: string) => state.careerTecnicoPago?.[n] ?? 0
+  const multa = meu ? valorDe(meu) : 0
+  const meuContratoFim = state.careerTecnicoContrato?.[mgr.teamName]
+  const [armado, setArmado] = useState(false) // 🔥 confirmação da demissão (2 toques)
   const rivais = new Set((state.careerRivals ?? []).map(r => r.team))
   const clubes = state.managers.filter(m => !m.isHuman).slice().sort((a, b) => a.teamName.localeCompare(b.teamName))
   const divRot = state.careerDivision === 'V' ? 'Várzea' : `Série ${state.careerDivision ?? '?'}`
@@ -3360,7 +3365,15 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
     <div style={{ marginTop: 14 }}>
       <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 6px', color: INK, textTransform: 'uppercase', letterSpacing: '.08em' }}>🧢 Técnico</p>
       {meu
-        ? <CartaTecnico nome={meu} mostraFaixa />
+        ? (
+          <>
+            <CartaTecnico nome={meu} mostraFaixa />
+            <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
+              💰 valor {valorDe(meu) || '—'} · 💸 salário {Math.round(valorDe(meu) / 10)}/temporada · 📝 contrato até a T{meuContratoFim ?? '—'}
+              {meuContratoFim != null && meuContratoFim < state.seasonNo ? <b style={{ color: '#C2452F' }}> (VENCIDO — decida na janela de contratos)</b> : null}
+            </p>
+          </>
+        )
         : (
           <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
             <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
@@ -3379,11 +3392,11 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         const nome = map[c.teamName] ?? null
         const ehRival = rivais.has(c.teamName)
         const t = nome ? tecnicoPorNome(nome) : undefined
-        const piso = t ? PISO_TECNICO[t.div] : 0
+        const minL = nome ? Math.max(1, valorDe(nome)) : 0 // lance mínimo = valor de mercado (zerado = 1)
         const abertoAqui = aberto === c.teamName
         return (
           <div key={c.teamName} style={{ marginBottom: 7 }}>
-            <button onClick={() => { setAberto(abertoAqui ? null : c.teamName); setSelJog(null); if (t) setLance(Math.max(piso, Math.min(coins, piso))) }}
+            <button onClick={() => { setAberto(abertoAqui ? null : c.teamName); setSelJog(null); setArmado(false); if (t) setLance(Math.max(minL, Math.min(coins - multa, minL))) }}
               style={{ width: '100%', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 12.5, border: `3px solid ${INK}`, borderRadius: 12, background: ehRival ? '#FFF3C4' : '#fff', boxShadow: `2.5px 2.5px 0 0 ${INK}`, padding: '9px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: INK }}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}</span>
               <span style={{ fontSize: 10, opacity: .55, flex: 'none' }}>{abertoAqui ? '▾' : '›'}</span>
@@ -3396,19 +3409,29 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                         sem categoria, formações ou overall. Tudo se revela quando é seu. */}
                     <CartaTecnico nome={nome} misterio />
                     <div style={{ marginTop: 9 }}>
-                      <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '0 0 5px', textAlign: 'center' }}>Piso da categoria: <b>💰 {piso}</b> · sua caixa: <b>🪙 {coins}</b></p>
+                      <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '0 0 5px', textAlign: 'center' }}>💰 valor de mercado: <b>{valorDe(nome) || '— (nunca teve lance)'}</b> · sua caixa: <b>🪙 {coins}</b></p>
                       <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4, background: 'rgba(255,255,255,.7)', border: `2px dashed ${INK}`, borderRadius: 9, padding: '5px 8px' }}>
-                        🎲 Contratando, o cardápio de formações vira o DELE — e se ele não usar a sua atual, ela segue valendo como a formação da casa 🏠. Você só descobre o resto quando ele for seu.
+                        🎲 Contratando, o cardápio de formações vira o DELE — e se ele não usar a sua atual, ela segue valendo como a formação da casa 🏠. Contrato de <b>5 temporadas</b>. Você só descobre o resto quando ele for seu.
                       </p>
-                      {coins >= piso ? (
+                      {meu && (
+                        <p style={{ fontSize: 9.5, fontWeight: 800, color: '#C2452F', margin: '0 0 7px', lineHeight: 1.4, background: '#FDEEEA', border: '2px solid #C2452F', borderRadius: 9, padding: '5px 8px' }}>
+                          ⚠️ Você já tem técnico (<b>{meu}</b>, contrato até a T{meuContratoFim ?? '?'}). Aliciar outro <b>DEMITE ele NA HORA</b> com multa de <b>💰 {multa}</b> — e mesmo assim você pode <b>perder o leilão</b> (rivais e o dono também dão lance). Se não quiser pagar a multa, aguarde o contrato dele acabar.
+                        </p>
+                      )}
+                      {coins >= multa + minL ? (
                         <>
-                          <LanceStepper v={lance} piso={piso} teto={coins} onSet={setLance} />
-                          <button onClick={() => dispatch({ type: 'ALICIAR_TECNICO', clube: c.teamName, lance })}
-                            style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>🔨 Aliciar pro leilão</button>
-                          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.4 }}>Vai pro pregão: <b>você × seus rivais × o {c.teamName}</b> (o dono briga pra segurar). Só paga quem LEVA — e, levando, os técnicos <b>trocam de clube</b>.</p>
+                          <LanceStepper v={lance} piso={minL} teto={Math.max(minL, coins - multa)} onSet={setLance} />
+                          {meu && !armado ? (
+                            <button onClick={() => setArmado(true)}
+                              style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', background: '#C2452F', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>🔥 Demitir {meu} e ir pro leilão…</button>
+                          ) : (
+                            <button onClick={() => { dispatch({ type: 'ALICIAR_TECNICO', clube: c.teamName, lance }); setArmado(false) }}
+                              style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>{meu ? `🔨 Confirmar: multa 💰 ${multa} + lance 💰 ${lance}` : '🔨 Aliciar pro leilão'}</button>
+                          )}
+                          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.4 }}>Vai pro pregão: <b>você × seus rivais × o {c.teamName}</b> (o dono briga pra segurar). O lance só é cobrado de quem LEVA{meu ? ' — mas a multa da demissão é NA HORA, leve ou não' : ''}.</p>
                         </>
                       ) : (
-                        <p style={{ fontSize: 10.5, fontWeight: 800, color: '#C2452F', margin: 0, textAlign: 'center' }}>Sua caixa não cobre o piso ({piso} 🪙) — faça caixa e volte.</p>
+                        <p style={{ fontSize: 10.5, fontWeight: 800, color: '#C2452F', margin: 0, textAlign: 'center' }}>Sua caixa não cobre {meu ? `a multa (💰 ${multa}) + o lance mínimo (💰 ${minL})` : `o lance mínimo (💰 ${minL})`} — faça caixa e volte.</p>
                       )}
                     </div>
                   </>
@@ -7352,6 +7375,7 @@ export function PyramidSeasonScreen() {
 export function ReserveListScreen() {
   const { state, dispatch } = useEsc()
   const escLib = useEscadaLiberada() // 🪜 escada de categorias: por enquanto só a conta do Diego
+  const quinzeRL = useFormacoes15() // 🧢 técnicos (contrato de 5 anos): só conta liberada
   const mgr = state.managers[state.youIdx]
   const youId = mgr?.id ?? 0
   const listed = useMemo(() => new Set(state.reserveListed?.[youId] ?? []), [state.reserveListed, youId])
@@ -7431,6 +7455,29 @@ export function ReserveListScreen() {
             <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</p>
           </div>
         )}
+        {/* 🧢 CONTRATO DO TÉCNICO (27/08, só conta liberada): venceu os 5 anos →
+            decide aqui, junto com os contratos dos jogadores. Renovar = paga o
+            VALOR dele (+5 temporadas); deixar ir = sem multa (foi até o fim). */}
+        {quinzeRL && mgr && (() => {
+          const nomeTec = state.careerTecnicos?.[mgr.teamName]
+          const fim = state.careerTecnicoContrato?.[mgr.teamName]
+          if (!nomeTec || fim == null || fim >= state.seasonNo) return null
+          const custo = state.careerTecnicoPago?.[nomeTec] ?? 0
+          const caixa = state.careerCoins?.[youId] ?? 0
+          return (
+            <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
+              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>🧢 Contrato do técnico ENCERROU</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px', lineHeight: 1.4 }}><b>{nomeTec}</b> cumpriu as 5 temporadas (venceu na T{fim}). Renove por <b>💰 {custo}</b> (+5 temporadas) ou deixe ir — sem multa, ele foi até o fim.</p>
+              <div style={{ display: 'flex', gap: 7 }}>
+                <button disabled={caixa < custo} onClick={() => dispatch({ type: 'RENOVAR_TECNICO' })}
+                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: caixa < custo ? '#d8cfb5' : '#1B7A3D', color: caixa < custo ? 'rgba(0,0,0,.4)' : '#fff', boxShadow: caixa < custo ? 'none' : `2px 2px 0 0 ${INK}`, cursor: caixa < custo ? 'not-allowed' : 'pointer' }}>📝 Renovar (💰 {custo})</button>
+                <button onClick={() => dispatch({ type: 'DISPENSAR_TECNICO' })}
+                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>👋 Deixar ir</button>
+              </div>
+              {caixa < custo && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#C2452F', margin: '6px 0 0' }}>Caixa não cobre a renovação — venda alguém ou deixe ir.</p>}
+            </div>
+          )
+        })()}
         {/* 📝 CONTRATOS — encerrados esperando decisão + aviso de último ano */}
         {(() => {
           // 🏛️ MULTICLUBES (Diego 04/08, mockup lado a lado aprovado): o clube

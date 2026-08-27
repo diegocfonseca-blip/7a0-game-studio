@@ -10569,8 +10569,20 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       categoria — apenas NOME"): o aliciar é ÀS CEGAS. A carta lá é neutra
       (branca, sem cor de tier) com TEC + nome + bandeira, e o aviso não entrega
       nada do repertório. Categoria/faixa/formações só se revelam quando o
-      técnico é SEU, no elenco. (O piso do lance continua aparecendo — sem ele
-      não tem leilão.)
+      técnico é SEU, no elenco.
+- [x] Economia do técnico v8 (Diego 27/08): MERCADO IGUAL JOGADOR — o valor
+      nasce ZERADO ("valor de mercado: —") e vira o que pagarem por ele em
+      leilão, bot ou usuário (`careerTecnicoPago`, chave = NOME). Pagou 50 →
+      vale 50 e salário 5 (valor/10, entra na FOLHA da virada junto com os
+      jogadores). Lance mínimo = valor atual (zerado = 1); a CPU dona defende
+      pela categoria POR DENTRO (lance de 2 no Guardiola morre na risada, sem
+      revelar nada). CONTRATO DE 5 TEMPORADAS (`careerTecnicoContrato`,
+      encerra na T+4); venceu → caixa de decisão na janela de contratos junto
+      dos jogadores (renovar = paga o valor, +5 · deixar ir = sem multa).
+      DEMISSÃO PRA ALICIAR OUTRO: quem já tem técnico e alicia outro DEMITE o
+      atual NA HORA com multa = valor dele (botão em 2 toques com aviso) — e
+      pode ainda PERDER o leilão e ficar sem nada, como o Diego quis ("já era,
+      paga na hora"). Multa e contratação aparecem no Extrato (logFin).
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.

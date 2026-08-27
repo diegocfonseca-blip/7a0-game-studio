@@ -690,6 +690,14 @@ export interface EscState {
   // jogando 4-3-3 → fica com as duas). Se o técnico já usa a atual, não soma
   // (nada de dobrar). Recalculada a cada contratação. Chave = teamName.
   careerFormacaoExtra?: Record<string, string>
+  // 💰 valor de MERCADO do técnico (regra do Diego 27/08 — igual jogador): nasce
+  // ZERADO e vira o que pagarem por ele em leilão (bot ou usuário). Salário =
+  // valor/10 (entra na folha). Chave = NOME do técnico (o valor segue a pessoa).
+  careerTecnicoPago?: Record<string, number>
+  // 📝 contrato do SEU técnico: temporada em que ENCERRA (5 anos: compra na T
+  // → encerra no fim da T+4). Vencido → aba de renovar junto com os jogadores.
+  // Chave = teamName do humano.
+  careerTecnicoContrato?: Record<string, number>
   // resultado do último leilão de aliciar (transiente, só pra tela contar a história)
   aliciarLog?: { titulo: string; corpo: string; venceu: boolean }
   scorers: ScorerRow[] // artilharia acumulada da temporada
