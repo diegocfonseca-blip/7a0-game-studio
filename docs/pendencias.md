@@ -10622,6 +10622,17 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       · Ações antigas ALICIAR_TECNICO/ALICIAR_JOGADOR/ALICIAR_LIVRE removidas;
         entram ALICIAR_MARCAR / ALICIAR_RESOLVER / ALICIAR_PREGAO_FIM. Offline
         por enquanto (no online a área não aparece).
+- [x] 🎯 v11 (27/08, mais regras do Diego, "igual no modo manager"):
+      · TETO: no máximo 1 TÉCNICO + 1 JOGADOR aliciados por temporada (trava na
+        UI com aviso e no reducer). Quem passou do teto vê 🔒 "já aliciou 1".
+      · CONTRATO DE 5 ANOS PRA TODO MUNDO: técnicos de CPU ganham contrato
+        escalonado no seed (alguns já vencidos → aliciáveis) e renovam na vida
+        dos bots (60%); jogadores de CPU vivem num CICLO determinístico de 5
+        temporadas (`contratoCpuFalta`, sem armazenar nada).
+      · SÓ SE ALICIA QUEM ESTÁ SEM CONTRATO: sob contrato nem deixa apertar —
+        a linha mostra "📝 faltam N temporadas" ou "🆓 SEM contrato".
+      · Jogador levado no pregão nasce com contrato de 5 (contratoAte).
+      · A carta do SEU técnico agora mostra "contrato: faltam N temporadas".
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.

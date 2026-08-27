@@ -152,6 +152,17 @@ export function squadPayroll(squad: WonCard[]): number {
 // ela fica NEGATIVA (dívida). Assim o número da folha no Extrato bate certinho com o
 // elenco — só muda quando o time muda. Gastar (contratar/investir) fica bloqueado
 // enquanto a caixa estiver no vermelho. Só humanos pagam da careerCoins.
+// 📝 CONTRATO DE JOGADOR DE CPU (27/08, regra do Diego: só se alicia quem está
+// SEM contrato — igual ao modo manager). A CPU não guarda contrato por carta:
+// o ciclo é determinístico (id+seed), todo mundo em contratos de 5 anos
+// escalonados. Devolve QUANTAS temporadas faltam (0 = sem contrato, aliciável).
+export function contratoCpuFalta(cardId: string, seed: number, seasonNo: number): number {
+  let h = 0
+  for (const ch of cardId) h = (h * 31 + ch.charCodeAt(0)) | 0
+  h = ((h ^ seed) >>> 0) % 5
+  return (h + 5 - (seasonNo % 5)) % 5
+}
+
 // 🕴️ técnico liberado no fim de contrato tem EX-DONO humano: quando alguém o
 // contrata, o ex-dono recupera METADE do preço (regra do Diego 27/08). Se o
 // próprio ex-dono recontratar, não paga a si mesmo — só limpa o registro.
@@ -5665,6 +5676,18 @@ export function reducer(state: EscState, action: Action): EscState {
       const desde = { ...(s.careerTecnicosDesde ?? {}) }
       let mudou = false
       for (const c of clubes) if (!(c in map)) { map[c] = livres.shift() ?? null; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true }
+      // 📝 contrato de 5 anos pra TODO técnico de CPU também (27/08): escalonado
+      // pelo nome, pra não vencer tudo junto — quem está vencido é aliciável.
+      const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
+      for (const c of clubes) {
+        const n = map[c]
+        if (!n || ctAll[c] != null) continue
+        let h = 0
+        for (const ch of n + c) h = (h * 31 + ch.charCodeAt(0)) | 0
+        ctAll[c] = s.seasonNo + ((h >>> 0) % 5) - 1 // -1..+3: alguns já vencidos, resto escalonado
+        mudou = true
+      }
+      s.careerTecnicoContrato = ctAll
       // 🤖 VIDA DOS BOTS (27/08, regra do Diego: bots espertos, que sabem a
       // categoria e podem trocar de técnico e de formação) — SÓ NA RODADA 0 e
       // 1× por temporada: no meio da temporada, trocar técnico/formação de bot
@@ -5688,6 +5711,16 @@ export function reducer(state: EscState, action: Action): EscState {
             desde[m.teamName] = { t: s.seasonNo, r: 0 }
             pago[nomeN] = preco // o mercado aprende com a compra do bot também
             pagaExDono(s, nomeN, preco) // ex-dono humano recupera metade
+            mudou = true
+          }
+        }
+        // 📝 bot com contrato de técnico VENCIDO decide: maioria renova (+5), o
+        // resto deixa vencido — esses ficam ALICIÁVEIS pra você.
+        for (const m of s.managers) {
+          if (m.isHuman || !map[m.teamName]) continue
+          const fim = (s.careerTecnicoContrato ?? {})[m.teamName]
+          if (fim != null && fim < s.seasonNo && rngV() < 0.6) {
+            s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [m.teamName]: s.seasonNo + 4 }
             mudou = true
           }
         }
@@ -5720,12 +5753,24 @@ export function reducer(state: EscState, action: Action): EscState {
       // o alvo FICA no clube. Os marcados viram LOTES que ABREM o próximo leilão
       // de reservas (igual à Dinastia: 🎯 aliciado). Ninguém cobriu? Fica.
       if (!s.careerOnline) return s
+      // 🚦 TETO (27/08, igual ao modo manager): no MÁXIMO 1 técnico e 1 jogador
+      // aliciados por temporada — e SÓ quem está SEM contrato pode ser marcado.
       if (action.tec) {
         const cur = s.aliciarTecnicos ?? []
-        s.aliciarTecnicos = cur.includes(action.tec) ? cur.filter(n => n !== action.tec) : [...cur, action.tec]
+        if (cur.includes(action.tec)) { s.aliciarTecnicos = cur.filter(n => n !== action.tec); return s }
+        if (cur.length >= 1) return s
+        const clube = Object.entries(s.careerTecnicos ?? {}).find(([, n]) => n === action.tec)?.[0]
+        if (clube) {
+          const fim = (s.careerTecnicoContrato ?? {})[clube]
+          if (fim != null && fim >= s.seasonNo) return s // sob contrato: não alicia
+        }
+        s.aliciarTecnicos = [action.tec]
       } else if (action.cardId) {
         const cur = s.aliciarJogadores ?? []
-        s.aliciarJogadores = cur.includes(action.cardId) ? cur.filter(n => n !== action.cardId) : [...cur, action.cardId]
+        if (cur.includes(action.cardId)) { s.aliciarJogadores = cur.filter(n => n !== action.cardId); return s }
+        if (cur.length >= 1) return s
+        if (contratoCpuFalta(action.cardId, s.seed, s.seasonNo) > 0) return s // sob contrato: não alicia
+        s.aliciarJogadores = [action.cardId]
       }
       return s
     }
@@ -5830,7 +5875,7 @@ export function reducer(state: EscState, action: Action): EscState {
             }
             coins -= win.lance
             alvo.squad = alvo.squad.filter(c => c.id !== card.id)
-            you.squad = [...you.squad, { ...card, paid: win.lance, buyPrice: win.lance, via: 'leilao' as const, reforco: true }]
+            you.squad = [...you.squad, { ...card, paid: win.lance, buyPrice: win.lance, via: 'leilao' as const, reforco: true, ...(s.contratosOn ? { contratoAte: s.seasonNo + 4 } : {}) }] // 📝 recém-contratado = 5 anos
             logFin(s, 'buy', `🎯 Aliciado: ${card.name}`, -win.lance, { player: card.name, pos: card.pos, buyPrice: win.lance })
             resultados.push({ titulo: `🔨 ${card.name} é SEU!`, corpo: `Você levou por ${win.lance} 🪙 (${placar}). Já entra no elenco.`, venceu: true })
           } else {
