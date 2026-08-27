@@ -14,7 +14,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
 import type { RenewAnos } from './store'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, SPONSOR_BET_META } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -3363,11 +3363,13 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const clubes = state.managers.filter(m => !m.isHuman).slice().sort((a, b) => a.teamName.localeCompare(b.teamName))
   const divRot = state.careerDivision === 'V' ? 'Várzea' : `Série ${state.careerDivision ?? '?'}`
   const totalMarcado = marcadosT.length + marcadosJ.length
-  const btnMarcar = (marcado: boolean, onClick: () => void, rotulo: string) => (
-    <button onClick={onClick}
-      style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: marcado ? GREEN : GOLD, color: marcado ? '#fff' : INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>
-      {marcado ? '✔ Aliciado — toque pra tirar' : rotulo}
-    </button>
+  const btnMarcar = (marcado: boolean, onClick: () => void, rotulo: string, trava?: string) => (
+    <>
+      <button onClick={() => { if (marcado || !trava) onClick() }} disabled={!marcado && !!trava}
+        style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: marcado ? GREEN : trava ? '#d8cfb5' : GOLD, color: marcado ? '#fff' : trava ? 'rgba(0,0,0,.4)' : INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: marcado || !trava ? `3px 3px 0 0 ${INK}` : 'none', padding: '10px 0', cursor: marcado || !trava ? 'pointer' : 'not-allowed' }}>
+        {marcado ? '✔ Aliciado — toque pra tirar' : trava ? `🔒 ${trava}` : rotulo}
+      </button>
+    </>
   )
   return (
     <div style={{ marginTop: 14 }}>
@@ -3377,7 +3379,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
           <>
             <CartaTecnico nome={meu} mostraFaixa />
             <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
-              💰 valor {valorMeu || '—'} · 💸 salário {Math.round(valorMeu / 10)}/temporada · 📝 contrato até a T{meuContratoFim ?? '—'}
+              💰 valor {valorMeu || '—'} · 💸 salário {Math.round(valorMeu / 10)}/temporada · 📝 contrato: {meuContratoFim != null ? (meuContratoFim >= state.seasonNo ? `falta${meuContratoFim - state.seasonNo + 1 > 1 ? 'm' : ''} ${meuContratoFim - state.seasonNo + 1} temporada${meuContratoFim - state.seasonNo + 1 > 1 ? 's' : ''}` : 'VENCIDO') : '—'}
               {meuContratoFim != null && meuContratoFim < state.seasonNo ? <b style={{ color: '#C2452F' }}> (VENCIDO — decida na janela de contratos)</b> : null}
             </p>
           </>
@@ -3389,7 +3391,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
           </div>
         )}
       <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🔎 Aliciar · {divRot}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube e marque quem você quer. <b>Aliciar não tira ninguém do clube</b> — os marcados <b>abrem o próximo leilão</b>, com lances de verdade (você × seus rivais × o dono). Ninguém cobriu? Fica tudo como está.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. <b>Aliciar não tira ninguém do clube</b> — os marcados <b>abrem o próximo leilão</b>, com lances de verdade (você × seus rivais × o dono). Ninguém cobriu? Fica tudo como está.</p>
       {clubes.map(c => {
         const nome = map[c.teamName] ?? null
         const ehRival = rivais.has(c.teamName)
@@ -3407,7 +3409,19 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                   <>
                     {/* 🙈 só o NOME (regra do Diego): categoria/nível/formações se revelam quando é seu */}
                     <CartaTecnico nome={nome} misterio />
-                    {btnMarcar(marcadosT.includes(nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: nome }), '🔨 Aliciar pro leilão')}
+                    {(() => {
+                      // 📝 contrato de 5 anos de TODO técnico: só se alicia quem está SEM
+                      const fim = state.careerTecnicoContrato?.[c.teamName]
+                      const falta = fim != null ? fim - state.seasonNo + 1 : 0
+                      const marcado = marcadosT.includes(nome)
+                      const trava = falta > 0 ? `contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : (!marcado && marcadosT.length >= 1 ? 'já aliciou 1 técnico nesta temporada' : undefined)
+                      return (
+                        <>
+                          <p style={{ fontSize: 10, fontWeight: 800, color: falta > 0 ? '#5a5647' : GREEN, margin: '6px 0 0', textAlign: 'center' }}>{falta > 0 ? `📝 contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : '🆓 SEM contrato — pode aliciar'}</p>
+                          {btnMarcar(marcado, () => dispatch({ type: 'ALICIAR_MARCAR', tec: nome }), '🔨 Aliciar pro leilão', trava)}
+                        </>
+                      )
+                    })()}
                   </>
                 ) : (
                   <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center' }}>😶 Este clube está SEM técnico no momento.</p>
@@ -3422,20 +3436,25 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                         <div key={pos}>
                           <p style={{ ...OSWALD, fontWeight: 800, fontSize: 9, textTransform: 'uppercase', color: GREEN, opacity: .85, margin: '6px 0 2px' }}>{POS_LABEL[pos]}</p>
                           {cs.map(x => {
-                            const preso = !!state.contratosOn && x.contratoAte != null && x.contratoAte >= state.seasonNo
+                            // 📝 todo jogador de CPU vive em contratos de 5 anos escalonados
+                            // (ciclo determinístico) — só se alicia quem está SEM contrato.
+                            const falta = contratoCpuFalta(x.id, state.seed, state.seasonNo)
                             const marcado = marcadosJ.includes(x.id)
+                            const preso = falta > 0
+                            const tetoCheio = !marcado && marcadosJ.length >= 1
+                            const pode = !preso && (!tetoCheio || marcado)
                             return (
-                              <div key={x.id} onClick={() => { if (!preso) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id }) }}
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : marcado ? GREEN : GREEN}`, marginBottom: 3, opacity: preso ? .5 : 1, cursor: preso ? 'default' : 'pointer' }}>
+                              <div key={x.id} onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id }) }}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: preso || (tetoCheio && !marcado) ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
                                 <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
-                                  <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: preso ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? '🔒 contrato' : marcado ? '✔ no leilão · tirar' : '+ aliciar'}</span></span>
+                                  <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: preso ? 'rgba(0,0,0,.45)' : marcado ? GREEN : tetoCheio ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? `📝 falta${falta > 1 ? 'm' : ''} ${falta}` : marcado ? '✔ no leilão · tirar' : tetoCheio ? '🔒 já aliciou 1' : '🆓 + aliciar'}</span></span>
                               </div>
                             )
                           })}
                         </div>
                       )
                     })}
-                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = pôr no leilão. Sob contrato não sai, e o clube nunca fica manco na posição.</p>
+                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = pôr no leilão (máx. 1 jogador por temporada). Só quem está 🆓 SEM contrato pode — e o clube nunca fica manco na posição.</p>
                   </div>
                 )}
               </div>
@@ -3466,7 +3485,8 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                   {abertoAqui && (
                     <div style={{ border: `3px dashed ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
                       <CartaTecnico nome={tt.nome} misterio />
-                      {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), '🔨 Aliciar pro leilão')}
+                      <p style={{ fontSize: 10, fontWeight: 800, color: GREEN, margin: '6px 0 0', textAlign: 'center' }}>🆓 SEM contrato — pode aliciar</p>
+                      {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), '🔨 Aliciar pro leilão', !marcadosT.includes(tt.nome) && marcadosT.length >= 1 ? 'já aliciou 1 técnico nesta temporada' : undefined)}
                     </div>
                   )}
                 </div>
