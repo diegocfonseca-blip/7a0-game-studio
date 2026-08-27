@@ -10670,9 +10670,12 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       No online segue tudo EXATAMENTE como era (5 formações clássicas).
       🔒 CORREÇÃO no mesmo dia: eu tinha aberto JUNTO o sondar JOGADOR — o Diego
       pegou ("você liberou só o modo técnico né, o modo jogador não né?"). Não
-      era pedido: `aliciarJogOk` voltou a `false` com o Set só na conta dele.
-      Liberado pra todos = SÓ técnico + as 15 formações. A lista de JOGADORES
-      dos clubes na área de Sondar segue em teste fechado até ele mandar abrir.
+      era pedido. E ele foi além: "inclusive tira da minha conta agora, só o
+      técnico, pra eu ver como aparecerá pra todo mundo também" — então
+      `ALICIAR_JOG_TESTERS` ficou VAZIO e `aliciarJogOk` é false pra TODOS, o
+      Diego incluído: ninguém tem versão especial da tela. O código do sondar
+      jogador segue inteiro no repo, só não desenha; pra voltar a testar, é pôr
+      o e-mail dele de volta no Set. Liberado pra todos = SÓ técnico + as 15.
       📢 Novidades: duas linhas em novidades.ts (🧢 técnicos · 🎽 15 formações,
       com o aviso de que sem técnico o time joga só o esquema atual). A
       MAQUIAGEM continua segredo de produção — nenhuma linha cita motor/conta.

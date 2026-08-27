@@ -228,12 +228,14 @@ export function useFormacoes15(): boolean {
 // 🔎 ALICIAR JOGADOR (teste fechado, 26/08): dentro da área de aliciar do
 // Elenco (carreira), a lista de JOGADORES dos clubes só aparece pra estas
 // contas — todo o resto (quando a feature abrir) vê apenas o técnico.
-// 🔒 SONDAR JOGADOR CONTINUA FECHADO (28/08). O Diego liberou pra todos o MODO
-// TÉCNICO — e só ele: "você liberou só o modo técnico né, o modo jogador não né?
-// Só vai aparecer o modo técnico pra sondar". Então na área de Sondar todo mundo
-// vê o TÉCNICO do clube; a lista de JOGADORES do clube segue só nesta conta, até
-// ele mandar abrir.
-const ALICIAR_JOG_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+// 🔒 SONDAR JOGADOR: DESLIGADO PRA TODO MUNDO, O DIEGO INCLUSIVE (28/08).
+// Palavras dele: "não, jogador não. Só técnico do time por enquanto, cara.
+// Inclusive tira da minha conta agora, só o técnico, pra eu ver como aparecerá
+// pra todo mundo também." Ou seja: a área de Sondar mostra SÓ o técnico do
+// clube, na conta dele igual à de qualquer pessoa — sem versão especial.
+// O código do sondar jogador continua inteiro no jogo, só não desenha.
+// Pra voltar a testar um dia: põe o e-mail dele de volta no Set abaixo.
+const ALICIAR_JOG_TESTERS = new Set<string>([])
 let aliciarJogOk = false
 function applyAliciarJog(email?: string | null): void {
   const u = !!email && ALICIAR_JOG_TESTERS.has(email.toLowerCase())
