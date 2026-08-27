@@ -3027,6 +3027,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // mesma altura, só o miolo redistribui (padrão do Diego, mockup campinhos-v5).
   // Sem a trava, nada disto roda e o campinho fica byte a byte como era.
   const quinze = useFormacoes15()
+  const { state: stEl } = useEsc() // só leitura: ficha do técnico + folha com ele
   const fView = quinze ? formacaoAtual(mgr) : null
   const meis = xiOf('MEI')
   const recuadoIds = new Set<string>() // alas do 3-5-2 / líbero: descem um tiquinho
@@ -3166,14 +3167,22 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           )
         })()}
       </div>
+      {/* 🧢 o TÉCNICO logo abaixo do campinho — ele é do time, igual os jogadores */}
+      {quinze && <MeuTecnicoBox mgr={mgr} />}
       {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
-          temporada. Fica aqui em cima das listas pra você ver o custo de relance. */}
-      {salaryOn && (() => { const folha = squadPayroll(mgr.squad as WonCard[]); return (
+          temporada. Fica aqui em cima das listas pra você ver o custo de relance.
+          ⚠️ Soma o salário do TÉCNICO junto: é o que o vira-temporada cobra de
+          verdade — o número da tela não pode mentir. */}
+      {salaryOn && (() => {
+        const nomeTec = quinze ? stEl.careerTecnicos?.[mgr.teamName] : null
+        const salTec = nomeTec ? Math.round((stEl.careerTecnicoPago?.[nomeTec] ?? 0) / 10) : 0
+        const folha = squadPayroll(mgr.squad as WonCard[]) + salTec
+        return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(150deg,#2A241A,#17130A)', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 11px', margin: '0 0 10px', boxShadow: `2px 2px 0 0 ${INK}` }}>
           <span style={{ fontSize: 17 }}>💸</span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', fontWeight: 900, fontSize: 11.5, ...OSWALD, color: '#fff', letterSpacing: 0.3 }}>FOLHA DO TIME</span>
-            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>cobrada no fim da temporada · piso ÷ 10 por jogador</span>
+            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>cobrada no fim da temporada · piso ÷ 10 por jogador{salTec > 0 ? ' · + o técnico' : ''}</span>
           </span>
           <span style={{ textAlign: 'right', flexShrink: 0 }}>
             <span style={{ display: 'block', fontWeight: 900, fontSize: 17, ...OSWALD, color: '#E7503A', lineHeight: 1 }}>{folha}</span>
@@ -3326,6 +3335,36 @@ function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFai
     </div>
   )
 }
+// 🧢 O TÉCNICO NA ABA ELENCO (Diego 28/08: "aqui no elenco agora terá que pôr o
+// técnico também, igual tem os jogadores já"). Só a FICHA — sondar não mora mais
+// aqui, mora na tela do pré-leilão (rodapé Vender · Sondar).
+function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
+  const { state } = useEsc()
+  const nome = state.careerTecnicos?.[mgr.teamName] ?? null
+  const fim = state.careerTecnicoContrato?.[mgr.teamName]
+  const valor = nome ? (state.careerTecnicoPago?.[nome] ?? 0) : 0
+  const falta = fim != null ? fim - state.seasonNo + 1 : 0
+  return (
+    <div style={{ ...box('#fff'), padding: '11px 12px', margin: '0 0 10px' }}>
+      <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px', color: INK }}>🧢 Seu técnico</p>
+      {nome ? (
+        <>
+          <CartaTecnico nome={nome} mostraFaixa />
+          <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
+            💰 valor {valor || '—'} · 💸 salário {Math.round(valor / 10)}/temporada · 📝 contrato: {fim != null ? (falta > 0 ? `falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : 'VENCIDO') : '—'}
+            {fim != null && falta <= 0 ? <b style={{ color: '#C2452F' }}> (VENCIDO — decida na janela de contratos)</b> : null}
+          </p>
+        </>
+      ) : (
+        <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
+          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Sem técnico você joga só no <b>4-3-3</b> e no <b>4-4-2</b>. Pra ter um: na janela antes do leilão, aba <b>🕵️ Sondar</b>, marque um técnico e brigue por ele no pregão.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AliciarSection({ mgr }: { mgr: Manager }) {
   const { state, dispatch } = useEsc()
   const jogadorOn = useAliciarJogador() // 🔒 área de jogador: teste fechado à parte
@@ -3707,8 +3746,10 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         )
       })}
       </>)}
-      {/* 🧢 técnicos + aliciar — 26/08, só na aba Elenco e só conta liberada */}
-      {elenco && quinze15 && <AliciarSection mgr={mgr} />}
+      {/* 🕵️ o SONDAR não mora mais aqui (Diego 28/08: "mudamos de local pra
+          dentro da área do pré-leilão, que já tem as duas abas de rodapé, então
+          não precisa ter aqui na área do elenco repetido"). No Elenco fica só a
+          FICHA do técnico (MeuTecnicoBox, logo abaixo do campinho). */}
     </div>
   )
 }
