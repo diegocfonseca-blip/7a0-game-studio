@@ -5858,34 +5858,6 @@ export function reducer(state: EscState, action: Action): EscState {
             pagaExDono(s, lote.nome, win.lance)
             resultados.push({ titulo: `😤 O ${win.nome} levou ${lote.nome}`, corpo: `Cobriu com ${win.lance} 🪙 (${placar}). Seu lance não foi cobrado.`, venceu: false })
           }
-        } else {
-          const alvo = s.managers.find(m => m.id === lote.mgrId && !m.isHuman)
-          const card = alvo?.squad.find(c => c.id === lote.cardId)
-          if (!alvo || !card) { resultados.push({ titulo: `🤷 ${alvoNome} sumiu do mapa`, corpo: 'O jogador não está mais no clube (saiu antes do pregão). Lote cancelado.', venceu: false }); continue }
-          // o clube NUNCA fica manco na posição — se ficaria, ele segura na marra
-          const contaPos = (sq: WonCard[], pos: Sector) => sq.filter(c => c.pos === pos && !c.fake).length
-          if (contaPos(alvo.squad, card.pos) - 1 < FORMATIONS[alvo.formation][card.pos]) {
-            resultados.push({ titulo: `🧱 ${card.name} ficou`, corpo: `O ${alvo.teamName} não tem reposição na posição — segurou de qualquer jeito.`, venceu: false })
-            continue
-          }
-          if (win.quem === 'voce') {
-            if (contaPos(you.squad, card.pos) >= FORMATIONS[you.formation][card.pos] * 2) {
-              resultados.push({ titulo: `🧳 Sem vaga pra ${card.name}`, corpo: 'Seu banco da posição já está no teto — o lance foi anulado e nada foi cobrado.', venceu: false })
-              continue
-            }
-            coins -= win.lance
-            alvo.squad = alvo.squad.filter(c => c.id !== card.id)
-            you.squad = [...you.squad, { ...card, paid: win.lance, buyPrice: win.lance, via: 'leilao' as const, reforco: true, ...(s.contratosOn ? { contratoAte: s.seasonNo + 4 } : {}) }] // 📝 recém-contratado = 5 anos
-            logFin(s, 'buy', `🎯 Aliciado: ${card.name}`, -win.lance, { player: card.name, pos: card.pos, buyPrice: win.lance })
-            resultados.push({ titulo: `🔨 ${card.name} é SEU!`, corpo: `Você levou por ${win.lance} 🪙 (${placar}). Já entra no elenco.`, venceu: true })
-          } else {
-            const rival = s.managers.find(m => m.teamName === win.nome && !m.isHuman)
-            if (rival) {
-              alvo.squad = alvo.squad.filter(c => c.id !== card.id)
-              rival.squad = [...rival.squad, { ...card, paid: win.lance }]
-            }
-            resultados.push({ titulo: `😤 O ${win.nome} levou ${card.name}`, corpo: `Cobriu com ${win.lance} 🪙 (${placar}). Seu lance não foi cobrado.`, venceu: false })
-          }
         }
       }
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins }
@@ -6387,6 +6359,25 @@ export function reducer(state: EscState, action: Action): EscState {
         // assim (senão listar manualmente o vencido furava o teto da venda)
         for (const c of out) listedCards.push({ ...c, seller: m.id, ...(c.contratoAte != null && c.contratoAte < s.seasonNo ? { semContrato: true } : {}) })
       }
+      // 1a-bis) 🎯 JOGADOR ALICIADO (27/08, do jeito que o Diego mandou: "é a
+      // mesma coisa de quando listo pra venda — ele vai pro leilão! Só que nos
+      // que eu vendo não posso dar lance; no aliciado eu dou"). A carta sai do
+      // clube dono e entra no BARALHO NORMAL do setor dela, com seller = o dono
+      // (ele recebe a grana da venda e pode dar lance de volta, igual vendedor).
+      // Trava de sempre: o clube nunca fica manco na posição.
+      if (s.onlineMode !== 'online') {
+        for (const cid of s.aliciarJogadores ?? []) {
+          const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
+          const card = dono?.squad.find(c => c.id === cid)
+          if (!dono || !card || card.fake || card.emprestado) continue
+          const naPos = dono.squad.filter(c => c.pos === card.pos && !c.fake).length
+          if (naPos - 1 < FORMATIONS[dono.formation][card.pos]) continue // ficaria manco: não sai
+          dono.squad = dono.squad.filter(c => c.id !== cid)
+          listedCards.push({ ...card, seller: dono.id, semContrato: true }) // aliciado = está sem contrato (regra do teto)
+          marketSellers[card.pos].push(dono.id) // o dono pode brigar de volta no setor
+        }
+        s.aliciarJogadores = []
+      }
       // 1b) 📝 CONTRATOS ENCERRADOS que NÃO foram renovados na janela de venda:
       // • HUMANO: o jogador vai pro leilão com selo SEM CONTRATO (venda com teto no
       //   valor oficial — o excedente "fica com a família"). TRAVA DE SEGURANÇA: se a
@@ -6634,9 +6625,11 @@ export function reducer(state: EscState, action: Action): EscState {
       s.reserveAuction = true
       s.screen = 'auction'
       startAuctionPhase(s, false)
-      // 🎯 ALICIADOS ABREM O PREGÃO (27/08, regra do Diego — igual à Dinastia):
-      // os alvos marcados viram lotes numa tela ANTES do leilão normal (que já
-      // está armado e espera). Só carreira OFFLINE — no online a tela não marca.
+      // 🧢 SETOR TÉCNICO (27/08, palavras do Diego: "o técnico é como se fosse
+      // uma POSIÇÃO a mais — antes era goleiro/lateral/zagueiro/meia/atacante,
+      // agora tem TÉCNICO que aparece ANTES do goleiro. E só aparece quando
+      // alicio"). O jogador aliciado já entrou no baralho normal lá em cima;
+      // aqui só o técnico vira o setor de abertura. Só carreira OFFLINE.
       if (s.onlineMode !== 'online') {
         const lotes: LoteAliciado[] = []
         for (const nome of s.aliciarTecnicos ?? []) {
@@ -6645,14 +6638,7 @@ export function reducer(state: EscState, action: Action): EscState {
           if (clube === s.managers[s.youIdx]?.teamName) continue // já é seu
           lotes.push({ tipo: 'tec', nome, clube, piso: Math.max(1, s.careerTecnicoPago?.[nome] ?? 0) })
         }
-        for (const cid of s.aliciarJogadores ?? []) {
-          const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
-          const card = dono?.squad.find(c => c.id === cid)
-          if (!dono || !card || card.fake || card.emprestado) continue // saiu antes do pregão: lote morre
-          lotes.push({ tipo: 'jog', cardId: cid, nome: card.name, pos: card.pos, clube: dono.teamName, mgrId: dono.id, piso: Math.max(1, valorOficial(s, card)) })
-        }
         s.aliciarTecnicos = []
-        s.aliciarJogadores = []
         if (lotes.length) {
           s.aliciarPregao = { lotes, resultados: null }
           s.screen = 'aliciarPregao'

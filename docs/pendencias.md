@@ -10633,6 +10633,16 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
         a linha mostra "📝 faltam N temporadas" ou "🆓 SEM contrato".
       · Jogador levado no pregão nasce com contrato de 5 (contratoAte).
       · A carta do SEU técnico agora mostra "contrato: faltam N temporadas".
+- [x] 🎯 v12 (27/08, o Diego esclareceu DE VEZ, com razão e bronca): jogador
+      aliciado NÃO tem pregão separado — "é a mesma coisa de listar pra venda:
+      ele vai pro LEILÃO!, só que nesse eu POSSO dar lance". Implementado: a
+      carta aliciada sai do clube dono e entra no BARALHO NORMAL do setor dela
+      no leilão de reservas, com `seller` = o dono (ele recebe a grana e entra
+      em marketSellers pra brigar de volta). Regras normais do leilão valem.
+      E o TÉCNICO "é como se fosse uma POSIÇÃO a mais — aparece ANTES do
+      goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
+      TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
+      Lote de jogador no pregão do técnico não existe mais.
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.

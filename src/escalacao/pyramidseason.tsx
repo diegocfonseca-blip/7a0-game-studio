@@ -3391,7 +3391,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
           </div>
         )}
       <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🔎 Aliciar · {divRot}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. <b>Aliciar não tira ninguém do clube</b> — os marcados <b>abrem o próximo leilão</b>, com lances de verdade (você × seus rivais × o dono). Ninguém cobriu? Fica tudo como está.</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o aliciado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
       {clubes.map(c => {
         const nome = map[c.teamName] ?? null
         const ehRival = rivais.has(c.teamName)
@@ -3454,7 +3454,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                         </div>
                       )
                     })}
-                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = pôr no leilão (máx. 1 jogador por temporada). Só quem está 🆓 SEM contrato pode — e o clube nunca fica manco na posição.</p>
+                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato, e o clube nunca fica manco). A grana da venda vai pro clube dono — que também pode brigar de volta.</p>
                   </div>
                 )}
               </div>
@@ -3519,12 +3519,12 @@ export function AliciarPregaoScreen() {
     <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
         <div style={{ background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 14px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🎯 PREGÃO DOS ALICIADOS</span>
+          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>🧢 LEILÃO · SETOR TÉCNICO</span>
           <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, color: '#FFC400' }}>🪙 {coins}</span>
         </div>
         {!preg.resultados ? (
           <>
-            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.45 }}>Os alvos que você aliciou abrem o leilão. Dê seu lance em <b>envelope fechado</b> (ou passe) — rivais e o dono também mandam os deles. Maior lance leva; <b>ninguém cobriu, o alvo fica onde está</b>. Só paga quem LEVA.</p>
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.45 }}>O técnico aliciado abre o pregão — <b>uma posição a mais, antes dos goleiros</b>. Envelope fechado, como sempre: rivais e o dono também mandam os deles. Ninguém cobriu? Ele fica onde está. Só paga quem LEVA.</p>
             {preg.lotes.map(l => {
               const chave = chaveDe(l)
               const v = lances[chave] ?? 0
@@ -3566,7 +3566,7 @@ export function AliciarPregaoScreen() {
               </div>
             ))}
             <button onClick={() => dispatch({ type: 'ALICIAR_PREGAO_FIM' })}
-              style={{ width: '100%', marginTop: 4, ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 13, boxShadow: `3px 3px 0 0 ${INK}`, padding: '13px 0', cursor: 'pointer' }}>Seguir pro leilão ➜</button>
+              style={{ width: '100%', marginTop: 4, ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 13, boxShadow: `3px 3px 0 0 ${INK}`, padding: '13px 0', cursor: 'pointer' }}>🧤 Seguir pros goleiros ➜</button>
           </>
         )}
       </div>
