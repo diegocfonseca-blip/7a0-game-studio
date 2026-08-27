@@ -2560,8 +2560,11 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
 function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG, awayG, youIsHome, onConfirm, suspensoId }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void; suspensoId?: string }) {
-  const quinze15 = useFormacoes15() // 🎭 15 formações: contas novas no intervalo (só conta liberada)
   const { state: escStH } = useEsc() // só leitura (cardápio de formações do SEU técnico)
+  // 🎭 15 formações + técnico: SÓ na carreira solo. No online ninguém contrata
+  // técnico, então lá seguem as 5 de sempre (senão o time ficaria preso numa
+  // formação só, sem caminho pra destravar).
+  const quinze15 = useFormacoes15() && escStH.onlineMode !== 'online'
   const [formation, setFormation] = useState<FormationKey>(mgr.formation)
   const [tactic, setTactic] = useState<Tac>(baseTactic)
   const [baseline, setBaseline] = useState<string[]>(baseXIids) // conta as trocas contra isto (reinicia se troca formação)
@@ -3028,8 +3031,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // (losango, alas, líbero…) com FAIXAS FIXAS — goleiro, zaga e ataque sempre na
   // mesma altura, só o miolo redistribui (padrão do Diego, mockup campinhos-v5).
   // Sem a trava, nada disto roda e o campinho fica byte a byte como era.
-  const quinze = useFormacoes15()
   const { state: stEl } = useEsc() // só leitura: ficha do técnico + folha com ele
+  const quinze = useFormacoes15() && stEl.onlineMode !== 'online' // 🎽 online segue com as 5
   const fView = quinze ? formacaoAtual(mgr) : null
   const meis = xiOf('MEI')
   const recuadoIds = new Set<string>() // alas do 3-5-2 / líbero: descem um tiquinho
@@ -3580,8 +3583,8 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
 }
 
 function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
-  const quinze15 = useFormacoes15() // 🎭 15 formações: por enquanto só a conta do Diego
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
+  const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -5337,7 +5340,7 @@ export function PyramidSeasonScreen() {
   // 🧢 mapa dos técnicos ATIVOS pra simulação (só conta liberada nas 15; vazio =
   // simulação idêntica à de sempre). Contratação no meio da temporada só vale da
   // rodada em diante (desdeR) — placar já visto nunca muda.
-  const quinzeSim = useFormacoes15()
+  const quinzeSim = useFormacoes15() && state.onlineMode !== 'online' // 🧢 efeito do técnico: solo
   const simTecs = useMemo<SimTecnicos | undefined>(() => {
     if (!quinzeSim || !state.careerTecnicos) return undefined
     const out: SimTecnicos = {}
@@ -7537,7 +7540,7 @@ export function PyramidSeasonScreen() {
 export function ReserveListScreen() {
   const { state, dispatch } = useEsc()
   const escLib = useEscadaLiberada() // 🪜 escada de categorias: por enquanto só a conta do Diego
-  const quinzeRL = useFormacoes15() // 🧢 técnicos (contrato de 5 anos): só conta liberada
+  const quinzeRL = useFormacoes15() && state.onlineMode !== 'online' // 🧢 técnicos: carreira solo
   // 🎯 Pílulas Vender/Aliciar (27/08, pedido do Diego): esta tela NÃO tem a barra
   // de abas do jogo, então o aliciamento ganha uma pílula própria aqui — "Vender
   // já é a que está aí mesmo, e Aliciar seria a nova". Só offline (o aliciar é

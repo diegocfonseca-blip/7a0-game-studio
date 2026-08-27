@@ -10655,6 +10655,24 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🚀 LANÇAMENTO GERAL: TÉCNICOS + 15 FORMAÇÕES (28/08, ordem do Diego:
+      "libera o modo técnico pra todos, que consequentemente também as novas
+      formações"). Gates de sport.ts abertos (`formacoes15Ok` e `aliciarJogOk`
+      nascem TRUE; os Sets de testers ficaram vazios como INTERRUPTOR DE
+      EMERGÊNCIA — voltar as duas flags pra false e repovoar o Set devolve o
+      teste fechado sem tocar em mais nada).
+      🛡️ TRAVA DE SEGURANÇA QUE ENTROU JUNTO (achada na conferência antes de
+      liberar): técnico só existe na carreira SOLO — no ONLINE ninguém contrata.
+      Se as 15 valessem lá, todo time online cairia na regra "sem técnico = só a
+      formação em uso" e ficaria PRESO num esquema só, sem caminho pra
+      destravar. Por isso cada tela agora exige `onlineMode !== 'online'`:
+      SquadTab · ElencoField · HalftimeBanner · ReserveListScreen · simTecs.
+      No online segue tudo EXATAMENTE como era (5 formações clássicas).
+      📢 Novidades: duas linhas em novidades.ts (🧢 técnicos · 🎽 15 formações,
+      com o aviso de que sem técnico o time joga só o esquema atual). A
+      MAQUIAGEM continua segredo de produção — nenhuma linha cita motor/conta.
+      📣 Falta (com o Diego): trocar os posts de "EM BREVE" pra "CHEGOU"
+      (scripts/mockup-post-tecnicos.mjs e o reels das formações).
 - [x] 🌍 RANKING GLOBAL VIRA CONVITE NA CARREIRA ANTIGA (28/08, ideia do Diego:
       "nas contas antigas você pode manter o ranking global, mas lá é justamente
       pra CHAMAR — fala que é só pra contas novas, e que conta nova também tem a

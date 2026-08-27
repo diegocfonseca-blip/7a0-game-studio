@@ -201,10 +201,19 @@ export function useRevealCinema(): boolean {
 // retranca) e o campinho ganha os desenhos novos (losango, alas, líbero) com
 // altura padrão. Por enquanto SÓ a conta do Diego vê — pra todo o resto o
 // seletor segue com as 5 de sempre e o campinho fica EXATAMENTE como era.
-const FORMACOES15_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-let formacoes15Ok = false
+// 🔓 LIBERADO PRA TODO MUNDO em 28/08 (ordem do Diego: "libera o modo técnico
+// pra todos, que consequentemente também as novas formações"). A lista de
+// testers fica aqui vazia só como interruptor de emergência: é só voltar
+// `formacoes15Ok = false` no começo e repovoar o Set que tudo volta a ser teste
+// fechado, sem mexer em mais nada do jogo.
+// ⚠️ ONDE VALE: carreira SOLO (offline). No ONLINE ninguém contrata técnico —
+// então lá o seletor segue com as 5 de sempre, senão o time ficaria preso numa
+// formação só, sem caminho pra destravar. A trava fica nas telas.
+const FORMACOES15_TESTERS = new Set<string>([])
+let formacoes15Ok = true
 function applyFormacoes15(email?: string | null): void {
-  const u = !!email && FORMACOES15_TESTERS.has(email.toLowerCase())
+  const u = true // liberado geral; o Set acima é só o interruptor de emergência
+  void email; void FORMACOES15_TESTERS
   if (u === formacoes15Ok) return
   formacoes15Ok = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
@@ -219,10 +228,13 @@ export function useFormacoes15(): boolean {
 // 🔎 ALICIAR JOGADOR (teste fechado, 26/08): dentro da área de aliciar do
 // Elenco (carreira), a lista de JOGADORES dos clubes só aparece pra estas
 // contas — todo o resto (quando a feature abrir) vê apenas o técnico.
-const ALICIAR_JOG_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-let aliciarJogOk = false
+// 🔓 LIBERADO JUNTO em 28/08: sondar JOGADOR entra com o modo técnico (mesma
+// área, mesmo teto de 1 por temporada). Mesmo interruptor de emergência.
+const ALICIAR_JOG_TESTERS = new Set<string>([])
+let aliciarJogOk = true
 function applyAliciarJog(email?: string | null): void {
-  const u = !!email && ALICIAR_JOG_TESTERS.has(email.toLowerCase())
+  const u = true // liberado geral (mesmo interruptor)
+  void email; void ALICIAR_JOG_TESTERS
   if (u === aliciarJogOk) return
   aliciarJogOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
