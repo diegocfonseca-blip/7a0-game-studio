@@ -10655,6 +10655,16 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🕵️ v18 — GRADE DE ESCUDOS + JANELINHA (28/08, Diego sobre a lista de
+      clubes do Sondar: "não tô gostando desse visual, os times podiam ficar
+      lado a lado que tem espaço, e aí quando eu apertar abre o time com o
+      visual que já tem"): a lista vertical de clubes virou GRADE 2 POR LINHA,
+      cada card com o ESCUDO do clube (componente Escudo) + nome (rival =
+      fundo amarelo ⚔️; 🕵️ no canto quando tem sondado ali). Tocar abre uma
+      JANELINHA por cima (overlay preto, cartão creme com faixa preta:
+      escudo + nome + ✕) com o MESMO conteúdo da sanfona antiga: carta do
+      técnico às cegas, contrato, botão sondar, historinha e a área roxa de
+      jogadores. Sem clube: mesma grade (🕴️ tracejado) e mesma janelinha.
 - [x] 🕵️ v17 — RODAPÉ + PADRÃO VISUAL (28/08, correção do Diego: "eu disse
       RODAPÉ, e você botou em cima… igual tem na home. E o padrão visual do
       sondar tem que ser igual ao do vender"): as pílulas saíram do topo e
