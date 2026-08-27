@@ -165,6 +165,20 @@ export function contratoCpuFalta(cardId: string, seed: number, seasonNo: number)
 // 🕴️ técnico liberado no fim de contrato tem EX-DONO humano: quando alguém o
 // contrata, o ex-dono recupera METADE do preço (regra do Diego 27/08). Se o
 // próprio ex-dono recontratar, não paga a si mesmo — só limpa o registro.
+// 🧳 TÉCNICO SAIU = CARDÁPIO ZERADO (regra do Diego 28/08: "quando ele vende o
+// técnico ou demite, as formações do técnico antigo somem também, seja a de
+// herança ou a do técnico atual que está saindo — e fica só a formação que ele
+// está jogando + a do novo técnico"). Como o cardápio sem técnico é só a
+// formação EM USO, basta apagar a herança guardada: nada do técnico velho
+// sobrevive. Quando o próximo chegar, a formação em uso naquele dia vira a
+// herança nova.
+function limpaHeranca(s: EscState, teamName: string) {
+  if (!s.careerFormacaoExtra?.[teamName]) return
+  const e = { ...s.careerFormacaoExtra }
+  delete e[teamName]
+  s.careerFormacaoExtra = e
+}
+
 function pagaExDono(s: EscState, nomeTec: string, preco: number, contratanteTeam?: string) {
   const exTeam = s.careerTecnicoExDono?.[nomeTec]
   if (!exTeam) return
@@ -3350,7 +3364,12 @@ function sealAndResolveTec(state: EscState) {
       // rival levou: o técnico viaja com ele (o antigo do rival vira SEM CLUBE)
       winM.money = Math.max(0, winM.money - top.amount)
       pago[lote.nome] = top.amount
-      if (lote.clube) map[lote.clube] = null
+      // 🧳 quem PERDEU o técnico perde o cardápio dele E a herança velha (regra do
+      // Diego 28/08) — sobra só a formação em uso. Vale pro clube de origem e pro
+      // clube que o comprador acabou de deixar sem técnico.
+      if (lote.clube) { map[lote.clube] = null; limpaHeranca(state, lote.clube) }
+      const largado = map[winM.teamName]
+      if (largado) limpaHeranca(state, winM.teamName)
       map[winM.teamName] = lote.nome
       state.careerTecnicosDesde = { ...(state.careerTecnicosDesde ?? {}), [winM.teamName]: { t: state.seasonNo, r: state.round }, ...(lote.clube ? { [lote.clube]: { t: state.seasonNo, r: state.round } } : {}) }
       pagaExDono(state, lote.nome, top.amount)
@@ -5939,7 +5958,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🕴️ ele vai pra aba SEM CLUBE — e se alguém o contratar depois, você
       // recupera METADE do preço (regra do Diego: "recupera uma parte")
       s.careerTecnicoExDono = { ...(s.careerTecnicoExDono ?? {}), [nome]: you.teamName }
-      s.aliciarLog = { titulo: `👋 ${nome} se foi`, corpo: `Contrato encerrado, sem multa — ele está na aba SEM CLUBE. Se alguém o contratar, você recupera METADE do preço. O time volta ao feijão-com-arroz até você aliciar outro.`, venceu: false }
+      limpaHeranca(s, you.teamName) // 🧳 o cardápio dele vai junto (regra do Diego)
+      s.aliciarLog = { titulo: `👋 ${nome} se foi`, corpo: `Contrato encerrado, sem multa — ele está na aba SEM CLUBE. Se alguém o contratar, você recupera METADE do preço. O time fica SÓ com a formação que está jogando até você sondar outro técnico.`, venceu: false }
       return s
     }
     case 'FORMATION_UNLOCK': {

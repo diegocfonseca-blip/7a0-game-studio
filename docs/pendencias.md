@@ -10655,6 +10655,19 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🧳 TÉCNICO SAIU = CARDÁPIO ZERADO (28/08, Diego: "quando ele vende o
+      técnico ou demite, as formações do técnico antigo somem também, seja a de
+      herança ou a do técnico atual que está saindo. E com isso fica somente a
+      formação que ele está jogando + a do novo técnico. E caso acabe contrato
+      ou demita, também fica só com a atual e perde todas as formações que tinha
+      do técnico"). Implementado com o helper `limpaHeranca(s, teamName)` em
+      store.tsx, chamado em TODA saída: DISPENSAR_TECNICO (fim de contrato) e no
+      leilão quando um rival leva o técnico (limpa o clube de origem e o clube
+      que o comprador largou). Contratar outro tendo um já funcionava: a
+      herança é REGRAVADA com a formação em uso na hora do martelo — nunca
+      acumula herança de dois técnicos. A maquiagem também é preservada: quem
+      joga 4-2-3-1 fica com 4-2-3-1 (não com o motor 4-5-1 cru).
+      Texto do aviso de saída corrigido (dizia "volta ao feijão-com-arroz").
 - [x] 🔒 SEM TÉCNICO = SÓ A FORMAÇÃO EM USO (28/08, pergunta do Diego pensando
       na LIBERAÇÃO GERAL: "como vai funcionar com quem já tem cinco formações e
       está jogando? O certo seria remover todas e manter só a que ele está

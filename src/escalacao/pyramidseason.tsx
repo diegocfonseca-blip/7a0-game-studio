@@ -3622,8 +3622,10 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
           const atual = formacaoAtual(mgr)
           // 🧢 v3-v5 (Diego 26/08): o cardápio é do TÉCNICO (categoria corta a
           // quantidade; Lenda = 5) + a formação DA CASA 🏠 (a que o time já usava
-          // quando ele chegou — não dobra se ele já a usa). Sem técnico, só o
-          // feijão-com-arroz: 4-3-3 e 4-4-2. A ATUAL nunca sai do cardápio.
+          // quando ele chegou — não dobra se ele já a usa). Sem técnico, SÓ a
+          // atual (v7, 28/08). A ATUAL nunca sai do cardápio.
+          // 🧳 E quando o técnico SAI, a herança é apagada no reducer
+          // (limpaHeranca): nada do técnico velho sobrevive à saída dele.
           // 🧹 v6 (Diego: "não tem que ter no seletor não, apenas as formações"):
           // o seletor mostra SÓ o cardápio — botões limpos, sem cadeado nem selo.
           // O que cada técnico traz aparece na carta dele, lá no aliciar.
