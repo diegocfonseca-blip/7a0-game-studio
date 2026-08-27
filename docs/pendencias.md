@@ -10771,6 +10771,26 @@ inofensivo porque a trava foi solta em 30/07 (a carta grava na hora), só que o
 comentário virou mentira pra quem ler depois. Vale corrigir o texto quando alguém
 encostar ali.
 
+### ➕ Rodada 2 do desenho (27/08, mockups mandados)
+Depois de ver a 1ª capa ele pediu três coisas:
+1. **Banner DUPLO**: se a Copa dos 8 for de OUTRA pessoa, os dois campeões aparecem
+   GRANDES lado a lado na capa. (Se for o mesmo cara nas duas, vira um banner só com
+   as duas faixas — senão a capa repete a pessoa.)
+2. **Compartilhar a capa como IMAGEM**, com rodapé **dourado** `leilaolegends.com`.
+   ⚡ Isso já está 90% pronto: `jornal.tsx` desenha a capa num canvas e manda o PNG
+   por `navigator.share({files})`, com download de reserva no desktop
+   (`jornal.tsx:428-445`). Hoje a tarja do rodapé é VERDE com texto branco —
+   virar dourada é trocar duas cores.
+3. **A carta do campeão não pode abrir sozinha.** Palavras dele: *"não tem graça
+   aparecer automático sem o cara ver"*. O fluxo aprovado (mockup
+   `scripts/mockup-fluxo-carta-jornal.mjs`):
+   - **campeão** → banner do pacote, que FICA esperando o toque (hoje o pacote abre
+     sozinho quando `CARD_PICK_SECONDS = 45` zera, `screens.tsx:6346` — é isso que
+     ele reclamou) → ele vê a carta → **aí** entra o jornal;
+   - **tocou fora do banner**: fecha e a carta conta do mesmo jeito;
+   - **todos os outros** → jornal **de cara**, sem esperar o campeão (mantém a
+     decisão de 30/07, *"amigo ganhou não trava ninguém"*).
+
 ### ❌ Ideia descartada na mesma conversa
 "O clássico da rodada" (destacar o jogo entre dois humanos durante a simulação):
 **reprovada pelo Diego e ele tem razão** — no rápido o jogo DELE já é o foco da tela,

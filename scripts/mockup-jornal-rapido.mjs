@@ -67,6 +67,18 @@ const escudo = (letra, c1, c2) => `
     border:6px solid ${INK};background:linear-gradient(160deg,${c1},${c2});color:#fff;${OSW};font-size:52px;
     box-shadow:0 0 0 5px ${PAPEL}">${letra}</span>`
 
+// banner grande de um campeão (a "notícia" da capa)
+const banner = (faixa, tag, time, sub, letra, e1, e2, f1, f2, fitaBg) => `
+  <div style="flex:1;background:linear-gradient(160deg,${f1},${f2});border:5px solid ${INK};border-radius:8px;
+    padding:26px 20px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden">
+    <div style="position:absolute;top:28px;right:-64px;transform:rotate(34deg);background:${fitaBg};border-top:3px solid ${INK};
+      border-bottom:3px solid ${INK};${OSW};font-size:19px;padding:5px 74px;letter-spacing:.09em">${tag}</div>
+    <p style="${OSW};font-size:17px;color:rgba(255,255,255,.75);letter-spacing:.12em;margin:0 0 14px">${faixa}</p>
+    ${escudo(letra, e1, e2)}
+    <p style="${SERIF};font-weight:700;font-size:31px;color:#fff;margin:16px 0 0;text-align:center;line-height:1.1">${time}</p>
+    <p style="${SERIF};font-style:italic;font-size:18px;color:rgba(255,255,255,.82);margin:6px 0 0;text-align:center;line-height:1.3">${sub}</p>
+  </div>`
+
 const numero = (k, v) => `
   <tr style="border-top:2px solid rgba(0,0,0,.12)">
     <td style="padding:11px 0;${SERIF};font-weight:700;font-size:22px">${k}</td>
@@ -102,31 +114,35 @@ body{background:${CREME};width:1080px;padding:34px;font-family:system-ui}</style
   </div>
 
   <!-- manchete -->
-  <h1 style="${SERIF};font-weight:700;font-size:66px;line-height:1.08;margin:26px 0 0;text-transform:uppercase">
-    O MILHAÇA É CAMPEÃO — E O ARRUDA FICA DE FORA POR UM GOL!</h1>
+  <h1 style="${SERIF};font-weight:700;font-size:64px;line-height:1.08;margin:26px 0 0;text-transform:uppercase">
+    NOITE DE DOIS DONOS: O MILHAÇA LEVA A LIGA, O NEYMARZETTI LEVA A COPA!</h1>
   <p style="${SERIF};font-style:italic;font-size:26px;line-height:1.4;margin:16px 0 26px;color:rgba(0,0,0,.8)">
-    Noite de decisão na sala: taça pro Igor, a Copa dos 8 pro Diego e o Souza chorando
-    no vestiário com o mesmo número de pontos do oitavo colocado.</p>
+    O Igor foi campeão com 79 pontos e viu o Diego, que entrou na Copa em 8º, tirar a
+    taça dele na final. E o Souza chorou no vestiário: mesmos pontos do oitavo, fora por um gol.</p>
 
-  <!-- campeão + números -->
-  <div style="display:flex;gap:18px;align-items:stretch;margin-bottom:26px">
-    <div style="flex:1;background:linear-gradient(160deg,#2E9E5B,#14532d);border:4px solid ${INK};border-radius:8px;
-      padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden">
-      <div style="position:absolute;top:26px;right:-58px;transform:rotate(34deg);background:#DFF3E3;border-top:3px solid ${INK};
-        border-bottom:3px solid ${INK};${OSW};font-size:22px;padding:6px 70px;letter-spacing:.1em">CAMPEÃO</div>
-      ${escudo('M', '#F3B212', '#AE1A13')}
-      <p style="${SERIF};font-weight:700;font-size:32px;color:#fff;margin:16px 0 0">Milhaça FC</p>
-      <p style="${SERIF};font-style:italic;font-size:19px;color:rgba(255,255,255,.8);margin:6px 0 0">o time do Igor · 79 pontos</p>
+  <!-- 🏆🥇 BANNER DUPLO (pedido do Diego 27/08): quando a Copa dos 8 é de OUTRA
+       pessoa, os dois campeões vêm GRANDES lado a lado. Se for o mesmo cara nas
+       duas, vira UM banner só, com as duas faixas — senão a capa repete a pessoa. -->
+  <div style="display:flex;gap:18px;align-items:stretch;margin-bottom:18px">
+    ${banner('LIGA LEGENDS', 'CAMPEÃO DA LIGA', 'Milhaça FC', 'o time do Igor · 79 pontos', 'M', '#F3B212', '#AE1A13', '#2E9E5B', '#14532d', '#DFF3E3')}
+    ${banner('COPA DOS 8', 'CAMPEÃO DA COPA', 'Neymarzetti', 'o time do Diego · bateu o Milhaça na final', 'N', '#B6B7B8', '#141416', '#8B5CF6', '#4C1D95', '#EDE7FF')}
+  </div>
+
+  <!-- números dos dois -->
+  <div style="display:flex;gap:18px;margin-bottom:26px">
+    <div style="flex:1;background:#fff;border:4px solid ${INK};border-radius:8px;overflow:hidden">
+      <p style="${OSW};font-size:20px;background:${INK};color:#fff;padding:11px 15px;letter-spacing:.05em">OS NÚMEROS DO CAMPEÃO DA LIGA</p>
+      <table style="width:100%;border-collapse:collapse">
+        <tbody style="display:table;width:calc(100% - 30px);margin:0 15px">
+          ${numero('Pontos', '79')}${numero('V · E · D', '24·7·7')}${numero('Gols', '71/34')}${numero('Saldo', '+37')}
+        </tbody>
+      </table>
     </div>
     <div style="flex:1;background:#fff;border:4px solid ${INK};border-radius:8px;overflow:hidden">
-      <p style="${OSW};font-size:22px;background:${INK};color:#fff;padding:12px 16px;letter-spacing:.05em">OS NÚMEROS DO CAMPEÃO</p>
-      <table style="width:100%;border-collapse:collapse;padding:0 16px">
-        <tbody style="display:table;width:calc(100% - 32px);margin:0 16px">
-          ${numero('Posição', '1º')}
-          ${numero('Pontos', '79')}
-          ${numero('V · E · D', '24·7·7')}
-          ${numero('Gols (pró/contra)', '71/34')}
-          ${numero('Saldo', '+37')}
+      <p style="${OSW};font-size:20px;background:${INK};color:#fff;padding:11px 15px;letter-spacing:.05em">A CAMPANHA NA COPA</p>
+      <table style="width:100%;border-collapse:collapse">
+        <tbody style="display:table;width:calc(100% - 30px);margin:0 15px">
+          ${numero('Entrou como', '8º')}${numero('Quartas', 'bateu o Skyy')}${numero('Semi', 'bateu o Nata')}${numero('Final', '2×1 no Milhaça')}
         </tbody>
       </table>
     </div>
@@ -156,14 +172,27 @@ body{background:${CREME};width:1080px;padding:34px;font-family:system-ui}</style
     <div style="background:#fff">${SALA.map(linhaSala).join('')}</div>
   </div>
 
-  <!-- rodapé -->
-  <div style="display:flex;gap:14px;margin-top:26px">
-    <div style="flex:1;background:${GREEN};color:#fff;border:4px solid ${INK};border-radius:10px;box-shadow:5px 5px 0 ${INK};
-      padding:18px;text-align:center;${OSW};font-size:28px">📲 Mandar no grupo</div>
-    <div style="flex:none;background:#fff;border:4px solid ${INK};border-radius:10px;box-shadow:5px 5px 0 ${INK};
-      padding:18px 34px;${OSW};font-size:28px">Fechar</div>
+  <!-- 🥇 RODAPÉ DOURADO (pedido do Diego): é ele que VAI JUNTO na imagem
+       compartilhada. Hoje, no jornal da carreira, essa tarja é VERDE com texto
+       branco (jornal.tsx:428) — virar dourada é trocar duas cores. -->
+  <div style="margin-top:26px;background:linear-gradient(100deg,#FFD44A,${GOLD} 45%,#E0A800);
+    border:5px solid ${INK};border-radius:10px;padding:20px;text-align:center;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.55) 48%,transparent 63%)"></div>
+    <p style="${OSW};font-size:34px;position:relative;letter-spacing:.03em">🔨 leilaolegends.com</p>
+    <p style="${SERIF};font-style:italic;font-size:20px;position:relative;margin-top:2px;color:rgba(0,0,0,.7)">
+      monta o teu time e chama a galera</p>
   </div>
 </div>
+
+<!-- botões (ficam FORA do papel: não entram na imagem compartilhada) -->
+<div style="display:flex;gap:14px;margin-top:20px">
+  <div style="flex:1;background:${GREEN};color:#fff;border:5px solid ${INK};border-radius:12px;box-shadow:6px 6px 0 ${INK};
+    padding:20px;text-align:center;${OSW};font-size:30px">📲 Compartilhar o jornal</div>
+  <div style="flex:none;background:#fff;border:5px solid ${INK};border-radius:12px;box-shadow:6px 6px 0 ${INK};
+    padding:20px 38px;${OSW};font-size:30px">Fechar</div>
+</div>
+<p style="${SERIF};font-style:italic;font-size:20px;text-align:center;color:rgba(0,0,0,.6);margin-top:12px">
+  manda a capa <b>do jeito que ela está aqui</b> — vira uma imagem PNG e vai pro grupo</p>
 <p style="text-align:center;${OSW};font-size:19px;color:rgba(0,0,0,.5);margin-top:18px">
   🔨 mockup — não está no jogo · leilaolegends.com</p>
 </body>`
