@@ -23,6 +23,7 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
@@ -8555,6 +8556,21 @@ export function EscEnd() {
           DECIDIDA (liga-só, ou depois da Copa): durante a espera da Copa
           (copaPending) ainda falta o campeão dela, e gravar antes escreveria
           campeão pela metade. */}
+      {/* 📰 O MARTELO · EDIÇÃO DA SALA (Diego 27/08) — a capa do fim de jogo, só
+          com os USUÁRIOS: manchete, banner de quem levou a liga e de quem levou a
+          Copa (quando são pessoas diferentes), os donos da noite e uma linha
+          criativa pra cada técnico, cruzando liga + Copa.
+          🔒 Só entra quando NÃO falta mais nada pra jogar — senão o jornal daria
+          campeão de Copa antes da Copa acontecer (spoiler + mentira). Por isso as
+          três travas: `!copaPending`, `!libPending` e, na Libertadores, exigir que
+          o mata-mata dela tenha fechado.
+          🃏 Fica ABAIXO da carta do campeão de propósito: o pacote é um popup por
+          cima (portal), então o campeão vê a carta primeiro e cai no jornal quando
+          fecha — e a gravação da carta, que dispara ao montar aquela tela, não é
+          atrasada por nada daqui. */}
+      {online && !copaPending && !libPending && (!state.liberta || copaDone) && (
+        <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} />
+      )}
       {online && state.roomId && !state.careerOnline && !copaPending && !libPending && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
         return (
