@@ -698,6 +698,15 @@ export interface EscState {
   // → encerra no fim da T+4). Vencido → aba de renovar junto com os jogadores.
   // Chave = teamName do humano.
   careerTecnicoContrato?: Record<string, number>
+  // 🕴️ ex-dono HUMANO de técnico liberado no fim de contrato: quando ALGUÉM
+  // contratar esse técnico depois, o ex-dono recupera METADE do preço (regra do
+  // Diego 27/08: "deixar ir não paga multa e ainda recupera uma parte").
+  // Chave = nome do técnico → teamName do ex-dono. Apaga ao pagar.
+  careerTecnicoExDono?: Record<string, string>
+  // 🤖 vida dos técnicos dos BOTS: roda no MÁXIMO 1× por temporada e SÓ na
+  // rodada 0 (virada) — bot contratar/trocar técnico ou formação no meio da
+  // temporada re-simularia rodada já vista e mudaria placar (proibido).
+  tecnicosVidaSeason?: number
   // resultado do último leilão de aliciar (transiente, só pra tela contar a história)
   aliciarLog?: { titulo: string; corpo: string; venceu: boolean }
   scorers: ScorerRow[] // artilharia acumulada da temporada

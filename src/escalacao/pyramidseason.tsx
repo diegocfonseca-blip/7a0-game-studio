@@ -27,7 +27,7 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do cl
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
-import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV } from './tecnicos'
+import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
@@ -3484,6 +3484,62 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
           </div>
         )
       })}
+      {(() => {
+        // 🕴️ ABA SEM CLUBE (27/08): os técnicos livres da divisão — os que os bots
+        // largaram na dança e os que nunca foram semeados. Leilão SÓ você × os
+        // bots da divisão (ninguém defende). Mesma vitrine às cegas: só o nome.
+        const usados = new Set(Object.values(map).filter(Boolean))
+        const div = (state.careerDivision ?? 'D') as DivTec
+        const livres = poolDaDiv(div).filter(tt => !usados.has(tt.nome))
+        if (!livres.length) return null
+        return (
+          <>
+            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '12px 0 3px', color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', letterSpacing: '.1em' }}>🕴️ Sem clube</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Técnicos livres da {divRot}. Aqui <b>ninguém defende</b> — o leilão é você × os bots da divisão.</p>
+            {livres.map(tt => {
+              const chave = `livre:${tt.nome}`
+              const abertoAqui = aberto === chave
+              const minL = Math.max(1, valorDe(tt.nome))
+              return (
+                <div key={chave} style={{ marginBottom: 7 }}>
+                  <button onClick={() => { setAberto(abertoAqui ? null : chave); setSelJog(null); setArmado(false); setLance(Math.max(minL, Math.min(coins - multa, minL))) }}
+                    style={{ width: '100%', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 12.5, border: `3px dashed ${INK}`, borderRadius: 12, background: '#FBF6E8', padding: '9px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: INK }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🕴️ {tt.nome} {tt.pais}</span>
+                    <span style={{ fontSize: 10, opacity: .55, flex: 'none' }}>{abertoAqui ? '▾' : '›'}</span>
+                  </button>
+                  {abertoAqui && (
+                    <div style={{ border: `3px dashed ${INK}`, borderTop: 'none', borderRadius: '0 0 12px 12px', background: 'rgba(255,255,255,.75)', padding: '10px 10px 12px', margin: '0 3px' }}>
+                      <CartaTecnico nome={tt.nome} misterio />
+                      <div style={{ marginTop: 9 }}>
+                        <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '0 0 5px', textAlign: 'center' }}>💰 valor de mercado: <b>{valorDe(tt.nome) || '— (nunca teve lance)'}</b> · sua caixa: <b>🪙 {coins}</b></p>
+                        {meu && (
+                          <p style={{ fontSize: 9.5, fontWeight: 800, color: '#C2452F', margin: '0 0 7px', lineHeight: 1.4, background: '#FDEEEA', border: '2px solid #C2452F', borderRadius: 9, padding: '5px 8px' }}>
+                            ⚠️ Você já tem técnico (<b>{meu}</b>). Aliciar outro <b>DEMITE ele NA HORA</b> com multa de <b>💰 {multa}</b> — e você ainda pode perder o leilão pros bots.
+                          </p>
+                        )}
+                        {coins >= multa + minL ? (
+                          <>
+                            <LanceStepper v={lance} piso={minL} teto={Math.max(minL, coins - multa)} onSet={setLance} />
+                            {meu && !armado ? (
+                              <button onClick={() => setArmado(true)}
+                                style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', background: '#C2452F', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>🔥 Demitir {meu} e ir pro leilão…</button>
+                            ) : (
+                              <button onClick={() => { dispatch({ type: 'ALICIAR_LIVRE', nome: tt.nome, lance }); setArmado(false) }}
+                                style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 0', cursor: 'pointer' }}>{meu ? `🔨 Confirmar: multa 💰 ${multa} + lance 💰 ${lance}` : '🔨 Aliciar pro leilão'}</button>
+                            )}
+                          </>
+                        ) : (
+                          <p style={{ fontSize: 10.5, fontWeight: 800, color: '#C2452F', margin: 0, textAlign: 'center' }}>Sua caixa não cobre {meu ? `a multa (💰 ${multa}) + o lance mínimo (💰 ${minL})` : `o lance mínimo (💰 ${minL})`}.</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </>
+        )
+      })()}
       <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0 0' }}>⚔️ = rival seu · as outras divisões ficam no mistério</p>
     </div>
   )

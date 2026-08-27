@@ -10583,6 +10583,26 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       atual NA HORA com multa = valor dele (botão em 2 toques com aviso) — e
       pode ainda PERDER o leilão e ficar sem nada, como o Diego quis ("já era,
       paga na hora"). Multa e contratação aparecem no Extrato (logFin).
+- [x] Técnico v9 (Diego 27/08): ABA SEM CLUBE + vida dos bots.
+      · Deixar ir no fim do contrato → o técnico vai pra aba 🕴️ SEM CLUBE e o
+        ex-dono fica registrado (`careerTecnicoExDono`): quando ALGUÉM o
+        contratar, o ex-dono recupera METADE do preço ("recupera uma parte").
+      · Aba SEM CLUBE no aliciar: técnicos livres da divisão, leilão SÓ você ×
+        bots da divisão (ninguém defende) — ALICIAR_LIVRE, mesma economia.
+      · Bot que compra técnico TENDO um: o antigo vai pra SEM CLUBE (não pro
+        clube que perdeu — esse fica sem).
+      · Só bots da SUA divisão disputam leilão de técnico (já era assim).
+      · VIDA DOS BOTS (1× por temporada, SÓ na rodada 0 — regra anti-placar-
+        mudou): bot sem técnico contrata um livre (preço com inflação de ~4%/
+        temporada — "as coisas vão ficando mais caras"), o mercado aprende, e
+        ex-dono humano recebe a metade. Bot com técnico pode TROCAR DE FORMAÇÃO
+        pra uma do repertório do técnico dele — SÓ se o elenco preencher a conta
+        (com elencos de 11 moldados isso raramente cabe hoje; quando bots
+        ganharem elenco fundo, acontece sozinho). Trocar no meio da temporada é
+        PROIBIDO (mudaria placar já visto).
+      ⚠️ Limite conhecido: dentro de UMA divisão todos os técnicos têm a mesma
+      categoria, então "bot troca por um melhor" só fará sentido quando técnico
+      livre de outra divisão circular — anotado pra v10.
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.
