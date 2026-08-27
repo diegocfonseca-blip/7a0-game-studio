@@ -10486,6 +10486,18 @@ que leva craque e leva o Saci.
 
 ⚠️ Nada disso está no código ainda. **É rascunho escrito.** O futebol não foi tocado.
 
+## 🦇 ESCUDO DO PAIXANDU = ESCUDO DO NEYMARZETTI (27/08, print do Diego) ✅ CURA v2
+A cura de 25/08 do bot-clone devolvia o robô pro nome VELHO da corrente
+(Neymarzetti → Paixandu). Só que o nome velho de clube batizado é **ALIAS do
+escudo novo** (`escudos.tsx` registra `Paixandu: neymarzettiEscudoRender` de
+propósito, pra save antigo abrir com a arte nova) — então o bot "Paixandu"
+aparecia na tabela com o escudo do Diego. Cura v2 (migrateTeamNames +
+CONTINUE_CAREER): bot xará OU preso na corrente do clube do jogador vira um
+clube **NEUTRO dos baralhos** (fora da corrente, sem xará na sala; dois clones
+nunca caem no mesmo nome). Roda sozinha ao abrir o save — o Paixandu do save
+dele vira outro clube na próxima carga. 📌 Lição: nome velho de batismo NUNCA
+é "livre" — ele carrega a arte do novo.
+
 ## 🪪 CRAQUE DO TAVARES13 — e-mail errado no painel (26/08) ✅ RESOLVIDO NO BANCO
 O Diego deu craque (prata ⭐) pra `guilhermeabreu66@gmail.com` pelo painel — o tier
 GRAVOU certinho no `user_colors`, mas **não existe conta com esse e-mail** (conferido
@@ -10633,6 +10645,67 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
         a linha mostra "📝 faltam N temporadas" ou "🆓 SEM contrato".
       · Jogador levado no pregão nasce com contrato de 5 (contratoAte).
       · A carta do SEU técnico agora mostra "contrato: faltam N temporadas".
+- [x] 🎯 v12 (27/08, o Diego esclareceu DE VEZ, com razão e bronca): jogador
+      aliciado NÃO tem pregão separado — "é a mesma coisa de listar pra venda:
+      ele vai pro LEILÃO!, só que nesse eu POSSO dar lance". Implementado: a
+      carta aliciada sai do clube dono e entra no BARALHO NORMAL do setor dela
+      no leilão de reservas, com `seller` = o dono (ele recebe a grana e entra
+      em marketSellers pra brigar de volta). Regras normais do leilão valem.
+      E o TÉCNICO "é como se fosse uma POSIÇÃO a mais — aparece ANTES do
+      goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
+      TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
+      Lote de jogador no pregão do técnico não existe mais.
+- [x] 🕵️ v16 — BATIZADO: "SONDAR" + HISTORINHAS DE BASTIDOR (28/08, decisão do
+      Diego: "Sondar é melhor. E tem que criar historinha também… mesmo sem
+      clube o técnico tá querendo fazer leilão e tá pedindo LUVAS, então não
+      tem jeito, vai pro pregão"). (a) Toda a UI da carreira trocou
+      aliciar→sondar (pílula 🕵️ Sondar, seção "🕵️ Sondar · divisão", botões
+      "Sondar pro leilão", "✔ Sondado", travas "já sondou 1", "🆓 + sondar");
+      os NOMES INTERNOS (ALICIAR_MARCAR, aliciarTecnicos…) ficaram — save não
+      quebra, é só texto. O modo DINASTIA (no ar pra todos) ainda diz "Aliciar"
+      — NÃO mexi sem OK do Diego (regra do visual ao vivo); alinhar se ele
+      pedir. (b) `historiaSondagem()` em tecnicos.ts: 5 historinhas por tipo
+      (técnico com clube · técnico sem clube pedindo LUVAS · jogador),
+      escolha DETERMINÍSTICA por nome+clube+temporada (nada de Math.random no
+      render). Aparecem num box 📰 "Bastidor": na hora de marcar (embaixo do
+      botão / da linha do jogador) e DE NOVO no cabeçalho do setor TÉCNICO
+      dentro do pregão (Envelope, screens.tsx).
+- [x] 🎯 v15 — PÍLULAS VENDER · ALICIAR na tela de LISTAR PRA LEILÃO (27/08,
+      pedido do Diego: "a aba do aliciamento deve aparecer aqui nessa parte…
+      duas pílulas no rodapé — Vender e Aliciar; Vender já é a que está aí
+      mesmo"). Motivo: essa tela não tem a barra de abas do jogo, então o
+      aliciar (que morava só no fim da aba Elenco) ficava inalcançável na hora
+      de listar. Agora, logo abaixo do cabeçalho: 📋 Vender (a tela de sempre:
+      contratos, listagem, avisos) · 🎯 Aliciar (a MESMA AliciarSection do
+      Elenco, com contador na pílula quando tem marcado). Botão "▶️ Começar o
+      leilão" visível nas duas. Só offline + conta liberada (quinzeRL) + nunca
+      em "mesmo time". A cópia do Elenco CONTINUA lá (não removida — decidir
+      com o Diego se fica nos dois lugares).
+      ❓ Diego perguntou que nome usaria no lugar de "aliciar" — sugeri
+      🕵️ SONDAR (termo real de futebol) / NA MIRA / GARIMPAR; troca é só texto,
+      nada de motor. Aguardando ele escolher (ou manter Aliciar).
+- [x] 🧢 v14 — A FORMA FINAL (27/08, bronca merecida do Diego: "é IDÊNTICO ao
+      leilão normal! Só vem antes do goleiro. Como se fosse uma posição nova
+      apenas"): a tela paralela MORREU DE VEZ. O técnico aliciado agora é
+      servido DENTRO do pregão real (EscAuction): `tecLote` no estado; o
+      startAuctionPhase abre o setor "🔨 TÉCNICO" antes dos goleiros com a MESMA
+      fase de envelope (relógio, lacre, CardFace com cara TEC às cegas, piso via
+      `paid`), sealAndResolveTec resolve com a MESMA população de bidders
+      (auctioningManagers + dono defendendo, empate = você) e a revelação usa a
+      MESMA tela de martelo (sem lance → "o técnico fica onde está"). afterReveal
+      limpa o lote e segue pros goleiros. Removidos: tela 'aliciarPregao',
+      AliciarPregaoScreen, ALICIAR_RESOLVER/ALICIAR_PREGAO_FIM, LoteAliciado.
+      Vitória humana: multa do antigo + contrato 5 + formação da casa + valor de
+      mercado + ex-dono, tudo dentro do martelo; dinheiro via m.money (vira caixa
+      na cerimônia, como toda compra de leilão).
+- [x] 🧑‍⚖️ v13 (27/08, decisão do Diego): o setor TÉCNICO usa o MESMO MOTOR de
+      participantes do leilão de jogadores — quem dá lance é auctioningManagers
+      (você + seus rivais escolhidos, de qualquer divisão, cada um decidindo se
+      entra ou não; bot de preenchimento NUNCA) + o dono defendendo. Técnico só
+      aparece no leilão quando aliciado. Com isso o técnico levado por rival de
+      outra divisão VIAJA com ele — os técnicos se espalham pelo mundo sozinhos.
+      💡 Ideia anotada (não aprovada ainda): "paraquedas" raro — técnico grande
+      demitido caindo no sem-clube de divisão de baixo, tipo 1× por carreira.
 - [ ] Técnico v3 (combinar com o Diego): efeito do técnico na COPA/mata-mata e
       Libertadores da carreira (hoje é só liga); bots trocarem de técnico entre
       temporadas (vida própria); zoeira de demissão/entrevista.

@@ -5,7 +5,6 @@ import type {
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, AssistRow, TieBreak,
   QuickCopaState, QuickCopaTie, LibertaState, LibertaTeam, LedgerEntry, EmpCard, AgCard, AgEvento,
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame,
-  LoteAliciado,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
@@ -1997,9 +1996,34 @@ function migrateTeamNames(st: EscState): EscState {
     const novo = newestTeamName(nome)
     return (meuTime && novo !== nome && mesmoNomeTime(novo, meuTime)) ? nome : novo
   }
-  // o primeiro nome VELHO da corrente que não seja xará do clube do jogador
-  const velhoLivre = meuTime ? (oldChain(newestTeamName(meuTime)).find(v => !mesmoNomeTime(v, meuTime)) ?? null) : null
-  const cura = (nome: string): string => (velhoLivre && meuTime && mesmoNomeTime(nome, meuTime)) ? velhoLivre : nome
+  // 🩹 CURA v2 (27/08, print do Diego: "Paixandu tá com a logo do Neymarzetti"):
+  // a cura de 25/08 devolvia o bot-clone pro nome VELHO da corrente — só que o
+  // nome velho de clube batizado é ALIAS do escudo novo (escudos.tsx registra o
+  // nome antigo apontando pra MESMA arte, pra save antigo abrir certo). Bot com
+  // o nome velho = bot com o SEU escudo. Agora o clone (e qualquer bot preso na
+  // corrente do clube do jogador) vira um clube NEUTRO dos baralhos, sem xará na
+  // sala e fora da corrente.
+  const chainMeu = meuTime ? [newestTeamName(meuTime), ...oldChain(newestTeamName(meuTime))] : []
+  const emUso: string[] = [
+    ...(Array.isArray(st.managers) ? st.managers.map(m => m.teamName) : []),
+    ...(st.careerRivals ?? []).map(r => r.team),
+  ]
+  const neutroLivre = (): string | null => {
+    const pools = [...DIVISION_TEAMS.D, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.A, ...EXTRA_D_TEAMS, ...VARZEA_TEAMS]
+    for (const t of pools) {
+      if (chainMeu.some(v => mesmoNomeTime(v, t.team))) continue
+      if (emUso.some(u => mesmoNomeTime(u, t.team))) continue
+      emUso.push(t.team) // dois clones não podem cair no mesmo nome
+      return t.team
+    }
+    return null
+  }
+  const cura = (nome: string): string => {
+    if (!meuTime) return nome
+    const preso = mesmoNomeTime(nome, meuTime) || chainMeu.some(v => mesmoNomeTime(v, nome))
+    if (!preso) return nome
+    return neutroLivre() ?? nome
+  }
   const nomeDeBot = (nome: string): string => cura(rebatiza(nome))
   if (Array.isArray(st.managers)) st.managers = st.managers.map(m => m.isHuman ? m : { ...m, teamName: nomeDeBot(m.teamName) })
   if (st.careerRivals) st.careerRivals = st.careerRivals.map(r => ({ ...r, team: nomeDeBot(r.team) }))
@@ -3018,8 +3042,6 @@ type Action =
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
   | { type: 'ALICIAR_SEED' } // 🧢 semeia os técnicos dos clubes da SUA divisão (1ª visita à área de aliciar; idempotente)
   | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão
-  | { type: 'ALICIAR_RESOLVER'; lances: Record<string, number> } // 🔨 martelo do pregão dos aliciados: seus envelopes (chave 'tec:nome' / 'jog:cardId'; 0 = passou)
-  | { type: 'ALICIAR_PREGAO_FIM' } // fecha o pregão dos aliciados e segue pro leilão normal
   | { type: 'RENOVAR_TECNICO' } // 📝 contrato do técnico venceu (5 anos): +5 temporadas pagando o valor dele
   | { type: 'DISPENSAR_TECNICO' } // 📝 contrato venceu: deixa ir sem multa
   | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
@@ -3214,6 +3236,20 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
     dedupeDeck(state.deck)
     if (state.stock) for (const p of SECTORS) state.stock[p] = state.deck[p].length
   }
+  // 🧢 SETOR TÉCNICO: quando há um técnico aliciado, ele é a PRIMEIRA "posição"
+  // do pregão — mesma fase de envelope, mesmo relógio, mesma revelação. Resolve
+  // e o leilão segue pros goleiros como sempre (afterReveal limpa o lote).
+  if (state.tecLote && !rescue) {
+    state.phase = 'envelope'
+    state.currentCards = [{ id: `tec:${state.tecLote.nome}`, name: state.tecLote.nome, club: state.tecLote.clube ?? 'Sem clube', year: 0, pos: 'GOL', fame: 1, lo: 0, hi: 0, ...(state.tecLote.piso > 1 ? { paid: state.tecLote.piso } : {}) } as Card]
+    state.revealQueue = []
+    state.revealIdx = 0
+    state.submitted = []
+    state.pendingEnvelopes = {}
+    state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ((state.auctionSecs && state.auctionSecs > 0 ? state.auctionSecs * 1000 : ENVELOPE_MS))
+    if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[state.sectorIdx]).length === 0) sealAndResolve(state)
+    return
+  }
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
@@ -3251,8 +3287,94 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   }
 }
 
+// 🧢 resolve o SETOR TÉCNICO: mesmos envelopes, mas o arremate move TÉCNICO
+// (nunca entra carta no elenco de ninguém). Quem pode dar lance = a MESMA
+// população do leilão de jogadores (auctioningManagers) + o dono defendendo.
+// Ninguém cobriu? O técnico fica onde está — regra do Diego.
+function sealAndResolveTec(state: EscState) {
+  const lote = state.tecLote
+  if (!lote) return
+  const card = state.currentCards[0]
+  const rng = mulberry((((state.seed ^ 0x7EC5EA) + state.seasonNo * 3571) | 0) >>> 0)
+  const t = tecnicoPorNome(lote.nome)
+  const base = t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso
+  const minL = Math.max(1, lote.piso)
+  const donoM = lote.clube ? state.managers.find(m => m.teamName === lote.clube) : undefined
+  const bids: Bid[] = []
+  for (const [mgrIdStr, env] of Object.entries(state.pendingEnvelopes)) {
+    const hb = env.find(x => x.cardId === card.id)
+    if (hb && hb.amount >= minL) bids.push({ mgr: Number(mgrIdStr), amount: hb.amount })
+  }
+  for (const m of auctioningManagers(state.managers)) {
+    if (m.isHuman || (donoM && m.id === donoM.id)) continue
+    if (rng() < 0.35) bids.push({ mgr: m.id, amount: Math.max(minL, Math.round(base * (0.85 + rng() * 1.2))) })
+  }
+  if (donoM && rng() < 0.6) bids.push({ mgr: donoM.id, amount: Math.max(minL, Math.round(base * (1 + rng() * 1.1))) })
+  const ehHumano = (id: number) => !!state.managers.find(m => m.id === id)?.isHuman
+  const sorted = bids.sort((a, b) => b.amount - a.amount || (ehHumano(a.mgr) ? -1 : 1)) // empate: você leva
+  const top = sorted[0]
+  const winM = top ? state.managers.find(m => m.id === top.mgr) : undefined
+  if (winM && !(donoM && winM.id === donoM.id)) {
+    const map = { ...(state.careerTecnicos ?? {}) }
+    const pago = { ...(state.careerTecnicoPago ?? {}) }
+    if (winM.isHuman) {
+      // 🔥 já tinha técnico? demitido AGORA, com multa = o valor dele
+      const meuAntigo = map[winM.teamName] ?? null
+      let custo = top.amount
+      if (meuAntigo) {
+        const multa = pago[meuAntigo] ?? 0
+        custo += multa
+        map[winM.teamName] = null
+        const ct = { ...(state.careerTecnicoContrato ?? {}) }
+        delete ct[winM.teamName]
+        state.careerTecnicoContrato = ct
+        logFin(state, 'salary', `🔥 Multa de demissão do técnico ${meuAntigo}`, -multa, undefined, winM.id)
+      }
+      winM.money = Math.max(0, winM.money - custo)
+      pago[lote.nome] = top.amount
+      if (lote.clube) map[lote.clube] = null
+      map[winM.teamName] = lote.nome
+      state.careerTecnicoContrato = { ...(state.careerTecnicoContrato ?? {}), [winM.teamName]: state.seasonNo + 4 } // 📝 5 temporadas
+      state.careerTecnicosDesde = { ...(state.careerTecnicosDesde ?? {}), [winM.teamName]: { t: state.seasonNo, r: state.round }, ...(lote.clube ? { [lote.clube]: { t: state.seasonNo, r: state.round } } : {}) }
+      if (t) {
+        // 🏠 formação da casa: a que o time já usava soma ao cardápio (sem dobrar)
+        const rotAtual = formacaoAtual(winM).rotulo
+        const extra = { ...(state.careerFormacaoExtra ?? {}) }
+        if (fichaDoTecnico(t).formacoes.includes(rotAtual)) delete extra[winM.teamName]
+        else extra[winM.teamName] = rotAtual
+        state.careerFormacaoExtra = extra
+      }
+      logFin(state, 'buy', `🧢 Contratação do técnico ${lote.nome}`, -top.amount, undefined, winM.id)
+      pagaExDono(state, lote.nome, top.amount, winM.teamName)
+    } else {
+      // rival levou: o técnico viaja com ele (o antigo do rival vira SEM CLUBE)
+      winM.money = Math.max(0, winM.money - top.amount)
+      pago[lote.nome] = top.amount
+      if (lote.clube) map[lote.clube] = null
+      map[winM.teamName] = lote.nome
+      state.careerTecnicosDesde = { ...(state.careerTecnicosDesde ?? {}), [winM.teamName]: { t: state.seasonNo, r: state.round }, ...(lote.clube ? { [lote.clube]: { t: state.seasonNo, r: state.round } } : {}) }
+      pagaExDono(state, lote.nome, top.amount)
+    }
+    state.careerTecnicos = map
+    state.careerTecnicoPago = pago
+  }
+  mirrorWallets(state)
+  // revelação IGUAL à dos jogadores: carta + lances + martelo (winner=dono → "segurou")
+  state.revealQueue = [{ card, bids: sorted, winner: winM?.id ?? null, paid: top?.amount ?? 0, voided: [] }]
+  state.revealIdx = 0
+  state.currentCards = []
+  state.submitted = []
+  state.pendingEnvelopes = {}
+  state.tiebreaks = []
+  state.tiebreakIdx = 0
+  state.tiebreakPending = {}
+  state.phase = 'reveal'
+  state.phaseDeadline = null
+}
+
 // resolve o setor a partir dos envelopes coletados (humanos) + CPUs
 function sealAndResolve(state: EscState) {
+  if (state.tecLote) { sealAndResolveTec(state); return } // 🧢 setor técnico
   const rng = rngOf(state)
   const rescue = state.phase === 'resq_envelope'
   const bidMap: BidMap = new Map()
@@ -3381,7 +3503,8 @@ function envelopeQueCabe(s: EscState, mgrId: number, bids: { cardId: string; amo
 }
 
 function humansToSubmit(state: EscState, pos: Sector): number[] {
-  const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && openSlots(m, pos) > 0 && m.money > 0)
+  // 🧢 setor técnico: não existe "vaga de posição" — quem tem dinheiro dá lance
+  const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && (state.tecLote ? m.money > 0 : (openSlots(m, pos) > 0 && m.money > 0)))
   // 🏛️ MULTICLUBES / SOLO: no solo SÓ o assento ATIVO (youIdx) consegue lacrar
   // pela tela. Qualquer OUTRO assento humano (o 2º clube do Multiclubes — dormindo,
   // OU com o flag `dormindo` inconsistente por uma troca no meio do leilão) nunca
@@ -3411,6 +3534,13 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
 }
 
 function afterReveal(state: EscState) {
+  // 🧢 acabou a revelação do setor técnico: limpa o lote e abre os GOLEIROS
+  if (state.tecLote) {
+    state.tecLote = null
+    state.currentCards = []
+    startAuctionPhase(state, false)
+    return
+  }
   const rng = rngOf(state)
   const pos = SECTORS[state.sectorIdx]
   const unsold = state.currentCards
@@ -5774,137 +5904,6 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       return s
     }
-    case 'ALICIAR_RESOLVER': {
-      // 🔨 o martelo do pregão dos aliciados: recebe SEUS envelopes (0 = passou),
-      // sorteia os lances de rivais e do dono (determinístico) e resolve TODOS os
-      // lotes. Só então o leilão normal de reservas continua (ALICIAR_PREGAO_FIM).
-      const preg = s.aliciarPregao
-      if (!preg || preg.resultados) return s
-      const you = s.managers[s.youIdx]
-      if (!you?.isHuman) return s
-      const rng = mulberry((((s.seed ^ 0xA11C1A) + s.seasonNo * 4241) | 0) >>> 0)
-      const map = { ...(s.careerTecnicos ?? {}) }
-      const pago = { ...(s.careerTecnicoPago ?? {}) }
-      let coins = s.careerCoins?.[you.id] ?? 0
-      const resultados: { titulo: string; corpo: string; venceu: boolean }[] = []
-      for (const lote of preg.lotes) {
-        const chave = lote.tipo === 'tec' ? `tec:${lote.nome}` : `jog:${lote.cardId}`
-        const bruto = Math.floor(action.lances[chave] ?? 0)
-        // 💸 no técnico, LEVAR tendo técnico demite o atual com multa — o lance só
-        // vale se a caixa cobrir lance + multa (a multa é cobrada SÓ se você levar)
-        const multa = lote.tipo === 'tec' && map[you.teamName] ? (pago[map[you.teamName]!] ?? 0) : 0
-        const meu = bruto >= lote.piso && bruto + multa <= coins ? bruto : 0
-        type E = { nome: string; lance: number; quem: 'voce' | 'rival' | 'dono' }
-        const entrantes: E[] = []
-        if (meu > 0) entrantes.push({ nome: you.teamName, lance: meu, quem: 'voce' })
-        if (lote.tipo === 'tec') {
-          const t = tecnicoPorNome(lote.nome)
-          const base = t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso
-          for (const r of s.managers) {
-            if (r.isHuman || r.teamName === lote.clube) continue
-            if (rng() < 0.2) entrantes.push({ nome: r.teamName, lance: Math.round(base * (0.85 + rng() * 1.2)), quem: 'rival' })
-          }
-          // o dono defende COM CARA DE GENTE: nem sempre banca (às vezes deixa ir)
-          if (lote.clube && rng() < 0.6) entrantes.push({ nome: lote.clube, lance: Math.round(base * (1 + rng() * 1.1)), quem: 'dono' })
-        } else {
-          for (const r of s.managers) {
-            if (r.isHuman || r.id === lote.mgrId) continue
-            if (rng() < 0.12) entrantes.push({ nome: r.teamName, lance: Math.round(lote.piso * (0.9 + rng() * 1.0)), quem: 'rival' })
-          }
-          if (rng() < 0.55) entrantes.push({ nome: lote.clube, lance: Math.round(lote.piso * (1 + rng() * 0.9)), quem: 'dono' })
-        }
-        const validos = entrantes.filter(e => e.lance >= lote.piso)
-        validos.sort((a, b) => b.lance - a.lance || (a.quem === 'voce' ? -1 : 1)) // empate: você leva
-        const win = validos[0]
-        const placar = validos.map(e => `${e.quem === 'voce' ? 'Você' : e.nome}: ${e.lance}`).join(' · ') || 'ninguém deu lance'
-        const alvoNome = lote.tipo === 'tec' ? lote.nome : lote.nome
-        if (!win || win.quem === 'dono') {
-          resultados.push({ titulo: `🧱 ${alvoNome} ficou onde estava`, corpo: win ? `O ${win.nome} cobriu e segurou (${placar}).` : `Ninguém deu lance (piso ${lote.piso} 🪙) — segue tudo como era.`, venceu: false })
-          continue
-        }
-        if (lote.tipo === 'tec') {
-          if (win.quem === 'voce') {
-            const meuAntigo = map[you.teamName] ?? null
-            if (meuAntigo) {
-              coins -= multa
-              map[you.teamName] = null
-              const ct = { ...(s.careerTecnicoContrato ?? {}) }
-              delete ct[you.teamName]
-              s.careerTecnicoContrato = ct
-              logFin(s, 'salary', `🔥 Multa de demissão do técnico ${meuAntigo}`, -multa)
-            }
-            coins -= win.lance
-            pago[lote.nome] = win.lance
-            if (lote.clube) map[lote.clube] = null
-            map[you.teamName] = lote.nome
-            s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [you.teamName]: s.seasonNo + 4 }
-            s.careerTecnicosDesde = { ...(s.careerTecnicosDesde ?? {}), [you.teamName]: { t: s.seasonNo, r: s.round }, ...(lote.clube ? { [lote.clube]: { t: s.seasonNo, r: s.round } } : {}) }
-            const t = tecnicoPorNome(lote.nome)
-            if (t) {
-              const rotAtual = formacaoAtual(you).rotulo
-              const extra = { ...(s.careerFormacaoExtra ?? {}) }
-              if (fichaDoTecnico(t).formacoes.includes(rotAtual)) delete extra[you.teamName]
-              else extra[you.teamName] = rotAtual
-              s.careerFormacaoExtra = extra
-            }
-            logFin(s, 'buy', `🧢 Contratação do técnico ${lote.nome}`, -win.lance)
-            pagaExDono(s, lote.nome, win.lance, you.teamName)
-            resultados.push({ titulo: `🔨 ${lote.nome} é SEU!`, corpo: `Você levou por ${win.lance} 🪙 (${placar}). Contrato de 5 temporadas (até a T${s.seasonNo + 4}).${meuAntigo ? ` ${meuAntigo} foi demitido com multa de ${multa} 🪙.` : ''}`, venceu: true })
-          } else {
-            if (lote.clube) map[lote.clube] = null
-            map[win.nome] = lote.nome // o antigo do rival (se tinha) vira SEM CLUBE
-            pago[lote.nome] = win.lance
-            s.careerTecnicosDesde = { ...(s.careerTecnicosDesde ?? {}), [win.nome]: { t: s.seasonNo, r: s.round }, ...(lote.clube ? { [lote.clube]: { t: s.seasonNo, r: s.round } } : {}) }
-            pagaExDono(s, lote.nome, win.lance)
-            resultados.push({ titulo: `😤 O ${win.nome} levou ${lote.nome}`, corpo: `Cobriu com ${win.lance} 🪙 (${placar}). Seu lance não foi cobrado.`, venceu: false })
-          }
-        } else {
-          const alvo = s.managers.find(m => m.id === lote.mgrId && !m.isHuman)
-          const card = alvo?.squad.find(c => c.id === lote.cardId)
-          if (!alvo || !card) { resultados.push({ titulo: `🤷 ${alvoNome} sumiu do mapa`, corpo: 'O jogador não está mais no clube (saiu antes do pregão). Lote cancelado.', venceu: false }); continue }
-          // o clube NUNCA fica manco na posição — se ficaria, ele segura na marra
-          const contaPos = (sq: WonCard[], pos: Sector) => sq.filter(c => c.pos === pos && !c.fake).length
-          if (contaPos(alvo.squad, card.pos) - 1 < FORMATIONS[alvo.formation][card.pos]) {
-            resultados.push({ titulo: `🧱 ${card.name} ficou`, corpo: `O ${alvo.teamName} não tem reposição na posição — segurou de qualquer jeito.`, venceu: false })
-            continue
-          }
-          if (win.quem === 'voce') {
-            if (contaPos(you.squad, card.pos) >= FORMATIONS[you.formation][card.pos] * 2) {
-              resultados.push({ titulo: `🧳 Sem vaga pra ${card.name}`, corpo: 'Seu banco da posição já está no teto — o lance foi anulado e nada foi cobrado.', venceu: false })
-              continue
-            }
-            coins -= win.lance
-            alvo.squad = alvo.squad.filter(c => c.id !== card.id)
-            you.squad = [...you.squad, { ...card, paid: win.lance, buyPrice: win.lance, via: 'leilao' as const, reforco: true, ...(s.contratosOn ? { contratoAte: s.seasonNo + 4 } : {}) }] // 📝 recém-contratado = 5 anos
-            logFin(s, 'buy', `🎯 Aliciado: ${card.name}`, -win.lance, { player: card.name, pos: card.pos, buyPrice: win.lance })
-            resultados.push({ titulo: `🔨 ${card.name} é SEU!`, corpo: `Você levou por ${win.lance} 🪙 (${placar}). Já entra no elenco.`, venceu: true })
-          } else {
-            const rival = s.managers.find(m => m.teamName === win.nome && !m.isHuman)
-            if (rival) {
-              alvo.squad = alvo.squad.filter(c => c.id !== card.id)
-              rival.squad = [...rival.squad, { ...card, paid: win.lance }]
-            }
-            resultados.push({ titulo: `😤 O ${win.nome} levou ${card.name}`, corpo: `Cobriu com ${win.lance} 🪙 (${placar}). Seu lance não foi cobrado.`, venceu: false })
-          }
-        }
-      }
-      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins }
-      // 💰 o leilão de reservas já copiou a caixa pro orçamento (m.money) ANTES
-      // deste pregão — atualiza o orçamento pro que sobrou, senão dava pra gastar
-      // o mesmo dinheiro duas vezes.
-      you.money = Math.max(0, coins)
-      s.careerTecnicos = map
-      s.careerTecnicoPago = pago
-      s.aliciarPregao = { lotes: preg.lotes, resultados }
-      return s
-    }
-    case 'ALICIAR_PREGAO_FIM': {
-      // fecha o pregão dos aliciados e segue pro leilão normal (que já está armado)
-      if (!s.aliciarPregao) return s
-      s.aliciarPregao = undefined
-      s.screen = 'auction'
-      return s
-    }
     case 'RENOVAR_TECNICO': {
       // 📝 contrato venceu (5 anos): renovar por +5 temporadas pagando o VALOR do
       // técnico (mesma janela dos contratos de jogador).
@@ -6387,6 +6386,25 @@ export function reducer(state: EscState, action: Action): EscState {
         // assim (senão listar manualmente o vencido furava o teto da venda)
         for (const c of out) listedCards.push({ ...c, seller: m.id, ...(c.contratoAte != null && c.contratoAte < s.seasonNo ? { semContrato: true } : {}) })
       }
+      // 1a-bis) 🎯 JOGADOR ALICIADO (27/08, do jeito que o Diego mandou: "é a
+      // mesma coisa de quando listo pra venda — ele vai pro leilão! Só que nos
+      // que eu vendo não posso dar lance; no aliciado eu dou"). A carta sai do
+      // clube dono e entra no BARALHO NORMAL do setor dela, com seller = o dono
+      // (ele recebe a grana da venda e pode dar lance de volta, igual vendedor).
+      // Trava de sempre: o clube nunca fica manco na posição.
+      if (s.onlineMode !== 'online') {
+        for (const cid of s.aliciarJogadores ?? []) {
+          const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
+          const card = dono?.squad.find(c => c.id === cid)
+          if (!dono || !card || card.fake || card.emprestado) continue
+          const naPos = dono.squad.filter(c => c.pos === card.pos && !c.fake).length
+          if (naPos - 1 < FORMATIONS[dono.formation][card.pos]) continue // ficaria manco: não sai
+          dono.squad = dono.squad.filter(c => c.id !== cid)
+          listedCards.push({ ...card, seller: dono.id, semContrato: true }) // aliciado = está sem contrato (regra do teto)
+          marketSellers[card.pos].push(dono.id) // o dono pode brigar de volta no setor
+        }
+        s.aliciarJogadores = []
+      }
       // 1b) 📝 CONTRATOS ENCERRADOS que NÃO foram renovados na janela de venda:
       // • HUMANO: o jogador vai pro leilão com selo SEM CONTRATO (venda com teto no
       //   valor oficial — o excedente "fica com a família"). TRAVA DE SEGURANÇA: se a
@@ -6632,32 +6650,22 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.reserveListed = {}
       s.reserveAuction = true
-      s.screen = 'auction'
-      startAuctionPhase(s, false)
-      // 🎯 ALICIADOS ABREM O PREGÃO (27/08, regra do Diego — igual à Dinastia):
-      // os alvos marcados viram lotes numa tela ANTES do leilão normal (que já
-      // está armado e espera). Só carreira OFFLINE — no online a tela não marca.
+      // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é IDÊNTICO
+      // ao leilão normal, só vem antes do goleiro; como uma posição nova"): o
+      // técnico aliciado vira o `tecLote`, e o startAuctionPhase abre o pregão
+      // REAL por ele — mesma tela, mesmo envelope, mesmo martelo. Só offline.
       if (s.onlineMode !== 'online') {
-        const lotes: LoteAliciado[] = []
         for (const nome of s.aliciarTecnicos ?? []) {
           if (!tecnicoPorNome(nome)) continue
           const clube = Object.entries(s.careerTecnicos ?? {}).find(([, n]) => n === nome)?.[0] ?? null
           if (clube === s.managers[s.youIdx]?.teamName) continue // já é seu
-          lotes.push({ tipo: 'tec', nome, clube, piso: Math.max(1, s.careerTecnicoPago?.[nome] ?? 0) })
-        }
-        for (const cid of s.aliciarJogadores ?? []) {
-          const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
-          const card = dono?.squad.find(c => c.id === cid)
-          if (!dono || !card || card.fake || card.emprestado) continue // saiu antes do pregão: lote morre
-          lotes.push({ tipo: 'jog', cardId: cid, nome: card.name, pos: card.pos, clube: dono.teamName, mgrId: dono.id, piso: Math.max(1, valorOficial(s, card)) })
+          s.tecLote = { nome, clube, piso: Math.max(1, s.careerTecnicoPago?.[nome] ?? 0) }
+          break // teto de 1 por temporada — só existe um
         }
         s.aliciarTecnicos = []
-        s.aliciarJogadores = []
-        if (lotes.length) {
-          s.aliciarPregao = { lotes, resultados: null }
-          s.screen = 'aliciarPregao'
-        }
       }
+      s.screen = 'auction'
+      startAuctionPhase(s, false)
       return s
     }
     case 'RESUME_DINASTIA': { s.dinastiaPaused = false; return s }
@@ -6763,11 +6771,25 @@ export function reducer(state: EscState, action: Action): EscState {
       // rebatizar um rival pelo nome novo NÃO pode criar um xará do time do
       // jogador. Batendo, o rival fica com o nome velho — e o rival que JÁ estava
       // gravado como xará volta pro nome velho da corrente (cura de 25/08).
-      const velhoLivreSv = oldChain(newestTeamName(sv.teamName)).find(v => !mesmoNomeTime(v, sv.teamName)) ?? null
+      // 🩹 cura v2 (27/08, escudo do Paixandu): nome velho da corrente NÃO serve
+      // (é alias do escudo novo) — clone/preso na corrente vira clube NEUTRO.
+      const chainSv = [newestTeamName(sv.teamName), ...oldChain(newestTeamName(sv.teamName))]
+      const emUsoSv: string[] = s.careerRivals.map(r => r.team)
+      const neutroSv = (): string | null => {
+        const pools = [...DIVISION_TEAMS.D, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.A, ...EXTRA_D_TEAMS, ...VARZEA_TEAMS]
+        for (const t of pools) {
+          if (chainSv.some(v => mesmoNomeTime(v, t.team))) continue
+          if (emUsoSv.some(u => mesmoNomeTime(u, t.team))) continue
+          emUsoSv.push(t.team)
+          return t.team
+        }
+        return null
+      }
       s.careerRivals = s.careerRivals.map(r => {
         const novo = newestTeamName(r.team)
         const nome = mesmoNomeTime(novo, sv.teamName) ? r.team : novo
-        return { ...r, team: (velhoLivreSv && mesmoNomeTime(nome, sv.teamName)) ? velhoLivreSv : nome }
+        const preso = mesmoNomeTime(nome, sv.teamName) || chainSv.some(v => mesmoNomeTime(v, nome))
+        return { ...r, team: preso ? (neutroSv() ?? nome) : nome }
       })
       const { managers, botPlans } = makeCareerManagers(sv.teamName, sv.formation, sv.division, coDivRivalDefs(s.careerRivals, sv.division), action.redraft ? otherDivRivalDefs(s.careerRivals, sv.division) : [], rng)
       s.managers = managers

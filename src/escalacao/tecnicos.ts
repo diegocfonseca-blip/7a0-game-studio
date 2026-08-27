@@ -323,3 +323,40 @@ export const REPERTORIO: Record<string, string[]> = {
   'Vágner Mancini': ['4-4-2'],
   'René Simões': ['4-4-2'],
 }
+
+// ── 📰 HISTORINHAS DA SONDAGEM (28/08, pedido do Diego: "tem que criar
+// historinha também… mesmo sem clube o técnico tá querendo fazer leilão e tá
+// pedindo LUVAS, então não tem jeito, vai pro pregão") ──────────────────────
+// Zoeira de bastidor explicando POR QUE o sondado vai parar no pregão. A
+// escolha é DETERMINÍSTICA (hash de nome+clube+temporada): a mesma sondagem
+// mostra sempre a mesma história — nada de Math.random no render — mas em
+// outra temporada a fofoca muda.
+const HIST_TEC_CLUBE = [
+  '🕵️ Nosso emissário jantou com {N} de boné e óculos escuros. Ele topa ouvir propostas — mas o {C} ficou sabendo e promete cobrir qualquer lance no pregão.',
+  '📞 Ligação de madrugada pro empresário de {N}: "ele não descarta nada". Vazou no rádio — a diretoria do {C} já abriu o cofre pra defender o comandante.',
+  '☕ Cafezinho "por acaso" com {N} no aeroporto. O {C} soube em 10 minutos e mandou o recado: no leilão tem guerra.',
+  '🤫 {N} soltou o famoso "me tira daqui". O {C} descobriu, levou o caso pro pregão — e vai brigar de volta no martelo.',
+  '📸 Flagra: {N} curtiu foto do seu estádio. A torcida do {C} pirou, e agora só o leilão resolve — com o {C} cobrindo lance.',
+]
+const HIST_TEC_LIVRE = [
+  '🕴️ Mesmo sem clube, {N} se valoriza: "só assino com LUVAS". Não teve conversa — exigiu leilão, e pro pregão ele vai.',
+  '🏖️ {N} tá de férias, mas o empresário atendeu no primeiro toque: "proposta boa se disputa no martelo — e tem luvas". Vai pro pregão.',
+  '💼 {N} sem clube e cheio de pose: montou um leilão pra si mesmo e ainda pediu luvas. Quem quiser, que cubra o lance.',
+  '📋 A prancheta de {N} tá parada, mas o preço não caiu: "grande nome se disputa em pregão". Pediu luvas e marcou a data.',
+  '🎤 {N} avisou em entrevista: "tô ouvindo propostas — no martelo, e com luvas". Foi direto pro leilão.',
+]
+const HIST_JOGADOR = [
+  '🕵️ O olheiro cochichou com {N} na saída do treino. O {C} descobriu, pôs o menino no leilão — e promete brigar de volta.',
+  '📱 {N} respondeu a DM do nosso emissário com "🤔👀". Vazou no grupo da torcida — o {C} mandou ele pro pregão, mas vai cobrir lance.',
+  '🍕 Pizza paga pro empresário de {N}. O {C} sentiu o cheiro, botou o garoto no martelo — e prepara a defesa.',
+  '📰 Manchete: "sondagem misteriosa" — e {N} balançou. O {C} decidiu: vai a pregão, mas o lance de volta já está pronto.',
+  '😅 {N} jurou que era "só um amigo perguntando". O {C} não engoliu: leilão nele — e a diretoria promete cobrir.',
+]
+export function historiaSondagem(nome: string, tipo: 'tec' | 'livre' | 'jog', clube?: string | null, salt = 0): string {
+  const pool = tipo === 'tec' ? HIST_TEC_CLUBE : tipo === 'livre' ? HIST_TEC_LIVRE : HIST_JOGADOR
+  const chave = `${nome}|${clube ?? ''}|${salt}`
+  let h = 7
+  for (const ch of chave) h = (h * 31 + (ch.codePointAt(0) ?? 0)) | 0
+  const texto = pool[Math.abs(h) % pool.length]
+  return texto.replace(/\{N\}/g, nome).replace(/\{C\}/g, clube ?? 'clube')
+}

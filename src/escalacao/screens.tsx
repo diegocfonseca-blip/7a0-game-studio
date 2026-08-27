@@ -31,6 +31,7 @@ import { useLang, useT, getLang } from './lang'
 import { POS_LABELS } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
+import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
 import { JanelaConta } from './conta'
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
@@ -1215,6 +1216,19 @@ function YourPitch({ small = false }: { small?: boolean }) {
 }
 
 function CardFace({ c, big = false, surprise = false, highlight = false }: { c: Card; big?: boolean; surprise?: boolean; highlight?: boolean }) {
+  // 🧢 carta de TÉCNICO no pregão (id 'tec:...'): às cegas — só TEC + nome +
+  // clube atual. Categoria/nível/formações se revelam quando ele for SEU.
+  if (c.id.startsWith('tec:')) {
+    return (
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="border-2 border-black rounded-md px-1.5 py-0.5 text-[9px] font-black leading-none" style={{ background: INK, color: '#fff', ...OSWALD }}>TEC</span>
+          <p className={`font-black leading-tight truncate ${big ? 'text-2xl' : 'text-[15px]'}`} style={OSWALD}>{c.name}</p>
+        </div>
+        <p className={`font-bold text-black/55 ${big ? 'text-sm' : 'text-[10.5px]'}`}>{c.club} · 🎲 revela quando for seu</p>
+      </div>
+    )
+  }
   return (
     <div className="text-left">
       <div className="flex items-center gap-2">
@@ -3022,10 +3036,13 @@ function Envelope() {
   const [blLang] = useLang()
   const you = state.managers[state.youIdx]
   const pos = SECTORS[state.sectorIdx]
+  // 🧢 setor TÉCNICO na mesa: mesma tela, mesmo envelope — só muda o rótulo e
+  // que a "vaga" é uma só (todo time tem um posto de técnico).
+  const tecMesa = !!state.tecLote
   // esporte da partida (futebol = tudo como hoje) + rótulo do setor no idioma
   const sport: Sport = state.sport === 'basquete' ? 'basquete' : 'futebol'
   const lang: 'pt' | 'en' = blLang === 'en' ? 'en' : 'pt'
-  const posName = secLabel(sport, pos, lang)
+  const posName = tecMesa ? 'Técnico' : secLabel(sport, pos, lang)
   // 🌐 tradução SÓ do basquete: no futebol devolve sempre o PT (idêntico a hoje).
   const L = (pt: string, en: string) => (sport === 'basquete' && lang === 'en') ? en : pt
   const rescue = state.phase === 'resq_envelope'
@@ -3066,7 +3083,7 @@ function Envelope() {
   const [pending, setPending] = useState(false)
   const pendingBidsRef = useRef<{ cardId: string; amount: number }[]>([])
   const total = Object.values(bids).reduce((s, v) => s + v, 0)
-  const myOpen = openSlots(you, pos)
+  const myOpen = tecMesa ? 1 : openSlots(you, pos)
   // 🤝 DUPLA: nesta leva (um setor por vez) quem lacra pelo time é SÓ quem manda
   // na categoria. O parceiro vê as MESMAS cartas — nunca escondemos informação —
   // mas sem os controles. Na leva seguinte os papéis podem inverter.
@@ -3262,7 +3279,7 @@ function Envelope() {
     : {}
   const timerColor = remaining <= 10 ? RED : remaining <= 20 ? GOLD : GREEN
   const timerTextColor = remaining <= 20 ? INK : '#fff'
-  const totalBatches = batchCount(state.deck[pos].length)
+  const totalBatches = tecMesa ? 1 : batchCount(state.deck[pos].length)
   const curBatch = Math.min(totalBatches, Math.ceil(state.sectorCursor / BATCH_SIZE))
   // trava em quantos jogadores DIFERENTES dá pra apostar: no máximo suas
   // vagas abertas nessa posição (dá lance em todas de uma vez). Sem isso,
@@ -3324,6 +3341,13 @@ function Envelope() {
               ? <>{L('Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa. Suas vagas: ', 'Leftovers from this position — last chance to pay for them. Only those with an open slot join. Your slots: ')}<b>{myOpen}</b>.</>
               : L('Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.', 'Blind bid: spread your coins in secret. No one sees anything until the reveal.')}
           </p>
+          {/* 📰 setor TÉCNICO sondado: a historinha de bastidor explica por que
+              ele está na mesa (a MESMA fofoca mostrada na hora da sondagem). */}
+          {tecMesa && state.tecLote && (
+            <p className="mt-1.5 text-[11px] font-bold border-[2px] border-dashed border-black rounded-lg px-2.5 py-1.5" style={{ background: '#FFF7DB', color: INK, lineHeight: 1.45 }}>
+              📰 <b>Bastidor:</b> {historiaSondagem(state.tecLote.nome, state.tecLote.clube ? 'tec' : 'livre', state.tecLote.clube, state.seasonNo ?? 0)}
+            </p>
+          )}
           {!rescue && totalBatches > 1 && (
             <div className="mt-1.5 inline-flex items-center gap-1.5 border-[3px] border-black rounded-full px-3 py-1"
               style={{ backgroundColor: '#2E6FB0', boxShadow: `2px 2px 0 0 ${INK}` }}>
@@ -4132,7 +4156,7 @@ function Reveal() {
           ) : (
           <div className="mt-4 space-y-1.5">
             {item.bids.length === 0 && (
-              <p className="font-bold text-black/70">Nenhum lance. Vai pro Monte Final. 🪣</p>
+              <p className="font-bold text-black/70">{item.card.id.startsWith('tec:') ? 'Nenhum lance. O técnico fica onde está. 🧢' : 'Nenhum lance. Vai pro Monte Final. 🪣'}</p>
             )}
             {/* MAIOR lance em CIMA (quem ganha no topo) — como sempre foi. O
                 anti-spoiler que importa é só a cor: a linha do vencedor só fica

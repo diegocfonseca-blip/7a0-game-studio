@@ -10,7 +10,7 @@ import { hadLogin } from './apoio'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
 import { CareerOnlineGame } from './careeronline'
-import { PyramidSeasonScreen, ReserveListScreen, AliciarPregaoScreen } from './pyramidseason'
+import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
 
 function Router() {
   const { state } = useEsc()
@@ -24,7 +24,6 @@ function Router() {
     case 'monte':     return <EscMonte />
     case 'cerimonia': return <EscCerimonia />
     case 'reserveList': return <ReserveListScreen />
-    case 'aliciarPregao': return <AliciarPregaoScreen /> // 🎯 lotes aliciados abrem o leilão (carreira offline, teste do Diego)
     case 'season':    return state.careerOnline ? <PyramidSeasonScreen /> : <EscSeason />
     case 'liberta':   return <EscLiberta />
     case 'end':       return <EscEnd />
