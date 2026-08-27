@@ -3635,19 +3635,31 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
           const bloqueadas = cardapio.filter(f => f.rotulo !== atual.rotulo && missFor(f.motor).length > 0)
           return (
             <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎽 Formação</p>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {/* 🎽 título e HERANÇA (Diego 28/08): o cardápio é do TÉCNICO, mas a
+                  formação que o time já jogava quando ele chegou continua ali —
+                  marcada com um selinho sutil pra ninguém achar que é dele. */}
+              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎽 Formação{meuTecT ? ' do técnico' : ''}</p>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: daCasa && !doTec.has(daCasa) ? 8 : 0 }}>
                 {cardapio.map(f => {
                   const cur = atual.rotulo === f.rotulo
                   const can = cur || missFor(f.motor).length === 0
+                  const heranca = !!daCasa && f.rotulo === daCasa && !doTec.has(f.rotulo)
                   return (
-                    <button key={f.rotulo} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
-                      style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5 }}>
-                      {f.rotulo}{cur ? ' ✓' : ''}
-                    </button>
+                    <div key={f.rotulo} style={{ position: 'relative' }}>
+                      {heranca && (
+                        <span style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', ...OSWALD, fontWeight: 800, fontSize: 7.5, letterSpacing: '.05em', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', background: '#EDE3C8', border: '1.5px solid rgba(0,0,0,.22)', borderRadius: 999, padding: '0 6px', lineHeight: '12px' }}>🧳 herança</span>
+                      )}
+                      <button disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
+                        style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5 }}>
+                        {f.rotulo}{cur ? ' ✓' : ''}
+                      </button>
+                    </div>
                   )
                 })}
               </div>
+              {!!daCasa && !doTec.has(daCasa) && (
+                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 0', lineHeight: 1.35 }}>🧳 O <b>{daCasa}</b> não é do {meuTecN} — é <b>herança do técnico anterior</b>: o time já jogava assim quando ele chegou, e continuou no cardápio.</p>
+              )}
               {bloqueadas.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
                 : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
