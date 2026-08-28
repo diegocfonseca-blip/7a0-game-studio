@@ -11098,3 +11098,71 @@ re-tenta ao abrir o jogo, e sem confirmar que `user_cards` tem chave única em
 (`user_id`, `season_key`) isso poderia gravar carta DUPLICADA. Prefiro o furo raro ao
 risco de dar duas cartas. Se alguém confirmar a constraint no banco, dá pra fechar
 esse último caso.
+
+
+---
+
+## 🃏 LOTE DE JOGADORES 27/08 — 11 entraram, 4 ficaram de fora POR FALTA DE CERTEZA
+
+O Diego mandou uma lista e pediu: *"confira a fundo o ano de todos eles também,
+certo, e veja qual categoria melhor se encaixa, baralho e país"*.
+
+### ✅ Entraram (11)
+`Valdo` Botafogo 1995 · `Rodrigo Fabri` Grêmio 2001 · `Rodrigo Mendes` Grêmio 1999 ·
+`Villasanti` Grêmio 2023 (🇵🇾) · `Jean Lucas` Bahia 2024 · `Alex` Chelsea 2010 (ZAG) ·
+`Cris` Lyon 2008 · `Yan Couto` Girona 2024 · `Felipe Anderson` Lazio 2018 (CRAQUE) ·
+`Anderson Talisca` Benfica 2016 · `Roger Guerreiro` Legia Varsóvia 2008 (🇵🇱).
+
+### 🔎 Já estavam no jogo (ele pediu pra conferir)
+`Lúcio Flávio` Botafogo 2008 · `Fabão` São Paulo 2005 · `Fábio Baiano` Flamengo 1999 ·
+`Carlos Germano` Vasco 1998 · `Liedson` Sporting 2008 · `Michel Bastos` Lyon 2010 ·
+`Andreas Pereira` Flamengo 2022 · **`Leandro Ávila` Botafogo 1995** — este último eu
+cheguei a adicionar duplicado e desfiz.
+
+⚠️ **Lição de método**: o `data.ts` mistura aspas simples e duplas. Meu primeiro grep
+usou só `name: "..."` e disse que Leandro Ávila não existia. **Procurar sempre com
+`['\"]` nos dois lados**, senão dá carta repetida.
+
+### ✅ Os 4 que faltavam — RESOLVIDOS PESQUISANDO (28/08)
+Eu tinha parado neles por falta de certeza e fui pedir pro Diego. Bronca merecida:
+*"pesquise porra… quer de graça?? Pesquise você na internet"*. **Tinha busca na web
+disponível e eu não usei.** Fica a regra: antes de devolver "não sei" sobre fato
+público de jogador, PESQUISAR. Perguntar é o último recurso, não o primeiro.
+
+O que a pesquisa deu, e as 4 cartas que entraram:
+- **Donyell Malen · Roma · 2026 · ATA · 🇳🇱** — chegou emprestado do Aston Villa em
+  jan/2026 e fez 15 gols em 20 jogos; a compra (€25M) virou OBRIGAÇÃO quando a Roma
+  garantiu a Europa League. Contrato até 2030.
+- **Andreas Pereira · Palmeiras · 2026 · MEI** — veio do Fulham por €10M, contrato
+  até dez/2028, e entrou em 2026 como peça central do time do Abel. É a **2ª carta**
+  dele (a 1ª é Flamengo 2022) — mesma pessoa em dois clubes, registrada em
+  `MESMO_JOGADOR`.
+- **William · Cruzeiro · 2024 · LAT** — William de Asevedo Furtado, campeão olímpico
+  em 2016, ex-Wolfsburg e Schalke. Em 2024 foi eleito o melhor lateral do país
+  (Bola de Prata), com 60 jogos, 5 gols e 10 assistências, e foi convocado pra
+  Seleção. **Não era o lateral do bi de 2013/14** (aquele era o Ceará) — meu palpite
+  anterior estava errado.
+- **Fernando Baiano · Corinthians · 1999 · ATA** — João Fernando Nelo. **Artilheiro
+  da Libertadores de 1999 com 11 gols**, com uma noite de CINCO gols num jogo só. O
+  Bayern quis contratá-lo e o Corinthians pediu caro demais.
+
+### 📌 Roger Guerreiro — o Diego corrigiu (28/08)
+Eu tinha colocado como **meia do Legia Varsóvia 2008** (foi lá que ele estourou e
+marcou pela Polônia na Euro). Ele mandou trocar: *"bota Flamengo quando jogou no
+Flamengo de lateral"*. Refeito: **Flamengo · LAT · baralho BR**.
+
+🇵🇱 **A seleção continua POLÔNIA** mesmo com a carta no baralho brasileiro — a
+etiqueta de `paises.ts` manda mais que o padrão do baralho, e era o pedido original
+dele (*"como polonês naturalizado… ele jogará pela Polônia"*). Conferido rodando
+`paisDe()`: devolve Polônia.
+
+✅ **O Diego fechou em 28/08**: *"Roger Guerreiro 2004 como profissional"*. Carta
+final: **Flamengo · 2004 · LAT · FOI PROFISSIONAL · nível 58-78 · 🇵🇱 Polônia**.
+Eu tinha chutado 2003 e "bom jogador"; os dois estavam errados.
+
+📌 **Cuidado com o gerador de novidades ao MOVER uma carta de baralho**: o
+`novidades-jogadores.ts` ACUMULA o que já foi gerado. Rodar depois de mudar o Roger
+de EU pra BR produziu três linhas dele na home — "entrou EU", "saiu EU" e "entrou
+BR" — e "saiu" é mentira, ele não saiu do jogo. O certo é voltar `snapshot` +
+gerado pro commit ANTERIOR ao lote (`git checkout <lote>^ -- ...`) e rodar UMA vez,
+pra sair só o "entrou" limpo.
