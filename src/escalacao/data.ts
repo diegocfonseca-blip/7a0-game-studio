@@ -1320,6 +1320,18 @@ const L24_BR_MEI: C[] = [
 // no baralho de ONDE O CARA JOGOU (a nacionalidade sai da etiqueta em paises.ts).
 // Quatro nomes da lista dele NÃO entraram porque eu não tinha certeza do dado —
 // estão anotados em docs/pendencias.md em vez de virarem chute.
+// ⚽ Roger Guerreiro entrou como LATERAL do FLAMENGO por pedido do Diego (28/08):
+// *"bota flamengo quando jogou no Flamengo de lateral"*. Ele tinha nascido aqui como
+// MEIA do Legia Varsóvia (foi lá que estourou e marcou pela Polônia na Euro 2008) —
+// o Diego corrigiu os dois: o clube e a posição.
+// 🇵🇱 A nacionalidade continua POLÔNIA mesmo com a carta no baralho BR, porque a
+// etiqueta de `paises.ts` manda mais que o padrão do baralho. Era o pedido original
+// dele: *"como polonês naturalizado, e se tiver seleção da Polônia ele jogará pela
+// Polônia"*.
+// ⚠️ O ANO É ESTIMATIVA MINHA e está esperando o Diego confirmar (ver pendencias).
+const L27_BR_LAT: C[] = [
+  { name: 'Roger Guerreiro', club: 'Flamengo', year: 2003, fame: 2, lo: 66, hi: 80, bio: 'Saiu do Brasil e virou ídolo na Polônia: naturalizou-se e marcou pela seleção polonesa na Eurocopa de 2008.' },
+]
 const L27_BR_MEI: C[] = [
   { name: 'Valdo', club: 'Botafogo', year: 1995, fame: 3, lo: 78, hi: 87, bio: 'Meia canhoto de passe fino — campeão brasileiro de 1995 pelo Botafogo, depois de anos de Europa no Benfica e no PSG.' },
   { name: 'Rodrigo Fabri', club: 'Grêmio', year: 2001, fame: 2, lo: 68, hi: 82, bio: 'Meia de chegada no Grêmio do começo dos anos 2000 — chute de fora da área e faro de área.' },
@@ -1327,7 +1339,7 @@ const L27_BR_MEI: C[] = [
   { name: 'Villasanti', club: 'Grêmio', year: 2023, fame: 2, lo: 68, hi: 81, bio: 'Volante paraguaio do Grêmio — pulmão, desarme e a braçadeira quando falta capitão.' },
   { name: 'Jean Lucas', club: 'Bahia', year: 2024, fame: 2, lo: 68, hi: 81, bio: 'Meio-campista rodado (Flamengo, Lyon, Mônaco, Santos) que virou peça fixa do Bahia.' },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA] }
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -1984,7 +1996,6 @@ const L27_EU_LAT: C[] = [
 const L27_EU_MEI: C[] = [
   { name: 'Felipe Anderson', club: 'Lazio', year: 2018, fame: 4, lo: 80, hi: 88, bio: 'Ponta canhoto de drible curto e arrancada — o craque da Lazio antes de rodar a Europa.' },
   { name: 'Anderson Talisca', club: 'Benfica', year: 2016, fame: 3, lo: 76, hi: 86, bio: 'Meia-atacante baiano que estourou no Benfica — corpo de zagueiro, chute de fora e faro de área.' },
-  { name: 'Roger Guerreiro', club: 'Legia Varsóvia', year: 2008, fame: 2, lo: 66, hi: 80, bio: 'Brasileiro naturalizado polonês: fez a carreira no Legia e marcou pela Polônia na Eurocopa de 2008.' },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA] }
 

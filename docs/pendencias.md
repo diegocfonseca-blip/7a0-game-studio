@@ -11118,7 +11118,23 @@ Regra dele: *"quando você N souber quem é a pessoa, me fala"*.
 - [ ] **Fernando Baiano** — não tenho certeza de qual foi o clube do auge dele, e o
       clube é a identidade da carta (chave do valor de mercado).
 
-### 📌 Uma correção de posição pra ele confirmar
-Ele pediu **Roger Guerreiro como LATERAL**. Ele era **meia** (meia-atacante) — foi
-como meia que jogou no Legia e marcou pela Polônia na Euro 2008. Entrou como **MEI**.
-Se ele quiser mesmo como lateral, é trocar de bloco.
+### 📌 Roger Guerreiro — o Diego corrigiu (28/08)
+Eu tinha colocado como **meia do Legia Varsóvia 2008** (foi lá que ele estourou e
+marcou pela Polônia na Euro). Ele mandou trocar: *"bota Flamengo quando jogou no
+Flamengo de lateral"*. Refeito: **Flamengo · LAT · baralho BR**.
+
+🇵🇱 **A seleção continua POLÔNIA** mesmo com a carta no baralho brasileiro — a
+etiqueta de `paises.ts` manda mais que o padrão do baralho, e era o pedido original
+dele (*"como polonês naturalizado… ele jogará pela Polônia"*). Conferido rodando
+`paisDe()`: devolve Polônia.
+
+- [ ] ⚠️ **O ANO (2003) É ESTIMATIVA MINHA** — o Diego sabe da passagem pelo
+      Flamengo, eu não sei o ano. Falta ele confirmar. O ano é parte da identidade
+      da carta (chave do valor de mercado), então não é detalhe.
+
+📌 **Cuidado com o gerador de novidades ao MOVER uma carta de baralho**: o
+`novidades-jogadores.ts` ACUMULA o que já foi gerado. Rodar depois de mudar o Roger
+de EU pra BR produziu três linhas dele na home — "entrou EU", "saiu EU" e "entrou
+BR" — e "saiu" é mentira, ele não saiu do jogo. O certo é voltar `snapshot` +
+gerado pro commit ANTERIOR ao lote (`git checkout <lote>^ -- ...`) e rodar UMA vez,
+pra sair só o "entrou" limpo.
