@@ -532,7 +532,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // dedo, de camisa listrada vermelha e preta. Arte própria do dono (webp, fora
   // do bundle). mascote_key = "lluch_menino". 253x440 no arquivo.
   lluch_menino: (
-    <img src={lluchMascoteImg} height={176} width={Math.round(176 * 253 / 440)} alt="O Esquecido — Esqueceram do Lluch FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={lluchMascoteImg} height={176} width={Math.round(176 * 252 / 440)} alt="O Esquecido — Esqueceram do Lluch FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦇 Neymarzetti (Diego, dono do jogo) — o camisa 10 MASCARADO de manto preto
   // e prata, com a bola no braço. arte própria do dono (webp, fora do bundle).

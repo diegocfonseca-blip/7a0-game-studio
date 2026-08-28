@@ -10693,7 +10693,20 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       pegadas, casinha, ladrão e viatura seguem intactos. ⚠️ A 1ª tentativa
       pintou um retângulo pra "limpar" a área antiga e comeu as pegadas e o
       texto; fica registrado que aqui o certo é SOBREPOR, não apagar.
-      Escudo regravado: 296×360 · 29,9 KB (teto 30 ✅).
+      Escudo regravado: 296×360 · 27,0 KB (teto 30 ✅).
+      🔁 2ª RODADA (o Diego ampliou e pegou o que faltava): (a) no escudo ficaram
+      DOIS ROSTOS — a orelha e o cabelo do menino antigo apareciam por trás do
+      novo, porque eu só tinha SOBREPOSTO. Agora a cabeça antiga é APAGADA de
+      verdade com `cv2.inpaint` (a máscara é uma oval na cabeça + o pescoço), o
+      rosto novo entra por cima cobrindo a área toda e o contorno claro ficou
+      FINO — o grosso virava halo e passava por cima do nome do clube.
+      (b) A mascote estava SEM UM PÉ e com bloco de fundo atrás do braço: o box
+      do recorte foi alargado embaixo/à direita (os dois tênis entram) e o fundo
+      que sobrava DENTRO da silhueta saiu por um filtro de BLOCOS — marrom do
+      fundo + `MORPH_OPEN 9×9`, que apaga mancha grande e deixa a linha fina do
+      desenho. ⚠️ Peneira mais fina que essa (7×7 com área 150) abre furo no
+      cabelo, no gorro e na bola — testado e descartado, não repetir.
+      Mascote: 252×440 · 32,4 KB.
 - [x] 🐛🪜 TÉCNICO DA DIVISÃO ERRADA — CONSERTADO (28/08, relato do Diego: "meu
       amigo já está na SÉRIE A e, ao olhar os técnicos, apareceu Lisca Doido,
       Joel Santana, Guto Ferreira — técnico de VÁRZEA. Se ele estivesse na
