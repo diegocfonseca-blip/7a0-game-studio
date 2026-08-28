@@ -453,13 +453,19 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   'Dátolo|Atlético-MG|2014': 'Argentina',
   'Maxi Lopez|Vasco|2017': 'Argentina',
   'Germán Herrera|Corinthians|2008': 'Argentina',  // o "Chaco"
-  'Erazo|Flamengo|2014': 'Equador',
-  'Frickson Erazo|Flamengo|2014': 'Equador',       // ⚠️ é a MESMA pessoa do de cima (carta repetida no baralho)
+  'Frickson Erazo|Flamengo|2014': 'Equador',
+  // (havia um 2º 'Erazo' Flamengo 2014 aqui — era a MESMA pessoa, carta
+  //  duplicada no baralho. O Diego mandou tirar do `data.ts` em 28/08.)
   'Gonzalo Plata|Flamengo|2024': 'Equador',
   'Kazu Miura|Santos|1986': 'Japão',               // o "Rei Kazu", lenda no Japão
   'Jesé Rodríguez|Coritiba|2023': 'Espanha',       // ex-Real Madrid e PSG
   'Loide Augusto|Vasco|2025': 'Angola',
   'Zizão|Corinthians|2013': 'China',                // Chen Zhizhao, o 1º asiático do Corinthians
+  // 🛂 NATURALIZADOS — nasceram no Brasil mas VESTIRAM outra seleção de verdade.
+  // Decisão do Diego (28/08): quem jogou pela seleção de fora, joga por ela aqui
+  // também. A regra do jogo é a seleção que o cara DEFENDEU, não onde nasceu.
+  'Rafael Tolói|São Paulo|2014': 'Itália',          // campeão da Euro 2020 pela Itália
+  'Elkeson|Botafogo|2012': 'China',                 // 1º sem ascendência a jogar pela China
   // ⚠️ FALSOS POSITIVOS conferidos e mantidos como BRASIL (a bio cita um país,
   // mas o jogador é brasileiro) — escritos aqui pra ninguém "corrigir" errado:
   'Carlos Miguel|Corinthians|2024': 'Brasil',      // brasileiro que FOI pro futebol inglês

@@ -29,6 +29,15 @@ const SAIDA = join(raiz, 'src', 'escalacao', 'novidades-jogadores.ts')
 
 const hoje = new Date().toISOString().slice(0, 10)
 
+// 🤫 CALADOS — mudança de baralho que é CONSERTO DE BUG, e conserto de bug não
+// aparece pra quem joga. Regra do Diego: *"menos bugs, que nunca lance"*. A foto
+// (`catalogo-snapshot.json`) ATUALIZA normal — só a linha da home não sai, então
+// a mudança nunca mais é reclamada nas próximas rodadas do comando.
+// Formato: `'<tipo>|<nome>'`, com um porquê do lado.
+const CALADOS = new Set([
+  'saiu|Erazo', // 28/08: era carta DUPLICADA do Frickson Erazo (mesma pessoa, Flamengo 2014)
+])
+
 // nível como a pessoa vê na carta (o mesmo vocabulário do jogo)
 const NIVEL = { 5: 'lenda', 4: 'craque', 3: 'bom jogador', 2: 'bom jogador', 1: 'foi profissional' }
 const nivelDe = c => (c.promessa ? 'promessa' : NIVEL[c.fame] ?? '—')
@@ -67,6 +76,10 @@ if (antes) {
   }
 }
 
+// tira os CALADOS antes de escrever na home (a foto já foi atualizada acima)
+const caladas = mudancas.filter(m => CALADOS.has(`${m.tipo}|${m.nome}`))
+if (caladas.length) mudancas.splice(0, mudancas.length, ...mudancas.filter(m => !CALADOS.has(`${m.tipo}|${m.nome}`)))
+
 // junta com o que já estava escrito, pra mudança de semanas atrás não sumir
 // só porque hoje ninguém mexeu no baralho.
 let antigas = []
@@ -93,3 +106,4 @@ console.log(antes
   ? `✅ ${mudancas.length} mudança(s) no baralho: ${conta('entrou')} entrou · ${conta('saiu')} saiu · ${conta('nivel')} mudou de nível · ${conta('virou-folk') + conta('saiu-folk')} mudou de categoria`
   : `📸 Primeira foto do baralho tirada (${Object.keys(agora).length} cartas). Da próxima vez que alguém mexer, a mudança sai sozinha.`)
 console.log(`   ${SAIDA.replace(raiz + '/', '')} · ${todas.length} linha(s) na home`)
+if (caladas.length) console.log(`   🤫 ${caladas.length} calada(s) de propósito (conserto de bug não vira novidade): ${caladas.map(m => `${m.nome} (${m.tipo})`).join(', ')}`)

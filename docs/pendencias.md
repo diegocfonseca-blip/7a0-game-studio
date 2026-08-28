@@ -27,14 +27,27 @@ Zizão sozinha. Gentílico solto NÃO conta ("rodou por Portugal" é brasileiro 
 jogou fora) — por isso a janela é curta. Falso positivo se cala fixando a carta
 como 'Brasil'. **Reverter: um commit** (só tabela + script, nenhum save mexe).
 
-### 🔎 3 coisas pro Diego decidir (achadas na varredura)
-1. **Carta DUPLICADA no baralho:** `Erazo|Flamengo|2014` e
-   `Frickson Erazo|Flamengo|2014` são **a mesma pessoa**. Dá pra cair o mesmo
-   cara duas vezes no mesmo pregão. Apagar uma?
-2. **Rafael Tolói** — brasileiro que se naturalizou e **jogou pela ITÁLIA**
-   (campeão da Euro 2020). Hoje está como Brasil. Vira 🇮🇹?
-3. **Elkeson** — naturalizado e **defendeu a seleção CHINESA**. Hoje está como
-   Brasil. Vira 🇨🇳?
+### 🔎 As 3 achadas na varredura — ✅ TODAS RESOLVIDAS pelo Diego (28/08)
+Resposta dele: *"Elkeson bote China. Tolói Itália. E carta duplicada do mesmo
+baralho e time tire do Erazo deixando uma só"*.
+1. **Carta DUPLICADA apagada:** existiam `Erazo|Flamengo|2014` (nível 1) e
+   `Frickson Erazo|Flamengo|2014` (nível 2) — **a mesma pessoa**, dava pra cair
+   duas vezes no mesmo pregão. Ficou só a de **nome completo** (a melhor: nível
+   2, bio da seleção). Quem já tem o 'Erazo' velho no elenco **não perde nada** —
+   `sincronizaNiveis()` só regrava carta que ACHA no `data.ts`; a que sumiu ele
+   deixa quieta.
+2. **Rafael Tolói → 🇮🇹 Itália** (campeão da Euro 2020 pela Itália).
+3. **Elkeson → 🇨🇳 China** (1º sem ascendência a jogar pela seleção chinesa).
+   ↳ **Regra que ficou:** vale a seleção que o cara **DEFENDEU**, não onde
+   nasceu. Naturalizado joga pela seleção nova.
+
+### 🤫 Ganho de tabela: "conserto de bug não vira novidade" agora é automático
+Apagar o Erazo ia escrever **"Erazo saiu do baralho"** na home — mas isso é
+conserto, e conserto não aparece pra quem joga (*"menos bugs, que nunca
+lance"*). Antes só a cabeça da gente segurava isso. Agora o
+`scripts/novidades-jogadores.mjs` tem a lista **`CALADOS`**: a foto do baralho
+atualiza normal (então a mudança nunca mais é reclamada), mas a linha não sai na
+home, e o comando avisa no fim o que calou e por quê.
 
 ## 🅰️⚽ GOLS E ASSISTÊNCIAS NO RÁPIDO — ✅ ENTREGUE (24/08)
 Pedido dele: *"o campinho de gols coloque também no modo online rápido, e
