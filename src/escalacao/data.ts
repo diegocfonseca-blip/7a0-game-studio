@@ -1316,7 +1316,18 @@ const L24_BR_ZAG: C[] = [
 const L24_BR_MEI: C[] = [
   { name: 'Christian Cueva', club: 'São Paulo', year: 2018, fame: 2, lo: 68, hi: 82, bio: 'Meia driblador peruano que passou por São Paulo e Santos — talento e polêmica na mesma medida.' },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA] }
+// 🗂️ LOTE 27/08 — parte BRASIL. Pedido do Diego, nome por nome. Cada carta nasce
+// no baralho de ONDE O CARA JOGOU (a nacionalidade sai da etiqueta em paises.ts).
+// Quatro nomes da lista dele NÃO entraram porque eu não tinha certeza do dado —
+// estão anotados em docs/pendencias.md em vez de virarem chute.
+const L27_BR_MEI: C[] = [
+  { name: 'Valdo', club: 'Botafogo', year: 1995, fame: 3, lo: 78, hi: 87, bio: 'Meia canhoto de passe fino — campeão brasileiro de 1995 pelo Botafogo, depois de anos de Europa no Benfica e no PSG.' },
+  { name: 'Rodrigo Fabri', club: 'Grêmio', year: 2001, fame: 2, lo: 68, hi: 82, bio: 'Meia de chegada no Grêmio do começo dos anos 2000 — chute de fora da área e faro de área.' },
+  { name: 'Rodrigo Mendes', club: 'Grêmio', year: 1999, fame: 2, lo: 66, hi: 80, bio: 'Meia gremista do fim dos anos 90 que depois foi jogar em Portugal.' },
+  { name: 'Villasanti', club: 'Grêmio', year: 2023, fame: 2, lo: 68, hi: 81, bio: 'Volante paraguaio do Grêmio — pulmão, desarme e a braçadeira quando falta capitão.' },
+  { name: 'Jean Lucas', club: 'Bahia', year: 2024, fame: 2, lo: 68, hi: 81, bio: 'Meio-campista rodado (Flamengo, Lyon, Mônaco, Santos) que virou peça fixa do Bahia.' },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -1959,7 +1970,23 @@ const L24_EU_ATA: C[] = [
   { name: 'Felipe Caicedo', club: 'Lazio', year: 2020, fame: 3, lo: 74, hi: 84, bio: "'Panterone' — especialista em gol salvador nos acréscimos pela Lazio, terror dos times que já achavam que tinham ganhado." },
   { name: 'Jefferson Montero', club: 'Swansea', year: 2015, fame: 2, lo: 68, hi: 82, bio: 'Ponta equatoriano de drible seco — dava trabalho aos melhores laterais da Premier League.' },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA] }
+// 🗂️ LOTE 27/08 — parte EUROPA (mesma leva do L27_BR_*).
+// ⚠️ Este 'Alex' é o ZAGUEIRO do Chelsea (Alex Rodrigo Dias da Costa), NÃO o meia
+// Alex do Cruzeiro que já existe no baralho BR. São duas pessoas diferentes com o
+// mesmo nome — por isso o par está registrado como conferido em paises.ts.
+const L27_EU_ZAG: C[] = [
+  { name: 'Alex', club: 'Chelsea', year: 2010, fame: 3, lo: 76, hi: 86, bio: 'Zagueirão brasileiro do Chelsea campeão inglês de 2010 — porrada de fora da área que era quase pênalti pro goleiro.' },
+  { name: 'Cris', club: 'Lyon', year: 2008, fame: 3, lo: 76, hi: 86, bio: 'Zagueiro brasileiro que virou capitão do Lyon na fila de títulos franceses — velocidade e porrada na bola dividida.' },
+]
+const L27_EU_LAT: C[] = [
+  { name: 'Yan Couto', club: 'Girona', year: 2024, fame: 3, lo: 74, hi: 84, bio: 'Lateral-direito brasileiro de cruzamento afiado — foi dele boa parte das assistências do Girona que assustou a Espanha.' },
+]
+const L27_EU_MEI: C[] = [
+  { name: 'Felipe Anderson', club: 'Lazio', year: 2018, fame: 4, lo: 80, hi: 88, bio: 'Ponta canhoto de drible curto e arrancada — o craque da Lazio antes de rodar a Europa.' },
+  { name: 'Anderson Talisca', club: 'Benfica', year: 2016, fame: 3, lo: 76, hi: 86, bio: 'Meia-atacante baiano que estourou no Benfica — corpo de zagueiro, chute de fora e faro de área.' },
+  { name: 'Roger Guerreiro', club: 'Legia Varsóvia', year: 2008, fame: 2, lo: 66, hi: 80, bio: 'Brasileiro naturalizado polonês: fez a carreira no Legia e marcou pela Polônia na Eurocopa de 2008.' },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────

@@ -5,6 +5,83 @@
 export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
+    "tipo": "entrou",
+    "nome": "Valdo",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rodrigo Fabri",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rodrigo Mendes",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Villasanti",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jean Lucas",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Yan Couto",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Alex",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Cris",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Felipe Anderson",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Anderson Talisca",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Roger Guerreiro",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
     "tipo": "nivel",
     "nome": "Alex",
     "baralho": "BR",

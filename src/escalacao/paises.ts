@@ -58,6 +58,14 @@ export const PAIS: Record<string, string> = {
   'Jordan Pickford': 'Inglaterra', 'Doni': 'Brasil',
   'Emiliano “Dibu” Martínez': 'Argentina', 'Mike Maignan': 'França',
   'Hugo Lloris': 'França', 'Wojciech Szczęsny': 'Polônia', 'Joe Hart': 'Inglaterra',
+  // 🇵🇱 naturalizado: fez a carreira na Polônia e JOGOU pela seleção polonesa
+  // (Euro 2008) — a regra do arquivo é seguir por onde o cara jogou.
+  'Roger Guerreiro': 'Polônia',
+  'Villasanti': 'Paraguai',
+  // brasileiros do lote 27/08 que nasceram no baralho EUROPEU (é lá que jogaram):
+  // sem etiqueta, o baralho EU cai em '??' e eles ficariam de fora de toda Copa.
+  'Yan Couto': 'Brasil', 'Cris': 'Brasil', 'Felipe Anderson': 'Brasil',
+  'Anderson Talisca': 'Brasil',
   'Vítor Baía': 'Portugal', 'Tim Howard': 'EUA', 'Rui Patrício': 'Portugal',
   'Hans van Breukelen': 'Holanda', 'David Ospina': 'Colômbia',
   'Fernando Muslera': 'Uruguai', 'Claudio Bravo': 'Chile',
@@ -430,6 +438,11 @@ export type Baralho = 'BR' | 'EU' | 'WORLD'
 // ⚠️ Ao adicionar uma carta com nome que JÁ EXISTE no jogo, ponha as duas aqui.
 //    O `npm run paises` acusa quem ficar de fora.
 export const PAIS_POR_CARTA: Record<string, string> = {
+  // ⚠️ 'Alex' são DUAS PESSOAS: o meia do Cruzeiro/Fenerbahçe e o zagueiro do
+  // Chelsea (Alex Rodrigo Dias da Costa). Os dois são brasileiros, então o país
+  // não muda — mas ficam escritos aqui pra ninguém "consertar" um pelo outro.
+  'Alex|Cruzeiro|2003': 'Brasil',
+  'Alex|Chelsea|2010': 'Brasil',
   // 🇧🇷 os dois Pedros do jogo são o MESMO cara: o 9 do Flamengo. A passagem
   //     pela Fiorentina foi dele — não confundir com o Pedro Rodríguez espanhol,
   //     que não está no baralho.
@@ -474,6 +487,10 @@ export function paisDe(name: string, baralho: Baralho, club?: string, year?: num
 // que ninguém conferiu ainda — pode ser outra pessoa, como foi o Pedro.
 // ⚠️ Só entra aqui depois de OLHAR as duas cartas. Na dúvida, deixa de fora.
 export const MESMO_JOGADOR = new Set<string>([
+  // ⚠️ 'Alex' é a EXCEÇÃO desta lista: são duas PESSOAS diferentes (o meia do
+  // Cruzeiro e o zagueiro do Chelsea). Está aqui só pra calar o aviso do
+  // `npm run paises`, e os dois estão escritos carta a carta em PAIS_POR_CARTA.
+  'Alex',
   'Dida',
   'Júlio César',
   'Alisson',

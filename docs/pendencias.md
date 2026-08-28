@@ -10921,3 +10921,44 @@ re-tenta ao abrir o jogo, e sem confirmar que `user_cards` tem chave única em
 (`user_id`, `season_key`) isso poderia gravar carta DUPLICADA. Prefiro o furo raro ao
 risco de dar duas cartas. Se alguém confirmar a constraint no banco, dá pra fechar
 esse último caso.
+
+
+---
+
+## 🃏 LOTE DE JOGADORES 27/08 — 11 entraram, 4 ficaram de fora POR FALTA DE CERTEZA
+
+O Diego mandou uma lista e pediu: *"confira a fundo o ano de todos eles também,
+certo, e veja qual categoria melhor se encaixa, baralho e país"*.
+
+### ✅ Entraram (11)
+`Valdo` Botafogo 1995 · `Rodrigo Fabri` Grêmio 2001 · `Rodrigo Mendes` Grêmio 1999 ·
+`Villasanti` Grêmio 2023 (🇵🇾) · `Jean Lucas` Bahia 2024 · `Alex` Chelsea 2010 (ZAG) ·
+`Cris` Lyon 2008 · `Yan Couto` Girona 2024 · `Felipe Anderson` Lazio 2018 (CRAQUE) ·
+`Anderson Talisca` Benfica 2016 · `Roger Guerreiro` Legia Varsóvia 2008 (🇵🇱).
+
+### 🔎 Já estavam no jogo (ele pediu pra conferir)
+`Lúcio Flávio` Botafogo 2008 · `Fabão` São Paulo 2005 · `Fábio Baiano` Flamengo 1999 ·
+`Carlos Germano` Vasco 1998 · `Liedson` Sporting 2008 · `Michel Bastos` Lyon 2010 ·
+`Andreas Pereira` Flamengo 2022 · **`Leandro Ávila` Botafogo 1995** — este último eu
+cheguei a adicionar duplicado e desfiz.
+
+⚠️ **Lição de método**: o `data.ts` mistura aspas simples e duplas. Meu primeiro grep
+usou só `name: "..."` e disse que Leandro Ávila não existia. **Procurar sempre com
+`['\"]` nos dois lados**, senão dá carta repetida.
+
+### ⚠️ NÃO entraram — preciso do Diego (não inventei)
+Regra dele: *"quando você N souber quem é a pessoa, me fala"*.
+- [ ] **"Malen do Roma"** — não sei quem é. O Malen que conheço é o holandês Donyell
+      Malen (PSV/Dortmund), e não tenho certeza de que ele esteja na Roma.
+- [ ] **Andreas Pereira pelo Palmeiras** — ele já tem carta (Flamengo 2022). A carta
+      NOVA pediria confirmar que ele foi mesmo pro Palmeiras, e disso eu não tenho
+      certeza.
+- [ ] **"lateral William do Cruzeiro"** — não consegui identificar com segurança qual
+      William (o lateral do bi 2013/14 do Cruzeiro era o Ceará).
+- [ ] **Fernando Baiano** — não tenho certeza de qual foi o clube do auge dele, e o
+      clube é a identidade da carta (chave do valor de mercado).
+
+### 📌 Uma correção de posição pra ele confirmar
+Ele pediu **Roger Guerreiro como LATERAL**. Ele era **meia** (meia-atacante) — foi
+como meia que jogou no Legia e marcou pela Polônia na Euro 2008. Entrou como **MEI**.
+Se ele quiser mesmo como lateral, é trocar de bloco.
