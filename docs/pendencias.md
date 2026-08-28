@@ -10706,7 +10706,21 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       fundo + `MORPH_OPEN 9×9`, que apaga mancha grande e deixa a linha fina do
       desenho. ⚠️ Peneira mais fina que essa (7×7 com área 150) abre furo no
       cabelo, no gorro e na bola — testado e descartado, não repetir.
-      Mascote: 252×440 · 32,4 KB.
+      Mascote: 252×440 · 32,8 KB.
+      🤖 3ª RODADA — A FERRAMENTA CERTA (o Diego ampliou de novo: "ainda tem
+      vários pedaços do fundo no mascote", e tinha mesmo). O motivo de nada
+      funcionar ficou claro quando MEDI as manchas: elas têm as MESMAS cores da
+      roupa (192,92,78 é quase o vermelho da camisa; 38,27,37 é quase o preto do
+      short). Ou seja: cor não separa, textura não separa (o short liso é tão
+      liso quanto o fundo) e o contorno claro do desenho tem falhas, então o
+      preenchimento vaza. Tentei ainda silhueta desenhada à mão e saiu torta.
+      SOLUÇÃO: `rembg` (modelo U2Net, `pip install rembg onnxruntime`) — recorte
+      por IA, feito exatamente pra isso. Saiu limpo de primeira, com os dois
+      tênis e a bola perfeitos; sobrou uma sombra entre o braço e o corpo, tirada
+      com a janelinha de sempre.
+      📌 REGRA PRA PRÓXIMA ARTE DE BATISMO: quando o dono mandar arte com FUNDO
+      (gradiente, cena, colagem), começar pelo `rembg` — não gastar rodada com
+      GrabCut/cor/flood fill. GrabCut só vale pra separar peça de fundo LISO.
 - [x] 🐛🪜 TÉCNICO DA DIVISÃO ERRADA — CONSERTADO (28/08, relato do Diego: "meu
       amigo já está na SÉRIE A e, ao olhar os técnicos, apareceu Lisca Doido,
       Joel Santana, Guto Ferreira — técnico de VÁRZEA. Se ele estivesse na
