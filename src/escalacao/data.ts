@@ -2320,6 +2320,7 @@ export const OLD_NAME: Record<string, string> = {
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
+  'Esqueceram do Lluch FC': 'Litoral United', // 🏠 batismo do lluchmarcel81: assumiu o assento da Série B que era do Litoral United — save antigo com Litoral United vira Esqueceram do Lluch FC ao carregar (28/08)
   'Papão United Madrid': 'Santos Dumont', // ⚽ batismo do agrostinho88: assumiu o assento da Série D que era do Alfacehh — save antigo com Santos Dumont (ou Tonhão FC) vira Papão United Madrid ao carregar (23/08)
   'Theuzudo FC': 'Comercial do Norte', // ⚽ batismo do matheusfilipealves: save antigo com Comercial do Norte vira Theuzudo FC ao carregar (21/08)
   'São Luiz FC': 'Flamengo do Sertão', // ⚽ batismo do gabrielnegreirosamaral99: save antigo com Flamengo do Sertão vira São Luiz FC ao carregar (21/08)
@@ -2474,7 +2475,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Tabuleiro', team: 'Real Tabuleiro' },
     { name: 'Mata', team: 'Íbis da Mata' },
     { name: 'Nortista', team: 'Theuzudo FC' }, // ⚽ clube BATIZADO por apoiador (matheusfilipealves — Theuzudo FC, ex-Comercial do Norte; coração Valência, mascote morcego 🦇, 21/08)
-    { name: 'Litorâneo', team: 'Litoral United' },
+    { name: 'Litorâneo', team: 'Esqueceram do Lluch FC' }, // ⚽ clube BATIZADO por apoiador (lluchmarcel81 — Esqueceram do Lluch FC, ex-Litoral United; Lenda + fundador nº50, 28/08)
     { name: 'Ferroviário', team: 'Ferroviário do Sul' },
     { name: 'Serrote', team: 'Serrano FC' },
   ],

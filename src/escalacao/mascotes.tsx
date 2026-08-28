@@ -16,6 +16,7 @@ import nataMascoteImg from './img/nata-mascote.webp' // 🤡 Nata de SP (pedrinh
 import theuzudoMascoteImg from './img/theuzudo-mascote.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
 import saoluizMascoteImg from './img/saoluiz-mascote.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
 import papaoMascoteImg from './img/papao-mascote.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
+import lluchMascoteImg from './img/lluch-mascote.webp' // 🏠 Esqueceram do Lluch FC (lluchmarcel81): arte própria do dono
 import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
@@ -527,6 +528,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   papao_lobo: (
     <img src={papaoMascoteImg} height={176} width={Math.round(176 * 281 / 440)} alt="O Papão — Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🏠 Esqueceram do Lluch FC — o menino de gorro amarelo equilibrando a bola no
+  // dedo, de camisa listrada vermelha e preta. Arte própria do dono (webp, fora
+  // do bundle). mascote_key = "lluch_menino". 253x440 no arquivo.
+  lluch_menino: (
+    <img src={lluchMascoteImg} height={176} width={Math.round(176 * 253 / 440)} alt="O Esquecido — Esqueceram do Lluch FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🦇 Neymarzetti (Diego, dono do jogo) — o camisa 10 MASCARADO de manto preto
   // e prata, com a bola no braço. arte própria do dono (webp, fora do bundle).
   // mascote_key = "neymarzetti_mascarado". 193x440 no arquivo.
@@ -797,6 +804,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'São Luiz FC': 'saoluiz_pitbull', // 🐶 o pitbull carimba o placar (gabrielnegreirosamaral99, 21/08)
   'São Luiz': 'saoluiz_pitbull',
   'São Luiz EC': 'saoluiz_pitbull',
+  'Esqueceram do Lluch FC': 'lluch_menino', // 🏠 o esquecido carimba o placar (lluchmarcel81, 28/08)
+  'Esqueceram do Lluch': 'lluch_menino',
+  'Esqueceram do Lluch EC': 'lluch_menino',
+  'Esqueceram do Lluch SC': 'lluch_menino',
+  'Litoral United': 'lluch_menino', // nome VELHO nunca fica livre (save antigo)
   'Papão United Madrid': 'papao_lobo', // 🐺 o lobo carimba o placar (agrostinho88, 23/08)
   'Papão United Madrid FC': 'papao_lobo',
   'Papão United Madrid EC': 'papao_lobo',
@@ -828,6 +840,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   theuzudo_morcego: 'Theuzinho', // 🦇 Theuzudo FC (matheusfilipealves, 21/08)
   saoluiz_pitbull: 'Luizão',     // 🐶 São Luiz FC (gabrielnegreirosamaral99, 21/08)
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
+  lluch_menino: 'O Esquecido',   // 🏠 Esqueceram do Lluch FC (lluchmarcel81, 28/08)
   leao_estradinha: 'O Leão',     // 🦁 Leão da Estradinha (jorgericardo777, 23/08)
   neymarzetti_mascarado: 'O Mascarado', // 🦇 Neymarzetti (diego.c.fonseca, 24/08)
   milhaca_boleiro: 'O Milhaça',  // 🌽 Milhaça FC (igormarquesn99, 24/08)

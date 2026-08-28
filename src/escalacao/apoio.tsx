@@ -119,6 +119,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'lucas_calefi@outlook.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº44 + sócio nº24; batizou os CORINGAS DO DINIZ (ex-Vanguarda Nacional, Série A); coração Corinthians, manto preto e branco (16/08)
   'lucassrribeiroo2023@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Scorporila FC) (11/08)
   'paisagensetrilha@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marolados FC — molecada da várzea) (11/08)
+  'lluchmarcel81@gmail.com': 'ouro', // 👑 Lenda — batismo (Esqueceram do Lluch FC, ex-Litoral United, Série B) + FUNDADOR nº50 (28/08)
   'agrostinho88@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº39 + sócio nº29 + batismo (Papão United Madrid, ex-Santos Dumont, Série D; Leandro/Obina) (nome reservado 11/08, clube entregue 23/08)
   'erosreis@outlook.com.br': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Eros FC — influencer @erosreis; nomes: Eros Reis FC / Eros Reis / Eros; mascote Nina 🐶) (12/08)
   'tiosapeka@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Sapekeiros FC — influencer @tiosapekagg; mascote abelha coroada 🐝; coração Santos) (12/08)
@@ -182,7 +183,8 @@ const FUNDADOR_N: Record<string, number> = {
   'giovannecastro784@hotmail.com': 46, // 🖋️ batizou os Crias do Bigão (ex-Ferroviária do Vale, Série B) — mascote é o próprio dono (17/08)
   'matheusfilipealves@hotmail.com': 47, // 🖋️ batizou o Theuzudo FC (ex-Comercial do Norte, Série B); coração Valência, mascote morcego 🦇 laranja e preto (21/08)
   'gabrielnegreirosamaral99@hotmail.com': 48,
-  'igormarquesn99@gmail.com': 49, // 🖋️ batizou o Milhaça FC (ex-Real Bets, Série C); jornalista @igumarques, mascote boleiro de boné 🌽 vermelho e amarelo (24/08) // 🖋️ batizou o São Luiz FC (ex-Flamengo do Sertão, Série D); coração Flamengo, mascote pitbull 🐶 (21/08)
+  'igormarquesn99@gmail.com': 49,
+  'lluchmarcel81@gmail.com': 50, // 🖋️ batizou o Esqueceram do Lluch FC (ex-Litoral United, Série B); mascote o menino de gorro ⚽ vermelho e preto (28/08) // 🖋️ batizou o Milhaça FC (ex-Real Bets, Série C); jornalista @igumarques, mascote boleiro de boné 🌽 vermelho e amarelo (24/08) // 🖋️ batizou o São Luiz FC (ex-Flamengo do Sertão, Série D); coração Flamengo, mascote pitbull 🐶 (21/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

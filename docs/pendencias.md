@@ -10655,6 +10655,23 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🏠 BATISMO Nº27: ESQUECERAM DO LLUCH FC (28/08, lluchmarcel81@gmail.com).
+      Assumiu o assento do **Litoral United** na **Série B**. Tudo do roteiro
+      padrão: escudo `lluch-escudo.webp` 296×360 · 29 KB · mascote
+      `lluch-mascote.webp` 253×440 · 30 KB (total 60 KB, teto 75 ✅) · camisa do
+      dono em `scripts/kits/lluch-camisa.webp` (post, fora do bundle) · manto
+      MEDIDO na camisa: vermelho #C00018 + preto #111111 · mascote "O Esquecido"
+      (chave `lluch_menino`) com CARIMBO_GOL nas 4 formas + nome velho · OLD_NAME
+      em data.ts · tier OURO + FUNDADOR nº50 em apoio.tsx · reserva no banco
+      (`esc_nomes_batismo`, o gatilho criou FC e EC sozinho).
+      ✂️ RECORTE: a arte veio numa peça só, com FUNDO ESCURO em gradiente — o
+      corte por cor VAZOU (o preto do desenho, (1,1,1), e o fundo, (53,35,31),
+      são vizinhos demais; sumiram shorts, faixa e barra da camisa). Refeito com
+      GrabCut (OpenCV) + núcleo garantido no miolo + preenchimento de buracos
+      internos. Conferido sobre MAGENTA, nunca sobre branco (lição do Theuzudo).
+      🇧🇷 De quebra, conserto no `mockup-batismo.mjs`: o artigo da mascote era
+      ADIVINHADO pela 1ª letra e "O Esquecido" virava "a Esquecido". Agora manda
+      o artigo que o próprio nome traz.
 - [x] 🐛🪜 TÉCNICO DA DIVISÃO ERRADA — CONSERTADO (28/08, relato do Diego: "meu
       amigo já está na SÉRIE A e, ao olhar os técnicos, apareceu Lisca Doido,
       Joel Santana, Guto Ferreira — técnico de VÁRZEA. Se ele estivesse na

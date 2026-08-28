@@ -96,7 +96,13 @@ const JEITOS = {
   generico:{ gol: 'CARIMBA a tela', festa: 'atravessa a tela aos pulos' },
 }
 const jeito = JEITOS[arg('jeito', 'generico')] || JEITOS.generico
-const art = /^[AÁE]/i.test(o.mascoteNome.replace(/^(O|A)\s+/i, '')) || /^A\s/i.test(o.mascoteNome)
+// 🇧🇷 ARTIGO (o/a) da mascote. Antes era ADIVINHADO pela 1ª letra, e errava:
+// "O Esquecido" (Esqueceram do Lluch FC, 28/08) virava "a Esquecido" porque
+// começa com E. Agora manda o artigo que o PRÓPRIO nome já traz — "O Papão" é
+// ele, "A Águia" é ela. Sem artigo no nome, aí sim cai no palpite pela letra.
+const art = /^A\s/i.test(o.mascoteNome) ? true
+  : /^O\s/i.test(o.mascoteNome) ? false
+  : /^[AÁE]/i.test(o.mascoteNome)
 const mascCurto = o.mascoteNome.replace(/^(O|A)\s+/i, '')
 
 // 🎽 O MANTO NO POST: se o dono mandou a CAMISA, é ela que aparece — foi o que
