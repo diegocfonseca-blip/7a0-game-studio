@@ -10672,6 +10672,18 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       🇧🇷 De quebra, conserto no `mockup-batismo.mjs`: o artigo da mascote era
       ADIVINHADO pela 1ª letra e "O Esquecido" virava "a Esquecido". Agora manda
       o artigo que o próprio nome traz.
+      ✅ CORREÇÕES do Diego no mesmo dia: (1) o manto é TRICOLOR listrado à moda
+      São Paulo — vermelho, preto E BRANCO; o branco entrou como 3ª cor em
+      `MANTO_TRI` (chave `lluch_menino`), que é o caminho certo (as duas cores
+      base seguem medidas na arte). (2) Sobrou FUNDO na mascote, no vão entre a
+      bola e o rosto: meu preenchimento de buracos tinha fechado aquilo achando
+      que era desenho. Limpo numa janelinha de 72×105 px ao redor da mancha (só
+      o marrom do fundo; pele e contorno preto ficaram), mascote regravada com
+      31 KB. Duas tentativas antes falharam e ficam registradas pra ninguém
+      repetir: apagar "cor parecida com o fundo" na peça inteira come os gomos
+      pretos da bola, e flood fill com tolerância 42 vaza pela arte toda.
+      🎽 O gerador de post ganhou `--c3/--c3-nome` (manto de 3 cores) e o texto
+      das cores agora escreve "vermelho, preto e branco".
 - [x] 🐛🪜 TÉCNICO DA DIVISÃO ERRADA — CONSERTADO (28/08, relato do Diego: "meu
       amigo já está na SÉRIE A e, ao olhar os técnicos, apareceu Lisca Doido,
       Joel Santana, Guto Ferreira — técnico de VÁRZEA. Se ele estivesse na

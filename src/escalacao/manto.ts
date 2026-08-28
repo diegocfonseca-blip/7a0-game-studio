@@ -123,6 +123,7 @@ const MANTO_TRI: Record<string, string> = {
   cobra_arruda: '#C2001E', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho, 16/08)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)
   saoluiz_pitbull: '#FFFFFF', // 🐶 São Luiz FC — 3ª cor BRANCA (vermelho/preto/branco, medidas na camisa dele, 21/08)
+  lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08
 }
 export function meuMantoC3(): string | null {
   const k = meu?.ativo ? meu.mascoteKey : null

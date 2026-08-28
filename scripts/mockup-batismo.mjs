@@ -52,6 +52,7 @@ const o = {
   mascoteNome: arg('mascote-nome', 'a mascote'), mascoteEmoji: arg('mascote-emoji', '⭐'),
   c1: arg('c1', '#FFC400'), c1nome: arg('c1-nome', ''),
   c2: arg('c2', '#0C0C0C'), c2nome: arg('c2-nome', ''),
+  c3: arg('c3', ''), c3nome: arg('c3-nome', ''), // 🎽 3ª cor (manto TRICOLOR, igual ao MANTO_TRI do jogo)
   camisa: arg('camisa', ''), // 🎽 a camisa DE VERDADE, quando o dono manda uma
   dono: arg('dono', ''), coracao: arg('coracao', ''), fundador: arg('fundador', ''),
   insta: arg('insta', ''), // 📸 @ do dono — entra no rodapé, do lado do nome dele
@@ -80,7 +81,10 @@ const corte = (partes[0].length <= 3 && partes.length >= 3) ? partes.length - 1 
 const destaque = partes.slice(0, corte).join(' ').toUpperCase()
 const resto = partes.slice(corte).join(' ').toUpperCase()
 
-const cores = [o.c1nome, o.c2nome].filter(Boolean).join(' e ') || 'as cores do clube'
+const nomesCor = [o.c1nome, o.c2nome, o.c3nome].filter(Boolean)
+const cores = nomesCor.length
+  ? nomesCor.slice(0, -1).join(', ') + (nomesCor.length > 1 ? ' e ' : '') + nomesCor[nomesCor.length - 1]
+  : 'as cores do clube'
 
 // 🎬 CADA MASCOTE COMEMORA DO SEU JEITO (Diego, 17/08): *"se é águia tem que ser
 // algo relacionado a águia. Cada um depende do que ele é, as coisas que faz"*.
@@ -181,7 +185,7 @@ h1 .r{color:#C2452F}
    Recortada no limite, ela fica 175x321 e enche os 232px de altura. */
 .manto .kit{height:232px;width:auto;display:block;object-fit:contain}
 .listras{width:84px;height:232px;border:3px solid #0C0C0C;border-radius:12px;flex:none;
-  background:repeating-linear-gradient(90deg,${o.c1} 0 15px,${o.c2} 15px 26px)}
+  background:repeating-linear-gradient(90deg,${o.c1} 0 15px,${o.c2} 15px 26px${o.c3 ? `,${o.c3} 26px 33px` : ''})}
 .leg{text-align:center;font-size:14.5px;line-height:1.35;color:rgba(12,12,12,.62);margin-top:12px}
 .leg b{color:#0C0C0C}
 .anim{margin-top:20px}
