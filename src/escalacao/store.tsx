@@ -7631,6 +7631,63 @@ export async function removeCareerFromCloud(seed: number) {
   } catch { /* ignora */ }
 }
 
+// ⏰ VIGIA DE PRAZO QUE NÃO DORME (28/08 — o "do nada trava" do rápido online).
+//
+// O QUE ACONTECIA. Todo prazo do online (fechar o envelope, resolver o empate,
+// a vez do monte, a cerimônia) era vigiado por UM `setTimeout` só — um tiro
+// único. Só que celular PAUSA o `setTimeout` quando a aba sai da frente (olhar
+// o zap, apagar a tela, atender uma ligação). Se esse tiro se perde, ninguém
+// atira de novo: o efeito do React só rearma quando o PRAZO MUDA, e ele não
+// muda — a sala está justamente presa naquele prazo. Resultado: leilão parado
+// no "0s" pra todo mundo, e só o F5 destravava. É a explicação do "o jogo
+// estava fluindo e do nada travou": não depende de nada que dê pra reproduzir,
+// depende de todo mundo ter dado uma saidinha da tela na mesma hora.
+//
+// Esse MESMO bug já tinha sido diagnosticado e curado na REVELAÇÃO
+// (`AutoAdvance`, em screens.tsx: *"a revelação ficava presa pra sempre — só um
+// F5 destravava"*). A cura nunca foi levada pros outros quatro prazos. Este
+// vigia é aquela cura, agora num lugar só, usada pelos quatro.
+//
+// COMO CURA (três redes, não uma):
+//   1. o `setTimeout` de sempre (caminho feliz);
+//   2. uma CONFERIDA DE RELÓGIO a cada 4s — relógio de parede não pausa, então
+//      quando o aparelho volta a rodar a gente vê que o prazo já venceu;
+//   3. na hora em que a pessoa VOLTA pra tela do jogo (`visibilitychange`).
+// Disparar de novo é inofensivo de propósito: o reducer reconfere o prazo antes
+// de aplicar (`if (s.phaseDeadline && Date.now() < s.phaseDeadline) return s`),
+// então tiro repetido — de vários jogadores ao mesmo tempo, inclusive — não
+// sela nada duas vezes.
+//
+// POR QUE TEM TETO. Se a sala está morta de verdade (o dono fechou o jogo e
+// sumiu — que, pela regra do Diego, é pra PARAR mesmo), insistir pra sempre
+// seria rádio jogado fora e conta de Realtime subindo à toa. 15 tentativas em
+// ~1 min é folga de sobra pra atravessar uma reconexão, e para sozinho depois.
+const VIGIA_RETENTA_MS = 4_000
+const VIGIA_MAX_TENTATIVAS = 15
+
+function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, disparar: () => void) {
+  const fnRef = useRef(disparar)
+  useEffect(() => { fnRef.current = disparar })
+  useEffect(() => {
+    if (!ligado || !prazo) return
+    let tentativas = 0
+    const tenta = () => {
+      if (Date.now() < prazo) return               // ainda não venceu
+      if (tentativas >= VIGIA_MAX_TENTATIVAS) return
+      tentativas++
+      fnRef.current()
+    }
+    const t = setTimeout(tenta, Math.max(0, prazo - Date.now()) + 800)
+    const iv = setInterval(tenta, VIGIA_RETENTA_MS)
+    const onVis = () => { if (typeof document !== 'undefined' && !document.hidden) tenta() }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
+    return () => {
+      clearTimeout(t); clearInterval(iv)
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [ligado, prazo])
+}
+
 export function EscProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, INITIAL, init => loadSoloInProgress() ?? init)
   // salva a partida solo em andamento (e limpa quando volta pra home)
@@ -7784,6 +7841,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Gesto seu de verdade (criar sala, botão RETOMAR AQUI, reassunção após o
   // sumiço confirmado do host) entra com posse PLENA, sem espera.
   const acaoReservaTsRef = useRef(0)   // 📮 última escrita do lance no caminho reserva
+  const selaReservaTsRef = useRef(0)   // 📮 última escrita do "fecha o envelope" no caminho reserva
   const acoesVistasRef = useRef(0)     // 📮 último id de room_acoes que o host já aplicou
   const claimForcadoRef = useRef(true)
   const humildeAteRef = useRef(0)
@@ -7916,6 +7974,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
         const agora = Date.now()
         if (agora - acaoReservaTsRef.current > 5_000) {
           acaoReservaTsRef.current = agora
+          supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+        }
+      }
+      // 📮 A MESMA ESTRADA RESERVA PRO COMANDO DE FECHAR (28/08). O lance ganhou
+      // segunda estrada em 23/08, mas o "acabou o tempo, fecha!" continuou indo
+      // SÓ pelo rádio. É o pior recado pra se perder: sem ele o leilão para no
+      // 0s pra sala inteira, e insistir pelo rádio quebrado não adianta (foi a
+      // lição do reenvio de 4s). Vai por HTTPS também; o host lê de 3 em 3s e o
+      // reducer reconfere o prazo, então chegar pelas duas estradas não sela
+      // nada duas vezes. Relógio próprio (6s) pra um lance recente não engolir
+      // a vez do fechamento.
+      if ((action.type === 'FORCE_SEAL' || action.type === 'FORCE_TIEBREAK') && stateRef.current.roomId) {
+        const agora = Date.now()
+        if (agora - selaReservaTsRef.current > 6_000) {
+          selaReservaTsRef.current = agora
           supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
         }
       }
@@ -8209,7 +8282,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
           for (const r of rows) {
             acoesVistasRef.current = Math.max(acoesVistasRef.current, r.id)
             const a = r.payload
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK')) rawDispatch(a)
+            // 📮 os 4 recados que travam a sala quando somem: os dois lances e os
+            // dois "acabou o tempo, fecha". O reducer reconfere prazo e duplicata,
+            // então aplicar de novo o que já chegou pelo rádio não muda nada.
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
@@ -8274,15 +8350,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // se dependesse só do host, o celular dele apagar a tela travava a sala
   // inteira pra sempre. O reducer reconfirma o prazo antes de aplicar, então
   // disparos duplicados de vários clientes são inofensivos.
-  useEffect(() => {
-    if (state.onlineMode !== 'online') return
-    if (state.screen !== 'monte' || !state.monteDeadline) return
-    const cur = state.monteOrder[state.monteIdx]
-    const m = state.managers.find(x => x.id === cur)
-    if (!m || !m.isHuman) return
-    const t = setTimeout(() => dispatch({ type: 'MONTE_TIMEOUT' }), Math.max(0, state.monteDeadline - Date.now()) + 300)
-    return () => clearTimeout(t)
-  }, [state.monteDeadline, state.screen, state.monteIdx, state.onlineMode, state.managers, state.monteOrder, dispatch])
+  const monteHumano = state.onlineMode === 'online' && state.screen === 'monte'
+    && !!state.managers.find(x => x.id === state.monteOrder[state.monteIdx])?.isHuman
+  useVigiaPrazo(monteHumano, state.monteDeadline, () => dispatch({ type: 'MONTE_TIMEOUT' }))
 
   // 🤝🆘 PARCEIRO QUE CAIU DE VERDADE — liberação automática (relato do Diego,
   // 08/08: "caiu quem era responsável pelo meio e pelo monte e o jogo ficou
@@ -8321,30 +8391,30 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Cronômetro da cerimônia: quando os 45s pra olhar os times acabam, começa
   // o campeonato sozinho. Vale solo e online; no online qualquer cliente pode
   // disparar (o guest roteia pro host) e o reducer reconfirma a tela.
-  useEffect(() => {
-    if (state.screen !== 'cerimonia' || !state.cerimoniaDeadline) return
-    const t = setTimeout(() => dispatch({ type: 'FINISH_CEREMONY' }), Math.max(0, state.cerimoniaDeadline - Date.now()) + 200)
-    return () => clearTimeout(t)
-  }, [state.screen, state.cerimoniaDeadline, dispatch])
+  useVigiaPrazo(
+    state.screen === 'cerimonia',
+    state.cerimoniaDeadline,
+    () => dispatch({ type: 'FINISH_CEREMONY' }),
+  )
 
   // Vigia do leilão: mesmo princípio — qualquer cliente conectado pode forçar
   // o selamento quando o prazo do envelope estoura, não só o host.
-  useEffect(() => {
-    if (state.onlineMode !== 'online') return
-    if (state.phase !== 'envelope' && state.phase !== 'resq_envelope') return
-    if (!state.phaseDeadline) return
-    const t = setTimeout(() => dispatch({ type: 'FORCE_SEAL' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
-    return () => clearTimeout(t)
-  }, [state.phaseDeadline, state.phase, state.onlineMode, dispatch])
+  // ⏰ usa o `useVigiaPrazo` (tiro + conferida de relógio + volta pra tela): com
+  // um `setTimeout` sozinho, o celular que sai da frente engolia o único tiro e
+  // o leilão ficava parado no 0s pra sala inteira. Ver o comentário do vigia.
+  useVigiaPrazo(
+    state.onlineMode === 'online' && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
+    state.phaseDeadline,
+    () => dispatch({ type: 'FORCE_SEAL' }),
+  )
 
   // Vigia do desempate: se um dos empatados sumir (AFK), o prazo estoura e
   // qualquer cliente força a resolução — quem não re-lançou não cobre.
-  useEffect(() => {
-    if (state.onlineMode !== 'online') return
-    if (state.phase !== 'tiebreak' || !state.phaseDeadline) return
-    const t = setTimeout(() => dispatch({ type: 'FORCE_TIEBREAK' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
-    return () => clearTimeout(t)
-  }, [state.phaseDeadline, state.phase, state.tiebreakIdx, state.onlineMode, dispatch])
+  useVigiaPrazo(
+    state.onlineMode === 'online' && state.phase === 'tiebreak',
+    state.phaseDeadline,
+    () => dispatch({ type: 'FORCE_TIEBREAK' }),
+  )
 
   // 🛟 AUTO-CURA DE IDENTIDADE (online): depois de um "jogar de novo"/reconexão o
   // índice local ("quem sou eu") pode DESLIZAR — você passa a controlar o assento

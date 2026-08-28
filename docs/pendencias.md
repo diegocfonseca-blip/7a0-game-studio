@@ -1,5 +1,54 @@
 # 📌 Pendências combinadas com o Diego (atualizado 28/08/2026)
 
+## 🧊 "DO NADA TRAVA" NO RÁPIDO ONLINE — ✅ ACHADO E CORRIGIDO (28/08)
+Relato do Diego: *"estão falando que está travando o modo rápido online… o jogo
+está fluindo, benzão, aí do nada um dia vai e trava. Não consigo entender isso"*.
+
+**A causa (uma forma escrita no código, repetida em 4 lugares).** Todo prazo do
+online era vigiado por **UM `setTimeout` só** — um tiro único:
+```ts
+const t = setTimeout(() => dispatch({ type: 'FORCE_SEAL' }), prazo - Date.now() + 800)
+```
+Celular **PAUSA `setTimeout`** quando a aba sai da frente (olhar o zap, apagar a
+tela, atender ligação). Se esse tiro se perde, **ninguém atira de novo**: o
+efeito do React só rearma quando o PRAZO MUDA — e ele não muda, porque a sala
+está presa exatamente naquele prazo. O `visibilitychange` que já existia
+ressincroniza o ESTADO, mas o estado que chega é "envelope, prazo vencido há 3
+min" — e ninguém rearma o vigia. Trava permanente, só o F5 saía.
+
+**Por isso era do nada:** não depende de jogada nenhuma, depende de a galera dar
+uma saidinha da tela na hora errada. Impossível reproduzir de propósito.
+
+**Este mesmo bug já tinha sido diagnosticado e curado na REVELAÇÃO** (`AutoAdvance`
+em screens.tsx — comentário lá: *"a revelação ficava presa pra sempre, só um F5
+destravava"*). A cura nunca foi levada pros outros quatro prazos.
+
+**A correção.** Um `useVigiaPrazo` só (store.tsx), usado pelos 4 prazos do online
+— fechar o envelope · resolver o empate · a vez do monte · a cerimônia. Ele tem
+**três redes em vez de uma**: (1) o `setTimeout` de sempre; (2) uma conferida de
+**relógio de parede** a cada 4s (relógio não pausa); (3) disparo quando a pessoa
+**volta pra tela**. Disparo repetido é inofensivo de propósito — o reducer já
+reconfere o prazo antes de aplicar. Teto de 15 tentativas (~1 min) pra sala
+morta de verdade não ficar gastando Realtime à toa.
+
+**Segunda estrada pro comando de fechar.** O LANCE ganhou caminho reserva pelo
+banco em 23/08 (o rádio engole recado numa direção só), mas o *"acabou o tempo,
+fecha!"* continuou indo só pelo rádio — e é o pior recado pra se perder. Agora
+`FORCE_SEAL`/`FORCE_TIEBREAK` também vão por HTTPS (`room_acoes`), com relógio
+próprio de 6s pra um lance recente não engolir a vez do fechamento.
+
+**Trava pra não voltar:** `npm run vigias` (`scripts/checa-vigias-online.mjs`)
+acusa qualquer `setTimeout` armado em cima de um campo `*Deadline` e confere que
+o vigia bom continua sendo usado nos 4. Testado plantando o padrão ruim de
+propósito: ele aponta arquivo e linha. **Reverter: um commit.**
+
+### ⚠️ O que este conserto NÃO resolve (e é de propósito)
+Sala **sem dono** continua parando — é a regra permanente do Diego (a coroa não
+troca sozinha, ninguém assume). Se o dono fecha o jogo e some, a sala espera e
+mostra a faixa vermelha. Isso é comportamento desejado, não trava.
+Sala de **stream/manual sem cronômetro** (`auctionSecs = 0`) também não tem
+prazo nenhum: quem fecha cada envelope é o botão do host, por escolha da sala.
+
 ## 🌎 NACIONALIDADE DA CARTA — ✅ CORRIGIDO (28/08)
 O Diego mandou print do **Lingard convocado pelo BRASIL** na Copa: *"absurdo,
 Lingard está no baralho brasileiro porém ele não é brasileiro, ele é inglês.
