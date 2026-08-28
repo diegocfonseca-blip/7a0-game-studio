@@ -184,7 +184,7 @@ const FUNDADOR_N: Record<string, number> = {
   'matheusfilipealves@hotmail.com': 47, // 🖋️ batizou o Theuzudo FC (ex-Comercial do Norte, Série B); coração Valência, mascote morcego 🦇 laranja e preto (21/08)
   'gabrielnegreirosamaral99@hotmail.com': 48,
   'igormarquesn99@gmail.com': 49,
-  'lluchmarcel81@gmail.com': 50, // 🖋️ batizou o Esqueceram do Lluch FC (ex-Litoral United, Série B); mascote o menino de gorro ⚽ vermelho e preto (28/08) // 🖋️ batizou o Milhaça FC (ex-Real Bets, Série C); jornalista @igumarques, mascote boleiro de boné 🌽 vermelho e amarelo (24/08) // 🖋️ batizou o São Luiz FC (ex-Flamengo do Sertão, Série D); coração Flamengo, mascote pitbull 🐶 (21/08)
+  'lluchmarcel81@gmail.com': 50, // 🖋️ batizou o Esqueceram do Lluch FC (ex-Litoral United, Série B); ❤️ São Paulo, mascote o menino de gorro ⚽ tricolor vermelho/preto/branco (28/08) // 🖋️ batizou o Milhaça FC (ex-Real Bets, Série C); jornalista @igumarques, mascote boleiro de boné 🌽 vermelho e amarelo (24/08) // 🖋️ batizou o São Luiz FC (ex-Flamengo do Sertão, Série D); coração Flamengo, mascote pitbull 🐶 (21/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

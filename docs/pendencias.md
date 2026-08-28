@@ -10718,6 +10718,9 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       por IA, feito exatamente pra isso. Saiu limpo de primeira, com os dois
       tênis e a bola perfeitos; sobrou uma sombra entre o braço e o corpo, tirada
       com a janelinha de sempre.
+      ❤️ CORAÇÃO: São Paulo (o Diego confirmou) — registrado no post e nos
+      comentários de `manto.ts` e `apoio.tsx`, que é onde a gente guarda o time
+      de coração dos donos. Explica o manto tricolor listrado.
       📌 REGRA PRA PRÓXIMA ARTE DE BATISMO: quando o dono mandar arte com FUNDO
       (gradiente, cena, colagem), começar pelo `rembg` — não gastar rodada com
       GrabCut/cor/flood fill. GrabCut só vale pra separar peça de fundo LISO.
