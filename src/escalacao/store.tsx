@@ -7314,7 +7314,7 @@ const FICHA_ATUAL = (() => {
   }
   // 🚫 nome que aparece em MAIS DE UMA carta sai da queda-por-nome. O jogo tem
   // o mesmo jogador em momentos diferentes (Messi no Barça e no Inter Miami,
-  // CR7 no Real e no Al-Nassr, Alan Ruschel em 2016 e 2017) — pegar "o Messi"
+  // CR7 no Real e no Al-Nassr) — pegar "o Messi"
   // pelo nome daria a ficha errada, e a de fora da Europa é MUITO mais fraca.
   // Nesses casos só o casamento exato (nome+clube+ano) vale.
   for (const n of repetidos) porNome.delete(n)
