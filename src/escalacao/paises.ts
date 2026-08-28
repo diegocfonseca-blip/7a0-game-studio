@@ -440,6 +440,32 @@ export type Baralho = 'BR' | 'EU' | 'WORLD'
 // ⚠️ Ao adicionar uma carta com nome que JÁ EXISTE no jogo, ponha as duas aqui.
 //    O `npm run paises` acusa quem ficar de fora.
 export const PAIS_POR_CARTA: Record<string, string> = {
+  // ─── 🚩 ESTRANGEIROS QUE JOGARAM NO BRASIL (28/08, Diego: "absurdo, Lingard
+  // está no baralho brasileiro, porém ele NÃO é brasileiro, é inglês! Todo
+  // jogador do baralho tem que ter sua nacionalidade — o baralho é uma coisa,
+  // a nacionalidade é outra, não têm relação"). O buraco era o PADRÃO: carta do
+  // baralho BR sem etiqueta virava 'Brasil' automaticamente, e o baralho BR diz
+  // ONDE o cara jogou, não de onde ele é. Achados varrendo as bios do catálogo
+  // atrás de gentílico + revisão nome a nome das 518 cartas sem etiqueta.
+  'Lingard|Corinthians|2026': 'Inglaterra',        // ex-Manchester United
+  'Cédric Soares|São Paulo|2025': 'Portugal',      // campeão da Euro 2016
+  'Gonçalo Paciência|Sport|2025': 'Portugal',
+  'Dátolo|Atlético-MG|2014': 'Argentina',
+  'Maxi Lopez|Vasco|2017': 'Argentina',
+  'Germán Herrera|Corinthians|2008': 'Argentina',  // o "Chaco"
+  'Erazo|Flamengo|2014': 'Equador',
+  'Frickson Erazo|Flamengo|2014': 'Equador',       // ⚠️ é a MESMA pessoa do de cima (carta repetida no baralho)
+  'Gonzalo Plata|Flamengo|2024': 'Equador',
+  'Kazu Miura|Santos|1986': 'Japão',               // o "Rei Kazu", lenda no Japão
+  'Jesé Rodríguez|Coritiba|2023': 'Espanha',       // ex-Real Madrid e PSG
+  'Loide Augusto|Vasco|2025': 'Angola',
+  'Zizão|Corinthians|2013': 'China',                // Chen Zhizhao, o 1º asiático do Corinthians
+  // ⚠️ FALSOS POSITIVOS conferidos e mantidos como BRASIL (a bio cita um país,
+  // mas o jogador é brasileiro) — escritos aqui pra ninguém "corrigir" errado:
+  'Carlos Miguel|Corinthians|2024': 'Brasil',      // brasileiro que FOI pro futebol inglês
+  'Cláudio Caçapa|Lyon|2004': 'Brasil',            // brasileiro ídolo do Lyon
+  'Allan Delon|Vitória|2002': 'Brasil',            // o nome homenageia o ATOR francês
+  'Kempes (Chape)|Chapecoense|2016': 'Brasil',     // apelido vindo do Matador argentino
   // ⚠️ 'Alex' são DUAS PESSOAS: o meia do Cruzeiro/Fenerbahçe e o zagueiro do
   // Chelsea (Alex Rodrigo Dias da Costa). Os dois são brasileiros, então o país
   // não muda — mas ficam escritos aqui pra ninguém "consertar" um pelo outro.
