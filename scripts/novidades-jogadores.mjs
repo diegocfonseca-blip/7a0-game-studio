@@ -36,6 +36,7 @@ const hoje = new Date().toISOString().slice(0, 10)
 // Formato: `'<tipo>|<nome>'`, com um porquê do lado.
 const CALADOS = new Set([
   'saiu|Erazo', // 28/08: era carta DUPLICADA do Frickson Erazo (mesma pessoa, Flamengo 2014)
+  'saiu|Alan Ruschel', // 28/08: tinha 2016 E 2017; ficou só a de 2016, senão o nome repetia no post da Chape
 ])
 
 // nível como a pessoa vê na carta (o mesmo vocabulário do jogo)

@@ -718,8 +718,11 @@ const LAT: C[] = [
   { name: "Wesley", club: "Flamengo", year: 2023, fame: 2, lo: 68, hi: 82 },
   { name: "Ruy Cabeção", club: "Grêmio", year: 2009, fame: 1, lo: 56, hi: 78, folk: true },
   { name: "Reinaldo", club: "São Paulo", year: 2020, fame: 3, lo: 72, hi: 84, bio: "Lateral-esquerdo de chegada e cobrador oficial do Morumbi — pênalti, falta e gol de lateral como poucos." },
-  { name: "Alan Ruschel", club: "Chapecoense", year: 2016, fame: 1, lo: 52, hi: 76, bio: "O lateral-esquerdo da campanha que levou a Chapecoense do interior de Santa Catarina até a final da Copa Sul-Americana de 2016. O time que encantou o continente." },
-  { name: "Alan Ruschel", club: "Chapecoense", year: 2017, fame: 1, lo: 52, hi: 76, bio: "Símbolo de superação da Chape — voltou aos gramados depois da tragédia de 2016 e emocionou o futebol inteiro." },
+  // 💚 UMA carta só, ano 2016 (decisão do Diego 28/08). Ele tinha duas — 2016 e
+  // 2017 — e no post da Chape o nome aparecia REPETIDO, o que fica feio numa
+  // homenagem. A de 2017 saiu e o que ela contava (a volta aos gramados) foi
+  // pra bio desta aqui, pra história não se perder.
+  { name: "Alan Ruschel", club: "Chapecoense", year: 2016, fame: 1, lo: 52, hi: 76, bio: "O lateral-esquerdo da campanha que levou a Chapecoense do interior de Santa Catarina até a final da Copa Sul-Americana de 2016 — o time que encantou o continente. Sobreviveu à tragédia, voltou a jogar e emocionou o futebol inteiro. 💚" },
   { name: "Arce", club: "Palmeiras", year: 1999, fame: 5, lo: 85, hi: 91 },
   { name: "Apodi", club: "Ceará", year: 2012, fame: 1, lo: 57, hi: 79, folk: true },
   { name: "Madson Cu de Nitro", club: "Athletico-PR", year: 2019, fame: 1, lo: 56, hi: 78, folk: true },
