@@ -1337,7 +1337,17 @@ const L27_BR_LAT: C[] = [
 const L27_BR_ATA: C[] = [
   { name: 'Fernando Baiano', club: 'Corinthians', year: 1999, fame: 3, lo: 76, hi: 86, bio: 'Artilheiro da Libertadores de 1999 com 11 gols — teve noite de CINCO gols num jogo só e quase foi parar no Bayern.' },
 ]
+// 🎽 VALDO — CLUBE E ANO SÃO DECISÃO DO DIEGO (28/08): *"o Valdo é pra você pôr
+// Botafogo, cara. Pedi só pra mudar o ano"*. Fica Botafogo · 1994.
+// 📌 Pro registro, porque isso já me fez errar uma vez: a carreira que eu achei
+// pesquisando é Figueirense 83 · Grêmio 84-88 · Benfica 88-91 · PSG 91-95 ·
+// Benfica 95-97 · Nagoya 97-98 · Cruzeiro 98-00 · Santos 00-01 · Atlético-MG
+// 01-02 · Juventude 02 · São Caetano 03 · Botafogo 03-04. A bio abaixo NÃO cita
+// título nem temporada específica — a primeira versão dela dizia "campeão
+// brasileiro de 1995 pelo Botafogo" e isso era falso. Bio errada é a parte que o
+// jogador LÊ, então aqui só entra o que dá pra sustentar.
 const L27_BR_MEI: C[] = [
+  { name: 'Valdo', club: 'Botafogo', year: 1994, fame: 3, lo: 78, hi: 87, bio: 'Meia de passe fino e visão de jogo — anos de Grêmio, ídolo no Benfica e temporadas em Paris antes de fechar a carreira no Rio.' },
   // 2ª carta do Andreas Pereira (a 1ª é Flamengo 2022) — mesma pessoa em dois
   // clubes, igual Cafu. Registrado em MESMO_JOGADOR pra o `npm run paises` não
   // achar que é gente diferente com o mesmo nome.
@@ -2004,16 +2014,7 @@ const L27_EU_ZAG: C[] = [
 const L27_EU_LAT: C[] = [
   { name: 'Yan Couto', club: 'Girona', year: 2024, fame: 3, lo: 74, hi: 84, bio: 'Lateral-direito brasileiro de cruzamento afiado — foi dele boa parte das assistências do Girona que assustou a Espanha.' },
 ]
-// ⚠️ VALDO — CARTA CORRIGIDA em 28/08. Eu tinha criado 'Valdo · Botafogo · 1995'
-// com bio de campeão brasileiro de 95. **Estava errado**: em 94/95 ele jogava no
-// PSG, e o Botafogo campeão de 95 não tinha ele no elenco. O Diego levantou o ano
-// ("jogou em 94 e não 95"), pesquisei, e a carreira é: Figueirense 83 · Grêmio
-// 84-88 · Benfica 88-91 · PSG 91-95 · Benfica 95-97 · Nagoya 97-98 · Cruzeiro
-// 98-00 · Santos 00-01 · Atlético-MG 01-02 · Juventude 02 · São Caetano 03 ·
-// Botafogo 03-04 (onde encerrou, ajudando no acesso à Série A).
-// Então 1994 = PSG. Só entram fatos conferidos nesta bio.
 const L27_EU_MEI: C[] = [
-  { name: 'Valdo', club: 'PSG', year: 1994, fame: 3, lo: 78, hi: 87, bio: 'Meia brasileiro de passe fino que fez carreira inteira na Europa — quatro anos de Grêmio, ídolo no Benfica e quatro temporadas de Paris. Voltou pra encerrar no Botafogo.' },
   { name: 'Felipe Anderson', club: 'Lazio', year: 2018, fame: 4, lo: 80, hi: 88, bio: 'Ponta canhoto de drible curto e arrancada — o craque da Lazio antes de rodar a Europa.' },
   { name: 'Anderson Talisca', club: 'Benfica', year: 2016, fame: 3, lo: 76, hi: 86, bio: 'Meia-atacante baiano que estourou no Benfica — corpo de zagueiro, chute de fora e faro de área.' },
 ]
