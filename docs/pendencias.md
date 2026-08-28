@@ -10655,6 +10655,75 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🏠 BATISMO Nº27: ESQUECERAM DO LLUCH FC (28/08, lluchmarcel81@gmail.com).
+      Assumiu o assento do **Litoral United** na **Série B**. Tudo do roteiro
+      padrão: escudo `lluch-escudo.webp` 296×360 · 29 KB · mascote
+      `lluch-mascote.webp` 253×440 · 30 KB (total 60 KB, teto 75 ✅) · camisa do
+      dono em `scripts/kits/lluch-camisa.webp` (post, fora do bundle) · manto
+      MEDIDO na camisa: vermelho #C00018 + preto #111111 · mascote "O Esquecido"
+      (chave `lluch_menino`) com CARIMBO_GOL nas 4 formas + nome velho · OLD_NAME
+      em data.ts · tier OURO + FUNDADOR nº50 em apoio.tsx · reserva no banco
+      (`esc_nomes_batismo`, o gatilho criou FC e EC sozinho).
+      ✂️ RECORTE: a arte veio numa peça só, com FUNDO ESCURO em gradiente — o
+      corte por cor VAZOU (o preto do desenho, (1,1,1), e o fundo, (53,35,31),
+      são vizinhos demais; sumiram shorts, faixa e barra da camisa). Refeito com
+      GrabCut (OpenCV) + núcleo garantido no miolo + preenchimento de buracos
+      internos. Conferido sobre MAGENTA, nunca sobre branco (lição do Theuzudo).
+      🇧🇷 De quebra, conserto no `mockup-batismo.mjs`: o artigo da mascote era
+      ADIVINHADO pela 1ª letra e "O Esquecido" virava "a Esquecido". Agora manda
+      o artigo que o próprio nome traz.
+      ✅ CORREÇÕES do Diego no mesmo dia: (1) o manto é TRICOLOR listrado à moda
+      São Paulo — vermelho, preto E BRANCO; o branco entrou como 3ª cor em
+      `MANTO_TRI` (chave `lluch_menino`), que é o caminho certo (as duas cores
+      base seguem medidas na arte). (2) Sobrou FUNDO na mascote, no vão entre a
+      bola e o rosto: meu preenchimento de buracos tinha fechado aquilo achando
+      que era desenho. Limpo numa janelinha de 72×105 px ao redor da mancha (só
+      o marrom do fundo; pele e contorno preto ficaram), mascote regravada com
+      31 KB. Duas tentativas antes falharam e ficam registradas pra ninguém
+      repetir: apagar "cor parecida com o fundo" na peça inteira come os gomos
+      pretos da bola, e flood fill com tolerância 42 vaza pela arte toda.
+      🎽 O gerador de post ganhou `--c3/--c3-nome` (manto de 3 cores) e o texto
+      das cores agora escreve "vermelho, preto e branco".
+      🖼️ TROCA DO ROSTO NO ESCUDO (pedido do Diego): entrou no escudo o MESMO
+      rosto que está na camisa — o menino com as MÃOS NO ROSTO — no lugar do
+      rosto de boca aberta. Feito por sobreposição: o rosto foi recortado da
+      camisa (GrabCut), limpo das listras brancas que grudaram na borda, ganhou
+      o mesmo contorno claro do desenho e foi colado EXATAMENTE sobre a cabeça
+      antiga (x 145-320, y 95-335). Nada do resto do escudo foi apagado — texto,
+      pegadas, casinha, ladrão e viatura seguem intactos. ⚠️ A 1ª tentativa
+      pintou um retângulo pra "limpar" a área antiga e comeu as pegadas e o
+      texto; fica registrado que aqui o certo é SOBREPOR, não apagar.
+      Escudo regravado: 296×360 · 27,0 KB (teto 30 ✅).
+      🔁 2ª RODADA (o Diego ampliou e pegou o que faltava): (a) no escudo ficaram
+      DOIS ROSTOS — a orelha e o cabelo do menino antigo apareciam por trás do
+      novo, porque eu só tinha SOBREPOSTO. Agora a cabeça antiga é APAGADA de
+      verdade com `cv2.inpaint` (a máscara é uma oval na cabeça + o pescoço), o
+      rosto novo entra por cima cobrindo a área toda e o contorno claro ficou
+      FINO — o grosso virava halo e passava por cima do nome do clube.
+      (b) A mascote estava SEM UM PÉ e com bloco de fundo atrás do braço: o box
+      do recorte foi alargado embaixo/à direita (os dois tênis entram) e o fundo
+      que sobrava DENTRO da silhueta saiu por um filtro de BLOCOS — marrom do
+      fundo + `MORPH_OPEN 9×9`, que apaga mancha grande e deixa a linha fina do
+      desenho. ⚠️ Peneira mais fina que essa (7×7 com área 150) abre furo no
+      cabelo, no gorro e na bola — testado e descartado, não repetir.
+      Mascote: 252×440 · 32,8 KB.
+      🤖 3ª RODADA — A FERRAMENTA CERTA (o Diego ampliou de novo: "ainda tem
+      vários pedaços do fundo no mascote", e tinha mesmo). O motivo de nada
+      funcionar ficou claro quando MEDI as manchas: elas têm as MESMAS cores da
+      roupa (192,92,78 é quase o vermelho da camisa; 38,27,37 é quase o preto do
+      short). Ou seja: cor não separa, textura não separa (o short liso é tão
+      liso quanto o fundo) e o contorno claro do desenho tem falhas, então o
+      preenchimento vaza. Tentei ainda silhueta desenhada à mão e saiu torta.
+      SOLUÇÃO: `rembg` (modelo U2Net, `pip install rembg onnxruntime`) — recorte
+      por IA, feito exatamente pra isso. Saiu limpo de primeira, com os dois
+      tênis e a bola perfeitos; sobrou uma sombra entre o braço e o corpo, tirada
+      com a janelinha de sempre.
+      ❤️ CORAÇÃO: São Paulo (o Diego confirmou) — registrado no post e nos
+      comentários de `manto.ts` e `apoio.tsx`, que é onde a gente guarda o time
+      de coração dos donos. Explica o manto tricolor listrado.
+      📌 REGRA PRA PRÓXIMA ARTE DE BATISMO: quando o dono mandar arte com FUNDO
+      (gradiente, cena, colagem), começar pelo `rembg` — não gastar rodada com
+      GrabCut/cor/flood fill. GrabCut só vale pra separar peça de fundo LISO.
 - [x] 🐛🪜 TÉCNICO DA DIVISÃO ERRADA — CONSERTADO (28/08, relato do Diego: "meu
       amigo já está na SÉRIE A e, ao olhar os técnicos, apareceu Lisca Doido,
       Joel Santana, Guto Ferreira — técnico de VÁRZEA. Se ele estivesse na

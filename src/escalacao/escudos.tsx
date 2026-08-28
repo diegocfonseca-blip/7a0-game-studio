@@ -25,6 +25,7 @@ import nataEscudoImg from './img/nata-escudo.webp'
 import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
 import saoluizEscudoImg from './img/saoluiz-escudo.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
 import papaoEscudoImg from './img/papao-escudo.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
+import lluchEscudoImg from './img/lluch-escudo.webp' // 🏠 Esqueceram do Lluch FC (lluchmarcel81): arte própria do dono
 import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
 import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
@@ -528,6 +529,15 @@ const saoluizEscudoRender = (size: number) => (
 const leaoEstradinhaRender = (size: number) => (
   <img src={leaoEstradinhaEscudoImg} height={size} width={Math.round(size * 287 / 360)} alt="Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🏠🔴⚫ Esqueceram do Lluch FC (lluchmarcel81) — o escudo vermelho e preto com o
+// menino esquecido em casa, o desenho da casa, o ladrão e a viatura. Arte própria
+// do dono; aqui só tiramos o fundo escuro (recorte por GrabCut, porque o preto do
+// desenho e o fundo eram parecidos demais pro corte por cor), cortamos no limite
+// do desenho e reduzimos pra 360px (o escudo nunca passa de 78px na tela).
+const lluchEscudoRender = (size: number) => (
+  <img src={lluchEscudoImg} height={size} width={Math.round(size * 296 / 360)} alt="Esqueceram do Lluch FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const papaoEscudoRender = (size: number) => (
   <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 263)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -655,6 +665,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🐺🔵⚪ Papão United Madrid (agrostinho88) — ex-Santos Dumont, Série D. O nome
   // velho fica registrado: quem já tinha carreira com o Santos Dumont não fica sem
   // escudo. As 4 formas do nome (regra 20/08) já estão reservadas no banco.
+  // 🏠 Esqueceram do Lluch FC (lluchmarcel81) — ex-Litoral United, Série B.
+  // As 4 formas do nome (regra do Diego 20/08) + o nome VELHO, que nunca fica
+  // livre: save antigo com Litoral United mostra o escudo novo.
+  'Esqueceram do Lluch FC': lluchEscudoRender,
+  'Esqueceram do Lluch': lluchEscudoRender,
+  'Esqueceram do Lluch EC': lluchEscudoRender,
+  'Esqueceram do Lluch SC': lluchEscudoRender,
+  'Litoral United': lluchEscudoRender,
   'Papão United Madrid': papaoEscudoRender,
   'Papão United Madrid FC': papaoEscudoRender,
   'Papão United Madrid EC': papaoEscudoRender,
