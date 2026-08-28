@@ -66,6 +66,8 @@ export const PAIS: Record<string, string> = {
   // sem etiqueta, o baralho EU cai em '??' e eles ficariam de fora de toda Copa.
   'Yan Couto': 'Brasil', 'Cris': 'Brasil', 'Felipe Anderson': 'Brasil',
   'Anderson Talisca': 'Brasil',
+  'Donyell Malen': 'Holanda',
+  'William': 'Brasil', // lateral do Cruzeiro (não confundir com o William Saliba, francês)
   'Vítor Baía': 'Portugal', 'Tim Howard': 'EUA', 'Rui Patrício': 'Portugal',
   'Hans van Breukelen': 'Holanda', 'David Ospina': 'Colômbia',
   'Fernando Muslera': 'Uruguai', 'Claudio Bravo': 'Chile',
@@ -487,6 +489,7 @@ export function paisDe(name: string, baralho: Baralho, club?: string, year?: num
 // que ninguém conferiu ainda — pode ser outra pessoa, como foi o Pedro.
 // ⚠️ Só entra aqui depois de OLHAR as duas cartas. Na dúvida, deixa de fora.
 export const MESMO_JOGADOR = new Set<string>([
+  'Andreas Pereira', // Flamengo 2022 e Palmeiras 2026 — o mesmo cara em dois clubes
   // ⚠️ 'Alex' é a EXCEÇÃO desta lista: são duas PESSOAS diferentes (o meia do
   // Cruzeiro e o zagueiro do Chelsea). Está aqui só pra calar o aviso do
   // `npm run paises`, e os dois estão escritos carta a carta em PAIS_POR_CARTA.

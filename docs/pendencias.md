@@ -11106,17 +11106,28 @@ cheguei a adicionar duplicado e desfiz.
 usou só `name: "..."` e disse que Leandro Ávila não existia. **Procurar sempre com
 `['\"]` nos dois lados**, senão dá carta repetida.
 
-### ⚠️ NÃO entraram — preciso do Diego (não inventei)
-Regra dele: *"quando você N souber quem é a pessoa, me fala"*.
-- [ ] **"Malen do Roma"** — não sei quem é. O Malen que conheço é o holandês Donyell
-      Malen (PSV/Dortmund), e não tenho certeza de que ele esteja na Roma.
-- [ ] **Andreas Pereira pelo Palmeiras** — ele já tem carta (Flamengo 2022). A carta
-      NOVA pediria confirmar que ele foi mesmo pro Palmeiras, e disso eu não tenho
-      certeza.
-- [ ] **"lateral William do Cruzeiro"** — não consegui identificar com segurança qual
-      William (o lateral do bi 2013/14 do Cruzeiro era o Ceará).
-- [ ] **Fernando Baiano** — não tenho certeza de qual foi o clube do auge dele, e o
-      clube é a identidade da carta (chave do valor de mercado).
+### ✅ Os 4 que faltavam — RESOLVIDOS PESQUISANDO (28/08)
+Eu tinha parado neles por falta de certeza e fui pedir pro Diego. Bronca merecida:
+*"pesquise porra… quer de graça?? Pesquise você na internet"*. **Tinha busca na web
+disponível e eu não usei.** Fica a regra: antes de devolver "não sei" sobre fato
+público de jogador, PESQUISAR. Perguntar é o último recurso, não o primeiro.
+
+O que a pesquisa deu, e as 4 cartas que entraram:
+- **Donyell Malen · Roma · 2026 · ATA · 🇳🇱** — chegou emprestado do Aston Villa em
+  jan/2026 e fez 15 gols em 20 jogos; a compra (€25M) virou OBRIGAÇÃO quando a Roma
+  garantiu a Europa League. Contrato até 2030.
+- **Andreas Pereira · Palmeiras · 2026 · MEI** — veio do Fulham por €10M, contrato
+  até dez/2028, e entrou em 2026 como peça central do time do Abel. É a **2ª carta**
+  dele (a 1ª é Flamengo 2022) — mesma pessoa em dois clubes, registrada em
+  `MESMO_JOGADOR`.
+- **William · Cruzeiro · 2024 · LAT** — William de Asevedo Furtado, campeão olímpico
+  em 2016, ex-Wolfsburg e Schalke. Em 2024 foi eleito o melhor lateral do país
+  (Bola de Prata), com 60 jogos, 5 gols e 10 assistências, e foi convocado pra
+  Seleção. **Não era o lateral do bi de 2013/14** (aquele era o Ceará) — meu palpite
+  anterior estava errado.
+- **Fernando Baiano · Corinthians · 1999 · ATA** — João Fernando Nelo. **Artilheiro
+  da Libertadores de 1999 com 11 gols**, com uma noite de CINCO gols num jogo só. O
+  Bayern quis contratá-lo e o Corinthians pediu caro demais.
 
 ### 📌 Roger Guerreiro — o Diego corrigiu (28/08)
 Eu tinha colocado como **meia do Legia Varsóvia 2008** (foi lá que ele estourou e
