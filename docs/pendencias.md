@@ -1,4 +1,40 @@
-# 📌 Pendências combinadas com o Diego (atualizado 24/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 28/08/2026)
+
+## 🌎 NACIONALIDADE DA CARTA — ✅ CORRIGIDO (28/08)
+O Diego mandou print do **Lingard convocado pelo BRASIL** na Copa: *"absurdo,
+Lingard está no baralho brasileiro porém ele não é brasileiro, ele é inglês.
+Todo jogador do baralho tem que ter sua nacionalidade, que é diferente do
+baralho — não têm relação uma coisa com a outra. Confira também todos os
+jogadores que estão errados"*.
+
+**Causa (não era só o Lingard):** o padrão de `paisDe()` em `paises.ts` é
+`baralho === 'BR' ? 'Brasil' : '??'`. Ou seja: **carta do baralho BR sem
+etiqueta virava brasileiro CALADA**. E o baralho BR diz onde o cara JOGOU, não
+de onde ele É — então todo estrangeiro que passou pelo Brasil entrava na
+seleção brasileira. Eram 518 cartas sem etiqueta.
+
+**Corrigidos (13 cartas etiquetadas em `PAIS_POR_CARTA`):** Lingard 🏴󠁧󠁢󠁥󠁮󠁧󠁿 · Cédric
+Soares 🇵🇹 · Gonçalo Paciência 🇵🇹 · Dátolo 🇦🇷 · Maxi Lopez 🇦🇷 · Germán Herrera 🇦🇷 ·
+Erazo 🇪🇨 · Frickson Erazo 🇪🇨 · Gonzalo Plata 🇪🇨 · Kazu Miura 🇯🇵 · Jesé Rodríguez 🇪🇸 ·
+Loide Augusto 🇦🇴 · Zizão 🇨🇳 (Chen Zhizhao). Mais 4 **falsos positivos** fixados
+como 'Brasil' de propósito, pra ninguém "consertar" errado depois (Carlos
+Miguel, Cláudio Caçapa, Allan Delon, Kempes da Chape).
+
+**Trava pra não voltar:** o `npm run paises` ganhou uma 3ª conferência — acusa
+carta do baralho BR **sem etiqueta** cuja bio traz gentílico colado na posição
+("Meia chinês", "Ponta inglês") ou a palavra "naturalizado". Foi ela que achou o
+Zizão sozinha. Gentílico solto NÃO conta ("rodou por Portugal" é brasileiro que
+jogou fora) — por isso a janela é curta. Falso positivo se cala fixando a carta
+como 'Brasil'. **Reverter: um commit** (só tabela + script, nenhum save mexe).
+
+### 🔎 3 coisas pro Diego decidir (achadas na varredura)
+1. **Carta DUPLICADA no baralho:** `Erazo|Flamengo|2014` e
+   `Frickson Erazo|Flamengo|2014` são **a mesma pessoa**. Dá pra cair o mesmo
+   cara duas vezes no mesmo pregão. Apagar uma?
+2. **Rafael Tolói** — brasileiro que se naturalizou e **jogou pela ITÁLIA**
+   (campeão da Euro 2020). Hoje está como Brasil. Vira 🇮🇹?
+3. **Elkeson** — naturalizado e **defendeu a seleção CHINESA**. Hoje está como
+   Brasil. Vira 🇨🇳?
 
 ## 🅰️⚽ GOLS E ASSISTÊNCIAS NO RÁPIDO — ✅ ENTREGUE (24/08)
 Pedido dele: *"o campinho de gols coloque também no modo online rápido, e
