@@ -1340,13 +1340,22 @@ const L27_BR_LAT: C[] = [
 const L27_BR_ATA: C[] = [
   { name: 'Fernando Baiano', club: 'Corinthians', year: 1999, fame: 3, lo: 76, hi: 86, bio: 'Artilheiro da Libertadores de 1999 com 11 gols — teve noite de CINCO gols num jogo só e quase foi parar no Bayern.' },
 ]
+// 🎽 VALDO — CLUBE E ANO SÃO DECISÃO DO DIEGO (28/08): *"o Valdo é pra você pôr
+// Botafogo, cara. Pedi só pra mudar o ano"*. Fica Botafogo · 1994.
+// 📌 Pro registro, porque isso já me fez errar uma vez: a carreira que eu achei
+// pesquisando é Figueirense 83 · Grêmio 84-88 · Benfica 88-91 · PSG 91-95 ·
+// Benfica 95-97 · Nagoya 97-98 · Cruzeiro 98-00 · Santos 00-01 · Atlético-MG
+// 01-02 · Juventude 02 · São Caetano 03 · Botafogo 03-04. A bio abaixo NÃO cita
+// título nem temporada específica — a primeira versão dela dizia "campeão
+// brasileiro de 1995 pelo Botafogo" e isso era falso. Bio errada é a parte que o
+// jogador LÊ, então aqui só entra o que dá pra sustentar.
 const L27_BR_MEI: C[] = [
+  { name: 'Valdo', club: 'Botafogo', year: 1994, fame: 3, lo: 78, hi: 87, bio: 'Meia de passe fino e visão de jogo — anos de Grêmio, ídolo no Benfica e temporadas em Paris antes de fechar a carreira no Rio.' },
   // 2ª carta do Andreas Pereira (a 1ª é Flamengo 2022) — mesma pessoa em dois
   // clubes, igual Cafu. Registrado em MESMO_JOGADOR pra o `npm run paises` não
   // achar que é gente diferente com o mesmo nome.
   { name: 'Andreas Pereira', club: 'Palmeiras', year: 2026, fame: 3, lo: 76, hi: 85, bio: 'Meia de chegada e bola parada afiada: voltou ao Brasil pelo Palmeiras depois do Fulham e virou peça central do time.' },
-  { name: 'Valdo', club: 'Botafogo', year: 1995, fame: 3, lo: 78, hi: 87, bio: 'Meia canhoto de passe fino — campeão brasileiro de 1995 pelo Botafogo, depois de anos de Europa no Benfica e no PSG.' },
-  { name: 'Rodrigo Fabri', club: 'Grêmio', year: 2001, fame: 2, lo: 68, hi: 82, bio: 'Meia de chegada no Grêmio do começo dos anos 2000 — chute de fora da área e faro de área.' },
+  { name: 'Rodrigo Fabri', club: 'Grêmio', year: 2002, fame: 2, lo: 68, hi: 82, bio: 'Meia de chegada no Grêmio do começo dos anos 2000 — chute de fora da área e faro de área.' },
   { name: 'Rodrigo Mendes', club: 'Grêmio', year: 1999, fame: 2, lo: 66, hi: 80, bio: 'Meia gremista do fim dos anos 90 que depois foi jogar em Portugal.' },
   { name: 'Villasanti', club: 'Grêmio', year: 2023, fame: 2, lo: 68, hi: 81, bio: 'Volante paraguaio do Grêmio — pulmão, desarme e a braçadeira quando falta capitão.' },
   { name: 'Jean Lucas', club: 'Bahia', year: 2024, fame: 2, lo: 68, hi: 81, bio: 'Meio-campista rodado (Flamengo, Lyon, Mônaco, Santos) que virou peça fixa do Bahia.' },
