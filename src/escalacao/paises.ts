@@ -67,6 +67,7 @@ export const PAIS: Record<string, string> = {
   'Yan Couto': 'Brasil', 'Cris': 'Brasil', 'Felipe Anderson': 'Brasil',
   'Anderson Talisca': 'Brasil',
   'Donyell Malen': 'Holanda',
+  'Valdo': 'Brasil', // brasileiro, mas a carta nasceu no baralho EU (PSG 1994)
   'William': 'Brasil', // lateral do Cruzeiro (não confundir com o William Saliba, francês)
   'Vítor Baía': 'Portugal', 'Tim Howard': 'EUA', 'Rui Patrício': 'Portugal',
   'Hans van Breukelen': 'Holanda', 'David Ospina': 'Colômbia',

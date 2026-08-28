@@ -27,13 +27,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Valdo",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-08-28"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Rodrigo Fabri",
     "baralho": "BR",
     "nivel": "bom jogador",
@@ -84,6 +77,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Cris",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Valdo",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-08-28"

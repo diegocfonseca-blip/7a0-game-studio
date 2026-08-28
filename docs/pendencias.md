@@ -11218,3 +11218,39 @@ de EU pra BR produziu três linhas dele na home — "entrou EU", "saiu EU" e "en
 BR" — e "saiu" é mentira, ele não saiu do jogo. O certo é voltar `snapshot` +
 gerado pro commit ANTERIOR ao lote (`git checkout <lote>^ -- ...`) e rodar UMA vez,
 pra sair só o "entrou" limpo.
+
+
+---
+
+## 🐞 ERRO MEU NO BARALHO: A CARTA DO VALDO ESTAVA FALSA (28/08)
+
+Criei **`Valdo · Botafogo · 1995`** com a bio *"campeão brasileiro de 1995 pelo
+Botafogo"*. **Os dois estavam errados** e ficaram no ar por algumas horas.
+
+O Diego desconfiou do ano (*"Valdo jogou em 94 e não 95"*). Fui pesquisar em vez de
+só trocar o número — e ainda bem, porque o clube também estava errado.
+
+**A carreira real:** Figueirense 83 · Grêmio 84-88 · Benfica 88-91 · **PSG 91-95** ·
+Benfica 95-97 · Nagoya 97-98 · Cruzeiro 98-00 · Santos 00-01 · Atlético-MG 01-02 ·
+Juventude 02 · São Caetano 03 · **Botafogo 03-04** (onde encerrou, ajudando no
+acesso à Série A).
+
+Ou seja: **em 94 e 95 ele estava em Paris**, e o Botafogo campeão de 95 (Wagner,
+Wilson Goiano, Gottardo, Gonçalves, André Silva, Leandro, Jamir, Beto, Sérgio
+Manoel, Donizete, Túlio) **não tinha o Valdo**.
+
+✅ **Corrigido para `Valdo · PSG · 1994`** (baralho EU, etiqueta 'Brasil' pra não
+cair em `??`), com bio só de fato conferido.
+
+### 📌 A lição (é a segunda vez na mesma semana)
+Eu montei o clube+ano do Valdo **de cabeça**, a partir de "ex-Botafogo" que o Diego
+falou + o título de 95 que eu lembrava. Isso é exatamente o achismo que a regra dele
+proíbe. **Toda carta nova precisa de pesquisa do clube E do ano antes de entrar** —
+e a bio nunca pode afirmar título que eu não conferi, porque bio errada é a parte
+que o jogador LÊ.
+
+## ✏️ Outros acertos do mesmo dia
+- **Rodrigo Fabri** → ano trocado de 2001 para **2002** (dado do Diego).
+- **Gonçalves** → ele avisou que "está errado, é de 1995". **Conferi e já estava
+  certo**: `Gonçalves · Botafogo · 1995` (ZAG). Nada a fazer — registrando aqui pra
+  ninguém "corrigir" de novo o que já está certo.
