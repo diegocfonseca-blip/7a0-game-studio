@@ -11,12 +11,17 @@
 // 📌 A lista sai do PRÓPRIO `data.ts` (blocos L27_*), não escrita à mão — se
 // alguém mexer no baralho, a arte acompanha sozinha.
 //
-//   node scripts/mockup-jogadores-novos.mjs [--saida jogadores-novos.png]
+// 📐 DOIS ESTILOS (`--estilo`):
+//   · `carta` — as cartinhas do jogo (padrão)
+//   · `lista` — só a lista, sem carta nenhuma (pedido do Diego 28/08)
+//
+//   node scripts/mockup-jogadores-novos.mjs [--saida x.png] [--estilo lista]
 import { readFileSync, writeFileSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d }
 const SAIDA = arg('--saida', 'jogadores-novos.png')
+const ESTILO = arg('--estilo', 'carta')
 const b64 = w => readFileSync(`scripts/fonts/oswald-latin-${w}-normal.woff2`).toString('base64')
 const FONTES = [400, 500, 600, 700].map(w =>
   `@font-face{font-family:Oswald;src:url(data:font/woff2;base64,${b64(w)}) format('woff2');font-weight:${w};font-display:block}`).join('')
@@ -63,6 +68,51 @@ const carta = c => `
     </div>
   </div>`
 
+// ── ESTILO LISTA: sem carta, sem moldura, sem cor de tier. Só o nome grande,
+// o clube e o ano, agrupados por posição. É o mesmo dado, lido como escalação.
+const POS_NOME = { GOL: 'goleiro', LAT: 'laterais', ZAG: 'zagueiros', MEI: 'meias', ATA: 'atacantes' }
+const grupos = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
+  .map(p => [p, cartas.filter(c => c.pos === p)]).filter(([, a]) => a.length)
+
+const linha = c => `
+  <div style="display:flex;align-items:baseline;gap:14px;padding:9px 0;border-top:2px solid rgba(0,0,0,.10)">
+    <span style="${OSW};font-size:34px;line-height:1.05;flex:1;min-width:0;white-space:nowrap;
+                 overflow:hidden;text-overflow:ellipsis">${c.nome}</span>
+    <span style="font-weight:800;font-size:22px;color:rgba(0,0,0,.55);flex:none;white-space:nowrap">${c.club} · ${c.year}</span>
+  </div>`
+
+const bloco = ([pos, arr]) => `
+  <div style="margin-bottom:22px">
+    <div style="display:inline-block;background:${INK};color:${GOLD};${OSW};font-size:19px;
+                letter-spacing:2px;text-transform:uppercase;padding:5px 15px;border-radius:8px">
+      ${POS_NOME[pos]} · ${arr.length}</div>
+    <div style="margin-top:6px">${arr.map(linha).join('')}</div>
+  </div>`
+
+const htmlLista = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:${CREME};color:${INK};font-family:system-ui,-apple-system,sans-serif;
+     width:1080px;height:1920px;padding:56px 56px 42px;display:flex;flex-direction:column}
+</style></head><body>
+  <div style="flex:none">
+    <div style="display:inline-block;background:${GOLD};border:4px solid ${INK};border-radius:999px;
+      box-shadow:5px 5px 0 ${INK};padding:9px 26px;${OSW};font-size:23px;letter-spacing:1.4px;text-transform:uppercase">
+      ⚽ entraram agora no jogo</div>
+    <h1 style="${OSW};font-size:92px;line-height:1.02;margin:22px 0 0;text-transform:uppercase">
+      ${cartas.length} jogadores<br>novos no <span style="color:${VERDE}">Leilão Legends</span></h1>
+    <p style="font-size:26px;font-weight:600;line-height:1.4;margin:20px 0 0">
+      Do artilheiro da Libertadores de 99 ao lateral que virou o melhor do país.
+      Agora eles estão no pregão — e podem cair no seu time.</p>
+    <div style="height:6px;background:${INK};margin:26px 0 24px"></div>
+  </div>
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between">
+    ${grupos.map(bloco).join('')}
+  </div>
+  <p style="flex:none;${OSW};font-size:27px;text-align:center;border-top:6px solid ${INK};padding-top:20px">
+    ⚽ Leilão <span style="color:#C2452F">Legends</span>
+    <span style="font-weight:600;font-size:21px;opacity:.55;margin-left:10px">leilaolegends.com</span></p>
+</body></html>`
+
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:${CREME};color:${INK};font-family:system-ui,-apple-system,sans-serif;
@@ -94,7 +144,7 @@ body{background:${CREME};color:${INK};font-family:system-ui,-apple-system,sans-s
 </body></html>`
 
 const tmp = `/tmp/mock-jog-novos-${process.pid}.html`
-writeFileSync(tmp, html)
+writeFileSync(tmp, ESTILO === 'lista' ? htmlLista : html)
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
 const p = await b.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 2 })
 await p.goto('file://' + tmp)
