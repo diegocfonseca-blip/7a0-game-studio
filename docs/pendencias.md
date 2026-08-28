@@ -10684,6 +10684,16 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       pretos da bola, e flood fill com tolerância 42 vaza pela arte toda.
       🎽 O gerador de post ganhou `--c3/--c3-nome` (manto de 3 cores) e o texto
       das cores agora escreve "vermelho, preto e branco".
+      🖼️ TROCA DO ROSTO NO ESCUDO (pedido do Diego): entrou no escudo o MESMO
+      rosto que está na camisa — o menino com as MÃOS NO ROSTO — no lugar do
+      rosto de boca aberta. Feito por sobreposição: o rosto foi recortado da
+      camisa (GrabCut), limpo das listras brancas que grudaram na borda, ganhou
+      o mesmo contorno claro do desenho e foi colado EXATAMENTE sobre a cabeça
+      antiga (x 145-320, y 95-335). Nada do resto do escudo foi apagado — texto,
+      pegadas, casinha, ladrão e viatura seguem intactos. ⚠️ A 1ª tentativa
+      pintou um retângulo pra "limpar" a área antiga e comeu as pegadas e o
+      texto; fica registrado que aqui o certo é SOBREPOR, não apagar.
+      Escudo regravado: 296×360 · 29,9 KB (teto 30 ✅).
 - [x] 🐛🪜 TÉCNICO DA DIVISÃO ERRADA — CONSERTADO (28/08, relato do Diego: "meu
       amigo já está na SÉRIE A e, ao olhar os técnicos, apareceu Lisca Doido,
       Joel Santana, Guto Ferreira — técnico de VÁRZEA. Se ele estivesse na
