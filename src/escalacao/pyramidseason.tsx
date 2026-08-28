@@ -1610,7 +1610,8 @@ function BancoLegends() {
 // Reforma pedida pelo Diego: a TV era invisível (banner 1x por divisão nova +
 // linha no extrato, e só). Agora tem MORADA FIXA: o contrato por divisão que já
 // paga sozinho (TV_COTA no store) + a COTA EXTRA das redes sociais. Regras
-// FECHADAS por ele (23/08): vídeo 15s+ · Instagram ou TikTok marcando
+// FECHADAS por ele (23/08): vídeo 15s+ · Instagram, TikTok ou YouTube (o
+// YouTube entrou em 28/08 — vale vídeo, Shorts ou live gravada) marcando
 // @leilaolegendscom · foto não vale · 1 vídeo por temporada · +15 🪙 por vídeo
 // aprovado · conferência MANUAL dele no admin ("como toda cota de TV, pode
 // atrasar um pouco mas vai receber" — a fila espera, não expira).
@@ -1674,7 +1675,10 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
   const enviar = async () => {
     const l = link.trim()
     if (!l || busy) return
-    if (!/^https?:\/\//i.test(l) || !/(instagram\.com|tiktok\.com)/i.test(l)) { setErro('Cola o LINK do post — tem que ser do Instagram ou do TikTok. 📲'); return }
+    // 📺 YouTube entrou em 28/08 (pedido do Diego: "deixa YouTube também valer
+    // a cota extra, não só TikTok e Instagram"). Aceita youtube.com e youtu.be —
+    // vale vídeo normal, Shorts ou live gravada, é tudo o mesmo link.
+    if (!/^https?:\/\//i.test(l) || !/(instagram\.com|tiktok\.com|youtube\.com|youtu\.be)/i.test(l)) { setErro('Cola o LINK do post — tem que ser do Instagram, TikTok ou YouTube. 📲'); return }
     setBusy(true); setErro('')
     try {
       const { data: u } = await supabase.auth.getUser()
@@ -1748,7 +1752,7 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
             {podeEnviar && aberto && (
               <div style={{ ...box('#fff'), padding: 11 }}>
                 {([['1', <span key="1"><b>Grava um vídeo de 15s ou mais</b>: a tela do jogo rolando — ou você jogando, com o seu time aparecendo na tela.</span>],
-                  ['2', <span key="2"><b>Posta no Instagram ou no TikTok</b> marcando <b>@leilaolegendscom</b>.</span>],
+                  ['2', <span key="2"><b>Posta no Instagram, no TikTok ou no YouTube</b> marcando <b>@leilaolegendscom</b>.</span>],
                   ['3', <span key="3"><b>Cola o link do post aqui embaixo</b> — a emissora confere e deposita <b>+{TV_EXTRA_POR_VIDEO} 🪙 na caixa do clube</b>.</span>]] as [string, React.ReactNode][]).map(([n, t]) => (
                   <div key={n} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', marginBottom: 7 }}>
                     <span style={{ flex: 'none', width: 22, height: 22, borderRadius: 999, background: INK, color: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 11 }}>{n}</span>
@@ -1756,6 +1760,12 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
                   </div>
                 ))}
                 <div style={{ background: '#FDECEA', border: '2px solid #C2452F', borderRadius: 9, padding: '6px 9px', fontWeight: 800, fontSize: 9.5, color: '#7a2418', lineHeight: 1.4, margin: '2px 0 8px' }}>📵 Foto não vale — a TV só paga por <b>vídeo com o jogo acontecendo</b>. E cada vídeo vale uma vez só.</div>
+                {/* 🔴 LIVE (28/08, pergunta do Diego: "e a live rolando agora,
+                    funciona? ele vai botar o link"). O link entra normal — o
+                    problema é a CONFERÊNCIA, que é manual e pode ser horas
+                    depois: se a live não ficar salva, não sobra o que ver e a
+                    cota cai por falta de prova. Por isso o aviso, com o caminho. */}
+                <div style={{ background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 700, fontSize: 9.5, color: '#4a4740', lineHeight: 1.4, margin: '0 0 8px' }}>🔴 <b>Tá ao vivo?</b> Live vale sim — pode colar o link da live rolando. Só <b>deixe ela salva no canal</b> depois (o YouTube guarda sozinho, é só não apagar): a emissora confere <b>depois</b>, e se o vídeo sumir não tem como pagar.</div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <input value={link} onChange={e => setLink(e.target.value)} placeholder="cole o link do post aqui" inputMode="url" autoCapitalize="none"
                     style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 9px', fontWeight: 700, fontSize: 11.5, background: '#FBF6E9' }} />
@@ -2560,8 +2570,11 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
 function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG, awayG, youIsHome, onConfirm, suspensoId }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void; suspensoId?: string }) {
-  const quinze15 = useFormacoes15() // 🎭 15 formações: contas novas no intervalo (só conta liberada)
   const { state: escStH } = useEsc() // só leitura (cardápio de formações do SEU técnico)
+  // 🎭 15 formações + técnico: SÓ na carreira solo. No online ninguém contrata
+  // técnico, então lá seguem as 5 de sempre (senão o time ficaria preso numa
+  // formação só, sem caminho pra destravar).
+  const quinze15 = useFormacoes15() && escStH.onlineMode !== 'online'
   const [formation, setFormation] = useState<FormationKey>(mgr.formation)
   const [tactic, setTactic] = useState<Tac>(baseTactic)
   const [baseline, setBaseline] = useState<string[]>(baseXIids) // conta as trocas contra isto (reinicia se troca formação)
@@ -2645,10 +2658,12 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
             {((): FormationKey[] => {
               const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]
               if (!quinze15) return base
-              const base2 = ['4-3-3', '4-4-2'] as FormationKey[] // sem técnico: só o feijão-com-arroz (regra do Diego)
               const nomeT = escStH.careerTecnicos?.[mgr.teamName]
               const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
-              if (!tt) return [...new Set<FormationKey>([...base2, mgr.formation])]
+              // 🧢 SEM TÉCNICO = SÓ A FORMAÇÃO EM USO (Diego 28/08). Ver a nota
+              // grande no seletor do Elenco: quem não tem comandante não muda de
+              // esquema — o time só sabe treinar o que já treinava.
+              if (!tt) return [mgr.formation]
               const daCasaR = escStH.careerFormacaoExtra?.[mgr.teamName]
               const motores = [...fichaDoTecnico(tt).formacoes, ...(daCasaR ? [daCasaR] : [])].map(r => formacaoPorRotulo(r)?.motor).filter((m): m is FormationKey => !!m)
               return [...new Set<FormationKey>([...motores, mgr.formation])]
@@ -3026,8 +3041,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // (losango, alas, líbero…) com FAIXAS FIXAS — goleiro, zaga e ataque sempre na
   // mesma altura, só o miolo redistribui (padrão do Diego, mockup campinhos-v5).
   // Sem a trava, nada disto roda e o campinho fica byte a byte como era.
-  const quinze = useFormacoes15()
   const { state: stEl } = useEsc() // só leitura: ficha do técnico + folha com ele
+  const quinze = useFormacoes15() && stEl.onlineMode !== 'online' // 🎽 online segue com as 5
   const fView = quinze ? formacaoAtual(mgr) : null
   const meis = xiOf('MEI')
   const recuadoIds = new Set<string>() // alas do 3-5-2 / líbero: descem um tiquinho
@@ -3370,7 +3385,11 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const jogadorOn = useAliciarJogador() // 🔒 área de jogador: teste fechado à parte
   const [aberto, setAberto] = useState<string | null>(null)
   // semeia os técnicos da divisão na primeira visita (idempotente; vai pro save)
-  useEffect(() => { dispatch({ type: 'ALICIAR_SEED' }) }, [dispatch, state.careerDivision])
+  // 🪜 a divisão de VERDADE é o placement (careerDivision fica congelado na de
+  // fundação — foi o bug do "Lisca Doido na Série A", 28/08). Re-semeia quando
+  // ela muda: subiu de série, o mercado de técnicos sobe junto.
+  const divAtual = (state.careerPlacements?.[`m${mgr.id}`] ?? state.careerDivision ?? 'D') as DivTec
+  useEffect(() => { dispatch({ type: 'ALICIAR_SEED' }) }, [dispatch, divAtual])
   // 🎯 v2 (27/08, a bronca do Diego que consertou tudo: "aliciar NÃO quer dizer
   // que o técnico vai sair do time!"): aqui só se MARCA o alvo — sem valores, sem
   // lance, sem resolução. Os marcados ABREM o próximo leilão de reservas como
@@ -3384,8 +3403,13 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const marcadosT = state.aliciarTecnicos ?? []
   const marcadosJ = state.aliciarJogadores ?? []
   const rivais = new Set((state.careerRivals ?? []).map(r => r.team))
-  const clubes = state.managers.filter(m => !m.isHuman).slice().sort((a, b) => a.teamName.localeCompare(b.teamName))
-  const divRot = state.careerDivision === 'V' ? 'Várzea' : `Série ${state.careerDivision ?? '?'}`
+  // 🪶 a lista de clubes só muda quando o elenco de bots muda — sem o useMemo,
+  // toda rolagem/re-render refazia filter+sort e redesenhava os ~20 escudos.
+  const clubes = useMemo(
+    () => state.managers.filter(m => !m.isHuman).slice().sort((x, y) => x.teamName.localeCompare(y.teamName)),
+    [state.managers],
+  )
+  const divRot = divAtual === 'V' ? 'Várzea' : `Série ${divAtual}`
   const totalMarcado = marcadosT.length + marcadosJ.length
   // 📰 depois de marcar, a HISTORINHA de bastidor conta por que o sondado vai
   // parar no pregão (pedido do Diego 28/08: "mesmo sem clube o técnico tá
@@ -3427,7 +3451,15 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
       </div>
       <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
         <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕵️ Sondar · {divRot}</p>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
+        {/* 📝 o texto SEGUE O QUE ESTÁ LIGADO (Diego 28/08: "tire essa informação
+            de jogador"): com o sondar de jogador fechado, a explicação fala só
+            de técnico. Quando o gate abrir, o texto completo volta sozinho — sem
+            ninguém precisar lembrar de trocar a frase. */}
+        {jogadorOn ? (
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
+        ) : (
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque o <b>técnico</b> que você quer — <b>máx. 1 por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — ele abre o pregão como uma posição a mais, <b>antes dos goleiros</b>, e você briga por ele no envelope igual jogador. 🔨</p>
+        )}
       </div>
       {/* 🛡️ grade 2 por linha com o ESCUDO (Diego 28/08: "os times podiam ficar
           lado a lado que tem espaço") — tocar ABRE a janelinha do clube. */}
@@ -3527,7 +3559,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
       {(() => {
         // 🕴️ SEM CLUBE: os técnicos livres da divisão — mesmo esquema, só marcar
         const usados = new Set(Object.values(map).filter(Boolean))
-        const div = (state.careerDivision ?? 'D') as DivTec
+        const div = divAtual
         const livres = poolDaDiv(div).filter(tt => !usados.has(tt.nome))
         if (!livres.length) return null
         return (
@@ -3578,8 +3610,8 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
 }
 
 function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
-  const quinze15 = useFormacoes15() // 🎭 15 formações: por enquanto só a conta do Diego
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
+  const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
   const need = FORMATIONS[mgr.formation]
   const total = mgr.squad.reduce((s, c) => s + (c.paid ?? 0), 0)
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
@@ -3620,17 +3652,29 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
           const atual = formacaoAtual(mgr)
           // 🧢 v3-v5 (Diego 26/08): o cardápio é do TÉCNICO (categoria corta a
           // quantidade; Lenda = 5) + a formação DA CASA 🏠 (a que o time já usava
-          // quando ele chegou — não dobra se ele já a usa). Sem técnico, só o
-          // feijão-com-arroz: 4-3-3 e 4-4-2. A ATUAL nunca sai do cardápio.
+          // quando ele chegou — não dobra se ele já a usa). Sem técnico, SÓ a
+          // atual (v7, 28/08). A ATUAL nunca sai do cardápio.
+          // 🧳 E quando o técnico SAI, a herança é apagada no reducer
+          // (limpaHeranca): nada do técnico velho sobrevive à saída dele.
           // 🧹 v6 (Diego: "não tem que ter no seletor não, apenas as formações"):
           // o seletor mostra SÓ o cardápio — botões limpos, sem cadeado nem selo.
           // O que cada técnico traz aparece na carta dele, lá no aliciar.
+          // 🧢 SEM TÉCNICO = SÓ A FORMAÇÃO QUE O TIME JÁ JOGA (Diego 28/08, pensando
+          // na virada pra todo mundo: "como vai funcionar com quem já tem cinco
+          // formações e está jogando? O certo seria remover todas e manter só a
+          // que ele está jogando — ele não vai conseguir mudar enquanto não
+          // contratar um treinador"). Ninguém perde o esquema em que está: a
+          // formação salva do time continua valendo e vira a herança quando o
+          // primeiro técnico chegar. 🛟 VÁLVULA: se por algum motivo o elenco não
+          // montar essa formação, o feijão-com-arroz volta pro cardápio — o time
+          // nunca fica preso sem conseguir escalar.
           const BASE2 = new Set(['4-3-3', '4-4-2'])
           const meuTecN = escSt.careerTecnicos?.[mgr.teamName] ?? null
           const meuTecT = meuTecN ? tecnicoPorNome(meuTecN) : undefined
           const doTec = new Set(meuTecT ? fichaDoTecnico(meuTecT).formacoes : [])
           const daCasa = meuTecT ? (escSt.careerFormacaoExtra?.[mgr.teamName] ?? null) : null
-          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) || rot === daCasa : BASE2.has(rot)) || rot === atual.rotulo
+          const socorro = !meuTecT && missFor(atual.motor).length > 0 // elenco não monta a atual
+          const liberada = (rot: string) => (meuTecT ? doTec.has(rot) || rot === daCasa : socorro && BASE2.has(rot)) || rot === atual.rotulo
           const cardapio = FORMACOES15.filter(f => liberada(f.rotulo))
           const bloqueadas = cardapio.filter(f => f.rotulo !== atual.rotulo && missFor(f.motor).length > 0)
           return (
@@ -3659,6 +3703,10 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
               </div>
               {!!daCasa && !doTec.has(daCasa) && (
                 <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 0', lineHeight: 1.35 }}>🧳 O <b>{daCasa}</b> não é do {meuTecN} — é <b>herança do técnico anterior</b>: o time já jogava assim quando ele chegou, e continuou no cardápio.</p>
+              )}
+              {/* 🔒 sem técnico: explica a trava E o caminho pra destravar */}
+              {!meuTecT && (
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6d00', margin: '6px 0 0', lineHeight: 1.4 }}>🧢 <b>Sem técnico o time só joga o {atual.rotulo}</b> — é o esquema que ele já treina, ninguém no clube sabe montar outro. Pra abrir mais formações, <b>contrate um técnico</b>: na janela antes do leilão, aba <b>🕵️ Sondar</b>. O {atual.rotulo} continua no cardápio depois (vira 🧳 herança).{socorro ? <><br />🛟 <b>Liberei o básico agora</b> porque seu elenco não monta o {atual.rotulo} — escolha 4-3-3 ou 4-4-2 pra escalar o time.</> : null}</p>
               )}
               {bloqueadas.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
@@ -3962,6 +4010,44 @@ export function pontosDaLinha(r: GlobalRankRow): number {
 // empate de pontos: o dinheiro desempata, como já era antes.
 function cmpRank(a: GlobalRankRow, b: GlobalRankRow): number {
   return pontosDaLinha(b) - pontosDaLinha(a) || b.money - a.money
+}
+
+// 🌍👋 CONVITE DO RANKING GLOBAL PRA CARREIRA ANTIGA (28/08, ideia do Diego:
+// "nas contas antigas você pode manter o ranking global, mas lá é justamente
+// pra CHAMAR — você fala que é só pra contas novas, e que conta nova também tem
+// a Várzea, além das outras funções das versões novas").
+// ⚠️ REGRA DELE, mesma conversa: "ele pode ver a ABA do ranking global, mas NÃO
+// pode ver os times". Por isso este componente não busca nada no servidor e não
+// mostra uma linha sequer do ranking — é só o convite.
+// A lista de vantagens saiu do CÓDIGO (o que a carreira nova liga e a antiga
+// não tem: escadaOn/Várzea · agenciaOn · deckLeague 'todos' · eventos+médico ·
+// extras novos do estádio + renda por ocupação), nunca de memória.
+function GlobalRankConvite() {
+  const item = (ico: string, titulo: string, txt: React.ReactNode) => (
+    <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', padding: '7px 0', borderTop: '1.5px dashed rgba(0,0,0,.15)' }}>
+      <span style={{ fontSize: 17, lineHeight: 1.2, flex: 'none' }}>{ico}</span>
+      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, lineHeight: 1.4, color: '#4a4740' }}><b style={{ color: INK }}>{titulo}</b> — {txt}</p>
+    </div>
+  )
+  return (
+    <div style={{ ...box('#fff'), padding: 13, marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 8px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
+      <div style={{ background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px' }}>
+        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>🔒 Esta carreira não entra no ranking</p>
+        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, color: '#4a4740' }}>Ela começou <b>antes da Agência 2.0</b>. O ranking só conta <b>carreiras novas</b> — assim todo mundo disputa com as mesmas regras.</p>
+      </div>
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '13px 0 2px', textTransform: 'uppercase', letterSpacing: '.05em', color: GREEN }}>✨ Numa carreira NOVA você leva</p>
+      {item('🌱', 'Várzea', <>você começa lá embaixo, no campo de terra, e sobe até a Série A.</>)}
+      {item('🕴️', 'Agência 2.0', <>seus 22 na ativa dentro do <b>Elenco</b> (pílulas TIME · AGENCIADOS) — antes era tela separada.</>)}
+      {item('🌍', 'Baralho do mundo todo', <>Brasil + Europa + resto do mundo no mesmo pregão.</>)}
+      {item('🏥', 'Eventos de jogador + Departamento Médico', <>lesão, fama, confusão… e o médico pra resolver.</>)}
+      {item('🍔', 'Estádio novo', <>lanchonete, bar, metrô, hotel e teto retrátil — e a renda conta a <b>ocupação</b>.</>)}
+      {item('🏆', 'Ranking Global', <>cada título vale ponto e o ranking soma — Mundo, Copa, Série A, Várzea…</>)}
+      <div style={{ background: '#FFF7DB', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginTop: 11 }}>
+        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, color: '#4a4740' }}>💾 <b>Sua carreira de agora não some.</b> Ela fica salva inteirinha — dá pra voltar nela quando quiser. Pra começar outra: <b>🪜 Nova carreira</b>, na tela inicial do jogo.</p>
+      </div>
+    </div>
+  )
 }
 
 // 🌍 RANKING GLOBAL (regra do Diego, 16/08 — mockup `rankglobal2.png`):
@@ -5281,7 +5367,8 @@ export function PyramidSeasonScreen() {
   // 🧢 mapa dos técnicos ATIVOS pra simulação (só conta liberada nas 15; vazio =
   // simulação idêntica à de sempre). Contratação no meio da temporada só vale da
   // rodada em diante (desdeR) — placar já visto nunca muda.
-  const quinzeSim = useFormacoes15()
+  const quinzeSim = useFormacoes15() && state.onlineMode !== 'online' // 🧢 efeito do técnico: solo
+  const quinzeCarr = quinzeSim // 🎉 mesma condição pro banner de lançamento dos técnicos
   const simTecs = useMemo<SimTecnicos | undefined>(() => {
     if (!quinzeSim || !state.careerTecnicos) return undefined
     const out: SimTecnicos = {}
@@ -6478,7 +6565,7 @@ export function PyramidSeasonScreen() {
               <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
                 <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Novidade da emissora</span>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>A TV agora paga <span style={{ color: GOLD }}>cota extra!</span></p>
-                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram ou TikTok</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+{TV_EXTRA_POR_VIDEO} 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
+                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram, TikTok ou YouTube</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+{TV_EXTRA_POR_VIDEO} 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>🎬 1 vídeo por temporada · +{TV_EXTRA_POR_VIDEO} 🪙 cada<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>· 100 temporadas = {(TV_EXTRA_POR_VIDEO * 100).toLocaleString('pt-BR')} 🪙 de cota extra</span></div>
                 <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Fica pra sempre em: 🏟️ Clube › 🤝 Patrocínio</p>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
@@ -7168,7 +7255,9 @@ export function PyramidSeasonScreen() {
                 "Local" pra não confundir com a aba-mãe "Clube" nem soar só
                 divisão/liga (pedido do Diego 14/08) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {([['arti', '⚽', 'Gols'], ['garcons', '🅰️', 'Garçons'], ['clubes', '🥇', 'Local'], ...(agenciaOk ? [['global', '🌍', 'Global']] as const : [])] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+              {/* 🌍 a aba Global aparece SEMPRE (Diego 28/08). Carreira sem Agência
+                  2.0 abre o CONVITE (GlobalRankConvite) — vê a aba, não vê os times. */}
+              {([['arti', '⚽', 'Gols'], ['garcons', '🅰️', 'Garçons'], ['clubes', '🥇', 'Local'], ['global', '🌍', 'Global']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
@@ -7180,8 +7269,10 @@ export function PyramidSeasonScreen() {
               <GarconsByDiv assists={assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
                 title="🅰️ GARÇONS · TEMPORADA" sub="Assistências da temporada atual — top 5 de cada série."
                 foot="Cerca de 3 em cada 4 gols saem de um passe; o resto é jogada individual, pênalti ou rebote." />
-            ) : rankSub === 'global' && agenciaOk ? (
-              <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
+            ) : rankSub === 'global' ? (
+              agenciaOk
+                ? <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
+                : <GlobalRankConvite />
             ) : (
               <>
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
@@ -7336,6 +7427,18 @@ export function PyramidSeasonScreen() {
               title={`${copaBrOk ? '🏆🇧🇷' : '🏆'} ${copaFaseName} · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'}`} />
           ) : (
           <>
+            {/* 🧢🎉 LANÇAMENTO DOS TÉCNICOS (28/08, pedido do Diego: "quando a
+                pessoa abre o Modo Carreira tem que aparecer o banner do
+                técnico"). Usa o UnlockBanner de sempre: aparece UMA vez por
+                carreira, fecha no "Entendi!" e não volta. Só onde o recurso
+                existe de verdade — carreira solo (no online não tem técnico). */}
+            {quinzeCarr && (
+              <UnlockBanner k="tecnicos-chegaram" tag="🎉 vocês pediram muito" title="🧢 Os técnicos chegaram!" ctaBg={GREEN} ctaColor="#fff">
+                Agora seu clube tem <b>técnico</b>: são <b>105 comandantes</b>, do 🤎 Foi profissional ao 👑 Lenda, e o <b>nível dele soma no seu time</b> em toda partida da liga.
+                <br /><br />🎽 E vieram junto as <b>15 formações</b> — mas <b>quem abre elas é o técnico</b>: sem técnico, o time joga só o esquema que já treina. Quanto maior a categoria dele, mais esquemas ele traz (👑 Lenda traz 5).
+                <br /><br />📍 <b>Pra contratar:</b> na janela <b>antes do leilão</b>, aba <b>🕵️ SONDAR</b> — você marca o técnico que quer e briga por ele no pregão, no envelope, igual jogador. 🔨 Contrato de <b>5 temporadas</b>, com salário na folha.
+              </UnlockBanner>
+            )}
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
             {(() => { // FRASES COM EMOÇÃO (uma linha rotativa): clássico, artilheiro, zuação, queda, liderança
               if (!me) return null
@@ -7477,7 +7580,11 @@ export function PyramidSeasonScreen() {
 export function ReserveListScreen() {
   const { state, dispatch } = useEsc()
   const escLib = useEscadaLiberada() // 🪜 escada de categorias: por enquanto só a conta do Diego
-  const quinzeRL = useFormacoes15() // 🧢 técnicos (contrato de 5 anos): só conta liberada
+  // 🧢 técnicos: SÓ carreira solo. Checa onlineMode E roomId — se o estado da
+  // sala ainda não sincronizou, `onlineMode` pode chegar um instante depois e a
+  // barra apareceria e sumiria (relato do Diego 28/08: "a aba do sondar e vender
+  // apareceu e sumiu"). Com sala (roomId) nunca mostra, nem no piscar.
+  const quinzeRL = useFormacoes15() && state.onlineMode !== 'online' && !state.roomId
   // 🎯 Pílulas Vender/Aliciar (27/08, pedido do Diego): esta tela NÃO tem a barra
   // de abas do jogo, então o aliciamento ganha uma pílula própria aqui — "Vender
   // já é a que está aí mesmo, e Aliciar seria a nova". Só offline (o aliciar é
@@ -7487,7 +7594,18 @@ export function ReserveListScreen() {
   const youId = mgr?.id ?? 0
   const listed = useMemo(() => new Set(state.reserveListed?.[youId] ?? []), [state.reserveListed, youId])
   const [now, setNow] = useState(Date.now())
-  useEffect(() => { const iv = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(iv) }, [])
+  // ⏱️ o relógio só existe ONLINE (offline a janela espera o botão, sem prazo).
+  // 🐛 28/08 (Diego, vendo alguém jogar carreira SOLO: "a aba do sondar e vender
+  // apareceu e sumiu, uns errinhos"): este intervalo rodava SEMPRE, redesenhando
+  // a tela INTEIRA 4× por segundo — e hoje a tela ganhou a grade com ~20 escudos
+  // em SVG, então cada volta virou desenho caro e o celular tremia/piscava.
+  // Offline não tem relógio pra atualizar: o intervalo agora nem começa.
+  const relogioOn = state.onlineMode === 'online'
+  useEffect(() => {
+    if (!relogioOn) return
+    const iv = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(iv)
+  }, [relogioOn])
   const remaining = Math.max(0, Math.ceil(((state.phaseDeadline ?? 0) - now) / 1000))
   const humanIds = state.managers.filter(m => m.isHuman).map(m => m.id)
   const nameKey = state.managers.filter(m => m.isHuman).map(m => `${m.id}:${m.teamName}`).join('|')
@@ -7833,7 +7951,10 @@ export function ReserveListScreen() {
       {mostraPills && (
         <>
           <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
-          <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+          {/* 🩹 anti-piscada: fixed + backdrop-filter no Chrome Android repinta a
+              cada rolagem e a barra "some e volta". transform/willChange põem ela
+              numa camada própria da GPU — mesma aparência, sem flicker. */}
+          <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))', transform: 'translateZ(0)', willChange: 'transform', backfaceVisibility: 'hidden' }}>
             {([['vender', '📋', 'Vender'], ['aliciar', '🕵️', `Sondar${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
               const on = abaLeilao === k
               return (

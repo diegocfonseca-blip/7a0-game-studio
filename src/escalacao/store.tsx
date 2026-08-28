@@ -11,6 +11,7 @@ import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
+import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
@@ -165,6 +166,20 @@ export function contratoCpuFalta(cardId: string, seed: number, seasonNo: number)
 // 🕴️ técnico liberado no fim de contrato tem EX-DONO humano: quando alguém o
 // contrata, o ex-dono recupera METADE do preço (regra do Diego 27/08). Se o
 // próprio ex-dono recontratar, não paga a si mesmo — só limpa o registro.
+// 🧳 TÉCNICO SAIU = CARDÁPIO ZERADO (regra do Diego 28/08: "quando ele vende o
+// técnico ou demite, as formações do técnico antigo somem também, seja a de
+// herança ou a do técnico atual que está saindo — e fica só a formação que ele
+// está jogando + a do novo técnico"). Como o cardápio sem técnico é só a
+// formação EM USO, basta apagar a herança guardada: nada do técnico velho
+// sobrevive. Quando o próximo chegar, a formação em uso naquele dia vira a
+// herança nova.
+function limpaHeranca(s: EscState, teamName: string) {
+  if (!s.careerFormacaoExtra?.[teamName]) return
+  const e = { ...s.careerFormacaoExtra }
+  delete e[teamName]
+  s.careerFormacaoExtra = e
+}
+
 function pagaExDono(s: EscState, nomeTec: string, preco: number, contratanteTeam?: string) {
   const exTeam = s.careerTecnicoExDono?.[nomeTec]
   if (!exTeam) return
@@ -3350,7 +3365,12 @@ function sealAndResolveTec(state: EscState) {
       // rival levou: o técnico viaja com ele (o antigo do rival vira SEM CLUBE)
       winM.money = Math.max(0, winM.money - top.amount)
       pago[lote.nome] = top.amount
-      if (lote.clube) map[lote.clube] = null
+      // 🧳 quem PERDEU o técnico perde o cardápio dele E a herança velha (regra do
+      // Diego 28/08) — sobra só a formação em uso. Vale pro clube de origem e pro
+      // clube que o comprador acabou de deixar sem técnico.
+      if (lote.clube) { map[lote.clube] = null; limpaHeranca(state, lote.clube) }
+      const largado = map[winM.teamName]
+      if (largado) limpaHeranca(state, winM.teamName)
       map[winM.teamName] = lote.nome
       state.careerTecnicosDesde = { ...(state.careerTecnicosDesde ?? {}), [winM.teamName]: { t: state.seasonNo, r: state.round }, ...(lote.clube ? { [lote.clube]: { t: state.seasonNo, r: state.round } } : {}) }
       pagaExDono(state, lote.nome, top.amount)
@@ -5796,8 +5816,29 @@ export function reducer(state: EscState, action: Action): EscState {
       // do pool da divisão (tecnicos.ts) embaralhado pela semente da carreira.
       // Idempotente: clube já semeado (mesmo com null de "ficou sem") não muda.
       if (!s.careerOnline) return s
-      const div = s.careerDivision ?? 'D'
+      // 🐛 FIX 28/08 (Diego: "meu amigo já está na SÉRIE A e apareceu Lisca Doido,
+      // Joel Santana, Guto Ferreira — técnico de VÁRZEA"): eu usava
+      // `s.careerDivision`, que na PIRÂMIDE fica congelado na divisão de FUNDAÇÃO
+      // (quem começou na Várzea segue 'V' pra sempre). A divisão de VERDADE mora
+      // em `careerPlacements['m<id>']` e muda a cada acesso/queda — o próprio
+      // store já avisava isso em myCareerDiv ("NUNCA cair em careerDivision").
+      // Agora o pool de técnicos segue a divisão ATUAL: subiu de série, o mercado
+      // de técnicos sobe junto, igual acontece com as cartas de jogador.
+      const youIdSeed = s.managers[s.youIdx]?.id ?? s.youIdx
+      const div = ((s.careerPlacements?.[`m${youIdSeed}`] ?? s.careerDivision ?? 'D') as DivTecnico)
       const map = { ...(s.careerTecnicos ?? {}) }
+      // 🩹 CURA de quem já foi semeado com a divisão errada: técnico que não é da
+      // divisão de agora volta pro pool e o clube pega um da categoria certa.
+      // Só nos clubes de CPU, e o `desde` é remarcado — placar já visto não muda.
+      const desdeCura = { ...(s.careerTecnicosDesde ?? {}) }
+      let curou = false
+      for (const m of s.managers) {
+        if (m.isHuman) continue
+        const n = map[m.teamName]
+        if (!n) continue
+        const tt = tecnicoPorNome(n)
+        if (tt && tt.div !== div) { delete map[m.teamName]; curou = true }
+      }
       const usados = new Set(Object.values(map).filter((x): x is string => !!x))
       const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
       const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
@@ -5806,6 +5847,13 @@ export function reducer(state: EscState, action: Action): EscState {
       const desde = { ...(s.careerTecnicosDesde ?? {}) }
       let mudou = false
       for (const c of clubes) if (!(c in map)) { map[c] = livres.shift() ?? null; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true }
+      if (curou) {
+        // o contrato do técnico velho não vale pro novo: reescalona igual aos outros
+        const ctCura = { ...(s.careerTecnicoContrato ?? {}) }
+        for (const m of s.managers) if (!m.isHuman && map[m.teamName] && desdeCura[m.teamName]) delete ctCura[m.teamName]
+        s.careerTecnicoContrato = ctCura
+        mudou = true
+      }
       // 📝 contrato de 5 anos pra TODO técnico de CPU também (27/08): escalonado
       // pelo nome, pra não vencer tudo junto — quem está vencido é aliciável.
       const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
@@ -5939,7 +5987,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🕴️ ele vai pra aba SEM CLUBE — e se alguém o contratar depois, você
       // recupera METADE do preço (regra do Diego: "recupera uma parte")
       s.careerTecnicoExDono = { ...(s.careerTecnicoExDono ?? {}), [nome]: you.teamName }
-      s.aliciarLog = { titulo: `👋 ${nome} se foi`, corpo: `Contrato encerrado, sem multa — ele está na aba SEM CLUBE. Se alguém o contratar, você recupera METADE do preço. O time volta ao feijão-com-arroz até você aliciar outro.`, venceu: false }
+      limpaHeranca(s, you.teamName) // 🧳 o cardápio dele vai junto (regra do Diego)
+      s.aliciarLog = { titulo: `👋 ${nome} se foi`, corpo: `Contrato encerrado, sem multa — ele está na aba SEM CLUBE. Se alguém o contratar, você recupera METADE do preço. O time fica SÓ com a formação que está jogando até você sondar outro técnico.`, venceu: false }
       return s
     }
     case 'FORMATION_UNLOCK': {

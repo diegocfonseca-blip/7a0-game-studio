@@ -18,13 +18,19 @@ esquemas liberados por categoria: **A 5 · B 4 · C 3 · D 2 · Várzea 1**.
 12. Telê Santana 🇧🇷 (26/08: SUBIU da B — palavras do Diego: "pra mim Telê Santana é Série A") · 13. Giovanni Trapattoni 🇮🇹 · 14. Fabio Capello 🇮🇹 ·
 15. Jürgen Klopp 🇩🇪 · 16. Louis van Gaal 🇳🇱 · 17. Arsène Wenger 🇫🇷 ·
 18. Luis Enrique 🇪🇸 · 19. Diego Simeone 🇦🇷 · 20. Luis de la Fuente 🇪🇸 (26/08: entrou no lugar do Brian Clough — campeão do MUNDO 2026 pela Espanha + Euro 2024 + Nations League; a Copa 2026 é info do Diego, depois do meu corte de conhecimento)
+21. Luiz Felipe Scolari 🇧🇷 (28/08: SUBIU da B — Diego: "Felipão deveria ser lenda, campeão da Copa do Mundo"; penta 2002 + Libertadores/Mundial 1995) ·
+22. Mario Zagallo 🇧🇷 (28/08: SUBIU da B — Diego: "Zagallo também"; 4 Copas: 58 e 62 como jogador, 70 como técnico, 94 como coordenador)
+
+> 📌 A Série A ficou com **22** (e a B com 20). O teto de 20 por divisão já tinha
+> sido relaxado pelo Diego em 26/08 — e ele repetiu agora: "mesmo que eles fiquem
+> atrás dos 20 lá". Campeão do mundo é Lenda, ponto.
 
 ## 🅱️ SÉRIE B — GIGANTES (4 esquemas)
 0a. Lionel Scaloni 🇦🇷 (26/08: campeão do mundo 2022) · 0b. Marcelo Bielsa 🇦🇷 (26/08: subiu da C) ·
 1. Marcelo Gallardo 🇦🇷 · 2. Antonio Conte 🇮🇹 · 3. Roberto Mancini 🇮🇹 ·
 4. Rafael Benítez 🇪🇸 · 5. Frank Rijkaard 🇳🇱 · 6. Guus Hiddink 🇳🇱 · 7. Unai Emery 🇪🇸 ·
 8. Massimiliano Allegri 🇮🇹 · 9. Thomas Tuchel 🇩🇪 · 10. Manuel Pellegrini 🇨🇱 ·
-11. Luiz Felipe Scolari 🇧🇷 · 12. Carlos Alberto Parreira 🇧🇷 · 13. Mario Zagallo 🇧🇷 ·
+11. ~~Luiz Felipe Scolari 🇧🇷~~ (28/08: SUBIU pra A) · 12. Carlos Alberto Parreira 🇧🇷 · 13. ~~Mario Zagallo 🇧🇷~~ (28/08: SUBIU pra A) ·
 14. Joachim Löw 🇩🇪 (26/08: entrou pela A no lugar do Hitzfeld e DESCEU pra B na mesma noite — uma Copa e queda no fim, naipe Deschamps/Parreira) · 15. César Luis Menotti 🇦🇷 · 16. Carlos Bilardo 🇦🇷 ·
 17. Didier Deschamps 🇫🇷 · 18. Luis Aragonés 🇪🇸 · 19. Hansi Flick 🇩🇪 (26/08: entrou no lugar do Eriksson — sêxtuplo do Bayern 2020) ·
 20. Carlos Bianchi 🇦🇷 (26/08: SUBIU da C — ordem do Diego: "suba Bianchi pra B")

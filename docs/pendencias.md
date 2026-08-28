@@ -10655,6 +10655,166 @@ tudo agora… lembrando que essas coisas por enquanto é só pro meu usuário"):
       goleiro, e só aparece quando alicio": a tela virou 🧢 LEILÃO · SETOR
       TÉCNICO (envelope fechado, martelo, e o botão segue "pros goleiros ➜").
       Lote de jogador no pregão do técnico não existe mais.
+- [x] 🐛🪜 TÉCNICO DA DIVISÃO ERRADA — CONSERTADO (28/08, relato do Diego: "meu
+      amigo já está na SÉRIE A e, ao olhar os técnicos, apareceu Lisca Doido,
+      Joel Santana, Guto Ferreira — técnico de VÁRZEA. Se ele estivesse na
+      várzea tudo bem"). CAUSA: eu usei `s.careerDivision` pra escolher o pool
+      de técnicos, e na PIRÂMIDE esse campo fica congelado na divisão de
+      FUNDAÇÃO (quem começou na Várzea segue 'V' pra sempre). A divisão de
+      verdade é `careerPlacements['m<id>']` — e o próprio store já avisava isso
+      em `myCareerDiv`: "⚠️ NUNCA cair em careerDivision". Erro meu, o aviso
+      estava escrito.
+      CORREÇÃO: `ALICIAR_SEED` e a tela do Sondar (rótulo da divisão + lista de
+      SEM CLUBE) agora leem o placement. Subiu de série → o mercado de técnicos
+      sobe junto, igual às cartas de jogador.
+      🩹 CURA dos saves já bagunçados, com a regra que o Diego deu: técnico de
+      categoria errada nos clubes de CPU volta pro pool e o clube pega um da
+      divisão certa (contrato reescalonado junto). O TÉCNICO QUE A PESSOA JÁ
+      COMPROU NÃO É TOCADO — palavras dele: "se ele já comprou o errado, ele
+      fica com o errado, aí depois ele troca". O laço pula `m.isHuman`.
+      Placar passado não muda: o `desde` é remarcado na troca.
+- [x] 📝 TEXTO DO SONDAR SEM JOGADOR (28/08, Diego: "tire essa informação de
+      jogador"). A explicação da caixa amarela citava "máx. 1 técnico e 1
+      jogador por temporada" e "o jogador entra no setor dele" — informação de
+      um recurso que está FECHADO, o que confunde e promete o que não tem.
+      Agora o texto é CONDICIONAL ao gate `useAliciarJogador()`: com o sondar de
+      jogador fechado fala só do técnico ("marque o técnico que você quer — máx.
+      1 por temporada… ele abre o pregão antes dos goleiros"); quando o gate
+      abrir, a frase completa volta sozinha, sem ninguém precisar lembrar de
+      editar. As travas e contadores da área já eram condicionais.
+- [x] 🐛 CAUSA RAIZ DO RODAPÉ TREMENDO — ACHADA (28/08). O Diego confirmou que
+      era CARREIRA SOLO, então não era sync de sala: a tela de listar rodava um
+      `setInterval` de 250 ms SEMPRE, inclusive offline, redesenhando a tela
+      INTEIRA 4× por segundo. Isso vinha de antes e não incomodava — até hoje,
+      quando a tela ganhou a GRADE COM ~20 ESCUDOS EM SVG: cada volta virou
+      desenho caro e o celular tremia/piscava. Offline não tem relógio nenhum
+      pra atualizar (a janela espera o botão), então o intervalo agora só
+      começa quando `onlineMode === 'online'`. Junto: `useMemo` na lista de
+      clubes (filter+sort saíam a cada render). A tela ficou parada de verdade.
+      Blindagens que já tinham entrado antes, e ficam:
+      (a) CARREIRA ONLINE com estado ainda não sincronizado — `onlineMode` pode
+      chegar um instante depois, e nesse instante a barra aparecia e sumia.
+      Agora a condição também exige `!state.roomId`: com sala, nunca mostra.
+      (b) FLICKER de `position: fixed` + `backdrop-filter` no Chrome Android,
+      que repinta a cada rolagem — entrou `transform: translateZ(0)` +
+      `willChange` + `backfaceVisibility: hidden` (camada própria da GPU,
+      mesma aparência).
+      ⚠️ FALTA CONFIRMAR com o Diego o momento exato (rolando a tela? ao abrir?
+      era carreira online?) — se voltar a piscar, a 3ª suspeita é a tela de
+      espera "Preparando o leilão de reservas…", que aparece quando `mgr` fica
+      indefinido por um instante e leva a barra junto.
+- [x] 🔴 LIVE VALE A COTA (28/08, pergunta do Diego: "e a live rolando agora,
+      funciona? ele vai botar o link"). CONFERIDO no código: sim — link de live
+      do YouTube (`youtube.com/live/...`, `watch?v=...`, `youtu.be/...`) passa
+      na validação normalmente, não precisou mexer em regex. O risco real não é
+      o link e sim a CONFERÊNCIA, que é manual e acontece depois: live que não
+      fica salva vira link morto e a cota cai por falta de prova. Entrou um
+      aviso amarelo na área de envio: "🔴 Tá ao vivo? Live vale sim — só deixe
+      ela salva no canal depois; a emissora confere depois, e se o vídeo sumir
+      não tem como pagar." Mesma lógica vale pro story do Instagram (some em
+      24h) — se virar problema, o aviso já está no lugar certo pra crescer.
+- [x] 📺 YOUTUBE VALE A COTA EXTRA DA TV (28/08, pedido do Diego: "deixa
+      YouTube também valer a cota extra, e não só TikTok e Instagram"). Mexido
+      em tudo que citava as duas redes: a VALIDAÇÃO do link (agora aceita
+      youtube.com e youtu.be — vídeo normal, Shorts ou live gravada), o passo 2
+      do "como fazer", o texto grande do Patrocínio, o painel do admin e a linha
+      da novidade de 23/08 (que ainda está na tela, então foi corrigida em vez
+      de duplicar). Regra do prêmio não mudou: vídeo 15s+, 1 por temporada,
+      +15 🪙 na caixa do clube, conferência manual do Diego no admin.
+- [x] 🎉 BANNER DE LANÇAMENTO DOS TÉCNICOS DENTRO DA CARREIRA (28/08, Diego:
+      "quando a pessoa abre o Modo Carreira tem que aparecer o banner do
+      técnico"). Reusa o `UnlockBanner` de sempre (não nasceu peça nova): topo
+      da aba JOGOS, tag "🎉 vocês pediram muito", título "🧢 Os técnicos
+      chegaram!", corpo com as 3 coisas que importam — o que é (105 técnicos,
+      nível soma no time), as 15 formações e a regra "sem técnico o time joga
+      só o esquema que já treina", e ONDE contratar (janela antes do leilão →
+      aba 🕵️ Sondar, contrato de 5 temporadas). Chave `tecnicos-chegaram`:
+      aparece UMA vez por carreira, some no "Entendi!" e não volta. Só na
+      carreira solo (mesma condição do efeito do técnico) — no online não
+      aparece, porque lá não existe técnico.
+- [x] 🚀 LANÇAMENTO GERAL: TÉCNICOS + 15 FORMAÇÕES (28/08, ordem do Diego:
+      "libera o modo técnico pra todos, que consequentemente também as novas
+      formações"). Gates de sport.ts abertos (`formacoes15Ok` e `aliciarJogOk`
+      nascem TRUE; os Sets de testers ficaram vazios como INTERRUPTOR DE
+      EMERGÊNCIA — voltar as duas flags pra false e repovoar o Set devolve o
+      teste fechado sem tocar em mais nada).
+      🛡️ TRAVA DE SEGURANÇA QUE ENTROU JUNTO (achada na conferência antes de
+      liberar): técnico só existe na carreira SOLO — no ONLINE ninguém contrata.
+      Se as 15 valessem lá, todo time online cairia na regra "sem técnico = só a
+      formação em uso" e ficaria PRESO num esquema só, sem caminho pra
+      destravar. Por isso cada tela agora exige `onlineMode !== 'online'`:
+      SquadTab · ElencoField · HalftimeBanner · ReserveListScreen · simTecs.
+      No online segue tudo EXATAMENTE como era (5 formações clássicas).
+      🔒 CORREÇÃO no mesmo dia: eu tinha aberto JUNTO o sondar JOGADOR — o Diego
+      pegou ("você liberou só o modo técnico né, o modo jogador não né?"). Não
+      era pedido. E ele foi além: "inclusive tira da minha conta agora, só o
+      técnico, pra eu ver como aparecerá pra todo mundo também" — então
+      `ALICIAR_JOG_TESTERS` ficou VAZIO e `aliciarJogOk` é false pra TODOS, o
+      Diego incluído: ninguém tem versão especial da tela. O código do sondar
+      jogador segue inteiro no repo, só não desenha; pra voltar a testar, é pôr
+      o e-mail dele de volta no Set. Liberado pra todos = SÓ técnico + as 15.
+      📢 Novidades: duas linhas em novidades.ts (🧢 técnicos · 🎽 15 formações,
+      com o aviso de que sem técnico o time joga só o esquema atual). A
+      MAQUIAGEM continua segredo de produção — nenhuma linha cita motor/conta.
+      📣 Falta (com o Diego): trocar os posts de "EM BREVE" pra "CHEGOU"
+      (scripts/mockup-post-tecnicos.mjs e o reels das formações).
+- [x] 🌍 RANKING GLOBAL VIRA CONVITE NA CARREIRA ANTIGA (28/08, ideia do Diego:
+      "nas contas antigas você pode manter o ranking global, mas lá é justamente
+      pra CHAMAR — fala que é só pra contas novas, e que conta nova também tem a
+      Várzea, além das outras funções novas"; e depois, decisão final: "ele pode
+      ver a ABA do ranking global, mas NÃO pode ver os times"). Antes a aba 🌍
+      Global simplesmente NÃO EXISTIA sem agenciaOn — ninguém sabia do recurso.
+      Agora a aba aparece sempre e, sem Agência 2.0, abre `GlobalRankConvite`:
+      caixa roxa "🔒 Esta carreira não entra no ranking" + o que a carreira nova
+      traz (🌱 Várzea · 🕴️ Agência 2.0 dentro do Elenco com as pílulas TIME ·
+      AGENCIADOS · 🌍 baralho do mundo todo · 🏥 eventos + Dep. Médico · 🍔
+      estádio novo com renda por ocupação · 🏆 o próprio ranking) + o aviso
+      "💾 sua carreira de agora não some" e o caminho (🪜 Nova carreira na home).
+      ⚠️ O componente NÃO consulta o servidor e não mostra UMA linha do ranking
+      — a regra "vê a aba, não vê os times" é cumprida no código, não só na tela.
+      A lista de vantagens foi levantada do código (escadaOn · agenciaOn ·
+      deckLeague 'todos' · eventos+médico · extraNovaOnly + ocupação), não de
+      memória. Mockup aprovado pelo Diego antes do commit.
+- [x] 🧳 TÉCNICO SAIU = CARDÁPIO ZERADO (28/08, Diego: "quando ele vende o
+      técnico ou demite, as formações do técnico antigo somem também, seja a de
+      herança ou a do técnico atual que está saindo. E com isso fica somente a
+      formação que ele está jogando + a do novo técnico. E caso acabe contrato
+      ou demita, também fica só com a atual e perde todas as formações que tinha
+      do técnico"). Implementado com o helper `limpaHeranca(s, teamName)` em
+      store.tsx, chamado em TODA saída: DISPENSAR_TECNICO (fim de contrato) e no
+      leilão quando um rival leva o técnico (limpa o clube de origem e o clube
+      que o comprador largou). Contratar outro tendo um já funcionava: a
+      herança é REGRAVADA com a formação em uso na hora do martelo — nunca
+      acumula herança de dois técnicos. A maquiagem também é preservada: quem
+      joga 4-2-3-1 fica com 4-2-3-1 (não com o motor 4-5-1 cru).
+      Texto do aviso de saída corrigido (dizia "volta ao feijão-com-arroz").
+- [x] 🔒 SEM TÉCNICO = SÓ A FORMAÇÃO EM USO (28/08, pergunta do Diego pensando
+      na LIBERAÇÃO GERAL: "como vai funcionar com quem já tem cinco formações e
+      está jogando? O certo seria remover todas e manter só a que ele está
+      jogando — ele não vai conseguir mudar enquanto não contratar um
+      treinador"). Antes, sem técnico o cardápio era 4-3-3 + 4-4-2 + a atual (3
+      opções); agora é SÓ a atual. Vale nos dois lugares: seletor do Elenco e
+      troca do INTERVALO (HalftimeBanner).
+      Por que não quebra ninguém na virada: a formação fica salva no time
+      (`mgr.formation`), então quem joga 5-3-2 hoje continua no 5-3-2 — não
+      precisa migração de save. E quando o primeiro técnico chega, essa
+      formação é gravada como 🧳 HERANÇA (`careerFormacaoExtra`, já existia) e
+      continua no cardápio pra sempre.
+      🛟 VÁLVULA ANTI-TRAVAMENTO: se o elenco não montar a formação atual, o
+      4-3-3/4-4-2 voltam ao cardápio com aviso ("liberei o básico porque seu
+      elenco não monta o X") — o time nunca fica preso sem conseguir escalar.
+      A trava explica o porquê e o caminho, como o Diego exige.
+- [x] 👑 FELIPÃO E ZAGALLO VIRARAM LENDA (28/08, Diego: "acho que Felipão
+      deveria ser lenda, campeão da Copa do Mundo, Zagallo também — mesmo que
+      eles fiquem atrás dos 20 lá"). Os dois saíram da Série B e entraram na A
+      em tecnicos.ts: Série A ficou com 22 nomes e a B com 20 (teto de 20 já
+      relaxado). Como Lenda tem 5 esquemas, a 5ª de cada um é REAL, não
+      preenchimento: o 4-2-2-2 brasileiro dos dois (Felipão no Grêmio/Palmeiras;
+      Zagallo na Copa 98 com Dunga+Sampaio · Rivaldo+Leonardo · Ronaldo+Bebeto)
+      — nas nossas 15 isso é o "4-4-2 losango". Nível sobe sozinho em todo save
+      (a ficha do técnico é lida do tecnicos.ts na hora, não fica congelada).
+      ⚠️ Os dois seguem com `chute: true` no ESTILO (equilibrado) — falta o
+      Diego cravar o estilo deles.
 - [x] 🧳 v20 — "FORMAÇÃO DO TÉCNICO" + SELO DE HERANÇA (28/08, Diego: "aqui
       onde tá escrito formação agora vai se chamar formação do técnico. E em
       cima da formação atual que eu tô, coloque tipo 'herança do último

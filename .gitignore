@@ -48,3 +48,8 @@ dist-ssr
 # node_modules; não são entrega e não devem ser versionados)
 scripts/_tmp-*.mjs
 bench-sim.html
+
+# 📣 artes de DIVULGAÇÃO geradas por script (a fonte é scripts/post-divulgacao.mjs;
+# a imagem sai dela em 2 segundos, não precisa versionar PNG de 1 MB)
+/divulgacao-feed.png
+/divulgacao-stories.png

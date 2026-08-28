@@ -121,6 +121,12 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Luis Enrique', pais: '🇪🇸', div: 'A', estilo: 'posse' },
   { nome: 'Diego Simeone', pais: '🇦🇷', div: 'A', estilo: 'retranca' },
   { nome: 'Luis de la Fuente', pais: '🇪🇸', div: 'A', estilo: 'posse' }, // campeão do mundo 2026 + Euro 2024 + Nations League (info do Diego 26/08)
+  // 🏆 CAMPEÕES DO MUNDO SOBEM (28/08, Diego: "Felipão deveria ser lenda,
+  // campeão da Copa do Mundo, Zagallo também. Mesmo que fiquem atrás dos 20").
+  // Com isso a Série A passa de 20 pra 22 — o teto de 20 por divisão já tinha
+  // sido relaxado por ele em 26/08.
+  { nome: 'Luiz Felipe Scolari', pais: '🇧🇷', div: 'A', estilo: 'equilibrado', chute: true }, // penta 2002 + Libertadores/Mundial: subiu da B
+  { nome: 'Mario Zagallo', pais: '🇧🇷', div: 'A', estilo: 'equilibrado', chute: true }, // 4 Copas (58/62 jogador · 70 técnico · 94 coordenador): subiu da B
   // 🅱️ SÉRIE B — GIGANTES (4 esquemas)
   { nome: 'Marcelo Gallardo', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' },
   { nome: 'Marcelo Bielsa', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' }, // subiu da C (26/08, OK do Diego): o "mestre" do Pep e do Sampaoli
@@ -134,9 +140,7 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Massimiliano Allegri', pais: '🇮🇹', div: 'B', estilo: 'retranca' },
   { nome: 'Thomas Tuchel', pais: '🇩🇪', div: 'B', estilo: 'posse' },
   { nome: 'Manuel Pellegrini', pais: '🇨🇱', div: 'B', estilo: 'ofensiva' },
-  { nome: 'Luiz Felipe Scolari', pais: '🇧🇷', div: 'B', estilo: 'equilibrado', chute: true },
   { nome: 'Carlos Alberto Parreira', pais: '🇧🇷', div: 'B', estilo: 'retranca' },
-  { nome: 'Mario Zagallo', pais: '🇧🇷', div: 'B', estilo: 'equilibrado', chute: true },
   { nome: 'Joachim Löw', pais: '🇩🇪', div: 'B', estilo: 'posse' }, // desceu da A (26/08): uma Copa (2014) e queda no fim — naipe do Deschamps/Parreira, que são B
   { nome: 'César Luis Menotti', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' },
   { nome: 'Carlos Bilardo', pais: '🇦🇷', div: 'B', estilo: 'retranca' },
@@ -254,9 +258,13 @@ export const REPERTORIO: Record<string, string[]> = {
   'Massimiliano Allegri': ['4-3-3', '4-4-2', '3-5-2', '4-2-3-1'],
   'Thomas Tuchel': ['3-4-3', '4-2-3-1', '4-3-3', '3-5-2'],
   'Manuel Pellegrini': ['4-2-3-1', '4-3-3', '4-4-2', '4-1-4-1'],
-  'Luiz Felipe Scolari': ['4-2-3-1', '4-4-2', '3-5-2', '4-3-3'],
+  // 👑 virou LENDA (5 esquemas, 28/08): a 5ª é o 4-2-2-2 brasileiro dele
+  // (2 volantes + 2 meias + 2 atacantes) — nas nossas 15 isso é o 4-4-2 losango.
+  'Luiz Felipe Scolari': ['4-2-3-1', '4-4-2', '3-5-2', '4-3-3', '4-4-2 losango'],
   'Carlos Alberto Parreira': ['4-4-2', '4-2-3-1', '4-3-3', '3-5-2'],
-  'Mario Zagallo': ['4-3-3', '4-2-4', '4-4-2', '4-3-1-2'],
+  // 👑 virou LENDA (5 esquemas, 28/08): a 5ª é o 4-2-2-2 da Copa de 98
+  // (Dunga/César Sampaio · Rivaldo/Leonardo · Ronaldo/Bebeto) = 4-4-2 losango.
+  'Mario Zagallo': ['4-3-3', '4-2-4', '4-4-2', '4-3-1-2', '4-4-2 losango'],
   'Joachim Löw': ['4-2-3-1', '4-3-3', '4-1-4-1', '3-4-3'],
   'César Luis Menotti': ['4-3-3', '4-2-3-1', '4-3-1-2', '4-4-2'],
   'Carlos Bilardo': ['3-5-2', '4-4-2', '5-3-2'],
