@@ -1235,7 +1235,10 @@ const NOVOS_BR_ZAG: C[] = [
   { name: "Rodrigo Arroz", club: "Flamengo", year: 2005, fame: 1, lo: 60, hi: 79, folk: true, bio: "Zagueiro folclórico revelado na base do Flamengo nos anos 2000 — o apelido \u0022Arroz\u0022 ninguém esquece." },
   { name: "Victor Ramos", club: "Vitória", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Zagueiro de força do Vitória — muralha baiana marcante na defesa rubro-negra." },
   { name: "Gustavo Geladeira", club: "Flamengo", year: 2011, fame: 1, lo: 60, hi: 80, folk: true, bio: "Zagueirão \u0022Geladeira\u0022 do Flamengo — o apelido nasceu no vestiário rubro-negro, parrudo e folclórico, parceiro do Ronaldinho Gaúcho." },
-  { name: 'Erazo', club: 'Flamengo', year: 2014, fame: 1, lo: 57, hi: 78, bio: 'Zagueirão equatoriano do Flamengo — imponente no jogo aéreo.' },
+  // ⚠️ 28/08: aqui existia uma 2ª carta do MESMO cara ('Erazo', Flamengo 2014,
+  // nível 1). É a mesma pessoa do 'Frickson Erazo' em `L24_BR_ZAG` — dava pra
+  // ele cair duas vezes no mesmo pregão. O Diego mandou tirar e deixar só uma;
+  // ficou a de nome completo, que é a melhor (nível 2, bio da seleção).
   { name: 'Rafael Vaz', club: 'Flamengo', year: 2016, fame: 1, lo: 56, hi: 77, bio: 'Zagueiro de boa saída e gol de bola parada pelo Flamengo.' },
   { name: 'Lucão', club: 'São Paulo', year: 2016, fame: 1, lo: 55, hi: 76, bio: 'Zagueiro da base do São Paulo, firme na marcação.' },
   { name: 'Bressan', club: 'Grêmio', year: 2014, fame: 1, lo: 54, hi: 75, folk: true, bio: 'Zagueiro folclórico do Grêmio — a torcida prendia a respiração a cada recuo.' },
