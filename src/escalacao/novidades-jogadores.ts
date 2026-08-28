@@ -13,28 +13,14 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Andreas Pereira",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-08-28"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Fernando Baiano",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-08-28"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Donyell Malen",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-08-28"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Roger Guerreiro",
+    "baralho": "BR",
+    "nivel": "foi profissional",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Andreas Pereira",
     "baralho": "BR",
     "nivel": "bom jogador",
     "data": "2026-08-28"
@@ -76,6 +62,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
+    "nome": "Fernando Baiano",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Yan Couto",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -105,6 +98,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Anderson Talisca",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-08-28"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Donyell Malen",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-08-28"

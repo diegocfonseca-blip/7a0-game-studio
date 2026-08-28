@@ -1328,10 +1328,11 @@ const L24_BR_MEI: C[] = [
 // etiqueta de `paises.ts` manda mais que o padrão do baralho. Era o pedido original
 // dele: *"como polonês naturalizado, e se tiver seleção da Polônia ele jogará pela
 // Polônia"*.
-// ⚠️ O ANO É ESTIMATIVA MINHA e está esperando o Diego confirmar (ver pendencias).
+// 📅 Ano (2004) e categoria (foi profissional) vieram do Diego em 28/08 — eu tinha
+// chutado 2003/bom jogador e ele corrigiu.
 const L27_BR_LAT: C[] = [
   { name: 'William', club: 'Cruzeiro', year: 2024, fame: 3, lo: 74, hi: 84, bio: 'Lateral-direito campeão olímpico em 2016 que renasceu no Cruzeiro: melhor da posição no país em 2024, Bola de Prata e chamada pra Seleção.' },
-  { name: 'Roger Guerreiro', club: 'Flamengo', year: 2003, fame: 2, lo: 66, hi: 80, bio: 'Saiu do Brasil e virou ídolo na Polônia: naturalizou-se e marcou pela seleção polonesa na Eurocopa de 2008.' },
+  { name: 'Roger Guerreiro', club: 'Flamengo', year: 2004, fame: 1, lo: 58, hi: 78, bio: 'Saiu do Brasil e virou ídolo na Polônia: naturalizou-se e marcou pela seleção polonesa na Eurocopa de 2008.' },
 ]
 const L27_BR_ATA: C[] = [
   { name: 'Fernando Baiano', club: 'Corinthians', year: 1999, fame: 3, lo: 76, hi: 86, bio: 'Artilheiro da Libertadores de 1999 com 11 gols — teve noite de CINCO gols num jogo só e quase foi parar no Bayern.' },

@@ -11139,9 +11139,9 @@ etiqueta de `paises.ts` manda mais que o padrão do baralho, e era o pedido orig
 dele (*"como polonês naturalizado… ele jogará pela Polônia"*). Conferido rodando
 `paisDe()`: devolve Polônia.
 
-- [ ] ⚠️ **O ANO (2003) É ESTIMATIVA MINHA** — o Diego sabe da passagem pelo
-      Flamengo, eu não sei o ano. Falta ele confirmar. O ano é parte da identidade
-      da carta (chave do valor de mercado), então não é detalhe.
+✅ **O Diego fechou em 28/08**: *"Roger Guerreiro 2004 como profissional"*. Carta
+final: **Flamengo · 2004 · LAT · FOI PROFISSIONAL · nível 58-78 · 🇵🇱 Polônia**.
+Eu tinha chutado 2003 e "bom jogador"; os dois estavam errados.
 
 📌 **Cuidado com o gerador de novidades ao MOVER uma carta de baralho**: o
 `novidades-jogadores.ts` ACUMULA o que já foi gerado. Rodar depois de mudar o Roger
