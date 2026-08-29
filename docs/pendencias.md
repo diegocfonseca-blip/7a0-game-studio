@@ -5,9 +5,21 @@
 dele. **Voltar a fechar = `false`** (o resto do código não muda).
 
 **As regras que subiram junto, todas decididas por ele:**
-- **Criar** é do 👑 Lenda (batismo entra sozinho — já nasce ouro). Teto de 2 ligas.
+- **Criar** é do 👑 Lenda (batismo entra sozinho — já nasce ouro). Teto de **5 ligas**
+  (era 2; subiu em 29/08 a pedido dele). **JOGAR não tem limite** — dá pra estar em
+  quantas ligas quiser; o teto conta só as que a pessoa CRIOU. Bateu 5, precisa
+  excluir uma pra criar outra. ⚠️ Teto SÓ do Minhas Ligas: sala rápida tem a conta
+  dela. Conta: 51 contas ouro × 5 = ~255 ligas no pior caso — o banco tem 468 salas
+  só de dois meses de rápido, então não pesa.
 - **Jogar** é de qualquer conta (`LIGA_SO_LENDA_ENTRA = false`), com código + senha.
-- 🔒 **Senha obrigatória** na criação. A liga é da turma: entra quem tem código+senha.
+- 🔒 **Senha é RECOMENDADA, não obrigatória** (mudou em 29/08). Ele liberou a liga sem
+  senha — *"acredito que pode ter também, mas… deixe avisado quando for sem senha que
+  é algo mais difícil, porque a ideia é ser com amigos pra ter continuidade; caso
+  contrário o melhor indicado seria criar sala normal"*. Então, com o campo vazio,
+  sobe um aviso vermelho que **não bloqueia**, só conta a verdade antes: qualquer um
+  senta numa das 20 cadeiras (inclusive na vaga do amigo, no dia combinado) e **o que
+  ele ganhar fica na estante pra sempre — não existe desconvidar**. E aponta o caminho
+  certo pra quem só quer jogar com quem aparecer: a ⚡ sala Rápida, que não guarda nada.
 - 👀 **A liga APARECE na lista quando tem gente dentro** (regra final, 29/08). Vazia,
   some. Duas ideias minhas caíram no caminho, e nas duas ele estava certo:
   1. *"só quando o DONO estiver dentro"* → *"se ele marcar pra 23h e é de manhã, como
