@@ -1482,6 +1482,17 @@ export function EscLobby() {
     // marcado, pra não se confundir com sala rápida.
     // (o filtro por "quem enxerga o modo" saiu em 29/08, quando a Liga foi liberada
     // pra todos — hoje `ligaOn` é true pra todo mundo.)
+    const ehLigaRow = (r: RoomInfo) => r.game_state?.mode === 'liga'
+    // ⏰ falta mais de 1h pro horário marcado? a liga fica escondida (ver o filtro
+    // lá embaixo). Sala rápida não passa por aqui — pra ela isto é sempre true.
+    const LIGA_ANTECEDENCIA_MS = 3600_000
+    const ligaNaHora = (r: RoomInfo) => {
+      if (!ehLigaRow(r)) return true
+      const at = (r.game_state as GS)?.ligaAt
+      if (!at) return true // liga sem hora marcada: não esconde (não deve existir)
+      const t = new Date(at).getTime()
+      return isNaN(t) || Date.now() >= t - LIGA_ANTECEDENCIA_MS
+    }
     // 🗑️ AQUI MORAVA O `ligaNaAgenda` (22/08): a regra que mantinha a liga VAZIA na
     // lista pública enquanto a hora marcada não passava. Ela deixou de existir em
     // 29/08, quando o Diego fechou que **a liga é sempre privada** — não aparece na
@@ -1500,7 +1511,16 @@ export function EscLobby() {
       // salas e mais salas sem uso"*): **tem gente dentro, aparece; vazia, some**.
       // Sem relógio, sem exclusão automática, sem ninguém preso na sala esperando.
       // A linha da lista já sabe desenhar liga (selo 🏆 LIGA, 🔒 e a data marcada).
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r))
+      // ⏰ E A LIGA SÓ A PARTIR DE 1H ANTES DO HORÁRIO MARCADO (Diego 29/08:
+      // *"criar a sala hoje pro dia de amanhã e ter que ficar dentro não tem
+      // sentido né… o cara vai dormir"*). Sem isto sobrava um furo que eu tinha
+      // deixado passar: no minuto da CRIAÇÃO o dono está dentro montando a sala,
+      // então ela já aparecia na lista — e, se ele deixou SEM senha, um estranho
+      // podia sentar numa cadeira HOJE, e não no dia combinado.
+      // Depois que a hora chega, não tem prazo de validade: enquanto tiver gente
+      // dentro, aparece. Assim a turma pode esticar a noite ou jogar de novo depois
+      // sem precisar remarcar. Liga sem hora marcada (não deve existir) não trava.
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && ligaNaHora(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -2490,7 +2510,7 @@ export function EscLobby() {
                       {ligaPw.trim()
                         ? <>🔒 <b className="text-white">Só com senha.</b> Pra chamar alguém, passe o <b className="text-white">código + a senha</b>. Quem não tiver vê a liga na lista, mas não entra.<br /></>
                         : <>🔓 <b className="text-white">Sem senha.</b> Quem achar na lista entra direto. Dá pra pôr senha depois, mas quem já entrou continua na estante.<br /></>}
-                      👀 <b className="text-white">Ela só aparece na lista quando tem gente dentro</b> — hoje, amanhã ou daqui a um mês. Vazia, ninguém vê.<br />
+                      👀 <b className="text-white">Ela só aparece na lista perto da hora marcada</b> (a partir de 1h antes) e <b className="text-white">só com gente dentro</b>. Enquanto isso ninguém vê — dá pra criar hoje, ir dormir, e voltar amanhã.<br />
                       📅 <b className="text-white">O dia e a hora são um combinado</b>, não uma trava — serve pra turma saber quando se encontrar.<br />
                       🏠 <b className="text-white">A sala fica de pé todos os dias.</b> É sempre a MESMA: dá pra jogar hoje, amanhã e no mês que vem, e os troféus vão somando na estante.<br />
                       👑 <b className="text-white">Só você abre o pregão.</b> A liga espera o dono — ninguém começa no seu lugar.
@@ -3381,14 +3401,21 @@ export function EscLobby() {
       {(() => {
         const ehLiga = room.game_state?.mode === 'liga'
         const souDonoAqui = room.host_id === user?.id
-        const rotuloSair = ehLiga || !souDonoAqui ? '🚪 Sair da sala' : '🚪 Sair e encerrar a sala'
+        // ✅ "GUARDAR E SAIR" NA LIGA (Diego 29/08, aprovado: *"guardar e sair tá
+        // bom"*). Ele reclamou com razão de o MESMO botão ter dois significados:
+        // *"o botão de sair da sala confunde, porque na sala rápida quando qualquer
+        // um sai, ele sai de vez"*. Na rápida sair encerra; na liga não acontece
+        // nada. Mesmo desenho pra coisas opostas assusta quem tem meses de estante
+        // pra perder — e medo de apertar botão é o que faz a pessoa deixar a aba
+        // aberta a noite toda.
+        const rotuloSair = ehLiga ? '✅ Guardar e sair' : !souDonoAqui ? '🚪 Sair da sala' : '🚪 Sair e encerrar a sala'
         return (
           <div className="space-y-1.5">
             {ehLiga && isHost ? (
               <div className="flex gap-2">
                 <button onClick={leaveRoom}
                   className="flex-1 rounded-xl py-2 font-black text-[12px] text-white/70 border-2 border-dashed border-white/30 active:opacity-60" style={OSWALD}>
-                  🚪 Sair da sala
+                  ✅ Guardar e sair
                 </button>
                 <button onClick={excluirLiga}
                   className="flex-1 rounded-xl py-2 font-black text-[12px] text-white border-2 border-black active:translate-y-0.5" style={{ background: '#C2452F', ...OSWALD }}>
@@ -3401,7 +3428,7 @@ export function EscLobby() {
             <p className="text-white/40 text-[10.5px] font-bold text-center leading-snug">
               {ehLiga
                 ? (isHost
-                  ? <>Sair <b>não apaga nada</b> — a liga fica de pé com os troféus. Excluir some com a sala <b>e a sala de troféus</b>, pra todo mundo.</>
+                  ? <>Pode fechar o app à vontade: <b>sua liga fica guardada</b>, com os troféus, e volta em 🏆 Minhas ligas. Só <b>🗑️ Excluir</b> apaga a liga e a estante — pra todo mundo, sem volta.</>
                   : <>Você volta quando quiser — é só o código.</>)
                 : (souDonoAqui
                   ? <>Sala rápida <b>não existe sem o dono</b>: ao sair, ela é encerrada pra todo mundo.</>

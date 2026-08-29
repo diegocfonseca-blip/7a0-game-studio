@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
 
+## 🗺️ O FLUXO DA LIGA FICOU CLARO — e saíram 2 correções (29/08)
+Ele se perdeu, e a culpa era da explicação: *"ainda não ficou claro o fluxo
+completo… tô perdido"*. Virou figura (`scripts/mockup-liga-fluxo.mjs`): os 5
+momentos da vida de uma liga, e em cada um quem a vê na lista e o que os botões
+fazem. Desenhar isso revelou as duas coisas abaixo, **as duas aprovadas por ele**.
+
+**1. ✅ "Guardar e sair" no lugar de "Sair da sala"** (*"guardar e sair tá bom"*).
+Reclamação certa dele: era o MESMO botão com dois significados — *"na sala rápida
+quando qualquer um sai, ele sai de vez"*. Na rápida sair encerra a sala; na liga
+não acontece nada. Mesmo desenho pra coisas opostas assusta quem tem meses de
+estante pra perder — e medo de apertar botão é o que faz a pessoa deixar a aba
+aberta a noite toda. A linha de baixo virou: *"pode fechar o app à vontade: sua
+liga fica guardada… só 🗑️ Excluir apaga"*.
+
+**2. ⏰ A liga só entra na lista a partir de 1h ANTES da hora marcada.**
+Furo que eu tinha deixado passar e não tinha contado: no minuto da CRIAÇÃO o dono
+está dentro montando a sala, então ela já aparecia na lista — e, se ele deixou SEM
+senha, um estranho podia sentar numa cadeira **hoje**, e não no dia combinado.
+Palavras dele: *"criar a sala hoje pro dia de amanhã e ter que ficar dentro não tem
+sentido né… o cara vai dormir"*. Depois que a hora chega **não tem prazo de
+validade**: enquanto tiver gente dentro, aparece — então dá pra esticar a noite ou
+jogar de novo depois sem remarcar.
+⚠️ Efeito colateral aceito: quem quiser jogar ANTES da hora marcada precisa mudar
+o horário (dá pra fazer pelo card, sem entrar na sala). Pra liga com senha isso não
+muda nada, porque a turma entra pelo código.
+
 ## 🚨 BUG GRAVE NA LIGA — O CONVIDADO APAGAVA A LIGA INTEIRA (achado e corrigido 29/08)
 Achado respondendo uma pergunta dele: *"como eu quero agendar? Quero ir lá agendar
 o amanhã e sair da sala, ou fechar a aba… minha liga foi criada e quero aparecer
