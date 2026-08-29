@@ -1339,7 +1339,7 @@ export function EscLobby() {
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
     // genérico "sala fechada" nem aparece no modo liga).
     const ligaMode = ligaOn && roomMode === 'liga'
-    const locked = ligaMode ? !!ligaPw.trim() : (roomLocked && !!roomPw.trim())
+    const locked = ligaMode ? true : (roomLocked && !!roomPw.trim())
     const pwHash = locked ? hashPw((ligaMode ? ligaPw : roomPw).trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
     // 👔 Sala de Elenco: NÃO tem Copa (decisão do Diego 17/08 — "não terá copa,
@@ -1361,6 +1361,15 @@ export function EscLobby() {
     // e a estante é PRA SEMPRE — estranho entrando por acaso toma a vaga do amigo
     // no horário marcado e entra no ranking da turma sem volta. Quem quer jogar com
     // desconhecido tem o ⚡ Rápido, que é de graça e faz exatamente isso.
+    // 🔒 SENHA OBRIGATÓRIA — decisão final do Diego (29/08, depois de uma tarde
+    // inteira girando: *"eu acho então que só vale com senha, é isso"*). A liga é a
+    // casa da turma; quem quer jogar com desconhecido tem o ⚡ Rápido, que é feito
+    // pra isso. Sem a opção "sem senha" some junto uma pilha de regra que só existia
+    // pra tapar o buraco dela (janela de horário, expirar em 30 min, "primeira vez").
+    if (liga && !ligaPw.trim()) {
+      setRoomError('🔒 A liga precisa de uma SENHA. Ela é a casa da sua turma: só entra quem tem o código E a senha. Se a ideia é jogar com quem aparecer, use o ⚡ Rápido — é feito pra isso e não guarda nada.')
+      setLoading(false); return
+    }
     if (liga && !canLiga) {
       setRoomError('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".')
       setLoading(false); return
@@ -1483,36 +1492,22 @@ export function EscLobby() {
     // (o filtro por "quem enxerga o modo" saiu em 29/08, quando a Liga foi liberada
     // pra todos — hoje `ligaOn` é true pra todo mundo.)
     const ehLigaRow = (r: RoomInfo) => r.game_state?.mode === 'liga'
-    // 📅 A JANELA DO ENCONTRO — de 1h ANTES até 6h DEPOIS da hora marcada.
+    // 🏆 A LIGA SÓ APARECE QUANDO A PARTIDA ESTÁ ROLANDO (decisão final do Diego,
+    // 29/08: *"acho que poderia aparecer lá junto das salas apenas quando tiver
+    // rolando já"*).
     //
-    // Eu tinha quebrado o agendamento sem perceber: ao fazer a liga aparecer só
-    // "quando tem gente dentro", o DONO virava refém — pra galera achar a sala, ele
-    // tinha que ficar de plantão dentro dela. O Diego pegou: *"não tem sentido o cara
-    // entrar e ficar esperando 1h outra pessoa"*. Marcar hora deixava de servir pra
-    // alguma coisa.
+    // 🗑️ AQUI MORREU A "JANELA DO ENCONTRO" (1h antes → 6h depois) e, com ela, toda
+    // a pilha de regra que a gente empilhou nesta tarde: expirar em 30 min, tratar a
+    // "primeira vez" diferente, esconder até a hora marcada. Todas existiam pra
+    // resolver o mesmo problema — fazer a liga servir pra ACHAR GENTE, coisa que o
+    // ⚡ Rápido já faz melhor. Com a senha obrigatória, o problema simplesmente
+    // deixou de existir: quem entra na liga vem pelo código, não pela lista.
     //
-    // Com a janela, o horário volta a valer: **na hora combinada a liga aparece
-    // sozinha, mesmo VAZIA**. A turma (ou, na liga sem senha, quem quiser) entra e
-    // espera lá — e o dono chega na hora dele. Se ninguém veio, ele chega, vê a sala
-    // vazia e vai embora; não perde a noite esperando.
-    //
-    // As 6h de folga depois são pra quem atrasa e pra partida longa. E FORA da janela
-    // a liga volta à regra de sempre (só com gente dentro), então quem esticou até de
-    // madrugada não some da lista no meio do jogo.
-    //
-    // ⚠️ Isto NÃO é "expirar". Passar da janela só tira a liga da LISTA — a liga
-    // continua inteira em 🏆 Minhas ligas, com estante e troféus, esperando o dono
-    // remarcar. Nada é apagado, nunca (ver a regra registrada mais abaixo).
-    const LIGA_ANTES_MS = 3600_000       // 1h antes: a sala "abre as portas"
-    const LIGA_DEPOIS_MS = 6 * 3600_000  // 6h depois: folga pra atraso e jogo longo
-    const ligaNaAgenda = (r: RoomInfo) => {
-      if (!ehLigaRow(r)) return false
-      const at = (r.game_state as GS)?.ligaAt
-      if (!at) return false
-      const t = new Date(at).getTime()
-      if (isNaN(t)) return false
-      return Date.now() >= t - LIGA_ANTES_MS && Date.now() <= t + LIGA_DEPOIS_MS
-    }
+    // Então o que sobra na lista é só o RECADO: "tem liga rolando agora". A pessoa
+    // vê 🏆 LIGA · 🔒 · Em jogo, não consegue entrar (a lista já desabilita sala em
+    // jogo) — e isso é de propósito, é o que dá vontade. Sala de espera da liga NÃO
+    // aparece: a turma dela já está lá pelo código.
+    const ligaRolando = (r: RoomInfo) => ehLigaRow(r) && r.status === 'started' && isFresh(r)
     // 🗑️ AQUI MORAVA O `ligaNaAgenda` (22/08): a regra que mantinha a liga VAZIA na
     // lista pública enquanto a hora marcada não passava. Ela deixou de existir em
     // 29/08, quando o Diego fechou que **a liga é sempre privada** — não aparece na
@@ -1542,10 +1537,9 @@ export function EscLobby() {
       // sem precisar remarcar. Liga sem hora marcada (não deve existir) não trava.
       .filter(r => {
         if (isCareer(r) || isBafo(r)) return false
-        const viva = r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
-        // 🏆 liga: aparece na JANELA DO ENCONTRO (mesmo vazia — é o agendamento
-        // funcionando) ou, fora dela, pela regra normal de sala viva.
-        return ehLigaRow(r) ? (ligaNaAgenda(r) || viva) : viva
+        // 🏆 liga: SÓ com a partida rolando. ⚡ rápida: a regra de sempre.
+        if (ehLigaRow(r)) return ligaRolando(r)
+        return r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
       })
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
@@ -2508,38 +2502,18 @@ export function EscLobby() {
                       a sala pode continuar aberta todos os dias"*). Sem isto escrito, o
                       dono criaria achando que é sala normal e só descobriria a regra na
                       hora de chamar a galera — e ia achar que o jogo escondeu a liga. */}
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🔒 Senha da liga <span className="text-white/35">(recomendada)</span></p>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🔒 Senha da liga <span style={{ color: '#E8503A' }}>(obrigatória)</span></p>
                   <input value={ligaPw} maxLength={24} onChange={e => setLigaPw(e.target.value)}
-                    placeholder="Deixe em branco pra liga sem senha"
+                    placeholder="Escolha uma senha"
                     className="w-full border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
-                  {/* ⚠️ LIGA SEM SENHA: PODE, MAS AVISA (Diego 29/08: *"acredito que pode
-                      ter também, mas acho que você pode deixar avisado quando for sem
-                      senha que é algo mais difícil, porque a ideia é ser com amigos pra
-                      ter continuidade a sala; caso contrário o melhor indicado seria
-                      criar sala normal"*). O aviso não bloqueia nada — só conta a verdade
-                      antes, porque o estrago aqui é PERMANENTE: quem entra fica na
-                      estante e no ranking da liga pra sempre, e não tem desconvidar. */}
-                  {!ligaPw.trim() && (
-                    <div className="mt-2 rounded-lg border-2 border-black p-2.5" style={{ background: 'rgba(232,80,58,.22)' }}>
-                      <p className="font-black text-[11.5px] text-white leading-tight" style={OSWALD}>⚠️ Sem senha, qualquer um entra</p>
-                      <p className="text-white/70 text-[10.5px] font-bold leading-snug mt-1">
-                        Enquanto tiver gente jogando, sua liga aparece na lista e <b className="text-white">qualquer pessoa pode sentar numa das 20 cadeiras</b> — inclusive na vaga de um amigo seu, no dia combinado. E o que ela ganhar <b className="text-white">fica na estante pra sempre</b>: não dá pra desconvidar depois.
-                      </p>
-                      <p className="text-white/50 text-[10px] font-bold leading-snug mt-1.5">
-                        A liga foi feita pra ter <b className="text-white">continuidade com a sua turma</b>. Se a ideia é só jogar com quem aparecer, o certo é a <b className="text-white">⚡ sala Rápida</b> — ela é feita pra isso e não guarda nada.
-                      </p>
-                    </div>
-                  )}
                   <div className="mt-3 rounded-lg border-2 border-black p-2.5" style={{ background: 'rgba(0,0,0,.28)' }}>
                     <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-1.5" style={OSWALD}>📋 Como a sua liga funciona</p>
                     <p className="text-white/60 text-[10.5px] font-bold leading-relaxed">
-                      {ligaPw.trim()
-                        ? <>🔒 <b className="text-white">Só com senha.</b> Pra chamar alguém, passe o <b className="text-white">código + a senha</b>. Quem não tiver vê a liga na lista, mas não entra.<br /></>
-                        : <>🔓 <b className="text-white">Sem senha.</b> Quem achar na lista entra direto. Dá pra pôr senha depois, mas quem já entrou continua na estante.<br /></>}
-                      👀 <b className="text-white">Ela aparece na lista sozinha, na hora marcada</b> (de 1h antes até o fim da noite) — <b className="text-white">mesmo sem você dentro</b>. Fora dessa janela ninguém vê: dá pra criar hoje, ir dormir, e a galera te encontra amanhã no horário.<br />
+                      🔒 <b className="text-white">Só entra com o código + a senha.</b> Ela é a casa da sua turma — ninguém entra por acaso.<br />
+                      👀 <b className="text-white">Na lista de salas ela só aparece com a partida rolando</b>, e mesmo assim ninguém de fora consegue entrar. É só pra mostrar que a liga existe.<br />
                       📅 <b className="text-white">O dia e a hora são um combinado</b>, não uma trava — serve pra turma saber quando se encontrar.<br />
-                      🏠 <b className="text-white">A sala fica de pé todos os dias.</b> É sempre a MESMA: dá pra jogar hoje, amanhã e no mês que vem, e os troféus vão somando na estante.<br />
-                      👑 <b className="text-white">Só você abre o pregão.</b> A liga espera o dono — ninguém começa no seu lugar.
+                      🏠 <b className="text-white">A sala fica de pé todos os dias.</b> É sempre a MESMA: joga hoje, amanhã e no mês que vem, e os troféus vão somando na estante.<br />
+                      👑 <b className="text-white">Só você abre o pregão</b> (mínimo 2 pessoas), e <b className="text-white">a liga nunca se apaga sozinha</b> — some só se você apertar 🗑️ Excluir.
                     </p>
                   </div>
                   <p className="text-white/35 text-[10px] font-bold mt-2 leading-snug">
@@ -2707,7 +2681,7 @@ export function EscLobby() {
               {roomMode === 'liga'
                 ? <div className="rounded-xl border-2 border-black px-3 py-2.5" style={{ background: 'rgba(0,0,0,.28)' }}>
                     <p className="font-black text-[12.5px] text-white" style={OSWALD}>🏆 A senha da liga fica lá em cima</p>
-                    <p className="text-white/50 text-[10.5px] font-bold mt-0.5">No quadro da liga, junto com o dia e a hora. Lá dá pra deixar sem senha também.</p>
+                    <p className="text-white/50 text-[10.5px] font-bold mt-0.5">No quadro da liga, junto com o dia e a hora. Liga é sempre com senha.</p>
                   </div>
                 : <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? 'Sala fechada' : 'Sala aberta'} sub={roomLocked ? 'Só entra com senha' : 'Qualquer um entra'} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />}
               {roomLocked && roomMode !== 'liga' && (
@@ -2951,12 +2925,10 @@ export function EscLobby() {
     // via só um botão cinza "Aguardando… (1/2 mín)" e nada mais — nenhuma pista do
     // que fazer, nem de que a liga dele JÁ está visível pra galera. É o minuto exato
     // em que ele fica na dúvida, então é aqui que a resposta tem que estar.
-    // O texto muda com a senha, porque a saída é diferente: sem senha ele espera a
-    // lista trabalhar por ele; com senha, só quem ele chamar entra.
+    // (Nasceu com dois textos — um pra liga sem senha, outro pra com. A liga sem
+    // senha morreu na decisão final de 29/08, então sobrou um só.)
     const ligaEspera = room.game_state?.mode === 'liga' && !ready
-      ? (room.game_state?.locked
-        ? `🔒 Sua liga está na lista desde 1h antes do horário — não precisa ficar de plantão. Quem entra precisa do código ${room.code} + a senha; manda pros seus no zap. Se hoje não rolar, 'Guardar e sair': nada se perde e dá pra remarcar.`
-        : `🌍 Sua liga está na lista pra todo mundo desde 1h antes do horário, e como é sem senha qualquer um pode sentar — não precisa ficar de plantão. Chame os seus pelo código ${room.code}. Se hoje não rolar, 'Guardar e sair': nada se perde e dá pra remarcar.`)
+      ? `🔒 Sua liga está de pé esperando a turma. Só entra quem tem o código ${room.code} + a senha — manda pros seus no zap (precisa de 2 pra começar). Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`
       : ''
     const travaMsg = elencoOn
       ? (ready ? '' : `🃏 O Bafo começa com 2 times montados. ${bafoAptos.length === 0 ? 'Ninguém montou ainda' : 'Só 1 montou até agora'} — cada um escolhe a carreira que traz aí em cima.`)

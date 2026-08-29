@@ -1,5 +1,44 @@
 # 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
 
+## 🏁 REGRA FINAL DA LIGA (29/08) — **é esta que vale, apaga o resto da tarde**
+Depois de uma tarde inteira girando em círculo, ele fechou em três linhas:
+*"eu acho então que só vale com senha, é isso. E acho que poderia aparecer lá junto
+das salas apenas quando tiver rolando já. E pra quem tem a liga, ele vê em Minhas
+ligas"*.
+
+**As três regras, e nada mais:**
+1. 🔒 **Senha OBRIGATÓRIA.** Não existe mais liga sem senha.
+2. 👀 **Na lista de salas ela só aparece com a PARTIDA ROLANDO** — e mesmo assim
+   ninguém de fora entra (a lista já desabilita sala em jogo). É só o recado "tem
+   liga rolando agora", que é o que dá vontade. Sala de ESPERA da liga não aparece:
+   a turma dela chega pelo código.
+3. 🏆 **Quem é da liga acha ela em Minhas ligas.** É o caminho de casa.
+
+### 🗑️ O QUE MORREU JUNTO (e por que não deve voltar)
+Toda a pilha de regra desta tarde existia pra tapar o buraco de **uma coisa só**:
+fazer a liga servir pra ACHAR GENTE. Com a senha obrigatória, o problema deixou de
+existir — e o ⚡ Rápido já faz isso melhor, de graça e sem risco. Apagados:
+- a **janela do encontro** (1h antes → 6h depois);
+- **liga sem senha** e o aviso vermelho dela;
+- a ideia de **expirar / excluir em 30 min** se ninguém aparecer;
+- o tratamento especial de **"primeira vez criada"**;
+- a regra de **só aparecer com gente dentro**.
+
+⚠️ **A LIÇÃO** (pra nenhuma sessão futura repetir): eu passei a tarde tentando fazer
+UMA coisa servir pra DUAS opostas — a liga da turma (privada, permanente, acumula) e
+o cara sozinho procurando gente (visível agora, descartável). Toda regra que a gente
+inventava tapava um buraco e abria outro. **Quando o Diego cobrou que eu tomasse
+posição em vez de segui-lo**, a resposta apareceu na hora: são duas ferramentas, e a
+segunda já existe (⚡ Rápido). Palavras dele: *"você que tinha que ser o cara
+inteligente que daria as opções melhores… e não eu ficar te influenciando no caminho
+que eu quero"*. **Ele tem razão: dar a recomendação é meu trabalho, não dele.**
+
+### ✅ O que ficou de pé da tarde (isso vale)
+Teto de **5 ligas** por Lenda (jogar é ilimitado) · botão **✅ Guardar e sair** ·
+**liga nunca é apagada sozinha** (nem por vigia — o bug do convidado apagando a liga
+foi corrigido hoje) · ranking soma **todo mundo que já jogou** · o quadro
+📋 **Como a sua liga funciona** dentro da criação, agora com as regras finais.
+
 ## 📅 A JANELA DO ENCONTRO — eu tinha quebrado o agendamento (29/08)
 *"Não tem sentido o cara entrar e ficar esperando 1h outra pessoa… a ideia era ele
 criar e a sala expirar, sei lá… se criar horário de 21h e não tiver ninguém em até
