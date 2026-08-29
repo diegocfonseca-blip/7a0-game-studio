@@ -7,9 +7,30 @@ dele. **Voltar a fechar = `false`** (o resto do código não muda).
 **As regras que subiram junto, todas decididas por ele:**
 - **Criar** é do 👑 Lenda (batismo entra sozinho — já nasce ouro). Teto de 2 ligas.
 - **Jogar** é de qualquer conta (`LIGA_SO_LENDA_ENTRA = false`), com código + senha.
-- 🔒 **A liga é SEMPRE privada.** Senha obrigatória na criação, e ela **não entra na
-  lista de salas abertas**. O `ligaNaAgenda` (que segurava a liga vazia na lista até
-  a hora marcada) foi **apagado**, não desligado — código morto engana quem lê.
+- 🔒 **Senha obrigatória** na criação. A liga é da turma: entra quem tem código+senha.
+- 👀 **A liga APARECE na lista quando tem gente dentro** (regra final, 29/08). Vazia,
+  some. Duas ideias minhas caíram no caminho, e nas duas ele estava certo:
+  1. *"só quando o DONO estiver dentro"* → *"se ele marcar pra 23h e é de manhã, como
+     vai ficar o dia todo dentro da sala?"*. Regra furada, descartada.
+  2. *"liga com senha nunca aparece, porque frustra quem não pode entrar"* → ele quer
+     a frustração **de propósito**: *"deve aparecer sim pra todos terem vontade. Não
+     importa que se frustrem de ver e não conseguirem entrar — vai dar vontade de
+     pagar"*. É decisão de negócio dele; a minha objeção era de UX e perde.
+  Sobrou a regra simples, que resolve o medo do começo (*"ficar aparecendo salas e
+  mais salas sem uso"*): **tem gente dentro, aparece**. Sem relógio, sem exclusão
+  automática, sem ninguém preso na sala esperando. O `ligaNaAgenda` (que segurava a
+  liga VAZIA na lista até a hora marcada) foi **apagado**, não desligado.
+- 🚪 **A porta trancada EXPLICA.** Como a liga aparece pra quem não pode entrar, o
+  modal da senha, quando é liga, diz o que aquela sala é, manda pedir a senha pra
+  quem chamou e aponta os caminhos (⚡ Rápido agora, ou 👑 Lenda pra ter a sua).
+  Frustração sem caminho é só porta na cara — e não converte nada.
+- ❌ **NUNCA excluir liga automaticamente.** Ele chegou a propor (liga sem senha que
+  se apaga se ninguém aparecer na hora marcada) e eu argumentei contra: a liga **é** o
+  histórico dela, e ele mesmo disse que *"muita gente marca um dia e não pode
+  comparecer"* — a turma jogaria 6 temporadas e perderia tudo numa terça ruim. Isso é
+  o estado quebrado da prioridade #1. Ficou combinado que ninguém apaga liga a não ser
+  o dono, no botão. Se um dia precisar limpar: mostrar *"esta liga não joga há 3 meses
+  — quer excluir?"* e deixar a PESSOA apertar.
 - 🤖 Padrão **com bots**; sem bots é a escolha da turma (segue exclusivo da liga).
 
 **As regras aparecem ESCRITAS na criação** (*"deixe avisado que essa sala é somente

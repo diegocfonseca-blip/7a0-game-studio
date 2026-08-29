@@ -1464,25 +1464,27 @@ export function EscLobby() {
     // entrar é de qualquer um**. Com a entrada aberta, esconder a sala só servia pra
     // ninguém achar a liga do amigo. Ela entra marcada com o selo 🏆 LIGA e o dia
     // marcado, pra não se confundir com sala rápida.
-    // 🔒 ...MAS SÓ PRA QUEM TEM O MODO LIGA LIBERADO. Furo que o Diego pegou com uma
-    // pergunta, minutos depois de eu subir isto: *"mas hj só o secundário q vai ver
-    // né a sala aberta ne"*. Eu tinha tirado a liga da lista SEM pôr nada no lugar —
-    // ou seja, JOGADOR NENHUM tinha o modo, e todos veriam a liga do Diego na lista
-    // e (com a entrada liberada) entrariam nela. Enquanto a Liga está em construção
-    // (`LIGA_GERAL = false`), ela só aparece pra quem enxerga o modo. Quando abrir
-    // pra todos, `ligaOn` vira true pra todo mundo e a linha continua valendo.
-    const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
+    // (o filtro por "quem enxerga o modo" saiu em 29/08, quando a Liga foi liberada
+    // pra todos — hoje `ligaOn` é true pra todo mundo.)
     // 🗑️ AQUI MORAVA O `ligaNaAgenda` (22/08): a regra que mantinha a liga VAZIA na
     // lista pública enquanto a hora marcada não passava. Ela deixou de existir em
     // 29/08, quando o Diego fechou que **a liga é sempre privada** — não aparece na
     // lista de jeito nenhum, só se acha pelo card "🏆 Minhas ligas" ou pelo código +
     // senha. Apagada de vez em vez de só desligada: código morto engana quem lê.
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      // 🔒 LIGA FORA DA LISTA PÚBLICA (Diego 29/08). O `ligaNaAgenda` continua
-      // escrito acima porque ainda descreve a regra do horário, mas a liga não
-      // entra mais nesta lista de jeito nenhum: ela é achada pelo card
-      // "🏆 Minhas ligas" (pra quem já é da turma) ou pelo código + senha.
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && !isLiga(r))
+      // 🏆 LIGA APARECE QUANDO TEM GENTE DENTRO (regra final do Diego, 29/08).
+      // Ele derrubou duas ideias minhas, e nas duas estava certo:
+      //  1. "só quando o DONO estiver dentro" — *"se ele marcar pra 23h e é de
+      //     manhã, como ele vai ficar o dia todo dentro da sala?"*. Regra furada.
+      //  2. "liga com senha nunca aparece, porque frustra quem não pode entrar" —
+      //     ele quer a frustração de propósito: *"deve aparecer sim, pra todos
+      //     terem vontade. Não importa se se frustrarem de ver e não conseguirem
+      //     entrar — vai dar vontade de pagar"*. É decisão de negócio dele.
+      // Sobrou a regra simples e que resolve o medo do começo (*"ficar aparecendo
+      // salas e mais salas sem uso"*): **tem gente dentro, aparece; vazia, some**.
+      // Sem relógio, sem exclusão automática, sem ninguém preso na sala esperando.
+      // A linha da lista já sabe desenhar liga (selo 🏆 LIGA, 🔒 e a data marcada).
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -2798,8 +2800,26 @@ export function EscLobby() {
       {pwModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.65)' }}>
           <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-            <p className="font-black text-black text-lg" style={OSWALD}>🔒 Sala fechada</p>
-            <p className="text-black/60 text-xs font-bold mb-2">Digite a senha pra entrar em “{pwModal.game_state?.roomName ?? pwModal.code}”.</p>
+            {/* 🏆 LIGA: a porta trancada tem que EXPLICAR, não só barrar. O Diego
+                quis a liga na lista de propósito, sabendo que quem não tem a senha
+                se frustra: *"não importa que se frustrem de ver e não conseguirem
+                entrar — vai dar vontade"*. Então aqui a frustração precisa virar
+                caminho, senão é só uma porta na cara: o que é aquela sala, como se
+                entra nela, e como ter a sua. Numa sala rápida trancada nada disso
+                faz sentido, então o texto continua o de sempre. */}
+            <p className="font-black text-black text-lg" style={OSWALD}>{pwModal.game_state?.mode === 'liga' ? '🏆 Liga fechada' : '🔒 Sala fechada'}</p>
+            {pwModal.game_state?.mode === 'liga' ? (
+              <>
+                <p className="text-black/70 text-xs font-bold leading-snug mb-1.5">
+                  <b>“{pwModal.game_state?.roomName ?? pwModal.code}”</b> é uma liga: a mesma sala sempre, com a estante guardando campeão e artilheiro temporada após temporada.
+                </p>
+                <p className="text-black/50 text-[11px] font-bold leading-snug mb-2">
+                  🔑 Ela é só da turma dela — <b>peça a senha pra quem te chamou</b>. Não tem a senha? Dá pra jogar agora numa sala ⚡ Rápida, ou ter a sua própria liga sendo 👑 Lenda.
+                </p>
+              </>
+            ) : (
+              <p className="text-black/60 text-xs font-bold mb-2">Digite a senha pra entrar em “{pwModal.game_state?.roomName ?? pwModal.code}”.</p>
+            )}
             <input autoFocus type="text" value={pwEntry} onChange={e => setPwEntry(e.target.value)} maxLength={20}
               placeholder="Senha" onKeyDown={e => e.key === 'Enter' && enterRoom(pwModal, pwEntry)}
               className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
