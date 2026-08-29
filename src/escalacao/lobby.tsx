@@ -571,10 +571,27 @@ export function EscLobby() {
   // uma sala rápida é só ISTO — quando vocês jogam e se tem bot. O resto (leilão,
   // temporada, fim de jogo) é o rápido de sempre, sem uma linha diferente.
   const hoje = new Date()
-  const emDias = (n: number) => new Date(hoje.getTime() + n * 864e5).toISOString().slice(0, 10)
-  const [ligaData, setLigaData] = useState(emDias(1)) // amanhã, pra já vir preenchido
-  const [ligaHora, setLigaHora] = useState('21:00')
-  const [ligaComBots, setLigaComBots] = useState(false) // liga fechada nasce SEM bot
+  // 📅 DIA NO RELÓGIO DO JOGADOR, NÃO EM UTC (bug que o Diego pegou em 29/08 —
+  // print às 22:32 do dia 28 no Brasil, e a tela não deixava escolher o dia 28).
+  // Era o `toISOString()`, que devolve UTC: no Brasil (UTC-3), a partir das 21h o
+  // dia em UTC JÁ VIROU. Então o "hoje" do jogo virava amanhã, o `min` do campo
+  // bloqueava o dia de verdade e o padrão saía um dia adiantado. Toda noite, pra
+  // todo brasileiro. Agora lê dia/mês/ano LOCAIS — o mesmo que está no celular.
+  const emDias = (n: number) => {
+    const d = new Date(hoje.getTime() + n * 864e5)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+  // ⏰ e a HORA nasce na PRÓXIMA MEIA HORA CHEIA, hoje. Antes era "amanhã às
+  // 21:00" fixo: quem cria a liga pra chamar a galera no zap AGORA tinha que
+  // corrigir os dois campos. Criando 22:32 → vem 23:00 de hoje, pronto pra usar.
+  const proxMeiaHora = (() => {
+    const d = new Date(hoje.getTime() + 25 * 60_000) // 25 min de folga pra arredondar pra frente
+    d.setMinutes(d.getMinutes() > 30 ? 60 : 30, 0, 0)
+    return { dia: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, hora: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` }
+  })()
+  const [ligaData, setLigaData] = useState(proxMeiaHora.dia)
+  const [ligaHora, setLigaHora] = useState(proxMeiaHora.hora)
+  const [ligaComBots, setLigaComBots] = useState(true) // 🤖 padrão COM bots (Diego 29/08)
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
   // mandar os 22 pro host é o passo seguinte.
   const [bafoEscolha, setBafoEscolha] = useState<{ seed: number; via: 'elenco' | 'convocados' } | null>(null)
@@ -2377,10 +2394,14 @@ export function EscLobby() {
                       className="w-[104px] border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
                   </div>
                   <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🤖 Bots na tabela</p>
-                  <Seg options={[[false, 'Sem bots — só vocês'], [true, 'Com bots até 20']] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
+                  {/* 🤖 ORDEM PEDIDA PELO DIEGO (29/08): *"coloque na frente com
+                      bots (padrão) e só ao lado direito o sem bots"*. Com bots
+                      passa a ser o PADRÃO — é o jeito que o pessoal já conhece do
+                      rápido; sem bots vira a escolha de quem quer só a turma. */}
+                  <Seg options={[[true, 'Com bots até 20'], [false, 'Sem bots — só vocês']] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
                   <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {ligaComBots
-                      ? '🤖 Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.'
+                      ? '🤖 Padrão. Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.'
                       : '🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.'}
                   </p>
                   <p className="text-white/35 text-[10px] font-bold mt-2 leading-snug">

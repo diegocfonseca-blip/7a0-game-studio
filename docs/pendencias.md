@@ -1,4 +1,40 @@
-# 📌 Pendências combinadas com o Diego (atualizado 28/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
+
+## 🏆 MINHAS LIGAS — 1º TESTE REAL DO DIEGO (29/08)
+Ele pediu pra codar só pras contas dele (`diego.c.fonseca@gmail.com` e a 2ª) — e
+**já estava assim desde 22/08** (`LIGA_TESTERS` em `sport.ts`, `LIGA_GERAL=false`).
+Confirmado também que **criar = 👑 Lenda cobre batismo sozinho**: pela regra
+permanente, todo dono de batismo nasce ouro. Conferidos um a um: os 7 com manto
+estão ouro. Hoje seriam **51 contas** podendo criar, 2 ligas cada.
+
+### 🐛 3 bugs achados no caminho que NUNCA tinha rodado
+O banco entregou o motivo de nunca terem aparecido: **468 salas criadas no jogo
+inteiro e ZERO ligas**. O trecho de criar liga jamais tinha executado.
+
+1. **Botão girando pra sempre** — com dia ou hora em branco (dá pra apagar num
+   toque), `new Date('T21:00').toISOString()` ESTOURA; `createRoom` não tem
+   try/catch, então a função morria antes do `setLoading(false)`. Sem mensagem,
+   sem nada. Agora trava com aviso dizendo o que falta e por quê.
+2. 📅 **DATA EM UTC, NÃO NO RELÓGIO DO JOGADOR** (print dele às 22:32 do dia 28:
+   *"hoje é dia 28 aqui no Brasil e nem permite pôr 28"*). O `emDias` usava
+   `toISOString()`, que é UTC — no Brasil (UTC-3), **a partir das 21h o dia em UTC
+   já virou**. Então o `min` do campo bloqueava o dia de verdade e o padrão saía
+   um dia adiantado. **Toda noite, pra todo brasileiro.** Agora lê dia/mês/ano
+   LOCAIS. Medido com o fuso de SP: às 22:32 de 28/08, o `min` era 29/08 e virou
+   28/08. ⚠️ De dia o bug passava batido (às 14:05 já estava certo) — por isso
+   ninguém tinha visto.
+3. ⏰ **Hora padrão inútil** — era "amanhã às 21:00" fixo, então quem cria a liga
+   pra chamar a galera AGORA tinha que corrigir os dois campos. Agora nasce na
+   **próxima meia hora cheia de hoje** (criou 22:32 → vem hoje 23:00).
+
+### 🤖 Ordem dos bots (pedido dele, 29/08)
+*"coloque na frente com bots (padrão) e só ao lado direito o sem bots"*. Feito:
+**Com bots até 20** passa a ser o da esquerda **e o padrão** (`ligaComBots` nasce
+`true`); **Sem bots — só vocês** vai pra direita. A explicação de baixo diz
+"Padrão" no texto do com-bots.
+⚠️ Isto muda o que estava escrito antes no doc: "sem bots" era tratado como o
+jeito natural da liga (o diferencial exclusivo dela). Continua sendo exclusivo da
+liga — só deixou de ser o padrão da criação.
 
 ## 🧊 "DO NADA TRAVA" NO RÁPIDO ONLINE — ✅ ACHADO E CORRIGIDO (28/08)
 Relato do Diego: *"estão falando que está travando o modo rápido online… o jogo
