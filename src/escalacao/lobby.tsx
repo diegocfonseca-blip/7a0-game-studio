@@ -1786,7 +1786,7 @@ export function EscLobby() {
     // (Todo batismo já nasce tier ouro pela regra de 17/08, então a conta é uma
     // só. E CRIAR liga continua preso à conta do Diego, em `sport.ts`.)
     if (LIGA_SO_LENDA_ENTRA && rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
-      setRoomError('Essa é uma 🏆 Liga Fechada — só entra quem é 👑 Lenda ou dono de clube batizado.'); setLoading(false); return
+      setRoomError('Essa é uma liga do 🏆 Minhas Ligas — só entra quem é 👑 Lenda ou dono de clube batizado.'); setLoading(false); return
     }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
       setRoomError('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
@@ -2424,7 +2424,7 @@ export function EscLobby() {
                   // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
                   const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
                     { v: 'rapido', label: '⚡ Rápido', liberado: true },
-                    { v: 'liga', label: '🏆 Liga', liberado: ligaOn },
+                    { v: 'liga', label: '🏆 Minhas ligas', liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
                     { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
@@ -2774,7 +2774,7 @@ export function EscLobby() {
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title="Liga: a sala fica de pé, com dia marcado e sala de troféus">🏆 LIGA</span>
                     )}
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🏆 liga fechada' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🚫 sem bots' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
                   {ligaRoom && (
                     <p className="font-black text-[11.5px] mt-0.5" style={{ ...OSWALD, color: quandoLiga((r.game_state as GS)?.ligaAt).cor }}>
                       📅 {quandoLiga((r.game_state as GS)?.ligaAt).txt}
@@ -2880,7 +2880,7 @@ export function EscLobby() {
                 caminho, senão é só uma porta na cara: o que é aquela sala, como se
                 entra nela, e como ter a sua. Numa sala rápida trancada nada disso
                 faz sentido, então o texto continua o de sempre. */}
-            <p className="font-black text-black text-lg" style={OSWALD}>{pwModal.game_state?.mode === 'liga' ? '🏆 Liga fechada' : '🔒 Sala fechada'}</p>
+            <p className="font-black text-black text-lg" style={OSWALD}>{pwModal.game_state?.mode === 'liga' ? '🏆 Liga da turma' : '🔒 Sala fechada'}</p>
             {pwModal.game_state?.mode === 'liga' ? (
               <>
                 <p className="text-black/70 text-xs font-bold leading-snug mb-1.5">
@@ -2968,7 +2968,7 @@ export function EscLobby() {
           <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>🏆 Liga fechada · próximo jogo</p>
+                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>🏆 Minhas ligas · próximo jogo</p>
                 <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
                 <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? '🚫 sem bots — só a galera na tabela' : '🤖 com bots até 20 times'}</p>
               </div>

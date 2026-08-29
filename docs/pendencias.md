@@ -51,6 +51,28 @@ PostgREST recusaria por ambiguidade.
 topo do lobby (dono × convidado), o ✏️ Editar sem entrar na sala, e o que um
 ESTRANHO vê na lista (só liga rolando, trancada, botão "Em jogo" apagado).
 
+### 🏷️ O NOME NA TELA: "Liga" virou "Minhas ligas" (cobrança dele, 29/08)
+*"No que os usuários veem coloque Minhas ligas. E na aba ao lado de Rápido também
+coloque escrito Minhas ligas e não Ligas"*. O nome foi fechado em 23/08, mas a tela
+tinha ficado pra trás. Trocado em tudo que o jogador lê:
+- a **aba do modo** (⚡ Rápido · 🏆 **Minhas ligas** · 🌐 Carreira · 🃏 Bafo);
+- o cabeçalho da sala de espera (era "🏆 Liga fechada · próximo jogo");
+- o título do modal da senha (era "🏆 Liga fechada" → "🏆 Liga da turma");
+- a mensagem de entrada barrada.
+
+**🐛 Dois achados no caminho, os dois de texto MENTINDO pro jogador:**
+1. **A home anunciava "🏆 Liga Fechada · só com amigos (em breve)"** — pra todo
+   mundo, no dia em que o modo LANÇOU. O botão agora leva pro online quando a liga
+   está aberta, e só volta a ser cinza se `LIGA_GERAL` for pra `false` de novo.
+2. **O card do Lenda, em Apoiar**, prometia *"já garante Carreira Online e Liga
+   Fechada (chegando)"*. A liga já chegou — virou *"a 🏆 Minhas Ligas (crie até 5
+   ligas da sua turma, com estante de troféus)"*, e só a Carreira Online segue como
+   "chegando". ↩️ **Isso também corrige o que eu disse errado pro Diego**: falei que
+   o grupo do WhatsApp não estava escrito no card do Lenda. Estava — *"o 📲 grupo
+   privado no WhatsApp com o criador"* já era listado ali. A pendência era só a liga.
+3. **`ligaFechada` quer dizer SEM BOTS**, não "trancada" — e a linha da sala escrevia
+   "🏆 liga fechada", o que dava a entender que era a senha. Virou "🚫 sem bots".
+
 ### ✅ O que ficou de pé da tarde (isso vale)
 Teto de **5 ligas** por Lenda (jogar é ilimitado) · botão **✅ Guardar e sair** ·
 **liga nunca é apagada sozinha** (nem por vigia — o bug do convidado apagando a liga
