@@ -1319,7 +1319,23 @@ export function EscLobby() {
       setRoomError('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".')
       setLoading(false); return
     }
-    const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
+    // 📅 DIA E HORA TÊM QUE ESTAR PREENCHIDOS (achado em 29/08, antes do 1º teste
+    // real do Diego — o banco confirma: 468 salas e NENHUMA liga jamais criada,
+    // então este caminho nunca tinha rodado).
+    // O campo vem preenchido (amanhã 21:00), mas dá pra APAGAR num toque. Aí
+    // `new Date('T21:00')` vira Data Inválida e o `.toISOString()` **ESTOURA** —
+    // e como `createRoom` não tem try/catch, o estouro matava a função no meio:
+    // o `setLoading(false)` nunca rodava e o botão ficava girando PRA SEMPRE, sem
+    // mensagem nenhuma. Trava com aviso, do jeito certo: diz o que falta e por quê.
+    let ligaAt: string | undefined
+    if (liga) {
+      const quando = new Date(`${ligaData}T${ligaHora}`)
+      if (!ligaData || !ligaHora || Number.isNaN(quando.getTime())) {
+        setRoomError('📅 Falta dizer QUANDO vocês jogam. Preencha o dia e a hora — é isso que segura a liga na lista até a galera chegar (sala sem horário some quando esvazia).')
+        setLoading(false); return
+      }
+      ligaAt = quando.toISOString()
+    }
     const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
@@ -2847,7 +2863,10 @@ export function EscLobby() {
                 <div className="flex gap-2 mt-2">
                   <button onClick={async () => {
                     const d = new Date(`${ligaEditData}T${ligaEditHora}`)
-                    if (isNaN(d.getTime())) return
+                    // 🤐 antes isto era um `return` MUDO: com o campo vazio, apertar
+                    // Salvar não fazia nada e não explicava nada. Botão que não
+                    // responde é o pior tipo de trava — agora diz o que falta.
+                    if (isNaN(d.getTime())) { setRoomError('Confira o dia e a hora — os dois precisam estar preenchidos.'); return }
                     await patchLiga({ ligaAt: d.toISOString() }); setLigaEdit(false)
                   }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>Salvar</button>
                   <button onClick={() => setLigaEdit(false)}
