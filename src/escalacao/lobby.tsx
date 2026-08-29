@@ -1564,6 +1564,7 @@ export function EscLobby() {
   // ✏️ editor do card de "Minhas ligas" (edição POR FORA): guarda o id da liga
   // aberta pra edição e os 4 campos que dá pra mudar sem entrar na sala.
   const [cardEdit, setCardEdit] = useState<string | null>(null)
+  const [cardPw, setCardPw] = useState('')   // 🔒 senha nova da liga (vazio = mantém)
   const [cardNome, setCardNome] = useState('')
   const [cardData, setCardData] = useState('')
   const [cardHora, setCardHora] = useState('')
@@ -1578,7 +1579,7 @@ export function EscLobby() {
   // deixar mais gente escrever ali daria pra sobrescrever o jogo da galera no
   // meio. A função troca só o horário, as regras e a lista de adms, e confere na
   // entrada se quem chamou é o dono ou um adm.
-  type LigaCampos = { ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; ligaFechada?: boolean; roomName?: string }
+  type LigaCampos = { ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; ligaFechada?: boolean; roomName?: string; senhaNova?: string }
   // 📝 versão por ID: serve pra editar a liga DE FORA, direto no card de
   // "🏆 Minhas ligas", sem precisar entrar na sala (Diego 22/08: *"dps q ele entra
   // ele pode excluir claramente dentro e fora tb... Editar e etc"*).
@@ -1590,6 +1591,9 @@ export function EscLobby() {
       p_admins: (campos.ligaAdmins ?? null) as never,
       p_fechada: campos.ligaFechada ?? null,
       p_nome: campos.roomName ?? null,
+      // 🔒 vai o HASH, nunca a senha em texto — o banco não precisa saber a senha
+      // de ninguém (mesma conta do `hashPw` usado na criação e na entrada).
+      p_pw: campos.senhaNova?.trim() ? hashPw(campos.senhaNova.trim().toLowerCase()) : null,
     })
     if (error || data === false) { setRoomError('Não deu pra salvar agora — tente de novo.'); return false }
     return true
@@ -2279,6 +2283,7 @@ export function EscLobby() {
                       setCardData(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
                       setCardHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
                       setCardBots(!gs?.ligaFechada)
+                      setCardPw('') // nunca herda o que foi digitado numa outra liga
                       setCardEdit(r.id)
                     }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
                       ✏️ Editar
@@ -2294,6 +2299,17 @@ export function EscLobby() {
                   <div className="mt-2 rounded-xl border-2 border-black p-2.5" style={{ background: '#FFF4CF' }}>
                     <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mb-1" style={OSWALD}>🖋️ Nome da liga</p>
                     <input value={cardNome} maxLength={24} onChange={e => setCardNome(stripEmoji(e.target.value))}
+                      className="w-full border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
+                    {/* 🔒 TROCAR A SENHA SEM ENTRAR NA SALA (29/08). A senha virou
+                        obrigatória hoje, e isso criava uma armadilha: quem esquecesse
+                        a própria senha nunca mais poria um amigo novo — o dono ENTRA
+                        sem senha, mas a liga ficaria trancada pros outros pra sempre,
+                        e a única saída seria excluir tudo. Ninguém consegue LER a
+                        senha (o banco só guarda o embaralhado), então o certo é poder
+                        TROCAR: em branco = mantém a que está. */}
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>🔒 Trocar a senha</p>
+                    <input value={cardPw} maxLength={24} onChange={e => setCardPw(e.target.value)}
+                      placeholder="Deixe em branco pra manter a atual"
                       className="w-full border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
                     <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>📅 Quando vocês jogam</p>
                     <div className="flex gap-2">
@@ -2318,9 +2334,9 @@ export function EscLobby() {
                         if (!nome) { setRoomError('A liga precisa de um nome.'); return }
                         const quando = new Date(`${cardData}T${cardHora}`)
                         if (isNaN(quando.getTime())) { setRoomError('Confira o dia e a hora.'); return }
-                        const ok = await patchLigaId(r.id, { roomName: nome, ligaAt: quando.toISOString(), ligaFechada: !cardBots })
+                        const ok = await patchLigaId(r.id, { roomName: nome, ligaAt: quando.toISOString(), ligaFechada: !cardBots, ...(cardPw.trim() ? { senhaNova: cardPw.trim() } : {}) })
                         if (!ok) return
-                        setCardEdit(null); fetchMyLigas()
+                        setCardPw(''); setCardEdit(null); fetchMyLigas()
                       }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-[11.5px]"
                         style={{ background: GREEN, color: '#fff', ...OSWALD }}>
                         ✅ Salvar

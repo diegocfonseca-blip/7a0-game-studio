@@ -33,6 +33,24 @@ segunda já existe (⚡ Rápido). Palavras dele: *"você que tinha que ser o car
 inteligente que daria as opções melhores… e não eu ficar te influenciando no caminho
 que eu quero"*. **Ele tem razão: dar a recomendação é meu trabalho, não dele.**
 
+### 🔒 BURACO FECHADO JUNTO: dono que esquece a PRÓPRIA senha
+Tornar a senha obrigatória criou uma armadilha que ninguém tinha visto: o dono que
+esquecesse a senha **nunca mais poria um amigo novo** na liga. Ele ENTRA sem senha
+(o host sempre entrou direto), mas ela ficaria trancada pros outros pra sempre — e a
+única saída seria **excluir a liga inteira**, perdendo a estante. Trava sem caminho
+de saída é o que o Diego mais odeia.
+**Feito:** 🔒 **Trocar a senha** no ✏️ Editar do card de Minhas ligas (em branco =
+mantém a atual). Ninguém consegue LER a senha — o banco só guarda o embaralhado —
+então o certo é poder TROCAR. `liga_patch` ganhou `p_pw` (recebe o HASH pronto,
+nunca a senha em texto; hash vazio é recusado, pra liga nunca ficar sem senha). A
+assinatura antiga foi derrubada de propósito: com parâmetro novo opcional o
+PostgREST recusaria por ambiguidade.
+
+### 📸 Como ficou, em uma figura
+`scripts/mockup-minhas-ligas.mjs` — os TRÊS lugares em que a liga aparece: o card no
+topo do lobby (dono × convidado), o ✏️ Editar sem entrar na sala, e o que um
+ESTRANHO vê na lista (só liga rolando, trancada, botão "Em jogo" apagado).
+
 ### ✅ O que ficou de pé da tarde (isso vale)
 Teto de **5 ligas** por Lenda (jogar é ilimitado) · botão **✅ Guardar e sair** ·
 **liga nunca é apagada sozinha** (nem por vigia — o bug do convidado apagando a liga
