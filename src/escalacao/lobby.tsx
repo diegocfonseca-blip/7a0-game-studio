@@ -2379,7 +2379,35 @@ export function EscLobby() {
                   cria a sala"*. As TRÊS coisas da liga ficam JUNTAS aqui — nome,
                   dia/hora e bots — em vez de o nome estar lá embaixo, solto e
                   chamado de "Nome da sala" como numa sala qualquer. */}
-              {roomMode === 'liga' && (
+              {/* 👑 QUEM NÃO É LENDA VÊ ISTO NO LUGAR DO FORMULÁRIO (Diego 29/08:
+                  *"quem não é lenda fica com botão de apoie em cima… e aí quando
+                  aperta informa que lenda pra cima pode criar mas você pode jogar"*).
+                  Antes a pessoa preenchia nome, dia, hora e bots e SÓ NO FINAL,
+                  ao apertar Criar, levava o não — trabalho jogado fora e cara de
+                  erro. Agora a conversa é honesta de cara: o que é a liga, o
+                  botão pra virar Lenda, e — logo embaixo, do jeito que ele gosta,
+                  colado no botão — a parte que mais importa pra quem chegou aqui:
+                  **jogar não custa nada**. */}
+              {roomMode === 'liga' && !canLiga && (
+                <div className="mt-3 rounded-xl border-[3px] border-black p-3.5" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
+                  <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>👑 Criar uma liga é do Lenda</p>
+                  <p className="text-white/70 text-[11.5px] font-bold leading-snug mb-3">
+                    A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e artilheiro <b className="text-white">temporada após temporada</b>.
+                  </p>
+                  <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
+                    className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
+                    style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+                    👑 QUERO SER LENDA
+                  </button>
+                  <p className="text-white/55 text-[11px] font-bold leading-snug mt-2.5">
+                    ✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se um Lenda criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.
+                  </p>
+                  <p className="text-white/35 text-[10px] font-bold leading-snug mt-2">
+                    Quer só jogar agora? Use o <b className="text-white/60">⚡ Rápido</b> aqui em cima — é de graça e sempre foi.
+                  </p>
+                </div>
+              )}
+              {roomMode === 'liga' && canLiga && (
                 <div className="mt-3 rounded-xl border-[3px] border-black p-3" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
                   <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-2" style={OSWALD}>🏆 A sua liga</p>
                   <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>🖋️ Nome da liga</p>
