@@ -59,6 +59,17 @@ gasta rede, não muda regra nenhuma; navegador sem o recurso ignora e segue igua
 O navegador solta a trava quando a pessoa sai do app, então o jogo pede de novo
 quando ela volta.
 
+⚠️ **ERRO CORRIGIDO NA HORA (o Diego pegou):** eu tinha feito a trava por LISTA
+DE TELAS INCLUÍDAS (leilão, monte, cerimônia, contratos, temporada) — e esqueci
+**a VOTAÇÃO DE FIM DE JOGO** (`screen: 'end'`, o `OnlineEndVote`), justo uma tela
+onde a sala INTEIRA fica esperando todo mundo votar se continua ou não. Palavras
+dele: *"lembrando que quando acaba a partida, no final tem a votação pra eles
+votarem se continuam ou não"*.
+**Lição virou regra:** lista de incluídas erra por esquecimento, e esquecimento
+vira sala travada. Agora é lista de **EXCLUÍDAS** — tela nova nasce protegida, e
+só ficam de fora `intro`, `album` e `ranking` (laterais, ninguém espera ninguém
+e dá pra ficar 40 min ali). Se nascer tela nova de espera, ela já entra sozinha.
+
 ### ✅ Como fica o cenário que o Diego descreveu
 - **Relógio**: sempre foi hora de verdade (não é contagem que pausa) — sai do
   mesmo instante marcado pra sala inteira. Sair da tela nunca segurou o relógio.

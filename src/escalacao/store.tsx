@@ -8194,13 +8194,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // gasta rede, não muda regra nenhuma do jogo, e o próprio navegador solta a
   // trava quando a pessoa sai do app (por isso a gente pede de novo quando ela
   // volta). Navegador que não tem o recurso simplesmente ignora — nada quebra.
-  // ⚖️ SÓ nas telas em que a sala fica ESPERANDO alguém: leilão, monte, cerimônia,
-  // janela de contratos e a temporada rolando. Fora daí (fim de jogo, álbum,
-  // ranking, lobby parado) segurar a tela acesa só queimaria bateria no bolso —
-  // ninguém está esperando ninguém nessas telas.
-  const telaQuePrende = state.screen === 'auction' || state.screen === 'monte'
-    || state.screen === 'cerimonia' || state.screen === 'reserveList'
-    || state.screen === 'season' || state.screen === 'liberta'
+  // ⚖️ ONDE VALE. Na 1ª tentativa eu LISTEI as telas que prendem (leilão, monte,
+  // cerimônia, contratos, temporada) — e ESQUECI A VOTAÇÃO DE FIM DE JOGO. O
+  // Diego pegou na hora: *"lembrando que quando acaba a partida, no final tem a
+  // votação pra eles votarem se continuam ou não"*. E ele está certo: ali a sala
+  // inteira fica esperando todo mundo votar, com o aparelho do host mandando.
+  //
+  // Lição: lista de INCLUÍDAS erra por esquecimento, e o esquecimento vira sala
+  // travada. Então virou lista de EXCLUÍDAS — tela nova nasce protegida, e só
+  // fica de fora o que comprovadamente não prende ninguém:
+  //   • intro  → nem está em partida;
+  //   • álbum e ranking → telas laterais, ninguém espera ninguém e a pessoa pode
+  //     ficar 40 min ali (aí sim seria bateria queimada à toa).
+  // Todo o resto — lobby, monte, leilão, cerimônia, contratos, temporada,
+  // Libertadores e o FIM DE JOGO com a votação — segura a tela acesa.
+  const telaQuePrende = state.screen !== 'intro' && state.screen !== 'album' && state.screen !== 'ranking'
   useEffect(() => {
     if (state.onlineMode !== 'online' || !telaQuePrende) return
     type Trava = { release: () => Promise<void> }
