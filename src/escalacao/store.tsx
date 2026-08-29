@@ -8175,6 +8175,44 @@ export function EscProvider({ children }: { children: ReactNode }) {
     lastStateSendRef.current = Date.now()
   }, [state])
 
+  // 📵 A TELA NÃO APAGA DURANTE A PARTIDA ONLINE (Diego 28/08: *"se a pessoa deu
+  // uma saidinha, não importa — o jogo tem que continuar rolando do mesmo jeito"*).
+  //
+  // Este é o buraco que sobrava depois do vigia de prazo. O jogo não roda num
+  // servidor: quem faz a sala andar é o APARELHO do dono. E o jeito mais comum
+  // de esse aparelho parar não é a pessoa sair do app — é ela **deixar o celular
+  // parado olhando o leilão**. Nos 45s do envelope ninguém encosta na tela, o
+  // celular acha que o dono dormiu e APAGA sozinho. Aparelho apagado = sala
+  // parada, com o dono ali na frente sem entender nada.
+  //
+  // A trava de tela (Wake Lock) resolve exatamente isso: enquanto a partida
+  // online está aberta na frente da pessoa, o celular não apaga sozinho. Não
+  // gasta rede, não muda regra nenhuma do jogo, e o próprio navegador solta a
+  // trava quando a pessoa sai do app (por isso a gente pede de novo quando ela
+  // volta). Navegador que não tem o recurso simplesmente ignora — nada quebra.
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || state.screen === 'intro') return
+    type Trava = { release: () => Promise<void> }
+    const nav = navigator as unknown as { wakeLock?: { request: (t: 'screen') => Promise<Trava> } }
+    if (!nav.wakeLock) return // navegador sem o recurso: segue o jogo normal
+    let trava: Trava | null = null
+    let vivo = true
+    const pedir = () => {
+      if (!vivo || (typeof document !== 'undefined' && document.hidden)) return
+      nav.wakeLock!.request('screen').then(t => { if (vivo) trava = t; else t.release().catch(() => {}) }, () => { /* negado: sem drama */ })
+    }
+    pedir()
+    // o navegador SOLTA a trava sozinho quando a aba sai da frente — ao voltar,
+    // pede de novo, senão a segunda metade da partida já ficaria desprotegida.
+    const onVis = () => { if (typeof document !== 'undefined' && !document.hidden) pedir() }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
+    return () => {
+      vivo = false
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis)
+      trava?.release().catch(() => {})
+    }
+  }, [state.onlineMode, state.screen === 'intro']) // eslint-disable-line react-hooks/exhaustive-deps
+
   // HEARTBEAT do host: rede de segurança contra travas. Se UMA mensagem do host se
   // perde num MOMENTO PARADO (sem novas jogadas), o convidado ficaria preso no
   // "Enviando…" — o heartbeat reemite o estado e cura. ANTES: reemitia o estado

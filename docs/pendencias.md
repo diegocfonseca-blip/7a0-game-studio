@@ -42,12 +42,48 @@ acusa qualquer `setTimeout` armado em cima de um campo `*Deadline` e confere que
 o vigia bom continua sendo usado nos 4. Testado plantando o padrão ruim de
 propósito: ele aponta arquivo e linha. **Reverter: um commit.**
 
+### 📵 2ª parte: A TELA NÃO APAGA MAIS NA PARTIDA ONLINE (28/08)
+Depois do vigia, o Diego cravou a regra: *"se a pessoa deu uma saidinha, não
+importa — o jogo tem que continuar rolando do mesmo jeito. O tempo está
+contando, 30, 29, 28… e quando ele voltar já aconteceu tudo que tinha que
+acontecer. Mesma coisa vale pros outros usuários"*.
+
+**O que sobrava.** O jogo não roda num servidor — quem faz a sala andar é o
+APARELHO do dono. E o jeito mais comum de esse aparelho parar **não é a pessoa
+sair do app**: é ela deixar o celular parado olhando o leilão. Nos 45s do
+envelope ninguém encosta na tela, o celular acha que dormiu e **apaga sozinho**.
+Aparelho apagado = sala parada, com o dono ali na frente sem entender nada.
+
+**Feito:** trava de tela (Wake Lock) enquanto a partida online está aberta. Não
+gasta rede, não muda regra nenhuma; navegador sem o recurso ignora e segue igual.
+O navegador solta a trava quando a pessoa sai do app, então o jogo pede de novo
+quando ela volta.
+
+### ✅ Como fica o cenário que o Diego descreveu
+- **Relógio**: sempre foi hora de verdade (não é contagem que pausa) — sai do
+  mesmo instante marcado pra sala inteira. Sair da tela nunca segurou o relógio.
+- **Dono deu uma saidinha e tem gente vendo**: o tempo zera, QUALQUER jogador
+  manda o "fecha!", e o aparelho do dono aplica assim que o recado chega —
+  receber recado não depende do cronômetro dele, então a sala anda sem ele estar
+  olhando. Era isso que o tiro único estragava.
+- **Dono volta**: se sobrou alguma coisa parada, resolve no ato (vigia + volta
+  pra tela). Pra quem voltou, o efeito é o que ele pediu: já aconteceu tudo.
+
 ### ⚠️ O que este conserto NÃO resolve (e é de propósito)
 Sala **sem dono** continua parando — é a regra permanente do Diego (a coroa não
 troca sozinha, ninguém assume). Se o dono fecha o jogo e some, a sala espera e
 mostra a faixa vermelha. Isso é comportamento desejado, não trava.
 Sala de **stream/manual sem cronômetro** (`auctionSecs = 0`) também não tem
 prazo nenhum: quem fecha cada envelope é o botão do host, por escolha da sala.
+
+**E o caso que ainda depende do aparelho do dono:** se o celular dele dorme de
+verdade (bolso, app fechado pelo sistema), ele para de responder — e a sala
+espera, porque o dono é a autoridade. Com a trava de tela isso ficou raro, mas
+não é impossível. **A única cura de verdade seria o jogo rodar num SERVIDOR** (o
+pregão andaria sozinho com a sala inteira dormindo). É obra grande: hoje o motor
+do leilão mora no aparelho dos jogadores, e ele teria que ser portado pra fora
+com o cuidado de não mudar nenhum resultado. **PERGUNTAR AO DIEGO antes** — ele
+ainda não decidiu, e não é pra começar por conta.
 
 ## 🌎 NACIONALIDADE DA CARTA — ✅ CORRIGIDO (28/08)
 O Diego mandou print do **Lingard convocado pelo BRASIL** na Copa: *"absurdo,
