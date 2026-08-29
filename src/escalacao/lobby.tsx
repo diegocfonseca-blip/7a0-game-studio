@@ -2920,8 +2920,21 @@ export function EscLobby() {
     const bafoAptos = elencoOn ? players.filter(p => (p.bafo?.squad?.length ?? 0) >= BAFO_MIN) : []
     const bafoFaltam = elencoOn ? players.filter(p => (p.bafo?.squad?.length ?? 0) < BAFO_MIN) : []
     const ready = elencoOn ? bafoAptos.length >= 2 : duplasOn ? duplasCompletas >= 2 : players.length >= 2
+    // 🏆 A ESPERA DA LIGA PRECISA FALAR (Diego 29/08: *"ele marcou hoje pra amanhã…
+    // e quando chegar no horário, se ninguém entrar?"*). Até agora o dono sozinho
+    // via só um botão cinza "Aguardando… (1/2 mín)" e nada mais — nenhuma pista do
+    // que fazer, nem de que a liga dele JÁ está visível pra galera. É o minuto exato
+    // em que ele fica na dúvida, então é aqui que a resposta tem que estar.
+    // O texto muda com a senha, porque a saída é diferente: sem senha ele espera a
+    // lista trabalhar por ele; com senha, só quem ele chamar entra.
+    const ligaEspera = room.game_state?.mode === 'liga' && !ready
+      ? (room.game_state?.locked
+        ? `🔒 Sua liga está de pé, esperando. Só entra quem tem o código ${room.code} + a senha — manda pros seus no zap. Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`
+        : `🌍 Sua liga JÁ está na lista pra todo mundo agora, e como ela é sem senha, qualquer um pode sentar. Chame os seus pelo código ${room.code} enquanto isso. Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`)
+      : ''
     const travaMsg = elencoOn
       ? (ready ? '' : `🃏 O Bafo começa com 2 times montados. ${bafoAptos.length === 0 ? 'Ninguém montou ainda' : 'Só 1 montou até agora'} — cada um escolhe a carreira que traz aí em cima.`)
+      : ligaEspera ? ligaEspera
       : !duplasOn || ready ? '' :
       `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação

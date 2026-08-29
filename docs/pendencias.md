@@ -1,5 +1,25 @@
 # 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
 
+## 🕘 "E se chegar a hora e ninguém entrar?" — a espera da liga agora FALA (29/08)
+Pergunta dele sobre a liga SEM senha: *"ele marcou hoje pra amanhã… e quando chegar
+no horário e se ninguém entrar?"*.
+
+**O que acontece de verdade** (conferido no código): o dono entra → tem 1 pessoa →
+a liga aparece na lista. Como é sem senha, qualquer um pode sentar — **é justamente
+essa a razão de existir a opção sem senha**. Se mesmo assim ninguém vier, ele **não
+consegue começar sozinho**: o pregão exige **2 pessoas** (`players.length >= 2`),
+mesmo com bots ligados — bot preenche a tabela, não substitui gente. Aí ele aperta
+✅ Guardar e sair e **nada é perdido**; remarca pelo card, sem entrar na sala.
+
+**O buraco era de INFORMAÇÃO:** nesse minuto o dono via só um botão cinza
+*"Aguardando… (1/2 mín)"* e mais nada — nenhuma pista do que fazer, nem de que a
+liga dele já estava visível pra galera. Era exatamente o minuto da dúvida dele.
+Agora a tela fala, com texto diferente por tipo:
+- **Sem senha:** *"🌍 Sua liga JÁ está na lista pra todo mundo agora, e como ela é
+  sem senha, qualquer um pode sentar. Chame os seus pelo código XXXX enquanto isso.
+  Se hoje não rolar, é só Guardar e sair: nada se perde e dá pra remarcar."*
+- **Com senha:** *"🔒 Só entra quem tem o código XXXX + a senha — manda pros seus."*
+
 ## 🗺️ O FLUXO DA LIGA FICOU CLARO — e saíram 2 correções (29/08)
 Ele se perdeu, e a culpa era da explicação: *"ainda não ficou claro o fluxo
 completo… tô perdido"*. Virou figura (`scripts/mockup-liga-fluxo.mjs`): os 5
