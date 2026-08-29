@@ -1,5 +1,32 @@
 # 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
 
+## 📅 A JANELA DO ENCONTRO — eu tinha quebrado o agendamento (29/08)
+*"Não tem sentido o cara entrar e ficar esperando 1h outra pessoa… a ideia era ele
+criar e a sala expirar, sei lá… se criar horário de 21h e não tiver ninguém em até
+1h a sala expira. Na verdade o host não iniciar em até 1h depois… sei lá."*
+
+Os três "sei lá" eram sintoma de um problema que **eu** criei. Ao fazer a liga
+aparecer **só quando tem gente dentro**, o DONO virou refém: pra a galera achar a
+sala, ele tinha que ficar de plantão dentro dela. **Marcar hora deixou de servir
+pra alguma coisa** — e a agenda é metade da razão de a liga existir.
+
+**A correção não é expirar, é a JANELA:** de **1h antes até 6h depois** da hora
+marcada, a liga aparece na lista **sozinha, mesmo VAZIA**. O horário volta a valer:
+a turma (ou, na liga sem senha, quem quiser) entra e espera lá, e o dono chega na
+hora dele. Se ninguém veio, ele chega, vê vazio e vai embora — **não perde a noite
+esperando**. Fora da janela vale a regra normal (só com gente dentro), então quem
+esticou até de madrugada não some da lista no meio do jogo.
+
+⚠️ **Isto NÃO é "expirar".** Sair da janela só tira a liga da LISTA. A liga continua
+inteira em 🏆 Minhas ligas, com estante e troféus, esperando o dono remarcar (o card
+já mostra "já passou" quando a data venceu). **Liga não se apaga sozinha, nunca** —
+regra que ele mesmo firmou e que eu segurei quando ele propôs a exclusão automática.
+
+📌 Curiosidade útil pra quem ler depois: isto é praticamente o `ligaNaAgenda`
+original (22/08), que eu tinha **apagado** algumas horas antes por achar que era
+código morto. Era a peça certa; o que faltava era a janela ter INÍCIO (1h antes),
+pra não aparecer no minuto da criação.
+
 ## 🕘 "E se chegar a hora e ninguém entrar?" — a espera da liga agora FALA (29/08)
 Pergunta dele sobre a liga SEM senha: *"ele marcou hoje pra amanhã… e quando chegar
 no horário e se ninguém entrar?"*.

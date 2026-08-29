@@ -1483,15 +1483,35 @@ export function EscLobby() {
     // (o filtro por "quem enxerga o modo" saiu em 29/08, quando a Liga foi liberada
     // pra todos — hoje `ligaOn` é true pra todo mundo.)
     const ehLigaRow = (r: RoomInfo) => r.game_state?.mode === 'liga'
-    // ⏰ falta mais de 1h pro horário marcado? a liga fica escondida (ver o filtro
-    // lá embaixo). Sala rápida não passa por aqui — pra ela isto é sempre true.
-    const LIGA_ANTECEDENCIA_MS = 3600_000
-    const ligaNaHora = (r: RoomInfo) => {
-      if (!ehLigaRow(r)) return true
+    // 📅 A JANELA DO ENCONTRO — de 1h ANTES até 6h DEPOIS da hora marcada.
+    //
+    // Eu tinha quebrado o agendamento sem perceber: ao fazer a liga aparecer só
+    // "quando tem gente dentro", o DONO virava refém — pra galera achar a sala, ele
+    // tinha que ficar de plantão dentro dela. O Diego pegou: *"não tem sentido o cara
+    // entrar e ficar esperando 1h outra pessoa"*. Marcar hora deixava de servir pra
+    // alguma coisa.
+    //
+    // Com a janela, o horário volta a valer: **na hora combinada a liga aparece
+    // sozinha, mesmo VAZIA**. A turma (ou, na liga sem senha, quem quiser) entra e
+    // espera lá — e o dono chega na hora dele. Se ninguém veio, ele chega, vê a sala
+    // vazia e vai embora; não perde a noite esperando.
+    //
+    // As 6h de folga depois são pra quem atrasa e pra partida longa. E FORA da janela
+    // a liga volta à regra de sempre (só com gente dentro), então quem esticou até de
+    // madrugada não some da lista no meio do jogo.
+    //
+    // ⚠️ Isto NÃO é "expirar". Passar da janela só tira a liga da LISTA — a liga
+    // continua inteira em 🏆 Minhas ligas, com estante e troféus, esperando o dono
+    // remarcar. Nada é apagado, nunca (ver a regra registrada mais abaixo).
+    const LIGA_ANTES_MS = 3600_000       // 1h antes: a sala "abre as portas"
+    const LIGA_DEPOIS_MS = 6 * 3600_000  // 6h depois: folga pra atraso e jogo longo
+    const ligaNaAgenda = (r: RoomInfo) => {
+      if (!ehLigaRow(r)) return false
       const at = (r.game_state as GS)?.ligaAt
-      if (!at) return true // liga sem hora marcada: não esconde (não deve existir)
+      if (!at) return false
       const t = new Date(at).getTime()
-      return isNaN(t) || Date.now() >= t - LIGA_ANTECEDENCIA_MS
+      if (isNaN(t)) return false
+      return Date.now() >= t - LIGA_ANTES_MS && Date.now() <= t + LIGA_DEPOIS_MS
     }
     // 🗑️ AQUI MORAVA O `ligaNaAgenda` (22/08): a regra que mantinha a liga VAZIA na
     // lista pública enquanto a hora marcada não passava. Ela deixou de existir em
@@ -1520,7 +1540,13 @@ export function EscLobby() {
       // Depois que a hora chega, não tem prazo de validade: enquanto tiver gente
       // dentro, aparece. Assim a turma pode esticar a noite ou jogar de novo depois
       // sem precisar remarcar. Liga sem hora marcada (não deve existir) não trava.
-      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && ligaNaHora(r))
+      .filter(r => {
+        if (isCareer(r) || isBafo(r)) return false
+        const viva = r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
+        // 🏆 liga: aparece na JANELA DO ENCONTRO (mesmo vazia — é o agendamento
+        // funcionando) ou, fora dela, pela regra normal de sala viva.
+        return ehLigaRow(r) ? (ligaNaAgenda(r) || viva) : viva
+      })
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -2510,7 +2536,7 @@ export function EscLobby() {
                       {ligaPw.trim()
                         ? <>🔒 <b className="text-white">Só com senha.</b> Pra chamar alguém, passe o <b className="text-white">código + a senha</b>. Quem não tiver vê a liga na lista, mas não entra.<br /></>
                         : <>🔓 <b className="text-white">Sem senha.</b> Quem achar na lista entra direto. Dá pra pôr senha depois, mas quem já entrou continua na estante.<br /></>}
-                      👀 <b className="text-white">Ela só aparece na lista perto da hora marcada</b> (a partir de 1h antes) e <b className="text-white">só com gente dentro</b>. Enquanto isso ninguém vê — dá pra criar hoje, ir dormir, e voltar amanhã.<br />
+                      👀 <b className="text-white">Ela aparece na lista sozinha, na hora marcada</b> (de 1h antes até o fim da noite) — <b className="text-white">mesmo sem você dentro</b>. Fora dessa janela ninguém vê: dá pra criar hoje, ir dormir, e a galera te encontra amanhã no horário.<br />
                       📅 <b className="text-white">O dia e a hora são um combinado</b>, não uma trava — serve pra turma saber quando se encontrar.<br />
                       🏠 <b className="text-white">A sala fica de pé todos os dias.</b> É sempre a MESMA: dá pra jogar hoje, amanhã e no mês que vem, e os troféus vão somando na estante.<br />
                       👑 <b className="text-white">Só você abre o pregão.</b> A liga espera o dono — ninguém começa no seu lugar.
@@ -2929,8 +2955,8 @@ export function EscLobby() {
     // lista trabalhar por ele; com senha, só quem ele chamar entra.
     const ligaEspera = room.game_state?.mode === 'liga' && !ready
       ? (room.game_state?.locked
-        ? `🔒 Sua liga está de pé, esperando. Só entra quem tem o código ${room.code} + a senha — manda pros seus no zap. Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`
-        : `🌍 Sua liga JÁ está na lista pra todo mundo agora, e como ela é sem senha, qualquer um pode sentar. Chame os seus pelo código ${room.code} enquanto isso. Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`)
+        ? `🔒 Sua liga está na lista desde 1h antes do horário — não precisa ficar de plantão. Quem entra precisa do código ${room.code} + a senha; manda pros seus no zap. Se hoje não rolar, 'Guardar e sair': nada se perde e dá pra remarcar.`
+        : `🌍 Sua liga está na lista pra todo mundo desde 1h antes do horário, e como é sem senha qualquer um pode sentar — não precisa ficar de plantão. Chame os seus pelo código ${room.code}. Se hoje não rolar, 'Guardar e sair': nada se perde e dá pra remarcar.`)
       : ''
     const travaMsg = elencoOn
       ? (ready ? '' : `🃏 O Bafo começa com 2 times montados. ${bafoAptos.length === 0 ? 'Ninguém montou ainda' : 'Só 1 montou até agora'} — cada um escolhe a carreira que traz aí em cima.`)
