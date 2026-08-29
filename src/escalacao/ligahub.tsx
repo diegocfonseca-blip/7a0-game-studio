@@ -79,6 +79,9 @@ export type LinhaCampeao = {
   top_scorer_name: string | null; top_scorer_goals: number | null; top_scorer_team: string | null
   mico_name: string | null
   copa_champion_name: string | null
+  // 👥 quem era GENTE naquela temporada. Gravado a partir de 29/08; linha antiga
+  // vem `null` e cai no jeito velho (só quem está na sala agora).
+  humanos?: string[] | null
 }
 
 // 📊 O RANKING sai das MESMAS linhas de troféu, com a regra que o dono escolheu.
@@ -177,7 +180,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
 
   const carregar = useCallback(() => {
     void supabase.from('game_champions')
-      .select('season_no, champion_name, top_scorer_name, top_scorer_goals, top_scorer_team, mico_name, copa_champion_name')
+      .select('season_no, champion_name, top_scorer_name, top_scorer_goals, top_scorer_team, mico_name, copa_champion_name, humanos')
       .eq('room_id', roomId).order('season_no', { ascending: true })
       .then(({ data }) => setRows((data ?? []) as LinhaCampeao[]), () => setRows([]))
   }, [roomId])
@@ -195,6 +198,9 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
           top_scorer_goals: gravar.scorerGoals ?? null, top_scorer_team: gravar.scorerTeamName ?? null,
           mico_name: gravar.micoName ?? null, copa_champion_name: gravar.copaChampName ?? null,
           copa_top_scorer_name: gravar.copaScorerName ?? null, copa_top_scorer_goals: gravar.copaScorerGoals ?? null,
+          // 👥 carimba QUEM ERA GENTE nesta temporada — é o que deixa o amigo que
+          // faltou continuar no ranking com os títulos dele (ver `rankingDaLiga`).
+          humanos,
         }
         for (let i = 0; i < 3; i++) {
           // 🏆 A LINHA É DA PARTIDA, não do número da temporada (Diego 16/08 —
@@ -237,7 +243,21 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
     return () => { vivo = false }
   }, [roomId])
 
-  const gente = useMemo(() => new Set(humanos.map(n => (n ?? '').trim()).filter(Boolean)), [humanos])
+  // 👥 QUEM CONTA NO RANKING = todo mundo que JÁ JOGOU nesta liga, não só quem está
+  // na sala agora (Diego 29/08, respondendo "sim" quando levantei o problema).
+  // Antes o `gente` era só a sala do momento — então o amigo que faltasse numa
+  // quinta sumia do ranking COM os títulos dele. Numa liga feita pra acumular
+  // temporada após temporada, isso é o oposto do combinado; os títulos nunca se
+  // perderam no banco, mas na tela evaporavam, o que dá na mesma pra quem joga.
+  // Agora junta os humanos carimbados em cada temporada (coluna `humanos`, nova em
+  // 29/08) com os da sala de hoje — quem chegou agora entra com zero, que é justo,
+  // e quem faltou continua lá em cima. Temporada antiga não tem o carimbo e por
+  // isso não some nada: ela só não acrescenta nomes.
+  const gente = useMemo(() => {
+    const set = new Set(humanos.map(n => (n ?? '').trim()).filter(Boolean))
+    for (const r of (rows ?? [])) for (const n of (r.humanos ?? [])) { const t = (n ?? '').trim(); if (t) set.add(t) }
+    return set
+  }, [humanos, rows])
   const regras = sala?.regras ?? LIGA_REGRAS_PADRAO
   const ranking = useMemo(() => rankingDaLiga(rows ?? [], regras, gente), [rows, regras, gente])
 

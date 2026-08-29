@@ -986,8 +986,21 @@ export function EscLobby() {
       if (!data) { setHostLeft(true); return } // sala já foi encerrada pelo host
       const beat = data.updated_at ? new Date(data.updated_at).getTime() : 0
       if (beat && Date.now() - beat > 180_000) {
-        await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
-        await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+        // 🏆 LIGA NUNCA É APAGADA POR ESTA VIGIA (bug achado em 29/08, na pergunta
+        // do Diego sobre agendar e fechar a aba). Esta rotina roda no aparelho dos
+        // CONVIDADOS e apagava a sala inteira quando o dono passava 3 min sem dar
+        // sinal. Numa sala rápida isso é certo — sala sem dono é lixo. Numa LIGA é
+        // catástrofe: o dono agenda pra amanhã, fecha a aba, um amigo fica esperando
+        // dentro, e o aparelho DESSE AMIGO apaga a liga com estante, ranking e todas
+        // as temporadas. Sem volta, e sem ninguém ter apertado nada.
+        // A saída manual do dono já era protegida desde 20/08 (`leaveRoom`); faltava
+        // esta, que é pior justamente por ser automática. Liga só some quando o DONO
+        // aperta 🗑️ Excluir a liga. Aqui o convidado só mostra o aviso e vai embora.
+        const ehLiga = room.game_state?.mode === 'liga'
+        if (!ehLiga) {
+          await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
+          await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+        }
         setHostLeft(true)
       }
     }

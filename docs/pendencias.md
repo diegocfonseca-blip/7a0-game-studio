@@ -1,5 +1,45 @@
 # 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
 
+## 🚨 BUG GRAVE NA LIGA — O CONVIDADO APAGAVA A LIGA INTEIRA (achado e corrigido 29/08)
+Achado respondendo uma pergunta dele: *"como eu quero agendar? Quero ir lá agendar
+o amanhã e sair da sala, ou fechar a aba… minha liga foi criada e quero aparecer
+amanhã no horário"*. Fui conferir o que cada botão faz e caí nisto.
+
+**O que acontecia.** Existe uma vigia que roda no aparelho dos **CONVIDADOS** que
+estão esperando na sala: se o dono passa **3 minutos** sem dar sinal, ela apaga a
+sala do banco. Numa sala rápida está certíssimo — sala sem dono é lixo. **Numa
+LIGA era catástrofe:** o dono agenda pra amanhã e fecha a aba, um amigo fica
+esperando dentro, e **o aparelho DESSE AMIGO apagava a liga** — estante, ranking,
+todas as temporadas. Sem volta, e sem ninguém ter apertado nada.
+
+A saída MANUAL do dono já estava protegida desde 20/08 (`leaveRoom`). Faltava esta,
+que é pior justamente por ser automática e por acontecer no aparelho de outra
+pessoa. **Agora liga nunca é apagada por vigia** — o convidado só mostra o aviso de
+"o dono saiu" e vai embora. Liga só some quando o DONO aperta 🗑️ Excluir a liga.
+
+## 👥 RANKING DA LIGA: quem faltou não some mais (29/08)
+Levantei o problema e ele respondeu **"sim"** pra corrigir. O ranking só contava
+quem estava **dentro da sala naquele momento** (era o jeito de manter bot fora).
+Efeito: o amigo que faltasse numa quinta **sumia do ranking com os títulos dele**.
+Numa liga feita pra ACUMULAR, é o oposto do combinado — os títulos nunca se
+perderam no banco, mas na tela evaporavam, o que dá na mesma pra quem joga.
+
+**Feito:** `game_champions` ganhou a coluna **`humanos`** (jsonb) — cada temporada
+carimba quem era gente. O ranking agora soma **todo mundo que já jogou na liga**
+(união dos carimbos + a sala de hoje). Quem chega na 5ª temporada entra com zero,
+que é justo. Temporada antiga não tem carimbo e por isso **não perde nada**: ela só
+não acrescenta nomes.
+
+## ✅ RESPOSTA: quem não estava na liga pode entrar depois?
+**Pode, e deve continuar podendo** — não existe lista de membros, só o limite das 20
+cadeiras. Liga que não aceita gente nova morre quando um cara desiste.
+
+## ✅ RESPOSTA: e se criar sem senha e ninguém aparecer?
+**Não acontece nada de ruim, e não precisou de código nenhum.** O dono bate ponto a
+cada 30s enquanto está na sala; parou de bater, em **3 min** a liga some da lista
+sozinha. Liga abandonada é **invisível** pra todo mundo — só ocupa 1 das 5 vagas do
+próprio dono, e isso se regula sozinho (pra criar a sexta ele limpa a casa).
+
 ## 🚀 MINHAS LIGAS ESTÁ NO AR PRA TODOS (29/08) — *"pode virar a chave"*
 `LIGA_GERAL = true` em `sport.ts`. Ficou em construção de 20 a 29/08 só nas contas
 dele. **Voltar a fechar = `false`** (o resto do código não muda).
