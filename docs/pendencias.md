@@ -1,5 +1,55 @@
 # 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
 
+## 🚀 MINHAS LIGAS ESTÁ NO AR PRA TODOS (29/08) — *"pode virar a chave"*
+`LIGA_GERAL = true` em `sport.ts`. Ficou em construção de 20 a 29/08 só nas contas
+dele. **Voltar a fechar = `false`** (o resto do código não muda).
+
+**As regras que subiram junto, todas decididas por ele:**
+- **Criar** é do 👑 Lenda (batismo entra sozinho — já nasce ouro). Teto de 2 ligas.
+- **Jogar** é de qualquer conta (`LIGA_SO_LENDA_ENTRA = false`), com código + senha.
+- 🔒 **A liga é SEMPRE privada.** Senha obrigatória na criação, e ela **não entra na
+  lista de salas abertas**. O `ligaNaAgenda` (que segurava a liga vazia na lista até
+  a hora marcada) foi **apagado**, não desligado — código morto engana quem lê.
+- 🤖 Padrão **com bots**; sem bots é a escolha da turma (segue exclusivo da liga).
+
+**As regras aparecem ESCRITAS na criação** (*"deixe avisado que essa sala é somente
+com senha… avise as regras, deixe claro pode ter agendamento, a sala pode continuar
+aberta todos os dias"*): um quadro 📋 **Como a sua liga funciona** com as quatro —
+só com senha · o dia/hora é combinado, não trava · a sala fica de pé todos os dias e
+é sempre a mesma · só o dono abre o pregão. Sem isso o dono criaria achando que é
+sala normal e acharia que o jogo escondeu a liga dele.
+O toggle genérico "sala fechada" **some** no modo liga (senão pediria senha duas
+vezes — a mesma bronca do nome da liga aparecer em dois lugares), e no lugar fica
+uma linha dizendo a regra.
+
+**Quem não é Lenda** vê, no lugar do formulário, o convite: o que a liga é, o botão
+👑 QUERO SER LENDA (`?apoie=lenda`) e — colado embaixo — *"pra JOGAR você não precisa
+de nada"*. Antes ele preenchia tudo e só levava o não no final.
+
+## 📱 GRUPO DE QUEM JOGA ONLINE — no fim da sala (29/08)
+Nasceu no mesmo minuto em que a liga virou privada, e é o que devolve o que a
+decisão tirou: quem não tem turma perdeu o jeito de achar gente. Palavras dele:
+*"e se o cara coitado não tinha ver amigos… no final das salas, perto do botão de
+sair, um corre do WhatsApp"*.
+
+⚠️ **NÃO É LINK DE GRUPO — é informação.** Ele foi explícito: *"é apenas informação
+pro cara tipo clicar pra pagar Lenda. E quando ele pagar, EU boto ele no grupo,
+porque o grupo já existe"*. Então o botão leva pra tela de Apoiar e **a entrada no
+grupo é manual, feita por ele, depois do pagamento**. Não existe URL de WhatsApp em
+lugar nenhum do código — e não deve passar a existir sem ele mandar.
+
+Fica ACIMA da linha de saídas do fim da sala online. Dois estados: quem não é Lenda
+vê o convite; quem já é vê só o recado de como pedir a entrada (quem pagou não
+merece propaganda). Verde do JOGO, não o do WhatsApp. Mockup:
+`scripts/mockup-grupo-zap.mjs`.
+
+### ⏳ Pendente disto (precisa do Diego)
+1. **O grupo no card do Lenda, na tela de Apoiar.** É benefício novo e o mais fácil
+   de vender (resolve "não tenho com quem jogar") — mas hoje quem paga não fica
+   sabendo que ganhou. Não foi feito: mexe na tela de Apoiar, e tela nova = mockup e
+   OK antes.
+2. Se ele preferir o **verde do WhatsApp** no botão, é um valor só.
+
 ## 🏆 MINHAS LIGAS — 1º TESTE REAL DO DIEGO (29/08)
 Ele pediu pra codar só pras contas dele (`diego.c.fonseca@gmail.com` e a 2ª) — e
 **já estava assim desde 22/08** (`LIGA_TESTERS` em `sport.ts`, `LIGA_GERAL=false`).

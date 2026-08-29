@@ -592,6 +592,7 @@ export function EscLobby() {
   const [ligaData, setLigaData] = useState(proxMeiaHora.dia)
   const [ligaHora, setLigaHora] = useState(proxMeiaHora.hora)
   const [ligaComBots, setLigaComBots] = useState(true) // 🤖 padrão COM bots (Diego 29/08)
+  const [ligaPw, setLigaPw] = useState('') // 🔒 senha OBRIGATÓRIA da liga (Diego 29/08)
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
   // mandar os 22 pro host é o passo seguinte.
   const [bafoEscolha, setBafoEscolha] = useState<{ seed: number; via: 'elenco' | 'convocados' } | null>(null)
@@ -1315,8 +1316,11 @@ export function EscLobby() {
     const name = cutName(roomName.trim() || `${roomMode === 'liga' ? 'Liga' : 'Sala'} do ${nameOf()}`)
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
-    const locked = roomLocked && !!roomPw.trim()
-    const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
+    // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
+    // genérico "sala fechada" nem aparece no modo liga).
+    const ligaMode = ligaOn && roomMode === 'liga'
+    const locked = ligaMode ? true : (roomLocked && !!roomPw.trim())
+    const pwHash = locked ? hashPw((ligaMode ? ligaPw : roomPw).trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
     // 👔 Sala de Elenco: NÃO tem Copa (decisão do Diego 17/08 — "não terá copa,
     // será apenas divisão de 38 rodadas nesse modo"). Por isso entra com
@@ -1332,6 +1336,15 @@ export function EscLobby() {
     // era privilégio da conta do Diego, ninguém tinha notado; na hora de abrir pra
     // todos, qualquer um criaria liga. Trava explícita, com o porquê e o caminho —
     // e é ela que o Diego quer VER com a 2ª conta dele.
+    // 🔒 LIGA É SEMPRE PRIVADA (Diego 29/08): senha obrigatória, e ela NÃO entra
+    // na lista de salas abertas. Motivo, decidido com ele: a tabela tem 20 lugares
+    // e a estante é PRA SEMPRE — estranho entrando por acaso toma a vaga do amigo
+    // no horário marcado e entra no ranking da turma sem volta. Quem quer jogar com
+    // desconhecido tem o ⚡ Rápido, que é de graça e faz exatamente isso.
+    if (liga && !ligaPw.trim()) {
+      setRoomError('🔒 A liga precisa de uma SENHA. Ela não aparece na lista de salas abertas — é assim que ela fica só da sua turma. Escolha uma senha e passe junto com o código pra quem você chamar.')
+      setLoading(false); return
+    }
     if (liga && !canLiga) {
       setRoomError('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".')
       setLoading(false); return
@@ -1459,24 +1472,17 @@ export function EscLobby() {
     // (`LIGA_GERAL = false`), ela só aparece pra quem enxerga o modo. Quando abrir
     // pra todos, `ligaOn` vira true pra todo mundo e a linha continua valendo.
     const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
-    // 🏆 A LIGA VAZIA CONTINUA NA LISTA (Diego 22/08: ele marcou a liga, entrou antes
-    // da hora com a 2ª conta, os dois saíram, e a liga sumiu da lista — *"ainda nem
-    // bateu 21h tb"*). As duas regras de "sala viva" (ter gente dentro e ter batimento
-    // recente) foram feitas pra SALA RÁPIDA, onde sala vazia é sala abandonada. A liga
-    // é o contrário: ela nasce pra ficar de pé com todo mundo fora, e entre um jogo e
-    // outro estará SEMPRE vazia — exigir gente dentro anulava a data marcada.
-    // O que mantém a liga viva é o RELÓGIO: ela fica na lista enquanto a data marcada
-    // não passou (com 6h de folga depois, pra quem atrasa). Passou, sai da lista
-    // sozinha — e continua inteira, com os troféus, no "🏆 Minhas ligas" do dono.
-    // Liga sem data marcada segue a regra antiga (precisa de gente dentro).
-    const ligaNaAgenda = (r: RoomInfo) => {
-      const at = (r.game_state as GS)?.ligaAt
-      if (!isLiga(r) || !at) return false
-      const t = new Date(at).getTime()
-      return !isNaN(t) && Date.now() < t + 6 * 3600_000
-    }
+    // 🗑️ AQUI MORAVA O `ligaNaAgenda` (22/08): a regra que mantinha a liga VAZIA na
+    // lista pública enquanto a hora marcada não passava. Ela deixou de existir em
+    // 29/08, quando o Diego fechou que **a liga é sempre privada** — não aparece na
+    // lista de jeito nenhum, só se acha pelo card "🏆 Minhas ligas" ou pelo código +
+    // senha. Apagada de vez em vez de só desligada: código morto engana quem lê.
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => (r.count >= 1 || ligaNaAgenda(r)) && (r.status === 'started' ? isFresh(r) : (waitingAlive(r) || ligaNaAgenda(r))) && !isCareer(r) && !isBafo(r) && (ligaOn || !isLiga(r)))
+      // 🔒 LIGA FORA DA LISTA PÚBLICA (Diego 29/08). O `ligaNaAgenda` continua
+      // escrito acima porque ainda descreve a regra do horário, mas a liga não
+      // entra mais nesta lista de jeito nenhum: ela é achada pelo card
+      // "🏆 Minhas ligas" (pra quem já é da turma) ou pelo código + senha.
+      .filter(r => r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r)) && !isCareer(r) && !isBafo(r) && !isLiga(r))
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -2432,8 +2438,27 @@ export function EscLobby() {
                       ? '🤖 Padrão. Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.'
                       : '🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.'}
                   </p>
+                  {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
+                      com senha, mas deixe avisado que essa sala é somente com senha.
+                      Também avise as regras da sala, deixe claro: pode ter agendamento,
+                      a sala pode continuar aberta todos os dias"*). Sem isto escrito, o
+                      dono criaria achando que é sala normal e só descobriria a regra na
+                      hora de chamar a galera — e ia achar que o jogo escondeu a liga. */}
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🔒 Senha da liga <span style={{ color: '#E8503A' }}>(obrigatória)</span></p>
+                  <input value={ligaPw} maxLength={24} onChange={e => setLigaPw(e.target.value)}
+                    placeholder="Escolha uma senha"
+                    className="w-full border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                  <div className="mt-3 rounded-lg border-2 border-black p-2.5" style={{ background: 'rgba(0,0,0,.28)' }}>
+                    <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-1.5" style={OSWALD}>📋 Como a sua liga funciona</p>
+                    <p className="text-white/60 text-[10.5px] font-bold leading-relaxed">
+                      🔒 <b className="text-white">Só com senha.</b> A liga NÃO aparece na lista de salas abertas — ninguém entra por acaso. Pra chamar alguém, passe o <b className="text-white">código + a senha</b>.<br />
+                      📅 <b className="text-white">O dia e a hora são um combinado</b>, não uma trava — serve pra turma saber quando se encontrar.<br />
+                      🏠 <b className="text-white">A sala fica de pé todos os dias.</b> É sempre a MESMA: dá pra jogar hoje, amanhã e no mês que vem, e os troféus vão somando na estante.<br />
+                      👑 <b className="text-white">Só você abre o pregão.</b> A liga espera o dono — ninguém começa no seu lugar.
+                    </p>
+                  </div>
                   <p className="text-white/35 text-[10px] font-bold mt-2 leading-snug">
-                    Dá pra trocar o dia, a hora e os bots depois — na mesma sala, sem perder troféu nenhum.
+                    Dá pra trocar o nome, o dia, a hora e os bots depois — na mesma sala, sem perder troféu nenhum.
                   </p>
                 </div>
               )}
@@ -2589,8 +2614,18 @@ export function EscLobby() {
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
           <Section num={3} title="A sala" icon="🔧">
             <div>
-              <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? 'Sala fechada' : 'Sala aberta'} sub={roomLocked ? 'Só entra com senha' : 'Qualquer um entra'} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />
-              {roomLocked && (
+              {/* 🔒 no modo LIGA este toggle some: a liga é SEMPRE fechada e a senha
+                  dela já foi pedida lá em cima, no quadro da liga. Deixar os dois
+                  perguntaria a senha DUAS VEZES — a mesma bronca que o Diego já deu
+                  quando o nome da liga aparecia em dois lugares. No lugar, uma linha
+                  dizendo a regra, pra ninguém achar que o jogo esqueceu a opção. */}
+              {roomMode === 'liga'
+                ? <div className="rounded-xl border-2 border-black px-3 py-2.5" style={{ background: 'rgba(0,0,0,.28)' }}>
+                    <p className="font-black text-[12.5px] text-white" style={OSWALD}>🔒 Liga é sempre fechada</p>
+                    <p className="text-white/50 text-[10.5px] font-bold mt-0.5">A senha você escolheu lá em cima, no quadro da liga.</p>
+                  </div>
+                : <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? 'Sala fechada' : 'Sala aberta'} sub={roomLocked ? 'Só entra com senha' : 'Qualquer um entra'} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />}
+              {roomLocked && roomMode !== 'liga' && (
                 <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
                   placeholder="Senha da sala (avise a galera)"
                   className="w-full mt-2 border-[2.5px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />

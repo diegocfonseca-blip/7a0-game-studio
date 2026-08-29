@@ -314,10 +314,13 @@ export function useSalaElencoLiberada(): boolean {
 // A liga da turma: horário marcado, sempre a MESMA sala (é o que faz o troféu
 // acumular), só entra quem é 👑 Lenda ou dono de clube batizado, e o dono manda
 // nela (arruma troféu, escreve a regra do ranking).
-// 🔒 EM CONSTRUÇÃO (20/08): só a conta do Diego abre — ordem dele, *"quando
-// terminar deixe também só pra mim"*. Pra todo mundo a aba aparece APAGADA com
-// "em breve", igual a Carreira e o Bafo. Pra liberar geral: LIGA_GERAL = true.
-const LIGA_GERAL = false
+// 🚀 LIBERADO PRA TODOS (29/08 — *"pode virar a chave"*). Ficou em construção de
+// 20 a 29/08, só nas contas do Diego. Regras que subiram junto, decididas por ele:
+//   • CRIAR é do 👑 Lenda (e batismo, que já nasce ouro) — teto de 2 ligas;
+//   • JOGAR é de qualquer conta, com o código + a senha;
+//   • a liga é SEMPRE privada: senha obrigatória e fora da lista de salas abertas.
+// Voltar a fechar, se precisar: LIGA_GERAL = false (o resto do código não muda).
+const LIGA_GERAL = true
 // 🧪 A 2ª conta do Diego entra aqui pra ele testar a Liga com DOIS usuários ao
 // mesmo tempo (22/08): *"vou testar esse usuário c o diego.c.fonseca@gmail.com q
 // criou uma sala agora. Aí já quero ver como ele vê tb"*. Repare: ela está SÓ

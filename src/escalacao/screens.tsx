@@ -7617,6 +7617,41 @@ function CareerEndPanel() {
 // visível. Todo mundo vota (mostra pro host quem tá online e o que quer); o
 // HOST decide e começa quando quiser (nunca trava esperando ninguém). O host
 // pode remover quem não decide e voltar pro menu das salas.
+// 📱 GRUPO DE QUEM JOGA ONLINE — ver o comentário grande na linha de saídas do
+// `OnlineEndVote`. Dois estados, porque não faz sentido oferecer a mesma coisa:
+//   • quem NÃO é Lenda → o convite (o que é o grupo + o botão pra virar Lenda);
+//   • quem JÁ é Lenda  → só o recado de como pedir a entrada. Quem já pagou não
+//     merece ver propaganda.
+// O verde é o VERDE DO JOGO (#1B7A3D), não o do WhatsApp: a regra da casa é não
+// inventar cor nova.
+function GrupoOnlineBox() {
+  const souLenda = myApoioPerk()?.tier === 'ouro'
+  return (
+    <div className="rounded-xl border-[3px] border-black p-3 mt-3" style={{ background: 'rgba(27,122,61,.22)', boxShadow: `3px 3px 0 ${INK}` }}>
+      <p className="font-black text-[13.5px] uppercase leading-none text-white mb-1.5" style={OSWALD}>📱 Grupo de quem joga online</p>
+      {souLenda ? (
+        <p className="text-white/70 text-[11px] font-bold leading-snug">
+          👑 Você é <b className="text-white">Lenda</b>, então o grupo é seu por direito. Se ainda não está nele, chame o Diego no Instagram do jogo que ele te põe lá.
+        </p>
+      ) : (
+        <>
+          <p className="text-white/70 text-[11px] font-bold leading-snug mb-2.5">
+            Sem galera pra chamar? No grupo tem gente marcando pregão <b className="text-white">todo dia</b> — e é de lá que saem as ligas.
+          </p>
+          <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
+            className="w-full rounded-xl border-[3px] border-black font-black text-[13.5px] py-2.5 active:translate-y-0.5"
+            style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+            👑 ENTRAR NO GRUPO — VIRE LENDA
+          </button>
+          <p className="text-white/50 text-[10.5px] font-bold leading-snug mt-2">
+            🔑 O grupo é do <b className="text-white">Lenda</b> — é o que segura a bagunça e mantém a turma boa. Assim que o apoio cair, o Diego te põe no grupo.
+          </p>
+        </>
+      )}
+    </div>
+  )
+}
+
 function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
   // 🎫 identidade pelo CRACHÁ (manager.id), NÃO pela cadeira (youIdx) — quando o
@@ -7901,6 +7936,20 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!</p>}
         </>
       )}
+      {/* 📱 O GRUPO DE QUEM JOGA ONLINE (Diego 29/08). Nasceu no mesmo dia em que a
+          Liga virou SEMPRE PRIVADA — e é o que devolve o que a decisão tirou: quem
+          não tem turma perdeu o único jeito de achar gente. Palavras dele: *"e se o
+          cara coitado não tinha ver amigos… no final das salas, perto do botão de
+          sair, um corre do WhatsApp que aperta e o cara paga Lenda pra entrar no
+          grupo da galera que joga online"*.
+          ⚠️ É SÓ INFORMAÇÃO, não link de grupo — o Diego foi explícito: *"é apenas
+          informação pro cara tipo clicar pra pagar Lenda. E quando ele pagar, EU boto
+          ele no grupo, porque o grupo já existe"*. Então o botão leva pra tela de
+          Apoiar e a entrada no grupo é feita por ele, na mão, depois do pagamento.
+          Por isso não existe URL de WhatsApp em lugar nenhum deste arquivo.
+          Fica ACIMA da linha de saídas: é o fim da partida, a hora em que a pessoa
+          acabou de jogar com gente de verdade e está no clima de marcar a próxima. */}
+      <GrupoOnlineBox />
       {/* saídas — uma linha só, discreta, pra todos */}
       <div className="flex items-center justify-center gap-6 pt-2 mt-1 border-t-2 border-white/20">
         <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-white/70 text-xs font-bold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 Voltar pro menu</button>
