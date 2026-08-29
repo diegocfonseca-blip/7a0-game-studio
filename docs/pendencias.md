@@ -38,10 +38,15 @@ porque o grupo já existe"*. Então o botão leva pra tela de Apoiar e **a entra
 grupo é manual, feita por ele, depois do pagamento**. Não existe URL de WhatsApp em
 lugar nenhum do código — e não deve passar a existir sem ele mandar.
 
-Fica ACIMA da linha de saídas do fim da sala online. Dois estados: quem não é Lenda
-vê o convite; quem já é vê só o recado de como pedir a entrada (quem pagou não
-merece propaganda). Verde do JOGO, não o do WhatsApp. Mockup:
-`scripts/mockup-grupo-zap.mjs`.
+Fica ACIMA da linha de saídas do fim da sala online. Verde do JOGO, não o do
+WhatsApp. Mockup: `scripts/mockup-grupo-zap.mjs`.
+
+👑 **QUEM JÁ É LENDA (e batismo) NÃO VÊ NADA DISTO** — correção dele minutos depois
+da entrega: *"pra quem já é lenda e batismo não precisa aparecer sobre o grupo de
+WhatsApp"*. No 1º corte eu tinha deixado uma caixa pro Lenda ("chame o Diego pra
+entrar"); ele cortou, e está certo: quem pagou já está no grupo, então a caixa só
+ocuparia espaço no fim da partida e ainda daria cara de propaganda pra sócio.
+Batismo entra na mesma linha sem código extra (nasce ouro, regra de 17/08).
 
 ### ⏳ Pendente disto (precisa do Diego)
 1. **O grupo no card do Lenda, na tela de Apoiar.** É benefício novo e o mais fácil

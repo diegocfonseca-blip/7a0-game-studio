@@ -7625,29 +7625,26 @@ function CareerEndPanel() {
 // O verde é o VERDE DO JOGO (#1B7A3D), não o do WhatsApp: a regra da casa é não
 // inventar cor nova.
 function GrupoOnlineBox() {
-  const souLenda = myApoioPerk()?.tier === 'ouro'
+  // 👑 QUEM JÁ É LENDA NÃO VÊ NADA DISTO (Diego 29/08: *"pra quem já é lenda e
+  // batismo não precisa aparecer sobre o grupo de WhatsApp"*). Ele já pagou e já
+  // está no grupo — a caixa só ocuparia espaço no fim da partida e ainda daria
+  // cara de propaganda pra quem é sócio. Batismo entra na mesma linha sem código
+  // extra: todo batismo nasce ouro pela regra permanente de 17/08.
+  if (myApoioPerk()?.tier === 'ouro') return null
   return (
     <div className="rounded-xl border-[3px] border-black p-3 mt-3" style={{ background: 'rgba(27,122,61,.22)', boxShadow: `3px 3px 0 ${INK}` }}>
       <p className="font-black text-[13.5px] uppercase leading-none text-white mb-1.5" style={OSWALD}>📱 Grupo de quem joga online</p>
-      {souLenda ? (
-        <p className="text-white/70 text-[11px] font-bold leading-snug">
-          👑 Você é <b className="text-white">Lenda</b>, então o grupo é seu por direito. Se ainda não está nele, chame o Diego no Instagram do jogo que ele te põe lá.
-        </p>
-      ) : (
-        <>
-          <p className="text-white/70 text-[11px] font-bold leading-snug mb-2.5">
-            Sem galera pra chamar? No grupo tem gente marcando pregão <b className="text-white">todo dia</b> — e é de lá que saem as ligas.
-          </p>
-          <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
-            className="w-full rounded-xl border-[3px] border-black font-black text-[13.5px] py-2.5 active:translate-y-0.5"
-            style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
-            👑 ENTRAR NO GRUPO — VIRE LENDA
-          </button>
-          <p className="text-white/50 text-[10.5px] font-bold leading-snug mt-2">
-            🔑 O grupo é do <b className="text-white">Lenda</b> — é o que segura a bagunça e mantém a turma boa. Assim que o apoio cair, o Diego te põe no grupo.
-          </p>
-        </>
-      )}
+      <p className="text-white/70 text-[11px] font-bold leading-snug mb-2.5">
+        Sem galera pra chamar? No grupo tem gente marcando pregão <b className="text-white">todo dia</b> — e é de lá que saem as ligas.
+      </p>
+      <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
+        className="w-full rounded-xl border-[3px] border-black font-black text-[13.5px] py-2.5 active:translate-y-0.5"
+        style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+        👑 ENTRAR NO GRUPO — VIRE LENDA
+      </button>
+      <p className="text-white/50 text-[10.5px] font-bold leading-snug mt-2">
+        🔑 O grupo é do <b className="text-white">Lenda</b> — é o que segura a bagunça e mantém a turma boa. Assim que o apoio cair, o Diego te põe no grupo.
+      </p>
     </div>
   )
 }
