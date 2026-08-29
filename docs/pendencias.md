@@ -69,6 +69,34 @@ quando ela volta.
 - **Dono volta**: se sobrou alguma coisa parada, resolve no ato (vigia + volta
   pra tela). Pra quem voltou, o efeito é o que ele pediu: já aconteceu tudo.
 
+### 📊 3ª parte: O JOGO CONTA SOZINHO AS TRAVAS QUE SALVOU (28/08)
+Pergunta do Diego depois do conserto: *"só acho estranho que tava funcionando,
+aí agora você mexeu… será que ajudou ou não?"*. Justa — e sem medir, a resposta
+seria boca a boca de novo.
+
+Como funciona: quando o vigia precisa **INSISTIR** (2ª tentativa), é porque o 1º
+tiro se perdeu — ou seja, **aquela sala ia congelar e não congelou**. Só essa 2ª
+tentativa vira uma linha em `esc_travas_salvas` (fase · tentativa · era host ·
+sala). As outras 13 não entram, senão sala morta inflaria a conta.
+
+Tabela criada com a MESMA política do `site_visits`: qualquer um grava, **só o
+`diego.c.fonseca@gmail.com` lê**. Insert silencioso — se falhar, o jogo nem
+percebe.
+
+**Como ler (SQL no Supabase):**
+```sql
+select date_trunc('day', criado_at) dia, fase, count(*)
+from esc_travas_salvas group by 1,2 order by 1 desc;
+```
+- **Números aparecendo** = o bug era real e o conserto está pegando sala todo dia.
+- **Zero e ninguém reclamando** = ou não trava mais, ou nunca foi isso.
+- **Zero e AINDA reclamando** = a trava é outra coisa; volta a investigar (e aí o
+  caminho é pedir código da sala + horário e olhar o estado congelado no banco).
+
+⏳ **PENDENTE (precisa de mockup e OK do Diego):** um painelzinho no admin
+mostrando esse número, pra ele não depender de rodar SQL. Não foi feito porque
+é tela nova — regra dele: mockup antes.
+
 ### ⚠️ O que este conserto NÃO resolve (e é de propósito)
 Sala **sem dono** continua parando — é a regra permanente do Diego (a coroa não
 troca sozinha, ninguém assume). Se o dono fecha o jogo e some, a sala espera e

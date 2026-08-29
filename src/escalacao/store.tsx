@@ -569,7 +569,7 @@ import type { CareerTeam } from './data'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'
-import { logPlay, logVisit, heartbeat } from './analytics'
+import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 
 export const START_MONEY = 100
@@ -7665,9 +7665,10 @@ export async function removeCareerFromCloud(seed: number) {
 const VIGIA_RETENTA_MS = 4_000
 const VIGIA_MAX_TENTATIVAS = 15
 
-function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, disparar: () => void) {
+function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, disparar: () => void, marca?: () => void) {
   const fnRef = useRef(disparar)
-  useEffect(() => { fnRef.current = disparar })
+  const marcaRef = useRef(marca)
+  useEffect(() => { fnRef.current = disparar; marcaRef.current = marca })
   useEffect(() => {
     if (!ligado || !prazo) return
     let tentativas = 0
@@ -7675,6 +7676,9 @@ function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, dispar
       if (Date.now() < prazo) return               // ainda não venceu
       if (tentativas >= VIGIA_MAX_TENTATIVAS) return
       tentativas++
+      // 🧊 a 2ª tentativa é a NOTÍCIA: o 1º tiro se perdeu e esta sala ia
+      // congelar. Só ela é registrada — as outras 13 seriam sala morta.
+      if (tentativas === 2) marcaRef.current?.()
       fnRef.current()
     }
     const t = setTimeout(tenta, Math.max(0, prazo - Date.now()) + 800)
@@ -8190,8 +8194,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // gasta rede, não muda regra nenhuma do jogo, e o próprio navegador solta a
   // trava quando a pessoa sai do app (por isso a gente pede de novo quando ela
   // volta). Navegador que não tem o recurso simplesmente ignora — nada quebra.
+  // ⚖️ SÓ nas telas em que a sala fica ESPERANDO alguém: leilão, monte, cerimônia,
+  // janela de contratos e a temporada rolando. Fora daí (fim de jogo, álbum,
+  // ranking, lobby parado) segurar a tela acesa só queimaria bateria no bolso —
+  // ninguém está esperando ninguém nessas telas.
+  const telaQuePrende = state.screen === 'auction' || state.screen === 'monte'
+    || state.screen === 'cerimonia' || state.screen === 'reserveList'
+    || state.screen === 'season' || state.screen === 'liberta'
   useEffect(() => {
-    if (state.onlineMode !== 'online' || state.screen === 'intro') return
+    if (state.onlineMode !== 'online' || !telaQuePrende) return
     type Trava = { release: () => Promise<void> }
     const nav = navigator as unknown as { wakeLock?: { request: (t: 'screen') => Promise<Trava> } }
     if (!nav.wakeLock) return // navegador sem o recurso: segue o jogo normal
@@ -8211,7 +8222,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis)
       trava?.release().catch(() => {})
     }
-  }, [state.onlineMode, state.screen === 'intro']) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.onlineMode, telaQuePrende]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // HEARTBEAT do host: rede de segurança contra travas. Se UMA mensagem do host se
   // perde num MOMENTO PARADO (sem novas jogadas), o convidado ficaria preso no
@@ -8390,7 +8401,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // disparos duplicados de vários clientes são inofensivos.
   const monteHumano = state.onlineMode === 'online' && state.screen === 'monte'
     && !!state.managers.find(x => x.id === state.monteOrder[state.monteIdx])?.isHuman
-  useVigiaPrazo(monteHumano, state.monteDeadline, () => dispatch({ type: 'MONTE_TIMEOUT' }))
+  useVigiaPrazo(monteHumano, state.monteDeadline, () => dispatch({ type: 'MONTE_TIMEOUT' }),
+    () => logTravaSalva('monte', 2, stateRef.current.roomId, stateRef.current.isHost))
 
   // 🤝🆘 PARCEIRO QUE CAIU DE VERDADE — liberação automática (relato do Diego,
   // 08/08: "caiu quem era responsável pelo meio e pelo monte e o jogo ficou
@@ -8433,6 +8445,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     state.screen === 'cerimonia',
     state.cerimoniaDeadline,
     () => dispatch({ type: 'FINISH_CEREMONY' }),
+    () => { if (stateRef.current.onlineMode === 'online') logTravaSalva('cerimonia', 2, stateRef.current.roomId, stateRef.current.isHost) },
   )
 
   // Vigia do leilão: mesmo princípio — qualquer cliente conectado pode forçar
@@ -8444,6 +8457,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     state.onlineMode === 'online' && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
     state.phaseDeadline,
     () => dispatch({ type: 'FORCE_SEAL' }),
+    () => logTravaSalva('envelope', 2, stateRef.current.roomId, stateRef.current.isHost),
   )
 
   // Vigia do desempate: se um dos empatados sumir (AFK), o prazo estoura e
@@ -8452,6 +8466,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     state.onlineMode === 'online' && state.phase === 'tiebreak',
     state.phaseDeadline,
     () => dispatch({ type: 'FORCE_TIEBREAK' }),
+    () => logTravaSalva('desempate', 2, stateRef.current.roomId, stateRef.current.isHost),
   )
 
   // 🛟 AUTO-CURA DE IDENTIDADE (online): depois de um "jogar de novo"/reconexão o
