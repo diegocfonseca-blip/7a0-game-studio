@@ -2926,7 +2926,10 @@ export function EscLobby() {
             no tom do rodapé, com o link sublinhado — quem precisa acha, quem não
             precisa nem repara.
             👑 Quem já é Lenda (e batismo, que nasce ouro) não vê nada disto: já está
-            no grupo. Com a PRÉVIA ligada aparece mesmo assim, marcada. */}
+            no grupo. Com a PRÉVIA ligada aparece mesmo assim, marcada.
+            ✅ RECONFIRMADO 30/08: perguntei se os Lendas deviam passar a ver também
+            (com outro texto, do tipo "você já tem vaga"). Resposta do Diego, seca:
+            *"Só sem ser lenda q vê"*. Fica como está — não propor de novo. */}
         {(myApoioPerk()?.tier !== 'ouro' || previewComum) && (
           <div className="pt-1">
             {myApoioPerk()?.tier === 'ouro' && previewComum && (

@@ -1,5 +1,12 @@
 # 📌 Pendências combinadas com o Diego (atualizado 30/08/2026)
 
+## 📱 LINHA DO GRUPO DE WHATSAPP: só quem NÃO é Lenda vê (reconfirmado 30/08)
+Perguntei se os Lendas deviam passar a ver a linha também, com outro texto ("você
+já tem vaga no grupo"), já que o texto de hoje manda pra tela de pagar e não faz
+sentido pra quem já pagou. Resposta dele, seca: *"Só sem ser lenda q vê"*.
+**Fica como está — não propor de novo.** A linha já estava no ar pra todo jogador
+que não é Lenda, embaixo do 🔄 Atualizar lista, em Salas Abertas.
+
 ## 🐦‍⬛ MANFRÉ FC ganhou arte nova (30/08) — ✔️ NO AR
 O dono (danielmanfre5) mandou a arte, e ela APOSENTOU o escudo e a gralha que
 eram SVG desenhados à mão dentro do código (os de 09/08). Entregue: escudo
