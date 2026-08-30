@@ -2437,7 +2437,12 @@ export function EscLobby() {
               {MODOS.filter(m => m.on).map(m => {
                 const sel = roomMode === m.v
                 return (
-                  <button key={m.v} onClick={() => setRoomMode(m.v)}
+                  // 👆 escolher o modo ABRE os ajustes na hora (Diego 29/08, testando
+                  // a v2: *"na hora que eu aperto em rápido já deveria abrir as
+                  // configurações pra criar a sala"*). O cartão vira o passo 1
+                  // (o que vamos jogar) e a configuração o passo 2 — em vez de
+                  // ficar escondida atrás de um botão que ele não ia procurar.
+                  <button key={m.v} onClick={() => { setRoomMode(m.v); setAjustesAbertos(true) }}
                     className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 mb-2 text-left active:translate-y-0.5"
                     style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none' }}>
                     <span style={{ fontSize: 24 }}>{m.ic}</span>
@@ -2800,9 +2805,11 @@ export function EscLobby() {
           </Section>
 
           </>)}
-          {!criar2 && (
-            <Big onClick={createRoom} color={isCareer ? PURPLE : GOLD}>
-              <span style={{ color: isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+          {/* 🔨 o botão de criar TAMBÉM no fim quando os ajustes estão abertos: quem
+              desceu mexendo em tudo não deve ter que subir a tela de volta pra criar. */}
+          {(!criar2 || ajustesAbertos || roomMode === 'liga') && (
+            <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
+              <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : criar2 ? '🔨 Criar e chamar a galera' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
             </Big>
           )}
         </div>
