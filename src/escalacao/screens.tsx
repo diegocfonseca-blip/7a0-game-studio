@@ -24,7 +24,7 @@ import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, getSport, escadaLiberada, type Sport, usePreviewComum } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -7617,48 +7617,13 @@ function CareerEndPanel() {
 // visível. Todo mundo vota (mostra pro host quem tá online e o que quer); o
 // HOST decide e começa quando quiser (nunca trava esperando ninguém). O host
 // pode remover quem não decide e voltar pro menu das salas.
-// 📱 GRUPO DE QUEM JOGA ONLINE — ver o comentário grande na linha de saídas do
-// `OnlineEndVote`. Dois estados, porque não faz sentido oferecer a mesma coisa:
-//   • quem NÃO é Lenda → o convite (o que é o grupo + o botão pra virar Lenda);
-//   • quem JÁ é Lenda  → só o recado de como pedir a entrada. Quem já pagou não
-//     merece ver propaganda.
-// O verde é o VERDE DO JOGO (#1B7A3D), não o do WhatsApp: a regra da casa é não
-// inventar cor nova.
-function GrupoOnlineBox() {
-  // 👑 QUEM JÁ É LENDA NÃO VÊ NADA DISTO (Diego 29/08: *"pra quem já é lenda e
-  // batismo não precisa aparecer sobre o grupo de WhatsApp"*). Ele já pagou e já
-  // está no grupo — a caixa só ocuparia espaço no fim da partida e ainda daria
-  // cara de propaganda pra quem é sócio. Batismo entra na mesma linha sem código
-  // extra: todo batismo nasce ouro pela regra permanente de 17/08.
-  // 👁️ …MAS o Diego é ouro, e é ele quem aprova o desenho — então com a PRÉVIA
-  // ligada (só a conta dele) a caixa aparece mesmo pra quem é Lenda, marcada, pra
-  // ele ver o que o jogador comum vê. Ver `usePreviewComum` em sport.ts.
-  const previa = usePreviewComum()
-  const souOuro = myApoioPerk()?.tier === 'ouro'
-  if (souOuro && !previa) return null
-  return (
-    <div className="rounded-xl border-[3px] border-black p-3 mt-3" style={{ background: 'rgba(27,122,61,.22)', boxShadow: `3px 3px 0 ${INK}` }}>
-      {souOuro && previa && (
-        <p className="inline-flex text-[9.5px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-2" style={{ background: '#FFC400', color: '#0C0C0C', ...OSWALD }}>
-          👁️ prévia — só você vê isto (você é Lenda)
-        </p>
-      )}
-      <p className="font-black text-[13.5px] uppercase leading-none text-white mb-1.5" style={OSWALD}>📱 Grupo de quem joga online</p>
-      <p className="text-white/70 text-[11px] font-bold leading-snug mb-2.5">
-        Sem galera pra chamar? No grupo tem gente marcando pregão <b className="text-white">todo dia</b> — e é de lá que saem as ligas.
-      </p>
-      <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
-        className="w-full rounded-xl border-[3px] border-black font-black text-[13.5px] py-2.5 active:translate-y-0.5"
-        style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
-        👑 ENTRAR NO GRUPO — VIRE LENDA
-      </button>
-      <p className="text-white/50 text-[10.5px] font-bold leading-snug mt-2">
-        🔑 O grupo é do <b className="text-white">Lenda</b> — é o que segura a bagunça e mantém a turma boa. Assim que o apoio cair, o Diego te põe no grupo.
-      </p>
-    </div>
-  )
-}
-
+// 🗑️ AQUI MORAVA O `GrupoOnlineBox` (29/08, de manhã). O Diego mudou de lugar no
+// mesmo dia, olhando a tela: *"sobre o WhatsApp, é pra aparecer aqui embaixo de
+// atualizar lista, e de forma mais sutil. E não após acabar os jogos"*.
+// Ele está certo por dois motivos: o fim da partida é hora de comemorar e votar o
+// próximo jogo, não de ler oferta; e quem NÃO tem com quem jogar está justamente
+// na lista de salas abertas, procurando. Agora ele mora em `lobby.tsx`, embaixo do
+// 🔄 Atualizar lista, e bem mais discreto.
 function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
   // 🎫 identidade pelo CRACHÁ (manager.id), NÃO pela cadeira (youIdx) — quando o
@@ -7943,20 +7908,6 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!</p>}
         </>
       )}
-      {/* 📱 O GRUPO DE QUEM JOGA ONLINE (Diego 29/08). Nasceu no mesmo dia em que a
-          Liga virou SEMPRE PRIVADA — e é o que devolve o que a decisão tirou: quem
-          não tem turma perdeu o único jeito de achar gente. Palavras dele: *"e se o
-          cara coitado não tinha ver amigos… no final das salas, perto do botão de
-          sair, um corre do WhatsApp que aperta e o cara paga Lenda pra entrar no
-          grupo da galera que joga online"*.
-          ⚠️ É SÓ INFORMAÇÃO, não link de grupo — o Diego foi explícito: *"é apenas
-          informação pro cara tipo clicar pra pagar Lenda. E quando ele pagar, EU boto
-          ele no grupo, porque o grupo já existe"*. Então o botão leva pra tela de
-          Apoiar e a entrada no grupo é feita por ele, na mão, depois do pagamento.
-          Por isso não existe URL de WhatsApp em lugar nenhum deste arquivo.
-          Fica ACIMA da linha de saídas: é o fim da partida, a hora em que a pessoa
-          acabou de jogar com gente de verdade e está no clima de marcar a próxima. */}
-      <GrupoOnlineBox />
       {/* saídas — uma linha só, discreta, pra todos */}
       <div className="flex items-center justify-center gap-6 pt-2 mt-1 border-t-2 border-white/20">
         <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-white/70 text-xs font-bold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 Voltar pro menu</button>

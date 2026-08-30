@@ -2916,6 +2916,31 @@ export function EscLobby() {
           })}
         </div>
         <Big onClick={() => fetchOpenRooms()} color="#fff">🔄 Atualizar lista</Big>
+        {/* 📱 O GRUPO DE QUEM JOGA ONLINE — mudou de lugar em 29/08, no mesmo dia em
+            que nasceu. Palavras do Diego, olhando a tela: *"sobre o WhatsApp, é pra
+            aparecer aqui embaixo de atualizar lista, e de forma mais sutil. E não
+            após acabar os jogos"*. Ele está certo por dois motivos: o fim da
+            partida é hora de comemorar e votar o próximo jogo, não de ler oferta —
+            e quem NÃO tem com quem jogar está exatamente AQUI, olhando a lista.
+            🤫 SUTIL de propósito: sem caixa colorida, sem botão grande. É uma linha
+            no tom do rodapé, com o link sublinhado — quem precisa acha, quem não
+            precisa nem repara.
+            👑 Quem já é Lenda (e batismo, que nasce ouro) não vê nada disto: já está
+            no grupo. Com a PRÉVIA ligada aparece mesmo assim, marcada. */}
+        {(myApoioPerk()?.tier !== 'ouro' || previewComum) && (
+          <div className="pt-1">
+            {myApoioPerk()?.tier === 'ouro' && previewComum && (
+              <p className="inline-flex text-[9px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-1.5" style={{ background: GOLD, color: INK, ...OSWALD }}>
+                👁️ prévia — só você vê isto
+              </p>
+            )}
+            <p className="text-white/35 text-[11px] font-bold leading-snug text-center">
+              📱 Sem galera pra chamar? Tem um grupo de quem joga online — é do 👑 Lenda.{' '}
+              <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
+                className="underline text-white/60 font-black active:opacity-60">Saiba mais</button>
+            </p>
+          </div>
+        )}
       </div>}
 
       {tab === 'join' && <div className="space-y-2">

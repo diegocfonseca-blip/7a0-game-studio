@@ -251,7 +251,7 @@ uma linha dizendo a regra.
 👑 QUERO SER LENDA (`?apoie=lenda`) e — colado embaixo — *"pra JOGAR você não precisa
 de nada"*. Antes ele preenchia tudo e só levava o não no final.
 
-## 📱 GRUPO DE QUEM JOGA ONLINE — no fim da sala (29/08)
+## 📱 GRUPO DE QUEM JOGA ONLINE — embaixo da LISTA DE SALAS (29/08)
 Nasceu no mesmo minuto em que a liga virou privada, e é o que devolve o que a
 decisão tirou: quem não tem turma perdeu o jeito de achar gente. Palavras dele:
 *"e se o cara coitado não tinha ver amigos… no final das salas, perto do botão de
@@ -263,8 +263,19 @@ porque o grupo já existe"*. Então o botão leva pra tela de Apoiar e **a entra
 grupo é manual, feita por ele, depois do pagamento**. Não existe URL de WhatsApp em
 lugar nenhum do código — e não deve passar a existir sem ele mandar.
 
-Fica ACIMA da linha de saídas do fim da sala online. Verde do JOGO, não o do
-WhatsApp. Mockup: `scripts/mockup-grupo-zap.mjs`.
+📍 **MUDOU DE LUGAR no mesmo dia** (ele, olhando a tela): *"sobre o WhatsApp, é pra
+aparecer aqui embaixo de atualizar lista, e de forma mais sutil. E não após acabar
+os jogos"*. Ele está certo por dois motivos, e os dois valem pra sempre:
+1. **O fim da partida é hora de comemorar** e votar o próximo jogo — não de ler
+   oferta. Anúncio ali atropela o momento do jogo, que é regra da casa.
+2. **Quem NÃO tem com quem jogar está na LISTA DE SALAS**, procurando. É lá que a
+   informação serve, e é lá que ela chega em quem precisa.
+
+Então hoje ele mora em `lobby.tsx`, embaixo do 🔄 Atualizar lista, e é **sutil de
+propósito**: sem caixa colorida, sem botão grande — uma linha no tom do rodapé com
+o link sublinhado. Quem precisa acha; quem não precisa nem repara.
+Mockups (do formato antigo, mantidos pelo histórico): `scripts/mockup-grupo-zap.mjs`
+e `scripts/mockup-grupo-como-fica.mjs`.
 
 👑 **QUEM JÁ É LENDA (e batismo) NÃO VÊ NADA DISTO** — correção dele minutos depois
 da entrega: *"pra quem já é lenda e batismo não precisa aparecer sobre o grupo de
