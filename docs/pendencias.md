@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
 
+## 👑 SÓ O DONO MEXE NA LIGA — o banco agora concorda com a regra (29/08)
+Ele conferiu: *"lembrando que no Minhas Ligas apenas o dono que criou pode editar
+as regras, né?"*. Fui checar em vez de responder de cabeça, e a resposta é **sim** —
+mas achei uma brecha e fechei.
+
+**O que já estava certo:**
+- Na TELA, a pílula ⚙️ Ajustes só existe pra `souDono` (= `state.isHost`), e a coroa
+  não troca sozinha (`ELEICAO_AUTOMATICA = false`) — então o dono é sempre quem criou.
+- No BANCO, o RLS de `game_rooms` só deixa **UPDATE e DELETE pelo `host_id`**.
+
+**A brecha:** `liga_patch` é `SECURITY DEFINER` (passa por cima do RLS) e ainda
+aceitava `host_id = eu OR ligaAdmins ? eu`. Ou seja, o doc dizia desde 23/08 que
+`ligaAdmins` "não dá poder nenhum", mas dava: quem estivesse na lista de uma liga
+antiga trocaria nome, senha, horário e as regras do ranking pela chamada direta.
+Conferido antes de mexer: **1 liga no banco, 0 com adm** — então fechar não tirou
+poder de ninguém, só impede que volte. `p_admins` segue aceito e **ignorado**, pra
+cliente antigo não quebrar e ninguém plantar adm pela porta dos fundos.
+
+### ↩️ CORREÇÃO do que eu falei mais cedo hoje
+Eu disse que a vigia dos convidados *"apagava a liga inteira"*. **Exagerei.** O RLS
+(`rooms_delete` exige `host_id = auth.uid()`) recusaria o apagamento vindo de um
+convidado — a liga estava protegida. O que o convidado **conseguia** apagar era a
+tabela de vagas (`room_players` deixa o próprio jogador e o dono apagarem), ou seja,
+esvaziar a sala, não destruir a liga. A correção que subi continua valendo como
+segunda camada, mas o risco era **bem menor** do que eu pintei.
+
 ## ⚖️ A PONTUAÇÃO DO RANK — fechada pelo Diego (29/08)
 Ele perguntou como o Rank e a Estante funcionavam; fui ler o código pra responder
 e achei uma **contradição antiga que ninguém tinha visto**: o padrão era POR TÍTULOS
