@@ -143,7 +143,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
   render() {
     if (this.state.err) {
       return (
-        <div style={{ minHeight: '100vh', background: '#F4ECD6', color: '#0C0C0C', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', fontFamily: 'Oswald, sans-serif' }}>
+        <div className="tela-cheia" style={{ background: '#F4ECD6', color: '#0C0C0C', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', fontFamily: 'Oswald, sans-serif' }}>
           <div style={{ fontSize: 52 }}>😵</div>
           <p style={{ fontWeight: 900, fontSize: 22, margin: '8px 0 4px' }}>Ops, algo deu errado</p>
           <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.6)', maxWidth: 340 }}>Volta ao início e tenta de novo. Seu progresso salvo <b>não foi apagado</b>.</p>
@@ -294,7 +294,7 @@ export default function EscalacaoGame() {
             "tela preta travada" no print de quem jogava. Com este creme atrás de
             TUDO, o pior caso é uma tela creme com o rodapé (dá pra sair por ali),
             nunca mais um preto assustador. */}
-        <div style={{ minHeight: '100vh', background: '#F4ECD6' }}>
+        <div className="tela-cheia" style={{ background: '#F4ECD6' }}>
           <Router />
           <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
           <AdminPanel />

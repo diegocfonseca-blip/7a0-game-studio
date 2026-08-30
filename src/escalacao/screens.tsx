@@ -1863,7 +1863,10 @@ function HomeMenuFixo({ onInicio, onRegras, onAlbum, onRanking, apoiar }: {
     <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989,
       background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)',
       borderTop: '1.5px solid rgba(12,12,12,.13)', display: 'flex', gap: 2,
-      padding: '6px 6px 8px', boxShadow: '0 -2px 12px rgba(0,0,0,.05)' }}>
+      /* 📱 iPhone com entalhe: a barrinha de gestos mora EM CIMA do rodapé. Sem
+         isto, o último item da barra fica por baixo dela e o dedo não acerta.
+         Em aparelho sem entalhe o env() vale 0 — não muda nada. */
+      padding: '6px 6px calc(8px + env(safe-area-inset-bottom))', boxShadow: '0 -2px 12px rgba(0,0,0,.05)' }}>
       {/* 🔇 O botão de som é fixo no canto de baixo à direita (mora no index.tsx,
           fora daqui) e caía EM CIMA da barra — ficava um disco preto grandão
           colado no último item. Enquanto esta barra existe, ele sobe pra cima

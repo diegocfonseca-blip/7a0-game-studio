@@ -92,6 +92,12 @@ body {
   flex: 1 1 auto;
 }
 
+/* ⚰️ BLOCO MORTO (conferido em 30/08): nenhuma destas classes — `home-hero`,
+   `home-container`, `home-topbar`, `game-layout`, `game-side`, `home-stats` —
+   existe em UMA linha sequer do jogo. Sobrou de uma home antiga. Fica aqui só
+   pra não mexer em CSS que ninguém precisa mexer, mas NÃO procure explicação
+   de layout aqui: quem manda no celular é o próprio componente, e no PC é o
+   bloco de `min-width: 768px` mais abaixo. */
 @media (max-width: 767px) {
   .home-topbar,
   .home-container,
@@ -209,47 +215,82 @@ html.noturno .palco :is([class*="bg-white"],
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   🖥️ MODO DESKTOP — FASE 1 "respirar" (05/08, pedido do Diego)
+   📐 MEDIDAS DE TELA — as duas classes que TODA tela do jogo usa
    ═══════════════════════════════════════════════════════════════════════════
-   O jogo nasceu pro celular: tudo mora numa coluna de 576px (max-w-xl). No
-   telefone isso é a tela inteira — perfeito. Num monitor vira uma tirinha no
-   meio com 70% de tela vazia.
+   Nasceram em 30/08 do pedido do Diego: *"tem q fazer de uma forma q tudo q eu
+   criar vai tb sendo feito, se n é foda"*. Antes o modo desktop era OPT-IN (a
+   tela precisava pedir, com a classe `palco`) — e por isso tudo que nasceu
+   depois de 05/08 ficou de fora: o online INTEIRO, a Dinastia, o Estádio, a
+   conta, a Copa do Mundo. Agora a regra mora na RAIZ (`#root`): tela nova nasce
+   coberta sem ninguém lembrar de nada.
 
-   🔒 REGRA DE OURO: TUDO aqui está dentro de `@media (min-width: 1024px)`. O
+   `.tela-cheia` — altura de tela cheia que funciona no celular.
+     `100vh` conta o pedaço ESCONDIDO atrás da barra do navegador: a tela fica
+     mais alta que o visível, o pé some e dá aquele pulinho quando a barra
+     aparece/desaparece. `100dvh` mede o que está REALMENTE visível. As duas
+     linhas juntas são de propósito: navegador velho, que não conhece `dvh`,
+     ignora a segunda e fica com a primeira — ninguém fica sem altura.
+
+   `.col-tela` — a coluna de conteúdo de uma tela.
+     No celular é a mesma largura de sempre (384px, o `max-w-sm` que o online
+     usava na mão). No monitor abre pra 900px junto com todo o resto. */
+.tela-cheia { min-height: 100vh; min-height: 100dvh; }
+.col-tela { width: 100%; max-width: 384px; margin-inline: auto; }
+/* `.col-form` anda junto com `.col-tela` nas telas de FORMULÁRIO (entrar,
+   cadastrar, senha nova). Elas NÃO abrem no monitor: campo de senha com 900px
+   de largura fica ridículo, e linha comprida demais atrapalha a leitura. */
+.col-form { max-width: 384px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   🖥️ MODO DESKTOP — vale pro JOGO INTEIRO (05/08, ampliado em 30/08)
+   ═══════════════════════════════════════════════════════════════════════════
+   O jogo nasceu pro celular: tudo mora numa coluna estreita. No telefone isso é
+   a tela inteira — perfeito. Num monitor virava uma tirinha no meio com 70% de
+   tela vazia (medido em 30/08: o online usava 384px de um monitor de 1440).
+
+   🔒 REGRA DE OURO: TUDO aqui está dentro de `@media (min-width: 768px)`. O
    navegador do celular NEM LÊ estas linhas — ele pula o bloco inteiro. Nenhuma
    tela, botão ou regra muda no telefone. E é SÓ moldura (largura/espaço): não
    encosta em lógica, estado nem em nada do jogo.
 
+   📏 Por que 768 e não 1024: entre 768 e 1023 existia uma ZONA MORTA — as
+   regras de celular paravam em 767 e as de PC só começavam em 1024. Quem usa
+   iPad em pé, celular deitado ou meia janela no PC caía no vão: a coluna ficava
+   travada em 576px numa tela de 820, e o online em 384 (medido em 30/08).
+   768 é a primeira largura que NÃO é celular em pé, então é onde a régua tem
+   que ficar. Celular em pé (≤767) não lê NADA daqui — continua igualzinho.
+   E o teto de 900px é TETO: numa tela de 820 a coluna vale 820, não estoura.
+
    🔌 INTERRUPTOR: pra desligar o modo desktop inteiro, é só trocar a largura
    abaixo por um valor gigante (ex.: 99999px) — volta tudo ao que era.
    ═══════════════════════════════════════════════════════════════════════════ */
-@media (min-width: 1024px) {
-  /* 1) A COLUNA RESPIRA: 576 → 900px. É a mudança que resolve metade da
-     queixa — tabelas, jornal e listas param de espremer. */
-  .palco .max-w-xl,
-  .palco .max-w-md { max-width: 900px; }
+@media (min-width: 768px) {
+  /* 1) A COLUNA RESPIRA. É a mudança que resolve metade da queixa — tabelas,
+     jornal e listas param de espremer. Vale em qualquer tela do jogo: o
+     seletor sai de `#root`, não de uma classe que alguém precisa lembrar. */
+  #root .max-w-xl,
+  #root .max-w-md,
+  #root .col-tela { max-width: 900px; }
+  #root .col-form { max-width: 420px; }   /* formulário continua estreito */
 
-  /* 2) as barras de topo/rodapé acompanham a coluna (senão o cabeçalho fica
-     estreito com o conteúdo largo embaixo — desalinhado) */
-  .max-w-xl { max-width: 900px; }
-
-  /* 3) um respiro nas laterais e no pé (no celular o dedo precisa de tela
+  /* 2) um respiro nas laterais e no pé (no celular o dedo precisa de tela
      cheia; no PC a página encostada na borda parece apertada) */
   .palco > div[class*="max-w-"] { padding-left: 28px; padding-right: 28px; }
+  #root .col-tela { padding-left: 28px; padding-right: 28px; }
   .palco { padding-bottom: 40px; }
 
-  /* 4) 🖱️ é mouse, não dedo: mostra a mãozinha em tudo que é clicável e um
+  /* 3) 🖱️ é mouse, não dedo: mostra a mãozinha em tudo que é clicável e um
      realce suave ao passar por cima (o celular não tem "passar por cima"). */
-  .palco button:not(:disabled) { cursor: pointer; }
-  .palco button:not(:disabled):hover { filter: brightness(1.06); }
+  #root button:not(:disabled) { cursor: pointer; }
+  #root button:not(:disabled):hover { filter: brightness(1.06); }
 
-  /* 5) barra de rolagem visível no PC (no celular ela some sozinha; no monitor
+  /* 4) barra de rolagem visível no PC (no celular ela some sozinha; no monitor
      sumir dá a sensação de "travou, não tem mais nada embaixo") */
-  .palco ::-webkit-scrollbar { width: 10px; height: 10px; }
-  .palco ::-webkit-scrollbar-thumb { background: rgba(12,12,12,.28); border-radius: 6px; }
-  .palco ::-webkit-scrollbar-thumb:hover { background: rgba(12,12,12,.45); }
+  #root ::-webkit-scrollbar { width: 10px; height: 10px; }
+  #root ::-webkit-scrollbar-thumb { background: rgba(12,12,12,.28); border-radius: 6px; }
+  #root ::-webkit-scrollbar-thumb:hover { background: rgba(12,12,12,.45); }
 
-  /* 6) CAMPINHO do Elenco (07/08, Diego: "tá muito apertado"): no monitor sobra
+  /* 5) CAMPINHO do Elenco (07/08, Diego: "tá muito apertado"): no monitor sobra
      espaço dos dois lados enquanto as casinhas dos jogadores ficam espremidas —
      dá mais respiro entre elas e engorda a casinha (sem mexer em fonte/lógica). */
   .campinho-field { padding: 18px 22px !important; gap: 20px !important; }
@@ -263,10 +304,10 @@ html.noturno .palco :is([class*="bg-white"],
    Blocos que hoje ficam EMPILHADOS (as 4 tabelas da pirâmide, os jogos das 4
    divisões) passam a ficar 2×2 no PC. É só a caixa: a ordem, o conteúdo e o
    código são os mesmos.
-   🔒 A classe `.desk-grid2` NÃO tem regra nenhuma abaixo de 1024px — no celular
+   🔒 A classe `.desk-grid2` NÃO tem regra nenhuma abaixo de 768px — no celular
    ela é uma div sem estilo, e uma div sem estilo não muda absolutamente nada.
    ══════════════════════════════════════════════════════════════════════════ */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .desk-grid2 {
     display: grid;
     grid-template-columns: 1fr 1fr;

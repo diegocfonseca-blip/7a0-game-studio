@@ -2104,15 +2104,19 @@ export function EscLobby() {
     fetchPlayers(room.id)
   }
 
-  const wrap = (children: React.ReactNode, onBack?: () => void) => (
-    <div className="min-h-screen flex flex-col justify-center px-5 py-10 relative" style={{ backgroundColor: INK }}>
+  // 📐 `estreito` = tela de FORMULÁRIO (entrar, cadastrar, senha nova). O resto
+  // do online (lista de salas, criar sala, sala de espera) usa a coluna larga:
+  // no monitor ela abre pra 900px junto com o jogo todo. Formulário NÃO: campo
+  // de senha com 900px de largura fica ridículo e ainda dificulta a leitura.
+  const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
+    <div className="tela-cheia flex flex-col justify-center px-5 py-10 relative" style={{ backgroundColor: INK }}>
       {onBack && (
         <button onClick={onBack} aria-label="Voltar pra home"
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
           <span className="text-xl leading-none">←</span> Home
         </button>
       )}
-      <div className="max-w-sm mx-auto w-full space-y-5">{children}</div>
+      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`}>{children}</div>
     </div>
   )
 
@@ -2130,7 +2134,7 @@ export function EscLobby() {
     </div>
     <Big onClick={handleSaveNewPw}>{loading ? '...' : 'Salvar nova senha →'}</Big>
     <button onClick={() => { setRecovering(false); setPhase(user ? 'menu' : 'auth') }} className="text-white/40 text-sm underline w-full text-center">Pular</button>
-  </>)
+  </>, undefined, true)
   }
 
   if (phase === 'auth') {
@@ -2183,7 +2187,7 @@ export function EscLobby() {
     </div>
     <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? 'Entrar →' : 'Criar conta →'}</Big>
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Voltar</button>
-  </>)
+  </>, undefined, true)
   }
 
   if (phase === 'menu') {

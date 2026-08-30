@@ -1,5 +1,38 @@
 # 📌 Pendências combinadas com o Diego (atualizado 30/08/2026)
 
+## 📐 TELA: PC e celular passam a valer pro JOGO INTEIRO (30/08)
+Pedido dele: *"tem q fazer de uma forma q tudo q eu criar vai tb sendo feito
+se n é foda"*. É a lição do que deu errado em 05/08: o modo desktop foi feito
+tela por tela, com uma classe que a tela precisava PEDIR (`palco`) — e tudo que
+nasceu depois ficou de fora. **Medido em 30/08**: o online usava 384px de um
+monitor de 1440 (27% da tela); no iPad de 820 a coluna travava em 546.
+
+**A correção é de arquitetura, não de tela:** a regra de PC saiu da classe e foi
+pra RAIZ (`#root`, em `src/index.css`). Não existe mais nada pra lembrar — tela
+nova nasce coberta. Guardado por `npm run telas`.
+
+**Feito:**
+- regra de PC na raiz → alcança o online, Dinastia, Estádio, conta, Copa
+- régua do PC desceu de 1024 → 768: acabou a zona morta do iPad/celular deitado
+- `.col-tela` (384 no celular, 900 no PC) no lugar do `max-w-sm` travado do online
+- `.col-form` mantém FORMULÁRIO estreito (420px): campo de senha com 900 é ruim
+- `.tela-cheia` (`100vh` de reserva + `100dvh` de verdade) nos 5 lugares que
+  mediam a altura errado — é o que dava pulinho/pé cortado no celular
+- `viewport-fit=cover` + `env(safe-area-inset-bottom)` na barra de baixo:
+  no iPhone com entalhe o último item ficava sob a barrinha de gestos
+
+**Conferido:** celular 390 e 360 ficaram PIXEL A PIXEL iguais (a única diferença
+no comparador é o brilho animado da carta, que se move sozinho). Nenhuma tela
+vaza pro lado em 360/390/820/1280/1440.
+
+**Falta (só com mockup aprovado, o Diego ainda não viu):** lista de salas em 2
+colunas no PC · barra Início/Regras/Álbum sair de baixo e virar barra de topo no
+PC · cartas pararem de esticar (no tutorial do pregão a carta desenhada pra
+150px vira 390) · fundo do online virar creme igual ao resto · texto de 7-9px
+(38 lugares) crescer no monitor · apagar `src/App.css`, que é lixo do template
+do Vite e não tem uma linha usada pelo jogo.
+
+
 ## 📱 LINHA DO GRUPO DE WHATSAPP: só quem NÃO é Lenda vê (reconfirmado 30/08)
 Perguntei se os Lendas deviam passar a ver a linha também, com outro texto ("você
 já tem vaga no grupo"), já que o texto de hoje manda pra tela de pagar e não faz
