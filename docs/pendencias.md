@@ -21,6 +21,16 @@ nova nasce coberta. Guardado por `npm run telas`.
 - `viewport-fit=cover` + `env(safe-area-inset-bottom)` na barra de baixo:
   no iPhone com entalhe o último item ficava sob a barrinha de gestos
 
+**🃏 A fita de cartas da home** (o Diego perguntou: *"mas as cartas estão
+centralizadas? Na home"* — não estavam). Ela é uma fita que ROLA de lado: no
+celular as 4 cartas somam 636px e não cabem em 390, então começa colada na
+esquerda e a pessoa arrasta. No monitor sobrava espaço e ela continuava
+encostada na esquerda. Agora usa `justify-content: safe center` — centraliza SÓ
+quando cabe (medido: 120px de sobra de cada lado no monitor, 80 e 80 no iPad) e
+volta sozinha pra esquerda quando não cabe, em vez de esconder a 1ª carta fora
+do alcance, que é o defeito clássico de centralizar coisa que rola. No celular
+não mudou nada: continua rolando, 1ª carta no lugar de sempre.
+
 **Conferido:** celular 390 e 360 ficaram PIXEL A PIXEL iguais (a única diferença
 no comparador é o brilho animado da carta, que se move sozinho). Nenhuma tela
 vaza pro lado em 360/390/820/1280/1440.

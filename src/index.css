@@ -273,6 +273,15 @@ html.noturno .palco :is([class*="bg-white"],
   #root .col-tela { max-width: 900px; }
   #root .col-form { max-width: 420px; }   /* formulário continua estreito */
 
+  /* 2) FITA DE CARTAS centralizada. A fila de cartas da home é uma fita que
+     ROLA de lado — no celular as 4 cartas (636px) não cabem em 390, então ela
+     começa colada na esquerda e a pessoa arrasta. No monitor sobra espaço e a
+     fila ficava encostada na esquerda, com um vazio à direita (o Diego pegou).
+     `safe center` centraliza SÓ quando cabe: se um dia não couber, ele volta
+     sozinho pra esquerda em vez de esconder a 1ª carta fora do alcance — que é
+     o defeito clássico de centralizar coisa que rola. */
+  #root .fita { justify-content: safe center; }
+
   /* 2) um respiro nas laterais e no pé (no celular o dedo precisa de tela
      cheia; no PC a página encostada na borda parece apertada) */
   .palco > div[class*="max-w-"] { padding-left: 28px; padding-right: 28px; }

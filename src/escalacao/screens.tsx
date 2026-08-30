@@ -1943,7 +1943,7 @@ export function EscIntro() {
         </div>
         {/* 2 · as cartas, DEITADAS — o motivo de jogar fica no alto */}
         <div className="-mx-4">
-          <div className="flex gap-3 px-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          <div className="fita flex gap-3 px-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             <div className="flex-none w-[150px]"><CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} /></div>
             <div className="flex-none w-[150px]"><CollectibleCard name="Gabigol" club="Flamengo" year={2019} pos="ATA" fame={4} /></div>
             <div className="flex-none w-[150px]"><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa /></div>
