@@ -561,13 +561,14 @@ const theuzudoEscudoRender = (size: number) => (
   <img src={theuzudoEscudoImg} height={size} width={Math.round(size * 293 / 360)} alt="Theuzudo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🐦‍⬛ Manfré FC — a gralha-azul (coração Paraná Clube) no escudo vermelho e
-// azul. 291x360 no arquivo. 30/08: esta arte APOSENTA o escudo que era SVG
+// azul. 294x360 no arquivo. 30/08 (2ª arte, no mesmo dia): o DONO pediu a
+// gralha AZUL, não escura — é ela que está aqui. 30/08: esta arte APOSENTA o escudo que era SVG
 // desenhado à mão aqui dentro (o de 09/08) — vale a regra de peso do batismo:
 // arte nasce .webp FORA do bundle, então só desce pra quem cruza com o clube.
 // Recorte conferido sobre CREME e sobre VERDE (nunca sobre branco): as letras
 // brancas de "MANFRÉ FC" e o contorno preto ficaram inteiros.
 const manfreEscudoRender = (size: number) => (
-  <img src={manfreEscudoImg} height={size} width={Math.round(size * 291 / 360)} alt="Manfré FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={manfreEscudoImg} height={size} width={Math.round(size * 294 / 360)} alt="Manfré FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 const nataEscudoRender = (size: number) => (
   <img src={nataEscudoImg} height={size} width={Math.round(size * 312 / 360)} alt="Nata de SP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />

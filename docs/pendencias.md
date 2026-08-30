@@ -50,6 +50,29 @@ sentido pra quem já pagou. Resposta dele, seca: *"Só sem ser lenda q vê"*.
 **Fica como está — não propor de novo.** A linha já estava no ar pra todo jogador
 que não é Lenda, embaixo do 🔄 Atualizar lista, em Salas Abertas.
 
+## 🐦‍⬛ MANFRÉ FC: 2ª arte no mesmo dia — a gralha AZUL (30/08)
+O Diego: *"o usuário dono do Manfré quis a gralha na cor azul"*. A 1ª arte do
+dia tinha o bicho escuro; a 2ª tem ele AZUL. Trocados escudo, mascote e camisa,
+e o manto remedido na camisa nova: vermelho `#EC121C` + azul `#0135A3`.
+
+**Armadilha nova deste arquivo, e a saída (vale pra qualquer arte assim):** o
+fundo era um xadrez QUASE BRANCO (dois tons medidos: 246 e 254) pintado dentro
+da imagem. Duas ciladas de uma vez:
+1. **O branco do DESENHO some junto** se o corte for por cor — foi o que
+   aconteceu na 1ª tentativa: comeu as letras de "MANFRÉ FC", o número 10 e os
+   tênis. É o erro do Theuzudo (21/08) outra vez.
+   **Saída:** cortar pela GRADE, não pela cor. Achei o passo do xadrez
+   (26,45px, erro médio de 0,92) e só apago região que bate com a grade em
+   ≥85% do MIOLO (sem a casquinha de 2px, senão o serrilhado da borda dilui a
+   conta — o vão entre as pernas dava 0,79 e escapava). Fundo bate ~100%;
+   branco liso de desenho bate ~0,2 a 0,68, porque só calha nas casas do tom
+   igual. Nunca mais come letra branca.
+2. **HALO BRANCO invisível no branco.** O serrilhado do contorno preto contra o
+   fundo quase-branco deixa uma casquinha clara que NÃO aparece sobre branco e
+   aparece feia sobre creme/verde. **Saída:** raspar por cor só na BEIRADA
+   (4 passadas de 1px), porque dentro do desenho não existe branco encostado na
+   borda — a borda é sempre contorno preto ou o dourado do escudo.
+
 ## 🐦‍⬛ MANFRÉ FC ganhou arte nova (30/08) — ✔️ NO AR
 O dono (danielmanfre5) mandou a arte, e ela APOSENTOU o escudo e a gralha que
 eram SVG desenhados à mão dentro do código (os de 09/08). Entregue: escudo

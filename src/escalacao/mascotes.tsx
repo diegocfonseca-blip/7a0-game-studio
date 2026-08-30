@@ -598,13 +598,15 @@ export const MASCOTES: Record<string, ReactNode> = {
       </g>
     </svg>
   ),
-  // 🐦‍⬛ Manfré FC — a GRALHA de braço cruzado (coração Paraná Clube), camisa
-  // metade vermelha metade azul. Arte própria do dono (webp, fora do bundle).
-  // mascote_key = "manfre_gralha". 239x440 no arquivo: a 176px de altura fica no
+  // 🐦‍⬛ Manfré FC — a GRALHA AZUL de braço cruzado (coração Paraná Clube),
+  // camisa metade vermelha metade azul. Arte própria do dono (webp, fora do
+  // bundle). O dono pediu a gralha AZUL — a 1ª arte, do mesmo dia 30/08, tinha
+  // o bicho escuro; esta é a que vale.
+  // mascote_key = "manfre_gralha". 256x440 no arquivo: a 176px de altura fica no
   // tamanho certo, sem esticar. 30/08: APOSENTA a gralha que era SVG desenhado
   // à mão aqui dentro (a de 09/08).
   manfre_gralha: (
-    <img src={manfreMascoteImg} height={176} width={Math.round(176 * 239 / 440)} alt="A Gralha — Manfré FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={manfreMascoteImg} height={176} width={Math.round(176 * 256 / 440)} alt="A Gralha — Manfré FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 💇‍♂️ o boleiro do MOICANO (Neymarzetti — Diego, aprovado 09/08 v5): perfil
   // driblando, crista preto+loiro, camisa 11, meião branco, bota amarela.
