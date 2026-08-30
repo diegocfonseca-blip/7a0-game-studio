@@ -46,12 +46,25 @@ const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif' }
 // cada um inventaria a própria pontuação e o rank geral virava mentira.
 export type LigaChave = 'liga' | 'copa' | 'artilheiro' | 'rebaixamento'
 export type LigaRegras = { modo: 'titulos' | 'pontos'; ordem: LigaChave[]; pontos: Record<LigaChave, number>; rebaixaTira: boolean; ativos: LigaChave[] }
+// 🎯 O PADRÃO, FECHADO PELO DIEGO EM 29/08: *"30 pts liga, 20 pts copa e -10 pts
+// rebaixamento. Não podendo ficar com negativo… e não coloque artilheiro"*.
+//
+// ⚠️ ANTES ESTAVA CONTRADITÓRIO e ninguém tinha visto: o padrão era POR TÍTULOS com
+// a ordem liga > copa (liga vale mais), mas a tabela de pontos dizia copa 30 > liga
+// 20 (copa vale mais). A mesma liga trocava de líder só de mudar o modo. Agora é um
+// número só, valendo nos dois lugares: **liga 30 · copa 20 · rebaixamento −10**.
+//
+// 🚫 ARTILHEIRO SAIU DA PONTUAÇÃO (ordem dele). Continua sendo TROFÉU — aparece na
+// 🏅 Estante e na linha do tempo da temporada; só não conta ponto no Rank.
+//
+// 🛟 NUNCA NEGATIVO: quem cair mais vezes do que ganhou para no ZERO, não fica
+// devendo. Ver o `Math.max(0, …)` em `rankingDaLiga`.
 export const LIGA_REGRAS_PADRAO: LigaRegras = {
-  modo: 'titulos',
-  ordem: ['liga', 'copa', 'artilheiro'],
-  pontos: { liga: 20, copa: 30, artilheiro: 5, rebaixamento: -10 },
+  modo: 'pontos',
+  ordem: ['liga', 'copa'],
+  pontos: { liga: 30, copa: 20, artilheiro: 5, rebaixamento: -10 },
   rebaixaTira: true,
-  ativos: ['liga', 'copa', 'artilheiro', 'rebaixamento'],
+  ativos: ['liga', 'copa', 'rebaixamento'],
 }
 export const LIGA_ROTULO: Record<LigaChave, string> = { liga: '🏆 Título da liga', copa: '🏆🇧🇷 Copa', artilheiro: '⚽ Artilheiro', rebaixamento: '🔻 Rebaixamento' }
 export const lerRegras = (v: unknown): LigaRegras => {
@@ -69,7 +82,7 @@ export const lerRegras = (v: unknown): LigaRegras => {
 export const resumoRegra = (regras: LigaRegras): string => {
   const ativas = (['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).filter(k => regras.ativos.includes(k))
   return regras.modo === 'pontos'
-    ? `Por pontos · ${ativas.map(k => `${LIGA_ROTULO[k].toLowerCase()} ${regras.pontos[k]}`).join(' · ')}`
+    ? `Por pontos · ${ativas.map(k => `${LIGA_ROTULO[k].toLowerCase()} ${regras.pontos[k] > 0 ? '+' : ''}${regras.pontos[k]}`).join(' · ')} · nunca fica negativo`
     : `Por títulos · ${regras.ordem.filter(k => regras.ativos.includes(k)).map(k => LIGA_ROTULO[k].toLowerCase()).join(' > ')}${regras.rebaixaTira && regras.ativos.includes('rebaixamento') ? ' · cair tira um título' : ''}`
 }
 
@@ -107,12 +120,17 @@ export function rankingDaLiga(rows: LinhaCampeao[], regras: LigaRegras, gente: S
   const on = (k: LigaChave) => regras.ativos.includes(k)
   const ligaDe = (v: Record<LigaChave, number>) =>
     regras.modo === 'titulos' && regras.rebaixaTira && on('rebaixamento') ? Math.max(0, v.liga - v.rebaixamento) : v.liga
+  // 🛟 NUNCA NEGATIVO (Diego 29/08). Quem caiu mais do que ganhou para no ZERO —
+  // ninguém "deve" ponto pra liga. Sem isto, dois rebaixamentos e nenhum título
+  // deixavam o cara com −20, atrás de quem nunca jogou.
   const pts = (v: Record<LigaChave, number>) =>
-    (['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[])
-      .filter(on).reduce((s, k) => s + (k === 'liga' ? v.liga : v[k]) * (regras.pontos[k] ?? 0), 0)
+    Math.max(0, (['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[])
+      .filter(on).reduce((s, k) => s + (k === 'liga' ? v.liga : v[k]) * (regras.pontos[k] ?? 0), 0))
   const lista = Object.entries(conta).map(([time, v]) => ({ time, v, pts: pts(v) }))
   lista.sort((A, B) => {
-    if (regras.modo === 'pontos') return B.pts - A.pts || A.time.localeCompare(B.time)
+    // empate em pontos: desempata por TÍTULO, não por ordem alfabética — quem tem
+    // taça na estante passa na frente de quem chegou lá só por copa.
+    if (regras.modo === 'pontos') return B.pts - A.pts || B.v.liga - A.v.liga || B.v.copa - A.v.copa || A.time.localeCompare(B.time)
     for (const k of regras.ordem) {
       if (!on(k)) continue
       const a = k === 'liga' ? ligaDe(A.v) : A.v[k]

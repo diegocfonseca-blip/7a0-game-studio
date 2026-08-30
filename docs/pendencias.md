@@ -1,5 +1,37 @@
 # 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
 
+## ⚖️ A PONTUAÇÃO DO RANK — fechada pelo Diego (29/08)
+Ele perguntou como o Rank e a Estante funcionavam; fui ler o código pra responder
+e achei uma **contradição antiga que ninguém tinha visto**: o padrão era POR TÍTULOS
+com a ordem liga > copa (liga vale mais), mas a tabela de pontos dizia copa 30 >
+liga 20 (copa vale mais). **A mesma liga trocava de líder só de mudar o modo.**
+
+**Decisão dele:** *"30 pts liga, 20 pts copa e −10 pts rebaixamento. Não podendo
+ficar com negativo… e não coloque artilheiro"*.
+
+| | Vale |
+|---|---|
+| 🏆 Título da liga | **+30** |
+| 🏆🇧🇷 Copa | **+20** |
+| 🔻 Rebaixamento | **−10** |
+| ⚽ Artilheiro | **não pontua** |
+
+- 🛟 **Nunca negativo**: quem caiu mais do que ganhou para no ZERO. Sem isso, dois
+  rebaixamentos e nenhum título deixavam o cara com −20, **atrás de quem nunca
+  jogou** — estado sem sentido.
+- ⚽ **Artilheiro continua sendo TROFÉU** — aparece na 🏅 Estante e na linha do
+  tempo. Só saiu da conta de pontos.
+- 🤝 **Empate em pontos desempata por TÍTULO** (liga, depois copa), não por ordem
+  alfabética como era: quem tem taça passa na frente de quem chegou lá só por copa.
+- 📍 **Vale nos DOIS modos** — o Rápido e o Minhas Ligas usam o mesmo padrão. Na
+  liga o dono pode mudar em ⚙️ Ajustes; no Rápido ninguém muda.
+- 📝 **As regras aparecem escritas** na própria aba 🏆 Rank, discretas:
+  *"⚖️ Por pontos · 🏆 título da liga +30 · 🏆🇧🇷 copa +20 · 🔻 rebaixamento −10 ·
+  nunca fica negativo. Só a galera pontua — bot não entra."*
+
+**Trava:** `npm run rank` (`scripts/checa-rank-liga.mjs`) monta 3 temporadas de
+mentira e confere a conta, a ordem, o piso do zero e que o artilheiro não pontua.
+
 ## 🏁 REGRA FINAL DA LIGA (29/08) — **é esta que vale, apaga o resto da tarde**
 Depois de uma tarde inteira girando em círculo, ele fechou em três linhas:
 *"eu acho então que só vale com senha, é isso. E acho que poderia aparecer lá junto

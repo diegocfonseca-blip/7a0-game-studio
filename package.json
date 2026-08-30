@@ -12,7 +12,8 @@
     "novidades": "node scripts/novidades-jogadores.mjs",
     "reddit": "node scripts/reddit-radar.mjs",
     "paises": "node scripts/paises-check.mjs",
-    "vigias": "node scripts/checa-vigias-online.mjs"
+    "vigias": "node scripts/checa-vigias-online.mjs",
+    "rank": "node scripts/checa-rank-liga.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
