@@ -632,7 +632,12 @@ export function EscLobby() {
   })
   const previewComum = usePreviewComum() // 👁️ ver as telas de quem NÃO é Lenda (só as contas do Diego)
   const criar2 = useCriarSala2() // 🔨 tela de criar sala v2 (só a conta do Diego, 29/08)
-  const [ajustesAbertos, setAjustesAbertos] = useState(false)
+  // ⚙️ nasce ABERTO (Diego 29/08: *"de cara, quando cai no modo online, já está
+  // selecionado o rápido mas sem estar aberto as configurações; só funciona quando
+  // passo pro modo de baixo e volto"*). Como o Rápido já vem marcado, a tela tem
+  // que começar mostrando a configuração DELE — senão o passo 2 só aparecia pra
+  // quem trocasse de modo e voltasse, que é justamente o que ninguém faz.
+  const [ajustesAbertos, setAjustesAbertos] = useState(true)
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   // 🚪 QUEM ENTRA NA LIGA — mudou em 22/08, por decisão do Diego. Antes (regra de
   // 19/08) só Lenda/dono de batismo ENTRAVA. Ele reviu: *"vamos supor q só qm pode
@@ -2464,9 +2469,10 @@ export function EscLobby() {
               {/* 🏆 o quadro da liga continua aparecendo aqui — nome, dia/hora e senha
                   são a identidade do modo, não "ajuste". Ele mora na seção ① lá
                   embaixo, então na v2 a seção inteira abre junto quando é liga. */}
-              <Big onClick={createRoom} color={isCareer ? PURPLE : GREEN}>
-                <span style={{ color: '#fff' }}>{loading ? 'Criando...' : '🔨 Criar e chamar a galera'}</span>
-              </Big>
+              {/* 🔨 O BOTÃO DE CRIAR MORA SÓ NO FIM (Diego 29/08: *"está aparecendo
+                  duas vezes também, em cima e embaixo, e deve ser só lá embaixo"*).
+                  Faz sentido: escolher o modo é o passo 1, configurar é o 2, criar é
+                  o 3 — e o 3 não vem antes do 2. */}
               <button onClick={() => setAjustesAbertos(v => !v)}
                 className="w-full flex items-center gap-2 border-2 border-dashed rounded-xl px-2.5 py-2 mt-2.5 text-left"
                 style={{ borderColor: 'rgba(255,255,255,.28)' }}>
@@ -2826,13 +2832,12 @@ export function EscLobby() {
           </Section>
 
           </>)}
-          {/* 🔨 o botão de criar TAMBÉM no fim quando os ajustes estão abertos: quem
-              desceu mexendo em tudo não deve ter que subir a tela de volta pra criar. */}
-          {(!criar2 || ajustesAbertos || roomMode === 'liga') && (
-            <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
-              <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : criar2 ? '🔨 Criar e chamar a galera' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
-            </Big>
-          )}
+          {/* 🔨 SEMPRE VISÍVEL, e é o único. Ao tirar o botão de cima eu quase criei
+              um beco: com os ajustes FECHADOS a tela ficaria sem botão nenhum de
+              criar. Ele não depende mais de estado nenhum. */}
+          <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
+            <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : criar2 ? '🔨 Criar e chamar a galera' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+          </Big>
         </div>
         )
       })()}
