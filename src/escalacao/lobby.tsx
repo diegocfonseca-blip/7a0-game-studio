@@ -632,12 +632,6 @@ export function EscLobby() {
   })
   const previewComum = usePreviewComum() // 👁️ ver as telas de quem NÃO é Lenda (só as contas do Diego)
   const criar2 = useCriarSala2() // 🔨 tela de criar sala v2 (só a conta do Diego, 29/08)
-  // ⚙️ nasce ABERTO (Diego 29/08: *"de cara, quando cai no modo online, já está
-  // selecionado o rápido mas sem estar aberto as configurações; só funciona quando
-  // passo pro modo de baixo e volto"*). Como o Rápido já vem marcado, a tela tem
-  // que começar mostrando a configuração DELE — senão o passo 2 só aparecia pra
-  // quem trocasse de modo e voltasse, que é justamente o que ninguém faz.
-  const [ajustesAbertos, setAjustesAbertos] = useState(true)
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   // 🚪 QUEM ENTRA NA LIGA — mudou em 22/08, por decisão do Diego. Antes (regra de
   // 19/08) só Lenda/dono de batismo ENTRAVA. Ele reviu: *"vamos supor q só qm pode
@@ -2415,127 +2409,20 @@ export function EscLobby() {
         // a v2 só põe os cartões e o botão NA FRENTE e recolhe as seções num
         // ⚙️ Ajustes. Nenhuma opção foi removida nem reescrita — por isso desligar
         // a trava devolve a tela de sempre, sem cicatriz.
-        const MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string }[] = [
+        // `on` = dá pra escolher · `emTeste` = o PÚBLICO ainda não tem (leva o selo
+        // EM BREVE e a linha explicando que criar libera depois).
+        const MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
           { v: 'rapido', ic: '⚡', nome: 'Rápido', frase: 'Uma temporada. Começa agora.', on: true },
           { v: 'liga', ic: '🏆', nome: 'Minhas ligas', frase: 'A sala da turma que não acaba.', on: ligaOn, selo: '👑 LENDA' },
-          { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões — sobe e cai.', on: canCareer },
-          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Traga o time da sua carreira, valendo carta.', on: salaElenco },
+          { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões — sobe e cai.', on: canCareer, emTeste: true },
+          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Traga o time da sua carreira, valendo carta.', on: salaElenco, emTeste: true },
         ]
-        // 🧾 A LINHA DO QUE ESTÁ VALENDO. Recolher ajuste sem mostrar o estado vira
-        // caixa-preta — e é o que o Diego mais odeia. Então tudo que ficou escondido
-        // aparece resumido aqui, sempre.
-        const resumo = [
-          rapidoDeck === 'br' ? '🇧🇷 Brasil' : rapidoDeck === 'eu' ? '🌍 Europa' : '🌎 Todos',
-          formation,
-          roomMode === 'liga' ? (ligaComBots ? 'com bots' : 'sem bots') : null,
-          auctionSecs === 0 ? 'sem relógio' : `${auctionSecs}s`,
-          roomDuplas ? '🤝 duplas' : null,
-          roomChat ? '💬 chat' : '🔕 sem chat',
-          roomStream ? '🎥 stream' : null,
-          roomMode === 'liga' ? '🔒 com senha' : roomLocked ? '🔒 com senha' : '🔓 aberta',
-        ].filter(Boolean).join(' · ')
-        return (
-        <div className="space-y-3">
-          {criar2 && (<>
-            <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
-              <p className="font-black text-white text-[15px] uppercase leading-none flex items-center gap-2" style={OSWALD}>
-                <span className="inline-flex items-center justify-center shrink-0 border-2 border-black rounded-full" style={{ width: 22, height: 22, background: GOLD, color: INK, fontSize: 12 }}>1</span>
-                O que vocês vão jogar?
-              </p>
-              <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">Escolhe um. O resto já está no ponto.</p>
-              {MODOS.filter(m => m.on).map(m => {
-                const sel = roomMode === m.v
-                return (
-                  // 👆 escolher o modo ABRE os ajustes na hora (Diego 29/08, testando
-                  // a v2: *"na hora que eu aperto em rápido já deveria abrir as
-                  // configurações pra criar a sala"*). O cartão vira o passo 1
-                  // (o que vamos jogar) e a configuração o passo 2 — em vez de
-                  // ficar escondida atrás de um botão que ele não ia procurar.
-                  <button key={m.v} onClick={() => { setRoomMode(m.v); setAjustesAbertos(true) }}
-                    className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 mb-2 text-left active:translate-y-0.5"
-                    style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none' }}>
-                    <span style={{ fontSize: 24 }}>{m.ic}</span>
-                    <span className="flex-1 min-w-0">
-                      <span className="flex items-center gap-1.5">
-                        <span className="font-black text-black text-[15px]" style={OSWALD}>{m.nome}</span>
-                        {m.selo && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: sel ? '#fff' : GOLD, color: '#000', ...OSWALD }}>{m.selo}</span>}
-                      </span>
-                      <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
-                    </span>
-                    <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>
-                  </button>
-                )
-              })}
-              {/* 🏆 o quadro da liga continua aparecendo aqui — nome, dia/hora e senha
-                  são a identidade do modo, não "ajuste". Ele mora na seção ① lá
-                  embaixo, então na v2 a seção inteira abre junto quando é liga. */}
-              {/* 🔨 O BOTÃO DE CRIAR MORA SÓ NO FIM (Diego 29/08: *"está aparecendo
-                  duas vezes também, em cima e embaixo, e deve ser só lá embaixo"*).
-                  Faz sentido: escolher o modo é o passo 1, configurar é o 2, criar é
-                  o 3 — e o 3 não vem antes do 2. */}
-              <button onClick={() => setAjustesAbertos(v => !v)}
-                className="w-full flex items-center gap-2 border-2 border-dashed rounded-xl px-2.5 py-2 mt-2.5 text-left"
-                style={{ borderColor: 'rgba(255,255,255,.28)' }}>
-                <span className="flex-1 text-white/60 text-[10.5px] font-bold leading-snug">{resumo}</span>
-                <span className="shrink-0 text-[10px] font-black uppercase border-2 border-black rounded-lg px-2.5 py-1.5 bg-white text-black" style={OSWALD}>⚙️ {ajustesAbertos ? 'Fechar' : 'Mudar'}</span>
-              </button>
-              <p className="text-white/35 text-[10px] font-bold leading-snug mt-1.5">Essa linha mostra tudo que está valendo. Nada fica escondido — só sai da frente de quem não quer mexer.</p>
-            </div>
-          </>)}
-          {(!criar2 || ajustesAbertos || roomMode === 'liga') && (<>
-          {/* ① O BÁSICO — modo, nome, baralho, formação */}
-          <Section num={criar2 ? 2 : 1} title="O básico" icon="📋">
-            <div>
-              {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
-                  *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
-                  O básico já seria o 2, mas sem repetir os modos do online"*).
-                  Os cartões lá em cima JÁ são a escolha do modo — este seletor
-                  (e a frase que explica o modo escolhido) fica só na tela antiga. */}
-              {!criar2 && (<>
-              <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
-                {/* 🎛️ OS TRÊS MODOS SEMPRE À VISTA (Diego 17/08: "pode deixar esse
-                    modo aparecendo e também o do carreira, e os dois coloque em
-                    breve — mas pode usar somente eu com meu usuário").
-                    Quem não está liberado VÊ os dois, apagados e sem clique: desperta
-                    o interesse sem prometer o que ainda não dá pra entregar, e sem
-                    NUNCA deixar entrar num modo que não está pronto (a trava real é
-                    por conta, em sport.ts — o botão apagado é só a cara dela). */}
-                {(() => {
-                  // 🏆 LIGA FECHADA (20/08): o Diego cortou que ela é MODO DE JOGO, não
-                  // detalhe da partida — *"tem q ser rápido, liga fechada, carreira e
-                  // bafo"*. Entra aqui na fileira, por enquanto APAGADA e sem clique:
-                  // o resto da liga (horário marcado, troféus na sala de espera, o dono
-                  // arrumando troféu e escrevendo a regra do ranking) ainda está sendo
-                  // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
-                  const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
-                    { v: 'rapido', label: '⚡ Rápido', liberado: true },
-                    { v: 'liga', label: '🏆 Minhas ligas', liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
-                    { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
-                    { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
-                  ]
-                  return (
-                    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
-                      {abas.map((a, i) => (a.liberado && a.v) ? (
-                        <button key={a.label} onClick={() => setRoomMode(a.v!)}
-                          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-                          style={{ padding: '9px 1px', fontSize: 11, minWidth: 0, background: roomMode === a.v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
-                          {a.label}
-                        </button>
-                      ) : (
-                        <button key={a.label} disabled
-                          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-                          style={{ padding: '9px 1px', fontSize: 9, minWidth: 0, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', lineHeight: 1.15, ...OSWALD }}>
-                          {a.label}<br /><span style={{ fontSize: 8 }}>em breve</span>
-                        </button>
-                      ))}
-                    </div>
-                  )
-                })()}
-              </SegField>
-              <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {roomMode === 'liga' ? '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.' : isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
-              </p>
-              </>)}
+        // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
+        // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
+        // configuração DAQUELE modo, não "o básico" da sala (bronca do Diego 29/08:
+        // *"quem comanda cada time está junto das explicações"*) — e na tela antiga
+        // continua exatamente onde sempre esteve.
+        const quadroLiga = (<>
               {/* 🏆 LIGA FECHADA — o que ela guarda a mais que a sala rápida.
                   Fica aqui em cima, colado no modo, porque é o que a pessoa
                   precisa decidir ANTES de pensar em baralho e formação.
@@ -2633,6 +2520,118 @@ export function EscLobby() {
                   </p>
                 </div>
               )}
+        </>)
+        // 💬 CADA MODO EXPLICA O QUE É, ao ser escolhido (Diego 29/08: *"quando
+        // aperta em Lenda tem uma explicação do modo de jogo; já no rápido, bafo e
+        // carreira não"*). Antes só a liga tinha, porque a frase morava colada no
+        // seletor velho.
+        const EXPLICA: Record<string, string> = {
+          rapido: '🔨 O leilão de sempre — uma temporada avulsa. Acabou o campeonato, acabou a sala.',
+          liga: '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.',
+          carreira: '🌐 Pirâmide de 4 divisões — cada técnico sobe e cai por conta própria, no mesmo mundo pra todos.',
+          elenco: '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta pro de cima.',
+        }
+        return (
+        <div className="space-y-3">
+          {criar2 && (
+            <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
+              <p className="font-black text-white text-[15px] uppercase leading-none flex items-center gap-2" style={OSWALD}>
+                <span className="inline-flex items-center justify-center shrink-0 border-2 border-black rounded-full" style={{ width: 22, height: 22, background: GOLD, color: INK, fontSize: 12 }}>1</span>
+                O que vocês vão jogar?
+              </p>
+              <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">Escolhe um. O resto já está no ponto.</p>
+              {MODOS.map(m => {
+                const sel = roomMode === m.v
+                // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
+                // teste, então pra ele o cartão continua clicável — mas leva o selo,
+                // porque ele pediu pra ver a tela como quem não pode jogar
+                // (*"deixa eu ver também como uma pessoa que não pode jogar"*).
+                const emBreve = !m.on || (previewComum && m.emTeste)
+                return (
+                  <button key={m.v} onClick={() => { if (!m.on) return; setRoomMode(m.v) }}
+                    className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 mb-2 text-left active:translate-y-0.5"
+                    style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none', opacity: m.on ? 1 : 0.55 }}>
+                    <span style={{ fontSize: 24 }}>{m.ic}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-black text-black text-[15px]" style={OSWALD}>{m.nome}</span>
+                        {m.selo && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: sel ? '#fff' : GOLD, color: '#000', ...OSWALD }}>{m.selo}</span>}
+                        {emBreve && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: '#7C3AED', color: '#fff', ...OSWALD }}>EM BREVE</span>}
+                      </span>
+                      <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
+                    </span>
+                    <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>
+                  </button>
+                )
+              })}
+              {/* 💬 a explicação do modo ESCOLHIDO, colada nele. Antes só a liga tinha. */}
+              <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-1" style={{ background: 'rgba(0,0,0,.3)' }}>
+                <p className="text-white/65 text-[11px] font-bold leading-snug">{EXPLICA[roomMode]}</p>
+                {MODOS.find(m => m.v === roomMode)?.emTeste && (
+                  <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
+                    🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!
+                  </p>
+                )}
+              </div>
+              {/* 🏆 a configuração da liga vem AQUI, colada no modo — ela é do modo,
+                  não é "o básico" da sala. */}
+              {quadroLiga}
+            </div>
+          )}
+          {/* ① O BÁSICO — modo, nome, baralho, formação */}
+          <Section num={criar2 ? 2 : 1} title={criar2 ? 'O time e o baralho' : 'O básico'} icon="📋">
+            <div>
+              {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
+                  *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
+                  O básico já seria o 2, mas sem repetir os modos do online"*).
+                  Os cartões lá em cima JÁ são a escolha do modo — este seletor
+                  (e a frase que explica o modo escolhido) fica só na tela antiga. */}
+              {!criar2 && (<>
+              <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
+                {/* 🎛️ OS TRÊS MODOS SEMPRE À VISTA (Diego 17/08: "pode deixar esse
+                    modo aparecendo e também o do carreira, e os dois coloque em
+                    breve — mas pode usar somente eu com meu usuário").
+                    Quem não está liberado VÊ os dois, apagados e sem clique: desperta
+                    o interesse sem prometer o que ainda não dá pra entregar, e sem
+                    NUNCA deixar entrar num modo que não está pronto (a trava real é
+                    por conta, em sport.ts — o botão apagado é só a cara dela). */}
+                {(() => {
+                  // 🏆 LIGA FECHADA (20/08): o Diego cortou que ela é MODO DE JOGO, não
+                  // detalhe da partida — *"tem q ser rápido, liga fechada, carreira e
+                  // bafo"*. Entra aqui na fileira, por enquanto APAGADA e sem clique:
+                  // o resto da liga (horário marcado, troféus na sala de espera, o dono
+                  // arrumando troféu e escrevendo a regra do ranking) ainda está sendo
+                  // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
+                  const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
+                    { v: 'rapido', label: '⚡ Rápido', liberado: true },
+                    { v: 'liga', label: '🏆 Minhas ligas', liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
+                    { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
+                    { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
+                  ]
+                  return (
+                    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
+                      {abas.map((a, i) => (a.liberado && a.v) ? (
+                        <button key={a.label} onClick={() => setRoomMode(a.v!)}
+                          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
+                          style={{ padding: '9px 1px', fontSize: 11, minWidth: 0, background: roomMode === a.v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
+                          {a.label}
+                        </button>
+                      ) : (
+                        <button key={a.label} disabled
+                          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
+                          style={{ padding: '9px 1px', fontSize: 9, minWidth: 0, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', lineHeight: 1.15, ...OSWALD }}>
+                          {a.label}<br /><span style={{ fontSize: 8 }}>em breve</span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </SegField>
+              <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
+                {roomMode === 'liga' ? '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.' : isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+              </p>
+              </>)}
+              {!criar2 && quadroLiga}
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
             {!isCareer && (
@@ -2831,7 +2830,6 @@ export function EscLobby() {
             )}
           </Section>
 
-          </>)}
           {/* 🔨 SEMPRE VISÍVEL, e é o único. Ao tirar o botão de cima eu quase criei
               um beco: com os ajustes FECHADOS a tela ficaria sem botão nenhum de
               criar. Ele não depende mais de estado nenhum. */}
