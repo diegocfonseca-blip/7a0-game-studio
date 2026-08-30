@@ -343,10 +343,13 @@ export function ligaLiberada(): boolean { return ligaOk }
 // decisões antes de deixar a pessoa jogar. A v2 põe o MODO em cartões, sobe o
 // botão pro alto e joga os outros 10 num ⚙️ Ajustes fechado — com uma linha
 // dizendo o que está valendo, pra não virar caixa-preta.
-// 🔒 Só a conta dele enxerga: *"code só pra eu ver como fica"*. A tela ANTIGA
-// continua inteira no código e é o que todo mundo vê — a v2 é um caminho paralelo,
-// então voltar atrás é só apagar o `true` daqui. Liberar geral: CRIAR2_GERAL = true.
-const CRIAR2_GERAL = false
+// 🚀 LIBERADA PRA TODOS (29/08 — *"pode codar e publicar agora essa nova forma de
+// visualização"*), depois de ele testar e mandar 5 rodadas de acerto: o botão só no
+// fim, as configurações já abertas, o modo sem repetir, a linha do resumo fora,
+// cada modo explicando o que é, e Carreira/Bafo com selo EM BREVE.
+// A tela ANTIGA continua inteira no código: voltar atrás é `false` aqui, sem
+// cicatriz nenhuma.
+const CRIAR2_GERAL = true
 const CRIAR2_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 let criar2Ok = CRIAR2_GERAL
 function applyCriar2(email?: string | null): void {

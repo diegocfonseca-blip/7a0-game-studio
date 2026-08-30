@@ -1352,6 +1352,14 @@ export function EscLobby() {
     // o horário marcado (`ligaAt`) e o `mode: 'liga'`, que é o que faz ela não
     // sumir da lista e ganhar a sala de troféus na espera. Sem bot = a liga
     // fechada que o jogo já sabia fazer (`ligaFechada`).
+    // 🔒 CINTO DE SEGURANÇA: o cartão de um modo em breve dá pra tocar (pra ler o
+    // que ele é), e o botão de criar some junto com as configurações. Mas se algum
+    // caminho furar, criar uma sala de modo que a conta NÃO tem viraria uma sala
+    // rápida disfarçada de carreira. Aqui recusa antes de escrever no banco.
+    if ((roomMode === 'carreira' && !canCareer) || (roomMode === 'elenco' && !salaElenco)) {
+      setRoomError('Esse modo ainda está em construção — em breve libera pra todo mundo! Por enquanto dá pra jogar no ⚡ Rápido.')
+      setLoading(false); return
+    }
     const liga = ligaOn && roomMode === 'liga'
     // 👑 CRIAR LIGA É SÓ DO LENDA — e até 22/08 isso NÃO estava travado de verdade:
     // o código só olhava `ligaOn` (quem enxerga o modo), nunca o tier. Como enxergar
@@ -2414,8 +2422,8 @@ export function EscLobby() {
         const MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
           { v: 'rapido', ic: '⚡', nome: 'Rápido', frase: 'Uma temporada. Começa agora.', on: true },
           { v: 'liga', ic: '🏆', nome: 'Minhas ligas', frase: 'A sala da turma que não acaba.', on: ligaOn, selo: '👑 LENDA' },
-          { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões — sobe e cai.', on: canCareer, emTeste: true },
-          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Traga o time da sua carreira, valendo carta.', on: salaElenco, emTeste: true },
+          { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões + Várzea — sobe e cai.', on: canCareer, emTeste: true },
+          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Só com o seu time da carreira, valendo carta.', on: salaElenco, emTeste: true },
         ]
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
@@ -2525,11 +2533,17 @@ export function EscLobby() {
         // aperta em Lenda tem uma explicação do modo de jogo; já no rápido, bafo e
         // carreira não"*). Antes só a liga tinha, porque a frase morava colada no
         // seletor velho.
+        // 🔒 O MODO ESCOLHIDO ESTÁ LIBERADO PRA MIM? (Diego 29/08: *"as configurações
+        // você não vai mostrar né, porque ainda não está liberado carreira nem bafo
+        // pra ninguém"*). Quem não tem o modo pode ESCOLHER o cartão pra ler o que
+        // ele é — mas aí a tela para ali: nada de configurar nem de criar. Mostrar
+        // formulário de algo que não dá pra criar é promessa falsa.
+        const modoLiberado = MODOS.find(m => m.v === roomMode)?.on ?? true
         const EXPLICA: Record<string, string> = {
           rapido: '🔨 O leilão de sempre — uma temporada avulsa. Acabou o campeonato, acabou a sala.',
           liga: '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.',
-          carreira: '🌐 Pirâmide de 4 divisões — cada técnico sobe e cai por conta própria, no mesmo mundo pra todos.',
-          elenco: '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta pro de cima.',
+          carreira: '🌐 Pirâmide de 4 divisões + a Várzea — cada técnico sobe e cai por conta própria, no mesmo mundo pra todos.',
+          elenco: '🃏 SEM LEILÃO — cada um entra com o time da PRÓPRIA carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta pro de cima.',
         }
         return (
         <div className="space-y-3">
@@ -2548,7 +2562,11 @@ export function EscLobby() {
                 // (*"deixa eu ver também como uma pessoa que não pode jogar"*).
                 const emBreve = !m.on || (previewComum && m.emTeste)
                 return (
-                  <button key={m.v} onClick={() => { if (!m.on) return; setRoomMode(m.v) }}
+                  // 👆 dá pra tocar mesmo no que ainda não abriu — é assim que a
+                  // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
+                  // não aparece é a configuração (abaixo), porque configurar algo
+                  // que não dá pra criar seria promessa falsa.
+                  <button key={m.v} onClick={() => setRoomMode(m.v)}
                     className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 mb-2 text-left active:translate-y-0.5"
                     style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none', opacity: m.on ? 1 : 0.55 }}>
                     <span style={{ fontSize: 24 }}>{m.ic}</span>
@@ -2579,6 +2597,7 @@ export function EscLobby() {
             </div>
           )}
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
+          {(!criar2 || modoLiberado) && (<>
           <Section num={criar2 ? 2 : 1} title={criar2 ? 'O time e o baralho' : 'O básico'} icon="📋">
             <div>
               {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
@@ -2830,12 +2849,14 @@ export function EscLobby() {
             )}
           </Section>
 
-          {/* 🔨 SEMPRE VISÍVEL, e é o único. Ao tirar o botão de cima eu quase criei
-              um beco: com os ajustes FECHADOS a tela ficaria sem botão nenhum de
-              criar. Ele não depende mais de estado nenhum. */}
-          <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
-            <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : criar2 ? '🔨 Criar e chamar a galera' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
-          </Big>
+          </>)}
+          {/* 🔨 O botão de criar. Some junto com as configurações quando o modo
+              escolhido ainda não abriu — o cartão em breve termina na explicação. */}
+          {(!criar2 || modoLiberado) && (
+            <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
+              <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : criar2 ? '🔨 Criar e chamar a galera' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+            </Big>
+          )}
         </div>
         )
       })()}
