@@ -24,7 +24,7 @@ import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, getSport, escadaLiberada, type Sport, usePreviewComum } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -7630,9 +7630,19 @@ function GrupoOnlineBox() {
   // está no grupo — a caixa só ocuparia espaço no fim da partida e ainda daria
   // cara de propaganda pra quem é sócio. Batismo entra na mesma linha sem código
   // extra: todo batismo nasce ouro pela regra permanente de 17/08.
-  if (myApoioPerk()?.tier === 'ouro') return null
+  // 👁️ …MAS o Diego é ouro, e é ele quem aprova o desenho — então com a PRÉVIA
+  // ligada (só a conta dele) a caixa aparece mesmo pra quem é Lenda, marcada, pra
+  // ele ver o que o jogador comum vê. Ver `usePreviewComum` em sport.ts.
+  const previa = usePreviewComum()
+  const souOuro = myApoioPerk()?.tier === 'ouro'
+  if (souOuro && !previa) return null
   return (
     <div className="rounded-xl border-[3px] border-black p-3 mt-3" style={{ background: 'rgba(27,122,61,.22)', boxShadow: `3px 3px 0 ${INK}` }}>
+      {souOuro && previa && (
+        <p className="inline-flex text-[9.5px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-2" style={{ background: '#FFC400', color: '#0C0C0C', ...OSWALD }}>
+          👁️ prévia — só você vê isto (você é Lenda)
+        </p>
+      )}
       <p className="font-black text-[13.5px] uppercase leading-none text-white mb-1.5" style={OSWALD}>📱 Grupo de quem joga online</p>
       <p className="text-white/70 text-[11px] font-bold leading-snug mb-2.5">
         Sem galera pra chamar? No grupo tem gente marcando pregão <b className="text-white">todo dia</b> — e é de lá que saem as ligas.

@@ -13,7 +13,7 @@ import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSala2 } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSala2, usePreviewComum } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -630,6 +630,7 @@ export function EscLobby() {
     const next = [...prev, team]
     return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
   })
+  const previewComum = usePreviewComum() // 👁️ ver as telas de quem NÃO é Lenda (só as contas do Diego)
   const criar2 = useCriarSala2() // 🔨 tela de criar sala v2 (só a conta do Diego, 29/08)
   const [ajustesAbertos, setAjustesAbertos] = useState(false)
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
@@ -2537,8 +2538,18 @@ export function EscLobby() {
                   botão pra virar Lenda, e — logo embaixo, do jeito que ele gosta,
                   colado no botão — a parte que mais importa pra quem chegou aqui:
                   **jogar não custa nada**. */}
-              {roomMode === 'liga' && !canLiga && (
+              {/* 👁️ com a PRÉVIA ligada (só as contas do Diego) este bloco aparece
+                  TAMBÉM pra quem é Lenda — porque é ele quem aprova o desenho e,
+                  sendo ouro, nunca conseguiria vê-lo. O formulário de verdade
+                  continua logo abaixo, então ele vê a tela do jogador comum sem
+                  perder a de criar. Ver `usePreviewComum` em sport.ts. */}
+              {roomMode === 'liga' && (!canLiga || previewComum) && (
                 <div className="mt-3 rounded-xl border-[3px] border-black p-3.5" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
+                  {canLiga && previewComum && (
+                    <p className="inline-flex text-[9.5px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-2" style={{ background: '#FFC400', color: INK, ...OSWALD }}>
+                      👁️ prévia — é isto que quem NÃO é Lenda vê aqui
+                    </p>
+                  )}
                   <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>👑 Criar uma liga é do Lenda</p>
                   <p className="text-white/70 text-[11.5px] font-bold leading-snug mb-3">
                     A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e artilheiro <b className="text-white">temporada após temporada</b>.
