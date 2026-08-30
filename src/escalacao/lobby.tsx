@@ -2867,7 +2867,10 @@ export function EscLobby() {
 
       {tab === 'open' && <div className="space-y-3">
         <Field label="Buscar sala" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar sala…" />
-        <div className="space-y-2">
+        {/* 🖥️ `salas-grade`: no PC as salas ficam DUAS por linha (regra em
+            index.css, só a partir de 768px). No celular a classe não tem regra
+            nenhuma — continua uma embaixo da outra, igualzinho. */}
+        <div className="salas-grade space-y-2">
           {listLoading && <p className="text-white/50 text-sm font-bold text-center py-3">Carregando salas…</p>}
           {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">Nenhuma sala aberta agora. Crie a sua! 🔨</p>}
           {filtered.map(r => {

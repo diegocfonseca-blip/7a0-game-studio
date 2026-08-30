@@ -282,6 +282,53 @@ html.noturno .palco :is([class*="bg-white"],
      o defeito clássico de centralizar coisa que rola. */
   #root .fita { justify-content: safe center; }
 
+  /* ═══ os 4 ajustes que o Diego aprovou pelo mockup em 30/08 ═══════════════
+     Nada disto existe abaixo de 768px: o celular nem lê este bloco. */
+
+  /* 3) 🚪 LISTA DE SALAS EM DUAS COLUNAS. No monitor a lista ficava uma
+     embaixo da outra e comprida, com tela sobrando dos dois lados. Duas por
+     linha mostra o dobro sem rolar. É só a caixa: mesma sala, mesmo botão. */
+  #root .salas-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #root .salas-grade > * { margin: 0 !important; }
+  /* aviso de "carregando" / "nenhuma sala" ocupa a linha inteira */
+  #root .salas-grade > p { grid-column: 1 / -1; }
+
+  /* 4) 🃏 CARTA NÃO ESTICA. A carta foi desenhada pra ~150px de largura. Na
+     coluna aberta ela virava um cartaz de quase 400 e os detalhes ficavam
+     gigantes. Teto de 210px e a grade centralizada. */
+  #root .grade-cartas { justify-content: center; }
+  #root .grade-cartas > * { max-width: 210px; width: 100%; justify-self: center; }
+
+  /* 5) 🔤 TEXTO MIUDINHO. Tem texto de 7, 8 e 9px em 38 lugares. No celular,
+     colado no olho, passa; no monitor, a um braço de distância, não dá pra
+     ler. Piso de 11px — nada muda de lugar, de peso nem de cor, só para de
+     ser miúdo. O 10px fica como está: mexer nele apertaria tabela. */
+  #root .text-\[7px\], #root .text-\[8px\],
+  #root .text-\[9px\], #root .text-\[9\.5px\] { font-size: 11px; }
+
+  /* 6) 📌 A BARRA DE MENU SOBE PRO TOPO. Embaixo é o certo no celular (é onde
+     o dedo alcança). No monitor o mouse tem que descer a página toda pra
+     clicar em Álbum — e menu de PC mora em cima. É a MESMA barra: só troca de
+     lado, some a borda de cima e nasce a de baixo. */
+  #root .barra-menu {
+    /* o !important é porque top/bottom vêm no style= do componente, e estilo
+       inline ganha de classe — sem ele a barra esticava a tela inteira */
+    top: 0 !important; bottom: auto !important;
+    border-top: none; border-bottom: 1.5px solid rgba(12,12,12,.13);
+    box-shadow: 0 2px 12px rgba(0,0,0,.05);
+    justify-content: center; padding: 8px 6px;
+  }
+  #root .barra-menu > * { flex: 0 0 auto !important; padding-left: 26px; padding-right: 26px; }
+  #root .espaco-barra { height: 0 !important; }   /* o respiro sai do pé… */
+  /* …e passa pro topo — SÓ na tela que tem a barra (`:has`). Sem isso, a
+     Carreira e as outras telas ganhariam 66px de vazio no alto à toa, porque
+     a barra só existe na home. */
+  #root .palco:has(.barra-menu) { padding-top: 66px; }
+  /* o botão de som subia 78px pra não bater na barra de baixo; com ela no topo
+     ele volta pro canto de sempre */
+  #root button[aria-label="Desligar som"],
+  #root button[aria-label="Ligar som"] { bottom: 10px !important; }
+
   /* 2) um respiro nas laterais e no pé (no celular o dedo precisa de tela
      cheia; no PC a página encostada na borda parece apertada) */
   .palco > div[class*="max-w-"] { padding-left: 28px; padding-right: 28px; }

@@ -1583,7 +1583,7 @@ function BidLegendsHome() {
         </p>
       </div>
       {/* vitrine: as MESMAS cartas do futebol, só que de basquete (mesmo visual) */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 grade-cartas">
         <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Michael Jordan" club="Bulls" year={1996} pos="ALA" fame={5} showBio bio={t('Melhor de todos os tempos. Seis anéis, seis MVPs de Finals. Fechou a carreira do jeito que começou: por cima.', 'The greatest of all time. Six rings, six Finals MVPs. Ended his career the way it began: on top.')} /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Dwyane Wade" club="Heat" year={2006} pos="ARM" fame={4} showBio bio={t('Flash. Carregou o Heat ao título em 2006 numa das melhores finais individuais da história.', 'Flash. Carried the Heat to the 2006 title in one of the greatest individual Finals ever.')} /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Victor Wembanyama" club="Spurs" year={2024} pos="PIVÔ" fame={3} promessa showBio bio={t('O alienígena. 2,24m que enterra, cravou e acerta de três. O futuro chegou cedo.', 'The alien. 7-foot-4 that dunks and drains threes. The future came early.')} /></div>
@@ -1860,7 +1860,7 @@ function HomeMenuFixo({ onInicio, onRegras, onAlbum, onRanking, apoiar }: {
     </button>
   )
   return (
-    <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989,
+    <div className="barra-menu" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989,
       background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)',
       borderTop: '1.5px solid rgba(12,12,12,.13)', display: 'flex', gap: 2,
       /* 📱 iPhone com entalhe: a barrinha de gestos mora EM CIMA do rodapé. Sem
@@ -2017,8 +2017,10 @@ export function EscIntro() {
         <CareerOnlineButton />
         <LigaFechadaButton />
         </div>
-        {/* espaço pro menu fixo não tapar o fim da página */}
-        <div style={{ height: 74 }} />
+        {/* espaço pro menu fixo não tapar o fim da página. No PC a barra sobe
+            pro topo (index.css), então este espaço vira zero e o respiro passa
+            pra cima — a classe faz as duas coisas. */}
+        <div className="espaco-barra" style={{ height: 74 }} />
         <HomeMenuFixo
           onInicio={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           onRegras={() => setShowManual(true)}
@@ -2147,7 +2149,7 @@ export function EscIntro() {
       {/* vitrine: a coleção é a estrela — cartas reais do álbum (nível/cor/bio do
           catálogo). Desceu pra baixo dos botões, mas NÃO saiu: é ela que mostra
           o que a pessoa vai colecionar. */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 grade-cartas">
         <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} showBio /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Gabigol" club="Flamengo" year={2019} pos="ATA" fame={4} showBio /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa showBio /></div>

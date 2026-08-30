@@ -35,12 +35,14 @@ não mudou nada: continua rolando, 1ª carta no lugar de sempre.
 no comparador é o brilho animado da carta, que se move sozinho). Nenhuma tela
 vaza pro lado em 360/390/820/1280/1440.
 
-**Falta (só com mockup aprovado, o Diego ainda não viu):** lista de salas em 2
-colunas no PC · barra Início/Regras/Álbum sair de baixo e virar barra de topo no
-PC · cartas pararem de esticar (no tutorial do pregão a carta desenhada pra
-150px vira 390) · fundo do online virar creme igual ao resto · texto de 7-9px
-(38 lugares) crescer no monitor · apagar `src/App.css`, que é lixo do template
-do Vite e não tem uma linha usada pelo jogo.
+**Mockup aprovado por ele em 30/08** (`node scripts/mockup-telas-pc.mjs`). Já
+no ar: lista de salas em 2 colunas no PC · barra de menu subindo pro topo no PC
+· carta com teto de 210px (parou de esticar) · piso de 11px pro texto de 7-9px.
+
+**Falta ainda:** ⚠️ o FUNDO DO ONLINE em creme (o 5º do mockup) — é o único que
+não dá pra conferir daqui, porque exige login na conta dele; ver a seção
+própria mais abaixo. E apagar `src/App.css`, que é lixo do template do Vite e
+não tem uma linha usada pelo jogo.
 
 
 ## 📱 LINHA DO GRUPO DE WHATSAPP: só quem NÃO é Lenda vê (reconfirmado 30/08)
