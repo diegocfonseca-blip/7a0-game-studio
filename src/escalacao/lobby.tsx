@@ -2433,7 +2433,10 @@ export function EscLobby() {
         <div className="space-y-3">
           {criar2 && (<>
             <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
-              <p className="font-black text-white text-[15px] uppercase leading-none" style={OSWALD}>O que vocês vão jogar?</p>
+              <p className="font-black text-white text-[15px] uppercase leading-none flex items-center gap-2" style={OSWALD}>
+                <span className="inline-flex items-center justify-center shrink-0 border-2 border-black rounded-full" style={{ width: 22, height: 22, background: GOLD, color: INK, fontSize: 12 }}>1</span>
+                O que vocês vão jogar?
+              </p>
               <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">Escolhe um. O resto já está no ponto.</p>
               {MODOS.filter(m => m.on).map(m => {
                 const sel = roomMode === m.v
@@ -2475,8 +2478,14 @@ export function EscLobby() {
           </>)}
           {(!criar2 || ajustesAbertos || roomMode === 'liga') && (<>
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
-          <Section num={1} title="O básico" icon="📋">
+          <Section num={criar2 ? 2 : 1} title="O básico" icon="📋">
             <div>
+              {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
+                  *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
+                  O básico já seria o 2, mas sem repetir os modos do online"*).
+                  Os cartões lá em cima JÁ são a escolha do modo — este seletor
+                  (e a frase que explica o modo escolhido) fica só na tela antiga. */}
+              {!criar2 && (<>
               <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
                 {/* 🎛️ OS TRÊS MODOS SEMPRE À VISTA (Diego 17/08: "pode deixar esse
                     modo aparecendo e também o do carreira, e os dois coloque em
@@ -2520,6 +2529,7 @@ export function EscLobby() {
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
                 {roomMode === 'liga' ? '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.' : isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
+              </>)}
               {/* 🏆 LIGA FECHADA — o que ela guarda a mais que a sala rápida.
                   Fica aqui em cima, colado no modo, porque é o que a pessoa
                   precisa decidir ANTES de pensar em baralho e formação.
@@ -2664,7 +2674,7 @@ export function EscLobby() {
 
           {/* ② OS RIVAIS — só na carreira (igual offline: host escolhe os CPUs do leilão) */}
           {isCareer && (
-            <Section num={2} title="Os rivais" icon="🔥">
+            <Section num={criar2 ? 3 : 2} title="Os rivais" icon="🔥">
               <div>
                 <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>Rivais no leilão (CPUs)</p>
                 <div className="grid grid-cols-4 gap-2">
@@ -2701,7 +2711,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={2} title="A partida" icon="⚽">
+            <Section num={criar2 ? 3 : 2} title="A partida" icon="⚽">
               {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
                   Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
                   fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
@@ -2767,7 +2777,7 @@ export function EscLobby() {
           )}
 
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
-          <Section num={3} title="A sala" icon="🔧">
+          <Section num={criar2 ? 4 : 3} title="A sala" icon="🔧">
             <div>
               {/* 🔒 no modo LIGA este toggle some: a liga é SEMPRE fechada e a senha
                   dela já foi pedida lá em cima, no quadro da liga. Deixar os dois
