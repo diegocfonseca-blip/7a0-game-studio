@@ -13,7 +13,7 @@ import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSala2 } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -630,6 +630,8 @@ export function EscLobby() {
     const next = [...prev, team]
     return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
   })
+  const criar2 = useCriarSala2() // 🔨 tela de criar sala v2 (só a conta do Diego, 29/08)
+  const [ajustesAbertos, setAjustesAbertos] = useState(false)
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   // 🚪 QUEM ENTRA NA LIGA — mudou em 22/08, por decisão do Diego. Antes (regra de
   // 19/08) só Lenda/dono de batismo ENTRAVA. Ele reviu: *"vamos supor q só qm pode
@@ -2402,8 +2404,70 @@ export function EscLobby() {
       {tab === 'create' && (() => {
         const isCareer = canCareer && roomMode === 'carreira'
         const isElenco = salaElenco && roomMode === 'elenco'
+        // 🔨 CRIAR SALA v2 (29/08) — "1 decisão + o botão". Ver o comentário do
+        // `CRIAR2_GERAL` em sport.ts. A tela ANTIGA continua inteira logo abaixo:
+        // a v2 só põe os cartões e o botão NA FRENTE e recolhe as seções num
+        // ⚙️ Ajustes. Nenhuma opção foi removida nem reescrita — por isso desligar
+        // a trava devolve a tela de sempre, sem cicatriz.
+        const MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string }[] = [
+          { v: 'rapido', ic: '⚡', nome: 'Rápido', frase: 'Uma temporada. Começa agora.', on: true },
+          { v: 'liga', ic: '🏆', nome: 'Minhas ligas', frase: 'A sala da turma que não acaba.', on: ligaOn, selo: '👑 LENDA' },
+          { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões — sobe e cai.', on: canCareer },
+          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Traga o time da sua carreira, valendo carta.', on: salaElenco },
+        ]
+        // 🧾 A LINHA DO QUE ESTÁ VALENDO. Recolher ajuste sem mostrar o estado vira
+        // caixa-preta — e é o que o Diego mais odeia. Então tudo que ficou escondido
+        // aparece resumido aqui, sempre.
+        const resumo = [
+          rapidoDeck === 'br' ? '🇧🇷 Brasil' : rapidoDeck === 'eu' ? '🌍 Europa' : '🌎 Todos',
+          formation,
+          roomMode === 'liga' ? (ligaComBots ? 'com bots' : 'sem bots') : null,
+          auctionSecs === 0 ? 'sem relógio' : `${auctionSecs}s`,
+          roomDuplas ? '🤝 duplas' : null,
+          roomChat ? '💬 chat' : '🔕 sem chat',
+          roomStream ? '🎥 stream' : null,
+          roomMode === 'liga' ? '🔒 com senha' : roomLocked ? '🔒 com senha' : '🔓 aberta',
+        ].filter(Boolean).join(' · ')
         return (
         <div className="space-y-3">
+          {criar2 && (<>
+            <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
+              <p className="font-black text-white text-[15px] uppercase leading-none" style={OSWALD}>O que vocês vão jogar?</p>
+              <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">Escolhe um. O resto já está no ponto.</p>
+              {MODOS.filter(m => m.on).map(m => {
+                const sel = roomMode === m.v
+                return (
+                  <button key={m.v} onClick={() => setRoomMode(m.v)}
+                    className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 mb-2 text-left active:translate-y-0.5"
+                    style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none' }}>
+                    <span style={{ fontSize: 24 }}>{m.ic}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="flex items-center gap-1.5">
+                        <span className="font-black text-black text-[15px]" style={OSWALD}>{m.nome}</span>
+                        {m.selo && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: sel ? '#fff' : GOLD, color: '#000', ...OSWALD }}>{m.selo}</span>}
+                      </span>
+                      <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
+                    </span>
+                    <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>
+                  </button>
+                )
+              })}
+              {/* 🏆 o quadro da liga continua aparecendo aqui — nome, dia/hora e senha
+                  são a identidade do modo, não "ajuste". Ele mora na seção ① lá
+                  embaixo, então na v2 a seção inteira abre junto quando é liga. */}
+              <Big onClick={createRoom} color={isCareer ? PURPLE : GREEN}>
+                <span style={{ color: '#fff' }}>{loading ? 'Criando...' : '🔨 Criar e chamar a galera'}</span>
+              </Big>
+              <button onClick={() => setAjustesAbertos(v => !v)}
+                className="w-full flex items-center gap-2 border-2 border-dashed rounded-xl px-2.5 py-2 mt-2.5 text-left"
+                style={{ borderColor: 'rgba(255,255,255,.28)' }}>
+                <span className="flex-1 text-white/60 text-[10.5px] font-bold leading-snug">{resumo}</span>
+                <span className="shrink-0 text-[10px] font-black uppercase border-2 border-black rounded-lg px-2.5 py-1.5 bg-white text-black" style={OSWALD}>⚙️ {ajustesAbertos ? 'Fechar' : 'Mudar'}</span>
+              </button>
+              <p className="text-white/35 text-[10px] font-bold leading-snug mt-1.5">Essa linha mostra tudo que está valendo. Nada fica escondido — só sai da frente de quem não quer mexer.</p>
+            </div>
+          </>)}
+          {(!criar2 || ajustesAbertos || roomMode === 'liga') && (<>
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
           <Section num={1} title="O básico" icon="📋">
             <div>
@@ -2735,9 +2799,12 @@ export function EscLobby() {
             )}
           </Section>
 
-          <Big onClick={createRoom} color={isCareer ? PURPLE : GOLD}>
-            <span style={{ color: isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
-          </Big>
+          </>)}
+          {!criar2 && (
+            <Big onClick={createRoom} color={isCareer ? PURPLE : GOLD}>
+              <span style={{ color: isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+            </Big>
+          )}
         </div>
         )
       })()}

@@ -336,6 +336,30 @@ function applyLigaUnlock(email?: string | null): void {
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
 export function ligaLiberada(): boolean { return ligaOk }
+
+// ─── 🔨 CRIAR SALA v2 — "1 decisão + o botão" ────────────────────────────────
+// Proposta de 29/08, depois do Diego perguntar *"se você pudesse reformular toda a
+// área de criar sala, o que você faria?"*. Diagnóstico medido: a tela pedia 11
+// decisões antes de deixar a pessoa jogar. A v2 põe o MODO em cartões, sobe o
+// botão pro alto e joga os outros 10 num ⚙️ Ajustes fechado — com uma linha
+// dizendo o que está valendo, pra não virar caixa-preta.
+// 🔒 Só a conta dele enxerga: *"code só pra eu ver como fica"*. A tela ANTIGA
+// continua inteira no código e é o que todo mundo vê — a v2 é um caminho paralelo,
+// então voltar atrás é só apagar o `true` daqui. Liberar geral: CRIAR2_GERAL = true.
+const CRIAR2_GERAL = false
+const CRIAR2_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+let criar2Ok = CRIAR2_GERAL
+function applyCriar2(email?: string | null): void {
+  const u = CRIAR2_GERAL || (!!email && CRIAR2_TESTERS.has(email.toLowerCase()))
+  if (u === criar2Ok) return
+  criar2Ok = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useCriarSala2(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return criar2Ok
+}
 export function useLigaLiberada(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
@@ -560,8 +584,8 @@ export function useSubAbasGrudadas(): boolean {
   return pilulasOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email) })
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
