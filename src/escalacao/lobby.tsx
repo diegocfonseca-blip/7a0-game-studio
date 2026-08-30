@@ -3454,6 +3454,17 @@ export function EscLobby() {
         </div>
       </div>
 
+      {/* 🔕 QUANDO O CHAT ESTÁ DESLIGADO, A SALA TEM QUE DIZER (29/08). O próprio
+          Diego caiu nisto: entrou numa sala com o chat desligado pelo host e achou
+          que o jogo tinha quebrado — *"sumiu chat, sumiu emojis, áudio e etc,
+          entendi nada"*. É que a zoeira e o chat são a MESMA coisa, então desligar
+          um leva os dois, e a tela não explicava nada. Silêncio sem motivo parece
+          bug; com a linha, é escolha do host e todo mundo entende. */}
+      {chatOff && (
+        <p className="text-white/35 text-[11px] font-bold text-center leading-snug">
+          🔕 O host criou esta sala <b className="text-white/55">sem chat</b> — por isso não tem conversa nem as reações de zoeira aqui.
+        </p>
+      )}
       {/* Zoeira da sala de espera: frases prontas que caem no CHAT da sala (o
           mesmo do leilão — as mensagens ficam, não somem). Tocar numa frase já
           abre a gaveta do chat pra você ver ela cair. */}
