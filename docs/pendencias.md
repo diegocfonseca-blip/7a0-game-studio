@@ -1,4 +1,41 @@
-# 📌 Pendências combinadas com o Diego (atualizado 29/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 30/08/2026)
+
+## 🐦‍⬛ MANFRÉ FC ganhou arte nova (30/08) — ✔️ NO AR
+O dono (danielmanfre5) mandou a arte, e ela APOSENTOU o escudo e a gralha que
+eram SVG desenhados à mão dentro do código (os de 09/08). Entregue: escudo
+`.webp` 291x360 · 28,5 KB · gralha `.webp` 239x440 · 26,9 KB (55 KB dos 75
+permitidos), manto vermelho `#FA050D` + azul `#0144E4` MEDIDOS na camisa, as 4
+formas do nome reservadas no banco (`Manfré`, `Manfré FC`, `Manfré EC` + as
+mesmas sem acento — só `Manfré FC` estava reservado antes) e a camisa do post em
+`scripts/kits/`.
+
+**Aprendizado de RECORTE que vale pra todo batismo daqui pra frente** (custou 4
+rodadas de bronca dele: *"cortado e desproporcional"*, *"toda defeituosa"*,
+*"cortado no suvaco"*):
+1. **Quadriculado PINTADO dentro do arquivo é armadilha dupla.** Além de virar
+   desenho, se a arte tiver parte SEMITRANSPARENTE (o rabo do corvo era), o
+   xadrez aparece POR DENTRO dela — não existe recorte certo, só escolher entre
+   comer o rabo ou deixar bloco preto. **Pedir arquivo com transparência DE
+   VERDADE, ou fundo chapado numa cor que não existe na arte.**
+2. **Foto de manequim com luz de estúdio NÃO recorta.** O brilho encostado na
+   roupa não tem borda, ele derrete no fundo: ou sobra borrão pendurado no
+   punho, ou come a manga. Arte DESENHADA com contorno preto recorta de
+   primeira. Se o dono mandar foto, pedir a versão desenhada.
+3. **Nunca separar peça com linha reta.** Eu cortei a camisa em `x > 1006` e
+   decepei 100 px da manga esquerda (a camisa saiu 493 de largura em vez de
+   635 — daí o "desproporcional"). Separar bloqueando a área das OUTRAS peças já
+   recortadas, nunca por coordenada chutada.
+4. **Medir o gradiente POR CANAL, não pelo brilho.** Manga vermelha sobre brilho
+   laranja: em brilho a diferença é 107 contra 87 (some), no canal vermelho é
+   100 (aparece). Foi o que tirou o serrilhado da manga.
+5. **Preto-no-preto pede FECHAR antes de ABRIR.** No desenho a manga encosta no
+   corpo por uma linha preta fina e o vão do sovaco também é escuro: o recorte
+   atravessava a costura e soltava a manga. Ordem que funciona: fecha (disco 4)
+   pra religar a costura → abre (disco 3) pra tirar farpa → raspa 1px pra jogar
+   a borda pra DENTRO do contorno preto → alisa com filtro de 2,5 px.
+6. **Conferir sobre CREME e sobre VERDE, e em ZOOM nas juntas** (sovaco, punho,
+   gola) — não só a peça inteira de longe.
+
 
 ## 👑 SÓ O DONO MEXE NA LIGA — o banco agora concorda com a regra (29/08)
 Ele conferiu: *"lembrando que no Minhas Ligas apenas o dono que criou pode editar
