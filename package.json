@@ -14,7 +14,8 @@
     "paises": "node scripts/paises-check.mjs",
     "vigias": "node scripts/checa-vigias-online.mjs",
     "rank": "node scripts/checa-rank-liga.mjs",
-    "telas": "node scripts/checa-telas.mjs"
+    "telas": "node scripts/checa-telas.mjs",
+    "batismos": "node scripts/checa-batismos.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
