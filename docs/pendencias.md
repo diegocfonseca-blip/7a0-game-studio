@@ -1,5 +1,59 @@
 # 📌 Pendências combinadas com o Diego (atualizado 31/08/2026)
 
+## 🌍 COPA DO MUNDO ONLINE (31/08) — feita, FECHADA só pra conta do Diego
+Pedido dele: *"faça a copa do mundo online aí agora, pegando o que já existe no
+modo carreira"*.
+
+**O que é:** sala nova (`mode: 'mundo'`) onde cada um pega **uma seleção** e
+**convoca 11** do país. Sem leilão, sem tabela de liga: rola a Copa inteira —
+4 grupos de 6, mata-mata ida e volta, final única. É o **mesmo torneio da
+carreira** (`copa-mundo.tsx`), a mesma convocação e o mesmo placar ao vivo.
+
+**A sacada que fez caber num dia:** `simulaCopaMundo` já era **função pura e
+semeada**. Então não existe "host mandando resultado": o dono publica a FICHA da
+Copa (semente + as 24 seleções com as 11 chaves de cada um) em `game_state`, e
+**cada aparelho recalcula o torneio inteiro sozinho**. Ninguém dessincroniza,
+nem se a internet cair no meio.
+
+**⚠️ Por que é seguro (regra #1: nunca quebrar o futebol):** a Copa **não passa
+pelo motor do leilão**. Nada de assento (`player_index`), nada de reducer, nada
+de `RESTORE_ONLINE` — que é de onde vieram os piores bugs da casa. A sala fica
+parada em `waiting` e a Copa é uma tela POR CIMA. Tirar a tela = a sala volta a
+ser uma sala normal.
+
+**O que ela NÃO faz, de propósito:** não paga moeda de clube (sala não tem
+caixa), não escreve no mural do Rank e não grava título em `esc_results`. Subir
+no ranking mundial continua sendo coisa da CARREIRA — foi bug em 17/08 a Copa
+vazar pra lá e não vai voltar.
+
+**Peças:** `src/escalacao/copa-mundo-online.tsx` (novo) · coluna `copa` em
+`room_players` (mesmo desenho do 🃏 Bafo: cada um escreve a própria linha, todos
+leem as dos outros — é assim que a tela sabe que país já tem dono) · `mode:
+'mundo'` no lobby · trava por conta em `sport.ts` (`MUNDO_GERAL = false`).
+Em `copa-mundo.tsx` a mudança foi mínima e aditiva: um `online?: boolean` no
+`CupScreen` e alguns `export` — **a Copa da carreira não mudou em nada**.
+
+**🛡️ Guarda novo: `npm run copa`.** A Copa online se apoia numa promessa só —
+**todo mundo vê a MESMA Copa**. Se alguém mexer no motor e ele passar a olhar
+pra algo diferente em cada aparelho, a sala racha sem dar erro nenhum: só um
+monte de gente discutindo quem ganhou. O guarda roda no navegador de verdade
+(sobe o vite, abre `scripts/checa-copa-online.html`) e confere: os 3 aparelhos
+calcularam a MESMA Copa · cada um é UMA seleção (nem zero nem duas) · quem não
+escolheu não vira ninguém · nenhuma seleção com menos de 11 · 24 times na ficha.
+
+**Ver como ficou sem entrar numa sala:** `scripts/vitrine-copa-online.html`
+(monta os componentes DE VERDADE com dados de mentira — foi de onde saíram as
+fotos que mandei pra ele).
+
+**Falta o Diego decidir, depois de testar:** (1) quantas pessoas no mínimo (hoje
+2) · (2) se a Copa da sala deve valer alguma coisa (carta do campeão? troféu na
+estante da liga?) — hoje não vale nada de propósito · (3) se libera pra geral
+(`MUNDO_GERAL = true`).
+
+**Como reverter:** commit isolado. A coluna `copa` pode ficar (é NULL em todo o
+resto) e a trava por conta já mantém o modo invisível pra todo mundo.
+
+
 ## 🔓 A LIGA TRANCADA EM "STARTED" (31/08) — consertado
 **Relato que chegou pro Diego:** *"no Minhas Ligas, começou um dia o jogo… e
 depois em outro dia, se quiser mandar convite pra uma nova pessoa entrar, não

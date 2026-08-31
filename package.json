@@ -15,7 +15,8 @@
     "vigias": "node scripts/checa-vigias-online.mjs",
     "rank": "node scripts/checa-rank-liga.mjs",
     "telas": "node scripts/checa-telas.mjs",
-    "batismos": "node scripts/checa-batismos.mjs"
+    "batismos": "node scripts/checa-batismos.mjs",
+    "copa": "node scripts/checa-copa-online.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -1,0 +1,51 @@
+<!doctype html><meta charset="utf-8"><title>checa copa online</title><div id="root"></div><pre id="out">rodando…</pre>
+<script type="module">
+const log = []
+const p = (s) => { log.push(s); document.getElementById('out').textContent = log.join('\n') }
+try {
+  // ordem de import IGUAL à do app (o ciclo screens↔pyramidseason↔copa-mundo
+  // só resolve nessa ordem; fora dela o dev server estoura na inicialização)
+  await import('/src/escalacao/screens.tsx')
+  await import('/src/escalacao/pyramidseason.tsx')
+  const { simulaCopaMundo, countryPool, bestXI } = await import('/src/escalacao/copa-mundo.tsx')
+  const { montaFicha, entrantesDaFicha, paisesDaCopa } = await import('/src/escalacao/copa-mundo-online.tsx')
+
+  const paises = paisesDaCopa()
+  p('seleções da Copa: ' + paises.length + ' → ' + paises.slice(0, 6).join(' · ') + ' …')
+
+  const gente = ['Brasil', 'Argentina', 'França'].map((pais, i) => {
+    const xi = bestXI(countryPool(pais), '4-3-3')
+    return { uid: 'uid-' + i, nome: ['Diego', 'Dérick', 'Arruda'][i], pick: { pais, form: '4-3-3', xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`) } }
+  })
+  const ficha = montaFicha(gente, 123456789, 1)
+  p('times na ficha: ' + ficha.times.length + ' | de gente: ' + ficha.times.filter(t => t.uid).length)
+
+  const resumo = (uid) => {
+    const e = entrantesDaFicha(ficha, uid)
+    const w = simulaCopaMundo(e, ficha.seed, ficha.edicao)
+    const gols = w.groups.flatMap(g => g.matches.flat()).map(m => m.gh + '-' + m.ga).join(',')
+    const ko = [...w.qf, ...w.sf].map(t => t.g1.join('') + t.g2.join('') + t.winner).join(',')
+    return { txt: 'campeao=' + e[w.final.champion].club + '|final=' + e[w.final.h].club + ' ' + w.final.g[0] + 'x' + w.final.g[1] + ' ' + e[w.final.a].club, all: gols + '|' + ko + '|' + w.final.champion }
+  }
+  const a = resumo('uid-0'), b = resumo('uid-1'), c = resumo(undefined)
+  p('')
+  p('aparelho do Diego : ' + a.txt)
+  p('aparelho do Dérick: ' + b.txt)
+  p('aparelho de quem só assiste: ' + c.txt)
+  p('')
+  p('TODO MUNDO VÊ A MESMA COPA? ' + ((a.all === b.all && b.all === c.all) ? 'SIM' : 'NAO'))
+
+  const eA = entrantesDaFicha(ficha, 'uid-0')
+  p('quantos "você" no aparelho do Diego: ' + eA.filter(x => x.you).length + ' → ' + (eA.find(x => x.you) || {}).club + ' / ' + (eA.find(x => x.you) || {}).pais)
+  p('e no de quem não escolheu: ' + entrantesDaFicha(ficha, 'uid-zzz').filter(x => x.you).length)
+
+  const f2 = montaFicha(gente, 987654321, 2)
+  const r2 = resumoDe(f2)
+  function resumoDe(f) { const e = entrantesDaFicha(f, 'uid-0'); const w = simulaCopaMundo(e, f.seed, f.edicao); return e[w.final.champion].club }
+  p('Copa NOVA (outra semente) dá outro campeão? ' + (r2 !== a.txt.split('|')[0].split('=')[1] ? 'SIM (' + r2 + ')' : 'nao, deu o mesmo (' + r2 + ')'))
+
+  const semXi = ficha.times.filter(t => entrantesDaFicha(ficha)[ficha.times.indexOf(t)].xi.length !== 11)
+  p('alguma seleção com time incompleto? ' + (semXi.length ? 'SIM — ' + semXi.map(t => t.pais).join(',') : 'nenhuma'))
+  p('FIM')
+} catch (e) { p('ERRO: ' + (e && e.stack || e)) }
+</script>

@@ -13,7 +13,12 @@ import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSala2, usePreviewComum } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSala2, usePreviewComum, useMundoLiberado } from './sport'
+// 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
+// arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
+// NÃO passa pelo motor do leilão: a sala fica em `waiting` e ela é uma tela por
+// cima. Tirar daqui = a sala volta a ser uma sala normal.
+import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -32,7 +37,7 @@ const MAX_LIGAS = 5
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
-interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoTime | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
+interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoTime | null; copa?: CopaPick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
 interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
@@ -44,7 +49,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga'; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -573,7 +578,7 @@ export function EscLobby() {
   // 👔🃏 SALA DE ELENCO (17/08): 3º modo — em vez de leiloar, cada um traz o time
   // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
   const salaElenco = useSalaElencoLiberada()
-  const [roomMode, setRoomMode] = useState<'rapido' | 'liga' | 'carreira' | 'elenco'>('rapido')
+  const [roomMode, setRoomMode] = useState<'rapido' | 'liga' | 'carreira' | 'elenco' | 'mundo'>('rapido')
   // 🏆 LIGA FECHADA (20/08): a sala que fica de pé. O que ela guarda a mais que
   // uma sala rápida é só ISTO — quando vocês jogam e se tem bot. O resto (leilão,
   // temporada, fim de jogo) é o rápido de sempre, sem uma linha diferente.
@@ -619,6 +624,12 @@ export function EscLobby() {
   // 🃏 BAFO: o host decide se a partida vale carta (padrão) ou se é amistoso.
   // Ausente/antigo = VALENDO — é a identidade do modo; só o "não" é gravado.
   const [bafoValendo, setBafoValendo] = useState(true)
+  // 🌍 COPA DO MUNDO ONLINE — em construção, só a conta do Diego enxerga
+  const mundoOn = useMundoLiberado()
+  const [copaAbrindo, setCopaAbrindo] = useState(false)
+  const [copaErro, setCopaErro] = useState('')
+  const [copaAberta, setCopaAberta] = useState(false) // 🌍 o torneio está na tela
+
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
@@ -910,6 +921,14 @@ export function EscLobby() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` },
         ({ new: r }: { new: RoomInfo }) => {
           if (r.status === 'started') { triggerStart(r); return }
+          // 🌍 SALA DE COPA: aqui o `game_state` é minúsculo (não tem elenco de
+          // ninguém) e é justamente por ele que a FICHA da Copa chega. Só neste
+          // modo o estado inteiro é adotado — nos outros continua entrando só o
+          // host_id, como sempre, pra não atropelar nada da sala.
+          if ((r.game_state as GS)?.mode === 'mundo') {
+            setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id, game_state: r.game_state } : prev)
+            return
+          }
           setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id } : prev)
         })
       // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
@@ -952,6 +971,14 @@ export function EscLobby() {
     setRoom(null); setPlayers([]); setPhase('menu')
     setTimeout(() => { try { alert('O host removeu você da sala.') } catch { /* ignora */ } }, 0)
   }, [players, phase, room, user, isHost])
+
+  // 🌍 A COPA ABRE SOZINHA NA TELA DE TODO MUNDO (31/08). O gatilho é a SEMENTE
+  // da ficha: quando o dono publica uma Copa nova, a semente muda e a tela abre
+  // pra sala inteira. Quem fecha pra dar uma olhada na sala não é reaberto à
+  // força — só uma Copa NOVA abre de novo (e o botão "🌍 voltar pra Copa" fica
+  // ali do lado pra voltar quando quiser).
+  const copaSeedAtual = (room?.game_state as GS)?.copaMundo?.seed
+  useEffect(() => { if (copaSeedAtual != null) setCopaAberta(true) }, [copaSeedAtual])
 
   // 🛟 REDE DE SEGURANÇA CONTRA TELA PRETA: se a fase for "waiting" mas a sala
   // sumiu (host encerrou, sala apagada, restauração falhou), o app renderizava
@@ -1405,6 +1432,10 @@ export function EscLobby() {
     // será apenas divisão de 38 rodadas nesse modo"). Por isso entra com
     // copaMode:'liga' TRAVADO, e o seletor de Copa nem aparece na criação.
     const elenco = salaElenco && roomMode === 'elenco'
+    // 🌍 COPA DO MUNDO: sala SEM leilão e sem tabela. Ela não usa copaMode,
+    // baralho nem formação — o time de cada um é a convocação da seleção. Por
+    // isso entra no `gs` só com o `mode`, e nada mais.
+    const mundo = mundoOn && roomMode === 'mundo'
     // 🏆 LIGA FECHADA: por baixo é a MESMA sala rápida — o que ela leva a mais é
     // o horário marcado (`ligaAt`) e o `mode: 'liga'`, que é o que faz ela não
     // sumir da lista e ganhar a sala de troféus na espera. Sem bot = a liga
@@ -1413,7 +1444,7 @@ export function EscLobby() {
     // que ele é), e o botão de criar some junto com as configurações. Mas se algum
     // caminho furar, criar uma sala de modo que a conta NÃO tem viraria uma sala
     // rápida disfarçada de carreira. Aqui recusa antes de escrever no banco.
-    if ((roomMode === 'carreira' && !canCareer) || (roomMode === 'elenco' && !salaElenco)) {
+    if ((roomMode === 'carreira' && !canCareer) || (roomMode === 'elenco' && !salaElenco) || (roomMode === 'mundo' && !mundoOn)) {
       setRoomError('Esse modo ainda está em construção — em breve libera pra todo mundo! Por enquanto dá pra jogar no ⚡ Rápido.')
       setLoading(false); return
     }
@@ -1458,7 +1489,7 @@ export function EscLobby() {
       }
       ligaAt = quando.toISOString()
     }
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1549,6 +1580,8 @@ export function EscLobby() {
     // 🃏 BAFO também fica FORA da lista pública enquanto está em construção —
     // mesmo tratamento da carreira online. Quem tem o modo liberado vê normal.
     const isBafo = (r: RoomInfo) => r.game_state?.mode === 'elenco' && !salaElenco
+    // 🌍 mesma regra pra Copa do Mundo online enquanto está em construção
+    const isMundo = (r: RoomInfo) => r.game_state?.mode === 'mundo' && !mundoOn
     // 🏆 A LIGA AGORA APARECE NA LISTA (mudou em 22/08, com o Diego olhando ao vivo:
     // *"o Neymarzetti botou sala aberta e msm se fosse fechada deveria aparecer"*).
     // A regra velha (19/08) escondia a liga de todo mundo, e naquela época fazia
@@ -1603,7 +1636,7 @@ export function EscLobby() {
       // dentro, aparece. Assim a turma pode esticar a noite ou jogar de novo depois
       // sem precisar remarcar. Liga sem hora marcada (não deve existir) não trava.
       .filter(r => {
-        if (isCareer(r) || isBafo(r)) return false
+        if (isCareer(r) || isBafo(r) || isMundo(r)) return false
         // 🏆 liga: SÓ com a partida rolando. ⚡ rápida: a regra de sempre.
         if (ehLigaRow(r)) return ligaRolando(r)
         return r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
@@ -1858,6 +1891,11 @@ export function EscLobby() {
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
       setRoomError('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
     }
+    // 🌍 mesma trava do Bafo pra Copa do Mundo online: esconder da lista não
+    // basta, porque o código e o link do zap entram por aqui do mesmo jeito.
+    if (rd.game_state?.mode === 'mundo' && !mundoOn) {
+      setRoomError('Essa sala é da 🌍 Copa do Mundo online, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
+    }
     if (rd.status === 'started') {
       const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
       // 🏆 CONVIDADO NOVO NUMA LIGA TRANCADA (31/08). A liga fica `started` depois
@@ -1941,6 +1979,41 @@ export function EscLobby() {
     if (!user) return
     setLoading(true); setRoomError('')
     await enterRoom(rd)
+  }
+
+  // 🌍 O DONO ABRE A COPA. Ele não "manda o resultado": publica a FICHA (a
+  // semente + as 24 seleções com as 11 chaves de cada um) em `game_state`. Cada
+  // aparelho recalcula o torneio inteiro sozinho a partir dela — `simulaCopaMundo`
+  // é função pura e semeada, então todo mundo vê a MESMA Copa, gol por gol, sem
+  // sincronizar uma partida sequer.
+  // ⚠️ A SALA NÃO VIRA `started`: a Copa não passa pelo motor do leilão (nada de
+  // assento, nada de reducer). É uma tela POR CIMA da sala de espera.
+  async function abrirCopa() {
+    if (!room || !isHost || copaAbrindo) return
+    setCopaAbrindo(true); setCopaErro('')
+    try {
+      const { data } = await supabase.from('room_players').select('user_id, manager_name, copa').eq('room_id', room.id)
+      const linhas = (data ?? []) as { user_id: string; manager_name: string; copa: CopaPick | null }[]
+      const gente = linhas.filter(r => copaPickOk(r.copa)).map(r => ({ uid: r.user_id, nome: stripEmoji(r.manager_name).trim() || 'Técnico', pick: r.copa as CopaPick }))
+      if (gente.length < 2) {
+        setCopaErro('A Copa precisa de pelo menos 2 seleções de gente. Quem ainda não escolheu está no aviso aí em cima.')
+        setCopaAbrindo(false); return
+      }
+      // relê o estado FRESCO: o número da edição vem do que já foi jogado nesta
+      // sala, então duas Copas seguidas não se confundem no histórico.
+      const { data: fresco } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
+      const gsAtual = (fresco?.game_state ?? room.game_state) as GS
+      const edicao = ((gsAtual?.copaMundo?.edicao ?? 0) + 1)
+      const ficha = montaFicha(gente, Math.floor(Math.random() * 1e9), edicao)
+      const { error } = await supabase.from('game_rooms')
+        .update({ game_state: { ...gsAtual, copaMundo: ficha }, updated_at: new Date().toISOString() })
+        .eq('id', room.id)
+      if (error) { setCopaErro('Não consegui abrir a Copa agora. Tenta de novo em instantes.'); setCopaAbrindo(false); return }
+      // o dono não espera o eco do banco (mesma lição do "não consigo abrir o
+      // pregão", 22/08): abre na própria tela na hora.
+      setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...gsAtual, copaMundo: ficha } as GS } : prev)
+      setCopaAberta(true)
+    } finally { setCopaAbrindo(false) }
   }
 
   async function startOnline() {
@@ -2529,6 +2602,7 @@ export function EscLobby() {
           { v: 'liga', ic: '🏆', nome: 'Minhas ligas', frase: 'A sala da turma que não acaba.', on: ligaOn, selo: '👑 LENDA' },
           { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões + Várzea — sobe e cai.', on: canCareer, emTeste: true },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Só com o seu time da carreira, valendo carta.', on: salaElenco, emTeste: true },
+          { v: 'mundo', ic: '🌍', nome: 'Copa do Mundo', frase: 'Cada um pega uma seleção. Sem leilão.', on: mundoOn, emTeste: true },
         ]
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
@@ -2649,6 +2723,7 @@ export function EscLobby() {
           liga: '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.',
           carreira: '🌐 Pirâmide de 4 divisões + a Várzea — cada técnico sobe e cai por conta própria, no mesmo mundo pra todos.',
           elenco: '🃏 SEM LEILÃO — cada um entra com o time da PRÓPRIA carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta pro de cima.',
+          mundo: '🌍 SEM LEILÃO — cada um pega UMA seleção e convoca 11 jogadores do país. Aí rola a Copa inteira: 4 grupos, mata-mata e final. É a Copa do Mundo da carreira, agora com a turma.',
         }
         return (
         <div className="space-y-3">
@@ -3207,6 +3282,16 @@ export function EscLobby() {
       : !duplasOn || ready ? '' :
       `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
+    // 🌍 SALA DE COPA DO MUNDO — a espera aqui não é "esperar o pregão abrir":
+    // é cada um escolher a seleção e convocar os 11. Por isso ela tem painel
+    // próprio e NÃO mostra o botão de começar o leilão.
+    const ehMundoSala = room.game_state?.mode === 'mundo'
+    const copaFicha = (room.game_state as GS)?.copaMundo ?? null
+    const minhaCopa = (players.find(p => p.user_id === user?.id)?.copa ?? null) as CopaPick | null
+    const copaProntos = players.filter(p => copaPickOk(p.copa)).map(p => ({ nome: stripEmoji(p.manager_name).trim() || 'Técnico', pais: (p.copa as CopaPick).pais }))
+    const copaPegasPorOutros = players
+      .filter(p => p.user_id !== user?.id && copaPickOk(p.copa))
+      .map(p => ({ pais: (p.copa as CopaPick).pais, nome: stripEmoji(p.manager_name).trim() || 'Técnico' }))
     // 📣 A CAIXA DO CONVITE — uma só, montada aqui e desenhada em UM dos dois
     // lugares (31/08, o furo que o amigo do Diego pegou: *"criou o Minhas Ligas
     // mas n soube aonde manda o convite"*).
@@ -3378,6 +3463,32 @@ export function EscLobby() {
       {/* na sala ⚡ RÁPIDA o convite continua exatamente onde sempre esteve — lá o
           código já basta e a tela é curta. Só a LIGA move a caixa pro topo. */}
       {!ehLigaSala && caixaConvite}
+
+      {/* 🌍 COPA DO MUNDO ONLINE: a faixa, a escolha da seleção e o painel de
+          quem já convocou. Nada disto encosta no leilão — a sala segue parada
+          em `waiting` e a Copa é uma tela por cima. */}
+      {ehMundoSala && <FaixaCopa />}
+      {ehMundoSala && user && (
+        <EscolhaSelecao roomId={room.id} meuUid={user.id} minha={minhaCopa}
+          pegasPorOutros={copaPegasPorOutros} aoEscolher={() => { void fetchPlayers(room.id) }} />
+      )}
+      {ehMundoSala && (
+        <PainelDaCopa prontos={copaProntos} total={players.length} souDono={isHost}
+          abrindo={copaAbrindo} aoAbrir={() => { void abrirCopa() }} />
+      )}
+      {ehMundoSala && !!copaErro && (
+        <p className="text-[11.5px] font-black text-center leading-snug mb-2" style={{ color: '#FFD9D2' }}>{copaErro}</p>
+      )}
+      {ehMundoSala && copaFicha && !copaAberta && (
+        <button onClick={() => setCopaAberta(true)}
+          className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm mb-2.5 active:translate-y-0.5"
+          style={{ background: GOLD, color: INK, boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
+          🌍 VOLTAR PRA COPA
+        </button>
+      )}
+      {ehMundoSala && copaFicha && copaAberta && (
+        <CopaDaSala ficha={copaFicha} meuUid={user?.id} aoFechar={() => setCopaAberta(false)} />
+      )}
 
       {/* 🃏 BAFO: antes de tudo, o técnico escolhe qual carreira traz. Enquanto não
           escolher, ele fica "montando" — e o host vê isso na lista.
@@ -3703,6 +3814,7 @@ export function EscLobby() {
         const esperaLabel = elencoOn ? `Aguardando… (${bafoAptos.length}/2 montados)` : duplasOn ? 'Aguardando…' : `Aguardando… (${players.length}/2 mín)`
         // 🃏 se falta alguém montar, o toque abre o banner em vez de começar
         const onStart = () => { if (elencoOn && bafoFaltam.length > 0) setBafoAviso(true); else void startOnline() }
+        if (ehMundoSala) return null // 🌍 a Copa tem o botão dela no painel de cima
         return isHost
           ? <>
               <Big onClick={onStart} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
