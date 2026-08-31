@@ -1,5 +1,38 @@
 # 📌 Pendências combinadas com o Diego (atualizado 31/08/2026)
 
+## 📤 O CONVITE DA LIGA (31/08) — feito e aprovado pelo mockup
+**Como apareceu:** *"um amigo disse q criou o Minhas Ligas mas n soube aonde
+manda o convite pros amigos dele após ele criar"*.
+
+**O botão existia** (a caixa roxa "📣 Chame a galera"). Medindo no código, eram
+TRÊS furos no mesmo minuto:
+1. No card 🏆 Minhas ligas da home o dono só tinha ▶️ Entrar · ✏️ Editar ·
+   🗑️ Excluir — nenhum convite, e é o primeiro lugar que ele olha depois de criar.
+2. Dentro da liga a caixa roxa era o ÚLTIMO bloco: vinha depois do dia marcado,
+   do remarcar e da regra do ranking. No celular, mais de uma tela de rolagem.
+3. O texto compartilhado **não falava da SENHA** (obrigatória na liga desde
+   29/08) — mandava só nome, código e link. O amigo caía na porta trancada e o
+   dono jurava ter mandado o convite certo.
+
+**Feito** (mockup `scripts/mockup-convite-liga.mjs`, aprovado: *"Ok põe fazer"*):
+- **📤 Convidar** no card da home, só pro dono, do lado de Editar/Excluir (o
+  Excluir encurtou pra caber os três).
+- Na LIGA a caixa roxa subiu pra logo debaixo do código. Na sala ⚡ Rápida ficou
+  exatamente onde estava (lá o código basta e a tela é curta).
+- O convite da liga agora leva **nome + dia marcado + código + senha + link**.
+  Sem share nativo (PC) ele copia a MENSAGEM INTEIRA, não só o link.
+
+**A senha NÃO é guardada.** O banco continua só com o `pwHash`; o campo da caixa
+roxa serve pro dono escrever o que vai na mensagem e morre quando a tela fecha.
+Se ele não escrever, o convite diz "a liga tem senha — te mando ela aqui
+embaixo". Quem esqueceu troca em 🏆 Minhas ligas › ✏️ Editar (já existia).
+
+**Não virou novidade de propósito:** é conserto de caminho, e a regra do Diego é
+*"menos bugs, que nunca lance"*.
+
+**Como reverter:** commit isolado. Não encosta em leilão, assento nem banco.
+
+
 ## 👑 A SÉRIE A E A SÉRIE D TROCARAM DE CLUBES (31/08) — feito, NÃO publicado
 **O que ele pediu, nas palavras dele:** *"hj custa dez reais a mais p time virar
 série D e qm jogar no online rápido é série D tb. Problema q n tem sentido pagar

@@ -1203,14 +1203,42 @@ export function EscLobby() {
   // Compartilha o link de convite (?j=CODE) — abre o menu nativo do celular
   // (WhatsApp/Telegram/etc). Fallback: copia pro clipboard.
   const [shareOk, setShareOk] = useState<'link' | 'code' | null>(null)
-  async function shareInvite(code: string, roomName?: string) {
+  // 🔒 A SENHA QUE VAI DENTRO DO CONVITE — e SÓ isso (31/08). O dono escreve aqui
+  // qual é a senha da liga pra ela ir junto na mensagem. **Nada é guardado**: o
+  // banco continua tendo só a senha embaralhada (`pwHash`) e ninguém consegue
+  // lê-la de volta, nem eu. É um campo de texto que morre quando a tela fecha.
+  // Quem esqueceu qual era troca em ✏️ Editar, que já existe desde 29/08.
+  const [convitePw, setConvitePw] = useState('')
+  async function shareInvite(code: string, roomName?: string, liga?: { at?: string; senha?: string }) {
     const url = `${window.location.origin}${window.location.pathname}?j=${code}`
-    const text = `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
+    // 🏆 O CONVITE DA LIGA PRECISA LEVAR TUDO QUE A PORTA PEDE (Diego 31/08:
+    // *"um amigo criou o Minhas Ligas mas n soube aonde manda o convite"*).
+    // O texto nasceu mandando só nome + código + link — e a liga EXIGE senha
+    // desde 29/08. O amigo clicava, batia na porta trancada e o dono jurava ter
+    // mandado o convite certo. Agora vai o dia marcado e a senha junto.
+    // ⚠️ Na liga NÃO passa `url` pro share nativo: o texto já termina no link, e
+    // o WhatsApp cola a url de novo no fim quando os dois vão juntos.
+    const linhas: (string | null)[] = [
+      '🏆 Te chamei pra minha liga no Leilão Legends!',
+      '',
+      roomName ? `*${roomName}*` : null,
+      liga?.at ? `📅 ${quandoLiga(liga.at).txt}` : null,
+      `🔑 Código: ${code}`,
+      liga?.senha?.trim() ? `🔒 Senha: ${liga.senha.trim()}` : '🔒 A liga tem senha — te mando ela aqui embaixo',
+      '',
+      'Entra por aqui 👇',
+      url,
+    ]
+    const text = liga
+      ? linhas.filter((l): l is string => l !== null).join('\n')
+      : `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
     if (typeof nav.share === 'function') {
-      try { await nav.share({ title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
+      try { await nav.share(liga ? { title: 'Leilão Legends', text } : { title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
     }
-    try { await navigator.clipboard.writeText(url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+    // sem share nativo (PC): copia. Na liga copia a MENSAGEM INTEIRA — o link
+    // sozinho não abre a porta, que é o furo que estamos consertando.
+    try { await navigator.clipboard.writeText(liga ? text : url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
   }
   async function copyCode(code: string) {
     try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
@@ -2290,6 +2318,18 @@ export function EscLobby() {
                     apagar a liga dos outros. */}
                 {souDono && cardEdit !== r.id && (
                   <div className="flex gap-2 mt-2">
+                    {/* 📤 CONVIDAR NA PORTA DA FRENTE (31/08). O convite existia só
+                        DENTRO da sala, e lá no fim de tudo — depois do dia marcado,
+                        do remarcar e da regra do ranking. Um amigo do Diego criou a
+                        liga e não achou como chamar a turma: *"criou o Minhas Ligas
+                        mas n soube aonde manda o convite pros amigos dele"*. Este é
+                        o primeiro lugar que o dono olha depois de criar, então é
+                        aqui que o botão tem que estar. Só pro DONO, igual Editar e
+                        Excluir — convidado não vê. */}
+                    <button onClick={() => { void shareInvite(r.code, nm, { at: gs?.ligaAt }) }}
+                      className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] text-white active:translate-y-0.5" style={{ background: PURPLE, ...OSWALD }}>
+                      📤 Convidar
+                    </button>
                     <button onClick={() => {
                       const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
                       const pad = (n: number) => String(n).padStart(2, '0')
@@ -2305,7 +2345,7 @@ export function EscLobby() {
                     <button onClick={() => { void excluirLigaId(r.id, nm, souDono) }}
                       className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5"
                       style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-                      🗑️ Excluir a liga
+                      🗑️ Excluir
                     </button>
                   </div>
                 )}
@@ -3106,12 +3146,63 @@ export function EscLobby() {
       : !duplasOn || ready ? '' :
       `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
+    // 📣 A CAIXA DO CONVITE — uma só, montada aqui e desenhada em UM dos dois
+    // lugares (31/08, o furo que o amigo do Diego pegou: *"criou o Minhas Ligas
+    // mas n soube aonde manda o convite"*).
+    //   · LIGA  → logo DEBAIXO DO CÓDIGO. Chamar a galera é a primeira coisa a
+    //     fazer numa sala que acabou de nascer, e antes disso ela ficava depois
+    //     do bloco inteiro da liga (dia marcado + remarcar + regra do ranking) —
+    //     no celular, mais de uma tela de rolagem. Quem não rolou, não achou.
+    //   · RÁPIDA → onde sempre esteve. Lá o código já basta e a tela é curta.
+    const ehLigaSala = room.game_state?.mode === 'liga'
+    const caixaConvite = (
+      <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
+        <p className="text-white/80 text-[11px] font-medium leading-snug">
+          Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
+        </p>
+        {/* 🔒 a senha entra NO CONVITE, e só. Ninguém consegue LER a senha da liga
+            (o banco guarda ela embaralhada), então o dono escreve aqui qual é pra
+            ela viajar junto com o código. Nada fica guardado: fechou a tela,
+            sumiu. Esqueceu qual era? Troca em "🏆 Minhas ligas › ✏️ Editar". */}
+        {ehLigaSala && isHost && (
+          <div className="rounded-xl border-2 border-black px-2.5 py-2" style={{ background: 'rgba(255,255,255,.14)' }}>
+            <p className="text-white/70 text-[9px] font-black uppercase tracking-wider" style={OSWALD}>🔒 senha da liga (vai junto no convite)</p>
+            <input value={convitePw} maxLength={24} onChange={e => setConvitePw(e.target.value)}
+              placeholder="escreva a senha que você criou"
+              className="w-full border-2 border-black rounded-lg px-2 py-1.5 mt-1 font-black text-black text-[13px] bg-white" style={OSWALD} />
+            <p className="text-white/60 text-[10px] font-bold leading-snug mt-1">
+              Sem a senha o amigo bate na porta trancada. Esqueceu qual é? Troque em <b>🏆 Minhas ligas › ✏️ Editar</b>.
+            </p>
+          </div>
+        )}
+        <div className="flex gap-2">
+          <button onClick={() => shareInvite(room.code, room.game_state?.roomName, ehLigaSala ? { at: (room.game_state as GS)?.ligaAt, senha: convitePw } : undefined)}
+            className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
+            📤 Compartilhar convite
+          </button>
+          <button onClick={() => copyCode(room.code)}
+            className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
+            aria-label="Copiar código">
+            📋
+          </button>
+        </div>
+        {shareOk && (
+          <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
+            ✓ {shareOk === 'code' ? 'Código copiado' : ehLigaSala ? 'Convite copiado — cola no zap' : 'Link copiado — cola no zap'}
+          </p>
+        )}
+      </div>
+    )
     return wrap(<>
       <div className="text-center">
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
       </div>
+
+      {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima) */}
+      {ehLigaSala && caixaConvite}
 
       {/* 🏆 A LIGA TEM HORA MARCADA — e é a primeira coisa que a pessoa precisa ver
           ao abrir a sala. Sem isto o combinado só vivia na cabeça da turma. */}
@@ -3223,30 +3314,9 @@ export function EscLobby() {
         )
       })()}
 
-      {/* Convite: manda o link direto no zap — o amigo cai na sala automaticamente
-          (se já tem conta) ou no cadastro rápido e depois na sala. */}
-      <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
-        <p className="text-white/80 text-[11px] font-medium leading-snug">
-          Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
-        </p>
-        <div className="flex gap-2">
-          <button onClick={() => shareInvite(room.code, room.game_state?.roomName)}
-            className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
-            📤 Compartilhar convite
-          </button>
-          <button onClick={() => copyCode(room.code)}
-            className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
-            aria-label="Copiar código">
-            📋
-          </button>
-        </div>
-        {shareOk && (
-          <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
-            ✓ {shareOk === 'code' ? 'Código copiado' : 'Link copiado — cola no zap'}
-          </p>
-        )}
-      </div>
+      {/* na sala ⚡ RÁPIDA o convite continua exatamente onde sempre esteve — lá o
+          código já basta e a tela é curta. Só a LIGA move a caixa pro topo. */}
+      {!ehLigaSala && caixaConvite}
 
       {/* 🃏 BAFO: antes de tudo, o técnico escolhe qual carreira traz. Enquanto não
           escolher, ele fica "montando" — e o host vê isso na lista.
