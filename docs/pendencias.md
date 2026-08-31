@@ -19,26 +19,37 @@ acabado e a porta ficou trancada.
 
 **Feito:**
 - RPC **`esc_liga_reabre(p_room uuid)`** (SECURITY DEFINER, `grant` só pra
-  `authenticated`). Ela é conservadora de propósito e devolve um texto:
-  `nao_dono` (só quem criou reabre — a coroa não troca) · `rolando` (batida do
-  host há menos de 3 min: partida VIVA, não encosta) · `meio` (tela de
-  leilão/temporada: gente nova entraria SEM TIME, que é o bug do "virei bot" —
-  não encosta) · `ok` (temporada na tela `end`: volta pra `waiting` e põe a tela
-  em `lobby`, pra próxima temporada nascer com todo mundo).
-- **📤 Convidar reabre sozinho**: apertar Convidar já quer dizer "quero gente
-  nova aqui". Não é automático — é o dono apertando. Se der `rolando`/`meio`, ele
-  lê o porquê e nada muda.
-- **A mensagem do convidado passou a dizer o caminho**: *"essa liga já jogou e
-  está guardada; peça pro dono apertar 📤 Convidar"* no lugar de "você não está
-  nessa sala".
+  `authenticated`). Devolve um texto: `sem_login` · `rolando` (batida do host há
+  menos de 3 min: partida VIVA, não encosta) · `meio` (tela de leilão/temporada:
+  gente nova entraria SEM TIME, que é o bug do "virei bot" — não encosta) · `ok`
+  (temporada na tela `end`: volta pra `waiting` e põe a tela em `lobby`, pra
+  próxima temporada nascer com todo mundo).
+- **📤 Convidar destranca junto** e **quem recebe o convite destranca sozinho**
+  ao entrar. Continua precisando do código + senha pra entrar de verdade.
+
+### ⚠️ A 1ª VERSÃO NÃO RESOLVEU — e o erro vale ficar escrito
+A primeira tentativa deixava **só o DONO** destrancar. O Diego voltou no mesmo
+dia: *"o convite tinha aparecido q conseguimos arrumar, porém o pessoal n tava
+conseguindo entrar"*. O motivo é bobo e é o de sempre: **o dono nunca vê o
+problema** — ele TEM vaga na sala, então abrir a liga o joga direto na partida
+guardada. Quem bate na porta é o amigo, e ele dependia de um botão que o dono
+não sabia que existia. **Trava que depende de coordenação por fora do jogo não é
+trava, é armadilha.**
+
+Destrancar sem ser dono não afrouxa nada que importe: `host_id` não é tocado
+(a coroa não se move), partida viva e temporada no meio continuam intocáveis, e
+**liga em espera não aparece na lista pública** (o filtro do lobby só mostra liga
+com partida rolando) — então destrancar não expõe a sala pra ninguém.
 
 **A estante não corre risco:** campeão/artilheiro/mico moram em `game_champions`
 (uma linha por partida, com `humanos` carimbado). Zerar a telinha da sala não
 apaga troféu nenhum — as 4 temporadas do Dérick estão lá.
 
-**Testado em transação com ROLLBACK** (produção intocada): partida viva →
-`rolando`; temporada no meio → `meio`; temporada acabada → `ok` e a sala vira
-`waiting/lobby`. Chamada sem ser dono → `nao_dono`.
+**Testado em transação com ROLLBACK** (produção intocada), os cinco casos: sem
+login → `sem_login`; amigo com a liga parada → `ok` e a sala vira `waiting/lobby`;
+amigo com partida viva → `rolando`; amigo com temporada no meio → `meio`. E as 4
+temporadas do Dérick têm `match_seed` distinto, então a estante não se sobrescreve
+quando a liga recomeçar.
 
 **Limite que continua valendo, e é regra e não bug:** ninguém entra no MEIO de
 uma temporada. Quem é convidado enquanto uma temporada corre só joga na próxima.

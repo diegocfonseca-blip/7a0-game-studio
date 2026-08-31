@@ -1256,18 +1256,17 @@ export function EscLobby() {
   // troca), ela não encosta na sala se a partida está VIVA ou no MEIO de uma
   // temporada, e ela troca só a telinha em vez de reescrever o estado inteiro.
   // A estante não corre risco: campeão e artilheiro moram em `game_champions`.
-  async function reabreLiga(roomId: string): Promise<'ok' | 'rolando' | 'meio' | 'nao_dono' | 'erro'> {
+  async function reabreLiga(roomId: string): Promise<'ok' | 'rolando' | 'meio' | 'erro'> {
     try {
       const { data, error } = await supabase.rpc('esc_liga_reabre', { p_room: roomId })
       if (error) return 'erro'
       const r = String(data ?? '')
-      return r === 'ok' || r === 'rolando' || r === 'meio' || r === 'nao_dono' ? r : 'erro'
+      return r === 'ok' || r === 'rolando' || r === 'meio' ? r : 'erro'
     } catch { return 'erro' }
   }
-  const AVISO_REABRE: Record<'rolando' | 'meio' | 'nao_dono' | 'erro', string> = {
-    rolando: '🔴 A partida dessa liga está rolando agora. Quando a turma terminar, é só chamar — aí a pessoa nova entra na próxima temporada.',
-    meio: '⏳ Essa liga está no MEIO de uma temporada. Quem entrasse agora ficaria sem time, então dá pra chamar gente nova só quando essa temporada acabar. Termine com a turma que já está e depois chame.',
-    nao_dono: '👑 Só quem criou a liga pode abrir a sala pra gente nova.',
+  const AVISO_REABRE: Record<'rolando' | 'meio' | 'erro', string> = {
+    rolando: '🔴 A partida dessa liga está rolando agora. Quando a turma terminar, é só entrar — quem chega agora joga a próxima temporada.',
+    meio: '⏳ Essa liga está no MEIO de uma temporada. Quem entrasse agora ficaria sem time, então só dá pra entrar quando essa temporada acabar. Fala com a turma pra terminar e volta depois.',
     erro: 'Não consegui abrir a sala agora. Tenta de novo em instantes.',
   }
   async function copyCode(code: string) {
@@ -1863,17 +1862,20 @@ export function EscLobby() {
       const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
       // 🏆 CONVIDADO NOVO NUMA LIGA TRANCADA (31/08). A liga fica `started` depois
       // da primeira partida e não voltava mais — quem chegava pelo convite lia
-      // "você não está nessa sala", sem nenhuma pista do que fazer. Se sou o
-      // DONO, reabro na hora; se não sou, o texto diz exatamente o caminho.
+      // "você não está nessa sala", sem nenhuma pista do que fazer.
+      // ⚠️ A 1ª tentativa mandava o convidado PEDIR pro dono destrancar. Não
+      // resolveu, e o Diego voltou no mesmo dia: *"o convite tinha aparecido…
+      // porém o pessoal não tava conseguindo entrar"*. O motivo é bobo e é o de
+      // sempre: o DONO nunca vê o problema — ele tem vaga na sala, então abrir a
+      // liga o joga direto na partida guardada. Quem bate na porta é o amigo, e
+      // ele dependia de um botão que o dono não sabia que existia.
+      // Agora o próprio convidado destranca (a função do banco só destranca liga
+      // PARADA, nunca partida viva nem temporada no meio) e segue pro fluxo
+      // normal — onde ainda vai precisar da SENHA pra entrar de verdade.
       if (!mySlot && rd.game_state?.mode === 'liga') {
-        if (rd.host_id === user.id) {
-          const res = await reabreLiga(rd.id)
-          if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
-          rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
-        } else {
-          setRoomError('🏆 Essa liga já jogou e está guardada. Peça pro dono apertar 📤 Convidar em "🏆 Minhas ligas" — isso abre a sala e o seu link passa a funcionar.')
-          setLoading(false); return
-        }
+        const res = await reabreLiga(rd.id)
+        if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
+        rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
       }
       if (rd.status === 'started') {
         if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
