@@ -9,7 +9,7 @@ import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCr
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
+import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
 import type { ApoioTier } from './apoio'
@@ -313,6 +313,9 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
   // ⚽ BATISMO: qual série o clube vai jogar — muda o valor do Pix (Série D
   // custa mais, são os rivais escolhidos). Cards viram seletor (09/08).
   const [serieBatismo, setSerieBatismo] = useState<'abc' | 'd'>('abc')
+  // ⚠️ a chave interna 'd' quer dizer "a divisão CARA", e ela é a Série A desde
+  // 30/08 (a troca de letra). O nome da chave ficou pra não mexer no que já
+  // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
   const precoBatismo = serieBatismo === 'd' ? 69.9 : 59.9
   // 🎯 alvo do LINK DIRETO (?apoie=lenda). Antes isto era a sanfona aberta; agora
   // que tudo fica à vista (23/08), ele só rola até o card e acende um brilho.
@@ -507,21 +510,21 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <OQueE>O <b>seu nome vira um CLUBE</b> do jogo — na tela de todo mundo, temporada após temporada.</OQueE>
             <Ben t="⚽ Um time com o SEU nome">ele joga a pirâmide inteira: sobe, briga por título e sai no jornal, na carreira de cada jogador.</Ben>
             <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              {cab('#141414', GOLD, '📋 Série D · rodada 31')}
+              {cab('#141414', GOLD, '📋 Série A · rodada 31')}
               {([['1º', 'Manfré FC 🖋️', '42', true], ['2º', 'Juventude da Serra', '39', false], ['3º', 'Perna-de-Pau EC', '35', false]] as const).map(([po, n, pts, me]) => (
                 <div key={po} className="flex items-center gap-2 px-2.5 py-1 text-[11px] border-t border-black/10" style={{ background: me ? 'linear-gradient(150deg,#FFF6D8,#FFE79A)' : '#fff', fontWeight: me ? 900 : 700 }}>
                   <span className="text-[9px] text-black/40" style={OSWALD}>{po}</span><span>{n}</span><span className="ml-auto font-black" style={OSWALD}>{pts} pts</span>
                 </div>
               ))}
             </div>
-            <p className="border-2 border-black rounded-lg px-2 py-1 mt-1.5 text-[10px] font-bold bg-white">📰 <b style={OSWALD}>JORNAL:</b> "Manfré FC atropela e cola no G-4 da Série D!"</p>
+            <p className="border-2 border-black rounded-lg px-2 py-1 mt-1.5 text-[10px] font-bold bg-white">📰 <b style={OSWALD}>JORNAL:</b> "Manfré FC atropela e cola no G-4 da Série A!"</p>
             <Ben t="🛡️ Escudo e Mascote desenhados">o Diego faz a arte do clube — e a mascote carimba a tela quando o seu time faz gol.</Ben>
             <Ben t="👑 Tudo do Lenda + 🎫 o Sócio inclusos">cor com brilho, Modo Manual, grupo VIP — e manto, escudo, mascote, estádio batizado e 30 moedas/mês, sem pagar à parte.</Ben>
             <Ben t="🏅 Selo de Fundador">o único caminho pra ele: selo eterno + nome no mural dos 100.</Ben>
             <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-1.5" style={{ background: '#141414', boxShadow: `2px 2px 0 0 ${INK}` }}>
               <p className="text-[10px] font-bold leading-snug" style={{ color: 'rgba(255,255,255,.75)' }}>🔥 <b style={{ color: GOLD }}>Restam {FUNDADOR_VAGAS} de 100 vagas</b> de fundador.</p>
             </div>
-            <Ben t="💰 Quanto custa">Série A · B · C e Várzea por <b>R$ 59,90</b>; Série D por <b>R$ 69,90</b> — ela custa mais porque são os <b>rivais escolhidos</b>, que todo mundo enfrenta de cara.</Ben>
+            <Ben t="💰 Quanto custa">Série B · C · D e Várzea por <b>R$ 59,90</b>; <b>Série A</b> por <b>R$ 69,90</b> — ela custa mais porque é a <b>elite</b>: são os clubes que aparecem no jogo rápido e os rivais que todo mundo enfrenta.</Ben>
             {/* ⚖️ REGRA MUDADA PELO DIEGO (23/08): ninguém perde mais o nome.
                 Palavras dele: *"na regra do barão não perde o nome. Apenas diz
                 que vai descendo de divisão, mas seu time é sempre seu, com
@@ -746,15 +749,15 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="flex gap-1.5 mt-1.5">
             <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              Série A·B·C e Várzea<br /><span className="text-[12px]" style={OSWALD}>R$ 59,90</span>
+              Série B·C·D e Várzea<br /><span className="text-[12px]" style={OSWALD}>R$ 59,90</span>
             </button>
             <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              Série D (os rivais)<br /><span className="text-[12px]" style={OSWALD}>R$ 69,90</span>
+              👑 Série A (a elite)<br /><span className="text-[12px]" style={OSWALD}>R$ 69,90</span>
             </button>
           </div>
-          <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">a Série D custa mais porque são os <b>rivais escolhidos</b> — todo mundo joga contra eles logo de cara. Toque numa das duas pra escolher.</p>
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · série ${serieBatismo}`} amount={precoBatismo} /></div>
+          <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</p>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '👑 Série A (a elite)' : 'Série B/C/D ou Várzea'}`} amount={precoBatismo} /></div>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>Manda comprovante + nome</p>
           <button onClick={() => { logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"`); igMsg(`Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}" — comprovante em anexo!`) }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
@@ -1724,14 +1727,14 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      <b>Quanto:</b> R$ 59,90 (Série A, B, C ou Várzea) · R$ 69,90 (Série D).<br />
+      <b>Quanto:</b> R$ 59,90 (Série B, C, D ou Várzea) · R$ 69,90 (👑 Série A).<br />
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
     ['Como faço pro meu time aparecer pra todo mundo no jogo?', <>
       É o mesmo <b>Batismo</b> — e essa é a melhor parte dele.<br /><br />
       Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo jogador do Leilão Legends</b>, não só pra você. Qualquer pessoa pode cair na mesma tabela que ele, ver o seu escudo, o seu manto, e a sua mascote comemorando o gol.<br /><br />
-      A <b>Série D custa mais</b> (R$ 69,90) porque é onde ficam os <b>rivais escolhidos</b>: todo mundo enfrenta eles logo na primeira temporada, então é o clube que mais aparece.
+      A <b>Série A custa mais</b> (R$ 69,90) porque é a elite do jogo: são os clubes que aparecem no <b>jogo rápido online</b> e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.
     </>],
     ['Quais são os planos de apoio?', <>
       São <b>4</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
@@ -2352,7 +2355,7 @@ export function EscSetup() {
     const meuNome = stripEmoji(clean).trim().toLowerCase()
     const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome
     const picks = career
-      ? [...rivalPicks.filter(naoSouEu), ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
+      ? [...rivalPicks.filter(naoSouEu), ...TIMES_ELITE.map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
       : undefined
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
@@ -2471,7 +2474,7 @@ export function EscSetup() {
             <p className="text-xs font-black uppercase mb-1">🔥 Escolha seus rivais <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
             <p className="text-[11px] font-semibold text-black/55 mb-1.5">Eles serão seus rivais pra vida toda.</p>
             <div className="flex flex-wrap gap-1.5">
-              {DIVISION_TEAMS['D'].map(t => {
+              {TIMES_ELITE.map(t => {
                 const on = rivalPicks.includes(t.team)
                 return (
                   <button key={t.team} onClick={() => toggleRival(t.team)}

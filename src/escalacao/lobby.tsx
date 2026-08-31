@@ -11,7 +11,7 @@ import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, em
 import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
-import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
+import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSala2, usePreviewComum } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
@@ -2719,7 +2719,7 @@ export function EscLobby() {
               <div>
                 <p className="text-white text-[11px] font-black uppercase mb-1">🔥 Escolha os rivais <span className="text-white/50">({careerRivalPicks.length}/{careerRivals})</span></p>
                 <div className="flex flex-wrap gap-1.5">
-                  {DIVISION_TEAMS['D'].map(t => {
+                  {TIMES_ELITE.map(t => {
                     const on = careerRivalPicks.includes(t.team)
                     return (
                       <button key={t.team} onClick={() => toggleCareerRival(t.team)}

@@ -1,4 +1,46 @@
-# 📌 Pendências combinadas com o Diego (atualizado 30/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 31/08/2026)
+
+## 👑 A SÉRIE A E A SÉRIE D TROCARAM DE CLUBES (31/08) — feito, NÃO publicado
+**O que ele pediu, nas palavras dele:** *"hj custa dez reais a mais p time virar
+série D e qm jogar no online rápido é série D tb. Problema q n tem sentido pagar
+mais p dizer q vai p série D. Certo seria esses times q tão pagando mais serem os
+times da série A no carreira e tb serem os times q entram no modo online. Então
+oq vc faria era trocar a divisão da série A pela série D. Em relação aos times q
+estão nas duas só... Mas sem mudar nada pras carreiras atuais."*
+
+**O que foi feito:** as duas LISTAS de clubes trocaram de lugar em `data.ts`
+(`DIVISION_TEAMS.A` ↔ `DIVISION_TEAMS.D`). Nasceu `TIMES_ELITE` (= a lista da A)
+e todo lugar que precisava dos "clubes da elite" (jogo rápido online, rivais da
+carreira, preenchimento da liga do jogador, escolha de rival) passou a apontar
+pra ela — então **os times que entram no rápido são exatamente os mesmos de
+antes**. Só a LETRA mudou.
+
+**O que NÃO mudou de propósito:** a letra continua valendo o que valia — força
+dos bots (`DIVISION_BASE`), prêmio por temporada, vagas de filial, ordem da
+escada (V → D → C → B → A). Quem joga não fica mais fácil nem mais difícil.
+
+**Carreira em andamento: intocada.** A pirâmide de uma carreira salva é montada
+pela COLOCAÇÃO gravada (`careerPlacements`), não por estas listas — save antigo
+abre exatamente como ficou. A troca só vale pra carreira NOVA.
+
+**Buracos que a troca abriu e foram fechados** (senão o mesmo clube aparecia em
+duas divisões ao mesmo tempo): os três lugares que montavam a pirâmide de CPU
+enfiavam a elite na letra 'D' na mão. Viraram dois ajudantes em `store.tsx` —
+`divsDeFundo()` (B/C, e D só quando tem Várzea) e `eliteNaSerieA()` (os clubes da
+elite que ninguém levou de rival ficam na A; se faltar pra fechar 20 entram os
+extras e depois os clássicos). Conferido: as 5 divisões fecham com 20 e nenhum
+clube repetido.
+
+**⚠️ FALTA O DIEGO DECIDIR (é o único ponto aberto):** 6 batismos que hoje estão
+na Série A vão passar a ler **Série D** — Remoçada · Scorporila FC · Deportivo
+Montreal · Seven City · Tricolor do Arruda FC · Coringas do Diniz. Eles pagaram
+R$ 59,90 (a faixa barata, que sempre foi A/B/C/Várzea), então o PREÇO continua
+certo; o que muda é a letra que eles leem. Se ele preferir, dá pra subir esses 6
+pra B ou C (trocando com clubes de CPU) pra ninguém cair na letra D.
+
+**Como reverter:** commit isolado. `git revert` nele desfaz tudo — as listas
+voltam pro lugar e nenhuma carreira sente, porque nenhuma carreira depende delas.
+
 
 ## 🏛️ SALÃO DOS BATISMOS (30/08) — no ar SÓ pra conta do Diego
 Mockup aprovado (`scripts/mockup-salao-batismos.mjs`). Entra pela aba 🏆 Ranking,
