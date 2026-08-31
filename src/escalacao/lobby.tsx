@@ -1240,6 +1240,36 @@ export function EscLobby() {
     // sozinho não abre a porta, que é o furo que estamos consertando.
     try { await navigator.clipboard.writeText(liga ? text : url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
   }
+  // 🔓 REABRIR A LIGA PRA CHAMAR GENTE NOVA (31/08 — relato que chegou pro Diego:
+  // *"começou um dia o jogo… e dps em outro dia, se quiser mandar convite pra uma
+  // nova pessoa entrar, não deu certo"*).
+  //
+  // A CAUSA: `status` foi feito pra sala RÁPIDA, que morre quando acaba. A liga
+  // vive pra sempre — mas depois da primeira partida ela fica `started` e NUNCA
+  // volta pra `waiting`. Aí quem recebe o convite bate na trava do `enterRoom` e
+  // lê "essa sala começou agorinha", que ainda por cima mente: começou dias atrás.
+  // Conferido no banco em 31/08: a única liga em pé estava assim havia horas, na
+  // tela de FIM da temporada 4.
+  //
+  // O caminho de volta é uma função do banco (`esc_liga_reabre`), não um update
+  // daqui, por três motivos: ela confere que quem pede é o DONO (a coroa não
+  // troca), ela não encosta na sala se a partida está VIVA ou no MEIO de uma
+  // temporada, e ela troca só a telinha em vez de reescrever o estado inteiro.
+  // A estante não corre risco: campeão e artilheiro moram em `game_champions`.
+  async function reabreLiga(roomId: string): Promise<'ok' | 'rolando' | 'meio' | 'nao_dono' | 'erro'> {
+    try {
+      const { data, error } = await supabase.rpc('esc_liga_reabre', { p_room: roomId })
+      if (error) return 'erro'
+      const r = String(data ?? '')
+      return r === 'ok' || r === 'rolando' || r === 'meio' || r === 'nao_dono' ? r : 'erro'
+    } catch { return 'erro' }
+  }
+  const AVISO_REABRE: Record<'rolando' | 'meio' | 'nao_dono' | 'erro', string> = {
+    rolando: '🔴 A partida dessa liga está rolando agora. Quando a turma terminar, é só chamar — aí a pessoa nova entra na próxima temporada.',
+    meio: '⏳ Essa liga está no MEIO de uma temporada. Quem entrasse agora ficaria sem time, então dá pra chamar gente nova só quando essa temporada acabar. Termine com a turma que já está e depois chame.',
+    nao_dono: '👑 Só quem criou a liga pode abrir a sala pra gente nova.',
+    erro: 'Não consegui abrir a sala agora. Tenta de novo em instantes.',
+  }
   async function copyCode(code: string) {
     try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
   }
@@ -1831,8 +1861,24 @@ export function EscLobby() {
     }
     if (rd.status === 'started') {
       const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
-      if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
-      triggerStart(rd); setLoading(false); return
+      // 🏆 CONVIDADO NOVO NUMA LIGA TRANCADA (31/08). A liga fica `started` depois
+      // da primeira partida e não voltava mais — quem chegava pelo convite lia
+      // "você não está nessa sala", sem nenhuma pista do que fazer. Se sou o
+      // DONO, reabro na hora; se não sou, o texto diz exatamente o caminho.
+      if (!mySlot && rd.game_state?.mode === 'liga') {
+        if (rd.host_id === user.id) {
+          const res = await reabreLiga(rd.id)
+          if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
+          rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
+        } else {
+          setRoomError('🏆 Essa liga já jogou e está guardada. Peça pro dono apertar 📤 Convidar em "🏆 Minhas ligas" — isso abre a sala e o seu link passa a funcionar.')
+          setLoading(false); return
+        }
+      }
+      if (rd.status === 'started') {
+        if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
+        triggerStart(rd); setLoading(false); return
+      }
     }
     if (rd.status !== 'waiting') { setRoomError('Sala indisponível.'); setLoading(false); return }
     const { data: existing } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', rd.id)
@@ -2326,7 +2372,20 @@ export function EscLobby() {
                         o primeiro lugar que o dono olha depois de criar, então é
                         aqui que o botão tem que estar. Só pro DONO, igual Editar e
                         Excluir — convidado não vê. */}
-                    <button onClick={() => { void shareInvite(r.code, nm, { at: gs?.ligaAt }) }}
+                    {/* 🔓 apertar CONVIDAR já quer dizer "quero gente nova aqui" —
+                        então, se a liga ficou trancada em "started" depois de uma
+                        noite de jogo, ela reabre AQUI, na mesma batida. Não é
+                        automático: é o dono apertando. Se a partida está viva ou
+                        no meio de uma temporada, ele lê o porquê e nada muda. */}
+                    <button onClick={() => { void (async () => {
+                      if (r.status === 'started') {
+                        const res = await reabreLiga(r.id)
+                        if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); return }
+                        setRoomError('')
+                        void fetchMyLigas()
+                      }
+                      await shareInvite(r.code, nm, { at: gs?.ligaAt })
+                    })() }}
                       className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] text-white active:translate-y-0.5" style={{ background: PURPLE, ...OSWALD }}>
                       📤 Convidar
                     </button>

@@ -1,5 +1,53 @@
 # 📌 Pendências combinadas com o Diego (atualizado 31/08/2026)
 
+## 🔓 A LIGA TRANCADA EM "STARTED" (31/08) — consertado
+**Relato que chegou pro Diego:** *"no Minhas Ligas, começou um dia o jogo… e
+depois em outro dia, se quiser mandar convite pra uma nova pessoa entrar, não
+deu certo"*.
+
+**A causa (medida, não chutada):** o campo `status` de `game_rooms` foi feito pra
+sala RÁPIDA, que morre no fim. A LIGA vive pra sempre — mas depois da primeira
+partida ela fica `started` e **nada no código a devolve pra `waiting`**. O único
+conserto que existia (`lobby.tsx:864`) só age quando a sala está SEM jogo
+(`managers` vazio), que não é o caso de uma liga que jogou. Aí `enterRoom` barra
+o convidado novo e ainda mente: *"essa sala começou agorinha"* — quando começou
+dias atrás.
+
+**Conferido no banco:** a única liga em pé (`JTDMUV`, "Liga do Dérick FC") estava
+`started` havia horas, na tela **`end` da temporada 4**. Ou seja: a noite tinha
+acabado e a porta ficou trancada.
+
+**Feito:**
+- RPC **`esc_liga_reabre(p_room uuid)`** (SECURITY DEFINER, `grant` só pra
+  `authenticated`). Ela é conservadora de propósito e devolve um texto:
+  `nao_dono` (só quem criou reabre — a coroa não troca) · `rolando` (batida do
+  host há menos de 3 min: partida VIVA, não encosta) · `meio` (tela de
+  leilão/temporada: gente nova entraria SEM TIME, que é o bug do "virei bot" —
+  não encosta) · `ok` (temporada na tela `end`: volta pra `waiting` e põe a tela
+  em `lobby`, pra próxima temporada nascer com todo mundo).
+- **📤 Convidar reabre sozinho**: apertar Convidar já quer dizer "quero gente
+  nova aqui". Não é automático — é o dono apertando. Se der `rolando`/`meio`, ele
+  lê o porquê e nada muda.
+- **A mensagem do convidado passou a dizer o caminho**: *"essa liga já jogou e
+  está guardada; peça pro dono apertar 📤 Convidar"* no lugar de "você não está
+  nessa sala".
+
+**A estante não corre risco:** campeão/artilheiro/mico moram em `game_champions`
+(uma linha por partida, com `humanos` carimbado). Zerar a telinha da sala não
+apaga troféu nenhum — as 4 temporadas do Dérick estão lá.
+
+**Testado em transação com ROLLBACK** (produção intocada): partida viva →
+`rolando`; temporada no meio → `meio`; temporada acabada → `ok` e a sala vira
+`waiting/lobby`. Chamada sem ser dono → `nao_dono`.
+
+**Limite que continua valendo, e é regra e não bug:** ninguém entra no MEIO de
+uma temporada. Quem é convidado enquanto uma temporada corre só joga na próxima.
+
+**Como reverter:** commit isolado no app; e a função do banco pode ser derrubada
+com `drop function public.esc_liga_reabre(uuid);` — sem ela, tudo volta a ser
+como era.
+
+
 ## 📤 O CONVITE DA LIGA (31/08) — feito e aprovado pelo mockup
 **Como apareceu:** *"um amigo disse q criou o Minhas Ligas mas n soube aonde
 manda o convite pros amigos dele após ele criar"*.
