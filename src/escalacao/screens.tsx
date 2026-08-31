@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
@@ -24,7 +24,7 @@ import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, useSalao, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -59,6 +59,11 @@ const GAME_URL = 'https://diegocfonseca-blip.github.io/7a0-game-studio/leilao-le
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
 const INK = '#0C0C0C'
+// 🏛️ SALÃO DOS BATISMOS — carregado SÓ quando abre (import preguiçoso). Além de
+// não pesar pra quem nunca entra, é o que quebra o ciclo de import: o Salão
+// precisa do Shell/Box daqui, e daqui a gente precisa dele.
+const SalaoLazy = lazy(() => import('./salao'))
+
 const GOLD = '#FFC400'
 // 🎨 COR SÓLIDA de cada lado do placar da Copa dos 8 (estilo Brasfoot). VOCÊ = cor
 // do seu TIER (com brilho); amigo (online) = cor fixa viva; BOT = cor viva própria
@@ -884,7 +889,7 @@ export function GameFooter() {
   )
 }
 
-function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
+export function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
   return (
     <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
       {children}
@@ -936,7 +941,7 @@ function HoldButton({ onStep, disabled = false, className = '', style, children 
   )
 }
 
-function Shell({ children, bar, hideExit = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean }) {
+export function Shell({ children, bar, hideExit = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean }) {
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
@@ -6713,7 +6718,7 @@ const EXAMPLE_CARD = { name: 'Rayan', club: 'Exemplo FC', year: 2025, pos: 'ATA'
 // fácil de achar e claro"*). No Álbum e no Ranking o único jeito de sair era o
 // botão lá no FIM da página — e o álbum tem centenas de cartas até chegar lá.
 // O botão de baixo continua onde estava: quem termina de rolar acha ali também.
-function VoltarInicio() {
+export function VoltarInicio() {
   const { dispatch } = useEsc()
   return (
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
@@ -6851,6 +6856,12 @@ interface RankRow { user_id: string; name: string; career_key: string; titles: n
 
 export function EscRanking() {
   const { dispatch } = useEsc()
+  // 🏛️ SALÃO DOS BATISMOS — em obra, só a conta do Diego vê a pílula (30/08).
+  // Fica AQUI, e não numa tela nova, porque foi o que ele pediu: *"e aí entraria
+  // no, ligar daquela aba de ranking"*. O Ranking é a tabela de quem ganhou mais;
+  // o Salão é o lugar de quem tem clube próprio — um leva pro outro.
+  const salaoOk = useSalao()
+  const [verSalao, setVerSalao] = useState(false)
   // 🪜 aba Carreira LIBERADA GERAL (decisão do Diego 04/08): histórico completo
   // visível pra todos e os títulos de carreira novos seguem contando normalmente.
   const [mode, setMode] = useState<RankMode>('ronline')
@@ -6958,6 +6969,14 @@ export function EscRanking() {
   ]
   const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
 
+  if (verSalao && salaoOk) {
+    return (
+      <Suspense fallback={<Shell><p className="text-center font-bold text-black/60 pt-10">Carregando o Salão…</p></Shell>}>
+        <SalaoLazy voltar={() => setVerSalao(false)} />
+      </Suspense>
+    )
+  }
+
   return (
     <Shell>
       <div className="pt-4"><VoltarInicio /></div>
@@ -6967,6 +6986,20 @@ export function EscRanking() {
         {/* 🕐 aviso sutil do ranking diário (decisão do Diego 04/08) */}
         <p className="text-[10.5px] font-bold text-black/40 mt-0.5">🕐 O ranking e as cartas atualizam 1× por dia</p>
       </div>
+
+      {/* 🏛️ porta do Salão dos Batismos (em obra — só o Diego enxerga) */}
+      {salaoOk && (
+        <button onClick={() => setVerSalao(true)}
+          className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 flex items-center gap-2.5 active:translate-x-[2px] active:translate-y-[2px]"
+          style={{ background: GOLD, boxShadow: `4px 4px 0 ${INK}` }}>
+          <span className="text-2xl">🏛️</span>
+          <span className="flex-1 text-left">
+            <span className="block font-black text-[15px] leading-none" style={OSWALD}>SALÃO DOS BATISMOS</span>
+            <span className="block text-[10.5px] font-bold text-black/60 mt-0.5">os clubes que viraram de alguém · 👁️ só você vê</span>
+          </span>
+          <span className="font-black text-lg">›</span>
+        </button>
+      )}
 
       {/* filtro: Carreira (em breve) / Rápido online / Rápido offline */}
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">

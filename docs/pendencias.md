@@ -1,5 +1,43 @@
 # 📌 Pendências combinadas com o Diego (atualizado 30/08/2026)
 
+## 🏛️ SALÃO DOS BATISMOS (30/08) — no ar SÓ pra conta do Diego
+Mockup aprovado (`scripts/mockup-salao-batismos.mjs`). Entra pela aba 🏆 Ranking,
+numa pílula dourada que só aparece pra ele (`useSalao` em `sport.ts`). Três abas:
+🏆 Ranking dos clubes · 🖼️ A Parede · ❤️ Torcidas.
+
+**A descoberta que fez a feature caber num dia:** o palmarés já existia em
+`esc_results` (227 mil linhas — toda temporada terminada já era gravada). Não
+precisou guardar nada novo, só somar. E somar **por CLUBE juntando nome velho
+com nome novo**: sem isso o Xurupitas apareceria duas vezes (era Tokyo City
+Esperion) e o Leão da Estradinha perderia metade (era Império Samambaia).
+
+**Decisões dele:** sócio TAMBÉM entra no Salão (*"sócios tb entram no salão do
+batismo ok"*), com selo 🎫 próprio — sem vaga na pirâmide e sem nº de fundador,
+que é a regra do Futpoint (19/08).
+
+**Falta ele decidir:** (1) a aba ❤️ Torcidas escreve NOME de clube real, o que
+bate na regra dele mesmo (`coracao.ts`/`manto.ts`: *"só as CORES"*) — a tela já
+avisa isso dentro dela; (2) mostrar o primeiro nome do dono ("Daniel · Série D")
+— hoje não mostra, porque isso não existe no banco e eu não vou expor e-mail.
+
+## 🖋️ AUDITORIA DOS BATISMOS (30/08) — `npm run batismos`
+Um batismo nasce espalhado por SEIS lugares e é fácil um ficar pra trás. O
+guarda olha os seis e **falha** se um número de fundador ficar duplicado.
+
+**Consertado hoje:** o nº36 estava DUPLICADO — no código era do Lucas
+(Scorporila) e no banco era do Elton (La Bestia Negra). Como o jogo lê do
+código, o Elton (batismo desde 09/08, pago) não via selo NENHUM. O Diego: *"o
+fundador q tiver duplicado troque o número, n tem problema"*. Quem já ostenta
+ficou com o número (mexer bagunçaria post e print), o Elton virou **nº51** e o
+Adriano (SC Ferrari), que nunca teve, virou **nº52**. O banco também foi
+alinhado: estava parado em agosto, faltavam 15 fundadores. Agora: 45 fundadores,
+45 números distintos.
+
+**Ainda faltando arte:** Marreco FC não tem NADA (nem escudo nem mascote) ·
+Alfacehh não tem escudo próprio · 24 clubes sem manto medido (isso não é
+defeito: manto só existe quando o dono manda a camisa).
+
+
 ## 📐 TELA: PC e celular passam a valer pro JOGO INTEIRO (30/08)
 Pedido dele: *"tem q fazer de uma forma q tudo q eu criar vai tb sendo feito
 se n é foda"*. É a lição do que deu errado em 05/08: o modo desktop foi feito
