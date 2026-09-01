@@ -40,17 +40,45 @@ registros do Resend são todos no subdomínio `send`.
 3.521 entraram nos últimos 30 dias · 8.539 nos últimos 90 · 2.990 são contas
 novas do último mês.
 
-### O que falta, na ordem
-1. **Ele** cola os 3 registros na Hostinger e aperta *Verify* no Resend.
-2. Eu confiro pela API (`GET /domains/{id}` via pg_net) — leva de minutos a
-   algumas horas pra propagar.
-3. Monto o HTML do e-mail (o mockup aprovado já existe:
-   `scripts/mockup-email-novidades.mjs`) + a página de descadastro ligada na RPC.
-4. **Disparo-teste só pro e-mail dele.**
-5. Só então os lotes, dos mais recentes pros mais antigos, aquecendo o domínio.
-   No grátis são 100/dia; pra soltar os 8,5 mil ele assina os US$ 20 no mês do
-   disparo e cancela depois.
+### ✅ TUDO FEITO E LIGADO (01/09, à noite)
+Ele colou os 3 registros, o domínio **verificou**, e depois de ver a prévia:
+*"acho q está bom.. vc q manda!!"*. Está no ar.
 
+**Como o disparo funciona**
+- Fila `esc_email_fila`: **8.562 pessoas**, ordenadas de **quem entrou mais
+  recente pra quem sumiu faz mais tempo**. Isso é a decisão mais importante do
+  desenho: no plano de graça o primeiro mês cobre ~3.000 — e tem que ser os
+  3.000 que ainda lembram do jogo.
+- `esc_email_lote()` usa o endpoint de **LOTE** do Resend (uma chamada, até 100).
+  Não é elegância: 100 chamadas soltas levariam 429 no meio, e metade da fila
+  ficaria marcada como enviada sem ter saído.
+- `esc_email_conferir()` roda 30 min depois e **devolve pra fila** todo lote que
+  o Resend recusou. Ninguém fica "enviado" sem ter saído.
+- Cron: `email-diario` 13:00 UTC (**10h da manhã no Brasil**) e `email-conferir`
+  13:30. Interruptor em `esc_email_config.ligado`.
+- **95 por dia, não 100**: o plano de graça tem TAMBÉM teto de 3.000/mês.
+  100×31 = 3.100 bateria no teto e os últimos dias do mês falhariam em série.
+  95×31 = 2.945 passa folgado. → a base inteira em ~90 dias.
+- Quem está no optout é pulado **na hora do envio**, não só na hora de montar a
+  fila — entre uma coisa e outra passam semanas.
+
+**A porta de saída** (`?sair=` → tela em `index.tsx` → RPC `esc_email_sair`):
+tem **botão de confirmar** de propósito. Gmail e Outlook abrem os links do
+e-mail sozinhos por segurança; se a saída fosse no próprio link, eles
+descadastrariam gente que nunca pediu e a lista derreteria sozinha.
+
+**O conteúdo** (`esc_email_assunto` / `esc_email_html`, editáveis sem tocar no
+motor). Pauta ditada por ele: *"dizer que ele estava no primeiro dia mas não
+imagina como está agora o jogo… várzea… técnico… Libertadores e Copa do Mundo no
+online… Copa do Brasil e Supercopa na carreira"*. **Conferi uma por uma no
+código antes de escrever** — todas liberadas pra geral. Não vai promessa falsa
+pra 8,5 mil pessoas.
+
+**Como desligar na hora, se precisar:**
+`update public.esc_email_config set ligado = false where id = 1;`
+
+**Pra acompanhar:**
+`select status, count(*) from public.esc_email_fila group by status;`
 
 ## 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA (01/09) — não trocar de volta
 Ele olhou o seletor "Depois da liga" e cortou: *"acho que tem que ter uma
