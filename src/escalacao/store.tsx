@@ -8803,7 +8803,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
         const { data } = await supabase.from('game_rooms').select('game_state').eq('id', state.roomId!).maybeSingle()
         const gs = (data?.game_state ?? {}) as Record<string, unknown>
         const guarda: Record<string, unknown> = {}
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins']) {
+        // 🌍 `mundoNaLiga` entra na lista (01/09): é a marca de "esta sala joga a
+        // Copa do Mundo quando a liga acabar". Ela nasce na criação e o jogo nunca
+        // toca — exatamente o caso que esta guarda existe pra proteger.
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga']) {
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda

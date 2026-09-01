@@ -46,6 +46,24 @@ try {
 
   const semXi = ficha.times.filter(t => entrantesDaFicha(ficha)[ficha.times.indexOf(t)].xi.length !== 11)
   p('alguma seleção com time incompleto? ' + (semXi.length ? 'SIM — ' + semXi.map(t => t.pais).join(',') : 'nenhuma'))
+  // ── 🌍 LIGA + COPA DO MUNDO: os 20 times da liga viram seleções + 4 da máquina
+  const { montaFichaDaLiga } = await import('/src/escalacao/copa-mundo-online.tsx')
+  const classificacao = Array.from({ length: 20 }, (_, i) => ({ id: i, nome: i < 3 ? ['Diego','Dérick FC','Arruda'][i] : 'Bot ' + (i - 2), humano: i < 3 }))
+  const uidDe = new Map(classificacao.map(c => [c.id, 'u' + c.id]))
+  const picksL = new Map([['u0', gente[0].pick], ['u1', gente[1].pick], ['u2', gente[2].pick]])
+  const fl = montaFichaDaLiga(classificacao, uidDe, picksL, 42424242, 1)
+  p('')
+  p('liga+mundo · seleções na ficha: ' + fl.times.length)
+  p('liga+mundo · times da liga na Copa: ' + fl.times.filter(t => t.uid).length + ' (esperado 20)')
+  p('liga+mundo · seleções da máquina: ' + fl.times.filter(t => !t.uid).length + ' (esperado 4)')
+  const paisesRepetidos = fl.times.length !== new Set(fl.times.map(t => t.pais)).size
+  p('liga+mundo · país repetido? ' + (paisesRepetidos ? 'SIM' : 'nao'))
+  p('liga+mundo · o 1º da liga levou o país que escolheu? ' + (fl.times[0].pais === gente[0].pick.pais && fl.times[0].nome === 'Diego' ? 'SIM' : 'NAO'))
+  const eL = entrantesDaFicha(fl, 'u1')
+  p('liga+mundo · quantos "você" no aparelho do 2º colocado: ' + eL.filter(x => x.you).length)
+  const a2 = JSON.stringify(simulaCopaMundo(entrantesDaFicha(fl, 'u0'), fl.seed, fl.edicao).final)
+  const b2 = JSON.stringify(simulaCopaMundo(entrantesDaFicha(fl, 'u2'), fl.seed, fl.edicao).final)
+  p('liga+mundo · TODO MUNDO VÊ A MESMA COPA? ' + (a2 === b2 ? 'SIM' : 'NAO'))
   p('FIM')
 } catch (e) { p('ERRO: ' + (e && e.stack || e)) }
 </script>

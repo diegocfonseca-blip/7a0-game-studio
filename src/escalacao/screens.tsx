@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
+import { type CSSProperties, type ReactNode, Component, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
@@ -18,6 +18,10 @@ import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
+// 🌍 COPA DO MUNDO DEPOIS DA LIGA (01/09) — LAZY de propósito: este pedaço
+// puxa o torneio inteiro junto, e só quem termina uma sala 'liga + Copa do
+// Mundo' precisa dele. Ninguém mais baixa um byte a mais.
+const CopaDaLigaLazy = lazy(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate })))
 import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estante · Temporadas · Ajustes
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
@@ -7278,6 +7282,30 @@ function RankResultWriter() {
   return null
 }
 
+// 🧯 CERCA DA COPA (01/09) — regra #1 do Diego: nunca quebrar o futebol.
+// A Copa do Mundo da sala é jogo NOVO desenhado por cima da tela de fim de
+// temporada, que é a tela mais cara do jogo (campeão, carta, jornal, estante).
+// Sem cerca, um erro dentro da Copa derrubaria a árvore inteira e a pessoa
+// perderia a festa do título por causa de uma tela extra. Com cerca, a Copa some
+// e explica; TODO o resto do fim de temporada continua de pé.
+class CercaDaCopa extends Component<{ children: ReactNode }, { caiu: boolean }> {
+  state = { caiu: false }
+  static getDerivedStateFromError() { return { caiu: true } }
+  componentDidCatch(err: Error) { try { console.error('Copa do Mundo da sala:', err) } catch { /* ignora */ } }
+  render() {
+    if (!this.state.caiu) return this.props.children
+    return (
+      <div style={{ border: '3px solid #0C0C0C', borderRadius: 14, background: '#FFF4CF', boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px', marginBottom: 10 }}>
+        <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 900, fontSize: 13, margin: 0 }}>🌍 A Copa do Mundo não abriu</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.4 }}>
+          Deu um problema só na Copa — <b>o resto da temporada está tudo aí embaixo</b>, campeão, carta e jornal.
+          Atualize a página pra tentar de novo, e manda um print pro <b>@leilaolegendscom</b>.
+        </p>
+      </div>
+    )
+  }
+}
+
 // ─── CARREIRA: salvar/carregar + modais ──────────────────────────────
 const CAREER_LS = 'esc-career'
 // ⚠️ ESTE É O SAVE DA CARREIRA ANTIGA (a de 4 divisões, `esc_careers`) — NÃO é a
@@ -8318,6 +8346,20 @@ export function EscEnd() {
   // radião "6º lugar", um placar com os DOIS torneios (Liga + Copa), e a ordem
   // vira Liga → artilheiro da Liga → Copa → artilheiro da Copa.
   const copaDone = state.quickCopa?.phase === 'done'
+  // 🌍 esta sala foi criada como "liga + Copa do Mundo"?
+  // ⚠️ A marca é da SALA, não da partida — então ela NÃO está no estado do jogo.
+  // (Tentei ler do estado primeiro: funciona pra quem entrou por reconexão, mas o
+  // HOST monta a partida do zero e nunca teria a marca — ele ficaria sem a Copa
+  // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
+  // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
+  const [mundoNaLiga, setMundoNaLiga] = useState(false)
+  useEffect(() => {
+    if (!online || !state.roomId) return
+    let vivo = true
+    void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga').eq('id', state.roomId).maybeSingle()
+      .then(({ data }) => { if (vivo) setMundoNaLiga(String((data as { flag?: string } | null)?.flag) === 'true') }, () => {})
+    return () => { vivo = false }
+  }, [online, state.roomId])
   // 🌎 nesta sala o mata-mata é a LIBERTADORES (não a Copa dos 8) — muda só o
   // nome e a cor nos quadros do fim; o resto do fluxo é o mesmo.
   const libEnd = state.copaMode === 'liga_liberta'
@@ -8605,6 +8647,22 @@ export function EscEnd() {
           cima (portal), então o campeão vê a carta primeiro e cai no jornal quando
           fecha — e a gravação da carta, que dispara ao montar aquela tela, não é
           atrasada por nada daqui. */}
+      {/* 🌍 COPA DO MUNDO DA SALA — só em sala criada como "liga + Copa do Mundo".
+          Ela entra DEPOIS da liga estar decidida e ANTES do jornal: o jornal é o
+          fecho da noite, e a Copa ainda é jogo.
+          ⚠️ Igual à Copa da carreira, ela NÃO passa pelo motor do leilão: nada de
+          assento, nada de reducer. É uma tela por cima. Tirar daqui = a sala volta
+          a ser uma liga comum, e nada mais muda. */}
+      {online && state.roomId && mundoNaLiga && !copaPending && !libPending && (
+        <CercaDaCopa><Suspense fallback={null}>
+          <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
+            matchSeed={state.seed}
+            classificacao={table.map(t => {
+              const m = state.managers.find(mm => mm.id === t.id)
+              return { id: t.id, nome: t.name, humano: !!m?.isHuman }
+            })} />
+        </Suspense></CercaDaCopa>
+      )}
       {online && !copaPending && !libPending && (!state.liberta || copaDone) && (
         <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} />
       )}

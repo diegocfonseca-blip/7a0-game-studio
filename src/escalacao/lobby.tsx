@@ -49,7 +49,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -632,7 +632,7 @@ export function EscLobby() {
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
+  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_mundo'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -1490,7 +1490,7 @@ export function EscLobby() {
       }
       ligaAt = quando.toISOString()
     }
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -2959,12 +2959,20 @@ export function EscLobby() {
                       lugar (o que acontece quando a liga acaba). Como é um botão
                       só, não tem estado torto possível. 🔒 Enquanto está em
                       construção, só a conta do Diego enxerga a opção. */}
+                  {/* 🌍 "Liga + Copa do Mundo" (01/09, pedido do Diego): a liga
+                      roda normal e, quando ela acaba, os 20 times viram seleções e
+                      rola a Copa do Mundo. Por baixo ela é `copaMode: 'liga'` (sem
+                      Copa dos 8, sem Libertadores) + a marca `mundoNaLiga` — assim
+                      o motor do leilão não muda em NADA, e a Copa entra por cima na
+                      tela de fim de temporada. */}
                   <Seg options={(libertaOn
-                    ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga', '📊 Só liga']]
-                    : [['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga', string][]}
+                    ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga_mundo', '🌍 Liga + Mundo'], ['liga', '📊 Só liga']]
+                    : [['liga_copa', '🏆 Liga + Copa'], ['liga_mundo', '🌍 Liga + Mundo'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga_mundo' | 'liga', string][]}
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {rapidoCopaMode === 'liga_liberta'
+                    {rapidoCopaMode === 'liga_mundo'
+                      ? <>🌍 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 4 grupos, mata-mata ida e volta e final única. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
+                      : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_copa'
                         ? <>🏆 Acabou a liga, os 8 primeiros disputam a Copa dos 8 — ida e volta até a final única.</>
@@ -3059,7 +3067,7 @@ export function EscLobby() {
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto
-            const copaLbl = r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
+            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? '🌍 liga+mundo' : r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado

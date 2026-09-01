@@ -308,3 +308,226 @@ export function useEscolhasDaCopa(roomId: string | null, versao: number): Record
   }, [roomId, versao])
   return mapa
 }
+
+// ─── 5) 🌍 COPA DO MUNDO DEPOIS DA LIGA (01/09) ──────────────────────────────
+//
+// Regras que o Diego ditou, em uma frase cada:
+//  · *"a escolha das seleções é com base na colocação da liga: quem ficou em
+//    primeiro escolhe primeiro, o segundo escolhe em segundo, até o último —
+//    dos usuários online. Os bots ficam com as sobras."*
+//  · *"vão ter 24 seleções, além dos 20 times da liga: quando começar a Copa vão
+//    ter 4 bots jogando pelos 4 países restantes."*
+//
+// ⏱️ E UMA COISA QUE EU MUDEI DE PROPÓSITO, pela regra de ouro dele ("nada pode
+// atrasar o ritmo do jogo"): a ORDEM vale só pra ESCOLHER A BANDEIRA, que é um
+// toque. A CONVOCAÇÃO todo mundo faz junto, na hora que quiser. Se a ordem
+// valesse pros 11 também, a sala inteira ficaria parada esperando o 1º colocado
+// montar time — e aí a vantagem de ter ganhado a liga viraria castigo pros outros.
+//
+// 🏠 A ficha mora em `esc_copa_salas`, NÃO no `game_state`: com a bola rolando o
+// save do host reescreve o `game_state` inteiro a cada 3s (o conserto de 23/08) e
+// apagaria a Copa no primeiro save.
+
+export interface LugarNaLiga { id: number; nome: string; humano: boolean }
+
+/** monta as 24 seleções: os 20 times da liga (na ordem da tabela) + 4 da máquina */
+export function montaFichaDaLiga(
+  classificacao: LugarNaLiga[],
+  uidDe: Map<number, string>,
+  picks: Map<string, CopaPick>,
+  seed: number,
+  edicao: number,
+): CopaFicha {
+  const times: CopaTime[] = []
+  const pegos = new Set<string>()
+  const livre = () => paisesDaCopa().find(p => !pegos.has(p)) ?? paisesDaCopa()[0]
+  for (const lugar of classificacao) {
+    const uid = uidDe.get(lugar.id)
+    const pick = uid ? picks.get(uid) : undefined
+    if (pick && !pegos.has(pick.pais)) {
+      pegos.add(pick.pais)
+      times.push({ pais: pick.pais, nome: lugar.nome, uid, xiKeys: pick.xiKeys })
+    } else {
+      // bot (ou quem não escolheu a tempo): leva a melhor seleção que sobrou
+      const p = livre(); pegos.add(p)
+      times.push({ pais: p, nome: lugar.nome, ...(uid ? { uid } : {}) })
+    }
+  }
+  // as vagas que faltam pra fechar 24 são seleções da máquina, com o nome do país
+  for (const p of paisesDaCopa()) {
+    if (times.length >= COPA_TEAMS) break
+    if (pegos.has(p)) continue
+    pegos.add(p); times.push({ pais: p, nome: p })
+  }
+  return { seed, edicao, times: times.slice(0, COPA_TEAMS) }
+}
+
+interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: CopaPick | null }
+
+export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSeed }: {
+  roomId: string
+  souDono: boolean
+  meuUid?: string
+  /** a tabela FINAL da liga, do 1º ao último (id = número do técnico) */
+  classificacao: LugarNaLiga[]
+  /** a semente da partida — é a chave da linha desta temporada na estante */
+  matchSeed?: number
+}) {
+  const [linhas, setLinhas] = useState<LinhaSala[]>([])
+  const [ficha, setFicha] = useState<CopaFicha | null>(null)
+  const [aberta, setAberta] = useState(false)
+  const [abrindo, setAbrindo] = useState(false)
+  const [erro, setErro] = useState('')
+
+  // 🔁 sem canal novo: uma batidinha a cada 3s. É a tela de FIM de temporada (um
+  // tempo morto), as linhas são minúsculas e assim não depende de tempo real
+  // nenhum pra funcionar — se a rede piscar, a próxima batida resolve.
+  useEffect(() => {
+    let vivo = true
+    const ler = async () => {
+      try {
+        const [{ data: pls }, { data: fic }] = await Promise.all([
+          supabase.from('room_players').select('user_id, player_index, manager_name, copa').eq('room_id', roomId),
+          supabase.from('esc_copa_salas').select('seed, edicao, times').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1),
+        ])
+        if (!vivo) return
+        setLinhas((pls ?? []) as LinhaSala[])
+        const f = (fic ?? [])[0] as { seed: number; edicao: number; times: CopaTime[] } | undefined
+        if (f) setFicha({ seed: Number(f.seed), edicao: f.edicao, times: f.times })
+      } catch { /* a próxima batida tenta de novo */ }
+    }
+    void ler()
+    const iv = setInterval(ler, 3000)
+    return () => { vivo = false; clearInterval(iv) }
+  }, [roomId])
+
+  // 🌍 a Copa abre sozinha na tela de todo mundo quando a ficha aparece
+  useEffect(() => { if (ficha) setAberta(true) }, [ficha?.seed]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const uidDe = useMemo(() => new Map(linhas.map(l => [l.player_index, l.user_id])), [linhas])
+  const picks = useMemo(() => {
+    const m = new Map<string, CopaPick>()
+    for (const l of linhas) if (copaPickOk(l.copa)) m.set(l.user_id, l.copa)
+    return m
+  }, [linhas])
+
+  // a FILA: só gente, na ordem da tabela
+  const fila = useMemo(() => classificacao
+    .filter(c => c.humano && uidDe.has(c.id))
+    .map((c, i) => ({ ...c, uid: uidDe.get(c.id)!, vez: i + 1 })), [classificacao, uidDe])
+  const minhaVez = fila.findIndex(f => f.uid === meuUid)
+  const faltamAntesDeMim = minhaVez < 0 ? 0 : fila.slice(0, minhaVez).filter(f => !picks.has(f.uid)).length
+  const souOProximo = minhaVez >= 0 && faltamAntesDeMim === 0 && !picks.has(meuUid ?? '')
+  const quemFalta = fila.filter(f => !picks.has(f.uid))
+  const daVezAgora = quemFalta[0]
+  const minha = meuUid ? picks.get(meuUid) ?? null : null
+  const pegasPorOutros = fila.filter(f => f.uid !== meuUid && picks.has(f.uid))
+    .map(f => ({ pais: picks.get(f.uid)!.pais, nome: f.nome }))
+
+  async function abrirCopa(mesmoAssim: boolean) {
+    if (!souDono || abrindo) return
+    if (!mesmoAssim && quemFalta.length > 0) return
+    setAbrindo(true); setErro('')
+    try {
+      const { data: fic } = await supabase.from('esc_copa_salas').select('edicao').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1)
+      const edicao = (((fic ?? [])[0] as { edicao: number } | undefined)?.edicao ?? 0) + 1
+      const nova = montaFichaDaLiga(classificacao, uidDe, picks, Math.floor(Math.random() * 1e9), edicao)
+      const { error } = await supabase.from('esc_copa_salas').insert({ room_id: roomId, edicao, seed: nova.seed, times: nova.times })
+      if (error) { setErro('Não consegui abrir a Copa agora. Tenta de novo em instantes.'); setAbrindo(false); return }
+      setFicha(nova); setAberta(true)
+    } finally { setAbrindo(false) }
+  }
+
+  // 🏆 o campeão do mundo entra na MESMA linha da estante daquela temporada
+  async function gravaNaEstante(campeao: string, pais: string) {
+    if (!souDono || matchSeed == null) return
+    try {
+      const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('match_seed', matchSeed).maybeSingle()
+      if (existe) await supabase.from('game_champions').update({ copa_champion_name: `${campeao} (${pais})` }).eq('id', existe.id)
+    } catch { /* nunca trava a Copa */ }
+  }
+
+  return (
+    <>
+      <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '11px 13px', marginBottom: 10 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌍 Copa do Mundo</p>
+        <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '2px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
+          acabou a liga — agora os {classificacao.length} times viram seleções (+ {Math.max(0, COPA_TEAMS - classificacao.length)} da máquina)
+        </p>
+
+        {/* a fila, na ordem da tabela */}
+        <div style={{ ...box('#fff'), padding: '8px 10px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 10.5, margin: '0 0 4px', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)' }}>
+            🥇 quem terminou na frente escolhe primeiro
+          </p>
+          {fila.map(f => {
+            const p = picks.get(f.uid)
+            const euSou = f.uid === meuUid
+            const daVez = daVezAgora?.uid === f.uid
+            return (
+              <div key={f.uid} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: euSou ? 900 : 700,
+                padding: '3px 5px', borderTop: '1px solid rgba(0,0,0,.08)', borderRadius: 6, background: daVez && !p ? '#FFF4CF' : 'transparent' }}>
+                <span style={{ ...OSWALD, color: 'rgba(0,0,0,.45)', width: 20 }}>{f.vez}º</span>
+                <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.nome}{euSou ? ' (você)' : ''}</span>
+                {p
+                  ? <span style={{ ...OSWALD, fontWeight: 900, color: GREEN }}>{flagOf(p.pais)} {p.pais}</span>
+                  : <span style={{ fontSize: 10.5, fontWeight: 800, color: daVez ? '#B23B2E' : 'rgba(0,0,0,.4)' }}>{daVez ? '⏳ escolhendo…' : 'na fila'}</span>}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* a minha vez (ou a espera) */}
+        {meuUid && minhaVez >= 0 && !minha && (
+          souOProximo
+            ? <div style={{ marginTop: 9 }}>
+                <EscolhaSelecao roomId={roomId} meuUid={meuUid} minha={null} pegasPorOutros={pegasPorOutros} aoEscolher={() => { /* a batidinha relê */ }} />
+              </div>
+            : <p style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '9px 2px 0', lineHeight: 1.4, textAlign: 'center' }}>
+                ⏳ Você escolhe em <b>{minhaVez + 1}º</b> — {daVezAgora ? <>agora é a vez do <b>{daVezAgora.nome}</b>.</> : 'já já é a sua vez.'} A escolha da bandeira é <b>um toque só</b>, não demora.
+              </p>
+        )}
+        {minha && (
+          <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '9px 2px 0', textAlign: 'center', lineHeight: 1.4 }}>
+            {flagOf(minha.pais)} Você é a <b>{minha.pais}</b> — 11 convocados no papel. {quemFalta.length > 0 ? `Falta ${quemFalta.length} escolher.` : 'Todo mundo pronto!'}
+          </p>
+        )}
+
+        {/* o dono abre */}
+        {souDono && !ficha && (
+          <>
+            <button onClick={() => { void abrirCopa(false) }} disabled={quemFalta.length > 0 || abrindo}
+              style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
+                background: quemFalta.length === 0 ? '#fff' : '#ded5bd', color: INK, boxShadow: quemFalta.length === 0 ? `4px 4px 0 0 ${INK}` : 'none',
+                cursor: quemFalta.length === 0 && !abrindo ? 'pointer' : 'default' }}>
+              {abrindo ? '⏳ Abrindo…' : quemFalta.length === 0 ? '🌍 ABRIR A COPA DO MUNDO' : `🌍 Faltam ${quemFalta.length} escolher`}
+            </button>
+            {/* 🚪 SAÍDA PRA SALA NÃO MORRER: se alguém fechou o app no meio, o dono
+                não pode ficar preso pra sempre esperando. Ele abre mesmo assim, e a
+                tela diz exatamente o que acontece com quem não escolheu. */}
+            {quemFalta.length > 0 && (
+              <button onClick={() => { if (window.confirm(`${quemFalta.map(q => q.nome).join(', ')} não escolheu seleção. Abrir a Copa assim? Quem não escolheu entra com uma seleção sorteada e o time que a máquina montar.`)) void abrirCopa(true) }}
+                style={{ width: '100%', marginTop: 6, border: 'none', background: 'transparent', ...OSWALD, fontWeight: 900, fontSize: 11, color: 'rgba(0,0,0,.55)', textDecoration: 'underline', cursor: 'pointer' }}>
+                abrir mesmo assim (quem não escolheu entra sorteado)
+              </button>
+            )}
+          </>
+        )}
+        {!!erro && <p style={{ fontSize: 11, fontWeight: 800, color: '#B23B2E', margin: '7px 2px 0', lineHeight: 1.4 }}>{erro}</p>}
+        {ficha && !aberta && (
+          <button onClick={() => setAberta(true)}
+            style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
+              background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>
+            🌍 VOLTAR PRA COPA
+          </button>
+        )}
+      </div>
+
+      {ficha && aberta && (
+        <CopaDaSala ficha={ficha} roomId={roomId} meuUid={meuUid}
+          aoCampeao={(nome, pais) => { void gravaNaEstante(nome, pais) }}
+          aoFechar={() => setAberta(false)} />
+      )}
+    </>
+  )
+}

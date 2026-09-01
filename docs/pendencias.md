@@ -1,4 +1,59 @@
-# 📌 Pendências combinadas com o Diego (atualizado 31/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 01/09/2026)
+
+## 🌍 LIGA + COPA DO MUNDO (01/09) — no ar, mas AINDA SEM OS RELÓGIOS
+Pedido dele: *"lá ao criar sala vai ser liga + Copa do Mundo normal também"*, e as
+regras que ele ditou depois:
+- *"a escolha das seleções é com base na colocação da liga: quem ficou em primeiro
+  escolhe primeiro, o segundo em segundo, até o último — dos usuários online. Os
+  bots ficam com as sobras."*
+- *"vão ter 24 seleções, além dos 20 times da liga: quando começar a Copa vão ter
+  4 bots jogando pelos 4 países restantes."*
+
+**Feito e conferido pelo guarda (`npm run copa`):** a opção 🌍 **Liga + Mundo** no
+seletor "depois da liga" · a Copa entra na tela de FIM de temporada, antes do
+jornal · a fila sai da tabela final e só gente entra nela · os **20 times da liga
+viram seleções** e a máquina completa as **4** que faltam pra fechar 24 · nenhum
+país repetido · quem ganhou a liga leva o país que escolheu · todo aparelho
+calcula a MESMA Copa · o campeão leva título no Rank, a carta e o troféu na
+estante (`copa_champion_name`, a mesma linha da temporada).
+
+**Como ela não quebra o resto:** por baixo é `copaMode: 'liga'` + a marca
+`mundoNaLiga` — **o motor do leilão não muda em nada**. A Copa é uma tela POR CIMA
+do fim de temporada, dentro de uma **cerca de erro** (`CercaDaCopa`): se a Copa
+quebrar, ela quebra SOZINHA e o campeão, a carta e o jornal continuam de pé.
+
+**A ficha mora em `esc_copa_salas`, não no `game_state`** — e isso não é frescura:
+com a bola rolando, o save do host reescreve o `game_state` inteiro a cada 3s
+(conserto de 23/08, o dia em que o Diego perdeu uma liga). A marca `mundoNaLiga`
+entrou na lista de chaves protegidas daquele conserto.
+
+### 🚧 FALTA: os RELÓGIOS do fluxo (pedido dele em 01/09, ainda não feito)
+Palavras dele: *"vai ser igual o monte de sobra do leilão, muito parecido, com
+buracos — só que com seleções. O primeiro colocado escolhe a seleção que ele
+quiser em 45s, depois passa pro segundo, depois pro terceiro. Quando todos
+acabarem deve aparecer um cronômetro de 15s com banner da Copa do Mundo
+explicando que eles devem escolher em 60s os 11 jogadores, e quem não escolher a
+máquina escolhe automaticamente os PIORES 11 da posição."*
+
+Hoje a ordem já é respeitada, mas **sem relógio**: a vez anda quando a pessoa
+escolhe, e o dono tem uma saída manual ("abrir mesmo assim") pra sala não morrer
+se alguém sumir. Falta:
+1. **45s por vez** na escolha da bandeira, passando sozinho.
+2. **Banner + 15s** quando a última bandeira for escolhida.
+3. **60s de convocação pra todo mundo junto** (aqui é junto de propósito: a ordem
+   vale só pra bandeira, senão a sala inteira espera o 1º montar 11 — e "nada pode
+   atrasar o ritmo do jogo" é regra dele).
+4. **Quem não convocar leva os PIORES 11 da posição** (é castigo, não sorteio).
+
+**⚠️ O ponto de projeto que eu quero decidir com ele antes de codar:** quem é o
+RELÓGIO. Este jogo é host-autoritativo, então o certo é o dono empurrar a vez e
+gravar o prazo, e todo mundo ler. Fazer os clientes calcularem sozinhos por
+horário depende do relógio do celular de cada um — e aí duas pessoas discordariam
+de quem é a vez, que é o tipo de bug mais chato que existe aqui.
+**E falta ele dizer o que acontece quando os 45s da BANDEIRA estouram** (ele só
+definiu o castigo da convocação). Proposta: a máquina te dá a melhor seleção livre
+e a vez passa — você continua na Copa, só não escolheu.
+
 
 ## 🌍 COPA DO MUNDO ONLINE (31/08) — feita, FECHADA só pra conta do Diego
 Pedido dele: *"faça a copa do mundo online aí agora, pegando o que já existe no
