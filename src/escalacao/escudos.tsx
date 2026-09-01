@@ -28,6 +28,7 @@ import papaoEscudoImg from './img/papao-escudo.webp' // 🐺 Papão United Madri
 import lluchEscudoImg from './img/lluch-escudo.webp' // 🏠 Esqueceram do Lluch FC (lluchmarcel81): arte própria do dono
 import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
 import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
+import takahdaoEscudoImg from './img/al-takahdao-escudo.webp' // 🦜🛒 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
@@ -542,6 +543,16 @@ const lluchEscudoRender = (size: number) => (
 const papaoEscudoRender = (size: number) => (
   <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 263)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🦜🛒 Al Takahdao FC — brasão com carrinho de mercado, bola e ramos, verde e
+// laranja. 337x360 no arquivo (largura pela proporção REAL, nunca chutada).
+// O fundo da arte vinha escuro com brilho radial: cor sozinha não separava,
+// porque o verde escuro do escudo e o oliva do brilho se parecem. O que separou
+// foi o VERMELHO — no brilho R≈80 (oliva claro), na sombra do desenho R≈0
+// (verde quase preto). Com isso os vãos entre as penas ficaram vazados e os
+// quadradinhos de dentro do carrinho ficaram cheios, que é o certo.
+const takahdaoEscudoRender = (size: number) => (
+  <img src={takahdaoEscudoImg} height={size} width={Math.round(size * 337 / 360)} alt="Al Takahdao FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🦇 Neymarzetti — o "N" de asa de morcego, prateado sobre preto. 360x299 no
 // arquivo. Fundo tirado por INUNDAÇÃO a partir da borda (nunca "apaga todo
 // branco"): assim o brilho claro do metal e o vinco do N ficaram inteiros.
@@ -689,6 +700,15 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Papão United Madrid EC': papaoEscudoRender,
   'Papao United Madrid': papaoEscudoRender,
   'Santos Dumont': papaoEscudoRender,
+  // 🦜🛒 Al Takahdao FC (fontourajoao04) — Série A, no assento que era do Marreco
+  // FC (que desceu pra Série B em 01/09). As 4 formas do nome (regra do Diego
+  // 20/08) também estão reservadas no banco.
+  // ⚠️ NÃO registrar aqui o nome do bot que saiu da Série B (Serrano FC): o
+  // Marreco não foi renomeado, só mudou de divisão — ver o comentário no data.ts.
+  'Al Takahdao FC': takahdaoEscudoRender,
+  'Al Takahdao': takahdaoEscudoRender,
+  'Al Takahdao EC': takahdaoEscudoRender,
+  'Al Takahdao SC': takahdaoEscudoRender,
   // 🦇🟠⚫ Theuzudo FC (matheusfilipealves) — ex-Comercial do Norte, Série B. O nome
   // velho fica registrado: quem já tinha carreira com o Comercial não fica sem escudo.
   'Theuzudo FC': theuzudoEscudoRender,

@@ -18,6 +18,7 @@ import saoluizMascoteImg from './img/saoluiz-mascote.webp' // 🐶 São Luiz FC 
 import papaoMascoteImg from './img/papao-mascote.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
 import lluchMascoteImg from './img/lluch-mascote.webp' // 🏠 Esqueceram do Lluch FC (lluchmarcel81): arte própria do dono
 import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
+import takahdaoMascoteImg from './img/al-takahdao-mascote.webp' // 🦜 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
 import milhacaMascoteImg from './img/milhaca-mascote.webp' // 🌽 Milhaça FC (igormarquesn99): arte própria do dono, 24/08
@@ -526,6 +527,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   leao_estradinha: (
     <img src={leaoEstradinhaMascoteImg} height={176} width={Math.round(176 * 236 / 440)} alt="O Leão — Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🦜 Al Takahdao FC — papagaio de boné e avental de mercado, polegar pra cima.
+  // arte própria do dono (webp, fora do bundle). mascote_key = "takahdao_papagaio".
+  takahdao_papagaio: (
+    <img src={takahdaoMascoteImg} height={176} width={Math.round(176 * 269 / 440)} alt="O Papagaio — Al Takahdao FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   papao_lobo: (
     <img src={papaoMascoteImg} height={176} width={Math.round(176 * 281 / 440)} alt="O Papão — Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -797,6 +803,10 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Esqueceram do Lluch EC': 'lluch_menino',
   'Esqueceram do Lluch SC': 'lluch_menino',
   'Litoral United': 'lluch_menino', // nome VELHO nunca fica livre (save antigo)
+  'Al Takahdao FC': 'takahdao_papagaio', // 🦜 o papagaio carimba o placar (fontourajoao04, 01/09)
+  'Al Takahdao': 'takahdao_papagaio',
+  'Al Takahdao EC': 'takahdao_papagaio',
+  'Al Takahdao SC': 'takahdao_papagaio',
   'Papão United Madrid': 'papao_lobo', // 🐺 o lobo carimba o placar (agrostinho88, 23/08)
   'Papão United Madrid FC': 'papao_lobo',
   'Papão United Madrid EC': 'papao_lobo',
@@ -828,6 +838,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   theuzudo_morcego: 'Theuzinho', // 🦇 Theuzudo FC (matheusfilipealves, 21/08)
   saoluiz_pitbull: 'Luizão',     // 🐶 São Luiz FC (gabrielnegreirosamaral99, 21/08)
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
+  takahdao_papagaio: 'O Papagaio', // 🦜 Al Takahdao FC (fontourajoao04, 01/09)
   lluch_menino: 'O Esquecido',   // 🏠 Esqueceram do Lluch FC (lluchmarcel81, 28/08)
   leao_estradinha: 'O Leão',     // 🦁 Leão da Estradinha (jorgericardo777, 23/08)
   neymarzetti_mascarado: 'O Mascarado', // 🦇 Neymarzetti (diego.c.fonseca, 24/08)

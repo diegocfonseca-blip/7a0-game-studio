@@ -1,5 +1,50 @@
 # 📌 Pendências combinadas com o Diego (atualizado 01/09/2026)
 
+# 🦜🛒 BATISMO Al Takahdao FC (01/09) — e a Série A ESGOTOU
+
+Dono: `fontourajoao04@gmail.com` (João). R$69,90 = **Série A** (a lista que era
+"Série D" até a troca de 30/08 — o comentário está no `data.ts`).
+
+**A Série A estava com ZERO vagas** (as 20 batizadas). Decisão do Diego:
+*"Coloque o time marreco pra série b e tire um da série B bot pro lugar do
+marreco e c isso abre vaga pro time do Al Takahdao na série a"*.
+- **Al Takahdao FC** entra na Série A, no assento do Marreco FC
+- **Marreco FC** desce pra Série B, no assento do bot **Serrano FC**
+- Serrano FC escolhido por ser o único "Serra" que não é usado em outra lista
+  (o `Nacional da Serra` também mora em `CLASSIC_CLUBS`).
+
+⚠️ **DE PROPÓSITO não existe `OLD_NAME['Marreco FC'] = 'Serrano FC'`.** O padrão
+do Alfacehh (23/08) fazia isso, mas aqui seria bug: o Marreco **não foi
+renomeado**, só mudou de divisão. Com o mapa, uma carreira que já tem OS DOIS
+passaria a desenhar o escudo do Marreco no Serrano — dois clubes com o mesmo
+escudo na mesma tabela. Está escrito no `data.ts` e no `escudos.tsx`.
+
+✅ **Carreira em andamento não quebra**: a divisão de um bot num save vem do
+`placements` guardado; `cpuOrigDiv` é só fallback pra time sem colocação.
+
+**Arte** (o dono mandou 2 versões; usada a 2ª, que ele aprovou): escudo 337x360
+**27,7 KB** · mascote 269x440 **40,4 KB** · total **68,1 KB** (teto 75).
+O fundo da arte nova era escuro com brilho radial — cor sozinha não separava
+(verde escuro do escudo x oliva do brilho). **O que separou foi o VERMELHO**:
+no brilho R≈80, na sombra do desenho R≈0. Conferido sobre creme E sobre verde
+escuro (é no verde que halo aparece). Camisa em `scripts/kits/`, veio da 1ª arte.
+
+**Inventado por mim, o dono pode trocar**: técnico "Zé do Mercado", mascote
+"O Papagaio".
+
+**Trava**: era `29 batismos · 8 completos`, virou **`30 · 9`**.
+
+## 🚨 `docs/vagas-batismo.md` ESTÁ MENTINDO — não usar pra vender vaga
+Ele diz que "Barcenite FC" e "Flamengo do Sertão" estão LIVRES. **Os dois estão
+batizados** (Barcenite = ricardopessoafreire nº31; Flamengo do Sertão virou
+São Luiz FC = gabrielnegreirosamaral99). O doc é gerado por um `scripts/_tmp-vagas.py`
+que não existe mais, e não foi refeito depois da troca A↔D de 30/08.
+Se alguém seguir esse doc, **vende vaga de quem já pagou** (quase aconteceu em
+21/08, tem a cicatriz anotada no `data.ts`).
+**PENDENTE**: fazer o `npm run batismos` contar vaga LIVRE por divisão (lendo o
+`data.ts`, que é a verdade) e avisar quando a divisão estiver esgotada. Aí o doc
+pode morrer. Contagem real hoje: **A 0 livres · B 15 · C 19 · D 14**.
+
 ## ✉️ RESEND (01/09) — DIAGNÓSTICO: falta SÓ colar 3 registros no DNS
 Ele voltou no assunto: *"quero poder enviar email pros meus usuários, chegamos a
 fazer isso mas não configurei eu acho"*. Ele lembrou certo. Conferido hoje, na
