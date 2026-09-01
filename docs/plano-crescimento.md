@@ -386,3 +386,53 @@ esperando agora"* com um toque pra juntar os dois.
 `site_visits` não guarda de ONDE a pessoa veio (não tem referrer). Então hoje é
 impossível saber qual canal traz gente. Enquanto isso não existir, qualquer
 decisão de divulgação é no escuro.
+
+---
+
+# ⚠️ CORREÇÃO (01/09, tarde) — a remedição de cima estava ERRADA
+
+A seção "REMEDIÇÃO 01/09" logo acima usou a tabela `room_players` pra saber
+quem jogou online. **Essa tabela é PODADA**: quando a sala é apagada pela
+faxina (`limpa-salas-rapidas`), as linhas dela somem. Ela só guarda as salas
+que ainda existem (441 pessoas), enquanto o histórico durável (`game_plays`,
+que nunca é apagado) mostra **5.398 pessoas** com partida online. Em 30 dias
+**13.846 salas já tinham sido apagadas**.
+
+Consequências — os três números fortes de cima **NÃO valem**:
+- ~~"só 2,6% jogam online"~~ → na verdade **63%** de quem entra pisa no online
+- ~~"quem joga online some 31× menos"~~ → era viés: `room_players` só tem quem
+  está em sala AGORA, ou seja, gente ativa por construção
+- ~~"63% das salas morrem com o dono sozinho"~~ → `game_rooms` só tem as salas
+  que a faxina ainda não levou (as mortas sobram mais). Pelo log de faxina,
+  em 30 dias foram **5.691 salas** e **85,5% COMEÇARAM**; só 14,5% morreram
+  esperando
+
+**Regra pra quem medir de novo: online se mede em `game_plays` (durável),
+nunca em `room_players`/`game_rooms` (vivas, podadas).**
+
+## Os números CERTOS (coorte criada entre 60 e 7 dias atrás, 7.838 pessoas)
+
+| perfil | pessoas | dias jogados | voltou 4× | sumiu no 1º dia |
+|---|---|---|---|---|
+| só online | 2.916 | 2,1 | 15,6% | **60,9%** |
+| só cpu (rápido/carreira) | 2.426 | 3,6 | 27,2% | 45,6% |
+| **os dois** | 2.018 | **6,9** | **61,6%** | **11,0%** |
+| nunca jogou | 478 | 0 | — | 100% |
+
+- **O online é a PORTA DE ENTRADA**: 4.323 de 7.838 (55%) fazem a 1ª partida
+  numa sala online (convite de amigo). Mas só **32,5%** deles chegam depois
+  no solo/carreira. E de quem entra pelo solo, só **20,1%** chega no online.
+  Os dois modos são dois mundos que quase não se cruzam — e quem cruza fica.
+- **"Só online" é o pior perfil** (61% some no 1º dia): a pessoa vem pra sala
+  do amigo, joga uma, e não descobre mais nada.
+- `cpu` ≈ carreira: de 2.582 jogadores cpu em 30d, **2.161 têm carreira** e só
+  421 jogam só o rápido solo.
+- Carreira (2.794 carreiras vivas em 60d, última foto de cada uma):
+  **36,8% paradas na 1ª temporada** (metade abandonada há 1-3 semanas); mas
+  quem passa da 6ª vai fundo — **30% estão na 13ª+**, e 430 carreiras na 26ª+
+  com média de 13,7 títulos. A parede é a 1ª temporada.
+- Online = **Jogo Rápido** (462 salas vivas contra 1 liga e 9 carreiras
+  online). Sala típica tem **2-3 humanos**; 4+ é raro.
+- Turma fixa do online: **11,7%** jogam 6+ dias no mês; **54%** só 1 dia.
+- Horário: cpu/carreira é mais de TARDE; online é mais de NOITE.
+- Agora (tarde): 39 na carreira, 14 no rápido, 9 online.
