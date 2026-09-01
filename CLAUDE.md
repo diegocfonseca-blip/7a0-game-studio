@@ -138,6 +138,19 @@ FORA do bundle. Então, sem exceção:
      - **`esc_nomes_batismo`** — o nome PURO (o gatilho cria FC e EC sozinho).
        Precisa passar `nome_norm` (minúsculo) na mão: a coluna é NOT NULL e não
        tem default.
+     - **`user_colors`** (`tier = 'ouro'`, `manual = true`) — **a fonte OFICIAL
+       do tier**; a lista do `apoio.tsx` é só RESERVA (`fetchDbTier` lê o banco
+       e o código fica de backup). O Modo Manual vem junto do ouro, não precisa
+       de nada à parte. Esta é a única perna que funciona **sem deploy** — é o
+       mesmo caminho do botão 💛 do Painel do Criador.
+   - ⚠️ **CÓDIGO PRONTO ≠ JOGADOR ATENDIDO (erro do Al Takahdao, 01/09).** O dono
+     do clube reclamou: *"não atualizou nada ainda.. nem botão manual e nem
+     escudo e nem nada dourado"*. Eu tinha feito tudo no código e deixado no
+     branch **esperando OK**, e tinha posto o ouro só no `apoio.tsx` (a reserva),
+     não na `user_colors` (a oficial). A entrega tem TRÊS pernas e só vale com as
+     três: **código** + **banco** (`user_colors`/`esc_socios`/`esc_fundadores`) +
+     **deploy na main**. Antes de dizer "está pronto" pro Diego, conferir se o
+     commit chegou na `main` e se o deploy fechou verde.
    - **Mockup do post**: `node scripts/mockup-batismo.mjs` — formato aprovado
      pelo Diego (o do Nata de SP). **Tem que ter a seção das ANIMAÇÕES** ("onde
      a mascote aparece": carimbo no gol · festão de campeão · pulo no pênalti) —
