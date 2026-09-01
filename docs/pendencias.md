@@ -1,5 +1,26 @@
 # 📌 Pendências combinadas com o Diego (atualizado 01/09/2026)
 
+## ❌ A COPA DO MUNDO NÃO É UM MODO DE SALA (01/09) — regra dele, não repor
+Eu tinha criado a Copa como um **modo** na tela de criar sala, do lado de Rápido,
+Minhas Ligas, Carreira e Bafo. Ele viu a tela e cortou na hora: *"o que você fez,
+cara. Não pode ter a Copa do Mundo aí junto de rápido, bafo e etc"*.
+
+Ele está certo, e o motivo é simples: aquela lista responde **"o que vocês vão
+JOGAR"**, e a Copa não é um jeito de jogar — é **o que acontece DEPOIS da liga**,
+exatamente como a Copa dos 8 e a Libertadores. O lugar dela é o seletor
+**"Depois da liga"**, como 🌍 **Liga + Mundo**. E é só lá.
+
+**Feito:** o cartão saiu da lista de modos (com o porquê escrito no código, pra
+nenhuma sessão repor). A opção 🌍 Liga + Mundo continua no ar pra todo mundo.
+
+**Sobra pra limpar (não urgente, e de propósito não mexi com ele testando):** o
+caminho da sala avulsa `mode: 'mundo'` ficou **inalcançável** — ninguém consegue
+criar uma. Conferido no banco: **nenhuma sala dessas chegou a existir**. As peças
+que só ela usava (`PainelDaCopa`, `EstanteDaCopa`, o painel da sala de espera)
+estão órfãs e podem sair numa faxina. `EscolhaSelecao` NÃO é órfã — ela é a tela
+de bandeira do liga+mundo.
+
+
 ## 🌍 LIGA + COPA DO MUNDO (01/09) — no ar, mas AINDA SEM OS RELÓGIOS
 Pedido dele: *"lá ao criar sala vai ser liga + Copa do Mundo normal também"*, e as
 regras que ele ditou depois:

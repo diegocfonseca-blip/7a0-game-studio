@@ -2598,12 +2598,17 @@ export function EscLobby() {
         // a trava devolve a tela de sempre, sem cicatriz.
         // `on` = dá pra escolher · `emTeste` = o PÚBLICO ainda não tem (leva o selo
         // EM BREVE e a linha explicando que criar libera depois).
+        // 🌍 A COPA DO MUNDO NÃO É UM MODO — e isso é ordem do Diego (01/09), depois
+        // de ver a tela: *"o que você fez, cara. Não pode ter a Copa do Mundo aí
+        // junto de rápido, bafo e etc"*. Ele tem razão: esta lista responde "o que
+        // vocês vão JOGAR", e a Copa não é um jeito de jogar — é o que acontece
+        // DEPOIS da liga, igual à Copa dos 8 e à Libertadores. O lugar dela é o
+        // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
         const MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
           { v: 'rapido', ic: '⚡', nome: 'Rápido', frase: 'Uma temporada. Começa agora.', on: true },
           { v: 'liga', ic: '🏆', nome: 'Minhas ligas', frase: 'A sala da turma que não acaba.', on: ligaOn, selo: '👑 LENDA' },
           { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões + Várzea — sobe e cai.', on: canCareer, emTeste: true },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Só com o seu time da carreira, valendo carta.', on: salaElenco, emTeste: true },
-          { v: 'mundo', ic: '🌍', nome: 'Copa do Mundo', frase: 'Cada um pega uma seleção. Sem leilão.', on: mundoOn }, // 🔓 geral desde 31/08 — sem selo de "em construção"
         ]
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
@@ -2724,7 +2729,6 @@ export function EscLobby() {
           liga: '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.',
           carreira: '🌐 Pirâmide de 4 divisões + a Várzea — cada técnico sobe e cai por conta própria, no mesmo mundo pra todos.',
           elenco: '🃏 SEM LEILÃO — cada um entra com o time da PRÓPRIA carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta pro de cima.',
-          mundo: '🌍 SEM LEILÃO — cada um pega UMA seleção e convoca 11 jogadores do país. Aí rola a Copa inteira: 4 grupos, mata-mata e final. É a Copa do Mundo da carreira, agora com a turma.',
         }
         return (
         <div className="space-y-3">
