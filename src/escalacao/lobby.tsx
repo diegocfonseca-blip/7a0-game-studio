@@ -632,7 +632,7 @@ export function EscLobby() {
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_mundo'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
+  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_mundo'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -2603,7 +2603,7 @@ export function EscLobby() {
           { v: 'liga', ic: '🏆', nome: 'Minhas ligas', frase: 'A sala da turma que não acaba.', on: ligaOn, selo: '👑 LENDA' },
           { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões + Várzea — sobe e cai.', on: canCareer, emTeste: true },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Só com o seu time da carreira, valendo carta.', on: salaElenco, emTeste: true },
-          { v: 'mundo', ic: '🌍', nome: 'Copa do Mundo', frase: 'Cada um pega uma seleção. Sem leilão.', on: mundoOn, emTeste: true },
+          { v: 'mundo', ic: '🌍', nome: 'Copa do Mundo', frase: 'Cada um pega uma seleção. Sem leilão.', on: mundoOn }, // 🔓 geral desde 31/08 — sem selo de "em construção"
         ]
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
