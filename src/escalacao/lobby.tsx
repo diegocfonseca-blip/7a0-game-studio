@@ -18,7 +18,7 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSal
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
 // NÃO passa pelo motor do leilão: a sala fica em `waiting` e ela é uma tela por
 // cima. Tirar daqui = a sala volta a ser uma sala normal.
-import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
+import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -629,6 +629,7 @@ export function EscLobby() {
   const [copaAbrindo, setCopaAbrindo] = useState(false)
   const [copaErro, setCopaErro] = useState('')
   const [copaAberta, setCopaAberta] = useState(false) // 🌍 o torneio está na tela
+  const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
@@ -3062,6 +3063,7 @@ export function EscLobby() {
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
+            const mundoRoom = r.game_state?.mode === 'mundo' // 🌍 Copa do Mundo: sala de seleções, sem leilão
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
@@ -3075,8 +3077,13 @@ export function EscLobby() {
                     {ligaRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title="Liga: a sala fica de pé, com dia marcado e sala de troféus">🏆 LIGA</span>
                     )}
+                    {/* 🌍 a sala de Copa é OUTRA COISA (seleções, sem leilão): quem
+                        bate o olho na lista tem que saber antes de entrar. */}
+                    {mundoRoom && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão">🌍 COPA</span>
+                    )}
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🚫 sem bots' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🚫 sem bots' : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
                   {ligaRoom && (
                     <p className="font-black text-[11.5px] mt-0.5" style={{ ...OSWALD, color: quandoLiga((r.game_state as GS)?.ligaAt).cor }}>
                       📅 {quandoLiga((r.game_state as GS)?.ligaAt).txt}
@@ -3476,6 +3483,7 @@ export function EscLobby() {
         <PainelDaCopa prontos={copaProntos} total={players.length} souDono={isHost}
           abrindo={copaAbrindo} aoAbrir={() => { void abrirCopa() }} />
       )}
+      {ehMundoSala && <EstanteDaCopa roomId={room.id} versao={copaEstanteVer} />}
       {ehMundoSala && !!copaErro && (
         <p className="text-[11.5px] font-black text-center leading-snug mb-2" style={{ color: '#FFD9D2' }}>{copaErro}</p>
       )}
@@ -3487,7 +3495,14 @@ export function EscLobby() {
         </button>
       )}
       {ehMundoSala && copaFicha && copaAberta && (
-        <CopaDaSala ficha={copaFicha} meuUid={user?.id} aoFechar={() => setCopaAberta(false)} />
+        <CopaDaSala ficha={copaFicha} roomId={room.id} meuUid={user?.id}
+          aoCampeao={(nome, pais) => {
+            // 🏆 um grava, todos leem: o DONO escreve o troféu na estante da sala
+            // (é ele que o banco deixa editar depois) e a lista relê pra todo mundo.
+            if (isHost) void gravaCampeaoDaCopa(room.id, copaFicha, nome, pais, copaProntos.map(p => p.nome)).then(() => setCopaEstanteVer(v => v + 1))
+            else setTimeout(() => setCopaEstanteVer(v => v + 1), 2500)
+          }}
+          aoFechar={() => setCopaAberta(false)} />
       )}
 
       {/* 🃏 BAFO: antes de tudo, o técnico escolhe qual carreira traz. Enquanto não

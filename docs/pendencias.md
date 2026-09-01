@@ -45,10 +45,45 @@ escolheu não vira ninguém · nenhuma seleção com menos de 11 · 24 times na 
 (monta os componentes DE VERDADE com dados de mentira — foi de onde saíram as
 fotos que mandei pra ele).
 
-**Falta o Diego decidir, depois de testar:** (1) quantas pessoas no mínimo (hoje
-2) · (2) se a Copa da sala deve valer alguma coisa (carta do campeão? troféu na
-estante da liga?) — hoje não vale nada de propósito · (3) se libera pra geral
-(`MUNDO_GERAL = true`).
+### ✅ DECIDIDO NO MESMO DIA (31/08), e já feito
+Palavras dele: *"todo título deve valer sempre. E também estante, ranking, etc,
+tudo igual. Carta também. E normal a sala também, mínimo de dois."* E logo
+depois: *"code p geral já tb"*. Então:
+- **Título conta**: o campeão do mundo grava linha em `esc_results` (é de lá que
+  saem o Rank e o Salão), com `season_key = mundo:<sala>:<semente>:copamundo` —
+  a semente é o que deixa jogar Copa atrás de Copa sem uma apagar a outra.
+- **Carta do campeão**: mesmo `CardCollectPrompt` das outras copas, com a chave
+  da sala e `origin: 'online'`.
+- **Estante**: os campeões da sala moram em `game_champions` (a MESMA tabela da
+  liga), e a sala mostra a lista. O DONO grava (é quem o banco deixa editar).
+- **Mínimo de 2** seleções de gente, como já estava.
+- **Liberado geral** (`MUNDO_GERAL = true`) no mesmo dia.
+- O que continua fora de propósito: **moeda de clube** (sala não tem caixa) e o
+  **mural da CARREIRA** — misturar sala com carreira foi bug em 17/08.
+
+### 🚧 O QUE ELE PEDIU E AINDA NÃO ESTÁ FEITO (próxima peça)
+1. **"Liga + Copa do Mundo" na criação da sala**, como as opções que já existem
+   (`liga+copa`, `liga+liberta`). Palavras dele: *"lá ao criar sala vai ser liga
+   + Copa do Mundo normal também"*.
+2. **Ordem de escolha pela COLOCAÇÃO**: *"as pessoas escolhem com base na sua
+   colocação na liga. Quem ficou em primeiro escolhe a sua seleção, e assim por
+   diante"*. Isso PRECISA de uma tabela — ou seja, anda junto com o item 1 (na
+   sala de Copa avulsa não existe classificação pra ordenar).
+
+**⚠️ O que descobri e que muda o desenho do item 1:** o save do host reescreve o
+`game_state` INTEIRO a cada 3s enquanto a bola rola, preservando só
+`mode`/`ligaAt`/`ligaRegras`/`ligaAdmins` (é o conserto de 23/08, o dia em que o
+Diego perdeu uma liga). Então **a ficha da Copa NÃO pode morar no `game_state`
+de uma sala com jogo rolando** — ela seria apagada no primeiro save. Na sala de
+Copa avulsa isso não acontece (não roda partida nenhuma, então não há save). Pro
+item 1 a ficha precisa de casa própria (tabela `esc_copa_salas`, por exemplo).
+
+**⚠️ E uma pergunta de desenho pro Diego, sobre a ordem de escolha:** ordem
+significa ESPERAR a vez. Se o 1º colocado demorar convocando os 11, os outros
+ficam parados — e "nada pode atrasar o ritmo do jogo" é regra dele. Proposta:
+a ordem vale só pra **escolher a bandeira** (um toque, rápido) e a **convocação
+todo mundo faz junto**. Assim o 1º lugar tem a vantagem de verdade (escolhe a
+seleção que quiser) sem ninguém ficar de braço cruzado.
 
 **Como reverter:** commit isolado. A coluna `copa` pode ficar (é NULL em todo o
 resto) e a trava por conta já mantém o modo invisível pra todo mundo.

@@ -409,12 +409,17 @@ export function useSalao(): boolean {
 // leilão: é o mesmo torneio da carreira (`copa-mundo.tsx`), que já é uma função
 // pura e semeada — todo mundo na sala roda a MESMA semente e vê a MESMA Copa,
 // sem sincronizar um jogo sequer no meio do caminho.
-// Enquanto está fechado, quem não está nesta lista não vê o modo na tela de
-// criar sala e não entra numa sala dessas nem com o código na mão.
-// Pra soltar pra geral: `MUNDO_GERAL = true`.
-const MUNDO_GERAL = false
+// 🔓 LIBERADO GERAL no mesmo dia (31/08, ordem dele: *"code p geral já tb"*).
+// Nasceu fechado por conta e ficou fechado por umas horas. A lista abaixo virou
+// o plano B: pra voltar ao teste fechado é `MUNDO_GERAL = false` e ela reassume.
+// ⚠️ LEIA O VALOR, NÃO O COMENTÁRIO.
+// 🛡️ Por que dava pra soltar rápido sem medo: a Copa é um TIPO DE SALA NOVO e
+// não encosta em nenhum modo que já existia — nem no leilão, nem em assento, nem
+// no reducer. O pior caso é a Copa em si dar problema pra quem escolher jogá-la;
+// o futebol de sempre segue exatamente como estava.
+const MUNDO_GERAL = true
 const MUNDO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
-let mundoOk = false
+let mundoOk = MUNDO_GERAL
 function applyMundo(email?: string | null): void {
   const u = MUNDO_GERAL || (!!email && MUNDO_TESTERS.has(email.toLowerCase()))
   if (u === mundoOk) return

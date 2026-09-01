@@ -181,12 +181,16 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
 // escreve em `esc_results` — ver a trava lá dentro).
 const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: null }
 
-export function CopaDaSala({ ficha, meuUid, aoFechar }: { ficha: CopaFicha; meuUid?: string; aoFechar: () => void }) {
+export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void }) {
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
+  // 🔑 a IDENTIDADE desta Copa no ranking: sala + semente. A semente muda a cada
+  // Copa nova, então jogar Copa atrás de Copa na mesma sala não faz uma apagar a
+  // outra (foi exatamente esse o bug do "novo leilão" no ranking, em agosto).
+  const online = useMemo(() => ({ seasonKey: `mundo:${roomId}:${ficha.seed}:copamundo`, aoCampeao }), [roomId, ficha.seed, aoCampeao])
   return (
     <CMModal wide>
       <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO}
-        myForm="4-3-3" online onClose={aoFechar} />
+        myForm="4-3-3" online={online} onClose={aoFechar} />
     </CMModal>
   )
 }
@@ -233,6 +237,46 @@ export function PainelDaCopa({ prontos, total, souDono, abrindo, aoAbrir }: {
           </p>
         </>
       )}
+    </div>
+  )
+}
+
+// ─── 3.5) A ESTANTE DA SALA — os campeões de todas as Copas dela ─────────────
+// Decisão do Diego (31/08): *"todo título deve valer sempre... e também estante,
+// ranking, etc, tudo igual"*. A estante mora na MESMA tabela da liga
+// (`game_champions`), então é o mesmo troféu de sempre — só que a "temporada"
+// aqui é o número da Copa. A `match_seed` (a semente daquela Copa) é o que impede
+// uma edição escrever por cima da outra, exatamente como já valia na liga.
+export interface CampeaoDaSala { season_no: number; champion_name: string | null; top_scorer_name: string | null }
+
+/** o DONO grava o campeão da Copa (o banco só deixa o dono mexer depois) */
+export async function gravaCampeaoDaCopa(roomId: string, ficha: CopaFicha, campeao: string, pais: string, humanos: string[]): Promise<void> {
+  try {
+    const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('match_seed', ficha.seed).maybeSingle()
+    const linha = { champion_name: `${campeao} (${pais})`, humanos }
+    if (existe) await supabase.from('game_champions').update(linha).eq('id', existe.id)
+    else await supabase.from('game_champions').insert({ room_id: roomId, season_no: ficha.edicao, match_seed: ficha.seed, ...linha })
+  } catch { /* nunca trava a Copa */ }
+}
+
+export function EstanteDaCopa({ roomId, versao }: { roomId: string; versao: number }) {
+  const [linhas, setLinhas] = useState<CampeaoDaSala[] | null>(null)
+  useEffect(() => {
+    let vivo = true
+    void supabase.from('game_champions').select('season_no, champion_name, top_scorer_name').eq('room_id', roomId).order('season_no')
+      .then(({ data }) => { if (vivo) setLinhas((data ?? []) as CampeaoDaSala[]) }, () => { if (vivo) setLinhas([]) })
+    return () => { vivo = false }
+  }, [roomId, versao])
+  if (!linhas || linhas.length === 0) return null
+  return (
+    <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 10 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 5px', textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>🏆 Estante desta sala</p>
+      {linhas.map(l => (
+        <div key={l.season_no} style={{ display: 'flex', gap: 7, fontSize: 11.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(0,0,0,.08)' }}>
+          <span style={{ ...OSWALD, color: 'rgba(0,0,0,.45)', width: 54 }}>Copa {l.season_no}</span>
+          <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🏆 {l.champion_name ?? '—'}</span>
+        </div>
+      ))}
     </div>
   )
 }

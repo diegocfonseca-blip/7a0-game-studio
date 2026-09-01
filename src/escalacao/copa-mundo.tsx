@@ -753,7 +753,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
   }
 }
 
-export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; online?: boolean; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; online?: { seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo), [entrants, seed, seasonNo])
@@ -841,13 +841,35 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   const [jaGravada, setJaGravada] = useState(false)
   useEffect(() => {
     if (!finalSeen) return
-    // 🌍 COPA ONLINE (31/08): a Copa da sala NÃO encosta em nada da carreira —
-    // não paga moeda de clube (a sala não tem caixa), não escreve no mural do
-    // Rank e não grava título em `esc_results`. Ela é a noite da turma, e o
-    // resultado dela é a tela + a zoeira. Assim ninguém sobe no ranking mundial
-    // por fora do caminho da carreira, que é regra do Diego desde 17/08 (o bug
-    // da Copa do Mundo vazando pra carreira nova).
-    if (online) return
+    // 🌍 COPA ONLINE — O TÍTULO VALE (Diego 31/08: *"todo título deve valer
+    // sempre... e também estante, ranking, tudo igual. Carta também"*). Então ela
+    // grava o MESMO que qualquer título do jogo: linha em `esc_results` (é de lá
+    // que sai o Rank e o Salão) e a carta do campeão logo abaixo.
+    // Cada aparelho grava só o SEU: quem ganhou escreve a própria linha, e a
+    // `season_key` (que carrega a sala + a semente daquela Copa) deduplica — dá
+    // pra jogar Copa atrás de Copa na mesma sala sem uma apagar a outra.
+    // ⚠️ O QUE ELA CONTINUA NÃO FAZENDO: moeda de clube (a sala não tem caixa) e
+    // o mural da CARREIRA (`onMural`/localStorage). O mural é da carreira, e
+    // misturar sala com carreira foi bug em 17/08 — não volta.
+    if (online) {
+      const cOn = world.final.champion
+      online.aoCampeao?.(entrants[cOn].club, entrants[cOn].pais)
+      if (isYou(cOn)) {
+        ;(async () => {
+          try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+            const displayName = stripEmoji((user.user_metadata?.display_name as string | undefined) ?? user.email?.split('@')[0] ?? 'Técnico')
+            await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
+              user_id: user.id, display_name: displayName,
+              mode: 'online', season_key: online.seasonKey,
+              champion: true, top_scorer: false, goals: 0,
+            } })
+          } catch { /* nunca trava a Copa */ }
+        })()
+      }
+      return
+    }
     const cur = loadCopaSave(seed) ?? save
     if (cur.played.includes(seasonNo)) { setJaGravada(true); return }
     const c = world.final.champion
@@ -1061,7 +1083,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{nm(world.final.champion)} CAMPEÃO DO MUNDO!</p>
           <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{online
             ? (isYou(world.final.champion)
-              ? <>VOCÊ ({club(world.final.champion)}) é o CAMPEÃO DO MUNDO da sala! 🎉 Manda print no grupo antes que digam que foi sorte.</>
+              ? <>VOCÊ ({club(world.final.champion)}) é o CAMPEÃO DO MUNDO! 🎉 Título gravado no seu Rank + 🎴 a carta do campeão aí embaixo.</>
               : <>Título de <b>{club(world.final.champion)}</b>. Chama de novo que a semente muda e a Copa é outra. 😤</>)
             : jaGravada ? <>⚠️ Esta edição JÁ tinha sido decidida antes — o que vale é o resultado que está no mural. Este torneio foi só um treino: <b>não conta título nem prêmio</b>.</> : isYou(world.final.champion) ? <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela eterna no mural{onPrize ? ' + 💰 100 MOEDAS no caixa do clube' : ''}. 🎉</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>}</p>
           <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', position: 'relative' }}>final: {nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` (pên. ${world.final.pen[0]}×${world.final.pen[1]})` : ''}</p>
@@ -1069,6 +1091,15 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
       )}
       {/* 🎴 CARTA DO CAMPEÃO DO MUNDO — só pra quem venceu (privada). Igual às
           outras copas: a carta é gravada na conta NA HORA (conta mesmo sem abrir). */}
+      {/* 🎴 A CARTA DO CAMPEÃO DO MUNDO — na carreira e TAMBÉM na sala (31/08).
+          Muda só a chave (a da sala carrega o código da sala + a semente) e a
+          origem: online não leva a carta pro cofre do empresário, que é peça de
+          carreira. */}
+      {finalSeen && online && isYou(world.final.champion) && (
+        <div style={{ marginBottom: 10 }}>
+          <CardCollectPrompt seasonKey={online.seasonKey} origin="online" />
+        </div>
+      )}
       {finalSeen && !online && isYou(world.final.champion) && !jaGravada && (
         <div style={{ marginBottom: 10 }}>
           {/* 🌍 REGRA DO DIEGO (04/08): "tudo que é campeão conta carta" — chave de
@@ -1102,19 +1133,19 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
       })()}
       {done && (
         <div style={{ ...box('#0C0C0C'), padding: 10, marginBottom: 10, borderRadius: 12 }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 4px', color: GOLD, textTransform: 'uppercase' }}>📜 Mural dos Campeões do Mundo</p>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 4px', color: GOLD, textTransform: 'uppercase' }}>{online ? '📜 Campeões desta sala' : '📜 Mural dos Campeões do Mundo'}</p>
           {[...save.mural, { season: seasonNo, selecao: entrants[world.final.champion].pais, campeao: entrants[world.final.champion].club, voce: isYou(world.final.champion) }]
             .filter((m, i, arr) => arr.findIndex(x => x.season === m.season) === i)
             .map(m => (
               <p key={m.season} style={{ fontSize: 10.5, fontWeight: m.voce ? 900 : 700, color: m.voce ? GOLD : 'rgba(255,255,255,.85)', margin: '2px 0 0' }}>
-                temporada {m.season} · {flagOf(m.selecao)} {m.selecao} — {m.campeao}{m.voce ? ' ⭐ (VOCÊ)' : ''}
+                {online ? `Copa nº ${m.season}` : `temporada ${m.season}`} · {flagOf(m.selecao)} {m.selecao} — {m.campeao}{m.voce ? ' ⭐ (VOCÊ)' : ''}
               </p>
             ))}
         </div>
       )}
 
       {done ? (
-        <button onClick={onClose} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>▶️ VOLTAR PRA CARREIRA</button>
+        <button onClick={onClose} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{online ? '▶️ VOLTAR PRA SALA' : '▶️ VOLTAR PRA CARREIRA'}</button>
       ) : hasManual ? (
         <>
           {manual && <SpeedControls speed={speed} onSet={setSpeed} />}
