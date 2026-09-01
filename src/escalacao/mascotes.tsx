@@ -807,6 +807,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Al Takahdao': 'takahdao_papagaio',
   'Al Takahdao EC': 'takahdao_papagaio',
   'Al Takahdao SC': 'takahdao_papagaio',
+  // 🔤 CARIMBO_GOL e busca EXATA (nao normaliza caixa nem sufixo), entao aqui
+  // entram tambem a outra grafia e a CAIXA ALTA que o dono usa no clube dele.
+  'AL TAKHADAO': 'takahdao_papagaio',
+  'AL TAKAHDAO': 'takahdao_papagaio',
+  'Al Takhadao': 'takahdao_papagaio',
+  'Al Takhadao FC': 'takahdao_papagaio',
+  'Al Takhadao EC': 'takahdao_papagaio',
+  'Al Takhadao SC': 'takahdao_papagaio',
   'Papão United Madrid': 'papao_lobo', // 🐺 o lobo carimba o placar (agrostinho88, 23/08)
   'Papão United Madrid FC': 'papao_lobo',
   'Papão United Madrid EC': 'papao_lobo',

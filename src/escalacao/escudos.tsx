@@ -709,6 +709,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Al Takahdao': takahdaoEscudoRender,
   'Al Takahdao EC': takahdaoEscudoRender,
   'Al Takahdao SC': takahdaoEscudoRender,
+  // 🔤 A GRAFIA QUE O DONO USA DE VERDADE (achado 01/09). A arte dele escreve
+  // "AL TAKAHDAO", mas a conta e o clube dele no jogo estao escritos
+  // "AL TAKHADAO" — o H e o A trocados. `chaveEscudo` perdoa caixa, acento e
+  // FC/EC/SC, mas NAO perdoa letra trocada: sem esta linha ele nao ve o proprio
+  // escudo. As duas grafias ficam registradas pro mesmo dono.
+  'Al Takhadao': takahdaoEscudoRender,
+  'Al Takhadao FC': takahdaoEscudoRender,
   // 🦇🟠⚫ Theuzudo FC (matheusfilipealves) — ex-Comercial do Norte, Série B. O nome
   // velho fica registrado: quem já tinha carreira com o Comercial não fica sem escudo.
   'Theuzudo FC': theuzudoEscudoRender,
