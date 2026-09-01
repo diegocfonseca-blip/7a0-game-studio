@@ -103,6 +103,19 @@ export function bestXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] 
   }
   return xi
 }
+// 🥴 O CASTIGO DE QUEM NÃO CONVOCA (Diego 01/09): *"quem não escolher, a máquina
+// escolhe automaticamente os PIORES 11 da posição"*. É castigo mesmo, não
+// sorteio — é o que faz o cronômetro valer alguma coisa. Mesma conta do bestXI,
+// só que ao contrário, e respeitando as vagas da formação (nada de time torto).
+export function piorXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
+  const used = new Set<string>(); const xi: PoolCard[] = []
+  for (const sec of SECS) {
+    const sorted = [...pool[sec]].sort((a, b) => a.fame - b.fame || a.hi - b.hi || a.lo - b.lo)
+    let n = 0
+    for (const c of sorted) { if (n >= NEED[f][sec]) break; const k = cardKey(c); if (used.has(k)) continue; used.add(k); xi.push(c); n++ }
+  }
+  return xi
+}
 export const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.hi) / 2, 0) / Math.max(1, xi.length)
 
 // ── persistência própria (fora do estado do jogo!) ──

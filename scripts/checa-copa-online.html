@@ -49,13 +49,16 @@ try {
   // ── 🌍 LIGA + COPA DO MUNDO: os 20 times da liga viram seleções + 4 da máquina
   const { montaFichaDaLiga } = await import('/src/escalacao/copa-mundo-online.tsx')
   const classificacao = Array.from({ length: 20 }, (_, i) => ({ id: i, nome: i < 3 ? ['Diego','Dérick FC','Arruda'][i] : 'Bot ' + (i - 2), humano: i < 3 }))
-  const uidDe = new Map(classificacao.map(c => [c.id, 'u' + c.id]))
+  const uidDe = new Map(classificacao.filter(c => c.humano).map(c => [c.id, 'u' + c.id])) // só gente tem linha em room_players
   const picksL = new Map([['u0', gente[0].pick], ['u1', gente[1].pick], ['u2', gente[2].pick]])
   const fl = montaFichaDaLiga(classificacao, uidDe, picksL, 42424242, 1)
   p('')
   p('liga+mundo · seleções na ficha: ' + fl.times.length)
-  p('liga+mundo · times da liga na Copa: ' + fl.times.filter(t => t.uid).length + ' (esperado 20)')
-  p('liga+mundo · seleções da máquina: ' + fl.times.filter(t => !t.uid).length + ' (esperado 4)')
+  const nomesDaLiga = new Set(classificacao.map(c => c.nome))
+  const daLiga = fl.times.filter(t => nomesDaLiga.has(t.nome)).length
+  p('liga+mundo · times da liga na Copa: ' + daLiga + ' (esperado 20)')
+  p('liga+mundo · seleções da máquina: ' + (fl.times.length - daLiga) + ' (esperado 4)')
+  p('liga+mundo · gente com seleção própria: ' + fl.times.filter(t => t.uid).length + ' (esperado 3)')
   const paisesRepetidos = fl.times.length !== new Set(fl.times.map(t => t.pais)).size
   p('liga+mundo · país repetido? ' + (paisesRepetidos ? 'SIM' : 'nao'))
   p('liga+mundo · o 1º da liga levou o país que escolheu? ' + (fl.times[0].pais === gente[0].pick.pais && fl.times[0].nome === 'Diego' ? 'SIM' : 'NAO'))
@@ -64,6 +67,31 @@ try {
   const a2 = JSON.stringify(simulaCopaMundo(entrantesDaFicha(fl, 'u0'), fl.seed, fl.edicao).final)
   const b2 = JSON.stringify(simulaCopaMundo(entrantesDaFicha(fl, 'u2'), fl.seed, fl.edicao).final)
   p('liga+mundo · TODO MUNDO VÊ A MESMA COPA? ' + (a2 === b2 ? 'SIM' : 'NAO'))
+  // ── ⏱️ os CASTIGOS do relógio: quem não convoca leva os PIORES 11
+  const { piorXI } = await import('/src/escalacao/copa-mundo.tsx')
+  const semTime = new Map([
+    ['u0', { pais: 'Brasil', form: '4-3-3', xiKeys: [] }],            // escolheu bandeira, NÃO convocou
+    ['u1', gente[1].pick],                                             // convocou normal
+  ])
+  const fp = montaFichaDaLiga(classificacao, uidDe, semTime, 7, 2)
+  const eP = entrantesDaFicha(fp, 'u0')
+  const meuTime = eP.find(x => x.you)
+  const piores = piorXI(countryPool('Brasil'), '4-3-3')
+  const bons = bestXI(countryPool('Brasil'), '4-3-3')
+  const forcaPior = piores.reduce((s, c) => s + (c.lo + c.hi) / 2, 0) / 11
+  const forcaBoa = bons.reduce((s, c) => s + (c.lo + c.hi) / 2, 0) / 11
+  p('')
+  p('castigo · quem nao convocou levou 11? ' + (meuTime && meuTime.xi.length === 11 ? 'SIM' : 'NAO'))
+  p('castigo · e o time dele e o PIOR? ' + (meuTime && Math.abs(meuTime.str - forcaPior) < 0.01 ? 'SIM' : 'NAO') + ' (pior ' + forcaPior.toFixed(1) + ' x melhor ' + forcaBoa.toFixed(1) + ')')
+  const semNada = montaFichaDaLiga(classificacao, uidDe, new Map(), 8, 3)
+  // o bot leva a MELHOR que sobrou; a gente que dormiu leva a PIOR
+  const ordem = paises
+  const fb = montaFichaDaLiga(classificacao, uidDe, new Map([['u0', gente[0].pick]]), 9, 4)
+  const paisDoBot = fb.times[3].pais            // 4º da tabela = 1º bot
+  const paisDoDorminhoco = fb.times[1].pais     // 2º da tabela = gente que nao escolheu
+  p('castigo · o BOT levou uma das melhores livres? ' + (ordem.indexOf(paisDoBot) <= 3 ? 'SIM (' + paisDoBot + ')' : 'NAO (' + paisDoBot + ')'))
+  p('castigo · quem dormiu levou uma das PIORES? ' + (ordem.indexOf(paisDoDorminhoco) >= 20 ? 'SIM (' + paisDoDorminhoco + ')' : 'NAO (' + paisDoDorminhoco + ')'))
+  p('castigo · ninguem escolheu bandeira: todos ficaram com pais? ' + (semNada.times.length === 24 && new Set(semNada.times.map(t => t.pais)).size === 24 ? 'SIM' : 'NAO'))
   p('FIM')
 } catch (e) { p('ERRO: ' + (e && e.stack || e)) }
 </script>

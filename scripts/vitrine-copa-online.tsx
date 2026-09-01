@@ -6,7 +6,7 @@ import { useState } from 'react'
 import '../src/escalacao/screens'
 import '../src/escalacao/pyramidseason'
 import { countryPool, bestXI } from '../src/escalacao/copa-mundo'
-import { FaixaCopa, PainelDaCopa, EscolhaSelecao, CopaDaSala, montaFicha, type CopaPick } from '../src/escalacao/copa-mundo-online'
+import { FaixaCopa, PainelDaCopa, EscolhaSelecao, CopaDaSala, CopaDaLigaGate, montaFicha, type CopaPick } from '../src/escalacao/copa-mundo-online'
 
 const chaves = (pais: string) => bestXI(countryPool(pais), '4-3-3').map(c => `${c.name}|${c.club}|${c.year}`)
 const gente = [
@@ -29,7 +29,19 @@ function App() {
         <PainelDaCopa prontos={gente.map(g => ({ nome: g.nome, pais: g.pick.pais }))} total={4} souDono abrindo={false}
           aoAbrir={() => setTorneio(true)} />
       </div>
-      {torneio && <CopaDaSala ficha={ficha} meuUid="u1" aoFechar={() => setTorneio(false)} />}
+      {torneio && <CopaDaSala ficha={ficha} roomId="sala-de-teste" meuUid="u1" aoFechar={() => setTorneio(false)} />}
+      {/* 🌍 o portão da LIGA + COPA DO MUNDO (com os relógios) — aqui ele só
+          desenha o estado inicial, porque não existe sala de verdade por trás */}
+      <div style={{ width: 384, margin: '18px auto 0' }}>
+        <CopaDaLigaGate roomId="00000000-0000-0000-0000-000000000000" souDono meuUid="u1"
+          matchSeed={1}
+          classificacao={[
+            { id: 0, nome: 'Diego', humano: true },
+            { id: 1, nome: 'Dérick FC', humano: true },
+            { id: 2, nome: 'Tricolor do Arruda', humano: true },
+            ...Array.from({ length: 17 }, (_, i) => ({ id: 3 + i, nome: `Bot ${i + 1}`, humano: false })),
+          ]} />
+      </div>
     </div>
   )
 }

@@ -51,10 +51,17 @@ const exige = [
   ['liga+mundo · seleções na ficha: 24', 'a Copa da liga também fecha em 24'],
   ['liga+mundo · times da liga na Copa: 20', 'os 20 times da liga TÊM que entrar na Copa'],
   ['liga+mundo · seleções da máquina: 4', 'as 4 vagas que sobram são da máquina'],
+  ['liga+mundo · gente com seleção própria: 3', 'cada pessoa da sala tem que ter a seleção dela na ficha'],
   ['liga+mundo · país repetido? nao', 'duas seleções com o mesmo país embaralha a Copa'],
   ['liga+mundo · o 1º da liga levou o país que escolheu? SIM', 'quem ganhou a liga escolhe primeiro — é a regra do Diego'],
   ['liga+mundo · quantos "você" no aparelho do 2º colocado: 1', 'cada um é UMA seleção, nem zero nem duas'],
   ['liga+mundo · TODO MUNDO VÊ A MESMA COPA? SIM', 'os aparelhos calcularam Copas DIFERENTES na liga+mundo'],
+  // ⏱️ os castigos do relógio (decisão do Diego 01/09)
+  ['castigo · quem nao convocou levou 11? SIM', 'seleção com menos de 11 quebra o gol'],
+  ['castigo · e o time dele e o PIOR? SIM', 'quem não convoca tem que levar os PIORES 11 — é castigo, não sorteio'],
+  ['castigo · o BOT levou uma das melhores livres? SIM', 'bot pega o que sobrou de melhor — o castigo é só de gente'],
+  ['castigo · quem dormiu levou uma das PIORES? SIM', 'quem deixou os 45s passarem leva a PIOR seleção livre'],
+  ['castigo · ninguem escolheu bandeira: todos ficaram com pais? SIM', 'ninguém pode ficar sem seleção, nem se a sala inteira dormir'],
 ]
 const erros = exige.filter(([linha]) => !saida.includes(linha)).map(([linha, porque]) => `❌ ${porque}\n   (esperava a linha: "${linha}")`)
 if (saida.includes('ERRO:')) erros.push('❌ a página de teste estourou — veja o ERRO acima')

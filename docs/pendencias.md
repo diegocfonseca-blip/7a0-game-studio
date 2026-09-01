@@ -27,7 +27,7 @@ com a bola rolando, o save do host reescreve o `game_state` inteiro a cada 3s
 (conserto de 23/08, o dia em que o Diego perdeu uma liga). A marca `mundoNaLiga`
 entrou na lista de chaves protegidas daquele conserto.
 
-### 🚧 FALTA: os RELÓGIOS do fluxo (pedido dele em 01/09, ainda não feito)
+### ⏱️ OS RELÓGIOS — FEITOS (01/09)
 Palavras dele: *"vai ser igual o monte de sobra do leilão, muito parecido, com
 buracos — só que com seleções. O primeiro colocado escolhe a seleção que ele
 quiser em 45s, depois passa pro segundo, depois pro terceiro. Quando todos
@@ -35,24 +35,29 @@ acabarem deve aparecer um cronômetro de 15s com banner da Copa do Mundo
 explicando que eles devem escolher em 60s os 11 jogadores, e quem não escolher a
 máquina escolhe automaticamente os PIORES 11 da posição."*
 
-Hoje a ordem já é respeitada, mas **sem relógio**: a vez anda quando a pessoa
-escolhe, e o dono tem uma saída manual ("abrir mesmo assim") pra sala não morrer
-se alguém sumir. Falta:
-1. **45s por vez** na escolha da bandeira, passando sozinho.
-2. **Banner + 15s** quando a última bandeira for escolhida.
-3. **60s de convocação pra todo mundo junto** (aqui é junto de propósito: a ordem
-   vale só pra bandeira, senão a sala inteira espera o 1º montar 11 — e "nada pode
-   atrasar o ritmo do jogo" é regra dele).
-4. **Quem não convocar leva os PIORES 11 da posição** (é castigo, não sorteio).
+E ele fechou o castigo da bandeira: *"escolhe a pior seleção quem não escolher em
+45s também, ou a que ele estiver selecionado"*. Está tudo no ar:
+1. **45s por vez** na bandeira, na ordem da tabela, passando sozinho.
+2. **Banner + 15s** quando a última bandeira sai.
+3. **60s de convocação pra todo mundo junto** — a ordem vale SÓ pra bandeira (um
+   toque). Se valesse pros 11, a sala inteira esperaria o 1º montar time, e "nada
+   pode atrasar o ritmo do jogo" é regra dele.
+4. **Castigos**: quem deixa os 45s passarem leva a **pior seleção livre** (ou a que
+   estiver marcada na tela dele); quem não convoca leva os **piores 11**
+   (`piorXI`, medido: 58,5 de média contra 95,8 do melhor XI).
 
-**⚠️ O ponto de projeto que eu quero decidir com ele antes de codar:** quem é o
-RELÓGIO. Este jogo é host-autoritativo, então o certo é o dono empurrar a vez e
-gravar o prazo, e todo mundo ler. Fazer os clientes calcularem sozinhos por
-horário depende do relógio do celular de cada um — e aí duas pessoas discordariam
-de quem é a vez, que é o tipo de bug mais chato que existe aqui.
-**E falta ele dizer o que acontece quando os 45s da BANDEIRA estouram** (ele só
-definiu o castigo da convocação). Proposta: a máquina te dá a melhor seleção livre
-e a vez passa — você continua na Copa, só não escolheu.
+**👑 Quem segura o relógio: o DONO.** Ele grava a vez e o prazo em
+`esc_copa_salas` e todo mundo obedece o que está gravado. Se cada aparelho
+contasse sozinho, dois jogadores discordariam de quem é a vez — é a família do
+"dei lance por outro". O dono também é a rede: se alguém fecha o app no meio da
+vez, é ele que carimba a pior livre e toca o jogo (a RLS de `room_players` dá
+update pro dono da sala).
+
+**🐛 Um erro que o guarda pegou antes de subir:** eu decidia "isto é gente" por
+"tem uid". Num caso em que todo assento tinha uid, os BOTS levavam o castigo dos
+humanos. Agora quem decide é o `humano` da tabela — o uid só diz QUEM é a pessoa,
+não SE é. `npm run copa` agora confere: bot leva a melhor livre, gente que dormiu
+leva a pior.
 
 
 ## 🌍 COPA DO MUNDO ONLINE (31/08) — feita, FECHADA só pra conta do Diego
