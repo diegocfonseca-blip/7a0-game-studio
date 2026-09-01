@@ -78,7 +78,47 @@ pra 8,5 mil pessoas.
 `update public.esc_email_config set ligado = false where id = 1;`
 
 **Pra acompanhar:**
-`select status, count(*) from public.esc_email_fila group by status;`
+`select jsonb_pretty(public.esc_email_placar());`
+
+### 📊 O MEDIDOR DA CAMPANHA (01/09, madrugada) — instalado ANTES do 1º disparo
+Pergunta dele: *"Consigo ter um controle das pessoas q mandamos email e se
+surtira resultado?"*. Dava — mas só se fosse instalado **antes** do primeiro
+e-mail sair, porque medir resultado exige a FOTO de quando a pessoa jogou pela
+última vez ANTES de receber. Depois de mandar, essa foto já não existe mais.
+Ficou pronto às 03h; o primeiro lote sai às 10h.
+
+**Sinal de "voltou" = `game_plays`, não login.** Login (`last_sign_in_at`) mente:
+quem tem sessão salva no aparelho volta a jogar sem "logar de novo". `game_plays`
+e `site_visits` guardam desde 10/07 e são por conta — esses valem. `live_beats`
+NÃO serve (é presença do momento, só ~40 min guardados).
+
+Colunas novas em `esc_email_fila`: `uid` (casa com game_plays) · `lote_pos`
+(posição no lote, pra casar com a resposta do Resend) · `resend_id` ·
+`jogou_antes` (a foto) · `evento` / `evento_em` / `evento_pedido`.
+
+- `esc_email_lote()` agora anota `lote_pos` + `jogou_antes` no disparo.
+- `esc_email_conferir()` agora guarda o `resend_id` de cada pessoa (a resposta do
+  lote vem na MESMA ordem em que os e-mails foram montados — daí o `lote_pos`).
+- **`esc_email_eventos()`** (nova) pergunta ao Resend o que houve com cada
+  mensagem (`delivered`/`opened`/`clicked`/`bounced`). Trabalha em DOIS TEMPOS
+  porque `pg_net` é assíncrono: a rodada lê as respostas da rodada anterior e só
+  então dispara pedidos novos. Cron **`email-eventos`** `7 * * * *` (de hora em
+  hora) chama `esc_email_conferir()` + `esc_email_eventos(40)`.
+- **`esc_email_placar()`** e **`esc_email_placar_dias()`** — o resumo. Trancadas
+  em `esc_email_so_o_dono()`: chamada de dentro (cron/SQL) passa; chamada pelo
+  site exige o e-mail do dono.
+- Índices `game_plays(user_id, created_at)` e `site_visits(user_id, created_at)`
+  criados com CONCURRENTLY (o jogo estava no ar).
+
+**Testado de ponta a ponta com e-mail real** (mandei 1 pro Diego, pus a linha
+dele na frente e devolvi tudo pro normal depois): mandado → `resend_id`
+guardado → `evento = delivered`. Fila voltou pra 8.562 em `espera`.
+
+⚠️ **Fila trancada**: `esc_email_fila` tem RLS ligada e **zero políticas** = a
+lista de 8,5 mil e-mails não é lida por ninguém pelo site. Não criar política ali.
+
+**Falta**: o bloco no Painel do Criador (mockup mandado 01/09, esperando o OK
+dele). Enquanto não tem tela, o número sai por `esc_email_placar()`.
 
 ## 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA (01/09) — não trocar de volta
 Ele olhou o seletor "Depois da liga" e cortou: *"acho que tem que ter uma
