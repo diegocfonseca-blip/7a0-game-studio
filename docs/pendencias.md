@@ -1,5 +1,57 @@
 # 📌 Pendências combinadas com o Diego (atualizado 01/09/2026)
 
+## ✉️ RESEND (01/09) — DIAGNÓSTICO: falta SÓ colar 3 registros no DNS
+Ele voltou no assunto: *"quero poder enviar email pros meus usuários, chegamos a
+fazer isso mas não configurei eu acho"*. Ele lembrou certo. Conferido hoje, na
+fonte:
+
+| peça | estado |
+|---|---|
+| Conta Resend + domínio cadastrado (`55883d87-…`, região `sa-east-1`) | ✅ |
+| `RESEND_API_KEY` no Supabase Vault | ✅ |
+| `pg_net` (o caminho que FUNCIONA — o shell leva 403 do proxy) | ✅ |
+| Os 3 registros DNS | ❌ **não existem** |
+| Domínio no Resend | ❌ **`failed`** (ele tentou verificar e desistiu) |
+| Tabela de descadastro | ✅ criada hoje |
+
+**Como eu sei que os registros não estão lá:** perguntei pro DNS público (Google
+DoH, via `pg_net`) os três nomes — os três voltaram **NXDOMAIN**. Não é "está
+propagando": não existe. E o **MX da raiz continua `mx1/mx2.hostinger.com`**, ou
+seja, o e-mail dele (`contato@`) está intocado e vai continuar assim — os
+registros do Resend são todos no subdomínio `send`.
+
+**Os 3 registros** (valores buscados da API hoje, não de memória):
+1. `TXT` · nome `resend._domainkey` · valor `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDDfqrpinAL4RM15IbhYdqX4lXhfDRp5G3ltNcTnos5KWlBaZN3tdNUzEs5cawzSazEYQ4BXu8z8E81ATW9eURs/tNvFrHtXozBFhah8Ps5tBeo+ZQnk68+j7uidcVM/GbE+/C/rJSu5xQAwZTY3ZOCK2/gB61Ph81KpJOvFb/pfwIDAQAB`
+2. `MX` · nome `send` · valor `feedback-smtp.sa-east-1.amazonses.com` · prioridade `10`
+3. `TXT` · nome `send` · valor `v=spf1 include:amazonses.com ~all`
+
+### ✅ Feito hoje: a porta de saída (LGPD), que tem que existir ANTES do 1º envio
+- Tabela `esc_email_optout` (RLS fechada; o app não lê a lista).
+- RPC **`esc_email_sair(email, motivo)`** — SECURITY DEFINER e **sem exigir
+  login** de propósito: quem quer sair de uma lista não pode ser obrigado a
+  lembrar a senha do jogo. Devolve sempre `ok`, até pra e-mail que não existe,
+  pra ninguém usar a porta pra descobrir quem tem conta.
+- Testado com ROLLBACK: normaliza caixa/espaço, não duplica, ignora texto que não
+  é e-mail. Produção ficou vazia.
+- ⚠️ E-mail de SISTEMA (recuperar senha) **não** passa por essa lista.
+
+### Tamanho da base hoje (medido)
+**8.561 contas**, todas com e-mail, **8.561 e-mails distintos** (zero repetido).
+3.521 entraram nos últimos 30 dias · 8.539 nos últimos 90 · 2.990 são contas
+novas do último mês.
+
+### O que falta, na ordem
+1. **Ele** cola os 3 registros na Hostinger e aperta *Verify* no Resend.
+2. Eu confiro pela API (`GET /domains/{id}` via pg_net) — leva de minutos a
+   algumas horas pra propagar.
+3. Monto o HTML do e-mail (o mockup aprovado já existe:
+   `scripts/mockup-email-novidades.mjs`) + a página de descadastro ligada na RPC.
+4. **Disparo-teste só pro e-mail dele.**
+5. Só então os lotes, dos mais recentes pros mais antigos, aquecendo o domínio.
+   No grátis são 100/dia; pra soltar os 8,5 mil ele assina os US$ 20 no mês do
+   disparo e cancela depois.
+
+
 ## 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA (01/09) — não trocar de volta
 Ele olhou o seletor "Depois da liga" e cortou: *"acho que tem que ter uma
 diferenciação do emoji de mundo e liberta"*. E é verdade: **🌍 e 🌎 são o mesmo
