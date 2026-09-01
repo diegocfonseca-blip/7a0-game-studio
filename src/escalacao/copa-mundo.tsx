@@ -8,7 +8,7 @@
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { paisDe, rankingSelecoes, type Baralho } from './paises'
@@ -113,6 +113,33 @@ export function piorXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] 
     const sorted = [...pool[sec]].sort((a, b) => a.fame - b.fame || a.hi - b.hi || a.lo - b.lo)
     let n = 0
     for (const c of sorted) { if (n >= NEED[f][sec]) break; const k = cardKey(c); if (used.has(k)) continue; used.add(k); xi.push(c); n++ }
+  }
+  return xi
+}
+// 🧩 COMPLETA O QUE FALTOU, POSIÇÃO POR POSIÇÃO (Diego 01/09): *"a máquina irá
+// escolher os piores pra pessoa em cada posição que não for escolhido"*. Quem
+// marcou 7 fica com os 7 dele e leva 4 pernas-de-pau; quem não marcou nada leva
+// 11. O castigo é por VAGA — nunca joga fora o que a pessoa já tinha feito.
+export function completaXI(pais: string, form: Formation, escolhidas: string[]): PoolCard[] {
+  const pool = countryPool(pais)
+  const todas: PoolCard[] = Object.values(pool).flat()
+  const porChave = new Map(todas.map(c => [cardKey(c), c]))
+  const meus = escolhidas.map(k => porChave.get(k)).filter((c): c is PoolCard => !!c)
+  const usadas = new Set(meus.map(cardKey))
+  const xi: PoolCard[] = []
+  for (const sec of SECS) {
+    const jaTenho = meus.filter(c => c.sec === sec).slice(0, NEED[form][sec])
+    xi.push(...jaTenho)
+    const faltam = NEED[form][sec] - jaTenho.length
+    if (faltam <= 0) continue
+    // 🥴 as vagas vazias vão pros PIORES daquela posição
+    const piores = [...pool[sec]].sort((a, b) => a.fame - b.fame || a.hi - b.hi || a.lo - b.lo)
+    let n = 0
+    for (const c of piores) {
+      if (n >= faltam) break
+      const k = cardKey(c); if (usadas.has(k)) continue
+      usadas.add(k); xi.push(c); n++
+    }
   }
   return xi
 }
@@ -558,7 +585,14 @@ function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose }: { paises16:
 }
 
 // ── tela 2: CONVOCAÇÃO (mockup aprovado: listão A-Z sem categoria, 11 na veia) ──
-export function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () => void; onDone: (xi: PoolCard[], f: Formation) => void }) {
+export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }: {
+  pais: string; onBack: () => void; onDone: (xi: PoolCard[], f: Formation) => void
+  /** ⏱️ só a COPA DA SALA passa isto: os segundos que faltam pra acabar o tempo */
+  prazoSeg?: number
+  /** ⏱️ o tempo acabou: leva o que a pessoa JÁ tinha marcado (pode ser 0, 3, 7…).
+      O resto das posições a máquina completa com os PIORES — castigo do Diego. */
+  aoEstourar?: (parcial: PoolCard[], f: Formation) => void
+}) {
   const pool = useMemo(() => countryPool(pais), [pais])
   const fits433 = formationFits(pool, '4-3-3'), fits442 = formationFits(pool, '4-4-2')
   const [form, setForm] = useState<Formation>(fits433 ? '4-3-3' : '4-4-2')
@@ -575,6 +609,17 @@ export function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBac
   // fazia NADA e nada explicava — parecia tela travada. Regra do Diego: toda
   // trava diz o PORQUÊ e o CAMINHO pra destravar. Agora diz.
   const [aviso, setAviso] = useState<string | null>(null)
+  // ⏱️ ESTOUROU O TEMPO: manda o que estiver marcado, sem perder nada. Quem
+  // marcou 7 leva os 7 dele + 4 pernas-de-pau; quem não marcou nada leva 11
+  // pernas-de-pau. É o castigo que o Diego pediu, e ele é POR POSIÇÃO.
+  const selRef = useRef<Record<string, PoolCard>>({}); selRef.current = sel
+  const formRef = useRef<Formation>(form); formRef.current = form
+  const estourou = useRef(false)
+  useEffect(() => {
+    if (prazoSeg === undefined || prazoSeg > 0 || estourou.current) return
+    estourou.current = true
+    aoEstourar?.(Object.values(selRef.current), formRef.current)
+  }, [prazoSeg]) // eslint-disable-line react-hooks/exhaustive-deps
   const toggle = (c: PoolCard) => {
     const k = cardKey(c)
     setSel(prev => {
@@ -702,6 +747,21 @@ export function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBac
         </div>
       </div>
 
+      {/* ⏱️🥴 O RELÓGIO E O CASTIGO, na cara de quem está convocando (Diego 01/09:
+          *"deixar claro CLARO que quem não escolher no tempo, a máquina escolhe
+          os piores pra pessoa em cada posição que não for escolhida"*). Repare
+          no "em cada posição": quem marcou 7 fica com os 7 dele e leva 4
+          pernas-de-pau — o castigo é POR VAGA, não joga fora o que você fez. */}
+      {prazoSeg !== undefined && (
+        <div style={{ border: `3px solid ${INK}`, borderRadius: 12, background: prazoSeg <= 15 ? '#FFE3DC' : '#FFF4CF', boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 10px', marginBottom: 9 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textAlign: 'center', color: prazoSeg <= 15 ? '#B23B2E' : INK }}>
+            ⏱️ {prazoSeg}s pra fechar a convocação
+          </p>
+          <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '3px 0 0', textAlign: 'center', lineHeight: 1.4 }}>
+            Se o tempo acabar, <b>cada posição que você deixou vazia</b> a máquina preenche com o <b>PIOR jogador do país</b> naquela vaga. O que você já marcou fica.
+          </p>
+        </div>
+      )}
       {ready ? (
         <button onClick={() => onDone(Object.values(sel), form)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>✅ Fechar convocação (11/11) — bora pra Copa! 🌍</button>
       ) : (
@@ -802,7 +862,12 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   const [manualPref, toggleManual] = useSimMode()
   const manual = hasManual && manualPref
   const [speed, setSpeed] = useState(1)
-  const roundMs = Math.round(9000 / speed) // 9s = ROUND_MS da liga
+  // ⏱️ 9s é o ROUND_MS da liga. Na COPA DA SALA a rodada mostra VÁRIOS jogos ao
+  // mesmo tempo (3 por grupo), e o Diego pegou isso jogando com a turma: *"o
+  // tempo tá muito rápido dos jogos da Copa"*. Com 4 grupos rolando juntos não
+  // dá tempo de ler nada em 9s — na sala a rodada respira 14s. O controle de
+  // velocidade continua ali pra quem quiser correr (ou ir mais devagar ainda).
+  const roundMs = Math.round((online ? 14000 : 9000) / speed)
 
   const liveMin = useLiveMin(roundKey, roundMs, liveDone)
   // 🐛 TOQUE DUPLO (bug reportado 04/08: "apertei 2× e a partida voltou"): antes
@@ -988,7 +1053,12 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5, background: 'radial-gradient(circle at 15% 20%, rgba(255,196,0,.25), transparent 22%), radial-gradient(circle at 85% 75%, rgba(255,196,0,.2), transparent 25%)' }} />
         <p style={{ position: 'relative', fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
         <p style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 19, margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: .4, background: 'linear-gradient(180deg,#FFE79A,#FFC400 55%,#B8860B)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Copa do Mundo Legends</p>
-        <p style={{ position: 'relative', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: '4px 0 0' }}>{online ? `Copa da sala nº ${seasonNo}` : `temporada ${seasonNo}`} · Você: <b style={{ color: GOLD }}>{nm(myIdx)}</b> ({club(myIdx)})</p>
+        {/* 🙈 no ONLINE esta linha some (Diego 01/09: *"não entendi por que fica
+            aparecendo lá em cima, quando começa a Copa, o nome e seleção que eu
+            host escolhi... não tem necessidade disso"*). Ele tem razão: na sala a
+            pessoa ACABOU de escolher a seleção, e o placar ao vivo logo abaixo já
+            diz "VOCÊ". Na carreira a linha fica: lá ela conta a temporada. */}
+        {!online && <p style={{ position: 'relative', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: '4px 0 0' }}>temporada {seasonNo} · Você: <b style={{ color: GOLD }}>{nm(myIdx)}</b> ({club(myIdx)})</p>}
         <div style={{ position: 'relative', height: 2, margin: '9px auto 0', width: '65%', background: 'linear-gradient(90deg,transparent,#FFC400,transparent)' }} />
       </div>
 
@@ -1003,7 +1073,14 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
       })()}
       {step <= GR + 1 && (
         <>
-          {world.groups.map((g, gi) => (
+          {/* 🔎 O SEU GRUPO VEM PRIMEIRO (Diego 01/09: *"eu era Argentina, porém a
+              Argentina tava no grupo lá de baixo, mas o placar tá lá em cima —
+              ficou ruim de ver"*). O placar ao vivo é sempre do SEU jogo, então a
+              tabela dele tem que estar logo embaixo, não a três grupos de
+              distância. A letra do grupo continua a de verdade (A/B/C/D). */}
+          {world.groups.map((g, gi) => ({ g, gi })).sort((x, y) =>
+            (y.g.teams.includes(myIdx) ? 1 : 0) - (x.g.teams.includes(myIdx) ? 1 : 0)
+          ).map(({ g, gi }) => (
             <div key={gi} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 GRUPO {'ABCD'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               {groupTable(g, shownRounds).map((r, i) => (

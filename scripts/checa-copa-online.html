@@ -92,6 +92,20 @@ try {
   p('castigo · o BOT levou uma das melhores livres? ' + (ordem.indexOf(paisDoBot) <= 3 ? 'SIM (' + paisDoBot + ')' : 'NAO (' + paisDoBot + ')'))
   p('castigo · quem dormiu levou uma das PIORES? ' + (ordem.indexOf(paisDoDorminhoco) >= 20 ? 'SIM (' + paisDoDorminhoco + ')' : 'NAO (' + paisDoDorminhoco + ')'))
   p('castigo · ninguem escolheu bandeira: todos ficaram com pais? ' + (semNada.times.length === 24 && new Set(semNada.times.map(t => t.pais)).size === 24 ? 'SIM' : 'NAO'))
+  // ── 🧩 castigo POR POSIÇÃO: quem marcou 7 fica com os 7 e leva 4 pernas-de-pau
+  const { completaXI } = await import('/src/escalacao/copa-mundo.tsx')
+  const meus7 = bestXI(countryPool('Brasil'), '4-3-3').slice(0, 7).map(c => `${c.name}|${c.club}|${c.year}`)
+  const misto = completaXI('Brasil', '4-3-3', meus7)
+  const chavesMisto = misto.map(c => `${c.name}|${c.club}|${c.year}`)
+  const mantidos = meus7.filter(k => chavesMisto.includes(k)).length
+  const nasVagas = (() => {
+    const need = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+    return Object.entries(need).every(([sec, n]) => misto.filter(c => c.sec === sec).length === n)
+  })()
+  p('')
+  p('parcial · o time fechou com 11? ' + (misto.length === 11 ? 'SIM' : 'NAO (' + misto.length + ')'))
+  p('parcial · manteve os 7 que a pessoa marcou? ' + (mantidos === 7 ? 'SIM' : 'NAO (' + mantidos + ')'))
+  p('parcial · as posicoes bateram com a formacao? ' + (nasVagas ? 'SIM' : 'NAO'))
   p('FIM')
 } catch (e) { p('ERRO: ' + (e && e.stack || e)) }
 </script>

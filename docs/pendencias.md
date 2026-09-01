@@ -1,5 +1,41 @@
 # 📌 Pendências combinadas com o Diego (atualizado 01/09/2026)
 
+## 🌍 A NOITE DE TESTE COM A TURMA (01/09) — 7 arestas que ele pegou jogando
+Ele jogou a liga + Copa com 4 pessoas (Neymarzetti, Bicho da Seda, perebinha,
+União das pedras) e mandou print de tudo. As sete, e o que foi feito:
+
+1. **Jornal e votação apareciam quando a LIGA acabava.** *"A votação é somente
+   quando acabar tudo, a liga e a Copa do Mundo. Mesma coisa o jornal."* Agora
+   existe `mundoPendente` no fim de temporada, igual ao `copaPending` da Copa dos
+   8: o jornal e o "🗳️ E agora?" só voltam quando a Copa acaba. Quem diz que
+   acabou é a coluna `campeao` de `esc_copa_salas`, gravada pelo dono — assim
+   destrava na mesma hora pra todos, e não em horários diferentes por aparelho.
+2. **O jornal tem que contemplar a Copa do Mundo**, igual já faz com a Copa dos 8
+   e a Libertadores. `montaEdicao` ganhou um `mundo?` opcional: com ele, o
+   campeão do mundo entra como "campeão da copa" e TODO o jornal já sabe o que
+   fazer — manchete de "noite de dois donos", banner e as resenhas cruzando os
+   dois títulos.
+3. **O banner da escolha era pequeno demais.** *"Deve ser MUITO maior e aparecer
+   de cara na tela."* As três fases viraram TELA CHEIA: a vez de escolher a
+   bandeira, o banner de 15s e a convocação — que agora **abre sozinha** quando o
+   banner acaba (mandar procurar botão com 60s correndo era queimar o tempo dela).
+4. **A linha "Copa da sala nº 1 · Você: Argentina (fulano)" no topo saiu** —
+   *"não tem necessidade disso"*. Na carreira ela fica: lá ela conta a temporada.
+5. **Os jogos estavam rápidos demais.** Na sala a rodada mostra 4 grupos ao mesmo
+   tempo; 9s (o ritmo da liga) não dava pra ler nada. Na Copa online a rodada
+   agora respira **14s**, e o controle de velocidade continua ali.
+6. **O placar ao vivo ficava longe do grupo dele** (*"eu era Argentina, e a
+   Argentina tava no grupo lá de baixo"*). O **SEU grupo agora vem primeiro** — a
+   letra continua a de verdade (A/B/C/D).
+7. **65s pra escolher a seleção** (era 45s) e o castigo escrito na cara:
+   quem não fecha a convocação a tempo leva **os piores do país em CADA posição
+   que ficou vazia** — e o que ele já marcou **fica**. `completaXI` faz a conta e
+   o guarda confere (marcou 7 → mantém os 7 + 4 pernas-de-pau, e o time fecha
+   nas vagas certas da formação).
+
+**`npm run copa` cresceu junto:** agora ele também confere o castigo por posição.
+
+
 ## ❌ A COPA DO MUNDO NÃO É UM MODO DE SALA (01/09) — regra dele, não repor
 Eu tinha criado a Copa como um **modo** na tela de criar sala, do lado de Rápido,
 Minhas Ligas, Carreira e Bafo. Ele viu a tela e cortou na hora: *"o que você fez,

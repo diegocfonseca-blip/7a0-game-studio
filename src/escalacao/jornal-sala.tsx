@@ -160,6 +160,16 @@ function notaDe(
 }
 
 // ── monta a edição inteira a partir do estado ───────────────────────────────
+// bandeirinha do país no nome do campeão do mundo — o jornal é imagem, então
+// aqui é texto puro mesmo (o mapa completo mora em copa-mundo.tsx).
+const BANDEIRA_JORNAL: Record<string, string> = {
+  Brasil: '🇧🇷', Argentina: '🇦🇷', França: '🇫🇷', Espanha: '🇪🇸', Inglaterra: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', Alemanha: '🇩🇪',
+  Holanda: '🇳🇱', Itália: '🇮🇹', Portugal: '🇵🇹', México: '🇲🇽', Uruguai: '🇺🇾', Colômbia: '🇨🇴',
+  Bélgica: '🇧🇪', Paraguai: '🇵🇾', Equador: '🇪🇨', Japão: '🇯🇵', Senegal: '🇸🇳', Chile: '🇨🇱',
+  Peru: '🇵🇪', Dinamarca: '🇩🇰', Camarões: '🇨🇲', EUA: '🇺🇸', Croácia: '🇭🇷', 'Coreia do Sul': '🇰🇷',
+}
+const flagDoPais = (p: string) => BANDEIRA_JORNAL[p] ?? ''
+
 export interface EdicaoSala {
   linhas: LinhaSala[]
   campeaoLiga: { nome: string; quem: string; pts: number; w: number; d: number; l: number; gf: number; ga: number } | null
@@ -173,10 +183,16 @@ export interface EdicaoSala {
   nTecnicos: number
 }
 
-export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: number): EdicaoSala {
+// 🌍 `mundo` = o campeão da COPA DO MUNDO da sala (01/09). Quando ele vem, o
+// jornal trata a Copa do Mundo exatamente como já tratava a Copa dos 8 e a
+// Libertadores — manchete de "noite de dois donos", banner do campeão da copa e
+// as resenhas cruzando os dois títulos. Foi o que o Diego cobrou: *"o jornal
+// deve contemplar o campeão da liga e as resenhas + a Copa do Mundo, igual você
+// fez nos outros"*.
+export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: number, mundo?: { nome: string; pais: string } | null): EdicaoSala {
   const table = sortedTable(state.league)
   const n = table.length
-  const copaNome = state.copaMode === 'liga_liberta' ? 'Libertadores' : 'Copa dos 8'
+  const copaNome = mundo ? 'Copa do Mundo' : state.copaMode === 'liga_liberta' ? 'Libertadores' : 'Copa dos 8'
   const runs = runsDaCopa(state.quickCopa)
   const mgr = (id: number) => state.managers.find(m => m.id === id)
   const seed = Math.abs(state.seed | 0)
@@ -200,8 +216,14 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   const tN = table[n - 1]
   const campeaoLiga = t1 ? { nome: t1.name, quem: mgr(t1.id)?.name ?? '', pts: t1.pts, w: t1.w, d: t1.d, l: t1.l, gf: t1.gf, ga: t1.ga } : null
   const champCopa = state.quickCopa?.champion ?? null
-  const campeaoCopa = champCopa ? { nome: champCopa.name, quem: mgr(champCopa.id)?.name ?? '' } : null
-  const mesmoDono = !!(champCopa && t1 && champCopa.id === t1.id)
+  // 🌍 na sala com Copa do Mundo, o "campeão da copa" é o campeão do MUNDO. O nome
+  // que vem gravado é o do TIME da liga (é ele que vira seleção), então o cruzamento
+  // com o campeão da liga continua funcionando sem gambiarra.
+  const timeDoMundo = mundo ? table.find(t => t.name === mundo.nome) ?? null : null
+  const campeaoCopa = mundo
+    ? { nome: `${mundo.nome} ${flagDoPais(mundo.pais)}`.trim(), quem: timeDoMundo ? mgr(timeDoMundo.id)?.name ?? '' : '' }
+    : champCopa ? { nome: champCopa.name, quem: mgr(champCopa.id)?.name ?? '' } : null
+  const mesmoDono = mundo ? !!(t1 && mundo.nome === t1.name) : !!(champCopa && t1 && champCopa.id === t1.id)
   const art = topScorers(state, 1)[0]
   const artilheiro = art ? { nome: art.name, time: art.teamName, gols: art.goals } : null
   const lanterna = tN && n > 1 ? { nome: tN.name, quem: mgr(tN.id)?.name ?? '', pts: tN.pts } : null
@@ -480,8 +502,8 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
 }
 
 // ── o bloco pronto pro EscEnd: capa + compartilhar ──────────────────────────
-export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo }: { state: EscState; vagasCopa: number; zonaDebaixo: number }) {
-  const ed = useMemo(() => montaEdicao(state, vagasCopa, zonaDebaixo), [state, vagasCopa, zonaDebaixo])
+export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo, mundo }: { state: EscState; vagasCopa: number; zonaDebaixo: number; mundo?: { nome: string; pais: string } | null }) {
+  const ed = useMemo(() => montaEdicao(state, vagasCopa, zonaDebaixo, mundo), [state, vagasCopa, zonaDebaixo, mundo])
   const [busy, setBusy] = useState(false)
   const travaRef = useRef(false)
 

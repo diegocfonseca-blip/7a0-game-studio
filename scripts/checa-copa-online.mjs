@@ -62,6 +62,10 @@ const exige = [
   ['castigo · o BOT levou uma das melhores livres? SIM', 'bot pega o que sobrou de melhor — o castigo é só de gente'],
   ['castigo · quem dormiu levou uma das PIORES? SIM', 'quem deixou os 45s passarem leva a PIOR seleção livre'],
   ['castigo · ninguem escolheu bandeira: todos ficaram com pais? SIM', 'ninguém pode ficar sem seleção, nem se a sala inteira dormir'],
+  // 🧩 o castigo é POR VAGA: quem marcou 7 fica com os 7 dele
+  ['parcial · o time fechou com 11? SIM', 'time com menos de 11 quebra o gol'],
+  ['parcial · manteve os 7 que a pessoa marcou? SIM', 'o castigo não pode jogar fora o que a pessoa já tinha escolhido'],
+  ['parcial · as posicoes bateram com a formacao? SIM', 'time torto (2 goleiros, 0 zagueiro) é pior que time ruim'],
 ]
 const erros = exige.filter(([linha]) => !saida.includes(linha)).map(([linha, porque]) => `❌ ${porque}\n   (esperava a linha: "${linha}")`)
 if (saida.includes('ERRO:')) erros.push('❌ a página de teste estourou — veja o ERRO acima')

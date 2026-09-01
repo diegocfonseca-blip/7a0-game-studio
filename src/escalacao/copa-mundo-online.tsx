@@ -31,7 +31,7 @@ import { supabase } from '../lib/supabase'
 import { rankingSelecoes } from './paises'
 import {
   CMModal, ConvocacaoScreen, CupScreen, COPA_TEAMS, flagOf,
-  countryPool, xiPorChaves, xiDaMaquina, xiStrength, piorXI,
+  countryPool, xiPorChaves, xiDaMaquina, xiStrength, completaXI,
   type Entrant, type Formation, type CopaSave,
 } from './copa-mundo'
 
@@ -339,10 +339,13 @@ export function useEscolhasDaCopa(roomId: string | null, versao: number): Record
 
 export type FaseCopa = 'bandeira' | 'banner' | 'convocacao' | 'torneio'
 export interface LugarNaLiga { id: number; nome: string; humano: boolean }
-interface LinhaFase { edicao: number; seed: number; fase: FaseCopa; vez_uid: string | null; ate: string | null; times: CopaTime[] | null }
+interface LinhaFase { edicao: number; seed: number; fase: FaseCopa; vez_uid: string | null; ate: string | null; times: CopaTime[] | null; campeao: string | null }
 interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: CopaPick | null }
 
-const SEG_BANDEIRA = 45, SEG_BANNER = 15, SEG_CONVOCA = 60
+// ⏱️ 65s pra escolher a seleção (Diego 01/09: *"o tempo pra escolher a seleção
+// deve ser de 65s"*) — era 45s. O banner entre as duas fases são 15s e a
+// convocação, 60s pra todo mundo junto.
+const SEG_BANDEIRA = 65, SEG_BANNER = 15, SEG_CONVOCA = 60
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */
@@ -382,7 +385,12 @@ export function montaFichaDaLiga(
     // 🥴 quem escolheu a bandeira mas NÃO convocou entra com os piores 11 — é o
     // castigo do Diego, e ele precisa viajar na ficha (senão cada aparelho
     // montaria um time diferente pra essa pessoa e a Copa racharia).
-    const xiKeys = temTime(pick) ? pick!.xiKeys : (lugar.humano ? piorXI(countryPool(pais), '4-3-3').map(c => `${c.name}|${c.club}|${c.year}`) : undefined)
+    // 🧩 gente: o que ela marcou + os PIORES nas vagas que ficaram vazias (mesmo
+    // quem não marcou NADA cai aqui e leva 11 pernas-de-pau). Bot: nada, que o
+    // motor monta o melhor XI do país sozinho.
+    const xiKeys = lugar.humano
+      ? completaXI(pais, (pick?.form ?? '4-3-3'), temPais(pick) ? pick!.xiKeys : []).map(c => `${c.name}|${c.club}|${c.year}`)
+      : undefined
     times.push({ pais, nome: lugar.nome, ...(uid ? { uid } : {}), ...(xiKeys ? { xiKeys } : {}) })
   }
   for (const p of paisesDaCopa()) {
@@ -472,7 +480,7 @@ function BannerDaCopa({ seg }: { seg: number }) {
   )
 }
 
-export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSeed }: {
+export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSeed, aoStatus }: {
   roomId: string
   souDono: boolean
   meuUid?: string
@@ -480,6 +488,9 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   classificacao: LugarNaLiga[]
   /** a semente da partida — é a chave da linha desta temporada na estante */
   matchSeed?: number
+  /** 📰 avisa o fim de temporada se a noite JÁ acabou e quem levou a Copa —
+      é o que segura o jornal e a votação até a Copa terminar (Diego 01/09). */
+  aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null }) => void
 }) {
   const [linhas, setLinhas] = useState<LinhaSala[]>([])
   const [fase, setFase] = useState<LinhaFase | null>(null)
@@ -488,6 +499,10 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   const [erro, setErro] = useState('')
   const [, setAgora] = useState(Date.now()) // só pra redesenhar a contagem 1x por segundo
   const convocando = useRef(false)
+  // 🚪 a convocação abre SOZINHA quando a fase começa. Se a pessoa fechar pra dar
+  // uma olhada na tabela, isto lembra que ela já viu — e aí não fica reabrindo na
+  // cara dela a cada batidinha (tela que reabre sozinha é praga).
+  const convocouRef = useRef(false)
 
   // relógio de tela: 1x por segundo, só pra desenhar a contagem
   useEffect(() => { const iv = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(iv) }, [])
@@ -496,7 +511,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try {
       const [{ data: pls }, { data: fs }] = await Promise.all([
         supabase.from('room_players').select('user_id, player_index, manager_name, copa').eq('room_id', roomId),
-        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1),
+        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1),
       ])
       setLinhas((pls ?? []) as LinhaSala[])
       const f = (fs ?? [])[0] as LinhaFase | undefined
@@ -609,8 +624,12 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     if (!meuUid) return
     try { await supabase.from('room_players').update({ copa: { pais, form: '4-3-3', xiKeys: [] } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* a batidinha tenta de novo */ }
   }
-  async function gravaTime(xiKeys: string[], form: Formation) {
+  // `parcial` = o tempo estourou e a pessoa tinha marcado menos de 11. Grava o
+  // que ela fez mesmo assim: as vagas vazias viram os PIORES na hora de montar a
+  // ficha (`completaXI`), e assim ninguém perde o que já tinha escolhido.
+  async function gravaTime(xiKeys: string[], form: Formation, parcial = false) {
     if (!meuUid || !minha) return
+    if (!parcial && xiKeys.length !== 11) return
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
 
@@ -618,12 +637,29 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   useEffect(() => { if (ficha) setAberta(true) }, [ficha?.seed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function gravaNaEstante(campeao: string, pais: string) {
-    if (!souDono || matchSeed == null) return
+    if (!souDono) return
     try {
-      const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('match_seed', matchSeed).maybeSingle()
-      if (existe) await supabase.from('game_champions').update({ copa_champion_name: `${campeao} (${pais})` }).eq('id', existe.id)
+      // 1) a linha da Copa: é ela que diz pra TODO MUNDO que a noite acabou —
+      //    e é por ela que o jornal e a votação do "e agora?" destravam juntos,
+      //    na mesma hora, em todos os aparelhos.
+      if (fase) await supabase.from('esc_copa_salas').update({ campeao: `${campeao} | ${pais}` }).eq('room_id', roomId).eq('edicao', fase.edicao)
+      // 2) a estante da temporada (a MESMA linha da liga daquela noite)
+      if (matchSeed != null) {
+        const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('match_seed', matchSeed).maybeSingle()
+        if (existe) await supabase.from('game_champions').update({ copa_champion_name: `${campeao} (${pais})` }).eq('id', existe.id)
+      }
+      await ler()
     } catch { /* nunca trava a Copa */ }
   }
+
+  // 📰 o fim de temporada precisa saber DUAS coisas: se ainda falta Copa (pra
+  // segurar o jornal e a votação) e quem levou (pra sair no jornal).
+  const campeaoDoMundo = useMemo(() => {
+    if (!fase?.campeao) return null
+    const [nome, pais] = fase.campeao.split(' | ')
+    return nome ? { nome, pais: pais ?? '' } : null
+  }, [fase?.campeao])
+  useEffect(() => { aoStatus?.({ pendente: !campeaoDoMundo, campeao: campeaoDoMundo }) }, [campeaoDoMundo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const daVezNome = fase?.vez_uid ? nomeDe.get(fase.vez_uid) ?? 'alguém' : ''
   return (
@@ -675,17 +711,15 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
               ⏳ O dono da sala abre a Copa do Mundo — segura aí.
             </p>)}
 
-        {/* fase 1: a bandeira */}
+        {/* fase 1: quem NÃO é a vez fica sabendo aqui (a vez em si é tela cheia) */}
         {fase?.fase === 'bandeira' && (souAVez
-          ? <EscolheBandeira pegas={pegas} seg={seg} aoConfirmar={p => { void gravaPais(p) }} />
+          ? null
           : <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '9px 2px 0', textAlign: 'center', lineHeight: 1.4 }}>
               {minha
                 ? <>{flagOf(minha.pais)} Você é a <b>{minha.pais}</b>. Agora é esperar a fila — <b>{daVezNome}</b> está escolhendo ({seg}s).</>
                 : <>⏳ <b>{daVezNome}</b> está escolhendo a seleção ({seg}s). A sua vez vem na ordem da tabela.</>}
             </p>)}
 
-        {/* fase 2: o banner de 15s */}
-        {fase?.fase === 'banner' && <BannerDaCopa seg={seg} />}
 
         {/* fase 3: a convocação, todo mundo junto */}
         {fase?.fase === 'convocacao' && (
@@ -695,14 +729,9 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
             </p>
             <Relogio seg={seg} total={SEG_CONVOCA} />
             {minha && !temTime(minha) && (
-              <>
-                <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '6px 0 7px', textAlign: 'center', lineHeight: 1.35 }}>
-                  Você é {flagOf(minha.pais)} <b>{minha.pais}</b>. Se o tempo acabar, a máquina te dá os <b>piores 11</b> — e não tem dó.
-                </p>
-                <button onClick={() => { convocando.current = true; setAgora(Date.now()) }}
-                  style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 0', ...OSWALD, fontWeight: 900, fontSize: 14,
-                    background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>⚽ ESCALAR MINHA SELEÇÃO</button>
-              </>
+              <button onClick={() => { convocando.current = true; setAgora(Date.now()) }}
+                style={{ width: '100%', marginTop: 7, border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 0', ...OSWALD, fontWeight: 900, fontSize: 14,
+                  background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>⚽ VOLTAR PRA CONVOCAÇÃO</button>
             )}
             {temTime(minha) && (
               <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '6px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
@@ -720,10 +749,25 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
         )}
       </div>
 
-      {/* a tela de convocação (a MESMA da carreira) */}
-      {fase?.fase === 'convocacao' && convocando.current && minha && !temTime(minha) && (
+      {/* 🖥️ AS FASES SÃO TELA CHEIA (Diego 01/09: *"o banner pra escolher seleção
+          deve ser MUITO maior e aparecer de cara na tela pros usuários"*). Antes
+          era uma caixinha no meio do fim de temporada e a pessoa tinha que rolar
+          a tela pra achar — com 65s correndo. Agora sobe por cima de tudo. */}
+      {fase?.fase === 'bandeira' && souAVez && (
         <CMModal>
-          <ConvocacaoScreen pais={minha.pais} onBack={() => { convocando.current = false; setAgora(Date.now()) }}
+          <EscolheBandeira pegas={pegas} seg={seg} aoConfirmar={p => { void gravaPais(p) }} />
+        </CMModal>
+      )}
+      {fase?.fase === 'banner' && <CMModal><BannerDaCopa seg={seg} /></CMModal>}
+
+      {/* a tela de convocação (a MESMA da carreira) — ela ABRE SOZINHA quando o
+          banner acaba: o banner acabou de avisar que são 60s, então mandar a
+          pessoa procurar um botão seria queimar metade do tempo dela. */}
+      {fase?.fase === 'convocacao' && (convocando.current || !convocouRef.current) && minha && !temTime(minha) && (
+        <CMModal>
+          <ConvocacaoScreen pais={minha.pais} prazoSeg={seg}
+            onBack={() => { convocando.current = false; convocouRef.current = true; setAgora(Date.now()) }}
+            aoEstourar={(parcial, f) => { convocando.current = false; void gravaTime(parcial.map(c => `${c.name}|${c.club}|${c.year}`), f, true) }}
             onDone={(xi, f) => { convocando.current = false; void gravaTime(xi.map(c => `${c.name}|${c.club}|${c.year}`), f) }} />
         </CMModal>
       )}

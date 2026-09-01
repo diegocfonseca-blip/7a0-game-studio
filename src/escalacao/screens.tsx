@@ -8353,6 +8353,15 @@ export function EscEnd() {
   // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
   // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
   const [mundoNaLiga, setMundoNaLiga] = useState(false)
+  // 🌍 a noite só acaba DEPOIS da Copa (Diego 01/09: *"a votação é somente quando
+  // acabar tudo, a liga e a Copa do Mundo — mesma coisa o jornal"*). Enquanto
+  // `mundoPendente` for true, o jornal e o "e agora?" ficam escondidos, exatamente
+  // como já acontece com a Copa dos 8 (`copaPending`) e a Libertadores.
+  // Começa TRUE quando a sala é liga+mundo: melhor segurar e soltar do que
+  // piscar o jornal na cara e sumir.
+  const [mundoPendente, setMundoPendente] = useState(false)
+  const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
+  useEffect(() => { if (mundoNaLiga) setMundoPendente(true) }, [mundoNaLiga])
   useEffect(() => {
     if (!online || !state.roomId) return
     let vivo = true
@@ -8657,14 +8666,15 @@ export function EscEnd() {
         <CercaDaCopa><Suspense fallback={null}>
           <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
             classificacao={table.map(t => {
               const m = state.managers.find(mm => mm.id === t.id)
               return { id: t.id, nome: t.name, humano: !!m?.isHuman }
             })} />
         </Suspense></CercaDaCopa>
       )}
-      {online && !copaPending && !libPending && (!state.liberta || copaDone) && (
-        <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} />
+      {online && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
+        <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} mundo={campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !copaPending && !libPending && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
@@ -8684,7 +8694,7 @@ export function EscEnd() {
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).
           Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
-      {online && !copaPending && !libPending && <OnlineEndVote awaitingCard={awaitingCard} />}
+      {online && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
       {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
           Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira
