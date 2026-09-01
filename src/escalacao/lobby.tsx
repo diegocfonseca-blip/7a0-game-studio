@@ -516,19 +516,39 @@ function SegField({ label, children }: { label: string; children: React.ReactNod
   )
 }
 // controle segmentado genérico (selecionado = dourado)
-function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean }) {
+// 🏷️ `selos` = uma tarjinha EM CIMA do texto de uma opção ("NOVO"). Ela mora
+// DENTRO do botão de propósito: a moldura do Seg é `overflow-hidden`, então
+// qualquer coisa pendurada pra fora seria cortada.
+// A cor se inverte quando o botão está escolhido: numa opção branca a tarja é
+// dourada com letra preta; na dourada ela vira preta com letra dourada. Sem isso
+// o amarelo sumiria dentro do amarelo justamente quando a pessoa escolhe.
+function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim, selos }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean; selos?: Partial<Record<string, string>> }) {
   return (
     <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden" style={dim ? { opacity: 0.45 } : undefined}>
-      {options.map(([v, label], i) => (
-        <button key={String(v)} onClick={() => onSet(v)}
-          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-          style={{ padding: small ? '8px 2px' : '9px 2px', fontSize: small ? 11 : 12.5, background: value === v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
-          {label}
-        </button>
-      ))}
+      {options.map(([v, label], i) => {
+        const selo = selos?.[String(v)]
+        const escolhido = value === v
+        return (
+          <button key={String(v)} onClick={() => onSet(v)}
+            className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
+            style={{ padding: small ? '8px 2px' : '9px 2px', fontSize: small ? 11 : 12.5, background: escolhido ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
+            {selo && (
+              <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+                letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
+                border: `1.5px solid ${INK}`, background: escolhido ? INK : GOLD, color: escolhido ? GOLD : INK }}>{selo}</span>
+            )}
+            {label}
+          </button>
+        )
+      })}
     </div>
   )
 }
+// 🏷️ até quando a tarja "NOVO" fica na tela. Mesma ideia das novidades da home:
+// ninguém precisa lembrar de tirar — ela some sozinha. (A Copa do Mundo online
+// nasceu em 01/09; 45 dias depois vira mais um modo de sempre.)
+const NOVO_ATE = new Date('2026-10-16T00:00:00')
+const seloNovo = (): string | undefined => (Date.now() < NOVO_ATE.getTime() ? 'novo' : undefined)
 // chavinha (switch) liga/desliga
 function Sw({ on }: { on: boolean }) {
   return (
@@ -2978,7 +2998,7 @@ export function EscLobby() {
                   <Seg options={(libertaOn
                     ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga_mundo', '🌐 Liga + Mundo'], ['liga', '📊 Só liga']]
                     : [['liga_copa', '🏆 Liga + Copa'], ['liga_mundo', '🌐 Liga + Mundo'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga_mundo' | 'liga', string][]}
-                    value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
+                    value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} selos={{ liga_mundo: seloNovo() }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 4 grupos, mata-mata ida e volta e final única. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
