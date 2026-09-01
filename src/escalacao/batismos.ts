@@ -41,7 +41,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Marinheiros AS', tipo: 'socio', fundador: null },
   { clube: 'Leão da Estradinha', tipo: 'batismo', fundador: 28 },
   { clube: 'Marreco FC', tipo: 'batismo', fundador: 29 },
-  { clube: 'Al Takahdao FC', tipo: 'batismo', fundador: 53 },
+  { clube: 'Al Takhadao FC', tipo: 'batismo', fundador: 53 },
   { clube: 'Alfacehh', tipo: 'batismo', fundador: 30 },
   { clube: 'Barcenite FC', tipo: 'batismo', fundador: 31 },
   { clube: 'Manfré FC', tipo: 'batismo', fundador: 34 },

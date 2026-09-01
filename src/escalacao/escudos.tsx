@@ -700,22 +700,22 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Papão United Madrid EC': papaoEscudoRender,
   'Papao United Madrid': papaoEscudoRender,
   'Santos Dumont': papaoEscudoRender,
-  // 🦜🛒 Al Takahdao FC (fontourajoao04) — Série A, no assento que era do Marreco
-  // FC (que desceu pra Série B em 01/09). As 4 formas do nome (regra do Diego
-  // 20/08) também estão reservadas no banco.
-  // ⚠️ NÃO registrar aqui o nome do bot que saiu da Série B (Serrano FC): o
-  // Marreco não foi renomeado, só mudou de divisão — ver o comentário no data.ts.
+  // 🦜🛒 AL TAKHADAO (fontourajoao04) — Série A, no assento que era do Marreco FC
+  // (que desceu pra Série B em 01/09).
+  // 🔤 DUAS GRAFIAS DE PROPÓSITO (decisão do Diego, 01/09): a ARTE que o dono
+  // mandou escreve "AL TAKAHDAO", mas a CONTA e o CLUBE dele no jogo são
+  // "AL TAKHADAO" (H e A trocados). O Diego mandou valer o nome DELE — *"altera
+  // o nome pro time dele q é a verdade"* — e deixar as DUAS aparecendo com a
+  // logo. `chaveEscudo` perdoa caixa/acento/FC-EC-SC, mas NÃO letra trocada:
+  // por isso cada grafia precisa da própria chave. NÃO APAGAR nenhuma das duas.
+  'Al Takhadao FC': takahdaoEscudoRender,
+  'Al Takhadao': takahdaoEscudoRender,
+  'Al Takhadao EC': takahdaoEscudoRender,
+  'Al Takhadao SC': takahdaoEscudoRender,
   'Al Takahdao FC': takahdaoEscudoRender,
   'Al Takahdao': takahdaoEscudoRender,
   'Al Takahdao EC': takahdaoEscudoRender,
   'Al Takahdao SC': takahdaoEscudoRender,
-  // 🔤 A GRAFIA QUE O DONO USA DE VERDADE (achado 01/09). A arte dele escreve
-  // "AL TAKAHDAO", mas a conta e o clube dele no jogo estao escritos
-  // "AL TAKHADAO" — o H e o A trocados. `chaveEscudo` perdoa caixa, acento e
-  // FC/EC/SC, mas NAO perdoa letra trocada: sem esta linha ele nao ve o proprio
-  // escudo. As duas grafias ficam registradas pro mesmo dono.
-  'Al Takhadao': takahdaoEscudoRender,
-  'Al Takhadao FC': takahdaoEscudoRender,
   // 🦇🟠⚫ Theuzudo FC (matheusfilipealves) — ex-Comercial do Norte, Série B. O nome
   // velho fica registrado: quem já tinha carreira com o Comercial não fica sem escudo.
   'Theuzudo FC': theuzudoEscudoRender,

@@ -2511,7 +2511,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Duda Fortuna', team: 'Skyy FC' }, // ⚽ clube BATIZADO por apoiador (matheusncruz1 — Skyy FC, ex-Fortuna SAF)
     { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
     { name: 'Neguinho do Apito', team: 'Xurupitas FC' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Xurupitas FC, ex-Tokyo City Esperion, ex-FC Galáticos; porco/Palmeiras)
-    { name: 'Zé do Mercado', team: 'Al Takahdao FC' }, // 🦜🛒 clube BATIZADO por apoiador (fontourajoao04 — Al Takahdao FC; papagaio de avental, carrinho de mercado, verde+laranja; coração Internacional; Lenda + fundador nº53, 01/09). Assento que era do Marreco FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Isto aqui é memória do repo — no POST o Diego pediu pra NÃO falar "entrou no lugar do Marreco", só "entrou na Série A".
+    { name: 'Zé do Mercado', team: 'Al Takhadao FC' }, // 🦜🛒 clube BATIZADO por apoiador (fontourajoao04 — Al Takhadao FC; papagaio de avental, carrinho de mercado, verde+laranja; coração Internacional; Lenda + fundador nº53, 01/09). Assento que era do Marreco FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Isto aqui é memória do repo — no POST o Diego pediu pra NÃO falar "entrou no lugar do Marreco", só "entrou na Série A".
     { name: 'Tião Bagre', team: 'Leão da Estradinha' }, // ⚽🦁 clube BATIZADO por apoiador (jorgericardo777 — Leão da Estradinha, ex-Império Samambaia, ex-Cuiabagre; homenagem ao Rio Branco-PR, o Leão da Estradinha de 1913, time do coração dele; rebatismo 23/08)
     { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
     { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
@@ -2543,7 +2543,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Litorâneo', team: 'Esqueceram do Lluch FC' }, // ⚽ clube BATIZADO por apoiador (lluchmarcel81 — Esqueceram do Lluch FC, ex-Litoral United; Lenda + fundador nº50, 28/08)
     { name: 'Ferroviário', team: 'Ferroviário do Sul' },
     // 🦆 Marreco FC (lucasigorbortoliniii) DESCEU da Série A pra cá em 01/09, por
-    // decisão do Diego, pra abrir o assento do Al Takahdao FC. Ocupa a vaga que era
+    // decisão do Diego, pra abrir o assento do Al Takhadao FC. Ocupa a vaga que era
     // do bot "Serrano FC" (escolhido por ser o único 'Serra' que não é usado em
     // outra lista — o 'Nacional da Serra' também mora em CLASSIC_CLUBS).
     // ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Marreco FC'] = 'Serrano FC'`: o
