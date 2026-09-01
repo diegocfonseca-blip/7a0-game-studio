@@ -119,7 +119,25 @@ FORA do bundle. Então, sem exceção:
      = **2 cores medidas na arte que o dono mandou** (nunca chutadas; 3ª cor só
      via `MANTO_TRI`). Sempre os MESMOS lugares no código: `LOGOS_PRONTAS`
      (com as variações do nome + o nome velho) · `MASCOTES` + `MASCOTE_NOME` +
-     `CARIMBO_GOL` · `data.ts` (`OLD_NAME` + a divisão) · `apoio.tsx`.
+     `CARIMBO_GOL` · `data.ts` (`OLD_NAME` + a divisão) · `apoio.tsx`
+     (tier `'ouro'` **e** `FUNDADOR_N`) · `manto.ts` (`MANTO_CONTAS`) ·
+     `batismos.ts` · e o clube na lista `BATISMOS` de `scripts/checa-batismos.mjs`
+     (senão a trava nunca confere esse clube).
+   - 🗄️ **E MAIS DUAS LINHAS NO BANCO — a parte que some fácil (achado 01/09).**
+     O Diego perguntou *"já ativou tudo dele c/ benefícios e etc q batismo tem
+     direito?"* e a resposta era NÃO: o código estava completo, o banco não.
+     Nenhuma trava pega isso, porque `checa-batismos.mjs` roda offline.
+     Todo batismo precisa de:
+     - **`esc_socios`** — `socio_n` (o próximo), `desde`, `valido_ate =
+       '2099-12-31'` (batismo é pra sempre), `manto_c1`/`manto_c2`,
+       `mascote_key`, `escudo_time`, `time_coracao`, `origem = 'batismo'`.
+       É daqui que sai o número de SÓCIO; sem esta linha o dono paga e não vira
+       sócio, mesmo com o tier ouro ligado no código.
+     - **`esc_fundadores`** — `email` + `n`. Confira que o `n` bate com o
+       `FUNDADOR_N` do `apoio.tsx` (`select max(n) from esc_fundadores`).
+     - **`esc_nomes_batismo`** — o nome PURO (o gatilho cria FC e EC sozinho).
+       Precisa passar `nome_norm` (minúsculo) na mão: a coluna é NOT NULL e não
+       tem default.
    - **Mockup do post**: `node scripts/mockup-batismo.mjs` — formato aprovado
      pelo Diego (o do Nata de SP). **Tem que ter a seção das ANIMAÇÕES** ("onde
      a mascote aparece": carimbo no gol · festão de campeão · pulo no pênalti) —

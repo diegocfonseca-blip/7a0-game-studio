@@ -12509,3 +12509,44 @@ que o jogador LÊ.
 - **Gonçalves** → ele avisou que "está errado, é de 1995". **Conferi e já estava
   certo**: `Gonçalves · Botafogo · 1995` (ZAG). Nada a fazer — registrando aqui pra
   ninguém "corrigir" de novo o que já está certo.
+
+## 🖋️ BATISMO Al Takahdao FC (01/09) — feito, e um buraco de rotina achado
+
+Batismo do `fontourajoao04` (R$69,90 = **Série A**, a lista que era "D" até 30/08).
+Decisão do Diego: **Marreco FC desceu pra Série B** (ocupando a vaga do bot
+`Serrano FC`) pra abrir o assento. Escolhi o Serrano FC porque era o único
+"Serra" que não é usado em outra lista — o `Nacional da Serra` também mora em
+`CLASSIC_CLUBS`.
+
+⚠️ **`docs/vagas-batismo.md` ESTÁ MENTINDO — não usar.** Ele diz que "Barcenite
+FC" e "Flamengo do Sertão" estão livres; os dois estão batizados (Barcenite é do
+`ricardopessoafreire`, e o Flamengo do Sertão virou São Luiz FC do
+`gabrielnegreirosamaral99`). Ele foi gerado por um script que sumiu e nunca foi
+refeito depois da troca A↔D. **Contar vaga sempre pelo `data.ts`**, nunca por
+esse doc — se eu tivesse seguido ele, a vaga era vendida duas vezes.
+
+**Não existe `OLD_NAME['Marreco FC'] = 'Serrano FC'`, de propósito**: o Marreco
+não foi renomeado, só mudou de divisão. Mapear faria uma carreira que tem OS
+DOIS desenhar o mesmo escudo em dois clubes da mesma tabela. (Diferente do caso
+Alfacehh, em que o clube realmente assumiu a identidade do assento.)
+
+**Carreira em andamento não muda**: a divisão de um bot num save vem do
+`placements` guardado; `cpuOrigDiv` é só fallback pra time sem colocação.
+
+### 🕳️ O buraco de rotina (a parte que interessa pras próximas sessões)
+O Diego perguntou *"já ativou tudo dele c/ benefícios?"*. O código estava
+completo, mas o **banco não**: faltavam `esc_socios` (sócio nº31, validade
+2099, manto, mascote, escudo, coração) e `esc_fundadores` (nº53). Nenhuma trava
+pega isso — `checa-batismos.mjs` roda offline e não fala com o banco.
+Gravado no `CLAUDE.md` como passo fixo do roteiro.
+
+**Pendência aberta:** fazer `npm run batismos` (ou um script novo) conferir
+também o BANCO — `esc_socios`, `esc_fundadores` e `esc_nomes_batismo` — e
+regenerar o `vagas-batismo.md` a partir do `data.ts`. Enquanto isso não existe,
+esses três passos dependem de alguém lembrar.
+
+**Texto do post:** o Diego cortou o "entrou no lugar do Marreco" — o post fala
+só que ele **chega na Série A**. Motivo: o Marreco continua no jogo e o dono
+dele é apoiador pagante; dizer "no lugar de" soa como se ele tivesse sumido.
+O comentário técnico fica no `data.ts` (memória do repo), com aviso de que no
+POST isso não se fala.
