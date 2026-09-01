@@ -27,7 +27,10 @@ União das pedras) e mandou print de tudo. As sete, e o que foi feito:
 6. **O placar ao vivo ficava longe do grupo dele** (*"eu era Argentina, e a
    Argentina tava no grupo lá de baixo"*). O **SEU grupo agora vem primeiro** — a
    letra continua a de verdade (A/B/C/D).
-7. **65s pra escolher a seleção** (era 45s) e o castigo escrito na cara:
+7. **65s pra escolher a seleção** (era 45s) — e, logo depois, **65s também pra
+   convocar o elenco** (*"65s pra escolher o elenco também"*, era 60). Os dois
+   tempos iguais de propósito: pra quem joga é a mesma promessa nas duas telas.
+   E o castigo escrito na cara:
    quem não fecha a convocação a tempo leva **os piores do país em CADA posição
    que ficou vazia** — e o que ele já marcou **fica**. `completaXI` faz a conta e
    o guarda confere (marcou 7 → mantém os 7 + 4 pernas-de-pau, e o time fecha
@@ -96,7 +99,7 @@ E ele fechou o castigo da bandeira: *"escolhe a pior seleção quem não escolhe
 45s também, ou a que ele estiver selecionado"*. Está tudo no ar:
 1. **45s por vez** na bandeira, na ordem da tabela, passando sozinho.
 2. **Banner + 15s** quando a última bandeira sai.
-3. **60s de convocação pra todo mundo junto** — a ordem vale SÓ pra bandeira (um
+3. **65s de convocação pra todo mundo junto** — a ordem vale SÓ pra bandeira (um
    toque). Se valesse pros 11, a sala inteira esperaria o 1º montar time, e "nada
    pode atrasar o ritmo do jogo" é regra dele.
 4. **Castigos**: quem deixa os 45s passarem leva a **pior seleção livre** (ou a que

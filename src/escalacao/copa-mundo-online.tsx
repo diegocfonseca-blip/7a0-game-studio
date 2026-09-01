@@ -342,10 +342,13 @@ export interface LugarNaLiga { id: number; nome: string; humano: boolean }
 interface LinhaFase { edicao: number; seed: number; fase: FaseCopa; vez_uid: string | null; ate: string | null; times: CopaTime[] | null; campeao: string | null }
 interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: CopaPick | null }
 
-// ⏱️ 65s pra escolher a seleção (Diego 01/09: *"o tempo pra escolher a seleção
-// deve ser de 65s"*) — era 45s. O banner entre as duas fases são 15s e a
-// convocação, 60s pra todo mundo junto.
-const SEG_BANDEIRA = 65, SEG_BANNER = 15, SEG_CONVOCA = 60
+// ⏱️ OS TRÊS RELÓGIOS, todos escolhidos pelo Diego (01/09):
+//   · 65s pra escolher a SELEÇÃO, um de cada vez, na ordem da tabela;
+//   · 15s de banner entre as duas fases;
+//   · 65s pra CONVOCAR os 11 — todo mundo junto (*"65s pra escolher o elenco
+//     também"*). Os dois tempos são iguais de propósito: pra quem joga, é a
+//     mesma promessa nas duas telas — "você tem 65 segundos".
+const SEG_BANDEIRA = 65, SEG_BANNER = 15, SEG_CONVOCA = 65
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */
