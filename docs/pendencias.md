@@ -117,8 +117,21 @@ guardado → `evento = delivered`. Fila voltou pra 8.562 em `espera`.
 ⚠️ **Fila trancada**: `esc_email_fila` tem RLS ligada e **zero políticas** = a
 lista de 8,5 mil e-mails não é lida por ninguém pelo site. Não criar política ali.
 
-**Falta**: o bloco no Painel do Criador (mockup mandado 01/09, esperando o OK
-dele). Enquanto não tem tela, o número sai por `esc_email_placar()`.
+**A TELA (aprovada 01/09 — "perfeito pode fazer")**: bloco `CampanhaEmailAdmin`
+em `admin.tsx`, logo depois do `Dashboard`. Mostra mandados/na fila, o funil
+(chegou · abriu · clicou), a caixa verde do "voltaram a jogar" com a linha dos
+sumidos, o dia a dia e o botão **⏸️ Pausar o disparo**
+(RPC `esc_email_interruptor`, também trancada no dono).
+
+**Conferido antes de commitar** (não dava pra logar como ele pra testar em
+produção): montei um andaime temporário com vite + supabase de mentira e
+fotografei os DOIS estados — zerado (o de hoje) e com campanha rodando. Bate com
+o mockup. O andaime foi apagado; a tranca foi testada fingindo ser outro usuário,
+anônimo e o dono (só o dono passa).
+
+⚠️ **Não juntar `voltou` e `voltou_sumido` num número só.** São dois de
+propósito: quem já jogava todo dia voltaria de qualquer jeito. O de baixo é o
+resultado limpo — juntar vira propaganda enganosa pra ele mesmo.
 
 ## 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA (01/09) — não trocar de volta
 Ele olhou o seletor "Depois da liga" e cortou: *"acho que tem que ter uma

@@ -535,6 +535,160 @@ function TVCotaAdmin() {
   )
 }
 
+// ── 📧 CAMPANHA DE E-MAIL · o placar (só admin) ──────────────────────────────
+// Pergunta do Diego (01/09): "consigo ter um controle das pessoas q mandamos
+// email e se surtiu resultado?". Os números vêm prontos do banco
+// (`esc_email_placar`), que já é trancado no e-mail do dono — aqui é só desenho.
+//
+// ⚠️ O NÚMERO QUE VALE É "VOLTOU A JOGAR", e ele vem partido em dois de
+// propósito: quem já jogava todo dia voltaria de qualquer jeito, então quem
+// estava SUMIDO há +14 dias é o resultado limpo da campanha. Não juntar os dois
+// num número só — vira propaganda enganosa pra ele mesmo.
+type PlacarEmail = {
+  ligado: boolean; por_dia: number; total_na_lista: number
+  mandados: number; na_fila: number; com_erro: number
+  chegou: number; abriu: number; clicou: number
+  voltou: number; voltou_sumido: number; so_espiou: number
+  pediu_pra_sair: number; ultimo_disparo: string | null
+}
+type DiaEmail = {
+  dia: string; mandados: number; chegou: number; abriu: number
+  clicou: number; voltou: number; voltou_sumido: number
+}
+
+function CampanhaEmailAdmin() {
+  const [p, setP] = useState<PlacarEmail | null>(null)
+  const [dias, setDias] = useState<DiaEmail[]>([])
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const carregar = async () => {
+    const { data, error } = await supabase.rpc('esc_email_placar')
+    if (error) { setMsg(`❌ ${error.message}`); return }
+    setP(data as PlacarEmail)
+    const { data: d } = await supabase.rpc('esc_email_placar_dias')
+    setDias(Array.isArray(d) ? (d as DiaEmail[]) : [])
+  }
+  useEffect(() => { carregar() }, [])
+
+  const virar = async () => {
+    if (!p) return
+    const ligando = !p.ligado
+    if (!ligando && !window.confirm('Pausar o disparo? O que já foi mandado fica; o resto da fila espera onde parou. Dá pra religar quando quiser.')) return
+    setBusy(true); setMsg('')
+    const { data, error } = await supabase.rpc('esc_email_interruptor', { p_ligado: ligando })
+    if (error) setMsg(`❌ ${error.message}`)
+    else { setP(data as PlacarEmail); setMsg(ligando ? '▶️ disparo religado — volta de onde parou' : '⏸️ disparo pausado') }
+    setBusy(false)
+  }
+
+  if (!p) {
+    return (
+      <div style={{ border: `2px solid ${GOLD}`, borderRadius: 16, padding: 14, marginTop: 16 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, textTransform: 'uppercase', margin: 0 }}>📧 Campanha de e-mail</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(242,232,207,.5)', margin: '6px 0 0' }}>{msg || 'carregando…'}</p>
+      </div>
+    )
+  }
+
+  const pct = (n: number) => (p.mandados > 0 ? Math.round(n * 100 / p.mandados) : 0)
+  const quandoUlt = p.ultimo_disparo
+    ? new Date(p.ultimo_disparo).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    : null
+  // com 8,5 mil na fila e 95 por dia, dá pra dizer quanto falta em dias
+  const diasQueFaltam = p.por_dia > 0 ? Math.ceil(p.na_fila / p.por_dia) : 0
+
+  const cel = (n: number, r: string) => (
+    <div style={{ border: '1px solid rgba(242,232,207,.14)', borderRadius: 10, padding: '8px 10px' }}>
+      <div style={{ ...OSWALD, fontWeight: 900, fontSize: 24, lineHeight: 1.05, color: '#F2E8CF', fontVariantNumeric: 'tabular-nums' }}>{nf(n)}</div>
+      <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .7, color: 'rgba(242,232,207,.55)', marginTop: 1 }}>{r}</div>
+    </div>
+  )
+  const funil = (rot: string, n: number) => (
+    <div style={{ position: 'relative', border: '1px solid rgba(242,232,207,.14)', borderRadius: 8, marginBottom: 4, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, width: `${pct(n)}%`, background: 'rgba(245,179,1,.22)' }} />
+      <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 10, padding: '6px 9px', fontSize: 11.5, fontWeight: 800 }}>
+        <span style={{ color: '#F2E8CF' }}>{rot}</span>
+        <b style={{ color: '#F2E8CF', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{nf(n)} <i style={{ fontStyle: 'normal', color: 'rgba(242,232,207,.55)', fontWeight: 700 }}>· {pct(n)}%</i></b>
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{ border: `2px solid ${GOLD}`, borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, textTransform: 'uppercase', margin: '0 0 4px' }}>📧 Campanha de e-mail</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.55)', margin: '0 0 11px' }}>
+        <span style={{ color: p.ligado ? '#6fdb8f' : '#ff8a75' }}>● {p.ligado ? 'LIGADA' : 'PAUSADA'}</span>
+        {' · '}{p.por_dia} por dia{' · '}
+        {quandoUlt ? `último disparo ${quandoUlt}` : 'sai às 10h da manhã'}
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+        {cel(p.mandados, 'mandados')}
+        {cel(p.na_fila, 'na fila')}
+      </div>
+
+      {p.mandados === 0 ? (
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(242,232,207,.55)', margin: 0 }}>
+          Ainda não saiu nenhum. O primeiro lote de {p.por_dia} sai às 10h da manhã, começando por quem jogou mais recentemente.
+        </p>
+      ) : (
+        <>
+          {funil('Chegou na caixa', p.chegou)}
+          {funil('Abriu', p.abriu)}
+          {funil('Clicou e veio pro site', p.clicou)}
+
+          <div style={{ border: '2px solid #6fdb8f', borderRadius: 12, padding: '9px 10px', marginTop: 10, background: 'rgba(111,219,143,.08)' }}>
+            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 26, lineHeight: 1, color: '#6fdb8f', fontVariantNumeric: 'tabular-nums' }}>{nf(p.voltou)}</div>
+            <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: .7, color: '#6fdb8f', marginTop: 2 }}>voltaram a jogar</div>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.55)', marginTop: 5 }}>
+              <b style={{ color: '#F2E8CF' }}>{nf(p.voltou_sumido)}</b> deles estavam sumidos há mais de 14 dias — esses são os que o e-mail trouxe de volta.
+            </div>
+          </div>
+
+          {dias.length > 0 && (
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 11, fontSize: 11, fontWeight: 700 }}>
+              <thead>
+                <tr>
+                  {['Dia', 'Mand.', 'Abriu', 'Voltou'].map((h, i) => (
+                    <th key={h} style={{ ...OSWALD, fontWeight: 700, textTransform: 'uppercase', letterSpacing: .6, fontSize: 9.5, color: 'rgba(242,232,207,.55)', textAlign: i === 0 ? 'left' : 'right', padding: '0 0 4px', borderBottom: '1px solid rgba(242,232,207,.14)' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {dias.slice(0, 10).map(d => (
+                  <tr key={d.dia}>
+                    <td style={{ padding: '5px 0', color: 'rgba(242,232,207,.55)', borderBottom: '1px solid rgba(242,232,207,.07)' }}>
+                      {new Date(d.dia + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                    </td>
+                    <td style={{ padding: '5px 0', textAlign: 'right', color: '#F2E8CF', fontVariantNumeric: 'tabular-nums', borderBottom: '1px solid rgba(242,232,207,.07)' }}>{nf(d.mandados)}</td>
+                    <td style={{ padding: '5px 0', textAlign: 'right', color: '#F2E8CF', fontVariantNumeric: 'tabular-nums', borderBottom: '1px solid rgba(242,232,207,.07)' }}>{nf(d.abriu)}</td>
+                    <td style={{ padding: '5px 0', textAlign: 'right', color: '#6fdb8f', fontWeight: 900, fontVariantNumeric: 'tabular-nums', borderBottom: '1px solid rgba(242,232,207,.07)' }}>{nf(d.voltou)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
+
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.5)', margin: '9px 0 0' }}>
+        {nf(p.pediu_pra_sair)} pediram pra sair da lista · {nf(p.com_erro)} deram erro
+        {p.na_fila > 0 && ` · faltam ${nf(diasQueFaltam)} dia${diasQueFaltam === 1 ? '' : 's'} pra lista acabar`}
+      </p>
+
+      <button onClick={virar} disabled={busy} style={{
+        width: '100%', boxSizing: 'border-box', marginTop: 11, background: 'transparent',
+        border: `2px solid ${p.ligado ? '#ff8a75' : '#6fdb8f'}`, borderRadius: 10, padding: 9, cursor: 'pointer',
+        ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: .6,
+        color: p.ligado ? '#ff8a75' : '#6fdb8f',
+      }}>{busy ? '…' : p.ligado ? '⏸️ Pausar o disparo' : '▶️ Religar o disparo'}</button>
+
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('❌') ? '#ff8a75' : '#6fdb8f', margin: '7px 0 0', textAlign: 'center' }}>{msg}</p>}
+    </div>
+  )
+}
+
 function AdminOverlay() {
   const [email, setEmail] = useState<string | null | undefined>(undefined) // undefined = carregando
   const [busy, setBusy] = useState(false)
@@ -598,7 +752,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><CampanhaEmailAdmin /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

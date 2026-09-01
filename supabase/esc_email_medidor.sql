@@ -144,3 +144,19 @@ end $$;
 
 -- ⚠️ `esc_email_fila` tem RLS LIGADA e ZERO POLÍTICAS de propósito: são 8,5 mil
 -- e-mails de gente de verdade e o site não lê essa tabela. NÃO criar política ali.
+
+-- ── 7. botão de pausar, do Painel do Criador ────────────────────────────────
+create or replace function public.esc_email_interruptor(p_ligado boolean)
+ returns jsonb language plpgsql security definer set search_path to 'public'
+as $function$
+begin
+  perform public.esc_email_so_o_dono();
+  update public.esc_email_config set ligado = p_ligado where id = 1;
+  return public.esc_email_placar();
+end $function$;
+
+revoke all on function public.esc_email_interruptor(boolean) from public, anon;
+grant execute on function public.esc_email_interruptor(boolean) to authenticated;
+
+-- Tranca conferida fingindo ser outro usuário logado, anônimo e o dono:
+-- só o dono passa nas três (placar, dia a dia e interruptor).
