@@ -316,3 +316,73 @@ Feito: saiu a listra e saiu a promessa. A pergunta **fica** (o Diego quis saber
 de que time é a torcida), agora com o texto honesto: *"Opcional — é só pra gente
 saber de que time é a torcida daqui."* As cores continuam no `coracao.ts`
 guardadas, **sem nenhum uso**, até o Diego decidir o contrário.
+
+---
+
+# 📉 REMEDIÇÃO 01/09 — o gargalo MUDOU de lugar
+
+Ele chegou desanimado: *"preciso de networking, N sei mais como entregar o jogo
+pra mais pessoas.. Tá foda e MT difícil. Pqp"*. Antes de dar palpite, medi o
+banco de novo (a medição de 16/08 está no topo deste doc).
+
+## 1. Não é falta de gente chegando
+
+Contas novas por semana: 2.384 (20/jul) → 1.992 → 889 → 622 → **492** (17/ago)
+→ **764** (24/ago). **Parou de cair e voltou a subir.** Entram ~700 pessoas por
+semana sozinhas, sem ele fazer nada. O topo do funil NÃO é o problema.
+
+## 2. O buraco é o ONLINE — e ele é gigante
+
+Medido em quem criou conta entre 60 e 7 dias atrás (7.770 pessoas):
+
+| | Só sozinho | Jogou ONLINE com gente |
+|---|---|---|
+| pessoas | **7.571** | **199** |
+| dias jogados (média) | 3,5 | **9,8** |
+| voltou 4× ou mais | 28,7% | **83,4%** |
+| **sumiu no 1º dia** | **46,8%** | **1,5%** |
+
+Quem joga UMA partida online com gente de verdade praticamente não vai embora
+(1,5% contra 46,8% — **31× menos**). Mas são só **199 de 7.770 (2,6%)**.
+
+⚠️ **Isso é correlação, não prova.** Quem chega no online já está mais animado.
+Mas o tamanho do buraco (46,8% → 1,5%) é grande demais pra ser só isso — e é a
+mesma forma do achado de 16/08 sobre a carreira, em que ele acertou ao agir.
+
+Em 30 dias: **2.984 contas novas**, só **296 (10%)** pisaram numa sala online, e
+só **107 (3,6%)** vieram por convite de amigo.
+
+## 3. 🔑 O ACHADO: 79% dos donos sozinhos tinham OUTRO dono sozinho esperando
+
+Salas criadas em 30 dias: **409**. Delas, **258 (63%) morreram com o dono
+sozinho dentro** — abriu, esperou, ninguém veio, desistiu.
+
+E aqui está o dinheiro: cruzando as janelas de espera dessas 258 salas,
+**204 (79%) tinham pelo menos OUTRA sala sozinha aberta no mesmo momento.**
+
+(Conferido com rigor: a 1ª conta deu 257/258, mas o `updated_at` de sala morta é
+mexido depois pela limpeza e inflava a janela — média 71 min contra mediana 12,8
+e um caso de 37h. Refeito com a espera **limitada a 15 min**, ainda dá 204/258.
+O número honesto é 79%, não 99%.)
+
+**Duas pessoas querendo jogar juntas, no mesmo minuto, sem se ver.** A sala só
+aparece na lista enquanto o dono está sentado nela (`isFresh`, pulso de 30s,
+some depois de 3 min) — então dois donos esperando em abas diferentes nunca se
+encontram, porque cada um está olhando pra própria sala, não pra lista.
+
+## 4. O que isso quer dizer pro "networking"
+
+Trazer MAIS gente pro topo enquanto 90% nunca toca no online é encher balde
+furado. O mesmo esforço rende muito mais tapando o buraco: são **204 pessoas por
+mês** que QUISERAM jogar com alguém, tentaram, e não conseguiram — a gente já
+sabe quem são e já sabe que estavam online na mesma hora.
+
+**Proposta levada a ele (aguardando decisão, nada codado):** quando o dono está
+sozinho na sala e existe outra sala sozinha aberta, mostrar *"tem mais alguém
+esperando agora"* com um toque pra juntar os dois.
+
+## 5. Buraco de instrumentação
+
+`site_visits` não guarda de ONDE a pessoa veio (não tem referrer). Então hoje é
+impossível saber qual canal traz gente. Enquanto isso não existir, qualquer
+decisão de divulgação é no escuro.
