@@ -1,4 +1,10 @@
-// ─── 🌍 COPA DO MUNDO ONLINE — a Copa da TURMA ───────────────────────────────
+// ─── 🌐 COPA DO MUNDO ONLINE — a Copa da TURMA ───────────────────────────────
+//
+// 🌐 POR QUE ESTE GLOBO E NÃO O 🌍: no seletor "Depois da liga" a Copa do Mundo
+// fica LADO A LADO com a Libertadores (🌎), e o Diego pegou na tela: *"acho que
+// tem que ter uma diferenciação do emoji de mundo e liberta"*. Ele tem razão —
+// 🌍 e 🌎 são o mesmo desenho girado, e no tamanho de um botão viram a mesma
+// bolinha azul. O 🌐 é grade branca sobre azul: some a dúvida de longe.
 //
 // Pedido do Diego (31/08): *"faça a copa do mundo online, pegando o que já
 // existe no modo carreira"*. E é exatamente isso: o torneio aqui é o MESMO
@@ -127,7 +133,7 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
     <>
       <div style={{ ...box(minha ? '#EAF6EE' : '#FFF6D6'), padding: '10px 12px', marginBottom: 10 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, textTransform: 'uppercase' }}>
-          {minha ? `${flagOf(minha.pais)} Você é a ${minha.pais}` : '🌍 Escolha a sua seleção'}
+          {minha ? `${flagOf(minha.pais)} Você é a ${minha.pais}` : '🌐 Escolha a sua seleção'}
         </p>
         <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>
           {minha
@@ -137,14 +143,14 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
         <button onClick={() => { setPais(null); setTela('pais') }}
           style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 0', ...OSWALD, fontWeight: 900, fontSize: 13,
             background: minha ? '#fff' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>
-          {minha ? '🔁 Trocar de seleção' : '🌍 ESCOLHER MINHA SELEÇÃO'}
+          {minha ? '🔁 Trocar de seleção' : '🌐 ESCOLHER MINHA SELEÇÃO'}
         </button>
         {erro && <p style={{ fontSize: 10.5, fontWeight: 800, color: '#B23B2E', margin: '6px 0 0', lineHeight: 1.4 }}>{erro}</p>}
       </div>
 
       {tela === 'pais' && (
         <CMModal>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>🌍 Escolha sua seleção</p>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>🌐 Escolha sua seleção</p>
           <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', textAlign: 'center', margin: '4px 0 10px', lineHeight: 1.4 }}>
             As <b>{COPA_TEAMS}</b> seleções da Copa. As que já têm dono aparecem apagadas — <b>duas pessoas não podem levar o mesmo país</b>.
           </p>
@@ -210,7 +216,7 @@ export function PainelDaCopa({ prontos, total, souDono, abrindo, aoAbrir }: {
   return (
     <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 10 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 6px', textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
-        🌍 Convocados · {prontos.length} de {total}
+        🌐 Convocados · {prontos.length} de {total}
       </p>
       {prontos.length === 0
         ? <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0 }}>Ninguém escolheu ainda.</p>
@@ -232,7 +238,7 @@ export function PainelDaCopa({ prontos, total, souDono, abrindo, aoAbrir }: {
             style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '10px 0', ...OSWALD, fontWeight: 900, fontSize: 14,
               background: podeAbrir ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#ded5bd', color: INK,
               boxShadow: podeAbrir ? `3px 3px 0 0 ${INK}` : 'none', cursor: podeAbrir && !abrindo ? 'pointer' : 'default' }}>
-            {abrindo ? '⏳ Abrindo…' : podeAbrir ? '🌍 ABRIR A COPA DO MUNDO' : '🌍 Precisa de 2 seleções'}
+            {abrindo ? '⏳ Abrindo…' : podeAbrir ? '🌐 ABRIR A COPA DO MUNDO' : '🌐 Precisa de 2 seleções'}
           </button>
           <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '5px 0 0', lineHeight: 1.4 }}>
             A Copa abre <b>na tela de todo mundo ao mesmo tempo</b>. São {COPA_TEAMS} seleções no total — as vagas que sobrarem viram time da máquina.
@@ -287,7 +293,7 @@ export function EstanteDaCopa({ roomId, versao }: { roomId: string; versao: numb
 export function FaixaCopa() {
   return (
     <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '9px 12px', marginBottom: 10, textAlign: 'center' }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>🌍 Copa do Mundo Legends</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>🌐 Copa do Mundo Legends</p>
       <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: '2px 0 0' }}>sem leilão · cada um convoca 11 do próprio país · {COPA_TEAMS} seleções</p>
     </div>
   )
@@ -312,7 +318,7 @@ export function useEscolhasDaCopa(roomId: string | null, versao: number): Record
 }
 
 
-// ─── 5) 🌍 A COPA DEPOIS DA LIGA — com os RELÓGIOS ───────────────────────────
+// ─── 5) 🌐 A COPA DEPOIS DA LIGA — com os RELÓGIOS ───────────────────────────
 //
 // O roteiro é dele, palavra por palavra (01/09):
 //   *"vai ser igual o monte de sobra do leilão, muito parecido, com buracos — só
@@ -438,7 +444,7 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
   }, [seg]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div style={{ ...box('#fff'), padding: '10px 11px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌍 É a sua vez — escolha a seleção</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌐 É a sua vez — escolha a seleção</p>
       <Relogio seg={seg} total={SEG_BANDEIRA} />
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 0 7px', textAlign: 'center', lineHeight: 1.35 }}>
         Toque pra marcar e confirme. Se o tempo acabar, você leva a que estiver marcada — e, sem nenhuma marcada, <b>a pior que sobrou</b>.
@@ -472,7 +478,7 @@ function BannerDaCopa({ seg }: { seg: number }) {
   return (
     <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '14px 13px', marginTop: 9, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />
-      <p style={{ fontSize: 40, margin: 0, position: 'relative' }}>🌍</p>
+      <p style={{ fontSize: 40, margin: 0, position: 'relative' }}>🌐</p>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>Começa a Copa do Mundo</p>
       <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '5px 0 0', lineHeight: 1.4, position: 'relative' }}>
         Todo mundo já tem sua seleção. Agora vocês têm <b>{SEG_CONVOCA} segundos</b> pra convocar <b>11 jogadores</b> do país.
@@ -669,7 +675,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     <>
       <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
       <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '11px 13px', marginBottom: 10 }}>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌍 Copa do Mundo</p>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌐 Copa do Mundo</p>
         <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '2px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
           acabou a liga — os {classificacao.length} times viram seleções (+ {Math.max(0, COPA_TEAMS - classificacao.length)} da máquina)
         </p>
@@ -704,7 +710,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
               <button onClick={() => { void comecar() }} disabled={comecando}
                 style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
                   background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>
-                {comecando ? '⏳ Começando…' : '🌍 COMEÇAR A COPA DO MUNDO'}
+                {comecando ? '⏳ Começando…' : '🌐 COMEÇAR A COPA DO MUNDO'}
               </button>
               <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 2px 0', lineHeight: 1.4 }}>
                 A partir daí o relógio corre: <b>{SEG_BANDEIRA}s</b> pra cada um escolher a seleção, na ordem da tabela, e depois <b>{SEG_CONVOCA}s</b> pra todos convocarem os 11 juntos.
@@ -748,7 +754,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
         {ficha && !aberta && (
           <button onClick={() => setAberta(true)}
             style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
-              background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>🌍 VOLTAR PRA COPA</button>
+              background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>🌐 VOLTAR PRA COPA</button>
         )}
       </div>
 

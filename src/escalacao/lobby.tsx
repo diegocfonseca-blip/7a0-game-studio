@@ -1895,7 +1895,7 @@ export function EscLobby() {
     // 🌍 mesma trava do Bafo pra Copa do Mundo online: esconder da lista não
     // basta, porque o código e o link do zap entram por aqui do mesmo jeito.
     if (rd.game_state?.mode === 'mundo' && !mundoOn) {
-      setRoomError('Essa sala é da 🌍 Copa do Mundo online, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
+      setRoomError('Essa sala é da 🌐 Copa do Mundo online, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
     }
     if (rd.status === 'started') {
       const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
@@ -2963,19 +2963,25 @@ export function EscLobby() {
                       lugar (o que acontece quando a liga acaba). Como é um botão
                       só, não tem estado torto possível. 🔒 Enquanto está em
                       construção, só a conta do Diego enxerga a opção. */}
-                  {/* 🌍 "Liga + Copa do Mundo" (01/09, pedido do Diego): a liga
+                  {/* 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA, e é de propósito:
+                      aqui ela fica LADO A LADO com a Libertadores (🌎), e o Diego
+                      pegou na tela — *"tem que ter uma diferenciação do emoji de
+                      mundo e liberta"*. 🌍 e 🌎 são o mesmo desenho girado; no
+                      tamanho do botão viram a mesma bolinha azul. NÃO trocar de
+                      volta sem trocar o da Liberta junto. */}
+                  {/* 🌐 "Liga + Copa do Mundo" (01/09, pedido do Diego): a liga
                       roda normal e, quando ela acaba, os 20 times viram seleções e
                       rola a Copa do Mundo. Por baixo ela é `copaMode: 'liga'` (sem
                       Copa dos 8, sem Libertadores) + a marca `mundoNaLiga` — assim
                       o motor do leilão não muda em NADA, e a Copa entra por cima na
                       tela de fim de temporada. */}
                   <Seg options={(libertaOn
-                    ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga_mundo', '🌍 Liga + Mundo'], ['liga', '📊 Só liga']]
-                    : [['liga_copa', '🏆 Liga + Copa'], ['liga_mundo', '🌍 Liga + Mundo'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga_mundo' | 'liga', string][]}
+                    ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga_mundo', '🌐 Liga + Mundo'], ['liga', '📊 Só liga']]
+                    : [['liga_copa', '🏆 Liga + Copa'], ['liga_mundo', '🌐 Liga + Mundo'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga_mundo' | 'liga', string][]}
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {rapidoCopaMode === 'liga_mundo'
-                      ? <>🌍 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 4 grupos, mata-mata ida e volta e final única. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
+                      ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 4 grupos, mata-mata ida e volta e final única. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_copa'
@@ -3071,7 +3077,7 @@ export function EscLobby() {
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto
-            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? '🌍 liga+mundo' : r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
+            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? '🌐 liga+mundo' : r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
@@ -3092,7 +3098,7 @@ export function EscLobby() {
                     {/* 🌍 a sala de Copa é OUTRA COISA (seleções, sem leilão): quem
                         bate o olho na lista tem que saber antes de entrar. */}
                     {mundoRoom && (
-                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão">🌍 COPA</span>
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão">🌐 COPA</span>
                     )}
                   </p>
                   <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🚫 sem bots' : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>

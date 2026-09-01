@@ -1,5 +1,26 @@
 # 📌 Pendências combinadas com o Diego (atualizado 01/09/2026)
 
+## 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA (01/09) — não trocar de volta
+Ele olhou o seletor "Depois da liga" e cortou: *"acho que tem que ter uma
+diferenciação do emoji de mundo e liberta"*. E é verdade: **🌍 e 🌎 são o mesmo
+desenho girado** — no tamanho de um botão viram a mesma bolinha azul, um do lado
+do outro.
+
+**Feito:** a Copa do Mundo ONLINE passou a usar **🌐** (grade branca sobre azul),
+que não se confunde com nada. Vale no seletor, na etiqueta da lista de salas, em
+todas as telas da Copa da sala e na linha das novidades.
+
+**A carreira continua com 🌍 de propósito**: lá o globo é a marca do *mundo* em
+tudo (ranking global, mural, selo de título, baralho do mundo — são dezenas de
+lugares) e a Copa da carreira **nunca aparece do lado da Libertadores**. Trocar
+lá seria churn grande num lugar que não tem o problema. Se ele pedir, é um
+find/replace.
+
+**Achado de quebra, ainda NÃO mexido** (aparece no print dele, uma linha acima):
+o seletor de baralho tem **🌍 Europa** e **🌎 Todos** — o mesmo choque. A saída
+óbvia é **🇪🇺 Europa**. Mandei o antes/depois pra ele decidir.
+
+
 ## 🌍 A NOITE DE TESTE COM A TURMA (01/09) — 7 arestas que ele pegou jogando
 Ele jogou a liga + Copa com 4 pessoas (Neymarzetti, Bicho da Seda, perebinha,
 União das pedras) e mandou print de tudo. As sete, e o que foi feito:
