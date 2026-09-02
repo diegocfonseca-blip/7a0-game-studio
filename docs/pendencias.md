@@ -12550,3 +12550,30 @@ só que ele **chega na Série A**. Motivo: o Marreco continua no jogo e o dono
 dele é apoiador pagante; dizer "no lugar de" soa como se ele tivesse sumido.
 O comentário técnico fica no `data.ts` (memória do repo), com aviso de que no
 POST isso não se fala.
+
+## 📱 PESO DO JOGO: as 4 logos de patrocínio saíram do bundle (01/09) — ✅ NO AR
+Pedido do Diego: *"faça só a questão das logos… principalmente Rei das Tintas"*.
+As logos de patrocínio do estádio (Rei das Tintas, Max Joias, ERO, Vadico) eram
+**imagem em base64 colada dentro de `.ts`** — 533 KB que TODO jogador baixava
+no bundle, mesmo sem nunca abrir o estádio. Exatamente o que a regra de batismo
+proíbe; esses quatro tinham escapado.
+
+Viraram `src/escalacao/img/patro-*.webp` (Rei das Tintas 9,5 KB · Max Joias
+18,2 KB · ERO 2,6 KB · Vadico 4,2 KB), exportadas com o **mesmo nome** de antes
+— `estadio.tsx` e `screens.tsx` não mudaram uma linha. Regra ao exportar: altura
+120px (na tela é 34px), **nunca maior que o original** (o Vadico é 250×72 e
+ficou 250×72; ampliar logo borra).
+
+| | antes | depois |
+|---|---|---|
+| bundle | 3.666 KB | 3.211 KB |
+| **comprimido (o que o celular baixa)** | **1.268 KB** | **868 KB (−31%)** |
+
+Caiu mais do que os 533 KB porque base64 comprime mal. Conferido: logos idênticas
+na chapa branca do estádio; no bundle só sobrou `data:image` de biblioteca (QR do
+login, placeholder SVG) e o ERO de 2,6 KB que o Vite embute sozinho por ser
+pequeno — tudo inofensivo.
+
+**Reverter:** um commit (`git revert`) devolve os 4 arquivos com o base64.
+**Próximo passo, se ele quiser:** carregar a carreira sob demanda (hoje só 2
+telas são lazy) — muda a ordem de carga, precisa de teste no celular.
