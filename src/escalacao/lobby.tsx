@@ -710,7 +710,10 @@ export function EscLobby() {
   // 🚪 códigos das salas que estão travando a criação (ver a trava mais abaixo)
   const [salasPresas, setSalasPresas] = useState<string[]>([])
   const [encerrando, setEncerrando] = useState(false)
-  const encerrarSalasPresas = async () => {
+  // `criarDepois`: na tela de CRIAR SALA, encerrar e já criar a sala nova no mesmo
+  // toque (pedido do Diego, 02/09: *"tem que ter algum botão pra excluir as salas
+  // abertas e permitir ele criar"*). Nos pop-ups de senha/carreira só encerra.
+  const encerrarSalasPresas = async (criarDepois = false) => {
     if (!salasPresas.length) return
     setEncerrando(true)
     // apaga só as MINHAS (o filtro por host_id é a trava — ninguém encerra sala
@@ -720,6 +723,7 @@ export function EscLobby() {
       await supabase.from('game_rooms').delete().eq('host_id', user.id).in('code', salasPresas).then(() => {}, () => {})
     }
     setSalasPresas([]); setRoomError(''); setEncerrando(false)
+    if (criarDepois) await createRoom()
   }
   const [resumeRoom, setResumeRoom] = useState<RoomInfo | null>(null) // partida em andamento: pergunta voltar/sair
   const [myCareers, setMyCareers] = useState<OpenRoom[]>([]) // saves de carreira online do host (só do criador)
@@ -3191,10 +3195,10 @@ export function EscLobby() {
           dentro de dois pop-ups (senha e continuar carreira). Quem batia na trava
           criando sala lia a promessa e não achava o botão (02/09). */}
       {!pwModal && !resumingCareer && salasPresas.length > 0 && (
-        <button onClick={encerrarSalasPresas} disabled={encerrando}
+        <button onClick={() => encerrarSalasPresas(true)} disabled={encerrando || loading}
           className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase"
           style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
-          {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
+          {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')}) e criar a nova`}
         </button>
       )}
 
