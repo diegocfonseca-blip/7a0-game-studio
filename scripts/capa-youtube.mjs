@@ -28,7 +28,9 @@ const img = p => `data:image/webp;base64,${b64(p)}`
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A'
 const OSW = 'font-family:Oswald,sans-serif;font-weight:700'
 
-const MASCOTE = img('src/escalacao/img/al-takahdao-mascote.webp')
+// 🦇 a mascote é o Mascarado do Neymarzetti — o clube do Diego, a cara do jogo
+// (pedido dele, 02/09: "coloque o Neymarzetti mascote, acho melhor")
+const MASCOTE = img('src/escalacao/img/neymarzetti-mascote.webp')
 const ESCUDOS = ['neymarzetti', 'nata', 'papao', 'al-takahdao'].map(n => img(`src/escalacao/img/${n}-escudo.webp`))
 
 const base = (w, h, corpo) => `<!doctype html><meta charset="utf-8"><style>${FONTES}
