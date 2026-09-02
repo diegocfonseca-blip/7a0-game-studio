@@ -351,10 +351,12 @@ interface LinhaSala { user_id: string; player_index: number; manager_name: strin
 // ⏱️ OS TRÊS RELÓGIOS, todos escolhidos pelo Diego (01/09):
 //   · 65s pra escolher a SELEÇÃO, um de cada vez, na ordem da tabela;
 //   · 15s de banner entre as duas fases;
-//   · 65s pra CONVOCAR os 11 — todo mundo junto (*"65s pra escolher o elenco
-//     também"*). Os dois tempos são iguais de propósito: pra quem joga, é a
-//     mesma promessa nas duas telas — "você tem 65 segundos".
-const SEG_BANDEIRA = 65, SEG_BANNER = 15, SEG_CONVOCA = 65
+//   · 135s pra CONVOCAR os 11 — todo mundo junto. Era 65s, igual à bandeira;
+//     em 02/09 o Diego mandou *"aumente o tempo pra convocação em 70s"* depois
+//     que, numa sala de 4, três pessoas não fecharam os 11 a tempo (levaram os
+//     piores). Não atrasa ninguém: a fase avança na hora em que TODOS fecham
+//     o time (`todosMontaram`); o relógio é só o teto pra quem dorme.
+const SEG_BANDEIRA = 65, SEG_BANNER = 15, SEG_CONVOCA = 135
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */

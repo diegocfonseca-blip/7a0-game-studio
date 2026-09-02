@@ -2844,7 +2844,11 @@ function monteWorstPick(state: EscState, m: Manager, monte: Card[], rng: () => n
   return ranked[0].c
 }
 
-const MONTE_MS = 45_000
+// ⏱️ 30s por vez no Monte ONLINE (Diego 02/09: *"no monte nas sobras no online
+// diminua de 45s pra 30s"*). Era 45s. Só vale no online (o prazo nasce em
+// refreshMonteDeadline, que só arma pra humano em sala online); no CPU não há
+// relógio no Monte.
+const MONTE_MS = 30_000
 export const MONTE_SECONDS = MONTE_MS / 1000
 const MONTE_AFK_PENALTY = 5
 

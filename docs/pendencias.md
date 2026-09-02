@@ -1,5 +1,12 @@
 # 📌 Pendências combinadas com o Diego (atualizado 02/09/2026)
 
+## ⏱️ RELÓGIOS (Diego 02/09) — ✅ no ar
+- Convocação da Copa online (Liga + Mundo): **65 → 135 s** (`SEG_CONVOCA`).
+  Entendi "aumente em 70s" como +70; se ele quis dizer "pra 70s", é uma
+  constante. Não atrasa: a fase anda assim que todos fecham os 11.
+- Monte das sobras no online: **45 → 30 s** por vez (`MONTE_MS`, store.tsx).
+  Só o online tem esse relógio.
+
 ## 🌍 LIGA + MUNDO: "convoquei o Brasil e joguei com a Coreia" (02/09) — ✅ corrigido
 Amigo do Diego no zap: *"o time que a gente convoca não vem pra gente… apareceu
 como se eu tivesse com a Coreia que eu nem convoquei"*. No banco, **6 salas só
