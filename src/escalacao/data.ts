@@ -2385,6 +2385,7 @@ export const OLD_NAME: Record<string, string> = {
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
+  'Jurubeba FC': 'Ferroviário do Sul', // 🧦 batismo do luizguilhermeps: assumiu o assento da Série B que era do Ferroviário do Sul — save antigo com Ferroviário do Sul vira Jurubeba FC ao carregar (02/09)
   'Esqueceram do Lluch FC': 'Litoral United', // 🏠 batismo do lluchmarcel81: assumiu o assento da Série B que era do Litoral United — save antigo com Litoral United vira Esqueceram do Lluch FC ao carregar (28/08)
   'Papão United Madrid': 'Santos Dumont', // ⚽ batismo do agrostinho88: assumiu o assento da Série D que era do Alfacehh — save antigo com Santos Dumont (ou Tonhão FC) vira Papão United Madrid ao carregar (23/08)
   'Theuzudo FC': 'Comercial do Norte', // ⚽ batismo do matheusfilipealves: save antigo com Comercial do Norte vira Theuzudo FC ao carregar (21/08)
@@ -2541,7 +2542,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Mata', team: 'Íbis da Mata' },
     { name: 'Nortista', team: 'Theuzudo FC' }, // ⚽ clube BATIZADO por apoiador (matheusfilipealves — Theuzudo FC, ex-Comercial do Norte; coração Valência, mascote morcego 🦇, 21/08)
     { name: 'Litorâneo', team: 'Esqueceram do Lluch FC' }, // ⚽ clube BATIZADO por apoiador (lluchmarcel81 — Esqueceram do Lluch FC, ex-Litoral United; Lenda + fundador nº50, 28/08)
-    { name: 'Ferroviário', team: 'Ferroviário do Sul' },
+    { name: 'Meia Canela', team: 'Jurubeba FC' }, // 🧦 clube BATIZADO por apoiador (luizguilhermeps — Jurubeba FC, ex-Ferroviário do Sul; "Meia na Canela", amarelo + verde-petróleo, mascote a meia de óculos escuros; Lenda + fundador nº54 + sócio nº32, 02/09)
     // 🦆 Marreco FC (lucasigorbortoliniii) DESCEU da Série A pra cá em 01/09, por
     // decisão do Diego, pra abrir o assento do Al Takhadao FC. Ocupa a vaga que era
     // do bot "Serrano FC" (escolhido por ser o único 'Serra' que não é usado em

@@ -64,7 +64,7 @@ for (const d of ['A', 'B', 'C', 'D']) {
 // ── quem é quem. Fonte: o que o Diego já decidiu, clube por clube. ──────────
 // (só o e-mail identifica; o nome do clube é o ATUAL)
 const BATISMOS = [
-  ['fontourajoao04@gmail.com', 'Al Takhadao FC'],
+  ['fontourajoao04@gmail.com', 'Al Takhadao FC'], ['luizguilhermeps@hotmail.com', 'Jurubeba FC'],
   ['denilson.stifler10@gmail.com', 'Xurupitas FC'], ['matheus223lms@icloud.com', 'Alfacehh'],
   ['jorgericardo777@gmail.com', 'Leão da Estradinha'], ['nevesgabriel95@gmail.com', 'Deportivo Montreal'],
   ['eltonfrossard45@gmail.com', 'La Bestia Negra'], ['ofc.toka10@gmail.com', 'Tôka10'],

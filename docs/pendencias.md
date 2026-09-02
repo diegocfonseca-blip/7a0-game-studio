@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 02/09/2026)
 
+## 🧦 BATISMO Jurubeba FC (02/09) — ✅ feito nas 3 pernas (código + banco + main)
+Pedido do Diego (02/09): *"add o usuario como batismo luizguilhermeps@hotmail.com
+e time chamado Jurubeba fc, add o time dele na serie b no lugar de algum bot!
+faca tudo... e ja publique"*. Arte veio pronta (escudo + mascote + camisa, já
+com alfa). Feito:
+- **Série B**: entra no assento do bot **Ferroviário do Sul** (escolhido por ser
+  o único da B que não aparece em nenhuma outra lista do código). `OLD_NAME`
+  mapeado → save antigo com o Ferroviário vira Jurubeba FC ao carregar.
+- **Arte**: escudo 285×360 · 27,6 KB (q80 — em q88 dava 34 KB) · mascote
+  202×440 · 34 KB · total 61,6 KB. Camisa do post em `scripts/kits/`.
+  A mão do mascote encostava na manga da camisa e a chuteira dele invadia o
+  lado da camisa: corte em dois trechos (x=966 em cima, x=1030 na altura da
+  chuteira). Conferido sobre creme E verde escuro.
+- **Manto medido na camisa**: `#F6BB06` amarelo · `#053F42` verde-petróleo.
+- **Mascote** `jurubeba_meia` — "A Meia na Canela" (é o que está escrito no
+  escudo dele, não inventei nome). Carimbo do gol nas 4 formas + CAIXA ALTA +
+  nome velho.
+- **Banco**: `esc_socios` nº32 · `esc_fundadores` nº54 · `esc_nomes_batismo`
+  (Jurubeba / FC / EC pelo gatilho) · `user_colors` já estava ouro/manual
+  (o Diego tinha apertado o 💛 antes).
+- **Código**: `apoio.tsx` (ouro + FUNDADOR_N 54) · `manto.ts` · `batismos.ts` ·
+  `checa-batismos.mjs` · `novidades.ts`.
+- ⚠️ **Time de coração NÃO foi informado** → ficou `null` no `esc_socios` e
+  fora do post. Se o Diego mandar, é uma linha no banco (sem deploy).
+- ⚠️ O nome "Luiz Guilherme" no post veio do e-mail — confirmar com o Diego.
+
 ## 🕵️ RODAPÉ "SONDAR TÉCNICO" MAIS VISÍVEL (02/09) — ✅ NO AR
 
 Relato do Diego: *"ninguém tá achando a aba do rodapé dos técnicos na carreira

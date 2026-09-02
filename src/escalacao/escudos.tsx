@@ -29,6 +29,7 @@ import lluchEscudoImg from './img/lluch-escudo.webp' // 🏠 Esqueceram do Lluch
 import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
 import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
 import takahdaoEscudoImg from './img/al-takahdao-escudo.webp' // 🦜🛒 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
+import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
@@ -553,6 +554,12 @@ const papaoEscudoRender = (size: number) => (
 const takahdaoEscudoRender = (size: number) => (
   <img src={takahdaoEscudoImg} height={size} width={Math.round(size * 337 / 360)} alt="Al Takahdao FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🧦 Jurubeba FC — escudo amarelo com "MEIA NA CANELA" em verde-petróleo, coroa,
+// a meia e a bola (2025). 285x360 no arquivo (largura pela proporção REAL). A
+// arte veio com alfa: só apagou a poeira (alfa ≤ 40) e recortou no bbox.
+const jurubebaEscudoRender = (size: number) => (
+  <img src={jurubebaEscudoImg} height={size} width={Math.round(size * 285 / 360)} alt="Jurubeba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🦇 Neymarzetti — o "N" de asa de morcego, prateado sobre preto. 360x299 no
 // arquivo. Fundo tirado por INUNDAÇÃO a partir da borda (nunca "apaga todo
 // branco"): assim o brilho claro do metal e o vinco do N ficaram inteiros.
@@ -716,6 +723,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Al Takahdao': takahdaoEscudoRender,
   'Al Takahdao EC': takahdaoEscudoRender,
   'Al Takahdao SC': takahdaoEscudoRender,
+  // 🧦 JURUBEBA FC (luizguilhermeps) — Série B, no assento que era do bot
+  // Ferroviário do Sul (02/09). O nome velho fica registrado: save antigo que já
+  // tinha o Ferroviário não fica sem escudo.
+  'Jurubeba FC': jurubebaEscudoRender,
+  'Jurubeba': jurubebaEscudoRender,
+  'Jurubeba EC': jurubebaEscudoRender,
+  'Jurubeba SC': jurubebaEscudoRender,
+  'Ferroviário do Sul': jurubebaEscudoRender,
   // 🦇🟠⚫ Theuzudo FC (matheusfilipealves) — ex-Comercial do Norte, Série B. O nome
   // velho fica registrado: quem já tinha carreira com o Comercial não fica sem escudo.
   'Theuzudo FC': theuzudoEscudoRender,

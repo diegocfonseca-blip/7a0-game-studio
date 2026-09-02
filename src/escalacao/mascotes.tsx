@@ -19,6 +19,7 @@ import papaoMascoteImg from './img/papao-mascote.webp' // 🐺 Papão United Mad
 import lluchMascoteImg from './img/lluch-mascote.webp' // 🏠 Esqueceram do Lluch FC (lluchmarcel81): arte própria do dono
 import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import takahdaoMascoteImg from './img/al-takahdao-mascote.webp' // 🦜 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
+import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
 import milhacaMascoteImg from './img/milhaca-mascote.webp' // 🌽 Milhaça FC (igormarquesn99): arte própria do dono, 24/08
@@ -532,6 +533,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   takahdao_papagaio: (
     <img src={takahdaoMascoteImg} height={176} width={Math.round(176 * 269 / 440)} alt="O Papagaio — Al Takahdao FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🧦 Jurubeba FC — a meia amarela de óculos escuros, sorriso de canto, pé na
+  // bola, apontando pra você. Arte própria do dono (webp, fora do bundle).
+  // 202x440 no arquivo. mascote_key = "jurubeba_meia".
+  jurubeba_meia: (
+    <img src={jurubebaMascoteImg} height={176} width={Math.round(176 * 202 / 440)} alt="A Meia na Canela — Jurubeba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   papao_lobo: (
     <img src={papaoMascoteImg} height={176} width={Math.round(176 * 281 / 440)} alt="O Papão — Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -817,6 +824,15 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Al Takahdao': 'takahdao_papagaio',
   'Al Takahdao EC': 'takahdao_papagaio',
   'Al Takahdao SC': 'takahdao_papagaio',
+  // 🧦 JURUBEBA FC (luizguilhermeps, 02/09) — a meia carimba o placar. Busca
+  // EXATA: as 4 formas + CAIXA ALTA + o nome velho do assento (save antigo).
+  'Jurubeba FC': 'jurubeba_meia',
+  'Jurubeba': 'jurubeba_meia',
+  'Jurubeba EC': 'jurubeba_meia',
+  'Jurubeba SC': 'jurubeba_meia',
+  'JURUBEBA FC': 'jurubeba_meia',
+  'JURUBEBA': 'jurubeba_meia',
+  'Ferroviário do Sul': 'jurubeba_meia',
   'Papão United Madrid': 'papao_lobo', // 🐺 o lobo carimba o placar (agrostinho88, 23/08)
   'Papão United Madrid FC': 'papao_lobo',
   'Papão United Madrid EC': 'papao_lobo',
@@ -849,6 +865,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   saoluiz_pitbull: 'Luizão',     // 🐶 São Luiz FC (gabrielnegreirosamaral99, 21/08)
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   takahdao_papagaio: 'O Papagaio', // 🦜 Al Takahdao FC (fontourajoao04, 01/09)
+  jurubeba_meia: 'A Meia na Canela', // 🧦 Jurubeba FC (luizguilhermeps, 02/09) — é o que está escrito no escudo dele
   lluch_menino: 'O Esquecido',   // 🏠 Esqueceram do Lluch FC (lluchmarcel81, 28/08)
   leao_estradinha: 'O Leão',     // 🦁 Leão da Estradinha (jorgericardo777, 23/08)
   neymarzetti_mascarado: 'O Mascarado', // 🦇 Neymarzetti (diego.c.fonseca, 24/08)
