@@ -61,13 +61,18 @@ const capa916 = base(1080, 1920, `
   <div style="position:absolute;inset:0;background:
     radial-gradient(circle at 50% 62%, rgba(255,196,0,.55), transparent 40%),
     repeating-linear-gradient(135deg, transparent 0 46px, rgba(12,12,12,.045) 46px 48px)"></div>
-  <div style="position:absolute;left:0;right:0;top:150px;text-align:center;padding:0 60px">
-    <p style="${OSW};font-size:76px;text-transform:uppercase;line-height:1;margin:0;color:rgba(12,12,12,.7)">seu amigo pagou</p>
-    <p style="${OSW};font-size:300px;line-height:.9;margin:0;color:${RED}">180</p>
-    <p style="${OSW};font-size:82px;text-transform:uppercase;line-height:1;margin:10px 0 0">num jogador de <span style="color:${GREEN}">40</span></p>
+  <!-- 🗣️ Diego (02/09): "a capa do Short pro primeiro vídeo não falta estar mais
+       claro sobre o jogo, igual a horizontal?" — sim. Quem nunca viu o jogo não
+       entende "pagou 180". O gancho fica DENTRO do vídeo; a capa diz O QUE É. -->
+  <div style="position:absolute;left:0;right:0;top:140px;text-align:center;padding:0 50px">
+    <p style="${OSW};font-size:74px;text-transform:uppercase;line-height:1;margin:0;color:rgba(12,12,12,.7)">é tipo Brasfoot</p>
+    <p style="${OSW};font-size:150px;text-transform:uppercase;line-height:.92;margin:14px 0 0">só que com<br><span style="color:${GREEN}">a turma</span></p>
+    <p style="margin:40px 0 0"><span class="pill" style="font-size:42px">🔨 leilão às cegas · grátis</span></p>
   </div>
-  <img src="${MASCOTE}" style="position:absolute;left:50%;transform:translateX(-50%);bottom:230px;height:820px;filter:drop-shadow(12px 12px 0 ${INK})">
-  <p style="position:absolute;left:0;right:0;bottom:150px;text-align:center;margin:0"><span class="pill" style="font-size:44px">QUASE! 😱</span></p>
+  <img src="${MASCOTE}" style="position:absolute;left:50%;transform:translateX(-50%);bottom:270px;height:760px;filter:drop-shadow(12px 12px 0 ${INK})">
+  <div style="position:absolute;left:0;right:0;bottom:130px;display:flex;gap:18px;justify-content:center">
+    ${ESCUDOS.slice(0, 3).map(s => `<img src="${s}" style="height:96px;filter:drop-shadow(4px 4px 0 ${INK})">`).join('')}
+  </div>
   <p class="marca" style="left:0;right:0;bottom:44px;text-align:center;font-size:36px">⚽ Leilão <span style="color:${RED}">Legends</span> · leilaolegends.com</p>`)
 
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
