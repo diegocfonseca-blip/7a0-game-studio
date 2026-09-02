@@ -1,5 +1,14 @@
 # 📌 Pendências combinadas com o Diego (atualizado 02/09/2026)
 
+## 🚪 "JÁ TEM 2 SALAS ABERTAS" sem ter (dono do Jurubeba, 02/09) — ✅ corrigido
+Causa dupla: (1) a trava de 2 salas vivas contava partida **já encerrada** (tela
+final, rodada 38) porque `status` fica 'started' pra sempre e a tela final ainda
+salva `updated_at`; (2) a mensagem mandava "encerrar aqui embaixo", mas o botão
+só existia dentro de dois pop-ups, não na tela de criar sala. Feito: a trava
+ignora `screen = 'end'`, o botão aparece na tela de criar sala, e as duas salas
+dele (KUX6DK, P37QSE) tiveram o `updated_at` recuado no banco pra destravar na
+hora. Reverter: `git revert` do commit; o banco não precisa voltar.
+
 ## 🪜 UX DA CARREIRA (celular + desktop) — análise feita, NADA codado ainda (02/09)
 Pedido: *"simule 150 partidas e me fale suas indicações com mockup de antes e
 depois"*. Feito com robô (Playwright) em 390×844 e 1440×900, 4 temporadas por

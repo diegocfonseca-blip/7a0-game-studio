@@ -1413,10 +1413,15 @@ export function EscLobby() {
     if (roomMode === 'rapido' || roomMode === 'elenco') {
       const vivasDesde = new Date(Date.now() - 3 * 3600_000).toISOString()
       const { data: minhas } = await supabase.from('game_rooms')
-        .select('code, game_state->>mode')
+        .select('code, mode:game_state->>mode, screen:game_state->>screen')
         .eq('host_id', user.id).gt('updated_at', vivasDesde)
-      const abertas = ((minhas ?? []) as { code: string; mode: string | null }[])
-        .filter(r => r.mode !== 'liga' && r.mode !== 'carreira')
+      // 🏁 PARTIDA QUE JÁ ACABOU NÃO CONTA (bug do dono do Jurubeba, 02/09: *"diz
+      // que já tem salas abertas mas não tem"*). As duas salas dele estavam na
+      // tela FINAL (rodada 38, `screen = 'end'`), mas o `status` fica 'started'
+      // pra sempre e a tela final ainda salva — então por 3h a partida encerrada
+      // contava como sala viva e ele não conseguia abrir a próxima.
+      const abertas = ((minhas ?? []) as { code: string; mode: string | null; screen: string | null }[])
+        .filter(r => r.mode !== 'liga' && r.mode !== 'carreira' && r.screen !== 'end')
       if (abertas.length >= 2) {
         // 🚪 O CAMINHO PRA DESTRAVAR, ALI MESMO (bug que o Diego relatou 24/08:
         // *"o usuário não estava mais com sala aberta e apareceu esse erro"*).
@@ -3181,6 +3186,17 @@ export function EscLobby() {
       </div>}
 
       {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+      {/* 🚪 o botão de ENCERRAR as salas presas AQUI, na tela de criar sala — a
+          mensagem dizia "é só encerrar aqui embaixo", mas o botão só existia
+          dentro de dois pop-ups (senha e continuar carreira). Quem batia na trava
+          criando sala lia a promessa e não achava o botão (02/09). */}
+      {!pwModal && !resumingCareer && salasPresas.length > 0 && (
+        <button onClick={encerrarSalasPresas} disabled={encerrando}
+          className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase"
+          style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
+          {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
+        </button>
+      )}
 
       {resumingCareer && (() => {
         const gs = resumingCareer.game_state as GS & { seasonNo?: number }
