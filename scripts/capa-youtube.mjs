@@ -75,8 +75,32 @@ const capa916 = base(1080, 1920, `
   </div>
   <p class="marca" style="left:0;right:0;bottom:44px;text-align:center;font-size:36px">⚽ Leilão <span style="color:${RED}">Legends</span> · leilaolegends.com</p>`)
 
+// ── 9:16 — capa de REEL COM COR (proposta pro feed do Instagram) ────────────
+// Diego (02/09), olhando a grade: *"acha que falta uma cor na capa?"*. Falta.
+// As capas creme com texto preto viram três quadrados iguais na grade e somem
+// no rolar; e o feed dele prova: os posts com ROSTO/arte fazem 1,2k–13,8k, os
+// só-texto fazem 170–926. Esta capa mantém o padrão (creme/preto/Oswald/borda
+// grossa) mas ganha um BLOCO DE COR de fundo + a mascote + no máximo 4 palavras.
+// A cor do bloco alterna por post (verde · dourado · vermelho · roxo) pra grade
+// não virar um tijolo só.
+const COR_BLOCO = arg('--cor', GREEN)
+const capaReel = base(1080, 1920, `
+  <div style="position:absolute;inset:0;background:${COR_BLOCO}"></div>
+  <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg, transparent 0 46px, rgba(0,0,0,.07) 46px 48px)"></div>
+  <div style="position:absolute;left:60px;right:60px;top:150px;background:${CREME};border:7px solid ${INK};border-radius:34px;
+    box-shadow:14px 14px 0 ${INK};padding:56px 40px 40px;text-align:center">
+    <p style="${OSW};font-size:64px;text-transform:uppercase;line-height:1;margin:0;color:rgba(12,12,12,.65)">é tipo Brasfoot</p>
+    <p style="${OSW};font-size:150px;text-transform:uppercase;line-height:.92;margin:12px 0 0">só que com<br><span style="color:${COR_BLOCO === GREEN ? RED : GREEN}">a turma</span></p>
+    <p style="margin:34px 0 0"><span class="pill" style="font-size:40px">🔨 leilão às cegas · grátis</span></p>
+  </div>
+  <img src="${MASCOTE}" style="position:absolute;left:50%;transform:translateX(-50%);bottom:200px;height:780px;filter:drop-shadow(14px 14px 0 ${INK})">
+  <div style="position:absolute;left:0;right:0;bottom:60px;text-align:center">
+    <span style="display:inline-block;background:${CREME};border:6px solid ${INK};border-radius:999px;box-shadow:8px 8px 0 ${INK};padding:14px 40px;
+      ${OSW};font-size:40px;text-transform:uppercase">⚽ Leilão <span style="color:${RED}">Legends</span> · leilaolegends.com</span>
+  </div>`)
+
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-for (const [nome, html, w, h] of [['capa-youtube-16x9.png', capa169, 1280, 720], ['capa-short-9x16.png', capa916, 1080, 1920]]) {
+for (const [nome, html, w, h] of [['capa-youtube-16x9.png', capa169, 1280, 720], ['capa-short-9x16.png', capa916, 1080, 1920], ['capa-reel-cor.png', capaReel, 1080, 1920]]) {
   const p = `${PASTA}/${nome}.html`; writeFileSync(p, html)
   const pg = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 })
   await pg.goto('file://' + p); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(300)
