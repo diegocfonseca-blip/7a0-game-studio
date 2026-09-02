@@ -1,5 +1,28 @@
 # 📌 Pendências combinadas com o Diego (atualizado 02/09/2026)
 
+## 🪜 UX DA CARREIRA (celular + desktop) — análise feita, NADA codado ainda (02/09)
+Pedido: *"simule 150 partidas e me fale suas indicações com mockup de antes e
+depois"*. Feito com robô (Playwright) em 390×844 e 1440×900, 4 temporadas por
+aparelho. Relatório completo: **`docs/ux-carreira-150-partidas.md`**. Mockups
+antes×depois mandados no chat; o gerador dos "depois" é
+`scripts/mockup-carreira.mjs`. Resumo das 5 indicações (esperando o Diego
+escolher o que quer):
+1. 📱 Aba JOGOS só com a SUA divisão; as outras 4 viram atalhos (hoje a rodada
+   é um rolo de 2.500 px com os jogos das 5 divisões; a pré-temporada empilha as
+   5 tabelas inteiras).
+2. 📱 Cartão "carreira só neste aparelho" sai de cima do placar e vira tira de
+   1 linha acima das abas.
+3. 🖥️ Desktop em 3 colunas na rodada e 2 colunas no pregão (hoje é a coluna
+   do celular no meio, 57% vazio; lance a 700 px do nome).
+4. 📱 Criar carreira: nome/formação/rivais primeiro; explicações fechadas.
+5. O topo (conta + header + placar + Modo Manual) se repete em TODA aba —
+   fora da JOGOS vira uma linha fina e o conteúdo da aba sobe pra dobra.
+6. Miúdos: "SUA VEZ" no fim de temporada;
+   nome longo encolhe em vez de cortar; atalho "só meu time" na Cerimônia;
+   Modo Manual trancado vira botão pequeno.
+⚠️ Regra do Diego: mockup → OK dele → só então codar. Cada item é um commit
+separado e reversível; nada toca regra, save ou online.
+
 ## 🧦 BATISMO Jurubeba FC (02/09) — ✅ feito nas 3 pernas (código + banco + main)
 Pedido do Diego (02/09): *"add o usuario como batismo luizguilhermeps@hotmail.com
 e time chamado Jurubeba fc, add o time dele na serie b no lugar de algum bot!
