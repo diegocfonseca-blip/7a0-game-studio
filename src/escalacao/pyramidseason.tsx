@@ -26,7 +26,7 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador, useUxCarreira } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
@@ -77,19 +77,16 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 // 🔒 no lugar dos controles de manual, quando a carreira NOVA ainda não tem o
 // Modo Manual: um convite que abre o Apoie direto na explicação do manual. A
 // temporada segue rodando no AUTO normalmente — nada trava o jogo.
-// `mini` (🪜 carreira arrumada, só na conta do Diego): sem o parágrafo embaixo e
-// com o botão menor — o cadeado já diz tudo, e o cartão inteiro roubava uma
-// dobra em toda rodada.
-function ManualLockButton({ mini }: { mini?: boolean }) {
+function ManualLockButton() {
   return (
     <div style={{ marginBottom: 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
-        <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: mini ? '7px 10px' : '10px 12px', fontWeight: 900, fontSize: mini ? 11 : 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
-          <span>🎮 Modo Manual{mini ? ' · pausar, acelerar, pular' : ''}</span>
+        <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
+          <span>🎮 Modo Manual</span>
           <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>Apoie 🔒</span>
         </button>
       )} />
-      {!mini && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', ...OSWALD }}>Controle o ritmo da temporada — pause, acelere, pule. Toque pra desbloquear.</p>}
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', ...OSWALD }}>Controle o ritmo da temporada — pause, acelere, pule. Toque pra desbloquear.</p>
     </div>
   )
 }
@@ -4948,9 +4945,7 @@ function CoinsBadge({ coins }: { coins: number }) {
 //  2. da 2ª temporada em diante, o convite — mostrando o que ela JÁ conquistou,
 //     que é o que dá vontade de guardar. Recusou? Segue jogando; o convite só
 //     volta a cada 3 temporadas (se voltar toda hora, vira chatice).
-// `compacto` (🪜 carreira arrumada, só na conta do Diego): o aviso fixo vira UMA
-// tira no fim da página; o convite da 2ª temporada continua o cartão de sempre.
-function AvisoContaCarreira({ compacto }: { compacto?: boolean } = {}) {
+function AvisoContaCarreira() {
   const { state } = useEsc()
   const [logado, setLogado] = useState<boolean | null>(null)
   const [abrirConta, setAbrirConta] = useState(false)
@@ -4995,12 +4990,6 @@ function AvisoContaCarreira({ compacto }: { compacto?: boolean } = {}) {
             agora não
           </button>
         </div>
-      ) : compacto ? (
-        <button onClick={() => setAbrirConta(true)} style={{ width: '100%', textAlign: 'left', background: '#FFF6DE', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 ${INK}`, padding: '7px 11px', margin: '4px 0 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: INK }}>
-          <span style={{ fontSize: 16, lineHeight: 1 }}>☁️</span>
-          <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>Sua carreira só existe neste aparelho</span>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, color: GREEN, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>criar conta ›</span>
-        </button>
       ) : (
         // 🎴 CHAMARIZ DA CONTA (21/08, pedido do Diego: *"a parte do criar conta
         // deixe um pouco mais chamativo"*). Antes era uma tirinha amarela fininha
@@ -5159,49 +5148,6 @@ function BarraCarreira({ tab, setTab, cor, ponto, pontoClube }: { tab: AbaCarr; 
       </div>
     </>
   )
-}
-// ─── 🪜 CARREIRA ARRUMADA (02/09, só na conta do Diego — `useUxCarreira`) ─────
-// Peças novas da simulação de 150 rodadas (docs/ux-carreira-150-partidas.md).
-// 1) TOPO FINO: fora da aba Jogos, o bloco inteiro (cartão de conta + header +
-//    placar + Modo Manual) vira esta linha só — rodada · posição · quem joga ·
-//    caixa. SEM placar de propósito: regra do Diego, nada revela resultado antes
-//    da animação; quem quer ver o jogo volta pra aba Jogos.
-function TopoFino({ temporada, round, div, pos, coins, cor, jogo, onJogos }: { temporada: number; round: number; div: string; pos?: number; coins: number; cor: string; jogo?: string; onJogos: () => void }) {
-  return (
-    <button onClick={onJogos} style={{ width: '100%', textAlign: 'left', background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '7px 11px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, background: cor, borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap' }}>T{temporada} · R{round}</span>
-      <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.7)', whiteSpace: 'nowrap' }}>{div}{pos ? ` · ${pos}º` : ''}</span>
-      <span style={{ flex: 1, minWidth: 0, ...OSWALD, fontWeight: 800, fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{jogo ? `⚽ ${jogo}` : ''}</span>
-      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, background: GOLD, color: INK, borderRadius: 999, padding: '2px 8px', whiteSpace: 'nowrap' }}>🪙 {coins}</span>
-    </button>
-  )
-}
-// 2) ATALHOS das outras divisões: na aba Jogos só a SUA divisão aparece inteira;
-//    as outras viram estes 4 quadradinhos, que levam pra aba Tabelas.
-function AtalhosDivisoes({ divs, rotulo, onIr }: { divs: Div[]; rotulo: (d: Div) => string; onIr: () => void }) {
-  if (!divs.length) return null
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, divs.length)}, 1fr)`, gap: 7, marginBottom: 12 }}>
-      {divs.map(d => (
-        <button key={d} onClick={onIr} style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 ${INK}`, padding: '7px 4px', cursor: 'pointer', textAlign: 'center', color: INK }}>
-          <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase' }}>{DIV_NAME[d]}</span>
-          <span style={{ display: 'block', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{rotulo(d)} ▸</span>
-        </button>
-      ))}
-    </div>
-  )
-}
-// 3) 🖥️ desktop? (≥ 1100px) — no PC a carreira abre em 2 colunas e o topo NÃO
-//    precisa encolher: cabe tudo.
-function useDesktopLargo(): boolean {
-  const [largo, setLargo] = useState(() => { try { return window.matchMedia('(min-width: 1100px)').matches } catch { return false } })
-  useEffect(() => {
-    try {
-      const mq = window.matchMedia('(min-width: 1100px)'); const f = () => setLargo(mq.matches)
-      mq.addEventListener('change', f); return () => mq.removeEventListener('change', f)
-    } catch { return undefined }
-  }, [])
-  return largo
 }
 // faixa fina que GRUDA no topo quando o cabeçalho preto sai da tela: role até
 // onde rolar, a pessoa nunca perde de vista rodada, posição e caixa.
@@ -6308,13 +6254,6 @@ export function PyramidSeasonScreen() {
   // (aí sim nada pode competir), mais a festa do campeão.
   const sagrado = (halftimeOpen && halfMode) || (penaltyOpen && penMode) || festaOnC
   const barraOn = barraCarr && !sagrado
-  // 🪜 CARREIRA ARRUMADA (02/09, só na conta do Diego): topo fino fora da aba
-  // Jogos — só no celular, só com rodada rolando/parada no meio da temporada
-  // (na pré-temporada e no fim tem decisão no topo; na Copa o placar dela é o
-  // conteúdo; em momento sagrado o banner precisa estar na tela).
-  const uxNova = useUxCarreira()
-  const deskLargo = useDesktopLargo()
-  const compactar = uxNova && !deskLargo && tab !== 'jogos' && round > 0 && !done && !copaPlaying && !sagrado
   const cabRef = useRef<HTMLDivElement | null>(null)
   const [cabFora, setCabFora] = useState(false)
   useEffect(() => {
@@ -6339,7 +6278,7 @@ export function PyramidSeasonScreen() {
   const grudaOk = subGrudadas && !sagrado
   return (
     <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK }}>
-      {barraOn && cabFora && !compactar && (
+      {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? 'Encerrada' : round === 0 ? 'Começando…' : `Rodada ${round}/38`} />
@@ -6350,19 +6289,9 @@ export function PyramidSeasonScreen() {
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
           onFechar={fecharDesfecho} />
       )}
-      <div className={`max-w-xl mx-auto${uxNova ? ' ux-carr' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      <div className="max-w-xl mx-auto" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
-        {/* 🪜 CARREIRA ARRUMADA: `.ux-grid/.ux-esq/.ux-dir` são divs sem estilo
-            nenhum fora da conta do Diego em PC largo (o CSS só existe dentro de
-            `.ux-carr`, acima de 1100px). Pra todo o resto, a tela é a de sempre. */}
-        <div className="ux-grid">
-        <div className="ux-esq">
-        {!uxNova && <AvisoContaCarreira />}
-        {compactar ? (
-          <TopoFino temporada={state.seasonNo ?? 1} round={round} div={me ? DIV_NAME[me.div] : ''} pos={me?.pos}
-            coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
-            jogo={myMatch ? `${myMatch.h} × ${myMatch.a}` : undefined} onJogos={() => setTab('jogos')} />
-        ) : (<>
+        <AvisoContaCarreira />
         <SocioBaraoBanner />
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
@@ -6735,7 +6664,7 @@ export function PyramidSeasonScreen() {
               onSkip={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
               nextLabel={halfMode && !halftimeDone ? '⏸️ Resolva o intervalo primeiro' : penMode && !penaltyDone ? '⚽ Bata o pênalti primeiro' : !roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
           </div>
-          ) : <ManualLockButton mini={uxNova} />
+          ) : <ManualLockButton />
         )}
         {/* 🧹 RECIBOS DA VIRADA: o que já aconteceu e não depende de você — uma
             linha cada, DEPOIS da decisão e do botão verde. Nada some: cada linha
@@ -6776,7 +6705,7 @@ export function PyramidSeasonScreen() {
               onSkip={() => setCopaRound(r => r + 1)}
               nextLabel={!copaReady ? '⏳ Deixa o jogo acabar…' : copaRound + 1 >= nCopaRounds ? '🏆 Ver o campeão' : '▶️ Próxima fase'} />
           </div>
-          ) : <ManualLockButton mini={uxNova} />
+          ) : <ManualLockButton />
         )}
         {/* 🎮 CONVIDADO (online) na Copa: vê o ritmo do host (read-only), reflete a troca */}
         {state.onlineMode === 'online' && !state.isHost && copaPlaying && (
@@ -7044,9 +6973,6 @@ export function PyramidSeasonScreen() {
             </div>
           )
         })()}
-        </>)}
-        </div>
-        <div className="ux-dir">
 
         {/* abas em pílulas — a ativa fica na SUA cor. 🏟️ Clube (Estádio) agora vale
             também no ONLINE (Passo 1): construir + renda já sincronizam por-técnico.
@@ -7621,47 +7547,19 @@ export function PyramidSeasonScreen() {
             })()}
             {/* 🖥️ no PC as divisões ficam LADO A LADO (2 colunas) — no celular a
                 classe não faz nada (o CSS dela só existe acima de 1024px) */}
-            {uxNova && myDiv ? (
-              /* 🪜 CARREIRA ARRUMADA: só a SUA divisão inteira; as outras viram
-                 atalhos pra aba Tabelas (a rodada deixa de ser um rolo de 50 jogos) */
-              <>
-                <DivMatches div={myDiv} matches={matches[myDiv]} colors={colors} humans={humansOf(myDiv)} hideId={youId} reveal={revealed >= round} />
-                <AtalhosDivisoes divs={ord.filter(d => d !== myDiv)} rotulo={d => `${matches[d]?.length ?? 0} jogos`} onIr={() => setTab('tabelas')} />
-              </>
-            ) : (
             <div className="desk-grid2">
               {ord.map(d => <DivMatches key={d} div={d} matches={matches[d]} colors={colors} humans={humansOf(d)} hideId={d === myDiv ? youId : undefined} reveal={revealed >= round} />)}
             </div>
-            )}
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
           <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
         ) : (
-          uxNova && tab === 'jogos' && !done && myDiv ? (
-            /* 🪜 CARREIRA ARRUMADA (pré-temporada): só a SUA tabela; as outras 4
-               viram atalhos; a tabela de prêmios vira uma linha que leva pra
-               Clube › Patrocínio (era: 5 tabelas inteiras + prêmios, 100 linhas) */
-            <>
-              <PyramidTables tables={tables} order={[myDiv]} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
-              <AtalhosDivisoes divs={ord.filter(d => d !== myDiv)} rotulo={() => 'tabela'} onIr={() => setTab('tabelas')} />
-              <button onClick={() => { setTab('estadio'); setClubeSub('patrocinio') }} style={{ display: 'block', width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '0 0 12px' }}>
-                💰 Quanto paga cada divisão? <b style={{ color: INK }}>Clube › Patrocínio ›</b>
-              </button>
-            </>
-          ) : (
           <>
             <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
             <PrizesBox />
           </>
-          )
         )}
-        </div>
-        </div>
-        {/* 🪜 CARREIRA ARRUMADA: o aviso da conta desce pra cá, como uma tira
-            (sai de cima do placar — regra do Diego: nada entra antes da coisa
-            principal) */}
-        {uxNova && <AvisoContaCarreira compacto />}
 
         {state.onlineMode === 'online' ? (
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>

@@ -1,5 +1,13 @@
 # 📌 Pendências combinadas com o Diego (atualizado 02/09/2026)
 
+## ⏪ DESFEITO (02/09, ordem do Diego: *"não gostei, volta tudo como estava"*)
+Os dois experimentos que só a conta dele via foram REVERTIDOS na main
+(`git revert` de c581271 "Home v2 com respiro" e 785f267 "Carreira arrumada"):
+a home e a carreira estão exatamente como antes, pra todo mundo, inclusive pra
+ele. A análise da simulação (`docs/ux-carreira-150-partidas.md`) e o gerador
+de mockups (`scripts/mockup-carreira.mjs`) ficam como registro; nenhum item
+deve ser recodado sem ele pedir de novo.
+
 ## ⏱️ RELÓGIOS (Diego 02/09) — ✅ no ar
 - Convocação da Copa online (Liga + Mundo): **65 → 135 s** (`SEG_CONVOCA`).
   Entendi "aumente em 70s" como +70; se ele quis dizer "pra 70s", é uma
@@ -28,27 +36,7 @@ ignora `screen = 'end'`, o botão aparece na tela de criar sala, e as duas salas
 dele (KUX6DK, P37QSE) tiveram o `updated_at` recuado no banco pra destravar na
 hora. Reverter: `git revert` do commit; o banco não precisa voltar.
 
-## 🏠 HOME v2 "com respiro" — CODADA, SÓ NA CONTA DO DIEGO (02/09)
-A 1ª proposta foi reprovada (*"muito desorganizado e colado as coisas"*). A v2
-(mockup + código, mesma trava `useUxCarreira`): primeira tela do celular só com
-nome + os 3 modos empilhados com espaço; continuar carreira/sala vem ANTES dos
-modos; Minhas Ligas e Chamar a galera viram links em texto; cartas no carrossel;
-"como funciona" em lista; novidades/apoie/cadastro embaixo. PC ≥1100px em 2
-colunas (`.ux-home`, index.css). Bloco `if (uxHome)` em `EscIntro`
-(screens.tsx). Esperando o veredito dele; liberar = `UX_CARR_GERAL = true`.
-
-## 🪜 CARREIRA ARRUMADA — CODADA, SÓ NA CONTA DO DIEGO (02/09)
-Ordem dele: *"code tudo só pro meu usuário"*. Trava `useUxCarreira` em
-`sport.ts` (`UX_CARR_GERAL = false` + lista só com o e-mail dele; em dev
-`?ux=1` liga pra testar). Feito: topo fino fora da aba Jogos (celular) · aba
-Jogos só com a sua divisão + atalhos · pré-temporada só com a sua tabela ·
-cartão da conta vira tira no fim · desktop ≥1100px em 2 colunas (`.ux-carr`
-no index.css) · criar carreira com nome primeiro e explicações fechadas · Modo
-Manual trancado pequeno. **Ficou de fora** (avisar): "SUA VEZ" no fim de
-temporada, nome longo encolher, atalho na Cerimônia, pregão em 2 colunas.
-Pra liberar pra todos: `UX_CARR_GERAL = true`. Reverter: `git revert`.
-
-## 🪜 UX DA CARREIRA (celular + desktop) — análise (02/09)
+## 🪜 UX DA CARREIRA (celular + desktop) — análise feita, NADA codado ainda (02/09)
 Pedido: *"simule 150 partidas e me fale suas indicações com mockup de antes e
 depois"*. Feito com robô (Playwright) em 390×844 e 1440×900, 4 temporadas por
 aparelho. Relatório completo: **`docs/ux-carreira-150-partidas.md`**. Mockups

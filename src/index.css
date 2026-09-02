@@ -374,28 +374,3 @@ html.noturno .palco :is([class*="bg-white"],
      que existia pra caber no celular */
   .desk-grid2 > div { overflow-x: visible; }
 }
-/* 🪜 CARREIRA ARRUMADA (02/09, só na conta do Diego — `useUxCarreira`):
-   no PC largo a carreira abre em DUAS colunas — o seu jogo (header, placar,
-   controles) fica à esquerda e grudado no topo; o conteúdo da aba (tabela,
-   jogos, elenco, clube) à direita. Abaixo de 1100px as classes não têm regra
-   nenhuma: é o celular de sempre. E sem a trava ligada a classe `.ux-carr`
-   nem entra no HTML, então ninguém mais é afetado. */
-/* 🏠 HOME v2 (02/09, só na conta do Diego): no celular `.ux-home-so-pc` some e
-   `.ux-home-so-cel` aparece (o Apoie fica lá embaixo, depois das novidades). No
-   PC largo é o contrário, e a home vira 2 colunas — a div sai da coluna
-   estreita do Shell (576px) só com conta de margem, sem transform (o menu fixo
-   do rodapé não pode ficar dentro de um elemento transformado). */
-.ux-home-so-pc { display: none; }
-@media (min-width: 1100px) {
-  .ux-home { width: min(1180px, calc(100vw - 48px)); margin-left: calc(50% - min(590px, 50vw - 24px)); }
-  .ux-home-grid { display: grid; grid-template-columns: 500px minmax(0, 1fr); gap: 0 70px; align-items: start; }
-  .ux-home-so-pc { display: block; }
-  .ux-home-so-cel { display: none; }
-  .ux-home .espaco-barra { height: 0 !important; }
-}
-@media (min-width: 1100px) {
-  .ux-carr { max-width: 1180px !important; }
-  .ux-carr .ux-grid { display: grid; grid-template-columns: 430px minmax(0, 1fr); gap: 0 22px; align-items: start; }
-  .ux-carr .ux-esq { position: sticky; top: 10px; max-height: calc(100vh - 20px); overflow-y: auto; scrollbar-width: thin; }
-  .ux-carr .ux-dir { min-width: 0; }
-}

@@ -28,7 +28,7 @@ import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, useSalao, useUxCarreira, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, useSalao, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -1897,7 +1897,6 @@ export function EscIntro() {
   const [sport] = useSport()
   const unlocked = useSportUnlocked() // 🔒 só o Diego vê qualquer coisa de basquete
   const homeNova = useHomeNova() // 🏠 home redesenhada — por enquanto só a conta do Diego
-  const uxHome = useUxCarreira() // 🏠 HOME v2 "com respiro" (02/09) — só a conta do Diego, mesma trava da carreira arrumada
   const { dispatch } = useEsc()
   const resumable = useResumableRoom()
   const solo = useResumableSolo()
@@ -1931,136 +1930,6 @@ export function EscIntro() {
   // carrega — seguro). Pra qualquer outra conta, `unlocked` é false e nada disso
   // existe: a home é EXATAMENTE a de hoje.
   if (unlocked && sport === 'basquete') return <BidLegendsHome />
-  // 🏠 HOME v2 "COM RESPIRO" (02/09) — SÓ a conta do Diego (`useUxCarreira`).
-  // Ele reprovou a 1ª proposta (*"muito desorganizado e colado as coisas"*) e
-  // pediu esta codada só pra ele ver. A ideia: a PRIMEIRA TELA do celular tem só
-  // o nome do jogo e os 3 jeitos de jogar, um embaixo do outro, com espaço; o
-  // resto (cartas, como funciona, novidades, apoiar) fica rolando pra baixo, um
-  // assunto por bloco. No PC largo (≥ 1100px) vira 2 colunas (`.ux-home`,
-  // index.css): modos à esquerda, cartas + como funciona à direita. Todo o resto
-  // do mundo segue na home de hoje (bloco `homeNova` logo abaixo), intacta.
-  if (uxHome) {
-    const modo = (bg: string, fg: string, ic: string, titulo: string, sub: string, onClick: () => void, subCor?: string) => (
-      <Btn onClick={onClick} className="w-full text-left" bg={bg}>
-        <span className="flex items-center gap-3.5">
-          <span className="text-[26px] leading-none">{ic}</span>
-          <span className="min-w-0">
-            <span className="block text-[19px] leading-none" style={{ color: fg }}>{titulo}</span>
-            <span className="block text-[11.5px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: subCor ?? 'rgba(255,255,255,.85)' }}>{sub}</span>
-          </span>
-        </span>
-      </Btn>
-    )
-    return (
-      <Shell>
-        {unlocked && <SportTabs />}
-        <AvisoDaVez />
-        <div className="ux-home">
-        <div className="ux-home-grid">
-        <div className="ux-home-esq space-y-6">
-          {/* 1 · o que é o jogo — compacto */}
-          <div className="text-center pt-4">
-            <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>⚽ Leilão às cegas de lendas</span>
-            <h1 className="font-black text-[40px] mt-3 leading-none" style={OSWALD}>LEILÃO LEGENDS</h1>
-            <p className="mt-2 font-semibold text-black/60">Dê lance <b>no nome</b>, sem ver o nível.</p>
-          </div>
-          {/* 2 · continuar (só pra quem tem) — a ação mais provável vem antes dos modos */}
-          {resumable && (
-            <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: GREEN, boxShadow: `4px 4px 0 0 ${INK}` }}>
-              <p className="font-black text-sm text-white leading-tight" style={OSWALD}>⏳ Você tem uma partida em andamento<br /><span className="opacity-80 text-xs">Sala {resumable.code}</span></p>
-              <button onClick={resumable.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Voltar pra sala {resumable.code}</button>
-              <button onClick={resumable.leave} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>🚪 Sair da sala</button>
-            </div>
-          )}
-          {solo && (
-            <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
-              <p className="font-black text-[11px] uppercase tracking-wide text-white/85" style={OSWALD}>Sua carreira · Temporada {solo.seasonNo}</p>
-              <p className="font-black text-lg text-white leading-none -mt-1" style={OSWALD}>{solo.teamName}</p>
-              <button onClick={() => startCareer(solo.resume)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar de onde parei</button>
-              <button onClick={() => startCareer(() => setShowCarreiras(true))} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-[12.5px] py-2 active:translate-y-0.5" style={OSWALD}>🪜 Minhas carreiras · trocar de save</button>
-            </div>
-          )}
-          {/* 3 · os três modos, um embaixo do outro, com espaço */}
-          <div className="space-y-4">
-            {modo(PURPLE, '#fff', '🪜', solo ? 'Nova carreira' : 'Começar carreira', `${escadaLiberada() ? 'Da Várzea até a Série A' : 'Da Série D até a Série A'} · sem precisar de conta`,
-              () => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) }))}
-            {modo(GREEN, '#fff', '👥', 'Jogar com amigos', 'Online · até 20 na sala · Copa do Mundo · Minhas Ligas', () => dispatch({ type: 'GO_LOBBY_ONLINE' }))}
-            {modo('#fff', INK, '⚡', 'Partida rápida', 'Sozinho contra a CPU · uns 6 minutos', () => dispatch({ type: 'GO_SETUP' }), 'rgba(12,12,12,.55)')}
-          </div>
-          {/* 4 · atalhos em texto — sem virar mais dois botões */}
-          <div className="flex justify-center gap-7 text-[12.5px] font-black">
-            <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="active:opacity-60">🏆 Minhas Ligas <span className="text-black/40">›</span></button>
-            <button onClick={shareGame} className="active:opacity-60">📤 {shared ? 'Link copiado!' : 'Chamar a galera'} <span className="text-black/40">›</span></button>
-          </div>
-          <div className="ux-home-so-pc space-y-4">
-            <ApoieButton big />
-            <CardAccountNote />
-          </div>
-        </div>
-        <div className="ux-home-dir space-y-7">
-          {/* 5 · as cartas — um assunto por bloco, com título de seção */}
-          <div className="pt-2">
-            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>🎴 Colecione as lendas</p>
-            {/* carrossel deslizante (a grade de 4 no celular cortava os nomes) */}
-            <div className="-mx-4">
-              <div className="fita flex gap-3 px-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-                <div className="flex-none w-[150px]"><CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} /></div>
-                <div className="flex-none w-[150px]"><CollectibleCard name="Gabigol" club="Flamengo" year={2019} pos="ATA" fame={4} /></div>
-                <div className="flex-none w-[150px]"><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa /></div>
-                <div className="flex-none w-[150px]"><CollectibleCard name="Obina" club="Flamengo" year={2005} pos="ATA" fame={2} folk /></div>
-              </div>
-            </div>
-            <p className="text-center text-[11px] font-bold text-black/45 mt-2.5">👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — ganhe cartas sendo campeão</p>
-          </div>
-          {/* 6 · como funciona — lista de 5 linhas */}
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>Como funciona uma partida</p>
-            <div className="space-y-3">
-              <PassoLinha n={1} ic="🪙" titulo="100 moedas">O baralho vem por posição. Você só vê o <b>nome</b>.</PassoLinha>
-              <PassoLinha n={2} ic="✉️" titulo="Lance secreto">Escreve quanto vale e lacra. Ninguém vê o lance de ninguém.</PassoLinha>
-              <PassoLinha n={3} ic="🔨" titulo="O martelo revela">Quem pagou mais leva — e <b>só aí</b> aparece o nível.</PassoLinha>
-              <PassoLinha n={4} ic="👕" titulo="Fecha os 11">Faltou posição? O Monte tem as sobras, de graça.</PassoLinha>
-              <PassoLinha n={5} ic="⚽" titulo="O campeonato roda">38 rodadas em 3 minutos. Campeão leva <b>carta</b>.</PassoLinha>
-            </div>
-          </div>
-        </div>
-        </div>
-        {/* 7 · novidades · apoiar · o resto — um bloco por assunto */}
-        <div className="space-y-7 pt-7">
-          <NovidadesCurtas />
-          <div className="ux-home-so-cel space-y-4">
-            <ApoieButton big />
-            <CardAccountNote />
-          </div>
-          <div className="space-y-3">
-            <AdminButton />
-            <DinastiaButton />
-            <CareerOnlineButton />
-            <LigaFechadaButton />
-          </div>
-        </div>
-        </div>
-        <div className="espaco-barra" style={{ height: 74 }} />
-        <HomeMenuFixo
-          onInicio={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          onRegras={() => setShowManual(true)}
-          onAlbum={() => dispatch({ type: 'GO_ALBUM' })}
-          onRanking={() => dispatch({ type: 'GO_RANKING' })}
-          apoiar={<ApoieButton trigger={open => (
-            <button onClick={open} className="flex-1 py-1.5 active:opacity-60">
-              <IconeBarra nome="apoiar" cor="rgba(194,69,47,.85)" />
-              <span className="block text-[10.5px] font-black mt-1" style={{ ...OSWALD, color: 'rgba(194,69,47,.9)' }}>Apoiar</span>
-            </button>
-          )} />} />
-        {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); startCareer(() => dispatch({ type: 'GO_SETUP_CAREER' })) }} />}
-        {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo />}
-        {careerGate && (
-          <JanelaConta titulo="🪜 Sua carreira mora na conta" contexto="Entre ou crie sua conta — te levo direto pra carreira." comecarEmCriar
-            onPronto={() => { const fn = careerGate; setCareerGate(null); fn?.() }} onFechar={() => setCareerGate(null)} />
-        )}
-      </Shell>
-    )
-  }
   // 🏠 HOME NOVA — só a conta do Diego (ver `useHomeNova` em sport.ts). Todo o
   // resto do mundo cai no `return` de baixo, que é a home de hoje intacta.
   if (homeNova) {
@@ -2445,11 +2314,6 @@ export function EscSetup() {
   // 🌎 a Libertadores também aparece no rápido OFFLINE — é onde dá pra testar
   // sozinho, sem juntar 8 pessoas. Mesma trava de conta do online.
   const libertaOn = useLibertaLiberada()
-  // 🪜 CARREIRA ARRUMADA (02/09, só na conta do Diego): nome/formação/rivais
-  // primeiro; "Como funciona" e "Baralho" descem pra baixo do AVANÇAR, fechados.
-  // Achado da simulação: o campo do nome ficava a ~1.100px do topo, atrás de duas
-  // caixas de texto. Sem a trava, a tela é EXATAMENTE a de sempre.
-  const uxNova = useUxCarreira()
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2514,8 +2378,8 @@ export function EscSetup() {
         <span className="text-lg leading-none">🏠</span> Voltar ao início
       </button>
       <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? (escadaLiberada() ? '🪜 CARREIRA · VÁRZEA' : '🪜 CARREIRA · SÉRIE D') : 'MONTE SUA SALA'}</h2>
-      {career && <p className="text-sm font-bold text-black/60 -mt-1">{uxNova ? (escadaLiberada() ? 'Da Várzea até a Série A. Salva e continua depois.' : 'Da Série D até a A. Salva e continua depois.') : escadaLiberada() ? 'Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.' : 'Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.'}</p>}
-      {career && !uxNova && (
+      {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada() ? 'Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.' : 'Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.'}</p>}
+      {career && (
         <Box bg="#FFF6DE" className="p-4 space-y-1.5">
           <p className="font-black text-sm" style={OSWALD}>⚡ Como funciona a Carreira</p>
           <p className="text-xs font-bold text-black/75">🪜 {escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
@@ -2526,12 +2390,12 @@ export function EscSetup() {
         </Box>
       )}
       <Box className="p-4 space-y-4">
-        {career ? (uxNova ? null : (
+        {career ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? '🌎 Baralho: Brasileirão + Europa + MUNDO juntos' : '🌎 Baralho fixo: Brasileirão + Europa juntos'}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
           </div>
-        )) : (
+        ) : (
         <div>
           <p className="text-xs font-black uppercase mb-1">Baralho de craques</p>
           <div className="grid grid-cols-2 gap-2">
@@ -2635,26 +2499,6 @@ export function EscSetup() {
       <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">{career ? 'AVANÇAR 🪜' : 'AVANÇAR 🔨'}</span>
       </Btn>
-      {/* 🪜 CARREIRA ARRUMADA: as duas explicações vêm DEPOIS do botão, fechadas —
-          quem quer ler abre; quem já sabe vai direto. Mesmos textos de antes. */}
-      {career && uxNova && (
-        <>
-          <details className="border-[3px] border-black rounded-xl px-4 py-2.5" style={{ background: '#FFF6DE', boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <summary className="font-black text-sm cursor-pointer" style={OSWALD}>⚡ Como funciona a Carreira <span className="text-black/45 text-xs font-bold">abrir ▾</span></summary>
-            <div className="space-y-1.5 pt-2">
-              <p className="text-xs font-bold text-black/75">🪜 {escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
-              <p className="text-xs font-bold text-black/75">🔨 <b>Mesmo leilão do modo rápido:</b> monta o time no pregão e disputa o campeonato de 38 rodadas.</p>
-              <p className="text-xs font-bold text-black/75">🔥 <b>Rivais pra vida toda:</b> têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.</p>
-              <p className="text-xs font-bold text-black/75">🏆 <b>Títulos acumulam:</b> cada título da Série A vira uma ⭐ no seu escudo.</p>
-              <p className="text-xs font-bold text-black/75">💾 <b>Salva e continua:</b> pare e volte depois, em qualquer aparelho.</p>
-            </div>
-          </details>
-          <details className="border-[3px] border-black rounded-xl px-4 py-2.5" style={{ background: '#EAF3FF', boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <summary className="font-black text-sm cursor-pointer" style={OSWALD}>{escadaLiberada() ? '🌎 Baralho: Brasileirão + Europa + Mundo' : '🌎 Baralho: Brasileirão + Europa'} <span className="text-black/45 text-xs font-bold">abrir ▾</span></summary>
-            <p className="text-[11px] font-bold text-black/65 pt-2">{escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
-          </details>
-        </>
-      )}
       {/* carreira antiga (só pra quem já tinha um save no formato antigo poder
           terminar). O "Continuar carreira" da pirâmide NÃO entra aqui de propósito:
           na tela de setup ele criava um LOOP (save travado no próprio setup →
