@@ -56,6 +56,7 @@ const o = {
   camisa: arg('camisa', ''), // 🎽 a camisa DE VERDADE, quando o dono manda uma
   dono: arg('dono', ''), coracao: arg('coracao', ''), fundador: arg('fundador', ''),
   insta: arg('insta', ''), // 📸 @ do dono — entra no rodapé, do lado do nome dele
+  instaInfo: arg('insta-info', ''), // 📸 linha miúda embaixo do @ (ex.: "Canal Meia na Canela · 72,8 mil seguidores") — pedido do Diego no Jurubeba (02/09)
   socio: process.argv.includes('--socio'), socioN: arg('socio-n', ''),
   saida: arg('saida', 'mockup-batismo.png'),
   escala: Number(arg('escala', '1')), // 🔍 2 = o dobro de pixels (pro Instagram)
@@ -244,7 +245,7 @@ h1 .r{color:#C2452F}
 </div>
 
 <div class="card pe">
-  <div><div class="q">${o.socio ? 'Clube de' : 'Batizado por'}</div><div class="n">${o.dono || '—'}${o.insta ? `<span style="font-family:system-ui;font-weight:800;font-size:15px;color:rgba(0,0,0,.55);margin-left:9px">@${o.insta.replace(/^@/, '')}</span>` : ''}</div></div>
+  <div><div class="q">${o.socio ? 'Clube de' : 'Batizado por'}</div><div class="n">${o.dono || '—'}${o.insta ? `<span style="font-family:system-ui;font-weight:800;font-size:15px;color:rgba(0,0,0,.55);margin-left:9px">@${o.insta.replace(/^@/, '')}</span>` : ''}</div>${o.instaInfo ? `<div style="font-family:system-ui;font-weight:800;font-size:13px;color:rgba(0,0,0,.6);margin-top:3px">📸 ${o.instaInfo}</div>` : ''}</div>
   <div class="selos">
     <div class="selo"><div class="e">👑</div><div class="t">Lenda</div></div>
     ${o.socioN ? `<div class="selo"><div class="e">🎫</div><div class="t">Sócio nº${o.socioN}</div></div>` : ''}
