@@ -112,10 +112,10 @@ const cadeiras = (atraso) => `
       animation:pop .3s cubic-bezier(.2,1.6,.4,1) ${(atraso + i * 0.06).toFixed(2)}s both">${i < 8 ? '🙂' : '🤖'}</span>`).join('')}
   </div>`
 const degraus = (atraso) => `
-  <div style="display:flex;flex-direction:column-reverse;gap:12px;align-items:center;margin-top:24px">
-    ${[['🌱 Várzea', '#DBD1B5', 560], ['Série D', '#F3D34A', 640], ['Série C', '#BFE3C7', 720], ['Série B', '#B9D8F5', 800], ['👑 Série A', GOLD, 880]]
-      .map(([r, c, w], i) => `<div style="width:${w}px;background:${c};border:5px solid ${INK};border-radius:16px;box-shadow:6px 6px 0 ${INK};padding:12px 0;
-        ${OSW};font-size:50px;text-transform:uppercase;text-align:center;animation:sobe .3s ${(atraso + i * 0.18).toFixed(2)}s both">${r}</div>`).join('')}
+  <div style="display:flex;flex-direction:column-reverse;gap:10px;align-items:center;margin-top:48px">
+    ${[['🌱 Várzea', '#DBD1B5', 520], ['Série D', '#F3D34A', 600], ['Série C', '#BFE3C7', 680], ['Série B', '#B9D8F5', 760], ['👑 Série A', GOLD, 840]]
+      .map(([r, c, w], i) => `<div style="width:${w}px;background:${c};border:5px solid ${INK};border-radius:16px;box-shadow:6px 6px 0 ${INK};padding:8px 0;
+        ${OSW};font-size:44px;text-transform:uppercase;text-align:center;animation:sobe .3s ${(atraso + i * 0.18).toFixed(2)}s both">${r}</div>`).join('')}
   </div>`
 const parte2 = { dur: 9.2, html: `
 ${cena(0, 2.6, `
