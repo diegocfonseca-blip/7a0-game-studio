@@ -28,7 +28,23 @@ ignora `screen = 'end'`, o botão aparece na tela de criar sala, e as duas salas
 dele (KUX6DK, P37QSE) tiveram o `updated_at` recuado no banco pra destravar na
 hora. Reverter: `git revert` do commit; o banco não precisa voltar.
 
-## 🪜 UX DA CARREIRA (celular + desktop) — análise feita, NADA codado ainda (02/09)
+## 🏠 HOME — mockup REPROVADO (02/09)
+Diego: *"não gostei do formato da home… ainda muito desorganizado e colado as
+coisas"*. Refazer com menos blocos por tela e mais respiro (espaço entre os
+cartões, um assunto por dobra). Nada codado.
+
+## 🪜 CARREIRA ARRUMADA — CODADA, SÓ NA CONTA DO DIEGO (02/09)
+Ordem dele: *"code tudo só pro meu usuário"*. Trava `useUxCarreira` em
+`sport.ts` (`UX_CARR_GERAL = false` + lista só com o e-mail dele; em dev
+`?ux=1` liga pra testar). Feito: topo fino fora da aba Jogos (celular) · aba
+Jogos só com a sua divisão + atalhos · pré-temporada só com a sua tabela ·
+cartão da conta vira tira no fim · desktop ≥1100px em 2 colunas (`.ux-carr`
+no index.css) · criar carreira com nome primeiro e explicações fechadas · Modo
+Manual trancado pequeno. **Ficou de fora** (avisar): "SUA VEZ" no fim de
+temporada, nome longo encolher, atalho na Cerimônia, pregão em 2 colunas.
+Pra liberar pra todos: `UX_CARR_GERAL = true`. Reverter: `git revert`.
+
+## 🪜 UX DA CARREIRA (celular + desktop) — análise (02/09)
 Pedido: *"simule 150 partidas e me fale suas indicações com mockup de antes e
 depois"*. Feito com robô (Playwright) em 390×844 e 1440×900, 4 temporadas por
 aparelho. Relatório completo: **`docs/ux-carreira-150-partidas.md`**. Mockups

@@ -28,7 +28,7 @@ import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, useSalao, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, useSalao, useUxCarreira, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -2314,6 +2314,11 @@ export function EscSetup() {
   // 🌎 a Libertadores também aparece no rápido OFFLINE — é onde dá pra testar
   // sozinho, sem juntar 8 pessoas. Mesma trava de conta do online.
   const libertaOn = useLibertaLiberada()
+  // 🪜 CARREIRA ARRUMADA (02/09, só na conta do Diego): nome/formação/rivais
+  // primeiro; "Como funciona" e "Baralho" descem pra baixo do AVANÇAR, fechados.
+  // Achado da simulação: o campo do nome ficava a ~1.100px do topo, atrás de duas
+  // caixas de texto. Sem a trava, a tela é EXATAMENTE a de sempre.
+  const uxNova = useUxCarreira()
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2378,8 +2383,8 @@ export function EscSetup() {
         <span className="text-lg leading-none">🏠</span> Voltar ao início
       </button>
       <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? (escadaLiberada() ? '🪜 CARREIRA · VÁRZEA' : '🪜 CARREIRA · SÉRIE D') : 'MONTE SUA SALA'}</h2>
-      {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada() ? 'Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.' : 'Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.'}</p>}
-      {career && (
+      {career && <p className="text-sm font-bold text-black/60 -mt-1">{uxNova ? (escadaLiberada() ? 'Da Várzea até a Série A. Salva e continua depois.' : 'Da Série D até a A. Salva e continua depois.') : escadaLiberada() ? 'Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.' : 'Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.'}</p>}
+      {career && !uxNova && (
         <Box bg="#FFF6DE" className="p-4 space-y-1.5">
           <p className="font-black text-sm" style={OSWALD}>⚡ Como funciona a Carreira</p>
           <p className="text-xs font-bold text-black/75">🪜 {escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
@@ -2390,12 +2395,12 @@ export function EscSetup() {
         </Box>
       )}
       <Box className="p-4 space-y-4">
-        {career ? (
+        {career ? (uxNova ? null : (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? '🌎 Baralho: Brasileirão + Europa + MUNDO juntos' : '🌎 Baralho fixo: Brasileirão + Europa juntos'}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
           </div>
-        ) : (
+        )) : (
         <div>
           <p className="text-xs font-black uppercase mb-1">Baralho de craques</p>
           <div className="grid grid-cols-2 gap-2">
@@ -2499,6 +2504,26 @@ export function EscSetup() {
       <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
         <span className="text-white">{career ? 'AVANÇAR 🪜' : 'AVANÇAR 🔨'}</span>
       </Btn>
+      {/* 🪜 CARREIRA ARRUMADA: as duas explicações vêm DEPOIS do botão, fechadas —
+          quem quer ler abre; quem já sabe vai direto. Mesmos textos de antes. */}
+      {career && uxNova && (
+        <>
+          <details className="border-[3px] border-black rounded-xl px-4 py-2.5" style={{ background: '#FFF6DE', boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <summary className="font-black text-sm cursor-pointer" style={OSWALD}>⚡ Como funciona a Carreira <span className="text-black/45 text-xs font-bold">abrir ▾</span></summary>
+            <div className="space-y-1.5 pt-2">
+              <p className="text-xs font-bold text-black/75">🪜 {escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
+              <p className="text-xs font-bold text-black/75">🔨 <b>Mesmo leilão do modo rápido:</b> monta o time no pregão e disputa o campeonato de 38 rodadas.</p>
+              <p className="text-xs font-bold text-black/75">🔥 <b>Rivais pra vida toda:</b> têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.</p>
+              <p className="text-xs font-bold text-black/75">🏆 <b>Títulos acumulam:</b> cada título da Série A vira uma ⭐ no seu escudo.</p>
+              <p className="text-xs font-bold text-black/75">💾 <b>Salva e continua:</b> pare e volte depois, em qualquer aparelho.</p>
+            </div>
+          </details>
+          <details className="border-[3px] border-black rounded-xl px-4 py-2.5" style={{ background: '#EAF3FF', boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <summary className="font-black text-sm cursor-pointer" style={OSWALD}>{escadaLiberada() ? '🌎 Baralho: Brasileirão + Europa + Mundo' : '🌎 Baralho: Brasileirão + Europa'} <span className="text-black/45 text-xs font-bold">abrir ▾</span></summary>
+            <p className="text-[11px] font-bold text-black/65 pt-2">{escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
+          </details>
+        </>
+      )}
       {/* carreira antiga (só pra quem já tinha um save no formato antigo poder
           terminar). O "Continuar carreira" da pirâmide NÃO entra aqui de propósito:
           na tela de setup ele criava um LOOP (save travado no próprio setup →

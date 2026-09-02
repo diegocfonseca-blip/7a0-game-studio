@@ -662,8 +662,42 @@ export function useSubAbasGrudadas(): boolean {
   return pilulasOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email) })
+// ─── 🪜 CARREIRA ARRUMADA (02/09) — visual novo da carreira, SÓ NA CONTA DO DIEGO
+// Vem da simulação de 150 rodadas (docs/ux-carreira-150-partidas.md). Ordem do
+// Diego: *"code tudo só pro meu usuário"*. O que muda, só pra ele:
+//   1. fora da aba Jogos o topo (cartão de conta + header + placar + Modo Manual)
+//      vira UMA linha fina e o conteúdo da aba já aparece na primeira tela;
+//   2. na aba Jogos só a SUA divisão; as outras viram atalhos pra aba Tabelas;
+//      na pré-temporada, só a sua tabela + atalhos (nada de 5 tabelas inteiras);
+//   3. o cartão "carreira só neste aparelho" sai de cima do placar e vira uma
+//      tira no fim da página;
+//   4. desktop (≥ 1100px): a carreira abre em 2 colunas (seu jogo à esquerda,
+//      conteúdo da aba à direita) em vez da coluna de celular no meio;
+//   5. criar carreira: nome/formação/rivais primeiro, explicações fechadas;
+//   6. Modo Manual trancado vira botão pequeno.
+// Pra liberar pra todos: `UX_CARR_GERAL = true`. Pra desligar de vez: `false` e
+// lista vazia — tudo volta EXATAMENTE como era (é só condição no JSX).
+// 🧪 Em dev (vite) dá pra ligar com `?ux=1` na URL (grava no aparelho) — nunca
+// vale no site publicado.
+const UX_CARR_GERAL = false
+const UX_CARR_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+const uxCarrDev = (() => { try { if (!import.meta.env.DEV) return false; const q = new URLSearchParams(window.location.search).get('ux'); if (q === '1') localStorage.setItem('esc-ux-carr', '1'); if (q === '0') localStorage.removeItem('esc-ux-carr'); return localStorage.getItem('esc-ux-carr') === '1' } catch { return false } })()
+let uxCarrOk = UX_CARR_GERAL || uxCarrDev
+function applyUxCarrUnlock(email?: string | null): void {
+  const u = UX_CARR_GERAL || uxCarrDev || (!!email && UX_CARR_TESTERS.has(email.toLowerCase()))
+  if (u === uxCarrOk) return
+  uxCarrOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function uxCarreiraOn(): boolean { return uxCarrOk }
+export function useUxCarreira(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return uxCarrOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyUxCarrUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyUxCarrUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
