@@ -11,7 +11,12 @@
     "preview": "vite preview",
     "novidades": "node scripts/novidades-jogadores.mjs",
     "reddit": "node scripts/reddit-radar.mjs",
-    "paises": "node scripts/paises-check.mjs"
+    "paises": "node scripts/paises-check.mjs",
+    "vigias": "node scripts/checa-vigias-online.mjs",
+    "rank": "node scripts/checa-rank-liga.mjs",
+    "telas": "node scripts/checa-telas.mjs",
+    "batismos": "node scripts/checa-batismos.mjs",
+    "copa": "node scripts/checa-copa-online.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

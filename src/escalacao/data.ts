@@ -2477,30 +2477,30 @@ export const EXTRA_D_TEAMS: CareerTeam[] = [
   { name: 'Duda', team: 'Rural EC' },
 ]
 
+// ─── 🪜 OS TIMES DE CADA DIVISÃO ────────────────────────────────────────────
+//
+// ⚠️ 30/08 — A SÉRIE A E A SÉRIE D TROCARAM DE TIMES. Decisão do Diego:
+//   *"não tem sentido pagar mais p dizer que vai p série D. Certo seria esses
+//    times que estão pagando mais serem os times da série A na carreira e
+//    também serem os times que entram no modo online"*.
+//
+// O que estava errado: o batismo de Série D custa R$69,90 (dez reais a mais)
+// porque é a Série D que aparece no jogo RÁPIDO — a vitrine. Só que "Série D"
+// é o nome da pior divisão. O cara pagava mais caro pra ficar na última série.
+// O preço e o nome brigavam.
+//
+// Agora os 20 clubes que estavam na D (com os 18 batismos) são a SÉRIE A, e os
+// 20 que estavam na A viraram a Série D. A escada da carreira continua a mesma
+// — Várzea → D → C → B → A — só que agora o topo é onde estão os pagantes, que
+// é também quem aparece no rápido.
+//
+// 🔒 CARREIRA ANTIGA NÃO SENTE: a pirâmide de uma carreira salva é montada pela
+// COLOCAÇÃO GUARDADA no save (`careerPlacements`), não por esta lista. Quem já
+// estava jogando continua com os times onde eles estavam.
 export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
-  C: [
-    { name: 'Casa de Vó', team: 'Casa de Vó' },
-    { name: 'Zé Colmeia', team: 'Zé Colmeia' },
-    { name: 'Waguinho Pipa', team: 'Fatality FC' },
-    { name: 'Miúdo do Gol', team: 'Miúdo EC' },
-    { name: 'Zequinha Ferro', team: 'Zequinha SAF' },
-    { name: 'Nego do Xote', team: 'Mano Paulista' },
-    { name: 'Zé Chapéu', team: 'Brodeiragem' },
-    { name: 'Adãozinho', team: 'Adão Esporte' },
-    { name: 'Zorra Total FC', team: 'Zorra FC' },
-    { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
-    { name: 'Gugu Canela', team: 'Napolitano' },
-    { name: 'Toninho Grelha', team: 'Ponte Branca' },
-    { name: 'Vavá Peteca', team: 'CRBebê' },
-    { name: 'Careca do Posto', team: 'Semervilha' },
-    { name: 'Dão da Feira', team: 'Milhaça FC' }, // ⚽🌽 clube BATIZADO por apoiador (igormarquesn99 / @igumarques, jornalista — Milhaça FC, ex-Real Bets, Série C; escudo e mascote com arte própria do dono, 24/08)
-    { name: 'Mão de Onça', team: 'Goiaba FC' },
-    { name: 'Beto Foguete', team: 'Leve-cuscuz' },
-    { name: 'Lelê da Serra', team: 'Serra Azul FR' },
-    { name: 'Cabelo de Fogo', team: 'Torta de Rã' },
-    { name: 'Baixinho da Kombi', team: 'Kombi United' },
-  ],
-  D: [
+  // 👑 SÉRIE A — a elite. É esta lista que aparece no JOGO RÁPIDO e é ela que
+  // o batismo de R$69,90 compra. (era a "Série D" até 30/08)
+  A: [
     { name: 'Zé Ruela', team: 'Neymarzetti' }, // ⚽ clube BATIZADO (time do Diego, dono do jogo — ex-Paixandu)
     { name: 'Guilherme', team: 'Nightfull FC' }, // ⚽ clube BATIZADO por apoiador (Guilherme)
     { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!)
@@ -2511,7 +2511,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Duda Fortuna', team: 'Skyy FC' }, // ⚽ clube BATIZADO por apoiador (matheusncruz1 — Skyy FC, ex-Fortuna SAF)
     { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
     { name: 'Neguinho do Apito', team: 'Xurupitas FC' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Xurupitas FC, ex-Tokyo City Esperion, ex-FC Galáticos; porco/Palmeiras)
-    { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
+    { name: 'Zé do Mercado', team: 'Al Takhadao FC' }, // 🦜🛒 clube BATIZADO por apoiador (fontourajoao04 — Al Takhadao FC; papagaio de avental, carrinho de mercado, verde+laranja; coração Internacional; Lenda + fundador nº53, 01/09). Assento que era do Marreco FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Isto aqui é memória do repo — no POST o Diego pediu pra NÃO falar "entrou no lugar do Marreco", só "entrou na Série A".
     { name: 'Tião Bagre', team: 'Leão da Estradinha' }, // ⚽🦁 clube BATIZADO por apoiador (jorgericardo777 — Leão da Estradinha, ex-Império Samambaia, ex-Cuiabagre; homenagem ao Rio Branco-PR, o Leão da Estradinha de 1913, time do coração dele; rebatismo 23/08)
     { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
     { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
@@ -2542,9 +2542,42 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Nortista', team: 'Theuzudo FC' }, // ⚽ clube BATIZADO por apoiador (matheusfilipealves — Theuzudo FC, ex-Comercial do Norte; coração Valência, mascote morcego 🦇, 21/08)
     { name: 'Litorâneo', team: 'Esqueceram do Lluch FC' }, // ⚽ clube BATIZADO por apoiador (lluchmarcel81 — Esqueceram do Lluch FC, ex-Litoral United; Lenda + fundador nº50, 28/08)
     { name: 'Ferroviário', team: 'Ferroviário do Sul' },
-    { name: 'Serrote', team: 'Serrano FC' },
+    // 🦆 Marreco FC (lucasigorbortoliniii) DESCEU da Série A pra cá em 01/09, por
+    // decisão do Diego, pra abrir o assento do Al Takhadao FC. Ocupa a vaga que era
+    // do bot "Serrano FC" (escolhido por ser o único 'Serra' que não é usado em
+    // outra lista — o 'Nacional da Serra' também mora em CLASSIC_CLUBS).
+    // ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Marreco FC'] = 'Serrano FC'`: o
+    // Marreco não foi renomeado, só mudou de divisão. Se a gente mapeasse, uma
+    // carreira que já tem OS DOIS passaria a desenhar o escudo do Marreco no
+    // Serrano também — dois clubes com o mesmo escudo na mesma tabela.
+    // Save antigo com Serrano FC segue funcionando com o nome e o escudo dele
+    // (a divisão de bot num save vem do `placements` guardado, não desta lista).
+    { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
   ],
-  A: [
+  C: [
+    { name: 'Casa de Vó', team: 'Casa de Vó' },
+    { name: 'Zé Colmeia', team: 'Zé Colmeia' },
+    { name: 'Waguinho Pipa', team: 'Fatality FC' },
+    { name: 'Miúdo do Gol', team: 'Miúdo EC' },
+    { name: 'Zequinha Ferro', team: 'Zequinha SAF' },
+    { name: 'Nego do Xote', team: 'Mano Paulista' },
+    { name: 'Zé Chapéu', team: 'Brodeiragem' },
+    { name: 'Adãozinho', team: 'Adão Esporte' },
+    { name: 'Zorra Total FC', team: 'Zorra FC' },
+    { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
+    { name: 'Gugu Canela', team: 'Napolitano' },
+    { name: 'Toninho Grelha', team: 'Ponte Branca' },
+    { name: 'Vavá Peteca', team: 'CRBebê' },
+    { name: 'Careca do Posto', team: 'Semervilha' },
+    { name: 'Dão da Feira', team: 'Milhaça FC' }, // ⚽🌽 clube BATIZADO por apoiador (igormarquesn99 / @igumarques, jornalista — Milhaça FC, ex-Real Bets, Série C; escudo e mascote com arte própria do dono, 24/08)
+    { name: 'Mão de Onça', team: 'Goiaba FC' },
+    { name: 'Beto Foguete', team: 'Leve-cuscuz' },
+    { name: 'Lelê da Serra', team: 'Serra Azul FR' },
+    { name: 'Cabelo de Fogo', team: 'Torta de Rã' },
+    { name: 'Baixinho da Kombi', team: 'Kombi United' },
+  ],
+  // 🅳 SÉRIE D — a base profissional, logo acima da Várzea. (era a "Série A")
+  D: [
     { name: 'Barão', team: 'Metrópole FC' },
     { name: 'Soberano', team: 'Soberano Nacional' },
     { name: 'Coliseu', team: 'Coliseu United' },
@@ -2567,6 +2600,11 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Apogeu', team: 'Seven City' }, // ⚽ clube BATIZADO por apoiador (glaucomiranda — Seven City, ex-Apogeu FC; homenagem ao Seven Gamer @sevengamersp, Lenda + fundador nº42, 15/08)
   ],
 }
+
+// 🏟️ A LISTA QUE APARECE NO JOGO RÁPIDO e que serve de rival na carreira.
+// Existe com nome próprio de propósito: assim, se um dia a letra mudar de novo,
+// muda AQUI e mais nada no jogo precisa saber de letra nenhuma.
+export const TIMES_ELITE: CareerTeam[] = DIVISION_TEAMS.A
 
 // ─── Clubes clássicos que completam a liga de 20 ─────────────────────
 export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [

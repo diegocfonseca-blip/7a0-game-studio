@@ -105,6 +105,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'gabriel.arruda.1999@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'feehcamp11@gmail.com': 'ouro', // 👑 Lenda (pago) + FUNDADOR — ouro normal em tudo, MAS verde brilhante SÓ na carreira offline (CAREER_GREEN)
   'lucasigorbortoliniii@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marreco FC, ex-Inter Estadual)
+  'fontourajoao04@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº53 + batismo (Al Takhadao FC, Série A; coração Internacional, 01/09)
   'matheus223lms@icloud.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Alfacehh, ex-Santos Dumont)
   'ricardopessoafreire@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Barcenite FC, ex-Milanesa FC)
   'victordudu.monte14@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual (04/08)
@@ -143,6 +144,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
 // O número entra no mural "Fundadores do Leilão Legends" (tela futura).
 const FUNDADOR_N: Record<string, number> = {
   'diego.c.fonseca@gmail.com': 1, // 🖋️ o criador do jogo — fundador nº 1
+  'fontourajoao04@gmail.com': 53, // 🦜 Al Takhadao FC (01/09)
   'cesar.verissimo27@gmail.com': 3,
   'dasilva1227br@gmail.com': 9,
   'davisantana1312@gmail.com': 11,
@@ -185,6 +187,19 @@ const FUNDADOR_N: Record<string, number> = {
   'gabrielnegreirosamaral99@hotmail.com': 48,
   'igormarquesn99@gmail.com': 49,
   'lluchmarcel81@gmail.com': 50, // 🖋️ batizou o Esqueceram do Lluch FC (ex-Litoral United, Série B); ❤️ São Paulo, mascote o menino de gorro ⚽ tricolor vermelho/preto/branco (28/08) // 🖋️ batizou o Milhaça FC (ex-Real Bets, Série C); jornalista @igumarques, mascote boleiro de boné 🌽 vermelho e amarelo (24/08) // 🖋️ batizou o São Luiz FC (ex-Flamengo do Sertão, Série D); coração Flamengo, mascote pitbull 🐶 (21/08)
+  // 🩹 30/08 — CONSERTO DE DOIS BURACOS que a auditoria (`npm run batismos`) achou.
+  // O Diego, quando contei: *"o fundador q tiver duplicado troque o número, n tem
+  // problema"*.
+  //
+  // 1) O nº 36 estava DUPLICADO: aqui no código era do Lucas (Scorporila FC) e no
+  //    banco (`esc_fundadores`) era do Elton (La Bestia Negra). O jogo lê DAQUI —
+  //    então o Lucas já ostentava o 36 e o Elton, que tem batismo desde 09/08 e
+  //    pagou, não via selo NENHUM. Quem já mostra o número fica com ele (mexer
+  //    nisso bagunçaria post e print de quem já ostenta); o Elton entra no próximo
+  //    livre.
+  // 2) O Adriano (SC Ferrari) nunca teve número — batismo de 14/08, passou batido.
+  'eltonfrossard45@gmail.com': 51, // 🖋️ batizou La Bestia Negra (ex-River Prato, Série D); ❤️ Cruzeiro, mascote raposa 🦊 (09/08 — número só saiu em 30/08)
+  'adriano.ferrari@quepazseguros.com.br': 52, // 🖋️ batizou o SC Ferrari (ex-Painitto FC); o piloto na bola 🏎️ serve de escudo e de mascote (14/08 — número só saiu em 30/08)
 }
 export function myFundadorN(): number | null {
   return myEmail != null ? (FUNDADOR_N[myEmail] ?? null) : null

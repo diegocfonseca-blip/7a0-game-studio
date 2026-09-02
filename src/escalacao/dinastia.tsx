@@ -15,7 +15,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Card, EscState, FormationKey, Sector, WonCard } from './types'
-import { CATALOG, DIVISION_TEAMS } from './data'
+import { CATALOG, DIVISION_TEAMS, TIMES_ELITE } from './data'
 import { useEsc, sortedTable } from './store'
 import { stripEmoji } from './apoio'
 import { useCanManager } from './admin'
@@ -834,7 +834,7 @@ function Intro({ onStart, onClose }: { onStart: (b: { name: string; rivals: stri
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [count, setCount] = useState(5)
-  const pool = DIVISION_TEAMS['D'].map(t => t.team)
+  const pool = TIMES_ELITE.map(t => t.team)
   const [picked, setPicked] = useState<string[]>([])
   const toggle = (t: string) => setPicked(prev => { if (prev.includes(t)) return prev.filter(x => x !== t); const next = [...prev, t]; return next.length > count ? next.slice(next.length - count) : next })
   // nome vem da CONTA (mesmo do CPU/carreira/online) e é editável; ao começar,

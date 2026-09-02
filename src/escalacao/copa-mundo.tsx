@@ -8,7 +8,7 @@
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { paisDe, rankingSelecoes, type Baralho } from './paises'
@@ -43,7 +43,7 @@ const FLAG: Record<string, string> = {
 }
 // 🏳️ bandeira SEMPRE com rede: seleção sem bandeira cadastrada mostra a branca,
 // nunca "undefined". Todo lugar que desenha bandeira passa por aqui.
-const flagOf = (pais: string): string => FLAG[pais] ?? '🏳️'
+export const flagOf = (pais: string): string => FLAG[pais] ?? '🏳️'
 // 🎨 COR REAL de cada seleção (pedido do Diego 11/08: "tipo França azul
 // vermelho e branco, Japão vermelho e branco" — a cor mais icônica do manto
 // de cada país, não mais um hash genérico). Usada nos jogos e nas tabelas.
@@ -59,10 +59,10 @@ const PAIS_COLORS: Record<string, string> = {
 }
 const paisColor = (pais: string): string => PAIS_COLORS[pais] ?? copaSideColor(pais)
 
-type Sec = 'GOL' | 'LAT' | 'ZAG' | 'MEI' | 'ATA'
+export type Sec = 'GOL' | 'LAT' | 'ZAG' | 'MEI' | 'ATA'
 const SECS: Sec[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
-type PoolCard = { name: string; club: string; year: number; fame: number; lo: number; hi: number; sec: Sec }
-type Formation = '4-3-3' | '4-4-2'
+export type PoolCard = { name: string; club: string; year: number; fame: number; lo: number; hi: number; sec: Sec }
+export type Formation = '4-3-3' | '4-4-2'
 const NEED: Record<Formation, Record<Sec, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
@@ -73,7 +73,7 @@ const SEC_UM: Record<Sec, string> = { GOL: 'goleiro', LAT: 'lateral', ZAG: 'zagu
 
 // pool COMPLETO da seleção: TODAS as cartas do país nos 3 baralhos (regra do
 // Diego: todo mundo aparece, do craque ao perna-de-pau — e sem selo na tela).
-function countryPool(pais: string): Record<Sec, PoolCard[]> {
+export function countryPool(pais: string): Record<Sec, PoolCard[]> {
   const out: Record<Sec, PoolCard[]> = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
   const decks: [Record<string, { name: string; club: string; year: number; fame: number; lo: number; hi: number }[]>, Baralho][] = [
     [CATALOG as never, 'BR'], [CATALOG_EU as never, 'EU'], [CATALOG_WORLD as never, 'WORLD'],
@@ -90,11 +90,11 @@ const cardKey = (c: PoolCard) => `${c.name}|${c.club}|${c.year}`
 // Neymar — são times diferentes que ele jogou, por isso mostra o clube"*.
 // Então o que conta é a CARTA (nome|clube|ano), nunca o nome sozinho: o Cafu
 // do São Paulo e o Cafu do Milan são duas cartas, e as duas entram em campo.
-const formationFits = (pool: Record<Sec, PoolCard[]>, f: Formation) =>
+export const formationFits = (pool: Record<Sec, PoolCard[]>, f: Formation) =>
   SECS.every(s => new Set(pool[s].map(cardKey)).size >= NEED[f][s])
 
 // XI dos bots: os MELHORES 11 (nível interno; a UI nunca mostra, mas o motor usa)
-function bestXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
+export function bestXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
   const used = new Set<string>(); const xi: PoolCard[] = []
   for (const sec of SECS) {
     const sorted = [...pool[sec]].sort((a, b) => b.fame - a.fame || b.hi - a.hi || b.lo - a.lo)
@@ -103,7 +103,47 @@ function bestXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
   }
   return xi
 }
-const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.hi) / 2, 0) / Math.max(1, xi.length)
+// 🥴 O CASTIGO DE QUEM NÃO CONVOCA (Diego 01/09): *"quem não escolher, a máquina
+// escolhe automaticamente os PIORES 11 da posição"*. É castigo mesmo, não
+// sorteio — é o que faz o cronômetro valer alguma coisa. Mesma conta do bestXI,
+// só que ao contrário, e respeitando as vagas da formação (nada de time torto).
+export function piorXI(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
+  const used = new Set<string>(); const xi: PoolCard[] = []
+  for (const sec of SECS) {
+    const sorted = [...pool[sec]].sort((a, b) => a.fame - b.fame || a.hi - b.hi || a.lo - b.lo)
+    let n = 0
+    for (const c of sorted) { if (n >= NEED[f][sec]) break; const k = cardKey(c); if (used.has(k)) continue; used.add(k); xi.push(c); n++ }
+  }
+  return xi
+}
+// 🧩 COMPLETA O QUE FALTOU, POSIÇÃO POR POSIÇÃO (Diego 01/09): *"a máquina irá
+// escolher os piores pra pessoa em cada posição que não for escolhido"*. Quem
+// marcou 7 fica com os 7 dele e leva 4 pernas-de-pau; quem não marcou nada leva
+// 11. O castigo é por VAGA — nunca joga fora o que a pessoa já tinha feito.
+export function completaXI(pais: string, form: Formation, escolhidas: string[]): PoolCard[] {
+  const pool = countryPool(pais)
+  const todas: PoolCard[] = Object.values(pool).flat()
+  const porChave = new Map(todas.map(c => [cardKey(c), c]))
+  const meus = escolhidas.map(k => porChave.get(k)).filter((c): c is PoolCard => !!c)
+  const usadas = new Set(meus.map(cardKey))
+  const xi: PoolCard[] = []
+  for (const sec of SECS) {
+    const jaTenho = meus.filter(c => c.sec === sec).slice(0, NEED[form][sec])
+    xi.push(...jaTenho)
+    const faltam = NEED[form][sec] - jaTenho.length
+    if (faltam <= 0) continue
+    // 🥴 as vagas vazias vão pros PIORES daquela posição
+    const piores = [...pool[sec]].sort((a, b) => a.fame - b.fame || a.hi - b.hi || a.lo - b.lo)
+    let n = 0
+    for (const c of piores) {
+      if (n >= faltam) break
+      const k = cardKey(c); if (usadas.has(k)) continue
+      usadas.add(k); xi.push(c); n++
+    }
+  }
+  return xi
+}
+export const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.hi) / 2, 0) / Math.max(1, xi.length)
 
 // ── persistência própria (fora do estado do jogo!) ──
 // 🔒 `emAndamento` (anti-hack 14/08): a escolha de seleção/convocação fica
@@ -112,7 +152,7 @@ const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.hi) / 2
 // OUTRA seleção (relato de usuário: "quando não dá certo eu atualizo e troco").
 // Com o carimbo, o F5 volta pro MESMO torneio (mesma seleção, mesmo time, mesmo
 // resultado — a simulação é semeada). Limpa quando a final é gravada.
-type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation } | null }
+export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation } | null }
 const skey = (seed: number) => `llcopa:${seed}`
 export function loadCopaSave(seed: number): CopaSave | null {
   try { const r = localStorage.getItem(skey(seed)); return r ? JSON.parse(r) as CopaSave : null } catch { return null }
@@ -163,7 +203,7 @@ export const isCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo >= s.anc
 export const nextCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo <= s.anchor ? s.anchor : s.anchor + Math.ceil((seasonNo - s.anchor) / 10) * 10
 
 // ── simulação (seedada; resultados só aparecem quando a rodada é jogada) ──
-type Entrant = { club: string; you: boolean; pais: string; xi: PoolCard[]; str: number }
+export type Entrant = { club: string; you: boolean; pais: string; xi: PoolCard[]; str: number }
 function poisson(r: () => number, lambda: number) { let k = 0, p = 1; const L = Math.exp(-lambda); do { k++; p *= r() } while (p > L); return Math.min(6, k - 1) }
 function playMatch(r: () => number, a: Entrant, b: Entrant): [number, number] {
   const adv = a.str - b.str
@@ -247,7 +287,8 @@ function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away
 // desde 17/08 são 4 de 6 = 24, quando Croácia/Dinamarca/Peru/Equador fecharam 22
 // cartas cada.) Com 6 (par) o turno único continua dando 5 rodadas, só que sem o
 // "bye" que sobrava no grupo de 5 — o mata-mata não muda em nada.
-const NUM_GROUPS = 4, GROUP_SIZE = 6, GROUP_ROUNDS = 5, COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 24
+const NUM_GROUPS = 4, GROUP_SIZE = 6, GROUP_ROUNDS = 5
+export const COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 24
 
 // turno único (round-robin) pra N times — cada um joga contra todos UMA vez. N ímpar
 // ganha um "bye" por rodada (o -1 é descartado). Determinístico (a ordem vem de fora).
@@ -334,6 +375,31 @@ function MiniLive({ nmH, nmA, hPais, aPais, ev, min, bold }: { nmH: string; nmA:
   )
 }
 
+// 🌍 REMONTA O XI a partir das CHAVES (nome|clube|ano). É o mesmo truque do
+// carimbo anti-F5 da carreira, agora compartilhado com a COPA ONLINE: o que
+// viaja (pro localStorage ou pro banco) são 11 chaves curtas, e a carta inteira
+// vem do catálogo — que é igual em todo aparelho, então todo mundo remonta o
+// MESMO time. Se alguma carta sumir do catálogo, o buraco é tapado pelo melhor
+// disponível (nunca devolve time incompleto, que quebrava o gol).
+export function xiPorChaves(pais: string, xiKeys: string[]): PoolCard[] {
+  const all: PoolCard[] = Object.values(countryPool(pais)).flat()
+  const byKey = new Map(all.map(c => [`${c.name}|${c.club}|${c.year}`, c]))
+  const xi = xiKeys.map(k => byKey.get(k)).filter((c): c is PoolCard => !!c)
+  const used = new Set(xi.map(c => `${c.name}|${c.club}|${c.year}`))
+  for (const c of [...all].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))) {
+    if (xi.length >= 11) break
+    if (!used.has(`${c.name}|${c.club}|${c.year}`)) { xi.push(c); used.add(`${c.name}|${c.club}|${c.year}`) }
+  }
+  return xi.slice(0, 11)
+}
+
+// 🌍 o time que a MÁQUINA leva: a melhor escalação possível do país.
+export function xiDaMaquina(pais: string): { xi: PoolCard[]; form: Formation } {
+  const pool = countryPool(pais)
+  const form: Formation = formationFits(pool, '4-3-3') ? '4-3-3' : '4-4-2'
+  return { xi: bestXI(pool, form), form }
+}
+
 // ── componente principal: o portão + o torneio inteiro num modal ──
 export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, agenciaOn, onGoRank, onMural }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void }) {
   // 🔗 "(aba Rank)" virou link de verdade (Diego 14/08): antes era só texto
@@ -412,7 +478,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, a
 // REMONTAVA a árvore inteira (CupScreen voltava pra rodada 1, convocação sumia,
 // e o prêmio re-disparava em loop). Movido pra fora: identidade estável, fim do
 // reinício. NADA visual mudou.
-const CMModal = ({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) => createPortal(
+export const CMModal = ({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) => createPortal(
   <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
     <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
     <div style={{ ...box('#F4ECD6'), color: INK, width: '100%', maxWidth: wide ? 430 : 400, maxHeight: '95vh', overflowY: 'auto', padding: 14, margin: 'auto', borderRadius: 18 }}>
@@ -519,7 +585,14 @@ function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose }: { paises16:
 }
 
 // ── tela 2: CONVOCAÇÃO (mockup aprovado: listão A-Z sem categoria, 11 na veia) ──
-function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () => void; onDone: (xi: PoolCard[], f: Formation) => void }) {
+export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }: {
+  pais: string; onBack: () => void; onDone: (xi: PoolCard[], f: Formation) => void
+  /** ⏱️ só a COPA DA SALA passa isto: os segundos que faltam pra acabar o tempo */
+  prazoSeg?: number
+  /** ⏱️ o tempo acabou: leva o que a pessoa JÁ tinha marcado (pode ser 0, 3, 7…).
+      O resto das posições a máquina completa com os PIORES — castigo do Diego. */
+  aoEstourar?: (parcial: PoolCard[], f: Formation) => void
+}) {
   const pool = useMemo(() => countryPool(pais), [pais])
   const fits433 = formationFits(pool, '4-3-3'), fits442 = formationFits(pool, '4-4-2')
   const [form, setForm] = useState<Formation>(fits433 ? '4-3-3' : '4-4-2')
@@ -536,6 +609,17 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
   // fazia NADA e nada explicava — parecia tela travada. Regra do Diego: toda
   // trava diz o PORQUÊ e o CAMINHO pra destravar. Agora diz.
   const [aviso, setAviso] = useState<string | null>(null)
+  // ⏱️ ESTOUROU O TEMPO: manda o que estiver marcado, sem perder nada. Quem
+  // marcou 7 leva os 7 dele + 4 pernas-de-pau; quem não marcou nada leva 11
+  // pernas-de-pau. É o castigo que o Diego pediu, e ele é POR POSIÇÃO.
+  const selRef = useRef<Record<string, PoolCard>>({}); selRef.current = sel
+  const formRef = useRef<Formation>(form); formRef.current = form
+  const estourou = useRef(false)
+  useEffect(() => {
+    if (prazoSeg === undefined || prazoSeg > 0 || estourou.current) return
+    estourou.current = true
+    aoEstourar?.(Object.values(selRef.current), formRef.current)
+  }, [prazoSeg]) // eslint-disable-line react-hooks/exhaustive-deps
   const toggle = (c: PoolCard) => {
     const k = cardKey(c)
     setSel(prev => {
@@ -663,6 +747,21 @@ function ConvocacaoScreen({ pais, onBack, onDone }: { pais: string; onBack: () =
         </div>
       </div>
 
+      {/* ⏱️🥴 O RELÓGIO E O CASTIGO, na cara de quem está convocando (Diego 01/09:
+          *"deixar claro CLARO que quem não escolher no tempo, a máquina escolhe
+          os piores pra pessoa em cada posição que não for escolhida"*). Repare
+          no "em cada posição": quem marcou 7 fica com os 7 dele e leva 4
+          pernas-de-pau — o castigo é POR VAGA, não joga fora o que você fez. */}
+      {prazoSeg !== undefined && (
+        <div style={{ border: `3px solid ${INK}`, borderRadius: 12, background: prazoSeg <= 15 ? '#FFE3DC' : '#FFF4CF', boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 10px', marginBottom: 9 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textAlign: 'center', color: prazoSeg <= 15 ? '#B23B2E' : INK }}>
+            ⏱️ {prazoSeg}s pra fechar a convocação
+          </p>
+          <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '3px 0 0', textAlign: 'center', lineHeight: 1.4 }}>
+            Se o tempo acabar, <b>cada posição que você deixou vazia</b> a máquina preenche com o <b>PIOR jogador do país</b> naquela vaga. O que você já marcou fica.
+          </p>
+        </div>
+      )}
       {ready ? (
         <button onClick={() => onDone(Object.values(sel), form)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>✅ Fechar convocação (11/11) — bora pra Copa! 🌍</button>
       ) : (
@@ -727,7 +826,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
   }
 }
 
-function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; online?: { seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo), [entrants, seed, seasonNo])
@@ -763,7 +862,12 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
   const [manualPref, toggleManual] = useSimMode()
   const manual = hasManual && manualPref
   const [speed, setSpeed] = useState(1)
-  const roundMs = Math.round(9000 / speed) // 9s = ROUND_MS da liga
+  // ⏱️ 9s é o ROUND_MS da liga. Na COPA DA SALA a rodada mostra VÁRIOS jogos ao
+  // mesmo tempo (3 por grupo), e o Diego pegou isso jogando com a turma: *"o
+  // tempo tá muito rápido dos jogos da Copa"*. Com 4 grupos rolando juntos não
+  // dá tempo de ler nada em 9s — na sala a rodada respira 14s. O controle de
+  // velocidade continua ali pra quem quiser correr (ou ir mais devagar ainda).
+  const roundMs = Math.round((online ? 14000 : 9000) / speed)
 
   const liveMin = useLiveMin(roundKey, roundMs, liveDone)
   // 🐛 TOQUE DUPLO (bug reportado 04/08: "apertei 2× e a partida voltou"): antes
@@ -815,6 +919,35 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
   const [jaGravada, setJaGravada] = useState(false)
   useEffect(() => {
     if (!finalSeen) return
+    // 🌍 COPA ONLINE — O TÍTULO VALE (Diego 31/08: *"todo título deve valer
+    // sempre... e também estante, ranking, tudo igual. Carta também"*). Então ela
+    // grava o MESMO que qualquer título do jogo: linha em `esc_results` (é de lá
+    // que sai o Rank e o Salão) e a carta do campeão logo abaixo.
+    // Cada aparelho grava só o SEU: quem ganhou escreve a própria linha, e a
+    // `season_key` (que carrega a sala + a semente daquela Copa) deduplica — dá
+    // pra jogar Copa atrás de Copa na mesma sala sem uma apagar a outra.
+    // ⚠️ O QUE ELA CONTINUA NÃO FAZENDO: moeda de clube (a sala não tem caixa) e
+    // o mural da CARREIRA (`onMural`/localStorage). O mural é da carreira, e
+    // misturar sala com carreira foi bug em 17/08 — não volta.
+    if (online) {
+      const cOn = world.final.champion
+      online.aoCampeao?.(entrants[cOn].club, entrants[cOn].pais)
+      if (isYou(cOn)) {
+        ;(async () => {
+          try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+            const displayName = stripEmoji((user.user_metadata?.display_name as string | undefined) ?? user.email?.split('@')[0] ?? 'Técnico')
+            await resilientWrite({ table: 'esc_results', onConflict: 'user_id,season_key', row: {
+              user_id: user.id, display_name: displayName,
+              mode: 'online', season_key: online.seasonKey,
+              champion: true, top_scorer: false, goals: 0,
+            } })
+          } catch { /* nunca trava a Copa */ }
+        })()
+      }
+      return
+    }
     const cur = loadCopaSave(seed) ?? save
     if (cur.played.includes(seasonNo)) { setJaGravada(true); return }
     const c = world.final.champion
@@ -920,7 +1053,12 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5, background: 'radial-gradient(circle at 15% 20%, rgba(255,196,0,.25), transparent 22%), radial-gradient(circle at 85% 75%, rgba(255,196,0,.2), transparent 25%)' }} />
         <p style={{ position: 'relative', fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
         <p style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 19, margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: .4, background: 'linear-gradient(180deg,#FFE79A,#FFC400 55%,#B8860B)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Copa do Mundo Legends</p>
-        <p style={{ position: 'relative', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: '4px 0 0' }}>temporada {seasonNo} · Você: <b style={{ color: GOLD }}>{nm(myIdx)}</b> ({club(myIdx)})</p>
+        {/* 🙈 no ONLINE esta linha some (Diego 01/09: *"não entendi por que fica
+            aparecendo lá em cima, quando começa a Copa, o nome e seleção que eu
+            host escolhi... não tem necessidade disso"*). Ele tem razão: na sala a
+            pessoa ACABOU de escolher a seleção, e o placar ao vivo logo abaixo já
+            diz "VOCÊ". Na carreira a linha fica: lá ela conta a temporada. */}
+        {!online && <p style={{ position: 'relative', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: '4px 0 0' }}>temporada {seasonNo} · Você: <b style={{ color: GOLD }}>{nm(myIdx)}</b> ({club(myIdx)})</p>}
         <div style={{ position: 'relative', height: 2, margin: '9px auto 0', width: '65%', background: 'linear-gradient(90deg,transparent,#FFC400,transparent)' }} />
       </div>
 
@@ -935,7 +1073,14 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
       })()}
       {step <= GR + 1 && (
         <>
-          {world.groups.map((g, gi) => (
+          {/* 🔎 O SEU GRUPO VEM PRIMEIRO (Diego 01/09: *"eu era Argentina, porém a
+              Argentina tava no grupo lá de baixo, mas o placar tá lá em cima —
+              ficou ruim de ver"*). O placar ao vivo é sempre do SEU jogo, então a
+              tabela dele tem que estar logo embaixo, não a três grupos de
+              distância. A letra do grupo continua a de verdade (A/B/C/D). */}
+          {world.groups.map((g, gi) => ({ g, gi })).sort((x, y) =>
+            (y.g.teams.includes(myIdx) ? 1 : 0) - (x.g.teams.includes(myIdx) ? 1 : 0)
+          ).map(({ g, gi }) => (
             <div key={gi} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 GRUPO {'ABCD'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               {groupTable(g, shownRounds).map((r, i) => (
@@ -1026,13 +1171,26 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
           {isYou(world.final.champion) && <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />}
           <p style={{ fontSize: 34, margin: 0, position: 'relative' }}>🏆</p>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{nm(world.final.champion)} CAMPEÃO DO MUNDO!</p>
-          <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{jaGravada ? <>⚠️ Esta edição JÁ tinha sido decidida antes — o que vale é o resultado que está no mural. Este torneio foi só um treino: <b>não conta título nem prêmio</b>.</> : isYou(world.final.champion) ? <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela eterna no mural{onPrize ? ' + 💰 100 MOEDAS no caixa do clube' : ''}. 🎉</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{online
+            ? (isYou(world.final.champion)
+              ? <>VOCÊ ({club(world.final.champion)}) é o CAMPEÃO DO MUNDO! 🎉 Título gravado no seu Rank + 🎴 a carta do campeão aí embaixo.</>
+              : <>Título de <b>{club(world.final.champion)}</b>. Chama de novo que a semente muda e a Copa é outra. 😤</>)
+            : jaGravada ? <>⚠️ Esta edição JÁ tinha sido decidida antes — o que vale é o resultado que está no mural. Este torneio foi só um treino: <b>não conta título nem prêmio</b>.</> : isYou(world.final.champion) ? <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela eterna no mural{onPrize ? ' + 💰 100 MOEDAS no caixa do clube' : ''}. 🎉</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>}</p>
           <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', position: 'relative' }}>final: {nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` (pên. ${world.final.pen[0]}×${world.final.pen[1]})` : ''}</p>
         </div>
       )}
       {/* 🎴 CARTA DO CAMPEÃO DO MUNDO — só pra quem venceu (privada). Igual às
           outras copas: a carta é gravada na conta NA HORA (conta mesmo sem abrir). */}
-      {finalSeen && isYou(world.final.champion) && !jaGravada && (
+      {/* 🎴 A CARTA DO CAMPEÃO DO MUNDO — na carreira e TAMBÉM na sala (31/08).
+          Muda só a chave (a da sala carrega o código da sala + a semente) e a
+          origem: online não leva a carta pro cofre do empresário, que é peça de
+          carreira. */}
+      {finalSeen && online && isYou(world.final.champion) && (
+        <div style={{ marginBottom: 10 }}>
+          <CardCollectPrompt seasonKey={online.seasonKey} origin="online" />
+        </div>
+      )}
+      {finalSeen && !online && isYou(world.final.champion) && !jaGravada && (
         <div style={{ marginBottom: 10 }}>
           {/* 🌍 REGRA DO DIEGO (04/08): "tudo que é campeão conta carta" — chave de
               CARREIRA (co:solo…:copamundo): a carta SOMA no ranking Carreira da
@@ -1065,19 +1223,19 @@ function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, a
       })()}
       {done && (
         <div style={{ ...box('#0C0C0C'), padding: 10, marginBottom: 10, borderRadius: 12 }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 4px', color: GOLD, textTransform: 'uppercase' }}>📜 Mural dos Campeões do Mundo</p>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 4px', color: GOLD, textTransform: 'uppercase' }}>{online ? '📜 Campeões desta sala' : '📜 Mural dos Campeões do Mundo'}</p>
           {[...save.mural, { season: seasonNo, selecao: entrants[world.final.champion].pais, campeao: entrants[world.final.champion].club, voce: isYou(world.final.champion) }]
             .filter((m, i, arr) => arr.findIndex(x => x.season === m.season) === i)
             .map(m => (
               <p key={m.season} style={{ fontSize: 10.5, fontWeight: m.voce ? 900 : 700, color: m.voce ? GOLD : 'rgba(255,255,255,.85)', margin: '2px 0 0' }}>
-                temporada {m.season} · {flagOf(m.selecao)} {m.selecao} — {m.campeao}{m.voce ? ' ⭐ (VOCÊ)' : ''}
+                {online ? `Copa nº ${m.season}` : `temporada ${m.season}`} · {flagOf(m.selecao)} {m.selecao} — {m.campeao}{m.voce ? ' ⭐ (VOCÊ)' : ''}
               </p>
             ))}
         </div>
       )}
 
       {done ? (
-        <button onClick={onClose} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>▶️ VOLTAR PRA CARREIRA</button>
+        <button onClick={onClose} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{online ? '▶️ VOLTAR PRA SALA' : '▶️ VOLTAR PRA CARREIRA'}</button>
       ) : hasManual ? (
         <>
           {manual && <SpeedControls speed={speed} onSet={setSpeed} />}

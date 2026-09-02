@@ -28,11 +28,13 @@ import papaoEscudoImg from './img/papao-escudo.webp' // 🐺 Papão United Madri
 import lluchEscudoImg from './img/lluch-escudo.webp' // 🏠 Esqueceram do Lluch FC (lluchmarcel81): arte própria do dono
 import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
 import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
+import takahdaoEscudoImg from './img/al-takahdao-escudo.webp' // 🦜🛒 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
 import futpointEscudoImg from './img/futpoint-escudo.webp'
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
+import manfreEscudoImg from './img/manfre-escudo.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
 
 const INK = '#0C0C0C'
@@ -541,6 +543,16 @@ const lluchEscudoRender = (size: number) => (
 const papaoEscudoRender = (size: number) => (
   <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 263)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🦜🛒 Al Takahdao FC — brasão com carrinho de mercado, bola e ramos, verde e
+// laranja. 337x360 no arquivo (largura pela proporção REAL, nunca chutada).
+// O fundo da arte vinha escuro com brilho radial: cor sozinha não separava,
+// porque o verde escuro do escudo e o oliva do brilho se parecem. O que separou
+// foi o VERMELHO — no brilho R≈80 (oliva claro), na sombra do desenho R≈0
+// (verde quase preto). Com isso os vãos entre as penas ficaram vazados e os
+// quadradinhos de dentro do carrinho ficaram cheios, que é o certo.
+const takahdaoEscudoRender = (size: number) => (
+  <img src={takahdaoEscudoImg} height={size} width={Math.round(size * 337 / 360)} alt="Al Takahdao FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🦇 Neymarzetti — o "N" de asa de morcego, prateado sobre preto. 360x299 no
 // arquivo. Fundo tirado por INUNDAÇÃO a partir da borda (nunca "apaga todo
 // branco"): assim o brilho claro do metal e o vinco do N ficaram inteiros.
@@ -558,6 +570,16 @@ const neymarzettiEscudoRender = (size: number) => (
 // 🦇 Theuzudo FC — morcego (coração Valência), laranja e preto. 293x360 no arquivo.
 const theuzudoEscudoRender = (size: number) => (
   <img src={theuzudoEscudoImg} height={size} width={Math.round(size * 293 / 360)} alt="Theuzudo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🐦‍⬛ Manfré FC — a gralha-azul (coração Paraná Clube) no escudo vermelho e
+// azul. 294x360 no arquivo. 30/08 (2ª arte, no mesmo dia): o DONO pediu a
+// gralha AZUL, não escura — é ela que está aqui. 30/08: esta arte APOSENTA o escudo que era SVG
+// desenhado à mão aqui dentro (o de 09/08) — vale a regra de peso do batismo:
+// arte nasce .webp FORA do bundle, então só desce pra quem cruza com o clube.
+// Recorte conferido sobre CREME e sobre VERDE (nunca sobre branco): as letras
+// brancas de "MANFRÉ FC" e o contorno preto ficaram inteiros.
+const manfreEscudoRender = (size: number) => (
+  <img src={manfreEscudoImg} height={size} width={Math.round(size * 294 / 360)} alt="Manfré FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 const nataEscudoRender = (size: number) => (
   <img src={nataEscudoImg} height={size} width={Math.round(size * 312 / 360)} alt="Nata de SP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -678,6 +700,22 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Papão United Madrid EC': papaoEscudoRender,
   'Papao United Madrid': papaoEscudoRender,
   'Santos Dumont': papaoEscudoRender,
+  // 🦜🛒 AL TAKHADAO (fontourajoao04) — Série A, no assento que era do Marreco FC
+  // (que desceu pra Série B em 01/09).
+  // 🔤 DUAS GRAFIAS DE PROPÓSITO (decisão do Diego, 01/09): a ARTE que o dono
+  // mandou escreve "AL TAKAHDAO", mas a CONTA e o CLUBE dele no jogo são
+  // "AL TAKHADAO" (H e A trocados). O Diego mandou valer o nome DELE — *"altera
+  // o nome pro time dele q é a verdade"* — e deixar as DUAS aparecendo com a
+  // logo. `chaveEscudo` perdoa caixa/acento/FC-EC-SC, mas NÃO letra trocada:
+  // por isso cada grafia precisa da própria chave. NÃO APAGAR nenhuma das duas.
+  'Al Takhadao FC': takahdaoEscudoRender,
+  'Al Takhadao': takahdaoEscudoRender,
+  'Al Takhadao EC': takahdaoEscudoRender,
+  'Al Takhadao SC': takahdaoEscudoRender,
+  'Al Takahdao FC': takahdaoEscudoRender,
+  'Al Takahdao': takahdaoEscudoRender,
+  'Al Takahdao EC': takahdaoEscudoRender,
+  'Al Takahdao SC': takahdaoEscudoRender,
   // 🦇🟠⚫ Theuzudo FC (matheusfilipealves) — ex-Comercial do Norte, Série B. O nome
   // velho fica registrado: quem já tinha carreira com o Comercial não fica sem escudo.
   'Theuzudo FC': theuzudoEscudoRender,
@@ -1111,33 +1149,17 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
       </svg>
     )
   },
-  // 🐦 Manfré FC (danielmanfre5, aprovado 09/08): a CABEÇONA da gralha-azul
-  // paranista (molde da referência dele) no escudo azul c/ faixa vermelha.
-  'Manfré FC': (size: number) => {
-    const mini = size < 40
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Manfré FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="mfClip"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath></defs>
-        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#0E3E86" />
-        <g clipPath="url(#mfClip)">
-          <path d="M0 176 H200 V196 H0 Z" fill="#C2452F" />
-          {!mini && <path d="M0 170 H200 V176 H0 Z M0 196 H200 V202 H0 Z" fill="#ffffff" />}
-        </g>
-        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke={INK} strokeWidth={mini ? 9 : 7} strokeLinejoin="round" />
-        <g transform={mini ? 'translate(4,34) scale(1.7)' : 'translate(10,32) scale(1.55)'}>
-          <path d="M50 76 Q34 66 30 48 Q28 30 44 20 Q58 12 74 16 L94 6 L82 24 L104 20 L86 34 Q90 48 78 62 Q66 76 50 76 Z" fill="#2E6FB0" stroke={INK} strokeWidth={mini ? 5 : 4} strokeLinejoin="round" />
-          <path d="M40 46 Q20 46 8 54 Q22 62 40 58 Q46 56 44 50 Z" fill="#C2452F" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
-          {!mini && <path d="M14 58 Q26 66 42 62" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" />}
-          {!mini && <path d="M40 62 Q30 68 22 66 Q30 72 42 68 Z" fill="#A33325" stroke={INK} strokeWidth="3" strokeLinejoin="round" />}
-          <path d="M38 34 L52 40 M68 32 L56 40" stroke={INK} strokeWidth={mini ? 5.5 : 4.5} strokeLinecap="round" />
-          <circle cx="48" cy="44" r="6" fill="#fff" stroke={INK} strokeWidth="3" />
-          <circle cx="61" cy="42" r="6" fill="#fff" stroke={INK} strokeWidth="3" />
-          <circle cx="49" cy="45" r={mini ? 3.2 : 2.6} fill={INK} /><circle cx="62" cy="43" r={mini ? 3.2 : 2.6} fill={INK} />
-        </g>
-      </svg>
-    )
-  },
+  // 🐦‍⬛ Manfré FC (danielmanfre5) — ex-Livre-pool, Série D. 30/08: a arte que o
+  // dono mandou APOSENTA o escudo que era SVG desenhado à mão aqui dentro (o de
+  // 09/08). 📛 as 4 FORMAS reservadas do nome (regra do Diego 20/08): nome puro
+  // + FC + EC, e a caixa já está coberta porque a chave é comparada em
+  // minúscula. O nome VELHO fica registrado: quem já tinha carreira com o
+  // Livre-pool não fica sem escudo.
+  'Manfré FC': manfreEscudoRender,
+  'Manfré': manfreEscudoRender,
+  'Manfré EC': manfreEscudoRender,
+  'Manfre FC': manfreEscudoRender,
+  'Livre-pool': manfreEscudoRender,
   // 🦇 Neymarzetti (time do DIEGO, dono do jogo — ex-Paixandu). 24/08: a arte
   // que ele mandou APOSENTA o escudo que era SVG desenhado à mão aqui dentro
   // (o moicano de 09/08). Vale a regra de peso do batismo: arte nasce .webp

@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, type ReactNode, Component, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
@@ -9,7 +9,7 @@ import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCr
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, DIVISION_TEAMS } from './data'
+import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
 import type { ApoioTier } from './apoio'
@@ -18,13 +18,17 @@ import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
+// 🌍 COPA DO MUNDO DEPOIS DA LIGA (01/09) — LAZY de propósito: este pedaço
+// puxa o torneio inteiro junto, e só quem termina uma sala 'liga + Copa do
+// Mundo' precisa dele. Ninguém mais baixa um byte a mais.
+const CopaDaLigaLazy = lazy(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate })))
 import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estante · Temporadas · Ajustes
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, usePregaoLimpo, useSalao, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -59,6 +63,11 @@ const GAME_URL = 'https://diegocfonseca-blip.github.io/7a0-game-studio/leilao-le
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
 const INK = '#0C0C0C'
+// 🏛️ SALÃO DOS BATISMOS — carregado SÓ quando abre (import preguiçoso). Além de
+// não pesar pra quem nunca entra, é o que quebra o ciclo de import: o Salão
+// precisa do Shell/Box daqui, e daqui a gente precisa dele.
+const SalaoLazy = lazy(() => import('./salao'))
+
 const GOLD = '#FFC400'
 // 🎨 COR SÓLIDA de cada lado do placar da Copa dos 8 (estilo Brasfoot). VOCÊ = cor
 // do seu TIER (com brilho); amigo (online) = cor fixa viva; BOT = cor viva própria
@@ -308,6 +317,9 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
   // ⚽ BATISMO: qual série o clube vai jogar — muda o valor do Pix (Série D
   // custa mais, são os rivais escolhidos). Cards viram seletor (09/08).
   const [serieBatismo, setSerieBatismo] = useState<'abc' | 'd'>('abc')
+  // ⚠️ a chave interna 'd' quer dizer "a divisão CARA", e ela é a Série A desde
+  // 30/08 (a troca de letra). O nome da chave ficou pra não mexer no que já
+  // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
   const precoBatismo = serieBatismo === 'd' ? 69.9 : 59.9
   // 🎯 alvo do LINK DIRETO (?apoie=lenda). Antes isto era a sanfona aberta; agora
   // que tudo fica à vista (23/08), ele só rola até o card e acende um brilho.
@@ -502,21 +514,21 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <OQueE>O <b>seu nome vira um CLUBE</b> do jogo — na tela de todo mundo, temporada após temporada.</OQueE>
             <Ben t="⚽ Um time com o SEU nome">ele joga a pirâmide inteira: sobe, briga por título e sai no jornal, na carreira de cada jogador.</Ben>
             <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              {cab('#141414', GOLD, '📋 Série D · rodada 31')}
+              {cab('#141414', GOLD, '📋 Série A · rodada 31')}
               {([['1º', 'Manfré FC 🖋️', '42', true], ['2º', 'Juventude da Serra', '39', false], ['3º', 'Perna-de-Pau EC', '35', false]] as const).map(([po, n, pts, me]) => (
                 <div key={po} className="flex items-center gap-2 px-2.5 py-1 text-[11px] border-t border-black/10" style={{ background: me ? 'linear-gradient(150deg,#FFF6D8,#FFE79A)' : '#fff', fontWeight: me ? 900 : 700 }}>
                   <span className="text-[9px] text-black/40" style={OSWALD}>{po}</span><span>{n}</span><span className="ml-auto font-black" style={OSWALD}>{pts} pts</span>
                 </div>
               ))}
             </div>
-            <p className="border-2 border-black rounded-lg px-2 py-1 mt-1.5 text-[10px] font-bold bg-white">📰 <b style={OSWALD}>JORNAL:</b> "Manfré FC atropela e cola no G-4 da Série D!"</p>
+            <p className="border-2 border-black rounded-lg px-2 py-1 mt-1.5 text-[10px] font-bold bg-white">📰 <b style={OSWALD}>JORNAL:</b> "Manfré FC atropela e cola no G-4 da Série A!"</p>
             <Ben t="🛡️ Escudo e Mascote desenhados">o Diego faz a arte do clube — e a mascote carimba a tela quando o seu time faz gol.</Ben>
             <Ben t="👑 Tudo do Lenda + 🎫 o Sócio inclusos">cor com brilho, Modo Manual, grupo VIP — e manto, escudo, mascote, estádio batizado e 30 moedas/mês, sem pagar à parte.</Ben>
             <Ben t="🏅 Selo de Fundador">o único caminho pra ele: selo eterno + nome no mural dos 100.</Ben>
             <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-1.5" style={{ background: '#141414', boxShadow: `2px 2px 0 0 ${INK}` }}>
               <p className="text-[10px] font-bold leading-snug" style={{ color: 'rgba(255,255,255,.75)' }}>🔥 <b style={{ color: GOLD }}>Restam {FUNDADOR_VAGAS} de 100 vagas</b> de fundador.</p>
             </div>
-            <Ben t="💰 Quanto custa">Série A · B · C e Várzea por <b>R$ 59,90</b>; Série D por <b>R$ 69,90</b> — ela custa mais porque são os <b>rivais escolhidos</b>, que todo mundo enfrenta de cara.</Ben>
+            <Ben t="💰 Quanto custa">Série B · C · D e Várzea por <b>R$ 59,90</b>; <b>Série A</b> por <b>R$ 69,90</b> — ela custa mais porque é a <b>elite</b>: são os clubes que aparecem no jogo rápido e os rivais que todo mundo enfrenta.</Ben>
             {/* ⚖️ REGRA MUDADA PELO DIEGO (23/08): ninguém perde mais o nome.
                 Palavras dele: *"na regra do barão não perde o nome. Apenas diz
                 que vai descendo de divisão, mas seu time é sempre seu, com
@@ -680,7 +692,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             style={{ background: APOIO_PERKS.ouro.grad, boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.6) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-[13px] relative" style={OSWALD}>👑 Lenda · R$ 39,90 <span className="float-right">👉</span></p>
-            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, o <b>📲 grupo privado no WhatsApp</b> com o criador, e já garante <b>Carreira Online</b> e <b>Liga Fechada</b> (chegando).</p>
+            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, o <b>📲 grupo privado no WhatsApp</b> com o criador, a <b>🏆 Minhas Ligas</b> (crie até 5 ligas da sua turma, com estante de troféus), e já garante a <b>Carreira Online</b> (chegando).</p>
           </button>
           <button onClick={() => { logApoio('👀 manual → batismo'); setScreen('choice'); setAmp('batismo') }}
             className="w-full text-left rounded-xl border-[3px] border-black px-3 py-2.5 mt-2 active:translate-y-0.5"
@@ -741,15 +753,15 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="flex gap-1.5 mt-1.5">
             <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              Série A·B·C e Várzea<br /><span className="text-[12px]" style={OSWALD}>R$ 59,90</span>
+              Série B·C·D e Várzea<br /><span className="text-[12px]" style={OSWALD}>R$ 59,90</span>
             </button>
             <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              Série D (os rivais)<br /><span className="text-[12px]" style={OSWALD}>R$ 69,90</span>
+              👑 Série A (a elite)<br /><span className="text-[12px]" style={OSWALD}>R$ 69,90</span>
             </button>
           </div>
-          <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">a Série D custa mais porque são os <b>rivais escolhidos</b> — todo mundo joga contra eles logo de cara. Toque numa das duas pra escolher.</p>
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · série ${serieBatismo}`} amount={precoBatismo} /></div>
+          <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</p>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '👑 Série A (a elite)' : 'Série B/C/D ou Várzea'}`} amount={precoBatismo} /></div>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>Manda comprovante + nome</p>
           <button onClick={() => { logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"`); igMsg(`Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}" — comprovante em anexo!`) }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
@@ -884,7 +896,7 @@ export function GameFooter() {
   )
 }
 
-function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
+export function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
   return (
     <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
       {children}
@@ -936,7 +948,7 @@ function HoldButton({ onStep, disabled = false, className = '', style, children 
   )
 }
 
-function Shell({ children, bar, hideExit = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean }) {
+export function Shell({ children, bar, hideExit = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean }) {
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
@@ -1583,7 +1595,7 @@ function BidLegendsHome() {
         </p>
       </div>
       {/* vitrine: as MESMAS cartas do futebol, só que de basquete (mesmo visual) */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 grade-cartas">
         <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Michael Jordan" club="Bulls" year={1996} pos="ALA" fame={5} showBio bio={t('Melhor de todos os tempos. Seis anéis, seis MVPs de Finals. Fechou a carreira do jeito que começou: por cima.', 'The greatest of all time. Six rings, six Finals MVPs. Ended his career the way it began: on top.')} /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Dwyane Wade" club="Heat" year={2006} pos="ARM" fame={4} showBio bio={t('Flash. Carregou o Heat ao título em 2006 numa das melhores finais individuais da história.', 'Flash. Carried the Heat to the 2006 title in one of the greatest individual Finals ever.')} /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Victor Wembanyama" club="Spurs" year={2024} pos="PIVÔ" fame={3} promessa showBio bio={t('O alienígena. 2,24m que enterra, cravou e acerta de três. O futuro chegou cedo.', 'The alien. 7-foot-4 that dunks and drains threes. The future came early.')} /></div>
@@ -1719,14 +1731,14 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      <b>Quanto:</b> R$ 59,90 (Série A, B, C ou Várzea) · R$ 69,90 (Série D).<br />
+      <b>Quanto:</b> R$ 59,90 (Série B, C, D ou Várzea) · R$ 69,90 (👑 Série A).<br />
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
     ['Como faço pro meu time aparecer pra todo mundo no jogo?', <>
       É o mesmo <b>Batismo</b> — e essa é a melhor parte dele.<br /><br />
       Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo jogador do Leilão Legends</b>, não só pra você. Qualquer pessoa pode cair na mesma tabela que ele, ver o seu escudo, o seu manto, e a sua mascote comemorando o gol.<br /><br />
-      A <b>Série D custa mais</b> (R$ 69,90) porque é onde ficam os <b>rivais escolhidos</b>: todo mundo enfrenta eles logo na primeira temporada, então é o clube que mais aparece.
+      A <b>Série A custa mais</b> (R$ 69,90) porque é a elite do jogo: são os clubes que aparecem no <b>jogo rápido online</b> e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.
     </>],
     ['Quais são os planos de apoio?', <>
       São <b>4</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
@@ -1860,10 +1872,13 @@ function HomeMenuFixo({ onInicio, onRegras, onAlbum, onRanking, apoiar }: {
     </button>
   )
   return (
-    <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989,
+    <div className="barra-menu" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989,
       background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)',
       borderTop: '1.5px solid rgba(12,12,12,.13)', display: 'flex', gap: 2,
-      padding: '6px 6px 8px', boxShadow: '0 -2px 12px rgba(0,0,0,.05)' }}>
+      /* 📱 iPhone com entalhe: a barrinha de gestos mora EM CIMA do rodapé. Sem
+         isto, o último item da barra fica por baixo dela e o dedo não acerta.
+         Em aparelho sem entalhe o env() vale 0 — não muda nada. */
+      padding: '6px 6px calc(8px + env(safe-area-inset-bottom))', boxShadow: '0 -2px 12px rgba(0,0,0,.05)' }}>
       {/* 🔇 O botão de som é fixo no canto de baixo à direita (mora no index.tsx,
           fora daqui) e caía EM CIMA da barra — ficava um disco preto grandão
           colado no último item. Enquanto esta barra existe, ele sobe pra cima
@@ -1940,7 +1955,7 @@ export function EscIntro() {
         </div>
         {/* 2 · as cartas, DEITADAS — o motivo de jogar fica no alto */}
         <div className="-mx-4">
-          <div className="flex gap-3 px-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          <div className="fita flex gap-3 px-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             <div className="flex-none w-[150px]"><CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} /></div>
             <div className="flex-none w-[150px]"><CollectibleCard name="Gabigol" club="Flamengo" year={2019} pos="ATA" fame={4} /></div>
             <div className="flex-none w-[150px]"><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa /></div>
@@ -2014,8 +2029,10 @@ export function EscIntro() {
         <CareerOnlineButton />
         <LigaFechadaButton />
         </div>
-        {/* espaço pro menu fixo não tapar o fim da página */}
-        <div style={{ height: 74 }} />
+        {/* espaço pro menu fixo não tapar o fim da página. No PC a barra sobe
+            pro topo (index.css), então este espaço vira zero e o respiro passa
+            pra cima — a classe faz as duas coisas. */}
+        <div className="espaco-barra" style={{ height: 74 }} />
         <HomeMenuFixo
           onInicio={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           onRegras={() => setShowManual(true)}
@@ -2144,7 +2161,7 @@ export function EscIntro() {
       {/* vitrine: a coleção é a estrela — cartas reais do álbum (nível/cor/bio do
           catálogo). Desceu pra baixo dos botões, mas NÃO saiu: é ela que mostra
           o que a pessoa vai colecionar. */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 grade-cartas">
         <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} showBio /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Gabigol" club="Flamengo" year={2019} pos="ATA" fame={4} showBio /></div>
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa showBio /></div>
@@ -2342,7 +2359,7 @@ export function EscSetup() {
     const meuNome = stripEmoji(clean).trim().toLowerCase()
     const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome
     const picks = career
-      ? [...rivalPicks.filter(naoSouEu), ...DIVISION_TEAMS['D'].map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
+      ? [...rivalPicks.filter(naoSouEu), ...TIMES_ELITE.map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
       : undefined
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
@@ -2461,7 +2478,7 @@ export function EscSetup() {
             <p className="text-xs font-black uppercase mb-1">🔥 Escolha seus rivais <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
             <p className="text-[11px] font-semibold text-black/55 mb-1.5">Eles serão seus rivais pra vida toda.</p>
             <div className="flex flex-wrap gap-1.5">
-              {DIVISION_TEAMS['D'].map(t => {
+              {TIMES_ELITE.map(t => {
                 const on = rivalPicks.includes(t.team)
                 return (
                   <button key={t.team} onClick={() => toggleRival(t.team)}
@@ -6708,7 +6725,7 @@ const EXAMPLE_CARD = { name: 'Rayan', club: 'Exemplo FC', year: 2025, pos: 'ATA'
 // fácil de achar e claro"*). No Álbum e no Ranking o único jeito de sair era o
 // botão lá no FIM da página — e o álbum tem centenas de cartas até chegar lá.
 // O botão de baixo continua onde estava: quem termina de rolar acha ali também.
-function VoltarInicio() {
+export function VoltarInicio() {
   const { dispatch } = useEsc()
   return (
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
@@ -6846,6 +6863,12 @@ interface RankRow { user_id: string; name: string; career_key: string; titles: n
 
 export function EscRanking() {
   const { dispatch } = useEsc()
+  // 🏛️ SALÃO DOS BATISMOS — em obra, só a conta do Diego vê a pílula (30/08).
+  // Fica AQUI, e não numa tela nova, porque foi o que ele pediu: *"e aí entraria
+  // no, ligar daquela aba de ranking"*. O Ranking é a tabela de quem ganhou mais;
+  // o Salão é o lugar de quem tem clube próprio — um leva pro outro.
+  const salaoOk = useSalao()
+  const [verSalao, setVerSalao] = useState(false)
   // 🪜 aba Carreira LIBERADA GERAL (decisão do Diego 04/08): histórico completo
   // visível pra todos e os títulos de carreira novos seguem contando normalmente.
   const [mode, setMode] = useState<RankMode>('ronline')
@@ -6953,6 +6976,14 @@ export function EscRanking() {
   ]
   const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
 
+  if (verSalao && salaoOk) {
+    return (
+      <Suspense fallback={<Shell><p className="text-center font-bold text-black/60 pt-10">Carregando o Salão…</p></Shell>}>
+        <SalaoLazy voltar={() => setVerSalao(false)} />
+      </Suspense>
+    )
+  }
+
   return (
     <Shell>
       <div className="pt-4"><VoltarInicio /></div>
@@ -6962,6 +6993,20 @@ export function EscRanking() {
         {/* 🕐 aviso sutil do ranking diário (decisão do Diego 04/08) */}
         <p className="text-[10.5px] font-bold text-black/40 mt-0.5">🕐 O ranking e as cartas atualizam 1× por dia</p>
       </div>
+
+      {/* 🏛️ porta do Salão dos Batismos (em obra — só o Diego enxerga) */}
+      {salaoOk && (
+        <button onClick={() => setVerSalao(true)}
+          className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 flex items-center gap-2.5 active:translate-x-[2px] active:translate-y-[2px]"
+          style={{ background: GOLD, boxShadow: `4px 4px 0 ${INK}` }}>
+          <span className="text-2xl">🏛️</span>
+          <span className="flex-1 text-left">
+            <span className="block font-black text-[15px] leading-none" style={OSWALD}>SALÃO DOS BATISMOS</span>
+            <span className="block text-[10.5px] font-bold text-black/60 mt-0.5">os clubes que viraram de alguém · 👁️ só você vê</span>
+          </span>
+          <span className="font-black text-lg">›</span>
+        </button>
+      )}
 
       {/* filtro: Carreira (em breve) / Rápido online / Rápido offline */}
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
@@ -7235,6 +7280,30 @@ function RankResultWriter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [iWonCopa])
   return null
+}
+
+// 🧯 CERCA DA COPA (01/09) — regra #1 do Diego: nunca quebrar o futebol.
+// A Copa do Mundo da sala é jogo NOVO desenhado por cima da tela de fim de
+// temporada, que é a tela mais cara do jogo (campeão, carta, jornal, estante).
+// Sem cerca, um erro dentro da Copa derrubaria a árvore inteira e a pessoa
+// perderia a festa do título por causa de uma tela extra. Com cerca, a Copa some
+// e explica; TODO o resto do fim de temporada continua de pé.
+class CercaDaCopa extends Component<{ children: ReactNode }, { caiu: boolean }> {
+  state = { caiu: false }
+  static getDerivedStateFromError() { return { caiu: true } }
+  componentDidCatch(err: Error) { try { console.error('Copa do Mundo da sala:', err) } catch { /* ignora */ } }
+  render() {
+    if (!this.state.caiu) return this.props.children
+    return (
+      <div style={{ border: '3px solid #0C0C0C', borderRadius: 14, background: '#FFF4CF', boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px', marginBottom: 10 }}>
+        <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 900, fontSize: 13, margin: 0 }}>🌍 A Copa do Mundo não abriu</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.4 }}>
+          Deu um problema só na Copa — <b>o resto da temporada está tudo aí embaixo</b>, campeão, carta e jornal.
+          Atualize a página pra tentar de novo, e manda um print pro <b>@leilaolegendscom</b>.
+        </p>
+      </div>
+    )
+  }
 }
 
 // ─── CARREIRA: salvar/carregar + modais ──────────────────────────────
@@ -7617,6 +7686,13 @@ function CareerEndPanel() {
 // visível. Todo mundo vota (mostra pro host quem tá online e o que quer); o
 // HOST decide e começa quando quiser (nunca trava esperando ninguém). O host
 // pode remover quem não decide e voltar pro menu das salas.
+// 🗑️ AQUI MORAVA O `GrupoOnlineBox` (29/08, de manhã). O Diego mudou de lugar no
+// mesmo dia, olhando a tela: *"sobre o WhatsApp, é pra aparecer aqui embaixo de
+// atualizar lista, e de forma mais sutil. E não após acabar os jogos"*.
+// Ele está certo por dois motivos: o fim da partida é hora de comemorar e votar o
+// próximo jogo, não de ler oferta; e quem NÃO tem com quem jogar está justamente
+// na lista de salas abertas, procurando. Agora ele mora em `lobby.tsx`, embaixo do
+// 🔄 Atualizar lista, e bem mais discreto.
 function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
   // 🎫 identidade pelo CRACHÁ (manager.id), NÃO pela cadeira (youIdx) — quando o
@@ -8270,6 +8346,29 @@ export function EscEnd() {
   // radião "6º lugar", um placar com os DOIS torneios (Liga + Copa), e a ordem
   // vira Liga → artilheiro da Liga → Copa → artilheiro da Copa.
   const copaDone = state.quickCopa?.phase === 'done'
+  // 🌍 esta sala foi criada como "liga + Copa do Mundo"?
+  // ⚠️ A marca é da SALA, não da partida — então ela NÃO está no estado do jogo.
+  // (Tentei ler do estado primeiro: funciona pra quem entrou por reconexão, mas o
+  // HOST monta a partida do zero e nunca teria a marca — ele ficaria sem a Copa
+  // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
+  // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
+  const [mundoNaLiga, setMundoNaLiga] = useState(false)
+  // 🌍 a noite só acaba DEPOIS da Copa (Diego 01/09: *"a votação é somente quando
+  // acabar tudo, a liga e a Copa do Mundo — mesma coisa o jornal"*). Enquanto
+  // `mundoPendente` for true, o jornal e o "e agora?" ficam escondidos, exatamente
+  // como já acontece com a Copa dos 8 (`copaPending`) e a Libertadores.
+  // Começa TRUE quando a sala é liga+mundo: melhor segurar e soltar do que
+  // piscar o jornal na cara e sumir.
+  const [mundoPendente, setMundoPendente] = useState(false)
+  const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
+  useEffect(() => { if (mundoNaLiga) setMundoPendente(true) }, [mundoNaLiga])
+  useEffect(() => {
+    if (!online || !state.roomId) return
+    let vivo = true
+    void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga').eq('id', state.roomId).maybeSingle()
+      .then(({ data }) => { if (vivo) setMundoNaLiga(String((data as { flag?: string } | null)?.flag) === 'true') }, () => {})
+    return () => { vivo = false }
+  }, [online, state.roomId])
   // 🌎 nesta sala o mata-mata é a LIBERTADORES (não a Copa dos 8) — muda só o
   // nome e a cor nos quadros do fim; o resto do fluxo é o mesmo.
   const libEnd = state.copaMode === 'liga_liberta'
@@ -8557,8 +8656,25 @@ export function EscEnd() {
           cima (portal), então o campeão vê a carta primeiro e cai no jornal quando
           fecha — e a gravação da carta, que dispara ao montar aquela tela, não é
           atrasada por nada daqui. */}
-      {online && !copaPending && !libPending && (!state.liberta || copaDone) && (
-        <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} />
+      {/* 🌍 COPA DO MUNDO DA SALA — só em sala criada como "liga + Copa do Mundo".
+          Ela entra DEPOIS da liga estar decidida e ANTES do jornal: o jornal é o
+          fecho da noite, e a Copa ainda é jogo.
+          ⚠️ Igual à Copa da carreira, ela NÃO passa pelo motor do leilão: nada de
+          assento, nada de reducer. É uma tela por cima. Tirar daqui = a sala volta
+          a ser uma liga comum, e nada mais muda. */}
+      {online && state.roomId && mundoNaLiga && !copaPending && !libPending && (
+        <CercaDaCopa><Suspense fallback={null}>
+          <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
+            matchSeed={state.seed}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            classificacao={table.map(t => {
+              const m = state.managers.find(mm => mm.id === t.id)
+              return { id: t.id, nome: t.name, humano: !!m?.isHuman }
+            })} />
+        </Suspense></CercaDaCopa>
+      )}
+      {online && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
+        <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} mundo={campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !copaPending && !libPending && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
@@ -8578,7 +8694,7 @@ export function EscEnd() {
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).
           Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
-      {online && !copaPending && !libPending && <OnlineEndVote awaitingCard={awaitingCard} />}
+      {online && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
       {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
           Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira

@@ -1,4 +1,1205 @@
-# 📌 Pendências combinadas com o Diego (atualizado 28/08/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 01/09/2026)
+
+# 🦜🛒 BATISMO Al Takahdao FC (01/09) — e a Série A ESGOTOU
+
+Dono: `fontourajoao04@gmail.com` (João). R$69,90 = **Série A** (a lista que era
+"Série D" até a troca de 30/08 — o comentário está no `data.ts`).
+
+**A Série A estava com ZERO vagas** (as 20 batizadas). Decisão do Diego:
+*"Coloque o time marreco pra série b e tire um da série B bot pro lugar do
+marreco e c isso abre vaga pro time do Al Takahdao na série a"*.
+- **Al Takahdao FC** entra na Série A, no assento do Marreco FC
+- **Marreco FC** desce pra Série B, no assento do bot **Serrano FC**
+- Serrano FC escolhido por ser o único "Serra" que não é usado em outra lista
+  (o `Nacional da Serra` também mora em `CLASSIC_CLUBS`).
+
+⚠️ **DE PROPÓSITO não existe `OLD_NAME['Marreco FC'] = 'Serrano FC'`.** O padrão
+do Alfacehh (23/08) fazia isso, mas aqui seria bug: o Marreco **não foi
+renomeado**, só mudou de divisão. Com o mapa, uma carreira que já tem OS DOIS
+passaria a desenhar o escudo do Marreco no Serrano — dois clubes com o mesmo
+escudo na mesma tabela. Está escrito no `data.ts` e no `escudos.tsx`.
+
+✅ **Carreira em andamento não quebra**: a divisão de um bot num save vem do
+`placements` guardado; `cpuOrigDiv` é só fallback pra time sem colocação.
+
+**Arte** (o dono mandou 2 versões; usada a 2ª, que ele aprovou): escudo 337x360
+**27,7 KB** · mascote 269x440 **40,4 KB** · total **68,1 KB** (teto 75).
+O fundo da arte nova era escuro com brilho radial — cor sozinha não separava
+(verde escuro do escudo x oliva do brilho). **O que separou foi o VERMELHO**:
+no brilho R≈80, na sombra do desenho R≈0. Conferido sobre creme E sobre verde
+escuro (é no verde que halo aparece). Camisa em `scripts/kits/`, veio da 1ª arte.
+
+**Inventado por mim, o dono pode trocar**: técnico "Zé do Mercado", mascote
+"O Papagaio".
+
+**Trava**: era `29 batismos · 8 completos`, virou **`30 · 9`**.
+
+## 🚨 `docs/vagas-batismo.md` ESTÁ MENTINDO — não usar pra vender vaga
+Ele diz que "Barcenite FC" e "Flamengo do Sertão" estão LIVRES. **Os dois estão
+batizados** (Barcenite = ricardopessoafreire nº31; Flamengo do Sertão virou
+São Luiz FC = gabrielnegreirosamaral99). O doc é gerado por um `scripts/_tmp-vagas.py`
+que não existe mais, e não foi refeito depois da troca A↔D de 30/08.
+Se alguém seguir esse doc, **vende vaga de quem já pagou** (quase aconteceu em
+21/08, tem a cicatriz anotada no `data.ts`).
+**PENDENTE**: fazer o `npm run batismos` contar vaga LIVRE por divisão (lendo o
+`data.ts`, que é a verdade) e avisar quando a divisão estiver esgotada. Aí o doc
+pode morrer. Contagem real hoje: **A 0 livres · B 15 · C 19 · D 14**.
+
+## ✉️ RESEND (01/09) — DIAGNÓSTICO: falta SÓ colar 3 registros no DNS
+Ele voltou no assunto: *"quero poder enviar email pros meus usuários, chegamos a
+fazer isso mas não configurei eu acho"*. Ele lembrou certo. Conferido hoje, na
+fonte:
+
+| peça | estado |
+|---|---|
+| Conta Resend + domínio cadastrado (`55883d87-…`, região `sa-east-1`) | ✅ |
+| `RESEND_API_KEY` no Supabase Vault | ✅ |
+| `pg_net` (o caminho que FUNCIONA — o shell leva 403 do proxy) | ✅ |
+| Os 3 registros DNS | ❌ **não existem** |
+| Domínio no Resend | ❌ **`failed`** (ele tentou verificar e desistiu) |
+| Tabela de descadastro | ✅ criada hoje |
+
+**Como eu sei que os registros não estão lá:** perguntei pro DNS público (Google
+DoH, via `pg_net`) os três nomes — os três voltaram **NXDOMAIN**. Não é "está
+propagando": não existe. E o **MX da raiz continua `mx1/mx2.hostinger.com`**, ou
+seja, o e-mail dele (`contato@`) está intocado e vai continuar assim — os
+registros do Resend são todos no subdomínio `send`.
+
+**Os 3 registros** (valores buscados da API hoje, não de memória):
+1. `TXT` · nome `resend._domainkey` · valor `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDDfqrpinAL4RM15IbhYdqX4lXhfDRp5G3ltNcTnos5KWlBaZN3tdNUzEs5cawzSazEYQ4BXu8z8E81ATW9eURs/tNvFrHtXozBFhah8Ps5tBeo+ZQnk68+j7uidcVM/GbE+/C/rJSu5xQAwZTY3ZOCK2/gB61Ph81KpJOvFb/pfwIDAQAB`
+2. `MX` · nome `send` · valor `feedback-smtp.sa-east-1.amazonses.com` · prioridade `10`
+3. `TXT` · nome `send` · valor `v=spf1 include:amazonses.com ~all`
+
+### ✅ Feito hoje: a porta de saída (LGPD), que tem que existir ANTES do 1º envio
+- Tabela `esc_email_optout` (RLS fechada; o app não lê a lista).
+- RPC **`esc_email_sair(email, motivo)`** — SECURITY DEFINER e **sem exigir
+  login** de propósito: quem quer sair de uma lista não pode ser obrigado a
+  lembrar a senha do jogo. Devolve sempre `ok`, até pra e-mail que não existe,
+  pra ninguém usar a porta pra descobrir quem tem conta.
+- Testado com ROLLBACK: normaliza caixa/espaço, não duplica, ignora texto que não
+  é e-mail. Produção ficou vazia.
+- ⚠️ E-mail de SISTEMA (recuperar senha) **não** passa por essa lista.
+
+### Tamanho da base hoje (medido)
+**8.561 contas**, todas com e-mail, **8.561 e-mails distintos** (zero repetido).
+3.521 entraram nos últimos 30 dias · 8.539 nos últimos 90 · 2.990 são contas
+novas do último mês.
+
+### ✅ TUDO FEITO E LIGADO (01/09, à noite)
+Ele colou os 3 registros, o domínio **verificou**, e depois de ver a prévia:
+*"acho q está bom.. vc q manda!!"*. Está no ar.
+
+**Como o disparo funciona**
+- Fila `esc_email_fila`: **8.562 pessoas**, ordenadas de **quem entrou mais
+  recente pra quem sumiu faz mais tempo**. Isso é a decisão mais importante do
+  desenho: no plano de graça o primeiro mês cobre ~3.000 — e tem que ser os
+  3.000 que ainda lembram do jogo.
+- `esc_email_lote()` usa o endpoint de **LOTE** do Resend (uma chamada, até 100).
+  Não é elegância: 100 chamadas soltas levariam 429 no meio, e metade da fila
+  ficaria marcada como enviada sem ter saído.
+- `esc_email_conferir()` roda 30 min depois e **devolve pra fila** todo lote que
+  o Resend recusou. Ninguém fica "enviado" sem ter saído.
+- Cron: `email-diario` 13:00 UTC (**10h da manhã no Brasil**) e `email-conferir`
+  13:30. Interruptor em `esc_email_config.ligado`.
+- **95 por dia, não 100**: o plano de graça tem TAMBÉM teto de 3.000/mês.
+  100×31 = 3.100 bateria no teto e os últimos dias do mês falhariam em série.
+  95×31 = 2.945 passa folgado. → a base inteira em ~90 dias.
+- Quem está no optout é pulado **na hora do envio**, não só na hora de montar a
+  fila — entre uma coisa e outra passam semanas.
+
+**A porta de saída** (`?sair=` → tela em `index.tsx` → RPC `esc_email_sair`):
+tem **botão de confirmar** de propósito. Gmail e Outlook abrem os links do
+e-mail sozinhos por segurança; se a saída fosse no próprio link, eles
+descadastrariam gente que nunca pediu e a lista derreteria sozinha.
+
+**O conteúdo** (`esc_email_assunto` / `esc_email_html`, editáveis sem tocar no
+motor). Pauta ditada por ele: *"dizer que ele estava no primeiro dia mas não
+imagina como está agora o jogo… várzea… técnico… Libertadores e Copa do Mundo no
+online… Copa do Brasil e Supercopa na carreira"*. **Conferi uma por uma no
+código antes de escrever** — todas liberadas pra geral. Não vai promessa falsa
+pra 8,5 mil pessoas.
+
+**Como desligar na hora, se precisar:**
+`update public.esc_email_config set ligado = false where id = 1;`
+
+**Pra acompanhar:**
+`select jsonb_pretty(public.esc_email_placar());`
+
+### 📊 O MEDIDOR DA CAMPANHA (01/09, madrugada) — instalado ANTES do 1º disparo
+Pergunta dele: *"Consigo ter um controle das pessoas q mandamos email e se
+surtira resultado?"*. Dava — mas só se fosse instalado **antes** do primeiro
+e-mail sair, porque medir resultado exige a FOTO de quando a pessoa jogou pela
+última vez ANTES de receber. Depois de mandar, essa foto já não existe mais.
+Ficou pronto às 03h; o primeiro lote sai às 10h.
+
+**Sinal de "voltou" = `game_plays`, não login.** Login (`last_sign_in_at`) mente:
+quem tem sessão salva no aparelho volta a jogar sem "logar de novo". `game_plays`
+e `site_visits` guardam desde 10/07 e são por conta — esses valem. `live_beats`
+NÃO serve (é presença do momento, só ~40 min guardados).
+
+Colunas novas em `esc_email_fila`: `uid` (casa com game_plays) · `lote_pos`
+(posição no lote, pra casar com a resposta do Resend) · `resend_id` ·
+`jogou_antes` (a foto) · `evento` / `evento_em` / `evento_pedido`.
+
+- `esc_email_lote()` agora anota `lote_pos` + `jogou_antes` no disparo.
+- `esc_email_conferir()` agora guarda o `resend_id` de cada pessoa (a resposta do
+  lote vem na MESMA ordem em que os e-mails foram montados — daí o `lote_pos`).
+- **`esc_email_eventos()`** (nova) pergunta ao Resend o que houve com cada
+  mensagem (`delivered`/`opened`/`clicked`/`bounced`). Trabalha em DOIS TEMPOS
+  porque `pg_net` é assíncrono: a rodada lê as respostas da rodada anterior e só
+  então dispara pedidos novos. Cron **`email-eventos`** `7 * * * *` (de hora em
+  hora) chama `esc_email_conferir()` + `esc_email_eventos(40)`.
+- **`esc_email_placar()`** e **`esc_email_placar_dias()`** — o resumo. Trancadas
+  em `esc_email_so_o_dono()`: chamada de dentro (cron/SQL) passa; chamada pelo
+  site exige o e-mail do dono.
+- Índices `game_plays(user_id, created_at)` e `site_visits(user_id, created_at)`
+  criados com CONCURRENTLY (o jogo estava no ar).
+
+**Testado de ponta a ponta com e-mail real** (mandei 1 pro Diego, pus a linha
+dele na frente e devolvi tudo pro normal depois): mandado → `resend_id`
+guardado → `evento = delivered`. Fila voltou pra 8.562 em `espera`.
+
+⚠️ **Fila trancada**: `esc_email_fila` tem RLS ligada e **zero políticas** = a
+lista de 8,5 mil e-mails não é lida por ninguém pelo site. Não criar política ali.
+
+**A TELA (aprovada 01/09 — "perfeito pode fazer")**: bloco `CampanhaEmailAdmin`
+em `admin.tsx`, logo depois do `Dashboard`. Mostra mandados/na fila, o funil
+(chegou · abriu · clicou), a caixa verde do "voltaram a jogar" com a linha dos
+sumidos, o dia a dia e o botão **⏸️ Pausar o disparo**
+(RPC `esc_email_interruptor`, também trancada no dono).
+
+**Conferido antes de commitar** (não dava pra logar como ele pra testar em
+produção): montei um andaime temporário com vite + supabase de mentira e
+fotografei os DOIS estados — zerado (o de hoje) e com campanha rodando. Bate com
+o mockup. O andaime foi apagado; a tranca foi testada fingindo ser outro usuário,
+anônimo e o dono (só o dono passa).
+
+⚠️ **Não juntar `voltou` e `voltou_sumido` num número só.** São dois de
+propósito: quem já jogava todo dia voltaria de qualquer jeito. O de baixo é o
+resultado limpo — juntar vira propaganda enganosa pra ele mesmo.
+
+## 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA (01/09) — não trocar de volta
+Ele olhou o seletor "Depois da liga" e cortou: *"acho que tem que ter uma
+diferenciação do emoji de mundo e liberta"*. E é verdade: **🌍 e 🌎 são o mesmo
+desenho girado** — no tamanho de um botão viram a mesma bolinha azul, um do lado
+do outro.
+
+**Feito:** a Copa do Mundo ONLINE passou a usar **🌐** (grade branca sobre azul),
+que não se confunde com nada. Vale no seletor, na etiqueta da lista de salas, em
+todas as telas da Copa da sala e na linha das novidades.
+
+**A carreira continua com 🌍 de propósito**: lá o globo é a marca do *mundo* em
+tudo (ranking global, mural, selo de título, baralho do mundo — são dezenas de
+lugares) e a Copa da carreira **nunca aparece do lado da Libertadores**. Trocar
+lá seria churn grande num lugar que não tem o problema. Se ele pedir, é um
+find/replace.
+
+**Achado de quebra, ainda NÃO mexido** (aparece no print dele, uma linha acima):
+o seletor de baralho tem **🌍 Europa** e **🌎 Todos** — o mesmo choque. A saída
+óbvia é **🇪🇺 Europa**. Mandei o antes/depois pra ele decidir.
+
+
+## 🌍 A NOITE DE TESTE COM A TURMA (01/09) — 7 arestas que ele pegou jogando
+Ele jogou a liga + Copa com 4 pessoas (Neymarzetti, Bicho da Seda, perebinha,
+União das pedras) e mandou print de tudo. As sete, e o que foi feito:
+
+1. **Jornal e votação apareciam quando a LIGA acabava.** *"A votação é somente
+   quando acabar tudo, a liga e a Copa do Mundo. Mesma coisa o jornal."* Agora
+   existe `mundoPendente` no fim de temporada, igual ao `copaPending` da Copa dos
+   8: o jornal e o "🗳️ E agora?" só voltam quando a Copa acaba. Quem diz que
+   acabou é a coluna `campeao` de `esc_copa_salas`, gravada pelo dono — assim
+   destrava na mesma hora pra todos, e não em horários diferentes por aparelho.
+2. **O jornal tem que contemplar a Copa do Mundo**, igual já faz com a Copa dos 8
+   e a Libertadores. `montaEdicao` ganhou um `mundo?` opcional: com ele, o
+   campeão do mundo entra como "campeão da copa" e TODO o jornal já sabe o que
+   fazer — manchete de "noite de dois donos", banner e as resenhas cruzando os
+   dois títulos.
+3. **O banner da escolha era pequeno demais.** *"Deve ser MUITO maior e aparecer
+   de cara na tela."* As três fases viraram TELA CHEIA: a vez de escolher a
+   bandeira, o banner de 15s e a convocação — que agora **abre sozinha** quando o
+   banner acaba (mandar procurar botão com 60s correndo era queimar o tempo dela).
+4. **A linha "Copa da sala nº 1 · Você: Argentina (fulano)" no topo saiu** —
+   *"não tem necessidade disso"*. Na carreira ela fica: lá ela conta a temporada.
+5. **Os jogos estavam rápidos demais.** Na sala a rodada mostra 4 grupos ao mesmo
+   tempo; 9s (o ritmo da liga) não dava pra ler nada. Na Copa online a rodada
+   agora respira **14s**, e o controle de velocidade continua ali.
+6. **O placar ao vivo ficava longe do grupo dele** (*"eu era Argentina, e a
+   Argentina tava no grupo lá de baixo"*). O **SEU grupo agora vem primeiro** — a
+   letra continua a de verdade (A/B/C/D).
+7. **65s pra escolher a seleção** (era 45s) — e, logo depois, **65s também pra
+   convocar o elenco** (*"65s pra escolher o elenco também"*, era 60). Os dois
+   tempos iguais de propósito: pra quem joga é a mesma promessa nas duas telas.
+   E o castigo escrito na cara:
+   quem não fecha a convocação a tempo leva **os piores do país em CADA posição
+   que ficou vazia** — e o que ele já marcou **fica**. `completaXI` faz a conta e
+   o guarda confere (marcou 7 → mantém os 7 + 4 pernas-de-pau, e o time fecha
+   nas vagas certas da formação).
+
+**`npm run copa` cresceu junto:** agora ele também confere o castigo por posição.
+
+
+## ❌ A COPA DO MUNDO NÃO É UM MODO DE SALA (01/09) — regra dele, não repor
+Eu tinha criado a Copa como um **modo** na tela de criar sala, do lado de Rápido,
+Minhas Ligas, Carreira e Bafo. Ele viu a tela e cortou na hora: *"o que você fez,
+cara. Não pode ter a Copa do Mundo aí junto de rápido, bafo e etc"*.
+
+Ele está certo, e o motivo é simples: aquela lista responde **"o que vocês vão
+JOGAR"**, e a Copa não é um jeito de jogar — é **o que acontece DEPOIS da liga**,
+exatamente como a Copa dos 8 e a Libertadores. O lugar dela é o seletor
+**"Depois da liga"**, como 🌍 **Liga + Mundo**. E é só lá.
+
+**Feito:** o cartão saiu da lista de modos (com o porquê escrito no código, pra
+nenhuma sessão repor). A opção 🌍 Liga + Mundo continua no ar pra todo mundo.
+
+**Sobra pra limpar (não urgente, e de propósito não mexi com ele testando):** o
+caminho da sala avulsa `mode: 'mundo'` ficou **inalcançável** — ninguém consegue
+criar uma. Conferido no banco: **nenhuma sala dessas chegou a existir**. As peças
+que só ela usava (`PainelDaCopa`, `EstanteDaCopa`, o painel da sala de espera)
+estão órfãs e podem sair numa faxina. `EscolhaSelecao` NÃO é órfã — ela é a tela
+de bandeira do liga+mundo.
+
+
+## 🌍 LIGA + COPA DO MUNDO (01/09) — no ar, mas AINDA SEM OS RELÓGIOS
+Pedido dele: *"lá ao criar sala vai ser liga + Copa do Mundo normal também"*, e as
+regras que ele ditou depois:
+- *"a escolha das seleções é com base na colocação da liga: quem ficou em primeiro
+  escolhe primeiro, o segundo em segundo, até o último — dos usuários online. Os
+  bots ficam com as sobras."*
+- *"vão ter 24 seleções, além dos 20 times da liga: quando começar a Copa vão ter
+  4 bots jogando pelos 4 países restantes."*
+
+**Feito e conferido pelo guarda (`npm run copa`):** a opção 🌍 **Liga + Mundo** no
+seletor "depois da liga" · a Copa entra na tela de FIM de temporada, antes do
+jornal · a fila sai da tabela final e só gente entra nela · os **20 times da liga
+viram seleções** e a máquina completa as **4** que faltam pra fechar 24 · nenhum
+país repetido · quem ganhou a liga leva o país que escolheu · todo aparelho
+calcula a MESMA Copa · o campeão leva título no Rank, a carta e o troféu na
+estante (`copa_champion_name`, a mesma linha da temporada).
+
+**Como ela não quebra o resto:** por baixo é `copaMode: 'liga'` + a marca
+`mundoNaLiga` — **o motor do leilão não muda em nada**. A Copa é uma tela POR CIMA
+do fim de temporada, dentro de uma **cerca de erro** (`CercaDaCopa`): se a Copa
+quebrar, ela quebra SOZINHA e o campeão, a carta e o jornal continuam de pé.
+
+**A ficha mora em `esc_copa_salas`, não no `game_state`** — e isso não é frescura:
+com a bola rolando, o save do host reescreve o `game_state` inteiro a cada 3s
+(conserto de 23/08, o dia em que o Diego perdeu uma liga). A marca `mundoNaLiga`
+entrou na lista de chaves protegidas daquele conserto.
+
+### ⏱️ OS RELÓGIOS — FEITOS (01/09)
+Palavras dele: *"vai ser igual o monte de sobra do leilão, muito parecido, com
+buracos — só que com seleções. O primeiro colocado escolhe a seleção que ele
+quiser em 45s, depois passa pro segundo, depois pro terceiro. Quando todos
+acabarem deve aparecer um cronômetro de 15s com banner da Copa do Mundo
+explicando que eles devem escolher em 60s os 11 jogadores, e quem não escolher a
+máquina escolhe automaticamente os PIORES 11 da posição."*
+
+E ele fechou o castigo da bandeira: *"escolhe a pior seleção quem não escolher em
+45s também, ou a que ele estiver selecionado"*. Está tudo no ar:
+1. **45s por vez** na bandeira, na ordem da tabela, passando sozinho.
+2. **Banner + 15s** quando a última bandeira sai.
+3. **65s de convocação pra todo mundo junto** — a ordem vale SÓ pra bandeira (um
+   toque). Se valesse pros 11, a sala inteira esperaria o 1º montar time, e "nada
+   pode atrasar o ritmo do jogo" é regra dele.
+4. **Castigos**: quem deixa os 45s passarem leva a **pior seleção livre** (ou a que
+   estiver marcada na tela dele); quem não convoca leva os **piores 11**
+   (`piorXI`, medido: 58,5 de média contra 95,8 do melhor XI).
+
+**👑 Quem segura o relógio: o DONO.** Ele grava a vez e o prazo em
+`esc_copa_salas` e todo mundo obedece o que está gravado. Se cada aparelho
+contasse sozinho, dois jogadores discordariam de quem é a vez — é a família do
+"dei lance por outro". O dono também é a rede: se alguém fecha o app no meio da
+vez, é ele que carimba a pior livre e toca o jogo (a RLS de `room_players` dá
+update pro dono da sala).
+
+**🐛 Um erro que o guarda pegou antes de subir:** eu decidia "isto é gente" por
+"tem uid". Num caso em que todo assento tinha uid, os BOTS levavam o castigo dos
+humanos. Agora quem decide é o `humano` da tabela — o uid só diz QUEM é a pessoa,
+não SE é. `npm run copa` agora confere: bot leva a melhor livre, gente que dormiu
+leva a pior.
+
+
+## 🌍 COPA DO MUNDO ONLINE (31/08) — feita, FECHADA só pra conta do Diego
+Pedido dele: *"faça a copa do mundo online aí agora, pegando o que já existe no
+modo carreira"*.
+
+**O que é:** sala nova (`mode: 'mundo'`) onde cada um pega **uma seleção** e
+**convoca 11** do país. Sem leilão, sem tabela de liga: rola a Copa inteira —
+4 grupos de 6, mata-mata ida e volta, final única. É o **mesmo torneio da
+carreira** (`copa-mundo.tsx`), a mesma convocação e o mesmo placar ao vivo.
+
+**A sacada que fez caber num dia:** `simulaCopaMundo` já era **função pura e
+semeada**. Então não existe "host mandando resultado": o dono publica a FICHA da
+Copa (semente + as 24 seleções com as 11 chaves de cada um) em `game_state`, e
+**cada aparelho recalcula o torneio inteiro sozinho**. Ninguém dessincroniza,
+nem se a internet cair no meio.
+
+**⚠️ Por que é seguro (regra #1: nunca quebrar o futebol):** a Copa **não passa
+pelo motor do leilão**. Nada de assento (`player_index`), nada de reducer, nada
+de `RESTORE_ONLINE` — que é de onde vieram os piores bugs da casa. A sala fica
+parada em `waiting` e a Copa é uma tela POR CIMA. Tirar a tela = a sala volta a
+ser uma sala normal.
+
+**O que ela NÃO faz, de propósito:** não paga moeda de clube (sala não tem
+caixa), não escreve no mural do Rank e não grava título em `esc_results`. Subir
+no ranking mundial continua sendo coisa da CARREIRA — foi bug em 17/08 a Copa
+vazar pra lá e não vai voltar.
+
+**Peças:** `src/escalacao/copa-mundo-online.tsx` (novo) · coluna `copa` em
+`room_players` (mesmo desenho do 🃏 Bafo: cada um escreve a própria linha, todos
+leem as dos outros — é assim que a tela sabe que país já tem dono) · `mode:
+'mundo'` no lobby · trava por conta em `sport.ts` (`MUNDO_GERAL = false`).
+Em `copa-mundo.tsx` a mudança foi mínima e aditiva: um `online?: boolean` no
+`CupScreen` e alguns `export` — **a Copa da carreira não mudou em nada**.
+
+**🛡️ Guarda novo: `npm run copa`.** A Copa online se apoia numa promessa só —
+**todo mundo vê a MESMA Copa**. Se alguém mexer no motor e ele passar a olhar
+pra algo diferente em cada aparelho, a sala racha sem dar erro nenhum: só um
+monte de gente discutindo quem ganhou. O guarda roda no navegador de verdade
+(sobe o vite, abre `scripts/checa-copa-online.html`) e confere: os 3 aparelhos
+calcularam a MESMA Copa · cada um é UMA seleção (nem zero nem duas) · quem não
+escolheu não vira ninguém · nenhuma seleção com menos de 11 · 24 times na ficha.
+
+**Ver como ficou sem entrar numa sala:** `scripts/vitrine-copa-online.html`
+(monta os componentes DE VERDADE com dados de mentira — foi de onde saíram as
+fotos que mandei pra ele).
+
+### ✅ DECIDIDO NO MESMO DIA (31/08), e já feito
+Palavras dele: *"todo título deve valer sempre. E também estante, ranking, etc,
+tudo igual. Carta também. E normal a sala também, mínimo de dois."* E logo
+depois: *"code p geral já tb"*. Então:
+- **Título conta**: o campeão do mundo grava linha em `esc_results` (é de lá que
+  saem o Rank e o Salão), com `season_key = mundo:<sala>:<semente>:copamundo` —
+  a semente é o que deixa jogar Copa atrás de Copa sem uma apagar a outra.
+- **Carta do campeão**: mesmo `CardCollectPrompt` das outras copas, com a chave
+  da sala e `origin: 'online'`.
+- **Estante**: os campeões da sala moram em `game_champions` (a MESMA tabela da
+  liga), e a sala mostra a lista. O DONO grava (é quem o banco deixa editar).
+- **Mínimo de 2** seleções de gente, como já estava.
+- **Liberado geral** (`MUNDO_GERAL = true`) no mesmo dia.
+- O que continua fora de propósito: **moeda de clube** (sala não tem caixa) e o
+  **mural da CARREIRA** — misturar sala com carreira foi bug em 17/08.
+
+### 🚧 O QUE ELE PEDIU E AINDA NÃO ESTÁ FEITO (próxima peça)
+1. **"Liga + Copa do Mundo" na criação da sala**, como as opções que já existem
+   (`liga+copa`, `liga+liberta`). Palavras dele: *"lá ao criar sala vai ser liga
+   + Copa do Mundo normal também"*.
+2. **Ordem de escolha pela COLOCAÇÃO**: *"as pessoas escolhem com base na sua
+   colocação na liga. Quem ficou em primeiro escolhe a sua seleção, e assim por
+   diante"*. Isso PRECISA de uma tabela — ou seja, anda junto com o item 1 (na
+   sala de Copa avulsa não existe classificação pra ordenar).
+
+**⚠️ O que descobri e que muda o desenho do item 1:** o save do host reescreve o
+`game_state` INTEIRO a cada 3s enquanto a bola rola, preservando só
+`mode`/`ligaAt`/`ligaRegras`/`ligaAdmins` (é o conserto de 23/08, o dia em que o
+Diego perdeu uma liga). Então **a ficha da Copa NÃO pode morar no `game_state`
+de uma sala com jogo rolando** — ela seria apagada no primeiro save. Na sala de
+Copa avulsa isso não acontece (não roda partida nenhuma, então não há save). Pro
+item 1 a ficha precisa de casa própria (tabela `esc_copa_salas`, por exemplo).
+
+**⚠️ E uma pergunta de desenho pro Diego, sobre a ordem de escolha:** ordem
+significa ESPERAR a vez. Se o 1º colocado demorar convocando os 11, os outros
+ficam parados — e "nada pode atrasar o ritmo do jogo" é regra dele. Proposta:
+a ordem vale só pra **escolher a bandeira** (um toque, rápido) e a **convocação
+todo mundo faz junto**. Assim o 1º lugar tem a vantagem de verdade (escolhe a
+seleção que quiser) sem ninguém ficar de braço cruzado.
+
+**Como reverter:** commit isolado. A coluna `copa` pode ficar (é NULL em todo o
+resto) e a trava por conta já mantém o modo invisível pra todo mundo.
+
+
+## 🔓 A LIGA TRANCADA EM "STARTED" (31/08) — consertado
+**Relato que chegou pro Diego:** *"no Minhas Ligas, começou um dia o jogo… e
+depois em outro dia, se quiser mandar convite pra uma nova pessoa entrar, não
+deu certo"*.
+
+**A causa (medida, não chutada):** o campo `status` de `game_rooms` foi feito pra
+sala RÁPIDA, que morre no fim. A LIGA vive pra sempre — mas depois da primeira
+partida ela fica `started` e **nada no código a devolve pra `waiting`**. O único
+conserto que existia (`lobby.tsx:864`) só age quando a sala está SEM jogo
+(`managers` vazio), que não é o caso de uma liga que jogou. Aí `enterRoom` barra
+o convidado novo e ainda mente: *"essa sala começou agorinha"* — quando começou
+dias atrás.
+
+**Conferido no banco:** a única liga em pé (`JTDMUV`, "Liga do Dérick FC") estava
+`started` havia horas, na tela **`end` da temporada 4**. Ou seja: a noite tinha
+acabado e a porta ficou trancada.
+
+**Feito:**
+- RPC **`esc_liga_reabre(p_room uuid)`** (SECURITY DEFINER, `grant` só pra
+  `authenticated`). Devolve um texto: `sem_login` · `rolando` (batida do host há
+  menos de 3 min: partida VIVA, não encosta) · `meio` (tela de leilão/temporada:
+  gente nova entraria SEM TIME, que é o bug do "virei bot" — não encosta) · `ok`
+  (temporada na tela `end`: volta pra `waiting` e põe a tela em `lobby`, pra
+  próxima temporada nascer com todo mundo).
+- **📤 Convidar destranca junto** e **quem recebe o convite destranca sozinho**
+  ao entrar. Continua precisando do código + senha pra entrar de verdade.
+
+### ⚠️ A 1ª VERSÃO NÃO RESOLVEU — e o erro vale ficar escrito
+A primeira tentativa deixava **só o DONO** destrancar. O Diego voltou no mesmo
+dia: *"o convite tinha aparecido q conseguimos arrumar, porém o pessoal n tava
+conseguindo entrar"*. O motivo é bobo e é o de sempre: **o dono nunca vê o
+problema** — ele TEM vaga na sala, então abrir a liga o joga direto na partida
+guardada. Quem bate na porta é o amigo, e ele dependia de um botão que o dono
+não sabia que existia. **Trava que depende de coordenação por fora do jogo não é
+trava, é armadilha.**
+
+Destrancar sem ser dono não afrouxa nada que importe: `host_id` não é tocado
+(a coroa não se move), partida viva e temporada no meio continuam intocáveis, e
+**liga em espera não aparece na lista pública** (o filtro do lobby só mostra liga
+com partida rolando) — então destrancar não expõe a sala pra ninguém.
+
+**A estante não corre risco:** campeão/artilheiro/mico moram em `game_champions`
+(uma linha por partida, com `humanos` carimbado). Zerar a telinha da sala não
+apaga troféu nenhum — as 4 temporadas do Dérick estão lá.
+
+**Testado em transação com ROLLBACK** (produção intocada), os cinco casos: sem
+login → `sem_login`; amigo com a liga parada → `ok` e a sala vira `waiting/lobby`;
+amigo com partida viva → `rolando`; amigo com temporada no meio → `meio`. E as 4
+temporadas do Dérick têm `match_seed` distinto, então a estante não se sobrescreve
+quando a liga recomeçar.
+
+**Limite que continua valendo, e é regra e não bug:** ninguém entra no MEIO de
+uma temporada. Quem é convidado enquanto uma temporada corre só joga na próxima.
+
+**Como reverter:** commit isolado no app; e a função do banco pode ser derrubada
+com `drop function public.esc_liga_reabre(uuid);` — sem ela, tudo volta a ser
+como era.
+
+
+## 📤 O CONVITE DA LIGA (31/08) — feito e aprovado pelo mockup
+**Como apareceu:** *"um amigo disse q criou o Minhas Ligas mas n soube aonde
+manda o convite pros amigos dele após ele criar"*.
+
+**O botão existia** (a caixa roxa "📣 Chame a galera"). Medindo no código, eram
+TRÊS furos no mesmo minuto:
+1. No card 🏆 Minhas ligas da home o dono só tinha ▶️ Entrar · ✏️ Editar ·
+   🗑️ Excluir — nenhum convite, e é o primeiro lugar que ele olha depois de criar.
+2. Dentro da liga a caixa roxa era o ÚLTIMO bloco: vinha depois do dia marcado,
+   do remarcar e da regra do ranking. No celular, mais de uma tela de rolagem.
+3. O texto compartilhado **não falava da SENHA** (obrigatória na liga desde
+   29/08) — mandava só nome, código e link. O amigo caía na porta trancada e o
+   dono jurava ter mandado o convite certo.
+
+**Feito** (mockup `scripts/mockup-convite-liga.mjs`, aprovado: *"Ok põe fazer"*):
+- **📤 Convidar** no card da home, só pro dono, do lado de Editar/Excluir (o
+  Excluir encurtou pra caber os três).
+- Na LIGA a caixa roxa subiu pra logo debaixo do código. Na sala ⚡ Rápida ficou
+  exatamente onde estava (lá o código basta e a tela é curta).
+- O convite da liga agora leva **nome + dia marcado + código + senha + link**.
+  Sem share nativo (PC) ele copia a MENSAGEM INTEIRA, não só o link.
+
+**A senha NÃO é guardada.** O banco continua só com o `pwHash`; o campo da caixa
+roxa serve pro dono escrever o que vai na mensagem e morre quando a tela fecha.
+Se ele não escrever, o convite diz "a liga tem senha — te mando ela aqui
+embaixo". Quem esqueceu troca em 🏆 Minhas ligas › ✏️ Editar (já existia).
+
+**Não virou novidade de propósito:** é conserto de caminho, e a regra do Diego é
+*"menos bugs, que nunca lance"*.
+
+**Como reverter:** commit isolado. Não encosta em leilão, assento nem banco.
+
+
+## 👑 A SÉRIE A E A SÉRIE D TROCARAM DE CLUBES (31/08) — feito, NÃO publicado
+**O que ele pediu, nas palavras dele:** *"hj custa dez reais a mais p time virar
+série D e qm jogar no online rápido é série D tb. Problema q n tem sentido pagar
+mais p dizer q vai p série D. Certo seria esses times q tão pagando mais serem os
+times da série A no carreira e tb serem os times q entram no modo online. Então
+oq vc faria era trocar a divisão da série A pela série D. Em relação aos times q
+estão nas duas só... Mas sem mudar nada pras carreiras atuais."*
+
+**O que foi feito:** as duas LISTAS de clubes trocaram de lugar em `data.ts`
+(`DIVISION_TEAMS.A` ↔ `DIVISION_TEAMS.D`). Nasceu `TIMES_ELITE` (= a lista da A)
+e todo lugar que precisava dos "clubes da elite" (jogo rápido online, rivais da
+carreira, preenchimento da liga do jogador, escolha de rival) passou a apontar
+pra ela — então **os times que entram no rápido são exatamente os mesmos de
+antes**. Só a LETRA mudou.
+
+**O que NÃO mudou de propósito:** a letra continua valendo o que valia — força
+dos bots (`DIVISION_BASE`), prêmio por temporada, vagas de filial, ordem da
+escada (V → D → C → B → A). Quem joga não fica mais fácil nem mais difícil.
+
+**Carreira em andamento: intocada.** A pirâmide de uma carreira salva é montada
+pela COLOCAÇÃO gravada (`careerPlacements`), não por estas listas — save antigo
+abre exatamente como ficou. A troca só vale pra carreira NOVA.
+
+**Buracos que a troca abriu e foram fechados** (senão o mesmo clube aparecia em
+duas divisões ao mesmo tempo): os três lugares que montavam a pirâmide de CPU
+enfiavam a elite na letra 'D' na mão. Viraram dois ajudantes em `store.tsx` —
+`divsDeFundo()` (B/C, e D só quando tem Várzea) e `eliteNaSerieA()` (os clubes da
+elite que ninguém levou de rival ficam na A; se faltar pra fechar 20 entram os
+extras e depois os clássicos). Conferido: as 5 divisões fecham com 20 e nenhum
+clube repetido.
+
+**⚠️ FALTA O DIEGO DECIDIR (é o único ponto aberto):** 6 batismos que hoje estão
+na Série A vão passar a ler **Série D** — Remoçada · Scorporila FC · Deportivo
+Montreal · Seven City · Tricolor do Arruda FC · Coringas do Diniz. Eles pagaram
+R$ 59,90 (a faixa barata, que sempre foi A/B/C/Várzea), então o PREÇO continua
+certo; o que muda é a letra que eles leem. Se ele preferir, dá pra subir esses 6
+pra B ou C (trocando com clubes de CPU) pra ninguém cair na letra D.
+
+**Como reverter:** commit isolado. `git revert` nele desfaz tudo — as listas
+voltam pro lugar e nenhuma carreira sente, porque nenhuma carreira depende delas.
+
+
+## 🏛️ SALÃO DOS BATISMOS (30/08) — no ar SÓ pra conta do Diego
+Mockup aprovado (`scripts/mockup-salao-batismos.mjs`). Entra pela aba 🏆 Ranking,
+numa pílula dourada que só aparece pra ele (`useSalao` em `sport.ts`). Três abas:
+🏆 Ranking dos clubes · 🖼️ A Parede · ❤️ Torcidas.
+
+**A descoberta que fez a feature caber num dia:** o palmarés já existia em
+`esc_results` (227 mil linhas — toda temporada terminada já era gravada). Não
+precisou guardar nada novo, só somar. E somar **por CLUBE juntando nome velho
+com nome novo**: sem isso o Xurupitas apareceria duas vezes (era Tokyo City
+Esperion) e o Leão da Estradinha perderia metade (era Império Samambaia).
+
+**Decisões dele:** sócio TAMBÉM entra no Salão (*"sócios tb entram no salão do
+batismo ok"*), com selo 🎫 próprio — sem vaga na pirâmide e sem nº de fundador,
+que é a regra do Futpoint (19/08).
+
+**Falta ele decidir:** (1) a aba ❤️ Torcidas escreve NOME de clube real, o que
+bate na regra dele mesmo (`coracao.ts`/`manto.ts`: *"só as CORES"*) — a tela já
+avisa isso dentro dela; (2) mostrar o primeiro nome do dono ("Daniel · Série D")
+— hoje não mostra, porque isso não existe no banco e eu não vou expor e-mail.
+
+## 🖋️ AUDITORIA DOS BATISMOS (30/08) — `npm run batismos`
+Um batismo nasce espalhado por SEIS lugares e é fácil um ficar pra trás. O
+guarda olha os seis e **falha** se um número de fundador ficar duplicado.
+
+**Consertado hoje:** o nº36 estava DUPLICADO — no código era do Lucas
+(Scorporila) e no banco era do Elton (La Bestia Negra). Como o jogo lê do
+código, o Elton (batismo desde 09/08, pago) não via selo NENHUM. O Diego: *"o
+fundador q tiver duplicado troque o número, n tem problema"*. Quem já ostenta
+ficou com o número (mexer bagunçaria post e print), o Elton virou **nº51** e o
+Adriano (SC Ferrari), que nunca teve, virou **nº52**. O banco também foi
+alinhado: estava parado em agosto, faltavam 15 fundadores. Agora: 45 fundadores,
+45 números distintos.
+
+**Ainda faltando arte:** Marreco FC não tem NADA (nem escudo nem mascote) ·
+Alfacehh não tem escudo próprio · 24 clubes sem manto medido (isso não é
+defeito: manto só existe quando o dono manda a camisa).
+
+
+## 📐 TELA: PC e celular passam a valer pro JOGO INTEIRO (30/08)
+Pedido dele: *"tem q fazer de uma forma q tudo q eu criar vai tb sendo feito
+se n é foda"*. É a lição do que deu errado em 05/08: o modo desktop foi feito
+tela por tela, com uma classe que a tela precisava PEDIR (`palco`) — e tudo que
+nasceu depois ficou de fora. **Medido em 30/08**: o online usava 384px de um
+monitor de 1440 (27% da tela); no iPad de 820 a coluna travava em 546.
+
+**A correção é de arquitetura, não de tela:** a regra de PC saiu da classe e foi
+pra RAIZ (`#root`, em `src/index.css`). Não existe mais nada pra lembrar — tela
+nova nasce coberta. Guardado por `npm run telas`.
+
+**Feito:**
+- regra de PC na raiz → alcança o online, Dinastia, Estádio, conta, Copa
+- régua do PC desceu de 1024 → 768: acabou a zona morta do iPad/celular deitado
+- `.col-tela` (384 no celular, 900 no PC) no lugar do `max-w-sm` travado do online
+- `.col-form` mantém FORMULÁRIO estreito (420px): campo de senha com 900 é ruim
+- `.tela-cheia` (`100vh` de reserva + `100dvh` de verdade) nos 5 lugares que
+  mediam a altura errado — é o que dava pulinho/pé cortado no celular
+- `viewport-fit=cover` + `env(safe-area-inset-bottom)` na barra de baixo:
+  no iPhone com entalhe o último item ficava sob a barrinha de gestos
+
+**🃏 A fita de cartas da home** (o Diego perguntou: *"mas as cartas estão
+centralizadas? Na home"* — não estavam). Ela é uma fita que ROLA de lado: no
+celular as 4 cartas somam 636px e não cabem em 390, então começa colada na
+esquerda e a pessoa arrasta. No monitor sobrava espaço e ela continuava
+encostada na esquerda. Agora usa `justify-content: safe center` — centraliza SÓ
+quando cabe (medido: 120px de sobra de cada lado no monitor, 80 e 80 no iPad) e
+volta sozinha pra esquerda quando não cabe, em vez de esconder a 1ª carta fora
+do alcance, que é o defeito clássico de centralizar coisa que rola. No celular
+não mudou nada: continua rolando, 1ª carta no lugar de sempre.
+
+**Conferido:** celular 390 e 360 ficaram PIXEL A PIXEL iguais (a única diferença
+no comparador é o brilho animado da carta, que se move sozinho). Nenhuma tela
+vaza pro lado em 360/390/820/1280/1440.
+
+**Mockup aprovado por ele em 30/08** (`node scripts/mockup-telas-pc.mjs`). Já
+no ar: lista de salas em 2 colunas no PC · barra de menu subindo pro topo no PC
+· carta com teto de 210px (parou de esticar) · piso de 11px pro texto de 7-9px.
+
+**Falta ainda:** ⚠️ o FUNDO DO ONLINE em creme (o 5º do mockup) — é o único que
+não dá pra conferir daqui, porque exige login na conta dele; ver a seção
+própria mais abaixo. E apagar `src/App.css`, que é lixo do template do Vite e
+não tem uma linha usada pelo jogo.
+
+
+## 📱 LINHA DO GRUPO DE WHATSAPP: só quem NÃO é Lenda vê (reconfirmado 30/08)
+Perguntei se os Lendas deviam passar a ver a linha também, com outro texto ("você
+já tem vaga no grupo"), já que o texto de hoje manda pra tela de pagar e não faz
+sentido pra quem já pagou. Resposta dele, seca: *"Só sem ser lenda q vê"*.
+**Fica como está — não propor de novo.** A linha já estava no ar pra todo jogador
+que não é Lenda, embaixo do 🔄 Atualizar lista, em Salas Abertas.
+
+## 🐦‍⬛ MANFRÉ FC: 2ª arte no mesmo dia — a gralha AZUL (30/08)
+O Diego: *"o usuário dono do Manfré quis a gralha na cor azul"*. A 1ª arte do
+dia tinha o bicho escuro; a 2ª tem ele AZUL. Trocados escudo, mascote e camisa,
+e o manto remedido na camisa nova: vermelho `#EC121C` + azul `#0135A3`.
+
+**Armadilha nova deste arquivo, e a saída (vale pra qualquer arte assim):** o
+fundo era um xadrez QUASE BRANCO (dois tons medidos: 246 e 254) pintado dentro
+da imagem. Duas ciladas de uma vez:
+1. **O branco do DESENHO some junto** se o corte for por cor — foi o que
+   aconteceu na 1ª tentativa: comeu as letras de "MANFRÉ FC", o número 10 e os
+   tênis. É o erro do Theuzudo (21/08) outra vez.
+   **Saída:** cortar pela GRADE, não pela cor. Achei o passo do xadrez
+   (26,45px, erro médio de 0,92) e só apago região que bate com a grade em
+   ≥85% do MIOLO (sem a casquinha de 2px, senão o serrilhado da borda dilui a
+   conta — o vão entre as pernas dava 0,79 e escapava). Fundo bate ~100%;
+   branco liso de desenho bate ~0,2 a 0,68, porque só calha nas casas do tom
+   igual. Nunca mais come letra branca.
+2. **HALO BRANCO invisível no branco.** O serrilhado do contorno preto contra o
+   fundo quase-branco deixa uma casquinha clara que NÃO aparece sobre branco e
+   aparece feia sobre creme/verde. **Saída:** raspar por cor só na BEIRADA
+   (4 passadas de 1px), porque dentro do desenho não existe branco encostado na
+   borda — a borda é sempre contorno preto ou o dourado do escudo.
+
+## 🐦‍⬛ MANFRÉ FC ganhou arte nova (30/08) — ✔️ NO AR
+O dono (danielmanfre5) mandou a arte, e ela APOSENTOU o escudo e a gralha que
+eram SVG desenhados à mão dentro do código (os de 09/08). Entregue: escudo
+`.webp` 291x360 · 28,5 KB · gralha `.webp` 239x440 · 26,9 KB (55 KB dos 75
+permitidos), manto vermelho `#FA050D` + azul `#0144E4` MEDIDOS na camisa, as 4
+formas do nome reservadas no banco (`Manfré`, `Manfré FC`, `Manfré EC` + as
+mesmas sem acento — só `Manfré FC` estava reservado antes) e a camisa do post em
+`scripts/kits/`.
+
+**Aprendizado de RECORTE que vale pra todo batismo daqui pra frente** (custou 4
+rodadas de bronca dele: *"cortado e desproporcional"*, *"toda defeituosa"*,
+*"cortado no suvaco"*):
+1. **Quadriculado PINTADO dentro do arquivo é armadilha dupla.** Além de virar
+   desenho, se a arte tiver parte SEMITRANSPARENTE (o rabo do corvo era), o
+   xadrez aparece POR DENTRO dela — não existe recorte certo, só escolher entre
+   comer o rabo ou deixar bloco preto. **Pedir arquivo com transparência DE
+   VERDADE, ou fundo chapado numa cor que não existe na arte.**
+2. **Foto de manequim com luz de estúdio NÃO recorta.** O brilho encostado na
+   roupa não tem borda, ele derrete no fundo: ou sobra borrão pendurado no
+   punho, ou come a manga. Arte DESENHADA com contorno preto recorta de
+   primeira. Se o dono mandar foto, pedir a versão desenhada.
+3. **Nunca separar peça com linha reta.** Eu cortei a camisa em `x > 1006` e
+   decepei 100 px da manga esquerda (a camisa saiu 493 de largura em vez de
+   635 — daí o "desproporcional"). Separar bloqueando a área das OUTRAS peças já
+   recortadas, nunca por coordenada chutada.
+4. **Medir o gradiente POR CANAL, não pelo brilho.** Manga vermelha sobre brilho
+   laranja: em brilho a diferença é 107 contra 87 (some), no canal vermelho é
+   100 (aparece). Foi o que tirou o serrilhado da manga.
+5. **Preto-no-preto pede FECHAR antes de ABRIR.** No desenho a manga encosta no
+   corpo por uma linha preta fina e o vão do sovaco também é escuro: o recorte
+   atravessava a costura e soltava a manga. Ordem que funciona: fecha (disco 4)
+   pra religar a costura → abre (disco 3) pra tirar farpa → raspa 1px pra jogar
+   a borda pra DENTRO do contorno preto → alisa com filtro de 2,5 px.
+6. **Conferir sobre CREME e sobre VERDE, e em ZOOM nas juntas** (sovaco, punho,
+   gola) — não só a peça inteira de longe.
+
+
+## 👑 SÓ O DONO MEXE NA LIGA — o banco agora concorda com a regra (29/08)
+Ele conferiu: *"lembrando que no Minhas Ligas apenas o dono que criou pode editar
+as regras, né?"*. Fui checar em vez de responder de cabeça, e a resposta é **sim** —
+mas achei uma brecha e fechei.
+
+**O que já estava certo:**
+- Na TELA, a pílula ⚙️ Ajustes só existe pra `souDono` (= `state.isHost`), e a coroa
+  não troca sozinha (`ELEICAO_AUTOMATICA = false`) — então o dono é sempre quem criou.
+- No BANCO, o RLS de `game_rooms` só deixa **UPDATE e DELETE pelo `host_id`**.
+
+**A brecha:** `liga_patch` é `SECURITY DEFINER` (passa por cima do RLS) e ainda
+aceitava `host_id = eu OR ligaAdmins ? eu`. Ou seja, o doc dizia desde 23/08 que
+`ligaAdmins` "não dá poder nenhum", mas dava: quem estivesse na lista de uma liga
+antiga trocaria nome, senha, horário e as regras do ranking pela chamada direta.
+Conferido antes de mexer: **1 liga no banco, 0 com adm** — então fechar não tirou
+poder de ninguém, só impede que volte. `p_admins` segue aceito e **ignorado**, pra
+cliente antigo não quebrar e ninguém plantar adm pela porta dos fundos.
+
+### ↩️ CORREÇÃO do que eu falei mais cedo hoje
+Eu disse que a vigia dos convidados *"apagava a liga inteira"*. **Exagerei.** O RLS
+(`rooms_delete` exige `host_id = auth.uid()`) recusaria o apagamento vindo de um
+convidado — a liga estava protegida. O que o convidado **conseguia** apagar era a
+tabela de vagas (`room_players` deixa o próprio jogador e o dono apagarem), ou seja,
+esvaziar a sala, não destruir a liga. A correção que subi continua valendo como
+segunda camada, mas o risco era **bem menor** do que eu pintei.
+
+## ⚖️ A PONTUAÇÃO DO RANK — fechada pelo Diego (29/08)
+Ele perguntou como o Rank e a Estante funcionavam; fui ler o código pra responder
+e achei uma **contradição antiga que ninguém tinha visto**: o padrão era POR TÍTULOS
+com a ordem liga > copa (liga vale mais), mas a tabela de pontos dizia copa 30 >
+liga 20 (copa vale mais). **A mesma liga trocava de líder só de mudar o modo.**
+
+**Decisão dele:** *"30 pts liga, 20 pts copa e −10 pts rebaixamento. Não podendo
+ficar com negativo… e não coloque artilheiro"*.
+
+| | Vale |
+|---|---|
+| 🏆 Título da liga | **+30** |
+| 🏆🇧🇷 Copa | **+20** |
+| 🔻 Rebaixamento | **−10** |
+| ⚽ Artilheiro | **não pontua** |
+
+- 🛟 **Nunca negativo**: quem caiu mais do que ganhou para no ZERO. Sem isso, dois
+  rebaixamentos e nenhum título deixavam o cara com −20, **atrás de quem nunca
+  jogou** — estado sem sentido.
+- ⚽ **Artilheiro continua sendo TROFÉU** — aparece na 🏅 Estante e na linha do
+  tempo. Só saiu da conta de pontos.
+- 🤝 **Empate em pontos desempata por TÍTULO** (liga, depois copa), não por ordem
+  alfabética como era: quem tem taça passa na frente de quem chegou lá só por copa.
+- 📍 **Vale nos DOIS modos** — o Rápido e o Minhas Ligas usam o mesmo padrão. Na
+  liga o dono pode mudar em ⚙️ Ajustes; no Rápido ninguém muda.
+- 📝 **As regras aparecem escritas** na própria aba 🏆 Rank, discretas:
+  *"⚖️ Por pontos · 🏆 título da liga +30 · 🏆🇧🇷 copa +20 · 🔻 rebaixamento −10 ·
+  nunca fica negativo. Só a galera pontua — bot não entra."*
+
+**Trava:** `npm run rank` (`scripts/checa-rank-liga.mjs`) monta 3 temporadas de
+mentira e confere a conta, a ordem, o piso do zero e que o artilheiro não pontua.
+
+## 🏁 REGRA FINAL DA LIGA (29/08) — **é esta que vale, apaga o resto da tarde**
+Depois de uma tarde inteira girando em círculo, ele fechou em três linhas:
+*"eu acho então que só vale com senha, é isso. E acho que poderia aparecer lá junto
+das salas apenas quando tiver rolando já. E pra quem tem a liga, ele vê em Minhas
+ligas"*.
+
+**As três regras, e nada mais:**
+1. 🔒 **Senha OBRIGATÓRIA.** Não existe mais liga sem senha.
+2. 👀 **Na lista de salas ela só aparece com a PARTIDA ROLANDO** — e mesmo assim
+   ninguém de fora entra (a lista já desabilita sala em jogo). É só o recado "tem
+   liga rolando agora", que é o que dá vontade. Sala de ESPERA da liga não aparece:
+   a turma dela chega pelo código.
+3. 🏆 **Quem é da liga acha ela em Minhas ligas.** É o caminho de casa.
+
+### 🗑️ O QUE MORREU JUNTO (e por que não deve voltar)
+Toda a pilha de regra desta tarde existia pra tapar o buraco de **uma coisa só**:
+fazer a liga servir pra ACHAR GENTE. Com a senha obrigatória, o problema deixou de
+existir — e o ⚡ Rápido já faz isso melhor, de graça e sem risco. Apagados:
+- a **janela do encontro** (1h antes → 6h depois);
+- **liga sem senha** e o aviso vermelho dela;
+- a ideia de **expirar / excluir em 30 min** se ninguém aparecer;
+- o tratamento especial de **"primeira vez criada"**;
+- a regra de **só aparecer com gente dentro**.
+
+⚠️ **A LIÇÃO** (pra nenhuma sessão futura repetir): eu passei a tarde tentando fazer
+UMA coisa servir pra DUAS opostas — a liga da turma (privada, permanente, acumula) e
+o cara sozinho procurando gente (visível agora, descartável). Toda regra que a gente
+inventava tapava um buraco e abria outro. **Quando o Diego cobrou que eu tomasse
+posição em vez de segui-lo**, a resposta apareceu na hora: são duas ferramentas, e a
+segunda já existe (⚡ Rápido). Palavras dele: *"você que tinha que ser o cara
+inteligente que daria as opções melhores… e não eu ficar te influenciando no caminho
+que eu quero"*. **Ele tem razão: dar a recomendação é meu trabalho, não dele.**
+
+### 🔒 BURACO FECHADO JUNTO: dono que esquece a PRÓPRIA senha
+Tornar a senha obrigatória criou uma armadilha que ninguém tinha visto: o dono que
+esquecesse a senha **nunca mais poria um amigo novo** na liga. Ele ENTRA sem senha
+(o host sempre entrou direto), mas ela ficaria trancada pros outros pra sempre — e a
+única saída seria **excluir a liga inteira**, perdendo a estante. Trava sem caminho
+de saída é o que o Diego mais odeia.
+**Feito:** 🔒 **Trocar a senha** no ✏️ Editar do card de Minhas ligas (em branco =
+mantém a atual). Ninguém consegue LER a senha — o banco só guarda o embaralhado —
+então o certo é poder TROCAR. `liga_patch` ganhou `p_pw` (recebe o HASH pronto,
+nunca a senha em texto; hash vazio é recusado, pra liga nunca ficar sem senha). A
+assinatura antiga foi derrubada de propósito: com parâmetro novo opcional o
+PostgREST recusaria por ambiguidade.
+
+### 📸 Como ficou, em uma figura
+`scripts/mockup-minhas-ligas.mjs` — os TRÊS lugares em que a liga aparece: o card no
+topo do lobby (dono × convidado), o ✏️ Editar sem entrar na sala, e o que um
+ESTRANHO vê na lista (só liga rolando, trancada, botão "Em jogo" apagado).
+
+### 🏷️ O NOME NA TELA: "Liga" virou "Minhas ligas" (cobrança dele, 29/08)
+*"No que os usuários veem coloque Minhas ligas. E na aba ao lado de Rápido também
+coloque escrito Minhas ligas e não Ligas"*. O nome foi fechado em 23/08, mas a tela
+tinha ficado pra trás. Trocado em tudo que o jogador lê:
+- a **aba do modo** (⚡ Rápido · 🏆 **Minhas ligas** · 🌐 Carreira · 🃏 Bafo);
+- o cabeçalho da sala de espera (era "🏆 Liga fechada · próximo jogo");
+- o título do modal da senha (era "🏆 Liga fechada" → "🏆 Liga da turma");
+- a mensagem de entrada barrada.
+
+**🐛 Dois achados no caminho, os dois de texto MENTINDO pro jogador:**
+1. **A home anunciava "🏆 Liga Fechada · só com amigos (em breve)"** — pra todo
+   mundo, no dia em que o modo LANÇOU. O botão agora leva pro online quando a liga
+   está aberta, e só volta a ser cinza se `LIGA_GERAL` for pra `false` de novo.
+2. **O card do Lenda, em Apoiar**, prometia *"já garante Carreira Online e Liga
+   Fechada (chegando)"*. A liga já chegou — virou *"a 🏆 Minhas Ligas (crie até 5
+   ligas da sua turma, com estante de troféus)"*, e só a Carreira Online segue como
+   "chegando". ↩️ **Isso também corrige o que eu disse errado pro Diego**: falei que
+   o grupo do WhatsApp não estava escrito no card do Lenda. Estava — *"o 📲 grupo
+   privado no WhatsApp com o criador"* já era listado ali. A pendência era só a liga.
+3. **`ligaFechada` quer dizer SEM BOTS**, não "trancada" — e a linha da sala escrevia
+   "🏆 liga fechada", o que dava a entender que era a senha. Virou "🚫 sem bots".
+
+### ✅ O que ficou de pé da tarde (isso vale)
+Teto de **5 ligas** por Lenda (jogar é ilimitado) · botão **✅ Guardar e sair** ·
+**liga nunca é apagada sozinha** (nem por vigia — o bug do convidado apagando a liga
+foi corrigido hoje) · ranking soma **todo mundo que já jogou** · o quadro
+📋 **Como a sua liga funciona** dentro da criação, agora com as regras finais.
+
+## 📅 A JANELA DO ENCONTRO — eu tinha quebrado o agendamento (29/08)
+*"Não tem sentido o cara entrar e ficar esperando 1h outra pessoa… a ideia era ele
+criar e a sala expirar, sei lá… se criar horário de 21h e não tiver ninguém em até
+1h a sala expira. Na verdade o host não iniciar em até 1h depois… sei lá."*
+
+Os três "sei lá" eram sintoma de um problema que **eu** criei. Ao fazer a liga
+aparecer **só quando tem gente dentro**, o DONO virou refém: pra a galera achar a
+sala, ele tinha que ficar de plantão dentro dela. **Marcar hora deixou de servir
+pra alguma coisa** — e a agenda é metade da razão de a liga existir.
+
+**A correção não é expirar, é a JANELA:** de **1h antes até 6h depois** da hora
+marcada, a liga aparece na lista **sozinha, mesmo VAZIA**. O horário volta a valer:
+a turma (ou, na liga sem senha, quem quiser) entra e espera lá, e o dono chega na
+hora dele. Se ninguém veio, ele chega, vê vazio e vai embora — **não perde a noite
+esperando**. Fora da janela vale a regra normal (só com gente dentro), então quem
+esticou até de madrugada não some da lista no meio do jogo.
+
+⚠️ **Isto NÃO é "expirar".** Sair da janela só tira a liga da LISTA. A liga continua
+inteira em 🏆 Minhas ligas, com estante e troféus, esperando o dono remarcar (o card
+já mostra "já passou" quando a data venceu). **Liga não se apaga sozinha, nunca** —
+regra que ele mesmo firmou e que eu segurei quando ele propôs a exclusão automática.
+
+📌 Curiosidade útil pra quem ler depois: isto é praticamente o `ligaNaAgenda`
+original (22/08), que eu tinha **apagado** algumas horas antes por achar que era
+código morto. Era a peça certa; o que faltava era a janela ter INÍCIO (1h antes),
+pra não aparecer no minuto da criação.
+
+## 🕘 "E se chegar a hora e ninguém entrar?" — a espera da liga agora FALA (29/08)
+Pergunta dele sobre a liga SEM senha: *"ele marcou hoje pra amanhã… e quando chegar
+no horário e se ninguém entrar?"*.
+
+**O que acontece de verdade** (conferido no código): o dono entra → tem 1 pessoa →
+a liga aparece na lista. Como é sem senha, qualquer um pode sentar — **é justamente
+essa a razão de existir a opção sem senha**. Se mesmo assim ninguém vier, ele **não
+consegue começar sozinho**: o pregão exige **2 pessoas** (`players.length >= 2`),
+mesmo com bots ligados — bot preenche a tabela, não substitui gente. Aí ele aperta
+✅ Guardar e sair e **nada é perdido**; remarca pelo card, sem entrar na sala.
+
+**O buraco era de INFORMAÇÃO:** nesse minuto o dono via só um botão cinza
+*"Aguardando… (1/2 mín)"* e mais nada — nenhuma pista do que fazer, nem de que a
+liga dele já estava visível pra galera. Era exatamente o minuto da dúvida dele.
+Agora a tela fala, com texto diferente por tipo:
+- **Sem senha:** *"🌍 Sua liga JÁ está na lista pra todo mundo agora, e como ela é
+  sem senha, qualquer um pode sentar. Chame os seus pelo código XXXX enquanto isso.
+  Se hoje não rolar, é só Guardar e sair: nada se perde e dá pra remarcar."*
+- **Com senha:** *"🔒 Só entra quem tem o código XXXX + a senha — manda pros seus."*
+
+## 🗺️ O FLUXO DA LIGA FICOU CLARO — e saíram 2 correções (29/08)
+Ele se perdeu, e a culpa era da explicação: *"ainda não ficou claro o fluxo
+completo… tô perdido"*. Virou figura (`scripts/mockup-liga-fluxo.mjs`): os 5
+momentos da vida de uma liga, e em cada um quem a vê na lista e o que os botões
+fazem. Desenhar isso revelou as duas coisas abaixo, **as duas aprovadas por ele**.
+
+**1. ✅ "Guardar e sair" no lugar de "Sair da sala"** (*"guardar e sair tá bom"*).
+Reclamação certa dele: era o MESMO botão com dois significados — *"na sala rápida
+quando qualquer um sai, ele sai de vez"*. Na rápida sair encerra a sala; na liga
+não acontece nada. Mesmo desenho pra coisas opostas assusta quem tem meses de
+estante pra perder — e medo de apertar botão é o que faz a pessoa deixar a aba
+aberta a noite toda. A linha de baixo virou: *"pode fechar o app à vontade: sua
+liga fica guardada… só 🗑️ Excluir apaga"*.
+
+**2. ⏰ A liga só entra na lista a partir de 1h ANTES da hora marcada.**
+Furo que eu tinha deixado passar e não tinha contado: no minuto da CRIAÇÃO o dono
+está dentro montando a sala, então ela já aparecia na lista — e, se ele deixou SEM
+senha, um estranho podia sentar numa cadeira **hoje**, e não no dia combinado.
+Palavras dele: *"criar a sala hoje pro dia de amanhã e ter que ficar dentro não tem
+sentido né… o cara vai dormir"*. Depois que a hora chega **não tem prazo de
+validade**: enquanto tiver gente dentro, aparece — então dá pra esticar a noite ou
+jogar de novo depois sem remarcar.
+⚠️ Efeito colateral aceito: quem quiser jogar ANTES da hora marcada precisa mudar
+o horário (dá pra fazer pelo card, sem entrar na sala). Pra liga com senha isso não
+muda nada, porque a turma entra pelo código.
+
+## 🚨 BUG GRAVE NA LIGA — O CONVIDADO APAGAVA A LIGA INTEIRA (achado e corrigido 29/08)
+Achado respondendo uma pergunta dele: *"como eu quero agendar? Quero ir lá agendar
+o amanhã e sair da sala, ou fechar a aba… minha liga foi criada e quero aparecer
+amanhã no horário"*. Fui conferir o que cada botão faz e caí nisto.
+
+**O que acontecia.** Existe uma vigia que roda no aparelho dos **CONVIDADOS** que
+estão esperando na sala: se o dono passa **3 minutos** sem dar sinal, ela apaga a
+sala do banco. Numa sala rápida está certíssimo — sala sem dono é lixo. **Numa
+LIGA era catástrofe:** o dono agenda pra amanhã e fecha a aba, um amigo fica
+esperando dentro, e **o aparelho DESSE AMIGO apagava a liga** — estante, ranking,
+todas as temporadas. Sem volta, e sem ninguém ter apertado nada.
+
+A saída MANUAL do dono já estava protegida desde 20/08 (`leaveRoom`). Faltava esta,
+que é pior justamente por ser automática e por acontecer no aparelho de outra
+pessoa. **Agora liga nunca é apagada por vigia** — o convidado só mostra o aviso de
+"o dono saiu" e vai embora. Liga só some quando o DONO aperta 🗑️ Excluir a liga.
+
+## 👥 RANKING DA LIGA: quem faltou não some mais (29/08)
+Levantei o problema e ele respondeu **"sim"** pra corrigir. O ranking só contava
+quem estava **dentro da sala naquele momento** (era o jeito de manter bot fora).
+Efeito: o amigo que faltasse numa quinta **sumia do ranking com os títulos dele**.
+Numa liga feita pra ACUMULAR, é o oposto do combinado — os títulos nunca se
+perderam no banco, mas na tela evaporavam, o que dá na mesma pra quem joga.
+
+**Feito:** `game_champions` ganhou a coluna **`humanos`** (jsonb) — cada temporada
+carimba quem era gente. O ranking agora soma **todo mundo que já jogou na liga**
+(união dos carimbos + a sala de hoje). Quem chega na 5ª temporada entra com zero,
+que é justo. Temporada antiga não tem carimbo e por isso **não perde nada**: ela só
+não acrescenta nomes.
+
+## ✅ RESPOSTA: quem não estava na liga pode entrar depois?
+**Pode, e deve continuar podendo** — não existe lista de membros, só o limite das 20
+cadeiras. Liga que não aceita gente nova morre quando um cara desiste.
+
+## ✅ RESPOSTA: e se criar sem senha e ninguém aparecer?
+**Não acontece nada de ruim, e não precisou de código nenhum.** O dono bate ponto a
+cada 30s enquanto está na sala; parou de bater, em **3 min** a liga some da lista
+sozinha. Liga abandonada é **invisível** pra todo mundo — só ocupa 1 das 5 vagas do
+próprio dono, e isso se regula sozinho (pra criar a sexta ele limpa a casa).
+
+## 🚀 MINHAS LIGAS ESTÁ NO AR PRA TODOS (29/08) — *"pode virar a chave"*
+`LIGA_GERAL = true` em `sport.ts`. Ficou em construção de 20 a 29/08 só nas contas
+dele. **Voltar a fechar = `false`** (o resto do código não muda).
+
+**As regras que subiram junto, todas decididas por ele:**
+- **Criar** é do 👑 Lenda (batismo entra sozinho — já nasce ouro). Teto de **5 ligas**
+  (era 2; subiu em 29/08 a pedido dele). **JOGAR não tem limite** — dá pra estar em
+  quantas ligas quiser; o teto conta só as que a pessoa CRIOU. Bateu 5, precisa
+  excluir uma pra criar outra. ⚠️ Teto SÓ do Minhas Ligas: sala rápida tem a conta
+  dela. Conta: 51 contas ouro × 5 = ~255 ligas no pior caso — o banco tem 468 salas
+  só de dois meses de rápido, então não pesa.
+- **Jogar** é de qualquer conta (`LIGA_SO_LENDA_ENTRA = false`), com código + senha.
+- 🔒 **Senha é RECOMENDADA, não obrigatória** (mudou em 29/08). Ele liberou a liga sem
+  senha — *"acredito que pode ter também, mas… deixe avisado quando for sem senha que
+  é algo mais difícil, porque a ideia é ser com amigos pra ter continuidade; caso
+  contrário o melhor indicado seria criar sala normal"*. Então, com o campo vazio,
+  sobe um aviso vermelho que **não bloqueia**, só conta a verdade antes: qualquer um
+  senta numa das 20 cadeiras (inclusive na vaga do amigo, no dia combinado) e **o que
+  ele ganhar fica na estante pra sempre — não existe desconvidar**. E aponta o caminho
+  certo pra quem só quer jogar com quem aparecer: a ⚡ sala Rápida, que não guarda nada.
+- 👀 **A liga APARECE na lista quando tem gente dentro** (regra final, 29/08). Vazia,
+  some. Duas ideias minhas caíram no caminho, e nas duas ele estava certo:
+  1. *"só quando o DONO estiver dentro"* → *"se ele marcar pra 23h e é de manhã, como
+     vai ficar o dia todo dentro da sala?"*. Regra furada, descartada.
+  2. *"liga com senha nunca aparece, porque frustra quem não pode entrar"* → ele quer
+     a frustração **de propósito**: *"deve aparecer sim pra todos terem vontade. Não
+     importa que se frustrem de ver e não conseguirem entrar — vai dar vontade de
+     pagar"*. É decisão de negócio dele; a minha objeção era de UX e perde.
+  Sobrou a regra simples, que resolve o medo do começo (*"ficar aparecendo salas e
+  mais salas sem uso"*): **tem gente dentro, aparece**. Sem relógio, sem exclusão
+  automática, sem ninguém preso na sala esperando. O `ligaNaAgenda` (que segurava a
+  liga VAZIA na lista até a hora marcada) foi **apagado**, não desligado.
+- 🚪 **A porta trancada EXPLICA.** Como a liga aparece pra quem não pode entrar, o
+  modal da senha, quando é liga, diz o que aquela sala é, manda pedir a senha pra
+  quem chamou e aponta os caminhos (⚡ Rápido agora, ou 👑 Lenda pra ter a sua).
+  Frustração sem caminho é só porta na cara — e não converte nada.
+- ❌ **NUNCA excluir liga automaticamente.** Ele chegou a propor (liga sem senha que
+  se apaga se ninguém aparecer na hora marcada) e eu argumentei contra: a liga **é** o
+  histórico dela, e ele mesmo disse que *"muita gente marca um dia e não pode
+  comparecer"* — a turma jogaria 6 temporadas e perderia tudo numa terça ruim. Isso é
+  o estado quebrado da prioridade #1. Ficou combinado que ninguém apaga liga a não ser
+  o dono, no botão. Se um dia precisar limpar: mostrar *"esta liga não joga há 3 meses
+  — quer excluir?"* e deixar a PESSOA apertar.
+- 🤖 Padrão **com bots**; sem bots é a escolha da turma (segue exclusivo da liga).
+
+**As regras aparecem ESCRITAS na criação** (*"deixe avisado que essa sala é somente
+com senha… avise as regras, deixe claro pode ter agendamento, a sala pode continuar
+aberta todos os dias"*): um quadro 📋 **Como a sua liga funciona** com as quatro —
+só com senha · o dia/hora é combinado, não trava · a sala fica de pé todos os dias e
+é sempre a mesma · só o dono abre o pregão. Sem isso o dono criaria achando que é
+sala normal e acharia que o jogo escondeu a liga dele.
+O toggle genérico "sala fechada" **some** no modo liga (senão pediria senha duas
+vezes — a mesma bronca do nome da liga aparecer em dois lugares), e no lugar fica
+uma linha dizendo a regra.
+
+**Quem não é Lenda** vê, no lugar do formulário, o convite: o que a liga é, o botão
+👑 QUERO SER LENDA (`?apoie=lenda`) e — colado embaixo — *"pra JOGAR você não precisa
+de nada"*. Antes ele preenchia tudo e só levava o não no final.
+
+## 📱 GRUPO DE QUEM JOGA ONLINE — embaixo da LISTA DE SALAS (29/08)
+Nasceu no mesmo minuto em que a liga virou privada, e é o que devolve o que a
+decisão tirou: quem não tem turma perdeu o jeito de achar gente. Palavras dele:
+*"e se o cara coitado não tinha ver amigos… no final das salas, perto do botão de
+sair, um corre do WhatsApp"*.
+
+⚠️ **NÃO É LINK DE GRUPO — é informação.** Ele foi explícito: *"é apenas informação
+pro cara tipo clicar pra pagar Lenda. E quando ele pagar, EU boto ele no grupo,
+porque o grupo já existe"*. Então o botão leva pra tela de Apoiar e **a entrada no
+grupo é manual, feita por ele, depois do pagamento**. Não existe URL de WhatsApp em
+lugar nenhum do código — e não deve passar a existir sem ele mandar.
+
+📍 **MUDOU DE LUGAR no mesmo dia** (ele, olhando a tela): *"sobre o WhatsApp, é pra
+aparecer aqui embaixo de atualizar lista, e de forma mais sutil. E não após acabar
+os jogos"*. Ele está certo por dois motivos, e os dois valem pra sempre:
+1. **O fim da partida é hora de comemorar** e votar o próximo jogo — não de ler
+   oferta. Anúncio ali atropela o momento do jogo, que é regra da casa.
+2. **Quem NÃO tem com quem jogar está na LISTA DE SALAS**, procurando. É lá que a
+   informação serve, e é lá que ela chega em quem precisa.
+
+Então hoje ele mora em `lobby.tsx`, embaixo do 🔄 Atualizar lista, e é **sutil de
+propósito**: sem caixa colorida, sem botão grande — uma linha no tom do rodapé com
+o link sublinhado. Quem precisa acha; quem não precisa nem repara.
+Mockups (do formato antigo, mantidos pelo histórico): `scripts/mockup-grupo-zap.mjs`
+e `scripts/mockup-grupo-como-fica.mjs`.
+
+👑 **QUEM JÁ É LENDA (e batismo) NÃO VÊ NADA DISTO** — correção dele minutos depois
+da entrega: *"pra quem já é lenda e batismo não precisa aparecer sobre o grupo de
+WhatsApp"*. No 1º corte eu tinha deixado uma caixa pro Lenda ("chame o Diego pra
+entrar"); ele cortou, e está certo: quem pagou já está no grupo, então a caixa só
+ocuparia espaço no fim da partida e ainda daria cara de propaganda pra sócio.
+Batismo entra na mesma linha sem código extra (nasce ouro, regra de 17/08).
+
+### ⏳ Pendente disto (precisa do Diego)
+1. **O grupo no card do Lenda, na tela de Apoiar.** É benefício novo e o mais fácil
+   de vender (resolve "não tenho com quem jogar") — mas hoje quem paga não fica
+   sabendo que ganhou. Não foi feito: mexe na tela de Apoiar, e tela nova = mockup e
+   OK antes.
+2. Se ele preferir o **verde do WhatsApp** no botão, é um valor só.
+
+## 🏆 MINHAS LIGAS — 1º TESTE REAL DO DIEGO (29/08)
+Ele pediu pra codar só pras contas dele (`diego.c.fonseca@gmail.com` e a 2ª) — e
+**já estava assim desde 22/08** (`LIGA_TESTERS` em `sport.ts`, `LIGA_GERAL=false`).
+Confirmado também que **criar = 👑 Lenda cobre batismo sozinho**: pela regra
+permanente, todo dono de batismo nasce ouro. Conferidos um a um: os 7 com manto
+estão ouro. Hoje seriam **51 contas** podendo criar, 2 ligas cada.
+
+### 🐛 3 bugs achados no caminho que NUNCA tinha rodado
+O banco entregou o motivo de nunca terem aparecido: **468 salas criadas no jogo
+inteiro e ZERO ligas**. O trecho de criar liga jamais tinha executado.
+
+1. **Botão girando pra sempre** — com dia ou hora em branco (dá pra apagar num
+   toque), `new Date('T21:00').toISOString()` ESTOURA; `createRoom` não tem
+   try/catch, então a função morria antes do `setLoading(false)`. Sem mensagem,
+   sem nada. Agora trava com aviso dizendo o que falta e por quê.
+2. 📅 **DATA EM UTC, NÃO NO RELÓGIO DO JOGADOR** (print dele às 22:32 do dia 28:
+   *"hoje é dia 28 aqui no Brasil e nem permite pôr 28"*). O `emDias` usava
+   `toISOString()`, que é UTC — no Brasil (UTC-3), **a partir das 21h o dia em UTC
+   já virou**. Então o `min` do campo bloqueava o dia de verdade e o padrão saía
+   um dia adiantado. **Toda noite, pra todo brasileiro.** Agora lê dia/mês/ano
+   LOCAIS. Medido com o fuso de SP: às 22:32 de 28/08, o `min` era 29/08 e virou
+   28/08. ⚠️ De dia o bug passava batido (às 14:05 já estava certo) — por isso
+   ninguém tinha visto.
+3. ⏰ **Hora padrão inútil** — era "amanhã às 21:00" fixo, então quem cria a liga
+   pra chamar a galera AGORA tinha que corrigir os dois campos. Agora nasce na
+   **próxima meia hora cheia de hoje** (criou 22:32 → vem hoje 23:00).
+
+### 🤖 Ordem dos bots (pedido dele, 29/08)
+*"coloque na frente com bots (padrão) e só ao lado direito o sem bots"*. Feito:
+**Com bots até 20** passa a ser o da esquerda **e o padrão** (`ligaComBots` nasce
+`true`); **Sem bots — só vocês** vai pra direita. A explicação de baixo diz
+"Padrão" no texto do com-bots.
+⚠️ Isto muda o que estava escrito antes no doc: "sem bots" era tratado como o
+jeito natural da liga (o diferencial exclusivo dela). Continua sendo exclusivo da
+liga — só deixou de ser o padrão da criação.
+
+## 🧊 "DO NADA TRAVA" NO RÁPIDO ONLINE — ✅ ACHADO E CORRIGIDO (28/08)
+Relato do Diego: *"estão falando que está travando o modo rápido online… o jogo
+está fluindo, benzão, aí do nada um dia vai e trava. Não consigo entender isso"*.
+
+**A causa (uma forma escrita no código, repetida em 4 lugares).** Todo prazo do
+online era vigiado por **UM `setTimeout` só** — um tiro único:
+```ts
+const t = setTimeout(() => dispatch({ type: 'FORCE_SEAL' }), prazo - Date.now() + 800)
+```
+Celular **PAUSA `setTimeout`** quando a aba sai da frente (olhar o zap, apagar a
+tela, atender ligação). Se esse tiro se perde, **ninguém atira de novo**: o
+efeito do React só rearma quando o PRAZO MUDA — e ele não muda, porque a sala
+está presa exatamente naquele prazo. O `visibilitychange` que já existia
+ressincroniza o ESTADO, mas o estado que chega é "envelope, prazo vencido há 3
+min" — e ninguém rearma o vigia. Trava permanente, só o F5 saía.
+
+**Por isso era do nada:** não depende de jogada nenhuma, depende de a galera dar
+uma saidinha da tela na hora errada. Impossível reproduzir de propósito.
+
+**Este mesmo bug já tinha sido diagnosticado e curado na REVELAÇÃO** (`AutoAdvance`
+em screens.tsx — comentário lá: *"a revelação ficava presa pra sempre, só um F5
+destravava"*). A cura nunca foi levada pros outros quatro prazos.
+
+**A correção.** Um `useVigiaPrazo` só (store.tsx), usado pelos 4 prazos do online
+— fechar o envelope · resolver o empate · a vez do monte · a cerimônia. Ele tem
+**três redes em vez de uma**: (1) o `setTimeout` de sempre; (2) uma conferida de
+**relógio de parede** a cada 4s (relógio não pausa); (3) disparo quando a pessoa
+**volta pra tela**. Disparo repetido é inofensivo de propósito — o reducer já
+reconfere o prazo antes de aplicar. Teto de 15 tentativas (~1 min) pra sala
+morta de verdade não ficar gastando Realtime à toa.
+
+**Segunda estrada pro comando de fechar.** O LANCE ganhou caminho reserva pelo
+banco em 23/08 (o rádio engole recado numa direção só), mas o *"acabou o tempo,
+fecha!"* continuou indo só pelo rádio — e é o pior recado pra se perder. Agora
+`FORCE_SEAL`/`FORCE_TIEBREAK` também vão por HTTPS (`room_acoes`), com relógio
+próprio de 6s pra um lance recente não engolir a vez do fechamento.
+
+**Trava pra não voltar:** `npm run vigias` (`scripts/checa-vigias-online.mjs`)
+acusa qualquer `setTimeout` armado em cima de um campo `*Deadline` e confere que
+o vigia bom continua sendo usado nos 4. Testado plantando o padrão ruim de
+propósito: ele aponta arquivo e linha. **Reverter: um commit.**
+
+### 📵 2ª parte: A TELA NÃO APAGA MAIS NA PARTIDA ONLINE (28/08)
+Depois do vigia, o Diego cravou a regra: *"se a pessoa deu uma saidinha, não
+importa — o jogo tem que continuar rolando do mesmo jeito. O tempo está
+contando, 30, 29, 28… e quando ele voltar já aconteceu tudo que tinha que
+acontecer. Mesma coisa vale pros outros usuários"*.
+
+**O que sobrava.** O jogo não roda num servidor — quem faz a sala andar é o
+APARELHO do dono. E o jeito mais comum de esse aparelho parar **não é a pessoa
+sair do app**: é ela deixar o celular parado olhando o leilão. Nos 45s do
+envelope ninguém encosta na tela, o celular acha que dormiu e **apaga sozinho**.
+Aparelho apagado = sala parada, com o dono ali na frente sem entender nada.
+
+**Feito:** trava de tela (Wake Lock) enquanto a partida online está aberta. Não
+gasta rede, não muda regra nenhuma; navegador sem o recurso ignora e segue igual.
+O navegador solta a trava quando a pessoa sai do app, então o jogo pede de novo
+quando ela volta.
+
+⚠️ **ERRO CORRIGIDO NA HORA (o Diego pegou):** eu tinha feito a trava por LISTA
+DE TELAS INCLUÍDAS (leilão, monte, cerimônia, contratos, temporada) — e esqueci
+**a VOTAÇÃO DE FIM DE JOGO** (`screen: 'end'`, o `OnlineEndVote`), justo uma tela
+onde a sala INTEIRA fica esperando todo mundo votar se continua ou não. Palavras
+dele: *"lembrando que quando acaba a partida, no final tem a votação pra eles
+votarem se continuam ou não"*.
+**Lição virou regra:** lista de incluídas erra por esquecimento, e esquecimento
+vira sala travada. Agora é lista de **EXCLUÍDAS** — tela nova nasce protegida, e
+só ficam de fora `intro`, `album` e `ranking` (laterais, ninguém espera ninguém
+e dá pra ficar 40 min ali). Se nascer tela nova de espera, ela já entra sozinha.
+
+### ✅ Como fica o cenário que o Diego descreveu
+- **Relógio**: sempre foi hora de verdade (não é contagem que pausa) — sai do
+  mesmo instante marcado pra sala inteira. Sair da tela nunca segurou o relógio.
+- **Dono deu uma saidinha e tem gente vendo**: o tempo zera, QUALQUER jogador
+  manda o "fecha!", e o aparelho do dono aplica assim que o recado chega —
+  receber recado não depende do cronômetro dele, então a sala anda sem ele estar
+  olhando. Era isso que o tiro único estragava.
+- **Dono volta**: se sobrou alguma coisa parada, resolve no ato (vigia + volta
+  pra tela). Pra quem voltou, o efeito é o que ele pediu: já aconteceu tudo.
+
+### 📊 3ª parte: O JOGO CONTA SOZINHO AS TRAVAS QUE SALVOU (28/08)
+Pergunta do Diego depois do conserto: *"só acho estranho que tava funcionando,
+aí agora você mexeu… será que ajudou ou não?"*. Justa — e sem medir, a resposta
+seria boca a boca de novo.
+
+Como funciona: quando o vigia precisa **INSISTIR** (2ª tentativa), é porque o 1º
+tiro se perdeu — ou seja, **aquela sala ia congelar e não congelou**. Só essa 2ª
+tentativa vira uma linha em `esc_travas_salvas` (fase · tentativa · era host ·
+sala). As outras 13 não entram, senão sala morta inflaria a conta.
+
+Tabela criada com a MESMA política do `site_visits`: qualquer um grava, **só o
+`diego.c.fonseca@gmail.com` lê**. Insert silencioso — se falhar, o jogo nem
+percebe.
+
+**Como ler (SQL no Supabase):**
+```sql
+select date_trunc('day', criado_at) dia, fase, count(*)
+from esc_travas_salvas group by 1,2 order by 1 desc;
+```
+- **Números aparecendo** = o bug era real e o conserto está pegando sala todo dia.
+- **Zero e ninguém reclamando** = ou não trava mais, ou nunca foi isso.
+- **Zero e AINDA reclamando** = a trava é outra coisa; volta a investigar (e aí o
+  caminho é pedir código da sala + horário e olhar o estado congelado no banco).
+
+⏳ **PENDENTE (precisa de mockup e OK do Diego):** um painelzinho no admin
+mostrando esse número, pra ele não depender de rodar SQL. Não foi feito porque
+é tela nova — regra dele: mockup antes.
+
+### ⚠️ O que este conserto NÃO resolve (e é de propósito)
+Sala **sem dono** continua parando — é a regra permanente do Diego (a coroa não
+troca sozinha, ninguém assume). Se o dono fecha o jogo e some, a sala espera e
+mostra a faixa vermelha. Isso é comportamento desejado, não trava.
+Sala de **stream/manual sem cronômetro** (`auctionSecs = 0`) também não tem
+prazo nenhum: quem fecha cada envelope é o botão do host, por escolha da sala.
+
+**E o caso que ainda depende do aparelho do dono:** se o celular dele dorme de
+verdade (bolso, app fechado pelo sistema), ele para de responder — e a sala
+espera, porque o dono é a autoridade. Com a trava de tela isso ficou raro, mas
+não é impossível. **A única cura de verdade seria o jogo rodar num SERVIDOR** (o
+pregão andaria sozinho com a sala inteira dormindo). É obra grande: hoje o motor
+do leilão mora no aparelho dos jogadores, e ele teria que ser portado pra fora
+com o cuidado de não mudar nenhum resultado. **PERGUNTAR AO DIEGO antes** — ele
+ainda não decidiu, e não é pra começar por conta.
 
 ## 🌎 NACIONALIDADE DA CARTA — ✅ CORRIGIDO (28/08)
 O Diego mandou print do **Lingard convocado pelo BRASIL** na Copa: *"absurdo,
@@ -11308,3 +12509,71 @@ que o jogador LÊ.
 - **Gonçalves** → ele avisou que "está errado, é de 1995". **Conferi e já estava
   certo**: `Gonçalves · Botafogo · 1995` (ZAG). Nada a fazer — registrando aqui pra
   ninguém "corrigir" de novo o que já está certo.
+
+## 🖋️ BATISMO Al Takahdao FC (01/09) — feito, e um buraco de rotina achado
+
+Batismo do `fontourajoao04` (R$69,90 = **Série A**, a lista que era "D" até 30/08).
+Decisão do Diego: **Marreco FC desceu pra Série B** (ocupando a vaga do bot
+`Serrano FC`) pra abrir o assento. Escolhi o Serrano FC porque era o único
+"Serra" que não é usado em outra lista — o `Nacional da Serra` também mora em
+`CLASSIC_CLUBS`.
+
+⚠️ **`docs/vagas-batismo.md` ESTÁ MENTINDO — não usar.** Ele diz que "Barcenite
+FC" e "Flamengo do Sertão" estão livres; os dois estão batizados (Barcenite é do
+`ricardopessoafreire`, e o Flamengo do Sertão virou São Luiz FC do
+`gabrielnegreirosamaral99`). Ele foi gerado por um script que sumiu e nunca foi
+refeito depois da troca A↔D. **Contar vaga sempre pelo `data.ts`**, nunca por
+esse doc — se eu tivesse seguido ele, a vaga era vendida duas vezes.
+
+**Não existe `OLD_NAME['Marreco FC'] = 'Serrano FC'`, de propósito**: o Marreco
+não foi renomeado, só mudou de divisão. Mapear faria uma carreira que tem OS
+DOIS desenhar o mesmo escudo em dois clubes da mesma tabela. (Diferente do caso
+Alfacehh, em que o clube realmente assumiu a identidade do assento.)
+
+**Carreira em andamento não muda**: a divisão de um bot num save vem do
+`placements` guardado; `cpuOrigDiv` é só fallback pra time sem colocação.
+
+### 🕳️ O buraco de rotina (a parte que interessa pras próximas sessões)
+O Diego perguntou *"já ativou tudo dele c/ benefícios?"*. O código estava
+completo, mas o **banco não**: faltavam `esc_socios` (sócio nº31, validade
+2099, manto, mascote, escudo, coração) e `esc_fundadores` (nº53). Nenhuma trava
+pega isso — `checa-batismos.mjs` roda offline e não fala com o banco.
+Gravado no `CLAUDE.md` como passo fixo do roteiro.
+
+**Pendência aberta:** fazer `npm run batismos` (ou um script novo) conferir
+também o BANCO — `esc_socios`, `esc_fundadores` e `esc_nomes_batismo` — e
+regenerar o `vagas-batismo.md` a partir do `data.ts`. Enquanto isso não existe,
+esses três passos dependem de alguém lembrar.
+
+**Texto do post:** o Diego cortou o "entrou no lugar do Marreco" — o post fala
+só que ele **chega na Série A**. Motivo: o Marreco continua no jogo e o dono
+dele é apoiador pagante; dizer "no lugar de" soa como se ele tivesse sumido.
+O comentário técnico fica no `data.ts` (memória do repo), com aviso de que no
+POST isso não se fala.
+
+## 📱 PESO DO JOGO: as 4 logos de patrocínio saíram do bundle (01/09) — ✅ NO AR
+Pedido do Diego: *"faça só a questão das logos… principalmente Rei das Tintas"*.
+As logos de patrocínio do estádio (Rei das Tintas, Max Joias, ERO, Vadico) eram
+**imagem em base64 colada dentro de `.ts`** — 533 KB que TODO jogador baixava
+no bundle, mesmo sem nunca abrir o estádio. Exatamente o que a regra de batismo
+proíbe; esses quatro tinham escapado.
+
+Viraram `src/escalacao/img/patro-*.webp` (Rei das Tintas 9,5 KB · Max Joias
+18,2 KB · ERO 2,6 KB · Vadico 4,2 KB), exportadas com o **mesmo nome** de antes
+— `estadio.tsx` e `screens.tsx` não mudaram uma linha. Regra ao exportar: altura
+120px (na tela é 34px), **nunca maior que o original** (o Vadico é 250×72 e
+ficou 250×72; ampliar logo borra).
+
+| | antes | depois |
+|---|---|---|
+| bundle | 3.666 KB | 3.211 KB |
+| **comprimido (o que o celular baixa)** | **1.268 KB** | **868 KB (−31%)** |
+
+Caiu mais do que os 533 KB porque base64 comprime mal. Conferido: logos idênticas
+na chapa branca do estádio; no bundle só sobrou `data:image` de biblioteca (QR do
+login, placeholder SVG) e o ERO de 2,6 KB que o Vite embute sozinho por ser
+pequeno — tudo inofensivo.
+
+**Reverter:** um commit (`git revert`) devolve os 4 arquivos com o base64.
+**Próximo passo, se ele quiser:** carregar a carreira sob demanda (hoje só 2
+telas são lazy) — muda a ordem de carga, precisa de teste no celular.

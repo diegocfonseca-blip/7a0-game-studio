@@ -8,7 +8,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { mancheteDecisao } from './eventos'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
 import type { DivTecnico } from './tecnicos'
@@ -569,7 +569,7 @@ import type { CareerTeam } from './data'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'
-import { logPlay, logVisit, heartbeat } from './analytics'
+import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 
 export const START_MONEY = 100
@@ -1602,6 +1602,29 @@ const DIVISIONS: Division[] = ['D', 'C', 'B', 'A'] // de baixo pra cima
 // um nível-base próprio, senão o campo fica fraco demais. Números validados em
 // simulação (2500 temporadas/divisão).
 const DIVISION_BASE: Record<Division, number> = { V: 58, D: 64, C: 70, B: 75, A: 82 } // V = várzea (nível peladão)
+// 👑 30/08 — A SÉRIE A VIROU A DIVISÃO DOS BATISMOS (é a antiga lista da "Série D",
+// a que o Diego cobra mais caro e a que joga o ONLINE RÁPIDO). Quem monta a
+// pirâmide de CPU numa carreira NOVA precisa de duas coisas:
+//  · `divsDeFundo` — as letras que saem direto da lista fixa do baralho. A letra
+//    'A' NUNCA entra aqui: ela é montada à parte, porque os clubes que o jogador
+//    escolheu como RIVAL saem dela e vêm jogar junto com ele. E a letra 'D' só
+//    entra quando tem Várzea — sem escada, a D é a liga dos próprios técnicos.
+//  · `eliteNaSerieA` — os clubes da elite que SOBRARAM (ninguém levou de rival)
+//    ficam na Série A; se faltar gente pra fechar 20 entram os extras e, por
+//    último, os clássicos da D. Assim a Série A nunca fica com menos de 20.
+// ⚠️ Isto NÃO mexe em carreira já começada: quem já jogou tem a colocação gravada
+// em `careerPlacements` e a pirâmide é montada por ela, não por estas listas.
+const divsDeFundo = (escada?: boolean): readonly ('B' | 'C' | 'D')[] => escada ? ['B', 'C', 'D'] : ['B', 'C']
+function eliteNaSerieA(managers: { teamName: string }[], pl: Record<string, string>): string[] {
+  const usados = new Set<string>([...managers.map(m => m.teamName), ...Object.keys(pl)])
+  const out: string[] = []
+  for (const t of [...TIMES_ELITE, ...EXTRA_D_TEAMS, ...DIVISION_TEAMS.D]) {
+    if (out.length >= 20) break
+    if (usados.has(t.team)) continue
+    usados.add(t.team); out.push(t.team)
+  }
+  return out
+}
 const ONLINE_BASE = 74
 // 🥅 VÁRZEA: o leilão é 70% foi profissional, então o time do humano nasce mais
 // FRACO (~71) que no normal (~76). A balança (fillerAdj) puxa os bots pra um alvo
@@ -1658,7 +1681,7 @@ export interface CareerSave {
 // nome do time); o que faltar completa com os primeiros da Série D.
 function initCareerRivals(count: number, chosen?: string[], humanTeam?: string): CareerRival[] {
   // 🪞 regra do clone: o robô homônimo do time do jogador não entra como rival
-  const pool = humanTeam ? tiraClones(DIVISION_TEAMS['D'], [humanTeam]) : DIVISION_TEAMS['D']
+  const pool = humanTeam ? tiraClones(TIMES_ELITE, [humanTeam]) : TIMES_ELITE
   const pickNames = (chosen && chosen.length > 0)
     ? [...chosen.filter(c => !humanTeam || !mesmoNomeTime(c, humanTeam)), ...pool.map(t => t.team).filter(t => !chosen.includes(t))].slice(0, count)
     : pool.slice(0, count).map(t => t.team)
@@ -2116,7 +2139,11 @@ function makeCareerManagers(teamName: string, formation: FormationKey, div: Divi
   const outrosRivais = tiraClones(otherRivalDefs, [teamName])
   const usedTeams = new Set(rivais.map(r => r.team))
   const fillerNeeded = LEAGUE_SIZE - 1 - rivais.length
-  const fillerDefs = tiraClones(DIVISION_TEAMS[div === 'V' ? 'D' : div], [teamName]).filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
+  // 👑 a LIGA DO JOGADOR (Várzea e a divisão de estreia) é preenchida com os clubes
+  // da ELITE — os mesmos de sempre, os que hoje se chamam Série A (eram "Série D"
+  // até 30/08). A letra da divisão continua valendo o que valia (força dos bots,
+  // prêmio, vagas de filial); só o NOME da série que esses clubes ocupam mudou.
+  const fillerDefs = tiraClones((div === 'V' || div === 'D' ? TIMES_ELITE : DIVISION_TEAMS[div]), [teamName]).filter(t => !usedTeams.has(t.team)).slice(0, fillerNeeded)
   const cpus: Manager[] = []
   const botPlans: BotPlan[] = []
   let id = 1
@@ -2957,7 +2984,7 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   // PRIMEIRO (viram os auction-rivals nomeados), depois o resto da D (sem repetir).
   // 🪞 regra do clone: tira da lista o robô com nome de humano da sala e, se a
   // conta não fechar, completa com reservas de outras divisões (sem clone também).
-  const poolBase = tiraClones(cpuNameOrder ?? DIVISION_TEAMS['D'], humanNames)
+  const poolBase = tiraClones(cpuNameOrder ?? TIMES_ELITE, humanNames)
   if (poolBase.length < totalCpus) {
     const reservas = tiraClones([...DIVISION_TEAMS['D'], ...DIVISION_TEAMS['C'], ...DIVISION_TEAMS['B'], ...DIVISION_TEAMS['A']], humanNames)
     for (const r of reservas) {
@@ -4029,7 +4056,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // carreira E partida rápida usam o MESMO elenco da Série D (lista única).
       // A diferença é só a pirâmide/save da carreira — a rápida é uma temporada
       // avulsa. Rivais = os escolhidos (carreira) ou os primeiros da D (rápida).
-      const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : tiraClones(DIVISION_TEAMS['D'], [action.teamName || 'Meu Time']).slice(0, action.rivals)
+      const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : tiraClones(TIMES_ELITE, [action.teamName || 'Meu Time']).slice(0, action.rivals)
       // na Série D todos os rivais começam com você — sem "auction-only".
       const { managers: soloManagers, botPlans: soloPlans } = makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', soloRivalDefs, [], rng)
       s.managers = soloManagers
@@ -4264,11 +4291,11 @@ export function reducer(state: EscState, action: Action): EscState {
       s.youIdx = 0
       const rivalCount = Math.max(0, Math.min(action.rivals, LEAGUE_SIZE - 1))
       // ordem dos nomes: rivais escolhidos primeiro (viram os auction-rivals), depois
-      // o resto da Série D sem repetir.
-      const chosen = (action.rivalTeams ?? []).map(tn => DIVISION_TEAMS['D'].find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
-      const rest = DIVISION_TEAMS['D'].filter(t => !chosen.some(c => c.team === t.team))
+      // o resto da ELITE (a 👑 Série A) sem repetir.
+      const chosen = (action.rivalTeams ?? []).map(tn => TIMES_ELITE.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
+      const rest = TIMES_ELITE.filter(t => !chosen.some(c => c.team === t.team))
       // 🌱 escada: os bots de preenchimento da sala usam os times de VÁRZEA (a sala
-      // é a divisão V) — os nomes da Série D ficam livres pro fundo profissional.
+      // é a divisão V) — os nomes da elite ficam livres pro fundo profissional.
       const nameOrder = escadaLiberada() ? [...chosen, ...VARZEA_TEAMS] : [...chosen, ...rest]
       const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivalCount, LEAGUE_SIZE, rng, nameOrder)
       // marca os rivais escolhidos (os auction-rivals, ids 1..rivalCount) como
@@ -4276,18 +4303,15 @@ export function reducer(state: EscState, action: Action): EscState {
       for (let i = 0; i < rivalCount; i++) { const m = managers[1 + i]; if (m && !m.isHuman) m.rival = true }
       s.managers = managers
       s.agenciaClubeId = managers[0]?.id ?? 0 // 🕴️ nasce apontando pro 1º clube (fundação); com 2º clube o dono pode trocar no toggle (SET_AGENCIA_CLUBE)
-      // colocação inicial: você e os rivais na Série D; A/B/C com os times fixos.
-      // 🌱 ESCADA (Fase 2): a sala inteira nasce na VÁRZEA (V) e a Série D vira
-      // divisão de fundo (times fixos da D − rivais escolhidos + extras, até 20).
+      // colocação inicial: você e os rivais na divisão de estreia; B/C/D com os
+      // times fixos do baralho e a 👑 SÉRIE A com os clubes da elite que ninguém
+      // levou de rival (+ extras, até fechar 20).
+      // 🌱 ESCADA (Fase 2): a sala inteira nasce na VÁRZEA (V).
       const pl: Record<string, string> = {}
       const divIni = s.escadaOn ? 'V' : 'D'
       for (const m of s.managers) pl[`m${m.id}`] = divIni
-      for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
-      if (s.escadaOn) {
-        const mgrNames = new Set(s.managers.map(m => m.teamName))
-        const dNames = [...DIVISION_TEAMS.D.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)].filter(nm => !mgrNames.has(nm)).slice(0, 20)
-        for (const nm of dNames) pl[nm] = 'D'
-      }
+      for (const d of divsDeFundo(s.escadaOn)) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
+      for (const nm of eliteNaSerieA(s.managers, pl)) pl[nm] = 'A'
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
@@ -4389,12 +4413,8 @@ export function reducer(state: EscState, action: Action): EscState {
       const plQ: Record<string, string> = {}
       const divIniQ = s.escadaOn ? 'V' : 'D'
       for (const m of s.managers) plQ[`m${m.id}`] = divIniQ
-      for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) plQ[t.team] = d
-      if (s.escadaOn) {
-        const nomesQ = new Set(s.managers.map(m => m.teamName))
-        const dNomesQ = [...DIVISION_TEAMS.D.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)].filter(nm => !nomesQ.has(nm)).slice(0, 20)
-        for (const nm of dNomesQ) plQ[nm] = 'D'
-      }
+      for (const d of divsDeFundo(s.escadaOn)) for (const t of DIVISION_TEAMS[d].slice(0, 20)) plQ[t.team] = d
+      for (const nm of eliteNaSerieA(s.managers, plQ)) plQ[nm] = 'A'
       s.careerPlacements = plQ
       s.careerDivision = divIniQ
       // 🧹 mesma faxina anti-herança da carreira nova (START): nada de save velho
@@ -4515,11 +4535,14 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       }
       if (action.career) {
-        // colocação da temporada 1: todos os técnicos na Série D; A/B/C com os
-        // times de CPU fixos. Compacto (só a divisão) — os elencos são derivados.
+        // colocação da temporada 1: todos os técnicos na divisão de estreia (D);
+        // B e C com os times de CPU fixos e a 👑 Série A com os clubes da elite
+        // que ninguém da sala está usando. Compacto (só a divisão) — os elencos
+        // são derivados.
         const pl: Record<string, string> = {}
         for (const m of s.managers) pl[`m${m.id}`] = 'D'
-        for (const d of ['A', 'B', 'C'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
+        for (const d of divsDeFundo(false)) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
+        for (const nm of eliteNaSerieA(s.managers, pl)) pl[nm] = 'A'
         s.careerPlacements = pl
         s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = [] // títulos (liga, Copa e Supercopa) começam do zero — e o RECIBO por temporada também
         s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
@@ -4556,11 +4579,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
       // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),
       // depois o resto da Série D. Rápido: pool embaralhado, sem rivais de leilão.
-      const careerChosen = (action.rivalTeams ?? []).map(tn => DIVISION_TEAMS['D'].find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
-      const careerRest = DIVISION_TEAMS['D'].filter(t => !careerChosen.some(c => c.team === t.team))
+      const careerChosen = (action.rivalTeams ?? []).map(tn => TIMES_ELITE.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
+      const careerRest = TIMES_ELITE.filter(t => !careerChosen.some(c => c.team === t.team))
       const namePool = action.career
         ? [...careerChosen, ...careerRest]
-        : [...shuffle([...DIVISION_TEAMS.D], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
+        : [...shuffle([...TIMES_ELITE], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
       const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, onlineRivalCount, onlineLeagueSize, rng, namePool)
       // ⚠️ NÃO marca os rivais como `rival` (diferente do offline): na tabela online
@@ -4874,7 +4897,7 @@ export function reducer(state: EscState, action: Action): EscState {
         if (you.teamName === action.team) return s
         if (s.careerRivals.some(r => r.team === action.team)) return s
         if (s.careerFilial?.team === action.team) return s
-        const divNow = s.careerPlacements?.[action.team] ?? (DIVISION_TEAMS['D'].some(t => t.team === action.team) ? 'D' : undefined)
+        const divNow = s.careerPlacements?.[action.team] ?? (TIMES_ELITE.some(t => t.team === action.team) ? 'D' : undefined)
         if (divNow !== 'D') return s
         const newId = Math.max(0, ...s.managers.map(m => m.id)) + 1
         const squad = ((s.cpuSquads?.[action.team] ?? []) as WonCard[]).map(c => ({ ...c })) // leva o elenco que o clube já tinha
@@ -6813,7 +6836,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // rivais salvos (saves antigos: recria na própria divisão como fallback)
       s.careerRivals = (sv.rivals && sv.rivals.length > 0)
         ? sv.rivals
-        : DIVISION_TEAMS[sv.division === 'V' ? 'D' : sv.division].slice(0, s.careerRivalCount).map(t => ({ team: t.team, name: t.name, division: sv.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
+        : (sv.division === 'V' ? TIMES_ELITE : DIVISION_TEAMS[sv.division]).slice(0, s.careerRivalCount).map(t => ({ team: t.team, name: t.name, division: sv.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       // 🪞 mesma trava do `migrateTeamNames` (bug dos dois "Neymarzetti", 24/08):
@@ -7631,6 +7654,67 @@ export async function removeCareerFromCloud(seed: number) {
   } catch { /* ignora */ }
 }
 
+// ⏰ VIGIA DE PRAZO QUE NÃO DORME (28/08 — o "do nada trava" do rápido online).
+//
+// O QUE ACONTECIA. Todo prazo do online (fechar o envelope, resolver o empate,
+// a vez do monte, a cerimônia) era vigiado por UM `setTimeout` só — um tiro
+// único. Só que celular PAUSA o `setTimeout` quando a aba sai da frente (olhar
+// o zap, apagar a tela, atender uma ligação). Se esse tiro se perde, ninguém
+// atira de novo: o efeito do React só rearma quando o PRAZO MUDA, e ele não
+// muda — a sala está justamente presa naquele prazo. Resultado: leilão parado
+// no "0s" pra todo mundo, e só o F5 destravava. É a explicação do "o jogo
+// estava fluindo e do nada travou": não depende de nada que dê pra reproduzir,
+// depende de todo mundo ter dado uma saidinha da tela na mesma hora.
+//
+// Esse MESMO bug já tinha sido diagnosticado e curado na REVELAÇÃO
+// (`AutoAdvance`, em screens.tsx: *"a revelação ficava presa pra sempre — só um
+// F5 destravava"*). A cura nunca foi levada pros outros quatro prazos. Este
+// vigia é aquela cura, agora num lugar só, usada pelos quatro.
+//
+// COMO CURA (três redes, não uma):
+//   1. o `setTimeout` de sempre (caminho feliz);
+//   2. uma CONFERIDA DE RELÓGIO a cada 4s — relógio de parede não pausa, então
+//      quando o aparelho volta a rodar a gente vê que o prazo já venceu;
+//   3. na hora em que a pessoa VOLTA pra tela do jogo (`visibilitychange`).
+// Disparar de novo é inofensivo de propósito: o reducer reconfere o prazo antes
+// de aplicar (`if (s.phaseDeadline && Date.now() < s.phaseDeadline) return s`),
+// então tiro repetido — de vários jogadores ao mesmo tempo, inclusive — não
+// sela nada duas vezes.
+//
+// POR QUE TEM TETO. Se a sala está morta de verdade (o dono fechou o jogo e
+// sumiu — que, pela regra do Diego, é pra PARAR mesmo), insistir pra sempre
+// seria rádio jogado fora e conta de Realtime subindo à toa. 15 tentativas em
+// ~1 min é folga de sobra pra atravessar uma reconexão, e para sozinho depois.
+const VIGIA_RETENTA_MS = 4_000
+const VIGIA_MAX_TENTATIVAS = 15
+
+function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, disparar: () => void, marca?: () => void) {
+  const fnRef = useRef(disparar)
+  const marcaRef = useRef(marca)
+  useEffect(() => { fnRef.current = disparar; marcaRef.current = marca })
+  useEffect(() => {
+    if (!ligado || !prazo) return
+    let tentativas = 0
+    const tenta = () => {
+      if (Date.now() < prazo) return               // ainda não venceu
+      if (tentativas >= VIGIA_MAX_TENTATIVAS) return
+      tentativas++
+      // 🧊 a 2ª tentativa é a NOTÍCIA: o 1º tiro se perdeu e esta sala ia
+      // congelar. Só ela é registrada — as outras 13 seriam sala morta.
+      if (tentativas === 2) marcaRef.current?.()
+      fnRef.current()
+    }
+    const t = setTimeout(tenta, Math.max(0, prazo - Date.now()) + 800)
+    const iv = setInterval(tenta, VIGIA_RETENTA_MS)
+    const onVis = () => { if (typeof document !== 'undefined' && !document.hidden) tenta() }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
+    return () => {
+      clearTimeout(t); clearInterval(iv)
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [ligado, prazo])
+}
+
 export function EscProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, INITIAL, init => loadSoloInProgress() ?? init)
   // salva a partida solo em andamento (e limpa quando volta pra home)
@@ -7784,6 +7868,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Gesto seu de verdade (criar sala, botão RETOMAR AQUI, reassunção após o
   // sumiço confirmado do host) entra com posse PLENA, sem espera.
   const acaoReservaTsRef = useRef(0)   // 📮 última escrita do lance no caminho reserva
+  const selaReservaTsRef = useRef(0)   // 📮 última escrita do "fecha o envelope" no caminho reserva
   const acoesVistasRef = useRef(0)     // 📮 último id de room_acoes que o host já aplicou
   const claimForcadoRef = useRef(true)
   const humildeAteRef = useRef(0)
@@ -7916,6 +8001,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
         const agora = Date.now()
         if (agora - acaoReservaTsRef.current > 5_000) {
           acaoReservaTsRef.current = agora
+          supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+        }
+      }
+      // 📮 A MESMA ESTRADA RESERVA PRO COMANDO DE FECHAR (28/08). O lance ganhou
+      // segunda estrada em 23/08, mas o "acabou o tempo, fecha!" continuou indo
+      // SÓ pelo rádio. É o pior recado pra se perder: sem ele o leilão para no
+      // 0s pra sala inteira, e insistir pelo rádio quebrado não adianta (foi a
+      // lição do reenvio de 4s). Vai por HTTPS também; o host lê de 3 em 3s e o
+      // reducer reconfere o prazo, então chegar pelas duas estradas não sela
+      // nada duas vezes. Relógio próprio (6s) pra um lance recente não engolir
+      // a vez do fechamento.
+      if ((action.type === 'FORCE_SEAL' || action.type === 'FORCE_TIEBREAK') && stateRef.current.roomId) {
+        const agora = Date.now()
+        if (agora - selaReservaTsRef.current > 6_000) {
+          selaReservaTsRef.current = agora
           supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
         }
       }
@@ -8102,6 +8202,59 @@ export function EscProvider({ children }: { children: ReactNode }) {
     lastStateSendRef.current = Date.now()
   }, [state])
 
+  // 📵 A TELA NÃO APAGA DURANTE A PARTIDA ONLINE (Diego 28/08: *"se a pessoa deu
+  // uma saidinha, não importa — o jogo tem que continuar rolando do mesmo jeito"*).
+  //
+  // Este é o buraco que sobrava depois do vigia de prazo. O jogo não roda num
+  // servidor: quem faz a sala andar é o APARELHO do dono. E o jeito mais comum
+  // de esse aparelho parar não é a pessoa sair do app — é ela **deixar o celular
+  // parado olhando o leilão**. Nos 45s do envelope ninguém encosta na tela, o
+  // celular acha que o dono dormiu e APAGA sozinho. Aparelho apagado = sala
+  // parada, com o dono ali na frente sem entender nada.
+  //
+  // A trava de tela (Wake Lock) resolve exatamente isso: enquanto a partida
+  // online está aberta na frente da pessoa, o celular não apaga sozinho. Não
+  // gasta rede, não muda regra nenhuma do jogo, e o próprio navegador solta a
+  // trava quando a pessoa sai do app (por isso a gente pede de novo quando ela
+  // volta). Navegador que não tem o recurso simplesmente ignora — nada quebra.
+  // ⚖️ ONDE VALE. Na 1ª tentativa eu LISTEI as telas que prendem (leilão, monte,
+  // cerimônia, contratos, temporada) — e ESQUECI A VOTAÇÃO DE FIM DE JOGO. O
+  // Diego pegou na hora: *"lembrando que quando acaba a partida, no final tem a
+  // votação pra eles votarem se continuam ou não"*. E ele está certo: ali a sala
+  // inteira fica esperando todo mundo votar, com o aparelho do host mandando.
+  //
+  // Lição: lista de INCLUÍDAS erra por esquecimento, e o esquecimento vira sala
+  // travada. Então virou lista de EXCLUÍDAS — tela nova nasce protegida, e só
+  // fica de fora o que comprovadamente não prende ninguém:
+  //   • intro  → nem está em partida;
+  //   • álbum e ranking → telas laterais, ninguém espera ninguém e a pessoa pode
+  //     ficar 40 min ali (aí sim seria bateria queimada à toa).
+  // Todo o resto — lobby, monte, leilão, cerimônia, contratos, temporada,
+  // Libertadores e o FIM DE JOGO com a votação — segura a tela acesa.
+  const telaQuePrende = state.screen !== 'intro' && state.screen !== 'album' && state.screen !== 'ranking'
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !telaQuePrende) return
+    type Trava = { release: () => Promise<void> }
+    const nav = navigator as unknown as { wakeLock?: { request: (t: 'screen') => Promise<Trava> } }
+    if (!nav.wakeLock) return // navegador sem o recurso: segue o jogo normal
+    let trava: Trava | null = null
+    let vivo = true
+    const pedir = () => {
+      if (!vivo || (typeof document !== 'undefined' && document.hidden)) return
+      nav.wakeLock!.request('screen').then(t => { if (vivo) trava = t; else t.release().catch(() => {}) }, () => { /* negado: sem drama */ })
+    }
+    pedir()
+    // o navegador SOLTA a trava sozinho quando a aba sai da frente — ao voltar,
+    // pede de novo, senão a segunda metade da partida já ficaria desprotegida.
+    const onVis = () => { if (typeof document !== 'undefined' && !document.hidden) pedir() }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
+    return () => {
+      vivo = false
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis)
+      trava?.release().catch(() => {})
+    }
+  }, [state.onlineMode, telaQuePrende]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // HEARTBEAT do host: rede de segurança contra travas. Se UMA mensagem do host se
   // perde num MOMENTO PARADO (sem novas jogadas), o convidado ficaria preso no
   // "Enviando…" — o heartbeat reemite o estado e cura. ANTES: reemitia o estado
@@ -8209,7 +8362,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
           for (const r of rows) {
             acoesVistasRef.current = Math.max(acoesVistasRef.current, r.id)
             const a = r.payload
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK')) rawDispatch(a)
+            // 📮 os 4 recados que travam a sala quando somem: os dois lances e os
+            // dois "acabou o tempo, fecha". O reducer reconfere prazo e duplicata,
+            // então aplicar de novo o que já chegou pelo rádio não muda nada.
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
@@ -8274,15 +8430,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // se dependesse só do host, o celular dele apagar a tela travava a sala
   // inteira pra sempre. O reducer reconfirma o prazo antes de aplicar, então
   // disparos duplicados de vários clientes são inofensivos.
-  useEffect(() => {
-    if (state.onlineMode !== 'online') return
-    if (state.screen !== 'monte' || !state.monteDeadline) return
-    const cur = state.monteOrder[state.monteIdx]
-    const m = state.managers.find(x => x.id === cur)
-    if (!m || !m.isHuman) return
-    const t = setTimeout(() => dispatch({ type: 'MONTE_TIMEOUT' }), Math.max(0, state.monteDeadline - Date.now()) + 300)
-    return () => clearTimeout(t)
-  }, [state.monteDeadline, state.screen, state.monteIdx, state.onlineMode, state.managers, state.monteOrder, dispatch])
+  const monteHumano = state.onlineMode === 'online' && state.screen === 'monte'
+    && !!state.managers.find(x => x.id === state.monteOrder[state.monteIdx])?.isHuman
+  useVigiaPrazo(monteHumano, state.monteDeadline, () => dispatch({ type: 'MONTE_TIMEOUT' }),
+    () => logTravaSalva('monte', 2, stateRef.current.roomId, stateRef.current.isHost))
 
   // 🤝🆘 PARCEIRO QUE CAIU DE VERDADE — liberação automática (relato do Diego,
   // 08/08: "caiu quem era responsável pelo meio e pelo monte e o jogo ficou
@@ -8321,30 +8472,33 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Cronômetro da cerimônia: quando os 45s pra olhar os times acabam, começa
   // o campeonato sozinho. Vale solo e online; no online qualquer cliente pode
   // disparar (o guest roteia pro host) e o reducer reconfirma a tela.
-  useEffect(() => {
-    if (state.screen !== 'cerimonia' || !state.cerimoniaDeadline) return
-    const t = setTimeout(() => dispatch({ type: 'FINISH_CEREMONY' }), Math.max(0, state.cerimoniaDeadline - Date.now()) + 200)
-    return () => clearTimeout(t)
-  }, [state.screen, state.cerimoniaDeadline, dispatch])
+  useVigiaPrazo(
+    state.screen === 'cerimonia',
+    state.cerimoniaDeadline,
+    () => dispatch({ type: 'FINISH_CEREMONY' }),
+    () => { if (stateRef.current.onlineMode === 'online') logTravaSalva('cerimonia', 2, stateRef.current.roomId, stateRef.current.isHost) },
+  )
 
   // Vigia do leilão: mesmo princípio — qualquer cliente conectado pode forçar
   // o selamento quando o prazo do envelope estoura, não só o host.
-  useEffect(() => {
-    if (state.onlineMode !== 'online') return
-    if (state.phase !== 'envelope' && state.phase !== 'resq_envelope') return
-    if (!state.phaseDeadline) return
-    const t = setTimeout(() => dispatch({ type: 'FORCE_SEAL' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
-    return () => clearTimeout(t)
-  }, [state.phaseDeadline, state.phase, state.onlineMode, dispatch])
+  // ⏰ usa o `useVigiaPrazo` (tiro + conferida de relógio + volta pra tela): com
+  // um `setTimeout` sozinho, o celular que sai da frente engolia o único tiro e
+  // o leilão ficava parado no 0s pra sala inteira. Ver o comentário do vigia.
+  useVigiaPrazo(
+    state.onlineMode === 'online' && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
+    state.phaseDeadline,
+    () => dispatch({ type: 'FORCE_SEAL' }),
+    () => logTravaSalva('envelope', 2, stateRef.current.roomId, stateRef.current.isHost),
+  )
 
   // Vigia do desempate: se um dos empatados sumir (AFK), o prazo estoura e
   // qualquer cliente força a resolução — quem não re-lançou não cobre.
-  useEffect(() => {
-    if (state.onlineMode !== 'online') return
-    if (state.phase !== 'tiebreak' || !state.phaseDeadline) return
-    const t = setTimeout(() => dispatch({ type: 'FORCE_TIEBREAK' }), Math.max(0, state.phaseDeadline - Date.now()) + 800)
-    return () => clearTimeout(t)
-  }, [state.phaseDeadline, state.phase, state.tiebreakIdx, state.onlineMode, dispatch])
+  useVigiaPrazo(
+    state.onlineMode === 'online' && state.phase === 'tiebreak',
+    state.phaseDeadline,
+    () => dispatch({ type: 'FORCE_TIEBREAK' }),
+    () => logTravaSalva('desempate', 2, stateRef.current.roomId, stateRef.current.isHost),
+  )
 
   // 🛟 AUTO-CURA DE IDENTIDADE (online): depois de um "jogar de novo"/reconexão o
   // índice local ("quem sou eu") pode DESLIZAR — você passa a controlar o assento
@@ -8649,7 +8803,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
         const { data } = await supabase.from('game_rooms').select('game_state').eq('id', state.roomId!).maybeSingle()
         const gs = (data?.game_state ?? {}) as Record<string, unknown>
         const guarda: Record<string, unknown> = {}
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins']) {
+        // 🌍 `mundoNaLiga` entra na lista (01/09): é a marca de "esta sala joga a
+        // Copa do Mundo quando a liga acabar". Ela nasce na criação e o jogo nunca
+        // toca — exatamente o caso que esta guarda existe pra proteger.
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga']) {
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda

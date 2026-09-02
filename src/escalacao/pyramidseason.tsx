@@ -8,7 +8,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
@@ -260,9 +260,10 @@ function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | '
   const reservas = EXTRA_D_TEAMS.map(t => t.team).reverse()
   const usadas = new Set<string>()
   for (const d of (comVarzea ? ['A', 'B', 'C', 'D'] as const : ['A', 'B', 'C'] as const)) {
-    // na D (escada), rivais escolhidos "ocupam" nomes da lista — completa com os extras
-    const base = d === 'D'
-      ? [...DIVISION_TEAMS.D.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)]
+    // na 👑 A (a divisão dos batismos, ex-"D"), os rivais escolhidos pelo jogador
+    // "ocupam" nomes da lista e vêm jogar com ele — completa com os extras
+    const base = d === 'A'
+      ? [...TIMES_ELITE.map(t => t.team), ...EXTRA_D_TEAMS.map(t => t.team)]
       : DIVISION_TEAMS[d].map(t => t.team)
     const names: string[] = []
     const pega = (lista: string[]) => {
@@ -280,7 +281,8 @@ function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | '
   return map
 }
 // divisão de origem de um time de CPU (temporada 1) — usada como fallback
-const cpuOrigDiv = (name: string): Div => DIVISION_TEAMS.A.some(t => t.team === name) ? 'A' : DIVISION_TEAMS.B.some(t => t.team === name) ? 'B' : DIVISION_TEAMS.C.some(t => t.team === name) ? 'C' : DIVISION_TEAMS.D.some(t => t.team === name) || EXTRA_D_TEAMS.some(t => t.team === name) ? 'D' : 'C'
+// (os EXTRAS completam a 👑 Série A desde 30/08 — antes completavam a D)
+const cpuOrigDiv = (name: string): Div => DIVISION_TEAMS.A.some(t => t.team === name) || EXTRA_D_TEAMS.some(t => t.team === name) ? 'A' : DIVISION_TEAMS.B.some(t => t.team === name) ? 'B' : DIVISION_TEAMS.C.some(t => t.team === name) ? 'C' : DIVISION_TEAMS.D.some(t => t.team === name) ? 'D' : 'C'
 // chave estável de um time: técnico = m<id>; CPU = nome
 export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? `m${t.teamId}` : t.name
 
@@ -6275,7 +6277,7 @@ export function PyramidSeasonScreen() {
   // junto com o conteúdo, que é como era antes da mudança.
   const grudaOk = subGrudadas && !sagrado
   return (
-    <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
+    <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
@@ -7652,7 +7654,7 @@ export function ReserveListScreen() {
   // leilão). O host já avança sozinho pro leilão quando o tempo zera (efeito
   // acima), então ninguém fica preso aqui.
   if (!mgr) return (
-    <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontSize: 40 }}>📋</p>
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>Preparando o leilão de reservas…</p>
@@ -7664,7 +7666,7 @@ export function ReserveListScreen() {
   const mostraPills = quinzeRL && state.onlineMode !== 'online' && !state.reserveListMesmo
   const nAliciados = (state.aliciarTecnicos?.length ?? 0) + (state.aliciarJogadores?.length ?? 0)
   return (
-    <div className="palco" style={{ minHeight: '100vh', background: '#F4ECD6', color: INK }}>
+    <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK }}>
       <div className="max-w-xl mx-auto" style={{ padding: mostraPills ? '16px 14px 112px' : '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>{state.reserveListMesmo ? '📝 CONTRATOS · MESMO TIME' : abaLeilao === 'aliciar' && mostraPills ? '🕵️ SONDAR PRO LEILÃO' : '📋 LISTAR PRA LEILÃO'} · TEMP. {state.seasonNo}</span>

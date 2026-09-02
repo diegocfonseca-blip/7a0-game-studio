@@ -14,6 +14,8 @@ import { supabase } from '../lib/supabase'
 import { stripEmoji } from './apoio'
 import { resilientWrite } from './pending'
 import { useCanCareerOnline } from './admin'
+import { useLigaLiberada } from './sport'
+import { useEsc } from './store'
 import { CollectibleCard } from './screens'
 import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_BOTH } from './data'
 
@@ -263,13 +265,28 @@ export function CareerOnlineButton() {
   )
 }
 
-// Liga Fechada: liga só com amigos (sem bot). Ainda não abriu — fica como
-// "em breve" na home, no mesmo estilo do Carreira Online.
+// 🏆 MINHAS LIGAS — este botão era o "em breve" da home, no estilo do Carreira
+// Online. Em 29/08 o modo LANÇOU pra todo mundo, e a home continuou anunciando ele
+// como "chegando" — ou seja, o jogo mentindo pra quem já podia usar. Agora ele
+// APONTA pro lugar certo (o online, onde o modo mora, ao lado do ⚡ Rápido) e só
+// volta a ser cinza se a Liga for fechada de novo (`LIGA_GERAL = false`).
+// 🏷️ E o nome é MINHAS LIGAS, fechado com o Diego em 23/08 — "Liga Fechada" morreu
+// como nome de tela e ficou só como conversa interna.
 export function LigaFechadaButton() {
+  const liberada = useLigaLiberada()
+  const { dispatch } = useEsc()
+  if (!liberada) {
+    return (
+      <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
+        🏆 Minhas Ligas · só com amigos <span style={{ opacity: 0.85 }}>(em breve)</span>
+      </div>
+    )
+  }
   return (
-    <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
-      🏆 Liga Fechada · só com amigos <span style={{ opacity: 0.85 }}>(em breve)</span>
-    </div>
+    <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
+      style={{ width: '100%', boxSizing: 'border-box', background: '#FFF4CF', color: '#7a4d00', border: '2px solid #0C0C0C', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'pointer' }}>
+      🏆 Minhas Ligas · a sala da sua turma que não acaba
+    </button>
   )
 }
 

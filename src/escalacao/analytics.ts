@@ -87,3 +87,29 @@ export async function heartbeat(mode: 'cpu' | 'online' | 'career', displayName: 
     })
   } catch { /* silencioso */ }
 }
+
+// 🧊 TRAVA SALVA — o jogo contando sozinho quantas salas ELE resgatou.
+//
+// Pergunta do Diego (28/08), depois do conserto do "do nada trava": *"será que
+// ajudou ou não?"*. Sem isto a resposta é boca a boca. Com isto tem número.
+//
+// COMO FUNCIONA. O vigia de prazo (`useVigiaPrazo`, em store.tsx) dispara o
+// "acabou o tempo, fecha!". Se o 1º tiro dá certo, ninguém registra nada — é o
+// dia normal. Se ele precisa INSISTIR, é porque o primeiro se perdeu (o celular
+// pausou o cronômetro em 2º plano): **essa sala ia congelar e não congelou**.
+// Cada linha aqui é uma trava que o conserto evitou.
+//
+// Registra SÓ a 2ª tentativa (`tentativa === 2`), não as 15 — senão uma sala
+// morta escreveria 14 linhas e inflaria a conta. Insert puro e silencioso: se
+// falhar, o jogo nem percebe.
+export async function logTravaSalva(fase: string, tentativa: number, roomId: string | undefined, eraHost: boolean) {
+  try {
+    await supabase.from('esc_travas_salvas').insert({
+      room_id: roomId ?? null,
+      fase,
+      tentativa,
+      era_host: eraHost,
+      session_id: sessionId(),
+    })
+  } catch { /* silencioso — medição nunca atrapalha o jogo */ }
+}

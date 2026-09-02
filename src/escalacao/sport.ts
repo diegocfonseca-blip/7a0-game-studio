@@ -314,10 +314,13 @@ export function useSalaElencoLiberada(): boolean {
 // A liga da turma: horário marcado, sempre a MESMA sala (é o que faz o troféu
 // acumular), só entra quem é 👑 Lenda ou dono de clube batizado, e o dono manda
 // nela (arruma troféu, escreve a regra do ranking).
-// 🔒 EM CONSTRUÇÃO (20/08): só a conta do Diego abre — ordem dele, *"quando
-// terminar deixe também só pra mim"*. Pra todo mundo a aba aparece APAGADA com
-// "em breve", igual a Carreira e o Bafo. Pra liberar geral: LIGA_GERAL = true.
-const LIGA_GERAL = false
+// 🚀 LIBERADO PRA TODOS (29/08 — *"pode virar a chave"*). Ficou em construção de
+// 20 a 29/08, só nas contas do Diego. Regras que subiram junto, decididas por ele:
+//   • CRIAR é do 👑 Lenda (e batismo, que já nasce ouro) — teto de 2 ligas;
+//   • JOGAR é de qualquer conta, com o código + a senha;
+//   • a liga é SEMPRE privada: senha obrigatória e fora da lista de salas abertas.
+// Voltar a fechar, se precisar: LIGA_GERAL = false (o resto do código não muda).
+const LIGA_GERAL = true
 // 🧪 A 2ª conta do Diego entra aqui pra ele testar a Liga com DOIS usuários ao
 // mesmo tempo (22/08): *"vou testar esse usuário c o diego.c.fonseca@gmail.com q
 // criou uma sala agora. Aí já quero ver como ele vê tb"*. Repare: ela está SÓ
@@ -333,6 +336,108 @@ function applyLigaUnlock(email?: string | null): void {
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
 export function ligaLiberada(): boolean { return ligaOk }
+
+// ─── 🔨 CRIAR SALA v2 — "1 decisão + o botão" ────────────────────────────────
+// Proposta de 29/08, depois do Diego perguntar *"se você pudesse reformular toda a
+// área de criar sala, o que você faria?"*. Diagnóstico medido: a tela pedia 11
+// decisões antes de deixar a pessoa jogar. A v2 põe o MODO em cartões, sobe o
+// botão pro alto e joga os outros 10 num ⚙️ Ajustes fechado — com uma linha
+// dizendo o que está valendo, pra não virar caixa-preta.
+// 🚀 LIBERADA PRA TODOS (29/08 — *"pode codar e publicar agora essa nova forma de
+// visualização"*), depois de ele testar e mandar 5 rodadas de acerto: o botão só no
+// fim, as configurações já abertas, o modo sem repetir, a linha do resumo fora,
+// cada modo explicando o que é, e Carreira/Bafo com selo EM BREVE.
+// A tela ANTIGA continua inteira no código: voltar atrás é `false` aqui, sem
+// cicatriz nenhuma.
+const CRIAR2_GERAL = true
+const CRIAR2_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+let criar2Ok = CRIAR2_GERAL
+function applyCriar2(email?: string | null): void {
+  const u = CRIAR2_GERAL || (!!email && CRIAR2_TESTERS.has(email.toLowerCase()))
+  if (u === criar2Ok) return
+  criar2Ok = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+// ─── 👁️ VER COMO JOGADOR COMUM ──────────────────────────────────────────────
+// Pedido do Diego (29/08): *"code pra mim também como fica o modal do WhatsApp no
+// final da sala… só pra eu ver como fica pra quem NÃO é Lenda"*.
+//
+// O problema é permanente e vai voltar sempre: ele é 👑 ouro, então TODA tela que
+// existe só pra quem não é Lenda fica invisível justamente pra quem precisa
+// aprovar o desenho. Em vez de resolver caso a caso, isto é o interruptor geral:
+// com ele ligado, as telas de jogador comum aparecem pra ele — sempre marcadas
+// como 👁️ prévia, pra ele nunca confundir com o que os outros estão vendo.
+// ⚠️ É SÓ VISUAL. Não muda benefício, não libera nada, não mexe em regra nenhuma.
+const PREVIEW_COMUM_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+let previewComumOk = false
+function applyPreviewComum(email?: string | null): void {
+  const u = !!email && PREVIEW_COMUM_TESTERS.has(email.toLowerCase())
+  if (u === previewComumOk) return
+  previewComumOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function usePreviewComum(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return previewComumOk
+}
+
+// ─── 🏛️ SALÃO DOS BATISMOS (30/08) — em obra, só o Diego vê ─────────────────
+// Ele pediu: *"gostei do salão dos batismos vamos fazer e codar só p mim"*.
+// Enquanto está fechado, o botão nem existe pra mais ninguém: quem não está
+// nesta lista não vê a pílula no Ranking e não consegue abrir a tela.
+// Pra soltar pra geral, é trocar `SALAO_GERAL` pra true — a lista some do
+// caminho e vira só uma linha de história.
+const SALAO_GERAL = false
+const SALAO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+let salaoOk = false
+function applySalao(email?: string | null): void {
+  const u = SALAO_GERAL || (!!email && SALAO_TESTERS.has(email.toLowerCase()))
+  if (u === salaoOk) return
+  salaoOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useSalao(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return salaoOk
+}
+
+// ─── 🌍 COPA DO MUNDO ONLINE — em construção, só a conta do Diego ────────────
+// Pedido dele (31/08): *"faça a copa do mundo online, pegando o que já existe no
+// modo carreira"*. A sala nova é `mode: 'mundo'` e ela NÃO passa pelo motor do
+// leilão: é o mesmo torneio da carreira (`copa-mundo.tsx`), que já é uma função
+// pura e semeada — todo mundo na sala roda a MESMA semente e vê a MESMA Copa,
+// sem sincronizar um jogo sequer no meio do caminho.
+// 🔓 LIBERADO GERAL no mesmo dia (31/08, ordem dele: *"code p geral já tb"*).
+// Nasceu fechado por conta e ficou fechado por umas horas. A lista abaixo virou
+// o plano B: pra voltar ao teste fechado é `MUNDO_GERAL = false` e ela reassume.
+// ⚠️ LEIA O VALOR, NÃO O COMENTÁRIO.
+// 🛡️ Por que dava pra soltar rápido sem medo: a Copa é um TIPO DE SALA NOVO e
+// não encosta em nenhum modo que já existia — nem no leilão, nem em assento, nem
+// no reducer. O pior caso é a Copa em si dar problema pra quem escolher jogá-la;
+// o futebol de sempre segue exatamente como estava.
+const MUNDO_GERAL = true
+const MUNDO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+let mundoOk = MUNDO_GERAL
+function applyMundo(email?: string | null): void {
+  const u = MUNDO_GERAL || (!!email && MUNDO_TESTERS.has(email.toLowerCase()))
+  if (u === mundoOk) return
+  mundoOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function mundoLiberado(): boolean { return mundoOk }
+export function useMundoLiberado(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return mundoOk
+}
+
+export function useCriarSala2(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return criar2Ok
+}
 export function useLigaLiberada(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
@@ -557,8 +662,8 @@ export function useSubAbasGrudadas(): boolean {
   return pilulasOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email) })
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

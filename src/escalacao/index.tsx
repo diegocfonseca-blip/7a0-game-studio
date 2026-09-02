@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
@@ -143,7 +144,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
   render() {
     if (this.state.err) {
       return (
-        <div style={{ minHeight: '100vh', background: '#F4ECD6', color: '#0C0C0C', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', fontFamily: 'Oswald, sans-serif' }}>
+        <div className="tela-cheia" style={{ background: '#F4ECD6', color: '#0C0C0C', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', fontFamily: 'Oswald, sans-serif' }}>
           <div style={{ fontSize: 52 }}>😵</div>
           <p style={{ fontWeight: 900, fontSize: 22, margin: '8px 0 4px' }}>Ops, algo deu errado</p>
           <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.6)', maxWidth: 340 }}>Volta ao início e tenta de novo. Seu progresso salvo <b>não foi apagado</b>.</p>
@@ -275,9 +276,79 @@ function SportTitle() {
   return null
 }
 
+
+// ─── ✉️🚪 SAIR DA LISTA DE E-MAILS (01/09) ──────────────────────────────────
+// O rodapé de todo e-mail leva pra cá com `?sair=<e-mail>`.
+//
+// ⚠️ POR QUE TEM UM BOTÃO DE CONFIRMAR e não sai só de abrir o link: Gmail e
+// Outlook ABREM os links do e-mail sozinhos, por segurança, antes da pessoa
+// clicar em nada. Se a saída fosse no próprio link, eles descadastrariam gente
+// que nunca pediu — e a lista iria derretendo sozinha sem ninguém entender.
+// Um toque a mais resolve isso.
+//
+// A porta não pede login de propósito: quem quer sair de uma lista não pode ser
+// obrigado a lembrar a senha do jogo.
+function SairDaLista() {
+  const [email, setEmail] = useState<string | null>(null)
+  const [fase, setFase] = useState<'pergunta' | 'indo' | 'pronto'>('pergunta')
+  useEffect(() => {
+    try {
+      const e = new URLSearchParams(window.location.search).get('sair')
+      if (e && e.includes('@')) setEmail(e.trim().toLowerCase())
+    } catch { /* sem window */ }
+  }, [])
+  if (!email) return null
+  const sair = async () => {
+    setFase('indo')
+    try { await supabase.rpc('esc_email_sair', { p_email: email }) } catch { /* a tela não trava */ }
+    setFase('pronto')
+  }
+  const OSW = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#F4ECD6', display: 'grid', placeItems: 'center', padding: 18, overflowY: 'auto' }}>
+      <div style={{ width: '100%', maxWidth: 380, border: '4px solid #0C0C0C', borderRadius: 18, background: '#fff', boxShadow: '6px 6px 0 #0C0C0C', padding: 20, textAlign: 'center' }}>
+        {fase !== 'pronto' ? (
+          <>
+            <p style={{ fontSize: 42, margin: 0 }}>✉️</p>
+            <p style={{ ...OSW, fontWeight: 900, fontSize: 20, margin: '6px 0 0', textTransform: 'uppercase' }}>Parar de receber e-mails?</p>
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 0 0', lineHeight: 1.5 }}>
+              A gente para de mandar novidades pra <b style={{ wordBreak: 'break-all' }}>{email}</b>.
+            </p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '10px 0 0', lineHeight: 1.5 }}>
+              🎮 <b>Sua conta e seu time não são apagados</b> — você continua jogando normal, só não recebe mais e-mail nosso.
+            </p>
+            <button onClick={() => { void sair() }} disabled={fase === 'indo'}
+              style={{ width: '100%', marginTop: 16, border: '3px solid #0C0C0C', borderRadius: 13, padding: '13px 0', ...OSW, fontWeight: 900, fontSize: 15,
+                background: '#C2452F', color: '#fff', boxShadow: '4px 4px 0 #0C0C0C', cursor: 'pointer' }}>
+              {fase === 'indo' ? '⏳ Saindo…' : '✅ Sim, pode parar'}
+            </button>
+            <button onClick={() => { window.location.href = window.location.origin + window.location.pathname }}
+              style={{ width: '100%', marginTop: 9, border: 'none', background: 'transparent', ...OSW, fontWeight: 900, fontSize: 13, color: 'rgba(0,0,0,.55)', textDecoration: 'underline', cursor: 'pointer' }}>
+              não, quero continuar recebendo
+            </button>
+          </>
+        ) : (
+          <>
+            <p style={{ fontSize: 42, margin: 0 }}>👍</p>
+            <p style={{ ...OSW, fontWeight: 900, fontSize: 20, margin: '6px 0 0', textTransform: 'uppercase' }}>Pronto</p>
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 0 0', lineHeight: 1.5 }}>
+              Não mandamos mais e-mail de novidade pra <b style={{ wordBreak: 'break-all' }}>{email}</b>. Valeu por ter jogado! 🔨
+            </p>
+            <button onClick={() => { window.location.href = window.location.origin + window.location.pathname }}
+              style={{ width: '100%', marginTop: 16, border: '3px solid #0C0C0C', borderRadius: 13, padding: '13px 0', ...OSW, fontWeight: 900, fontSize: 15,
+                background: '#1B7A3D', color: '#fff', boxShadow: '4px 4px 0 #0C0C0C', cursor: 'pointer' }}>
+              🔨 Ir pro jogo
+            </button>
+          </>
+        )}
+      </div>
+    </div>, document.body)
+}
+
 export default function EscalacaoGame() {
   return (
     <ErrorBoundary>
+      <SairDaLista />{/* ✉️ a porta de saída do e-mail — fora do jogo, por cima de tudo */}
       <EscProvider>
         <SportTitle />
         <MaintenanceBanner />
@@ -294,7 +365,7 @@ export default function EscalacaoGame() {
             "tela preta travada" no print de quem jogava. Com este creme atrás de
             TUDO, o pior caso é uma tela creme com o rodapé (dá pra sair por ali),
             nunca mais um preto assustador. */}
-        <div style={{ minHeight: '100vh', background: '#F4ECD6' }}>
+        <div className="tela-cheia" style={{ background: '#F4ECD6' }}>
           <Router />
           <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
           <AdminPanel />

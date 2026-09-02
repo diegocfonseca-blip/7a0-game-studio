@@ -11,9 +11,14 @@ import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, em
 import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
-import { DIVISION_TEAMS, CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
+import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada } from './sport' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSala2, usePreviewComum, useMundoLiberado } from './sport'
+// 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
+// arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
+// NÃO passa pelo motor do leilão: a sala fica em `waiting` e ela é uma tela por
+// cima. Tirar daqui = a sala volta a ser uma sala normal.
+import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 
@@ -21,11 +26,18 @@ import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './t
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
 const GAME_TAG = 'escalacao'
 const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
+// 🏆 quantas LIGAS cada pessoa pode CRIAR. Era 2; virou 5 em 29/08 a pedido do
+// Diego (*"acho q pode aumentar p 5 ligas q cada um pode criar de lenda… e jogar
+// pode jogar qts quiser"*). O teto existe porque liga fica de pé pra sempre —
+// sem ele, uma pessoa sozinha encheria o banco de liga abandonada. Conta só as
+// que a pessoa CRIOU; ENTRAR em liga dos outros não tem limite nenhum.
+// ⚠️ Este teto é SÓ do Minhas Ligas. Sala rápida tem a conta dela, mais abaixo.
+const MAX_LIGAS = 5
 
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
-interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoTime | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
+interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoTime | null; copa?: CopaPick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
 interface LobbyMsg { id: string; uid: string; name: string; text: string }
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
@@ -37,7 +49,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga'; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -504,19 +516,39 @@ function SegField({ label, children }: { label: string; children: React.ReactNod
   )
 }
 // controle segmentado genérico (selecionado = dourado)
-function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean }) {
+// 🏷️ `selos` = uma tarjinha EM CIMA do texto de uma opção ("NOVO"). Ela mora
+// DENTRO do botão de propósito: a moldura do Seg é `overflow-hidden`, então
+// qualquer coisa pendurada pra fora seria cortada.
+// A cor se inverte quando o botão está escolhido: numa opção branca a tarja é
+// dourada com letra preta; na dourada ela vira preta com letra dourada. Sem isso
+// o amarelo sumiria dentro do amarelo justamente quando a pessoa escolhe.
+function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim, selos }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean; selos?: Partial<Record<string, string>> }) {
   return (
     <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden" style={dim ? { opacity: 0.45 } : undefined}>
-      {options.map(([v, label], i) => (
-        <button key={String(v)} onClick={() => onSet(v)}
-          className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-          style={{ padding: small ? '8px 2px' : '9px 2px', fontSize: small ? 11 : 12.5, background: value === v ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
-          {label}
-        </button>
-      ))}
+      {options.map(([v, label], i) => {
+        const selo = selos?.[String(v)]
+        const escolhido = value === v
+        return (
+          <button key={String(v)} onClick={() => onSet(v)}
+            className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
+            style={{ padding: small ? '8px 2px' : '9px 2px', fontSize: small ? 11 : 12.5, background: escolhido ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
+            {selo && (
+              <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+                letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
+                border: `1.5px solid ${INK}`, background: escolhido ? INK : GOLD, color: escolhido ? GOLD : INK }}>{selo}</span>
+            )}
+            {label}
+          </button>
+        )
+      })}
     </div>
   )
 }
+// 🏷️ até quando a tarja "NOVO" fica na tela. Mesma ideia das novidades da home:
+// ninguém precisa lembrar de tirar — ela some sozinha. (A Copa do Mundo online
+// nasceu em 01/09; 45 dias depois vira mais um modo de sempre.)
+const NOVO_ATE = new Date('2026-10-16T00:00:00')
+const seloNovo = (): string | undefined => (Date.now() < NOVO_ATE.getTime() ? 'novo' : undefined)
 // chavinha (switch) liga/desliga
 function Sw({ on }: { on: boolean }) {
   return (
@@ -566,15 +598,33 @@ export function EscLobby() {
   // 👔🃏 SALA DE ELENCO (17/08): 3º modo — em vez de leiloar, cada um traz o time
   // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
   const salaElenco = useSalaElencoLiberada()
-  const [roomMode, setRoomMode] = useState<'rapido' | 'liga' | 'carreira' | 'elenco'>('rapido')
+  const [roomMode, setRoomMode] = useState<'rapido' | 'liga' | 'carreira' | 'elenco' | 'mundo'>('rapido')
   // 🏆 LIGA FECHADA (20/08): a sala que fica de pé. O que ela guarda a mais que
   // uma sala rápida é só ISTO — quando vocês jogam e se tem bot. O resto (leilão,
   // temporada, fim de jogo) é o rápido de sempre, sem uma linha diferente.
   const hoje = new Date()
-  const emDias = (n: number) => new Date(hoje.getTime() + n * 864e5).toISOString().slice(0, 10)
-  const [ligaData, setLigaData] = useState(emDias(1)) // amanhã, pra já vir preenchido
-  const [ligaHora, setLigaHora] = useState('21:00')
-  const [ligaComBots, setLigaComBots] = useState(false) // liga fechada nasce SEM bot
+  // 📅 DIA NO RELÓGIO DO JOGADOR, NÃO EM UTC (bug que o Diego pegou em 29/08 —
+  // print às 22:32 do dia 28 no Brasil, e a tela não deixava escolher o dia 28).
+  // Era o `toISOString()`, que devolve UTC: no Brasil (UTC-3), a partir das 21h o
+  // dia em UTC JÁ VIROU. Então o "hoje" do jogo virava amanhã, o `min` do campo
+  // bloqueava o dia de verdade e o padrão saía um dia adiantado. Toda noite, pra
+  // todo brasileiro. Agora lê dia/mês/ano LOCAIS — o mesmo que está no celular.
+  const emDias = (n: number) => {
+    const d = new Date(hoje.getTime() + n * 864e5)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+  // ⏰ e a HORA nasce na PRÓXIMA MEIA HORA CHEIA, hoje. Antes era "amanhã às
+  // 21:00" fixo: quem cria a liga pra chamar a galera no zap AGORA tinha que
+  // corrigir os dois campos. Criando 22:32 → vem 23:00 de hoje, pronto pra usar.
+  const proxMeiaHora = (() => {
+    const d = new Date(hoje.getTime() + 25 * 60_000) // 25 min de folga pra arredondar pra frente
+    d.setMinutes(d.getMinutes() > 30 ? 60 : 30, 0, 0)
+    return { dia: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, hora: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` }
+  })()
+  const [ligaData, setLigaData] = useState(proxMeiaHora.dia)
+  const [ligaHora, setLigaHora] = useState(proxMeiaHora.hora)
+  const [ligaComBots, setLigaComBots] = useState(true) // 🤖 padrão COM bots (Diego 29/08)
+  const [ligaPw, setLigaPw] = useState('') // 🔒 senha OBRIGATÓRIA da liga (Diego 29/08)
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
   // mandar os 22 pro host é o passo seguinte.
   const [bafoEscolha, setBafoEscolha] = useState<{ seed: number; via: 'elenco' | 'convocados' } | null>(null)
@@ -594,8 +644,15 @@ export function EscLobby() {
   // 🃏 BAFO: o host decide se a partida vale carta (padrão) ou se é amistoso.
   // Ausente/antigo = VALENDO — é a identidade do modo; só o "não" é gravado.
   const [bafoValendo, setBafoValendo] = useState(true)
+  // 🌍 COPA DO MUNDO ONLINE — em construção, só a conta do Diego enxerga
+  const mundoOn = useMundoLiberado()
+  const [copaAbrindo, setCopaAbrindo] = useState(false)
+  const [copaErro, setCopaErro] = useState('')
+  const [copaAberta, setCopaAberta] = useState(false) // 🌍 o torneio está na tela
+  const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
+
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta'>('liga_copa') // 🏆 rápido online: liga só, liga + Copa dos 8 (padrão) ou liga + Libertadores
+  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_mundo'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -605,6 +662,8 @@ export function EscLobby() {
     const next = [...prev, team]
     return next.length > careerRivals ? next.slice(next.length - careerRivals) : next
   })
+  const previewComum = usePreviewComum() // 👁️ ver as telas de quem NÃO é Lenda (só as contas do Diego)
+  const criar2 = useCriarSala2() // 🔨 tela de criar sala v2 (só a conta do Diego, 29/08)
   const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
   // 🚪 QUEM ENTRA NA LIGA — mudou em 22/08, por decisão do Diego. Antes (regra de
   // 19/08) só Lenda/dono de batismo ENTRAVA. Ele reviu: *"vamos supor q só qm pode
@@ -883,6 +942,14 @@ export function EscLobby() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` },
         ({ new: r }: { new: RoomInfo }) => {
           if (r.status === 'started') { triggerStart(r); return }
+          // 🌍 SALA DE COPA: aqui o `game_state` é minúsculo (não tem elenco de
+          // ninguém) e é justamente por ele que a FICHA da Copa chega. Só neste
+          // modo o estado inteiro é adotado — nos outros continua entrando só o
+          // host_id, como sempre, pra não atropelar nada da sala.
+          if ((r.game_state as GS)?.mode === 'mundo') {
+            setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id, game_state: r.game_state } : prev)
+            return
+          }
           setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id } : prev)
         })
       // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
@@ -926,6 +993,14 @@ export function EscLobby() {
     setTimeout(() => { try { alert('O host removeu você da sala.') } catch { /* ignora */ } }, 0)
   }, [players, phase, room, user, isHost])
 
+  // 🌍 A COPA ABRE SOZINHA NA TELA DE TODO MUNDO (31/08). O gatilho é a SEMENTE
+  // da ficha: quando o dono publica uma Copa nova, a semente muda e a tela abre
+  // pra sala inteira. Quem fecha pra dar uma olhada na sala não é reaberto à
+  // força — só uma Copa NOVA abre de novo (e o botão "🌍 voltar pra Copa" fica
+  // ali do lado pra voltar quando quiser).
+  const copaSeedAtual = (room?.game_state as GS)?.copaMundo?.seed
+  useEffect(() => { if (copaSeedAtual != null) setCopaAberta(true) }, [copaSeedAtual])
+
   // 🛟 REDE DE SEGURANÇA CONTRA TELA PRETA: se a fase for "waiting" mas a sala
   // sumiu (host encerrou, sala apagada, restauração falhou), o app renderizava
   // NULL — só o rodapé num fundo escuro, travado (o bug relatado). Agora volta
@@ -961,8 +1036,21 @@ export function EscLobby() {
       if (!data) { setHostLeft(true); return } // sala já foi encerrada pelo host
       const beat = data.updated_at ? new Date(data.updated_at).getTime() : 0
       if (beat && Date.now() - beat > 180_000) {
-        await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
-        await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+        // 🏆 LIGA NUNCA É APAGADA POR ESTA VIGIA (bug achado em 29/08, na pergunta
+        // do Diego sobre agendar e fechar a aba). Esta rotina roda no aparelho dos
+        // CONVIDADOS e apagava a sala inteira quando o dono passava 3 min sem dar
+        // sinal. Numa sala rápida isso é certo — sala sem dono é lixo. Numa LIGA é
+        // catástrofe: o dono agenda pra amanhã, fecha a aba, um amigo fica esperando
+        // dentro, e o aparelho DESSE AMIGO apaga a liga com estante, ranking e todas
+        // as temporadas. Sem volta, e sem ninguém ter apertado nada.
+        // A saída manual do dono já era protegida desde 20/08 (`leaveRoom`); faltava
+        // esta, que é pior justamente por ser automática. Liga só some quando o DONO
+        // aperta 🗑️ Excluir a liga. Aqui o convidado só mostra o aviso e vai embora.
+        const ehLiga = room.game_state?.mode === 'liga'
+        if (!ehLiga) {
+          await supabase.from('room_players').delete().eq('room_id', room.id).then(() => {}, () => {})
+          await supabase.from('game_rooms').delete().eq('id', room.id).then(() => {}, () => {})
+        }
         setHostLeft(true)
       }
     }
@@ -1163,14 +1251,71 @@ export function EscLobby() {
   // Compartilha o link de convite (?j=CODE) — abre o menu nativo do celular
   // (WhatsApp/Telegram/etc). Fallback: copia pro clipboard.
   const [shareOk, setShareOk] = useState<'link' | 'code' | null>(null)
-  async function shareInvite(code: string, roomName?: string) {
+  // 🔒 A SENHA QUE VAI DENTRO DO CONVITE — e SÓ isso (31/08). O dono escreve aqui
+  // qual é a senha da liga pra ela ir junto na mensagem. **Nada é guardado**: o
+  // banco continua tendo só a senha embaralhada (`pwHash`) e ninguém consegue
+  // lê-la de volta, nem eu. É um campo de texto que morre quando a tela fecha.
+  // Quem esqueceu qual era troca em ✏️ Editar, que já existe desde 29/08.
+  const [convitePw, setConvitePw] = useState('')
+  async function shareInvite(code: string, roomName?: string, liga?: { at?: string; senha?: string }) {
     const url = `${window.location.origin}${window.location.pathname}?j=${code}`
-    const text = `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
+    // 🏆 O CONVITE DA LIGA PRECISA LEVAR TUDO QUE A PORTA PEDE (Diego 31/08:
+    // *"um amigo criou o Minhas Ligas mas n soube aonde manda o convite"*).
+    // O texto nasceu mandando só nome + código + link — e a liga EXIGE senha
+    // desde 29/08. O amigo clicava, batia na porta trancada e o dono jurava ter
+    // mandado o convite certo. Agora vai o dia marcado e a senha junto.
+    // ⚠️ Na liga NÃO passa `url` pro share nativo: o texto já termina no link, e
+    // o WhatsApp cola a url de novo no fim quando os dois vão juntos.
+    const linhas: (string | null)[] = [
+      '🏆 Te chamei pra minha liga no Leilão Legends!',
+      '',
+      roomName ? `*${roomName}*` : null,
+      liga?.at ? `📅 ${quandoLiga(liga.at).txt}` : null,
+      `🔑 Código: ${code}`,
+      liga?.senha?.trim() ? `🔒 Senha: ${liga.senha.trim()}` : '🔒 A liga tem senha — te mando ela aqui embaixo',
+      '',
+      'Entra por aqui 👇',
+      url,
+    ]
+    const text = liga
+      ? linhas.filter((l): l is string => l !== null).join('\n')
+      : `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
     if (typeof nav.share === 'function') {
-      try { await nav.share({ title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
+      try { await nav.share(liga ? { title: 'Leilão Legends', text } : { title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
     }
-    try { await navigator.clipboard.writeText(url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+    // sem share nativo (PC): copia. Na liga copia a MENSAGEM INTEIRA — o link
+    // sozinho não abre a porta, que é o furo que estamos consertando.
+    try { await navigator.clipboard.writeText(liga ? text : url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+  }
+  // 🔓 REABRIR A LIGA PRA CHAMAR GENTE NOVA (31/08 — relato que chegou pro Diego:
+  // *"começou um dia o jogo… e dps em outro dia, se quiser mandar convite pra uma
+  // nova pessoa entrar, não deu certo"*).
+  //
+  // A CAUSA: `status` foi feito pra sala RÁPIDA, que morre quando acaba. A liga
+  // vive pra sempre — mas depois da primeira partida ela fica `started` e NUNCA
+  // volta pra `waiting`. Aí quem recebe o convite bate na trava do `enterRoom` e
+  // lê "essa sala começou agorinha", que ainda por cima mente: começou dias atrás.
+  // Conferido no banco em 31/08: a única liga em pé estava assim havia horas, na
+  // tela de FIM da temporada 4.
+  //
+  // O caminho de volta é uma função do banco (`esc_liga_reabre`), não um update
+  // daqui, por três motivos: ela confere que quem pede é o DONO (a coroa não
+  // troca), ela não encosta na sala se a partida está VIVA ou no MEIO de uma
+  // temporada, e ela troca só a telinha em vez de reescrever o estado inteiro.
+  // A estante não corre risco: campeão e artilheiro moram em `game_champions`.
+  async function reabreLiga(roomId: string): Promise<'ok' | 'rolando' | 'meio' | 'erro'> {
+    try {
+      const { data, error } = await supabase.rpc('esc_liga_reabre', { p_room: roomId })
+      if (error) return 'erro'
+      const r = String(data ?? '')
+      return r === 'ok' || r === 'rolando' || r === 'meio' ? r : 'erro'
+    } catch { return 'erro' }
+  }
+  const AVISO_REABRE: Record<'rolando' | 'meio' | 'erro', string> = {
+    rolando: '🔴 A partida dessa liga está rolando agora. Quando a turma terminar, é só entrar — quem chega agora joga a próxima temporada.',
+    meio: '⏳ Essa liga está no MEIO de uma temporada. Quem entrasse agora ficaria sem time, então só dá pra entrar quando essa temporada acabar. Fala com a turma pra terminar e volta depois.',
+    erro: 'Não consegui abrir a sala agora. Tenta de novo em instantes.',
   }
   async function copyCode(code: string) {
     try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
@@ -1263,7 +1408,7 @@ export function EscLobby() {
     // ⚠️ SÓ CONTA SALA VIVA (mexida nas últimas 3h). Sem isso, a sala que a pessoa
     // abandonou meses atrás travaria a conta dela PRA SEMPRE — uma trava que não
     // tem como destravar é pior que o problema que ela resolve.
-    // A liga tem o teto dela (2 ligas, mais abaixo) e não entra nesta conta; a
+    // A liga tem o teto dela (MAX_LIGAS, lá em cima) e não entra nesta conta; a
     // carreira também não, porque ela é um SAVE, não uma sala de encontro.
     if (roomMode === 'rapido' || roomMode === 'elenco') {
       const vivasDesde = new Date(Date.now() - 3 * 3600_000).toISOString()
@@ -1298,29 +1443,74 @@ export function EscLobby() {
     const name = cutName(roomName.trim() || `${roomMode === 'liga' ? 'Liga' : 'Sala'} do ${nameOf()}`)
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
-    const locked = roomLocked && !!roomPw.trim()
-    const pwHash = locked ? hashPw(roomPw.trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
+    // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
+    // genérico "sala fechada" nem aparece no modo liga).
+    const ligaMode = ligaOn && roomMode === 'liga'
+    const locked = ligaMode ? true : (roomLocked && !!roomPw.trim())
+    const pwHash = locked ? hashPw((ligaMode ? ligaPw : roomPw).trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
     // 👔 Sala de Elenco: NÃO tem Copa (decisão do Diego 17/08 — "não terá copa,
     // será apenas divisão de 38 rodadas nesse modo"). Por isso entra com
     // copaMode:'liga' TRAVADO, e o seletor de Copa nem aparece na criação.
     const elenco = salaElenco && roomMode === 'elenco'
+    // 🌍 COPA DO MUNDO: sala SEM leilão e sem tabela. Ela não usa copaMode,
+    // baralho nem formação — o time de cada um é a convocação da seleção. Por
+    // isso entra no `gs` só com o `mode`, e nada mais.
+    const mundo = mundoOn && roomMode === 'mundo'
     // 🏆 LIGA FECHADA: por baixo é a MESMA sala rápida — o que ela leva a mais é
     // o horário marcado (`ligaAt`) e o `mode: 'liga'`, que é o que faz ela não
     // sumir da lista e ganhar a sala de troféus na espera. Sem bot = a liga
     // fechada que o jogo já sabia fazer (`ligaFechada`).
+    // 🔒 CINTO DE SEGURANÇA: o cartão de um modo em breve dá pra tocar (pra ler o
+    // que ele é), e o botão de criar some junto com as configurações. Mas se algum
+    // caminho furar, criar uma sala de modo que a conta NÃO tem viraria uma sala
+    // rápida disfarçada de carreira. Aqui recusa antes de escrever no banco.
+    if ((roomMode === 'carreira' && !canCareer) || (roomMode === 'elenco' && !salaElenco) || (roomMode === 'mundo' && !mundoOn)) {
+      setRoomError('Esse modo ainda está em construção — em breve libera pra todo mundo! Por enquanto dá pra jogar no ⚡ Rápido.')
+      setLoading(false); return
+    }
     const liga = ligaOn && roomMode === 'liga'
     // 👑 CRIAR LIGA É SÓ DO LENDA — e até 22/08 isso NÃO estava travado de verdade:
     // o código só olhava `ligaOn` (quem enxerga o modo), nunca o tier. Como enxergar
     // era privilégio da conta do Diego, ninguém tinha notado; na hora de abrir pra
     // todos, qualquer um criaria liga. Trava explícita, com o porquê e o caminho —
     // e é ela que o Diego quer VER com a 2ª conta dele.
+    // 🔒 LIGA É SEMPRE PRIVADA (Diego 29/08): senha obrigatória, e ela NÃO entra
+    // na lista de salas abertas. Motivo, decidido com ele: a tabela tem 20 lugares
+    // e a estante é PRA SEMPRE — estranho entrando por acaso toma a vaga do amigo
+    // no horário marcado e entra no ranking da turma sem volta. Quem quer jogar com
+    // desconhecido tem o ⚡ Rápido, que é de graça e faz exatamente isso.
+    // 🔒 SENHA OBRIGATÓRIA — decisão final do Diego (29/08, depois de uma tarde
+    // inteira girando: *"eu acho então que só vale com senha, é isso"*). A liga é a
+    // casa da turma; quem quer jogar com desconhecido tem o ⚡ Rápido, que é feito
+    // pra isso. Sem a opção "sem senha" some junto uma pilha de regra que só existia
+    // pra tapar o buraco dela (janela de horário, expirar em 30 min, "primeira vez").
+    if (liga && !ligaPw.trim()) {
+      setRoomError('🔒 A liga precisa de uma SENHA. Ela é a casa da sua turma: só entra quem tem o código E a senha. Se a ideia é jogar com quem aparecer, use o ⚡ Rápido — é feito pra isso e não guarda nada.')
+      setLoading(false); return
+    }
     if (liga && !canLiga) {
       setRoomError('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".')
       setLoading(false); return
     }
-    const ligaAt = liga ? new Date(`${ligaData}T${ligaHora}`).toISOString() : undefined
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : { copaMode: rapidoCopaMode }), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    // 📅 DIA E HORA TÊM QUE ESTAR PREENCHIDOS (achado em 29/08, antes do 1º teste
+    // real do Diego — o banco confirma: 468 salas e NENHUMA liga jamais criada,
+    // então este caminho nunca tinha rodado).
+    // O campo vem preenchido (amanhã 21:00), mas dá pra APAGAR num toque. Aí
+    // `new Date('T21:00')` vira Data Inválida e o `.toISOString()` **ESTOURA** —
+    // e como `createRoom` não tem try/catch, o estouro matava a função no meio:
+    // o `setLoading(false)` nunca rodava e o botão ficava girando PRA SEMPRE, sem
+    // mensagem nenhuma. Trava com aviso, do jeito certo: diz o que falta e por quê.
+    let ligaAt: string | undefined
+    if (liga) {
+      const quando = new Date(`${ligaData}T${ligaHora}`)
+      if (!ligaData || !ligaHora || Number.isNaN(quando.getTime())) {
+        setRoomError('📅 Falta dizer QUANDO vocês jogam. Preencha o dia e a hora — é isso que segura a liga na lista até a galera chegar (sala sem horário some quando esvazia).')
+        setLoading(false); return
+      }
+      ligaAt = quando.toISOString()
+    }
+    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1329,8 +1519,8 @@ export function EscLobby() {
       const { count } = await supabase.from('game_rooms')
         .select('id', { count: 'exact', head: true })
         .eq('host_id', user.id).eq('game_state->>mode', 'liga')
-      if ((count ?? 0) >= 2) {
-        setRoomError('Você já tem 2 ligas — é o máximo por pessoa. Pra criar outra, entre numa delas em "🏆 Minhas ligas" e use "🗑️ Excluir a liga".')
+      if ((count ?? 0) >= MAX_LIGAS) {
+        setRoomError(`Você já tem ${MAX_LIGAS} ligas — é o máximo por pessoa. Pra criar outra, entre numa delas em "🏆 Minhas ligas" e use "🗑️ Excluir a liga". (Pra JOGAR não tem limite: dá pra estar em quantas ligas quiser.)`)
         setLoading(false); return
       }
     }
@@ -1411,6 +1601,8 @@ export function EscLobby() {
     // 🃏 BAFO também fica FORA da lista pública enquanto está em construção —
     // mesmo tratamento da carreira online. Quem tem o modo liberado vê normal.
     const isBafo = (r: RoomInfo) => r.game_state?.mode === 'elenco' && !salaElenco
+    // 🌍 mesma regra pra Copa do Mundo online enquanto está em construção
+    const isMundo = (r: RoomInfo) => r.game_state?.mode === 'mundo' && !mundoOn
     // 🏆 A LIGA AGORA APARECE NA LISTA (mudou em 22/08, com o Diego olhando ao vivo:
     // *"o Neymarzetti botou sala aberta e msm se fosse fechada deveria aparecer"*).
     // A regra velha (19/08) escondia a liga de todo mundo, e naquela época fazia
@@ -1418,32 +1610,58 @@ export function EscLobby() {
     // entrar é de qualquer um**. Com a entrada aberta, esconder a sala só servia pra
     // ninguém achar a liga do amigo. Ela entra marcada com o selo 🏆 LIGA e o dia
     // marcado, pra não se confundir com sala rápida.
-    // 🔒 ...MAS SÓ PRA QUEM TEM O MODO LIGA LIBERADO. Furo que o Diego pegou com uma
-    // pergunta, minutos depois de eu subir isto: *"mas hj só o secundário q vai ver
-    // né a sala aberta ne"*. Eu tinha tirado a liga da lista SEM pôr nada no lugar —
-    // ou seja, JOGADOR NENHUM tinha o modo, e todos veriam a liga do Diego na lista
-    // e (com a entrada liberada) entrariam nela. Enquanto a Liga está em construção
-    // (`LIGA_GERAL = false`), ela só aparece pra quem enxerga o modo. Quando abrir
-    // pra todos, `ligaOn` vira true pra todo mundo e a linha continua valendo.
-    const isLiga = (r: RoomInfo) => r.game_state?.mode === 'liga'
-    // 🏆 A LIGA VAZIA CONTINUA NA LISTA (Diego 22/08: ele marcou a liga, entrou antes
-    // da hora com a 2ª conta, os dois saíram, e a liga sumiu da lista — *"ainda nem
-    // bateu 21h tb"*). As duas regras de "sala viva" (ter gente dentro e ter batimento
-    // recente) foram feitas pra SALA RÁPIDA, onde sala vazia é sala abandonada. A liga
-    // é o contrário: ela nasce pra ficar de pé com todo mundo fora, e entre um jogo e
-    // outro estará SEMPRE vazia — exigir gente dentro anulava a data marcada.
-    // O que mantém a liga viva é o RELÓGIO: ela fica na lista enquanto a data marcada
-    // não passou (com 6h de folga depois, pra quem atrasa). Passou, sai da lista
-    // sozinha — e continua inteira, com os troféus, no "🏆 Minhas ligas" do dono.
-    // Liga sem data marcada segue a regra antiga (precisa de gente dentro).
-    const ligaNaAgenda = (r: RoomInfo) => {
-      const at = (r.game_state as GS)?.ligaAt
-      if (!isLiga(r) || !at) return false
-      const t = new Date(at).getTime()
-      return !isNaN(t) && Date.now() < t + 6 * 3600_000
-    }
+    // (o filtro por "quem enxerga o modo" saiu em 29/08, quando a Liga foi liberada
+    // pra todos — hoje `ligaOn` é true pra todo mundo.)
+    const ehLigaRow = (r: RoomInfo) => r.game_state?.mode === 'liga'
+    // 🏆 A LIGA SÓ APARECE QUANDO A PARTIDA ESTÁ ROLANDO (decisão final do Diego,
+    // 29/08: *"acho que poderia aparecer lá junto das salas apenas quando tiver
+    // rolando já"*).
+    //
+    // 🗑️ AQUI MORREU A "JANELA DO ENCONTRO" (1h antes → 6h depois) e, com ela, toda
+    // a pilha de regra que a gente empilhou nesta tarde: expirar em 30 min, tratar a
+    // "primeira vez" diferente, esconder até a hora marcada. Todas existiam pra
+    // resolver o mesmo problema — fazer a liga servir pra ACHAR GENTE, coisa que o
+    // ⚡ Rápido já faz melhor. Com a senha obrigatória, o problema simplesmente
+    // deixou de existir: quem entra na liga vem pelo código, não pela lista.
+    //
+    // Então o que sobra na lista é só o RECADO: "tem liga rolando agora". A pessoa
+    // vê 🏆 LIGA · 🔒 · Em jogo, não consegue entrar (a lista já desabilita sala em
+    // jogo) — e isso é de propósito, é o que dá vontade. Sala de espera da liga NÃO
+    // aparece: a turma dela já está lá pelo código.
+    const ligaRolando = (r: RoomInfo) => ehLigaRow(r) && r.status === 'started' && isFresh(r)
+    // 🗑️ AQUI MORAVA O `ligaNaAgenda` (22/08): a regra que mantinha a liga VAZIA na
+    // lista pública enquanto a hora marcada não passava. Ela deixou de existir em
+    // 29/08, quando o Diego fechou que **a liga é sempre privada** — não aparece na
+    // lista de jeito nenhum, só se acha pelo card "🏆 Minhas ligas" ou pelo código +
+    // senha. Apagada de vez em vez de só desligada: código morto engana quem lê.
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
-      .filter(r => (r.count >= 1 || ligaNaAgenda(r)) && (r.status === 'started' ? isFresh(r) : (waitingAlive(r) || ligaNaAgenda(r))) && !isCareer(r) && !isBafo(r) && (ligaOn || !isLiga(r)))
+      // 🏆 LIGA APARECE QUANDO TEM GENTE DENTRO (regra final do Diego, 29/08).
+      // Ele derrubou duas ideias minhas, e nas duas estava certo:
+      //  1. "só quando o DONO estiver dentro" — *"se ele marcar pra 23h e é de
+      //     manhã, como ele vai ficar o dia todo dentro da sala?"*. Regra furada.
+      //  2. "liga com senha nunca aparece, porque frustra quem não pode entrar" —
+      //     ele quer a frustração de propósito: *"deve aparecer sim, pra todos
+      //     terem vontade. Não importa se se frustrarem de ver e não conseguirem
+      //     entrar — vai dar vontade de pagar"*. É decisão de negócio dele.
+      // Sobrou a regra simples e que resolve o medo do começo (*"ficar aparecendo
+      // salas e mais salas sem uso"*): **tem gente dentro, aparece; vazia, some**.
+      // Sem relógio, sem exclusão automática, sem ninguém preso na sala esperando.
+      // A linha da lista já sabe desenhar liga (selo 🏆 LIGA, 🔒 e a data marcada).
+      // ⏰ E A LIGA SÓ A PARTIR DE 1H ANTES DO HORÁRIO MARCADO (Diego 29/08:
+      // *"criar a sala hoje pro dia de amanhã e ter que ficar dentro não tem
+      // sentido né… o cara vai dormir"*). Sem isto sobrava um furo que eu tinha
+      // deixado passar: no minuto da CRIAÇÃO o dono está dentro montando a sala,
+      // então ela já aparecia na lista — e, se ele deixou SEM senha, um estranho
+      // podia sentar numa cadeira HOJE, e não no dia combinado.
+      // Depois que a hora chega, não tem prazo de validade: enquanto tiver gente
+      // dentro, aparece. Assim a turma pode esticar a noite ou jogar de novo depois
+      // sem precisar remarcar. Liga sem hora marcada (não deve existir) não trava.
+      .filter(r => {
+        if (isCareer(r) || isBafo(r) || isMundo(r)) return false
+        // 🏆 liga: SÓ com a partida rolando. ⚡ rápida: a regra de sempre.
+        if (ehLigaRow(r)) return ligaRolando(r)
+        return r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
+      })
       .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
@@ -1467,6 +1685,7 @@ export function EscLobby() {
   // ✏️ editor do card de "Minhas ligas" (edição POR FORA): guarda o id da liga
   // aberta pra edição e os 4 campos que dá pra mudar sem entrar na sala.
   const [cardEdit, setCardEdit] = useState<string | null>(null)
+  const [cardPw, setCardPw] = useState('')   // 🔒 senha nova da liga (vazio = mantém)
   const [cardNome, setCardNome] = useState('')
   const [cardData, setCardData] = useState('')
   const [cardHora, setCardHora] = useState('')
@@ -1481,7 +1700,7 @@ export function EscLobby() {
   // deixar mais gente escrever ali daria pra sobrescrever o jogo da galera no
   // meio. A função troca só o horário, as regras e a lista de adms, e confere na
   // entrada se quem chamou é o dono ou um adm.
-  type LigaCampos = { ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; ligaFechada?: boolean; roomName?: string }
+  type LigaCampos = { ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; ligaFechada?: boolean; roomName?: string; senhaNova?: string }
   // 📝 versão por ID: serve pra editar a liga DE FORA, direto no card de
   // "🏆 Minhas ligas", sem precisar entrar na sala (Diego 22/08: *"dps q ele entra
   // ele pode excluir claramente dentro e fora tb... Editar e etc"*).
@@ -1493,6 +1712,9 @@ export function EscLobby() {
       p_admins: (campos.ligaAdmins ?? null) as never,
       p_fechada: campos.ligaFechada ?? null,
       p_nome: campos.roomName ?? null,
+      // 🔒 vai o HASH, nunca a senha em texto — o banco não precisa saber a senha
+      // de ninguém (mesma conta do `hashPw` usado na criação e na entrada).
+      p_pw: campos.senhaNova?.trim() ? hashPw(campos.senhaNova.trim().toLowerCase()) : null,
     })
     if (error || data === false) { setRoomError('Não deu pra salvar agora — tente de novo.'); return false }
     return true
@@ -1685,15 +1907,39 @@ export function EscLobby() {
     // (Todo batismo já nasce tier ouro pela regra de 17/08, então a conta é uma
     // só. E CRIAR liga continua preso à conta do Diego, em `sport.ts`.)
     if (LIGA_SO_LENDA_ENTRA && rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
-      setRoomError('Essa é uma 🏆 Liga Fechada — só entra quem é 👑 Lenda ou dono de clube batizado.'); setLoading(false); return
+      setRoomError('Essa é uma liga do 🏆 Minhas Ligas — só entra quem é 👑 Lenda ou dono de clube batizado.'); setLoading(false); return
     }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
       setRoomError('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
     }
+    // 🌍 mesma trava do Bafo pra Copa do Mundo online: esconder da lista não
+    // basta, porque o código e o link do zap entram por aqui do mesmo jeito.
+    if (rd.game_state?.mode === 'mundo' && !mundoOn) {
+      setRoomError('Essa sala é da 🌐 Copa do Mundo online, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
+    }
     if (rd.status === 'started') {
       const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
-      if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
-      triggerStart(rd); setLoading(false); return
+      // 🏆 CONVIDADO NOVO NUMA LIGA TRANCADA (31/08). A liga fica `started` depois
+      // da primeira partida e não voltava mais — quem chegava pelo convite lia
+      // "você não está nessa sala", sem nenhuma pista do que fazer.
+      // ⚠️ A 1ª tentativa mandava o convidado PEDIR pro dono destrancar. Não
+      // resolveu, e o Diego voltou no mesmo dia: *"o convite tinha aparecido…
+      // porém o pessoal não tava conseguindo entrar"*. O motivo é bobo e é o de
+      // sempre: o DONO nunca vê o problema — ele tem vaga na sala, então abrir a
+      // liga o joga direto na partida guardada. Quem bate na porta é o amigo, e
+      // ele dependia de um botão que o dono não sabia que existia.
+      // Agora o próprio convidado destranca (a função do banco só destranca liga
+      // PARADA, nunca partida viva nem temporada no meio) e segue pro fluxo
+      // normal — onde ainda vai precisar da SENHA pra entrar de verdade.
+      if (!mySlot && rd.game_state?.mode === 'liga') {
+        const res = await reabreLiga(rd.id)
+        if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
+        rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
+      }
+      if (rd.status === 'started') {
+        if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
+        triggerStart(rd); setLoading(false); return
+      }
     }
     if (rd.status !== 'waiting') { setRoomError('Sala indisponível.'); setLoading(false); return }
     const { data: existing } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', rd.id)
@@ -1754,6 +2000,41 @@ export function EscLobby() {
     if (!user) return
     setLoading(true); setRoomError('')
     await enterRoom(rd)
+  }
+
+  // 🌍 O DONO ABRE A COPA. Ele não "manda o resultado": publica a FICHA (a
+  // semente + as 24 seleções com as 11 chaves de cada um) em `game_state`. Cada
+  // aparelho recalcula o torneio inteiro sozinho a partir dela — `simulaCopaMundo`
+  // é função pura e semeada, então todo mundo vê a MESMA Copa, gol por gol, sem
+  // sincronizar uma partida sequer.
+  // ⚠️ A SALA NÃO VIRA `started`: a Copa não passa pelo motor do leilão (nada de
+  // assento, nada de reducer). É uma tela POR CIMA da sala de espera.
+  async function abrirCopa() {
+    if (!room || !isHost || copaAbrindo) return
+    setCopaAbrindo(true); setCopaErro('')
+    try {
+      const { data } = await supabase.from('room_players').select('user_id, manager_name, copa').eq('room_id', room.id)
+      const linhas = (data ?? []) as { user_id: string; manager_name: string; copa: CopaPick | null }[]
+      const gente = linhas.filter(r => copaPickOk(r.copa)).map(r => ({ uid: r.user_id, nome: stripEmoji(r.manager_name).trim() || 'Técnico', pick: r.copa as CopaPick }))
+      if (gente.length < 2) {
+        setCopaErro('A Copa precisa de pelo menos 2 seleções de gente. Quem ainda não escolheu está no aviso aí em cima.')
+        setCopaAbrindo(false); return
+      }
+      // relê o estado FRESCO: o número da edição vem do que já foi jogado nesta
+      // sala, então duas Copas seguidas não se confundem no histórico.
+      const { data: fresco } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
+      const gsAtual = (fresco?.game_state ?? room.game_state) as GS
+      const edicao = ((gsAtual?.copaMundo?.edicao ?? 0) + 1)
+      const ficha = montaFicha(gente, Math.floor(Math.random() * 1e9), edicao)
+      const { error } = await supabase.from('game_rooms')
+        .update({ game_state: { ...gsAtual, copaMundo: ficha }, updated_at: new Date().toISOString() })
+        .eq('id', room.id)
+      if (error) { setCopaErro('Não consegui abrir a Copa agora. Tenta de novo em instantes.'); setCopaAbrindo(false); return }
+      // o dono não espera o eco do banco (mesma lição do "não consigo abrir o
+      // pregão", 22/08): abre na própria tela na hora.
+      setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...gsAtual, copaMundo: ficha } as GS } : prev)
+      setCopaAberta(true)
+    } finally { setCopaAbrindo(false) }
   }
 
   async function startOnline() {
@@ -1993,15 +2274,19 @@ export function EscLobby() {
     fetchPlayers(room.id)
   }
 
-  const wrap = (children: React.ReactNode, onBack?: () => void) => (
-    <div className="min-h-screen flex flex-col justify-center px-5 py-10 relative" style={{ backgroundColor: INK }}>
+  // 📐 `estreito` = tela de FORMULÁRIO (entrar, cadastrar, senha nova). O resto
+  // do online (lista de salas, criar sala, sala de espera) usa a coluna larga:
+  // no monitor ela abre pra 900px junto com o jogo todo. Formulário NÃO: campo
+  // de senha com 900px de largura fica ridículo e ainda dificulta a leitura.
+  const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
+    <div className="tela-cheia flex flex-col justify-center px-5 py-10 relative" style={{ backgroundColor: INK }}>
       {onBack && (
         <button onClick={onBack} aria-label="Voltar pra home"
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
           <span className="text-xl leading-none">←</span> Home
         </button>
       )}
-      <div className="max-w-sm mx-auto w-full space-y-5">{children}</div>
+      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`}>{children}</div>
     </div>
   )
 
@@ -2019,7 +2304,7 @@ export function EscLobby() {
     </div>
     <Big onClick={handleSaveNewPw}>{loading ? '...' : 'Salvar nova senha →'}</Big>
     <button onClick={() => { setRecovering(false); setPhase(user ? 'menu' : 'auth') }} className="text-white/40 text-sm underline w-full text-center">Pular</button>
-  </>)
+  </>, undefined, true)
   }
 
   if (phase === 'auth') {
@@ -2072,7 +2357,7 @@ export function EscLobby() {
     </div>
     <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? 'Entrar →' : 'Criar conta →'}</Big>
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Voltar</button>
-  </>)
+  </>, undefined, true)
   }
 
   if (phase === 'menu') {
@@ -2175,6 +2460,31 @@ export function EscLobby() {
                     apagar a liga dos outros. */}
                 {souDono && cardEdit !== r.id && (
                   <div className="flex gap-2 mt-2">
+                    {/* 📤 CONVIDAR NA PORTA DA FRENTE (31/08). O convite existia só
+                        DENTRO da sala, e lá no fim de tudo — depois do dia marcado,
+                        do remarcar e da regra do ranking. Um amigo do Diego criou a
+                        liga e não achou como chamar a turma: *"criou o Minhas Ligas
+                        mas n soube aonde manda o convite pros amigos dele"*. Este é
+                        o primeiro lugar que o dono olha depois de criar, então é
+                        aqui que o botão tem que estar. Só pro DONO, igual Editar e
+                        Excluir — convidado não vê. */}
+                    {/* 🔓 apertar CONVIDAR já quer dizer "quero gente nova aqui" —
+                        então, se a liga ficou trancada em "started" depois de uma
+                        noite de jogo, ela reabre AQUI, na mesma batida. Não é
+                        automático: é o dono apertando. Se a partida está viva ou
+                        no meio de uma temporada, ele lê o porquê e nada muda. */}
+                    <button onClick={() => { void (async () => {
+                      if (r.status === 'started') {
+                        const res = await reabreLiga(r.id)
+                        if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); return }
+                        setRoomError('')
+                        void fetchMyLigas()
+                      }
+                      await shareInvite(r.code, nm, { at: gs?.ligaAt })
+                    })() }}
+                      className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] text-white active:translate-y-0.5" style={{ background: PURPLE, ...OSWALD }}>
+                      📤 Convidar
+                    </button>
                     <button onClick={() => {
                       const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
                       const pad = (n: number) => String(n).padStart(2, '0')
@@ -2182,6 +2492,7 @@ export function EscLobby() {
                       setCardData(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
                       setCardHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
                       setCardBots(!gs?.ligaFechada)
+                      setCardPw('') // nunca herda o que foi digitado numa outra liga
                       setCardEdit(r.id)
                     }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
                       ✏️ Editar
@@ -2189,7 +2500,7 @@ export function EscLobby() {
                     <button onClick={() => { void excluirLigaId(r.id, nm, souDono) }}
                       className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5"
                       style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-                      🗑️ Excluir a liga
+                      🗑️ Excluir
                     </button>
                   </div>
                 )}
@@ -2197,6 +2508,17 @@ export function EscLobby() {
                   <div className="mt-2 rounded-xl border-2 border-black p-2.5" style={{ background: '#FFF4CF' }}>
                     <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mb-1" style={OSWALD}>🖋️ Nome da liga</p>
                     <input value={cardNome} maxLength={24} onChange={e => setCardNome(stripEmoji(e.target.value))}
+                      className="w-full border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
+                    {/* 🔒 TROCAR A SENHA SEM ENTRAR NA SALA (29/08). A senha virou
+                        obrigatória hoje, e isso criava uma armadilha: quem esquecesse
+                        a própria senha nunca mais poria um amigo novo — o dono ENTRA
+                        sem senha, mas a liga ficaria trancada pros outros pra sempre,
+                        e a única saída seria excluir tudo. Ninguém consegue LER a
+                        senha (o banco só guarda o embaralhado), então o certo é poder
+                        TROCAR: em branco = mantém a que está. */}
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>🔒 Trocar a senha</p>
+                    <input value={cardPw} maxLength={24} onChange={e => setCardPw(e.target.value)}
+                      placeholder="Deixe em branco pra manter a atual"
                       className="w-full border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
                     <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>📅 Quando vocês jogam</p>
                     <div className="flex gap-2">
@@ -2221,9 +2543,9 @@ export function EscLobby() {
                         if (!nome) { setRoomError('A liga precisa de um nome.'); return }
                         const quando = new Date(`${cardData}T${cardHora}`)
                         if (isNaN(quando.getTime())) { setRoomError('Confira o dia e a hora.'); return }
-                        const ok = await patchLigaId(r.id, { roomName: nome, ligaAt: quando.toISOString(), ligaFechada: !cardBots })
+                        const ok = await patchLigaId(r.id, { roomName: nome, ligaAt: quando.toISOString(), ligaFechada: !cardBots, ...(cardPw.trim() ? { senhaNova: cardPw.trim() } : {}) })
                         if (!ok) return
-                        setCardEdit(null); fetchMyLigas()
+                        setCardPw(''); setCardEdit(null); fetchMyLigas()
                       }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-[11.5px]"
                         style={{ background: GREEN, color: '#fff', ...OSWALD }}>
                         ✅ Salvar
@@ -2289,11 +2611,206 @@ export function EscLobby() {
       {tab === 'create' && (() => {
         const isCareer = canCareer && roomMode === 'carreira'
         const isElenco = salaElenco && roomMode === 'elenco'
+        // 🔨 CRIAR SALA v2 (29/08) — "1 decisão + o botão". Ver o comentário do
+        // `CRIAR2_GERAL` em sport.ts. A tela ANTIGA continua inteira logo abaixo:
+        // a v2 só põe os cartões e o botão NA FRENTE e recolhe as seções num
+        // ⚙️ Ajustes. Nenhuma opção foi removida nem reescrita — por isso desligar
+        // a trava devolve a tela de sempre, sem cicatriz.
+        // `on` = dá pra escolher · `emTeste` = o PÚBLICO ainda não tem (leva o selo
+        // EM BREVE e a linha explicando que criar libera depois).
+        // 🌍 A COPA DO MUNDO NÃO É UM MODO — e isso é ordem do Diego (01/09), depois
+        // de ver a tela: *"o que você fez, cara. Não pode ter a Copa do Mundo aí
+        // junto de rápido, bafo e etc"*. Ele tem razão: esta lista responde "o que
+        // vocês vão JOGAR", e a Copa não é um jeito de jogar — é o que acontece
+        // DEPOIS da liga, igual à Copa dos 8 e à Libertadores. O lugar dela é o
+        // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
+        const MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
+          { v: 'rapido', ic: '⚡', nome: 'Rápido', frase: 'Uma temporada. Começa agora.', on: true },
+          { v: 'liga', ic: '🏆', nome: 'Minhas ligas', frase: 'A sala da turma que não acaba.', on: ligaOn, selo: '👑 LENDA' },
+          { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões + Várzea — sobe e cai.', on: canCareer, emTeste: true },
+          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Só com o seu time da carreira, valendo carta.', on: salaElenco, emTeste: true },
+        ]
+        // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
+        // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
+        // configuração DAQUELE modo, não "o básico" da sala (bronca do Diego 29/08:
+        // *"quem comanda cada time está junto das explicações"*) — e na tela antiga
+        // continua exatamente onde sempre esteve.
+        const quadroLiga = (<>
+              {/* 🏆 LIGA FECHADA — o que ela guarda a mais que a sala rápida.
+                  Fica aqui em cima, colado no modo, porque é o que a pessoa
+                  precisa decidir ANTES de pensar em baralho e formação.
+                  🏆 ARRUMADO EM 22/08 pra bater com o mockup que o Diego aprovou
+                  (scripts/mockup-liga-fechada.mjs, quadro "O QUE ABRE AO ESCOLHER
+                  🏆 LIGA"). Ele cobrou: *"ainda n tá legal… n parece igual qd se
+                  cria a sala"*. As TRÊS coisas da liga ficam JUNTAS aqui — nome,
+                  dia/hora e bots — em vez de o nome estar lá embaixo, solto e
+                  chamado de "Nome da sala" como numa sala qualquer. */}
+              {/* 👑 QUEM NÃO É LENDA VÊ ISTO NO LUGAR DO FORMULÁRIO (Diego 29/08:
+                  *"quem não é lenda fica com botão de apoie em cima… e aí quando
+                  aperta informa que lenda pra cima pode criar mas você pode jogar"*).
+                  Antes a pessoa preenchia nome, dia, hora e bots e SÓ NO FINAL,
+                  ao apertar Criar, levava o não — trabalho jogado fora e cara de
+                  erro. Agora a conversa é honesta de cara: o que é a liga, o
+                  botão pra virar Lenda, e — logo embaixo, do jeito que ele gosta,
+                  colado no botão — a parte que mais importa pra quem chegou aqui:
+                  **jogar não custa nada**. */}
+              {/* 👁️ com a PRÉVIA ligada (só as contas do Diego) este bloco aparece
+                  TAMBÉM pra quem é Lenda — porque é ele quem aprova o desenho e,
+                  sendo ouro, nunca conseguiria vê-lo. O formulário de verdade
+                  continua logo abaixo, então ele vê a tela do jogador comum sem
+                  perder a de criar. Ver `usePreviewComum` em sport.ts. */}
+              {roomMode === 'liga' && (!canLiga || previewComum) && (
+                <div className="mt-3 rounded-xl border-[3px] border-black p-3.5" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
+                  {canLiga && previewComum && (
+                    <p className="inline-flex text-[9.5px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-2" style={{ background: '#FFC400', color: INK, ...OSWALD }}>
+                      👁️ prévia — é isto que quem NÃO é Lenda vê aqui
+                    </p>
+                  )}
+                  <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>👑 Criar uma liga é do Lenda</p>
+                  <p className="text-white/70 text-[11.5px] font-bold leading-snug mb-3">
+                    A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e artilheiro <b className="text-white">temporada após temporada</b>.
+                  </p>
+                  <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
+                    className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
+                    style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+                    👑 QUERO SER LENDA
+                  </button>
+                  <p className="text-white/55 text-[11px] font-bold leading-snug mt-2.5">
+                    ✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se um Lenda criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.
+                  </p>
+                  <p className="text-white/35 text-[10px] font-bold leading-snug mt-2">
+                    Quer só jogar agora? Use o <b className="text-white/60">⚡ Rápido</b> aqui em cima — é de graça e sempre foi.
+                  </p>
+                </div>
+              )}
+              {roomMode === 'liga' && canLiga && (
+                <div className="mt-3 rounded-xl border-[3px] border-black p-3" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-2" style={OSWALD}>🏆 A sua liga</p>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>🖋️ Nome da liga</p>
+                  <input value={roomName} maxLength={24} onChange={e => setRoomName(stripEmoji(e.target.value))}
+                    placeholder={`Liga do ${nameOf()}`}
+                    className="w-full border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
+                  <div className="flex gap-2">
+                    <input type="date" value={ligaData} min={emDias(0)} onChange={e => setLigaData(e.target.value)}
+                      className="flex-1 min-w-0 border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                    <input type="time" value={ligaHora} onChange={e => setLigaHora(e.target.value)}
+                      className="w-[104px] border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                  </div>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🤖 Bots na tabela</p>
+                  {/* 🤖 ORDEM PEDIDA PELO DIEGO (29/08): *"coloque na frente com
+                      bots (padrão) e só ao lado direito o sem bots"*. Com bots
+                      passa a ser o PADRÃO — é o jeito que o pessoal já conhece do
+                      rápido; sem bots vira a escolha de quem quer só a turma. */}
+                  <Seg options={[[true, 'Com bots até 20'], [false, 'Sem bots — só vocês']] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
+                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {ligaComBots
+                      ? '🤖 Padrão. Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.'
+                      : '🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.'}
+                  </p>
+                  {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
+                      com senha, mas deixe avisado que essa sala é somente com senha.
+                      Também avise as regras da sala, deixe claro: pode ter agendamento,
+                      a sala pode continuar aberta todos os dias"*). Sem isto escrito, o
+                      dono criaria achando que é sala normal e só descobriria a regra na
+                      hora de chamar a galera — e ia achar que o jogo escondeu a liga. */}
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🔒 Senha da liga <span style={{ color: '#E8503A' }}>(obrigatória)</span></p>
+                  <input value={ligaPw} maxLength={24} onChange={e => setLigaPw(e.target.value)}
+                    placeholder="Escolha uma senha"
+                    className="w-full border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
+                  <div className="mt-3 rounded-lg border-2 border-black p-2.5" style={{ background: 'rgba(0,0,0,.28)' }}>
+                    <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-1.5" style={OSWALD}>📋 Como a sua liga funciona</p>
+                    <p className="text-white/60 text-[10.5px] font-bold leading-relaxed">
+                      🔒 <b className="text-white">Só entra com o código + a senha.</b> Ela é a casa da sua turma — ninguém entra por acaso.<br />
+                      👀 <b className="text-white">Na lista de salas ela só aparece com a partida rolando</b>, e mesmo assim ninguém de fora consegue entrar. É só pra mostrar que a liga existe.<br />
+                      📅 <b className="text-white">O dia e a hora são um combinado</b>, não uma trava — serve pra turma saber quando se encontrar.<br />
+                      🏠 <b className="text-white">A sala fica de pé todos os dias.</b> É sempre a MESMA: joga hoje, amanhã e no mês que vem, e os troféus vão somando na estante.<br />
+                      👑 <b className="text-white">Só você abre o pregão</b> (mínimo 2 pessoas), e <b className="text-white">a liga nunca se apaga sozinha</b> — some só se você apertar 🗑️ Excluir.
+                    </p>
+                  </div>
+                  <p className="text-white/35 text-[10px] font-bold mt-2 leading-snug">
+                    Dá pra trocar o nome, o dia, a hora e os bots depois — na mesma sala, sem perder troféu nenhum.
+                  </p>
+                </div>
+              )}
+        </>)
+        // 💬 CADA MODO EXPLICA O QUE É, ao ser escolhido (Diego 29/08: *"quando
+        // aperta em Lenda tem uma explicação do modo de jogo; já no rápido, bafo e
+        // carreira não"*). Antes só a liga tinha, porque a frase morava colada no
+        // seletor velho.
+        // 🔒 O MODO ESCOLHIDO ESTÁ LIBERADO PRA MIM? (Diego 29/08: *"as configurações
+        // você não vai mostrar né, porque ainda não está liberado carreira nem bafo
+        // pra ninguém"*). Quem não tem o modo pode ESCOLHER o cartão pra ler o que
+        // ele é — mas aí a tela para ali: nada de configurar nem de criar. Mostrar
+        // formulário de algo que não dá pra criar é promessa falsa.
+        const modoLiberado = MODOS.find(m => m.v === roomMode)?.on ?? true
+        const EXPLICA: Record<string, string> = {
+          rapido: '🔨 O leilão de sempre — uma temporada avulsa. Acabou o campeonato, acabou a sala.',
+          liga: '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.',
+          carreira: '🌐 Pirâmide de 4 divisões + a Várzea — cada técnico sobe e cai por conta própria, no mesmo mundo pra todos.',
+          elenco: '🃏 SEM LEILÃO — cada um entra com o time da PRÓPRIA carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta pro de cima.',
+        }
         return (
         <div className="space-y-3">
+          {criar2 && (
+            <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
+              <p className="font-black text-white text-[15px] uppercase leading-none flex items-center gap-2" style={OSWALD}>
+                <span className="inline-flex items-center justify-center shrink-0 border-2 border-black rounded-full" style={{ width: 22, height: 22, background: GOLD, color: INK, fontSize: 12 }}>1</span>
+                O que vocês vão jogar?
+              </p>
+              <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">Escolhe um. O resto já está no ponto.</p>
+              {MODOS.map(m => {
+                const sel = roomMode === m.v
+                // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
+                // teste, então pra ele o cartão continua clicável — mas leva o selo,
+                // porque ele pediu pra ver a tela como quem não pode jogar
+                // (*"deixa eu ver também como uma pessoa que não pode jogar"*).
+                const emBreve = !m.on || (previewComum && m.emTeste)
+                return (
+                  // 👆 dá pra tocar mesmo no que ainda não abriu — é assim que a
+                  // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
+                  // não aparece é a configuração (abaixo), porque configurar algo
+                  // que não dá pra criar seria promessa falsa.
+                  <button key={m.v} onClick={() => setRoomMode(m.v)}
+                    className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 mb-2 text-left active:translate-y-0.5"
+                    style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none', opacity: m.on ? 1 : 0.55 }}>
+                    <span style={{ fontSize: 24 }}>{m.ic}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-black text-black text-[15px]" style={OSWALD}>{m.nome}</span>
+                        {m.selo && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: sel ? '#fff' : GOLD, color: '#000', ...OSWALD }}>{m.selo}</span>}
+                        {emBreve && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: '#7C3AED', color: '#fff', ...OSWALD }}>EM BREVE</span>}
+                      </span>
+                      <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
+                    </span>
+                    <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>
+                  </button>
+                )
+              })}
+              {/* 💬 a explicação do modo ESCOLHIDO, colada nele. Antes só a liga tinha. */}
+              <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-1" style={{ background: 'rgba(0,0,0,.3)' }}>
+                <p className="text-white/65 text-[11px] font-bold leading-snug">{EXPLICA[roomMode]}</p>
+                {MODOS.find(m => m.v === roomMode)?.emTeste && (
+                  <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
+                    🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!
+                  </p>
+                )}
+              </div>
+              {/* 🏆 a configuração da liga vem AQUI, colada no modo — ela é do modo,
+                  não é "o básico" da sala. */}
+              {quadroLiga}
+            </div>
+          )}
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
-          <Section num={1} title="O básico" icon="📋">
+          {(!criar2 || modoLiberado) && (<>
+          <Section num={criar2 ? 2 : 1} title={criar2 ? 'O time e o baralho' : 'O básico'} icon="📋">
             <div>
+              {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
+                  *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
+                  O básico já seria o 2, mas sem repetir os modos do online"*).
+                  Os cartões lá em cima JÁ são a escolha do modo — este seletor
+                  (e a frase que explica o modo escolhido) fica só na tela antiga. */}
+              {!criar2 && (<>
               <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
                 {/* 🎛️ OS TRÊS MODOS SEMPRE À VISTA (Diego 17/08: "pode deixar esse
                     modo aparecendo e também o do carreira, e os dois coloque em
@@ -2311,7 +2828,7 @@ export function EscLobby() {
                   // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
                   const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
                     { v: 'rapido', label: '⚡ Rápido', liberado: true },
-                    { v: 'liga', label: '🏆 Liga', liberado: ligaOn },
+                    { v: 'liga', label: '🏆 Minhas ligas', liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
                     { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
@@ -2337,41 +2854,8 @@ export function EscLobby() {
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
                 {roomMode === 'liga' ? '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.' : isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
               </p>
-              {/* 🏆 LIGA FECHADA — o que ela guarda a mais que a sala rápida.
-                  Fica aqui em cima, colado no modo, porque é o que a pessoa
-                  precisa decidir ANTES de pensar em baralho e formação.
-                  🏆 ARRUMADO EM 22/08 pra bater com o mockup que o Diego aprovou
-                  (scripts/mockup-liga-fechada.mjs, quadro "O QUE ABRE AO ESCOLHER
-                  🏆 LIGA"). Ele cobrou: *"ainda n tá legal… n parece igual qd se
-                  cria a sala"*. As TRÊS coisas da liga ficam JUNTAS aqui — nome,
-                  dia/hora e bots — em vez de o nome estar lá embaixo, solto e
-                  chamado de "Nome da sala" como numa sala qualquer. */}
-              {roomMode === 'liga' && (
-                <div className="mt-3 rounded-xl border-[3px] border-black p-3" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-2" style={OSWALD}>🏆 A sua liga</p>
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>🖋️ Nome da liga</p>
-                  <input value={roomName} maxLength={24} onChange={e => setRoomName(stripEmoji(e.target.value))}
-                    placeholder={`Liga do ${nameOf()}`}
-                    className="w-full border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
-                  <div className="flex gap-2">
-                    <input type="date" value={ligaData} min={emDias(0)} onChange={e => setLigaData(e.target.value)}
-                      className="flex-1 min-w-0 border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
-                    <input type="time" value={ligaHora} onChange={e => setLigaHora(e.target.value)}
-                      className="w-[104px] border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
-                  </div>
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🤖 Bots na tabela</p>
-                  <Seg options={[[false, 'Sem bots — só vocês'], [true, 'Com bots até 20']] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
-                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {ligaComBots
-                      ? '🤖 Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.'
-                      : '🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.'}
-                  </p>
-                  <p className="text-white/35 text-[10px] font-bold mt-2 leading-snug">
-                    Dá pra trocar o dia, a hora e os bots depois — na mesma sala, sem perder troféu nenhum.
-                  </p>
-                </div>
-              )}
+              </>)}
+              {!criar2 && quadroLiga}
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
             {!isCareer && (
@@ -2419,7 +2903,7 @@ export function EscLobby() {
 
           {/* ② OS RIVAIS — só na carreira (igual offline: host escolhe os CPUs do leilão) */}
           {isCareer && (
-            <Section num={2} title="Os rivais" icon="🔥">
+            <Section num={criar2 ? 3 : 2} title="Os rivais" icon="🔥">
               <div>
                 <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>Rivais no leilão (CPUs)</p>
                 <div className="grid grid-cols-4 gap-2">
@@ -2436,7 +2920,7 @@ export function EscLobby() {
               <div>
                 <p className="text-white text-[11px] font-black uppercase mb-1">🔥 Escolha os rivais <span className="text-white/50">({careerRivalPicks.length}/{careerRivals})</span></p>
                 <div className="flex flex-wrap gap-1.5">
-                  {DIVISION_TEAMS['D'].map(t => {
+                  {TIMES_ELITE.map(t => {
                     const on = careerRivalPicks.includes(t.team)
                     return (
                       <button key={t.team} onClick={() => toggleCareerRival(t.team)}
@@ -2456,7 +2940,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={2} title="A partida" icon="⚽">
+            <Section num={criar2 ? 3 : 2} title="A partida" icon="⚽">
               {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
                   Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
                   fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
@@ -2499,12 +2983,26 @@ export function EscLobby() {
                       lugar (o que acontece quando a liga acaba). Como é um botão
                       só, não tem estado torto possível. 🔒 Enquanto está em
                       construção, só a conta do Diego enxerga a opção. */}
+                  {/* 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA, e é de propósito:
+                      aqui ela fica LADO A LADO com a Libertadores (🌎), e o Diego
+                      pegou na tela — *"tem que ter uma diferenciação do emoji de
+                      mundo e liberta"*. 🌍 e 🌎 são o mesmo desenho girado; no
+                      tamanho do botão viram a mesma bolinha azul. NÃO trocar de
+                      volta sem trocar o da Liberta junto. */}
+                  {/* 🌐 "Liga + Copa do Mundo" (01/09, pedido do Diego): a liga
+                      roda normal e, quando ela acaba, os 20 times viram seleções e
+                      rola a Copa do Mundo. Por baixo ela é `copaMode: 'liga'` (sem
+                      Copa dos 8, sem Libertadores) + a marca `mundoNaLiga` — assim
+                      o motor do leilão não muda em NADA, e a Copa entra por cima na
+                      tela de fim de temporada. */}
                   <Seg options={(libertaOn
-                    ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga', '📊 Só liga']]
-                    : [['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga', string][]}
-                    value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} />
+                    ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga_mundo', '🌐 Liga + Mundo'], ['liga', '📊 Só liga']]
+                    : [['liga_copa', '🏆 Liga + Copa'], ['liga_mundo', '🌐 Liga + Mundo'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga_mundo' | 'liga', string][]}
+                    value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} selos={{ liga_mundo: seloNovo() }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {rapidoCopaMode === 'liga_liberta'
+                    {rapidoCopaMode === 'liga_mundo'
+                      ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 4 grupos, mata-mata ida e volta e final única. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
+                      : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_copa'
                         ? <>🏆 Acabou a liga, os 8 primeiros disputam a Copa dos 8 — ida e volta até a final única.</>
@@ -2522,10 +3020,20 @@ export function EscLobby() {
           )}
 
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
-          <Section num={3} title="A sala" icon="🔧">
+          <Section num={criar2 ? 4 : 3} title="A sala" icon="🔧">
             <div>
-              <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? 'Sala fechada' : 'Sala aberta'} sub={roomLocked ? 'Só entra com senha' : 'Qualquer um entra'} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />
-              {roomLocked && (
+              {/* 🔒 no modo LIGA este toggle some: a liga é SEMPRE fechada e a senha
+                  dela já foi pedida lá em cima, no quadro da liga. Deixar os dois
+                  perguntaria a senha DUAS VEZES — a mesma bronca que o Diego já deu
+                  quando o nome da liga aparecia em dois lugares. No lugar, uma linha
+                  dizendo a regra, pra ninguém achar que o jogo esqueceu a opção. */}
+              {roomMode === 'liga'
+                ? <div className="rounded-xl border-2 border-black px-3 py-2.5" style={{ background: 'rgba(0,0,0,.28)' }}>
+                    <p className="font-black text-[12.5px] text-white" style={OSWALD}>🏆 A senha da liga fica lá em cima</p>
+                    <p className="text-white/50 text-[10.5px] font-bold mt-0.5">No quadro da liga, junto com o dia e a hora. Liga é sempre com senha.</p>
+                  </div>
+                : <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? 'Sala fechada' : 'Sala aberta'} sub={roomLocked ? 'Só entra com senha' : 'Qualquer um entra'} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />}
+              {roomLocked && roomMode !== 'liga' && (
                 <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
                   placeholder="Senha da sala (avise a galera)"
                   className="w-full mt-2 border-[2.5px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
@@ -2560,16 +3068,24 @@ export function EscLobby() {
             )}
           </Section>
 
-          <Big onClick={createRoom} color={isCareer ? PURPLE : GOLD}>
-            <span style={{ color: isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
-          </Big>
+          </>)}
+          {/* 🔨 O botão de criar. Some junto com as configurações quando o modo
+              escolhido ainda não abriu — o cartão em breve termina na explicação. */}
+          {(!criar2 || modoLiberado) && (
+            <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
+              <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : criar2 ? '🔨 Criar e chamar a galera' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+            </Big>
+          )}
         </div>
         )
       })()}
 
       {tab === 'open' && <div className="space-y-3">
         <Field label="Buscar sala" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar sala…" />
-        <div className="space-y-2">
+        {/* 🖥️ `salas-grade`: no PC as salas ficam DUAS por linha (regra em
+            index.css, só a partir de 768px). No celular a classe não tem regra
+            nenhuma — continua uma embaixo da outra, igualzinho. */}
+        <div className="salas-grade space-y-2">
           {listLoading && <p className="text-white/50 text-sm font-bold text-center py-3">Carregando salas…</p>}
           {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">Nenhuma sala aberta agora. Crie a sua! 🔨</p>}
           {filtered.map(r => {
@@ -2581,10 +3097,11 @@ export function EscLobby() {
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto
-            const copaLbl = r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
+            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? '🌐 liga+mundo' : r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
+            const mundoRoom = r.game_state?.mode === 'mundo' // 🌍 Copa do Mundo: sala de seleções, sem leilão
             return (
               <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
@@ -2598,8 +3115,13 @@ export function EscLobby() {
                     {ligaRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title="Liga: a sala fica de pé, com dia marcado e sala de troféus">🏆 LIGA</span>
                     )}
+                    {/* 🌍 a sala de Copa é OUTRA COISA (seleções, sem leilão): quem
+                        bate o olho na lista tem que saber antes de entrar. */}
+                    {mundoRoom && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão">🌐 COPA</span>
+                    )}
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🏆 liga fechada' : ''}{!isCareerRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🚫 sem bots' : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
                   {ligaRoom && (
                     <p className="font-black text-[11.5px] mt-0.5" style={{ ...OSWALD, color: quandoLiga((r.game_state as GS)?.ligaAt).cor }}>
                       📅 {quandoLiga((r.game_state as GS)?.ligaAt).txt}
@@ -2622,6 +3144,34 @@ export function EscLobby() {
           })}
         </div>
         <Big onClick={() => fetchOpenRooms()} color="#fff">🔄 Atualizar lista</Big>
+        {/* 📱 O GRUPO DE QUEM JOGA ONLINE — mudou de lugar em 29/08, no mesmo dia em
+            que nasceu. Palavras do Diego, olhando a tela: *"sobre o WhatsApp, é pra
+            aparecer aqui embaixo de atualizar lista, e de forma mais sutil. E não
+            após acabar os jogos"*. Ele está certo por dois motivos: o fim da
+            partida é hora de comemorar e votar o próximo jogo, não de ler oferta —
+            e quem NÃO tem com quem jogar está exatamente AQUI, olhando a lista.
+            🤫 SUTIL de propósito: sem caixa colorida, sem botão grande. É uma linha
+            no tom do rodapé, com o link sublinhado — quem precisa acha, quem não
+            precisa nem repara.
+            👑 Quem já é Lenda (e batismo, que nasce ouro) não vê nada disto: já está
+            no grupo. Com a PRÉVIA ligada aparece mesmo assim, marcada.
+            ✅ RECONFIRMADO 30/08: perguntei se os Lendas deviam passar a ver também
+            (com outro texto, do tipo "você já tem vaga"). Resposta do Diego, seca:
+            *"Só sem ser lenda q vê"*. Fica como está — não propor de novo. */}
+        {(myApoioPerk()?.tier !== 'ouro' || previewComum) && (
+          <div className="pt-1">
+            {myApoioPerk()?.tier === 'ouro' && previewComum && (
+              <p className="inline-flex text-[9px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-1.5" style={{ background: GOLD, color: INK, ...OSWALD }}>
+                👁️ prévia — só você vê isto
+              </p>
+            )}
+            <p className="text-white/35 text-[11px] font-bold leading-snug text-center">
+              📱 Sem galera pra chamar? Tem um grupo de quem joga online — é do 👑 Lenda.{' '}
+              <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
+                className="underline text-white/60 font-black active:opacity-60">Saiba mais</button>
+            </p>
+          </div>
+        )}
       </div>}
 
       {tab === 'join' && <div className="space-y-2">
@@ -2698,8 +3248,26 @@ export function EscLobby() {
       {pwModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.65)' }}>
           <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-            <p className="font-black text-black text-lg" style={OSWALD}>🔒 Sala fechada</p>
-            <p className="text-black/60 text-xs font-bold mb-2">Digite a senha pra entrar em “{pwModal.game_state?.roomName ?? pwModal.code}”.</p>
+            {/* 🏆 LIGA: a porta trancada tem que EXPLICAR, não só barrar. O Diego
+                quis a liga na lista de propósito, sabendo que quem não tem a senha
+                se frustra: *"não importa que se frustrem de ver e não conseguirem
+                entrar — vai dar vontade"*. Então aqui a frustração precisa virar
+                caminho, senão é só uma porta na cara: o que é aquela sala, como se
+                entra nela, e como ter a sua. Numa sala rápida trancada nada disso
+                faz sentido, então o texto continua o de sempre. */}
+            <p className="font-black text-black text-lg" style={OSWALD}>{pwModal.game_state?.mode === 'liga' ? '🏆 Liga da turma' : '🔒 Sala fechada'}</p>
+            {pwModal.game_state?.mode === 'liga' ? (
+              <>
+                <p className="text-black/70 text-xs font-bold leading-snug mb-1.5">
+                  <b>“{pwModal.game_state?.roomName ?? pwModal.code}”</b> é uma liga: a mesma sala sempre, com a estante guardando campeão e artilheiro temporada após temporada.
+                </p>
+                <p className="text-black/50 text-[11px] font-bold leading-snug mb-2">
+                  🔑 Ela é só da turma dela — <b>peça a senha pra quem te chamou</b>. Não tem a senha? Dá pra jogar agora numa sala ⚡ Rápida, ou ter a sua própria liga sendo 👑 Lenda.
+                </p>
+              </>
+            ) : (
+              <p className="text-black/60 text-xs font-bold mb-2">Digite a senha pra entrar em “{pwModal.game_state?.roomName ?? pwModal.code}”.</p>
+            )}
             <input autoFocus type="text" value={pwEntry} onChange={e => setPwEntry(e.target.value)} maxLength={20}
               placeholder="Senha" onKeyDown={e => e.key === 'Enter' && enterRoom(pwModal, pwEntry)}
               className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
@@ -2743,17 +3311,89 @@ export function EscLobby() {
     const bafoAptos = elencoOn ? players.filter(p => (p.bafo?.squad?.length ?? 0) >= BAFO_MIN) : []
     const bafoFaltam = elencoOn ? players.filter(p => (p.bafo?.squad?.length ?? 0) < BAFO_MIN) : []
     const ready = elencoOn ? bafoAptos.length >= 2 : duplasOn ? duplasCompletas >= 2 : players.length >= 2
+    // 🏆 A ESPERA DA LIGA PRECISA FALAR (Diego 29/08: *"ele marcou hoje pra amanhã…
+    // e quando chegar no horário, se ninguém entrar?"*). Até agora o dono sozinho
+    // via só um botão cinza "Aguardando… (1/2 mín)" e nada mais — nenhuma pista do
+    // que fazer, nem de que a liga dele JÁ está visível pra galera. É o minuto exato
+    // em que ele fica na dúvida, então é aqui que a resposta tem que estar.
+    // (Nasceu com dois textos — um pra liga sem senha, outro pra com. A liga sem
+    // senha morreu na decisão final de 29/08, então sobrou um só.)
+    const ligaEspera = room.game_state?.mode === 'liga' && !ready
+      ? `🔒 Sua liga está de pé esperando a turma. Só entra quem tem o código ${room.code} + a senha — manda pros seus no zap (precisa de 2 pra começar). Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`
+      : ''
     const travaMsg = elencoOn
       ? (ready ? '' : `🃏 O Bafo começa com 2 times montados. ${bafoAptos.length === 0 ? 'Ninguém montou ainda' : 'Só 1 montou até agora'} — cada um escolhe a carreira que traz aí em cima.`)
+      : ligaEspera ? ligaEspera
       : !duplasOn || ready ? '' :
       `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
+    // 🌍 SALA DE COPA DO MUNDO — a espera aqui não é "esperar o pregão abrir":
+    // é cada um escolher a seleção e convocar os 11. Por isso ela tem painel
+    // próprio e NÃO mostra o botão de começar o leilão.
+    const ehMundoSala = room.game_state?.mode === 'mundo'
+    const copaFicha = (room.game_state as GS)?.copaMundo ?? null
+    const minhaCopa = (players.find(p => p.user_id === user?.id)?.copa ?? null) as CopaPick | null
+    const copaProntos = players.filter(p => copaPickOk(p.copa)).map(p => ({ nome: stripEmoji(p.manager_name).trim() || 'Técnico', pais: (p.copa as CopaPick).pais }))
+    const copaPegasPorOutros = players
+      .filter(p => p.user_id !== user?.id && copaPickOk(p.copa))
+      .map(p => ({ pais: (p.copa as CopaPick).pais, nome: stripEmoji(p.manager_name).trim() || 'Técnico' }))
+    // 📣 A CAIXA DO CONVITE — uma só, montada aqui e desenhada em UM dos dois
+    // lugares (31/08, o furo que o amigo do Diego pegou: *"criou o Minhas Ligas
+    // mas n soube aonde manda o convite"*).
+    //   · LIGA  → logo DEBAIXO DO CÓDIGO. Chamar a galera é a primeira coisa a
+    //     fazer numa sala que acabou de nascer, e antes disso ela ficava depois
+    //     do bloco inteiro da liga (dia marcado + remarcar + regra do ranking) —
+    //     no celular, mais de uma tela de rolagem. Quem não rolou, não achou.
+    //   · RÁPIDA → onde sempre esteve. Lá o código já basta e a tela é curta.
+    const ehLigaSala = room.game_state?.mode === 'liga'
+    const caixaConvite = (
+      <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
+        <p className="text-white/80 text-[11px] font-medium leading-snug">
+          Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
+        </p>
+        {/* 🔒 a senha entra NO CONVITE, e só. Ninguém consegue LER a senha da liga
+            (o banco guarda ela embaralhada), então o dono escreve aqui qual é pra
+            ela viajar junto com o código. Nada fica guardado: fechou a tela,
+            sumiu. Esqueceu qual era? Troca em "🏆 Minhas ligas › ✏️ Editar". */}
+        {ehLigaSala && isHost && (
+          <div className="rounded-xl border-2 border-black px-2.5 py-2" style={{ background: 'rgba(255,255,255,.14)' }}>
+            <p className="text-white/70 text-[9px] font-black uppercase tracking-wider" style={OSWALD}>🔒 senha da liga (vai junto no convite)</p>
+            <input value={convitePw} maxLength={24} onChange={e => setConvitePw(e.target.value)}
+              placeholder="escreva a senha que você criou"
+              className="w-full border-2 border-black rounded-lg px-2 py-1.5 mt-1 font-black text-black text-[13px] bg-white" style={OSWALD} />
+            <p className="text-white/60 text-[10px] font-bold leading-snug mt-1">
+              Sem a senha o amigo bate na porta trancada. Esqueceu qual é? Troque em <b>🏆 Minhas ligas › ✏️ Editar</b>.
+            </p>
+          </div>
+        )}
+        <div className="flex gap-2">
+          <button onClick={() => shareInvite(room.code, room.game_state?.roomName, ehLigaSala ? { at: (room.game_state as GS)?.ligaAt, senha: convitePw } : undefined)}
+            className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
+            📤 Compartilhar convite
+          </button>
+          <button onClick={() => copyCode(room.code)}
+            className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
+            aria-label="Copiar código">
+            📋
+          </button>
+        </div>
+        {shareOk && (
+          <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
+            ✓ {shareOk === 'code' ? 'Código copiado' : ehLigaSala ? 'Convite copiado — cola no zap' : 'Link copiado — cola no zap'}
+          </p>
+        )}
+      </div>
+    )
     return wrap(<>
       <div className="text-center">
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
       </div>
+
+      {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima) */}
+      {ehLigaSala && caixaConvite}
 
       {/* 🏆 A LIGA TEM HORA MARCADA — e é a primeira coisa que a pessoa precisa ver
           ao abrir a sala. Sem isto o combinado só vivia na cabeça da turma. */}
@@ -2764,7 +3404,7 @@ export function EscLobby() {
           <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>🏆 Liga fechada · próximo jogo</p>
+                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>🏆 Minhas ligas · próximo jogo</p>
                 <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
                 <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? '🚫 sem bots — só a galera na tabela' : '🤖 com bots até 20 times'}</p>
               </div>
@@ -2847,7 +3487,10 @@ export function EscLobby() {
                 <div className="flex gap-2 mt-2">
                   <button onClick={async () => {
                     const d = new Date(`${ligaEditData}T${ligaEditHora}`)
-                    if (isNaN(d.getTime())) return
+                    // 🤐 antes isto era um `return` MUDO: com o campo vazio, apertar
+                    // Salvar não fazia nada e não explicava nada. Botão que não
+                    // responde é o pior tipo de trava — agora diz o que falta.
+                    if (isNaN(d.getTime())) { setRoomError('Confira o dia e a hora — os dois precisam estar preenchidos.'); return }
                     await patchLiga({ ligaAt: d.toISOString() }); setLigaEdit(false)
                   }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>Salvar</button>
                   <button onClick={() => setLigaEdit(false)}
@@ -2862,30 +3505,43 @@ export function EscLobby() {
         )
       })()}
 
-      {/* Convite: manda o link direto no zap — o amigo cai na sala automaticamente
-          (se já tem conta) ou no cadastro rápido e depois na sala. */}
-      <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
-        <p className="text-white/80 text-[11px] font-medium leading-snug">
-          Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
-        </p>
-        <div className="flex gap-2">
-          <button onClick={() => shareInvite(room.code, room.game_state?.roomName)}
-            className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
-            📤 Compartilhar convite
-          </button>
-          <button onClick={() => copyCode(room.code)}
-            className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
-            aria-label="Copiar código">
-            📋
-          </button>
-        </div>
-        {shareOk && (
-          <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
-            ✓ {shareOk === 'code' ? 'Código copiado' : 'Link copiado — cola no zap'}
-          </p>
-        )}
-      </div>
+      {/* na sala ⚡ RÁPIDA o convite continua exatamente onde sempre esteve — lá o
+          código já basta e a tela é curta. Só a LIGA move a caixa pro topo. */}
+      {!ehLigaSala && caixaConvite}
+
+      {/* 🌍 COPA DO MUNDO ONLINE: a faixa, a escolha da seleção e o painel de
+          quem já convocou. Nada disto encosta no leilão — a sala segue parada
+          em `waiting` e a Copa é uma tela por cima. */}
+      {ehMundoSala && <FaixaCopa />}
+      {ehMundoSala && user && (
+        <EscolhaSelecao roomId={room.id} meuUid={user.id} minha={minhaCopa}
+          pegasPorOutros={copaPegasPorOutros} aoEscolher={() => { void fetchPlayers(room.id) }} />
+      )}
+      {ehMundoSala && (
+        <PainelDaCopa prontos={copaProntos} total={players.length} souDono={isHost}
+          abrindo={copaAbrindo} aoAbrir={() => { void abrirCopa() }} />
+      )}
+      {ehMundoSala && <EstanteDaCopa roomId={room.id} versao={copaEstanteVer} />}
+      {ehMundoSala && !!copaErro && (
+        <p className="text-[11.5px] font-black text-center leading-snug mb-2" style={{ color: '#FFD9D2' }}>{copaErro}</p>
+      )}
+      {ehMundoSala && copaFicha && !copaAberta && (
+        <button onClick={() => setCopaAberta(true)}
+          className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm mb-2.5 active:translate-y-0.5"
+          style={{ background: GOLD, color: INK, boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
+          🌍 VOLTAR PRA COPA
+        </button>
+      )}
+      {ehMundoSala && copaFicha && copaAberta && (
+        <CopaDaSala ficha={copaFicha} roomId={room.id} meuUid={user?.id}
+          aoCampeao={(nome, pais) => {
+            // 🏆 um grava, todos leem: o DONO escreve o troféu na estante da sala
+            // (é ele que o banco deixa editar depois) e a lista relê pra todo mundo.
+            if (isHost) void gravaCampeaoDaCopa(room.id, copaFicha, nome, pais, copaProntos.map(p => p.nome)).then(() => setCopaEstanteVer(v => v + 1))
+            else setTimeout(() => setCopaEstanteVer(v => v + 1), 2500)
+          }}
+          aoFechar={() => setCopaAberta(false)} />
+      )}
 
       {/* 🃏 BAFO: antes de tudo, o técnico escolhe qual carreira traz. Enquanto não
           escolher, ele fica "montando" — e o host vê isso na lista.
@@ -3103,6 +3759,17 @@ export function EscLobby() {
         </div>
       </div>
 
+      {/* 🔕 QUANDO O CHAT ESTÁ DESLIGADO, A SALA TEM QUE DIZER (29/08). O próprio
+          Diego caiu nisto: entrou numa sala com o chat desligado pelo host e achou
+          que o jogo tinha quebrado — *"sumiu chat, sumiu emojis, áudio e etc,
+          entendi nada"*. É que a zoeira e o chat são a MESMA coisa, então desligar
+          um leva os dois, e a tela não explicava nada. Silêncio sem motivo parece
+          bug; com a linha, é escolha do host e todo mundo entende. */}
+      {chatOff && (
+        <p className="text-white/35 text-[11px] font-bold text-center leading-snug">
+          🔕 O host criou esta sala <b className="text-white/55">sem chat</b> — por isso não tem conversa nem as reações de zoeira aqui.
+        </p>
+      )}
       {/* Zoeira da sala de espera: frases prontas que caem no CHAT da sala (o
           mesmo do leilão — as mensagens ficam, não somem). Tocar numa frase já
           abre a gaveta do chat pra você ver ela cair. */}
@@ -3200,6 +3867,7 @@ export function EscLobby() {
         const esperaLabel = elencoOn ? `Aguardando… (${bafoAptos.length}/2 montados)` : duplasOn ? 'Aguardando…' : `Aguardando… (${players.length}/2 mín)`
         // 🃏 se falta alguém montar, o toque abre o banner em vez de começar
         const onStart = () => { if (elencoOn && bafoFaltam.length > 0) setBafoAviso(true); else void startOnline() }
+        if (ehMundoSala) return null // 🌍 a Copa tem o botão dela no painel de cima
         return isHost
           ? <>
               <Big onClick={onStart} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
@@ -3221,14 +3889,21 @@ export function EscLobby() {
       {(() => {
         const ehLiga = room.game_state?.mode === 'liga'
         const souDonoAqui = room.host_id === user?.id
-        const rotuloSair = ehLiga || !souDonoAqui ? '🚪 Sair da sala' : '🚪 Sair e encerrar a sala'
+        // ✅ "GUARDAR E SAIR" NA LIGA (Diego 29/08, aprovado: *"guardar e sair tá
+        // bom"*). Ele reclamou com razão de o MESMO botão ter dois significados:
+        // *"o botão de sair da sala confunde, porque na sala rápida quando qualquer
+        // um sai, ele sai de vez"*. Na rápida sair encerra; na liga não acontece
+        // nada. Mesmo desenho pra coisas opostas assusta quem tem meses de estante
+        // pra perder — e medo de apertar botão é o que faz a pessoa deixar a aba
+        // aberta a noite toda.
+        const rotuloSair = ehLiga ? '✅ Guardar e sair' : !souDonoAqui ? '🚪 Sair da sala' : '🚪 Sair e encerrar a sala'
         return (
           <div className="space-y-1.5">
             {ehLiga && isHost ? (
               <div className="flex gap-2">
                 <button onClick={leaveRoom}
                   className="flex-1 rounded-xl py-2 font-black text-[12px] text-white/70 border-2 border-dashed border-white/30 active:opacity-60" style={OSWALD}>
-                  🚪 Sair da sala
+                  ✅ Guardar e sair
                 </button>
                 <button onClick={excluirLiga}
                   className="flex-1 rounded-xl py-2 font-black text-[12px] text-white border-2 border-black active:translate-y-0.5" style={{ background: '#C2452F', ...OSWALD }}>
@@ -3241,7 +3916,7 @@ export function EscLobby() {
             <p className="text-white/40 text-[10.5px] font-bold text-center leading-snug">
               {ehLiga
                 ? (isHost
-                  ? <>Sair <b>não apaga nada</b> — a liga fica de pé com os troféus. Excluir some com a sala <b>e a sala de troféus</b>, pra todo mundo.</>
+                  ? <>Pode fechar o app à vontade: <b>sua liga fica guardada</b>, com os troféus, e volta em 🏆 Minhas ligas. Só <b>🗑️ Excluir</b> apaga a liga e a estante — pra todo mundo, sem volta.</>
                   : <>Você volta quando quiser — é só o código.</>)
                 : (souDonoAqui
                   ? <>Sala rápida <b>não existe sem o dono</b>: ao sair, ela é encerrada pra todo mundo.</>
