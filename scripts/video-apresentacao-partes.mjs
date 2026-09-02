@@ -187,8 +187,8 @@ ${cena(12.0, 18.4, `
   ${sub('e no fim sai o jornal da sala<br>com a resenha de todo mundo 📰', 14.6, 36)}`)}
 ${cena(18.4, 24.5, `
   ${titulo('tudo <span style="color:' + GREEN + '">ao vivo</span>', 18.55, 90)}
-  ${sub('chat, provocação, dupla,<br>e o retrospecto contra cada amigo', 19.2)}
-  <div style="margin-top:34px">${pill('"tu já perdeu 7 pro Braguinha" 😤', GOLD, INK, 32, 20.2)}</div>`)}
+  ${sub('chat na sala, cantada de blefe,<br>chuva de dinheiro e dupla com o parceiro', 19.2)}
+  <div style="margin-top:34px">${pill('💸 "esse aí é meu, nem tenta"', GOLD, INK, 32, 20.2)}</div>`)}
 ` }
 
 // ─── PARTE 4 · carreira ────────────────────────────────────────────────────
@@ -200,7 +200,7 @@ ${cena(0, 6.4, `
   ${grande('CARREIRA', 0.15, GREEN, 150)}
   ${titulo('você começa na<br><span style="color:' + RED + '">várzea</span>', 0.8, 80)}
   ${sub('time fraco, caixa curto,<br>e um sonho: chegar na Série A', 1.6)}
-  <div style="margin-top:30px">${pill('🪜 5 degraus pra subir', '#fff', INK, 34, 2.5)}</div>`)}
+  <div style="margin-top:30px">${pill('🪜 5 divisões pra subir', '#fff', INK, 34, 2.5)}</div>`)}
 ${cena(6.4, 13.0, `
   ${titulo('a escada', 6.55, 70)}
   <div style="display:flex;flex-direction:column-reverse;gap:14px;align-items:center;margin-top:26px">
@@ -218,8 +218,8 @@ ${cena(13.0, 19.6, `
     ${linha('🔨 leilão no começo', 'reforça o time', 14.15)}
     ${linha('🏆 Copa do Brasil', 'mata-mata', 14.6)}
     ${linha('🥇 Supercopa', 'campeão × campeão', 15.05)}
-    ${linha('🌐 Copa do Mundo', 'de seleções', 15.5)}
-  </div>`)}
+  </div>
+  ${sub('e mais pra frente destrava a<br><b>🌐 Copa do Mundo</b> de seleções', 15.9, 36)}`)}
 ${cena(19.6, 26.5, `
   ${titulo('e o clube <span style="color:' + ROXO + '">cresce</span> com você', 19.75, 70)}
   <div style="display:flex;flex-direction:column;gap:18px;margin-top:26px">
