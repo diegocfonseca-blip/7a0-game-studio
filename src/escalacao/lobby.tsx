@@ -3228,7 +3228,7 @@ export function EscLobby() {
               </div>
               {roomError && <p className="text-red-500 text-xs font-bold mb-2">{roomError}</p>}
               {salasPresas.length > 0 && (
-                <button onClick={encerrarSalasPresas} disabled={encerrando}
+                <button onClick={() => encerrarSalasPresas()} disabled={encerrando}
                   className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase mt-2"
                   style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
                   {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
@@ -3293,7 +3293,7 @@ export function EscLobby() {
               className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
             {roomError && <p className="text-red-500 text-xs font-bold mt-1">{roomError}</p>}
             {salasPresas.length > 0 && (
-                <button onClick={encerrarSalasPresas} disabled={encerrando}
+                <button onClick={() => encerrarSalasPresas()} disabled={encerrando}
                   className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase mt-2"
                   style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
                   {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
