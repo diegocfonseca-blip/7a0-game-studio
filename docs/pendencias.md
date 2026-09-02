@@ -28,10 +28,14 @@ ignora `screen = 'end'`, o botão aparece na tela de criar sala, e as duas salas
 dele (KUX6DK, P37QSE) tiveram o `updated_at` recuado no banco pra destravar na
 hora. Reverter: `git revert` do commit; o banco não precisa voltar.
 
-## 🏠 HOME — mockup REPROVADO (02/09)
-Diego: *"não gostei do formato da home… ainda muito desorganizado e colado as
-coisas"*. Refazer com menos blocos por tela e mais respiro (espaço entre os
-cartões, um assunto por dobra). Nada codado.
+## 🏠 HOME v2 "com respiro" — CODADA, SÓ NA CONTA DO DIEGO (02/09)
+A 1ª proposta foi reprovada (*"muito desorganizado e colado as coisas"*). A v2
+(mockup + código, mesma trava `useUxCarreira`): primeira tela do celular só com
+nome + os 3 modos empilhados com espaço; continuar carreira/sala vem ANTES dos
+modos; Minhas Ligas e Chamar a galera viram links em texto; cartas no carrossel;
+"como funciona" em lista; novidades/apoie/cadastro embaixo. PC ≥1100px em 2
+colunas (`.ux-home`, index.css). Bloco `if (uxHome)` em `EscIntro`
+(screens.tsx). Esperando o veredito dele; liberar = `UX_CARR_GERAL = true`.
 
 ## 🪜 CARREIRA ARRUMADA — CODADA, SÓ NA CONTA DO DIEGO (02/09)
 Ordem dele: *"code tudo só pro meu usuário"*. Trava `useUxCarreira` em
