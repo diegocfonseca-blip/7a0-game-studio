@@ -376,7 +376,21 @@ export function montaFichaDaLiga(
 ): CopaFicha {
   const times: CopaTime[] = []
   const pegos = new Set<string>()
-  const melhorLivre = (): string => paisesDaCopa().find(p => !pegos.has(p)) ?? paisesDaCopa()[0]
+  // 🛡️ RESERVA ANTES DE DISTRIBUIR (bug de 02/09, seis salas num dia só): a
+  // lista anda na ordem da TABELA, e um bot que terminou acima da pessoa pegava
+  // "a melhor seleção livre" — o Brasil — antes de chegar a vez dela. Quando
+  // chegava, o Brasil "já tinha ido" e ela levava a pior sobra (Coreia do Sul),
+  // mesmo com os 11 convocados. Palavras do amigo do Diego: *"o time que a
+  // gente convoca não vem pra gente… apareceu como se eu tivesse com a Coreia
+  // que eu nem convoquei"*. Agora o que GENTE escolheu fica reservado desde o
+  // começo: bot só pega do que sobrou depois das escolhas de todo mundo.
+  const reservados = new Set<string>()
+  for (const lugar of classificacao) {
+    if (!lugar.humano) continue
+    const uid = uidDe.get(lugar.id); const pick = uid ? picks.get(uid) : undefined
+    if (temPais(pick)) reservados.add(pick.pais)
+  }
+  const melhorLivre = (): string => paisesDaCopa().find(p => !pegos.has(p) && !reservados.has(p)) ?? paisesDaCopa().find(p => !pegos.has(p)) ?? paisesDaCopa()[0]
   for (const lugar of classificacao) {
     const uid = uidDe.get(lugar.id)
     const pick = uid ? picks.get(uid) : undefined

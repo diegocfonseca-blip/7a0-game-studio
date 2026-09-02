@@ -1,5 +1,17 @@
 # 📌 Pendências combinadas com o Diego (atualizado 02/09/2026)
 
+## 🌍 LIGA + MUNDO: "convoquei o Brasil e joguei com a Coreia" (02/09) — ✅ corrigido
+Amigo do Diego no zap: *"o time que a gente convoca não vem pra gente… apareceu
+como se eu tivesse com a Coreia que eu nem convoquei"*. No banco, **6 salas só
+de hoje** com o mesmo padrão: quem escolheu Brasil (ou França/Inglaterra) saiu
+na ficha com Coreia do Sul (ou Croácia), mesmo com os 11 convocados. Causa em
+`montaFichaDaLiga`: a lista anda na ordem da TABELA e um bot acima da pessoa
+pegava "a melhor livre" (Brasil) antes da vez dela; quando chegava nela, o país
+"já tinha ido" e ela levava a pior sobra. Correção: as escolhas de GENTE ficam
+reservadas antes de qualquer bot pegar. Caso novo no guarda
+`scripts/checa-copa-online.html` ("roubo"). As Copas já jogadas não têm
+conserto (torneio acabou); daqui pra frente não repete. Reverter: `git revert`.
+
 ## 🚪 "JÁ TEM 2 SALAS ABERTAS" sem ter (dono do Jurubeba, 02/09) — ✅ corrigido
 Causa dupla: (1) a trava de 2 salas vivas contava partida **já encerrada** (tela
 final, rodada 38) porque `status` fica 'started' pra sempre e a tela final ainda

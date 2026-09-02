@@ -106,6 +106,18 @@ try {
   p('parcial · o time fechou com 11? ' + (misto.length === 11 ? 'SIM' : 'NAO (' + misto.length + ')'))
   p('parcial · manteve os 7 que a pessoa marcou? ' + (mantidos === 7 ? 'SIM' : 'NAO (' + mantidos + ')'))
   p('parcial · as posicoes bateram com a formacao? ' + (nasVagas ? 'SIM' : 'NAO'))
+  // ── 🤖 BOT NÃO ROUBA A ESCOLHA DE GENTE (bug de 02/09: seis salas num dia).
+  // Gente terminou ABAIXO de bots na tabela; o bot de cima pegava "a melhor
+  // livre" (Brasil) antes da vez da pessoa, que caía na Coreia do Sul.
+  const classAbaixo = Array.from({ length: 20 }, (_, i) => ({ id: i, nome: [5, 9, 15].includes(i) ? 'Gente ' + i : 'Bot ' + i, humano: [5, 9, 15].includes(i) }))
+  const uidAbaixo = new Map(classAbaixo.filter(c => c.humano).map(c => [c.id, 'g' + c.id]))
+  const picksAbaixo = new Map([['g5', gente[0].pick], ['g9', gente[1].pick], ['g15', gente[2].pick]]) // Brasil · Argentina · França
+  const fr = montaFichaDaLiga(classAbaixo, uidAbaixo, picksAbaixo, 11, 5)
+  const levou = (uid) => (fr.times.find(t => t.uid === uid) || {}).pais
+  p('')
+  p('roubo · gente abaixo dos bots levou o que escolheu? ' + ((levou('g5') === 'Brasil' && levou('g9') === 'Argentina' && levou('g15') === 'França') ? 'SIM' : 'NAO (' + [levou('g5'), levou('g9'), levou('g15')].join(',') + ')'))
+  p('roubo · algum bot ficou com Brasil/Argentina/França? ' + (fr.times.some(t => !t.uid && ['Brasil', 'Argentina', 'França'].includes(t.pais)) ? 'SIM (ERRADO)' : 'nao'))
+  p('roubo · país repetido? ' + (fr.times.length !== new Set(fr.times.map(t => t.pais)).size ? 'SIM' : 'nao'))
   p('FIM')
 } catch (e) { p('ERRO: ' + (e && e.stack || e)) }
 </script>
