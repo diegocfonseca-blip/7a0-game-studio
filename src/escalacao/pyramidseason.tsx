@@ -7592,6 +7592,18 @@ export function ReserveListScreen() {
   // já é a que está aí mesmo, e Aliciar seria a nova". Só offline (o aliciar é
   // da carreira solo) e nunca em "mesmo time" (sem leilão, nada pra aliciar).
   const [abaLeilao, setAbaLeilao] = useState<'vender' | 'aliciar'>('vender')
+  // 👀 "JÁ ACHOU O SONDAR?" (Diego 28/08: *"ninguém tá achando a aba do rodapé
+  // dos técnicos"*). Enquanto a pessoa nunca abriu o Sondar neste aparelho, o
+  // rodapé chama por ela: faixa dourada apontando pra baixo + a aba em dourado
+  // com o selo NOVO. No PRIMEIRO toque some tudo pra sempre e o rodapé vira uma
+  // barra de abas normal — é empurrão de estreia, não enfeite permanente.
+  const [viuSondar, setViuSondar] = useState(() => {
+    try { return localStorage.getItem('esc-viu-sondar') === '1' } catch { return true } // sem localStorage: não insiste
+  })
+  const abreSondar = () => {
+    setAbaLeilao('aliciar')
+    if (!viuSondar) { setViuSondar(true); try { localStorage.setItem('esc-viu-sondar', '1') } catch { /* segue sem guardar */ } }
+  }
   const mgr = state.managers[state.youIdx]
   const youId = mgr?.id ?? 0
   const listed = useMemo(() => new Set(state.reserveListed?.[youId] ?? []), [state.reserveListed, youId])
@@ -7667,7 +7679,9 @@ export function ReserveListScreen() {
   const nAliciados = (state.aliciarTecnicos?.length ?? 0) + (state.aliciarJogadores?.length ?? 0)
   return (
     <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK }}>
-      <div className="max-w-xl mx-auto" style={{ padding: mostraPills ? '16px 14px 112px' : '16px 14px 48px' }}>
+      {/* 📏 o vão de baixo acompanha a altura da barra: com a faixa de estreia ela
+          fica ~28px mais alta, e sem esse vão a última carta some atrás dela. */}
+      <div className="max-w-xl mx-auto" style={{ padding: mostraPills ? (viuSondar ? '16px 14px 118px' : '16px 14px 148px') : '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>{state.reserveListMesmo ? '📝 CONTRATOS · MESMO TIME' : abaLeilao === 'aliciar' && mostraPills ? '🕵️ SONDAR PRO LEILÃO' : '📋 LISTAR PRA LEILÃO'} · TEMP. {state.seasonNo}</span>
           {/* ⏱️ o relógio só faz sentido ONLINE (esperar todo mundo decidir) — no
@@ -7947,26 +7961,49 @@ export function ReserveListScreen() {
           </div>
         )}
       </div>
-      {/* 🕵️ RODAPÉ Vender · Sondar (Diego 28/08: "eu disse RODAPÉ… igual tem na
-          home") — mesma barra fixa da carreira (BarraCarreira): translúcida,
-          ícone + rótulo, cor do jogador quando ativa. */}
+      {/* 🕵️ RODAPÉ Vender · Sondar técnico (Diego 28/08: "eu disse RODAPÉ… igual
+          tem na home"; e depois, vendo o mockup: "gostei da faixa e da cor").
+          🎨 POR QUE MUDOU DE CARA: a barra era TRANSLÚCIDA com desfoque e um fio
+          de 1,5px — isso é cara de barra do SISTEMA do celular, não do jogo, e o
+          olho aprende a pular. Somado ao ícone desligado com `grayscale(1)`, o
+          botão parecia DESATIVADO e ninguém achava o Sondar. Agora ela tem a cara
+          do Leilão Legends: creme sólido, borda preta grossa, abas em pílula com
+          sombra dura — e ícone SEMPRE colorido, em qualquer estado. */}
       {mostraPills && (
         <>
-          <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
+          {/* o botão de som sobe junto com a barra (com a faixa ela é mais alta) */}
+          <style>{`button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:${viuSondar ? 84 : 112}px !important}`}</style>
           {/* 🩹 anti-piscada: fixed + backdrop-filter no Chrome Android repinta a
               cada rolagem e a barra "some e volta". transform/willChange põem ela
-              numa camada própria da GPU — mesma aparência, sem flicker. */}
-          <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))', transform: 'translateZ(0)', willChange: 'transform', backfaceVisibility: 'hidden' }}>
-            {([['vender', '📋', 'Vender'], ['aliciar', '🕵️', `Sondar${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
-              const on = abaLeilao === k
-              return (
-                <button key={k} onClick={() => setAbaLeilao(k)} aria-label={label}
-                  style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: on ? (col?.solid ?? GREEN) : 'rgba(12,12,12,.45)' }}>
-                  <span style={{ display: 'block', fontSize: 19, lineHeight: '24px', filter: on ? 'none' : 'grayscale(1) opacity(.5)' }}>{ico}</span>
-                  <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{label}</span>
-                </button>
-              )
-            })}
+              numa camada própria da GPU — mesma aparência, sem flicker.
+              (o desfoque saiu junto com o translúcido; a camada própria fica.) */}
+          <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, transform: 'translateZ(0)', willChange: 'transform', backfaceVisibility: 'hidden' }}>
+            {/* 👇 FAIXA DE ESTREIA — só enquanto nunca abriram o Sondar */}
+            {!viuSondar && (
+              <button onClick={abreSondar} aria-label="Sondar técnico"
+                style={{ display: 'block', width: '100%', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, border: 'none', borderTop: `3px solid ${INK}`, borderBottom: `3px solid ${INK}`, padding: '6px 10px', cursor: 'pointer', color: INK, ...OSWALD, fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.3px' }}>
+                👇 tem técnico pra contratar aqui embaixo
+              </button>
+            )}
+            <div style={{ background: '#FAF7EE', borderTop: viuSondar ? `3px solid ${INK}` : 'none', display: 'flex', gap: 7, padding: '8px 9px calc(12px + env(safe-area-inset-bottom))' }}>
+              {([['vender', '📋', 'Vender'], ['aliciar', '🕵️', `Sondar técnico${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
+                const on = abaLeilao === k
+                // 🟡 o Sondar sai DOURADO enquanto ninguém abriu — é o chamariz.
+                // Depois do 1º toque ele vira aba branca normal, igual o Vender.
+                const chamando = k === 'aliciar' && !viuSondar && !on
+                const fundo = on ? (col?.solid ?? GREEN) : chamando ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'
+                return (
+                  <button key={k} onClick={k === 'aliciar' ? abreSondar : () => setAbaLeilao(k)} aria-label={label}
+                    style={{ flex: k === 'aliciar' ? 1.25 : 1, minWidth: 0, position: 'relative', background: fundo, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '5px 2px', cursor: 'pointer', color: on ? '#fff' : INK }}>
+                    {chamando && (
+                      <span style={{ position: 'absolute', top: -8, right: -4, background: '#C2452F', color: '#fff', fontSize: 8, fontWeight: 900, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 6px', letterSpacing: '.3px' }}>NOVO</span>
+                    )}
+                    <span style={{ display: 'block', fontSize: 18, lineHeight: '22px' }}>{ico}</span>
+                    <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </>
       )}

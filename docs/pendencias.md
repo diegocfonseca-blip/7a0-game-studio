@@ -1,4 +1,34 @@
-# 📌 Pendências combinadas com o Diego (atualizado 01/09/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 02/09/2026)
+
+## 🕵️ RODAPÉ "SONDAR TÉCNICO" MAIS VISÍVEL (02/09) — ✅ NO AR
+
+Relato do Diego: *"ninguém tá achando a aba do rodapé dos técnicos na carreira
+que se chama Sondar"*.
+
+**A causa (achada no código, não é chute):** a barra era **translúcida com
+desfoque** e um fio de 1,5px — cara de barra do SISTEMA do celular, não do jogo.
+O olho aprende a pular isso. E o ícone da aba desligada levava
+`grayscale(1) opacity(.5)`, então o 🕵️ parecia **botão desativado**.
+
+**O que mudou** (mockup aprovado por ele: *"gostei da faixa e etc como fez cor"* —
+`scripts/mockup-rodape-sondar.mjs`, versão C):
+- barra com a cara do jogo: **creme sólido + borda preta grossa**, abas em pílula
+  com sombra dura. **Ícone sempre colorido**, em qualquer estado.
+- rótulo passa a ser **"Sondar técnico"** (o "Sondar" sozinho não dizia o quê).
+- enquanto a pessoa **nunca abriu** o Sondar naquele aparelho: **faixa dourada**
+  em cima do rodapé ("👇 tem técnico pra contratar aqui embaixo", clicável) +
+  a aba em **dourado** com selo **NOVO**.
+- **no 1º toque some tudo pra sempre** (`localStorage: esc-viu-sondar`) e vira
+  uma barra de abas normal. É empurrão de estreia, não enfeite fixo.
+- o vão de baixo e o botão de som acompanham a altura (com faixa a barra é
+  ~28px mais alta) — senão a última carta ficava escondida atrás dela.
+
+**Não virou novidade na home de propósito:** a aba já existia e já foi anunciada;
+"agora dá pra achar o botão" só apontaria o defeito.
+
+⏳ **Falta:** print do Diego no celular confirmando. Se ficar estranho, é 1 commit
+isolado — `git revert` e volta.
+
 
 # 🦜🛒 BATISMO Al Takahdao FC (01/09) — e a Série A ESGOTOU
 
