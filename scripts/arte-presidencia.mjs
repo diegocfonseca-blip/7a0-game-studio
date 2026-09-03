@@ -96,6 +96,79 @@ const carro = (x, y, s, cor, tipo = 'sport') => {
   </g>`
 }
 
+
+// ── A VISTA PELA JANELA: estádio de noite, em perspectiva, SEM contorno ───────
+// Dentro da janela nada leva traço preto: é luz, sombra, brilho e névoa. É o
+// contraste com a sala (que tem o traço da casa) que faz parecer uma vista de
+// verdade e não um desenho colado. O carro é visto de trás, em ângulo.
+const vistaJanela = (jx, jy, jw, jh, temCarro, grande) => {
+  const cx = jx + jw / 2, hor = jy + jh * 0.42            // linha do horizonte
+  const estW = jw * (grande ? 0.78 : 0.86), estH = jh * (grande ? 0.30 : 0.34)
+  const ecx = cx, ecy = hor + estH * 0.55
+  const torre = (x, yTop, yBase, s) => `
+    <path d="M${x} ${yTop} L${x - 90 * s} ${yBase + 40 * s} L${x + 90 * s} ${yBase + 40 * s} Z" fill="url(#cone)" opacity=".55"/>
+    <line x1="${x}" y1="${yTop}" x2="${x}" y2="${yBase}" stroke="#8B93A3" stroke-width="${3 * s}" opacity=".9"/>
+    <rect x="${x - 16 * s}" y="${yTop - 6 * s}" width="${32 * s}" height="${12 * s}" rx="2" fill="#E9EEF5" opacity=".95"/>
+    <circle cx="${x}" cy="${yTop}" r="${30 * s}" fill="url(#bloom)"/>
+    <circle cx="${x}" cy="${yTop}" r="${9 * s}" fill="#FFF7D6"/>`
+  const vagaY = jy + jh * 0.70
+  const carroX = cx, carroY = vagaY + jh * 0.10, cs = grande ? 1 : 0.55
+  return `
+  <!-- céu -->
+  <rect x="${jx}" y="${jy}" width="${jw}" height="${jh}" fill="url(#ceuV)"/>
+  ${[[0.08, 0.10], [0.22, 0.05], [0.37, 0.14], [0.55, 0.04], [0.71, 0.09], [0.86, 0.06], [0.93, 0.18], [0.47, 0.22]].map(([fx, fy]) => `<circle cx="${jx + jw * fx}" cy="${jy + jh * fy}" r="${1.4 + (fx * 7) % 1.4}" fill="#fff" opacity="${0.45 + (fy * 3) % 0.4}"/>`).join('')}
+  <!-- cidade ao fundo (silhueta com janelinhas) -->
+  <g opacity=".85">${[[0.02, 0.06, 0.10], [0.12, 0.05, 0.16], [0.17, 0.07, 0.07], [0.26, 0.04, 0.12], [0.31, 0.06, 0.19], [0.62, 0.05, 0.11], [0.69, 0.06, 0.17], [0.76, 0.04, 0.09], [0.82, 0.07, 0.14], [0.90, 0.05, 0.08], [0.95, 0.05, 0.13]].map(([fx, fw, fh]) => `<rect x="${jx + jw * fx}" y="${hor - jh * fh}" width="${jw * fw}" height="${jh * fh + 6}" fill="#141C2E"/>`).join('')}
+  ${[[0.04, 0.05], [0.14, 0.11], [0.15, 0.07], [0.28, 0.09], [0.33, 0.14], [0.34, 0.09], [0.64, 0.07], [0.71, 0.12], [0.72, 0.06], [0.84, 0.10], [0.91, 0.05], [0.96, 0.09]].map(([fx, fh]) => `<rect x="${jx + jw * fx}" y="${hor - jh * fh}" width="3" height="4" fill="#FFD98A" opacity=".8"/>`).join('')}</g>
+  <!-- névoa de luz do estádio -->
+  <ellipse cx="${ecx}" cy="${ecy - estH * 0.2}" rx="${estW * 0.8}" ry="${estH * 1.6}" fill="url(#nevoa)"/>
+  <!-- o estádio em perspectiva: anel de arquibancada + gramado -->
+  <ellipse cx="${ecx}" cy="${ecy}" rx="${estW / 2}" ry="${estH / 2}" fill="#3A4256"/>
+  <ellipse cx="${ecx}" cy="${ecy - estH * 0.08}" rx="${estW / 2}" ry="${estH / 2}" fill="url(#arqui)"/>
+  <ellipse cx="${ecx}" cy="${ecy - estH * 0.08}" rx="${estW * 0.36}" ry="${estH * 0.34}" fill="#2A3142"/>
+  <ellipse cx="${ecx}" cy="${ecy - estH * 0.02}" rx="${estW * 0.34}" ry="${estH * 0.30}" fill="url(#gramado)"/>
+  <ellipse cx="${ecx}" cy="${ecy - estH * 0.02}" rx="${estW * 0.22}" ry="${estH * 0.19}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+  <line x1="${ecx}" y1="${ecy - estH * 0.32}" x2="${ecx}" y2="${ecy + estH * 0.28}" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+  <!-- a arquibancada mais perto (cobertura) escurece pra dar volume -->
+  <path d="M${ecx - estW / 2} ${ecy - estH * 0.08} A${estW / 2} ${estH / 2} 0 0 0 ${ecx + estW / 2} ${ecy - estH * 0.08} L${ecx + estW / 2} ${ecy + estH * 0.12} A${estW / 2} ${estH / 2} 0 0 1 ${ecx - estW / 2} ${ecy + estH * 0.12} Z" fill="#1E2434" opacity=".8"/>
+  <!-- pontinhos de torcida acesa -->
+  ${Array.from({ length: 26 }).map((_, i) => { const a = (i / 26) * Math.PI * 2; return `<circle cx="${ecx + Math.cos(a) * estW * 0.44}" cy="${ecy - estH * 0.08 + Math.sin(a) * estH * 0.44}" r="1.6" fill="#FFE7B0" opacity="${0.35 + (i % 3) * 0.2}"/>` }).join('')}
+  <!-- 4 torres de luz -->
+  ${torre(ecx - estW * 0.46, hor - jh * 0.28, ecy - estH * 0.1, grande ? 1 : 0.6)}
+  ${torre(ecx + estW * 0.46, hor - jh * 0.28, ecy - estH * 0.1, grande ? 1 : 0.6)}
+  ${torre(ecx - estW * 0.2, hor - jh * 0.34, ecy - estH * 0.32, grande ? 0.8 : 0.5)}
+  ${torre(ecx + estW * 0.2, hor - jh * 0.34, ecy - estH * 0.32, grande ? 0.8 : 0.5)}
+  <!-- o estacionamento em frente (perspectiva) -->
+  <path d="M${jx} ${vagaY - 8} L${jx + jw} ${vagaY - 8} L${jx + jw} ${jy + jh} L${jx} ${jy + jh} Z" fill="url(#asfaltoV)"/>
+  <path d="M${jx} ${vagaY - 10} h${jw} v6 h-${jw} z" fill="#5B6270" opacity=".9"/>
+  ${grande ? `<g opacity=".8" stroke="#E8E1C8" stroke-width="3" fill="none">
+    <path d="M${cx - jw * 0.17} ${jy + jh} L${cx - jw * 0.10} ${vagaY + 6}"/><path d="M${cx + jw * 0.17} ${jy + jh} L${cx + jw * 0.10} ${vagaY + 6}"/>
+    <path d="M${cx - jw * 0.36} ${jy + jh} L${cx - jw * 0.24} ${vagaY + 6}"/><path d="M${cx + jw * 0.36} ${jy + jh} L${cx + jw * 0.24} ${vagaY + 6}"/></g>
+    <text x="${cx}" y="${jy + jh - 14}" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="bold" fill="#E8E1C8" opacity=".75" letter-spacing="3">PRESIDENTE</text>
+    <!-- poste com luz quente -->
+    <line x1="${jx + jw * 0.9}" y1="${vagaY - 96}" x2="${jx + jw * 0.9}" y2="${vagaY + 30}" stroke="#9AA0AC" stroke-width="3"/>
+    <circle cx="${jx + jw * 0.9}" cy="${vagaY - 98}" r="26" fill="url(#bloomQ)"/><circle cx="${jx + jw * 0.9}" cy="${vagaY - 98}" r="5" fill="#FFF1C9"/>
+    <ellipse cx="${jx + jw * 0.86}" cy="${vagaY + 34}" rx="70" ry="16" fill="url(#pocaLuz)"/>` : ''}
+  ${temCarro ? carroTras(carroX, carroY, cs) : ''}
+  <!-- reflexo do vidro (é o que diz "isso é uma janela") -->
+  <path d="M${jx + jw * 0.06} ${jy} L${jx + jw * 0.2} ${jy} L${jx + jw * 0.02} ${jy + jh * 0.5} L${jx} ${jy + jh * 0.34} Z" fill="#fff" opacity=".07"/>
+  <path d="M${jx + jw * 0.26} ${jy} L${jx + jw * 0.31} ${jy} L${jx + jw * 0.08} ${jy + jh} L${jx + jw * 0.03} ${jy + jh} Z" fill="#fff" opacity=".045"/>`
+}
+// carro visto de trás, em ângulo, com reflexo e lanterna acesa — sem contorno
+const carroTras = (x, y, s) => `<g transform="translate(${x},${y}) scale(${s})">
+  <ellipse cx="0" cy="44" rx="86" ry="14" fill="#000" opacity=".5" filter="url(#borraoP)"/>
+  <path d="M-74 40 L-70 2 Q-66 -14 -50 -16 L50 -16 Q66 -14 70 2 L74 40 Q74 46 68 46 L-68 46 Q-74 46 -74 40 Z" fill="url(#carroCorpo)"/>
+  <path d="M-52 -16 L-42 -50 Q-38 -58 -28 -58 L28 -58 Q38 -58 42 -50 L52 -16 Z" fill="url(#carroTeto)"/>
+  <path d="M-40 -18 L-33 -46 L33 -46 L40 -18 Z" fill="url(#vidroTras)"/>
+  <path d="M-36 -20 L-31 -42 L-10 -42 L-16 -20 Z" fill="#fff" opacity=".18"/>
+  <rect x="-70" y="4" width="140" height="4" fill="#fff" opacity=".12"/>
+  <rect x="-64" y="12" width="30" height="10" rx="4" fill="#FF4A3A"/><rect x="34" y="12" width="30" height="10" rx="4" fill="#FF4A3A"/>
+  <ellipse cx="-49" cy="17" rx="26" ry="12" fill="#FF3B2A" opacity=".45" filter="url(#borraoP)"/><ellipse cx="49" cy="17" rx="26" ry="12" fill="#FF3B2A" opacity=".45" filter="url(#borraoP)"/>
+  <rect x="-22" y="14" width="44" height="14" rx="3" fill="#EDEDED" opacity=".85"/>
+  <rect x="-66" y="34" width="132" height="8" rx="3" fill="#0E1116"/>
+  <rect x="-72" y="30" width="16" height="18" rx="3" fill="#15181D"/><rect x="56" y="30" width="16" height="18" rx="3" fill="#15181D"/>
+</g>`
+
 // ── A SALA ──────────────────────────────────────────────────────────────────
 // `tem` = conjunto de itens comprados. Tudo que não está no conjunto mostra a
 // versão "de fábrica" (ou nada). Itens: piso parede lustre mesa poltrona
@@ -116,6 +189,18 @@ const sala = (tem, estadio) => {
   ${grad('ceu', [[0, '#0F1A32'], [0.5, '#1E3350'], [1, '#3A5A7A']])}
   ${grad('asfalto', [[0, '#4A4F58'], [1, '#2E323A']])}
   ${grad('tap', [[0, '#7A2320'], [0.5, '#A83F36'], [1, '#7A2320']], 0, 0, 1, 0)}
+  ${grad('ceuV', [[0, '#070C1A'], [0.45, '#0F1A33'], [0.8, '#2A3550'], [1, '#4A4A5A']])}
+  ${grad('arqui', [[0, '#6B7488'], [0.5, '#4A5265'], [1, '#2E3546']])}
+  ${grad('gramado', [[0, '#3FB25C'], [0.6, '#2E9048'], [1, '#1F6D36']])}
+  ${grad('asfaltoV', [[0, '#3A3F4A'], [1, '#1C1F26']])}
+  ${grad('carroCorpo', [[0, '#3A3F48'], [0.35, '#15181E'], [1, '#0A0C10']])}
+  ${grad('carroTeto', [[0, '#4C525C'], [1, '#1A1E25']])}
+  ${grad('vidroTras', [[0, '#8FB6D6'], [1, '#2B4460']])}
+  ${grad('cone', [[0, 'rgba(255,241,201,.55)'], [1, 'rgba(255,241,201,0)']])}
+  <radialGradient id="bloom" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFF7D6" stop-opacity=".95"/><stop offset="0.35" stop-color="#FFE8A8" stop-opacity=".5"/><stop offset="1" stop-color="#FFE8A8" stop-opacity="0"/></radialGradient>
+  <radialGradient id="bloomQ" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFE9B8" stop-opacity=".9"/><stop offset="1" stop-color="#FFE9B8" stop-opacity="0"/></radialGradient>
+  <radialGradient id="nevoa" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFE7B0" stop-opacity=".22"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>
+  <radialGradient id="pocaLuz" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFE7B0" stop-opacity=".35"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>
   <radialGradient id="halo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFF3C4" stop-opacity=".85"/><stop offset="1" stop-color="#FFF3C4" stop-opacity="0"/></radialGradient>
   <radialGradient id="vinheta" cx="50%" cy="46%" r="72%"><stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".24"/></radialGradient>
   <filter id="borrao" x="-60%" y="-160%" width="220%" height="420%"><feGaussianBlur stdDeviation="11"/></filter>
@@ -163,17 +248,8 @@ ${(() => {
       ${g ? `<ellipse cx="${jx + jw / 2}" cy="${jy + jh / 2}" rx="${jw * 0.8}" ry="${jh * 0.72}" fill="url(#halo)" opacity=".22"/>` : ''}
       <rect x="${jx - 14}" y="${jy - 14}" width="${jw + 28}" height="${jh + 28}" rx="14" fill="${g ? 'url(#mad)' : '#B9B2A2'}" stroke="${INK}" stroke-width="9"/>
       <g clip-path="url(#jan)">
-        <rect x="${jx}" y="${jy}" width="${jw}" height="${jh}" fill="url(#ceu)"/>
-        ${[[0.12, 0.12], [0.3, 0.06], [0.52, 0.1], [0.7, 0.05], [0.9, 0.14], [0.82, 0.24]].map(([fx, fy]) => `<circle cx="${jx + jw * fx}" cy="${jy + jh * fy}" r="2.2" fill="#fff" opacity=".8"/>`).join('')}
-        <g transform="translate(${ex},${ey}) scale(${esc})">${estadio}</g>
-        <rect x="${jx}" y="${vagaY}" width="${jw}" height="${jh - (vagaY - jy)}" fill="url(#asfalto)"/>
-        <rect x="${jx}" y="${vagaY - 6}" width="${jw}" height="10" fill="#6B7280"/>
-        ${g ? `<g><path d="M${jx + jw * 0.28} ${vagaY + 12} h${jw * 0.44} l${jw * 0.05} ${jh - (vagaY - jy) - 22} h-${jw * 0.54} z" fill="none" stroke="#F4ECD6" stroke-width="5" opacity=".9"/>
-          <text x="${jx + jw / 2}" y="${vagaY + 48}" text-anchor="middle" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="#F4ECD6" opacity=".8">PRESIDENTE</text>
-          ${T('carro') ? carro(jx + jw / 2 - 122, vagaY + 34, 1.7, '#14161A', 'sport') : `<text x="${jx + jw / 2}" y="${vagaY + 96}" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="#F4ECD6" opacity=".45">vaga livre</text>`}</g>`
-          : `${T('carro') ? carro(jx + jw / 2 - 60, vagaY + 12, 0.85, '#14161A', 'sport') : ''}`}
-        <rect x="${jx}" y="${jy}" width="${jw}" height="${jh * 0.4}" fill="#fff" opacity=".05"/>
-        ${g ? '' : `<rect x="${jx}" y="${jy}" width="${jw}" height="${jh}" fill="#8C867A" opacity=".18"/>`}
+        ${vistaJanela(jx, jy, jw, jh, T('carro'), g)}
+        ${g ? '' : `<rect x="${jx}" y="${jy}" width="${jw}" height="${jh}" fill="#8C867A" opacity=".16"/>`}
       </g>
       ${g ? `<line x1="${jx}" y1="${jy + 54}" x2="${jx + jw}" y2="${jy + 54}" stroke="${INK}" stroke-width="8"/>`
           : `<line x1="${jx + jw / 2}" y1="${jy}" x2="${jx + jw / 2}" y2="${jy + jh}" stroke="${INK}" stroke-width="9"/><line x1="${jx}" y1="${jy + jh * 0.5}" x2="${jx + jw}" y2="${jy + jh * 0.5}" stroke="${INK}" stroke-width="9"/>`}
@@ -352,7 +428,7 @@ ${faixa}${salas}
 ${fade}${rodape}`
 
 // ── render ──────────────────────────────────────────────────────────────────
-const estadio = await estadioReal()
+const estadio = '' // a vista agora e cenica, nao o mapa do estadio (ver vistaJanela)
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const shot = async (nome, html, w, h, dpr = 1) => {
   const p = `${OUT}/${nome}.html`; writeFileSync(p, `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:${CREME}}</style>${html}`)

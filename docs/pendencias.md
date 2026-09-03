@@ -155,6 +155,30 @@ Telas do app geradas junto: `app-1-comeco`, `app-2-meio`, `app-3-completa`
 (sala + barra "X de 14" + Mobiliar + Mostrar no grupo + torcida) e `app-4-loja`
 (13 peças + a vaga do presidente com 3 carros + a trava da folha).
 
+### 🪟 A JANELA (03/09, madrugada) — o mapa do estádio NÃO serve de vista
+Ele viu a v2 e disse: *"a parte do estádio e do carro na janela está horrível..
+parece até que foi feito à mão SVG que não quero"*. Estava certo, e o motivo é
+de conceito, não de traço: o `StadiumSvg` do jogo é um **mapa de gestão**
+(visto de cima, "GERAL 100%", "LOJA", placar) — serve pra administrar, não pra
+olhar pela janela. E o carro de perfil com contorno preto é a cara de vetor.
+
+Refeito em `vistaJanela()`:
+- **estádio de noite em perspectiva**, como se vê de um camarote: anel de
+  arquibancada com volume, gramado iluminado, 4 torres de luz com bloom e cone,
+  névoa de luz, pontinhos de torcida, cidade ao fundo com janelinhas acesas.
+- **estacionamento em perspectiva** na frente, poste de luz quente, faixas da
+  vaga convergindo, "PRESIDENTE" pintado no chão.
+- **carro visto de trás**, em ângulo, lanterna acesa com brilho, reflexo no
+  vidro traseiro — sem contorno.
+- **reflexo diagonal no vidro** por cima de tudo: é o que diz "isso é janela".
+- **Regra que ficou**: DENTRO da janela nada leva traço preto — só luz, sombra e
+  névoa. O contraste com a sala (que tem o traço da casa) é o que faz parecer
+  uma vista de verdade e não um desenho colado.
+
+Peso .webp 760px q86: começo 12,7 KB · meio 19,1 KB · completa 35,9 KB.
+O `estadioReal()` (render do `StadiumSvg` via vite SSR) continua no arquivo,
+mas não é mais usado na janela. Pode servir noutro lugar (cartão do grupo?).
+
 **Ainda em aberto pra ele decidir** (mandado junto com o v2):
 - humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
   sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)
