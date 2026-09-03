@@ -1,159 +1,147 @@
-# 🎨 Prompt pro GPT — arte da Sala da Presidência e da Garagem
+# 🎨 Arte da Sala da Presidência — como ela é produzida (v2, 03/09)
 
-> Feito em 03/09 a pedido do Diego (*"me manda um prompt pro GPT fazer as artes
-> da imagem da sala e da área do carro com base na identidade visual sua"*).
-> O mockup de referência sai de `node scripts/mockup-presidencia.mjs`.
+> **Decisão do Diego (03/09):** *"quero nesse estilo aqui"* — e mandou uma
+> imagem gerada (pintura de gerador de imagem). Esse estilo **não sai de
+> código**: eu (Claude) não tenho gerador de imagem — só código e edição de
+> imagem. Todas as tentativas "pelo Claude mesmo" saíram com cara de desenho e
+> ele recusou todas. O OpenArt conectado à sessão pede aprovação a cada
+> chamada e **não funciona aqui** (palavras dele).
+>
+> **Então o fluxo é o dos batismos:** o Diego gera as peças no gerador dele com
+> o prompt abaixo, manda pra mim, e eu recorto, limpo, peso e monto no jogo.
+> A referência de estilo está em **`scripts/kits/presidencia-referencia.jpg`**
+> (a imagem que ele mandou — guardada no repo pra não se perder).
+
+## O que está FECHADO sobre a sala (vale pro prompt e pro código)
+- **Uma sala só.** Sem divisão. A pessoa compra peça por peça e cada uma
+  aparece no lugar fixo dela. Sala crua = mesma sala, mesma janela grande,
+  móveis de fábrica (mesa de plástico, cadeira de bar, ventilador).
+- **Sem diamante.** (foi entendimento errado de áudio; não existe)
+- **Janela grande de fábrica**, parede inteira. Lá fora: **o estádio do
+  jogador**, muda quando ele faz obra. **Carro de frente pro escritório**, na
+  vaga PRESIDENTE.
+- **Escudo grande na fachada de um lado, mascote do outro** (mascote só quem
+  tem). Fachada de **concreto**: a cor do tier (ouro/prata/bege) é das
+  **cadeiras**, só aparece onde as cadeiras aparecem (arcos abertos, últimas
+  fileiras despontando).
+- **Zero texto desenhado** nas peças (o jogo escreve tudo na Oswald).
+- **Nada do clube vem desenhado**: escudo, manto e mascote mudam por jogador →
+  suporte vazio (moldura sem camisa, pedestal sem bicho, fachada sem escudo) e
+  o jogo põe por cima. **Exceção pedida por ele:** na imagem de referência o
+  escudo está no manto, na fachada, na mesa e na bandeirinha — no jogo TODOS
+  esses são sobreposição do escudo real (`escudoDe()`/`LOGOS_PRONTAS`).
 
 ## ⚠️ As 3 regras que decidem se a arte serve
+1. **PEÇA POR PEÇA, fundo transparente** — nunca a sala montada num quadro só.
+   A sala enche conforme se compra; sem camadas não dá pra tirar a poltrona de
+   quem não comprou. Mesma perspectiva e escala em todas.
+2. **A janela é o problema técnico**: o estádio tem centenas de combinações
+   (4 setores × % + 12 obras). Gerador não faz isso. Solução: o jogo **já tem 6
+   NÍVEIS nomeados** de estádio (`stadiumLevel()` em `estadiodata.ts`):
+   🌱 Campo de Várzea → 🚧 Canteiro de Obras → 🪵 Estádio de Bairro →
+   🏛️ Estádio Municipal → 🏟️ Arena Legends → 👑 Templo Legends.
+   **Gera-se 6 vistas** (uma por nível) e o jogo escolhe pelo nível. Por cima
+   entram como camadas: o **carro** (3 modelos), o **escudo** na fachada, o
+   **mascote** na fachada, e **dia/noite** (refletores) se couber no peso.
+3. **Peso**: cada peça ≤ 25 KB `.webp` · cada vista de estádio ≤ 60 KB ·
+   conjunto ≤ 600 KB. Carrega só quando a Presidência abre.
 
-1. **PEÇA POR PEÇA, fundo transparente.** A sala ENCHE conforme o jogador
-   compra. Uma ilustração fechada da sala inteira é inútil — não dá pra tirar a
-   poltrona de quem não comprou. Cada móvel é um arquivo separado, todos na
-   MESMA perspectiva e escala, pra empilhar como camada por cima da base.
-2. **Nada que é do clube vem desenhado.** Escudo, manto e mascote mudam por
-   jogador (o escudo é gerado pelo nome, o manto é do sócio, a mascote é a arte
-   do batismo). Então a arte entrega o **suporte vazio**: a moldura sem camisa,
-   o pedestal sem bicho, o gancho sem escudo, a estante sem taça. O jogo põe o
-   conteúdo por cima.
-3. **Zero texto na imagem.** Todo texto é escrito pelo jogo (fonte Oswald). Se
-   vier texto desenhado, ele fica torto, não dá pra traduzir e envelhece.
-
-## 📏 Peso (a regra da casa)
-- Cada peça ≤ **25 KB** em `.webp` · a base da sala ≤ **60 KB** · conjunto todo
-  ≤ **350 KB**. Tudo em `src/escalacao/img/`, carregado só quando a Presidência
-  abre — quem nunca entra não baixa.
-- Sem imagem animada. Brilho/luz é CSS, custa 0 KB (padrão do `ApoioSheen`).
-
-## ✅ Conferência quando a arte chegar (erros que já aconteceram)
-- Olhar a peça recortada **sobre o fundo creme e sobre o verde escuro**, nunca
-  sobre branco — branco no branco esconde buraco (caso do Theuzudo FC).
-- Medir o bbox com **corte de alfa ≥ 40 e ao menos 3 px na linha/coluna**: o
-  bbox cru mente por causa da poeira de alfa (caso do Papão).
-- Recortar no limite do desenho: moldura vazia sobrando faz a peça renderizar
-  menor que as outras.
+## ✅ Conferência quando a arte chegar
+- Peça recortada conferida **sobre creme e sobre verde escuro**, nunca sobre
+  branco (letra/bola branca some — caso Theuzudo).
+- bbox com **corte de alfa ≥ 40 e ≥ 3 px** (poeira de alfa mente — caso Papão).
+- Recorte no limite do desenho.
+- Perspectiva idêntica entre as peças (senão a mesa "flutua").
 
 ---
 
-# 📋 PROMPT 1 — A SALA DA PRESIDÊNCIA (colar no GPT)
+# 📋 PROMPT 1 — A SALA (colar no gerador, junto com a imagem de referência)
 
 ```
-Você vai criar um conjunto de ilustrações para um jogo de futebol brasileiro
-chamado Leilão Legends. Preciso da "Sala da Presidência" de um clube de futebol.
+Use a imagem anexa como REFERÊNCIA DE ESTILO E DE COMPOSIÇÃO: mesma pintura,
+mesma paleta, mesma perspectiva, mesma iluminação. É a "Sala da Presidência"
+de um clube de futebol num jogo brasileiro chamado Leilão Legends.
 
-IDENTIDADE VISUAL (obrigatória, é a cara do jogo inteiro):
-- Estilo: ilustração vetorial chapada, tipo adesivo / cartoon editorial. SEM
-  gradiente complexo, SEM textura fotográfica, SEM realismo, SEM sombra suave.
-- Contorno preto GROSSO e uniforme em tudo (equivalente a 3-4 px numa arte de
-  640 px de largura), cantos arredondados generosos.
-- Sombra dura deslocada quando houver: um bloco sólido preto deslocado para
-  baixo e para a direita, sem desfoque.
-- Paleta EXATA, não invente cor fora dela:
-  fundo creme #F4ECD6 · tinta preta #0C0C0C · dourado #FFC400 ·
-  verde #1B7A3D · vermelho #C2452F · roxo #7C3AED ·
-  madeira escura #7A4A26 e #5E3719 · madeira clara #8B5A2B · pedra #CFC7B1
-- Clima: nostálgico, caloroso, um pouco debochado. É a sala de um dirigente de
-  futebol brasileiro, não um escritório corporativo frio.
+Preciso da MESMA sala, mas entregue em CAMADAS SEPARADAS, cada uma um PNG
+com fundo transparente, todas na mesma escala e perspectiva da referência,
+para o jogo montar a sala peça a peça conforme o jogador compra.
 
-PERSPECTIVA (a mesma em TODAS as peças, isso é crítico):
-- Vista frontal reta, levemente de cima, como um cenário de jogo 2D.
-- A parede ocupa os 2/3 de cima, o chão de tábuas de madeira o 1/3 de baixo,
-  com a linha do rodapé reta na horizontal.
-- Nada em perspectiva de fuga forte. Os móveis são vistos de frente.
-- Escala de referência: a sala inteira cabe num quadro de 640 x 620 px.
+CAMADA 0 — BASE (pode ter fundo): a sala VAZIA: parede, teto, piso e a JANELA
+GRANDE de parede inteira já no lugar, mas com o vidro TOTALMENTE TRANSPARENTE
+(sem nada lá fora — a vista entra por outra camada). Sem nenhum móvel.
 
-ENTREGA: quero ARQUIVOS SEPARADOS, cada um com FUNDO TRANSPARENTE (PNG),
-recortados no limite do desenho, todos na mesma escala e na mesma perspectiva,
-para eu empilhar como camadas. NÃO me entregue a sala montada num quadro só.
+CAMADA 0-B — BASE POBRE: a mesma sala vazia, versão começo de carreira: parede
+manchada, piso de concreto rachado, lâmpada pelada. Mesma janela.
 
-PEÇA 0 — BASE DA SALA (esta pode ter fundo, é o fundo de todas):
-parede creme vazia com rodapé de madeira escura, e chão de tábuas de madeira
-com as juntas visíveis. Nada mais. 640 x 620 px.
+PEÇAS (um PNG transparente cada, recortadas no limite do desenho):
+ 1. Mesa dobrável de plástico branco, torta (de fábrica)
+ 2. Cadeira de plástico de bar (de fábrica)
+ 3. Ventilador de mesa velho (de fábrica)
+ 4. Mesa de presidente de madeira, com uma PLACA LISA VAZIA na frente (onde
+    entra o escudo) e o tampo com blotter, canetas e uma bandeirinha de mesa
+    SEM escudo
+ 5. Poltrona de couro de espaldar alto, vista por trás
+ 6. Tapete oval vermelho vinho
+ 7. Estante de troféus de madeira escura com prateleiras VAZIAS
+ 8. As taças e troféus SEPARADOS (5 modelos diferentes: taça grande, taça
+    média, bola de ouro, chuteira de ouro, medalha) — vou empilhar na estante
+ 9. Moldura de quadro VAZIA (interior transparente — a camisa entra depois)
+10. Pedestal de pedra clara com o topo VAZIO (o mascote entra depois)
+11. Lustre / luminária de teto
+12. Aquário com peixinhos
+13. Carrinho de bar com champanhe e taças
+14. Planta em vaso
+15. Sofá de couro verde (canto esquerdo)
+16. Quadro de parede com moldura, interior VAZIO (o lema do clube entra em texto)
 
-PEÇAS SEPARADAS (cada uma um arquivo, fundo transparente):
-1.  Estante de troféus de madeira escura, alta, com 3 prateleiras VAZIAS
-    (sem nenhuma taça — as taças eu desenho por cima) e uma placa de madeira
-    lisa na base, sem texto.
-2.  Mesa de presidente, madeira maciça, vista de frente, com tampo e gavetas.
-3.  Poltrona de couro escuro de espaldar alto, vista por trás (fica atrás da
-    mesa, aparece só o encosto).
-4.  Tapete oval vermelho vinho com um filete claro na borda.
-5.  Moldura de quadro VAZIA, retangular em pé, moldura creme com contorno preto
-    grosso, interior 100% transparente (é onde entra a camisa do time).
-6.  Pedestal / coluna de pedra clara, topo liso e VAZIO (é onde entra o mascote
-    do clube). Com uma base larga embaixo.
-7.  Janela retangular com caixilho preto grosso em cruz, mostrando à noite um
-    estádio de futebol ao fundo: gramado verde, arquibancada azulada e duas
-    torres de refletor acesas com feixe de luz amarelo suave. Céu azul-escuro.
-8.  A MESMA janela, versão dia: céu claro, sem refletor aceso.
-9.  Redoma de vidro (cúpula transparente) sobre uma base de madeira escura,
-    com uma joia azul-clara facetada dentro, brilhando. Este é o objeto mais
-    precioso da sala — capriche, é o xodó do presidente.
-10. Vaso de planta: vaso de barro laranja com uma planta de folhas verdes.
-11. Mesa de sinuca pequena, pano verde, vista de frente.
-12. Aquário retangular com peixinhos coloridos.
-13. Carrinho de bar com uma garrafa de champanhe e duas taças.
-14. Busto de bronze sobre coluna, rosto genérico de homem de meia-idade, sem
-    parecer nenhuma pessoa real.
-15. Cofre antigo de ferro com roda de segredo.
-16. VERSÃO POBRE (a sala do começo de carreira, é pra dar risada):
-    16a. mesa dobrável de plástico branco, torta;
-    16b. cadeira de plástico branca de bar;
-    16c. ventilador de mesa velho;
-    16d. calendário de parede simples pendurado num prego.
-
-REGRAS FINAIS:
-- NENHUM texto, letra ou número em qualquer peça.
-- Nenhuma marca real, nenhum escudo de time real, nenhum rosto de pessoa real.
-- Não desenhe camisa dentro da moldura nem mascote no pedestal: eles têm que
-  ficar VAZIOS.
-- Fundo transparente de verdade (alfa), não branco.
+REGRAS:
+- NENHUM texto, letra, número ou escudo desenhado em peça nenhuma.
+- Nenhuma marca real, nenhum rosto de pessoa real.
+- Fundo transparente de verdade (alfa), nunca branco.
+- Cada peça na MESMA perspectiva e escala da referência.
 ```
 
----
-
-# 📋 PROMPT 2 — A GARAGEM E OS CARROS (colar no GPT)
+# 📋 PROMPT 2 — AS 6 VISTAS DO ESTÁDIO (a janela)
 
 ```
-Mesmo jogo, mesma identidade visual e mesma perspectiva do conjunto anterior
-(ilustração vetorial chapada, contorno preto grosso, paleta creme #F4ECD6 /
-preto #0C0C0C / dourado #FFC400 / verde #1B7A3D / vermelho #C2452F, sem
-gradiente complexo, sem realismo). Agora preciso da GARAGEM DA PRESIDÊNCIA.
+Mesmo estilo da referência. Preciso da VISTA PELA JANELA da sala do
+presidente: o estádio do clube visto de fora, de frente, do nível do
+estacionamento da presidência, com céu e cidade ao fundo. Tamanho 1200x900,
+SEM moldura de janela (a moldura é da sala).
 
-ENTREGA: arquivos SEPARADOS, fundo transparente, mesma escala.
+Quero 6 versões da MESMA vista, a mesma câmera, mostrando o estádio evoluindo:
+ 1. CAMPO DE VÁRZEA: um campo de terra batida, sem arquibancada, quatro
+    mastros de luz apagados e velhos, cerca de arame, estacionamento de barro
+ 2. CANTEIRO DE OBRAS: o campo com grama nascendo, uma arquibancada pequena de
+    concreto em obra (andaime, tapume), mastros ainda apagados
+ 3. ESTÁDIO DE BAIRRO: gramado verde, arquibancada de um lado pronta, muro
+    de concreto, mastros acesos, estacionamento de barro
+ 4. ESTÁDIO MUNICIPAL: arquibancadas dos dois lados, telão pequeno, loja do
+    clube ao lado, estacionamento ASFALTADO com vaga pintada
+ 5. ARENA LEGENDS: estádio fechado com cobertura, camarotes com vidro,
+    telão grande, hotel ao lado, tudo aceso à noite
+ 6. TEMPLO LEGENDS: o mesmo, versão grandiosa: fachada nobre, iluminação
+    cênica, praça de alimentação, estação de metrô, torcida chegando
 
-PEÇA 0 — BASE DA GARAGEM (pode ter fundo): interior de uma garagem simples.
-Parede cinza-clara, piso de concreto cinza mais escuro, e no alto uma porta
-basculante de garagem meio erguida, com as ripas horizontais aparecendo.
-No chão, três vagas de estacionamento demarcadas com faixas pintadas em creme,
-vistas em leve perspectiva (mais largas na frente). Sem texto. 640 x 420 px.
+Em TODAS: na fachada, deixe um ESPAÇO LISO grande à esquerda (onde entra o
+escudo do clube) e outro à direita (onde entra o mascote). Na frente, a VAGA
+DO PRESIDENTE vazia, pintada no chão, de frente para a câmera. Sem carro
+(o carro é outra camada). Sem texto nenhum.
 
-OS CARROS — cada um um arquivo, fundo transparente, TODOS de PERFIL (vista
-lateral pura, olhando o carro de lado), todos na mesma escala e na mesma
-altura de linha do chão, para eu poder trocar um pelo outro na mesma vaga.
-Carros com cara de desenho, proporção levemente "fofa" (rodas grandes,
-corpo compacto), contorno preto grosso, vidros azul-claro:
-
-1. Fusca clássico dos anos 70, azul, um pouco surrado, com um espelho torto.
-2. Perua familiar quadrada dos anos 80, amarela.
-3. Hatch quadradão dos anos 90, vermelho, com um aerofólio pequeno.
-4. Hatch popular branco com uma escada de alumínio amarrada no teto.
-5. Esportivo baixo e largo, preto brilhante, vidros escuros, rodas aro grande.
-
-REGRAS FINAIS:
-- NENHUM texto, número, placa legível ou logotipo.
-- NÃO copie o desenho de nenhuma marca real de carro nem use nome de marca:
-  são carros genéricos "inspirados na vibe" daquela época, não reproduções.
-- Fundo transparente de verdade (alfa), não branco.
-- As rodas de todos os carros têm que tocar exatamente a mesma linha
-  horizontal, para encaixarem na vaga sem flutuar.
+CAMADAS EXTRAS (PNG transparente, mesma câmera):
+ 7. Três carros vistos DE FRENTE, faróis acesos, cada um um arquivo: um
+    popular antigo, um sedã, um esportivo preto de luxo — proporção "fofa",
+    genéricos, sem marca real
+ 8. A mesma vista 5 de DIA (para o jogo alternar dia/noite)
 ```
 
 ---
 
-## 🧩 Como isso encaixa no que já existe
-- A base + as peças entram como `.webp` em `src/escalacao/img/`, e a sala é
-  montada empilhando as camadas que o jogador comprou (`careerSala`).
-- Escudo (`escudoDe`), manto (`mantoStripes`) e mascote (`MASCOTES`) continuam
-  vindo do código de hoje, desenhados POR CIMA dos suportes vazios.
-- Se a arte gerada não bater no peso, o plano B é o que o estádio já faz:
-  desenhar em SVG à mão, que custa 0 KB (é assim que o `StadiumSvg` funciona).
+## 🧩 Como entra no jogo depois que a arte chegar
+- Base + peças → `.webp` em `src/escalacao/img/presidencia/`, empilhadas por
+  `careerSala` (lista de peças compradas).
+- Janela → `janela-{nivel}.webp` escolhida por `stadiumLevel(st).n`; por cima:
+  carro (`careerCarro`), escudo (`<Escudo>`), mascote (`MASCOTES[k]`).
+- Tudo com `import()` preguiçoso: quem não abre a Presidência baixa 0 KB.
+- O gerador em código (`scripts/arte-presidencia.mjs`) fica como **registro da
+  composição e dos slots** — não é mais a arte final.

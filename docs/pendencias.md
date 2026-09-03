@@ -252,6 +252,30 @@ dê pra ver"*. Regra nova, e é regra de FIDELIDADE DE TIER também:
 - Vidro do camarote virou só a faixa de cima (22% da asa), pra sobrar parede
   pro banner; a loja desceu e encostou no chão.
 
+### 🎨 DECISÃO FINAL SOBRE A ARTE (03/09, noite) — sai do código, vai pro gerador DELE
+Ele mandou uma imagem gerada (pintura) e disse: *"quero nesse estilo aqui
+cara, você não pode?"* e depois *"OPENART NÃO FUNCIONA AQUI, TEM QUE SER PELO
+CLAUDE MESMO"*. Resposta honesta dada a ele: **eu não pinto nesse estilo** —
+não tenho gerador de imagem, só código e edição de imagem; tudo que saiu "pelo
+Claude mesmo" virou desenho e ele recusou (5 rodadas). O OpenArt da sessão
+pede aprovação por chamada e ele negou.
+
+**Fluxo que vale daqui pra frente = o dos batismos:** o Diego gera as peças no
+gerador dele com o prompt de `docs/prompt-arte-presidencia.md` (reescrito
+hoje pra esse estilo e pras decisões fechadas), manda pra mim, e eu recorto,
+limpo (regras de alfa/xadrez/fundo colorido), peso e monto.
+- Referência de estilo guardada em **`scripts/kits/presidencia-referencia.jpg`**
+  (a imagem dele — vai no repo pra não se perder, como as camisas).
+- A janela: gerador não faz as centenas de combinações do estádio, então
+  **6 vistas, uma por `stadiumLevel()`** (Várzea → Canteiro → Bairro →
+  Municipal → Arena → Templo), e o jogo sobrepõe carro, escudo e mascote.
+- `scripts/arte-presidencia.mjs` fica como **registro da composição e dos
+  slots** (mapa de onde cada peça mora) — não é mais a arte final.
+
+⚠️ Pra quem pegar isto depois: **não tente de novo desenhar a sala em código
+"mais caprichado"**. Já foram 5 versões; o problema não é capricho, é
+técnica. Ele quer pintura, e pintura vem de gerador.
+
 **Ainda em aberto pra ele decidir** (mandado junto com o v2):
 - humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
   sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)
