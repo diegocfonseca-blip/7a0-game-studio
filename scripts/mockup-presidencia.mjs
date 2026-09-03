@@ -86,10 +86,70 @@ const mesa = `<div class="band" style="padding:10px 12px;margin-bottom:9px">
       <div>
         <div class="osw" style="font-size:9.5px;color:${GOLD};letter-spacing:.09em">Sala da Presidência</div>
         <div class="osw" style="font-size:19px;line-height:1.05">Tigres do Asfalto</div>
-        <div style="font-size:9.5px;color:rgba(255,255,255,.6);margin-top:2px;white-space:nowrap">Presidente <b style="color:#fff">Diego</b> · 7ª temporada</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,.6);margin-top:2px;white-space:nowrap">Presidente <b style="color:#fff">Diego Fonseca</b> <span style="display:inline-block;border:1.5px solid rgba(255,255,255,.5);border-radius:6px;padding:0 4px;font-size:8.5px;margin-left:3px">✏️ editar</span></div>
       </div>
     </div>
     <span class="pill" style="background:${GOLD}">Série B</span>
+  </div>
+  <div style="margin-top:8px;border-top:1.5px dashed rgba(255,255,255,.25);padding-top:6px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:10.5px;font-style:italic;color:rgba(255,255,255,.85)">“Time de várzea, coração de Série A.”</span>
+    <span style="font-size:8.5px;color:rgba(255,255,255,.5)">lema do clube ✏️</span>
+  </div>
+</div>`
+
+
+// ── 🖼️ OS SÍMBOLOS DO CLUBE (escudo: todo mundo · manto: sócio · mascote: batismo) ──
+const escudoSvg = (c1, c2, letra, s = 54) => `<svg width="${s}" height="${s * 1.12}" viewBox="0 0 50 56"><path d="M25 2 L47 9 V30 C47 43 36 51 25 54 C14 51 3 43 3 30 V9 Z" fill="${c1}" stroke="${INK}" stroke-width="3.5"/><path d="M25 8 L41 13 V29 C41 39 33 45 25 48 V8Z" fill="${c2}"/><text x="25" y="35" text-anchor="middle" font-family="Oswald" font-weight="700" font-size="20" fill="#fff" stroke="${INK}" stroke-width="1.2">${letra}</text></svg>`
+const moldura = (titulo, dentro, rodape, travado) => `<div style="flex:1;min-width:0;border:2.5px solid ${INK};border-radius:12px;background:${travado ? '#EFEADB' : '#FFFDF5'};box-shadow:2px 2px 0 ${INK};padding:7px 6px 6px;text-align:center;position:relative;overflow:hidden">
+  <div class="osw" style="font-size:9px;color:rgba(12,12,12,.5);letter-spacing:.06em">${titulo}</div>
+  <div style="height:64px;display:flex;align-items:center;justify-content:center;margin:4px 0 2px">${dentro}</div>
+  <div style="font-size:8.5px;line-height:1.25;color:${travado ? RED : 'rgba(12,12,12,.6)'};font-weight:800">${rodape}</div>
+</div>`
+const simbolos = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
+  <div class="tit">🖼️ Os símbolos do clube</div>
+  <div class="sob" style="margin-bottom:9px">Escudo, manto e mascote — o que veste o seu time.</div>
+  <div class="row" style="gap:7px;align-items:stretch">
+    ${moldura('Escudo', escudoSvg(GREEN, '#0f5a2b', 'T'), 'Tigres do Asfalto', false)}
+    ${moldura('Manto', `<div style="width:46px;height:58px;border:2.5px solid ${INK};border-radius:8px 8px 12px 12px;background:repeating-linear-gradient(90deg,${GREEN} 0 8px,#fff 8px 16px)"></div>`, 'verde e branco · sócio ⭐', false)}
+    ${moldura('Mascote', `<div style="font-size:40px;line-height:1">🐯</div>`, 'O Tigrão · carimba o gol', false)}
+  </div>
+  <div class="row" style="gap:7px;align-items:stretch;margin-top:7px">
+    ${moldura('Escudo', escudoSvg('#7C3AED', '#4c1d95', 'R'), 'Ressaca United', false)}
+    ${moldura('Manto', `<div style="font-size:26px;line-height:1;opacity:.5">🔒</div>`, 'mimo de sócio — apoie o jogo', true)}
+    ${moldura('Mascote', `<div style="font-size:26px;line-height:1;opacity:.5">🔒</div>`, 'vem com o batismo do clube', true)}
+  </div>
+  <div class="sob" style="margin-top:6px">Em cima: clube batizado + sócio (tudo aberto). Embaixo: clube comum (escudo todo mundo tem; o resto mostra o caminho).</div>
+</div>`
+
+// ── 🚗 A GARAGEM — prêmios de fim de ano (Diego: "igual a Audi sempre deu pro Real Madrid") ──
+const CARROS = [['T1', 'Várzea', '🚜', 'Fusca 78 sem banco de trás', 'Vadico'], ['T3', 'Série D', '🚙', 'Brasília amarela', 'ERO'], ['T5', 'Série C', '🚗', 'Gol quadrado turbo', 'Rei das Tintas'], ['T6', 'Série B', '🏎️', 'Importado de vidro fumê', 'Max Joias']]
+const garagem = `<div class="box" style="padding:10px 12px;margin-bottom:9px;background:linear-gradient(160deg,#fff,#EFEADB)">
+  <div class="row" style="justify-content:space-between">
+    <div><div class="tit">🚗 A garagem da diretoria</div><div class="sob">Bateu a meta do patrocínio? O patrocinador dá carro pro presidente e pro craque do ano.</div></div>
+    <span class="pill" style="background:${INK};color:#fff">4 carros</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px">
+    ${CARROS.map(([t, div, ic, nome, marca]) => `<div style="border:2.5px solid ${INK};border-radius:11px;background:#fff;padding:7px 8px;box-shadow:2px 2px 0 ${INK}">
+      <div class="row" style="justify-content:space-between"><span style="font-size:22px;line-height:1">${ic}</span><span class="pill" style="font-size:8.5px">${t} · ${div}</span></div>
+      <div style="font-size:10.5px;font-weight:900;margin-top:4px;line-height:1.2">${nome}</div>
+      <div class="sob">presente do ${marca}</div></div>`).join('')}
+  </div>
+  <div style="margin-top:8px;border:2px dashed rgba(12,12,12,.3);border-radius:10px;padding:6px 8px;font-size:9.5px" class="muted">T7 · Série B — <b>meta: subir</b>. Bateu, ganha o carro da Série B. Não bateu, a garagem fica como está.</div>
+</div>`
+
+// ── ⭐ QUADRO DO CRAQUE DO ANO ──────────────────────────────────────────────
+const craque = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
+  <div class="tit">⭐ Quadro do craque do ano</div>
+  <div class="sob" style="margin-bottom:8px">Um por temporada, escolhido pelo presidente. A carta ganha o selo ⭐ nesta carreira.</div>
+  ${[['T6', 'Meia Canela', '18 gols · 7 assist.'], ['T5', 'Zé Pilantra', '14 gols'], ['T4', 'Bola Murcha', '9 gols · 11 assist.']].map(([t, n, d]) => `<div class="row" style="justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(12,12,12,.07)"><span class="row" style="gap:6px"><span class="pill" style="font-size:8.5px">${t}</span><b style="font-size:11px">⭐ ${n}</b></span><span class="sob">${d}</span></div>`).join('')}
+</div>`
+
+// ── 🎖️ CONDECORAÇÕES DO PRESIDENTE (contas em cima da crônica) ─────────────
+const condec = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
+  <div class="tit">🎖️ Condecorações do presidente</div>
+  <div class="sob" style="margin-bottom:8px">O que VOCÊ conquistou como gestor — vai com você, não com o clube.</div>
+  <div class="row" style="gap:6px;flex-wrap:wrap">
+    ${[['🪜', 'Escalador', 'subiu 3 divisões'], ['🏆', 'Bicampeão', '2 títulos seguidos'], ['🧱', 'Resistente', '5 anos sem cair'], ['🔒', 'Década', '10 temporadas']].map(([i, n, d], k) => `<div style="border:2.5px solid ${INK};border-radius:11px;background:${k === 3 ? '#EFEADB' : '#FFF7E0'};padding:6px 8px;opacity:${k === 3 ? .55 : 1};flex:1;min-width:70px;text-align:center"><div style="font-size:18px;line-height:1">${i}</div><div class="osw" style="font-size:10px;margin-top:2px">${n}</div><div class="sob">${d}</div></div>`).join('')}
   </div>
 </div>`
 
@@ -128,9 +188,19 @@ const tecnico = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
       </div>
     </div>
   </div>
-  <div style="margin-top:9px;border-top:2px dashed rgba(12,12,12,.18);padding-top:7px" class="sob">
-    Quer outro técnico? A sondagem continua onde sempre foi: na tela antes do leilão, aba 🕵️ <b>Sondar</b>.
+  <div style="margin-top:9px;border:2.5px solid ${INK};border-radius:11px;background:#FFF7E0;padding:7px 9px">
+    <div class="row" style="justify-content:space-between">
+      <span class="row" style="gap:6px"><span style="font-size:20px;line-height:1">😐</span><span><b style="font-size:11px">Humor do técnico</b><div class="sob">Como ele está com a diretoria.</div></span></span>
+      <span class="osw" style="font-size:18px;color:#B8860B">54%</span>
+    </div>
+    <div style="height:7px;border:2px solid ${INK};border-radius:999px;background:#fff;overflow:hidden;margin:6px 0 5px"><div style="width:54%;height:100%;background:${GOLD}"></div></div>
+    <div class="row" style="gap:4px;flex-wrap:wrap">
+      <span class="chip" style="font-size:9.5px;background:#E4F4E8">▲ Copa Legends</span>
+      <span class="chip" style="font-size:9.5px;background:#FBE3DF">▼ caiu pra C com um Lenda no banco</span>
+    </div>
+    <div class="sob" style="margin-top:5px">Abaixo de 30% no fim do contrato, ele <b>não renova</b> — e avisa uma temporada antes.</div>
   </div>
+  <div style="margin-top:8px" class="sob">Quer outro técnico? A sondagem continua na tela antes do leilão, aba 🕵️ <b>Sondar</b>.</div>
 </div>`
 
 // ── 🏆 SALA DE TROFÉUS (sai do Rank e vem pra cá) ───────────────────────────
@@ -191,19 +261,31 @@ const atalhos = `<div class="row" style="gap:6px;margin-bottom:9px">
   <a class="btn" style="flex:1">💰 Finanças</a><a class="btn" style="flex:1">🤝 Patrocínio</a><a class="btn" style="flex:1">💼 Agência</a>
 </div>`
 
-// ══ 📱 TELA 1 — a mesa, a torcida e o técnico ═══════════════════════════════
+// ══ 📱 TELA 1 — a mesa, os símbolos e a torcida ═════════════════════════════
 const cel1 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
-${faixa}${salas('Presidência')}${mesa}${torcida}${tecnico}${trofeus}
+${faixa}${salas('Presidência')}${mesa}${simbolos}${torcida}
 <div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
 ${rodape}`
 
-// ══ 📱 TELA 2 — rolando: troféus, parede e placa ════════════════════════════
+// ══ 📱 TELA 2 — rolando: técnico (com humor) e troféus ══════════════════════
 const cel2 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
-${faixa}${salas('Presidência')}${trofeus}${parede}${placa}${atalhos}
+${faixa}${salas('Presidência')}${tecnico}${trofeus}
+<div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
 ${rodape}`
 
-// ══ 💻 PC LARGO — as mesmas coisas em 2 colunas ═════════════════════════════
-const desk = `<style>${CSS} body{width:1440px;height:900px;overflow:hidden;padding:16px 22px}</style>
+// ══ 📱 TELA 3 — rolando: garagem, craque, parede e placa ════════════════════
+const cel3 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
+${faixa}${salas('Presidência')}${garagem}${craque}${condec}
+<div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
+${rodape}`
+
+// ══ 📱 TELA 4 — rolando: parede, placa e atalhos ════════════════════════════
+const cel4 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
+${faixa}${salas('Presidência')}${parede}${placa}${atalhos}
+${rodape}`
+
+// ══ 💻 PC LARGO — 2 colunas ═════════════════════════════════════════════════
+const desk = `<style>${CSS} body{width:1440px;height:1500px;overflow:hidden;padding:16px 22px}</style>
 <div style="max-width:1180px;margin:0 auto">
   ${faixa}
   <div class="row" style="gap:6px;margin-bottom:12px">
@@ -212,14 +294,14 @@ const desk = `<style>${CSS} body{width:1440px;height:900px;overflow:hidden;paddi
   </div>
   ${mesa}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
-    <div>${torcida}${tecnico}</div>
-    <div>${trofeus}${parede}</div>
+    <div>${simbolos}${tecnico}${garagem}</div>
+    <div>${torcida}${trofeus}${craque}${condec}${parede}</div>
   </div>
   ${placa}
 </div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-for (const [nome, html, w, h, dpr] of [['cel-1-mesa', cel1, 390, 844, 2], ['cel-2-trofeus', cel2, 390, 844, 2], ['pc-presidencia', desk, 1440, 900, 1]]) {
+for (const [nome, html, w, h, dpr] of [['cel-1-mesa', cel1, 390, 844, 2], ['cel-2-tecnico', cel2, 390, 844, 2], ['cel-3-garagem', cel3, 390, 844, 2], ['cel-4-historia', cel4, 390, 844, 2], ['pc-presidencia', desk, 1440, 1500, 1]]) {
   const p = `${OUT}/${nome}.html`; writeFileSync(p, `<!doctype html><meta charset="utf-8">${html}`)
   const pg = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: dpr })
   await pg.goto('file://' + p); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(200)

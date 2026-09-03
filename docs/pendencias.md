@@ -31,11 +31,47 @@ O que entra, e **de onde o dado vem** (quase tudo já existe, só está espalhad
 - Nada que adicione passo antes da rodada: é sala que se visita, nunca tela que
   trava o jogo.
 
-**Perguntas abertas pro Diego** (mandadas junto com o mockup):
-1. A Sala de Troféus **sai** do Rank ou fica nos dois lugares? (a proposta é
-   sair, pra não ter a mesma estante duas vezes)
-2. A ficha do técnico **sai** do Elenco ou fica repetida?
-3. Vale ele poder escrever o nome do presidente, ou usa o nome da conta?
+**Respostas dele (03/09, 2ª rodada):**
+1. 🏆 Sala de Troféus **SAI do Rank** — passa a morar só na Presidência.
+2. 🧢 Ficha do técnico **FICA no Elenco também** (repetida nos dois).
+3. ✍️ Nome do presidente **se escreve NA SALA** (não na criação da carreira). É
+   nome de gente, separado do nome do time (*"Neymarzetti não tem a ver com o
+   nome do presidente"*).
+
+**Pedidos novos dele na mesma rodada** (já estão no mockup v2):
+- 🖼️ **escudo, mascote e manto aparecendo**. Conferido no código: escudo TODO
+  clube tem (`escudoDe()` gera pelo nome); manto é SÓ sócio (`MANTO_CONTAS` /
+  `esc_socios`); mascote é SÓ batismo (`CARIMBO_GOL`). Então clube comum vê as
+  duas molduras vazias **com o caminho** ("mimo de sócio", "vem com o batismo").
+- 😐 **humor/satisfação do técnico**. Regra proposta (ele ainda não fechou):
+  0–100, começa em 60; muda só no fim da temporada, por resultado vs. a
+  categoria dele (Lenda espera brigar em cima). **Único efeito: no fim do
+  contrato, abaixo de 30% ele não renova** — e avisa UMA temporada antes, com
+  o caminho (sondar outro no pré-leilão). Nunca sai no meio, nunca mexe em
+  placar, nunca deixa o time sem técnico sem aviso.
+- 🚗 **carros de fim de ano** (*"igual a Audi sempre deu pro Real Madrid… algo
+  que o presidente ganha e os jogadores também"*). Proposta: amarrar na aposta
+  do patrocínio que JÁ existe (`careerSponsorBet`/`careerSponsorResult`):
+  bateu a meta → o patrocinador da temporada dá um carro pro presidente e um
+  pro craque do ano; o carro depende da divisão (zoeira BR: Fusca sem banco →
+  Brasília → Gol quadrado → Uno com escada → importado). Vai pra 🚗 Garagem
+  (coleção, só visual, **zero efeito no jogo**, zero moeda). A "entrega" é uma
+  LINHA na tela de fim de temporada que já existe — não é tela nova, não
+  adiciona passo.
+- ⭐ quadro do craque do ano · 🎖️ condecorações do presidente (medalhas do
+  GESTOR, contas em cima da crônica) · 🗣️ lema do clube.
+
+**Dados NOVOS que a sala pediria no save** (tudo opcional, save velho segue):
+`careerPresidente` (nome) · `careerLema` · `careerTecnicoHumor` · `careerGaragem`
+(lista `{t, div, carro, marca}`) · `careerCraqueAno` (`{t, cardId}`).
+
+**Ainda em aberto pra ele decidir** (mandado junto com o v2):
+- humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
+  sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)
+- carros: nomes de modelos reais na zoeira (Fusca/Brasília/Gol) ou inventados?
+- carros: o patrocinador do presente é a marca REAL do patrocínio (Rei das
+  Tintas etc.)? É vitrine pra eles — bom pra relação com patrocinador, mas
+  melhor ele combinar com eles antes.
 
 ## 📝 BIO ERRADA DO CAMILO (03/09) — ✅ corrigida
 O Diego desconfiou: *"a bio do Camilo e acho q Carlos Germano tb estão errados…
