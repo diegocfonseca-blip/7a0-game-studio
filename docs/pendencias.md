@@ -122,6 +122,39 @@ Pedido: *"preciso q seja maior a imagem.. e tb mande mockup a da aba do carro"*.
 foi pro chão à direita, a planta foi pro canto esquerdo, e o diamante subiu pro
 tampo da mesa no lado livre — nas primeiras versões os três se sobrepunham.
 
+### 🏛️ ARTE v2 (03/09, noite) — a versão que vale: UMA sala, SEM divisão
+Ele derrubou a progressão por divisão: *"não tem nada de Várzea/D/C/B/A — a
+pessoa vai comprando e melhorando as coisas, só isso"*. E: *"tira esse
+diamante, não tem nada a ver"* (o diamante foi entendimento meu errado de um
+áudio — **não existe**). Também: *"fora da janela seria a vista pro estádio"*
+e *"o carro não sei aonde apareceria"*. Então `scripts/arte-presidencia.mjs`
+foi reescrito:
+
+- **Uma sala só.** Cada item comprado aparece num **slot fixo** (mapa no topo do
+  arquivo). Nada se sobrepõe. Sem item = versão "de fábrica" (mesa de plástico,
+  cadeira de bar, ventilador, lâmpada pelada, concreto rachado) ou nada.
+- **Pela janela, o estádio REAL do jogador**: o script renderiza o `StadiumSvg`
+  do jogo (via `vite.ssrLoadModule` + `renderToStaticMarkup`) dentro da janela.
+  No jogo é de graça: a janela mostra o estádio dele com as obras dele.
+- **O carro tem lugar**: a **vaga PRESIDENTE**, pintada no estacionamento em
+  frente ao estádio, vista pela mesma janela. Comprou o carro, ele aparece
+  parado ali. Sem carro: "vaga livre".
+- O **escudo** vai na **frente da mesa** (placa), como mesa de presidente de
+  verdade; enquanto não tem mesa boa, fica pequeno na parede.
+- Janela comprada = **panorâmica** (um travessão só, sem cruz cortando o estádio);
+  a de fábrica é pequena e em cruz, meio suja.
+- Feito com código (SVG renderizado → PNG/webp). O Diego pediu *"faz por vc a
+  arte pelo claude msm"*; o gerador externo (OpenArt) pedia aprovação dele a
+  cada chamada e travou.
+
+Peso .webp 760px q86: começo **13,0 KB** · meio **19,3 KB** · completa **38,3 KB**.
+No jogo a ideia é uma imagem por PEÇA (fundo transparente) empilhada sobre a
+base, não uma imagem por estado — o script de hoje gera estados só pra mostrar.
+
+Telas do app geradas junto: `app-1-comeco`, `app-2-meio`, `app-3-completa`
+(sala + barra "X de 14" + Mobiliar + Mostrar no grupo + torcida) e `app-4-loja`
+(13 peças + a vaga do presidente com 3 carros + a trava da folha).
+
 **Ainda em aberto pra ele decidir** (mandado junto com o v2):
 - humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
   sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)
