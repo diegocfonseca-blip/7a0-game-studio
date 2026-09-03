@@ -1,4 +1,28 @@
-# 📌 Pendências combinadas com o Diego (atualizado 02/09/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 03/09/2026)
+
+## 🇫🇷 ZIDANE: Real Madrid 2002 → Juventus 1998 (03/09) — ✅ no ar
+Pedido dele: *"coloque zidane agora do ano de 1998 da juventus e tire do real
+Madrid"*. Feito no `data.ts` (MEI_EU): mesma fama 5 e mesmo 90–95, só clube e
+ano. A bio deixou de citar "os Galácticos"/o voleio de 2002 e passou a citar a
+final de 98 e a Bola de Ouro — assim ela vale **pra qualquer carta dele**, que
+é o que a sincronização exige (ver abaixo).
+
+Duas coisas aprendidas aqui, que valem pra QUALQUER troca de clube/ano:
+1. **Save antigo NÃO muda de clube.** `sincronizaNiveis()` regrava ficha
+   (fame/lo/hi/folk/promessa/**bio**) mas nunca nome/clube/ano — e, quando não
+   acha o trio exato, ela cai no **nome**. Ou seja: quem já tinha o Zidane do
+   Real 2002 no álbum ou no elenco **continua com o Real 2002**, só que já com a
+   bio nova. Por isso a bio tem que servir aos dois — bio de clube específico
+   ficaria mentindo na carta velha.
+2. **O `npm run novidades` mente numa troca dessas.** A foto compara por
+   nome+clube+ano, então trocar o clube vira "saiu Zidane" + "entrou Zidane" no
+   mesmo dia, e a home diria que ele saiu do jogo. Os dois foram pro `CALADOS`
+   do `scripts/novidades-jogadores.mjs` (com o porquê escrito lá, que **não** é
+   bug) e a linha honesta foi escrita à mão em `novidades.ts`.
+
+Ainda: a coleção "Campeões da Champions" do `scripts/mockup-campeoes.mjs` (que
+é só proposta, não existe no jogo) citava "Zidane (Real 2002)" como exemplo —
+virou "Kaká (Milan 2007)", porque a Juve de 98 **perdeu** aquela final.
 
 ## ⏪ DESFEITO (02/09, ordem do Diego: *"não gostei, volta tudo como estava"*)
 Os dois experimentos que só a conta dele via foram REVERTIDOS na main

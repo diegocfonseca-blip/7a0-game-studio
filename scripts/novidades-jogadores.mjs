@@ -37,6 +37,13 @@ const hoje = new Date().toISOString().slice(0, 10)
 const CALADOS = new Set([
   'saiu|Erazo', // 28/08: era carta DUPLICADA do Frickson Erazo (mesma pessoa, Flamengo 2014)
   'saiu|Alan Ruschel', // 28/08: tinha 2016 E 2017; ficou só a de 2016, senão o nome repetia no post da Chape
+  // 03/09: NÃO é bug — é a MESMA carta trocando de clube/ano (Real Madrid 2002 →
+  // Juventus 1998, pedido do Diego). A foto compara por nome+clube+ano, então
+  // uma troca dessas vira "saiu" + "entrou" da mesma pessoa no mesmo dia, e a
+  // home ficaria dizendo que o Zidane saiu do jogo — o que é mentira. A linha
+  // honesta está escrita à mão em `novidades.ts`.
+  'saiu|Zinedine Zidane',
+  'entrou|Zinedine Zidane',
 ])
 
 // nível como a pessoa vê na carta (o mesmo vocabulário do jogo)

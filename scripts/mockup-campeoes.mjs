@@ -38,7 +38,7 @@ const OPCOES = [
     exemplos: 'Pelé (Santos 62) · Zico (Flamengo 81) · Neymar (Santos 2011) · Cássio (Corinthians 2012) · Gabigol (Flamengo 2019)' },
   { baralho: '🌍 Europa', nome: 'Campeões da Champions', cartas: 116,
     pos: [13, 18, 21, 29, 35], teto: 7, cor: ROXO,
-    exemplos: 'Bobby Charlton (United 68) · Maldini (Milan 89) · Zidane (Real 2002) · Iniesta (Barça 2015) · Alisson (Liverpool 2019)' },
+    exemplos: 'Bobby Charlton (United 68) · Maldini (Milan 89) · Kaká (Milan 2007) · Iniesta (Barça 2015) · Alisson (Liverpool 2019)' },
   { baralho: '🌎 Todos', nome: 'Campeões dos dois lados do mundo', cartas: 207,
     pos: [24, 30, 34, 54, 65], teto: 13, cor: OURO, top: true,
     exemplos: 'A mistura que você falou: quem levantou a Libertadores OU a Champions pelo clube daquele ano.' },

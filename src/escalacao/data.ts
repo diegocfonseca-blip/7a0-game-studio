@@ -390,7 +390,7 @@ export const BIOS: Record<string, string> = {
   "Diego Maradona": "O Deus do futebol argentino. Levou o Napoli ao topo da Itália quase sozinho — a 'Mão de Deus' e o gol do século em 86. Gênio absoluto e caótico.",
   "Lionel Messi": "O maior da era moderna. Oito Bolas de Ouro, mago do drible e dos números impossíveis — a alma do Barça de uma geração inteira.",
   "Cristiano Ronaldo": "Máquina de gols e de títulos. Potência, salto e obsessão por recordes — decidiu Champions atrás de Champions no Real Madrid.",
-  "Zinedine Zidane": "Elegância pura. O giro da Marselha e o voleio na final da Champions de 2002 — o cérebro dos Galácticos.",
+  "Zinedine Zidane": "Elegância pura. O giro da Marselha, dois gols de cabeça na final da Copa de 98 e a Bola de Ouro no mesmo ano — o cérebro que sempre aparecia nas decisões.",
   "Johan Cruyff": "O profeta do futebol total. Craque holandês e depois arquiteto do estilo do Barça — mudou o esporte pra sempre.",
   "Alfredo Di Stéfano": "A Saeta Rubia. Jogava em todas as posições e ganhou 5 Champions seguidas com o Real — o primeiro grande da história.",
   "Ferenc Puskás": "O Comandante. Canhota mágica do Real Madrid e da Hungria dourada — um dos maiores artilheiros de todos os tempos.",
@@ -1593,7 +1593,7 @@ const MEI_EU: C[] = [
   { name: "Bruno Fernandes", club: "Man United", year: 2021, fame: 4, lo: 85, hi: 91 },
   { name: "Ilkay Gündogan", club: "Man City", year: 2023, fame: 4, lo: 85, hi: 91 },
   { name: "Djemba-Djemba (nome em dobro)", club: "Man United", year: 2004, fame: 1, lo: 50, hi: 72, folk: true, bio: "Tão bom que botaram o nome duas vezes — mas no United virou sinônimo de contratação errada." },
-  { name: "Zinedine Zidane", club: "Real Madrid", year: 2002, fame: 5, lo: 90, hi: 95 },
+  { name: "Zinedine Zidane", club: "Juventus", year: 1998, fame: 5, lo: 90, hi: 95 }, // 03/09: pedido do Diego — sai a carta do Real Madrid 2002, entra a da Juve de 1998 (o ano da Bola de Ouro dele)
   { name: "Ronaldinho Gaúcho", club: "Barcelona", year: 2005, fame: 5, lo: 91, hi: 96 },
   { name: "Michel Platini", club: "Juventus", year: 1984, fame: 5, lo: 89, hi: 94 },
   { name: "Kaká", club: "Milan", year: 2007, fame: 5, lo: 89, hi: 94 },
