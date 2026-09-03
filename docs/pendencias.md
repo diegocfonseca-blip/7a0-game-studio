@@ -1,5 +1,31 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/09/2026)
 
+## 📝 BIO ERRADA DO CAMILO (03/09) — ✅ corrigida
+O Diego desconfiou: *"a bio do Camilo e acho q Carlos Germano tb estão errados…
+Camilo tá falando times errados na bio eu acho"*. Conferi os dois FORA do jogo,
+em fonte pública, antes de mexer:
+- **Camilo (Botafogo 2017) — ele estava certo, a bio mentia.** Dizia *"rodado
+  por Botafogo, Corinthians e Vitória"*. O Camilo (Fernando Camilo Faris de
+  Souza, nascido em 1986) **nunca jogou no Corinthians nem no Vitória**. A
+  carreira real passa por Cruzeiro (base), Santo André, Grêmio Barueri, Ceará,
+  América-MG, Nanchang, Botafogo-SP, Avaí, Mirassol, Sport, Chapecoense,
+  Al-Shabab, **Botafogo (2016-17)**, Internacional, Ponte Preta e Paulista de
+  Jundiaí, onde se aposentou aos 40. A bio nova cita só clube que ele vestiu de
+  verdade + a convocação de 2017, que é o ano da carta.
+- **Carlos Germano (Vasco 1998) — a bio está CERTA, não mexi.** Ele foi mesmo o
+  goleiro titular do Vasco campeão da Libertadores de 1998 (ficou no clube de
+  1991 a 1999, com o Brasileiro de 97 e os Cariocas de 92/93/94/98).
+
+⚠️ Regra que isso reforça: bio errada é **conserto**, não novidade — não entra
+na home (o Diego: *"menos bugs, que nunca lance"*). E não precisa de
+`npm run novidades`: a foto do baralho guarda nome/posição/fama/categoria, não
+guarda bio. Quem já tem a carta salva recebe a bio nova sozinho, porque
+`sincronizaNiveis()` regrava a bio ao abrir o save.
+
+🔎 **Vale varrer o resto das bios um dia**: se essa tinha dois clubes
+inventados, outras podem ter. Não fiz agora porque são ~1.400 cartas e checar
+cada uma exige fonte externa; se ele quiser, dá pra fazer por lote.
+
 ## 🇫🇷 ZIDANE: Real Madrid 2002 → Juventus 1998 (03/09) — ✅ no ar
 Pedido dele: *"coloque zidane agora do ano de 1998 da juventus e tire do real
 Madrid"*. Feito no `data.ts` (MEI_EU): mesma fama 5 e mesmo 90–95, só clube e

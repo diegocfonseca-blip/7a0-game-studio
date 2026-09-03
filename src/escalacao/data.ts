@@ -323,7 +323,7 @@ export const BIOS: Record<string, string> = {
   "Willian": "Ponta canhoto de dribles e chute colocado, revelado no Corinthians antes de Shakhtar e Chelsea.",
   "Aránguiz": "Volante chileno de muita técnica e marcação, craque do Inter e da seleção do Chile.",
   "Otávio": "Meia de boa técnica revelado no Athletico antes de brilhar no Porto.",
-  "Camilo": "Meia de bom passe e bola parada, rodado por Botafogo, Corinthians e Vitória.",
+  "Camilo": "Camisa 10 de ofício. Viveu o melhor momento no Botafogo em 2016-17, a ponto de ser convocado pra Seleção — depois rodou por Internacional, Ponte Preta e Mirassol.",
   "Amoroso": "Gênio técnico e artilheiro. Brilhou no Guarani, no São Paulo e foi artilheiro da Bundesliga.",
   "Müller": "Ponta veloz e driblador, craque do São Paulo e da Seleção nos anos 80 e 90.",
   "Serginho Chulapa": "Centroavante raçudo e polêmico, maior artilheiro da história do São Paulo.",
