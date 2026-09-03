@@ -2385,6 +2385,7 @@ export const OLD_NAME: Record<string, string> = {
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
+  'Corporação Capsule FC': 'Real Tabuleiro', // 🐉 batismo do contatovegetta14: assumiu o assento da Série B que era do Real Tabuleiro — save antigo com Real Tabuleiro vira Corporação Capsule FC ao carregar (03/09)
   'Jurubeba FC': 'Ferroviário do Sul', // 🧦 batismo do luizguilhermeps: assumiu o assento da Série B que era do Ferroviário do Sul — save antigo com Ferroviário do Sul vira Jurubeba FC ao carregar (02/09)
   'Esqueceram do Lluch FC': 'Litoral United', // 🏠 batismo do lluchmarcel81: assumiu o assento da Série B que era do Litoral United — save antigo com Litoral United vira Esqueceram do Lluch FC ao carregar (28/08)
   'Papão United Madrid': 'Santos Dumont', // ⚽ batismo do agrostinho88: assumiu o assento da Série D que era do Alfacehh — save antigo com Santos Dumont (ou Tonhão FC) vira Papão United Madrid ao carregar (23/08)
@@ -2538,7 +2539,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Colono', team: 'Botafogo da Colônia' },
     { name: 'Caicó', team: 'Fluminense de Caicó' },
     { name: 'Seringueiro', team: 'Atlético Seringueiro' },
-    { name: 'Tabuleiro', team: 'Real Tabuleiro' },
+    { name: 'Cápsula', team: 'Corporação Capsule FC' }, // 🐉 clube BATIZADO por apoiador (contatovegetta14 — Corporação Capsule FC, ex-Real Tabuleiro; mascote DragonBola, preto + azul escuro; Lenda + fundador nº55, 03/09)
     { name: 'Mata', team: 'Íbis da Mata' },
     { name: 'Nortista', team: 'Theuzudo FC' }, // ⚽ clube BATIZADO por apoiador (matheusfilipealves — Theuzudo FC, ex-Comercial do Norte; coração Valência, mascote morcego 🦇, 21/08)
     { name: 'Litorâneo', team: 'Esqueceram do Lluch FC' }, // ⚽ clube BATIZADO por apoiador (lluchmarcel81 — Esqueceram do Lluch FC, ex-Litoral United; Lenda + fundador nº50, 28/08)
@@ -2623,7 +2624,7 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Botafogo da Colônia', atk: 63, def: 62 },
   { name: 'Fluminense de Caicó', atk: 61, def: 63 },
   { name: 'Atlético Seringueiro', atk: 60, def: 60 },
-  { name: 'Real Tabuleiro', atk: 58, def: 59 },
+  { name: 'Corporação Capsule FC', atk: 58, def: 59 }, // 🐉 ex-Real Tabuleiro (batismo 03/09) — MESMA força do bot que cedeu o assento
   { name: 'Íbis da Mata', atk: 55, def: 54 },
 ]
 

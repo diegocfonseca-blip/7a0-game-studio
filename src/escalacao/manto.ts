@@ -18,6 +18,10 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
   'fontourajoao04@gmail.com': ['#00461C', '#EE5400'], // 🦜🛒 Al Takhadao FC — verde e laranja, MEDIDOS na camisa que o dono mandou (01/09)
   'luizguilhermeps@hotmail.com': ['#F6BB06', '#053F42'], // 🧦 Jurubeba FC — amarelo e verde-petróleo, MEDIDOS na camisa que o dono mandou (02/09)
+  // 🐉 Corporação Capsule FC (03/09): o dono pediu PRETO + AZUL ESCURO. Ainda SEM
+  // arte, então estes são valores limpos; quando o escudo chegar, MEDIR nele e
+  // trocar (regra do manto: cor medida na arte, nunca chutada).
+  'contatovegetta14@gmail.com': ['#0E1116', '#16295C'],
   'gabrielnegreirosamaral99@hotmail.com': ['#E00000', '#0C0C0C'], // 🐶 São Luiz FC — vermelho e preto, MEDIDOS na arte do dono (branco é a 3ª cor, em MANTO_TRI) (21/08)
   'igormarquesn99@gmail.com': ['#AE1A13', '#F3B212'], // 🌽 Milhaça FC — vermelho e amarelo, MEDIDOS na camisa que o dono mandou (24/08)
   'lluchmarcel81@gmail.com': ['#C00018', '#111111'], // 🏠 Esqueceram do Lluch FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (28/08). ❤️ São Paulo (por isso o manto é TRICOLOR listrado; o branco é a 3ª cor, em MANTO_TRI)

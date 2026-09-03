@@ -1,5 +1,50 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/09/2026)
 
+## 🐉 BATISMO Corporação Capsule FC (03/09) — ⏳ FALTA A ARTE E O BANCO
+Pedido: *"add esse usuário aqui na série B no lugar de algum time — e-mail
+contatovegetta14@gmail.com, nome do time Corporação Capsule FC, mascote
+DragonBola, cores preto e azul escuro"*.
+
+**Vaga escolhida: `Real Tabuleiro`** (Série B). Conferido no `data.ts`, não no
+`docs/vagas-batismo.md` (que mente): era o único bot da B que aparece só em
+DOIS lugares do arquivo — a lista da divisão e a tabela de força — e em nenhum
+outro arquivo do `src/`. Nenhum outro clube perde nada.
+
+### ✅ Feito (código, buildado)
+- `data.ts`: o assento da Série B virou `Corporação Capsule FC` (técnico
+  'Cápsula'), força **atk 58 / def 59** (a MESMA do bot que cedeu o assento —
+  ninguém fica mais forte por batismo) + `OLD_NAME['Corporação Capsule FC'] =
+  'Real Tabuleiro'` (save antigo segue).
+- `manto.ts`: `['#0E1116', '#16295C']` — preto + azul escuro. ⚠️ **VALOR
+  PROVISÓRIO**: a regra manda MEDIR na arte; quando o escudo chegar, medir e
+  trocar.
+- `apoio.tsx`: tier `'ouro'` (reserva) + `FUNDADOR_N` **55**.
+- `batismos.ts` e `scripts/checa-batismos.mjs`.
+
+### ⏳ Falta (e por quê)
+1. **A ARTE — escudo e mascote (DragonBola).** Não consigo produzir: não tenho
+   gerador de imagem, e a regra proíbe SVG à mão pra arte de batismo. O Diego
+   está gerando arte no Codex/ChatGPT — é de lá que ela vem. Sem os `.webp`,
+   `LOGOS_PRONTAS` e `MASCOTES`/`CARIMBO_GOL` ficam vazios e a trava acusa
+   (é o comportamento certo: ela está listando o buraco).
+   ⚠️ **Cuidado de marca**: "DragonBola" e "Capsule Corporation" remetem a
+   Dragon Ball. O NOME do clube é escolha do dono; mas a ARTE deve ser
+   original (um dragão do clube), não cópia do personagem/logo.
+2. **O BANCO** (não consegui: o MCP do Supabase pede aprovação do Diego a cada
+   chamada e ele negou). Faltam:
+   - `user_colors` → `tier='ouro'`, `manual=true` (**a fonte OFICIAL do tier**;
+     é a única perna que funciona SEM deploy)
+   - `esc_socios` → próximo `socio_n`, `valido_ate='2099-12-31'`,
+     `manto_c1='#0E1116'`, `manto_c2='#16295C'`, `origem='batismo'`
+   - `esc_fundadores` → `n=55` (conferir com `select max(n) from esc_fundadores`)
+   - `esc_nomes_batismo` → nome PURO + `nome_norm` minúsculo (o gatilho cria
+     FC e EC sozinho)
+3. **Mockup do post** (`node scripts/mockup-batismo.mjs`) — depende da arte.
+4. **Novidade na home** — só quando a arte entrar (senão anuncia clube sem cara).
+
+⚠️ **Lembrete da regra das 3 pernas**: código + banco + deploy na main. Hoje só
+a 1ª está feita. O dono AINDA NÃO deve ser avisado de que está pronto.
+
 ## 🏛️ SALA DA PRESIDÊNCIA (03/09) — MOCKUP FEITO, ESPERANDO O OK · NADA CODADO
 Pedido dele: *"vamos fazer a sala da presidência.. Como será? C técnico, sala de
 troféus q passará pra lá.. E mais oq??"*.
