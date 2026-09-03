@@ -55,51 +55,65 @@
 
 ---
 
-# 📋 PROMPT 1 — A SALA (colar no gerador, junto com a imagem de referência)
+# 📋 PROMPT 1 — A SALA, EM CADEIA DE EDIÇÕES (o jeito que NÃO fica estranho)
 
+> ⚠️ Pergunta do Diego: *"mas aí que eu adiciono coisas vai ficar estranho né?"*
+> Fica, **se as peças forem geradas soltas** — cada uma vem com luz e
+> perspectiva diferentes e vira adesivo. A solução é **não gerar peça solta**:
+> gerar a MESMA sala em etapas, editando a MESMA imagem, um móvel por vez.
+> Eu extraio a DIFERENÇA entre uma etapa e a seguinte — a "peça" é um pedaço da
+> própria pintura, então empilhar no jogo é revelar a pintura, não colar.
+
+**Passo 0 — a sala vazia** (gerar do zero, com a imagem de referência anexa):
 ```
-Use a imagem anexa como REFERÊNCIA DE ESTILO E DE COMPOSIÇÃO: mesma pintura,
-mesma paleta, mesma perspectiva, mesma iluminação. É a "Sala da Presidência"
-de um clube de futebol num jogo brasileiro chamado Leilão Legends.
+Use a imagem anexa como REFERÊNCIA DE ESTILO, câmera, paleta e iluminação.
+Pinte a MESMA sala, mas VAZIA: só parede, teto, piso de madeira e a JANELA
+GRANDE de parede inteira no mesmo lugar, com o vidro mostrando SÓ céu azul
+liso (nada lá fora). Sem nenhum móvel, sem quadro, sem tapete, sem texto,
+sem escudo. Formato 1400x1120.
+```
 
-Preciso da MESMA sala, mas entregue em CAMADAS SEPARADAS, cada uma um PNG
-com fundo transparente, todas na mesma escala e perspectiva da referência,
-para o jogo montar a sala peça a peça conforme o jogador compra.
+**Passo 0-B — a sala pobre** (edição do passo 0):
+```
+Nesta mesma imagem, sem mudar câmera nem luz: troque o piso por concreto
+cinza rachado, deixe a parede manchada, e adicione uma mesa dobrável de
+plástico branco torta, uma cadeira de plástico de bar e um ventilador de
+mesa velho. Mais nada.
+```
 
-CAMADA 0 — BASE (pode ter fundo): a sala VAZIA: parede, teto, piso e a JANELA
-GRANDE de parede inteira já no lugar, mas com o vidro TOTALMENTE TRANSPARENTE
-(sem nada lá fora — a vista entra por outra camada). Sem nenhum móvel.
+**Passos 1 a 14 — um móvel por vez** (cada um é edição da imagem ANTERIOR;
+salvar cada resultado com o número):
+```
+Nesta mesma imagem, SEM MUDAR MAIS NADA (mesma câmera, mesma luz, todos os
+outros objetos exatamente iguais), adicione apenas: <PEÇA>.
+```
+Ordem das peças (a ordem da loja):
+ 1. tapete oval vermelho vinho no centro
+ 2. mesa de presidente de madeira, de frente, com uma PLACA LISA VAZIA na
+    frente (sem escudo) e blotter, canetas e bandeirinha de mesa SEM escudo
+ 3. poltrona de couro de espaldar alto atrás da mesa, vista por trás
+ 4. estante de troféus de madeira escura à esquerda, prateleiras VAZIAS
+ 5. quatro troféus dourados variados nas prateleiras (taça grande, taça
+    média, bola de ouro, chuteira de ouro)
+ 6. moldura de quadro na parede direita, interior VAZIO (creme liso)
+ 7. pedestal de pedra clara no chão à esquerda, topo VAZIO
+ 8. lustre / luminária de teto
+ 9. aquário com peixinhos na estante da direita
+10. carrinho de bar dourado com champanhe e taças, canto direito
+11. planta em vaso
+12. sofá de couro verde, canto esquerdo
+13. quadro pequeno na parede direita com moldura, interior VAZIO
+14. lambri de madeira na parte de baixo da parede
 
-CAMADA 0-B — BASE POBRE: a mesma sala vazia, versão começo de carreira: parede
-manchada, piso de concreto rachado, lâmpada pelada. Mesma janela.
-
-PEÇAS (um PNG transparente cada, recortadas no limite do desenho):
- 1. Mesa dobrável de plástico branco, torta (de fábrica)
- 2. Cadeira de plástico de bar (de fábrica)
- 3. Ventilador de mesa velho (de fábrica)
- 4. Mesa de presidente de madeira, com uma PLACA LISA VAZIA na frente (onde
-    entra o escudo) e o tampo com blotter, canetas e uma bandeirinha de mesa
-    SEM escudo
- 5. Poltrona de couro de espaldar alto, vista por trás
- 6. Tapete oval vermelho vinho
- 7. Estante de troféus de madeira escura com prateleiras VAZIAS
- 8. As taças e troféus SEPARADOS (5 modelos diferentes: taça grande, taça
-    média, bola de ouro, chuteira de ouro, medalha) — vou empilhar na estante
- 9. Moldura de quadro VAZIA (interior transparente — a camisa entra depois)
-10. Pedestal de pedra clara com o topo VAZIO (o mascote entra depois)
-11. Lustre / luminária de teto
-12. Aquário com peixinhos
-13. Carrinho de bar com champanhe e taças
-14. Planta em vaso
-15. Sofá de couro verde (canto esquerdo)
-16. Quadro de parede com moldura, interior VAZIO (o lema do clube entra em texto)
-
-REGRAS:
-- NENHUM texto, letra, número ou escudo desenhado em peça nenhuma.
+REGRAS EM TODOS OS PASSOS:
+- NENHUM texto, letra, número ou escudo desenhado (o jogo põe por cima).
 - Nenhuma marca real, nenhum rosto de pessoa real.
-- Fundo transparente de verdade (alfa), nunca branco.
-- Cada peça na MESMA perspectiva e escala da referência.
-```
+- A janela continua SÓ céu liso (a vista entra por outra camada).
+
+**Se o gerador NÃO segurar a cena igual entre os passos** (móvel mudando de
+lugar, luz mudando): **Plano B** — 5 pinturas completas (vazia → básica →
+média → boa → completa) e a loja compra em ORDEM FIXA. Nunca fica estranho,
+porque é sempre um quadro inteiro; perde só a ordem livre de compra.
 
 # 📋 PROMPT 2 — AS 6 VISTAS DO ESTÁDIO (a janela)
 
