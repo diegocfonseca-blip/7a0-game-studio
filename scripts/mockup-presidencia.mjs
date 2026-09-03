@@ -1,5 +1,27 @@
 // ─── 🏛️ MOCKUP DA SALA DA PRESIDÊNCIA (03/09) ───────────────────────────────
 //
+// ⚠️ ISTO É REFERÊNCIA DE COMPOSIÇÃO, NÃO É A ARTE FINAL (decidido em 03/09).
+// O Diego olhou o desenho em SVG e disse: *"n quero criado a mão estilo svg
+// cara"*. A arte final vem de gerador de imagem, em `.webp` por peça — o
+// roteiro está em `docs/prompt-arte-presidencia.md`.
+//
+// O que ESTE arquivo continua valendo: ele resolveu a parte que não é traço —
+// o QUE existe em cada divisão, ONDE cada coisa fica, e o que muda na CASCA
+// (parede, rodapé, chão, luz) pra a sala parecer que enriqueceu em vez de só
+// ganhar objeto. As imagens que ele gera vão junto com o prompt, como
+// referência de layout.
+//
+// 📏 Peso, medido (o Diego achava o contrário, e isso muda o planejamento):
+//   · SVG à mão das 5 salas = 15 KB cru → **4,4 KB comprimido**, no bundle,
+//     baixado por TODO jogador.
+//   · a MESMA sala em .webp 760px q88 = **37 KB** — uma só. Com base + peças +
+//     5 divisões, a arte gerada dá uns 400-600 KB.
+//   Ou seja: .webp é ~100x mais bytes. Fomos de .webp assim mesmo, e com razão:
+//   a Presidência é a área de STATUS, existe pra impressionar, e desenho à mão
+//   fica com cara de rascunho. A condição que torna isso seguro é a arte
+//   carregar SÓ quando a Presidência abre — quem nunca entra baixa 0 KB.
+
+//
 // Pedido do Diego: *"vamos fazer a sala da presidência.. Como será? C técnico,
 // sala de troféus q passará pra lá.. E mais oq??"*
 //
@@ -138,94 +160,171 @@ const condec = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
 </div>`
 
 
-// ── 🏛️ O DESENHO DA SALA (mesma ideia do StadiumSvg: enche conforme você compra) ──
-// Feito em SVG à mão, como o estádio: é UM desenho pra todo mundo, então custa
-// ~0 KB e não cai na regra de peso dos batismos (aquela é arte POR CLUBE).
-const salaSvg = (cheia) => `<svg viewBox="0 0 640 620" style="width:100%;display:block">
+// ── 🏛️ O CENÁRIO DA SALA (v5) ───────────────────────────────────────────────
+// Regra que manda aqui: NÃO é um painel onde os objetos são colados — é uma
+// sala que ENRIQUECE. A casca muda de divisão em divisão (parede, chão, luz),
+// não só os móveis. Quem bate o olho numa screenshot tem que saber na hora se
+// o presidente está na miséria ou milionário, sem ler uma palavra.
+const ORDEM = ['V', 'D', 'C', 'B', 'A']
+const de = (d, min) => ORDEM.indexOf(d) >= ORDEM.indexOf(min)
+const NTROF = { V: 0, D: 1, C: 3, B: 6, A: 11 }
+const DIVNOME = { V: 'Várzea', D: 'Série D', C: 'Série C', B: 'Série B', A: 'Série A' }
+
+// sombra dura pequena embaixo de cada móvel — é o que faz tudo "pousar" no chão
+const sombra = (cx, cy, rx) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${Math.max(6, rx * 0.16)}" fill="rgba(12,12,12,.22)"/>`
+
+const salaSvg = (d) => {
+  const luxo = de(d, 'A'), rico = de(d, 'B')
+  const parede = d === 'V' ? '#D6CBB0' : luxo ? '#E7DCC0' : '#EFE6CE'
+  const chao = d === 'V' ? '#9a958b' : d === 'D' ? '#8a5730' : luxo ? '#5C3718' : '#7A4A26'
+  const chaoLinha = d === 'V' ? '#7d786f' : luxo ? '#42260f' : '#5e3719'
+  const nt = NTROF[d]
+  // as taças ocupam as prateleiras de cima pra baixo, conforme vão sendo ganhas
+  const vagasTrof = [[62, 178], [112, 178], [162, 178], [62, 246], [112, 246], [162, 246], [62, 314], [112, 314], [162, 314], [86, 382], [138, 382]]
+  return `<svg viewBox="0 0 640 620" style="width:100%;display:block">
   <defs>
-    <linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16233f"/><stop offset="1" stop-color="#2d4a6b"/></linearGradient>
-    <linearGradient id="tapete" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8d2f2a"/><stop offset="1" stop-color="#a83f36"/></linearGradient>
-    <linearGradient id="parede" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EFE6CE"/><stop offset="1" stop-color="#E2D5B4"/></linearGradient>
+    <linearGradient id="ceu${d}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16233f"/><stop offset="1" stop-color="#2d4a6b"/></linearGradient>
+    <linearGradient id="dia${d}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FC7EA"/><stop offset="1" stop-color="#CFE6F5"/></linearGradient>
+    <linearGradient id="tap${d}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${luxo ? '#7d2320' : '#8d2f2a'}"/><stop offset="1" stop-color="${luxo ? '#a3312c' : '#a83f36'}"/></linearGradient>
+    <linearGradient id="par${d}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${parede}"/><stop offset="1" stop-color="${d === 'V' ? '#C6BA9C' : luxo ? '#D8CBA8' : '#E2D5B4'}"/></linearGradient>
   </defs>
-  <rect x="0" y="0" width="640" height="420" fill="url(#parede)"/>
-  <rect x="0" y="420" width="640" height="200" fill="#7A4A26"/>
-  ${[-40, 40, 120, 200, 280, 360, 440, 520, 600, 680].map(x => `<line x1="${x}" y1="420" x2="${x - 60}" y2="620" stroke="#5e3719" stroke-width="2.5"/>`).join('')}
-  <rect x="0" y="404" width="640" height="18" fill="#5e3719"/>
-  <rect x="0" y="398" width="640" height="8" fill="#9a7a3f"/>
 
-  <!-- 🪟 JANELA PRO ESTÁDIO -->
-  <rect x="452" y="86" width="164" height="176" rx="7" fill="url(#ceu)" stroke="${INK}" stroke-width="6"/>
-  ${cheia ? `<g><ellipse cx="534" cy="228" rx="66" ry="22" fill="#1B7A3D"/><ellipse cx="534" cy="228" rx="40" ry="12" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
-      <rect x="478" y="196" width="112" height="28" rx="4" fill="#3b5a80"/>
-      <circle cx="490" cy="126" r="6" fill="${GOLD}"/><circle cx="578" cy="126" r="6" fill="${GOLD}"/>
-      <path d="M490 126 L466 176 L514 176 Z" fill="rgba(255,196,0,.16)"/><path d="M578 126 L554 176 L602 176 Z" fill="rgba(255,196,0,.16)"/>
-      <line x1="490" y1="132" x2="490" y2="196" stroke="#8fa4bd" stroke-width="4"/><line x1="578" y1="132" x2="578" y2="196" stroke="#8fa4bd" stroke-width="4"/></g>`
-    : `<circle cx="586" cy="122" r="16" fill="#f1e4a8"/><circle cx="500" cy="160" r="2.5" fill="#fff"/><circle cx="540" cy="132" r="2" fill="#fff"/>`}
-  <line x1="534" y1="86" x2="534" y2="262" stroke="${INK}" stroke-width="5"/><line x1="452" y1="174" x2="616" y2="174" stroke="${INK}" stroke-width="5"/>
+  <!-- PAREDE -->
+  <rect x="0" y="0" width="640" height="446" fill="url(#par${d})"/>
+  ${d === 'V' ? `<g opacity=".5"><path d="M96 60 q22 40 -6 78" fill="none" stroke="#a89b7d" stroke-width="4"/><ellipse cx="470" cy="120" rx="46" ry="30" fill="#c7bb9c"/><ellipse cx="180" cy="330" rx="34" ry="22" fill="#c7bb9c"/></g>` : ''}
+  ${luxo ? `<g>${[0, 160, 320, 480].map(x => `<rect x="${x + 10}" y="286" width="140" height="150" rx="4" fill="#6b4420" stroke="#4a2f18" stroke-width="4"/>`).join('')}
+      <rect x="0" y="272" width="640" height="14" fill="${GOLD}"/><rect x="0" y="266" width="640" height="7" fill="#4a2f18"/></g>`
+    : de(d, 'C') ? `<g><rect x="0" y="330" width="640" height="106" fill="#DBCDA9"/><rect x="0" y="322" width="640" height="9" fill="#c3b58e"/></g>` : ''}
 
-  <!-- 🏆 ESTANTE DE TROFÉUS -->
-  ${cheia ? `<g><rect x="24" y="96" width="176" height="308" rx="7" fill="#8B5A2B" stroke="${INK}" stroke-width="6"/>
-      <rect x="34" y="106" width="156" height="288" fill="#6b4420"/>
-      ${[168, 236, 304].map(y => `<rect x="34" y="${y}" width="156" height="9" fill="#4a2f18"/>`).join('')}
-      ${[[62, 156], [112, 156], [162, 156], [62, 224], [112, 224], [162, 224], [86, 292], [138, 292]].map(([x, y]) => `<g transform="translate(${x},${y})"><rect x="-8" y="12" width="16" height="5" fill="${GOLD}" stroke="${INK}" stroke-width="2"/><path d="M-9 -12 h18 v11 a9 9 0 0 1 -18 0 z" fill="${GOLD}" stroke="${INK}" stroke-width="2"/><path d="M-9 -8 h-6 a6 6 0 0 0 6 7 M9 -8 h6 a6 6 0 0 1 -6 7" fill="none" stroke="${INK}" stroke-width="2"/></g>`).join('')}
-      <rect x="34" y="344" width="156" height="50" rx="4" fill="#4a2f18" stroke="${INK}" stroke-width="4"/>
-      <text x="112" y="376" text-anchor="middle" font-family="Oswald" font-size="21" font-weight="700" fill="${GOLD}">TROFÉUS</text></g>`
-    : `<g opacity=".4"><rect x="24" y="176" width="176" height="228" rx="6" fill="none" stroke="${INK}" stroke-width="5" stroke-dasharray="12 9"/><text x="112" y="300" text-anchor="middle" font-family="Oswald" font-size="18" font-weight="700" fill="rgba(12,12,12,.55)">ESTANTE</text></g>`}
+  <!-- RODAPÉ marcado + CHÃO -->
+  <rect x="0" y="424" width="640" height="22" fill="${luxo ? '#4a2f18' : d === 'V' ? '#8b8579' : '#5e3719'}"/>
+  <rect x="0" y="418" width="640" height="8" fill="${luxo ? GOLD : d === 'V' ? '#a09a8d' : '#9a7a3f'}"/>
+  <rect x="0" y="446" width="640" height="174" fill="${chao}"/>
+  ${d === 'V'
+    ? `${[[40, 470, 150, 560], [300, 452, 420, 600], [520, 480, 590, 566]].map(([x1, y1, x2, y2]) => `<path d="M${x1} ${y1} L${(x1 + x2) / 2 + 14} ${(y1 + y2) / 2} L${x2} ${y2}" fill="none" stroke="${chaoLinha}" stroke-width="3.5"/>`).join('')}`
+    : `${[-40, 40, 120, 200, 280, 360, 440, 520, 600, 680].map(x => `<line x1="${x}" y1="446" x2="${x - 62}" y2="620" stroke="${chaoLinha}" stroke-width="3"/>`).join('')}
+       ${[482, 528, 578].map(y => `<line x1="0" y1="${y}" x2="640" y2="${y}" stroke="${chaoLinha}" stroke-width="1.5" opacity=".55"/>`).join('')}`}
+  ${luxo ? `<rect x="0" y="446" width="640" height="174" fill="url(#tap${d})" opacity="0"/><path d="M0 446 h640 v40 h-640 z" fill="rgba(255,255,255,.07)"/>` : ''}
 
-  <!-- 👕 MANTO EMOLDURADO -->
-  ${cheia ? `<g transform="translate(224,104)"><rect x="0" y="0" width="106" height="140" rx="6" fill="#F4ECD6" stroke="${INK}" stroke-width="6"/>
-      <path d="M26 22 L42 14 h22 l16 8 10 14 -13 12 -4 -5 v52 h-40 v-52 l-4 5 -13 -12 z" fill="#fff" stroke="${INK}" stroke-width="3.5"/>
-      ${[38, 49, 60, 71].map(x => `<rect x="${x}" y="32" width="5.5" height="62" fill="${GREEN}"/>`).join('')}
-      <text x="53" y="128" text-anchor="middle" font-family="Oswald" font-size="14" font-weight="700" fill="${INK}">O MANTO</text></g>`
-    : `<g opacity=".35"><rect x="224" y="104" width="106" height="140" rx="6" fill="none" stroke="${INK}" stroke-width="5" stroke-dasharray="12 9"/></g>`}
+  <!-- 💡 LUZ: lâmpada pelada na Várzea · lustre na Série A -->
+  ${d === 'V' ? `<g><line x1="320" y1="0" x2="320" y2="52" stroke="${INK}" stroke-width="4"/><circle cx="320" cy="66" r="16" fill="#f4e3a1" stroke="${INK}" stroke-width="4"/><path d="M312 78 h16" stroke="${INK}" stroke-width="4"/></g>` : ''}
+  ${luxo ? `<g><line x1="320" y1="0" x2="320" y2="30" stroke="${INK}" stroke-width="5"/>
+      <path d="M268 30 h104 l-18 28 h-68 z" fill="${GOLD}" stroke="${INK}" stroke-width="5"/>
+      ${[290, 320, 350].map(x => `<circle cx="${x}" cy="68" r="8" fill="#FFF3C4" stroke="${INK}" stroke-width="3.5"/>`).join('')}</g>` : ''}
 
-  <!-- 🛡️ ESCUDO NA PAREDE -->
-  <g transform="translate(354,92)"><path d="M40 0 L78 13 V55 C78 81 60 96 40 104 C20 96 2 81 2 55 V13 Z" fill="${GREEN}" stroke="${INK}" stroke-width="6"/>
-    <path d="M40 12 L66 21 V54 C66 71 54 82 40 88 Z" fill="#0f5a2b"/>
-    <text x="40" y="66" text-anchor="middle" font-family="Oswald" font-size="38" font-weight="700" fill="#fff">T</text></g>
+  <!-- 🪟 JANELA (grande, e cresce com a divisão) -->
+  ${de(d, 'D') ? (() => {
+    const jx = rico ? 438 : 470, jy = rico ? 62 : 96, jw = rico ? 182 : 140, jh = rico ? 250 : 168
+    const noite = de(d, 'C')
+    return `<g><rect x="${jx}" y="${jy}" width="${jw}" height="${jh}" rx="7" fill="url(#${noite ? 'ceu' : 'dia'}${d})" stroke="${INK}" stroke-width="6"/>
+      ${noite
+        ? `<ellipse cx="${jx + jw / 2}" cy="${jy + jh - 46}" rx="${jw * 0.42}" ry="${jh * 0.12}" fill="#1B7A3D"/>
+           <ellipse cx="${jx + jw / 2}" cy="${jy + jh - 46}" rx="${jw * 0.26}" ry="${jh * 0.07}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.5"/>
+           <rect x="${jx + jw * 0.14}" y="${jy + jh - 84}" width="${jw * 0.72}" height="30" rx="4" fill="#3b5a80"/>
+           ${[0.22, 0.78].map(f => `<g><circle cx="${jx + jw * f}" cy="${jy + 42}" r="7" fill="${GOLD}"/><path d="M${jx + jw * f} ${jy + 42} L${jx + jw * f - 26} ${jy + 106} L${jx + jw * f + 26} ${jy + 106} Z" fill="rgba(255,196,0,.18)"/><line x1="${jx + jw * f}" y1="${jy + 48}" x2="${jx + jw * f}" y2="${jy + jh - 84}" stroke="#8fa4bd" stroke-width="4"/></g>`).join('')}`
+        : `<circle cx="${jx + jw * 0.76}" cy="${jy + 40}" r="17" fill="#FFF3C4"/><ellipse cx="${jx + jw * 0.3}" cy="${jy + 62}" rx="30" ry="12" fill="#fff" opacity=".85"/><ellipse cx="${jx + jw / 2}" cy="${jy + jh - 30}" rx="${jw * 0.4}" ry="${jh * 0.13}" fill="#1B7A3D"/>`}
+      <line x1="${jx + jw / 2}" y1="${jy}" x2="${jx + jw / 2}" y2="${jy + jh}" stroke="${INK}" stroke-width="5"/>
+      <line x1="${jx}" y1="${jy + jh / 2}" x2="${jx + jw}" y2="${jy + jh / 2}" stroke="${INK}" stroke-width="5"/>
+      ${luxo ? `<rect x="${jx - 8}" y="${jy - 8}" width="${jw + 16}" height="${jh + 16}" rx="9" fill="none" stroke="${GOLD}" stroke-width="5"/>` : ''}</g>`
+  })() : `<g opacity=".35"><rect x="470" y="96" width="140" height="168" rx="6" fill="none" stroke="${INK}" stroke-width="5" stroke-dasharray="13 10"/></g>`}
 
-  <!-- 🐯 MASCOTE NO PEDESTAL -->
-  ${cheia ? `<g transform="translate(496,300)"><rect x="0" y="66" width="80" height="104" rx="5" fill="#CFC7B1" stroke="${INK}" stroke-width="5"/>
-      <rect x="-10" y="162" width="100" height="16" rx="4" fill="#9a927c" stroke="${INK}" stroke-width="4"/>
-      <text x="40" y="58" text-anchor="middle" font-size="66">🐯</text>
-      <text x="40" y="122" text-anchor="middle" font-family="Oswald" font-size="13" font-weight="700" fill="${INK}">O</text>
-      <text x="40" y="140" text-anchor="middle" font-family="Oswald" font-size="13" font-weight="700" fill="${INK}">TIGRÃO</text></g>` : ''}
+  <!-- 📅 CALENDÁRIO TORTO (só na Várzea) -->
+  ${d === 'V' ? `<g transform="translate(120,120) rotate(-6)"><rect x="0" y="0" width="74" height="94" rx="4" fill="#fff" stroke="${INK}" stroke-width="5"/><rect x="0" y="0" width="74" height="22" fill="${RED}" stroke="${INK}" stroke-width="4"/><text x="37" y="66" text-anchor="middle" font-family="Oswald" font-size="28" font-weight="700" fill="${INK}">12</text><circle cx="37" cy="-6" r="4" fill="${INK}"/></g>` : ''}
 
-  <!-- 🌿 PLANTA -->
-  ${cheia ? `<g transform="translate(34,452)"><rect x="0" y="62" width="56" height="52" rx="6" fill="#b5642f" stroke="${INK}" stroke-width="5"/>
-      <path d="M28 62 C-8 34 8 -8 28 10 C48 -8 64 34 28 62 Z" fill="${GREEN}" stroke="${INK}" stroke-width="5"/></g>` : ''}
+  <!-- 🏆 ESTANTE (entra na Série C; na A ela é maior e dourada) -->
+  ${de(d, 'C') ? (() => {
+    const et = luxo ? 118 : 150, eh = 424 - et
+    return `<g>${sombra(112, 432, 92)}
+      <rect x="22" y="${et}" width="180" height="${eh}" rx="7" fill="${luxo ? '#5C3718' : '#8B5A2B'}" stroke="${INK}" stroke-width="6"/>
+      <rect x="32" y="${et + 10}" width="160" height="${eh - 20}" fill="${luxo ? '#43260f' : '#6b4420'}"/>
+      ${(luxo ? [164, 232, 300, 368] : [196, 264, 332]).map(y => `<rect x="32" y="${y}" width="160" height="10" fill="${luxo ? GOLD : '#4a2f18'}"/>`).join('')}
+      ${vagasTrof.slice(0, nt).map(([x, y]) => `<g transform="translate(${x},${y - (luxo ? 32 : 0)})"><rect x="-9" y="13" width="18" height="6" fill="${GOLD}" stroke="${INK}" stroke-width="2"/><path d="M-10 -13 h20 v12 a10 10 0 0 1 -20 0 z" fill="${GOLD}" stroke="${INK}" stroke-width="2"/><path d="M-10 -9 h-7 a7 7 0 0 0 7 8 M10 -9 h7 a7 7 0 0 1 -7 8" fill="none" stroke="${INK}" stroke-width="2"/></g>`).join('')}
+      <rect x="32" y="${luxo ? 386 : 366}" width="160" height="${luxo ? 30 : 48}" rx="4" fill="${luxo ? '#2e1a08' : '#4a2f18'}" stroke="${INK}" stroke-width="4"/></g>`
+  })() : ''}
 
-  <!-- 🪑 TAPETE, POLTRONA E MESA -->
-  ${cheia ? `<ellipse cx="300" cy="530" rx="220" ry="52" fill="url(#tapete)" stroke="${INK}" stroke-width="5"/>
-      <ellipse cx="300" cy="530" rx="176" ry="38" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/>` : ''}
-  ${cheia ? `<g><rect x="252" y="300" width="96" height="112" rx="26" fill="#4a2f18" stroke="${INK}" stroke-width="6"/>
-      <rect x="266" y="316" width="68" height="84" rx="18" fill="#63401f"/>
-      <rect x="146" y="408" width="308" height="30" rx="7" fill="#8B5A2B" stroke="${INK}" stroke-width="6"/>
-      <rect x="164" y="438" width="272" height="64" rx="5" fill="#6b4420" stroke="${INK}" stroke-width="5"/>
-      ${[210, 300, 390].map(x => `<rect x="${x - 26}" y="452" width="52" height="9" rx="3" fill="#4a2f18"/>`).join('')}</g>`
-    : `<g><rect x="212" y="352" width="176" height="14" rx="4" fill="#b9ad90" stroke="${INK}" stroke-width="5"/>
-       <line x1="230" y1="366" x2="222" y2="430" stroke="${INK}" stroke-width="5"/><line x1="370" y1="366" x2="378" y2="430" stroke="${INK}" stroke-width="5"/>
-       <g transform="translate(420,318)"><rect x="0" y="0" width="46" height="46" rx="6" fill="#cfd8e0" stroke="${INK}" stroke-width="5"/><circle cx="23" cy="23" r="13" fill="none" stroke="${INK}" stroke-width="4"/><rect x="14" y="46" width="18" height="40" fill="#cfd8e0" stroke="${INK}" stroke-width="4"/></g>
-       <g transform="translate(96,120)"><rect x="0" y="0" width="66" height="86" rx="4" fill="#fff" stroke="${INK}" stroke-width="5"/><rect x="0" y="0" width="66" height="20" fill="${RED}" stroke="${INK}" stroke-width="4"/><text x="33" y="60" text-anchor="middle" font-family="Oswald" font-size="26" font-weight="700" fill="${INK}">12</text></g>`}
+  <!-- 👕 MANTO EMOLDURADO (Série B pra cima) — bem ACIMA, fora da linha do escudo -->
+  ${rico ? `<g transform="translate(228,118)"><rect x="0" y="0" width="112" height="146" rx="6" fill="${luxo ? '#3b2a16' : '#F4ECD6'}" stroke="${INK}" stroke-width="6"/>
+      ${luxo ? `<rect x="7" y="7" width="98" height="132" rx="3" fill="none" stroke="${GOLD}" stroke-width="4"/>` : ''}
+      <rect x="13" y="13" width="86" height="120" fill="#F4ECD6"/>
+      <path d="M28 30 L44 21 h24 l16 9 11 15 -14 13 -5 -6 v56 h-44 v-56 l-5 6 -14 -13 z" fill="#fff" stroke="${INK}" stroke-width="3.5"/>
+      ${[41, 52, 63, 74].map(x => `<rect x="${x}" y="40" width="6" height="68" fill="${GREEN}"/>`).join('')}</g>` : ''}
 
-  <!-- 💎 O DIAMANTE NA REDOMA (o xodó, no meio da mesa) -->
-  ${cheia ? `<g transform="translate(384,324)">
-      <path d="M-30 84 a30 42 0 0 1 60 0 z" fill="rgba(180,228,255,.38)" stroke="${INK}" stroke-width="4"/>
-      <path d="M-17 60 a18 28 0 0 1 12 -26" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="4"/>
-      <g transform="translate(0,56)"><path d="M0 -24 L18 -8 L0 20 L-18 -8 Z" fill="#8fe3ff" stroke="${INK}" stroke-width="3.5"/>
-        <path d="M-18 -8 h36" stroke="${INK}" stroke-width="3"/><path d="M0 -24 L-6 -8 L0 20 L6 -8 Z" fill="rgba(255,255,255,.55)" stroke="none"/></g>
-      <rect x="-34" y="84" width="68" height="12" rx="3" fill="#3b2a16" stroke="${INK}" stroke-width="4"/>
-    </g>` : ''}
+  <!-- 🛡️ ESCUDO NA PAREDE (central, mais BAIXO que o manto — tira a cara de menu) -->
+  ${de(d, 'D') ? `<g transform="translate(360,${rico ? 158 : 128})"><path d="M42 0 L82 14 V58 C82 86 63 102 42 110 C21 102 2 86 2 58 V14 Z" fill="${GREEN}" stroke="${INK}" stroke-width="6"/>
+      <path d="M42 13 L69 22 V57 C69 75 56 87 42 93 Z" fill="#0f5a2b"/>
+      <text x="42" y="70" text-anchor="middle" font-family="Oswald" font-size="40" font-weight="700" fill="#fff">T</text>
+      ${luxo ? `<circle cx="42" cy="55" r="60" fill="none" stroke="${GOLD}" stroke-width="4" opacity=".8"/>` : ''}</g>` : ''}
 
-  ${cheia ? `<g transform="translate(384,452)"><rect x="-52" y="0" width="104" height="20" rx="5" fill="${INK}"/>
-      <text x="0" y="15" text-anchor="middle" font-family="Oswald" font-size="12" font-weight="700" fill="${GOLD}">O DIAMANTE</text></g>` : ''}
+  <!-- 🐯 PEDESTAL DO MASCOTE (abaixo/direita, Série B pra cima) -->
+  ${rico ? `<g transform="translate(458,326)">${sombra(46, 154, 58)}
+      <rect x="6" y="60" width="80" height="88" rx="5" fill="${luxo ? '#E4DCC4' : '#CFC7B1'}" stroke="${INK}" stroke-width="5"/>
+      <rect x="-6" y="140" width="104" height="16" rx="4" fill="${luxo ? '#c9bf9f' : '#9a927c'}" stroke="${INK}" stroke-width="4"/>
+      ${luxo ? `<rect x="6" y="76" width="80" height="6" fill="${GOLD}"/>` : ''}
+      <text x="46" y="56" text-anchor="middle" font-size="64">🐯</text></g>` : ''}
+
+  <!-- 🧶 TAPETE (Série C pra cima) -->
+  ${de(d, 'C') ? `<ellipse cx="316" cy="546" rx="${luxo ? 250 : 214}" ry="${luxo ? 58 : 48}" fill="url(#tap${d})" stroke="${INK}" stroke-width="5"/>
+      <ellipse cx="316" cy="546" rx="${luxo ? 200 : 172}" ry="${luxo ? 42 : 35}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/>` : ''}
+
+  <!-- 🪑 O TRONO: poltrona ATRÁS, mesa grande e robusta NA FRENTE -->
+  ${de(d, 'C') ? `<g><rect x="256" y="286" width="112" height="128" rx="30" fill="${luxo ? '#3b2a16' : '#4a2f18'}" stroke="${INK}" stroke-width="6"/>
+      <rect x="272" y="304" width="80" height="98" rx="22" fill="${luxo ? '#5a3d1c' : '#63401f'}"/>
+      ${luxo ? `<rect x="290" y="292" width="44" height="8" rx="4" fill="${GOLD}"/>` : ''}</g>` : ''}
+  ${de(d, 'D')
+    ? `<g>${sombra(316, 540, 178)}
+       <rect x="132" y="398" width="368" height="34" rx="8" fill="${luxo ? '#5C3718' : '#8B5A2B'}" stroke="${INK}" stroke-width="6"/>
+       ${luxo ? `<rect x="132" y="398" width="368" height="9" rx="4" fill="${GOLD}"/>` : ''}
+       <rect x="152" y="432" width="328" height="82" rx="6" fill="${luxo ? '#43260f' : '#6b4420'}" stroke="${INK}" stroke-width="5"/>
+       ${[224, 316, 408].map(x => `<g><rect x="${x - 34}" y="452" width="68" height="12" rx="4" fill="${luxo ? '#2e1a08' : '#4a2f18'}"/><rect x="${x - 34}" y="480" width="68" height="12" rx="4" fill="${luxo ? '#2e1a08' : '#4a2f18'}"/></g>`).join('')}</g>`
+    : `<g>${sombra(300, 500, 100)}
+       <rect x="208" y="372" width="188" height="16" rx="5" fill="#DDD6C6" stroke="${INK}" stroke-width="5" transform="rotate(-2 302 380)"/>
+       <line x1="228" y1="388" x2="218" y2="470" stroke="${INK}" stroke-width="5"/><line x1="378" y1="388" x2="388" y2="470" stroke="${INK}" stroke-width="5"/>
+       <g transform="translate(408,336)">${sombra(24, 148, 30)}<rect x="0" y="0" width="50" height="50" rx="7" fill="#E4E9ED" stroke="${INK}" stroke-width="5"/><circle cx="25" cy="25" r="14" fill="none" stroke="${INK}" stroke-width="4"/><rect x="16" y="50" width="18" height="46" fill="#E4E9ED" stroke="${INK}" stroke-width="4"/><rect x="4" y="96" width="42" height="10" rx="4" fill="#cfd8e0" stroke="${INK}" stroke-width="4"/></g>
+       <g transform="translate(150,352)">${sombra(30, 132, 30)}<rect x="6" y="0" width="48" height="52" rx="6" fill="#EFEFEF" stroke="${INK}" stroke-width="5"/><rect x="0" y="52" width="60" height="12" rx="4" fill="#EFEFEF" stroke="${INK}" stroke-width="5"/><line x1="10" y1="64" x2="4" y2="128" stroke="${INK}" stroke-width="5"/><line x1="50" y1="64" x2="56" y2="128" stroke="${INK}" stroke-width="5"/></g>`}
+
+  <!-- 💎 O DIAMANTE — pedestal PRÓPRIO ao lado da mesa, redoma grande (Série B) -->
+  ${rico ? `<g transform="translate(74,368)">${sombra(46, 228, 46)}
+      <rect x="14" y="120" width="64" height="104" rx="5" fill="${luxo ? '#3b2a16' : '#4a2f18'}" stroke="${INK}" stroke-width="5"/>
+      <rect x="2" y="214" width="88" height="16" rx="4" fill="${luxo ? '#2e1a08' : '#3b2a16'}" stroke="${INK}" stroke-width="4"/>
+      <rect x="6" y="106" width="80" height="18" rx="4" fill="${luxo ? '#5C3718' : '#6b4420'}" stroke="${INK}" stroke-width="5"/>
+      <path d="M10 106 a36 62 0 0 1 72 0 z" fill="rgba(180,228,255,.42)" stroke="${INK}" stroke-width="5"/>
+      <path d="M26 76 a22 38 0 0 1 15 -34" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="5"/>
+      <g transform="translate(46,66)"><path d="M0 -34 L26 -11 L0 30 L-26 -11 Z" fill="#8fe3ff" stroke="${INK}" stroke-width="4"/>
+        <path d="M-26 -11 h52" stroke="${INK}" stroke-width="3.5"/><path d="M0 -34 L-9 -11 L0 30 L9 -11 Z" fill="rgba(255,255,255,.6)"/>
+        <path d="M-13 -22 l7 -7" stroke="#fff" stroke-width="4" stroke-linecap="round"/></g>
+      ${luxo ? `<rect x="6" y="112" width="80" height="6" fill="${GOLD}"/>` : ''}</g>` : ''}
+
+  <!-- 🌿 VASO (Série D pra cima) -->
+  ${de(d, 'D') && !luxo ? `<g transform="translate(556,452)">${sombra(28, 122, 32)}<rect x="0" y="60" width="58" height="56" rx="6" fill="#b5642f" stroke="${INK}" stroke-width="5"/>
+      <path d="M29 60 C-8 30 8 -10 29 10 C50 -10 66 30 29 60 Z" fill="${GREEN}" stroke="${INK}" stroke-width="5"/></g>` : ''}
+
+  <!-- 💸 O EXAGERO DA SÉRIE A: aquário, busto de si mesmo e carrinho de champanhe -->
+  ${luxo ? `<g transform="translate(568,448)">${sombra(38, 186, 44)}
+      <rect x="0" y="60" width="76" height="118" rx="6" fill="#2C6E8F" stroke="${INK}" stroke-width="5"/>
+      <rect x="8" y="70" width="60" height="98" fill="#57A9CB"/>
+      ${[[24, 96], [50, 122], [28, 146]].map(([x, y]) => `<g transform="translate(${x},${y})"><path d="M0 0 l12 -6 v12 z" fill="${GOLD}" stroke="${INK}" stroke-width="2"/><circle cx="3" cy="0" r="1.6" fill="${INK}"/></g>`).join('')}
+      <rect x="0" y="46" width="76" height="18" rx="4" fill="${GOLD}" stroke="${INK}" stroke-width="5"/></g>
+    <g transform="translate(474,470)">${sombra(30, 128, 34)}
+      <rect x="12" y="70" width="38" height="58" rx="4" fill="#CFC7B1" stroke="${INK}" stroke-width="5"/>
+      <circle cx="31" cy="42" r="26" fill="#B07A2B" stroke="${INK}" stroke-width="5"/>
+      <path d="M14 34 a17 15 0 0 1 34 0" fill="#8a5c1c"/><circle cx="24" cy="44" r="2.5" fill="${INK}"/><circle cx="39" cy="44" r="2.5" fill="${INK}"/>
+      <path d="M25 56 q6 5 13 0" fill="none" stroke="${INK}" stroke-width="3"/></g>
+    <g transform="translate(286,530)">${sombra(38, 92, 40)}
+      <rect x="4" y="34" width="72" height="10" rx="3" fill="${GOLD}" stroke="${INK}" stroke-width="4"/>
+      <rect x="4" y="66" width="72" height="10" rx="3" fill="${GOLD}" stroke="${INK}" stroke-width="4"/>
+      <circle cx="16" cy="86" r="7" fill="${INK}"/><circle cx="64" cy="86" r="7" fill="${INK}"/>
+      <path d="M30 6 h14 v12 l6 16 h-26 l6 -16 z" fill="#1f6b3a" stroke="${INK}" stroke-width="4"/>
+      <path d="M56 14 l10 0 -5 12 z" fill="#F4ECD6" stroke="${INK}" stroke-width="3"/></g>` : ''}
+
   <rect x="3" y="3" width="634" height="614" rx="12" fill="none" stroke="${INK}" stroke-width="6"/>
 </svg>`
+}
 
-// ── 🚗 A GARAGEM (aba própria, pedido do Diego) ─────────────────────────────
+// ── 🚗 A GARAGEM — também evolui de divisão em divisão ──────────────────────
 const carroSvg = (tipo, cor, x, y, esc = 1) => {
   const teto = tipo === 'fusca' ? 'M32 34 C40 6 92 6 100 34 Z' : tipo === 'sport' ? 'M28 34 L48 14 h44 l20 20 Z' : 'M30 34 L44 10 h48 l14 24 Z'
   return `<g transform="translate(${x},${y}) scale(${esc})">
+    <ellipse cx="68" cy="80" rx="72" ry="9" fill="rgba(12,12,12,.25)"/>
     <path d="${teto}" fill="#bfe0f0" stroke="${INK}" stroke-width="4"/>
     <path d="M8 34 h116 a10 10 0 0 1 10 10 v18 a6 6 0 0 1 -6 6 h-124 a6 6 0 0 1 -6 -6 v-18 a10 10 0 0 1 10 -10 z" fill="${cor}" stroke="${INK}" stroke-width="4.5"/>
     <circle cx="34" cy="68" r="14" fill="#22201c" stroke="${INK}" stroke-width="4"/><circle cx="34" cy="68" r="5" fill="#cfcfcf"/>
@@ -234,26 +333,37 @@ const carroSvg = (tipo, cor, x, y, esc = 1) => {
     <rect x="6" y="42" width="10" height="8" rx="3" fill="#E8503A" stroke="${INK}" stroke-width="2.5"/>
   </g>`
 }
-const garagemSvg = `<svg viewBox="0 0 640 420" style="width:100%;display:block">
-  <rect x="0" y="0" width="640" height="300" fill="#D9D2C2"/>
-  <rect x="0" y="300" width="640" height="120" fill="#8d867a"/>
-  <rect x="0" y="292" width="640" height="12" fill="#5c564d"/>
-  <!-- porta basculante meio aberta -->
-  <rect x="26" y="16" width="588" height="70" rx="5" fill="#b9b2a2" stroke="${INK}" stroke-width="6"/>
-  ${[30, 46, 62].map(y => `<line x1="32" y1="${y}" x2="608" y2="${y}" stroke="#8d867a" stroke-width="4"/>`).join('')}
-  <rect x="26" y="86" width="588" height="10" fill="${INK}"/>
-  <!-- vagas pintadas no chão -->
-  ${[[40, 'vaga 1', true], [232, 'vaga 2', false], [424, 'vaga 3', false]].map(([x, lbl, cheia]) => `
-    <g><path d="M${x} 300 h176 l26 96 h-228 z" fill="${cheia ? 'rgba(255,196,0,.18)' : 'rgba(0,0,0,.06)'}" stroke="#F4ECD6" stroke-width="4" stroke-dasharray="${cheia ? '0' : '14 10'}"/>
-    <text x="${x + 92}" y="386" text-anchor="middle" font-family="Oswald" font-size="17" font-weight="700" fill="${cheia ? INK : 'rgba(255,255,255,.75)'}">${cheia ? 'FUSCA 78' : lbl}</text></g>`).join('')}
-  ${carroSvg('fusca', '#2F6BAE', 52, 248, 1.24)}
-  <!-- placa na parede -->
-  <g transform="translate(360,120)"><rect x="0" y="0" width="240" height="66" rx="8" fill="${INK}" stroke="${INK}" stroke-width="5"/>
-    <text x="120" y="29" text-anchor="middle" font-family="Oswald" font-size="17" font-weight="700" fill="${GOLD}">GARAGEM</text>
-    <text x="120" y="52" text-anchor="middle" font-family="Oswald" font-size="17" font-weight="700" fill="#fff">DA PRESIDÊNCIA</text></g>
+const garagemSvg = (d) => {
+  const luxo = de(d, 'A'), rico = de(d, 'B'), vagas = d === 'V' ? 1 : de(d, 'C') ? 3 : 2
+  const piso = d === 'V' ? '#8d867a' : luxo ? '#3f4652' : '#7d7a72'
+  const par = d === 'V' ? '#C3BCAC' : luxo ? '#2B3038' : '#D9D2C2'
+  return `<svg viewBox="0 0 640 420" style="width:100%;display:block">
+  <rect x="0" y="0" width="640" height="300" fill="${par}"/>
+  ${d === 'V' ? `<g opacity=".55"><path d="M120 108 l18 42 -12 36" fill="none" stroke="#9d9484" stroke-width="4"/><path d="M470 78 l-14 50" fill="none" stroke="#9d9484" stroke-width="4"/></g>` : ''}
+  ${luxo ? `<g>${[20, 180, 340, 500].map(x => `<rect x="${x}" y="126" width="130" height="162" rx="5" fill="#232830" stroke="#151920" stroke-width="4"/>`).join('')}<rect x="0" y="112" width="640" height="12" fill="${GOLD}"/></g>` : ''}
+  <rect x="0" y="292" width="640" height="12" fill="${luxo ? '#151920' : '#5c564d'}"/>
+  <rect x="0" y="300" width="640" height="120" fill="${piso}"/>
+  ${d === 'V' ? `<g opacity=".6">${[[30, 330, 190, 412], [300, 316, 460, 400], [470, 350, 620, 418]].map(([a, b, c, e]) => `<path d="M${a} ${b} L${(a + c) / 2 + 18} ${(b + e) / 2} L${c} ${e}" fill="none" stroke="#6f6960" stroke-width="4"/>`).join('')}</g>` : ''}
+  ${luxo ? `<path d="M0 300 h640 v32 h-640 z" fill="rgba(255,255,255,.06)"/>` : ''}
+  ${d === 'V' ? `<g><line x1="316" y1="0" x2="316" y2="40" stroke="${INK}" stroke-width="4"/><path d="M296 40 h40 l-10 22 h-20 z" fill="#b9b2a2" stroke="${INK}" stroke-width="4"/><circle cx="316" cy="74" r="13" fill="#f4e3a1" stroke="${INK}" stroke-width="4"/></g>`
+    : `<g>${(luxo ? [130, 320, 510] : [220, 420]).map(x => `<g><line x1="${x}" y1="0" x2="${x}" y2="16" stroke="${INK}" stroke-width="4"/><rect x="${x - 52}" y="16" width="104" height="16" rx="6" fill="#FFF3C4" stroke="${INK}" stroke-width="4"/></g>`).join('')}</g>`}
+  ${d === 'V'
+    ? `<g transform="rotate(-2 168 128)"><rect x="34" y="104" width="268" height="52" rx="5" fill="#9d9484" stroke="${INK}" stroke-width="6"/>${[0, 15, 30].map(o => `<line x1="42" y1="${116 + o}" x2="294" y2="${116 + o}" stroke="#7d7566" stroke-width="4"/>`).join('')}</g>`
+    : `<g><rect x="26" y="44" width="588" height="62" rx="5" fill="${luxo ? '#39404a' : '#b9b2a2'}" stroke="${INK}" stroke-width="6"/>${[0, 16, 32].map(o => `<line x1="32" y1="${56 + o}" x2="608" y2="${56 + o}" stroke="${luxo ? '#252a32' : '#8d867a'}" stroke-width="4"/>`).join('')}</g>`}
+  ${rico ? `<g transform="translate(${luxo ? 466 : 480},164)"><rect x="0" y="0" width="132" height="126" rx="6" fill="${RED}" stroke="${INK}" stroke-width="5"/>
+      ${[24, 58, 92].map(y => `<g><rect x="10" y="${y}" width="112" height="26" rx="4" fill="#c23a2a" stroke="${INK}" stroke-width="3"/><rect x="52" y="${y + 10}" width="28" height="6" rx="3" fill="${INK}"/></g>`).join('')}</g>` : ''}
+  ${Array.from({ length: vagas }).map((_, i) => {
+    const x = 40 + i * 192, ok = i === 0
+    return `<g><path d="M${x} 300 h176 l26 96 h-228 z" fill="${ok ? 'rgba(255,196,0,.2)' : 'rgba(0,0,0,.08)'}" stroke="${luxo ? GOLD : '#F4ECD6'}" stroke-width="4" stroke-dasharray="${ok ? '0' : '14 10'}"/>
+      ${ok ? '' : `<text x="${x + 92}" y="368" text-anchor="middle" font-family="Oswald" font-size="17" font-weight="700" fill="rgba(255,255,255,.7)">vaga ${i + 1}</text>`}</g>`
+  }).join('')}
+  ${carroSvg(luxo ? 'sport' : rico ? 'hatch' : 'fusca', d === 'V' ? '#7d8a94' : d === 'D' ? '#E5B32A' : d === 'C' ? '#C2452F' : rico && !luxo ? '#F0EDE4' : '#14161a', 52, 248, 1.24)}
+  <g transform="translate(${d === 'V' ? 350 : 300},${d === 'V' ? 186 : 138})"><rect x="0" y="0" width="${d === 'V' ? 180 : 220}" height="${d === 'V' ? 42 : 60}" rx="8" fill="${INK}"/>
+    <text x="${d === 'V' ? 90 : 110}" y="${d === 'V' ? 28 : 26}" text-anchor="middle" font-family="Oswald" font-size="16" font-weight="700" fill="${GOLD}">GARAGEM</text>
+    ${d === 'V' ? '' : `<text x="110" y="48" text-anchor="middle" font-family="Oswald" font-size="16" font-weight="700" fill="#fff">DA PRESIDÊNCIA</text>`}</g>
   <rect x="3" y="3" width="634" height="414" rx="12" fill="none" stroke="${INK}" stroke-width="6"/>
 </svg>`
-
+}
 const CARROS_LOJA = [
   ['🚜', 'Fusca 78 sem banco de trás', 'Várzea', 12, 'tem'],
   ['🚙', 'Brasília amarela', 'Série D', 24, 'pode'],
@@ -262,7 +372,7 @@ const CARROS_LOJA = [
   ['🏎️', 'Importado de vidro fumê', 'Série A', 120, 'trava'],
 ]
 const garagem = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:9px">
-  ${garagemSvg}
+  ${garagemSvg('B')}
   <div style="border-top:3px solid ${INK};padding:9px 12px">
     <div class="row" style="justify-content:space-between">
       <div><div class="tit">🚗 A garagem</div><div class="sob">1 carro · 3 vagas. Mais vagas com a obra 🅿️ Estacionamento no estádio.</div></div>
@@ -293,9 +403,8 @@ const garagem = `<div class="box" style="padding:0;overflow:hidden;margin-bottom
   <div class="sob" style="margin-top:5px;font-style:italic">“O Tigres do Asfalto não contratou ninguém nesta janela. Mas o presidente Diego Fonseca chegou de Fusca zero pra reunião do conselho.”</div>
 </div>`
 
-
 const salaMontada = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:9px">
-  ${salaSvg(true)}
+  ${salaSvg('B')}
   <div style="border-top:3px solid ${INK};padding:8px 11px">
     <div class="row" style="justify-content:space-between">
       <div><div class="tit">🏛️ A sua sala</div><div class="sob">7 de 14 peças · cada uma você comprou.</div></div>
@@ -307,7 +416,7 @@ const salaMontada = `<div class="box" style="padding:0;overflow:hidden;margin-bo
 </div>`
 
 const salaVazia = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:9px">
-  ${salaSvg(false)}
+  ${salaSvg('V')}
   <div style="border-top:3px solid ${INK};padding:8px 11px">
     <div class="row" style="justify-content:space-between">
       <div><div class="tit">🏛️ A sua sala</div><div class="sob">0 de 14 peças. Mesa de plástico e um ventilador.</div></div>
@@ -365,7 +474,7 @@ const cartao = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:
       <div style="font-size:9px;color:rgba(255,255,255,.6)">Presidente Diego Fonseca · 7 temporadas</div></div>
     <div style="text-align:right"><div class="osw" style="font-size:22px;color:${GOLD};line-height:1">8 🏆</div><div style="font-size:8.5px;color:rgba(255,255,255,.55)">7 de 14 peças</div></div>
   </div>
-  <div style="border-top:3px solid ${INK};border-bottom:3px solid ${INK}">${salaSvg(true)}</div>
+  <div style="border-top:3px solid ${INK};border-bottom:3px solid ${INK}">${salaSvg('B')}</div>
   <div style="padding:8px 12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
     <span class="pill" style="background:${GOLD}">💎 Diamante</span><span class="pill" style="background:#fff">🚗 Garagem</span>
     <span class="pill" style="background:#fff">🐯 Mascote</span><span style="margin-left:auto;font-size:8.5px;color:rgba(255,255,255,.5)">leilaolegends.com</span>
@@ -498,6 +607,15 @@ const atalhos = `<div class="row" style="gap:6px;margin-bottom:9px">
   <a class="btn" style="flex:1">💰 Finanças</a><a class="btn" style="flex:1">🤝 Patrocínio</a><a class="btn" style="flex:1">💼 Agência</a>
 </div>`
 
+
+// ══ 🖼️ AS 5 SALAS + AS GARAGENS (a evolução: o coração da ideia) ═══════════
+const quadro = (svg, d, txt) => `<style>${CSS} body{width:760px;padding:14px;background:${CREME}}</style>
+<div class="band" style="padding:8px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+  <span class="osw" style="font-size:19px">${DIVNOME[d]}</span>
+  <span class="pill" style="background:${GOLD}">${txt}</span>
+</div>
+<div class="box" style="padding:0;overflow:hidden">${svg}</div>`
+
 // ══ 📱 TELA 1 — a SALA montada (o desenho é a primeira coisa) ═══════════════
 const cel1 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
 ${faixa}${salas('Presidência')}${mesa}${salaMontada}${torcida}
@@ -557,10 +675,10 @@ const desk = `<style>${CSS} body{width:1440px;height:2500px;overflow:hidden;padd
 </div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-for (const [nome, html, w, h, dpr] of [['cel-1-sala', cel1, 390, 844, 2], ['cel-2-vazia', cel2, 390, 844, 2], ['cel-3-loja', cel3, 390, 844, 2], ['cel-3b-garagem', celGar, 390, 844, 2], ['cel-4-status', cel4, 390, 844, 2], ['cel-5-tecnico', cel5, 390, 844, 2], ['cel-6-historia', cel6, 390, 844, 2], ['pc-presidencia', desk, 1440, 2500, 1]]) {
+for (const [nome, html, w, h, dpr] of [['cel-1-sala', cel1, 390, 844, 2], ['cel-2-vazia', cel2, 390, 844, 2], ['cel-3-loja', cel3, 390, 844, 2], ['cel-3b-garagem', celGar, 390, 844, 2], ['cel-4-status', cel4, 390, 844, 2], ['cel-5-tecnico', cel5, 390, 844, 2], ['cel-6-historia', cel6, 390, 844, 2], ['pc-presidencia', desk, 1440, 2500, 1], ['sala-1-V', quadro(salaSvg('V'), 'V', 'so o improviso'), 760, 10, 2], ['sala-2-D', quadro(salaSvg('D'), 'D', 'a primeira mesa de madeira'), 760, 10, 2], ['sala-3-C', quadro(salaSvg('C'), 'C', 'poltrona, estante e tapete'), 760, 10, 2], ['sala-4-B', quadro(salaSvg('B'), 'B', 'manto, mascote e o diamante'), 760, 10, 2], ['sala-5-A', quadro(salaSvg('A'), 'A', 'o exagero'), 760, 10, 2], ['garagem-V', quadro(garagemSvg('V'), 'V', 'concreto rachado, 1 vaga'), 760, 10, 2], ['garagem-C', quadro(garagemSvg('C'), 'C', '3 vagas e luz decente'), 760, 10, 2], ['garagem-A', quadro(garagemSvg('A'), 'A', 'garagem de presidente'), 760, 10, 2]]) {
   const p = `${OUT}/${nome}.html`; writeFileSync(p, `<!doctype html><meta charset="utf-8">${html}`)
-  const pg = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: dpr })
+  const pg = await b.newPage({ viewport: { width: w, height: Math.max(h, 200) }, deviceScaleFactor: dpr })
   await pg.goto('file://' + p); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(200)
-  await pg.screenshot({ path: `${OUT}/${nome}.png` }); await pg.close(); console.log(`${OUT}/${nome}.png`)
+  await pg.screenshot({ path: `${OUT}/${nome}.png`, fullPage: h <= 20 }); await pg.close(); console.log(`${OUT}/${nome}.png`)
 }
 await b.close()
