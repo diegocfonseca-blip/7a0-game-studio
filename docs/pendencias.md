@@ -206,6 +206,32 @@ Regra que fica: **a janela NUNCA inventa estádio**. Ela é uma segunda pele do
 mesmo dado. Quando o jogador faz uma obra na aba Estádio, a janela muda junto,
 sem código extra.
 
+### 🏟️ v3 DA JANELA (03/09) — estádio DE FRENTE, janela sempre grande, carro de frente
+Ele viu a v2 (tigela vista de cima) e disse: *"o estádio está muito deformado…
+a sala quando tiver crua deve ser a mesma com janela grande também… o estádio
+quando mudar muda lá atrás… mais organizado e alinhado… e o carro virado pro
+escritório, e não pro estádio"*. Feito:
+- **Estádio visto de FRENTE (fachada)**, como quem olha da janela de um prédio:
+  asa esquerda = Visitante · centro = Geral (andar de baixo) + Cadeiras (andar
+  de cima, assentado em cima) · asa direita = Camarote (com vidros azuis).
+  Cada bloco cresce com o % do setor; 0% = montinho de terra. Fileiras de
+  assento na cor do tier. Vão inferior com luzinhas à noite. Portão central
+  mostra a cor do gramado (terra → verde). Cobertura = laje em balanço com
+  pilares até cada bloco. Telão no alto do centro. Loja na base à direita.
+  Hotel = torre atrás da asa esquerda. 4 mastros de luz atrás da fachada.
+- **A janela grande é de fábrica**: saiu da loja (`TUDO`/`LOJA` sem 'janela');
+  a sala crua tem a mesma janela — só muda o que está lá fora e os móveis.
+- **Carro visto de FRENTE** (`carroFrente`): faróis acesos com bloom e cone de
+  luz no chão, grade, para-brisa com reflexo. Virado pro escritório.
+- A vista é um `<svg>` aninhado com sistema local 560×486 — composição sempre
+  idêntica, independente do tamanho da janela.
+- Folha de comparação agora tem 830 px de altura (cortava o carro).
+
+Bugs que passaram e foram corrigidos na mesma rodada: o andar de cima saía como
+bloco cinza sem fileiras (era um hack de regex pra deslocar y — virou parâmetro
+`base` do `bloco()`), e a cobertura flutuava longe da fachada (topo real
+calculado por `hAsa`/`hCentro`).
+
 **Ainda em aberto pra ele decidir** (mandado junto com o v2):
 - humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
   sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)
