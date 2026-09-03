@@ -121,22 +121,6 @@ const simbolos = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
   <div class="sob" style="margin-top:6px">Em cima: clube batizado + sócio (tudo aberto). Embaixo: clube comum (escudo todo mundo tem; o resto mostra o caminho).</div>
 </div>`
 
-// ── 🚗 A GARAGEM — prêmios de fim de ano (Diego: "igual a Audi sempre deu pro Real Madrid") ──
-const CARROS = [['T1', 'Várzea', '🚜', 'Fusca 78 sem banco de trás', 'Vadico'], ['T3', 'Série D', '🚙', 'Brasília amarela', 'ERO'], ['T5', 'Série C', '🚗', 'Gol quadrado turbo', 'Rei das Tintas'], ['T6', 'Série B', '🏎️', 'Importado de vidro fumê', 'Max Joias']]
-const garagem = `<div class="box" style="padding:10px 12px;margin-bottom:9px;background:linear-gradient(160deg,#fff,#EFEADB)">
-  <div class="row" style="justify-content:space-between">
-    <div><div class="tit">🚗 A garagem da diretoria</div><div class="sob">Bateu a meta do patrocínio? O patrocinador dá carro pro presidente e pro craque do ano.</div></div>
-    <span class="pill" style="background:${INK};color:#fff">4 carros</span>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px">
-    ${CARROS.map(([t, div, ic, nome, marca]) => `<div style="border:2.5px solid ${INK};border-radius:11px;background:#fff;padding:7px 8px;box-shadow:2px 2px 0 ${INK}">
-      <div class="row" style="justify-content:space-between"><span style="font-size:22px;line-height:1">${ic}</span><span class="pill" style="font-size:8.5px">${t} · ${div}</span></div>
-      <div style="font-size:10.5px;font-weight:900;margin-top:4px;line-height:1.2">${nome}</div>
-      <div class="sob">presente do ${marca}</div></div>`).join('')}
-  </div>
-  <div style="margin-top:8px;border:2px dashed rgba(12,12,12,.3);border-radius:10px;padding:6px 8px;font-size:9.5px" class="muted">T7 · Série B — <b>meta: subir</b>. Bateu, ganha o carro da Série B. Não bateu, a garagem fica como está.</div>
-</div>`
-
 // ── ⭐ QUADRO DO CRAQUE DO ANO ──────────────────────────────────────────────
 const craque = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
   <div class="tit">⭐ Quadro do craque do ano</div>
@@ -157,61 +141,158 @@ const condec = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
 // ── 🏛️ O DESENHO DA SALA (mesma ideia do StadiumSvg: enche conforme você compra) ──
 // Feito em SVG à mão, como o estádio: é UM desenho pra todo mundo, então custa
 // ~0 KB e não cai na regra de peso dos batismos (aquela é arte POR CLUBE).
-const salaSvg = (cheia) => `<svg viewBox="0 0 720 340" style="width:100%;display:block">
+const salaSvg = (cheia) => `<svg viewBox="0 0 640 620" style="width:100%;display:block">
   <defs>
     <linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16233f"/><stop offset="1" stop-color="#2d4a6b"/></linearGradient>
     <linearGradient id="tapete" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8d2f2a"/><stop offset="1" stop-color="#a83f36"/></linearGradient>
+    <linearGradient id="parede" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EFE6CE"/><stop offset="1" stop-color="#E2D5B4"/></linearGradient>
   </defs>
-  <!-- parede e chão -->
-  <rect x="0" y="0" width="720" height="250" fill="#E9DEC2"/>
-  <rect x="0" y="250" width="720" height="90" fill="#7A4A26"/>
-  ${[0, 90, 180, 270, 360, 450, 540, 630].map(x => `<line x1="${x}" y1="250" x2="${x - 18}" y2="340" stroke="#5e3719" stroke-width="2"/>`).join('')}
-  <rect x="0" y="238" width="720" height="14" fill="#5e3719"/>
-  <!-- janela com o estádio à noite -->
-  <rect x="516" y="34" width="172" height="122" rx="6" fill="url(#ceu)" stroke="${INK}" stroke-width="5"/>
-  ${cheia ? `<g><ellipse cx="602" cy="132" rx="66" ry="20" fill="#1B7A3D"/><rect x="548" y="104" width="108" height="26" rx="4" fill="#3b5a80"/>
-    <circle cx="560" cy="70" r="4" fill="${GOLD}"/><circle cx="644" cy="70" r="4" fill="${GOLD}"/>
-    <line x1="560" y1="74" x2="560" y2="104" stroke="#8fa4bd" stroke-width="3"/><line x1="644" y1="74" x2="644" y2="104" stroke="#8fa4bd" stroke-width="3"/></g>`
-    : `<circle cx="660" cy="62" r="13" fill="#f1e4a8"/>`}
-  <line x1="602" y1="34" x2="602" y2="156" stroke="${INK}" stroke-width="4"/><line x1="516" y1="95" x2="688" y2="95" stroke="${INK}" stroke-width="4"/>
-  <!-- ESTANTE DE TROFÉUS -->
-  ${cheia ? `<g><rect x="26" y="52" width="152" height="198" rx="6" fill="#8B5A2B" stroke="${INK}" stroke-width="5"/>
-    ${[86, 130, 174].map(y => `<rect x="34" y="${y}" width="136" height="7" fill="#5e3719"/>`).join('')}
-    ${[[52, 78], [86, 78], [120, 78], [52, 122], [86, 122], [120, 122], [66, 166], [110, 166]].map(([x, y]) => `<g transform="translate(${x},${y})"><rect x="-6" y="10" width="12" height="4" fill="${GOLD}" stroke="${INK}" stroke-width="1.5"/><path d="M-7 -8 h14 v8 a7 7 0 0 1 -14 0 z" fill="${GOLD}" stroke="${INK}" stroke-width="1.5"/><path d="M-7 -5 h-4 a4 4 0 0 0 4 5 M7 -5 h4 a4 4 0 0 1 -4 5" fill="none" stroke="${INK}" stroke-width="1.5"/></g>`).join('')}
-    <rect x="34" y="210" width="136" height="34" rx="3" fill="#6b4420" stroke="${INK}" stroke-width="3"/>
-    <text x="102" y="232" text-anchor="middle" font-family="Oswald" font-size="15" font-weight="700" fill="${GOLD}">TROFÉUS</text></g>`
-    : `<g opacity=".45"><rect x="26" y="150" width="152" height="100" rx="4" fill="none" stroke="${INK}" stroke-width="4" stroke-dasharray="9 7"/><text x="102" y="205" text-anchor="middle" font-family="Oswald" font-size="13" font-weight="700" fill="rgba(12,12,12,.6)">ESTANTE</text></g>`}
-  <!-- ESCUDO NA PAREDE -->
-  <g transform="translate(300,42)"><path d="M28 0 L54 9 V38 C54 56 42 66 28 72 C14 66 2 56 2 38 V9 Z" fill="${GREEN}" stroke="${INK}" stroke-width="5"/><path d="M28 8 L46 14 V37 C46 49 38 56 28 60 Z" fill="#0f5a2b"/><text x="28" y="46" text-anchor="middle" font-family="Oswald" font-size="26" font-weight="700" fill="#fff">T</text></g>
-  <!-- MANTO EMOLDURADO -->
-  ${cheia ? `<g transform="translate(196,60)"><rect x="0" y="0" width="86" height="104" rx="5" fill="#F4ECD6" stroke="${INK}" stroke-width="5"/>
-    <path d="M22 16 L34 10 h18 l12 6 8 10 -10 9 -3 -4 v40 h-32 v-40 l-3 4 -10 -9 z" fill="#fff" stroke="${INK}" stroke-width="3"/>
-    ${[30, 39, 48, 57].map(x => `<rect x="${x}" y="24" width="4.5" height="47" fill="${GREEN}"/>`).join('')}
-    <text x="43" y="95" text-anchor="middle" font-family="Oswald" font-size="11" font-weight="700" fill="${INK}">O MANTO</text></g>`
-    : `<g opacity=".4"><rect x="196" y="60" width="86" height="104" rx="5" fill="none" stroke="${INK}" stroke-width="4" stroke-dasharray="9 7"/></g>`}
-  <!-- MASCOTE NO PEDESTAL -->
-  ${cheia ? `<g transform="translate(430,128)"><rect x="0" y="52" width="56" height="60" rx="4" fill="#C9C2AE" stroke="${INK}" stroke-width="4"/><text x="28" y="46" text-anchor="middle" font-size="46">🐯</text><rect x="-6" y="106" width="68" height="10" rx="3" fill="#9a927c" stroke="${INK}" stroke-width="3"/></g>`
-    : ''}
-  <!-- TAPETE -->
-  ${cheia ? `<ellipse cx="330" cy="300" rx="180" ry="34" fill="url(#tapete)" stroke="${INK}" stroke-width="4"/>` : ''}
-  <!-- MESA + POLTRONA -->
-  ${cheia ? `<g><rect x="252" y="176" width="46" height="58" rx="14" fill="#4a2f18" stroke="${INK}" stroke-width="4"/>
-    <rect x="228" y="228" width="212" height="20" rx="5" fill="#8B5A2B" stroke="${INK}" stroke-width="5"/>
-    <rect x="240" y="248" width="188" height="42" rx="4" fill="#6b4420" stroke="${INK}" stroke-width="4"/></g>`
-    : `<g><rect x="268" y="206" width="120" height="10" rx="3" fill="#b9ad90" stroke="${INK}" stroke-width="4"/>
-       <line x1="280" y1="216" x2="276" y2="252" stroke="${INK}" stroke-width="4"/><line x1="376" y1="216" x2="380" y2="252" stroke="${INK}" stroke-width="4"/>
-       <rect x="404" y="196" width="34" height="34" rx="4" fill="#cfd8e0" stroke="${INK}" stroke-width="4"/><rect x="410" y="230" width="22" height="22" fill="none" stroke="${INK}" stroke-width="3"/></g>`}
-  <!-- 💎 O DIAMANTE NA REDOMA (o xodó — sempre no meio da mesa) -->
-  ${cheia ? `<g transform="translate(322,182)">
-      <rect x="-22" y="42" width="44" height="8" rx="2" fill="#3b2a16" stroke="${INK}" stroke-width="3"/>
-      <path d="M-19 42 a19 26 0 0 1 38 0 z" fill="rgba(180,225,255,.42)" stroke="${INK}" stroke-width="3"/>
-      <g transform="translate(0,26)"><path d="M0 -15 L11 -5 L0 12 L-11 -5 Z" fill="#8fe3ff" stroke="${INK}" stroke-width="2.5"/><path d="M-11 -5 h22" stroke="${INK}" stroke-width="2"/><path d="M0 -15 L0 12" stroke="rgba(12,12,12,.35)" stroke-width="1.5"/></g>
+  <rect x="0" y="0" width="640" height="420" fill="url(#parede)"/>
+  <rect x="0" y="420" width="640" height="200" fill="#7A4A26"/>
+  ${[-40, 40, 120, 200, 280, 360, 440, 520, 600, 680].map(x => `<line x1="${x}" y1="420" x2="${x - 60}" y2="620" stroke="#5e3719" stroke-width="2.5"/>`).join('')}
+  <rect x="0" y="404" width="640" height="18" fill="#5e3719"/>
+  <rect x="0" y="398" width="640" height="8" fill="#9a7a3f"/>
+
+  <!-- 🪟 JANELA PRO ESTÁDIO -->
+  <rect x="452" y="86" width="164" height="176" rx="7" fill="url(#ceu)" stroke="${INK}" stroke-width="6"/>
+  ${cheia ? `<g><ellipse cx="534" cy="228" rx="66" ry="22" fill="#1B7A3D"/><ellipse cx="534" cy="228" rx="40" ry="12" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+      <rect x="478" y="196" width="112" height="28" rx="4" fill="#3b5a80"/>
+      <circle cx="490" cy="126" r="6" fill="${GOLD}"/><circle cx="578" cy="126" r="6" fill="${GOLD}"/>
+      <path d="M490 126 L466 176 L514 176 Z" fill="rgba(255,196,0,.16)"/><path d="M578 126 L554 176 L602 176 Z" fill="rgba(255,196,0,.16)"/>
+      <line x1="490" y1="132" x2="490" y2="196" stroke="#8fa4bd" stroke-width="4"/><line x1="578" y1="132" x2="578" y2="196" stroke="#8fa4bd" stroke-width="4"/></g>`
+    : `<circle cx="586" cy="122" r="16" fill="#f1e4a8"/><circle cx="500" cy="160" r="2.5" fill="#fff"/><circle cx="540" cy="132" r="2" fill="#fff"/>`}
+  <line x1="534" y1="86" x2="534" y2="262" stroke="${INK}" stroke-width="5"/><line x1="452" y1="174" x2="616" y2="174" stroke="${INK}" stroke-width="5"/>
+
+  <!-- 🏆 ESTANTE DE TROFÉUS -->
+  ${cheia ? `<g><rect x="24" y="96" width="176" height="308" rx="7" fill="#8B5A2B" stroke="${INK}" stroke-width="6"/>
+      <rect x="34" y="106" width="156" height="288" fill="#6b4420"/>
+      ${[168, 236, 304].map(y => `<rect x="34" y="${y}" width="156" height="9" fill="#4a2f18"/>`).join('')}
+      ${[[62, 156], [112, 156], [162, 156], [62, 224], [112, 224], [162, 224], [86, 292], [138, 292]].map(([x, y]) => `<g transform="translate(${x},${y})"><rect x="-8" y="12" width="16" height="5" fill="${GOLD}" stroke="${INK}" stroke-width="2"/><path d="M-9 -12 h18 v11 a9 9 0 0 1 -18 0 z" fill="${GOLD}" stroke="${INK}" stroke-width="2"/><path d="M-9 -8 h-6 a6 6 0 0 0 6 7 M9 -8 h6 a6 6 0 0 1 -6 7" fill="none" stroke="${INK}" stroke-width="2"/></g>`).join('')}
+      <rect x="34" y="344" width="156" height="50" rx="4" fill="#4a2f18" stroke="${INK}" stroke-width="4"/>
+      <text x="112" y="376" text-anchor="middle" font-family="Oswald" font-size="21" font-weight="700" fill="${GOLD}">TROFÉUS</text></g>`
+    : `<g opacity=".4"><rect x="24" y="176" width="176" height="228" rx="6" fill="none" stroke="${INK}" stroke-width="5" stroke-dasharray="12 9"/><text x="112" y="300" text-anchor="middle" font-family="Oswald" font-size="18" font-weight="700" fill="rgba(12,12,12,.55)">ESTANTE</text></g>`}
+
+  <!-- 👕 MANTO EMOLDURADO -->
+  ${cheia ? `<g transform="translate(224,104)"><rect x="0" y="0" width="106" height="140" rx="6" fill="#F4ECD6" stroke="${INK}" stroke-width="6"/>
+      <path d="M26 22 L42 14 h22 l16 8 10 14 -13 12 -4 -5 v52 h-40 v-52 l-4 5 -13 -12 z" fill="#fff" stroke="${INK}" stroke-width="3.5"/>
+      ${[38, 49, 60, 71].map(x => `<rect x="${x}" y="32" width="5.5" height="62" fill="${GREEN}"/>`).join('')}
+      <text x="53" y="128" text-anchor="middle" font-family="Oswald" font-size="14" font-weight="700" fill="${INK}">O MANTO</text></g>`
+    : `<g opacity=".35"><rect x="224" y="104" width="106" height="140" rx="6" fill="none" stroke="${INK}" stroke-width="5" stroke-dasharray="12 9"/></g>`}
+
+  <!-- 🛡️ ESCUDO NA PAREDE -->
+  <g transform="translate(354,92)"><path d="M40 0 L78 13 V55 C78 81 60 96 40 104 C20 96 2 81 2 55 V13 Z" fill="${GREEN}" stroke="${INK}" stroke-width="6"/>
+    <path d="M40 12 L66 21 V54 C66 71 54 82 40 88 Z" fill="#0f5a2b"/>
+    <text x="40" y="66" text-anchor="middle" font-family="Oswald" font-size="38" font-weight="700" fill="#fff">T</text></g>
+
+  <!-- 🐯 MASCOTE NO PEDESTAL -->
+  ${cheia ? `<g transform="translate(496,300)"><rect x="0" y="66" width="80" height="104" rx="5" fill="#CFC7B1" stroke="${INK}" stroke-width="5"/>
+      <rect x="-10" y="162" width="100" height="16" rx="4" fill="#9a927c" stroke="${INK}" stroke-width="4"/>
+      <text x="40" y="58" text-anchor="middle" font-size="66">🐯</text>
+      <text x="40" y="122" text-anchor="middle" font-family="Oswald" font-size="13" font-weight="700" fill="${INK}">O</text>
+      <text x="40" y="140" text-anchor="middle" font-family="Oswald" font-size="13" font-weight="700" fill="${INK}">TIGRÃO</text></g>` : ''}
+
+  <!-- 🌿 PLANTA -->
+  ${cheia ? `<g transform="translate(34,452)"><rect x="0" y="62" width="56" height="52" rx="6" fill="#b5642f" stroke="${INK}" stroke-width="5"/>
+      <path d="M28 62 C-8 34 8 -8 28 10 C48 -8 64 34 28 62 Z" fill="${GREEN}" stroke="${INK}" stroke-width="5"/></g>` : ''}
+
+  <!-- 🪑 TAPETE, POLTRONA E MESA -->
+  ${cheia ? `<ellipse cx="300" cy="530" rx="220" ry="52" fill="url(#tapete)" stroke="${INK}" stroke-width="5"/>
+      <ellipse cx="300" cy="530" rx="176" ry="38" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/>` : ''}
+  ${cheia ? `<g><rect x="252" y="300" width="96" height="112" rx="26" fill="#4a2f18" stroke="${INK}" stroke-width="6"/>
+      <rect x="266" y="316" width="68" height="84" rx="18" fill="#63401f"/>
+      <rect x="146" y="408" width="308" height="30" rx="7" fill="#8B5A2B" stroke="${INK}" stroke-width="6"/>
+      <rect x="164" y="438" width="272" height="64" rx="5" fill="#6b4420" stroke="${INK}" stroke-width="5"/>
+      ${[210, 300, 390].map(x => `<rect x="${x - 26}" y="452" width="52" height="9" rx="3" fill="#4a2f18"/>`).join('')}</g>`
+    : `<g><rect x="212" y="352" width="176" height="14" rx="4" fill="#b9ad90" stroke="${INK}" stroke-width="5"/>
+       <line x1="230" y1="366" x2="222" y2="430" stroke="${INK}" stroke-width="5"/><line x1="370" y1="366" x2="378" y2="430" stroke="${INK}" stroke-width="5"/>
+       <g transform="translate(420,318)"><rect x="0" y="0" width="46" height="46" rx="6" fill="#cfd8e0" stroke="${INK}" stroke-width="5"/><circle cx="23" cy="23" r="13" fill="none" stroke="${INK}" stroke-width="4"/><rect x="14" y="46" width="18" height="40" fill="#cfd8e0" stroke="${INK}" stroke-width="4"/></g>
+       <g transform="translate(96,120)"><rect x="0" y="0" width="66" height="86" rx="4" fill="#fff" stroke="${INK}" stroke-width="5"/><rect x="0" y="0" width="66" height="20" fill="${RED}" stroke="${INK}" stroke-width="4"/><text x="33" y="60" text-anchor="middle" font-family="Oswald" font-size="26" font-weight="700" fill="${INK}">12</text></g>`}
+
+  <!-- 💎 O DIAMANTE NA REDOMA (o xodó, no meio da mesa) -->
+  ${cheia ? `<g transform="translate(384,324)">
+      <path d="M-30 84 a30 42 0 0 1 60 0 z" fill="rgba(180,228,255,.38)" stroke="${INK}" stroke-width="4"/>
+      <path d="M-17 60 a18 28 0 0 1 12 -26" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="4"/>
+      <g transform="translate(0,56)"><path d="M0 -24 L18 -8 L0 20 L-18 -8 Z" fill="#8fe3ff" stroke="${INK}" stroke-width="3.5"/>
+        <path d="M-18 -8 h36" stroke="${INK}" stroke-width="3"/><path d="M0 -24 L-6 -8 L0 20 L6 -8 Z" fill="rgba(255,255,255,.55)" stroke="none"/></g>
+      <rect x="-34" y="84" width="68" height="12" rx="3" fill="#3b2a16" stroke="${INK}" stroke-width="4"/>
     </g>` : ''}
-  <!-- PLANTA + CARRO PELA PORTA DA GARAGEM -->
-  ${cheia ? `<g transform="translate(628,196)"><rect x="0" y="44" width="34" height="30" rx="4" fill="#b5642f" stroke="${INK}" stroke-width="4"/><path d="M17 44 C-4 26 6 4 17 12 C28 4 38 26 17 44 Z" fill="${GREEN}" stroke="${INK}" stroke-width="4"/></g>` : ''}
-  <!-- moldura preta geral -->
-  <rect x="2" y="2" width="716" height="336" rx="10" fill="none" stroke="${INK}" stroke-width="5"/>
+
+  ${cheia ? `<g transform="translate(384,452)"><rect x="-52" y="0" width="104" height="20" rx="5" fill="${INK}"/>
+      <text x="0" y="15" text-anchor="middle" font-family="Oswald" font-size="12" font-weight="700" fill="${GOLD}">O DIAMANTE</text></g>` : ''}
+  <rect x="3" y="3" width="634" height="614" rx="12" fill="none" stroke="${INK}" stroke-width="6"/>
 </svg>`
+
+// ── 🚗 A GARAGEM (aba própria, pedido do Diego) ─────────────────────────────
+const carroSvg = (tipo, cor, x, y, esc = 1) => {
+  const teto = tipo === 'fusca' ? 'M32 34 C40 6 92 6 100 34 Z' : tipo === 'sport' ? 'M28 34 L48 14 h44 l20 20 Z' : 'M30 34 L44 10 h48 l14 24 Z'
+  return `<g transform="translate(${x},${y}) scale(${esc})">
+    <path d="${teto}" fill="#bfe0f0" stroke="${INK}" stroke-width="4"/>
+    <path d="M8 34 h116 a10 10 0 0 1 10 10 v18 a6 6 0 0 1 -6 6 h-124 a6 6 0 0 1 -6 -6 v-18 a10 10 0 0 1 10 -10 z" fill="${cor}" stroke="${INK}" stroke-width="4.5"/>
+    <circle cx="34" cy="68" r="14" fill="#22201c" stroke="${INK}" stroke-width="4"/><circle cx="34" cy="68" r="5" fill="#cfcfcf"/>
+    <circle cx="102" cy="68" r="14" fill="#22201c" stroke="${INK}" stroke-width="4"/><circle cx="102" cy="68" r="5" fill="#cfcfcf"/>
+    <rect x="118" y="42" width="12" height="8" rx="3" fill="${GOLD}" stroke="${INK}" stroke-width="2.5"/>
+    <rect x="6" y="42" width="10" height="8" rx="3" fill="#E8503A" stroke="${INK}" stroke-width="2.5"/>
+  </g>`
+}
+const garagemSvg = `<svg viewBox="0 0 640 420" style="width:100%;display:block">
+  <rect x="0" y="0" width="640" height="300" fill="#D9D2C2"/>
+  <rect x="0" y="300" width="640" height="120" fill="#8d867a"/>
+  <rect x="0" y="292" width="640" height="12" fill="#5c564d"/>
+  <!-- porta basculante meio aberta -->
+  <rect x="26" y="16" width="588" height="70" rx="5" fill="#b9b2a2" stroke="${INK}" stroke-width="6"/>
+  ${[30, 46, 62].map(y => `<line x1="32" y1="${y}" x2="608" y2="${y}" stroke="#8d867a" stroke-width="4"/>`).join('')}
+  <rect x="26" y="86" width="588" height="10" fill="${INK}"/>
+  <!-- vagas pintadas no chão -->
+  ${[[40, 'vaga 1', true], [232, 'vaga 2', false], [424, 'vaga 3', false]].map(([x, lbl, cheia]) => `
+    <g><path d="M${x} 300 h176 l26 96 h-228 z" fill="${cheia ? 'rgba(255,196,0,.18)' : 'rgba(0,0,0,.06)'}" stroke="#F4ECD6" stroke-width="4" stroke-dasharray="${cheia ? '0' : '14 10'}"/>
+    <text x="${x + 92}" y="386" text-anchor="middle" font-family="Oswald" font-size="17" font-weight="700" fill="${cheia ? INK : 'rgba(255,255,255,.75)'}">${cheia ? 'FUSCA 78' : lbl}</text></g>`).join('')}
+  ${carroSvg('fusca', '#2F6BAE', 52, 248, 1.24)}
+  <!-- placa na parede -->
+  <g transform="translate(360,120)"><rect x="0" y="0" width="240" height="66" rx="8" fill="${INK}" stroke="${INK}" stroke-width="5"/>
+    <text x="120" y="29" text-anchor="middle" font-family="Oswald" font-size="17" font-weight="700" fill="${GOLD}">GARAGEM</text>
+    <text x="120" y="52" text-anchor="middle" font-family="Oswald" font-size="17" font-weight="700" fill="#fff">DA PRESIDÊNCIA</text></g>
+  <rect x="3" y="3" width="634" height="414" rx="12" fill="none" stroke="${INK}" stroke-width="6"/>
+</svg>`
+
+const CARROS_LOJA = [
+  ['🚜', 'Fusca 78 sem banco de trás', 'Várzea', 12, 'tem'],
+  ['🚙', 'Brasília amarela', 'Série D', 24, 'pode'],
+  ['🚗', 'Gol quadrado turbo', 'Série C', 40, 'pode'],
+  ['🚐', 'Uno com escada no teto', 'Série B', 60, 'caro'],
+  ['🏎️', 'Importado de vidro fumê', 'Série A', 120, 'trava'],
+]
+const garagem = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:9px">
+  ${garagemSvg}
+  <div style="border-top:3px solid ${INK};padding:9px 12px">
+    <div class="row" style="justify-content:space-between">
+      <div><div class="tit">🚗 A garagem</div><div class="sob">1 carro · 3 vagas. Mais vagas com a obra 🅿️ Estacionamento no estádio.</div></div>
+      <span class="pill" style="background:${GOLD}">🪙 128</span>
+    </div>
+  </div>
+</div>
+<div class="box" style="padding:10px 12px;margin-bottom:9px">
+  <div class="tit">🛒 A concessionária</div>
+  <div class="sob" style="margin-bottom:9px">Cada carro pede a divisão dele. Ninguém compra importado na Várzea.</div>
+  ${CARROS_LOJA.map(([ic, nome, div, preco, st]) => {
+    const bg = st === 'tem' ? '#E4F4E8' : st === 'trava' ? '#EFEADB' : st === 'caro' ? '#FBE3DF' : '#fff'
+    const bt = st === 'tem' ? `<span class="pill" style="background:${GREEN};color:#fff">na vaga ✓</span>`
+      : st === 'pode' ? `<span class="pill" style="background:${GOLD}">🪙 ${preco} · comprar</span>`
+      : st === 'caro' ? `<span class="pill" style="background:#EFEADB;color:rgba(12,12,12,.5)">🪙 ${preco} · falta caixa</span>`
+      : `<span class="pill" style="background:#EFEADB;color:rgba(12,12,12,.5)">🔒 só na Série A</span>`
+    return `<div class="row" style="justify-content:space-between;gap:8px;background:${bg};border:2px solid ${INK};border-radius:10px;padding:4px 8px;margin-bottom:4px">
+      <span class="row" style="gap:8px;min-width:0"><span style="font-size:18px;line-height:1">${ic}</span>
+        <span style="min-width:0"><b style="font-size:11px">${nome}</b><div class="sob" style="font-size:8.5px">a partir da ${div}</div></span></span>
+      ${bt}</div>`
+  }).join('')}
+  <div style="border:2px dashed rgba(12,12,12,.3);border-radius:10px;padding:6px 8px;font-size:9.5px;margin-top:3px" class="muted">
+    🔒 Não vende se o caixa ficar sem cobrir a folha. E carro <b>não dá vantagem nenhuma</b> em campo — é só o seu status.
+  </div>
+</div>
+<div class="box" style="padding:10px 12px;margin-bottom:9px;background:linear-gradient(160deg,#FFF7E0,#FFEBB0)">
+  <div class="tit">📰 O que o jornal disse</div>
+  <div class="sob" style="margin-top:5px;font-style:italic">“O Tigres do Asfalto não contratou ninguém nesta janela. Mas o presidente Diego Fonseca chegou de Fusca zero pra reunião do conselho.”</div>
+</div>`
+
 
 const salaMontada = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:9px">
   ${salaSvg(true)}
@@ -429,6 +510,12 @@ ${faixa}${salas('Presidência')}${mesa}${salaVazia}${simbolos}
 <div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
 ${rodape}`
 
+// ══ 📱 TELA 3B — A GARAGEM (aba própria) ═══════════════════════════════════
+const celGar = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
+${faixa}${salas('Presidência')}${garagem}
+<div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
+${rodape}`
+
 // ══ 📱 TELA 3 — a loja ══════════════════════════════════════════════════════
 const cel3 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
 ${faixa}${salas('Presidência')}${loja}
@@ -454,7 +541,7 @@ ${faixa}${salas('Presidência')}${parede}${craque}${condec}
 ${rodape}`
 
 // ══ 💻 PC LARGO — tudo ══════════════════════════════════════════════════════
-const desk = `<style>${CSS} body{width:1440px;height:1760px;overflow:hidden;padding:16px 22px}</style>
+const desk = `<style>${CSS} body{width:1440px;height:2500px;overflow:hidden;padding:16px 22px}</style>
 <div style="max-width:1180px;margin:0 auto">
   ${faixa}
   <div class="row" style="gap:6px;margin-bottom:12px">
@@ -463,14 +550,14 @@ const desk = `<style>${CSS} body{width:1440px;height:1760px;overflow:hidden;padd
   </div>
   ${mesa}
   <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start">
-    <div>${salaMontada}${torcida}${tecnico}${parede}</div>
+    <div>${salaMontada}${garagem}${torcida}${tecnico}${parede}</div>
     <div>${loja}${trofeus}${vizinhos}${craque}${condec}</div>
   </div>
   ${placa}
 </div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-for (const [nome, html, w, h, dpr] of [['cel-1-sala', cel1, 390, 844, 2], ['cel-2-vazia', cel2, 390, 844, 2], ['cel-3-loja', cel3, 390, 844, 2], ['cel-4-status', cel4, 390, 844, 2], ['cel-5-tecnico', cel5, 390, 844, 2], ['cel-6-historia', cel6, 390, 844, 2], ['pc-presidencia', desk, 1440, 1760, 1]]) {
+for (const [nome, html, w, h, dpr] of [['cel-1-sala', cel1, 390, 844, 2], ['cel-2-vazia', cel2, 390, 844, 2], ['cel-3-loja', cel3, 390, 844, 2], ['cel-3b-garagem', celGar, 390, 844, 2], ['cel-4-status', cel4, 390, 844, 2], ['cel-5-tecnico', cel5, 390, 844, 2], ['cel-6-historia', cel6, 390, 844, 2], ['pc-presidencia', desk, 1440, 2500, 1]]) {
   const p = `${OUT}/${nome}.html`; writeFileSync(p, `<!doctype html><meta charset="utf-8">${html}`)
   const pg = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: dpr })
   await pg.goto('file://' + p); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(200)

@@ -102,6 +102,26 @@ serve pra quem já é rico.
 `careerPresidente` · `careerLema` · `careerSala` (lista de peças compradas) ·
 `careerTecnicoHumor` · `careerCraqueAno`.
 
+### 🚗 v4 (03/09) — DESENHO MAIOR + ABA DA GARAGEM
+Pedido: *"preciso q seja maior a imagem.. e tb mande mockup a da aba do carro"*.
+- O desenho da sala saiu de `720×340` pra **`640×620`** (retrato). No celular ele
+  passou de ~175 px de altura pra ~345 px — **dobrou**, e virou o herói da tela.
+- 🚗 **Aba da Garagem**: desenho próprio (porta basculante, 3 vagas pintadas, o
+  carro estacionado na vaga 1) + **A Concessionária**: cada carro **pede a
+  divisão dele** (Fusca na Várzea → Brasília na D → Gol na C → Uno na B →
+  importado só na Série A). Vagas: 3 de início, mais com a obra
+  🅿️ **Estacionamento** que JÁ existe no estádio (`estadiodata.ts`, custa 70) —
+  aquela obra hoje só rende 4 moedas e passa a ter motivo de verdade.
+- O bloco antigo "garagem de prêmio de fim de ano" foi **APAGADO** do gerador:
+  ele nasceu da versão em que o carro era presente, e o Diego trocou por COMPRA.
+- Carro **não dá vantagem nenhuma em campo** — a mesma regra dos móveis.
+- Zoeira que fecha a ideia, na própria aba: *"o clube não contratou ninguém
+  nesta janela, mas o presidente chegou de Fusca zero pra reunião do conselho."*
+
+⚠️ Ajustes de desenho já feitos (não refazer): o mascote saiu do meio da sala e
+foi pro chão à direita, a planta foi pro canto esquerdo, e o diamante subiu pro
+tampo da mesa no lado livre — nas primeiras versões os três se sobrepunham.
+
 **Ainda em aberto pra ele decidir** (mandado junto com o v2):
 - humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
   sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)
