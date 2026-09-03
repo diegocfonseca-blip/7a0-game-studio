@@ -65,6 +65,43 @@ O que entra, e **de onde o dado vem** (quase tudo já existe, só está espalhad
 `careerPresidente` (nome) · `careerLema` · `careerTecnicoHumor` · `careerGaragem`
 (lista `{t, div, carro, marca}`) · `careerCraqueAno` (`{t, cardId}`).
 
+### 🏛️ v3 (03/09, tarde) — A SALA VIROU CASA E VIROU STATUS
+Duas frases dele que mudaram tudo:
+1. *"é comprar coisas pra ele? tipo o presidente comprar um carro"* — o prêmio
+   virou **compra**. Isso resolveu sozinho as duas dúvidas dele sobre o carro
+   ("qual o benefício?" e "não pode ser repetitivo"): **ganhar de graça precisa
+   de justificativa, comprar não precisa** — a graça não é o que o objeto FAZ,
+   é o que ele CUSTOU; e só aparece se a pessoa quiser, então nunca repete.
+   ⚠️ Por isso os móveis **NÃO dão vantagem nenhuma**. Se dessem, comprar viraria
+   obrigação e a escolha morria. É status puro, pago com dinheiro de verdade.
+2. *"quero q a sala seja tipo uma casa q ele vai montando"* + *"a sala do
+   presidente seria a área do STATUS, o local onde ele quer aparecer pros
+   outros"*.
+
+**Como ficou** (mockup v3, `node scripts/mockup-presidencia.mjs`, 6 telas + PC):
+- 🏛️ **desenho da sala em SVG** que ENCHE conforme se compra — mesma mecânica do
+  `StadiumSvg`, que ele já ama. Um desenho só pra todo mundo, então **~0 KB**
+  (a regra de peso dos batismos é sobre arte POR CLUBE, não sobre isto).
+  As telas mostram o antes (Várzea: mesa de plástico e ventilador) e o depois.
+- 🛒 **Loja da Presidência**: poltrona, escudo na parede, estante de troféus,
+  manto emoldurado, mascote no pedestal, 💎 **o diamante na redoma** (o xodó que
+  ele pediu), janela pro estádio (refletores acendem à noite), carro na garagem,
+  sinuca, aquário, bar, busto. Sai do **caixa do clube** — o MESMO que contrata
+  jogador e faz obra. Aí toda compra é a pergunta "zagueiro ou meu carro?".
+- 📲 **Cartão da presidência**: a sala inteira vira IMAGEM pro grupo (o código de
+  gerar imagem + `navigator.share` já existe em `jornal.tsx`/`jornal-sala.tsx`).
+- 🚪 **As salas da galera**: entrar e ver a sala dos amigos (só online / Minhas
+  Ligas, só olhar, ninguém mexe). Status só existe se tiver quem veja.
+
+**Trava obrigatória (regra de segurança dele)**: a loja NÃO deixa comprar se o
+caixa ficar sem cobrir a folha salarial da temporada — com o aviso dizendo
+quanto falta e o caminho. E tem peça barata desde a Várzea, senão a loja só
+serve pra quem já é rico.
+
+**Dados novos no save** (todos opcionais, save velho abre sem nada):
+`careerPresidente` · `careerLema` · `careerSala` (lista de peças compradas) ·
+`careerTecnicoHumor` · `careerCraqueAno`.
+
 **Ainda em aberto pra ele decidir** (mandado junto com o v2):
 - humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
   sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)

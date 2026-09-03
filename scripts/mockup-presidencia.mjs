@@ -153,6 +153,162 @@ const condec = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
   </div>
 </div>`
 
+
+// ── 🏛️ O DESENHO DA SALA (mesma ideia do StadiumSvg: enche conforme você compra) ──
+// Feito em SVG à mão, como o estádio: é UM desenho pra todo mundo, então custa
+// ~0 KB e não cai na regra de peso dos batismos (aquela é arte POR CLUBE).
+const salaSvg = (cheia) => `<svg viewBox="0 0 720 340" style="width:100%;display:block">
+  <defs>
+    <linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16233f"/><stop offset="1" stop-color="#2d4a6b"/></linearGradient>
+    <linearGradient id="tapete" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8d2f2a"/><stop offset="1" stop-color="#a83f36"/></linearGradient>
+  </defs>
+  <!-- parede e chão -->
+  <rect x="0" y="0" width="720" height="250" fill="#E9DEC2"/>
+  <rect x="0" y="250" width="720" height="90" fill="#7A4A26"/>
+  ${[0, 90, 180, 270, 360, 450, 540, 630].map(x => `<line x1="${x}" y1="250" x2="${x - 18}" y2="340" stroke="#5e3719" stroke-width="2"/>`).join('')}
+  <rect x="0" y="238" width="720" height="14" fill="#5e3719"/>
+  <!-- janela com o estádio à noite -->
+  <rect x="516" y="34" width="172" height="122" rx="6" fill="url(#ceu)" stroke="${INK}" stroke-width="5"/>
+  ${cheia ? `<g><ellipse cx="602" cy="132" rx="66" ry="20" fill="#1B7A3D"/><rect x="548" y="104" width="108" height="26" rx="4" fill="#3b5a80"/>
+    <circle cx="560" cy="70" r="4" fill="${GOLD}"/><circle cx="644" cy="70" r="4" fill="${GOLD}"/>
+    <line x1="560" y1="74" x2="560" y2="104" stroke="#8fa4bd" stroke-width="3"/><line x1="644" y1="74" x2="644" y2="104" stroke="#8fa4bd" stroke-width="3"/></g>`
+    : `<circle cx="660" cy="62" r="13" fill="#f1e4a8"/>`}
+  <line x1="602" y1="34" x2="602" y2="156" stroke="${INK}" stroke-width="4"/><line x1="516" y1="95" x2="688" y2="95" stroke="${INK}" stroke-width="4"/>
+  <!-- ESTANTE DE TROFÉUS -->
+  ${cheia ? `<g><rect x="26" y="52" width="152" height="198" rx="6" fill="#8B5A2B" stroke="${INK}" stroke-width="5"/>
+    ${[86, 130, 174].map(y => `<rect x="34" y="${y}" width="136" height="7" fill="#5e3719"/>`).join('')}
+    ${[[52, 78], [86, 78], [120, 78], [52, 122], [86, 122], [120, 122], [66, 166], [110, 166]].map(([x, y]) => `<g transform="translate(${x},${y})"><rect x="-6" y="10" width="12" height="4" fill="${GOLD}" stroke="${INK}" stroke-width="1.5"/><path d="M-7 -8 h14 v8 a7 7 0 0 1 -14 0 z" fill="${GOLD}" stroke="${INK}" stroke-width="1.5"/><path d="M-7 -5 h-4 a4 4 0 0 0 4 5 M7 -5 h4 a4 4 0 0 1 -4 5" fill="none" stroke="${INK}" stroke-width="1.5"/></g>`).join('')}
+    <rect x="34" y="210" width="136" height="34" rx="3" fill="#6b4420" stroke="${INK}" stroke-width="3"/>
+    <text x="102" y="232" text-anchor="middle" font-family="Oswald" font-size="15" font-weight="700" fill="${GOLD}">TROFÉUS</text></g>`
+    : `<g opacity=".45"><rect x="26" y="150" width="152" height="100" rx="4" fill="none" stroke="${INK}" stroke-width="4" stroke-dasharray="9 7"/><text x="102" y="205" text-anchor="middle" font-family="Oswald" font-size="13" font-weight="700" fill="rgba(12,12,12,.6)">ESTANTE</text></g>`}
+  <!-- ESCUDO NA PAREDE -->
+  <g transform="translate(300,42)"><path d="M28 0 L54 9 V38 C54 56 42 66 28 72 C14 66 2 56 2 38 V9 Z" fill="${GREEN}" stroke="${INK}" stroke-width="5"/><path d="M28 8 L46 14 V37 C46 49 38 56 28 60 Z" fill="#0f5a2b"/><text x="28" y="46" text-anchor="middle" font-family="Oswald" font-size="26" font-weight="700" fill="#fff">T</text></g>
+  <!-- MANTO EMOLDURADO -->
+  ${cheia ? `<g transform="translate(196,60)"><rect x="0" y="0" width="86" height="104" rx="5" fill="#F4ECD6" stroke="${INK}" stroke-width="5"/>
+    <path d="M22 16 L34 10 h18 l12 6 8 10 -10 9 -3 -4 v40 h-32 v-40 l-3 4 -10 -9 z" fill="#fff" stroke="${INK}" stroke-width="3"/>
+    ${[30, 39, 48, 57].map(x => `<rect x="${x}" y="24" width="4.5" height="47" fill="${GREEN}"/>`).join('')}
+    <text x="43" y="95" text-anchor="middle" font-family="Oswald" font-size="11" font-weight="700" fill="${INK}">O MANTO</text></g>`
+    : `<g opacity=".4"><rect x="196" y="60" width="86" height="104" rx="5" fill="none" stroke="${INK}" stroke-width="4" stroke-dasharray="9 7"/></g>`}
+  <!-- MASCOTE NO PEDESTAL -->
+  ${cheia ? `<g transform="translate(430,128)"><rect x="0" y="52" width="56" height="60" rx="4" fill="#C9C2AE" stroke="${INK}" stroke-width="4"/><text x="28" y="46" text-anchor="middle" font-size="46">🐯</text><rect x="-6" y="106" width="68" height="10" rx="3" fill="#9a927c" stroke="${INK}" stroke-width="3"/></g>`
+    : ''}
+  <!-- TAPETE -->
+  ${cheia ? `<ellipse cx="330" cy="300" rx="180" ry="34" fill="url(#tapete)" stroke="${INK}" stroke-width="4"/>` : ''}
+  <!-- MESA + POLTRONA -->
+  ${cheia ? `<g><rect x="252" y="176" width="46" height="58" rx="14" fill="#4a2f18" stroke="${INK}" stroke-width="4"/>
+    <rect x="228" y="228" width="212" height="20" rx="5" fill="#8B5A2B" stroke="${INK}" stroke-width="5"/>
+    <rect x="240" y="248" width="188" height="42" rx="4" fill="#6b4420" stroke="${INK}" stroke-width="4"/></g>`
+    : `<g><rect x="268" y="206" width="120" height="10" rx="3" fill="#b9ad90" stroke="${INK}" stroke-width="4"/>
+       <line x1="280" y1="216" x2="276" y2="252" stroke="${INK}" stroke-width="4"/><line x1="376" y1="216" x2="380" y2="252" stroke="${INK}" stroke-width="4"/>
+       <rect x="404" y="196" width="34" height="34" rx="4" fill="#cfd8e0" stroke="${INK}" stroke-width="4"/><rect x="410" y="230" width="22" height="22" fill="none" stroke="${INK}" stroke-width="3"/></g>`}
+  <!-- 💎 O DIAMANTE NA REDOMA (o xodó — sempre no meio da mesa) -->
+  ${cheia ? `<g transform="translate(322,182)">
+      <rect x="-22" y="42" width="44" height="8" rx="2" fill="#3b2a16" stroke="${INK}" stroke-width="3"/>
+      <path d="M-19 42 a19 26 0 0 1 38 0 z" fill="rgba(180,225,255,.42)" stroke="${INK}" stroke-width="3"/>
+      <g transform="translate(0,26)"><path d="M0 -15 L11 -5 L0 12 L-11 -5 Z" fill="#8fe3ff" stroke="${INK}" stroke-width="2.5"/><path d="M-11 -5 h22" stroke="${INK}" stroke-width="2"/><path d="M0 -15 L0 12" stroke="rgba(12,12,12,.35)" stroke-width="1.5"/></g>
+    </g>` : ''}
+  <!-- PLANTA + CARRO PELA PORTA DA GARAGEM -->
+  ${cheia ? `<g transform="translate(628,196)"><rect x="0" y="44" width="34" height="30" rx="4" fill="#b5642f" stroke="${INK}" stroke-width="4"/><path d="M17 44 C-4 26 6 4 17 12 C28 4 38 26 17 44 Z" fill="${GREEN}" stroke="${INK}" stroke-width="4"/></g>` : ''}
+  <!-- moldura preta geral -->
+  <rect x="2" y="2" width="716" height="336" rx="10" fill="none" stroke="${INK}" stroke-width="5"/>
+</svg>`
+
+const salaMontada = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:9px">
+  ${salaSvg(true)}
+  <div style="border-top:3px solid ${INK};padding:8px 11px">
+    <div class="row" style="justify-content:space-between">
+      <div><div class="tit">🏛️ A sua sala</div><div class="sob">7 de 14 peças · cada uma você comprou.</div></div>
+      <span class="pill" style="background:${GOLD}">Série B</span>
+    </div>
+    <div style="height:8px;border:2.5px solid ${INK};border-radius:999px;margin:8px 0 7px;background:#fff;overflow:hidden"><div style="width:50%;height:100%;background:${GOLD}"></div></div>
+    <a class="btn" style="width:100%;background:${GOLD}">🛒 Mobiliar a sala</a>
+  </div>
+</div>`
+
+const salaVazia = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:9px">
+  ${salaSvg(false)}
+  <div style="border-top:3px solid ${INK};padding:8px 11px">
+    <div class="row" style="justify-content:space-between">
+      <div><div class="tit">🏛️ A sua sala</div><div class="sob">0 de 14 peças. Mesa de plástico e um ventilador.</div></div>
+      <span class="pill">Várzea</span>
+    </div>
+    <div style="height:8px;border:2.5px solid ${INK};border-radius:999px;margin:8px 0 7px;background:#fff;overflow:hidden"><div style="width:0%;height:100%;background:${GOLD}"></div></div>
+    <a class="btn" style="width:100%;background:${GOLD}">🛒 Mobiliar a sala</a>
+    <div class="sob" style="margin-top:6px">Tudo se compra com o caixa do clube — o MESMO que contrata jogador e faz obra no estádio. Comprar aqui é escolha, não presente.</div>
+  </div>
+</div>`
+
+// ── 🛒 A LOJA DA PRESIDÊNCIA ────────────────────────────────────────────────
+const LOJA = [
+  ['🪑', 'Poltrona de couro', 8, 'tem', ''],
+  ['🖼️', 'Escudo na parede', 6, 'tem', ''],
+  ['🏆', 'Estante de troféus', 14, 'tem', 'as taças saem da gaveta e vão pra parede'],
+  ['👕', 'Manto emoldurado', 10, 'tem', 'só sócio ⭐'],
+  ['🐯', 'Mascote no pedestal', 12, 'tem', 'só clube batizado'],
+  ['💎', 'O diamante na redoma', 40, 'tem', 'o xodó da sala'],
+  ['🪟', 'Janela pro estádio', 18, 'tem', 'de noite os refletores acendem'],
+  ['🚗', 'Carro na garagem', 60, 'pode', 'o importado só na Série A'],
+  ['🎱', 'Mesa de sinuca', 22, 'pode', ''],
+  ['🐟', 'Aquário', 16, 'pode', ''],
+  ['🍾', 'Bar com champanhe', 20, 'caro', 'abre sozinho no acesso'],
+  ['🗿', 'Busto do fundador', 35, 'caro', ''],
+]
+const loja = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
+  <div class="row" style="justify-content:space-between">
+    <div><div class="tit">🛒 Mobiliar a sala</div><div class="sob">Sai do caixa do clube. O que você gasta aqui não contrata jogador.</div></div>
+    <span class="pill" style="background:${GOLD}">🪙 128</span>
+  </div>
+  <div style="margin-top:9px">
+  ${LOJA.map(([ic, nome, preco, st, obs]) => {
+    const cor = st === 'tem' ? '#E4F4E8' : st === 'caro' ? '#FBE3DF' : '#fff'
+    const bt = st === 'tem' ? `<span class="pill" style="background:${GREEN};color:#fff">na sala ✓</span>`
+      : st === 'pode' ? `<span class="pill" style="background:${GOLD}">🪙 ${preco} · comprar</span>`
+      : `<span class="pill" style="background:#EFEADB;color:rgba(12,12,12,.5)">🪙 ${preco} · falta caixa</span>`
+    return `<div class="row" style="justify-content:space-between;gap:8px;background:${cor};border:2px solid ${INK};border-radius:10px;padding:5px 8px;margin-bottom:5px">
+      <span class="row" style="gap:7px;min-width:0"><span style="font-size:17px;line-height:1">${ic}</span><span style="min-width:0"><b style="font-size:11px">${nome}</b>${obs ? `<div class="sob" style="font-size:8.5px">${obs}</div>` : ''}</span></span>
+      ${bt}</div>`
+  }).join('')}
+  </div>
+  <div style="border:2px dashed rgba(12,12,12,.3);border-radius:10px;padding:6px 8px;font-size:9.5px;margin-top:3px" class="muted">
+    🔒 <b>Trava:</b> a loja não deixa comprar se o caixa ficar sem cobrir a folha salarial da temporada — e diz quanto falta. Ninguém quebra o clube comprando poltrona.
+  </div>
+</div>`
+
+
+// ── 📲 O CARTÃO: a sala vira IMAGEM pra mandar no grupo ─────────────────────
+// (o código de gerar imagem + navigator.share JÁ existe no jornal.tsx / jornal-sala.tsx)
+const cartao = `<div class="box" style="padding:0;overflow:hidden;margin-bottom:9px;background:${INK}">
+  <div style="padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
+    <div><div class="osw" style="font-size:9.5px;color:${GOLD};letter-spacing:.09em">Cartão da presidência</div>
+      <div class="osw" style="font-size:17px;color:#fff;line-height:1.05">Tigres do Asfalto</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.6)">Presidente Diego Fonseca · 7 temporadas</div></div>
+    <div style="text-align:right"><div class="osw" style="font-size:22px;color:${GOLD};line-height:1">8 🏆</div><div style="font-size:8.5px;color:rgba(255,255,255,.55)">7 de 14 peças</div></div>
+  </div>
+  <div style="border-top:3px solid ${INK};border-bottom:3px solid ${INK}">${salaSvg(true)}</div>
+  <div style="padding:8px 12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <span class="pill" style="background:${GOLD}">💎 Diamante</span><span class="pill" style="background:#fff">🚗 Garagem</span>
+    <span class="pill" style="background:#fff">🐯 Mascote</span><span style="margin-left:auto;font-size:8.5px;color:rgba(255,255,255,.5)">leilaolegends.com</span>
+  </div>
+</div>
+<a class="btn" style="width:100%;background:#1faa54;color:#fff;margin-bottom:9px">📲 Mandar a sala no grupo</a>
+<div class="sob" style="margin-bottom:9px;text-align:center">Vira imagem, igual à capa d'O Martelo. É a sala inteira, do jeito que você montou.</div>`
+
+// ── 🚪 AS SALAS DA GALERA (status só existe se tiver quem veja) ─────────────
+const VIZINHOS = [['Neymarzetti', 'Braguinha', 12, 14, '👑'], ['Nightfull FC', 'Rafa', 9, 14, '⭐'], ['Marolados FC', 'Tuca', 4, 14, ''], ['SC Ferrari', 'Léo', 1, 14, '']]
+const vizinhos = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
+  <div class="row" style="justify-content:space-between">
+    <div><div class="tit">🚪 As salas da galera</div><div class="sob">Entre e veja como está a sala dos seus amigos.</div></div>
+    <span class="pill">👀 23 visitas</span>
+  </div>
+  <div style="margin-top:9px">
+  ${VIZINHOS.map(([time, dono, n, tot, selo]) => `<div class="row" style="justify-content:space-between;gap:8px;border:2px solid ${INK};border-radius:10px;padding:5px 8px;margin-bottom:5px;background:#fff">
+    <span class="row" style="gap:7px;min-width:0">${esc(time === 'Neymarzetti' ? PURPLE : time === 'Nightfull FC' ? '#2F6BAE' : time === 'Marolados FC' ? RED : '#8a6d1f', 22)}
+      <span style="min-width:0"><b style="font-size:11px">${selo} ${time}</b><div class="sob" style="font-size:8.5px">presidente ${dono} · ${n}/${tot} peças</div></span></span>
+    <span class="pill" style="background:${GOLD}">entrar</span></div>`).join('')}
+  </div>
+  <div class="sob">Só na sala online e nas Minhas Ligas. Ninguém mexe na sala do outro — é só olhar.</div>
+</div>`
+
 // ── 🎪 TORCIDÔMETRO ─────────────────────────────────────────────────────────
 const torcida = `<div class="box" style="padding:10px 12px;margin-bottom:9px">
   <div class="row" style="justify-content:space-between">
@@ -261,31 +417,44 @@ const atalhos = `<div class="row" style="gap:6px;margin-bottom:9px">
   <a class="btn" style="flex:1">💰 Finanças</a><a class="btn" style="flex:1">🤝 Patrocínio</a><a class="btn" style="flex:1">💼 Agência</a>
 </div>`
 
-// ══ 📱 TELA 1 — a mesa, os símbolos e a torcida ═════════════════════════════
+// ══ 📱 TELA 1 — a SALA montada (o desenho é a primeira coisa) ═══════════════
 const cel1 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
-${faixa}${salas('Presidência')}${mesa}${simbolos}${torcida}
+${faixa}${salas('Presidência')}${mesa}${salaMontada}${torcida}
 <div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
 ${rodape}`
 
-// ══ 📱 TELA 2 — rolando: técnico (com humor) e troféus ══════════════════════
+// ══ 📱 TELA 2 — a mesma sala no começo (Várzea), pra ver a diferença ════════
 const cel2 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
+${faixa}${salas('Presidência')}${mesa}${salaVazia}${simbolos}
+<div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
+${rodape}`
+
+// ══ 📱 TELA 3 — a loja ══════════════════════════════════════════════════════
+const cel3 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
+${faixa}${salas('Presidência')}${loja}
+<div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
+${rodape}`
+
+// ══ 📱 TELA 4 — STATUS: o cartão pro grupo + as salas da galera ═════════════
+const cel4 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
+${faixa}${salas('Presidência')}${cartao}${vizinhos}
+<div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
+${rodape}`
+
+// ══ 📱 TELA 5 — técnico (com humor) e troféus ═══════════════════════════════
+const cel5 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
 ${faixa}${salas('Presidência')}${tecnico}${trofeus}
 <div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
 ${rodape}`
 
-// ══ 📱 TELA 3 — rolando: garagem, craque, parede e placa ════════════════════
-const cel3 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
-${faixa}${salas('Presidência')}${garagem}${craque}${condec}
+// ══ 📱 TELA 6 — história: parede, craque, condecorações e placa ═════════════
+const cel6 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
+${faixa}${salas('Presidência')}${parede}${craque}${condec}
 <div style="position:absolute;left:0;right:0;bottom:70px;height:40px;background:linear-gradient(to top,${CREME},rgba(244,236,214,0))"></div>
 ${rodape}`
 
-// ══ 📱 TELA 4 — rolando: parede, placa e atalhos ════════════════════════════
-const cel4 = `<style>${CSS} body{width:390px;height:844px;overflow:hidden;position:relative;padding:10px 10px 0}</style>
-${faixa}${salas('Presidência')}${parede}${placa}${atalhos}
-${rodape}`
-
-// ══ 💻 PC LARGO — 2 colunas ═════════════════════════════════════════════════
-const desk = `<style>${CSS} body{width:1440px;height:1500px;overflow:hidden;padding:16px 22px}</style>
+// ══ 💻 PC LARGO — tudo ══════════════════════════════════════════════════════
+const desk = `<style>${CSS} body{width:1440px;height:1760px;overflow:hidden;padding:16px 22px}</style>
 <div style="max-width:1180px;margin:0 auto">
   ${faixa}
   <div class="row" style="gap:6px;margin-bottom:12px">
@@ -293,15 +462,15 @@ const desk = `<style>${CSS} body{width:1440px;height:1500px;overflow:hidden;padd
       .map(([i, t]) => `<div class="sub${t === 'Presidência' ? ' on' : ''}" style="flex:0 0 auto;padding:6px 16px;font-size:11px">${i} ${t}</div>`).join('')}
   </div>
   ${mesa}
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
-    <div>${simbolos}${tecnico}${garagem}</div>
-    <div>${torcida}${trofeus}${craque}${condec}${parede}</div>
+  <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start">
+    <div>${salaMontada}${torcida}${tecnico}${parede}</div>
+    <div>${loja}${trofeus}${vizinhos}${craque}${condec}</div>
   </div>
   ${placa}
 </div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-for (const [nome, html, w, h, dpr] of [['cel-1-mesa', cel1, 390, 844, 2], ['cel-2-tecnico', cel2, 390, 844, 2], ['cel-3-garagem', cel3, 390, 844, 2], ['cel-4-historia', cel4, 390, 844, 2], ['pc-presidencia', desk, 1440, 1500, 1]]) {
+for (const [nome, html, w, h, dpr] of [['cel-1-sala', cel1, 390, 844, 2], ['cel-2-vazia', cel2, 390, 844, 2], ['cel-3-loja', cel3, 390, 844, 2], ['cel-4-status', cel4, 390, 844, 2], ['cel-5-tecnico', cel5, 390, 844, 2], ['cel-6-historia', cel6, 390, 844, 2], ['pc-presidencia', desk, 1440, 1760, 1]]) {
   const p = `${OUT}/${nome}.html`; writeFileSync(p, `<!doctype html><meta charset="utf-8">${html}`)
   const pg = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: dpr })
   await pg.goto('file://' + p); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(200)
