@@ -19,6 +19,7 @@ import papaoMascoteImg from './img/papao-mascote.webp' // 🐺 Papão United Mad
 import lluchMascoteImg from './img/lluch-mascote.webp' // 🏠 Esqueceram do Lluch FC (lluchmarcel81): arte própria do dono
 import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import takahdaoMascoteImg from './img/al-takahdao-mascote.webp' // 🦜 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
+import capsuleMascoteImg from './img/capsule-mascote.webp' // 🐉 Corporação Capsule FC (contatovegetta14): arte própria do dono, 03/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
@@ -536,6 +537,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 🧦 Jurubeba FC — a meia amarela de óculos escuros, sorriso de canto, pé na
   // bola, apontando pra você. Arte própria do dono (webp, fora do bundle).
   // 202x440 no arquivo. mascote_key = "jurubeba_meia".
+  // 🐉 O DragonBola — Corporação Capsule FC (contatovegetta14, 03/09). 260x440 no
+  // arquivo, então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  capsule_dragao: (
+    <img src={capsuleMascoteImg} height={176} width={Math.round(176 * 260 / 440)} alt="O DragonBola — Corporação Capsule FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   jurubeba_meia: (
     <img src={jurubebaMascoteImg} height={176} width={Math.round(176 * 202 / 440)} alt="A Meia na Canela — Jurubeba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -826,6 +832,18 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Al Takahdao SC': 'takahdao_papagaio',
   // 🧦 JURUBEBA FC (luizguilhermeps, 02/09) — a meia carimba o placar. Busca
   // EXATA: as 4 formas + CAIXA ALTA + o nome velho do assento (save antigo).
+  // 🐉 Corporação Capsule FC — CARIMBO_GOL é busca EXATA (nem caixa ele normaliza),
+  // então entram as 4 formas + CAIXA ALTA + o nome velho do bot.
+  'Corporação Capsule FC': 'capsule_dragao',
+  'Corporação Capsule': 'capsule_dragao',
+  'Corporação Capsule EC': 'capsule_dragao',
+  'Corporação Capsule SC': 'capsule_dragao',
+  'CORPORAÇÃO CAPSULE FC': 'capsule_dragao',
+  'CORPORAÇÃO CAPSULE': 'capsule_dragao',
+  'Capsule FC': 'capsule_dragao',
+  'Capsule': 'capsule_dragao',
+  'CAPSULE FC': 'capsule_dragao',
+  'Real Tabuleiro': 'capsule_dragao',
   'Jurubeba FC': 'jurubeba_meia',
   'Jurubeba': 'jurubeba_meia',
   'Jurubeba EC': 'jurubeba_meia',
@@ -865,6 +883,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   saoluiz_pitbull: 'Luizão',     // 🐶 São Luiz FC (gabrielnegreirosamaral99, 21/08)
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   takahdao_papagaio: 'O Papagaio', // 🦜 Al Takahdao FC (fontourajoao04, 01/09)
+  capsule_dragao: 'O DragonBola', // 🐉 Corporação Capsule FC (contatovegetta14, 03/09) — o nome que o dono deu
   jurubeba_meia: 'A Meia na Canela', // 🧦 Jurubeba FC (luizguilhermeps, 02/09) — é o que está escrito no escudo dele
   lluch_menino: 'O Esquecido',   // 🏠 Esqueceram do Lluch FC (lluchmarcel81, 28/08)
   leao_estradinha: 'O Leão',     // 🦁 Leão da Estradinha (jorgericardo777, 23/08)

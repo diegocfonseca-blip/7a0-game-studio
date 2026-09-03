@@ -1,67 +1,52 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/09/2026)
 
-## 🐉 BATISMO Corporação Capsule FC (03/09) — ⏳ FALTA A ARTE E O BANCO
-Pedido: *"add esse usuário aqui na série B no lugar de algum time — e-mail
-contatovegetta14@gmail.com, nome do time Corporação Capsule FC, mascote
-DragonBola, cores preto e azul escuro"*.
+## 🐉 BATISMO Corporação Capsule FC (03/09) — ✅ CÓDIGO NO AR · ⏳ FALTA O BANCO
+Dono: `contatovegetta14@gmail.com` · Série B, **no lugar do bot Real Tabuleiro**
+(vaga conferida no `data.ts`, não no `docs/vagas-batismo.md`, que mente).
 
-**Vaga escolhida: `Real Tabuleiro`** (Série B). Conferido no `data.ts`, não no
-`docs/vagas-batismo.md` (que mente): era o único bot da B que aparece só em
-DOIS lugares do arquivo — a lista da divisão e a tabela de força — e em nenhum
-outro arquivo do `src/`. Nenhum outro clube perde nada.
+### ✅ Feito
+- `data.ts`: assento da Série B (técnico 'Cápsula'), **mesma força do bot que
+  saiu** (58/59) + `OLD_NAME` pro save antigo seguir.
+- **Escudo** `img/capsule-escudo.webp` 237×360 · **29,3 KB**.
+- **Mascote (O DragonBola)** `img/capsule-mascote.webp` 260×440 · **41,7 KB**.
+  Total do batismo: **71,0 KB** de 75.
+- `manto.ts`: `['#050A13', '#0C5CB3']` — **MEDIDOS na arte** (mediana dos pixels
+  pretos e dos azuis do escudo), não chutados.
+- `apoio.tsx` ouro + `FUNDADOR_N` 55 · `batismos.ts` · `checa-batismos` ·
+  novidade na home · `LOGOS_PRONTAS` e `CARIMBO_GOL` com as 4 formas do nome,
+  CAIXA ALTA, 'Capsule FC'/'Capsule' e o nome velho.
+- Post: `node scripts/mockup-batismo.mjs --clube "Corporação Capsule FC"
+  --serie B --antigo "Real Tabuleiro" --escudo … --mascote … --mascote-nome
+  "O DragonBola" --mascote-emoji 🐉 --c1 "#050A13" --c1-nome preto
+  --c2 "#0C5CB3" --c2-nome azul --dono "Vegetta" --fundador 55`
 
-### ✅ Feito (código, buildado)
-- `data.ts`: o assento da Série B virou `Corporação Capsule FC` (técnico
-  'Cápsula'), força **atk 58 / def 59** (a MESMA do bot que cedeu o assento —
-  ninguém fica mais forte por batismo) + `OLD_NAME['Corporação Capsule FC'] =
-  'Real Tabuleiro'` (save antigo segue).
-- `manto.ts`: `['#0E1116', '#16295C']` — preto + azul escuro. ⚠️ **VALOR
-  PROVISÓRIO**: a regra manda MEDIR na arte; quando o escudo chegar, medir e
-  trocar.
-- `apoio.tsx`: tier `'ouro'` (reserva) + `FUNDADOR_N` **55**.
-- `batismos.ts` e `scripts/checa-batismos.mjs`.
+### 🧪 A LIÇÃO DO RECORTE (vale pra todo batismo daqui pra frente)
+A 1ª arte veio numa **prancha** (escudo + dragão + camisa) sobre fundo azul
+degradê. O **escudo** deu pra recortar (é prateado, contrasta): modelar o
+degradê com polinômio grau 3 nos pixels de fundo → arte = quem foge do modelo →
+mancha principal → **tapar buracos** (é o tapa-buracos que salva o contorno
+PRETO, que a inundação simples comia).
+O **dragão NÃO deu**: azul sobre azul, o brilho se dissolve no fundo — corte
+frouxo deixa fundo, corte firme come o bicho (testado em 3 níveis).
+**A solução foi pedir a peça sozinha sobre VERDE-LIMÃO `#00FF00`** e recortar
+por COR. ⚠️ E aí veio a 2ª pegadinha: `binary_fill_holes` encheu o verde preso
+**entre as voltas do dragão**. O certo é **tirar o verde por COR onde ele
+estiver**, não por conexão com a borda (mesmo erro do Skyy FC). Depois:
+erosão de 1 px pra comer a franja + **descontaminar o verde da franja**
+(subtrair o excesso de G onde o alfa é parcial), senão fica halo verde.
+👉 **Pedir sempre a arte de batismo sobre fundo liso `#00FF00` (ou PNG
+transparente).** Fonte guardada em `scripts/kits/capsule-mascote-fonte.webp`.
 
-### 🎨 A arte chegou (03/09) — ESCUDO feito, MASCOTE e CAMISA não deu
-O Diego mandou uma prancha com escudo + dragão + camisa, tudo sobre um fundo
-azul-escuro degradê.
-- ✅ **Escudo recortado e instalado**: `img/capsule-escudo.webp`, 237×360,
-  **29,3 KB** (teto 30). Método que funcionou: modelar o degradê do fundo com
-  um polinômio grau 3 ajustado só nos pixels de fundo, marcar como ARTE quem
-  foge do modelo, ficar com a MANCHA PRINCIPAL e **tapar os buracos** — é o
-  tapa-buracos que salva o contorno PRETO do desenho, que a inundação simples
-  comia. Conferido sobre creme e verde escuro, em 300 px e em 78 px (o tamanho
-  real do jogo). Chaves em `LOGOS_PRONTAS`: 4 formas + 'Capsule FC'/'Capsule' +
-  o nome velho 'Real Tabuleiro'.
-- ❌ **Mascote (DragonBola) e camisa: não dá pra recortar dessa prancha.** O
-  dragão é AZUL sobre fundo AZUL e o brilho dele se dissolve no fundo — com
-  corte frouxo sobra fundo, com corte firme some o corpo do bicho (testado em
-  3 níveis). Não é falta de capricho, é a arte não estar separável.
-  **O que resolve**: pedir ao gerador o dragão e a camisa em imagens
-  SEPARADAS, cada uma sobre **fundo liso bem diferente** (verde-limão puro
-  #00FF00 ou magenta #FF00FF) ou já em PNG transparente. Aí o recorte é
-  trivial e sai perfeito.
-
-### ⏳ Falta (e por quê)
-1. **Mascote e camisa** — ver acima: precisam vir em imagem separada com fundo
-   liso. Sem o mascote, `MASCOTES`/`CARIMBO_GOL` seguem vazios e a trava acusa
-   (comportamento certo).
-   ⚠️ **Cuidado de marca**: "DragonBola" e "Capsule Corporation" remetem a
-   Dragon Ball. O NOME do clube é escolha do dono; mas a ARTE deve ser
-   original (um dragão do clube), não cópia do personagem/logo.
-2. **O BANCO** (não consegui: o MCP do Supabase pede aprovação do Diego a cada
-   chamada e ele negou). Faltam:
-   - `user_colors` → `tier='ouro'`, `manual=true` (**a fonte OFICIAL do tier**;
-     é a única perna que funciona SEM deploy)
-   - `esc_socios` → próximo `socio_n`, `valido_ate='2099-12-31'`,
-     `manto_c1='#0E1116'`, `manto_c2='#16295C'`, `origem='batismo'`
-   - `esc_fundadores` → `n=55` (conferir com `select max(n) from esc_fundadores`)
-   - `esc_nomes_batismo` → nome PURO + `nome_norm` minúsculo (o gatilho cria
-     FC e EC sozinho)
-3. **Mockup do post** (`node scripts/mockup-batismo.mjs`) — depende da arte.
-4. **Novidade na home** — só quando a arte entrar (senão anuncia clube sem cara).
-
-⚠️ **Lembrete da regra das 3 pernas**: código + banco + deploy na main. Hoje só
-a 1ª está feita. O dono AINDA NÃO deve ser avisado de que está pronto.
+### ⏳ Falta — depende do Diego
+1. **O BANCO** (o MCP do Supabase pede aprovação dele a cada chamada):
+   `user_colors` (tier='ouro', manual=true — **a fonte OFICIAL**, e a única
+   perna que funciona sem deploy) · `esc_socios` (próximo `socio_n`,
+   `valido_ate='2099-12-31'`, manto `#050A13`/`#0C5CB3`,
+   `mascote_key='capsule_dragao'`, `origem='batismo'`) · `esc_fundadores` n=55
+   (conferir com `select max(n)`) · `esc_nomes_batismo` (nome puro + `nome_norm`).
+2. **A camisa do post**: o dono mandou uma na 1ª prancha, mas ela é escura
+   sobre fundo escuro e não recortou. O post saiu com o manto em listras (as
+   cores certas). Se ele quiser a camisa dele no post, pedir sobre `#00FF00`.
 
 ## 🏛️ SALA DA PRESIDÊNCIA (03/09) — MOCKUP FEITO, ESPERANDO O OK · NADA CODADO
 Pedido dele: *"vamos fazer a sala da presidência.. Como será? C técnico, sala de
