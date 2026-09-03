@@ -119,22 +119,52 @@ const vistaJanela = (jx, jy, jw, jh, temCarro, _grande, E) => {
   const P = { geral: pct(st, 'geral') / 100, cadeiras: pct(st, 'cadeiras') / 100, visitante: pct(st, 'visitante') / 100, camarote: pct(st, 'camarote') / 100 }
   const [c0, c1] = cores
   const BASE = 330                                    // linha do chão do estádio
-  // um bloco de arquibancada: concreto + fileiras de assento na cor do tier + vão com luz
+  // um bloco da FACHADA. De fora se vê CONCRETO; a cor do tier só aparece onde
+  // as cadeiras aparecem de verdade: pelos ARCOS abertos do andar de baixo e
+  // nas últimas fileiras do anel de cima, que despontam acima do muro.
   const bloco = (x, w, hFull, f, opts = {}, BASE = 330) => {
     if (f <= 0) return `<path d="M${x} ${BASE} q${w / 2} -${hFull * 0.22} ${w} 0 z" fill="#6B5637"/><path d="M${x + 6} ${BASE} q${w / 2 - 6} -${hFull * 0.16} ${w - 12} 0 z" fill="#7E6743" opacity=".8"/>`
     const h = hFull * Math.max(0.18, f), top = BASE - h, pronto = f >= 1
-    const linhas = []
-    for (let y = top + 10; y < BASE - 14; y += 8) linhas.push(`<line x1="${x + 4}" y1="${y}" x2="${x + w - 4}" y2="${y}" stroke="${pronto ? c1 : '#9A9483'}" stroke-width="3.2" opacity=".9"/>`)
-    const vao = `<rect x="${x + 2}" y="${BASE - 13}" width="${w - 4}" height="11" fill="#0E1218"/>
-      ${Array.from({ length: Math.max(1, Math.floor(w / 22)) }).map((_, i) => `<rect x="${x + 8 + i * 22}" y="${BASE - 11}" width="10" height="7" rx="1" fill="${noite ? '#FFD98A' : '#3A4150'}" opacity="${noite ? .9 : .6}"/>`).join('')}`
-    return `<rect x="${x}" y="${top}" width="${w}" height="${h}" fill="${pronto ? 'url(#concreto)' : 'url(#obra)'}"/>
-      <rect x="${x}" y="${top}" width="${w}" height="${h}" fill="${pronto ? `url(#tierV)` : '#8a8266'}" opacity="${pronto ? .35 : .25}"/>
-      ${linhas.join('')}
-      ${opts.vidro ? `<rect x="${x + 6}" y="${top + 8}" width="${w - 12}" height="${h * 0.42}" rx="2" fill="url(#vidroCam)" opacity=".92"/><rect x="${x + 6}" y="${top + 8}" width="${w - 12}" height="4" fill="#fff" opacity=".35"/>` : ''}
-      ${vao}
-      <rect x="${x}" y="${top}" width="${w}" height="4" fill="#fff" opacity=".22"/>
-      <rect x="${x}" y="${top}" width="3" height="${h}" fill="#000" opacity=".18"/><rect x="${x + w - 3}" y="${top}" width="3" height="${h}" fill="#000" opacity=".18"/>`
+    const asa = opts.asa // 'L' | 'R' — a asa foge em perspectiva: a borda de fora é mais baixa
+    const corpo = asa === 'L' ? `M${x} ${top + h * 0.22} L${x + w} ${top} L${x + w} ${BASE} L${x} ${BASE} Z`
+      : asa === 'R' ? `M${x} ${top} L${x + w} ${top + h * 0.22} L${x + w} ${BASE} L${x} ${BASE} Z`
+      : `M${x} ${top} L${x + w} ${top} L${x + w} ${BASE} L${x} ${BASE} Z`
+    // arcos abertos: dentro, as cadeiras na cor do tier (fileiras) com brilho à noite
+    const nArc = Math.max(2, Math.floor(w / 34)), aw = (w - 12) / nArc
+    const arcos = opts.arcos ? Array.from({ length: nArc }).map((_, i) => {
+      const ax = x + 6 + i * aw + 4, aW = aw - 8, aT = BASE - Math.min(h - 8, 34), r = aW / 2
+      const dentro = pronto ? `url(#tierV)` : '#8a8266'
+      return `<path d="M${ax} ${BASE - 2} V${aT + r} A${r} ${r} 0 0 1 ${ax + aW} ${aT + r} V${BASE - 2} Z" fill="#0E1218"/>
+        <path d="M${ax + 2} ${BASE - 2} V${aT + r} A${r - 2} ${r - 2} 0 0 1 ${ax + aW - 2} ${aT + r} V${BASE - 2} Z" fill="${dentro}" opacity=".9"/>
+        ${[0, 1, 2].map(k => `<line x1="${ax + 3}" y1="${BASE - 8 - k * 7}" x2="${ax + aW - 3}" y2="${BASE - 8 - k * 7}" stroke="#000" stroke-width="1.6" opacity=".28"/>`).join('')}
+        ${noite ? `<path d="M${ax + 2} ${BASE - 2} V${aT + r} A${r - 2} ${r - 2} 0 0 1 ${ax + aW - 2} ${aT + r} V${BASE - 2} Z" fill="url(#bloomQ)" opacity=".55"/>` : ''}`
+    }).join('') : ''
+    // as últimas fileiras do anel, despontando acima do muro (só setor pronto)
+    const topoAssentos = opts.topo && pronto ? `<rect x="${x + 6}" y="${top - 16}" width="${w - 12}" height="16" fill="url(#tierV)"/>
+      ${[0, 1].map(k => `<line x1="${x + 8}" y1="${top - 12 + k * 7}" x2="${x + w - 8}" y2="${top - 12 + k * 7}" stroke="#000" stroke-width="1.6" opacity=".3"/>`).join('')}
+      ${noite ? `<rect x="${x + 6}" y="${top - 16}" width="${w - 12}" height="16" fill="url(#bloomQ)" opacity=".45"/>` : ''}` : ''
+    // juntas de dilatação e faixa clara no topo do muro (concreto de verdade tem isso)
+    const juntas = Array.from({ length: Math.max(1, Math.floor(w / 46)) }).map((_, i) => `<line x1="${x + 23 + i * 46}" y1="${top + 6}" x2="${x + 23 + i * 46}" y2="${BASE - 2}" stroke="#000" stroke-width="1.2" opacity=".14"/>`).join('')
+    return `${topoAssentos}<path d="${corpo}" fill="${pronto ? 'url(#concreto)' : 'url(#obra)'}"/>
+      <path d="${corpo}" fill="#000" opacity="${asa ? .12 : 0}"/>
+      ${juntas}
+      <rect x="${x}" y="${top}" width="${w}" height="4" fill="#fff" opacity="${asa ? .12 : .22}"/>
+      ${arcos}
+      ${opts.vidro ? `<rect x="${x + 8}" y="${top + 10}" width="${w - 16}" height="${h * 0.22}" rx="2" fill="url(#vidroCam)" opacity=".92"/><rect x="${x + 8}" y="${top + 10}" width="${w - 16}" height="4" fill="#fff" opacity=".35"/>` : ''}
+      ${opts.decal || ''}`
   }
+  // 🛡️ escudo grande na asa esquerda · 🐯 mascote na asa direita (se o clube tem)
+  const decalEscudo = (x, w, top, h) => `<g transform="translate(${x + w / 2},${top + h * 0.5}) scale(${Math.min(w / 130, h / 130) * 0.9})">
+    <path d="M0 -60 L54 -42 V14 C54 50 30 70 0 82 C-30 70 -54 50 -54 14 V-42 Z" fill="#000" opacity=".25" transform="translate(3,4)"/>
+    <path d="M0 -60 L54 -42 V14 C54 50 30 70 0 82 C-30 70 -54 50 -54 14 V-42 Z" fill="${GREEN}" stroke="#F4ECD6" stroke-width="4"/>
+    <path d="M0 -44 L38 -31 V13 C38 38 20 54 0 64 Z" fill="#12572A"/>
+    <text x="0" y="30" text-anchor="middle" font-family="Georgia,serif" font-size="58" font-weight="bold" fill="#fff">T</text>
+    ${noite ? `<circle cx="0" cy="10" r="90" fill="url(#bloomQ)" opacity=".35"/>` : ''}</g>`
+  const decalMascote = (x, w, top, h) => `<g transform="translate(${x + w / 2},${top + h * 0.5})">
+    <rect x="${-w * 0.42}" y="${-h * 0.5}" width="${w * 0.84}" height="${h}" rx="6" fill="#F4ECD6" opacity=".95"/>
+    <rect x="${-w * 0.42}" y="${-h * 0.5}" width="${w * 0.84}" height="5" fill="${GOLD}"/><rect x="${-w * 0.42}" y="${h * 0.5 - 5}" width="${w * 0.84}" height="5" fill="${GOLD}"/>
+    <text x="0" y="${h * 0.3}" text-anchor="middle" font-size="${h * 0.82}">🐯</text>
+    ${noite ? `<rect x="${-w * 0.42}" y="${-h * 0.5}" width="${w * 0.84}" height="${h}" fill="url(#bloomQ)" opacity=".3"/>` : ''}</g>`
   const hAsa = f => f > 0 ? 120 * Math.max(0.18, f) : 0
   const hCentro = (P.geral > 0 ? 70 * Math.max(0.18, P.geral) : 0) + (P.geral > 0 && P.cadeiras > 0 ? 80 * Math.max(0.18, P.cadeiras) : 0)
   const topoFachada = BASE - Math.max(hAsa(P.visitante), hAsa(P.camarote), hCentro, 8)
@@ -168,10 +198,10 @@ const vistaJanela = (jx, jy, jw, jh, temCarro, _grande, E) => {
   <!-- mastros de luz (atrás da fachada) -->
   ${mastro(86)}${mastro(210, 0.9)}${mastro(350, 0.9)}${mastro(474)}
   <!-- A FACHADA: asa esquerda (Visitante) · centro (Geral embaixo, Cadeiras em cima) · asa direita (Camarote) -->
-  ${bloco(40, 130, 120, P.visitante)}
-  ${bloco(390, 130, 120, P.camarote, { vidro: true })}
-  ${bloco(170, 220, 70, P.geral)}
-  ${P.geral > 0 ? bloco(182, 196, 80, P.cadeiras, {}, BASE - 70 * Math.max(0.18, P.geral)) : ''}
+  ${bloco(40, 130, 120, P.visitante, { asa: 'L', arcos: true, decal: P.visitante >= 1 ? decalEscudo(40, 130, BASE - 120, 120 - 40) : '' })}
+  ${bloco(390, 130, 120, P.camarote, { asa: 'R', vidro: true, decal: P.camarote >= 1 && E.mascote ? decalMascote(390, 130, BASE - 120 + 120 * 0.36, 120 * 0.36) : '' })}
+  ${bloco(170, 220, 70, P.geral, { arcos: true })}
+  ${P.geral > 0 ? bloco(182, 196, 80, P.cadeiras, { topo: true }, BASE - 70 * Math.max(0.18, P.geral)) : ''}
   <!-- portão central: dá pra ver o gramado (terra → verde pelo % do gramado) -->
   <rect x="262" y="${BASE - 30}" width="36" height="30" rx="3" fill="${lerp('#7B5B3A', noite ? '#2E9048' : '#3FA85A', g)}"/>
   ${noite && g > 0.3 ? `<rect x="262" y="${BASE - 30}" width="36" height="30" fill="url(#bloomQ)" opacity=".5"/>` : ''}
@@ -186,8 +216,8 @@ const vistaJanela = (jx, jy, jw, jh, temCarro, _grande, E) => {
     <text x="280" y="${roofY - 60}" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" font-size="24" fill="#37D067">1×0</text>
     ${noite ? `<rect x="238" y="${roofY - 90}" width="84" height="42" fill="url(#bloomQ)" opacity=".45"/>` : ''}</g>` : ''}
   <!-- 🛍️ loja do clube, na base -->
-  ${loja ? `<g><rect x="446" y="${BASE - 34}" width="72" height="34" rx="2" fill="${noite ? '#F4ECD6' : '#FFFDF5'}"/>${[0, 1, 2, 3].map(i => `<rect x="${446 + i * 18}" y="${BASE - 42}" width="18" height="9" fill="${i % 2 ? GOLD : GREEN}"/>`).join('')}
-    <text x="482" y="${BASE - 12}" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" font-size="13" fill="${INK}">LOJA</text>${noite ? `<rect x="446" y="${BASE - 34}" width="72" height="34" fill="url(#bloomQ)" opacity=".4"/>` : ''}</g>` : ''}
+  ${loja ? `<g><rect x="446" y="${BASE - 28}" width="72" height="28" rx="2" fill="${noite ? '#F4ECD6' : '#FFFDF5'}"/>${[0, 1, 2, 3].map(i => `<rect x="${446 + i * 18}" y="${BASE - 35}" width="18" height="8" fill="${i % 2 ? GOLD : GREEN}"/>`).join('')}
+    <text x="482" y="${BASE - 9}" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" font-size="13" fill="${INK}">LOJA</text>${noite ? `<rect x="446" y="${BASE - 28}" width="72" height="28" fill="url(#bloomQ)" opacity=".4"/>` : ''}</g>` : ''}
   <!-- 🅿️ o estacionamento na frente (asfalto se tem a obra; barro se não) -->
   <rect x="0" y="${BASE}" width="560" height="${486 - BASE}" fill="${estac ? 'url(#asfaltoV)' : '#6E5A3C'}"/>
   <rect x="0" y="${BASE - 4}" width="560" height="6" fill="${estac ? '#5B6270' : '#8A7355'}"/>
@@ -496,7 +526,7 @@ const ESTADIOS = {
   'meio':     { inv: { grama: 36, geral: 60, cadeiras: 90, visitante: 40 }, ext: ['refl', 'loja'] },
   'completo': { inv: { grama: 60, geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'cober', 'hotel'] },
 }
-const Ede = (st, tier = 'bege') => ({ st, pct: M.pct, tem: M.tem, cores: M.cores(tier) })
+const Ede = (st, tier = 'bege', mascote = false) => ({ st, pct: M.pct, tem: M.tem, cores: M.cores(tier), mascote })
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const shot = async (nome, html, w, h, dpr = 1) => {
   const p = `${OUT}/${nome}.html`; writeFileSync(p, `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:${CREME}}</style>${html}`)
@@ -507,7 +537,7 @@ const shot = async (nome, html, w, h, dpr = 1) => {
 // a) folha de comparação: o MAPA do jogo à esquerda, a JANELA à direita — mesmo dado
 for (const [nome, st] of Object.entries(ESTADIOS)) {
   const tier = nome === 'completo' ? 'ouro' : 'bege'
-  const E = Ede(st, tier)
+  const E = Ede(st, tier, nome === 'completo')
   const jan = `<svg viewBox="0 0 560 486" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg"><defs>
     ${grad('ceuV', [[0, '#070C1A'], [0.45, '#0F1A33'], [0.8, '#2A3550'], [1, '#4A4A5A']])}${grad('asfaltoV', [[0, '#3A3F4A'], [1, '#1C1F26']])}
     ${grad('carroCorpo', [[0, '#3A3F48'], [0.35, '#15181E'], [1, '#0A0C10']])}${grad('carroTeto', [[0, '#4C525C'], [1, '#1A1E25']])}${grad('vidroTras', [[0, '#8FB6D6'], [1, '#2B4460']])}${grad('cone', [[0, 'rgba(255,241,201,.55)'], [1, 'rgba(255,241,201,0)']])}
@@ -526,7 +556,7 @@ for (const [nome, st] of Object.entries(ESTADIOS)) {
   await shot(`compara-${nome}`, html, 1240, 830)
 }
 // b) a sala com o estádio completo (tier ouro) e a sala do começo (várzea)
-await shot('sala-3-completa', sala(new Set(TUDO), Ede(ESTADIOS.completo, 'ouro')), W, H)
+await shot('sala-3-completa', sala(new Set(TUDO), Ede(ESTADIOS.completo, 'ouro', true)), W, H)
 await shot('sala-1-comeco', sala(new Set([]), Ede(ESTADIOS.varzea)), W, H)
 await shot('sala-2-meio', sala(new Set(['piso', 'mesa', 'poltrona', 'estante', 'planta']), Ede(ESTADIOS.meio)), W, H)
 const img = nome => `data:image/png;base64,${b64(`${OUT}/sala-${nome}.png`)}`

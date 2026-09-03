@@ -232,6 +232,26 @@ bloco cinza sem fileiras (era um hack de regex pra deslocar y — virou parâmet
 `base` do `bloco()`), e a cobertura flutuava longe da fachada (topo real
 calculado por `hAsa`/`hCentro`).
 
+### 🏟️ v4 DA JANELA (03/09) — concreto por fora, tier só onde as cadeiras aparecem
+Ele: *"ainda não gostei… talvez ter o adesivo do escudo e o mascote do outro
+lado… esse dourado tá errado, porque dourado/bege/prata são das cadeiras
+DENTRO do estádio, pro lado de fora não dá pra ver — ou faça de uma forma que
+dê pra ver"*. Regra nova, e é regra de FIDELIDADE DE TIER também:
+- **A fachada é concreto.** Nada de asa dourada. Juntas de dilatação, faixa
+  clara no topo do muro, as asas fogem em perspectiva (borda de fora mais baixa).
+- **A cor do tier aparece só onde as cadeiras aparecem de verdade**: (1) pelos
+  **arcos abertos** do andar de baixo (asa esquerda e centro), com as fileiras na
+  cor do tier e brilho à noite; (2) nas **últimas fileiras do anel de cima**,
+  despontando acima do muro das Cadeiras. Setor em obra = cinza também por
+  dentro. Assim ouro/prata/bege se vê, mas do jeito que se vê num estádio real.
+- **🛡️ Escudo grande na asa esquerda** (quando Visitante está pronta) — no jogo
+  vem do `escudoDe()`/`LOGOS_PRONTAS`, real ou genérico.
+- **🐯 Mascote na asa direita** (quando Camarote está pronto E o clube tem
+  mascote — `E.mascote`; no jogo é o busto `.webp` do batismo). Sem mascote, só
+  o escudo. Banner creme com faixas douradas, acima da loja.
+- Vidro do camarote virou só a faixa de cima (22% da asa), pra sobrar parede
+  pro banner; a loja desceu e encostou no chão.
+
 **Ainda em aberto pra ele decidir** (mandado junto com o v2):
 - humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
   sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)
