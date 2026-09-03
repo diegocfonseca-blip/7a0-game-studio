@@ -1,5 +1,42 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/09/2026)
 
+## 🏛️ SALA DA PRESIDÊNCIA (03/09) — MOCKUP FEITO, ESPERANDO O OK · NADA CODADO
+Pedido dele: *"vamos fazer a sala da presidência.. Como será? C técnico, sala de
+troféus q passará pra lá.. E mais oq??"*.
+
+**Proposta**: é a **5ª sala da aba 🏟️ Clube** (Estádio · Finanças · Patrocínio ·
+Agência · **Presidência**). ⚠️ O `StadiumSvg` continua sendo a PRIMEIRA coisa da
+área do clube — a Presidência **não** vira a sala padrão (`clubeSub` segue
+nascendo em `'estadio'`), senão quebra a regra do desenho sagrado.
+
+Mockup: `node scripts/mockup-presidencia.mjs` (3 telas: celular topo, celular
+rolando, PC largo). Mandado pra ele em 03/09.
+
+O que entra, e **de onde o dado vem** (quase tudo já existe, só está espalhado):
+| Bloco | Vem de | Hoje mora onde |
+|---|---|---|
+| 🪑 a mesa (escudo, clube, temporada, divisão) | estado da carreira | — |
+| 🎪 torcidômetro + os motivos | `careerTorcida` / `careerTorcidaHist` | só na tela de fim de temporada |
+| 🧢 ficha do técnico | `careerTecnicos`, `careerTecnicoContrato`, `careerTecnicoPago` | **Elenco**, embaixo do campinho |
+| 🏆 Sala de Troféus | `careerHonors`, `careerCopaHonors`, `careerSupercopaHonors` | **Rank**, embaixo da tabela |
+| 📼 parede da história | `careerCronica` (JÁ gravada: temporada, divisão, campeão, copa, supercopa) | **nenhum lugar** — só o jornal lê |
+| 📊 a placa (acessos, quedas, jejum) | contas em cima da mesma `careerCronica` | não existe |
+
+**O que ficou de FORA de propósito** (e por quê):
+- 🕵️ **Sondar/contratar técnico continua no PRÉ-LEILÃO** — decisão dele em
+  28/08 (*"não precisa ter aqui na área do elenco repetido"*). Na Presidência só
+  a ficha de quem já é seu, com uma linha dizendo onde se contrata.
+- Nada de spoiler: a parede só mostra temporada **fechada**; a atual aparece
+  como "Em andamento", sem posição.
+- Nada que adicione passo antes da rodada: é sala que se visita, nunca tela que
+  trava o jogo.
+
+**Perguntas abertas pro Diego** (mandadas junto com o mockup):
+1. A Sala de Troféus **sai** do Rank ou fica nos dois lugares? (a proposta é
+   sair, pra não ter a mesma estante duas vezes)
+2. A ficha do técnico **sai** do Elenco ou fica repetida?
+3. Vale ele poder escrever o nome do presidente, ou usa o nome da conta?
+
 ## 📝 BIO ERRADA DO CAMILO (03/09) — ✅ corrigida
 O Diego desconfiou: *"a bio do Camilo e acho q Carlos Germano tb estão errados…
 Camilo tá falando times errados na bio eu acho"*. Conferi os dois FORA do jogo,
