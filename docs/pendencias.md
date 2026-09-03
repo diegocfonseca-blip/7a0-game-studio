@@ -21,12 +21,30 @@ outro arquivo do `src/`. Nenhum outro clube perde nada.
 - `apoio.tsx`: tier `'ouro'` (reserva) + `FUNDADOR_N` **55**.
 - `batismos.ts` e `scripts/checa-batismos.mjs`.
 
+### 🎨 A arte chegou (03/09) — ESCUDO feito, MASCOTE e CAMISA não deu
+O Diego mandou uma prancha com escudo + dragão + camisa, tudo sobre um fundo
+azul-escuro degradê.
+- ✅ **Escudo recortado e instalado**: `img/capsule-escudo.webp`, 237×360,
+  **29,3 KB** (teto 30). Método que funcionou: modelar o degradê do fundo com
+  um polinômio grau 3 ajustado só nos pixels de fundo, marcar como ARTE quem
+  foge do modelo, ficar com a MANCHA PRINCIPAL e **tapar os buracos** — é o
+  tapa-buracos que salva o contorno PRETO do desenho, que a inundação simples
+  comia. Conferido sobre creme e verde escuro, em 300 px e em 78 px (o tamanho
+  real do jogo). Chaves em `LOGOS_PRONTAS`: 4 formas + 'Capsule FC'/'Capsule' +
+  o nome velho 'Real Tabuleiro'.
+- ❌ **Mascote (DragonBola) e camisa: não dá pra recortar dessa prancha.** O
+  dragão é AZUL sobre fundo AZUL e o brilho dele se dissolve no fundo — com
+  corte frouxo sobra fundo, com corte firme some o corpo do bicho (testado em
+  3 níveis). Não é falta de capricho, é a arte não estar separável.
+  **O que resolve**: pedir ao gerador o dragão e a camisa em imagens
+  SEPARADAS, cada uma sobre **fundo liso bem diferente** (verde-limão puro
+  #00FF00 ou magenta #FF00FF) ou já em PNG transparente. Aí o recorte é
+  trivial e sai perfeito.
+
 ### ⏳ Falta (e por quê)
-1. **A ARTE — escudo e mascote (DragonBola).** Não consigo produzir: não tenho
-   gerador de imagem, e a regra proíbe SVG à mão pra arte de batismo. O Diego
-   está gerando arte no Codex/ChatGPT — é de lá que ela vem. Sem os `.webp`,
-   `LOGOS_PRONTAS` e `MASCOTES`/`CARIMBO_GOL` ficam vazios e a trava acusa
-   (é o comportamento certo: ela está listando o buraco).
+1. **Mascote e camisa** — ver acima: precisam vir em imagem separada com fundo
+   liso. Sem o mascote, `MASCOTES`/`CARIMBO_GOL` seguem vazios e a trava acusa
+   (comportamento certo).
    ⚠️ **Cuidado de marca**: "DragonBola" e "Capsule Corporation" remetem a
    Dragon Ball. O NOME do clube é escolha do dono; mas a ARTE deve ser
    original (um dragão do clube), não cópia do personagem/logo.

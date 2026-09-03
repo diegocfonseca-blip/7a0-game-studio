@@ -29,6 +29,7 @@ import lluchEscudoImg from './img/lluch-escudo.webp' // 🏠 Esqueceram do Lluch
 import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
 import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
 import takahdaoEscudoImg from './img/al-takahdao-escudo.webp' // 🦜🛒 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
+import capsuleEscudoImg from './img/capsule-escudo.webp' // 🐉 Corporação Capsule FC (contatovegetta14): arte própria do dono, 03/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
@@ -557,6 +558,11 @@ const takahdaoEscudoRender = (size: number) => (
 // 🧦 Jurubeba FC — escudo amarelo com "MEIA NA CANELA" em verde-petróleo, coroa,
 // a meia e a bola (2025). 285x360 no arquivo (largura pela proporção REAL). A
 // arte veio com alfa: só apagou a poeira (alfa ≤ 40) e recortou no bbox.
+// 🐉 Corporação Capsule FC — 237x360 no arquivo, então a largura sai da PROPORÇÃO
+// REAL (nunca width={size} chutado, senão o escudo achata).
+const capsuleEscudoRender = (size: number) => (
+  <img src={capsuleEscudoImg} height={size} width={Math.round(size * 237 / 360)} alt="Corporação Capsule FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const jurubebaEscudoRender = (size: number) => (
   <img src={jurubebaEscudoImg} height={size} width={Math.round(size * 285 / 360)} alt="Jurubeba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -726,6 +732,15 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🧦 JURUBEBA FC (luizguilhermeps) — Série B, no assento que era do bot
   // Ferroviário do Sul (02/09). O nome velho fica registrado: save antigo que já
   // tinha o Ferroviário não fica sem escudo.
+  // 🐉 Corporação Capsule FC (contatovegetta14) — ex-Real Tabuleiro, Série B. As 4
+  // formas do nome + o nome velho (save antigo não fica sem escudo).
+  'Corporação Capsule FC': capsuleEscudoRender,
+  'Corporação Capsule': capsuleEscudoRender,
+  'Corporação Capsule EC': capsuleEscudoRender,
+  'Corporação Capsule SC': capsuleEscudoRender,
+  'Capsule FC': capsuleEscudoRender,
+  'Capsule': capsuleEscudoRender,
+  'Real Tabuleiro': capsuleEscudoRender,
   'Jurubeba FC': jurubebaEscudoRender,
   'Jurubeba': jurubebaEscudoRender,
   'Jurubeba EC': jurubebaEscudoRender,
