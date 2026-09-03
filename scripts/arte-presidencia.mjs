@@ -41,15 +41,19 @@ const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREME = '#F4ECD6'
 const W = 1280, H = 1100, PY = 640
 
 // ── o estádio REAL do jogo, pela janela ─────────────────────────────────────
-async function estadioReal() {
+async function motorEstadio() {
   const server = await createServer({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'silent', optimizeDeps: { noDiscovery: true, include: [] } })
-  try {
-    const mod = await server.ssrLoadModule('/src/escalacao/estadio.tsx')
-    const apoio = await server.ssrLoadModule('/src/escalacao/apoio.tsx')
-    const st = { inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }
-    return renderToStaticMarkup(React.createElement(mod.StadiumSvg, { st, perkOverride: apoio.APOIO_PERKS.ouro }))
-      .replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '') // só o miolo: eu controlo o viewBox
-  } finally { await server.close() }
+  const mod = await server.ssrLoadModule('/src/escalacao/estadio.tsx')
+  const dados = await server.ssrLoadModule('/src/escalacao/estadiodata.ts')
+  const apoio = await server.ssrLoadModule('/src/escalacao/apoio.tsx')
+  return {
+    // o MAPA (o desenho de gestão que já existe no jogo) — pra folha de comparação
+    mapa: (st, tier = 'bege') => renderToStaticMarkup(React.createElement(mod.StadiumSvg, { st, perkOverride: apoio.APOIO_PERKS[tier] })),
+    pct: (st, k) => dados.sectorPct(st, k),
+    tem: (st, k) => dados.hasExtra(st, k),
+    cores: tier => apoio.APOIO_PERKS[tier].svgFull,
+    fechar: () => server.close(),
+  }
 }
 
 // ── ferramentas de ilustração ───────────────────────────────────────────────
@@ -101,56 +105,84 @@ const carro = (x, y, s, cor, tipo = 'sport') => {
 // Dentro da janela nada leva traço preto: é luz, sombra, brilho e névoa. É o
 // contraste com a sala (que tem o traço da casa) que faz parecer uma vista de
 // verdade e não um desenho colado. O carro é visto de trás, em ângulo.
-const vistaJanela = (jx, jy, jw, jh, temCarro, grande) => {
-  const cx = jx + jw / 2, hor = jy + jh * 0.42            // linha do horizonte
-  const estW = jw * (grande ? 0.78 : 0.86), estH = jh * (grande ? 0.30 : 0.34)
-  const ecx = cx, ecy = hor + estH * 0.55
-  const torre = (x, yTop, yBase, s) => `
-    <path d="M${x} ${yTop} L${x - 90 * s} ${yBase + 40 * s} L${x + 90 * s} ${yBase + 40 * s} Z" fill="url(#cone)" opacity=".55"/>
-    <line x1="${x}" y1="${yTop}" x2="${x}" y2="${yBase}" stroke="#8B93A3" stroke-width="${3 * s}" opacity=".9"/>
-    <rect x="${x - 16 * s}" y="${yTop - 6 * s}" width="${32 * s}" height="${12 * s}" rx="2" fill="#E9EEF5" opacity=".95"/>
-    <circle cx="${x}" cy="${yTop}" r="${30 * s}" fill="url(#bloom)"/>
-    <circle cx="${x}" cy="${yTop}" r="${9 * s}" fill="#FFF7D6"/>`
-  const vagaY = jy + jh * 0.70
-  const carroX = cx, carroY = vagaY + jh * 0.10, cs = grande ? 1 : 0.55
+const lerp = (a, b, t) => { const h = x => [parseInt(x.slice(1, 3), 16), parseInt(x.slice(3, 5), 16), parseInt(x.slice(5, 7), 16)]; const A = h(a), B = h(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})` }
+// E = { st, pct, tem, cores } — o MESMO dado do estádio do jogador
+const vistaJanela = (jx, jy, jw, jh, temCarro, grande, E) => {
+  const { st, pct, tem, cores } = E
+  const noite = tem(st, 'refl'), cober = tem(st, 'cober'), telao = tem(st, 'telao'), loja = tem(st, 'loja'), estac = tem(st, 'estac'), hotel = tem(st, 'hotel')
+  const g = pct(st, 'grama') / 100
+  const P = { geral: pct(st, 'geral') / 100, cadeiras: pct(st, 'cadeiras') / 100, visitante: pct(st, 'visitante') / 100, camarote: pct(st, 'camarote') / 100 }
+  const [c0, c1] = cores
+  const cx = jx + jw / 2, hor = jy + jh * 0.44
+  const estW = jw * (grande ? 0.74 : 0.84), estH = jh * (grande ? 0.30 : 0.34)
+  const ecx = cx, ecy = hor + estH * 0.5
+  const k = grande ? 1 : 0.58
+  const vagaY = jy + jh * 0.71
+  const ceu = noite ? 'url(#ceuV)' : 'url(#ceuTarde)'
+  // arquibancada = fatia do anel; altura sobe com o % construído; cor = tier; vazia = barranco de terra
+  const arqui = (a0, a1, f, lado) => {
+    const rx = estW / 2, ry = estH / 2, alt = (grande ? 46 : 26) * Math.max(0.12, f)
+    const pt = (a, dy = 0, m = 1) => `${ecx + Math.cos(a) * rx * m},${ecy + Math.sin(a) * ry * m + dy}`
+    const passos = 14, seg = []
+    for (let i = 0; i <= passos; i++) seg.push(pt(a0 + (a1 - a0) * i / passos))
+    const segIn = []
+    for (let i = passos; i >= 0; i--) segIn.push(pt(a0 + (a1 - a0) * i / passos, 0, 0.74))
+    const topo = `M${seg.join(' L')} L${segIn.join(' L')} Z`
+    const parede = `M${seg.join(' L')} L${seg.map(p => { const [x, y] = p.split(','); return `${x},${+y + alt}` }).reverse().join(' L')} Z`
+    if (f <= 0) return `<path d="${parede}" fill="#5E4A30" opacity=".6"/><path d="${topo}" fill="#6E5A3C" opacity=".5"/>`
+    const fill = f >= 1 ? `url(#tier${lado})` : lerp('#8a8266', c1, 0.35)
+    return `<path d="${parede}" fill="${fill}" opacity=".95"/><path d="${topo}" fill="${f >= 1 ? c0 : '#8a8266'}" opacity=".9"/>
+      ${f >= 1 ? `<path d="${topo}" fill="url(#torcida)"/>` : ''}
+      ${cober && f >= 1 ? `<path d="${topo}" fill="#2B3140" opacity=".85" transform="translate(0,${-alt * 0.9})"/><path d="${topo}" fill="#fff" opacity=".12" transform="translate(0,${-alt * 0.9})"/>` : ''}`
+  }
+  const torre = (x, yTop, yBase, sc) => noite ? `
+    <path d="M${x} ${yTop} L${x - 90 * sc} ${yBase + 40 * sc} L${x + 90 * sc} ${yBase + 40 * sc} Z" fill="url(#cone)" opacity=".55"/>
+    <line x1="${x}" y1="${yTop}" x2="${x}" y2="${yBase}" stroke="#8B93A3" stroke-width="${3 * sc}" opacity=".9"/>
+    <rect x="${x - 16 * sc}" y="${yTop - 6 * sc}" width="${32 * sc}" height="${12 * sc}" rx="2" fill="#E9EEF5" opacity=".95"/>
+    <circle cx="${x}" cy="${yTop}" r="${30 * sc}" fill="url(#bloom)"/><circle cx="${x}" cy="${yTop}" r="${9 * sc}" fill="#FFF7D6"/>`
+    : `<line x1="${x}" y1="${yTop}" x2="${x}" y2="${yBase}" stroke="#6B7280" stroke-width="${3 * sc}" opacity=".8"/><rect x="${x - 16 * sc}" y="${yTop - 6 * sc}" width="${32 * sc}" height="${12 * sc}" rx="2" fill="#9AA0AC" opacity=".9"/>`
   return `
-  <!-- céu -->
-  <rect x="${jx}" y="${jy}" width="${jw}" height="${jh}" fill="url(#ceuV)"/>
-  ${[[0.08, 0.10], [0.22, 0.05], [0.37, 0.14], [0.55, 0.04], [0.71, 0.09], [0.86, 0.06], [0.93, 0.18], [0.47, 0.22]].map(([fx, fy]) => `<circle cx="${jx + jw * fx}" cy="${jy + jh * fy}" r="${1.4 + (fx * 7) % 1.4}" fill="#fff" opacity="${0.45 + (fy * 3) % 0.4}"/>`).join('')}
-  <!-- cidade ao fundo (silhueta com janelinhas) -->
-  <g opacity=".85">${[[0.02, 0.06, 0.10], [0.12, 0.05, 0.16], [0.17, 0.07, 0.07], [0.26, 0.04, 0.12], [0.31, 0.06, 0.19], [0.62, 0.05, 0.11], [0.69, 0.06, 0.17], [0.76, 0.04, 0.09], [0.82, 0.07, 0.14], [0.90, 0.05, 0.08], [0.95, 0.05, 0.13]].map(([fx, fw, fh]) => `<rect x="${jx + jw * fx}" y="${hor - jh * fh}" width="${jw * fw}" height="${jh * fh + 6}" fill="#141C2E"/>`).join('')}
-  ${[[0.04, 0.05], [0.14, 0.11], [0.15, 0.07], [0.28, 0.09], [0.33, 0.14], [0.34, 0.09], [0.64, 0.07], [0.71, 0.12], [0.72, 0.06], [0.84, 0.10], [0.91, 0.05], [0.96, 0.09]].map(([fx, fh]) => `<rect x="${jx + jw * fx}" y="${hor - jh * fh}" width="3" height="4" fill="#FFD98A" opacity=".8"/>`).join('')}</g>
-  <!-- névoa de luz do estádio -->
-  <ellipse cx="${ecx}" cy="${ecy - estH * 0.2}" rx="${estW * 0.8}" ry="${estH * 1.6}" fill="url(#nevoa)"/>
-  <!-- o estádio em perspectiva: anel de arquibancada + gramado -->
-  <ellipse cx="${ecx}" cy="${ecy}" rx="${estW / 2}" ry="${estH / 2}" fill="#3A4256"/>
-  <ellipse cx="${ecx}" cy="${ecy - estH * 0.08}" rx="${estW / 2}" ry="${estH / 2}" fill="url(#arqui)"/>
-  <ellipse cx="${ecx}" cy="${ecy - estH * 0.08}" rx="${estW * 0.36}" ry="${estH * 0.34}" fill="#2A3142"/>
-  <ellipse cx="${ecx}" cy="${ecy - estH * 0.02}" rx="${estW * 0.34}" ry="${estH * 0.30}" fill="url(#gramado)"/>
-  <ellipse cx="${ecx}" cy="${ecy - estH * 0.02}" rx="${estW * 0.22}" ry="${estH * 0.19}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
-  <line x1="${ecx}" y1="${ecy - estH * 0.32}" x2="${ecx}" y2="${ecy + estH * 0.28}" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
-  <!-- a arquibancada mais perto (cobertura) escurece pra dar volume -->
-  <path d="M${ecx - estW / 2} ${ecy - estH * 0.08} A${estW / 2} ${estH / 2} 0 0 0 ${ecx + estW / 2} ${ecy - estH * 0.08} L${ecx + estW / 2} ${ecy + estH * 0.12} A${estW / 2} ${estH / 2} 0 0 1 ${ecx - estW / 2} ${ecy + estH * 0.12} Z" fill="#1E2434" opacity=".8"/>
-  <!-- pontinhos de torcida acesa -->
-  ${Array.from({ length: 26 }).map((_, i) => { const a = (i / 26) * Math.PI * 2; return `<circle cx="${ecx + Math.cos(a) * estW * 0.44}" cy="${ecy - estH * 0.08 + Math.sin(a) * estH * 0.44}" r="1.6" fill="#FFE7B0" opacity="${0.35 + (i % 3) * 0.2}"/>` }).join('')}
-  <!-- 4 torres de luz -->
-  ${torre(ecx - estW * 0.46, hor - jh * 0.28, ecy - estH * 0.1, grande ? 1 : 0.6)}
-  ${torre(ecx + estW * 0.46, hor - jh * 0.28, ecy - estH * 0.1, grande ? 1 : 0.6)}
-  ${torre(ecx - estW * 0.2, hor - jh * 0.34, ecy - estH * 0.32, grande ? 0.8 : 0.5)}
-  ${torre(ecx + estW * 0.2, hor - jh * 0.34, ecy - estH * 0.32, grande ? 0.8 : 0.5)}
-  <!-- o estacionamento em frente (perspectiva) -->
-  <path d="M${jx} ${vagaY - 8} L${jx + jw} ${vagaY - 8} L${jx + jw} ${jy + jh} L${jx} ${jy + jh} Z" fill="url(#asfaltoV)"/>
-  <path d="M${jx} ${vagaY - 10} h${jw} v6 h-${jw} z" fill="#5B6270" opacity=".9"/>
-  ${grande ? `<g opacity=".8" stroke="#E8E1C8" stroke-width="3" fill="none">
-    <path d="M${cx - jw * 0.17} ${jy + jh} L${cx - jw * 0.10} ${vagaY + 6}"/><path d="M${cx + jw * 0.17} ${jy + jh} L${cx + jw * 0.10} ${vagaY + 6}"/>
-    <path d="M${cx - jw * 0.36} ${jy + jh} L${cx - jw * 0.24} ${vagaY + 6}"/><path d="M${cx + jw * 0.36} ${jy + jh} L${cx + jw * 0.24} ${vagaY + 6}"/></g>
-    <text x="${cx}" y="${jy + jh - 14}" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="bold" fill="#E8E1C8" opacity=".75" letter-spacing="3">PRESIDENTE</text>
-    <!-- poste com luz quente -->
-    <line x1="${jx + jw * 0.9}" y1="${vagaY - 96}" x2="${jx + jw * 0.9}" y2="${vagaY + 30}" stroke="#9AA0AC" stroke-width="3"/>
-    <circle cx="${jx + jw * 0.9}" cy="${vagaY - 98}" r="26" fill="url(#bloomQ)"/><circle cx="${jx + jw * 0.9}" cy="${vagaY - 98}" r="5" fill="#FFF1C9"/>
-    <ellipse cx="${jx + jw * 0.86}" cy="${vagaY + 34}" rx="70" ry="16" fill="url(#pocaLuz)"/>` : ''}
-  ${temCarro ? carroTras(carroX, carroY, cs) : ''}
-  <!-- reflexo do vidro (é o que diz "isso é uma janela") -->
+  <defs>
+    ${grad('tierL', [[0, c0], [1, c1]])}${grad('tierR', [[0, c0], [1, c1]])}${grad('tierF', [[0, c0], [1, c1]])}${grad('tierN', [[0, c0], [1, c1]])}
+    <pattern id="torcida" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1" fill="#0C0C0C" opacity=".22"/><circle cx="4.5" cy="4.5" r="1" fill="#fff" opacity=".5"/></pattern>
+    ${grad('ceuTarde', [[0, '#5B7FB0'], [0.5, '#9FB7D3'], [0.85, '#E9C9A0'], [1, '#C9A97E']])}
+  </defs>
+  <rect x="${jx}" y="${jy}" width="${jw}" height="${jh}" fill="${ceu}"/>
+  ${noite ? [[0.08, 0.10], [0.22, 0.05], [0.37, 0.14], [0.55, 0.04], [0.71, 0.09], [0.86, 0.06], [0.93, 0.18], [0.47, 0.22]].map(([fx, fy]) => `<circle cx="${jx + jw * fx}" cy="${jy + jh * fy}" r="${1.4 + (fx * 7) % 1.4}" fill="#fff" opacity="${0.45 + (fy * 3) % 0.4}"/>`).join('') : `<circle cx="${jx + jw * 0.16}" cy="${jy + jh * 0.16}" r="${22 * k}" fill="#FFF3D0" opacity=".9"/><circle cx="${jx + jw * 0.16}" cy="${jy + jh * 0.16}" r="${60 * k}" fill="url(#bloomQ)" opacity=".7"/>`}
+  <!-- cidade ao fundo -->
+  <g opacity="${noite ? .85 : .55}">${[[0.02, 0.06, 0.10], [0.12, 0.05, 0.16], [0.17, 0.07, 0.07], [0.26, 0.04, 0.12], [0.62, 0.05, 0.11], [0.69, 0.06, 0.17], [0.82, 0.07, 0.14], [0.90, 0.05, 0.08], [0.95, 0.05, 0.13]].map(([fx, fw, fh]) => `<rect x="${jx + jw * fx}" y="${hor - jh * fh}" width="${jw * fw}" height="${jh * fh + 6}" fill="${noite ? '#141C2E' : '#6E7C95'}"/>`).join('')}
+  ${noite ? [[0.04, 0.05], [0.14, 0.11], [0.15, 0.07], [0.28, 0.09], [0.64, 0.07], [0.71, 0.12], [0.72, 0.06], [0.84, 0.10], [0.91, 0.05], [0.96, 0.09]].map(([fx, fh]) => `<rect x="${jx + jw * fx}" y="${hor - jh * fh}" width="3" height="4" fill="#FFD98A" opacity=".8"/>`).join('') : ''}</g>
+  <!-- 🏨 hotel do clube -->
+  ${hotel ? `<g><rect x="${jx + jw * 0.05}" y="${hor - jh * 0.30}" width="${jw * 0.11}" height="${jh * 0.30 + 10}" rx="2" fill="${noite ? '#2A3448' : '#B8C2D2'}"/>
+    ${Array.from({ length: 5 }).map((_, r) => [0.02, 0.05, 0.08].map(o => `<rect x="${jx + jw * (0.05 + o)}" y="${hor - jh * 0.28 + r * jh * 0.052}" width="${jw * 0.018}" height="${jh * 0.03}" fill="${noite ? '#FFE0A0' : '#E9EEF5'}" opacity="${noite ? .85 : .9}"/>`).join('')).join('')}
+    <rect x="${jx + jw * 0.05}" y="${hor - jh * 0.32}" width="${jw * 0.11}" height="${jh * 0.025}" fill="${GOLD}"/></g>` : ''}
+  <!-- névoa de luz -->
+  ${noite ? `<ellipse cx="${ecx}" cy="${ecy - estH * 0.2}" rx="${estW * 0.8}" ry="${estH * 1.6}" fill="url(#nevoa)"/>` : ''}
+  <!-- terreno + gramado (terra → grama pelo % do gramado, com buracos) -->
+  <ellipse cx="${ecx}" cy="${ecy}" rx="${estW * 0.5}" ry="${estH * 0.5}" fill="${(P.geral + P.cadeiras + P.visitante + P.camarote) > 0 ? '#3A4256' : '#5E4A30'}"/>
+  <ellipse cx="${ecx}" cy="${ecy - estH * 0.04}" rx="${estW * 0.36}" ry="${estH * 0.33}" fill="${lerp('#7B5B3A', noite ? '#2E9048' : '#3FA85A', g)}"/>
+  ${g < 1 ? [[0.3, 0.4, 0.09], [0.62, 0.55, 0.07], [0.5, 0.3, 0.06], [0.7, 0.35, 0.05]].map(([fx, fy, fr], i) => (i / 4 >= g) ? `<ellipse cx="${ecx - estW * 0.36 + estW * 0.72 * fx}" cy="${ecy - estH * 0.37 + estH * 0.66 * fy}" rx="${estW * fr}" ry="${estH * fr * 0.6}" fill="#6B4A2C" opacity=".8"/>` : '').join('') : ''}
+  ${g >= 0.5 ? `<ellipse cx="${ecx}" cy="${ecy - estH * 0.04}" rx="${estW * 0.2}" ry="${estH * 0.17}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/><line x1="${ecx}" y1="${ecy - estH * 0.36}" x2="${ecx}" y2="${ecy + estH * 0.28}" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>` : ''}
+  <!-- as 4 arquibancadas, cada uma com o SEU % -->
+  ${arqui(Math.PI * 1.18, Math.PI * 1.82, P.geral, 'F')}
+  ${arqui(Math.PI * 0.82, Math.PI * 1.18, P.visitante, 'L')}
+  ${arqui(Math.PI * 1.82, Math.PI * 2.18, P.camarote, 'R')}
+  ${arqui(Math.PI * 0.18, Math.PI * 0.82, P.cadeiras, 'N')}
+  <!-- 📺 telão no fundo -->
+  ${telao ? `<g><rect x="${ecx - 34 * k}" y="${ecy - estH * 0.5 - 62 * k}" width="${68 * k}" height="${36 * k}" rx="3" fill="#0C0C0C"/><rect x="${ecx - 30 * k}" y="${ecy - estH * 0.5 - 58 * k}" width="${60 * k}" height="${28 * k}" fill="#123"/><text x="${ecx}" y="${ecy - estH * 0.5 - 38 * k}" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" font-size="${18 * k}" fill="#37D067">1×0</text><line x1="${ecx}" y1="${ecy - estH * 0.5 - 26 * k}" x2="${ecx}" y2="${ecy - estH * 0.5 - 4 * k}" stroke="#6B7280" stroke-width="${3 * k}"/>${noite ? `<rect x="${ecx - 30 * k}" y="${ecy - estH * 0.5 - 58 * k}" width="${60 * k}" height="${28 * k}" fill="url(#bloomQ)" opacity=".5"/>` : ''}</g>` : ''}
+  <!-- 💡 4 torres (acesas só com refletores) -->
+  ${torre(ecx - estW * 0.48, hor - jh * 0.26, ecy - estH * 0.1, k)}${torre(ecx + estW * 0.48, hor - jh * 0.26, ecy - estH * 0.1, k)}
+  ${torre(ecx - estW * 0.22, hor - jh * 0.32, ecy - estH * 0.34, k * 0.8)}${torre(ecx + estW * 0.22, hor - jh * 0.32, ecy - estH * 0.34, k * 0.8)}
+  <!-- 🛍️ loja do clube, ao lado -->
+  ${loja ? `<g><rect x="${jx + jw * 0.80}" y="${vagaY - 62 * k}" width="${jw * 0.16}" height="${56 * k}" rx="3" fill="${noite ? '#F4ECD6' : '#FFFDF5'}"/><rect x="${jx + jw * 0.80}" y="${vagaY - 70 * k}" width="${jw * 0.16}" height="${12 * k}" fill="${GREEN}"/>${[0, 1, 2, 3].map(i => `<rect x="${jx + jw * (0.80 + 0.04 * i)}" y="${vagaY - 70 * k}" width="${jw * 0.04}" height="${12 * k}" fill="${i % 2 ? GOLD : GREEN}"/>`).join('')}<text x="${jx + jw * 0.88}" y="${vagaY - 26 * k}" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="700" font-size="${13 * k}" fill="${INK}">LOJA</text>${noite ? `<rect x="${jx + jw * 0.80}" y="${vagaY - 62 * k}" width="${jw * 0.16}" height="${56 * k}" fill="url(#bloomQ)" opacity=".35"/>` : ''}</g>` : ''}
+  <!-- 🅿️ estacionamento: pintado se tem a obra; barro se não tem -->
+  <path d="M${jx} ${vagaY - 8} L${jx + jw} ${vagaY - 8} L${jx + jw} ${jy + jh} L${jx} ${jy + jh} Z" fill="${estac ? 'url(#asfaltoV)' : '#6E5A3C'}"/>
+  ${estac ? '' : `<g opacity=".5" fill="#4E3E28">${[[0.2, 0.86, 0.06], [0.55, 0.92, 0.05], [0.8, 0.84, 0.04]].map(([fx, fy, fr]) => `<ellipse cx="${jx + jw * fx}" cy="${jy + jh * fy}" rx="${jw * fr}" ry="${jw * fr * 0.35}"/>`).join('')}</g>`}
+  <path d="M${jx} ${vagaY - 10} h${jw} v6 h-${jw} z" fill="${estac ? '#5B6270' : '#8A7355'}" opacity=".9"/>
+  ${grande && estac ? `<g opacity=".8" stroke="#E8E1C8" stroke-width="3" fill="none"><path d="M${cx - jw * 0.17} ${jy + jh} L${cx - jw * 0.10} ${vagaY + 6}"/><path d="M${cx + jw * 0.17} ${jy + jh} L${cx + jw * 0.10} ${vagaY + 6}"/><path d="M${cx - jw * 0.36} ${jy + jh} L${cx - jw * 0.24} ${vagaY + 6}"/><path d="M${cx + jw * 0.36} ${jy + jh} L${cx + jw * 0.24} ${vagaY + 6}"/></g>
+    <text x="${cx}" y="${jy + jh - 14}" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="bold" fill="#E8E1C8" opacity=".75" letter-spacing="3">PRESIDENTE</text>` : ''}
+  ${grande && noite ? `<line x1="${jx + jw * 0.72}" y1="${vagaY - 96}" x2="${jx + jw * 0.72}" y2="${vagaY + 30}" stroke="#9AA0AC" stroke-width="3"/><circle cx="${jx + jw * 0.72}" cy="${vagaY - 98}" r="26" fill="url(#bloomQ)"/><circle cx="${jx + jw * 0.72}" cy="${vagaY - 98}" r="5" fill="#FFF1C9"/><ellipse cx="${jx + jw * 0.68}" cy="${vagaY + 34}" rx="70" ry="16" fill="url(#pocaLuz)"/>` : ''}
+  ${temCarro ? carroTras(cx, vagaY + jh * 0.10, grande ? 1 : 0.55) : ''}
   <path d="M${jx + jw * 0.06} ${jy} L${jx + jw * 0.2} ${jy} L${jx + jw * 0.02} ${jy + jh * 0.5} L${jx} ${jy + jh * 0.34} Z" fill="#fff" opacity=".07"/>
   <path d="M${jx + jw * 0.26} ${jy} L${jx + jw * 0.31} ${jy} L${jx + jw * 0.08} ${jy + jh} L${jx + jw * 0.03} ${jy + jh} Z" fill="#fff" opacity=".045"/>`
 }
@@ -173,7 +205,7 @@ const carroTras = (x, y, s) => `<g transform="translate(${x},${y}) scale(${s})">
 // `tem` = conjunto de itens comprados. Tudo que não está no conjunto mostra a
 // versão "de fábrica" (ou nada). Itens: piso parede lustre mesa poltrona
 // tapete janela estante manto mascote aquario bar planta carro
-const sala = (tem, estadio) => {
+const sala = (tem, E) => {
   const T = k => tem.has(k)
   const parA = T('parede') ? '#F1E8CE' : '#D3C8AC', parB = T('parede') ? '#DED0AC' : '#B7AB8E'
   return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
@@ -248,7 +280,7 @@ ${(() => {
       ${g ? `<ellipse cx="${jx + jw / 2}" cy="${jy + jh / 2}" rx="${jw * 0.8}" ry="${jh * 0.72}" fill="url(#halo)" opacity=".22"/>` : ''}
       <rect x="${jx - 14}" y="${jy - 14}" width="${jw + 28}" height="${jh + 28}" rx="14" fill="${g ? 'url(#mad)' : '#B9B2A2'}" stroke="${INK}" stroke-width="9"/>
       <g clip-path="url(#jan)">
-        ${vistaJanela(jx, jy, jw, jh, T('carro'), g)}
+        ${vistaJanela(jx, jy, jw, jh, T('carro'), g, E)}
         ${g ? '' : `<rect x="${jx}" y="${jy}" width="${jw}" height="${jh}" fill="#8C867A" opacity=".16"/>`}
       </g>
       ${g ? `<line x1="${jx}" y1="${jy + 54}" x2="${jx + jw}" y2="${jy + 54}" stroke="${INK}" stroke-width="8"/>`
@@ -428,7 +460,13 @@ ${faixa}${salas}
 ${fade}${rodape}`
 
 // ── render ──────────────────────────────────────────────────────────────────
-const estadio = '' // a vista agora e cenica, nao o mapa do estadio (ver vistaJanela)
+const M = await motorEstadio()
+const ESTADIOS = {
+  'varzea':   { inv: {}, ext: [] },
+  'meio':     { inv: { grama: 36, geral: 60, cadeiras: 90, visitante: 40 }, ext: ['refl', 'loja'] },
+  'completo': { inv: { grama: 60, geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'cober', 'hotel'] },
+}
+const Ede = (st, tier = 'bege') => ({ st, pct: M.pct, tem: M.tem, cores: M.cores(tier) })
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const shot = async (nome, html, w, h, dpr = 1) => {
   const p = `${OUT}/${nome}.html`; writeFileSync(p, `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:${CREME}}</style>${html}`)
@@ -436,10 +474,32 @@ const shot = async (nome, html, w, h, dpr = 1) => {
   await pg.goto('file://' + p); await pg.evaluate(() => document.fonts.ready).catch(() => {}); await pg.waitForTimeout(260)
   await pg.screenshot({ path: `${OUT}/${nome}.png` }); await pg.close(); console.log(`${OUT}/${nome}.png`)
 }
-for (const [nome, itens] of Object.entries(ESTADOS)) await shot(`sala-${nome}`, sala(new Set(itens), estadio), W, H)
+// a) folha de comparação: o MAPA do jogo à esquerda, a JANELA à direita — mesmo dado
+for (const [nome, st] of Object.entries(ESTADIOS)) {
+  const tier = nome === 'completo' ? 'ouro' : 'bege'
+  const E = Ede(st, tier)
+  const jan = `<svg viewBox="0 0 560 486" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg"><defs>
+    ${grad('ceuV', [[0, '#070C1A'], [0.45, '#0F1A33'], [0.8, '#2A3550'], [1, '#4A4A5A']])}${grad('asfaltoV', [[0, '#3A3F4A'], [1, '#1C1F26']])}
+    ${grad('carroCorpo', [[0, '#3A3F48'], [0.35, '#15181E'], [1, '#0A0C10']])}${grad('carroTeto', [[0, '#4C525C'], [1, '#1A1E25']])}${grad('vidroTras', [[0, '#8FB6D6'], [1, '#2B4460']])}${grad('cone', [[0, 'rgba(255,241,201,.55)'], [1, 'rgba(255,241,201,0)']])}
+    <radialGradient id="bloom" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFF7D6" stop-opacity=".95"/><stop offset="0.35" stop-color="#FFE8A8" stop-opacity=".5"/><stop offset="1" stop-color="#FFE8A8" stop-opacity="0"/></radialGradient>
+    <radialGradient id="bloomQ" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFE9B8" stop-opacity=".9"/><stop offset="1" stop-color="#FFE9B8" stop-opacity="0"/></radialGradient>
+    <radialGradient id="nevoa" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFE7B0" stop-opacity=".22"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>
+    <radialGradient id="pocaLuz" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFE7B0" stop-opacity=".35"/><stop offset="1" stop-color="#FFE7B0" stop-opacity="0"/></radialGradient>
+    <filter id="borraoP" x="-60%" y="-160%" width="220%" height="420%"><feGaussianBlur stdDeviation="5"/></filter></defs>
+    ${vistaJanela(0, 0, 560, 486, nome !== 'varzea', true, E)}</svg>`
+  const html = `<style>${CSS} body{width:1240px;padding:16px}</style>
+    <div class="band" style="padding:8px 14px;margin-bottom:10px;display:flex;justify-content:space-between"><span class="osw" style="font-size:16px">Estádio ${nome} · mesmo dado, duas vistas</span><span class="pill" style="background:${GOLD}">${tier}</span></div>
+    <div style="display:grid;grid-template-columns:420px 1fr;gap:14px;align-items:start">
+      <div class="box" style="padding:10px"><div class="tit" style="margin-bottom:6px">🗺️ No jogo hoje (gestão)</div>${M.mapa(st, tier)}</div>
+      <div class="box" style="padding:10px"><div class="tit" style="margin-bottom:6px">🪟 Pela janela da Presidência</div><div style="border:3px solid ${INK};border-radius:10px;overflow:hidden">${jan}</div></div>
+    </div>`
+  await shot(`compara-${nome}`, html, 1240, 640)
+}
+// b) a sala com o estádio completo (tier ouro) e a sala do começo (várzea)
+await shot('sala-3-completa', sala(new Set(TUDO), Ede(ESTADIOS.completo, 'ouro')), W, H)
+await shot('sala-1-comeco', sala(new Set([]), Ede(ESTADIOS.varzea)), W, H)
+await shot('sala-2-meio', sala(new Set(['piso', 'mesa', 'poltrona', 'estante', 'planta', 'janela']), Ede(ESTADIOS.meio)), W, H)
 const img = nome => `data:image/png;base64,${b64(`${OUT}/sala-${nome}.png`)}`
-await shot('app-1-comeco', telaSala(img('1-comeco'), new Set(ESTADOS['1-comeco']), '🏛️ A sua sala', 'Começo de carreira: mesa de plástico, ventilador e a vista pro estádio.'), 390, 844, 2)
-await shot('app-2-meio', telaSala(img('2-meio'), new Set(ESTADOS['2-meio']), '🏛️ A sua sala', 'Cada peça você comprou. O que falta, está na loja.'), 390, 844, 2)
-await shot('app-3-completa', telaSala(img('3-completa'), new Set(TUDO), '🏛️ A sua sala', 'Tudo comprado — e o carro na vaga, lá fora.'), 390, 844, 2)
-await shot('app-4-loja', telaLoja(new Set(ESTADOS['2-meio'])), 390, 844, 2)
-await b.close()
+await shot('app-3-completa', telaSala(img('3-completa'), new Set(TUDO), '🏛️ A sua sala', 'Tudo comprado — e pela janela, o SEU estádio, com as SUAS obras.'), 390, 844, 2)
+await shot('app-1-comeco', telaSala(img('1-comeco'), new Set([]), '🏛️ A sua sala', 'Começo de carreira: mesa de plástico, e lá fora o campo de várzea.'), 390, 844, 2)
+await b.close(); await M.fechar()

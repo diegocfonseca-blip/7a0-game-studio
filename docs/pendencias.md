@@ -179,6 +179,33 @@ Peso .webp 760px q86: começo 12,7 KB · meio 19,1 KB · completa 35,9 KB.
 O `estadioReal()` (render do `StadiumSvg` via vite SSR) continua no arquivo,
 mas não é mais usado na janela. Pode servir noutro lugar (cartão do grupo?).
 
+### 🪟→🏟️ A JANELA LÊ O ESTÁDIO DO JOGADOR (03/09, de manhã) — ✅ provado
+Ele gostou da vista real, mas: *"esse estádio não tá parecido com o do nosso
+mockup… tem que aparecer real com base no estádio atual do usuário. daria ou
+não?"*. **Dá**, porque o estádio do jogo é DADO (`StadiumSave = { inv, ext }`),
+e a vista passou a ser desenhada a partir dele — `vistaJanela(…, E)` recebe
+`sectorPct`/`hasExtra` de `estadiodata.ts` e as cores do tier de `apoio.tsx`:
+
+| no mapa de gestão | na janela |
+|---|---|
+| 🌱 gramado 0→100% | terra com buracos → grama (mesmo `lerp` terra→verde) |
+| Geral / Cadeiras / Visitante / Camarote (% cada) | fundo / frente / esquerda / direita — cada arquibancada cresce com o seu %; 0% = barranco de terra; 100% = cheia de torcida |
+| cor do tier (`svgFull`) nas arquibancadas | a MESMA cor (fidelidade de tier — ouro no ouro, bege no bege) |
+| 💡 refletores | entardecer sem luz ↔ noite com 4 torres acesas |
+| ☂️ cobertura | teto escuro sobre as arquibancadas prontas |
+| 📺 telão | telão aceso no fundo (1×0) |
+| 🛍️ loja | lojinha com toldo verde/ouro e letreiro LOJA |
+| 🅿️ estacionamento | asfalto com faixas e PRESIDENTE; sem ele, **barro** (o carro fica no barro) |
+| 🏨 hotel | prédio com janelas acesas ao lado |
+
+`scripts/arte-presidencia.mjs` gera uma **folha de comparação** por estado
+(`compara-varzea/meio/completo.png`): mapa do jogo à esquerda, janela à
+direita, mesmo `st`. Foi o que convenceu — dá pra ver que é o mesmo estádio.
+
+Regra que fica: **a janela NUNCA inventa estádio**. Ela é uma segunda pele do
+mesmo dado. Quando o jogador faz uma obra na aba Estádio, a janela muda junto,
+sem código extra.
+
 **Ainda em aberto pra ele decidir** (mandado junto com o v2):
 - humor do técnico: fecha a regra acima ou quer que ele possa **pedir pra
   sair no meio**? (eu recomendo NÃO — vira estado quebrado sem aviso)
