@@ -5761,12 +5761,26 @@ export function PyramidSeasonScreen() {
     const dur = Math.round((copaNLegs * COPA_LEG_MS) / sf)
     const t0 = Date.now()
     const iv = setInterval(() => setCopaPos(Math.min(copaFaseTotal, ((Date.now() - t0) / dur) * copaFaseTotal)), 90)
+    // 🎯 SE O SEU JOGO FOI PRA PÊNALTIS, A FASE ESPERA A DISPUTA ACABAR.
+    // Bug pego por e-mail (02/09): *"toda vez que uma partida do meu time empata
+    // no mata-mata, vai para os pênaltis e a equipe é eliminada automaticamente,
+    // e nem mostra a disputa indo até o final"*.
+    // O sorteio dos pênaltis é HONESTO (medido: 49 disputas numa amostra de 400
+    // temporadas, 57% de passagem contra 43% de queda) — o que estava errado era o
+    // RELÓGIO. A disputa leva até 11,5s pipocando bolinha por bolinha
+    // (`pensRevealDelay`), e a fase virava 2,2s depois do jogo: a tela pulava com a
+    // disputa em ~19% do caminho, e o cara só via que tinha sido eliminado.
+    // A Copa do Mundo já fazia esta conta (copa-mundo.tsx); aqui faltava.
+    // Só conta o SEU jogo — pênalti dos outros não segura a tela de ninguém.
+    const penMs = myCopaTie?.pens ? Math.ceil(pensRevealDelay(myCopaTie.pens) * 1000) : 0
     // 🎮 MANUAL: NÃO avança sozinho — libera a "Próxima fase" quando a fase termina de
     // animar e espera o toque. AUTO: avança sozinho depois da folga, como sempre.
-    const rdy = setTimeout(() => setCopaReady(true), Math.round(dur * 0.9) + 250)
-    const adv = manual ? null : setTimeout(() => setCopaRound(r => r + 1), dur + 2200)
+    // O botão também espera os pênaltis: senão ele aparecia no meio da disputa e o
+    // toque pulava a própria coisa que o jogador quer ver.
+    const rdy = setTimeout(() => setCopaReady(true), Math.round(dur * 0.9) + 250 + penMs)
+    const adv = manual ? null : setTimeout(() => setCopaRound(r => r + 1), dur + 2200 + penMs)
     return () => { clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual])
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, myCopaTie])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])

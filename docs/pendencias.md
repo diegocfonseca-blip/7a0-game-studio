@@ -1,5 +1,32 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
 
+## 🎯 PÊNALTIS DA COPA DA CARREIRA: a tela pulava a disputa (04/09) — ✅ CORRIGIDO
+Denúncia por e-mail: *"toda vez que uma partida do meu time empata no mata-mata da
+copa do fim da temporada, vai para os pênaltis e a equipe é eliminada
+automaticamente, e nem mostra a disputa indo até o final"*.
+
+**O SORTEIO É HONESTO — isso foi MEDIDO, não achado.** Rodei 400 temporadas de
+Copa do Brasil de verdade (`computeCopaBrasil`): das 49 disputas em que o time do
+jogador entrou, ele **passou em 28 (57%)** e **caiu em 21 (43%)**. Dentro do
+esperado pra uma moeda honesta. O `pensDecide()` sorteia 2–5 pra cada lado e
+desempata com moeda — simétrico, sem viés contra o humano. **Não existe
+eliminação automática.**
+
+**O QUE ESTAVA ERRADO ERA O RELÓGIO.** A animação da disputa pipoca bolinha por
+bolinha e leva até **11,5 s** (`pensRevealDelay`). O relógio que troca de fase
+virava **2,2 s** depois do jogo acabar — ou seja, a tela pulava com a disputa em
+~19% do caminho. O jogador via o empate, sumia tudo e ele já estava eliminado:
+por isso *"parece automático"*. Os dois sintomas do e-mail eram **o mesmo bug**.
+
+**Correção**: o relógio da fase (e o botão "Próxima fase" do modo manual) agora
+somam `pensRevealDelay` quando **o SEU** jogo foi pra pênaltis. Pênalti dos outros
+não segura a tela de ninguém.
+
+⚠️ **A Copa do Mundo (`copa-mundo.tsx`) e o Jogo Rápido (`screens.tsx`, +13 s)
+JÁ faziam essa conta.** Só a Copa da carreira tinha ficado de fora — é o tipo de
+coisa pra conferir quando nascer um mata-mata novo: **quem anima pênalti tem que
+esperar o pênalti acabar.**
+
 ## 🚨 SÉRIE A COM 11 TIMES (04/09) — ✅ CORRIGIDO · efeito colateral da troca de 30/08
 Relato por e-mail do **Gabriel Pena**: *"no modo carreira a série A está bugada
 pra mim, só tem 11 times. E em várias das 38 rodadas por não ter 20 times, fica
