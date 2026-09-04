@@ -2478,6 +2478,58 @@ export const EXTRA_D_TEAMS: CareerTeam[] = [
   { name: 'Beto', team: 'Guarani do Cerrado' },
   { name: 'Lelo', team: 'Marítimo da Ilha' },
   { name: 'Duda', team: 'Rural EC' },
+  // ⬇️ 04/09 — OS 32 QUE FALTAVAM. **Sem eles a Série A ficava com 11 times.**
+  // Relato do Gabriel Pena: *"no modo carreira a série A está bugada pra mim, só
+  // tem 11 times. E em várias das 38 rodadas... fica parada como se tivesse
+  // simulando o jogo, mas não tem jogo"*.
+  //
+  // POR QUE 11, exatamente: numa carreira solo os 19 bots da sua liga são
+  // batizados com os nomes dos clubes da ELITE (`TIMES_ELITE` = Série A). Esses
+  // nomes ficam OCUPADOS, então a Série A de verdade precisa se completar com
+  // RESERVAS. Sobrava 1 clube da elite + os 10 reservas de então = **11**. A conta
+  // batia exata com o print dele.
+  //
+  // Isto passou a valer em **30/08**, quando a Série A e a Série D trocaram de
+  // times (ver o aviso logo abaixo): antes os extras completavam a D, que precisava
+  // de pouca gente; depois passaram a completar a A, que precisa de ~20. A lista
+  // não cresceu junto — foi esse o furo.
+  //
+  // ⚠️ REGRA PRA QUEM MEXER AQUI: esta lista tem que ter **20 nomes livres a mais**
+  // do que o pior caso de colisão, senão alguma divisão fecha com menos de 20 e o
+  // calendário de 38 rodadas passa a ter rodada VAZIA (a tela anima e não sai jogo).
+  // O `scripts/checa-piramide.mjs` confere isso sozinho — rode antes de commitar.
+  { name: 'Zezinho', team: 'Portuária do Cais' },
+  { name: 'Peninha', team: 'Esperança do Vale' },
+  { name: 'Ratinho', team: 'Recreativo do Porto' },
+  { name: 'Xexéu', team: 'Cultural do Planalto' },
+  { name: 'Bigodinho', team: 'Estrela do Litoral' },
+  { name: 'Pinduca', team: 'Bandeirante do Oeste' },
+  { name: 'Juca', team: 'Ipiranga da Mata' },
+  { name: 'Dedeco', team: 'Sete de Abril FC' },
+  { name: 'Chicão', team: 'Comercial do Trilho' },
+  { name: 'Tião', team: 'Primavera do Sul' },
+  { name: 'Baleia', team: 'Aliança do Sertão' },
+  { name: 'Sabiá', team: 'Trem Bala EC' },
+  { name: 'Marreta', team: 'Palmeira do Riacho' },
+  { name: 'Girafa', team: 'Radiante FC' },
+  { name: 'Bagre', team: 'Boa Sorte EC' },
+  { name: 'Foguinho', team: 'Tupi do Cerrado' },
+  { name: 'Pipoca', team: 'Andorinha FC' },
+  { name: 'Bolinha', team: 'Serrano do Norte' },
+  { name: 'Gordinho', team: 'Grêmio do Riacho' },
+  { name: 'Nenê', team: 'Vila Rica EC' },
+  { name: 'Pardal', team: 'Atlético do Brejo' },
+  { name: 'Corujão', team: 'Progresso da Barra' },
+  { name: 'Tatu', team: 'Colonial do Campo' },
+  { name: 'Melão', team: 'Rondon FC' },
+  { name: 'Sardinha', team: 'Ferroviária do Trilho' },
+  { name: 'Coió', team: 'Usina Velha FC' },
+  { name: 'Piaba', team: 'Nacional da Ponte' },
+  { name: 'Quebranto', team: 'Beira-Mar do Norte' },
+  { name: 'Mangaba', team: 'Real Capivara' },
+  { name: 'Jiló', team: 'Lagoa Seca FC' },
+  { name: 'Catuaba', team: 'Independente do Vale' },
+  { name: 'Pé de Anjo', team: 'Guarani da Serra' },
 ]
 
 // ─── 🪜 OS TIMES DE CADA DIVISÃO ────────────────────────────────────────────

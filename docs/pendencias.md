@@ -1,5 +1,42 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
 
+## 🚨 SÉRIE A COM 11 TIMES (04/09) — ✅ CORRIGIDO · efeito colateral da troca de 30/08
+Relato por e-mail do **Gabriel Pena**: *"no modo carreira a série A está bugada
+pra mim, só tem 11 times. E em várias das 38 rodadas por não ter 20 times, fica
+parada como se tivesse simulando o jogo, mas não tem jogo"*.
+
+**O Diego matou a charada sozinho**: *"será q não foi erro por eu ter trocado os
+times que jogam a série D e virou série A?"*. **Era exatamente isso.**
+
+**A CONTA, que bate exata com o print dele:** numa carreira solo os 19 bots da sua
+liga são batizados com os nomes dos clubes da **ELITE** (`TIMES_ELITE` = Série A).
+Esses nomes ficam OCUPADOS, então a Série A de verdade tem que se completar com
+RESERVAS (`EXTRA_D_TEAMS`). Sobrava **1 clube da elite + 10 reservas = 11**.
+
+**POR QUE SÓ APARECEU AGORA:** até **30/08** os reservas completavam a **Série D**
+— que era a liga do jogador e quase não precisava deles, 10 bastava. Na troca A↔D,
+eles passaram a completar a **Série A**, que precisa de ~20. **A lista não cresceu
+junto.** (O caminho da carreira ONLINE não quebrou porque `eliteNaSerieA` já puxava
+de um pool maior: `TIMES_ELITE + EXTRA_D + DIVISION_TEAMS.D`. Só o SOLO
+(`buildCpuSquads`) ficou com o pool curto.)
+
+**Correção**: `EXTRA_D_TEAMS` foi de **10 → 42** clubes (32 nomes novos, todos
+folclóricos, conferidos um a um contra os 301 nomes já usados no jogo — zero
+colisão). Agora sobra folga de 22 pro pior caso.
+
+**🪜 TRAVA NOVA — `npm run piramide`** (`scripts/checa-piramide.mjs`): monta a
+pirâmide DE VERDADE (o mesmo `buildPyramid` do jogo) em 11 cenários — carreira com
+e sem Várzea, time do jogador xará de clube existente, técnicos além do 20º no
+save, muitos batismos com nome repetido — e **reprova se qualquer divisão não
+fechar 20**. Nada conferia isso antes; foi por isso que o furo passou.
+Palavras do Diego: *"só podem ter 20 times por divisão, nem menos que isso e nem
+mais"*. Rodar antes de commitar qualquer mexida em lista de clube.
+
+⚠️ **Regra pra quem mexer em `EXTRA_D_TEAMS`**: a lista precisa ter ~20 nomes
+livres a mais que o pior caso de colisão. Divisão com menos de 20 faz o calendário
+de 38 rodadas ter **rodada VAZIA** — a tela anima e não sai jogo (foi o 2º sintoma
+que o Gabriel descreveu).
+
 ## 🐞 SAF QUE "SUBIU" SEM TER SUBIDO (04/09) — ✅ CORRIGIDO
 Relato do Diego: *"um usuário disse q a SAF dele subiu.. mas não subiu"*.
 
