@@ -1,5 +1,49 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
 
+## 🐞 SAF QUE "SUBIU" SEM TER SUBIDO (04/09) — ✅ CORRIGIDO
+Relato do Diego: *"um usuário disse q a SAF dele subiu.. mas não subiu"*.
+
+**Não era o acesso.** Antes de mexer em nada eu reproduzi o motor da pirâmide
+(`scripts` de teste no scratchpad, rodando `buildPyramid → simulatePyramid →
+computePromotions → buildPyramid` de verdade): 6 temporadas em 4 cenários — normal,
+com 2º clube (Multiclubes), com colocação órfã e com clube renomeado por batismo.
+**Toda divisão fechou em 20 e os 4 do G4 subiram certo em todos.** O acesso está são.
+
+**A CAUSA REAL — a SAF perdia o vínculo quando o clube dela era BATIZADO.**
+Ao abrir um save, o `migrateTeamNames` rebatiza as CHAVES de `careerPlacements`,
+`cpuSquads`, `clubCash`, `careerHonors` e `careerCopaHonors` pro nome ATUAL do
+clube. O **`careerFilial.team` ficava de fora** — ele guarda o nome que o clube
+tinha NA HORA DA COMPRA, pra sempre. Quando o clube era batizado (ex.: Santos
+Dumont → Papão United Madrid), o save passava a procurar a SAF por um nome que já
+não existe em tabela nenhuma:
+- `careerPlacements[nomeVelho]` → nada → o painel caía no padrão **'D'**. O clube
+  estava na **VÁRZEA** e o jogador lia "Série D" — **parecia que tinha subido**.
+- `clubRewards[nomeVelho]` → nada → **comissão ZERO** todo fim de temporada.
+- `cpuSquads[nomeVelho]` → nada → SAF sem elenco, empréstimo não aparecia.
+- `careerHonors[nomeVelho]` → nada → título da SAF não valorizava a venda.
+
+**Correção** (`store.tsx`): a cura de nome passa a valer pra `careerFilial.team`,
+`careerFilials[*].team` e `multiClube.team`/`.filial.team`. Mais um cinto de
+segurança (`chaveFilial`) que resolve o nome na hora da leitura, pra um estado que
+não passou pela cura (nuvem/sala online) não silenciar a SAF de novo.
+
+**Dois buracos menores achados no caminho** (a SAF nasceu ANTES da Várzea existir):
+- `FILIAL_DIV_BONUS` não tinha `V` → agora tem, explícito (0, igual à D).
+- A conta de títulos da SAF somava só `A+B+C+D` → **título na Várzea não contava**.
+  Agora soma `V` também.
+- O painel escrevia **"Série V"** (não existe "Série V") → agora escreve **"Várzea"**.
+
+## 🔗 COMPARTILHAR DO JOGO RÁPIDO IA COM O LINK DO GITHUB (04/09) — ✅ CORRIGIDO
+Relato do Diego: *"veio c esse link horrível sendo q já temos nosso domínio…
+além disso deveria ter ido c imagem e n link"*.
+- `GAME_URL` estava escrito na mão como o link cru do GitHub Pages, de antes do
+  domínio existir. Ele saía no texto **e impresso DENTRO da imagem** que o jogo
+  gera. Agora é `https://leilaolegends.com`. Não sobrou nenhum `github.io` no `src/`.
+- O botão **WhatsApp** usava `wa.me`, que **só sabe levar TEXTO** — por isso ia link
+  pelado no lugar da arte. Agora ele tenta primeiro o compartilhar do APARELHO com a
+  imagem (é por aí que foto entra no WhatsApp) e só cai no link quando o aparelho
+  não sabe mandar arquivo (desktop).
+
 ## 📰 O MARTELO NO JOGO RÁPIDO OFFLINE (04/09) — ✅ APROVADO E NO AR
 Pedido dele: *"no modo rápido offline.. tem q ter jornal tb pow"*, e logo depois:
 *"igual no modo rápido online.. qd acaba o torneio"* / *"somente fala da

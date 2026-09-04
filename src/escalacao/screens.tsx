@@ -58,7 +58,10 @@ function posTag(pos: string): string {
 // cartas DISTINTAS — contam separado. Só o idêntico (nome+clube+ano) que não vale.
 const CATALOG_TOTAL = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].map(c => `${c.name}|${c.club}|${c.year}`)).size
 
-const GAME_URL = 'https://diegocfonseca-blip.github.io/7a0-game-studio/leilao-legends-38/'
+// 🔗 O ENDEREÇO QUE VAI NO COMPARTILHAR. Era o link cru do GitHub, de antes do
+// domínio existir — e ele saía no texto E IMPRESSO DENTRO DA IMAGEM. O Diego pegou
+// (04/09): *"veio c esse link horrível sendo q já temos nosso domínio"*.
+const GAME_URL = 'https://leilaolegends.com'
 
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
@@ -5970,17 +5973,24 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
   return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png'))
 }
 
-async function shareResult(opts: Parameters<typeof buildShareCardBlob>[0]) {
+// 📤 tenta mandar a IMAGEM pelo compartilhar do próprio aparelho (é por aí que
+// foto entra no WhatsApp/Instagram/Telegram). Devolve `true` se conseguiu — quem
+// chama decide o que fazer quando não dá (baixar, ou abrir o link).
+async function shareImagemNativa(opts: ShareOpts, texto: string): Promise<boolean> {
+  const blob = await buildShareCardBlob(opts)
+  if (!blob) return false
+  const file = new File([blob], 'leilao-legends.png', { type: 'image/png' })
+  const shareData = { files: [file], title: 'Leilão Legends', text: `${texto} ${GAME_URL}` }
+  if (!navigator.canShare?.(shareData)) return false
+  try { await navigator.share(shareData); return true } catch { return false /* cancelou ou falhou */ }
+}
+async function shareResult(opts: ShareOpts) {
+  if (await shareImagemNativa(opts, shareTextFor(opts))) return
   const blob = await buildShareCardBlob(opts)
   if (!blob) return
-  const file = new File([blob], 'leilao-legends-38.png', { type: 'image/png' })
-  const shareData = { files: [file], title: 'Leilão Legends', text: `${opts.youWon ? 'Fui campeão' : `Terminei em ${opts.youPos}º`} no Leilão Legends! 🔨` }
-  if (navigator.canShare?.(shareData)) {
-    try { await navigator.share(shareData); return } catch { /* cancelou ou falhou — cai pro download */ }
-  }
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
-  a.href = url; a.download = 'leilao-legends-38.png'
+  a.href = url; a.download = 'leilao-legends.png'
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -6004,7 +6014,14 @@ function ShareResultPanel({ opts }: { opts: ShareOpts }) {
   const [savedIG, setSavedIG] = useState(false)
   const [open, setOpen] = useState(false) // recolhido por padrão — não roubar a atenção da votação
   const text = shareTextFor(opts)
-  const wa = () => window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + GAME_URL)}`, '_blank', 'noopener')
+  // 📱 WhatsApp: no CELULAR manda a IMAGEM pelo compartilhar do aparelho — o
+  // `wa.me` só sabe levar TEXTO, e era por isso que saía link pelado no lugar da
+  // arte (reclamação do Diego 04/09). Se o aparelho não souber mandar arquivo
+  // (desktop), aí sim cai no link — mas agora no domínio certo.
+  const wa = async () => {
+    if (await shareImagemNativa(opts, text)) return
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + GAME_URL)}`, '_blank', 'noopener')
+  }
   const tw = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(GAME_URL)}`, '_blank', 'noopener')
   const ig = async () => { await downloadShareImage(opts); setSavedIG(true) }
   return (
