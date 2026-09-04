@@ -149,11 +149,18 @@ export function meuMantoC3Buffer(): boolean {
 // BATISMO → reservado pro dono. Quem JÁ tem nome repetido de antes, mantém
 // (a trava só pega troca/cadastro novos). Servidor fora do ar → deixa passar
 // (não trava o jogo — padrão da casa).
-export async function nomeLivre(nome: string): Promise<{ livre: boolean; motivo?: string }> {
+// `email` = o e-mail DIGITADO no formulário de cadastro. Existe por causa de um
+// ovo-e-galinha (04/09): o dono do Stocco FC não conseguia criar a conta com o
+// nome do próprio clube, porque a checagem compara o dono do nome com o e-mail de
+// QUEM ESTÁ LOGADO — e no cadastro ainda não há login. O nome reservado PRA ELE
+// era o que o impedia de se cadastrar. Valia pra todo dono de batismo sem conta.
+// 🔒 O banco só aceita esse e-mail quando NÃO HÁ SESSÃO (ou seja, só no cadastro);
+// quem já está logado continua tendo que bater com o e-mail real do login.
+export async function nomeLivre(nome: string, email?: string): Promise<{ livre: boolean; motivo?: string }> {
   const nm = nome.trim()
   if (!nm) return { livre: true }
   try {
-    const { data, error } = await supabase.rpc('esc_nome_livre', { p_nome: nm })
+    const { data, error } = await supabase.rpc('esc_nome_livre', { p_nome: nm, p_email: email?.trim() || null })
     if (error || !data) return { livre: true }
     return data as { livre: boolean; motivo?: string }
   } catch { return { livre: true } }

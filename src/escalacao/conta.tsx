@@ -76,14 +76,19 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
     setNomeSit('checando')
     const meu = ++nomeSeq.current
     const t = setTimeout(async () => {
-      const r = await nomeLivre(nm)
+      // no CADASTRO manda junto o e-mail digitado: é o que deixa o DONO do
+      // batismo usar o nome do próprio clube (ver `nomeLivre`).
+      const r = await nomeLivre(nm, aba === 'criar' ? email : undefined)
       if (nomeSeq.current !== meu) return
       setNomeSit(r.livre ? 'livre' : 'ocupado')
       if (!r.livre) setErro(NOME_MSG[r.motivo ?? 'em_uso'])
       else setErro(e => (e && /nome/i.test(e) ? '' : e))
     }, 500)
     return () => clearTimeout(t)
-  }, [time])
+    // `email` e `aba` entram nas dependências de propósito: no cadastro a resposta
+    // MUDA conforme o e-mail digitado (é o que libera o dono do batismo). Sem eles,
+    // quem escrevesse o nome ANTES do e-mail ficava travado no ❌ na tela.
+  }, [time, email, aba])
 
   async function enviar() {
     setCarregando(true); setErro(''); setOk('')
@@ -102,7 +107,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
       // 🔒 nome único (tipo @ do Instagram, regra do Diego 10/08) — confere de
       // novo aqui, mesmo já tendo o ✓ na tela: entre digitar e enviar alguém
       // pode ter pegado o nome.
-      const chk = await nomeLivre(nm)
+      const chk = await nomeLivre(nm, email)
       if (!chk.livre) { setErro(NOME_MSG[chk.motivo ?? 'em_uso']); setNomeSit('ocupado'); setCarregando(false); return }
       const { error } = await supabase.auth.signUp({
         email: email.trim(), password: senha,
