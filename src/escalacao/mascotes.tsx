@@ -857,6 +857,13 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Capsule': 'capsule_dragao',
   'CAPSULE FC': 'capsule_dragao',
   'Real Tabuleiro': 'capsule_dragao',
+  // 🧦 04/09 — nome novo do mesmo dono (ver escudos.tsx). CARIMBO_GOL é busca por
+  // texto EXATO, então vão as formas que ele pode ter digitado.
+  'Meia na Canela de Desportos': 'jurubeba_meia',
+  'MEIA NA CANELA DE DESPORTOS': 'jurubeba_meia',
+  'Meia na Canela de Desportos FC': 'jurubeba_meia',
+  'Meia na Canela': 'jurubeba_meia',
+  'MEIA NA CANELA': 'jurubeba_meia',
   'Jurubeba FC': 'jurubeba_meia',
   'Jurubeba': 'jurubeba_meia',
   'Jurubeba EC': 'jurubeba_meia',

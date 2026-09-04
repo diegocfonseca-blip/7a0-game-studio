@@ -753,6 +753,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Capsule FC': capsuleEscudoRender,
   'Capsule': capsuleEscudoRender,
   'Real Tabuleiro': capsuleEscudoRender,
+  // 🧦 04/09 — O DONO RENOMEOU O CLUBE e perdeu o escudo. Regra do Diego na hora:
+  // *"ele tem mesmo e-mail, então deveria ter escudo e mascote e manto em QUALQUER
+  // time que ele fizer novo"*. A regra geral (mimos pelo E-MAIL) vem em seguida;
+  // isto aqui é o destrave imediato dele, pelo nome novo.
+  // `chaveEscudo` já ignora caixa, acento e FC/EC/SC — uma linha cobre
+  // "MEIA NA CANELA DE DESPORTOS", "Meia na Canela de Desportos FC" etc.
+  'Meia na Canela de Desportos': jurubebaEscudoRender,
+  'Meia na Canela': jurubebaEscudoRender,
   'Jurubeba FC': jurubebaEscudoRender,
   'Jurubeba': jurubebaEscudoRender,
   'Jurubeba EC': jurubebaEscudoRender,

@@ -111,6 +111,18 @@ FORA do bundle. Então, sem exceção:
      jogando com o escudo do Tricolor do Arruda FC. Palavras dele: *"não tem nada
      a ver o cara escreveu o nome de Arruda… está errado"*. Só o **nome inteiro**
      vale (`chaveEscudo()` em `escudos.tsx` ignora caixa, acento e FC/EC/SC).
+   - 🔁 **E O DONO PODE TROCAR O NOME DO CLUBE — os mimos vão junto (regra nova,
+     04/09).** Palavras do Diego: *"ele tem mesmo e-mail, então deveria ter escudo
+     e mascote e manto em QUALQUER time que ele fizer novo, se tiver mesmo e-mail
+     do batismo"*. Motivo: o dono do Jurubeba FC renomeou o clube pra "Meia na
+     Canela de Desportos" e **perdeu escudo e mascote** — porque esses dois são
+     achados pelo NOME DO CLUBE, enquanto o manto e o tier já vinham pelo E-MAIL
+     (por isso metade dos mimos sumiu e a outra metade ficou).
+     👉 Quando um dono renomear: registrar o nome novo em `LOGOS_PRONTAS` e
+     `CARIMBO_GOL`, apontar `esc_socios.escudo_time` pro nome novo e **trancar as
+     4 formas do nome novo** em `esc_nomes_batismo` (senão fica livre pra outro).
+     👉 **Pendente**: fazer isso valer SOZINHO pelo e-mail, sem cadastro por nome —
+     está anotado em `docs/pendencias.md`. Até lá, é na mão a cada renomeação.
 
 10. **Regra permanente (17/08): TODO batismo tem FORMATO PADRÃO.** Palavras do
    Diego: *"sempre irei falar arte padrão de formato pra escudo manto e mascote…

@@ -1,5 +1,44 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
 
+## 🔁 MIMOS DO BATISMO TÊM QUE SEGUIR O E-MAIL, NÃO O NOME DO CLUBE (04/09)
+**Etapa 1 ✅ feita · Etapa 2 ⏳ pendente (mostrar print antes de publicar).**
+
+O dono do **Jurubeba FC** (`luizguilhermeps@hotmail.com`) renomeou o clube pra
+**"MEIA NA CANELA DE DESPORTOS"** (03/09 15:54; segue jogando com ele). Conferido
+no banco: **não é conta nova** — mesma conta, mesma carreira, só o nome mudou.
+
+**O que ele perdeu e o que não perdeu** — e é isso que expõe o problema:
+| | |
+|---|---|
+| 🛡️ escudo · 🧦 mascote/carimbo | ❌ perdidos — achados pelo **NOME DO CLUBE** |
+| 👕 manto · 👑 ouro · sócio · fundador | ✅ intactos — vêm pelo **E-MAIL** |
+
+**Regra que o Diego criou na hora**: *"ele tem mesmo e-mail, então deveria ter
+escudo e mascote e manto em QUALQUER time que ele fizer novo, se tiver mesmo
+e-mail do batismo"*. (Gravada também no `CLAUDE.md`.)
+
+### ✅ Etapa 1 — o dono destravado hoje (na mão)
+- `escudos.tsx`: `'Meia na Canela de Desportos'` e `'Meia na Canela'` → escudo do
+  Jurubeba. (`chaveEscudo` já ignora caixa/acento/FC, então cobre CAIXA ALTA.)
+- `mascotes.tsx`: as formas do nome novo no `CARIMBO_GOL` (lá a busca é por texto
+  EXATO, então precisa das variações na mão).
+- Banco: `esc_socios.escudo_time` → nome novo · **6 nomes novos trancados** em
+  `esc_nomes_batismo` (ele tinha só as 3 formas de "Jurubeba"; o nome novo estava
+  **livre pra qualquer um pegar**).
+
+### ⏳ Etapa 2 — fazer valer SOZINHO, sem cadastro por nome
+Hoje todo rebatismo dá trabalho manual e **some fácil** (foi o que aconteceu).
+O caminho: os mimos do dono passam a ser resolvidos pelo E-MAIL e aplicados ao
+**clube DELE**, seja qual for o nome.
+- ⚠️ O cuidado que decide: **só o clube do próprio dono** pode receber. O
+  `escudoDe(nome)` desenha TODOS os clubes da tabela — se errar a mão, o escudo
+  dele aparece em clube dos outros. Ideia: um apelido de runtime (nome atual do
+  meu clube → meus mimos) consultado no `logoPronta`/`CARIMBO_GOL`, ligado num
+  lugar só, onde o jogo já sabe o meu time e a minha conta (igual ao `meuManto`).
+- ⚠️ O RPC `esc_meu_socio` devolve manto/mascote/estádio mas **não** o
+  `escudo_time` — precisa entrar, ou o dado vem de um mapa por e-mail no código.
+- 📸 É mudança visual no jogo ao vivo: **mockup e OK do Diego antes de publicar**.
+
 ## 🪪 O PEPE DO SANTOS LEVANDO VERMELHO DO PEPE PORTUGUÊS (04/09) — ✅ CORRIGIDO
 E-mail do jogador **Gustavo Kowalczuk**: contratou o **Pepe do Santos de 1962** e
 o cara pegou gancho por 3 cartões vermelhos. **Ele mesmo apontou a causa**:
