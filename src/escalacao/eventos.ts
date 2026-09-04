@@ -10,7 +10,10 @@
 import type { Sector, EventoTipo } from './types'
 
 // carta "mínima" que o sorteio precisa (WonCard e PoolCard da tela servem)
-export interface EventoCard { id: string; name: string; pos: Sector }
+// 🪪 club/year existem pra DESEMPATAR XARÁ (ver `traitDe`). São opcionais porque
+// quem chama passa a carta inteira (WonCard já tem os dois) — o tipo é que
+// escondia isso e fazia o traço casar só pelo nome.
+export interface EventoCard { id: string; name: string; pos: Sector; club?: string; year?: number }
 
 // mesmo gerador determinístico do resto do jogo (cópia local — módulo puro)
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
@@ -36,11 +39,35 @@ const PAVIO_CURTO = new Set([
   'Edmundo', 'Felipe Melo', 'Djalminha', 'Tevez',
   // 🌍 Europa/mundo (cabeçada do Zidane, kung-fu do Cantona… memes mundiais)
   'Zinedine Zidane', 'Éric Cantona', 'Roy Keane', 'Marco Materazzi',
-  'Zlatan Ibrahimović', 'Suárez', 'Luis Suárez', 'Diego Costa', 'Sergio Ramos', 'Pepe',
+  'Zlatan Ibrahimović', 'Suárez', 'Luis Suárez', 'Diego Costa', 'Sergio Ramos',
+  // 🪪 PEPE VAI COM CLUBE E ANO — e isto é um CONSERTO, não capricho (04/09).
+  // O jogador Gustavo Kowalczuk escreveu: contratou o **Pepe do Santos de 1962** e
+  // o cara pegou gancho por 3 vermelhos. Ele mesmo achou a causa: *"acredito que
+  // isso esteja relacionado ao nome do jogador, pois o famigerado Pepe, jogador
+  // português, é conhecido por sua grande quantidade de cartões vermelhos"*.
+  // Estava certo. E o tamanho do erro: o Pepe do Santos ganhou o **Prêmio Belfort
+  // Duarte em 1966**, dado justamente a quem passa anos SEM NUNCA ser expulso.
+  // O jogo pintava o sujeito como o oposto exato do que ele foi.
+  // Existem DUAS cartas "Pepe" no baralho e são DUAS PESSOAS: Santos 1962 (o
+  // Canhão) e Real Madrid 2012 (o zagueiro português). Só a segunda tem o traço.
+  'Pepe|Real Madrid|2012',
   // 🎪 folclóricos inventados
   'Cabeção', 'Cabeção da Vila', 'Bode', 'Girino', 'Barão',
 ])
-export function traitDe(nome: string): '🍾 baladeiro' | '🌡️ pavio curto' | null {
+// 🪪 XARÁ NÃO HERDA FAMA ALHEIA. A chave pode ser só o NOME (quando não há dúvida)
+// ou a carta INTEIRA `Nome|Clube|Ano` (quando duas PESSOAS diferentes dividem o
+// nome). Confere primeiro a chave cheia; só cai no nome pelado se ele estiver na
+// lista. Assim, pôr um nome qualificado na lista TIRA automaticamente o xará dele.
+// (Varri o baralho: dos 6 nomes com traço que têm mais de uma carta, 5 são a MESMA
+// pessoa em clubes/anos diferentes — Romário, Neymar, Ronaldinho, Vampeta,
+// Casagrande — e nesses o traço vale pras duas cartas mesmo. Só "Pepe" são duas
+// pessoas.)
+export function traitDe(nome: string, club?: string, year?: number): '🍾 baladeiro' | '🌡️ pavio curto' | null {
+  if (club && year != null) {
+    const cheia = `${nome}|${club}|${year}`
+    if (BALADEIROS.has(cheia)) return '🍾 baladeiro'
+    if (PAVIO_CURTO.has(cheia)) return '🌡️ pavio curto'
+  }
   if (BALADEIROS.has(nome)) return '🍾 baladeiro'
   if (PAVIO_CURTO.has(nome)) return '🌡️ pavio curto'
   return null
@@ -118,7 +145,7 @@ export function sorteiaEvento(args: {
   // candidatos do XI ATUAL (o evento é sempre com um titular seu)
   const pool: { c: EventoCard; tipo: EventoTipo }[] = []
   for (const c of xi) {
-    const t = traitDe(c.name)
+    const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
     if (!temMedico) pool.push({ c, tipo: 'lesao' })

@@ -1,5 +1,40 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
 
+## 🪪 O PEPE DO SANTOS LEVANDO VERMELHO DO PEPE PORTUGUÊS (04/09) — ✅ CORRIGIDO
+E-mail do jogador **Gustavo Kowalczuk**: contratou o **Pepe do Santos de 1962** e
+o cara pegou gancho por 3 cartões vermelhos. **Ele mesmo apontou a causa**:
+*"acredito que isso esteja relacionado ao nome do jogador, pois o famigerado Pepe,
+jogador português, é conhecido por sua grande quantidade de cartões vermelhos"*.
+
+**Estava certo — e o erro é dos que o Diego mais odeia** (inventar como uma pessoa
+real é): o Pepe do Santos ganhou o **Prêmio Belfort Duarte em 1966**, dado
+justamente a quem passa anos **sem nunca ser expulso**. O jogo pintava o sujeito
+como o oposto exato do que ele foi.
+
+**A causa**: os traços de folclore (🍾 baladeiro / 🌡️ pavio curto) em `eventos.ts`
+casavam **só pelo NOME** (`PAVIO_CURTO.has(nome)`), e o `EventoCard` nem carregava
+clube/ano. `'Pepe'` estava na lista pensando no zagueiro português — e pegava as
+DUAS cartas.
+
+**Correção**: a chave da lista agora pode ser o nome pelado (quando não há dúvida)
+ou a carta inteira **`Nome|Clube|Ano`**. O Pepe virou `'Pepe|Real Madrid|2012'`.
+`traitDe(nome, club, year)` confere a chave cheia primeiro.
+
+**A VARREDURA** (porque um caso desses nunca vem sozinho): dos 1.437 cartas /
+1.375 nomes, **6 nomes com traço têm mais de uma carta**. Conferi um a um: **5 são
+a MESMA pessoa** em clubes/anos diferentes (Romário, Neymar, Ronaldinho Gaúcho,
+Vampeta, Casagrande) — nesses o traço vale pras duas cartas mesmo. **Só o "Pepe"
+eram duas pessoas.**
+
+**🪪 TRAVA NOVA — `npm run tracos`** (`scripts/checa-tracos.mjs`): varre o baralho e
+reprova se um nome com traço tiver mais de uma carta sem estar na lista de
+**conferidos à mão**. Também testa nominalmente os dois Pepes. Rodar sempre que
+entrar carta nova ou nome novo na lista de traços.
+
+💡 **Ideia (NÃO feita, precisa do OK do Diego)**: dar ao Pepe do Santos o traço
+CONTRÁRIO — um 🕊️ "nunca expulso" que o deixa de fora do sorteio de expulsão e
+rende uma linha no jornal. Seria feature, então fica esperando.
+
 ## 🎯 PÊNALTIS DA COPA DA CARREIRA: a tela pulava a disputa (04/09) — ✅ CORRIGIDO
 Denúncia por e-mail: *"toda vez que uma partida do meu time empata no mata-mata da
 copa do fim da temporada, vai para os pênaltis e a equipe é eliminada
