@@ -181,6 +181,12 @@ export interface EdicaoSala {
   linhaFina: string
   copaNome: string
   nTecnicos: number
+  // 🖥️ OFFLINE (jogo rápido contra a CPU, Diego 04/09: "no modo rápido offline
+  // tem q ter jornal tb"). Muda DUAS coisas, e só: quem ganha linha na redação
+  // (offline você é o único humano — a regra de sala deixaria 3 linhas) e as
+  // palavras. Palavra de sala não pode vazar pro offline: não tem "sala", não
+  // tem "os outros técnicos", não tem "noite".
+  offline: boolean
 }
 
 // 🌍 `mundo` = o campeão da COPA DO MUNDO da sala (01/09). Quando ele vem, o
@@ -197,14 +203,21 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   const mgr = (id: number) => state.managers.find(m => m.id === id)
   const seed = Math.abs(state.seed | 0)
 
-  // 👥 só os USUÁRIOS ganham linha (pedido do Diego) — mas o campeão e o lanterna
-  // entram mesmo sendo bot, senão o jornal esconderia quem ganhou.
+  // 👥 QUEM GANHA LINHA.
+  // • ONLINE: só os USUÁRIOS (pedido do Diego) — mas o campeão e o lanterna
+  //   entram mesmo sendo bot, senão o jornal esconderia quem ganhou.
+  // • OFFLINE: você é o ÚNICO humano, então essa mesma regra deixaria o jornal
+  //   com 3 linhas. Aqui entram o TOP 5 + você + o lanterna (escolha do Diego,
+  //   04/09, no mockup das duas opções).
+  const offline = state.onlineMode !== 'online'
+  const meuId = state.managers[state.youIdx]?.id
   const linhas: LinhaSala[] = []
   table.forEach((t, i) => {
     const pos = i + 1
     const m = mgr(t.id)
     const humano = !!m?.isHuman
-    if (!humano && pos !== 1 && pos !== n) return
+    if (offline) { if (pos > 5 && pos !== n && t.id !== meuId) return }
+    else if (!humano && pos !== 1 && pos !== n) return
     const { nota, destaque } = notaDe(t, pos, n, runs.get(t.id), vagasCopa, zonaDebaixo, copaNome, seed)
     linhas.push({
       id: t.id, time: t.name, quem: m?.name ?? '', pos, pts: t.pts,
@@ -231,20 +244,22 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   // manchete: muda quando os dois títulos têm donos diferentes
   let manchete: string, linhaFina: string
   if (campeaoCopa && campeaoLiga && !mesmoDono) {
-    manchete = `NOITE DE DOIS DONOS: O ${campeaoLiga.nome.toUpperCase()} LEVA A LIGA, O ${campeaoCopa.nome.toUpperCase()} LEVA A COPA!`
-    linhaFina = `Dois campeões e uma sala inteira sem saber de quem foi a noite. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
+    manchete = `${offline ? 'TEMPORADA' : 'NOITE'} DE DOIS DONOS: O ${campeaoLiga.nome.toUpperCase()} LEVA A LIGA, O ${campeaoCopa.nome.toUpperCase()} LEVA A COPA!`
+    linhaFina = offline
+      ? `Dois campeões e uma temporada inteira sem saber de quem foi a festa. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
+      : `Dois campeões e uma sala inteira sem saber de quem foi a noite. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
   } else if (campeaoCopa && campeaoLiga && mesmoDono) {
     manchete = `${campeaoLiga.nome.toUpperCase()} FAZ OS DOIS E NÃO DEIXA NADA PRA NINGUÉM!`
-    linhaFina = `Campeão da liga e campeão da ${copaNome} na mesma noite. Os outros ${Math.max(0, n - 1)} que se expliquem.`
+    linhaFina = `Campeão da liga e campeão da ${copaNome} na mesma ${offline ? 'temporada' : 'noite'}. Os outros ${Math.max(0, n - 1)} que se expliquem.`
   } else if (campeaoLiga) {
-    manchete = `${campeaoLiga.nome.toUpperCase()} É O CAMPEÃO DA SALA!`
-    linhaFina = `${campeaoLiga.pts} pontos e a taça. O resto da sala vai ter que esperar o próximo pregão.`
+    manchete = `${campeaoLiga.nome.toUpperCase()} É O CAMPEÃO ${offline ? 'DO TORNEIO' : 'DA SALA'}!`
+    linhaFina = `${campeaoLiga.pts} pontos e a taça. ${offline ? 'O resto do pelotão' : 'O resto da sala'} vai ter que esperar o próximo pregão.`
   } else {
-    manchete = 'FIM DE JOGO NA SALA'
+    manchete = offline ? 'FIM DE JOGO' : 'FIM DE JOGO NA SALA'
     linhaFina = 'A tabela fechou.'
   }
 
-  return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length }
+  return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length, offline }
 }
 
 // ── a capa na tela ──────────────────────────────────────────────────────────
@@ -271,7 +286,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 }}>
         <span style={{ ...SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1 }}>O <span style={{ color: VERM }}>MARTELO</span></span>
         <span style={{ ...COND, fontWeight: 700, fontSize: 8.5, color: 'rgba(0,0,0,.6)', textAlign: 'right', lineHeight: 1.4 }}>
-          EDIÇÃO DA SALA<br />{ed.nTecnicos} TÉCNICO{ed.nTecnicos === 1 ? '' : 'S'} · 1 MOEDA</span>
+          {ed.offline ? 'EDIÇÃO DO TORNEIO' : 'EDIÇÃO DA SALA'}<br />{ed.offline ? 'CONTRA A MÁQUINA' : `${ed.nTecnicos} TÉCNICO${ed.nTecnicos === 1 ? '' : 'S'}`} · 1 MOEDA</span>
       </div>
       <div style={{ borderTop: `3px solid ${INK}`, borderBottom: `1.5px solid ${INK}`, height: 4, margin: '8px 0 6px' }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', ...COND, fontWeight: 700, fontSize: 9, paddingBottom: 6, borderBottom: `3px solid ${INK}`, color: 'rgba(0,0,0,.72)' }}>
@@ -296,14 +311,14 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
         )}
       </div>
 
-      {/* os donos da noite */}
+      {/* os donos da noite (offline: do torneio — não tem "noite" de sala) */}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 8, overflow: 'hidden', marginBottom: 12 }}>
-        <p style={{ ...COND, fontWeight: 700, fontSize: 11, background: INK, color: GOLD, padding: '7px 10px', letterSpacing: '.05em' }}>🏆 OS DONOS DA NOITE</p>
+        <p style={{ ...COND, fontWeight: 700, fontSize: 11, background: INK, color: GOLD, padding: '7px 10px', letterSpacing: '.05em' }}>🏆 OS DONOS {ed.offline ? 'DO TORNEIO' : 'DA NOITE'}</p>
         <div style={{ background: '#fff' }}>
           {([
             ed.campeaoLiga && ['🏆', 'CAMPEÃO DA LIGA', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} pontos`, GOLD],
             ed.campeaoCopa && ['🥇', `CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO],
-            ed.artilheiro && ['⚽', 'ARTILHEIRO DA SALA', ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} gols`, GREEN],
+            ed.artilheiro && ['⚽', ed.offline ? 'ARTILHEIRO DO TORNEIO' : 'ARTILHEIRO DA SALA', ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} gols`, GREEN],
             ed.lanterna && ['🏮', 'LANTERNA', ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} pontos`, '#7A7460'],
           ].filter(Boolean) as [string, string, string, string, string][]).map(([ic, rot, nome, sub, cor]) => (
             <div key={rot} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderTop: '1.5px solid rgba(0,0,0,.1)', borderLeft: `6px solid ${cor}` }}>
@@ -392,7 +407,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   x.fillStyle = INK; x.fillText('O ', L, y)
   x.fillStyle = VERM; x.fillText('MARTELO', L + x.measureText('O ').width, y)
   x.textAlign = 'right'; x.fillStyle = '#3a3527'; x.font = `700 20px ${OSW}`
-  x.fillText('EDIÇÃO DA SALA', R, y - 30)
+  x.fillText(ed.offline ? 'EDIÇÃO DO TORNEIO' : 'EDIÇÃO DA SALA', R, y - 30)
   x.fillText(`${ed.nTecnicos} TÉCNICO${ed.nTecnicos === 1 ? '' : 'S'} · PREÇO: 1 MOEDA`, R, y - 4)
   y += 20
   x.strokeStyle = INK; x.lineWidth = 3
@@ -440,12 +455,12 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   // os donos da noite
   x.fillStyle = INK; x.fillRect(L, y, MAXW, 46)
   x.textAlign = 'left'; x.font = `700 24px ${OSW}`; x.fillStyle = GOLD
-  x.fillText('🏆 OS DONOS DA NOITE', L + 14, y + 32)
+  x.fillText(ed.offline ? '🏆 OS DONOS DO TORNEIO' : '🏆 OS DONOS DA NOITE', L + 14, y + 32)
   let dy = y + 46
   const donos: [string, string, string, string, string][] = []
   if (ed.campeaoLiga) donos.push(['🏆', 'CAMPEÃO DA LIGA', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} pontos`, GOLD])
   if (ed.campeaoCopa) donos.push(['🥇', `CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO])
-  if (ed.artilheiro) donos.push(['⚽', 'ARTILHEIRO DA SALA', ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} gols`, GREEN])
+  if (ed.artilheiro) donos.push(['⚽', ed.offline ? 'ARTILHEIRO DO TORNEIO' : 'ARTILHEIRO DA SALA', ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} gols`, GREEN])
   if (ed.lanterna) donos.push(['🏮', 'LANTERNA', ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} pontos`, '#7A7460'])
   for (const [ic, rot, nome, sub, cor] of donos) {
     x.fillStyle = '#fff'; x.fillRect(L, dy, MAXW, 74)
@@ -514,12 +529,12 @@ export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo, mundo }: { st
       const blob = await buildSalaBlob(ed)
       const txt = `📰 "${ed.manchete}" — Leilão Legends. Monta o teu time: https://leilaolegends.com`
       if (blob) {
-        const file = new File([blob], 'o-martelo-sala.png', { type: 'image/png' })
+        const file = new File([blob], ed.offline ? 'o-martelo-torneio.png' : 'o-martelo-sala.png', { type: 'image/png' })
         const sd = { files: [file], title: 'O MARTELO', text: txt }
         if (navigator.canShare?.(sd)) { try { await navigator.share(sd) } catch { /* cancelou */ } return }
         // sem share de arquivo (desktop): baixa a imagem
         const url = URL.createObjectURL(blob)
-        const a = document.createElement('a'); a.href = url; a.download = 'o-martelo-sala.png'; a.click()
+        const a = document.createElement('a'); a.href = url; a.download = ed.offline ? 'o-martelo-torneio.png' : 'o-martelo-sala.png'; a.click()
         setTimeout(() => URL.revokeObjectURL(url), 4000)
         return
       }

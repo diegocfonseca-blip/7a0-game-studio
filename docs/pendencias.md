@@ -1,5 +1,37 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
 
+## 📰 O MARTELO NO JOGO RÁPIDO OFFLINE (04/09) — ⏳ FEITO, ESPERANDO O OK VISUAL
+Pedido dele: *"no modo rápido offline.. tem q ter jornal tb pow"*, e logo depois:
+*"igual no modo rápido online.. qd acaba o torneio"* / *"somente fala da
+temporada o que houve"*.
+
+**A descoberta que fez isso ser barato**: a tela de fim (`EscEnd`, `screens.tsx`)
+**já é a mesma** pro rápido online e pro offline. O jornal da sala
+(`jornal-sala.tsx`) só estava atrás de um `online &&`, e ele lê apenas coisa que
+o offline também tem (`league`, `managers`, `quickCopa`, `topScorers`). **Não foi
+preciso jornal novo** — é o mesmo arquivo.
+
+Duas coisas mudaram por dentro, as duas escolhidas por ele no mockup:
+1. **Quem ganha linha na redação.** Online a regra é "só usuário" — offline você
+   é o ÚNICO humano, então isso deixaria 3 linhas. Agora offline entram
+   **TOP 5 + você + lanterna** (ele escolheu essa das três opções).
+2. **As palavras.** Palavra de sala não vaza pro offline: "EDIÇÃO DA SALA" →
+   "EDIÇÃO DO TORNEIO", "N TÉCNICOS" → "CONTRA A MÁQUINA", "OS DONOS DA NOITE" →
+   "DO TORNEIO", "ARTILHEIRO DA SALA" → "DO TORNEIO", "CAMPEÃO DA SALA" → "DO
+   TORNEIO", "noite de dois donos" → "temporada de dois donos". Vale também na
+   IMAGEM de compartilhar (canvas) e no nome do arquivo.
+   Marcado por `ed.offline` (vem de `state.onlineMode !== 'online'`).
+
+⚠️ **Trava que descobri no caminho**: a **carreira VELHA** (save de antes da
+pirâmide, `careerDivision` setado) também termina no `EscEnd`, e carreira já tem
+o jornal dela (`jornal.tsx`). Sem `!state.careerDivision` no gate, um save antigo
+abriria DOIS jornais na mesma tela. Carreira nova nem passa por ali.
+
+- Mockup: `node scripts/mockup-jornal-offline.mjs --saida x.png` — renderiza o
+  jornal DE VERDADE (SSR do componente), lado a lado online × offline. Mora no
+  repo pra não se perder.
+- ⏳ **Falta**: o OK visual dele pra ir pra `main` (commitado só no branch).
+
 ## ⚡ BATISMO Stocco FC (04/09) — ✅ ENTREGUE (as 3 pernas)
 Dono: `stoccoassessoria@gmail.com` · Série C, **no lugar do bot Semervilha**.
 

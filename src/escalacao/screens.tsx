@@ -8673,7 +8673,19 @@ export function EscEnd() {
             })} />
         </Suspense></CercaDaCopa>
       )}
-      {online && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
+      {/* 🖥️ OFFLINE TAMBÉM (Diego 04/09: "no modo rápido offline tem q ter jornal
+          tb pow… igual no rápido online, qd acaba o torneio"). É o MESMO jornal e
+          o MESMO lugar: esta tela de fim já é compartilhada pelos dois modos, só
+          faltava tirar o `online &&` daqui. As três travas de spoiler continuam
+          valendo iguais — o jornal nunca sai antes da Copa/Libertadores fechar.
+          O que muda por dentro do jornal está em `jornal-sala.tsx` (`offline`):
+          quem ganha linha e as palavras.
+          ⚠️ `!state.careerDivision` de propósito: a CARREIRA VELHA (save de antes
+          da pirâmide) também termina nesta tela, e lá quem manda é o
+          `CareerEndPanel` — carreira tem o jornal dela (`jornal.tsx`). Sem esta
+          trava, um save antigo abriria os DOIS jornais na mesma tela. Carreira
+          nova nem passa por aqui (`careerOnline` vai pro PyramidSeasonScreen). */}
+      {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
         <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} mundo={campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !copaPending && !libPending && (() => {
