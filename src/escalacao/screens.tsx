@@ -92,6 +92,14 @@ function copaFill(kind: 'you' | 'human' | 'bot', name: string): CopaFill {
 const copaCenterChip: React.CSSProperties = { background: 'rgba(8,8,10,.55)', borderRadius: 7, padding: '1px 7px', color: '#fff' }
 const GREEN = '#1B7A3D'
 const RED = '#E8503A'
+// ⚔️ o VERMELHO DO DUELO (desempate). Diego 04/09, vendo a live: *"esse dourado
+// no empate tá confundindo pq não é lenda"*. A caixa do desempate era SEMPRE
+// dourada, e dourado no jogo inteiro quer dizer 👑 LENDA.
+// ⚠️ E não dá pra copiar a regra da revelação (`fame >= 5 ? GOLD : '#fff'`): lá o
+// nível JÁ saiu; o desempate rola no meio do pregão ÀS CEGAS, então cor por
+// raridade entregaria o nível antes do martelo. Vermelho é a única cor forte que
+// não significa raridade em canto nenhum — e já é a cor do ⚔️ no título.
+const DUELO = '#C2452F'
 const PURPLE = '#7C3AED'
 // 🎨 identidade da Copa dos 8 (Diego 14/08): roxo brilhante, MESMO degradê da
 // carta 💎 Promessa (não é um brilho novo, é o mesmo mecanismo reaproveitado).
@@ -1232,7 +1240,10 @@ function YourPitch({ small = false }: { small?: boolean }) {
   return <Campinho m={shown} small={small} manto={manto} mantoDir={mantoAng} mantoC3={mantoC3} mantoC3Buf={mantoC3Buf} />
 }
 
-function CardFace({ c, big = false, surprise = false, highlight = false }: { c: Card; big?: boolean; surprise?: boolean; highlight?: boolean }) {
+// `claro` = a carta está sobre fundo ESCURO (hoje só o vermelho do desempate):
+// nome e clube em branco. Sem a prop, tudo fica EXATAMENTE como sempre foi — é
+// por isso que ela é opcional, pra não encostar nos outros 4 lugares que usam.
+function CardFace({ c, big = false, surprise = false, highlight = false, claro = false }: { c: Card; big?: boolean; surprise?: boolean; highlight?: boolean; claro?: boolean }) {
   // 🧢 carta de TÉCNICO no pregão (id 'tec:...'): às cegas — só TEC + nome +
   // clube atual. Categoria/nível/formações se revelam quando ele for SEU.
   if (c.id.startsWith('tec:')) {
@@ -1254,9 +1265,9 @@ function CardFace({ c, big = false, surprise = false, highlight = false }: { c: 
           // 🙈 ANTI-SPOILER: o nome REAL não vai pro HTML (antes só era borrado por CSS —
           // dava pra ler no "inspecionar"). Placeholder mascarado até a revelação.
           ? <span className={`font-black ${big ? 'text-2xl' : 'text-base'} inline-flex items-center gap-1.5`} style={{ ...OSWALD, color: PURPLE }}>🎁 <span aria-hidden style={{ filter: 'blur(4px)', letterSpacing: 3, userSelect: 'none' }}>? ? ? ?</span></span>
-          : <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={{ ...OSWALD, color: highlight ? PURPLE : INK }}>{c.name}{highlight ? ' 🎁' : ''}</p>}
+          : <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={{ ...OSWALD, color: highlight ? PURPLE : (claro ? '#fff' : INK) }}>{c.name}{highlight ? ' 🎁' : ''}</p>}
       </div>
-      <p className={`${big ? 'text-sm' : 'text-xs'} font-semibold text-black/60 mt-0.5`}>{c.club} · {c.year}</p>
+      <p className={`${big ? 'text-sm' : 'text-xs'} font-semibold mt-0.5 ${claro ? 'text-white/75' : 'text-black/60'}`}>{c.club} · {c.year}</p>
     </div>
   )
 }
@@ -3869,10 +3880,13 @@ function Tiebreak() {
       <Shell bar={<AuctionBar />}>
         {header}
         <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          <Box bg={GOLD} className="p-5" shadow={6}>
-            <CardFace c={tb.card} big />
-            <p className="mt-4 text-center font-black text-lg" style={OSWALD}>🍿 Você assiste este duelo</p>
-            <p className="text-center text-sm font-bold text-black/60">
+          <Box bg={DUELO} className="p-5 relative" shadow={6}>
+            {/* selo igual ao 👑 LENDA da revelação: diz o que a caixa é, em vez de
+                deixar a COR falar (que era o que confundia). */}
+            <span className="absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black bg-white" style={OSWALD}>⚔️ DESEMPATE</span>
+            <CardFace c={tb.card} big claro />
+            <p className="mt-4 text-center font-black text-lg text-white" style={OSWALD}>🍿 Você assiste este duelo</p>
+            <p className="text-center text-sm font-bold text-white/75">
               Já re-lançaram: {tb.submitted.length}/{tb.managers.length}
             </p>
           </Box>
@@ -3919,8 +3933,9 @@ function Tiebreak() {
         </div>
       </div>
       <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-        <Box bg={GOLD} className="p-5" shadow={6}>
-          <CardFace c={tb.card} big />
+        <Box bg={DUELO} className="p-5 relative" shadow={6}>
+          <span className="absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black bg-white" style={OSWALD}>⚔️ DESEMPATE</span>
+          <CardFace c={tb.card} big claro />
         </Box>
       </motion.div>
       <Box bg="#fff" className="p-4 space-y-3">

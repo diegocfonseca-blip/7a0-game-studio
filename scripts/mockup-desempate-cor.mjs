@@ -46,7 +46,8 @@ const bloco = (rotulo, tag, tagCor, bg, inkClaro, nota) => `
   </div>
   <p style="font:600 11px Oswald;color:rgba(0,0,0,.7);margin:0 0 9px;text-align:center;line-height:1.3">Empataram em <b>5</b>. Re-lance <b>às cegas</b> só nesta carta.</p>
 
-  <div style="background:${bg};border:4px solid ${INK};border-radius:16px;box-shadow:6px 6px 0 ${INK};padding:16px">
+  <div style="background:${bg};border:4px solid ${INK};border-radius:16px;box-shadow:6px 6px 0 ${INK};padding:16px;position:relative">
+    ${tag === 'DEPOIS' ? `<span style="position:absolute;top:9px;right:9px;border:2px solid ${INK};border-radius:999px;background:#fff;color:${INK};font:900 10px Oswald;padding:2px 8px">⚔️ DESEMPATE</span>` : ''}
     ${carta(inkClaro)}
     <p style="font:900 16px Oswald;text-align:center;margin:14px 0 0;color:${inkClaro ? '#fff' : INK}">🍿 Você assiste este duelo</p>
     <p style="font:700 12px Oswald;text-align:center;margin:2px 0 0;color:${inkClaro ? 'rgba(255,255,255,.75)' : 'rgba(0,0,0,.6)'}">Já re-lançaram: 0/2</p>
@@ -58,12 +59,10 @@ ${[400, 500, 600, 700].map(face).join('\n')}
 *{box-sizing:border-box}body{margin:0;background:${CREAM};padding:26px;font-family:Oswald,sans-serif}
 .wrap{display:flex;gap:24px;align-items:flex-start}
 </style><body><div class="wrap">
-${bloco('Como está hoje', 'HOJE', VERM, GOLD, false,
-  'Dourado é a cor de 👑 LENDA no jogo inteiro. O Icardi não é lenda — e o fundo diz que é.')}
-${bloco('Opção A · branco', 'A', '#5b5b5b', '#fff', false,
-  'Neutro, e é o mesmo fundo que a carta comum já tem na revelação. Some a confusão, mas o duelo perde o destaque.')}
-${bloco('Opção B · vermelho do duelo', 'B', '#1B7A3D', VERM, true,
-  'Vermelho não é cor de raridade nenhuma no jogo — é a cor do ⚔️ que já está no título. Destaca o duelo sem prometer nível.')}
+${bloco('Como estava', 'ANTES', VERM, GOLD, false,
+  'Dourado é a cor de 👑 LENDA no jogo inteiro. O Icardi não é lenda — e o fundo dizia que era.')}
+${bloco('Como ficou', 'DEPOIS', '#1B7A3D', VERM, true,
+  'Vermelho não significa raridade em canto nenhum do jogo. E ganhou o selo ⚔️ DESEMPATE no canto — igual ao 👑 LENDA da revelação: quem explica agora é a PALAVRA, não a cor.')}
 </div>
 <p style="font:600 12px Oswald;color:rgba(0,0,0,.6);margin:22px 0 0;max-width:1050px;line-height:1.5">
 ⚠️ Não dá pra pintar de dourado "só quando for lenda", como a revelação faz: o desempate acontece <b>no meio do pregão às cegas</b> — a cor entregaria o nível antes do martelo.
@@ -71,7 +70,7 @@ ${bloco('Opção B · vermelho do duelo', 'B', '#1B7A3D', VERM, true,
 </body>`
 
 const nav = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-const pg = await nav.newPage({ viewport: { width: 1100, height: 620 }, deviceScaleFactor: 2 })
+const pg = await nav.newPage({ viewport: { width: 780, height: 620 }, deviceScaleFactor: 2 })
 await pg.setContent(html, { waitUntil: 'load' })
 await pg.screenshot({ path: resolve(process.cwd(), SAIDA), fullPage: true })
 await nav.close()
