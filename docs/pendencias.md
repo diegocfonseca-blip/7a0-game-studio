@@ -1,6 +1,6 @@
 # 📌 Pendências combinadas com o Diego (atualizado 03/09/2026)
 
-## 🐉 BATISMO Corporação Capsule FC (03/09) — ✅ CÓDIGO NO AR · ⏳ FALTA O BANCO
+## 🐉 BATISMO Corporação Capsule FC (03-04/09) — ✅ ENTREGUE (as 3 pernas)
 Dono: `contatovegetta14@gmail.com` · Série B, **no lugar do bot Real Tabuleiro**
 (vaga conferida no `data.ts`, não no `docs/vagas-batismo.md`, que mente).
 
@@ -42,13 +42,22 @@ erosão de 1 px pra comer a franja + **descontaminar o verde da franja**
 👉 **Pedir sempre a arte de batismo sobre fundo liso `#00FF00` (ou PNG
 transparente).** Fonte guardada em `scripts/kits/capsule-mascote-fonte.webp`.
 
-### ⏳ Falta — depende do Diego
-1. **O BANCO** (o MCP do Supabase pede aprovação dele a cada chamada):
-   `user_colors` (tier='ouro', manual=true — **a fonte OFICIAL**, e a única
-   perna que funciona sem deploy) · `esc_socios` (próximo `socio_n`,
-   `valido_ate='2099-12-31'`, manto `#050A13`/`#0C5CB3`,
-   `mascote_key='capsule_dragao'`, `origem='batismo'`) · `esc_fundadores` n=55
-   (conferir com `select max(n)`) · `esc_nomes_batismo` (nome puro + `nome_norm`).
+### ✅ O BANCO — feito 04/09 (a 2ª perna, a que some fácil)
+- `user_colors` → `tier='ouro'`, `manual=true` (**a fonte OFICIAL** do tier; o
+  `apoio.tsx` é só reserva). É ela que acende o dourado e o Modo Manual **sem
+  precisar de deploy**.
+- `esc_socios` → **sócio nº33**, `desde 2026-09-04`, `valido_ate 2099-12-31`
+  (batismo é pra sempre), manto `#050A13`/`#0C5CB3`,
+  `mascote_key='capsule_dragao'`, `escudo_time='Corporação Capsule FC'`,
+  `origem='batismo'`. `time_coracao` ficou **nulo de propósito** — ninguém falou
+  qual é o time dele e não se inventa (vários batismos estão assim).
+- `esc_fundadores` → **nº55**, bate com o `FUNDADOR_N` do `apoio.tsx`
+  (`max(n)` era 54).
+- `esc_nomes_batismo` → entraram os nomes puros **"Corporação Capsule"** e
+  **"Capsule"**; o gatilho criou FC e EC sozinho → **6 nomes reservados**.
+
+### ⏳ Falta
+1. ~~O BANCO~~ — feito acima.
 2. ~~A camisa do post~~ — **RESOLVIDO 04/09**: o dono mandou a camisa E o escudo
    de novo, sozinhos sobre `#00FF00`, e os dois cortaram limpos de primeira. O
    post agora sai com a camisa DELE (`--camisa`).
