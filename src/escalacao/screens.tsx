@@ -5000,7 +5000,13 @@ export function EscSeason() {
   const phaseFullyPlayed = !!qc && (qc.ties[0]?.legs.length ?? 0) >= (qc.phase === 'final' ? 1 : 2)
   const anyPens = !!qc?.ties.some(t => t.pens)
   // ⏩ a Copa segue a MESMA marcha de velocidade da liga (state.simSpeed, sincronizado)
-  const copaAnimMs = Math.round((QUICK_COPA_LEG_MS + (phaseFullyPlayed && anyPens ? 13000 : 0)) / speedFactor)
+  // ⚠️ MAS SÓ O JOGO ACELERA — OS PÊNALTIS NÃO (04/09). A disputa é animação de CSS
+  // com tempo FIXO (~12s, `pensRevealDelay`): a marcha não muda a velocidade dela.
+  // Dividir esse pedaço pelo `speedFactor` fazia a tela voltar a CORTAR a disputa em
+  // 2× e 4× (em 2× esperava 6,5s por uma disputa de até 11,5s) — o mesmo defeito que
+  // o jogador relatou na Copa da carreira. Então o tempo do jogo divide, o dos
+  // pênaltis é somado depois, inteiro.
+  const copaAnimMs = Math.round(QUICK_COPA_LEG_MS / speedFactor) + (phaseFullyPlayed && anyPens ? 13000 : 0)
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending) return
     const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round(3200 / speedFactor) : copaAnimMs)

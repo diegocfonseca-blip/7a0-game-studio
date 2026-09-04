@@ -22,10 +22,28 @@ por isso *"parece automático"*. Os dois sintomas do e-mail eram **o mesmo bug**
 somam `pensRevealDelay` quando **o SEU** jogo foi pra pênaltis. Pênalti dos outros
 não segura a tela de ninguém.
 
-⚠️ **A Copa do Mundo (`copa-mundo.tsx`) e o Jogo Rápido (`screens.tsx`, +13 s)
-JÁ faziam essa conta.** Só a Copa da carreira tinha ficado de fora — é o tipo de
-coisa pra conferir quando nascer um mata-mata novo: **quem anima pênalti tem que
-esperar o pênalti acabar.**
+### 🔍 A VARREDURA EM TODOS OS MATA-MATAS (o Diego mandou conferir a Copa do
+Mundo e a Copa Legends também, 04/09)
+
+| Onde | Esperava a disputa? |
+|---|---|
+| 🏆 **Copa Legends** (carreira) | ❌ **estava quebrada** → ✅ consertada |
+| 🏆🇧🇷 **Copa do Brasil** (carreira) | ❌ **estava quebrada** — é o MESMO relógio → ✅ |
+| 🏆🔵 **Supercopa** (carreira) | ❌ mesma coisa (entra como fase da Copa) → ✅ |
+| 🌍 **Copa do Mundo** (carreira) | ✅ já esperava — quartas, semi e final (não tem oitavas) |
+| 🌍 **Copa do Mundo ONLINE** | ✅ reusa a MESMA tela (`CupScreen`) da carreira |
+| ⚡ **Copa dos 8 / Libertadores** (jogo rápido) | ⚠️ esperava, **mas quebrava na marcha rápida** → ✅ |
+
+**O achado extra da varredura**: no jogo rápido a espera dos pênaltis era
+**dividida pela velocidade** (`(JOGO + 13000) / speedFactor`). Só que a disputa é
+animação de **CSS com tempo fixo** — a marcha não acelera ela. Em 2× a tela
+esperava 6,5 s por uma disputa de até 11,5 s e **cortava de novo**, exatamente o
+defeito relatado. Agora o tempo do JOGO divide pela marcha e o dos PÊNALTIS é
+somado depois, inteiro.
+
+⚠️ **REGRA PERMANENTE**: **quem anima pênalti tem que esperar o pênalti acabar —
+e essa espera NUNCA entra na conta da velocidade.** Conferir isso sempre que
+nascer um mata-mata novo.
 
 ## 🚨 SÉRIE A COM 11 TIMES (04/09) — ✅ CORRIGIDO · efeito colateral da troca de 30/08
 Relato por e-mail do **Gabriel Pena**: *"no modo carreira a série A está bugada
