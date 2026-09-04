@@ -13317,3 +13317,19 @@ pequeno — tudo inofensivo.
 **Reverter:** um commit (`git revert`) devolve os 4 arquivos com o base64.
 **Próximo passo, se ele quiser:** carregar a carreira sob demanda (hoje só 2
 telas são lazy) — muda a ordem de carga, precisa de teste no celular.
+
+## 🏛️ HOME ILUSTRADA DO PREGÃO — teste fechado (04/09/2026)
+
+Nova abertura com o salão ilustrado, estádio ao fundo, três cartas misteriosas,
+camisas históricas e o lustre inteiro. A marca oficial fica sobre a própria arte:
+**não existe faixa creme no teto**. O painel inferior mantém os fluxos reais de
+carreira, save em andamento, online, partida rápida, álbum, ranking e manual.
+
+**Liberação:** somente `diego.c.fonseca@gmail.com`, pelo hook separado
+`useHomeIlustrada`. Ele nasce `false` e só muda depois que o Supabase confirma o
+e-mail; deslogado e qualquer outra conta continuam na Home atual. Não reutilizar
+`useHomeNova`, porque essa já está liberada em geral.
+
+**Arte:** `src/escalacao/img/home-leilao-diego.webp`, 700×1244 e 59,8 KB.
+**Reverter:** remover o bloco `HomeIlustradaDiego`, seu gate e a imagem; a Home
+geral abaixo dele não foi reescrita.
