@@ -7,9 +7,13 @@ Dono: `contatovegetta14@gmail.com` · Série B, **no lugar do bot Real Tabuleiro
 ### ✅ Feito
 - `data.ts`: assento da Série B (técnico 'Cápsula'), **mesma força do bot que
   saiu** (58/59) + `OLD_NAME` pro save antigo seguir.
-- **Escudo** `img/capsule-escudo.webp` 237×360 · **29,3 KB**.
+- **Escudo** `img/capsule-escudo.webp` 240×360 · **29,3 KB** — **REFEITO 04/09**
+  (a 1ª versão, cortada da prancha escura, tinha halo azul e as palmeiras
+  viraram borrão preto; o dono pegou: *"O escudo saiu C fundo ainda"*).
 - **Mascote (O DragonBola)** `img/capsule-mascote.webp` 260×440 · **41,7 KB**.
   Total do batismo: **71,0 KB** de 75.
+- **Camisa do dono no post** `scripts/kits/capsule-camisa.webp` 685×900 —
+  arquivo de POST, fora do jogo, **não conta no teto de peso**.
 - `manto.ts`: `['#050A13', '#0C5CB3']` — **MEDIDOS na arte** (mediana dos pixels
   pretos e dos azuis do escudo), não chutados.
 - `apoio.tsx` ouro + `FUNDADOR_N` 55 · `batismos.ts` · `checa-batismos` ·
@@ -17,8 +21,9 @@ Dono: `contatovegetta14@gmail.com` · Série B, **no lugar do bot Real Tabuleiro
   CAIXA ALTA, 'Capsule FC'/'Capsule' e o nome velho.
 - Post: `node scripts/mockup-batismo.mjs --clube "Corporação Capsule FC"
   --serie B --antigo "Real Tabuleiro" --escudo … --mascote … --mascote-nome
-  "O DragonBola" --mascote-emoji 🐉 --c1 "#050A13" --c1-nome preto
-  --c2 "#0C5CB3" --c2-nome azul --dono "Vegetta" --fundador 55`
+  "O DragonBola" --mascote-emoji 🐉 --camisa scripts/kits/capsule-camisa.webp
+  --c1 "#050A13" --c1-nome preto --c2 "#0C5CB3" --c2-nome azul
+  --dono "Vegetta" --fundador 55`
 
 ### 🧪 A LIÇÃO DO RECORTE (vale pra todo batismo daqui pra frente)
 A 1ª arte veio numa **prancha** (escudo + dragão + camisa) sobre fundo azul
@@ -44,9 +49,11 @@ transparente).** Fonte guardada em `scripts/kits/capsule-mascote-fonte.webp`.
    `valido_ate='2099-12-31'`, manto `#050A13`/`#0C5CB3`,
    `mascote_key='capsule_dragao'`, `origem='batismo'`) · `esc_fundadores` n=55
    (conferir com `select max(n)`) · `esc_nomes_batismo` (nome puro + `nome_norm`).
-2. **A camisa do post**: o dono mandou uma na 1ª prancha, mas ela é escura
-   sobre fundo escuro e não recortou. O post saiu com o manto em listras (as
-   cores certas). Se ele quiser a camisa dele no post, pedir sobre `#00FF00`.
+2. ~~A camisa do post~~ — **RESOLVIDO 04/09**: o dono mandou a camisa E o escudo
+   de novo, sozinhos sobre `#00FF00`, e os dois cortaram limpos de primeira. O
+   post agora sai com a camisa DELE (`--camisa`).
+   👉 **Confirmou a regra**: arte de batismo nunca em prancha, sempre peça
+   sozinha sobre verde liso — corte de 1ª contra 3 tentativas frustradas.
 
 ## 🏛️ SALA DA PRESIDÊNCIA (03/09) — MOCKUP FEITO, ESPERANDO O OK · NADA CODADO
 Pedido dele: *"vamos fazer a sala da presidência.. Como será? C técnico, sala de

@@ -558,10 +558,10 @@ const takahdaoEscudoRender = (size: number) => (
 // 🧦 Jurubeba FC — escudo amarelo com "MEIA NA CANELA" em verde-petróleo, coroa,
 // a meia e a bola (2025). 285x360 no arquivo (largura pela proporção REAL). A
 // arte veio com alfa: só apagou a poeira (alfa ≤ 40) e recortou no bbox.
-// 🐉 Corporação Capsule FC — 237x360 no arquivo, então a largura sai da PROPORÇÃO
+// 🐉 Corporação Capsule FC — 240x360 no arquivo, então a largura sai da PROPORÇÃO
 // REAL (nunca width={size} chutado, senão o escudo achata).
 const capsuleEscudoRender = (size: number) => (
-  <img src={capsuleEscudoImg} height={size} width={Math.round(size * 237 / 360)} alt="Corporação Capsule FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={capsuleEscudoImg} height={size} width={Math.round(size * 240 / 360)} alt="Corporação Capsule FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 const jurubebaEscudoRender = (size: number) => (
   <img src={jurubebaEscudoImg} height={size} width={Math.round(size * 285 / 360)} alt="Jurubeba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
