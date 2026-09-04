@@ -4562,7 +4562,7 @@ export function EscMonte() {
         <p className="text-xs font-semibold text-black/60">
           ⏱️ {remaining ?? MONTE_SECONDS}s por vez. {state.careerOnline
             ? <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa (seu time já tem os 11).</>
-            : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e cobra 5 moedas de multa.</>}
+            : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e passa a vez. <b>Não custa moeda</b>: as sobras são de graça.</>}
         </p>
       )}
       {/* 🤝 DUPLA: o Monte é categoria própria — na vez do time, quem pega a sobra

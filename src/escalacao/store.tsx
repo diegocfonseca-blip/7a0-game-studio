@@ -2897,10 +2897,8 @@ function monteWorstPick(state: EscState, m: Manager, monte: Card[], rng: () => n
 // Foi 45s → 30s (02/09) → 20s.
 // Só existe no ONLINE: o prazo nasce em `refreshMonteDeadline`, que só arma pra
 // técnico humano em sala online — contra a CPU o Monte não tem relógio e segue sem.
-// ⚠️ O `MONTE_AFK_PENALTY` abaixo é em MOEDAS, não em segundos.
 const MONTE_MS = 20_000
 export const MONTE_SECONDS = MONTE_MS / 1000
-const MONTE_AFK_PENALTY = 5
 
 // define/limpa o prazo da vez atual do Monte (só vale no online, pra técnico humano)
 function refreshMonteDeadline(state: EscState) {
@@ -5219,9 +5217,16 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'MONTE_TIMEOUT': {
-      // estourou o tempo da vez de um humano (AFK). CARREIRA: NÃO pega ninguém e
-      // NÃO cobra multa — o time já tem no mínimo 11, só pula a vez. CLÁSSICO: lá
-      // o Monte é pra fechar o XI, então pega a pior sobra e -5 (segurança).
+      // Estourou o tempo da vez de um humano (AFK).
+      // • CARREIRA: não pega ninguém e passa a vez — o time já tem no mínimo 11.
+      // • RÁPIDO: o Monte é pra FECHAR O XI, então o jogo escolhe a pior sobra pra
+      //   ele (senão o time entraria em campo com buraco). Não custa nada.
+      // 💸 A MULTA DE 5 MOEDAS SAIU (Diego 04/09): *"já é de graça no modo online…
+      //   então não precisa ter o texto da moeda lá de 5"*. As sobras do Monte
+      //   sempre foram de graça; os 5 eram castigo por sumir, e destoavam disso.
+      //   O castigo continua existindo e é o que basta: quem some leva a PIOR
+      //   sobra, escolhida pelo jogo. O aviso na tela saiu junto — cobrar sem
+      //   avisar seria pior que as duas coisas.
       if (s.screen !== 'monte') return s
       // reconfirma o prazo: rejeita disparo atrasado/duplicado de outra vez já passada
       if (!s.monteDeadline || Date.now() < s.monteDeadline) return s
@@ -5231,7 +5236,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const rng = rngOf(s)
       if (!s.careerOnline) {
         const pick = monteWorstPick(s, m, s.monte, rng)
-        if (pick) { takeFromMonte(s, pick.id); m.money = Math.max(0, m.money - MONTE_AFK_PENALTY) }
+        if (pick) takeFromMonte(s, pick.id)
       }
       s.monteIdx++
       advanceMonte(s, rng)
