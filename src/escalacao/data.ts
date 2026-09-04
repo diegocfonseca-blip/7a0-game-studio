@@ -2385,6 +2385,7 @@ export const OLD_NAME: Record<string, string> = {
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
+  'Stocco FC': 'Semervilha', // ⚡ batismo do stoccoassessoria: assumiu o assento da Série C que era do Semervilha — save antigo com Semervilha (ou Posto 7 FC, o nome mais velho ainda) vira Stocco FC ao carregar (04/09)
   'Corporação Capsule FC': 'Real Tabuleiro', // 🐉 batismo do contatovegetta14: assumiu o assento da Série B que era do Real Tabuleiro — save antigo com Real Tabuleiro vira Corporação Capsule FC ao carregar (03/09)
   'Jurubeba FC': 'Ferroviário do Sul', // 🧦 batismo do luizguilhermeps: assumiu o assento da Série B que era do Ferroviário do Sul — save antigo com Ferroviário do Sul vira Jurubeba FC ao carregar (02/09)
   'Esqueceram do Lluch FC': 'Litoral United', // 🏠 batismo do lluchmarcel81: assumiu o assento da Série B que era do Litoral United — save antigo com Litoral United vira Esqueceram do Lluch FC ao carregar (28/08)
@@ -2570,7 +2571,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Gugu Canela', team: 'Napolitano' },
     { name: 'Toninho Grelha', team: 'Ponte Branca' },
     { name: 'Vavá Peteca', team: 'CRBebê' },
-    { name: 'Careca do Posto', team: 'Semervilha' },
+    { name: 'Relâmpago', team: 'Stocco FC' }, // ⚡🐺 clube BATIZADO por apoiador (stoccoassessoria — Stocco FC, ex-Semervilha, Série C; mascote o Lobo Relâmpago, roxo + preto; Lenda + fundador nº56, 04/09)
     { name: 'Dão da Feira', team: 'Milhaça FC' }, // ⚽🌽 clube BATIZADO por apoiador (igormarquesn99 / @igumarques, jornalista — Milhaça FC, ex-Real Bets, Série C; escudo e mascote com arte própria do dono, 24/08)
     { name: 'Mão de Onça', team: 'Goiaba FC' },
     { name: 'Beto Foguete', team: 'Leve-cuscuz' },

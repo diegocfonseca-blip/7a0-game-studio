@@ -20,6 +20,7 @@ import lluchMascoteImg from './img/lluch-mascote.webp' // 🏠 Esqueceram do Llu
 import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import takahdaoMascoteImg from './img/al-takahdao-mascote.webp' // 🦜 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
 import capsuleMascoteImg from './img/capsule-mascote.webp' // 🐉 Corporação Capsule FC (contatovegetta14): arte própria do dono, 03/09
+import stoccoMascoteImg from './img/stocco-mascote.webp' // ⚡🐺 Stocco FC (stoccoassessoria): arte própria do dono, 04/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
@@ -539,6 +540,9 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 202x440 no arquivo. mascote_key = "jurubeba_meia".
   // 🐉 O DragonBola — Corporação Capsule FC (contatovegetta14, 03/09). 260x440 no
   // arquivo, então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  stocco_lobo: (
+    <img src={stoccoMascoteImg} height={176} width={Math.round(176 * 263 / 440)} alt="O Relâmpago — Stocco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   capsule_dragao: (
     <img src={capsuleMascoteImg} height={176} width={Math.round(176 * 260 / 440)} alt="O DragonBola — Corporação Capsule FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -834,6 +838,15 @@ export const CARIMBO_GOL: Record<string, string> = {
   // EXATA: as 4 formas + CAIXA ALTA + o nome velho do assento (save antigo).
   // 🐉 Corporação Capsule FC — CARIMBO_GOL é busca EXATA (nem caixa ele normaliza),
   // então entram as 4 formas + CAIXA ALTA + o nome velho do bot.
+  // ⚡🐺 Stocco FC — CARIMBO_GOL é busca por texto EXATO, então vão as 4 formas
+  // do nome, a CAIXA ALTA e o nome velho do assento.
+  'Stocco FC': 'stocco_lobo',
+  'Stocco': 'stocco_lobo',
+  'Stocco EC': 'stocco_lobo',
+  'Stocco SC': 'stocco_lobo',
+  'STOCCO FC': 'stocco_lobo',
+  'STOCCO': 'stocco_lobo',
+  'Semervilha': 'stocco_lobo',
   'Corporação Capsule FC': 'capsule_dragao',
   'Corporação Capsule': 'capsule_dragao',
   'Corporação Capsule EC': 'capsule_dragao',
@@ -883,6 +896,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   saoluiz_pitbull: 'Luizão',     // 🐶 São Luiz FC (gabrielnegreirosamaral99, 21/08)
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   takahdao_papagaio: 'O Papagaio', // 🦜 Al Takahdao FC (fontourajoao04, 01/09)
+  stocco_lobo: 'O Relâmpago', // ⚡🐺 Stocco FC (stoccoassessoria, 04/09) — tirado do "OS RELÂMPAGOS" que o dono pôs na manga da camisa
   capsule_dragao: 'O DragonBola', // 🐉 Corporação Capsule FC (contatovegetta14, 03/09) — o nome que o dono deu
   jurubeba_meia: 'A Meia na Canela', // 🧦 Jurubeba FC (luizguilhermeps, 02/09) — é o que está escrito no escudo dele
   lluch_menino: 'O Esquecido',   // 🏠 Esqueceram do Lluch FC (lluchmarcel81, 28/08)

@@ -1,4 +1,38 @@
-# 📌 Pendências combinadas com o Diego (atualizado 03/09/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
+
+## ⚡ BATISMO Stocco FC (04/09) — ✅ ENTREGUE (as 3 pernas)
+Dono: `stoccoassessoria@gmail.com` · Série C, **no lugar do bot Semervilha**.
+
+**Por que o Semervilha e não outro** (o jeito de escolher assento, vale sempre):
+o nome tem que sumir do jogo INTEIRO, senão o `OLD_NAME` faz dois clubes
+desenharem o mesmo escudo. Dos 19 bots da Série C, **10 também estão no
+`CPU_MANAGERS`** (o pool do Jogo Rápido) — esses estão fora. Sobraram 7, e
+desses o `Napolitano` ainda é clube de carta no `src/empresario`. O Semervilha
+só existia em 2 linhas do `data.ts` e em mais lugar nenhum do `src/`.
+
+- **Arte**: veio prancha com as 3 peças sobre verde `#00FF00` — cortou limpo de
+  primeira. Escudo `img/stocco-escudo.webp` 277×360 · **28,0 KB**; mascote
+  `img/stocco-mascote.webp` 263×440 · **39,4 KB** → **67,4 KB de 75**. Camisa em
+  `scripts/kits/stocco-camisa.webp` (post, fora do bundle).
+  🔧 **Truque novo pra prancha**: separar as peças por mancha conectada **CRUA**,
+  sem `binary_closing` — o fechamento de 9×9 grudou escudo + mascote num bloco
+  só. E não dá pra cortar por faixa vertical vazia: a cauda do lobo invade a
+  coluna da camisa (não existe corredor de verde entre as peças).
+- **Manto** `['#050306', '#6A04D7']` — MEDIDOS no corpo da camisa (mediana dos
+  escuros e o roxo vivo), não chutados.
+- Código: `data.ts` (assento + `OLD_NAME` `Stocco FC → Semervilha → Posto 7 FC`,
+  corrente que o `newestTeamName` resolve sozinho) · `escudos.tsx` ·
+  `mascotes.tsx` (`stocco_lobo` + `CARIMBO_GOL` nas 4 formas + CAIXA ALTA) ·
+  `manto.ts` · `apoio.tsx` (ouro + `FUNDADOR_N` 56) · `batismos.ts` ·
+  `checa-batismos.mjs` · novidade na home.
+- Banco: `user_colors` ouro/manual · `esc_socios` **nº34** até 2099 ·
+  `esc_fundadores` **nº56** (`max(n)` era 55) · `esc_nomes_batismo` "Stocco"
+  (o gatilho criou FC e EC → 3 nomes reservados). `time_coracao` **nulo de
+  propósito** — ninguém falou o time dele.
+- ❓ **A CONFIRMAR com o Diego/dono**: o **nome do mascote**. Botei
+  **"O Relâmpago"** porque é a palavra que o próprio dono pôs na manga da camisa
+  ("OS RELÂMPAGOS") — mas ele não disse o nome. Trocar é 1 linha
+  (`MASCOTE_NOME.stocco_lobo` em `mascotes.tsx`).
 
 ## 🐉 BATISMO Corporação Capsule FC (03-04/09) — ✅ ENTREGUE (as 3 pernas)
 Dono: `contatovegetta14@gmail.com` · Série B, **no lugar do bot Real Tabuleiro**

@@ -30,6 +30,7 @@ import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarz
 import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
 import takahdaoEscudoImg from './img/al-takahdao-escudo.webp' // 🦜🛒 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
 import capsuleEscudoImg from './img/capsule-escudo.webp' // 🐉 Corporação Capsule FC (contatovegetta14): arte própria do dono, 03/09
+import stoccoEscudoImg from './img/stocco-escudo.webp' // ⚡ Stocco FC (stoccoassessoria): arte própria do dono, 04/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
@@ -563,6 +564,11 @@ const takahdaoEscudoRender = (size: number) => (
 const capsuleEscudoRender = (size: number) => (
   <img src={capsuleEscudoImg} height={size} width={Math.round(size * 240 / 360)} alt="Corporação Capsule FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// ⚡ Stocco FC — 277x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado, senão o escudo achata).
+const stoccoEscudoRender = (size: number) => (
+  <img src={stoccoEscudoImg} height={size} width={Math.round(size * 277 / 360)} alt="Stocco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const jurubebaEscudoRender = (size: number) => (
   <img src={jurubebaEscudoImg} height={size} width={Math.round(size * 285 / 360)} alt="Jurubeba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -734,6 +740,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // tinha o Ferroviário não fica sem escudo.
   // 🐉 Corporação Capsule FC (contatovegetta14) — ex-Real Tabuleiro, Série B. As 4
   // formas do nome + o nome velho (save antigo não fica sem escudo).
+  // ⚡ Stocco FC — as 4 formas do nome (o batismo reserva todas) + o nome velho
+  'Stocco FC': stoccoEscudoRender,
+  'Stocco': stoccoEscudoRender,
+  'Stocco EC': stoccoEscudoRender,
+  'Stocco SC': stoccoEscudoRender,
+  'Semervilha': stoccoEscudoRender,
   'Corporação Capsule FC': capsuleEscudoRender,
   'Corporação Capsule': capsuleEscudoRender,
   'Corporação Capsule EC': capsuleEscudoRender,
