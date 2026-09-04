@@ -291,6 +291,11 @@ export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? 
 export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both' | 'todos', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
   const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false, formation?: FormationKey): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, formation, xi: bestXI(squad, formation), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [], V: [] }
+  // 🪪 quem entrou pela COLOCAÇÃO GUARDADA (mérito: subiu/desceu/ficou) e quem
+  // entrou pelo PALPITE (clube que a receita gera e o save não conhece). O
+  // desempate de lotação lá embaixo usa isso — ver o comentário lá.
+  const semHistoria = new Set<SimTeam>()
+  const temColoc = (key: string): boolean => { const d = placements?.[key]; return d === 'A' || d === 'B' || d === 'C' || d === 'D' || d === 'V' }
   const divOf = (key: string, fallback: Div): Div => { const d = placements?.[key]; return (d === 'A' || d === 'B' || d === 'C' || d === 'D' || d === 'V') ? d : fallback }
   // 🌱 mundo COM VÁRZEA: detectado pelas colocações (alguém em 'V') — só carreira
   // nova com a escada. Managers caem na V por padrão; a Série D vira fundo de CPU.
@@ -299,6 +304,7 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   // 20 e joga a divisão dele (não é excluído por causa do corte dos 20).
   for (const m of managers.filter((mm, i) => i < 20 || mm.mine)) {
     const t = mk(m.teamName, (m.squad as WonCard[]).map(c => ({ ...c })), m.isHuman, m.id === youId, m.id, !!m.backstop, !!m.rival, !!m.dormindo, m.formation)
+    if (!temColoc(`m${m.id}`)) semHistoria.add(t)
     world[divOf(`m${m.id}`, hasV ? 'V' : 'D')].push(t)
   }
   const cpuDiv = new Map<string, Div>()
@@ -311,7 +317,9 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
     const olds = oldChain(name)
     const plKey = placements?.[name] != null ? name : (olds.find(o => placements?.[o] != null) ?? name)
     const squad = cpuSquads?.[name] ?? olds.map(o => cpuSquads?.[o]).find(Boolean) ?? base
-    world[divOf(plKey, cpuDiv.get(name) ?? cpuOrigDiv(name))].push(mk(name, squad as PoolCard[], false, false, -1))
+    const tCpu = mk(name, squad as PoolCard[], false, false, -1)
+    if (!temColoc(plKey)) semHistoria.add(tCpu)
+    world[divOf(plKey, cpuDiv.get(name) ?? cpuOrigDiv(name))].push(tCpu)
   }
   // REDE DE SEGURANÇA: cada série precisa de EXATAMENTE 20 times. Save fora do
   // padrão (qualquer causa) desequilibrava (19/21) e derrubava a simulação
@@ -321,8 +329,24 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   const balanceDivs = hasV ? DIVS : DIVS.filter(d => d !== 'V') // sem escada, a V fica vazia (não puxa time)
   for (const d of balanceDivs) {
     while (world[d].length > 20) {
+      // 🎯 QUEM SAI QUANDO SOBRA TIME (endurecido 04/09).
+      // Antes saía "o último da lista, contanto que não fosse humano" — cego. E
+      // isso é um lugar que decide CAMPEONATO: se o sorteado fosse um clube que
+      // tinha acabado de SUBIR por mérito, ele voltava calado pra divisão de
+      // baixo, e o dono via o campeão da Várzea não subir.
+      // Agora sai primeiro quem NÃO TEM HISTÓRIA no save — o clube que a receita
+      // gera e a colocação guardada não conhece (foi o que aconteceu no save do
+      // gfpicolo13: 21 técnicos + 80 clubes = 101 times pra 100 vagas, e o
+      // descartado foi um clube extra, o Cosmopolita FC). Clube com colocação
+      // guardada só é tocado se não houver mais nenhum sem história.
+      // ⚠️ Continua DETERMINÍSTICO (varre de trás pra frente, mesma ordem em todo
+      // aparelho), então o online segue sincronizado.
       let i = world[d].length - 1
-      while (i > 0 && world[d][i].human) i--
+      while (i > 0 && (world[d][i].human || !semHistoria.has(world[d][i]))) i--
+      if (i <= 0 || world[d][i].human || !semHistoria.has(world[d][i])) {
+        i = world[d].length - 1
+        while (i > 0 && world[d][i].human) i--
+      }
       over.push(world[d].splice(i, 1)[0])
     }
   }
