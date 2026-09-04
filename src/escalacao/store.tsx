@@ -2889,12 +2889,25 @@ function monteWorstPick(state: EscState, m: Manager, monte: Card[], rng: () => n
   return ranked[0].c
 }
 
-// ⏱️ 30s por vez no Monte ONLINE (Diego 02/09: *"no monte nas sobras no online
-// diminua de 45s pra 30s"*). Era 45s. Só vale no online (o prazo nasce em
-// refreshMonteDeadline, que só arma pra humano em sala online); no CPU não há
-// relógio no Monte.
-const MONTE_MS = 30_000
+// ⏱️ 20s por vez no Monte do RÁPIDO ONLINE (Diego 04/09: *"preciso q o monte
+// agora vc diminua o tempo pra 25s"* e logo em seguida *"baixa pra 20s na
+// verdade"* · *"esse Monte gratuito do online q tô falando"*).
+// Foi 45s → 30s (02/09) → 20s.
+//
+// ⚖️ POR QUE A CARREIRA ONLINE FICOU EM 30s: é a MESMA tela, mas não é a mesma
+// decisão. No rápido a sobra é SEMPRE de graça — 20s sobra pra clicar. Na
+// carreira a sobra pode ter PREÇO (jogador com piso 💰 = compra sem leilão) e
+// ainda tem o direito de preferência de quem listou. Cortar o tempo de uma
+// decisão que envolve dinheiro pro mesmo tanto de uma que é só clicar seria
+// apressar quem está gastando. Ele pediu o gratuito; só o gratuito mudou. Só vale no ONLINE: o prazo nasce em
+// `refreshMonteDeadline`, que só arma pra técnico humano em sala online — no jogo
+// contra a CPU o Monte não tem relógio nenhum e continua sem.
+// ⚠️ O `MONTE_AFK_PENALTY` logo abaixo é em MOEDAS, não em segundos — mexer aqui
+// não encosta nele.
+const MONTE_MS = 20_000            // rápido online — sobra de graça
+const MONTE_MS_CARREIRA = 30_000   // carreira online — a sobra pode ter preço
 export const MONTE_SECONDS = MONTE_MS / 1000
+export const MONTE_SECONDS_CARREIRA = MONTE_MS_CARREIRA / 1000
 const MONTE_AFK_PENALTY = 5
 
 // define/limpa o prazo da vez atual do Monte (só vale no online, pra técnico humano)
@@ -2903,7 +2916,7 @@ function refreshMonteDeadline(state: EscState) {
   const m = state.managers.find(x => x.id === cur)
   state.monteDeadline =
     state.onlineMode === 'online' && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
-      ? Date.now() + MONTE_MS
+      ? Date.now() + (state.careerOnline ? MONTE_MS_CARREIRA : MONTE_MS)
       : null
 }
 
