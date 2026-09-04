@@ -1756,8 +1756,10 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
     // 🏢 ONLINE: cada humano com SAF recebe 50% da campanha DELA no caixa dele.
     for (const you of s.managers.filter(m => m.isHuman)) {
       const f = s.careerFilials?.[you.id]; if (!f) continue
-      const mgr = s.managers.find(m => !m.isHuman && m.teamName === f.team)
-      const key = mgr ? `m${mgr.id}` : f.team
+      // 🏢 nome ATUAL do clube (batismo renomeia): sem isto a comissão vinha ZERO
+      const nome = chaveFilial(s, f.team)
+      const mgr = s.managers.find(m => !m.isHuman && (m.teamName === nome || m.teamName === f.team))
+      const key = mgr ? `m${mgr.id}` : nome
       const cut = Math.round((clubRewards[key] ?? 0) * 0.5)
       if (cut) {
         s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + cut }
@@ -1769,8 +1771,10 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
   }
   const f = s.careerFilial
   if (!f) return
-  const mgr = s.managers.find(m => !m.isHuman && m.teamName === f.team)
-  const key = mgr ? `m${mgr.id}` : f.team
+  // 🏢 nome ATUAL do clube (batismo renomeia): sem isto a comissão vinha ZERO
+  const nome = chaveFilial(s, f.team)
+  const mgr = s.managers.find(m => !m.isHuman && (m.teamName === nome || m.teamName === f.team))
+  const key = mgr ? `m${mgr.id}` : nome
   const delta = clubRewards[key] ?? 0
   const cut = Math.round(delta * 0.5)
   // 🏛️ MULTICLUBES: a comissão vai pro clube ATIVO (a SAF anda grudada nele) —
@@ -1796,14 +1800,31 @@ function applyFilialCommission(s: EscState, clubRewards: Record<string, number>)
 // 2.000 — então só uma SAF campeã na elite dá lucro de verdade (quem fica na D perde
 // metade). Comissão já recebida NÃO conta (já caiu no seu bolso). Lê a divisão de
 // careerPlacements e os títulos de careerHonors (chave = nome do clube, que é CPU).
-const FILIAL_DIV_BONUS: Record<string, number> = { D: 0, C: 250, B: 500, A: 750 }
+// 🏢🔎 O NOME ATUAL DO CLUBE DA SAF — cinto de segurança.
+// A cura de verdade é no `migrateTeamNames` (ao abrir o save). Isto aqui é a
+// segunda trava, pra um estado que não passou por lá (save vindo da nuvem, sala
+// online, teste) não silenciar a SAF de novo: procura pelo nome guardado; se ele
+// não existir em nenhuma tabela, tenta o nome ATUAL e depois a corrente de nomes
+// VELHOS. Devolve a chave que realmente tem dado — ou o nome original.
+function chaveFilial(s: EscState, team: string): string {
+  const tem = (k: string) => s.careerPlacements?.[k] != null || s.cpuSquads?.[k] != null || s.careerHonors?.[k] != null
+  if (tem(team)) return team
+  const novo = newestTeamName(team)
+  if (novo !== team && tem(novo)) return novo
+  return oldChain(team).find(tem) ?? novo
+}
+// 🌱 'V' (Várzea) entra explícito: a SAF nasceu antes da escada, e a Várzea caía
+// no `?? 0` por acaso. Agora está escrito — quem lê o código sabe que é de propósito.
+const FILIAL_DIV_BONUS: Record<string, number> = { V: 0, D: 0, C: 250, B: 500, A: 750 }
 export const FILIAL_SALE_CAP = 2500
 export function filialSaleValue(s: EscState, filial?: EscState['careerFilial']): { value: number; div: string; titles: number; divBonus: number; titleBonus: number; paid: number } {
   const f = filial ?? s.careerFilial
-  const team = f?.team
+  const team = f?.team && chaveFilial(s, f.team)
   const div = (team && s.careerPlacements?.[team]) || 'D'
-  const h = (team && s.careerHonors?.[team]) || { A: 0, B: 0, C: 0, D: 0 }
-  const totalTitles = (h.A ?? 0) + (h.B ?? 0) + (h.C ?? 0) + (h.D ?? 0)
+  const h = (team && s.careerHonors?.[team]) || { A: 0, B: 0, C: 0, D: 0, V: 0 }
+  // 🌱 a VÁRZEA entra na conta: a SAF foi feita antes da escada existir e a soma
+  // ignorava o título da Várzea (o clube era campeão e não valorizava nada).
+  const totalTitles = (h.A ?? 0) + (h.B ?? 0) + (h.C ?? 0) + (h.D ?? 0) + (h.V ?? 0)
   // 🏢 só contam os títulos ganhos DEPOIS da compra — os que o clube já tinha na
   // vida dele (titlesAtBuy) não entram no seu lucro. Saves antigos sem o snapshot
   // caem em 0 (não conta nenhum histórico antigo, que é o comportamento correto).
@@ -2075,6 +2096,30 @@ function migrateTeamNames(st: EscState): EscState {
   st.clubCash = mapKeys(st.clubCash) ?? st.clubCash
   st.careerHonors = mapKeys(st.careerHonors) ?? st.careerHonors
   st.careerCopaHonors = mapKeys(st.careerCopaHonors) ?? st.careerCopaHonors
+  // 🏢 A SAF TAMBÉM PRECISA DA CURA DE NOME (bug 04/09, relatado por um jogador:
+  // *"a SAF dele subiu, mas não subiu"*).
+  //
+  // A CAUSA: as cinco linhas acima rebatizam as CHAVES de toda tabela pro nome
+  // ATUAL do clube. O `careerFilial.team` ficava de fora — ele guarda o nome que o
+  // clube tinha NA HORA DA COMPRA e nunca mudava. Quando o clube da SAF era
+  // BATIZADO por um apoiador (Santos Dumont → Papão United Madrid, por exemplo), o
+  // save passava a procurar a SAF por um nome que não existe mais em lugar nenhum:
+  //   • `careerPlacements[nomeVelho]` → nada → o painel caía no padrão 'D'. O clube
+  //     estava na VÁRZEA e o jogador lia "Série D" — parecia que tinha SUBIDO.
+  //   • `clubRewards[nomeVelho]` → nada → comissão ZERO todo fim de temporada.
+  //   • `cpuSquads[nomeVelho]` → nada → SAF sem elenco, empréstimo não aparecia.
+  //   • `careerHonors[nomeVelho]` → nada → título da SAF não contava no valor dela.
+  // Curando o nome aqui, as quatro voltam a bater de uma vez.
+  if (st.careerFilial?.team) st.careerFilial = { ...st.careerFilial, team: newestTeamName(st.careerFilial.team) }
+  if (st.careerFilials) {
+    const ff: NonNullable<EscState['careerFilials']> = {}
+    for (const k in st.careerFilials) { const f = st.careerFilials[k as unknown as number]; if (f) ff[k as unknown as number] = { ...f, team: newestTeamName(f.team) } }
+    st.careerFilials = ff
+  }
+  // 🏛️ o 2º clube (Multiclubes) tem assento próprio (id), então divisão/caixa já
+  // andam pelo id — mas o `.team` é o nome que aparece na tela e casa a cor no
+  // rank. Fica na mesma cura, pelo mesmo motivo.
+  if (st.multiClube?.team) st.multiClube = { ...st.multiClube, team: newestTeamName(st.multiClube.team), ...(st.multiClube.filial?.team ? { filial: { ...st.multiClube.filial, team: newestTeamName(st.multiClube.filial.team) } } : {}) }
   // 🏆🧾 A CONTA DAS SUAS COPAS SAI DO RECIBO (16/08) — e nunca mais de adivinhação.
   //
   // O que existia aqui: uma "cura" pro bug de 04/08 (carreira nova herdava as

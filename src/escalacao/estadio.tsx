@@ -762,7 +762,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                     <p style={{ fontSize: 9.5, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 4px' }}>Como calculamos</p>
                     <div style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', lineHeight: 1.7 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• Base</span><span>+1.000</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• Série {filialSale.div} (divisão atual)</span><span>+{filialSale.divBonus}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {filialSale.div === 'V' ? 'Várzea' : `Série ${filialSale.div}`} (divisão atual)</span><span>+{filialSale.divBonus}</span></div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {filialSale.titles} {filialSale.titles === 1 ? 'título' : 'títulos'} da SAF (+250 cada)</span><span>+{filialSale.titleBonus}</span></div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,.15)', marginTop: 3, paddingTop: 3, fontWeight: 900, color: INK }}><span>Total</span><span>{filialSale.value} 🪙{filialSale.value >= 2500 ? ' (teto)' : ''}</span></div>
                     </div>
