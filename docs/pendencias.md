@@ -1,6 +1,6 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
 
-## 📰 O MARTELO NO JOGO RÁPIDO OFFLINE (04/09) — ⏳ FEITO, ESPERANDO O OK VISUAL
+## 📰 O MARTELO NO JOGO RÁPIDO OFFLINE (04/09) — ✅ APROVADO E NO AR
 Pedido dele: *"no modo rápido offline.. tem q ter jornal tb pow"*, e logo depois:
 *"igual no modo rápido online.. qd acaba o torneio"* / *"somente fala da
 temporada o que houve"*.
@@ -30,7 +30,7 @@ abriria DOIS jornais na mesma tela. Carreira nova nem passa por ali.
 - Mockup: `node scripts/mockup-jornal-offline.mjs --saida x.png` — renderiza o
   jornal DE VERDADE (SSR do componente), lado a lado online × offline. Mora no
   repo pra não se perder.
-- ⏳ **Falta**: o OK visual dele pra ir pra `main` (commitado só no branch).
+- ✅ Ele viu o mockup do resultado e aprovou ("Ok", 04/09) — publicado na `main`.
 
 ## ⚡ BATISMO Stocco FC (04/09) — ✅ ENTREGUE (as 3 pernas)
 Dono: `stoccoassessoria@gmail.com` · Série C, **no lugar do bot Semervilha**.
