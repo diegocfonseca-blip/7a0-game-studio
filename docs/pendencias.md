@@ -13448,3 +13448,42 @@ caiu), a pessoa volta, não acha técnico humano no índice dela e **a vaga é A
 bug mais caro do jogo ("virei bot", "dei lance por outro"), então só com teste
 dedicado. Ideia: reancorar pela POSIÇÃO antes de desistir, e **não apagar a vaga** —
 só barrar a entrada, pra pessoa poder voltar quando o host reabrir.
+
+## 🔒 SEGURANÇA — análise completa (05/09) e o que já foi fechado
+Pedido do Diego: *"analise nosso sistema todo e veja problema de segurança"*.
+Olhei banco (RLS, políticas, 50 funções, triggers, cron), 3 edge functions,
+cliente, repositório, deploy e dependências.
+
+**✅ Feito na hora (migrações no banco, sem tocar no código):**
+1. `seguranca_1_esc_backup_saves_rls` — `esc_backup_saves` estava **SEM RLS**
+   (1.925 saves legíveis/alteráveis/apagáveis por anônimo). Ligou RLS sem
+   política nenhuma + `revoke all` de anon/authenticated (idem na irmã
+   `esc_saves_backup`). O jogo não usa essas tabelas pela API.
+2. `seguranca_2_email_funcoes_so_cron` — `esc_email_lote`, `esc_email_fila_montar`,
+   `esc_email_eventos`, `esc_email_conferir` eram SECURITY DEFINER **sem checar
+   quem chama** e executáveis por anônimo (montar fila com os 9 mil e-mails da
+   `auth.users` e disparar lotes de 100 com a chave do Resend). `revoke execute`
+   de public/anon/authenticated; `grant` explícito pra postgres/service_role.
+   ⚠️ Não pôr checagem de e-mail DENTRO delas: o cron (jobs 5/6/7) roda como
+   `postgres`, sem JWT — quebraria o disparo diário.
+
+**⏳ Ainda aberto, por ordem de prioridade (detalhes na conversa de 05/09):**
+- 🔴 Cadastro sem confirmação de e-mail (autoconfirm ligado: 2.911 contas em 30
+  dias, todas confirmadas no mesmo segundo) + mimos presos ao E-MAIL → quem souber
+  o e-mail de um batismo que ainda não tem conta cria a conta antes e leva tudo.
+  Ligar confirmação no Auth, ou só cadastrar batismo DEPOIS da conta existir.
+- 🟠 `user_cards` INSERT só exige `user_id = auth.uid()` (sem trigger): qualquer
+  logado insere a carta que quiser no álbum. Conceder por RPC que valida.
+- 🟠 `esc_results` (247 mil) e `esc_pyramid_rank_snap` gravados pelo cliente →
+  ranking manipulável. Validar por RPC / trigger de sanidade.
+- 🟠 Canal realtime da sala aceita `state`/`kick`/`host_change` de qualquer
+  participante. Conferir remetente (uid do dono) ou canal privado.
+- 🟠 `pwHash` da sala trancada é público (dentro do `game_state`) e cyrb53 não é
+  criptográfico. Validar senha por RPC.
+- 🟠 `hist_rooms` com política ALL/true (vazia). Fechar.
+- 🟡 Leaked password protection desligado (clique no Auth) · 37 SECURITY DEFINER
+  executáveis por anon (revisar; `esc_admin_*` já checam) · tabelas de OUTROS
+  projetos no mesmo banco (PontoSafe com CPF, bolão `participantes` legível por
+  anon) · `tts-proxy` sem auth/limite · inserts anônimos ilimitados em métricas ·
+  `pg_net` no public · 5 funções sem `search_path` · `npm audit` 2 high (só
+  build) · chave Gemini embutida no bundle do 0a7 · sem CSP.
