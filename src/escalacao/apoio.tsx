@@ -107,6 +107,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'lucasigorbortoliniii@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marreco FC, ex-Inter Estadual)
   'fontourajoao04@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº53 + batismo (Al Takhadao FC, Série A; coração Internacional, 01/09)
   'luizguilhermeps@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº54 + SÓCIO nº32 + batismo (Jurubeba FC, Série B, ex-Ferroviário do Sul; mascote a meia 🧦, 02/09)
+  'guiouriques@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº58 + SÓCIO nº36 + batismo (Vidraceiro FC, Série A, no assento que era do Murriz FC; 05/09; escudo, mascote e manto com arte própria do dono). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'gustavo99828@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº57 + batismo (Final Boss FC, Série C, ex-Ponte Branca; mascote o touro O Boss 🐂, vermelho + preto sobre branco, 05/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'stoccoassessoria@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº56 + batismo (Stocco FC, Série C, ex-Semervilha; mascote o Relâmpago 🐺, roxo + preto, 04/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'contatovegetta14@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº55 + batismo (Corporação Capsule FC, Série B, ex-Real Tabuleiro; mascote DragonBola 🐉, preto + azul escuro, 03/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
@@ -152,6 +153,7 @@ const FUNDADOR_N: Record<string, number> = {
   'luizguilhermeps@hotmail.com': 54, // 🧦 Jurubeba FC (02/09)
   'stoccoassessoria@gmail.com': 56, // ⚡ Stocco FC (04/09)
   'gustavo99828@gmail.com': 57, // 🐂 Final Boss FC (05/09)
+  'guiouriques@hotmail.com': 58, // 🪟 Vidraceiro FC (05/09)
   'contatovegetta14@gmail.com': 55, // 🐉 Corporação Capsule FC (03/09)
   'cesar.verissimo27@gmail.com': 3,
   'dasilva1227br@gmail.com': 9,

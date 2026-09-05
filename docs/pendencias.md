@@ -13490,3 +13490,44 @@ cliente, repositório, deploy e dependências.
   anon) · `tts-proxy` sem auth/limite · inserts anônimos ilimitados em métricas ·
   `pg_net` no public · 5 funções sem `search_path` · `npm audit` 2 high (só
   build) · chave Gemini embutida no bundle do 0a7 · sem CSP.
+
+## 🪟 BATISMO Vidraceiro FC (05/09) — ✅ ENTREGUE (as 3 pernas)
+Dono: `guiouriques@hotmail.com` · **Série A**, no assento que era do **Murriz FC**
+— e o Murriz DESCEU pra **Série B**, por decisão do Diego, ocupando a vaga do bot
+`Atlético Seringueiro` (escolhido por só existir em `DIVISION_TEAMS.B` e em
+`CLASSIC_CLUBS`, em mais lugar nenhum do jogo).
+
+⚠️ **NÃO existe `OLD_NAME` em nenhuma ponta desta troca** (mesma regra do
+Marreco/Al Takhadao): ninguém foi renomeado, os dois clubes seguem existindo —
+mapear faria dois clubes desenharem o mesmo escudo na mesma tabela. O Murriz
+mantém escudo, mascote, manto e o `OLD_NAME` dele (Robertão United) intactos.
+
+- **Arte** (prancha sobre verde, cortada com watershed de 3 sementes — as três
+  peças estavam grudadas num bloco só): escudo `img/vidraceiro-escudo.webp`
+  259×360 · **29,3 KB** (precisou de quality 86 pra caber nos 30) · mascote
+  `img/vidraceiro-mascote.webp` 208×440 · **35,6 KB** → **64,9 KB de 75**.
+  Camisa em `scripts/kits/vidraceiro-camisa.webp` (post, fora do bundle).
+- **Manto** `['#2186D9', '#080809']` + 3ª cor **branca** (`MANTO_TRI`) — MEDIDOS
+  na camisa (mediana dos azuis, pretos e brancos).
+- Código: `data.ts` (assento A + Murriz pra B + `CLASSIC_CLUBS`) · `escudos.tsx` ·
+  `mascotes.tsx` (`vidraceiro_vidro` + `CARIMBO_GOL`) · `manto.ts` · `apoio.tsx`
+  (ouro + `FUNDADOR_N` 58) · `batismos.ts` · `checa-batismos.mjs` · novidade.
+- Banco: `user_colors` ouro/manual · `esc_socios` **nº36** · `esc_fundadores`
+  **nº58** · `esc_nomes_batismo` "Vidraceiro" (gatilho criou FC e EC).
+- ❓ **A CONFIRMAR**: nome da mascote (botei **"O Cristal"**, a arte veio sem
+  nome) e o **time de coração** (o `esc_socios.time_coracao` está nulo).
+
+## 🏦 BUG ACHADO 05/09 — o "gerar ficha" do Banco Legends NUNCA funciona
+O botão do Painel do Criador insere `coins: valor * 3` (30 · 150 · 300 · 1500 ·
+3000), mas **a tabela `bl_fichas` tem `CHECK (coins IN (10,50,100,500,1000))`** —
+o banco recusa TODA ficha gerada por ali. E o reducer `BANCO_CREDIT` valida a
+mesma lista de 5 valores e credita o número CRU (sem multiplicar por 3).
+Ou seja, hoje existem duas contas diferentes na mesma feature:
+- a LOJA mostra "R$ 10 → 30 🪙" (`BL_TRIPLO` na tela do jogador);
+- a FICHA e o crédito trabalham com 10/50/100/500/1000 moedas cravadas.
+
+Enquanto isso não é decidido, a entrega é **N fichas de 100** (foi o que fiz pro
+Vidraceiro: 3 × 100 = 300 🪙 — `BL-VDRA-QA`, `BL-VDRB-QB`, `BL-VDRC-QC`).
+**Decisão do Diego pendente**: a régua certa é "R$ 1 = 3 🪙" (aí o CHECK e o
+reducer passam a aceitar 30/150/300/1500/3000) ou "ficha = moeda" (aí é a tela da
+loja que está mentindo)? Só ele decide — mexe em preço.

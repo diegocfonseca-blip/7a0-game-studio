@@ -2562,7 +2562,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!)
     { name: 'Serjão', team: 'Marolados FC' }, // ⚽ clube BATIZADO por apoiador (paisagensetrilha — Marolados FC, ex-Real Madruga; molecada da várzea, Lenda + fundador, 11/08)
     { name: 'Painitto', team: 'SC Ferrari' }, // ⚽ clube BATIZADO por apoiador (adriano.ferrari — SC Ferrari, ex-Painitto FC)
-    { name: 'Robertão', team: 'Murriz FC' }, // ⚽ clube BATIZADO por apoiador (msb102010 — Murriz FC, ex-Robertão United)
+    { name: 'Zé da Vidraça', team: 'Vidraceiro FC' }, // 🪟 clube BATIZADO por apoiador (guiouriques — Vidraceiro FC; Lenda + fundador nº58 + sócio nº36, 05/09). Assento que era do Murriz FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Igual ao caso do Marreco/Al Takhadao: NÃO existe OLD_NAME aqui — o Murriz não foi renomeado, só mudou de divisão, e mapear faria os dois desenharem o mesmo escudo. Escudo, mascote (🪟 O Cristal) e manto azul-vidro + preto com a arte própria do dono.
     { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)
     { name: 'Duda Fortuna', team: 'Skyy FC' }, // ⚽ clube BATIZADO por apoiador (matheusncruz1 — Skyy FC, ex-Fortuna SAF)
     { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
@@ -2592,7 +2592,15 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Doca', team: 'Operário das Docas' },
     { name: 'Colono', team: 'Botafogo da Colônia' },
     { name: 'Caicó', team: 'Fluminense de Caicó' },
-    { name: 'Seringueiro', team: 'Atlético Seringueiro' },
+    // 🧔 Murriz FC (msb102010) DESCEU da Série A pra cá em 05/09, por decisão do
+    // Diego, pra abrir o assento do Vidraceiro FC. Ocupa a vaga que era do bot
+    // "Atlético Seringueiro" (escolhido por só existir aqui e na CLASSIC_CLUBS —
+    // não aparece em mais lugar nenhum do jogo).
+    // ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Murriz FC'] = 'Atlético Seringueiro'`:
+    // o Murriz não foi renomeado, só mudou de divisão (o OLD_NAME dele continua
+    // sendo o Robertão United, de quando ele foi batizado). Mapear faria uma
+    // carreira que tem OS DOIS desenhar o escudo do Murriz no Seringueiro também.
+    { name: 'Robertão', team: 'Murriz FC' }, // ⚽ clube BATIZADO por apoiador (msb102010 — Murriz FC, ex-Robertão United). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
     { name: 'Cápsula', team: 'Corporação Capsule FC' }, // 🐉 clube BATIZADO por apoiador (contatovegetta14 — Corporação Capsule FC, ex-Real Tabuleiro; mascote DragonBola, preto + azul escuro; Lenda + fundador nº55, 03/09)
     { name: 'Mata', team: 'Íbis da Mata' },
     { name: 'Nortista', team: 'Theuzudo FC' }, // ⚽ clube BATIZADO por apoiador (matheusfilipealves — Theuzudo FC, ex-Comercial do Norte; coração Valência, mascote morcego 🦇, 21/08)
@@ -2677,7 +2685,7 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Operário das Docas', atk: 64, def: 65 },
   { name: 'Botafogo da Colônia', atk: 63, def: 62 },
   { name: 'Fluminense de Caicó', atk: 61, def: 63 },
-  { name: 'Atlético Seringueiro', atk: 60, def: 60 },
+  { name: 'Murriz FC', atk: 60, def: 60 }, // 🧔 desceu da Série A em 05/09 (abriu o assento do Vidraceiro FC) — MESMA força do bot que cedeu a vaga (Atlético Seringueiro)
   { name: 'Corporação Capsule FC', atk: 58, def: 59 }, // 🐉 ex-Real Tabuleiro (batismo 03/09) — MESMA força do bot que cedeu o assento
   { name: 'Íbis da Mata', atk: 55, def: 54 },
 ]

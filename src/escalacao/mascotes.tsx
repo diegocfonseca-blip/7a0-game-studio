@@ -22,6 +22,7 @@ import takahdaoMascoteImg from './img/al-takahdao-mascote.webp' // 🦜 Al Takah
 import capsuleMascoteImg from './img/capsule-mascote.webp' // 🐉 Corporação Capsule FC (contatovegetta14): arte própria do dono, 03/09
 import stoccoMascoteImg from './img/stocco-mascote.webp' // ⚡🐺 Stocco FC (stoccoassessoria): arte própria do dono, 04/09
 import finalBossMascoteImg from './img/finalboss-mascote.webp' // 🐂 Final Boss FC (gustavo99828): arte própria do dono, 05/09
+import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
@@ -544,6 +545,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   stocco_lobo: (
     <img src={stoccoMascoteImg} height={176} width={Math.round(176 * 263 / 440)} alt="O Relâmpago — Stocco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🪟 O Cristal — Vidraceiro FC (guiouriques, 05/09). 208x440 no arquivo, então a
+  // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  vidraceiro_vidro: (
+    <img src={vidraceiroMascoteImg} height={176} width={Math.round(176 * 208 / 440)} alt="O Cristal — Vidraceiro FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🐂 O Boss — Final Boss FC (gustavo99828, 05/09). 221x440 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
   finalboss_touro: (
@@ -853,6 +859,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'STOCCO FC': 'stocco_lobo',
   'STOCCO': 'stocco_lobo',
   'Semervilha': 'stocco_lobo',
+  // 🪟 Vidraceiro FC — busca EXATA: as 4 formas do nome + CAIXA ALTA. SEM nome
+  // velho (o Murriz só desceu de divisão, segue com a mascote dele).
+  'Vidraceiro FC': 'vidraceiro_vidro',
+  'Vidraceiro': 'vidraceiro_vidro',
+  'Vidraceiro EC': 'vidraceiro_vidro',
+  'Vidraceiro SC': 'vidraceiro_vidro',
+  'VIDRACEIRO FC': 'vidraceiro_vidro',
+  'VIDRACEIRO': 'vidraceiro_vidro',
   // 🐂 Final Boss FC — mesma regra: busca EXATA, então vão as 4 formas do nome,
   // a CAIXA ALTA e o nome velho do assento (Ponte Branca).
   'Final Boss FC': 'finalboss_touro',
@@ -919,6 +933,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   takahdao_papagaio: 'O Papagaio', // 🦜 Al Takahdao FC (fontourajoao04, 01/09)
   stocco_lobo: 'O Relâmpago', // ⚡🐺 Stocco FC (stoccoassessoria, 04/09) — tirado do "OS RELÂMPAGOS" que o dono pôs na manga da camisa
+  vidraceiro_vidro: 'O Cristal', // 🪟 Vidraceiro FC (guiouriques, 05/09) — a chapa de vidro do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   finalboss_touro: 'O Boss', // 🐂 Final Boss FC (gustavo99828, 05/09) — o touro do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, então é pra confirmar com o dono
   capsule_dragao: 'O DragonBola', // 🐉 Corporação Capsule FC (contatovegetta14, 03/09) — o nome que o dono deu
   jurubeba_meia: 'A Meia na Canela', // 🧦 Jurubeba FC (luizguilhermeps, 02/09) — é o que está escrito no escudo dele

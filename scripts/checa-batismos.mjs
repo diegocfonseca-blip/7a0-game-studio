@@ -66,6 +66,8 @@ for (const d of ['A', 'B', 'C', 'D']) {
 const BATISMOS = [
   ['fontourajoao04@gmail.com', 'Al Takhadao FC'], ['luizguilhermeps@hotmail.com', 'Jurubeba FC'],
   ['stoccoassessoria@gmail.com', 'Stocco FC'], ['gustavo99828@gmail.com', 'Final Boss FC'],
+  ['guiouriques@hotmail.com', 'Vidraceiro FC'], // 🪟 05/09 — Série A, no assento que era do Murriz FC (que desceu pra B)
+
   ['contatovegetta14@gmail.com', 'Corporação Capsule FC'],
   ['denilson.stifler10@gmail.com', 'Xurupitas FC'], ['matheus223lms@icloud.com', 'Alfacehh'],
   ['jorgericardo777@gmail.com', 'Leão da Estradinha'], ['nevesgabriel95@gmail.com', 'Deportivo Montreal'],
