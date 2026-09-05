@@ -21,6 +21,7 @@ import leaoEstradinhaMascoteImg from './img/leao-estradinha-mascote.webp' // �
 import takahdaoMascoteImg from './img/al-takahdao-mascote.webp' // 🦜 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
 import capsuleMascoteImg from './img/capsule-mascote.webp' // 🐉 Corporação Capsule FC (contatovegetta14): arte própria do dono, 03/09
 import stoccoMascoteImg from './img/stocco-mascote.webp' // ⚡🐺 Stocco FC (stoccoassessoria): arte própria do dono, 04/09
+import finalBossMascoteImg from './img/finalboss-mascote.webp' // 🐂 Final Boss FC (gustavo99828): arte própria do dono, 05/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
@@ -543,6 +544,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   stocco_lobo: (
     <img src={stoccoMascoteImg} height={176} width={Math.round(176 * 263 / 440)} alt="O Relâmpago — Stocco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🐂 O Boss — Final Boss FC (gustavo99828, 05/09). 221x440 no arquivo, então a
+  // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  finalboss_touro: (
+    <img src={finalBossMascoteImg} height={176} width={Math.round(176 * 221 / 440)} alt="O Boss — Final Boss FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   capsule_dragao: (
     <img src={capsuleMascoteImg} height={176} width={Math.round(176 * 260 / 440)} alt="O DragonBola — Corporação Capsule FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -847,6 +853,15 @@ export const CARIMBO_GOL: Record<string, string> = {
   'STOCCO FC': 'stocco_lobo',
   'STOCCO': 'stocco_lobo',
   'Semervilha': 'stocco_lobo',
+  // 🐂 Final Boss FC — mesma regra: busca EXATA, então vão as 4 formas do nome,
+  // a CAIXA ALTA e o nome velho do assento (Ponte Branca).
+  'Final Boss FC': 'finalboss_touro',
+  'Final Boss': 'finalboss_touro',
+  'Final Boss EC': 'finalboss_touro',
+  'Final Boss SC': 'finalboss_touro',
+  'FINAL BOSS FC': 'finalboss_touro',
+  'FINAL BOSS': 'finalboss_touro',
+  'Ponte Branca': 'finalboss_touro',
   'Corporação Capsule FC': 'capsule_dragao',
   'Corporação Capsule': 'capsule_dragao',
   'Corporação Capsule EC': 'capsule_dragao',
@@ -904,6 +919,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   takahdao_papagaio: 'O Papagaio', // 🦜 Al Takahdao FC (fontourajoao04, 01/09)
   stocco_lobo: 'O Relâmpago', // ⚡🐺 Stocco FC (stoccoassessoria, 04/09) — tirado do "OS RELÂMPAGOS" que o dono pôs na manga da camisa
+  finalboss_touro: 'O Boss', // 🐂 Final Boss FC (gustavo99828, 05/09) — o touro do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, então é pra confirmar com o dono
   capsule_dragao: 'O DragonBola', // 🐉 Corporação Capsule FC (contatovegetta14, 03/09) — o nome que o dono deu
   jurubeba_meia: 'A Meia na Canela', // 🧦 Jurubeba FC (luizguilhermeps, 02/09) — é o que está escrito no escudo dele
   lluch_menino: 'O Esquecido',   // 🏠 Esqueceram do Lluch FC (lluchmarcel81, 28/08)

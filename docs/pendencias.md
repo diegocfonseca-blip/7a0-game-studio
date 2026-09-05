@@ -232,6 +232,44 @@ abriria DOIS jornais na mesma tela. Carreira nova nem passa por ali.
   repo pra não se perder.
 - ✅ Ele viu o mockup do resultado e aprovou ("Ok", 04/09) — publicado na `main`.
 
+## 🐂 BATISMO Final Boss FC (05/09) — ✅ ENTREGUE (as 3 pernas)
+Dono: `gustavo99828@gmail.com` · Série C, **no lugar do bot Ponte Branca**.
+
+**Assento**: mesma conta de sempre — dos bots da Série C, os que também vivem no
+`CPU_MANAGERS` (pool do Jogo Rápido) estão fora, e o `Napolitano` ainda é clube
+de carta no `src/empresario`. Sobraram Ponte Branca, CRBebê, Goiaba FC,
+Leve-cuscuz e Torta de Rã; foi o **Ponte Branca**. Corrente
+`Final Boss FC → Ponte Branca → Grelha SAF`, que o `newestTeamName` resolve
+sozinho: save antigo com qualquer um dos dois nomes velhos abre no Final Boss FC.
+
+- **Arte**: prancha com as 3 peças sobre verde. Escudo
+  `img/finalboss-escudo.webp` 264×360 · **26,3 KB**; mascote
+  `img/finalboss-mascote.webp` 221×440 · **34,5 KB** → **60,8 KB de 75**. Camisa
+  em `scripts/kits/finalboss-camisa.webp` (post, fora do bundle).
+  🔧 **Truque novo (caso Final Boss)**: aqui a mancha conectada **crua não
+  separou** — o braço da mascote ENCOSTA na borda do escudo (as linhas y=301..385
+  estão 100% cheias entre x=430 e x=760), e erosão até 38 px não abre. O que
+  resolveu foi **watershed com 2 sementes**: semente = o pico da transformada de
+  distância de cada lado (escudo em x<540, mascote em x>660), bacia sobre
+  `-dist`. Corta no pescoço, sem comer borda de nenhum dos dois. Guardar essa
+  receita: prancha em que as peças SE TOCAM não sai por componente nem por faixa
+  vertical vazia.
+- **Manto** `['#CD0C12', '#070505']` + 3ª cor **branca** em `MANTO_TRI`
+  (`finalboss_touro`) — MEDIDOS na camisa (mediana dos vermelhos, dos pretos e
+  dos brancos), não chutados. A camisa dele é branca com faixa vermelha e preta.
+- Código: `data.ts` (assento + `OLD_NAME`) · `escudos.tsx` · `mascotes.tsx`
+  (`finalboss_touro` + `CARIMBO_GOL` nas 4 formas + CAIXA ALTA + nome velho) ·
+  `manto.ts` (+ `MANTO_TRI`) · `apoio.tsx` (ouro + `FUNDADOR_N` 57) ·
+  `batismos.ts` · `checa-batismos.mjs` · novidade na home.
+- Banco: `user_colors` ouro/manual · `esc_socios` **nº35** até 2099 ·
+  `esc_fundadores` **nº57** (`max(n)` era 56) · `esc_nomes_batismo` "Final Boss"
+  (o gatilho criou FC e EC → 3 nomes reservados). `time_coracao` **nulo de
+  propósito** — ninguém falou o time dele.
+- ❓ **A CONFIRMAR com o Diego/dono**: (1) o **nome do mascote** — botei
+  **"O Boss"** porque a arte veio sem nome (trocar é 1 linha:
+  `MASCOTE_NOME.finalboss_touro`); (2) o **nome do dono**, que no post fica no
+  "BATIZADO POR" e hoje está vazio; (3) o **time de coração**, pra `esc_socios`.
+
 ## ⚡ BATISMO Stocco FC (04/09) — ✅ ENTREGUE (as 3 pernas)
 Dono: `stoccoassessoria@gmail.com` · Série C, **no lugar do bot Semervilha**.
 

@@ -18,6 +18,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
   'fontourajoao04@gmail.com': ['#00461C', '#EE5400'], // 🦜🛒 Al Takhadao FC — verde e laranja, MEDIDOS na camisa que o dono mandou (01/09)
   'luizguilhermeps@hotmail.com': ['#F6BB06', '#053F42'], // 🧦 Jurubeba FC — amarelo e verde-petróleo, MEDIDOS na camisa que o dono mandou (02/09)
+  'gustavo99828@gmail.com': ['#CD0C12', '#070505'], // 🐂 Final Boss FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (mediana dos vermelhos e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa dele é branca com faixa vermelha e preta
   'stoccoassessoria@gmail.com': ['#050306', '#6A04D7'], // ⚡ Stocco FC — preto e roxo, MEDIDOS na arte que o dono mandou (mediana dos pixels escuros e o roxo vivo do corpo da camisa, 04/09)
   'contatovegetta14@gmail.com': ['#050A13', '#0C5CB3'], // 🐉 Corporação Capsule FC — preto e azul, MEDIDOS na arte que o dono mandou (mediana dos pixels pretos e dos azuis do escudo, 03/09)
   'gabrielnegreirosamaral99@hotmail.com': ['#E00000', '#0C0C0C'], // 🐶 São Luiz FC — vermelho e preto, MEDIDOS na arte do dono (branco é a 3ª cor, em MANTO_TRI) (21/08)
@@ -128,6 +129,7 @@ const MANTO_TRI: Record<string, string> = {
   cobra_arruda: '#C2001E', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho, 16/08)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)
   saoluiz_pitbull: '#FFFFFF', // 🐶 São Luiz FC — 3ª cor BRANCA (vermelho/preto/branco, medidas na camisa dele, 21/08)
+  finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08
 }
 export function meuMantoC3(): string | null {
