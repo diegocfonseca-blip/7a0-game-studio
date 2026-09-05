@@ -59,6 +59,9 @@ export interface CopaRun {
   vs?: string // contra quem
   zebra?: boolean // caiu pra time de divisão MAIS BAIXA (vergonha extra)
 }
+// ⚠️ `placar` e `pens` vêm SEMPRE como **SEU × DELE** (quem monta orienta em
+// pyramidseason.tsx). Toda frase daqui tem que escrever com VOCÊ como sujeito —
+// se alguma disser "o adversário venceu por {placar}", inverte o sentido e mente.
 export interface SuperRun { campeao: boolean; vs: string; placar: string; pens?: [number, number] }
 function copaNota(run: CopaRun, nome: string, seasonNo: number, brasil?: boolean): { h: string; s: string } {
   const cup = brasil ? 'Copa do Brasil' : 'Copa Legends'
@@ -93,9 +96,10 @@ function superNota(run: SuperRun, nome: string, seasonNo: number): { h: string; 
     { h: `👑 ${nome} LEVANTA A SUPERCOPA!`, s: `Bateu o ${run.vs} por ${run.placar}${pen} no jogo único e fechou o ano com mais uma na estante.` },
     { h: `👑 SUPERCOPA É DO ${nome}`, s: `Decisão em jogo único contra o ${run.vs}: ${run.placar}${pen}. Coroou a temporada.` },
   ])
+  // ⚠️ com VOCÊ como sujeito, pra bater com a ordem SEU×DELE do placar
   return pick([
-    { h: `😤 ${nome} PERDE A SUPERCOPA`, s: `O ${run.vs} venceu por ${run.placar}${pen} na decisão. Faltou pouco pro ano perfeito.` },
-    { h: `😤 SUPERCOPA ESCAPA DAS MÃOS DO ${nome}`, s: `Derrota pro ${run.vs} (${run.placar}${pen}) no jogo que valia tudo.` },
+    { h: `😤 ${nome} PERDE A SUPERCOPA`, s: `Perdeu pro ${run.vs} por ${run.placar}${pen} na decisão. Faltou pouco pro ano perfeito.` },
+    { h: `😤 SUPERCOPA ESCAPA DAS MÃOS DO ${nome}`, s: `Derrota por ${run.placar}${pen} pro ${run.vs}, no jogo que valia tudo.` },
   ])
 }
 

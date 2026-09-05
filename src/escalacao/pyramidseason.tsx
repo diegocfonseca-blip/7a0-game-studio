@@ -5715,7 +5715,18 @@ export function PyramidSeasonScreen() {
   const superRun = useMemo<SuperRun | undefined>(() => {
     if (!superTie || !(superTie.a.you || superTie.b.you)) return undefined
     const youIsA = !!superTie.a.you
-    return { campeao: (superTie.win === 'a') === youIsA, vs: youIsA ? superTie.b.name : superTie.a.name, placar: `${superTie.aggA}×${superTie.aggB}`, pens: superTie.pens }
+    // 🧮 O PLACAR VAI SEMPRE COMO **SEU × DELE** (conserto 05/09).
+    // Antes saía sempre `aggA×aggB`, ou seja, do lado A da chave — e as frases do
+    // jornal ("Bateu o X por {placar}") pressupõem o SEU gol primeiro. Quando você
+    // era o lado B e GANHAVA, o jornal escrevia "Bateu o Soberano Nacional por
+    // 1×2": o leitor soma e conclui que você perdeu. Foi o que o dono do Futpoint
+    // FC leu e por isso achou que não tinha ganhado nada.
+    const meu = youIsA ? superTie.aggA : superTie.aggB
+    const dele = youIsA ? superTie.aggB : superTie.aggA
+    const penOrd: [number, number] | undefined = superTie.pens
+      ? (youIsA ? superTie.pens : [superTie.pens[1], superTie.pens[0]])
+      : undefined
+    return { campeao: (superTie.win === 'a') === youIsA, vs: youIsA ? superTie.b.name : superTie.a.name, placar: `${meu}×${dele}`, pens: penOrd }
   }, [superTie])
   // 🚫 ANTI-SPOILER na ARTILHARIA da Copa: o torneio inteiro é pré-calculado, mas
   // a artilharia mostrada conta SÓ as fases JÁ APITADAS (reveladas). Enquanto as
