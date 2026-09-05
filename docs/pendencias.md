@@ -13514,8 +13514,10 @@ mantém escudo, mascote, manto e o `OLD_NAME` dele (Robertão United) intactos.
   (ouro + `FUNDADOR_N` 58) · `batismos.ts` · `checa-batismos.mjs` · novidade.
 - Banco: `user_colors` ouro/manual · `esc_socios` **nº36** · `esc_fundadores`
   **nº58** · `esc_nomes_batismo` "Vidraceiro" (gatilho criou FC e EC).
-- ❓ **A CONFIRMAR**: nome da mascote (botei **"O Cristal"**, a arte veio sem
-  nome) e o **time de coração** (o `esc_socios.time_coracao` está nulo).
+- ✅ **CONFIRMADO pelo Diego (05/09)**: a mascote fica **"O Cristal"**, e o time de
+  coração é o **Grêmio** — já gravado em `esc_socios.time_coracao`. Detalhe bonito:
+  o manto que saiu MEDIDO da camisa dele (azul-vidro + preto, branco de 3ª) é
+  exatamente a cara do Grêmio — não foi escolha, foi coincidência da arte.
 
 ## 🏦 BUG ACHADO 05/09 — o "gerar ficha" do Banco Legends NUNCA funciona
 O botão do Painel do Criador insere `coins: valor * 3` (30 · 150 · 300 · 1500 ·
