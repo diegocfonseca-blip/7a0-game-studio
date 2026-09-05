@@ -535,9 +535,11 @@ export function useHomeNova(): boolean {
 // Diego. Assim, quem estiver deslogado ou em qualquer outro e-mail continua na
 // home geral atual — inclusive durante a resolução inicial da sessão.
 const HOME_ILUSTRADA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-let homeIlustradaOk = false
+// Home V07 aprovada e liberada para todos em 05/09/2026.
+const HOME_ILUSTRADA_GERAL = true
+let homeIlustradaOk = HOME_ILUSTRADA_GERAL
 function applyHomeIlustradaUnlock(email?: string | null): void {
-  const u = !!email && HOME_ILUSTRADA_TESTERS.has(email.trim().toLowerCase())
+  const u = HOME_ILUSTRADA_GERAL || (!!email && HOME_ILUSTRADA_TESTERS.has(email.trim().toLowerCase()))
   if (u === homeIlustradaOk) return
   homeIlustradaOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })

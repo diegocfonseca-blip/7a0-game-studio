@@ -38,7 +38,7 @@ import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, us
 import { MASCOTES, FestaoMascote } from './mascotes'
 import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
 import { JanelaConta } from './conta'
-import homeLeilaoDiego from './img/home-leilao-diego.webp'
+import './home-ilustrada.css'
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
@@ -887,7 +887,7 @@ export function GameFooter() {
     dispatch({ type: 'GO_LOBBY' }) // volta pro início (e libera a vaga se estiver online)
   }
   return (
-    <div style={{ background: '#F4ECD6', borderTop: '2px solid rgba(0,0,0,0.06)' }}>
+    <div className="game-contact-footer" style={{ background: '#F4ECD6', borderTop: '2px solid rgba(0,0,0,0.06)' }}>
       <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-8 space-y-1.5">
         <div className="pb-1"><ApoieButton /></div>
         <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
@@ -1911,7 +1911,7 @@ function HomeMenuFixo({ onInicio, onRegras, onAlbum, onRanking, apoiar }: {
 // 🏛️ Vitrine ilustrada do salão do pregão. É deliberadamente um componente
 // isolado: a home geral continua no bloco antigo logo abaixo e pode ser
 // comparada/revertida sem misturar seus estilos com esta experiência.
-function HomeIlustradaDiego({ resumable, solo, shared, onCareer, onCareers, onOnline, onQuick, onAlbum, onRanking, onManual, onShare, overlays }: {
+function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, onQuick, onAlbum, onRanking, onManual, overlays }: {
   resumable: ReturnType<typeof useResumableRoom>
   solo: ReturnType<typeof useResumableSolo>
   shared: boolean
@@ -1925,96 +1925,39 @@ function HomeIlustradaDiego({ resumable, solo, shared, onCareer, onCareers, onOn
   onShare: () => void
   overlays: ReactNode
 }) {
-  const action = 'border-[3px] border-black rounded-2xl active:translate-y-0.5 transition-transform'
+  const [contaAberta, setContaAberta] = useState(false)
   return (
-    <div className="min-h-screen pb-[74px]" style={{ background: '#050805', color: INK }}>
-      {/* Sem faixa creme: o lustre e o teto ficam inteiros, como no mockup V4. */}
-      <style>{`
-        button[aria-label="Desligar som"],button[aria-label="Ligar som"]{top:22px!important;bottom:auto!important;right:max(18px,calc((100vw - 700px)/2 + 18px))!important;z-index:60!important}
-        @media (max-width:430px){button[aria-label="Desligar som"],button[aria-label="Ligar som"]{top:18px!important;right:16px!important;transform:scale(.88)}}
-      `}</style>
-
-      <section className="relative mx-auto overflow-hidden" style={{ width: 'min(100%, 700px)', aspectRatio: '700 / 1244', backgroundImage: `url(${homeLeilaoDiego})`, backgroundPosition: 'top center', backgroundSize: 'cover' }}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-44" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,.74),rgba(0,0,0,0))' }} />
-        {/* marca oficial: cápsula, wordmark e sublinhado amarelo; sem escudo
-            inventado e sem uma placa que recorte o teto. */}
-        <header className="absolute left-0 right-0 top-0 z-10 px-5 pt-5 pr-[78px] text-white">
-          <span className="inline-block rounded-full border-2 border-black px-3 py-1 text-[9px] font-black uppercase tracking-[.16em]" style={{ ...OSWALD, background: GOLD, color: INK, boxShadow: '2px 2px 0 #000' }}>⚽ LEILÃO ÀS CEGAS</span>
-          <h1 className="mt-2 text-[30px] font-black leading-none drop-shadow-[0_2px_0_#000] sm:text-[38px]" style={OSWALD}>LEILÃO LEGENDS</h1>
-          <div className="mt-2 h-2 w-36 rounded-full border-2 border-black sm:w-44" style={{ background: GOLD, boxShadow: '2px 2px 0 #000' }} />
-        </header>
-
-        <div className="absolute inset-x-4 top-[26%] text-center text-white" style={{ textShadow: '0 3px 0 #000,0 0 16px #000' }}>
-          <h2 className="text-[28px] font-black leading-none sm:text-[38px]" style={OSWALD}>O PREGÃO ESTÁ ABERTO</h2>
-          <p className="mt-2 text-[11px] font-bold sm:text-sm">Dê lance no nome. O nível só aparece depois do martelo.</p>
-        </div>
-        <div className="absolute inset-x-0 bottom-7 flex justify-center">
-          <span className="rounded-full border-2 border-white/35 bg-black/75 px-4 py-2 text-[9px] font-black uppercase tracking-[.2em] text-white backdrop-blur-sm" style={OSWALD}><b style={{ color: GOLD }}>●</b>&nbsp;&nbsp; Escolha como você quer jogar</span>
+    <div className="ll-home">
+      <div className="ll-art" />
+      <div className="ll-shade" />
+      <header className="ll-header">
+        <div className="ll-brand"><small>LEILÃO ÀS CEGAS</small>LEILÃO LEGENDS</div>
+        <div className="ll-account"><button onClick={() => setContaAberta(true)}>MINHA CONTA</button></div>
+      </header>
+      <section className="ll-intro">
+        <h1>O PREGÃO ESTÁ ABERTO.</h1>
+        <p>Dê lance no nome. O nível só aparece depois do martelo.</p>
+      </section>
+      {(resumable || solo) && <div className="ll-resume">
+        {resumable && <><button onClick={resumable.resume}>CONTINUAR SALA {resumable.code}</button><button onClick={resumable.leave}>SAIR DA SALA</button></>}
+        {solo && <><button onClick={solo.resume}>CONTINUAR · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>MINHAS CARREIRAS</button></>}
+      </div>}
+      <section className="ll-choices" aria-label="Escolha como jogar">
+        <p className="ll-eyebrow">ESCOLHA COMO VOCÊ QUER JOGAR</p>
+        <div className="ll-modes">
+          <button className="ll-mode" onClick={onQuick}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>PARTIDA RÁPIDA</strong><small>Monte seu time e enfrente a CPU.</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>JOGAR ONLINE</strong><small>Entre no pregão com seus amigos.</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-career" onClick={onCareer}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>MODO CARREIRA</strong><small>Construa a história do seu clube.</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
         </div>
       </section>
-
-      <section className="relative z-20 mx-auto -mt-5 min-h-[560px] rounded-t-[30px] border-[3px] border-black px-5 pb-8 pt-7 sm:rounded-[30px]" style={{ width: 'min(calc(100% - 24px), 700px)', background: CREAM, boxShadow: '0 -8px 28px rgba(0,0,0,.32)' }}>
-        <div className="mb-4 flex items-end justify-between gap-3">
-          <h2 className="text-3xl font-black leading-none" style={OSWALD}>SUA PRÓXIMA HISTÓRIA</h2>
-          <span className="pb-0.5 text-[9px] font-black uppercase tracking-[.18em] text-black/45">Escolha um modo</span>
-        </div>
-
-        {resumable && (
-          <div className="mb-3 rounded-2xl border-[3px] border-black p-3 text-white" style={{ background: GREEN, boxShadow: '4px 4px 0 #000' }}>
-            <p className="text-xs font-black uppercase" style={OSWALD}>⏳ Partida em andamento · Sala {resumable.code}</p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <button onClick={resumable.resume} className="rounded-xl border-2 border-black bg-white py-2 text-xs font-black text-black">▶ Continuar</button>
-              <button onClick={resumable.leave} className="rounded-xl border-2 border-black py-2 text-xs font-black text-white" style={{ background: '#E8503A' }}>Sair da sala</button>
-            </div>
-          </div>
-        )}
-        {solo && (
-          <div className="mb-3 rounded-2xl border-[3px] border-black p-3 text-white" style={{ background: '#5B2CAE', boxShadow: '4px 4px 0 #000' }}>
-            <p className="text-[10px] font-black uppercase tracking-wide text-white/80">Temporada {solo.seasonNo}</p>
-            <p className="text-lg font-black leading-tight" style={OSWALD}>{solo.teamName}</p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <button onClick={solo.resume} className="rounded-xl border-2 border-black bg-white py-2 text-xs font-black text-black">▶ Continuar</button>
-              <button onClick={onCareers} className="rounded-xl border-2 border-white/60 bg-white/10 py-2 text-xs font-black text-white">Meus saves</button>
-            </div>
-          </div>
-        )}
-
-        <button onClick={onCareer} className={`${action} relative w-full overflow-hidden p-5 text-left text-white`} style={{ background: 'linear-gradient(115deg,#8242D1,#5220A0)', boxShadow: '5px 5px 0 #241038' }}>
-          <span className="inline-block rounded-full border-2 border-black px-3 py-1 text-[9px] font-black uppercase tracking-wider" style={{ background: GOLD, color: INK }}>Modo principal</span>
-          <span className="mt-3 block text-[28px] font-black leading-none" style={OSWALD}>{solo ? 'NOVA CARREIRA' : 'COMEÇAR CARREIRA'}</span>
-          <span className="mt-2 block max-w-[64%] text-[11px] font-bold leading-snug text-white/90">Comece na Várzea, construa seu clube e suba temporada após temporada até a Série A.</span>
-          <span className="mt-4 inline-block rounded-xl border-2 border-black bg-white px-4 py-2 text-[11px] font-black uppercase text-[#32105f]">Iniciar jornada &nbsp;→</span>
-          <span aria-hidden className="absolute bottom-4 right-5 text-5xl">🏆</span>
-        </button>
-
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <button onClick={onOnline} className={`${action} min-h-[112px] p-4 text-left text-white`} style={{ background: GREEN, boxShadow: '4px 4px 0 #0B3A1D' }}>
-            <span className="text-2xl">👥</span><span className="mt-2 block text-lg font-black leading-none" style={OSWALD}>COM AMIGOS ONLINE</span><span className="mt-1 block text-[10px] font-semibold text-white/80">Crie uma sala e mande o código no WhatsApp.</span>
-          </button>
-          <button onClick={onQuick} className={`${action} min-h-[112px] bg-white p-4 text-left`} style={{ boxShadow: '4px 4px 0 #aaa' }}>
-            <span className="text-2xl">⚡</span><span className="mt-2 block text-lg font-black leading-none" style={OSWALD}>PARTIDA RÁPIDA</span><span className="mt-1 block text-[10px] font-semibold text-black/55">Contra a CPU · cerca de 6 minutos.</span>
-          </button>
-        </div>
-
-        <div className="mt-3 grid grid-cols-4 gap-2">
-          {[
-            ['📖', 'Álbum', onAlbum], ['🏆', 'Ranking', onRanking], ['📘', 'Manual', onManual], ['📤', shared ? 'Copiado!' : 'Compartilhar', onShare],
-          ].map(([ic, label, fn]) => (
-            <button key={String(label)} onClick={fn as () => void} className="min-h-[72px] rounded-xl border-2 border-black/10 bg-white px-1 py-2 text-center active:translate-y-0.5" style={{ boxShadow: '0 4px 10px rgba(0,0,0,.12)' }}>
-              <span className="block text-xl">{ic as string}</span><span className="mt-1 block text-[9px] font-black uppercase leading-tight" style={OSWALD}>{label as string}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-3"><ApoieButton big /></div>
-        <div className="mt-3"><AdminButton /></div>
-        <div className="mt-3"><DinastiaButton /></div>
-        <div className="mt-3"><CareerOnlineButton /></div>
-        <div className="mt-3"><LigaFechadaButton /></div>
-      </section>
-
-      <HomeMenuFixo onInicio={() => window.scrollTo({ top: 0, behavior: 'smooth' })} onRegras={onManual} onAlbum={onAlbum} onRanking={onRanking}
-        apoiar={<ApoieButton trigger={open => <button onClick={open} className="flex-1 py-1.5 active:opacity-60"><IconeBarra nome="apoiar" cor="rgba(194,69,47,.85)" /><span className="mt-1 block text-[10.5px] font-black" style={{ ...OSWALD, color: 'rgba(194,69,47,.9)' }}>Apoiar</span></button>} />} />
+      <footer className="ll-footer">
+        <nav aria-label="Mais opções">
+          <button onClick={onManual}>REGRAS</button><button onClick={onAlbum}>ÁLBUM</button><button onClick={onRanking}>RANKING</button>
+          <ApoieButton trigger={open => <button onClick={open}>APOIAR</button>} />
+        </nav>
+        <div className="ll-web"><span>leilaolegends.com</span> · Seu clube. Sua história.</div>
+      </footer>
+      {contaAberta && <JanelaConta titulo="MINHA CONTA" onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
       {overlays}
     </div>
   )

@@ -1,5 +1,8 @@
 # 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
 
+## Home ilustrada V07 — publicação aprovada em 05/09/2026
+Diego autorizou publicar a composição desktop/mobile aprovada. A home usa arte de salão, Oswald local, botões branco/roxo/amarelo e rodapé escuro compacto. `HomeIlustradaDiego` em `screens.tsx`, estilos isolados em `home-ilustrada.css`, assets `home-leilao-v07.webp` e fonte local. Ações de rápida/online/carreira e retomadas preservadas. `HOME_ILUSTRADA_GERAL` em `sport.ts` libera a home para todos. Nenhuma migração nem mudança em regras de jogo. Reversão: reverter este commit ou desativar o gate geral (mantém teste do Diego). Base integrada sobre a main atual, preservando alterações paralelas do Claude.
+
 ## 🔁 MIMOS DO BATISMO TÊM QUE SEGUIR O E-MAIL, NÃO O NOME DO CLUBE (04/09)
 **Etapa 1 ✅ feita · Etapa 2 ⏳ pendente (mostrar print antes de publicar).**
 
