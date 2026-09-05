@@ -13456,7 +13456,7 @@ cliente, repositório, deploy e dependências.
 
 **✅ Feito na hora (migrações no banco, sem tocar no código):**
 1. `seguranca_1_esc_backup_saves_rls` — `esc_backup_saves` estava **SEM RLS**
-   (1.925 saves legíveis/alteráveis/apagáveis por anônimo). Ligou RLS sem
+   (385 saves legíveis/alteráveis/apagáveis por anônimo). Ligou RLS sem
    política nenhuma + `revoke all` de anon/authenticated (idem na irmã
    `esc_saves_backup`). O jogo não usa essas tabelas pela API.
 2. `seguranca_2_email_funcoes_so_cron` — `esc_email_lote`, `esc_email_fila_montar`,
