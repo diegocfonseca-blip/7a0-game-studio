@@ -13410,3 +13410,41 @@ e-mail; deslogado e qualquer outra conta continuam na Home atual. Não reutiliza
 **Arte:** `src/escalacao/img/home-leilao-diego.webp`, 700×1244 e 59,8 KB.
 **Reverter:** remover o bloco `HomeIlustradaDiego`, seu gate e a imagem; a Home
 geral abaixo dele não foi reescrita.
+
+## 🎥 SALA DE STREAM: sumiu o "COMEÇAR O LEILÃO" (05/09) — ⏳ metade resolvida
+Relato do Diego, live do @marcelow: *"nessa tela aqui não apareceu começar
+leilão… ele escolheu Europa… e depois que ele atualizou voltou o botão, mas tem
+gente que disse que foi removida da sala"*.
+
+**O que o BANCO mostrou** (salas dele, todas com `host_id` = a conta dele):
+- `6P8PPO` (baralho **eu**, a da live): `room_players` com **buraco na numeração**
+  — 0,1,2,3 e depois 7…19. Três vagas sumiram no meio.
+- `H29VAB`: sala **PARADA na tela `streamIntro`** e — o pior — **a vaga do próprio
+  DONO não existe mais** no `room_players` (sobraram os índices 2, 3 e 7).
+- ❌ **A pista do "Europa" NÃO se confirmou**: a sala do Europa é a mais LEVE das
+  três (72 KB de texto contra 216 KB da sala BR). Não dá pra culpar o baralho —
+  anotado aqui pra ninguém sair consertando o que não está quebrado.
+
+**Consertado agora (`lobby.tsx`)**
+1. **Quem é o dono sai do BANCO, não do evento.** `triggerStart` decidia
+   `amHost = roomData.host_id === user.id`, e `roomData` chega de 4 lugares
+   diferentes (lista magra, payload do realtime, cópia na tela). Se um deles vier
+   sem `host_id`, `undefined === user.id` dá FALSE e **o dono entra na própria
+   sala como convidado** — sem erro na tela, só o botão sumindo. Agora o `host_id`
+   vem na mesma leitura fresca do `game_state`.
+2. **Aviso do banco não apaga mais o dono.** O handler fazia
+   `{ ...prev, host_id: r.host_id }`; aviso picado → `host_id: undefined` na cópia
+   local. Agora só grava quando o aviso traz o dono de verdade.
+3. **O dono nunca é expulso da própria sala.** A trava anti-"vestir bot" apagava a
+   vaga de quem reconecta sem técnico humano no índice dele — e pegou o DONO em
+   `H29VAB`. Sala sem dono PARA (regra do Diego), então o dono passa direto.
+
+**Ainda em aberto — "fui removido da sala"** (não mexi, precisa de cuidado):
+a trava usa o `player_index` CRU do banco, mas o jogo senta a galera pela POSIÇÃO
+na lista limpa. Enquanto os dois batem, tudo bem; quando divergem (buraco na
+numeração, gente entrando no segundo do início, time virado em CPU porque a pessoa
+caiu), a pessoa volta, não acha técnico humano no índice dela e **a vaga é APAGADA**
+— ela não consegue nem voltar. Mexer aqui é mexer em assento, que é o histórico de
+bug mais caro do jogo ("virei bot", "dei lance por outro"), então só com teste
+dedicado. Ideia: reancorar pela POSIÇÃO antes de desistir, e **não apagar a vaga** —
+só barrar a entrada, pra pessoa poder voltar quando o host reabrir.

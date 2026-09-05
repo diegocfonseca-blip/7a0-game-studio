@@ -951,10 +951,15 @@ export function EscLobby() {
           // modo o estado inteiro é adotado — nos outros continua entrando só o
           // host_id, como sempre, pra não atropelar nada da sala.
           if ((r.game_state as GS)?.mode === 'mundo') {
-            setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id, game_state: r.game_state } : prev)
+            setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id ?? prev.host_id, game_state: r.game_state } : prev)
             return
           }
-          setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id } : prev)
+          // 👑 só atualiza o dono quando o aviso REALMENTE traz o dono. O aviso do
+          // banco pode chegar picado (a linha da sala passa de 200 KB com o baralho
+          // e o elenco dentro), e `{ ...prev, host_id: undefined }` APAGAVA o dono
+          // da cópia local — daí em diante toda comparação com `host_id` responde
+          // "não é o dono". Guardar custa nada e fecha a porta.
+          if (r.host_id) setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id } : prev)
         })
       // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
       // aviso na hora; a exclusão da sala é a rede de segurança).
@@ -1077,7 +1082,10 @@ export function EscLobby() {
     if (!user) return false
     // pega o estado salvo MAIS recente (não confia no payload do evento, que
     // pode vir defasado) — é o que permite retomar a partida na reconexão.
-    const { data: freshRoom } = await supabase.from('game_rooms').select('game_state').eq('id', roomData.id).maybeSingle()
+    // 👑 lê o DONO junto com o estado: quem manda na sala é a linha do banco, NUNCA
+    // a cópia que veio no evento (ver o `amHost` lá embaixo — foi o buraco do
+    // "sumiu o COMEÇAR O LEILÃO" na live do marcelow, 05/09).
+    const { data: freshRoom } = await supabase.from('game_rooms').select('game_state, host_id').eq('id', roomData.id).maybeSingle()
     const gs = (freshRoom?.game_state ?? roomData.game_state) as GS | undefined
     // 🔒 TRAVA (listas magras): se o fetch do estado FRESCO falhou e a linha só tem
     // o mini-estado da lista (sem managers), NÃO segue — seguir cairia no "começa
@@ -1093,7 +1101,17 @@ export function EscLobby() {
     // "Menu inicial", "Sair da conta"). Antes, limpar aqui fazia o host que
     // recarregava cair na lista de salas e abandonar a partida.
     saveRoom(roomData.id)
-    const amHost = roomData.host_id === user.id
+    // 👑 QUEM É O DONO SAI DO BANCO, não do evento (bug da live do marcelow,
+    // 05/09: o streamer entrou na PRÓPRIA sala como convidado — o botão "COMEÇAR
+    // O LEILÃO" não apareceu, e voltou sozinho quando ele atualizou a página).
+    // `roomData` chega de vários lugares: a lista magra de salas, o payload do
+    // realtime, o `room` guardado na tela. Basta um deles vir sem `host_id`
+    // (ou com ele desatualizado) pra `undefined === user.id` dar FALSE e o dono
+    // virar convidado na própria sala — sem erro nenhum na tela, só o botão
+    // sumindo. A linha fresca é a única verdade; a cópia velha só entra se a
+    // leitura falhar.
+    const donoDaSala = (freshRoom as { host_id?: string } | null)?.host_id ?? roomData.host_id
+    const amHost = donoDaSala === user.id
     // partida já em andamento salva no banco → RESTAURA (evita resetar tudo
     // quando alguém reconecta ou o host recarrega/cai). Caso contrário, é o
     // início de verdade: monta o jogo do zero (determinístico pelo código).
@@ -1105,7 +1123,15 @@ export function EscLobby() {
       // segundo do início ganhava um índice que não existia no jogo e virava
       // um bot de preenchimento (time completo, 💰 0) — bug do Red Bull Diet.
       const mineMgr = (gs as EscState).managers.find(m => m.id === myPl.player_index)
-      if (!mineMgr || !mineMgr.isHuman) {
+      // 🚨 O DONO NUNCA É EXPULSO DA PRÓPRIA SALA (achado 05/09 no banco: a sala
+      // H29VAB ficou PARADA na tela de abertura do stream e a vaga do próprio
+      // dono tinha sumido do room_players — sala sem dono não anda, e é o que o
+      // Diego decidiu que deve ESPERAR o dono, não embolar). Esta trava existe
+      // pra quem entrou no segundo exato do início não "vestir um bot"; o dono
+      // não é esse caso — ele é quem toca a sala.
+      if (amHost && (!mineMgr || !mineMgr.isHuman)) {
+        // deixa passar: ele restaura como dono e continua tocando a partida
+      } else if (!mineMgr || !mineMgr.isHuman) {
         await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
         clearSavedRoom()
         setRoom(null); setPlayers([]); setPhase('menu')
