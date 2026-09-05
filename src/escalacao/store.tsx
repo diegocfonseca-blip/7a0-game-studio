@@ -578,6 +578,14 @@ export const START_MONEY = 100
 // liberado pra sempre (nunca cobramos de quem já estava jogando).
 export const MANUAL_ERA = 1
 const LEAGUE_SIZE = 20
+// 🏦 BANCO LEGENDS · os valores de ficha que o jogo aceita creditar.
+// Régua do Diego (04/08): **R$ 1 = 3 🪙** — então os pacotes de R$ 10/50/100/500/
+// 1000 viram fichas de 30/150/300/1500/3000. Os cinco valores ANTIGOS continuam
+// na lista de propósito: fichas geradas antes da régua do triplo (e as que o
+// Diego criou na mão) não podem virar pó. A MESMA lista está no CHECK da tabela
+// `bl_fichas` (migração `banco_legends_aceita_ficha_do_triplo`) — se um dia mudar
+// aqui, muda lá também, senão o botão de gerar ficha volta a falhar calado.
+export const BANCO_VALORES = [10, 30, 50, 100, 150, 300, 500, 1000, 1500, 3000]
 const TOTAL_ROUNDS = 38
 
 // ─── RNG com seed (reprodutível dentro da partida) ───────────────────
@@ -6120,7 +6128,16 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🏦 BANCO LEGENDS: a validação/queima da ficha é do Supabase (RPC atômica);
       // aqui só entra o crédito. Solo apenas; valores fixos dos pacotes.
       if (s.onlineMode === 'online' || !s.careerOnline) return s
-      if (![10, 50, 100, 500, 1000].includes(action.coins)) return s
+      // 🐛 CONSERTO 05/09 (o Diego: *"não consigo enviar as moedas nesse botão"*).
+      // A régua dele de 04/08 é **R$ 1 = 3 🪙**, e a loja e o Caixa do Gerente já
+      // mostram isso ("PIX DE R$ 100 → FICHA DE 300"). Só que esta lista aqui — e o
+      // CHECK da tabela `bl_fichas` — tinham ficado nos valores ANTIGOS (10/50/100/
+      // 500/1000, quando ficha era 1:1 com o Pix). Resultado: o botão de gerar ficha
+      // tentava gravar 300 e o banco RECUSAVA, calado; e se uma ficha de 300
+      // escapasse, o RPC QUEIMAVA o código e este `return s` engolia o crédito — o
+      // jogador perdia a ficha. Agora valem os DOIS conjuntos: os valores novos
+      // (Pix × 3) e os antigos, pra nenhuma ficha já gerada virar pó.
+      if (!BANCO_VALORES.includes(action.coins)) return s
       const yb = s.managers[s.youIdx]?.id ?? 0
       s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + action.coins }
       logFin(s, 'banco', `🏦 Empréstimo do Banco Legends (ficha ${action.code})`, action.coins, undefined, yb)

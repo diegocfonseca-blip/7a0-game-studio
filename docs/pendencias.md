@@ -13497,6 +13497,12 @@ Dono: `guiouriques@hotmail.com` · **Série A**, no assento que era do **Murriz 
 `Atlético Seringueiro` (escolhido por só existir em `DIVISION_TEAMS.B` e em
 `CLASSIC_CLUBS`, em mais lugar nenhum do jogo).
 
+🚫 **ISSO NÃO VAI PRO POST NEM PRA NOVIDADE DA HOME** (regra nova, 05/09 — está
+no CLAUDE.md): o Diego mandou refazer o mockup tirando o Murriz, porque dizer
+"entrou no lugar do Murriz" **dá a impressão de que o Murriz saiu do jogo** — e
+ele é batismo de outra pessoa. Palavras dele: *"não queria confusão"*. Quem saiu
+de verdade foi o **bot da Série B**. No post: só "chega na Série A".
+
 ⚠️ **NÃO existe `OLD_NAME` em nenhuma ponta desta troca** (mesma regra do
 Marreco/Al Takhadao): ninguém foi renomeado, os dois clubes seguem existindo —
 mapear faria dois clubes desenharem o mesmo escudo na mesma tabela. O Murriz
@@ -13533,3 +13539,18 @@ Vidraceiro: 3 × 100 = 300 🪙 — `BL-VDRA-QA`, `BL-VDRB-QB`, `BL-VDRC-QC`).
 **Decisão do Diego pendente**: a régua certa é "R$ 1 = 3 🪙" (aí o CHECK e o
 reducer passam a aceitar 30/150/300/1500/3000) ou "ficha = moeda" (aí é a tela da
 loja que está mentindo)? Só ele decide — mexe em preço.
+
+### ✅ RESOLVIDO no mesmo dia (05/09) — o botão de gerar ficha
+O Diego mostrou a tela: *"não consigo enviar as moedas nesse botão"* — o Caixa do
+Gerente escrevia **"PIX DE R$ 100 → FICHA DE 300 🪙"** e o toque não fazia nada.
+Não era decisão de preço: a régua **R$ 1 = 3 🪙** é dele desde 04/08 e a loja já
+mostrava assim. O que tinha ficado velho eram as duas TRAVAS:
+- `CHECK` da tabela `bl_fichas` (só 10/50/100/500/1000) → recusava a ficha calada;
+- `BANCO_CREDIT` no `store.tsx`, com a mesma lista velha → se uma ficha de 300
+  escapasse, o RPC **queimava o código** e o reducer engolia o crédito: o jogador
+  perdia a ficha.
+
+Agora as duas aceitam os DOIS conjuntos (30/150/300/1500/3000 **e** os antigos,
+pra nenhuma ficha já gerada virar pó). A lista mora em `BANCO_VALORES`
+(`store.tsx`) e na migração `banco_legends_aceita_ficha_do_triplo` — **mexeu numa,
+mexe na outra**, senão o botão volta a falhar em silêncio.

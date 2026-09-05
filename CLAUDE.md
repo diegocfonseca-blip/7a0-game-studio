@@ -169,6 +169,17 @@ FORA do bundle. Então, sem exceção:
      foi o que ele cobrou. Não inventar layout novo a cada batismo: é esse
      arquivo, e ele mora no repo justamente porque o mockup do Coringas foi feito
      à mão e **se perdeu** com o scratchpad. Mandar pro Diego junto com a entrega.
+   - 🚫 **REGRA PERMANENTE (05/09): o POST NUNCA diz de quem foi o assento.** Ou
+     seja: **não passar `--antigo`** quando a vaga veio de um clube que CONTINUA
+     no jogo. Palavras do Diego: *"não diz que o Murriz saiu… porque dá impressão
+     que ele saiu do jogo. Quem saiu foi o time da Série B. Até porque Murriz é
+     batismo e eu não queria confusão"*. Ele já tinha pedido o mesmo no Al
+     Takhadao (*"no post não falar 'entrou no lugar do Marreco', só 'entrou na
+     Série A'"*) — agora virou lei. O post diz só **"chega na Série X"**.
+     `--antigo` só entra quando o nome velho REALMENTE deixou de existir (clube
+     renomeado, tipo Stocco FC ← Semervilha). A troca de assento continua sendo
+     anotada no CÓDIGO e nas pendências — isso é memória do repo, não é post.
+   - ❤️ **O TIME DE CORAÇÃO VAI NO POST** (`--coracao`) sempre que a gente souber.
    - 🎽 **A CAMISA que o dono mandou VAI no post** (`--camisa`), sempre. O
      gerador só desenha uma camisa genérica quando o batismo veio sem arte de
      manto. Cobrança do Diego: *"a camisa eu mandei pra você, cara"*. As camisas
