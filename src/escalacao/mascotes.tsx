@@ -23,6 +23,7 @@ import capsuleMascoteImg from './img/capsule-mascote.webp' // 🐉 Corporação 
 import stoccoMascoteImg from './img/stocco-mascote.webp' // ⚡🐺 Stocco FC (stoccoassessoria): arte própria do dono, 04/09
 import finalBossMascoteImg from './img/finalboss-mascote.webp' // 🐂 Final Boss FC (gustavo99828): arte própria do dono, 05/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
+import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
 import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
@@ -545,6 +546,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   stocco_lobo: (
     <img src={stoccoMascoteImg} height={176} width={Math.round(176 * 263 / 440)} alt="O Relâmpago — Stocco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🐟 O Bagre — Bagres 1993 (caiohcris, 06/09). 244x440 no arquivo, então a
+  // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  bagres_bagre: (
+    <img src={bagresMascoteImg} height={176} width={Math.round(176 * 244 / 440)} alt="O Bagre — Bagres 1993" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🪟 O Cristal — Vidraceiro FC (guiouriques, 05/09). 208x440 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
   vidraceiro_vidro: (
@@ -859,6 +865,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'STOCCO FC': 'stocco_lobo',
   'STOCCO': 'stocco_lobo',
   'Semervilha': 'stocco_lobo',
+  // 🐟 Bagres 1993 — busca EXATA: as 4 formas do nome + CAIXA ALTA. SEM nome
+  // velho (o GuGu só desceu de divisão, segue com a mascote dele).
+  'Bagres 1993': 'bagres_bagre',
+  'Bagres 1993 FC': 'bagres_bagre',
+  'Bagres 1993 EC': 'bagres_bagre',
+  'Bagres 1993 SC': 'bagres_bagre',
+  'BAGRES 1993': 'bagres_bagre',
+  'BAGRES 1993 FC': 'bagres_bagre',
   // 🪟 Vidraceiro FC — busca EXATA: as 4 formas do nome + CAIXA ALTA. SEM nome
   // velho (o Murriz só desceu de divisão, segue com a mascote dele).
   'Vidraceiro FC': 'vidraceiro_vidro',
@@ -933,6 +947,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   papao_lobo: 'O Papão',         // 🐺 Papão United Madrid (agrostinho88, 23/08)
   takahdao_papagaio: 'O Papagaio', // 🦜 Al Takahdao FC (fontourajoao04, 01/09)
   stocco_lobo: 'O Relâmpago', // ⚡🐺 Stocco FC (stoccoassessoria, 04/09) — tirado do "OS RELÂMPAGOS" que o dono pôs na manga da camisa
+  bagres_bagre: 'O Bagre', // 🐟 Bagres 1993 (caiohcris, 06/09) — o bagre de boné do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   vidraceiro_vidro: 'O Cristal', // 🪟 Vidraceiro FC (guiouriques, 05/09) — a chapa de vidro do escudo. ✅ nome CONFIRMADO pelo Diego ("mascote tudo bem ser Cristal", 05/09)
   finalboss_touro: 'O Boss', // 🐂 Final Boss FC (gustavo99828, 05/09) — o touro do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, então é pra confirmar com o dono
   capsule_dragao: 'O DragonBola', // 🐉 Corporação Capsule FC (contatovegetta14, 03/09) — o nome que o dono deu

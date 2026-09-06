@@ -13554,3 +13554,31 @@ Agora as duas aceitam os DOIS conjuntos (30/150/300/1500/3000 **e** os antigos,
 pra nenhuma ficha já gerada virar pó). A lista mora em `BANCO_VALORES`
 (`store.tsx`) e na migração `banco_legends_aceita_ficha_do_triplo` — **mexeu numa,
 mexe na outra**, senão o botão volta a falhar em silêncio.
+
+## 🐟 BATISMO Bagres 1993 (06/09) — ✅ ENTREGUE (as 3 pernas)
+Dono: `caiohcris@gmail.com` · **Série A**, no assento que era do **White Thigs do
+GuGu** (o 1º batismo da história) — e o GuGu DESCEU pra **Série B**, por decisão do
+Diego, na vaga do bot `Estrela do Pantanal` (escolhido por só existir em
+`DIVISION_TEAMS.B` e `CLASSIC_CLUBS`).
+
+🚫 **Nada disso vai pro post nem pra novidade** (regra de 05/09, no CLAUDE.md): o
+post diz só "chega na Série A". Dizer de quem era o assento dá a impressão de que
+o outro clube saiu do jogo — e o GuGu é batismo de outra pessoa.
+
+⚠️ **SEM `OLD_NAME` em nenhuma ponta**: ninguém foi renomeado. E cuidado extra
+aqui — o GuGu **já tem corrente própria** de nomes velhos (`White Thigs do GuGu` →
+`Astronáutico` → `Sinhô Futebol`), que continua valendo e não pode ser tocada.
+
+- **Arte** (prancha sobre verde neon — o croma teve que exigir verde CLARO e MUITO
+  saturado, `G>170` e 70 de folga, senão comia o manto VERDE ESCURO do clube):
+  escudo 290×360 · **29,0 KB** (quality 84) · mascote 244×440 · **34,7 KB** →
+  **63,7 KB de 75**. Camisa em `scripts/kits/bagres-camisa.webp`.
+- **Manto** `['#084C2C', '#F3F1EC']` + 3ª cor **dourada** `#D9A95D` (`MANTO_TRI`) —
+  MEDIDOS na camisa e no escudo, não chutados.
+- Código: `data.ts` (assento A + GuGu pra B + `CLASSIC_CLUBS`) · `escudos.tsx` ·
+  `mascotes.tsx` (`bagres_bagre`) · `manto.ts` · `apoio.tsx` (ouro + `FUNDADOR_N`
+  59) · `batismos.ts` · `checa-batismos.mjs` · novidade.
+- Banco: `user_colors` ouro/manual · `esc_socios` **nº37** · `esc_fundadores`
+  **nº59** · `esc_nomes_batismo` "Bagres 1993" (gatilho criou FC e EC).
+- ❓ **A CONFIRMAR**: nome da mascote (botei **"O Bagre"**, a arte veio sem nome) e
+  o **time de coração** (`esc_socios.time_coracao` está nulo).

@@ -18,6 +18,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
   'fontourajoao04@gmail.com': ['#00461C', '#EE5400'], // 🦜🛒 Al Takhadao FC — verde e laranja, MEDIDOS na camisa que o dono mandou (01/09)
   'luizguilhermeps@hotmail.com': ['#F6BB06', '#053F42'], // 🧦 Jurubeba FC — amarelo e verde-petróleo, MEDIDOS na camisa que o dono mandou (02/09)
+  'caiohcris@gmail.com': ['#084C2C', '#F3F1EC'], // 🐟 Bagres 1993 — verde-mato e branco, MEDIDOS na camisa que o dono mandou (mediana dos verdes e dos brancos do manto, 06/09). O DOURADO é a 3ª cor, em MANTO_TRI: é a moldura, a coroa e o louro do escudo
   'guiouriques@hotmail.com': ['#2186D9', '#080809'], // 🪟 Vidraceiro FC — azul-vidro e preto, MEDIDOS na camisa que o dono mandou (mediana dos azuis e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa é listrada azul/preto com filete branco
   'gustavo99828@gmail.com': ['#CD0C12', '#070505'], // 🐂 Final Boss FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (mediana dos vermelhos e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa dele é branca com faixa vermelha e preta
   'stoccoassessoria@gmail.com': ['#050306', '#6A04D7'], // ⚡ Stocco FC — preto e roxo, MEDIDOS na arte que o dono mandou (mediana dos pixels escuros e o roxo vivo do corpo da camisa, 04/09)
@@ -130,6 +131,7 @@ const MANTO_TRI: Record<string, string> = {
   cobra_arruda: '#C2001E', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho, 16/08)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)
   saoluiz_pitbull: '#FFFFFF', // 🐶 São Luiz FC — 3ª cor BRANCA (vermelho/preto/branco, medidas na camisa dele, 21/08)
+  bagres_bagre: '#D9A95D', // 🐟 Bagres 1993 (caiohcris) — 3ª cor DOURADA: a moldura, a coroa e o louro do escudo (medidas na arte dele, 06/09)
   vidraceiro_vidro: '#FFFFFF', // 🪟 Vidraceiro FC (guiouriques) — 3ª cor BRANCA: a camisa é listrada azul/preto com filete branco (medidas na arte dele, 05/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08

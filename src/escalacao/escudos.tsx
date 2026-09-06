@@ -33,6 +33,7 @@ import capsuleEscudoImg from './img/capsule-escudo.webp' // 🐉 Corporação Ca
 import stoccoEscudoImg from './img/stocco-escudo.webp' // ⚡ Stocco FC (stoccoassessoria): arte própria do dono, 04/09
 import finalBossEscudoImg from './img/finalboss-escudo.webp' // 🐂 Final Boss FC (gustavo99828): arte própria do dono, 05/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
+import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 Leão da Estradinha (jorgericardo777): arte própria do dono
 import skyyEscudoImg from './img/skyy-escudo.webp'
@@ -581,6 +582,11 @@ const finalBossEscudoRender = (size: number) => (
 const vidraceiroEscudoRender = (size: number) => (
   <img src={vidraceiroEscudoImg} height={size} width={Math.round(size * 259 / 360)} alt="Vidraceiro FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🐟 Bagres 1993 — 290x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado, senão o escudo achata).
+const bagresEscudoRender = (size: number) => (
+  <img src={bagresEscudoImg} height={size} width={Math.round(size * 290 / 360)} alt="Bagres 1993" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const jurubebaEscudoRender = (size: number) => (
   <img src={jurubebaEscudoImg} height={size} width={Math.round(size * 285 / 360)} alt="Jurubeba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -762,6 +768,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // Branca (05/09). As 4 formas do nome (o batismo reserva todas) + o nome velho,
   // pra save antigo com Ponte Branca (ou Grelha SAF, o nome mais velho ainda,
   // que o newestTeamName resolve na corrente) não ficar sem escudo.
+  // 🐟 Bagres 1993 (caiohcris) — Série A, no assento que era do White Thigs do
+  // GuGu (06/09). ⚠️ SEM o nome velho: o GuGu não foi renomeado, só desceu pra
+  // Série B — ele continua com o escudo DELE.
+  'Bagres 1993': bagresEscudoRender,
+  'Bagres 1993 FC': bagresEscudoRender,
+  'Bagres 1993 EC': bagresEscudoRender,
+  'Bagres 1993 SC': bagresEscudoRender,
   // 🪟 Vidraceiro FC (guiouriques) — Série A, no assento que era do Murriz FC
   // (05/09). ⚠️ SEM o nome velho aqui de propósito: o Murriz não foi renomeado,
   // só desceu pra Série B — ele continua com o escudo DELE.

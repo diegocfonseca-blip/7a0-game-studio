@@ -2559,7 +2559,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   A: [
     { name: 'Zé Ruela', team: 'Neymarzetti' }, // ⚽ clube BATIZADO (time do Diego, dono do jogo — ex-Paixandu)
     { name: 'Guilherme', team: 'Nightfull FC' }, // ⚽ clube BATIZADO por apoiador (Guilherme)
-    { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!)
+    { name: 'Bagrão', team: 'Bagres 1993' }, // 🐟 clube BATIZADO por apoiador (caiohcris — Bagres 1993; verde e branco, mascote o Bagre de boné; Lenda + fundador nº59 + sócio nº37, 06/09). Assento que era do White Thigs do GuGu, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o GuGu não foi renomeado, só mudou de divisão — e ele tem corrente própria de nomes velhos (Astronáutico/Sinhô Futebol) que continua valendo.
     { name: 'Serjão', team: 'Marolados FC' }, // ⚽ clube BATIZADO por apoiador (paisagensetrilha — Marolados FC, ex-Real Madruga; molecada da várzea, Lenda + fundador, 11/08)
     { name: 'Painitto', team: 'SC Ferrari' }, // ⚽ clube BATIZADO por apoiador (adriano.ferrari — SC Ferrari, ex-Painitto FC)
     { name: 'Zé da Vidraça', team: 'Vidraceiro FC' }, // 🪟 clube BATIZADO por apoiador (guiouriques — Vidraceiro FC; Lenda + fundador nº58 + sócio nº36, 05/09). Assento que era do Murriz FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Igual ao caso do Marreco/Al Takhadao: NÃO existe OLD_NAME aqui — o Murriz não foi renomeado, só mudou de divisão, e mapear faria os dois desenharem o mesmo escudo. Escudo, mascote (🪟 O Cristal) e manto azul-vidro + preto com a arte própria do dono.
@@ -2588,7 +2588,14 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Agreste', team: 'Guarani do Agreste' },
     { name: 'Comendador', team: 'Comercial das Gerais' },
     { name: 'Fronteira', team: 'Ipiranga da Fronteira' },
-    { name: 'Pantaneiro', team: 'Estrela do Pantanal' },
+    // 🥋 White Thigs do GuGu (o 1º batismo da história) DESCEU da Série A pra cá
+    // em 06/09, por decisão do Diego, pra abrir o assento do Bagres 1993. Ocupa a
+    // vaga que era do bot "Estrela do Pantanal" (escolhido por só existir aqui e
+    // em CLASSIC_CLUBS, em mais lugar nenhum do jogo).
+    // ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['White Thigs do GuGu'] = 'Estrela do
+    // Pantanal'`: ele não foi renomeado, só mudou de divisão — e já tem corrente
+    // própria de nomes velhos (Astronáutico → Sinhô Futebol), que segue intacta.
+    { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
     { name: 'Doca', team: 'Operário das Docas' },
     { name: 'Colono', team: 'Botafogo da Colônia' },
     { name: 'Caicó', team: 'Fluminense de Caicó' },
@@ -2681,7 +2688,7 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Guarani do Agreste', atk: 70, def: 68 },
   { name: 'Comercial das Gerais', atk: 68, def: 70 },
   { name: 'Ipiranga da Fronteira', atk: 67, def: 66 },
-  { name: 'Estrela do Pantanal', atk: 65, def: 67 },
+  { name: 'White Thigs do GuGu', atk: 65, def: 67 }, // 🥋 desceu da Série A em 06/09 (abriu o assento do Bagres 1993) — MESMA força do bot que cedeu a vaga (Estrela do Pantanal)
   { name: 'Operário das Docas', atk: 64, def: 65 },
   { name: 'Botafogo da Colônia', atk: 63, def: 62 },
   { name: 'Fluminense de Caicó', atk: 61, def: 63 },
