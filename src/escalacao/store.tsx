@@ -163,6 +163,29 @@ export function contratoCpuFalta(cardId: string, seed: number, seasonNo: number)
   return (h + 5 - (seasonNo % 5)) % 5
 }
 
+// 🕵️ OLHEIRO — quem pode SONDAR quem (Diego 07/09). A régua vai pela CATEGORIA
+// da carta, e é a mesma do overall do elenco:
+//   · foi profissional (fame 1), bom jogador (fame 2/3) e PROMESSA (o selo, em
+//     qualquer fame) → TODO MUNDO sonda, sem apoio nenhum. Palavras dele: *"quem
+//     não for craque nem lenda poderá sondar apenas jogadores da categoria foi
+//     profissional, bom jogador e promessa"*.
+//   · craque (fame 4, sem selo de promessa) → precisa do ⭐ Craque (prata) ou do 👑
+//   · lenda (fame 5) → só o 👑 Lenda (ouro)
+// Devolve o tier MÍNIMO que a carta pede (null = liberada pra todos).
+export function sondarPedeTier(c: { fame: number; promessa?: boolean }): 'prata' | 'ouro' | null {
+  if (c.promessa) return null
+  if (c.fame >= 5) return 'ouro'
+  if (c.fame === 4) return 'prata'
+  return null
+}
+/** o tier da conta dá conta da carta? (ouro cobre tudo; prata cobre até craque) */
+export function sondarLiberado(c: { fame: number; promessa?: boolean }, tier: string | undefined): boolean {
+  const pede = sondarPedeTier(c)
+  if (!pede) return true
+  if (tier === 'ouro') return true
+  return pede === 'prata' && tier === 'prata'
+}
+
 // 🕴️ técnico liberado no fim de contrato tem EX-DONO humano: quando alguém o
 // contrata, o ex-dono recupera METADE do preço (regra do Diego 27/08). Se o
 // próprio ex-dono recontratar, não paga a si mesmo — só limpa o registro.
@@ -6038,14 +6061,13 @@ export function reducer(state: EscState, action: Action): EscState {
         if (cur.includes(action.cardId)) { s.aliciarJogadores = cur.filter(n => n !== action.cardId); return s }
         if (cur.length >= 1) return s
         if (contratoCpuFalta(action.cardId, s.seed, s.seasonNo) > 0) return s // sob contrato: não alicia
-        // 🕵️ OLHEIRO (Diego 07/09): sondar jogador é benefício do Olheiro, com a
-        // MESMA régua do overall — 👑 ouro sonda qualquer um, ⭐ prata sonda de
-        // craque pra baixo (fame < 5), sem tier não sonda. A tela já tranca o
-        // botão; isto aqui é a trava de verdade (ninguém marca lenda "por fora").
+        // 🕵️ OLHEIRO (Diego 07/09): a régua de quem sonda quem mora em
+        // `sondarLiberado` (profissional/bom/promessa = todos · craque = ⭐/👑 ·
+        // lenda = 👑). A tela já tranca a linha; isto aqui é a trava de verdade
+        // (ninguém marca craque ou lenda "por fora").
         const alvo = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === action.cardId))?.squad.find(c => c.id === action.cardId)
         if (!alvo) return s
-        const tier = myApoioPerk()?.tier
-        if (tier !== 'ouro' && !(tier === 'prata' && alvo.fame < 5)) return s
+        if (!sondarLiberado(alvo, myApoioPerk()?.tier)) return s
         s.aliciarJogadores = [action.cardId]
       }
       return s

@@ -13,13 +13,20 @@ técnico e jogador… o WhatsApp libere a partir do craque"*.
 O que mudou (tudo reversível revertendo o commit):
 - `sport.ts`: o interruptor do sondar jogador (`aliciarJogOk`) virou `true`; o
   Set de testers ficou como botão de emergência (igual ao das 15 formações).
-- `pyramidseason.tsx` (AliciarSection): a régua do **Olheiro** é a MESMA do
-  overall — 👑 ouro sonda qualquer um, ⭐ prata sonda `fame < 5` (lenda aparece
-  trancada com "🔒 lenda · só o 👑 Lenda sonda" + porta pra virar Lenda), quem não
-  tem tier vê só a PORTA no lugar da lista. Continua 1 jogador + 1 técnico por
-  leilão e só sem contrato. Rodapé e faixa: "Sondar técnico e jogador".
-- `store.tsx` (`ALICIAR_MARCAR`): trava de verdade pelo tier (`myApoioPerk`) e
-  pelo `fame` da carta — ninguém marca lenda "por fora" da tela.
+- **A régua vai pela CATEGORIA da carta** (`sondarPedeTier`/`sondarLiberado` em
+  `store.tsx`; segunda ordem dele no mesmo dia: *"quem não for craque nem lenda
+  poderá sondar apenas jogadores da categoria foi profissional, bom jogador e
+  promessa"*): foi profissional, bom jogador e PROMESSA (o selo, em qualquer
+  fame) → todo mundo sonda, sem apoio · craque (fame 4) → ⭐ Craque ou 👑 · lenda
+  (fame 5) → só 👑 Lenda.
+- `pyramidseason.tsx` (AliciarSection): todo mundo vê a lista de jogadores do
+  clube, com selo do tier (bege "Sondar básico" · prata · ouro). Linha fora da
+  régua aparece trancada com o porquê ("🔒 craque · só o ⭐ Craque ou 👑 Lenda
+  sonda" / "🔒 lenda · só o 👑 Lenda sonda") + porta no pé da caixa. Continua 1
+  jogador + 1 técnico por leilão e só sem contrato. Rodapé e faixa: "Sondar
+  técnico e jogador".
+- `store.tsx` (`ALICIAR_MARCAR`): trava de verdade pela categoria da carta e pelo
+  tier (`myApoioPerk`) — ninguém marca craque/lenda "por fora" da tela.
 - `screens.tsx` (Apoie): benefício rebatizado **🕵️ Olheiro Craque / Olheiro
   Lenda**, em lista (① nível · ② sondar jogador); **📲 Grupo VIP** entrou no card
   do Craque (no Lenda vira "tudo do Craque incluso"); tabela: Olheiro "até

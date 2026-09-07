@@ -493,7 +493,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                 Em LISTA, como ele pediu: *"de forma lista coloque o sondar jogador"*. */}
             <Ben t="🕵️ Olheiro Craque">seu olheiro trabalha <b>de Craque pra baixo</b> (Craque, Promessa, Bom Jogador e Profissional — a Lenda fica em mistério, só o 👑 revela):</Ben>
             <p className="text-[11px] font-bold text-black/75 leading-snug mt-1 pl-3">① <b>Nível (overall) revelado</b> no seu elenco, <b>depois de contratar</b> no leilão — no modo padrão ele vem oculto.</p>
-            <p className="text-[11px] font-bold text-black/75 leading-snug mt-0.5 pl-3">② <b>Sondar jogador</b> de outro clube na janela antes do leilão: o sondado <b>vai pro pregão</b> e você briga por ele — 1 por leilão, igual ao técnico.</p>
+            <p className="text-[11px] font-bold text-black/75 leading-snug mt-0.5 pl-3">② <b>Sondar os CRAQUES</b> de outros clubes na janela antes do leilão: o sondado <b>vai pro pregão</b> e você briga por ele — 1 por leilão, igual ao técnico. <i>(Sem apoio já dá pra sondar profissional, bom jogador e promessa; o Craque destrava os craques.)</i></p>
             {/* 🧼 SÓ O NOME E O NÚMERO (Diego 23/08): *"a parte do Djalminha não
                 precisa por um título ali em cima de banner e nem legenda embaixo,
                 basta o nome e o overall, o entendimento — porque senão fica muita
@@ -522,7 +522,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: GOLD, backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
             <Ben t="🕵️ Olheiro Lenda">vai além do Craque: o olheiro trabalha com <b>TODAS as categorias, Lenda inclusive</b> —</Ben>
             <p className="text-[11px] font-bold text-black/75 leading-snug mt-1 pl-3">① <b>Nível (overall) de todo o elenco</b>, até as Lendas, depois de contratar no leilão.</p>
-            <p className="text-[11px] font-bold text-black/75 leading-snug mt-0.5 pl-3">② <b>Sondar qualquer jogador</b> de outro clube, Lenda inclusive — o sondado vai pro pregão e você briga por ele (1 por leilão).</p>
+            <p className="text-[11px] font-bold text-black/75 leading-snug mt-0.5 pl-3">② <b>Sondar qualquer jogador</b> de outro clube, <b>Lenda inclusive</b> — o único que sonda lendas. O sondado vai pro pregão e você briga por ele (1 por leilão).</p>
             <div className="border-2 border-black rounded-lg bg-white px-2.5 py-2 mt-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>ATA</span><span>Romário</span><span className="text-[8.5px] font-bold text-black/40">· Baixinho 👑</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#FFE79A,#FFC400)')}>93–99</span></div>
             <div className="border-2 border-black rounded-lg bg-white px-2.5 py-2 mt-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>MEI</span><span>Zico</span><span className="text-[8.5px] font-bold text-black/40">· Flamengo 👑</span><span className="ml-auto text-[9px] font-black rounded-md border-2 border-black px-1.5 py-0.5" style={{ ...OSWALD, background: GREEN, color: '#fff' }}>🕵️ SONDAR</span></div>
             <Ben t="🆕 Carreira Online e Ligas Fechadas">acesso garantido aos modos novos entre amigos (sem bots) assim que forem lançados — e você já pode <b>criar a sua Liga</b>.</Ben>
@@ -595,7 +595,9 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                   ['Moedas todo mês', '30 🪙', '—', '—', '30 🪙'],
                   ['Modo Manual (ritmo)', '—', '✓', '✓', '✓'],
                   // 🕵️ Olheiro (07/09): nível + sondar jogador, mesma régua nos dois
-                  ['🕵️ Olheiro (nível + sondar)', '—', 'até craque', 'até lendas', 'até lendas'],
+                  // sem apoio todo mundo sonda profissional/bom/promessa; o Olheiro
+                  // acrescenta o overall e os craques (⭐) ou as lendas (👑)
+                  ['🕵️ Olheiro (nível + sondar)', 'básico', 'até craque', 'até lendas', 'até lendas'],
                   ['Carreiras salvas', '2', '4', '6', '6'],
                   ['Grupo VIP no zap', '—', '✓', '✓', '✓'], // 07/09: liberado a partir do Craque
                   ['Carreira Online e Ligas', '—', '—', '✓', '✓'],
@@ -611,7 +613,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                 ))}
               </tbody>
             </table>
-            <p className="text-[9.5px] font-bold text-black/55 leading-snug px-2.5 py-2" style={{ borderTop: '2px solid rgba(0,0,0,.08)', background: '#fff' }}>O 🎫 Sócio é o único mensal — os outros três são pagamento único. E o nível dos jogadores só aparece <b>depois</b> de contratar: no leilão é emoção pura pra todo mundo.</p>
+            <p className="text-[9.5px] font-bold text-black/55 leading-snug px-2.5 py-2" style={{ borderTop: '2px solid rgba(0,0,0,.08)', background: '#fff' }}>O 🎫 Sócio é o único mensal — os outros três são pagamento único. E o nível dos jogadores só aparece <b>depois</b> de contratar: no leilão é emoção pura pra todo mundo. 🕵️ <b>Sondar básico</b> todo mundo tem de graça (profissional, bom jogador e promessa) — o Olheiro acrescenta o nível e destrava craques (⭐) e lendas (👑).</p>
           </div>
 
           <button onClick={() => { logApoio('👀 abriu: só apoiar'); setScreen('pix') }} className="w-full text-left border-[3px] border-black rounded-xl px-3 py-2 mt-4 active:translate-y-0.5"
