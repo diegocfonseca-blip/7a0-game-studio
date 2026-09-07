@@ -3,6 +3,23 @@
 ## Online ilustrado V22 — publicação autorizada em 07/09
 Diego aprovou publicar as três telas online e o encerramento completo: O Martelo ilustrado com TODAS as notas da redação, pacote do campeão com logo oficial e votação/saída. Implementação isolada em `online-visual.css`, `jornal-online-visual.tsx/css` e hooks visuais do lobby/screens. Oswald e controles branco/creme, amarelo e roxo; mobile e desktop. Regras, premiações, sorteio/persistência da carta e autoridade do host preservados. Offline mantém seu jornal. Integrado com as mudanças atuais do Olheiro e sondados, sem sobrescrevê-las. Detalhes e reversão em `docs/online-visual-v22.md`.
 
+## 🌑 Batismo Nova Eclipse FC (jh9415474@gmail.com) — ✅ 3 pernas feitas 07/09
+Série C, no assento do bot **Zequinha SAF** (`OLD_NAME` aponta pro nome velho;
+o bot saiu de `DIVISION_TEAMS.C` e de `CLASSIC_CLUBS`). Arte do dono cortada do
+fundo verde: escudo 241×360 19,5 KB · mascote 245×440 32 KB · camisa em
+`scripts/kits/`. Manto medido: preto `#0A0A0A` + branco `#E3E2E1`. Banco: sócio
+nº38 · fundador nº60 · 3 nomes reservados · `user_colors` ouro/manual.
+⏳ **Confirmar com o dono**: nome da mascote (provisório "O Eclipse"), time de
+coração (vazio em `esc_socios.time_coracao`) e nome dele pro post.
+
+## 🎟️ Cupom de influenciador (PANTERA, 10% só no batismo) — código no branch, ⏳ OK visual
+Banco pronto (`esc_cupons`/`esc_cupom_usos` + RPCs `esc_cupom_validar`/`esc_cupom_usar`,
+migração `cupons_influenciador`), cupom PANTERA já cadastrado. Tela do batismo com o
+campo, Pix com desconto, DM com "usei o cupom", Painel do Criador com criação de cupom e
+relatório por influenciador (usaram / pagos / entrou / desconto dado; botão "Pix caiu").
+Mockup: `node scripts/mockup-cupom.mjs`. Limite de usos e validade são opcionais por cupom
+(Diego decide caso a caso). Só vai pra `main` com o OK dele na imagem.
+
 ## 🕵️ Sondado não ia pro leilão (Elber) — ✅ consertado 07/09
 O bloco que move o jogador sondado pro leilão (`RESERVE_AUCTION_ONLINE`,
 "1a-bis") tinha a trava "só sai se sobrar gente na posição". Bot de carreira tem

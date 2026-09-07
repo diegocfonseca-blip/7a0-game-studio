@@ -109,6 +109,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'luizguilhermeps@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº54 + SÓCIO nº32 + batismo (Jurubeba FC, Série B, ex-Ferroviário do Sul; mascote a meia 🧦, 02/09)
   'caiohcris@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº59 + SÓCIO nº37 + batismo (Bagres 1993, Série A, no assento que era do White Thigs do GuGu; verde e branco, mascote o Bagre 🐟, 06/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'guiouriques@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº58 + SÓCIO nº36 + batismo (Vidraceiro FC, Série A, no assento que era do Murriz FC; 05/09; escudo, mascote e manto com arte própria do dono). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
+  'jh9415474@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº60 + SÓCIO nº38 + batismo (Nova Eclipse FC, Série C, ex-Zequinha SAF; mascote O Eclipse 🌑, preto + branco; 07/09)
   'gustavo99828@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº57 + batismo (Final Boss FC, Série C, ex-Ponte Branca; mascote o touro O Boss 🐂, vermelho + preto sobre branco, 05/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'stoccoassessoria@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº56 + batismo (Stocco FC, Série C, ex-Semervilha; mascote o Relâmpago 🐺, roxo + preto, 04/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'contatovegetta14@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº55 + batismo (Corporação Capsule FC, Série B, ex-Real Tabuleiro; mascote DragonBola 🐉, preto + azul escuro, 03/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
@@ -155,6 +156,7 @@ const FUNDADOR_N: Record<string, number> = {
   'stoccoassessoria@gmail.com': 56, // ⚡ Stocco FC (04/09)
   'gustavo99828@gmail.com': 57, // 🐂 Final Boss FC (05/09)
   'guiouriques@hotmail.com': 58, // 🪟 Vidraceiro FC (05/09)
+  'jh9415474@gmail.com': 60, // 🌑 Nova Eclipse FC (07/09)
   'caiohcris@gmail.com': 59, // 🐟 Bagres 1993 (06/09)
   'contatovegetta14@gmail.com': 55, // 🐉 Corporação Capsule FC (03/09)
   'cesar.verissimo27@gmail.com': 3,

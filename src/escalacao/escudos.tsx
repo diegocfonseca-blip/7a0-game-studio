@@ -32,6 +32,7 @@ import takahdaoEscudoImg from './img/al-takahdao-escudo.webp' // 🦜🛒 Al Tak
 import capsuleEscudoImg from './img/capsule-escudo.webp' // 🐉 Corporação Capsule FC (contatovegetta14): arte própria do dono, 03/09
 import stoccoEscudoImg from './img/stocco-escudo.webp' // ⚡ Stocco FC (stoccoassessoria): arte própria do dono, 04/09
 import finalBossEscudoImg from './img/finalboss-escudo.webp' // 🐂 Final Boss FC (gustavo99828): arte própria do dono, 05/09
+import novaEclipseEscudoImg from './img/novaeclipse-escudo.webp' // 🌑 Nova Eclipse FC (jh9415474): arte própria do dono, 07/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -572,6 +573,12 @@ const capsuleEscudoRender = (size: number) => (
 const stoccoEscudoRender = (size: number) => (
   <img src={stoccoEscudoImg} height={size} width={Math.round(size * 277 / 360)} alt="Stocco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata
+// com coroa e o eclipse.
+const novaEclipseEscudoRender = (size: number) => (
+  <img src={novaEclipseEscudoImg} height={size} width={Math.round(size * 241 / 360)} alt="Nova Eclipse FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🐂 Final Boss FC — 264x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado, senão o escudo achata).
 const finalBossEscudoRender = (size: number) => (
@@ -787,6 +794,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Final Boss EC': finalBossEscudoRender,
   'Final Boss SC': finalBossEscudoRender,
   'Ponte Branca': finalBossEscudoRender,
+  // 🌑 Nova Eclipse FC (jh9415474) — Série C, no assento que era do bot Zequinha
+  // SAF (07/09). As 4 formas do nome + o nome velho, pra save antigo com Zequinha
+  // SAF não ficar sem escudo.
+  'Nova Eclipse FC': novaEclipseEscudoRender,
+  'Nova Eclipse': novaEclipseEscudoRender,
+  'Nova Eclipse EC': novaEclipseEscudoRender,
+  'Nova Eclipse SC': novaEclipseEscudoRender,
+  'Zequinha SAF': novaEclipseEscudoRender,
   'Corporação Capsule FC': capsuleEscudoRender,
   'Corporação Capsule': capsuleEscudoRender,
   'Corporação Capsule EC': capsuleEscudoRender,
