@@ -20,6 +20,31 @@ relatório por influenciador (usaram / pagos / entrou / desconto dado; botão "P
 Mockup: `node scripts/mockup-cupom.mjs`. Limite de usos e validade são opcionais por cupom
 (Diego decide caso a caso). Só vai pra `main` com o OK dele na imagem.
 
+## 🏢 SAF / 2º clube "não sobem" (Futpoint) — investigado no save real, ✅ correção 07/09
+O motor de subida/descida está certo (rodado headless por 12 temporadas com 2º
+clube + SAF: sobe e desce por mérito, 20 por divisão). O que achamos no save do
+gfpicolo13 (T228):
+- **SAF Papão United Madrid gravada com ZERO cartas** em `cpuSquads` — e `[]` não
+  cai no `??`, então o clube entrava em campo **sem ninguém**, perdia tudo e
+  ficava no fundo da Várzea. Correção em dois lugares: `buildPyramid` completa na
+  hora qualquer ficha que não fecha os 11 (`completaComBase`, com a receita) e
+  `FINISH_CEREMONY` conserta o save de vez (catálogo livre, bom jogador pra baixo;
+  incógnito só em último caso). ⚠️ Causa raiz de COMO esvaziou não foi cravada —
+  suspeitos: empréstimo devolvido sob chave nova antes do `mapKeys` do rename
+  (Santos Dumont → Papão) e `healCpuSquads` (remove cópias sem piso de 11).
+- **2º clube Leão da Estradinha (m20)**: comprado na T216 na D, caiu pra V, e
+  **não ganhou nada desde então** (`careerHonors.m20` vazio). Os "4 títulos da
+  Várzea" que aparecem na linha dele são do clube como BOT, antes da compra
+  (chave pelo NOME). Não é bug de subida — é a fila do ranking mostrando a
+  história do nome. Sobrou também uma ficha órfã `cpuSquads['Leão da Estradinha']`
+  (2 cartas), inofensiva (o nome é excluído do fundo por ser manager).
+- Ranking Geral: clube só com título de Várzea aparecia "—" (o `V` não entrava
+  na soma) — corrigido. `world` agora depende de `youIdx` (após trocar de clube,
+  "minha colocação/divisão" descrevia o clube antigo).
+⏳ Ainda em aberto (decisão do Diego): unificar a história do clube batizado
+(chave nome) com a do assento (m-id) quando vira 2º clube — hoje o Hall/Total
+mostra só o assento no comando.
+
 ## 📊 Painel ao vivo mostrava a divisão de FUNDAÇÃO, não a atual — ✅ consertado 07/09
 O pulso (`heartbeat` em `store.tsx`) mandava `careerDivision` antes do
 `careerPlacements` — e na pirâmide o `careerDivision` fica congelado na divisão

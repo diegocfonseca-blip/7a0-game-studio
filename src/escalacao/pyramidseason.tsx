@@ -285,6 +285,22 @@ function buildCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | '
 const cpuOrigDiv = (name: string): Div => DIVISION_TEAMS.A.some(t => t.team === name) || EXTRA_D_TEAMS.some(t => t.team === name) ? 'A' : DIVISION_TEAMS.B.some(t => t.team === name) ? 'B' : DIVISION_TEAMS.C.some(t => t.team === name) ? 'C' : DIVISION_TEAMS.D.some(t => t.team === name) ? 'D' : 'C'
 // chave estável de um time: técnico = m<id>; CPU = nome
 export const teamKey = (t: { teamId: number; name: string }) => t.teamId >= 0 ? `m${t.teamId}` : t.name
+// 🩹 completa uma ficha de fundo que não fecha os 11 com cartas da receita (base),
+// posição por posição, sem repetir id. Mantém o que a ficha tinha (empréstimos,
+// compras) e só tampa os buracos. Determinístico: a base já é.
+function completaComBase(salva: PoolCard[], base: PoolCard[]): PoolCard[] {
+  const out = [...salva]
+  const ids = new Set(out.map(c => c.id))
+  for (const p of SECTORS) {
+    let have = out.filter(c => c.pos === p).length
+    for (const c of base) {
+      if (have >= NEED[p]) break
+      if (c.pos !== p || ids.has(c.id)) continue
+      out.push(c); ids.add(c.id); have++
+    }
+  }
+  return out
+}
 
 // monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
@@ -316,7 +332,14 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   for (const [name, base] of cpu) {
     const olds = oldChain(name)
     const plKey = placements?.[name] != null ? name : (olds.find(o => placements?.[o] != null) ?? name)
-    const squad = cpuSquads?.[name] ?? olds.map(o => cpuSquads?.[o]).find(Boolean) ?? base
+    const salva = (cpuSquads?.[name] ?? olds.map(o => cpuSquads?.[o]).find(Boolean)) as PoolCard[] | undefined
+    // 🩹 FICHA SALVA SEM TIME PRA ESCALAR (bug do Futpoint, 07/09): a SAF dele
+    // (Papão United Madrid) estava gravada com ZERO cartas em `cpuSquads` — e `[]`
+    // não é "vazio" pro `??`, então o clube entrava em campo sem ninguém, perdia
+    // tudo e o dono via "a SAF não sobe nunca". Regra: se a ficha salva não fecha
+    // os 11, completa com a receita (base) — posição por posição, sem repetir
+    // carta. Ficha completa segue byte a byte como sempre foi.
+    const squad = salva && bestXI(salva).length === 11 ? salva : completaComBase(salva ?? [], base)
     const tCpu = mk(name, squad as PoolCard[], false, false, -1)
     if (!temColoc(plKey)) semHistoria.add(tCpu)
     world[divOf(plKey, cpuDiv.get(name) ?? cpuOrigDiv(name))].push(tCpu)
@@ -3979,7 +4002,8 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
                   </span>
                 </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                  {(r.h.A + r.h.B + r.h.C + r.h.D + r.copas + r.supercopa + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                  {/* 🌱 o V entra na conta (07/09): clube que só tem título de Várzea aparecia "—", como se nunca tivesse ganhado nada */}
+                  {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.supercopa + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › Supercopa › B › C › D), pra bater com o que decide quem fica na frente */}
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
                     {(r.h.A ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.h.A}</span>}
@@ -5404,7 +5428,10 @@ export function PyramidSeasonScreen() {
   // `multiPending` = você apertou no meio de uma rodada (auto) → troca no fim dela.
   const [multiAsk, setMultiAsk] = useState(false)
   const [multiPending, setMultiPending] = useState(false)
-  const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads])
+  // 🏛️ `state.youIdx` entra nas dependências (07/09): ao passar o comando pro 2º
+  // clube, o `you` do mundo continuava no clube antigo até outra coisa mexer —
+  // "minha colocação", "minha divisão" e o desfecho descreviam o clube errado.
+  const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx]) // eslint-disable-line react-hooks/exhaustive-deps
   const careerTactics = (state.careerTactics ?? {}) as RoundTactics
   const careerLineup = (state.careerLineup ?? {}) as RoundLineups
   // 🔁 decisões de intervalo (só carreira offline; vazio no resto) — motor re-simula

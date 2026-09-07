@@ -5365,6 +5365,39 @@ export function reducer(state: EscState, action: Action): EscState {
           }
         }
       }
+      // 🩹 FICHA DE FUNDO SEM TIME PRA ESCALAR (bug do Futpoint, 07/09): a SAF dele
+      // estava gravada com ZERO cartas em `cpuSquads`, então entrava em campo vazia
+      // temporada após temporada. A leitura (buildPyramid) já tampa na hora; aqui o
+      // conserto vira PERMANENTE no save: toda ficha de fundo que não fecha os 11
+      // ganha jogador do catálogo livre (bom jogador pra baixo, o mais fraco) e, só
+      // se não houver ninguém, um incógnito. Ficha completa não é tocada.
+      if (s.careerOnline && s.onlineMode !== 'online' && s.cpuSquads) {
+        const NEED_F: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+        const idF = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
+        const usadosF = new Set<string>()
+        for (const m of s.managers) for (const c of m.squad) if (!c.fake) usadosF.add(idF(c))
+        for (const cards of Object.values(s.cpuSquads)) for (const c of cards) if (!(c as Card).fake) usadosF.add(idF(c as Card))
+        const rngF = rngOf(s)
+        let mexeu = false
+        const sqF = { ...s.cpuSquads }
+        for (const nome of Object.keys(sqF)) {
+          const arr = [...(sqF[nome] as WonCard[])]
+          let mudou = false
+          for (const pos of SECTORS) {
+            let have = arr.filter(c => c.pos === pos).length
+            let guard = 0
+            while (have < NEED_F[pos] && guard++ < 6) {
+              const livres = ACTIVE_CATALOG[pos].filter(c => !usadosF.has(idF(c)) && (c.fame ?? 1) <= 3 && !c.promessa)
+              const pick = livres.length ? [...livres].sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))[Math.floor(rngF() * Math.min(5, livres.length))] : undefined
+              if (pick) { usadosF.add(idF(pick)); arr.push({ ...pick, pos, id: `repo-f-${pos}-${Math.floor(rngF() * 1e9)}`, paid: 0, via: 'monte' } as WonCard) }
+              else arr.push(fillerCard(pos, rngF))
+              have++; mudou = true
+            }
+          }
+          if (mudou) { sqF[nome] = arr; mexeu = true }
+        }
+        if (mexeu) s.cpuSquads = sqF
+      }
       // 📝 CONTRATOS (carreira): todo jogador de HUMANO ou RIVAL que ainda não tem
       // contrato ganha um de 5-10 temporadas (contando a atual). SÓ em carreira que
       // NASCEU com contratos (contratosOn) — save antigo fica como sempre foi.
