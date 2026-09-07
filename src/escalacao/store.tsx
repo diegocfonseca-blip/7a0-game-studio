@@ -6038,6 +6038,14 @@ export function reducer(state: EscState, action: Action): EscState {
         if (cur.includes(action.cardId)) { s.aliciarJogadores = cur.filter(n => n !== action.cardId); return s }
         if (cur.length >= 1) return s
         if (contratoCpuFalta(action.cardId, s.seed, s.seasonNo) > 0) return s // sob contrato: não alicia
+        // 🕵️ OLHEIRO (Diego 07/09): sondar jogador é benefício do Olheiro, com a
+        // MESMA régua do overall — 👑 ouro sonda qualquer um, ⭐ prata sonda de
+        // craque pra baixo (fame < 5), sem tier não sonda. A tela já tranca o
+        // botão; isto aqui é a trava de verdade (ninguém marca lenda "por fora").
+        const alvo = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === action.cardId))?.squad.find(c => c.id === action.cardId)
+        if (!alvo) return s
+        const tier = myApoioPerk()?.tier
+        if (tier !== 'ouro' && !(tier === 'prata' && alvo.fame < 5)) return s
         s.aliciarJogadores = [action.cardId]
       }
       return s

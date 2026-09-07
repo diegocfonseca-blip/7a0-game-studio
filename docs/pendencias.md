@@ -1,4 +1,36 @@
-# 📌 Pendências combinadas com o Diego (atualizado 04/09/2026)
+# 📌 Pendências combinadas com o Diego (atualizado 07/09/2026)
+
+## 🕵️ O OLHEIRO — sondar jogador de volta · WhatsApp a partir do Craque (07/09)
+**Código pronto no branch `claude/denis-save-file-x1osct` · ⏳ ESPERANDO O OK VISUAL
+do Diego pra ir pra `main`** (mockup: `node scripts/mockup-olheiro.mjs`).
+
+Pedido dele (07/09): *"na área de sondar quero dar opção agora pro usuário sondar
+jogador também… só quem for lenda consegue sondar lendas p baixo, e só quem for
+craque consegue ver jogadores craques p baixo, igual já funciona c overall… o
+nome disso será Olheiro… a aba que tava escrito sondar técnico agora diz sondar
+técnico e jogador… o WhatsApp libere a partir do craque"*.
+
+O que mudou (tudo reversível revertendo o commit):
+- `sport.ts`: o interruptor do sondar jogador (`aliciarJogOk`) virou `true`; o
+  Set de testers ficou como botão de emergência (igual ao das 15 formações).
+- `pyramidseason.tsx` (AliciarSection): a régua do **Olheiro** é a MESMA do
+  overall — 👑 ouro sonda qualquer um, ⭐ prata sonda `fame < 5` (lenda aparece
+  trancada com "🔒 lenda · só o 👑 Lenda sonda" + porta pra virar Lenda), quem não
+  tem tier vê só a PORTA no lugar da lista. Continua 1 jogador + 1 técnico por
+  leilão e só sem contrato. Rodapé e faixa: "Sondar técnico e jogador".
+- `store.tsx` (`ALICIAR_MARCAR`): trava de verdade pelo tier (`myApoioPerk`) e
+  pelo `fame` da carta — ninguém marca lenda "por fora" da tela.
+- `screens.tsx` (Apoie): benefício rebatizado **🕵️ Olheiro Craque / Olheiro
+  Lenda**, em lista (① nível · ② sondar jogador); **📲 Grupo VIP** entrou no card
+  do Craque (no Lenda vira "tudo do Craque incluso"); tabela: Olheiro "até
+  craque / até lendas" e zap ✓ a partir do Craque; textos da tela do Manual e da
+  tela de pagamento acompanham.
+- `lobby.tsx`: a linha discreta do grupo (embaixo de Atualizar lista) some também
+  pro ⭐ Craque (já está no grupo) e o link vai pro `?apoie=craque`.
+- `novidades.ts`: linha do Olheiro (07/09).
+
+⚠️ Coisa que o Diego precisa fazer no mundo real: **colocar os ⭐ Craques atuais
+no grupo do WhatsApp** — o jogo passou a prometer isso pra eles.
 
 ## Home ilustrada V07 — publicação aprovada em 05/09/2026
 Diego autorizou publicar a composição desktop/mobile aprovada. A home usa arte de salão, Oswald local, botões branco/roxo/amarelo e rodapé escuro compacto. `HomeIlustradaDiego` em `screens.tsx`, estilos isolados em `home-ilustrada.css`, assets `home-leilao-v07.webp` e fonte local. Ações de rápida/online/carreira e retomadas preservadas. `HOME_ILUSTRADA_GERAL` em `sport.ts` libera a home para todos. Nenhuma migração nem mudança em regras de jogo. Reversão: reverter este commit ou desativar o gate geral (mantém teste do Diego). Base integrada sobre a main atual, preservando alterações paralelas do Claude.

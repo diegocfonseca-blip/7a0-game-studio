@@ -3192,17 +3192,21 @@ export function EscLobby() {
             no grupo. Com a PRÉVIA ligada aparece mesmo assim, marcada.
             ✅ RECONFIRMADO 30/08: perguntei se os Lendas deviam passar a ver também
             (com outro texto, do tipo "você já tem vaga"). Resposta do Diego, seca:
-            *"Só sem ser lenda q vê"*. Fica como está — não propor de novo. */}
-        {(myApoioPerk()?.tier !== 'ouro' || previewComum) && (
+            *"Só sem ser lenda q vê"*. Fica como está — não propor de novo.
+            ⭐ 07/09: o grupo passou a ser DO CRAQUE PRA CIMA (ordem do Diego:
+            *"quero q libere a partir do craque agora"*) — então o Craque (prata)
+            também já está no grupo e também não vê a linha; o texto e o link
+            apontam pro Craque, que é o degrau mais barato que abre a porta. */}
+        {((myApoioPerk()?.tier !== 'ouro' && myApoioPerk()?.tier !== 'prata') || previewComum) && (
           <div className="pt-1">
-            {myApoioPerk()?.tier === 'ouro' && previewComum && (
+            {(myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata') && previewComum && (
               <p className="inline-flex text-[9px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-1.5" style={{ background: GOLD, color: INK, ...OSWALD }}>
                 👁️ prévia — só você vê isto
               </p>
             )}
             <p className="text-white/35 text-[11px] font-bold leading-snug text-center">
-              📱 Sem galera pra chamar? Tem um grupo de quem joga online — é do 👑 Lenda.{' '}
-              <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
+              📱 Sem galera pra chamar? Tem um grupo de quem joga online — é do ⭐ Craque pra cima.{' '}
+              <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=craque` }}
                 className="underline text-white/60 font-black active:opacity-60">Saiba mais</button>
             </p>
           </div>

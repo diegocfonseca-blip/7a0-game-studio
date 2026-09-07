@@ -3134,7 +3134,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       {olheiros && olheiroTier !== 'ouro' && olheiroTier !== 'prata' && (
         <ApoieButton startScreen="choice" trigger={open => (
           <button onClick={open} style={{ width: '100%', border: `2.5px dashed ${INK}`, borderRadius: 11, padding: '7px 10px', margin: '0 0 10px', background: '#FBF6E8', cursor: 'pointer', textAlign: 'left', fontWeight: 800, fontSize: 11, color: 'rgba(0,0,0,.6)', lineHeight: 1.4 }}>
-            🕵️ Quer ver o <b>overall</b> dos teus jogadores aqui? ⭐ Craque vê até craque · 👑 Lenda vê TUDO — <u>toca aqui</u>
+            🕵️ Quer ver o <b>overall</b> dos teus jogadores aqui? É do <b>Olheiro</b>: ⭐ Craque vê até craque · 👑 Lenda vê TUDO — <u>toca aqui</u>
           </button>
         )} />
       )}
@@ -3408,7 +3408,16 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
 
 function AliciarSection({ mgr }: { mgr: Manager }) {
   const { state, dispatch } = useEsc()
-  const jogadorOn = useAliciarJogador() // 🔒 área de jogador: teste fechado à parte
+  const jogadorOn = useAliciarJogador() // 🔒 interruptor geral do sondar jogador (sport.ts)
+  // 🕵️ OLHEIRO (Diego 07/09): sondar JOGADOR segue a MESMA régua do overall do
+  // elenco — 👑 Lenda (ouro) sonda qualquer um, ⭐ Craque (prata) sonda de craque
+  // pra baixo (fame < 5; a lenda fica trancada com o porquê), e quem não tem
+  // Olheiro vê só a PORTA (regra das portas: no lugar da dor, abrindo a loja).
+  // A trava de verdade mora no reducer (ALICIAR_MARCAR) — aqui é só desenho.
+  const olheiroTier = myApoioPerk()?.tier
+  const temOlheiro = olheiroTier === 'ouro' || olheiroTier === 'prata'
+  const podeSondar = (fame: number) => olheiroTier === 'ouro' || (olheiroTier === 'prata' && fame < 5)
+  const olheiroNome = olheiroTier === 'ouro' ? '👑 Olheiro Lenda' : '⭐ Olheiro Craque'
   const [aberto, setAberto] = useState<string | null>(null)
   // semeia os técnicos da divisão na primeira visita (idempotente; vai pro save)
   // 🪜 a divisão de VERDADE é o placement (careerDivision fica congelado na de
@@ -3480,9 +3489,13 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         {/* 📝 o texto SEGUE O QUE ESTÁ LIGADO (Diego 28/08: "tire essa informação
             de jogador"): com o sondar de jogador fechado, a explicação fala só
             de técnico. Quando o gate abrir, o texto completo volta sozinho — sem
-            ninguém precisar lembrar de trocar a frase. */}
-        {jogadorOn ? (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros.</p>
+            ninguém precisar lembrar de trocar a frase.
+            🕵️ 07/09: e agora segue TAMBÉM o Olheiro da conta — quem tem, lê a
+            régua dele; quem não tem, lê que jogador é coisa do Olheiro. */}
+        {jogadorOn && temOlheiro ? (
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros. Seu <b>{olheiroNome}</b> sonda {olheiroTier === 'ouro' ? <b>qualquer jogador, lenda inclusive</b> : <><b>de craque pra baixo</b> — lenda, só o 👑 Lenda</>}.</p>
+        ) : jogadorOn ? (
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque o <b>técnico</b> que você quer — <b>máx. 1 por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — ele abre o pregão como uma posição a mais, <b>antes dos goleiros</b>. 🔨 Sondar <b>jogador</b> é do 🕵️ <b>Olheiro</b> (⭐ Craque sonda de craque pra baixo · 👑 Lenda sonda tudo).</p>
         ) : (
           <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque o <b>técnico</b> que você quer — <b>máx. 1 por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — ele abre o pregão como uma posição a mais, <b>antes dos goleiros</b>, e você briga por ele no envelope igual jogador. 🔨</p>
         )}
@@ -3541,9 +3554,23 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                 ) : (
                   <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center' }}>😶 Este clube está SEM técnico no momento.</p>
                 )}
-                {jogadorOn && (
-                  <div style={{ border: '3px dashed #7C3AED', borderRadius: 14, padding: '9px 10px', marginTop: 11, background: 'rgba(124,58,237,.06)' }}>
-                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: '#7C3AED', margin: '0 0 5px' }}>🔒 Só você vê (teste da sua conta) · Jogadores</p>
+                {/* 🕵️ JOGADORES DO CLUBE — a parte do OLHEIRO (Diego 07/09). Quem
+                    tem Olheiro vê a lista e sonda dentro da régua dele (a lenda
+                    fica trancada pro ⭐ Craque, com o porquê escrito na linha);
+                    quem não tem vê a PORTA, que abre a loja do Apoie. */}
+                {jogadorOn && !temOlheiro && (
+                  <ApoieButton startScreen="choice" trigger={open => (
+                    <button onClick={open} style={{ width: '100%', border: `2.5px dashed ${INK}`, borderRadius: 11, padding: '8px 10px', margin: '11px 0 0', background: '#FBF6E8', cursor: 'pointer', textAlign: 'left', fontWeight: 800, fontSize: 11, color: 'rgba(0,0,0,.6)', lineHeight: 1.4 }}>
+                      🕵️ Quer sondar <b>JOGADOR</b> deste clube também? É do <b>Olheiro</b>: ⭐ Craque sonda de craque pra baixo · 👑 Lenda sonda TUDO — <u>toca aqui</u>
+                    </button>
+                  )} />
+                )}
+                {jogadorOn && temOlheiro && (
+                  <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, padding: '9px 10px', marginTop: 11, background: '#FBF6E8' }}>
+                    <p style={{ margin: '0 0 5px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: INK, background: olheiroTier === 'ouro' ? APOIO_PERKS.ouro.grad : APOIO_PERKS.prata.grad, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{olheiroNome}</span>
+                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: '#5a5647' }}>Jogadores</span>
+                    </p>
                     {SECTORS.map(pos => {
                       const cs = c.squad.filter(x => x.pos === pos && !x.fake && !x.emprestado)
                       if (!cs.length) return null
@@ -3556,14 +3583,17 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                             const falta = contratoCpuFalta(x.id, state.seed, state.seasonNo)
                             const marcado = marcadosJ.includes(x.id)
                             const preso = falta > 0
+                            // 👑 lenda trancada pro ⭐ Craque — a MESMA régua do overall
+                            const foraDaRegua = !marcado && !podeSondar(x.fame)
                             const tetoCheio = !marcado && marcadosJ.length >= 1
-                            const pode = !preso && (!tetoCheio || marcado)
+                            const pode = !preso && !foraDaRegua && (!tetoCheio || marcado)
+                            const apagado = preso || foraDaRegua || (tetoCheio && !marcado)
                             return (
                               <div key={x.id}>
                                 <div onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id }) }}
-                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: preso || (tetoCheio && !marcado) ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso || foraDaRegua ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso || foraDaRegua ? 'transparent' : GREEN}`, marginBottom: 3, opacity: apagado ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
                                   <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
-                                    <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: preso ? 'rgba(0,0,0,.45)' : marcado ? GREEN : tetoCheio ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? `📝 falta${falta > 1 ? 'm' : ''} ${falta}` : marcado ? '✔ no leilão · tirar' : tetoCheio ? '🔒 já sondou 1' : '🆓 + sondar'}</span></span>
+                                    <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: apagado ? 'rgba(0,0,0,.45)' : GREEN }}>{foraDaRegua ? '🔒 lenda · só o 👑 Lenda sonda' : preso ? `📝 falta${falta > 1 ? 'm' : ''} ${falta}` : marcado ? '✔ no leilão · tirar' : tetoCheio ? '🔒 já sondou 1' : '🆓 + sondar'}</span></span>
                                 </div>
                                 {marcado && (
                                   <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 8, padding: '6px 8px', margin: '0 0 5px', lineHeight: 1.45 }}>📰 <b>Bastidor:</b> {historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo)}</p>
@@ -3575,6 +3605,14 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                       )
                     })}
                     <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato, e o clube nunca fica manco). A grana da venda vai pro clube dono — que também pode brigar de volta.</p>
+                    {/* 🚪 porta pro ⭐ Craque quando o clube tem lenda trancada */}
+                    {olheiroTier !== 'ouro' && c.squad.some(x => !x.fake && !x.emprestado && x.fame >= 5) && (
+                      <ApoieButton startScreen="choice" trigger={open => (
+                        <button onClick={open} style={{ width: '100%', border: `2px dashed ${INK}`, borderRadius: 9, padding: '6px 9px', margin: '7px 0 0', background: '#fff', cursor: 'pointer', textAlign: 'left', fontWeight: 800, fontSize: 10, color: 'rgba(0,0,0,.6)', lineHeight: 1.4 }}>
+                          👑 As lendas deste clube só o <b>Olheiro Lenda</b> sonda — <u>toca aqui</u> pra virar Lenda pagando só a diferença
+                        </button>
+                      )} />
+                    )}
                   </div>
                 )}
               </div>
@@ -8029,13 +8067,15 @@ export function ReserveListScreen() {
           <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, transform: 'translateZ(0)', willChange: 'transform', backfaceVisibility: 'hidden' }}>
             {/* 👇 FAIXA DE ESTREIA — só enquanto nunca abriram o Sondar */}
             {!viuSondar && (
-              <button onClick={abreSondar} aria-label="Sondar técnico"
+              <button onClick={abreSondar} aria-label="Sondar técnico e jogador"
                 style={{ display: 'block', width: '100%', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, border: 'none', borderTop: `3px solid ${INK}`, borderBottom: `3px solid ${INK}`, padding: '6px 10px', cursor: 'pointer', color: INK, ...OSWALD, fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.3px' }}>
-                👇 tem técnico pra contratar aqui embaixo
+                👇 tem técnico e jogador pra sondar aqui embaixo
               </button>
             )}
             <div style={{ background: '#FAF7EE', borderTop: viuSondar ? `3px solid ${INK}` : 'none', display: 'flex', gap: 7, padding: '8px 9px calc(12px + env(safe-area-inset-bottom))' }}>
-              {([['vender', '📋', 'Vender'], ['aliciar', '🕵️', `Sondar técnico${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
+              {/* 🕵️ "Sondar técnico e jogador" (Diego 07/09: a aba que dizia só
+                  técnico agora diz os dois — o jogador voltou, pelo Olheiro). */}
+              {([['vender', '📋', 'Vender'], ['aliciar', '🕵️', `Sondar técnico e jogador${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
                 const on = abaLeilao === k
                 // 🟡 o Sondar sai DOURADO enquanto ninguém abriu — é o chamariz.
                 // Depois do 1º toque ele vira aba branca normal, igual o Vender.

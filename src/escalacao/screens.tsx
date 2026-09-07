@@ -460,7 +460,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <Secao n="⚡ Paga uma vez" tag="é seu pra sempre" />
 
           <Tier k="prata" grad="linear-gradient(150deg,#F4F7FB,#CBD4DE 60%,#9BA7B5)" nome="⭐ Craque" preco="R$ 19,90" quando="pagamento único" corTxt={INK}>
-            <OQueE>Pra quem quer dar um up no visual, <b>controlar o tempo</b> e <b>revelar o nível</b> dos jogadores no elenco.</OQueE>
+            <OQueE>Pra quem quer dar um up no visual, <b>controlar o tempo</b>, ter o <b>🕵️ Olheiro</b> (nível dos jogadores + sondar jogador) e entrar no <b>grupo VIP</b>.</OQueE>
             <Ben t="⭐ Visual Prata com Brilho">nome e estádio brilham em prata nas tabelas, nos elencos e no modo online.</Ben>
             <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1.5 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: '#CBD4DE', border: '2px solid #000', boxShadow: '0 0 6px 1px #CBD4DE', flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} ⭐</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">no elenco, tabelas<br />e no online</span></div>
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: '#CBD4DE', backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
@@ -487,12 +487,27 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                 </div>
               </div>
             </div>
-            <Ben t="🕵️ Nível (Overall) Revelado no Elenco">no modo padrão, o nível dos jogadores do seu time vem oculto. Com o Craque você vê as categorias ocultas (Profissional, Bom Jogador, Promessa e Craque) <b>depois de contratá-los no leilão</b> — a Lenda fica em mistério, só o 👑 revela.</Ben>
+            {/* 🕵️ OLHEIRO (Diego 07/09): o benefício ganhou NOME e virou dois em um —
+                o overall que já existia + o sondar JOGADOR, que voltou. A régua é a
+                mesma nos dois: Craque vê/sonda de craque pra baixo; Lenda, tudo.
+                Em LISTA, como ele pediu: *"de forma lista coloque o sondar jogador"*. */}
+            <Ben t="🕵️ Olheiro Craque">seu olheiro trabalha <b>de Craque pra baixo</b> (Craque, Promessa, Bom Jogador e Profissional — a Lenda fica em mistério, só o 👑 revela):</Ben>
+            <p className="text-[11px] font-bold text-black/75 leading-snug mt-1 pl-3">① <b>Nível (overall) revelado</b> no seu elenco, <b>depois de contratar</b> no leilão — no modo padrão ele vem oculto.</p>
+            <p className="text-[11px] font-bold text-black/75 leading-snug mt-0.5 pl-3">② <b>Sondar jogador</b> de outro clube na janela antes do leilão: o sondado <b>vai pro pregão</b> e você briga por ele — 1 por leilão, igual ao técnico.</p>
             {/* 🧼 SÓ O NOME E O NÚMERO (Diego 23/08): *"a parte do Djalminha não
                 precisa por um título ali em cima de banner e nem legenda embaixo,
                 basta o nome e o overall, o entendimento — porque senão fica muita
                 informação"*. A linha sozinha já mostra o que o texto prometeu. */}
             <div className="border-2 border-black rounded-lg bg-white px-2.5 py-2 mt-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>MEI</span><span>Djalminha</span><span className="text-[8.5px] font-bold text-black/40">· Palmeiras ⭐</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#F4F7FB,#CBD4DE)')}>83–88</span></div>
+            <div className="border-2 border-black rounded-lg bg-white px-2.5 py-2 mt-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>ATA</span><span>Túlio Maravilha</span><span className="text-[8.5px] font-bold text-black/40">· Botafogo ⭐</span><span className="ml-auto text-[9px] font-black rounded-md border-2 border-black px-1.5 py-0.5" style={{ ...OSWALD, background: GREEN, color: '#fff' }}>🕵️ SONDAR</span></div>
+            {/* 📲 GRUPO VIP: era só do Lenda; o Diego liberou A PARTIR DO CRAQUE em
+                07/09 (*"quero q libere a partir do craque agora"*). */}
+            <Ben t="📲 Grupo VIP no WhatsApp">contato direto com o criador (Diego) pra ver bastidores, novidades antes de todo mundo e achar galera pra jogar online.</Ben>
+            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
+              <div style={{ background: '#F4ECD6', padding: 8 }}>
+                <p className="bg-white border-2 border-black rounded-lg px-2 py-1 text-[9.5px] font-bold text-black/80">👑 <b style={OSWALD}>Diego (criador):</b> sala aberta AGORA, código 7GK2 — quem vem? 🔨</p>
+              </div>
+            </div>
             <Ben t="💾 4 Saves (Carreiras Salvas)">quantidade de carreiras que você pode ter salvas ao mesmo tempo, pra jogar quando quiser.</Ben>
             <div className="border-2 border-dashed border-black rounded-lg px-2.5 py-2 mt-2.5" style={{ background: '#FFF6DE' }}>
               <p className="text-[10.5px] font-bold leading-snug">🎁 <b>Quer o 🎫 Sócio junto</b> (escudo, mascote, manto, estádio batizado, 30 🪙/mês)? Adicionando junto ao Craque, ele sai por <b>R$ 4,90/mês</b> em vez de 9,90.</p>
@@ -505,16 +520,13 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             <Ben t="👑 Visual Ouro com Brilho">cor dourada brilhante (ou a cor que você quiser) e selo exclusivo no nome, pro jogo inteiro ver.</Ben>
             <div className="border-2 border-black rounded-lg px-2 py-1.5 mt-1.5 flex items-center gap-2"><span style={{ width: 13, height: 13, borderRadius: 999, background: GOLD, border: '2px solid #000', boxShadow: `0 0 6px 1px ${GOLD}`, flexShrink: 0 }} /><b className="text-[11px] truncate" style={OSWALD}>{meuNome || 'Seu Nome'} 👑</b><span className="ml-auto text-[7.5px] font-bold text-black/40 text-right flex-shrink-0">o jogo inteiro<br />sabe quem chegou</span></div>
             <div className="border-2 border-black rounded-lg mt-1.5" style={{ height: 20, background: GOLD, backgroundImage: 'radial-gradient(circle at 4px 4px, rgba(0,0,0,.25) 1.6px, transparent 1.9px), radial-gradient(circle at 10px 10px, rgba(255,255,255,.55) 1.6px, transparent 1.9px)', backgroundSize: '13px 13px' }} />
-            <Ben t="🕵️ Overall Supremo (até as Lendas)">vai além do Craque! Revela todas as categorias anteriores e destrava também o <b>nível Lenda</b> dos jogadores do seu elenco, depois da contratação no leilão.</Ben>
+            <Ben t="🕵️ Olheiro Lenda">vai além do Craque: o olheiro trabalha com <b>TODAS as categorias, Lenda inclusive</b> —</Ben>
+            <p className="text-[11px] font-bold text-black/75 leading-snug mt-1 pl-3">① <b>Nível (overall) de todo o elenco</b>, até as Lendas, depois de contratar no leilão.</p>
+            <p className="text-[11px] font-bold text-black/75 leading-snug mt-0.5 pl-3">② <b>Sondar qualquer jogador</b> de outro clube, Lenda inclusive — o sondado vai pro pregão e você briga por ele (1 por leilão).</p>
             <div className="border-2 border-black rounded-lg bg-white px-2.5 py-2 mt-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>ATA</span><span>Romário</span><span className="text-[8.5px] font-bold text-black/40">· Baixinho 👑</span><span className="ml-auto" style={ovChip('linear-gradient(150deg,#FFE79A,#FFC400)')}>93–99</span></div>
-            <Ben t="📲 Grupo VIP no WhatsApp">contato direto com o criador (Diego) pra ver bastidores e novidades antes de todo mundo.</Ben>
-            <div className="border-[3px] border-black rounded-xl overflow-hidden mt-1.5" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-              <div style={{ background: '#F4ECD6', padding: 8 }}>
-                <p className="bg-white border-2 border-black rounded-lg px-2 py-1 text-[9.5px] font-bold text-black/80">👑 <b style={OSWALD}>Diego (criador):</b> sala aberta AGORA, código 7GK2 — quem vem? 🔨</p>
-              </div>
-            </div>
+            <div className="border-2 border-black rounded-lg bg-white px-2.5 py-2 mt-1.5 flex items-center gap-1.5 text-[11px] font-black"><span className="text-[9px] text-black/45" style={OSWALD}>MEI</span><span>Zico</span><span className="text-[8.5px] font-bold text-black/40">· Flamengo 👑</span><span className="ml-auto text-[9px] font-black rounded-md border-2 border-black px-1.5 py-0.5" style={{ ...OSWALD, background: GREEN, color: '#fff' }}>🕵️ SONDAR</span></div>
             <Ben t="🆕 Carreira Online e Ligas Fechadas">acesso garantido aos modos novos entre amigos (sem bots) assim que forem lançados — e você já pode <b>criar a sua Liga</b>.</Ben>
-            <Ben t="🎮 Modo Manual">tudo do ⭐ Craque incluso: o ritmo da carreira na sua mão.</Ben>
+            <Ben t="🎮 Modo Manual + 📲 Grupo VIP">tudo do ⭐ Craque incluso: o ritmo da carreira na sua mão e o grupo do WhatsApp com o criador.</Ben>
             <Ben t="💾 6 Saves (Carreiras Salvas)">mais espaço pra gerenciar e salvar suas carreiras livremente.</Ben>
             <div className="border-2 border-dashed border-black rounded-lg px-2.5 py-2 mt-2.5" style={{ background: '#FFF6DE' }}>
               <p className="text-[10.5px] font-bold leading-snug">🎁 Já é ⭐ <b>Craque</b>? Vira Lenda pagando só a diferença: <b>+ R$ 20</b>.<br />🎫 E o <b>Sócio</b> junto da Lenda sai por <b>R$ 2,90/mês</b>.</p>
@@ -582,9 +594,10 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
                   ['Estádio batizado', '✓', '—', '—', '✓'],
                   ['Moedas todo mês', '30 🪙', '—', '—', '30 🪙'],
                   ['Modo Manual (ritmo)', '—', '✓', '✓', '✓'],
-                  ['Nível dos jogadores', '—', 'quase tudo', 'até lendas', 'até lendas'],
+                  // 🕵️ Olheiro (07/09): nível + sondar jogador, mesma régua nos dois
+                  ['🕵️ Olheiro (nível + sondar)', '—', 'até craque', 'até lendas', 'até lendas'],
                   ['Carreiras salvas', '2', '4', '6', '6'],
-                  ['Grupo VIP no zap', '—', '—', '✓', '✓'],
+                  ['Grupo VIP no zap', '—', '✓', '✓', '✓'], // 07/09: liberado a partir do Craque
                   ['Carreira Online e Ligas', '—', '—', '✓', '✓'],
                   ['Seu nome no jogo', '—', '—', '—', '✓'], // Diego 23/08: "não é clube com nome, é SEU NOME no jogo"
                   ['Selo de Fundador', '—', '—', '—', '✓'],
@@ -683,7 +696,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-4" style={{ background: APOIO_PERKS.prata.grad, boxShadow: `3px 3px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-[13px] text-center relative" style={OSWALD}>⭐ O Modo Manual é o tier Craque</p>
-            <p className="text-[11px] font-bold text-black/70 text-center mt-1 leading-snug relative">Um apoio só: pelos mesmos <b>R$ 19,90</b> você libera o Manual <b>e</b> pinta o time todo — cor prata com brilho no elenco, no estádio e nas tabelas.</p>
+            <p className="text-[11px] font-bold text-black/70 text-center mt-1 leading-snug relative">Um apoio só: pelos mesmos <b>R$ 19,90</b> você libera o Manual, pinta o time todo — cor prata com brilho no elenco, no estádio e nas tabelas — e ainda leva o <b>🕵️ Olheiro Craque</b> e o <b>📲 grupo VIP</b>.</p>
           </div>
 
           <p className="font-black text-center text-lg mt-3" style={OSWALD}>R$ 19,90 · uma vez só</p>
@@ -704,7 +717,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             style={{ background: APOIO_PERKS.ouro.grad, boxShadow: `4px 4px 0 0 ${INK}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 30%,rgba(255,255,255,.6) 48%,transparent 62%)', backgroundSize: '250% 250%', animation: 'escSheen 2.4s linear infinite' }} />
             <p className="font-black text-[13px] relative" style={OSWALD}>👑 Lenda · R$ 39,90 <span className="float-right">👉</span></p>
-            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, o <b>📲 grupo privado no WhatsApp</b> com o criador, a <b>🏆 Minhas Ligas</b> (crie até 5 ligas da sua turma, com estante de troféus), e já garante a <b>Carreira Online</b> (chegando).</p>
+            <p className="text-[10.5px] font-bold text-black/75 leading-snug relative mt-0.5">Tudo do Craque <b>+ ouro</b> (ou qualquer cor) com brilho e selo, o <b>🕵️ Olheiro Lenda</b> (vê e sonda até as lendas), a <b>🏆 Minhas Ligas</b> (crie até 5 ligas da sua turma, com estante de troféus), e já garante a <b>Carreira Online</b> (chegando).</p>
           </button>
           <button onClick={() => { logApoio('👀 manual → batismo'); setScreen('choice'); setAmp('batismo') }}
             className="w-full text-left rounded-xl border-[3px] border-black px-3 py-2.5 mt-2 active:translate-y-0.5"
@@ -740,9 +753,9 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
         return (
         <ApoieModal onClose={close}>
           <p className="font-black text-xl text-center" style={OSWALD}>{ouro ? '👑 LENDA · R$ 39,90' : '⭐ CRAQUE · R$ 19,90'}</p>
-          <p className="text-[10.5px] font-bold text-black/55 text-center mt-1 leading-snug">{ouro ? 'ouro (ou qualquer cor) com brilho + selo + 🎮 Manual + 📲 grupo VIP + overall de tudo + 💾 6 fichas' : 'cor prata com brilho + 🎮 Modo Manual + overall até ⭐ + 💾 4 fichas'}</p>
+          <p className="text-[10.5px] font-bold text-black/55 text-center mt-1 leading-snug">{ouro ? 'ouro (ou qualquer cor) com brilho + selo + 🎮 Manual + 📲 grupo VIP + 🕵️ Olheiro de tudo + 💾 6 fichas' : 'cor prata com brilho + 🎮 Modo Manual + 📲 grupo VIP + 🕵️ Olheiro até ⭐ + 💾 4 fichas'}</p>
           <div className="mt-3.5"><PixBox label="copiar Pix" ctx={ouro ? 'lenda' : 'craque (manual + cor)'} amount={ouro ? 39.9 : 19.9} /></div>
-          <button onClick={() => { logApoio(ouro ? '👑 QUER O LENDA (R$ 39,90)' : '⭐ QUER O CRAQUE (R$ 19,90)'); igMsg(ouro ? 'Opa! Apoiei o Leilão Legends 💛 Quero o 👑 LENDA (ouro/cor com brilho + Manual + grupo VIP) — comprovante em anexo!' : 'Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time) — comprovante em anexo!') }}
+          <button onClick={() => { logApoio(ouro ? '👑 QUER O LENDA (R$ 39,90)' : '⭐ QUER O CRAQUE (R$ 19,90)'); igMsg(ouro ? 'Opa! Apoiei o Leilão Legends 💛 Quero o 👑 LENDA (ouro/cor com brilho + Manual + grupo VIP) — comprovante em anexo!' : 'Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP) — comprovante em anexo!') }}
             className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-3 mt-2.5 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
             📸 MANDAR COMPROVANTE NO @leilaolegendscom

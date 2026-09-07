@@ -234,11 +234,20 @@ export function useFormacoes15(): boolean {
 // pra todo mundo também." Ou seja: a área de Sondar mostra SÓ o técnico do
 // clube, na conta dele igual à de qualquer pessoa — sem versão especial.
 // O código do sondar jogador continua inteiro no jogo, só não desenha.
-// Pra voltar a testar um dia: põe o e-mail dele de volta no Set abaixo.
+// 🔓 VOLTOU, COMO BENEFÍCIO DO OLHEIRO (ordem do Diego 07/09): *"quero q tenha
+// jogador novamente de volta junto c técnico… só quem for lenda consegue sondar
+// lendas p baixo, e só quem for craque consegue ver jogadores craques p baixo,
+// igual já funciona c overall"*. Ou seja: a lista de jogadores existe pra TODO
+// MUNDO que tem Olheiro (⭐ Craque = prata · 👑 Lenda = ouro), e a régua de
+// quem pode sondar quem é a MESMA do overall (`olheiroTier` em pyramidseason):
+// prata sonda fame < 5, ouro sonda tudo. Quem não tem Olheiro vê a porta.
+// Este Set ficou só como INTERRUPTOR DE EMERGÊNCIA: `aliciarJogOk = false` no
+// começo + e-mails no Set = volta a ser teste fechado sem mexer em mais nada.
 const ALICIAR_JOG_TESTERS = new Set<string>([])
-let aliciarJogOk = false
+let aliciarJogOk = true
 function applyAliciarJog(email?: string | null): void {
-  const u = !!email && ALICIAR_JOG_TESTERS.has(email.toLowerCase())
+  const u = true // liberado geral (pra quem tem Olheiro); o Set acima é só o interruptor
+  void email; void ALICIAR_JOG_TESTERS
   if (u === aliciarJogOk) return
   aliciarJogOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
