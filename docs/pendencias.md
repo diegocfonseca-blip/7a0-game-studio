@@ -3,6 +3,16 @@
 ## Online ilustrado V22 — publicação autorizada em 07/09
 Diego aprovou publicar as três telas online e o encerramento completo: O Martelo ilustrado com TODAS as notas da redação, pacote do campeão com logo oficial e votação/saída. Implementação isolada em `online-visual.css`, `jornal-online-visual.tsx/css` e hooks visuais do lobby/screens. Oswald e controles branco/creme, amarelo e roxo; mobile e desktop. Regras, premiações, sorteio/persistência da carta e autoridade do host preservados. Offline mantém seu jornal. Integrado com as mudanças atuais do Olheiro e sondados, sem sobrescrevê-las. Detalhes e reversão em `docs/online-visual-v22.md`.
 
+## 🎮 Batismo Sistematizados FC (gaancaxd@gmail.com) — ✅ 3 pernas feitas 07/09
+Série D, no assento do bot **Coliseu United** (`OLD_NAME`; o bot só existia em
+`DIVISION_TEAMS.D`). Arte do dono (2ª prancha que ele mandou) cortada do fundo
+verde: escudo 311×360 29,6 KB · mascote 271×440 40,2 KB · camisa em
+`scripts/kits/`. Manto medido: preto `#0D0C10` + roxo `#6E16C3`, 3ª cor branca
+`#F3F1F6` (`MANTO_TRI`). Banco: sócio nº39 · fundador nº61 · 3 nomes reservados ·
+`user_colors` ouro/manual. ⚠️ A mascote é a CARICATURA DO DONO (arte dele).
+⏳ **Confirmar com o dono**: nome da mascote (provisório "O Sistematizado"), time
+de coração e nome dele pro post.
+
 ## 🌑 Batismo Nova Eclipse FC (jh9415474@gmail.com) — ✅ 3 pernas feitas 07/09
 Série C, no assento do bot **Zequinha SAF** (`OLD_NAME` aponta pro nome velho;
 o bot saiu de `DIVISION_TEAMS.C` e de `CLASSIC_CLUBS`). Arte do dono cortada do

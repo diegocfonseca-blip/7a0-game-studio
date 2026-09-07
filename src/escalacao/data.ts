@@ -2385,6 +2385,7 @@ export const OLD_NAME: Record<string, string> = {
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
   'Final Boss FC': 'Ponte Branca', // 🐂 batismo do gustavo99828: assumiu o assento da Série C que era do Ponte Branca — save antigo com Ponte Branca (ou Grelha SAF, o nome mais velho ainda) vira Final Boss FC ao carregar (05/09)
+  'Sistematizados FC': 'Coliseu United', // 🎮 batismo do gaancaxd (07/09): assumiu o assento da Série D que era do Coliseu United — save antigo com Coliseu United vira Sistematizados FC ao abrir
   'Nova Eclipse FC': 'Zequinha SAF', // 🌑 batismo do jh9415474 (07/09): assumiu o assento da Série C que era do Zequinha SAF — save antigo com Zequinha SAF vira Nova Eclipse FC ao abrir
   'Stocco FC': 'Semervilha', // ⚡ batismo do stoccoassessoria: assumiu o assento da Série C que era do Semervilha — save antigo com Semervilha (ou Posto 7 FC, o nome mais velho ainda) vira Stocco FC ao carregar (04/09)
   'Corporação Capsule FC': 'Real Tabuleiro', // 🐉 batismo do contatovegetta14: assumiu o assento da Série B que era do Real Tabuleiro — save antigo com Real Tabuleiro vira Corporação Capsule FC ao carregar (03/09)
@@ -2651,7 +2652,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   D: [
     { name: 'Barão', team: 'Metrópole FC' },
     { name: 'Soberano', team: 'Soberano Nacional' },
-    { name: 'Coliseu', team: 'Coliseu United' },
+    { name: 'Sistematizado', team: 'Sistematizados FC' }, // 🎮 clube BATIZADO por apoiador (gaancaxd — Sistematizados FC, ex-Coliseu United, Série D; mascote O Sistematizado, preto + roxo; Lenda + fundador nº61, 07/09)
     { name: 'Cometa', team: 'Galáxia EC' },
     { name: 'Imperador', team: 'Imperador SAF' },
     { name: 'Realeza', team: 'Scorporila FC' }, // ⚽ clube BATIZADO por apoiador (lucassrribeiroo2023 — Scorporila FC, ex-Realeza FC)

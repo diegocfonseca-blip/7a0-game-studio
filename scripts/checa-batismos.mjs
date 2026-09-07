@@ -70,6 +70,7 @@ const BATISMOS = [
   // no assento de um clube que DESCEU pra Série B (Murriz FC e White Thigs do GuGu).
   ['guiouriques@hotmail.com', 'Vidraceiro FC'], ['caiohcris@gmail.com', 'Bagres 1993'],
   ['jh9415474@gmail.com', 'Nova Eclipse FC'], // 🌑 Série C, ex-Zequinha SAF (07/09)
+  ['gaancaxd@gmail.com', 'Sistematizados FC'], // 🎮 Série D, ex-Coliseu United (07/09)
   ['contatovegetta14@gmail.com', 'Corporação Capsule FC'],
   ['denilson.stifler10@gmail.com', 'Xurupitas FC'], ['matheus223lms@icloud.com', 'Alfacehh'],
   ['jorgericardo777@gmail.com', 'Leão da Estradinha'], ['nevesgabriel95@gmail.com', 'Deportivo Montreal'],

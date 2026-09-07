@@ -33,6 +33,7 @@ import capsuleEscudoImg from './img/capsule-escudo.webp' // 🐉 Corporação Ca
 import stoccoEscudoImg from './img/stocco-escudo.webp' // ⚡ Stocco FC (stoccoassessoria): arte própria do dono, 04/09
 import finalBossEscudoImg from './img/finalboss-escudo.webp' // 🐂 Final Boss FC (gustavo99828): arte própria do dono, 05/09
 import novaEclipseEscudoImg from './img/novaeclipse-escudo.webp' // 🌑 Nova Eclipse FC (jh9415474): arte própria do dono, 07/09
+import sistematizadosEscudoImg from './img/sistematizados-escudo.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -573,6 +574,12 @@ const capsuleEscudoRender = (size: number) => (
 const stoccoEscudoRender = (size: number) => (
   <img src={stoccoEscudoImg} height={size} width={Math.round(size * 277 / 360)} alt="Stocco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🎮 Sistematizados FC — 311x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (gaancaxd, 07/09): escudo roxo/prata
+// com a caricatura do streamer.
+const sistematizadosEscudoRender = (size: number) => (
+  <img src={sistematizadosEscudoImg} height={size} width={Math.round(size * 311 / 360)} alt="Sistematizados FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata
 // com coroa e o eclipse.
@@ -802,6 +809,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Nova Eclipse EC': novaEclipseEscudoRender,
   'Nova Eclipse SC': novaEclipseEscudoRender,
   'Zequinha SAF': novaEclipseEscudoRender,
+  // 🎮 Sistematizados FC (gaancaxd) — Série D, no assento que era do bot Coliseu
+  // United (07/09). As 4 formas do nome + o nome velho.
+  'Sistematizados FC': sistematizadosEscudoRender,
+  'Sistematizados': sistematizadosEscudoRender,
+  'Sistematizados EC': sistematizadosEscudoRender,
+  'Sistematizados SC': sistematizadosEscudoRender,
+  'Coliseu United': sistematizadosEscudoRender,
   'Corporação Capsule FC': capsuleEscudoRender,
   'Corporação Capsule': capsuleEscudoRender,
   'Corporação Capsule EC': capsuleEscudoRender,

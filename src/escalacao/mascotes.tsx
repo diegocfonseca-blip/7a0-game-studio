@@ -23,6 +23,7 @@ import capsuleMascoteImg from './img/capsule-mascote.webp' // 🐉 Corporação 
 import stoccoMascoteImg from './img/stocco-mascote.webp' // ⚡🐺 Stocco FC (stoccoassessoria): arte própria do dono, 04/09
 import finalBossMascoteImg from './img/finalboss-mascote.webp' // 🐂 Final Boss FC (gustavo99828): arte própria do dono, 05/09
 import novaEclipseMascoteImg from './img/novaeclipse-mascote.webp' // 🌑 Nova Eclipse FC (jh9415474): arte própria do dono, 07/09
+import sistematizadosMascoteImg from './img/sistematizados-mascote.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -557,6 +558,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   vidraceiro_vidro: (
     <img src={vidraceiroMascoteImg} height={176} width={Math.round(176 * 208 / 440)} alt="O Cristal — Vidraceiro FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🎮 O Sistematizado — Sistematizados FC (gaancaxd, 07/09). 271x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  sistematizados_streamer: (
+    <img src={sistematizadosMascoteImg} height={176} width={Math.round(176 * 271 / 440)} alt="O Sistematizado — Sistematizados FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🌑 O Eclipse — Nova Eclipse FC (jh9415474, 07/09). 245x440 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
   novaeclipse_eclipse: (
@@ -905,6 +911,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'NOVA ECLIPSE FC': 'novaeclipse_eclipse',
   'NOVA ECLIPSE': 'novaeclipse_eclipse',
   'Zequinha SAF': 'novaeclipse_eclipse',
+  // 🎮 Sistematizados FC — as 4 formas do nome, a CAIXA ALTA e o nome velho (Coliseu United)
+  'Sistematizados FC': 'sistematizados_streamer',
+  'Sistematizados': 'sistematizados_streamer',
+  'Sistematizados EC': 'sistematizados_streamer',
+  'Sistematizados SC': 'sistematizados_streamer',
+  'SISTEMATIZADOS FC': 'sistematizados_streamer',
+  'SISTEMATIZADOS': 'sistematizados_streamer',
+  'Coliseu United': 'sistematizados_streamer',
   'Corporação Capsule FC': 'capsule_dragao',
   'Corporação Capsule': 'capsule_dragao',
   'Corporação Capsule EC': 'capsule_dragao',
@@ -964,6 +978,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   stocco_lobo: 'O Relâmpago', // ⚡🐺 Stocco FC (stoccoassessoria, 04/09) — tirado do "OS RELÂMPAGOS" que o dono pôs na manga da camisa
   bagres_bagre: 'O Bagre', // 🐟 Bagres 1993 (caiohcris, 06/09) — o bagre de boné do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   vidraceiro_vidro: 'O Cristal', // 🪟 Vidraceiro FC (guiouriques, 05/09) — a chapa de vidro do escudo. ✅ nome CONFIRMADO pelo Diego ("mascote tudo bem ser Cristal", 05/09)
+  sistematizados_streamer: 'O Sistematizado', // 🎮 Sistematizados FC (gaancaxd, 07/09) — a caricatura do streamer, com headset e controle. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   novaeclipse_eclipse: 'O Eclipse', // 🌑 Nova Eclipse FC (jh9415474, 07/09) — o jogador encapuzado com o eclipse no lugar do rosto. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   finalboss_touro: 'O Boss', // 🐂 Final Boss FC (gustavo99828, 05/09) — o touro do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, então é pra confirmar com o dono
   capsule_dragao: 'O DragonBola', // 🐉 Corporação Capsule FC (contatovegetta14, 03/09) — o nome que o dono deu
