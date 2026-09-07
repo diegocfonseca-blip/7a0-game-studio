@@ -6,8 +6,11 @@
 // agora diz sondar técnico e jogador… e o WhatsApp libere a partir do craque"*.
 //
 // Quatro telas de celular (390 de largura), do jeito que o código desenha:
-//   1. a janelinha do clube pra quem é ⭐ CRAQUE (lenda trancada, com o porquê)
-//   2. a mesma janelinha pra quem NÃO tem apoio (sonda o básico; craque/lenda trancados)
+//   1. a janelinha do clube pra quem é ⭐ CRAQUE (as lendas NEM APARECEM)
+//   2. a mesma janelinha pra quem NÃO tem apoio (só profissional/bom/promessa aparecem)
+// 🙈 3ª volta do Diego: *"usuário comum vê SOMENTE profissional, bom jogador e
+// promessa… se não tem o olheiro top, ele não acharia o jogador"* — quem está
+// acima do olheiro da conta some da lista (não aparece trancado).
 //   3. a aba Sondar com o rodapé novo "Sondar técnico e jogador"
 //   4. o card ⭐ Craque do Apoie com o Olheiro em lista + grupo VIP + a tabela
 //
@@ -57,26 +60,26 @@ const porta = (txt, mt = 11, fs = 11) => `<button style="width:100%;border:2.5px
 const caixaJogadores = (tier) => `
   <div style="border:3px dashed ${INK};border-radius:14px;padding:9px 10px;margin-top:11px;background:#FBF6E8">
     <p style="margin:0 0 5px;display:flex;align-items:center;gap:6px">
-      <span style="${OSW};font-weight:900;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:${INK};background:${tier === 'ouro' ? OURO : tier === 'prata' ? PRATA : BEGE};border:2px solid ${INK};border-radius:999px;padding:2px 8px">${tier === 'ouro' ? '👑 Olheiro Lenda' : tier === 'prata' ? '⭐ Olheiro Craque' : '🕵️ Sondar básico'}</span>
-      <span style="${OSW};font-weight:900;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#5a5647">Jogadores</span>
+      <span style="${OSW};font-weight:900;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:${INK};background:${tier === 'ouro' ? OURO : tier === 'prata' ? PRATA : BEGE};border:2px solid ${INK};border-radius:999px;padding:2px 8px">${tier === 'ouro' ? '👑 Olheiro Lenda' : tier === 'prata' ? '⭐ Olheiro Craque' : '🕵️ Olheiro básico'}</span>
+      <span style="${OSW};font-weight:900;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#5a5647">Jogadores que ele achou</span>
     </p>
-    ${posTit('Goleiro')}
-    ${linha('Rogério Ceni', tier === 'ouro' ? 'livre' : 'lenda')}
+    ${tier === 'ouro' ? posTit('Goleiro') : ''}
+    ${tier === 'ouro' ? linha('Rogério Ceni', 'livre') : ''}
     ${posTit('Lateral')}
-    ${linha('Cafu', tier === 'ouro' ? 'livre' : 'lenda')}
+    ${tier === 'ouro' ? linha('Cafu', 'livre') : ''}
     ${linha('Alan Ruschel', 'preso', 2)}
     ${posTit('Zagueiro')}
     ${linha('Lúcio', 'marcado')}
     ${bastidor('Lúcio já avisou no vestiário: sem contrato novo, ele ouve proposta. O clube não gostou, mas vai brigar no pregão.')}
     ${linha('Naldo', 'teto')}
     ${posTit('Meia')}
-    ${linha('Djalminha', tier === 'bege' ? 'craque' : 'teto')}
-    ${linha('Zico', tier === 'ouro' ? 'teto' : 'lenda')}
+    ${tier === 'bege' ? '' : linha('Djalminha', 'teto')}
+    ${tier === 'ouro' ? linha('Zico', 'teto') : ''}
     ${posTit('Atacante')}
-    ${linha('Túlio Maravilha', tier === 'bege' ? 'craque' : 'preso', 4)}
+    ${tier === 'bege' ? '' : linha('Túlio Maravilha', 'preso', 4)}
     ${linha('Bruno Rangel', 'teto')}
     <p style="font-size:9px;font-weight:700;color:rgba(0,0,0,.5);margin:4px 2px 0;line-height:1.4">Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato, e o clube nunca fica manco). A grana da venda vai pro clube dono — que também pode brigar de volta.</p>
-    ${tier === 'ouro' ? '' : `<button style="width:100%;border:2px dashed ${INK};border-radius:9px;padding:6px 9px;margin:7px 0 0;background:#fff;text-align:left;font-weight:800;font-size:10px;color:rgba(0,0,0,.6);line-height:1.4;font-family:system-ui,sans-serif">${tier === 'prata' ? '👑 As lendas deste clube só o <b>Olheiro Lenda</b> sonda — <u>toca aqui</u> pra virar Lenda pagando só a diferença' : '🕵️ Os trancados são do <b>Olheiro</b>: ⭐ Craque sonda os craques · 👑 Lenda sonda TUDO — <u>toca aqui</u>'}</button>`}
+    ${tier === 'ouro' ? '' : `<button style="width:100%;border:2px dashed ${INK};border-radius:9px;padding:6px 9px;margin:7px 0 0;background:#fff;text-align:left;font-weight:800;font-size:10px;color:rgba(0,0,0,.6);line-height:1.4;font-family:system-ui,sans-serif">${tier === 'prata' ? '🙈 Tem <b>3 jogadores</b> neste clube que o seu olheiro não alcança — só o <b>👑 Olheiro Lenda</b> acha lenda. <u>Toca aqui</u> pra virar Lenda pagando só a diferença' : '🙈 Tem <b>5 jogadores</b> neste clube que o seu olheiro não alcança — ⭐ <b>Olheiro Craque</b> acha os craques · 👑 <b>Olheiro Lenda</b> acha todos. <u>Toca aqui</u>'}</button>`}
   </div>`
 
 // ── a janelinha do clube (por cima da tela escurecida) ──
@@ -115,8 +118,8 @@ const abaSondar = (texto) => `
     ${clube('Nata de SP', '#C2452F', true, false)}${clube('Manfré FC', '#7C3AED', false, false)}
     ${clube('Tôka10', '#0C0C0C', false, false)}${clube('Skyy FC', '#2F6BAE', false, false)}
   </div>`
-const TXT_CRAQUE = `Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros. Seu <b>⭐ Olheiro Craque</b> sonda <b>de craque pra baixo</b> — lenda, só o 👑 Lenda.`
-const TXT_SEM = `Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros. Você sonda <b>foi profissional, bom jogador e promessa</b> — craque é do 🕵️ <b>Olheiro</b> ⭐ Craque, e lenda só do 👑 Lenda.`
+const TXT_CRAQUE = `Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros. Seu <b>⭐ Olheiro Craque</b> acha <b>de craque pra baixo</b> — lenda ele nem enxerga, só o 👑 Lenda.`
+const TXT_SEM = `Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros. Seu <b>olheiro básico</b> só acha <b>foi profissional, bom jogador e promessa</b> — craque e lenda ficam invisíveis pra ele (⭐ Craque acha os craques · 👑 Lenda acha todos).`
 
 const rodape = () => `
   <div style="position:absolute;left:0;right:0;bottom:0">
@@ -173,8 +176,8 @@ const tela = (titulo, corpo, sub) => `
 const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}*{box-sizing:border-box}body{margin:0;background:#e9e2cf;font-family:system-ui,sans-serif;color:${INK};padding:22px}h1{${OSW};font-weight:900;font-size:22px;text-transform:uppercase;margin:0 0 14px}</style>
 <h1>🕵️ O Olheiro — sondar jogador de volta · WhatsApp a partir do Craque</h1>
 <div style="display:flex;gap:22px;align-items:flex-start">
-  ${tela('1 · janelinha do clube · quem é ⭐ Craque', abaSondar(TXT_CRAQUE) + rodape() + janela(cartaTecnico() + caixaJogadores('prata')), 'Técnico como já era, e embaixo a caixa de <b>jogadores</b> com o selo do Olheiro. Craque sonda de craque pra baixo; as <b>lendas aparecem trancadas</b> com o porquê (Rogério Ceni, Cafu, Zico) e uma porta pra virar Lenda. 1 jogador por leilão — depois de marcar o Lúcio, o resto fica "já sondou 1".')}
-  ${tela('2 · janelinha do clube · quem NÃO tem apoio', abaSondar(TXT_SEM) + rodape() + janela(cartaTecnico() + caixaJogadores('bege')), 'Sem apoio a lista aparece igual, com o selo bege "Sondar básico": dá pra sondar <b>foi profissional, bom jogador e promessa</b>. <b>Craque</b> (Djalminha, Túlio) fica trancado pro ⭐, <b>lenda</b> pro 👑 — sempre com o porquê escrito, e a porta no pé.')}
+  ${tela('1 · janelinha do clube · quem é ⭐ Craque', abaSondar(TXT_CRAQUE) + rodape() + janela(cartaTecnico() + caixaJogadores('prata')), 'Técnico como já era, e embaixo a caixa "jogadores que ele achou". O ⭐ Craque alcança de craque pra baixo; as <b>lendas do clube nem aparecem</b> (Rogério Ceni, Cafu e Zico sumiram). No pé, a porta diz só que tem 3 que o olheiro não alcança — sem nome. 1 jogador por leilão: depois do Lúcio, o resto fica "já sondou 1".')}
+  ${tela('2 · janelinha do clube · quem NÃO tem apoio', abaSondar(TXT_SEM) + rodape() + janela(cartaTecnico() + caixaJogadores('bege')), 'Sem apoio, selo bege "Olheiro básico": só aparecem <b>foi profissional, bom jogador e promessa</b>. Craques (Djalminha, Túlio) e lendas <b>não existem pra ele</b> — sumiram da lista. A porta no pé só avisa que tem 5 fora do alcance e abre a loja.')}
   ${tela('3 · a aba Sondar com o rodapé novo', abaSondar(TXT_CRAQUE) + rodape(), 'A faixa dourada e a aba do rodapé agora dizem <b>"Sondar técnico e jogador"</b>. O texto de cima explica a régua do Olheiro da conta (esta é a versão do ⭐ Craque; o 👑 Lenda lê "sonda qualquer jogador, lenda inclusive").')}
   ${tela('4 · Apoie · card ⭐ Craque e a tabela', apoie(), 'O benefício ganhou nome: <b>🕵️ Olheiro Craque</b>, em lista (① nível · ② sondar os craques — o básico é de graça), com o exemplo do Túlio pra sondar. O <b>📲 Grupo VIP</b> desceu do Lenda pro Craque. No Lenda vira "Olheiro Lenda: tudo, lenda inclusive" (Romário 93–99 + Zico pra sondar). A tabela mostra os dois.')}
 </div>`

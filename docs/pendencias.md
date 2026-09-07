@@ -19,12 +19,14 @@ O que mudou (tudo reversível revertendo o commit):
   promessa"*): foi profissional, bom jogador e PROMESSA (o selo, em qualquer
   fame) → todo mundo sonda, sem apoio · craque (fame 4) → ⭐ Craque ou 👑 · lenda
   (fame 5) → só 👑 Lenda.
-- `pyramidseason.tsx` (AliciarSection): todo mundo vê a lista de jogadores do
-  clube, com selo do tier (bege "Sondar básico" · prata · ouro). Linha fora da
-  régua aparece trancada com o porquê ("🔒 craque · só o ⭐ Craque ou 👑 Lenda
-  sonda" / "🔒 lenda · só o 👑 Lenda sonda") + porta no pé da caixa. Continua 1
-  jogador + 1 técnico por leilão e só sem contrato. Rodapé e faixa: "Sondar
-  técnico e jogador".
+- 🙈 **Quem não alcança a categoria NEM VÊ o jogador** (3ª volta dele: *"usuário
+  comum vê SOMENTE profissional, bom jogador e promessa… se não tem o olheiro
+  top, ele não acharia o jogador"*). `pyramidseason.tsx` (AliciarSection): a
+  caixa "jogadores que ele achou" só lista quem o olheiro da conta alcança
+  (selo bege "Olheiro básico" · prata · ouro); o que está acima some da lista
+  (não aparece trancado). No pé, a porta diz só "tem N jogadores que o seu
+  olheiro não alcança" — sem nome nem categoria. Continua 1 jogador + 1 técnico
+  por leilão e só sem contrato. Rodapé e faixa: "Sondar técnico e jogador".
 - `store.tsx` (`ALICIAR_MARCAR`): trava de verdade pela categoria da carta e pelo
   tier (`myApoioPerk`) — ninguém marca craque/lenda "por fora" da tela.
 - `screens.tsx` (Apoie): benefício rebatizado **🕵️ Olheiro Craque / Olheiro
