@@ -8966,14 +8966,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // técnico (careerPlacements); a ANTIGA usa careerDivision. Ambas viram
       // 'career' no painel, com divisão e temporada — senão a pirâmide aparecia
       // como "partida rápida" e sumia da aba "Carreiras (onde cada um está)".
-      const youId = st.managers[st.youIdx]?.id ?? st.youIdx
       const pyramid = st.careerOnline && st.onlineMode !== 'online'
+      // 🏛️ O PAINEL MOSTRA SEMPRE O CLUBE PRINCIPAL (Diego 07/09: *"no painel deve
+      // mostrar o time principal sempre"*). Com multiclube, quando o 2º clube está
+      // no comando (multiClubeAtivo), o principal é o que DORME — e ele mora em
+      // `multiClube` (id + nome). Sem multiclube, principal = assento ativo.
+      const ativo = st.managers[st.youIdx]
+      const principal = pyramid && st.multiClubeAtivo && st.multiClube
+        ? { id: st.multiClube.id, name: st.multiClube.team }
+        : { id: ativo?.id ?? st.youIdx, name: ativo?.teamName }
+      const youId = principal.id
       // 🪜 NA PIRÂMIDE A DIVISÃO É A COLOCAÇÃO ATUAL (careerPlacements), nunca o
       // careerDivision — ele fica congelado na divisão de FUNDAÇÃO (Várzea/D).
       // Bug que o Diego pegou (07/09): o Futpoint joga a Série A com o clube
       // principal e o painel mostrava "V" — e todo mundo que subiu aparecia na
-      // divisão em que começou. Vale o assento ATIVO (youIdx): é o clube que a
-      // pessoa está jogando agora.
+      // divisão em que começou.
       const division: string | null = pyramid
         ? (st.careerPlacements?.['m' + youId] ?? st.careerDivision ?? 'D')
         : (st.careerDivision ?? null)
@@ -8982,11 +8989,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // careerCoins/careerHonors (títulos de QUALQUER série); antiga usa cash/careerTitles.
       const hon = st.careerHonors?.['m' + youId]
       const titles = division ? (pyramid ? (hon ? hon.A + hon.B + hon.C + hon.D : 0) : st.careerTitles) : undefined
-      const coins = division ? Math.round(pyramid ? (st.careerCoins?.[youId] ?? 0) : (st.managers[st.youIdx]?.money ?? 0)) : undefined
+      const coins = division ? Math.round(pyramid ? (st.careerCoins?.[youId] ?? 0) : (ativo?.money ?? 0)) : undefined
       const career = division ? { season: st.seasonNo, division, coins, titles } : undefined
       // online é sempre baralho brasileiro; solo (rápida/carreira) manda o escolhido
       const deck = liveMode === 'online' ? undefined : st.deckLeague
-      heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen, career, deck)
+      heartbeat(liveMode, principal.name, st.screen, career, deck)
     }
     beat()
     // a cada 60s (era 30s) — metade da gravação, e o painel "ao vivo" segue
