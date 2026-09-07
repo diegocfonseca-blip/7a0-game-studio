@@ -463,6 +463,124 @@ function BancoFichasAdmin() {
   )
 }
 
+// ── 🎟️ CUPONS DE INFLUENCIADOR (só admin) ───────────────────────────────────
+// Diego 07/09: *"o influenciador terá um cupom com o nome dele… 10% de desconto
+// somente no plano de batismo… preciso de relatório pro influenciador; limite de
+// uso e validade aí decido"*. Aqui ele CRIA o cupom (sem deploy: é uma linha no
+// banco), vê o RELATÓRIO por influenciador (quantos usaram · quantos ele marcou
+// como PAGOS · quanto entrou) e marca cada uso como pago/cancelado quando o
+// comprovante chega na DM. "Usou" = apertou "chamar no @" com o cupom; "pago" é
+// decisão dele, olhando o Pix — o jogo não sabe se o dinheiro caiu.
+function CuponsAdmin() {
+  type Cupom = { codigo: string; influenciador: string; desconto_pct: number; ativo: boolean; limite_usos: number | null; valido_ate: string | null; criado_em: string }
+  type Uso = { id: number; codigo: string; email: string | null; clube: string | null; serie: string | null; valor_cheio: number; valor_pago: number; status: 'usou' | 'pago' | 'cancelado'; criado_em: string }
+  const [cupons, setCupons] = useState<Cupom[]>([])
+  const [usos, setUsos] = useState<Uso[]>([])
+  const [form, setForm] = useState({ codigo: '', influenciador: '', pct: 10, limite: '', validade: '' })
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [aberto, setAberto] = useState<string | null>(null) // cupom com a lista de usos aberta
+  const carregar = async () => {
+    const [{ data: c }, { data: u }] = await Promise.all([
+      supabase.from('esc_cupons').select('codigo, influenciador, desconto_pct, ativo, limite_usos, valido_ate, criado_em').order('criado_em', { ascending: false }),
+      supabase.from('esc_cupom_usos').select('id, codigo, email, clube, serie, valor_cheio, valor_pago, status, criado_em').order('id', { ascending: false }).limit(300),
+    ])
+    setCupons((c ?? []) as Cupom[]); setUsos((u ?? []) as Uso[])
+  }
+  useEffect(() => { carregar() }, [])
+  const criar = async () => {
+    const codigo = form.codigo.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (!codigo || !form.influenciador.trim() || busy) return
+    setBusy(true); setMsg('')
+    const { error } = await supabase.from('esc_cupons').insert({
+      codigo, influenciador: form.influenciador.trim(), desconto_pct: form.pct,
+      limite_usos: form.limite.trim() ? Number(form.limite) : null,
+      valido_ate: form.validade.trim() ? form.validade : null,
+    })
+    setMsg(error ? `❌ ${error.message.includes('duplicate') ? 'já existe um cupom com esse código' : error.message}` : `✅ cupom ${codigo} criado — já vale no jogo, sem deploy`)
+    if (!error) { setForm({ codigo: '', influenciador: '', pct: 10, limite: '', validade: '' }); carregar() }
+    setBusy(false)
+  }
+  const ligar = async (codigo: string, ativo: boolean) => { await supabase.from('esc_cupons').update({ ativo }).eq('codigo', codigo); carregar() }
+  const marcar = async (id: number, status: Uso['status']) => { await supabase.from('esc_cupom_usos').update({ status }).eq('id', id); carregar() }
+  const brl = (n: number) => `R$ ${Number(n).toFixed(2).replace('.', ',')}`
+  const resumo = (codigo: string) => {
+    const us = usos.filter(u => u.codigo === codigo)
+    const pagos = us.filter(u => u.status === 'pago')
+    return { usou: us.filter(u => u.status !== 'cancelado').length, pagos: pagos.length, total: pagos.reduce((s, u) => s + Number(u.valor_pago), 0), desconto: pagos.reduce((s, u) => s + (Number(u.valor_cheio) - Number(u.valor_pago)), 0) }
+  }
+  const inp = (extra?: React.CSSProperties): React.CSSProperties => ({ border: `2px solid ${GOLD}`, borderRadius: 10, padding: '8px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13, minWidth: 0, ...extra })
+  const ST: Record<Uso['status'], [string, string]> = { usou: ['⏳ usou (esperando Pix)', '#ffd763'], pago: ['✅ pago', '#6fdb8f'], cancelado: ['❌ cancelado', '#ff8a75'] }
+  return (
+    <div style={{ border: '2px solid ' + GOLD, borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, textTransform: 'uppercase', margin: '0 0 4px' }}>🎟️ Cupons de influenciador · só no Batismo</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Cria o cupom aqui e ele já vale no jogo (sem deploy). Quem usa aparece embaixo; quando o Pix cair, marca como PAGO — o relatório do influenciador conta só os pagos.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <input value={form.codigo} onChange={e => setForm({ ...form, codigo: e.target.value.toUpperCase() })} placeholder="CÓDIGO (ex.: PANTERA)" style={inp({ letterSpacing: 1 })} />
+        <input value={form.influenciador} onChange={e => setForm({ ...form, influenciador: e.target.value })} placeholder="nome do influenciador" style={inp()} />
+        <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(242,232,207,.7)', display: 'flex', alignItems: 'center', gap: 6 }}>desconto
+          <input type="number" min={1} max={90} value={form.pct} onChange={e => setForm({ ...form, pct: Math.max(1, Math.min(90, Number(e.target.value) || 0)) })} style={inp({ width: 64 })} />%</label>
+        <input value={form.limite} onChange={e => setForm({ ...form, limite: e.target.value.replace(/\D/g, '') })} placeholder="limite de usos (vazio = sem)" style={inp()} />
+        <input type="date" value={form.validade} onChange={e => setForm({ ...form, validade: e.target.value })} title="válido até (vazio = sem validade)" style={inp({ gridColumn: '1 / -1', colorScheme: 'dark' })} />
+      </div>
+      <button onClick={criar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, marginTop: 8, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: GOLD, color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : '➕ CRIAR CUPOM'}</button>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('❌') ? '#ff8a75' : '#6fdb8f', margin: '7px 0 0', textAlign: 'center' }}>{msg}</p>}
+
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: GOLD, textTransform: 'uppercase', margin: '14px 0 6px' }}>📊 Relatório por influenciador</p>
+      {cupons.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(242,232,207,.5)' }}>nenhum cupom ainda — cria o primeiro aí em cima 👆</p>}
+      {cupons.map(c => {
+        const r = resumo(c.codigo)
+        const vencido = !!c.valido_ate && c.valido_ate < new Date().toISOString().slice(0, 10)
+        const esgotado = c.limite_usos != null && r.usou >= c.limite_usos
+        const abertoAqui = aberto === c.codigo
+        return (
+          <div key={c.codigo} style={{ border: '1px solid rgba(242,232,207,.25)', borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 12, fontWeight: 700 }}>
+              <span style={{ ...OSWALD, fontSize: 15, letterSpacing: 2, color: GOLD }}>{c.codigo}</span>
+              <span>{c.influenciador}</span>
+              <span style={{ opacity: .7 }}>{c.desconto_pct}% off</span>
+              <span style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 800, color: !c.ativo ? '#ff8a75' : vencido || esgotado ? '#ffd763' : '#6fdb8f' }}>{!c.ativo ? '⏸️ desligado' : vencido ? '⌛ vencido' : esgotado ? '🈵 esgotado' : '🟢 ativo'}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 11, fontWeight: 700, margin: '5px 0 0', color: 'rgba(242,232,207,.8)' }}>
+              <span>👥 usaram: <b>{r.usou}</b>{c.limite_usos != null ? ` / ${c.limite_usos}` : ''}</span>
+              <span>✅ pagos: <b style={{ color: '#6fdb8f' }}>{r.pagos}</b></span>
+              <span>💰 entrou: <b>{brl(r.total)}</b></span>
+              <span>🎁 desconto dado: <b>{brl(r.desconto)}</b></span>
+              {c.valido_ate && <span>📅 até {new Date(c.valido_ate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>}
+            </div>
+            <div style={{ display: 'flex', gap: 7, marginTop: 7 }}>
+              <button onClick={() => setAberto(abertoAqui ? null : c.codigo)} style={{ flex: 1, border: `1.5px solid ${GOLD}`, borderRadius: 10, padding: 7, ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: abertoAqui ? GOLD : 'transparent', color: abertoAqui ? '#0C0C0C' : GOLD, cursor: 'pointer' }}>{abertoAqui ? 'fechar usos' : `ver usos (${r.usou})`}</button>
+              <button onClick={() => ligar(c.codigo, !c.ativo)} style={{ flex: 1, border: `1.5px solid ${c.ativo ? '#ff8a75' : '#6fdb8f'}`, borderRadius: 10, padding: 7, ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: 'transparent', color: c.ativo ? '#ff8a75' : '#6fdb8f', cursor: 'pointer' }}>{c.ativo ? '⏸️ desligar' : '▶️ ligar'}</button>
+            </div>
+            {abertoAqui && (
+              <div style={{ marginTop: 8 }}>
+                {usos.filter(u => u.codigo === c.codigo).length === 0 && <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(242,232,207,.5)' }}>ninguém usou ainda</p>}
+                {usos.filter(u => u.codigo === c.codigo).map(u => (
+                  <div key={u.id} style={{ borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', fontSize: 11, fontWeight: 700 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ color: GOLD }}>{u.clube || '(sem nome)'}</span>
+                      <span style={{ opacity: .7 }}>Série {u.serie === 'A' ? 'A' : 'B/C/D'}</span>
+                      <span style={{ opacity: .55, fontSize: 10.5 }}>{u.email ?? 'não logado'}</span>
+                      <span style={{ marginLeft: 'auto', opacity: .55, fontSize: 10 }}>{new Date(u.criado_em).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 3, flexWrap: 'wrap' }}>
+                      <span><s style={{ opacity: .5 }}>{brl(u.valor_cheio)}</s> → <b>{brl(u.valor_pago)}</b></span>
+                      <span style={{ color: ST[u.status][1] }}>{ST[u.status][0]}</span>
+                      {u.status !== 'pago' && <button onClick={() => marcar(u.id, 'pago')} style={{ marginLeft: 'auto', border: 'none', borderRadius: 8, padding: '4px 9px', background: '#2f9e57', color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 10.5, cursor: 'pointer' }}>✅ Pix caiu</button>}
+                      {u.status === 'usou' && <button onClick={() => marcar(u.id, 'cancelado')} style={{ border: '1px solid #ff8a75', borderRadius: 8, padding: '4px 9px', background: 'transparent', color: '#ff8a75', ...OSWALD, fontWeight: 900, fontSize: 10.5, cursor: 'pointer' }}>❌ não pagou</button>}
+                      {u.status === 'pago' && <button onClick={() => marcar(u.id, 'usou')} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'rgba(242,232,207,.5)', fontSize: 10, fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' }}>desfazer</button>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── 📺 COTA EXTRA DE TV · mesa de aprovação (só admin) ───────────────────────
 // O jogador filma a tela, posta no Instagram/TikTok/YouTube marcando @leilaolegendscom
 // e cola o link no jogo (Clube › Patrocínio). Aqui o Diego confere QUANDO DER
@@ -752,7 +870,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><CampanhaEmailAdmin /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><CampanhaEmailAdmin /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

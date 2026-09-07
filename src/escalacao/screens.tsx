@@ -334,7 +334,29 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
   // ⚠️ a chave interna 'd' quer dizer "a divisão CARA", e ela é a Série A desde
   // 30/08 (a troca de letra). O nome da chave ficou pra não mexer no que já
   // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
-  const precoBatismo = serieBatismo === 'd' ? 69.9 : 59.9
+  const precoCheioBatismo = serieBatismo === 'd' ? 69.9 : 59.9
+  // 🎟️ CUPOM DE INFLUENCIADOR (Diego 07/09): "PANTERA" = 10% off SÓ no batismo.
+  // O código é conferido no banco (esc_cupom_validar) — nenhum cupom vive no
+  // código do jogo, então ninguém descobre fuçando. O desconto entra no valor do
+  // Pix copia-e-cola e na mensagem da DM; o uso é registrado (esc_cupom_usar) na
+  // hora em que a pessoa aperta "chamar no @", pro relatório do influenciador.
+  const [cupomTxt, setCupomTxt] = useState('')
+  const [cupom, setCupom] = useState<{ codigo: string; influenciador: string; desconto_pct: number } | null>(null)
+  const [cupomMsg, setCupomMsg] = useState<string | null>(null)
+  const [cupomBusy, setCupomBusy] = useState(false)
+  const aplicarCupom = async () => {
+    const cod = cupomTxt.trim().toUpperCase()
+    if (!cod || cupomBusy) return
+    setCupomBusy(true); setCupomMsg(null)
+    try {
+      const { data, error } = await supabase.rpc('esc_cupom_validar', { p_codigo: cod, p_plano: 'batismo' })
+      const row = !error && Array.isArray(data) ? (data[0] as { codigo: string; influenciador: string; desconto_pct: number } | undefined) : undefined
+      if (row) { setCupom(row); setCupomMsg(null); logApoio(`🎟️ cupom ${row.codigo} aplicado no batismo`) }
+      else { setCupom(null); setCupomMsg('Cupom não encontrado ou vencido. Confere a escrita 🧐'); logApoio(`🎟️ cupom "${cod}" recusado`) }
+    } catch { setCupom(null); setCupomMsg('Sem conexão pra conferir o cupom — tenta de novo.') }
+    setCupomBusy(false)
+  }
+  const precoBatismo = cupom ? Math.round(precoCheioBatismo * (100 - cupom.desconto_pct)) / 100 : precoCheioBatismo
   // 🎯 alvo do LINK DIRETO (?apoie=lenda). Antes isto era a sanfona aberta; agora
   // que tudo fica à vista (23/08), ele só rola até o card e acende um brilho.
   const [amp, setAmp] = useState<null | 'socio' | 'prata' | 'ouro' | 'batismo'>(null)
@@ -790,9 +812,35 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
             </button>
           </div>
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</p>
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '👑 Série A (a elite)' : 'Série B/C/D ou Várzea'}`} amount={precoBatismo} /></div>
+          {/* 🎟️ cupom de influenciador — só aqui, no batismo */}
+          <div className="border-2 border-dashed border-black rounded-xl px-2.5 py-2 mt-2.5" style={{ background: cupom ? '#E9F9EF' : '#FBF6E8' }}>
+            {cupom ? (
+              <div className="flex items-center gap-2">
+                <p className="text-[11px] font-bold leading-snug flex-1">🎟️ <b>Cupom {cupom.codigo}</b> ({cupom.influenciador}): <b style={{ color: GREEN }}>{cupom.desconto_pct}% off</b> · <s className="text-black/45">R$ {precoCheioBatismo.toFixed(2).replace('.', ',')}</s> → <b style={OSWALD}>R$ {precoBatismo.toFixed(2).replace('.', ',')}</b></p>
+                <button onClick={() => { setCupom(null); setCupomTxt(''); setCupomMsg(null) }} className="text-[10px] font-black underline text-black/45 shrink-0">tirar</button>
+              </div>
+            ) : (
+              <>
+                <p className="text-[11px] font-black" style={OSWALD}>🎟️ Tem cupom de influenciador?</p>
+                <div className="flex gap-1.5 mt-1.5">
+                  <input value={cupomTxt} onChange={e => { setCupomTxt(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setCupomMsg(null) }} onKeyDown={e => e.key === 'Enter' && aplicarCupom()} maxLength={16} placeholder="DIGITE O CÓDIGO" autoCapitalize="characters"
+                    className="flex-1 min-w-0 border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-[13px] bg-white tracking-wider" style={OSWALD} />
+                  <button onClick={aplicarCupom} disabled={cupomBusy || !cupomTxt.trim()} className="border-2 border-black rounded-lg px-3 font-black text-[11px] active:translate-y-0.5 shrink-0"
+                    style={{ background: cupomTxt.trim() ? GOLD : '#eee', color: INK, boxShadow: cupomTxt.trim() ? `2px 2px 0 0 ${INK}` : 'none', ...OSWALD }}>{cupomBusy ? '…' : 'APLICAR'}</button>
+                </div>
+                {cupomMsg && <p className="text-[10px] font-bold mt-1" style={{ color: '#C2452F' }}>{cupomMsg}</p>}
+              </>
+            )}
+          </div>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '👑 Série A (a elite)' : 'Série B/C/D ou Várzea'}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>Manda comprovante + nome</p>
-          <button onClick={() => { logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"`); igMsg(`Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}" — comprovante em anexo!`) }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
+          <button onClick={() => {
+            logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"${cupom ? ` · cupom ${cupom.codigo}` : ''}`)
+            // 🎟️ registra o uso do cupom (pro relatório do influenciador). Não trava
+            // nada se falhar: a DM com "cupom X" continua sendo a prova pro Diego.
+            if (cupom) supabase.rpc('esc_cupom_usar', { p_codigo: cupom.codigo, p_clube: clube.trim(), p_serie: serieBatismo === 'd' ? 'A' : 'BCD', p_valor_cheio: precoCheioBatismo, p_valor_pago: precoBatismo }).then(() => {}, () => {})
+            igMsg(`Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}"${cupom ? ` — usei o cupom ${cupom.codigo} (${cupom.desconto_pct}% off, paguei R$ ${precoBatismo.toFixed(2).replace('.', ',')})` : ''} — comprovante em anexo!`)
+          }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
             📸 CHAMAR NO @leilaolegendscom
           </button>
