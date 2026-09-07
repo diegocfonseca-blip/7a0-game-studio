@@ -1,8 +1,9 @@
 # 📌 Pendências combinadas com o Diego (atualizado 07/09/2026)
 
 ## 🕵️ O OLHEIRO — sondar jogador de volta · WhatsApp a partir do Craque (07/09)
-**Código pronto no branch `claude/denis-save-file-x1osct` · ⏳ ESPERANDO O OK VISUAL
-do Diego pra ir pra `main`** (mockup: `node scripts/mockup-olheiro.mjs`).
+**✅ PUBLICADO na `main` em 07/09 ("Ok publica")** — mockup: `node scripts/mockup-olheiro.mjs` ·
+reels do post: `node scripts/video-olheiro-reels.mjs` ("vocês pediram: agora dá pra
+sondar jogador direto no time dos outros clubes").
 
 Pedido dele (07/09): *"na área de sondar quero dar opção agora pro usuário sondar
 jogador também… só quem for lenda consegue sondar lendas p baixo, e só quem for
