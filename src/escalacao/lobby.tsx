@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
+import './online-visual.css'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG } from './manto'
@@ -349,7 +350,7 @@ function Big({ children, onClick, color = GOLD, disabled = false }: { children: 
 // ── criar sala reformulado: bloco com cabeçalho numerado ──
 function Section({ num, title, icon, children }: { num: number; title: string; icon: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border-2 p-3" style={{ background: '#1c1a16', borderColor: 'rgba(255,255,255,.14)' }}>
+    <div className="online-config-section rounded-2xl border-2 p-3" style={{ background: '#1c1a16', borderColor: 'rgba(255,255,255,.14)' }}>
       <div className="flex items-center gap-2 mb-2.5">
         <span className="grid place-items-center rounded-md font-black" style={{ width: 20, height: 20, background: GOLD, color: '#000', fontSize: 12, ...OSWALD }}>{num}</span>
         <span className="font-black text-sm uppercase tracking-wide" style={OSWALD}>{title}</span>
@@ -2314,7 +2315,7 @@ export function EscLobby() {
   // no monitor ela abre pra 900px junto com o jogo todo. Formulário NÃO: campo
   // de senha com 900px de largura fica ridículo e ainda dificulta a leitura.
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
-    <div className="tela-cheia flex flex-col justify-center px-5 py-10 relative" style={{ backgroundColor: INK }}>
+    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? 'online-room-art' : ''}`} data-online-phase={phase} style={{ backgroundColor: INK }}>
       {onBack && (
         <button onClick={onBack} aria-label="Voltar pra home"
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
@@ -2405,9 +2406,9 @@ export function EscLobby() {
       return nm.toLowerCase().includes(search.trim().toLowerCase())
     })
     return wrap(<>
-      {/* Banner convidativo em roxo — o online é sobre CHAMAR A GALERA */}
-      <div className="rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-        <div className="px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
+      {/* Arte de fundo; identidade e ações continuam sendo controles reais. */}
+      <div className="online-welcome rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+        <div className="online-welcome-heading px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
           <div className="absolute top-2 right-3 flex items-center gap-1.5">
             <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span className="text-white/80 text-[10px] font-black uppercase tracking-widest">Multiplayer</span>
@@ -2423,7 +2424,7 @@ export function EscLobby() {
             Toda a adrenalina do leilão, agora <b>contra seus amigos</b>. Cria a sala, manda o código no zap e briguem pelas lendas.
           </p>
         </div>
-        <div className="px-4 py-2 flex items-center gap-2 justify-between" style={{ background: '#1a1220' }}>
+        <div className="online-identity px-4 py-2 flex items-center gap-2 justify-between" style={{ background: '#1a1220' }}>
           <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">Logado como</span>
           {editingName ? (
             <div className="flex gap-1.5 items-stretch flex-1 ml-2">
@@ -2633,7 +2634,7 @@ export function EscLobby() {
       )}
 
       {/* abas */}
-      <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+      <div className="online-tabs flex border-[3px] border-black rounded-xl overflow-hidden">
         {TABS.map(t => (
           <button key={t.id} onClick={() => { setTab(t.id); setRoomError('') }}
             className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id ? PURPLE : '#fff', color: tab === t.id ? '#fff' : '#000', ...OSWALD }}>
@@ -2788,7 +2789,7 @@ export function EscLobby() {
         return (
         <div className="space-y-3">
           {criar2 && (
-            <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
+            <div className="online-mode-section rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
               <p className="font-black text-white text-[15px] uppercase leading-none flex items-center gap-2" style={OSWALD}>
                 <span className="inline-flex items-center justify-center shrink-0 border-2 border-black rounded-full" style={{ width: 22, height: 22, background: GOLD, color: INK, fontSize: 12 }}>1</span>
                 O que vocês vão jogar?
@@ -3138,7 +3139,7 @@ export function EscLobby() {
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
             const mundoRoom = r.game_state?.mode === 'mundo' // 🌍 Copa do Mundo: sala de seleções, sem leilão
             return (
-              <div key={r.id} className="flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
+              <div key={r.id} className="online-room-row flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
@@ -3170,7 +3171,7 @@ export function EscLobby() {
                 ) : (
                   <button onClick={() => joinFromList(r)} disabled={loading || full}
                     className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
-                    style={{ backgroundColor: full ? '#ccc' : GREEN, color: full ? '#000' : '#fff', ...OSWALD }}>
+                    style={{ backgroundColor: full ? '#ccc' : GOLD, color: '#000', ...OSWALD }}>
                     {full ? 'Cheia' : 'Entrar'}
                   </button>
                 )}
@@ -3397,7 +3398,7 @@ export function EscLobby() {
     //   · RÁPIDA → onde sempre esteve. Lá o código já basta e a tela é curta.
     const ehLigaSala = room.game_state?.mode === 'liga'
     const caixaConvite = (
-      <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
+      <div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
         <p className="text-white/80 text-[11px] font-medium leading-snug">
           Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
@@ -3436,7 +3437,7 @@ export function EscLobby() {
       </div>
     )
     return wrap(<>
-      <div className="text-center">
+      <div className="online-room-code text-center">
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
@@ -3624,7 +3625,7 @@ export function EscLobby() {
         }} />
       )}
 
-      <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+      <div className="online-attendance border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">
           {duplasOn ? `Times (${donos.length}/20) · ${players.length} ${players.length === 1 ? 'pessoa' : 'pessoas'}` : `Técnicos (${players.length}/${room.max_players})`}
         </p>
@@ -3841,7 +3842,7 @@ export function EscLobby() {
               { ic: '🔥', tx: 'Tô pronto pra ganhar de todo mundo!' },
             ]
         return (
-          <div className="rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+          <div className="online-banter rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
             <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">😜 Enquanto espera… zoa a galera</p>
             <div className="grid grid-cols-2 gap-2">
               {jabs.map((j, i) => (

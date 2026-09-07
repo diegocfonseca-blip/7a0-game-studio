@@ -1,6 +1,8 @@
 import { type CSSProperties, type ReactNode, Component, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import './online-visual.css'
+import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
 import { lanceEhGol, useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre } from './store'
@@ -975,7 +977,7 @@ function HoldButton({ onStep, disabled = false, className = '', style, children 
   )
 }
 
-export function Shell({ children, bar, hideExit = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean }) {
+export function Shell({ children, bar, hideExit = false, className = '' }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string }) {
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
@@ -1013,7 +1015,7 @@ export function Shell({ children, bar, hideExit = false }: { children: React.Rea
   const isReserveAuction = !!bar && state.reserveAuction
   const reserveLabel = state.seasonNo === 1 ? '🔁 Leilão de Reservas' : '🔁 Leilão de Transferências'
   return (
-    <div className="min-h-screen pb-16 palco" style={{ backgroundColor: CREAM, color: INK }}>
+    <div className={`min-h-screen pb-16 palco ${className}`} style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
         <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : '#fff', color: INK }}>
           {isReserveAuction && (
@@ -6665,7 +6667,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   let content: React.ReactNode = null
   if (status === 'noauth') {
     content = (
-      <Box bg={GOLD} className="p-5 text-center" shadow={6}>
+      <Box bg={GOLD} className={`p-5 text-center ${origin === 'online' ? 'online-reward' : ''}`} shadow={6}>
         <p className="font-black text-2xl" style={OSWALD}>🎁 Você foi campeão!</p>
         <p className="text-sm font-bold text-black/75 mt-1 mb-3">Todo campeão abre um <b>PACOTE SURPRESA</b> e leva uma carta colecionável pro álbum — tipo essa 👇</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
@@ -6683,7 +6685,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     )
   } else if (status === 'revealed' && claimed) {
     content = (
-      <Box bg={CREAM} className="p-5 text-center" shadow={6}>
+      <Box bg={CREAM} className={`p-5 text-center ${origin === 'online' ? 'online-reward' : ''}`} shadow={6}>
         <p className="text-xs font-black uppercase text-black/60 mb-3">🎁 Saiu do pacote — foi pro seu álbum!</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
           className="mx-auto" style={{ maxWidth: 285 }}>
@@ -6697,7 +6699,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // 🎁 o PACOTE LACRADO: flutua brilhando; ao tocar balança, o lacre estoura,
   // um clarão toma a tela e a carta é revelada (o componente real do álbum).
   content = (
-    <Box bg={GOLD} className="p-4 text-center" shadow={6}>
+    <Box bg={GOLD} className={`p-4 text-center ${origin === 'online' ? 'online-reward' : ''}`} shadow={6}>
       <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
       <p className="font-black text-lg mb-1" style={OSWALD}>🎁 Pacote do campeão!</p>
       <p className="text-xs font-bold text-black/70 mb-3">Campeão leva uma carta <b>surpresa</b> pro álbum — sorteada entre <b>todas as cartas do jogo</b> (sempre uma que você ainda não tem). Toque no pacote pra abrir.</p>
@@ -6705,7 +6707,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
           vai perder alguma coisa se fechar a tela. */}
       <p className="text-[11px] font-bold text-black/55 mb-3">Sem pressa: <b>a carta já é sua</b>. Tocar fora fecha o pacote e ela continua no álbum.</p>
       <motion.button onClick={openPack} disabled={opening}
-        className="relative mx-auto block" style={{ width: 168, height: 230, background: 'transparent', border: 'none', padding: 0, cursor: opening ? 'default' : 'pointer' }}
+        aria-label="Abrir pacote do campeão"
+        className={`relative mx-auto block ${origin === 'online' ? 'online-pack-button' : ''}`} style={{ width: 168, height: 230, background: 'transparent', border: 'none', padding: 0, cursor: opening ? 'default' : 'pointer' }}
         animate={opening
           ? { rotate: [0, -8, 8, -7, 7, -5, 5, 0], scale: [1, 1.04, 1.08, 1.12], transition: { duration: 0.75 } }
           : { y: [0, -9, 0], rotate: [-1.5, 1.5, -1.5], transition: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' } }}>
@@ -6718,6 +6721,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, lineHeight: 1, textShadow: '2px 2px 0 rgba(0,0,0,.45)' }}>LEILÃO<br />LEGENDS</span>
           <span style={{ ...OSWALD, fontWeight: 800, fontSize: 9, letterSpacing: 2.5, color: GOLD, textShadow: '1px 1px 0 rgba(0,0,0,.5)' }}>PACOTE DO CAMPEÃO</span>
         </div>
+        {origin === 'online' && <img className="online-pack-image" src={onlinePackArt} alt="" />}
         <motion.span animate={opening ? { y: -34, rotate: 22, opacity: 0 } : {}} transition={{ duration: 0.35, delay: 0.3 }}
           style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: GOLD, border: `3px solid ${INK}`, borderRadius: 999, padding: '3px 13px', fontSize: 10.5, fontWeight: 900, letterSpacing: 1, ...OSWALD }}>LACRADO</motion.span>
       </motion.button>
@@ -6735,8 +6739,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // gravada na conta (não depende de abrir). Fechou = vira uma pílula pra reabrir.
   if (dismissed) {
     return (
-      <button onClick={() => setDismissed(false)} className="w-full rounded-xl border-[3px] border-black px-3 py-2.5 font-black text-sm flex items-center justify-center gap-2" style={{ ...OSWALD, background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
-        🎁 Ver a carta do campeão
+      <button onClick={() => setDismissed(false)} className={`w-full rounded-xl border-[3px] border-black px-3 py-2.5 font-black text-sm flex items-center justify-center gap-2 ${origin === 'online' && status !== 'noauth' ? 'online-reward-reopen' : ''}`} style={{ ...OSWALD, background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
+        {origin === 'online' && status !== 'noauth' ? <><img src={onlinePackArt} alt="" /><span><strong>Seu pacote do campeão</strong><small>Sua carta está no álbum.</small><span className="online-reopen-label">{status === 'revealed' ? 'Ver a carta do campeão' : 'Reabrir pacote'}</span></span></> : '🎁 Ver a carta do campeão'}
       </button>
     )
   }
@@ -6769,7 +6773,7 @@ function StreamSpectatorCard({ champName, card }: { champName: string; card?: Wo
 
   if (reveal && card) {
     return (
-      <Box bg={CREAM} className="p-5 text-center" shadow={6}>
+      <Box bg={CREAM} className="online-reward p-5 text-center" shadow={6}>
         <p className="text-xs font-black uppercase text-black/60 mb-0.5">🎁 Carta do campeão · {champName}</p>
         <p className="text-[11px] font-bold text-black/45 mb-3">👀 Você está assistindo — essa carta é do campeão (não vai pro seu álbum).</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
@@ -6781,12 +6785,13 @@ function StreamSpectatorCard({ champName, card }: { champName: string; card?: Wo
   }
 
   return (
-    <Box bg={GOLD} className="p-4 text-center" shadow={6}>
+    <Box bg={GOLD} className="online-reward p-4 text-center" shadow={6}>
       <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
       <p className="font-black text-lg mb-1" style={OSWALD}>🎁 Pacote do campeão · {champName}</p>
       <p className="text-xs font-bold text-black/70 mb-3">A carta que o campeão tirou aparece aqui pra <b>todo mundo ver</b>. Toque no pacote pra abrir — é só pra assistir, não vai pro seu álbum.</p>
       <motion.button onClick={openPack} disabled={opening}
-        className="relative mx-auto block" style={{ width: 168, height: 230, background: 'transparent', border: 'none', padding: 0, cursor: opening || opened ? 'default' : 'pointer' }}
+        aria-label="Ver pacote do campeão"
+        className="online-pack-button relative mx-auto block" style={{ width: 168, height: 230, background: 'transparent', border: 'none', padding: 0, cursor: opening || opened ? 'default' : 'pointer' }}
         animate={opening
           ? { rotate: [0, -8, 8, -7, 7, -5, 5, 0], scale: [1, 1.04, 1.08, 1.12], transition: { duration: 0.75 } }
           : { y: [0, -9, 0], rotate: [-1.5, 1.5, -1.5], transition: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' } }}>
@@ -6799,6 +6804,7 @@ function StreamSpectatorCard({ champName, card }: { champName: string; card?: Wo
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, lineHeight: 1, textShadow: '2px 2px 0 rgba(0,0,0,.45)' }}>LEILÃO<br />LEGENDS</span>
           <span style={{ ...OSWALD, fontWeight: 800, fontSize: 9, letterSpacing: 2.5, color: GOLD, textShadow: '1px 1px 0 rgba(0,0,0,.5)' }}>PACOTE DO CAMPEÃO</span>
         </div>
+        <img className="online-pack-image" src={onlinePackArt} alt="" />
         <motion.span animate={opening ? { y: -34, rotate: 22, opacity: 0 } : {}} transition={{ duration: 0.35, delay: 0.3 }}
           style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: GOLD, border: `3px solid ${INK}`, borderRadius: 999, padding: '3px 13px', fontSize: 10.5, fontWeight: 900, letterSpacing: 1, ...OSWALD }}>LACRADO</motion.span>
       </motion.button>
@@ -8020,19 +8026,19 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
     if (window.confirm(msg)) leaveRoom()
   }
   return (
-    <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: 'linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', boxShadow: `4px 4px 0 ${INK}` }}>
+    <div className="online-end-vote rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: 'linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', boxShadow: `4px 4px 0 ${INK}` }}>
       <p className="font-black text-lg text-center" style={{ ...OSWALD, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🗳️ E agora?</p>
       {/* 👥 quem está na sala — igual à sala de espera: bolinha no DEGRADÊ do tier
           de cada um (com brilho), nome, 👑 HOST e status (na sala / saiu). */}
       {humans.length > 0 && (
-        <div className="rounded-xl border-2 border-black px-3 py-2" style={{ background: 'rgba(255,255,255,.95)' }}>
+        <div className="online-vote-people rounded-xl border-2 border-black px-3 py-2" style={{ background: 'rgba(255,255,255,.95)' }}>
           <p className="text-[10px] font-black uppercase tracking-widest text-black/50 mb-1.5" style={OSWALD}>👥 Na sala agora · {humans.filter(m => present.has(m.id)).length}/{humans.length}</p>
           <div className="space-y-1.5">
             {humans.map(m => {
               const pk = (m.id === youId ? myApoioPerk() : perkFromSelo(m.teamName)) ?? APOIO_PERKS.bege
               const here = present.has(m.id)
               return (
-                <div key={m.id} className="flex items-center gap-2" style={{ opacity: here ? 1 : 0.45 }}>
+                <div key={m.id} className="online-vote-person flex items-center gap-2" style={{ opacity: here ? 1 : 0.45 }}>
                   <div className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center text-xs font-black shrink-0" style={{ background: pk.grad, color: TIER_INK[pk.tier], position: 'relative', overflow: 'hidden' }}>
                     <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(m.teamName).trim()[0]?.toUpperCase() ?? '?'}</span>
                     {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
@@ -8066,7 +8072,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           <p className="text-center text-xs font-bold text-white/85">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</p>
           {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
           {guests.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="online-vote-repeat space-y-1.5">
               {guests.map(m => { const v = votes[m.id]; const here = present.has(m.id); return (
                 <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : here ? '#FFF7DE' : '#EFEAD9', opacity: v || here ? 1 : 0.6 }}>
                   <span className="font-black text-sm text-black" style={OSWALD}>{v ? '✅' : here ? '⏳' : '🚪'} {m.teamName}</span>
@@ -8635,7 +8641,7 @@ export function EscEnd() {
     </>
   )
   return (
-    <Shell hideExit={online}>
+    <Shell hideExit={online} className={online && !copaPending && !libPending && !mundoPendente ? 'online-end-art' : ''}>
       {festaOn && mascKey && <FestaoMascote nome={you.teamName} mascote={mascKey} onDone={fecharFesta} />}
       <RankResultWriter />
       {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem

@@ -1,5 +1,8 @@
 # 📌 Pendências combinadas com o Diego (atualizado 07/09/2026)
 
+## Online ilustrado V22 — publicação autorizada em 07/09
+Diego aprovou publicar as três telas online e o encerramento completo: O Martelo ilustrado com TODAS as notas da redação, pacote do campeão com logo oficial e votação/saída. Implementação isolada em `online-visual.css`, `jornal-online-visual.tsx/css` e hooks visuais do lobby/screens. Oswald e controles branco/creme, amarelo e roxo; mobile e desktop. Regras, premiações, sorteio/persistência da carta e autoridade do host preservados. Offline mantém seu jornal. Integrado com as mudanças atuais do Olheiro e sondados, sem sobrescrevê-las. Detalhes e reversão em `docs/online-visual-v22.md`.
+
 ## 🕵️ Sondado não ia pro leilão (Elber) — ✅ consertado 07/09
 O bloco que move o jogador sondado pro leilão (`RESERVE_AUCTION_ONLINE`,
 "1a-bis") tinha a trava "só sai se sobrar gente na posição". Bot de carreira tem

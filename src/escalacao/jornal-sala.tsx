@@ -23,6 +23,9 @@ import { useMemo, useRef, useState } from 'react'
 import type { EscState, LeagueTeam, QuickCopaState } from './types'
 import { sortedTable, topScorers } from './store'
 import { Escudo } from './escudos'
+import './online-visual.css'
+import onlineVictoryArt from './img/online-jornal-v20.webp'
+import { JornalOnlineVisual, buildOnlineSalaBlob } from './jornal-online-visual'
 
 const INK = '#0C0C0C', PAPEL = '#FBF6E9', VERM = '#B23A2A', GOLD = '#FFC400', GREEN = '#1B7A3D', ROXO = '#7C3AED'
 const SERIF = { fontFamily: "Georgia, 'Times New Roman', serif" } as const
@@ -269,7 +272,7 @@ const corDestaque: Record<NonNullable<LinhaSala['destaque']>, string> = {
 
 function Banner({ faixa, tag, time, sub, c1, c2, fita }: { faixa: string; tag: string; time: string; sub: string; c1: string; c2: string; fita: string }) {
   return (
-    <div style={{ flex: 1, minWidth: 0, background: `linear-gradient(160deg,${c1},${c2})`, border: `3px solid ${INK}`, borderRadius: 10, padding: '14px 10px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+    <div className="newspaper-champion" style={{ flex: 1, minWidth: 0, background: `linear-gradient(160deg,${c1},${c2})`, border: `3px solid ${INK}`, borderRadius: 10, padding: '14px 10px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 14, right: -40, transform: 'rotate(34deg)', background: fita, borderTop: `2px solid ${INK}`, borderBottom: `2px solid ${INK}`, ...COND, fontWeight: 700, fontSize: 8.5, padding: '2px 46px', letterSpacing: '.08em' }}>{tag}</div>
       <p style={{ ...COND, fontWeight: 700, fontSize: 8.5, color: 'rgba(255,255,255,.75)', letterSpacing: '.12em', margin: '0 0 8px' }}>{faixa}</p>
       <Escudo nome={time} size={54} />
@@ -280,11 +283,12 @@ function Banner({ faixa, tag, time, sub, c1, c2, fita }: { faixa: string; tag: s
 }
 
 export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: EdicaoSala; onCompartilhar: () => void; compartilhando: boolean }) {
+  if (!ed.offline) return <JornalOnlineVisual ed={ed} onCompartilhar={onCompartilhar} compartilhando={compartilhando} />
   return (
-    <div style={{ background: PAPEL, border: `4px solid ${INK}`, borderRadius: 14, boxShadow: `5px 5px 0 0 ${INK}`, padding: '14px 14px 12px' }}>
+    <div className={ed.offline ? undefined : 'online-newspaper'} style={{ background: PAPEL, border: `4px solid ${INK}`, borderRadius: 14, boxShadow: `5px 5px 0 0 ${INK}`, padding: '14px 14px 12px' }}>
       {/* cabeçalho */}
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ ...SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1 }}>O <span style={{ color: VERM }}>MARTELO</span></span>
+        <span className="newspaper-masthead" style={{ ...SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1 }}>O <span style={{ color: VERM }}>MARTELO</span></span>
         <span style={{ ...COND, fontWeight: 700, fontSize: 8.5, color: 'rgba(0,0,0,.6)', textAlign: 'right', lineHeight: 1.4 }}>
           {ed.offline ? 'EDIÇÃO DO TORNEIO' : 'EDIÇÃO DA SALA'}<br />{ed.offline ? 'CONTRA A MÁQUINA' : `${ed.nTecnicos} TÉCNICO${ed.nTecnicos === 1 ? '' : 'S'}`} · 1 MOEDA</span>
       </div>
@@ -298,7 +302,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       <p style={{ ...SERIF, fontStyle: 'italic', fontSize: 12.5, lineHeight: 1.4, margin: '8px 0 12px', color: 'rgba(0,0,0,.78)' }}>{ed.linhaFina}</p>
 
       {/* banner(s) dos campeões */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+      <div className="newspaper-champions" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {ed.campeaoLiga && (
           <Banner faixa="LIGA LEGENDS" tag="CAMPEÃO" time={ed.campeaoLiga.nome}
             sub={`${ed.campeaoLiga.quem ? `o time do ${ed.campeaoLiga.quem} · ` : ''}${ed.campeaoLiga.pts} pontos`}
@@ -334,7 +338,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       </div>
 
       {/* as notas da redação */}
-      <div style={{ border: `3px solid ${INK}`, borderRadius: 8, overflow: 'hidden' }}>
+      <div className="newspaper-notes" style={{ border: `3px solid ${INK}`, borderRadius: 8, overflow: 'hidden' }}>
         <p style={{ ...COND, fontWeight: 700, fontSize: 11, background: VERM, color: '#fff', padding: '7px 10px', letterSpacing: '.05em' }}>📝 AS NOTAS DA REDAÇÃO</p>
         <div style={{ background: '#fff' }}>
           {ed.linhas.map(l => {
@@ -360,7 +364,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
         <p style={{ ...COND, fontWeight: 700, fontSize: 16, position: 'relative', letterSpacing: '.03em' }}>🔨 leilaolegends.com</p>
       </div>
 
-      <button onClick={onCompartilhar} disabled={compartilhando}
+      <button className="newspaper-share" onClick={onCompartilhar} disabled={compartilhando}
         style={{ marginTop: 12, width: '100%', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', ...COND, fontWeight: 700, fontSize: 15 }}>
         {compartilhando ? '⏳ montando a imagem…' : '📲 Compartilhar o jornal'}
       </button>
@@ -371,11 +375,20 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
 // ── a mesma capa desenhada em CANVAS, pra virar imagem PNG ──────────────────
 // (mesma técnica do jornal da carreira: `jornal.tsx` → buildJornalBlob)
 export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
+  if (!ed.offline) return buildOnlineSalaBlob(ed)
   const W = 1080
   const cv = document.createElement('canvas')
   const x = cv.getContext('2d')
   if (!x) return null
   try { await document.fonts.load('700 60px Oswald') } catch { /* segue */ }
+  // Cenário decorativo: as notícias, nomes e resultados continuam dinâmicos.
+  // Falha de imagem não impede compartilhar o jornal.
+  const victory = !ed.offline ? await new Promise<HTMLImageElement | null>(resolve => {
+    const img = new Image(); const timer = setTimeout(() => resolve(null), 2500)
+    img.onload = () => { clearTimeout(timer); resolve(img) }
+    img.onerror = () => { clearTimeout(timer); resolve(null) }
+    img.src = onlineVictoryArt
+  }) : null
   const SER = "Georgia, 'Times New Roman', serif", OSW = 'Oswald, sans-serif'
   const L = 52, R = W - 52, MAXW = R - L
 
@@ -437,6 +450,13 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
     const g = x.createLinearGradient(bx, y, bx + bw, y + bh)
     g.addColorStop(0, c1); g.addColorStop(1, c2)
     x.fillStyle = g; x.fillRect(bx, y, bw, bh)
+    if (victory) {
+      const cropH = victory.width * bh / bw
+      const sourceH = Math.min(victory.height, cropH)
+      const sourceW = Math.min(victory.width, sourceH * bw / bh)
+      x.drawImage(victory, (victory.width-sourceW)/2, 0, sourceW, sourceH, bx, y, bw, bh)
+      x.fillStyle = 'rgba(0,0,0,.48)'; x.fillRect(bx,y,bw,bh)
+    }
     x.strokeStyle = INK; x.lineWidth = 4; x.strokeRect(bx, y, bw, bh)
     x.textAlign = 'center'
     x.font = `700 17px ${OSW}`; x.fillStyle = 'rgba(255,255,255,.75)'

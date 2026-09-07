@@ -1,0 +1,83 @@
+/* Online V20: apresentação apenas. Não decide permissões, prêmios ou estado. */
+@font-face{font-family:Oswald;src:url('./fonts/oswald-latin-700-normal.woff2') format('woff2');font-weight:700 900;font-display:swap}
+.online-room-art,.online-end-art{background-color:#17120d!important;background-image:linear-gradient(180deg,rgba(8,8,6,.12),rgba(8,8,6,.35)),url('./img/online-sala-v20.webp')!important;background-size:100% 100%,auto max(100vh,900px)!important;background-position:center top!important;background-repeat:no-repeat!important;color:#f4ecd6!important}
+.online-room-art{justify-content:flex-start!important;padding:64px 20px 64px!important;isolation:isolate}
+.online-room-art>.col-tela{width:100%;max-width:760px;position:relative;margin-inline:auto}
+.online-room-art button,.online-end-vote button,.online-reward button{font-family:Oswald,sans-serif;font-weight:700;min-height:44px}
+.online-room-art button:focus-visible,.online-end-art button:focus-visible,.online-reward button:focus-visible{outline:3px solid #7c3aed;outline-offset:4px}
+.online-room-art input,.online-room-art select{min-height:44px;font-size:16px!important}
+.online-welcome,.online-welcome-heading,.online-config-section,.online-mode-section,.online-invite,.online-banter{background:transparent!important;border:0!important;box-shadow:none!important}
+.online-welcome{overflow:visible!important;margin-bottom:26px}
+.online-welcome-heading{padding:20px 0 12px!important;text-shadow:0 2px 5px #000}
+.online-welcome-heading h1{font-size:clamp(32px,6vw,56px)!important;margin-top:12px;margin-bottom:12px;letter-spacing:-.015em}
+.online-welcome-heading>p{max-width:520px;font-size:14px!important;line-height:1.5}
+.online-welcome-heading>div:first-child{top:-13px!important;right:0!important}
+.online-identity{background:rgba(12,12,12,.8)!important;border:2px solid #51483b;border-radius:12px;padding:8px 12px!important;max-width:560px;flex-wrap:wrap}
+.online-identity button{min-height:36px}
+.online-tabs{box-shadow:3px 4px 0 #000;background:#f4ecd6}
+.online-tabs button{font-size:15px!important;min-height:48px}
+.online-config-section,.online-mode-section{padding:12px 0!important;color:#f4ecd6}
+.online-config-section>div:first-child{margin-bottom:14px}
+.online-config-section [class*='text-white/'],.online-mode-section [class*='text-white/']{color:#e5ddca}
+.online-mode-section>p:first-child{font-size:18px!important;margin-bottom:8px}
+.online-mode-section>button{min-height:70px;border-width:3px!important;box-shadow:3px 4px 0 #000;margin-bottom:12px!important}
+.online-room-row{min-height:100px;padding:14px!important;box-shadow:3px 4px 0 #000!important;align-items:center}
+.online-room-row p:first-child{flex-wrap:wrap;font-size:17px!important;line-height:1.25}
+.online-room-row p:first-child>.truncate{white-space:normal;overflow-wrap:anywhere}
+.online-room-row p:nth-child(2){font-size:12px;line-height:1.55;margin-top:7px}
+.online-room-row>button,.online-room-row>span{box-shadow:2px 3px 0 #000;max-width:95px}
+.online-room-art .salas-grade{display:grid;grid-template-columns:1fr;gap:14px}
+.online-room-art .salas-grade>*{margin:0!important}
+.online-room-code{padding:12px 0 24px;text-shadow:0 2px 6px #000}
+.online-room-code>p:last-child{font-family:Oswald,sans-serif;font-size:clamp(44px,10vw,78px)!important;overflow-wrap:anywhere;letter-spacing:.13em!important}
+.online-invite{padding:0!important;text-shadow:0 1px 4px #000}
+.online-invite button{font-size:16px!important;border-width:3px!important;box-shadow:3px 4px 0 #000;text-shadow:none}
+.online-attendance{padding:20px!important;max-height:65vh;overflow:auto;scrollbar-color:#7c3aed #f4ecd6}
+.online-banter{padding:10px 0!important}
+.online-banter>p{font-family:Oswald,sans-serif;font-size:17px!important;color:#f4ecd6!important;text-shadow:0 2px 3px #000}
+.online-banter button{font-size:13px!important;box-shadow:2px 3px 0 #000;padding:10px!important}
+.online-room-art .text-white\/40,.online-room-art .text-white\/50{color:#d4cbb8}
+/* Leitura do jornal: o conteúdo é HTML real, não o texto dos mockups. */
+.online-newspaper{background:radial-gradient(ellipse at top left,#fcf6e5,#eadbbe)!important;border:1px solid #918165!important;border-radius:2px!important;outline:5px solid #e9dabf;outline-offset:3px;box-shadow:0 12px 28px #0008,8px 8px 0 #c3b28f!important;padding:clamp(16px,3vw,30px)!important;margin:30px 8px!important;color:#17160f!important}
+.online-newspaper .newspaper-masthead{font-size:clamp(28px,6.8vw,66px)!important;letter-spacing:-.045em;white-space:nowrap}
+.online-newspaper .newspaper-masthead span{color:#17160f!important}
+.online-newspaper h2{font-family:Oswald,sans-serif!important;font-size:clamp(25px,4vw,44px)!important;line-height:1.12!important}
+.online-newspaper .newspaper-champions{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px!important}
+.online-newspaper .newspaper-champion{background:linear-gradient(0deg,#080d0deb 0%,#080d0d33 75%),url('./img/online-jornal-v20.webp') center/cover!important;border-radius:1px!important;min-height:260px;justify-content:flex-end!important;padding:35px 16px 18px!important;text-shadow:0 2px 4px #000}
+.online-newspaper .newspaper-champion>p:first-of-type{font-size:12px!important}
+.online-newspaper .newspaper-champion>p:nth-of-type(2){font-family:Oswald,sans-serif!important;font-size:26px!important}
+.online-newspaper .newspaper-champion>p:last-child{font-size:13px!important}
+.online-newspaper .newspaper-champion>div:first-child{display:none}
+.online-newspaper .newspaper-notes{border:0!important;border-top:3px double #635943!important;border-radius:0!important;margin-top:20px}
+.online-newspaper .newspaper-notes>p{background:transparent!important;color:#17160f!important;font-size:20px!important;font-family:Oswald,sans-serif}
+.online-newspaper .newspaper-notes>div{background:transparent!important;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.online-newspaper .newspaper-notes>div>div{padding:12px!important;break-inside:avoid}
+.online-newspaper .newspaper-notes p{font-size:14px!important;line-height:1.45!important}
+.online-newspaper .newspaper-share{background:#fff!important;color:#0c0c0c!important;font-size:17px!important;min-height:48px;text-transform:uppercase}
+.online-end-art>.col-tela{max-width:1040px}
+.online-end-art{color:#0c0c0c!important;background-attachment:scroll,fixed}
+.online-end-art table{color:#0c0c0c}
+.online-end-art>div.max-w-xl{max-width:1040px}
+.online-end-art>.col-tela>div>p[class*='text-black/45']{color:#f4ecd6!important}
+.online-end-art .online-end-vote{margin-top:30px}
+.online-end-vote{background:linear-gradient(145deg,#152d21,#0d1913)!important;color:#f4ecd6!important;padding:clamp(16px,3vw,26px)!important;box-shadow:4px 5px 0 #000!important}
+.online-end-vote>p:first-child{font-size:28px!important;text-align:center!important;color:#f4ecd6!important;text-shadow:none!important}
+.online-end-vote>button{color:#0c0c0c}
+.online-end-vote>.online-vote-people{max-height:360px;overflow:auto;background:#fffaf0!important}
+.online-end-vote .online-vote-repeat{max-height:240px;overflow:auto}
+.online-end-vote button{overflow-wrap:anywhere}
+.online-end-vote .online-vote-warning{color:#795218!important}
+.online-end-vote .online-vote-person{flex-wrap:wrap}
+.online-reward{background:#102016!important;background-image:linear-gradient(#0a140acc,#0a140ad9),url('./img/online-sala-v20.webp')!important;background-size:cover!important;background-position:center!important;color:#f4ecd6!important;max-height:calc(100dvh - 52px);overflow:auto;border:3px solid #0c0c0c!important}
+.online-reward>p[class*='text-black/']{color:#e7ddc7!important}
+.online-reward .online-pack-button{width:min(240px,65vw)!important;height:auto!important;aspect-ratio:2/3;margin-top:30px;margin-bottom:22px;filter:drop-shadow(0 12px 14px #0009)}
+.online-reward>button[class*='text-black/']{color:#f4ecd6!important}
+.online-reward .online-pack-button>span{color:#0c0c0c}
+.online-pack-image{display:block;position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:contain;border-radius:8px}
+.online-pack-button>span{z-index:2}
+.online-reward-reopen{background:linear-gradient(145deg,#173225,#0e1c14)!important;color:#f4ecd6!important;justify-content:flex-start!important;text-align:left;padding:12px!important;gap:18px!important}
+.online-reward-reopen>img{width:94px;aspect-ratio:2/3;object-fit:contain;flex:none;border-radius:6px}
+.online-reward-reopen>span{display:grid;gap:8px;min-width:0}.online-reward-reopen strong{font:700 clamp(20px,3vw,28px) Oswald,sans-serif;text-transform:uppercase}.online-reward-reopen small{font:400 13px/1.4 sans-serif}.online-reopen-label{display:block;background:#ffc400;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:10px;padding:10px 12px;box-shadow:3px 3px 0 #0c0c0c;font:700 18px Oswald,sans-serif;text-transform:uppercase}
+@media(min-width:900px){.online-room-art{padding-top:70px!important;background-size:100% 100%,cover!important;background-attachment:scroll,fixed}.online-room-art[data-online-phase='menu']>.col-tela{max-width:900px}.online-room-art .salas-grade{grid-template-columns:repeat(2,minmax(0,1fr))}.online-room-art .salas-grade>p{grid-column:1/-1}.online-welcome-heading h1{font-size:58px!important}.online-room-art[data-online-phase='waiting']>.col-tela{max-width:780px}}
+@media(max-width:420px){.online-room-art{padding-inline:14px!important}.online-room-row{gap:8px!important;padding:12px!important}.online-room-row>button,.online-room-row>span{padding:10px 8px!important}.online-banter button{font-size:12px!important}.online-newspaper{margin-inline:5px!important;padding:14px!important}.online-newspaper .newspaper-champion{min-height:235px}}
+@media(prefers-reduced-motion:reduce){.online-room-art *,.online-reward *{animation:none!important;transition:none!important}}
