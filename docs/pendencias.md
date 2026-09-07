@@ -1,5 +1,22 @@
 # 📌 Pendências combinadas com o Diego (atualizado 07/09/2026)
 
+## 🪣 Monte Final (carreira): "Passar a vez" só funcionava apertando 3× — ✅ consertado 07/09
+Causa: a ordem do Monte é serpente com UMA vez por buraco (10 buracos = 10 vezes
+na fila). `MONTE_PASS` pulava só a vez da rodada; os bots pescavam e a vez
+voltava. Agora o passar tira as vezes FUTURAS do jogador da fila (`store.tsx`,
+`MONTE_PASS`). Sem novidade na home (é conserto).
+⏳ **Irmão do mesmo bug, não mexido**: `MONTE_TIMEOUT` na carreira ONLINE também
+pula só uma vez — um AFK com 10 buracos segura a sala 10 × 20 s. Decidir com o
+Diego se estourar o tempo também deve tirar o jogador das rodadas seguintes.
+
+## 🔒 Leilão de transferências: preso sem conseguir comprar o 3º atacante (analisado 07/09, ⏳ decisão do Diego)
+A vaga por posição no leilão é 2× a formação ATIVA (`slotsOf`, store.tsx). Com
+4-2-3-1 (motor 4-5-1, 1 ATA) cabem só 2 atacantes; pra trocar pro 4-3-3 precisa
+de 3 → nunca compra, nunca troca. Vale pra qualquer posição em que a formação
+ativa usa pouco e outra do técnico usa mais que o dobro (3-4-3 × 5-3-2 na zaga,
+4-2-4 × 4-5-1 no meio). Proposta: `slotsOf` olhar TODAS as formações do técnico
+(maior necessidade por posição × 2). Diego: *"depois fazemos isso"*.
+
 ## 🕵️ O OLHEIRO — sondar jogador de volta · WhatsApp a partir do Craque (07/09)
 **✅ PUBLICADO na `main` em 07/09 ("Ok publica")** — mockup: `node scripts/mockup-olheiro.mjs` ·
 reels do post: `node scripts/video-olheiro-reels.mjs` ("vocês pediram: agora dá pra

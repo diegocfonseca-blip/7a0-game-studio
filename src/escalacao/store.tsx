@@ -5240,6 +5240,14 @@ export function reducer(state: EscState, action: Action): EscState {
         if (alcancavel) return s
       }
       const rng = rngOf(s)
+      // 🙅 "NÃO QUERO NENHUMA SOBRA" vale pro Monte INTEIRO (bug que o Diego pegou,
+      // 07/09: *"o botão de passar a vez só funciona quando aperta 3 vezes"*). A
+      // ordem do Monte é uma serpente com UMA vez por buraco — quem tem 10 buracos
+      // aparece 10 vezes. Antes o botão pulava só a vez daquela rodada: os bots
+      // pescavam e a vez voltava pra ele, e ele tinha que apertar de novo até a
+      // fila acabar. Agora as vezes FUTURAS dele saem da fila; o que já passou e
+      // a vez dos outros ficam exatamente como estavam.
+      s.monteOrder = s.monteOrder.filter((id, i) => i <= s.monteIdx || id !== action.mgrId)
       s.monteIdx++
       advanceMonte(s, rng)
       if (s.monteIdx >= s.monteOrder.length || s.managers.every(mm => totalHoles(mm) === 0)) {
