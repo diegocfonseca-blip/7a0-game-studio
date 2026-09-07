@@ -6577,14 +6577,19 @@ export function reducer(state: EscState, action: Action): EscState {
       // que eu vendo não posso dar lance; no aliciado eu dou"). A carta sai do
       // clube dono e entra no BARALHO NORMAL do setor dela, com seller = o dono
       // (ele recebe a grana da venda e pode dar lance de volta, igual vendedor).
-      // Trava de sempre: o clube nunca fica manco na posição.
+      // 🐛 07/09 (Diego: *"acabei de sondar o Elber e ele não foi pro leilão"*):
+      // aqui existia a trava "só sai se sobrar gente na posição" — só que os
+      // clubes de bot da carreira têm EXATAMENTE os 11 (sem reserva), então quase
+      // todo sondado era barrado EM SILÊNCIO: a tela dizia "✔ no leilão" e nada
+      // acontecia. A trava era desnecessária: o buraco que o sondado deixa é
+      // reposto pela regra "bot não pode ficar com XI furado" (FINISH_CEREMONY,
+      // cascata do catálogo livre), e o dono ainda entra no setor com vaga aberta
+      // pra brigar de volta. Então o sondado SEMPRE vai pro leilão.
       if (s.onlineMode !== 'online') {
         for (const cid of s.aliciarJogadores ?? []) {
           const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
           const card = dono?.squad.find(c => c.id === cid)
           if (!dono || !card || card.fake || card.emprestado) continue
-          const naPos = dono.squad.filter(c => c.pos === card.pos && !c.fake).length
-          if (naPos - 1 < FORMATIONS[dono.formation][card.pos]) continue // ficaria manco: não sai
           dono.squad = dono.squad.filter(c => c.id !== cid)
           listedCards.push({ ...card, seller: dono.id, semContrato: true }) // aliciado = está sem contrato (regra do teto)
           marketSellers[card.pos].push(dono.id) // o dono pode brigar de volta no setor

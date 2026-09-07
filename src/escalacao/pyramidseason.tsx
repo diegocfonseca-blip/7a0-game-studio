@@ -3605,7 +3605,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                         </div>
                       )
                     })}
-                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato, e o clube nunca fica manco). A grana da venda vai pro clube dono — que também pode brigar de volta.</p>
+                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato). A grana da venda vai pro clube dono — que também pode brigar de volta, e repõe a vaga se perder.</p>
                     {/* 🚪 porta: tem gente neste clube que o olheiro da conta não
                         alcança (só pra quem NÃO tem o tier — regra das portas). Sem
                         nome e sem categoria de quem ficou de fora: o olheiro não achou. */}

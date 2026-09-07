@@ -1,5 +1,13 @@
 # 📌 Pendências combinadas com o Diego (atualizado 07/09/2026)
 
+## 🕵️ Sondado não ia pro leilão (Elber) — ✅ consertado 07/09
+O bloco que move o jogador sondado pro leilão (`RESERVE_AUCTION_ONLINE`,
+"1a-bis") tinha a trava "só sai se sobrar gente na posição". Bot de carreira tem
+exatamente os 11 → quase todo sondado era barrado em silêncio (a tela dizia
+"✔ no leilão"). Trava removida: o buraco é reposto pela regra "bot não pode
+ficar com XI furado" (cascata em `FINISH_CEREMONY`) e o dono briga de volta no
+setor. Texto da caixa de sondar ajustado. Sem novidade na home (é conserto).
+
 ## 🪣 Monte Final (carreira): "Passar a vez" só funcionava apertando 3× — ✅ consertado 07/09
 Causa: a ordem do Monte é serpente com UMA vez por buraco (10 buracos = 10 vezes
 na fila). `MONTE_PASS` pulava só a vez da rodada; os bots pescavam e a vez
