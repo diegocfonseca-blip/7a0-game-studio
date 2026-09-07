@@ -8968,7 +8968,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // como "partida rápida" e sumia da aba "Carreiras (onde cada um está)".
       const youId = st.managers[st.youIdx]?.id ?? st.youIdx
       const pyramid = st.careerOnline && st.onlineMode !== 'online'
-      const division: string | null = st.careerDivision ?? (pyramid ? (st.careerPlacements?.['m' + youId] ?? 'D') : null)
+      // 🪜 NA PIRÂMIDE A DIVISÃO É A COLOCAÇÃO ATUAL (careerPlacements), nunca o
+      // careerDivision — ele fica congelado na divisão de FUNDAÇÃO (Várzea/D).
+      // Bug que o Diego pegou (07/09): o Futpoint joga a Série A com o clube
+      // principal e o painel mostrava "V" — e todo mundo que subiu aparecia na
+      // divisão em que começou. Vale o assento ATIVO (youIdx): é o clube que a
+      // pessoa está jogando agora.
+      const division: string | null = pyramid
+        ? (st.careerPlacements?.['m' + youId] ?? st.careerDivision ?? 'D')
+        : (st.careerDivision ?? null)
       const liveMode = st.onlineMode === 'online' ? 'online' : division ? 'career' : 'cpu'
       // caixa + títulos da carreira (pro painel ao vivo): pirâmide usa
       // careerCoins/careerHonors (títulos de QUALQUER série); antiga usa cash/careerTitles.

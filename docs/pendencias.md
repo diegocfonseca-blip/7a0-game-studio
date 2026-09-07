@@ -20,6 +20,14 @@ relatório por influenciador (usaram / pagos / entrou / desconto dado; botão "P
 Mockup: `node scripts/mockup-cupom.mjs`. Limite de usos e validade são opcionais por cupom
 (Diego decide caso a caso). Só vai pra `main` com o OK dele na imagem.
 
+## 📊 Painel ao vivo mostrava a divisão de FUNDAÇÃO, não a atual — ✅ consertado 07/09
+O pulso (`heartbeat` em `store.tsx`) mandava `careerDivision` antes do
+`careerPlacements` — e na pirâmide o `careerDivision` fica congelado na divisão
+em que a carreira nasceu. Futpoint (Série A) aparecia "V"; todo mundo que subiu
+aparecia onde começou. Agora na pirâmide vai a colocação do assento ATIVO. A
+correção só vale pros pulsos novos (o painel olha os últimos 90 s), então some
+sozinha na próxima vez que cada um abrir o jogo.
+
 ## 🕵️ Sondado não ia pro leilão (Elber) — ✅ consertado 07/09
 O bloco que move o jogador sondado pro leilão (`RESERVE_AUCTION_ONLINE`,
 "1a-bis") tinha a trava "só sai se sobrar gente na posição". Bot de carreira tem
