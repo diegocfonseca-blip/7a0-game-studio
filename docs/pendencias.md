@@ -13582,3 +13582,30 @@ aqui — o GuGu **já tem corrente própria** de nomes velhos (`White Thigs do G
   **nº59** · `esc_nomes_batismo` "Bagres 1993" (gatilho criou FC e EC).
 - ❓ **A CONFIRMAR**: nome da mascote (botei **"O Bagre"**, a arte veio sem nome) e
   o **time de coração** (`esc_socios.time_coracao` está nulo).
+
+### ✅ SEGURANÇA — bloco "não interfere em nada" fechado (07/09)
+Pedido do Diego: *"eu só não quero fazer nada que interfira"*. Então só entrou o
+que é PROVADAMENTE invisível pra quem joga — cada item com a prova do lado:
+- **`hist_rooms`** (migração `seguranca_3_hist_rooms_fecha`): tinha 4 políticas
+  "true" (qualquer um lia/apagava). Grep no `src/`: **zero uso**; tabela vazia.
+  Ficou RLS sem política + revoke de anon/authenticated.
+- **`esc_ranking_cache_refresh`** (`seguranca_4_…`): só o cron (job 2, postgres)
+  chama — grep no `src/`: zero. Revogado de public/anon/authenticated.
+- **`esc_admin_*` (9 funções)** (`seguranca_4b_…`): tiradas de PUBLIC e anon,
+  concedidas a authenticated/postgres/service_role. ⚠️ Lição: `revoke … from anon`
+  sozinho NÃO tira nada se o grant está em PUBLIC (anon herda) — conferir com
+  `has_function_privilege` depois, sempre. O Painel do Criador (logado) segue
+  igual — conferido: authenticated executa todas as 9.
+- **`search_path = public`** nas 5 funções do advisor (`seguranca_5_…`).
+  Prova de que nada mudou: md5 do resultado das 5 ANTES e DEPOIS — idêntico.
+- **`npm audit fix`**: 0 vulnerabilidades (eram 2 high em postcss/nanoid, só
+  ferramenta de build). Build ok depois.
+- **Regra de processo no CLAUDE.md**: batismo só depois da conta existir
+  (fecha a brecha nº 3 sem mexer no cadastro de ninguém).
+
+Advisor do Supabase antes → depois: **ERROR 1 → 0** · search_path **5 → 0** ·
+anon_secdef **37 → 24** · auth_secdef **42 → 37**. Sobram, de propósito (mexem
+em experiência ou em regra — decisão do Diego): leaked-password (1 clique, mas
+barra senha vazada no cadastro), confirmação de e-mail, `user_cards`/ranking
+validados no servidor, canal da sala conferir remetente, `pwHash` por RPC,
+tabelas do bolão/PontoSafe, `tts-proxy` aberto, `pg_net` no public.

@@ -136,6 +136,15 @@ FORA do bundle. Então, sem exceção:
      `batismos.ts` · e o clube na lista `BATISMOS` de `scripts/checa-batismos.mjs`
      (senão a trava nunca confere esse clube).
    - 🗄️ **E MAIS DUAS LINHAS NO BANCO — a parte que some fácil (achado 01/09).**
+     ⛔ **ANTES DE QUALQUER LINHA: A CONTA DO DONO TEM QUE EXISTIR** (regra de
+     segurança, 07/09). Conferir `select 1 from auth.users where email = …`. O
+     cadastro do jogo NÃO confirma e-mail, e todos os mimos (ouro, sócio, fundador,
+     escudo, nome reservado) seguem o E-MAIL — então, se a gente cadastra o
+     batismo ANTES da conta, **quem criar a conta primeiro com aquele e-mail leva
+     tudo**. Foi a brecha nº 3 da análise de segurança de 05/09; fechar pelo
+     processo custa zero e não mexe no cadastro de ninguém. Se o dono ainda não
+     tem conta: pedir pra criar primeiro, batismo depois (o Stocco mostrou o
+     outro lado do mesmo problema — o nome reservado bloqueando o próprio dono).
      O Diego perguntou *"já ativou tudo dele c/ benefícios e etc q batismo tem
      direito?"* e a resposta era NÃO: o código estava completo, o banco não.
      Nenhuma trava pega isso, porque `checa-batismos.mjs` roda offline.
