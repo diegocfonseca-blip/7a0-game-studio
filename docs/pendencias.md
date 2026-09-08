@@ -2143,6 +2143,28 @@ Série B/C/D/Várzea"*. Feito:
 (2) `esc_socios.escudo_time` do Adriano está "Ferrari SC" e o clube se chama
 "SC Ferrari" — na aba Torcidas aparece com a ordem trocada.
 
+**📋 Levantamento pedido por ele (08/09): o que falta em cada clube** (fonte:
+`npm run batismos` + `esc_socios`/`user_colors`/`auth.users`):
+- ❤️ **Sem time de coração (18):** Skyy FC · Eros FC · Seven City · Crias do
+  Bigão · Futpoint FC · Milhaça FC · Jurubeba (Meia na Canela) · Corporação
+  Capsule · Stocco FC · Final Boss FC · Bagres 1993 · Alfacehh · Marreco FC ·
+  Theuzudo FC (o código diz Valência, o banco não tem) · São Luiz FC (o código
+  diz Flamengo, o banco não tem) · Esqueceram do Lluch · White Thigs do GuGu ·
+  Vasco da Grana.
+- 🛡️ **Sem escudo próprio (4):** Alfacehh · Marreco FC · GuGu · Vasco da Grana
+  (rodam no escudo automático do jogo).
+- 🎭 **Sem mascote de carimbo (3):** Marreco FC · GuGu · Vasco da Grana.
+- 🎽 **Sem manto medido na camisa (26):** os 24 do guarda + GuGu + Vasco da
+  Grana. Não é defeito — é lista de a-quem-pedir a camisa.
+- 🗄️ **Buracos de BANCO achados de tabela:** Theuzudo · São Luiz · Esqueceram do
+  Lluch **não têm linha em `esc_socios`** (batismo sem nº de sócio); Marreco (nº11),
+  Alfacehh (nº3) e Barcenite (nº12) têm a linha mas **sem `escudo_time`** — por
+  isso não entram na aba Torcidas nem levam mimo por e-mail. Theuzudo e São Luiz
+  também **não têm linha em `user_colors`** (ouro só na reserva do código —
+  funciona pelo fallback, mas a regra diz que a oficial é a tabela). La Bestia
+  Negra é o inverso: ouro no banco, faltando na reserva do `apoio.tsx`.
+  ⏳ Nada consertado ainda — esperando o Diego dizer o que arrumar.
+
 ## 🖋️ AUDITORIA DOS BATISMOS (30/08) — `npm run batismos`
 Um batismo nasce espalhado por SEIS lugares e é fácil um ficar pra trás. O
 guarda olha os seis e **falha** se um número de fundador ficar duplicado.
