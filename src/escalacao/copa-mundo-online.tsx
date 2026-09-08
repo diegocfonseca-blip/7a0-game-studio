@@ -356,7 +356,11 @@ interface LinhaSala { user_id: string; player_index: number; manager_name: strin
 //     que, numa sala de 4, três pessoas não fecharam os 11 a tempo (levaram os
 //     piores). Não atrasa ninguém: a fase avança na hora em que TODOS fecham
 //     o time (`todosMontaram`); o relógio é só o teto pra quem dorme.
-const SEG_BANDEIRA = 65, SEG_BANNER = 15, SEG_CONVOCA = 135
+//   · 08/09: a convocação caiu pra 80s (Diego: *"o tempo de cada seleção
+//     convocar no online é agora de 80 segundos… e não mais de 100s, no rápido,
+//     minhas ligas etc."*). Vale pra TODO online que tem Copa do Mundo — é uma
+//     constante só, então não tem como um modo ficar diferente do outro.
+const SEG_BANDEIRA = 65, SEG_BANNER = 15, SEG_CONVOCA = 80
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */
