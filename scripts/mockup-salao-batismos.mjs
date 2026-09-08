@@ -9,11 +9,12 @@
 // tudo junto. N q vc fala q um time tá na B, outro na C — isso N precisa, p
 // nego N ficar puto"*. E: *"a torcida mantém tb mas só de qm é batismo"*.
 //
-// 🔢 TUDO AQUI É REAL (data.ts + esc_socios em 08/09): 41 clubes no Salão —
-//   19 na Série A (os do jogo rápido online) e 22 na Várzea (B + C + D + sócios,
-//   sem letra nenhuma). Torcidas = coração dos DONOS de clube, não de todo mundo.
+// 🔢 TUDO AQUI É REAL (data.ts + esc_socios em 08/09): 43 clubes no Salão —
+//   20 na Série A (os do jogo rápido online) e 23 em "Série B/C/D/Várzea" (tudo
+//   junto, sem letra em clube nenhum). Torcidas = coração dos DONOS de clube.
+//   Dele, 08/09: *"todos esses entram sim"* → GuGu e Vasco da Grana entraram.
 //
-//   node scripts/mockup-salao-batismos.mjs --saida /tmp/salao.png
+//   node scripts/mockup-salao-batismos.mjs --saida /tmp/salao.png [--escudos pasta-com-pngs]
 //
 // ⚠️ É MOCKUP: nenhuma linha daqui é código do jogo (o jogo é `salao.tsx`).
 // Mora no repo pra não se perder com o scratchpad da sessão (lição do Coringas).
@@ -26,12 +27,23 @@ const saida = arg('saida', 'mockup-salao-batismos.png')
 const b64 = f => fs.readFileSync(f).toString('base64')
 const fonte = w => `data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}`
 const esc = n => n ? `data:image/webp;base64,${b64(`src/escalacao/img/${n}-escudo.webp`)}` : null
+// 🛡️ escudos feitos em CÓDIGO (SVG do escudos.tsx) não têm arquivo. Pra eles
+// entrarem no mockup, passe `--escudos <pasta>` com PNGs tirados do jogo
+// (nome do arquivo = nome do clube em minúsculo, sem acento, hífen no lugar de
+// espaço: `bicho-da-seda.png`). Sem a pasta, sai um 🛡️ cinza no lugar.
+const pastaEsc = arg('escudos', '')
+const slug = n => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+const escPng = nome => {
+  const f = pastaEsc && `${pastaEsc}/${slug(nome)}.png`
+  return f && fs.existsSync(f) ? `data:image/png;base64,${b64(f)}` : null
+}
 
 const CREME = '#F4ECD6', TINTA = '#0C0C0C', OURO = '#FFC400', ROXO = '#7C3AED', VERDE = '#1B7A3D'
 
 // ── ⭐ SÉRIE A · ONLINE (DIVISION_TEAMS.A ∩ BATISMOS), por nº de fundador ────
 // [arquivo webp ou null (escudo feito em código — aparece normal no jogo), nome, nº fundador]
 const SERIE_A = [
+  [null, 'Vasco da Grana', 'batismo'], // pedido do Diego (03/08), sem dono — sem nº
   ['neymarzetti', 'Neymarzetti', 1],
   ['al-takahdao', 'Al Takhadao FC', 53],
   [null, 'Bicho da Seda', 11],
@@ -55,6 +67,7 @@ const SERIE_A = [
 
 // ── 🏟️ VÁRZEA (B + C + D + sócios, TUDO JUNTO, sem letra), por nº de fundador ─
 const VARZEA = [
+  [null, 'White Thigs do GuGu', 'primeiro'], // 🥋 1º batismo da história, dono desconhecido — sem nº
   [null, 'Murriz FC', 21],
   [null, 'Marreco FC', 29],
   [null, 'Alfacehh', 30],
@@ -98,12 +111,19 @@ const TORCIDAS = [
 ]
 const maiorT = TORCIDAS[0].n
 
-const card = ([img, nome, f]) => `
+const selo = f => f === 'socio' ? `<span class="pc-sel branco">🎫 sócio</span>`
+  : f === 'primeiro' ? `<span class="pc-sel">🥇 1º da história</span>`
+  : f === 'batismo' ? `<span class="pc-sel">🖋️ batismo</span>`
+  : `<span class="pc-sel">🏛️ nº${f}</span>`
+const card = ([img, nome, f]) => {
+  const src = img ? esc(img) : escPng(nome)
+  return `
   <div class="pc">
-    ${img ? `<img src="${esc(img)}" alt="${nome}">` : `<div class="pc-sem">🛡️</div>`}
+    ${src ? `<img src="${src}" alt="${nome}">` : `<div class="pc-sem">🛡️</div>`}
     <p class="pc-nome">${nome}</p>
-    ${f === 'socio' ? `<span class="pc-sel branco">🎫 sócio</span>` : `<span class="pc-sel">🏛️ nº${f}</span>`}
+    ${selo(f)}
   </div>`
+}
 
 const faixa = (t, s) => `<div class="faixa"><b>${t}</b><span>${s}</span></div>`
 
@@ -168,19 +188,19 @@ h1{font-family:Oswald;font-weight:700;font-size:38px;text-transform:uppercase;li
 <span class="pil">🏛️ dentro da aba Ranking</span>
 <h1>Salão dos Batismos</h1>
 <p class="lead">Todo clube que virou de alguém está aqui, com o escudo que aparece no jogo.
-<b>41 clubes</b> · 62 vagas ainda livres.</p>
+<b>${SERIE_A.length + VARZEA.length} clubes</b> · 60 vagas ainda livres.</p>
 
 <div class="abas"><div class="on">🛡️ Clubes</div><div>❤️ Torcidas</div></div>
 
 <div class="bloco">
   <div class="cab"><b>🛡️ Os clubes</b><span>sem ranking, sem título, sem posição — a ordem é quem chegou antes (nº de fundador)</span></div>
   <div class="corpo">
-    ${faixa('⭐ Série A · Online', '19 clubes · os que aparecem no jogo rápido')}
+    ${faixa('⭐ Série A · Online', `${SERIE_A.length} clubes · os que aparecem no jogo rápido`)}
     <div class="parede">${SERIE_A.map(card).join('')}</div>
-    ${faixa('🏟️ Várzea', '22 clubes · subindo na carreira').replace('class="faixa"', 'class="faixa varzea"')}
+    ${faixa('🏟️ Série B/C/D/Várzea', `${VARZEA.length} clubes · subindo na carreira`).replace('class="faixa"', 'class="faixa varzea"')}
     <div class="parede">${VARZEA.map(card).join('')}</div>
-    <div class="nota">🛡️ em cinza = escudo desenhado em código (aparece normal no jogo; aqui no mockup só os .webp entram).
-    Na Várzea <b>ninguém vê letra</b>: B, C, D e sócios ficam juntos, sem "Série D" do lado do clube de ninguém.</div>
+    <div class="nota">Embaixo <b>ninguém vê letra</b>: B, C, D e sócios ficam juntos, sem "Série D" do lado do clube de ninguém.
+    A ordem é quem chegou antes.</div>
   </div>
 </div>
 
@@ -191,7 +211,7 @@ h1{font-family:Oswald;font-weight:700;font-size:38px;text-transform:uppercase;li
   </div>
 </div>
 
-<div class="cta"><b>🔨 Sua vaga está livre</b><span>62 clubes ainda esperam dono — vire Lenda e batize o seu</span></div>
+<div class="cta"><b>🔨 Sua vaga está livre</b><span>60 clubes ainda esperam dono — vire Lenda e batize o seu</span></div>
 <p class="rod">⚽ Leilão Legends · mockup pra aprovação — no ar só pra conta do Diego</p>
 </body></html>`
 

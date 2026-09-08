@@ -10,8 +10,11 @@
 // várzea e tudo junto. N q vc fala q um time tá na B, outro na C — isso N
 // precisa, p nego N ficar puto"*. Então:
 //   · em cima, ⭐ SÉRIE A · ONLINE — os clubes que aparecem no jogo rápido;
-//   · embaixo, 🏟️ VÁRZEA — todo o resto JUNTO (B, C, D e sócios), sem letra
-//     nenhuma. Ninguém lê "Série D" do lado do próprio clube.
+//   · embaixo, 🏟️ SÉRIE B/C/D/VÁRZEA — todo o resto JUNTO (B, C, D e sócios),
+//     sem letra em clube nenhum. Ninguém lê "Série D" do lado do próprio clube.
+//   · 08/09, dele: *"todos esses entram sim"* — White Thigs do GuGu (1º batismo
+//     da história) e Vasco da Grana entraram em `BATISMOS`, sem nº (dono
+//     desconhecido), com selo próprio.
 //   · sem título, sem palmarés, sem posição: a ordem é o número de fundador
 //     (quem chegou antes vem antes), que é o único "ranking" que não briga.
 //   · ❤️ Torcidas continua, mas **só de quem é batismo** (*"a torcida mantém tb
@@ -80,6 +83,10 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
         <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
           style={{ background: GOLD }}>🏛️ nº{c.fundador}</span>
       )}
+      {!c.fundador && c.selo && (
+        <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
+          style={{ background: GOLD }}>{c.selo}</span>
+      )}
       {c.tipo === 'socio' && (
         <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
           style={{ background: '#fff' }}>🎫 sócio</span>
@@ -132,7 +139,9 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
           </div>
 
           <div className="pt-2" />
-          <Faixa titulo="🏟️ Várzea" sub={`${varzea.length} clubes · subindo na carreira`} />
+          {/* 📛 o nome da faixa é "Série B/C/D/Várzea" (cobrança dele 08/09: *"N é
+              várzea apenas"*) — mas NENHUM clube diz em qual das quatro está. */}
+          <Faixa titulo="🏟️ Série B/C/D/Várzea" sub={`${varzea.length} clubes · subindo na carreira`} />
           <div className="grid grid-cols-2 gap-2.5">
             {varzea.map(c => <Card key={c.clube} c={c} />)}
           </div>

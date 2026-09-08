@@ -28,9 +28,17 @@ export interface Batismo {
   tipo: 'batismo' | 'socio'
   /** nº de FUNDADOR (só batismo). Copiado de FUNDADOR_N — o guarda confere. */
   fundador: number | null
+  /** selo que aparece no lugar do nº (batismo antigo sem número conhecido) */
+  selo?: string
 }
 
 export const BATISMOS: Batismo[] = [
+  // 🥋 O 1º batismo da história (dono/e-mail desconhecido até hoje — por isso sem
+  // nº de fundador). Diego, 08/09: *"todos esses entram sim"*. Se o e-mail aparecer,
+  // dar o próximo FUNDADOR_N e trocar o selo pelo número.
+  { clube: 'White Thigs do GuGu', tipo: 'batismo', fundador: null, selo: '🥇 1º da história' },
+  // 🏦 Batismo a pedido do próprio Diego (03/08, ex-Magrão EC) — sem dono/e-mail.
+  { clube: 'Vasco da Grana', tipo: 'batismo', fundador: null, selo: '🖋️ batismo' },
   { clube: 'Neymarzetti', tipo: 'batismo', fundador: 1 },
   { clube: 'Bicho da Seda', tipo: 'batismo', fundador: 11 },
   { clube: 'Xurupitas FC', tipo: 'batismo', fundador: 13 },

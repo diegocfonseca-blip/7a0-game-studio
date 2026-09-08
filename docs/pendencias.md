@@ -2125,12 +2125,23 @@ Como ficou (`salao.tsx`, duas abas):
 - **Reverter:** `git revert` do commit + `SALAO_GERAL` continua `false`, então
   nada disso alcança jogador até ele soltar.
 
-**Ficou pra ele responder:** (1) soltar pra geral (`SALAO_GERAL = true`)? (2) o
-**White Thigs do GuGu** (1º batismo da história, hoje na Série B) e o **Vasco da
-Grana** estão no baralho como batizados mas **NÃO estão em `BATISMOS`** — o GuGu
-não tem nº de fundador em `apoio.tsx`. Perguntar se entra no Salão e com que
-número. (3) `esc_socios.escudo_time` do Adriano está "Ferrari SC" e o clube se
-chama "SC Ferrari" — na aba Torcidas aparece com a ordem trocada.
+**Segunda rodada (08/09, mesma noite), palavras dele:** *"Todos esses entram
+sim e oq tô vendo vários sem escudos? É onde tá varzea N é várzea apenas. É
+Série B/C/D/Várzea"*. Feito:
+- **White Thigs do GuGu** (selo 🥇 1º da história) e **Vasco da Grana** (selo 🖋️
+  batismo) entraram em `BATISMOS` **sem nº de fundador** — dono/e-mail dos dois
+  continua desconhecido (mesma pendência de 20/08). Se o e-mail do GuGu aparecer:
+  próximo `FUNDADOR_N` (62) + trocar o selo pelo número. Agora são 43 clubes.
+- Faixa de baixo renomeada **"🏟️ Série B/C/D/Várzea"** (continua sem letra em
+  clube nenhum).
+- Os "sem escudo" eram só do MOCKUP: 16 clubes têm escudo desenhado em código
+  (SVG do `escudos.tsx`), não em arquivo. O mockup agora aceita `--escudos
+  <pasta>` com PNGs fotografados do jogo (tirei com um Vite dev temporário +
+  Playwright; arquivos temporários apagados, nada foi pro repo).
+
+**Ficou pra ele responder:** (1) soltar pra geral (`SALAO_GERAL = true`)?
+(2) `esc_socios.escudo_time` do Adriano está "Ferrari SC" e o clube se chama
+"SC Ferrari" — na aba Torcidas aparece com a ordem trocada.
 
 ## 🖋️ AUDITORIA DOS BATISMOS (30/08) — `npm run batismos`
 Um batismo nasce espalhado por SEIS lugares e é fácil um ficar pra trás. O
