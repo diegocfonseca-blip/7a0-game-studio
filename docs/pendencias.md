@@ -51,13 +51,13 @@ nº38 · fundador nº60 · 3 nomes reservados · `user_colors` ouro/manual.
 ⏳ **Confirmar com o dono**: nome da mascote (provisório "O Eclipse"), time de
 coração (vazio em `esc_socios.time_coracao`) e nome dele pro post.
 
-## 🎟️ Cupom de influenciador (PANTERA, 10% só no batismo) — código no branch, ⏳ OK visual
+## 🎟️ Cupom de influenciador (PANTERA, 10% só no batismo) — ✅ PUBLICADO 08/09 (versão sutil)
 Banco pronto (`esc_cupons`/`esc_cupom_usos` + RPCs `esc_cupom_validar`/`esc_cupom_usar`,
 migração `cupons_influenciador`), cupom PANTERA já cadastrado. Tela do batismo com o
 campo, Pix com desconto, DM com "usei o cupom", Painel do Criador com criação de cupom e
 relatório por influenciador (usaram / pagos / entrou / desconto dado; botão "Pix caiu").
 Mockup: `node scripts/mockup-cupom.mjs`. Limite de usos e validade são opcionais por cupom
-(Diego decide caso a caso). Só vai pra `main` com o OK dele na imagem.
+(Diego decide caso a caso). Aprovado em 08/09 com o pedido *"mais sutil lá no pagamento"*: virou um linkzinho cinza "tem cupom?" embaixo do Pix, que só abre o campo ao tocar; aplicado, vira uma linha verde discreta.
 
 ## 🏢 SAF / 2º clube "não sobem" (Futpoint) — investigado no save real, ✅ correção 07/09
 O motor de subida/descida está certo (rodado headless por 12 temporadas com 2º

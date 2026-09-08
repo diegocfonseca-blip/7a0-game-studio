@@ -26,17 +26,8 @@ const num = n => `<span style="display:inline-block;width:20px;height:20px;borde
 const serie = (t, p, on) => `<div style="flex:1;border:2px solid ${INK};border-radius:8px;padding:6px 8px;font-size:9.5px;font-weight:900;text-align:center;background:${on ? GOLD : '#fff'};box-shadow:${on ? `2px 2px 0 ${INK}` : 'none'}">${t}<br><span style="font-size:12px;${OSW}">${p}</span></div>`
 
 const caixaCupom = (aplicado) => aplicado ? `
-  <div style="border:2px dashed ${INK};border-radius:12px;padding:8px 10px;margin-top:10px;background:#E9F9EF;display:flex;align-items:center;gap:8px">
-    <p style="font-size:11px;font-weight:700;line-height:1.35;flex:1;margin:0">🎟️ <b>Cupom PANTERA</b> (Pantera): <b style="color:${GREEN}">10% off</b> · <s style="color:rgba(0,0,0,.45)">R$ 59,90</s> → <b style="${OSW}">R$ 53,91</b></p>
-    <span style="font-size:10px;font-weight:900;text-decoration:underline;color:rgba(0,0,0,.45)">tirar</span>
-  </div>` : `
-  <div style="border:2px dashed ${INK};border-radius:12px;padding:8px 10px;margin-top:10px;background:#FBF6E8">
-    <p style="font-size:11px;font-weight:900;${OSW};margin:0">🎟️ Tem cupom de influenciador?</p>
-    <div style="display:flex;gap:6px;margin-top:6px">
-      <div style="flex:1;border:2px solid ${INK};border-radius:8px;padding:6px 10px;background:#fff;${OSW};font-size:13px;letter-spacing:.08em;color:rgba(0,0,0,.35)">DIGITE O CÓDIGO</div>
-      <div style="border:2px solid ${INK};border-radius:8px;padding:6px 12px;background:#eee;${OSW};font-size:11px">APLICAR</div>
-    </div>
-  </div>`
+  <p style="font-size:10px;font-weight:700;text-align:center;margin:6px 0 0;color:${GREEN}">🎟️ cupom <b>PANTERA</b> aplicado · 10% off · <s style="color:rgba(0,0,0,.4)">R$ 59,90</s> <b>R$ 53,91</b> <u style="color:rgba(0,0,0,.4)">tirar</u></p>` : `
+  <p style="text-align:center;margin:6px 0 0"><u style="font-size:10px;font-weight:700;color:rgba(0,0,0,.4)">tem cupom?</u></p>`
 
 const pix = (valor) => `
   <div style="border:3px solid ${INK};border-radius:14px;padding:10px 12px;margin-top:8px;background:#fff;box-shadow:3px 3px 0 ${INK}">
@@ -52,8 +43,8 @@ const batismo = (aplicado) => `
   <p style="${OSW};font-size:13px;margin:14px 0 0">${num(2)}Escolhe a série e faz o Pix</p>
   <div style="display:flex;gap:6px;margin-top:6px">${serie('Série B·C·D e Várzea', 'R$ 59,90', true)}${serie('👑 Série A (a elite)', 'R$ 69,90', false)}</div>
   <p style="font-size:9.5px;font-weight:700;color:rgba(0,0,0,.5);margin:4px 0 0;line-height:1.35">a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta.</p>
-  ${caixaCupom(aplicado)}
   ${pix(aplicado ? '53,91' : '59,90')}
+  ${caixaCupom(aplicado)}
   <p style="${OSW};font-size:13px;margin:14px 0 0">${num(3)}Manda comprovante + nome</p>
   <div style="border:3px solid ${INK};border-radius:12px;padding:12px;margin-top:8px;text-align:center;background:#E1306C;color:#fff;${OSW};font-size:15px;box-shadow:4px 4px 0 ${INK}">📸 CHAMAR NO @leilaolegendscom</div>
   <p style="font-size:10px;font-weight:700;color:rgba(0,0,0,.45);text-align:center;margin:6px 0 0">(a mensagem já vai copiada${aplicado ? ' — e já diz "usei o cupom PANTERA, paguei R$ 53,91"' : ''})</p>`
