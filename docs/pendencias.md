@@ -225,8 +225,40 @@ e-mail do batismo"*. (Gravada também no `CLAUDE.md`.)
   `esc_nomes_batismo` (ele tinha só as 3 formas de "Jurubeba"; o nome novo estava
   **livre pra qualquer um pegar**).
 
-### ⏳ Etapa 2 — fazer valer SOZINHO, sem cadastro por nome
-Hoje todo rebatismo dá trabalho manual e **some fácil** (foi o que aconteceu).
+### ✅ Etapa 2 — FEITA em 08/09 (no branch, ESPERANDO OK do print antes da main)
+Diego, 08/09, na conversa do batismo do Caleb: *"tem que funcionar com email…
+escudo, mascote, manto, com email, porque se ele mudar o nome do time pra que
+ele quiser, ele segue sempre com o escudo, com as cores"*. Como ficou:
+- **`src/escalacao/mimos.ts` (novo, sem imports)**: um registro local com (a) o
+  nome ATUAL do MEU clube principal, que o `store.tsx` grava toda vez que muda
+  (carreira, rápido, online; com multiclube no comando do 2º clube, o principal
+  é o que dorme em `multiClube` — o 2º clube NÃO leva o escudo do dono, é clube
+  comprado com identidade própria) e (b) o `escudo_time` + `mascote_key` do meu
+  batismo, que o `manto.ts` grava quando `esc_meu_socio` responde.
+- `escudos.tsx` (`logoPronta`) e `mascotes.tsx` (`carimboDoTime`,
+  `carimboAnimDoTime`): lista fixa primeiro; se o nome não está lá **e é o do
+  meu clube**, entra o escudo/mascote do meu batismo. A `chaveEscudo` mudou de
+  casa pro `mimos.ts` (mesma função, os três usam a mesma).
+- Banco: `esc_meu_socio()` passou a devolver `escudo_time` (migração
+  `meu_socio_devolve_escudo_time`); e preenchi o `escudo_time` que faltava —
+  Alfacehh (nº3), Marreco FC (nº11), Barcenite FC (nº12) — e corrigi "Ferrari SC"
+  → "SC Ferrari" (nº10), senão o apelido do Adriano não achava a logo.
+- Prova real (Vite temporário + Playwright, mesmo componente do jogo): "Caleb
+  United" sem nada → escudo automático e sem carimbo; com o dono do Jurubeba
+  logado → escudo Meia na Canela + carimbo da meia. Também "MEIA NA CANELA DE
+  DESPORTOS" e "Scuderia do Adriano" (SC Ferrari). Arquivos temporários
+  apagados, nada foi pro repo.
+- ⚠️ **Só o PRÓPRIO dono vê** o escudo no time renomeado. Os OUTROS jogadores
+  (sala online, ranking) desenham pelo nome e continuam vendo o automático nesse
+  caso — o clube de batismo em si (nome fixo) todo mundo vê certo. Fazer os outros
+  verem também = uma RPC pública "nome atual → escudo_time" pros humanos da sala
+  (sem e-mail). Fica como **Etapa 3**, se o Diego quiser.
+- Festão de campeão e pulo do pênalti já eram pelo e-mail (`meuSocio.mascoteKey`),
+  não mudaram. Manto e ouro idem.
+- **Reverter:** `git revert` do commit; a RPC nova só acrescenta uma coluna no
+  fim (o código antigo ignora), então não precisa desfazer no banco.
+
+**Como era o plano da Etapa 2 (histórico):**
 O caminho: os mimos do dono passam a ser resolvidos pelo E-MAIL e aplicados ao
 **clube DELE**, seja qual for o nome.
 - ⚠️ O cuidado que decide: **só o clube do próprio dono** pode receber. O

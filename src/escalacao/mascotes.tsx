@@ -6,6 +6,7 @@
 // esc_socios.mascote_key (Diego seta pelo painel).
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { ehMeuClube, meuMascoteBatismo } from './mimos' // 🎁 mascote do dono segue o e-mail
 import tokaMascoteImg from './img/toka10-mascote.webp'
 import erosNinaImg from './img/eros-nina-mascote.webp'
 import sapekAbelhaImg from './img/sapek-mascote.webp'
@@ -1031,9 +1032,15 @@ const bustoDe = (src: string, alt: string) => (
   </div>
 )
 
+// 🎁 08/09: a chave da mascote de um clube — lista fixa primeiro; se o nome não
+// está lá MAS é o do MEU clube e eu sou dono de batismo, vale a minha mascote
+// (regra do Diego: mimo segue o E-MAIL, o dono renomeia e não perde). Ver mimos.ts.
+const carimboKey = (time: string): string | undefined =>
+  CARIMBO_GOL[time] ?? (ehMeuClube(time) ? (meuMascoteBatismo() ?? undefined) : undefined)
+
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)
 export const carimboDoTime = (time: string): ReactNode | null => {
-  const k = CARIMBO_GOL[time]
+  const k = carimboKey(time)
   if (!k) return null
   if (k === 'sete_seven') return SETE_SEVEN
   const busto = CARIMBO_BUSTO[k]
@@ -1074,7 +1081,7 @@ export const CARIMBO_ANIM: Record<string, string> = {
   manfre_gralha: 'coVoa',     // 🐦‍⬛ gralha: mergulha de cima e sobe planando
 }
 export const carimboAnimDoTime = (time: string): string =>
-  CARIMBO_ANIM[CARIMBO_GOL[time] ?? ''] ?? 'coCarimba'
+  CARIMBO_ANIM[carimboKey(time) ?? ''] ?? 'coCarimba'
 
 // 🏆 e no FESTÃO de campeão a mesma ideia: o bicho atravessa a tela do jeito
 // DELE. Quem VOA plana no alto e não tem sombra no chão (era o mais errado de

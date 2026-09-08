@@ -14,6 +14,7 @@ import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecni
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
+import { registraMeusNomes } from './mimos' // 🎁 o nome atual do MEU clube (escudo/mascote do batismo seguem o e-mail)
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { NBA_SLOTS_PER_POS } from './sportcfg'
 
@@ -8651,6 +8652,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
     () => dispatch({ type: 'FORCE_TIEBREAK' }),
     () => logTravaSalva('desempate', 2, stateRef.current.roomId, stateRef.current.isHost),
   )
+
+  // 🎁 MIMOS SEGUEM O E-MAIL (08/09): avisa o mimos.ts qual é o nome ATUAL do meu
+  // clube PRINCIPAL, pra escudo e mascote do batismo aparecerem nele seja qual for
+  // o nome (regra do Diego: *"escudo, mascote, manto, com e-mail"*). Só o assento
+  // que é MEU entra: nunca bot, nunca o time de outro humano. Com multiclube no
+  // comando do 2º clube, o principal é o que dorme (mora em `multiClube`) — o 2º
+  // clube é um clube comprado, com identidade própria, e NÃO leva o escudo do dono.
+  const meuNomeAtual = (() => {
+    const ativo = state.managers[state.youIdx]
+    if (state.multiClubeAtivo && state.multiClube) return state.multiClube.team
+    return ativo?.isHuman ? ativo.teamName : undefined
+  })()
+  useEffect(() => { registraMeusNomes([meuNomeAtual]) }, [meuNomeAtual])
 
   // 🛟 AUTO-CURA DE IDENTIDADE (online): depois de um "jogar de novo"/reconexão o
   // índice local ("quem sou eu") pode DESLIZAR — você passa a controlar o assento

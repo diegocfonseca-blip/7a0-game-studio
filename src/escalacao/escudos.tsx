@@ -45,6 +45,7 @@ import futpointEscudoImg from './img/futpoint-escudo.webp'
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import manfreEscudoImg from './img/manfre-escudo.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
+import { chaveEscudo, ehMeuClube, meuEscudoBatismo } from './mimos' // 🎁 escudo do dono segue o e-mail
 
 const INK = '#0C0C0C'
 
@@ -1355,14 +1356,18 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
 // FC do Geovany. Palavras do Diego: *"não tem nada a ver o cara escreveu o nome
 // de Arruda, e isso ser uma chave dos escudos do tricolor do Arruda, está
 // errado"*. Os apelidos foram APAGADOS: agora só o nome completo vale.
-const chaveEscudo = (n: string): string => n
-  .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // tira acento (Bigão = Bigao)
-  .toLowerCase().trim()
-  .replace(/\s+/g, ' ')
-  .replace(/\s+(f\.?\s?c\.?|e\.?\s?c\.?|s\.?\s?c\.?)$/, '') // FC/EC/SC no fim não mudam o dono
+// (a `chaveEscudo` mora em mimos.ts — mascotes.tsx e store.tsx usam a mesma)
 const LOGOS_POR_CHAVE: Map<string, (size: number) => ReactNode> =
   new Map(Object.entries(LOGOS_PRONTAS).map(([k, v]) => [chaveEscudo(k), v]))
-const logoPronta = (n: string) => LOGOS_POR_CHAVE.get(chaveEscudo(n))
+// 🎁 08/09: se o nome não está na lista fixa MAS é o do MEU clube e eu sou dono
+// de batismo, entra o escudo do meu batismo — o dono renomeia à vontade e não
+// perde o escudo (regra do Diego: mimo segue o E-MAIL). Ver mimos.ts.
+const logoPronta = (n: string) => {
+  const fixa = LOGOS_POR_CHAVE.get(chaveEscudo(n))
+  if (fixa) return fixa
+  const meu = ehMeuClube(n) ? meuEscudoBatismo() : null
+  return meu ? LOGOS_POR_CHAVE.get(chaveEscudo(meu)) : undefined
+}
 
 // ─── 🛡️ o componente ──────────────────────────────────────────────────────
 // `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos

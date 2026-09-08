@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { loggedEmail } from './apoio'
+import { registraMeuBatismo } from './mimos'
 
 // reserva no código (beta) — conta → [cor1, cor2]
 export const MANTO_CONTAS: Record<string, [string, string]> = {
@@ -35,20 +36,24 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
 
 // cache do MEU sócio (mesmo padrão do myEmail do apoio: pontos de uso são
 // síncronos, então mantemos o valor vivo via auth listener)
-export interface MeuSocio { socioN: number | null; ativo: boolean; origem: string | null; manto: [string, string] | null; estadioNome: string | null; mascoteKey: string | null }
+export interface MeuSocio { socioN: number | null; ativo: boolean; origem: string | null; manto: [string, string] | null; estadioNome: string | null; mascoteKey: string | null; escudoTime: string | null }
 let meu: MeuSocio | null = null
 const listeners = new Set<() => void>()
 async function fetchMeuSocio() {
   meu = null
   try {
     const { data } = await supabase.rpc('esc_meu_socio')
-    const r = (Array.isArray(data) ? data[0] : data) as { socio_n?: number; ativo?: boolean; origem?: string; manto_c1?: string | null; manto_c2?: string | null; estadio_nome?: string | null; mascote_key?: string | null } | undefined
+    const r = (Array.isArray(data) ? data[0] : data) as { socio_n?: number; ativo?: boolean; origem?: string; manto_c1?: string | null; manto_c2?: string | null; estadio_nome?: string | null; mascote_key?: string | null; escudo_time?: string | null } | undefined
     if (r) meu = {
       socioN: r.socio_n ?? null, ativo: !!r.ativo, origem: r.origem ?? null,
       manto: r.manto_c1 && r.manto_c2 ? [r.manto_c1, r.manto_c2] : null,
       estadioNome: r.estadio_nome ?? null, mascoteKey: r.mascote_key ?? null,
+      escudoTime: r.escudo_time ?? null,
     }
   } catch { /* sem rede — fica na reserva do código */ }
+  // 🎁 08/09: escudo e mascote do dono passam a seguir o E-MAIL (ver mimos.ts).
+  // Só sócio ATIVO leva; deslogou/venceu → limpa, e o clube volta ao automático.
+  registraMeuBatismo(meu?.ativo ? meu.escudoTime : null, meu?.ativo ? meu.mascoteKey : null)
   listeners.forEach(fn => fn())
 }
 supabase.auth.getUser().then(() => fetchMeuSocio(), () => {})

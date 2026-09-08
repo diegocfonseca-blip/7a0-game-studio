@@ -121,8 +121,14 @@ FORA do bundle. Então, sem exceção:
      👉 Quando um dono renomear: registrar o nome novo em `LOGOS_PRONTAS` e
      `CARIMBO_GOL`, apontar `esc_socios.escudo_time` pro nome novo e **trancar as
      4 formas do nome novo** em `esc_nomes_batismo` (senão fica livre pra outro).
-     👉 **Pendente**: fazer isso valer SOZINHO pelo e-mail, sem cadastro por nome —
-     está anotado em `docs/pendencias.md`. Até lá, é na mão a cada renomeação.
+     👉 **FEITO em 08/09 (`src/escalacao/mimos.ts`)**: escudo e carimbo de gol do
+     dono seguem o E-MAIL sozinhos — o `store.tsx` registra o nome atual do clube
+     principal dele e `escudos.tsx`/`mascotes.tsx` usam o escudo/mascote do batismo
+     nesse nome. Precisa do `escudo_time` preenchido em `esc_socios` (passo fixo do
+     roteiro). Vale só pra tela do PRÓPRIO dono; os outros jogadores ainda desenham
+     pelo nome (Etapa 3 pendente). Palavras do Diego (08/09): *"tem que funcionar
+     com email… escudo, mascote, manto, com email"*. Cadastrar nome novo em
+     `LOGOS_PRONTAS`/`CARIMBO_GOL` continua valendo pra quem quer que os OUTROS vejam.
 
 10. **Regra permanente (17/08): TODO batismo tem FORMATO PADRÃO.** Palavras do
    Diego: *"sempre irei falar arte padrão de formato pra escudo manto e mascote…
