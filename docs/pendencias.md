@@ -2103,10 +2103,34 @@ Esperion) e o Leão da Estradinha perderia metade (era Império Samambaia).
 batismo ok"*), com selo 🎫 próprio — sem vaga na pirâmide e sem nº de fundador,
 que é a regra do Futpoint (19/08).
 
-**Falta ele decidir:** (1) a aba ❤️ Torcidas escreve NOME de clube real, o que
-bate na regra dele mesmo (`coracao.ts`/`manto.ts`: *"só as CORES"*) — a tela já
-avisa isso dentro dela; (2) mostrar o primeiro nome do dono ("Daniel · Série D")
-— hoje não mostra, porque isso não existe no banco e eu não vou expor e-mail.
+~~**Falta ele decidir:** (1) a aba ❤️ Torcidas escreve NOME de clube real…~~
+**Decidido em 08/09 — o Salão foi REFEITO sem ranking** (commit no branch,
+ESPERANDO OK VISUAL do mockup novo antes da main). Palavras dele: *"N quero
+ranking não. Quero Série A/online e embaixo Série B, C, D, várzea… quis dizer q
+B C D é várzea e tudo junto. N q vc fala q um time tá na B, outro na C — isso N
+precisa, p nego N ficar puto"* e *"a torcida mantém tb mas só de qm é batismo"*.
+Como ficou (`salao.tsx`, duas abas):
+- 🛡️ **Clubes**: faixa **⭐ Série A · Online** (os 19 de `DIVISION_TEAMS.A`, que
+  são os do jogo rápido) e embaixo **🏟️ Várzea** com TODO o resto junto (B + C +
+  D + sócios, 22) — **sem letra de série em lugar nenhum**. Sem título, sem
+  posição; a ordem é o nº de fundador (quem chegou antes). Selo 🎫 de sócio fica.
+- ❤️ **Torcidas**: `esc_salao_torcidas()` foi trocada no banco (migração
+  `salao_torcidas_so_donos_de_batismo`): conta só quem tem clube em `esc_socios`
+  (coração do batismo, ou o que a pessoa marcou no jogo se faltar) e devolve os
+  CLUBES de cada torcida (nunca e-mail). Hoje: Corinthians 4 · Santos 4 ·
+  Palmeiras 3 · Flamengo 2 · Inter 2 · mais 9 com 1. A caixa amarela "falta você
+  decidir" saiu — manter o nome escrito foi a decisão dele ao manter a aba.
+- A RPC `esc_salao_clubes` (palmarés) ficou no banco sem ninguém chamar; pode
+  cair depois.
+- **Reverter:** `git revert` do commit + `SALAO_GERAL` continua `false`, então
+  nada disso alcança jogador até ele soltar.
+
+**Ficou pra ele responder:** (1) soltar pra geral (`SALAO_GERAL = true`)? (2) o
+**White Thigs do GuGu** (1º batismo da história, hoje na Série B) e o **Vasco da
+Grana** estão no baralho como batizados mas **NÃO estão em `BATISMOS`** — o GuGu
+não tem nº de fundador em `apoio.tsx`. Perguntar se entra no Salão e com que
+número. (3) `esc_socios.escudo_time` do Adriano está "Ferrari SC" e o clube se
+chama "SC Ferrari" — na aba Torcidas aparece com a ordem trocada.
 
 ## 🖋️ AUDITORIA DOS BATISMOS (30/08) — `npm run batismos`
 Um batismo nasce espalhado por SEIS lugares e é fácil um ficar pra trás. O

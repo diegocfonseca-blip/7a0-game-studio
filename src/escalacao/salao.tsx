@@ -2,58 +2,46 @@
 //
 // Pedido do Diego (30/08): *"precisamos criar algum ranking sei lá algo c todos
 // batismos, algo c times de coração... que a pessoa vê o mockup dos times
-// criados... vê tb quais maiores torcidas"*. Mockup aprovado:
+// criados... vê tb quais maiores torcidas"*. Mockup:
 // `scripts/mockup-salao-batismos.mjs`.
+//
+// 🔄 REFEITO EM 08/09 — SEM RANKING. Palavras dele: *"N quero ranking não.
+// Quero Série A/online e embaixo Série B, C, D, várzea... quis dizer q B C D é
+// várzea e tudo junto. N q vc fala q um time tá na B, outro na C — isso N
+// precisa, p nego N ficar puto"*. Então:
+//   · em cima, ⭐ SÉRIE A · ONLINE — os clubes que aparecem no jogo rápido;
+//   · embaixo, 🏟️ VÁRZEA — todo o resto JUNTO (B, C, D e sócios), sem letra
+//     nenhuma. Ninguém lê "Série D" do lado do próprio clube.
+//   · sem título, sem palmarés, sem posição: a ordem é o número de fundador
+//     (quem chegou antes vem antes), que é o único "ranking" que não briga.
+//   · ❤️ Torcidas continua, mas **só de quem é batismo** (*"a torcida mantém tb
+//     mas só de qm é batismo"*): `esc_salao_torcidas()` conta o coração dos
+//     DONOS de clube (esc_socios) e devolve os clubes de cada torcida — nome de
+//     clube, nunca e-mail.
 //
 // 🔒 EM OBRA: só a conta do Diego vê (trava `useSalao` em sport.ts). Pra soltar
 // pra geral é trocar `SALAO_GERAL` lá pra true.
-//
-// ── POR QUE ISTO É DIFERENTE DA ABA 🏆 RANKING ──────────────────────────────
-// O Ranking já existe e é ABERTO: top 100 de todo mundo, 4 modos, troca todo
-// dia. Medi antes de desenhar e o batismo NÃO fica abafado lá — o Xurupitas é o
-// 1º do jogo inteiro e 7 dos 20 primeiros são batizados. Então o Salão não
-// repete a tabela: ele é o LUGAR. Ranking é quem ganhou mais essa semana;
-// Salão é quem tem clube próprio, com escudo, mascote e número de fundador —
-// não muda, acumula.
-//
-// ── DE ONDE VÊM OS NÚMEROS ──────────────────────────────────────────────────
-// De `esc_salao_clubes()`, que soma `esc_results` (toda temporada terminada já
-// era gravada — 227 mil linhas). Nada de novo precisou ser guardado.
-//
-// ⚠️ A SOMA É POR CLUBE, JUNTANDO NOME VELHO COM NOME NOVO. Sem isso o
-// Xurupitas apareceria duas vezes (ele era Tokyo City Esperion) e o Leão da
-// Estradinha perderia metade do palmarés (era Império Samambaia). Quem junta é
-// o `newestTeamName` do data.ts, que já sabe as correntes — o banco só entrega
-// nome + número e nenhum e-mail sai de lá.
 
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Shell, Box, VoltarInicio } from './screens'
 import { Escudo } from './escudos'
-import { newestTeamName, DIVISION_TEAMS } from './data'
+import { DIVISION_TEAMS } from './data'
 import { BATISMOS, chaveClube, type Batismo } from './batismos'
 import { useEsc } from './store'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', PURPLE = '#7C3AED', GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
-interface LinhaBanco { nome: string; titulos: number; temporadas: number; artilharias: number; gols: number; fundador: number | null }
-interface Torcida { time_nome: string; gente: number }
-interface Clube extends Batismo { titulos: number; temporadas: number; artilharias: number; gols: number; divisao: string | null }
+interface Torcida { time_nome: string; gente: number; clubes: string[] | null }
 
-// divisão de cada clube — sai do próprio baralho da carreira
-const DIV_POR_CLUBE = (() => {
-  const m = new Map<string, string>()
-  for (const d of ['A', 'B', 'C', 'D'] as const) {
-    for (const t of DIVISION_TEAMS[d]) m.set(chaveClube(t.team), d)
-  }
-  return m
-})()
+// quem é da Série A (= os clubes do jogo rápido online). O resto é Várzea.
+const SERIE_A = new Set(DIVISION_TEAMS.A.map(t => chaveClube(t.team)))
+const porChegada = (a: Batismo, b: Batismo) => (a.fundador ?? 999) - (b.fundador ?? 999) || a.clube.localeCompare(b.clube)
 
 export default function Salao({ voltar }: { voltar?: () => void }) {
   const { dispatch } = useEsc()
-  const [aba, setAba] = useState<'rank' | 'parede' | 'torcida'>('rank')
-  const [linhas, setLinhas] = useState<LinhaBanco[] | null>(null)
+  const [aba, setAba] = useState<'clubes' | 'torcida'>('clubes')
   const [torcidas, setTorcidas] = useState<Torcida[] | null>(null)
   const [fora, setFora] = useState(false)
 
@@ -61,47 +49,54 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
     let vivo = true
     ;(async () => {
       try {
-        const [a, b] = await Promise.all([
-          supabase.rpc('esc_salao_clubes'),
-          supabase.rpc('esc_salao_torcidas'),
-        ])
+        const r = await supabase.rpc('esc_salao_torcidas')
         if (!vivo) return
-        setLinhas((a.data ?? []) as LinhaBanco[])
-        setTorcidas((b.data ?? []) as Torcida[])
+        if (r.error) throw r.error
+        setTorcidas((r.data ?? []) as Torcida[])
       } catch {
-        if (vivo) { setFora(true); setLinhas([]); setTorcidas([]) }
+        if (vivo) { setFora(true); setTorcidas([]) }
       }
     })()
     return () => { vivo = false }
   }, [])
 
-  // 🧮 junta o palmarés no clube ATUAL (nome velho entra no novo)
-  const clubes = useMemo<Clube[]>(() => {
-    const soma = new Map<string, { t: number; s: number; a: number; g: number }>()
-    for (const l of linhas ?? []) {
-      const k = chaveClube(newestTeamName(l.nome))
-      const c = soma.get(k) ?? { t: 0, s: 0, a: 0, g: 0 }
-      c.t += l.titulos; c.s += l.temporadas; c.a += l.artilharias; c.g += Number(l.gols || 0)
-      soma.set(k, c)
-    }
-    return BATISMOS.map(b => {
-      const k = chaveClube(b.clube)
-      const s = soma.get(k) ?? { t: 0, s: 0, a: 0, g: 0 }
-      return { ...b, titulos: s.t, temporadas: s.s, artilharias: s.a, gols: s.g, divisao: DIV_POR_CLUBE.get(k) ?? null }
-    }).sort((x, y) => y.titulos - x.titulos || y.temporadas - x.temporadas || x.clube.localeCompare(y.clube))
-  }, [linhas])
+  const { elite, varzea } = useMemo(() => {
+    const elite = BATISMOS.filter(b => SERIE_A.has(chaveClube(b.clube))).sort(porChegada)
+    const varzea = BATISMOS.filter(b => !SERIE_A.has(chaveClube(b.clube))).sort(porChegada)
+    return { elite, varzea }
+  }, [])
 
-  const carregando = linhas === null
-  const selo = (c: Clube) => c.tipo === 'socio' ? '🎫 sócio' : (c.fundador ? `🏛️ fundador nº${c.fundador}` : '🖋️ batismo')
-  const sub = (c: Clube) => [c.divisao ? `Série ${c.divisao}` : (c.tipo === 'socio' ? 'clube de sócio' : null), selo(c)].filter(Boolean).join(' · ')
-
+  const vagas = 100 - BATISMOS.filter(b => b.tipo === 'batismo').length
+  const maiorTorcida = Math.max(1, ...(torcidas ?? []).map(t => t.gente))
   const ABAS = [
-    { id: 'rank' as const, txt: '🏆 Ranking' },
-    { id: 'parede' as const, txt: '🖼️ A Parede' },
+    { id: 'clubes' as const, txt: '🛡️ Clubes' },
     { id: 'torcida' as const, txt: '❤️ Torcidas' },
   ]
-  const maiorTorcida = Math.max(1, ...(torcidas ?? []).map(t => t.gente))
-  const comArte = clubes.filter(c => c.titulos > 0).length
+
+  const Card = ({ c }: { c: Batismo }) => (
+    <div className="relative border-[3px] border-black rounded-2xl px-2 pt-3 pb-2.5 text-center"
+      style={{ background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
+      {c.fundador && (
+        <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
+          style={{ background: GOLD }}>🏛️ nº{c.fundador}</span>
+      )}
+      {c.tipo === 'socio' && (
+        <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
+          style={{ background: '#fff' }}>🎫 sócio</span>
+      )}
+      <div className="flex justify-center mb-1.5"><Escudo nome={c.clube} size={58} /></div>
+      {/* 📱 nome inteiro, sem cortar — e NADA de "Série X" embaixo (decisão 08/09) */}
+      <p className="font-black text-[12.5px] leading-tight" style={OSWALD}>{c.clube}</p>
+    </div>
+  )
+
+  const Faixa = ({ titulo, sub }: { titulo: string; sub: string }) => (
+    <div className="flex items-baseline justify-between border-[3px] border-black rounded-xl px-3 py-1.5"
+      style={{ background: INK, color: '#fff', boxShadow: `3px 3px 0 rgba(12,12,12,.35)` }}>
+      <b className="font-black text-[15px] uppercase tracking-wide" style={OSWALD}>{titulo}</b>
+      <span className="text-[10px] font-bold text-white/60">{sub}</span>
+    </div>
+  )
 
   return (
     <Shell>
@@ -115,8 +110,8 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
           style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>👁️ prévia — só você vê</span>
         <h2 className="font-black text-4xl leading-none" style={OSWALD}>🏛️ SALÃO DOS BATISMOS</h2>
         <p className="font-semibold text-black/60 mt-2 text-[13px] leading-snug">
-          Todo clube que virou de alguém está aqui: escudo, divisão e o que já ganhou.
-          <br /><b>{BATISMOS.length} clubes</b> · {100 - BATISMOS.filter(b => b.tipo === 'batismo').length} vagas ainda livres
+          Todo clube que virou de alguém está aqui, com o escudo que aparece no jogo.
+          <br /><b>{BATISMOS.length} clubes</b> · {vagas} vagas ainda livres
         </p>
       </div>
 
@@ -128,111 +123,65 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
         ))}
       </div>
 
-      {fora && (
-        <Box bg="#fff" className="p-5 text-center">
-          <p className="font-black text-sm" style={OSWALD}>🔧 Servidor fora do ar por uns minutos</p>
-          <p className="font-bold text-black/60 text-xs mt-1">O Salão já volta — é só instabilidade 💛</p>
-        </Box>
-      )}
-      {carregando && !fora && <p className="text-center font-bold text-black/60">Carregando…</p>}
-
-      {/* ───────────────── 🏆 RANKING ───────────────── */}
-      {!carregando && aba === 'rank' && (
-        <div className="space-y-1.5">
-          <p className="text-center text-[11px] font-bold text-black/45">
-            títulos de TODAS as carreiras · nome velho e nome novo somam juntos
-          </p>
-          {clubes.map((c, i) => (
-            <div key={c.clube} className="flex items-center gap-2.5 border-[2.5px] border-black rounded-xl px-2.5 py-1.5"
-              style={{ background: i < 3 ? '#FFF7DE' : '#fff' }}>
-              <span className="w-7 shrink-0 font-black text-[15px] text-center" style={{ ...OSWALD, color: i < 3 ? INK : 'rgba(12,12,12,.45)' }}>{i + 1}º</span>
-              <span className="shrink-0"><Escudo nome={c.clube} size={34} /></span>
-              {/* 📱 o nome NÃO pode cortar (era o que acontecia: "Leão da Estradi…").
-                  Por isso as temporadas desceram pra linha de baixo, em vez de
-                  virarem uma segunda coluna roubando largura do nome. */}
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-[14.5px] leading-tight" style={OSWALD}>{c.clube}</p>
-                <p className="text-[9.5px] font-bold text-black/50 leading-snug">{sub(c)}</p>
-                <p className="text-[9.5px] font-bold text-black/40 leading-snug">
-                  {c.temporadas > 0 ? `${c.temporadas} temporadas` : 'ainda não jogou'}
-                  {c.artilharias > 0 ? ` · ${c.artilharias} artilharia${c.artilharias > 1 ? 's' : ''}` : ''}
-                </p>
-              </div>
-              <div className="w-12 text-center shrink-0">
-                <b className="block font-black text-[19px] leading-none" style={OSWALD}>{c.titulos}</b>
-                <span className="block text-[8.5px] font-black text-black/45 uppercase tracking-wide">títulos</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ───────────────── 🖼️ A PAREDE ───────────────── */}
-      {!carregando && aba === 'parede' && (
+      {/* ───────────────── 🛡️ CLUBES ───────────────── */}
+      {aba === 'clubes' && (
         <div className="space-y-3">
-          <p className="text-center text-[11px] font-bold text-black/45">
-            {comArte} clubes já jogaram · o escudo é o que aparece no jogo
-          </p>
+          <Faixa titulo="⭐ Série A · Online" sub={`${elite.length} clubes · os do jogo rápido`} />
           <div className="grid grid-cols-2 gap-2.5">
-            {[...clubes].sort((a, b) => (a.fundador ?? 999) - (b.fundador ?? 999)).map(c => (
-              <div key={c.clube} className="relative border-[3px] border-black rounded-2xl px-2 py-3 text-center"
-                style={{ background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
-                {c.fundador && (
-                  <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
-                    style={{ background: GOLD }}>nº{c.fundador}</span>
-                )}
-                {c.tipo === 'socio' && (
-                  <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
-                    style={{ background: '#fff' }}>🎫 sócio</span>
-                )}
-                <div className="flex justify-center mb-1.5"><Escudo nome={c.clube} size={58} /></div>
-                <p className="font-black text-[12.5px] leading-tight" style={OSWALD}>{c.clube}</p>
-                <p className="text-[9.5px] font-bold text-black/50 mt-0.5">
-                  {c.divisao ? `Série ${c.divisao}` : 'clube de sócio'}{c.titulos > 0 ? ` · 🏆 ${c.titulos}` : ''}
-                </p>
-              </div>
-            ))}
+            {elite.map(c => <Card key={c.clube} c={c} />)}
+          </div>
+
+          <div className="pt-2" />
+          <Faixa titulo="🏟️ Várzea" sub={`${varzea.length} clubes · subindo na carreira`} />
+          <div className="grid grid-cols-2 gap-2.5">
+            {varzea.map(c => <Card key={c.clube} c={c} />)}
           </div>
         </div>
       )}
 
-      {/* ───────────────── ❤️ TORCIDAS ───────────────── */}
-      {!carregando && aba === 'torcida' && (
+      {/* ───────────────── ❤️ TORCIDAS (só donos de clube) ───────────────── */}
+      {aba === 'torcida' && (
         <div className="space-y-2">
           <p className="text-center text-[11px] font-bold text-black/45">
-            {(torcidas ?? []).reduce((s, t) => s + t.gente, 0)} pessoas já disseram de qual time torcem
+            de qual time torce quem tem clube aqui no Salão
           </p>
-          <Box bg="#fff" className="p-3 space-y-1.5">
-            {(torcidas ?? []).map(t => (
-              <div key={t.time_nome} className="flex items-center gap-2">
-                <span className="font-black text-[13px] w-28 shrink-0 truncate" style={OSWALD}>{t.time_nome}</span>
-                <span className="flex-1 h-3.5 rounded-full overflow-hidden" style={{ background: 'rgba(12,12,12,.09)' }}>
-                  <i className="block h-full rounded-full" style={{ width: `${Math.round(100 * t.gente / maiorTorcida)}%`, background: PURPLE }} />
-                </span>
-                <span className="font-black text-[13px] w-8 text-right shrink-0" style={OSWALD}>{t.gente}</span>
-              </div>
-            ))}
-          </Box>
-          {/* ⚠️ decisão pendente do Diego: a regra dele (coracao.ts / manto.ts) diz
-              que nome de clube REAL não aparece dentro do jogo, só as cores. */}
-          <Box bg="#FFF4CF" className="p-3">
-            <p className="text-[11.5px] font-bold leading-snug">
-              ⚠️ <b>Falta você decidir isto.</b> Sua regra (coracao.ts / manto.ts) diz que <i>nome de clube real
-              nunca aparece dentro do jogo — só as cores</i>. Aqui o nome está escrito. Se preferir, eu troco
-              por só a listra colorida — mas aí quase ninguém adivinha qual é.
-            </p>
-          </Box>
+          {fora && (
+            <Box bg="#fff" className="p-5 text-center">
+              <p className="font-black text-sm" style={OSWALD}>🔧 Servidor fora do ar por uns minutos</p>
+              <p className="font-bold text-black/60 text-xs mt-1">As torcidas já voltam — é só instabilidade 💛</p>
+            </Box>
+          )}
+          {torcidas === null && !fora && <p className="text-center font-bold text-black/60">Carregando…</p>}
+          {torcidas && torcidas.length > 0 && (
+            <Box bg="#fff" className="p-3 space-y-2.5">
+              {torcidas.map(t => (
+                <div key={t.time_nome}>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-[13px] w-28 shrink-0 truncate" style={OSWALD}>{t.time_nome}</span>
+                    <span className="flex-1 h-3.5 rounded-full overflow-hidden" style={{ background: 'rgba(12,12,12,.09)' }}>
+                      <i className="block h-full rounded-full" style={{ width: `${Math.round(100 * t.gente / maiorTorcida)}%`, background: PURPLE }} />
+                    </span>
+                    <span className="font-black text-[13px] w-8 text-right shrink-0" style={OSWALD}>{t.gente}</span>
+                  </div>
+                  {/* os clubes dessa torcida — é o que faz a aba ser dos batismos */}
+                  {t.clubes && t.clubes.length > 0 && (
+                    <p className="text-[9.5px] font-bold text-black/50 leading-snug pl-0.5 mt-0.5">
+                      ❤️ {t.clubes.join(' · ')}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </Box>
+          )}
         </div>
       )}
 
-      {!carregando && (
-        <Box bg={GREEN} className="p-4 text-center">
-          <p className="font-black text-white text-lg leading-none" style={OSWALD}>🔨 Sua vaga está livre</p>
-          <p className="text-white/85 text-[12px] font-bold mt-1.5 leading-snug">
-            {100 - BATISMOS.filter(b => b.tipo === 'batismo').length} clubes ainda esperam dono — vire Lenda e batize o seu
-          </p>
-        </Box>
-      )}
+      <Box bg={GREEN} className="p-4 text-center">
+        <p className="font-black text-white text-lg leading-none" style={OSWALD}>🔨 Sua vaga está livre</p>
+        <p className="text-white/85 text-[12px] font-bold mt-1.5 leading-snug">
+          {vagas} clubes ainda esperam dono — vire Lenda e batize o seu
+        </p>
+      </Box>
 
       <button onClick={() => dispatch({ type: 'GO_RANKING' })}
         className="w-full text-center text-[12px] font-black text-black/50 underline active:opacity-60 pb-2" style={OSWALD}>

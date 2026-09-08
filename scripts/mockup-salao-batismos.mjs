@@ -1,20 +1,22 @@
 #!/usr/bin/env node
-// ─── 🏛️ MOCKUP: SALÃO DOS BATISMOS (30/08) ──────────────────────────────────
+// ─── 🏛️ MOCKUP: SALÃO DOS BATISMOS (30/08 · refeito 08/09) ──────────────────
 //
-// Pedido do Diego: *"precisamos criar algum ranking sei lá algo c todos
-// batismos, algo c times de coração sei lá... que a pessoa vê o mockup dos
-// times criados... vê tb quais maiores torcidas"*.
+// Pedido original do Diego (30/08): *"algo c todos batismos, algo c times de
+// coração... que a pessoa vê os times criados... vê tb quais maiores torcidas"*.
 //
-// 🔢 TUDO AQUI É NÚMERO REAL, medido no banco em 30/08 — nada inventado:
-//   8.470 contas · 32 donos de batismo · 30 sócios · 235 com time de coração
-//   e o palmarés de cada clube saiu de `esc_results` (227.755 linhas), somando
-//   nome VELHO + nome NOVO pelo e-mail do dono (senão o Xurupitas apareceria
-//   duas vezes, uma como "Tokyo City Esperion").
+// 🔄 08/09 — SEM RANKING. Palavras dele: *"N quero ranking não. Quero Série
+// A/online e embaixo Série B, C, D, várzea... quis dizer q B C D é várzea e
+// tudo junto. N q vc fala q um time tá na B, outro na C — isso N precisa, p
+// nego N ficar puto"*. E: *"a torcida mantém tb mas só de qm é batismo"*.
+//
+// 🔢 TUDO AQUI É REAL (data.ts + esc_socios em 08/09): 41 clubes no Salão —
+//   19 na Série A (os do jogo rápido online) e 22 na Várzea (B + C + D + sócios,
+//   sem letra nenhuma). Torcidas = coração dos DONOS de clube, não de todo mundo.
 //
 //   node scripts/mockup-salao-batismos.mjs --saida /tmp/salao.png
 //
-// ⚠️ É MOCKUP: nenhuma linha daqui é código do jogo. Mora no repo pra não se
-// perder com o scratchpad da sessão (lição do Coringas).
+// ⚠️ É MOCKUP: nenhuma linha daqui é código do jogo (o jogo é `salao.tsx`).
+// Mora no repo pra não se perder com o scratchpad da sessão (lição do Coringas).
 
 import { chromium } from 'playwright-core'
 import fs from 'node:fs'
@@ -23,81 +25,97 @@ const arg = (n, d = '') => { const i = process.argv.indexOf(`--${n}`); return i 
 const saida = arg('saida', 'mockup-salao-batismos.png')
 const b64 = f => fs.readFileSync(f).toString('base64')
 const fonte = w => `data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}`
-const esc = n => `data:image/webp;base64,${b64(`src/escalacao/img/${n}-escudo.webp`)}`
+const esc = n => n ? `data:image/webp;base64,${b64(`src/escalacao/img/${n}-escudo.webp`)}` : null
 
 const CREME = '#F4ECD6', TINTA = '#0C0C0C', OURO = '#FFC400', ROXO = '#7C3AED', VERDE = '#1B7A3D'
 
-// ── palmarés REAL (esc_results, somado por dono) ─────────────────────────────
-const RANK = [
-  { p: 1, clube: 'Xurupitas FC',          dono: 'Denilson',  img: null,               t: 794, s: 1866, f: 13, div: 'D' },
-  { p: 2, clube: 'Alfacehh',              dono: 'Matheus',   img: null,               t: 396, s: 850,  f: 30, div: 'B' },
-  { p: 3, clube: 'Leão da Estradinha',    dono: 'Jorge',     img: esc('leao-estradinha'), t: 186, s: 669, f: 28, div: 'A' },
-  { p: 4, clube: 'Deportivo Montreal',    dono: 'Gabriel',   img: null,               t: 172, s: 603,  f: null, div: 'A' },
-  { p: 5, clube: 'La Bestia Negra',       dono: 'Elton',     img: null,               t: 121, s: 363,  f: 36, div: 'D' },
-  { p: 6, clube: 'Tôka10',                dono: 'Toka',      img: esc('toka10'),      t: 99,  s: 515,  f: 23, div: 'D' },
-  { p: 7, clube: 'Seven City',            dono: 'Gláucio',   img: null,               t: 95,  s: 532,  f: null, div: 'A' },
-  { p: 8, clube: 'Marinheiros AS',        dono: 'Felipe',    img: null,               t: 86,  s: 273,  f: 27, div: '—' },
-  { p: 9, clube: 'Manfré FC',             dono: 'Daniel',    img: esc('manfre'),      t: 83,  s: 491,  f: 34, div: 'D' },
-  { p: 10, clube: 'Scorporila FC',        dono: 'Lucas',     img: null,               t: 80,  s: 363,  f: null, div: 'A' },
+// ── ⭐ SÉRIE A · ONLINE (DIVISION_TEAMS.A ∩ BATISMOS), por nº de fundador ────
+// [arquivo webp ou null (escudo feito em código — aparece normal no jogo), nome, nº fundador]
+const SERIE_A = [
+  ['neymarzetti', 'Neymarzetti', 1],
+  ['al-takahdao', 'Al Takhadao FC', 53],
+  [null, 'Bicho da Seda', 11],
+  [null, 'Xurupitas FC', 13],
+  [null, 'Nightfull FC', 18],
+  ['toka10', 'Tôka10', 23],
+  ['skyy', 'Skyy FC', 24],
+  ['leao-estradinha', 'Leão da Estradinha', 28],
+  [null, 'Barcenite FC', 31],
+  ['manfre', 'Manfré FC', 34],
+  [null, 'Marolados FC', 38],
+  ['papao', 'Papão United Madrid', 39],
+  ['sapek', 'Sapekeiros FC', 41],
+  ['nata', 'Nata de SP', 45],
+  ['saoluiz', 'São Luiz FC', 48],
+  [null, 'La Bestia Negra', 51],
+  ['ferrari', 'SC Ferrari', 52],
+  ['vidraceiro', 'Vidraceiro FC', 58],
+  ['bagres', 'Bagres 1993', 59],
 ]
 
-// ── as maiores torcidas (auth.users → time_coracao) ─────────────────────────
+// ── 🏟️ VÁRZEA (B + C + D + sócios, TUDO JUNTO, sem letra), por nº de fundador ─
+const VARZEA = [
+  [null, 'Murriz FC', 21],
+  [null, 'Marreco FC', 29],
+  [null, 'Alfacehh', 30],
+  [null, 'Remoçada', 35],
+  [null, 'Scorporila FC', 36],
+  [null, 'Deportivo Montreal', 37],
+  [null, 'Seven City', 42],
+  ['arruda', 'Tricolor do Arruda FC', 43],
+  ['coringas', 'Coringas do Diniz', 44],
+  ['bigao', 'Crias do Bigão', 46],
+  ['theuzudo', 'Theuzudo FC', 47],
+  ['milhaca', 'Milhaça FC', 49],
+  ['lluch', 'Esqueceram do Lluch', 50],
+  ['jurubeba', 'Jurubeba FC', 54],
+  ['capsule', 'Corporação Capsule FC', 55],
+  ['stocco', 'Stocco FC', 56],
+  ['finalboss', 'Final Boss FC', 57],
+  ['novaeclipse', 'Nova Eclipse FC', 60],
+  ['sistematizados', 'Sistematizados FC', 61],
+  ['eros', 'Eros FC', 'socio'],
+  ['futpoint', 'Futpoint FC', 'socio'],
+  [null, 'Marinheiros AS', 'socio'],
+]
+
+// ── ❤️ torcidas — SÓ dos donos de clube (esc_salao_torcidas, 08/09) ─────────
 const TORCIDAS = [
-  { nome: 'Flamengo', n: 43, c1: '#C2001E', c2: '#0C0C0C' },
-  { nome: 'Corinthians', n: 33, c1: '#0C0C0C', c2: '#FFFFFF' },
-  { nome: 'São Paulo', n: 28, c1: '#C2001E', c2: '#FFFFFF' },
-  { nome: 'Palmeiras', n: 23, c1: '#1B7A3D', c2: '#FFFFFF' },
-  { nome: 'Vasco', n: 22, c1: '#0C0C0C', c2: '#FFFFFF' },
-  { nome: 'Santos', n: 16, c1: '#FFFFFF', c2: '#0C0C0C' },
-  { nome: 'Grêmio', n: 11, c1: '#0A72B8', c2: '#0C0C0C' },
-  { nome: 'Internacional', n: 10, c1: '#C2001E', c2: '#FFFFFF' },
-  { nome: 'Cruzeiro', n: 9, c1: '#0E3E86', c2: '#FFFFFF' },
-  { nome: 'Fluminense', n: 8, c1: '#8B1A3A', c2: '#1B7A3D' },
+  { nome: 'Corinthians', n: 4, c1: '#0C0C0C', c2: '#FFFFFF', clubes: 'Coringas do Diniz · SC Ferrari · Nata de SP · Nova Eclipse FC' },
+  { nome: 'Santos', n: 4, c1: '#FFFFFF', c2: '#0C0C0C', clubes: 'Sapekeiros FC · Scorporila FC · Sistematizados FC · Tôka10' },
+  { nome: 'Palmeiras', n: 3, c1: '#1B7A3D', c2: '#FFFFFF', clubes: 'Marinheiros AS · Marolados FC · Xurupitas FC' },
+  { nome: 'Flamengo', n: 2, c1: '#C2001E', c2: '#0C0C0C', clubes: 'Murriz FC · Neymarzetti' },
+  { nome: 'Internacional', n: 2, c1: '#C2001E', c2: '#FFFFFF', clubes: 'Al Takhadao FC · Deportivo Montreal' },
+  { nome: 'Atlético Mineiro', n: 1, c1: '#0C0C0C', c2: '#FFFFFF', clubes: 'Nightfull FC' },
+  { nome: 'Botafogo', n: 1, c1: '#0C0C0C', c2: '#FFFFFF', clubes: 'Bicho da Seda' },
+  { nome: 'Cruzeiro', n: 1, c1: '#0E3E86', c2: '#FFFFFF', clubes: 'La Bestia Negra' },
+  { nome: 'Grêmio', n: 1, c1: '#0A72B8', c2: '#0C0C0C', clubes: 'Vidraceiro FC' },
+  { nome: 'Paraná Clube', n: 1, c1: '#C2001E', c2: '#0E3E86', clubes: 'Manfré FC' },
+  { nome: 'Paysandu', n: 1, c1: '#0E3E86', c2: '#FFFFFF', clubes: 'Papão United Madrid' },
+  { nome: 'Remo', n: 1, c1: '#0E3E86', c2: '#FFFFFF', clubes: 'Remoçada' },
+  { nome: 'Rio Branco', n: 1, c1: '#C2001E', c2: '#FFFFFF', clubes: 'Leão da Estradinha' },
+  { nome: 'Santa Cruz', n: 1, c1: '#0C0C0C', c2: '#C2001E', clubes: 'Tricolor do Arruda FC' },
 ]
 const maiorT = TORCIDAS[0].n
 
-// ── a parede (só quem tem arte própria entra com escudo de verdade) ─────────
-const PAREDE = [
-  ['manfre', 'Manfré FC', 'Daniel', 'D', 34],
-  ['leao-estradinha', 'Leão da Estradinha', 'Jorge', 'A', 28],
-  ['toka10', 'Tôka10', 'Toka', 'D', 23],
-  ['papao', 'Papão United Madrid', 'Leandro', 'D', 39],
-  ['theuzudo', 'Theuzudo FC', 'Matheus', 'B', null],
-  ['milhaca', 'Milhaça FC', 'Igor', 'C', null],
-  ['skyy', 'Skyy FC', 'Matheus', 'D', 24],
-  ['saoluiz', 'São Luiz FC', 'Gabriel', 'D', null],
-  ['bigao', 'Crias do Bigão', 'Giovanne', 'B', null],
-  ['nata', 'Nata de SP', 'Pedro', 'D', null],
-  ['lluch', 'Esqueceram do Lluch', 'Marcel', 'D', null],
-  ['neymarzetti', 'Neymarzetti', 'Diego', 'D', 1],
-]
-
-const linhaRank = r => `
-  <div class="rk ${r.p <= 3 ? 'top' : ''}">
-    <span class="rk-pos">${r.p}º</span>
-    <span class="rk-escudo">${r.img ? `<img src="${r.img}">` : `<i class="sem">🛡️</i>`}</span>
-    <div class="rk-nome">
-      <p class="rk-clube">${r.clube}</p>
-      <p class="rk-dono">${r.dono} · Série ${r.div}${r.f ? ` · 🏛️ fundador nº${r.f}` : ''}</p>
-    </div>
-    <div class="rk-num"><b>${r.t}</b><span>títulos</span></div>
-    <div class="rk-num fraco"><b>${r.s}</b><span>temporadas</span></div>
-  </div>`
-
-const cardParede = ([img, nome, dono, div, f]) => `
+const card = ([img, nome, f]) => `
   <div class="pc">
-    <img src="${esc(img)}" alt="${nome}">
+    ${img ? `<img src="${esc(img)}" alt="${nome}">` : `<div class="pc-sem">🛡️</div>`}
     <p class="pc-nome">${nome}</p>
-    <p class="pc-dono">${dono} · Série ${div}</p>
-    ${f ? `<span class="pc-sel">🏛️ nº${f}</span>` : ''}
+    ${f === 'socio' ? `<span class="pc-sel branco">🎫 sócio</span>` : `<span class="pc-sel">🏛️ nº${f}</span>`}
   </div>`
+
+const faixa = (t, s) => `<div class="faixa"><b>${t}</b><span>${s}</span></div>`
 
 const barraTorcida = t => `
   <div class="tor">
-    <span class="tor-listra" style="background:repeating-linear-gradient(90deg,${t.c1} 0 7px,${t.c2} 7px 14px)"></span>
-    <span class="tor-nome">${t.nome}</span>
-    <span class="tor-barra"><i style="width:${Math.round(100 * t.n / maiorT)}%"></i></span>
-    <span class="tor-n">${t.n}</span>
+    <div class="tor-linha">
+      <span class="tor-listra" style="background:repeating-linear-gradient(90deg,${t.c1} 0 7px,${t.c2} 7px 14px)"></span>
+      <span class="tor-nome">${t.nome}</span>
+      <span class="tor-barra"><i style="width:${Math.round(100 * t.n / maiorT)}%"></i></span>
+      <span class="tor-n">${t.n}</span>
+    </div>
+    <p class="tor-clubes">❤️ ${t.clubes}</p>
   </div>`
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -106,101 +124,75 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:Oswald;src:url('${fonte(700)}') format('woff2');font-weight:700}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:${CREME};font-family:Inter,system-ui,sans-serif;color:${TINTA};width:940px;padding:26px 24px 34px}
-.osw{font-family:Oswald;font-weight:700}
 h1{font-family:Oswald;font-weight:700;font-size:38px;text-transform:uppercase;line-height:1}
 .pil{display:inline-block;font-family:Oswald;font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:1.4px;
   background:${OURO};border:2.5px solid ${TINTA};border-radius:99px;padding:3px 13px;box-shadow:3px 3px 0 ${TINTA};margin-bottom:10px}
 .lead{font-size:13.5px;font-weight:700;color:rgba(12,12,12,.6);margin-top:7px;line-height:1.45}
 .abas{display:flex;gap:7px;margin:18px 0 16px}
 .abas div{font-family:Oswald;font-weight:700;font-size:14px;border:3px solid ${TINTA};border-radius:11px;padding:7px 15px;background:#fff}
-.abas .on{background:${TINTA};color:#fff}
+.abas .on{background:${OURO}}
 .bloco{border:4px solid ${TINTA};border-radius:18px;background:#fff;box-shadow:6px 6px 0 ${TINTA};margin-bottom:22px;overflow:hidden}
 .cab{background:${TINTA};color:#fff;padding:9px 15px;display:flex;justify-content:space-between;align-items:center}
 .cab b{font-family:Oswald;font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:.6px}
 .cab span{font-size:11.5px;font-weight:700;color:rgba(255,255,255,.6)}
 .corpo{padding:14px 15px 16px}
-/* ranking */
-.rk{display:flex;align-items:center;gap:11px;border:2.5px solid ${TINTA};border-radius:11px;background:#fff;padding:7px 11px;margin-bottom:7px}
-.rk.top{background:#FFF7DE}
-.rk-pos{font-family:Oswald;font-weight:700;font-size:17px;width:32px;color:rgba(12,12,12,.45)}
-.rk.top .rk-pos{color:${TINTA}}
-.rk-escudo{width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex:none}
-.rk-escudo img{height:40px;width:auto;display:block}
-.rk-escudo .sem{font-size:24px;font-style:normal;opacity:.35}
-.rk-nome{flex:1;min-width:0}
-.rk-clube{font-family:Oswald;font-weight:700;font-size:16px;line-height:1.1}
-.rk-dono{font-size:11px;font-weight:700;color:rgba(12,12,12,.5);margin-top:1px}
-.rk-num{text-align:center;width:78px;flex:none}
-.rk-num b{display:block;font-family:Oswald;font-weight:700;font-size:19px;line-height:1}
-.rk-num span{display:block;font-size:9.5px;font-weight:700;color:rgba(12,12,12,.45);text-transform:uppercase;letter-spacing:.6px;margin-top:1px}
-.rk-num.fraco b{color:rgba(12,12,12,.45);font-size:16px}
+/* faixas de grupo */
+.faixa{display:flex;justify-content:space-between;align-items:baseline;border:3px solid ${TINTA};border-radius:11px;background:${TINTA};color:#fff;padding:7px 13px;margin:4px 0 11px}
+.faixa b{font-family:Oswald;font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.8px}
+.faixa span{font-size:11px;font-weight:700;color:rgba(255,255,255,.6)}
+.faixa.varzea{margin-top:20px}
 /* parede */
-.parede{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
-.pc{border:3px solid ${TINTA};border-radius:13px;background:${CREME};box-shadow:3px 3px 0 ${TINTA};padding:11px 9px 10px;text-align:center;position:relative}
-.pc img{height:66px;width:auto;display:block;margin:0 auto 7px}
+.parede{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
+.pc{border:3px solid ${TINTA};border-radius:13px;background:${CREME};box-shadow:3px 3px 0 ${TINTA};padding:13px 9px 11px;text-align:center;position:relative}
+.pc img{height:66px;width:auto;display:block;margin:0 auto 7px;max-width:100%}
+.pc-sem{height:66px;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:.28;margin-bottom:7px}
 .pc-nome{font-family:Oswald;font-weight:700;font-size:13px;line-height:1.1}
-.pc-dono{font-size:10px;font-weight:700;color:rgba(12,12,12,.5);margin-top:2px}
 .pc-sel{position:absolute;top:6px;right:6px;font-size:9px;font-weight:800;background:${OURO};border:2px solid ${TINTA};border-radius:99px;padding:0 5px}
-.mais{border:3px dashed rgba(12,12,12,.3);border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:11px 9px;background:rgba(255,255,255,.5)}
-.mais b{font-family:Oswald;font-weight:700;font-size:15px}
-.mais span{font-size:10.5px;font-weight:700;color:rgba(12,12,12,.5);margin-top:3px;line-height:1.3}
+.pc-sel.branco{background:#fff}
 /* torcidas */
-.tor{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.tor{margin-bottom:9px}
+.tor-linha{display:flex;align-items:center;gap:9px}
 .tor-listra{width:24px;height:22px;border:2.5px solid ${TINTA};border-radius:5px;flex:none}
-.tor-nome{font-family:Oswald;font-weight:700;font-size:14px;width:118px;flex:none}
+.tor-nome{font-family:Oswald;font-weight:700;font-size:14px;width:130px;flex:none}
 .tor-barra{flex:1;height:15px;background:rgba(12,12,12,.08);border-radius:99px;overflow:hidden}
 .tor-barra i{display:block;height:100%;background:${ROXO};border-radius:99px}
 .tor-n{font-family:Oswald;font-weight:700;font-size:15px;width:34px;text-align:right}
-.aviso{border:3px solid ${TINTA};border-radius:12px;background:#FFF4CF;padding:10px 13px;margin-top:12px;font-size:12px;font-weight:700;line-height:1.45}
+.tor-clubes{font-size:10.5px;font-weight:700;color:rgba(12,12,12,.5);margin:2px 0 0 33px}
+.nota{border:3px solid ${TINTA};border-radius:12px;background:#FFF4CF;padding:10px 13px;margin-top:12px;font-size:12px;font-weight:700;line-height:1.45}
 .cta{border:4px solid ${TINTA};border-radius:16px;background:${VERDE};color:#fff;box-shadow:5px 5px 0 ${TINTA};padding:14px 16px;text-align:center}
 .cta b{font-family:Oswald;font-weight:700;font-size:20px;display:block}
 .cta span{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.85);display:block;margin-top:3px}
 .rod{text-align:center;font-size:12px;font-weight:700;color:rgba(12,12,12,.45);margin-top:16px}
 </style></head><body>
 
-<span class="pil">🏛️ novo · dentro do Álbum</span>
+<span class="pil">🏛️ dentro da aba Ranking</span>
 <h1>Salão dos Batismos</h1>
-<p class="lead">Todo clube que virou de alguém está aqui: escudo, dono, divisão e o que já ganhou.
-<b>32 clubes batizados</b> · 68 vagas ainda livres.</p>
+<p class="lead">Todo clube que virou de alguém está aqui, com o escudo que aparece no jogo.
+<b>41 clubes</b> · 62 vagas ainda livres.</p>
 
-<div class="abas"><div class="on">🏆 Ranking</div><div>🖼️ A Parede</div><div>❤️ Torcidas</div></div>
+<div class="abas"><div class="on">🛡️ Clubes</div><div>❤️ Torcidas</div></div>
 
 <div class="bloco">
-  <div class="cab"><b>🏆 O ranking dos batismos</b><span>títulos de todas as carreiras · números reais do banco</span></div>
+  <div class="cab"><b>🛡️ Os clubes</b><span>sem ranking, sem título, sem posição — a ordem é quem chegou antes (nº de fundador)</span></div>
   <div class="corpo">
-    ${RANK.map(linhaRank).join('')}
-    <div class="aviso">📊 <b>De onde sai:</b> cada temporada terminada já é gravada hoje (227 mil linhas). O ranking só SOMA o que
-    o clube fez — nome velho e nome novo entram juntos (o Xurupitas era Tokyo City Esperion; o Leão era Império Samambaia).
-    Nada de novo precisa ser guardado.</div>
+    ${faixa('⭐ Série A · Online', '19 clubes · os que aparecem no jogo rápido')}
+    <div class="parede">${SERIE_A.map(card).join('')}</div>
+    ${faixa('🏟️ Várzea', '22 clubes · subindo na carreira').replace('class="faixa"', 'class="faixa varzea"')}
+    <div class="parede">${VARZEA.map(card).join('')}</div>
+    <div class="nota">🛡️ em cinza = escudo desenhado em código (aparece normal no jogo; aqui no mockup só os .webp entram).
+    Na Várzea <b>ninguém vê letra</b>: B, C, D e sócios ficam juntos, sem "Série D" do lado do clube de ninguém.</div>
   </div>
 </div>
 
 <div class="bloco">
-  <div class="cab"><b>🖼️ A parede dos clubes</b><span>toque num escudo pra abrir a ficha do clube</span></div>
-  <div class="corpo">
-    <div class="parede">
-      ${PAREDE.map(cardParede).join('')}
-      <div class="pc mais"><b>+20</b><span>clubes batizados</span></div>
-      <div class="pc mais"><b>68</b><span>vagas ainda livres</span></div>
-    </div>
-  </div>
-</div>
-
-<div class="bloco">
-  <div class="cab"><b>❤️ As maiores torcidas</b><span>235 pessoas já disseram de qual time torcem</span></div>
+  <div class="cab"><b>❤️ Torcidas</b><span>de qual time torce quem tem clube no Salão — só donos de batismo</span></div>
   <div class="corpo">
     ${TORCIDAS.map(barraTorcida).join('')}
-    <div class="aviso">⚠️ <b>Diego, esta parte é decisão sua.</b> Sua regra, escrita em <b>coracao.ts</b> e <b>manto.ts</b>, diz:
-    <i>"nome de clube real NUNCA aparece dentro do jogo — só as CORES"</i>. Escrever "Flamengo — 43" quebra essa regra.
-    Duas saídas: <b>(A)</b> só a listra e o número, sem nome — respeita a regra, mas quase ninguém adivinha qual é;
-    <b>(B)</b> com o nome, como está aqui — é texto, não é escudo nem marca, e o post do batismo já escreve
-    "❤️ Coração: Paraná Clube". <b>Eu recomendo a B</b>, mas a regra é sua e só você muda.</div>
   </div>
 </div>
 
-<div class="cta"><b>🔨 Sua vaga está livre</b><span>68 clubes ainda esperam dono — vire Lenda e batize o seu</span></div>
-<p class="rod">⚽ Leilão Legends · mockup pra decisão — nada disso está no ar</p>
+<div class="cta"><b>🔨 Sua vaga está livre</b><span>62 clubes ainda esperam dono — vire Lenda e batize o seu</span></div>
+<p class="rod">⚽ Leilão Legends · mockup pra aprovação — no ar só pra conta do Diego</p>
 </body></html>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
