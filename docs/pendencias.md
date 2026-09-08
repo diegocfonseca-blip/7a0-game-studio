@@ -3,6 +3,18 @@
 ## Online ilustrado V22 — publicação autorizada em 07/09
 Diego aprovou publicar as três telas online e o encerramento completo: O Martelo ilustrado com TODAS as notas da redação, pacote do campeão com logo oficial e votação/saída. Implementação isolada em `online-visual.css`, `jornal-online-visual.tsx/css` e hooks visuais do lobby/screens. Oswald e controles branco/creme, amarelo e roxo; mobile e desktop. Regras, premiações, sorteio/persistência da carta e autoridade do host preservados. Offline mantém seu jornal. Integrado com as mudanças atuais do Olheiro e sondados, sem sobrescrevê-las. Detalhes e reversão em `docs/online-visual-v22.md`.
 
+## 🌐 Copa do Mundo online "voltou a rolar sozinha" depois de acabar — ✅ consertado 08/09
+Banco: nenhuma sala teve 2ª edição da Copa → não recomeçou de verdade; o que
+rolou de novo foi a ANIMAÇÃO no aparelho. Causa (`copa-mundo-online.tsx`, `ler`):
+o supabase-js não lança erro, devolve `{data:null,error}`; uma piscada de rede na
+batidinha de 2s virava `setFase(null)` → a ficha sumia → na volta o efeito
+"ficha nova → abre a Copa" remontava o torneio do zero (e o dono ainda via o
+botão "COMEÇAR A COPA" no meio da piscada). Consertos: leitura com erro não mexe
+no estado; auto-abrir só sem campeão gravado (quem volta do pacote/jornal não
+leva o torneio de novo — fica o botão "VOLTAR PRA COPA"); `comecar()` nunca cria
+2ª edição se já existe uma; botão de começar só depois da 1ª leitura boa.
+Também: convocação dos 11 caiu de 135s pra 80s (ordem do Diego 08/09).
+
 ## 👑 Host caiu na tela de abertura como CONVIDADO (sala IXMX5X do Sistematizados, 07/09 à noite) — ⏳ cinto no branch, esperando OK
 Fatos do banco: sala criada 20:53 (BRT), começou ~20:59, o dono ficou 2 min na tela
 das regras vendo "o host vai começar"; F5 às 21:01:29 devolveu o botão (é o carimbo

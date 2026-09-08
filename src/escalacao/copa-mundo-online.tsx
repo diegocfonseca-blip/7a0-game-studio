@@ -536,16 +536,27 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   // relógio de tela: 1x por segundo, só pra desenhar a contagem
   useEffect(() => { const iv = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(iv) }, [])
 
+  // 🧯 leitura que FALHA não apaga o que a tela já sabe (bug 07/09 à noite: a
+  // Copa tinha ACABADO, a pessoa estava vendo o pacote e o jornal, e "a Copa
+  // atualizou e voltou a rolar sozinha"). O supabase-js não lança erro: devolve
+  // `{ data: null, error }`. Aqui isso virava `setFase(null)` numa piscada de
+  // rede — a ficha sumia, a batidinha seguinte trazia de volta, e o efeito de
+  // "ficha nova → abre a Copa" remontava o torneio e ANIMAVA TUDO DE NOVO. De
+  // quebra, o dono via o botão "COMEÇAR A COPA" no meio da piscada. Agora: deu
+  // erro em qualquer uma das duas consultas, fica tudo como estava.
+  const [lido, setLido] = useState(false) // já li o banco ao menos uma vez com sucesso?
   const ler = useCallback(async () => {
     try {
-      const [{ data: pls }, { data: fs }] = await Promise.all([
+      const [{ data: pls, error: e1 }, { data: fs, error: e2 }] = await Promise.all([
         supabase.from('room_players').select('user_id, player_index, manager_name, copa').eq('room_id', roomId),
         supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1),
       ])
-      setLinhas((pls ?? []) as LinhaSala[])
-      const f = (fs ?? [])[0] as LinhaFase | undefined
+      if (e1 || e2 || !pls || !fs) return null
+      setLinhas(pls as LinhaSala[])
+      const f = fs[0] as LinhaFase | undefined
       setFase(f ? { ...f, seed: Number(f.seed) } : null)
-      return { linhas: (pls ?? []) as LinhaSala[], fase: f }
+      setLido(true)
+      return { linhas: pls as LinhaSala[], fase: f }
     } catch { return null }
   }, [roomId])
 
@@ -636,8 +647,14 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     if (!souDono || comecando) return
     setComecando(true); setErro('')
     try {
-      const { data: fs } = await supabase.from('esc_copa_salas').select('edicao').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1)
-      const edicao = (((fs ?? [])[0] as { edicao: number } | undefined)?.edicao ?? 0) + 1
+      const { data: fs, error: eFs } = await supabase.from('esc_copa_salas').select('edicao').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1)
+      // 🛡️ UMA COPA POR NOITE: se já existe uma edição desta sala (a tela é que
+      // ainda não tinha lido), NÃO abre outra — só relê. Antes um toque no botão
+      // durante uma piscada de leitura criava a edição 2 e recomeçava a Copa
+      // pra todo mundo.
+      if (eFs) { setErro('Não consegui ler a sala agora. Tenta de novo em instantes.'); return }
+      if ((fs ?? []).length > 0) { await ler(); return }
+      const edicao = 1
       const primeiro = fila[0]?.uid ?? null
       const { error } = await supabase.from('esc_copa_salas').insert({
         room_id: roomId, edicao, seed: Math.floor(Math.random() * 1e9), times: null,
@@ -663,7 +680,11 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   }
 
   const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times } : null
-  useEffect(() => { if (ficha) setAberta(true) }, [ficha?.seed]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🎬 abre SOZINHA só enquanto a Copa está por decidir. Com campeão já gravado
+  // (a noite acabou), a pessoa que voltar do pacote/jornal NÃO leva o torneio
+  // inteiro de novo na cara — o botão "VOLTAR PRA COPA" fica ali pra quem quiser
+  // rever por vontade própria.
+  useEffect(() => { if (ficha && !fase?.campeao) setAberta(true) }, [ficha?.seed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function gravaNaEstante(campeao: string, pais: string) {
     if (!souDono) return
@@ -724,8 +745,9 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
           </div>
         )}
 
-        {/* ainda não começou: o dono puxa */}
-        {!fase && (souDono
+        {/* ainda não começou: o dono puxa — só depois da 1ª leitura bem-sucedida
+            do banco (antes disso não dá pra afirmar que a Copa não existe) */}
+        {!fase && lido && (souDono
           ? <>
               <button onClick={() => { void comecar() }} disabled={comecando}
                 style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
