@@ -225,7 +225,11 @@ e-mail do batismo"*. (Gravada também no `CLAUDE.md`.)
   `esc_nomes_batismo` (ele tinha só as 3 formas de "Jurubeba"; o nome novo estava
   **livre pra qualquer um pegar**).
 
-### ✅ Etapa 2 — FEITA em 08/09 (no branch, ESPERANDO OK do print antes da main)
+### ✅ Etapa 2 — FEITA e PUBLICADA em 08/09 (main 656bf36)
+Publicada na hora em que o Diego cobrou o escudo no time "Caleb" do dono do Briga
+de Galo: *"A logo N apareceu no time chamado Caleb do usuário q te passei. Eu
+disse q o e-mail dele já deveria funcionar"* — ele já tinha decidido o
+comportamento, então valeu como OK.
 Diego, 08/09, na conversa do batismo do Caleb: *"tem que funcionar com email…
 escudo, mascote, manto, com email, porque se ele mudar o nome do time pra que
 ele quiser, ele segue sempre com o escudo, com as cores"*. Como ficou:
