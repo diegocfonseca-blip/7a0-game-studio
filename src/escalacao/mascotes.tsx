@@ -564,11 +564,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   sistematizados_streamer: (
     <img src={sistematizadosMascoteImg} height={176} width={Math.round(176 * 271 / 440)} alt="O Sistematizado — Sistematizados FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🐓 O Galo — Briga de Galo FC (pedrovianacarneiroq, 08/09). 242x440 no arquivo,
-  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). Galo de
-  // crista vermelha, camisa listrada e punhos fechados.
+  // 🐓 O Galo — Briga de Galo FC (pedrovianacarneiroq, 08/09, 2ª prancha). 260x440
+  // no arquivo, então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  // Galo de crista vermelha, bico aberto, camisa listrada e punhos fechados.
   brigadegalo_galo: (
-    <img src={brigaDeGaloMascoteImg} height={176} width={Math.round(176 * 242 / 440)} alt="O Galo — Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={brigaDeGaloMascoteImg} height={176} width={Math.round(176 * 260 / 440)} alt="O Galo — Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🌑 O Eclipse — Nova Eclipse FC (jh9415474, 07/09). 245x440 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).

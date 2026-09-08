@@ -581,11 +581,11 @@ const stoccoEscudoRender = (size: number) => (
 const sistematizadosEscudoRender = (size: number) => (
   <img src={sistematizadosEscudoImg} height={size} width={Math.round(size * 311 / 360)} alt="Sistematizados FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
-// 🐓 Briga de Galo FC — 273x360 no arquivo, então a largura sai da PROPORÇÃO REAL
-// (nunca width={size} chutado). Arte do dono (pedrovianacarneiroq, 08/09): escudo
-// prata com os dois galos frente a frente, coroa e o BDG na base.
+// 🐓 Briga de Galo FC — 280x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (pedrovianacarneiroq, 08/09, 2ª
+// prancha): escudo preto e branco com os dois galos frente a frente e coroa prata.
 const brigaDeGaloEscudoRender = (size: number) => (
-  <img src={brigaDeGaloEscudoImg} height={size} width={Math.round(size * 273 / 360)} alt="Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={brigaDeGaloEscudoImg} height={size} width={Math.round(size * 280 / 360)} alt="Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata

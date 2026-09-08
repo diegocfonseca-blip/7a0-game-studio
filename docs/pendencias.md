@@ -169,14 +169,16 @@ Grana. E Vasco da Grana coloque na série D no lugar de um bot"*.
   `DIVISION_TEAMS.D`). **Sem OLD_NAME** nos dois casos (mesma regra do
   Murriz/Marreco/GuGu: mudou de divisão, não de nome). Save antigo com o Zênite
   segue com ele; a divisão de bot num save vem do `placements`.
-- **Arte** (prancha única em fundo verde-neon, 1080×720): o galo estava com os
-  punhos NA FRENTE do escudo e da camisa. Separei por chroma + máscara dos punhos
-  (cor creme) e reconstruí a borda do escudo e o canto da manga **por espelho**
-  (os dois são simétricos). Escudo 273×360 · 27,0 KB · mascote 242×440 · 32,8 KB
-  = **59,8 KB de 75**. Camisa em `scripts/kits/` (só do post). Conferido sobre
-  roxo e creme.
-- **Manto** `['#0C0D0C', '#E8E5E0']` (preto 74% + branco das listras), 3ª cor
-  dourada `#AD8C56` em `MANTO_TRI` (coroa, "FC", BDG).
+- **Arte**: o Diego mandou DUAS pranchas em verde-neon; vale a **2ª** (1536×1024,
+  *"Segue novamente"*), com escudo redesenhado (galos frente a frente, coroa prata)
+  e o galo de bico aberto. Na 2ª só o punho direito toca a manga da camisa:
+  separei por chroma + máscara do punho (cor creme) e reconstruí o canto da manga
+  **por espelho** (a camisa é simétrica). Escudo 280×360 · 29,7 KB · mascote
+  260×440 · 32,3 KB = **62,0 KB de 75**. Camisa em `scripts/kits/` (só do post).
+  Conferido sobre roxo e creme. (A 1ª prancha, 1080×720 com os punhos na frente
+  do escudo E da camisa, foi publicada por ~15 min e substituída.)
+- **Manto** `['#0F0E0E', '#EAE5E1']` (preto 73% + branco das listras), 3ª cor
+  dourada `#A38758` em `MANTO_TRI` (coroa, "FC", BDG).
 - **Mascote** `brigadegalo_galo` — "O Galo" (⚠️ nome PROVISÓRIO, a arte veio sem
   nome). Carimba o gol; sem animação própria (cai no `coCarimba`).
 - **Código:** `data.ts` · `escudos.tsx` · `mascotes.tsx` · `apoio.tsx` (ouro +
