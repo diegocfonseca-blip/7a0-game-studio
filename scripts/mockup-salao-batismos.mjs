@@ -43,7 +43,6 @@ const CREME = '#F4ECD6', TINTA = '#0C0C0C', OURO = '#FFC400', ROXO = '#7C3AED', 
 // ── ⭐ SÉRIE A · ONLINE (DIVISION_TEAMS.A ∩ BATISMOS), por nº de fundador ────
 // [arquivo webp ou null (escudo feito em código — aparece normal no jogo), nome, nº fundador]
 const SERIE_A = [
-  [null, 'Vasco da Grana', 'batismo'], // pedido do Diego (03/08), sem dono — sem nº
   ['neymarzetti', 'Neymarzetti', 1],
   ['al-takahdao', 'Al Takhadao FC', 53],
   [null, 'Bicho da Seda', 11],
@@ -63,11 +62,13 @@ const SERIE_A = [
   ['ferrari', 'SC Ferrari', 52],
   ['vidraceiro', 'Vidraceiro FC', 58],
   ['bagres', 'Bagres 1993', 59],
+  ['brigadegalo', 'Briga de Galo FC', 62],
 ]
 
 // ── 🏟️ VÁRZEA (B + C + D + sócios, TUDO JUNTO, sem letra), por nº de fundador ─
 const VARZEA = [
   [null, 'White Thigs do GuGu', 'primeiro'], // 🥋 1º batismo da história, dono desconhecido — sem nº
+  [null, 'Vasco da Grana', 'batismo'], // pedido do Diego (03/08), sem dono — sem nº; desceu pra Série D em 08/09
   [null, 'Murriz FC', 21],
   [null, 'Marreco FC', 29],
   [null, 'Alfacehh', 30],
