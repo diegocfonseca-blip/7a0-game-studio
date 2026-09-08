@@ -43,6 +43,12 @@ import { MASCOTES, FestaoMascote } from './mascotes'
 import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
 import { JanelaConta } from './conta'
 import './home-ilustrada.css'
+import './career-private.css'
+import careerSetupRoom from './img/career-setup-room-private.webp'
+import presidentCasual from './img/career-president-casual.webp'
+import presidentPolo from './img/career-president-polo.webp'
+import presidentSocial from './img/career-president-social.webp'
+import presidentTerno from './img/career-president-terno.webp'
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
@@ -945,12 +951,16 @@ export function ChatWidget() {
 
 export function GameFooter() {
   const { state, dispatch } = useEsc()
+  const privatePreview = useOnlinePreview()
   // 🛟 SAÍDA DE EMERGÊNCIA: o rodapé é a ÚNICA coisa que continua na tela mesmo se
   // uma tela renderizar vazia (troca de fase, estado incompleto, save travado). Um
   // link discreto aqui garante que NINGUÉM fica preso num "tela em branco" — volta
   // pro início e limpa o save da partida em andamento (pra o refresh não recarregar
   // o mesmo estado ruim). Só aparece fora do início (lá já é o próprio início).
   const canEscape = state.screen !== 'intro'
+  // O onboarding privado já ocupa a tela inteira e tem navegação própria.
+  // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
+  if (privatePreview && state.careerIntent && state.screen === 'setup') return null
   const goHome = () => {
     if (!window.confirm('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.')) return
     try { localStorage.removeItem('esc-solo-inprogress-v1') } catch { /* ignora */ }
@@ -1068,8 +1078,10 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
   // topo fica lilás com um rótulo, pra bater o olho e já saber de cara.
   const isReserveAuction = !!bar && state.reserveAuction
   const reserveLabel = state.seasonNo === 1 ? '🔁 Leilão de Reservas' : '🔁 Leilão de Transferências'
+  const privateCareerShell = previewAccount && state.sport !== 'basquete' && state.careerOnline
+  const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
-    <div className={`min-h-screen pb-16 palco ${className} ${previewAccount && state.sport !== 'basquete' && ['season', 'liberta'].includes(state.screen) ? 'll25-shell' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+    <div className={`min-h-screen pb-16 palco ${className} ${previewAccount && state.sport !== 'basquete' && ['season', 'liberta'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
         <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : '#fff', color: INK }}>
           {isReserveAuction && (
@@ -2470,6 +2482,7 @@ function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
 export function EscSetup() {
   const { state, dispatch } = useEsc()
   const career = state.careerIntent
+  const privatePreview = useOnlinePreview()
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -2481,6 +2494,9 @@ export function EscSetup() {
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
+  const [privateStep, setPrivateStep] = useState<1 | 2 | 3>(1)
+  const [presidentName, setPresidentName] = useState('')
+  const [presidentOutfit, setPresidentOutfit] = useState<'casual' | 'polo' | 'social' | 'terno'>('terno')
   const toggleRival = (team: string) => setRivalPicks(prev => {
     if (prev.includes(team)) return prev.filter(t => t !== team)
     const next = [...prev, team]
@@ -2531,9 +2547,121 @@ export function EscSetup() {
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
       // começar a nova. A nova vira a ativa; a antiga fica em "Minhas Carreiras".
       stashActiveBeforeNew()
-      dispatch({ type: 'START_CAREER_SOLO', teamName: clean, formation, rivals, rivalTeams: picks, league: 'both', intro: true })
+      dispatch({
+        type: 'START_CAREER_SOLO', teamName: clean, formation, rivals,
+        rivalTeams: picks, league: 'both', intro: true,
+        president: privatePreview ? { name: stripEmoji(presidentName).trim() || 'Presidente', outfit: presidentOutfit } : undefined,
+      })
     }
     else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, intro: true })
+  }
+  if (career && privatePreview) {
+    const outfits = [
+      ['casual', 'INÍCIO', presidentCasual],
+      ['polo', 'CLUBE', presidentPolo],
+      ['social', 'SOCIAL', presidentSocial],
+      ['terno', 'TERNO', presidentTerno],
+    ] as const
+    const activePresident = outfits.find(([id]) => id === presidentOutfit)?.[2] ?? presidentTerno
+    const nextFromClub = () => {
+      if (!stripEmoji(name).trim()) { setNameErr('Digite o nome do clube.'); return }
+      setNameErr(''); setPrivateStep(2)
+    }
+    const nextFromPresident = () => setPrivateStep(3)
+    return (
+      <Shell className="ll-career-onboarding" hideExit>
+        <main className={`ll-career-setup ll-career-step-${privateStep}`} style={{ '--career-room': `url(${careerSetupRoom})` } as CSSProperties}>
+          <header className="ll-career-setup-head">
+            <span>● TEMPORADA 1 · VÁRZEA</span>
+            <b>LEILÃO LEGENDS</b>
+          </header>
+
+          {privateStep === 1 && (
+            <section className="ll-career-club-step">
+              <div className="ll-career-copy">
+                <h1>CRIE SEU CLUBE</h1>
+                <p>O primeiro capítulo da sua carreira.</p>
+              </div>
+              <img className="ll-career-founder" src={presidentPolo} alt="Presidente provisório do clube" />
+              <div className="ll-career-control ll-career-club-control">
+                <h2>COMO SEU CLUBE VAI SE CHAMAR?</h2>
+                <label>NOME DO CLUBE</label>
+                <input value={name} onChange={e => { setName(stripEmoji(e.target.value)); setNameErr('') }} placeholder="Ex.: Lendas FC" />
+                {nameErr && <p className="ll-career-error">{nameErr}</p>}
+                <label>FORMAÇÃO INICIAL</label>
+                <div className="ll-career-choice-grid">
+                  {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
+                    <button key={f} onClick={() => setFormation(f)} className={formation === f ? 'is-selected' : ''}>{f}</button>
+                  ))}
+                </div>
+                <p className="ll-career-note">Cores e escudo simples são gerados automaticamente pelo jogo.</p>
+              </div>
+              <div className="ll-career-actions">
+                <button className="ll-secondary" onClick={() => dispatch({ type: 'GO_LOBBY' })}>VOLTAR</button>
+                <button className="ll-primary" onClick={nextFromClub}>CRIAR CLUBE</button>
+              </div>
+            </section>
+          )}
+
+          {privateStep === 2 && (
+            <section className="ll-career-president-step">
+              <div className="ll-career-copy">
+                <button className="ll-career-backlink" onClick={() => setPrivateStep(1)}>‹ VOLTAR AO CLUBE</button>
+                <h1>CRIE SEU PRESIDENTE</h1>
+                <p>Monte o dirigente que vai representar seu clube.</p>
+              </div>
+              <div className="ll-president-stage"><img src={activePresident} alt="Prévia do presidente" /></div>
+              <div className="ll-career-control ll-president-controls">
+                <label>NOME DO PRESIDENTE</label>
+                <input value={presidentName} onChange={e => setPresidentName(stripEmoji(e.target.value))} placeholder="Ex.: Ricardo Silva" />
+                <label>ROUPA</label>
+                <div className="ll-outfit-grid">
+                  {outfits.map(([id, label, src]) => (
+                    <button key={id} onClick={() => setPresidentOutfit(id)} className={presidentOutfit === id ? 'is-selected' : ''}>
+                      <img src={src} alt="" /><span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="ll-career-note">Você poderá editar o visual novamente pela Sala da Presidência.</p>
+              </div>
+              <div className="ll-career-actions">
+                <button className="ll-secondary" onClick={() => setPrivateStep(1)}>VOLTAR</button>
+                <button className="ll-primary" onClick={nextFromPresident}>CONTINUAR</button>
+              </div>
+            </section>
+          )}
+
+          {privateStep === 3 && (
+            <section className="ll-career-rivals-step">
+              <div className="ll-career-copy">
+                <button className="ll-career-backlink" onClick={() => setPrivateStep(2)}>‹ VOLTAR AO PRESIDENTE</button>
+                <h1>PREPARE O PREGÃO</h1>
+                <p>Escolha quem disputa os envelopes com você.</p>
+              </div>
+              <div className="ll-career-control ll-rivals-control">
+                <label>RIVAIS NO PREGÃO</label>
+                <div className="ll-career-choice-grid ll-four">
+                  {[3, 5, 7, 9].map(n => <button key={n} onClick={() => setRivals(n)} className={rivals === n ? 'is-purple' : ''}>{n}</button>)}
+                </div>
+                <p className="ll-career-note">Mais rivais significam mais disputa pelos mesmos jogadores. A liga continua com 20 clubes.</p>
+                <label>RIVAIS PARA A CARREIRA <small>{rivalPicks.length}/{rivals}</small></label>
+                <div className="ll-rival-list">
+                  {TIMES_ELITE.map(t => {
+                    const on = rivalPicks.includes(t.team)
+                    return <button key={t.team} onClick={() => toggleRival(t.team)} className={on ? 'is-selected' : ''}>{on ? '🔥 ' : ''}{t.team}</button>
+                  })}
+                </div>
+                <button className="ll-random-rivals" onClick={() => setRivalPicks([])}>🎲 USAR RIVAIS PADRÃO</button>
+              </div>
+              <div className="ll-career-actions">
+                <button className="ll-secondary" onClick={() => setPrivateStep(2)}>VOLTAR</button>
+                <button className="ll-primary" onClick={() => void start()}>IR PARA O PREGÃO 🔨</button>
+              </div>
+            </section>
+          )}
+        </main>
+      </Shell>
+    )
   }
   return (
     <Shell>

@@ -7,7 +7,7 @@
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useOnlinePreview } from './online-preview'
 import { OnlineScorePresentation } from './online-match-visual'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
@@ -41,6 +41,11 @@ import type { ApoioPerk } from './apoio'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
 import { JogadorNoCampo, type EstadoJogador } from './jogadorcampo'
 import { MASCOTES, FestaoMascote, carimboDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
+import careerRoomPrivate from './img/career-setup-room-private.webp'
+import presidentCasual from './img/career-president-casual.webp'
+import presidentPolo from './img/career-president-polo.webp'
+import presidentSocial from './img/career-president-social.webp'
+import presidentTerno from './img/career-president-terno.webp'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -5406,6 +5411,41 @@ function SeloSuaVez({ texto }: { texto: string }) {
   )
 }
 
+function PresidenciaPrivate({ president, st, team, season, games, trophies }: {
+  president?: { name: string; outfit: 'casual' | 'polo' | 'social' | 'terno' }
+  st?: StadiumSave
+  team: string
+  season: number
+  games: number
+  trophies: number
+}) {
+  const portraits = { casual: presidentCasual, polo: presidentPolo, social: presidentSocial, terno: presidentTerno }
+  const ready = sectorsDone(st)
+  const upgrades = STADIUM_EXTRAS.filter(e => hasExtra(st, e.k)).length
+  const roomStage = ready + upgrades
+  return (
+    <section className={`ll25-presidencia room-stage-${Math.min(roomStage, 9)}`} style={{ '--pres-room': `url(${careerRoomPrivate})` } as CSSProperties}>
+      <div className="ll25-presidencia-art" aria-label="Sala da Presidência acompanhando o estádio atual">
+        <div className="ll25-president-window"><StadiumSvg st={st} /></div>
+        <img className="ll25-president-person" src={portraits[president?.outfit ?? 'terno']} alt="Presidente do clube" />
+        {trophies > 0 && <div className="ll25-president-trophies" aria-label={`${trophies} títulos`}><span>🏆</span><b>×{trophies}</b></div>}
+        <div className="ll25-president-caption">
+          <small>SALA DA PRESIDÊNCIA · T{season}</small>
+          <strong>{president?.name || 'PRESIDENTE'}</strong>
+          <span>{team}</span>
+        </div>
+      </div>
+      <div className="ll25-president-facts">
+        <article><small>TEMPORADAS</small><b>{season}</b></article>
+        <article><small>JOGOS</small><b>{games}</b></article>
+        <article><small>TÍTULOS</small><b>{trophies}</b></article>
+        <article><small>ESTÁDIO</small><b>{ready}/5 setores</b></article>
+      </div>
+      <p className="ll25-president-note">A janela usa o mesmo estádio construído na aba Estádio. Obras e troféus reais do save aparecem aqui sem alterar nenhuma regra.</p>
+    </section>
+  )
+}
+
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const privatePreview = useOnlinePreview()
@@ -5434,7 +5474,7 @@ export function PyramidSeasonScreen() {
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'global'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const [bicoTrocando, setBicoTrocando] = useState(false) // 🕴️ Bico de Folga: lista de troca abre no lugar do botão (visual novo, 14/08)
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
@@ -6413,7 +6453,7 @@ export function PyramidSeasonScreen() {
   // junto com o conteúdo, que é como era antes da mudança.
   const grudaOk = subGrudadas && !sagrado
   return (
-    <div className={`palco tela-cheia${privateCareer ? ' ll25-career' : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
@@ -7131,7 +7171,7 @@ export function PyramidSeasonScreen() {
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
             <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
             <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ...(privateCareer ? [['presidencia', '🏛️', 'Presidência']] : []), ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
                 .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
@@ -7139,7 +7179,16 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             </SubAbasGrudadas>
-            {clubeSub === 'escritorio' && !agenciaOk ? (
+            {clubeSub === 'presidencia' && privateCareer ? (
+              <PresidenciaPrivate
+                president={state.careerPresident}
+                st={state.stadiums?.[youId]}
+                team={state.managers[state.youIdx]?.teamName ?? 'Seu clube'}
+                season={state.seasonNo ?? 1}
+                games={Math.max(0, ((state.seasonNo ?? 1) - 1) * 38 + Math.min(state.round, 38))}
+                trophies={(() => { const h = state.careerHonors?.[`m${youId}`]; return (h?.A ?? 0) + (h?.B ?? 0) + (h?.C ?? 0) + (h?.D ?? 0) + (h?.V ?? 0) + (state.careerCopaHonors?.[`m${youId}`] ?? 0) + (state.careerSupercopaHonors?.[`m${youId}`] ?? 0) })()}
+              />
+            ) : clubeSub === 'escritorio' && !agenciaOk ? (
               // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
               <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />

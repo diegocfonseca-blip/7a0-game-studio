@@ -671,6 +671,12 @@ export interface EscState {
   dinastiaPaused?: boolean // Dinastia: temporada pausada na JANELA DO MEIO (metade do calendário)
   dinastiaMidUsed?: boolean // Dinastia: já abriu a janela do meio nesta temporada (não reabre)
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
+  // 🎭 Identidade visual do presidente. Campo opcional para saves antigos e
+  // puramente cosmético: não interfere em leilão, nível, dinheiro ou partidas.
+  careerPresident?: {
+    name: string
+    outfit: 'casual' | 'polo' | 'social' | 'terno'
+  }
   careerTitles: number // títulos acumulados na carreira atual (qualquer divisão)
   careerTitlesA: number // títulos da SÉRIE A (viram estrelas ⭐ no escudo)
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira

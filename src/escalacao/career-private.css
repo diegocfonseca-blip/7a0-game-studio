@@ -1,0 +1,101 @@
+.ll-career-onboarding{background:#0c0c0c!important;padding-bottom:0!important}
+.ll-career-onboarding>.max-w-xl{max-width:none!important;padding:0!important;padding-top:0!important}
+.ll-career-setup{--cream:#f4ecd6;--ink:#0c0c0c;--gold:#ffc400;--purple:#7c3aed;min-height:100dvh;color:#fff;background-image:linear-gradient(90deg,rgba(0,0,0,.34),rgba(0,0,0,.05) 55%,rgba(0,0,0,.24)),var(--career-room);background-size:cover;background-position:center;position:relative;overflow:hidden;font-family:Arial,sans-serif}
+.ll-career-setup *{box-sizing:border-box}
+.ll-career-setup button,.ll-career-setup h1,.ll-career-setup h2,.ll-career-setup label,.ll-career-setup-head{font-family:Oswald,'Arial Narrow',sans-serif;font-weight:800}
+.ll-career-setup-head{height:76px;padding:20px clamp(20px,3vw,48px);display:flex;align-items:center;justify-content:space-between;font-size:14px;letter-spacing:.06em;text-transform:uppercase;position:relative;z-index:5}
+.ll-career-setup-head span,.ll-career-setup-head b{border:1px solid rgba(244,236,214,.45);border-radius:999px;background:rgba(12,12,12,.7);padding:9px 16px}
+.ll-career-setup-head span{color:var(--cream)}.ll-career-setup-head span::first-letter{color:var(--gold)}
+.ll-career-setup section{min-height:calc(100dvh - 76px);padding:4px clamp(20px,3vw,48px) 92px;position:relative}
+.ll-career-copy{position:relative;z-index:4;max-width:670px;text-shadow:0 2px 8px #000}
+.ll-career-copy h1{font-size:clamp(38px,5.2vw,70px);line-height:.96;margin:0;text-transform:uppercase;letter-spacing:-.02em}
+.ll-career-copy p{font-weight:700;font-size:clamp(14px,1.5vw,20px);margin:7px 0 0}
+.ll-career-control{position:absolute;z-index:4;width:min(390px,calc(100% - 40px));color:var(--ink);background:rgba(244,236,214,.97);border:4px solid var(--ink);border-radius:16px;box-shadow:7px 7px 0 var(--ink);padding:20px}
+.ll-career-control h2{font-size:27px;line-height:1.25;margin:0 0 20px;max-width:310px}
+.ll-career-control label{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:14px 0 7px;text-transform:uppercase}
+.ll-career-control label small{opacity:.55;font-size:11px}
+.ll-career-control input{width:100%;border:3px solid var(--ink);border-radius:11px;background:#fff;padding:12px 13px;color:var(--ink);font-size:17px;font-weight:800;outline:none;box-shadow:2px 2px 0 rgba(0,0,0,.18)}
+.ll-career-control input:focus{border-color:var(--purple);box-shadow:3px 3px 0 var(--ink)}
+.ll-career-club-control{left:clamp(20px,3vw,48px);top:190px}
+.ll-career-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ll-career-choice-grid.ll-four{grid-template-columns:repeat(4,1fr)}
+.ll-career-choice-grid button,.ll-random-rivals{border:3px solid var(--ink);border-radius:11px;background:#fff;color:var(--ink);padding:11px 8px;font-size:19px;box-shadow:3px 3px 0 var(--ink)}
+.ll-career-choice-grid button.is-selected{background:var(--purple);color:#fff}.ll-career-choice-grid button.is-purple{background:var(--purple);color:#fff}
+.ll-career-note{font-size:12px!important;font-weight:700!important;line-height:1.45!important;color:rgba(12,12,12,.68)!important;text-shadow:none!important;margin:12px 0 0!important}
+.ll-career-error{font-size:12px;color:#c2452f;font-weight:800;margin:5px 0 -5px}
+.ll-career-founder{position:absolute;z-index:2;bottom:0;left:50%;height:min(68vh,690px);transform:translateX(-20%);filter:drop-shadow(0 12px 12px rgba(0,0,0,.42));object-fit:contain}
+.ll-career-actions{position:absolute;z-index:6;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:14px;width:min(440px,calc(100% - 40px))}
+.ll-career-actions button{flex:1;border:4px solid var(--ink);border-radius:13px;padding:13px 12px;font-size:20px;box-shadow:5px 5px 0 var(--ink)}
+.ll-career-actions .ll-secondary{background:#fff;color:var(--ink)}.ll-career-actions .ll-primary{background:var(--gold);color:var(--ink)}
+.ll-career-actions button:active,.ll-career-choice-grid button:active,.ll-outfit-grid button:active{transform:translate(3px,3px);box-shadow:none}
+.ll-career-backlink{border:0;background:transparent;color:#fff;padding:0;margin:0 0 5px;text-shadow:0 2px 8px #000;font-size:14px}
+.ll-career-president-step .ll-career-copy,.ll-career-rivals-step .ll-career-copy{margin-left:clamp(0px,7vw,90px)}
+.ll-president-stage{position:absolute;z-index:2;left:clamp(20px,13vw,220px);bottom:54px;width:36vw;max-width:430px;height:76%;display:flex;align-items:flex-end;justify-content:center}
+.ll-president-stage img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 14px 15px rgba(0,0,0,.45))}
+.ll-president-controls{right:clamp(20px,7vw,110px);top:120px;width:min(580px,47vw)}
+.ll-outfit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.ll-outfit-grid button{height:225px;overflow:hidden;position:relative;border:3px solid var(--ink);border-radius:12px;background:#fff;box-shadow:3px 3px 0 var(--ink);padding:0}
+.ll-outfit-grid button.is-selected{border-color:var(--purple);box-shadow:4px 4px 0 var(--purple)}
+.ll-outfit-grid img{width:100%;height:190px;object-fit:contain;object-position:center top;display:block}
+.ll-outfit-grid span{position:absolute;left:0;right:0;bottom:0;background:var(--ink);color:#fff;padding:6px 2px;font-size:13px}
+.ll-rivals-control{right:clamp(20px,6vw,90px);top:120px;width:min(630px,52vw);max-height:calc(100dvh - 225px);overflow:auto}
+.ll-rival-list{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-height:250px;overflow:auto;padding:2px 5px 5px 2px}
+.ll-rival-list button{border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);padding:7px 5px;font:800 11px Arial,sans-serif}.ll-rival-list button.is-selected{background:#e8503a;color:#fff}
+.ll-random-rivals{width:100%;margin-top:10px;font-size:13px;padding:8px}
+@media(max-width:760px){
+  .ll-career-setup{background-position:center top;background-size:auto 48vh;background-repeat:no-repeat;background-color:#16100c;overflow:auto}
+  .ll-career-setup-head{height:56px;padding:12px 14px;font-size:10px}.ll-career-setup-head span,.ll-career-setup-head b{padding:7px 10px}
+  .ll-career-setup section{min-height:calc(100dvh - 56px);padding:8px 14px 92px;display:flex;flex-direction:column}
+  .ll-career-copy{min-height:128px}.ll-career-copy h1{font-size:38px}.ll-career-copy p{font-size:13px}
+  .ll-career-club-control,.ll-president-controls,.ll-rivals-control{position:relative;inset:auto;width:100%;max-height:none;margin-top:auto;padding:16px;border-width:3px;box-shadow:5px 5px 0 var(--ink)}
+  .ll-career-club-control h2{font-size:21px;margin-bottom:11px}.ll-career-control label{margin-top:10px}
+  .ll-career-founder{height:35vh;left:62%;bottom:auto;top:76px;transform:translateX(-50%)}
+  .ll-career-actions{position:fixed;bottom:10px;gap:8px;width:calc(100% - 28px)}.ll-career-actions button{font-size:15px;padding:11px 6px;border-width:3px;box-shadow:4px 4px 0 var(--ink)}
+  .ll-career-president-step .ll-career-copy,.ll-career-rivals-step .ll-career-copy{margin-left:0}
+  .ll-president-stage{position:absolute;left:50%;transform:translateX(-50%);top:82px;bottom:auto;width:44vw;height:31vh}
+  .ll-president-controls{margin-top:28vh}.ll-president-controls input{padding:9px 11px}
+  .ll-outfit-grid{gap:5px}.ll-outfit-grid button{height:132px;border-width:2px}.ll-outfit-grid img{height:105px}.ll-outfit-grid span{font-size:9px;padding:4px 1px}
+  .ll-rivals-control{margin-top:26px}.ll-rival-list{grid-template-columns:repeat(2,1fr);max-height:240px}
+}
+
+/* Pregão privado: a mesma mecânica e a mesma lista de jogadores continuam.
+   Só o palco vira o salão aprovado; as folhas claras seguem sendo os itens
+   interativos e a revelação permanece automática, sem botão de "suspense". */
+.ll-career-auction-private{background-color:#15100c!important;background-image:linear-gradient(180deg,rgba(5,4,3,.34),rgba(5,4,3,.7)),url('./img/career-auction-room-private.webp')!important;background-size:cover!important;background-position:center top!important;background-attachment:fixed!important;color:var(--ink)!important}
+.ll-career-auction-private>.max-w-xl{max-width:760px!important;padding-top:22px!important}
+.ll-career-auction-private>div.sticky{background:rgba(244,236,214,.96)!important;backdrop-filter:blur(9px)}
+.ll-career-auction-private .border-\[3px\].border-black{box-shadow:3px 3px 0 #0c0c0c}
+.ll-career-auction-private h1,.ll-career-auction-private h2,.ll-career-auction-private h3,.ll-career-auction-private button{font-family:Oswald,'Arial Narrow',sans-serif}
+.ll-career-auction-private>.max-w-xl>p.text-center,.ll-career-auction-private>.max-w-xl>button.text-black\/60{color:#f4ecd6!important;text-shadow:0 2px 5px #000}
+@media(max-width:760px){.ll-career-auction-private{background-size:auto 520px!important;background-repeat:no-repeat!important}.ll-career-auction-private>.max-w-xl{padding-inline:12px!important}}
+
+/* Carreira privada aprovada: a arte fica no ambiente e os dados reais continuam
+   em folhas creme compactas. Nada abaixo existe fora da trava das duas contas. */
+.ll25-career{--ll-cream:#f4ecd6;--ll-ink:#0c0c0c;--ll-gold:#ffc400;--ll-purple:#7c3aed;font-family:Arial,sans-serif}
+.ll25-career h1,.ll25-career h2,.ll25-career h3,.ll25-career button,.ll25-career th,.ll25-career [role=tab]{font-family:Oswald,'Arial Narrow',sans-serif}
+.ll25-career.ll25-tab-elenco,.ll25-career.ll25-tab-ranking,.ll25-career.ll25-tab-estadio{background-color:#17120d!important;background-image:linear-gradient(180deg,rgba(8,6,3,.25),rgba(8,6,3,.82) 620px),url('./img/career-setup-room-private.webp')!important;background-size:auto 720px!important;background-position:center top!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
+.ll25-career.ll25-tab-elenco>.max-w-xl,.ll25-career.ll25-tab-ranking>.max-w-xl,.ll25-career.ll25-tab-estadio>.max-w-xl{background:linear-gradient(180deg,transparent 0,transparent 180px,rgba(244,236,214,.97) 420px);max-width:760px!important}
+.ll25-career.ll25-tab-elenco button,.ll25-career.ll25-tab-ranking button,.ll25-career.ll25-tab-estadio button{border-radius:10px!important}
+.ll25-career.ll25-tab-elenco table,.ll25-career.ll25-tab-ranking table,.ll25-career.ll25-tab-estadio table{background:rgba(255,255,255,.7)}
+
+.ll25-presidencia{border:4px solid var(--ll-ink);border-radius:18px;overflow:hidden;background:var(--ll-cream);box-shadow:6px 6px 0 var(--ll-ink);margin-bottom:14px}
+.ll25-presidencia-art{height:430px;position:relative;overflow:hidden;background-image:linear-gradient(90deg,rgba(0,0,0,.15),rgba(0,0,0,.02)),var(--pres-room);background-size:cover;background-position:center}
+.ll25-president-window{position:absolute;right:17%;top:11%;width:38%;height:36%;overflow:hidden;border:3px solid rgba(12,12,12,.65);background:#20150d;filter:saturate(.88) brightness(.82)}
+.ll25-president-window>div,.ll25-president-window svg{width:100%!important;height:100%!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important}
+.ll25-president-person{position:absolute;z-index:3;height:76%;max-width:42%;object-fit:contain;left:12%;bottom:-2%;filter:drop-shadow(0 12px 12px rgba(0,0,0,.48))}
+.ll25-president-caption{position:absolute;z-index:4;left:22px;top:20px;color:#fff;text-shadow:0 2px 7px #000;display:flex;flex-direction:column}
+.ll25-president-caption small{font:800 11px Oswald,sans-serif;letter-spacing:.12em;color:var(--ll-gold)}
+.ll25-president-caption strong{font:900 clamp(28px,5vw,48px)/1 Oswald,sans-serif;text-transform:uppercase;margin-top:4px}
+.ll25-president-caption span{font-weight:800;margin-top:5px}
+.ll25-president-trophies{position:absolute;z-index:4;right:20px;bottom:18px;display:flex;align-items:center;gap:4px;border:3px solid var(--ll-ink);border-radius:10px;background:var(--ll-gold);padding:6px 10px;box-shadow:3px 3px 0 var(--ll-ink);font:900 18px Oswald,sans-serif}.ll25-president-trophies span{font-size:27px}
+.ll25-president-facts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px}
+.ll25-president-facts article{border:3px solid var(--ll-ink);border-radius:10px;background:#fff;padding:9px;text-align:center;box-shadow:2px 2px 0 var(--ll-ink)}
+.ll25-president-facts small{display:block;font:800 9px Oswald,sans-serif;letter-spacing:.08em;opacity:.55}.ll25-president-facts b{display:block;font:900 18px Oswald,sans-serif;margin-top:2px}
+.ll25-president-note{margin:0 14px 14px;font-size:11px;font-weight:700;text-align:center;color:rgba(12,12,12,.58)}
+@media(max-width:760px){
+  .ll25-career.ll25-tab-elenco,.ll25-career.ll25-tab-ranking,.ll25-career.ll25-tab-estadio{background-size:auto 510px!important;background-attachment:scroll!important}
+  .ll25-career.ll25-tab-elenco>.max-w-xl,.ll25-career.ll25-tab-ranking>.max-w-xl,.ll25-career.ll25-tab-estadio>.max-w-xl{background:linear-gradient(180deg,transparent 0,transparent 115px,rgba(244,236,214,.98) 330px)}
+  .ll25-presidencia{border-width:3px;box-shadow:4px 4px 0 var(--ll-ink)}.ll25-presidencia-art{height:330px;background-position:center top}
+  .ll25-president-window{right:8%;top:18%;width:45%;height:31%}.ll25-president-person{left:3%;height:62%;max-width:52%}
+  .ll25-president-caption{left:13px;top:12px}.ll25-president-caption strong{font-size:28px}.ll25-president-caption span{font-size:11px}
+  .ll25-president-facts{grid-template-columns:1fr 1fr;padding:9px}.ll25-president-facts article{padding:7px}.ll25-president-facts b{font-size:15px}
+}
