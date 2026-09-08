@@ -8741,7 +8741,16 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (canalMorto()) pedeCanalNovo()
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      if (stale && Date.now() - lastOwnerCheckRef.current > 10_000) {
+      // 🎬 NA TELA DE ABERTURA (streamIntro) A CHECAGEM NÃO ESPERA O SILÊNCIO
+      // (sala do Sistematizados, 07/09 à noite): o dono apertou "começar", caiu na
+      // tela das regras como CONVIDADO ("o host vai começar") e ficou 2 minutos
+      // assim — só o F5 devolveu o botão. O socorro abaixo existia, mas só corria
+      // depois de 10s SEM notícia de host; ali ele nunca correu. Antes do pregão
+      // não há envelope em risco, então nessa tela o aparelho pergunta ao banco a
+      // cada 5s quem é o dono e, se for ele, reassume na hora. Nada de troca de
+      // coroa: só devolve o comando a quem o banco JÁ diz que é o dono.
+      const preLeilao = stateRef.current.screen === 'streamIntro'
+      if ((stale || preLeilao) && Date.now() - lastOwnerCheckRef.current > (stale ? 10_000 : 5_000)) {
         lastOwnerCheckRef.current = Date.now()
         ;(async () => {
           try {
@@ -8761,6 +8770,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
             const hostId = (r as { host_id?: string } | null)?.host_id
             // (1) a posse já é MINHA no banco (handoff explícito ou eu era o dono) → assumo.
             if (hostId === uid) { if (!stateRef.current.isHost) { claimForcadoRef.current = true; rawDispatch({ type: 'BECOME_HOST' }) } return }
+            // 🎬 checagem da tela de abertura SEM silêncio: só serve pra devolver o
+            // comando ao dono. Convidado de verdade não acusa nem conta nada aqui.
+            if (!stale) return
             // 💓 BATIMENTO DO BANCO: o host grava updated_at a cada ~3s (mesmo PARADO
             // no leilão). Se está fresco (< 9s), o dono está VIVO — só ficou quieto no
             // Realtime pra economizar egress. NÃO se rouba host de quem está batendo:

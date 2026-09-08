@@ -3,6 +3,23 @@
 ## Online ilustrado V22 — publicação autorizada em 07/09
 Diego aprovou publicar as três telas online e o encerramento completo: O Martelo ilustrado com TODAS as notas da redação, pacote do campeão com logo oficial e votação/saída. Implementação isolada em `online-visual.css`, `jornal-online-visual.tsx/css` e hooks visuais do lobby/screens. Oswald e controles branco/creme, amarelo e roxo; mobile e desktop. Regras, premiações, sorteio/persistência da carta e autoridade do host preservados. Offline mantém seu jornal. Integrado com as mudanças atuais do Olheiro e sondados, sem sobrescrevê-las. Detalhes e reversão em `docs/online-visual-v22.md`.
 
+## 👑 Host caiu na tela de abertura como CONVIDADO (sala IXMX5X do Sistematizados, 07/09 à noite) — ⏳ cinto no branch, esperando OK
+Fatos do banco: sala criada 20:53 (BRT), começou ~20:59, o dono ficou 2 min na tela
+das regras vendo "o host vai começar"; F5 às 21:01:29 devolveu o botão (é o carimbo
+de posse gravado). Uma aba só na conta dele; `host_id` sempre dele. Mesma família do
+bug da live do Marcelow (05/09). O deploy visual do dia não tocou nisso.
+**Causa não cravada.** Só dois mecanismos produzem `isHost=false` com o `host_id`
+dele: `STEP_DOWN_HOST` (travas de "mesma conta em dois lugares") ou START/RESTORE
+com `amHost=false` (impossível com a linha fresca). E o socorro automático (que
+devolve a coroa a quem o banco diz que é dono) só corria depois de 10s SEM sinal de
+host — ali não correu, o que sugere OUTRO aparelho se achando host naquele minuto.
+O jogador da vaga 1 (PiuPiu MALUCO) está no jogo mas sumiu de `room_players`.
+**Cinto (store.tsx, vigia do convidado):** na tela `streamIntro` a checagem de dono
+roda a cada 5s SEM esperar silêncio; se o banco diz que o dono sou eu, reassumo na
+hora (`BECOME_HOST`). Não troca coroa de ninguém — só devolve ao dono. Guarda: pra
+convidado de verdade essa rodada extra não acusa nem conta nada (`if (!stale) return`).
+Se repetir: pedir PRINT do host na hora e se ele tinha o jogo aberto em 2 lugares.
+
 ## 🎮 Batismo Sistematizados FC (gaancaxd@gmail.com) — ✅ 3 pernas feitas 07/09
 Série D, no assento do bot **Coliseu United** (`OLD_NAME`; o bot só existia em
 `DIVISION_TEAMS.D`). Arte do dono (2ª prancha que ele mandou) cortada do fundo
