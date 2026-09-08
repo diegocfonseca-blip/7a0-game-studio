@@ -20,6 +20,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'luizguilhermeps@hotmail.com': ['#F6BB06', '#053F42'], // 🧦 Jurubeba FC — amarelo e verde-petróleo, MEDIDOS na camisa que o dono mandou (02/09)
   'caiohcris@gmail.com': ['#084C2C', '#F3F1EC'], // 🐟 Bagres 1993 — verde-mato e branco, MEDIDOS na camisa que o dono mandou (mediana dos verdes e dos brancos do manto, 06/09). O DOURADO é a 3ª cor, em MANTO_TRI: é a moldura, a coroa e o louro do escudo
   'guiouriques@hotmail.com': ['#2186D9', '#080809'], // 🪟 Vidraceiro FC — azul-vidro e preto, MEDIDOS na camisa que o dono mandou (mediana dos azuis e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa é listrada azul/preto com filete branco
+  'pedrovianacarneiroq@gmail.com': ['#0C0D0C', '#E8E5E0'], // 🐓 Briga de Galo FC — preto e branco, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 74% do manto, e dos brancos das listras, 08/09). O DOURADO é a 3ª cor (MANTO_TRI): coroa, "FC" e o BDG do peito
   'gaancaxd@gmail.com': ['#0D0C10', '#6E16C3'], // 🎮 Sistematizados FC — preto e roxo, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 73% do manto, e dos roxos, 07/09). O BRANCO é a 3ª cor (MANTO_TRI)
   'jh9415474@gmail.com': ['#0A0A0A', '#E3E2E1'], // 🌑 Nova Eclipse FC — preto e branco, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 72% do manto, e dos brancos das pinceladas, 07/09)
   'gustavo99828@gmail.com': ['#CD0C12', '#070505'], // 🐂 Final Boss FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (mediana dos vermelhos e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa dele é branca com faixa vermelha e preta
@@ -136,6 +137,7 @@ const MANTO_TRI: Record<string, string> = {
   bagres_bagre: '#D9A95D', // 🐟 Bagres 1993 (caiohcris) — 3ª cor DOURADA: a moldura, a coroa e o louro do escudo (medidas na arte dele, 06/09)
   vidraceiro_vidro: '#FFFFFF', // 🪟 Vidraceiro FC (guiouriques) — 3ª cor BRANCA: a camisa é listrada azul/preto com filete branco (medidas na arte dele, 05/09)
   sistematizados_streamer: '#F3F1F6', // 🎮 Sistematizados FC (gaancaxd) — 3ª cor BRANCA: os filetes e o nome na camisa (medidos na arte dele, 07/09)
+  brigadegalo_galo: '#AD8C56', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08
 }

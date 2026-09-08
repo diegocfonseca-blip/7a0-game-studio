@@ -2566,7 +2566,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Zé da Vidraça', team: 'Vidraceiro FC' }, // 🪟 clube BATIZADO por apoiador (guiouriques — Vidraceiro FC; Lenda + fundador nº58 + sócio nº36, 05/09). Assento que era do Murriz FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Igual ao caso do Marreco/Al Takhadao: NÃO existe OLD_NAME aqui — o Murriz não foi renomeado, só mudou de divisão, e mapear faria os dois desenharem o mesmo escudo. Escudo, mascote (🪟 O Cristal) e manto azul-vidro + preto com a arte própria do dono.
     { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)
     { name: 'Duda Fortuna', team: 'Skyy FC' }, // ⚽ clube BATIZADO por apoiador (matheusncruz1 — Skyy FC, ex-Fortuna SAF)
-    { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
+    { name: 'Galo', team: 'Briga de Galo FC' }, // 🐓 clube BATIZADO por apoiador (pedrovianacarneiroq — Briga de Galo FC; preto e branco listrado com dourado, mascote o Galo de punhos fechados; Lenda + fundador nº62 + sócio nº40, 08/09). Assento que era do Vasco da Grana, que DESCEU pra Série D por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Vasco da Grana não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Magrão EC).
     { name: 'Neguinho do Apito', team: 'Xurupitas FC' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Xurupitas FC, ex-Tokyo City Esperion, ex-FC Galáticos; porco/Palmeiras)
     { name: 'Zé do Mercado', team: 'Al Takhadao FC' }, // 🦜🛒 clube BATIZADO por apoiador (fontourajoao04 — Al Takhadao FC; papagaio de avental, carrinho de mercado, verde+laranja; coração Internacional; Lenda + fundador nº53, 01/09). Assento que era do Marreco FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Isto aqui é memória do repo — no POST o Diego pediu pra NÃO falar "entrou no lugar do Marreco", só "entrou na Série A".
     { name: 'Tião Bagre', team: 'Leão da Estradinha' }, // ⚽🦁 clube BATIZADO por apoiador (jorgericardo777 — Leão da Estradinha, ex-Império Samambaia, ex-Cuiabagre; homenagem ao Rio Branco-PR, o Leão da Estradinha de 1913, time do coração dele; rebatismo 23/08)
@@ -2665,7 +2665,14 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Aurora', team: 'Aurora Suprema' },
     { name: 'Dragão', team: 'Dragão Imperial' },
     { name: 'Cosmo', team: 'Cosmopolita FC' },
-    { name: 'Zênite', team: 'Zênite United' },
+    // 🏦 Vasco da Grana (batismo a pedido do Diego, 03/08) DESCEU da Série A pra cá
+    // em 08/09, por decisão dele, pra abrir o assento do Briga de Galo FC. Ocupa a
+    // vaga que era do bot "Zênite United" (escolhido por só existir aqui, em mais
+    // lugar nenhum do jogo). ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Vasco da
+    // Grana'] = 'Zênite United'`: ele não foi renomeado, só mudou de divisão — e o
+    // nome velho dele (Magrão EC) continua valendo. Save antigo com o Zênite segue
+    // com o nome e o escudo dele (a divisão de bot num save vem do `placements`).
+    { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
     { name: 'Excélsior', team: 'Excelsior SAF' },
     { name: 'Prestígio', team: 'Prestígio FC' },
     { name: 'Geovany Souza', team: 'Tricolor do Arruda FC' }, // ⚽ clube BATIZADO por apoiador (souzact12 — Tricolor do Arruda FC, ex-Legado EC; homenagem ao Santa Cruz, time do coração dele; Lenda + fundador nº43, 16/08)

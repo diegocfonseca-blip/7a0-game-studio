@@ -159,6 +159,36 @@ O que mudou (tudo reversível revertendo o commit):
 ⚠️ Coisa que o Diego precisa fazer no mundo real: **colocar os ⭐ Craques atuais
 no grupo do WhatsApp** — o jogo passou a prometer isso pra eles.
 
+## 🐓 BATISMO BRIGA DE GALO FC (08/09) — Série A, no assento do Vasco da Grana
+Dono: `pedrovianacarneiroq@gmail.com` (conta de 19/08, nome de técnico "Pedro
+Caleb" — é o Caleb da conversa de hoje). Pedido do Diego: *"Faça o clube de
+batismo chamado Briga de Galo… Ele irá entrar na série A no lugar do Vasco da
+Grana. E Vasco da Grana coloque na série D no lugar de um bot"*.
+- **Assentos:** Briga de Galo FC → Série A (linha que era do Vasco da Grana);
+  **Vasco da Grana → Série D**, na vaga do bot "Zênite United" (só existia em
+  `DIVISION_TEAMS.D`). **Sem OLD_NAME** nos dois casos (mesma regra do
+  Murriz/Marreco/GuGu: mudou de divisão, não de nome). Save antigo com o Zênite
+  segue com ele; a divisão de bot num save vem do `placements`.
+- **Arte** (prancha única em fundo verde-neon, 1080×720): o galo estava com os
+  punhos NA FRENTE do escudo e da camisa. Separei por chroma + máscara dos punhos
+  (cor creme) e reconstruí a borda do escudo e o canto da manga **por espelho**
+  (os dois são simétricos). Escudo 273×360 · 27,0 KB · mascote 242×440 · 32,8 KB
+  = **59,8 KB de 75**. Camisa em `scripts/kits/` (só do post). Conferido sobre
+  roxo e creme.
+- **Manto** `['#0C0D0C', '#E8E5E0']` (preto 74% + branco das listras), 3ª cor
+  dourada `#AD8C56` em `MANTO_TRI` (coroa, "FC", BDG).
+- **Mascote** `brigadegalo_galo` — "O Galo" (⚠️ nome PROVISÓRIO, a arte veio sem
+  nome). Carimba o gol; sem animação própria (cai no `coCarimba`).
+- **Código:** `data.ts` · `escudos.tsx` · `mascotes.tsx` · `apoio.tsx` (ouro +
+  FUNDADOR 62) · `manto.ts` · `batismos.ts` · `checa-batismos.mjs` · `novidades.ts`.
+- **Banco (feito):** `esc_socios` nº40 (escudo_time 'Briga de Galo FC',
+  time_coracao NULL — **falta o Diego dizer o time de coração**) ·
+  `esc_fundadores` 62 · `esc_nomes_batismo` 'briga de galo' (+FC/EC pelo gatilho)
+  · `user_colors` ouro manual.
+- **Post:** `mockup-batismo.mjs` sem `--antigo` (regra 05/09: o Vasco da Grana
+  continua no jogo) e sem `--coracao` (não sabemos).
+- ❓ **Pendente com o Diego:** time de coração · nome da mascote · @ do dono.
+
 ## Home ilustrada V07 — publicação aprovada em 05/09/2026
 Diego autorizou publicar a composição desktop/mobile aprovada. A home usa arte de salão, Oswald local, botões branco/roxo/amarelo e rodapé escuro compacto. `HomeIlustradaDiego` em `screens.tsx`, estilos isolados em `home-ilustrada.css`, assets `home-leilao-v07.webp` e fonte local. Ações de rápida/online/carreira e retomadas preservadas. `HOME_ILUSTRADA_GERAL` em `sport.ts` libera a home para todos. Nenhuma migração nem mudança em regras de jogo. Reversão: reverter este commit ou desativar o gate geral (mantém teste do Diego). Base integrada sobre a main atual, preservando alterações paralelas do Claude.
 

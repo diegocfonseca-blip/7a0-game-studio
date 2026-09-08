@@ -34,6 +34,7 @@ import stoccoEscudoImg from './img/stocco-escudo.webp' // ⚡ Stocco FC (stoccoa
 import finalBossEscudoImg from './img/finalboss-escudo.webp' // 🐂 Final Boss FC (gustavo99828): arte própria do dono, 05/09
 import novaEclipseEscudoImg from './img/novaeclipse-escudo.webp' // 🌑 Nova Eclipse FC (jh9415474): arte própria do dono, 07/09
 import sistematizadosEscudoImg from './img/sistematizados-escudo.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
+import brigaDeGaloEscudoImg from './img/brigadegalo-escudo.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -580,6 +581,12 @@ const stoccoEscudoRender = (size: number) => (
 const sistematizadosEscudoRender = (size: number) => (
   <img src={sistematizadosEscudoImg} height={size} width={Math.round(size * 311 / 360)} alt="Sistematizados FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🐓 Briga de Galo FC — 273x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (pedrovianacarneiroq, 08/09): escudo
+// prata com os dois galos frente a frente, coroa e o BDG na base.
+const brigaDeGaloEscudoRender = (size: number) => (
+  <img src={brigaDeGaloEscudoImg} height={size} width={Math.round(size * 273 / 360)} alt="Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata
 // com coroa e o eclipse.
@@ -816,6 +823,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Sistematizados EC': sistematizadosEscudoRender,
   'Sistematizados SC': sistematizadosEscudoRender,
   'Coliseu United': sistematizadosEscudoRender,
+  // 🐓 Briga de Galo FC (pedrovianacarneiroq) — Série A, no assento que era do
+  // Vasco da Grana (08/09), que DESCEU pra Série D. As 4 formas do nome.
+  // ⚠️ SEM o nome velho aqui de propósito: o Vasco da Grana não foi renomeado, só
+  // mudou de divisão — mapear faria os dois desenharem o mesmo escudo.
+  'Briga de Galo FC': brigaDeGaloEscudoRender,
+  'Briga de Galo': brigaDeGaloEscudoRender,
+  'Briga de Galo EC': brigaDeGaloEscudoRender,
+  'Briga de Galo SC': brigaDeGaloEscudoRender,
   'Corporação Capsule FC': capsuleEscudoRender,
   'Corporação Capsule': capsuleEscudoRender,
   'Corporação Capsule EC': capsuleEscudoRender,
