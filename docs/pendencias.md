@@ -174,7 +174,12 @@ Grana. E Vasco da Grana coloque na série D no lugar de um bot"*.
   e o galo de bico aberto. Na 2ª só o punho direito toca a manga da camisa:
   separei por chroma + máscara do punho (cor creme) e reconstruí o canto da manga
   **por espelho** (a camisa é simétrica). Escudo 280×360 · 29,7 KB · mascote
-  260×440 · 32,3 KB = **62,0 KB de 75**. Camisa em `scripts/kits/` (só do post).
+  272×440 · 33,3 KB = **63,0 KB de 75**. Camisa em `scripts/kits/` (só do post).
+  ⚠️ Erro que o Diego pegou na hora: *"O pé dele saiu cortado do mascote"* — o
+  corte da camisa era por COLUNA (x ≥ 970) e levou junto o pé direito do galo, que
+  fica embaixo da camisa. Consertado limitando o corte à ALTURA da camisa
+  (y ≤ fim dela). Lição: peça que fica abaixo/acima da outra na prancha precisa
+  de corte em x E em y.
   Conferido sobre roxo e creme. (A 1ª prancha, 1080×720 com os punhos na frente
   do escudo E da camisa, foi publicada por ~15 min e substituída.)
 - **Manto** `['#0F0E0E', '#EAE5E1']` (preto 73% + branco das listras), 3ª cor
