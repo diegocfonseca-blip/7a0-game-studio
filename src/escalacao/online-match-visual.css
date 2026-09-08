@@ -1,0 +1,38 @@
+.ll25-score{background:linear-gradient(135deg,rgba(10,28,22,.94),rgba(7,19,15,.87));color:#F4ECD6;border:2px solid #847657;border-radius:18px;overflow:hidden;box-shadow:0 4px 0 #0C0C0C;margin-bottom:14px}
+.ll25-narration{height:36px;line-height:36px;padding:0 10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:700 13px/36px Oswald,sans-serif;background:#0a1911}
+.ll25-narration.ll25-goal{background:#FFC400;color:#0C0C0C}
+.ll25-duel{display:grid;grid-template-columns:minmax(0,1fr) 88px minmax(0,1fr);align-items:center;padding:16px 8px;gap:8px}
+.ll25-team{text-align:center;min-width:0;border-bottom:3px solid;padding-bottom:8px}
+.ll25-team strong{display:block;font:700 15px/1.3 Oswald,sans-serif;overflow-wrap:anywhere;min-height:39px}
+.ll25-team small{display:block;font:700 10px/1.3 Oswald,sans-serif;opacity:.8;overflow-wrap:anywhere}
+.ll25-crest-slot{height:76px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-bottom:6px}
+.ll25-mascot{width:100%;height:76px;display:flex;align-items:center;justify-content:center;animation:ll25-celebrate 1.7s ease both}
+.ll25-mascot>svg,.ll25-mascot>img{max-width:100%;height:74px!important;width:auto!important;object-fit:contain}
+.ll25-numbers{background:#F4ECD6;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:12px;padding:8px 2px 12px;text-align:center;box-shadow:3px 4px 0 #0C0C0C;font-family:Oswald,sans-serif}
+.ll25-numbers small{display:block;font-weight:700;font-size:14px}.ll25-numbers strong{display:block;font-size:32px;line-height:1.5}.ll25-numbers span{font-size:18px}
+.ll25-scorers{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:10px 12px;border-top:1px solid #59624d;height:70px;overflow:auto;font-size:12px}.ll25-scorers p{margin:0 0 3px}
+.ll25-button{background:#fff;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:10px;box-shadow:2px 3px 0 #0C0C0C;min-height:44px;padding:7px 8px;font:700 13px/1.2 Oswald,sans-serif;cursor:pointer}
+.ll25-button[aria-pressed=true]{background:#7C3AED;color:#fff}.ll25-button:focus-visible{outline:3px solid #FFC400;outline-offset:3px}.ll25-button:disabled{opacity:.6;cursor:default}
+.ll25-rhythm{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:6px;margin-bottom:12px}.ll25-rhythm label,.ll25-rhythm select{min-width:0;width:100%;height:44px}.ll25-rhythm select:enabled{background:#FFC400}
+.ll25-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:16px 0}.ll25-tabs button{padding:7px 2px;font-size:12px}
+.ll25-actions{display:flex;gap:8px;margin:12px 0}.ll25-actions button{flex:1}.ll25-actions button:first-child{background:#FFC400}
+.ll25-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.ll25-shell{background-image:linear-gradient(180deg,rgba(4,12,8,.28),rgba(4,12,8,.8)),url('./img/online-estadio-v25.webp');background-size:cover;background-position:center top;background-attachment:fixed}
+.ll25-shell>div.max-w-xl{max-width:1000px}.ll25-shell [hidden]{display:none!important}
+.ll25-cup-heading{min-height:140px;display:flex;flex-direction:column;justify-content:flex-end;background-size:cover!important;background-position:center!important;text-shadow:0 2px 4px #000}
+.ll25-liberta-art{background-image:linear-gradient(0deg,rgba(0,0,0,.86),rgba(0,0,0,.12)),url('./img/online-liberta-v25.webp')!important}
+.ll25-copa8-art{background-image:linear-gradient(0deg,rgba(0,0,0,.86),rgba(0,0,0,.12)),url('./img/online-copa8-v25.webp')!important}
+.ll25-world-art{background-image:linear-gradient(0deg,rgba(0,0,0,.65),transparent),url('./img/online-mundial-v25.webp')!important;background-position:75% center!important}
+.ll25-career{background:#F4ECD6!important}
+.ll25-career :where(button,select){font-family:Oswald,'Arial Narrow',sans-serif}
+.ll25-career-hero{min-height:176px;display:flex;flex-direction:column;justify-content:flex-end;background-size:cover!important;background-position:center!important;text-shadow:0 2px 4px #000}
+.ll25-career-hero>div{position:relative;z-index:2}
+.ll25-career-league{background-image:linear-gradient(0deg,rgba(3,13,9,.94),rgba(3,13,9,.12) 72%),url('./img/online-estadio-v25.webp')!important}
+.ll25-career-copa{background-image:linear-gradient(0deg,rgba(3,13,9,.94),rgba(3,13,9,.08) 72%),url('./img/online-copa8-v25.webp')!important}
+.ll25-career-copa-br{background-image:linear-gradient(0deg,rgba(3,13,9,.94),rgba(3,13,9,.04) 72%),url('./img/carreira-copa-brasil-v25.webp')!important;background-position:68% center!important}
+.ll25-career-super{background-image:linear-gradient(0deg,rgba(3,10,22,.95),rgba(3,10,22,.04) 72%),url('./img/carreira-supercopa-v25.webp')!important;background-position:68% center!important}
+.ll25-control-shell{background:rgba(244,236,214,.94)!important;border-width:3px!important}
+.ll25-control-shell>p{display:none}
+@keyframes ll25-celebrate{0%{opacity:0;transform:translateY(25px) scale(.85)}20%,75%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(10px)}}
+@media(prefers-reduced-motion:reduce){.ll25-mascot{animation:none}}
+@media(min-width:768px){.ll25-duel{padding:24px;grid-template-columns:1fr 130px 1fr}.ll25-team strong{font-size:20px}.ll25-numbers strong{font-size:46px}.ll25-career-hero{min-height:230px}}

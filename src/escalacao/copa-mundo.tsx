@@ -9,6 +9,8 @@
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useOnlinePreview } from './online-preview'
+import { NationalCrest } from './national-crest'
 import { createPortal } from 'react-dom'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { paisDe, rankingSelecoes, type Baralho } from './paises'
@@ -827,6 +829,9 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
 }
 
 export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; online?: { seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+  const previewAccount = useOnlinePreview()
+  const privateVisual = previewAccount
+  const [allGroups, setAllGroups] = useState(false)
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo), [entrants, seed, seasonNo])
@@ -851,7 +856,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   // placar da FINAL aparece na tela — sem depender do clique da cerimônia.
   const finalSeen = step >= GR + 6 && liveDone
   const myIdx = entrants.findIndex(isYouE)
-  const nm = (i: number) => `${flagOf(entrants[i].pais)} ${entrants[i].pais}`
+  const nm = (i: number) => privateVisual ? entrants[i].pais : `${flagOf(entrants[i].pais)} ${entrants[i].pais}`
   const club = (i: number) => entrants[i].club
   const isYou = (i: number) => entrants[i].you
 
@@ -996,6 +1001,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   const live = (h: number, a: number, ev: ScoreGoal[]) => (
     <div style={{ marginBottom: 8 }}>
       <LiveScoreCard homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
+        homeOwner={club(h)} awayOwner={club(a)}
+        homeEmblem={privateVisual ? <NationalCrest country={entrants[h].pais} size={58} /> : undefined}
+        awayEmblem={privateVisual ? <NationalCrest country={entrants[a].pais} size={58} /> : undefined}
         youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={roundMs} finished={liveDone}
         footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} />
     </div>
@@ -1049,9 +1057,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
 
   return (
     <>
-      <div style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
+      <div className={privateVisual ? 'll25-world-art ll25-cup-heading' : undefined} style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5, background: 'radial-gradient(circle at 15% 20%, rgba(255,196,0,.25), transparent 22%), radial-gradient(circle at 85% 75%, rgba(255,196,0,.2), transparent 25%)' }} />
-        <p style={{ position: 'relative', fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
+        {!privateVisual && <p style={{ position: 'relative', fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>}
         <p style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 19, margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: .4, background: 'linear-gradient(180deg,#FFE79A,#FFC400 55%,#B8860B)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Copa do Mundo Legends</p>
         {/* 🙈 no ONLINE esta linha some (Diego 01/09: *"não entendi por que fica
             aparecendo lá em cima, quando começa a Copa, o nome e seleção que eu
@@ -1078,7 +1086,11 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
               ficou ruim de ver"*). O placar ao vivo é sempre do SEU jogo, então a
               tabela dele tem que estar logo embaixo, não a três grupos de
               distância. A letra do grupo continua a de verdade (A/B/C/D). */}
-          {world.groups.map((g, gi) => ({ g, gi })).sort((x, y) =>
+          {privateVisual && <nav className="ll25-rhythm" aria-label="Grupos do Mundial">
+            {myIdx >= 0 && <button className="ll25-button" aria-pressed={!allGroups} onClick={() => setAllGroups(false)}>MEU GRUPO</button>}
+            <button className="ll25-button" aria-pressed={allGroups || myIdx < 0} onClick={() => setAllGroups(true)}>TODOS OS GRUPOS</button>
+          </nav>}
+          {world.groups.map((g, gi) => ({ g, gi })).filter(({g}) => !privateVisual || allGroups || myIdx < 0 || g.teams.includes(myIdx)).sort((x, y) =>
             (y.g.teams.includes(myIdx) ? 1 : 0) - (x.g.teams.includes(myIdx) ? 1 : 0)
           ).map(({ g, gi }) => (
             <div key={gi} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
@@ -1086,7 +1098,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
               {groupTable(g, shownRounds).map((r, i) => (
                 <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? 'rgba(255,196,0,.18)' : i < 2 ? 'rgba(255,255,255,.06)' : 'transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
                   <span style={{ width: 12, color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
-                  <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />
+                  {privateVisual ? <NationalCrest country={entrants[r.t].pais} size={24} /> : <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />}
                   <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {club(r.t)}</span></span>
                   <span style={{ fontWeight: 900, color: '#fff' }}>{r.pts}pt</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.w}V</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
                 </div>

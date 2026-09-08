@@ -28,6 +28,8 @@ import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estant
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
+import { useOnlinePreview } from './online-preview'
+import { OnlineRhythm, OnlineMatchTabs, type OnlineMatchTab } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, useSalao, getSport, escadaLiberada, type Sport } from './sport'
@@ -1029,6 +1031,7 @@ function HoldButton({ onStep, disabled = false, className = '', style, children 
 }
 
 export function Shell({ children, bar, hideExit = false, className = '' }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string }) {
+  const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
@@ -1066,7 +1069,7 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
   const isReserveAuction = !!bar && state.reserveAuction
   const reserveLabel = state.seasonNo === 1 ? '🔁 Leilão de Reservas' : '🔁 Leilão de Transferências'
   return (
-    <div className={`min-h-screen pb-16 palco ${className}`} style={{ backgroundColor: CREAM, color: INK }}>
+    <div className={`min-h-screen pb-16 palco ${className} ${previewAccount && state.sport !== 'basquete' && ['season', 'liberta'].includes(state.screen) ? 'll25-shell' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
         <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : '#fff', color: INK }}>
           {isReserveAuction && (
@@ -4897,8 +4900,17 @@ export function QuickManualLock() {
   )
 }
 export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada', lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+  const previewAccount = useOnlinePreview()
+  const { state, dispatch } = useEsc()
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
+  if (previewAccount && state.sport !== 'basquete') return <>
+    <OnlineRhythm manual={manual} onToggle={onToggle} speed={state.simSpeed ?? 1} onSpeed={speed => dispatch({ type: 'SET_SIM_SPEED', speed })} />
+    {manual && <div className="ll25-actions">
+      <button className="ll25-button" onClick={onNext} disabled={!canNext}>{nextLabel}</button>
+      {onSkip && <button className="ll25-button" onClick={onSkip}>PULAR</button>}
+    </div>}
+  </>
   // 🎮 MANUAL com PULAR: "Próxima rodada" GRANDE à esquerda (espera a partida
   // acabar, como sempre); à direita, "⏭️ Pular" em cima (vai direto pro resultado,
   // sem esperar) e "🔁 Modo auto" embaixo. Fino e sutil. Só aparece no manual.
@@ -4942,6 +4954,9 @@ export const SPEED_OPTS: { v: number; label: string }[] = [
   { v: 4, label: '⚡ 4×' },
 ]
 export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: number) => void }) {
+  const previewAccount = useOnlinePreview()
+  const { state } = useEsc()
+  if (previewAccount && state.sport !== 'basquete') return null
   const cur = speed > 0 ? speed : 1
   return (
     <div style={{ marginBottom: 10 }}>
@@ -4964,6 +4979,9 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 
 export function EscSeason() {
   const { state, dispatch } = useEsc()
+  const previewAccount = useOnlinePreview()
+  const privateVisual = previewAccount && state.sport !== 'basquete'
+  const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
   const [seasonLang] = useLang()
   const bbS = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
   // 🌎 sala de LIBERTADORES: o mata-mata roda no mesmo motor da Copa dos 8, mas
@@ -5230,6 +5248,7 @@ export function EscSeason() {
           {copaLive && qc ? `${libS ? '🌎 LIBERTA' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'}`} · ${qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
+          if (privateVisual && copaLive && qc) return qc.phase === 'final' ? 'JOGO ÚNICO' : qc.legIdx === 0 ? 'IDA' : 'VOLTA'
           const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
           const pos = disp.findIndex(t => t.id === you.id) + 1
           return `${pos}º · ${disp[pos - 1]?.pts ?? 0} pts`
@@ -5343,7 +5362,7 @@ export function EscSeason() {
         return (
           <>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
-            <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
+            <Box bg={copaHolo} className={`p-3 text-center ${privateVisual ? `ll25-cup-heading ${libS ? 'll25-liberta-art' : 'll25-copa8-art'}` : ''}`} shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
               <ApoioSheen holo={1} dur={3.2} />
               <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{libS ? '🌎 LIBERTADORES' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA DOS 8'}`} · {phaseLabel.toUpperCase()}</p>
               <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.8)', zIndex: 2 }}>{legLabel}</p>
@@ -5482,6 +5501,8 @@ export function EscSeason() {
           onSkip={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : '⏳ Deixa o jogo/pênaltis acabar…') : firstLegPending ? (libS ? '🌎 Iniciar as oitavas' : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : '🏆 Iniciar a Copa dos 8') : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : '▶️ Começar a próxima fase') : (libS ? '🌎 Próximo jogo da Libertadores' : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : '⚽ Próximo jogo da Copa')} />
       )}
+      {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+      <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5">
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: myGoals === oppGoals ? INK : '#fff' }}>
@@ -5561,6 +5582,7 @@ export function EscSeason() {
         return <GiroDaRodada news={shownNews} isCopa={copaLive} />
       })()}
 
+      </div>
       {state.careerOnline && (
         <button onClick={() => setShowPyramid(true)}
           className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
@@ -5571,10 +5593,15 @@ export function EscSeason() {
       {/* 🚫 ANTI-SPOILER: a artilharia da Copa soma os gols da perna JÁ no sim; se
           aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
           gol animar. Só mostra depois do apito. */}
-      {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
-      <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
-      <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" hold={!resultRevealed} />
-      <TopAssistsBox highlight={you.id} />
+      <div hidden={privateVisual && visualTab !== 'tabela'}>
+        <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
+      </div>
+      <div hidden={privateVisual && visualTab !== 'estatisticas'} className="space-y-5">
+        {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
+        <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" hold={!resultRevealed} />
+        {(!privateVisual || resultRevealed) ? <TopAssistsBox highlight={you.id} /> : <Box className="p-4">Assistências disponíveis após o apito final.</Box>}
+      </div>
+      <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
       <YourPitch small />
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
           times da sala, um embaixo do outro — não só o seu. Sem spoiler: o leilão
@@ -5583,6 +5610,7 @@ export function EscSeason() {
       {online && !state.careerOnline && state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0).map(mm => (
         <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} manto={mm.isHuman ? mantosSala[mm.id] ?? null : null} />
       ))}
+      </div>
       {state.careerDivision && <RivalTracker />}
       {/* 🏆 A LIGA NUM LUGAR SÓ — aparece assim que o PREGÃO ACABA, que é
           exatamente esta tela (a simulação dos jogos). Pedido do Diego 23/08:
@@ -6226,6 +6254,9 @@ const GRUPO_LETRA = 'ABCDEFGH'
 
 export function EscLiberta() {
   const { state, dispatch } = useEsc()
+  const previewAccount = useOnlinePreview()
+  const privateVisual = previewAccount && state.sport !== 'basquete'
+  const [groupView, setGroupView] = useState<'meu' | 'todos'>('meu')
   const you = state.managers[state.youIdx]
   const lb = state.liberta
   const online = state.onlineMode === 'online'
@@ -6292,12 +6323,14 @@ export function EscLiberta() {
         <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>
           Grupo {GRUPO_LETRA[g]}{destaque ? ' · o seu' : ''}
         </p>
+        {privateVisual && <div className="flex justify-end gap-3 text-[10px] font-bold"><span>SG</span><span>PTS</span></div>}
         {cl.map((t, i) => (
           <div key={t.id} className="flex items-center gap-1.5 text-[10.5px] font-bold py-0.5"
             style={{ opacity: acabou && i > 1 ? .45 : 1 }}>
             {/* 🟢 os 2 primeiros passam — marca visual constante, sem precisar contar */}
             <span className="flex-none w-3.5 h-3.5 rounded-[4px] text-[8px] font-black flex items-center justify-center"
               style={{ background: i < 2 ? GREEN : 'rgba(0,0,0,.12)', color: i < 2 ? '#fff' : 'rgba(0,0,0,.5)' }}>{i + 1}</span>
+            {privateVisual && <Escudo nome={t.name} size={22} />}
             <span className="min-w-0 flex-1 truncate" style={{ fontWeight: t.id === you.id ? 900 : 700 }}>{t.name}{tag(t.id)}</span>
             <span className="flex-none tabular-nums text-black/45">{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
             <span className="flex-none tabular-nums font-black w-5 text-right">{t.pts}</span>
@@ -6320,7 +6353,7 @@ export function EscLiberta() {
         )}
       </div>
     }>
-      <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
+      <Box bg={NOITE_HOLO} className={`p-3 text-center ${privateVisual ? 'll25-cup-heading ll25-liberta-art' : ''}`} shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
         <ApoioSheen holo={1} dur={3.2} />
         <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>🌎 LIBERTADORES · FASE DE GRUPOS</p>
         <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.82)', zIndex: 2 }}>
@@ -6374,8 +6407,13 @@ export function EscLiberta() {
       )}
 
       {/* 📊 os 8 grupos — o SEU primeiro, pra não ter que caçar na tela */}
+      {privateVisual && <nav className="ll25-rhythm" aria-label="Grupos da Libertadores">
+        {meuGrupo >= 0 && <button className="ll25-button" aria-pressed={groupView === 'meu'} onClick={() => setGroupView('meu')}>MEU GRUPO</button>}
+        <button className="ll25-button" aria-pressed={groupView === 'todos' || meuGrupo < 0} onClick={() => setGroupView('todos')}>TODOS OS GRUPOS</button>
+      </nav>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 8 }}>
         {[...Array(8).keys()]
+          .filter(g => !privateVisual || groupView === 'todos' || meuGrupo < 0 || g === meuGrupo)
           .sort((a, b) => (a === meuGrupo ? -1 : b === meuGrupo ? 1 : a - b))
           .map(g => tabelaGrupo(g, g === meuGrupo))}
       </div>

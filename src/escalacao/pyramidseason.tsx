@@ -8,6 +8,8 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useOnlinePreview } from './online-preview'
+import { OnlineScorePresentation } from './online-match-visual'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
@@ -2365,12 +2367,14 @@ function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 
   )
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint }:
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
-  footTint?: { bg: string; border: string; holo?: number } }) {
+  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode }) {
+  const privatePreview = useOnlinePreview()
+  const cinematic = privatePreview && !basket
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
@@ -2551,6 +2555,14 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // travado pelo relógio (min <= relógio) — mesma trava anti-spoiler de
   // sempre, nunca revela um gol antes da hora.
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
+  if (cinematic) return <OnlineScorePresentation
+    homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
+    homeCrest={homeEmblem ?? <Escudo nome={homeName} size={58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={58} />}
+    homeOwner={homeOwner} awayOwner={awayOwner}
+    youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={shown}
+    goalSide={golSide} mascot={carimboArt} eventKey={goalSeed}
+    stamp={`${goalStamp}${last ? ` ${last.name} ${last.min}′` : ''}`}
+    narration={ritualTxt ?? (done ? 'FIM DE JOGO' : '🟢 BOLA ROLANDO')} />
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
@@ -5396,6 +5408,10 @@ function SeloSuaVez({ texto }: { texto: string }) {
 
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
+  const privatePreview = useOnlinePreview()
+  // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
+  // a autoridade do host continuam passando pelos mesmos caminhos abaixo.
+  const privateCareer = privatePreview && state.sport !== 'basquete'
   // 🟢 liga o "contexto verde" da carreira OFFLINE (feehcamp etc. veem verde SÓ aqui;
   // ouro em todo o resto). Inline (roda antes dos filhos, sem flash) + limpa ao sair.
   setCareerColorCtx(state.careerOnline && state.onlineMode !== 'online' ? 'offline' : null)
@@ -6397,7 +6413,7 @@ export function PyramidSeasonScreen() {
   // junto com o conteúdo, que é como era antes da mudança.
   const grudaOk = subGrudadas && !sagrado
   return (
-    <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK }}>
+    <div className={`palco tela-cheia${privateCareer ? ' ll25-career' : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
@@ -6425,8 +6441,9 @@ export function PyramidSeasonScreen() {
           const bg = !copaPlaying ? INK : supercopaFase ? SUPERCOPA_HOLO : copaBrOk ? COPA_BR_HOLO : `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)`
           const label = supercopaFase ? '🏆🔵 Supercopa Legends' : copaBrOk ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
           const sub = supercopaFase ? 'Campeão da Liga × Campeão da Copa do Brasil' : copaBrOk ? '100 clubes · mata-mata puro, sem grupos' : 'Os 4 melhores de cada série (A·B·C·D) no mata-mata'
+          const artClass = !privateCareer ? '' : !copaPlaying ? ' ll25-career-league' : supercopaFase ? ' ll25-career-super' : copaBrOk ? ' ll25-career-copa-br' : ' ll25-career-copa'
           return (
-        <div style={{ ...box(bg), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
+        <div className={privateCareer ? `ll25-career-hero${artClass}` : undefined} style={{ ...box(bg), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           {copaPlaying && <CopaLegSheen />}
           <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, position: 'relative', zIndex: 2 }}>
             <div style={{ minWidth: 0 }}>
@@ -6776,7 +6793,7 @@ export function PyramidSeasonScreen() {
           // fundo envolvendo"): velocidade + próxima rodada/pular/modo auto agora
           // vivem DENTRO de um cartão só, separado visualmente da navegação de abas
           // logo abaixo (antes ficavam soltos, coladas uma coisa na outra).
-          <div style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
+          <div className={privateCareer ? 'll25-control-shell' : undefined} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>🎮 Controle da partida</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
@@ -6817,7 +6834,7 @@ export function PyramidSeasonScreen() {
             sozinha (só aparece o botão de ativar o manual). */}
         {copaPlaying && state.isHost && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
-          <div style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
+          <div className={privateCareer ? 'll25-control-shell' : undefined} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>🎮 Controle da partida</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}

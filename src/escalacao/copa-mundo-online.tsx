@@ -33,6 +33,9 @@
 // coisa da CARREIRA — foi bug em 17/08 a Copa vazar pra lá, e não vai voltar.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useOnlinePreview } from './online-preview'
+import { NationalCrest } from './national-crest'
+import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
 import { rankingSelecoes } from './paises'
 import {
@@ -451,6 +454,7 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
   aoConfirmar: (pais: string) => void
 }) {
   const [marcado, setMarcado] = useState<string | null>(null)
+  const privateVisual = useOnlinePreview()
   const paises = useMemo(paisesDaCopa, [])
   const enviado = useRef(false)
   const marcadoRef = useRef<string | null>(null)
@@ -463,7 +467,8 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
     if (marcadoRef.current) aoConfirmar(marcadoRef.current)
   }, [seg]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <div style={{ ...box('#fff'), padding: '10px 11px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
+    <div style={{ ...box(privateVisual ? '#F4ECD6' : '#fff'), padding: '10px 11px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
+      {privateVisual && <div className="ll25-world-art ll25-cup-heading" style={{borderRadius:10,marginBottom:12,minHeight:200}}><h2 style={{...OSWALD,color:'#F4ECD6',fontSize:24,padding:12}}>QUEM VOCÊ VAI REPRESENTAR?</h2></div>}
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌐 É a sua vez — escolha a seleção</p>
       <Relogio seg={seg} total={SEG_BANDEIRA} />
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 0 7px', textAlign: 'center', lineHeight: 1.35 }}>
@@ -478,7 +483,7 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
               style={{ textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '6px 8px',
                 background: dono ? '#ded5bd' : eu ? GOLD : '#fff', opacity: dono ? .6 : 1,
                 cursor: dono ? 'default' : 'pointer', boxShadow: dono ? 'none' : `2px 2px 0 0 ${INK}` }}>
-              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, display: 'block' }}>{flagOf(p)} {p}</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, display: 'block' }}>{privateVisual ? <NationalCrest country={p} size={36} /> : flagOf(p)} {p}</span>
               <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{dono ? `de ${dono}` : eu ? '✔️ marcada' : 'livre'}</span>
             </button>
           )
