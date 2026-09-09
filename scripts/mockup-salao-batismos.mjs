@@ -49,7 +49,6 @@ const SERIE_A = [
   [null, 'Xurupitas FC', 13],
   [null, 'Nightfull FC', 18],
   ['toka10', 'Tôka10', 23],
-  ['skyy', 'Skyy FC', 24],
   ['leao-estradinha', 'Leão da Estradinha', 28],
   [null, 'Barcenite FC', 31],
   ['manfre', 'Manfré FC', 34],
@@ -63,6 +62,7 @@ const SERIE_A = [
   ['vidraceiro', 'Vidraceiro FC', 58],
   ['bagres', 'Bagres 1993', 59],
   ['brigadegalo', 'Briga de Galo FC', 62],
+  [null, 'Fala D10', 64],
 ]
 
 // ── 🏟️ VÁRZEA (B + C + D + sócios, TUDO JUNTO, sem letra), por nº de fundador ─
@@ -70,6 +70,7 @@ const VARZEA = [
   [null, 'White Thigs do GuGu', 'primeiro'], // 🥋 1º batismo da história, dono desconhecido — sem nº
   [null, 'Vasco da Grana', 'batismo'], // pedido do Diego (03/08), sem dono — sem nº; desceu pra Série D em 08/09
   [null, 'Murriz FC', 21],
+  ['skyy', 'Skyy FC', 24], // desceu pra Série D em 09/09 (abriu o assento do Fala D10)
   [null, 'Marreco FC', 29],
   [null, 'Alfacehh', 30],
   [null, 'Remoçada', 35],
