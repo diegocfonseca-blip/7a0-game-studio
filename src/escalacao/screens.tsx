@@ -5757,7 +5757,13 @@ export function EscSeason() {
       <div hidden={privateVisual && visualTab !== 'estatisticas'} className="space-y-5">
         {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
         <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" hold={!resultRevealed} />
-        {(!privateVisual || (copaLive ? copaMin >= 93 && copaAdvReady : resultRevealed)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">Assistências disponíveis após o apito final.</Box>}
+        {/* 🐛 08/09 (Diego: *"fica aparecendo 'disponíveis após o apito' e não mostra
+            nada, sendo que artilheiro lotado"*): na LIGA o quadro ficava preso a
+            `resultRevealed`, que no online AUTOMÁTICO é falso ~85% de cada rodada —
+            e as rodadas emendam, então os garçons quase nunca apareciam. A liga volta
+            ao que sempre valeu (quadro sempre visível); a Copa mantém a trava do
+            relógio (93'), que fecha de verdade no apito. */}
+        {(!privateVisual || !copaLive || (copaMin >= 93 && copaAdvReady)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">Assistências disponíveis após o apito final.</Box>}
       </div>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
       <YourPitch small />
