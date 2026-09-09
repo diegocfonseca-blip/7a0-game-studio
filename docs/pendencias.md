@@ -251,6 +251,30 @@ modo mundo, o state pequeno) e o `careeronline.tsx` (esse usa o state inteiro).
 ⚠️ Aumentar a máquina **NÃO resolve** isto: Realtime e Egress são cobrados por
 uso, não por tamanho de servidor.
 
+## 🟢 XURUPITAS FC: ARTE NOVA DO DONO (09/09) — ✅ no ar
+Pedido do Diego: *"atualize agora o time Xurupitas FC do Denis"*
+(`denilson.stifler10@gmail.com`, batismo de agosto, sócio nº14, fundador nº13,
+coração Palmeiras). Prancha em verde neon com escudo + mascote + camisa — e a
+arte é VERDE (a gosma) em fundo VERDE.
+- **Recorte com chave apertada, medida na própria prancha**: fundo com
+  `g-max(r,b)` ≥ 144 (p1 = 173); a arte fica ≤ 120 em 99,9% dos pixels. Rampa suave
+  entre 125 e 145. As três peças se ENCOSTAVAM em x (escudo até 583, mascote de 541,
+  camisa de 1107), então o corte foi por COMPONENTE (cada peça é um bloco separado),
+  e os respingos soltos de gosma foram pra mascote. Conferido sobre creme: nada
+  comido — vale como receita pra próxima prancha verde-em-verde.
+- **Arte**: escudo 248x360 **29,9 KB** · mascote 334x440 **43,9 KB** → 73,8 de 75.
+  O escudo do PORCO em SVG à mão (10/08) saiu do `escudos.tsx`. Camisa em
+  `scripts/kits/xurupitas-camisa.webp`.
+- **Mascote** `xurupitas_gosma` = **"O Xurupita"** (⚠️ PROVISÓRIO, a arte veio sem
+  nome). A chave velha `porco` ficou como APELIDO da mesma arte.
+- **Manto** `['#063215', '#F8EACF']` + verde-gosma `#819954` em `MANTO_TRI`,
+  medidos na camisa.
+- **Banco**: `esc_socios` nº14 atualizado (manto, `mascote_key`); a forma pura
+  `xurupitas` e `xurupitas ec` entraram em `esc_nomes_batismo` (só existia
+  `xurupitas fc`, além dos nomes velhos Tokyo City Esperion).
+- Post em modo `--renovacao` mandado pro Diego.
+- ❓ Pendente: nome da mascote · @ do Denis.
+
 ## 🐛 BICHO DA SEDA: ARTE NOVA DO DONO (09/09) — ✅ no ar
 Pedido do Diego: *"atualize a arte do time Bicho da Seda do usuário Davi no e-mail
 dele"* (`davisantana1312@gmail.com`, batismo de agosto, sócio nº5, fundador nº11,
