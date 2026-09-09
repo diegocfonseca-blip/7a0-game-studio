@@ -234,8 +234,10 @@ pelo Skyy FC. Mas não remova o Skyy FC. Troque o Skyy FC por um time da série 
 - **Banco (feito):** `esc_socios` nº42 (escudo_time 'Fala D10', time_coracao
   'Corinthians', manto e mascote_key preenchidos) · `esc_fundadores` 64 ·
   `esc_nomes_batismo` 'fala d10' (+FC/EC pelo gatilho) · `user_colors` ouro manual.
-- **Post:** com `--coracao Corinthians`, sem `--antigo` (o Skyy continua no jogo).
-- ❓ **Pendente com o Diego:** nome da mascote · @ do dono.
+- **Post:** com `--coracao Corinthians`, `--insta @falad10` (perfil verificado, ~1 mil
+  seguidores, bio *"Eu falo de futebol. O resto é acréscimo."*), sem `--antigo`
+  (o Skyy continua no jogo).
+- ❓ **Pendente com o Diego:** nome da mascote (provisório "O D10").
 
 ## 🔊 BATISMO BONANÇA SSFC (09/09) — Série C, no assento do Torta de Rã
 Dono: `duselecta@gmail.com` (conta de 24/07; o nome de técnico dele JÁ era
