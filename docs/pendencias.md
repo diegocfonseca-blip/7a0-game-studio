@@ -208,6 +208,35 @@ pela colocação (07/09). Recolocados com `git apply -R` só dos 4 hunks (as par
 deles — `careerPresident`, telas privadas — ficaram intactas). Pra quem for
 mexer no `store.tsx` a partir de outro branch: **rebase antes, não copie por cima.**
 
+## 🎙️ BATISMO FALA D10 (09/09) — Série A, no assento do Skyy FC (que desceu pra D)
+Dono: `diegohdsf@gmail.com` (conta de 03/09, nome de técnico "FALA D10").
+Pedido do Diego: *"add esse usuário como Batismo e nome do time é Fala D10. Time
+de coração Corinthians. Preciso por no lugar de um time da série A"* → *"Troque
+pelo Skyy FC. Mas não remova o Skyy FC. Troque o Skyy FC por um time da série D"*.
+- **Assentos:** Fala D10 → Série A (linha que era do Skyy FC); **Skyy FC → Série
+  D**, na vaga do bot "Cosmopolita FC" (só existia em `DIVISION_TEAMS.D`). **Sem
+  OLD_NAME** nos dois (mesma regra do Murriz/Marreco/Vasco da Grana). A Série A
+  não tem mais bot nenhum: os 20 são batismo — todo batismo novo de Série A vai
+  exigir que o Diego escolha quem desce.
+- ⚠️ **Nome duplicado:** existe OUTRA conta com o mesmo nome — `fala.od10@gmail.com`
+  ("FalaD10"). O Diego mandou diegohdsf, e é nesse que estão os mimos. A reserva
+  do nome tranca "fala d10" (+FC/EC); "FalaD10" sem espaço NÃO foi registrado em
+  lugar nenhum (mimo é do e-mail, não da palavra). Se o dono aparecer com a outra
+  conta reclamando, é esse o motivo.
+- **Arte** (prancha 1536×1024, 3 peças separadas, corte direto): escudo 256×360 ·
+  26,8 KB · mascote 238×440 · 32,5 KB = **59,3 KB de 75**. Camisa em `scripts/kits/`.
+- **Manto** `['#0E0C0B', '#DD9C30']` (preto 83% + dourado), sem 3ª cor.
+- **Mascote** `falad10_d10` — "O D10" (⚠️ PROVISÓRIO; é a caricatura do próprio
+  dono com megafone, não inventei nada além do que está na arte).
+- **Código:** `data.ts` (A + D) · `escudos.tsx` · `mascotes.tsx` · `apoio.tsx`
+  (ouro + FUNDADOR 64) · `manto.ts` · `batismos.ts` · `checa-batismos.mjs` ·
+  `novidades.ts` · mockup do Salão (branch).
+- **Banco (feito):** `esc_socios` nº42 (escudo_time 'Fala D10', time_coracao
+  'Corinthians', manto e mascote_key preenchidos) · `esc_fundadores` 64 ·
+  `esc_nomes_batismo` 'fala d10' (+FC/EC pelo gatilho) · `user_colors` ouro manual.
+- **Post:** com `--coracao Corinthians`, sem `--antigo` (o Skyy continua no jogo).
+- ❓ **Pendente com o Diego:** nome da mascote · @ do dono.
+
 ## 🔊 BATISMO BONANÇA SSFC (09/09) — Série C, no assento do Torta de Rã
 Dono: `duselecta@gmail.com` (conta de 24/07; o nome de técnico dele JÁ era
 "Bonança SSFC"). Pedido do Diego: *"faça mais um clube pra mim de batismo. Que

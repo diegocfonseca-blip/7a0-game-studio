@@ -110,6 +110,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'caiohcris@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº59 + SÓCIO nº37 + batismo (Bagres 1993, Série A, no assento que era do White Thigs do GuGu; verde e branco, mascote o Bagre 🐟, 06/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'guiouriques@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº58 + SÓCIO nº36 + batismo (Vidraceiro FC, Série A, no assento que era do Murriz FC; 05/09; escudo, mascote e manto com arte própria do dono). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'gaancaxd@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº61 + SÓCIO nº39 + batismo (Sistematizados FC, Série D, ex-Coliseu United; mascote O Sistematizado 🎮, preto + roxo; 07/09)
+  'diegohdsf@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº64 + SÓCIO nº42 + batismo (Fala D10, Série A, no assento que era do Skyy FC; coração Corinthians; 09/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'duselecta@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº63 + SÓCIO nº41 + batismo (Bonança SSFC, Série C, ex-Torta de Rã; paredão de som 🔊, preto + amarelo com vermelho; 09/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'pedrovianacarneiroq@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº62 + SÓCIO nº40 + batismo (Briga de Galo FC, Série A, no assento que era do Vasco da Grana; mascote o Galo 🐓, preto + branco listrado com dourado; 08/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'jh9415474@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº60 + SÓCIO nº38 + batismo (Nova Eclipse FC, Série C, ex-Zequinha SAF; mascote O Eclipse 🌑, preto + branco; 07/09)
@@ -163,6 +164,7 @@ const FUNDADOR_N: Record<string, number> = {
   'gaancaxd@gmail.com': 61, // 🎮 Sistematizados FC (07/09)
   'pedrovianacarneiroq@gmail.com': 62, // 🐓 Briga de Galo FC (08/09)
   'duselecta@gmail.com': 63, // 🔊 Bonança SSFC (09/09)
+  'diegohdsf@gmail.com': 64, // 🎙️ Fala D10 (09/09)
   'caiohcris@gmail.com': 59, // 🐟 Bagres 1993 (06/09)
   'contatovegetta14@gmail.com': 55, // 🐉 Corporação Capsule FC (03/09)
   'cesar.verissimo27@gmail.com': 3,

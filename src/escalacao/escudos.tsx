@@ -36,6 +36,7 @@ import novaEclipseEscudoImg from './img/novaeclipse-escudo.webp' // 🌑 Nova Ec
 import sistematizadosEscudoImg from './img/sistematizados-escudo.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
 import brigaDeGaloEscudoImg from './img/brigadegalo-escudo.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
+import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -595,6 +596,12 @@ const brigaDeGaloEscudoRender = (size: number) => (
 const bonancaEscudoRender = (size: number) => (
   <img src={bonancaEscudoImg} height={size} width={Math.round(size * 305 / 360)} alt="Bonança SSFC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🎙️ Fala D10 — 256x360 no arquivo, então a largura sai da PROPORÇÃO REAL (nunca
+// width={size} chutado). Arte do dono (diegohdsf, 09/09): escudo preto e dourado
+// com a caricatura do próprio dono, megafone, raios e coroa.
+const falaD10EscudoRender = (size: number) => (
+  <img src={falaD10EscudoImg} height={size} width={Math.round(size * 256 / 360)} alt="Fala D10" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata
 // com coroa e o eclipse.
@@ -850,6 +857,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Bonanca SSFC': bonancaEscudoRender,
   'Torta de Rã': bonancaEscudoRender,
   'Fogaréu EC': bonancaEscudoRender,
+  // 🎙️ Fala D10 (diegohdsf) — Série A, no assento que era do Skyy FC (09/09), que
+  // DESCEU pra Série D. As 4 formas do nome. ⚠️ SEM nome velho: o Skyy só mudou
+  // de divisão. ⚠️ NÃO registrar "FalaD10" (sem espaço): é o nome de OUTRA conta
+  // (fala.od10) — mimo é do e-mail, não da palavra.
+  'Fala D10': falaD10EscudoRender,
+  'Fala D10 FC': falaD10EscudoRender,
+  'Fala D10 EC': falaD10EscudoRender,
+  'Fala D10 SC': falaD10EscudoRender,
   'Corporação Capsule FC': capsuleEscudoRender,
   'Corporação Capsule': capsuleEscudoRender,
   'Corporação Capsule EC': capsuleEscudoRender,

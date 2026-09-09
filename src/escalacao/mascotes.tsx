@@ -27,6 +27,7 @@ import novaEclipseMascoteImg from './img/novaeclipse-mascote.webp' // 🌑 Nova 
 import sistematizadosMascoteImg from './img/sistematizados-mascote.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
 import brigaDeGaloMascoteImg from './img/brigadegalo-mascote.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
+import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -575,6 +576,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   bonanca_selecta: (
     <img src={bonancaMascoteImg} height={176} width={Math.round(176 * 247 / 440)} alt="O Selecta — Bonança SSFC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🎙️ O D10 — Fala D10 (diegohdsf, 09/09). 238x440 no arquivo, então a largura
+  // sai da PROPORÇÃO REAL (nunca width={size} chutado). É a caricatura do próprio
+  // dono, de megafone e camisa 10, com o pé na bola.
+  falad10_d10: (
+    <img src={falaD10MascoteImg} height={176} width={Math.round(176 * 238 / 440)} alt="O D10 — Fala D10" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   brigadegalo_galo: (
     <img src={brigaDeGaloMascoteImg} height={176} width={Math.round(176 * 272 / 440)} alt="O Galo — Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -952,6 +959,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'BONANÇA': 'bonanca_selecta',
   'Torta de Rã': 'bonanca_selecta',
   'Fogaréu EC': 'bonanca_selecta',
+  // 🎙️ Fala D10 — as 4 formas do nome e a CAIXA ALTA (sem nome velho: o Skyy só
+  // mudou de divisão). "FalaD10" sem espaço é de OUTRA conta — não entra.
+  'Fala D10': 'falad10_d10',
+  'Fala D10 FC': 'falad10_d10',
+  'Fala D10 EC': 'falad10_d10',
+  'Fala D10 SC': 'falad10_d10',
+  'FALA D10': 'falad10_d10',
+  'FALA D10 FC': 'falad10_d10',
   'Corporação Capsule FC': 'capsule_dragao',
   'Corporação Capsule': 'capsule_dragao',
   'Corporação Capsule EC': 'capsule_dragao',
@@ -1011,6 +1026,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   stocco_lobo: 'O Relâmpago', // ⚡🐺 Stocco FC (stoccoassessoria, 04/09) — tirado do "OS RELÂMPAGOS" que o dono pôs na manga da camisa
   bagres_bagre: 'O Bagre', // 🐟 Bagres 1993 (caiohcris, 06/09) — o bagre de boné do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   vidraceiro_vidro: 'O Cristal', // 🪟 Vidraceiro FC (guiouriques, 05/09) — a chapa de vidro do escudo. ✅ nome CONFIRMADO pelo Diego ("mascote tudo bem ser Cristal", 05/09)
+  falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   sistematizados_streamer: 'O Sistematizado', // 🎮 Sistematizados FC (gaancaxd, 07/09) — a caricatura do streamer, com headset e controle. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
