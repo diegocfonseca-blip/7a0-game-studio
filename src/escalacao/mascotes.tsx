@@ -31,6 +31,7 @@ import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (
 import soDeusSabeMascoteImg from './img/sodeussabe-mascote.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
 import bagresWallStMascoteImg from './img/bagreswallst-mascote.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaMascoteImg from './img/bichodaseda-mascote.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09
+import xurupitasMascoteImg from './img/xurupitas-mascote.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -436,41 +437,17 @@ export const MASCOTES: Record<string, ReactNode> = {
             <path d="M78.0 140.0 L78.0 124.2 L90.8 134.7 L100.0 118.0 L109.2 134.7 L122.0 124.2 L122.0 140.0 Z" fill="#FFC400" stroke="#0C0C0C" strokeWidth="3.1" strokeLinejoin="round"/><rect x="78.0" y="140.0" width="44.0" height="7.5" rx="2.6" fill="#FFC400" stroke="#0C0C0C" strokeWidth="3.1"/><circle cx="100.0" cy="126.4" r="4.0" fill="#E5271C" stroke="#0C0C0C" strokeWidth="1.6"/><circle cx="78.0" cy="124.2" r="2.6" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="1.4"/><circle cx="122.0" cy="124.2" r="2.6" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="1.4"/>
     </svg>
   ),
-  // 🐷 o PORCÃO (Xurupitas FC — denilson.stifler10, aprovado 10/08 v5): porco
-  // forte verde/branco (Palmeiras), presas pra cima, punhos fechados. No FESTÃO
-  // atravessa a tela fuçando o gramado, roncando e chutando barro pra torcida.
+  // 🟢 O Xurupita — Xurupitas FC (denilson.stifler10/Denis). 09/09: arte NOVA do
+  // dono, 334x440 no arquivo (a gosma verde de camisa e chuteira, braços cruzados,
+  // pé na bola, pingando), então a largura sai da PROPORÇÃO REAL. Substituiu o
+  // porco em SVG de 10/08.
+  xurupitas_gosma: (
+    <img src={xurupitasMascoteImg} height={176} width={Math.round(176 * 334 / 440)} alt="O Xurupita — Xurupitas FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🧷 `porco` era a chave antiga (10/08) e pode estar num save/na linha do sócio
+  // ainda não atualizada: aponta pra MESMA arte nova, nunca pra um buraco.
   porco: (
-    <svg width="160" height="200" viewBox="0 0 150 182">
-      <g transform="translate(0,4)">
-        <ellipse cx="75" cy="170" rx="52" ry="10" fill="rgba(0,0,0,.15)" />
-        <path d="M58 134 l-3 22 M92 134 l3 22" stroke="#2E9E5B" strokeWidth="17" strokeLinecap="round" />
-        <path d="M44 152 q-5 9 5 14 l20 -1 -1 -14 Z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M83 151 l-1 14 20 1 q9 -5 5 -14 Z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M42 112 H108 L110 140 88 135 86 140 64 140 62 135 40 140 Z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M34 76 Q14 96 22 122 L44 112" fill="#2E9E5B" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-        <circle cx="24" cy="124" r="14" fill="#2E9E5B" stroke={INK} strokeWidth="5" />
-        <path d="M116 76 Q136 96 128 122 L106 112" fill="#2E9E5B" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-        <circle cx="126" cy="124" r="14" fill="#2E9E5B" stroke={INK} strokeWidth="5" />
-        <path d="M38 72 Q75 64 112 72 L108 116 42 116 Z" fill="#0B4D2C" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-        <path d="M64 70 86 70 83 82 75 87 67 82 Z" fill="#1E7A45" stroke={INK} strokeWidth="3" />
-        <g transform="translate(28,6) scale(0.46)">
-          <path d="M56 76 Q42 40 58 36 Q74 42 82 74 Z" fill="#2E9E5B" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          <path d="M144 76 Q158 40 142 36 Q126 42 118 74 Z" fill="#2E9E5B" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          <path d="M100 44 Q93 60 100 74 Q107 60 100 44 Z" fill="#2E9E5B" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-          <path d="M56 90 Q56 62 100 60 Q144 62 144 90 L144 122 Q144 156 100 162 Q56 156 56 122 Z" fill="#2E9E5B" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          <path d="M66 96 L96 108 M134 96 L104 108" stroke={INK} strokeWidth="10" strokeLinecap="round" />
-          <path d="M72 110 Q84 105 96 112 Q86 124 74 119 Z" fill="#fff" stroke={INK} strokeWidth="4" />
-          <path d="M128 110 Q116 105 104 112 Q114 124 126 119 Z" fill="#fff" stroke={INK} strokeWidth="4" />
-          <circle cx="86" cy="114" r="5.5" fill={INK} /><circle cx="114" cy="114" r="5.5" fill={INK} />
-          <ellipse cx="100" cy="136" rx="28" ry="19" fill="#1E7A45" stroke={INK} strokeWidth="7" />
-          <ellipse cx="90" cy="136" rx="4.5" ry="7" fill={INK} /><ellipse cx="110" cy="136" rx="4.5" ry="7" fill={INK} />
-          <path d="M76 150 Q60 142 62 118 Q72 138 86 148 Z" fill="#fff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-          <path d="M124 150 Q140 142 138 118 Q128 138 114 148 Z" fill="#fff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-          <path d="M88 154 l0 8 M100 156 l0 8 M112 154 l0 8" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
-          <path d="M86 152 Q100 159 114 152" stroke={INK} strokeWidth="5" fill="none" strokeLinecap="round" />
-        </g>
-      </g>
-    </svg>
+    <img src={xurupitasMascoteImg} height={176} width={Math.round(176 * 334 / 440)} alt="O Xurupita — Xurupitas FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🧢 o MENINO DA TOUCA (Tôka10 — ofc.toka10, aprovado 10/08): arte própria do
   // dono em imagem (webp 15 KB, exceção aprovada — ver nota em escudos.tsx).
@@ -857,7 +834,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'SC Ferrari': 'piloto_bola',
   'Barcenite FC': 'gatao_bfc',
   'La Bestia Negra': 'raposa',
-  'Xurupitas FC': 'porco',
+  'Xurupitas FC': 'xurupitas_gosma',
+  'Xurupitas': 'xurupitas_gosma',
+  'Xurupitas EC': 'xurupitas_gosma',
+  'XURUPITAS FC': 'xurupitas_gosma',
+  'XURUPITAS': 'xurupitas_gosma',
   'Marinheiros AS': 'porco_marinheiro',
   'Scorporila FC': 'scorporila',
   'Deportivo Montreal': 'maite',
@@ -1052,6 +1033,8 @@ export const MASCOTE_NOME: Record<string, string> = {
   sodeussabe_anjo: 'O Anjo', // 🙏 Só Deus Sabe FC (09/09) — o anjo de joelhos no gramado, chorando pro céu. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   bagreswallst_bagre: 'O Bagre Investidor', // 🐟📉 Bagres de Wall Street FC (09/09) — o bagre de terno, coroa e charuto sentado no caixote. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   bichodaseda_bicho: 'O Bicho da Seda', // 🐛 Bicho da Seda (09/09) — o bicho de óculos escuros, braços cruzados e pé na bola. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
+  xurupitas_gosma: 'O Xurupita', // 🟢 Xurupitas FC (09/09) — a gosma verde de sorriso maroto e pé na bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
+  porco: 'O Xurupita', // 🧷 chave antiga (10/08) — mesma mascote
   mariposa: 'O Bicho da Seda', // 🧷 chave antiga (10/08) — mesma mascote
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono

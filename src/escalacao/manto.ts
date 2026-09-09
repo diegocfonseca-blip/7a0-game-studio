@@ -24,6 +24,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'contateste577660006@gmail.com': ['#12100F', '#D19B36'], // 🙏 Só Deus Sabe FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 74% do manto, e dos dourados das listras/gola, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as nuvens da barra e os filetes das mangas
   'iago.cortellini@gmail.com': ['#100E0D', '#EAAD3D'], // 🐟📉 Bagres de Wall Street FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 84% do manto, e dos dourados do nome/gola/punhos, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as listras do ombro e o "DE WALL STREET"
   'davisantana1312@gmail.com': ['#0F0F0F', '#E6DED4'], // 🐛 Bicho da Seda — preto e branco-creme, MEDIDOS na camisa que o dono mandou em 09/09 (listras verticais; mediana dos pretos, 54% do manto, e dos claros, 30%). Os FIOS de seda são a 3ª cor (MANTO_TRI)
+  'denilson.stifler10@gmail.com': ['#063215', '#F8EACF'], // 🟢 Xurupitas FC — verde-escuro e creme, MEDIDOS na camisa que o dono mandou em 09/09 (mediana dos verdes escuros, 78% do manto, e do creme da gola/nome/listras). A GOSMA verde-clara é a 3ª cor (MANTO_TRI)
   'diegohdsf@gmail.com': ['#0E0C0B', '#DD9C30'], // 🎙️ Fala D10 — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 83% do manto, e dos dourados das listras/coroa, 09/09). Sem 3ª cor: o branco do "FALA" é só 1% da camisa
   'duselecta@gmail.com': ['#101210', '#F1C02C'], // 🔊 Bonança SSFC — preto e amarelo, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 80% do manto, e dos amarelos das listras rasta, 09/09). O VERMELHO é a 3ª cor (MANTO_TRI); o verde da bandeira fica no escudo
   'pedrovianacarneiroq@gmail.com': ['#0F0E0E', '#EAE5E1'], // 🐓 Briga de Galo FC — preto e branco, MEDIDOS na camisa que o dono mandou (2ª prancha; mediana dos pretos, 73% do manto, e dos brancos das listras, 08/09). O DOURADO é a 3ª cor (MANTO_TRI): coroa, "FC" e o BDG do peito
@@ -150,6 +151,7 @@ const MANTO_TRI: Record<string, string> = {
   sodeussabe_anjo: '#F8F4EB', // 🙏 Só Deus Sabe FC — 3ª cor BRANCA: as nuvens da barra e os filetes das mangas (medida na arte dele, 09/09)
   bagreswallst_bagre: '#F8F5EB', // 🐟📉 Bagres de Wall Street FC — 3ª cor BRANCA: as listras do ombro e o "DE WALL STREET" no peito (medida na arte dele, 09/09)
   bichodaseda_bicho: '#DDCEBF', // 🐛 Bicho da Seda — 3ª cor CREME dos fios de seda que cruzam a camisa (medida na arte dele, 09/09)
+  xurupitas_gosma: '#819954', // 🟢 Xurupitas FC — 3ª cor VERDE-GOSMA que escorre pela camisa (medida na arte dele, 09/09)
   bonanca_selecta: '#B51516', // 🔊 Bonança SSFC (duselecta) — 3ª cor VERMELHA: a listra rasta da camisa, medida na arte dele (09/09)
   brigadegalo_galo: '#A38758', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)

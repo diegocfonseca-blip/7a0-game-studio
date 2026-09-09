@@ -40,6 +40,7 @@ import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (di
 import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
 import bagresWallStEscudoImg from './img/bagreswallst-escudo.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09 (substitui o SVG desenhado a mao de 10/08)
+import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -624,6 +625,15 @@ const bagresWallStEscudoRender = (size: number) => (
 // casulo, preto e branco-creme. Substituiu o escudo em SVG desenhado a mao (10/08).
 const bichoDaSedaEscudoRender = (size: number) => (
   <img src={bichoDaSedaEscudoImg} height={size} width={Math.round(size * 325 / 360)} alt="Bicho da Seda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🟢 Xurupitas FC — 248x360 no arquivo, entao a largura sai da PROPORCAO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (denilson.stifler10/Denis,
+// 09/09): a gosma verde de sorriso maroto, bracos cruzados, escudo verde-escuro
+// com creme e a gota. Substituiu o escudo do porco em SVG desenhado a mao (10/08).
+// ⚠️ A prancha era VERDE em fundo VERDE: o recorte usou chave apertada (fundo tem
+// g-max(r,b) >= 144, a arte fica <= 120). Conferido sobre creme: nada comido.
+const xurupitasEscudoRender = (size: number) => (
+  <img src={xurupitasEscudoImg} height={size} width={Math.round(size * 248 / 360)} alt="Xurupitas FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata
@@ -1227,37 +1237,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Leão da Estradinha EC': leaoEstradinhaRender,
   'Leao da Estradinha': leaoEstradinhaRender,
   'Império Samambaia': leaoEstradinhaRender,
-  // 🐷 Xurupitas FC (batismo do denilson.stifler10, aprovado pelo Diego 10/08 v5):
-  // PORCO bravo verde/branco (Palmeiras), presas curvando pra CIMA. Desenhado em
-  // código (folclórico — cores + porco, sem escudo de clube real). ex-Tokyo City.
-  'Xurupitas FC': (size: number) => {
-    const w = Math.round(size * 200 / 240)
-    const V1 = '#2E9E5B', V2 = '#1E7A45', VD = '#0B4D2C'
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Xurupitas FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="porcoClip"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath></defs>
-        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill={VD} />
-        <g clipPath="url(#porcoClip)"><path d="M-20 150 L210 30 v34 L10 175 Z" fill={V2} opacity=".35" /></g>
-        <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-        <g transform="translate(0 2)">
-          <path d="M56 76 Q42 40 58 36 Q74 42 82 74 Z" fill={V1} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          <path d="M144 76 Q158 40 142 36 Q126 42 118 74 Z" fill={V1} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          <path d="M100 44 Q93 60 100 74 Q107 60 100 44 Z" fill={V1} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-          <path d="M56 90 Q56 62 100 60 Q144 62 144 90 L144 122 Q144 156 100 162 Q56 156 56 122 Z" fill={V1} stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          <path d="M66 96 L96 108 M134 96 L104 108" stroke={INK} strokeWidth="10" strokeLinecap="round" />
-          <path d="M72 110 Q84 105 96 112 Q86 124 74 119 Z" fill="#fff" stroke={INK} strokeWidth="4" />
-          <path d="M128 110 Q116 105 104 112 Q114 124 126 119 Z" fill="#fff" stroke={INK} strokeWidth="4" />
-          <circle cx="86" cy="114" r="5.5" fill={INK} /><circle cx="114" cy="114" r="5.5" fill={INK} />
-          <ellipse cx="100" cy="136" rx="28" ry="19" fill={V2} stroke={INK} strokeWidth="7" />
-          <ellipse cx="90" cy="136" rx="4.5" ry="7" fill={INK} /><ellipse cx="110" cy="136" rx="4.5" ry="7" fill={INK} />
-          <path d="M76 150 Q60 142 62 118 Q72 138 86 148 Z" fill="#fff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-          <path d="M124 150 Q140 142 138 118 Q128 138 114 148 Z" fill="#fff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-          <path d="M88 154 l0 8 M100 156 l0 8 M112 154 l0 8" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
-          <path d="M86 152 Q100 159 114 152" stroke={INK} strokeWidth="5" fill="none" strokeLinecap="round" />
-        </g>
-      </svg>
-    )
-  },
+  // 🟢 Xurupitas FC (denilson.stifler10/Denis — coração PALMEIRAS). 09/09: o dono
+  // mandou arte própria (escudo + mascote + camisa) e ela SUBSTITUIU o porco em SVG
+  // desenhado à mão de 10/08. As 4 formas do nome; a corrente de nomes velhos
+  // (Tokyo City Esperion ← FC Galáticos) segue no OLD_NAME do data.ts.
+  'Xurupitas FC': xurupitasEscudoRender,
+  'Xurupitas': xurupitasEscudoRender,
+  'Xurupitas EC': xurupitasEscudoRender,
+  'Xurupitas SC': xurupitasEscudoRender,
   // 🧢 Tôka10 (batismo do ofc.toka10, aprovado pelo Diego 10/08): o menino da
   // touca — ARTE PRÓPRIA do dono (imagem webp 22 KB, exceção aprovada; ver nota
   // no topo). Selo redondo já vem no desenho; fundo é transparente.
