@@ -490,8 +490,14 @@ const sapekEscudoRender = (size: number) => (
 // maior que 78px na tela, então 360 já é o dobro do necessário em retina).
 // A cobra de cachimbo da 1ª arte CONTINUA sendo a mascote (mascotes.tsx,
 // chave "cobra_arruda") — ela só não mora mais dentro do escudo.
+// 🔁 09/09: ARTE NOVA do dono — o Arruda em 3D visto de cima (torres de luz,
+// gramado, arquibancada tricolor) e o escudo listrado embaixo. 285x360 no arquivo
+// (era 304x360). A prancha era verde-neon com o GRAMADO verde dentro do escudo:
+// chave apertada medida na imagem (fundo g-max(r,b) >= 128, gramado <= 129 —
+// rampa 132→148) e o escudo separado por COMPONENTE, porque a cauda da cobra
+// invade a faixa de colunas dele sem encostar. Conferido sobre creme: gramado inteiro.
 const arrudaEscudoRender = (size: number) => (
-  <img src={arrudaEscudoImg} height={size} width={Math.round(size * 304 / 360)} alt="Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={arrudaEscudoImg} height={size} width={Math.round(size * 285 / 360)} alt="Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
 // 🃏⚫⚪ Coringas do Diniz (lucas_calefi) — ex-Vanguarda Nacional, Série A. Arte

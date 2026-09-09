@@ -25,6 +25,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'iago.cortellini@gmail.com': ['#100E0D', '#EAAD3D'], // 🐟📉 Bagres de Wall Street FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 84% do manto, e dos dourados do nome/gola/punhos, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as listras do ombro e o "DE WALL STREET"
   'davisantana1312@gmail.com': ['#0F0F0F', '#E6DED4'], // 🐛 Bicho da Seda — preto e branco-creme, MEDIDOS na camisa que o dono mandou em 09/09 (listras verticais; mediana dos pretos, 54% do manto, e dos claros, 30%). Os FIOS de seda são a 3ª cor (MANTO_TRI)
   'denilson.stifler10@gmail.com': ['#063215', '#F8EACF'], // 🟢 Xurupitas FC — verde-escuro e creme, MEDIDOS na camisa que o dono mandou em 09/09 (mediana dos verdes escuros, 78% do manto, e do creme da gola/nome/listras). A GOSMA verde-clara é a 3ª cor (MANTO_TRI)
+  'souzact12@gmail.com': ['#110D0E', '#F5F2EF'], // 🐍 Tricolor do Arruda FC — preto e branco, MEDIDOS na camisa que o dono mandou em 09/09 (faixas horizontais; o VERMELHO é a 3ª cor em MANTO_TRI, com o amortecedor branco de sempre)
   'diegohdsf@gmail.com': ['#0E0C0B', '#DD9C30'], // 🎙️ Fala D10 — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 83% do manto, e dos dourados das listras/coroa, 09/09). Sem 3ª cor: o branco do "FALA" é só 1% da camisa
   'duselecta@gmail.com': ['#101210', '#F1C02C'], // 🔊 Bonança SSFC — preto e amarelo, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 80% do manto, e dos amarelos das listras rasta, 09/09). O VERMELHO é a 3ª cor (MANTO_TRI); o verde da bandeira fica no escudo
   'pedrovianacarneiroq@gmail.com': ['#0F0E0E', '#EAE5E1'], // 🐓 Briga de Galo FC — preto e branco, MEDIDOS na camisa que o dono mandou (2ª prancha; mediana dos pretos, 73% do manto, e dos brancos das listras, 08/09). O DOURADO é a 3ª cor (MANTO_TRI): coroa, "FC" e o BDG do peito
@@ -142,7 +143,7 @@ export function meuMantoAngle(): number {
 const MANTO_TRI: Record<string, string> = {
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
   piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
-  cobra_arruda: '#C2001E', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho, 16/08)
+  cobra_arruda: '#B91515', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho). 09/09: MEDIDA na camisa nova que o dono mandou (era #C2001E chutado em 16/08); preto #110D0E e branco #F5F2EF foram pro banco (esc_socios)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)
   saoluiz_pitbull: '#FFFFFF', // 🐶 São Luiz FC — 3ª cor BRANCA (vermelho/preto/branco, medidas na camisa dele, 21/08)
   bagres_bagre: '#D9A95D', // 🐟 Bagres 1993 (caiohcris) — 3ª cor DOURADA: a moldura, a coroa e o louro do escudo (medidas na arte dele, 06/09)

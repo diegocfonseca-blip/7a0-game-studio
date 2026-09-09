@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-09-09', emoji: '🐍', titulo: 'Tricolor do Arruda FC de cara nova', texto: 'O Tricolor do Arruda FC, clube batizado por apoiador, estreia arte própria do dono: o estádio do Arruda no escudo, manto tricolor com as cores medidas na camisa e a Cobra Coral de punhos fechados, que carimba a tela quando o time faz gol. (Carreira e Rápido)' },
   { data: '2026-09-09', emoji: '🟢', titulo: 'Xurupitas FC de cara nova', texto: 'O Xurupitas FC, clube batizado por apoiador, estreia arte própria do dono: escudo novo, manto verde-escuro e creme com a gosma escorrendo e mascote própria — o Xurupita, a gosma verde de sorriso maroto, que carimba a tela quando o time faz gol. (Carreira e Rápido)' },
   { data: '2026-09-09', emoji: '🐛', titulo: 'Bicho da Seda de cara nova', texto: 'O Bicho da Seda, clube batizado por apoiador, estreia arte própria do dono: escudo novo, manto alvinegro com os fios de seda e mascote própria — o Bicho da Seda de óculos escuros, que carimba a tela quando o time faz gol. (Carreira e Rápido)' },
   { data: '2026-09-09', emoji: '🐟', titulo: 'Nasceu o Bagres de Wall Street FC', texto: 'Mais um clube batizado por apoiador: o Bagres de Wall Street FC chega na Série A, com escudo de bolsa de valores, manto preto e dourado com listras brancas e mascote própria — o Bagre Investidor, de terno, coroa e charuto, que carimba a tela quando o time faz gol. O Manfré FC segue no jogo, agora na Série B. (Carreira e Rápido)' },
