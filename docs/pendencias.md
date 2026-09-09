@@ -286,6 +286,25 @@ Normalizou sozinho às 00:03 quando a leva passou; a causa foi consertada:
 - Durante o pico apareceu 1 erro `unexpected chunk number … pg_toast_17583`
   (toast do game_rooms) numa leitura; varri as 540 linhas depois e **nenhuma
   está corrompida** — foi leitura concorrente sob carga, não dano.
+- 🖥️ **Máquina:** t3a.small (Small, US$15/mês, 2 vCPU DE RAJADA, 2 GB). Print do
+  Diego às 21:12 BRT: Compute/CPU 98% no pico, RAM 77%, disco 31%, 45/90 conexões.
+  Rajada = crédito de CPU acaba depois de horas de carga e a máquina é
+  estrangulada pra ~20% — foi o que virou "noite cheia" em queda. Combinado:
+  **acompanhar o pico das próximas 2–3 noites; CPU de pico > 60% → subir pra
+  Medium (US$60, sem rajada, 4 GB).**
+- 📊 **Top do `pg_stat_statements` (acumulado até 09/09 00:15):** 1º Realtime
+  (`SELECT wal->>…`, 44.022 s, 1,87 mi chamadas, 24 ms) · 2º a lista de salas
+  (40.055 s — RESOLVIDA) · 3º `INSERT esc_pyramid_saves` (21.088 s, 241 mil,
+  88 ms — saves de 700 KB) · 4º ler save da pirâmide (6.131 s) · 5º `UPDATE
+  game_rooms.game_state` (5.367 s, 405 mil, 13 ms).
+  👉 **Próximo alvo: o Realtime.** Cada UPDATE em `game_rooms` (inclusive o
+  heartbeat de 3s que só mexe em `updated_at`, 942 mil chamadas) vira um evento
+  que o banco avalia pra cada assinante (RLS + filtro sobre a linha de 50–200 KB).
+  Opções, da mais barata à mais certa: (a) heartbeat de 3s → 10s (encosta na
+  detecção de "dono sumiu", que hoje usa 10s — conferir antes); (b) heartbeat
+  numa tabela pequena à parte (`live_beats` já existe) em vez de `game_rooms`;
+  (c) trocar `postgres_changes` por `broadcast`. **Não fazer de madrugada sem o
+  Diego saber: é o online ao vivo.**
 - ⚠️ Lição pra próxima consulta em cima de `game_state`: NUNCA `->>` em lista.
   Coluna magra + gatilho, sempre. Candidatas a olhar depois: o `select
   game_state->>tab, ->>claim` (543 mil chamadas, 1 ms — ok) e os saves da
