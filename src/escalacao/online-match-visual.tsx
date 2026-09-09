@@ -126,9 +126,17 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  const visible=rows.map(r=>r.filter(k=>elapsed>=.7+k.at*.85))
  const scores=visible.map(r=>r.filter(k=>k.ok).length)
  const next=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed<.7+k.at*.85).sort((a,b)=>a.at-b.at)[0]
+ // 🎯 COBRANÇA QUE NÃO PRECISOU ACONTECER NÃO GANHA BOLINHA (Diego 09/09, final
+ // da Copa do Mundo da sala do Futpoint: *"os pênaltis não terminou todos e já deu
+ // campeão"*). A disputa PARA quando está decidida — regra real, e é o que o motor
+ // faz. Mas esta tela desenhava um círculo vazio pra cada cobrança que sobrou nas
+ // 5 rodadas, e vazio parece "falta cobrar". A disputa antiga (`PensShootout`) já
+ // tinha essa lição gravada: só desenha as cobranças que aconteceram. Aqui é a
+ // mesma coisa agora — `rows` só tem as cobranças reais, então slot sem cobrança
+ // some, e o "CAMPEÃO" só sai quando a ÚLTIMA delas pipocou.
  return <section className="ll28-pens" aria-label="Disputa de pênaltis">
   <header><b>{nSlots>5?'MORTE SÚBITA':'PÊNALTIS'}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?'ENCERRADO':'COBRANÇAS'}</span></header>
-  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i],shown=k&&elapsed>=.7+k.at*.85;return <span key={i} className={shown?(k.ok?'made':'missed'):!done&&next?.side===side&&next.i===i?'current':'pending'} aria-label={shown?(k.ok?'Gol':'Errou'):done?'Não cobrada':'Pendente'}>{shown?(k.ok?'✓':'×'):''}</span>})}</div></div>)}
+  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*.85;return <span key={i} className={shown?(k.ok?'made':'missed'):!done&&next?.side===side&&next.i===i?'current':'pending'} aria-label={shown?(k.ok?'Gol':'Errou'):'Pendente'}>{shown?(k.ok?'✓':'×'):''}</span>})}</div></div>)}
   <p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?'CAMPEÃO':'CLASSIFICADO'}`:'Uma cobrança de cada vez…'}</p>
  </section>
 }

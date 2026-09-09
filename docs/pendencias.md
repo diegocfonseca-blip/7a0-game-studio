@@ -251,6 +251,58 @@ modo mundo, o state pequeno) e o `careeronline.tsx` (esse usa o state inteiro).
 ⚠️ Aumentar a máquina **NÃO resolve** isto: Realtime e Egress são cobrados por
 uso, não por tamanho de servidor.
 
+## 🗳️ SALA DO FUTPOINT (09/09 à noite, sala B1QPHE): 3 bugs na virada de temporada — ✅ 3 consertados
+Relato do Diego (ao vivo, com prints do stream): a sala jogou liga + Copa do Mundo,
+caiu na votação do "e agora?", **Dérick e Florminense saíram na votação**, o host
+tocou "abrir novo leilão" e **os dois entraram no leilão novo mesmo assim**; o host
+viu "ENVIANDO…" até dar F5; e na temporada 2 **não teve Copa do Mundo** e o jornal
+**repetiu o campeão do mundo da noite anterior**. Também: na final da Copa do Mundo
+*"os pênaltis não terminou todos e já deu campeão"*.
+
+**Decisão do Diego (vira regra):** *"se o cara saiu na votação então ele saiu de
+vez. Ele saiu da sala. Mesma coisa de apertar o botão sair… quando o host
+reiniciar, começa com quem não saiu e votou"*. E: *"se ele reiniciou com o mesmo
+pessoal, mantém os mesmos modos de quando criou a sala e reinicia a liga, reinicia
+Copa do Mundo"*. ⚠️ Isto SUBSTITUI a trava de 23/08 do "novo leilão" (só cortar com
+a lista de crachás completa).
+
+1. ✅ **Fantasmas no novo leilão** — duas causas: (a) `leaveRoom` só avisava o host
+   (KICK_PLAYER) em leilão/monte/temporada — na tela `end` (votação) quem apertava
+   SAIR continuava humano no estado; (b) a trava de 23/08 em `startLeilao` exigia
+   presença == vagas no banco, e quem fecha o app deixa a vaga → nunca cortava.
+   Agora: `end` e `liberta` contam como "no jogo" pro aviso de saída, e o corte usa
+   a MESMA régua da tela (quem está "🚪 saiu" — sem presença por cadeira nem por
+   crachá — e não votou fica de fora). Presença vazia ainda não corta ninguém.
+2. ✅ **Copa do Mundo "uma por sala"** — `esc_copa_salas` tem chave (sala, edição) e
+   o `CopaDaLigaGate` lia a última edição da sala e só criava `edicao = 1`. Na
+   temporada 2 achava a linha da 1 (com campeão) → `pendente=false` → jornal na hora
+   com o campeão velho e o botão de abrir recusava. Agora a edição = `seasonNo` da
+   sala (prop nova), lê/abre só a edição da temporada, e ao abrir edição > 1 zera
+   `room_players.copa` (bandeira + 11 convocados ficam na linha do jogador, senão a
+   2ª Copa pulava a escolha e usava a convocação velha). ⚠️ Sala que estivesse NO
+   MEIO de uma Copa de temporada ≥ 2 na hora do deploy vai procurar a edição nova e
+   pedir pro dono abrir de novo (raro; sem auto-reload não muda nada até o F5).
+3. ✅ **Pênaltis "não terminou e já deu campeão"** — a disputa compacta nova
+   (`CompactPenalties`, online-match-visual) desenhava círculo VAZIO pra cada
+   cobrança que sobrou nas 5 rodadas; a disputa PARA quando decide (regra real), e
+   vazio parece "falta cobrar". A `PensShootout` antiga já não desenhava. Agora a
+   compacta também só desenha as cobranças reais; o "CAMPEÃO" continua saindo só
+   depois da última. (Conferi o relógio da final: passo = 14s/velocidade + 0,7s +
+   `pensRevealDelay`, que cobre a animação com ≥ 1s de folga — não era tempo.)
+
+**❓ O "ENVIANDO…" do dono — SEM CAUSA PROVADA (não mexi).** Os logs da API
+provam que o aparelho do Futpoint ficou lendo `room_acoes` a cada 3s COMO DONO,
+sem parar, de 21:38 até o F5 (21:42:50) e depois — então **não foi troca de coroa**
+(`isHost` seguiu true; os lances dos outros chegavam e eram aplicados; as levas
+fechavam no relógio). Li o caminho inteiro do lance do dono (`dispatch` → reducer
+`SUBMIT_ENVELOPE`) e não existe regra que recuse o lance de quem é host; o lobby
+não fica montado no jogo (sem RESTORE repetido); o ErrorBoundary mostraria tela de
+erro (não engole). Ficou sem explicação do lado do servidor. Proposta feita ao
+Diego (aguardando OK): **caixa-preta** — se "ENVIANDO…" passar de 8s, o aparelho
+grava numa tabela o que estava vendo (isHost, youIdx, id, fase, submitted, duplas,
+isHostRef) pra pegar a causa na próxima. Enquanto isso o F5 continua resolvendo.
+Diego não respondeu à caixa-preta ainda.
+
 ## 🐟📉 BATISMO BAGRES DE WALL STREET FC (09/09) — Série A, no assento do Manfré FC (que desceu pra B)
 Dono: `iago.cortellini@gmail.com` (conta criada HOJE 09/09 15:37 UTC — conferida
 ANTES de qualquer linha no banco, como manda a regra de segurança de 07/09).
