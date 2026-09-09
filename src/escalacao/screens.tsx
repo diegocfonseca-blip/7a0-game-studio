@@ -5649,6 +5649,10 @@ export function EscSeason() {
           nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : '⏳ Deixa o jogo/pênaltis acabar…') : firstLegPending ? (libS ? '🌎 Iniciar as oitavas' : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : '🏆 Iniciar a Copa dos 8') : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : '▶️ Começar a próxima fase') : (libS ? '🌎 Próximo jogo da Libertadores' : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : '⚽ Próximo jogo da Copa')} />
       )}
       {privateVisual && !copaLive && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+      {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>OUTROS JOGOS · RODADA {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
+        const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
+        return <RoundMatchPresentation key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={r.highlights.filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
+      })}</div></section>}
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5">
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
@@ -5741,7 +5745,6 @@ export function EscSeason() {
           aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
           gol animar. Só mostra depois do apito. */}
       <div hidden={privateVisual && visualTab !== 'jogos'} className={privateVisual && !copaLive ? 'll26-league-content' : undefined} id="ll26-classification">
-        {privateVisual && !copaLive && <nav className="ll26-league-jump" aria-label="Atalhos da rodada"><a className="ll25-button" href="#ll26-classification">CLASSIFICAÇÃO</a><a className="ll25-button" href="#ll26-round-games">JOGOS DA SALA ↓</a></nav>}
         {privateVisual && !copaLive && state.lastResults.length > 0 && <section className="ll26-round-list" id="ll26-round-games"><h3>TODOS OS JOGOS · RODADA {state.round}</h3><p>{resultRevealed ? 'Rodada encerrada. Confira os resultados e a classificação.' : 'Acompanhe a sala. A classificação atualiza após o apito.'}</p><div>
           {state.lastResults.map(r => {
             const h = state.league.find(t => t.id === r.homeId), a = state.league.find(t => t.id === r.awayId)
@@ -6503,7 +6506,7 @@ export function EscLiberta() {
           </div>
         ))}
         {privateVisual && <div className="ll26-group-fixtures"><h3>{lb.rodada > 0 ? `JOGOS · RODADA ${lb.rodada}/6` : 'AGUARDANDO A PRIMEIRA RODADA'}</h3>
-          {lb.lastResults.filter(r => lb.times.find(t => t.id === r.homeId)?.grupo === g).map(r => <RoundMatchPresentation startedAt={groupStartedAt} key={`${r.homeId}-${r.awayId}`} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={25} />} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={25} />} homeOwner={humano(r.homeId) ? 'TÉCNICO DA SALA' : 'BOT'} awayOwner={humano(r.awayId) ? 'TÉCNICO DA SALA' : 'BOT'} mine={r.homeId === you.id || r.awayId === you.id} goals={r.highlights.filter(lanceEhGol).map(h => ({name: scorer(h.text), min:h.min,home:h.teamId===r.homeId}))} score={[r.hg,r.ag]} finished={revealed} roundKey={lb.rodada} roundMs={roundMs} />)}
+          {lb.lastResults.filter(r => lb.times.find(t => t.id === r.homeId)?.grupo === g).map(r => <RoundMatchPresentation startedAt={groupStartedAt} key={`${r.homeId}-${r.awayId}`} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={25} />} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={25} />} homeOwner={state.managers.find(m=>m.id===r.homeId&&m.isHuman)?.name ?? 'BOT'} awayOwner={state.managers.find(m=>m.id===r.awayId&&m.isHuman)?.name ?? 'BOT'} mine={r.homeId === you.id || r.awayId === you.id} goals={r.highlights.filter(lanceEhGol).map(h => ({name: scorer(h.text), min:h.min,home:h.teamId===r.homeId}))} score={[r.hg,r.ag]} finished={revealed} roundKey={lb.rodada} roundMs={roundMs} />)}
           <p>{acabou && revealed ? 'Os dois primeiros avançam às oitavas.' : revealed ? 'Classificação atualizada após o apito.' : 'A classificação atualiza quando a rodada terminar.'}</p>
         </div>}
       </Box>

@@ -19,6 +19,8 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
 import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill } from './pyramidseason'
+import { clockMinute, type CopaClockController } from './copa-clock-preview'
+import { copaStats } from './copa-stats'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
 import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt } from './screens'
@@ -830,7 +832,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
   }
 }
 
-export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; online?: { seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount
   const privateOnline = privateVisual && !!online
@@ -843,9 +845,13 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   // GR+1 sorteio · GR+2 QF ida · GR+3 QF volta · GR+4 SF ida · GR+5 SF volta ·
   // GR+6 final · GR+7 cerimônia.
   const GR = GROUP_ROUNDS
-  const [step, setStep] = useState(0)
-  const [liveDone, setLiveDone] = useState(true)
-  const [roundKey, setRoundKey] = useState(0)
+  const synced = privateOnline ? online?.clock : undefined
+  const [localStep, setStep] = useState(0)
+  const [localLiveDone, setLiveDone] = useState(true)
+  const [localRoundKey, setRoundKey] = useState(0)
+  const step = synced ? synced.row?.step ?? 0 : localStep
+  const liveDone = synced ? !!synced.row && !synced.row.running : localLiveDone
+  const roundKey = synced ? step : localRoundKey
   const LIVE = (s: number) => (s >= 1 && s <= GR) || (s >= GR + 2 && s <= GR + 6)
   const gRound = Math.min(GR, step)
   const shownRounds = step <= GR && !liveDone ? Math.max(0, gRound - 1) : gRound // tabela/resultados só DEPOIS do apito
@@ -868,16 +874,17 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   // tem vê o cadeado do APOIE. Mesma preferência salva (useSimMode) da carreira.
   const hasManual = useHasManual()
   const [manualPref, toggleManual] = useSimMode()
-  const manual = hasManual && manualPref
+  const manual = synced ? synced.row?.manual ?? false : hasManual && manualPref
   const [speed, setSpeed] = useState(1)
   // ⏱️ 9s é o ROUND_MS da liga. Na COPA DA SALA a rodada mostra VÁRIOS jogos ao
   // mesmo tempo (3 por grupo), e o Diego pegou isso jogando com a turma: *"o
   // tempo tá muito rápido dos jogos da Copa"*. Com 4 grupos rolando juntos não
   // dá tempo de ler nada em 9s — na sala a rodada respira 14s. O controle de
   // velocidade continua ali pra quem quiser correr (ou ir mais devagar ainda).
-  const roundMs = Math.round((online ? 14000 : 9000) / speed)
+  const roundMs = synced?.row?.duration_ms ?? Math.round((online ? 14000 : 9000) / speed)
 
-  const liveMin = useLiveMin(roundKey, roundMs, liveDone)
+  const localLiveMin = useLiveMin(roundKey, roundMs, liveDone)
+  const liveMin = synced ? synced.row ? clockMinute(synced.row, synced.now) : 0 : localLiveMin
   // 🐛 TOQUE DUPLO (bug reportado 04/08: "apertei 2× e a partida voltou"): antes
   // estas funções liam o `step` da renderização (`const s = step + 1`). Dois
   // toques rápidos liam o MESMO número: o 2º não avançava fase nenhuma, mas
@@ -885,6 +892,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   // Agora o passo é calculado DENTRO do setState (sempre o valor mais novo) e o
   // relógio só reinicia quando a fase realmente mudou.
   const avanca = (jaResolvida: boolean) => {
+    if (synced) { if (synced.isHost) void synced.command('next'); return }
     setStep(atual => {
       const s = atual + 1
       if (LIVE(s)) { setRoundKey(k => k + 1); setLiveDone(jaResolvida) }
@@ -894,13 +902,14 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   const next = () => avanca(false)
   // ⏭️ pular (só manual): corta a espera — apito na hora; de novo = próxima fase já resolvida
   const skip = () => {
+    if (synced) { if (synced.isHost) void synced.command(synced.row?.running ? 'skip' : 'next'); return }
     if (!liveDone) { setLiveDone(true); return } // 1º toque: só adianta o apito
     avanca(true)
   }
   // relógio da rodada: ritmo da liga (ajustado pela velocidade do manual) +
   // tempo dos pênaltis dos confrontos VISÍVEIS ao vivo — suspense completo.
   useEffect(() => {
-    if (liveDone) return
+    if (synced || liveDone) return
     let extra = 700
     const penMs = (t: KoTie) => t.pen && (isYou(t.h) || isYou(t.a)) ? pensRevealDelay(t.pen) * 1000 : 0
     if (step === GR + 3) extra += Math.max(0, ...world.qf.map(penMs)) // QF volta
@@ -909,15 +918,15 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
     const t = setTimeout(() => setLiveDone(true), roundMs + extra)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roundKey])
+  }, [roundKey, !!synced])
   // 🔁 MODO AUTO (padrão, igual à liga): a Copa anda sozinha fase a fase —
   // pequena pausa pós-apito pra ler o resultado, e segue o baile.
   useEffect(() => {
-    if (done || manual || !liveDone) return
+    if (synced || done || manual || !liveDone) return
     const t = setTimeout(next, step === 0 ? 500 : 1600)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveDone, step, manual, done])
+  }, [liveDone, step, manual, done, !!synced])
 
   // persiste os prêmios UMA vez — assim que o placar da FINAL aparece (não
   // precisa esperar o clique extra da cerimônia — ver comentário no `finalSeen`).
@@ -1003,7 +1012,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
   const live = (h: number, a: number, ev: ScoreGoal[]) => (
     <div style={{ marginBottom: 8 }}>
-      <LiveScoreCard enhancedOnline={privateOnline} homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
+      <LiveScoreCard enhancedOnline={privateOnline} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
         homeOwner={club(h)} awayOwner={club(a)}
         homeEmblem={privateVisual ? <NationalCrest country={entrants[h].pais} size={58} /> : undefined}
         awayEmblem={privateVisual ? <NationalCrest country={entrants[a].pais} size={58} /> : undefined}
@@ -1228,7 +1237,19 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
           <CardCollectPrompt seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onGuaranteed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
         </div>
       )}
-      {done && (() => {
+      {privateOnline && <details className="ll27-copa-stats">
+        <summary>ESTATÍSTICAS DA COPA DO MUNDO</summary>
+        <p>Gols e assistências dos jogos encerrados desta Copa.</p>
+        {Object.entries(copaStats(world,step,liveDone)).map(([kind,rows])=><section key={kind}>
+          <h3>{kind==='goals'?'ARTILHEIROS':'ASSISTÊNCIAS'}</h3>
+          {!rows.length && <p>Nenhum registro nos jogos encerrados.</p>}
+          {rows.map(r=><div key={r.team+'|'+r.name} className={`ll27-stat-row ${isYou(r.team)?'mine':''}`}>
+            <NationalCrest country={entrants[r.team].pais} size={24}/>
+            <span>{r.name}<small>{entrants[r.team].pais} · {club(r.team)}</small></span><b>{r.total}</b>
+          </div>)}
+        </section>)}
+      </details>}
+      {done && !privateOnline && (() => {
         const tally: Record<string, { goals: number; team: number }> = {}
         const add = (evs: ScoreGoal[] | undefined, h: number, a: number) => { for (const e of evs ?? []) { const t = e.home ? h : a; const k = e.name + '|' + t; tally[k] = { goals: (tally[k]?.goals ?? 0) + 1, team: t } } }
         for (const g of world.groups) for (const rd of g.matches) for (const m of rd) add(m.ev, m.h, m.a)
@@ -1263,6 +1284,25 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
 
       {done ? (
         <button onClick={onClose} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{online ? '▶️ VOLTAR PRA SALA' : '▶️ VOLTAR PRA CARREIRA'}</button>
+      ) : synced ? (
+        <section className="ll27-world-controls" aria-label="Ritmo da Copa">
+          {synced.error && <p role="status">{synced.error}</p>}
+          {!synced.row ? <p>Conectando ao ritmo da sala…</p> : synced.isHost ? <>
+            <div className="ll27-world-rhythm">
+              <button className={manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('manual')}>MANUAL</button>
+              <button className={!manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('auto')}>AUTO</button>
+              <select aria-label="Velocidade da Copa" value={synced.row.speed} disabled={synced.busy || synced.row.running} onChange={e=>void synced.command('speed',Number(e.target.value))}>
+                <option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={4}>4×</option>
+              </select>
+            </div>
+            <p>A velocidade pode mudar entre os jogos. Todos acompanham o ritmo do host.</p>
+            <div className="ll27-world-rhythm">
+              <button className="primary" disabled={synced.busy || !liveDone} onClick={next}>{nextLabel}</button>
+              <button disabled={synced.busy} onClick={skip}>PULAR</button>
+            </div>
+          </> : <p>Ritmo da sala: {manual ? 'manual' : 'automático'} · {synced.row.speed}× · controlado pelo host</p>}
+          <button onClick={onClose}>VOLTAR À SALA</button>
+        </section>
       ) : hasManual ? (
         <>
           {manual && <SpeedControls speed={speed} onSet={setSpeed} />}

@@ -85,6 +85,19 @@
 .ll26-world-modal{background:linear-gradient(#06130ce0,#06130cf2),url('./img/online-estadio-v25.webp') center/cover!important}
 .ll25-shell>div.max-w-xl.text-center{background:#f4ecd6;border-radius:12px;padding:16px;color:#0c0c0c}
 .ll26-league-content{display:flex;flex-direction:column;gap:14px}.ll26-league-content>.ll26-round-list{order:2}
-.ll26-league-jump{display:flex;gap:8px;margin:10px 0}.ll26-league-jump a{flex:1;text-align:center;text-decoration:none;display:grid;place-items:center}
+.ll27-fixture-goal>header{background:#ffc400}.ll27-fixture-goal .ll26-fixture-duel>strong{animation:ll27-score-pop .4s ease}.ll27-fixture-goal{outline:2px solid #ffc400}
+.ll27-room-summary h3{font:700 12px Oswald,sans-serif;color:#f4ecd6;margin:0 0 4px}.ll27-ticker{display:flex;gap:10px;overflow-x:auto;padding:2px 4px 7px;scroll-snap-type:x proximity}.ll27-ticker>.ll26-fixture{flex:0 0 230px;margin:0;scroll-snap-align:start}.ll27-ticker .ll26-fixture-duel{padding:7px 6px;gap:5px}.ll27-ticker .ll26-fixture-duel>strong{font-size:19px}.ll27-ticker .ll26-fixture-duel span{font-size:11px}.ll27-ticker:focus-visible{outline:2px solid #ffc400}
+@keyframes ll27-score-pop{50%{transform:scale(1.16);color:#1b7a3d}}
+@media(prefers-reduced-motion:reduce){.ll27-fixture-goal .ll26-fixture-duel>strong{animation:none}}
 @media(min-width:768px){.ll26-phase-matches>div{grid-template-columns:1fr 1fr!important}.ll26-competition{min-height:290px}.ll26-goal-mascot,.ll26-goal-mascot :is(img,svg){height:200px!important}}
 @media(prefers-reduced-motion:reduce){.ll26-goal-rays,.ll26-goal-scene i{display:none}.ll26-goal-scene,.ll26-goal-mascot{animation:none}.ll26-goal-scene{background:#0c0c0cee}}
+.ll27-world-controls{background:#F4ECD6;color:#0C0C0C;padding:14px;border:3px solid #0C0C0C;border-radius:14px;margin:12px 0}
+.ll27-world-controls button,.ll27-world-controls select{font-family:Oswald,'Arial Narrow',sans-serif;font-weight:700;background:#fff;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:10px;min-height:44px;padding:8px 12px;box-shadow:2px 3px 0 #0C0C0C;cursor:pointer}
+.ll27-world-rhythm{display:flex;gap:8px;margin-bottom:10px}
+.ll27-world-rhythm>*{flex:1;min-width:0}
+.ll27-world-controls button.selected{background:#7C3AED;color:white}.ll27-world-controls button.primary{background:#FFC400}
+.ll27-world-controls button:disabled,.ll27-world-controls select:disabled{opacity:.55;cursor:default}
+.ll27-world-controls p{font-size:12px;margin:10px 0}
+.ll27-copa-stats{background:#F4ECD6;border:3px solid #0C0C0C;border-radius:14px;padding:14px;margin:12px 0;color:#0C0C0C}
+.ll27-copa-stats summary,.ll27-copa-stats h3{font-family:Oswald,'Arial Narrow',sans-serif;font-weight:700}.ll27-copa-stats summary{cursor:pointer;min-height:32px}
+.ll27-stat-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #0c0c0c20;font-size:13px}.ll27-stat-row>span{flex:1}.ll27-stat-row small{display:block;color:#53534b;font-size:11px}.ll27-stat-row.mine{background:#FFC400}

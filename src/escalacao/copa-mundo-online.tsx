@@ -36,6 +36,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnlinePreview } from './online-preview'
 import { CompetitionStage } from './online-match-visual'
 import { NationalCrest } from './national-crest'
+import { useCopaClockPreview } from './copa-clock-preview'
+import { simulaCopaMundo } from './copa-mundo'
+import { pensRevealDelay } from './pyramidseason'
 import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
 import { rankingSelecoes } from './paises'
@@ -193,13 +196,22 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
 // escreve em `esc_results` — ver a trava lá dentro).
 const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: null }
 
-export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void }) {
+export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
   const cinematic = useOnlinePreview()
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
+  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao):null,[cinematic,entrants,ficha.seed,ficha.edicao])
+  const extraForStep=(step:number)=>{
+    if(!clockWorld)return 0
+    const ties=step===8?clockWorld.qf:step===10?clockWorld.sf:[]
+    if(step===11&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen)*1000)
+    return Math.round(Math.max(0,...ties.map(t=>t.pen?pensRevealDelay(t.pen)*1000:0)))
+  }
+  const clock=useCopaClockPreview(cinematic,roomId,ficha.edicao,ficha.seed,souDono,extraForStep)
   // 🔑 a IDENTIDADE desta Copa no ranking: sala + semente. A semente muda a cada
   // Copa nova, então jogar Copa atrás de Copa na mesma sala não faz uma apagar a
   // outra (foi exatamente esse o bug do "novo leilão" no ranking, em agosto).
-  const online = useMemo(() => ({ seasonKey: `mundo:${roomId}:${ficha.seed}:copamundo`, aoCampeao }), [roomId, ficha.seed, aoCampeao])
+  const online = { seasonKey: `mundo:${roomId}:${ficha.seed}:copamundo`, aoCampeao, clock }
+  if(!visible)return null
   return (
     <CMModal wide cinematic={cinematic}>
       <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO}
@@ -836,8 +848,8 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
         </CMModal>
       )}
 
-      {ficha && aberta && (
-        <CopaDaSala ficha={ficha} roomId={roomId} meuUid={meuUid}
+      {ficha && (aberta || privateVisual) && (
+        <CopaDaSala ficha={ficha} roomId={roomId} meuUid={meuUid} souDono={souDono} visible={aberta}
           aoCampeao={(nome, pais) => { void gravaNaEstante(nome, pais) }}
           aoFechar={() => setAberta(false)} />
       )}

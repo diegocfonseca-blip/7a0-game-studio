@@ -2372,18 +2372,20 @@ function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 
   )
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline }: 
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, displayMinute }: 
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
-  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean }) {
+  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; displayMinute?: number }) {
   const privatePreview = useOnlinePreview()
   const cinematic = privatePreview && !basket
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
-  const [min, setMin] = useState(finished ? 93 : 0)
+  const [localMin, setMin] = useState(finished ? 93 : 0)
+  const min = displayMinute ?? localMin
+  const controlledMinute = displayMinute != null
   // 🚫 ANTI-SPOILER: quando entra uma rodada nova (roundKey muda) o relógio ainda
   // está no 93' da rodada anterior por 1 frame — o que mostraria TODOS os gols (o
   // placar FINAL) do jogo novo antes do apito. Zera JÁ na renderização, sem flash.
@@ -2392,6 +2394,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   useEffect(() => {
     // o relógio só zera/anima quando MUDA A RODADA (roundKey). Trocar a tática na
     // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
+    if (controlledMinute) return
     if (finished) { setMin(93); return }
     // relógio por TEMPO (não por passo fixo): sobe 0→93' ao longo de `dur`. Assim
     // cada velocidade é REALMENTE diferente — o passo fixo batia num piso (30ms) e
@@ -2413,7 +2416,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       if (m >= 93) clearInterval(iv)
     }, 40)
     return () => clearInterval(iv)
-  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf])
+  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute])
   const done = min >= 93
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o

@@ -1,5 +1,8 @@
 # 📌 Pendências combinadas com o Diego (atualizado 07/09/2026)
 
+## Online V27 — refinamento privado em 08/09/2026
+Somente as duas contas Diego: removidos os atalhos CLASSIFICAÇÃO/JOGOS DA SALA, mantida a aba JOGOS + TABELA; resumo compacto dos outros jogos com minuto e destaque de gol, técnicos identificados na Libertadores. Mundial com assistências reais de partidas encerradas e relógio privado de apresentação controlado pelo host (RPC/RLS/CAS), inclusive ao reabrir o modal. Sem alterar resultados, sorteios, prêmio, leilão, pregão ou carreira. Correção paralela 276a71a preservada. Build, testes de allowlist, navegador e SQL em rollback passaram; duas janelas com transporte simulado, não duas sessões reais logadas. Detalhes, limites e reversão: `docs/online-visual-v27.md`. Banco aplicado via migration `online_copa_clock_private_preview_v27`.
+
 ## Online ilustrado V22 — publicação autorizada em 07/09
 Diego aprovou publicar as três telas online e o encerramento completo: O Martelo ilustrado com TODAS as notas da redação, pacote do campeão com logo oficial e votação/saída. Implementação isolada em `online-visual.css`, `jornal-online-visual.tsx/css` e hooks visuais do lobby/screens. Oswald e controles branco/creme, amarelo e roxo; mobile e desktop. Regras, premiações, sorteio/persistência da carta e autoridade do host preservados. Offline mantém seu jornal. Integrado com as mudanças atuais do Olheiro e sondados, sem sobrescrevê-las. Detalhes e reversão em `docs/online-visual-v22.md`.
 

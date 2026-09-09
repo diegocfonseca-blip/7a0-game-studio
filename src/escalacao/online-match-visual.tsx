@@ -72,8 +72,19 @@ export function CompetitionMatch({ home, away, homeCrest, awayCrest, homeOwner, 
   home: string; away: string; homeCrest?: ReactNode; awayCrest?: ReactNode; homeOwner?: string; awayOwner?: string;
   homeScore: number | string; awayScore: number | string; status: string; detail?: ReactNode; mine?: boolean
 }) {
-  return <article className={`ll26-fixture ${mine ? 'll26-fixture-mine' : ''}`}>
-    <header><span>{mine ? 'SEU JOGO' : 'JOGO DA RODADA'}</span><b>{status}</b></header>
+  const previous = useRef({home,away,homeScore,awayScore})
+  const [goalFlash,setGoalFlash] = useState(false)
+  useEffect(() => {
+    const old=previous.current
+    previous.current={home,away,homeScore,awayScore}
+    const scored=old.home===home&&old.away===away&&typeof homeScore==='number'&&typeof awayScore==='number'&&typeof old.homeScore==='number'&&typeof old.awayScore==='number'&&(homeScore>old.homeScore||awayScore>old.awayScore)
+    if(!scored){setGoalFlash(false);return}
+    setGoalFlash(true)
+    const timer=setTimeout(()=>setGoalFlash(false),1000)
+    return ()=>clearTimeout(timer)
+  },[home,away,homeScore,awayScore])
+  return <article className={`ll26-fixture ${mine ? 'll26-fixture-mine' : ''} ${goalFlash?'ll27-fixture-goal':''}`}>
+    <header><span>{goalFlash?'⚽ GOL!':mine ? 'SEU JOGO' : 'JOGO DA RODADA'}</span><b>{status}</b></header>
     <div className="ll26-fixture-duel"><div>{homeCrest}<span>{home}<small>{homeOwner}</small></span></div><strong>{homeScore}<i>×</i>{awayScore}</strong><div>{awayCrest}<span>{away}<small>{awayOwner}</small></span></div></div>
     {detail && <footer>{detail}</footer>}
   </article>
@@ -98,5 +109,5 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
   const known = goals.length > 0 || score.every(n => n === 0)
   const homeScore = finished ? score[0] : known ? goals.filter(g => g.home && g.min <= minute).length : '–'
   const awayScore = finished ? score[1] : known ? goals.filter(g => !g.home && g.min <= minute).length : '–'
-  return <CompetitionMatch {...p} homeScore={homeScore} awayScore={awayScore} status={finished ? 'ENCERRADO' : 'AO VIVO'} detail={!finished && !known ? 'Placar revelado no apito final' : p.detail} />
+  return <CompetitionMatch {...p} homeScore={homeScore} awayScore={awayScore} status={finished ? 'ENCERRADO' : `${Math.min(90,minute)}′ · AO VIVO`} detail={!finished && !known ? 'Placar revelado no apito final' : p.detail} />
 }

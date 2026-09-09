@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import './online-visual.css'
+import { useOnlinePreview } from './online-preview'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG } from './manto'
@@ -573,6 +574,7 @@ function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: str
 }
 
 export function EscLobby() {
+  const privateOnline = useOnlinePreview()
   const { dispatch } = useEsc()
   const [user, setUser] = useState<User | null>(null)
   const [phase, setPhase] = useState<Phase>('auth')
@@ -3593,8 +3595,8 @@ export function EscLobby() {
           🌍 VOLTAR PRA COPA
         </button>
       )}
-      {ehMundoSala && copaFicha && copaAberta && (
-        <CopaDaSala ficha={copaFicha} roomId={room.id} meuUid={user?.id}
+      {ehMundoSala && copaFicha && (copaAberta || privateOnline) && (
+        <CopaDaSala ficha={copaFicha} roomId={room.id} meuUid={user?.id} souDono={isHost} visible={copaAberta}
           aoCampeao={(nome, pais) => {
             // 🏆 um grava, todos leem: o DONO escreve o troféu na estante da sala
             // (é ele que o banco deixa editar depois) e a lista relê pra todo mundo.
