@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-09-09', emoji: '🐟', titulo: 'Nasceu o Bagres de Wall Street FC', texto: 'Mais um clube batizado por apoiador: o Bagres de Wall Street FC chega na Série A, com escudo de bolsa de valores, manto preto e dourado com listras brancas e mascote própria — o Bagre Investidor, de terno, coroa e charuto, que carimba a tela quando o time faz gol. O Manfré FC segue no jogo, agora na Série B. (Carreira e Rápido)' },
   { data: '2026-09-08', emoji: '🏆', titulo: 'Acompanhe a sala inteira', texto: 'Placares animados, Jogos + Tabela juntos e Copas organizadas por fase, com gols dos outros jogos e pênaltis compactos, no celular e no computador. (Online)' },
   { data: '2026-09-09', emoji: '🙏', titulo: 'Nasceu o Só Deus Sabe FC', texto: 'Mais um clube batizado por apoiador: o Só Deus Sabe FC chega na Série A, com escudo das mãos em prece, manto preto e dourado com nuvens brancas e mascote própria — o Anjo, que cai de joelhos no gramado e carimba a tela quando o time faz gol. O Nightfull FC segue no jogo, agora na Série B. (Carreira e Rápido)' },
   { data: '2026-09-09', emoji: '🎙️', titulo: 'Nasceu o Fala D10', texto: 'Mais um clube batizado por apoiador: o Fala D10 chega na Série A, com escudo preto e dourado, manto preto com detalhes dourados e mascote própria — o D10, de megafone na mão, que carimba a tela quando o time faz gol. O Skyy FC segue no jogo, agora na Série D. (Carreira e Rápido)' },

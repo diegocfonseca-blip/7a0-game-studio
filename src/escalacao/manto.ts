@@ -22,6 +22,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'caiohcris@gmail.com': ['#084C2C', '#F3F1EC'], // 🐟 Bagres 1993 — verde-mato e branco, MEDIDOS na camisa que o dono mandou (mediana dos verdes e dos brancos do manto, 06/09). O DOURADO é a 3ª cor, em MANTO_TRI: é a moldura, a coroa e o louro do escudo
   'guiouriques@hotmail.com': ['#2186D9', '#080809'], // 🪟 Vidraceiro FC — azul-vidro e preto, MEDIDOS na camisa que o dono mandou (mediana dos azuis e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa é listrada azul/preto com filete branco
   'contateste577660006@gmail.com': ['#12100F', '#D19B36'], // 🙏 Só Deus Sabe FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 74% do manto, e dos dourados das listras/gola, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as nuvens da barra e os filetes das mangas
+  'iago.cortellini@gmail.com': ['#100E0D', '#EAAD3D'], // 🐟📉 Bagres de Wall Street FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 84% do manto, e dos dourados do nome/gola/punhos, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as listras do ombro e o "DE WALL STREET"
   'diegohdsf@gmail.com': ['#0E0C0B', '#DD9C30'], // 🎙️ Fala D10 — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 83% do manto, e dos dourados das listras/coroa, 09/09). Sem 3ª cor: o branco do "FALA" é só 1% da camisa
   'duselecta@gmail.com': ['#101210', '#F1C02C'], // 🔊 Bonança SSFC — preto e amarelo, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 80% do manto, e dos amarelos das listras rasta, 09/09). O VERMELHO é a 3ª cor (MANTO_TRI); o verde da bandeira fica no escudo
   'pedrovianacarneiroq@gmail.com': ['#0F0E0E', '#EAE5E1'], // 🐓 Briga de Galo FC — preto e branco, MEDIDOS na camisa que o dono mandou (2ª prancha; mediana dos pretos, 73% do manto, e dos brancos das listras, 08/09). O DOURADO é a 3ª cor (MANTO_TRI): coroa, "FC" e o BDG do peito
@@ -146,6 +147,7 @@ const MANTO_TRI: Record<string, string> = {
   vidraceiro_vidro: '#FFFFFF', // 🪟 Vidraceiro FC (guiouriques) — 3ª cor BRANCA: a camisa é listrada azul/preto com filete branco (medidas na arte dele, 05/09)
   sistematizados_streamer: '#F3F1F6', // 🎮 Sistematizados FC (gaancaxd) — 3ª cor BRANCA: os filetes e o nome na camisa (medidos na arte dele, 07/09)
   sodeussabe_anjo: '#F8F4EB', // 🙏 Só Deus Sabe FC — 3ª cor BRANCA: as nuvens da barra e os filetes das mangas (medida na arte dele, 09/09)
+  bagreswallst_bagre: '#F8F5EB', // 🐟📉 Bagres de Wall Street FC — 3ª cor BRANCA: as listras do ombro e o "DE WALL STREET" no peito (medida na arte dele, 09/09)
   bonanca_selecta: '#B51516', // 🔊 Bonança SSFC (duselecta) — 3ª cor VERMELHA: a listra rasta da camisa, medida na arte dele (09/09)
   brigadegalo_galo: '#A38758', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)

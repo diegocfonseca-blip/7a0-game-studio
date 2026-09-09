@@ -29,6 +29,7 @@ import brigaDeGaloMascoteImg from './img/brigadegalo-mascote.webp' // 🐓 Briga
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
 import soDeusSabeMascoteImg from './img/sodeussabe-mascote.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
+import bagresWallStMascoteImg from './img/bagreswallst-mascote.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -589,6 +590,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   sodeussabe_anjo: (
     <img src={soDeusSabeMascoteImg} height={176} width={Math.round(176 * 404 / 440)} alt="O Anjo — Só Deus Sabe FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🐟📉 O Bagre Investidor — Bagres de Wall Street FC (09/09). 311x440 no
+  // arquivo (a cena é LARGA: o bagre de terno sentado no caixote, bola, placas e
+  // dinheiro no chão), então a largura sai da PROPORÇÃO REAL (nunca width chutado).
+  bagreswallst_bagre: (
+    <img src={bagresWallStMascoteImg} height={176} width={Math.round(176 * 311 / 440)} alt="O Bagre Investidor — Bagres de Wall Street FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   brigadegalo_galo: (
     <img src={brigaDeGaloMascoteImg} height={176} width={Math.round(176 * 272 / 440)} alt="O Galo — Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -983,6 +990,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'SÓ DEUS SABE FC': 'sodeussabe_anjo',
   'SÓ DEUS SABE': 'sodeussabe_anjo',
   'So Deus Sabe FC': 'sodeussabe_anjo',
+  // 🐟📉 Bagres de Wall Street FC — as 4 formas do nome e a CAIXA ALTA (sem nome
+  // velho: o Manfré só mudou de divisão, não foi renomeado).
+  'Bagres de Wall Street FC': 'bagreswallst_bagre',
+  'Bagres de Wall Street': 'bagreswallst_bagre',
+  'Bagres de Wall Street EC': 'bagreswallst_bagre',
+  'Bagres de Wall Street SC': 'bagreswallst_bagre',
+  'BAGRES DE WALL STREET FC': 'bagreswallst_bagre',
+  'BAGRES DE WALL STREET': 'bagreswallst_bagre',
   'Corporação Capsule FC': 'capsule_dragao',
   'Corporação Capsule': 'capsule_dragao',
   'Corporação Capsule EC': 'capsule_dragao',
@@ -1043,6 +1058,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   bagres_bagre: 'O Bagre', // 🐟 Bagres 1993 (caiohcris, 06/09) — o bagre de boné do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   vidraceiro_vidro: 'O Cristal', // 🪟 Vidraceiro FC (guiouriques, 05/09) — a chapa de vidro do escudo. ✅ nome CONFIRMADO pelo Diego ("mascote tudo bem ser Cristal", 05/09)
   sodeussabe_anjo: 'O Anjo', // 🙏 Só Deus Sabe FC (09/09) — o anjo de joelhos no gramado, chorando pro céu. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  bagreswallst_bagre: 'O Bagre Investidor', // 🐟📉 Bagres de Wall Street FC (09/09) — o bagre de terno, coroa e charuto sentado no caixote. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono

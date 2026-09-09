@@ -38,6 +38,7 @@ import brigaDeGaloEscudoImg from './img/brigadegalo-escudo.webp' // 🐓 Briga d
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
 import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
+import bagresWallStEscudoImg from './img/bagreswallst-escudo.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -609,6 +610,13 @@ const falaD10EscudoRender = (size: number) => (
 const soDeusSabeEscudoRender = (size: number) => (
   <img src={soDeusSabeEscudoImg} height={size} width={Math.round(size * 266 / 360)} alt="Só Deus Sabe FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🐟📉 Bagres de Wall Street FC — 244x360 no arquivo, entao a largura sai da
+// PROPORCAO REAL (nunca width={size} chutado). Arte do dono (iago.cortellini,
+// 09/09): escudo de bolsa de valores com fronton, colunas, velas do grafico,
+// a seta vermelha despencando e o bagre de terno, coroa e charuto.
+const bagresWallStEscudoRender = (size: number) => (
+  <img src={bagresWallStEscudoImg} height={size} width={Math.round(size * 244 / 360)} alt="Bagres de Wall Street FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata
 // com coroa e o eclipse.
@@ -880,6 +888,16 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Só Deus Sabe': soDeusSabeEscudoRender,
   'Só Deus Sabe EC': soDeusSabeEscudoRender,
   'Só Deus Sabe SC': soDeusSabeEscudoRender,
+  // 🐟📉 Bagres de Wall Street FC (iago.cortellini) — Série A, no assento que era
+  // do Manfré FC (09/09), que DESCEU pra Série B. As 4 formas do nome (a
+  // `chaveEscudo` já ignora acento e caixa). ⚠️ SEM nome velho: o Manfré só mudou de
+  // divisão — e ele tem corrente própria de nome velho (Livre-pool) que segue valendo.
+  // ⚠️ NÃO confundir com o 'Bagres 1993' (caiohcris): são dois clubes diferentes,
+  // por isso só o nome INTEIRO vale como chave.
+  'Bagres de Wall Street FC': bagresWallStEscudoRender,
+  'Bagres de Wall Street': bagresWallStEscudoRender,
+  'Bagres de Wall Street EC': bagresWallStEscudoRender,
+  'Bagres de Wall Street SC': bagresWallStEscudoRender,
   'Corporação Capsule FC': capsuleEscudoRender,
   'Corporação Capsule': capsuleEscudoRender,
   'Corporação Capsule EC': capsuleEscudoRender,

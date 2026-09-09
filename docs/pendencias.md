@@ -251,6 +251,39 @@ modo mundo, o state pequeno) e o `careeronline.tsx` (esse usa o state inteiro).
 ⚠️ Aumentar a máquina **NÃO resolve** isto: Realtime e Egress são cobrados por
 uso, não por tamanho de servidor.
 
+## 🐟📉 BATISMO BAGRES DE WALL STREET FC (09/09) — Série A, no assento do Manfré FC (que desceu pra B)
+Dono: `iago.cortellini@gmail.com` (conta criada HOJE 09/09 15:37 UTC — conferida
+ANTES de qualquer linha no banco, como manda a regra de segurança de 07/09).
+Pedido: *"O time Bagres de Wall Street FC na série A no lugar do time Manfré FC.
+Mas n remova o Manfré fc coloque ele no lugar de um time da série B bot. Time de
+coração São Paulo."*
+
+- **Assentos:** Bagres de Wall Street FC → Série A (linha que era do Manfré FC);
+  Manfré FC → Série B, na vaga do bot **União da Baixada** (escolhido por só
+  existir em `DIVISION_TEAMS.B` e em `CLASSIC_CLUBS`), herdando a força dele
+  (72/71). ⚠️ **SEM `OLD_NAME` nos dois casos**: ninguém foi renomeado, só mudou
+  de divisão — e o Manfré já tem corrente própria (Livre-pool ← Xandão EC), que
+  continua valendo.
+- ⚠️ **Dois clubes com "Bagres" no nome agora**: este e o **Bagres 1993**
+  (caiohcris, Série A). São donos diferentes — por isso só o nome INTEIRO vale
+  como chave de escudo (`chaveEscudo`), e nenhuma forma curta foi registrada.
+- **Arte do dono** (prancha em verde neon, 3 peças): o verde do fundo e o verde
+  da GRAMA do desenho quase se confundem — o corte foi feito com limiar medido
+  (fundo tem `g-max(r,b)` ≥ 126, a grama fica ≤ 60). O escudo e a placa "TRÊS
+  PONTOS" se ENCOSTAM em y≈620, e a manga da camisa passa POR CIMA da faixa das
+  placas — os dois casos precisaram de corte em diagonal / por altura, não só por
+  coluna. Escudo 244x360 **28,1 KB** · mascote (cena larga: bagre no caixote,
+  bola, placas e dinheiro) 311x440 **40,5 KB** → **68,6 KB de 75**.
+  Camisa em `scripts/kits/bagreswallst-camisa.webp` (só do post).
+- **Manto** `['#100E0D', '#EAAD3D']` + 3ª cor branca `#F8F5EB` em `MANTO_TRI`,
+  todas MEDIDAS na camisa que ele mandou.
+- **Mascote** `bagreswallst_bagre` = **"O Bagre Investidor"** — ⚠️ nome
+  PROVISÓRIO, a arte veio sem nome. Carimba a tela no gol.
+- **Banco (feito):** `esc_socios` nº44 (escudo_time 'Bagres de Wall Street FC',
+  coração São Paulo, válido até 2099), `esc_fundadores` nº66, `user_colors` ouro
+  manual, `esc_nomes_batismo` com o nome puro (o gatilho criou FC e EC sozinho).
+- ❓ **Pendente com o Diego:** nome da mascote · @ do dono.
+
 ## 🙏 BATISMO SÓ DEUS SABE FC (09/09) — Série A, no assento do Nightfull FC (que desceu pra B)
 Dono: `contateste577660006@gmail.com` (conta criada HOJE 09/09 14:40 UTC, nome de
 técnico "MatzynFc" — parece conta de teste, mas o Diego mandou e a conta existe).
