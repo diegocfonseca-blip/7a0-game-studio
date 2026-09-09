@@ -29,6 +29,7 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
+import { publicOnlineVisual } from './online-release'
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, type OnlineMatchTab } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
@@ -1081,7 +1082,7 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
   const privateCareerShell = previewAccount && state.sport !== 'basquete' && state.careerOnline
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
-    <div className={`min-h-screen pb-16 palco ${className} ${previewAccount && state.sport !== 'basquete' && ['season', 'liberta'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+    <div className={`min-h-screen pb-16 palco ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {bar && (
         <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : '#fff', color: INK }}>
           {isReserveAuction && (
@@ -5032,7 +5033,7 @@ export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLab
   const { state, dispatch } = useEsc()
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
-  if (previewAccount && state.sport !== 'basquete') return <>
+  if ((previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete') return <>
     <OnlineRhythm manual={manual} onToggle={onToggle} speed={state.simSpeed ?? 1} onSpeed={speed => dispatch({ type: 'SET_SIM_SPEED', speed })} />
     {manual && <div className="ll25-actions">
       <button className="ll25-button" onClick={onNext} disabled={!canNext}>{nextLabel}</button>
@@ -5084,7 +5085,7 @@ export const SPEED_OPTS: { v: number; label: string }[] = [
 export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: number) => void }) {
   const previewAccount = useOnlinePreview()
   const { state } = useEsc()
-  if (previewAccount && state.sport !== 'basquete') return null
+  if ((previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete') return null
   const cur = speed > 0 ? speed : 1
   return (
     <div style={{ marginBottom: 10 }}>
@@ -5108,7 +5109,7 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   const previewAccount = useOnlinePreview()
-  const privateVisual = previewAccount && state.sport !== 'basquete'
+  const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
   const leagueStartedAt = useRoundPresentationStart(state.round)
   const [seasonLang] = useLang()
@@ -6423,7 +6424,7 @@ const GRUPO_LETRA = 'ABCDEFGH'
 export function EscLiberta() {
   const { state, dispatch } = useEsc()
   const previewAccount = useOnlinePreview()
-  const privateVisual = previewAccount && state.sport !== 'basquete'
+  const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [groupView, setGroupView] = useState<'meu' | 'todos'>('todos')
   const groupStartedAt = useRoundPresentationStart(state.liberta?.rodada ?? 0)
   const you = state.managers[state.youIdx]
@@ -8597,7 +8598,7 @@ function BafoCascata() {
 export function EscEnd() {
   const { state, dispatch } = useEsc()
   const previewEnd = useOnlinePreview()
-  const privateEnd = previewEnd && state.sport !== 'basquete'
+  const privateEnd = (previewEnd || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [manualPref] = useSimMode()
   const [streamManual] = useStreamSimMode()
   const [endLang] = useLang()

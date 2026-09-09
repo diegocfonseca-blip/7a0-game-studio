@@ -9,6 +9,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useOnlinePreview } from './online-preview'
+import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
@@ -2380,7 +2381,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
   footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; displayMinute?: number }) {
   const privatePreview = useOnlinePreview()
-  const cinematic = privatePreview && !basket
+  const cinematic = (privatePreview || (ONLINE_VISUAL_RELEASED && enhancedOnline)) && !basket
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
@@ -4503,7 +4504,7 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
       })}
     </div>
   )
-  if(compactOnline && privatePenalty) {
+  if(compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) {
     const exact=exactPenaltyRows(pens,rows)
     return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final}/>
   }

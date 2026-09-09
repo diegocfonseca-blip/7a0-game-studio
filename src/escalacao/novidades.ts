@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-09-08', emoji: '🏆', titulo: 'Acompanhe a sala inteira', texto: 'Placares animados, Jogos + Tabela juntos e Copas organizadas por fase, com gols dos outros jogos e pênaltis compactos, no celular e no computador. (Online)' },
   { data: '2026-09-09', emoji: '🔊', titulo: 'Nasceu o Bonança SSFC', texto: 'Mais um clube batizado por apoiador: o Bonança SSFC chega na Série C, com escudo do paredão de caixas de som, manto preto e amarelo com listra vermelha e mascote própria — o Selecta, o paredão de camisa 10 que carimba a tela quando o time faz gol. (Carreira e Rápido)' },
   { data: '2026-09-08', emoji: '🐓', titulo: 'Nasceu o Briga de Galo FC', texto: 'Mais um clube batizado por apoiador: o Briga de Galo FC chega na Série A, com escudo dos dois galos, manto preto e branco listrado com dourado e mascote própria — o Galo de punhos fechados, que carimba a tela quando o time faz gol. O Vasco da Grana segue no jogo, agora na Série D. (Carreira e Rápido)' },
   { data: '2026-09-08', emoji: '🎁', titulo: 'Dono de batismo leva o escudo pra qualquer nome', texto: 'Quem tem clube batizado agora carrega escudo, mascote e manto no time que estiver usando, mesmo que troque o nome. É pelo e-mail do dono — o clube batizado continua no baralho com o nome fixo de sempre. (Carreira, Rápido e Online)' },

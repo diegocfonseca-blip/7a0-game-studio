@@ -10,6 +10,7 @@
 // o <CopaMundoGate> do fim de temporada.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useOnlinePreview } from './online-preview'
+import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { CompetitionStage, CompetitionMatch } from './online-match-visual'
 import { NationalCrest } from './national-crest'
 import { createPortal } from 'react-dom'
@@ -834,7 +835,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
 
 export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
-  const privateVisual = previewAccount
+  const privateVisual = previewAccount || (ONLINE_VISUAL_RELEASED && !!online)
   const privateOnline = privateVisual && !!online
   const [allGroups, setAllGroups] = useState(!!online)
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é

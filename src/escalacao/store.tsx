@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import { onlinePreviewEnabled } from './online-preview'
+import { publicOnlineVisual } from './online-release'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, AssistRow, TieBreak,
@@ -2396,7 +2397,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const hg = poisson(lh, rng), ag = poisson(la, rng)
 
   const highlights: MatchHighlight[] = []
-  const capturePresentation = state.onlineMode === 'online' && onlinePreviewEnabled()
+  const capturePresentation = state.onlineMode === 'online' && (onlinePreviewEnabled() || publicOnlineVisual(state))
   const presentationGoals: MatchHighlight[] = []
 
   // 🏀 BASQUETE: placar de PONTOS (~100), sem empate (prorrogação). A "cestinha"

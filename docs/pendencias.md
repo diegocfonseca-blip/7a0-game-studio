@@ -1,3 +1,11 @@
+## 08/09/2026 — Online aprovado liberado para todos; carreira permanece privada
+
+- Pedido explícito do Diego: a apresentação V28 das duas contas agora vale para todos APENAS no futebol online (Rápido/Minhas Ligas). Carreira não foi liberada.
+- Chave pública separada da allowlist: banners das Copas, Jogos + Tabela, placares/mascotes, jogos da sala com autores, assistências e pênaltis compactos. Salas/jornal/pacote/votos anteriores preservados.
+- Mundial: relógio compartilhado liberado por vínculo à sala, mantendo só o host com escrita. Migração online_copa_clock_public_release aplicada; RLS/RPC/CAS/prazo testados com transação revertida.
+- QA 390/1440px, carreira negativa, duas janelas host/convidado, 100 sims equivalentes e build passaram. Detalhes/limites/reversão em docs/online-visual-publico.md.
+- Host e convidados precisam recarregar; eventos de gols antigos sem detalhe não são reconstruídos. Nenhuma mudança em leilão/pregão, regras, RNG ou recompensas.
+
 # 📌 Pendências combinadas com o Diego (atualizado 07/09/2026)
 
 ## Online V28 — gols e pênaltis compactos, prévia das duas contas

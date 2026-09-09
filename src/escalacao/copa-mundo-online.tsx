@@ -33,7 +33,7 @@
 // coisa da CARREIRA — foi bug em 17/08 a Copa vazar pra lá, e não vai voltar.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useOnlinePreview } from './online-preview'
+import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { CompetitionStage } from './online-match-visual'
 import { NationalCrest } from './national-crest'
 import { useCopaClockPreview } from './copa-clock-preview'
@@ -197,7 +197,7 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
 const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: null }
 
 export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
-  const cinematic = useOnlinePreview()
+  const cinematic = ONLINE_VISUAL_RELEASED
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
   const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao):null,[cinematic,entrants,ficha.seed,ficha.edicao])
   const extraForStep=(step:number)=>{
@@ -468,7 +468,7 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
   aoConfirmar: (pais: string) => void
 }) {
   const [marcado, setMarcado] = useState<string | null>(null)
-  const privateVisual = useOnlinePreview()
+  const privateVisual = ONLINE_VISUAL_RELEASED
   const paises = useMemo(paisesDaCopa, [])
   const enviado = useRef(false)
   const marcadoRef = useRef<string | null>(null)
@@ -514,7 +514,7 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
 
 // ── o BANNER de 15s entre a bandeira e a convocação ──
 function BannerDaCopa({ seg }: { seg: number }) {
-  const privateVisual = useOnlinePreview()
+  const privateVisual = ONLINE_VISUAL_RELEASED
   if (privateVisual) return <CompetitionStage kind="world" title="COPA DO MUNDO" phase="É hora de convocar" detail={`Todas as seleções foram escolhidas. Você terá ${SEG_CONVOCA}s para convocar seus 11 jogadores.`} status={`A convocação abre em ${seg}s`}>
     <div className="ll26-cup-entry"><p style={{fontSize:13,lineHeight:1.5}}>Escolha o time que vai representar seu país. Quem deixar o prazo terminar sem convocar recebe os 11 de menor nível, conforme a regra da sala.</p><Relogio seg={seg} total={SEG_BANNER} /></div>
   </CompetitionStage>
@@ -545,7 +545,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null }) => void
 }) {
   const [linhas, setLinhas] = useState<LinhaSala[]>([])
-  const privateVisual = useOnlinePreview()
+  const privateVisual = ONLINE_VISUAL_RELEASED
   const [fase, setFase] = useState<LinhaFase | null>(null)
   const [aberta, setAberta] = useState(false)
   const [comecando, setComecando] = useState(false)

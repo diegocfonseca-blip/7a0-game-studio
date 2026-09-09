@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import './online-visual.css'
-import { useOnlinePreview } from './online-preview'
+import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG } from './manto'
@@ -574,7 +574,7 @@ function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: str
 }
 
 export function EscLobby() {
-  const privateOnline = useOnlinePreview()
+  const privateOnline = ONLINE_VISUAL_RELEASED
   const { dispatch } = useEsc()
   const [user, setUser] = useState<User | null>(null)
   const [phase, setPhase] = useState<Phase>('auth')
