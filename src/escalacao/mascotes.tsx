@@ -28,6 +28,7 @@ import sistematizadosMascoteImg from './img/sistematizados-mascote.webp' // 🎮
 import brigaDeGaloMascoteImg from './img/brigadegalo-mascote.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
+import soDeusSabeMascoteImg from './img/sodeussabe-mascote.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -582,6 +583,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   falad10_d10: (
     <img src={falaD10MascoteImg} height={176} width={Math.round(176 * 238 / 440)} alt="O D10 — Fala D10" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🙏 O Anjo — Só Deus Sabe FC (09/09). 404x440 no arquivo (a cena é LARGA: anjo
+  // de joelhos, asas abertas, gol e bola atrás), então a largura sai da
+  // PROPORÇÃO REAL (nunca width={size} chutado).
+  sodeussabe_anjo: (
+    <img src={soDeusSabeMascoteImg} height={176} width={Math.round(176 * 404 / 440)} alt="O Anjo — Só Deus Sabe FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   brigadegalo_galo: (
     <img src={brigaDeGaloMascoteImg} height={176} width={Math.round(176 * 272 / 440)} alt="O Galo — Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -967,6 +974,15 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Fala D10 SC': 'falad10_d10',
   'FALA D10': 'falad10_d10',
   'FALA D10 FC': 'falad10_d10',
+  // 🙏 Só Deus Sabe FC — as 4 formas do nome e a CAIXA ALTA (sem nome velho: o
+  // Nightfull só mudou de divisão)
+  'Só Deus Sabe FC': 'sodeussabe_anjo',
+  'Só Deus Sabe': 'sodeussabe_anjo',
+  'Só Deus Sabe EC': 'sodeussabe_anjo',
+  'Só Deus Sabe SC': 'sodeussabe_anjo',
+  'SÓ DEUS SABE FC': 'sodeussabe_anjo',
+  'SÓ DEUS SABE': 'sodeussabe_anjo',
+  'So Deus Sabe FC': 'sodeussabe_anjo',
   'Corporação Capsule FC': 'capsule_dragao',
   'Corporação Capsule': 'capsule_dragao',
   'Corporação Capsule EC': 'capsule_dragao',
@@ -1026,6 +1042,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   stocco_lobo: 'O Relâmpago', // ⚡🐺 Stocco FC (stoccoassessoria, 04/09) — tirado do "OS RELÂMPAGOS" que o dono pôs na manga da camisa
   bagres_bagre: 'O Bagre', // 🐟 Bagres 1993 (caiohcris, 06/09) — o bagre de boné do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   vidraceiro_vidro: 'O Cristal', // 🪟 Vidraceiro FC (guiouriques, 05/09) — a chapa de vidro do escudo. ✅ nome CONFIRMADO pelo Diego ("mascote tudo bem ser Cristal", 05/09)
+  sodeussabe_anjo: 'O Anjo', // 🙏 Só Deus Sabe FC (09/09) — o anjo de joelhos no gramado, chorando pro céu. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono

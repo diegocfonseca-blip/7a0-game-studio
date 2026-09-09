@@ -208,6 +208,79 @@ pela colocação (07/09). Recolocados com `git apply -R` só dos 4 hunks (as par
 deles — `careerPresident`, telas privadas — ficaram intactas). Pra quem for
 mexer no `store.tsx` a partir de outro branch: **rebase antes, não copie por cima.**
 
+## 💸 CONTA DO SUPABASE: Realtime e Egress estourando todo mês (achado 09/09)
+O Diego mostrou o faturamento: **Realtime 15,2M de 5M inclusos** (excedente 10,2M)
+e **Egress 339 GB de 250 GB** (excedente 90 GB). ~US$ 34/mês a mais. Ele perguntou
+de onde vem e se dá pra melhorar sem atrapalhar o jogo.
+
+**A CAUSA, medida (pg_stat_statements, 11d22h; e o billing, 22 dias):**
+| o quê | por dia |
+|---|---|
+| `UPDATE game_rooms SET updated_at` (heartbeat PURO, nada mudou) | **82.583** |
+| `UPDATE game_rooms SET game_state + updated_at` (mudou de verdade) | 35.533 |
+| mudanças que o Realtime processou (`SELECT wal->>…`) | 163.645 |
+| mensagens Realtime cobradas | ~691.000 |
+
+691.000 ÷ 163.645 = **~4,2 assinantes por mudança** (a média de gente por sala).
+
+**Por que dói:** `game_rooms` está na publicação `supabase_realtime` (junto com
+`room_players`), e o `postgres_changes` entrega **a linha INTEIRA** pra cada
+assinante — e a linha da sala tem `game_state` de **54 KB em média, até 271 KB**.
+Ou seja: a cada 3 segundos, uma sala com 4 pessoas manda ~216 KB pra dizer que
+nada mudou. Isso é ~50% das mensagens de Realtime e a maior fatia do Egress.
+
+**O que NÃO está em jogo:** o jogo em si (`store.tsx`, canal `escalacao:<sala>`)
+usa **broadcast**, não `postgres_changes`. Quem escuta `game_rooms` por
+`postgres_changes` é só o `lobby.tsx` (que precisa de `status`, `host_id` e, no
+modo mundo, o state pequeno) e o `careeronline.tsx` (esse usa o state inteiro).
+
+**PLANO EM 3 DEGRAUS (do mais seguro pro mais fundo) — nada aprovado ainda:**
+1. 🟢 **Espaçar o heartbeat PURO de 3s pra 15s** (`store.tsx`, o ramo
+   `if (body === lastUpRef.current)`). O save do estado que MUDOU continua nos
+   3s de sempre. As folgas que dependem disso têm sobra: lista de salas usa 60s
+   (jogo rolando) e 180s (esperando). **Ganho: -66 mil updates/dia → ~-277 mil
+   mensagens/dia (-40%) e Egress proporcional. Risco: baixo, 1 linha, revertível.**
+2. 🟡 **Tirar o `postgres_changes` de `game_rooms` do lobby**: criar tabela magra
+   (`room_sinais`: room_id, status, host_id) mantida por gatilho, publicar SÓ ela
+   no realtime e o lobby escutar ela. Payload cai de 54 KB pra ~200 bytes.
+   Ganho: quase todo o Egress do Realtime. Risco: médio (mexe no "começou o jogo"
+   e no dono da sala).
+3. 🔴 **Carreira online** (`careeronline.tsx`) migrar de `postgres_changes` pra
+   broadcast. Risco alto, deixar por último.
+
+⚠️ Aumentar a máquina **NÃO resolve** isto: Realtime e Egress são cobrados por
+uso, não por tamanho de servidor.
+
+## 🙏 BATISMO SÓ DEUS SABE FC (09/09) — Série A, no assento do Nightfull FC (que desceu pra B)
+Dono: `contateste577660006@gmail.com` (conta criada HOJE 09/09 14:40 UTC, nome de
+técnico "MatzynFc" — parece conta de teste, mas o Diego mandou e a conta existe).
+Pedido: *"Add agora o time Só Deus Sabe FC… time de coração Atlético Mineiro.
+Coloque o time do Nightfull pra série B no lugar de outro bot e põe esse novo no
+lugar dele na série A"*.
+- **Assentos:** Só Deus Sabe FC → Série A (linha que era do Nightfull FC);
+  **Nightfull FC → Série B**, na vaga do bot "Guarani do Agreste" (só existia em
+  `DIVISION_TEAMS.B` e `CLASSIC_CLUBS`) — herdou a força dele em `CLASSIC_CLUBS`
+  (atk 70 / def 68), mesma receita do Murriz. **Sem OLD_NAME** nos dois.
+- **Arte** (prancha 1536×1024, 3 peças separadas, corte direto; 3 poeiras de
+  grama descartadas). Escudo 266×360 · 27,6 KB. **Mascote é uma CENA LARGA**
+  (anjo de joelhos + asas + gol + bola): 404×440 — ficou 55 KB na qualidade
+  padrão, acima do teto de 45; baixei qualidade/alfa até caber (ver commit).
+  Camisa em `scripts/kits/`.
+- **Manto** `['#12100F', '#D19B36']` (preto 74% + dourado), 3ª cor branca
+  `#F8F4EB` em `MANTO_TRI` (nuvens da barra e filetes das mangas).
+- **Mascote** `sodeussabe_anjo` — "O Anjo" (⚠️ PROVISÓRIO).
+- **Código:** `data.ts` (A + B + CLASSIC_CLUBS) · `escudos.tsx` · `mascotes.tsx` ·
+  `apoio.tsx` (ouro + FUNDADOR 65) · `manto.ts` · `batismos.ts` ·
+  `checa-batismos.mjs` · `novidades.ts` · mockup do Salão (branch).
+- **Banco (feito):** `esc_socios` nº43 (escudo_time 'Só Deus Sabe FC', coração
+  'Atlético Mineiro', manto e mascote_key) · `esc_fundadores` 65 ·
+  `esc_nomes_batismo` 'só deus sabe' e 'so deus sabe' (+FC/EC pelo gatilho) ·
+  `user_colors` ouro manual.
+- ⚠️ O nome de técnico do dono é "MatzynFc", não o do clube: pelos mimos por
+  e-mail ele já vê escudo/mascote no time dele; pra os OUTROS verem, ele precisa
+  jogar como "Só Deus Sabe FC" (ou a Etapa 3).
+- ❓ **Pendente com o Diego:** nome da mascote · @ do dono.
+
 ## 🎙️ BATISMO FALA D10 (09/09) — Série A, no assento do Skyy FC (que desceu pra D)
 Dono: `diegohdsf@gmail.com` (conta de 03/09, nome de técnico "FALA D10").
 Pedido do Diego: *"add esse usuário como Batismo e nome do time é Fala D10. Time

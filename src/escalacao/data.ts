@@ -2560,7 +2560,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   // o batismo de R$69,90 compra. (era a "Série D" até 30/08)
   A: [
     { name: 'Zé Ruela', team: 'Neymarzetti' }, // ⚽ clube BATIZADO (time do Diego, dono do jogo — ex-Paixandu)
-    { name: 'Guilherme', team: 'Nightfull FC' }, // ⚽ clube BATIZADO por apoiador (Guilherme)
+    { name: 'Anjo Caído', team: 'Só Deus Sabe FC' }, // 🙏 clube BATIZADO por apoiador (contateste577660006 — Só Deus Sabe FC; coração Atlético Mineiro; anjo de joelhos no gramado, preto + dourado; Lenda + fundador nº65 + sócio nº43, 09/09). Assento que era do Nightfull FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Nightfull não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Pelado FR).
     { name: 'Bagrão', team: 'Bagres 1993' }, // 🐟 clube BATIZADO por apoiador (caiohcris — Bagres 1993; verde e branco, mascote o Bagre de boné; Lenda + fundador nº59 + sócio nº37, 06/09). Assento que era do White Thigs do GuGu, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o GuGu não foi renomeado, só mudou de divisão — e ele tem corrente própria de nomes velhos (Astronáutico/Sinhô Futebol) que continua valendo.
     { name: 'Serjão', team: 'Marolados FC' }, // ⚽ clube BATIZADO por apoiador (paisagensetrilha — Marolados FC, ex-Real Madruga; molecada da várzea, Lenda + fundador, 11/08)
     { name: 'Painitto', team: 'SC Ferrari' }, // ⚽ clube BATIZADO por apoiador (adriano.ferrari — SC Ferrari, ex-Painitto FC)
@@ -2587,7 +2587,12 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Cerradão', team: 'Esporte do Cerrado' },
     { name: 'Baixada', team: 'União da Baixada' },
     { name: 'Recôncavo', team: 'Marítimo do Recôncavo' },
-    { name: 'Agreste', team: 'Guarani do Agreste' },
+    // 🌙 Nightfull FC (Guilherme) DESCEU da Série A pra cá em 09/09, por decisão do
+    // Diego, pra abrir o assento do Só Deus Sabe FC. Ocupa a vaga que era do bot
+    // "Guarani do Agreste" (só existia aqui e em CLASSIC_CLUBS). ⚠️ DE PROPÓSITO
+    // **não** existe `OLD_NAME['Nightfull FC'] = 'Guarani do Agreste'`: ele não foi
+    // renomeado, só mudou de divisão — o nome velho dele (Pelado FR) segue valendo.
+    { name: 'Guilherme', team: 'Nightfull FC' }, // ⚽ clube BATIZADO por apoiador (Guilherme). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
     { name: 'Comendador', team: 'Comercial das Gerais' },
     { name: 'Fronteira', team: 'Ipiranga da Fronteira' },
     // 🥋 White Thigs do GuGu (o 1º batismo da história) DESCEU da Série A pra cá
@@ -2701,7 +2706,7 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Esporte do Cerrado', atk: 73, def: 75 },
   { name: 'União da Baixada', atk: 72, def: 71 },
   { name: 'Marítimo do Recôncavo', atk: 70, def: 72 },
-  { name: 'Guarani do Agreste', atk: 70, def: 68 },
+  { name: 'Nightfull FC', atk: 70, def: 68 }, // 🌙 desceu da Série A em 09/09 (abriu o assento do Só Deus Sabe FC) — MESMA força do bot que cedeu a vaga (Guarani do Agreste)
   { name: 'Comercial das Gerais', atk: 68, def: 70 },
   { name: 'Ipiranga da Fronteira', atk: 67, def: 66 },
   { name: 'White Thigs do GuGu', atk: 65, def: 67 }, // 🥋 desceu da Série A em 06/09 (abriu o assento do Bagres 1993) — MESMA força do bot que cedeu a vaga (Estrela do Pantanal)
