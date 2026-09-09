@@ -8208,22 +8208,25 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         if (crachá != null && (state.seasonVotes ?? {})[crachá]) uidsQueVotaram.add(p.user_id)
       }
       const meuUidAgora = auth?.user?.id
-      // 🛡️ TRAVA NOVA (Diego 23/08, ao vivo na liga dele): *"mostrou q a secundária
-      // saiu, sendo q eu tô jogando c os dois pra testes e n saiu a secundária"* — e
-      // aí o jogo o expulsou da lista, sobrou 1 pessoa e caiu no aviso de "você ficou
-      // sozinho". A trava de cima ("se a presença não chegou, não corta") só cobria
-      // presença VAZIA. O buraco era a presença PELA METADE: com o crachá do host
-      // presente e o do convidado faltando — o defeito que atormentou a noite toda —
-      // `podeCortar` virava true e cortava justamente quem estava lá.
-      // Régua nova, a mesma da coroa: só corta quando a lista de crachás está
-      // COMPLETA (um crachá pra cada pessoa com vaga na sala). Se tem gente na sala
-      // que eu não consigo identificar, não dá pra afirmar que alguém saiu — então
-      // ninguém é cortado. É o que o comentário logo acima já mandava fazer:
-      // *"melhor um a mais, que o host remove, do que cortar quem estava jogando"*.
-      const crachasCompletos = uidsPresentes.size >= semRepetir.length
-      const podeCortar = uidsPresentes.size > 0 && crachasCompletos
-      const uniq = podeCortar
-        ? semRepetir.filter(p => p.user_id === meuUidAgora || uidsPresentes.has(p.user_id) || uidsQueVotaram.has(p.user_id))
+      // 🚪 REGRA DO DIEGO (09/09, sala do Futpoint): *"se o cara saiu na votação
+      // então ele saiu de vez. Ele saiu da sala. Mesma coisa de apertar o botão
+      // sair… quando o host reiniciar, começa com quem não saiu e votou"*.
+      // Isto SUBSTITUI a trava de 23/08 ("só corta com a lista de crachás
+      // COMPLETA"). Aquela trava fazia o corte NUNCA acontecer quando alguém fechava
+      // o app: a vaga dele fica no banco, então a lista nunca fica completa. Foi
+      // assim que o Dérick e o Florminense, marcados como "🚪 saiu" na tela,
+      // entraram no leilão novo e travaram o setor esperando envelope de fantasma.
+      // Régua nova = EXATAMENTE a que a tela mostra: quem aparece como "🚪 saiu"
+      // (não está na presença nem por cadeira nem por crachá) e NÃO votou fica de
+      // fora. Votar continua provando presença — cobre a presença que chega pela
+      // metade, o caso de 23/08. O host vê na lista quem vai ficar de fora ANTES
+      // de tocar, e o aviso de "X pessoas saíram e não entraram" continua saindo.
+      // 🛡️ A única guarda que sobra: presença VAZIA (realtime morto) → não corta
+      // ninguém, porque aí não dá pra afirmar nada sobre ninguém.
+      const cadeiraPresente = (p: { player_index: number }) => present.has(state.managers[p.player_index]?.id ?? -1)
+      const temPresenca = uidsPresentes.size > 0 || (state.presence ?? []).length > 0
+      const uniq = temPresenca
+        ? semRepetir.filter(p => p.user_id === meuUidAgora || uidsPresentes.has(p.user_id) || cadeiraPresente(p) || uidsQueVotaram.has(p.user_id))
         : semRepetir
       const cortados = semRepetir.length - uniq.length
       const duplas: Record<number, DuplaSeat> = {}

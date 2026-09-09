@@ -8104,7 +8104,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // virar o time dele em RIVAL CPU na hora — ninguém fica esperando ele lacrar. O
     // rival continua dando lance com o time e o dinheiro dele (KICK_PLAYER só tira o
     // isHuman); o host pode excluir esse rival depois no "gerenciar técnicos".
-    const inGame = ['auction', 'monte', 'cerimonia', 'season'].includes(st.screen)
+    // 🚪 A VOTAÇÃO DE FIM DE JOGO ('end') E A LIBERTADORES TAMBÉM CONTAM (Diego
+    // 09/09, sala do Futpoint): *"se o cara saiu na votação então ele saiu de vez.
+    // Ele saiu da sala."* Antes, quem apertava SAIR na tela do "e agora?" sumia da
+    // sala mas continuava como HUMANO no estado — e o "novo leilão" o trazia de
+    // volta como fantasma, travando o setor à espera de um envelope que nunca vem.
+    const inGame = ['auction', 'monte', 'cerimonia', 'season', 'liberta', 'end'].includes(st.screen)
     if (onlineRef.current === 'online' && !isHostRef.current && rid && inGame) {
       // 🤝 DUPLA: se eu jogava de dois, o time NÃO vira CPU — seria injusto com
       // quem ficou. Em vez do KICK_PLAYER, aviso que ele assume TODAS as
