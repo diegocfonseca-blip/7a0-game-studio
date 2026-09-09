@@ -30,6 +30,7 @@ import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC
 import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
 import soDeusSabeMascoteImg from './img/sodeussabe-mascote.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
 import bagresWallStMascoteImg from './img/bagreswallst-mascote.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
+import bichoDaSedaMascoteImg from './img/bichodaseda-mascote.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -737,30 +738,17 @@ export const MASCOTES: Record<string, ReactNode> = {
       </g>
     </svg>
   ),
-  // 🦋 mariposa-da-seda NERVOSA do Bicho da Seda (Davi Santana — davisantana1312):
-  // BRANCA com detalhes pretos (coração do Davi é BOTAFOGO, correção 10/08).
-  // inteira (asas de cima + de baixo com caudinha) — no festão ela "voa".
+  // 🐛 O Bicho da Seda — Bicho da Seda (davisantana1312/Davi). 09/09: arte NOVA
+  // do dono, 436x440 no arquivo (cena quase quadrada: o bicho de óculos escuros e
+  // camisa alvinegra, braços cruzados, pé na bola, carretel de linha e folhas), então
+  // a largura sai da PROPORÇÃO REAL. Substituiu a mariposa em SVG de 10/08.
+  bichodaseda_bicho: (
+    <img src={bichoDaSedaMascoteImg} height={176} width={Math.round(176 * 436 / 440)} alt="O Bicho da Seda — Bicho da Seda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🧷 `mariposa` era a chave antiga (10/08) e pode estar num save/na linha do sócio
+  // ainda não atualizada: aponta pra MESMA arte nova, nunca pra um buraco.
   mariposa: (
-    <svg width="140" height="168" viewBox="0 0 200 240">
-      <g transform="translate(0,10)">
-        <path d="M96 104 C70 70 40 56 28 62 C18 88 30 128 58 140 C72 146 86 138 94 128 Z" fill="#F4F4F4" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-        <path d="M104 104 C130 70 160 56 172 62 C182 88 170 128 142 140 C128 146 114 138 106 128 Z" fill="#F4F4F4" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-        <path d="M94 130 C76 142 62 162 64 180 C66 194 76 200 84 192 Q80 206 90 210 C98 200 100 170 98 146 Z" fill="#E2E2E2" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-        <path d="M106 130 C124 142 138 162 136 180 C134 194 124 200 116 192 Q120 206 110 210 C102 200 100 170 102 146 Z" fill="#E2E2E2" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-        <g fill="#141414"><ellipse cx="46" cy="86" rx="4" ry="6" /><ellipse cx="60" cy="112" rx="3.5" ry="5" /><ellipse cx="76" cy="92" rx="3" ry="4.5" /><ellipse cx="154" cy="86" rx="4" ry="6" /><ellipse cx="140" cy="112" rx="3.5" ry="5" /><ellipse cx="124" cy="92" rx="3" ry="4.5" /><ellipse cx="78" cy="168" rx="3" ry="4.5" /><ellipse cx="122" cy="168" rx="3" ry="4.5" /></g>
-        <path d="M40 76 q14 16 24 40 M160 76 q-14 16 -24 40" stroke="#9AA0A6" strokeWidth="3.5" fill="none" />
-        <ellipse cx="100" cy="140" rx="9" ry="12" fill="#EDEDED" stroke={INK} strokeWidth="5" />
-        <ellipse cx="100" cy="120" rx="11" ry="14" fill="#EDEDED" stroke={INK} strokeWidth="5" />
-        <ellipse cx="100" cy="100" rx="12" ry="13" fill="#ffffff" stroke={INK} strokeWidth="5" />
-        <path d="M88 72 C74 56 58 48 46 50 C50 62 66 74 84 78 Z" fill="#141414" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
-        <path d="M112 72 C126 56 142 48 154 50 C150 62 134 74 116 78 Z" fill="#141414" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
-        <circle cx="100" cy="78" r="16" fill="#EDEDED" stroke={INK} strokeWidth="5" />
-        <circle cx="92" cy="80" r="7.5" fill={INK} /><circle cx="108" cy="80" r="7.5" fill={INK} />
-        <circle cx="94.5" cy="77.5" r="2.2" fill="#fff" /><circle cx="110.5" cy="77.5" r="2.2" fill="#fff" />
-        <path d="M78 65 L96 74 M122 65 L104 74" stroke={INK} strokeWidth="6.5" strokeLinecap="round" />
-        <path d="M93 92 q7 -6 14 0" stroke={INK} strokeWidth="4.5" fill="none" strokeLinecap="round" />
-      </g>
-    </svg>
+    <img src={bichoDaSedaMascoteImg} height={176} width={Math.round(176 * 436 / 440)} alt="O Bicho da Seda — Bicho da Seda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦊 raposa azul do La Bestia Negra (Elton) — cara IGUAL à do escudo (pedido
   // do Diego 09/08): orelhão com miolo preto, bigodinho, focinho creme.
@@ -858,7 +846,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Leão da Estradinha FC': 'leao_estradinha',
   'Leão da Estradinha EC': 'leao_estradinha',
   'Império Samambaia': 'leao_estradinha', // nome velho → mascote novo (carreira antiga acompanha o rebatismo)
-  'Bicho da Seda': 'mariposa',
+  'Bicho da Seda': 'bichodaseda_bicho',
+  'Bicho da Seda FC': 'bichodaseda_bicho',
+  'Bicho da Seda EC': 'bichodaseda_bicho',
+  'BICHO DA SEDA': 'bichodaseda_bicho',
+  'BICHO DA SEDA FC': 'bichodaseda_bicho',
   'Nightfull FC': 'galo',
   'Murriz FC': 'careca_ruivo',
   'Tôka10': 'toka',
@@ -1059,6 +1051,8 @@ export const MASCOTE_NOME: Record<string, string> = {
   vidraceiro_vidro: 'O Cristal', // 🪟 Vidraceiro FC (guiouriques, 05/09) — a chapa de vidro do escudo. ✅ nome CONFIRMADO pelo Diego ("mascote tudo bem ser Cristal", 05/09)
   sodeussabe_anjo: 'O Anjo', // 🙏 Só Deus Sabe FC (09/09) — o anjo de joelhos no gramado, chorando pro céu. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bagreswallst_bagre: 'O Bagre Investidor', // 🐟📉 Bagres de Wall Street FC (09/09) — o bagre de terno, coroa e charuto sentado no caixote. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  bichodaseda_bicho: 'O Bicho da Seda', // 🐛 Bicho da Seda (09/09) — o bicho de óculos escuros, braços cruzados e pé na bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  mariposa: 'O Bicho da Seda', // 🧷 chave antiga (10/08) — mesma mascote
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
