@@ -268,7 +268,7 @@ coração Botafogo). Prancha em verde neon com escudo + mascote + camisa.
   Resto já estava certo (ouro, fundador 11, 3 nomes reservados).
 - Post gerado com o mockup padrão (manchete "Nasceu o…" — o gerador não tem modo
   "cara nova"; se o Diego quiser, criar `--renovacao`).
-- ❓ Pendente: nome da mascote · @ do Davi.
+- ✅ Nome da mascote **confirmado** pelo Diego (09/09): "O Bicho da Seda". Post refeito em modo `--renovacao` ("Cara nova pro…"), flag nova do gerador. ❓ Pendente: @ do Davi.
 
 ## 🗳️ SALA DO FUTPOINT (09/09 à noite, sala B1QPHE): 3 bugs na virada de temporada — ✅ 3 consertados
 Relato do Diego (ao vivo, com prints do stream): a sala jogou liga + Copa do Mundo,
@@ -353,7 +353,7 @@ coração São Paulo."*
 - **Banco (feito):** `esc_socios` nº44 (escudo_time 'Bagres de Wall Street FC',
   coração São Paulo, válido até 2099), `esc_fundadores` nº66, `user_colors` ouro
   manual, `esc_nomes_batismo` com o nome puro (o gatilho criou FC e EC sozinho).
-- ❓ **Pendente com o Diego:** nome da mascote · @ do dono.
+- ✅ Nome da mascote **confirmado** pelo Diego (09/09): "O Bagre Investidor". ❓ Pendente: @ do dono.
 
 ## 🙏 BATISMO SÓ DEUS SABE FC (09/09) — Série A, no assento do Nightfull FC (que desceu pra B)
 Dono: `contateste577660006@gmail.com` (conta criada HOJE 09/09 14:40 UTC, nome de
@@ -383,7 +383,7 @@ lugar dele na série A"*.
 - ⚠️ O nome de técnico do dono é "MatzynFc", não o do clube: pelos mimos por
   e-mail ele já vê escudo/mascote no time dele; pra os OUTROS verem, ele precisa
   jogar como "Só Deus Sabe FC" (ou a Etapa 3).
-- ❓ **Pendente com o Diego:** nome da mascote · @ do dono.
+- ✅ Nome da mascote **confirmado** pelo Diego (09/09): "O Anjo". ❓ Pendente: @ do dono.
 
 ## 🎙️ BATISMO FALA D10 (09/09) — Série A, no assento do Skyy FC (que desceu pra D)
 Dono: `diegohdsf@gmail.com` (conta de 03/09, nome de técnico "FALA D10").

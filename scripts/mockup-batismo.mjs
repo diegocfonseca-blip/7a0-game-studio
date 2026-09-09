@@ -17,8 +17,10 @@
 //     --saida /tmp/skyy-post.png
 //
 // ── O QUE O POST TEM, DE CIMA PRA BAIXO (não mexer sem o Diego mandar) ──────
-//   1. pílula "BATISMO DE LENDA" (ou "CLUBE DE SÓCIO", com --socio)
-//   2. manchete "NASCEU O <CLUBE>" (a 1ª palavra do nome sai em vermelho)
+//   1. pílula "BATISMO DE LENDA" (ou "CLUBE DE SÓCIO", com --socio; ou "CLUBE DE
+//      CARA NOVA", com --renovacao — clube que já existe e trocou a arte)
+//   2. manchete "NASCEU O <CLUBE>" (a 1ª palavra do nome sai em vermelho;
+//      --renovacao vira "CARA NOVA PRO <CLUBE>")
 //   3. uma frase explicando quem é o dono, a divisão e de quem tomou a vaga
 //   4. cartão dourado: escudo + nome + coração + o resumo do clube
 //   5. mascote e manto lado a lado
@@ -58,6 +60,12 @@ const o = {
   insta: arg('insta', ''), // 📸 @ do dono — entra no rodapé, do lado do nome dele
   instaInfo: arg('insta-info', ''), // 📸 linha miúda embaixo do @ (ex.: "Canal Meia na Canela · 72,8 mil seguidores") — pedido do Diego no Jurubeba (02/09)
   socio: process.argv.includes('--socio'), socioN: arg('socio-n', ''),
+  // 🎨 CARA NOVA (--renovacao): clube que JÁ existe e trocou a arte (o dono mandou
+  // escudo/mascote/camisa novos). Pedido do Diego 09/09 pro Bicho da Seda:
+  // *"cara nova pro Bicho da Seda"* — o "Nasceu o…" mentia (o clube é de agosto).
+  // Troca a pílula, a manchete e a frase; some com "chega na Série X" e com o
+  // "entra no lugar de". O resto do post (mascote, manto, animações, selos) é igual.
+  renovacao: process.argv.includes('--renovacao'),
   saida: arg('saida', 'mockup-batismo.png'),
   escala: Number(arg('escala', '1')), // 🔍 2 = o dobro de pixels (pro Instagram)
 }
@@ -209,9 +217,11 @@ h1 .r{color:#C2452F}
 .marca span{color:#C2452F}
 .site{font-size:14px;color:rgba(12,12,12,.42)}
 </style>
-<div class="pill">${o.mascoteEmoji} ${o.socio ? 'CLUBE DE SÓCIO' : 'BATISMO DE LENDA'}</div>
-<h1>${o.socio ? 'Chegou o' : 'Nasceu o'}<br><span class="r">${destaque}</span>${resto ? `<br>${resto}` : ''}</h1>
-<p class="lead">${o.socio
+<div class="pill">${o.mascoteEmoji} ${o.renovacao ? 'CLUBE DE CARA NOVA' : o.socio ? 'CLUBE DE SÓCIO' : 'BATISMO DE LENDA'}</div>
+<h1>${o.renovacao ? 'Cara nova pro' : o.socio ? 'Chegou o' : 'Nasceu o'}<br><span class="r">${destaque}</span>${resto ? `<br>${resto}` : ''}</h1>
+<p class="lead">${o.renovacao
+  ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} já joga a <b>Série ${o.serie}</b> — e agora entra em campo com <b>arte própria do dono</b>: escudo novo, manto ${cores} e ${art ? 'a' : 'o'} ${mascCurto} de mascote.`
+  : o.socio
   ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} agora tem <b>escudo, mascote e manto no jogo</b> — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote. Clube próprio de sócio: <b>não tira o lugar de ninguém</b> na pirâmide.`
   : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} chega na <b>Série ${o.serie}</b>${o.antigo ? ` no lugar do ${o.antigo}` : ''} — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}</p>
 
@@ -220,7 +230,7 @@ h1 .r{color:#C2452F}
   <div>
     <h2>${destaque}${resto ? `<small>${resto}</small>` : ''}</h2>
     ${o.coracao ? `<div class="cor">❤️ Coração: ${o.coracao}</div>` : ''}
-    <p>${cores[0].toUpperCase() + cores.slice(1)}.${o.socio ? ' Clube próprio do sócio — entra em campo com a cara dele, sem tirar o lugar de nenhum time.' : (o.antigo ? ` Entra no lugar do ${o.antigo} — mesma vaga, mesmo elenco, cara nova.` : '')}</p>
+    <p>${cores[0].toUpperCase() + cores.slice(1)}.${o.renovacao ? ' Mesmo clube, mesma vaga, mesmo dono — escudo, manto e mascote novos.' : o.socio ? ' Clube próprio do sócio — entra em campo com a cara dele, sem tirar o lugar de nenhum time.' : (o.antigo ? ` Entra no lugar do ${o.antigo} — mesma vaga, mesmo elenco, cara nova.` : '')}</p>
   </div>
 </div>
 

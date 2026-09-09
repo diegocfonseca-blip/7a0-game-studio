@@ -1049,9 +1049,9 @@ export const MASCOTE_NOME: Record<string, string> = {
   stocco_lobo: 'O Relâmpago', // ⚡🐺 Stocco FC (stoccoassessoria, 04/09) — tirado do "OS RELÂMPAGOS" que o dono pôs na manga da camisa
   bagres_bagre: 'O Bagre', // 🐟 Bagres 1993 (caiohcris, 06/09) — o bagre de boné do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   vidraceiro_vidro: 'O Cristal', // 🪟 Vidraceiro FC (guiouriques, 05/09) — a chapa de vidro do escudo. ✅ nome CONFIRMADO pelo Diego ("mascote tudo bem ser Cristal", 05/09)
-  sodeussabe_anjo: 'O Anjo', // 🙏 Só Deus Sabe FC (09/09) — o anjo de joelhos no gramado, chorando pro céu. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
-  bagreswallst_bagre: 'O Bagre Investidor', // 🐟📉 Bagres de Wall Street FC (09/09) — o bagre de terno, coroa e charuto sentado no caixote. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
-  bichodaseda_bicho: 'O Bicho da Seda', // 🐛 Bicho da Seda (09/09) — o bicho de óculos escuros, braços cruzados e pé na bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  sodeussabe_anjo: 'O Anjo', // 🙏 Só Deus Sabe FC (09/09) — o anjo de joelhos no gramado, chorando pro céu. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
+  bagreswallst_bagre: 'O Bagre Investidor', // 🐟📉 Bagres de Wall Street FC (09/09) — o bagre de terno, coroa e charuto sentado no caixote. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
+  bichodaseda_bicho: 'O Bicho da Seda', // 🐛 Bicho da Seda (09/09) — o bicho de óculos escuros, braços cruzados e pé na bola. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   mariposa: 'O Bicho da Seda', // 🧷 chave antiga (10/08) — mesma mascote
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
