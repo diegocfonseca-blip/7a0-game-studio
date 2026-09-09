@@ -532,7 +532,7 @@ function BannerDaCopa({ seg }: { seg: number }) {
   )
 }
 
-export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSeed, aoStatus }: {
+export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSeed, aoStatus, seasonNo = 1 }: {
   roomId: string
   souDono: boolean
   meuUid?: string
@@ -540,6 +540,14 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   classificacao: LugarNaLiga[]
   /** a semente da partida — é a chave da linha desta temporada na estante */
   matchSeed?: number
+  /** 🌍 a TEMPORADA da sala (seasonNo) = a EDIÇÃO da Copa. Uma Copa por temporada
+      (Diego 09/09, sala do Futpoint): a sala reiniciou com "novo leilão" (liga +
+      mundo), a liga acabou e NÃO teve Copa — o jornal ainda repetiu o campeão da
+      noite anterior. Motivo: a Copa era "uma por sala": a 2ª temporada achava a
+      linha da 1ª (com campeão gravado) e dava a noite por encerrada. Agora cada
+      temporada procura e abre SÓ a edição dela; a chave da tabela já era
+      (sala, edição), então a edição vira o número da temporada. */
+  seasonNo?: number
   /** 📰 avisa o fim de temporada se a noite JÁ acabou e quem levou a Copa —
       é o que segura o jornal e a votação até a Copa terminar (Diego 01/09). */
   aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null }) => void
@@ -569,11 +577,13 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   // quebra, o dono via o botão "COMEÇAR A COPA" no meio da piscada. Agora: deu
   // erro em qualquer uma das duas consultas, fica tudo como estava.
   const [lido, setLido] = useState(false) // já li o banco ao menos uma vez com sucesso?
+  // 🌍 a edição desta noite = a temporada da sala (ver o comentário da prop `seasonNo`)
+  const edicaoDaTemporada = Math.max(1, Math.floor(Number(seasonNo) || 1))
   const ler = useCallback(async () => {
     try {
       const [{ data: pls, error: e1 }, { data: fs, error: e2 }] = await Promise.all([
         supabase.from('room_players').select('user_id, player_index, manager_name, copa').eq('room_id', roomId),
-        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1),
+        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).eq('edicao', edicaoDaTemporada).limit(1),
       ])
       if (e1 || e2 || !pls || !fs) return null
       setLinhas(pls as LinhaSala[])
@@ -582,7 +592,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
       setLido(true)
       return { linhas: pls as LinhaSala[], fase: f }
     } catch { return null }
-  }, [roomId])
+  }, [roomId, edicaoDaTemporada])
 
   useEffect(() => { void ler(); const iv = setInterval(() => { void ler() }, 2000); return () => clearInterval(iv) }, [ler])
 
@@ -671,14 +681,21 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     if (!souDono || comecando) return
     setComecando(true); setErro('')
     try {
-      const { data: fs, error: eFs } = await supabase.from('esc_copa_salas').select('edicao').eq('room_id', roomId).order('edicao', { ascending: false }).limit(1)
-      // 🛡️ UMA COPA POR NOITE: se já existe uma edição desta sala (a tela é que
-      // ainda não tinha lido), NÃO abre outra — só relê. Antes um toque no botão
-      // durante uma piscada de leitura criava a edição 2 e recomeçava a Copa
-      // pra todo mundo.
+      const { data: fs, error: eFs } = await supabase.from('esc_copa_salas').select('edicao').eq('room_id', roomId).eq('edicao', edicaoDaTemporada).limit(1)
+      // 🛡️ UMA COPA POR TEMPORADA: se a edição DESTA temporada já existe (a tela é
+      // que ainda não tinha lido), NÃO abre outra — só relê. Antes um toque no botão
+      // durante uma piscada de leitura criava outra edição e recomeçava a Copa pra
+      // todo mundo. (Era "uma por SALA" até 09/09 — e por isso a 2ª temporada da
+      // mesma sala nunca tinha Copa; ver a prop `seasonNo`.)
       if (eFs) { setErro('Não consegui ler a sala agora. Tenta de novo em instantes.'); return }
       if ((fs ?? []).length > 0) { await ler(); return }
-      const edicao = 1
+      const edicao = edicaoDaTemporada
+      // 🧹 TEMPORADA NOVA, SELEÇÕES NOVAS: a bandeira e os 11 convocados ficam na
+      // linha do jogador (`room_players.copa`), não na edição. Sem limpar, a 2ª Copa
+      // pulava a escolha de país e usava a convocação da temporada passada (com
+      // jogadores que a pessoa nem tem mais). Só o dono faz isso, e só ao ABRIR a
+      // edição nova — ninguém pode ter escolhido nada dela ainda.
+      if (edicao > 1) await supabase.from('room_players').update({ copa: null }).eq('room_id', roomId)
       const primeiro = fila[0]?.uid ?? null
       const { error } = await supabase.from('esc_copa_salas').insert({
         room_id: roomId, edicao, seed: Math.floor(Math.random() * 1e9), times: null,

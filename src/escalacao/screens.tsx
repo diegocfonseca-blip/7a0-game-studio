@@ -9085,6 +9085,7 @@ export function EscEnd() {
         <CercaDaCopa><Suspense fallback={null}>
           <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
+            seasonNo={state.seasonNo ?? 1} // 🌍 uma Copa POR TEMPORADA da sala (o "novo leilão" abre a edição seguinte)
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
             classificacao={table.map(t => {
               const m = state.managers.find(mm => mm.id === t.id)
