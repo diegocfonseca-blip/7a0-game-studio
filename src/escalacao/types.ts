@@ -303,6 +303,7 @@ export interface MatchHighlight {
 }
 
 export interface MatchResult {
+  presentationGoals?: MatchHighlight[] // prévia: eventos reais, sem alterar highlights públicos
   homeId: number
   awayId: number
   hg: number
@@ -315,6 +316,7 @@ export interface MatchResult {
 // clássico do chaveamento; final é jogo único. Mesmo motor de partida do
 // campeonato (simMatch), só que fora do calendário de pontos corridos.
 export interface QuickCopaTie {
+  lastPresentationGoals?: MatchHighlight[]
   aId: number; bId: number; aName: string; bName: string
   legs: [number, number][] // placares [gols de A, gols de B] de cada perna já jogada
   pens?: [number, number]  // disputa de pênaltis, se empatou no agregado

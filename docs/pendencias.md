@@ -1,5 +1,8 @@
 # 📌 Pendências combinadas com o Diego (atualizado 07/09/2026)
 
+## Online V28 — gols e pênaltis compactos, prévia das duas contas
+Aprovado por Diego: autores/minutos nos placares menores, retirada de BOT/técnico repetido, eventos bot-bot guardados sem mudar RNG/placares, pênaltis compactos com resultado separado e vencedor após suspense. Eventos em campo opcional separado dos highlights públicos, só com host privado autenticado. Não inventar autor para clube externo sem jogador identificado, nem reconstruir rodada antiga sem eventos. Host deve atualizar; eventos completos nas próximas partidas. Interface e motor públicos, carreira, pregão e leilão preservados. Testes: 100 jogos idênticos antes/depois, 20 totais de pênaltis, allowlist/logout, build e QA mobile/desktop. Reversão e limites em `docs/online-visual-v28.md`.
+
 ## Online V27 — refinamento privado em 08/09/2026
 Somente as duas contas Diego: removidos os atalhos CLASSIFICAÇÃO/JOGOS DA SALA, mantida a aba JOGOS + TABELA; resumo compacto dos outros jogos com minuto e destaque de gol, técnicos identificados na Libertadores. Mundial com assistências reais de partidas encerradas e relógio privado de apresentação controlado pelo host (RPC/RLS/CAS), inclusive ao reabrir o modal. Sem alterar resultados, sorteios, prêmio, leilão, pregão ou carreira. Correção paralela 276a71a preservada. Build, testes de allowlist, navegador e SQL em rollback passaram; duas janelas com transporte simulado, não duas sessões reais logadas. Detalhes, limites e reversão: `docs/online-visual-v27.md`. Banco aplicado via migration `online_copa_clock_private_preview_v27`.
 

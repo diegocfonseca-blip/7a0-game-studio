@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
+import { onlinePreviewEnabled } from './online-preview'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, AssistRow, TieBreak,
@@ -2395,6 +2396,8 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const hg = poisson(lh, rng), ag = poisson(la, rng)
 
   const highlights: MatchHighlight[] = []
+  const capturePresentation = state.onlineMode === 'online' && onlinePreviewEnabled()
+  const presentationGoals: MatchHighlight[] = []
 
   // 🏀 BASQUETE: placar de PONTOS (~100), sem empate (prorrogação). A "cestinha"
   // soma os pontos por jogador (todas as 5 posições pontuam; nível manda). Usa a
@@ -2499,9 +2502,11 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
         golsDoJogo.push({ nome: scorerName, min })
         if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
+        if (capturePresentation) presentationGoals.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
       } else if (involveHuman) {
         highlights.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id, kind: 'gol' })
       }
+      if (!scorerName && capturePresentation) presentationGoals.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id, kind: 'gol' })
     }
     // 🅰️ QUEM DEU O PASSE — depois que os gols já saíram, com dado próprio.
     // Trava igual à da carreira: time com 3+ gols nunca fica sem nenhum garçom.
@@ -2532,7 +2537,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       }
     }
   }
-  return { homeId, awayId, hg, ag, highlights }
+  return { homeId, awayId, hg, ag, highlights, ...(capturePresentation ? { presentationGoals: presentationGoals.sort((a,b)=>a.min-b.min) } : {}) }
 }
 
 // 🚨 ESTE LANCE CONTA GOL NO PLACAR? (bug do Diego 25/08)
@@ -5891,6 +5896,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const leg: [number, number] = qc.legIdx === 0 ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [gols de A, gols de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
+        tie.lastPresentationGoals = r.presentationGoals
         if (isLastLeg) resolveQuickCopaTie(tie, rng) // só resolve no fim (agregado/pênaltis)
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,

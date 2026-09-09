@@ -5422,7 +5422,7 @@ export function EscSeason() {
             // depois tava 4"*). Era AQUI: enquanto o relógio corria, a linha contava
             // TODO lance (gol + assistência) e o placar inflava; no apito final ele
             // trocava pelo agregado de verdade (`fullAggA/B`) e "voltava" pra 4.
-            const gols = (tie.lastHighlights ?? []).filter(lanceEhGol)
+            const gols = (privateVisual ? tie.lastPresentationGoals ?? tie.lastHighlights ?? [] : tie.lastHighlights ?? []).filter(lanceEhGol)
             const useHl = gols.length > 0
             minsA = useHl ? gols.filter(h => h.teamId === tie.aId).map(h => h.min).sort((a, b) => a - b) : synthMins(curA, tie.aId * 31 + tie.bId + nLegs)
             minsB = useHl ? gols.filter(h => h.teamId === tie.bId).map(h => h.min).sort((a, b) => a - b) : synthMins(curB, tie.aId * 31 + tie.bId + nLegs + 7)
@@ -5450,10 +5450,10 @@ export function EscSeason() {
             const prevB = tie.legs.slice(0, -1).reduce((s, l) => s + l[1], 0)
             const owner = (id: number) => state.managers.find(m => m.id === id && m.isHuman)?.name ?? 'BOT'
             const h = reverse ? tie.bName : tie.aName, a = reverse ? tie.aName : tie.bName
-            return <CompetitionMatch key={`${tie.aId}-${tie.bId}`} home={h} away={a} homeCrest={<Escudo nome={h} size={28} />} awayCrest={<Escudo nome={a} size={28} />} homeOwner={owner(reverse ? tie.bId : tie.aId)} awayOwner={owner(reverse ? tie.aId : tie.bId)} mine={mine}
+            return <CompetitionMatch key={`${tie.aId}-${tie.bId}`} goals={(tie.lastPresentationGoals??tie.lastHighlights??[]).filter(lanceEhGol).filter(g=>clockDone||g.min<=copaMin).map(g=>({name:g.text,min:g.min,home:g.teamId===(reverse?tie.bId:tie.aId)}))} home={h} away={a} homeCrest={<Escudo nome={h} size={28} />} awayCrest={<Escudo nome={a} size={28} />} homeOwner={owner(reverse ? tie.bId : tie.aId)} awayOwner={owner(reverse ? tie.aId : tie.bId)} mine={mine}
               homeScore={nLegs ? reverse ? showB-prevB : showA-prevA : '–'} awayScore={nLegs ? reverse ? showA-prevA : showB-prevB : '–'}
               status={`${qc.phase==='final'?'FINAL':reverse?'VOLTA':'IDA'} · ${live ? `${minLabel} AO VIVO` : nLegs ? 'ENCERRADO' : 'A DISPUTAR'}`}
-              detail={<>{reverse && <p>Ida: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>Agregado: {tie.aName} {showA} × {showB} {tie.bName}</b></p>}{settled && <>{tie.pens && <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?'é campeão':'avançou'}</b></p></>}</>} />
+              detail={<>{reverse && <p>Ida: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>Agregado: {tie.aName} {showA} × {showB} {tie.bName}</b></p>}{settled && <>{tie.pens && <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} />}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?'é campeão':'avançou'}</b></p>}</>}</>} />
           }
           return (
             <Box key={`${tie.aId}-${tie.bId}`} className={privateVisual ? 'll26-cup-match' : undefined} bg={privateVisual ? CREAM : 'transparent'} style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
@@ -5651,7 +5651,7 @@ export function EscSeason() {
       {privateVisual && !copaLive && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
       {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>OUTROS JOGOS · RODADA {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
-        return <RoundMatchPresentation key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={r.highlights.filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
+        return <RoundMatchPresentation key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
       })}</div></section>}
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5">
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
@@ -5749,7 +5749,7 @@ export function EscSeason() {
           {state.lastResults.map(r => {
             const h = state.league.find(t => t.id === r.homeId), a = state.league.find(t => t.id === r.awayId)
             const owner = (id: number) => { const m = state.managers.find(x => x.id === id); return m?.isHuman ? m.name : 'BOT' }
-            return <RoundMatchPresentation startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={r.highlights.filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} />
+            return <RoundMatchPresentation startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} />
           })}
         </div></section>}
         {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{({oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · RESULTADOS</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status="AGREGADO FINAL" detail={`${t.pens ? `Pênaltis ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} avançou`} />)}</details>)}
@@ -6506,7 +6506,7 @@ export function EscLiberta() {
           </div>
         ))}
         {privateVisual && <div className="ll26-group-fixtures"><h3>{lb.rodada > 0 ? `JOGOS · RODADA ${lb.rodada}/6` : 'AGUARDANDO A PRIMEIRA RODADA'}</h3>
-          {lb.lastResults.filter(r => lb.times.find(t => t.id === r.homeId)?.grupo === g).map(r => <RoundMatchPresentation startedAt={groupStartedAt} key={`${r.homeId}-${r.awayId}`} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={25} />} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={25} />} homeOwner={state.managers.find(m=>m.id===r.homeId&&m.isHuman)?.name ?? 'BOT'} awayOwner={state.managers.find(m=>m.id===r.awayId&&m.isHuman)?.name ?? 'BOT'} mine={r.homeId === you.id || r.awayId === you.id} goals={r.highlights.filter(lanceEhGol).map(h => ({name: scorer(h.text), min:h.min,home:h.teamId===r.homeId}))} score={[r.hg,r.ag]} finished={revealed} roundKey={lb.rodada} roundMs={roundMs} />)}
+          {lb.lastResults.filter(r => lb.times.find(t => t.id === r.homeId)?.grupo === g).map(r => <RoundMatchPresentation startedAt={groupStartedAt} key={`${r.homeId}-${r.awayId}`} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={25} />} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={25} />} homeOwner={state.managers.find(m=>m.id===r.homeId&&m.isHuman)?.name ?? 'BOT'} awayOwner={state.managers.find(m=>m.id===r.awayId&&m.isHuman)?.name ?? 'BOT'} mine={r.homeId === you.id || r.awayId === you.id} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(h => ({name: scorer(h.text), min:h.min,home:h.teamId===r.homeId}))} score={[r.hg,r.ag]} finished={revealed} roundKey={lb.rodada} roundMs={roundMs} />)}
           <p>{acabou && revealed ? 'Os dois primeiros avançam às oitavas.' : revealed ? 'Classificação atualizada após o apito.' : 'A classificação atualiza quando a rodada terminar.'}</p>
         </div>}
       </Box>

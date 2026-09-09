@@ -353,7 +353,7 @@ function MiniLive({ nmH, nmA, hPais, aPais, ev, min, bold, privateVisual, homeOw
   const lastGoalMin = !done ? Math.max(-1, ...ev.filter(e => e.min <= min).map(e => e.min)) : -1
   const justScored = !done && lastGoalMin >= 0 && min - lastGoalMin <= 1
   const barPct = Math.max(0, Math.min(100, Math.round((min / 90) * 100)))
-  if (privateVisual) return <CompetitionMatch home={nmH} away={nmA} homeOwner={homeOwner} awayOwner={awayOwner} homeCrest={<NationalCrest country={hPais} size={25} />} awayCrest={<NationalCrest country={aPais} size={25} />} homeScore={gh} awayScore={ga} status={done ? 'ENCERRADO' : `${Math.min(90,min)}′ · AO VIVO`} detail={justScored ? '⚽ GOL! O placar acabou de mudar.' : undefined} />
+  if (privateVisual) return <CompetitionMatch showOwners goals={ev.filter(g=>done||g.min<=min)} home={nmH} away={nmA} homeOwner={homeOwner} awayOwner={awayOwner} homeCrest={<NationalCrest country={hPais} size={25} />} awayCrest={<NationalCrest country={aPais} size={25} />} homeScore={gh} awayScore={ga} status={done ? 'ENCERRADO' : `${Math.min(90,min)}′ · AO VIVO`} detail={justScored ? '⚽ GOL! O placar acabou de mudar.' : undefined} />
   return (
     <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${justScored ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, margin: '5px 0' }}>
       {/* 🎨 faixa branca no meio com o placar (Diego 11/08) — mesmo padrão das
@@ -1031,7 +1031,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
     if (privateOnline) {
       const scores = placaresDoConfronto(t)
       const leg = showVolta ? scores.volta : t.g1 ?? [0,0]
-      return <CompetitionMatch home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={club(t.h)} awayOwner={club(t.a)} homeCrest={<NationalCrest country={entrants[t.h].pais} size={26} />} awayCrest={<NationalCrest country={entrants[t.a].pais} size={26} />} homeScore={leg[0]} awayScore={leg[1]} mine={mine} status={showVolta ? 'VOLTA ENCERRADA' : 'IDA ENCERRADA'} detail={showVolta ? <><b>AGREGADO {scores.agregado[0]} × {scores.agregado[1]}</b><br/>Ida: {t.g1?.[0]} × {t.g1?.[1]}<span style={winDelay>0?{opacity:0,animation:`cmWinPop .2s ease ${winDelay}s forwards`}:undefined}>{showPens&&t.pen?` · Pênaltis ${t.pen[0]} × ${t.pen[1]}`:''}<br/>{t.winner!=null?`${nm(t.winner)} avança`:''}</span></> : 'Confronto em aberto · falta o jogo de volta'} />
+      return <CompetitionMatch showOwners goals={(showVolta?t.ev2:t.ev1)?.map(g=>({...g,home:showVolta?!g.home:g.home}))} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={club(t.h)} awayOwner={club(t.a)} homeCrest={<NationalCrest country={entrants[t.h].pais} size={26} />} awayCrest={<NationalCrest country={entrants[t.a].pais} size={26} />} homeScore={leg[0]} awayScore={leg[1]} mine={mine} status={showVolta ? 'VOLTA ENCERRADA' : 'IDA ENCERRADA'} detail={showVolta ? <><b>AGREGADO {scores.agregado[0]} × {scores.agregado[1]}</b><br/>Ida: {t.g1?.[0]} × {t.g1?.[1]}{showPens&&t.pen?<PensShootout compactOnline pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>}/>:<><span style={winDelay>0?{opacity:0,animation:`cmWinPop .2s ease ${winDelay}s forwards`}:undefined}>{showPens&&t.pen?` · Pênaltis ${t.pen[0]} × ${t.pen[1]}`:''}<br/>{t.winner!=null?`${nm(t.winner)} avança`:''}</span></>}</> : 'Confronto em aberto · falta o jogo de volta'} />
     }
     return (
       <div className={privateOnline ? 'll26-world-match' : undefined} style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
@@ -1066,7 +1066,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
       {liveDone && t.pen && (
         <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 AGREGADO {placaresDoConfronto(t).agregado[0]}×{placaresDoConfronto(t).agregado[1]} — DECISÃO NOS PÊNALTIS</p>
-          <PensShootout pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} colorOf={paisColor} />
+          <PensShootout compactOnline={privateOnline} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>} pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} colorOf={paisColor} />
         </div>
       )}
     </div>
@@ -1121,7 +1121,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
                   <span style={{ fontWeight: 900, color: '#fff' }}>{r.pts}pt</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.w}V</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
                 </div>
               ))}
-              {privateOnline && step >= 1 && step <= GR && <section className="ll26-group-fixtures"><h3>JOGOS DO GRUPO · RODADA {gRound}</h3>{g.matches[gRound-1]?.map((m,k) => <CompetitionMatch key={k} home={entrants[m.h].pais} away={entrants[m.a].pais} homeOwner={club(m.h)} awayOwner={club(m.a)} homeCrest={<NationalCrest country={entrants[m.h].pais} size={25} />} awayCrest={<NationalCrest country={entrants[m.a].pais} size={25} />} mine={isYou(m.h)||isYou(m.a)} homeScore={liveDone ? (m.gh ?? 0) : (m.ev??[]).filter(e=>e.home&&e.min<=liveMin).length} awayScore={liveDone ? (m.ga ?? 0) : (m.ev??[]).filter(e=>!e.home&&e.min<=liveMin).length} status={liveDone?'ENCERRADO':`${Math.min(90,liveMin)}′ · AO VIVO`} />)}</section>}
+              {privateOnline && step >= 1 && step <= GR && <section className="ll26-group-fixtures"><h3>JOGOS DO GRUPO · RODADA {gRound}</h3>{g.matches[gRound-1]?.map((m,k) => <CompetitionMatch showOwners key={k} goals={(m.ev??[]).filter(g=>liveDone||g.min<=liveMin)} home={entrants[m.h].pais} away={entrants[m.a].pais} homeOwner={club(m.h)} awayOwner={club(m.a)} homeCrest={<NationalCrest country={entrants[m.h].pais} size={25} />} awayCrest={<NationalCrest country={entrants[m.a].pais} size={25} />} mine={isYou(m.h)||isYou(m.a)} homeScore={liveDone ? (m.gh ?? 0) : (m.ev??[]).filter(e=>e.home&&e.min<=liveMin).length} awayScore={liveDone ? (m.ga ?? 0) : (m.ev??[]).filter(e=>!e.home&&e.min<=liveMin).length} status={liveDone?'ENCERRADO':`${Math.min(90,liveMin)}′ · AO VIVO`} />)}</section>}
               {!privateOnline && step >= 1 && step <= GR && !liveDone && g.matches[gRound - 1]?.filter(m => m.h !== myIdx && m.a !== myIdx).map((m, k) => (
                 <MiniLive privateVisual={privateOnline} key={k} homeOwner={club(m.h)} nmH={nm(m.h)} awayOwner={club(m.a)} nmA={nm(m.a)} hPais={entrants[m.h].pais} aPais={entrants[m.a].pais} ev={m.ev ?? []} min={liveMin} />
               ))}
@@ -1150,7 +1150,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
             {step === GR + 6 && liveDone && world.final.pen && (
               <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 8, marginBottom: 8 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center', color: GOLD }}>🥅 FINAL DECIDIDA NOS PÊNALTIS</p>
-                <PensShootout pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} colorOf={paisColor} />
+                <PensShootout compactOnline={privateOnline} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} colorOf={paisColor} />
               </div>
             )}
             <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>

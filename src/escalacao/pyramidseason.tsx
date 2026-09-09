@@ -9,7 +9,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useOnlinePreview } from './online-preview'
-import { OnlineScorePresentation } from './online-match-visual'
+import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
+import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
@@ -4437,8 +4438,9 @@ export function pensRevealDelay(pens: [number, number]): number {
   const kicks = Math.min(10, pens[0] + pens[1] + (5 - Math.min(pens[0], pens[1])) * 2 + 2)
   return 0.7 + kicks * 0.85 + 0.6
 }
-export function PensShootout({ pens, aName, bName, colorOf }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string }) {
+export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, aCrest, bCrest, final=false }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
+  const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
   // vazias). 6×5 = foi perfeito até o fim e decidiu na morte súbita.
   type Kick = { side: 0 | 1; ok: boolean }
@@ -4501,6 +4503,10 @@ export function PensShootout({ pens, aName, bName, colorOf }: { pens: [number, n
       })}
     </div>
   )
+  if(compactOnline && privatePenalty) {
+    const exact=exactPenaltyRows(pens,rows)
+    return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final}/>
+  }
   return (
     <div style={{ margin: '4px 0 0', position: 'relative', animation: `pensShake .4s ease ${totalDelay.toFixed(2)}s` }}>
       <style>{'@keyframes pensPop{0%{opacity:0;transform:scale(0)}70%{opacity:1;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}@keyframes pensShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,1px)}80%{transform:translate(2px,-1px)}}@keyframes pensConfetti{0%{opacity:0;transform:translateY(-6px) rotate(0deg)}15%{opacity:1}100%{opacity:0;transform:translateY(48px) rotate(220deg)}}@keyframes telaoPop{0%{opacity:0;transform:scale(.88)}100%{opacity:1;transform:scale(1)}}'}</style>

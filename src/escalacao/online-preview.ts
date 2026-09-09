@@ -8,6 +8,7 @@ export function onlinePreviewEmail(email?: string | null): boolean {
 }
 
 let enabled = false
+export function onlinePreviewEnabled() { return enabled }
 let started = false
 let revision = 0
 const listeners = new Set<() => void>()
