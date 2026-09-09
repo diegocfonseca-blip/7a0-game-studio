@@ -926,7 +926,9 @@ export function EscLobby() {
   useEffect(() => {
     if (phase !== 'menu' || tab !== 'open') return
     fetchOpenRooms()
-    const iv = setInterval(() => fetchOpenRooms(true), 8000)
+    // 10s (era 8s): na queda de 08/09 a lista era 1 em cada 5 pedidos ao banco no
+    // pico. Sala nova aparece ~5s "depois"; o botão 🔄 continua na hora.
+    const iv = setInterval(() => fetchOpenRooms(true), 10000)
     return () => clearInterval(iv)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, tab])
@@ -1595,10 +1597,18 @@ export function EscLobby() {
     // egress/lentidão). Puxa SÓ os campinhos que a lista mostra, via ->> do
     // JSON, e remonta um mini game_state. Quem ENTRA numa sala busca o estado
     // completo na hora (triggerStart/enterLoadedRoom já refetcham).
+    // 🧯 QUEDA DE 08/09 (23:50 UTC): esta consulta extraía os 15 campos do
+    // `game_state` com `->>` — e o Postgres descomprime o JSON (50–200 KB por
+    // sala) UMA VEZ POR CAMPO. Medido: 3,5 s por consulta. Com a leva de gente
+    // das 23:49 (400 consultas/min) o banco parou: timeout em login, sala e save,
+    // e ninguém criava sala. Agora os 15 campos moram em colunas `ls_*` da própria
+    // tabela, preenchidas por gatilho SÓ quando o game_state muda — a lista não
+    // toca mais no JSON. Os apelidos (gname, gdeck…) continuam os mesmos, então o
+    // resto da função não mudou.
     const { data: rooms } = await supabase.from('game_rooms')
-      .select('id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gdeck:game_state->>deck, gvarzea:game_state->>varzea, gmode:game_state->>mode, gat:game_state->>ligaAt, gcareer:game_state->>careerOnline, gmanual:game_state->>manual, gcopa:game_state->>copaMode, gliga:game_state->>ligaFechada, glocked:game_state->>locked, gstream:game_state->>stream, gpw:game_state->>pwHash, gchat:game_state->>chatOff, gduplas:game_state->>duplasMode')
+      .select('id, code, host_id, max_players, status, updated_at, gname:ls_name, gdeck:ls_deck, gvarzea:ls_varzea, gmode:ls_mode, gat:ls_at, gcareer:ls_career, gmanual:ls_manual, gcopa:ls_copa, gliga:ls_liga, glocked:ls_locked, gstream:ls_stream, gpw:ls_pw, gchat:ls_chat, gduplas:ls_duplas')
       .in('status', ['waiting', 'started'])
-      .eq('game_state->>__game', GAME_TAG)
+      .eq('ls_tag', GAME_TAG)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(50)
