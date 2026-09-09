@@ -251,6 +251,25 @@ modo mundo, o state pequeno) e o `careeronline.tsx` (esse usa o state inteiro).
 ⚠️ Aumentar a máquina **NÃO resolve** isto: Realtime e Egress são cobrados por
 uso, não por tamanho de servidor.
 
+## 🐛 BICHO DA SEDA: ARTE NOVA DO DONO (09/09) — ✅ no ar
+Pedido do Diego: *"atualize a arte do time Bicho da Seda do usuário Davi no e-mail
+dele"* (`davisantana1312@gmail.com`, batismo de agosto, sócio nº5, fundador nº11,
+coração Botafogo). Prancha em verde neon com escudo + mascote + camisa.
+- **Arte**: escudo 325x360 **29,5 KB** · mascote 436x440 **42,0 KB** → 71,5 de 75.
+  Prancha limpa (3 peças separadas por vão de verde, sem sobreposição). O escudo
+  em **SVG desenhado à mão** (10/08, mariposa) saiu do `escudos.tsx` — um SVG a
+  menos no bundle. Camisa em `scripts/kits/bichodaseda-camisa.webp`.
+- **Mascote** `bichodaseda_bicho` = **"O Bicho da Seda"** (⚠️ PROVISÓRIO, a arte
+  veio sem nome). A chave velha `mariposa` ficou como APELIDO da mesma arte, pra
+  save/linha antiga não cair em buraco.
+- **Manto** `['#0F0F0F', '#E6DED4']` + creme dos fios `#DDCEBF` em `MANTO_TRI`,
+  medidos na camisa. Era o único buraco do clube na trava ("manto medido").
+- **Banco**: `esc_socios` nº5 atualizado (manto, `mascote_key`, `escudo_time`).
+  Resto já estava certo (ouro, fundador 11, 3 nomes reservados).
+- Post gerado com o mockup padrão (manchete "Nasceu o…" — o gerador não tem modo
+  "cara nova"; se o Diego quiser, criar `--renovacao`).
+- ❓ Pendente: nome da mascote · @ do Davi.
+
 ## 🗳️ SALA DO FUTPOINT (09/09 à noite, sala B1QPHE): 3 bugs na virada de temporada — ✅ 3 consertados
 Relato do Diego (ao vivo, com prints do stream): a sala jogou liga + Copa do Mundo,
 caiu na votação do "e agora?", **Dérick e Florminense saíram na votação**, o host
