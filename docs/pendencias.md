@@ -197,6 +197,46 @@ pela colocação (07/09). Recolocados com `git apply -R` só dos 4 hunks (as par
 deles — `careerPresident`, telas privadas — ficaram intactas). Pra quem for
 mexer no `store.tsx` a partir de outro branch: **rebase antes, não copie por cima.**
 
+## 🔊 BATISMO BONANÇA SSFC (09/09) — Série C, no assento do Torta de Rã
+Dono: `duselecta@gmail.com` (conta de 24/07; o nome de técnico dele JÁ era
+"Bonança SSFC"). Pedido do Diego: *"faça mais um clube pra mim de batismo. Que
+entrará no lugar de um clube da série C bot"*.
+- **Assento:** o bot **Torta de Rã** cedeu a vaga. Escolhido pelo mesmo critério
+  do Ponte Branca (Final Boss, 05/09): o nome ATUAL só existe em
+  `DIVISION_TEAMS.C`, e o `CPU_MANAGERS` carrega o nome VELHO (`Fogaréu EC`) —
+  então o bot não vira xará de ninguém no rápido. `OLD_NAME['Bonança SSFC'] =
+  'Torta de Rã'` fecha a corrente Fogaréu EC → Torta de Rã → Bonança SSFC.
+- **Arte** (prancha 1080×720 em verde-neon): as 3 peças vieram SEPARADAS, sem
+  encostar — corte direto por chroma, sem reconstrução. Escudo 305×360 · 28,7 KB
+  · mascote 247×440 · 28,2 KB = **56,9 KB de 75**. Camisa em `scripts/kits/`.
+- **Manto** `['#101210', '#F1C02C']` (preto 80% + amarelo das listras rasta), 3ª
+  cor vermelha `#B51516` em `MANTO_TRI`. O verde da bandeira fica só no escudo.
+- **Mascote** `bonanca_selecta` — "O Selecta" (⚠️ PROVISÓRIO: a arte veio sem
+  nome; "selecta" é o DJ do paredão jamaicano e casa com o @ do dono).
+- **Código:** `data.ts` (assento + OLD_NAME) · `escudos.tsx` · `mascotes.tsx` ·
+  `apoio.tsx` (ouro + FUNDADOR 63) · `manto.ts` · `batismos.ts` ·
+  `checa-batismos.mjs` · `novidades.ts`.
+  ⚠️ `chaveEscudo` corta FC/EC/SC do fim mas **não** o "SSFC" — por isso as
+  grafias entraram na mão em `LOGOS_PRONTAS` e `CARIMBO_GOL`.
+- **Banco (feito):** `esc_socios` nº41 (escudo_time 'Bonança SSFC', time_coracao
+  NULL — **falta o Diego dizer**) · `esc_fundadores` 63 · `esc_nomes_batismo` com
+  6 formas ('bonança ssfc' e 'bonança', + FC/EC pelo gatilho) · `user_colors`
+  ouro manual.
+- **Post:** sem `--antigo` (regra 05/09) e sem `--coracao` (não sabemos).
+- ❓ **Pendente com o Diego:** time de coração · nome da mascote · @ do dono.
+
+## 🅰️ PRÉVIA V25 ONLINE: quadro de assistências sumia (08/09, ✅ na main)
+Diego: *"as estatísticas em tempo real do modo rápido ou minhas ligas online não
+tem funcionado… fica aparecendo 'disponíveis após o apito' e não mostrando nada,
+sendo que artilheiro lotado"*. Só as 2 contas de prévia viam: a V25 (outra sessão)
+trocou o quadro de garçons por um placeholder preso a `resultRevealed`, que no
+online AUTOMÁTICO é falso ~85% de cada rodada e as rodadas emendam — então o
+quadro quase nunca aparecia. A artilharia não sofre porque usa `scorersPrev`.
+Conserto (`screens.tsx`, commit 276a71a): liga volta a mostrar sempre; a Copa
+mantém a trava do relógio (93'), que fecha de verdade no apito. ⚠️ Duas sessões
+mexendo na mesma linha hoje (4e0e104 e este) — quem for editar a prévia V25 do
+online, ler os dois antes.
+
 ## 🐓 BATISMO BRIGA DE GALO FC (08/09) — Série A, no assento do Vasco da Grana
 Dono: `pedrovianacarneiroq@gmail.com` (conta de 19/08, nome de técnico "Pedro
 Caleb" — é o Caleb da conversa de hoje). Pedido do Diego: *"Faça o clube de

@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-09-09', emoji: '🔊', titulo: 'Nasceu o Bonança SSFC', texto: 'Mais um clube batizado por apoiador: o Bonança SSFC chega na Série C, com escudo do paredão de caixas de som, manto preto e amarelo com listra vermelha e mascote própria — o Selecta, o paredão de camisa 10 que carimba a tela quando o time faz gol. (Carreira e Rápido)' },
   { data: '2026-09-08', emoji: '🐓', titulo: 'Nasceu o Briga de Galo FC', texto: 'Mais um clube batizado por apoiador: o Briga de Galo FC chega na Série A, com escudo dos dois galos, manto preto e branco listrado com dourado e mascote própria — o Galo de punhos fechados, que carimba a tela quando o time faz gol. O Vasco da Grana segue no jogo, agora na Série D. (Carreira e Rápido)' },
   { data: '2026-09-08', emoji: '🎁', titulo: 'Dono de batismo leva o escudo pra qualquer nome', texto: 'Quem tem clube batizado agora carrega escudo, mascote e manto no time que estiver usando, mesmo que troque o nome. É pelo e-mail do dono — o clube batizado continua no baralho com o nome fixo de sempre. (Carreira, Rápido e Online)' },
   { data: '2026-09-08', emoji: '⏱️', titulo: 'Convocação da Copa do Mundo: 80 segundos', texto: 'Na Copa do Mundo online (sala de Copa, Liga + Mundo e ligas), o tempo pra convocar os 11 da seleção passou a ser 80 segundos — antes eram 135. Continua avançando na hora em que todo mundo fecha o time; o relógio é só o teto pra quem dorme. (Online)' },

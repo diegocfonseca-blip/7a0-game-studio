@@ -2384,6 +2384,7 @@ export const OLD_NAME: Record<string, string> = {
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
+  'Bonança SSFC': 'Torta de Rã', // 🔊 batismo do duselecta: assumiu o assento da Série C que era do Torta de Rã — save antigo com Torta de Rã (ou Fogaréu EC, o nome mais velho ainda) vira Bonança SSFC ao carregar (09/09)
   'Final Boss FC': 'Ponte Branca', // 🐂 batismo do gustavo99828: assumiu o assento da Série C que era do Ponte Branca — save antigo com Ponte Branca (ou Grelha SAF, o nome mais velho ainda) vira Final Boss FC ao carregar (05/09)
   'Sistematizados FC': 'Coliseu United', // 🎮 batismo do gaancaxd (07/09): assumiu o assento da Série D que era do Coliseu United — save antigo com Coliseu United vira Sistematizados FC ao abrir
   'Nova Eclipse FC': 'Zequinha SAF', // 🌑 batismo do jh9415474 (07/09): assumiu o assento da Série C que era do Zequinha SAF — save antigo com Zequinha SAF vira Nova Eclipse FC ao abrir
@@ -2645,7 +2646,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Mão de Onça', team: 'Goiaba FC' },
     { name: 'Beto Foguete', team: 'Leve-cuscuz' },
     { name: 'Lelê da Serra', team: 'Serra Azul FR' },
-    { name: 'Cabelo de Fogo', team: 'Torta de Rã' },
+    { name: 'Selecta', team: 'Bonança SSFC' }, // 🔊 clube BATIZADO por apoiador (duselecta — Bonança SSFC, ex-Torta de Rã, Série C; paredão de som jamaicano, preto + amarelo com vermelho; mascote O Selecta, Lenda + fundador nº63, 09/09)
     { name: 'Baixinho da Kombi', team: 'Kombi United' },
   ],
   // 🅳 SÉRIE D — a base profissional, logo acima da Várzea. (era a "Série A")

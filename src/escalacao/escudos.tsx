@@ -35,6 +35,7 @@ import finalBossEscudoImg from './img/finalboss-escudo.webp' // 🐂 Final Boss 
 import novaEclipseEscudoImg from './img/novaeclipse-escudo.webp' // 🌑 Nova Eclipse FC (jh9415474): arte própria do dono, 07/09
 import sistematizadosEscudoImg from './img/sistematizados-escudo.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
 import brigaDeGaloEscudoImg from './img/brigadegalo-escudo.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
+import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -588,6 +589,12 @@ const sistematizadosEscudoRender = (size: number) => (
 const brigaDeGaloEscudoRender = (size: number) => (
   <img src={brigaDeGaloEscudoImg} height={size} width={Math.round(size * 280 / 360)} alt="Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🔊 Bonança SSFC — 305x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (duselecta, 09/09): escudo redondo
+// com o paredão de caixas de som, coroa e as bandeirinhas da Jamaica.
+const bonancaEscudoRender = (size: number) => (
+  <img src={bonancaEscudoImg} height={size} width={Math.round(size * 305 / 360)} alt="Bonança SSFC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata
 // com coroa e o eclipse.
@@ -832,6 +839,17 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Briga de Galo': brigaDeGaloEscudoRender,
   'Briga de Galo EC': brigaDeGaloEscudoRender,
   'Briga de Galo SC': brigaDeGaloEscudoRender,
+  // 🔊 Bonança SSFC (duselecta) — Série C, no assento que era do bot Torta de Rã
+  // (09/09). As formas do nome + o nome velho e o mais velho ainda (Fogaréu EC),
+  // pra save antigo não ficar sem escudo. ⚠️ `chaveEscudo` corta FC/EC/SC do fim,
+  // mas NÃO o "SSFC" — por isso as duas grafias entram na mão.
+  'Bonança SSFC': bonancaEscudoRender,
+  'Bonança': bonancaEscudoRender,
+  'Bonança FC': bonancaEscudoRender,
+  'Bonança EC': bonancaEscudoRender,
+  'Bonanca SSFC': bonancaEscudoRender,
+  'Torta de Rã': bonancaEscudoRender,
+  'Fogaréu EC': bonancaEscudoRender,
   'Corporação Capsule FC': capsuleEscudoRender,
   'Corporação Capsule': capsuleEscudoRender,
   'Corporação Capsule EC': capsuleEscudoRender,

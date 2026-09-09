@@ -72,6 +72,7 @@ const BATISMOS = [
   ['jh9415474@gmail.com', 'Nova Eclipse FC'], // 🌑 Série C, ex-Zequinha SAF (07/09)
   ['gaancaxd@gmail.com', 'Sistematizados FC'], // 🎮 Série D, ex-Coliseu United (07/09)
   ['pedrovianacarneiroq@gmail.com', 'Briga de Galo FC'], // 🐓 Série A, no assento do Vasco da Grana, que desceu pra D (08/09)
+  ['duselecta@gmail.com', 'Bonança SSFC'], // 🔊 Série C, ex-Torta de Rã (09/09)
   ['contatovegetta14@gmail.com', 'Corporação Capsule FC'],
   ['denilson.stifler10@gmail.com', 'Xurupitas FC'], ['matheus223lms@icloud.com', 'Alfacehh'],
   ['jorgericardo777@gmail.com', 'Leão da Estradinha'], ['nevesgabriel95@gmail.com', 'Deportivo Montreal'],
