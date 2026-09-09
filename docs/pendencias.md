@@ -251,6 +251,34 @@ modo mundo, o state pequeno) e o `careeronline.tsx` (esse usa o state inteiro).
 ⚠️ Aumentar a máquina **NÃO resolve** isto: Realtime e Egress são cobrados por
 uso, não por tamanho de servidor.
 
+## 🐍 TRICOLOR DO ARRUDA FC: ARTE NOVA DO DONO (09/09) — ✅ no ar
+Pedido do Diego: *"atualiza o time do Tricolor do Arruda agora também"*
+(`souzact12@gmail.com`, Geovany Souza; batismo de 16/08, sócio nº23, fundador nº43,
+coração Santa Cruz). Prancha em verde neon com escudo + mascote + camisa.
+- **Recorte com duas armadilhas**: (1) o escudo tem o GRAMADO verde do estádio
+  dentro — chave apertada medida na prancha (fundo `g-max(r,b)` ≥ 128, p1 152;
+  gramado ≤ 129; rampa 132→148) e o escudo separado por COMPONENTE, porque a cauda
+  da cobra invade a faixa de colunas dele sem encostar (por coluna vinha uma lasca
+  da cauda no escudo e a sombra do chão da cobra embaixo dele); (2) o punho direito
+  da cobra ENCOSTAVA na manga da camisa — corte em degraus (acima do punho, tudo à
+  direita de x=958 é camisa; na altura do punho, 1000; abaixo, 1025). Conferido
+  sobre creme: gramado inteiro, punho inteiro.
+- **Arte**: escudo 285x360 **29,0 KB** · mascote 232x440 **41,3 KB** → 70,3 de 75.
+  Mesmos nomes de arquivo de antes (`arruda-escudo/arruda-mascote`), só mudaram
+  as proporções no render. Camisa em `scripts/kits/arruda-camisa.webp`.
+- **Mascote** continua `cobra_arruda` = "Cobra Coral" (agora sem cachimbo, de
+  punhos fechados e pé na bola). Animação de entrada (rasteja) mantida.
+- **Manto** MEDIDO na camisa: preto `#110D0E` + branco `#F5F2EF` (`MANTO_CONTAS` e
+  `esc_socios`); o vermelho da 3ª cor virou `#B91515` (era chutado em 16/08). Era o
+  buraco "manto medido" do clube na trava — a trava foi de 22 pra 25 completos hoje.
+- 🗄️ **Buraco de banco achado e fechado**: o Geovany **não tinha linha em
+  `user_colors`** (o ouro dele existia só na reserva do `apoio.tsx`, que é backup).
+  Inserida ouro/manual. Também faltavam as formas puras do nome: `tricolor do
+  arruda` e `… ec` reservadas (só existia `… fc`). ⚠️ Vale conferir os OUTROS
+  batismos de agosto contra a mesma lista (Theuzudo/São Luiz já eram conhecidos).
+- ❓ Pendente: @ do Geovany. (O gerador escreveu "o Cobra Coral" — o artigo é
+  chutado pelo nome; se incomodar, dá pra passar `--mascote-artigo a`.)
+
 ## 🟢 XURUPITAS FC: ARTE NOVA DO DONO (09/09) — ✅ no ar
 Pedido do Diego: *"atualize agora o time Xurupitas FC do Denis"*
 (`denilson.stifler10@gmail.com`, batismo de agosto, sócio nº14, fundador nº13,
