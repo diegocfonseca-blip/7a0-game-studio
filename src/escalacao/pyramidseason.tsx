@@ -2372,12 +2372,12 @@ function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 
   )
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem }:
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline }: 
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
-  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode }) {
+  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean }) {
   const privatePreview = useOnlinePreview()
   const cinematic = privatePreview && !basket
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
@@ -2560,7 +2560,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // travado pelo relógio (min <= relógio) — mesma trava anti-spoiler de
   // sempre, nunca revela um gol antes da hora.
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
-  if (cinematic) return <OnlineScorePresentation
+  if (cinematic) return <OnlineScorePresentation enhanced={enhancedOnline}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}

@@ -14,7 +14,7 @@
 .ll25-button{background:#fff;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:10px;box-shadow:2px 3px 0 #0C0C0C;min-height:44px;padding:7px 8px;font:700 13px/1.2 Oswald,sans-serif;cursor:pointer}
 .ll25-button[aria-pressed=true]{background:#7C3AED;color:#fff}.ll25-button:focus-visible{outline:3px solid #FFC400;outline-offset:3px}.ll25-button:disabled{opacity:.6;cursor:default}
 .ll25-rhythm{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:6px;margin-bottom:12px}.ll25-rhythm label,.ll25-rhythm select{min-width:0;width:100%;height:44px}.ll25-rhythm select:enabled{background:#FFC400}
-.ll25-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:16px 0}.ll25-tabs button{padding:7px 2px;font-size:12px}
+.ll25-tabs{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:6px;margin:16px 0}.ll25-tabs button{padding:7px 2px;font-size:12px}
 .ll25-actions{display:flex;gap:8px;margin:12px 0}.ll25-actions button{flex:1}.ll25-actions button:first-child{background:#FFC400}
 .ll25-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .ll25-shell{background-image:linear-gradient(180deg,rgba(4,12,8,.28),rgba(4,12,8,.8)),url('./img/online-estadio-v25.webp');background-size:cover;background-position:center top;background-attachment:fixed}
@@ -36,3 +36,55 @@
 @keyframes ll25-celebrate{0%{opacity:0;transform:translateY(25px) scale(.85)}20%,75%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(10px)}}
 @media(prefers-reduced-motion:reduce){.ll25-mascot{animation:none}}
 @media(min-width:768px){.ll25-duel{padding:24px;grid-template-columns:1fr 130px 1fr}.ll25-team strong{font-size:20px}.ll25-numbers strong{font-size:46px}.ll25-career-hero{min-height:230px}}
+
+/* A transmissão usa o mesmo componente em liga, carreira e Copas. */
+.ll26-score{position:relative;isolation:isolate;border:3px solid #0c0c0c;box-shadow:4px 5px 0 #0c0c0c;background:radial-gradient(ellipse at 50% 0,rgba(255,196,0,.13),transparent 65%),linear-gradient(120deg,rgba(7,30,21,.88),rgba(4,15,12,.92)),url('./img/online-estadio-v25.webp') center/cover}
+.ll26-score::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(115deg,transparent 25%,#ffffff09 45%,transparent 55%);pointer-events:none}
+.ll26-score .ll25-narration{background:#0c0c0ca8;letter-spacing:.035em;border-bottom:1px solid #f4ecd633}
+.ll26-score .ll25-crest-slot{overflow:visible;filter:drop-shadow(0 5px 5px #0008)}
+.ll26-score .ll25-team{border-bottom-width:4px}.ll26-score .ll25-team strong{min-height:0;margin-bottom:5px}
+.ll26-score .ll25-numbers{font-variant-numeric:tabular-nums;background:linear-gradient(#fff9e7,#f4ecd6);min-width:0}
+.ll26-score .ll25-scorers{height:auto;min-height:60px;max-height:116px;background:#0c0c0c30;color:#f4ecd6}
+.ll26-goal-scene{position:absolute;inset:36px 0 0;overflow:hidden;pointer-events:none;z-index:5;display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(100deg,#0c0c0cc9,#132a1be6);animation:ll26-goal-scene 1.65s both}
+.ll26-goal-scene>strong{font:900 clamp(38px,9vw,70px)/1 Oswald,sans-serif;color:#ffc400;text-shadow:4px 4px 0 #0c0c0c;transform:rotate(-5deg);z-index:2}
+.ll26-goal-mascot{height:160px;max-width:45%;position:relative;z-index:2;animation:ll26-mascot-entry 1.65s both;display:flex;align-items:flex-end}
+.ll26-goal-mascot :is(img,svg){height:160px!important;max-width:100%;width:auto!important;object-fit:contain;filter:drop-shadow(0 8px 0 #0005)}
+.ll26-goal-rays{position:absolute;inset:-100%;background:repeating-conic-gradient(from 0deg,#ffc40012 0deg 12deg,transparent 12deg 30deg);animation:ll26-rays 5s linear infinite}
+.ll26-goal-scene i{position:absolute;left:calc(var(--i)*8.3%);top:-10px;width:7px;height:13px;background:#ffc400;animation:ll26-confetti 2s calc(var(--i)*.035s) both}.ll26-goal-scene i:nth-child(even){background:#f4ecd6}
+.ll26-competition{border:3px solid #0c0c0c;border-radius:18px;overflow:hidden;box-shadow:4px 5px 0 #0c0c0c;background-size:cover;background-position:center;color:#f4ecd6;min-height:240px;display:flex;flex-direction:column;justify-content:flex-end;margin-bottom:16px}
+.ll26-competition-copy{padding:86px 20px 16px;text-shadow:0 2px 6px #000}.ll26-competition-copy small{font:700 12px Oswald,sans-serif;color:#ffc400;letter-spacing:.12em}.ll26-competition-copy h2{font:800 clamp(28px,5vw,44px)/1.1 Oswald,sans-serif;text-transform:uppercase;margin:5px 0 7px}.ll26-competition-copy p{font-size:13px;margin:0}
+.ll26-competition-status{background:#0c0c0cbf;padding:12px 18px;font:700 12px Oswald,sans-serif;border-top:1px solid #f4ecd644;display:flex;align-items:center;gap:8px}.ll26-competition-status>span{width:8px;height:8px;background:#ffc400;border-radius:50%;flex:none}
+.ll26-format{background:#f4ecd6;color:#0c0c0c;padding:11px 18px}.ll26-format summary{font:700 12px Oswald,sans-serif;cursor:pointer}.ll26-format p{font-size:12px;line-height:1.5;margin:9px 0 0}
+.ll26-cup-entry{padding:14px;background:#f4ecd6;color:#0c0c0c}.ll26-cup-entry h3{font:700 15px Oswald,sans-serif;margin:0 0 10px}.ll26-cup-entry .ll26-format{padding:12px 0}
+.ll26-qualified{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ll26-qualified>span{display:flex;gap:7px;align-items:center;font:700 12px Oswald,sans-serif;min-width:0;padding:7px;background:#fff;border:2px solid #0c0c0c;border-radius:8px;overflow-wrap:anywhere}.ll26-qualified>span svg{flex:none}
+.ll26-draw-row{display:grid;grid-template-columns:1fr 20px 1fr;align-items:center;gap:6px;border:2px solid #0c0c0c;background:#fff;padding:10px 8px;border-radius:10px;margin-bottom:7px;font:700 12px Oswald,sans-serif}.ll26-draw-row>span{display:flex;align-items:center;gap:7px;min-width:0;overflow-wrap:anywhere}.ll26-draw-row>span:last-child{justify-content:flex-end}.ll26-draw-row svg{flex:none}
+.ll26-world-group{background:#f4ecd6!important;color:#0c0c0c!important;padding:14px!important}.ll26-world-group>p:first-child{color:#0c0c0c!important;font-size:16px!important}.ll26-world-group>div{padding:8px 6px!important;border-bottom:1px solid #0c0c0c20}.ll26-world-group>div span{color:#0c0c0c!important}.ll26-world-group>div span span{display:block;font-size:10px!important;color:#555!important}.ll26-world-group>div span[style*="flex: 1"]{white-space:normal!important}
+.ll26-world-match{background:#f4ecd6;color:#0c0c0c}.ll26-world-match>div:first-child{min-height:68px}.ll26-world-match>div:first-child>div{white-space:normal!important;display:flex;align-items:center;justify-content:center;gap:6px;font-family:Oswald,sans-serif;overflow-wrap:anywhere}
+.ll26-world-stage-controls{display:flex;gap:6px;margin-bottom:12px}.ll26-world-stage-controls span{flex:1;padding:9px 4px;border:2px solid #0c0c0c;border-radius:8px;text-align:center;background:#f4ecd6;color:#0c0c0c;font:700 11px Oswald,sans-serif}.ll26-world-stage-controls span[aria-current=step]{background:#7c3aed;color:#fff}
+.ll26-fixture{background:#fff;color:#0c0c0c;border:2px solid #0c0c0c;border-radius:11px;overflow:hidden;box-shadow:2px 3px 0 #0c0c0c;margin:8px 0}.ll26-fixture-mine{border-color:#7c3aed}
+.ll26-fixture>header{display:flex;justify-content:space-between;gap:8px;padding:6px 9px;background:#f4ecd6;font:700 10px Oswald,sans-serif}.ll26-fixture>header b{color:#1b7a3d}
+.ll26-fixture-duel{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:10px 8px}.ll26-fixture-duel>div{display:flex;gap:6px;align-items:center;min-width:0}.ll26-fixture-duel>div:last-child{flex-direction:row-reverse;text-align:right}.ll26-fixture-duel :is(svg,img){flex:none;max-width:30px;max-height:32px;object-fit:contain}
+.ll26-fixture-duel span{font:700 12px/1.3 Oswald,sans-serif;overflow-wrap:anywhere}.ll26-fixture-duel small{display:block;font:600 9px Arial,sans-serif;opacity:.6;margin-top:4px}.ll26-fixture-duel>strong{font:700 23px Oswald,sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums}.ll26-fixture-duel i{font-style:normal;font-size:12px;padding:0 5px;color:#555}.ll26-fixture>footer{padding:7px 9px;border-top:1px solid #0c0c0c22;font-size:10px;text-align:center}
+.ll26-group-fixtures{border-top:2px solid #0c0c0c;margin-top:12px;padding-top:4px}.ll26-group-fixtures h3{font:700 12px Oswald,sans-serif;margin:8px 0}.ll26-group-fixtures>p{font-size:10px;color:#555;margin:10px 0 0}
+.ll26-round-list{padding:14px;background:#f4ecd6;border:3px solid #0c0c0c;border-radius:16px;box-shadow:3px 4px 0 #0c0c0c}.ll26-round-list>h3{font:700 16px Oswald,sans-serif;margin:0 0 8px}.ll26-round-list>p{font-size:11px;color:#555}.ll26-round-list>div{display:grid;gap:0 12px;grid-template-columns:1fr}
+.ll26-bracket-history{padding:12px 14px;background:#f4ecd6;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:12px;margin:12px 0}.ll26-bracket-history summary{font:700 13px Oswald,sans-serif;cursor:pointer}
+@media(min-width:768px){.ll26-round-list>div{grid-template-columns:1fr 1fr}}
+.ll26-phase-matches>p{color:#f4ecd6!important;font-family:Oswald,sans-serif;font-size:15px;padding:8px 0}
+.ll26-phase-matches>div{grid-template-columns:1fr!important;gap:12px!important}
+.ll26-match-label{display:flex;justify-content:space-between;padding:8px 10px;font:700 10px Oswald,sans-serif;background:#f4ecd6;color:#0c0c0c}.ll26-match-label span{color:#1b7a3d}
+.ll26-cup-match .truncate{white-space:normal!important;overflow:visible!important;font-size:13px!important;line-height:1.3}.ll26-cup-match>div:last-child:empty{display:none}
+@keyframes ll26-goal-scene{0%{opacity:0;transform:scale(1.06)}12%,78%{opacity:1;transform:scale(1)}100%{opacity:0;visibility:hidden}}
+@keyframes ll26-mascot-entry{0%{transform:translateY(180px) rotate(-12deg)}18%{transform:translateY(-9px) rotate(4deg)}30%,66%{transform:translateY(0) rotate(0)}78%{transform:translateY(-8px)}100%{transform:translateY(180px)}}
+@keyframes ll26-confetti{0%{transform:translateY(-20px) rotate(0)}100%{transform:translateY(310px) rotate(400deg)}}
+@keyframes ll26-rays{to{transform:rotate(60deg)}}
+@keyframes cmWinPop{to{opacity:1}}
+.ll26-world-gate>p:first-child,.ll26-world-gate>p:nth-child(2){display:none}
+.ll26-score .ll25-narration.ll25-goal{background:#ffc400;color:#0c0c0c}
+.ll26-world-modal>p{color:#f4ecd6!important}
+.ll25-shell>div.max-w-xl.text-center :is(button,a){color:#0c0c0c!important}
+.ll26-world-modal{background:linear-gradient(#06130ce0,#06130cf2),url('./img/online-estadio-v25.webp') center/cover!important}
+.ll25-shell>div.max-w-xl.text-center{background:#f4ecd6;border-radius:12px;padding:16px;color:#0c0c0c}
+.ll26-league-content{display:flex;flex-direction:column;gap:14px}.ll26-league-content>.ll26-round-list{order:2}
+.ll26-league-jump{display:flex;gap:8px;margin:10px 0}.ll26-league-jump a{flex:1;text-align:center;text-decoration:none;display:grid;place-items:center}
+@media(min-width:768px){.ll26-phase-matches>div{grid-template-columns:1fr 1fr!important}.ll26-competition{min-height:290px}.ll26-goal-mascot,.ll26-goal-mascot :is(img,svg){height:200px!important}}
+@media(prefers-reduced-motion:reduce){.ll26-goal-rays,.ll26-goal-scene i{display:none}.ll26-goal-scene,.ll26-goal-mascot{animation:none}.ll26-goal-scene{background:#0c0c0cee}}

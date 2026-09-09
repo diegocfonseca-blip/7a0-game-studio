@@ -29,7 +29,7 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
-import { OnlineRhythm, OnlineMatchTabs, type OnlineMatchTab } from './online-match-visual'
+import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, type OnlineMatchTab } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, useSalao, getSport, escadaLiberada, type Sport } from './sport'
@@ -5110,6 +5110,7 @@ export function EscSeason() {
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
+  const leagueStartedAt = useRoundPresentationStart(state.round)
   const [seasonLang] = useLang()
   const bbS = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
   // 🌎 sala de LIBERTADORES: o mata-mata roda no mesmo motor da Copa dos 8, mas
@@ -5373,7 +5374,7 @@ export function EscSeason() {
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
           {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA{escadaLiberada() ? ' · VÁRZEA' : ' · SÉRIE D'}</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
-          {copaLive && qc ? `${libS ? '🌎 LIBERTA' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'}`} · ${qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(state.round + 1, totalRounds)}/${totalRounds}`}
+          {copaLive && qc ? `${libS ? '🌎 LIBERTA' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'}`} · ${qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
           if (privateVisual && copaLive && qc) return qc.phase === 'final' ? 'JOGO ÚNICO' : qc.legIdx === 0 ? 'IDA' : 'VOLTA'
@@ -5443,8 +5444,20 @@ export function EscSeason() {
           const lastGoalMin = live ? Math.max(-1, ...minsA.filter(m => m <= copaMin), ...minsB.filter(m => m <= copaMin)) : -1
           const justScored = live && lastGoalMin >= 0 && copaMin - lastGoalMin <= 1
           const barPct = Math.max(0, Math.min(100, Math.round((copaMin / 90) * 100)))
+          if (privateVisual) {
+            const reverse = nLegs > 1
+            const prevA = tie.legs.slice(0, -1).reduce((s, l) => s + l[0], 0)
+            const prevB = tie.legs.slice(0, -1).reduce((s, l) => s + l[1], 0)
+            const owner = (id: number) => state.managers.find(m => m.id === id && m.isHuman)?.name ?? 'BOT'
+            const h = reverse ? tie.bName : tie.aName, a = reverse ? tie.aName : tie.bName
+            return <CompetitionMatch key={`${tie.aId}-${tie.bId}`} home={h} away={a} homeCrest={<Escudo nome={h} size={28} />} awayCrest={<Escudo nome={a} size={28} />} homeOwner={owner(reverse ? tie.bId : tie.aId)} awayOwner={owner(reverse ? tie.aId : tie.bId)} mine={mine}
+              homeScore={nLegs ? reverse ? showB-prevB : showA-prevA : '–'} awayScore={nLegs ? reverse ? showA-prevA : showB-prevB : '–'}
+              status={`${qc.phase==='final'?'FINAL':reverse?'VOLTA':'IDA'} · ${live ? `${minLabel} AO VIVO` : nLegs ? 'ENCERRADO' : 'A DISPUTAR'}`}
+              detail={<>{reverse && <p>Ida: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>Agregado: {tie.aName} {showA} × {showB} {tie.bName}</b></p>}{settled && <>{tie.pens && <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?'é campeão':'avançou'}</b></p></>}</>} />
+          }
           return (
-            <Box key={`${tie.aId}-${tie.bId}`} bg="transparent" style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
+            <Box key={`${tie.aId}-${tie.bId}`} className={privateVisual ? 'll26-cup-match' : undefined} bg={privateVisual ? CREAM : 'transparent'} style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
+              {privateVisual && <div className="ll26-match-label">{mine ? 'SEU CONFRONTO' : 'CONFRONTO DA FASE'}<span>{live ? `${minLabel} · AO VIVO` : nLegs ? 'ENCERRADO' : 'A DISPUTAR'}</span></div>}
               {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): moldura roxa
                   só enquanto o jogo tá AO VIVO (decidido volta pro preto, senão briga
                   com o "avança"); barra de progresso no TOPO, agora com o degradê. */}
@@ -5463,7 +5476,8 @@ export function EscSeason() {
                 </div>
                 <div style={{ background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 11px', gap: 1 }}>
                   {live && <span className="text-[9px] font-black" style={{ color: '#C2452F' }}>●{minLabel}</span>}
-                  <span className="font-black text-lg" style={{ ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{showA} × {showB}</span>
+                  <span className="font-black text-lg" style={{ ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{privateVisual ? showA - tie.legs.slice(0,-1).reduce((s,l)=>s+l[0],0) : showA} × {privateVisual ? showB - tie.legs.slice(0,-1).reduce((s,l)=>s+l[1],0) : showB}</span>
+                  {privateVisual && <small style={{fontSize:9,fontWeight:800,color:INK}}>{qc.phase==='final'?'FINAL':nLegs>1?'VOLTA':'IDA'}</small>}
                 </div>
                 <div style={{ position: 'relative', overflow: 'hidden', background: fB.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, minWidth: 0, padding: '9px 6px' }}>
                   {fB.holo > 0 && <ApoioSheen holo={fB.holo} />}
@@ -5478,6 +5492,8 @@ export function EscSeason() {
                 )}
               </div>
               <div style={{ padding: '6px 10px 9px' }}>
+                {privateVisual && nLegs>1 && <p className="text-center text-xs font-bold text-black">AGREGADO: {showA} × {showB} · Ida: {tie.legs[0][0]} × {tie.legs[0][1]}</p>}
+                {privateVisual && settled && <p className="text-center text-xs font-bold" style={{color:GREEN,...(pd>0?{opacity:0,animation:`cmWinPop .2s ease ${pd}s forwards`}:{})}}>{tie.winner===tie.aId?tie.aName:tie.bName} {qc.phase==='final'?'é campeão':'avança'}</p>}
                 {justScored && <p className="text-center mt-1"><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 900, color: '#FFD778' }}>⚽ GOOOL agora!</span></p>}
                 {settled && nLegs > 0 && (
                   <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
@@ -5490,12 +5506,14 @@ export function EscSeason() {
         return (
           <>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
-            <Box bg={copaHolo} className={`p-3 text-center ${privateVisual ? `ll25-cup-heading ${libS ? 'll25-liberta-art' : 'll25-copa8-art'}` : ''}`} shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
+            {privateVisual ? <CompetitionStage kind={libS ? 'liberta' : 'copa8'} title={libS ? 'LIBERTADORES' : 'COPA DOS 8'} phase={phaseLabel} detail={`${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual && !streamRoom ? `Começa em ${copaFirstLeft}s` : canAdvance ? 'Tudo pronto. Inicie nos controles da partida.' : 'Aguardando o host iniciar') : copaMin < 93 ? 'Bola rolando · acompanhe os confrontos abaixo' : 'Resultados da fase'}>
+              {firstLegPending && <details className="ll26-format"><summary>COMO FUNCIONA A COPA</summary><p>{libS ? 'Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.' : 'Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.'} O campeão ganha uma carta para o álbum.</p></details>}
+            </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
               <ApoioSheen holo={1} dur={3.2} />
               <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{libS ? '🌎 LIBERTADORES' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA DOS 8'}`} · {phaseLabel.toUpperCase()}</p>
               <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.8)', zIndex: 2 }}>{legLabel}</p>
-            </Box>
-            {firstLegPending && (
+            </Box>}
+            {firstLegPending && !privateVisual && (
               <Box bg={copaHolo} className="p-4 space-y-2" shadow={6} style={{ position: 'relative', overflow: 'hidden' }}>
                 <ApoioSheen holo={1} dur={3.4} />
                 <div className="relative space-y-2" style={{ zIndex: 2 }}>
@@ -5518,6 +5536,7 @@ export function EscSeason() {
                 </div>
               </Box>
             )}
+            {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
             {myTie ? (
               myTie.legs.length > 0 ? (() => {
                 // SEMPRE anima a última perna jogada (ida OU volta) — antes, quando
@@ -5535,7 +5554,7 @@ export function EscSeason() {
                 const goals = hl.filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
                   <>
-                    <LiveScoreCard key={`copa-${qc.phase}-${myTie.legs.length}`}
+                    <LiveScoreCard enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`}
                       homeName={nameOf(legHomeId)} awayName={nameOf(legAwayId)}
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
@@ -5543,7 +5562,7 @@ export function EscSeason() {
                       roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} />
                     {myTie.legs.length === 2 && (
-                      <p className="text-center text-[11px] font-black text-black/55 -mt-1">↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
+                      <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
                     )}
                   </>
                 )
@@ -5560,7 +5579,7 @@ export function EscSeason() {
             {/* 🎯 tática (pedido de jogador, 12/08) — DEPOIS do placar ao vivo agora
                 (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
                 principal é a estrela, a tática é apoio). */}
-            {myTie && (
+            {myTie && (!privateVisual || visualTab === 'jogos') && (
               <Box bg="#fff" className="p-4 space-y-3" shadow={4}>
                 <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🎯 Sua tática {libS ? 'na Libertadores' : 'na Copa'}</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -5575,8 +5594,8 @@ export function EscSeason() {
                 <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? 'Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.' : 'Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.'}</p>
               </Box>
             )}
-            {qc.ties.length > 0 && (
-              <div>
+            {qc.ties.length > 0 && (!privateVisual || visualTab === 'jogos') && (
+              <div className={privateVisual ? 'll26-phase-matches' : undefined}>
                 <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">Todos os jogos da fase</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>{qc.ties.map(t => tieRow(t))}</div>
               </div>
@@ -5595,7 +5614,7 @@ export function EscSeason() {
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         const goals = myLast.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
-        return <LiveScoreCard key={state.round}
+        return <LiveScoreCard enhancedOnline={privateVisual} key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
@@ -5629,7 +5648,7 @@ export function EscSeason() {
           onSkip={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : '⏳ Deixa o jogo/pênaltis acabar…') : firstLegPending ? (libS ? '🌎 Iniciar as oitavas' : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : '🏆 Iniciar a Copa dos 8') : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : '▶️ Começar a próxima fase') : (libS ? '🌎 Próximo jogo da Libertadores' : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : '⚽ Próximo jogo da Copa')} />
       )}
-      {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+      {privateVisual && !copaLive && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5">
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
@@ -5721,13 +5740,24 @@ export function EscSeason() {
       {/* 🚫 ANTI-SPOILER: a artilharia da Copa soma os gols da perna JÁ no sim; se
           aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
           gol animar. Só mostra depois do apito. */}
-      <div hidden={privateVisual && visualTab !== 'tabela'}>
+      <div hidden={privateVisual && visualTab !== 'jogos'} className={privateVisual && !copaLive ? 'll26-league-content' : undefined} id="ll26-classification">
+        {privateVisual && !copaLive && <nav className="ll26-league-jump" aria-label="Atalhos da rodada"><a className="ll25-button" href="#ll26-classification">CLASSIFICAÇÃO</a><a className="ll25-button" href="#ll26-round-games">JOGOS DA SALA ↓</a></nav>}
+        {privateVisual && !copaLive && state.lastResults.length > 0 && <section className="ll26-round-list" id="ll26-round-games"><h3>TODOS OS JOGOS · RODADA {state.round}</h3><p>{resultRevealed ? 'Rodada encerrada. Confira os resultados e a classificação.' : 'Acompanhe a sala. A classificação atualiza após o apito.'}</p><div>
+          {state.lastResults.map(r => {
+            const h = state.league.find(t => t.id === r.homeId), a = state.league.find(t => t.id === r.awayId)
+            const owner = (id: number) => { const m = state.managers.find(x => x.id === id); return m?.isHuman ? m.name : 'BOT' }
+            return <RoundMatchPresentation startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={r.highlights.filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} />
+          })}
+        </div></section>}
+        {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{({oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · RESULTADOS</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status="AGREGADO FINAL" detail={`${t.pens ? `Pênaltis ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} avançou`} />)}</details>)}
+        {privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>LIGA ENCERRADA · VER CLASSIFICAÇÃO</summary><TableBox highlight={you.id} title="LIGA LEGENDS · CLASSIFICAÇÃO FINAL" /></details> :
         <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
+        }
       </div>
       <div hidden={privateVisual && visualTab !== 'estatisticas'} className="space-y-5">
         {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
         <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" hold={!resultRevealed} />
-        {(!privateVisual || resultRevealed) ? <TopAssistsBox highlight={you.id} /> : <Box className="p-4">Assistências disponíveis após o apito final.</Box>}
+        {(!privateVisual || (copaLive ? copaMin >= 93 && copaAdvReady : resultRevealed)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">Assistências disponíveis após o apito final.</Box>}
       </div>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
       <YourPitch small />
@@ -5853,14 +5883,15 @@ function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL', hold
 // pro gol. Só aparece quando já existe assistência (save antigo/começo de
 // temporada simplesmente não mostra a caixa). Basquete não tem: lá o placar é
 // por pontos e assistência não é calculada.
-function TopAssistsBox({ highlight }: { highlight: number }) {
+function TopAssistsBox({ highlight, competition = 'liga', showEmpty = false }: { highlight: number; competition?: 'liga' | 'copa' | 'liberta'; showEmpty?: boolean }) {
   const { state } = useEsc()
   if (state.sport === 'basquete') return null
-  const rows = [...(state.assists ?? [])].sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name)).slice(0, 10)
-  if (rows.length === 0) return null
+  const rows = [...((competition === 'copa' ? state.quickCopa?.assists : competition === 'liberta' ? state.liberta?.assists : state.assists) ?? [])].sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name)).slice(0, 10)
+  if (rows.length === 0 && !showEmpty) return null
   return (
     <Box className="p-3">
       <p className="font-black text-sm mb-2 text-black" style={OSWALD}>🅰️ GARÇONS · QUEM DÁ O PASSE</p>
+      {showEmpty && <p className="text-xs mb-2 text-black/70">{competition === 'liberta' ? 'Assistências da Libertadores' : competition === 'copa' ? 'Assistências da Copa' : 'Assistências da liga'}{rows.length === 0 ? ' · Nenhuma assistência registrada ainda.' : ''}</p>}
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
@@ -6384,7 +6415,8 @@ export function EscLiberta() {
   const { state, dispatch } = useEsc()
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount && state.sport !== 'basquete'
-  const [groupView, setGroupView] = useState<'meu' | 'todos'>('meu')
+  const [groupView, setGroupView] = useState<'meu' | 'todos'>('todos')
+  const groupStartedAt = useRoundPresentationStart(state.liberta?.rodada ?? 0)
   const you = state.managers[state.youIdx]
   const lb = state.liberta
   const online = state.onlineMode === 'online'
@@ -6446,7 +6478,7 @@ export function EscLiberta() {
   const tabelaGrupo = (g: number, destaque: boolean) => {
     const cl = grupoShown(g)
     return (
-      <Box key={g} bg={destaque ? '#FFF6D6' : '#fff'} className="p-2" shadow={destaque ? 5 : 3}
+      <Box key={g} bg={privateVisual ? CREAM : destaque ? '#FFF6D6' : '#fff'} className={privateVisual ? 'p-3 ll26-liberta-group' : 'p-2'} shadow={destaque ? 5 : 3}
         style={destaque ? { borderColor: NOITE } : undefined}>
         <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>
           Grupo {GRUPO_LETRA[g]}{destaque ? ' · o seu' : ''}
@@ -6464,6 +6496,10 @@ export function EscLiberta() {
             <span className="flex-none tabular-nums font-black w-5 text-right">{t.pts}</span>
           </div>
         ))}
+        {privateVisual && <div className="ll26-group-fixtures"><h3>{lb.rodada > 0 ? `JOGOS · RODADA ${lb.rodada}/6` : 'AGUARDANDO A PRIMEIRA RODADA'}</h3>
+          {lb.lastResults.filter(r => lb.times.find(t => t.id === r.homeId)?.grupo === g).map(r => <RoundMatchPresentation startedAt={groupStartedAt} key={`${r.homeId}-${r.awayId}`} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={25} />} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={25} />} homeOwner={humano(r.homeId) ? 'TÉCNICO DA SALA' : 'BOT'} awayOwner={humano(r.awayId) ? 'TÉCNICO DA SALA' : 'BOT'} mine={r.homeId === you.id || r.awayId === you.id} goals={r.highlights.filter(lanceEhGol).map(h => ({name: scorer(h.text), min:h.min,home:h.teamId===r.homeId}))} score={[r.hg,r.ag]} finished={revealed} roundKey={lb.rodada} roundMs={roundMs} />)}
+          <p>{acabou && revealed ? 'Os dois primeiros avançam às oitavas.' : revealed ? 'Classificação atualizada após o apito.' : 'A classificação atualiza quando a rodada terminar.'}</p>
+        </div>}
       </Box>
     )
   }
@@ -6472,7 +6508,7 @@ export function EscLiberta() {
     <Shell bar={
       <div className="flex items-center justify-between gap-2">
         <span className="font-black text-sm" style={{ ...OSWALD, color: NOITE }}>
-          🌎 LIBERTADORES · {acabou ? 'GRUPOS ENCERRADOS' : `RODADA ${Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
+          🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? 'GRUPOS ENCERRADOS' : `RODADA ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
         </span>
         {meuTime && (
           <span className="font-black text-sm" style={OSWALD}>
@@ -6481,13 +6517,13 @@ export function EscLiberta() {
         )}
       </div>
     }>
-      <Box bg={NOITE_HOLO} className={`p-3 text-center ${privateVisual ? 'll25-cup-heading ll25-liberta-art' : ''}`} shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
+{privateVisual ? <CompetitionStage kind="liberta" title="LIBERTADORES" phase={acabou && revealed ? 'Grupos encerrados' : `Fase de grupos · rodada ${Math.max(1, lb.rodada)}/6`} detail="32 clubes · 8 grupos · os dois primeiros avançam às oitavas" status={meuTime ? `Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}` : 'Acompanhe os clubes classificados da sala'} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
         <ApoioSheen holo={1} dur={3.2} />
         <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>🌎 LIBERTADORES · FASE DE GRUPOS</p>
         <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.82)', zIndex: 2 }}>
           32 clubes · 8 grupos de 4 · passam os 2 primeiros
         </p>
-      </Box>
+      </Box>}
 
       {/* 📺 O SEU jogo da rodada, com o placar subindo — igual a liga */}
       {meuJogo ? (() => {
@@ -6496,7 +6532,7 @@ export function EscLiberta() {
         const oppIsHuman = humano(oppId)
         const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
         const goals = meuJogo.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
-        return <LiveScoreCard key={`lb-${lb.rodada}`}
+        return <LiveScoreCard enhancedOnline={privateVisual} key={`lb-${lb.rodada}`}
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={lb.rodada} roundMs={roundMs} classico={oppIsHuman}
@@ -6519,7 +6555,7 @@ export function EscLiberta() {
 
       {/* 🥅 os OUTROS jogos da rodada — só depois que o seu terminou de animar,
           senão o placar da tela grande é entregue aqui embaixo antes do apito. */}
-      {revealed && lb.lastResults.length > 0 && (
+      {!privateVisual && revealed && lb.lastResults.length > 0 && (
         <Box bg="#fff" className="p-3" shadow={4}>
           <p className="font-black text-[11px] uppercase mb-1.5" style={{ ...OSWALD, color: NOITE }}>🥅 Os outros jogos da rodada</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 5 }}>
@@ -6539,13 +6575,14 @@ export function EscLiberta() {
         {meuGrupo >= 0 && <button className="ll25-button" aria-pressed={groupView === 'meu'} onClick={() => setGroupView('meu')}>MEU GRUPO</button>}
         <button className="ll25-button" aria-pressed={groupView === 'todos' || meuGrupo < 0} onClick={() => setGroupView('todos')}>TODOS OS GRUPOS</button>
       </nav>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: privateVisual ? 'repeat(auto-fit, minmax(min(100%, 310px), 1fr))' : 'repeat(auto-fit, minmax(165px, 1fr))', gap: 12 }}>
         {[...Array(8).keys()]
           .filter(g => !privateVisual || groupView === 'todos' || meuGrupo < 0 || g === meuGrupo)
           .sort((a, b) => (a === meuGrupo ? -1 : b === meuGrupo ? 1 : a - b))
           .map(g => tabelaGrupo(g, g === meuGrupo))}
       </div>
-      <p className="text-[10px] font-bold text-black/45 text-center">🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</p>
+      <p className="text-[10px] font-bold text-black/45 text-center" style={privateVisual ? {color:CREAM} : undefined}>🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</p>
+      {privateVisual && <details className="ll26-bracket-history"><summary>ESTATÍSTICAS DA LIBERTADORES</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">As estatísticas atualizam após o apito final.</p>}</details>}
 
       {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
       {(!online || streamHost) && !acabou && (
@@ -6556,8 +6593,9 @@ export function EscLiberta() {
           nextLabel={!(lb.rodada === 0 || revealed) ? '⏳ Deixa a rodada acabar…' : lb.rodada === 0 ? '🌎 Começar a Libertadores' : '▶️ Próxima rodada'} />
       )}
       {online && !state.isHost && !acabou && (
-        <p className="text-center text-[11px] font-bold text-black/50">⏳ O host puxa as rodadas — você acompanha ao vivo.</p>
+        <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>⏳ O host puxa as rodadas — você acompanha ao vivo.</p>
       )}
+      {privateVisual && online && state.roomId && !state.careerOnline && <LigaHub roomId={state.roomId} souDono={state.isHost} humanos={state.managers.filter(m=>m.isHuman).map(m=>m.teamName)} />}
     </Shell>
   )
 }
@@ -8549,6 +8587,8 @@ function BafoCascata() {
 
 export function EscEnd() {
   const { state, dispatch } = useEsc()
+  const previewEnd = useOnlinePreview()
+  const privateEnd = previewEnd && state.sport !== 'basquete'
   const [manualPref] = useSimMode()
   const [streamManual] = useStreamSimMode()
   const [endLang] = useLang()
@@ -8888,6 +8928,12 @@ export function EscEnd() {
       {libPending && state.liberta && (() => {
         const meu = state.liberta.times.find(t => t.id === you.id)
         const classificados = state.liberta.times.filter(t => t.pote === 1)
+        if (privateEnd) return <CompetitionStage kind="liberta" title="A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO" phase="Libertadores" detail={meu ? 'Você se classificou! Os oito da liga encaram os 24 clubes do continente.' : 'Seu clube não se classificou. Acompanhe os oito representantes da sala.'} status={canDriveCopa ? (manual || pacedRoom ? 'O host pode iniciar a competição' : `Começa em ${libLeft}s`) : 'Aguardando o host'}>
+          <div className="ll26-cup-entry"><div className="ll26-qualified">{classificados.map(t => <span key={t.id}><Escudo nome={t.name} size={25} />{t.name}</span>)}</div>
+            <details className="ll26-format"><summary>REGULAMENTO E PREMIAÇÃO</summary><p>8 grupos de 4, seis rodadas de ida e volta. Os dois primeiros de cada grupo avançam. Oitavas, quartas e semifinais em ida e volta; final em jogo único. Empate no agregado leva aos pênaltis. O campeão ganha outra carta.</p></details>
+            {canDriveCopa && <Btn onClick={() => dispatch({ type: 'START_LIBERTA' })} bg={GOLD} className="w-full">INICIAR LIBERTADORES</Btn>}
+          </div>
+        </CompetitionStage>
         const regra = (emoji: string, titulo: string, txt: React.ReactNode) => (
           <div key={titulo} className="flex items-start gap-2 rounded-xl px-2.5 py-2" style={{ background: 'rgba(255,255,255,.12)', border: '2px solid rgba(255,255,255,.28)' }}>
             <span className="text-base leading-none mt-0.5">{emoji}</span>
@@ -8944,7 +8990,13 @@ export function EscEnd() {
           </Box>
         )
       })()}
-      {copaPending && state.quickCopa && (
+      {copaPending && state.quickCopa && (privateEnd ? <CompetitionStage kind="copa8" title="A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO" phase="Copa dos 8" detail="Os oito primeiros disputam uma nova taça. O campeão ganha outra carta." status={manual || pacedRoom ? 'Aguardando o host iniciar' : `A Copa começa em ${copaLeft}s`}>
+        <div className="ll26-cup-entry"><h3>QUARTAS DE FINAL</h3>
+          {state.quickCopa.ties.map(t => <div className="ll26-draw-row" key={`${t.aId}-${t.bId}`}><span><Escudo nome={t.aName} size={25} />{t.aName}</span><b>×</b><span><Escudo nome={t.bName} size={25} />{t.bName}</span></div>)}
+          <details className="ll26-format"><summary>REGULAMENTO</summary><p>1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta. Final em jogo único. Empatou no agregado: pênaltis.</p></details>
+          {canDriveCopa && <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={GOLD} className="w-full">INICIAR COPA DOS 8</Btn>}
+        </div>
+      </CompetitionStage> : (
         <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
           <p className="font-black text-lg text-center" style={OSWALD}>{bbEnd ? LE('🏆 PLAYOFFS · fica ligado!', '🏆 PLAYOFFS · stay tuned!') : '🏆 COPA DOS 8 · fica ligado!'}</p>
           <p className="text-sm font-bold text-center text-black/75">
@@ -8989,9 +9041,8 @@ export function EscEnd() {
             <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ {pacedRoom ? 'A Copa começa quando o host quiser' : `A Copa começa em ${copaLeft}s — o host puxa`}</div>
           )}
         </Box>
-      )}
-      {(copaPending || libPending) && ligaOnlyHeader('pt-2')}
-      {ligaBlocks}
+      ))}
+      {privateEnd && (copaPending || libPending) ? <details className="ll26-bracket-history"><summary>LIGA ENCERRADA · CAMPEÃO, CLASSIFICAÇÃO E ESTATÍSTICAS</summary>{ligaOnlyHeader('pt-2')}{ligaBlocks}</details> : <>{(copaPending || libPending) && ligaOnlyHeader('pt-2')}{ligaBlocks}</>}
       </>
       )}
       {/* 🏆 A LIGA NUM LUGAR SÓ (pílulas). Aqui, no FIM, ela também GRAVA a

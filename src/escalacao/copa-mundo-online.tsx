@@ -34,6 +34,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnlinePreview } from './online-preview'
+import { CompetitionStage } from './online-match-visual'
 import { NationalCrest } from './national-crest'
 import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
@@ -193,13 +194,14 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
 const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: null }
 
 export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void }) {
+  const cinematic = useOnlinePreview()
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
   // 🔑 a IDENTIDADE desta Copa no ranking: sala + semente. A semente muda a cada
   // Copa nova, então jogar Copa atrás de Copa na mesma sala não faz uma apagar a
   // outra (foi exatamente esse o bug do "novo leilão" no ranking, em agosto).
   const online = useMemo(() => ({ seasonKey: `mundo:${roomId}:${ficha.seed}:copamundo`, aoCampeao }), [roomId, ficha.seed, aoCampeao])
   return (
-    <CMModal wide>
+    <CMModal wide cinematic={cinematic}>
       <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO}
         myForm="4-3-3" online={online} onClose={aoFechar} />
     </CMModal>
@@ -500,6 +502,10 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
 
 // ── o BANNER de 15s entre a bandeira e a convocação ──
 function BannerDaCopa({ seg }: { seg: number }) {
+  const privateVisual = useOnlinePreview()
+  if (privateVisual) return <CompetitionStage kind="world" title="COPA DO MUNDO" phase="É hora de convocar" detail={`Todas as seleções foram escolhidas. Você terá ${SEG_CONVOCA}s para convocar seus 11 jogadores.`} status={`A convocação abre em ${seg}s`}>
+    <div className="ll26-cup-entry"><p style={{fontSize:13,lineHeight:1.5}}>Escolha o time que vai representar seu país. Quem deixar o prazo terminar sem convocar recebe os 11 de menor nível, conforme a regra da sala.</p><Relogio seg={seg} total={SEG_BANNER} /></div>
+  </CompetitionStage>
   return (
     <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '14px 13px', marginTop: 9, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />
@@ -527,6 +533,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null }) => void
 }) {
   const [linhas, setLinhas] = useState<LinhaSala[]>([])
+  const privateVisual = useOnlinePreview()
   const [fase, setFase] = useState<LinhaFase | null>(null)
   const [aberta, setAberta] = useState(false)
   const [comecando, setComecando] = useState(false)
@@ -720,7 +727,8 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   return (
     <>
       <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
-      <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '11px 13px', marginBottom: 10 }}>
+      {privateVisual && <CompetitionStage kind="world" title="A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO" phase="Copa do Mundo" detail={`${classificacao.length} times da liga viram seleções. A classificação define a ordem de escolha.`} status={fase?.fase === 'bandeira' ? 'Escolha das seleções em andamento' : fase?.fase === 'convocacao' ? 'Cada técnico está convocando seus 11' : fase?.fase === 'torneio' ? 'Competição em andamento' : 'Aguardando o host abrir a Copa'} />}
+      <div className={privateVisual ? 'll26-world-gate' : undefined} style={{ ...box(privateVisual ? '#F4ECD6' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '11px 13px', marginBottom: 10 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌐 Copa do Mundo</p>
         <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '2px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
           acabou a liga — os {classificacao.length} times viram seleções (+ {Math.max(0, COPA_TEAMS - classificacao.length)} da máquina)
