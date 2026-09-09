@@ -159,6 +159,41 @@ O que mudou (tudo reversível revertendo o commit):
 ⚠️ Coisa que o Diego precisa fazer no mundo real: **colocar os ⭐ Craques atuais
 no grupo do WhatsApp** — o jogo passou a prometer isso pra eles.
 
+## 🚨 QUEDA DO BANCO 08/09 23:50 UTC — lista de salas (✅ consertado na hora)
+Diego: *"Deu bug na sala N tá dando pra criar a sala"*. Não era código novo: a
+**lista de salas** do lobby (a cada 8s por pessoa no lobby) extraía 15 campos do
+`game_state` (JSON de 50–200 KB) com `->>`, e o Postgres descomprime o JSON UMA
+VEZ POR CAMPO → **3,5 s por consulta** (pg_stat_statements: 66 mil chamadas,
+554 ms de média, 36 mil segundos de CPU no total). Às 23:49 entrou uma leva de
+gente (pedidos triplicaram, 400 listas/min), 14 consultas dessas rodando juntas,
+statement timeout em tudo (login 503, game_rooms/save 504) — ninguém criava sala.
+Normalizou sozinho às 00:03 quando a leva passou; a causa foi consertada:
+- **Banco** (migração aplicada na mão por causa de deadlock com o tráfego ao
+  vivo — `lock_timeout` 5s): 15 colunas `ls_*` em `game_rooms` + gatilho
+  `game_rooms_colunas_magras` (BEFORE INSERT OR UPDATE OF game_state, só refaz
+  quando o JSON muda — o heartbeat de `updated_at` não paga nada) + backfill dos
+  534 recentes + índices `created_at`, `updated_at`, `(host_id, updated_at)`,
+  parcial `game_rooms_lista_idx`.
+- **Código** (`lobby.tsx`, na main): a lista lê `ls_*` e filtra por `ls_tag`;
+  intervalo 8s → 10s. Medido: **3574 ms → 0,45 ms**.
+- Durante o pico apareceu 1 erro `unexpected chunk number … pg_toast_17583`
+  (toast do game_rooms) numa leitura; varri as 540 linhas depois e **nenhuma
+  está corrompida** — foi leitura concorrente sob carga, não dano.
+- ⚠️ Lição pra próxima consulta em cima de `game_state`: NUNCA `->>` em lista.
+  Coluna magra + gatilho, sempre. Candidatas a olhar depois: o `select
+  game_state->>tab, ->>claim` (543 mil chamadas, 1 ms — ok) e os saves da
+  pirâmide (`esc_pyramid_saves`, 26 timeouts no pico).
+
+## ↩️ V25 DA OUTRA SESSÃO DESFEZ 3 CONSERTOS PUBLICADOS (08/09) — ✅ recolocados
+O commit `322da96` ("Publica Carreira V25 privada…") reescreveu trechos do
+`store.tsx` e apagou, sem querer, três consertos que já estavam no ar:
+(1) reparo permanente da ficha de fundo/SAF sem 11 no FINISH_CEREMONY (Futpoint,
+07/09); (2) a checagem de dono na tela de abertura sem esperar silêncio (sala do
+Sistematizados, 07/09); (3) o painel do criador com o clube PRINCIPAL e a divisão
+pela colocação (07/09). Recolocados com `git apply -R` só dos 4 hunks (as partes
+deles — `careerPresident`, telas privadas — ficaram intactas). Pra quem for
+mexer no `store.tsx` a partir de outro branch: **rebase antes, não copie por cima.**
+
 ## 🐓 BATISMO BRIGA DE GALO FC (08/09) — Série A, no assento do Vasco da Grana
 Dono: `pedrovianacarneiroq@gmail.com` (conta de 19/08, nome de técnico "Pedro
 Caleb" — é o Caleb da conversa de hoje). Pedido do Diego: *"Faça o clube de

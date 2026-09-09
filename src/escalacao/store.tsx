@@ -5369,6 +5369,39 @@ export function reducer(state: EscState, action: Action): EscState {
           }
         }
       }
+      // 🩹 FICHA DE FUNDO SEM TIME PRA ESCALAR (bug do Futpoint, 07/09): a SAF dele
+      // estava gravada com ZERO cartas em `cpuSquads`, então entrava em campo vazia
+      // temporada após temporada. A leitura (buildPyramid) já tampa na hora; aqui o
+      // conserto vira PERMANENTE no save: toda ficha de fundo que não fecha os 11
+      // ganha jogador do catálogo livre (bom jogador pra baixo, o mais fraco) e, só
+      // se não houver ninguém, um incógnito. Ficha completa não é tocada.
+      if (s.careerOnline && s.onlineMode !== 'online' && s.cpuSquads) {
+        const NEED_F: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+        const idF = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
+        const usadosF = new Set<string>()
+        for (const m of s.managers) for (const c of m.squad) if (!c.fake) usadosF.add(idF(c))
+        for (const cards of Object.values(s.cpuSquads)) for (const c of cards) if (!(c as Card).fake) usadosF.add(idF(c as Card))
+        const rngF = rngOf(s)
+        let mexeu = false
+        const sqF = { ...s.cpuSquads }
+        for (const nome of Object.keys(sqF)) {
+          const arr = [...(sqF[nome] as WonCard[])]
+          let mudou = false
+          for (const pos of SECTORS) {
+            let have = arr.filter(c => c.pos === pos).length
+            let guard = 0
+            while (have < NEED_F[pos] && guard++ < 6) {
+              const livres = ACTIVE_CATALOG[pos].filter(c => !usadosF.has(idF(c)) && (c.fame ?? 1) <= 3 && !c.promessa)
+              const pick = livres.length ? [...livres].sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))[Math.floor(rngF() * Math.min(5, livres.length))] : undefined
+              if (pick) { usadosF.add(idF(pick)); arr.push({ ...pick, pos, id: `repo-f-${pos}-${Math.floor(rngF() * 1e9)}`, paid: 0, via: 'monte' } as WonCard) }
+              else arr.push(fillerCard(pos, rngF))
+              have++; mudou = true
+            }
+          }
+          if (mudou) { sqF[nome] = arr; mexeu = true }
+        }
+        if (mexeu) s.cpuSquads = sqF
+      }
       // 📝 CONTRATOS (carreira): todo jogador de HUMANO ou RIVAL que ainda não tem
       // contrato ganha um de 5-10 temporadas (contando a atual). SÓ em carreira que
       // NASCEU com contratos (contratosOn) — save antigo fica como sempre foi.
@@ -8721,7 +8754,16 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (canalMorto()) pedeCanalNovo()
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      if (stale && Date.now() - lastOwnerCheckRef.current > 10_000) {
+      // 🎬 NA TELA DE ABERTURA (streamIntro) A CHECAGEM NÃO ESPERA O SILÊNCIO
+      // (sala do Sistematizados, 07/09 à noite): o dono apertou "começar", caiu na
+      // tela das regras como CONVIDADO ("o host vai começar") e ficou 2 minutos
+      // assim — só o F5 devolveu o botão. O socorro abaixo existia, mas só corria
+      // depois de 10s SEM notícia de host; ali ele nunca correu. Antes do pregão
+      // não há envelope em risco, então nessa tela o aparelho pergunta ao banco a
+      // cada 5s quem é o dono e, se for ele, reassume na hora. Nada de troca de
+      // coroa: só devolve o comando a quem o banco JÁ diz que é o dono.
+      const preLeilao = stateRef.current.screen === 'streamIntro'
+      if ((stale || preLeilao) && Date.now() - lastOwnerCheckRef.current > (stale ? 10_000 : 5_000)) {
         lastOwnerCheckRef.current = Date.now()
         ;(async () => {
           try {
@@ -8741,6 +8783,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
             const hostId = (r as { host_id?: string } | null)?.host_id
             // (1) a posse já é MINHA no banco (handoff explícito ou eu era o dono) → assumo.
             if (hostId === uid) { if (!stateRef.current.isHost) { claimForcadoRef.current = true; rawDispatch({ type: 'BECOME_HOST' }) } return }
+            // 🎬 checagem da tela de abertura SEM silêncio: só serve pra devolver o
+            // comando ao dono. Convidado de verdade não acusa nem conta nada aqui.
+            if (!stale) return
             // 💓 BATIMENTO DO BANCO: o host grava updated_at a cada ~3s (mesmo PARADO
             // no leilão). Se está fresco (< 9s), o dono está VIVO — só ficou quieto no
             // Realtime pra economizar egress. NÃO se rouba host de quem está batendo:
@@ -8979,19 +9024,34 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // técnico (careerPlacements); a ANTIGA usa careerDivision. Ambas viram
       // 'career' no painel, com divisão e temporada — senão a pirâmide aparecia
       // como "partida rápida" e sumia da aba "Carreiras (onde cada um está)".
-      const youId = st.managers[st.youIdx]?.id ?? st.youIdx
       const pyramid = st.careerOnline && st.onlineMode !== 'online'
-      const division: string | null = st.careerDivision ?? (pyramid ? (st.careerPlacements?.['m' + youId] ?? 'D') : null)
+      // 🏛️ O PAINEL MOSTRA SEMPRE O CLUBE PRINCIPAL (Diego 07/09: *"no painel deve
+      // mostrar o time principal sempre"*). Com multiclube, quando o 2º clube está
+      // no comando (multiClubeAtivo), o principal é o que DORME — e ele mora em
+      // `multiClube` (id + nome). Sem multiclube, principal = assento ativo.
+      const ativo = st.managers[st.youIdx]
+      const principal = pyramid && st.multiClubeAtivo && st.multiClube
+        ? { id: st.multiClube.id, name: st.multiClube.team }
+        : { id: ativo?.id ?? st.youIdx, name: ativo?.teamName }
+      const youId = principal.id
+      // 🪜 NA PIRÂMIDE A DIVISÃO É A COLOCAÇÃO ATUAL (careerPlacements), nunca o
+      // careerDivision — ele fica congelado na divisão de FUNDAÇÃO (Várzea/D).
+      // Bug que o Diego pegou (07/09): o Futpoint joga a Série A com o clube
+      // principal e o painel mostrava "V" — e todo mundo que subiu aparecia na
+      // divisão em que começou.
+      const division: string | null = pyramid
+        ? (st.careerPlacements?.['m' + youId] ?? st.careerDivision ?? 'D')
+        : (st.careerDivision ?? null)
       const liveMode = st.onlineMode === 'online' ? 'online' : division ? 'career' : 'cpu'
       // caixa + títulos da carreira (pro painel ao vivo): pirâmide usa
       // careerCoins/careerHonors (títulos de QUALQUER série); antiga usa cash/careerTitles.
       const hon = st.careerHonors?.['m' + youId]
       const titles = division ? (pyramid ? (hon ? hon.A + hon.B + hon.C + hon.D : 0) : st.careerTitles) : undefined
-      const coins = division ? Math.round(pyramid ? (st.careerCoins?.[youId] ?? 0) : (st.managers[st.youIdx]?.money ?? 0)) : undefined
+      const coins = division ? Math.round(pyramid ? (st.careerCoins?.[youId] ?? 0) : (ativo?.money ?? 0)) : undefined
       const career = division ? { season: st.seasonNo, division, coins, titles } : undefined
       // online é sempre baralho brasileiro; solo (rápida/carreira) manda o escolhido
       const deck = liveMode === 'online' ? undefined : st.deckLeague
-      heartbeat(liveMode, st.managers[st.youIdx]?.teamName, st.screen, career, deck)
+      heartbeat(liveMode, principal.name, st.screen, career, deck)
     }
     beat()
     // a cada 60s (era 30s) — metade da gravação, e o painel "ao vivo" segue
