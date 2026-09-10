@@ -3493,6 +3493,14 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const marcadosT = state.aliciarTecnicos ?? []
   const marcadosJ = state.aliciarJogadores ?? []
   const rivais = new Set((state.careerRivals ?? []).map(r => r.team))
+  // ⚔️ QUANTOS RIVAIS DE FORA ESTÃO NESTA LISTA (Diego 10/09). A lista do Sondar traz
+  // os 19 clubes da sua divisão E os rivais que você escolheu no começo da carreira e
+  // que hoje estão em OUTRA série — eles ficam porque disputam o SEU leilão (entram
+  // como `auctionOnly`), mesmo não jogando a sua tabela. Isso é de propósito; o que
+  // faltava era a tela DIZER isso, que era o que confundia (ela prometia só a série).
+  // Palavras dele: *"só precisa ser especificado que quem está na série são os 19 da
+  // divisão junto dos rivais escolhidos no início do jogo"*.
+  const rivaisDeFora = state.managers.filter(m => !m.isHuman && m.auctionOnly).length
   // 🪶 a lista de clubes só muda quando o elenco de bots muda — sem o useMemo,
   // toda rolagem/re-render refazia filter+sort e redesenhava os ~20 escudos.
   const clubes = useMemo(
@@ -3535,12 +3543,19 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
           : (
             <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
               <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot} têm — sonda um aqui embaixo e brigue por ele no próximo leilão.</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot}{rivaisDeFora > 0 ? ' (e os seus ⚔️ rivais de outras séries)' : ''} têm — sonda um aqui embaixo e brigue por ele no próximo leilão.</p>
             </div>
           )}
       </div>
       <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
-        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕵️ Sondar · {divRot}</p>
+        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕵️ Sondar · {divRot}{rivaisDeFora > 0 ? ' + rivais' : ''}</p>
+        {/* 📜 QUEM ESTÁ NA LISTA — a frase que faltava (Diego 10/09). Só aparece
+            quando existe rival fora da sua série; carreira sem isso não lê nada a mais. */}
+        {rivaisDeFora > 0 && (
+          <p style={{ fontSize: 10.5, fontWeight: 800, color: '#7a5c12', margin: '0 0 5px', lineHeight: 1.45 }}>
+            Na lista estão os <b>19 clubes da {divRot}</b> e mais {rivaisDeFora === 1 ? 'o' : 'os'} <b>{rivaisDeFora} ⚔️ rival{rivaisDeFora > 1 ? 'is' : ''}</b> que você escolheu no começo da carreira e que hoje {rivaisDeFora === 1 ? 'está' : 'estão'} em outra série. {rivaisDeFora === 1 ? 'Ele fica' : 'Eles ficam'} aqui porque {rivaisDeFora === 1 ? 'briga' : 'brigam'} no <b>seu leilão</b> — só não {rivaisDeFora === 1 ? 'joga' : 'jogam'} a sua tabela.
+          </p>
+        )}
         {/* 📝 o texto SEGUE O QUE ESTÁ LIGADO (Diego 28/08: "tire essa informação
             de jogador"): com o sondar de jogador fechado, a explicação fala só
             de técnico. Quando o gate abrir, o texto completo volta sozinho — sem
