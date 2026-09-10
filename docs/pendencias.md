@@ -264,9 +264,15 @@ isqueiro, cartucheira, bananas de dinamite e fogo) pra virar a mascote.
   a prévia pro Diego SEM publicar. Opções: (a) usar assim; (b) pedir ao Geovany a
   cobra SOZINHA na prancha verde (ideal); (c) manter a Cobra Coral de punhos.
   **Decisão do Diego (22h34):** *"tire esse pedacinho que sobrou do escudo e mande
-  o mockup logo e publique"* → publicada (371x440, 40,9 KB), com a borda do escudo
-  MEDIDA na régua (diagonal (420,498)→(290,640), folga 12 px). A fumaça sobre a
-  camisa e sobre o escudo ficou de fora, com o OK dele.
+  o mockup logo e publique"* → publicada (371x440). **E logo depois ele mandou a arte
+  SOZINHA na prancha** (o caminho que eu tinha sugerido): recortada sem perda nenhuma
+  (304x440, 41,5 KB) e republicada — é esta que está no ar.
+- 🟢 **Prancha de fundo verde ESCURO (nova receita)**: a chave por `g-max(r,b)` não
+  serve (o fundo tem d≈70, dentro da faixa da arte). A que funciona é por DISTÂNCIA
+  da cor do fundo (fundo ≤ 8, arte ≥ 28) + despill NEUTRALIZANTE: fundo escuro tinge
+  o CONTORNO PRETO do desenho e deixa um fio verde-musgo em volta, então todo pixel
+  em que o verde lidera (g > r+10 e g > b+10) vira neutro. Conferido: 0 pixels
+  esverdeados restantes.
 - 📏 Lição pro roteiro: prancha com 3 peças que se SOBREPÕEM (não só encostam)
   não dá recorte honesto — pedir as peças separadas antes de começar.
 
