@@ -17,6 +17,9 @@
 //     --saida /tmp/skyy-post.png
 //
 // ── O QUE O POST TEM, DE CIMA PRA BAIXO (não mexer sem o Diego mandar) ──────
+// 🚫 REGRA (Diego 10/09): o post NÃO diz de quem é a arte. Nada de "arte própria
+// do dono" — palavras dele: *"n escreva q e arte do próprio dono, n tem necessidade"*.
+// O post fala do CLUBE (escudo novo, manto, mascote), não de quem desenhou.
 //   1. pílula "BATISMO DE LENDA" (ou "CLUBE DE SÓCIO", com --socio; ou "CLUBE DE
 //      CARA NOVA", com --renovacao — clube que já existe e trocou a arte)
 //   2. manchete "NASCEU O <CLUBE>" (a 1ª palavra do nome sai em vermelho;
@@ -220,7 +223,7 @@ h1 .r{color:#C2452F}
 <div class="pill">${o.mascoteEmoji} ${o.renovacao ? 'CLUBE DE CARA NOVA' : o.socio ? 'CLUBE DE SÓCIO' : 'BATISMO DE LENDA'}</div>
 <h1>${o.renovacao ? 'Cara nova pro' : o.socio ? 'Chegou o' : 'Nasceu o'}<br><span class="r">${destaque}</span>${resto ? `<br>${resto}` : ''}</h1>
 <p class="lead">${o.renovacao
-  ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} já joga a <b>Série ${o.serie}</b> — e agora entra em campo com <b>arte própria do dono</b>: escudo novo, manto ${cores} e ${art ? 'a' : 'o'} ${mascCurto} de mascote.`
+  ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} já joga a <b>Série ${o.serie}</b> — e agora entra em campo <b>de cara nova</b>: escudo novo, manto ${cores} e ${art ? 'a' : 'o'} ${mascCurto} de mascote.`
   : o.socio
   ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} agora tem <b>escudo, mascote e manto no jogo</b> — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote. Clube próprio de sócio: <b>não tira o lugar de ninguém</b> na pirâmide.`
   : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} chega na <b>Série ${o.serie}</b>${o.antigo ? ` no lugar do ${o.antigo}` : ''} — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}</p>
