@@ -251,6 +251,33 @@ modo mundo, o state pequeno) e o `careeronline.tsx` (esse usa o state inteiro).
 ⚠️ Aumentar a máquina **NÃO resolve** isto: Realtime e Egress são cobrados por
 uso, não por tamanho de servidor.
 
+## 🐄 BATISMO LEITE DE VERDADE FC (10/09) — Série A, no assento do Barcenite FC (que desceu pra B)
+Dono: `brunolopesmiranda15@gmail.com` (conta de 24/07 — conferida ANTES de qualquer
+linha no banco, como manda a regra de 07/09). Pedido do Diego: *"entra no lugar do
+time da série A Barcenite, que vai pra série B e daí um bot da B pro Barcenite"*.
+- **Assentos:** Leite de Verdade FC → Série A (linha que era do Barcenite FC);
+  Barcenite FC → Série B, na vaga do bot **Marítimo do Recôncavo** (só existia em
+  `DIVISION_TEAMS.B` e em `CLASSIC_CLUBS`), herdando a força dele (70/72) — era o
+  bot mais FORTE nessa condição, que é o justo pra quem vem da Série A.
+  ⚠️ **SEM `OLD_NAME` nos dois casos**: ninguém foi renomeado, só mudou de divisão
+  (o nome velho do Barcenite segue sendo o Milanesa FC).
+- **Arte**: escudo 284x360 **29,3 KB** · mascote 291x440 **44,7 KB** → **74,0 de 75**
+  (o mais apertado até hoje). Camisa em `scripts/kits/leitedeverdade-camisa.webp`.
+- 🟩 **Prancha verde-neon com VERDE DENTRO da arte** (o pasto e o celeiro no escudo,
+  a grama aos pés da vaca): o corte foi por **distância da cor do fundo** (fundo a
+  <30, o verde mais próximo da arte a 68 — folga enorme), nunca por "quanto tem de
+  verde". Despill só na borda macia, pra não lavar o pasto. Conferido sobre creme:
+  campo, celeiro e grama inteiros.
+- **Mascote** `leiteverdade_vaca` = **"A Mimosa"** (⚠️ PROVISÓRIO — a arte veio sem
+  nome; é o nome clássico de vaca no Brasil). Carimba a tela no gol.
+- **Manto** `['#EBE0CD', '#090908']` (creme-leite 39%, preto malhado 36%) + dourado
+  `#CDAA77` da coroa em `MANTO_TRI`, todos MEDIDOS na camisa. O creme vem PRIMEIRO
+  porque é a base da camisa e a cara do clube (leite); as manchas são por cima.
+- **Banco (feito):** `esc_socios` nº45 (escudo_time, mascote, manto, válido até
+  2099), `esc_fundadores` nº67, `user_colors` ouro manual, `esc_nomes_batismo` com
+  o nome puro (o gatilho criou FC e EC sozinho).
+- ❓ **Pendente:** nome da mascote · @ do Bruno · time de coração (não foi dito).
+
 ## 🐍 TRICOLOR DO ARRUDA FC — 2ª RODADA (10/09, madrugada): escudo trocado ✅ · mascote da dinamite ✅ (aprovada com a perda)
 O Diego mandou duas pranchas novas: (1) SÓ o escudo, o estádio inteiro visto de cima
 (placas SANTA/PITÚ) — **publicado** (360x260, 28,1 KB; render agora usa 360/260,

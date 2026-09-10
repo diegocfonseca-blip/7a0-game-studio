@@ -76,6 +76,7 @@ const BATISMOS = [
   ['diegohdsf@gmail.com', 'Fala D10'], // 🎙️ Série A, no assento do Skyy FC, que desceu pra D (09/09)
   ['contateste577660006@gmail.com', 'Só Deus Sabe FC'], // 🙏 Série A, no assento do Nightfull FC, que desceu pra B (09/09)
   ['iago.cortellini@gmail.com', 'Bagres de Wall Street FC'], // 🐟📉 Série A, no assento do Manfré FC, que desceu pra B (09/09)
+  ['brunolopesmiranda15@gmail.com', 'Leite de Verdade FC'], // 🐮 Série A, no assento do Barcenite FC, que desceu pra B (10/09)
   ['contatovegetta14@gmail.com', 'Corporação Capsule FC'],
   ['denilson.stifler10@gmail.com', 'Xurupitas FC'], ['matheus223lms@icloud.com', 'Alfacehh'],
   ['jorgericardo777@gmail.com', 'Leão da Estradinha'], ['nevesgabriel95@gmail.com', 'Deportivo Montreal'],

@@ -2575,7 +2575,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
-    { name: 'Piu do Grêmio', team: 'Barcenite FC' }, // ⚽ clube BATIZADO por apoiador (ricardopessoafreire — Barcenite FC, ex-Milanesa FC; fundador nº31). 🩹 21/08: o comentário faltava e a vaga aparecia como LIVRE na contagem — quase foi vendida duas vezes.
+    { name: 'Seu Bruno da Roça', team: 'Leite de Verdade FC' }, // 🐮 clube BATIZADO por apoiador (brunolopesmiranda15 — Leite de Verdade FC; vaca malhada de chapéu de palha e óculos escuros, creme e preto com dourado; Lenda + fundador nº67 + sócio nº45, 10/09). Assento que era do Barcenite FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Barcenite não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Milanesa FC).
     { name: 'Tico do Bar', team: 'Sapekeiros FC' }, // 🐝👑 clube BATIZADO por apoiador (tiosapeka@gmail.com / @tiosapekagg — Sapekeiros FC, ex-Pardemeias; abelha coroada, manto preto+dourado, 20/08)
     { name: 'Bagrão de Terno', team: 'Bagres de Wall Street FC' }, // 🐟📉 clube BATIZADO por apoiador (iago.cortellini — Bagres de Wall Street FC; coração São Paulo; bagre de terno, coroa e charuto na bolsa de valores, preto + dourado; Lenda + fundador nº66 + sócio nº44, 09/09). Assento que era do Manfré FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Manfré não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Livre-pool). ⚠️ NÃO é o mesmo clube que o 'Bagres 1993' (caiohcris) — são dois donos diferentes.
     { name: 'Val do Buraco', team: 'São Luiz FC' }, // ⚽ clube BATIZADO por apoiador (gabrielnegreirosamaral99 — São Luiz FC, ex-Flamengo do Sertão; coração Flamengo, mascote pitbull 🐶, 21/08)
@@ -2593,7 +2593,15 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // ele não foi renomeado, só mudou de divisão — o nome velho dele (Livre-pool,
     // e antes Xandão EC) segue valendo.
     { name: 'Xandão da Bola', team: 'Manfré FC' }, // ⚽ clube BATIZADO por apoiador (danielmanfre5 — Manfré FC, ex-Livre-pool). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
-    { name: 'Recôncavo', team: 'Marítimo do Recôncavo' },
+    // ⚽ Barcenite FC (ricardopessoafreire) DESCEU da Série A pra cá em 10/09, por
+    // decisão do Diego, pra abrir o assento do Leite de Verdade FC. Ocupa a vaga que
+    // era do bot "Marítimo do Recôncavo" (escolhido por só existir aqui e em
+    // CLASSIC_CLUBS, em mais lugar nenhum do jogo) — e era o bot mais FORTE nessa
+    // condição, que é o justo pra quem vem da Série A.
+    // ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Barcenite FC'] = 'Marítimo do Recôncavo'`:
+    // ele não foi renomeado, só mudou de divisão — o nome velho dele (Milanesa FC)
+    // segue valendo.
+    { name: 'Piu do Grêmio', team: 'Barcenite FC' }, // ⚽ clube BATIZADO por apoiador (ricardopessoafreire — Barcenite FC, ex-Milanesa FC; fundador nº31). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
     // 🌙 Nightfull FC (Guilherme) DESCEU da Série A pra cá em 09/09, por decisão do
     // Diego, pra abrir o assento do Só Deus Sabe FC. Ocupa a vaga que era do bot
     // "Guarani do Agreste" (só existia aqui e em CLASSIC_CLUBS). ⚠️ DE PROPÓSITO
@@ -2712,7 +2720,7 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Nacional da Serra', atk: 75, def: 73 },
   { name: 'Esporte do Cerrado', atk: 73, def: 75 },
   { name: 'Manfré FC', atk: 72, def: 71 }, // ⚽ desceu da Série A em 09/09 (abriu o assento do Bagres de Wall Street FC) — MESMA força do bot que cedeu a vaga (União da Baixada)
-  { name: 'Marítimo do Recôncavo', atk: 70, def: 72 },
+  { name: 'Barcenite FC', atk: 70, def: 72 }, // ⚽ desceu da Série A em 10/09 (abriu o assento do Leite de Verdade FC) — MESMA força do bot que cedeu a vaga (Marítimo do Recôncavo)
   { name: 'Nightfull FC', atk: 70, def: 68 }, // 🌙 desceu da Série A em 09/09 (abriu o assento do Só Deus Sabe FC) — MESMA força do bot que cedeu a vaga (Guarani do Agreste)
   { name: 'Comercial das Gerais', atk: 68, def: 70 },
   { name: 'Ipiranga da Fronteira', atk: 67, def: 66 },

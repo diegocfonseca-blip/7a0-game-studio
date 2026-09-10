@@ -41,6 +41,7 @@ import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus 
 import bagresWallStEscudoImg from './img/bagreswallst-escudo.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09 (substitui o SVG desenhado a mao de 10/08)
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
+import leiteDeVerdadeEscudoImg from './img/leitedeverdade-escudo.webp' // 🐮 Leite de Verdade FC (brunolopesmiranda15): arte do dono, 10/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaEscudoImg from './img/jurubeba-escudo.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -643,6 +644,15 @@ const bichoDaSedaEscudoRender = (size: number) => (
 // g-max(r,b) >= 144, a arte fica <= 120). Conferido sobre creme: nada comido.
 const xurupitasEscudoRender = (size: number) => (
   <img src={xurupitasEscudoImg} height={size} width={Math.round(size * 248 / 360)} alt="Xurupitas FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🐮 Leite de Verdade FC — 284x360 no arquivo, entao a largura sai da PROPORCAO
+// REAL (nunca width={size} chutado). Arte do dono (brunolopesmiranda15, 10/09): a
+// vaca malhada de oculos escuros mascando capim, o curral com celeiro e cata-vento,
+// os latoes de leite e o respingo. ⚠️ A prancha era verde-neon com VERDE DENTRO da
+// arte (o pasto do escudo e a grama): o corte foi por DISTANCIA da cor do fundo
+// (fundo a <30, o verde mais proximo da arte a 68), nunca por 'quanto tem de verde'.
+const leiteDeVerdadeEscudoRender = (size: number) => (
+  <img src={leiteDeVerdadeEscudoImg} height={size} width={Math.round(size * 284 / 360)} alt="Leite de Verdade FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🌑 Nova Eclipse FC — 241x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (jh9415474, 07/09): escudo prata
@@ -1254,6 +1264,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Xurupitas': xurupitasEscudoRender,
   'Xurupitas EC': xurupitasEscudoRender,
   'Xurupitas SC': xurupitasEscudoRender,
+  // 🐮 Leite de Verdade FC (brunolopesmiranda15) — Série A, no assento que era do
+  // Barcenite FC (10/09), que DESCEU pra Série B. As 4 formas do nome.
+  // ⚠️ SEM nome velho: o Barcenite só mudou de divisão, não foi renomeado (o OLD_NAME
+  // dele continua sendo o Milanesa FC).
+  'Leite de Verdade FC': leiteDeVerdadeEscudoRender,
+  'Leite de Verdade': leiteDeVerdadeEscudoRender,
+  'Leite de Verdade EC': leiteDeVerdadeEscudoRender,
+  'Leite de Verdade SC': leiteDeVerdadeEscudoRender,
   // 🧢 Tôka10 (batismo do ofc.toka10, aprovado pelo Diego 10/08): o menino da
   // touca — ARTE PRÓPRIA do dono (imagem webp 22 KB, exceção aprovada; ver nota
   // no topo). Selo redondo já vem no desenho; fundo é transparente.

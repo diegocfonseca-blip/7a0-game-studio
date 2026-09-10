@@ -32,6 +32,7 @@ import soDeusSabeMascoteImg from './img/sodeussabe-mascote.webp' // 🙏 Só Deu
 import bagresWallStMascoteImg from './img/bagreswallst-mascote.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaMascoteImg from './img/bichodaseda-mascote.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09
 import xurupitasMascoteImg from './img/xurupitas-mascote.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09
+import leiteDeVerdadeMascoteImg from './img/leitedeverdade-mascote.webp' // 🐮 Leite de Verdade FC (brunolopesmiranda15): arte do dono, 10/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
@@ -444,6 +445,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   xurupitas_gosma: (
     <img src={xurupitasMascoteImg} height={176} width={Math.round(176 * 334 / 440)} alt="O Xurupita — Xurupitas FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🐮 A Mimosa — Leite de Verdade FC (10/09). 291x440 no arquivo (a vaca de chapéu
+  // de palha e óculos escuros, braços cruzados, pé na bola, latão e a placa do curral),
+  // então a largura sai da PROPORÇÃO REAL.
+  leiteverdade_vaca: (
+    <img src={leiteDeVerdadeMascoteImg} height={176} width={Math.round(176 * 291 / 440)} alt="A Mimosa — Leite de Verdade FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🧷 `porco` era a chave antiga (10/08) e pode estar num save/na linha do sócio
   // ainda não atualizada: aponta pra MESMA arte nova, nunca pra um buraco.
   porco: (
@@ -847,6 +854,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Xurupitas EC': 'xurupitas_gosma',
   'XURUPITAS FC': 'xurupitas_gosma',
   'XURUPITAS': 'xurupitas_gosma',
+  // 🐮 Leite de Verdade FC — as 4 formas do nome e a CAIXA ALTA.
+  'Leite de Verdade FC': 'leiteverdade_vaca',
+  'Leite de Verdade': 'leiteverdade_vaca',
+  'Leite de Verdade EC': 'leiteverdade_vaca',
+  'LEITE DE VERDADE FC': 'leiteverdade_vaca',
+  'LEITE DE VERDADE': 'leiteverdade_vaca',
   'Marinheiros AS': 'porco_marinheiro',
   'Scorporila FC': 'scorporila',
   'Deportivo Montreal': 'maite',
@@ -1042,6 +1055,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   bagreswallst_bagre: 'O Bagre Investidor', // 🐟📉 Bagres de Wall Street FC (09/09) — o bagre de terno, coroa e charuto sentado no caixote. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   bichodaseda_bicho: 'O Bicho da Seda', // 🐛 Bicho da Seda (09/09) — o bicho de óculos escuros, braços cruzados e pé na bola. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   xurupitas_gosma: 'O Xurupita', // 🟢 Xurupitas FC (09/09) — a gosma verde de sorriso maroto e pé na bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
+  leiteverdade_vaca: 'A Mimosa', // 🐮 Leite de Verdade FC (10/09) — a vaca de chapéu de palha e óculos escuros. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
   porco: 'O Xurupita', // 🧷 chave antiga (10/08) — mesma mascote
   mariposa: 'O Bicho da Seda', // 🧷 chave antiga (10/08) — mesma mascote
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono

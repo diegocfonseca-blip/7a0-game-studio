@@ -112,6 +112,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'gaancaxd@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº61 + SÓCIO nº39 + batismo (Sistematizados FC, Série D, ex-Coliseu United; mascote O Sistematizado 🎮, preto + roxo; 07/09)
   'contateste577660006@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº65 + SÓCIO nº43 + batismo (Só Deus Sabe FC, Série A, no assento que era do Nightfull FC; coração Atlético Mineiro; 09/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'iago.cortellini@gmail.com': 'ouro', // 🐟📉 Lenda (pago) — tudo do ouro + FUNDADOR nº66 + SÓCIO nº44 + batismo (Bagres de Wall Street FC, Série A, no assento que era do Manfré FC; coração São Paulo; 09/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
+  'brunolopesmiranda15@gmail.com': 'ouro', // 🐮 Lenda (pago) — tudo do ouro + FUNDADOR nº67 + SÓCIO nº45 + batismo (Leite de Verdade FC, Série A, no assento que era do Barcenite FC; 10/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'diegohdsf@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº64 + SÓCIO nº42 + batismo (Fala D10, Série A, no assento que era do Skyy FC; coração Corinthians; 09/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'duselecta@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº63 + SÓCIO nº41 + batismo (Bonança SSFC, Série C, ex-Torta de Rã; paredão de som 🔊, preto + amarelo com vermelho; 09/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'pedrovianacarneiroq@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº62 + SÓCIO nº40 + batismo (Briga de Galo FC, Série A, no assento que era do Vasco da Grana; mascote o Galo 🐓, preto + branco listrado com dourado; 08/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
@@ -169,6 +170,7 @@ const FUNDADOR_N: Record<string, number> = {
   'diegohdsf@gmail.com': 64, // 🎙️ Fala D10 (09/09)
   'contateste577660006@gmail.com': 65, // 🙏 Só Deus Sabe FC (09/09)
   'iago.cortellini@gmail.com': 66, // 🐟📉 Bagres de Wall Street FC (09/09)
+  'brunolopesmiranda15@gmail.com': 67, // 🐮 Leite de Verdade FC (10/09)
   'caiohcris@gmail.com': 59, // 🐟 Bagres 1993 (06/09)
   'contatovegetta14@gmail.com': 55, // 🐉 Corporação Capsule FC (03/09)
   'cesar.verissimo27@gmail.com': 3,
