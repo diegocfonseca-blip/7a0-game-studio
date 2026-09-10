@@ -5,6 +5,54 @@
 export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
+    "tipo": "nivel",
+    "nome": "Ademir da Guia",
+    "baralho": "BR",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-10"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Petr Čech",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-10"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Edwin van der Sar",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-10"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Rio Ferdinand",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-10"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Patrick Vieira",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-10"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Eden Hazard",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-10"
+  },
+  {
     "tipo": "entrou",
     "nome": "William",
     "baralho": "BR",
