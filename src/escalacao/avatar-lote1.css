@@ -1,2 +1,11 @@
 .ll-lote1-avatar{display:block;position:relative;width:100%;aspect-ratio:1.5;background-size:200% 200%;background-repeat:no-repeat;background-color:transparent;overflow:hidden;border-radius:0}
 .ll-lote1-card-avatar{width:100%;margin:10px auto;border:0;border-radius:0;overflow:hidden}.ll-lote1-reveal-card{width:168px;max-width:100%;margin:0 auto 12px}.ll-lote1-reveal-card>div{padding:8px!important}.ll-lote1-reveal-card p{white-space:normal!important}.ll-lote1-reveal-card .ll-lote1-card-avatar{margin:5px auto}
+.ll-private-reveal{min-height:0!important;height:auto!important}
+.ll-private-reveal .ll-lote1-reveal-card{width:160px;margin-bottom:8px}
+.ll-reveal-verdict{display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border:2px solid #0c0c0c;border-radius:12px;background:#f4ecd6;font-family:Oswald,sans-serif;font-weight:800;min-height:58px;line-height:1.2}
+.ll-reveal-verdict.is-sold{background:#1b7a3d;color:#fff}
+.ll-reveal-hammer{display:inline-block;font-size:30px;flex-shrink:0;transform-origin:80% 80%}
+.ll-reveal-hammer.strike{animation:ll-reveal-strike .45s ease-out both}
+@keyframes ll-reveal-strike{0%{transform:rotate(-65deg) translateY(-10px)}65%{transform:rotate(18deg) translateY(3px)}100%{transform:rotate(0)}}
+@media(prefers-reduced-motion:reduce){.ll-reveal-hammer.strike{animation:none}}
+

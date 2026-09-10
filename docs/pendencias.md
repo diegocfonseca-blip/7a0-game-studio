@@ -1,3 +1,13 @@
+## 10/09/2026 — Revelação com cartinha e martelo compacto (visual aprovado, publicação privada)
+
+- Pedido aprovado em texto: cartinha com avatar desde o começo da revelação normal, lista de ofertas, suspense curto e vencedor confirmado na primeira linha. Listagem de dar lances intocada.
+- Implementado sob a allowlist existente das duas contas e apenas futebol; fora da allowlist mantém MesaMartelo/lista anteriores. Surpresa só exibe identidade após confirmação com venda; sem venda fica escondida. Lances anulados ao fim; vencedor resolvido sobe após confirmação, inclusive empate. Valor final pago na linha vencedora.
+- Martelo CSS compacto, respeitando movimento reduzido. Nenhum timer de avanço, som, lance, resultado ou comando host foi alterado. Não há nova migração nem alteração de autenticação.
+- Diego aprovou a prévia e autorizou a publicação somente nas duas contas. Testes de ordenação imutável/empate/anulados/surpresa, QA 390/1440 e compilação TypeScript/Vite passaram. Prévias em `outputs/revelacao-cartinha-v2/` no workspace. Publicação isolada desta revelação, sem incluir o complemento de avatares pendente de aprovação.
+- Reversão isolada: remover integração de `reveal-presentation.ts` e CSS `.ll-private-reveal`/`.ll-reveal-*`, mantendo os avatares anteriores e a allowlist.
+
+## 10/09/2026 — Auditoria completa das lendas e complemento local
+
 ## 10/09/2026 — Prévia privada de avatares e carreira
 
 - Autorização do Diego: apenas diego.c.fonseca@gmail.com e diego.c.fonseca2@gmail.com.

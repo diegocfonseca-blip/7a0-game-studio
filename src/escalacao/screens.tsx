@@ -1,6 +1,7 @@
 import { type CSSProperties, type ReactNode, Component, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { revealOffers, revealIdentityVisible } from './reveal-presentation'
 import './online-visual.css'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
@@ -4406,7 +4407,12 @@ function Reveal() {
   // só pro modo online rápido"). Solo e carreira seguem na lista de sempre, byte
   // por byte — se a mesa der qualquer problema, ela não alcança o resto do jogo.
   const mesaModo = online && !state.careerOnline
-  const mesaOn = mesaModo && item.bids.length > 0
+  const privateReveal = avatarPreview && state.sport !== 'basquete'
+  const mesaOn = mesaModo && item.bids.length > 0 && !privateReveal
+  const identityVisible = revealIdentityVisible(item.card.id === state.surpriseId, hammered, sold)
+  const offerRows = privateReveal
+    ? revealOffers(item.bids, item.voided, item.winner, hammered)
+    : [...item.bids].sort((a, b) => b.amount - a.amount)
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -4425,7 +4431,7 @@ function Reveal() {
       <motion.div key={item.card.id} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
         <motion.div animate={sold ? { x: [0, -11, 11, -8, 8, -4, 4, 0] } : undefined}
           transition={{ delay: hammerDelay, duration: 0.5 }}>
-        <Box bg={item.card.fame >= 5 ? GOLD : '#fff'} className="p-5 relative" shadow={6}>
+        <Box bg={item.card.fame >= 5 ? GOLD : '#fff'} className={`p-5 relative ${privateReveal ? 'll-private-reveal' : ''}`} shadow={6}>
           {item.card.fame >= 5 && (
             <span className="absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black bg-white" style={OSWALD}>👑 LENDA</span>
           )}
@@ -4435,7 +4441,7 @@ function Reveal() {
           {/* 🎁 SURPRESA anti-spoiler: o nome fica BORRADO até alguém GANHAR de fato
               (martelo com vencedor). Sem lance = nunca revela (vai pro Monte às cegas);
               com lance = borrado até o martelo bater. */}
-          {!mesaOn && (avatarPreview && hammered && sold && avatarLote1(item.card.name, item.card.club, item.card.year)
+          {!mesaOn && (privateReveal && identityVisible && avatarLote1(item.card.name, item.card.club, item.card.year)
             ? <div className="ll-lote1-reveal-card"><CollectibleCard {...item.card}/></div>
             : <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />)}
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
@@ -4483,19 +4489,21 @@ function Reveal() {
             {/* MAIOR lance em CIMA (quem ganha no topo) — como sempre foi. O
                 anti-spoiler que importa é só a cor: a linha do vencedor só fica
                 VERDE quando o martelo bate (hammered), nunca antes do apito. */}
-            {[...item.bids].sort((a, b) => b.amount - a.amount).map((b, i) => {
+            {offerRows.map((b, i) => {
               const m = state.managers.find(x => x.id === b.mgr)!
               const voided = item.voided.includes(b.mgr)
               const isWinner = item.winner === b.mgr && hammered
               return (
                 <motion.div key={b.mgr} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.25 }}
+                  data-offer-manager={privateReveal ? b.mgr : undefined}
+                  data-confirmed-winner={privateReveal && isWinner ? 'true' : undefined}
                   className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5"
                   style={{ backgroundColor: isWinner ? GREEN : voided ? '#ddd' : '#fff' }}>
                   <p className="font-bold text-sm" style={{ color: isWinner ? '#fff' : INK }}>
                     {avatarPreview && <span style={{display:'inline-block',verticalAlign:'middle',marginRight:6}}><Escudo nome={m.teamName} size={24}/></span>}
-                    {m.id === you.id ? '🫵 Você' : m.teamName}{voided ? ' · anulado (setor cheio)' : ''}
+                    {m.id === you.id ? '🫵 Você' : m.teamName}{voided ? ' · anulado (setor cheio)' : ''}{privateReveal && isWinner ? ' · VENCEDOR' : ''}
                   </p>
-                  <p className="font-black" style={{ ...OSWALD, color: isWinner ? '#fff' : INK }}>{b.amount}</p>
+                  <p className="font-black" style={{ ...OSWALD, color: isWinner ? '#fff' : INK }}>{privateReveal && isWinner ? item.paid : b.amount}</p>
                 </motion.div>
               )
             })}
@@ -4556,7 +4564,13 @@ function Reveal() {
               </motion.div>
             )
           })()}
-          {tie && (
+          {privateReveal && <div className={`ll-reveal-verdict ${hammered && sold ? 'is-sold' : ''}`} role="status">
+            <span className={hammered && sold ? 'll-reveal-hammer strike' : 'll-reveal-hammer'} aria-hidden>🔨</span>
+            <span>{hammered
+              ? sold ? `Vendido ${winnerMgr?.id === you.id ? 'para você' : `para ${winnerMgr?.teamName}`} por ${item.paid}!` : 'Sem venda nesta revelação.'
+              : tie ? 'Ofertas empatadas… confirmando desempate!' : 'Abrindo as ofertas… quem leva?'}</span>
+          </div>}
+          {tie && (!privateReveal || hammered) && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: item.bids.length * 0.25 + 0.15 }}
               className="mt-3 border-[3px] border-black rounded-xl p-2.5" style={{ backgroundColor: '#FFE9B0' }}>
               <p className="text-[11px] font-black uppercase text-center" style={{ color: RED }}>⚔️ Desempate · re-lance às cegas</p>
@@ -4582,9 +4596,9 @@ function Reveal() {
               )}
             </motion.div>
           )}
-          {winnerMgr && (
+          {winnerMgr && (!privateReveal || hammered) && (
             <motion.div className="mt-3 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: hammerDelay }}>
-              {sold && (
+              {sold && !privateReveal && (
                 <>
                   {/* ✨ RAIOS ATRÁS DO MARTELO (17/08): o martelo já caía do céu; os
                       raios só dão o estouro da batida. CSS puro, 0 KB, e nascem
@@ -4605,9 +4619,9 @@ function Reveal() {
                   </motion.p>
                 </>
               )}
-              <p className="font-black text-lg" style={OSWALD}>
+              {!privateReveal && <p className="font-black text-lg" style={OSWALD}>
                 🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
-              </p>
+              </p>}
               {/* 🕴️ AGÊNCIA 2.0: agenciado negociado → banner de comissão no tempo
                   morto do martelo (não adiciona passo). A moeda já entrou no motor. */}
               {sold && state.agenciaOn && agLibReveal && (state.agenciados ?? []).some(a => a.name === item.card.name) && (
