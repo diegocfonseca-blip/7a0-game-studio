@@ -251,6 +251,24 @@ modo mundo, o state pequeno) e o `careeronline.tsx` (esse usa o state inteiro).
 ⚠️ Aumentar a máquina **NÃO resolve** isto: Realtime e Egress são cobrados por
 uso, não por tamanho de servidor.
 
+## 🐍 TRICOLOR DO ARRUDA FC — 2ª RODADA (10/09, madrugada): escudo trocado ✅ · mascote da dinamite ❓
+O Diego mandou duas pranchas novas: (1) SÓ o escudo, o estádio inteiro visto de cima
+(placas SANTA/PITÚ) — **publicado** (360x260, 28,1 KB; render agora usa 360/260,
+é mais largo que alto); (2) uma prancha completa com a **cobra da dinamite** (boné,
+isqueiro, cartucheira, bananas de dinamite e fogo) pra virar a mascote.
+- ⚠️ **A mascote da foto 2 não tem recorte limpo**: a ponta da CAUDA passa por
+  cima do escudo da prancha, e a FUMAÇA/FAÍSCAS passam por cima do escudo e da
+  camisa (e a fumaça é semitransparente — o verde do fundo vaza por ela). O melhor
+  recorte (chave por cor do fundo, corte pelo contorno da camisa e diagonal no
+  escudo, verde-vazado zerado) perde a ponta da cauda e parte da fumaça. Mandei
+  a prévia pro Diego SEM publicar. Opções: (a) usar assim; (b) pedir ao Geovany a
+  cobra SOZINHA na prancha verde (ideal); (c) manter a Cobra Coral de punhos.
+  Arquivo pronto em `scratchpad/arr/arr2-mascote.webp` (395x440, 41,5 KB) — se
+  o Diego aprovar, é copiar pra `arruda-mascote.webp`, ajustar 232/440 → 395/440
+  no `mascotes.tsx` e regerar o post.
+- 📏 Lição pro roteiro: prancha com 3 peças que se SOBREPÕEM (não só encostam)
+  não dá recorte honesto — pedir as peças separadas antes de começar.
+
 ## 🐍 TRICOLOR DO ARRUDA FC: ARTE NOVA DO DONO (09/09) — ✅ no ar
 Pedido do Diego: *"atualiza o time do Tricolor do Arruda agora também"*
 (`souzact12@gmail.com`, Geovany Souza; batismo de 16/08, sócio nº23, fundador nº43,
