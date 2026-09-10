@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useOnlinePreview } from './online-preview'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
+import { CAREER_VISUAL_RELEASED } from './career-feature-release'
 import { CompetitionStage, CompetitionMatch } from './online-match-visual'
 import { NationalCrest } from './national-crest'
 import { createPortal } from 'react-dom'
@@ -558,7 +559,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
     </CMModal>
   )
   if (phase === 'cup' && entrants) return (
-    <CMModal wide>
+    <CMModal wide cinematic={CAREER_VISUAL_RELEASED}>
       <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onCard={onCard} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
     </CMModal>
   )
@@ -835,7 +836,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
 
 export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
-  const privateVisual = previewAccount || (ONLINE_VISUAL_RELEASED && !!online)
+  const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
   const [allGroups, setAllGroups] = useState(!!online)
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
@@ -868,6 +869,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   const myIdx = entrants.findIndex(isYouE)
   const nm = (i: number) => privateVisual ? entrants[i].pais : `${flagOf(entrants[i].pais)} ${entrants[i].pais}`
   const club = (i: number) => entrants[i].club
+  const owner = (i: number) => online ? club(i) : undefined
   const isYou = (i: number) => entrants[i].you
 
   // 🎮 ritmo IGUAL à liga: AUTO por padrão (a Copa anda sozinha); quem tem o
@@ -1013,8 +1015,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
   const live = (h: number, a: number, ev: ScoreGoal[]) => (
     <div style={{ marginBottom: 8 }}>
-      <LiveScoreCard enhancedOnline={privateOnline} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
-        homeOwner={club(h)} awayOwner={club(a)}
+      <LiveScoreCard enhancedOnline={privateVisual} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
+        homeOwner={owner(h)} awayOwner={owner(a)}
         homeEmblem={privateVisual ? <NationalCrest country={entrants[h].pais} size={58} /> : undefined}
         awayEmblem={privateVisual ? <NationalCrest country={entrants[a].pais} size={58} /> : undefined}
         youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={roundMs} finished={liveDone}
@@ -1029,13 +1031,13 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
     const mine = isYou(t.h) || isYou(t.a)
     const fH = { bg: paisColor(entrants[t.h].pais), ink: _inkFor(paisColor(entrants[t.h].pais)), holo: 0, mark: '' } as CopaFill
     const fA = { bg: paisColor(entrants[t.a].pais), ink: _inkFor(paisColor(entrants[t.a].pais)), holo: 0, mark: '' } as CopaFill
-    if (privateOnline) {
+    if (privateVisual) {
       const scores = placaresDoConfronto(t)
       const leg = showVolta ? scores.volta : t.g1 ?? [0,0]
-      return <CompetitionMatch showOwners goals={(showVolta?t.ev2:t.ev1)?.map(g=>({...g,home:showVolta?!g.home:g.home}))} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={club(t.h)} awayOwner={club(t.a)} homeCrest={<NationalCrest country={entrants[t.h].pais} size={26} />} awayCrest={<NationalCrest country={entrants[t.a].pais} size={26} />} homeScore={leg[0]} awayScore={leg[1]} mine={mine} status={showVolta ? 'VOLTA ENCERRADA' : 'IDA ENCERRADA'} detail={showVolta ? <><b>AGREGADO {scores.agregado[0]} × {scores.agregado[1]}</b><br/>Ida: {t.g1?.[0]} × {t.g1?.[1]}{showPens&&t.pen?<PensShootout compactOnline pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>}/>:<><span style={winDelay>0?{opacity:0,animation:`cmWinPop .2s ease ${winDelay}s forwards`}:undefined}>{showPens&&t.pen?` · Pênaltis ${t.pen[0]} × ${t.pen[1]}`:''}<br/>{t.winner!=null?`${nm(t.winner)} avança`:''}</span></>}</> : 'Confronto em aberto · falta o jogo de volta'} />
+      return <CompetitionMatch showOwners goals={(showVolta?t.ev2:t.ev1)?.map(g=>({...g,home:showVolta?!g.home:g.home}))} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={owner(t.h)} awayOwner={owner(t.a)} homeCrest={<NationalCrest country={entrants[t.h].pais} size={26} />} awayCrest={<NationalCrest country={entrants[t.a].pais} size={26} />} homeScore={leg[0]} awayScore={leg[1]} mine={mine} status={showVolta ? 'VOLTA ENCERRADA' : 'IDA ENCERRADA'} detail={showVolta ? <><b>AGREGADO {scores.agregado[0]} × {scores.agregado[1]}</b><br/>Ida: {t.g1?.[0]} × {t.g1?.[1]}{showPens&&t.pen?<PensShootout compactOnline pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>}/>:<><span style={winDelay>0?{opacity:0,animation:`cmWinPop .2s ease ${winDelay}s forwards`}:undefined}>{showPens&&t.pen?` · Pênaltis ${t.pen[0]} × ${t.pen[1]}`:''}<br/>{t.winner!=null?`${nm(t.winner)} avança`:''}</span></>}</> : 'Confronto em aberto · falta o jogo de volta'} />
     }
     return (
-      <div className={privateOnline ? 'll26-world-match' : undefined} style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
+      <div className={privateVisual ? 'll26-world-match' : undefined} style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
         {/* 🎨 faixa branca no meio com o placar (Diego 11/08) — mesmo padrão das
             outras 2 copas: cor cheia só nas laterais, placar em cima do branco. */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'stretch', overflow: 'hidden', borderTopLeftRadius: 9, borderTopRightRadius: 9 }}>
@@ -1067,7 +1069,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
       {liveDone && t.pen && (
         <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 AGREGADO {placaresDoConfronto(t).agregado[0]}×{placaresDoConfronto(t).agregado[1]} — DECISÃO NOS PÊNALTIS</p>
-          <PensShootout compactOnline={privateOnline} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>} pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} colorOf={paisColor} />
+          <PensShootout compactOnline={privateVisual} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>} pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} colorOf={paisColor} />
         </div>
       )}
     </div>
@@ -1075,7 +1077,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
 
   return (
     <>
-      {privateOnline ? <CompetitionStage kind="world" title="COPA DO MUNDO LEGENDS" phase={done ? 'Campeão definido' : step <= GR ? 'Fase de grupos' : step === GR + 1 ? 'Sorteio do mata-mata' : step <= GR + 3 ? 'Quartas de final' : step <= GR + 5 ? 'Semifinais' : 'A grande final'} detail={step <= GR ? `Rodada ${Math.max(1, gRound)} de ${GR} · os dois primeiros de cada grupo avançam` : step === GR + 1 ? 'Oito seleções classificadas · sorteio livre' : step <= GR + 5 ? `${step === GR + 2 || step === GR + 4 ? 'Jogo de ida' : 'Jogo de volta'} · empate no agregado leva aos pênaltis` : 'Jogo único · o campeão ganha uma carta'} status={!liveDone ? 'Bola rolando · resultados revelados no ritmo da partida' : done ? 'Competição encerrada' : 'Confira os resultados e a próxima fase'} /> : <div className={privateVisual ? 'll25-world-art ll25-cup-heading' : undefined} style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
+      {privateVisual ? <CompetitionStage kind="world" title={online ? "COPA DO MUNDO LEGENDS" : `COPA DO MUNDO LEGENDS · TEMPORADA ${seasonNo}`} phase={done ? 'Campeão definido' : step <= GR ? 'Fase de grupos' : step === GR + 1 ? 'Sorteio do mata-mata' : step <= GR + 3 ? 'Quartas de final' : step <= GR + 5 ? 'Semifinais' : 'A grande final'} detail={step <= GR ? `Rodada ${Math.max(1, gRound)} de ${GR} · os dois primeiros de cada grupo avançam` : step === GR + 1 ? 'Oito seleções classificadas · sorteio livre' : step <= GR + 5 ? `${step === GR + 2 || step === GR + 4 ? 'Jogo de ida' : 'Jogo de volta'} · empate no agregado leva aos pênaltis` : 'Jogo único · o campeão ganha uma carta'} status={!liveDone ? 'Bola rolando · resultados revelados no ritmo da partida' : done ? 'Competição encerrada' : 'Confira os resultados e a próxima fase'} /> : <div className={privateVisual ? 'll25-world-art ll25-cup-heading' : undefined} style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5, background: 'radial-gradient(circle at 15% 20%, rgba(255,196,0,.25), transparent 22%), radial-gradient(circle at 85% 75%, rgba(255,196,0,.2), transparent 25%)' }} />
         {!privateVisual && <p style={{ position: 'relative', fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>}
         <p style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 19, margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: .4, background: 'linear-gradient(180deg,#FFE79A,#FFC400 55%,#B8860B)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Copa do Mundo Legends</p>
@@ -1088,7 +1090,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
         <div style={{ position: 'relative', height: 2, margin: '9px auto 0', width: '65%', background: 'linear-gradient(90deg,transparent,#FFC400,transparent)' }} />
       </div>}
 
-      {privateOnline && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>GRUPOS</span><span aria-current={step > GR && step <= GR + 3 ? 'step' : undefined}>QUARTAS</span><span aria-current={step > GR + 3 && step <= GR + 5 ? 'step' : undefined}>SEMIFINAIS</span><span aria-current={step > GR + 5 ? 'step' : undefined}>FINAL</span></div>}
+      {privateVisual && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>GRUPOS</span><span aria-current={step > GR && step <= GR + 3 ? 'step' : undefined}>QUARTAS</span><span aria-current={step > GR + 3 && step <= GR + 5 ? 'step' : undefined}>SEMIFINAIS</span><span aria-current={step > GR + 5 ? 'step' : undefined}>FINAL</span></div>}
       {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
           resultados só entram DEPOIS do apito — zero spoiler. */}
       {step >= 1 && step <= GR && (() => {
@@ -1112,21 +1114,21 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
           {world.groups.map((g, gi) => ({ g, gi })).filter(({g}) => !privateVisual || allGroups || myIdx < 0 || g.teams.includes(myIdx)).sort((x, y) =>
             (y.g.teams.includes(myIdx) ? 1 : 0) - (x.g.teams.includes(myIdx) ? 1 : 0)
           ).map(({ g, gi }) => (
-            <div key={gi} className={privateOnline ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
+            <div key={gi} className={privateVisual ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 GRUPO {'ABCD'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               {groupTable(g, shownRounds).map((r, i) => (
                 <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? 'rgba(255,196,0,.18)' : i < 2 ? 'rgba(255,255,255,.06)' : 'transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
                   <span style={{ width: 12, color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
                   {privateVisual ? <NationalCrest country={entrants[r.t].pais} size={24} /> : <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />}
-                  <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {club(r.t)}</span></span>
+                  <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} {online && <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {club(r.t)}</span>}</span>
                   <span style={{ fontWeight: 900, color: '#fff' }}>{r.pts}pt</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.w}V</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
                 </div>
               ))}
-              {privateOnline && step >= 1 && step <= GR && <section className="ll26-group-fixtures"><h3>JOGOS DO GRUPO · RODADA {gRound}</h3>{g.matches[gRound-1]?.map((m,k) => <CompetitionMatch showOwners key={k} goals={(m.ev??[]).filter(g=>liveDone||g.min<=liveMin)} home={entrants[m.h].pais} away={entrants[m.a].pais} homeOwner={club(m.h)} awayOwner={club(m.a)} homeCrest={<NationalCrest country={entrants[m.h].pais} size={25} />} awayCrest={<NationalCrest country={entrants[m.a].pais} size={25} />} mine={isYou(m.h)||isYou(m.a)} homeScore={liveDone ? (m.gh ?? 0) : (m.ev??[]).filter(e=>e.home&&e.min<=liveMin).length} awayScore={liveDone ? (m.ga ?? 0) : (m.ev??[]).filter(e=>!e.home&&e.min<=liveMin).length} status={liveDone?'ENCERRADO':`${Math.min(90,liveMin)}′ · AO VIVO`} />)}</section>}
-              {!privateOnline && step >= 1 && step <= GR && !liveDone && g.matches[gRound - 1]?.filter(m => m.h !== myIdx && m.a !== myIdx).map((m, k) => (
-                <MiniLive privateVisual={privateOnline} key={k} homeOwner={club(m.h)} nmH={nm(m.h)} awayOwner={club(m.a)} nmA={nm(m.a)} hPais={entrants[m.h].pais} aPais={entrants[m.a].pais} ev={m.ev ?? []} min={liveMin} />
+              {privateVisual && step >= 1 && step <= GR && <section className="ll26-group-fixtures"><h3>JOGOS DO GRUPO · RODADA {gRound}</h3>{g.matches[gRound-1]?.map((m,k) => <CompetitionMatch showOwners key={k} goals={(m.ev??[]).filter(g=>liveDone||g.min<=liveMin)} home={entrants[m.h].pais} away={entrants[m.a].pais} homeOwner={owner(m.h)} awayOwner={owner(m.a)} homeCrest={<NationalCrest country={entrants[m.h].pais} size={25} />} awayCrest={<NationalCrest country={entrants[m.a].pais} size={25} />} mine={isYou(m.h)||isYou(m.a)} homeScore={liveDone ? (m.gh ?? 0) : (m.ev??[]).filter(e=>e.home&&e.min<=liveMin).length} awayScore={liveDone ? (m.ga ?? 0) : (m.ev??[]).filter(e=>!e.home&&e.min<=liveMin).length} status={liveDone?'ENCERRADO':`${Math.min(90,liveMin)}′ · AO VIVO`} />)}</section>}
+              {!privateVisual && step >= 1 && step <= GR && !liveDone && g.matches[gRound - 1]?.filter(m => m.h !== myIdx && m.a !== myIdx).map((m, k) => (
+                <MiniLive privateVisual={privateVisual} key={k} homeOwner={owner(m.h)} nmH={nm(m.h)} awayOwner={owner(m.a)} nmA={nm(m.a)} hPais={entrants[m.h].pais} aPais={entrants[m.a].pais} ev={m.ev ?? []} min={liveMin} />
               ))}
-              {!privateOnline && shownRounds > 0 && liveDone && (
+              {!privateVisual && shownRounds > 0 && liveDone && (
                 <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', margin: '4px 0 0' }}>
                   rodada {shownRounds}: {g.matches[shownRounds - 1].map(m => `${flagOf(entrants[m.h].pais)} ${m.gh}×${m.ga} ${flagOf(entrants[m.a].pais)}`).join(' · ')}
                 </p>
@@ -1151,18 +1153,18 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
             {step === GR + 6 && liveDone && world.final.pen && (
               <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 8, marginBottom: 8 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center', color: GOLD }}>🥅 FINAL DECIDIDA NOS PÊNALTIS</p>
-                <PensShootout compactOnline={privateOnline} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} colorOf={paisColor} />
+                <PensShootout compactOnline={privateVisual} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} colorOf={paisColor} />
               </div>
             )}
             <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>⚔️ MATA-MATA <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'none' }}>(sorteio livre — ida e volta)</span><span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
-              {privateOnline && step <= GR + 3 && <p style={{ ...OSWALD, color: GOLD, fontSize: 13, margin: '12px 0 6px' }}>QUARTAS DE FINAL {step > GR + 3 ? '· ENCERRADAS' : step === GR + 3 ? '· VOLTA' : '· IDA'}</p>}
+              {privateVisual && step <= GR + 3 && <p style={{ ...OSWALD, color: GOLD, fontSize: 13, margin: '12px 0 6px' }}>QUARTAS DE FINAL {step > GR + 3 ? '· ENCERRADAS' : step === GR + 3 ? '· VOLTA' : '· IDA'}</p>}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
                 {world.qf.map((t, i) => {
-                  if (privateOnline && step > GR + 3) return null
+                  if (privateVisual && step > GR + 3) return null
                   const mine = isYou(t.h) || isYou(t.a)
-                  if (step === GR + 2) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive privateVisual={privateOnline} homeOwner={club(t.h)} nmH={nm(t.h)} awayOwner={club(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} /> : null}</div>
-                  if (step === GR + 3) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive privateVisual={privateOnline} homeOwner={club(t.a)} nmH={nm(t.a)} awayOwner={club(t.h)} nmA={nm(t.h)} hPais={entrants[t.a].pais} aPais={entrants[t.h].pais} ev={t.ev2!} min={liveMin} />}</div>
+                  if (step === GR + 2) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} /> : null}</div>
+                  if (step === GR + 3) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.a)} nmH={nm(t.a)} awayOwner={owner(t.h)} nmA={nm(t.h)} hPais={entrants[t.a].pais} aPais={entrants[t.h].pais} ev={t.ev2!} min={liveMin} />}</div>
                   if (step === GR + 1) return <div key={i} style={{ borderTop: '2px solid rgba(255,255,255,.12)', padding: '5px 2px', fontSize: 11, fontWeight: mine ? 900 : 700, color: '#fff' }}>{nm(t.h)} × {nm(t.a)}</div>
                   return <div key={i}>{tieRow(t, true)}</div>
                 })}
@@ -1171,10 +1173,10 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px', color: GOLD }}>SEMIFINAIS</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
                   {world.sf.map((t, i) => {
-                    if (privateOnline && step > GR + 5) return null
+                    if (privateVisual && step > GR + 5) return null
                     const mine = isYou(t.h) || isYou(t.a)
-                    if (step === GR + 4) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive privateVisual={privateOnline} homeOwner={club(t.h)} nmH={nm(t.h)} awayOwner={club(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} /> : null}</div>
-                    if (step === GR + 5) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive privateVisual={privateOnline} homeOwner={club(t.a)} nmH={nm(t.a)} awayOwner={club(t.h)} nmA={nm(t.h)} hPais={entrants[t.a].pais} aPais={entrants[t.h].pais} ev={t.ev2!} min={liveMin} />}</div>
+                    if (step === GR + 4) return <div key={i}>{!mine && liveDone ? tieRow(t, false) : !mine ? <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} /> : null}</div>
+                    if (step === GR + 5) return <div key={i}>{liveDone ? tieRow(t, true, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.a)} nmH={nm(t.a)} awayOwner={owner(t.h)} nmA={nm(t.h)} hPais={entrants[t.a].pais} aPais={entrants[t.h].pais} ev={t.ev2!} min={liveMin} />}</div>
                     return <div key={i}>{tieRow(t, true)}</div>
                   })}
                 </div>
@@ -1191,8 +1193,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
         )
       })()}
 
-      {privateOnline && step > GR + 3 && <details className="ll26-bracket-history"><summary>QUARTAS ENCERRADAS · RESULTADOS E CLASSIFICADOS</summary>{world.qf.map(t => <div key={t.h}>{tieRow(t,true)}</div>)}</details>}
-      {privateOnline && step > GR + 5 && <details className="ll26-bracket-history"><summary>SEMIFINAIS ENCERRADAS · RESULTADOS E FINALISTAS</summary>{world.sf.map(t => <div key={t.h}>{tieRow(t,true)}</div>)}</details>}
+      {privateVisual && step > GR + 3 && <details className="ll26-bracket-history"><summary>QUARTAS ENCERRADAS · RESULTADOS E CLASSIFICADOS</summary>{world.qf.map(t => <div key={t.h}>{tieRow(t,true)}</div>)}</details>}
+      {privateVisual && step > GR + 5 && <details className="ll26-bracket-history"><summary>SEMIFINAIS ENCERRADAS · RESULTADOS E FINALISTAS</summary>{world.sf.map(t => <div key={t.h}>{tieRow(t,true)}</div>)}</details>}
       {step === GR + 1 && (
         <div style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>🎲 O SORTEIO DAS QUARTAS (ida e volta)</p>
@@ -1238,7 +1240,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
           <CardCollectPrompt seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onGuaranteed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
         </div>
       )}
-      {privateOnline && <details className="ll27-copa-stats">
+      {privateVisual && <details className="ll27-copa-stats">
         <summary>ESTATÍSTICAS DA COPA DO MUNDO</summary>
         <p>Gols e assistências dos jogos encerrados desta Copa.</p>
         {Object.entries(copaStats(world,step,liveDone)).map(([kind,rows])=><section key={kind}>
@@ -1250,7 +1252,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
           </div>)}
         </section>)}
       </details>}
-      {done && !privateOnline && (() => {
+      {done && !privateVisual && (() => {
         const tally: Record<string, { goals: number; team: number }> = {}
         const add = (evs: ScoreGoal[] | undefined, h: number, a: number) => { for (const e of evs ?? []) { const t = e.home ? h : a; const k = e.name + '|' + t; tally[k] = { goals: (tally[k]?.goals ?? 0) + 1, team: t } } }
         for (const g of world.groups) for (const rd of g.matches) for (const m of rd) add(m.ev, m.h, m.a)

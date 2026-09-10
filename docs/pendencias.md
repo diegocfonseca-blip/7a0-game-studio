@@ -1,3 +1,7 @@
+## 10/09/2026 — Copa do Mundo da carreira: organização pública concluída
+
+Complemento da liberação: CupScreen usa o visual aprovado também sem sala online. Cabeçalho com temporada/fase, Meu grupo/Todos, jogos e placares compactos, agregado/pênaltis, histórico das fases encerradas e estatísticas sem antecipar resultados. Modal da competição usa cenário e largura responsiva (até 1000px). Nomes de bots/técnicos omitidos na carreira. Relógio sincronizado continua exclusivo do online; simulação, acesso na temporada 100, intervalo de 10 temporadas, seleção/convocação, prêmio e saves intactos. QA 390/1440 em grupos, sorteio, quartas ida/volta, semis ida/volta, final e cerimônia; teste de estatísticas sem spoiler; TypeScript/build. Reversão: reverter este commit, sem apagar saves. Sala/criador de presidente e técnico continuam adiados.
+
 # Liberação pública aprovada — 10/09/2026
 
 Visuais da carreira e avatares existentes liberados para todos; ver `docs/apresentacao-publica-20260910.md`. Sala/criador de presidente e técnico continuam adiados. Patrocínio usa cena com cadeira/campo/mesa, papel em branco e conteúdo dinâmico. Jogos e Tabelas separados. Envelope sem avatar. Sem mudança de regras ou catálogo.
