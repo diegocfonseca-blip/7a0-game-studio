@@ -9,6 +9,18 @@ export function CareerCompetitionStage(p: { kind: 'league'|'copa'|'brasil'|'supe
   return <div className={`ll29-stage ll29-stage-${p.kind}`}><CompetitionStage kind="league" title={p.title} phase={p.phase} detail={p.detail} status={p.status}>{p.children}</CompetitionStage></div>
 }
 
+export function CareerCompetitionHelp({ kind }: { kind: 'super'|'brasil'|'copa' }) {
+  const stages = kind === 'brasil' ? ['Peneira', 'Rodada de 64', 'Rodada de 32', 'Oitavas', 'Quartas', 'Semifinal', 'Final'] : []
+  return <details className="ll29-note">
+    <summary>COMO FUNCIONA ESTA COMPETIÇÃO</summary>
+    <div className="ll34-rules">
+      {stages.length > 0 && <ol aria-label="Caminho até a taça">{stages.map((name, i) => <li key={name}><span>{i + 1}</span>{name}</li>)}</ol>}
+      <p><b>Quem participa</b>{kind === 'super' ? 'Campeão da Liga × campeão da Copa do Brasil. Se um clube ganhou os dois títulos, entra o vice da Liga.' : kind === 'brasil' ? 'Série A e os oito primeiros da B entram na chave de 64. Os demais começam na peneira.' : 'Os quatro melhores de cada série: A, B, C e D.'}</p>
+      <p><b>Formato</b>{kind === 'super' ? 'Final em jogo único.' : kind === 'brasil' ? 'Mata-mata sem grupos. Semifinal em ida e volta; final em jogo único. Confira o formato da fase no cabeçalho.' : 'Mata-mata. O cabeçalho de cada fase informa se é jogo único ou ida e volta.'}</p>
+    </div>
+  </details>
+}
+
 export function CareerLeagueGames({ matches, minute, title, hideId }: { matches: SimMatch[]; minute: number; title: string; hideId?: number }) {
   return <section className="ll29-games"><h3>{title}</h3><div className="ll29-match-grid">{matches.filter(m => hideId == null || (m.hId !== hideId && m.aId !== hideId)).map((m,i) => {
     const done = minute >= 93, goals = m.goals.filter(g => done || g.min <= minute)

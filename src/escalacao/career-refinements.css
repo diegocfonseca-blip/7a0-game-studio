@@ -1,0 +1,46 @@
+/* Somente componentes privados. Cena proporcional, textos fora da arte. */
+.ll29-sponsor header,.ll32-sponsor-overview header{padding:20px 20px 12px;background:linear-gradient(90deg,#070b08eb,#070b0880),url('./img/career-sponsor-desk-v29.webp') center 35%/cover;min-height:120px}
+.ll29-sponsor header p{margin-bottom:0;font-size:13px;line-height:1.4}
+.ll29-sponsor-tabs{padding:14px 16px 10px;gap:8px}
+.ll29-sponsor-tabs button{font-size:13px;padding:10px 6px;min-width:0}
+.ll29-sponsor-contracts{display:grid;position:relative;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;aspect-ratio:auto;height:auto;margin:0;padding:36px 18px 20px;background:linear-gradient(#100e0a22,#100e0a99),url('./img/career-sponsor-desk-v29.webp') center 70%/cover}
+.ll29-sponsor-contracts button,.ll29-sponsor-contracts button:nth-child(n){position:relative;inset:auto;transform:none;width:auto;height:auto;min-height:180px;padding:16px 12px;display:flex;gap:9px;background:linear-gradient(135deg,#fff9e7,#ead9b2);border:3px solid #0c0c0c;border-radius:10px;box-shadow:3px 4px 0 #0c0c0c;color:#0c0c0c}
+.ll29-sponsor-contracts button[aria-pressed=true]{outline:3px solid #7c3aed;outline-offset:2px;background:linear-gradient(135deg,#fff9e7,#ead9b2)}
+.ll29-sponsor-contracts h3{font:700 clamp(20px,2vw,26px)/1.15 Oswald,sans-serif;margin:0;overflow-wrap:anywhere}
+.ll29-sponsor-contracts p{font-size:12px}.ll29-sponsor-contracts strong{font-size:20px}.ll29-sponsor-contracts small{font-size:11px}
+.ll29-sponsor-bottom{padding:12px 18px 18px;background:#100e0a;line-height:1.5}
+.ll29-sponsor-bottom p{margin:0 0 12px}.ll29-sponsor-bottom small{margin-top:10px}
+.ll32-contract-scene{height:auto;min-height:260px;display:flex;align-items:center;justify-content:center;padding:28px 20px;background:linear-gradient(#100e0a22,#100e0a88),url('./img/career-sponsor-desk-v29.webp') center 65%/cover}
+.ll32-contract-scene article{position:relative;inset:auto;transform:none;width:min(100%,330px);height:auto;color:#0c0c0c;background:linear-gradient(135deg,#fff9e7,#ead9b2);border:3px solid #0c0c0c;border-radius:10px;box-shadow:4px 4px 0 #0c0c0c;text-align:center;padding:22px 16px;gap:10px}
+.ll29-sponsor-contracts button:nth-child(n),.ll32-contract-scene article{border:1px solid #c4b99b;border-radius:1px 1px 12px 1px;background:repeating-linear-gradient(0deg,#816b3c05 0 1px,transparent 1px 3px),linear-gradient(115deg,#fffaf0,#eee3c9 85%,#d8caac);box-shadow:2px 3px 0 #e8dcc0,3px 4px 0 #9c8c6a,5px 7px 0 #e4d7b9,8px 12px 15px #0009;min-height:230px}
+.ll29-sponsor-contracts button[aria-pressed=true]{outline:2px solid #7c3aed;outline-offset:7px;background:repeating-linear-gradient(0deg,#816b3c05 0 1px,transparent 1px 3px),linear-gradient(115deg,#fffaf0,#eee3c9 85%,#d8caac)}
+.ll35-contract-logo{width:140px;height:48px;object-fit:contain;display:block;flex:none;margin:0 auto}
+.ll29-sponsor-contracts .ll35-contract-heading{font:600 9px Oswald,sans-serif;letter-spacing:.12em;color:#665b43}
+.ll29-sponsor-contracts button>.ll35-signature,.ll32-contract-scene .ll35-signature{display:block;align-self:stretch;border-top:1px solid #897b5d;margin:16px 12px 0;padding-top:5px;font:500 10px/1.4 Arial,sans-serif;color:#62573f;text-transform:none}
+.ll29-note,.ll29-note *{text-shadow:none!important}
+.ll29-note{margin:12px;line-height:1.5}
+.ll29-note summary{min-height:32px;display:list-item;align-content:center}
+.ll34-rules{display:grid;gap:12px;border-top:1px solid #c7bfa9;padding-top:12px;margin-top:8px}
+.ll34-rules p{margin:0}.ll34-rules p>b{display:block;font:700 14px Oswald,sans-serif;margin-bottom:3px}
+.ll34-rules ol{padding:0;margin:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.ll34-rules li{display:flex;align-items:center;gap:5px;padding:5px 7px;background:#fff;border:1px solid #c7bfa9;border-radius:6px;font-size:11px}
+.ll34-rules li span{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#0c0c0c;color:#fff;font-weight:700}
+.ll-career-auction-private{--ink:#0c0c0c;color:#0c0c0c!important}
+.ll-career-auction-private input{color:#0c0c0c!important;caret-color:#0c0c0c}
+.ll29-career .ll25-narration:not(.ll25-goal){color:#f4ecd6}
+.ll34-career-stories{margin:16px 0;padding-bottom:14px;border-bottom:3px double #74674e}
+.ll34-career-jornal .ll34-career-numbers{margin-top:14px}
+.ll34-career-jornal .jv-masthead h1{font-family:Georgia,serif}
+.ll-career-auction-private :is(.bg-white,.bg-\[\#F4ECD6\],.bg-\[\#FFC400\]){color:#0c0c0c}
+/* No modo noturno os tons text-black clareiam; dentro de papel continuam tinta. */
+html .ll-career-auction-private :is(.bg-white,.bg-\[\#F4ECD6\],.bg-\[\#FFC400\]) [class*="text-black"]{color:#494338!important;text-shadow:none}
+html .ll-career-auction-private :is(.bg-white,.bg-\[\#F4ECD6\],.bg-\[\#FFC400\])[class*="text-black"]{color:#494338!important}
+@media(max-width:560px){
+ .ll29-sponsor header,.ll32-sponsor-overview header{padding:16px 14px 12px;min-height:110px}
+ .ll29-sponsor h2{font-size:26px}.ll29-sponsor-tabs{padding:12px 12px 10px;gap:6px}.ll29-sponsor-tabs button{font-size:11px;padding:8px 5px;min-height:48px}
+ .ll30-proposals{display:flex;gap:7px;padding:0 12px 10px}.ll30-proposals button{flex:1;min-width:0;font-size:11px;min-height:36px}
+ .ll29-sponsor-contracts{display:block;padding:20px 22px;background-position:center 70%}
+ .ll29-sponsor-contracts button:nth-child(n){display:none}.ll29-sponsor-contracts button.is-visible{display:flex;width:100%;min-height:165px}
+ .ll29-sponsor-bottom{padding:8px 14px 16px}.ll29-sponsor-bottom button{width:100%}
+ .ll32-contract-scene{min-height:225px;padding:20px 22px}
+}

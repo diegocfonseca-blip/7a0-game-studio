@@ -1,3 +1,7 @@
+## 10/09/2026 — Correções da carreira publicadas somente para as duas contas
+
+Diego autorizou publicar todas as correções visuais desta revisão. Patrocínio compacto em papéis com linha de assinatura e logos originais Vadico/ERO/Max Joias/Rei das Tintas; jornal ilustrado mantendo notícias de carreira; ajuda por etapas; removidos jogo e status repetidos; texto legível no claro/noturno e dispensa de TV incluída no gatilho privado de autosave. Jogos e Tabelas separados, regras/economia preservadas. Base acddc92d (Sondar) mantida. Sem técnico/presidência e sem avatares locais pendentes. Exportação de imagem do jornal continua no formato anterior. TypeScript/Vite, QA 390/1440, logos, contraste e assinatura do save passaram. Detalhes e reversão: docs/carreira-refinamentos-privados.md. Confirmar CI após este commit.
+
 ## 10/09/2026 — Revelação com cartinha e martelo compacto (visual aprovado, publicação privada)
 
 - Pedido aprovado em texto: cartinha com avatar desde o começo da revelação normal, lista de ofertas, suspense curto e vencedor confirmado na primeira linha. Listagem de dar lances intocada.

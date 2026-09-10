@@ -9,6 +9,7 @@ import { flushSync } from 'react-dom'
 import type { SimTeam, CopaResult, SeasonScorer, Div } from './pyramidseason'
 import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { meuEstadioNome } from './manto' // 🏟️ nome batizado pelo sócio
+import { CareerNewspaperStories } from './jornal-career-visual'
 
 // 🛡️→🖼️ rasteriza o escudo (o MESMO <Escudo> da tela) pra desenhar no canvas do
 // compartilhar. Antes a imagem do jornal mostrava só a 1ª LETRA do time — então a
@@ -237,7 +238,8 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, brasil, copaRun, superRun, superChamp }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, brasil, copaRun, superRun, superChamp, privateVisual = false }: {
+  privateVisual?: boolean
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
   copa: CopaResult | null
@@ -479,8 +481,9 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   )
 
   return (
-    <div style={{ background: '#F7F1DD', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 0 ${INK}`, borderRadius: 6, padding: '13px 13px 11px', marginBottom: 12, backgroundImage: 'repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.012) 3px 4px)' }}>
+    <div className={privateVisual ? 'jornal-v22 ll34-career-jornal' : undefined} style={privateVisual ? undefined : { background: '#F7F1DD', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 0 ${INK}`, borderRadius: 6, padding: '13px 13px 11px', marginBottom: 12, backgroundImage: 'repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.012) 3px 4px)' }}>
       {/* cabeçalho do jornal (a pág. 2 vira "Caderno 2 · Negócios") */}
+      {privateVisual ? <header className="jv-masthead"><h1>O MARTELO</h1><p>TEMPORADA {seasonNo} · {J_DIV_NAME[me.div].toUpperCase()}</p><div><span>O DIÁRIO DO LEILÃO LEGENDS</span><span>{pk === 'agencia' ? 'NEGÓCIOS' : pk === 'eventos' ? 'BASTIDORES' : pk === 'memoria' ? 'MEMÓRIA' : 'FIM DE TEMPORADA'}</span></div></header> : <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `4px double ${INK}`, paddingBottom: 6 }}>
         <div style={{ ...SERIF, fontWeight: 900, fontSize: 26, letterSpacing: 1 }}>O <span style={{ color: '#B23A2A' }}>MARTELO</span></div>
         <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{pk === 'agencia' ? 'CADERNO 2 · NEGÓCIOS' : pk === 'eventos' ? 'CADERNO · BASTIDORES' : pk === 'memoria' ? 'CADERNO · MEMÓRIA' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
@@ -489,6 +492,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         {pk === 'agencia' ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : pk === 'eventos' ? <><span>📻 ACONTECEU NA TEMPORADA</span><span>OS BASTIDORES</span></> : pk === 'memoria' ? <><span>📼 O JORNAL LEMBRA</span><span>A HISTÓRIA DO CLUBE</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
       </div>
 
+      </>}
       {pk === 'memoria' && mem ? (
         <>
           {/* ── 📼 "O JORNAL LEMBRA": manchetes de HISTÓRIA, puxadas da crônica
@@ -552,10 +556,11 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       ) : (
       <>
       {/* manchete (única pra cada uma das 80 posições) */}
-      <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 25, lineHeight: 1.02, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{hl.h}</h2>
+      <h2 className={privateVisual ? 'jv-headline' : undefined} style={privateVisual ? undefined : { ...SERIF, fontWeight: 900, fontSize: 25, lineHeight: 1.02, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{hl.h}</h2>
       <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>{hl.s}{meuEstadioNome() ? <> Direto do <b>🏟️ {meuEstadioNome()}</b>.</> : null}</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+      {privateVisual && <CareerNewspaperStories champion={tables[me.div]?.[0]?.name} division={J_DIV_NAME[me.div]} cup={copa?.champion?.name} scorer={divTop[me.div]}/>}
+      <div className={privateVisual ? 'll34-career-numbers' : undefined} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
         {/* "foto" */}
         <div style={{ border: `2.5px solid ${INK}`, background: 'radial-gradient(circle at 50% 35%, #2ea457, #123f22)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 108, overflow: 'hidden' }}>
           {stamp && <div style={{ position: 'absolute', top: 8, right: -16, transform: 'rotate(18deg)', border: `3px solid ${stamp.color}`, color: stamp.color, fontWeight: 900, fontSize: 11, letterSpacing: 2, padding: '2px 16px', borderRadius: 6, opacity: .9, background: 'rgba(247,241,221,.65)', ...COND }}>{stamp.txt}</div>}

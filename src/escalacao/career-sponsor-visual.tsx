@@ -3,6 +3,17 @@ import { SPONSOR_BET_META, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf 
 import type { SponsorBetTier } from './estadiodata'
 import './career-sponsor-visual.css'
 import './career-sponsor-paper.css'
+import './career-refinements.css'
+import { VADICO_LOGO } from './vadico'
+import { ERO_LOGO } from './ero'
+import { MAXJOIAS_LOGO } from './maxjoias'
+import { REIDASTINTAS_LOGO } from './reidastintas'
+
+const sponsorLogos = { vadico: VADICO_LOGO, ero: ERO_LOGO, maxjoias: MAXJOIAS_LOGO, reidastintas: REIDASTINTAS_LOGO }
+function ContractLogo({ brandId }: { brandId: string }) {
+  const brand = sponsorBrandOf(brandId)
+  return brand?.logo ? <img className="ll35-contract-logo" src={sponsorLogos[brand.logo]} alt={`Logo ${brand.name}`}/> : null
+}
 
 type Choice = { tier: SponsorBetTier; brandId: string }
 export function CareerSponsorOverview({ div, chosen }: { div: string; chosen?: Choice }) {
@@ -13,9 +24,11 @@ export function CareerSponsorOverview({ div, chosen }: { div: string; chosen?: C
     <header><small>{div === 'V' ? 'VÁRZEA' : `SÉRIE ${div}`}</small><h2>PATROCÍNIO DO CLUBE</h2></header>
     <div className="ll32-contract-scene"><article>
       <small>{chosen ? 'CONTRATO DA TEMPORADA' : 'PRÓXIMO ACORDO'}</small>
+      {chosen && <ContractLogo brandId={chosen.brandId}/>}
       <h3>{brand?.name ?? 'Seu espaço na camisa'}</h3>
       <p>{meta?.label ?? 'Escolha o patrocinador antes de começar a temporada.'}</p>
       {chosen && <strong>+{pay} MOEDAS</strong>}
+      <span className="ll35-signature">{chosen ? 'CONTRATO ASSINADO' : 'Assinatura do presidente'}</span>
     </article></div>
     <p className="ll32-contract-note">{meta ? `${meta.desc} O valor acima é o prêmio da meta, não um pagamento já recebido.` : 'As propostas aparecem no início da temporada. Aqui você acompanha seus acordos.'}</p>
     <p className="ll32-contract-note">Abaixo: transmissão dos jogos e valores por divisão.</p>
@@ -33,8 +46,11 @@ export function CareerSponsorVisual({div,chosen,onPick,fielBrandId}:{div:string;
     <div className="ll29-sponsor-tabs">{([1,2,3] as SponsorBetTier[]).map(t=><button key={t} aria-pressed={t===tier} onClick={()=>{setTier(t);setPage(0)}}>{SPONSOR_BET_META[t].label}</button>)}</div>
     <nav className="ll30-proposals" aria-label="Comparar propostas">{sponsorBrandsOfTier(tier).map((b,i)=><button key={b.id} aria-pressed={page===i} onClick={()=>setPage(i)}>PROPOSTA {i+1}</button>)}</nav>
     <div className="ll29-sponsor-contracts">{sponsorBrandsOfTier(tier).map((b,i)=><button key={b.id} className={page===i?'is-visible':''} aria-pressed={selected?.brandId===b.id} onClick={()=>setDraft({tier,brandId:b.id})}>
+      <small className="ll35-contract-heading">CONTRATO DE PATROCÍNIO</small>
+      <ContractLogo brandId={b.id}/>
       <h3>{b.name}</h3><p>{SPONSOR_BET_META[tier].label}</p><strong>+{pay[tier-1]} MOEDAS</strong>
       {fielBrandId===b.id && <small>FIDELIDADE · mínimo de {pay[0]} moedas mesmo sem atingir a meta</small>}
+      <span className="ll35-signature">Assinatura do presidente</span>
       {signed && chosen?.brandId===b.id && <b className="ll29-sponsor-stamp">ASSINADO</b>}
     </button>)}</div>
     <div className="ll29-sponsor-bottom"><p>{SPONSOR_BET_META[tier].desc} O prêmio depende da meta alcançada.</p>

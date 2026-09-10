@@ -12,7 +12,7 @@ import { useOnlinePreview } from './online-preview'
 import { PRESIDENT_ROOM_RELEASED } from './career-feature-release'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
-import { CareerCompetitionStage, CareerCupGames, CareerLeagueGames } from './career-match-visual'
+import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { careerCupAssists } from './career-match-model'
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
@@ -6636,9 +6636,9 @@ export function PyramidSeasonScreen() {
             title={`TEMPORADA ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
             phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : 'Liga'} · ${done ? 'Encerrada' : 'Rodada '+round+'/38'}`}
             detail={copaPlaying ? `${copaFase?.ties.length ?? 0} confrontos · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'} · ${sub}` : 'Acompanhe sua divisão e os jogos das outras séries sem sair da tela.'}
-            status={copaPlaying ? copaPos >= copaFaseTotal ? 'Fase encerrada · confira os resultados e os pênaltis' : 'Bola rolando · acompanhe todos os confrontos abaixo' : done ? 'Liga encerrada' : round===0 ? 'Tudo pronto para a primeira rodada' : `Rodada ${round}/38 · ${revealed >= round ? 'resultados revelados' : 'bola rolando'}`}>
+            status={copaPlaying ? copaPos >= copaFaseTotal ? 'Fase encerrada · confira os resultados e os pênaltis' : 'Bola rolando · acompanhe os confrontos' : done ? 'Confira a edição de encerramento' : round===0 ? 'Tudo pronto para a primeira rodada' : revealed >= round ? 'Resultados revelados' : 'Bola rolando'}>
             <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} Torcida <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>h.motivo).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${me.pos}º · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
-            {copaPlaying && <details className="ll29-note"><summary>COMO FUNCIONA ESTA COMPETIÇÃO</summary><p>{supercopaFase ? 'Campeão da Liga contra campeão da Copa do Brasil, em jogo único. Se o mesmo clube ganhou os dois, o vice da Liga disputa a Supercopa.' : copaBrOk ? 'Peneira → Rodada de 64 → Rodada de 32 (jogo único) → Oitavas → Quartas → Semifinal (ida e volta) → Final (jogo único). Série A e os oito primeiros da B entram direto na chave de 64; os demais começam na peneira.' : 'Os quatro melhores de cada série A, B, C e D disputam o mata-mata. A quantidade de jogos de cada fase aparece no cabeçalho.'}</p></details>}
+            {copaPlaying && <CareerCompetitionHelp kind={supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}/>}
           </CareerCompetitionStage>
           return (
         <div className={privateCareer ? `ll25-career-hero${artClass}` : undefined} style={{ ...box(bg), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
@@ -6788,7 +6788,7 @@ export function PyramidSeasonScreen() {
             uma das 80 posições + os donos da temporada (campeões e artilheiros).
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
         {copaFinished && me && (
-          <SeasonJornal me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
+          <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
             /* 📼 O JORNAL LEMBRA (Diego 24/08): manchetes de HISTÓRIA calculadas
                da crônica da carreira + o resultado desta temporada (que ainda
                não está gravado — a crônica só grava na virada). */
@@ -6825,7 +6825,7 @@ export function PyramidSeasonScreen() {
             })()} />
         )}
         {copaFinished && copa?.champion && (
-          <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? '👉 Ver fases e resultados na aba Tabelas' : '👉 ver o chaveamento da Copa na aba Tabelas'}</button>
+          <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? '👉 Ver fases e resultados na aba Tabelas' : '👉 ver o chaveamento da Copa na aba Tabelas'}</button>
         )}
         {!done && myMatch && me && <MyMatchCard onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
@@ -7767,7 +7767,7 @@ export function PyramidSeasonScreen() {
           </>
         ) : privateCareer && (tab === 'jogos' || tab === 'tabelas') ? (
           <section className="ll29-board" aria-label="Competições da carreira">
-            {!done && tab==='jogos' && renderCareerTicker()}
+            {!done && round > 0 && tab==='jogos' && renderCareerTicker()}
             {done && copa && copa.rounds.length ? <>
               <nav className="ll29-phases" aria-label="Etapas da Copa">{copa.rounds.map((r,i)=><span key={i} aria-current={copaPlaying && i===copaRound ? 'step' : undefined}>{i<copaRound || copaFinished ? '✓ ' : ''}{r.name}</span>)}</nav>
               {tab==='jogos' && copaPlaying && copaFase && <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · OUTROS JOGOS`}/>}
@@ -7782,7 +7782,7 @@ export function PyramidSeasonScreen() {
               return <>
                 <label className="ll29-filter">DIVISÃO<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? ' · SEU CLUBE' : ''}</option>)}</select></label>
                 {tab==='tabelas' ? <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>
-                  : <CareerLeagueGames matches={matches[division] ?? []} minute={minute} title={`${DIV_NAME[division]} · JOGOS DA RODADA ${round}`} />}
+                  : round > 0 && <CareerLeagueGames matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · OUTROS JOGOS`} />}
               </>
             })()}
           </section>
