@@ -30,6 +30,8 @@
 // ligar isto hoje NÃO muda rosto de ninguém, só o desenho do campinho.
 import type { CSSProperties, ReactNode } from 'react'
 import { fotoDoJogador } from './rostos'
+import { AvatarLote1, avatarLote1 } from './avatar-lote1'
+import { useOnlinePreview } from './online-preview'
 
 const INK = '#0C0C0C'
 const OSWALD: CSSProperties = { fontFamily: 'Oswald, sans-serif' }
@@ -49,11 +51,12 @@ const anelDe = (st: EstadoJogador): string =>
 
 export function JogadorNoCampo({
   nome, clube, ano, tag, gols = 0, assist = 0, alt, fonteNome,
-  mantoCss, estado = 'idle', onClick, extra,
+  mantoCss, estado = 'idle', onClick, extra, avatarIdentity,
 }: {
   nome: string
   clube?: string
   ano?: number
+  avatarIdentity?: { club: string; year: number }
   /** o rótulo da posição no selinho (ATA/MEI/ZAG/LAT/GOL) */
   tag: string
   gols?: number
@@ -70,6 +73,7 @@ export function JogadorNoCampo({
   extra?: ReactNode
 }) {
   const foto = fotoDoJogador(nome)
+  const avatarPreview = useOnlinePreview() && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(tag) && !!avatarLote1(nome, avatarIdentity?.club ?? clube, avatarIdentity?.year ?? ano)
   const d = Math.round(alt * 0.66)
   return (
     <div
@@ -82,7 +86,7 @@ export function JogadorNoCampo({
     >
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: alt }}>
         <span style={{ position: 'relative', display: 'inline-block', lineHeight: 0 }}>
-          {foto ? (
+{avatarPreview ? <AvatarLote1 name={nome} club={avatarIdentity?.club ?? clube} year={avatarIdentity?.year ?? ano} style={{ width: Math.round(alt * 1.5), maxWidth: '100%', filter: estado === 'sel' ? 'drop-shadow(0 0 3px #FFC400)' : estado === 'target' ? 'drop-shadow(0 0 3px #1B7A3D)' : undefined }}/> : foto ? (
             <img src={foto} alt="" draggable={false}
               style={{ display: 'block', height: alt, width: 'auto', objectFit: 'contain', filter: 'drop-shadow(2px 3px 0 rgba(0,0,0,.45))' }} />
           ) : (

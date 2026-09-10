@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const code=ts.transpileModule(fs.readFileSync('src/escalacao/career-match-model.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ES2022}}).outputText;
+const {careerTieView,careerCupAssists}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const a={name:'A',teamId:1,you:true},b={name:'B',teamId:2,you:false};
+const first=[{name:'A1',min:12,home:true,assist:'Passador A'}],second=[{name:'B1',min:20,home:false,assist:'Passador B'},{name:'A2',min:70,home:true}];
+const tie={a,b,aDiv:'A',bDiv:'B',legs:[[1,0],[1,1]],legGoals:[first,second],goals:[...first,...second],aggA:2,aggB:1,win:'a'};
+assert.deepEqual(careerTieView(tie,0).aggregate,[0,0]);
+assert.equal(careerTieView(tie,11).goals.length,0);
+assert.deepEqual(careerTieView(tie,89).aggregate,[1,0]);
+const back=careerTieView(tie,120);assert.equal(back.home.name,'B');assert.equal(back.hg,1);assert.equal(back.ag,0);assert.equal(back.goals[0].home,true);assert.deepEqual(back.aggregate,[1,1]);
+const end=careerTieView(tie,180);assert.deepEqual([end.hg,end.ag],[1,1]);assert.deepEqual(end.aggregate,[2,1]);assert.equal(end.done,true);
+assert.deepEqual(careerCupAssists([{name:'Q',ties:[tie]}],0),[]);
+assert.equal(careerCupAssists([{name:'Q',ties:[tie]}],1).reduce((n,r)=>n+r.assists,0),2);
+assert.equal(careerCupAssists([{name:'Q',ties:[tie]}],1).find(r=>r.name==='Passador B').teamName,'B');
+console.log('PASS ida/volta, aggregate, goals, assists and future-phase filtering');

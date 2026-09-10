@@ -1,0 +1,1094 @@
+[
+  {
+    "name": "Toni Kroos",
+    "club": "Real Madrid",
+    "year": 2016,
+    "src": "/avatars/lendas-v1/toni-kroos-real-madrid-2016.webp",
+    "transparent": true
+  },
+  {
+    "name": "Francesco Totti",
+    "club": "Roma",
+    "year": 2001,
+    "src": "/avatars/lendas-v1/francesco-totti-roma-2001.webp",
+    "transparent": true
+  },
+  {
+    "name": "David Beckham",
+    "club": "Manchester United",
+    "year": 1999,
+    "src": "/avatars/lendas-v1/david-beckham-manchester-united-1999.webp",
+    "transparent": true
+  },
+  {
+    "name": "Rodri",
+    "club": "Manchester City",
+    "year": 2024,
+    "src": "/avatars/lendas-v1/rodri-manchester-city-2024.webp",
+    "transparent": true
+  },
+  {
+    "name": "Castilho",
+    "club": "Fluminense",
+    "year": 1960,
+    "src": "/avatars/lendas-v1/castilho-fluminense-1960.webp",
+    "transparent": true
+  },
+  {
+    "name": "Gilmar",
+    "club": "Santos",
+    "year": 1962,
+    "src": "/avatars/lendas-v1/gilmar-santos-1962.webp",
+    "transparent": true
+  },
+  {
+    "name": "Manga",
+    "club": "Botafogo",
+    "year": 1966,
+    "src": "/avatars/lendas-v1/manga-botafogo-1966.webp",
+    "transparent": true
+  },
+  {
+    "name": "Emerson Leão",
+    "club": "Palmeiras",
+    "year": 1974,
+    "src": "/avatars/lendas-v1/emerson-leao-palmeiras-1974.webp",
+    "transparent": true
+  },
+  {
+    "name": "Taffarel",
+    "club": "Internacional",
+    "year": 1989,
+    "src": "/avatars/lendas-v1/taffarel-internacional-1989.webp",
+    "transparent": true
+  },
+  {
+    "name": "Marcos",
+    "club": "Palmeiras",
+    "year": 2002,
+    "src": "/avatars/lendas-v1/marcos-palmeiras-2002.webp",
+    "transparent": true
+  },
+  {
+    "name": "Rogério Ceni",
+    "club": "São Paulo",
+    "year": 2005,
+    "src": "/avatars/lendas-v1/rogerio-ceni-sao-paulo-2005.webp",
+    "transparent": true
+  },
+  {
+    "name": "Lev Yashin",
+    "club": "Dínamo de Moscou",
+    "year": 1963,
+    "src": "/avatars/lendas-v1/lev-yashin-dinamo-de-moscou-1963.webp",
+    "transparent": true
+  },
+  {
+    "name": "Gordon Banks",
+    "club": "Stoke City",
+    "year": 1972,
+    "src": "/avatars/lendas-v1/gordon-banks-stoke-city-1972.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dino Zoff",
+    "club": "Juventus",
+    "year": 1978,
+    "src": "/avatars/lendas-v1/dino-zoff-juventus-1978.webp",
+    "transparent": true
+  },
+  {
+    "name": "Peter Schmeichel",
+    "club": "Manchester United",
+    "year": 1999,
+    "src": "/avatars/lendas-v1/peter-schmeichel-manchester-united-1999.webp",
+    "transparent": true
+  },
+  {
+    "name": "Oliver Kahn",
+    "club": "Bayern",
+    "year": 2002,
+    "src": "/avatars/lendas-v1/oliver-kahn-bayern-2002.webp",
+    "transparent": true
+  },
+  {
+    "name": "Gianluigi Buffon",
+    "club": "Juventus",
+    "year": 2006,
+    "src": "/avatars/lendas-v1/gianluigi-buffon-juventus-2006.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dida",
+    "club": "Milan",
+    "year": 2007,
+    "src": "/avatars/lendas-v1/dida-milan-2007.webp",
+    "transparent": true
+  },
+  {
+    "name": "Iker Casillas",
+    "club": "Real Madrid",
+    "year": 2010,
+    "src": "/avatars/lendas-v1/iker-casillas-real-madrid-2010.webp",
+    "transparent": true
+  },
+  {
+    "name": "Manuel Neuer",
+    "club": "Bayern",
+    "year": 2014,
+    "src": "/avatars/lendas-v1/manuel-neuer-bayern-2014.webp",
+    "transparent": true
+  },
+  {
+    "name": "Nílton Santos",
+    "club": "Botafogo",
+    "year": 1958,
+    "src": "/avatars/lendas-v1/nilton-santos-botafogo-1958.webp",
+    "transparent": true
+  },
+  {
+    "name": "Djalma Santos",
+    "club": "Palmeiras",
+    "year": 1962,
+    "src": "/avatars/lendas-v1/djalma-santos-palmeiras-1962.webp",
+    "transparent": true
+  },
+  {
+    "name": "Carlos Alberto Torres",
+    "club": "Santos",
+    "year": 1970,
+    "src": "/avatars/lendas-v1/carlos-alberto-torres-santos-1970.webp",
+    "transparent": true
+  },
+  {
+    "name": "Nelinho",
+    "club": "Cruzeiro",
+    "year": 1978,
+    "src": "/avatars/lendas-v1/nelinho-cruzeiro-1978.webp",
+    "transparent": true
+  },
+  {
+    "name": "Júnior Maestro",
+    "club": "Flamengo",
+    "year": 1981,
+    "src": "/avatars/lendas-v1/junior-maestro-flamengo-1981.webp",
+    "transparent": true
+  },
+  {
+    "name": "Leandro",
+    "club": "Flamengo",
+    "year": 1983,
+    "src": "/avatars/lendas-v1/leandro-flamengo-1983.webp",
+    "transparent": true
+  },
+  {
+    "name": "Arce",
+    "club": "Palmeiras",
+    "year": 1999,
+    "src": "/avatars/lendas-v1/arce-palmeiras-1999.webp",
+    "transparent": true
+  },
+  {
+    "name": "Paolo Maldini",
+    "club": "Milan",
+    "year": 1994,
+    "src": "/avatars/lendas-v1/paolo-maldini-milan-1994.webp",
+    "transparent": true
+  },
+  {
+    "name": "Javier Zanetti",
+    "club": "Inter",
+    "year": 2000,
+    "src": "/avatars/lendas-v1/javier-zanetti-inter-2000.webp",
+    "transparent": true
+  },
+  {
+    "name": "Roberto Carlos",
+    "club": "Real Madrid",
+    "year": 2002,
+    "src": "/avatars/lendas-v1/roberto-carlos-real-madrid-2002.webp",
+    "transparent": true
+  },
+  {
+    "name": "Cafu",
+    "club": "Milan",
+    "year": 2004,
+    "src": "/avatars/lendas-v1/cafu-milan-2004.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ashley Cole",
+    "club": "Chelsea",
+    "year": 2008,
+    "src": "/avatars/lendas-v1/ashley-cole-chelsea-2008.webp",
+    "transparent": true
+  },
+  {
+    "name": "Domingos da Guia",
+    "club": "Flamengo",
+    "year": 1944,
+    "src": "/avatars/lendas-v1/domingos-da-guia-flamengo-1944.webp",
+    "transparent": true
+  },
+  {
+    "name": "Hilderaldo Bellini",
+    "club": "Vasco",
+    "year": 1958,
+    "src": "/avatars/lendas-v1/hilderaldo-bellini-vasco-1958.webp",
+    "transparent": true
+  },
+  {
+    "name": "Luís Pereira",
+    "club": "Palmeiras",
+    "year": 1972,
+    "src": "/avatars/lendas-v1/luis-pereira-palmeiras-1972.webp",
+    "transparent": true
+  },
+  {
+    "name": "Figueroa",
+    "club": "Internacional",
+    "year": 1976,
+    "src": "/avatars/lendas-v1/figueroa-internacional-1976.webp",
+    "transparent": true
+  },
+  {
+    "name": "Mauro Galvão",
+    "club": "Vasco",
+    "year": 1997,
+    "src": "/avatars/lendas-v1/mauro-galvao-vasco-1997.webp",
+    "transparent": true
+  },
+  {
+    "name": "Gamarra",
+    "club": "Corinthians",
+    "year": 1998,
+    "src": "/avatars/lendas-v1/gamarra-corinthians-1998.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bobby Moore",
+    "club": "West Ham",
+    "year": 1966,
+    "src": "/avatars/lendas-v1/bobby-moore-west-ham-1966.webp",
+    "transparent": true
+  },
+  {
+    "name": "Franz Beckenbauer",
+    "club": "Bayern",
+    "year": 1974,
+    "src": "/avatars/lendas-v1/franz-beckenbauer-bayern-1974.webp",
+    "transparent": true
+  },
+  {
+    "name": "Daniel Passarella",
+    "club": "Fiorentina",
+    "year": 1985,
+    "src": "/avatars/lendas-v1/daniel-passarella-fiorentina-1985.webp",
+    "transparent": true
+  },
+  {
+    "name": "Franco Baresi",
+    "club": "Milan",
+    "year": 1989,
+    "src": "/avatars/lendas-v1/franco-baresi-milan-1989.webp",
+    "transparent": true
+  },
+  {
+    "name": "Lilian Thuram",
+    "club": "Juventus",
+    "year": 2002,
+    "src": "/avatars/lendas-v1/lilian-thuram-juventus-2002.webp",
+    "transparent": true
+  },
+  {
+    "name": "Alessandro Nesta",
+    "club": "Milan",
+    "year": 2004,
+    "src": "/avatars/lendas-v1/alessandro-nesta-milan-2004.webp",
+    "transparent": true
+  },
+  {
+    "name": "Fabio Cannavaro",
+    "club": "Real Madrid",
+    "year": 2006,
+    "src": "/avatars/lendas-v1/fabio-cannavaro-real-madrid-2006.webp",
+    "transparent": true
+  },
+  {
+    "name": "John Terry",
+    "club": "Chelsea",
+    "year": 2007,
+    "src": "/avatars/lendas-v1/john-terry-chelsea-2007.webp",
+    "transparent": true
+  },
+  {
+    "name": "Nemanja Vidić",
+    "club": "Manchester United",
+    "year": 2009,
+    "src": "/avatars/lendas-v1/nemanja-vidic-manchester-united-2009.webp",
+    "transparent": true
+  },
+  {
+    "name": "Carles Puyol",
+    "club": "Barcelona",
+    "year": 2010,
+    "src": "/avatars/lendas-v1/carles-puyol-barcelona-2010.webp",
+    "transparent": true
+  },
+  {
+    "name": "Didi",
+    "club": "Botafogo",
+    "year": 1958,
+    "src": "/avatars/lendas-v1/didi-botafogo-1958.webp",
+    "transparent": true
+  },
+  {
+    "name": "Gérson",
+    "club": "Botafogo",
+    "year": 1968,
+    "src": "/avatars/lendas-v1/gerson-botafogo-1968.webp",
+    "transparent": true
+  },
+  {
+    "name": "Rivelino",
+    "club": "Corinthians",
+    "year": 1972,
+    "src": "/avatars/lendas-v1/rivelino-corinthians-1972.webp",
+    "transparent": true
+  },
+  {
+    "name": "Falcão",
+    "club": "Internacional",
+    "year": 1979,
+    "src": "/avatars/lendas-v1/falcao-internacional-1979.webp",
+    "transparent": true
+  },
+  {
+    "name": "Toninho Cerezo",
+    "club": "Atlético-MG",
+    "year": 1980,
+    "src": "/avatars/lendas-v1/toninho-cerezo-atletico-mg-1980.webp",
+    "transparent": true
+  },
+  {
+    "name": "Zico",
+    "club": "Flamengo",
+    "year": 1981,
+    "src": "/avatars/lendas-v1/zico-flamengo-1981.webp",
+    "transparent": true
+  },
+  {
+    "name": "Sócrates",
+    "club": "Corinthians",
+    "year": 1983,
+    "src": "/avatars/lendas-v1/socrates-corinthians-1983.webp",
+    "transparent": true
+  },
+  {
+    "name": "Raí",
+    "club": "São Paulo",
+    "year": 1992,
+    "src": "/avatars/lendas-v1/rai-sao-paulo-1992.webp",
+    "transparent": true
+  },
+  {
+    "name": "Marcelinho Carioca",
+    "club": "Corinthians",
+    "year": 1995,
+    "src": "/avatars/lendas-v1/marcelinho-carioca-corinthians-1995.webp",
+    "transparent": true
+  },
+  {
+    "name": "Alex",
+    "club": "Cruzeiro",
+    "year": 2003,
+    "src": "/avatars/lendas-v1/alex-cruzeiro-2003.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bobby Charlton",
+    "club": "Manchester United",
+    "year": 1966,
+    "src": "/avatars/lendas-v1/bobby-charlton-manchester-united-1966.webp",
+    "transparent": true
+  },
+  {
+    "name": "Gianni Rivera",
+    "club": "Milan",
+    "year": 1969,
+    "src": "/avatars/lendas-v1/gianni-rivera-milan-1969.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kenny Dalglish",
+    "club": "Liverpool",
+    "year": 1983,
+    "src": "/avatars/lendas-v1/kenny-dalglish-liverpool-1983.webp",
+    "transparent": true
+  },
+  {
+    "name": "Michel Platini",
+    "club": "Juventus",
+    "year": 1984,
+    "src": "/avatars/lendas-v1/michel-platini-juventus-1984.webp",
+    "transparent": true
+  },
+  {
+    "name": "Diego Maradona",
+    "club": "Napoli",
+    "year": 1987,
+    "src": "/avatars/lendas-v1/diego-maradona-napoli-1987.webp",
+    "transparent": true
+  },
+  {
+    "name": "Lothar Matthäus",
+    "club": "Inter",
+    "year": 1990,
+    "src": "/avatars/lendas-v1/lothar-matthaus-inter-1990.webp",
+    "transparent": true
+  },
+  {
+    "name": "Zinedine Zidane",
+    "club": "Juventus",
+    "year": 1998,
+    "src": "/avatars/lendas-v1/zinedine-zidane-juventus-1998.webp",
+    "transparent": true
+  },
+  {
+    "name": "Rivaldo",
+    "club": "Barcelona",
+    "year": 1999,
+    "src": "/avatars/lendas-v1/rivaldo-barcelona-1999.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ryan Giggs",
+    "club": "Manchester United",
+    "year": 1999,
+    "src": "/avatars/lendas-v1/ryan-giggs-manchester-united-1999.webp",
+    "transparent": true
+  },
+  {
+    "name": "Luís Figo",
+    "club": "Real Madrid",
+    "year": 2001,
+    "src": "/avatars/lendas-v1/luis-figo-real-madrid-2001.webp",
+    "transparent": true
+  },
+  {
+    "name": "Pavel Nedvěd",
+    "club": "Juventus",
+    "year": 2003,
+    "src": "/avatars/lendas-v1/pavel-nedved-juventus-2003.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ronaldinho Gaúcho",
+    "club": "Barcelona",
+    "year": 2005,
+    "src": "/avatars/lendas-v1/ronaldinho-gaucho-barcelona-2005.webp",
+    "transparent": true
+  },
+  {
+    "name": "Andrea Pirlo",
+    "club": "Milan",
+    "year": 2006,
+    "src": "/avatars/lendas-v1/andrea-pirlo-milan-2006.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kaká",
+    "club": "Milan",
+    "year": 2007,
+    "src": "/avatars/lendas-v1/kaka-milan-2007.webp",
+    "transparent": true
+  },
+  {
+    "name": "Steven Gerrard",
+    "club": "Liverpool",
+    "year": 2009,
+    "src": "/avatars/lendas-v1/steven-gerrard-liverpool-2009.webp",
+    "transparent": true
+  },
+  {
+    "name": "Xavi",
+    "club": "Barcelona",
+    "year": 2010,
+    "src": "/avatars/lendas-v1/xavi-barcelona-2010.webp",
+    "transparent": true
+  },
+  {
+    "name": "Frank Lampard",
+    "club": "Chelsea",
+    "year": 2010,
+    "src": "/avatars/lendas-v1/frank-lampard-chelsea-2010.webp",
+    "transparent": true
+  },
+  {
+    "name": "Andrés Iniesta",
+    "club": "Barcelona",
+    "year": 2012,
+    "src": "/avatars/lendas-v1/andres-iniesta-barcelona-2012.webp",
+    "transparent": true
+  },
+  {
+    "name": "Leônidas da Silva",
+    "club": "Flamengo",
+    "year": 1938,
+    "src": "/avatars/lendas-v1/leonidas-da-silva-flamengo-1938.webp",
+    "transparent": true
+  },
+  {
+    "name": "Zizinho",
+    "club": "Flamengo",
+    "year": 1943,
+    "src": "/avatars/lendas-v1/zizinho-flamengo-1943.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ademir de Menezes",
+    "club": "Vasco",
+    "year": 1950,
+    "src": "/avatars/lendas-v1/ademir-de-menezes-vasco-1950.webp",
+    "transparent": true
+  },
+  {
+    "name": "Evaristo de Macedo",
+    "club": "Flamengo",
+    "year": 1955,
+    "src": "/avatars/lendas-v1/evaristo-de-macedo-flamengo-1955.webp",
+    "transparent": true
+  },
+  {
+    "name": "Garrincha",
+    "club": "Botafogo",
+    "year": 1958,
+    "src": "/avatars/lendas-v1/garrincha-botafogo-1958.webp",
+    "transparent": true
+  },
+  {
+    "name": "Pelé",
+    "club": "Santos",
+    "year": 1962,
+    "src": "/avatars/lendas-v1/pele-santos-1962.webp",
+    "transparent": true
+  },
+  {
+    "name": "Zagallo",
+    "club": "Botafogo",
+    "year": 1962,
+    "src": "/avatars/lendas-v1/zagallo-botafogo-1962.webp",
+    "transparent": true
+  },
+  {
+    "name": "Coutinho",
+    "club": "Santos",
+    "year": 1962,
+    "src": "/avatars/lendas-v1/coutinho-santos-1962.webp",
+    "transparent": true
+  },
+  {
+    "name": "Pepe",
+    "club": "Santos",
+    "year": 1962,
+    "src": "/avatars/lendas-v1/pepe-santos-1962.webp",
+    "transparent": true
+  },
+  {
+    "name": "Tostão",
+    "club": "Cruzeiro",
+    "year": 1970,
+    "src": "/avatars/lendas-v1/tostao-cruzeiro-1970.webp",
+    "transparent": true
+  },
+  {
+    "name": "Jairzinho",
+    "club": "Botafogo",
+    "year": 1970,
+    "src": "/avatars/lendas-v1/jairzinho-botafogo-1970.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dirceu Lopes",
+    "club": "Cruzeiro",
+    "year": 1976,
+    "src": "/avatars/lendas-v1/dirceu-lopes-cruzeiro-1976.webp",
+    "transparent": true
+  },
+  {
+    "name": "Reinaldo",
+    "club": "Atlético-MG",
+    "year": 1977,
+    "src": "/avatars/lendas-v1/reinaldo-atletico-mg-1977.webp",
+    "transparent": true
+  },
+  {
+    "name": "Roberto Dinamite",
+    "club": "Vasco",
+    "year": 1980,
+    "src": "/avatars/lendas-v1/roberto-dinamite-vasco-1980.webp",
+    "transparent": true
+  },
+  {
+    "name": "Renato Gaúcho",
+    "club": "Grêmio",
+    "year": 1983,
+    "src": "/avatars/lendas-v1/renato-gaucho-gremio-1983.webp",
+    "transparent": true
+  },
+  {
+    "name": "Careca",
+    "club": "São Paulo",
+    "year": 1986,
+    "src": "/avatars/lendas-v1/careca-sao-paulo-1986.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bebeto",
+    "club": "Vasco",
+    "year": 1989,
+    "src": "/avatars/lendas-v1/bebeto-vasco-1989.webp",
+    "transparent": true
+  },
+  {
+    "name": "Romário",
+    "club": "Vasco",
+    "year": 2000,
+    "src": "/avatars/lendas-v1/romario-vasco-2000.webp",
+    "transparent": true
+  },
+  {
+    "name": "Neymar",
+    "club": "Santos",
+    "year": 2011,
+    "src": "/avatars/lendas-v1/neymar-santos-2011.webp",
+    "transparent": true
+  },
+  {
+    "name": "Alfredo Di Stéfano",
+    "club": "Real Madrid",
+    "year": 1957,
+    "src": "/avatars/lendas-v1/alfredo-di-stefano-real-madrid-1957.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ferenc Puskás",
+    "club": "Real Madrid",
+    "year": 1960,
+    "src": "/avatars/lendas-v1/ferenc-puskas-real-madrid-1960.webp",
+    "transparent": true
+  },
+  {
+    "name": "Eusébio",
+    "club": "Benfica",
+    "year": 1965,
+    "src": "/avatars/lendas-v1/eusebio-benfica-1965.webp",
+    "transparent": true
+  },
+  {
+    "name": "George Best",
+    "club": "Manchester United",
+    "year": 1968,
+    "src": "/avatars/lendas-v1/george-best-manchester-united-1968.webp",
+    "transparent": true
+  },
+  {
+    "name": "Denis Law",
+    "club": "Manchester United",
+    "year": 1968,
+    "src": "/avatars/lendas-v1/denis-law-manchester-united-1968.webp",
+    "transparent": true
+  },
+  {
+    "name": "Gerd Müller",
+    "club": "Bayern",
+    "year": 1972,
+    "src": "/avatars/lendas-v1/gerd-muller-bayern-1972.webp",
+    "transparent": true
+  },
+  {
+    "name": "Johan Cruyff",
+    "club": "Barcelona",
+    "year": 1974,
+    "src": "/avatars/lendas-v1/johan-cruyff-barcelona-1974.webp",
+    "transparent": true
+  },
+  {
+    "name": "Mario Kempes",
+    "club": "Valencia",
+    "year": 1978,
+    "src": "/avatars/lendas-v1/mario-kempes-valencia-1978.webp",
+    "transparent": true
+  },
+  {
+    "name": "Paolo Rossi",
+    "club": "Juventus",
+    "year": 1982,
+    "src": "/avatars/lendas-v1/paolo-rossi-juventus-1982.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ruud Gullit",
+    "club": "Milan",
+    "year": 1988,
+    "src": "/avatars/lendas-v1/ruud-gullit-milan-1988.webp",
+    "transparent": true
+  },
+  {
+    "name": "Marco van Basten",
+    "club": "Milan",
+    "year": 1989,
+    "src": "/avatars/lendas-v1/marco-van-basten-milan-1989.webp",
+    "transparent": true
+  },
+  {
+    "name": "Hugo Sánchez",
+    "club": "Real Madrid",
+    "year": 1990,
+    "src": "/avatars/lendas-v1/hugo-sanchez-real-madrid-1990.webp",
+    "transparent": true
+  },
+  {
+    "name": "Jean-Pierre Papin",
+    "club": "Marseille",
+    "year": 1991,
+    "src": "/avatars/lendas-v1/jean-pierre-papin-marseille-1991.webp",
+    "transparent": true
+  },
+  {
+    "name": "Romário",
+    "club": "Barcelona",
+    "year": 1994,
+    "src": "/avatars/lendas-v1/romario-barcelona-1994.webp",
+    "transparent": true
+  },
+  {
+    "name": "Roberto Baggio",
+    "club": "Juventus",
+    "year": 1994,
+    "src": "/avatars/lendas-v1/roberto-baggio-juventus-1994.webp",
+    "transparent": true
+  },
+  {
+    "name": "Hristo Stoichkov",
+    "club": "Barcelona",
+    "year": 1994,
+    "src": "/avatars/lendas-v1/hristo-stoichkov-barcelona-1994.webp",
+    "transparent": true
+  },
+  {
+    "name": "George Weah",
+    "club": "Milan",
+    "year": 1995,
+    "src": "/avatars/lendas-v1/george-weah-milan-1995.webp",
+    "transparent": true
+  },
+  {
+    "name": "Alan Shearer",
+    "club": "Newcastle",
+    "year": 1996,
+    "src": "/avatars/lendas-v1/alan-shearer-newcastle-1996.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ronaldo Fenômeno",
+    "club": "Inter",
+    "year": 1998,
+    "src": "/avatars/lendas-v1/ronaldo-fenomeno-inter-1998.webp",
+    "transparent": true
+  },
+  {
+    "name": "Gabriel Batistuta",
+    "club": "Fiorentina",
+    "year": 1998,
+    "src": "/avatars/lendas-v1/gabriel-batistuta-fiorentina-1998.webp",
+    "transparent": true
+  },
+  {
+    "name": "Alessandro Del Piero",
+    "club": "Juventus",
+    "year": 1998,
+    "src": "/avatars/lendas-v1/alessandro-del-piero-juventus-1998.webp",
+    "transparent": true
+  },
+  {
+    "name": "Raúl",
+    "club": "Real Madrid",
+    "year": 2001,
+    "src": "/avatars/lendas-v1/raul-real-madrid-2001.webp",
+    "transparent": true
+  },
+  {
+    "name": "Michael Owen",
+    "club": "Liverpool",
+    "year": 2001,
+    "src": "/avatars/lendas-v1/michael-owen-liverpool-2001.webp",
+    "transparent": true
+  },
+  {
+    "name": "Thierry Henry",
+    "club": "Arsenal",
+    "year": 2004,
+    "src": "/avatars/lendas-v1/thierry-henry-arsenal-2004.webp",
+    "transparent": true
+  },
+  {
+    "name": "Andriy Shevchenko",
+    "club": "Milan",
+    "year": 2004,
+    "src": "/avatars/lendas-v1/andriy-shevchenko-milan-2004.webp",
+    "transparent": true
+  },
+  {
+    "name": "Adriano Imperador",
+    "club": "Inter",
+    "year": 2005,
+    "src": "/avatars/lendas-v1/adriano-imperador-inter-2005.webp",
+    "transparent": true
+  },
+  {
+    "name": "Samuel Eto’o",
+    "club": "Barcelona",
+    "year": 2006,
+    "src": "/avatars/lendas-v1/samuel-eto-o-barcelona-2006.webp",
+    "transparent": true
+  },
+  {
+    "name": "Didier Drogba",
+    "club": "Chelsea",
+    "year": 2010,
+    "src": "/avatars/lendas-v1/didier-drogba-chelsea-2010.webp",
+    "transparent": true
+  },
+  {
+    "name": "Wayne Rooney",
+    "club": "Manchester United",
+    "year": 2010,
+    "src": "/avatars/lendas-v1/wayne-rooney-manchester-united-2010.webp",
+    "transparent": true
+  },
+  {
+    "name": "Lionel Messi",
+    "club": "Barcelona",
+    "year": 2012,
+    "src": "/avatars/lendas-v1/lionel-messi-barcelona-2012.webp",
+    "transparent": false
+  },
+  {
+    "name": "Zlatan Ibrahimović",
+    "club": "Milan",
+    "year": 2012,
+    "src": "/avatars/lendas-v1/zlatan-ibrahimovic-milan-2012.webp",
+    "transparent": true
+  },
+  {
+    "name": "Arjen Robben",
+    "club": "Bayern",
+    "year": 2013,
+    "src": "/avatars/lendas-v1/arjen-robben-bayern-2013.webp",
+    "transparent": true
+  },
+  {
+    "name": "Franck Ribéry",
+    "club": "Bayern",
+    "year": 2013,
+    "src": "/avatars/lendas-v1/franck-ribery-bayern-2013.webp",
+    "transparent": true
+  },
+  {
+    "name": "Robin van Persie",
+    "club": "Manchester United",
+    "year": 2013,
+    "src": "/avatars/lendas-v1/robin-van-persie-manchester-united-2013.webp",
+    "transparent": true
+  },
+  {
+    "name": "Cristiano Ronaldo",
+    "club": "Real Madrid",
+    "year": 2014,
+    "src": "/avatars/lendas-v1/cristiano-ronaldo-real-madrid-2014.webp",
+    "transparent": true
+  },
+  {
+    "name": "Neymar",
+    "club": "Barcelona",
+    "year": 2015,
+    "src": "/avatars/lendas-v1/neymar-barcelona-2015.webp",
+    "transparent": true
+  },
+  {
+    "name": "Luis Suárez",
+    "club": "Barcelona",
+    "year": 2016,
+    "src": "/avatars/lendas-v1/luis-suarez-barcelona-2016.webp",
+    "transparent": true
+  },
+  {
+    "name": "Harry Kane",
+    "club": "Tottenham",
+    "year": 2018,
+    "src": "/avatars/lendas-v1/harry-kane-tottenham-2018.webp",
+    "transparent": true
+  },
+  {
+    "name": "Robert Lewandowski",
+    "club": "Bayern",
+    "year": 2020,
+    "src": "/avatars/lendas-v1/robert-lewandowski-bayern-2020.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kylian Mbappé",
+    "club": "PSG",
+    "year": 2022,
+    "src": "/avatars/lendas-v1/kylian-mbappe-psg-2022.webp",
+    "transparent": true
+  },
+  {
+    "name": "Karim Benzema",
+    "club": "Real Madrid",
+    "year": 2022,
+    "src": "/avatars/lendas-v1/karim-benzema-real-madrid-2022.webp",
+    "transparent": true
+  },
+  {
+    "name": "Erling Haaland",
+    "club": "Manchester City",
+    "year": 2023,
+    "src": "/avatars/lendas-v1/erling-haaland-manchester-city-2023.webp",
+    "transparent": true
+  },
+  {
+    "name": "Vinícius Júnior",
+    "club": "Real Madrid",
+    "year": 2024,
+    "src": "/avatars/lendas-v1/vinicius-junior-real-madrid-2024.webp",
+    "transparent": true
+  },
+  {
+    "name": "Cristiano Ronaldo",
+    "club": "Al-Nassr",
+    "year": 2023,
+    "src": "/avatars/lendas-v1/cristiano-ronaldo-al-nassr-2023.webp",
+    "transparent": true
+  },
+  {
+    "name": "Lionel Messi",
+    "club": "Inter Miami",
+    "year": 2023,
+    "src": "/avatars/lendas-v1/lionel-messi-inter-miami-2023.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dani Alves",
+    "club": "Barcelona",
+    "year": 2011,
+    "src": "/avatars/lendas-v1/dani-alves-barcelona-2011.webp",
+    "transparent": true
+  },
+  {
+    "name": "Philipp Lahm",
+    "club": "Bayern",
+    "year": 2013,
+    "src": "/avatars/lendas-v1/philipp-lahm-bayern-2013.webp",
+    "transparent": true
+  },
+  {
+    "name": "Marcelo Vieira",
+    "club": "Real Madrid",
+    "year": 2017,
+    "src": "/avatars/lendas-v1/marcelo-vieira-real-madrid-2017.webp",
+    "transparent": true
+  },
+  {
+    "name": "Thiago Silva",
+    "club": "Milan",
+    "year": 2011,
+    "src": "/avatars/lendas-v1/thiago-silva-milan-2011.webp",
+    "transparent": true
+  },
+  {
+    "name": "Sergio Ramos",
+    "club": "Real Madrid",
+    "year": 2014,
+    "src": "/avatars/lendas-v1/sergio-ramos-real-madrid-2014.webp",
+    "transparent": true
+  },
+  {
+    "name": "Luka Modrić",
+    "club": "Real Madrid",
+    "year": 2018,
+    "src": "/avatars/lendas-v1/luka-modric-real-madrid-2018.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kevin De Bruyne",
+    "club": "Manchester City",
+    "year": 2020,
+    "src": "/avatars/lendas-v1/kevin-de-bruyne-manchester-city-2020.webp",
+    "transparent": true
+  },
+  {
+    "name": "Carlos Valderrama",
+    "club": "Deportivo Cali",
+    "year": 1988,
+    "src": "/avatars/lendas-v1/carlos-valderrama-deportivo-cali-1988.webp",
+    "transparent": true
+  },
+  {
+    "name": "René Higuita",
+    "club": "Atlético Nacional",
+    "year": 1990,
+    "src": "/avatars/lendas-v1/rene-higuita-atletico-nacional-1990.webp",
+    "transparent": true
+  },
+  {
+    "name": "Vozinha",
+    "club": "Cabo Verde",
+    "year": 2026,
+    "src": "/avatars/lendas-v1/vozinha-cabo-verde-2026.webp",
+    "transparent": true
+  },
+  {
+    "name": "Rio Ferdinand",
+    "club": "Manchester United",
+    "year": 2008,
+    "src": "/avatars/lendas-v1/rio-ferdinand-manchester-united-2008.webp",
+    "transparent": true
+  },
+  {
+    "name": "Petr Čech",
+    "club": "Chelsea",
+    "year": 2005,
+    "src": "/avatars/lendas-v1/petr-cech-chelsea-2005.webp",
+    "transparent": true
+  },
+  {
+    "name": "Patrick Vieira",
+    "club": "Arsenal",
+    "year": 2001,
+    "src": "/avatars/lendas-v1/patrick-vieira-arsenal-2001.webp",
+    "transparent": true
+  },
+  {
+    "name": "Edwin van der Sar",
+    "club": "Manchester United",
+    "year": 2009,
+    "src": "/avatars/lendas-v1/edwin-van-der-sar-manchester-united-2009.webp",
+    "transparent": true
+  },
+  {
+    "name": "Eden Hazard",
+    "club": "Chelsea",
+    "year": 2015,
+    "src": "/avatars/lendas-v1/eden-hazard-chelsea-2015.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ademir da Guia",
+    "club": "Palmeiras",
+    "year": 1972,
+    "src": "/avatars/lendas-v1/ademir-da-guia-palmeiras-1972.webp",
+    "transparent": true
+  }
+]

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { CareerStadiumView } from './career-stadium-view'
+import { CareerSponsorVisual } from './career-sponsor-visual'
 // ─── 🏟️ ESTÁDIO — aba da carreira (o estádio que CRESCE na tela) ─────────
 // Cada compra APARECE no desenho: torcida enchendo os setores, refletores
 // acendendo (anoitece!), telão ligando, loja, estacionamento, cobertura.
@@ -106,13 +108,14 @@ function MarcaBtn({ b, on, fiel, minVal, onPick }: { b: SponsorBrand; on: boolea
 // 🎯 O CONTRATO — trava o "Começar a temporada" até fechar meta + marca.
 // `fielBrandId` = marca com quem o técnico acertou a meta na temporada passada
 // (a mesma regra que `sponsorBetRewards` usa pra garantir o mínimo).
-export function SponsorBetBanner({ div, chosen, onPick, fielBrandId }: { div: string; chosen?: { tier: SponsorBetTier; brandId: string }; onPick: (tier: SponsorBetTier, brandId: string) => void; fielBrandId?: string }) {
+export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=false }: { div: string; chosen?: { tier: SponsorBetTier; brandId: string }; onPick: (tier: SponsorBetTier, brandId: string) => void; fielBrandId?: string; cinematic?: boolean }) {
   const [tier, setTier] = useState<SponsorBetTier | null>(chosen?.tier ?? null)
   const minVal = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[0]
   const fielTier = tierDaMarca(fielBrandId)
   const brand = chosen ? sponsorBrandOf(chosen.brandId) : undefined
   // fechado = o que está no passo 2 na tela é exatamente o que está valendo
   const fechado = !!chosen && chosen.tier === tier
+  if (cinematic) return <CareerSponsorVisual div={div} chosen={chosen} onPick={onPick} fielBrandId={fielBrandId}/>
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ ...box('#fff'), overflow: 'hidden' }}>
@@ -379,7 +382,8 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, cinematic = false }: {
+  cinematic?: boolean
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
@@ -435,6 +439,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   // ✏️ sócio batiza o PRÓPRIO estádio aqui mesmo (pedido do Diego 09/08 — sem
   // passar pelo painel). O formzinho abre ABAIXO do desenho (StadiumSvg é
   // sagrado: sempre primeiro). Quem não é sócio não vê nada disso.
+  const [structurePage, setStructurePage] = useState<'sectors' | 'extras'>('sectors')
   const [edEstadio, setEdEstadio] = useState(false)
   const [nomeTmp, setNomeTmp] = useState('')
   const [salvandoNome, setSalvandoNome] = useState(false)
@@ -462,7 +467,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           </span>
           <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>nível {lvl.n}</span>
         </div>
-        <StadiumSvg st={st} />
+        {cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} /></CareerStadiumView> : <StadiumSvg st={st} />}
         {edEstadio && meuSocio?.ativo && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 10px', marginTop: 8 }}>
             <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>🎫 Batiza teu estádio — mimo de sócio</p>
@@ -536,6 +541,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         )
       })()}
 
+      {cinematic && <nav className="ll32-structure-tabs" aria-label="Obras do estádio"><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>Setores</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>Melhorias</button></nav>}
+      <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>🧱 Arquibancadas — investe aos poucos</p>
       {STADIUM_SECTORS.map(s => {
         const p = sectorPct(st, s.k), full = p >= 100
@@ -570,6 +577,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         )
       })}
 
+      </section>
+      <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'extras'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>✨ Melhorias — pagam e destravam 🔓</p>
       {extras.map(e => {
         const done = hasExtra(st, e.k), unlocked = extraUnlocked(st, e.k), poor = coins < e.cost
@@ -591,6 +600,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           </div>
         )
       })}
+      </section>
       {hasExtra(st, 'medico') && (
         <UnlockBanner k="medico" tag="🏥 obra grande" title="Departamento Médico pronto" ctaBg="#C2452F" ctaColor="#fff">
           A partir de agora <b>NUNCA MAIS</b> um jogador seu sai de campo por lesão — acabou pra sempre, em qualquer elenco desta carreira.

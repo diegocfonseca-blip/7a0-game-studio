@@ -6,11 +6,14 @@
 // resultado. A Série D tem os humanos com os times montados no pregão; A/B/C são
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useOnlinePreview } from './online-preview'
+import { PRESIDENT_ROOM_RELEASED } from './career-feature-release'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
+import { CareerCompetitionStage, CareerCupGames, CareerLeagueGames } from './career-match-visual'
+import { careerCupAssists } from './career-match-model'
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
@@ -26,6 +29,8 @@ import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus } from './estadio'
+import { CareerStadiumView } from './career-stadium-view'
+import { CareerSponsorOverview } from './career-sponsor-visual'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
@@ -2374,12 +2379,12 @@ function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 
   )
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, displayMinute }: 
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange }: 
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
-  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; displayMinute?: number }) {
+  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void }) {
   const privatePreview = useOnlinePreview()
   const cinematic = (privatePreview || (ONLINE_VISUAL_RELEASED && enhancedOnline)) && !basket
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
@@ -2388,6 +2393,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const [localMin, setMin] = useState(finished ? 93 : 0)
   const min = displayMinute ?? localMin
   const controlledMinute = displayMinute != null
+  useEffect(() => { onMinuteChange?.(min) }, [min, roundKey, onMinuteChange])
   // 🚫 ANTI-SPOILER: quando entra uma rodada nova (roundKey muda) o relógio ainda
   // está no 93' da rodada anterior por 1 frame — o que mostraria TODOS os gols (o
   // placar FINAL) do jogo novo antes do apito. Zera JÁ na renderização, sem flash.
@@ -2565,7 +2571,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // travado pelo relógio (min <= relógio) — mesma trava anti-spoiler de
   // sempre, nunca revela um gol antes da hora.
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
-  if (cinematic) return <OnlineScorePresentation enhanced={enhancedOnline}
+  if (cinematic) return <OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}
@@ -2629,11 +2635,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
-function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean }) {
+function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void }) {
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
-  return <LiveScoreCard homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
+  return <LiveScoreCard enhancedCareer onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
     youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} />
 }
 
@@ -4439,7 +4445,7 @@ export function pensRevealDelay(pens: [number, number]): number {
   const kicks = Math.min(10, pens[0] + pens[1] + (5 - Math.min(pens[0], pens[1])) * 2 + 2)
   return 0.7 + kicks * 0.85 + 0.6
 }
-export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, aCrest, bCrest, final=false }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean }) {
+export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
@@ -4504,7 +4510,7 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
       })}
     </div>
   )
-  if(compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) {
+  if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && privatePenalty)) {
     const exact=exactPenaltyRows(pens,rows)
     return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final}/>
   }
@@ -4556,7 +4562,8 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
 // 🔁 Ida e volta: o card mostra UM jogo por vez. Quando o relógio passa dos 90'
 // (vira a volta), o `roundKey` muda e ele reinicia com os gols do 2º jogo — e
 // os lados trocam, porque na volta quem manda é o outro.
-function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, footTint }: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; footTint?: { bg: string; border: string; holo?: number } }) {
+function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, footTint, final=false }: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+  const privateMatch = useOnlinePreview()
   const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
   const nLegs = legG.length
   const total = nLegs * 90
@@ -4583,7 +4590,7 @@ function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, foot
           via escudo genérico e gol sem mascote NA COPA, enquanto na liga (que
           passa o nome cru) estava tudo certo. O card já escreve "VOCÊ"
           embaixo do nome sozinho, então o sufixo era só ruído. */}
-      <LiveScoreCard homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
+      <LiveScoreCard enhancedCareer displayMinute={privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
         youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} finished={done} footTint={footTint} />
       {done && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
@@ -4596,9 +4603,9 @@ function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, foot
             <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, color: 'rgba(0,0,0,.45)', margin: '0 0 1px', textTransform: 'uppercase' }}>{copaName(tie.a)} × {copaName(tie.b)}</p>
             <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][0]}×{tie.legs[1][1]} · <b>agregado {tie.aggA}×{tie.aggB}</b></p>
           </>}
-          {tie.pens && <PensShootout pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
+          {tie.pens && <PensShootout compactCareer final={final} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
           <p style={{ margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}>
-            <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} avança</span>
+            <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} {final ? 'é campeão' : 'avança'}</span>
           </p>
         </div>
       )}
@@ -4615,6 +4622,8 @@ function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, foot
 // 🚫 ANTI-SPOILER: o placar exibido é o placar NAQUELE minuto (gols filtrados
 // por `min <= legMin`, mesma conta do card grande) — nunca o resultado final.
 function CopaMatchList({ ties, pos, colors, safName, title }: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
+  const privateMatches = useOnlinePreview()
+  if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>}/>} />
   const nameCol = (t: SimTeam) => t.you ? (colors[t.teamId]?.solid ?? INK) : (safName && t.name === safName) ? (colors[t.teamId]?.solid ?? INK) : (t.human || t.rival) ? (colors[t.teamId]?.solid ?? INK) : INK
   const markOf = (t: SimTeam) => t.you ? '👤 ' : (safName && t.name === safName) ? '💼 ' : t.rival ? '⚔️ ' : t.dorm ? '🏛️ ' : t.human ? '🔥 ' : ''
   return (
@@ -5244,15 +5253,16 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
   )
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
-function BarraCarreira({ tab, setTab, cor, ponto, pontoClube }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean }) {
+function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean }) {
   return (
     <>
       {/* 🔊 o botão de som mora no canto de baixo — sobe pra não brigar com a barra
           (mesmo remendo já usado na barra da home) */}
       <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
-        {ABAS_CARR.map(([t, label]) => {
-          const on = tab === t
+<div className="ll-career-navigation" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+        {ABAS_CARR.filter(([t]) => !combined || t !== 'tabelas').map(([t, originalLabel]) => {
+          const label = combined && t === 'jogos' ? 'Jogos + Tabela' : originalLabel
+          const on = tab === t || (combined && t === 'jogos' && tab === 'tabelas')
           return (
             <button key={t} onClick={() => setTab(t)} aria-label={label}
               style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: on ? cor : 'rgba(12,12,12,.45)' }}>
@@ -5421,7 +5431,8 @@ function SeloSuaVez({ texto }: { texto: string }) {
   )
 }
 
-function PresidenciaPrivate({ president, st, team, season, games, trophies }: {
+function PresidenciaPrivate({ president, st, team, season, games, trophies, onNavigate }: {
+  onNavigate: (page: 'estadio' | 'patrocinio' | 'financas') => void
   president?: { name: string; outfit: 'casual' | 'polo' | 'social' | 'terno' }
   st?: StadiumSave
   team: string
@@ -5445,6 +5456,12 @@ function PresidenciaPrivate({ president, st, team, season, games, trophies }: {
           <span>{team}</span>
         </div>
       </div>
+      <nav className="ll32-office-links" aria-label="Acessos da presidência">
+        <CareerStadiumView st={st} label="Ver estádio" inline={false}><StadiumSvg st={st}/></CareerStadiumView>
+        <button onClick={() => onNavigate('estadio')}>Obras do estádio</button>
+        <button onClick={() => onNavigate('patrocinio')}>Patrocínio</button>
+        <button onClick={() => onNavigate('financas')}>Finanças</button>
+      </nav>
       <div className="ll25-president-facts">
         <article><small>TEMPORADAS</small><b>{season}</b></article>
         <article><small>JOGOS</small><b>{games}</b></article>
@@ -5462,6 +5479,9 @@ export function PyramidSeasonScreen() {
   // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
   // a autoridade do host continuam passando pelos mesmos caminhos abaixo.
   const privateCareer = privatePreview && state.sport !== 'basquete'
+  const [divisionView, setDivisionView] = useState<Div | null>(null)
+  const [scoreClock, setScoreClock] = useState({ round: -1, minute: 0 })
+  const reportMinute = useCallback((minute:number) => setScoreClock({round:state.round,minute}),[state.round])
   // 🟢 liga o "contexto verde" da carreira OFFLINE (feehcamp etc. veem verde SÓ aqui;
   // ouro em todo o resto). Inline (roda antes dos filhos, sem flash) + limpa ao sair.
   setCareerColorCtx(state.careerOnline && state.onlineMode !== 'online' ? 'offline' : null)
@@ -5882,6 +5902,7 @@ export function PyramidSeasonScreen() {
     }
     return [...m.values()].sort((a, b) => b.goals - a.goals).slice(0, 20)
   }, [copa, copaRound, copaFinished])
+  const copaAssistsShown = useMemo(() => careerCupAssists(copa?.rounds ?? [], copaFinished ? (copa?.rounds.length ?? 0) : copaRound), [copa, copaRound, copaFinished])
   // ao TERMINAR de animar a Copa, marca no save (pra não re-animar ao retomar)
   useEffect(() => {
     if (copaFinished && state.careerOnline && state.copaDoneSeason !== state.seasonNo) dispatch({ type: 'MARK_COPA_DONE' })
@@ -6462,8 +6483,111 @@ export function PyramidSeasonScreen() {
   // por cima dele. Nos momentos sagrados nada gruda: as pílulas voltam a rolar
   // junto com o conteúdo, que é como era antes da mudança.
   const grudaOk = subGrudadas && !sagrado
+  const renderCareerTicker = () => { // FRASES COM EMOÇÃO (uma linha rotativa): clássico, artilheiro, zuação, queda, liderança
+              if (!me) return null
+              const RED = '#E8503A', PURPLE = '#6C43C0'
+              const flavors: Flavor[] = []
+              const nm = (id: number, name: string) => <span style={{ color: colors[id]?.solid ?? INK, fontWeight: 900 }}>{name}</span>
+              const table = tables[me.div] ?? []
+              const myIdx = table.findIndex(x => x.you)
+              const myRank = DIVS.indexOf(me.div) // 0=A (topo) … 3=D
+              // VARIA a redação pela rodada — mesma situação, frases diferentes,
+              // pra ninguém ler a mesma linha 38 rodadas seguidas.
+              const vary = <T,>(...opts: T[]): T => opts[round % opts.length]
+              // 1) CLÁSSICO: sua partida é contra outro humano
+              if (myMatch) {
+                const oppName = myMatch.h === me.team ? myMatch.a : myMatch.h
+                const opp = table.find(x => x.name === oppName)
+                if (opp?.human) flavors.push({ c: RED, ic: '⚔️', tag: 'CLÁSSICO', node: <>Você x {nm(opp.teamId, oppName)} nesta rodada — não pode perder!</> })
+              }
+              // 2) ARTILHEIRO do seu time (arrebentando) — usa a lista COMPLETA
+              //    (scorersAll), não o top-20 geral, senão os gols "somem" do corte.
+              const mineTop = scorersAll.filter(s => s.teamId === youId).sort((a, b) => b.goals - a.goals)[0]
+              if (mineTop && mineTop.goals >= 3) {
+                const leagueTop = scorersAll.filter(s => s.div === me.div).sort((a, b) => b.goals - a.goals)[0]
+                flavors.push(leagueTop?.name === mineTop.name
+                  ? { c: GREEN, ic: '👑', tag: 'ARTILHEIRO', node: vary(
+                      <><b>{mineTop.name}</b> é o artilheiro da {DIV_NAME[me.div]} — {mineTop.goals} gols!</>,
+                      <>Ninguém segura: <b>{mineTop.name}</b> lidera a artilharia da {DIV_NAME[me.div]} com {mineTop.goals}!</>,
+                      <>{mineTop.goals} gols do <b>{mineTop.name}</b> — a artilharia da {DIV_NAME[me.div]} tem dono!</>) }
+                  : { c: GREEN, ic: '⚽', tag: 'EM ALTA', node: vary(
+                      <><b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</>,
+                      <>Fase iluminada do <b>{mineTop.name}</b> — já são {mineTop.goals} na temporada!</>,
+                      <>Pode confiar: <b>{mineTop.name}</b> soma {mineTop.goals} gols e segue faminto!</>) })
+              }
+              // 2b) REFORÇOS: como vão suas contratações (leilão de reservas/mercado).
+              //     Gols EXATOS por carta (goalsByCard) — nada de cobrar quem tá
+              //     marcando. Elogia quem rende; a cobrança só pra MEI/ATA sem gol
+              //     (zagueiro não é obrigado a marcar), só de vez em quando.
+              const signings = (mgrMe?.squad ?? []).filter(c => (c as WonCard).reforco && !c.fake)
+              if (signings.length) {
+                const goalsOf = (c: PoolCard) => goalsByCard[c.id] ?? 0
+                const best = signings.map(c => ({ c, g: goalsOf(c) })).sort((a, b) => b.g - a.g)[0]
+                if (best && best.g >= 2) flavors.push({ c: GREEN, ic: '💸', tag: 'REFORÇO', node: vary(
+                  <>Contratação <b>{best.c.name}</b> já fez {best.g} gols — dinheiro bem gasto!</>,
+                  <><b>{best.c.name}</b> caiu como uma luva: {best.g} gols desde que chegou!</>,
+                  <>O reforço <b>{best.c.name}</b> tá pagando o investimento — {best.g} gols!</>) })
+                else if (round >= 10 && round % 3 === 0) {
+                  const flop = signings.filter(c => goalsOf(c) === 0 && (c.pos === 'ATA' || c.pos === 'MEI')).sort((a, b) => ((b as WonCard).paid ?? 0) - ((a as WonCard).paid ?? 0))[0]
+                  if (flop) flavors.push({ c: GOLD, ic: '👀', tag: 'REFORÇO', node: vary(
+                    <>Contratação <b>{flop.name}</b> custou 💰{(flop as WonCard).paid} e ainda não desencantou…</>,
+                    <>A torcida cobra: <b>{flop.name}</b> (💰{(flop as WonCard).paid}) segue sem marcar…</>,
+                    <>Cadê o <b>{flop.name}</b>? 💰{(flop as WonCard).paid} investidos e o gol não sai…</>) })
+                }
+              }
+              // 3) ZUAÇÃO de divisão: amigo numa série mais baixa (ou mais alta)
+              const friends = state.managers.filter(m => m.isHuman && m.id !== youId)
+                .map(m => { for (const d of DIVS) { const idx = tables[d].findIndex(x => x.teamId === m.id); if (idx >= 0) return { name: tables[d][idx].name, div: d, id: m.id, pos: idx + 1 } } return null })
+                .filter((x): x is { name: string; div: Div; id: number; pos: number } => !!x)
+              const below = friends.filter(f => DIVS.indexOf(f.div) > myRank).sort((a, b) => DIVS.indexOf(b.div) - DIVS.indexOf(a.div))[0]
+              const above = friends.filter(f => DIVS.indexOf(f.div) < myRank).sort((a, b) => DIVS.indexOf(a.div) - DIVS.indexOf(b.div))[0]
+              if (below) flavors.push({ c: PURPLE, ic: '😎', tag: 'ZUAÇÃO', node: <>Você na <b>{DIV_NAME[me.div]}</b> e o {nm(below.id, below.name)} lá na {DIV_NAME[below.div]} 👇</> })
+              else if (above) flavors.push({ c: PURPLE, ic: '👀', tag: 'ZUAÇÃO', node: <>O {nm(above.id, above.name)} tá na <b>{DIV_NAME[above.div]}</b> — bora subir e alcançar!</> })
+              // 3b) ZUAÇÃO: amigo afundando na zona de queda (últimos 4) da divisão dele
+              const falling = friends.find(f => f.pos >= 17 && f.div !== 'D')
+              if (falling) flavors.push({ c: PURPLE, ic: '📉', tag: 'ZUAÇÃO', node: <>O {nm(falling.id, falling.name)} tá afundando na zona de queda da {DIV_NAME[falling.div]}… 👋</> })
+              // 4) QUEDA: você na zona de rebaixamento (últimos 4)
+              if (myIdx >= 16 && me.div !== 'D') flavors.push({ c: RED, ic: '🚨', tag: 'PERIGO', node: vary(
+                <>Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</>,
+                <>Alerta vermelho: Z4 da {DIV_NAME[me.div]}. Bora sair dessa!</>,
+                <>A corda apertou na {DIV_NAME[me.div]} — cada ponto agora vale ouro!</>) })
+              // 5) VIZINHO na tabela (liderança / perseguição) — sempre tem
+              if (myIdx >= 0) {
+                const rival = myIdx > 0 ? table[myIdx - 1] : table[myIdx + 1]
+                if (rival) {
+                  const gap = Math.abs(table[myIdx].pts - rival.pts); const pts = gap === 1 ? 'ponto' : 'pontos'
+                  const tied = gap === 0 // mesmo nº de pontos — quem está acima leva no saldo
+                  flavors.push(
+                    myIdx === 0
+                      // LÍDER: o rival (table[1]) está logo ABAIXO de você
+                      ? (tied
+                          ? { c: GOLD, ic: '🔥', tag: 'LÍDER', node: vary(
+                              <>Você lidera no saldo! {nm(rival.teamId, rival.name)} empatou em pontos — não vacila.</>,
+                              <>Liderança por um fio: {nm(rival.teamId, rival.name)} igualou os pontos, o saldo te segura!</>) }
+                          : { c: GOLD, ic: '🔥', tag: 'LÍDER', node: vary(
+                              <>Você é o líder! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</>,
+                              <>Ponteiro! Mas {nm(rival.teamId, rival.name)} vem a {gap} {pts} — segura a coroa.</>,
+                              <>Topo da tabela é seu — {nm(rival.teamId, rival.name)} sonha a {gap} {pts}.</>) })
+                      // você NÃO é líder: o rival (table[myIdx-1]) está logo ACIMA, na sua frente
+                      : tied
+                        ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: vary(
+                            <>Você e {nm(rival.teamId, rival.name)} empatados em pontos — o saldo decide!</>,
+                            <>Mesmos pontos que {nm(rival.teamId, rival.name)} — agora é no detalhe!</>) }
+                        : gap <= 2
+                          ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: vary(
+                              <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</>,
+                              <>Falta pouco: {gap} {pts} pra passar o {nm(rival.teamId, rival.name)}!</>,
+                              <>O {nm(rival.teamId, rival.name)} já sente o teu bafo — {gap} {pts} de diferença.</>) }
+                          : { c: GOLD, ic: '💪', tag: 'TABELA', node: vary(
+                              <>{nm(rival.teamId, rival.name)} tá {gap} {pts} na sua frente — corre atrás!</>,
+                              <>Meta da rodada: encostar no {nm(rival.teamId, rival.name)} ({gap} {pts}).</>,
+                              <>Distância pro {nm(rival.teamId, rival.name)}: {gap} {pts}. Nada que uma boa sequência não resolva.</>) })
+                }
+              }
+              return <RivalryTicker items={flavors} />
+  }
   return (
-    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
@@ -6492,6 +6616,15 @@ export function PyramidSeasonScreen() {
           const label = supercopaFase ? '🏆🔵 Supercopa Legends' : copaBrOk ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
           const sub = supercopaFase ? 'Campeão da Liga × Campeão da Copa do Brasil' : copaBrOk ? '100 clubes · mata-mata puro, sem grupos' : 'Os 4 melhores de cada série (A·B·C·D) no mata-mata'
           const artClass = !privateCareer ? '' : !copaPlaying ? ' ll25-career-league' : supercopaFase ? ' ll25-career-super' : copaBrOk ? ' ll25-career-copa-br' : ' ll25-career-copa'
+          if (privateCareer && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) return <CareerCompetitionStage
+            kind={!copaPlaying ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
+            title={`TEMPORADA ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
+            phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : 'Liga'} · ${done ? 'Encerrada' : 'Rodada '+round+'/38'}`}
+            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} confrontos · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'} · ${sub}` : 'Acompanhe sua divisão e os jogos das outras séries sem sair da tela.'}
+            status={copaPlaying ? copaPos >= copaFaseTotal ? 'Fase encerrada · confira os resultados e os pênaltis' : 'Bola rolando · acompanhe todos os confrontos abaixo' : done ? 'Liga encerrada' : round===0 ? 'Tudo pronto para a primeira rodada' : `Rodada ${round}/38 · ${revealed >= round ? 'resultados revelados' : 'bola rolando'}`}>
+            <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} Torcida <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>h.motivo).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${me.pos}º · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
+            {copaPlaying && <details className="ll29-note"><summary>COMO FUNCIONA ESTA COMPETIÇÃO</summary><p>{supercopaFase ? 'Campeão da Liga contra campeão da Copa do Brasil, em jogo único. Se o mesmo clube ganhou os dois, o vice da Liga disputa a Supercopa.' : copaBrOk ? 'Peneira → Rodada de 64 → Rodada de 32 (jogo único) → Oitavas → Quartas → Semifinal (ida e volta) → Final (jogo único). Série A e os oito primeiros da B entram direto na chave de 64; os demais começam na peneira.' : 'Os quatro melhores de cada série A, B, C e D disputam o mata-mata. A quantidade de jogos de cada fase aparece no cabeçalho.'}</p></details>}
+          </CareerCompetitionStage>
           return (
         <div className={privateCareer ? `ll25-career-hero${artClass}` : undefined} style={{ ...box(bg), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           {copaPlaying && <CopaLegSheen />}
@@ -6558,7 +6691,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* quem ainda NÃO é tester continua com o aviso de que a Copa Legends
             começou (o banner grande abaixo é só da Copa do Brasil). */}
-        {copaPlaying && copaRound === 0 && !copaBrOk && (
+        {!privateCareer && copaPlaying && copaRound === 0 && !copaBrOk && (
           <div style={{ ...box('#fff'), padding: '9px 12px', marginBottom: 12, textAlign: 'center' }}>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', margin: 0 }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>
           </div>
@@ -6569,7 +6702,7 @@ export function PyramidSeasonScreen() {
             uma com moldura/sombra própria). Consolidado num card SÓ: banner
             colorido em cima, explicação compacta (funil + quem joga, 1 linha
             cada) embaixo, mesma moldura única. */}
-        {copaPlaying && copaBrOk && copaRound === 0 && (
+        {!privateCareer && copaPlaying && copaBrOk && copaRound === 0 && (
           <div style={{ ...box(COPA_BR_HOLO), position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
             <CopaLegSheen />
             <div style={{ padding: '14px 14px 10px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
@@ -6587,7 +6720,7 @@ export function PyramidSeasonScreen() {
             "não entendeu nada... só começou a ver do nada já ele jogando"). O
             banner acima explica a regra GERAL; este card fala com o jogador:
             onde VOCÊ entra, POR QUE, e o que acontece agora. */}
-        {copaPlaying && copaBrOk && copaRound === 0 && me && (() => {
+        {!privateCareer && copaPlaying && copaBrOk && copaRound === 0 && me && (() => {
           const direto = me.div === 'A' || (me.div === 'B' && me.pos <= 8)
           const motivo = me.div === 'A'
             ? <>Terminou em <b>{me.pos}º na Série A</b> — a <b>Série A inteira</b> entra direto, sem passar pela peneira.</>
@@ -6621,7 +6754,7 @@ export function PyramidSeasonScreen() {
             </p>
           </div>
         )}
-        {copaFase?.name === 'Supercopa' && (
+        {!privateCareer && copaFase?.name === 'Supercopa' && (
           <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
             <CopaLegSheen />
             <div style={{ padding: '14px 14px 10px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
@@ -6677,9 +6810,9 @@ export function PyramidSeasonScreen() {
             })()} />
         )}
         {copaFinished && copa?.champion && (
-          <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>👉 ver o chaveamento da Copa na aba Tabelas</button>
+          <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? '👉 Ver fases e resultados na aba Tabelas' : '👉 ver o chaveamento da Copa na aba Tabelas'}</button>
         )}
-        {!done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} />}
+        {!done && myMatch && me && <MyMatchCard onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -6820,7 +6953,7 @@ export function PyramidSeasonScreen() {
               {!sponsorBetOk && <SeloSuaVez texto={`1 decisão pra começar a T${state.seasonNo ?? 1}`} />}
               {/* 🎖️ fielBrandId segue a MESMA regra que sponsorBetRewards usa pra
                   garantir o mínimo: acertou a meta na temporada PASSADA com essa marca. */}
-              <SponsorBetBanner div={me.div}
+              <SponsorBetBanner cinematic={privateCareer} div={me.div}
                 chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
                 fielBrandId={sponsorResultFresh && sponsorResult!.hit ? sponsorResult!.brandId : undefined}
                 onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
@@ -6877,7 +7010,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && <MyCopaMatch tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed}
+        {copaPlaying && myCopaTie && <MyCopaMatch final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
@@ -7181,7 +7314,7 @@ export function PyramidSeasonScreen() {
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
             <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
             <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ...(privateCareer ? [['presidencia', '🏛️', 'Presidência']] : []), ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ...(privateCareer && PRESIDENT_ROOM_RELEASED ? [['presidencia', '🏛️', 'Presidência']] : []), ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
                 .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
@@ -7189,8 +7322,9 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             </SubAbasGrudadas>
-            {clubeSub === 'presidencia' && privateCareer ? (
+            {clubeSub === 'presidencia' && privateCareer && PRESIDENT_ROOM_RELEASED ? (
               <PresidenciaPrivate
+                onNavigate={setClubeSub}
                 president={state.careerPresident}
                 st={state.stadiums?.[youId]}
                 team={state.managers[state.youIdx]?.teamName ?? 'Seu clube'}
@@ -7217,7 +7351,7 @@ export function PyramidSeasonScreen() {
                     ficou meio estranho e confuso"): 1º o cartãozinho da aposta,
                     2º a TV, 3º o tabelão da régua — assim quem vem do banner
                     "quero televisionar" acha a TV de cara, sem caçar. */}
-                {me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} />}
+                {me && (privateCareer ? <CareerSponsorOverview chosen={state.careerSponsorBet?.[youId]} div={me.div} /> : <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} />)}
                 {me && <TVContrato div={me.div} clube={me.team} foco={tvFoco} onFocoFim={() => setTvFoco(false)} />}
                 {me && <SponsorBetStatus div={me.div} soRegua />}
                 {agenciaOk && (() => {
@@ -7312,7 +7446,7 @@ export function PyramidSeasonScreen() {
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
             {!agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
-            <StadiumTab st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn}
+            <StadiumTab cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               filial={myFilial}
@@ -7464,8 +7598,8 @@ export function PyramidSeasonScreen() {
             ) : rankSub === 'garcons' ? (
               /* 🅰️ GARÇONS (24/08): quem DÁ o passe finalmente tem tabela. O
                  meião que ganha o campeonato sem fazer gol agora aparece. */
-              <GarconsByDiv assists={assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
-                title="🅰️ GARÇONS · TEMPORADA" sub="Assistências da temporada atual — top 5 de cada série."
+              <GarconsByDiv assists={privateCareer && done && copa ? copaAssistsShown : assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
+                title={privateCareer && done && copa ? '🅰️ GARÇONS · COPA' : '🅰️ GARÇONS · TEMPORADA'} sub={privateCareer && done && copa ? 'Assistências das fases já encerradas da Copa.' : 'Assistências da temporada atual — top 5 de cada série.'}
                 foot="Cerca de 3 em cada 4 gols saem de um passe; o resto é jogada individual, pênalti ou rebote." />
             ) : rankSub === 'global' ? (
               agenciaOk
@@ -7616,6 +7750,27 @@ export function PyramidSeasonScreen() {
             </>
             )}
           </>
+        ) : privateCareer && (tab === 'jogos' || tab === 'tabelas') ? (
+          <section className="ll29-board" aria-label="Competições da carreira">
+            {!done && tab==='jogos' && renderCareerTicker()}
+            {done && copa && copa.rounds.length ? <>
+              <nav className="ll29-phases" aria-label="Etapas da Copa">{copa.rounds.map((r,i)=><span key={i} aria-current={copaPlaying && i===copaRound ? 'step' : undefined}>{i<copaRound || copaFinished ? '✓ ' : ''}{r.name}</span>)}</nav>
+              {tab==='jogos' && copaPlaying && copaFase && <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · OUTROS JOGOS`}/>}
+              {tab==='tabelas' && <>
+                {copaPlaying && copaFase && <CopaMatchList ties={copaFase.ties} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · CONFRONTOS DA FASE`}/>}
+                {copa.rounds.slice(0,copaFinished ? nCopaRounds : copaRound).map((r,i)=><details className="ll29-history" key={i}><summary>{r.name.toUpperCase()} · RESULTADOS</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name}/></details>)}
+                <details className="ll29-history"><summary>LIGA ENCERRADA · CLASSIFICAÇÕES E PREMIAÇÃO</summary><PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/><PrizesBox/></details>
+              </>}
+            </> : (() => {
+              const division = divisionView && ord.includes(divisionView) ? divisionView : myDiv ?? ord[0]
+              const minute = done ? 93 : scoreClock.round===round ? scoreClock.minute : 0
+              return <>
+                <label className="ll29-filter">DIVISÃO<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? ' · SEU CLUBE' : ''}</option>)}</select></label>
+                {tab==='tabelas' ? <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>
+                  : <CareerLeagueGames matches={matches[division] ?? []} minute={minute} title={`${DIV_NAME[division]} · JOGOS DA RODADA ${round}`} />}
+              </>
+            })()}
+          </section>
         ) : tab === 'jogos' && hasMatches ? (
           copaPlaying && copaFase ? (
             /* Durante a COPA: SEU jogo já está no placar em cima das abas. Aqui na
@@ -7638,109 +7793,7 @@ export function PyramidSeasonScreen() {
               </UnlockBanner>
             )}
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
-            {(() => { // FRASES COM EMOÇÃO (uma linha rotativa): clássico, artilheiro, zuação, queda, liderança
-              if (!me) return null
-              const RED = '#E8503A', PURPLE = '#6C43C0'
-              const flavors: Flavor[] = []
-              const nm = (id: number, name: string) => <span style={{ color: colors[id]?.solid ?? INK, fontWeight: 900 }}>{name}</span>
-              const table = tables[me.div] ?? []
-              const myIdx = table.findIndex(x => x.you)
-              const myRank = DIVS.indexOf(me.div) // 0=A (topo) … 3=D
-              // VARIA a redação pela rodada — mesma situação, frases diferentes,
-              // pra ninguém ler a mesma linha 38 rodadas seguidas.
-              const vary = <T,>(...opts: T[]): T => opts[round % opts.length]
-              // 1) CLÁSSICO: sua partida é contra outro humano
-              if (myMatch) {
-                const oppName = myMatch.h === me.team ? myMatch.a : myMatch.h
-                const opp = table.find(x => x.name === oppName)
-                if (opp?.human) flavors.push({ c: RED, ic: '⚔️', tag: 'CLÁSSICO', node: <>Você x {nm(opp.teamId, oppName)} nesta rodada — não pode perder!</> })
-              }
-              // 2) ARTILHEIRO do seu time (arrebentando) — usa a lista COMPLETA
-              //    (scorersAll), não o top-20 geral, senão os gols "somem" do corte.
-              const mineTop = scorersAll.filter(s => s.teamId === youId).sort((a, b) => b.goals - a.goals)[0]
-              if (mineTop && mineTop.goals >= 3) {
-                const leagueTop = scorersAll.filter(s => s.div === me.div).sort((a, b) => b.goals - a.goals)[0]
-                flavors.push(leagueTop?.name === mineTop.name
-                  ? { c: GREEN, ic: '👑', tag: 'ARTILHEIRO', node: vary(
-                      <><b>{mineTop.name}</b> é o artilheiro da {DIV_NAME[me.div]} — {mineTop.goals} gols!</>,
-                      <>Ninguém segura: <b>{mineTop.name}</b> lidera a artilharia da {DIV_NAME[me.div]} com {mineTop.goals}!</>,
-                      <>{mineTop.goals} gols do <b>{mineTop.name}</b> — a artilharia da {DIV_NAME[me.div]} tem dono!</>) }
-                  : { c: GREEN, ic: '⚽', tag: 'EM ALTA', node: vary(
-                      <><b>{mineTop.name}</b> tá voando: {mineTop.goals} gols pelo seu time!</>,
-                      <>Fase iluminada do <b>{mineTop.name}</b> — já são {mineTop.goals} na temporada!</>,
-                      <>Pode confiar: <b>{mineTop.name}</b> soma {mineTop.goals} gols e segue faminto!</>) })
-              }
-              // 2b) REFORÇOS: como vão suas contratações (leilão de reservas/mercado).
-              //     Gols EXATOS por carta (goalsByCard) — nada de cobrar quem tá
-              //     marcando. Elogia quem rende; a cobrança só pra MEI/ATA sem gol
-              //     (zagueiro não é obrigado a marcar), só de vez em quando.
-              const signings = (mgrMe?.squad ?? []).filter(c => (c as WonCard).reforco && !c.fake)
-              if (signings.length) {
-                const goalsOf = (c: PoolCard) => goalsByCard[c.id] ?? 0
-                const best = signings.map(c => ({ c, g: goalsOf(c) })).sort((a, b) => b.g - a.g)[0]
-                if (best && best.g >= 2) flavors.push({ c: GREEN, ic: '💸', tag: 'REFORÇO', node: vary(
-                  <>Contratação <b>{best.c.name}</b> já fez {best.g} gols — dinheiro bem gasto!</>,
-                  <><b>{best.c.name}</b> caiu como uma luva: {best.g} gols desde que chegou!</>,
-                  <>O reforço <b>{best.c.name}</b> tá pagando o investimento — {best.g} gols!</>) })
-                else if (round >= 10 && round % 3 === 0) {
-                  const flop = signings.filter(c => goalsOf(c) === 0 && (c.pos === 'ATA' || c.pos === 'MEI')).sort((a, b) => ((b as WonCard).paid ?? 0) - ((a as WonCard).paid ?? 0))[0]
-                  if (flop) flavors.push({ c: GOLD, ic: '👀', tag: 'REFORÇO', node: vary(
-                    <>Contratação <b>{flop.name}</b> custou 💰{(flop as WonCard).paid} e ainda não desencantou…</>,
-                    <>A torcida cobra: <b>{flop.name}</b> (💰{(flop as WonCard).paid}) segue sem marcar…</>,
-                    <>Cadê o <b>{flop.name}</b>? 💰{(flop as WonCard).paid} investidos e o gol não sai…</>) })
-                }
-              }
-              // 3) ZUAÇÃO de divisão: amigo numa série mais baixa (ou mais alta)
-              const friends = state.managers.filter(m => m.isHuman && m.id !== youId)
-                .map(m => { for (const d of DIVS) { const idx = tables[d].findIndex(x => x.teamId === m.id); if (idx >= 0) return { name: tables[d][idx].name, div: d, id: m.id, pos: idx + 1 } } return null })
-                .filter((x): x is { name: string; div: Div; id: number; pos: number } => !!x)
-              const below = friends.filter(f => DIVS.indexOf(f.div) > myRank).sort((a, b) => DIVS.indexOf(b.div) - DIVS.indexOf(a.div))[0]
-              const above = friends.filter(f => DIVS.indexOf(f.div) < myRank).sort((a, b) => DIVS.indexOf(a.div) - DIVS.indexOf(b.div))[0]
-              if (below) flavors.push({ c: PURPLE, ic: '😎', tag: 'ZUAÇÃO', node: <>Você na <b>{DIV_NAME[me.div]}</b> e o {nm(below.id, below.name)} lá na {DIV_NAME[below.div]} 👇</> })
-              else if (above) flavors.push({ c: PURPLE, ic: '👀', tag: 'ZUAÇÃO', node: <>O {nm(above.id, above.name)} tá na <b>{DIV_NAME[above.div]}</b> — bora subir e alcançar!</> })
-              // 3b) ZUAÇÃO: amigo afundando na zona de queda (últimos 4) da divisão dele
-              const falling = friends.find(f => f.pos >= 17 && f.div !== 'D')
-              if (falling) flavors.push({ c: PURPLE, ic: '📉', tag: 'ZUAÇÃO', node: <>O {nm(falling.id, falling.name)} tá afundando na zona de queda da {DIV_NAME[falling.div]}… 👋</> })
-              // 4) QUEDA: você na zona de rebaixamento (últimos 4)
-              if (myIdx >= 16 && me.div !== 'D') flavors.push({ c: RED, ic: '🚨', tag: 'PERIGO', node: vary(
-                <>Você tá na zona de queda da {DIV_NAME[me.div]} — reage!</>,
-                <>Alerta vermelho: Z4 da {DIV_NAME[me.div]}. Bora sair dessa!</>,
-                <>A corda apertou na {DIV_NAME[me.div]} — cada ponto agora vale ouro!</>) })
-              // 5) VIZINHO na tabela (liderança / perseguição) — sempre tem
-              if (myIdx >= 0) {
-                const rival = myIdx > 0 ? table[myIdx - 1] : table[myIdx + 1]
-                if (rival) {
-                  const gap = Math.abs(table[myIdx].pts - rival.pts); const pts = gap === 1 ? 'ponto' : 'pontos'
-                  const tied = gap === 0 // mesmo nº de pontos — quem está acima leva no saldo
-                  flavors.push(
-                    myIdx === 0
-                      // LÍDER: o rival (table[1]) está logo ABAIXO de você
-                      ? (tied
-                          ? { c: GOLD, ic: '🔥', tag: 'LÍDER', node: vary(
-                              <>Você lidera no saldo! {nm(rival.teamId, rival.name)} empatou em pontos — não vacila.</>,
-                              <>Liderança por um fio: {nm(rival.teamId, rival.name)} igualou os pontos, o saldo te segura!</>) }
-                          : { c: GOLD, ic: '🔥', tag: 'LÍDER', node: vary(
-                              <>Você é o líder! {nm(rival.teamId, rival.name)} cola {gap} {pts} atrás.</>,
-                              <>Ponteiro! Mas {nm(rival.teamId, rival.name)} vem a {gap} {pts} — segura a coroa.</>,
-                              <>Topo da tabela é seu — {nm(rival.teamId, rival.name)} sonha a {gap} {pts}.</>) })
-                      // você NÃO é líder: o rival (table[myIdx-1]) está logo ACIMA, na sua frente
-                      : tied
-                        ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: vary(
-                            <>Você e {nm(rival.teamId, rival.name)} empatados em pontos — o saldo decide!</>,
-                            <>Mesmos pontos que {nm(rival.teamId, rival.name)} — agora é no detalhe!</>) }
-                        : gap <= 2
-                          ? { c: GOLD, ic: '😤', tag: 'NA COLA', node: vary(
-                              <>{nm(rival.teamId, rival.name)} tá só {gap} {pts} na sua frente. Vai deixar?</>,
-                              <>Falta pouco: {gap} {pts} pra passar o {nm(rival.teamId, rival.name)}!</>,
-                              <>O {nm(rival.teamId, rival.name)} já sente o teu bafo — {gap} {pts} de diferença.</>) }
-                          : { c: GOLD, ic: '💪', tag: 'TABELA', node: vary(
-                              <>{nm(rival.teamId, rival.name)} tá {gap} {pts} na sua frente — corre atrás!</>,
-                              <>Meta da rodada: encostar no {nm(rival.teamId, rival.name)} ({gap} {pts}).</>,
-                              <>Distância pro {nm(rival.teamId, rival.name)}: {gap} {pts}. Nada que uma boa sequência não resolva.</>) })
-                }
-              }
-              return <RivalryTicker items={flavors} />
-            })()}
+            {renderCareerTicker()}
             {/* 🖥️ no PC as divisões ficam LADO A LADO (2 colunas) — no celular a
                 classe não faz nada (o CSS dela só existe acima de 1024px) */}
             <div className="desk-grid2">

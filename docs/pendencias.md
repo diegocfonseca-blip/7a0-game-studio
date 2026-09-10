@@ -1,3 +1,11 @@
+## 10/09/2026 — Prévia privada de avatares e carreira
+
+- Autorização do Diego: apenas diego.c.fonseca@gmail.com e diego.c.fonseca2@gmail.com.
+- 156 avatares por nome/clube/ano no campo, elenco, cartas e resultado após o martelo. Sem mudar atributos, baralho, leilão às cegas, host ou saves; conta comum mantém apresentação antiga.
+- Carreira: Jogos/Tabelas separados, banners e organização das competições, placares, patrocínio, Setores/Melhorias e vista aérea do estádio conforme o save.
+- Técnico, criar presidente e sala da presidência ADIADOS/DESLIGADOS. Estádio cinematográfico em camadas e fundo do Messi Barcelona continuam pendentes; não anunciar essas partes como prontas.
+- Testes de gate/logout/erro, 156 identidades/arquivos, modelos de Copa/estádio, build e QA 390/1440px. Nenhuma migração de banco. Detalhes, limitações e reversão em docs/carreira-lendas-privado-20260910.md.
+
 ## 08/09/2026 — Online aprovado liberado para todos; carreira permanece privada
 
 - Pedido explícito do Diego: a apresentação V28 das duas contas agora vale para todos APENAS no futebol online (Rápido/Minhas Ligas). Carreira não foi liberada.

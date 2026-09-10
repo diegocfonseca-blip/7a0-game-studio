@@ -16,6 +16,8 @@ import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
 import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
+import { AvatarLote1, avatarLote1 } from './avatar-lote1'
+import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
@@ -1198,6 +1200,7 @@ function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90
               <JogadorNoCampo
                 key={i}
                 nome={slot.card.name}
+                avatarIdentity={{ club: slot.card.club, year: slot.card.year }}
                 clube={small ? undefined : slot.card.club}
                 ano={small ? undefined : slot.card.year}
                 tag={slot.pos}
@@ -2483,7 +2486,7 @@ function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
 export function EscSetup() {
   const { state, dispatch } = useEsc()
   const career = state.careerIntent
-  const privatePreview = useOnlinePreview()
+  const privatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -4296,6 +4299,7 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro, 
 }
 
 function Reveal() {
+  const avatarPreview = useOnlinePreview()
   const { state, dispatch } = useEsc()
   const cinema = useRevealCinema() // 🔨🎬 festão da Lenda: só na conta liberada (Diego)
   const item = state.revealQueue[state.revealIdx]
@@ -4431,7 +4435,9 @@ function Reveal() {
           {/* 🎁 SURPRESA anti-spoiler: o nome fica BORRADO até alguém GANHAR de fato
               (martelo com vencedor). Sem lance = nunca revela (vai pro Monte às cegas);
               com lance = borrado até o martelo bater. */}
-          {!mesaOn && <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />}
+          {!mesaOn && (avatarPreview && hammered && sold && avatarLote1(item.card.name, item.card.club, item.card.year)
+            ? <div className="ll-lote1-reveal-card"><CollectibleCard {...item.card}/></div>
+            : <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />)}
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
           {/* (carimbo grande "VENDIDO!" removido — vazava da carta e repetia o texto
               "🔨 VENDIDO pro X por Y!" que já existe embaixo. O festão da Lenda fica.) */}
@@ -4446,6 +4452,7 @@ function Reveal() {
                 // 🙈 O anti-spoiler da SURPRESA é o MESMO do CardFace: o nome real
                 // nem entra no HTML enquanto não bate o martelo com vencedor.
                 const escondido = item.card.id === state.surpriseId && !(hammered && sold)
+                if (avatarPreview && hammered && sold && !escondido && avatarLote1(item.card.name, item.card.club, item.card.year)) return <div className="ll-lote1-reveal-card"><CollectibleCard {...item.card}/></div>
                 const lenda = item.card.fame >= 5
                 return (
                   <div className="rounded-2xl text-center relative overflow-hidden"
@@ -4485,6 +4492,7 @@ function Reveal() {
                   className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5"
                   style={{ backgroundColor: isWinner ? GREEN : voided ? '#ddd' : '#fff' }}>
                   <p className="font-bold text-sm" style={{ color: isWinner ? '#fff' : INK }}>
+                    {avatarPreview && <span style={{display:'inline-block',verticalAlign:'middle',marginRight:6}}><Escudo nome={m.teamName} size={24}/></span>}
                     {m.id === you.id ? '🫵 Você' : m.teamName}{voided ? ' · anulado (setor cheio)' : ''}
                   </p>
                   <p className="font-black" style={{ ...OSWALD, color: isWinner ? '#fff' : INK }}>{b.amount}</p>
@@ -6647,6 +6655,7 @@ function fallbackBio(fame: number, pos: string): string {
   }
 }
 export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean }) {
+  const avatarPreview = useOnlinePreview() && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(pos) && !!avatarLote1(name, club, year)
   const isProm = promessa ?? PROMESSA_SET.has(name)
   const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
@@ -6674,12 +6683,12 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           nome, exatamente como sempre foi. Como quase todo mundo ainda não tem,
           o normal é cair na letra — e a carta não muda em nada. Ver
           `rostos.ts`: o Diego vai fazendo os rostos aos poucos. */}
-      <div className="relative self-center rounded-full flex items-center justify-center overflow-hidden"
+      {avatarPreview ? <div className="ll-lote1-card-avatar"><AvatarLote1 name={name} club={club} year={year}/></div> : <div className="relative self-center rounded-full flex items-center justify-center overflow-hidden"
         style={{ width: big ? 100 : 66, height: big ? 100 : 66, background: t.crestBg, color: t.crestInk, border: '3px solid rgba(0,0,0,.28)', ...OSWALD, fontWeight: 900, fontSize: big ? 42 : 27, boxShadow: t.holo ? 'inset 0 0 14px rgba(255,255,255,.7)' : 'none' }}>
         {foto
           ? <img src={foto} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
           : initial}
-      </div>
+      </div>}
       <div className="relative">
         <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{name}</p>
         <p className="font-extrabold" style={{ color: t.ink, opacity: .62, fontSize: big ? 12 : 10 }}>{club} · {year}</p>
@@ -9085,7 +9094,7 @@ export function EscEnd() {
         <CercaDaCopa><Suspense fallback={null}>
           <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
-            seasonNo={state.seasonNo ?? 1} // 🌍 uma Copa POR TEMPORADA da sala (o "novo leilão" abre a edição seguinte)
+            seasonNo={state.seasonNo ?? 1}
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
             classificacao={table.map(t => {
               const m = state.managers.find(mm => mm.id === t.id)

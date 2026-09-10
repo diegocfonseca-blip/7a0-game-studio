@@ -1,0 +1,20 @@
+.ll29-career.ll25-tab-jogos,.ll29-career.ll25-tab-tabelas{background-color:#08120e!important;background-image:linear-gradient(180deg,#06120b35,#06120be8),url('./img/online-estadio-v25.webp')!important;background-size:cover!important;background-position:center top!important;background-attachment:fixed!important}
+.ll29-career.ll25-tab-jogos>.max-w-xl,.ll29-career.ll25-tab-tabelas>.max-w-xl{max-width:1040px!important}
+.ll29-stage .ll26-competition{margin-bottom:12px;text-shadow:0 2px 4px #000}
+.ll29-stage-copa .ll26-competition{background-image:linear-gradient(90deg,#07130def,#07130d30),url('./img/online-copa8-v25.webp')}
+.ll29-stage-brasil .ll26-competition{background-image:linear-gradient(90deg,#07130def,#07130d30),url('./img/carreira-copa-brasil-v25.webp')}
+.ll29-stage-super .ll26-competition{background-image:linear-gradient(90deg,#061020ef,#06102030),url('./img/carreira-supercopa-v25.webp')}
+.ll29-stage .ll26-competition-copy{max-width:76%}.ll29-stage .ll26-competition-copy h2{font-size:clamp(27px,5vw,42px)}
+.ll29-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#0c0c0cbf;font-size:12px}.ll29-summary progress{accent-color:#1b7a3d;width:100px;max-width:24vw}
+.ll29-board{color:#0c0c0c;margin-top:12px}.ll29-board .ll25-tabs{margin:0 0 14px}.ll29-board .ll25-tabs button{min-height:44px;font-size:12px}
+.ll29-filter{display:flex;align-items:center;gap:12px;background:#f4ecd6;padding:12px;border:3px solid #0c0c0c;border-radius:12px;margin-bottom:14px;font:700 13px Oswald,sans-serif}.ll29-filter select{flex:1;min-width:0;height:44px}
+.ll29-table>div{background:#f4ecd6!important}.ll29-games{background:#f4ecd6;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:16px;padding:12px;box-shadow:3px 4px 0 #0c0c0c;margin-bottom:16px}
+.ll29-games h3{font:700 16px Oswald,sans-serif;margin:0 0 10px}.ll29-games>p{font-size:12px}.ll29-match-grid{display:grid;gap:12px}.ll29-match-grid .ll26-fixture{margin:0;min-width:0}
+.ll29-history{background:#f4ecd6;border:3px solid #0c0c0c;border-radius:12px;margin:12px 0;color:#0c0c0c;padding:10px}.ll29-history>summary{cursor:pointer;min-height:32px;font:700 14px Oswald,sans-serif}.ll29-history .ll29-games{box-shadow:none;margin:10px 0 0}
+.ll29-phases{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:5px}.ll29-phases span{flex:none;border:2px solid #0c0c0c;border-radius:8px;background:#f4ecd6;padding:8px;font:700 12px Oswald,sans-serif}.ll29-phases [aria-current=step]{background:#7c3aed;color:white}
+.ll29-note{background:#f4ecd6;border:3px solid #0c0c0c;border-radius:12px;padding:12px;margin:10px 0;color:#0c0c0c;font-size:13px}.ll29-note summary{font:700 14px Oswald,sans-serif;cursor:pointer}.ll29-note p{margin:8px 0 0}
+@media(min-width:760px){.ll29-match-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ll29-board .ll29-table table{font-size:14px}}
+@media(max-width:480px){.ll29-stage .ll26-competition-copy{max-width:100%}.ll29-stage .ll26-competition{min-height:205px}.ll29-games{padding:9px}.ll29-summary{padding:9px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.ll29-career *{scroll-behavior:auto!important}}
+/* On desktop the navigation occupies its own row; it cannot cover tables/cards. */
+@media(min-width:1024px){.ll29-career .ll-career-navigation{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;width:100%;max-width:1040px;margin:0 auto 12px;border-radius:0 0 12px 12px}}
