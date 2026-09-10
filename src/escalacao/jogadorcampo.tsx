@@ -31,7 +31,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
-import { useOnlinePreview } from './online-preview'
+import { useLegendPresentation as useOnlinePreview } from './presentation-release'
 
 const INK = '#0C0C0C'
 const OSWALD: CSSProperties = { fontFamily: 'Oswald, sans-serif' }

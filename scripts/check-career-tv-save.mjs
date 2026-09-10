@@ -2,7 +2,8 @@ import {readFileSync} from 'node:fs'
 import assert from 'node:assert/strict'
 const source=readFileSync(new URL('../src/escalacao/store.tsx',import.meta.url),'utf8')
 const expression=source.split('\n').find(l=>l.includes('const sig =')&&l.includes('|tv:')).trim().slice('const sig = '.length)
-const signature=new Function('state','onlinePreviewEnabled',`return ${expression}`)
+const evaluate=new Function('state','onlinePreviewEnabled','publicCareerVisual',`return ${expression}`)
+const signature=(state,preview)=>evaluate(state,preview,s=>!!s.careerOnline&&s.sport!=='basquete')
 const body=source.match(/case 'TV_BANNER_SEEN': \{([\s\S]*?)\n    \}/)[1]
 const acknowledge=new Function('s','action',body)
 const state={screen:'season',round:0,seasonNo:6,sectorIdx:0,phase:'envelope',monteIdx:0,managers:[],stadiums:{}}
@@ -16,3 +17,7 @@ assert.ok(restored.tvBannerSeen.includes('C'),'saved acknowledgement survives re
 const seen=signature(state,()=>true);state.tvExtraVisto=true
 assert.notEqual(signature(state,()=>true),seen,'extra TV dismissal also saved')
 console.log('PASS private TV autosave signature, acknowledgement, serialization, ordinary-account negative')
+const publicCareer={...state,careerOnline:true,tvBannerSeen:[]}
+const publicSig=signature(publicCareer,()=>false)
+acknowledge(publicCareer,{div:'C'})
+assert.notEqual(signature(publicCareer,()=>false),publicSig,'public career saves TV acknowledgement')

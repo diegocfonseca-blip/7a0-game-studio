@@ -32,6 +32,8 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
+import { useLegendPresentation } from './presentation-release'
+import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, type OnlineMatchTab } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
@@ -1082,7 +1084,7 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
   // topo fica lilás com um rótulo, pra bater o olho e já saber de cara.
   const isReserveAuction = !!bar && state.reserveAuction
   const reserveLabel = state.seasonNo === 1 ? '🔁 Leilão de Reservas' : '🔁 Leilão de Transferências'
-  const privateCareerShell = previewAccount && state.sport !== 'basquete' && state.careerOnline
+  const privateCareerShell = (previewAccount || publicCareerVisual(state)) && state.sport !== 'basquete' && state.careerOnline
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
     <div className={`min-h-screen pb-16 palco ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
@@ -4300,7 +4302,7 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro, 
 }
 
 function Reveal() {
-  const avatarPreview = useOnlinePreview()
+  const avatarPreview = useLegendPresentation()
   const { state, dispatch } = useEsc()
   const cinema = useRevealCinema() // 🔨🎬 festão da Lenda: só na conta liberada (Diego)
   const item = state.revealQueue[state.revealIdx]
@@ -5055,7 +5057,7 @@ export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLab
   const { state, dispatch } = useEsc()
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
-  if ((previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete') return <>
+  if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return <>
     <OnlineRhythm manual={manual} onToggle={onToggle} speed={state.simSpeed ?? 1} onSpeed={speed => dispatch({ type: 'SET_SIM_SPEED', speed })} />
     {manual && <div className="ll25-actions">
       <button className="ll25-button" onClick={onNext} disabled={!canNext}>{nextLabel}</button>
@@ -5107,7 +5109,7 @@ export const SPEED_OPTS: { v: number; label: string }[] = [
 export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: number) => void }) {
   const previewAccount = useOnlinePreview()
   const { state } = useEsc()
-  if ((previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete') return null
+  if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return null
   const cur = speed > 0 ? speed : 1
   return (
     <div style={{ marginBottom: 10 }}>
@@ -6669,7 +6671,7 @@ function fallbackBio(fame: number, pos: string): string {
   }
 }
 export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean }) {
-  const avatarPreview = useOnlinePreview() && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(pos) && !!avatarLote1(name, club, year)
+  const avatarPreview = useLegendPresentation() && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(pos) && !!avatarLote1(name, club, year)
   const isProm = promessa ?? PROMESSA_SET.has(name)
   const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'

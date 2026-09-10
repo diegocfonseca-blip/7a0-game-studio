@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-09-10', emoji: '⚽', titulo: 'As lendas ganharam rosto', texto: 'Avatares das lendas no campinho, nas cartas e na revelação do leilão, junto do novo visual da carreira: patrocínios, estádio, placares, ligas, copas e jornal. (Carreira, Rápido e Minhas Ligas)' },
   { data: '2026-09-10', emoji: '🐮', titulo: 'Nasceu o Leite de Verdade FC', texto: 'Mais um clube batizado por apoiador: o Leite de Verdade FC chega na Série A, com escudo do curral, manto creme e preto malhado com dourado e mascote própria — a Mimosa, a vaca de chapéu de palha que carimba a tela quando o time faz gol. O Barcenite FC segue no jogo, agora na Série B. (Carreira e Rápido)' },
   { data: '2026-09-09', emoji: '🐍', titulo: 'Tricolor do Arruda FC de cara nova', texto: 'O Tricolor do Arruda FC, clube batizado por apoiador, está de cara nova: o estádio do Arruda no escudo, manto tricolor com as cores medidas na camisa e a Cobra Coral de punhos fechados, que carimba a tela quando o time faz gol. (Carreira e Rápido)' },
   { data: '2026-09-09', emoji: '🟢', titulo: 'Xurupitas FC de cara nova', texto: 'O Xurupitas FC, clube batizado por apoiador, está de cara nova: escudo novo, manto verde-escuro e creme com a gosma escorrendo e mascote própria — o Xurupita, a gosma verde de sorriso maroto, que carimba a tela quando o time faz gol. (Carreira e Rápido)' },

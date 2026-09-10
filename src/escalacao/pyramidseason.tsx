@@ -8,7 +8,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useOnlinePreview } from './online-preview'
+import { useCareerPresentation as useOnlinePreview } from './presentation-release'
 import { PRESIDENT_ROOM_RELEASED } from './career-feature-release'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
