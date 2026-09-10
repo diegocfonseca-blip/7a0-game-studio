@@ -471,12 +471,18 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 16/08): a MESMA cobra que aparece no escudo, recortada dele (boné virado,
   // cachimbo fumegando, isqueiro na mão). Arte própria do dono; o recorte do
   // escudo de trás foi feito aqui. mascote_key = "cobra_arruda".
+  // 🔁 10/09 (madrugada): trocada de novo, a pedido do Diego, pela COBRA DA DINAMITE
+  // (boné tricolor, isqueiro, cartucheira, bananas de dinamite e fogo no chão).
+  // 371x440 no arquivo. Na prancha ela estava POR CIMA do escudo e da camisa: o
+  // recorte seguiu o contorno da camisa (x=824/858) e a borda MEDIDA do escudo
+  // (diagonal de (420,498) a (290,640), com 12 px de folga) — a fumaça que subia
+  // sobre a camisa e a que cobria o escudo se perderam; o Diego viu e aprovou.
   // 🔁 09/09: ARTE NOVA do dono — a cobra-coral de camisa tricolor, punhos fechados
   // e pé na bola (sem cachimbo). 232x440 no arquivo (era 319x440): é alta e estreita.
   // O punho direito ENCOSTAVA na manga da camisa da prancha — corte em degraus
   // (acima do punho tudo à direita de x=958 é camisa; na altura do punho, 1000).
   cobra_arruda: (
-    <img src={arrudaCobraImg} height={176} width={Math.round(176 * 232 / 440)} alt="Cobra Coral — Tricolor do Arruda FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={arrudaCobraImg} height={176} width={Math.round(176 * 371 / 440)} alt="Cobra Coral — Tricolor do Arruda FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🃏⚫⚪ o CORINGA (mascote dos Coringas do Diniz — lucas_calefi, aprovado 16/08):
   // o coringa de camisa listrada preto e branco, com a bola no braço e a carta na
