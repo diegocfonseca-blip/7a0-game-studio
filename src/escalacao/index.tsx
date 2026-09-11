@@ -12,6 +12,7 @@ import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
 import { CareerOnlineGame } from './careeronline'
 import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
+import { TelaSenhaNova } from './senha-nova'
 
 function Router() {
   const { state } = useEsc()
@@ -349,6 +350,9 @@ export default function EscalacaoGame() {
   return (
     <ErrorBoundary>
       <SairDaLista />{/* ✉️ a porta de saída do e-mail — fora do jogo, por cima de tudo */}
+      {/* 🔑 quem chega pelo link de "esqueci a senha" cai na HOME; a tela de senha
+          nova mora aqui fora pra aparecer onde quer que a pessoa caia. */}
+      <TelaSenhaNova />
       <EscProvider>
         <SportTitle />
         <MaintenanceBanner />

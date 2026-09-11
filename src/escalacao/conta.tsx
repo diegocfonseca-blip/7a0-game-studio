@@ -133,7 +133,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
     const prob = emailProblema(em)
     if (prob) { setErro(prob); return }
     try {
-      await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin })
+      await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + window.location.pathname })
       setOk('✉️ Link de redefinição enviado. Olha a caixa de entrada (e o spam).')
     } catch (e) { setErro(erroAmigavel(e instanceof Error ? e.message : String(e))) }
   }

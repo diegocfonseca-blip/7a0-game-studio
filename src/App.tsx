@@ -115,8 +115,14 @@ export default function App() {
     } catch { /* ignora */ }
     return null
   })()
+  // 🔑 Link de "esqueci a senha" também abre direto o Leilão Legends: a tela de
+  // senha nova mora lá dentro, e o e-mail só sabe voltar pra raiz do site. Sem
+  // isto, quem caísse no seletor de jogos ficava olhando pra lista sem entender.
+  const voltandoDoEmail = (() => {
+    try { return `${window.location.hash} ${window.location.search}`.includes('type=recovery') } catch { return false }
+  })()
   const [selectedGame, setSelectedGame] = useState<GameKey | null>(
-    forcedGame ?? (inviteCode ? 'escalacao' : null),
+    forcedGame ?? (inviteCode || voltandoDoEmail ? 'escalacao' : null),
   )
 
   function choose(game: GameKey) {

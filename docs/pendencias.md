@@ -1,3 +1,13 @@
+## 11/09/2026 — 🐛 "Esqueci a senha" nunca funcionou (conserto pronto, esperando publicar)
+
+- Reclamação chegou pelo Diego: o usuário `albertgomessantos@gmail.com` *"tá redefinindo e joga ele pra página inicial"*.
+- **O e-mail está certo**: a conta existe (criada 27/07/2026, e-mail confirmado) e o **último acesso é de hoje** — ou seja, o link do e-mail FUNCIONA e loga a pessoa. O que nunca aparecia era a tela de digitar a senha nova.
+- **Causa**: a tela de senha nova morava DENTRO do Lobby (`lobby.tsx`, `startRecovery`), mas o link do e-mail sempre volta na RAIZ do site (é o que o `redirectTo` manda, e o Lobby não é endereço — é uma tela lá dentro). Então o app abria na home, o supabase-js consumia o `type=recovery` da URL, criava a sessão e pronto: pessoa logada na home, sem nunca ver onde trocar a senha. **Não era só com ele — era com todo mundo que esquecia a senha.**
+- **Conserto** (`src/escalacao/senha-nova.tsx`, arquivo novo e isolado): a tela passou a morar FORA do Lobby, montada no `index.tsx`, que está sempre de pé. Ela acorda por duas portas (a marca `type=recovery` lida no carregamento do módulo, antes do supabase-js limpar a URL, **e** o evento `PASSWORD_RECOVERY`). Mais duas linhas: `App.tsx` manda o link de recuperação direto pro Leilão Legends (igual já fazia com o convite `?j=`), e `conta.tsx` passou a usar `origin + pathname` no `redirectTo`, igual ao lobby.
+- O código do Lobby **não foi tocado**: na prática ele nunca dispara (ninguém cai no Lobby vindo do e-mail), e mexer ali seria risco à toa num fluxo de conta.
+- Conferido rodando: com `#type=recovery` na URL a tela aparece; sem o link, não aparece (0). `npm run build` passou.
+- ⏳ **Está no branch, NÃO na main** — fluxo de conta, esperando o Diego mandar publicar.
+
 ## 11/09/2026 — Salão dos Batismos: sem divisão nenhuma e torcida em %
 
 - Pedido do Diego: *"me mande sem mostrar qm tá na série A ou B. E a torcida atualize e coloque com % e N quantidade. E a torcida é só de qm tem batismo msm"*.
