@@ -3042,7 +3042,7 @@ function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) 
         <div className="flex items-center gap-1.5">
           {vagas != null && vagas > 0 && (
             <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black whitespace-nowrap"
-              style={{ background: '#E7F7EC', color: '#146c33', ...OSWALD }}>{vagas} {vagas === 1 ? 'vaga' : 'vagas'}</span>
+              style={{ background: '#E7F7EC', color: '#146c33', ...OSWALD }}>{vagas} {getLang() === 'en' ? (vagas === 1 ? 'slot' : 'slots') : (vagas === 1 ? 'vaga' : 'vagas')}</span>
           )}
           {ajuda && (
             <button onClick={() => setRegras(true)} aria-label="Regras do pregão"
@@ -3369,9 +3369,13 @@ function Envelope() {
   // esporte da partida (futebol = tudo como hoje) + rótulo do setor no idioma
   const sport: Sport = state.sport === 'basquete' ? 'basquete' : 'futebol'
   const lang: 'pt' | 'en' = blLang === 'en' ? 'en' : 'pt'
-  const posName = tecMesa ? 'Técnico' : secLabel(sport, pos, lang)
+  const posName = tecMesa ? (lang === 'en' ? 'Manager' : 'Técnico') : secLabel(sport, pos, lang)
   // 🌐 tradução SÓ do basquete: no futebol devolve sempre o PT (idêntico a hoje).
-  const L = (pt: string, en: string) => (sport === 'basquete' && lang === 'en') ? en : pt
+  // 🌐 11/09: o idioma agora vale pro jogo INTEIRO (pedido do Diego), não só pro
+  // basquete. Antes esta linha exigia `sport === 'basquete'` — ou seja, todas as
+  // traduções que já existiam aqui ficavam guardadas e nunca apareciam no
+  // futebol. Agora quem manda é só o botão BR/EN.
+  const L = (pt: string, en: string) => (lang === 'en' ? en : pt)
   const rescue = state.phase === 'resq_envelope'
   const [bids, setBids] = useState<Record<string, number>>({})
   const [pickerCard, setPickerCard] = useState<Card | null>(null) // 🎯 escolher valor redondo
@@ -3735,7 +3739,7 @@ function Envelope() {
         <Box bg={!minhaVez ? '#EDE4FF' : '#FFE9B0'} className="p-3">
           {!minhaVez ? (
             <>
-              <p className="text-sm font-black text-black" style={OSWALD}>🔒 Quem decide {secLabel(sport, pos, lang).toUpperCase()} é {quemDecide ? stripEmoji(quemDecide).trim() : 'seu parceiro'}</p>
+              <p className="text-sm font-black text-black" style={OSWALD}>{L('🔒 Quem decide', '🔒 Who calls')} {secLabel(sport, pos, lang).toUpperCase()} {L('é', 'is')} {quemDecide ? stripEmoji(quemDecide).trim() : L('seu parceiro', 'your partner')}</p>
               <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">
                 ⏳ Você vê as mesmas cartas, mas nesta leva quem lacra é ele. Na leva da SUA posição é você que manda — e aí ele é que só assiste.
               </p>
@@ -3748,7 +3752,7 @@ function Envelope() {
               )}
             </>
           ) : (
-            <p className="text-sm font-bold text-black">{myOpen === 0 ? 'Setor completo — você só assiste esta rodada.' : 'Sem dinheiro — resta torcer pelo Monte Final.'}</p>
+            <p className="text-sm font-bold text-black">{myOpen === 0 ? L('Setor completo — você só assiste esta rodada.', 'Position filled — you just watch this round.') : L('Sem dinheiro — resta torcer pelo Monte Final.', 'Out of coins — all that is left is the Final Pile.')}</p>
           )}
         </Box>
       )}
@@ -3775,7 +3779,7 @@ function Envelope() {
           {cards.some(c => c.id === state.surpriseId) && (
             <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5 text-white"
               style={{ background: PURPLE, boxShadow: `3px 3px 0 0 ${INK}` }}>
-              <p className="text-sm font-black" style={OSWALD}>🎁 JOGADOR SURPRESA nesta rodada!</p>
+              <p className="text-sm font-black" style={OSWALD}>{L('🎁 JOGADOR SURPRESA nesta rodada!', '🎁 MYSTERY PLAYER in this round!')}</p>
               <p className="text-[11px] font-bold" style={{ opacity: 0.9 }}>O nome está escondido — você só vê posição, clube e ano. Arrisca no escuro; o nome sai no martelo.</p>
             </div>
           )}
@@ -3817,8 +3821,8 @@ function Envelope() {
                 <span className="inline-flex items-center gap-1 rounded-full border-2 border-black px-1.5 py-0.5 text-[9px] font-black uppercase leading-none mb-1"
                   style={{ background: c.semContrato ? '#C2452F' : (sCol?.solid ?? '#6b7280'), color: '#fff', ...OSWALD }}>
                   {c.semContrato
-                    ? (isMine ? '😤 magoado com você' : `⏳ sem contrato · ${sellerM.teamName}`)
-                    : (isMine ? '🫵 seu jogador' : `${sellerM.rival ? '⚔️' : sellerM.isHuman ? '🔥' : '🔁'} ${sellerM.teamName}`)}
+                    ? (isMine ? L('😤 magoado com você', '😤 upset with you') : `⏳ sem contrato · ${sellerM.teamName}`)
+                    : (isMine ? L('🫵 seu jogador', '🫵 your player') : `${sellerM.rival ? '⚔️' : sellerM.isHuman ? '🔥' : '🔁'} ${sellerM.teamName}`)}
                 </span>
               )}
               <CardFace c={c} surprise={c.id === state.surpriseId} />
@@ -3870,7 +3874,7 @@ function Envelope() {
 
       {state.streamMode && canBid && (
         <Box bg="#111" className="p-2.5 text-center space-y-2">
-          <p className="font-black text-white text-xs" style={OSWALD}>🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒</p>
+          <p className="font-black text-white text-xs" style={OSWALD}>{L('🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒', '🎥 STREAM MODE — amounts stay hidden until the hammer. Go for it! 🔒')}</p>
           {/* pra quem NÃO está filmando: dá pra ver os próprios lances (só no seu aparelho) */}
           <button onClick={() => setPeek(p => !p)} className="w-full border-2 border-white/40 rounded-lg py-1.5 font-black text-xs" style={{ background: peek ? GOLD : 'transparent', color: peek ? '#000' : '#fff', ...OSWALD }}>
             {peek ? '🙈 Esconder meus lances' : '👁️ Ver meus lances'}
@@ -3910,7 +3914,7 @@ function Envelope() {
         const floor = (c as { paid?: number }).paid ?? 0
         const others = Object.entries(bids).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
         const room = you.money - others // teto que cabe pra ESTA carta
-        const cName = c.id === state.surpriseId ? '🎁 Jogador Surpresa' : c.name
+        const cName = c.id === state.surpriseId ? L('🎁 Jogador Surpresa', '🎁 Mystery Player') : c.name
         const masked = state.streamMode && !peek
         const typed = parseInt(typeVal || '0', 10)
         const min = Math.max(1, floor)
@@ -3929,9 +3933,9 @@ function Envelope() {
         return (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
             <div className="w-full max-w-[280px] border-[3px] border-black rounded-2xl p-3.5 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
-              <p className="font-black text-base" style={OSWALD}>{masked ? '🔒 Seu lance secreto' : `✍️ ${cName}`}</p>
+              <p className="font-black text-base" style={OSWALD}>{masked ? L('🔒 Seu lance secreto', '🔒 Your secret bid') : `✍️ ${cName}`}</p>
               {masked
-                ? <p className="text-[11px] font-bold text-black/60 mb-2">Só você vê o valor — a câmera não. Toque 👁️ pra conferir.</p>
+                ? <p className="text-[11px] font-bold text-black/60 mb-2">{L('Só você vê o valor — a câmera não. Toque 👁️ pra conferir.', 'Only you see the amount — the camera does not. Tap 👁️ to check.')}</p>
                 : <p className="text-[11px] font-bold text-black/60 mb-2">{floor > 0 ? `mín ${floor} · ` : ''}cabe até {room} 🪙</p>}
               {/* atalhos +5 / +10: relativos, seguros até no stream (não revelam o total) */}
               {room >= min && (
@@ -3955,10 +3959,10 @@ function Envelope() {
               </div>
               {!masked && typeVal !== '' && typed > room && <p className="text-[11px] font-black text-red-600 mt-1.5">💰 Passou do que cabe — máximo {room}.</p>}
               {!masked && typeVal !== '' && floor > 0 && typed > 0 && typed < floor && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 Abaixo do mínimo — mín {floor}.</p>}
-              {masked && typeVal !== '' && !valid && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 Esse valor não vale (fora do limite).</p>}
+              {masked && typeVal !== '' && !valid && <p className="text-[11px] font-black text-red-600 mt-1.5">{L('🔒 Esse valor não vale (fora do limite).', '🔒 That amount is not allowed (out of range).')}</p>}
               {state.streamMode && (
                 <button onClick={() => setPeek(p => !p)} className="w-full mt-2 border-2 border-black rounded-lg py-1.5 font-black text-xs" style={{ background: peek ? GOLD : INK, color: peek ? '#000' : '#fff', ...OSWALD }}>
-                  {peek ? '🙈 Esconder (voltar pra câmera)' : '👁️ Mostrar só pra mim'}
+                  {peek ? L('🙈 Esconder (voltar pra câmera)', '🙈 Hide (back to camera)') : L('👁️ Mostrar só pra mim', '👁️ Show only to me')}
                 </button>
               )}
               <div className="flex items-center justify-between mt-2.5">
@@ -4705,7 +4709,11 @@ function Reveal() {
 function RivalsStrip() {
   const { state } = useEsc()
   const [blLang] = useLang()
-  const L = (pt: string, en: string) => (state.sport === 'basquete' && blLang === 'en') ? en : pt
+  // 🌐 11/09: o idioma agora vale pro jogo INTEIRO (pedido do Diego), não só pro
+  // basquete. Antes esta linha exigia `sport === 'basquete'` — ou seja, todas as
+  // traduções que já existiam aqui ficavam guardadas e nunca apareciam no
+  // futebol. Agora quem manda é só o botão BR/EN.
+  const L = (pt: string, en: string) => (blLang === 'en' ? en : pt)
   const you = state.managers[state.youIdx]
   // só quem REALMENTE disputa o leilão, sem contar você mesmo: no solo são
   // os rivais CPU; online são os amigos humanos da sala (bots de
@@ -5906,7 +5914,11 @@ function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL', hold
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: cestinha/pontos no lugar de artilharia/gols
-  const L = (pt: string, en: string) => (bb && blLang === 'en') ? en : pt
+  // 🌐 11/09: o idioma agora vale pro jogo INTEIRO (pedido do Diego), não só pro
+  // basquete. Antes esta linha exigia `sport === 'basquete'` — ou seja, todas as
+  // traduções que já existiam aqui ficavam guardadas e nunca apareciam no
+  // futebol. Agora quem manda é só o botão BR/EN.
+  const L = (pt: string, en: string) => (blLang === 'en' ? en : pt)
   // 🙈 ANTI-SPOILER: enquanto o SEU jogo anima (hold), mostra a artilharia de ANTES
   // da rodada (scorersPrev) — os gols novos só entram no apito. Sem isto o total do
   // artilheiro subia com a partida rolando e entregava o gol antes de animar.
@@ -6103,7 +6115,11 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: saldo de CESTAS (SC) no lugar de SG
-  const L = (pt: string, en: string) => (bb && blLang === 'en') ? en : pt
+  // 🌐 11/09: o idioma agora vale pro jogo INTEIRO (pedido do Diego), não só pro
+  // basquete. Antes esta linha exigia `sport === 'basquete'` — ou seja, todas as
+  // traduções que já existiam aqui ficavam guardadas e nunca apareciam no
+  // futebol. Agora quem manda é só o botão BR/EN.
+  const L = (pt: string, en: string) => (blLang === 'en' ? en : pt)
   // 🏀 andar com playoffs (G League/NBA): mostra a conferência de cada time (🔵
   // Leste par · 🔴 Oeste ímpar) — top 4 de cada vai aos playoffs. Na Street não.
   const confTier = bb && state.copaMode === 'liga_copa'

@@ -15,15 +15,18 @@ export type PosLabel = {
   tag: string // selo curto na carta (ex.: "GOL" / "PG")
 }
 
-// rótulo de cada SETOR por esporte. Futebol repete o texto em en (nunca é
-// exibido em inglês — o futebol é 100% PT); basquete é bilíngue de verdade.
+// rótulo de cada SETOR por esporte, nos dois idiomas.
+// 🌐 11/09: o futebol também é bilíngue (pedido do Diego) — antes o `en` daqui
+// repetia o português de propósito, porque o jogo de futebol não traduzia.
+// ⚠️ A `tag` (GOL/LAT/ZAG/MEI/ATA) NÃO muda de idioma nunca: ela é guardada no
+// save e comparada pelo código; traduzir isso quebraria elenco e escalação.
 export const POS_LABELS: Record<Sport, Record<Sector, PosLabel>> = {
   futebol: {
-    GOL: { plural: { pt: 'Goleiros', en: 'Goleiros' }, singular: { pt: 'Goleiro', en: 'Goleiro' }, tag: 'GOL' },
-    LAT: { plural: { pt: 'Laterais', en: 'Laterais' }, singular: { pt: 'Lateral', en: 'Lateral' }, tag: 'LAT' },
-    ZAG: { plural: { pt: 'Zagueiros', en: 'Zagueiros' }, singular: { pt: 'Zagueiro', en: 'Zagueiro' }, tag: 'ZAG' },
-    MEI: { plural: { pt: 'Meio-campo', en: 'Meio-campo' }, singular: { pt: 'Meia', en: 'Meia' }, tag: 'MEI' },
-    ATA: { plural: { pt: 'Ataque', en: 'Ataque' }, singular: { pt: 'Atacante', en: 'Atacante' }, tag: 'ATA' },
+    GOL: { plural: { pt: 'Goleiros', en: 'Goalkeepers' }, singular: { pt: 'Goleiro', en: 'Goalkeeper' }, tag: 'GOL' },
+    LAT: { plural: { pt: 'Laterais', en: 'Full-backs' }, singular: { pt: 'Lateral', en: 'Full-back' }, tag: 'LAT' },
+    ZAG: { plural: { pt: 'Zagueiros', en: 'Centre-backs' }, singular: { pt: 'Zagueiro', en: 'Centre-back' }, tag: 'ZAG' },
+    MEI: { plural: { pt: 'Meio-campo', en: 'Midfield' }, singular: { pt: 'Meia', en: 'Midfielder' }, tag: 'MEI' },
+    ATA: { plural: { pt: 'Ataque', en: 'Attack' }, singular: { pt: 'Atacante', en: 'Forward' }, tag: 'ATA' },
   },
   // basquete: as 5 posições da NBA nos mesmos 5 slots (PG→GOL … C→ATA)
   basquete: {

@@ -1,3 +1,11 @@
+## 11/09/2026 — 🌐 Tradução do futebol: ETAPA 2 (o leilão)
+
+- **Achado que encurtou muito o serviço**: o pregão JÁ tinha as frases em inglês escritas no código (`L('pt','en')`), só que a função exigia `sport === 'basquete'` — ou seja, as traduções existiam e nunca apareciam pro futebol. Bastou tirar essa exigência nas 4 definições de `L` em `screens.tsx` pra o pregão virar bilíngue de verdade.
+- Traduzido o que ainda faltava na tela do envelope: setor completo/sem dinheiro, jogador surpresa, magoado/seu jogador, modo stream, o modalzinho do lance secreto e o rótulo do parceiro na dupla.
+- `sportcfg.ts`: as posições do FUTEBOL ganharam inglês de verdade (Goalkeepers, Full-backs, Centre-backs, Midfield, Attack). ⚠️ A `tag` (GOL/LAT/ZAG/MEI/ATA) continua **igual nos dois idiomas de propósito** — ela é guardada no save e comparada pelo código; traduzir quebraria elenco e escalação.
+- Conferido rodando em 390px, com o jogo em EN: pregão dos goleiros 100% em inglês (GOALKEEPERS, YOUR BID, "1 slot", a caixa de dica inteira), sem erro de tela. `npm run build` passou.
+- Faltam as etapas 3 a 6 (partida/fim de jogo, carreira, online, resto + bios).
+
 ## 11/09/2026 — 🕵️ Caixa-preta do "ENVIANDO…" (aprovada pelo Diego e feita)
 
 - Gatilho: sala SV0ONH (host FalaD10, 18:22). O Diego lacrou no Rogério Ceni, o envelope não chegou no host, a tela dele ficou no "ENVIANDO…", ele apareceu como "pensando" pros outros e o setor fechou contando o envelope vazio. O que "voltou pra dar lance nos goleiros de novo" **não era bug**: era a REPESCAGEM (sobras do setor) — o Ceni ficou sem dono e voltou nela.
