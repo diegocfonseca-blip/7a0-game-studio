@@ -36,7 +36,7 @@
 //    TOTALMENTE VAZIO: sem olhos, sem boca, sem nariz") — a gente não inventa
 //    a cara de ninguém.
 //
-//   node scripts/video-avatares-reels.mjs [--so 2] [--pasta /tmp/avatares]
+//   node scripts/video-avatares-reels.mjs [--so 2 | --so abertura] [--pasta /tmp/avatares]
 import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync, existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
@@ -192,16 +192,64 @@ ${cena(22.2, 26.5, `
   <div style="margin-top:30px">${pill('leilaolegends.com', INK, GOLD, 40, 23.8)}</div>`)}
 ` }
 
+
+// ─── ABERTURA · o convite (pra usar ANTES da parte 3, quando ela vai sozinha) ─
+// Pedido do Diego (11/09): ele postou a parte 1 e a 2 juntas e guardou a parte 3
+// pra depois — *"ficou meio sem entrada, sem sentido"*. Então esta abertura
+// existe pra ser colada NA FRENTE DA PARTE 3 e dar começo pra ela: puxa o
+// assunto, mostra que o time vem do pregão, e termina apontando pro time
+// montado — que é exatamente como a parte 3 começa.
+// Nada aqui repete a parte 1 (aquela é "novidade, 156 lendas"): esta é convite.
+const abertura = { dur: 21.5, html: `
+${cena(0, 6.0, `
+  ${titulo('e se desse pra<br>montar um time<br>só de <span style="color:' + RED + '">lenda</span>?', 0.2, 80)}
+  <div style="display:flex;gap:26px;margin-top:36px">
+    ${retrato('pele-santos-1962.webp', 'Pelé', 'Santos · 1962', 1.2, 290)}
+    ${retrato('diego-maradona-napoli-1987.webp', 'Maradona', 'Napoli · 1987', 1.5, 290)}
+    ${retrato('ronaldinho-gaucho-barcelona-2005.webp', 'Ronaldinho', 'Barcelona · 2005', 1.8, 290)}
+  </div>
+  ${sub('só que ninguém te dá de graça 👀', 3.0, 40)}`)}
+${cena(6.0, 12.6, `
+  <p style="font-size:130px;line-height:1;animation:martelo .5s ease-out 6.2s both">🔨</p>
+  ${titulo('tem que arrematar<br>no pregão', 6.7, 70)}
+  ${telinha('02-revelacao.png', 7.4, 760)}
+  ${sub('lance no envelope, às cegas —<br>ninguém vê o do outro até o martelo', 9.8, 38)}`)}
+${cena(12.6, 17.6, `
+  ${titulo('e agora cada lenda<br>tem a <span style="color:' + GOLD + '">arte dela</span>', 12.75, 68)}
+  <div style="display:flex;gap:22px;margin-top:30px">
+    ${retrato('zinedine-zidane-juventus-1998.webp', 'Zidane', 'Juventus · 1998', 13.4, 250)}
+    ${retrato('garrincha-botafogo-1958.webp', 'Garrincha', 'Botafogo · 1958', 13.7, 250)}
+    ${retrato('romario-vasco-2000.webp', 'Romário', 'Vasco · 2000', 14.0, 250)}
+  </div>
+  <div style="display:flex;gap:22px;margin-top:24px">
+    ${retrato('cristiano-ronaldo-real-madrid-2014.webp', 'Cristiano', 'Real Madrid · 2014', 14.4, 250)}
+    ${retrato('lionel-messi-barcelona-2012.webp', 'Messi', 'Barcelona · 2012', 14.7, 250)}
+    ${retrato('zico-flamengo-1981.webp', 'Zico', 'Flamengo · 1981', 15.0, 250)}
+  </div>
+  ${sub('com a camisa do clube <b>e do ano</b>', 16.0, 38)}`)}
+${cena(17.6, 21.5, `
+  ${titulo('olha o time que<br>deu pra montar', 17.75, 76)}
+  <p style="font-size:120px;line-height:1;margin-top:18px;animation:pop .6s cubic-bezier(.2,1.6,.4,1) 18.6s both">👇</p>
+  <div style="margin-top:24px">${pill('leilaolegends.com', INK, GOLD, 40, 19.2)}</div>`)}
+` }
+
 // ─── grava cada parte ──────────────────────────────────────────────────────
-const PARTES = [parte1, parte2, parte3]
+// `abertura` sai como `avatares-abertura.mp4` e é opcional: só entra quando a
+// parte 3 vai pro ar sozinha, sem a 1 e a 2 na frente.
+const PARTES = [
+  { nome: 'abertura', ...abertura },
+  { nome: 'parte1', ...parte1 },
+  { nome: 'parte2', ...parte2 },
+  { nome: 'parte3', ...parte3 },
+]
 let FF = 'ffmpeg'
 try { FF = createRequire(import.meta.url)('ffmpeg-static') } catch { /* usa o do PATH */ }
 
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium', args: ['--no-sandbox'] })
 for (let i = 0; i < PARTES.length; i++) {
-  const n = i + 1
-  if (SO && String(n) !== SO) continue
-  const { dur, html } = PARTES[i]
+  const { nome, dur, html } = PARTES[i]
+  const n = nome
+  if (SO && SO !== nome && `parte${SO}` !== nome) continue
   const REC = `${PASTA}/rec-${n}`
   rmSync(REC, { recursive: true, force: true }); mkdirSync(REC, { recursive: true })
   const htmlPath = `${PASTA}/parte-${n}.html`
@@ -214,10 +262,10 @@ for (let i = 0; i < PARTES.length; i++) {
   await ctx.close()
   const webm = readdirSync(REC).find(f => f.endsWith('.webm'))
   if (!webm) throw new Error(`parte ${n}: o Playwright não gravou o webm`)
-  const saida = `${PASTA}/avatares-parte${n}.mp4`
+  const saida = `${PASTA}/avatares-${nome}.mp4`
   execFileSync(FF, ['-y', '-i', `${REC}/${webm}`, '-t', String(dur),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-pix_fmt', 'yuv420p',
     '-r', '30', '-movflags', '+faststart', saida], { stdio: 'ignore' })
-  console.log(`parte ${n}: ${saida} (${dur}s)`)
+  console.log(`${nome}: ${saida} (${dur}s)`)
 }
 await b.close()
