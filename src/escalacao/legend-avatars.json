@@ -871,8 +871,8 @@
     "name": "Lionel Messi",
     "club": "Barcelona",
     "year": 2012,
-    "src": "/avatars/lendas-v1/lionel-messi-barcelona-2012.webp",
-    "transparent": false
+    "src": "/avatars/lendas-v1/lionel-messi-barcelona-2012-v2.webp",
+    "transparent": true
   },
   {
     "name": "Zlatan Ibrahimović",
