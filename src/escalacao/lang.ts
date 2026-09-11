@@ -1,9 +1,22 @@
-// 🌐 IDIOMA DO BIDLEGENDS (BR/EN) — o basquete é internacional (NBA), então
-// TODO texto novo do BidLegends nasce bilíngue. Regra do Diego (26/07): botão
-// BR/EN no canto direito do header; troca a língua do BidLegends inteiro.
+// 🌐 IDIOMA DO SITE (BR/EN) — um só, pro jogo INTEIRO.
 //
-// IMPORTANTE: isto é SÓ do basquete. O futebol (Leilão Legends) segue 100% em
-// PT — não traduzir o jogo de futebol.
+// Nasceu no BidLegends (basquete, NBA, público internacional). Em 11/09/2026 o
+// Diego mandou valer pro futebol também: *"preciso q vc faça tradução do jogo
+// p english de todo o jogo e tenha esse botão de traduzir, igual fizemos pro
+// bidlegends"*. Então a regra antiga ("isto é SÓ do basquete, o futebol segue
+// 100% em PT") está REVOGADA por ele.
+//
+// A escolha é ÚNICA pro site: quem virou pra EN no basquete continua em EN no
+// futebol, e vice-versa. Mesma chave de sempre no aparelho (`bl_lang`), pra
+// ninguém perder a escolha que já tinha feito.
+//
+// ⚠️ O QUE NUNCA SE TRADUZ (senão quebra o jogo ou mente pro jogador):
+//   · nome de jogador, de clube, de mascote e de país — é identidade da carta,
+//     e em vários lugares o NOME é a chave que casa carta, escudo e save;
+//   · texto que o código compara ou guarda no save (posição GOL/LAT/ZAG/MEI/ATA,
+//     letra de divisão, chave de formação);
+//   · nome de clube batizado — é o clube de uma pessoa de verdade.
+// Traduz-se o que a pessoa LÊ: título, botão, explicação, aviso, narração.
 //
 // Padrão esperto: se o navegador é PT, abre em BR; senão, abre em EN. A escolha
 // manual fica gravada no aparelho e manda sobre o padrão.

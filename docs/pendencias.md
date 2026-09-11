@@ -1,3 +1,14 @@
+## 11/09/2026 — 🌐 Tradução do futebol pra inglês — ETAPA 1 de 6 (fundação + home + montar sala)
+
+- Pedido do Diego: *"preciso q vc faça tradução do jogo p english de todo o jogo e tenha esse botão de traduzir, igual fizemos pro bidlegends"*. **Revoga** a regra antiga do `CLAUDE.md` ("o futebol segue 100% em PT"). `CLAUDE.md` e `lang.ts` já foram atualizados.
+- **Tamanho real do serviço (medido, não chutado)**: ~6.200 textos em português no código. Desses, ~2.100 são BIOS DE JOGADOR (`data.ts`) e ~480 são nomes de país (`paises.ts`). De tela mesmo são ~2.500, concentrados em `screens.tsx` (690), `pyramidseason.tsx` (508), `lobby.tsx` (402), `store.tsx` (300) e `jornal.tsx` (232). **Não cabe numa entrega só** — vai por etapas, cada uma testada e publicável sozinha.
+- ✅ **ETAPA 1 (esta)**: idioma passou a ser ÚNICO do site (mesma chave `bl_lang`, quem já tinha EN no basquete continua em EN); botão 🇧🇷BR/🇺🇸EN no header da home do futebol, com o CSS do header ajustado pra caber marca + idioma + som + conta no celular (o seletor genérico de botão do header inchava a pastilha e jogava MINHA CONTA pra fora da tela); **home traduzida inteira** e **tela de montar sala/carreira traduzida inteira**.
+- 📋 **Ordem combinada das próximas** (da mais usada pra menos): 2) o LEILÃO (lance, envelope, revelação, martelo, monte final); 3) a PARTIDA e o fim de jogo (tabela, artilharia, O Martelo); 4) a CARREIRA (pirâmide, elenco, mercado, sondar, estádio); 5) o ONLINE (criar/entrar na sala, lobby, chat, votação); 6) o resto (álbum, ranking, conta, apoio, avisos) + as ~2.100 bios.
+- ⚠️ **O que NÃO se traduz** (está escrito no `lang.ts` e no `CLAUDE.md`): nome de jogador, de clube, de mascote e de país; texto que o código compara ou guarda no save (GOL/LAT/ZAG/MEI/ATA, letra de divisão, chave de formação); nome de clube batizado. Traduzir qualquer um desses quebra save, escudo ou regra.
+- 💬 **Aviso honesto sobre as bios**: são ~2.100 piadas de várzea em português. Traduzidas ao pé da letra, a graça morre. Sugestão a combinar com ele: traduzir o SENTIDO (o jogador entende quem é o cara) e não a piada, ou deixar as bios por último.
+- Conferido rodando em 390px: o botão troca o site inteiro, a home e a tela de montar sala aparecem 100% em inglês, e o cabeçalho não quebra mais. `npm run build` passou.
+- ⏳ Está no branch — nada disso foi pra main ainda.
+
 ## 11/09/2026 — 🐛 "Esqueci a senha" nunca funcionou (conserto pronto, esperando publicar)
 
 - Reclamação chegou pelo Diego: o usuário `albertgomessantos@gmail.com` *"tá redefinindo e joga ele pra página inicial"*.

@@ -232,9 +232,19 @@ FORA do bundle. Então, sem exceção:
 - 🌐 **BILÍNGUE (BR/EN) OBRIGATÓRIO**: o basquete é internacional (NBA). TODO
   texto novo do BidLegends NASCE em PT **e** EN — usar `useT()` de
   `src/escalacao/lang.ts` (`const t = useT(); t('Português','English')`). Botão
-  BR/EN fica no **canto direito do header** do BidLegends (`LangToggle`). Padrão:
-  navegador PT → BR, senão EN; escolha manual grava no aparelho. ⚠️ Isto é SÓ do
-  basquete — o FUTEBOL segue 100% em PT, não traduzir.
+  BR/EN fica no **canto direito do header** (`LangToggle`). Padrão:
+  navegador PT → BR, senão EN; escolha manual grava no aparelho.
+  🔁 **MUDOU EM 11/09: o FUTEBOL TAMBÉM É BILÍNGUE.** Palavras do Diego:
+  *"preciso q vc faça tradução do jogo p english de todo o jogo e tenha esse
+  botão de traduzir, igual fizemos pro bidlegends"*. A regra velha ("o futebol
+  segue 100% em PT, não traduzir") está REVOGADA. A escolha de idioma é ÚNICA
+  pro site (mesma chave `bl_lang`), e o botão BR/EN agora vive também no header
+  da home do futebol. **Todo texto novo do futebol nasce em PT e EN.**
+  ⚠️ NUNCA traduzir: nome de jogador, de clube, de mascote e de país (é
+  identidade da carta e, em vários lugares, a CHAVE que casa carta/escudo/save);
+  texto que o código compara ou guarda no save (GOL/LAT/ZAG/MEI/ATA, letra de
+  divisão, chave de formação); e nome de clube batizado (é o clube de uma pessoa
+  de verdade). Traduz-se o que a pessoa LÊ.
 - 🔒 Enquanto está em construção, o basquete é **invisível pra todo mundo**: só
   aparece pra `diego.c.fonseca@gmail.com` logado (trava por conta em
   `src/escalacao/sport.ts`, `BASQUETE_TESTERS`). Não fundir na main sem OK visual.

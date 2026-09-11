@@ -2017,6 +2017,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
   overlays: ReactNode
 }) {
   const [contaAberta, setContaAberta] = useState(false)
+  const t = useT() // 🌐 BR/EN: o botão fica no header, do lado de MINHA CONTA
   return (
     <div className="ll-home">
       <div className="ll-art" />
@@ -2025,33 +2026,34 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           aparelho. Só existe aqui na home; ver `aviso-versao.tsx`. */}
       <AvisoVersaoNova />
       <header className="ll-header">
-        <div className="ll-brand"><small>LEILÃO ÀS CEGAS</small>LEILÃO LEGENDS</div>
-        <div className="ll-account"><button onClick={() => setContaAberta(true)}>MINHA CONTA</button></div>
+        <div className="ll-brand"><small>{t('LEILÃO ÀS CEGAS', 'BLIND AUCTION')}</small>LEILÃO LEGENDS</div>
+        <div className="ll-lang"><LangToggle /></div>
+        <div className="ll-account"><button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button></div>
       </header>
       <section className="ll-intro">
-        <h1>O PREGÃO ESTÁ ABERTO.</h1>
-        <p>Dê lance no nome. O nível só aparece depois do martelo.</p>
+        <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
+        <p>{t('Dê lance no nome. O nível só aparece depois do martelo.', 'Bid on the name. The rating only shows after the hammer.')}</p>
       </section>
       {(resumable || solo) && <div className="ll-resume">
-        {resumable && <><button onClick={resumable.resume}>CONTINUAR SALA {resumable.code}</button><button onClick={resumable.leave}>SAIR DA SALA</button></>}
-        {solo && <><button onClick={solo.resume}>CONTINUAR · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>MINHAS CARREIRAS</button></>}
+        {resumable && <><button onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}
+        {solo && <><button onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
-        <p className="ll-eyebrow">ESCOLHA COMO VOCÊ QUER JOGAR</p>
+        <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">
-          <button className="ll-mode" onClick={onQuick}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>PARTIDA RÁPIDA</strong><small>Monte seu time e enfrente a CPU.</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-          <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>JOGAR ONLINE</strong><small>Entre no pregão com seus amigos.</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-          <button className="ll-mode ll-career" onClick={onCareer}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>MODO CARREIRA</strong><small>Construa a história do seu clube.</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode" onClick={onQuick}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu time e enfrente a CPU.', 'Build your squad and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-career" onClick={onCareer}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Construa a história do seu clube.', "Build your club's story.")}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
         </div>
       </section>
       <footer className="ll-footer">
         <nav aria-label="Mais opções">
-          <button onClick={onManual}>REGRAS</button><button onClick={onAlbum}>ÁLBUM</button><button onClick={onRanking}>RANKING</button>
-          <ApoieButton trigger={open => <button onClick={open}>APOIAR</button>} />
+          <button onClick={onManual}>{t('REGRAS', 'RULES')}</button><button onClick={onAlbum}>{t('ÁLBUM', 'ALBUM')}</button><button onClick={onRanking}>{t('RANKING', 'RANKING')}</button>
+          <ApoieButton trigger={open => <button onClick={open}>{t('APOIAR', 'SUPPORT')}</button>} />
         </nav>
-        <div className="ll-web"><span>leilaolegends.com</span> · Seu clube. Sua história.</div>
+        <div className="ll-web"><span>leilaolegends.com</span> · {t('Seu clube. Sua história.', 'Your club. Your story.')}</div>
       </footer>
-      {contaAberta && <JanelaConta titulo="MINHA CONTA" onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
+      {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
       {overlays}
     </div>
   )
@@ -2492,6 +2494,7 @@ function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
 // ─── SETUP ───────────────────────────────────────────────────────────
 export function EscSetup() {
   const { state, dispatch } = useEsc()
+  const t = useT() // 🌐 BR/EN
   const career = state.careerIntent
   const privatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
   const [name, setName] = useState('')
@@ -2678,18 +2681,20 @@ export function EscSetup() {
     <Shell>
       <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
         className="flex items-center gap-1 text-black/60 font-black text-sm pt-4 -mb-2 active:opacity-60" style={OSWALD}>
-        <span className="text-lg leading-none">🏠</span> Voltar ao início
+        <span className="text-lg leading-none">🏠</span> {t('Voltar ao início', 'Back to start')}
       </button>
-      <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? (escadaLiberada() ? '🪜 CARREIRA · VÁRZEA' : '🪜 CARREIRA · SÉRIE D') : 'MONTE SUA SALA'}</h2>
-      {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada() ? 'Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.' : 'Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.'}</p>}
+      <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? (escadaLiberada() ? t('🪜 CARREIRA · VÁRZEA', '🪜 CAREER · SUNDAY LEAGUE') : t('🪜 CARREIRA · SÉRIE D', '🪜 CAREER · TIER D')) : t('MONTE SUA SALA', 'SET UP YOUR ROOM')}</h2>
+      {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada()
+        ? t('Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.', 'Start in the SUNDAY LEAGUE (5th tier, park football) and climb to the top flight. The market grows with you — from park player to legend. You can save and come back later.')
+        : t('Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.', 'Start in Tier D and climb to the top. Same auction — what changes is moving up a division every season. You can save and come back later.')}</p>}
       {career && (
         <Box bg="#FFF6DE" className="p-4 space-y-1.5">
-          <p className="font-black text-sm" style={OSWALD}>⚡ Como funciona a Carreira</p>
+          <p className="font-black text-sm" style={OSWALD}>{t('⚡ Como funciona a Carreira', '⚡ How Career mode works')}</p>
           <p className="text-xs font-bold text-black/75">🪜 {escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
-          <p className="text-xs font-bold text-black/75">🔨 <b>Mesmo leilão do modo rápido:</b> monta o time no pregão e disputa o campeonato de 38 rodadas.</p>
-          <p className="text-xs font-bold text-black/75">🔥 <b>Rivais pra vida toda:</b> têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.</p>
-          <p className="text-xs font-bold text-black/75">🏆 <b>Títulos acumulam:</b> cada título da Série A vira uma ⭐ no seu escudo.</p>
-          <p className="text-xs font-bold text-black/75">💾 <b>Salva e continua:</b> pare e volte depois, em qualquer aparelho.</p>
+          <p className="text-xs font-bold text-black/75">🔨 <b>{t('Mesmo leilão do modo rápido:', 'Same auction as quick match:')}</b> {t('monta o time no pregão e disputa o campeonato de 38 rodadas.', 'build your squad at the auction and play a 38-round league.')}</p>
+          <p className="text-xs font-bold text-black/75">🔥 <b>{t('Rivais pra vida toda:', 'Rivals for life:')}</b> {t('têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.', 'they live their own life in the pyramid and only face you when they are in your division.')}</p>
+          <p className="text-xs font-bold text-black/75">🏆 <b>{t('Títulos acumulam:', 'Titles stack up:')}</b> {t('cada título da Série A vira uma ⭐ no seu escudo.', 'every top-flight title becomes a ⭐ on your crest.')}</p>
+          <p className="text-xs font-bold text-black/75">💾 <b>{t('Salva e continua:', 'Save and continue:')}</b> {t('pare e volte depois, em qualquer aparelho.', 'stop and come back later, on any device.')}</p>
         </Box>
       )}
       <Box className="p-4 space-y-4">
@@ -2700,9 +2705,9 @@ export function EscSetup() {
           </div>
         ) : (
         <div>
-          <p className="text-xs font-black uppercase mb-1">Baralho de craques</p>
+          <p className="text-xs font-black uppercase mb-1">{t('Baralho de craques', 'Player deck')}</p>
           <div className="grid grid-cols-2 gap-2">
-            {([['br', '🇧🇷 Brasileirão'], ['eu', '🌍 Liga Europa']] as const).map(([id, label]) => (
+            {([['br', t('🇧🇷 Brasileirão', '🇧🇷 Brazil')], ['eu', t('🌍 Liga Europa', '🌍 Europe')]] as const).map(([id, label]) => (
               <button key={id} onClick={() => setLeague(id)}
                 className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
                 style={{ backgroundColor: league === id ? GOLD : '#fff', boxShadow: league === id ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
@@ -2713,19 +2718,19 @@ export function EscSetup() {
           <button onClick={() => setLeague('both')}
             className="w-full mt-2 border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
             style={{ backgroundColor: league === 'both' ? GOLD : '#fff', boxShadow: league === 'both' ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
-            🌎 Todos juntos (BR + Europa + Mundo)
+            {t('🌎 Todos juntos (BR + Europa + Mundo)', '🌎 All together (Brazil + Europe + World)')}
           </button>
-          <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? 'Auges do futebol brasileiro — de Pelé a Obina.' : league === 'eu' ? 'Auges nos clubes europeus — de Yashin a Mbappé.' : 'Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.'}</p>
-          {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>🃏 Quer resenha? Só aqui tem até o Walter Minhoca.</p>}
+          <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? t('Auges do futebol brasileiro — de Pelé a Obina.', 'Peak years of Brazilian football — from Pelé to Obina.') : league === 'eu' ? t('Auges nos clubes europeus — de Yashin a Mbappé.', 'Peak years at European clubs — from Yashin to Mbappé.') : t('Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.', 'Brazil + Europe together (~700 names) — stars and cult heroes from both sides under the same hammer.')}</p>
+          {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
         )}
         {!career && (
           <div>
-            <p className="text-xs font-black uppercase mb-1">Depois da liga</p>
+            <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
             <div className={`grid gap-2 ${libertaOn ? 'grid-cols-3' : 'grid-cols-2'}`}>
               {((libertaOn
-                ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga', '📊 Só Liga']]
-                : [['liga_copa', '🏆 Liga + Copa'], ['liga', '📊 Só Liga']]) as ['liga_copa' | 'liga_liberta' | 'liga', string][]).map(([m, label]) => (
+                ? [['liga_copa', t('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', t('🌎 Liga + Liberta', '🌎 League + Copa Lib')], ['liga', t('📊 Só Liga', '📊 League only')]]
+                : [['liga_copa', t('🏆 Liga + Copa', '🏆 League + Cup')], ['liga', t('📊 Só Liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'liga', string][]).map(([m, label]) => (
                 <button key={m} onClick={() => setCopaMode(m)}
                   className={`border-[3px] border-black rounded-xl py-2.5 font-black ${libertaOn ? 'text-[12px] px-1' : 'text-sm'}`}
                   style={{ backgroundColor: copaMode === m ? GOLD : '#fff', boxShadow: copaMode === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
@@ -2733,24 +2738,24 @@ export function EscSetup() {
                 </button>
               ))}
             </div>
-            <p className="text-[11px] font-semibold text-black/55 mt-1">{copaMode === 'liga_liberta' ? '🌎 Quando a liga acaba, os 8 primeiros entram na Libertadores com 24 clubes do continente: 8 grupos de 4, passam 2, mata-mata até a final única. Nesta partida NÃO tem Copa dos 8.' : copaMode === 'liga_copa' ? '🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes do fim de jogo.' : '📊 Termina a liga e já mostra o resultado — jogo mais curto.'}</p>
+            <p className="text-[11px] font-semibold text-black/55 mt-1">{copaMode === 'liga_liberta' ? t('🌎 Quando a liga acaba, os 8 primeiros entram na Libertadores com 24 clubes do continente: 8 grupos de 4, passam 2, mata-mata até a final única. Nesta partida NÃO tem Copa dos 8.', '🌎 When the league ends, the top 8 join the continental cup with 24 clubs: 8 groups of 4, top 2 advance, knockouts to a single final. This match has NO Cup of 8.') : copaMode === 'liga_copa' ? t('🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes do fim de jogo.', '🏆 When the league ends, the top 8 play the Cup (two legs, single final) before the game is over.') : t('📊 Termina a liga e já mostra o resultado — jogo mais curto.', '📊 League ends and the result comes straight away — a shorter game.')}</p>
           </div>
         )}
         <div>
-          <p className="text-xs font-black uppercase mb-1">Nome do seu time</p>
+          <p className="text-xs font-black uppercase mb-1">{t('Nome do seu time', 'Your team name')}</p>
           <input
             value={name}
             onChange={e => { setName(stripEmoji(e.target.value)); if (nameErr) setNameErr('') }}
-            placeholder="Ex.: Bagres do Asfalto"
+            placeholder={t('Ex.: Bagres do Asfalto', 'e.g. Asphalt Catfish')}
             className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold bg-white"
           />
           {nameErr && <p className="text-[11px] font-bold mt-1" style={{ color: '#C2452F' }}>{nameErr}</p>}
           {accountName !== null && (
-            <p className="text-[11px] font-semibold text-black/55 mt-1">🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).</p>
+            <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).', '🔗 This is your account name — it counts vs CPU, in career and online. Editing here changes it everywhere (stats included).')}</p>
           )}
         </div>
         <div>
-          <p className="text-xs font-black uppercase mb-1">Formação (travada antes do pregão)</p>
+          <p className="text-xs font-black uppercase mb-1">{t('Formação (travada antes do pregão)', 'Formation (locked before the auction)')}</p>
           <div className="grid grid-cols-4 gap-2">
             {/* INÍCIO: só 4-3-3 e 4-4-2 (base do leilão). O 4-5-1 é troca TÁTICA na
                 carreira depois — nunca no começo. */}
@@ -2764,7 +2769,7 @@ export function EscSetup() {
           </div>
         </div>
         <div>
-          <p className="text-xs font-black uppercase mb-1">Rivais na sala (CPUs)</p>
+          <p className="text-xs font-black uppercase mb-1">{t('Rivais na sala (CPUs)', 'Rivals in the room (CPUs)')}</p>
           <div className="grid grid-cols-4 gap-2">
             {[3, 5, 7, 9].map(n => (
               <button key={n} onClick={() => setRivals(n)}
@@ -2774,12 +2779,12 @@ export function EscSetup() {
               </button>
             ))}
           </div>
-          <p className="text-[11px] font-semibold text-black/60 mt-1.5 leading-snug"><b>Mais rivais:</b> mais técnicos brigando no leilão e maior variedade de jogadores. <b>Menos rivais:</b> menos técnicos brigando e jogo mais rápido.</p>
+          <p className="text-[11px] font-semibold text-black/60 mt-1.5 leading-snug"><b>{t('Mais rivais:', 'More rivals:')}</b> {t('mais técnicos brigando no leilão e maior variedade de jogadores.', 'more managers fighting at the auction and a wider spread of players.')} <b>{t('Menos rivais:', 'Fewer rivals:')}</b> {t('menos técnicos brigando e jogo mais rápido.', 'fewer managers fighting and a quicker game.')}</p>
         </div>
         {career && (
           <div>
-            <p className="text-xs font-black uppercase mb-1">🔥 Escolha seus rivais <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
-            <p className="text-[11px] font-semibold text-black/55 mb-1.5">Eles serão seus rivais pra vida toda.</p>
+            <p className="text-xs font-black uppercase mb-1">{t('🔥 Escolha seus rivais', '🔥 Pick your rivals')} <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
+            <p className="text-[11px] font-semibold text-black/55 mb-1.5">{t('Eles serão seus rivais pra vida toda.', 'They will be your rivals for life.')}</p>
             <div className="flex flex-wrap gap-1.5">
               {TIMES_ELITE.map(t => {
                 const on = rivalPicks.includes(t.team)
@@ -2793,14 +2798,14 @@ export function EscSetup() {
               })}
             </div>
             <button onClick={() => setRivalPicks([])} className="mt-2 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] bg-white active:translate-y-0.5" style={OSWALD}>
-              🎲 Não escolher — usar rivais padrão
+              {t('🎲 Não escolher — usar rivais padrão', '🎲 Skip — use the default rivals')}
             </button>
           </div>
         )}
-        {career && <p className="text-xs font-semibold text-black/70">🏟️ A liga completa 20 times com os clássicos — você disputa a divisão contra os CPUs do leilão.</p>}
+        {career && <p className="text-xs font-semibold text-black/70">{t('🏟️ A liga completa 20 times com os clássicos — você disputa a divisão contra os CPUs do leilão.', '🏟️ The league fills up to 20 teams with the classic clubs — you play the division against the auction CPUs.')}</p>}
       </Box>
       <Btn onClick={start} className="w-full text-lg" bg={GREEN}>
-        <span className="text-white">{career ? 'AVANÇAR 🪜' : 'AVANÇAR 🔨'}</span>
+        <span className="text-white">{career ? t('AVANÇAR 🪜', 'CONTINUE 🪜') : t('AVANÇAR 🔨', 'CONTINUE 🔨')}</span>
       </Btn>
       {/* carreira antiga (só pra quem já tinha um save no formato antigo poder
           terminar). O "Continuar carreira" da pirâmide NÃO entra aqui de propósito:
