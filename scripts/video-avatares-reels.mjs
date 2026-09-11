@@ -15,7 +15,7 @@
 //                    E DO ANO, rosto vazio de propósito
 //   parte 2 (~29 s)  no LEILÃO: envelope cego não mostra nada, a arte só nasce
 //                    DEPOIS do martelo, e a carta de Lenda vem dourada
-//   parte 3 (~29 s)  DEPOIS: o campinho inteiro, o elenco no celular e o time
+//   parte 3 (~27 s)  DEPOIS: o campinho inteiro, o elenco no celular e o time
 //                    dos sonhos montado
 //
 // 📸 Os prints das partes 2 e 3 são do JOGO DE VERDADE, guardados em
@@ -170,7 +170,7 @@ ${cena(22.4, 29.0, `
 ` }
 
 // ─── PARTE 3 · onde ele aparece depois ─────────────────────────────────────
-const parte3 = { dur: 29.0, html: `
+const parte3 = { dur: 26.5, html: `
 ${cena(0, 8.2, `
   <div style="margin-bottom:22px">${pill('lugar 2 · o seu time ⚽', INK, GOLD, 34, 0.15)}</div>
   ${titulo('o time inteiro<br>ganha cara', 0.6, 74)}
@@ -184,15 +184,12 @@ ${cena(15.6, 22.2, `
   ${titulo('dá pra montar<br>o time dos sonhos', 15.75, 68)}
   ${telinha('05-campinho2.png', 16.5, 860)}
   ${sub('Maradona, Yashin, Cruyff, Kaká,<br>Roberto Carlos, Gerrard…', 18.8, 38)}`)}
-${cena(22.2, 25.4, `
-  ${titulo('e não pesa', 22.35, 78)}
-  ${sub('cada retrato tem <b>menos de 60 KB</b> e só<br>baixa quando aparece na SUA tela.<br>quem nunca cruzar com a lenda,<br>nunca baixa o desenho dela.', 22.9, 42)}`)}
-${cena(25.4, 29.0, `
-  <p style="font-size:130px;line-height:1;animation:pop .6s cubic-bezier(.2,1.6,.4,1) 25.55s both">⚽</p>
-  <p style="${OSW};font-size:92px;text-transform:uppercase;margin-top:10px;animation:pulsa 1.4s ease-in-out 26.2s infinite">
+${cena(22.2, 26.5, `
+  <p style="font-size:130px;line-height:1;animation:pop .6s cubic-bezier(.2,1.6,.4,1) 22.35s both">⚽</p>
+  <p style="${OSW};font-size:92px;text-transform:uppercase;margin-top:10px;animation:pulsa 1.4s ease-in-out 23.0s infinite">
     Leilão <span style="color:${RED}">Legends</span></p>
-  ${sub('grátis · no navegador · chama a turma', 26.4, 44)}
-  <div style="margin-top:30px">${pill('leilaolegends.com', INK, GOLD, 40, 27.0)}</div>`)}
+  ${sub('grátis · no navegador · chama a turma', 23.2, 44)}
+  <div style="margin-top:30px">${pill('leilaolegends.com', INK, GOLD, 40, 23.8)}</div>`)}
 ` }
 
 // ─── grava cada parte ──────────────────────────────────────────────────────
