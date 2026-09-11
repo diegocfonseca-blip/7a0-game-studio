@@ -1,3 +1,7 @@
+# Messi Barcelona 2012 sem fundo — 10/09/2026
+
+O avatar publicado estava com fundo preto. Foi recortado diretamente da arte aprovada, sem regenerar o jogador: somente os pixels externos receberam alfa real, mantendo cabelo, cabeça, camisa, escala e enquadramento. Novo arquivo versionado `lionel-messi-barcelona-2012-v2.webp` (600×400, 21.030 bytes); registro marcado como transparente. Conferido sobre creme e verde-escuro; original mantido para reversão.
+
 ## 11/09/2026 — 🌱🐛 Cria da Base vazava pro RÁPIDO e pro MINHAS LIGAS — ✅ no ar
 
 Relato do Diego, com print: *"esse negócio de base aqui tá parecendo nos modos
