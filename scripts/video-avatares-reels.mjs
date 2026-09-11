@@ -233,10 +233,43 @@ ${cena(17.6, 21.5, `
   <div style="margin-top:24px">${pill('leilaolegends.com', INK, GOLD, 40, 19.2)}</div>`)}
 ` }
 
+
+// ─── ONLINE · o anúncio (pra colar ANTES da parte 3) ────────────────────────
+// Pedido do Diego (11/09): *"quero q vc faça um vídeo dedicando que agora também
+// está liberado no modo online as cartinhas com imagens das lendas... e aí eu
+// junto com o vídeo que não coloquei"* (= a parte 3).
+// A abertura anterior (convite genérico) ele NÃO gostou — esta é dedicada ao
+// anúncio: o que mudou, onde, e emenda na parte 3.
+// ✅ Conferido no código antes de gravar (11/09): `LEGEND_AVATARS_RELEASED` está
+// true em `career-feature-release.ts`, então `useLegendPresentation()` vale pra
+// TODO mundo; na sala online `mesaOn` fica false e a revelação passa a ser a
+// MESMA cartinha com o avatar (screens.tsx). Ou seja: o anúncio é verdade.
+const online = { dur: 19.0, html: `
+${cena(0, 6.4, `
+  <div style="margin-bottom:24px">${pill('🌐 no online agora', ROXO, '#fff', 36, 0.15)}</div>
+  ${titulo('as cartinhas<br>das <span style="color:' + RED + '">lendas</span><br>chegaram na sala', 0.6, 78)}
+  <div style="display:flex;gap:22px;margin-top:34px">
+    ${retrato('pele-santos-1962.webp', 'Pelé', 'Santos · 1962', 1.6, 250)}
+    ${retrato('garrincha-botafogo-1958.webp', 'Garrincha', 'Botafogo · 1958', 1.9, 250)}
+    ${retrato('ronaldinho-gaucho-barcelona-2005.webp', 'Ronaldinho', 'Barcelona · 2005', 2.2, 250)}
+  </div>
+  ${sub('o que já estava na carreira<br>agora vale no pregão com a turma', 3.2, 40)}`)}
+${cena(6.4, 13.4, `
+  <p style="font-size:130px;line-height:1;animation:martelo .5s ease-out 6.6s both">🔨</p>
+  ${titulo('bateu o martelo,<br>a carta abre', 7.1, 70)}
+  ${telinha('02-revelacao.png', 7.8, 760)}
+  ${sub('e a <b>sala inteira</b> vê junto —<br>quem levou, por quanto, e a lenda desenhada', 10.4, 38)}`)}
+${cena(13.4, 19.0, `
+  ${titulo('e o time fica<br>assim', 13.55, 80)}
+  <p style="font-size:120px;line-height:1;margin-top:16px;animation:pop .6s cubic-bezier(.2,1.6,.4,1) 14.4s both">👇</p>
+  <div style="margin-top:22px">${pill('leilaolegends.com', INK, GOLD, 40, 15.0)}</div>`)}
+` }
+
 // ─── grava cada parte ──────────────────────────────────────────────────────
 // `abertura` sai como `avatares-abertura.mp4` e é opcional: só entra quando a
 // parte 3 vai pro ar sozinha, sem a 1 e a 2 na frente.
 const PARTES = [
+  { nome: 'online', ...online },
   { nome: 'abertura', ...abertura },
   { nome: 'parte1', ...parte1 },
   { nome: 'parte2', ...parte2 },
