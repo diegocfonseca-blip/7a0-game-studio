@@ -1,3 +1,14 @@
+## 11/09/2026 — ⚽ Pênaltis do online consertados na RAIZ (placar era sorteado, não disputado)
+
+- Reclamação do Diego: *"precisa arrumar os pênaltis nos modos online, pelo menos na Copa do Mundo vi erros das cobranças acabarem antes da hora ou contagem errada das bolinhas"*.
+- **A causa, e ela é simples**: o placar dos pênaltis NUNCA foi disputado — era SORTEADO. Em três lugares (`copa-mundo.tsx`, `store.tsx`, `pyramidseason.tsx`) o código tirava dois números de 2 a 5 e garantia que fossem diferentes. Só que placar de pênalti tem regra: a disputa PARA quando um time não alcança mais o outro. Por isso **5×2 não existe** — em 4×2 já acabou, o quinto nem é cobrado. O sorteio cuspia 5×2 tranquilamente.
+- **O efeito na tela**: a tela das bolinhas fazia o CERTO (reencena e para quando decide) e chegava a 4×2, enquanto o cabeçalho dizia 5×2. Daí "bolinha faltando" e "cobrança acabando antes da hora". Uma sessão anterior chegou a criar um remendo (`online-penalties.ts`, `exactPenaltyRows`) que procura uma sequência coerente — mas pra placar impossível ele não acha nenhuma e devolve a errada mesmo.
+- **Conserto**: `src/escalacao/penaltis.ts` (arquivo novo) com duas coisas: `disputaPenaltis()` SIMULA cobrança a cobrança com a regra de parada de verdade (e morte súbita se empatar em 5), e `sequenciaPenaltis()` remonta as bolinhas garantindo que a soma fecha com o placar. Os três geradores passaram a usar a simulação; o `PensShootout` passou a usar a remontagem.
+- Também consertado: morte súbita só sabia desenhar 6×5 (`nSlots` fixo em 6) — um 7×6 saía com bolinha faltando. Agora desenha qualquer tamanho. E o `pensRevealDelay` (que segura a revelação do campeão até a última bolinha) passou a contar as cobranças de verdade em vez de estimar.
+- **Guarda nova**: `npm run penaltis` (`scripts/checa-penaltis.mjs`) roda 40 mil disputas e confere que TODO placar que sai existe no futebol e que as bolinhas fecham com ele. 49 combinações diferentes saíram; todas passaram.
+- ⚠️ **Atenção ao publicar**: cada aparelho simula a Copa do Mundo localmente a partir da mesma semente (`llcopa:<seed>` no localStorage). Copa já simulada e salva **não muda** (o save é lido primeiro), mas uma copa que COMEÇAR numa sala com gente em versões diferentes pode divergir até todo mundo atualizar. Melhor publicar em hora sem sala no meio de uma Copa.
+- Reversão: `git revert` do commit; nada disso mexe em quem ganha o jogo, em gols ou em regra — só no placar da disputa e no desenho dela.
+
 ## 11/09/2026 — 🌐 Tradução do futebol: ETAPA 2 (o leilão)
 
 - **Achado que encurtou muito o serviço**: o pregão JÁ tinha as frases em inglês escritas no código (`L('pt','en')`), só que a função exigia `sport === 'basquete'` — ou seja, as traduções existiam e nunca apareciam pro futebol. Bastou tirar essa exigência nas 4 definições de `L` em `screens.tsx` pra o pregão virar bilíngue de verdade.

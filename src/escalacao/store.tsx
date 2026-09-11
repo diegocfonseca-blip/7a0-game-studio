@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import type { ReactNode } from 'react'
 import { onlinePreviewEnabled } from './online-preview'
+import { disputaPenaltis } from './penaltis'
 import { publicOnlineVisual } from './online-release'
 import { publicCareerVisual } from './career-feature-release'
 import type {
@@ -2720,10 +2721,11 @@ function resolveQuickCopaTie(tie: QuickCopaTie, rng: () => number) {
   const aggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
   const aggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
   if (aggA === aggB) {
-    let x = 2 + Math.floor(rng() * 4), y = 2 + Math.floor(rng() * 4)
-    if (x === y) (rng() < 0.5 ? x++ : y++)
-    tie.pens = [x, y]
-    tie.winner = x > y ? tie.aId : tie.bId
+    // 🎯 11/09: disputa simulada de verdade (ver `penaltis.ts`) — o sorteio de
+    // dois números soltos produzia placar impossível e as bolinhas da tela não
+    // fechavam com ele.
+    tie.pens = disputaPenaltis(rng)
+    tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
   } else {
     tie.winner = aggA > aggB ? tie.aId : tie.bId
   }

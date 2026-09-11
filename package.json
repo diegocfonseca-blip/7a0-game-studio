@@ -18,7 +18,8 @@
     "batismos": "node scripts/checa-batismos.mjs",
     "copa": "node scripts/checa-copa-online.mjs",
     "piramide": "node scripts/checa-piramide.mjs",
-    "tracos": "node scripts/checa-tracos.mjs"
+    "tracos": "node scripts/checa-tracos.mjs",
+    "penaltis": "node scripts/checa-penaltis.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

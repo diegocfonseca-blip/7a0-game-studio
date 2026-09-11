@@ -21,6 +21,7 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
 import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill } from './pyramidseason'
+import { disputaPenaltis } from './penaltis'
 import { clockMinute, type CopaClockController } from './copa-clock-preview'
 import { copaStats } from './copa-stats'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
@@ -216,11 +217,11 @@ function playMatch(r: () => number, a: Entrant, b: Entrant): [number, number] {
   const adv = a.str - b.str
   return [poisson(r, Math.max(0.25, 1.25 + adv * 0.05)), poisson(r, Math.max(0.25, 1.25 - adv * 0.05))]
 }
-function pens(r: () => number): [number, number] {
-  let a = 2 + Math.floor(r() * 4), b = 2 + Math.floor(r() * 4)
-  while (a === b) b = 2 + Math.floor(r() * 4)
-  return [a, b]
-}
+// 🎯 11/09: a disputa é SIMULADA cobrança a cobrança (`penaltis.ts`). Antes
+// aqui se sorteavam dois números de 2 a 5 — e saía placar que não existe no
+// futebol (5×2, por exemplo: quando chega em 4×2 já acabou, o quinto nem é
+// cobrado). Era isso que fazia as bolinhas da tela não fecharem com o placar.
+const pens = (r: () => number): [number, number] => disputaPenaltis(r)
 
 type GMatch = { h: number; a: number; gh?: number; ga?: number; ev?: ScoreGoal[] }
 type Group = { teams: number[]; matches: GMatch[][] } // matches[rodada][jogo]

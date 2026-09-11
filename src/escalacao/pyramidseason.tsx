@@ -24,6 +24,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
 import type { RenewAnos } from './store'
+import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
 import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, SPONSOR_BET_META } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -1026,7 +1027,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     }
     goals.sort((x, y) => x.min - y.min)
     let pens: [number, number] | undefined, win: 'a' | 'b'
-    if (aggA === aggB) { let x = 2 + Math.floor(rng() * 4), y = 2 + Math.floor(rng() * 4); if (x === y) (rng() < 0.5 ? x++ : y++); pens = [x, y]; win = x > y ? 'a' : 'b' }
+    if (aggA === aggB) { pens = disputaPenaltis(rng); win = pens[0] > pens[1] ? 'a' : 'b' }
     else win = aggA > aggB ? 'a' : 'b'
     return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals }
   }
@@ -4460,50 +4461,26 @@ const copaName = (t: SimTeam) => t.you ? `${t.name} (você)` : t.name
 // tempo (s) até a disputa de pênaltis terminar de animar — usado pra SEGURAR a
 // revelação do vencedor (riscado/zebra) até a última cobrança pipocar na tela.
 export function pensRevealDelay(pens: [number, number]): number {
-  if (Math.max(pens[0], pens[1]) > 5) return 0.7 + 12 * 0.85 + 0.6
-  // pior caso do para-quando-decide: até 10 cobranças
-  const kicks = Math.min(10, pens[0] + pens[1] + (5 - Math.min(pens[0], pens[1])) * 2 + 2)
-  return 0.7 + kicks * 0.85 + 0.6
+  // 🎯 11/09: conta as cobranças DE VERDADE (a mesma sequência que a tela
+  // desenha), em vez de estimar. Antes a estimativa podia liberar o vencedor
+  // antes da última bolinha pipocar — e na morte súbita comprida ela chutava 12.
+  return 0.7 + sequenciaPenaltis(pens).length * 0.85 + 0.6
 }
 export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
   // vazias). 6×5 = foi perfeito até o fim e decidiu na morte súbita.
-  type Kick = { side: 0 | 1; ok: boolean }
+  // 🎯 11/09: a sequência das bolinhas vem do `penaltis.ts`, que GARANTE que a
+  // soma das bolinhas fecha com o placar. Antes ela era remontada aqui com os
+  // gols espalhados a esmo e podia contradizer o placar — era o "contagem
+  // errada das bolinhas / cobrança acabando antes da hora" que o Diego pegou.
   let salt = 0; for (const ch of aName + '|' + bName) salt = (salt * 31 + ch.charCodeAt(0)) >>> 0
   const rng = mulberry(((pens[0] * 31 + pens[1] * 7) ^ salt ^ 0xA1B2) >>> 0)
   const win = pens[0] > pens[1] ? 0 : 1
-  const seq: Kick[] = []
-  const taken: [number, number] = [0, 0]
-  const score: [number, number] = [0, 0]
-  if (Math.max(pens[0], pens[1]) > 5) {
-    // morte súbita (só existe como 6×5): 5 rodadas perfeitas + a 6ª que decide
-    for (let r = 0; r < 5; r++) { seq.push({ side: 0, ok: true }, { side: 1, ok: true }) }
-    seq.push({ side: win as 0 | 1, ok: true }, { side: (1 - win) as 0 | 1, ok: false })
-    score[0] = pens[0]; score[1] = pens[1]; taken[0] = 6; taken[1] = 6
-  } else {
-    // espalha os gols de cada time nas 5 cobranças (ordem sorteada, mas SEMPRE
-    // a mesma pra este placar) e anda cobrança a cobrança até decidir.
-    const mk = (made: number) => {
-      const idxs = [0, 1, 2, 3, 4]
-      for (let i = 4; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idxs[i], idxs[j]] = [idxs[j], idxs[i]] }
-      const arr = [false, false, false, false, false]
-      idxs.slice(0, made).forEach(i => { arr[i] = true })
-      return arr
-    }
-    const plan: [boolean[], boolean[]] = [mk(pens[0]), mk(pens[1])]
-    outer: for (let r = 0; r < 5; r++) {
-      for (const side of [0, 1] as const) {
-        const ok = plan[side][r]
-        seq.push({ side, ok }); taken[side]++; if (ok) score[side]++
-        const rest = (t: 0 | 1) => 5 - taken[t]
-        if (score[0] + rest(0) < score[1] || score[1] + rest(1) < score[0]) break outer
-      }
-    }
-  }
-  const nSlots = Math.max(pens[0], pens[1]) > 5 ? 6 : 5
-  const suddenDeath = nSlots === 6
+  const seq = sequenciaPenaltis(pens, rng)
+  const nSlots = Math.max(5, pens[0], pens[1])
+  const suddenDeath = nSlots > 5 // morte súbita de qualquer tamanho (6×5, 7×6…)
   const step = 0.85, lead = 0.7
   // resultado de cada time na ORDEM das cobranças dele + índice global (delay)
   const rows: { ok: boolean; at: number }[][] = [[], []]
@@ -4561,7 +4538,7 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
         background: INK, border: `2px solid ${GOLD}`, opacity: 0, animation: `telaoPop .3s ease ${totalDelay.toFixed(2)}s forwards`,
       }}>
         <span style={{ width: 16, height: 16, borderRadius: 4, background: colA, border: `1.5px solid ${win === 0 ? GOLD : 'rgba(255,255,255,.3)'}`, flexShrink: 0 }} />
-        <span style={{ fontSize: 15, fontWeight: 900, ...OSWALD, color: GOLD }}>{score[0]} × {score[1]}</span>
+        <span style={{ fontSize: 15, fontWeight: 900, ...OSWALD, color: GOLD }}>{pens[0]} × {pens[1]}</span>
         <span style={{ width: 16, height: 16, borderRadius: 4, background: colB, border: `1.5px solid ${win === 1 ? GOLD : 'rgba(255,255,255,.3)'}`, flexShrink: 0 }} />
       </div>
       <p style={{ fontSize: 9, fontWeight: 800, ...OSWALD, textAlign: 'center', color: winCol, margin: '2px 0 0', opacity: 0, animation: `telaoPop .3s ease ${totalDelay.toFixed(2)}s forwards` }}>🏆 {win === 0 ? aName : bName}</p>
