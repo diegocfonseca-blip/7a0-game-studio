@@ -1,3 +1,13 @@
+## 11/09/2026 — Salão dos Batismos: sem divisão nenhuma e torcida em %
+
+- Pedido do Diego: *"me mande sem mostrar qm tá na série A ou B. E a torcida atualize e coloque com % e N quantidade. E a torcida é só de qm tem batismo msm"*.
+- **Uma parede só.** Sumiram as duas faixas (⭐ Série A · Online / 🏟️ Série B/C/D/Várzea): agora é um grid único com TODOS os clubes, na ordem do nº de fundador. Em 08/09 ele já tinha tirado a letra do lado de cada clube; a separação em dois grupos entregava a mesma informação, então caiu também. A tela não lê mais `DIVISION_TEAMS` — não sabe em que série ninguém está.
+- **Torcida em PORCENTAGEM**, não em cabeça contada. Régua: % sobre o total de donos que declararam time de coração (hoje 27). A barra continua comparada com a MAIOR torcida, senão com 15 times na lista todas as barras nasceriam espremidas — o número ao lado é a % de verdade.
+- **Só dono de batismo entra na conta.** Migração `salao_torcidas_so_batismo` (11/09): `esc_salao_torcidas()` passou a filtrar `origem = 'batismo'`; sócio de assinatura saiu. Mesma assinatura de retorno, então a tela não precisou mudar de contrato. Números depois do filtro: Corinthians 19%, Santos 15%, Flamengo 11%, Atlético-MG/Internacional/Palmeiras 7,4%, e nove times com 3,7%.
+- Print tirado da TELA DE VERDADE (trava aberta só na máquina, nada commitado) — o `scripts/mockup-salao-batismos.mjs` foi atualizado junto e virou desenho de apoio: se os dois brigarem, quem manda é a tela.
+- 🔒 **Continua invisível pra geral**: `SALAO_GERAL` segue `false` em `sport.ts`. Só abre quando ele disser.
+- Reversão: o commit anterior do `salao.tsx` volta as duas faixas; no banco, `create or replace` sem o `where s.origem = 'batismo'` volta a contar sócio de assinatura.
+
 ## 11/09/2026 — Faixa "tem versão nova" na home (formato A, escolhido pelo Diego)
 
 - Pedido: *"coloque um banner com a atualização que fizemos. Quando a pessoa fechar não deve aparecer mais — pra todos isso. Além disso pede pra atualizar pra versão nova que tem muitas novidades"*. Mockup com duas opções em `scripts/mockup-banner-atualizar.mjs`; ele escolheu a **A · faixa fixa no topo**.

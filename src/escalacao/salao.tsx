@@ -6,21 +6,29 @@
 // `scripts/mockup-salao-batismos.mjs`.
 //
 // 🔄 REFEITO EM 08/09 — SEM RANKING. Palavras dele: *"N quero ranking não.
-// Quero Série A/online e embaixo Série B, C, D, várzea... quis dizer q B C D é
-// várzea e tudo junto. N q vc fala q um time tá na B, outro na C — isso N
-// precisa, p nego N ficar puto"*. Então:
-//   · em cima, ⭐ SÉRIE A · ONLINE — os clubes que aparecem no jogo rápido;
-//   · embaixo, 🏟️ SÉRIE B/C/D/VÁRZEA — todo o resto JUNTO (B, C, D e sócios),
-//     sem letra em clube nenhum. Ninguém lê "Série D" do lado do próprio clube.
+// Quero Série A/online e embaixo Série B, C, D, várzea"*.
+//
+// 🔄 REFEITO DE NOVO EM 11/09 — E AGORA **NENHUMA DIVISÃO APARECE**. Palavras
+// dele: *"me mande sem mostrar qm tá na série A ou B. E a torcida atualize e
+// coloque com % e N quantidade. E a torcida é só de qm tem batismo msm"*.
+// Traduzindo pro que está nesta tela:
+//   · **uma parede só**, com TODOS os clubes juntos. Nem faixa de Série A, nem
+//     faixa de Várzea, nem letra nenhuma do lado de clube nenhum. Em 08/09 ele
+//     já tinha tirado a letra de cada clube pra "nego N ficar puto"; agora
+//     sumiu também a separação em dois grupos, que entregava a mesma coisa.
+//   · a ordem é o número de FUNDADOR (quem chegou antes vem antes) — é o único
+//     critério que não vira ranking nem compara clube com clube.
 //   · 08/09, dele: *"todos esses entram sim"* — White Thigs do GuGu (1º batismo
 //     da história) e Vasco da Grana entraram em `BATISMOS`, sem nº (dono
 //     desconhecido), com selo próprio.
-//   · sem título, sem palmarés, sem posição: a ordem é o número de fundador
-//     (quem chegou antes vem antes), que é o único "ranking" que não briga.
-//   · ❤️ Torcidas continua, mas **só de quem é batismo** (*"a torcida mantém tb
-//     mas só de qm é batismo"*): `esc_salao_torcidas()` conta o coração dos
-//     DONOS de clube (esc_socios) e devolve os clubes de cada torcida — nome de
-//     clube, nunca e-mail.
+//   · ❤️ Torcidas mostra **porcentagem, não cabeça contada** (*"coloque com %
+//     e N quantidade"*): de cada 100 donos de clube batizado, quantos torcem
+//     por aquele time. Número pequeno em cabeça ("2 pessoas") diminui a
+//     torcida de quem tem poucos; em % todo mundo lê a mesma régua.
+//   · e é **só de quem é batismo mesmo** (*"a torcida é só de qm tem batismo
+//     msm"*): o `esc_salao_torcidas()` filtra `origem = 'batismo'` no banco
+//     (migração `salao_torcidas_so_batismo`, 11/09) — sócio de assinatura não
+//     entra mais na conta. Ele devolve nome de CLUBE, nunca e-mail.
 //
 // 🔒 EM OBRA: só a conta do Diego vê (trava `useSalao` em sport.ts). Pra soltar
 // pra geral é trocar `SALAO_GERAL` lá pra true.
@@ -29,8 +37,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Shell, Box, VoltarInicio } from './screens'
 import { Escudo } from './escudos'
-import { DIVISION_TEAMS } from './data'
-import { BATISMOS, chaveClube, type Batismo } from './batismos'
+import { BATISMOS, type Batismo } from './batismos'
 import { useEsc } from './store'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', PURPLE = '#7C3AED', GREEN = '#1B7A3D'
@@ -38,8 +45,8 @@ const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
 interface Torcida { time_nome: string; gente: number; clubes: string[] | null }
 
-// quem é da Série A (= os clubes do jogo rápido online). O resto é Várzea.
-const SERIE_A = new Set(DIVISION_TEAMS.A.map(t => chaveClube(t.team)))
+// 📛 NENHUMA DIVISÃO É LIDA AQUI (11/09). A tela não sabe — e não quer saber —
+// em que série cada clube está: é uma parede só, na ordem de quem chegou antes.
 const porChegada = (a: Batismo, b: Batismo) => (a.fundador ?? 999) - (b.fundador ?? 999) || a.clube.localeCompare(b.clube)
 
 export default function Salao({ voltar }: { voltar?: () => void }) {
@@ -63,14 +70,18 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
     return () => { vivo = false }
   }, [])
 
-  const { elite, varzea } = useMemo(() => {
-    const elite = BATISMOS.filter(b => SERIE_A.has(chaveClube(b.clube))).sort(porChegada)
-    const varzea = BATISMOS.filter(b => !SERIE_A.has(chaveClube(b.clube))).sort(porChegada)
-    return { elite, varzea }
-  }, [])
+  const clubes = useMemo(() => [...BATISMOS].sort(porChegada), [])
 
   const vagas = 100 - BATISMOS.filter(b => b.tipo === 'batismo').length
+  // 📊 a % é sobre o TOTAL de donos que declararam time de coração — é essa a
+  // régua que ele pediu. A barra é comparada com a MAIOR (senão, com 15 times
+  // na lista, todas as barras nasceriam espremidas e ninguém leria nada).
+  const totalTorcida = Math.max(1, (torcidas ?? []).reduce((s, t) => s + t.gente, 0))
   const maiorTorcida = Math.max(1, ...(torcidas ?? []).map(t => t.gente))
+  const pct = (n: number) => {
+    const v = 100 * n / totalTorcida
+    return v >= 10 ? `${Math.round(v)}%` : `${v.toFixed(1).replace('.', ',')}%`
+  }
   const ABAS = [
     { id: 'clubes' as const, txt: '🛡️ Clubes' },
     { id: 'torcida' as const, txt: '❤️ Torcidas' },
@@ -133,17 +144,11 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
       {/* ───────────────── 🛡️ CLUBES ───────────────── */}
       {aba === 'clubes' && (
         <div className="space-y-3">
-          <Faixa titulo="⭐ Série A · Online" sub={`${elite.length} clubes · os do jogo rápido`} />
+          {/* 📛 UMA PAREDE SÓ: sem faixa de divisão, sem letra, sem separar em
+              grupos. Só os clubes, na ordem de quem chegou antes. */}
+          <Faixa titulo="🛡️ Os clubes" sub={`${clubes.length} · na ordem de quem chegou antes`} />
           <div className="grid grid-cols-2 gap-2.5">
-            {elite.map(c => <Card key={c.clube} c={c} />)}
-          </div>
-
-          <div className="pt-2" />
-          {/* 📛 o nome da faixa é "Série B/C/D/Várzea" (cobrança dele 08/09: *"N é
-              várzea apenas"*) — mas NENHUM clube diz em qual das quatro está. */}
-          <Faixa titulo="🏟️ Série B/C/D/Várzea" sub={`${varzea.length} clubes · subindo na carreira`} />
-          <div className="grid grid-cols-2 gap-2.5">
-            {varzea.map(c => <Card key={c.clube} c={c} />)}
+            {clubes.map(c => <Card key={c.clube} c={c} />)}
           </div>
         </div>
       )}
@@ -152,7 +157,7 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
       {aba === 'torcida' && (
         <div className="space-y-2">
           <p className="text-center text-[11px] font-bold text-black/45">
-            de qual time torce quem tem clube aqui no Salão
+            de cada 100 donos de clube batizado, quantos torcem por cada time
           </p>
           {fora && (
             <Box bg="#fff" className="p-5 text-center">
@@ -166,11 +171,12 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
               {torcidas.map(t => (
                 <div key={t.time_nome}>
                   <div className="flex items-center gap-2">
-                    <span className="font-black text-[13px] w-28 shrink-0 truncate" style={OSWALD}>{t.time_nome}</span>
+                    <span className="font-black text-[13px] w-24 shrink-0 truncate" style={OSWALD}>{t.time_nome}</span>
                     <span className="flex-1 h-3.5 rounded-full overflow-hidden" style={{ background: 'rgba(12,12,12,.09)' }}>
                       <i className="block h-full rounded-full" style={{ width: `${Math.round(100 * t.gente / maiorTorcida)}%`, background: PURPLE }} />
                     </span>
-                    <span className="font-black text-[13px] w-8 text-right shrink-0" style={OSWALD}>{t.gente}</span>
+                    {/* % e NÃO quantidade (pedido dele, 11/09) */}
+                    <span className="font-black text-[13px] w-12 text-right shrink-0" style={OSWALD}>{pct(t.gente)}</span>
                   </div>
                   {/* os clubes dessa torcida — é o que faz a aba ser dos batismos */}
                   {t.clubes && t.clubes.length > 0 && (

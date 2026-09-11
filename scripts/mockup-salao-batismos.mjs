@@ -4,15 +4,18 @@
 // Pedido original do Diego (30/08): *"algo c todos batismos, algo c times de
 // coração... que a pessoa vê os times criados... vê tb quais maiores torcidas"*.
 //
-// 🔄 08/09 — SEM RANKING. Palavras dele: *"N quero ranking não. Quero Série
-// A/online e embaixo Série B, C, D, várzea... quis dizer q B C D é várzea e
-// tudo junto. N q vc fala q um time tá na B, outro na C — isso N precisa, p
-// nego N ficar puto"*. E: *"a torcida mantém tb mas só de qm é batismo"*.
+// 🔄 08/09 — SEM RANKING. Palavras dele: *"N quero ranking não"*.
 //
-// 🔢 TUDO AQUI É REAL (data.ts + esc_socios em 08/09): 43 clubes no Salão —
-//   20 na Série A (os do jogo rápido online) e 23 em "Série B/C/D/Várzea" (tudo
-//   junto, sem letra em clube nenhum). Torcidas = coração dos DONOS de clube.
-//   Dele, 08/09: *"todos esses entram sim"* → GuGu e Vasco da Grana entraram.
+// 🔄 11/09 — E SEM DIVISÃO NENHUMA. Palavras dele: *"me mande sem mostrar qm
+// tá na série A ou B. E a torcida atualize e coloque com % e N quantidade. E a
+// torcida é só de qm tem batismo msm"*. Então agora é UMA PAREDE SÓ, na ordem
+// de quem chegou antes, e a torcida vem em PORCENTAGEM.
+//
+// 👉 A partir daqui o print que vale é o da TELA DE VERDADE (`salao.tsx` com a
+// trava aberta na máquina). Este arquivo fica como desenho de apoio, com os
+// mesmos dados — se um dia os dois brigarem, quem manda é a tela.
+//
+// 🔢 TUDO AQUI É REAL (batismos.ts + esc_salao_torcidas em 11/09).
 //
 //   node scripts/mockup-salao-batismos.mjs --saida /tmp/salao.png [--escudos pasta-com-pngs]
 //
@@ -40,9 +43,9 @@ const escPng = nome => {
 
 const CREME = '#F4ECD6', TINTA = '#0C0C0C', OURO = '#FFC400', ROXO = '#7C3AED', VERDE = '#1B7A3D'
 
-// ── ⭐ SÉRIE A · ONLINE (DIVISION_TEAMS.A ∩ BATISMOS), por nº de fundador ────
+// ── 🛡️ TODOS OS CLUBES, sem divisão nenhuma, por nº de fundador ────────────
 // [arquivo webp ou null (escudo feito em código — aparece normal no jogo), nome, nº fundador]
-const SERIE_A = [
+const CLUBES = [
   ['neymarzetti', 'Neymarzetti', 1],
   ['al-takahdao', 'Al Takhadao FC', 53],
   [null, 'Bicho da Seda', 11],
@@ -65,8 +68,8 @@ const SERIE_A = [
   ['sodeussabe', 'Só Deus Sabe FC', 65],
 ]
 
-// ── 🏟️ VÁRZEA (B + C + D + sócios, TUDO JUNTO, sem letra), por nº de fundador ─
-const VARZEA = [
+// (continuação da MESMA lista — não existe mais grupo separado)
+const CLUBES_2 = [
   [null, 'White Thigs do GuGu', 'primeiro'], // 🥋 1º batismo da história, dono desconhecido — sem nº
   [null, 'Vasco da Grana', 'batismo'], // pedido do Diego (03/08), sem dono — sem nº; desceu pra Série D em 08/09
   [null, 'Nightfull FC', 18], // desceu pra Série B em 09/09 (abriu o assento do Só Deus Sabe FC)
@@ -95,14 +98,17 @@ const VARZEA = [
   [null, 'Marinheiros AS', 'socio'],
 ]
 
-// ── ❤️ torcidas — SÓ dos donos de clube (esc_salao_torcidas, 08/09) ─────────
+// ── ❤️ torcidas — SÓ DONO DE BATISMO (esc_salao_torcidas, 11/09) ───────────
+// Sócio de assinatura saiu da conta (pedido do Diego): a função no banco filtra
+// `origem = 'batismo'`. O que aparece é a % do total de donos que declararam
+// time de coração — nunca a quantidade de gente.
 const TORCIDAS = [
-  { nome: 'Corinthians', n: 4, c1: '#0C0C0C', c2: '#FFFFFF', clubes: 'Coringas do Diniz · SC Ferrari · Nata de SP · Nova Eclipse FC' },
+  { nome: 'Corinthians', n: 5, c1: '#0C0C0C', c2: '#FFFFFF', clubes: 'Coringas do Diniz · Fala D10 · Nata de SP · Nova Eclipse FC · SC Ferrari' },
   { nome: 'Santos', n: 4, c1: '#FFFFFF', c2: '#0C0C0C', clubes: 'Sapekeiros FC · Scorporila FC · Sistematizados FC · Tôka10' },
-  { nome: 'Palmeiras', n: 3, c1: '#1B7A3D', c2: '#FFFFFF', clubes: 'Marinheiros AS · Marolados FC · Xurupitas FC' },
-  { nome: 'Flamengo', n: 2, c1: '#C2001E', c2: '#0C0C0C', clubes: 'Murriz FC · Neymarzetti' },
+  { nome: 'Flamengo', n: 3, c1: '#C2001E', c2: '#0C0C0C', clubes: 'Barcenite FC · Murriz FC · Neymarzetti' },
+  { nome: 'Atlético Mineiro', n: 2, c1: '#0C0C0C', c2: '#FFFFFF', clubes: 'Nightfull FC · Só Deus Sabe FC' },
   { nome: 'Internacional', n: 2, c1: '#C2001E', c2: '#FFFFFF', clubes: 'Al Takhadao FC · Deportivo Montreal' },
-  { nome: 'Atlético Mineiro', n: 1, c1: '#0C0C0C', c2: '#FFFFFF', clubes: 'Nightfull FC' },
+  { nome: 'Palmeiras', n: 2, c1: '#1B7A3D', c2: '#FFFFFF', clubes: 'Marolados FC · Xurupitas FC' },
   { nome: 'Botafogo', n: 1, c1: '#0C0C0C', c2: '#FFFFFF', clubes: 'Bicho da Seda' },
   { nome: 'Cruzeiro', n: 1, c1: '#0E3E86', c2: '#FFFFFF', clubes: 'La Bestia Negra' },
   { nome: 'Grêmio', n: 1, c1: '#0A72B8', c2: '#0C0C0C', clubes: 'Vidraceiro FC' },
@@ -111,8 +117,11 @@ const TORCIDAS = [
   { nome: 'Remo', n: 1, c1: '#0E3E86', c2: '#FFFFFF', clubes: 'Remoçada' },
   { nome: 'Rio Branco', n: 1, c1: '#C2001E', c2: '#FFFFFF', clubes: 'Leão da Estradinha' },
   { nome: 'Santa Cruz', n: 1, c1: '#0C0C0C', c2: '#C2001E', clubes: 'Tricolor do Arruda FC' },
+  { nome: 'São Paulo', n: 1, c1: '#C2001E', c2: '#0C0C0C', clubes: 'Bagres de Wall Street FC' },
 ]
 const maiorT = TORCIDAS[0].n
+const totalT = TORCIDAS.reduce((s, t) => s + t.n, 0)
+const pct = n => { const v = 100 * n / totalT; return v >= 10 ? `${Math.round(v)}%` : `${v.toFixed(1).replace('.', ',')}%` }
 
 const selo = f => f === 'socio' ? `<span class="pc-sel branco">🎫 sócio</span>`
   : f === 'primeiro' ? `<span class="pc-sel">🥇 1º da história</span>`
@@ -136,7 +145,7 @@ const barraTorcida = t => `
       <span class="tor-listra" style="background:repeating-linear-gradient(90deg,${t.c1} 0 7px,${t.c2} 7px 14px)"></span>
       <span class="tor-nome">${t.nome}</span>
       <span class="tor-barra"><i style="width:${Math.round(100 * t.n / maiorT)}%"></i></span>
-      <span class="tor-n">${t.n}</span>
+      <span class="tor-n">${pct(t.n)}</span>
     </div>
     <p class="tor-clubes">❤️ ${t.clubes}</p>
   </div>`
@@ -176,10 +185,10 @@ h1{font-family:Oswald;font-weight:700;font-size:38px;text-transform:uppercase;li
 .tor{margin-bottom:9px}
 .tor-linha{display:flex;align-items:center;gap:9px}
 .tor-listra{width:24px;height:22px;border:2.5px solid ${TINTA};border-radius:5px;flex:none}
-.tor-nome{font-family:Oswald;font-weight:700;font-size:14px;width:130px;flex:none}
+.tor-nome{font-family:Oswald;font-weight:700;font-size:14px;width:120px;flex:none}
 .tor-barra{flex:1;height:15px;background:rgba(12,12,12,.08);border-radius:99px;overflow:hidden}
 .tor-barra i{display:block;height:100%;background:${ROXO};border-radius:99px}
-.tor-n{font-family:Oswald;font-weight:700;font-size:15px;width:34px;text-align:right}
+.tor-n{font-family:Oswald;font-weight:700;font-size:15px;width:52px;text-align:right}
 .tor-clubes{font-size:10.5px;font-weight:700;color:rgba(12,12,12,.5);margin:2px 0 0 33px}
 .nota{border:3px solid ${TINTA};border-radius:12px;background:#FFF4CF;padding:10px 13px;margin-top:12px;font-size:12px;font-weight:700;line-height:1.45}
 .cta{border:4px solid ${TINTA};border-radius:16px;background:${VERDE};color:#fff;box-shadow:5px 5px 0 ${TINTA};padding:14px 16px;text-align:center}
@@ -191,30 +200,27 @@ h1{font-family:Oswald;font-weight:700;font-size:38px;text-transform:uppercase;li
 <span class="pil">🏛️ dentro da aba Ranking</span>
 <h1>Salão dos Batismos</h1>
 <p class="lead">Todo clube que virou de alguém está aqui, com o escudo que aparece no jogo.
-<b>${SERIE_A.length + VARZEA.length} clubes</b> · 60 vagas ainda livres.</p>
+<b>${CLUBES.length + CLUBES_2.length} clubes</b> · 54 vagas ainda livres.</p>
 
 <div class="abas"><div class="on">🛡️ Clubes</div><div>❤️ Torcidas</div></div>
 
 <div class="bloco">
-  <div class="cab"><b>🛡️ Os clubes</b><span>sem ranking, sem título, sem posição — a ordem é quem chegou antes (nº de fundador)</span></div>
+  <div class="cab"><b>🛡️ Os clubes</b><span>sem divisão, sem ranking, sem título — a ordem é quem chegou antes (nº de fundador)</span></div>
   <div class="corpo">
-    ${faixa('⭐ Série A · Online', `${SERIE_A.length} clubes · os que aparecem no jogo rápido`)}
-    <div class="parede">${SERIE_A.map(card).join('')}</div>
-    ${faixa('🏟️ Série B/C/D/Várzea', `${VARZEA.length} clubes · subindo na carreira`).replace('class="faixa"', 'class="faixa varzea"')}
-    <div class="parede">${VARZEA.map(card).join('')}</div>
-    <div class="nota">Embaixo <b>ninguém vê letra</b>: B, C, D e sócios ficam juntos, sem "Série D" do lado do clube de ninguém.
-    A ordem é quem chegou antes.</div>
+    <div class="parede">${[...CLUBES, ...CLUBES_2].map(card).join('')}</div>
+    <div class="nota"><b>Nenhum clube diz em que série está</b> — nem Série A, nem B, nem várzea. É uma parede só,
+    na ordem de quem chegou antes.</div>
   </div>
 </div>
 
 <div class="bloco">
-  <div class="cab"><b>❤️ Torcidas</b><span>de qual time torce quem tem clube no Salão — só donos de batismo</span></div>
+  <div class="cab"><b>❤️ Torcidas</b><span>de cada 100 donos de clube batizado, quantos torcem por cada time</span></div>
   <div class="corpo">
     ${TORCIDAS.map(barraTorcida).join('')}
   </div>
 </div>
 
-<div class="cta"><b>🔨 Sua vaga está livre</b><span>60 clubes ainda esperam dono — vire Lenda e batize o seu</span></div>
+<div class="cta"><b>🔨 Sua vaga está livre</b><span>54 clubes ainda esperam dono — vire Lenda e batize o seu</span></div>
 <p class="rod">⚽ Leilão Legends · mockup pra aprovação — no ar só pra conta do Diego</p>
 </body></html>`
 
