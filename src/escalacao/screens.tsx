@@ -32,6 +32,7 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
+import { AvisoVersaoNova } from './aviso-versao'
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
@@ -2020,6 +2021,9 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
     <div className="ll-home">
       <div className="ll-art" />
       <div className="ll-shade" />
+      {/* 📢 faixa de "tem versão nova" — fecha uma vez e não volta mais naquele
+          aparelho. Só existe aqui na home; ver `aviso-versao.tsx`. */}
+      <AvisoVersaoNova />
       <header className="ll-header">
         <div className="ll-brand"><small>LEILÃO ÀS CEGAS</small>LEILÃO LEGENDS</div>
         <div className="ll-account"><button onClick={() => setContaAberta(true)}>MINHA CONTA</button></div>

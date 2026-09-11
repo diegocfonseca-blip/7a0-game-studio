@@ -1,3 +1,14 @@
+## 11/09/2026 — Faixa "tem versão nova" na home (formato A, escolhido pelo Diego)
+
+- Pedido: *"coloque um banner com a atualização que fizemos. Quando a pessoa fechar não deve aparecer mais — pra todos isso. Além disso pede pra atualizar pra versão nova que tem muitas novidades"*. Mockup com duas opções em `scripts/mockup-banner-atualizar.mjs`; ele escolheu a **A · faixa fixa no topo**.
+- `src/escalacao/aviso-versao.tsx` (arquivo novo e isolado) + 2 linhas em `screens.tsx` (import e `<AvisoVersaoNova />` dentro da home ilustrada). Diz "AS LENDAS GANHARAM CARA / saiu versão nova — toque em atualizar", com botão verde ATUALIZAR (só `location.reload()`) e ✕.
+- **Fecha uma vez, não volta mais naquele aparelho**: marca `esc-aviso-versao-v1` no `localStorage`, em try/catch (janela anônima não quebra a tela, no pior caso o aviso reaparece).
+- A chave tem VERSÃO no nome de propósito: se um dia ele quiser avisar de outra leva, nasce um `v2` com texto novo e o aviso volta — inclusive pra quem fechou o v1. Reusar a mesma chave faria o aviso ressuscitar do nada.
+- **Só existe na HOME.** Não aparece no leilão, na carreira nem no online — nada de faixa cobrindo o cabeçalho do pregão no meio de um lance. Altura FIXA de 56px, com o cabeçalho e o botão de som descendo o mesmo tanto (texto de uma linha com reticências, pra altura nunca mudar).
+- Conferido rodando de verdade em 390px e 1280px: aparece, o ✕ some com ela, e depois de recarregar não volta (`localStorage` = fechado). `npm run build` passou.
+- Reversão: apagar `aviso-versao.tsx` e as 2 linhas do `screens.tsx`. Não toca em save, conta, sala, leilão nem banco.
+- ⚠️ Os avatares das lendas JÁ estão liberados pra todos (o Diego liberou pelo Codex, commit `3420ca9` na main) — por isso o aviso pode falar deles. A linha de novidade das lendas já existe em `novidades.ts` ("As lendas ganharam rosto", 10/09).
+
 ## 11/09/2026 — Vídeo dos avatares (3 partes) + fundo preto do Messi resolvido
 
 - Pedido do Diego: *"quero um vídeo mostrando isso com detalhes e locais q aparece, faça em dois vídeos divididos"*, depois *"lembrando q de início começaremos com as lendas"*, *"mostre como ficou real também, se possível com famosos conhecidos"*, *"mantém o estilo dos últimos vídeos… vê se é melhor dois ou três, eu junto depois"* e *"não bote o Messi se ele tiver com fundo preto, ou tire o fundo preto antes"*.
