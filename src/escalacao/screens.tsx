@@ -4922,8 +4922,12 @@ export function EscCerimonia() {
           gatilho (só depois de passar por todos os elencos), tela cheia. */}
       {isLastMgr && <PremiacaoResenha mgrs={mgrs} resenha={state.resenha} />}
       {/* 🌱 CRIA DA BASE: a historinha de quem subiu do Sub-20 nesta virada
-          (o técnico deixou um contrato vencido ir e o guri tapou o buraco). */}
-      {(state.criaNews ?? []).map((n, i) => (
+          (o técnico deixou um contrato vencido ir e o guri tapou o buraco).
+          🔒 SÓ NA CARREIRA (`careerOnline`) — no rápido e no Minhas Ligas não
+          existe contrato nem Sub-20, então a caixa não tem o que fazer ali.
+          Isto é a REDE DE SEGURANÇA do conserto de 11/09: mesmo que um estado
+          velho chegue aqui com `criaNews` cheio, a tela não mostra. */}
+      {state.careerOnline && (state.criaNews ?? []).map((n, i) => (
         <div key={i} className="border-[3px] border-black rounded-2xl overflow-hidden" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
           <div className="p-3" style={{ background: 'linear-gradient(150deg,#2E7D46,#1B5E33)', color: '#fff' }}>
             <p className="font-black text-[9px] uppercase tracking-widest" style={{ color: 'rgba(255,255,255,.65)' }}>Direto da base</p>

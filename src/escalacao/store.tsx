@@ -4165,6 +4165,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       s.tactics = {}
       s.seasonNo = 1
+      // 🌱 mesma faxina do online: partida rápida NÃO herda a Cria da Base nem os
+      // eventos de jogador de uma carreira anterior — senão a historinha do Sub-20
+      // aparece na Cerimônia de um rápido (relato do Diego, 11/09).
+      s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
+      s.reserveAuction = false; s.reserveListed = {} // e nem o "modo reservas" da carreira
       // 🔨 tela de regras antes do pregão (rápido): explica moedas/auge; o jogador
       // toca "Começar o leilão" (START_STREAM_AUCTION) quando quiser. Sem intro
       // (dinastia/manager) cai direto no leilão, como sempre.
@@ -4705,6 +4711,15 @@ export function reducer(state: EscState, action: Action): EscState {
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
       s.liberta = null // 🌎 idem pra Libertadores
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
+      // 🌱 CRIA DA BASE / EVENTOS DE JOGADOR: são coisa da CARREIRA, mas esta
+      // limpeza vivia DENTRO do `if (s.careerOnline)` mais abaixo — então uma sala
+      // RÁPIDA (ou do Minhas Ligas) aberta depois de uma carreira HERDAVA as
+      // historinhas do Sub-20, e elas apareciam na Cerimônia (relato do Diego,
+      // 11/09: *"esse negócio de base tá aparecendo nos modos rápidos e Minhas
+      // Ligas"*). Fora do if, TODO jogo online nasce limpo — mesma família do
+      // conserto do `reserveAuction` aqui de cima.
+      s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
       s.tactics = {}; s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
       // desempenho (título por série, acesso) e perde na queda — sem base recorrente.
@@ -4718,9 +4733,8 @@ export function reducer(state: EscState, action: Action): EscState {
         // 🧾 livro-caixa online por técnico: zera e registra o saldo inicial de cada um
         s.careerLedgers = {}; s.careerEmpresario = {}; s.careerEmpresarioClaims = {}
         // 🧹 FAXINA ANTI-HERANÇA (04/08): mesmos campos do START solo
+        // (crias e eventos já foram zerados lá em cima, pra TODO jogo online)
         s.cpuSquads = undefined; s.copaDoneSeason = undefined
-        s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
-        s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador zerados
         for (const m of s.managers) if (m.isHuman) logFin(s, 'opening', '🏁 Saldo inicial', 100, undefined, m.id)
       }
       // 🤝 DUPLAS: chega pronto do lobby (assento → quem é dono/parceiro). A chave

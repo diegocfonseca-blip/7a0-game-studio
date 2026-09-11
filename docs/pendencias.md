@@ -1,3 +1,31 @@
+## 11/09/2026 — 🌱🐛 Cria da Base vazava pro RÁPIDO e pro MINHAS LIGAS — ✅ no ar
+
+Relato do Diego, com print: *"esse negócio de base aqui tá parecendo nos modos
+rápidos e minhas ligas online.. não era pra aparecer aqui isso de base"*.
+
+**Duas causas somadas** (as duas consertadas):
+
+1. **O estado não era limpo.** O reducer CLONA o estado anterior. A faxina que
+   zera `criaNews`/`criaNames`/`eventoTemporada` morava **dentro** do
+   `if (s.careerOnline)` do `START_ONLINE` — então sala RÁPIDA e Minhas Ligas
+   (que são `career: false`) **herdavam** as historinhas da carreira anterior.
+   O `START` (rápido solo) não limpava nada disso. Agora a faxina saiu do `if` e
+   entrou também no solo, junto do `reserveAuction` — que já tinha tido
+   exatamente esse bug em 04/08, é a mesma família.
+2. **A tela não travava.** Na Cerimônia (`screens.tsx`) o bloco das caixas verdes
+   não tinha trava de modo nenhuma: bastava `criaNews` ter algo pra desenhar.
+   Agora só desenha com `state.careerOnline` — rede de segurança pra estado velho
+   que já esteja salvo no aparelho de alguém.
+
+**Trava nova:** `scripts/testa-heranca-cria.mjs` (rodar da raiz do repo). Ele suja
+o estado de propósito e confere que rápido solo, rápido online e carreira online
+nascem limpos. No código ANTIGO ele acusa `❌ VAZOU` nos dois rápidos — foi assim
+que o conserto foi provado.
+
+**Não virou novidade na home:** é conserto de bug (*"menos bugs, que nunca lance"*).
+
+⏳ **Falta:** print do Diego confirmando que sumiu. Reverter = 1 commit isolado.
+
 ## 10/09/2026 — Copa do Mundo da carreira: organização pública concluída
 
 Complemento da liberação: CupScreen usa o visual aprovado também sem sala online. Cabeçalho com temporada/fase, Meu grupo/Todos, jogos e placares compactos, agregado/pênaltis, histórico das fases encerradas e estatísticas sem antecipar resultados. Modal da competição usa cenário e largura responsiva (até 1000px). Nomes de bots/técnicos omitidos na carreira. Relógio sincronizado continua exclusivo do online; simulação, acesso na temporada 100, intervalo de 10 temporadas, seleção/convocação, prêmio e saves intactos. QA 390/1440 em grupos, sorteio, quartas ida/volta, semis ida/volta, final e cerimônia; teste de estatísticas sem spoiler; TypeScript/build. Reversão: reverter este commit, sem apagar saves. Sala/criador de presidente e técnico continuam adiados.
