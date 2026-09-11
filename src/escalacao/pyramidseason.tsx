@@ -7144,11 +7144,19 @@ export function PyramidSeasonScreen() {
               A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
             })
             rws.sort((a, b) => ptsDe(b) - ptsDe(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
-            // 🏛️ MULTICLUBES (regra do Diego 04/08): os DOIS clubes seus contam —
-            // qualquer um deles no top-20 marca "você", e o prêmio vai pra CADA
-            // clube seu classificado (independentes até na Copa do Mundo).
-            const dormeId = state.multiClube?.id
-            const meu = (id: number) => id >= 0 && (id === youId || id === dormeId)
+            // 🏛️ SÓ O CLUBE PRINCIPAL VAI PRA COPA DO MUNDO (regra NOVA do Diego,
+            // 11/09 — substitui a de 04/08, em que os DOIS clubes contavam).
+            // Palavras dele: *"não quero mais que o segundo clube (multiclube)
+            // comprado possa ir pra Copa do Mundo, porque atrapalha ele ir pra
+            // Copa junto do primeiro time original. Até porque só o primeiro é que
+            // conta no rank global"*.
+            // ⚠️ QUEM É O PRINCIPAL: com multiclube, quando o 2º clube está NO
+            // COMANDO (`multiClubeAtivo`), o principal é o que DORME — e ele mora
+            // em `multiClube`. Sem multiclube, é o assento ativo mesmo. É a MESMA
+            // conta que o Painel do Criador usa (store.tsx), pra os dois lugares
+            // nunca discordarem sobre qual é o clube principal.
+            const principalId = state.multiClubeAtivo && state.multiClube ? state.multiClube.id : youId
+            const meu = (id: number) => id >= 0 && id === principalId
             const top16 = rws.slice(0, 24).map(r => ({ name: r.t.name, you: meu(r.t.teamId) })) // 🌍 Copa de 24 seleções (era 16, depois 20 — 17/08)
             const meusNoTop = rws.slice(0, 24).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
             // 💰 prêmio da Copa (+100): dispatch normal — no SOLO aplica direto; no
@@ -7156,7 +7164,7 @@ export function PyramidSeasonScreen() {
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
             return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)}
-              onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [youId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
+              onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
               onGoRank={() => { setTab('ranking'); setRankSub('clubes') }}

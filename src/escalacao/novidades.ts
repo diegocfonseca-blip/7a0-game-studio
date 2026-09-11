@@ -26,6 +26,7 @@ export interface Novidade {
 
 // ⚠️ SEMPRE em ordem: a mais NOVA em cima.
 export const NOVIDADES: Novidade[] = [
+  { data: '2026-09-11', emoji: '🌍', titulo: 'A Copa do Mundo é do clube principal', texto: 'Quem tem um segundo clube comprado: agora só o seu clube principal disputa a Copa do Mundo — é ele que conta no ranking global, e é ele que vai. O segundo clube segue normal em tudo o mais: liga, copas, mercado e patrimônio. (Carreira)' },
   { data: '2026-09-10', emoji: '⚽', titulo: 'As lendas ganharam rosto', texto: 'Avatares das lendas no campinho, nas cartas e na revelação do leilão, junto do novo visual da carreira: patrocínios, estádio, placares, ligas, copas e jornal. (Carreira, Rápido e Minhas Ligas)' },
   { data: '2026-09-10', emoji: '🐮', titulo: 'Nasceu o Leite de Verdade FC', texto: 'Mais um clube batizado por apoiador: o Leite de Verdade FC chega na Série A, com escudo do curral, manto creme e preto malhado com dourado e mascote própria — a Mimosa, a vaca de chapéu de palha que carimba a tela quando o time faz gol. O Barcenite FC segue no jogo, agora na Série B. (Carreira e Rápido)' },
   { data: '2026-09-09', emoji: '🐍', titulo: 'Tricolor do Arruda FC de cara nova', texto: 'O Tricolor do Arruda FC, clube batizado por apoiador, está de cara nova: o estádio do Arruda no escudo, manto tricolor com as cores medidas na camisa e a Cobra Coral de punhos fechados, que carimba a tela quando o time faz gol. (Carreira e Rápido)' },

@@ -1,3 +1,30 @@
+## 11/09/2026 — 🌍🏛️ Só o CLUBE PRINCIPAL vai pra Copa do Mundo — ✅ no ar
+
+Palavras do Diego: *"não quero mais que o segundo clube (multiclube) comprado
+possa ir pra Copa do Mundo. Porque atrapalha ele ir pra Copa do Mundo junto do
+primeiro time original. Até porque só o primeiro é que conta no rank global"*.
+
+**Isto SUBSTITUI a regra de 04/08**, que dizia o contrário: *"os DOIS clubes seus
+contam — qualquer um deles no top marca 'você', e o prêmio vai pra CADA clube seu
+classificado"*. Quem for mexer nisso depois: a regra válida é a de 11/09.
+
+**O que mudou** (`pyramidseason.tsx`, o portão da Copa):
+- só o **clube principal** é marcado como "você" no top 24;
+- o **prêmio** da Copa vai só pra ele;
+- se o principal não está no top 24, **ninguém seu vai** — mesmo que o 2º clube
+  esteja lá em cima.
+
+⚠️ **QUEM É O PRINCIPAL** (a pegadinha): com multiclube, quando o 2º clube está
+**no comando** (`multiClubeAtivo`), o principal é o que **DORME** — ele mora em
+`state.multiClube`. Sem multiclube, é o assento ativo. Usei a MESMA conta que o
+Painel do Criador já faz em `store.tsx` (07/09), pra os dois lugares nunca
+discordarem sobre qual é o clube principal.
+
+**Virou novidade na home** (não é bug, é mudança de regra que o jogador percebe):
+*"A Copa do Mundo é do clube principal"*.
+
+⏳ **Falta:** o Diego conferir numa carreira com 2 clubes. Reverter = 1 commit.
+
 ## 11/09/2026 — 🌱🐛 Cria da Base vazava pro RÁPIDO e pro MINHAS LIGAS — ✅ no ar
 
 Relato do Diego, com print: *"esse negócio de base aqui tá parecendo nos modos
