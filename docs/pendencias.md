@@ -1,3 +1,7 @@
+## 10/09/2026 — Pênalti ilustrado: piloto restrito a duas contas
+
+Diego aprovou a prévia em vídeo e pediu publicação APENAS para diego.c.fonseca@gmail.com e diego.c.fonseca2@gmail.com. PenaltyBanner usa o hook privado original de online-preview.ts (não o alias público useCareerPresentation). Goleiro e bola em arte WebP, cenário em perspectiva, seis alvos acessíveis e animação ligada à cobrança real. Regras, probabilidades, barra de força, cobrança automática e onDone/saves preservados; outros usuários mantêm o campo antigo. Sem novidades públicas nesta etapa. Artes somam 86.558 bytes; cenário abaixo de 60 KB. QA em 390/1440, seis alvos, TypeScript e build. Aguardando avaliação visual do Diego dentro do jogo. Reversão: reverter este commit isolado, sem migração ou apagar saves.
+
 ## 11/09/2026 — 🌍🏛️ Só o CLUBE PRINCIPAL vai pra Copa do Mundo — ✅ no ar
 
 Palavras do Diego: *"não quero mais que o segundo clube (multiclube) comprado

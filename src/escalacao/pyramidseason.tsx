@@ -9,6 +9,9 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useCareerPresentation as useOnlinePreview } from './presentation-release'
+import { useOnlinePreview as usePenaltyArtPreview } from './online-preview'
+import { PenaltyArt } from './penalty-art'
+import type { PenaltyArtHandle } from './penalty-art'
 import { PRESIDENT_ROOM_RELEASED } from './career-feature-release'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
@@ -2806,6 +2809,8 @@ const PEN_ZP: [number, number][] = [[20, 26], [50, 22], [80, 26], [22, 64], [50,
 const PEN_OUT: [number, number][] = [[-4, -9], [50, -17], [104, -9], [-8, 58], [50, -17], [108, 58]]
 
 function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, mascote, onDone }: { mgr: Manager; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; mascote: ReactNode | null; onDone: (scored: boolean, takerId: string) => void }) {
+  const privatePenaltyArt = usePenaltyArtPreview()
+  const penaltyArtRef = useRef<PenaltyArtHandle>(null)
   const perk = myApoioPerk() ?? APOIO_PERKS.bege
   const takers = useMemo(() => mgr.squad.filter(c => !c.fake).sort((a, b) => mid(b) - mid(a)), [mgr.squad])
   const [mode, setMode] = useState<'voce' | 'sozinho'>('voce')
@@ -2834,8 +2839,8 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
   // mesma base de cálculo do flyBall (percentual do próprio goalRef) — antes o
   // goleiro usava uma escala fixa (2.3x/1.05x) diferente da bola, então numa
   // defesa a bola voava pra um ponto e o goleiro pra outro (não parecia pegar).
-  const moveKeeper = (z: number) => { const gk = gkRef.current, g = goalRef.current; if (!gk || !g) return; const [x, y] = PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H - (y / 100 * H)); gk.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px)` }
-  const flyBall = (z: number, out: boolean) => { const ball = ballRef.current, g = goalRef.current; if (!ball || !g) return; const [x, y] = out ? PEN_OUT[z] : PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H + 18 - (y / 100 * H)); ball.style.transition = 'transform .52s cubic-bezier(.25,.7,.35,1)'; ball.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px) scale(.62)` }
+  const moveKeeper = (z: number) => { if (privatePenaltyArt) { penaltyArtRef.current?.moveKeeper(z); return } const gk = gkRef.current, g = goalRef.current; if (!gk || !g) return; const [x, y] = PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H - (y / 100 * H)); gk.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px)` }
+  const flyBall = (z: number, out: boolean) => { if (privatePenaltyArt) { penaltyArtRef.current?.flyBall(z, out); return } const ball = ballRef.current, g = goalRef.current; if (!ball || !g) return; const [x, y] = out ? PEN_OUT[z] : PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H + 18 - (y / 100 * H)); ball.style.transition = 'transform .52s cubic-bezier(.25,.7,.35,1)'; ball.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px) scale(.62)` }
   const reveal = (k: 'gol' | 'def' | 'fora') => {
     setKind(k); setRevWord(k === 'gol' ? penPick(PEN_GO) : k === 'def' ? penPick(PEN_DE) : penPick(PEN_FO)); setDots(''); setPhase('rev')
     if (k === 'gol') setCeleb(true)
@@ -2940,7 +2945,7 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
             </div>
             {mode === 'voce' && phase === 'choose' && <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎯 Mira num canto e trava a força no VERDE</p>}
             {/* CAMPO */}
-            <div style={{ position: 'relative', borderRadius: 13, overflow: 'hidden', background: 'linear-gradient(#3aa862,#2c8a4f 55%,#25793f)', border: `3px solid ${INK}`, padding: '11px 11px 0' }}>
+            {privatePenaltyArt ? <PenaltyArt ref={penaltyArtRef} aim={aim} choosing={mode === 'voce' && phase === 'choose'} onAim={setAim} /> : <div style={{ position: 'relative', borderRadius: 13, overflow: 'hidden', background: 'linear-gradient(#3aa862,#2c8a4f 55%,#25793f)', border: `3px solid ${INK}`, padding: '11px 11px 0' }}>
               <div ref={goalRef} style={{ position: 'relative', height: 122, margin: '0 6px' }}>
                 <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 6, background: '#fff', borderRadius: 2, boxShadow: '0 0 0 2px rgba(0,0,0,.25)' }} />
                 <div style={{ position: 'absolute', left: 0, top: 0, width: 6, height: '100%', background: '#fff', borderRadius: 2, boxShadow: '0 0 0 2px rgba(0,0,0,.25)' }} />
@@ -2956,7 +2961,7 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
               <div style={{ position: 'relative', height: 66 }}>
                 <div ref={ballRef} style={{ position: 'absolute', left: '50%', bottom: 13, transform: 'translateX(-50%)', fontSize: 25, zIndex: 6, filter: 'drop-shadow(0 3px 3px rgba(0,0,0,.35))' }}>⚽</div>
               </div>
-            </div>
+            </div>}
             {/* barra de força (só Você bate) */}
             {mode === 'voce' && (phase === 'choose' || phase === 'power') && (
               <div style={{ margin: '10px 0 2px' }}>
