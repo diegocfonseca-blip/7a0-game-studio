@@ -4462,9 +4462,14 @@ const copaName = (t: SimTeam) => t.you ? `${t.name} (você)` : t.name
 // revelação do vencedor (riscado/zebra) até a última cobrança pipocar na tela.
 export function pensRevealDelay(pens: [number, number]): number {
   // 🎯 11/09: conta as cobranças DE VERDADE (a mesma sequência que a tela
-  // desenha), em vez de estimar. Antes a estimativa podia liberar o vencedor
-  // antes da última bolinha pipocar — e na morte súbita comprida ela chutava 12.
-  return 0.7 + sequenciaPenaltis(pens).length * 0.85 + 0.6
+  // desenha), em vez de estimar — a estimativa antiga podia liberar o vencedor
+  // antes da última bolinha pipocar, e na morte súbita comprida chutava 12.
+  // Usa o PIOR CASO das duas remontagens possíveis (a espalhada e a simples),
+  // porque quem desenha usa a espalhada quando ela fecha: se esta conta ficasse
+  // curta, a fase virava em cima da última cobrança.
+  const a = sequenciaPenaltis(pens).length
+  const b = sequenciaPenaltis(pens, mulberry(0xC0FFEE)).length
+  return 0.7 + Math.max(a, b, 10) * 0.85 + 0.6
 }
 export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não

@@ -71,3 +71,19 @@ for (const [a, b] of [[6, 5], [5, 6], [7, 6], [9, 8]]) {
 }
 console.log('PASS placares possíveis (%d combinações) e bolinhas fechando com o placar', vistos.size)
 console.log('   distribuição:', [...vistos.entries()].sort((x, y) => y[1] - x[1]).map(([k, n]) => `${k}:${n}`).join(' '))
+
+// ── 3. a espera da fase nunca pode ser mais curta que a animação ───────────
+// (foi o "sessão de pênaltis que mal começa e não deixa terminar": a fase
+// virava em cima da última cobrança)
+const LEAD = 0.7, STEP = 0.85, RABO = 0.25
+for (const chave of vistos.keys()) {
+  const [a, b] = chave.split('x').map(Number)
+  const espera = 0.7 + Math.max(
+    sequenciaPenaltis([a, b]).length,
+    sequenciaPenaltis([a, b], mk(0xC0FFEE)).length, 10) * 0.85 + 0.6
+  for (let s = 0; s < 30; s++) {
+    const anim = LEAD + sequenciaPenaltis([a, b], mk(s + 7)).length * STEP + RABO
+    assert.ok(espera >= anim, `espera curta em ${a}×${b}: ${espera.toFixed(2)}s < ${anim.toFixed(2)}s`)
+  }
+}
+console.log('PASS a espera da fase cobre a animação em todos os placares')

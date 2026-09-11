@@ -915,7 +915,13 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   useEffect(() => {
     if (synced || liveDone) return
     let extra = 700
-    const penMs = (t: KoTie) => t.pen && (isYou(t.h) || isYou(t.a)) ? pensRevealDelay(t.pen) * 1000 : 0
+    // ⏱️ 11/09 (Diego: *"tem sessão de pênaltis que mal começa e não deixa
+    // terminar, principalmente nas fases finais"*): a espera contava SÓ a
+    // disputa do SEU confronto (`isYou`). Só que no mata-mata a tela mostra
+    // TODOS os confrontos da fase — então, quando quem batia pênalti era outro,
+    // a fase virava no meio da animação e a disputa morria pela metade. Agora a
+    // espera cobre a disputa mais longa da fase, seja de quem for.
+    const penMs = (t: KoTie) => t.pen ? pensRevealDelay(t.pen) * 1000 : 0
     if (step === GR + 3) extra += Math.max(0, ...world.qf.map(penMs)) // QF volta
     if (step === GR + 5) extra += Math.max(0, ...world.sf.map(penMs)) // SF volta
     if (step === GR + 6 && world.final.pen) extra += pensRevealDelay(world.final.pen) * 1000 // final
