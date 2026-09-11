@@ -2746,6 +2746,12 @@ export function sortedTable(league: LeagueTeam[]): LeagueTeam[] {
 }
 
 // ─── rivalidade de clássicos (só entre humanos) ──────────────────────
+// 🕵️ FOTO DA CONEXÃO — só pra CAIXA-PRETA (`caixa-preta.ts`). É leitura pura:
+// nenhuma decisão do jogo olha pra isto. Fica atualizada pelo vigia de conexão
+// que já roda de 5 em 5s; se nada atualizar, vale o valor de partida.
+let FOTO_CONEXAO: { canal: string; hostCaladoMs: number } = { canal: 'sem canal', hostCaladoMs: 0 }
+export function fotoDaConexao(): { canal: string; hostCaladoMs: number } { return FOTO_CONEXAO }
+
 export function rivKey(a: number, b: number): string { return a < b ? `${a}v${b}` : `${b}v${a}` }
 // retrospecto de um humano contra um adversário, do ponto de vista de "youId"
 export function rivalryOf(rivalries: Record<string, [number, number, number]>, youId: number, oppId: number): { w: number; l: number; d: number } {
@@ -8568,8 +8574,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.roomId) return
     const iv = setInterval(() => {
       const ch = channelRef.current
+      const st = (ch as unknown as { state?: string } | null)?.state
+      // 🕵️ retrato pra caixa-preta (não decide nada, só guarda o que está vendo)
+      FOTO_CONEXAO = { canal: st ?? 'sem canal', hostCaladoMs: Date.now() - lastHostMsgRef.current }
       if (!ch) return
-      const st = (ch as unknown as { state?: string }).state
       if (st === 'joined' || st === 'joining') return // saudável ou conectando — não mexe
       const resync = () => {
         if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })

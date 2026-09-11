@@ -6,7 +6,7 @@ import './online-visual.css'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre } from './store'
+import { lanceEhGol, useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -33,6 +33,7 @@ import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
+import { anotaTrava } from './caixa-preta'
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
@@ -3461,13 +3462,42 @@ function Envelope() {
 
   // enquanto não confirma, reenvia de tempos em tempos — cobre o host que
   // ficou um instante sem conexão (app em segundo plano etc.) e reconecta
+  const reenviosRef = useRef(0)
   useEffect(() => {
     if (!online || !pending || iSubmitted) return
     const iv = setInterval(() => {
+      reenviosRef.current += 1
       dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: pendingBidsRef.current, by: state.youUid })
     }, 4000)
     return () => clearInterval(iv)
   }, [online, pending, iSubmitted, dispatch, you.id])
+
+  // 🕵️ CAIXA-PRETA (11/09, pedido do Diego): quando o "ENVIANDO…" passa de 8s,
+  // o aparelho ANOTA CALADO o que estava vendo naquele instante — nada aparece
+  // na tela, nada muda de regra, e em partida normal isto nunca dispara. É o
+  // que faltava pra saber QUAL lado piscou (o do convidado ou o do host) em vez
+  // de chutar. Ver `caixa-preta.ts`.
+  useEffect(() => {
+    if (!online || !pending || iSubmitted) return
+    reenviosRef.current = 0
+    const t = setTimeout(() => {
+      const foto = fotoDaConexao()
+      anotaTrava({
+        room_id: state.roomId || null,
+        sala: state.roomCode || null,
+        papel: state.isHost ? 'host' : 'convidado',
+        momento: state.phase === 'resq_envelope' ? 'resq_envelope' : 'envelope',
+        setor: state.sectorIdx ?? null,
+        segundos: 8,
+        reenvios: reenviosRef.current,
+        canal: foto.canal,
+        host_calado_ms: Math.round(foto.hostCaladoMs),
+        extra: { cartas: pendingBidsRef.current.length, restante: remaining, lacrados: state.submitted.length, humanos: humanBidders.length },
+      })
+    }, 8000)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online, pending, iSubmitted])
 
   // auto-lacra ao zerar o timer. IMPORTANTE: lacra MESMO quem não pode dar lance
   // (setor completo / 22 jogadores → só assiste). Sem isso, um espectador solo

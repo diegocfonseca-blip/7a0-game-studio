@@ -1,3 +1,15 @@
+## 11/09/2026 — 🕵️ Caixa-preta do "ENVIANDO…" (aprovada pelo Diego e feita)
+
+- Gatilho: sala SV0ONH (host FalaD10, 18:22). O Diego lacrou no Rogério Ceni, o envelope não chegou no host, a tela dele ficou no "ENVIANDO…", ele apareceu como "pensando" pros outros e o setor fechou contando o envelope vazio. O que "voltou pra dar lance nos goleiros de novo" **não era bug**: era a REPESCAGEM (sobras do setor) — o Ceni ficou sem dono e voltou nela.
+- **Por que a investigação sempre parava**: o jogo não guardava NADA do instante da travada, então nunca dava pra saber qual lado piscou — a conexão do convidado ou a do host. Toda conversa terminava em chute.
+- **O que foi feito**: tabela `esc_travas` (migração `caixa_preta_travas_leilao`) + `src/escalacao/caixa-preta.ts` + um `useEffect` no `<Envelope>` do `screens.tsx`. Quando o "ENVIANDO…" passa de 8s, o aparelho anota UMA linha: sala, papel (host/convidado), momento, setor, segundos, quantos reenvios já tentou, estado do rádio, há quanto tempo o host estava calado, e quantas cartas tinham no envelope.
+- **Condições que o Diego pôs, e como cada uma foi respeitada**: nada aparece na tela (nenhum texto, nenhum botão — ele recusou explicitamente o aviso "não foi, toca pra mandar de novo"); não muda regra, lance, tempo, lacre nem martelo (o código só LÊ); não pesa (em partida normal não escreve nada; só grava quando o erro acontece, no máximo 1 linha por minuto por aparelho); e se a caixa-preta falhar, falha calada (tudo em try/catch, escrita solta sem await).
+- `fotoDaConexao()` no `store.tsx` é leitura pura pra isto — nenhuma decisão do jogo olha pra ela.
+- Ninguém lê a tabela pelo jogo (sem policy de select): é só pra investigação.
+- Conferido: leilão offline inteiro (lance → lacrar → revelação) roda igual, sem erro de tela, e o "ENVIANDO…" não existe fora do online. `npm run build` passou.
+- Pra apagar: remover `caixa-preta.ts`, a chamada no `screens.tsx` e a tabela. Nada mais depende dela.
+- 📌 **Achado paralelo, ainda NÃO consertado**: a regra de permissão da mesa de recados (`room_acoes`) só libera os dois tipos de LANCE — o recado de "acabou o tempo, fecha" é rejeitado calado desde 28/08 (prova: 1.019 linhas guardadas, ZERO desse tipo). É o caminho reserva do fechamento, e é ele que evita sala congelada no 0s. Conserto é uma linha no banco; esperando o Diego.
+
 ## 11/09/2026 — 🌐 Tradução do futebol pra inglês — ETAPA 1 de 6 (fundação + home + montar sala)
 
 - Pedido do Diego: *"preciso q vc faça tradução do jogo p english de todo o jogo e tenha esse botão de traduzir, igual fizemos pro bidlegends"*. **Revoga** a regra antiga do `CLAUDE.md` ("o futebol segue 100% em PT"). `CLAUDE.md` e `lang.ts` já foram atualizados.
