@@ -1,5 +1,12 @@
 <!doctype html><html><head><meta charset="utf-8"><title>bancada · condição/gás na aba Elenco</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800;900&display=swap" rel="stylesheet">
-<style>body{background:#F4ECD6;margin:0;padding:12px;font-family:Arial}#root{max-width:430px;margin:0 auto}</style>
-</head><body><div id="root"></div>
+<style>
+body{background:#F4ECD6;margin:0;padding:12px;font-family:Arial}#root{max-width:430px;margin:0 auto}
+#cap{position:fixed;left:0;right:0;top:0;z-index:99;background:#0C0C0C;color:#FFC400;font-family:Oswald,Arial;font-weight:900;text-transform:uppercase;font-size:19px;line-height:1.1;padding:12px 16px 10px;text-align:center;border-bottom:4px solid #FFC400;display:none}
+#cap small{display:block;color:#fff;font-weight:700;font-size:12.5px;text-transform:none;margin-top:4px;font-family:Arial}
+body.video #cap{display:block} body.video #root{padding-top:66px}
+</style></head><body>
+<div id="cap"></div>
+<div id="root"></div>
+<script>if (location.search.includes('video')) document.body.classList.add('video')</script>
 <script type="module" src="/scripts/teste-condicao/main.tsx"></script></body></html>

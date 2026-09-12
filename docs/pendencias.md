@@ -56,8 +56,18 @@ Como está feito (`src/escalacao/condicao.ts`, módulo puro + testes em
   por temporada — o 2× decide QUEM, não QUANTOS; lesão extra por cansaço ficou
   pra depois, se ele quiser).
 
-⏳ Falta: OK do Diego no print real → publicar na main (junto ou não com a
-tradução do APOIE/pênalti/eventos, que também espera a palavra dele).
+✅ **PUBLICADO na main em 12/09** (condição + saída do médico + tradução do
+APOIE/pênalti/eventos), deploys verdes. Quem já está em C/B/A liga na PRÓXIMA
+RODADA (`condicaoDesdeR`), todo mundo em 100%.
+
+🎬 **Vídeos das novidades** (pedido dele: *"mande mockup separado em vídeo"*):
+gravados com Playwright em cima dos componentes REAIS — `scripts/teste-penalti/`
+(monta o `PenaltyBanner`) e `scripts/teste-condicao/?video=1&semguia=1` (monta o
+`SquadTab`, com RODIZIAR e "próxima rodada" funcionando pra barrinha animar).
+Roteiro/gravação/conversão mp4 ficou no scratchpad (`grava-videos.mjs`, ffmpeg
+estático via `ffmpeg-static`) — se precisar regravar, é reescrever esse roteiro:
+abre a bancada, troca a legenda `window.__cap()`, clica, `recordVideo` do
+Playwright, converte com ffmpeg (540×960, h264, yuv420p).
 
 ## 12/09/2026 — 🌐 Tradução: modal do APOIE, pênalti e eventos · 😓 CONDIÇÃO/GÁS proposta (aguardando escolha)
 
