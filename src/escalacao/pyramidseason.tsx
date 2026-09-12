@@ -6992,7 +6992,7 @@ export function PyramidSeasonScreen() {
             <>
               {/* 👉 A DECISÃO DA VEZ fica sozinha em cima. O resultado da temporada
                   passada desceu pros recibos, depois do botão verde. */}
-              {!sponsorBetOk && <SeloSuaVez texto={`1 decisão pra começar a T${state.seasonNo ?? 1}`} />}
+              {!sponsorBetOk && <SeloSuaVez texto={tr(`1 decisão pra começar a T${state.seasonNo ?? 1}`, `1 decision to start S${state.seasonNo ?? 1}`)} />}
               {/* 🎖️ fielBrandId segue a MESMA regra que sponsorBetRewards usa pra
                   garantir o mínimo: acertou a meta na temporada PASSADA com essa marca. */}
               <SponsorBetBanner cinematic={privateCareer} div={me.div}
@@ -7353,7 +7353,7 @@ export function PyramidSeasonScreen() {
         {/* 🪜 com a barra de baixo ligada as pílulas somem daqui — são as MESMAS 5
             abas, só que agora no rodapé (não rolam junto com o conteúdo). */}
         <div style={{ display: barraOn ? 'none' : 'flex', gap: 6, marginBottom: 12 }}>
-          {([['jogos', '🗓️', 'Jogos'], ['tabelas', '📊', 'Tabelas'], ['elenco', '👥', 'Elenco'], ['ranking', '🏆', 'Rank'], ['estadio', '🏟️', 'Clube']] as [typeof tab, string, string][]).map(([t, ic, label]) => (
+          {([['jogos', '🗓️', tr('Jogos', 'Matches')], ['tabelas', '📊', tr('Tabelas', 'Tables')], ['elenco', '👥', tr('Elenco', 'Squad')], ['ranking', '🏆', 'Rank'], ['estadio', '🏟️', tr('Clube', 'Club')]] as [typeof tab, string, string][]).map(([t, ic, label]) => (
             <button key={t} onClick={() => setTab(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
           ))}
         </div>
@@ -7367,7 +7367,7 @@ export function PyramidSeasonScreen() {
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
             <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
             <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? 'Estrutura' : 'Estádio'], ['financas', '💰', 'Finanças'], ['patrocinio', '🤝', 'Patrocínio'], ...(privateCareer && PRESIDENT_ROOM_RELEASED ? [['presidencia', '🏛️', 'Presidência']] : []), ['escritorio', '💼', 'Agência']]) as [typeof clubeSub, string, string][])
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(privateCareer && PRESIDENT_ROOM_RELEASED ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
                 .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
@@ -7412,21 +7412,21 @@ export function PyramidSeasonScreen() {
                   const bicoOn = (state.seasonNo ?? 1) >= 3 && (myDiv === 'V' || myDiv === 'D')
                   const valor = myDiv === 'V' ? 2 : 4
                   const BRANDS: { k: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; ic: string; bg: string; nome: string; cargo: string }[] = [
-                    { k: 'vadico', ic: '🚗', bg: '#FDE68A', nome: 'Vadico Veículos', cargo: 'vendedor nas folgas' },
-                    { k: 'maxjoias', ic: '💍', bg: '#F5D0E8', nome: 'Max Jóias', cargo: 'atendente na loja' },
-                    { k: 'ero', ic: '🦷', bg: '#CFE8FB', nome: 'Ero Dentista', cargo: 'recepcionista' },
-                    { k: 'reidastintas', ic: '🎨', bg: '#FBD0C6', nome: 'Rei das Tintas', cargo: 'pintor de parede nas folgas' },
+                    { k: 'vadico', ic: '🚗', bg: '#FDE68A', nome: 'Vadico Veículos', cargo: tr('vendedor nas folgas', 'salesman on days off') },
+                    { k: 'maxjoias', ic: '💍', bg: '#F5D0E8', nome: 'Max Jóias', cargo: tr('atendente na loja', 'shop assistant') },
+                    { k: 'ero', ic: '🦷', bg: '#CFE8FB', nome: 'Ero Dentista', cargo: tr('recepcionista', 'receptionist') },
+                    { k: 'reidastintas', ic: '🎨', bg: '#FBD0C6', nome: 'Rei das Tintas', cargo: tr('pintor de parede nas folgas', 'wall painter on days off') },
                   ]
                   return (
                     <div style={{ marginTop: 10 }}>
-                      <UnlockBanner k="bico" tag="🕴️ novo bico" title="Bico de Folga" ctaBg={GREEN} ctaColor="#fff">
-                        O clube ainda não paga bem — nos dias de folga, você pode trabalhar num dos patrocinadores pra ajudar no caixa. Escolha um abaixo, de graça. Troca quando quiser. Sobe pra Série C? Não precisa mais.
+                      <UnlockBanner k="bico" tag={tr('🕴️ novo bico', '🕴️ new side job')} title={tr('Bico de Folga', 'Side Job')} ctaBg={GREEN} ctaColor="#fff">
+                        {tr('O clube ainda não paga bem — nos dias de folga, você pode trabalhar num dos patrocinadores pra ajudar no caixa. Escolha um abaixo, de graça. Troca quando quiser. Sobe pra Série C? Não precisa mais.', 'The club doesn\'t pay well yet — on your days off you can work for one of the sponsors to help the till. Pick one below, for free. Switch whenever you like. Reach Série C? You won\'t need it anymore.')}
                       </UnlockBanner>
                       {!bicoOn ? (
                         <div style={{ ...box('#FBF6E9'), padding: 12, textAlign: 'center' }}>
-                          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: 0 }}>🔒 Bico de Folga</p>
+                          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: 0 }}>{tr('🔒 Bico de Folga', '🔒 Side Job')}</p>
                           <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a7d59', margin: '4px 0 0', lineHeight: 1.4 }}>
-                            {(state.seasonNo ?? 1) < 3 ? 'Destrava na Temporada 3, enquanto o clube tiver na Várzea ou Série D.' : 'Só vale na Várzea ou Série D — clube grande já se sustenta sozinho.'}
+                            {(state.seasonNo ?? 1) < 3 ? tr('Destrava na Temporada 3, enquanto o clube tiver na Várzea ou Série D.', 'Unlocks in Season 3, while the club is in Várzea or Série D.') : tr('Só vale na Várzea ou Série D — clube grande já se sustenta sozinho.', 'Only in Várzea or Série D — a big club supports itself.')}
                           </p>
                         </div>
                       ) : state.careerBico ? (() => {
@@ -7436,7 +7436,7 @@ export function PyramidSeasonScreen() {
                             <div style={{ background: `linear-gradient(160deg, ${GREEN}, #0e4a22)`, padding: '13px 14px', display: 'flex', alignItems: 'center', gap: 11, color: '#fff' }}>
                               <span style={{ width: 44, height: 44, borderRadius: 11, border: `2.5px solid ${INK}`, background: atual.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{atual.ic}</span>
                               <div style={{ minWidth: 0, flex: 1 }}>
-                                <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>🕴️ seu bico de folga</p>
+                                <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>{tr('🕴️ seu bico de folga', '🕴️ your side job')}</p>
                                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '1px 0 0' }}>{atual.nome}</p>
                                 <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', margin: '1px 0 0' }}>{atual.cargo}</p>
                               </div>
@@ -7447,12 +7447,12 @@ export function PyramidSeasonScreen() {
                             </div>
                             <div style={{ padding: '9px 12px' }}>
                               {!bicoTrocando ? (
-                                <button onClick={() => setBicoTrocando(true)} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', background: GOLD, color: INK, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>🔁 Trocar de bico</button>
+                                <button onClick={() => setBicoTrocando(true)} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', background: GOLD, color: INK, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>{tr('🔁 Trocar de bico', '🔁 Change side job')}</button>
                               ) : (
                                 <>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 7px' }}>
-                                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: 0 }}>Escolher outro:</p>
-                                    <span onClick={() => setBicoTrocando(false)} style={{ fontSize: 9.5, fontWeight: 800, color: '#8a8069', textDecoration: 'underline', cursor: 'pointer' }}>cancelar</span>
+                                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: 0 }}>{tr('Escolher outro:', 'Pick another:')}</p>
+                                    <span onClick={() => setBicoTrocando(false)} style={{ fontSize: 9.5, fontWeight: 800, color: '#8a8069', textDecoration: 'underline', cursor: 'pointer' }}>{tr('cancelar', 'cancel')}</span>
                                   </div>
                                   {BRANDS.map(b => {
                                     const isCur = b.k === state.careerBico!.brandId
@@ -7463,7 +7463,7 @@ export function PyramidSeasonScreen() {
                                           <span style={{ display: 'block', fontWeight: 800, fontSize: 10, ...OSWALD }}>{b.nome}</span>
                                           <span style={{ fontSize: 8, color: '#8a8069', fontWeight: 700 }}>{b.cargo}</span>
                                         </span>
-                                        {isCur && <span style={{ fontSize: 8, fontWeight: 900, color: GREEN, textTransform: 'uppercase' }}>atual</span>}
+                                        {isCur && <span style={{ fontSize: 8, fontWeight: 900, color: GREEN, textTransform: 'uppercase' }}>{tr('atual', 'current')}</span>}
                                       </button>
                                     )
                                   })}
@@ -7474,7 +7474,7 @@ export function PyramidSeasonScreen() {
                         )
                       })() : (
                         <div style={{ ...box('#fff'), padding: 12 }}>
-                          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px' }}>Escolha seu bico — de graça</p>
+                          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px' }}>{tr('Escolha seu bico — de graça', 'Pick your side job — free')}</p>
                           {BRANDS.map(b => (
                             <button key={b.k} onClick={() => dispatch({ type: 'SET_BICO', brand: b.k })} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 10px', marginBottom: 7, background: '#FBF6E9', cursor: 'pointer', textAlign: 'left' }}>
                               <span style={{ width: 34, height: 34, borderRadius: 9, border: `2px solid ${INK}`, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{b.ic}</span>
@@ -7484,7 +7484,7 @@ export function PyramidSeasonScreen() {
                               </span>
                             </button>
                           ))}
-                          <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 12.5, color: GREEN, ...OSWALD, margin: '4px 0 0' }}>+{valor}🪙 por temporada</p>
+                          <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 12.5, color: GREEN, ...OSWALD, margin: '4px 0 0' }}>+{valor}🪙 {tr('por temporada', 'per season')}</p>
                         </div>
                       )}
                     </div>
