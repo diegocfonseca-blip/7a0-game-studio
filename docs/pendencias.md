@@ -1,3 +1,24 @@
+## 12/09/2026 — 🍀7️⃣ SEVEN CITY de cara nova (arte do dono) — NO BRANCH, esperando OK do Diego
+
+Diego mandou a prancha nova (escudo trevo/7 dourado, mascote trevo de terno e
+cartola, camisa verde-mata/creme/dourado, "SORTE TAMBÉM JOGA") e pediu: *"atualize
+o escudo, manto e mascote"*.
+- Recorte com chroma verde (`scratchpad/seven/recorta.py`, componentes via scipy):
+  escudo `sevencity-escudo.webp` 248×360 **27 KB** (q80) · mascote
+  `sevencity-mascote.webp` 303×440 **43 KB** · camisa em `scripts/kits/sevencity-camisa.webp`
+  (só pro post). Conferido sobre creme e verde-escuro; moldura vazia 0%.
+- Código: `escudos.tsx` (SVG azul-marinho saiu; webp + 4 formas do nome novo "Seven
+  City FC"), `mascotes.tsx` (leão `leao_seven` saiu; `trevo_seven` + nome PROVISÓRIO
+  "O Trevo"), `manto.ts` (glaucomiranda: `#032F13` verde-mata + `#F8EEDC` creme,
+  medidos na camisa; 3ª cor `#DCAC49` dourado em `trevo_seven`).
+- **CARIMBO_GOL continua `sete_seven`** (o 7 dourado aprovado em 15/08) — perguntei
+  ao Diego se troca pro Trevo; o post gerado diz "o Trevo carimba".
+- ⏳ **Falta (depois do OK):** publicar na main + **banco**: `update esc_socios set
+  manto_c1='#032F13', manto_c2='#F8EEDC', mascote_key='trevo_seven' where
+  email='glaucomiranda@outlook.com'` (hoje está `leao_seven` / dourado+azul).
+  Post: `node scripts/mockup-batismo.mjs --clube "Seven City" --serie A --renovacao
+  --camisa scripts/kits/sevencity-camisa.webp …` (sem `--coracao`: não sabemos).
+
 ## 12/09/2026 — 😓 CONDIÇÃO / GÁS do jogador (carreira solo) — FEITO no branch, aguardando OK do print
 
 Decisões do Diego (todas no chat de 12/09):

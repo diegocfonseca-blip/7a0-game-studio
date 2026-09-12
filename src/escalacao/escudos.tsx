@@ -41,6 +41,7 @@ import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus 
 import bagresWallStEscudoImg from './img/bagreswallst-escudo.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09 (substitui o SVG desenhado a mao de 10/08)
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
+import sevenCityEscudoImg from './img/sevencity-escudo.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 12/09 (era SVG à mão)
 import leiteDeVerdadeEscudoImg from './img/leitedeverdade-escudo.webp' // 🐮 Leite de Verdade FC (brunolopesmiranda15): arte do dono, 10/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
@@ -760,29 +761,27 @@ const ferrariSCRender = (size: number) => (
   <img src={ferrariEscudoImg} height={size} width={size} alt="Ferrari SC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
-// 🦁7️⃣ SEVEN CITY (batismo do glaucomiranda, Lenda fundador nº42, ex-Apogeu FC) —
-// homenagem ao Seven Gamer (@sevengamersp): coroa + 7 dourado no azul-marinho.
-const sevenCityRender = (size: number) => {
-  const w = Math.round(size * 190 / 220)
-  return (
-    <svg width={w} height={size} viewBox="0 0 190 220" aria-label="Seven City" role="img" style={{ flex: 'none', display: 'block' }}>
-      <path d="M55 38 L64 16 L80 32 L95 8 L110 32 L126 16 L135 38 Z" fill="#C9A227" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-      <rect x="55" y="36" width="80" height="10" rx="4" fill="#C9A227" stroke={INK} strokeWidth="4" />
-      <path d="M30 58 Q95 44 160 58 L156 140 Q150 185 95 208 Q40 185 34 140 Z" fill="#C9A227" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-      <path d="M42 68 Q95 56 148 68 L145 138 Q139 175 95 194 Q51 175 45 138 Z" fill="#12256B" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-      <path d="M66 92 L128 92 L124 112 L98 174 L74 174 L100 114 L63 114 Z" fill="#C9A227" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-    </svg>
-  )
-}
+// 🍀7️⃣ SEVEN CITY (batismo do glaucomiranda, Lenda fundador nº42, ex-Apogeu FC) —
+// homenagem ao Seven Gamer (@sevengamersp). 12/09: o dono mandou arte NOVA (trevo
+// da sorte, verde e dourado, "SORTE TAMBÉM JOGA") — o escudo azul-marinho em SVG
+// saiu e entrou o .webp dele, 248x360, então a largura sai da PROPORÇÃO real.
+const sevenCityRender = (size: number) => (
+  <img src={sevenCityEscudoImg} height={size} width={Math.round(size * 248 / 360)} alt="Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
 // automático. É só adicionar aqui quando alguém comprar.
 export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
-  // 🦁7️⃣ Seven City (glaucomiranda, Lenda fundador nº42, ex-Apogeu FC) — homenagem ao
-  // Seven Gamer (@sevengamersp). Coroa + 7 dourado no escudo azul-marinho.
+  // 🍀7️⃣ Seven City (glaucomiranda, Lenda fundador nº42, ex-Apogeu FC) — homenagem ao
+  // Seven Gamer (@sevengamersp). Arte nova do dono em 12/09 (trevo, verde e dourado).
   // 🩹 15/08: registrado nos 3 nomes (o clube nasceu como "Seven FC" por engano e
   // ficou ~1h no ar) — assim nenhum save antigo cai no escudo automático.
+  // 12/09: + as 4 formas do nome novo da camisa ("Seven City FC").
   'Seven City': sevenCityRender,
+  'Seven City FC': sevenCityRender,
+  'Seven City EC': sevenCityRender,
+  'SEVEN CITY': sevenCityRender,
+  'SEVEN CITY FC': sevenCityRender,
   // 🏎️⚽ Ferrari SC (adriano) — piloto na bola (mesma arte da mascote), todos os nomes
   // 🐛 FIX 14/08 (relato do Diego: "logo não aparece"): o time DE VERDADE se chama
   // 'SC Ferrari' (data.ts, ex-Painitto FC) — o registro só tinha 'Ferrari SC'
