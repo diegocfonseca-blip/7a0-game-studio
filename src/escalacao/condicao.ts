@@ -46,6 +46,11 @@
 // 3 Crias da Base que os eventos já usam.
 import { CONDICAO_ON } from './career-feature-release'
 
+// 🧪 contas de TESTE: pra elas o gás liga na próxima rodada em QUALQUER divisão
+// (Diego, 12/09: as carreiras dele estão na Várzea e ele precisa VER a regra sem
+// esperar chegar na C). Pra todo mundo mais, continua valendo só da Série C.
+export const CONDICAO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+
 export const GAS_JOGO = 7      // desconto por jogo como titular
 export const GAS_BANCO = 15    // recuperação por rodada no banco (era 20; Diego achou rápido demais)
 export const GAS_CANSADO = 35  // abaixo disto = 😓

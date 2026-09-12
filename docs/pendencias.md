@@ -1,4 +1,4 @@
-## 12/09/2026 — 🍀7️⃣ SEVEN CITY de cara nova (arte do dono) — NO BRANCH, esperando OK do Diego
+## 12/09/2026 — 🍀7️⃣ SEVEN CITY de cara nova (arte do dono) — ✅ PUBLICADO na main (f6119b4) + banco atualizado
 
 Diego mandou a prancha nova (escudo trevo/7 dourado, mascote trevo de terno e
 cartola, camisa verde-mata/creme/dourado, "SORTE TAMBÉM JOGA") e pediu: *"atualize
@@ -11,13 +11,26 @@ o escudo, manto e mascote"*.
   City FC"), `mascotes.tsx` (leão `leao_seven` saiu; `trevo_seven` + nome PROVISÓRIO
   "O Trevo"), `manto.ts` (glaucomiranda: `#032F13` verde-mata + `#F8EEDC` creme,
   medidos na camisa; 3ª cor `#DCAC49` dourado em `trevo_seven`).
-- **CARIMBO_GOL continua `sete_seven`** (o 7 dourado aprovado em 15/08) — perguntei
-  ao Diego se troca pro Trevo; o post gerado diz "o Trevo carimba".
-- ⏳ **Falta (depois do OK):** publicar na main + **banco**: `update esc_socios set
-  manto_c1='#032F13', manto_c2='#F8EEDC', mascote_key='trevo_seven' where
-  email='glaucomiranda@outlook.com'` (hoje está `leao_seven` / dourado+azul).
-  Post: `node scripts/mockup-batismo.mjs --clube "Seven City" --serie A --renovacao
-  --camisa scripts/kits/sevencity-camisa.webp …` (sem `--coracao`: não sabemos).
+- ✅ **CARIMBO_GOL agora é o TREVO** (`trevo_seven`) — Diego: *"passa a ser o trevo e
+  pode publicar"*. O 7 dourado (`SETE_SEVEN`) ficou no código sem uso.
+- ✅ **Banco feito** (`esc_socios` de glaucomiranda: `manto_c1='#032F13'`,
+  `manto_c2='#F8EEDC'`, `mascote_key='trevo_seven'`). Novidade na home com `en`.
+  Post gerado com `mockup-batismo.mjs --renovacao --camisa scripts/kits/sevencity-camisa.webp`
+  (sem `--coracao`: não sabemos o time de coração dele).
+
+## 12/09/2026 — 🧪 GÁS: conta de teste do Diego liga em QUALQUER divisão
+
+Diego: *"ainda não atualizou a condição física"*. Fui olhar os saves dele na nuvem
+(`esc_pyramid_saves`): a carreira mais recente (Neymarzetti, T18) é **formato
+antigo** — sem `agenciaOn` e sem `careerDivision` — então, como TODA regra nova de
+carreira (eventos, contratos, escada), ela nunca ganha o gás; a outra (Neymarzetti,
+T9) está na **Várzea**, e a regra dele é "liga só quando sobe pra C". Ou seja: a
+condição ESTAVA no ar, só não na carreira dele — comportamento correto, não bug.
+Pra ele conseguir VER sem esperar chegar na C: `CONDICAO_TESTERS` em `condicao.ts`
+(só `diego.c.fonseca@gmail.com`) — pra essa conta o PLAY_ROUND liga o gás na
+próxima rodada em qualquer divisão (mesma mecânica `condicaoDesdeR`, todos em
+100%). Pra todo mundo mais, continua só da Série C. Precisa da carreira com
+Agência (a T9 tem; a T18 antiga não).
 
 ## 12/09/2026 — 😓 CONDIÇÃO / GÁS do jogador (carreira solo) — FEITO no branch, aguardando OK do print
 
