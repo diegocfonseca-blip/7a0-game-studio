@@ -1141,7 +1141,7 @@ export function EscLobby() {
         await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
         clearSavedRoom()
         setRoom(null); setPlayers([]); setPhase('menu')
-        setRoomError('⏱️ Essa partida começou sem você (entrou bem na hora do início). Espera o host chamar no "Jogar de novo" ou entra em outra sala.')
+        setRoomError(tr('⏱️ Essa partida começou sem você (entrou bem na hora do início). Espera o host chamar no "Jogar de novo" ou entra em outra sala.', '⏱️ That match started without you (you joined right at kick-off). Wait for the host to call "Play again" or join another room.'))
         return true // já navegou (pro menu, com aviso) — não fica re-tentando
       }
       dispatch({
@@ -1262,10 +1262,10 @@ export function EscLobby() {
         const again = (await supabase.from('game_rooms').select('*').eq('id', rd.id).maybeSingle()).data
         if (again) rd = again as RoomInfo
       }
-      setRoomError('Não consegui retomar a partida agora. Tente de novo em instantes.')
+      setRoomError(tr('Não consegui retomar a partida agora. Tente de novo em instantes.', 'Couldn\'t resume the match right now. Try again in a moment.'))
     } catch {
       // erro de rede (backend fora): não trava o loading — libera pra poder sair
-      setRoomError('Servidor instável agora. Tente de novo, ou toque em "Sair da sala".')
+      setRoomError(tr('Servidor instável agora. Tente de novo, ou toque em "Sair da sala".', 'Server unstable right now. Try again, or tap "Leave the room".'))
     } finally {
       setLoading(false) // NUNCA deixa o loading preso (senão o botão Sair fica desabilitado)
     }
@@ -1385,7 +1385,7 @@ export function EscLobby() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) setAuthError(friendlyAuthErr(error.message))
       } else {
-        if (!displayName.trim()) { setAuthError('Escolha o nome do seu time.'); setLoading(false); return }
+        if (!displayName.trim()) { setAuthError(tr('Escolha o nome do seu time.', 'Choose your team name.')); setLoading(false); return }
         // ✉️ trava anti-bounce: e-mail com cara de erro de digitação/temporário não cadastra
         const prob = emailProblema(email)
         if (prob) { setAuthError(prob); setLoading(false); return }
@@ -1405,7 +1405,7 @@ export function EscLobby() {
   // 🔑 ESQUECI A SENHA: manda o email de redefinição pro endereço digitado.
   async function handleForgot() {
     const em = email.trim().toLowerCase()
-    if (!em) { setAuthError('Digite seu email aí em cima primeiro — aí eu mando o link de redefinição.'); return }
+    if (!em) { setAuthError(tr('Digite seu email aí em cima primeiro — aí eu mando o link de redefinição.', 'Type your e-mail up there first — then I\'ll send the reset link.')); return }
     // ✉️ trava anti-bounce: não manda link pra endereço com cara de erro (voltaria)
     const prob = emailProblema(em)
     if (prob) { setAuthError(prob); return }
@@ -1421,7 +1421,7 @@ export function EscLobby() {
 
   // 🔑 salva a nova senha (depois de voltar pelo link de redefinição)
   async function handleSaveNewPw() {
-    if (newPw.length < 6) { setAuthError('A senha precisa de pelo menos 6 caracteres.'); return }
+    if (newPw.length < 6) { setAuthError(tr('A senha precisa de pelo menos 6 caracteres.', 'The password needs at least 6 characters.')); return }
     setLoading(true); setAuthError('')
     try {
       const { error } = await supabase.auth.updateUser({ password: newPw })
@@ -1469,7 +1469,7 @@ export function EscLobby() {
         // partida ao vivo), a trava passa a EXPLICAR e a DESTRAVAR na mesma tela:
         // um toque encerra as salas paradas, sem precisar entrar em cada uma.
         setSalasPresas(abertas.map(r => r.code))
-        setRoomError(`Você já tem 2 salas abertas (${abertas.map(r => r.code).join(' e ')}) — é o máximo por pessoa, pra lista de salas não encher de sala vazia. Se você já saiu delas, é só encerrar aqui embaixo.`)
+        setRoomError(getLang() === 'en' ? `You already have 2 open rooms (${abertas.map(r => r.code).join(' and ')}) — that's the max per person, so the room list doesn't fill with empty rooms. If you already left them, just close them below.` : `Você já tem 2 salas abertas (${abertas.map(r => r.code).join(' e ')}) — é o máximo por pessoa, pra lista de salas não encher de sala vazia. Se você já saiu delas, é só encerrar aqui embaixo.`)
         setLoading(false); return
       }
     }
@@ -1483,7 +1483,7 @@ export function EscLobby() {
     // temporada. O campo fica no quadro da liga, lá na criação.
     const name = cutName(roomName.trim() || `${roomMode === 'liga' ? 'Liga' : 'Sala'} do ${nameOf()}`)
     // sala fechada: exige uma senha
-    if (roomLocked && !roomPw.trim()) { setRoomError('Digite uma senha ou desmarque "sala fechada".'); setLoading(false); return }
+    if (roomLocked && !roomPw.trim()) { setRoomError(tr('Digite uma senha ou desmarque "sala fechada".', 'Type a password or turn off "locked room".')); setLoading(false); return }
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
     // genérico "sala fechada" nem aparece no modo liga).
     const ligaMode = ligaOn && roomMode === 'liga'
@@ -1507,7 +1507,7 @@ export function EscLobby() {
     // caminho furar, criar uma sala de modo que a conta NÃO tem viraria uma sala
     // rápida disfarçada de carreira. Aqui recusa antes de escrever no banco.
     if ((roomMode === 'carreira' && !canCareer) || (roomMode === 'elenco' && !salaElenco) || (roomMode === 'mundo' && !mundoOn)) {
-      setRoomError('Esse modo ainda está em construção — em breve libera pra todo mundo! Por enquanto dá pra jogar no ⚡ Rápido.')
+      setRoomError(tr('Esse modo ainda está em construção — em breve libera pra todo mundo! Por enquanto dá pra jogar no ⚡ Rápido.', 'That mode is still under construction — it opens to everyone soon! For now you can play ⚡ Quick.'))
       setLoading(false); return
     }
     const liga = ligaOn && roomMode === 'liga'
@@ -1527,11 +1527,11 @@ export function EscLobby() {
     // pra isso. Sem a opção "sem senha" some junto uma pilha de regra que só existia
     // pra tapar o buraco dela (janela de horário, expirar em 30 min, "primeira vez").
     if (liga && !ligaPw.trim()) {
-      setRoomError('🔒 A liga precisa de uma SENHA. Ela é a casa da sua turma: só entra quem tem o código E a senha. Se a ideia é jogar com quem aparecer, use o ⚡ Rápido — é feito pra isso e não guarda nada.')
+      setRoomError(tr('🔒 A liga precisa de uma SENHA. Ela é a casa da sua turma: só entra quem tem o código E a senha. Se a ideia é jogar com quem aparecer, use o ⚡ Rápido — é feito pra isso e não guarda nada.', '🔒 The league needs a PASSWORD. It is your crew\'s home: only those with the code AND the password get in. If the idea is to play with whoever shows up, use ⚡ Quick — it is made for that and keeps nothing.'))
       setLoading(false); return
     }
     if (liga && !canLiga) {
-      setRoomError('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".')
+      setRoomError(tr('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".', '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".'))
       setLoading(false); return
     }
     // 📅 DIA E HORA TÊM QUE ESTAR PREENCHIDOS (achado em 29/08, antes do 1º teste
@@ -1546,7 +1546,7 @@ export function EscLobby() {
     if (liga) {
       const quando = new Date(`${ligaData}T${ligaHora}`)
       if (!ligaData || !ligaHora || Number.isNaN(quando.getTime())) {
-        setRoomError('📅 Falta dizer QUANDO vocês jogam. Preencha o dia e a hora — é isso que segura a liga na lista até a galera chegar (sala sem horário some quando esvazia).')
+        setRoomError(tr('📅 Falta dizer QUANDO vocês jogam. Preencha o dia e a hora — é isso que segura a liga na lista até a galera chegar (sala sem horário some quando esvazia).', '📅 You still need to say WHEN you play. Fill in the day and time — that is what keeps the league on the list until the crew arrives (a room with no time disappears when it empties).'))
         setLoading(false); return
       }
       ligaAt = quando.toISOString()
@@ -1561,7 +1561,7 @@ export function EscLobby() {
         .select('id', { count: 'exact', head: true })
         .eq('host_id', user.id).eq('game_state->>mode', 'liga')
       if ((count ?? 0) >= MAX_LIGAS) {
-        setRoomError(`Você já tem ${MAX_LIGAS} ligas — é o máximo por pessoa. Pra criar outra, entre numa delas em "🏆 Minhas ligas" e use "🗑️ Excluir a liga". (Pra JOGAR não tem limite: dá pra estar em quantas ligas quiser.)`)
+        setRoomError(getLang() === 'en' ? `You already have ${MAX_LIGAS} leagues — that's the max per person. To create another, open one of them in "🏆 My leagues" and use "🗑️ Delete the league". (To PLAY there is no limit: you can be in as many leagues as you like.)` : `Você já tem ${MAX_LIGAS} ligas — é o máximo por pessoa. Pra criar outra, entre numa delas em "🏆 Minhas ligas" e use "🗑️ Excluir a liga". (Pra JOGAR não tem limite: dá pra estar em quantas ligas quiser.)`)
         setLoading(false); return
       }
     }
@@ -1579,7 +1579,7 @@ export function EscLobby() {
         : code2 === 'PGRST116' ? 'a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.'
         : code2 === '23505' ? 'código repetido — tente de novo.'
         : (re?.message || 'tente de novo em instantes.')
-      setRoomError(`Erro ao criar sala: ${hint}${code2 ? ` [${code2}]` : ''}`)
+      setRoomError(`${tr('Erro ao criar sala', 'Error creating room')}: ${hint}${code2 ? ` [${code2}]` : ''}`)
       setLoading(false); return
     }
     await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
@@ -1765,7 +1765,7 @@ export function EscLobby() {
       // de ninguém (mesma conta do `hashPw` usado na criação e na entrada).
       p_pw: campos.senhaNova?.trim() ? hashPw(campos.senhaNova.trim().toLowerCase()) : null,
     })
-    if (error || data === false) { setRoomError('Não deu pra salvar agora — tente de novo.'); return false }
+    if (error || data === false) { setRoomError(tr('Não deu pra salvar agora — tente de novo.', 'Couldn\'t save right now — try again.')); return false }
     return true
   }
   async function patchLiga(campos: LigaCampos) {
@@ -1778,8 +1778,8 @@ export function EscLobby() {
   // duas regras diferentes pra mesma coisa. Só o DONO exclui (adm ajuda a tocar,
   // não desfaz o que é do outro), e sempre com o aviso do que se perde.
   async function excluirLigaId(id: string, nome: string, souDono: boolean): Promise<boolean> {
-    if (!souDono) { setRoomError('Só quem criou a liga pode excluir.'); return false }
-    if (!window.confirm(`Excluir a liga "${nome}"?\n\nA sala e a SALA DE TROFÉUS dela somem pra todo mundo. Não dá pra desfazer.`)) return false
+    if (!souDono) { setRoomError(tr('Só quem criou a liga pode excluir.', 'Only the league creator can delete it.')); return false }
+    if (!window.confirm(getLang() === 'en' ? `Delete the league "${nome}"?\n\nThe room and its TROPHY ROOM disappear for everyone. This cannot be undone.` : `Excluir a liga "${nome}"?\n\nA sala e a SALA DE TROFÉUS dela somem pra todo mundo. Não dá pra desfazer.`)) return false
     await supabase.from('room_players').delete().eq('room_id', id).then(() => {}, () => {})
     await supabase.from('game_rooms').delete().eq('id', id).then(() => {}, () => {})
     fetchMyLigas()
@@ -1885,7 +1885,7 @@ export function EscLobby() {
     const nome = (r.game_state as GS)?.roomName ?? r.code
     const souHost = r.host_id === user.id
     if (!souHost) {
-      if (!window.confirm(`Sair da carreira "${nome}"?\n\nEla some da sua lista, mas continua valendo pros outros técnicos.`)) return
+      if (!window.confirm(getLang() === 'en' ? `Leave the career "${nome}"?\n\nIt disappears from your list, but stays valid for the other managers.` : `Sair da carreira "${nome}"?\n\nEla some da sua lista, mas continua valendo pros outros técnicos.`)) return
       await supabase.from('room_players').delete().eq('room_id', r.id).eq('user_id', user.id)
       dismissRoom(r.id); if (loadSavedRoom() === r.id) clearSavedRoom()
       fetchMyCareers(); return
@@ -1897,7 +1897,7 @@ export function EscLobby() {
     if (!window.confirm(aviso)) return
     const e1 = (await supabase.from('room_players').delete().eq('room_id', r.id)).error
     const e2 = (await supabase.from('game_rooms').delete().eq('id', r.id)).error
-    if (e1 || e2) { setRoomError(`Não consegui apagar: ${(e2 ?? e1)?.message}`); return }
+    if (e1 || e2) { setRoomError(`${tr('Não consegui apagar', 'Couldn\'t delete')}: ${(e2 ?? e1)?.message}`); return }
     dismissRoom(r.id); if (loadSavedRoom() === r.id) clearSavedRoom()
     fetchMyCareers(); fetchMyLigas()
   }
@@ -1911,7 +1911,7 @@ export function EscLobby() {
       setLoading(true)
       saveRoom(rd.id)
       const ok = await triggerStart(rd)
-      if (!ok) { setLoading(false); setRoomError('A carreira ainda não foi retomada pelo host. Peça pra ele continuar o save.') }
+      if (!ok) { setLoading(false); setRoomError(tr('A carreira ainda não foi retomada pelo host. Peça pra ele continuar o save.', 'The host hasn\'t resumed the career yet. Ask them to continue the save.')) }
     })()
   }
   // continuar de verdade: reentra na sala (o host já está no room_players) e retoma.
@@ -1922,13 +1922,13 @@ export function EscLobby() {
     setLoading(true); setRoomError('')
     saveRoom(rd.id)
     const ok = await triggerStart(rd)
-    if (!ok) { setLoading(false); setRoomError('Não consegui abrir a carreira agora. Tente de novo.'); return }
+    if (!ok) { setLoading(false); setRoomError(tr('Não consegui abrir a carreira agora. Tente de novo.', 'Couldn\'t open the career right now. Try again.')); return }
     setResumingCareer(null)
   }
   // EXCLUIR de vez: o time do amigo vira CPU comum (não pode mais reassumir).
   async function excludeFromCareer(rd: OpenRoom, teamName: string) {
     if (!user) return
-    if (!window.confirm(`Excluir ${teamName} de vez? O time vira CPU e o amigo não poderá reassumir.`)) return
+    if (!window.confirm(getLang() === 'en' ? `Remove ${teamName} for good? The team becomes CPU and your friend won't be able to take it back.` : `Excluir ${teamName} de vez? O time vira CPU e o amigo não poderá reassumir.`)) return
     const gs = rd.game_state as GS
     const mgrs = (gs.managers ?? []).map(m => m.teamName === teamName ? { ...m, isHuman: false } : m)
     await supabase.from('game_rooms').update({ game_state: { ...gs, managers: mgrs } }).eq('id', rd.id)
@@ -1941,10 +1941,10 @@ export function EscLobby() {
   // entra numa sala já carregada (por código ou pela lista de salas abertas)
   async function enterRoom(rd: RoomInfo, pw?: string) {
     if (!user) return
-    if (rd.game_state?.__game !== GAME_TAG) { setRoomError('Essa sala é de outro jogo.'); setLoading(false); return }
+    if (rd.game_state?.__game !== GAME_TAG) { setRoomError(tr('Essa sala é de outro jogo.', 'That room belongs to another game.')); setLoading(false); return }
     // carreira online em teste: só os e-mails liberados entram
     if ((rd.game_state?.mode === 'carreira' || (rd.game_state as GS & { careerOnline?: boolean })?.careerOnline) && !canCareer) {
-      setRoomError('Esse modo (Carreira Online) ainda está em teste fechado.'); setLoading(false); return
+      setRoomError(tr('Esse modo (Carreira Online) ainda está em teste fechado.', 'That mode (Online Career) is still in closed testing.')); setLoading(false); return
     }
     // 🃏 BAFO em construção: a trava é aqui, no FUNIL de entrada (enterRoom é por
     // onde passa TUDO — lista, código e link do zap). Esconder da lista não basta:
@@ -1956,15 +1956,15 @@ export function EscLobby() {
     // (Todo batismo já nasce tier ouro pela regra de 17/08, então a conta é uma
     // só. E CRIAR liga continua preso à conta do Diego, em `sport.ts`.)
     if (LIGA_SO_LENDA_ENTRA && rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
-      setRoomError('Essa é uma liga do 🏆 Minhas Ligas — só entra quem é 👑 Lenda ou dono de clube batizado.'); setLoading(false); return
+      setRoomError(tr('Essa é uma liga do 🏆 Minhas Ligas — só entra quem é 👑 Lenda ou dono de clube batizado.', 'That is a 🏆 My Leagues league — only 👑 Legends or owners of a named club get in.')); setLoading(false); return
     }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
-      setRoomError('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
+      setRoomError(tr('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.', 'That is a 🃏 Bafo room, a new mode still under construction — it opens to everyone soon.')); setLoading(false); return
     }
     // 🌍 mesma trava do Bafo pra Copa do Mundo online: esconder da lista não
     // basta, porque o código e o link do zap entram por aqui do mesmo jeito.
     if (rd.game_state?.mode === 'mundo' && !mundoOn) {
-      setRoomError('Essa sala é da 🌐 Copa do Mundo online, um modo novo ainda em construção — em breve libera pra todo mundo.'); setLoading(false); return
+      setRoomError(tr('Essa sala é da 🌐 Copa do Mundo online, um modo novo ainda em construção — em breve libera pra todo mundo.', 'That is an online 🌐 World Cup room, a new mode still under construction — it opens to everyone soon.')); setLoading(false); return
     }
     if (rd.status === 'started') {
       const { data: mySlot } = await supabase.from('room_players').select('*').eq('room_id', rd.id).eq('user_id', user.id).maybeSingle()
@@ -1986,11 +1986,11 @@ export function EscLobby() {
         rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
       }
       if (rd.status === 'started') {
-        if (!mySlot) { setRoomError('Você não está nessa sala.'); setLoading(false); return }
+        if (!mySlot) { setRoomError(tr('Você não está nessa sala.', 'You are not in that room.')); setLoading(false); return }
         triggerStart(rd); setLoading(false); return
       }
     }
-    if (rd.status !== 'waiting') { setRoomError('Sala indisponível.'); setLoading(false); return }
+    if (rd.status !== 'waiting') { setRoomError(tr('Sala indisponível.', 'Room unavailable.')); setLoading(false); return }
     const { data: existing } = await supabase.from('room_players').select('user_id, player_index').eq('room_id', rd.id)
     const rows = (existing ?? []) as { user_id: string; player_index: number }[]
     // já estou nessa sala? volta pro slot que já é meu (evita duplicar)
@@ -2005,14 +2005,14 @@ export function EscLobby() {
       setLoading(true); setRoomError('') // feedback: o clique registrou
       let h = ''
       try { h = hashPw(pwT.toLowerCase()) } // trim + minúsculas igual à criação
-      catch { setRoomError('Não consegui checar a senha neste navegador. Atualize a página ou tente outro.'); setLoading(false); return }
-      if (h !== rd.game_state!.pwHash) { setRoomError('❌ Senha incorreta (repara maiúsculas/minúsculas).'); setLoading(false); return }
+      catch { setRoomError(tr('Não consegui checar a senha neste navegador. Atualize a página ou tente outro.', 'Couldn\'t check the password in this browser. Refresh the page or try another one.')); setLoading(false); return }
+      if (h !== rd.game_state!.pwHash) { setRoomError(tr('❌ Senha incorreta (repara maiúsculas/minúsculas).', '❌ Wrong password (check upper/lower case).')); setLoading(false); return }
     }
     // re-checa o status FRESCO logo antes de entrar: a lista/o código podem
     // estar defasados e o host pode ter COMEÇADO neste meio-tempo — entrar
     // agora criaria um jogador sem time na partida (o bug do "virei bot").
     const { data: freshSt } = await supabase.from('game_rooms').select('status').eq('id', rd.id).maybeSingle()
-    if (freshSt?.status !== 'waiting') { setRoomError('⏱️ Essa sala começou agorinha — não deu tempo de entrar. Espera o "Jogar de novo" ou escolhe outra.'); setLoading(false); return }
+    if (freshSt?.status !== 'waiting') { setRoomError(tr('⏱️ Essa sala começou agorinha — não deu tempo de entrar. Espera o "Jogar de novo" ou escolhe outra.', '⏱️ That room just started — no time to get in. Wait for "Play again" or pick another.')); setLoading(false); return }
     // pega uma vaga com RETRY: se dois entram no mesmo segundo e disputam o
     // mesmo slot, a trava única do banco derruba o segundo — que relê as vagas
     // e tenta a próxima, até 3 vezes, sem o usuário ver erro nenhum.
@@ -2023,13 +2023,13 @@ export function EscLobby() {
       if (curRows.some(p => p.user_id === user.id)) { insOk = true; break } // já entrei noutra aba
       const used = new Set(curRows.map(p => p.player_index))
       let idx = 1; while (used.has(idx)) idx++
-      if (idx >= rd.max_players) { setRoomError('Sala cheia!'); setLoading(false); return }
+      if (idx >= rd.max_players) { setRoomError(tr('Sala cheia!', 'Room full!')); setLoading(false); return }
       const { error: insErr } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
       if (!insErr) { insOk = true; break }
       lastErr = insErr.message
       if (!/duplicate|unique|23505/i.test(insErr.message)) break // erro real (não é corrida): desiste
     }
-    if (!insOk) { setRoomError('Não consegui entrar: ' + lastErr); setLoading(false); return }
+    if (!insOk) { setRoomError(tr('Não consegui entrar: ', 'Couldn\'t join: ') + lastErr); setLoading(false); return }
     saveRoom(rd.id)
     setPwModal(null); setRoomError('')
     setRoom(rd); setIsHost(false); setPhase('waiting'); setLoading(false)
@@ -2040,8 +2040,8 @@ export function EscLobby() {
     setLoading(true); setRoomError('')
     const code = joinCode.trim().toUpperCase()
     const { data: rd, error: re } = await supabase.from('game_rooms').select('*').eq('code', code).single()
-    if (re || !rd) { setRoomError('Sala não encontrada.'); setLoading(false); return }
-    if (rd.game_state?.__game !== GAME_TAG) { setRoomError('Esse código é de outro jogo.'); setLoading(false); return }
+    if (re || !rd) { setRoomError(tr('Sala não encontrada.', 'Room not found.')); setLoading(false); return }
+    if (rd.game_state?.__game !== GAME_TAG) { setRoomError(tr('Esse código é de outro jogo.', 'That code belongs to another game.')); setLoading(false); return }
     await enterRoom(rd)
   }
 
@@ -2066,7 +2066,7 @@ export function EscLobby() {
       const linhas = (data ?? []) as { user_id: string; manager_name: string; copa: CopaPick | null }[]
       const gente = linhas.filter(r => copaPickOk(r.copa)).map(r => ({ uid: r.user_id, nome: stripEmoji(r.manager_name).trim() || 'Técnico', pick: r.copa as CopaPick }))
       if (gente.length < 2) {
-        setCopaErro('A Copa precisa de pelo menos 2 seleções de gente. Quem ainda não escolheu está no aviso aí em cima.')
+        setCopaErro(tr('A Copa precisa de pelo menos 2 seleções de gente. Quem ainda não escolheu está no aviso aí em cima.', 'The Cup needs at least 2 nations picked by people. Whoever hasn\'t picked yet is in the notice above.'))
         setCopaAbrindo(false); return
       }
       // relê o estado FRESCO: o número da edição vem do que já foi jogado nesta
@@ -2078,7 +2078,7 @@ export function EscLobby() {
       const { error } = await supabase.from('game_rooms')
         .update({ game_state: { ...gsAtual, copaMundo: ficha }, updated_at: new Date().toISOString() })
         .eq('id', room.id)
-      if (error) { setCopaErro('Não consegui abrir a Copa agora. Tenta de novo em instantes.'); setCopaAbrindo(false); return }
+      if (error) { setCopaErro(tr('Não consegui abrir a Copa agora. Tenta de novo em instantes.', 'Couldn\'t open the Cup right now. Try again in a moment.')); setCopaAbrindo(false); return }
       // o dono não espera o eco do banco (mesma lição do "não consigo abrir o
       // pregão", 22/08): abre na própria tela na hora.
       setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...gsAtual, copaMundo: ficha } as GS } : prev)
@@ -2204,7 +2204,7 @@ export function EscLobby() {
     if (!room || !user) return
     const limpo = stripEmoji(nome).trim().slice(0, 24)
     const { error } = await supabase.rpc('dupla_definir', { p_room: room.id, p_dono: donoUid, p_nome: limpo || null, p_set_nome: true })
-    if (error) setRoomError(`Não consegui salvar o nome: ${error.message}`)
+    if (error) setRoomError(`${tr('Não consegui salvar o nome', 'Couldn\'t save the name')}: ${error.message}`)
     fetchPlayers(room.id)
   }
 
@@ -2229,12 +2229,12 @@ export function EscLobby() {
     const { data: fresh } = await supabase.from('room_players').select('user_id, dupla_partner_of, dupla_seek, dupla_request_to').eq('room_id', room.id)
     const rows = (fresh ?? []) as { user_id: string; dupla_partner_of?: string | null; dupla_seek?: string | null; dupla_request_to?: string | null }[]
     const alvo = rows.find(r => r.user_id === dono.user_id)
-    if (!alvo || alvo.dupla_partner_of || alvo.dupla_seek === 'privada') { setRoomError('😅 Essa vaga não tá mais disponível.'); fetchPlayers(room.id); return }
-    if (rows.some(r => r.dupla_request_to === dono.user_id)) { setRoomError('😅 Alguém já mandou um pedido pra essa pessoa — espera ela responder.'); fetchPlayers(room.id); return }
+    if (!alvo || alvo.dupla_partner_of || alvo.dupla_seek === 'privada') { setRoomError(tr('😅 Essa vaga não tá mais disponível.', '😅 That spot is no longer available.')); fetchPlayers(room.id); return }
+    if (rows.some(r => r.dupla_request_to === dono.user_id)) { setRoomError(tr('😅 Alguém já mandou um pedido pra essa pessoa — espera ela responder.', '😅 Someone already sent a request to that person — wait for them to answer.')); fetchPlayers(room.id); return }
     const eu = rows.find(r => r.user_id === user.id)
     if (eu?.dupla_partner_of || eu?.dupla_request_to) return // já sou de uma dupla, ou já tenho um pedido em aberto
     const { error } = await supabase.from('room_players').update({ dupla_request_to: dono.user_id, dupla_request_at: new Date().toISOString() }).eq('room_id', room.id).eq('user_id', user.id)
-    if (error) setRoomError(`Não consegui mandar o pedido: ${error.message}`)
+    if (error) setRoomError(`${tr('Não consegui mandar o pedido', 'Couldn\'t send the request')}: ${error.message}`)
     fetchPlayers(room.id)
   }
   // cancela o MEU pedido em aberto (desisti, ou o tempo acabou — self-clear,
@@ -2250,8 +2250,8 @@ export function EscLobby() {
   async function responderPedido(requesterUid: string, aceitar: boolean) {
     if (!room || !user) return
     const { data, error } = await supabase.rpc('dupla_responder', { p_room: room.id, p_requester: requesterUid, p_aceitar: aceitar })
-    if (error) setRoomError(`Não consegui responder: ${error.message}`)
-    else if (data === false) setRoomError('😅 Esse pedido não existe mais (a pessoa deve ter cancelado).')
+    if (error) setRoomError(`${tr('Não consegui responder', 'Couldn\'t answer')}: ${error.message}`)
+    else if (data === false) setRoomError(tr('😅 Esse pedido não existe mais (a pessoa deve ter cancelado).', '😅 That request no longer exists (the person must have cancelled).'))
     fetchPlayers(room.id)
   }
   // ⏳ expira pedidos MEUS sozinho, sem precisar de ninguém responder — regra
@@ -2298,7 +2298,7 @@ export function EscLobby() {
     // confere se quem pediu é mesmo dessa dupla (o parceiro não pode editar a
     // linha do dono direto, senão daria pra mexer no assento dos outros).
     const { error } = await supabase.rpc('dupla_definir', { p_room: room.id, p_dono: dono.user_id, p_cats: novo })
-    if (error) setRoomError(`Não consegui salvar a divisão: ${error.message}`)
+    if (error) setRoomError(`${tr('Não consegui salvar a divisão', 'Couldn\'t save the split')}: ${error.message}`)
     fetchPlayers(room.id)
   }
 
@@ -2313,8 +2313,8 @@ export function EscLobby() {
     // parceiro é solto ANTES e volta a ter o time dele.
     const par = players.find(x => x.dupla_partner_of === p.user_id)
     const aviso = par
-      ? `Remover ${p.manager_name} da sala?\n\n${par.manager_name} estava em dupla com ele e vai ficar com um time só pra ele.`
-      : `Remover ${p.manager_name} da sala?`
+      ? (getLang() === 'en' ? `Remove ${p.manager_name} from the room?\n\n${par.manager_name} was paired with them and will get a team of their own.` : `Remover ${p.manager_name} da sala?\n\n${par.manager_name} estava em dupla com ele e vai ficar com um time só pra ele.`)
+      : `${tr('Remover', 'Remove')} ${p.manager_name} ${tr('da sala?', 'from the room?')}`
     if (!window.confirm(aviso)) return
     if (par) {
       await supabase.from('room_players').update({ dupla_partner_of: null }).eq('room_id', room.id).eq('user_id', par.user_id)
@@ -3144,13 +3144,13 @@ export function EscLobby() {
       })()}
 
       {tab === 'open' && <div className="space-y-3">
-        <Field label="Buscar sala" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar sala…" />
+        <Field label={tr('Buscar sala', 'Search room')} value={search} onChange={e => setSearch(e.target.value)} placeholder={tr('Buscar sala…', 'Search room…')} />
         {/* 🖥️ `salas-grade`: no PC as salas ficam DUAS por linha (regra em
             index.css, só a partir de 768px). No celular a classe não tem regra
             nenhuma — continua uma embaixo da outra, igualzinho. */}
         <div className="salas-grade space-y-2">
-          {listLoading && <p className="text-white/50 text-sm font-bold text-center py-3">Carregando salas…</p>}
-          {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">Nenhuma sala aberta agora. Crie a sua! 🔨</p>}
+          {listLoading && <p className="text-white/50 text-sm font-bold text-center py-3">{tr('Carregando salas…', 'Loading rooms…')}</p>}
+          {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">{tr('Nenhuma sala aberta agora. Crie a sua! 🔨', 'No open rooms right now. Create yours! 🔨')}</p>}
           {filtered.map(r => {
             const nm = r.game_state?.roomName ?? r.code
             const full = r.count >= r.max_players
@@ -3159,8 +3159,8 @@ export function EscLobby() {
             const deckLbl = (r.game_state?.deck === 'eu' ? 'EU' : r.game_state?.deck === 'both' ? 'B/E/M' : 'BR') + ((r.game_state as GS)?.varzea ? ' 🥅' : '')
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
-            const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto
-            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? '🌐 liga+mundo' : r.game_state?.copaMode === 'liga' ? '📊 só liga' : r.game_state?.copaMode === 'liga_liberta' ? '🌎 liga+liberta' : '🏆 liga+copa' // padrão = liga+copa
+            const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto (igual nos dois idiomas)
+            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
@@ -3171,20 +3171,20 @@ export function EscLobby() {
                   <p className="font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
                     <span className="truncate">{r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
-                    <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Baralho da sala">{deckLbl}</span>
+                    <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>
                     {duplasRoom && (
-                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title="Sala de duplas: cada time é comandado por 2 pessoas">🤝 DUPLAS</span>
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title={tr('Sala de duplas: cada time é comandado por 2 pessoas', 'Duos room: each team is run by 2 people')}>{tr('🤝 DUPLAS', '🤝 DUOS')}</span>
                     )}
                     {ligaRoom && (
-                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title="Liga: a sala fica de pé, com dia marcado e sala de troféus">🏆 LIGA</span>
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title={tr('Liga: a sala fica de pé, com dia marcado e sala de troféus', 'League: the room stays up, with a set day and a trophy room')}>{tr('🏆 LIGA', '🏆 LEAGUE')}</span>
                     )}
                     {/* 🌍 a sala de Copa é OUTRA COISA (seleções, sem leilão): quem
                         bate o olho na lista tem que saber antes de entrar. */}
                     {mundoRoom && (
-                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title="Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão">🌐 COPA</span>
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão', 'World Cup: everyone picks a nation and calls up 11 — no auction')}>{tr('🌐 COPA', '🌐 CUP')}</span>
                     )}
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? 'pessoa' : 'pessoas'}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? ' · 🚫 sem bots' : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? ' · fechada' : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? ' · 🔴 jogo rolando' : ''}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
                   {ligaRoom && (
                     <p className="font-black text-[11.5px] mt-0.5" style={{ ...OSWALD, color: quandoLiga((r.game_state as GS)?.ligaAt).cor }}>
                       📅 {quandoLiga((r.game_state as GS)?.ligaAt).txt}
@@ -3193,20 +3193,20 @@ export function EscLobby() {
                 </div>
                 {live ? (
                   <span className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>
-                    Em jogo
+                    {tr('Em jogo', 'In game')}
                   </span>
                 ) : (
                   <button onClick={() => joinFromList(r)} disabled={loading || full}
                     className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
                     style={{ backgroundColor: full ? '#ccc' : GOLD, color: '#000', ...OSWALD }}>
-                    {full ? 'Cheia' : 'Entrar'}
+                    {full ? tr('Cheia', 'Full') : tr('Entrar', 'Join')}
                   </button>
                 )}
               </div>
             )
           })}
         </div>
-        <Big onClick={() => fetchOpenRooms()} color="#fff">🔄 Atualizar lista</Big>
+        <Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big>
         {/* 📱 O GRUPO DE QUEM JOGA ONLINE — mudou de lugar em 29/08, no mesmo dia em
             que nasceu. Palavras do Diego, olhando a tela: *"sobre o WhatsApp, é pra
             aparecer aqui embaixo de atualizar lista, e de forma mais sutil. E não
@@ -3235,13 +3235,13 @@ export function EscLobby() {
           <div className="pt-1">
             <p className="text-white/35 text-[11px] font-bold leading-snug text-center">
               {jaTem ? (<>
-                📱 Tem um grupo de quem joga online — e você já tem vaga nele.{' '}
+                {tr('📱 Tem um grupo de quem joga online — e você já tem vaga nele.', '📱 There is a group of online players — and you already have a spot in it.')}{' '}
                 <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noreferrer"
-                  className="underline text-white/60 font-black active:opacity-60">Pedir o convite</a>
+                  className="underline text-white/60 font-black active:opacity-60">{tr('Pedir o convite', 'Ask for the invite')}</a>
               </>) : (<>
-                📱 Sem galera pra chamar? Tem um grupo de quem joga online — é do ⭐ Craque pra cima.{' '}
+                {tr('📱 Sem galera pra chamar? Tem um grupo de quem joga online — é do ⭐ Craque pra cima.', '📱 Nobody to call? There is a group of online players — from ⭐ Star up.')}{' '}
                 <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=craque` }}
-                  className="underline text-white/60 font-black active:opacity-60">Saiba mais</button>
+                  className="underline text-white/60 font-black active:opacity-60">{tr('Saiba mais', 'Learn more')}</button>
               </>)}
             </p>
           </div>
@@ -3250,9 +3250,9 @@ export function EscLobby() {
       </div>}
 
       {tab === 'join' && <div className="space-y-2">
-        <Field label="Código da sala" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} placeholder="EX: ABCD12" maxLength={6}
+        <Field label={tr('Código da sala', 'Room code')} value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} placeholder={tr('EX: ABCD12', 'E.G.: ABCD12')} maxLength={6}
           onKeyDown={e => e.key === 'Enter' && joinRoom()} />
-        <Big onClick={joinRoom} color="#fff">{loading ? 'Entrando...' : '🔑 Entrar com Código'}</Big>
+        <Big onClick={joinRoom} color="#fff">{loading ? tr('Entrando...', 'Joining...') : tr('🔑 Entrar com Código', '🔑 Join with Code')}</Big>
       </div>}
 
       {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
@@ -3264,7 +3264,7 @@ export function EscLobby() {
         <button onClick={() => encerrarSalasPresas(true)} disabled={encerrando || loading}
           className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase"
           style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
-          {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')}) e criar a nova`}
+          {encerrando ? tr('Encerrando…', 'Closing…') : getLang() === 'en' ? `🚪 Close ${salasPresas.length === 1 ? 'the idle room' : 'the idle rooms'} (${salasPresas.join(', ')}) and create the new one` : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')}) e criar a nova`}
         </button>
       )}
 
@@ -3274,37 +3274,37 @@ export function EscLobby() {
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-5" style={{ background: 'rgba(0,0,0,.7)' }}>
             <div className="w-full max-w-sm border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6] max-h-[85vh] overflow-y-auto" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-              <p className="font-black text-black text-lg" style={OSWALD}>🪜 Continuar carreira</p>
-              <p className="text-black/60 text-xs font-bold mb-1">{gs.roomName ?? resumingCareer.code} · Temporada {gs.seasonNo ?? 1}</p>
-              <p className="text-black/70 text-[12px] font-bold mb-2 leading-snug">Chame a galera de volta pelo código. Quem entrar reassume o time; <b>quem faltar joga como CPU</b> e pode voltar depois (nas paradas entre temporadas).</p>
+              <p className="font-black text-black text-lg" style={OSWALD}>{tr('🪜 Continuar carreira', '🪜 Continue career')}</p>
+              <p className="text-black/60 text-xs font-bold mb-1">{gs.roomName ?? resumingCareer.code} · {tr('Temporada', 'Season')} {gs.seasonNo ?? 1}</p>
+              <p className="text-black/70 text-[12px] font-bold mb-2 leading-snug">{getLang() === 'en' ? <>Call the crew back with the code. Whoever joins takes their team back; <b>whoever is missing plays as CPU</b> and can return later (at the breaks between seasons).</> : <>Chame a galera de volta pelo código. Quem entrar reassume o time; <b>quem faltar joga como CPU</b> e pode voltar depois (nas paradas entre temporadas).</>}</p>
               <div className="flex gap-2 mb-3">
-                <button onClick={() => shareInvite(resumingCareer.code, gs.roomName)} className="flex-1 border-2 border-black rounded-xl py-2 font-black text-xs uppercase bg-white text-black" style={OSWALD}>📤 Chamar (código {resumingCareer.code})</button>
+                <button onClick={() => shareInvite(resumingCareer.code, gs.roomName)} className="flex-1 border-2 border-black rounded-xl py-2 font-black text-xs uppercase bg-white text-black" style={OSWALD}>{tr('📤 Chamar', '📤 Invite')} ({tr('código', 'code')} {resumingCareer.code})</button>
               </div>
-              <p className="text-black/50 text-[10px] font-black uppercase tracking-widest mb-1">Técnicos da carreira</p>
+              <p className="text-black/50 text-[10px] font-black uppercase tracking-widest mb-1">{tr('Técnicos da carreira', 'Career managers')}</p>
               <div className="space-y-1.5 mb-3">
                 {humans.map((m, i) => (
                   <div key={m.id ?? i} className="flex items-center gap-2 border-2 border-black rounded-lg px-2.5 py-1.5 bg-white">
                     <div className="w-6 h-6 rounded-full border-2 border-black bg-gray-300 flex items-center justify-center text-[11px] font-black">{m.teamName?.[0]?.toUpperCase()}</div>
                     <span className="font-black text-black text-xs flex-1 truncate">{m.teamName}</span>
-                    <button onClick={() => excludeFromCareer(resumingCareer, m.teamName)} aria-label={`Excluir ${m.teamName}`}
-                      className="shrink-0 text-[10px] font-black uppercase text-red-500 border border-red-300 rounded px-1.5 py-0.5 active:opacity-60" style={OSWALD}>Excluir</button>
+                    <button onClick={() => excludeFromCareer(resumingCareer, m.teamName)} aria-label={`${tr('Excluir', 'Remove')} ${m.teamName}`}
+                      className="shrink-0 text-[10px] font-black uppercase text-red-500 border border-red-300 rounded px-1.5 py-0.5 active:opacity-60" style={OSWALD}>{tr('Excluir', 'Remove')}</button>
                   </div>
                 ))}
-                {humans.length === 0 && <p className="text-black/40 text-xs italic">Sem técnicos humanos salvos.</p>}
+                {humans.length === 0 && <p className="text-black/40 text-xs italic">{tr('Sem técnicos humanos salvos.', 'No human managers saved.')}</p>}
               </div>
               {roomError && <p className="text-red-500 text-xs font-bold mb-2">{roomError}</p>}
               {salasPresas.length > 0 && (
                 <button onClick={() => encerrarSalasPresas()} disabled={encerrando}
                   className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase mt-2"
                   style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
-                  {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
+                  {encerrando ? tr('Encerrando…', 'Closing…') : getLang() === 'en' ? `🚪 Close ${salasPresas.length === 1 ? 'the idle room' : 'the idle rooms'} (${salasPresas.join(', ')})` : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
                 </button>
               )}
               <button onClick={doContinueCareer} disabled={loading}
                 className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase mb-2" style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
-                {loading ? 'Abrindo…' : '▶️ Continuar (quem faltar = CPU)'}
+                {loading ? tr('Abrindo…', 'Opening…') : tr('▶️ Continuar (quem faltar = CPU)', '▶️ Continue (missing = CPU)')}
               </button>
-              <button onClick={() => { setResumingCareer(null); setRoomError('') }} className="w-full text-black/50 text-xs font-bold underline" style={OSWALD}>⏳ Aguardar mais um pouco (voltar)</button>
+              <button onClick={() => { setResumingCareer(null); setRoomError('') }} className="w-full text-black/50 text-xs font-bold underline" style={OSWALD}>{tr('⏳ Aguardar mais um pouco (voltar)', '⏳ Wait a bit longer (back)')}</button>
             </div>
           </div>
         )
@@ -3313,19 +3313,19 @@ export function EscLobby() {
       {streamModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
           <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-            <p className="font-black text-black text-lg" style={OSWALD}>🎥 Modo Stream</p>
+            <p className="font-black text-black text-lg" style={OSWALD}>{tr('🎥 Modo Stream', '🎥 Stream Mode')}</p>
             <p className="text-black/70 text-sm font-bold mt-1 leading-snug">
-              É pra quem vai <b>transmitir ao vivo</b> (YouTube/Twitch). Como o leilão é cego, mostrar a tela na live entregaria seus lances.
+              {getLang() === 'en' ? <>It's for those who will <b>stream live</b> (YouTube/Twitch). Since the auction is blind, showing the screen on stream would give away your bids.</> : <>É pra quem vai <b>transmitir ao vivo</b> (YouTube/Twitch). Como o leilão é cego, mostrar a tela na live entregaria seus lances.</>}
             </p>
             <p className="text-black/70 text-sm font-bold mt-2 leading-snug">
-              Com ele ligado, os <b>valores dos lances ficam escondidos na sua própria tela</b> (você aposta no dedo, sem ver o número) — aí pode mostrar tudo na live sem ninguém roubar. Os valores só aparecem no martelo.
+              {getLang() === 'en' ? <>With it on, the <b>bid values are hidden on your own screen</b> (you bid by feel, without seeing the number) — so you can show everything on stream without anyone cheating. Values only appear at the hammer.</> : <>Com ele ligado, os <b>valores dos lances ficam escondidos na sua própria tela</b> (você aposta no dedo, sem ver o número) — aí pode mostrar tudo na live sem ninguém roubar. Os valores só aparecem no martelo.</>}
             </p>
-            <p className="text-black/50 text-xs font-bold mt-2">Se você não vai transmitir, deixe desligado.</p>
+            <p className="text-black/50 text-xs font-bold mt-2">{tr('Se você não vai transmitir, deixe desligado.', 'If you are not streaming, leave it off.')}</p>
             <div className="flex gap-2 mt-3">
               <button onClick={() => setStreamModal(false)}
-                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>Cancelar</button>
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
               <button onClick={() => { setRoomStream(true); setStreamModal(false) }}
-                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: '#111', color: '#fff', ...OSWALD }}>Ligar mesmo assim</button>
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: '#111', color: '#fff', ...OSWALD }}>{tr('Ligar mesmo assim', 'Turn on anyway')}</button>
             </div>
           </div>
         </div>
@@ -3341,42 +3341,42 @@ export function EscLobby() {
                 caminho, senão é só uma porta na cara: o que é aquela sala, como se
                 entra nela, e como ter a sua. Numa sala rápida trancada nada disso
                 faz sentido, então o texto continua o de sempre. */}
-            <p className="font-black text-black text-lg" style={OSWALD}>{pwModal.game_state?.mode === 'liga' ? '🏆 Liga da turma' : '🔒 Sala fechada'}</p>
+            <p className="font-black text-black text-lg" style={OSWALD}>{pwModal.game_state?.mode === 'liga' ? tr('🏆 Liga da turma', '🏆 Crew league') : tr('🔒 Sala fechada', '🔒 Locked room')}</p>
             {pwModal.game_state?.mode === 'liga' ? (
               <>
                 <p className="text-black/70 text-xs font-bold leading-snug mb-1.5">
-                  <b>“{pwModal.game_state?.roomName ?? pwModal.code}”</b> é uma liga: a mesma sala sempre, com a estante guardando campeão e artilheiro temporada após temporada.
+                  <b>“{pwModal.game_state?.roomName ?? pwModal.code}”</b> {tr('é uma liga: a mesma sala sempre, com a estante guardando campeão e artilheiro temporada após temporada.', 'is a league: always the same room, with the shelf keeping champion and top scorer season after season.')}
                 </p>
                 <p className="text-black/50 text-[11px] font-bold leading-snug mb-2">
-                  🔑 Ela é só da turma dela — <b>peça a senha pra quem te chamou</b>. Não tem a senha? Dá pra jogar agora numa sala ⚡ Rápida, ou ter a sua própria liga sendo 👑 Lenda.
+                  {getLang() === 'en' ? <>🔑 It belongs to its crew only — <b>ask whoever invited you for the password</b>. No password? You can play now in a ⚡ Quick room, or have your own league as a 👑 Legend.</> : <>🔑 Ela é só da turma dela — <b>peça a senha pra quem te chamou</b>. Não tem a senha? Dá pra jogar agora numa sala ⚡ Rápida, ou ter a sua própria liga sendo 👑 Lenda.</>}
                 </p>
               </>
             ) : (
-              <p className="text-black/60 text-xs font-bold mb-2">Digite a senha pra entrar em “{pwModal.game_state?.roomName ?? pwModal.code}”.</p>
+              <p className="text-black/60 text-xs font-bold mb-2">{tr('Digite a senha pra entrar em', 'Type the password to join')} “{pwModal.game_state?.roomName ?? pwModal.code}”.</p>
             )}
             <input autoFocus type="text" value={pwEntry} onChange={e => setPwEntry(e.target.value)} maxLength={20}
-              placeholder="Senha" onKeyDown={e => e.key === 'Enter' && enterRoom(pwModal, pwEntry)}
+              placeholder={tr('Senha', 'Password')} onKeyDown={e => e.key === 'Enter' && enterRoom(pwModal, pwEntry)}
               className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
             {roomError && <p className="text-red-500 text-xs font-bold mt-1">{roomError}</p>}
             {salasPresas.length > 0 && (
                 <button onClick={() => encerrarSalasPresas()} disabled={encerrando}
                   className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase mt-2"
                   style={{ background: '#C2452F', color: '#fff', boxShadow: '3px 3px 0 #0C0C0C', ...OSWALD }}>
-                  {encerrando ? 'Encerrando…' : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
+                  {encerrando ? tr('Encerrando…', 'Closing…') : getLang() === 'en' ? `🚪 Close ${salasPresas.length === 1 ? 'the idle room' : 'the idle rooms'} (${salasPresas.join(', ')})` : `🚪 Encerrar ${salasPresas.length === 1 ? 'a sala parada' : 'as salas paradas'} (${salasPresas.join(', ')})`}
                 </button>
               )}
             <div className="flex gap-2 mt-3">
               <button onClick={() => { setPwModal(null); setRoomError('') }}
-                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>Cancelar</button>
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
               <button onClick={() => enterRoom(pwModal, pwEntry)} disabled={loading}
-                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: loading ? '#8aa892' : GREEN, color: '#fff', ...OSWALD }}>{loading ? 'Entrando…' : 'Entrar'}</button>
+                className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: loading ? '#8aa892' : GREEN, color: '#fff', ...OSWALD }}>{loading ? tr('Entrando…', 'Joining…') : tr('Entrar', 'Join')}</button>
             </div>
           </div>
         </div>
       )}
       <AdminButton />
-      <button onClick={() => { if (!window.confirm('Sair da conta? Você vai precisar entrar de novo (e-mail/senha ou Google) da próxima vez.')) return; clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">Sair da conta</button>
-      <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">← Menu inicial</button>
+      <button onClick={() => { if (!window.confirm(tr('Sair da conta? Você vai precisar entrar de novo (e-mail/senha ou Google) da próxima vez.', 'Sign out? You will need to sign in again (e-mail/password or Google) next time.'))) return; clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">{tr('Sair da conta', 'Sign out')}</button>
+      <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">{tr('← Menu inicial', '← Main menu')}</button>
     </>, () => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) })
   }
 
@@ -3405,13 +3405,13 @@ export function EscLobby() {
     // (Nasceu com dois textos — um pra liga sem senha, outro pra com. A liga sem
     // senha morreu na decisão final de 29/08, então sobrou um só.)
     const ligaEspera = room.game_state?.mode === 'liga' && !ready
-      ? `🔒 Sua liga está de pé esperando a turma. Só entra quem tem o código ${room.code} + a senha — manda pros seus no zap (precisa de 2 pra começar). Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`
+      ? (getLang() === 'en' ? `🔒 Your league is up waiting for the crew. Only those with code ${room.code} + the password get in — send it to your people (you need 2 to start). If it doesn't happen today, just 'Save and leave': nothing is lost and you can reschedule.` : `🔒 Sua liga está de pé esperando a turma. Só entra quem tem o código ${room.code} + a senha — manda pros seus no zap (precisa de 2 pra começar). Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`)
       : ''
     const travaMsg = elencoOn
-      ? (ready ? '' : `🃏 O Bafo começa com 2 times montados. ${bafoAptos.length === 0 ? 'Ninguém montou ainda' : 'Só 1 montou até agora'} — cada um escolhe a carreira que traz aí em cima.`)
+      ? (ready ? '' : getLang() === 'en' ? `🃏 Bafo starts with 2 teams built. ${bafoAptos.length === 0 ? 'Nobody has built one yet' : 'Only 1 built so far'} — everyone picks the career they bring up there.` : `🃏 O Bafo começa com 2 times montados. ${bafoAptos.length === 0 ? 'Ninguém montou ainda' : 'Só 1 montou até agora'} — cada um escolhe a carreira que traz aí em cima.`)
       : ligaEspera ? ligaEspera
       : !duplasOn || ready ? '' :
-      `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
+      getLang() === 'en' ? `🤝 The auction opens with 2 complete duos (two teams with 2 people each). ${duplasCompletas === 0 ? 'None yet' : '1 so far'} — just have everyone join each other's teams.` : `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
     const chatOff = !!room.game_state?.chatOff // host desligou o chat na criação
     // 🌍 SALA DE COPA DO MUNDO — a espera aqui não é "esperar o pregão abrir":
     // é cada um escolher a seleção e convocar os 11. Por isso ela tem painel
@@ -3419,10 +3419,10 @@ export function EscLobby() {
     const ehMundoSala = room.game_state?.mode === 'mundo'
     const copaFicha = (room.game_state as GS)?.copaMundo ?? null
     const minhaCopa = (players.find(p => p.user_id === user?.id)?.copa ?? null) as CopaPick | null
-    const copaProntos = players.filter(p => copaPickOk(p.copa)).map(p => ({ nome: stripEmoji(p.manager_name).trim() || 'Técnico', pais: (p.copa as CopaPick).pais }))
+    const copaProntos = players.filter(p => copaPickOk(p.copa)).map(p => ({ nome: stripEmoji(p.manager_name).trim() || tr('Técnico', 'Manager'), pais: (p.copa as CopaPick).pais }))
     const copaPegasPorOutros = players
       .filter(p => p.user_id !== user?.id && copaPickOk(p.copa))
-      .map(p => ({ pais: (p.copa as CopaPick).pais, nome: stripEmoji(p.manager_name).trim() || 'Técnico' }))
+      .map(p => ({ pais: (p.copa as CopaPick).pais, nome: stripEmoji(p.manager_name).trim() || tr('Técnico', 'Manager') }))
     // 📣 A CAIXA DO CONVITE — uma só, montada aqui e desenhada em UM dos dois
     // lugares (31/08, o furo que o amigo do Diego pegou: *"criou o Minhas Ligas
     // mas n soube aonde manda o convite"*).
@@ -3434,9 +3434,9 @@ export function EscLobby() {
     const ehLigaSala = room.game_state?.mode === 'liga'
     const caixaConvite = (
       <div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>📣 Chame a galera</p>
+        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>
         <p className="text-white/80 text-[11px] font-medium leading-snug">
-          Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.
+          {tr('Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.', 'Send the link — whoever has an account lands straight in the room; whoever doesn\'t signs up and ends up here.')}
         </p>
         {/* 🔒 a senha entra NO CONVITE, e só. Ninguém consegue LER a senha da liga
             (o banco guarda ela embaralhada), então o dono escreve aqui qual é pra
@@ -3444,29 +3444,29 @@ export function EscLobby() {
             sumiu. Esqueceu qual era? Troca em "🏆 Minhas ligas › ✏️ Editar". */}
         {ehLigaSala && isHost && (
           <div className="rounded-xl border-2 border-black px-2.5 py-2" style={{ background: 'rgba(255,255,255,.14)' }}>
-            <p className="text-white/70 text-[9px] font-black uppercase tracking-wider" style={OSWALD}>🔒 senha da liga (vai junto no convite)</p>
+            <p className="text-white/70 text-[9px] font-black uppercase tracking-wider" style={OSWALD}>{tr('🔒 senha da liga (vai junto no convite)', '🔒 league password (goes with the invite)')}</p>
             <input value={convitePw} maxLength={24} onChange={e => setConvitePw(e.target.value)}
-              placeholder="escreva a senha que você criou"
+              placeholder={tr('escreva a senha que você criou', 'type the password you created')}
               className="w-full border-2 border-black rounded-lg px-2 py-1.5 mt-1 font-black text-black text-[13px] bg-white" style={OSWALD} />
             <p className="text-white/60 text-[10px] font-bold leading-snug mt-1">
-              Sem a senha o amigo bate na porta trancada. Esqueceu qual é? Troque em <b>🏆 Minhas ligas › ✏️ Editar</b>.
+              {getLang() === 'en' ? <>Without the password your friend hits a locked door. Forgot it? Change it in <b>🏆 My leagues › ✏️ Edit</b>.</> : <>Sem a senha o amigo bate na porta trancada. Esqueceu qual é? Troque em <b>🏆 Minhas ligas › ✏️ Editar</b>.</>}
             </p>
           </div>
         )}
         <div className="flex gap-2">
           <button onClick={() => shareInvite(room.code, room.game_state?.roomName, ehLigaSala ? { at: (room.game_state as GS)?.ligaAt, senha: convitePw } : undefined)}
             className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
-            📤 Compartilhar convite
+            {tr('📤 Compartilhar convite', '📤 Share invite')}
           </button>
           <button onClick={() => copyCode(room.code)}
             className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
-            aria-label="Copiar código">
+            aria-label={tr('Copiar código', 'Copy code')}>
             📋
           </button>
         </div>
         {shareOk && (
           <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
-            ✓ {shareOk === 'code' ? 'Código copiado' : ehLigaSala ? 'Convite copiado — cola no zap' : 'Link copiado — cola no zap'}
+            ✓ {shareOk === 'code' ? tr('Código copiado', 'Code copied') : ehLigaSala ? tr('Convite copiado — cola no zap', 'Invite copied — paste it in the chat') : tr('Link copiado — cola no zap', 'Link copied — paste it in the chat')}
           </p>
         )}
       </div>
@@ -3474,7 +3474,7 @@ export function EscLobby() {
     return wrap(<>
       <div className="online-room-code text-center">
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
-        <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">Código da Sala</p>
+        <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">{tr('Código da Sala', 'Room Code')}</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
       </div>
 
@@ -3490,9 +3490,9 @@ export function EscLobby() {
           <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>🏆 Minhas ligas · próximo jogo</p>
+                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>{tr('🏆 Minhas ligas · próximo jogo', '🏆 My leagues · next game')}</p>
                 <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
-                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? '🚫 sem bots — só a galera na tabela' : '🤖 com bots até 20 times'}</p>
+                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? tr('🚫 sem bots — só a galera na tabela', '🚫 no bots — only the crew in the table') : tr('🤖 com bots até 20 times', '🤖 with bots up to 20 teams')}</p>
               </div>
             </div>
             {mandaNaLiga && (
@@ -3504,11 +3504,11 @@ export function EscLobby() {
                   setLigaEditHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
                   setLigaEdit(true)
                 }} className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                  📅 Mudar dia e hora
+                  {tr('📅 Mudar dia e hora', '📅 Change day and time')}
                 </button>
                 <button onClick={() => patchLiga({ ligaFechada: !gs?.ligaFechada })}
                   className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                  🤖 {gs?.ligaFechada ? 'Pôr bots' : 'Tirar bots'}
+                  🤖 {gs?.ligaFechada ? tr('Pôr bots', 'Add bots') : tr('Tirar bots', 'Remove bots')}
                 </button>
               </div>
             )}
@@ -3519,7 +3519,7 @@ export function EscLobby() {
                 velha FICA — o jogo não inventa data por conta própria. */}
             {mandaNaLiga && !ligaEdit && (
               <div className="flex gap-2 mt-2">
-                {([['+1 dia', 1], ['+1 semana', 7], ['+15 dias', 15]] as [string, number][]).map(([rot, dias]) => (
+                {([[tr('+1 dia', '+1 day'), 1], [tr('+1 semana', '+1 week'), 7], [tr('+15 dias', '+15 days'), 15]] as [string, number][]).map(([rot, dias]) => (
                   <button key={rot} onClick={() => {
                     const base = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
                     const d = new Date(base.getTime() + dias * 864e5)
@@ -3537,13 +3537,13 @@ export function EscLobby() {
                 valendo aparece pra TODO MUNDO numa linha: o convidado não entra no
                 escuro sem saber por que fulano lidera. */}
             <p className="text-white/60 text-[10px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '1.5px solid rgba(255,255,255,.2)' }}>
-              ⚖️ {resumoRegra(lerRegras(gs?.ligaRegras))} <span className="text-white/40">— todo mundo vê</span>
+              ⚖️ {resumoRegra(lerRegras(gs?.ligaRegras))} <span className="text-white/40">{tr('— todo mundo vê', '— everyone sees it')}</span>
             </p>
             {mandaNaLiga && !ligaEdit && (
               <button onClick={() => setLigaRegrasAberto(v => !v)}
                 className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
                 style={{ ...OSWALD, background: ligaRegrasAberto ? '#fff' : GOLD, color: INK }}>
-                ⚖️ {ligaRegrasAberto ? 'Fechar as regras' : 'Regras do ranking'}
+                ⚖️ {ligaRegrasAberto ? tr('Fechar as regras', 'Close the rules') : tr('Regras do ranking', 'Ranking rules')}
               </button>
             )}
             {mandaNaLiga && ligaRegrasAberto && (
@@ -3576,14 +3576,14 @@ export function EscLobby() {
                     // 🤐 antes isto era um `return` MUDO: com o campo vazio, apertar
                     // Salvar não fazia nada e não explicava nada. Botão que não
                     // responde é o pior tipo de trava — agora diz o que falta.
-                    if (isNaN(d.getTime())) { setRoomError('Confira o dia e a hora — os dois precisam estar preenchidos.'); return }
+                    if (isNaN(d.getTime())) { setRoomError(tr('Confira o dia e a hora — os dois precisam estar preenchidos.', 'Check the day and time — both need to be filled in.')); return }
                     await patchLiga({ ligaAt: d.toISOString() }); setLigaEdit(false)
-                  }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>Salvar</button>
+                  }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>{tr('Salvar', 'Save')}</button>
                   <button onClick={() => setLigaEdit(false)}
-                    className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>Cancelar</button>
+                    className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
                 </div>
                 <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
-                  Mudar a data <b>não perde troféu nenhum</b> — a liga é a mesma sala de sempre.
+                  {getLang() === 'en' ? <>Changing the date <b>loses no trophy</b> — the league is the same room as always.</> : <>Mudar a data <b>não perde troféu nenhum</b> — a liga é a mesma sala de sempre.</>}
                 </p>
               </div>
             )}
@@ -3615,7 +3615,7 @@ export function EscLobby() {
         <button onClick={() => setCopaAberta(true)}
           className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm mb-2.5 active:translate-y-0.5"
           style={{ background: GOLD, color: INK, boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
-          🌍 VOLTAR PRA COPA
+          {tr('🌍 VOLTAR PRA COPA', '🌍 BACK TO THE CUP')}
         </button>
       )}
       {ehMundoSala && copaFicha && (copaAberta || privateOnline) && (
@@ -3639,12 +3639,12 @@ export function EscLobby() {
         <div className="border-[3px] border-black rounded-2xl px-3 py-2.5 mb-3"
           style={{ background: room.game_state?.bafoSemCarta ? '#EAF4EC' : '#FFF6D6', boxShadow: `3px 3px 0 ${INK}` }}>
           <p className="font-black text-[13px]" style={OSWALD}>
-            {room.game_state?.bafoSemCarta ? '🤝 Sala AMISTOSA' : '🃏 Sala VALENDO CARTA'}
+            {room.game_state?.bafoSemCarta ? tr('🤝 Sala AMISTOSA', '🤝 FRIENDLY room') : tr('🃏 Sala VALENDO CARTA', '🃏 CARDS AT STAKE room')}
           </p>
           <p className="text-black/60 text-[10.5px] font-bold leading-snug mt-0.5">
             {room.game_state?.bafoSemCarta
-              ? 'Ninguém perde nem ganha carta aqui. É só a tabela.'
-              : <>No fim da liga, quem ficar atrás <b>entrega uma carta sorteada</b> da carreira que trouxe pro time logo acima — e ela <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>}
+              ? tr('Ninguém perde nem ganha carta aqui. É só a tabela.', 'Nobody loses or wins cards here. Just the table.')
+              : getLang() === 'en' ? <>At the end of the league, whoever finishes behind <b>hands a randomly drawn card</b> from the career they brought to the team right above — and it <b>really changes owner</b>. Whoever has only one card doesn't hand it over: the house covers.</> : <>No fim da liga, quem ficar atrás <b>entrega uma carta sorteada</b> da carreira que trouxe pro time logo acima — e ela <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>}
           </p>
         </div>
       )}
@@ -3662,7 +3662,7 @@ export function EscLobby() {
 
       <div className="online-attendance border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">
-          {duplasOn ? `Times (${donos.length}/20) · ${players.length} ${players.length === 1 ? 'pessoa' : 'pessoas'}` : `Técnicos (${players.length}/${room.max_players})`}
+          {duplasOn ? `${tr('Times', 'Teams')} (${donos.length}/20) · ${players.length} ${players.length === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `${tr('Técnicos', 'Managers')} (${players.length}/${room.max_players})`}
         </p>
         <div className="space-y-2">
           {donos.map(p => {
@@ -3701,12 +3701,12 @@ export function EscLobby() {
                 {room.game_state?.mode === 'elenco' && (
                   <span className="text-[9.5px] font-black uppercase border-2 border-black rounded-full px-2 py-0.5 whitespace-nowrap"
                     style={p.bafo ? { background: GREEN, color: '#fff' } : { background: '#FFD9CE', color: '#8E2A1B' }}>
-                    {p.bafo ? `✅ ${p.bafo.squad?.length ?? 0} jog.` : '⏳ montando'}
+                    {p.bafo ? `✅ ${p.bafo.squad?.length ?? 0} ${tr('jog.', 'pl.')}` : tr('⏳ montando', '⏳ building')}
                   </span>
                 )}
                 {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
                 {isHost && p.user_id !== user?.id && (
-                  <button onClick={() => kickFromRoom(p)} aria-label={`Remover ${p.manager_name}`}
+                  <button onClick={() => kickFromRoom(p)} aria-label={`${tr('Remover', 'Remove')} ${p.manager_name}`}
                     className="shrink-0 w-6 h-6 rounded-full border border-black/20 text-black/40 font-black text-xs leading-none active:opacity-60"
                     style={{ background: '#fff' }}>✕</button>
                 )}
@@ -3718,7 +3718,7 @@ export function EscLobby() {
                   <span className="font-black text-black/75 text-[13px] flex-1">{stripEmoji(p.manager_name).trim()} <span className="text-black/35">+</span> {par.manager_name}</span>
                   {(par.user_id === user?.id || p.user_id === user?.id) && (
                     <button onClick={() => desfazerDupla(p.user_id, par.user_id)} className="text-[10px] font-black uppercase underline text-black/45 active:opacity-60">
-                      {par.user_id === user?.id ? 'Sair da dupla' : 'Desfazer a dupla'}
+                      {par.user_id === user?.id ? tr('Sair da dupla', 'Leave the duo') : tr('Desfazer a dupla', 'Undo the duo')}
                     </button>
                   )}
                 </div>
@@ -3727,7 +3727,7 @@ export function EscLobby() {
                   nome dos dois. Vazio = "Fulano | Beltrano" automático. */}
               {par && (p.user_id === user?.id || par.user_id === user?.id) && (
                 <div className="mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
-                  <p className="text-black/60 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>🏷️ Nome do time de vocês</p>
+                  <p className="text-black/60 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>{tr('🏷️ Nome do time de vocês', '🏷️ Your team\'s name')}</p>
                   <input
                     defaultValue={p.dupla_name ?? ''}
                     placeholder={nomeAutoDupla(p.manager_name, par.manager_name)}
@@ -3738,8 +3738,8 @@ export function EscLobby() {
                     style={OSWALD} />
                   <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-1">
                     {p.dupla_name
-                      ? 'É esse nome que vai aparecer na tabela e no placar. Qualquer um dos dois pode mudar.'
-                      : `Deixando em branco, o time se chama "${nomeAutoDupla(p.manager_name, par.manager_name)}". Qualquer um dos dois pode escolher outro.`}
+                      ? tr('É esse nome que vai aparecer na tabela e no placar. Qualquer um dos dois pode mudar.', 'This is the name that shows in the table and on the scoreboard. Either of you can change it.')
+                      : getLang() === 'en' ? `Left blank, the team is called "${nomeAutoDupla(p.manager_name, par.manager_name)}". Either of you can pick another.` : `Deixando em branco, o time se chama "${nomeAutoDupla(p.manager_name, par.manager_name)}". Qualquer um dos dois pode escolher outro.`}
                   </p>
                 </div>
               )}
@@ -3754,7 +3754,7 @@ export function EscLobby() {
                 return (
                   <div className="mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
                     <p className="text-black/60 text-[10.5px] font-black uppercase tracking-wide mb-1.5" style={OSWALD}>
-                      ✋ Quem cuida de quê {fechou ? '· dividido ✅' : `· suas ${minhas}/3`}
+                      {tr('✋ Quem cuida de quê', '✋ Who handles what')} {fechou ? tr('· dividido ✅', '· split ✅') : `· ${tr('suas', 'yours')} ${minhas}/3`}
                     </p>
                     <div className="grid grid-cols-3 gap-1.5">
                       {DUPLA_CATS.map(c => (
@@ -3772,8 +3772,8 @@ export function EscLobby() {
                     </div>
                     <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-1.5">
                       {fechou
-                        ? `Tudo dividido: o verde é seu, o resto é do ${nomeDoOutro}. Na hora do leilão, só quem manda na posição dá o lance.`
-                        : `Toque em 3 posições. As outras 3 ficam automático com o ${nomeDoOutro} — e se vocês não escolherem, o jogo divide sozinho na hora de começar.`}
+                        ? (getLang() === 'en' ? `All split: green is yours, the rest is ${nomeDoOutro}'s. At the auction, only whoever runs the position bids.` : `Tudo dividido: o verde é seu, o resto é do ${nomeDoOutro}. Na hora do leilão, só quem manda na posição dá o lance.`)
+                        : (getLang() === 'en' ? `Tap 3 positions. The other 3 go automatically to ${nomeDoOutro} — and if you don't choose, the game splits them on its own at kick-off.` : `Toque em 3 posições. As outras 3 ficam automático com o ${nomeDoOutro} — e se vocês não escolherem, o jogo divide sozinho na hora de começar.`)}
                     </p>
                   </div>
                 )
@@ -3786,21 +3786,21 @@ export function EscLobby() {
                   {!souEu && (
                     euPediParaEla ? (
                       <div className="flex items-center justify-between gap-2 py-1">
-                        <p className="text-black/55 text-[11.5px] font-black" style={OSWALD}>⏳ Pedido enviado — esperando {stripEmoji(p.manager_name).trim()} responder…</p>
-                        <button onClick={cancelarPedido} className="text-[10px] font-black uppercase underline text-black/45 active:opacity-60 shrink-0">Cancelar</button>
+                        <p className="text-black/55 text-[11.5px] font-black" style={OSWALD}>{tr('⏳ Pedido enviado — esperando', '⏳ Request sent — waiting for')} {stripEmoji(p.manager_name).trim()} {tr('responder…', 'to answer…')}</p>
+                        <button onClick={cancelarPedido} className="text-[10px] font-black uppercase underline text-black/45 active:opacity-60 shrink-0">{tr('Cancelar', 'Cancel')}</button>
                       </div>
                     ) : posso ? (
                       <button onClick={() => pedirDupla(p)}
                         className="w-full border-2 border-black rounded-xl py-2 font-black text-[12px] active:translate-y-0.5"
                         style={{ background: GOLD, color: '#000', ...OSWALD }}>
-                        🤝 Pedir pra jogar junto com {stripEmoji(p.manager_name).trim()}
+                        {tr('🤝 Pedir pra jogar junto com', '🤝 Ask to team up with')} {stripEmoji(p.manager_name).trim()}
                       </button>
                     ) : (
                       <p className="text-black/45 text-[11.5px] font-bold py-1">
-                        {p.dupla_seek === 'privada' ? '🔒 Guardando a vaga pra um amigo'
-                          : pedidoPara ? `⏳ ${stripEmoji(pedidoPara.manager_name).trim()} já mandou um pedido — aguardando resposta`
-                          : meuRow?.dupla_request_to ? '⏳ Você já tem um pedido em aberto com outra pessoa'
-                          : '🤝 Já está em dupla'}
+                        {p.dupla_seek === 'privada' ? tr('🔒 Guardando a vaga pra um amigo', '🔒 Saving the spot for a friend')
+                          : pedidoPara ? `⏳ ${stripEmoji(pedidoPara.manager_name).trim()} ${tr('já mandou um pedido — aguardando resposta', 'already sent a request — waiting for an answer')}`
+                          : meuRow?.dupla_request_to ? tr('⏳ Você já tem um pedido em aberto com outra pessoa', '⏳ You already have a pending request with someone else')
+                          : tr('🤝 Já está em dupla', '🤝 Already in a duo')}
                       </p>
                     )
                   )}
@@ -3808,27 +3808,27 @@ export function EscLobby() {
                       cadeado de sempre. Jogar sozinho não existe: a sala é de duplas. */}
                   {souEu && (pedidoPara ? (
                     <div className="rounded-xl border-2 border-black p-2.5" style={{ background: '#FFF7DE' }}>
-                      <p className="font-black text-[12.5px] text-black" style={OSWALD}>🤝 {stripEmoji(pedidoPara.manager_name).trim()} quer jogar de dupla com você!</p>
+                      <p className="font-black text-[12.5px] text-black" style={OSWALD}>🤝 {stripEmoji(pedidoPara.manager_name).trim()} {tr('quer jogar de dupla com você!', 'wants to team up with you!')}</p>
                       <div className="flex gap-2 mt-2">
                         <button onClick={() => responderPedido(pedidoPara.user_id, true)}
-                          className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5" style={{ background: GREEN, color: '#fff', ...OSWALD }}>✅ Aceitar</button>
+                          className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5" style={{ background: GREEN, color: '#fff', ...OSWALD }}>{tr('✅ Aceitar', '✅ Accept')}</button>
                         <button onClick={() => responderPedido(pedidoPara.user_id, false)}
-                          className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5" style={{ background: '#fff', color: '#000', ...OSWALD }}>✕ Recusar</button>
+                          className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5" style={{ background: '#fff', color: '#000', ...OSWALD }}>{tr('✕ Recusar', '✕ Decline')}</button>
                       </div>
                     </div>
                   ) : (<>
                     <p className="text-black/55 text-[11.5px] font-black py-0.5" style={OSWALD}>
-                      {p.dupla_seek === 'privada' ? '🔒 CADEADO — guardando a vaga pro seu amigo' : '🌍 QUALQUER UM PODE TE PEDIR PRA JOGAR JUNTO'}
+                      {p.dupla_seek === 'privada' ? tr('🔒 CADEADO — guardando a vaga pro seu amigo', '🔒 LOCKED — saving the spot for your friend') : tr('🌍 QUALQUER UM PODE TE PEDIR PRA JOGAR JUNTO', '🌍 ANYONE CAN ASK TO TEAM UP WITH YOU')}
                     </p>
                     <p className="text-black/40 text-[10.5px] font-bold leading-snug mb-1">
                       {p.dupla_seek === 'privada'
-                        ? 'Ninguém de fora consegue te pedir. Mande o link pro seu amigo — quando ele chegar, tire o cadeado pra ele poder pedir.'
-                        : 'Quem estiver na sala pode te chamar — você decide aceitar ou não. Corre atrás de um parceiro: o pregão abre assim que 2 duplas fecharem.'}
+                        ? tr('Ninguém de fora consegue te pedir. Mande o link pro seu amigo — quando ele chegar, tire o cadeado pra ele poder pedir.', 'Nobody from outside can ask you. Send the link to your friend — when they arrive, unlock so they can ask.')
+                        : tr('Quem estiver na sala pode te chamar — você decide aceitar ou não. Corre atrás de um parceiro: o pregão abre assim que 2 duplas fecharem.', 'Anyone in the room can call you — you decide whether to accept. Go find a partner: the auction opens as soon as 2 duos are complete.')}
                     </p>
                     <button onClick={() => procurarParceiro(p.dupla_seek === 'privada' ? null : 'privada')}
                       className="w-full border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5"
                       style={{ background: '#fff', color: '#000', ...OSWALD }}>
-                      {p.dupla_seek === 'privada' ? '🌍 Tirar o cadeado (deixar qualquer um te pedir)' : '🔒 Pôr cadeado (guardar pro meu amigo)'}
+                      {p.dupla_seek === 'privada' ? tr('🌍 Tirar o cadeado (deixar qualquer um te pedir)', '🌍 Unlock (let anyone ask you)') : tr('🔒 Pôr cadeado (guardar pro meu amigo)', '🔒 Lock (save it for my friend)')}
                     </button>
                   </>))}
                 </div>
@@ -3836,10 +3836,10 @@ export function EscLobby() {
             </div>
             )
           })}
-          {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">Aguardando mais técnicos…</p>}
+          {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">{tr('Aguardando mais técnicos…', 'Waiting for more managers…')}</p>}
           {duplasOn && (
             <p className="text-black/45 text-[11px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
-              🤝 Aqui se joga de dois: um cuida de 3 posições, o outro das outras 3. Qualquer um da sala pode entrar no seu time; se quiser guardar a vaga pro seu amigo, é só pôr o 🔒 cadeado. O pregão abre com 2 duplas fechadas — então corre atrás do seu parceiro antes.
+              {tr('🤝 Aqui se joga de dois: um cuida de 3 posições, o outro das outras 3. Qualquer um da sala pode entrar no seu time; se quiser guardar a vaga pro seu amigo, é só pôr o 🔒 cadeado. O pregão abre com 2 duplas fechadas — então corre atrás do seu parceiro antes.', '🤝 Here you play in pairs: one handles 3 positions, the other the other 3. Anyone in the room can join your team; to save the spot for your friend, just put the 🔒 lock on. The auction opens with 2 complete duos — so find your partner first.')}
             </p>
           )}
         </div>
@@ -3853,7 +3853,7 @@ export function EscLobby() {
           bug; com a linha, é escolha do host e todo mundo entende. */}
       {chatOff && (
         <p className="text-white/35 text-[11px] font-bold text-center leading-snug">
-          🔕 O host criou esta sala <b className="text-white/55">sem chat</b> — por isso não tem conversa nem as reações de zoeira aqui.
+          {getLang() === 'en' ? <>🔕 The host created this room <b className="text-white/55">without chat</b> — that's why there is no conversation or banter reactions here.</> : <>🔕 O host criou esta sala <b className="text-white/55">sem chat</b> — por isso não tem conversa nem as reações de zoeira aqui.</>}
         </p>
       )}
       {/* Zoeira da sala de espera: frases prontas que caem no CHAT da sala (o
@@ -3862,23 +3862,23 @@ export function EscLobby() {
       {!chatOff && (() => {
         const carreira = room.game_state?.mode === 'carreira'
         const hostName = players.find(p => p.player_index === 0)?.manager_name ?? 'host'
-        const abrir = carreira ? 'começa logo a carreira!' : 'abre o pregão!'
+        const abrir = carreira ? tr('começa logo a carreira!', 'start the career already!') : tr('abre o pregão!', 'open the auction!')
         const jabs = isHost
           ? [
-              { ic: '😏', tx: 'Calma que já vai começar…' },
-              { ic: '📣', tx: 'Chamando mais gente, segura!' },
-              { ic: '😈', tx: 'Preparados pra perder?' },
-              { ic: '🍿', tx: 'Senta que o show vai começar!' },
+              { ic: '😏', tx: tr('Calma que já vai começar…', 'Easy, it\'s about to start…') },
+              { ic: '📣', tx: tr('Chamando mais gente, segura!', 'Calling more people, hold on!') },
+              { ic: '😈', tx: tr('Preparados pra perder?', 'Ready to lose?') },
+              { ic: '🍿', tx: tr('Senta que o show vai começar!', 'Sit down, the show is about to start!') },
             ]
           : [
-              { ic: '🐢', tx: `Anda, ${hostName}, ${abrir}` },
-              { ic: '🔨', tx: `Solta o martelo, ${hostName}!` },
-              { ic: '😴', tx: `Dormiu, ${hostName}?` },
-              { ic: '🔥', tx: 'Tô pronto pra ganhar de todo mundo!' },
+              { ic: '🐢', tx: `${tr('Anda', 'Come on')}, ${hostName}, ${abrir}` },
+              { ic: '🔨', tx: `${tr('Solta o martelo', 'Drop the hammer')}, ${hostName}!` },
+              { ic: '😴', tx: `${tr('Dormiu', 'Fell asleep')}, ${hostName}?` },
+              { ic: '🔥', tx: tr('Tô pronto pra ganhar de todo mundo!', 'I\'m ready to beat everyone!') },
             ]
         return (
           <div className="online-banter rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
-            <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">😜 Enquanto espera… zoa a galera</p>
+            <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">{tr('😜 Enquanto espera… zoa a galera', '😜 While you wait… tease the crew')}</p>
             <div className="grid grid-cols-2 gap-2">
               {jabs.map((j, i) => (
                 <button key={i} onClick={() => sendLobbyFloat(j.ic, j.tx)}
@@ -3890,7 +3890,7 @@ export function EscLobby() {
             {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
                 (contagem compartilhada) e um som por vez na sala. */}
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {([['ligar', '📞', '"Posso te ligar agora?"'], ['meme2', '🎙️', 'AQUELE áudio'], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', 'Áudio novo'], ['jacare', '🐊', 'Silenciar aqui'], ['bomdia', '☀️', 'Bom dia']] as [string, string, string][]).map(([k, ic, tx]) => (
+              {([['ligar', '📞', tr('"Posso te ligar agora?"', '"Can I call you now?"')], ['meme2', '🎙️', tr('AQUELE áudio', 'THAT audio')], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', tr('Áudio novo', 'New audio')], ['jacare', '🐊', tr('Silenciar aqui', 'Silence here')], ['bomdia', '☀️', tr('Bom dia', 'Good morning')]] as [string, string, string][]).map(([k, ic, tx]) => (
                 <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
                   style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>
@@ -3900,7 +3900,7 @@ export function EscLobby() {
             </div>
             <button onClick={() => openLobbyChat(true)}
               className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] bg-white text-black active:translate-y-0.5 flex items-center justify-center gap-1.5" style={OSWALD}>
-              💬 Abrir chat da sala {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
+              {tr('💬 Abrir chat da sala', '💬 Open room chat')} {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
             </button>
           </div>
         )
@@ -3911,20 +3911,20 @@ export function EscLobby() {
       {bafoAviso && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100001, background: 'rgba(0,0,0,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
           <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}`, maxWidth: 400, width: '100%', padding: 20 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, color: INK, textAlign: 'center' }}>⏳ Ainda tem gente montando</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, color: INK, textAlign: 'center' }}>{tr('⏳ Ainda tem gente montando', '⏳ Some people are still building')}</p>
             <p style={{ fontWeight: 700, fontSize: 12.5, color: 'rgba(0,0,0,.68)', marginTop: 8, lineHeight: 1.45 }}>
-              Não escolheram a carreira ainda: <b>{bafoFaltam.map(p => stripEmoji(p.manager_name)).join(', ')}</b>.
+              {tr('Não escolheram a carreira ainda:', 'Haven\'t picked a career yet:')} <b>{bafoFaltam.map(p => stripEmoji(p.manager_name)).join(', ')}</b>.
             </p>
             <p style={{ fontWeight: 700, fontSize: 11.5, color: 'rgba(0,0,0,.5)', marginTop: 6, lineHeight: 1.45 }}>
-              Se seguir agora, <b>eles ficam de fora desta partida</b> (ninguém entra em campo com time sorteado). Dá pra chamar de novo depois.
+              {getLang() === 'en' ? <>If you go on now, <b>they sit out this match</b> (nobody takes the pitch with a random team). You can call them again later.</> : <>Se seguir agora, <b>eles ficam de fora desta partida</b> (ninguém entra em campo com time sorteado). Dá pra chamar de novo depois.</>}
             </p>
             <button onClick={() => { setBafoAviso(false); void startOnline() }}
               style={{ ...OSWALD, fontWeight: 900, fontSize: 14.5, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', width: '100%', marginTop: 14, cursor: 'pointer' }}>
-              ▶️ Seguir sem eles
+              {tr('▶️ Seguir sem eles', '▶️ Go on without them')}
             </button>
             <button onClick={() => setBafoAviso(false)}
               style={{ ...OSWALD, fontWeight: 900, fontSize: 14.5, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', width: '100%', marginTop: 8, cursor: 'pointer' }}>
-              ⏳ Aguardar mais um pouco
+              {tr('⏳ Aguardar mais um pouco', '⏳ Wait a bit longer')}
             </button>
           </div>
         </div>
@@ -3939,7 +3939,7 @@ export function EscLobby() {
           da bola rolar. */}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
-        const startLabel = carreira ? '🌐 Começar Carreira!' : elencoOn ? '🃏 Começar o Bafo!' : '🔨 Abrir o Pregão!'
+        const startLabel = carreira ? tr('🌐 Começar Carreira!', '🌐 Start Career!') : elencoOn ? tr('🃏 Começar o Bafo!', '🃏 Start Bafo!') : tr('🔨 Abrir o Pregão!', '🔨 Open the Auction!')
         // 🏆 LIGA — decisão do Diego (20/08, opção A): *só o DONO abre o pregão*,
         // igual às salas de hoje. Simples, sem passar coroa pra ninguém. Pra isso
         // não virar novela quando ele atrasa, a tela DIZ o que está acontecendo:
@@ -3947,10 +3947,10 @@ export function EscLobby() {
         // "aguardando…" sem saber o quê.
         const ligaOnSala = room.game_state?.mode === 'liga'
         const donoNaSala = players.some(p => p.user_id === room.host_id)
-        const waitMsg = carreira ? 'Aguardando o host começar a carreira…' : elencoOn ? 'Aguardando o host começar o Bafo…'
-          : ligaOnSala ? (donoNaSala ? '👑 O dono da liga já está aqui — ele abre o pregão quando quiser.' : '👑 O dono da liga ainda não chegou. Só ele abre o pregão — chame no zap!')
-          : 'Aguardando o host abrir o pregão…'
-        const esperaLabel = elencoOn ? `Aguardando… (${bafoAptos.length}/2 montados)` : duplasOn ? 'Aguardando…' : `Aguardando… (${players.length}/2 mín)`
+        const waitMsg = carreira ? tr('Aguardando o host começar a carreira…', 'Waiting for the host to start the career…') : elencoOn ? tr('Aguardando o host começar o Bafo…', 'Waiting for the host to start Bafo…')
+          : ligaOnSala ? (donoNaSala ? tr('👑 O dono da liga já está aqui — ele abre o pregão quando quiser.', '👑 The league owner is here — they open the auction whenever they want.') : tr('👑 O dono da liga ainda não chegou. Só ele abre o pregão — chame no zap!', '👑 The league owner hasn\'t arrived yet. Only they open the auction — give them a call!'))
+          : tr('Aguardando o host abrir o pregão…', 'Waiting for the host to open the auction…')
+        const esperaLabel = elencoOn ? `${tr('Aguardando…', 'Waiting…')} (${bafoAptos.length}/2 ${tr('montados', 'built')})` : duplasOn ? tr('Aguardando…', 'Waiting…') : `${tr('Aguardando…', 'Waiting…')} (${players.length}/2 ${tr('mín', 'min')})`
         // 🃏 se falta alguém montar, o toque abre o banner em vez de começar
         const onStart = () => { if (elencoOn && bafoFaltam.length > 0) setBafoAviso(true); else void startOnline() }
         if (ehMundoSala) return null // 🌍 a Copa tem o botão dela no painel de cima
@@ -3982,18 +3982,18 @@ export function EscLobby() {
         // nada. Mesmo desenho pra coisas opostas assusta quem tem meses de estante
         // pra perder — e medo de apertar botão é o que faz a pessoa deixar a aba
         // aberta a noite toda.
-        const rotuloSair = ehLiga ? '✅ Guardar e sair' : !souDonoAqui ? '🚪 Sair da sala' : '🚪 Sair e encerrar a sala'
+        const rotuloSair = ehLiga ? tr('✅ Guardar e sair', '✅ Save and leave') : !souDonoAqui ? tr('🚪 Sair da sala', '🚪 Leave the room') : tr('🚪 Sair e encerrar a sala', '🚪 Leave and close the room')
         return (
           <div className="space-y-1.5">
             {ehLiga && isHost ? (
               <div className="flex gap-2">
                 <button onClick={leaveRoom}
                   className="flex-1 rounded-xl py-2 font-black text-[12px] text-white/70 border-2 border-dashed border-white/30 active:opacity-60" style={OSWALD}>
-                  ✅ Guardar e sair
+                  {tr('✅ Guardar e sair', '✅ Save and leave')}
                 </button>
                 <button onClick={excluirLiga}
                   className="flex-1 rounded-xl py-2 font-black text-[12px] text-white border-2 border-black active:translate-y-0.5" style={{ background: '#C2452F', ...OSWALD }}>
-                  🗑️ Excluir a liga
+                  {tr('🗑️ Excluir a liga', '🗑️ Delete the league')}
                 </button>
               </div>
             ) : (
@@ -4002,11 +4002,11 @@ export function EscLobby() {
             <p className="text-white/40 text-[10.5px] font-bold text-center leading-snug">
               {ehLiga
                 ? (isHost
-                  ? <>Pode fechar o app à vontade: <b>sua liga fica guardada</b>, com os troféus, e volta em 🏆 Minhas ligas. Só <b>🗑️ Excluir</b> apaga a liga e a estante — pra todo mundo, sem volta.</>
-                  : <>Você volta quando quiser — é só o código.</>)
+                  ? (getLang() === 'en' ? <>Close the app whenever you like: <b>your league is saved</b>, trophies included, and comes back in 🏆 My leagues. Only <b>🗑️ Delete</b> erases the league and the shelf — for everyone, no way back.</> : <>Pode fechar o app à vontade: <b>sua liga fica guardada</b>, com os troféus, e volta em 🏆 Minhas ligas. Só <b>🗑️ Excluir</b> apaga a liga e a estante — pra todo mundo, sem volta.</>)
+                  : <>{tr('Você volta quando quiser — é só o código.', 'Come back whenever you like — all it takes is the code.')}</>)
                 : (souDonoAqui
-                  ? <>Sala rápida <b>não existe sem o dono</b>: ao sair, ela é encerrada pra todo mundo.</>
-                  : <>Você volta quando quiser — é só o código.</>)}
+                  ? (getLang() === 'en' ? <>A quick room <b>doesn't exist without its owner</b>: when you leave, it closes for everyone.</> : <>Sala rápida <b>não existe sem o dono</b>: ao sair, ela é encerrada pra todo mundo.</>)
+                  : <>{tr('Você volta quando quiser — é só o código.', 'Come back whenever you like — all it takes is the code.')}</>)}
             </p>
           </div>
         )
@@ -4038,11 +4038,11 @@ export function EscLobby() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 100001, background: 'rgba(0,0,0,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
           <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}`, maxWidth: 380, width: '100%', padding: 20, textAlign: 'center' }}>
             <div style={{ fontSize: 42, lineHeight: 1 }}>👑🚪</div>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 20, color: INK, marginTop: 8 }}>O host saiu da sala</p>
-            <p style={{ fontWeight: 700, fontSize: 13, color: 'rgba(0,0,0,.65)', marginTop: 6, lineHeight: 1.4 }}>A sala foi encerrada — sem o host ninguém abre o pregão. Você volta pro menu das salas.</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 20, color: INK, marginTop: 8 }}>{tr('O host saiu da sala', 'The host left the room')}</p>
+            <p style={{ fontWeight: 700, fontSize: 13, color: 'rgba(0,0,0,.65)', marginTop: 6, lineHeight: 1.4 }}>{tr('A sala foi encerrada — sem o host ninguém abre o pregão. Você volta pro menu das salas.', 'The room was closed — without the host nobody opens the auction. You go back to the rooms menu.')}</p>
             <button onClick={() => { setHostLeft(false); clearSavedRoom(); setRoom(null); setPlayers([]); setTab('open'); setPhase('menu') }}
               style={{ ...OSWALD, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', width: '100%', marginTop: 16, cursor: 'pointer' }}>
-              OK, voltar pras salas
+              {tr('OK, voltar pras salas', 'OK, back to rooms')}
             </button>
           </div>
         </div>
@@ -4054,10 +4054,10 @@ export function EscLobby() {
   return wrap(<>
     <div className="text-center space-y-3">
       <div className="text-5xl">⏳</div>
-      <p className="font-black text-lg text-white" style={OSWALD}>Carregando a sala…</p>
-      <p className="text-white/60 text-sm font-bold">Se demorar, a sala pode ter sido encerrada pelo host.</p>
-      <button onClick={() => { clearSavedRoom(); setPhase('menu') }} className="w-full rounded-xl border-[3px] border-black py-3 font-black" style={{ background: GOLD, color: '#000', ...OSWALD }}>🏠 Voltar pras salas</button>
-      <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full">Sair pro início</button>
+      <p className="font-black text-lg text-white" style={OSWALD}>{tr('Carregando a sala…', 'Loading the room…')}</p>
+      <p className="text-white/60 text-sm font-bold">{tr('Se demorar, a sala pode ter sido encerrada pelo host.', 'If it takes long, the host may have closed the room.')}</p>
+      <button onClick={() => { clearSavedRoom(); setPhase('menu') }} className="w-full rounded-xl border-[3px] border-black py-3 font-black" style={{ background: GOLD, color: '#000', ...OSWALD }}>{tr('🏠 Voltar pras salas', '🏠 Back to rooms')}</button>
+      <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full">{tr('Sair pro início', 'Back to start')}</button>
     </div>
   </>)
 }
