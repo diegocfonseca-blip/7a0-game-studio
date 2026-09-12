@@ -1364,10 +1364,14 @@ const L27_BR_MEI: C[] = [
   { name: 'Jean Lucas', club: 'Bahia', year: 2024, fame: 2, lo: 68, hi: 81, bio: 'Meio-campista rodado (Flamengo, Lyon, Mônaco, Santos) que virou peça fixa do Bahia.' },
 ]
 // ─── L28 (12/09, pedido do Diego) ────────────────────────────────────────────
-// ⚠️ CLUBE E ANO das duas são o que ele deve conferir (lição do Valdo, 28/08):
-// bio errada é a parte que o JOGADOR LÊ, então as bios abaixo só afirmam o que
-// se sustenta — recorde de Copas/Olimpíadas da Formiga e a saída do Firmino
-// adolescente pra Alemanha. Nenhuma cita título de clube.
+// ✅ CLUBE E ANO CONFIRMADOS PELO DIEGO (12/09). Eu tinha perguntado se a
+// Formiga não devia ser São José em vez de Santos 2009; resposta dele: *"Deixa
+// esse msm"*. Fica Santos · 2009, o MESMO clube e ano da carta da Marta — as
+// duas jogaram juntas ali. Não trocar sem ele pedir.
+// ⚠️ Lição do Valdo (28/08): bio errada é a parte que o JOGADOR LÊ, então as
+// bios abaixo só afirmam o que se sustenta — o recorde de Copas/Olimpíadas da
+// Formiga e a saída do Firmino adolescente pra Alemanha. Nenhuma cita título
+// de clube, de propósito.
 const L28_BR_MEI: C[] = [
   // 👑 A primeira mulher do baralho depois da Marta (Santos 2009). Volante.
   { name: 'Formiga', club: 'Santos', year: 2009, fame: 4, lo: 82, hi: 88, bio: 'Recordista do futebol mundial: 7 Copas do Mundo e 7 Olimpíadas, mais do que qualquer jogador ou jogadora na história. Volante de fôlego infinito, jogou até os 44 anos.' },

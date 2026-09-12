@@ -12,10 +12,11 @@ q ter baralho mundo sim"*.
 | Usain Bolt | ATA | Central Coast Mariners · 2018 | 🪵 foi profissional · 🃏 | 40–82 |
 
 - **Formiga** é a 2ª mulher do baralho (a 1ª é a Marta, carta do MESMO clube e
-  ano — foi de propósito). ⚠️ **Clube e ano são o que o Diego deve confirmar**: a
-  bio NÃO afirma título de clube nenhum, só o recorde de 7 Copas + 7 Olimpíadas e
-  a carreira até os 44 anos. É a lição do Valdo (28/08): bio errada é a parte que
-  o jogador LÊ. Trocar pra São José é uma linha.
+  ano — foi de propósito). ✅ **Clube e ano CONFIRMADOS pelo Diego**: perguntei se
+  não devia ser São José e ele respondeu *"Deixa esse msm"*. Fica **Santos ·
+  2009** — não trocar sem ele pedir. A bio NÃO afirma título de clube nenhum, só
+  o recorde de 7 Copas + 7 Olimpíadas e a carreira até os 44 anos (lição do
+  Valdo, 28/08: bio errada é a parte que o jogador LÊ).
 - **Firmino** virou 2ª carta (a 1ª é Liverpool 2019, baralho da Europa), igual
   Kaká SP × Kaká Milan. Entrou em `MESMO_JOGADOR` (`paises.ts`). Efeito colateral
   conhecido e aceito: nome repetido sai da queda-por-nome do `sincronizaNiveis`,
