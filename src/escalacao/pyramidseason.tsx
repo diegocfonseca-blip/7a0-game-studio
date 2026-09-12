@@ -8,7 +8,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useCareerPresentation as useOnlinePreview } from './presentation-release'
+import { useCareerPresentation as useOnlinePreview, useLegendPresentation } from './presentation-release'
 import { useOnlinePreview as usePenaltyArtPreview } from './online-preview'
 import { PenaltyArt } from './penalty-art'
 import type { PenaltyArtHandle } from './penalty-art'
@@ -3371,6 +3371,11 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
   divName: string; tablePos: number; seasonNo: number; coins: number; titles: number
 }) {
   const [busy, setBusy] = useState(false)
+  // 🧑 a MESMA regra do campinho (`useLegendPresentation`): se a pessoa vê o
+  // rosto da lenda na tela, a imagem compartilhada sai com rosto também.
+  // ⚠️ Tem que ser ESTE hook, não o `useOnlinePreview` daqui de cima — aquele é
+  // o do visual da carreira e é OUTRA trava.
+  const rostosOn = useLegendPresentation()
   const go = async () => {
     if (busy) return
     setBusy(true)
@@ -3395,7 +3400,7 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
         titles, squadValue: mgr.squad.reduce((s2, c) => s2 + (c.paid ?? 0), 0), coins,
         color: col.solid, tierGrad: perk?.grad, tierHolo: perk?.holo ?? 0, fieldRows, titulares, reservas,
         // 🛡️👕 nome LIMPO (chave do escudo/mascote) e o manto medido do clube
-        teamRaw: mgr.teamName, manto: meuManto(),
+        teamRaw: mgr.teamName, manto: meuManto(), rostos: rostosOn,
       })
     } finally { setBusy(false) }
   }

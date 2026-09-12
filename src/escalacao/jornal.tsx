@@ -15,7 +15,8 @@ import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09): a imagem co
 // passou a ser cópia do jornal que a pessoa acabou de ler, não um desenho à parte.
 import { carimboDoTime } from './mascotes' // 🐮 mascote do clube batizado, pro rodapé do elenco
 import { avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho)
-import { onlinePreviewEnabled } from './online-preview' // 🔒 trava do rosto: hoje só as contas de teste
+import { onlinePreviewEnabled } from './online-preview' // 🔒 prévia das duas contas (rede de segurança)
+import { LEGEND_AVATARS_RELEASED } from './career-feature-release' // 🧑 rosto das lendas: LIBERADO geral
 import { fotoDoJogador } from './rostos'
 import { VADICO_LOGO } from './vadico' // 🪧 placa atrás do gol, igual à tela
 import ligaArtSrc from './img/jornal-liga-v22.webp'
@@ -849,6 +850,11 @@ export type ElencoShareOpts = {
   fieldRows: { pos: string; name: string; goals: number; club?: string; year?: number }[][] // ATA/MEI/DEF/GOL
   // 🛡️ nome LIMPO do clube (sem o selo de apoio) — é a chave do escudo e da mascote
   teamRaw?: string
+  // 🧑 mostrar o ROSTO das lendas? Quem manda é a TELA: o botão lê a mesma trava
+  // do campinho (`useOnlinePreview`) e passa aqui. Antes esta função consultava a
+  // trava sozinha, e como ela é preenchida DEPOIS (o aviso do login chega
+  // assíncrono), a arte podia sair com bolinha mesmo pra quem vê rosto na tela.
+  rostos?: boolean
   // 👕 manto do clube (as 2 cores medidas na arte do dono). Presente → o topo e a
   // faixa de cada campinho saem listrados igual à tela, e a bolinha de quem não
   // tem rosto leva o manto. Ausente → cor chapada do time, como era.
@@ -979,7 +985,7 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
   let y = HEAD
 
   // ── um CAMPINHO (faixa do manto + grama + jogadores soltos + placa)
-  const rostoOn = onlinePreviewEnabled()
+  const rostoOn = o.rostos ?? (LEGEND_AVATARS_RELEASED || onlinePreviewEnabled())
   type Cd = { pos: string; name: string; goals: number; club?: string; year?: number }
   const campinho = async (linhas: Cd[][], titulo: string, alt: number) => {
     const BAR = 50
