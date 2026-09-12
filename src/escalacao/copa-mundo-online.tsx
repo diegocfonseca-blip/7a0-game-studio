@@ -42,6 +42,7 @@ import { pensRevealDelay } from './pyramidseason'
 import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
 import { rankingSelecoes } from './paises'
+import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
 import {
   CMModal, ConvocacaoScreen, CupScreen, COPA_TEAMS, flagOf,
   countryPool, xiPorChaves, xiDaMaquina, xiStrength, completaXI,
@@ -50,7 +51,7 @@ import {
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
 // tira emoji do nome do técnico (o selo de apoio vem colado no manager_name)
-const stripEmojiSimples = (n: string) => n.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim() || 'Técnico'
+const stripEmojiSimples = (n: string) => n.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim() || tr('Técnico', 'Manager')
 const OSWALD = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
 const box = (bg: string) => ({ border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, background: bg }) as const
 
@@ -130,9 +131,9 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
     const { data } = await supabase.from('room_players').select('user_id, copa').eq('room_id', roomId)
     const conflito = ((data ?? []) as { user_id: string; copa: CopaPick | null }[])
       .some(r => r.user_id !== meuUid && r.copa?.pais === p.pais)
-    if (conflito) { setErro(`Alguém pegou a ${p.pais} enquanto você convocava. Escolhe outra — o time que você montou não se perde, é só refazer com o país novo.`); setTela('pais'); return }
+    if (conflito) { setErro(getLang() === 'en' ? `Someone took ${p.pais} while you were calling up. Pick another — the team you built isn't lost, just redo it with the new country.` : `Alguém pegou a ${p.pais} enquanto você convocava. Escolhe outra — o time que você montou não se perde, é só refazer com o país novo.`); setTela('pais'); return }
     const { error } = await supabase.from('room_players').update({ copa: p }).eq('room_id', roomId).eq('user_id', meuUid)
-    if (error) { setErro('Não consegui gravar sua seleção. Tenta de novo em instantes.'); return }
+    if (error) { setErro(tr('Não consegui gravar sua seleção. Tenta de novo em instantes.', 'Couldn\'t save your team. Try again in a moment.')); return }
     setTela('off'); aoEscolher()
   }
 
@@ -140,26 +141,26 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
     <>
       <div style={{ ...box(minha ? '#EAF6EE' : '#FFF6D6'), padding: '10px 12px', marginBottom: 10 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, textTransform: 'uppercase' }}>
-          {minha ? `${flagOf(minha.pais)} Você é a ${minha.pais}` : '🌐 Escolha a sua seleção'}
+          {minha ? `${flagOf(minha.pais)} ${tr('Você é a', 'You are')} ${minha.pais}` : tr('🌐 Escolha a sua seleção', '🌐 Pick your national team')}
         </p>
         <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>
           {minha
-            ? <>11 convocados no papel. Agora é esperar a turma — o dono da sala abre a Copa quando todo mundo estiver pronto.</>
-            : <>Cada um pega <b>uma seleção</b> e convoca <b>11 jogadores</b> do país. Não tem leilão aqui: é convocação pura, e o time é seu do começo ao fim da Copa.</>}
+            ? <>{tr('11 convocados no papel. Agora é esperar a turma — o dono da sala abre a Copa quando todo mundo estiver pronto.', '11 called up on paper. Now wait for the crew — the room owner opens the Cup when everyone is ready.')}</>
+            : (getLang() === 'en' ? <>Everyone picks <b>one national team</b> and calls up <b>11 players</b> from that country. No auction here: pure call-up, and the team is yours from start to finish of the Cup.</> : <>Cada um pega <b>uma seleção</b> e convoca <b>11 jogadores</b> do país. Não tem leilão aqui: é convocação pura, e o time é seu do começo ao fim da Copa.</>)}
         </p>
         <button onClick={() => { setPais(null); setTela('pais') }}
           style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 0', ...OSWALD, fontWeight: 900, fontSize: 13,
             background: minha ? '#fff' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>
-          {minha ? '🔁 Trocar de seleção' : '🌐 ESCOLHER MINHA SELEÇÃO'}
+          {minha ? tr('🔁 Trocar de seleção', '🔁 Change national team') : tr('🌐 ESCOLHER MINHA SELEÇÃO', '🌐 PICK MY NATIONAL TEAM')}
         </button>
         {erro && <p style={{ fontSize: 10.5, fontWeight: 800, color: '#B23B2E', margin: '6px 0 0', lineHeight: 1.4 }}>{erro}</p>}
       </div>
 
       {tela === 'pais' && (
         <CMModal>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>🌐 Escolha sua seleção</p>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>{tr('🌐 Escolha sua seleção', '🌐 Pick your national team')}</p>
           <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', textAlign: 'center', margin: '4px 0 10px', lineHeight: 1.4 }}>
-            As <b>{COPA_TEAMS}</b> seleções da Copa. As que já têm dono aparecem apagadas — <b>duas pessoas não podem levar o mesmo país</b>.
+            {getLang() === 'en' ? <>The <b>{COPA_TEAMS}</b> national teams of the Cup. The ones already taken appear greyed out — <b>two people can't take the same country</b>.</> : <>As <b>{COPA_TEAMS}</b> seleções da Copa. As que já têm dono aparecem apagadas — <b>duas pessoas não podem levar o mesmo país</b>.</>}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {paises.map(p => {
@@ -171,12 +172,12 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
                   style={{ textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 9px', background: dono ? '#ded5bd' : '#fff',
                     opacity: dono ? .65 : 1, cursor: dono ? 'default' : 'pointer', boxShadow: dono ? 'none' : `2px 2px 0 0 ${INK}` }}>
                   <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, display: 'block' }}>{flagOf(p)} {p}</span>
-                  <span style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{dono ? `já é de ${dono}` : `${qtd} cartas`}</span>
+                  <span style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{dono ? `${tr('já é de', 'taken by')} ${dono}` : `${qtd} ${tr('cartas', 'cards')}`}</span>
                 </button>
               )
             })}
           </div>
-          <button onClick={() => setTela('off')} style={{ width: '100%', marginTop: 10, border: 'none', background: 'transparent', ...OSWALD, fontWeight: 900, fontSize: 12, color: 'rgba(0,0,0,.5)', textDecoration: 'underline', cursor: 'pointer' }}>voltar pra sala</button>
+          <button onClick={() => setTela('off')} style={{ width: '100%', marginTop: 10, border: 'none', background: 'transparent', ...OSWALD, fontWeight: 900, fontSize: 12, color: 'rgba(0,0,0,.5)', textDecoration: 'underline', cursor: 'pointer' }}>{tr('voltar pra sala', 'back to the room')}</button>
         </CMModal>
       )}
 
@@ -233,10 +234,10 @@ export function PainelDaCopa({ prontos, total, souDono, abrindo, aoAbrir }: {
   return (
     <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 10 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 6px', textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
-        🌐 Convocados · {prontos.length} de {total}
+        {tr('🌐 Convocados', '🌐 Called up')} · {prontos.length} {tr('de', 'of')} {total}
       </p>
       {prontos.length === 0
-        ? <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0 }}>Ninguém escolheu ainda.</p>
+        ? <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0 }}>{tr('Ninguém escolheu ainda.', 'Nobody has picked yet.')}</p>
         : prontos.map(p => (
           <div key={p.nome + p.pais} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(0,0,0,.08)' }}>
             <span style={{ fontSize: 15 }}>{flagOf(p.pais)}</span>
@@ -246,7 +247,7 @@ export function PainelDaCopa({ prontos, total, souDono, abrindo, aoAbrir }: {
         ))}
       {faltam > 0 && (
         <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', lineHeight: 1.4 }}>
-          ⏳ {faltam === 1 ? 'Falta 1 pessoa' : `Faltam ${faltam} pessoas`} escolher. Quem não escolher <b>fica de fora da Copa</b> — as vagas viram seleções da máquina.
+          {getLang() === 'en' ? <>⏳ {faltam === 1 ? '1 person still has' : `${faltam} people still have`} to pick. Whoever doesn't pick <b>sits out the Cup</b> — the spots become machine teams.</> : <>⏳ {faltam === 1 ? 'Falta 1 pessoa' : `Faltam ${faltam} pessoas`} escolher. Quem não escolher <b>fica de fora da Copa</b> — as vagas viram seleções da máquina.</>}
         </p>
       )}
       {souDono && (
@@ -255,10 +256,10 @@ export function PainelDaCopa({ prontos, total, souDono, abrindo, aoAbrir }: {
             style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '10px 0', ...OSWALD, fontWeight: 900, fontSize: 14,
               background: podeAbrir ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#ded5bd', color: INK,
               boxShadow: podeAbrir ? `3px 3px 0 0 ${INK}` : 'none', cursor: podeAbrir && !abrindo ? 'pointer' : 'default' }}>
-            {abrindo ? '⏳ Abrindo…' : podeAbrir ? '🌐 ABRIR A COPA DO MUNDO' : '🌐 Precisa de 2 seleções'}
+            {abrindo ? tr('⏳ Abrindo…', '⏳ Opening…') : podeAbrir ? tr('🌐 ABRIR A COPA DO MUNDO', '🌐 OPEN THE WORLD CUP') : tr('🌐 Precisa de 2 seleções', '🌐 Needs 2 national teams')}
           </button>
           <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '5px 0 0', lineHeight: 1.4 }}>
-            A Copa abre <b>na tela de todo mundo ao mesmo tempo</b>. São {COPA_TEAMS} seleções no total — as vagas que sobrarem viram time da máquina.
+            {getLang() === 'en' ? <>The Cup opens <b>on everyone's screen at the same time</b>. There are {COPA_TEAMS} national teams in total — the leftover spots become machine teams.</> : <>A Copa abre <b>na tela de todo mundo ao mesmo tempo</b>. São {COPA_TEAMS} seleções no total — as vagas que sobrarem viram time da máquina.</>}
           </p>
         </>
       )}
@@ -295,10 +296,10 @@ export function EstanteDaCopa({ roomId, versao }: { roomId: string; versao: numb
   if (!linhas || linhas.length === 0) return null
   return (
     <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 10 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 5px', textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>🏆 Estante desta sala</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 5px', textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>{tr('🏆 Estante desta sala', '🏆 This room\'s shelf')}</p>
       {linhas.map(l => (
         <div key={l.season_no} style={{ display: 'flex', gap: 7, fontSize: 11.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(0,0,0,.08)' }}>
-          <span style={{ ...OSWALD, color: 'rgba(0,0,0,.45)', width: 54 }}>Copa {l.season_no}</span>
+          <span style={{ ...OSWALD, color: 'rgba(0,0,0,.45)', width: 54 }}>{tr('Copa', 'Cup')} {l.season_no}</span>
           <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🏆 {l.champion_name ?? '—'}</span>
         </div>
       ))}
@@ -310,8 +311,8 @@ export function EstanteDaCopa({ roomId, versao }: { roomId: string; versao: numb
 export function FaixaCopa() {
   return (
     <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '9px 12px', marginBottom: 10, textAlign: 'center' }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>🌐 Copa do Mundo Legends</p>
-      <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: '2px 0 0' }}>sem leilão · cada um convoca 11 do próprio país · {COPA_TEAMS} seleções</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{tr('🌐 Copa do Mundo Legends', '🌐 Legends World Cup')}</p>
+      <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: '2px 0 0' }}>{tr('sem leilão · cada um convoca 11 do próprio país', 'no auction · everyone calls up 11 from their own country')} · {COPA_TEAMS} {tr('seleções', 'national teams')}</p>
     </div>
   )
 }
@@ -482,11 +483,11 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
   }, [seg]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div style={{ ...box(privateVisual ? '#F4ECD6' : '#fff'), padding: '10px 11px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
-      {privateVisual && <div className="ll25-world-art ll25-cup-heading" style={{borderRadius:10,marginBottom:12,minHeight:200}}><h2 style={{...OSWALD,color:'#F4ECD6',fontSize:24,padding:12}}>QUEM VOCÊ VAI REPRESENTAR?</h2></div>}
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌐 É a sua vez — escolha a seleção</p>
+      {privateVisual && <div className="ll25-world-art ll25-cup-heading" style={{borderRadius:10,marginBottom:12,minHeight:200}}><h2 style={{...OSWALD,color:'#F4ECD6',fontSize:24,padding:12}}>{tr('QUEM VOCÊ VAI REPRESENTAR?', 'WHO WILL YOU REPRESENT?')}</h2></div>}
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>{tr('🌐 É a sua vez — escolha a seleção', '🌐 Your turn — pick the national team')}</p>
       <Relogio seg={seg} total={SEG_BANDEIRA} />
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 0 7px', textAlign: 'center', lineHeight: 1.35 }}>
-        Toque pra marcar e confirme. Se o tempo acabar, você leva a que estiver marcada — e, sem nenhuma marcada, <b>a pior que sobrou</b>.
+        {getLang() === 'en' ? <>Tap to mark and confirm. If time runs out, you take the one marked — and, with none marked, <b>the worst one left</b>.</> : <>Toque pra marcar e confirme. Se o tempo acabar, você leva a que estiver marcada — e, sem nenhuma marcada, <b>a pior que sobrou</b>.</>}
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, maxHeight: 320, overflowY: 'auto' }}>
         {paises.map(p => {
@@ -498,7 +499,7 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
                 background: dono ? '#ded5bd' : eu ? GOLD : '#fff', opacity: dono ? .6 : 1,
                 cursor: dono ? 'default' : 'pointer', boxShadow: dono ? 'none' : `2px 2px 0 0 ${INK}` }}>
               <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, display: 'block' }}>{privateVisual ? <NationalCrest country={p} size={36} /> : flagOf(p)} {p}</span>
-              <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{dono ? `de ${dono}` : eu ? '✔️ marcada' : 'livre'}</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{dono ? `${tr('de', 'taken by')} ${dono}` : eu ? tr('✔️ marcada', '✔️ marked') : tr('livre', 'free')}</span>
             </button>
           )
         })}
@@ -506,7 +507,7 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
       <button onClick={() => { if (marcado) { enviado.current = true; aoConfirmar(marcado) } }} disabled={!marcado}
         style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 0', ...OSWALD, fontWeight: 900, fontSize: 14,
           background: marcado ? GREEN : '#ded5bd', color: marcado ? '#fff' : INK, boxShadow: marcado ? `4px 4px 0 0 ${INK}` : 'none', cursor: marcado ? 'pointer' : 'default' }}>
-        {marcado ? `✅ CONFIRMAR ${marcado.toUpperCase()}` : 'toque numa seleção'}
+        {marcado ? `${tr('✅ CONFIRMAR', '✅ CONFIRM')} ${marcado.toUpperCase()}` : tr('toque numa seleção', 'tap a national team')}
       </button>
     </div>
   )
@@ -515,17 +516,16 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
 // ── o BANNER de 15s entre a bandeira e a convocação ──
 function BannerDaCopa({ seg }: { seg: number }) {
   const privateVisual = ONLINE_VISUAL_RELEASED
-  if (privateVisual) return <CompetitionStage kind="world" title="COPA DO MUNDO" phase="É hora de convocar" detail={`Todas as seleções foram escolhidas. Você terá ${SEG_CONVOCA}s para convocar seus 11 jogadores.`} status={`A convocação abre em ${seg}s`}>
-    <div className="ll26-cup-entry"><p style={{fontSize:13,lineHeight:1.5}}>Escolha o time que vai representar seu país. Quem deixar o prazo terminar sem convocar recebe os 11 de menor nível, conforme a regra da sala.</p><Relogio seg={seg} total={SEG_BANNER} /></div>
+  if (privateVisual) return <CompetitionStage kind="world" title={tr('COPA DO MUNDO', 'WORLD CUP')} phase={tr('É hora de convocar', 'Time to call up')} detail={getLang() === 'en' ? `All national teams have been picked. You will have ${SEG_CONVOCA}s to call up your 11 players.` : `Todas as seleções foram escolhidas. Você terá ${SEG_CONVOCA}s para convocar seus 11 jogadores.`} status={`${tr('A convocação abre em', 'Call-up opens in')} ${seg}s`}>
+    <div className="ll26-cup-entry"><p style={{fontSize:13,lineHeight:1.5}}>{tr('Escolha o time que vai representar seu país. Quem deixar o prazo terminar sem convocar recebe os 11 de menor nível, conforme a regra da sala.', 'Pick the team that will represent your country. Whoever lets the deadline pass without calling up gets the 11 lowest-rated players, as per the room rule.')}</p><Relogio seg={seg} total={SEG_BANNER} /></div>
   </CompetitionStage>
   return (
     <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '14px 13px', marginTop: 9, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />
       <p style={{ fontSize: 40, margin: 0, position: 'relative' }}>🌐</p>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>Começa a Copa do Mundo</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{tr('Começa a Copa do Mundo', 'The World Cup begins')}</p>
       <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '5px 0 0', lineHeight: 1.4, position: 'relative' }}>
-        Todo mundo já tem sua seleção. Agora vocês têm <b>{SEG_CONVOCA} segundos</b> pra convocar <b>11 jogadores</b> do país.
-        <br />⚠️ Quem não convocar entra com os <b>piores 11</b> — a máquina escolhe, e não tem dó.
+        {getLang() === 'en' ? <>Everyone has their national team. Now you have <b>{SEG_CONVOCA} seconds</b> to call up <b>11 players</b> from the country.<br />⚠️ Whoever doesn't call up enters with the <b>worst 11</b> — the machine picks, and shows no mercy.</> : <>Todo mundo já tem sua seleção. Agora vocês têm <b>{SEG_CONVOCA} segundos</b> pra convocar <b>11 jogadores</b> do país.<br />⚠️ Quem não convocar entra com os <b>piores 11</b> — a máquina escolhe, e não tem dó.</>}
       </p>
       <div style={{ position: 'relative' }}><Relogio seg={seg} total={SEG_BANNER} cor="#fff" /></div>
     </div>
@@ -687,7 +687,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
       // durante uma piscada de leitura criava outra edição e recomeçava a Copa pra
       // todo mundo. (Era "uma por SALA" até 09/09 — e por isso a 2ª temporada da
       // mesma sala nunca tinha Copa; ver a prop `seasonNo`.)
-      if (eFs) { setErro('Não consegui ler a sala agora. Tenta de novo em instantes.'); return }
+      if (eFs) { setErro(tr('Não consegui ler a sala agora. Tenta de novo em instantes.', 'Couldn\'t read the room right now. Try again in a moment.')); return }
       if ((fs ?? []).length > 0) { await ler(); return }
       const edicao = edicaoDaTemporada
       // 🧹 TEMPORADA NOVA, SELEÇÕES NOVAS: a bandeira e os 11 convocados ficam na
@@ -702,7 +702,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
         fase: primeiro ? 'bandeira' : 'convocacao', vez_uid: primeiro,
         ate: new Date(Date.now() + (primeiro ? SEG_BANDEIRA : SEG_CONVOCA) * 1000).toISOString(),
       })
-      if (error) { setErro('Não consegui começar a Copa agora. Tenta de novo em instantes.'); return }
+      if (error) { setErro(tr('Não consegui começar a Copa agora. Tenta de novo em instantes.', 'Couldn\'t start the Cup right now. Try again in a moment.')); return }
       await ler()
     } finally { setComecando(false) }
   }
@@ -752,22 +752,22 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   }, [fase?.campeao])
   useEffect(() => { aoStatus?.({ pendente: !campeaoDoMundo, campeao: campeaoDoMundo }) }, [campeaoDoMundo]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const daVezNome = fase?.vez_uid ? nomeDe.get(fase.vez_uid) ?? 'alguém' : ''
+  const daVezNome = fase?.vez_uid ? nomeDe.get(fase.vez_uid) ?? tr('alguém', 'someone') : ''
   return (
     <>
       <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
-      {privateVisual && <CompetitionStage kind="world" title="A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO" phase="Copa do Mundo" detail={`${classificacao.length} times da liga viram seleções. A classificação define a ordem de escolha.`} status={fase?.fase === 'bandeira' ? 'Escolha das seleções em andamento' : fase?.fase === 'convocacao' ? 'Cada técnico está convocando seus 11' : fase?.fase === 'torneio' ? 'Competição em andamento' : 'Aguardando o host abrir a Copa'} />}
+      {privateVisual && <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={tr('Copa do Mundo', 'World Cup')} detail={getLang() === 'en' ? `${classificacao.length} league teams become national teams. The standings set the picking order.` : `${classificacao.length} times da liga viram seleções. A classificação define a ordem de escolha.`} status={fase?.fase === 'bandeira' ? tr('Escolha das seleções em andamento', 'National team picks in progress') : fase?.fase === 'convocacao' ? tr('Cada técnico está convocando seus 11', 'Each manager is calling up their 11') : fase?.fase === 'torneio' ? tr('Competição em andamento', 'Competition in progress') : tr('Aguardando o host abrir a Copa', 'Waiting for the host to open the Cup')} />}
       <div className={privateVisual ? 'll26-world-gate' : undefined} style={{ ...box(privateVisual ? '#F4ECD6' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '11px 13px', marginBottom: 10 }}>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>🌐 Copa do Mundo</p>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>{tr('🌐 Copa do Mundo', '🌐 World Cup')}</p>
         <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '2px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
-          acabou a liga — os {classificacao.length} times viram seleções (+ {Math.max(0, COPA_TEAMS - classificacao.length)} da máquina)
+          {getLang() === 'en' ? `league over — the ${classificacao.length} teams become national teams (+ ${Math.max(0, COPA_TEAMS - classificacao.length)} from the machine)` : `acabou a liga — os ${classificacao.length} times viram seleções (+ ${Math.max(0, COPA_TEAMS - classificacao.length)} da máquina)`}
         </p>
 
         {/* a fila, na ordem da tabela — quem já tem bandeira, quem está na vez */}
         {!!fila.length && (
           <div style={{ ...box('#fff'), padding: '8px 10px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 10.5, margin: '0 0 3px', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)' }}>
-              🥇 quem terminou na frente escolhe primeiro
+              {tr('🥇 quem terminou na frente escolhe primeiro', '🥇 whoever finished higher picks first')}
             </p>
             {fila.map(f => {
               const p = picks.get(f.uid)
@@ -776,11 +776,11 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
               return (
                 <div key={f.uid} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: euSou ? 900 : 700,
                   padding: '3px 5px', borderTop: '1px solid rgba(0,0,0,.08)', borderRadius: 6, background: daVez ? '#FFF4CF' : 'transparent' }}>
-                  <span style={{ ...OSWALD, color: 'rgba(0,0,0,.45)', width: 20 }}>{f.vez}º</span>
-                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.nome}{euSou ? ' (você)' : ''}</span>
+                  <span style={{ ...OSWALD, color: 'rgba(0,0,0,.45)', width: 20 }}>{ordinal(f.vez)}</span>
+                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.nome}{euSou ? tr(' (você)', ' (you)') : ''}</span>
                   {p
                     ? <span style={{ ...OSWALD, fontWeight: 900, color: temTime(p) ? GREEN : 'rgba(0,0,0,.6)' }}>{flagOf(p.pais)} {p.pais}{temTime(p) ? ' ✔️' : ''}</span>
-                    : <span style={{ fontSize: 10.5, fontWeight: 800, color: daVez ? '#B23B2E' : 'rgba(0,0,0,.4)' }}>{daVez ? `⏳ ${seg}s` : 'na fila'}</span>}
+                    : <span style={{ fontSize: 10.5, fontWeight: 800, color: daVez ? '#B23B2E' : 'rgba(0,0,0,.4)' }}>{daVez ? `⏳ ${seg}s` : tr('na fila', 'in line')}</span>}
                 </div>
               )
             })}
@@ -794,14 +794,14 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
               <button onClick={() => { void comecar() }} disabled={comecando}
                 style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
                   background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>
-                {comecando ? '⏳ Começando…' : '🌐 COMEÇAR A COPA DO MUNDO'}
+                {comecando ? tr('⏳ Começando…', '⏳ Starting…') : tr('🌐 COMEÇAR A COPA DO MUNDO', '🌐 START THE WORLD CUP')}
               </button>
               <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 2px 0', lineHeight: 1.4 }}>
-                A partir daí o relógio corre: <b>{SEG_BANDEIRA}s</b> pra cada um escolher a seleção, na ordem da tabela, e depois <b>{SEG_CONVOCA}s</b> pra todos convocarem os 11 juntos.
+                {getLang() === 'en' ? <>From then on the clock runs: <b>{SEG_BANDEIRA}s</b> for each one to pick a national team, in table order, and then <b>{SEG_CONVOCA}s</b> for everyone to call up their 11 together.</> : <>A partir daí o relógio corre: <b>{SEG_BANDEIRA}s</b> pra cada um escolher a seleção, na ordem da tabela, e depois <b>{SEG_CONVOCA}s</b> pra todos convocarem os 11 juntos.</>}
               </p>
             </>
           : <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '9px 2px 0', textAlign: 'center', lineHeight: 1.4 }}>
-              ⏳ O dono da sala abre a Copa do Mundo — segura aí.
+              {tr('⏳ O dono da sala abre a Copa do Mundo — segura aí.', '⏳ The room owner opens the World Cup — hang on.')}
             </p>)}
 
         {/* fase 1: quem NÃO é a vez fica sabendo aqui (a vez em si é tela cheia) */}
@@ -809,8 +809,8 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
           ? null
           : <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '9px 2px 0', textAlign: 'center', lineHeight: 1.4 }}>
               {minha
-                ? <>{flagOf(minha.pais)} Você é a <b>{minha.pais}</b>. Agora é esperar a fila — <b>{daVezNome}</b> está escolhendo ({seg}s).</>
-                : <>⏳ <b>{daVezNome}</b> está escolhendo a seleção ({seg}s). A sua vez vem na ordem da tabela.</>}
+                ? (getLang() === 'en' ? <>{flagOf(minha.pais)} You are <b>{minha.pais}</b>. Now wait for the line — <b>{daVezNome}</b> is picking ({seg}s).</> : <>{flagOf(minha.pais)} Você é a <b>{minha.pais}</b>. Agora é esperar a fila — <b>{daVezNome}</b> está escolhendo ({seg}s).</>)
+                : (getLang() === 'en' ? <>⏳ <b>{daVezNome}</b> is picking a national team ({seg}s). Your turn comes in table order.</> : <>⏳ <b>{daVezNome}</b> está escolhendo a seleção ({seg}s). A sua vez vem na ordem da tabela.</>)}
             </p>)}
 
 
@@ -818,17 +818,17 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
         {fase?.fase === 'convocacao' && (
           <div style={{ ...box('#fff'), padding: '10px 11px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>
-              {temTime(minha) ? '✅ Time convocado' : '⚽ Convoque os 11'}
+              {temTime(minha) ? tr('✅ Time convocado', '✅ Team called up') : tr('⚽ Convoque os 11', '⚽ Call up the 11')}
             </p>
             <Relogio seg={seg} total={SEG_CONVOCA} />
             {minha && !temTime(minha) && (
               <button onClick={() => { convocando.current = true; setAgora(Date.now()) }}
                 style={{ width: '100%', marginTop: 7, border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 0', ...OSWALD, fontWeight: 900, fontSize: 14,
-                  background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>⚽ VOLTAR PRA CONVOCAÇÃO</button>
+                  background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP')}</button>
             )}
             {temTime(minha) && (
               <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '6px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
-                {flagOf(minha!.pais)} <b>{minha!.pais}</b> com 11 no papel. A Copa começa quando o tempo acabar (ou quando todo mundo terminar).
+                {flagOf(minha!.pais)} <b>{minha!.pais}</b> {tr('com 11 no papel. A Copa começa quando o tempo acabar (ou quando todo mundo terminar).', 'with 11 on paper. The Cup starts when time runs out (or when everyone finishes).')}
               </p>
             )}
           </div>
@@ -838,7 +838,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
         {ficha && !aberta && (
           <button onClick={() => setAberta(true)}
             style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
-              background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>🌐 VOLTAR PRA COPA</button>
+              background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🌐 VOLTAR PRA COPA', '🌐 BACK TO THE CUP')}</button>
         )}
       </div>
 

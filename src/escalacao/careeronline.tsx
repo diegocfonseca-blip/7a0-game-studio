@@ -11,6 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { tr } from './lang' // 🌐 BR/EN
 import { stripEmoji } from './apoio'
 import { resilientWrite } from './pending'
 import { useCanCareerOnline } from './admin'
@@ -255,12 +256,12 @@ export function CareerOnlineButton() {
   const can = useCanCareerOnline()
   if (!can) return (
     <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
-      🌐 Carreira Online · 4 divisões <span style={{ opacity: 0.85 }}>(em breve)</span>
+      {tr('🌐 Carreira Online · 4 divisões', '🌐 Online Career · 4 divisions')} <span style={{ opacity: 0.85 }}>{tr('(em breve)', '(coming soon)')}</span>
     </div>
   )
   return (
     <button onClick={() => { window.location.hash = 'carreiraonline' }} style={{ width: '100%', boxSizing: 'border-box', background: BLUE, color: '#fff', border: `2px solid ${INK}`, borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, cursor: 'pointer', marginTop: 2, ...OSWALD }}>
-      🌐 Carreira Online · 4 divisões <span style={{ color: GOLD }}>(teste)</span>
+      {tr('🌐 Carreira Online · 4 divisões', '🌐 Online Career · 4 divisions')} <span style={{ color: GOLD }}>{tr('(teste)', '(test)')}</span>
     </button>
   )
 }
@@ -278,14 +279,14 @@ export function LigaFechadaButton() {
   if (!liberada) {
     return (
       <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
-        🏆 Minhas Ligas · só com amigos <span style={{ opacity: 0.85 }}>(em breve)</span>
+        {tr('🏆 Minhas Ligas · só com amigos', '🏆 My Leagues · friends only')} <span style={{ opacity: 0.85 }}>{tr('(em breve)', '(coming soon)')}</span>
       </div>
     )
   }
   return (
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
       style={{ width: '100%', boxSizing: 'border-box', background: '#FFF4CF', color: '#7a4d00', border: '2px solid #0C0C0C', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'pointer' }}>
-      🏆 Minhas Ligas · a sala da sua turma que não acaba
+      {tr('🏆 Minhas Ligas · a sala da sua turma que não acaba', '🏆 My Leagues · your crew\'s room that never ends')}
     </button>
   )
 }

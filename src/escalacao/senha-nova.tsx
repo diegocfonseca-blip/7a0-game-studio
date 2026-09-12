@@ -27,6 +27,7 @@
 // toa num fluxo de conta.
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { tr } from './lang' // 🌐 BR/EN
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
 const OSWALD = { fontFamily: "Oswald, 'Arial Narrow', system-ui, sans-serif" } as const
@@ -54,20 +55,20 @@ export function TelaSenhaNova() {
   if (!aberto) return null
 
   const salvar = async () => {
-    if (senha.length < 6) { setErro('A senha precisa de pelo menos 6 letras ou números.'); return }
+    if (senha.length < 6) { setErro(tr('A senha precisa de pelo menos 6 letras ou números.', 'The password needs at least 6 letters or numbers.')); return }
     setSalvando(true); setErro('')
     try {
       const { error } = await supabase.auth.updateUser({ password: senha })
       if (error) {
         // o link vale por pouco tempo e só uma vez — é o erro mais comum aqui
         setErro(/expired|invalid|token/i.test(error.message)
-          ? 'Esse link já venceu ou já foi usado. Peça outro em "esqueci minha senha".'
-          : 'Não consegui trocar agora. Tenta de novo daqui a pouco.')
+          ? tr('Esse link já venceu ou já foi usado. Peça outro em "esqueci minha senha".', 'That link has expired or was already used. Ask for another in "forgot my password".')
+          : tr('Não consegui trocar agora. Tenta de novo daqui a pouco.', 'Couldn\'t change it right now. Try again in a bit.'))
         setSalvando(false); return
       }
       setSenha(''); setPronto(true)
     } catch {
-      setErro('Sem internet agora. Tenta de novo daqui a pouco.')
+      setErro(tr('Sem internet agora. Tenta de novo daqui a pouco.', 'No internet right now. Try again in a bit.'))
     }
     setSalvando(false)
   }
@@ -81,36 +82,36 @@ export function TelaSenhaNova() {
       <div style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, padding: 18 }}>
         {pronto ? (
           <>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 21, margin: 0, textTransform: 'uppercase' }}>✅ Senha trocada</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 21, margin: 0, textTransform: 'uppercase' }}>{tr('✅ Senha trocada', '✅ Password changed')}</p>
             <p style={{ fontWeight: 700, fontSize: 13.5, color: 'rgba(12,12,12,.65)', margin: '8px 0 0', lineHeight: 1.45 }}>
-              Já está valendo, e você já entrou com ela. Da próxima vez é essa que você usa.
+              {tr('Já está valendo, e você já entrou com ela. Da próxima vez é essa que você usa.', 'It is already active, and you are signed in with it. Next time this is the one you use.')}
             </p>
             <button onClick={() => setAberto(false)} style={{ ...OSWALD, width: '100%', marginTop: 16, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '11px 0', fontWeight: 900, fontSize: 16, cursor: 'pointer' }}>
-              BORA JOGAR ⚽
+              {tr('BORA JOGAR ⚽', 'LET\'S PLAY ⚽')}
             </button>
           </>
         ) : (
           <>
-            <span style={{ ...OSWALD, display: 'inline-block', background: GOLD, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 10px', fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em' }}>🔑 esqueceu a senha</span>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 23, margin: '10px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>Crie sua senha nova</p>
+            <span style={{ ...OSWALD, display: 'inline-block', background: GOLD, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 10px', fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em' }}>{tr('🔑 esqueceu a senha', '🔑 forgot the password')}</span>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 23, margin: '10px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{tr('Crie sua senha nova', 'Create your new password')}</p>
             <p style={{ fontWeight: 700, fontSize: 13, color: 'rgba(12,12,12,.6)', margin: '6px 0 12px', lineHeight: 1.45 }}>
-              Você chegou aqui pelo link do e-mail. Escreve a senha nova e pronto — nada do seu jogo se perde.
+              {tr('Você chegou aqui pelo link do e-mail. Escreve a senha nova e pronto — nada do seu jogo se perde.', 'You got here from the e-mail link. Type the new password and that is it — nothing in your game is lost.')}
             </p>
             <input type="password" value={senha} autoFocus autoComplete="new-password"
               onChange={e => { setSenha(e.target.value); setErro('') }}
               onKeyDown={e => { if (e.key === 'Enter') void salvar() }}
-              placeholder="senha nova (mínimo 6)" style={campo} />
+              placeholder={tr('senha nova (mínimo 6)', 'new password (at least 6)')} style={campo} />
             {erro && <p style={{ fontWeight: 800, fontSize: 12.5, color: RED, margin: '8px 0 0', lineHeight: 1.4 }}>{erro}</p>}
             <button onClick={() => void salvar()} disabled={salvando}
               style={{ ...OSWALD, width: '100%', marginTop: 12, background: salvando ? '#9aa' : GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '11px 0', fontWeight: 900, fontSize: 16, cursor: 'pointer' }}>
-              {salvando ? 'SALVANDO…' : 'SALVAR SENHA'}
+              {salvando ? tr('SALVANDO…', 'SAVING…') : tr('SALVAR SENHA', 'SAVE PASSWORD')}
             </button>
             {/* explicação embaixo do botão, no lugar exato */}
             <p style={{ fontWeight: 700, fontSize: 11, color: 'rgba(12,12,12,.5)', margin: '8px 0 0', textAlign: 'center', lineHeight: 1.4 }}>
-              o link do e-mail vale uma vez só — se der erro, é só pedir outro
+              {tr('o link do e-mail vale uma vez só — se der erro, é só pedir outro', 'the e-mail link works only once — if it fails, just ask for another')}
             </p>
             <button onClick={() => setAberto(false)} style={{ ...OSWALD, width: '100%', marginTop: 10, background: 'transparent', border: 0, color: 'rgba(12,12,12,.5)', fontWeight: 800, fontSize: 12, textDecoration: 'underline', cursor: 'pointer' }}>
-              agora não
+              {tr('agora não', 'not now')}
             </button>
           </>
         )}
