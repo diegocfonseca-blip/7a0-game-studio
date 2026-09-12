@@ -66,3 +66,11 @@ export function useT(): (pt: string, en: string) => string {
   const [lang] = useLang()
   return (pt: string, en: string) => (lang === 'en' ? en : pt)
 }
+
+// colocação: "3º" em PT · "3rd" em EN (o inglês muda a terminação por número)
+export function ordinal(n: number, lang: Lang = current): string {
+  if (lang !== 'en') return `${n}º`
+  const d = n % 100
+  if (d >= 11 && d <= 13) return `${n}th`
+  return `${n}${(['th', 'st', 'nd', 'rd'][n % 10] ?? 'th')}`
+}

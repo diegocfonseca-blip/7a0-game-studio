@@ -44,7 +44,7 @@ import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRev
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
-import { useLang, useT, getLang } from './lang'
+import { useLang, useT, getLang, ordinal } from './lang'
 import { POS_LABELS } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
@@ -5107,16 +5107,18 @@ export function QuickManualLock() {
     </div>
   )
 }
-export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel = '▶️ Próxima rodada', lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
   const previewAccount = useOnlinePreview()
   const { state, dispatch } = useEsc()
+  const t = useT() // 🌐 BR/EN
+  const label = nextLabel ?? t('▶️ Próxima rodada', '▶️ Next round')
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return <>
     <OnlineRhythm manual={manual} onToggle={onToggle} speed={state.simSpeed ?? 1} onSpeed={speed => dispatch({ type: 'SET_SIM_SPEED', speed })} />
     {manual && <div className="ll25-actions">
-      <button className="ll25-button" onClick={onNext} disabled={!canNext}>{nextLabel}</button>
-      {onSkip && <button className="ll25-button" onClick={onSkip}>PULAR</button>}
+      <button className="ll25-button" onClick={onNext} disabled={!canNext}>{label}</button>
+      {onSkip && <button className="ll25-button" onClick={onSkip}>{t('PULAR', 'SKIP')}</button>}
     </div>}
   </>
   // 🎮 MANUAL com PULAR: "Próxima rodada" GRANDE à esquerda (espera a partida
@@ -5126,13 +5128,13 @@ export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLab
     return (
       <div style={{ display: 'grid', gridTemplateColumns: '1.12fr 1fr', gridTemplateRows: 'auto auto', gap: 7, marginBottom: 10 }}>
         <button onClick={onNext} disabled={!canNext} style={{ gridRow: '1 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: `2.5px solid ${INK}`, borderRadius: 11, padding: 10, fontWeight: 900, fontSize: 15.5, lineHeight: 1.1, fontFamily: 'Oswald, sans-serif', background: canNext ? GREEN : '#cfc6ae', color: canNext ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `2px 2px 0 0 ${INK}`, cursor: canNext ? 'pointer' : 'default' }}>
-          {nextLabel}
+          {label}
         </button>
         <button onClick={onSkip} style={{ gridColumn: 2, gridRow: 1, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 12.5, fontFamily: 'Oswald, sans-serif', background: '#2F6BAE', color: '#fff', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
-          ⏭️ Pular
+          {t('⏭️ Pular', '⏭️ Skip')}
         </button>
         <button onClick={onToggle} style={{ gridColumn: 2, gridRow: 2, border: `1.5px solid ${INK}`, borderRadius: 10, padding: 8, fontWeight: 800, fontSize: 11.5, fontFamily: 'Oswald, sans-serif', background: '#fff', color: '#5a5647', boxShadow: `1.5px 1.5px 0 0 ${INK}`, cursor: 'pointer' }}>
-          🔁 Modo auto
+          {t('🔁 Modo auto', '🔁 Auto mode')}
         </button>
       </div>
     )
@@ -5141,11 +5143,11 @@ export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLab
     <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', marginBottom: 10 }}>
       {manual && (
         <button onClick={onNext} disabled={!canNext} style={{ flex: 1, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: canNext ? GREEN : '#cfc6ae', color: canNext ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: canNext ? 'pointer' : 'default' }}>
-          {nextLabel}
+          {label}
         </button>
       )}
       <button onClick={onToggle} style={{ flex: manual ? 'none' : 1, border: `2.5px solid ${INK}`, borderRadius: 12, padding: manual ? '8px 12px' : '9px 10px', fontWeight: 900, fontSize: manual ? 11 : 12, fontFamily: 'Oswald, sans-serif', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
-        {manual ? '🔁 voltar pro AUTO' : '⏸️ MANUAL: pausar entre as rodadas'}
+        {manual ? t('🔁 voltar pro AUTO', '🔁 back to AUTO') : t('⏸️ MANUAL: pausar entre as rodadas', '⏸️ MANUAL: pause between rounds')}
       </button>
     </div>
   )
@@ -5164,11 +5166,12 @@ export const SPEED_OPTS: { v: number; label: string }[] = [
 export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: number) => void }) {
   const previewAccount = useOnlinePreview()
   const { state } = useEsc()
+  const t = useT() // 🌐 BR/EN
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return null
   const cur = speed > 0 ? speed : 1
   return (
     <div style={{ marginBottom: 10 }}>
-      <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 5px 2px' }}>⏩ Velocidade da partida</p>
+      <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 5px 2px' }}>{t('⏩ Velocidade da partida', '⏩ Match speed')}</p>
       <div style={{ display: 'flex', gap: 5 }}>
         {SPEED_OPTS.map(o => {
           const on = cur === o.v
@@ -5197,7 +5200,9 @@ export function EscSeason() {
   // com outra cara (azul-noite), outro nome e uma fase a mais (oitavas).
   const libS = state.copaMode === 'liga_liberta'
   const copaHolo = libS ? NOITE_HOLO : PURPLE_HOLO
-  const LS = (pt: string, en: string) => (bbS && seasonLang === 'en') ? en : pt
+  // 🌐 BR/EN (11/09): valia só pro basquete; agora a temporada do futebol também lê o idioma
+  const LS = (pt: string, en: string) => seasonLang === 'en' ? en : pt
+  const enS = seasonLang === 'en'
   const you = state.managers[state.youIdx]
   const online = state.onlineMode === 'online'
   // 🎽 mantos da SALA (pedido do Diego 10/08): os campinhos dos OUTROS também
@@ -5319,10 +5324,10 @@ export function EscSeason() {
     const zTop = zoneN(table.length)      // faixa de cima (G4 proporcional)
     const zBot = zoneBot(table.length)    // 1ª posição da zona de baixo (Z4 proporcional)
     let msg: string | null = null
-    if (youPosShown === 1 && prev !== 1) msg = '👑 Você é o novo LÍDER do campeonato!'
-    else if (youPosShown <= zTop && prev > zTop) msg = `📈 Você ENTROU no G${zTop}!`
-    else if (youPosShown >= zBot && prev < zBot) msg = `⚠️ PERIGO! Você caiu pra zona de rebaixamento (Z${zTop})!`
-    else if (youPosShown < zBot && prev >= zBot) msg = `😮‍💨 Você escapou do Z${zTop}!`
+    if (youPosShown === 1 && prev !== 1) msg = LS('👑 Você é o novo LÍDER do campeonato!', '👑 You are the new league LEADER!')
+    else if (youPosShown <= zTop && prev > zTop) msg = LS(`📈 Você ENTROU no G${zTop}!`, `📈 You are IN the top ${zTop}!`)
+    else if (youPosShown >= zBot && prev < zBot) msg = LS(`⚠️ PERIGO! Você caiu pra zona de rebaixamento (Z${zTop})!`, `⚠️ DANGER! You dropped into the relegation zone (bottom ${zTop})!`)
+    else if (youPosShown < zBot && prev >= zBot) msg = LS(`😮‍💨 Você escapou do Z${zTop}!`, `😮‍💨 You escaped the bottom ${zTop}!`)
     if (msg) {
       setPersonalNews(msg)
       if (personalTimer.current) clearTimeout(personalTimer.current)
@@ -5452,21 +5457,21 @@ export function EscSeason() {
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
-          {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 CARREIRA{escadaLiberada() ? ' · VÁRZEA' : ' · SÉRIE D'}</span>}
+          {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {LS('CARREIRA', 'CAREER')}{escadaLiberada() ? ' · VÁRZEA' : ' · SÉRIE D'}</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
-          {copaLive && qc ? `${libS ? '🌎 LIBERTA' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA'}`} · ${qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : 'QUARTAS') : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `RODADA ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
+          {copaLive && qc ? `${libS ? '🌎 LIBERTA' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA', 'CUP')}`} · ${qc.phase === 'oitavas' ? LS('OITAVAS', 'R16') : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : LS('QUARTAS', 'QUARTERS')) : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `${LS('RODADA', 'ROUND')} ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
-          if (privateVisual && copaLive && qc) return qc.phase === 'final' ? 'JOGO ÚNICO' : qc.legIdx === 0 ? 'IDA' : 'VOLTA'
+          if (privateVisual && copaLive && qc) return qc.phase === 'final' ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.legIdx === 0 ? LS('IDA', '1ST LEG') : LS('VOLTA', '2ND LEG')
           const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
           const pos = disp.findIndex(t => t.id === you.id) + 1
-          return `${pos}º · ${disp[pos - 1]?.pts ?? 0} pts`
+          return `${ordinal(pos, seasonLang)} · ${disp[pos - 1]?.pts ?? 0} pts`
         })()}</span>
       </div>
     }>
       {copaLive && qc ? (() => {
-        const phaseLabel = qc.phase === 'oitavas' ? 'Oitavas de Final' : qc.phase === 'quartas' ? 'Quartas de Final' : qc.phase === 'semis' ? 'Semifinal' : 'Final'
-        const legLabel = qc.phase === 'final' ? 'Jogo único · campo neutro' : qc.legIdx === 0 ? 'Jogo de ida' : 'Jogo de volta'
+        const phaseLabel = qc.phase === 'oitavas' ? LS('Oitavas de Final', 'Round of 16') : qc.phase === 'quartas' ? LS('Quartas de Final', 'Quarter-finals') : qc.phase === 'semis' ? LS('Semifinal', 'Semi-final') : 'Final'
+        const legLabel = qc.phase === 'final' ? LS('Jogo único · campo neutro', 'One-off · neutral ground') : qc.legIdx === 0 ? LS('Jogo de ida', 'First leg') : LS('Jogo de volta', 'Second leg')
         const myTie = qc.ties.find(t => t.aId === you.id || t.bId === you.id)
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         // 🌎 na Libertadores metade da chave é de clube do continente, que NÃO está
@@ -5475,7 +5480,7 @@ export function EscSeason() {
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         // 🔥 marca os AMIGOS (humanos da sala, no online) — pra saber quem é rival de
         // verdade e quem é CPU. "(você)" pra você; 🔥 pros outros humanos.
-        const nameTag = (id: number) => id === you.id ? ' (você)' : state.managers.some(m => m.id === id && m.isHuman) ? ' 🔥' : ''
+        const nameTag = (id: number) => id === you.id ? LS(' (você)', ' (you)') : state.managers.some(m => m.id === id && m.isHuman) ? ' 🔥' : ''
         // minutos "sintéticos" pros gols dos jogos de CPU (que não guardam highlights):
         // espalha `count` gols entre 6' e 88', determinístico (mesma semente = mesma
         // ordem) — só pro placar subir bonitinho, sem inventar resultado.
@@ -5532,12 +5537,12 @@ export function EscSeason() {
             const h = reverse ? tie.bName : tie.aName, a = reverse ? tie.aName : tie.bName
             return <CompetitionMatch key={`${tie.aId}-${tie.bId}`} goals={(tie.lastPresentationGoals??tie.lastHighlights??[]).filter(lanceEhGol).filter(g=>clockDone||g.min<=copaMin).map(g=>({name:g.text,min:g.min,home:g.teamId===(reverse?tie.bId:tie.aId)}))} home={h} away={a} homeCrest={<Escudo nome={h} size={28} />} awayCrest={<Escudo nome={a} size={28} />} homeOwner={owner(reverse ? tie.bId : tie.aId)} awayOwner={owner(reverse ? tie.aId : tie.bId)} mine={mine}
               homeScore={nLegs ? reverse ? showB-prevB : showA-prevA : '–'} awayScore={nLegs ? reverse ? showA-prevA : showB-prevB : '–'}
-              status={`${qc.phase==='final'?'FINAL':reverse?'VOLTA':'IDA'} · ${live ? `${minLabel} AO VIVO` : nLegs ? 'ENCERRADO' : 'A DISPUTAR'}`}
-              detail={<>{reverse && <p>Ida: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>Agregado: {tie.aName} {showA} × {showB} {tie.bName}</b></p>}{settled && <>{tie.pens && <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} />}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?'é campeão':'avançou'}</b></p>}</>}</>} />
+              status={`${qc.phase==='final'?'FINAL':reverse?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')} · ${live ? `${minLabel} ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}`}
+              detail={<>{reverse && <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>}{settled && <>{tie.pens && <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} />}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
           }
           return (
             <Box key={`${tie.aId}-${tie.bId}`} className={privateVisual ? 'll26-cup-match' : undefined} bg={privateVisual ? CREAM : 'transparent'} style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
-              {privateVisual && <div className="ll26-match-label">{mine ? 'SEU CONFRONTO' : 'CONFRONTO DA FASE'}<span>{live ? `${minLabel} · AO VIVO` : nLegs ? 'ENCERRADO' : 'A DISPUTAR'}</span></div>}
+              {privateVisual && <div className="ll26-match-label">{mine ? LS('SEU CONFRONTO', 'YOUR TIE') : LS('CONFRONTO DA FASE', 'TIE OF THE ROUND')}<span>{live ? `${minLabel} · ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}</span></div>}
               {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): moldura roxa
                   só enquanto o jogo tá AO VIVO (decidido volta pro preto, senão briga
                   com o "avança"); barra de progresso no TOPO, agora com o degradê. */}
@@ -5557,7 +5562,7 @@ export function EscSeason() {
                 <div style={{ background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 11px', gap: 1 }}>
                   {live && <span className="text-[9px] font-black" style={{ color: '#C2452F' }}>●{minLabel}</span>}
                   <span className="font-black text-lg" style={{ ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{privateVisual ? showA - tie.legs.slice(0,-1).reduce((s,l)=>s+l[0],0) : showA} × {privateVisual ? showB - tie.legs.slice(0,-1).reduce((s,l)=>s+l[1],0) : showB}</span>
-                  {privateVisual && <small style={{fontSize:9,fontWeight:800,color:INK}}>{qc.phase==='final'?'FINAL':nLegs>1?'VOLTA':'IDA'}</small>}
+                  {privateVisual && <small style={{fontSize:9,fontWeight:800,color:INK}}>{qc.phase==='final'?'FINAL':nLegs>1?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')}</small>}
                 </div>
                 <div style={{ position: 'relative', overflow: 'hidden', background: fB.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, minWidth: 0, padding: '9px 6px' }}>
                   {fB.holo > 0 && <ApoioSheen holo={fB.holo} />}
@@ -5572,11 +5577,11 @@ export function EscSeason() {
                 )}
               </div>
               <div style={{ padding: '6px 10px 9px' }}>
-                {privateVisual && nLegs>1 && <p className="text-center text-xs font-bold text-black">AGREGADO: {showA} × {showB} · Ida: {tie.legs[0][0]} × {tie.legs[0][1]}</p>}
-                {privateVisual && settled && <p className="text-center text-xs font-bold" style={{color:GREEN,...(pd>0?{opacity:0,animation:`cmWinPop .2s ease ${pd}s forwards`}:{})}}>{tie.winner===tie.aId?tie.aName:tie.bName} {qc.phase==='final'?'é campeão':'avança'}</p>}
-                {justScored && <p className="text-center mt-1"><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 900, color: '#FFD778' }}>⚽ GOOOL agora!</span></p>}
+                {privateVisual && nLegs>1 && <p className="text-center text-xs font-bold text-black">{LS('AGREGADO', 'AGGREGATE')}: {showA} × {showB} · {LS('Ida', '1st leg')}: {tie.legs[0][0]} × {tie.legs[0][1]}</p>}
+                {privateVisual && settled && <p className="text-center text-xs font-bold" style={{color:GREEN,...(pd>0?{opacity:0,animation:`cmWinPop .2s ease ${pd}s forwards`}:{})}}>{tie.winner===tie.aId?tie.aName:tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avança', 'advances')}</p>}
+                {justScored && <p className="text-center mt-1"><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 900, color: '#FFD778' }}>{LS('⚽ GOOOL agora!', '⚽ GOAL just now!')}</span></p>}
                 {settled && nLegs > 0 && (
-                  <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `ida ${tie.legs[0][0]}×${tie.legs[0][1]}` : `ida ${tie.legs[0][0]}×${tie.legs[0][1]} · volta ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
+                  <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]}` : `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]} · ${LS('volta', '2nd leg')} ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
                 )}
                 {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style><PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} /></>}
               </div>
@@ -5586,32 +5591,36 @@ export function EscSeason() {
         return (
           <>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
-            {privateVisual ? <CompetitionStage kind={libS ? 'liberta' : 'copa8'} title={libS ? 'LIBERTADORES' : 'COPA DOS 8'} phase={phaseLabel} detail={`${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual && !streamRoom ? `Começa em ${copaFirstLeft}s` : canAdvance ? 'Tudo pronto. Inicie nos controles da partida.' : 'Aguardando o host iniciar') : copaMin < 93 ? 'Bola rolando · acompanhe os confrontos abaixo' : 'Resultados da fase'}>
-              {firstLegPending && <details className="ll26-format"><summary>COMO FUNCIONA A COPA</summary><p>{libS ? 'Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.' : 'Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.'} O campeão ganha uma carta para o álbum.</p></details>}
+            {privateVisual ? <CompetitionStage kind={libS ? 'liberta' : 'copa8'} title={libS ? 'LIBERTADORES' : LS('COPA DOS 8', 'CUP OF 8')} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual && !streamRoom ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
+              {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
             </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
               <ApoioSheen holo={1} dur={3.2} />
-              <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{libS ? '🌎 LIBERTADORES' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : 'COPA DOS 8'}`} · {phaseLabel.toUpperCase()}</p>
+              <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{libS ? '🌎 LIBERTADORES' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')}`} · {phaseLabel.toUpperCase()}</p>
               <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.8)', zIndex: 2 }}>{legLabel}</p>
             </Box>}
             {firstLegPending && !privateVisual && (
               <Box bg={copaHolo} className="p-4 space-y-2" shadow={6} style={{ position: 'relative', overflow: 'hidden' }}>
                 <ApoioSheen holo={1} dur={3.4} />
                 <div className="relative space-y-2" style={{ zIndex: 2 }}>
-                  <p className="font-black text-base text-center" style={{ ...OSWALD, color: GOLD }}>{libS ? '🌎 Chegaram as OITAVAS!' : `🏆 ${bbS ? LS('Chegaram os Playoffs!', 'Playoffs are here!') : 'Chegou a Copa dos 8!'}`}</p>
+                  <p className="font-black text-base text-center" style={{ ...OSWALD, color: GOLD }}>{libS ? LS('🌎 Chegaram as OITAVAS!', '🌎 The ROUND OF 16 is here!') : `🏆 ${bbS ? LS('Chegaram os Playoffs!', 'Playoffs are here!') : LS('Chegou a Copa dos 8!', 'The Cup of 8 is here!')}`}</p>
                   <p className="text-sm font-bold text-center" style={{ color: 'rgba(255,255,255,.85)' }}>
                     {libS
-                      ? <>Sobraram <b style={{ color: GOLD }}>16 clubes</b> — os 2 primeiros de cada grupo. Daqui pra frente é ida e volta, e quem perder <b>vai pra casa</b>. A final é <b>jogo único</b>. Quem levantar a taça ganha <b style={{ color: GOLD }}>outra carta</b> pro álbum!</>
+                      ? (enS
+                        ? <><b style={{ color: GOLD }}>16 clubs</b> remain — the top 2 of each group. From here on it's two legs, and the loser <b>goes home</b>. The final is a <b>single match</b>. Whoever lifts the cup earns <b style={{ color: GOLD }}>another card</b> for the album!</>
+                        : <>Sobraram <b style={{ color: GOLD }}>16 clubes</b> — os 2 primeiros de cada grupo. Daqui pra frente é ida e volta, e quem perder <b>vai pra casa</b>. A final é <b>jogo único</b>. Quem levantar a taça ganha <b style={{ color: GOLD }}>outra carta</b> pro álbum!</>)
                       : bbS
                       ? (seasonLang === 'en'
                         ? <>The top 8 face off in the bracket: 1×8, 2×7, 3×6, 4×5. Winners reach the semis — the final is one game. The champion takes the <b style={{ color: GOLD }}>ring</b> to the album! 🏀</>
                         : <>Os 8 melhores da temporada se enfrentam no mata-mata: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passa vai à semi — e a decisão é jogo único. O campeão leva o <b style={{ color: GOLD }}>anel</b> pro álbum! 🏀</>)
+                      : enS
+                      ? <>The league's top 8 face off over two legs: 1st×8th, 2nd×7th, 3rd×6th, 4th×5th. Winners reach the semi-final — and the final is a single match. The Cup champion earns <b style={{ color: GOLD }}>another card</b> for the album, on top of the league card!</>
                       : <>Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b style={{ color: GOLD }}>outra carta</b> pro álbum, além da carta da liga!</>}
                   </p>
                   {!manual && !streamRoom && (
-                    <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>⚽ A primeira partida começa em {copaFirstLeft}s</p>
+                    <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{LS(`⚽ A primeira partida começa em ${copaFirstLeft}s`, `⚽ The first match starts in ${copaFirstLeft}s`)}</p>
                   )}
                   {streamRoom && !canAdvance && (
-                    <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>⏳ O host começa {libS ? 'as oitavas' : 'a Copa'} quando quiser…</p>
+                    <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{enS ? `⏳ The host starts ${libS ? 'the round of 16' : 'the Cup'} when ready…` : `⏳ O host começa ${libS ? 'as oitavas' : 'a Copa'} quando quiser…`}</p>
                   )}
                 </div>
               </Box>
@@ -5648,12 +5657,12 @@ export function EscSeason() {
                 )
               })() : (
                 <Box bg="#fff" className="p-6" shadow={6}>
-                  <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the Cup jump ball…' : '🏀 Aguardando a bola ao alto da Copa…') : libS ? '🌎 Aguardando o pontapé inicial da Libertadores…' : '🏁 Aguardando o pontapé inicial da Copa…'}</p>
+                  <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the Cup jump ball…' : '🏀 Aguardando a bola ao alto da Copa…') : libS ? LS('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LS('🏁 Aguardando o pontapé inicial da Copa…', '🏁 Waiting for the Cup kick-off…')}</p>
                 </Box>
               )
             ) : (
               <Box bg="#fff" className="p-4" shadow={6}>
-                <p className="text-center font-black text-sm" style={OSWALD}>{libS ? 'Você já caiu — acompanhe a Libertadores chegando ao fim…' : 'Acompanhe a Copa dos 8 chegando ao fim…'}</p>
+                <p className="text-center font-black text-sm" style={OSWALD}>{libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…')}</p>
               </Box>
             )}
             {/* 🎯 tática (pedido de jogador, 12/08) — DEPOIS do placar ao vivo agora
@@ -5661,7 +5670,7 @@ export function EscSeason() {
                 principal é a estrela, a tática é apoio). */}
             {myTie && (!privateVisual || visualTab === 'jogos') && (
               <Box bg="#fff" className="p-4 space-y-3" shadow={4}>
-                <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>🎯 Sua tática {libS ? 'na Libertadores' : 'na Copa'}</p>
+                <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>{enS ? `🎯 Your tactic ${libS ? 'in the Libertadores' : 'in the Cup'}` : `🎯 Sua tática ${libS ? 'na Libertadores' : 'na Copa'}`}</p>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
                     <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
@@ -5671,12 +5680,12 @@ export function EscSeason() {
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? 'Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.' : 'Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.'}</p>
+                <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? LS('Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.', 'Defense holds run-and-gun · run-and-gun runs over balance · balance breaks the defense.') : LS('Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.', 'Park the bus holds attack · attack runs over balanced · balanced breaks the bus.')}</p>
               </Box>
             )}
             {qc.ties.length > 0 && (!privateVisual || visualTab === 'jogos') && (
               <div className={privateVisual ? 'll26-phase-matches' : undefined}>
-                <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">Todos os jogos da fase</p>
+                <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">{LS('Todos os jogos da fase', 'All ties of the round')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>{qc.ties.map(t => tieRow(t))}</div>
               </div>
             )}
@@ -5701,7 +5710,7 @@ export function EscSeason() {
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} />
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
-          <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : '🏁 Aguardando o pontapé inicial…'}</p>
+          <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : LS('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')}</p>
         </Box>
       )}
 
@@ -5719,17 +5728,17 @@ export function EscSeason() {
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_ROUND' })}
           onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
-          nextLabel={!(state.round === 0 || resultRevealed) ? '⏳ Deixa a rodada acabar…' : state.round === 0 && !myLast ? '▶️ Começar a temporada' : '▶️ Próxima rodada'} />
+          nextLabel={!(state.round === 0 || resultRevealed) ? LS('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : state.round === 0 && !myLast ? LS('▶️ Começar a temporada', '▶️ Start the season') : LS('▶️ Próxima rodada', '▶️ Next round')} />
       )}
       {(!online || streamHost) && copaLive && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_COPA_LEG' })}
           onSkip={() => dispatch({ type: 'PLAY_COPA_LEG' })}
-          nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : '⏳ Deixa o jogo/pênaltis acabar…') : firstLegPending ? (libS ? '🌎 Iniciar as oitavas' : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : '🏆 Iniciar a Copa dos 8') : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : '▶️ Começar a próxima fase') : (libS ? '🌎 Próximo jogo da Libertadores' : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : '⚽ Próximo jogo da Copa')} />
+          nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
       )}
       {privateVisual && !copaLive && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
-      {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>OUTROS JOGOS · RODADA {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
+      {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
         return <RoundMatchPresentation key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
       })}</div></section>}
@@ -5737,10 +5746,10 @@ export function EscSeason() {
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: myGoals === oppGoals ? INK : '#fff' }}>
-            ⚔️ CLÁSSICO {myGoals > oppGoals ? 'VENCIDO' : myGoals < oppGoals ? 'PERDIDO' : 'EMPATADO'} contra {lastOppName}
+            {enS ? `⚔️ DERBY ${myGoals > oppGoals ? 'WON' : myGoals < oppGoals ? 'LOST' : 'DRAWN'} against ${lastOppName}` : `⚔️ CLÁSSICO ${myGoals > oppGoals ? 'VENCIDO' : myGoals < oppGoals ? 'PERDIDO' : 'EMPATADO'} contra ${lastOppName}`}
           </p>
           <p className="font-black text-xs mt-0.5" style={{ color: myGoals === oppGoals ? 'rgba(0,0,0,.65)' : 'rgba(255,255,255,.9)' }}>
-            Rivalidade: você {lastRiv.w} × {lastRiv.l} {lastOppName}{lastRiv.d ? ` · ${lastRiv.d} empate${lastRiv.d > 1 ? 's' : ''}` : ''}
+            {LS('Rivalidade: você', 'Rivalry: you')} {lastRiv.w} × {lastRiv.l} {lastOppName}{lastRiv.d ? (enS ? ` · ${lastRiv.d} draw${lastRiv.d > 1 ? 's' : ''}` : ` · ${lastRiv.d} empate${lastRiv.d > 1 ? 's' : ''}`) : ''}
           </p>
         </Box>
       )}
@@ -5749,19 +5758,19 @@ export function EscSeason() {
         <Box bg={isClassico ? GOLD : '#fff'} className="p-4 space-y-3">
           {isClassico && (
             <div>
-              <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>{oppCareerRiv ? `🔥 CLÁSSICO — contra ${opp.name}, seu rival de sempre!` : '🥊 CLÁSSICO — é contra a galera!'}</p>
+              <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>{oppCareerRiv ? LS(`🔥 CLÁSSICO — contra ${opp.name}, seu rival de sempre!`, `🔥 DERBY — against ${opp.name}, your rival of old!`) : LS('🥊 CLÁSSICO — é contra a galera!', '🥊 DERBY — it\'s against a friend!')}</p>
               {rivalry && (
                 <p className="font-black text-[11px] mt-0.5" style={OSWALD}>
                   {rivalry.w + rivalry.l + rivalry.d === 0
-                    ? '⚔️ Primeiro duelo de vocês — começa a rivalidade!'
-                    : `⚔️ Retrospecto: você ${rivalry.w} × ${rivalry.l} ${opp.name}${rivalry.d ? ` · ${rivalry.d} empate${rivalry.d > 1 ? 's' : ''}` : ''}`}
+                    ? LS('⚔️ Primeiro duelo de vocês — começa a rivalidade!', '⚔️ Your first duel — the rivalry begins!')
+                    : enS ? `⚔️ Head-to-head: you ${rivalry.w} × ${rivalry.l} ${opp.name}${rivalry.d ? ` · ${rivalry.d} draw${rivalry.d > 1 ? 's' : ''}` : ''}` : `⚔️ Retrospecto: você ${rivalry.w} × ${rivalry.l} ${opp.name}${rivalry.d ? ` · ${rivalry.d} empate${rivalry.d > 1 ? 's' : ''}` : ''}`}
                 </p>
               )}
             </div>
           )}
           <p className="font-black text-lg" style={OSWALD}>
-            PRÓXIMO: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
-            <span className="text-xs text-black/70"> {fixture[0] === you.id ? '(em casa)' : '(fora)'}</span>
+            {LS('PRÓXIMO', 'NEXT')}: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
+            <span className="text-xs text-black/70"> {fixture[0] === you.id ? LS('(em casa)', '(home)') : LS('(fora)', '(away)')}</span>
           </p>
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
@@ -5775,7 +5784,7 @@ export function EscSeason() {
           {/* 🎨 Diego 14/08: box mais clean, igual o da Copa — tirei a barra de
               progresso + o textão "temporada rolando sozinha" (decorativo, a
               Copa nunca teve isso e ficava mais poluído aqui). */}
-          <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? 'Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.' : 'Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.'}</p>
+          <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? LS('Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.', 'Defense holds run-and-gun · run-and-gun runs over balance · balance breaks the defense.') : LS('Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.', 'Park the bus holds attack · attack runs over balanced · balanced breaks the bus.')}</p>
         </Box>
       )}
 
@@ -5783,13 +5792,13 @@ export function EscSeason() {
           aparece na Liga Fechada ímpar (numa tabela par todo mundo joga toda rodada). */}
       {!fixture && !copaLive && state.round < totalRounds && state.fixtures.length > 0 && (
         <Box className="p-4 text-center">
-          <p className="font-black text-lg" style={OSWALD}>🛋️ VOCÊ FOLGA nesta rodada</p>
-          <p className="text-xs font-bold text-black/60 mt-1 leading-snug">Liga com número ímpar de times — a cada rodada um time descansa. Você volta a campo na próxima! 💪</p>
+          <p className="font-black text-lg" style={OSWALD}>{LS('🛋️ VOCÊ FOLGA nesta rodada', '🛋️ You have a BYE this round')}</p>
+          <p className="text-xs font-bold text-black/60 mt-1 leading-snug">{LS('Liga com número ímpar de times — a cada rodada um time descansa. Você volta a campo na próxima! 💪', 'Odd number of teams — one team rests each round. You are back on the pitch next round! 💪')}</p>
           <div className="space-y-1 mt-3">
             <div className="h-2 rounded-full border-2 border-black overflow-hidden bg-white">
               <div className="h-full transition-all" style={{ width: `${(state.round / totalRounds) * 100}%`, backgroundColor: GREEN }} />
             </div>
-            <p className="text-center text-xs font-bold text-black/60">⏱️ A rodada corre — os outros se enfrentam.</p>
+            <p className="text-center text-xs font-bold text-black/60">{LS('⏱️ A rodada corre — os outros se enfrentam.', '⏱️ The round goes on — the others play.')}</p>
           </div>
         </Box>
       )}
@@ -5818,35 +5827,35 @@ export function EscSeason() {
         <button onClick={() => setShowPyramid(true)}
           className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
           style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
-          🪜 Ver as 4 divisões
+          {LS('🪜 Ver as 4 divisões', '🪜 See the 4 divisions')}
         </button>
       )}
       {/* 🚫 ANTI-SPOILER: a artilharia da Copa soma os gols da perna JÁ no sim; se
           aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
           gol animar. Só mostra depois do apito. */}
       <div hidden={privateVisual && visualTab !== 'jogos'} className={privateVisual && !copaLive ? 'll26-league-content' : undefined} id="ll26-classification">
-        {privateVisual && !copaLive && state.lastResults.length > 0 && <section className="ll26-round-list" id="ll26-round-games"><h3>TODOS OS JOGOS · RODADA {state.round}</h3><p>{resultRevealed ? 'Rodada encerrada. Confira os resultados e a classificação.' : 'Acompanhe a sala. A classificação atualiza após o apito.'}</p><div>
+        {privateVisual && !copaLive && state.lastResults.length > 0 && <section className="ll26-round-list" id="ll26-round-games"><h3>{LS('TODOS OS JOGOS · RODADA', 'ALL MATCHES · ROUND')} {state.round}</h3><p>{resultRevealed ? LS('Rodada encerrada. Confira os resultados e a classificação.', 'Round over. Check the results and the standings.') : LS('Acompanhe a sala. A classificação atualiza após o apito.', 'Follow the room. Standings update after the final whistle.')}</p><div>
           {state.lastResults.map(r => {
             const h = state.league.find(t => t.id === r.homeId), a = state.league.find(t => t.id === r.awayId)
             const owner = (id: number) => { const m = state.managers.find(x => x.id === id); return m?.isHuman ? m.name : 'BOT' }
             return <RoundMatchPresentation startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} />
           })}
         </div></section>}
-        {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{({oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · RESULTADOS</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status="AGREGADO FINAL" detail={`${t.pens ? `Pênaltis ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} avançou`} />)}</details>)}
-        {privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>LIGA ENCERRADA · VER CLASSIFICAÇÃO</summary><TableBox highlight={you.id} title="LIGA LEGENDS · CLASSIFICAÇÃO FINAL" /></details> :
+        {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
+        {privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>{LS('LIGA ENCERRADA · VER CLASSIFICAÇÃO', 'LEAGUE OVER · SEE STANDINGS')}</summary><TableBox highlight={you.id} title={LS('LIGA LEGENDS · CLASSIFICAÇÃO FINAL', 'LIGA LEGENDS · FINAL STANDINGS')} /></details> :
         <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
         }
       </div>
       <div hidden={privateVisual && visualTab !== 'estatisticas'} className="space-y-5">
         {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
-        <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" hold={!resultRevealed} />
+        <TopScorersBox highlight={you.id} title={LS('⚽ ARTILHARIA DA LIGA LEGENDS', '⚽ LIGA LEGENDS TOP SCORERS')} hold={!resultRevealed} />
         {/* 🐛 08/09 (Diego: *"fica aparecendo 'disponíveis após o apito' e não mostra
             nada, sendo que artilheiro lotado"*): na LIGA o quadro ficava preso a
             `resultRevealed`, que no online AUTOMÁTICO é falso ~85% de cada rodada —
             e as rodadas emendam, então os garçons quase nunca apareciam. A liga volta
             ao que sempre valeu (quadro sempre visível); a Copa mantém a trava do
             relógio (93'), que fecha de verdade no apito. */}
-        {(!privateVisual || !copaLive || (copaMin >= 93 && copaAdvReady)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">Assistências disponíveis após o apito final.</Box>}
+        {(!privateVisual || !copaLive || (copaMin >= 93 && copaAdvReady)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">{LS('Assistências disponíveis após o apito final.', 'Assists available after the final whistle.')}</Box>}
       </div>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
       <YourPitch small />
@@ -6227,9 +6236,10 @@ type ShareBlobOpts = {
 // JanelaConta abre por cima e retoma daqui mesmo — ela nunca sai do lugar.
 function ContinuarComEsseTime() {
   const { state, dispatch } = useEsc()
+  const t = useT() // 🌐 BR/EN
   const [pedindoConta, setPedindoConta] = useState(false)
   const you = state.managers[state.youIdx]
-  const nome = you?.teamName ?? 'seu time'
+  const nome = you?.teamName ?? t('seu time', 'your team')
   const virar = () => dispatch({ type: 'CAREER_FROM_QUICK' })
   const clicar = async () => {
     // conta NÃO é obrigatória pra jogar (a 1ª temporada é livre — §1 do plano).
@@ -6243,18 +6253,20 @@ function ContinuarComEsseTime() {
   return (
     <>
       <Box bg={PURPLE} className="p-4 space-y-2" shadow={6}>
-        <p className="font-black text-lg text-center text-white" style={OSWALD}>🪜 QUER CONTINUAR COM ESSE TIME?</p>
+        <p className="font-black text-lg text-center text-white" style={OSWALD}>{t('🪜 QUER CONTINUAR COM ESSE TIME?', '🪜 KEEP GOING WITH THIS TEAM?')}</p>
         <p className="text-sm font-bold text-center text-white/85">
-          Leva o <b className="text-white">{nome}</b> e essa liga inteira pra uma <b className="text-white">carreira</b>:
+          {getLang() === 'en' ? <>Take <b className="text-white">{nome}</b> and this whole league into a <b className="text-white">career</b>:
+          climb the divisions, build a stadium, renew contracts and play the Copa do Brasil.
+          <br /><span className="text-white/70">No new auction — the team is already yours.</span></> : <>Leva o <b className="text-white">{nome}</b> e essa liga inteira pra uma <b className="text-white">carreira</b>:
           suba de divisão, construa estádio, renove contrato e dispute a Copa do Brasil.
-          <br /><span className="text-white/70">Sem novo pregão — o time já é seu.</span>
+          <br /><span className="text-white/70">Sem novo pregão — o time já é seu.</span></>}
         </p>
-        <Btn onClick={clicar} bg={GOLD} className="w-full text-lg">🪜 Continuar com o {nome}</Btn>
+        <Btn onClick={clicar} bg={GOLD} className="w-full text-lg">{t(`🪜 Continuar com o ${nome}`, `🪜 Continue with ${nome}`)}</Btn>
       </Box>
       {pedindoConta && (
         <JanelaConta
-          titulo="🪜 Levar esse time pra carreira"
-          contexto={`${nome} — sua carreira começa agora`}
+          titulo={t('🪜 Levar esse time pra carreira', '🪜 Take this team into a career')}
+          contexto={t(`${nome} — sua carreira começa agora`, `${nome} — your career starts now`)}
           comecarEmCriar
           onPronto={() => { setPedindoConta(false); virar() }}
           onFechar={() => { setPedindoConta(false); virar() }} />
@@ -6464,6 +6476,7 @@ async function downloadShareImage(o: ShareOpts) {
   URL.revokeObjectURL(url)
 }
 function ShareResultPanel({ opts }: { opts: ShareOpts }) {
+  const t = useT() // 🌐 BR/EN (só os botões; o texto compartilhado segue em PT — é o post do jogo)
   const [savedIG, setSavedIG] = useState(false)
   const [open, setOpen] = useState(false) // recolhido por padrão — não roubar a atenção da votação
   const text = shareTextFor(opts)
@@ -6480,18 +6493,18 @@ function ShareResultPanel({ opts }: { opts: ShareOpts }) {
   return (
     <Box bg="#fff" className="p-3 space-y-2">
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between active:opacity-70">
-        <span className="font-black text-sm" style={OSWALD}>📤 Compartilhar {opts.youWon ? 'a conquista' : 'o resultado'}{opts.card ? ' + carta' : ''}</span>
-        <span className="text-black/40 text-[11px] font-black" style={OSWALD}>{open ? 'fechar ▲' : 'abrir ▼'}</span>
+        <span className="font-black text-sm" style={OSWALD}>{t('📤 Compartilhar', '📤 Share')} {opts.youWon ? t('a conquista', 'the title') : t('o resultado', 'the result')}{opts.card ? t(' + carta', ' + card') : ''}</span>
+        <span className="text-black/40 text-[11px] font-black" style={OSWALD}>{open ? t('fechar ▲', 'close ▲') : t('abrir ▼', 'open ▼')}</span>
       </button>
       {open && (
         <>
-          <Btn onClick={() => shareResult(opts)} bg={GOLD} className="w-full">📤 Compartilhar imagem</Btn>
+          <Btn onClick={() => shareResult(opts)} bg={GOLD} className="w-full">{t('📤 Compartilhar imagem', '📤 Share image')}</Btn>
           <div className="grid grid-cols-3 gap-2">
             <Btn onClick={wa} bg="#25D366" className="w-full"><span className="text-white">📱 WhatsApp</span></Btn>
             <Btn onClick={tw} bg="#111" className="w-full"><span className="text-white">𝕏 Twitter</span></Btn>
             <Btn onClick={ig} bg="#E1306C" className="w-full"><span className="text-white">📸 Instagram</span></Btn>
           </div>
-          {savedIG && <p className="text-[11px] font-bold text-black/60 text-center">📸 Imagem salva! Abra o Instagram e poste no seu story.</p>}
+          {savedIG && <p className="text-[11px] font-bold text-black/60 text-center">{t('📸 Imagem salva! Abra o Instagram e poste no seu story.', '📸 Image saved! Open Instagram and post it to your story.')}</p>}
         </>
       )}
     </Box>
@@ -8187,6 +8200,8 @@ function CareerEndPanel() {
 // 🔄 Atualizar lista, e bem mais discreto.
 function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
+  const V = useT() // 🌐 BR/EN
+  const enV = getLang() === 'en'
   // 🎫 identidade pelo CRACHÁ (manager.id), NÃO pela cadeira (youIdx) — quando o
   // host sai e os assentos escorregam, a cadeira muda de dono mas o crachá NÃO.
   // (correção 11/08: era `youId = state.youIdx`, o que trocava voto/nome de lugar)
@@ -8335,13 +8350,13 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       // precisa de 2+ — volta pra sala de espera pra chamar gente, sem travar.
       if (playerNames.length < 2) {
         try { await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId) } catch { /* segue */ }
-        try { alert('Você ficou sozinho na sala — o novo leilão precisa de pelo menos 2 pessoas. Te levei pra sala de espera: chama a galera por lá! 📣') } catch { /* ignora */ }
+        try { alert(V('Você ficou sozinho na sala — o novo leilão precisa de pelo menos 2 pessoas. Te levei pra sala de espera: chama a galera por lá! 📣', 'You are alone in the room — a new auction needs at least 2 people. I took you to the waiting room: call the crew from there! 📣')) } catch { /* ignora */ }
         dispatch({ type: 'REMATCH' })
         return
       }
       if (cortados > 0) {
         // 📢 nada acontece no escuro: o host fica sabendo quem não entrou.
-        try { alert(`${cortados === 1 ? 'Uma pessoa saiu da sala e não entrou' : `${cortados} pessoas saíram da sala e não entraram`} no novo leilão. Se alguém voltar, é só chamar de novo pelo código. 👋`) } catch { /* ignora */ }
+        try { alert(enV ? `${cortados === 1 ? 'One person left the room and did not join' : `${cortados} people left the room and did not join`} the new auction. If anyone comes back, just invite them again with the code. 👋` : `${cortados === 1 ? 'Uma pessoa saiu da sala e não entrou' : `${cortados} pessoas saíram da sala e não entraram`} no novo leilão. Se alguém voltar, é só chamar de novo pelo código. 👋`) } catch { /* ignora */ }
       }
       await supabase.from('game_rooms').update({ status: 'started' }).eq('id', state.roomId)
       // meu assento = a posição do meu DONO (se eu for parceiro, é o assento dele —
@@ -8378,18 +8393,18 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   )
   const exitLeave = () => {
     const msg = isHost
-      ? 'Sair da sala? O comando (host) passa pra outra pessoa. Se estiver sozinho, a sala é apagada.'
-      : 'Sair da sala? Você será removido desta partida.'
+      ? V('Sair da sala? O comando (host) passa pra outra pessoa. Se estiver sozinho, a sala é apagada.', 'Leave the room? Command (host) passes to someone else. If you are alone, the room is deleted.')
+      : V('Sair da sala? Você será removido desta partida.', 'Leave the room? You will be removed from this match.')
     if (window.confirm(msg)) leaveRoom()
   }
   return (
     <div className="online-end-vote rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: 'linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', boxShadow: `4px 4px 0 ${INK}` }}>
-      <p className="font-black text-lg text-center" style={{ ...OSWALD, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🗳️ E agora?</p>
+      <p className="font-black text-lg text-center" style={{ ...OSWALD, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{V('🗳️ E agora?', '🗳️ What now?')}</p>
       {/* 👥 quem está na sala — igual à sala de espera: bolinha no DEGRADÊ do tier
           de cada um (com brilho), nome, 👑 HOST e status (na sala / saiu). */}
       {humans.length > 0 && (
         <div className="online-vote-people rounded-xl border-2 border-black px-3 py-2" style={{ background: 'rgba(255,255,255,.95)' }}>
-          <p className="text-[10px] font-black uppercase tracking-widest text-black/50 mb-1.5" style={OSWALD}>👥 Na sala agora · {humans.filter(m => present.has(m.id)).length}/{humans.length}</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-black/50 mb-1.5" style={OSWALD}>{V('👥 Na sala agora', '👥 In the room now')} · {humans.filter(m => present.has(m.id)).length}/{humans.length}</p>
           <div className="space-y-1.5">
             {humans.map(m => {
               const pk = (m.id === youId ? myApoioPerk() : perkFromSelo(m.teamName)) ?? APOIO_PERKS.bege
@@ -8400,16 +8415,16 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                     <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(m.teamName).trim()[0]?.toUpperCase() ?? '?'}</span>
                     {pk.holo > 0 && <ApoioSheen holo={pk.holo} dur={2.6} />}
                   </div>
-                  <span className="font-black text-[13px] text-black flex-1 truncate" style={OSWALD}>{m.teamName}{m.id === youId ? ' (você)' : ''}</span>
+                  <span className="font-black text-[13px] text-black flex-1 truncate" style={OSWALD}>{m.teamName}{m.id === youId ? V(' (você)', ' (you)') : ''}</span>
                   {hostId === m.id && <span className="text-[9px] font-black uppercase bg-yellow-400 border border-black px-1.5 py-0.5 rounded-full shrink-0">👑 HOST</span>}
                   {/* status: saiu · voto de cada um (▶️/🔨) · ainda não votou. Host não vota (decide). */}
                   {(() => {
-                    if (!here) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#8a8672' }}>🚪 saiu</span>
-                    if (m.id === hostId) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>🟢 na sala</span>
+                    if (!here) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#8a8672' }}>{V('🚪 saiu', '🚪 left')}</span>
+                    if (m.id === hostId) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{V('🟢 na sala', '🟢 in the room')}</span>
                     const v = votes[m.id]
                     return v
-                      ? <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{v === 'mesmo' ? '✅ ▶️ mesmo time' : '✅ 🔨 novo leilão'}</span>
-                      : <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#92600A' }}>⏳ não votou ainda…</span>
+                      ? <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{v === 'mesmo' ? V('✅ ▶️ mesmo time', '✅ ▶️ same team') : V('✅ 🔨 novo leilão', '✅ 🔨 new auction')}</span>
+                      : <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#92600A' }}>{V('⏳ não votou ainda…', '⏳ hasn\'t voted yet…')}</span>
                   })()}
                 </div>
               )
@@ -8421,12 +8436,12 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // 🎁 Jeito 1: você foi campeão e ainda não abriu a carta — trava o voto/começar
         // até pegar, pra NUNCA trocar de tela e perder a carta.
         <div className="rounded-xl border-[3px] border-black px-3 py-3 text-center" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#92600A' }}>🎁 Pega tua carta de campeão primeiro!</p>
-          <p className="text-[11px] font-bold text-black/65 mt-0.5">Toque no pacote lá em cima pra abrir. Depois disso libera {isHost ? 'o começar a próxima' : 'o seu voto'} — assim ninguém perde carta.</p>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#92600A' }}>{V('🎁 Pega tua carta de campeão primeiro!', '🎁 Grab your champion card first!')}</p>
+          <p className="text-[11px] font-bold text-black/65 mt-0.5">{enV ? `Tap the pack up top to open it. After that ${isHost ? 'starting the next one' : 'your vote'} unlocks — so nobody loses a card.` : `Toque no pacote lá em cima pra abrir. Depois disso libera ${isHost ? 'o começar a próxima' : 'o seu voto'} — assim ninguém perde carta.`}</p>
         </div>
       ) : isHost ? (
         <>
-          <p className="text-center text-xs font-bold text-white/85">Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</p>
+          <p className="text-center text-xs font-bold text-white/85">{enV ? <>Keep the <b>same team</b> or open a <b>new auction</b>? You (host) decide 👇</> : <>Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</>}</p>
           {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
           {guests.length > 0 && (
             <div className="online-vote-repeat space-y-1.5">
@@ -8434,70 +8449,70 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                 <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : here ? '#FFF7DE' : '#EFEAD9', opacity: v || here ? 1 : 0.6 }}>
                   <span className="font-black text-sm text-black" style={OSWALD}>{v ? '✅' : here ? '⏳' : '🚪'} {m.teamName}</span>
                   <span className="text-[11px] font-black" style={{ ...OSWALD, color: v ? '#166534' : here ? '#92600A' : '#8a8672' }}>
-                    {v ? `PRONTO · quer ${v === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'}` : here ? 'ainda não votou…' : 'saiu da sala — não segura o começo'}
+                    {v ? (enV ? `READY · wants ${v === 'mesmo' ? '▶️ same team' : '🔨 new auction'}` : `PRONTO · quer ${v === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'}`) : here ? V('ainda não votou…', 'hasn\'t voted yet…') : V('saiu da sala — não segura o começo', 'left the room — doesn\'t hold up the start')}
                   </span>
                 </div>
               )})}
-              <p className="text-center text-[11px] font-black text-white/75" style={OSWALD}>{nVoted}/{guests.length} prontos · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
+              <p className="text-center text-[11px] font-black text-white/75" style={OSWALD}>{nVoted}/{guests.length} {V('prontos', 'ready')} · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
             </div>
           )}
           {pend.length > 0 && (
-            <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>⏳ Aguardando {pend.map(m => m.teamName).join(', ')} votar{pend.length > 1 ? 'em' : ''}…</p>
+            <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{enV ? `⏳ Waiting for ${pend.map(m => m.teamName).join(', ')} to vote…` : `⏳ Aguardando ${pend.map(m => m.teamName).join(', ')} votar${pend.length > 1 ? 'em' : ''}…`}</p>
           )}
           {partnerPending && (
-            <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>🤝 Aguardando seu parceiro ({myDupla?.partnerName}) votar…</p>
+            <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{V(`🤝 Aguardando seu parceiro (${myDupla?.partnerName}) votar…`, `🤝 Waiting for your partner (${myDupla?.partnerName}) to vote…`)}</p>
           )}
-          <Btn onClick={() => podeComecarDireto ? startMesmo() : setAskStart('mesmo')} bg={podeComecarDireto ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? 'text-white' : 'text-black/50'}>{podeComecarDireto ? '▶️' : '🔒'} Começar (mesmo time)</span></Btn>
-          <Btn onClick={() => podeComecarDireto ? startLeilao() : setAskStart('leilao')} bg={podeComecarDireto ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? '' : 'text-black/50'}>{podeComecarDireto ? '🔨' : '🔒'} Abrir novo leilão</span></Btn>
+          <Btn onClick={() => podeComecarDireto ? startMesmo() : setAskStart('mesmo')} bg={podeComecarDireto ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? 'text-white' : 'text-black/50'}>{podeComecarDireto ? '▶️' : '🔒'} {V('Começar (mesmo time)', 'Start (same team)')}</span></Btn>
+          <Btn onClick={() => podeComecarDireto ? startLeilao() : setAskStart('leilao')} bg={podeComecarDireto ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? '' : 'text-black/50'}>{podeComecarDireto ? '🔨' : '🔒'} {V('Abrir novo leilão', 'Open a new auction')}</span></Btn>
           {!podeComecarDireto && (
-            <p className="text-center text-[10px] font-bold text-white/70">O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.</p>
+            <p className="text-center text-[10px] font-bold text-white/70">{V('O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.', 'The start unlocks once everyone has voted — or tap a button to decide what to do.')}</p>
           )}
         </>
       ) : (
         <>
-          <p className="text-center text-xs font-bold text-white/85">Vote no que você quer — o host começa quando decidir.</p>
+          <p className="text-center text-xs font-bold text-white/85">{V('Vote no que você quer — o host começa quando decidir.', 'Vote for what you want — the host starts when they decide.')}</p>
           <div className="flex gap-2">
-            {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
-            {voteBtn('leilao', '🔨 Novo leilão', GOLD, '#000')}
+            {voteBtn('mesmo', V('▶️ Mesmo time', '▶️ Same team'), GREEN, '#fff')}
+            {voteBtn('leilao', V('🔨 Novo leilão', '🔨 New auction'), GOLD, '#000')}
           </div>
           {myVote ? (
             <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#DCFCE7', boxShadow: `3px 3px 0 ${INK}` }}>
-              <p className="font-black text-sm" style={{ ...OSWALD, color: '#166534' }}>✅ VOCÊ ESTÁ PRONTO!</p>
-              <p className="text-[11px] font-bold text-black/60">Votou em {myVote === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'} · esperando o host começar (dá pra trocar)</p>
+              <p className="font-black text-sm" style={{ ...OSWALD, color: '#166534' }}>{V('✅ VOCÊ ESTÁ PRONTO!', '✅ YOU ARE READY!')}</p>
+              <p className="text-[11px] font-bold text-black/60">{enV ? `You voted ${myVote === 'mesmo' ? '▶️ same team' : '🔨 new auction'} · waiting for the host to start (you can switch)` : `Votou em ${myVote === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'} · esperando o host começar (dá pra trocar)`}</p>
             </div>
           ) : (
-            <p className="text-center text-sm font-black" style={{ color: '#FFDD70', ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>👆 Toque no seu voto pra ficar PRONTO!</p>
+            <p className="text-center text-sm font-black" style={{ color: '#FFDD70', ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{V('👆 Toque no seu voto pra ficar PRONTO!', '👆 Tap your vote to be READY!')}</p>
           )}
           {/* explica a espera quando um campeão (às vezes o próprio host) tá pegando a carta */}
-          {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!</p>}
+          {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>{V('🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!', '🏆 A champion is grabbing their card — the host starts right after. Hang tight!')}</p>}
         </>
       )}
       {/* saídas — uma linha só, discreta, pra todos */}
       <div className="flex items-center justify-center gap-6 pt-2 mt-1 border-t-2 border-white/20">
-        <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-white/70 text-xs font-bold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 Voltar pro menu</button>
-        <button onClick={exitLeave} className="text-white/70 text-xs font-bold underline active:opacity-60" title="Sai da sala de vez">🚪 Sair da sala</button>
+        <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-white/70 text-xs font-bold underline active:opacity-60" title={V('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but stays in the room — you can come back')}>{V('🏠 Voltar pro menu', '🏠 Back to menu')}</button>
+        <button onClick={exitLeave} className="text-white/70 text-xs font-bold underline active:opacity-60" title={V('Sai da sala de vez', 'Leaves the room for good')}>{V('🚪 Sair da sala', '🚪 Leave the room')}</button>
       </div>
 
       {/* modal do host: alguém ainda não decidiu — esperar, começar com eles, ou excluir */}
       {askStart && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
           <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-            <p className="font-black text-black text-lg" style={OSWALD}>🔒 Nem todo mundo votou ainda</p>
+            <p className="font-black text-black text-lg" style={OSWALD}>{V('🔒 Nem todo mundo votou ainda', '🔒 Not everyone has voted yet')}</p>
             <p className="text-black/65 text-sm font-bold mb-3">
-              {pend.length > 0 && <>{pend.length === 1 ? 'Ainda falta votar: ' : 'Ainda faltam votar: '}<b>{pend.map(m => m.teamName).join(', ')}</b>{partnerPending ? ' e ' : '. '}</>}
-              {partnerPending && <>seu parceiro <b>{myDupla?.partnerName}</b>. </>}
-              O começo fica travado até todo mundo votar. O que você quer fazer?
+              {pend.length > 0 && <>{enV ? 'Still to vote: ' : pend.length === 1 ? 'Ainda falta votar: ' : 'Ainda faltam votar: '}<b>{pend.map(m => m.teamName).join(', ')}</b>{partnerPending ? V(' e ', ' and ') : '. '}</>}
+              {partnerPending && <>{V('seu parceiro', 'your partner')} <b>{myDupla?.partnerName}</b>. </>}
+              {V('O começo fica travado até todo mundo votar. O que você quer fazer?', 'The start stays locked until everyone votes. What do you want to do?')}
             </p>
             <div className="space-y-2">
               <button onClick={() => setAskStart(null)}
-                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>⏳ Aguardar mais um pouco</button>
+                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>{V('⏳ Aguardar mais um pouco', '⏳ Wait a little longer')}</button>
               {pend.map(m => (
-                <button key={m.id} onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(`Remover ${m.teamName} da partida?`)) return; kickPlayer(m.id); if (pend.length === 1 && !partnerPending) { await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() } }}
-                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir {m.teamName}{pend.length === 1 && !partnerPending ? ' e começar' : ''}</button>
+                <button key={m.id} onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(V(`Remover ${m.teamName} da partida?`, `Remove ${m.teamName} from the match?`))) return; kickPlayer(m.id); if (pend.length === 1 && !partnerPending) { await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() } }}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>{V('✂️ Excluir', '✂️ Remove')} {m.teamName}{pend.length === 1 && !partnerPending ? V(' e começar', ' and start') : ''}</button>
               ))}
               {pend.length > 1 && (
-                <button onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(`Remover ${pend.map(m => m.teamName).join(', ')} da partida?`)) return; pend.forEach(m => kickPlayer(m.id)); if (!partnerPending) { await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() } }}
-                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>✂️ Excluir TODOS que faltam{partnerPending ? '' : ' e começar'}</button>
+                <button onClick={async () => { const k = askStart; setAskStart(null); if (!window.confirm(V(`Remover ${pend.map(m => m.teamName).join(', ')} da partida?`, `Remove ${pend.map(m => m.teamName).join(', ')} from the match?`))) return; pend.forEach(m => kickPlayer(m.id)); if (!partnerPending) { await new Promise(r => setTimeout(r, 500)); k === 'mesmo' ? startMesmo() : startLeilao() } }}
+                  className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#B23B2E', ...OSWALD }}>{V('✂️ Excluir TODOS que faltam', '✂️ Remove EVERYONE missing')}{partnerPending ? '' : V(' e começar', ' and start')}</button>
               )}
               {/* 🤝 parceiro não é "excluído" — é o time do próprio host. Só dá pra
                   esperar ou assumir e começar mesmo assim (nunca trava o jogo).
@@ -8506,7 +8521,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
               {partnerPending && pend.length === 0 && (
                 <button onClick={() => { const k = askStart; setAskStart(null); k === 'mesmo' ? startMesmo() : startLeilao() }}
                   className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white" style={{ color: '#92600A', ...OSWALD }}>
-                  ▶️ Começar mesmo assim (sem esperar {myDupla?.partnerName})
+                  {V(`▶️ Começar mesmo assim (sem esperar ${myDupla?.partnerName})`, `▶️ Start anyway (without waiting for ${myDupla?.partnerName})`)}
                 </button>
               )}
             </div>
@@ -8695,7 +8710,8 @@ export function EscEnd() {
   const [streamManual] = useStreamSimMode()
   const [endLang] = useLang()
   const bbEnd = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
-  const LE = (pt: string, en: string) => (bbEnd && endLang === 'en') ? en : pt
+  // 🌐 BR/EN (11/09): valia só pro basquete; agora o fim de jogo do futebol também lê o idioma
+  const LE = (pt: string, en: string) => endLang === 'en' ? en : pt
   const you = state.managers[state.youIdx]
   const table = sortedTable(state.league)
   const champ = table[0]
@@ -8833,9 +8849,9 @@ export function EscEnd() {
           verdade (tem um "2" desenhado nela) — usar pra QUALQUER posição da
           zona de cima mostrava "2" pra quem ficou em 3º ou 4º. Trocado por 🏅. */}
       <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🏅' : youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
-      <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? 'CAMPEÃO!' : `${youPos}º LUGAR`}</h2>
+      <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? LE('CAMPEÃO!', 'CHAMPION!') : `${ordinal(youPos, endLang)} ${LE('LUGAR', 'PLACE')}`}</h2>
       <p className="font-semibold text-black/60 mt-1">
-        {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado. O leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
+        {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${youPos >= zoneBot(table.length) ? LE('Rebaixado. O leilão cobra caro.', 'Relegated. The auction bites back.') : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.')}`}
       </p>
     </div>
   )
@@ -8869,22 +8885,22 @@ export function EscEnd() {
   // 🌎 nesta sala o mata-mata é a LIBERTADORES (não a Copa dos 8) — muda só o
   // nome e a cor nos quadros do fim; o resto do fluxo é o mesmo.
   const libEnd = state.copaMode === 'liga_liberta'
-  const copaNome = libEnd ? 'Libertadores' : 'Copa dos 8'
+  const copaNome = libEnd ? 'Libertadores' : LE('Copa dos 8', 'Cup of 8')
   // até onde VOCÊ foi na Copa (pro resuminho do topo)
   const myCopaRun = (() => {
     const qc = state.quickCopa
     if (!qc) return ''
-    if (qc.champion?.id === you.id) return '🏆 Campeão!'
+    if (qc.champion?.id === you.id) return LE('🏆 Campeão!', '🏆 Champion!')
     // 🌎 'oitavas' só aparece na Libertadores (a Copa dos 8 começa nas quartas)
     let last: 'oitavas' | 'quartas' | 'semis' | 'final' | null = null, lost = false
     for (const b of qc.bracket) { const t = b.ties.find(x => x.aId === you.id || x.bId === you.id); if (t) { last = b.phase; lost = t.winner != null && t.winner !== you.id } }
-    if (!last) return state.copaMode === 'liga_liberta' ? 'Não se classificou' : 'Fora do top 8'
-    if (last === 'final') return lost ? '🥈 Vice' : '🏆 Campeão!'
-    return last === 'semis' ? 'Caiu na semi' : last === 'quartas' ? 'Caiu nas quartas' : 'Caiu nas oitavas'
+    if (!last) return state.copaMode === 'liga_liberta' ? LE('Não se classificou', 'Did not qualify') : LE('Fora do top 8', 'Outside the top 8')
+    if (last === 'final') return lost ? LE('🥈 Vice', '🥈 Runner-up') : LE('🏆 Campeão!', '🏆 Champion!')
+    return last === 'semis' ? LE('Caiu na semi', 'Out in the semis') : last === 'quartas' ? LE('Caiu nas quartas', 'Out in the quarters') : LE('Caiu nas oitavas', 'Out in the round of 16')
   })()
   // 👀 "VOCÊ!" é por quem VÊ (compara o id do campeão com o MEU time), não pelo
   // flag global champion.you (que no online marcava todo humano como "você").
-  const copaChampName = state.quickCopa?.champion ? (state.quickCopa.champion.id === you.id ? 'VOCÊ!' : state.quickCopa.champion.name) : ''
+  const copaChampName = state.quickCopa?.champion ? (state.quickCopa.champion.id === you.id ? LE('VOCÊ!', 'YOU!') : state.quickCopa.champion.name) : ''
   // 🎥 STREAM · carta do campeão compartilhada com a sala. Só faz sentido quando o
   // campeão é HUMANO (CPU não tira carta). A carta revelada vem do estado, sincronizada.
   const ligaChampHuman = !!state.managers.find(m => m.id === champ.id)?.isHuman
@@ -8920,13 +8936,13 @@ export function EscEnd() {
   // placar-resumo do topo (Liga + Copa), no lugar do radião de colocação
   const comboHeader = (
     <div className="pt-6">
-      <p className="text-center text-xs font-black uppercase tracking-widest text-black/45 mb-1" style={OSWALD}>🏁 Fim da temporada</p>
+      <p className="text-center text-xs font-black uppercase tracking-widest text-black/45 mb-1" style={OSWALD}>{LE('🏁 Fim da temporada', '🏁 End of season')}</p>
       <Box bg={INK} className="p-4 text-center" shadow={6}>
         <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <div className="rounded-xl border-2 py-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
             <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
-            <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>{youWon ? '🏆 Campeão' : `${youPos}º lugar`}</p>
+            <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
           </div>
           <div className="rounded-xl border-2 py-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
             <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>{copaNome}</p>
@@ -8940,14 +8956,14 @@ export function EscEnd() {
   // quadro só + a frase da colocação. Substitui o antigo radião no rápido comum.
   const ligaOnlyHeader = (padTop = 'pt-6') => (
     <div className={padTop}>
-      <p className="text-center text-xs font-black uppercase tracking-widest text-black/45 mb-1" style={OSWALD}>🏁 Fim da temporada</p>
+      <p className="text-center text-xs font-black uppercase tracking-widest text-black/45 mb-1" style={OSWALD}>{LE('🏁 Fim da temporada', '🏁 End of season')}</p>
       <Box bg={INK} className="p-4 text-center" shadow={6}>
         <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
         <div className="mt-2 rounded-xl border-2 py-2.5 px-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
           <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
-          <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? '🏆 Campeão' : `${youPos}º lugar`}</p>
+          <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
           <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,.62)' }}>
-            {youWon ? 'O pregão foi seu, o campeonato foi seu. Resenha eterna.' : `Campeão: ${champ.name}. ${youPos >= zoneBot(table.length) ? 'Rebaixado — o leilão cobra caro.' : 'Ano que vem tem pregão de novo.'}`}
+            {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${youPos >= zoneBot(table.length) ? LE('Rebaixado — o leilão cobra caro.', 'Relegated — the auction bites back.') : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.')}`}
           </p>
         </div>
       </Box>
@@ -8972,7 +8988,7 @@ export function EscEnd() {
   const ligaBlocks = (
     <>
       <TableBox highlight={you.id} title="🏆 LIGA LEGENDS" />
-      <TopScorersBox highlight={you.id} title="⚽ ARTILHARIA DA LIGA LEGENDS" />
+      <TopScorersBox highlight={you.id} title={LE('⚽ ARTILHARIA DA LIGA LEGENDS', '⚽ LIGA LEGENDS TOP SCORERS')} />
     </>
   )
   // 🏆 Copa dos 8: quem é campeão da Copa ganha carta À PARTE do título da liga
@@ -8981,8 +8997,8 @@ export function EscEnd() {
     <>
       {state.quickCopa?.champion && (
         <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
-          <p className="text-[11px] font-black uppercase tracking-widest" style={{ ...OSWALD, color: '#9a6d00' }}>{libEnd ? '🌎 Libertadores' : '🏆 Copa dos 8'}</p>
-          <p className="font-black text-base" style={OSWALD}>Campeão: {copaChampName}</p>
+          <p className="text-[11px] font-black uppercase tracking-widest" style={{ ...OSWALD, color: '#9a6d00' }}>{libEnd ? '🌎 Libertadores' : LE('🏆 Copa dos 8', '🏆 Cup of 8')}</p>
+          <p className="font-black text-base" style={OSWALD}>{LE('Campeão', 'Champion')}: {copaChampName}</p>
         </Box>
       )}
       {copaChampIsYou && (
@@ -9019,8 +9035,8 @@ export function EscEnd() {
           antes da tabela, porque é a primeira coisa que a galera quer ver. */}
       {state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
         <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
-          <p className="font-black text-base" style={OSWALD}>🤝 BAFO AMISTOSO</p>
-          <p className="text-[11.5px] font-bold text-black/60 leading-snug mt-0.5">Esta sala foi criada <b>sem valer carta</b> — ninguém perdeu nem ganhou nada do álbum. Foi só a tabela.</p>
+          <p className="font-black text-base" style={OSWALD}>{LE('🤝 BAFO AMISTOSO', '🤝 FRIENDLY BAFO')}</p>
+          <p className="text-[11.5px] font-bold text-black/60 leading-snug mt-0.5">{endLang === 'en' ? <>This room was created <b>with no cards at stake</b> — nobody lost or won anything from the album. Just the table.</> : <>Esta sala foi criada <b>sem valer carta</b> — ninguém perdeu nem ganhou nada do álbum. Foi só a tabela.</>}</p>
         </Box>
       ))}
       {ligaChampionCard}
@@ -9030,10 +9046,10 @@ export function EscEnd() {
       {libPending && state.liberta && (() => {
         const meu = state.liberta.times.find(t => t.id === you.id)
         const classificados = state.liberta.times.filter(t => t.pote === 1)
-        if (privateEnd) return <CompetitionStage kind="liberta" title="A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO" phase="Libertadores" detail={meu ? 'Você se classificou! Os oito da liga encaram os 24 clubes do continente.' : 'Seu clube não se classificou. Acompanhe os oito representantes da sala.'} status={canDriveCopa ? (manual || pacedRoom ? 'O host pode iniciar a competição' : `Começa em ${libLeft}s`) : 'Aguardando o host'}>
+        if (privateEnd) return <CompetitionStage kind="liberta" title={LE('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'LEAGUE OVER · NEXT COMPETITION')} phase="Libertadores" detail={meu ? LE('Você se classificou! Os oito da liga encaram os 24 clubes do continente.', 'You qualified! The league\'s top eight face the 24 clubs of the continent.') : LE('Seu clube não se classificou. Acompanhe os oito representantes da sala.', 'Your club did not qualify. Follow the room\'s eight representatives.')} status={canDriveCopa ? (manual || pacedRoom ? LE('O host pode iniciar a competição', 'The host can start the competition') : LE(`Começa em ${libLeft}s`, `Starts in ${libLeft}s`)) : LE('Aguardando o host', 'Waiting for the host')}>
           <div className="ll26-cup-entry"><div className="ll26-qualified">{classificados.map(t => <span key={t.id}><Escudo nome={t.name} size={25} />{t.name}</span>)}</div>
-            <details className="ll26-format"><summary>REGULAMENTO E PREMIAÇÃO</summary><p>8 grupos de 4, seis rodadas de ida e volta. Os dois primeiros de cada grupo avançam. Oitavas, quartas e semifinais em ida e volta; final em jogo único. Empate no agregado leva aos pênaltis. O campeão ganha outra carta.</p></details>
-            {canDriveCopa && <Btn onClick={() => dispatch({ type: 'START_LIBERTA' })} bg={GOLD} className="w-full">INICIAR LIBERTADORES</Btn>}
+            <details className="ll26-format"><summary>{LE('REGULAMENTO E PREMIAÇÃO', 'FORMAT AND PRIZE')}</summary><p>{LE('8 grupos de 4, seis rodadas de ida e volta. Os dois primeiros de cada grupo avançam. Oitavas, quartas e semifinais em ida e volta; final em jogo único. Empate no agregado leva aos pênaltis. O campeão ganha outra carta.', '8 groups of 4, six home-and-away rounds. The top two of each group advance. Round of 16, quarters and semis over two legs; single-match final. A tie on aggregate goes to penalties. The champion earns another card.')}</p></details>
+            {canDriveCopa && <Btn onClick={() => dispatch({ type: 'START_LIBERTA' })} bg={GOLD} className="w-full">{LE('INICIAR LIBERTADORES', 'START LIBERTADORES')}</Btn>}
           </div>
         </CompetitionStage>
         const regra = (emoji: string, titulo: string, txt: React.ReactNode) => (
@@ -9051,66 +9067,79 @@ export function EscEnd() {
               <p className="text-center text-4xl">🌎</p>
               <p className="font-black text-2xl text-center leading-none" style={{ ...OSWALD, color: GOLD }}>LIBERTADORES</p>
               <p className="text-center font-black text-[12px]" style={{ ...OSWALD, color: '#fff', letterSpacing: '.06em' }}>
-                {meu ? 'VOCÊ ESTÁ DENTRO!' : 'A LIGA ACABOU — COMEÇA O CONTINENTE'}
+                {meu ? LE('VOCÊ ESTÁ DENTRO!', 'YOU ARE IN!') : LE('A LIGA ACABOU — COMEÇA O CONTINENTE', 'THE LEAGUE IS OVER — THE CONTINENT BEGINS')}
               </p>
               <p className="text-[12px] font-bold text-center" style={{ color: 'rgba(255,255,255,.85)' }}>
-                {meu
-                  ? <>Você terminou entre os <b style={{ color: GOLD }}>8 primeiros</b> e pegou a vaga. Agora são <b style={{ color: GOLD }}>32 clubes</b> — os 8 daqui mais os 24 grandes do continente.</>
-                  : <>Os <b style={{ color: GOLD }}>8 primeiros</b> da liga pegaram a vaga e encaram os 24 grandes do continente. Você não se classificou, mas dá pra acompanhar tudo.</>}
+                {endLang === 'en'
+                  ? (meu
+                    ? <>You finished in the <b style={{ color: GOLD }}>top 8</b> and took the spot. Now it's <b style={{ color: GOLD }}>32 clubs</b> — the 8 from here plus the continent's 24 giants.</>
+                    : <>The league's <b style={{ color: GOLD }}>top 8</b> took the spots and face the continent's 24 giants. You didn't qualify, but you can follow everything.</>)
+                  : (meu
+                    ? <>Você terminou entre os <b style={{ color: GOLD }}>8 primeiros</b> e pegou a vaga. Agora são <b style={{ color: GOLD }}>32 clubes</b> — os 8 daqui mais os 24 grandes do continente.</>
+                    : <>Os <b style={{ color: GOLD }}>8 primeiros</b> da liga pegaram a vaga e encaram os 24 grandes do continente. Você não se classificou, mas dá pra acompanhar tudo.</>)}
               </p>
               <div className="space-y-1.5">
-                {regra('🎱', 'O sorteio', <>os 8 da liga são <b>cabeças de chave</b> — um por grupo. Dois amigos da sala nunca caem no mesmo grupo.</>)}
-                {regra('🥅', 'Os grupos', <>8 grupos de 4, <b>6 rodadas</b> de ida e volta. Passam os <b>2 primeiros</b> de cada um.</>)}
-                {regra('⚔️', 'O mata-mata', <>16 clubes: oitavas, quartas e semi em <b>ida e volta</b>. Empatou no agregado, vai pros <b>pênaltis</b>.</>)}
-                {regra('🏆', 'A final', <><b>jogo único</b>, em campo neutro. Quem levantar a taça leva <b>outra carta</b> pro álbum.</>)}
+                {endLang === 'en' ? <>
+                  {regra('🎱', 'The draw', <>the league's 8 are <b>seeded</b> — one per group. Two friends from the room never land in the same group.</>)}
+                  {regra('🥅', 'The groups', <>8 groups of 4, <b>6 rounds</b> home and away. The <b>top 2</b> of each go through.</>)}
+                  {regra('⚔️', 'The knockout', <>16 clubs: round of 16, quarters and semis over <b>two legs</b>. Level on aggregate? <b>Penalties</b>.</>)}
+                  {regra('🏆', 'The final', <><b>single match</b>, neutral ground. Whoever lifts the cup earns <b>another card</b> for the album.</>)}
+                </> : <>
+                  {regra('🎱', 'O sorteio', <>os 8 da liga são <b>cabeças de chave</b> — um por grupo. Dois amigos da sala nunca caem no mesmo grupo.</>)}
+                  {regra('🥅', 'Os grupos', <>8 grupos de 4, <b>6 rodadas</b> de ida e volta. Passam os <b>2 primeiros</b> de cada um.</>)}
+                  {regra('⚔️', 'O mata-mata', <>16 clubes: oitavas, quartas e semi em <b>ida e volta</b>. Empatou no agregado, vai pros <b>pênaltis</b>.</>)}
+                  {regra('🏆', 'A final', <><b>jogo único</b>, em campo neutro. Quem levantar a taça leva <b>outra carta</b> pro álbum.</>)}
+                </>}
                 {/* 🚫 NÃO ENTRA AQUI (Diego 20/08: *"nem coloque essa aí de força e
                     etc, nada a ver por isso lá"*): nada de força/nível dos clubes.
                     O banner é o REGULAMENTO — como funciona o torneio. Número de
                     força é papo de bastidor, não de tela de abertura. */}
               </div>
               <div>
-                <p className="text-[10.5px] font-black uppercase text-center mb-1" style={{ ...OSWALD, color: GOLD }}>🎟️ Os 8 classificados</p>
+                <p className="text-[10.5px] font-black uppercase text-center mb-1" style={{ ...OSWALD, color: GOLD }}>{LE('🎟️ Os 8 classificados', '🎟️ The 8 qualifiers')}</p>
                 <div className="flex flex-wrap justify-center gap-1">
                   {classificados.map(t => (
                     <span key={t.id} className="rounded-full px-2 py-0.5 text-[10px] font-black truncate"
                       style={{ ...OSWALD, maxWidth: '46%', background: t.id === you.id ? GOLD : 'rgba(255,255,255,.16)', color: t.id === you.id ? INK : '#fff', border: `2px solid ${t.id === you.id ? INK : 'rgba(255,255,255,.35)'}` }}>
-                      {t.name}{t.id === you.id ? ' (você)' : state.managers.some(m => m.id === t.id && m.isHuman) ? ' 🔥' : ''}
+                      {t.name}{t.id === you.id ? LE(' (você)', ' (you)') : state.managers.some(m => m.id === t.id && m.isHuman) ? ' 🔥' : ''}
                     </span>
                   ))}
                 </div>
               </div>
               {canDriveCopa ? (
                 <Btn onClick={() => dispatch({ type: 'START_LIBERTA' })} bg={GOLD} className="w-full text-lg">
-                  {(manual || pacedRoom) ? '▶️ Iniciar a Libertadores' : `▶️ A Libertadores começa em ${libLeft}s (toque pra já)`}
+                  {(manual || pacedRoom) ? LE('▶️ Iniciar a Libertadores', '▶️ Start the Libertadores') : LE(`▶️ A Libertadores começa em ${libLeft}s (toque pra já)`, `▶️ Libertadores starts in ${libLeft}s (tap to go)`)}
                 </Btn>
               ) : (
                 <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>
-                  ⏳ {pacedRoom ? 'A Libertadores começa quando o host quiser' : `A Libertadores começa em ${libLeft}s — o host puxa`}
+                  ⏳ {pacedRoom ? LE('A Libertadores começa quando o host quiser', 'Libertadores starts when the host is ready') : LE(`A Libertadores começa em ${libLeft}s — o host puxa`, `Libertadores starts in ${libLeft}s — the host kicks it off`)}
                 </div>
               )}
             </div>
           </Box>
         )
       })()}
-      {copaPending && state.quickCopa && (privateEnd ? <CompetitionStage kind="copa8" title="A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO" phase="Copa dos 8" detail="Os oito primeiros disputam uma nova taça. O campeão ganha outra carta." status={manual || pacedRoom ? 'Aguardando o host iniciar' : `A Copa começa em ${copaLeft}s`}>
-        <div className="ll26-cup-entry"><h3>QUARTAS DE FINAL</h3>
+      {copaPending && state.quickCopa && (privateEnd ? <CompetitionStage kind="copa8" title={LE('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'LEAGUE OVER · NEXT COMPETITION')} phase={LE('Copa dos 8', 'Cup of 8')} detail={LE('Os oito primeiros disputam uma nova taça. O campeão ganha outra carta.', 'The top eight play for a new trophy. The champion earns another card.')} status={manual || pacedRoom ? LE('Aguardando o host iniciar', 'Waiting for the host to start') : LE(`A Copa começa em ${copaLeft}s`, `The Cup starts in ${copaLeft}s`)}>
+        <div className="ll26-cup-entry"><h3>{LE('QUARTAS DE FINAL', 'QUARTER-FINALS')}</h3>
           {state.quickCopa.ties.map(t => <div className="ll26-draw-row" key={`${t.aId}-${t.bId}`}><span><Escudo nome={t.aName} size={25} />{t.aName}</span><b>×</b><span><Escudo nome={t.bName} size={25} />{t.bName}</span></div>)}
-          <details className="ll26-format"><summary>REGULAMENTO</summary><p>1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta. Final em jogo único. Empatou no agregado: pênaltis.</p></details>
-          {canDriveCopa && <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={GOLD} className="w-full">INICIAR COPA DOS 8</Btn>}
+          <details className="ll26-format"><summary>{LE('REGULAMENTO', 'FORMAT')}</summary><p>{LE('1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta. Final em jogo único. Empatou no agregado: pênaltis.', '1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs. Single-match final. Level on aggregate: penalties.')}</p></details>
+          {canDriveCopa && <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={GOLD} className="w-full">{LE('INICIAR COPA DOS 8', 'START THE CUP OF 8')}</Btn>}
         </div>
       </CompetitionStage> : (
         <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
-          <p className="font-black text-lg text-center" style={OSWALD}>{bbEnd ? LE('🏆 PLAYOFFS · fica ligado!', '🏆 PLAYOFFS · stay tuned!') : '🏆 COPA DOS 8 · fica ligado!'}</p>
+          <p className="font-black text-lg text-center" style={OSWALD}>{bbEnd ? LE('🏆 PLAYOFFS · fica ligado!', '🏆 PLAYOFFS · stay tuned!') : LE('🏆 COPA DOS 8 · fica ligado!', '🏆 CUP OF 8 · stay tuned!')}</p>
           <p className="text-sm font-bold text-center text-black/75">
             {bbEnd
               ? (endLang === 'en'
                 ? <><b>Playoffs — East × West.</b> Top 4 of each conference. Each conference crowns its champion, and the two meet in the <b>Finals</b> for the <b>ring</b>! 🏀</>
                 : <><b>Playoffs — Leste × Oeste.</b> Top 4 de cada conferência. Cada lado decide seu campeão, e os dois se cruzam nas <b>Finais</b> pelo <b>anel</b>! 🏀</>)
-              : <>Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!</>}
+              : endLang === 'en'
+                ? <>The league's top 8 enter a separate Cup — two legs, semis and a single final. 1st plays 8th, 2nd plays 7th, 3rd plays 6th, 4th plays 5th. The Cup champion earns <b>another card</b> for the album!</>
+                : <>Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!</>}
           </p>
           <div className="space-y-1.5">
             {(() => {
-              const tag = (id: number) => id === you.id ? ' (você)' : state.managers.some(m => m.id === id && m.isHuman) ? ' 🔥' : ''
+              const tag = (id: number) => id === you.id ? LE(' (você)', ' (you)') : state.managers.some(m => m.id === id && m.isHuman) ? ' 🔥' : ''
               const tieRow = (t: typeof state.quickCopa.ties[number]) => (
                 <div key={`${t.aId}-${t.bId}`} className="flex items-center justify-between gap-2 bg-white/80 rounded-lg px-3 py-1.5 border-2 border-black">
                   <span className="font-black text-xs truncate flex-1" style={OSWALD}>{t.aName}{tag(t.aId)}</span>
@@ -9134,17 +9163,17 @@ export function EscEnd() {
               return ties.map(tieRow)
             })()}
           </div>
-          {online && <p className="text-[11px] font-bold text-center text-black/60">🔥 = amigo da sala · sem foguinho = time da CPU</p>}
+          {online && <p className="text-[11px] font-bold text-center text-black/60">{LE('🔥 = amigo da sala · sem foguinho = time da CPU', '🔥 = friend in the room · no flame = CPU team')}</p>}
           {canDriveCopa ? (
             <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={INK} className="w-full text-lg">
-              <span className="text-white">{(manual || pacedRoom) ? (bbEnd ? LE('▶️ Iniciar os Playoffs', '▶️ Start the Playoffs') : '▶️ Iniciar Copa dos 8') : (bbEnd ? LE(`▶️ Os Playoffs começam em ${copaLeft}s (toque pra já)`, `▶️ Playoffs start in ${copaLeft}s (tap to go)`) : `▶️ A Copa começa em ${copaLeft}s (toque pra já)`)}</span>
+              <span className="text-white">{(manual || pacedRoom) ? (bbEnd ? LE('▶️ Iniciar os Playoffs', '▶️ Start the Playoffs') : LE('▶️ Iniciar Copa dos 8', '▶️ Start the Cup of 8')) : (bbEnd ? LE(`▶️ Os Playoffs começam em ${copaLeft}s (toque pra já)`, `▶️ Playoffs start in ${copaLeft}s (tap to go)`) : LE(`▶️ A Copa começa em ${copaLeft}s (toque pra já)`, `▶️ The Cup starts in ${copaLeft}s (tap to go)`))}</span>
             </Btn>
           ) : (
-            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ {pacedRoom ? 'A Copa começa quando o host quiser' : `A Copa começa em ${copaLeft}s — o host puxa`}</div>
+            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ {pacedRoom ? LE('A Copa começa quando o host quiser', 'The Cup starts when the host is ready') : LE(`A Copa começa em ${copaLeft}s — o host puxa`, `The Cup starts in ${copaLeft}s — the host kicks it off`)}</div>
           )}
         </Box>
       ))}
-      {privateEnd && (copaPending || libPending) ? <details className="ll26-bracket-history"><summary>LIGA ENCERRADA · CAMPEÃO, CLASSIFICAÇÃO E ESTATÍSTICAS</summary>{ligaOnlyHeader('pt-2')}{ligaBlocks}</details> : <>{(copaPending || libPending) && ligaOnlyHeader('pt-2')}{ligaBlocks}</>}
+      {privateEnd && (copaPending || libPending) ? <details className="ll26-bracket-history"><summary>{LE('LIGA ENCERRADA · CAMPEÃO, CLASSIFICAÇÃO E ESTATÍSTICAS', 'LEAGUE OVER · CHAMPION, STANDINGS AND STATS')}</summary>{ligaOnlyHeader('pt-2')}{ligaBlocks}</details> : <>{(copaPending || libPending) && ligaOnlyHeader('pt-2')}{ligaBlocks}</>}
       </>
       )}
       {/* 🏆 A LIGA NUM LUGAR SÓ (pílulas). Aqui, no FIM, ela também GRAVA a
@@ -9227,33 +9256,33 @@ export function EscEnd() {
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
-            <p className="text-center font-black text-lg" style={OSWALD}>🔀 REINICIAR COM NOVOS TIMES</p>
-            <p className="text-center text-sm font-bold">Esperando todo mundo confirmar… {readyCount}/{totalPessoas} prontos</p>
+            <p className="text-center font-black text-lg" style={OSWALD}>{LE('🔀 REINICIAR COM NOVOS TIMES', '🔀 RESTART WITH NEW TEAMS')}</p>
+            <p className="text-center text-sm font-bold">{LE('Esperando todo mundo confirmar…', 'Waiting for everyone to confirm…')} {readyCount}/{totalPessoas} {LE('prontos', 'ready')}</p>
             {!iAmReady
-              ? <Btn onClick={() => dispatch({ type: 'CONFIRM_RESTART', mgrId: state.youIdx, by: state.youUid })} bg={GREEN} className="w-full text-lg"><span className="text-white">✅ Estou pronto</span></Btn>
-              : <p className="text-center text-sm font-bold text-black/60">Você está pronto. Aguardando os outros…</p>}
+              ? <Btn onClick={() => dispatch({ type: 'CONFIRM_RESTART', mgrId: state.youIdx, by: state.youUid })} bg={GREEN} className="w-full text-lg"><span className="text-white">{LE('✅ Estou pronto', '✅ I\'m ready')}</span></Btn>
+              : <p className="text-center text-sm font-bold text-black/60">{LE('Você está pronto. Aguardando os outros…', 'You are ready. Waiting for the others…')}</p>}
             {/* 🤝 numa dupla o time só conta como pronto com os DOIS confirmados */}
             {iAmReady && !!minhaDuplaRestart?.partnerUid && !minhaDuplaRestart.soloUid && prontasDoTime(meuIdRestart) < 2 && (
-              <p className="text-center text-[12px] font-bold text-black/55 leading-snug">🤝 Falta o seu parceiro confirmar — o time só fica pronto com os dois.</p>
+              <p className="text-center text-[12px] font-bold text-black/55 leading-snug">{LE('🤝 Falta o seu parceiro confirmar — o time só fica pronto com os dois.', '🤝 Your partner still has to confirm — the team is only ready with both.')}</p>
             )}
-            {canRestart && <Btn onClick={() => dispatch({ type: 'CANCEL_RESTART' })} className="w-full">Cancelar</Btn>}
+            {canRestart && <Btn onClick={() => dispatch({ type: 'CANCEL_RESTART' })} className="w-full">{LE('Cancelar', 'Cancel')}</Btn>}
           </div>
         )
         : canRestart
           ? (
             <>
-              <Btn onClick={() => dispatch({ type: 'REPLAY_SEASON' })} bg={GREEN} className="w-full text-lg"><span className="text-white">🔁 Nova temporada (mesmo time)</span></Btn>
-              <Btn onClick={() => dispatch({ type: 'REQUEST_NEW_TEAMS' })} className="w-full text-lg">🔀 Reiniciar com novos times</Btn>
+              <Btn onClick={() => dispatch({ type: 'REPLAY_SEASON' })} bg={GREEN} className="w-full text-lg"><span className="text-white">{LE('🔁 Nova temporada (mesmo time)', '🔁 New season (same team)')}</span></Btn>
+              <Btn onClick={() => dispatch({ type: 'REQUEST_NEW_TEAMS' })} className="w-full text-lg">{LE('🔀 Reiniciar com novos times', '🔀 Restart with new teams')}</Btn>
             </>
           )
-          : <p className="text-center text-sm font-bold text-black/60">Aguardando o host começar a próxima temporada…</p>}
+          : <p className="text-center text-sm font-bold text-black/60">{LE('Aguardando o host começar a próxima temporada…', 'Waiting for the host to start the next season…')}</p>}
       {/* 🪜 NÃO JOGA O TIME FORA (Diego 16/08 — plano-crescimento §1). O fim da
           partida rápida era beco sem saída: a pessoa montava o time no pregão e o
           jogo descartava tudo. Medido: 56% de quem joga nunca abre uma carreira,
           e quem abre volta 3× mais. Aqui a liga inteira vira a divisão de estreia
           — com os MESMOS adversários, então o equilíbrio fica de pé. */}
       <ContinuarComEsseTime />
-      <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">NOVO PREGÃO 🔨</Btn>
+      <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">{LE('NOVO PREGÃO 🔨', 'NEW AUCTION 🔨')}</Btn>
       </>)}
     </Shell>
   )
