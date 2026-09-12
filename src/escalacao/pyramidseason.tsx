@@ -562,6 +562,14 @@ function torcidaBonusByPct(pct: number): number {
 // 1-2 chips por temporada pra explicar o PORQUÊ a torcida mudou (a mesma conta
 // de torcidaDeltas, só que separada em pedaços pra virar texto pequeno embaixo
 // da barra: "+5 · 3º lugar", "+5 · subiu de divisão"...).
+// 🌐 O motivo fica GRAVADO no save em PT (histórico antigo também); a tradução é só na hora de mostrar.
+function motivoTorcida(m: string): string {
+  if (getLang() !== 'en') return m
+  if (m === 'subiu de divisão') return 'promoted'
+  if (m === 'caiu de divisão') return 'relegated'
+  const pos = /^(\d+)º lugar$/.exec(m)
+  return pos ? `${ordinal(Number(pos[1]))} place` : m
+}
 export function torcidaHistEntries(tables: Record<Div, SimTeam[]>, newPlacements: Record<string, string>): Record<string, { delta: number; motivo: string }[]> {
   const out: Record<string, { delta: number; motivo: string }[]> = {}
   for (const d of DIVS) tables[d].forEach((t, i) => {
@@ -2947,8 +2955,8 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
           {/* cabeçalho: ⚡ PÊNALTI + o JOGO (mandante 🏠 esquerda · visitante ✈️ direita) */}
           <div style={{ background: INK, color: '#fff', padding: '11px 15px', borderRadius: '14px 14px 0 0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19 }}>⚡ PÊNALTI!</div>
-              <div style={{ fontSize: 10, fontWeight: 800, color: GOLD }}>90+2' · última chance 🏆</div>
+              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19 }}>{tr('⚡ PÊNALTI!', '⚡ PENALTY!')}</div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: GOLD }}>90+2' · {tr('última chance', 'last chance')} 🏆</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 }}>
               <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: youIsHome ? GOLD : '#fff', maxWidth: '36%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🏠 {homeName}</span>
@@ -3409,7 +3417,7 @@ function GoldTeaser({ label, children }: { label: string; children: React.ReactN
             {children}
             <ApoioPreviewMark />
           </div>
-          <p style={{ fontSize: 10.5, fontWeight: 800, textAlign: 'center', color: '#5a5647', margin: '6px 0 8px' }}>☝️ prévia de teste — assim fica o SEU no tier Lenda 👑 (ouro ou qualquer cor com brilho)</p>
+          <p style={{ fontSize: 10.5, fontWeight: 800, textAlign: 'center', color: '#5a5647', margin: '6px 0 8px' }}>{tr('☝️ prévia de teste — assim fica o SEU no tier Lenda 👑 (ouro ou qualquer cor com brilho)', '☝️ test preview — this is how YOURS looks at the Legend tier 👑 (gold or any color with shine)')}</p>
           <ApoieButton big />
         </div>
       )}
@@ -6692,7 +6700,7 @@ export function PyramidSeasonScreen() {
             phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : tr('Liga', 'League')} · ${done ? tr('Encerrada', 'Over') : tr('Rodada ', 'Round ')+round+'/38'}`}
             detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : tr('Acompanhe sua divisão e os jogos das outras séries sem sair da tela.', 'Follow your division and the other divisions\' matches without leaving the screen.')}
             status={copaPlaying ? copaPos >= copaFaseTotal ? tr('Fase encerrada · confira os resultados e os pênaltis', 'Round over · check the results and the penalties') : tr('Bola rolando · acompanhe os confrontos', 'Ball rolling · follow the ties') : done ? tr('Confira a edição de encerramento', 'Check the closing edition') : round===0 ? tr('Tudo pronto para a primeira rodada', 'All set for the first round') : revealed >= round ? tr('Resultados revelados', 'Results revealed') : tr('Bola rolando', 'Ball rolling')}>
-            <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>h.motivo).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
+            <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>motivoTorcida(h.motivo)).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
             {copaPlaying && <CareerCompetitionHelp kind={supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}/>}
           </CareerCompetitionStage>
           return (
@@ -6730,7 +6738,7 @@ export function PyramidSeasonScreen() {
               Ex.: "20º lugar · caiu de divisão". Texto bem discreto, é rodapé. */}
           {torcidaHist.length > 0 && (
             <p style={{ padding: '0 14px 12px', margin: 0, marginTop: -8, fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.5)' }}>
-              {torcidaHist.map(h => h.motivo).join('  ·  ')}
+              {torcidaHist.map(h => motivoTorcida(h.motivo)).join('  ·  ')}
             </p>
           )}
           {/* progresso da temporada: trilho ESCURO visível de ponta a ponta (não

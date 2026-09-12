@@ -1325,7 +1325,7 @@ function YourPitch({ small = false }: { small?: boolean }) {
     return (
       <div className="space-y-2">
         <Campinho m={shown} small={small} bench title={benchTitle} manto={manto} mantoDir={mantoAng} mantoC3={mantoC3} mantoC3Buf={mantoC3Buf} />
-        <Campinho m={shown} small={small} title="⭐ Titulares" manto={manto} mantoDir={mantoAng} mantoC3={mantoC3} mantoC3Buf={mantoC3Buf} />
+        <Campinho m={shown} small={small} title={tr('⭐ Titulares', '⭐ Starting XI')} manto={manto} mantoDir={mantoAng} mantoC3={mantoC3} mantoC3Buf={mantoC3Buf} />
       </div>
     )
   }
@@ -1539,9 +1539,11 @@ function useResumableNbaCareer() {
 // "jogou há X" curtinho a partir de um timestamp
 function agoLabel(at: number): string {
   const s = Math.max(0, Date.now() - at) / 1000
-  if (s < 3600) return `há ${Math.max(1, Math.round(s / 60))} min`
-  if (s < 86400) return `há ${Math.round(s / 3600)} h`
+  const en = getLang() === 'en'
+  if (s < 3600) return en ? `${Math.max(1, Math.round(s / 60))} min ago` : `há ${Math.max(1, Math.round(s / 60))} min`
+  if (s < 86400) return en ? `${Math.round(s / 3600)} h ago` : `há ${Math.round(s / 3600)} h`
   const d = Math.round(s / 86400)
+  if (en) return d < 7 ? `${d} day${d > 1 ? 's' : ''} ago` : `${Math.round(d / 7)} wk ago`
   return d < 7 ? `há ${d} dia${d > 1 ? 's' : ''}` : `há ${Math.round(d / 7)} sem`
 }
 const DIV_COLOR: Record<string, string> = { A: '#E7A21F', B: '#8C97A3', C: '#C77B3C', D: '#1E7A3D' }
@@ -2653,14 +2655,14 @@ export function EscSetup() {
   }
   if (career && privatePreview) {
     const outfits = [
-      ['casual', 'INÍCIO', presidentCasual],
-      ['polo', 'CLUBE', presidentPolo],
-      ['social', 'SOCIAL', presidentSocial],
-      ['terno', 'TERNO', presidentTerno],
+      ['casual', tr('INÍCIO', 'CASUAL'), presidentCasual],
+      ['polo', tr('CLUBE', 'CLUB'), presidentPolo],
+      ['social', tr('SOCIAL', 'SMART'), presidentSocial],
+      ['terno', tr('TERNO', 'SUIT'), presidentTerno],
     ] as const
     const activePresident = outfits.find(([id]) => id === presidentOutfit)?.[2] ?? presidentTerno
     const nextFromClub = () => {
-      if (!stripEmoji(name).trim()) { setNameErr('Digite o nome do clube.'); return }
+      if (!stripEmoji(name).trim()) { setNameErr(tr('Digite o nome do clube.', 'Type the club name.')); return }
       setNameErr(''); setPrivateStep(2)
     }
     const nextFromPresident = () => setPrivateStep(3)
@@ -2668,33 +2670,33 @@ export function EscSetup() {
       <Shell className="ll-career-onboarding" hideExit>
         <main className={`ll-career-setup ll-career-step-${privateStep}`} style={{ '--career-room': `url(${careerSetupRoom})` } as CSSProperties}>
           <header className="ll-career-setup-head">
-            <span>● TEMPORADA 1 · VÁRZEA</span>
+            <span>● {tr('TEMPORADA 1 · VÁRZEA', 'SEASON 1 · VÁRZEA')}</span>
             <b>LEILÃO LEGENDS</b>
           </header>
 
           {privateStep === 1 && (
             <section className="ll-career-club-step">
               <div className="ll-career-copy">
-                <h1>CRIE SEU CLUBE</h1>
-                <p>O primeiro capítulo da sua carreira.</p>
+                <h1>{tr('CRIE SEU CLUBE', 'CREATE YOUR CLUB')}</h1>
+                <p>{tr('O primeiro capítulo da sua carreira.', 'The first chapter of your career.')}</p>
               </div>
-              <img className="ll-career-founder" src={presidentPolo} alt="Presidente provisório do clube" />
+              <img className="ll-career-founder" src={presidentPolo} alt={tr('Presidente provisório do clube', 'Interim club president')} />
               <div className="ll-career-control ll-career-club-control">
-                <h2>COMO SEU CLUBE VAI SE CHAMAR?</h2>
-                <label>NOME DO CLUBE</label>
-                <input value={name} onChange={e => { setName(stripEmoji(e.target.value)); setNameErr('') }} placeholder="Ex.: Lendas FC" />
+                <h2>{tr('COMO SEU CLUBE VAI SE CHAMAR?', 'WHAT WILL YOUR CLUB BE CALLED?')}</h2>
+                <label>{tr('NOME DO CLUBE', 'CLUB NAME')}</label>
+                <input value={name} onChange={e => { setName(stripEmoji(e.target.value)); setNameErr('') }} placeholder={tr('Ex.: Lendas FC', 'E.g.: Legends FC')} />
                 {nameErr && <p className="ll-career-error">{nameErr}</p>}
-                <label>FORMAÇÃO INICIAL</label>
+                <label>{tr('FORMAÇÃO INICIAL', 'STARTING FORMATION')}</label>
                 <div className="ll-career-choice-grid">
                   {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
                     <button key={f} onClick={() => setFormation(f)} className={formation === f ? 'is-selected' : ''}>{f}</button>
                   ))}
                 </div>
-                <p className="ll-career-note">Cores e escudo simples são gerados automaticamente pelo jogo.</p>
+                <p className="ll-career-note">{tr('Cores e escudo simples são gerados automaticamente pelo jogo.', 'Colors and a simple crest are generated automatically by the game.')}</p>
               </div>
               <div className="ll-career-actions">
-                <button className="ll-secondary" onClick={() => dispatch({ type: 'GO_LOBBY' })}>VOLTAR</button>
-                <button className="ll-primary" onClick={nextFromClub}>CRIAR CLUBE</button>
+                <button className="ll-secondary" onClick={() => dispatch({ type: 'GO_LOBBY' })}>{tr('VOLTAR', 'BACK')}</button>
+                <button className="ll-primary" onClick={nextFromClub}>{tr('CRIAR CLUBE', 'CREATE CLUB')}</button>
               </div>
             </section>
           )}
@@ -2702,15 +2704,15 @@ export function EscSetup() {
           {privateStep === 2 && (
             <section className="ll-career-president-step">
               <div className="ll-career-copy">
-                <button className="ll-career-backlink" onClick={() => setPrivateStep(1)}>‹ VOLTAR AO CLUBE</button>
-                <h1>CRIE SEU PRESIDENTE</h1>
-                <p>Monte o dirigente que vai representar seu clube.</p>
+                <button className="ll-career-backlink" onClick={() => setPrivateStep(1)}>{tr('‹ VOLTAR AO CLUBE', '‹ BACK TO THE CLUB')}</button>
+                <h1>{tr('CRIE SEU PRESIDENTE', 'CREATE YOUR PRESIDENT')}</h1>
+                <p>{tr('Monte o dirigente que vai representar seu clube.', 'Build the executive who will represent your club.')}</p>
               </div>
-              <div className="ll-president-stage"><img src={activePresident} alt="Prévia do presidente" /></div>
+              <div className="ll-president-stage"><img src={activePresident} alt={tr('Prévia do presidente', 'President preview')} /></div>
               <div className="ll-career-control ll-president-controls">
-                <label>NOME DO PRESIDENTE</label>
-                <input value={presidentName} onChange={e => setPresidentName(stripEmoji(e.target.value))} placeholder="Ex.: Ricardo Silva" />
-                <label>ROUPA</label>
+                <label>{tr('NOME DO PRESIDENTE', 'PRESIDENT NAME')}</label>
+                <input value={presidentName} onChange={e => setPresidentName(stripEmoji(e.target.value))} placeholder={tr('Ex.: Ricardo Silva', 'E.g.: John Smith')} />
+                <label>{tr('ROUPA', 'OUTFIT')}</label>
                 <div className="ll-outfit-grid">
                   {outfits.map(([id, label, src]) => (
                     <button key={id} onClick={() => setPresidentOutfit(id)} className={presidentOutfit === id ? 'is-selected' : ''}>
@@ -2718,11 +2720,11 @@ export function EscSetup() {
                     </button>
                   ))}
                 </div>
-                <p className="ll-career-note">Você poderá editar o visual novamente pela Sala da Presidência.</p>
+                <p className="ll-career-note">{tr('Você poderá editar o visual novamente pela Sala da Presidência.', 'You can edit the look again from the President\'s Office.')}</p>
               </div>
               <div className="ll-career-actions">
-                <button className="ll-secondary" onClick={() => setPrivateStep(1)}>VOLTAR</button>
-                <button className="ll-primary" onClick={nextFromPresident}>CONTINUAR</button>
+                <button className="ll-secondary" onClick={() => setPrivateStep(1)}>{tr('VOLTAR', 'BACK')}</button>
+                <button className="ll-primary" onClick={nextFromPresident}>{tr('CONTINUAR', 'CONTINUE')}</button>
               </div>
             </section>
           )}
@@ -2730,28 +2732,28 @@ export function EscSetup() {
           {privateStep === 3 && (
             <section className="ll-career-rivals-step">
               <div className="ll-career-copy">
-                <button className="ll-career-backlink" onClick={() => setPrivateStep(2)}>‹ VOLTAR AO PRESIDENTE</button>
-                <h1>PREPARE O PREGÃO</h1>
-                <p>Escolha quem disputa os envelopes com você.</p>
+                <button className="ll-career-backlink" onClick={() => setPrivateStep(2)}>{tr('‹ VOLTAR AO PRESIDENTE', '‹ BACK TO THE PRESIDENT')}</button>
+                <h1>{tr('PREPARE O PREGÃO', 'SET UP THE AUCTION')}</h1>
+                <p>{tr('Escolha quem disputa os envelopes com você.', 'Choose who fights for the envelopes with you.')}</p>
               </div>
               <div className="ll-career-control ll-rivals-control">
-                <label>RIVAIS NO PREGÃO</label>
+                <label>{tr('RIVAIS NO PREGÃO', 'RIVALS AT THE AUCTION')}</label>
                 <div className="ll-career-choice-grid ll-four">
                   {[3, 5, 7, 9].map(n => <button key={n} onClick={() => setRivals(n)} className={rivals === n ? 'is-purple' : ''}>{n}</button>)}
                 </div>
-                <p className="ll-career-note">Mais rivais significam mais disputa pelos mesmos jogadores. A liga continua com 20 clubes.</p>
-                <label>RIVAIS PARA A CARREIRA <small>{rivalPicks.length}/{rivals}</small></label>
+                <p className="ll-career-note">{tr('Mais rivais significam mais disputa pelos mesmos jogadores. A liga continua com 20 clubes.', 'More rivals means more competition for the same players. The league still has 20 clubs.')}</p>
+                <label>{tr('RIVAIS PARA A CARREIRA', 'RIVALS FOR THE CAREER')} <small>{rivalPicks.length}/{rivals}</small></label>
                 <div className="ll-rival-list">
                   {TIMES_ELITE.map(t => {
                     const on = rivalPicks.includes(t.team)
                     return <button key={t.team} onClick={() => toggleRival(t.team)} className={on ? 'is-selected' : ''}>{on ? '🔥 ' : ''}{t.team}</button>
                   })}
                 </div>
-                <button className="ll-random-rivals" onClick={() => setRivalPicks([])}>🎲 USAR RIVAIS PADRÃO</button>
+                <button className="ll-random-rivals" onClick={() => setRivalPicks([])}>{tr('🎲 USAR RIVAIS PADRÃO', '🎲 USE DEFAULT RIVALS')}</button>
               </div>
               <div className="ll-career-actions">
-                <button className="ll-secondary" onClick={() => setPrivateStep(2)}>VOLTAR</button>
-                <button className="ll-primary" onClick={() => void start()}>IR PARA O PREGÃO 🔨</button>
+                <button className="ll-secondary" onClick={() => setPrivateStep(2)}>{tr('VOLTAR', 'BACK')}</button>
+                <button className="ll-primary" onClick={() => void start()}>{tr('IR PARA O PREGÃO 🔨', 'GO TO THE AUCTION 🔨')}</button>
               </div>
             </section>
           )}
@@ -2772,7 +2774,7 @@ export function EscSetup() {
       {career && (
         <Box bg="#FFF6DE" className="p-4 space-y-1.5">
           <p className="font-black text-sm" style={OSWALD}>{t('⚡ Como funciona a Carreira', '⚡ How Career mode works')}</p>
-          <p className="text-xs font-bold text-black/75">🪜 {escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
+          <p className="text-xs font-bold text-black/75">🪜 {getLang() === 'en' ? (escadaLiberada() ? <><b>5-tier pyramid:</b> start in VÁRZEA (grassroots park football 🍺) and climb to Série A — up or down every season, based on your finish.</> : <><b>4-tier pyramid:</b> start in Série D and climb to A — up or down every season, based on your finish.</>) : escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
           <p className="text-xs font-bold text-black/75">🔨 <b>{t('Mesmo leilão do modo rápido:', 'Same auction as quick match:')}</b> {t('monta o time no pregão e disputa o campeonato de 38 rodadas.', 'build your squad at the auction and play a 38-round league.')}</p>
           <p className="text-xs font-bold text-black/75">🔥 <b>{t('Rivais pra vida toda:', 'Rivals for life:')}</b> {t('têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.', 'they live their own life in the pyramid and only face you when they are in your division.')}</p>
           <p className="text-xs font-bold text-black/75">🏆 <b>{t('Títulos acumulam:', 'Titles stack up:')}</b> {t('cada título da Série A vira uma ⭐ no seu escudo.', 'every top-flight title becomes a ⭐ on your crest.')}</p>
@@ -2782,8 +2784,8 @@ export function EscSetup() {
       <Box className="p-4 space-y-4">
         {career ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
-            <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? '🌎 Baralho: Brasileirão + Europa + MUNDO juntos' : '🌎 Baralho fixo: Brasileirão + Europa juntos'}</p>
-            <p className="text-[11px] font-bold text-black/65 mt-1">{escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
+            <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? tr('🌎 Baralho: Brasileirão + Europa + MUNDO juntos', '🌎 Deck: Brasileirão + Europe + WORLD together') : tr('🌎 Baralho fixo: Brasileirão + Europa juntos', '🌎 Fixed deck: Brasileirão + Europe together')}</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">{getLang() === 'en' ? (escadaLiberada() ? <>In Career the deck is <b>Brasileirão + Europe + World together</b> (~850 names) — it takes all of them to properly fill the <b>100 teams across 5 tiers</b> (from Várzea to Série A). Each tier's market only trades its own categories.</> : <>In Career the deck is always the <b>Brasileirão peaks + the Europe peaks together</b> (~700 names) — it takes both to properly fill the <b>80 teams across 4 tiers</b>. There is no BR-only or Europe-only deck here.</>) : escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
           </div>
         ) : (
         <div>
@@ -3167,8 +3169,8 @@ function RegrasDoPregao({ onFechar }: { onFechar: () => void }) {
           ))}
         </div>
         <div style={{ background: '#E7F7EC', borderTop: `3px solid ${INK}`, padding: '10px 13px', textAlign: 'center' }}>
-          <p style={{ fontSize: 10, fontWeight: 800, color: '#146c33', margin: '0 0 8px', lineHeight: 1.4 }}>⏱️ O relógio <b>não para</b> enquanto isso está aberto — feche e dê seu lance na hora.</p>
-          <button onClick={onFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '9px 10px', ...OSWALD, fontWeight: 900, fontSize: 13.5, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>Fechar e dar lance 👊</button>
+          <p style={{ fontSize: 10, fontWeight: 800, color: '#146c33', margin: '0 0 8px', lineHeight: 1.4 }}>{getLang() === 'en' ? <>⏱️ The clock <b>doesn't stop</b> while this is open — close it and place your bid right away.</> : <>⏱️ O relógio <b>não para</b> enquanto isso está aberto — feche e dê seu lance na hora.</>}</p>
+          <button onClick={onFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '9px 10px', ...OSWALD, fontWeight: 900, fontSize: 13.5, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('Fechar e dar lance 👊', 'Close and bid 👊')}</button>
         </div>
       </div>
     </div>
@@ -3372,15 +3374,24 @@ function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscSta
   return (
     <div className="space-y-2">
       <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: INK, boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="font-black text-[10px] uppercase tracking-widest text-white/50" style={OSWALD}>O pregão acabou</p>
-        <p className="font-black text-2xl leading-none mt-0.5" style={{ ...OSWALD, color: GOLD }}>Agora a conta.</p>
+        <p className="font-black text-[10px] uppercase tracking-widest text-white/50" style={OSWALD}>{tr('O pregão acabou', 'The auction is over')}</p>
+        <p className="font-black text-2xl leading-none mt-0.5" style={{ ...OSWALD, color: GOLD }}>{tr('Agora a conta.', 'Now the bill.')}</p>
       </div>
-      {item(GREEN, '🏅', 'Achado do pregão', `${pr.achado.nome} · ${pr.achado.time}`, <>Nível {pr.achado.lo}–{pr.achado.hi} e pagou <b>{pr.achado.pago}</b>. Roubou.</>)}
-      {item('#8B5E3C', '🐴', 'Mico do pregão', `${pr.mico.nome} · ${pr.mico.time}`, <>Nível {pr.mico.lo}–{pr.mico.hi} e pagou <b>{pr.mico.pago}</b>. Doeu.</>)}
-      {pr.furada && item('#C2452F', '💸', 'Mão furada', pr.furada.time,
-        <>Pagou <b>{pr.furada.pago}</b> no {pr.furada.nome} e o 2º lance era <b>{pr.furada.segundo}</b>. Jogou <b>{pr.furada.total} 🪙</b> fora no pregão.</>)}
-      {pr.vaca && item('#B45309', '🤏', 'Mão de vaca', pr.vaca.time, <>Acabou o pregão com <b>{pr.vaca.sobrou} 🪙</b> no bolso. Guardou pra quê?</>)}
-      {pr.pau && item('#6B7280', '🗑️', 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
+      {getLang() === 'en' ? <>
+        {item(GREEN, '🏅', 'Steal of the auction', `${pr.achado.nome} · ${pr.achado.time}`, <>Level {pr.achado.lo}–{pr.achado.hi} and paid <b>{pr.achado.pago}</b>. Robbery.</>)}
+        {item('#8B5E3C', '🐴', 'Blunder of the auction', `${pr.mico.nome} · ${pr.mico.time}`, <>Level {pr.mico.lo}–{pr.mico.hi} and paid <b>{pr.mico.pago}</b>. Ouch.</>)}
+        {pr.furada && item('#C2452F', '💸', 'Money down the drain', pr.furada.time,
+          <>Paid <b>{pr.furada.pago}</b> for {pr.furada.nome} and the 2nd bid was <b>{pr.furada.segundo}</b>. Threw <b>{pr.furada.total} 🪙</b> away at the auction.</>)}
+        {pr.vaca && item('#B45309', '🤏', 'Tightwad', pr.vaca.time, <>Ended the auction with <b>{pr.vaca.sobrou} 🪙</b> in the pocket. Saving it for what?</>)}
+        {pr.pau && item('#6B7280', '🗑️', 'Dud in the starting XI', pr.pau.time, <>Started <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). On purpose?</>)}
+      </> : <>
+        {item(GREEN, '🏅', 'Achado do pregão', `${pr.achado.nome} · ${pr.achado.time}`, <>Nível {pr.achado.lo}–{pr.achado.hi} e pagou <b>{pr.achado.pago}</b>. Roubou.</>)}
+        {item('#8B5E3C', '🐴', 'Mico do pregão', `${pr.mico.nome} · ${pr.mico.time}`, <>Nível {pr.mico.lo}–{pr.mico.hi} e pagou <b>{pr.mico.pago}</b>. Doeu.</>)}
+        {pr.furada && item('#C2452F', '💸', 'Mão furada', pr.furada.time,
+          <>Pagou <b>{pr.furada.pago}</b> no {pr.furada.nome} e o 2º lance era <b>{pr.furada.segundo}</b>. Jogou <b>{pr.furada.total} 🪙</b> fora no pregão.</>)}
+        {pr.vaca && item('#B45309', '🤏', 'Mão de vaca', pr.vaca.time, <>Acabou o pregão com <b>{pr.vaca.sobrou} 🪙</b> no bolso. Guardou pra quê?</>)}
+        {pr.pau && item('#6B7280', '🗑️', 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
+      </>}
     </div>
   )
 }
@@ -3741,8 +3752,10 @@ function Envelope() {
       ? <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar a rotação de 10.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 100 to build your 10-man rotation.')}</>
       : <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 50 pra montar o quinteto inteiro.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 50 to build the whole five.')}</>)
     : state.sectorIdx % 2 === 0
-    ? <>💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.</>
-    : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>
+    ? <>{L('💡 Aqui é leilão de VERDADE: quem dá MAIS moedas leva o jogador. Você tem 100 pra montar o time inteiro.', '💡 This is a REAL auction: whoever bids the MOST coins gets the player. You have 100 to build the whole team.')}</>
+    : (getLang() === 'en'
+      ? <>💡 The card level is the <b>player's peak at that club and year</b>: Kaká · São Paulo 2003 is a prospect, Kaká · Milan 2007 is a legend. Mind the club and the year!</>
+      : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>)
   return (
     <Shell bar={<AuctionBar vagas={pregaoLimpo && canBid ? bidLimit : undefined} ajuda={pregaoLimpo} />}>
       {sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
@@ -7981,38 +7994,38 @@ function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () 
     setLoading(true); setErr('')
     if (tab === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) { setErr('Email ou senha incorretos.'); setLoading(false); return }
+      if (error) { setErr(tr('Email ou senha incorretos.', 'Wrong email or password.')); setLoading(false); return }
       onDone()
     } else {
-      if (!nome.trim()) { setErr('Escolha um nome de técnico.'); setLoading(false); return }
+      if (!nome.trim()) { setErr(tr('Escolha um nome de técnico.', 'Pick a manager name.')); setLoading(false); return }
       // ✉️ trava anti-bounce: e-mail com cara de erro de digitação/temporário não cadastra
       const prob = emailProblema(email)
       if (prob) { setErr(prob); setLoading(false); return }
       const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(nome).trim() } } })
       if (error) { setErr(error.message); setLoading(false); return }
       if (data.session) { onDone() } // confirmação desligada: já entrou → salva
-      else { setErr('✉️ Conta criada! Confirme no seu email e depois entre pra salvar na nuvem. (Já guardei no aparelho.)'); setLoading(false) }
+      else { setErr(tr('✉️ Conta criada! Confirme no seu email e depois entre pra salvar na nuvem. (Já guardei no aparelho.)', '✉️ Account created! Confirm it in your email, then log in to save to the cloud. (Already saved on this device.)')); setLoading(false) }
     }
   }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
       <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-        <p className="font-black text-black text-lg" style={OSWALD}>💾 Salvar carreira</p>
-        <p className="text-black/60 text-xs font-bold mb-2">Rapidinho: crie a conta (ou entre) pra guardar sua carreira e jogar em qualquer aparelho.</p>
+        <p className="font-black text-black text-lg" style={OSWALD}>{tr('💾 Salvar carreira', '💾 Save career')}</p>
+        <p className="text-black/60 text-xs font-bold mb-2">{tr('Rapidinho: crie a conta (ou entre) pra guardar sua carreira e jogar em qualquer aparelho.', 'Quick one: create an account (or log in) to keep your career and play on any device.')}</p>
         <div className="flex border-[3px] border-black rounded-xl overflow-hidden mb-2">
           {(['register', 'login'] as const).map(t => (
-            <button key={t} onClick={() => { setTab(t); setErr('') }} className="flex-1 py-2 font-black text-xs uppercase" style={{ background: tab === t ? GOLD : '#fff', color: '#000', ...OSWALD }}>{t === 'register' ? 'Cadastrar' : 'Entrar'}</button>
+            <button key={t} onClick={() => { setTab(t); setErr('') }} className="flex-1 py-2 font-black text-xs uppercase" style={{ background: tab === t ? GOLD : '#fff', color: '#000', ...OSWALD }}>{t === 'register' ? tr('Cadastrar', 'Sign up') : tr('Entrar', 'Log in')}</button>
           ))}
         </div>
         <div className="space-y-2">
-          {tab === 'register' && <input value={nome} onChange={e => setNome(stripEmoji(e.target.value))} placeholder="Nome de técnico" className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />}
+          {tab === 'register' && <input value={nome} onChange={e => setNome(stripEmoji(e.target.value))} placeholder={tr('Nome de técnico', 'Manager name')} className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />}
           <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="seu@email.com" className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
-          <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Senha" onKeyDown={e => e.key === 'Enter' && go()} className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
+          <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder={tr('Senha', 'Password')} onKeyDown={e => e.key === 'Enter' && go()} className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
           {err && <p className={`text-xs font-bold ${err.startsWith('✉️') ? 'text-green-700' : 'text-red-500'}`}>{err}</p>}
         </div>
         <div className="flex gap-2 mt-3">
-          <button onClick={onClose} className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>Cancelar</button>
-          <button onClick={go} disabled={loading} className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>{loading ? '...' : tab === 'register' ? 'Criar e salvar' : 'Entrar e salvar'}</button>
+          <button onClick={onClose} className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
+          <button onClick={go} disabled={loading} className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>{loading ? '...' : tab === 'register' ? tr('Criar e salvar', 'Create and save') : tr('Entrar e salvar', 'Log in and save')}</button>
         </div>
       </div>
     </div>
@@ -8054,44 +8067,44 @@ function CareerContinueBanner() {
   // manter o mesmo time ou trocar tudo (novo leilão) — não escolhe por você.
   if (save.pendingDecision && decideOpen) {
     const banner = save.result === 'up'
-      ? { bg: '#1B7A3D', txt: `🔼 SUBIU PRA ${DIVISION_LABEL[save.division].toUpperCase()}!` }
+      ? { bg: '#1B7A3D', txt: `${tr('🔼 SUBIU PRA', '🔼 PROMOTED TO')} ${DIVISION_LABEL[save.division].toUpperCase()}!` }
       : save.result === 'down'
-        ? { bg: '#E8503A', txt: `🔽 REBAIXADO PRA ${DIVISION_LABEL[save.division].toUpperCase()}` }
-        : { bg: '#2E6FB0', txt: `➡️ CONTINUA NA ${DIVISION_LABEL[save.division].toUpperCase()}` }
+        ? { bg: '#E8503A', txt: `${tr('🔽 REBAIXADO PRA', '🔽 RELEGATED TO')} ${DIVISION_LABEL[save.division].toUpperCase()}` }
+        : { bg: '#2E6FB0', txt: `${tr('➡️ CONTINUA NA', '➡️ STAYS IN')} ${DIVISION_LABEL[save.division].toUpperCase()}` }
     return (
       <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: PURPLE, boxShadow: `4px 4px 0 ${INK}` }}>
         <div className="rounded-xl border-2 border-black px-3 py-2 text-center" style={{ background: banner.bg }}>
           <p className="font-black text-white text-sm" style={OSWALD}>{banner.txt}</p>
-          <p className="font-bold text-white/85 text-[11px]">Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'} · {save.teamName}</p>
+          <p className="font-bold text-white/85 text-[11px]">{tr('Temporada', 'Season')} {save.seasonNo} · {save.titles} {save.titles === 1 ? tr('título', 'title') : tr('títulos', 'titles')} · {save.teamName}</p>
           {(save.titlesA ?? 0) > 0 && <p className="mt-0.5"><CareerStars n={save.titlesA ?? 0} size={13} /></p>}
         </div>
-        <p className="text-center text-white font-black text-xs" style={OSWALD}>Como quer seguir?</p>
-        <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save })} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar com o mesmo time</button>
+        <p className="text-center text-white font-black text-xs" style={OSWALD}>{tr('Como quer seguir?', 'How do you want to go on?')}</p>
+        <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save })} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>{tr('▶️ Continuar com o mesmo time', '▶️ Continue with the same team')}</button>
         {(save.rivals ?? []).filter(r => r.division === save.division).length > 0 ? (
-          <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save, redraft: true })} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: GOLD, color: INK, ...OSWALD }}>🔄 Trocar tudo (novo leilão)</button>
+          <button onClick={() => dispatch({ type: 'RESTORE_CAREER', save, redraft: true })} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: GOLD, color: INK, ...OSWALD }}>{tr('🔄 Trocar tudo (novo leilão)', '🔄 Change everything (new auction)')}</button>
         ) : (
-          <p className="text-center text-white/70 text-[11px] font-bold px-1">🔒 Sem rival seu na {DIVISION_LABEL[save.division]} — o leilão não abre (seria só você). Siga com o mesmo time; volta quando um rival chegar na sua divisão.</p>
+          <p className="text-center text-white/70 text-[11px] font-bold px-1">{getLang() === 'en' ? <>🔒 No rival of yours in {DIVISION_LABEL[save.division]} — the auction doesn't open (it would be just you). Keep the same team; it comes back when a rival reaches your division.</> : <>🔒 Sem rival seu na {DIVISION_LABEL[save.division]} — o leilão não abre (seria só você). Siga com o mesmo time; volta quando um rival chegar na sua divisão.</>}</p>
         )}
-        <button onClick={() => setDecideOpen(false)} className="w-full text-white/60 text-xs underline">agora não</button>
+        <button onClick={() => setDecideOpen(false)} className="w-full text-white/60 text-xs underline">{tr('agora não', 'not now')}</button>
       </div>
     )
   }
   return (
     <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: PURPLE, boxShadow: `4px 4px 0 ${INK}` }}>
-      <p className="font-black text-white text-sm leading-tight" style={OSWALD}>🪜 Carreira em andamento<br /><span className="opacity-85 text-xs">{DIVISION_LABEL[save.division]} · Temporada {save.seasonNo} · {save.titles} título{save.titles === 1 ? '' : 's'}</span>{(save.titlesA ?? 0) > 0 && <><br /><CareerStars n={save.titlesA ?? 0} size={13} /></>}</p>
+      <p className="font-black text-white text-sm leading-tight" style={OSWALD}>{tr('🪜 Carreira em andamento', '🪜 Career in progress')}<br /><span className="opacity-85 text-xs">{DIVISION_LABEL[save.division]} · {tr('Temporada', 'Season')} {save.seasonNo} · {save.titles} {save.titles === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span>{(save.titlesA ?? 0) > 0 && <><br /><CareerStars n={save.titlesA ?? 0} size={13} /></>}</p>
       <div className="flex gap-2">
         <button
           onClick={() => save.pendingDecision ? setDecideOpen(true) : dispatch({ type: 'RESTORE_CAREER', save })}
           className="flex-1 rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-          ▶️ Continuar carreira ({save.teamName})
+          {tr('▶️ Continuar carreira', '▶️ Continue career')} ({save.teamName})
         </button>
         {confirmDel ? (
           <div className="flex gap-1 items-center shrink-0">
-            <button onClick={onDelete} className="rounded-xl border-2 border-black text-white font-black text-xs px-2.5 active:translate-y-0.5" style={{ background: '#C2452F', ...OSWALD }}>🗑️ Apagar</button>
-            <button onClick={() => setConfirmDel(false)} aria-label="Cancelar" className="text-white/70 font-black text-lg px-1 active:opacity-60">✕</button>
+            <button onClick={onDelete} className="rounded-xl border-2 border-black text-white font-black text-xs px-2.5 active:translate-y-0.5" style={{ background: '#C2452F', ...OSWALD }}>{tr('🗑️ Apagar', '🗑️ Delete')}</button>
+            <button onClick={() => setConfirmDel(false)} aria-label={tr('Cancelar', 'Cancel')} className="text-white/70 font-black text-lg px-1 active:opacity-60">✕</button>
           </div>
         ) : (
-          <button onClick={() => setConfirmDel(true)} aria-label="Excluir save da carreira" title="Excluir save"
+          <button onClick={() => setConfirmDel(true)} aria-label={tr('Excluir save da carreira', 'Delete career save')} title={tr('Excluir save', 'Delete save')}
             className="rounded-xl border-2 border-black bg-white text-red-600 font-black text-lg px-3.5 active:translate-y-0.5" style={OSWALD}>
             ✕
           </button>
@@ -8104,7 +8117,8 @@ function CareerContinueBanner() {
 // estrelas de título da SÉRIE A ⭐ — só campeão da elite ganha estrela.
 // 1 = Campeão, 2 Bi, 3 Tri, 4 Tetra, 5 Penta, 6+ Dinastia 👑
 const A_TITLE_LABEL: Record<number, string> = { 1: 'Campeão da Série A', 2: 'Bicampeão', 3: 'Tricampeão', 4: 'Tetracampeão', 5: 'Pentacampeão' }
-function aTitleLabel(n: number): string { return n >= 6 ? '👑 Dinastia' : (A_TITLE_LABEL[n] ?? '') }
+const A_TITLE_LABEL_EN: Record<number, string> = { 1: 'Série A Champion', 2: 'Two-time champion', 3: 'Three-time champion', 4: 'Four-time champion', 5: 'Five-time champion' }
+function aTitleLabel(n: number): string { return n >= 6 ? tr('👑 Dinastia', '👑 Dynasty') : ((getLang() === 'en' ? A_TITLE_LABEL_EN : A_TITLE_LABEL)[n] ?? '') }
 function CareerStars({ n, size = 13 }: { n: number; size?: number }) {
   if (n <= 0) return null
   const shown = Math.min(n, 5)
@@ -8229,7 +8243,7 @@ function CareerEndPanel() {
     setBusy(true)
     const cloud = await saveCareer(save)
     setBusy(false)
-    setMsg(cloud ? '✅ Carreira salva na sua conta!' : '💾 Salva neste aparelho.')
+    setMsg(cloud ? tr('✅ Carreira salva na sua conta!', '✅ Career saved to your account!') : tr('💾 Salva neste aparelho.', '💾 Saved on this device.'))
   }
   const onSaveClick = async () => {
     const { data } = await supabase.auth.getUser()
@@ -8239,36 +8253,38 @@ function CareerEndPanel() {
   const wonA = div === 'A' && youPos === 1        // campeão da elite nesta temporada → nova estrela
   const totalA = state.careerTitlesA + (wonA ? 1 : 0)
   const banner = nd.result === 'up'
-    ? { bg: '#1B7A3D', txt: `🔼 SUBIU PRA ${DIVISION_LABEL[nd.div].toUpperCase()}!` }
+    ? { bg: '#1B7A3D', txt: `${tr('🔼 SUBIU PRA', '🔼 PROMOTED TO')} ${DIVISION_LABEL[nd.div].toUpperCase()}!` }
     : nd.result === 'down'
-      ? { bg: '#E8503A', txt: `🔽 REBAIXADO PRA ${DIVISION_LABEL[nd.div].toUpperCase()}` }
-      : { bg: '#2E6FB0', txt: `➡️ CONTINUA NA ${DIVISION_LABEL[div].toUpperCase()}` }
+      ? { bg: '#E8503A', txt: `${tr('🔽 REBAIXADO PRA', '🔽 RELEGATED TO')} ${DIVISION_LABEL[nd.div].toUpperCase()}` }
+      : { bg: '#2E6FB0', txt: `${tr('➡️ CONTINUA NA', '➡️ STAYS IN')} ${DIVISION_LABEL[div].toUpperCase()}` }
 
   return (
     <div className="space-y-2.5">
       {wonA && (
         <div className="rounded-2xl border-4 border-black p-3 text-center" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 45%,#E8A200 75%,#FFDD70)', boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-black text-2xl leading-none" style={OSWALD}>🏆 CAMPEÃO DA SÉRIE A!</p>
+          <p className="font-black text-black text-2xl leading-none" style={OSWALD}>{tr('🏆 CAMPEÃO DA SÉRIE A!', '🏆 SÉRIE A CHAMPION!')}</p>
           <p className="font-black text-black/80 text-sm mt-1" style={OSWALD}>{aTitleLabel(totalA)}</p>
           <p className="mt-1"><CareerStars n={totalA} size={22} /></p>
         </div>
       )}
       <div className="rounded-2xl border-4 border-black p-3 text-center" style={{ background: banner.bg, boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="font-black text-white text-xl" style={OSWALD}>{banner.txt}</p>
-        <p className="font-bold text-white/80 text-xs mt-0.5">{DIVISION_LABEL[div]} · Temporada {state.seasonNo} · {state.careerTitles} título{state.careerTitles === 1 ? '' : 's'} na carreira{totalA > 0 && !wonA ? ` · ${totalA}⭐ Série A` : ''}</p>
+        <p className="font-bold text-white/80 text-xs mt-0.5">{DIVISION_LABEL[div]} · {tr('Temporada', 'Season')} {state.seasonNo} · {state.careerTitles} {state.careerTitles === 1 ? tr('título', 'title') : tr('títulos', 'titles')} {tr('na carreira', 'in the career')}{totalA > 0 && !wonA ? ` · ${totalA}⭐ Série A` : ''}</p>
       </div>
-      <p className="text-center font-black text-sm text-black/60" style={OSWALD}>Como quer seguir?</p>
-      <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: true })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ Continuar com o mesmo time</span></Btn>
+      <p className="text-center font-black text-sm text-black/60" style={OSWALD}>{tr('Como quer seguir?', 'How do you want to go on?')}</p>
+      <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: true })} bg={GREEN} className="w-full text-lg"><span className="text-white">{tr('▶️ Continuar com o mesmo time', '▶️ Continue with the same team')}</span></Btn>
       {nextRivalsHere > 0 ? (
-        <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: false })} className="w-full text-lg">🔄 Trocar tudo (novo leilão)</Btn>
+        <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: false })} className="w-full text-lg">{tr('🔄 Trocar tudo (novo leilão)', '🔄 Change everything (new auction)')}</Btn>
       ) : (
         <p className="text-center text-xs font-bold text-black/55 px-2">
-          🔒 Sem rival seu na {DIVISION_LABEL[nd.div]} nesta temporada — o leilão não abre (seria só você). Dá pra <b>seguir com o mesmo time</b>; quando um rival subir ou cair pra sua divisão, o "trocar tudo" volta.
+          {getLang() === 'en'
+            ? <>🔒 No rival of yours in {DIVISION_LABEL[nd.div]} this season — the auction doesn't open (it would be just you). You can <b>keep the same team</b>; when a rival gets promoted or relegated into your division, "change everything" comes back.</>
+            : <>🔒 Sem rival seu na {DIVISION_LABEL[nd.div]} nesta temporada — o leilão não abre (seria só você). Dá pra <b>seguir com o mesmo time</b>; quando um rival subir ou cair pra sua divisão, o "trocar tudo" volta.</>}
         </p>
       )}
       <div className="flex gap-2">
-        <div className="flex-1"><Btn onClick={onSaveClick} bg="#fff" className="w-full">{busy ? '...' : '💾 Salvar'}</Btn></div>
-        <div className="flex-1"><Btn onClick={() => setExitAsk(true)} bg="#fff" className="w-full">🚪 Sair</Btn></div>
+        <div className="flex-1"><Btn onClick={onSaveClick} bg="#fff" className="w-full">{busy ? '...' : tr('💾 Salvar', '💾 Save')}</Btn></div>
+        <div className="flex-1"><Btn onClick={() => setExitAsk(true)} bg="#fff" className="w-full">{tr('🚪 Sair', '🚪 Leave')}</Btn></div>
       </div>
       {msg && <p className="text-center text-sm font-black text-green-700" style={OSWALD}>{msg}</p>}
 
@@ -8277,15 +8293,15 @@ function CareerEndPanel() {
       {exitAsk && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
           <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-            <p className="font-black text-black text-lg" style={OSWALD}>🚪 Sair da carreira</p>
-            <p className="text-black/60 text-sm font-bold mb-3">Quer salvar antes de sair?</p>
+            <p className="font-black text-black text-lg" style={OSWALD}>{tr('🚪 Sair da carreira', '🚪 Leave the career')}</p>
+            <p className="text-black/60 text-sm font-bold mb-3">{tr('Quer salvar antes de sair?', 'Save before leaving?')}</p>
             <div className="space-y-2">
               <button onClick={async () => { const sv = buildCareerSave(state); if (sv) await saveCareer(sv); setExitAsk(false); dispatch({ type: 'GO_LOBBY' }) }}
-                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>💾 Salvar e sair</button>
+                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>{tr('💾 Salvar e sair', '💾 Save and leave')}</button>
               <button onClick={() => { setExitAsk(false); dispatch({ type: 'GO_LOBBY' }) }}
-                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white text-black" style={OSWALD}>🚪 Sair sem salvar</button>
+                className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-sm bg-white text-black" style={OSWALD}>{tr('🚪 Sair sem salvar', '🚪 Leave without saving')}</button>
               <button onClick={() => setExitAsk(false)}
-                className="w-full border-2 border-black/20 rounded-xl py-2 font-black text-xs text-black/60" style={OSWALD}>Cancelar</button>
+                className="w-full border-2 border-black/20 rounded-xl py-2 font-black text-xs text-black/60" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
             </div>
           </div>
         </div>
