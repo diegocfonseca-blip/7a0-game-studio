@@ -3,13 +3,15 @@
 // expulso, a lesão boba. Regras combinadas com o Diego:
 //  · no MÁXIMO 1 evento por temporada, sempre ANTES do fim (rodadas 3..31);
 //  · só dispara se EXISTE reserva na posição (senão vira SÓ manchete, nada trava);
-//  · lesão MORRE pra sempre quando o clube constrói o 🏥 Departamento Médico;
+//  · 🏥 Departamento Médico (MUDOU 12/09, ordem do Diego: *"remova a opção de
+//    comprar dep médico pra não ter mais lesões"*): NÃO zera mais a lesão — ela
+//    dura METADE (mín. 1) e o jogador volta 100% direto. Antes era imunidade;
 //  · a troca usa a MESMA vaga (posição igual) — a formação NUNCA quebra;
 //  · a suspensão morre na virada da temporada (o titular volta sozinho);
 //  · zoeira leve e fictícia SEMPRE — nunca tragédia/lesão real de ninguém.
 import type { Sector, EventoTipo } from './types'
 import { getLang } from './lang' // 🌐 BR/EN (12/09): a história sai no idioma do site
-import { pesoLesao } from './condicao' // 😓 gás: peso do cansado no sorteio da lesão (régua única)
+import { pesoLesao, duracaoComMedico } from './condicao' // 😓 gás: peso do cansado no sorteio da lesão · 🏥 médico encurta (régua única)
 
 // carta "mínima" que o sorteio precisa (WonCard e PoolCard da tela servem)
 // 🪪 club/year existem pra DESEMPATAR XARÁ (ver `traitDe`). São opcionais porque
@@ -188,8 +190,9 @@ export function sorteiaEvento(args: {
     const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
-    // 🥵 no limite = 2× lesão · 🚑 esgotado = 3× (a régua mora em condicao.ts)
-    if (!temMedico) { const peso = gas ? pesoLesao(gas[c.id] ?? 100) : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
+    // 🥵 no limite = 2× lesão · 🚑 esgotado = 3× (a régua mora em condicao.ts).
+    // 🏥 médico NÃO tira mais a lesão do sorteio — só encurta (ver `rodadas` abaixo).
+    { const peso = gas ? pesoLesao(gas[c.id] ?? 100) : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
   }
   if (!pool.length) return null // 🏥 médico pronto + ninguém folclórico no XI = temporada em paz
   // 🔁 DESCANSO DE 5 TEMPORADAS (regra do Diego, 08/08): quem já aprontou fica
@@ -206,7 +209,8 @@ export function sorteiaEvento(args: {
   const poolFinal = pool.filter(p => !descansando(p.c.name))
   if (!poolFinal.length) return null
   const pick = poolFinal[Math.floor(rng() * poolFinal.length)]
-  const rodadas = pick.tipo === 'noitada' ? 1 : pick.tipo === 'expulsao' ? 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 5)
+  const bruto = pick.tipo === 'noitada' ? 1 : pick.tipo === 'expulsao' ? 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 5)
+  const rodadas = pick.tipo === 'lesao' && temMedico ? duracaoComMedico(bruto) : bruto // 🏥 lesão dura metade com médico
   const en = getLang() === 'en'
   const textos = pick.tipo === 'noitada' ? (en ? HIST_NOITADA_EN : HIST_NOITADA) : pick.tipo === 'expulsao' ? (en ? HIST_EXPULSAO_EN : HIST_EXPULSAO) : (en ? HIST_LESAO_EN : HIST_LESAO)
   const historia = textos[Math.floor(rng() * textos.length)].replace('{n}', pick.c.name)
@@ -216,15 +220,38 @@ export function sorteiaEvento(args: {
   return { tipo: pick.tipo, card: pick.c, rodadas, historia, reservas }
 }
 
+// ─── 🩹 histórias da LESÃO POR DESGASTE ({n} = nome · {j} = jogos seguidos) ──
+// Diferente da lesão boba: aqui a culpa é do técnico que não rodiziou — a zoeira
+// aponta pra isso. Mesma quantidade PT/EN.
+const HIST_DESGASTE = [
+  'O {n} sentiu a coxa aos 10 minutos — {j}º jogo seguido sem descanso. O preparador só olhou pro banco e balançou a cabeça. 🩹',
+  'O {n} pediu pra sair mancando. "Eu avisei que ele tava no talo", disse o preparador, pra quem quisesse ouvir. 🩹',
+  'O {n} travou no alongamento: o corpo pediu arrego depois de {j} jogos seguidos. O fisioterapeuta já tinha a maca pronta. 🩹',
+  'Puxou o músculo do {n} num pique bobo. A torcida cantou "descansa, meu filho" — e o técnico fingiu que não ouviu. 🩹',
+  'O {n} caiu sozinho, sem ninguém por perto. Laudo do departamento: "cansaço acumulado ({j} jogos seguidos)". 🩹',
+]
+const HIST_DESGASTE_EN = [
+  '{n} felt his thigh go after 10 minutes — {j}th match in a row without a rest. The fitness coach just looked at the bench and shook his head. 🩹',
+  '{n} asked to come off limping. "I warned you he was running on fumes," said the fitness coach, to anyone who would listen. 🩹',
+  '{n} seized up in the stretch: the body waved the white flag after {j} straight matches. The physio already had the stretcher ready. 🩹',
+  '{n} pulled a muscle in a nothing sprint. The crowd sang "give him a rest" — and the manager pretended not to hear. 🩹',
+  '{n} went down on his own, nobody near him. Medical report: "accumulated fatigue ({j} matches in a row)". 🩹',
+]
+export function historiaDesgaste(nome: string, jogos: number, seed: number): string {
+  const lista = getLang() === 'en' ? HIST_DESGASTE_EN : HIST_DESGASTE
+  return lista[Math.abs(seed) % lista.length].replace('{n}', nome).replace(/\{j\}/g, String(jogos))
+}
+
 // ─── 📰 manchetes pro jornal (página "Aconteceu na temporada") ─────────────
 export function eventoEmoji(tipo: EventoTipo): string { return tipo === 'noitada' ? '😎' : tipo === 'expulsao' ? '🟥' : '🩹' }
-export function eventoTituloBanner(tipo: EventoTipo, rodadas: number): string {
+export function eventoTituloBanner(tipo: EventoTipo, rodadas: number, desgaste = false): string {
   const en = getLang() === 'en'
   if (tipo === 'noitada') return en ? '🚨 DRESSING-ROOM TROUBLE' : '🚨 PROBLEMA NO VESTIÁRIO'
   if (tipo === 'expulsao') return en ? `🟥 SENT OFF — ${rodadas}-ROUND BAN` : `🟥 EXPULSO — PEGOU ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
+  if (desgaste) return en ? `😓 WORN OUT — OUT ${rodadas} ${rodadas === 1 ? 'ROUND' : 'ROUNDS'}` : `😓 LESÃO POR DESGASTE — FORA ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
   return en ? `🩹 INJURED — OUT ${rodadas} ${rodadas === 1 ? 'ROUND' : 'ROUNDS'}` : `🩹 LESIONADO — FORA ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
 }
-export function mancheteDecisao(ev: { tipo: EventoTipo; nome: string; rodadas: number; status: string; subNome?: string; round: number }): { emoji: string; titulo: string; sub: string } {
+export function mancheteDecisao(ev: { tipo: EventoTipo; nome: string; rodadas: number; status: string; subNome?: string; round: number; desgaste?: boolean }): { emoji: string; titulo: string; sub: string } {
   const en = getLang() === 'en'
   const rod = en ? `${ev.rodadas} ${ev.rodadas === 1 ? 'round' : 'rounds'}` : `${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`
   if (ev.tipo === 'noitada') {
@@ -240,6 +267,10 @@ export function mancheteDecisao(ev: { tipo: EventoTipo; nome: string; rodadas: n
   if (ev.tipo === 'expulsao') {
     if (en) return { emoji: '🟥', titulo: `${ev.nome} gets a ${rod} ban`, sub: `Argued with the ball boy, even.${ev.subNome ? ` ${ev.subNome} held the fort in his place.` : ''}` }
     return { emoji: '🟥', titulo: `${ev.nome} pega ${rod} de gancho`, sub: `Discutiu até com o gandula.${ev.subNome ? ` ${ev.subNome} segurou a bronca na vaga.` : ''}` }
+  }
+  if (ev.desgaste) {
+    if (en) return { emoji: '😓', titulo: `${ev.nome} breaks down: out for ${rod}`, sub: `Too many matches in a row — the body sent the bill.${ev.subNome ? ` ${ev.subNome} got his chance in the team.` : ''}` }
+    return { emoji: '😓', titulo: `${ev.nome} não aguenta: fora por ${rod}`, sub: `Jogos demais seguidos — o corpo mandou a conta.${ev.subNome ? ` ${ev.subNome} ganhou a chance no time.` : ''}` }
   }
   if (en) return { emoji: '🩹', titulo: `${ev.nome} out for ${rod}`, sub: `Silly injury in training.${ev.subNome ? ` ${ev.subNome} got his chance in the team.` : ' The club is looking into building a Medical Department…'}` }
   return { emoji: '🩹', titulo: `${ev.nome} fora por ${rod}`, sub: `Lesão boba no treino.${ev.subNome ? ` ${ev.subNome} ganhou a chance no time.` : ' O clube estuda montar um Departamento Médico…'}` }

@@ -619,7 +619,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
       </section>
       {hasExtra(st, 'medico') && (
         <UnlockBanner k="medico" tag={tr('🏥 obra grande', '🏥 big build')} title={tr('Departamento Médico pronto', 'Medical Department ready')} ctaBg="#C2452F" ctaColor="#fff">
-          {getLang() === 'en' ? <>From now on <b>NEVER AGAIN</b> will one of your players leave the pitch injured — gone for good, in any squad of this career.</> : <>A partir de agora <b>NUNCA MAIS</b> um jogador seu sai de campo por lesão — acabou pra sempre, em qualquer elenco desta carreira.</>}
+          {getLang() === 'en' ? <>From now on every injury in your squad <b>lasts half as long</b> (minimum 1 round) and the player <b>comes back at 100%</b>, no gradual return. Fatigue injuries also become half as likely. Injuries still exist — that is football.</> : <>A partir de agora toda lesão do seu elenco <b>dura metade do tempo</b> (mínimo 1 rodada) e o jogador <b>volta 100%</b>, sem volta gradual. Lesão por desgaste também fica metade mais rara. Lesão continua existindo — futebol é assim.</>}
         </UnlockBanner>
       )}
       {onBuyFilial && (() => {

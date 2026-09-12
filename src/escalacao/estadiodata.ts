@@ -51,7 +51,7 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
   { k: 'retratil', n: '🏟️ Cobertura Retrátil', cost: 180, inc: 10, reqTxt: 'Cobertura', perk: 'teto que abre e fecha — casa cheia até na chuva' },
   // 🏥 não rende moeda: o "lucro" dele é acabar com as LESÕES pra sempre (eventos
   // de jogador). Última obra antes da SAF (a SAF exige TODAS as melhorias).
-  { k: 'medico', n: '🏥 Departamento Médico', cost: 1000, inc: 0, reqTxt: 'Cobertura', perk: 'acaba com as lesões PRA SEMPRE' },
+  { k: 'medico', n: '🏥 Departamento Médico', cost: 1000, inc: 0, reqTxt: 'Cobertura', perk: 'lesão dura METADE e o jogador volta 100%' },
 ]
 
 // 🌐 rótulos em inglês das obras — a CHAVE (k) continua a mesma no save; só o texto lido troca.
@@ -67,7 +67,7 @@ const EXTRA_EN: Record<string, { n: string; req: string; perk?: string }> = {
   cober: { n: '☂️ Roof', req: '4 stands finished' },
   hotel: { n: '🏨 Club Hotel', req: 'Stands 100%', perk: 'hosts away fans and delegations' },
   retratil: { n: '🏟️ Retractable Roof', req: 'Roof', perk: 'a roof that opens and closes — full house even in the rain' },
-  medico: { n: '🏥 Medical Department', req: 'Roof', perk: 'ends injuries FOREVER' },
+  medico: { n: '🏥 Medical Department', req: 'Roof', perk: 'injuries last HALF as long, back at 100%' },
 }
 export const sectorNome = (s: StadiumSector): string => (getLang() === 'en' ? (SECTOR_EN[s.k] ?? s.n) : s.n)
 export const extraNome = (e: StadiumExtra): string => (getLang() === 'en' ? (EXTRA_EN[e.k]?.n ?? e.n) : e.n)

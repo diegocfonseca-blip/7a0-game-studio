@@ -5635,11 +5635,19 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🔒 SÓ carreira com o novo modo empresário (agenciaOn) — ordem do Diego:
       // carreira antiga NUNCA vê banner (nada de regra nova em save velho).
       if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return s
-      if (s.eventoTemporada && s.eventoTemporada.season === s.seasonNo) return s
+      // 😓 LESÃO POR DESGASTE (12/09) passa por cima do "1 por temporada" — mas só
+      // quando o causo anterior já ACABOU (ninguém pendente, ninguém ainda fora,
+      // ninguém na janela de volta gradual). O jogo guarda UM causo por vez.
+      const cur = s.eventoTemporada
+      if (cur && cur.season === s.seasonNo) {
+        const ativo = cur.status === 'pendente' || (cur.status === 'banco' && s.round <= (cur.volta ?? 0) + 1)
+        if (!action.evento.desgaste || ativo) return s
+      }
       if (action.evento.season !== s.seasonNo) return s
       s.eventoTemporada = action.evento
       // 🔁 anota QUEM aprontou e QUANDO — é isso que dá o descanso de 5 temporadas
-      if (action.evento.nome) s.eventoHist = { ...(s.eventoHist ?? {}), [action.evento.nome]: s.seasonNo }
+      // (desgaste NÃO entra: não é folclore, é conta do técnico que não rodiziou)
+      if (action.evento.nome && !action.evento.desgaste) s.eventoHist = { ...(s.eventoHist ?? {}), [action.evento.nome]: s.seasonNo }
       if (action.manchete) s.eventoManchetes = [...(s.eventoManchetes ?? []), action.manchete].slice(-24)
       return s
     }

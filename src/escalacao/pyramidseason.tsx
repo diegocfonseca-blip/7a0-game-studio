@@ -21,9 +21,9 @@ import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
-import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
+import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
-import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, corGas, sugerirRodizio, GAS_JOGO, GAS_BANCO } from './condicao' // 😓 gás (12/09)
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, corGas, sugerirRodizio, sorteiaLesaoDesgaste, GAS_JOGO, GAS_BANCO } from './condicao' // 😓 gás (12/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
@@ -4109,8 +4109,8 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           {condicao && (
             <UnlockBanner k="condicao" tag={tr('😓 regra nova', '😓 new rule')} title={tr('Seus jogadores agora cansam', 'Your players get tired now')} ctaBg={GREEN} ctaColor="#fff">
               {getLang() === 'en'
-                ? <>Série C is professional football: every match as a starter costs <b>{GAS_JOGO} energy</b>, every round on the bench gives <b>+{GAS_BANCO}</b> back. Seven matches in a row and he is still fine; the <b>8th</b> he is <b>tired</b> (😓, −1 in the match), the <b>9th</b> <b>running on empty</b> (🥵, −2 and double the injury risk), from the <b>10th</b> on <b>completely spent</b> (🚑, −3 and triple the risk). Injuries come back <b>gradually</b> (60% → 80% → 100%) — unless you have the 🏥 Medical Department. Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots don't get tired — rotate well and you won't feel a thing either.</>
-                : <>Série C é futebol profissional: cada jogo como titular custa <b>{GAS_JOGO} de gás</b>, cada rodada no banco devolve <b>+{GAS_BANCO}</b>. Sete jogos seguidos ele aguenta inteiro; no <b>8º</b> está <b>cansado</b> (😓, −1 no jogo), no <b>9º</b> <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>10º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). Lesão volta <b>aos poucos</b> (60% → 80% → 100%) — a não ser que você tenha o 🏥 Departamento Médico. Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
+                ? <>Série C is professional football: every match as a starter costs <b>{GAS_JOGO} energy</b>, every round on the bench gives <b>+{GAS_BANCO}</b> back. Seven matches in a row and he is still fine; the <b>8th</b> he is <b>tired</b> (😓, −1 in the match), the <b>9th</b> <b>running on empty</b> (🥵, −2 and double the injury risk), from the <b>10th</b> on <b>completely spent</b> (🚑, −3 and triple the risk). From 🥵 on he can also <b>break down</b> (15% per match; 30% when 🚑) and miss 1-3 rounds. Injuries come back <b>gradually</b> (60% → 80% → 100%); with the 🏥 Medical Department they last half as long and he returns at 100%. Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots don't get tired — rotate well and you won't feel a thing either.</>
+                : <>Série C é futebol profissional: cada jogo como titular custa <b>{GAS_JOGO} de gás</b>, cada rodada no banco devolve <b>+{GAS_BANCO}</b>. Sete jogos seguidos ele aguenta inteiro; no <b>8º</b> está <b>cansado</b> (😓, −1 no jogo), no <b>9º</b> <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>10º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (15% por jogo; 30% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%); com o 🏥 Departamento Médico ela dura metade e ele volta 100%. Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
             </UnlockBanner>
           )}
           <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} />
@@ -4373,14 +4373,14 @@ function GlobalRankConvite() {
       {item('🌱', 'Várzea', <>you start at the very bottom, on the dirt pitch, and climb up to Série A.</>)}
       {item('🕴️', 'Agency 2.0', <>your 22 active clients inside the <b>Squad</b> (TEAM · CLIENTS pills) — it used to be a separate screen.</>)}
       {item('🌍', 'Deck from the whole world', <>Brazil + Europe + rest of the world in the same auction.</>)}
-      {item('🏥', 'Player events + Medical Department', <>injury, fame, trouble… and the doctor to sort it out.</>)}
+      {item('🏥', 'Player events + Medical Department', <>injury, fame, trouble… and the doctor to cut recovery in half.</>)}
       {item('🍔', 'New stadium', <>snack bar, pub, subway, hotel and retractable roof — and income counts <b>occupancy</b>.</>)}
       {item('🏆', 'Global Ranking', <>every title is worth points and the ranking adds up — World, Cup, Série A, Várzea…</>)}
       </> : <>
       {item('🌱', 'Várzea', <>você começa lá embaixo, no campo de terra, e sobe até a Série A.</>)}
       {item('🕴️', 'Agência 2.0', <>seus 22 na ativa dentro do <b>Elenco</b> (pílulas TIME · AGENCIADOS) — antes era tela separada.</>)}
       {item('🌍', 'Baralho do mundo todo', <>Brasil + Europa + resto do mundo no mesmo pregão.</>)}
-      {item('🏥', 'Eventos de jogador + Departamento Médico', <>lesão, fama, confusão… e o médico pra resolver.</>)}
+      {item('🏥', 'Eventos de jogador + Departamento Médico', <>lesão, fama, confusão… e o médico pra cortar a recuperação pela metade.</>)}
       {item('🍔', 'Estádio novo', <>lanchonete, bar, metrô, hotel e teto retrátil — e a renda conta a <b>ocupação</b>.</>)}
       {item('🏆', 'Ranking Global', <>cada título vale ponto e o ranking soma — Mundo, Copa, Série A, Várzea…</>)}
       </>}
@@ -5061,7 +5061,7 @@ function EventoBanner({ ev, reservas, onDecide }: {
   const trait = traitDe(ev.nome)
   return (
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
-      <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas)}</div>
+      <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: 0 }}>{ev.historia}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '10px 0', boxShadow: '2px 2px 0 #000' }}>
@@ -5114,7 +5114,7 @@ function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
   const trait = traitDe(ev.nome)
   return (
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
-      <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas)}</div>
+      <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: 0 }}>{ev.historia}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '10px 0', boxShadow: '2px 2px 0 #000' }}>
@@ -6263,6 +6263,26 @@ export function PyramidSeasonScreen() {
   // o "1 por temporada" e a janela de rodadas moram no sorteio + na trava do store)
   const maybeEvento = (): boolean => {
     if (!eventosOn || (state.seasonNo ?? 1) < 2 || !mgrMe || seasonOver || copaPlaying) return false
+    const temMedico = hasExtra(state.stadiums?.[youId], 'medico')
+    // 😓 LESÃO POR DESGASTE (12/09): fora o causo da temporada, todo jogo o 🥵/🚑
+    // pode se machucar. Só quando NINGUÉM está fora/pendente/voltando (o jogo guarda
+    // um causo por vez) e dentro da mesma janela de rodadas dos eventos.
+    const evAtivo = !!evAtual && evAtual.season === state.seasonNo && (evAtual.status === 'pendente' || (evAtual.status === 'banco' && round <= (evAtual.volta ?? 0) + 1))
+    if (condOn && condGas && condJogos && !evAtivo && round >= EVENTO_MIN_ROUND && round <= EVENTO_MAX_ROUND) {
+      const d = sorteiaLesaoDesgaste({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI.filter(c => !c.fake), gas: condGas, temMedico })
+      if (d) {
+        const jogos = condJogos[d.card.id] ?? 0
+        const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: 'lesao', cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: historiaDesgaste(d.card.name, jogos + 1, state.seed ^ round), status: 'pendente', desgaste: true, medico: temMedico }
+        const reservas = mgrMe.squad.filter(c => c.pos === d.card.pos && !myXIids.has(c.id) && !c.fake)
+        if (!reservas.length) {
+          const crRng = mulberry((state.seed ^ ((state.seasonNo ?? 1) * 104729) ^ (round * 7919) ^ 0xE1E27E) >>> 0)
+          dispatch({ type: 'EVENTO_SET', evento: { ...base, criaOptions: previewCriaNomes(state.criaNames ?? [], crRng, 3) } })
+          return true
+        }
+        dispatch({ type: 'EVENTO_SET', evento: base })
+        return true
+      }
+    }
     if (evAtual && evAtual.season === state.seasonNo) return false
     // 🐛 BUG DA "SEMPRE A MESMA RODADA" (relato de vários jogadores, 05/08): `seasonSeed`
     // AQUI já vem com a temporada misturada (state.seed ^ seasonNo×hash) — e o
@@ -6271,9 +6291,9 @@ export function PyramidSeasonScreen() {
     // temporada, então o sorteio (rodada-alvo, branco/não-branco e QUEM é sorteado)
     // saía sempre igual. Corrigido passando o seed CRU — sorteiaEvento já faz a
     // própria mistura por temporada.
-    const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico'), hist: state.eventoHist, avoidName: evAtual?.nome, gas: condGas ?? undefined })
+    const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico, hist: state.eventoHist, avoidName: evAtual?.nome, gas: condGas ?? undefined })
     if (!d) return false
-    const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente' }
+    const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente', medico: d.tipo === 'lesao' && temMedico ? true : undefined }
     if (!d.reservas.length) {
       // 🌱 SEM RESERVA na posição (Diego 13/08 — "malandrinho que joga só com 11" +
       // "era pra ter aparecido um banner, escolher 3 da base"): antes não travava

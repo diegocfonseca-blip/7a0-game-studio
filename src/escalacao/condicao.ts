@@ -13,9 +13,16 @@
 //     10 em diante"* → 1º–7º jogo seguido inteiro · 8º 😓 · 9º 🥵 · 10º+ 🚑.
 //     (gás antes do jogo N = 100 − 10·(N−1): 7º = 40 · 8º = 30 · 9º = 20 · 10º = 10)
 //   · lesão VOLTA AOS POUCOS: na rodada da volta joga a 60% (−2), na seguinte
-//     a 80% (−1), depois 100%. O 🏥 Dep. Médico continua acabando com as lesões
-//     PRA SEMPRE (o Diego mandou NÃO mexer nele) — então quem tem médico nunca
-//     passa por isto.
+//     a 80% (−1), depois 100%.
+//   · 🩹 LESÃO POR DESGASTE (Diego 12/09: *"quero sim q qd chegue no 9 e no 10
+//     em diante a chance aumente de lesão, senão não tem sentido"*): FORA o causo
+//     da temporada, todo jogo o 🥵 tem 15% e o 🚑 tem 30% de se machucar (1-3
+//     rodadas). Mesmo banner, mesmos Crias sem reserva. Roda só quando ninguém
+//     do time já está fora (o jogo guarda UM causo por vez — limitação assumida).
+//   · 🏥 DEP. MÉDICO MUDOU (Diego 12/09: *"remova a opção de comprar dep médico
+//     pra não ter mais lesões"*): não zera mais lesão. Com médico, a lesão dura
+//     METADE (mín. 1), o jogador volta 100% direto (sem 60/80%) e a chance de
+//     lesão por desgaste cai pela metade.
 //   · liga quando o clube SOBE PRA SÉRIE C (não por temporada — *"3ª temporada
 //     acho mt rápido… apenas quando subir pra Série C, que o usuário está mais
 //     experiente"*). Uma vez ligado, não desliga se cair de volta.
@@ -44,6 +51,10 @@ export const MOD_CANSADO = -1
 export const MOD_LIMITE = -2
 export const MOD_ESGOTADO = -3
 export const MOD_VOLTA = [-2, -1] as const // rodada da volta (60%) · seguinte (80%)
+export const LESAO_LIMITE_PCT = 0.15   // 🥵 chance de lesão por desgaste, por jogo
+export const LESAO_ESGOTADO_PCT = 0.30 // 🚑 idem
+export const MEDICO_FATOR = 0.5        // 🏥 com médico: chance e duração caem pela metade
+export const duracaoComMedico = (rodadas: number): number => Math.max(1, Math.ceil(rodadas * MEDICO_FATOR))
 
 export type EstadoGas = 'ok' | 'cansado' | 'limite' | 'esgotado'
 export function estadoGas(g: number): EstadoGas { return g >= GAS_CANSADO ? 'ok' : g >= GAS_LIMITE ? 'cansado' : g >= GAS_ESGOTADO ? 'limite' : 'esgotado' }
@@ -93,12 +104,33 @@ export function jogosDoElenco(byRound: Record<number, string[]> | undefined, rou
 // `ev` = eventoTemporada (só conta se for LESÃO desta temporada e já decidida
 // pro banco). Devolve o modificador do jogador na rodada `r`: −2 na volta, −1
 // na seguinte, 0 fora disso. Também serve pra tela ("voltando · 60%").
-export function modVolta(ev: { tipo: string; season: number; status: string; volta?: number; cardId: string } | null | undefined, seasonNo: number, r: number, cardId: string): number {
+export function modVolta(ev: { tipo: string; season: number; status: string; volta?: number; cardId: string; medico?: boolean } | null | undefined, seasonNo: number, r: number, cardId: string): number {
   if (!ev || ev.tipo !== 'lesao' || ev.season !== seasonNo || ev.status !== 'banco' || ev.volta == null || ev.cardId !== cardId) return 0
+  if (ev.medico) return 0 // 🏥 com médico volta 100% direto
   const d = r - ev.volta
   return d >= 0 && d < MOD_VOLTA.length ? MOD_VOLTA[d] : 0
 }
 export const pctVolta = (mod: number): number => (mod === -2 ? 60 : mod === -1 ? 80 : 100)
+
+// ─── 🩹 LESÃO POR DESGASTE: o sorteio de cada rodada ────────────────────────
+// Determinístico (seed + temporada + rodada): reload não re-sorteia. Olha os
+// titulares do pior gás pro melhor; o primeiro que "cair" no dado é o lesionado.
+// Inteiro/cansado nunca se machucam por aqui (só 🥵 e 🚑). Devolve null = nada.
+function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+export function sorteiaLesaoDesgaste<T extends { id: string }>(args: { seed: number; seasonNo: number; round: number; xi: T[]; gas: Record<string, number>; temMedico: boolean }): { card: T; rodadas: number; gas: number } | null {
+  const { seed, seasonNo, round, xi, gas, temMedico } = args
+  const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ Math.imul(round + 1, 0x9E3779B1) ^ 0xD35647E) >>> 0)
+  const cands = xi.filter(c => { const e = estadoGas(gas[c.id] ?? 100); return e === 'limite' || e === 'esgotado' }).sort((a, b) => (gas[a.id] ?? 100) - (gas[b.id] ?? 100))
+  for (const c of cands) {
+    const g = gas[c.id] ?? 100
+    const p = (estadoGas(g) === 'esgotado' ? LESAO_ESGOTADO_PCT : LESAO_LIMITE_PCT) * (temMedico ? MEDICO_FATOR : 1)
+    if (rng() < p) {
+      const bruto = 1 + Math.floor(rng() * 3) // 1-3 rodadas
+      return { card: c, rodadas: temMedico ? duracaoComMedico(bruto) : bruto, gas: g }
+    }
+  }
+  return null
+}
 
 // ─── modificadores POR JOGADOR pra simulação, rodada a rodada ────────────────
 // Record<rodada, Record<cardId, mod>>. Só rodadas 0..round (a atual inclusa —
