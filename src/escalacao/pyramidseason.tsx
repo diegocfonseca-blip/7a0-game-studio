@@ -9,7 +9,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useCareerPresentation as useOnlinePreview, useLegendPresentation } from './presentation-release'
-import { useOnlinePreview as usePenaltyArtPreview } from './online-preview'
+import { usePenaltyPresentation as usePenaltyArtPreview } from './presentation-release' // ⚡ pênalti ilustrado: LIBERADO geral (12/09)
 import { PenaltyArt } from './penalty-art'
 import type { PenaltyArtHandle } from './penalty-art'
 import { PRESIDENT_ROOM_RELEASED } from './career-feature-release'

@@ -115,8 +115,32 @@ export interface CopaRun {
 // se alguma disser "o adversário venceu por {placar}", inverte o sentido e mente.
 export interface SuperRun { campeao: boolean; vs: string; placar: string; pens?: [number, number] }
 function copaNota(run: CopaRun, nome: string, seasonNo: number, brasil?: boolean): { h: string; s: string } {
-  const cup = brasil ? 'Copa do Brasil' : 'Copa Legends'
+  const cup = brasil ? 'Copa do Brasil' : (getLang() === 'en' ? 'Legends Cup' : 'Copa Legends')
   const pick = <T,>(arr: T[]): T => arr[seasonNo % arr.length]
+  const fase0 = run.fase ?? (getLang() === 'en' ? 'Cup' : 'Copa')
+  // 🌐 mesma zoeira em inglês, pelo sentido (12/09)
+  if (getLang() === 'en') {
+    if (run.status === 'campeao') return pick([
+      { h: `🏆 ${nome} WIN THE ${cup.toUpperCase()}!`, s: 'Went through everyone in the knockouts and lifted the trophy. Write it down: this year is theirs.' },
+      { h: `🏆 THE ${cup.toUpperCase()} BELONGS TO ${nome}!`, s: 'Nobody could hold them. From the first match to the final, they steamrolled the whole bracket.' },
+      { h: `🏆 ${nome} CHAMPIONS — AND IN CHARGE`, s: 'The cup is over and the winner’s name surprised nobody who was watching.' },
+    ])
+    if (run.status === 'vice') return pick([
+      { h: `🥈 RUNNERS-UP: ${nome} STOP IN THE FINAL`, s: `Made it to the decider and watched ${run.vs} lift the trophy right in front of them. That hurts.` },
+      { h: `🥈 SO CLOSE: ${nome} FINISH SECOND IN THE ${cup.toUpperCase()}`, s: `One match away from glory. ${run.vs} did not let it through.` },
+      { h: `🥈 THE SILVER GOES TO ${nome}`, s: `Final lost to ${run.vs} — the team cried, and so did the fans.` },
+    ])
+    if (run.zebra) return pick([
+      { h: `🦓 EMBARRASSING: ${nome} UPSET IN THE ${fase0.toUpperCase()}`, s: `Knocked out by ${run.vs}, a club from a lower division. The fans still can’t believe it.` },
+      { h: `🦓 ${nome} LOSE TO ${run.vs} — AND CHECK THE DIVISION`, s: `Favourites on paper, out on the pitch. In the ${fase0}, no less.` },
+      { h: `🦓 WHAT AN UPSET: ${nome} OUT IN THE ${fase0.toUpperCase()}`, s: `${run.vs} didn’t read the script and sent the favourites home.` },
+    ])
+    return pick([
+      { h: `❌ ${nome} GO OUT IN THE ${fase0.toUpperCase()}`, s: `End of the road in the cup: ${run.vs} went through and the season is down to the league.` },
+      { h: `❌ THE CUP IS OVER FOR ${nome}`, s: `Knocked out in the ${fase0} by ${run.vs}. There’s always next year.` },
+      { h: `❌ ${nome} SAY GOODBYE TO THE ${cup.toUpperCase()}`, s: `Stopped in the ${fase0}, blocked by ${run.vs}. The trophy will go to somebody else.` },
+    ])
+  }
   if (run.status === 'campeao') return pick([
     { h: `🏆 ${nome} É CAMPEÃO DA ${cup.toUpperCase()}!`, s: 'Passou por todo mundo no mata-mata e levantou a taça. Escreve aí: esse ano é dele.' },
     { h: `🏆 A TAÇA DA ${cup.toUpperCase()} É DO ${nome}!`, s: 'Ninguém segurou. Do primeiro jogo à final, atropelou o chaveamento inteiro.' },
@@ -142,7 +166,17 @@ function copaNota(run: CopaRun, nome: string, seasonNo: number, brasil?: boolean
 }
 function superNota(run: SuperRun, nome: string, seasonNo: number): { h: string; s: string } {
   const pick = <T,>(arr: T[]): T => arr[seasonNo % arr.length]
-  const pen = run.pens ? ` (pênaltis ${run.pens[0]}×${run.pens[1]})` : ''
+  const pen = run.pens ? (getLang() === 'en' ? ` (pens ${run.pens[0]}×${run.pens[1]})` : ` (pênaltis ${run.pens[0]}×${run.pens[1]})`) : ''
+  if (getLang() === 'en') {
+    if (run.campeao) return pick([
+      { h: `👑 ${nome} LIFT THE SUPER CUP!`, s: `Beat ${run.vs} ${run.placar}${pen} in the one-off decider and closed the year with one more on the shelf.` },
+      { h: `👑 THE SUPER CUP IS ${nome}’S`, s: `One match against ${run.vs}: ${run.placar}${pen}. The season is crowned.` },
+    ])
+    return pick([
+      { h: `😤 ${nome} LOSE THE SUPER CUP`, s: `Lost to ${run.vs} ${run.placar}${pen} in the decider. A perfect year slipped away.` },
+      { h: `😤 THE SUPER CUP SLIPS THROUGH ${nome}’S HANDS`, s: `Beaten ${run.placar}${pen} by ${run.vs}, in the match that was worth everything.` },
+    ])
+  }
   if (run.campeao) return pick([
     { h: `👑 ${nome} LEVANTA A SUPERCOPA!`, s: `Bateu o ${run.vs} por ${run.placar}${pen} no jogo único e fechou o ano com mais uma na estante.` },
     { h: `👑 SUPERCOPA É DO ${nome}`, s: `Decisão em jogo único contra o ${run.vs}: ${run.placar}${pen}. Coroou a temporada.` },
@@ -278,8 +312,126 @@ function stampOf(div: Div, pos: number): { txt: string; color: string } | null {
   return null
 }
 
+// 🌐 AS MESMAS 100 MANCHETES EM INGLÊS (12/09, ordem do Diego: *"sim pode fazer
+// tudo isso"*). Traduzidas pelo SENTIDO, não ao pé da letra — a graça é a
+// piada, não a palavra. Mesma ordem: índice = colocação − 1, de 1º a 20º.
+// ⚠️ Divisão NÃO se traduz (Série A/B/C/D e Várzea são identidade do jogo).
+const HEADLINES_EN: Record<Div, Headline[]> = {
+  A: [
+    { h: '{t} ON TOP OF THE WORLD!', s: 'Série A champions — and the rest of the country may kneel.' },
+    { h: 'SO CLOSE: {t} FINISH SECOND', s: 'Hit the woodwork all year and lost the title on a detail.' },
+    { h: '{t} ON THE PODIUM, WITHOUT A PARTY', s: 'Third in the top flight — pretty in the photo, empty in the trophy room.' },
+    { h: '{t} SNEAK INTO THE TOP FOUR', s: 'A big club’s season — they just forgot to turn respect into silverware.' },
+    { h: '{t} EARN SOME RESPECT', s: '5th in Série A: annoyed the big boys, scared nobody.' },
+    { h: '{t} ALMOST WITH THE BIG BOYS', s: '6th — they could smell the top four. The smell was all they got.' },
+    { h: '{t} FINISH IN THE FRONT PACK', s: '7th in the top flight. Solid, honest, and no better headline than this one.' },
+    { h: '{t} DO ENOUGH. AND THAT’S IT.', s: '8th: nobody boos, nobody claps, everybody yawns.' },
+    { h: '{t} STUCK IN TOP-FLIGHT MID-TABLE', s: '9th — the board calls it "a project under construction". Sure.' },
+    { h: 'TOP 10 FOR {t}. SO WHAT?', s: 'Tenth in Série A: the participation trophy is in the post.' },
+    { h: '{t} AND THE ART OF NOT HAPPENING', s: '11th in the top flight — no top four, no drop zone, no bar talk.' },
+    { h: 'A LUKEWARM YEAR FOR {t}', s: '12th: no whiff of a title, no fear of the drop. Coffee with no sugar.' },
+    { h: '{t} SPEND THE YEAR ON AUTOPILOT', s: '13th in Série A — the team played, the fans dozed off.' },
+    { h: '{t} SURVIVE WITHOUT SHINING', s: '14th: the goal was not to go down. Mission accomplished. Thrilling.' },
+    { h: '{t} LOOKED AT THE DROP ZONE FAR TOO CLOSELY', s: '15th — flirted with the abyss and swears it was all under control.' },
+    { h: '{t} ESCAPE BY A WHISKER', s: '16th in the top flight: safety arrived with the fans’ hearts in their mouths.' },
+    { h: 'DOWN FIGHTING: {t} DROP OUT OF THE ELITE', s: '17th and relegated — held on to the last round, but the bill came.' },
+    { h: 'DOWN! {t} LEAVE THE TOP FLIGHT', s: '18th and relegated: from champagne to powdered juice in 38 rounds.' },
+    { h: 'DISGRACE: {t} RELEGATED WITHOUT A FIGHT', s: '19th in Série A — the fall was announced, watched and completed.' },
+    { h: 'HISTORIC HUMILIATION FOR {t}', s: 'Bottom of the top flight. From Série A to the pit, by lift, no stops.' },
+  ],
+  B: [
+    { h: '{t} STEAMROLL THEIR WAY BACK TO THE ELITE!', s: 'Série B champions with authority — the top flight had better get ready.' },
+    { h: '{t} SEAL PROMOTION IN STYLE', s: 'Runners-up in B: up without the trophy, but up — and that’s what counts.' },
+    { h: '{t} GO UP SCREAMING!', s: '3rd place and promotion secured — the party ran into the small hours.' },
+    { h: 'LAST CARRIAGE: {t} GO UP!', s: '4th in Série B — promotion clawed out on the final day.' },
+    { h: 'OUCH: {t} FALL ONE STEP SHORT', s: '5th — promotion slipped away by a single rung. Someone pay for the therapy.' },
+    { h: '{t} DREAMED BIG, WOKE UP 6TH', s: 'Fought for promotion until April and ran out of legs down the stretch.' },
+    { h: '{t} PUT IN AN HONEST SÉRIE B', s: '7th place: promise of promotion next year. Again.' },
+    { h: '{t} FINISH HALFWAY', s: '8th in Série B — no going up, no going down, no change of routine.' },
+    { h: '{t} AND THE ETERNAL SÉRIE B LIFE', s: '9th: another year in the promotion queue that never moves.' },
+    { h: '{t} CLOSE OUT THE SÉRIE B TOP TEN', s: 'Mid-table with a taste of "it could have been more". It always could.' },
+    { h: '{t} DO JUST ENOUGH TO AVOID COMPLAINTS', s: '11th — the fans didn’t suffer, but they didn’t smile either.' },
+    { h: '{t} SPINNING THEIR WHEELS', s: '12th in Série B: started as a dark horse, finished as an extra.' },
+    { h: '{t} HAVE A SEASON TO FORGET', s: '13th — the season’s album has more yawns than goals.' },
+    { h: '{t} COME UP SHORT', s: '14th in B: the board promised promotion and delivered a spreadsheet.' },
+    { h: '{t} FEEL THE DROP ZONE BREATHING', s: '15th — safe, but spent the run-in looking over their shoulder.' },
+    { h: '{t} BREATHE ON THE FINAL DAY', s: '16th: safety came down to the details and the fans aged ten years.' },
+    { h: 'COULDN’T HOLD ON: {t} FALL TO SÉRIE C', s: '17th in Série B — fought to the last round, went down on the fine print.' },
+    { h: 'COLLAPSE: {t} FALL TO SÉRIE C', s: '18th — the relegation came in silence, the backlash came screaming.' },
+    { h: 'FULL-BLOWN CRISIS: {t} RELEGATED', s: '19th in B — the president promises "a deep rebuild". The fans promise fury.' },
+    { h: '{t} SINK AS SÉRIE B’S BOTTOM CLUB', s: 'Last place and down: a season worthy of a public inquiry.' },
+  ],
+  C: [
+    { h: '{t} ARE CHAMPIONS AND FLY UP!', s: 'Série C title with room to spare — Série B gets a team on fire.' },
+    { h: '{t} STAMP THEIR TICKET UP!', s: 'Runners-up in C: another rung of the pyramid climbed. The ascent goes on.' },
+    { h: '{t} GO UP ON GUTS!', s: '3rd in Série C — promotion earned the hard way, celebration soaked through.' },
+    { h: 'PHEW! {t} GRAB THE LAST SPOT', s: '4th in C: promotion arrived on fumes. The fans’ hearts are not grateful.' },
+    { h: '{t} TRIP ON THE DOORSTEP OF PROMOTION', s: '5th — did everything right until the part that actually mattered.' },
+    { h: '{t} LEFT IN SÉRIE C’S ALMOST', s: '6th: flirted with promotion, married mid-table.' },
+    { h: '{t} DO THEIR JOB. NOTHING MORE.', s: '7th in Série C — the campaign of a club that fulfils the fixture list with dignity.' },
+    { h: '{t} FINISH IN SÉRIE C LIMBO', s: '8th: far from the top, far from the bottom, far from the headlines.' },
+    { h: '{t} BOG DOWN IN MID-TABLE', s: '9th — not even the fans remember half the matches. Maybe that’s for the best.' },
+    { h: '{t} CLOSE THE SÉRIE C TOP TEN', s: '10th: the season went by and nobody took their number.' },
+    { h: '{t} SPEND ANOTHER YEAR IN SÉRIE C', s: '11th — countryside routine: play, draw, go home.' },
+    { h: '{t} GO NOWHERE', s: '12th in C: same division, same position, same promise for next year.' },
+    { h: '{t} DISAPPOINT IN SÉRIE C', s: '13th — they were meant to go up, they managed to survive.' },
+    { h: '{t} HAVE A PAPERWORK SEASON', s: '14th in C: no glory, no tragedy, no reason for a screenshot.' },
+    { h: '{t} WINK AT THE DROP ZONE AND REGRET IT', s: '15th — played with fire until the second-to-last round.' },
+    { h: '{t} ESCAPE WITH THEIR HEART IN THEIR HANDS', s: '16th in Série C: safety secured by shouting and praying.' },
+    { h: 'DOWN BY INCHES: {t} FALL TO SÉRIE D', s: '17th in Série C — relegation came one step from safety. The board has already booked a meeting.' },
+    { h: 'RELEGATION CONFIRMED: {t} IN SÉRIE D', s: '18th in C — the team went down and the fans’ patience went with it.' },
+    { h: '{t} PLUNGE TO SÉRIE D', s: '19th: a campaign that will become a lesson in what not to do.' },
+    { h: 'ROCK BOTTOM: {t} LAST AND RELEGATED', s: 'Bottom of C — down to D with the suitcase and the shame.' },
+  ],
+  D: [
+    { h: '{t} CLIMB OUT OF THE PIT AS CHAMPIONS!', s: 'Série D title — the first step to glory, taken screaming.' },
+    { h: '{t} GO UP! GOODBYE, PARK FOOTBALL!', s: 'Runners-up in D and promoted: the climb up the pyramid has officially begun.' },
+    { h: '{t} SEAL PROMOTION WITH THEIR CHEST', s: '3rd in Série D — up, with a motorcade and a lot of honking.' },
+    { h: 'AT THE DEATH: {t} GO UP!', s: '4th — the last promotion spot arrived on the final day. What a script.' },
+    { h: '{t} WAKE UP LATE AND STAY PUT', s: '5th in D: got going once the spot had already gone.' },
+    { h: '{t} ALMOST, ALMOST, ALMOST…', s: '6th — promotion walked past the door and didn’t ring the bell.' },
+    { h: '{t} PUT IN A DECENT SÉRIE D', s: '7th: promised promotion, delivered hope. There’s always next year.' },
+    { h: '{t} END UP IN THE MIDDLE OF NOWHERE', s: '8th in Série D — didn’t shine, didn’t embarrass themselves. A draw with life.' },
+    { h: '{t} STILL FIGHTING (AND STILL IN D)', s: '9th: another season of learning, as the manager puts it.' },
+    { h: '{t} CLOSE THE FOURTH-TIER TOP TEN', s: '10th — down here even a round number is half a consolation.' },
+    { h: '{t} NEVER TAKE OFF', s: '11th in Série D: the project remains "in a maturing phase". Right.' },
+    { h: '{t} SLIP AROUND IN THE MUD OF D', s: '12th — played 38 times and nobody can say how.' },
+    { h: '{t} HAVE AN INVISIBLE SEASON', s: '13th: not even the mascot turned up to the last matches.' },
+    { h: '{t} STILL OWE THE FANS', s: '14th in D — the fans asked for football and got excuses.' },
+    { h: '{t} STUCK IN THE UGLY END OF THE TABLE', s: '15th: in the fourth tier and badly placed. Tough combo.' },
+    { h: '{t} DRAG THEMSELVES TO THE END', s: '16th in Série D — finished the year in survival mode.' },
+    { h: '{t} PUT IN A PITIFUL CAMPAIGN', s: '17th: even the opposition felt sorry for them. Until the fifth goal.' },
+    { h: '{t} NEARLY FINISH AS THE COUNTRY’S WORST', s: '18th in D — dodged last place, didn’t dodge the jokes.' },
+    { h: '{t} FLIRT WITH THE END OF THE WORLD', s: '19th: below this, only the neighbourhood kickabout.' },
+    { h: 'THE WORST TEAM IN THE COUNTRY. THAT’S IT.', s: '{t} finish bottom of Série D. Nothing more, your excellency.' },
+  ],
+  V: [
+    { h: '{t} ARE THE KINGS OF PARK FOOTBALL!', s: 'Várzea champions — barbecue, a tin trophy and promotion to Série D!' },
+    { h: '{t} CLIMB OUT OF THE PARK!', s: 'Runners-up in Várzea: straight from the dirt pitch to the professional game.' },
+    { h: '{t} GO UP KICKING THE DOOR IN!', s: '3rd in Várzea — promotion secured and a convoy to the barbecue.' },
+    { h: 'AT THE DEATH: {t} GO UP!', s: '4th in Várzea: grabbed the last spot into the professional world.' },
+    { h: '{t} FINISH ONE BARBECUE SHORT OF PROMOTION', s: '5th in Várzea — they needed one more push (and a less biased referee).' },
+    { h: '{t} ALMOST ESCAPE THE PARK', s: '6th: promised promotion, delivered banter.' },
+    { h: '{t} LOOK GOOD IN THE MUD', s: '7th in Várzea — honest team, worn-out boots, dream alive.' },
+    { h: '{t} IN THE MIDDLE OF THE PARK LEAGUE', s: '8th: no up, no down — only the barbecue is guaranteed.' },
+    { h: '{t} PLAY FOR THE COLD BEER', s: '9th in Várzea: the football was average, the banter was champion.' },
+    { h: '{t} CLOSE THE TOP TEN OF THE DIRT', s: '10th — the crowd (twelve people and a dog) gave a standing ovation.' },
+    { h: '{t} BOG DOWN ON THE BARE PITCH', s: '11th in Várzea: the pitch has no grass and the team is in no hurry.' },
+    { h: '{t} LIVE OFF THE BANTER', s: '12th — lost the match, made a friend. Positive balance?' },
+    { h: '{t} LEAVE SOMETHING TO BE DESIRED', s: '13th: even the bloke who owns the ball has asked for signings.' },
+    { h: '{t} HAVE A HEAVY-LEGGED YEAR', s: '14th in Várzea — the pitch’s fault, swears the manager.' },
+    { h: '{t} GET A SCARE AT THE END OF THE YEAR', s: '15th — escaped last place with a goal from the keeper. Classic.' },
+    { h: '{t} BREATHE IN THE LAST MINUTE', s: '16th in Várzea: survived and promised "next year we go up".' },
+    { h: '{t} FALL BY THE WAYSIDE', s: '17th in the park league — promotion became a bar legend.' },
+    { h: '{t} SLIP IN THE MUD', s: '18th in Várzea: not even the barbecue saved the season.' },
+    { h: '{t} ONLY AVOIDED LAST PLACE OUT OF POLITENESS', s: '19th — the team played in flip-flops. Sometimes literally.' },
+    { h: '{t} ARE THE PARK LEAGUE’S BOTTOM CLUB', s: 'Last in Várzea — but in the banter, nobody beats them. 🍺' },
+  ],
+}
+
 export function seasonHeadline(div: Div, pos: number, team: string): Headline {
-  const raw = HEADLINES[div][Math.min(19, Math.max(0, pos - 1))]
+  const tabela = getLang() === 'en' ? HEADLINES_EN : HEADLINES
+  const raw = tabela[div][Math.min(19, Math.max(0, pos - 1))]
   return { h: raw.h.replace('{t}', team.toUpperCase()), s: raw.s.replace('{t}', team) }
 }
 
@@ -487,8 +639,8 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     void yStories
 
     // ── NÚMEROS DO TIME: cinco caixinhas soltas, como na tela
-    const nums: [string, string][] = [[tr('Posição', 'Place'), `${me.pos}º`]]
-    if (mine) nums.push([tr('Pontos', 'Points'), String(mine.pts)], ['V · E · D', `${mine.w}·${mine.d}·${mine.l}`],
+    const nums: [string, string][] = [[tr('Posição', 'Place'), getLang() === 'en' ? ordinal(me.pos) : `${me.pos}º`]]
+    if (mine) nums.push([tr('Pontos', 'Points'), String(mine.pts)], [tr('V · E · D', 'W · D · L'), `${mine.w}·${mine.d}·${mine.l}`],
       [tr('Gols (pró/contra)', 'Goals (for/against)'), `${mine.gf}/${mine.ga}`], [tr('Saldo', 'Diff'), `${mine.gf - mine.ga >= 0 ? '+' : ''}${mine.gf - mine.ga}`])
     const nGap = 10, nW = (R - L - nGap * (nums.length - 1)) / nums.length, nH = 76
     nums.forEach(([k, v], i) => {
