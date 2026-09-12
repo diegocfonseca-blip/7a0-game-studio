@@ -60,7 +60,14 @@ Como está feito (`src/escalacao/condicao.ts`, módulo puro + testes em
 APOIE/pênalti/eventos), deploys verdes. Quem já está em C/B/A liga na PRÓXIMA
 RODADA (`condicaoDesdeR`), todo mundo em 100%.
 
-🎬 **Vídeos das novidades** (pedido dele: *"mande mockup separado em vídeo"*):
+🎬 **Reels da condição no padrão creme** — `node scripts/video-condicao-reels.mjs`
+(mesmo molde do `video-olheiro-reels.mjs`: cenas em CSS, Playwright grava, ffmpeg
+fecha; sem ffmpeg no PATH, `FFMPEG=/caminho/ffmpeg`). O Diego NÃO quis o vídeo
+gravado do jogo real (*"queria aquele mockup igual fizemos os últimos vídeos
+animados em creme… não coisa simulada no jogo"*) — pra post, o padrão é este.
+Do pênalti ele dispensou o vídeo.
+
+🎬 Bancadas do jogo real (ficam pra CONFERIR, não pra post):
 gravados com Playwright em cima dos componentes REAIS — `scripts/teste-penalti/`
 (monta o `PenaltyBanner`) e `scripts/teste-condicao/?video=1&semguia=1` (monta o
 `SquadTab`, com RODIZIAR e "próxima rodada" funcionando pra barrinha animar).
