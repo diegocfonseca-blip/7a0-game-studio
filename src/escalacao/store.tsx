@@ -3191,7 +3191,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -3852,10 +3852,26 @@ export function reducer(state: EscState, action: Action): EscState {
       // "dei lance por outro".
       // Agora: acha a posição ATUAL do MEU técnico pelo id (que é estável) e reancora.
       // Se não achar (estado muito diferente), fica no valor de antes — zero regressão.
+      // 🪑 E ANTES DO ID, O CRACHÁ (12/09, sala EHWPR4): no "novo leilão" o host
+      // REMONTA os times e os ids dos humanos mudam (saiu o 2º → o 3º vira id 1). O
+      // id "estável" deixa de ser — o Cajuri (id 2 na 1ª partida) foi reancorado no
+      // id 2 da 2ª, que era um BOT (Papão United Madrid), e o "Cajuri EC" novo (id 1)
+      // ficou humano sem ninguém. Quando o estado traz `seatUids`, o meu assento é
+      // onde está o MEU uid; o id só entra se o mapa não existir (host em versão velha).
       youIdx: (() => {
+        const ns = action.newState
+        const meuUid = state.youUid
+        if (meuUid && Array.isArray(ns.seatUids) && ns.seatUids.length > 0) {
+          let seat = ns.seatUids.indexOf(meuUid)
+          if (seat < 0 && ns.duplas) { // 🤝 parceiro de dupla: o assento é o do dono
+            const e = Object.entries(ns.duplas).find(([, d]) => d.partnerUid === meuUid || d.ownerUid === meuUid || d.soloUid === meuUid)
+            if (e) seat = Number(e[0])
+          }
+          if (seat >= 0) { const i = ns.managers?.findIndex(m => m.id === seat) ?? -1; if (i >= 0) return i }
+        }
         const meuId = state.managers[state.youIdx]?.id
         if (meuId == null) return state.youIdx
-        const i = action.newState.managers?.findIndex(m => m.id === meuId) ?? -1
+        const i = ns.managers?.findIndex(m => m.id === meuId) ?? -1
         return i >= 0 ? i : state.youIdx
       })(),
       youUid: state.youUid, // 🤝 meu crachá da dupla é LOCAL, igual ao youIdx
@@ -3875,7 +3891,13 @@ export function reducer(state: EscState, action: Action): EscState {
     // então esse número pode não ser mais a POSIÇÃO no array — e reancorar cru punha a
     // pessoa no time de OUTRO ("virei outro / F5 trocou de nome"). Acha a posição ATUAL
     // do MEU manager pelo id; só cai no valor cru se não achar (save muito antigo).
-    const byId = action.state.managers?.findIndex(m => m.id === action.playerIndex) ?? -1
+    // 🪑 crachá antes do assento do banco (12/09): se o estado traz `seatUids`, o meu
+    // id é onde está o meu uid — o player_index do banco pode ter ficado pra trás num
+    // "novo leilão" antigo. Sem o mapa, segue pelo player_index como sempre.
+    const meuUidR = action.youUid ?? state.youUid
+    const seatR = meuUidR && Array.isArray(action.state.seatUids) ? action.state.seatUids.indexOf(meuUidR) : -1
+    const idAlvo = seatR >= 0 ? seatR : action.playerIndex
+    const byId = action.state.managers?.findIndex(m => m.id === idAlvo) ?? -1
     const myIdx = byId >= 0 ? byId : action.playerIndex
     return migrateTeamNames({
       ...action.state,
@@ -4753,6 +4775,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // é a POSIÇÃO do técnico na lista, que é exatamente o id do manager humano.
       s.duplasMode = !!action.duplasMode
       s.duplas = action.duplasMode ? (action.duplas ?? {}) : undefined
+      // 🪑 quem senta em cada assento (índice = id do humano, valor = uid). Só entra
+      // quando a lista veio COMPLETA e alinhada com playerNames — senão fica de fora e
+      // a reancoragem cai no caminho antigo (por id), zero regressão.
+      s.seatUids = action.seatUids && action.seatUids.length === action.playerNames.length && action.seatUids.every(u => typeof u === 'string' && !!u) ? [...action.seatUids] : undefined
       s.youUid = action.youUid ?? s.youUid
       // se alguma dupla entrou sem dividir as categorias, sorteia 3 e 3 AGORA —
       // regra de ouro do Diego: nada pode atrasar o ritmo do jogo, então o host
@@ -8624,6 +8650,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
+
+  // 🪑 MUDEI DE CADEIRA → REANUNCIO A PRESENÇA (12/09). A presença publica o
+  // `youIdx` de quando o canal abriu; num "novo leilão" o convidado é reancorado
+  // em outra posição e a lista de cadeiras do host ficava com o número VELHO
+  // (na sala EHWPR4: `presence [0, 2]` com o Cajuri sentado no id 1). É essa lista
+  // que decide quem "🚪 saiu" no próximo novo leilão e o sorteio de dono novo.
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.roomId) return
+    const ch = channelRef.current
+    if (!ch) return
+    void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha() }) } catch { /* a reconexão periódica reanuncia */ } })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.youIdx])
 
   // AUTOSAVE da carreira OFFLINE (solo): sem sala, o jogo inteiro vai pro
   // localStorage a cada transição importante — dá pra fechar e voltar depois.

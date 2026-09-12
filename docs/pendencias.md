@@ -18,6 +18,47 @@ o escudo, manto e mascote"*.
   Post gerado com `mockup-batismo.mjs --renovacao --camisa scripts/kits/sevencity-camisa.webp`
   (sem `--coracao`: não sabemos o time de coração dele).
 
+## 12/09/2026 (noite) — 🪑 "Novo leilão" trocava o convidado de cadeira (Copa do Mundo sem o campeão) — CORRIGIDO
+
+Relato do Diego (live do Futpoint, sala **EHWPR4**, 3 pessoas na 1ª partida → 2 na
+2ª): *"Cajuri foi campeão e não apareceu pra ele convocar… Futpoint ficou em 17º
+e tava liberado pra escolher qualquer país na frente do Cajuri, que nem podia
+escolher e nem participou da copa"*.
+
+**O que o banco mostrou** (`game_rooms.game_state` + `esc_copa_salas`):
+- 2ª temporada: técnico **id 1 "Cajuri EC" com `isHuman: false`**, id 2 "Papão
+  United Madrid" (bot), `presence [0, 2]`, `humanCount 2` mas só o Futpoint humano.
+- Ficha da Copa (edição 2): o **uid do Cajuri estava no "Papão United Madrid"**
+  (Colômbia). Na edição 1 ele era "Cajuri EC" normal, com o Pickler FC de 3º humano.
+
+**A cadeia:** na 1ª partida os humanos eram Futpoint (id 0), Pickler (id 1), Cajuri
+(id 2). O Pickler saiu. No **"Novo leilão"** (`screens.tsx`, `startLeilao`) o host
+remonta os times pela lista limpa do banco → Futpoint id 0, **Cajuri EC id 1**. Mas:
+(a) esse caminho **não renumerava** `room_players.player_index` (o Cajuri seguiu
+"2"), e (b) o convidado se reancorava no `SYNC_STATE` **pelo id velho** (2) → sentou
+no **bot** Papão United Madrid. O "Cajuri EC" (id 1) ficou humano sem aparelho e
+virou bot (KICK). A Copa monta a fila por `humano && uidDe.has(id)` — sobrou só o
+Futpoint, que escolheu primeiro sozinho. O "campeão Cajuri EC" foi um bot com o
+nome dele; o Cajuri de verdade jogou a temporada como Papão (11º).
+
+**Conserto (3 pernas, tudo com fallback pro caminho velho):**
+1. `EscState.seatUids?: string[]` (índice = id do humano, valor = uid). Os dois
+   `START_ONLINE` (lobby e novo leilão) mandam a lista alinhada com `playerNames`.
+2. `SYNC_STATE` e `RESTORE_ONLINE` (store) + a trava anti-"vestir bot" do lobby
+   reancoram **pelo uid primeiro**; sem `seatUids` (host em versão velha), pelo id
+   como antes. Parceiro de dupla acha o assento pelo `duplas`.
+3. `startLeilao` agora **arruma o banco antes de remontar**, igual ao início da
+   sala: apaga a linha de quem foi cortado (regra de 09/09: saiu na votação = saiu
+   de vez) e renumera os que ficam pra 0..n-1 (parceiro de dupla acompanha o dono).
+   Best effort: se o banco falhar, o `seatUids` ainda segura todo mundo.
+4. Convidado que muda de cadeira **reanuncia a presença** (`ch.track`) — senão a
+   lista de cadeiras do host ficava com o número velho.
+Reverter = 1 commit. Não mexe em sala parada nem em save. A sala EHWPR4 já acabou
+(linhas de assento apagadas) — nada pra consertar no banco.
+⚠️ Não testei com 3 aparelhos de verdade (não há bancada online no repo); a lógica
+foi conferida contra os dados reais da sala. Se der ruim, o fallback é o comportamento
+de antes.
+
 ## 12/09/2026 (noite) — 😓 GÁS: agora é PRA TODO MUNDO, em QUALQUER divisão
 
 Diego: *"ainda não atualizou a condição física"*. Fui olhar os saves dele na nuvem

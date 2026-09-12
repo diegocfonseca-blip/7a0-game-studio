@@ -435,6 +435,14 @@ export interface EscState {
   eventoHist?: Record<string, number> // 🎭 nome do jogador → última temporada em que ele aprontou (descanso de 5 temporadas)
   duplasMode?: boolean            // a SALA foi criada no modo "Duplas (beta)"
   duplas?: Record<number, DuplaSeat> // mgrId → a dupla daquele assento
+  // 🪑 QUEM SENTA EM CADA ASSENTO (12/09, sala EHWPR4 do Futpoint × Cajuri): índice =
+  // id do técnico humano montado no START_ONLINE, valor = user_id (crachá) do dono do
+  // assento. É a ÚNICA amarração que sobrevive ao "novo leilão": ali o host remonta
+  // os times pela lista limpa do banco e os ids dos humanos MUDAM (quem era o 3º vira
+  // o 2º se alguém saiu). Reancorar o `youIdx` pelo id velho punha o convidado num
+  // BOT (o Cajuri virou "Papão United Madrid") e o time dele ficava sem dono. Vai no
+  // broadcast (é do jogo, não identidade), e o convidado se acha pelo próprio uid.
+  seatUids?: string[]
   // ⚠️ IDENTIDADE — LOCAL a cada aparelho, igual ao youIdx: NUNCA sincroniza.
   // É o meu user_id; é ele que diz se EU mando na categoria da vez.
   youUid?: string

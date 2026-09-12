@@ -1128,7 +1128,11 @@ export function EscLobby() {
       // HUMANO com o SEU número. Sem isso, quem entrava na sala no exato
       // segundo do início ganhava um índice que não existia no jogo e virava
       // um bot de preenchimento (time completo, 💰 0) — bug do Red Bull Diet.
-      const mineMgr = (gs as EscState).managers.find(m => m.id === myPl.player_index)
+      // 🪑 crachá antes do assento do banco (12/09): se o estado tem `seatUids`, o meu
+      // técnico é o do assento onde está o MEU uid (o player_index pode ter ficado pra
+      // trás num "novo leilão" antigo — era o que mandava o Cajuri pra rua como "bot").
+      const seatMeu = Array.isArray((gs as EscState).seatUids) ? (gs as EscState).seatUids!.indexOf(user.id) : -1
+      const mineMgr = (gs as EscState).managers.find(m => m.id === (seatMeu >= 0 ? seatMeu : myPl.player_index))
       // 🚨 O DONO NUNCA É EXPULSO DA PRÓPRIA SALA (achado 05/09 no banco: a sala
       // H29VAB ficou PARADA na tela de abertura do stream e a vaga do próprio
       // dono tinha sumido do room_players — sala sem dono não anda, e é o que o
@@ -1205,6 +1209,7 @@ export function EscLobby() {
         return (p.dupla_name || `${corta(p.manager_name)}|${corta(par.manager_name)}`)
       }),
       duplasMode, duplas: duplasMode ? duplas : undefined, youUid: user.id,
+      seatUids: uniq.map(p => p.user_id), // 🪑 quem senta em cada assento (mesma lista dos playerNames)
       formation: gs?.formation ?? '4-3-3',
       stream: !!gs?.stream,
       manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)

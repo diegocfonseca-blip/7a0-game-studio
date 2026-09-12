@@ -8536,6 +8536,32 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // 📢 nada acontece no escuro: o host fica sabendo quem não entrou.
         try { alert(enV ? `${cortados === 1 ? 'One person left the room and did not join' : `${cortados} people left the room and did not join`} the new auction. If anyone comes back, just invite them again with the code. 👋` : `${cortados === 1 ? 'Uma pessoa saiu da sala e não entrou' : `${cortados} pessoas saíram da sala e não entraram`} no novo leilão. Se alguém voltar, é só chamar de novo pelo código. 👋`) } catch { /* ignora */ }
       }
+      // 🪑 ARRUMA OS ASSENTOS NO BANCO ANTES DE REMONTAR (12/09, sala EHWPR4 do
+      // Futpoint × Cajuri). O jogo novo numera os humanos pela POSIÇÃO na lista limpa
+      // (0..n-1), mas as linhas do banco ficavam com o número VELHO: o Cajuri era o 3º
+      // (player_index 2) na 1ª partida, o 2º saiu, e na 2ª ele virou o técnico id 1 —
+      // só que a linha dele continuou "2". Tudo que casa assento ↔ pessoa pelo banco
+      // (Copa do Mundo, reconexão, expulsão) passou a apontar pro BOT do id 2: o
+      // Cajuri não entrou na fila da Copa (foi o Futpoint, 17º, escolher primeiro
+      // sozinho) e o "Cajuri EC" ficou sem dono. É o MESMO acerto que o início da
+      // sala já faz (lobby.tsx): quem saiu de vez perde a linha; quem fica é
+      // renumerado na ordem da lista. Tudo best effort — se o banco falhar, o jogo
+      // segue e o `seatUids` no estado ainda reancora todo mundo pelo crachá.
+      try {
+        const ficam = new Set(uniq.map(p => p.user_id))
+        for (const p of semRepetir) {
+          if (ficam.has(p.user_id)) continue
+          await supabase.from('room_players').delete().eq('room_id', state.roomId).eq('user_id', p.user_id).then(() => {}, () => {})
+        }
+        for (let i = 0; i < uniq.length; i++) {
+          if (uniq[i].player_index === i) continue
+          // mira o USER_ID (único de verdade): parceiro de dupla compartilha o índice do dono
+          await supabase.from('room_players').update({ player_index: i }).eq('room_id', state.roomId).eq('user_id', uniq[i].user_id).then(() => {}, () => {})
+          if (state.duplasMode) {
+            for (const par of sorted) if (par.dupla_partner_of === uniq[i].user_id && par.user_id !== uniq[i].user_id) await supabase.from('room_players').update({ player_index: i }).eq('room_id', state.roomId).eq('user_id', par.user_id).then(() => {}, () => {})
+          }
+        }
+      } catch { /* best effort — o estado leva o seatUids de qualquer jeito */ }
       await supabase.from('game_rooms').update({ status: 'started' }).eq('id', state.roomId)
       // meu assento = a posição do meu DONO (se eu for parceiro, é o assento dele —
       // o time é o mesmo dos dois, igual a sala de espera já resolve).
@@ -8548,6 +8574,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         isHost: state.isHost, playerIndex: myPos >= 0 ? myPos : state.youIdx, // meu assento = minha posição na lista limpa
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
         duplasMode: state.duplasMode, duplas: state.duplasMode ? duplas : undefined, youUid: meuUid ?? state.youUid,
+        seatUids: uniq.map(p => p.user_id), // 🪑 quem senta em cada assento — é por ISTO que o convidado se reancora no time certo
         deck: state.deckLeague, varzea: state.varzea, rematch: Date.now(), copaMode: state.copaMode, // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
         // 🏆 a sala CONTINUA a contagem: o "novo leilão" é a próxima temporada da
         // mesma resenha, não um recomeço do zero. Sem isto o `seasonNo` voltava
