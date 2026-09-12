@@ -23,6 +23,7 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSal
 import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
+import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
@@ -88,7 +89,7 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
   return (
     <>
       {!open && (
-        <button onClick={() => setOpen(true)} aria-label="Abrir chat da sala"
+        <button onClick={() => setOpen(true)} aria-label={tr('Abrir chat da sala', 'Open room chat')}
           style={{ position: 'fixed', left: 12, bottom: 12, zIndex: 99990, width: 46, height: 46, borderRadius: 999, background: GOLD, border: '3px solid #000', display: 'grid', placeItems: 'center', fontSize: 20, boxShadow: '3px 3px 0 0 #000', cursor: 'pointer' }}>
           💬
           {unread > 0 && (
@@ -101,19 +102,19 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
           <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.28)' }} />
           <div style={{ position: 'relative', color: INK, background: '#FBF6E7', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '64vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.12)' }}>
             <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px' }}>
-              <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>💬 Zoeira da sala</span>
-              <button onClick={() => setOpen(false)} aria-label="Fechar" style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+              <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>{tr('💬 Zoeira da sala', '💬 Room banter')}</span>
+              <button onClick={() => setOpen(false)} aria-label={tr('Fechar', 'Close')} style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
             </div>
             <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: 10, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 90 }}>
               {msgs.length === 0
-                ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>Manda a primeira zoeira 😎</p>
+                ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>{tr('Manda a primeira zoeira 😎', 'Send the first jab 😎')}</p>
                 : msgs.map(m => {
                   const mine = !!myUid && m.uid === myUid
                   return (
                     <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
                       <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: chatColor(m.name), marginTop: 4, flexShrink: 0 }} />
                       <div style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%' }}>
-                        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1, color: chatColor(m.name) }}>{mine ? 'Você' : m.name}</span>
+                        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1, color: chatColor(m.name) }}>{mine ? tr('Você', 'You') : m.name}</span>
                         <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word' }}>{m.text}</span>
                       </div>
                     </div>
@@ -122,9 +123,9 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
             </div>
             <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
               <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
-                onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder="manda a real…"
+                onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder={tr('manda a real…', 'say it…')}
                 style={{ flex: 1, minWidth: 0, color: INK, background: '#fff', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', fontSize: 13, fontWeight: 600 }} />
-              <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>Enviar</button>
+              <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>{tr('Enviar', 'Send')}</button>
             </div>
           </div>
         </div>
@@ -330,7 +331,7 @@ function PwField({ label, value, onChange, onKeyDown, placeholder }: { label: st
       <div style={{ position: 'relative' }}>
         <input type={show ? 'text' : 'password'} value={value} onChange={onChange} onKeyDown={onKeyDown} placeholder={placeholder}
           className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" style={{ paddingRight: 44 }} />
-        <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? 'Ocultar senha' : 'Mostrar senha'}
+        <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? tr('Ocultar senha', 'Hide password') : tr('Mostrar senha', 'Show password')}
           style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: 7, border: '2px solid #000', background: '#fff', fontSize: 15, lineHeight: 1, cursor: 'pointer' }}>
           {show ? '🙈' : '👁️'}
         </button>
@@ -396,7 +397,7 @@ function montarBafo(seed: number, via: 'elenco' | 'convocados'): BafoTime | null
   if (!slot) return null
   const sv = slot.slot.save
   const eu = sv.managers?.[sv.youIdx ?? 0]
-  const time = eu?.teamName || eu?.name || 'Meu time'
+  const time = eu?.teamName || eu?.name || tr('Meu time', 'My team')
   // 🚫 perna-de-pau (fake) NUNCA entra — nem pelo elenco, nem pelo álbum da carreira.
   const squad: PoolCard[] = via === 'elenco'
     ? ((eu?.squad ?? []) as PoolCard[]).filter(c => !(c as { fake?: boolean }).fake)
@@ -417,7 +418,7 @@ function BafoEscolha({ escolha, onEscolha }: {
     const cofre = (slot.save.empresarioCards ?? []).length
     return {
       seed: Number(slot.save.seed ?? 0), at: slot.at, active,
-      time: eu?.teamName || eu?.name || 'Meu time',
+      time: eu?.teamName || eu?.name || tr('Meu time', 'My team'),
       temporada: slot.save.seasonNo ?? 1,
       div: (slot.save.careerPlacements?.['m' + (eu?.id ?? 0)] as string) ?? slot.save.careerDivision ?? 'D',
       elenco, cofre,
@@ -427,9 +428,9 @@ function BafoEscolha({ escolha, onEscolha }: {
 
   return (
     <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
-      <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-1">🃏 Bafo · seu time</p>
+      <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-1">{tr('🃏 Bafo · seu time', '🃏 Bafo · your team')}</p>
       <p className="text-black/55 text-[11px] font-bold leading-snug mb-3">
-        Aqui não tem leilão: você traz o time de uma carreira sua. <b>A carreira que entra é a que joga e é a que paga</b> — se rolar Bafo, a carta sorteada sai do <b>álbum de cartas dessa carreira</b> (não do seu álbum todo).
+        {getLang() === 'en' ? <>No auction here: you bring the team from one of your careers. <b>The career that enters is the one that plays and the one that pays</b> — if Bafo happens, the drawn card comes from <b>that career's card album</b> (not your whole album).</> : <>Aqui não tem leilão: você traz o time de uma carreira sua. <b>A carreira que entra é a que joga e é a que paga</b> — se rolar Bafo, a carta sorteada sai do <b>álbum de cartas dessa carreira</b> (não do seu álbum todo).</>}
       </p>
 
       {/* 🚪 QUEM NÃO PODE JOGAR SÓ VÊ O CONVITE (decisão do Diego, 17/08): nada de
@@ -440,16 +441,16 @@ function BafoEscolha({ escolha, onEscolha }: {
              completar o time (e o que falta em cada uma aparece na lista abaixo). */}
       {dados.length === 0 ? (
         <div className="border-[2.5px] border-dashed border-black rounded-xl p-3" style={{ background: '#FFF1E8' }}>
-          <p className="font-black text-[13px] text-black" style={OSWALD}>🪜 Comece uma carreira pra jogar o Bafo</p>
+          <p className="font-black text-[13px] text-black" style={OSWALD}>{tr('🪜 Comece uma carreira pra jogar o Bafo', '🪜 Start a career to play Bafo')}</p>
           <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">
-            Aqui não tem leilão: o time que entra é o que <b>você montou na sua carreira</b>. Toque em <b>Carreira</b> no menu e jogue uma temporada — depois é só voltar pra sala com o mesmo código. <b>Você pode ficar assistindo</b> esta partida.
+            {getLang() === 'en' ? <>No auction here: the team that enters is the one <b>you built in your career</b>. Tap <b>Career</b> in the menu and play a season — then just come back to the room with the same code. <b>You can stay and watch</b> this match.</> : <>Aqui não tem leilão: o time que entra é o que <b>você montou na sua carreira</b>. Toque em <b>Carreira</b> no menu e jogue uma temporada — depois é só voltar pra sala com o mesmo código. <b>Você pode ficar assistindo</b> esta partida.</>}
           </p>
         </div>
       ) : dados.every(d => d.elenco < BAFO_MIN && d.cofre < BAFO_MIN) && (
         <div className="border-[2.5px] border-dashed border-black rounded-xl p-3" style={{ background: '#FFF1E8' }}>
-          <p className="font-black text-[13px] text-black" style={OSWALD}>🧩 Falta completar o time</p>
+          <p className="font-black text-[13px] text-black" style={OSWALD}>{tr('🧩 Falta completar o time', '🧩 Team not complete yet')}</p>
           <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">
-            Nenhuma carreira sua chegou nos <b>{BAFO_MIN} jogadores</b> ainda — nem no elenco, nem no álbum de cartas da carreira. Jogue mais uma temporada (o elenco cresce) ou ganhe mais cartas nessa carreira. <b>Você fica na sala assistindo</b>, e na próxima já entra.
+            {getLang() === 'en' ? <>None of your careers has reached <b>{BAFO_MIN} players</b> yet — neither in the squad nor in the career's card album. Play one more season (the squad grows) or win more cards in that career. <b>You stay in the room watching</b>, and next time you're in.</> : <>Nenhuma carreira sua chegou nos <b>{BAFO_MIN} jogadores</b> ainda — nem no elenco, nem no álbum de cartas da carreira. Jogue mais uma temporada (o elenco cresce) ou ganhe mais cartas nessa carreira. <b>Você fica na sala assistindo</b>, e na próxima já entra.</>}
           </p>
         </div>
       )}
@@ -468,15 +469,15 @@ function BafoEscolha({ escolha, onEscolha }: {
                 boxShadow: `2.5px 2.5px 0 0 ${escolhida ? GREEN : INK}` }}>
               <div className="flex items-center gap-2">
                 <span className="font-black text-[14.5px] text-black flex-1 truncate" style={OSWALD}>{d.time}</span>
-                {d.active && <span className="text-[9px] font-black uppercase border-2 border-black rounded-md px-1.5" style={{ background: GOLD, color: INK, ...OSWALD }}>última</span>}
+                {d.active && <span className="text-[9px] font-black uppercase border-2 border-black rounded-md px-1.5" style={{ background: GOLD, color: INK, ...OSWALD }}>{tr('última', 'latest')}</span>}
                 <span className="text-[15px]">{travado ? '🔒' : escolhida ? '✅' : '○'}</span>
               </div>
               <p className="text-black/55 text-[10.5px] font-bold mt-1">
-                Série {d.div} · Temporada {d.temporada} · <b className="text-black">{d.elenco} jogadores</b> no elenco · <b className="text-black">{d.cofre} cartas</b> no álbum
+                Série {d.div} · {tr('Temporada', 'Season')} {d.temporada} · <b className="text-black">{d.elenco} {tr('jogadores', 'players')}</b> {tr('no elenco', 'in the squad')} · <b className="text-black">{d.cofre} {tr('cartas', 'cards')}</b> {tr('no álbum', 'in the album')}
               </p>
               {travado ? (
                 <p className="text-[10.5px] font-bold leading-snug mt-2" style={{ color: '#8E2A1B' }}>
-                  ⚠️ Precisa de {BAFO_MIN} pra entrar — você tem {d.elenco} no elenco e {d.cofre} no álbum desta carreira. Jogue mais uma temporada ou ganhe mais cartas nesta carreira.
+                  {getLang() === 'en' ? <>⚠️ You need {BAFO_MIN} to enter — you have {d.elenco} in the squad and {d.cofre} in this career's album. Play one more season or win more cards in this career.</> : <>⚠️ Precisa de {BAFO_MIN} pra entrar — você tem {d.elenco} no elenco e {d.cofre} no álbum desta carreira. Jogue mais uma temporada ou ganhe mais cartas nesta carreira.</>}
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-2 mt-2">
@@ -484,13 +485,13 @@ function BafoEscolha({ escolha, onEscolha }: {
                     disabled={!podeElenco}
                     className="border-[2.5px] border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
                     style={{ background: escolhida && escolha?.via === 'elenco' ? GREEN : '#fff', color: escolhida && escolha?.via === 'elenco' ? '#fff' : '#000', opacity: podeElenco ? 1 : 0.4, ...OSWALD }}>
-                    👔 Elenco{!podeElenco && <span className="block text-[8.5px]">só {d.elenco}</span>}
+                    {tr('👔 Elenco', '👔 Squad')}{!podeElenco && <span className="block text-[8.5px]">{tr('só', 'only')} {d.elenco}</span>}
                   </button>
                   <button onClick={() => onEscolha(escolhida && escolha?.via === 'convocados' ? null : { seed: d.seed, via: 'convocados' })}
                     disabled={!podeCofre}
                     className="border-[2.5px] border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
                     style={{ background: escolhida && escolha?.via === 'convocados' ? GREEN : '#fff', color: escolhida && escolha?.via === 'convocados' ? '#fff' : '#000', opacity: podeCofre ? 1 : 0.4, ...OSWALD }}>
-                    🧢 Convocar 22{!podeCofre && <span className="block text-[8.5px]">só {d.cofre}</span>}
+                    {tr('🧢 Convocar 22', '🧢 Call up 22')}{!podeCofre && <span className="block text-[8.5px]">{tr('só', 'only')} {d.cofre}</span>}
                   </button>
                 </div>
               )}
@@ -502,7 +503,7 @@ function BafoEscolha({ escolha, onEscolha }: {
       <div className="mt-3 border-[2.5px] border-black rounded-xl px-3 py-2 text-center"
         style={{ background: sel ? GREEN : '#fff' }}>
         <p className="font-black text-[12.5px]" style={{ color: sel ? '#fff' : 'rgba(0,0,0,.5)', ...OSWALD }}>
-          {sel ? `✅ Apto — ${sel.time} ${escolha?.via === 'elenco' ? '(elenco)' : '(convocados)'}` : '⏳ Montando — escolha a carreira e como entra'}
+          {sel ? `✅ ${tr('Apto', 'Ready')} — ${sel.time} ${escolha?.via === 'elenco' ? tr('(elenco)', '(squad)') : tr('(convocados)', '(call-ups)')}` : tr('⏳ Montando — escolha a carreira e como entra', '⏳ Building — pick the career and how you enter')}
         </p>
       </div>
     </div>
@@ -550,7 +551,7 @@ function Seg<T extends string | number | boolean>({ options, value, onSet, small
 // ninguém precisa lembrar de tirar — ela some sozinha. (A Copa do Mundo online
 // nasceu em 01/09; 45 dias depois vira mais um modo de sempre.)
 const NOVO_ATE = new Date('2026-10-16T00:00:00')
-const seloNovo = (): string | undefined => (Date.now() < NOVO_ATE.getTime() ? 'novo' : undefined)
+const seloNovo = (): string | undefined => (Date.now() < NOVO_ATE.getTime() ? tr('novo', 'new') : undefined)
 // chavinha (switch) liga/desliga
 function Sw({ on }: { on: boolean }) {
   return (
@@ -2329,7 +2330,7 @@ export function EscLobby() {
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
     <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? 'online-room-art' : ''}`} data-online-phase={phase} style={{ backgroundColor: INK }}>
       {onBack && (
-        <button onClick={onBack} aria-label="Voltar pra home"
+        <button onClick={onBack} aria-label={tr('Voltar pra home', 'Back to home')}
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
           <span className="text-xl leading-none">←</span> Home
         </button>
@@ -2342,16 +2343,16 @@ export function EscLobby() {
     return wrap(<>
     <div className="text-center">
       <div className="text-6xl mb-2">🔑</div>
-      <h1 className="font-black text-3xl text-white" style={OSWALD}>NOVA SENHA</h1>
-      <p className="text-white/60 text-sm font-bold mt-1">Crie uma senha nova pra sua conta.</p>
+      <h1 className="font-black text-3xl text-white" style={OSWALD}>{tr('NOVA SENHA', 'NEW PASSWORD')}</h1>
+      <p className="text-white/60 text-sm font-bold mt-1">{tr('Crie uma senha nova pra sua conta.', 'Create a new password for your account.')}</p>
     </div>
     <div className="space-y-3">
-      <PwField label="Nova senha" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="mínimo 6 caracteres"
+      <PwField label={tr('Nova senha', 'New password')} value={newPw} onChange={e => setNewPw(e.target.value)} placeholder={tr('mínimo 6 caracteres', 'at least 6 characters')}
         onKeyDown={e => e.key === 'Enter' && handleSaveNewPw()} />
       {authError && <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>}
     </div>
-    <Big onClick={handleSaveNewPw}>{loading ? '...' : 'Salvar nova senha →'}</Big>
-    <button onClick={() => { setRecovering(false); setPhase(user ? 'menu' : 'auth') }} className="text-white/40 text-sm underline w-full text-center">Pular</button>
+    <Big onClick={handleSaveNewPw}>{loading ? '...' : tr('Salvar nova senha →', 'Save new password →')}</Big>
+    <button onClick={() => { setRecovering(false); setPhase(user ? 'menu' : 'auth') }} className="text-white/40 text-sm underline w-full text-center">{tr('Pular', 'Skip')}</button>
   </>, undefined, true)
   }
 
@@ -2365,8 +2366,8 @@ export function EscLobby() {
     {pendingInvite && (
       <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: PURPLE, boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="text-xs font-black text-white leading-snug" style={OSWALD}>
-          🎮 Você foi convidado pra sala <span className="bg-white text-black px-1.5 rounded">{pendingInvite}</span>.<br />
-          <span className="text-white/80">Entre ou crie sua conta — te levo direto pra sala.</span>
+          {tr('🎮 Você foi convidado pra sala', '🎮 You were invited to room')} <span className="bg-white text-black px-1.5 rounded">{pendingInvite}</span>.<br />
+          <span className="text-white/80">{tr('Entre ou crie sua conta — te levo direto pra sala.', 'Sign in or create your account — I\'ll take you straight to the room.')}</span>
         </p>
       </div>
     )}
@@ -2374,13 +2375,13 @@ export function EscLobby() {
       {(['login', 'register'] as AuthTab[]).map(tab => (
         <button key={tab} onClick={() => { setAuthTab(tab); setAuthError('') }}
           className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: authTab === tab ? GOLD : '#fff', color: '#000' }}>
-          {tab === 'login' ? 'Entrar' : 'Cadastrar'}
+          {tab === 'login' ? tr('Entrar', 'Sign in') : tr('Cadastrar', 'Sign up')}
         </button>
       ))}
     </div>
     {authTab === 'register' && (
       <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD }}>
-        <p className="text-xs font-black text-black leading-snug" style={OSWALD}>🎴 Com a conta, ser campeão (no CPU ou online) te dá uma carta-lembrança limitada pro álbum. Sem conta, não ganha carta.</p>
+        <p className="text-xs font-black text-black leading-snug" style={OSWALD}>{tr('🎴 Com a conta, ser campeão (no CPU ou online) te dá uma carta-lembrança limitada pro álbum. Sem conta, não ganha carta.', '🎴 With an account, becoming champion (vs CPU or online) gives you a limited keepsake card for your album. No account, no card.')}</p>
       </div>
     )}
     <div className="space-y-3">
@@ -2390,27 +2391,27 @@ export function EscLobby() {
           como te chamam?" enquanto a JanelaConta (carreira) pedia o NOME DO
           TIME — mesmo campo (`display_name`), significados diferentes, e o
           ranking misturava os dois. Agora as duas pedem a mesma coisa. */}
-      {authTab === 'register' && <Field label="Nome do seu time" value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder="Ex.: Lendas FC" />}
+      {authTab === 'register' && <Field label={tr('Nome do seu time', 'Your team name')} value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder={tr('Ex.: Lendas FC', 'E.g.: Legends FC')} />}
       <Field label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
-      <PwField label="Senha" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+      <PwField label={tr('Senha', 'Password')} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
         onKeyDown={e => e.key === 'Enter' && handleAuth()} />
       {authTab === 'login' && (
         <button onClick={handleForgot} className="text-white/50 text-xs font-bold underline w-full text-right" style={{ marginTop: -6 }}>
-          Esqueci minha senha
+          {tr('Esqueci minha senha', 'Forgot my password')}
         </button>
       )}
       {authError && (authError.startsWith('🔧')
         ? <div className="rounded-xl border-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 text-sm font-bold text-amber-200">{authError}</div>
         : <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>)}
     </div>
-    <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? 'Entrar →' : 'Criar conta →'}</Big>
-    <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">← Voltar</button>
+    <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? tr('Entrar →', 'Sign in →') : tr('Criar conta →', 'Create account →')}</Big>
+    <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">{tr('← Voltar', '← Back')}</button>
   </>, undefined, true)
   }
 
   if (phase === 'menu') {
     const TABS: { id: 'create' | 'open' | 'join'; label: string }[] = [
-      { id: 'create', label: 'Criar sala' }, { id: 'open', label: 'Salas abertas' }, { id: 'join', label: 'Entrar' },
+      { id: 'create', label: tr('Criar sala', 'Create room') }, { id: 'open', label: tr('Salas abertas', 'Open rooms') }, { id: 'join', label: tr('Entrar', 'Join') },
     ]
     const hasName = !!user?.user_metadata?.display_name
     const filtered = openRooms.filter(r => {
@@ -2430,18 +2431,18 @@ export function EscLobby() {
             <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em]">Leilão Legends</p>
           </div>
           <h1 className="font-black text-white text-[26px] leading-[1] mb-1.5" style={OSWALD}>
-            CHAME A GALERA
+            {tr('CHAME A GALERA', 'CALL YOUR CREW')}
           </h1>
           <p className="text-white/90 text-[13px] leading-snug font-medium">
-            Toda a adrenalina do leilão, agora <b>contra seus amigos</b>. Cria a sala, manda o código no zap e briguem pelas lendas.
+            {getLang() === 'en' ? <>All the adrenaline of the auction, now <b>against your friends</b>. Create the room, send the code on WhatsApp and fight for the legends.</> : <>Toda a adrenalina do leilão, agora <b>contra seus amigos</b>. Cria a sala, manda o código no zap e briguem pelas lendas.</>}
           </p>
         </div>
         <div className="online-identity px-4 py-2 flex items-center gap-2 justify-between" style={{ background: '#1a1220' }}>
-          <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">Logado como</span>
+          <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">{tr('Logado como', 'Signed in as')}</span>
           {editingName ? (
             <div className="flex gap-1.5 items-stretch flex-1 ml-2">
               <input autoFocus value={nameDraft} onChange={e => setNameDraft(stripEmoji(e.target.value))} maxLength={20}
-                placeholder="Nome do seu time" onKeyDown={e => e.key === 'Enter' && saveName()}
+                placeholder={tr('Nome do seu time', 'Your team name')} onKeyDown={e => e.key === 'Enter' && saveName()}
                 className="flex-1 min-w-0 border-2 border-black rounded-md px-2 py-1 font-black text-black text-xs bg-white" />
               <button onClick={saveName} disabled={loading || !nameDraft.trim()}
                 className="border-2 border-black rounded-md px-2 font-black text-xs" style={{ background: GREEN, color: '#fff', ...OSWALD }}>OK</button>
@@ -2454,7 +2455,7 @@ export function EscLobby() {
               className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border-2"
               style={{ background: hasName ? 'rgba(255,255,255,.1)' : GOLD, borderColor: hasName ? 'rgba(255,255,255,.3)' : '#000' }}>
               <span className="font-black text-xs" style={{ color: hasName ? '#fff' : '#000' }}>
-                {hasName ? nameOf() : 'Toque pra pôr o nome do time'}
+                {hasName ? nameOf() : tr('Toque pra pôr o nome do time', 'Tap to set your team name')}
               </span>
               <span style={{ fontSize: 11 }}>✏️</span>
             </button>
@@ -2465,15 +2466,15 @@ export function EscLobby() {
       {/* partida em andamento: pergunta se quer voltar ou sair */}
       {resumeRoom && (
         <div className="rounded-2xl border-[3px] border-black p-3 space-y-2.5" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>⏳ Você tem uma partida em andamento<br /><span className="opacity-80 text-xs">Sala {resumeRoom.code}</span></p>
+          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>{tr('⏳ Você tem uma partida em andamento', '⏳ You have a match in progress')}<br /><span className="opacity-80 text-xs">{tr('Sala', 'Room')} {resumeRoom.code}</span></p>
           <div className="flex gap-2">
             <button onClick={doResume} disabled={loading}
               className="flex-1 rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-              {loading ? '...' : '▶️ Voltar pra partida'}
+              {loading ? '...' : tr('▶️ Voltar pra partida', '▶️ Back to the match')}
             </button>
             <button onClick={leaveResume}
               className="flex-1 rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-              🚪 Sair da sala
+              {tr('🚪 Sair da sala', '🚪 Leave the room')}
             </button>
           </div>
         </div>
@@ -2483,7 +2484,7 @@ export function EscLobby() {
           é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}
       {ligaOn && myLigas.length > 0 && (
         <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>🏆 Minhas ligas</p>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>{tr('🏆 Minhas ligas', '🏆 My leagues')}</p>
           {myLigas.map(r => {
             const gs = r.game_state as GS
             const nm = gs?.roomName ?? r.code
@@ -2494,13 +2495,13 @@ export function EscLobby() {
                 <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
-                    <p className="text-black/60 text-[11px] font-bold">👥 {r.count} · {r.code} · {gs?.ligaFechada ? 'sem bots' : 'com bots'}{souDono ? '' : ' · você é convidado'}</p>
+                    <p className="text-black/60 text-[11px] font-bold">👥 {r.count} · {r.code} · {gs?.ligaFechada ? tr('sem bots', 'no bots') : tr('com bots', 'with bots')}{souDono ? '' : tr(' · você é convidado', ' · you are a guest')}</p>
                     <p className="font-black text-[11.5px]" style={{ ...OSWALD, color: q.cor }}>📅 {q.txt}</p>
                   </div>
                   <button onClick={() => joinFromList(r)} disabled={loading}
                     className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
                     style={{ background: GREEN, color: '#fff', ...OSWALD }}>
-                    {r.status === 'started' ? '↩️ Voltar' : '▶️ Entrar'}
+                    {r.status === 'started' ? tr('↩️ Voltar', '↩️ Back') : tr('▶️ Entrar', '▶️ Join')}
                   </button>
                 </div>
                 {/* ✏️🗑️ MEXER NA LIGA SEM ENTRAR NELA (Diego 22/08). Só pro DONO:
@@ -2531,7 +2532,7 @@ export function EscLobby() {
                       await shareInvite(r.code, nm, { at: gs?.ligaAt })
                     })() }}
                       className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] text-white active:translate-y-0.5" style={{ background: PURPLE, ...OSWALD }}>
-                      📤 Convidar
+                      {tr('📤 Convidar', '📤 Invite')}
                     </button>
                     <button onClick={() => {
                       const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
@@ -2543,18 +2544,18 @@ export function EscLobby() {
                       setCardPw('') // nunca herda o que foi digitado numa outra liga
                       setCardEdit(r.id)
                     }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                      ✏️ Editar
+                      {tr('✏️ Editar', '✏️ Edit')}
                     </button>
                     <button onClick={() => { void excluirLigaId(r.id, nm, souDono) }}
                       className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] active:translate-y-0.5"
                       style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-                      🗑️ Excluir
+                      {tr('🗑️ Excluir', '🗑️ Delete')}
                     </button>
                   </div>
                 )}
                 {souDono && cardEdit === r.id && (
                   <div className="mt-2 rounded-xl border-2 border-black p-2.5" style={{ background: '#FFF4CF' }}>
-                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mb-1" style={OSWALD}>🖋️ Nome da liga</p>
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mb-1" style={OSWALD}>{tr('🖋️ Nome da liga', '🖋️ League name')}</p>
                     <input value={cardNome} maxLength={24} onChange={e => setCardNome(stripEmoji(e.target.value))}
                       className="w-full border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
                     {/* 🔒 TROCAR A SENHA SEM ENTRAR NA SALA (29/08). A senha virou
@@ -2564,20 +2565,20 @@ export function EscLobby() {
                         e a única saída seria excluir tudo. Ninguém consegue LER a
                         senha (o banco só guarda o embaralhado), então o certo é poder
                         TROCAR: em branco = mantém a que está. */}
-                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>🔒 Trocar a senha</p>
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>{tr('🔒 Trocar a senha', '🔒 Change the password')}</p>
                     <input value={cardPw} maxLength={24} onChange={e => setCardPw(e.target.value)}
-                      placeholder="Deixe em branco pra manter a atual"
+                      placeholder={tr('Deixe em branco pra manter a atual', 'Leave blank to keep the current one')}
                       className="w-full border-2 border-black rounded-lg px-2.5 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
-                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>📅 Quando vocês jogam</p>
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>{tr('📅 Quando vocês jogam', '📅 When you play')}</p>
                     <div className="flex gap-2">
                       <input type="date" value={cardData} onChange={e => setCardData(e.target.value)}
                         className="flex-1 min-w-0 border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
                       <input type="time" value={cardHora} onChange={e => setCardHora(e.target.value)}
                         className="w-[96px] border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-sm bg-white" style={OSWALD} />
                     </div>
-                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>🤖 Bots na tabela</p>
+                    <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>{tr('🤖 Bots na tabela', '🤖 Bots in the table')}</p>
                     <div className="flex border-2 border-black rounded-lg overflow-hidden">
-                      {([[false, 'Sem bots'], [true, 'Com bots até 20']] as [boolean, string][]).map(([v, lb], i) => (
+                      {([[false, tr('Sem bots', 'No bots')], [true, tr('Com bots até 20', 'With bots up to 20')]] as [boolean, string][]).map(([v, lb], i) => (
                         <button key={lb} onClick={() => setCardBots(v)}
                           className={`flex-1 font-black ${i ? 'border-l-2 border-black' : ''}`}
                           style={{ padding: '7px 2px', fontSize: 11, background: cardBots === v ? GOLD : '#fff', color: '#000', ...OSWALD }}>
@@ -2588,23 +2589,23 @@ export function EscLobby() {
                     <div className="flex gap-2 mt-2.5">
                       <button onClick={async () => {
                         const nome = cardNome.trim()
-                        if (!nome) { setRoomError('A liga precisa de um nome.'); return }
+                        if (!nome) { setRoomError(tr('A liga precisa de um nome.', 'The league needs a name.')); return }
                         const quando = new Date(`${cardData}T${cardHora}`)
-                        if (isNaN(quando.getTime())) { setRoomError('Confira o dia e a hora.'); return }
+                        if (isNaN(quando.getTime())) { setRoomError(tr('Confira o dia e a hora.', 'Check the day and time.')); return }
                         const ok = await patchLigaId(r.id, { roomName: nome, ligaAt: quando.toISOString(), ligaFechada: !cardBots, ...(cardPw.trim() ? { senhaNova: cardPw.trim() } : {}) })
                         if (!ok) return
                         setCardPw(''); setCardEdit(null); fetchMyLigas()
                       }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-[11.5px]"
                         style={{ background: GREEN, color: '#fff', ...OSWALD }}>
-                        ✅ Salvar
+                        {tr('✅ Salvar', '✅ Save')}
                       </button>
                       <button onClick={() => setCardEdit(null)}
                         className="flex-1 border-2 border-black rounded-lg py-2 font-black text-[11.5px] bg-white text-black" style={OSWALD}>
-                        Cancelar
+                        {tr('Cancelar', 'Cancel')}
                       </button>
                     </div>
                     <p className="text-black/45 text-[10px] font-bold mt-2 leading-snug">
-                      Muda tudo isso quando quiser, na mesma liga — <b>nenhum troféu se perde</b>.
+                      {getLang() === 'en' ? <>Change all of this whenever you like, in the same league — <b>no trophy is lost</b>.</> : <>Muda tudo isso quando quiser, na mesma liga — <b>nenhum troféu se perde</b>.</>}
                     </p>
                   </div>
                 )}
@@ -2617,7 +2618,7 @@ export function EscLobby() {
       {/* Minhas carreiras (saves do host) — só aparece pra quem tem carreira em andamento */}
       {canCareer && myCareers.length > 0 && (
         <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>🪜 Minhas carreiras</p>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{tr('🪜 Minhas carreiras', '🪜 My careers')}</p>
           {myCareers.map(r => {
             const gs = r.game_state as GS & { seasonNo?: number; careerOnline?: boolean }
             const nm = gs?.roomName ?? r.code
@@ -2626,17 +2627,17 @@ export function EscLobby() {
               <div key={r.id} className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-2 bg-white">
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
-                  <p className="text-black/60 text-[11px] font-bold">Temporada {gs?.seasonNo ?? 1} · sala {r.code}{iAmHost ? '' : ' · você é convidado'}</p>
+                  <p className="text-black/60 text-[11px] font-bold">{tr('Temporada', 'Season')} {gs?.seasonNo ?? 1} · {tr('sala', 'room')} {r.code}{iAmHost ? '' : tr(' · você é convidado', ' · you are a guest')}</p>
                 </div>
                 <button onClick={() => resumeCareer(r)} disabled={loading}
                   className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
                   style={{ background: iAmHost ? GREEN : PURPLE, color: '#fff', ...OSWALD }}>
-                  {iAmHost ? '▶️ Continuar' : '↩️ Voltar'}
+                  {iAmHost ? tr('▶️ Continuar', '▶️ Continue') : tr('↩️ Voltar', '↩️ Back')}
                 </button>
                 {/* 🗑️ tirar da lista: host apaga a carreira; convidado só sai dela */}
                 <button onClick={() => apagarCarreira(r)} disabled={loading}
-                  aria-label={iAmHost ? `Apagar a carreira ${nm}` : `Sair da carreira ${nm}`}
-                  title={iAmHost ? 'Apagar essa carreira' : 'Sair dessa carreira'}
+                  aria-label={iAmHost ? `${tr('Apagar a carreira', 'Delete career')} ${nm}` : `${tr('Sair da carreira', 'Leave career')} ${nm}`}
+                  title={iAmHost ? tr('Apagar essa carreira', 'Delete this career') : tr('Sair dessa carreira', 'Leave this career')}
                   className="shrink-0 w-8 h-8 rounded-lg border-2 border-black font-black text-sm leading-none active:translate-y-0.5"
                   style={{ background: '#fff', color: '#B23B2E' }}>🗑️</button>
               </div>
@@ -2673,10 +2674,10 @@ export function EscLobby() {
         // DEPOIS da liga, igual à Copa dos 8 e à Libertadores. O lugar dela é o
         // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
         const MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
-          { v: 'rapido', ic: '⚡', nome: 'Rápido', frase: 'Uma temporada. Começa agora.', on: true },
-          { v: 'liga', ic: '🏆', nome: 'Minhas ligas', frase: 'A sala da turma que não acaba.', on: ligaOn, selo: '👑 LENDA' },
-          { v: 'carreira', ic: '🌐', nome: 'Carreira', frase: '4 divisões + Várzea — sobe e cai.', on: canCareer, emTeste: true },
-          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: 'Só com o seu time da carreira, valendo carta.', on: salaElenco, emTeste: true },
+          { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
+          { v: 'liga', ic: '🏆', nome: tr('Minhas ligas', 'My leagues'), frase: tr('A sala da turma que não acaba.', 'The crew\'s room that never ends.'), on: ligaOn, selo: tr('👑 LENDA', '👑 LEGEND') },
+          { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true },
+          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true },
         ]
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
@@ -2711,50 +2712,50 @@ export function EscLobby() {
                 <div className="mt-3 rounded-xl border-[3px] border-black p-3.5" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
                   {canLiga && previewComum && (
                     <p className="inline-flex text-[9.5px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-2" style={{ background: '#FFC400', color: INK, ...OSWALD }}>
-                      👁️ prévia — é isto que quem NÃO é Lenda vê aqui
+                      {tr('👁️ prévia — é isto que quem NÃO é Lenda vê aqui', '👁️ preview — this is what non-Legends see here')}
                     </p>
                   )}
-                  <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>👑 Criar uma liga é do Lenda</p>
+                  <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>{tr('👑 Criar uma liga é do Lenda', '👑 Creating a league is for Legends')}</p>
                   <p className="text-white/70 text-[11.5px] font-bold leading-snug mb-3">
-                    A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e artilheiro <b className="text-white">temporada após temporada</b>.
+                    {getLang() === 'en' ? <>The league is the room that <b className="text-white">stays up</b>: always the same one, with a set day and time, and the shelf keeping champion and top scorer <b className="text-white">season after season</b>.</> : <>A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e artilheiro <b className="text-white">temporada após temporada</b>.</>}
                   </p>
                   <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
                     className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
                     style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-                    👑 QUERO SER LENDA
+                    {tr('👑 QUERO SER LENDA', '👑 I WANT TO BE LEGEND')}
                   </button>
                   <p className="text-white/55 text-[11px] font-bold leading-snug mt-2.5">
-                    ✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se um Lenda criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.
+                    {getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If a Legend creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se um Lenda criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>}
                   </p>
                   <p className="text-white/35 text-[10px] font-bold leading-snug mt-2">
-                    Quer só jogar agora? Use o <b className="text-white/60">⚡ Rápido</b> aqui em cima — é de graça e sempre foi.
+                    {getLang() === 'en' ? <>Just want to play now? Use <b className="text-white/60">⚡ Quick</b> up there — it's free and always was.</> : <>Quer só jogar agora? Use o <b className="text-white/60">⚡ Rápido</b> aqui em cima — é de graça e sempre foi.</>}
                   </p>
                 </div>
               )}
               {roomMode === 'liga' && canLiga && (
                 <div className="mt-3 rounded-xl border-[3px] border-black p-3" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-2" style={OSWALD}>🏆 A sua liga</p>
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>🖋️ Nome da liga</p>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-2" style={OSWALD}>{tr('🏆 A sua liga', '🏆 Your league')}</p>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mb-1.5" style={OSWALD}>{tr('🖋️ Nome da liga', '🖋️ League name')}</p>
                   <input value={roomName} maxLength={24} onChange={e => setRoomName(stripEmoji(e.target.value))}
-                    placeholder={`Liga do ${nameOf()}`}
+                    placeholder={`${tr('Liga do', 'League of')} ${nameOf()}`}
                     className="w-full border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>{tr('📅 Quando vocês jogam', '📅 When you play')}</p>
                   <div className="flex gap-2">
                     <input type="date" value={ligaData} min={emDias(0)} onChange={e => setLigaData(e.target.value)}
                       className="flex-1 min-w-0 border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
                     <input type="time" value={ligaHora} onChange={e => setLigaHora(e.target.value)}
                       className="w-[104px] border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
                   </div>
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🤖 Bots na tabela</p>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>{tr('🤖 Bots na tabela', '🤖 Bots in the table')}</p>
                   {/* 🤖 ORDEM PEDIDA PELO DIEGO (29/08): *"coloque na frente com
                       bots (padrão) e só ao lado direito o sem bots"*. Com bots
                       passa a ser o PADRÃO — é o jeito que o pessoal já conhece do
                       rápido; sem bots vira a escolha de quem quer só a turma. */}
-                  <Seg options={[[true, 'Com bots até 20'], [false, 'Sem bots — só vocês']] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
+                  <Seg options={[[true, tr('Com bots até 20', 'With bots up to 20')], [false, tr('Sem bots — só vocês', 'No bots — just you')]] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
                   <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {ligaComBots
-                      ? '🤖 Padrão. Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.'
-                      : '🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.'}
+                      ? tr('🤖 Padrão. Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.', '🤖 Default. 20-team table — the missing ones join as CPU, like the usual quick match.')
+                      : tr('🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.', '🏆 Only your crew in the table. The league is as big as you are (home and away). Cup unlocks with 8+ players.')}
                   </p>
                   {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
                       com senha, mas deixe avisado que essa sala é somente com senha.
@@ -2762,22 +2763,30 @@ export function EscLobby() {
                       a sala pode continuar aberta todos os dias"*). Sem isto escrito, o
                       dono criaria achando que é sala normal e só descobriria a regra na
                       hora de chamar a galera — e ia achar que o jogo escondeu a liga. */}
-                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>🔒 Senha da liga <span style={{ color: '#E8503A' }}>(obrigatória)</span></p>
+                  <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>{tr('🔒 Senha da liga', '🔒 League password')} <span style={{ color: '#E8503A' }}>{tr('(obrigatória)', '(required)')}</span></p>
                   <input value={ligaPw} maxLength={24} onChange={e => setLigaPw(e.target.value)}
-                    placeholder="Escolha uma senha"
+                    placeholder={tr('Escolha uma senha', 'Choose a password')}
                     className="w-full border-[2.5px] border-black rounded-lg px-2.5 py-2 font-black text-black text-sm bg-white" style={OSWALD} />
                   <div className="mt-3 rounded-lg border-2 border-black p-2.5" style={{ background: 'rgba(0,0,0,.28)' }}>
-                    <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-1.5" style={OSWALD}>📋 Como a sua liga funciona</p>
+                    <p className="font-black text-[11px] uppercase tracking-wider text-white/70 mb-1.5" style={OSWALD}>{tr('📋 Como a sua liga funciona', '📋 How your league works')}</p>
                     <p className="text-white/60 text-[10.5px] font-bold leading-relaxed">
+                      {getLang() === 'en' ? <>
+                      🔒 <b className="text-white">Only the code + the password get you in.</b> It's your crew's home — nobody wanders in by accident.<br />
+                      👀 <b className="text-white">In the room list it only shows while a match is running</b>, and even then nobody from outside can join. It's just to show the league exists.<br />
+                      📅 <b className="text-white">The day and time are an agreement</b>, not a lock — it's so the crew knows when to meet.<br />
+                      🏠 <b className="text-white">The room stays up every day.</b> It's always the SAME one: play today, tomorrow and next month, and the trophies keep adding up on the shelf.<br />
+                      👑 <b className="text-white">Only you open the auction</b> (2 people minimum), and <b className="text-white">the league never deletes itself</b> — it only goes if you press 🗑️ Delete.
+                      </> : <>
                       🔒 <b className="text-white">Só entra com o código + a senha.</b> Ela é a casa da sua turma — ninguém entra por acaso.<br />
                       👀 <b className="text-white">Na lista de salas ela só aparece com a partida rolando</b>, e mesmo assim ninguém de fora consegue entrar. É só pra mostrar que a liga existe.<br />
                       📅 <b className="text-white">O dia e a hora são um combinado</b>, não uma trava — serve pra turma saber quando se encontrar.<br />
                       🏠 <b className="text-white">A sala fica de pé todos os dias.</b> É sempre a MESMA: joga hoje, amanhã e no mês que vem, e os troféus vão somando na estante.<br />
                       👑 <b className="text-white">Só você abre o pregão</b> (mínimo 2 pessoas), e <b className="text-white">a liga nunca se apaga sozinha</b> — some só se você apertar 🗑️ Excluir.
+                      </>}
                     </p>
                   </div>
                   <p className="text-white/35 text-[10px] font-bold mt-2 leading-snug">
-                    Dá pra trocar o nome, o dia, a hora e os bots depois — na mesma sala, sem perder troféu nenhum.
+                    {tr('Dá pra trocar o nome, o dia, a hora e os bots depois — na mesma sala, sem perder troféu nenhum.', 'You can change the name, day, time and bots later — same room, without losing any trophy.')}
                   </p>
                 </div>
               )}
@@ -2793,10 +2802,10 @@ export function EscLobby() {
         // formulário de algo que não dá pra criar é promessa falsa.
         const modoLiberado = MODOS.find(m => m.v === roomMode)?.on ?? true
         const EXPLICA: Record<string, string> = {
-          rapido: '🔨 O leilão de sempre — uma temporada avulsa. Acabou o campeonato, acabou a sala.',
-          liga: '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.',
-          carreira: '🌐 Pirâmide de 4 divisões + a Várzea — cada técnico sobe e cai por conta própria, no mesmo mundo pra todos.',
-          elenco: '🃏 SEM LEILÃO — cada um entra com o time da PRÓPRIA carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta pro de cima.',
+          rapido: tr('🔨 O leilão de sempre — uma temporada avulsa. Acabou o campeonato, acabou a sala.', '🔨 The usual auction — a one-off season. Championship over, room over.'),
+          liga: tr('🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.', '🏆 Your crew\'s league: you set the day and time, it\'s always the SAME room, and the trophies stay stored in it — season after season.'),
+          carreira: tr('🌐 Pirâmide de 4 divisões + a Várzea — cada técnico sobe e cai por conta própria, no mesmo mundo pra todos.', '🌐 A pyramid of 4 divisions + Várzea — each manager goes up and down on their own, in the same world for everyone.'),
+          elenco: tr('🃏 SEM LEILÃO — cada um entra com o time da PRÓPRIA carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta pro de cima.', '🃏 NO AUCTION — everyone enters with the team from their OWN career. A 38-round league, no Cup. And cards are at stake: at the end, whoever finished behind hands a card to the one above.'),
         }
         return (
         <div className="space-y-3">
@@ -2804,9 +2813,9 @@ export function EscLobby() {
             <div className="online-mode-section rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
               <p className="font-black text-white text-[15px] uppercase leading-none flex items-center gap-2" style={OSWALD}>
                 <span className="inline-flex items-center justify-center shrink-0 border-2 border-black rounded-full" style={{ width: 22, height: 22, background: GOLD, color: INK, fontSize: 12 }}>1</span>
-                O que vocês vão jogar?
+                {tr('O que vocês vão jogar?', 'What are you going to play?')}
               </p>
-              <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">Escolhe um. O resto já está no ponto.</p>
+              <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">{tr('Escolhe um. O resto já está no ponto.', 'Pick one. The rest is ready to go.')}</p>
               {MODOS.map(m => {
                 const sel = roomMode === m.v
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
@@ -2827,7 +2836,7 @@ export function EscLobby() {
                       <span className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-black text-black text-[15px]" style={OSWALD}>{m.nome}</span>
                         {m.selo && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: sel ? '#fff' : GOLD, color: '#000', ...OSWALD }}>{m.selo}</span>}
-                        {emBreve && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: '#7C3AED', color: '#fff', ...OSWALD }}>EM BREVE</span>}
+                        {emBreve && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: '#7C3AED', color: '#fff', ...OSWALD }}>{tr('EM BREVE', 'COMING SOON')}</span>}
                       </span>
                       <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
                     </span>
@@ -2840,7 +2849,7 @@ export function EscLobby() {
                 <p className="text-white/65 text-[11px] font-bold leading-snug">{EXPLICA[roomMode]}</p>
                 {MODOS.find(m => m.v === roomMode)?.emTeste && (
                   <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
-                    🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!
+                    {getLang() === 'en' ? <>🔜 Still under construction — <b>creating</b> this mode unlocks soon. Keep an eye on the news!</> : <>🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!</>}
                   </p>
                 )}
               </div>
@@ -2851,7 +2860,7 @@ export function EscLobby() {
           )}
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
           {(!criar2 || modoLiberado) && (<>
-          <Section num={criar2 ? 2 : 1} title={criar2 ? 'O time e o baralho' : 'O básico'} icon="📋">
+          <Section num={criar2 ? 2 : 1} title={criar2 ? tr('O time e o baralho', 'The team and the deck') : tr('O básico', 'The basics')} icon="📋">
             <div>
               {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
                   *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
@@ -2859,7 +2868,7 @@ export function EscLobby() {
                   Os cartões lá em cima JÁ são a escolha do modo — este seletor
                   (e a frase que explica o modo escolhido) fica só na tela antiga. */}
               {!criar2 && (<>
-              <SegField label={canCareer ? 'Modo de jogo (teste)' : 'Modo de jogo'}>
+              <SegField label={canCareer ? tr('Modo de jogo (teste)', 'Game mode (test)') : tr('Modo de jogo', 'Game mode')}>
                 {/* 🎛️ OS TRÊS MODOS SEMPRE À VISTA (Diego 17/08: "pode deixar esse
                     modo aparecendo e também o do carreira, e os dois coloque em
                     breve — mas pode usar somente eu com meu usuário").
@@ -2875,9 +2884,9 @@ export function EscLobby() {
                   // arrumando troféu e escrevendo a regra do ranking) ainda está sendo
                   // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
                   const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
-                    { v: 'rapido', label: '⚡ Rápido', liberado: true },
-                    { v: 'liga', label: '🏆 Minhas ligas', liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
-                    { v: 'carreira', label: '🌐 Carreira', liberado: canCareer },
+                    { v: 'rapido', label: tr('⚡ Rápido', '⚡ Quick'), liberado: true },
+                    { v: 'liga', label: tr('🏆 Minhas ligas', '🏆 My leagues'), liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
+                    { v: 'carreira', label: tr('🌐 Carreira', '🌐 Career'), liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
                   return (
@@ -2892,7 +2901,7 @@ export function EscLobby() {
                         <button key={a.label} disabled
                           className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
                           style={{ padding: '9px 1px', fontSize: 9, minWidth: 0, background: '#fff', color: '#000', opacity: 0.4, cursor: 'default', lineHeight: 1.15, ...OSWALD }}>
-                          {a.label}<br /><span style={{ fontSize: 8 }}>em breve</span>
+                          {a.label}<br /><span style={{ fontSize: 8 }}>{tr('em breve', 'soon')}</span>
                         </button>
                       ))}
                     </div>
@@ -2900,7 +2909,7 @@ export function EscLobby() {
                 })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {roomMode === 'liga' ? '🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.' : isElenco ? '🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.' : !canCareer && !salaElenco ? '🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!' : !canCareer ? '🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!' : isCareer ? '🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.' : '🔨 O leilão de sempre — uma temporada avulsa.'}
+                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.', '🃏 NO AUCTION — everyone brings the team from their OWN career: the current squad or 22 from the career\'s card album. A 38-round league, no Cup. And cards are at stake: at the end, whoever finished behind hands a career card to the one above.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
               </p>
               </>)}
               {!criar2 && quadroLiga}
@@ -2908,13 +2917,13 @@ export function EscLobby() {
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
             {!isCareer && (
               <div>
-                <SegField label="Quem comanda cada time">
-                  <Seg options={[[false, '👤 Solo'], [true, '🤝 Duplas (beta)']] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
+                <SegField label={tr('Quem comanda cada time', 'Who runs each team')}>
+                  <Seg options={[[false, '👤 Solo'], [true, tr('🤝 Duplas (beta)', '🤝 Duos (beta)')]] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
                 </SegField>
                 <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
                   {roomDuplas
-                    ? '🤝 Dá pra jogar de dois no MESMO time: um cuida de 3 posições, o outro das outras 3. Cabem 20 times, ou seja até 40 pessoas.'
-                    : '👤 Cada pessoa comanda o próprio time — do jeito de sempre.'}
+                    ? tr('🤝 Dá pra jogar de dois no MESMO time: um cuida de 3 posições, o outro das outras 3. Cabem 20 times, ou seja até 40 pessoas.', '🤝 Two people can play the SAME team: one handles 3 positions, the other the other 3. 20 teams fit, i.e. up to 40 people.')
+                    : tr('👤 Cada pessoa comanda o próprio time — do jeito de sempre.', '👤 Each person runs their own team — the usual way.')}
                 </p>
               </div>
             )}
@@ -2922,28 +2931,28 @@ export function EscLobby() {
                 Deixar este campo aqui perguntaria a MESMA coisa duas vezes — foi
                 exatamente a bronca que o Diego deu sobre os bots em 22/08. */}
             {roomMode !== 'liga' && (
-              <Field label="Nome da sala" value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`Sala do ${nameOf()}`} maxLength={24} />
+              <Field label={tr('Nome da sala', 'Room name')} value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`${tr('Sala do', 'Room of')} ${nameOf()}`} maxLength={24} />
             )}
             {isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <p className="text-white font-black text-[12.5px]" style={OSWALD}>🌎 Baralho fixo: Brasil + Europa</p>
-                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.</p>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho fixo: Brasil + Europa', '🌎 Fixed deck: Brazil + Europe')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.', 'Career uses both together (~700 names) to fill the 80 teams of the 4 divisions.')}</p>
               </div>
             ) : (
-              <SegField label="Baralho de craques">
-                <Seg options={[['br', '🇧🇷 Brasil'], ['eu', '🌍 Europa'], ['both', '🌎 Todos (BR+EU+Mundo)']] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
+              <SegField label={tr('Baralho de craques', 'Deck of stars')}>
+                <Seg options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['both', tr('🌎 Todos (BR+EU+Mundo)', '🌎 All (BR+EU+World)')]] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
                 {/* 🥅 categoria SÓ do baralho Brasil: Todos (padrão) ou Várzea (sem craques) */}
                 {rapidoDeck === 'br' && (
                   <div className="mt-2.5">
-                    <p className="text-white/55 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>Categoria</p>
-                    <Seg options={[[false, 'Todos'], [true, '🥅 Várzea']] as [boolean, string][]} value={rapidoVarzea} onSet={v => setRapidoVarzea(v)} />
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{rapidoVarzea ? '🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.' : '🇧🇷 Baralho BR inteiro, do craque ao perna-de-pau.'}</p>
+                    <p className="text-white/55 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>{tr('Categoria', 'Category')}</p>
+                    <Seg options={[[false, tr('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]} value={rapidoVarzea} onSet={v => setRapidoVarzea(v)} />
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{rapidoVarzea ? tr('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pick-up football.') : tr('🇧🇷 Baralho BR inteiro, do craque ao perna-de-pau.', '🇧🇷 The whole BR deck, from the star to the donkey.')}</p>
                   </div>
                 )}
               </SegField>
             )}
             {!isCareer && (
-              <SegField label="Formação (vale pra todos)">
+              <SegField label={tr('Formação (vale pra todos)', 'Formation (for everyone)')}>
                 <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2']] as [FormationKey, string][]} value={formation} onSet={v => setFormation(v)} />
               </SegField>
             )}
@@ -2951,9 +2960,9 @@ export function EscLobby() {
 
           {/* ② OS RIVAIS — só na carreira (igual offline: host escolhe os CPUs do leilão) */}
           {isCareer && (
-            <Section num={criar2 ? 3 : 2} title="Os rivais" icon="🔥">
+            <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥">
               <div>
-                <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>Rivais no leilão (CPUs)</p>
+                <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>{tr('Rivais no leilão (CPUs)', 'Rivals at the auction (CPUs)')}</p>
                 <div className="grid grid-cols-4 gap-2">
                   {[3, 5, 7, 9].map(n => (
                     <button key={n} onClick={() => setCareerRivals(n)}
@@ -2963,10 +2972,10 @@ export function EscLobby() {
                     </button>
                   ))}
                 </div>
-                <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">Eles dão lance no pregão e disputam a temporada com vocês — igual ao offline. Na tabela aparecem como time comum (sem selo); só vocês e as SAFs ficam marcados.</p>
+                <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{tr('Eles dão lance no pregão e disputam a temporada com vocês — igual ao offline. Na tabela aparecem como time comum (sem selo); só vocês e as SAFs ficam marcados.', 'They bid at the auction and play the season with you — just like offline. In the table they show as regular teams (no badge); only you and the SAFs are marked.')}</p>
               </div>
               <div>
-                <p className="text-white text-[11px] font-black uppercase mb-1">🔥 Escolha os rivais <span className="text-white/50">({careerRivalPicks.length}/{careerRivals})</span></p>
+                <p className="text-white text-[11px] font-black uppercase mb-1">{tr('🔥 Escolha os rivais', '🔥 Pick the rivals')} <span className="text-white/50">({careerRivalPicks.length}/{careerRivals})</span></p>
                 <div className="flex flex-wrap gap-1.5">
                   {TIMES_ELITE.map(t => {
                     const on = careerRivalPicks.includes(t.team)
@@ -2980,7 +2989,7 @@ export function EscLobby() {
                   })}
                 </div>
                 <button onClick={() => setCareerRivalPicks([])} className="mt-2 border-2 border-black rounded-lg px-2.5 py-1 font-black text-[11px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                  🎲 Não escolher — usar rivais padrão
+                  {tr('🎲 Não escolher — usar rivais padrão', '🎲 Don\'t choose — use default rivals')}
                 </button>
               </div>
             </Section>
@@ -2988,7 +2997,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={criar2 ? 3 : 2} title="A partida" icon="⚽">
+            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon="⚽">
               {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
                   Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
                   fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
@@ -3006,26 +3015,26 @@ export function EscLobby() {
                   escrito. A sala já nasce com copaMode:'liga' travado. */}
               {isElenco ? (
                 <>
-                <SegField label="Depois da liga">
+                <SegField label={tr('Depois da liga', 'After the league')}>
                   <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
-                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>📊 Só a liga · 38 rodadas</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">No Bafo <b>não tem Copa</b> — é a tabela do começo ao fim, e a classificação final é o que decide quem entrega carta pra quem.</p>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 Só a liga · 38 rodadas', '📊 League only · 38 rounds')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{getLang() === 'en' ? <>In Bafo <b>there is no Cup</b> — it's the table from start to finish, and the final standings decide who hands a card to whom.</> : <>No Bafo <b>não tem Copa</b> — é a tabela do começo ao fim, e a classificação final é o que decide quem entrega carta pra quem.</>}</p>
                   </div>
                 </SegField>
                 {/* 🃏 O host decide se a partida vale carta de verdade. Amistoso
                     existe pra galera experimentar o modo sem medo de perder carta
                     — e é o Diego quem sempre pede o caminho de volta. */}
-                <SegField label="No fim da liga">
-                  <Seg options={[[true, '🃏 Valendo carta'], [false, '🤝 Amistoso']] as [boolean, string][]} value={bafoValendo} onSet={v => setBafoValendo(v)} />
+                <SegField label={tr('No fim da liga', 'At the end of the league')}>
+                  <Seg options={[[true, tr('🃏 Valendo carta', '🃏 Cards at stake')], [false, tr('🤝 Amistoso', '🤝 Friendly')]] as [boolean, string][]} value={bafoValendo} onSet={v => setBafoValendo(v)} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {bafoValendo
-                      ? <>Quem ficou atrás entrega <b>uma carta sorteada</b> da carreira que trouxe pro time logo acima — e a carta <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>
-                      : <>Ninguém perde nem ganha carta. Só a tabela, pra brincar sem risco.</>}
+                      ? (getLang() === 'en' ? <>Whoever finished behind hands <b>a randomly drawn card</b> from the career they brought to the team right above — and the card <b>really changes owner</b>. Whoever has only one card doesn't hand it over: the house covers.</> : <>Quem ficou atrás entrega <b>uma carta sorteada</b> da carreira que trouxe pro time logo acima — e a carta <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>)
+                      : tr('Ninguém perde nem ganha carta. Só a tabela, pra brincar sem risco.', 'Nobody loses or wins cards. Just the table, to play with no risk.')}
                   </p>
                 </SegField>
                 </>
               ) : (
-                <SegField label="Depois da liga">
+                <SegField label={tr('Depois da liga', 'After the league')}>
                   {/* 🌎 A Libertadores é a TERCEIRA opção — e nunca vem junto com a
                       Copa dos 8: é uma OU a outra, porque as duas ocupam o mesmo
                       lugar (o que acontece quando a liga acaba). Como é um botão
@@ -3044,11 +3053,17 @@ export function EscLobby() {
                       o motor do leilão não muda em NADA, e a Copa entra por cima na
                       tela de fim de temporada. */}
                   <Seg options={(libertaOn
-                    ? [['liga_copa', '🏆 Liga + Copa'], ['liga_liberta', '🌎 Liga + Liberta'], ['liga_mundo', '🌐 Liga + Mundo'], ['liga', '📊 Só liga']]
-                    : [['liga_copa', '🏆 Liga + Copa'], ['liga_mundo', '🌐 Liga + Mundo'], ['liga', '📊 Só liga']]) as ['liga_copa' | 'liga_liberta' | 'liga_mundo' | 'liga', string][]}
+                    ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
+                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'liga_mundo' | 'liga', string][]}
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} selos={{ liga_mundo: seloNovo() }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {rapidoCopaMode === 'liga_mundo'
+                    {getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
+                      ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 4 groups, two-legged knockouts and a single final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
+                      : rapidoCopaMode === 'liga_liberta'
+                      ? <>🌎 League over, the <b>top 8</b> enter the Libertadores with <b>24 clubs from the continent</b> (32 in total): 8 groups of 4, 2 go through, and the knockouts run to a single final. <b>No Cup of 8</b> in this room.</>
+                      : rapidoCopaMode === 'liga_copa'
+                        ? <>🏆 League over, the top 8 play the Cup of 8 — home and away up to a single final.</>
+                        : <>📊 Just the table, start to finish. The champion is whoever gets the most points.</>) : rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 4 grupos, mata-mata ida e volta e final única. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
@@ -3059,16 +3074,16 @@ export function EscLobby() {
                 </SegField>
               )}
               {!roomStream && (
-                <SegField label="Ritmo">
+                <SegField label={tr('Ritmo', 'Pace')}>
                   <Seg options={[[false, '⚡ Auto'], [true, '🎮 Manual']] as [boolean, string][]} value={roomManual} onSet={v => setRoomManual(v)} />
-                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{roomManual ? '🎮 O host aperta pra avançar cada partida — ideal pra jogar com amigos.' : '⚡ Anda sozinho, na velocidade normal do online.'}</p>
+                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{roomManual ? tr('🎮 O host aperta pra avançar cada partida — ideal pra jogar com amigos.', '🎮 The host taps to advance each match — ideal for playing with friends.') : tr('⚡ Anda sozinho, na velocidade normal do online.', '⚡ Runs on its own, at the normal online speed.')}</p>
                 </SegField>
               )}
             </Section>
           )}
 
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
-          <Section num={criar2 ? 4 : 3} title="A sala" icon="🔧">
+          <Section num={criar2 ? 4 : 3} title={tr('A sala', 'The room')} icon="🔧">
             <div>
               {/* 🔒 no modo LIGA este toggle some: a liga é SEMPRE fechada e a senha
                   dela já foi pedida lá em cima, no quadro da liga. Deixar os dois
@@ -3077,26 +3092,26 @@ export function EscLobby() {
                   dizendo a regra, pra ninguém achar que o jogo esqueceu a opção. */}
               {roomMode === 'liga'
                 ? <div className="rounded-xl border-2 border-black px-3 py-2.5" style={{ background: 'rgba(0,0,0,.28)' }}>
-                    <p className="font-black text-[12.5px] text-white" style={OSWALD}>🏆 A senha da liga fica lá em cima</p>
-                    <p className="text-white/50 text-[10.5px] font-bold mt-0.5">No quadro da liga, junto com o dia e a hora. Liga é sempre com senha.</p>
+                    <p className="font-black text-[12.5px] text-white" style={OSWALD}>{tr('🏆 A senha da liga fica lá em cima', '🏆 The league password is up there')}</p>
+                    <p className="text-white/50 text-[10.5px] font-bold mt-0.5">{tr('No quadro da liga, junto com o dia e a hora. Liga é sempre com senha.', 'In the league box, next to the day and time. A league always has a password.')}</p>
                   </div>
-                : <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? 'Sala fechada' : 'Sala aberta'} sub={roomLocked ? 'Só entra com senha' : 'Qualquer um entra'} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />}
+                : <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? tr('Sala fechada', 'Locked room') : tr('Sala aberta', 'Open room')} sub={roomLocked ? tr('Só entra com senha', 'Password required') : tr('Qualquer um entra', 'Anyone can join')} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />}
               {roomLocked && roomMode !== 'liga' && (
                 <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
-                  placeholder="Senha da sala (avise a galera)"
+                  placeholder={tr('Senha da sala (avise a galera)', 'Room password (tell your crew)')}
                   className="w-full mt-2 border-[2.5px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
               )}
             </div>
-            <ToggleRow icon={roomChat ? '💬' : '🔕'} title="Chat da sala" sub={roomChat ? 'A galera pode zoar na sala' : 'Sem chat'} on={roomChat} onClick={() => setRoomChat(v => !v)} />
+            <ToggleRow icon={roomChat ? '💬' : '🔕'} title={tr('Chat da sala', 'Room chat')} sub={roomChat ? tr('A galera pode zoar na sala', 'The crew can banter in the room') : tr('Sem chat', 'No chat')} on={roomChat} onClick={() => setRoomChat(v => !v)} />
             {/* 🎮 RITMO: na carreira NÃO se escolhe na criação — nasce em auto e o
                 HOST liga/desliga o manual DENTRO do jogo (nas partidas). */}
             {!isCareer && (
               <div>
-                <ToggleRow icon="🎥" title="Modo Stream" sub={roomStream ? 'Valores dos lances ocultos' : 'Esconde os valores (pra live)'} on={roomStream} onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }} />
+                <ToggleRow icon="🎥" title={tr('Modo Stream', 'Stream mode')} sub={roomStream ? tr('Valores dos lances ocultos', 'Bid values hidden') : tr('Esconde os valores (pra live)', 'Hides the values (for streaming)')} on={roomStream} onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }} />
                 {/* ⏱️ TEMPO DO LEILÃO — sub-opção do streamer (só com o Stream ligado) */}
                 {roomStream && (
                   <div className="mt-2 rounded-xl border-[2.5px] border-black p-2.5" style={{ background: 'rgba(46,111,176,.16)' }}>
-                    <p className="text-white/60 text-[10px] font-black uppercase mb-1.5" style={{ letterSpacing: '.12em' }}>⏱️ Tempo do leilão (pregão)</p>
+                    <p className="text-white/60 text-[10px] font-black uppercase mb-1.5" style={{ letterSpacing: '.12em' }}>{tr('⏱️ Tempo do leilão (pregão)', '⏱️ Auction timer')}</p>
                     <Seg small dim={auctionSecs === 0}
                       options={[[20, '20s'], [30, '30s'], [45, '45s'], [60, '60s'], [90, '90s']] as [number, string][]}
                       value={auctionSecs === 0 ? -1 : auctionSecs} onSet={v => setAuctionSecs(v)} />
@@ -3105,8 +3120,8 @@ export function EscLobby() {
                       style={{ background: auctionSecs === 0 ? '#2E6FB0' : '#fff', color: auctionSecs === 0 ? '#fff' : '#000' }}>
                       <span className="text-lg leading-none">🎮</span>
                       <span className="flex-1 min-w-0">
-                        <b className="block font-black leading-tight" style={{ fontSize: 13, ...OSWALD }}>{auctionSecs === 0 ? 'Sem tempo — você avança' : 'Sem tempo (host avança)'}</b>
-                        <small className="font-bold" style={{ fontSize: 10, color: auctionSecs === 0 ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.5)' }}>Você fecha cada envelope no botão</small>
+                        <b className="block font-black leading-tight" style={{ fontSize: 13, ...OSWALD }}>{auctionSecs === 0 ? tr('Sem tempo — você avança', 'No timer — you advance') : tr('Sem tempo (host avança)', 'No timer (host advances)')}</b>
+                        <small className="font-bold" style={{ fontSize: 10, color: auctionSecs === 0 ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.5)' }}>{tr('Você fecha cada envelope no botão', 'You close each envelope with the button')}</small>
                       </span>
                       <Sw on={auctionSecs === 0} />
                     </button>
@@ -3121,7 +3136,7 @@ export function EscLobby() {
               escolhido ainda não abriu — o cartão em breve termina na explicação. */}
           {(!criar2 || modoLiberado) && (
             <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
-              <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? 'Criando...' : criar2 ? '🔨 Criar e chamar a galera' : isCareer ? '🌐 Criar Carreira' : '🏠 Criar Sala'}</span>
+              <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? tr('Criando...', 'Creating...') : criar2 ? tr('🔨 Criar e chamar a galera', '🔨 Create and call the crew') : isCareer ? tr('🌐 Criar Carreira', '🌐 Create Career') : tr('🏠 Criar Sala', '🏠 Create Room')}</span>
             </Big>
           )}
         </div>
@@ -3548,7 +3563,7 @@ export function EscLobby() {
                 nenhum e não tem mais tela pra mexer nele. */}
             {mandaNaLiga && ligaEdit && (
               <div className="mt-3 rounded-xl border-2 border-black bg-white p-3">
-                <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>📅 Quando vocês jogam</p>
+                <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>{tr('📅 Quando vocês jogam', '📅 When you play')}</p>
                 <div className="flex gap-2">
                   <input type="date" value={ligaEditData} onChange={e => setLigaEditData(e.target.value)}
                     className="flex-1 min-w-0 border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
