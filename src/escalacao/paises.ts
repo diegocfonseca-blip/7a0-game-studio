@@ -229,6 +229,8 @@ export const PAIS: Record<string, string> = {
   'Edinson Cavani': 'Uruguai', 'Gonzalo Higuaín': 'Argentina',
   'Radamel Falcao': 'Colômbia', 'Sadio Mané': 'Senegal',
   'Roberto Firmino': 'Brasil', 'Christian Vieri': 'Itália',
+  // L28 (12/09): Formiga é brasileira; Bolt é jamaicano (carta do Resto do Mundo).
+  'Formiga': 'Brasil', 'Usain Bolt': 'Jamaica',
   'Mário Jardel': 'Brasil', 'Miroslav Klose': 'Alemanha',
   'Giovane Élber': 'Brasil', 'Márcio Amoroso': 'Brasil', 'Sonny Anderson': 'Brasil',
   'Grafite': 'Brasil', 'Vágner Love': 'Brasil', 'Aílton': 'Brasil',
@@ -521,6 +523,8 @@ export function paisDe(name: string, baralho: Baralho, club?: string, year?: num
 // que ninguém conferiu ainda — pode ser outra pessoa, como foi o Pedro.
 // ⚠️ Só entra aqui depois de OLHAR as duas cartas. Na dúvida, deixa de fora.
 export const MESMO_JOGADOR = new Set<string>([
+  // Figueirense 2010 (promessa) e Liverpool 2019 — o mesmo cara em dois auges.
+  'Roberto Firmino',
   'Andreas Pereira', // Flamengo 2022 e Palmeiras 2026 — o mesmo cara em dois clubes
   // ⚠️ 'Alex' é a EXCEÇÃO desta lista: são duas PESSOAS diferentes (o meia do
   // Cruzeiro e o zagueiro do Chelsea). Está aqui só pra calar o aviso do

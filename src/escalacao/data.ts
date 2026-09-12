@@ -1363,7 +1363,21 @@ const L27_BR_MEI: C[] = [
   { name: 'Villasanti', club: 'Grêmio', year: 2023, fame: 2, lo: 68, hi: 81, bio: 'Volante paraguaio do Grêmio — pulmão, desarme e a braçadeira quando falta capitão.' },
   { name: 'Jean Lucas', club: 'Bahia', year: 2024, fame: 2, lo: 68, hi: 81, bio: 'Meio-campista rodado (Flamengo, Lyon, Mônaco, Santos) que virou peça fixa do Bahia.' },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA] }
+// ─── L28 (12/09, pedido do Diego) ────────────────────────────────────────────
+// ⚠️ CLUBE E ANO das duas são o que ele deve conferir (lição do Valdo, 28/08):
+// bio errada é a parte que o JOGADOR LÊ, então as bios abaixo só afirmam o que
+// se sustenta — recorde de Copas/Olimpíadas da Formiga e a saída do Firmino
+// adolescente pra Alemanha. Nenhuma cita título de clube.
+const L28_BR_MEI: C[] = [
+  // 👑 A primeira mulher do baralho depois da Marta (Santos 2009). Volante.
+  { name: 'Formiga', club: 'Santos', year: 2009, fame: 4, lo: 82, hi: 88, bio: 'Recordista do futebol mundial: 7 Copas do Mundo e 7 Olimpíadas, mais do que qualquer jogador ou jogadora na história. Volante de fôlego infinito, jogou até os 44 anos.' },
+  // 2ª carta do Roberto Firmino (a 1ª é Liverpool 2019, no baralho da Europa) —
+  // mesma pessoa em dois auges, igual Kaká São Paulo × Kaká Milan. Registrado em
+  // MESMO_JOGADOR pra o `npm run paises` não achar que são duas pessoas.
+  // 💎 promessa: fez o auge daqui ainda como joia e virou estrela lá fora.
+  { name: 'Roberto Firmino', club: 'Figueirense', year: 2010, fame: 3, lo: 73, hi: 85, promessa: true, bio: 'Revelado no Figueirense, saiu do Brasil aos 19 anos direto pra Alemanha e virou o 9 falso do Liverpool campeão da Europa.' },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -2254,7 +2268,18 @@ const L24_WORLD_ATA: C[] = [
   { name: 'Ángel Mena', club: 'León', year: 2019, fame: 2, lo: 66, hi: 80, bio: 'Ponta-goleador equatoriano, campeão e ídolo no México pelo León.' },
   { name: 'Michael Estrada', club: 'Toluca', year: 2021, fame: 2, lo: 64, hi: 79, bio: 'Centroavante equatoriano de força e velocidade, goleador no futebol mexicano.' },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA] }
+// ─── L28 (12/09, pedido do Diego): o BOLT ────────────────────────────────────
+// 🏃 Ele entra AQUI, no baralho do Resto do Mundo, e não no brasileiro: Bolt
+// nunca jogou no Brasil, e o baralho BR é "auge no Brasil". A carreira e o
+// "todos juntos" usam este baralho, então ele aparece lá; no Rápido só-BR, não.
+// Mover pro BR é uma linha, se o Diego quiser o gag em todo jogo rápido.
+// 🎲 FAIXA MAIS LARGA DO JOGO, de propósito: o nível é sorteado entre lo e hi a
+// cada jogo, então ele tem dia de voar e dia de se perder em campo. É a piada da
+// carta, e o fame 1 segura o preço (a CPU não paga caro por ele).
+const L28_WORLD_ATA: C[] = [
+  { name: 'Usain Bolt', club: 'Central Coast Mariners', year: 2018, fame: 1, lo: 40, hi: 82, folk: true, bio: 'O homem mais rápido do mundo tentou a sorte no futebol: treinou num clube australiano e fez dois gols num amistoso de pré-temporada, mas nunca chegou a assinar contrato profissional.' },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
