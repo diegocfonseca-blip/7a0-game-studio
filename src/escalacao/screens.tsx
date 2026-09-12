@@ -3714,8 +3714,12 @@ function Envelope() {
               <span className="text-sm leading-none">📦</span>
               <span className="text-[11px] font-black text-white uppercase tracking-wide" style={OSWALD}>
                 {totalBatches - curBatch > 0
-                  ? `Leva ${curBatch} de ${totalBatches} · ainda ${totalBatches - curBatch > 1 ? 'vêm' : 'vem'} mais ${totalBatches - curBatch} leva${totalBatches - curBatch > 1 ? 's' : ''} de ${posName.toLowerCase()}`
-                  : `Última leva de ${posName.toLowerCase()} · ${curBatch} de ${totalBatches}`}
+                  ? (lang === 'en'
+                    ? `Batch ${curBatch} of ${totalBatches} · ${totalBatches - curBatch} more ${totalBatches - curBatch > 1 ? 'batches' : 'batch'} of ${posName.toLowerCase()} to come`
+                    : `Leva ${curBatch} de ${totalBatches} · ainda ${totalBatches - curBatch > 1 ? 'vêm' : 'vem'} mais ${totalBatches - curBatch} leva${totalBatches - curBatch > 1 ? 's' : ''} de ${posName.toLowerCase()}`)
+                  : (lang === 'en'
+                    ? `Last batch of ${posName.toLowerCase()} · ${curBatch} of ${totalBatches}`
+                    : `Última leva de ${posName.toLowerCase()} · ${curBatch} de ${totalBatches}`)}
               </span>
             </div>
           )}
@@ -5910,7 +5914,7 @@ function RivalTracker() {
   )
 }
 
-function TopScorersBox({ highlight, title = '⚽ ARTILHARIA · TEMPO REAL', hold = false }: { highlight: number; title?: string; hold?: boolean }) {
+function TopScorersBox({ highlight, title = getLang() === 'en' ? '⚽ TOP SCORERS · LIVE' : '⚽ ARTILHARIA · TEMPO REAL', hold = false }: { highlight: number; title?: string; hold?: boolean }) {
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: cestinha/pontos no lugar de artilharia/gols
@@ -5979,12 +5983,12 @@ function TopAssistsBox({ highlight, competition = 'liga', showEmpty = false }: {
   if (rows.length === 0 && !showEmpty) return null
   return (
     <Box className="p-3">
-      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>🅰️ GARÇONS · QUEM DÁ O PASSE</p>
-      {showEmpty && <p className="text-xs mb-2 text-black/70">{competition === 'liberta' ? 'Assistências da Libertadores' : competition === 'copa' ? 'Assistências da Copa' : 'Assistências da liga'}{rows.length === 0 ? ' · Nenhuma assistência registrada ainda.' : ''}</p>}
+      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>{getLang() === 'en' ? '🅰️ ASSISTS · WHO SETS IT UP' : '🅰️ GARÇONS · QUEM DÁ O PASSE'}</p>
+      {showEmpty && <p className="text-xs mb-2 text-black/70">{getLang() === 'en' ? (competition === 'liberta' ? 'Continental cup assists' : competition === 'copa' ? 'Cup assists' : 'League assists') : (competition === 'liberta' ? 'Assistências da Libertadores' : competition === 'copa' ? 'Assistências da Copa' : 'Assistências da liga')}{rows.length === 0 ? ' · Nenhuma assistência registrada ainda.' : ''}</p>}
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
-            <th className="pr-1">#</th><th>Jogador</th><th>Time</th><th className="text-center">Assist.</th>
+            <th className="pr-1">#</th><th>{getLang() === 'en' ? 'Player' : 'Jogador'}</th><th>{getLang() === 'en' ? 'Team' : 'Time'}</th><th className="text-center">{getLang() === 'en' ? 'Ast.' : 'Assist.'}</th>
           </tr>
         </thead>
         <tbody>
@@ -6013,16 +6017,17 @@ function CopaScorersBox({ highlight }: { highlight: number }) {
   const { state } = useEsc()
   const [cLang] = useLang()
   const bbC = state.sport === 'basquete'
-  const LC = (pt: string, en: string) => (bbC && cLang === 'en') ? en : pt
+  // 🌐 11/09: vale pro jogo inteiro, não só pro basquete.
+  const LC = (pt: string, en: string) => (cLang === 'en' ? en : pt)
   const rows = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10)
   if (rows.length === 0) return null
   return (
     <Box bg="#FFFBEF" className="p-3">
-      <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#9a6d00' }}>{bbC ? LC('🏀 CESTINHA DOS PLAYOFFS', '🏀 PLAYOFF SCORING') : state.copaMode === 'liga_liberta' ? '🌎 ARTILHARIA DA LIBERTADORES' : '🏆 ARTILHARIA DA COPA'}</p>
+      <p className="font-black text-sm mb-2" style={{ ...OSWALD, color: '#9a6d00' }}>{bbC ? LC('🏀 CESTINHA DOS PLAYOFFS', '🏀 PLAYOFF SCORING') : state.copaMode === 'liga_liberta' ? (getLang() === 'en' ? '🌎 CONTINENTAL CUP TOP SCORERS' : '🌎 ARTILHARIA DA LIBERTADORES') : (getLang() === 'en' ? '🏆 CUP TOP SCORERS' : '🏆 ARTILHARIA DA COPA')}</p>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
-            <th className="pr-1">#</th><th>{bbC ? LC('Jogador', 'Player') : 'Jogador'}</th><th>{bbC ? LC('Time', 'Team') : 'Time'}</th><th className="text-center">{bbC ? LC('Pts', 'Pts') : 'Gols'}</th>
+            <th className="pr-1">#</th><th>{LC('Jogador', 'Player')}</th><th>{LC('Time', 'Team')}</th><th className="text-center">{bbC ? LC('Pts', 'Pts') : LC('Gols', 'Goals')}</th>
           </tr>
         </thead>
         <tbody>
@@ -6100,7 +6105,7 @@ function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
   return (
     <Box bg="#FFF6DC" className="p-3">
       <style>{'@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}'}</style>
-      <p className="font-black text-xs uppercase tracking-wide mb-2" style={OSWALD}>{isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada'}</p>
+      <p className="font-black text-xs uppercase tracking-wide mb-2" style={OSWALD}>{getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')}</p>
       <p key={idx} className="text-xs font-bold" style={{ minHeight: '2.4em', animation: 'giroFade .35s ease' }}>{list[idx]}</p>
       {list.length > 1 && (
         <div className="flex justify-center gap-1 mt-2">
@@ -6111,7 +6116,7 @@ function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
   )
 }
 
-function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: number; holdResults?: boolean; title?: string }) {
+function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE' : 'TABELA' }: { highlight: number; holdResults?: boolean; title?: string }) {
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: saldo de CESTAS (SC) no lugar de SG
@@ -6143,7 +6148,7 @@ function TableBox({ highlight, holdResults, title = 'TABELA' }: { highlight: num
             <th className="pr-1">#</th><th>{L('Time', 'Team')}</th>
             {bb
               ? <><th className="text-center">V</th><th className="text-center">D</th><th className="text-center">{L('AP', 'PCT')}</th><th className="text-center">SC</th></>
-              : <><th className="text-center">P</th><th className="text-center">V</th><th className="text-center">E</th><th className="text-center">D</th><th className="text-center">SG</th></>}
+              : <><th className="text-center">{L('P', 'Pts')}</th><th className="text-center">{L('V', 'W')}</th><th className="text-center">{L('E', 'D')}</th><th className="text-center">{L('D', 'L')}</th><th className="text-center">{L('SG', 'GD')}</th></>}
           </tr>
         </thead>
         <tbody>

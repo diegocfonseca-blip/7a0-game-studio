@@ -1,3 +1,10 @@
+## 12/09/2026 — 🌐 Tradução do futebol: ETAPA 3 começada (tabela, artilharia, garçons)
+
+- Mesmo achado da etapa 2 se repetiu: o `LC('pt','en')` da artilharia da copa também estava trancado no basquete. Destravado.
+- Traduzidos: título da TABELA e as colunas (P/V/E/D/SG → Pts/W/D/L/GD), ARTILHARIA (títulos da liga, da copa e da Libertadores), a caixa de GARÇONS (assistências) com cabeçalho e colunas, o "Giro da rodada"/"Giro da Copa" e a pílula de leva do pregão ("Leva 1 de 2…" → "Batch 1 of 2…").
+- Conferido rodando em EN até o setor de ATAQUE, sem erro de tela; `npm run build` passou.
+- ⚠️ **Ainda NÃO conferi a tela da temporada rodando** (a partida automática não chegou lá dentro do tempo do teste). As frases estão traduzidas no código, mas quero ver na tela antes de dizer que a etapa 3 acabou. Falta ainda o jornal O Martelo e o fim de jogo.
+
 ## 11/09/2026 — ⚽ Pênaltis do online consertados na RAIZ (placar era sorteado, não disputado)
 
 - Reclamação do Diego: *"precisa arrumar os pênaltis nos modos online, pelo menos na Copa do Mundo vi erros das cobranças acabarem antes da hora ou contagem errada das bolinhas"*.
