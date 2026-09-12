@@ -7983,8 +7983,8 @@ export function ReserveListScreen() {
     <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontSize: 40 }}>📋</p>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>Preparando o leilão de reservas…</p>
-        <p style={{ fontWeight: 700, fontSize: 13, color: '#5a5647', marginTop: 4 }}>Só um instante.</p>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{tr('Preparando o leilão de reservas…', 'Preparing the reserves auction…')}</p>
+        <p style={{ fontWeight: 700, fontSize: 13, color: '#5a5647', marginTop: 4 }}>{tr('Só um instante.', 'Just a moment.')}</p>
       </div>
     </div>
   )
@@ -7997,7 +7997,7 @@ export function ReserveListScreen() {
           fica ~28px mais alta, e sem esse vão a última carta some atrás dela. */}
       <div className="max-w-xl mx-auto" style={{ padding: mostraPills ? (viuSondar ? '16px 14px 118px' : '16px 14px 148px') : '16px 14px 48px' }}>
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>{state.reserveListMesmo ? '📝 CONTRATOS · MESMO TIME' : abaLeilao === 'aliciar' && mostraPills ? '🕵️ SONDAR PRO LEILÃO' : '📋 LISTAR PRA LEILÃO'} · TEMP. {state.seasonNo}</span>
+          <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>{state.reserveListMesmo ? tr('📝 CONTRATOS · MESMO TIME', '📝 CONTRACTS · SAME TEAM') : abaLeilao === 'aliciar' && mostraPills ? tr('🕵️ SONDAR PRO LEILÃO', '🕵️ SCOUT FOR THE AUCTION') : tr('📋 LISTAR PRA LEILÃO', '📋 LIST FOR AUCTION')} · {tr('TEMP.', 'SEASON')} {state.seasonNo}</span>
           {/* ⏱️ o relógio só faz sentido ONLINE (esperar todo mundo decidir) — no
               offline (só você) é tempo perdido à toa (pedido do Diego 05/08). */}
           {state.onlineMode === 'online' && (
@@ -8009,8 +8009,8 @@ export function ReserveListScreen() {
             Não faz sentido em "mesmo time" (não tem leilão pra comprar/vender aqui). */}
         {!state.reserveListMesmo && (state.careerCoins?.[youId] ?? 0) < 0 && (
           <div style={{ ...box('#C2452F'), padding: 11, marginBottom: 10, color: '#fff' }}>
-            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🚫 Transfer ban — caixa no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</p>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🚫 Transfer ban — caixa no vermelho', '🚫 Transfer ban — till in the red')} ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>{getLang() === 'en' ? <>You can\'t <b>buy with money</b> in this window — but you can <b>sell to raise cash</b> and, in the <b>pile</b> (the auction leftovers), <b>try your luck grabbing a free player</b>. Prizes and gate money pull you out of the red.</> : <>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</>}</p>
           </div>
         )}
         {/* 🧢 CONTRATO DO TÉCNICO (27/08, só conta liberada): venceu os 5 anos →
@@ -8024,15 +8024,15 @@ export function ReserveListScreen() {
           const caixa = state.careerCoins?.[youId] ?? 0
           return (
             <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>🧢 Contrato do técnico ENCERROU</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px', lineHeight: 1.4 }}><b>{nomeTec}</b> cumpriu as 5 temporadas (venceu na T{fim}). Renove por <b>💰 {custo}</b> (+5 temporadas) ou deixe ir — sem multa, ele foi até o fim.</p>
+              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>{tr('🧢 Contrato do técnico ENCERROU', '🧢 Head coach contract ENDED')}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px', lineHeight: 1.4 }}>{getLang() === 'en' ? <><b>{nomeTec}</b> completed the 5 seasons (expired in S{fim}). Renew for <b>💰 {custo}</b> (+5 seasons) or let go — no fee, the contract ran its course.</> : <><b>{nomeTec}</b> cumpriu as 5 temporadas (venceu na T{fim}). Renove por <b>💰 {custo}</b> (+5 temporadas) ou deixe ir — sem multa, ele foi até o fim.</>}</p>
               <div style={{ display: 'flex', gap: 7 }}>
                 <button disabled={caixa < custo} onClick={() => dispatch({ type: 'RENOVAR_TECNICO' })}
-                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: caixa < custo ? '#d8cfb5' : '#1B7A3D', color: caixa < custo ? 'rgba(0,0,0,.4)' : '#fff', boxShadow: caixa < custo ? 'none' : `2px 2px 0 0 ${INK}`, cursor: caixa < custo ? 'not-allowed' : 'pointer' }}>📝 Renovar (💰 {custo})</button>
+                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: caixa < custo ? '#d8cfb5' : '#1B7A3D', color: caixa < custo ? 'rgba(0,0,0,.4)' : '#fff', boxShadow: caixa < custo ? 'none' : `2px 2px 0 0 ${INK}`, cursor: caixa < custo ? 'not-allowed' : 'pointer' }}>{tr('📝 Renovar', '📝 Renew')} (💰 {custo})</button>
                 <button onClick={() => dispatch({ type: 'DISPENSAR_TECNICO' })}
-                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>👋 Deixar ir</button>
+                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('👋 Deixar ir', '👋 Let go')}</button>
               </div>
-              {caixa < custo && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#C2452F', margin: '6px 0 0' }}>Caixa não cobre a renovação — venda alguém ou deixe ir.</p>}
+              {caixa < custo && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#C2452F', margin: '6px 0 0' }}>{tr('Caixa não cobre a renovação — venda alguém ou deixe ir.', 'The till doesn\'t cover the renewal — sell someone or let go.')}</p>}
             </div>
           )
         })()}
@@ -8058,8 +8058,8 @@ export function ReserveListScreen() {
           const btn = (bg: string, fg: string, dis: boolean): React.CSSProperties => ({ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 10.5, ...OSWALD, background: dis ? '#d8cfb5' : bg, color: dis ? 'rgba(0,0,0,.4)' : fg, boxShadow: dis ? 'none' : `2px 2px 0 0 ${INK}`, cursor: dis ? 'not-allowed' : 'pointer', textTransform: 'uppercase' as const, lineHeight: 1.15 })
           return (
             <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{primeira ? '📝 CONTRATOS CHEGARAM!' : `📝 CONTRATO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} ENCERRADO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} — DECIDA`}{expDorm.length > 0 ? ' — decida clube por clube' : ''}</p>
-              {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</p>}
+              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{getLang() === 'en' ? (primeira ? '📝 CONTRACTS HAVE ARRIVED!' : `📝 CONTRACT${(expirados.length + expDorm.length) > 1 ? 'S' : ''} ENDED — DECIDE`) : primeira ? '📝 CONTRATOS CHEGARAM!' : `📝 CONTRATO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} ENCERRADO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} — DECIDA`}{expDorm.length > 0 ? tr(' — decida clube por clube', ' — decide club by club') : ''}</p>
+              {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Your club is professional: <b>every player has a contract</b> (5 to 10 years, drawn on arrival). When it ends, you decide: <b>renew or let go</b>.</> : <>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</>}</p>}
               {/* ⚡ AÇÃO EM MASSA (07/08, pedido do Diego): com muito contrato vencendo de
                   uma vez, um botão por CATEGORIA aplica a mesma decisão em TODOS de uma
                   vez (os dois clubes do multiclube juntos) — sem precisar clicar jogador
@@ -8095,7 +8095,7 @@ export function ReserveListScreen() {
                 return (
                   renovaveis.length === 0 ? (
                     <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#EAF6EE', padding: '8px 10px', marginBottom: 9 }}>
-                      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, color: '#1B5E32', lineHeight: 1.45 }}>🌱 <b>Na Várzea não tem renovação.</b> Quando o contrato acaba, o jogador vai pro leilão e o <b>clube embolsa</b> a venda — por isso não tem botão de renovar aqui. <b>Subiu pra Série D?</b> Aí os contratos passam a valer e você decide renovar ou deixar ir.</p>
+                      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, color: '#1B5E32', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🌱 <b>No renewals in Várzea.</b> When a contract ends, the player goes to the auction and the <b>club pockets</b> the sale — that\'s why there\'s no renew button here. <b>Promoted to Série D?</b> Then contracts kick in and you decide to renew or let go.</> : <>🌱 <b>Na Várzea não tem renovação.</b> Quando o contrato acaba, o jogador vai pro leilão e o <b>clube embolsa</b> a venda — por isso não tem botão de renovar aqui. <b>Subiu pra Série D?</b> Aí os contratos passam a valer e você decide renovar ou deixar ir.</>}</p>
                     </div>
                   ) : (
                   <div style={{ marginBottom: 9 }}>
@@ -8106,10 +8106,10 @@ export function ReserveListScreen() {
                         ninguém soltar o elenco inteiro sem querer. (Dá pra desfazer:
                         cada jogador solto vira botão "desfazer" no card dele.) */}
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>5️⃣ Renovar os {renovaveis.length}{<br />}encerrados · 5 anos</button>
-                      <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>🔟 Renovar os {renovaveis.length}{<br />}encerrados · 10 anos (-10%)</button>
+                      <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>{tr('5️⃣ Renovar os', '5️⃣ Renew the')} {renovaveis.length}{<br />}{tr('encerrados · 5 anos', 'ended · 5 years')}</button>
+                      <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>{tr('🔟 Renovar os', '🔟 Renew the')} {renovaveis.length}{<br />}{tr('encerrados · 10 anos (-10%)', 'ended · 10 years (-10%)')}</button>
                     </div>
-                    <button onClick={bulkDeixarIr} style={{ ...btn('#C2452F', '#fff', false), width: '100%', marginTop: 6 }}>😢 Deixar TODOS ir · vão pro leilão</button>
+                    <button onClick={bulkDeixarIr} style={{ ...btn('#C2452F', '#fff', false), width: '100%', marginTop: 6 }}>{tr('😢 Deixar TODOS ir · vão pro leilão', '😢 Let EVERYONE go · off to the auction')}</button>
                   </div>
                   )
                 )
