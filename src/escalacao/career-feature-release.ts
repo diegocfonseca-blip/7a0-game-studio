@@ -9,6 +9,10 @@ export const LEGEND_AVATARS_RELEASED: boolean = true
 // Estava pronto e travado nas duas contas de teste desde 10/09. Liberado geral
 // em 12/09 por ordem do Diego ("sim pode fazer tudo isso"). Reverter = false.
 export const PENALTY_ART_RELEASED: boolean = true
+// 😓 CONDIÇÃO / GÁS do jogador (carreira solo, liga ao subir pra Série C).
+// Aprovado pelo Diego em 12/09 (barrinha, −12/+20, médico intocado). Reverter =
+// false: some da tela E da simulação (o gás não vive no save, é derivado).
+export const CONDICAO_ON: boolean = true
 export function publicCareerVisual(state: { careerOnline?: boolean; sport?: string }) {
   return CAREER_VISUAL_RELEASED && !!state.careerOnline && state.sport !== 'basquete'
 }

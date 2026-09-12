@@ -582,6 +582,11 @@ export interface EscState {
   // banner que o técnico já fechou (toque em "Entendi!") — nunca mais aparece
   // NESTA carreira. Zera junto com tudo o mais na fundação de carreira nova.
   careerSeen?: Record<string, true>
+  // 😓 CONDIÇÃO / GÁS (12/09): temporada em que o clube chegou na Série C — a
+  // partir dela o gás vale (ver condicao.ts). Ausente = ainda não ligou. Gravado
+  // só na VIRADA (CAREER_ADVANCE), nunca no meio de uma temporada. Não desliga
+  // se o clube cair de volta. O gás em si NÃO é guardado: é derivado de careerLineup.
+  condicaoDesde?: number
   // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
   // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).
   contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)

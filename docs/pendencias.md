@@ -1,3 +1,43 @@
+## 12/09/2026 — 😓 CONDIÇÃO / GÁS do jogador (carreira solo) — FEITO no branch, aguardando OK do print
+
+Decisões do Diego (todas no chat de 12/09):
+- Visual **A, a barrinha** (não as caras nem a bolinha).
+- Liga **quando o clube SOBE PRA SÉRIE C** — *"3ª temporada acho mt rápido"*. Grava
+  `condicaoDesde` na virada (CAREER_ADVANCE) e **nunca desliga** (cair pra D/Várzea
+  não tira: *"quem subir pra C só desbloqueia"*). Save já em C/B/A liga na próxima
+  virada. Só carreira nova (`agenciaOn`), como os eventos. Online/rápido: fora.
+- **Dep. Médico INTOCADO** (segue "acaba com as lesões pra sempre") — ele mandou
+  tirar a minha ideia de mexer nele. A volta gradual só existe pra quem não tem.
+- Números: −12 por jogo · +20 no banco · <60 😓 (−1) · <30 🥵 (−2 e 2× lesão) ·
+  lesão volta 60% → 80% → 100%. Na prática: 4 jogos seguidos inteiro, 😓 a partir
+  do 5º, 🥵 a partir do 7º.
+- Sem reserva: o cara joga cansado, o preparador manda pro mercado; se a lesão
+  vier, entra o MESMO banner dos 3 Crias da Base dos eventos (ele confirmou:
+  *"aí entra os da base né"*). Nada novo entra no jogo.
+- Bots não cansam (baseline plano). Copa Legends fora.
+
+Como está feito (`src/escalacao/condicao.ts`, módulo puro + testes em
+`scripts/testa-condicao.mjs`, 36 casos):
+- **Gás NÃO vive no save**: é derivado de `careerLineup` (a escalação congelada
+  por rodada que o PLAY_ROUND já grava). Zero migração, reload não duplica, e o
+  passado é imutável (gás de rodada jogada depende só de rodadas anteriores).
+- Motor: `RoundCardMods` (mgrId → rodada → cardId → delta) entra no `lo`/`hi` da
+  carta SÓ naquele jogo (`comMods`, dentro de `simDivTo`, 1º e 2º tempo). Vazio =
+  simulação byte a byte igual. Chave `CONDICAO_ON` em `career-feature-release.ts`.
+- Aba Elenco: barrinha + % embaixo do clube·ano, "🏃 N jogos" à direita (linha
+  48→54px), selinho no boneco só de quem NÃO está inteiro, chip "Gás do time" no
+  topo, card do **Preparador Físico** com botão 🔁 RODIZIAR (sugere e só aplica no
+  toque — nunca sozinho; quem está voltando de lesão não entra na sugestão),
+  banner do Guia (`k="condicao"`). Bancada visual: `scripts/teste-condicao/`
+  (monta o SquadTab real; importar `screens` ANTES de `pyramidseason`, senão o
+  ciclo store↔pyramidseason quebra com "COPA_LEG_MS before initialization").
+- `sorteiaEvento` recebe `gas`: 🥵 entra com peso 2 na lesão (continua 1 evento
+  por temporada — o 2× decide QUEM, não QUANTOS; lesão extra por cansaço ficou
+  pra depois, se ele quiser).
+
+⏳ Falta: OK do Diego no print real → publicar na main (junto ou não com a
+tradução do APOIE/pênalti/eventos, que também espera a palavra dele).
+
 ## 12/09/2026 — 🌐 Tradução: modal do APOIE, pênalti e eventos · 😓 CONDIÇÃO/GÁS proposta (aguardando escolha)
 
 ### Feito (commit "Traducao EN: modal do APOIE inteiro…")

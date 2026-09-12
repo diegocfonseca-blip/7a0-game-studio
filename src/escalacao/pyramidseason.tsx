@@ -23,6 +23,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, emojiGas, corGas, sugerirRodizio, GAS_JOGO, GAS_BANCO } from './condicao' // 😓 gás (12/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
@@ -665,6 +666,12 @@ export function lineupAt(lineups: RoundLineups, teamId: number, r: number, squad
 // "escalar assim mesmo" da noitada (-2 SÓ naquele jogo). Tem que ser por rodada:
 // mexer na carta re-simularia o passado (a temporada inteira nasce da semente).
 export type RoundMods = Record<number, Record<number, number>>
+// 😓 CONDIÇÃO / GÁS (12/09): modificador POR JOGADOR (mgrId → rodada → cardId →
+// delta de nível). Entra direto no `lo`/`hi` da carta só naquele jogo — é o
+// "−1 de força" prometido, no lugar exato onde a força nasce (rollForm). Vazio =
+// simulação byte a byte igual. Só humano (bot não cansa — baseline plano).
+export type RoundCardMods = Record<number, Record<number, Record<string, number>>>
+const comMods = (xi: PoolCard[], m: Record<string, number> | undefined): PoolCard[] => (m ? xi.map(c => (m[c.id] ? { ...c, lo: c.lo + m[c.id], hi: c.hi + m[c.id] } : c)) : xi)
 // 🔁 INTERVALO (carreira offline): decisão do 2º tempo por técnico/rodada. O 1º
 // tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
 // é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
@@ -690,7 +697,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -764,8 +771,9 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const th: Tac = H.human ? tacAt(tactics, H.teamId, r) : TACS[Math.floor(rng() * 3)]
     const ta: Tac = A.human ? tacAt(tactics, A.teamId, r) : TACS[Math.floor(rng() * 3)]
     // XI daquele jogo: humano usa a escalação que ELE montou (por rodada); CPU o fixo
-    const hxi = H.human ? lineupAt(lineups, H.teamId, r, H.squad, H.formation) : H.xi
-    const axi = A.human ? lineupAt(lineups, A.teamId, r, A.squad, A.formation) : A.xi
+    // 😓 gás/volta de lesão: só humano, só nesta rodada — a carta em si não muda
+    const hxi = H.human ? comMods(lineupAt(lineups, H.teamId, r, H.squad, H.formation), cardMods[H.teamId]?.[r]) : H.xi
+    const axi = A.human ? comMods(lineupAt(lineups, A.teamId, r, A.squad, A.formation), cardMods[A.teamId]?.[r]) : A.xi
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
     // 🧢 TÉCNICO = 12ª CARTA (26/08, em teste): o overall dele é sorteado na faixa
     // lo–hi e entra na média do time com peso de UMA carta em 12 — em ataque E
@@ -817,7 +825,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     if (hd && hd.xi2?.length === 11) {
       const humM = H.human ? H : A
       const hmap = new Map(humM.squad.map(c => [c.id, c]))
-      const humXI2 = hd.xi2.map(id => hmap.get(id)).filter((c): c is PoolCard => !!c)
+      const humXI2 = comMods(hd.xi2.map(id => hmap.get(id)).filter((c): c is PoolCard => !!c), cardMods[humanTid!]?.[r]) // 😓 o gás vale no 2º tempo também
       if (humXI2.length === 11) {
         const sub = mulberry((((seed ^ 0x48A17F) ^ ((r + 1) * 0x2545F491) ^ (humanTid! * 0x9E3779B1)) >>> 0))
         const homeXI2 = H.human ? humXI2 : hxi
@@ -880,7 +888,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -888,7 +896,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -3139,7 +3147,41 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // reservas numa lista embaixo. Pra trocar: toca num jogador (fica MARCADO) e os
 // da MESMA posição do outro lado ACENDEM — toca em qual quer trocar. Vale pros
 // dois sentidos (titular↔reserva). Aplica no próximo jogo, como a tática.
-function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean }) {
+// 😓 CONDIÇÃO na aba Elenco (12/09): o que a tela precisa saber do gás. Ausente =
+// condição desligada nesta carreira → a aba fica byte a byte como era.
+type CondicaoUI = {
+  gas: Record<string, number>            // gás de cada carta ANTES do próximo jogo (0-100)
+  jogos: Record<string, number>          // jogos como titular na temporada
+  volta: (id: string) => number          // 🩹 volta gradual: −2 (60%) · −1 (80%) · 0
+  onRodizio?: () => void                 // botão 🔁 RODIZIAR (ausente = ainda não pode trocar)
+  suspensoId?: string                    // quem está fora (lesão/gancho) até a rodada da volta
+}
+function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI }) {
+  // 😓 barrinha de gás (variante A aprovada pelo Diego 12/09): mora embaixo do
+  // "clube · ano", onde já mora o overall do Olheiro. Cor pelo estado; lesão em
+  // volta gradual fica roxa com o %; quem está FORA (suspenso) mostra só "🩹 fora".
+  const gasChip = (c: WonCard): React.ReactNode => {
+    if (!condicao || c.fake) return null
+    const barBox: React.CSSProperties = { display: 'inline-block', width: 34, height: 6, border: `1.5px solid ${INK}`, borderRadius: 4, background: '#e9dfbe', overflow: 'hidden', flex: 'none', verticalAlign: 'middle' }
+    const fill = (w: number, bg: string): React.CSSProperties => ({ display: 'block', height: '100%', width: `${w}%`, background: bg })
+    const lbl: React.CSSProperties = { ...OSWALD, fontWeight: 900, fontSize: 9, lineHeight: 1, flex: 'none' }
+    if (condicao.suspensoId === c.id) return <span style={{ ...lbl, color: '#7C3AED' }}>🩹 {tr('fora', 'out')}</span>
+    const mv = condicao.volta(c.id)
+    if (mv) { const p = pctVolta(mv); return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, '#7C3AED')} /></span><span style={{ ...lbl, color: '#7C3AED' }}>🩹 {p}%</span></span> }
+    const g = condicao.gas[c.id] ?? 100, e = estadoGas(g), cor = corGas(e)
+    return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(g, cor)} /></span><span style={{ ...lbl, color: cor }}>{g}%</span></span>
+  }
+  // 😓 selinho no boneco do campinho — só quem NÃO está inteiro (o inteiro não
+  // ganha nada, senão vira poluição em 11 bonecos)
+  const gasBadge = (c: WonCard): React.ReactNode => {
+    if (!condicao || c.fake) return undefined
+    const mv = condicao.volta(c.id)
+    const e = mv ? null : estadoGas(condicao.gas[c.id] ?? 100)
+    if (!mv && e === 'ok') return undefined
+    const cor = mv ? '#7C3AED' : corGas(e!)
+    const txt = mv ? `🩹 ${pctVolta(mv)}%` : `${emojiGas(e!)} ${condicao.gas[c.id] ?? 100}%`
+    return <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, background: '#fff', border: `1.5px solid ${INK}`, borderRadius: 5, padding: '0 4px', color: cor, whiteSpace: 'nowrap' }}>{txt}</span>
+  }
   // 📝 CONTRATO SUTIL (pedido do Diego 04/08): vive na coluna da DIREITA,
   // embaixo do 💰 piso e 💸 salário — ali nunca corta em tela estreita, e a
   // linha "clube · ano" da esquerda fica inteira. Cinza quando está tudo certo
@@ -3240,13 +3282,16 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // não importa o tamanho do nome do clube. Na direita: 💰 piso e 💸 salário (piso÷10,
   // em vermelho = custo) lado a lado; o gol fica em cima, como já era; o
   // contrato (📝/⏳/❗/🌱) fica embaixo dos dois.
+  // 😓 com a condição ligada a linha cresce 48→54px: entra a barrinha à esquerda e
+  // o "🏃 N jogos" à direita. As duas listas crescem juntas (seguem batendo linha a linha).
   const rowOf = (c: WonCard, titular: boolean) => { const st = stateOf(c); return (
-    <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, height: 48, padding: '0 6px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? '#fff' : 'rgba(255,255,255,0.88)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
+    <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, height: condicao ? 54 : 48, padding: '0 6px', borderRadius: 6, background: st === 'sel' ? '#FFF6D6' : titular ? '#fff' : 'rgba(255,255,255,0.88)', border: `2px solid ${st === 'idle' ? 'transparent' : borderOf(st)}`, marginBottom: 3, opacity: st === 'dim' ? 0.5 : 1, cursor: onTap ? 'pointer' : 'default' }}>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: titular ? 800 : 700, fontSize: 11.5, ...OSWALD, color: titular ? INK : '#4a4740', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <span style={{ fontWeight: 900, fontSize: 8.5, color: col.solid, marginRight: 4 }}>{c.pos}</span>{c.name}{c.emprestado && <EmpTag />}
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden' }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}</span>{overallChip(c)}</span>
+        {condicao && <span style={{ display: 'flex', alignItems: 'center', marginTop: 2 }}>{gasChip(c)}</span>}
       </span>
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.25, gap: 1 }}>
         {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
@@ -3256,6 +3301,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           {salaryOn && <span title={tr('Salário por ano (piso ÷ 10)', 'Salary per year (floor ÷ 10)')} style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>}
         </span>
         {(() => { const k = ctInfo(c); return k ? <span style={{ fontWeight: 800, fontSize: 8.5, color: k.color, whiteSpace: 'nowrap' }}>{k.txt}</span> : null })()}
+        {condicao && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap' }}>🏃 {condicao.jogos[c.id] ?? 0} {tr('jogos', 'games')}</span>}
       </span>
     </div>
   ) }
@@ -3280,6 +3326,44 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           {!sel && <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0' }}>{tr('Vale do próximo jogo em diante.', 'Applies from the next match on.')}</p>}
         </div>
       )}
+      {/* 🧑‍⚕️ PREPARADOR FÍSICO (12/09): só aparece quando algum TITULAR não está
+          inteiro. Sugere o rodízio e o botão aplica — NUNCA troca sozinho (regra
+          do Diego). Sem reserva inteiro na posição, diz o caminho (mercado) e
+          o cara joga cansado — nada trava, ninguém falso entra. */}
+      {condicao && (() => {
+        const en = getLang() === 'en'
+        const gasDe = (c: WonCard) => condicao.gas[c.id] ?? 100
+        const ruins = titulares.filter(c => !c.fake && (estadoGas(gasDe(c)) !== 'ok' || condicao.volta(c.id) !== 0))
+        if (!ruins.length) return null
+        const limite = ruins.filter(c => estadoGas(gasDe(c)) === 'limite')
+        const cansados = ruins.filter(c => estadoGas(gasDe(c)) === 'cansado')
+        const voltando = ruins.filter(c => condicao.volta(c.id) !== 0 && estadoGas(gasDe(c)) === 'ok')
+        // mesma lista de bloqueados do onRodizio: suspenso + quem está voltando de lesão
+        const bloq = new Set(mgr.squad.filter(c => condicao.volta(c.id) !== 0).map(c => c.id))
+        if (condicao.suspensoId) bloq.add(condicao.suspensoId)
+        const sug = condicao.onRodizio ? sugerirRodizio(titulares.map(c => c.id), mgr.squad, condicao.gas, bloq) : null
+        const nomes = (cs: WonCard[]) => cs.map(c => c.name).join(', ')
+        const semReserva = (limite.length + cansados.length) > 0 && (!sug || sug.trocas.length < limite.length + cansados.length)
+        return (
+          <div style={{ border: `3px solid ${INK}`, background: '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: .6, color: '#5a5647', margin: 0, textTransform: 'uppercase' }}>{tr('🧑‍⚕️ Preparador físico', '🧑‍⚕️ Fitness coach')}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.45, margin: '4px 0 0' }}>
+              {limite.length > 0 && (en ? <><b>{nomes(limite)}</b> {limite.length === 1 ? 'is' : 'are'} <b style={{ color: '#C2452F' }}>running on empty</b> (🥵) — {limite.length === 1 ? 'he plays' : 'they play'} at −2 and the injury risk doubles. </> : <><b>{nomes(limite)}</b> {limite.length === 1 ? 'está' : 'estão'} <b style={{ color: '#C2452F' }}>no limite</b> (🥵) — {limite.length === 1 ? 'joga' : 'jogam'} com −2 e o risco de lesão dobra. </>)}
+              {cansados.length > 0 && (en ? <><b>{nomes(cansados)}</b> {cansados.length === 1 ? 'is' : 'are'} <b style={{ color: '#B8860B' }}>tired</b> (😓) — −1 in the next match. </> : <><b>{nomes(cansados)}</b> {cansados.length === 1 ? 'está' : 'estão'} <b style={{ color: '#B8860B' }}>cansado{cansados.length === 1 ? '' : 's'}</b> (😓) — −1 no próximo jogo. </>)}
+              {voltando.length > 0 && (en ? <><b>{nomes(voltando)}</b> is <b style={{ color: '#7C3AED' }}>coming back from injury</b> (🩹) — not at 100% yet. </> : <><b>{nomes(voltando)}</b> está <b style={{ color: '#7C3AED' }}>voltando de lesão</b> (🩹) — ainda não rende 100%. </>)}
+            </p>
+            {sug && condicao.onRodizio && (
+              <button onClick={condicao.onRodizio} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'left' }}>
+                {tr('🔁 RODIZIAR', '🔁 ROTATE')} <span style={{ fontWeight: 700, fontSize: 10.5, opacity: .9 }}>— {sug.trocas.map(t => (en ? `${t.entra.name} in for ${t.sai.name}` : `${t.entra.name} no lugar de ${t.sai.name}`)).join(' · ')}</span>
+              </button>
+            )}
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '6px 0 0', lineHeight: 1.4 }}>
+              {semReserva && (en ? <>No rested backup for every spot — whoever stays plays tired. <b>Sign one at the transfer auction.</b> </> : <>Sem reserva inteiro pra toda vaga — quem fica joga cansado. <b>Contrate no leilão de transferências.</b> </>)}
+              {en ? <>Starter −{GAS_JOGO} per match · bench +{GAS_BANCO} per round · applies from the next match · the game never swaps for you.</> : <>Titular −{GAS_JOGO} por jogo · banco +{GAS_BANCO} por rodada · vale do próximo jogo · o jogo nunca troca por você.</>}
+            </p>
+          </div>
+        )
+      })()}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
         {/* 🌱 campinho mais vertical (09/08, pedido do Diego: "parece achatado")
             — só o CAMPO cresce (listras + respiro entre as linhas); o balão
@@ -3307,7 +3391,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                 estado={stateOf(c) as EstadoJogador}
                 onClick={onTap ? () => onTap(c.id) : undefined}
                 mantoCss={manto ? mantoStripes(manto, 6, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : null}
-                extra={c.emprestado ? <EmpTag mini /> : undefined}
+                extra={c.emprestado ? <EmpTag mini /> : gasBadge(c)}
               />
             )
             // recuo sutil (alas do 3-5-2 / líbero) — só um deslocamento de desenho,
@@ -3842,7 +3926,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   )
 }
 
-function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean }) {
+export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI }) {
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
   const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
   const need = FORMATIONS[mgr.formation]
@@ -3869,6 +3953,16 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
         <span title={tr('Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)', 'Sum of the 22 players\' market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
+        {/* 😓 resumo do gás do TIME (média dos 11 do próximo jogo) — a leitura de relance */}
+        {elenco && condicao && xiIds && (() => {
+          const ids = [...xiIds].filter(id => mgr.squad.some(c => c.id === id && !c.fake))
+          if (!ids.length) return null
+          const media = Math.round(ids.reduce((s, id) => s + (condicao.gas[id] ?? 100), 0) / ids.length)
+          const nLim = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'limite').length
+          const nCan = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'cansado').length
+          const cor = corGas(estadoGas(media))
+          return <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: cor }}>{media}%</span>{nLim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {nLim} 🥵</span> : null}{nCan ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {nCan} 😓</span> : null}</span>
+        })()}
       </div>
       {elenco && onSetFormation && (() => {
         // 🎽 troca de formação: libera pra QUALQUER formação que você consiga preencher
@@ -4015,7 +4109,16 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
               {getLang() === 'en' ? <>From now on the club pays <b>salaries every month</b> for the whole squad (the amount is each card\'s price paid ÷ 10). Keep an eye on the till — expensive players weigh more on the payroll.</> : <>A partir de agora o clube paga <b>salário todo mês</b> pelo elenco inteiro (o valor é o preço pago ÷ 10 de cada carta). Fique de olho na caixa — jogador caro pesa mais na folha.</>}
             </UnlockBanner>
           )}
-          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} />
+          {/* 😓 GUIA DA CARREIRA: o gás chegou (liga ao subir pra Série C). Fecha
+              com "Entendi!" e nunca mais volta nesta carreira. */}
+          {condicao && (
+            <UnlockBanner k="condicao" tag={tr('😓 regra nova', '😓 new rule')} title={tr('Seus jogadores agora cansam', 'Your players get tired now')} ctaBg={GREEN} ctaColor="#fff">
+              {getLang() === 'en'
+                ? <>Série C is professional football: every match as a starter costs <b>{GAS_JOGO} energy</b>, every round on the bench gives <b>+{GAS_BANCO}</b> back. Below 60 he is <b>tired</b> (😓, −1 in the match); below 30 he is <b>running on empty</b> (🥵, −2 and double the injury risk). Injuries come back <b>gradually</b> (60% → 80% → 100%) — unless you have the 🏥 Medical Department. Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots don't get tired — rotate well and you won't feel a thing either.</>
+                : <>Série C é futebol profissional: cada jogo como titular custa <b>{GAS_JOGO} de gás</b>, cada rodada no banco devolve <b>+{GAS_BANCO}</b>. Abaixo de 60 ele está <b>cansado</b> (😓, −1 no jogo); abaixo de 30, <b>no limite</b> (🥵, −2 e o dobro de risco de lesão). Lesão volta <b>aos poucos</b> (60% → 80% → 100%) — a não ser que você tenha o 🏥 Departamento Médico. Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
+            </UnlockBanner>
+          )}
+          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} />
         </>
       ) : (<>
       {hasReserves && (
@@ -5686,7 +5789,18 @@ export function PyramidSeasonScreen() {
     }
     return Object.keys(out).length ? out : undefined
   }, [quinzeSim, state.careerTecnicos, state.careerTecnicosDesde, state.seasonNo])
-  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs])
+  // 😓 CONDIÇÃO / GÁS (12/09): modificador por JOGADOR e por rodada do SEU time
+  // (cansaço −1/−2 e volta gradual da lesão). Derivado da escalação congelada —
+  // rodada passada nunca muda de valor. Desligado = {} = simulação idêntica.
+  const condOn = condicaoAtiva(state)
+  const condMods = useMemo<RoundCardMods>(() => {
+    if (!condOn) return {}
+    const me = state.managers[state.youIdx]
+    if (!me) return {}
+    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1)
+    return Object.keys(mods).length ? { [me.id]: mods } : {}
+  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo])
+  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -6112,6 +6226,10 @@ export function PyramidSeasonScreen() {
     : round
   const myXI = useMemo(() => (mgrMe ? lineupAt(careerLineup, youId, slotEscala, mgrMe.squad, mgrMe.formation) : []), [careerLineup, youId, slotEscala, mgrMe])
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
+  // 😓 gás e nº de jogos de cada carta ANTES do próximo jogo (pra aba Elenco e
+  // pro sorteio da lesão). null = condição desligada nesta carreira/temporada.
+  const condGas = useMemo(() => (condOn && mgrMe ? gasDoElenco(careerLineup[youId], round, mgrMe.squad) : null), [condOn, mgrMe, careerLineup, youId, round])
+  const condJogos = useMemo(() => (condOn && mgrMe ? jogosDoElenco(careerLineup[youId], round, mgrMe.squad) : null), [condOn, mgrMe, careerLineup, youId, round])
 
   // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
   const soloCareer = state.onlineMode !== 'online'
@@ -6158,7 +6276,7 @@ export function PyramidSeasonScreen() {
     // temporada, então o sorteio (rodada-alvo, branco/não-branco e QUEM é sorteado)
     // saía sempre igual. Corrigido passando o seed CRU — sorteiaEvento já faz a
     // própria mistura por temporada.
-    const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico'), hist: state.eventoHist, avoidName: evAtual?.nome })
+    const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], temMedico: hasExtra(state.stadiums?.[youId], 'medico'), hist: state.eventoHist, avoidName: evAtual?.nome, gas: condGas ?? undefined })
     if (!d) return false
     const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente' }
     if (!d.reservas.length) {
@@ -6374,6 +6492,20 @@ export function PyramidSeasonScreen() {
       if (idx >= 0) ids[idx] = reserveId; else ids.push(reserveId)
     }
     dispatch({ type: 'SET_LINEUP', mgrId: youId, ids, slot: slotEscala })
+    setSelId(null)
+  }
+  // 😓 🔁 RODIZIAR: aplica a sugestão do preparador (cansado sai, reserva inteiro
+  // da mesma posição entra na MESMA vaga). É o mesmo SET_LINEUP da troca por toque
+  // — vale do próximo jogo. Só roda quando o técnico APERTA; nunca sozinho.
+  const onRodizio = () => {
+    if (!mgrMe || !condGas || !canSub) return
+    // bloqueados: o suspenso e quem está VOLTANDO de lesão (60/80%) — entrar com
+    // −2 no lugar de um cansado com −1 seria piorar o time
+    const bloq = new Set(mgrMe.squad.filter(c => modVolta(evAtual, state.seasonNo ?? 1, round, c.id) !== 0).map(c => c.id))
+    if (suspenso) bloq.add(suspenso.cardId)
+    const sug = sugerirRodizio(myXI.map(c => c.id), mgrMe.squad, condGas, bloq)
+    if (!sug) return
+    dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: sug.ids, slot: slotEscala })
     setSelId(null)
   }
   const myDiv = me?.div ?? null
@@ -7868,7 +8000,8 @@ export function PyramidSeasonScreen() {
                 {' '}{tr('O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.', 'What already showed on screen no longer changes: the champion that comes out is the real champion.')}
               </div>
             )}
-            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
+            <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
+              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub ? onRodizio : undefined, suspensoId: suspenso?.cardId } : undefined} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
                 Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner

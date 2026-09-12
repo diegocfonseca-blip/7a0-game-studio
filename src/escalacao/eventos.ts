@@ -171,8 +171,11 @@ export function sorteiaEvento(args: {
   // É o que segura o "toda vez o mesmo cara" (relato do Diego).
   hist?: Record<string, number>
   avoidName?: string // (legado) nome do causo da temporada passada — saves antigos sem histórico
+  // 😓 CONDIÇÃO (12/09): gás por carta. Quem está NO LIMITE (< 30) entra com peso
+  // DOBRADO no sorteio da lesão. Ausente = sorteio igual ao de sempre.
+  gas?: Record<string, number>
 }): EventoSorteado | null {
-  const { seed, seasonNo, round, xi, squad, temMedico, avoidName, hist } = args
+  const { seed, seasonNo, round, xi, squad, temMedico, avoidName, hist, gas } = args
   if (round < EVENTO_MIN_ROUND || round > EVENTO_MAX_ROUND) return null
   const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0x77AA11) >>> 0)
   if (rng() < 0.15) return null // temporada em branco (nem toda temporada tem causo)
@@ -184,7 +187,7 @@ export function sorteiaEvento(args: {
     const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
-    if (!temMedico) pool.push({ c, tipo: 'lesao' })
+    if (!temMedico) { pool.push({ c, tipo: 'lesao' }); if (gas && (gas[c.id] ?? 100) < 30) pool.push({ c, tipo: 'lesao' }) } // 🥵 no limite = 2× lesão
   }
   if (!pool.length) return null // 🏥 médico pronto + ninguém folclórico no XI = temporada em paz
   // 🔁 DESCANSO DE 5 TEMPORADAS (regra do Diego, 08/08): quem já aprontou fica
