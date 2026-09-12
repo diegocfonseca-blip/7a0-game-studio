@@ -3071,7 +3071,7 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
         {c.name}
         {c.emprestado && <EmpTag />}
         {onSwap && <span style={{ fontWeight: 900, marginLeft: 4, color: titular ? '#c0392b' : GREEN }}>{titular ? '▼' : '▲'}</span>}
-        {list && <span style={{ fontWeight: 900, marginLeft: 4, fontSize: 10, color: listed ? '#C2452F' : dim ? 'rgba(0,0,0,0.35)' : GREEN }}>{listed ? '🔴 À VENDA (tirar)' : dim ? '🔒' : '+ listar'}</span>}
+        {list && <span style={{ fontWeight: 900, marginLeft: 4, fontSize: 10, color: listed ? '#C2452F' : dim ? 'rgba(0,0,0,0.35)' : GREEN }}>{listed ? tr('🔴 À VENDA (tirar)', '🔴 FOR SALE (remove)') : dim ? '🔒' : tr('+ listar', '+ list')}</span>}
       </span>
       <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, whiteSpace: 'nowrap', color: '#5a5647', flexShrink: 0 }}>💰 {c.paid ?? 0}</span>
     </div>
@@ -3088,13 +3088,13 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // (quase invisível); ⏳ âmbar no último ano; ❗ vermelho vencido.
   // Emprestado/incógnito não mostram nada.
   const ctInfo = (c: WonCard): { txt: string; color: string } | null => {
-    if (c.cria) return { txt: '🌱 sem contrato', color: 'rgba(0,0,0,0.45)' }
+    if (c.cria) return { txt: tr('🌱 sem contrato', '🌱 no contract'), color: 'rgba(0,0,0,0.45)' }
     if (!contratosOn || c.fake || c.emprestado || c.contratoAte == null) return null
     const sn = seasonNo ?? 1
-    if (c.contratoAte < sn) return { txt: '❗ vencido', color: '#C2452F' }
-    if (c.contratoAte === sn) return { txt: '⏳ último ano', color: '#B8860B' }
+    if (c.contratoAte < sn) return { txt: tr('❗ vencido', '❗ expired'), color: '#C2452F' }
+    if (c.contratoAte === sn) return { txt: tr('⏳ último ano', '⏳ last year'), color: '#B8860B' }
     const anos = c.contratoAte - sn + 1
-    return { txt: `📝 ${anos} anos`, color: 'rgba(0,0,0,0.45)' }
+    return { txt: tr(`📝 ${anos} anos`, `📝 ${anos} years`), color: 'rgba(0,0,0,0.45)' }
   }
   const goalsOf = (c: WonCard) => goals?.[c.id] ?? 0
   // 🅰️ assistências da temporada (irmã do gol; some quando é zero, igual o gol)
@@ -3195,7 +3195,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         {assistsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2F6BAE' }}>🅰️ {assistsOf(c)}</span>}
         <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
           <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
-          {salaryOn && <span title="Salário por ano (piso ÷ 10)" style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>}
+          {salaryOn && <span title={tr('Salário por ano (piso ÷ 10)', 'Salary per year (floor ÷ 10)')} style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>}
         </span>
         {(() => { const k = ctInfo(c); return k ? <span style={{ fontWeight: 800, fontSize: 8.5, color: k.color, whiteSpace: 'nowrap' }}>{k.txt}</span> : null })()}
       </span>
@@ -3208,16 +3208,18 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       {olheiros && olheiroTier !== 'ouro' && olheiroTier !== 'prata' && (
         <ApoieButton startScreen="choice" trigger={open => (
           <button onClick={open} style={{ width: '100%', border: `2.5px dashed ${INK}`, borderRadius: 11, padding: '7px 10px', margin: '0 0 10px', background: '#FBF6E8', cursor: 'pointer', textAlign: 'left', fontWeight: 800, fontSize: 11, color: 'rgba(0,0,0,.6)', lineHeight: 1.4 }}>
-            🕵️ Quer ver o <b>overall</b> dos teus jogadores aqui? É do <b>Olheiro</b>: ⭐ Craque vê até craque · 👑 Lenda vê TUDO — <u>toca aqui</u>
+            {getLang() === 'en' ? <>🕵️ Want to see your players\' <b>overall</b> here? That\'s the <b>Scout</b>: ⭐ Star sees up to star · 👑 Legend sees EVERYTHING — <u>tap here</u></> : <>🕵️ Quer ver o <b>overall</b> dos teus jogadores aqui? É do <b>Olheiro</b>: ⭐ Craque vê até craque · 👑 Lenda vê TUDO — <u>toca aqui</u></>}
           </button>
         )} />
       )}
       {onTap && (
         <div style={{ border: `3px solid ${sel ? GREEN : INK}`, background: sel ? '#E9F9EF' : '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ fontSize: 13.5, fontWeight: 900, ...OSWALD, color: sel ? GREEN : INK, margin: 0, lineHeight: 1.2 }}>
-            {sel ? <>🔁 Trocar <b>{sel.name}</b> por qual {POS_LABEL[sel.pos].toLowerCase()}? Toque um aceso 👇</> : <>🔁 Faça suas trocas aqui: toque num jogador e depois no outro.</>}
+            {getLang() === 'en'
+              ? (sel ? <>🔁 Swap <b>{sel.name}</b> for which {POS_LABEL[sel.pos].toLowerCase().replace(/s$/, '')}? Tap a highlighted one 👇</> : <>🔁 Make your swaps here: tap one player, then the other.</>)
+              : sel ? <>🔁 Trocar <b>{sel.name}</b> por qual {POS_LABEL[sel.pos].toLowerCase()}? Toque um aceso 👇</> : <>🔁 Faça suas trocas aqui: toque num jogador e depois no outro.</>}
           </p>
-          {!sel && <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0' }}>Vale do próximo jogo em diante.</p>}
+          {!sel && <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0' }}>{tr('Vale do próximo jogo em diante.', 'Applies from the next match on.')}</p>}
         </div>
       )}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
@@ -3296,12 +3298,12 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(150deg,#2A241A,#17130A)', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 11px', margin: '0 0 10px', boxShadow: `2px 2px 0 0 ${INK}` }}>
           <span style={{ fontSize: 17 }}>💸</span>
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontWeight: 900, fontSize: 11.5, ...OSWALD, color: '#fff', letterSpacing: 0.3 }}>FOLHA DO TIME</span>
-            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>cobrada no fim da temporada · piso ÷ 10 por jogador{salTec > 0 ? ' · + o técnico' : ''}</span>
+            <span style={{ display: 'block', fontWeight: 900, fontSize: 11.5, ...OSWALD, color: '#fff', letterSpacing: 0.3 }}>{tr('FOLHA DO TIME', 'TEAM PAYROLL')}</span>
+            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>{tr('cobrada no fim da temporada · piso ÷ 10 por jogador', 'charged at the end of the season · floor ÷ 10 per player')}{salTec > 0 ? tr(' · + o técnico', ' · + the coach') : ''}</span>
           </span>
           <span style={{ textAlign: 'right', flexShrink: 0 }}>
             <span style={{ display: 'block', fontWeight: 900, fontSize: 17, ...OSWALD, color: '#E7503A', lineHeight: 1 }}>{folha}</span>
-            <span style={{ display: 'block', fontSize: 8, fontWeight: 800, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: 0.5 }}>🪙 / ano</span>
+            <span style={{ display: 'block', fontSize: 8, fontWeight: 800, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: 0.5 }}>🪙 / {tr('ano', 'year')}</span>
           </span>
         </div>
       ) })()}
@@ -3310,20 +3312,20 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           jogador de qualquer lista OU do campinho e completa no outro). */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, alignItems: 'start' }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>⭐ Titulares ({titulares.length})</p>
+          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('⭐ Titulares', '⭐ Starters')} ({titulares.length})</p>
           {titulares.map(c => rowOf(c, true))}
         </div>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>🔁 Reservas ({reserves.length})</p>
+          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('🔁 Reservas', '🔁 Subs')} ({reserves.length})</p>
           {reserves.length === 0
             ? (seasonNo === 1
-                ? <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', margin: 0, lineHeight: 1.4 }}>🔒 Na Temporada 1 você joga com os 11. <b>No próximo leilão</b> (no fim desta temporada) você enche o banco — até 22! 🔨</p>
-                : <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', margin: 0 }}>Sem reservas no banco.</p>)
+                ? <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>🔒 In Season 1 you play with the 11. <b>At the next auction</b> (end of this season) you fill the bench — up to 22! 🔨</> : <>🔒 Na Temporada 1 você joga com os 11. <b>No próximo leilão</b> (no fim desta temporada) você enche o banco — até 22! 🔨</>}</p>
+                : <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', margin: 0 }}>{tr('Sem reservas no banco.', 'No subs on the bench.')}</p>)
             : reserves.map(c => rowOf(c, false))}
         </div>
       </div>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: '8px 0 0', lineHeight: 1.4, textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>
-        💡 O nível de cada carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda.
+        {getLang() === 'en' ? <>💡 Each card\'s level is the <b>player\'s peak at that club and year</b>: Kaká · São Paulo 2003 is a prospect, Kaká · Milan 2007 is a legend.</> : <>💡 O nível de cada carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda.</>}
       </p>
     </div>
   )
@@ -3363,10 +3365,10 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
     <div style={{ marginBottom: 12 }}>
       <button onClick={go} disabled={busy}
         style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 8px', fontWeight: 900, fontSize: 15, ...OSWALD, background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', color: INK }}>
-        {busy ? '🎨 Gerando a arte…' : '📤 COMPARTILHAR MEU ELENCO'}
+        {busy ? tr('🎨 Gerando a arte…', '🎨 Building the image…') : tr('📤 COMPARTILHAR MEU ELENCO', '📤 SHARE MY SQUAD')}
       </button>
       <p style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', marginTop: 5 }}>
-        gera a imagem do teu time — mostra teu elenco e marca a gente! 📲 @leilaolegendscom
+        {tr('gera a imagem do teu time — mostra teu elenco e marca a gente! 📲 @leilaolegendscom', 'builds your team image — show off your squad and tag us! 📲 @leilaolegendscom')}
       </p>
     </div>
   )
@@ -3776,7 +3778,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
   const hasReserves = SECTORS.some(pos => mgr.squad.filter(c => c.pos === pos).length > need[pos])
   const elenco = !!xiIds && !list // aba Elenco: campinho + reservas (troca por seleção)
   // na aba Elenco a explicação fica no banner grande abaixo — aqui não repete.
-  const caption = elenco ? '' : list ? '· toque pra pôr no leilão / tirar' : '· moedas pra reforços'
+  const caption = elenco ? '' : list ? tr('· toque pra pôr no leilão / tirar', '· tap to list for auction / unlist') : tr('· moedas pra reforços', '· coins for signings')
   const listOf = (c: WonCard): ListCfg | undefined => list ? { listed: list.listed.has(c.id), listable: list.canList(c), onList: () => list.onList(c.id) } : undefined
   // o elenco herda a COR do jogador (a mesma sorteada pra ele no jogo todo).
   // Quem tem tier de apoio ganha o degradê DA CARTA da categoria + varredura
@@ -3793,7 +3795,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/{Math.max(22, mgr.squad.length)}{elenco ? '' : ` · 💰 ${total}`}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
-        <span title="Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)" style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? `🏷️ Elenco vale ${total} 💵` : `🪙 Caixa: ${coins}`}</span>
+        <span title={tr('Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)', 'Sum of the 22 players\' market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
       </div>
       {elenco && onSetFormation && (() => {
@@ -3841,7 +3843,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
               {/* 🎽 título e HERANÇA (Diego 28/08): o cardápio é do TÉCNICO, mas a
                   formação que o time já jogava quando ele chegou continua ali —
                   marcada com um selinho sutil pra ninguém achar que é dele. */}
-              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎽 Formação{meuTecT ? ' do técnico' : ''}</p>
+              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}{meuTecT ? tr(' do técnico', ' (coach\'s)') : ''}</p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: daCasa && !doTec.has(daCasa) ? 8 : 0 }}>
                 {cardapio.map(f => {
                   const cur = atual.rotulo === f.rotulo
@@ -3850,7 +3852,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
                   return (
                     <div key={f.rotulo} style={{ position: 'relative' }}>
                       {heranca && (
-                        <span style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', ...OSWALD, fontWeight: 800, fontSize: 7.5, letterSpacing: '.05em', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', background: '#EDE3C8', border: '1.5px solid rgba(0,0,0,.22)', borderRadius: 999, padding: '0 6px', lineHeight: '12px' }}>🧳 herança</span>
+                        <span style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', ...OSWALD, fontWeight: 800, fontSize: 7.5, letterSpacing: '.05em', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', background: '#EDE3C8', border: '1.5px solid rgba(0,0,0,.22)', borderRadius: 999, padding: '0 6px', lineHeight: '12px' }}>{tr('🧳 herança', '🧳 inherited')}</span>
                       )}
                       <button disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f.motor, f.padrao ? undefined : f.rotulo) }}
                         style={{ ...btnStyle(cur, can), fontSize: f.rotulo.length > 7 ? 10.5 : 12.5 }}>
@@ -3861,15 +3863,15 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
                 })}
               </div>
               {!!daCasa && !doTec.has(daCasa) && (
-                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 0', lineHeight: 1.35 }}>🧳 O <b>{daCasa}</b> não é do {meuTecN} — é <b>herança do técnico anterior</b>: o time já jogava assim quando ele chegou, e continuou no cardápio.</p>
+                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>🧳 The <b>{daCasa}</b> isn\'t {meuTecN}\'s — it\'s <b>inherited from the previous coach</b>: the team already played it when he arrived, and it stayed on the menu.</> : <>🧳 O <b>{daCasa}</b> não é do {meuTecN} — é <b>herança do técnico anterior</b>: o time já jogava assim quando ele chegou, e continuou no cardápio.</>}</p>
               )}
               {/* 🔒 sem técnico: explica a trava E o caminho pra destravar */}
               {!meuTecT && (
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6d00', margin: '6px 0 0', lineHeight: 1.4 }}>🧢 <b>Sem técnico o time só joga o {atual.rotulo}</b> — é o esquema que ele já treina, ninguém no clube sabe montar outro. Pra abrir mais formações, <b>contrate um técnico</b>: na janela antes do leilão, aba <b>🕵️ Sondar</b>. O {atual.rotulo} continua no cardápio depois (vira 🧳 herança).{socorro ? <><br />🛟 <b>Liberei o básico agora</b> porque seu elenco não monta o {atual.rotulo} — escolha 4-3-3 ou 4-4-2 pra escalar o time.</> : null}</p>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a6d00', margin: '6px 0 0', lineHeight: 1.4 }}>{getLang() === 'en' ? <>🧢 <b>Without a coach the team only plays {atual.rotulo}</b> — it\'s the system it already trains; nobody at the club knows how to set up another. To unlock more formations, <b>hire a coach</b>: in the window before the auction, <b>🕵️ Scout</b> tab. {atual.rotulo} stays on the menu afterwards (becomes 🧳 inherited).{socorro ? <><br />🛟 <b>I unlocked the basics now</b> because your squad can\'t form {atual.rotulo} — pick 4-3-3 or 4-4-2 to field the team.</> : null}</> : <>🧢 <b>Sem técnico o time só joga o {atual.rotulo}</b> — é o esquema que ele já treina, ninguém no clube sabe montar outro. Pra abrir mais formações, <b>contrate um técnico</b>: na janela antes do leilão, aba <b>🕵️ Sondar</b>. O {atual.rotulo} continua no cardápio depois (vira 🧳 herança).{socorro ? <><br />🛟 <b>Liberei o básico agora</b> porque seu elenco não monta o {atual.rotulo} — escolha 4-3-3 ou 4-4-2 pra escalar o time.</> : null}</>}</p>
               )}
               {bloqueadas.length
-                ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
-                : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
+                ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>⚠️ To play <b>{bloqueadas[0].rotulo}</b> you\'re missing <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Sign at the auction or bring from the SAF.</> : <>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</>}</p>
+                : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>{tr('✅ Você pode trocar de formação quando quiser — vale do próximo jogo.', '✅ You can change formation whenever you like — applies from the next match.')}</p>}
             </div>
           )
         }
@@ -3877,7 +3879,7 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         const blocked = (['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
-            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎽 Formação</p>
+            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).map(f => {
                 const cur = mgr.formation === f
@@ -3891,21 +3893,21 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
               })}
             </div>
             {blocked.length
-              ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>⚠️ Pra jogar <b>{blocked[0]}</b> faltam <b>{missFor(blocked[0]).join(', ')}</b>. Contrate no leilão ou traga da SAF.</p>
-              : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>✅ Você pode trocar de formação quando quiser — vale do próximo jogo.</p>}
+              ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>⚠️ To play <b>{blocked[0]}</b> you\'re missing <b>{missFor(blocked[0]).join(', ')}</b>. Sign at the auction or bring from the SAF.</> : <>⚠️ Pra jogar <b>{blocked[0]}</b> faltam <b>{missFor(blocked[0]).join(', ')}</b>. Contrate no leilão ou traga da SAF.</>}</p>
+              : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>{tr('✅ Você pode trocar de formação quando quiser — vale do próximo jogo.', '✅ You can change formation whenever you like — applies from the next match.')}</p>}
           </div>
         )
       })()}
       {/* 🔓 Substituições acabaram de liberar (T2, onSwap só existe com canSub true):
           avisa ANTES do seletor de modo, senão o botão só "aparece" sem explicar nada. */}
       {elenco && onSetSubMode && onSwap && (
-        <UnlockBanner k="sub" tag="🔁 novo controle" title="Substituições liberadas">
-          Agora dá pra trocar <b>titular por reserva NO MEIO da temporada</b> — não só na escalação inicial. Escolha embaixo como prefere fazer a troca.
+        <UnlockBanner k="sub" tag={tr('🔁 novo controle', '🔁 new control')} title={tr('Substituições liberadas', 'Substitutions unlocked')}>
+          {getLang() === 'en' ? <>Now you can swap <b>a starter for a sub MID-season</b> — not just in the starting line-up. Choose below how you prefer to make the swap.</> : <>Agora dá pra trocar <b>titular por reserva NO MEIO da temporada</b> — não só na escalação inicial. Escolha embaixo como prefere fazer a troca.</>}
         </UnlockBanner>
       )}
       {elenco && criaDeEvento && (
-        <UnlockBanner k="criabase" tag="🌱 cria da base" title="Sem reserva? Sobe um cria" ctaBg={GREEN} ctaColor="#fff">
-          Se rolar noitada, expulsão ou lesão e você <b>não tiver reserva na posição</b>, um jogador ruim do Sub-20 sobe pra tapar o buraco — sem contrato, de graça. Ele some sozinho assim que você <b>comprar um reforço de verdade</b> pra vaga.
+        <UnlockBanner k="criabase" tag={tr('🌱 cria da base', '🌱 academy kid')} title={tr('Sem reserva? Sobe um cria', 'No sub? An academy kid steps up')} ctaBg={GREEN} ctaColor="#fff">
+          {getLang() === 'en' ? <>If there\'s a night out, a red card or an injury and you <b>have no sub in that position</b>, a poor U-20 player comes up to plug the hole — no contract, free. He disappears on his own as soon as you <b>sign a real reinforcement</b> for the spot.</> : <>Se rolar noitada, expulsão ou lesão e você <b>não tiver reserva na posição</b>, um jogador ruim do Sub-20 sobe pra tapar o buraco — sem contrato, de graça. Ele some sozinho assim que você <b>comprar um reforço de verdade</b> pra vaga.</>}
         </UnlockBanner>
       )}
       {/* 🔁 TOGGLE: como o técnico faz troca (só carreira offline). Padrão = dinâmico
@@ -3926,10 +3928,10 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
         }
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
-            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🔁 Substituições</p>
+            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🔁 Substituições', '🔁 Substitutions')}</p>
             <div style={{ display: 'flex', gap: 6 }}>
-              <Opt m="dinamico" titulo="🔄 Dinâmico" desc="troca quando quiser · vale pro próximo jogo" />
-              <Opt m="intervalo" titulo="⏸️ Só no intervalo" desc="o jogo pausa aos 45' pra trocar (só o 2º tempo)" />
+              <Opt m="dinamico" titulo={tr('🔄 Dinâmico', '🔄 Dynamic')} desc={tr('troca quando quiser · vale pro próximo jogo', 'swap whenever you like · applies to the next match')} />
+              <Opt m="intervalo" titulo={tr('⏸️ Só no intervalo', '⏸️ Half-time only')} desc={tr("o jogo pausa aos 45' pra trocar (só o 2º tempo)", "the match pauses at 45' to swap (2nd half only)")} />
             </div>
           </div>
         )
@@ -3937,8 +3939,8 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
       {elenco ? (
         <>
           {(seasonNo ?? 1) >= 4 && (
-            <UnlockBanner k="salario" tag="💰 novo custo" title="Salário chegou" ctaBg="#C2452F" ctaColor="#fff">
-              A partir de agora o clube paga <b>salário todo mês</b> pelo elenco inteiro (o valor é o preço pago ÷ 10 de cada carta). Fique de olho na caixa — jogador caro pesa mais na folha.
+            <UnlockBanner k="salario" tag={tr('💰 novo custo', '💰 new cost')} title={tr('Salário chegou', 'Salaries have arrived')} ctaBg="#C2452F" ctaColor="#fff">
+              {getLang() === 'en' ? <>From now on the club pays <b>salaries every month</b> for the whole squad (the amount is each card\'s price paid ÷ 10). Keep an eye on the till — expensive players weigh more on the payroll.</> : <>A partir de agora o clube paga <b>salário todo mês</b> pelo elenco inteiro (o valor é o preço pago ÷ 10 de cada carta). Fique de olho na caixa — jogador caro pesa mais na folha.</>}
             </UnlockBanner>
           )}
           <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} />
@@ -3946,8 +3948,8 @@ function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, se
       ) : (<>
       {hasReserves && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
-          <p style={{ flex: 1, fontWeight: 900, fontSize: 9.5, ...OSWALD, color: col.solid, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>Titulares</p>
-          <p style={{ flex: 1, fontWeight: 900, fontSize: 9.5, ...OSWALD, color: 'rgba(0,0,0,0.45)', margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>Reservas</p>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 9.5, ...OSWALD, color: col.solid, margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>{tr('Titulares', 'Starters')}</p>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 9.5, ...OSWALD, color: 'rgba(0,0,0,0.45)', margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>{tr('Reservas', 'Subs')}</p>
         </div>
       )}
       {SECTORS.map(pos => {
