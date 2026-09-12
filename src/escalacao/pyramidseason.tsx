@@ -4037,7 +4037,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   // então quem começou a carreira na Várzea via um troféu a menos na conta).
   const totalT = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + mySupercopa + myWorld
   const trofeus = [
-    ...(myWorld > 0 ? [{ key: 'mundo', label: 'Copa do Mundo', n: myWorld, bg: INK, c: GOLD }] : []),
+    ...(myWorld > 0 ? [{ key: 'mundo', label: tr('Copa do Mundo', 'World Cup'), n: myWorld, bg: INK, c: GOLD }] : []),
     ...(myCopas > 0 ? [{ key: 'copa', label: copaLabel, n: myCopas, bg: brasil ? '#0EA658' : GOLD, c: brasil ? '#fff' : INK }] : []),
     ...(mySupercopa > 0 ? [{ key: 'super', label: 'Supercopa', n: mySupercopa, bg: '#0D4FCC', c: '#fff' }] : []),
     ...(['A', 'B', 'C', 'D', 'V'] as Div[]).filter(d => (myH[d] ?? 0) > 0).map(d => ({ key: d, label: DIV_NAME[d], n: myH[d] ?? 0, bg: CDTAG[d].bg, c: CDTAG[d].c })),
@@ -4045,10 +4045,10 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   return (
     <>
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
-      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🏆 RANKING GERAL</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata. Os <b>{VAGAS_MUNDO} primeiros</b> pegam vaga na 🌍 Copa do Mundo.</p>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{tr('🏆 RANKING GERAL', '🏆 OVERALL RANKING')}</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{getLang() === 'en' ? <>Every title is worth points and the rank ADDS them up: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Cup <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Tied? 💰 breaks it. The <b>top {VAGAS_MUNDO}</b> qualify for the 🌍 World Cup.</> : <>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata. Os <b>{VAGAS_MUNDO} primeiros</b> pegam vaga na 🌍 Copa do Mundo.</>}</p>
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Títulos</th><th style={{ ...th, textAlign: 'right' }}>PTS</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
+        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('Títulos', 'Titles')}</th><th style={{ ...th, textAlign: 'right' }}>PTS</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
           {top.map((r, i) => {
             const you = r.t.teamId === youId && r.t.teamId >= 0
@@ -4064,7 +4064,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
             // inteiro ficava dourado por causa do id -1 compartilhado por todo bot.
             const fc = isSaf ? colors[youId] : ((r.t.human || r.t.rival) ? colors[r.t.teamId] : undefined)
             return (
-              <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: ultimaVaga ? '3px dashed #7C3AED' : undefined, background: fc?.light, fontWeight: colored ? 800 : 500 }} title={ultimaVaga ? 'Última vaga na Copa do Mundo' : undefined}>
+              <tr key={r.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: ultimaVaga ? '3px dashed #7C3AED' : undefined, background: fc?.light, fontWeight: colored ? 800 : 500 }} title={ultimaVaga ? tr('Última vaga na Copa do Mundo', 'Last World Cup spot') : undefined}>
                 <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)' }}>{i + 1}</td>
                 <td style={{ maxWidth: 150, color: fc?.solid ?? INK }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
@@ -4076,9 +4076,9 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
                   {/* 🌱 o V entra na conta (07/09): clube que só tem título de Várzea aparecia "—", como se nunca tivesse ganhado nada */}
                   {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.supercopa + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › Supercopa › B › C › D), pra bater com o que decide quem fica na frente */}
-                    {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.wc > 1 ? r.wc : ''}</span>}
+                    {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{tr('🌍Mundo', '🌍World')}{r.wc > 1 ? r.wc : ''}</span>}
                     {(r.h.A ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.h.A}</span>}
-                    {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: brasil ? '#fff' : INK, background: brasil ? '#0EA658' : GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{brasil ? '🏆🇧🇷' : '🏆Copa'}{r.copas > 1 ? r.copas : ''}</span>}
+                    {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: brasil ? '#fff' : INK, background: brasil ? '#0EA658' : GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{brasil ? '🏆🇧🇷' : tr('🏆Copa', '🏆Cup')}{r.copas > 1 ? r.copas : ''}</span>}
                     {r.supercopa > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆🔵{r.supercopa > 1 ? r.supercopa : ''}</span>}
                     {(['B', 'C', 'D', 'V'] as Div[]).map(d => (r.h[d] ?? 0) > 0 ? (
                       <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{r.h[d]}</span>
@@ -4096,10 +4096,10 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     {/* 🏆 HALL DE TROFÉUS: a estante PESSOAL do seu clube (só os SEUS títulos) —
         conquistas ganhas nesta carreira, guardadas pra sempre. */}
     <div style={{ ...box('linear-gradient(160deg,#FFF7E0,#FFEBB0)'), padding: 12, marginBottom: 12 }}>
-      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: '0 0 2px' }}>🏆 Hall de Troféus</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '0 0 10px' }}>A estante do seu clube — o que você conquistou nesta carreira{seasonNo ? ` · temporada ${seasonNo}` : ''}.</p>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: '0 0 2px' }}>{tr('🏆 Hall de Troféus', '🏆 Trophy Room')}</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '0 0 10px' }}>{tr('A estante do seu clube — o que você conquistou nesta carreira', 'Your club\'s cabinet — what you won in this career')}{seasonNo ? tr(` · temporada ${seasonNo}`, ` · season ${seasonNo}`) : ''}.</p>
       {totalT === 0 ? (
-        <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', padding: '10px 0' }}>Estante vazia por enquanto… 🏆 Ganhe um título e ele fica guardado aqui pra sempre.</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', padding: '10px 0' }}>{tr('Estante vazia por enquanto… 🏆 Ganhe um título e ele fica guardado aqui pra sempre.', 'Empty cabinet for now… 🏆 Win a title and it stays here forever.')}</p>
       ) : (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {trofeus.map(t => (
@@ -4112,9 +4112,9 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
         </div>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12, alignItems: 'center' }}>
-        <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: INK, color: '#fff', borderRadius: 8, padding: '3px 8px' }}>Total: {totalT} 🏆</span>
+        <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: INK, color: '#fff', borderRadius: 8, padding: '3px 8px' }}>{tr('Total', 'Total')}: {totalT} 🏆</span>
         {myH.A > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>{'⭐'.repeat(Math.min(myH.A, 5))}{myH.A > 5 ? ` ×${myH.A}` : ''} Série A</span>}
-        {myDiv && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>Hoje na {DIV_NAME[myDiv]}</span>}
+        {myDiv && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>{tr('Hoje na', 'Now in')} {DIV_NAME[myDiv]}</span>}
       </div>
     </div>
     </>
@@ -4712,7 +4712,7 @@ function ChampionsPanel({ copa, tables, scorers, seasonNo, brasil }: { copa: Cop
         <span style={{ display: 'block', fontSize: 12, fontWeight: 900, ...OSWALD, color: champYou ? GREEN : INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🏆 {champName ?? '—'}</span>
       </span>
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 9, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,.45)', textTransform: 'uppercase' }}>⚽ Artilheiro</span>
+        <span style={{ display: 'block', fontSize: 9, fontWeight: 800, ...OSWALD, color: 'rgba(0,0,0,.45)', textTransform: 'uppercase' }}>{tr('⚽ Artilheiro', '⚽ Top scorer')}</span>
         {top
           ? <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#4a4740', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><b>{top.name}</b> ({top.goals}) · <span style={{ color: 'rgba(0,0,0,.5)' }}>{top.teamName}</span></span>
           : <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.4)' }}>—</span>}
@@ -4721,7 +4721,7 @@ function ChampionsPanel({ copa, tables, scorers, seasonNo, brasil }: { copa: Cop
   )
   return (
     <div style={{ ...box('linear-gradient(150deg,#FFF3CF,#FFE79A)'), padding: '10px 12px 12px', marginBottom: 12 }}>
-      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 4px', textAlign: 'center' }}>🥇 Campeões da temporada{seasonNo ? ` ${seasonNo}` : ''}</p>
+      <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 4px', textAlign: 'center' }}>{tr('🥇 Campeões da temporada', '🥇 Season champions')}{seasonNo ? ` ${seasonNo}` : ''}</p>
       {champ && line('🏆', brasil ? 'Copa do Brasil' : 'Copa Legends', copaName(champ), !!champ.you, copa.topScorer ?? undefined)}
       {divs.map(d => line('🥇', DIV_NAME[d], tables[d]?.[0]?.name, !!tables[d]?.[0]?.you, topOf(d)))}
     </div>
@@ -4736,18 +4736,18 @@ function CopaBrasilGroupTable({ group, highlight }: { group: CBGroup; highlight?
   return (
     <div style={{ ...box('#fff'), padding: '9px 11px 10px', marginBottom: 10, border: `2.5px solid ${highlight ? '#0EA658' : INK}` }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>GRUPO {group.idx + 1}</p>
-        <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', gap: 4 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: '#DFF6E8', display: 'inline-block', border: '1px solid rgba(0,0,0,.15)' }} />classifica</span>
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{tr('GRUPO', 'GROUP')} {group.idx + 1}</p>
+        <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', gap: 4 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: '#DFF6E8', display: 'inline-block', border: '1px solid rgba(0,0,0,.15)' }} />{tr('classifica', 'qualifies')}</span>
       </div>
       <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse' }}>
         <thead><tr>
           <th style={{ ...th, textAlign: 'left', paddingBottom: 4 }}>#</th>
-          <th style={{ ...th, textAlign: 'left', paddingBottom: 4 }}>Time</th>
-          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>P</th>
-          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>V</th>
-          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>E</th>
-          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>D</th>
-          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>SG</th>
+          <th style={{ ...th, textAlign: 'left', paddingBottom: 4 }}>{tr('Time', 'Team')}</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>{tr('P', 'Pts')}</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>{tr('V', 'W')}</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>{tr('E', 'D')}</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>{tr('D', 'L')}</th>
+          <th style={{ ...th, textAlign: 'center', paddingBottom: 4 }}>{tr('SG', 'GD')}</th>
         </tr></thead>
         <tbody>
           {group.table.map((row, i) => {
@@ -4778,11 +4778,11 @@ function CopaBrasilGroupsSummary({ groups, skipIdx }: { groups: CBGroup[]; skipI
   if (rest.length === 0) return null
   return (
     <div style={{ ...box('#fff'), padding: '10px 12px 11px', marginBottom: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 7px', color: 'rgba(0,0,0,.5)' }}>📋 Quem passou nos outros grupos</p>
+      <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 7px', color: 'rgba(0,0,0,.5)' }}>{tr('📋 Quem passou nos outros grupos', '📋 Who went through in the other groups')}</p>
       {rest.map(g => (
         <p key={g.idx} style={{ fontSize: 10, fontWeight: 700, margin: '3px 0', display: 'flex', gap: 6 }}>
-          <span style={{ fontWeight: 900, color: 'rgba(0,0,0,.45)', minWidth: 50, flexShrink: 0 }}>Grupo {g.idx + 1}</span>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.table[0]?.t.name} <span style={{ color: 'rgba(0,0,0,.4)' }}>e</span> {g.table[1]?.t.name}</span>
+          <span style={{ fontWeight: 900, color: 'rgba(0,0,0,.45)', minWidth: 50, flexShrink: 0 }}>{tr('Grupo', 'Group')} {g.idx + 1}</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.table[0]?.t.name} <span style={{ color: 'rgba(0,0,0,.4)' }}>{tr('e', 'and')}</span> {g.table[1]?.t.name}</span>
         </p>
       ))}
     </div>
@@ -4791,9 +4791,9 @@ function CopaBrasilGroupsSummary({ groups, skipIdx }: { groups: CBGroup[]; skipI
 function CopaBrasilPotesBox() {
   return (
     <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>Como se chega na chave de 64</p>
-      <p style={{ fontSize: 10.5, fontWeight: 700, margin: '3px 0', color: '#2a2a2a' }}>🟢 <b>32 já classificados direto</b> — 16 melhores da Série A + (4 últimos da Série A + 12 melhores da Série B)</p>
-      <p style={{ fontSize: 10.5, fontWeight: 700, margin: '3px 0', color: '#2a2a2a' }}>⚔️ <b>64 disputam a fase de grupos</b> — resto da Série B + C + D + Várzea, em 16 grupos de 4 (top-2 avança pra chave)</p>
+      <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.4, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>{tr('Como se chega na chave de 64', 'How you reach the round of 64')}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, margin: '3px 0', color: '#2a2a2a' }}>{getLang() === 'en' ? <>🟢 <b>32 already qualified directly</b> — top 16 of Série A + (bottom 4 of Série A + top 12 of Série B)</> : <>🟢 <b>32 já classificados direto</b> — 16 melhores da Série A + (4 últimos da Série A + 12 melhores da Série B)</>}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, margin: '3px 0', color: '#2a2a2a' }}>{getLang() === 'en' ? <>⚔️ <b>64 play the group stage</b> — rest of Série B + C + D + Várzea, in 16 groups of 4 (top 2 advance to the bracket)</> : <>⚔️ <b>64 disputam a fase de grupos</b> — resto da Série B + C + D + Várzea, em 16 grupos de 4 (top-2 avança pra chave)</>}</p>
     </div>
   )
 }
@@ -4823,28 +4823,28 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
       <div style={{ ...box(brasil ? COPA_BR_HOLO : COPA_LEG_HOLO), position: 'relative', overflow: 'hidden', padding: '11px 12px', marginBottom: 10, textAlign: 'center' }}>
         <CopaLegSheen />
         <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2 }}>{brasil ? '🏆🇧🇷 COPA DO BRASIL LEGENDS' : '🏆 COPA LEGENDS'}</p>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>{brasil ? 'Chave de 64 · zebra pode tudo · sorteio a partir das oitavas' : 'Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório'}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>{brasil ? tr('Chave de 64 · zebra pode tudo · sorteio a partir das oitavas', 'Round of 64 · upsets allowed · draw from the round of 16 on') : tr('Mata-mata dos 16 · top-4 de cada divisão · sorteio aleatório', 'Knockout of 16 · top 4 of each division · random draw')}</p>
       </div>
       {brasil && copaBR && <CopaBrasilGroupsBlock copaBR={copaBR} />}
       {finished && champ && (
         <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, textAlign: 'center' }}>
           <p style={{ fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>
           <p style={{ fontWeight: 900, fontSize: 16, ...OSWALD, margin: '2px 0 0', color: champ.you ? (colors[youId]?.solid ?? INK) : INK }}>{copaName(champ)}</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>CAMPEÃO DA COPA{copa.championDiv && copa.championDiv !== 'A' ? ` — e da Série ${copa.championDiv}! 🐣🔥` : '!'} <span style={{ color: '#8a6d1f' }}>+{brasil ? 50 : 25} 🪙</span></p>
-          {copa.vice && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>🥈 Vice: {copaName(copa.vice)} <span style={{ color: '#8a6d1f' }}>+{brasil ? 25 : 15} 🪙</span></p>}
+          <p style={{ fontSize: 11, fontWeight: 700, color: GREEN, marginTop: 1 }}>{tr('CAMPEÃO DA COPA', 'CUP CHAMPION')}{copa.championDiv && copa.championDiv !== 'A' ? tr(` — e da Série ${copa.championDiv}! 🐣🔥`, ` — and from Série ${copa.championDiv}! 🐣🔥`) : '!'} <span style={{ color: '#8a6d1f' }}>+{brasil ? 50 : 25} 🪙</span></p>
+          {copa.vice && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>{tr('🥈 Vice', '🥈 Runner-up')}: {copaName(copa.vice)} <span style={{ color: '#8a6d1f' }}>+{brasil ? 25 : 15} 🪙</span></p>}
         </div>
       )}
       {/* CAMPEÕES DA TEMPORADA: campeão + artilheiro (com o time do artilheiro). */}
       {finished && <ChampionsPanel copa={copa} tables={tables} scorers={scorers} seasonNo={seasonNo} brasil={brasil} />}
-      {shown.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', textAlign: 'center' }}>A Copa está começando… 🔴</p>}
+      {shown.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', textAlign: 'center' }}>{tr('A Copa está começando… 🔴', 'The Cup is starting… 🔴')}</p>}
       {rounds.map(r => r.name === 'Supercopa' ? (
         <div key={r.name} style={{ marginBottom: 10 }}>
           <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', padding: '9px 12px', marginBottom: 8, textAlign: 'center' }}>
             <CopaLegSheen />
             <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: GOLD, position: 'relative', zIndex: 2 }}>🏆🔵 SUPERCOPA LEGENDS</p>
-            <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.75)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>Campeão da Liga × Campeão da Copa do Brasil · jogo único</p>
+            <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.75)', margin: '2px 0 0', position: 'relative', zIndex: 2 }}>{tr('Campeão da Liga × Campeão da Copa do Brasil · jogo único', 'League champion × Copa do Brasil champion · one match')}</p>
           </div>
-          <CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeam} title="Resultado" />
+          <CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeam} title={tr('Resultado', 'Result')} />
         </div>
       ) : (
         // 🧾 aba Tabelas: fase já decidida, ninguém tá simulando nada aqui — não
@@ -4857,7 +4857,7 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
       ))}
       {/* CLASSIFICAÇÃO das divisões logo abaixo da Copa — a sua em destaque */}
       <div style={{ borderTop: `2px dashed ${INK}22`, margin: '14px 0 10px' }} />
-      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 8px' }}>📊 Classificação das divisões{myDiv ? ' · a sua primeiro' : ''}</p>
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,.5)', margin: '0 0 8px' }}>{tr('📊 Classificação das divisões', '📊 Division standings')}{myDiv ? tr(' · a sua primeiro', ' · yours first') : ''}</p>
       <PyramidTables tables={tables} order={myDiv ? [myDiv, ...ord.filter(d => d !== myDiv)] : ord} colors={colors} myDiv={myDiv} final safTeam={safTeam} safCol={safCol} />
       <PrizesBox />
     </div>
