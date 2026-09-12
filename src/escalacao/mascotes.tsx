@@ -836,7 +836,15 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Eros FC': 'eros_nina',
   'Sapekeiros FC': 'sapek_abelha',
   'Tricolor do Arruda FC': 'cobra_arruda', // 🐍 a cobra do cachimbo carimba o placar (16/08)
-  'Seven City': 'sete_seven', // 7️⃣ o Seven City carimba com o SETE (mockup aprovado), não com o leão
+  // 🍀 SEVEN CITY (glaucomiranda) — 12/09, ordem do Diego com a arte nova: *"passa a ser
+  // o trevo"*. O 7 dourado (SETE_SEVEN) deixa de carimbar; fica no código só por
+  // segurança de save. CARIMBO_GOL é busca EXATA: 4 formas + CAIXA ALTA.
+  'Seven City': 'trevo_seven',
+  'Seven City FC': 'trevo_seven',
+  'Seven City EC': 'trevo_seven',
+  'Seven City SC': 'trevo_seven',
+  'SEVEN CITY': 'trevo_seven',
+  'SEVEN CITY FC': 'trevo_seven',
   'Coringas do Diniz': 'coringa_diniz', // 🃏 o coringa carimba o placar (16/08)
   'Nata de SP': 'nata_palhaco', // 🤡 o palhaço carimba o placar (pedrinhocamisa8, 17/08)
   'Theuzudo FC': 'theuzudo_morcego', // 🦇 o morcego carimba o placar (matheusfilipealves, 21/08)
