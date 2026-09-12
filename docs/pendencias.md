@@ -11,7 +11,7 @@
   - 🏷️ Nome padrão de time "Meu Time" continua PT (é nome, não texto — decidir se vira "My Team" pra quem cria em EN).
   - 📅 Datas/horas continuam no formato `pt-BR` (dia/mês) mesmo em EN — troca fácil se ele quiser.
 - Conferido: `tsc` + build estrito a cada lote; fim de jogo rápido rodado em EN de ponta a ponta (`en-fim.png`), sem erro de tela.
-- ⏳ Tudo no branch `claude/denis-save-file-x1osct`, esperando o "pode" do Diego.
+- ✅ **Publicado na main em 12/09** com o "pode" do Diego (junto com tudo que estava no branch: Salão, pênaltis, caixa-preta, vigia da coroa, `NotaDeRecarga` e as 6 etapas da tradução). Cada lote é um commit separado — dá pra reverter um sem mexer nos outros.
 
 ## 12/09/2026 — 🌐 Tradução do futebol: ETAPA 3 FECHADA + ETAPA 4 (carreira) bem adiantada
 
@@ -93,6 +93,8 @@
 
 ## 11/09/2026 — 🐛 "Esqueci a senha" nunca funcionou (conserto pronto, esperando publicar)
 
+## 11/09/2026 — 🐛 "Esqueci a senha" nunca funcionou (consertado e no ar)
+
 - Reclamação chegou pelo Diego: o usuário `albertgomessantos@gmail.com` *"tá redefinindo e joga ele pra página inicial"*.
 - **O e-mail está certo**: a conta existe (criada 27/07/2026, e-mail confirmado) e o **último acesso é de hoje** — ou seja, o link do e-mail FUNCIONA e loga a pessoa. O que nunca aparecia era a tela de digitar a senha nova.
 - **Causa**: a tela de senha nova morava DENTRO do Lobby (`lobby.tsx`, `startRecovery`), mas o link do e-mail sempre volta na RAIZ do site (é o que o `redirectTo` manda, e o Lobby não é endereço — é uma tela lá dentro). Então o app abria na home, o supabase-js consumia o `type=recovery` da URL, criava a sessão e pronto: pessoa logada na home, sem nunca ver onde trocar a senha. **Não era só com ele — era com todo mundo que esquecia a senha.**
@@ -110,6 +112,8 @@
 - Print tirado da TELA DE VERDADE (trava aberta só na máquina, nada commitado) — o `scripts/mockup-salao-batismos.mjs` foi atualizado junto e virou desenho de apoio: se os dois brigarem, quem manda é a tela.
 - 🔒 **Continua invisível pra geral**: `SALAO_GERAL` segue `false` em `sport.ts`. Só abre quando ele disser.
 - Reversão: o commit anterior do `salao.tsx` volta as duas faixas; no banco, `create or replace` sem o `where s.origem = 'batismo'` volta a contar sócio de assinatura.
+
+- ✅ **Publicado na main em 11/09** com o "pode fazer" do Diego.
 
 ## 11/09/2026 — Faixa "tem versão nova" na home (formato A, escolhido pelo Diego)
 
@@ -134,6 +138,8 @@
 - 🎬 **ABERTURA avulsa (11/09) — REPROVADA por ele**, fica no script como material morto (`--so abertura`); se um dia servir, está lá.
   - o que a abertura reprovada era: ele postou a parte 1 + a 2 juntas e guardou a parte 3 pra depois — *"ficou meio sem entrada, sem sentido"*. Nasceu a `abertura` no mesmo script (`--so abertura`, 21,5s): convite ("e se desse pra montar um time só de lenda?"), o pregão com a carta dourada, os seis retratos famosos e o fecho "olha o time que deu pra montar 👇", que emenda no primeiro quadro da parte 3. **Não repete a parte 1 de propósito** (aquela é "novidade, 156 lendas"; esta é convite), pra quem viu o primeiro post não ver a mesma coisa.
 - ✅ **Os avatares JÁ são públicos** (o Diego liberou pelo Codex, `LEGEND_AVATARS_RELEASED = true`): valem na carreira, no rápido e no online. Estádio cinematográfico em camadas e sala da presidência seguem pendentes — não anunciar como prontos.
+
+- Continua valendo o que já estava anotado: os avatares só aparecem para as duas contas de teste. Estádio cinematográfico em camadas e sala da presidência seguem pendentes — não anunciar como prontos.
 
 ## 10/09/2026 — Pênalti ilustrado: piloto restrito a duas contas
 
