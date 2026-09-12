@@ -6100,8 +6100,31 @@ function leagueBeforeResults<T extends { id: number; pts: number; w: number; d: 
 // "rolar" igual o mockup, em vez de empilhar as 4 numa lista parada). Reseta
 // pro início toda vez que a lista muda (rodada nova/apito) — a trava
 // anti-spoiler continua sendo quem monta `news` lá fora, aqui é só vitrine.
+// 🌐 As manchetes do giro NASCEM em PT no HOST e viajam pra sala inteira
+// (`state.news`). Traduzir na origem colocaria inglês na tela de quem joga em PT
+// na mesma sala — então a tradução é feita AQUI, por quem vê, casando os moldes
+// fixos do `narrateRound`/giro da Copa (store.tsx). Molde desconhecido = fica
+// como veio (nunca inventa).
+function traduzManchete(h: string): string {
+  if (getLang() !== 'en') return h
+  const m = h.match(/^(R\d+ · )?(.*)$/s)
+  const pre = m?.[1] ?? '', t = m?.[2] ?? h
+  let r: RegExpMatchArray | null
+  if ((r = t.match(/^👑 (.+) assumiu a liderança do campeonato!$/))) return `${pre}👑 ${r[1]} took the league lead!`
+  if ((r = t.match(/^🎯 (.+) \((.+)\) tá pegando fogo: (\d+) (gols|pontos) na temporada!$/))) return `${pre}🎯 ${r[1]} (${r[2]}) is on fire: ${r[3]} ${r[4] === 'gols' ? 'goals' : 'points'} this season!`
+  if ((r = t.match(/^😱 ZEBRA! (.+) \((\d+)º\) derrubou o (.+) \((\d+)º\): (\d+)×(\d+)\.$/))) return `${pre}😱 UPSET! ${r[1]} (${ordinal(+r[2], 'en')}) brought down ${r[3]} (${ordinal(+r[4], 'en')}): ${r[5]}×${r[6]}.`
+  if ((r = t.match(/^💥 (.+) (goleou|atropelou) o (.+): (\d+)×(\d+)\.$/))) return `${pre}💥 ${r[1]} ${r[2] === 'goleou' ? 'thrashed' : 'steamrolled'} ${r[3]}: ${r[4]}×${r[5]}.`
+  if ((r = t.match(/^⚽ (Copa|Liberta) (FINAL|SEMI|OITAVAS|QUARTAS)( · ida| · volta)?: (.+)$/))) {
+    const fase = { FINAL: 'FINAL', SEMI: 'SEMI', OITAVAS: 'R16', QUARTAS: 'QUARTERS' }[r[2]] ?? r[2]
+    const perna = r[3] === ' · ida' ? ' · 1st leg' : r[3] === ' · volta' ? ' · 2nd leg' : ''
+    return `${pre}⚽ ${r[1] === 'Copa' ? 'Cup' : 'Liberta'} ${fase}${perna}: ${r[4]}`
+  }
+  if ((r = t.match(/^🎯 (.+) passou nos PÊNALTIS e eliminou (.+)!$/))) return `${pre}🎯 ${r[1]} went through on PENALTIES and knocked out ${r[2]}!`
+  if ((r = t.match(/^🏆 (.+) avançou na (Copa|Libertadores) — adeus, (.+)!$/))) return `${pre}🏆 ${r[1]} advanced in the ${r[2] === 'Copa' ? 'Cup' : 'Libertadores'} — bye, ${r[3]}!`
+  return h
+}
 function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
-  const list = news.slice(0, 5)
+  const list = news.slice(0, 5).map(traduzManchete)
   const key = list.join('|')
   const [idx, setIdx] = useState(0)
   const keyRef = useRef(key)
