@@ -198,9 +198,9 @@ function isBackendDown(msg: string): boolean {
   return /failed to fetch|networkerror|network request failed|load failed|fetch|502|503|504|timeout|unavailable/i.test(msg)
 }
 function friendlyAuthErr(msg: string): string {
-  if (isBackendDown(msg)) return '🔧 Estamos atualizando novidades no jogo! O servidor volta já já — dá uma passadinha daqui a pouquinho. 💛'
-  if (msg === 'Invalid login credentials') return 'Email ou senha incorretos.'
-  if (/email not confirmed/i.test(msg)) return 'Confirme seu email antes de entrar (olha a caixa de entrada ✉️).'
+  if (isBackendDown(msg)) return tr('🔧 Estamos atualizando novidades no jogo! O servidor volta já já — dá uma passadinha daqui a pouquinho. 💛', '🔧 We are rolling out news to the game! The server will be right back — drop by again in a little while. 💛')
+  if (msg === 'Invalid login credentials') return tr('Email ou senha incorretos.', 'Wrong e-mail or password.')
+  if (/email not confirmed/i.test(msg)) return tr('Confirme seu email antes de entrar (olha a caixa de entrada ✉️).', 'Confirm your e-mail before signing in (check your inbox ✉️).')
   return msg
 }
 
@@ -1005,7 +1005,7 @@ export function EscLobby() {
     if (players.some(p => p.user_id === user.id)) return
     clearSavedRoom()
     setRoom(null); setPlayers([]); setPhase('menu')
-    setTimeout(() => { try { alert('O host removeu você da sala.') } catch { /* ignora */ } }, 0)
+    setTimeout(() => { try { alert(tr('O host removeu você da sala.', 'The host removed you from the room.')) } catch { /* ignora */ } }, 0)
   }, [players, phase, room, user, isHost])
 
   // 🌍 A COPA ABRE SOZINHA NA TELA DE TODO MUNDO (31/08). O gatilho é a SEMENTE
@@ -1303,19 +1303,19 @@ export function EscLobby() {
     // ⚠️ Na liga NÃO passa `url` pro share nativo: o texto já termina no link, e
     // o WhatsApp cola a url de novo no fim quando os dois vão juntos.
     const linhas: (string | null)[] = [
-      '🏆 Te chamei pra minha liga no Leilão Legends!',
+      tr('🏆 Te chamei pra minha liga no Leilão Legends!', '🏆 I invited you to my league on Leilão Legends!'),
       '',
       roomName ? `*${roomName}*` : null,
       liga?.at ? `📅 ${quandoLiga(liga.at).txt}` : null,
-      `🔑 Código: ${code}`,
-      liga?.senha?.trim() ? `🔒 Senha: ${liga.senha.trim()}` : '🔒 A liga tem senha — te mando ela aqui embaixo',
+      `🔑 ${tr('Código', 'Code')}: ${code}`,
+      liga?.senha?.trim() ? `🔒 ${tr('Senha', 'Password')}: ${liga.senha.trim()}` : tr('🔒 A liga tem senha — te mando ela aqui embaixo', '🔒 The league has a password — I\'ll send it below'),
       '',
-      'Entra por aqui 👇',
+      tr('Entra por aqui 👇', 'Join here 👇'),
       url,
     ]
     const text = liga
       ? linhas.filter((l): l is string => l !== null).join('\n')
-      : `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
+      : getLang() === 'en' ? `🔨 I challenge you on Leilão Legends! Join room ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}` : `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
     if (typeof nav.share === 'function') {
       try { await nav.share(liga ? { title: 'Leilão Legends', text } : { title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
@@ -1349,9 +1349,9 @@ export function EscLobby() {
     } catch { return 'erro' }
   }
   const AVISO_REABRE: Record<'rolando' | 'meio' | 'erro', string> = {
-    rolando: '🔴 A partida dessa liga está rolando agora. Quando a turma terminar, é só entrar — quem chega agora joga a próxima temporada.',
-    meio: '⏳ Essa liga está no MEIO de uma temporada. Quem entrasse agora ficaria sem time, então só dá pra entrar quando essa temporada acabar. Fala com a turma pra terminar e volta depois.',
-    erro: 'Não consegui abrir a sala agora. Tenta de novo em instantes.',
+    rolando: tr('🔴 A partida dessa liga está rolando agora. Quando a turma terminar, é só entrar — quem chega agora joga a próxima temporada.', '🔴 This league\'s match is running right now. When the crew finishes, just join — whoever arrives now plays the next season.'),
+    meio: tr('⏳ Essa liga está no MEIO de uma temporada. Quem entrasse agora ficaria sem time, então só dá pra entrar quando essa temporada acabar. Fala com a turma pra terminar e volta depois.', '⏳ This league is in the MIDDLE of a season. Whoever joined now would have no team, so you can only join when this season ends. Ask the crew to finish and come back later.'),
+    erro: tr('Não consegui abrir a sala agora. Tenta de novo em instantes.', 'Couldn\'t open the room right now. Try again in a moment.'),
   }
   async function copyCode(code: string) {
     try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
@@ -1359,7 +1359,7 @@ export function EscLobby() {
 
   // selo de apoio (👑/⭐/💎) entra colado no nome — aparece pra TODO MUNDO na
   // sala e dentro do jogo, porque o manager_name é o que os outros veem.
-  const nameOf = () => stripEmoji(user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Técnico').trim() + apoioSelo()
+  const nameOf = () => stripEmoji(user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? tr('Técnico', 'Manager')).trim() + apoioSelo()
 
   // salva o nome de técnico (display_name) — usado no chip de edição rápida
   async function saveName() {
@@ -1393,7 +1393,7 @@ export function EscLobby() {
         const chk = await nomeLivre(stripEmoji(displayName).trim())
         if (!chk.livre) { setAuthError(NOME_MSG[chk.motivo ?? 'em_uso']); setLoading(false); return }
         const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(displayName).trim() } } })
-        setAuthError(error ? friendlyAuthErr(error.message) : '✅ Conta criada! Guarde bem esse e-mail — é ele que recupera sua senha.')
+        setAuthError(error ? friendlyAuthErr(error.message) : tr('✅ Conta criada! Guarde bem esse e-mail — é ele que recupera sua senha.', '✅ Account created! Keep this e-mail safe — it is what recovers your password.'))
       }
     } catch (e) {
       // erro de rede que estourou como exceção (backend fora) — trata igual
@@ -1412,7 +1412,7 @@ export function EscLobby() {
     setLoading(true); setAuthError('')
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + window.location.pathname })
-      setAuthError(error ? friendlyAuthErr(error.message) : '✉️ Enviei um link pro seu email pra criar uma senha nova. Confere a caixa de entrada (e o spam).')
+      setAuthError(error ? friendlyAuthErr(error.message) : tr('✉️ Enviei um link pro seu email pra criar uma senha nova. Confere a caixa de entrada (e o spam).', '✉️ I sent a link to your e-mail to create a new password. Check your inbox (and spam).'))
     } catch (e) {
       setAuthError(friendlyAuthErr(e instanceof Error ? e.message : String(e)))
     }
@@ -1481,7 +1481,7 @@ export function EscLobby() {
     // 🏆 no modo Liga o padrão é "Liga do Fulano" (não "Sala do Fulano"): é o nome
     // que aparece no card de "Minhas ligas" e na sala de troféus, temporada após
     // temporada. O campo fica no quadro da liga, lá na criação.
-    const name = cutName(roomName.trim() || `${roomMode === 'liga' ? 'Liga' : 'Sala'} do ${nameOf()}`)
+    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? 'League' : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? 'Liga' : 'Sala'} do ${nameOf()}`))
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError(tr('Digite uma senha ou desmarque "sala fechada".', 'Type a password or turn off "locked room".')); setLoading(false); return }
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
@@ -1575,10 +1575,10 @@ export function EscLobby() {
       // 23505 = código repetido. Assim dá pra consertar a trava certa sem adivinhar.
       console.error('[createRoom] falhou:', re)
       const code2 = re?.code
-      const hint = code2 === '42501' ? 'sem permissão (RLS). Avise o Diego.'
-        : code2 === 'PGRST116' ? 'a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.'
-        : code2 === '23505' ? 'código repetido — tente de novo.'
-        : (re?.message || 'tente de novo em instantes.')
+      const hint = code2 === '42501' ? tr('sem permissão (RLS). Avise o Diego.', 'no permission (RLS). Let Diego know.')
+        : code2 === 'PGRST116' ? tr('a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.', 'the room was created but the app could not read it back (read RLS). Let Diego know.')
+        : code2 === '23505' ? tr('código repetido — tente de novo.', 'duplicate code — try again.')
+        : (re?.message || tr('tente de novo em instantes.', 'try again in a moment.'))
       setRoomError(`${tr('Erro ao criar sala', 'Error creating room')}: ${hint}${code2 ? ` [${code2}]` : ''}`)
       setLoading(false); return
     }
@@ -1891,9 +1891,13 @@ export function EscLobby() {
       fetchMyCareers(); return
     }
     const outros = Math.max(0, (r.count ?? 1) - 1)
-    const aviso = `Apagar a carreira "${nome}" (temporada ${(r.game_state as GS & { seasonNo?: number })?.seasonNo ?? 1}) PRA SEMPRE?\n\n`
-      + (outros > 0 ? `⚠️ Tem mais ${outros} ${outros === 1 ? 'técnico' : 'técnicos'} nessa carreira — ${outros === 1 ? 'ele perde' : 'eles perdem'} o save junto.\n\n` : '')
-      + 'Isso NÃO tem volta.'
+    const aviso = getLang() === 'en'
+      ? `Delete the career "${nome}" (season ${(r.game_state as GS & { seasonNo?: number })?.seasonNo ?? 1}) FOREVER?\n\n`
+        + (outros > 0 ? `⚠️ There ${outros === 1 ? 'is' : 'are'} ${outros} more ${outros === 1 ? 'manager' : 'managers'} in this career — ${outros === 1 ? 'they lose' : 'they lose'} the save too.\n\n` : '')
+        + 'This CANNOT be undone.'
+      : `Apagar a carreira "${nome}" (temporada ${(r.game_state as GS & { seasonNo?: number })?.seasonNo ?? 1}) PRA SEMPRE?\n\n`
+        + (outros > 0 ? `⚠️ Tem mais ${outros} ${outros === 1 ? 'técnico' : 'técnicos'} nessa carreira — ${outros === 1 ? 'ele perde' : 'eles perdem'} o save junto.\n\n` : '')
+        + 'Isso NÃO tem volta.'
     if (!window.confirm(aviso)) return
     const e1 = (await supabase.from('room_players').delete().eq('room_id', r.id)).error
     const e2 = (await supabase.from('game_rooms').delete().eq('id', r.id)).error
@@ -2064,7 +2068,7 @@ export function EscLobby() {
     try {
       const { data } = await supabase.from('room_players').select('user_id, manager_name, copa').eq('room_id', room.id)
       const linhas = (data ?? []) as { user_id: string; manager_name: string; copa: CopaPick | null }[]
-      const gente = linhas.filter(r => copaPickOk(r.copa)).map(r => ({ uid: r.user_id, nome: stripEmoji(r.manager_name).trim() || 'Técnico', pick: r.copa as CopaPick }))
+      const gente = linhas.filter(r => copaPickOk(r.copa)).map(r => ({ uid: r.user_id, nome: stripEmoji(r.manager_name).trim() || tr('Técnico', 'Manager'), pick: r.copa as CopaPick }))
       if (gente.length < 2) {
         setCopaErro(tr('A Copa precisa de pelo menos 2 seleções de gente. Quem ainda não escolheu está no aviso aí em cima.', 'The Cup needs at least 2 nations picked by people. Whoever hasn\'t picked yet is in the notice above.'))
         setCopaAbrindo(false); return
