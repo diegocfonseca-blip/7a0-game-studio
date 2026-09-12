@@ -1560,50 +1560,51 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   const del = (slot: CareerSlot) => {
     deleteCareerSlot(slot.save.seed); setConfirmKey(null); setList(listAllCareers())
   }
+  const t = useT() // 🌐 BR/EN
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>🪜 Minhas Carreiras</p>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>{t('🪜 Minhas Carreiras', '🪜 My Careers')}</p>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
-          <button onClick={onClose} aria-label="Fechar" style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
-        {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>Nenhuma carreira ainda. Comece uma! 👇</p>}
+        {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>{t('Nenhuma carreira ainda. Comece uma! 👇', 'No careers yet. Start one! 👇')}</p>}
         {list.map(({ slot, active }, i) => {
           const you = slot.save.managers?.[slot.save.youIdx ?? 0]
           const div = (slot.save.careerPlacements?.['m' + (you?.id ?? 0)] as string) ?? slot.save.careerDivision ?? 'D'
           const caixa = slot.save.careerCoins?.[you?.id ?? 0] ?? 0
-          const tn = you?.teamName ?? you?.name ?? 'Meu time'
+          const tn = you?.teamName ?? you?.name ?? t('Meu time', 'My team')
           return (
             <div key={String(slot.save.seed ?? i)} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${DIV_COLOR[div] ?? '#8B8168'}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: active ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
-              {active && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>▶ última jogada</span>}
+              {active && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>{t('▶ última jogada', '▶ last played')}</span>}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 9.5, fontWeight: 900, color: '#fff', background: DIV_COLOR[div] ?? '#8B8168', padding: '2px 7px', borderRadius: 6, ...OSWALD }}>SÉRIE {div}</span>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>Temporada {slot.save.seasonNo ?? 1}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1}</span>
                 </div>
-                <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 caixa {caixa} · jogou {agoLabel(slot.at)}</span>
+                <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 {t('caixa', 'till')} {caixa} · {t('jogou', 'played')} {agoLabel(slot.at)}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
-                <button onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>▶️ Continuar</button>
+                <button onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('▶️ Continuar', '▶️ Continue')}</button>
                 {confirmKey === String(slot.save.seed ?? i) ? (
                   <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                    <button onClick={() => del(slot)} style={{ background: '#C2452F', color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 900, fontSize: 11, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>🗑️ Apagar</button>
-                    <button onClick={() => setConfirmKey(null)} aria-label="Cancelar" style={{ background: 'transparent', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer', opacity: 0.6, lineHeight: 1 }}>✕</button>
+                    <button onClick={() => del(slot)} style={{ background: '#C2452F', color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 900, fontSize: 11, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('🗑️ Apagar', '🗑️ Delete')}</button>
+                    <button onClick={() => setConfirmKey(null)} aria-label={t('Cancelar', 'Cancel')} style={{ background: 'transparent', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer', opacity: 0.6, lineHeight: 1 }}>✕</button>
                   </div>
                 ) : (
-                  <button onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label="Apagar" style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+                  <button onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
                 )}
               </div>
             </div>
           )
         })}
         {(() => { const lim = careerSlotLimit(list.length); const cheio = list.length >= lim; return (<>
-        <button onClick={onNew} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>➕ Começar nova carreira{cheio ? ` (fichas cheias ${list.length}/${lim})` : ''}</button>
-        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, ou ganhe fichas apoiando: ⭐ Craque tem 4 · 👑 Lenda 6 · 🖋️ Batismo 8. (Quem já tinha mais que o limite não perde nada.)</p>}
+        <button onClick={onNew} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
+        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, ou ganhe fichas apoiando: ⭐ Craque tem 4 · 👑 Lenda 6 · 🖋️ Batismo 8. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, or earn slots by supporting: ⭐ Star has 4 · 👑 Legend 6 · 🖋️ Named club 8. (Whoever already had more than the limit loses nothing.)')}</p>}
       </>) })()}
-        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>Começar uma nova NÃO apaga as outras. Trocar de save também não — só o 🗑️ apaga.</p>
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras. Trocar de save também não — só o 🗑️ apaga.', 'Starting a new one does NOT delete the others. Switching saves doesn\'t either — only 🗑️ deletes.')}</p>
       </div>
     </div>
   )
@@ -1817,12 +1818,70 @@ function HomeIconTile({ icon, label, onClick }: { icon: string; label: string; o
 // muda junto — FAQ que mente é pior que FAQ nenhum.
 function Duvidas() {
   const [aberta, setAberta] = useState<number | null>(null)
+  const t = useT() // 🌐 BR/EN
   // 📋 A ORDEM É A QUE O DIEGO DITOU (20/08): sala online → carta → escudo e
   // mascote → nome pra todo mundo ver → planos → patrocínio. Ele cortou a minha
   // primeira versão duas vezes ("as respostas estão muito fracas", "não sei se
   // está claro") — então aqui a pergunta é a que a pessoa faria em voz alta, e a
   // resposta diz o NÚMERO e o CAMINHO, não uma frase bonita.
-  const QA: [string, React.ReactNode][] = [
+  const QA: [string, React.ReactNode][] = getLang() === 'en' ? [
+    ['How many people fit in an online room?', <>
+      <b>Up to 20 managers</b> in the same auction.<br /><br />
+      Tap <b>👥 With friends online</b>, create the room and the game gives you a <b>code</b>. Send the code in the chat: whoever gets it opens the same site, types the code and lands in your room.<br /><br />
+      Nobody needs to download anything or create an account to join. You can start with <b>2 people</b> — no need to fill it up.
+    </>],
+    ['How do I win the album cards?', <>
+      <b>Cards are a champion\'s prize.</b> You don\'t earn them by playing, you earn them by <b>winning</b>.<br /><br />
+      • <b>League</b> champion → 1 card.<br />
+      • <b>Cup of 8</b> (or Libertadores) champion → 1 more, separately.<br /><br />
+      Same against the CPU and online.<br /><br />
+      ⚠️ <b>Without an account, the card isn\'t kept.</b> Play as much as you like, but the album stays empty. If you were champion before creating the account, those don\'t come back — but from then on they stay.
+    </>],
+    ['How do I get a crest and a mascot of my own?', <>
+      It\'s the <b>🖋️ Club naming</b>. You pick the name, send whatever art you like (or we draw it), and the club gets its <b>crest, mascot, kit and stadium name</b> — made just for it.<br /><br />
+      <b>Where:</b> 💛 Support → 🖋️ Batismo.<br />
+      <b>How much:</b> R$ 59.90 (Série B, C, D or Várzea) · R$ 69.90 (👑 Série A).<br />
+      <b>How:</b> pay via Pix, send the receipt and the name by DM. We confirm <b>within 24h</b> and it enters the next update.<br /><br />
+      The name is <b>reserved in 4 forms</b> (with and without FC/EC, upper or lower case) — nobody else can use it.
+    </>],
+    ['How do I make my team show up for everyone in the game?', <>
+      It\'s the same <b>Club naming</b> — and that\'s the best part of it.<br /><br />
+      Your club <b>enters a real division</b> and exists for <b>every Leilão Legends player</b>, not just you. Anyone can land in the same table as it, see your crest, your kit, and your mascot celebrating the goal.<br /><br />
+      <b>Série A costs more</b> (R$ 69.90) because it\'s the elite of the game: they are the clubs that show up in the <b>online quick match</b> and the rivals everyone faces in the career. It\'s the club that appears the most.
+    </>],
+    ['What are the support plans?', <>
+      There are <b>4</b>, and all the details are in the <b>💛 Support</b> button:<br /><br />
+      🎫 <b>Sócio Legends — R$ 9.90 a month.</b> The only monthly one.<br />
+      ⭐ <b>Craque (Star) — R$ 19.90, one time.</b><br />
+      👑 <b>Lenda (Legend) — R$ 39.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
+      🖋️ <b>Batismo (Club naming) — from R$ 59.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br /><br />
+      No plan gives an advantage on the pitch — <b>the game is the same for everyone</b>. What changes is colour, shine, story and perks.
+    </>],
+    ['How do I sponsor my company in the game?', <>
+      Your brand can become <b>part of the game</b>, not a banner: at the start of every season each manager <b>picks a sponsor</b> for the club and plays the whole season for its target.<br /><br />
+      Real brands are already in there today, chosen by the players.<br /><br />
+      <b>Send an e-mail to <span style={{ color: PURPLE }}>contato@leilaolegends.com</span></b> and we reply with the game\'s numbers and formats. If you prefer, DM <b>@leilaolegendscom</b>.
+    </>],
+    ['Do I need an account to play?', <>
+      <b>No.</b> You can play everything without signing up: quick match, room with friends, and even the <b>whole first season of the career</b>.<br /><br />
+      With an account you <b>win and keep the cards</b>, show up in the ranking, and the career is saved in the cloud — switched phones, it goes with you.<br /><br />
+      Without an account, the save lives <b>only on that device</b>. Cleared the browser, lost it.
+    </>],
+    ['My club is in the red. Now what?', <>
+      <b>It\'s not a bug</b> — and there is a way out.<br /><br />
+      It happens when the <b>payroll</b> (or a contract renewal) gets bigger than your till. While negative you <b>can\'t sign anyone</b>, but you keep playing normally.<br /><br />
+      To get out: <b>sell a player</b> at the auction, grab a free signing <b>from the Pile</b>, and keep earning prizes and gate money. Back to zero, the market unlocks on its own.
+    </>],
+    ['Why can\'t I see a player\'s level before bidding?', <>
+      <b>It\'s not a bug — it\'s the game.</b> The auction is <b>blind</b>: you only see the name and bet on what you think that name is worth.<br /><br />
+      The level only opens at the <b>Reveal Ceremony</b>, when all envelopes open together. That\'s where you find out whether you paid 30 coins for a star or a donkey — and everyone finds out at the same time.
+    </>],
+    ['I switched phones and my career is gone', <>
+      If you have an <b>account</b>, it\'s not gone: sign in with the same e-mail on the new device and the career <b>downloads from the cloud</b> on its own.<br /><br />
+      If you played <b>without an account</b>, the save stayed only in that browser — then there is no way to recover it. It\'s the nº 1 reason to create the account before investing many seasons.<br /><br />
+      Got more than one career? Tap <b>🪜 My careers</b> on the home screen to switch between them.
+    </>],
+  ] : [
     ['Quantas pessoas cabem numa sala online?', <>
       <b>Até 20 técnicos</b> no mesmo pregão.<br /><br />
       Você toca em <b>👥 Com amigos online</b>, cria a sala e o jogo te dá um <b>código</b>. Manda o código no zap: quem receber abre o mesmo site, digita o código e cai na sua sala.<br /><br />
@@ -1886,7 +1945,7 @@ function Duvidas() {
           Dúvidas são OUTRO assunto, não a continuação das regras — então ganham
           um fio separando e bastante ar antes. */}
       <div className="mt-7 pt-6" style={{ borderTop: '2.5px solid rgba(12,12,12,.14)' }}>
-        <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>❓ Dúvidas de quem joga</p>
+        <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>{t('❓ Dúvidas de quem joga', '❓ Players\' questions')}</p>
       <div className="space-y-2">
         {QA.map(([q, a], i) => (
           <div key={i} className="border-[2.5px] border-black rounded-xl bg-white overflow-hidden" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
@@ -2061,6 +2120,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
 }
 
 export function EscIntro() {
+  const t = useT() // 🌐 BR/EN
   const [sport] = useSport()
   const unlocked = useSportUnlocked() // 🔒 só o Diego vê qualquer coisa de basquete
   const homeNova = useHomeNova() // 🏠 home redesenhada — por enquanto só a conta do Diego
@@ -2087,7 +2147,7 @@ export function EscIntro() {
   // já conquistou. Enquanto isso, um aviso fixo diz que está só neste aparelho.
   const startCareer = (fn: () => void) => { fn() }
   const shareGame = async () => {
-    const data = { title: 'Leilão Legends', text: 'Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', url: 'https://leilaolegends.com' }
+    const data = { title: 'Leilão Legends', text: t('Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', 'Come play Leilão Legends! A blind auction of Brazilian football legends 🔨⚽'), url: 'https://leilaolegends.com' }
     try {
       if (navigator.share) { await navigator.share(data); return }
       await navigator.clipboard.writeText('https://leilaolegends.com')
@@ -2137,11 +2197,11 @@ export function EscIntro() {
         {/* 1 · o que é o jogo */}
         <div className="text-center pt-6">
           <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-            ⚽ Leilão às cegas de lendas
+            {t('⚽ Leilão às cegas de lendas', '⚽ Blind auction of legends')}
           </span>
           <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>LEILÃO LEGENDS</h1>
           <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
-          <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">Dê lance <b>no nome</b>, sem ver o nível. Monte o time e colecione as lendas.</p>
+          <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">{getLang() === 'en' ? <>Bid <b>on the name</b>, without seeing the level. Build the team and collect the legends.</> : <>Dê lance <b>no nome</b>, sem ver o nível. Monte o time e colecione as lendas.</>}</p>
         </div>
         {/* 2 · as cartas, DEITADAS — o motivo de jogar fica no alto */}
         <div className="-mx-4">
@@ -2151,58 +2211,64 @@ export function EscIntro() {
             <div className="flex-none w-[150px]"><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa /></div>
             <div className="flex-none w-[150px]"><CollectibleCard name="Obina" club="Flamengo" year={2005} pos="ATA" fame={2} folk /></div>
           </div>
-          <p className="text-center text-[11px] font-bold text-black/45 mt-2">👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos</p>
+          <p className="text-center text-[11px] font-bold text-black/45 mt-2">{t('👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos', '👑 legend · ⭐ star · 💎 prospect · 🃏 folk hero — collect them all')}</p>
         </div>
         {/* 3 · os três modos, com a CARREIRA grande */}
         <div className="space-y-3 pt-1">
           <Btn onClick={() => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) })} className="w-full text-left" bg={PURPLE}>
-            <span className="block text-xl leading-none text-white">🪜 {solo ? 'Nova carreira' : 'Começar carreira'}</span>
+            <span className="block text-xl leading-none text-white">🪜 {solo ? t('Nova carreira', 'New career') : t('Começar carreira', 'Start career')}</span>
             <span className="block text-[11.5px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.85)' }}>
-              {escadaLiberada() ? 'Comece na Várzea e suba até a Série A.' : 'Comece na Série D e suba até a Série A.'} Cada título vira carta no seu álbum.
+              {escadaLiberada() ? t('Comece na Várzea e suba até a Série A.', 'Start in Várzea and climb to Série A.') : t('Comece na Série D e suba até a Série A.', 'Start in Série D and climb to Série A.')} {t('Cada título vira carta no seu álbum.', 'Every title becomes a card in your album.')}
             </span>
             <span className="inline-block mt-2 rounded-full px-2 py-0.5 text-[9.5px] font-black tracking-wide"
-              style={{ ...OSWALD, background: 'rgba(255,255,255,.18)', border: '2px solid rgba(255,255,255,.4)', color: '#fff' }}>🆓 SEM PRECISAR DE CONTA</span>
+              style={{ ...OSWALD, background: 'rgba(255,255,255,.18)', border: '2px solid rgba(255,255,255,.4)', color: '#fff' }}>{t('🆓 SEM PRECISAR DE CONTA', '🆓 NO ACCOUNT NEEDED')}</span>
           </Btn>
           <div className="grid grid-cols-2 gap-3">
             <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-center" bg={GREEN}>
               {/* 🌐 "(online)" no rótulo a pedido do Diego (20/08) — "com amigos"
                   sozinho dá a entender que dá pra jogar com os amigos no MESMO
                   aparelho, que não é o caso: é sala online, com código. */}
-              <span className="block text-sm leading-tight text-white">👥 Com amigos<br />online</span>
-              <span className="block text-[9.5px] font-bold normal-case tracking-normal mt-1" style={{ color: 'rgba(255,255,255,.85)' }}>até 20 na sala</span>
+              <span className="block text-sm leading-tight text-white">{getLang() === 'en' ? <>👥 With friends<br />online</> : <>👥 Com amigos<br />online</>}</span>
+              <span className="block text-[9.5px] font-bold normal-case tracking-normal mt-1" style={{ color: 'rgba(255,255,255,.85)' }}>{t('até 20 na sala', 'up to 20 in the room')}</span>
             </Btn>
             <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="text-center" bg="#fff">
-              <span className="block text-sm leading-tight">⚡ Partida<br />rápida</span>
-              <span className="block text-[9.5px] font-bold normal-case tracking-normal mt-1 text-black/60">uns 6 minutos</span>
+              <span className="block text-sm leading-tight">{getLang() === 'en' ? <>⚡ Quick<br />match</> : <>⚡ Partida<br />rápida</>}</span>
+              <span className="block text-[9.5px] font-bold normal-case tracking-normal mt-1 text-black/60">{t('uns 6 minutos', 'about 6 minutes')}</span>
             </Btn>
           </div>
         </div>
         {/* 4 · continuar (só pra quem tem) */}
         {resumable && (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: GREEN, boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <p className="font-black text-sm text-white leading-tight" style={OSWALD}>⏳ Você tem uma partida em andamento<br /><span className="opacity-80 text-xs">Sala {resumable.code}</span></p>
-            <button onClick={resumable.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Voltar pra sala {resumable.code}</button>
-            <button onClick={resumable.leave} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>🚪 Sair da sala</button>
+            <p className="font-black text-sm text-white leading-tight" style={OSWALD}>{t('⏳ Você tem uma partida em andamento', '⏳ You have a match in progress')}<br /><span className="opacity-80 text-xs">{t('Sala', 'Room')} {resumable.code}</span></p>
+            <button onClick={resumable.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>{t('▶️ Voltar pra sala', '▶️ Back to room')} {resumable.code}</button>
+            <button onClick={resumable.leave} className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>{t('🚪 Sair da sala', '🚪 Leave the room')}</button>
           </div>
         )}
         {solo && (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <p className="font-black text-[11px] uppercase tracking-wide text-white/85" style={OSWALD}>Sua carreira · Temporada {solo.seasonNo}</p>
+            <p className="font-black text-[11px] uppercase tracking-wide text-white/85" style={OSWALD}>{t('Sua carreira', 'Your career')} · {t('Temporada', 'Season')} {solo.seasonNo}</p>
             <p className="font-black text-lg text-white leading-none -mt-1" style={OSWALD}>{solo.teamName}</p>
-            <button onClick={() => startCareer(solo.resume)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>▶️ Continuar de onde parei</button>
-            <button onClick={() => startCareer(() => setShowCarreiras(true))} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-[12.5px] py-2 active:translate-y-0.5" style={OSWALD}>🪜 Minhas carreiras · trocar de save</button>
+            <button onClick={() => startCareer(solo.resume)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>{t('▶️ Continuar de onde parei', '▶️ Continue where I left off')}</button>
+            <button onClick={() => startCareer(() => setShowCarreiras(true))} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-[12.5px] py-2 active:translate-y-0.5" style={OSWALD}>{t('🪜 Minhas carreiras · trocar de save', '🪜 My careers · switch save')}</button>
           </div>
         )}
         {/* 5 · como funciona — ABERTO, e aqui embaixo */}
         <div className="pt-2">
-          <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>Como funciona uma partida</p>
-          <div className="space-y-3">
+          <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>{t('Como funciona uma partida', 'How a match works')}</p>
+          {getLang() === 'en' ? <div className="space-y-3">
+            <PassoLinha n={1} ic="🪙" titulo="100 coins">The deck comes by position. You only see the <b>name</b>.</PassoLinha>
+            <PassoLinha n={2} ic="✉️" titulo="Secret bid">Write what it's worth and seal. Nobody sees anyone's bid.</PassoLinha>
+            <PassoLinha n={3} ic="🔨" titulo="The hammer reveals">Whoever paid the most wins — and <b>only then</b> the level shows.</PassoLinha>
+            <PassoLinha n={4} ic="👕" titulo="Fill the 11">Missing a position? The Pile has the leftovers, for free.</PassoLinha>
+            <PassoLinha n={5} ic="⚽" titulo="The championship runs">38 rounds in 3 minutes. The champion takes a <b>card</b>.</PassoLinha>
+          </div> : <div className="space-y-3">
             <PassoLinha n={1} ic="🪙" titulo="100 moedas">O baralho vem por posição. Você só vê o <b>nome</b>.</PassoLinha>
             <PassoLinha n={2} ic="✉️" titulo="Lance secreto">Escreve quanto vale e lacra. Ninguém vê o lance de ninguém.</PassoLinha>
             <PassoLinha n={3} ic="🔨" titulo="O martelo revela">Quem pagou mais leva — e <b>só aí</b> aparece o nível.</PassoLinha>
             <PassoLinha n={4} ic="👕" titulo="Fecha os 11">Faltou posição? O Monte tem as sobras, de graça.</PassoLinha>
             <PassoLinha n={5} ic="⚽" titulo="O campeonato roda">38 rodadas em 3 minutos. Campeão leva <b>carta</b>.</PassoLinha>
-          </div>
+          </div>}
         </div>
         {/* 6 · novidades — ABERTAS, mas ENXUTAS. Na home de hoje este bloco é o
             MAIOR da página (foi a queixa nº1 do Diego). Aqui ele mostra as 3
@@ -2212,7 +2278,7 @@ export function EscIntro() {
         <ApoieButton big />
         <CardAccountNote />
         <Btn onClick={shareGame} className="w-full" bg="#fff">
-          📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
+          📤 {shared ? t('Link copiado! Cola no zap 📲', 'Link copied! Paste it in the chat 📲') : t('Compartilhar com os amigos', 'Share with friends')}
         </Btn>
         <AdminButton />
         <DinastiaButton />
@@ -2231,13 +2297,13 @@ export function EscIntro() {
           apoiar={<ApoieButton trigger={open => (
             <button onClick={open} className="flex-1 py-1.5 active:opacity-60">
               <IconeBarra nome="apoiar" cor="rgba(194,69,47,.85)" />
-              <span className="block text-[10.5px] font-black mt-1" style={{ ...OSWALD, color: 'rgba(194,69,47,.9)' }}>Apoiar</span>
+              <span className="block text-[10.5px] font-black mt-1" style={{ ...OSWALD, color: 'rgba(194,69,47,.9)' }}>{t('Apoiar', 'Support')}</span>
             </button>
           )} />} />
         {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); startCareer(() => dispatch({ type: 'GO_SETUP_CAREER' })) }} />}
         {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo />}
         {careerGate && (
-          <JanelaConta titulo="🪜 Sua carreira mora na conta" contexto="Entre ou crie sua conta — te levo direto pra carreira." comecarEmCriar
+          <JanelaConta titulo={t('🪜 Sua carreira mora na conta', '🪜 Your career lives in your account')} contexto={t('Entre ou crie sua conta — te levo direto pra carreira.', 'Sign in or create your account — I\'ll take you straight to the career.')} comecarEmCriar
             onPronto={() => { const fn = careerGate; setCareerGate(null); fn?.() }} onFechar={() => setCareerGate(null)} />
         )}
       </Shell>
@@ -2253,51 +2319,51 @@ export function EscIntro() {
       {resumable && (
         <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#1B7A3D', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
-            ⏳ Você tem uma partida em andamento<br />
-            <span className="opacity-80 text-xs">Sala {resumable.code}</span>
+            {t('⏳ Você tem uma partida em andamento', '⏳ You have a match in progress')}<br />
+            <span className="opacity-80 text-xs">{t('Sala', 'Room')} {resumable.code}</span>
           </p>
           <button onClick={resumable.resume}
             className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-            ▶️ Continuar a partida (Sala {resumable.code})
+            {t('▶️ Continuar a partida', '▶️ Continue the match')} ({t('Sala', 'Room')} {resumable.code})
           </button>
           <button onClick={resumable.leave}
             className="w-full rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5"
             style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-            🚪 Sair da sala e começar uma nova
+            {t('🚪 Sair da sala e começar uma nova', '🚪 Leave the room and start a new one')}
           </button>
         </div>
       )}
       {solo && (
         <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
-            🪜 Carreira offline em andamento<br />
-            <span className="opacity-80 text-xs">{solo.teamName} · Temporada {solo.seasonNo}</span>
+            {t('🪜 Carreira offline em andamento', '🪜 Offline career in progress')}<br />
+            <span className="opacity-80 text-xs">{solo.teamName} · {t('Temporada', 'Season')} {solo.seasonNo}</span>
           </p>
           <button onClick={() => startCareer(solo.resume)} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-            ▶️ Continuar carreira ({solo.teamName})
+            {t('▶️ Continuar carreira', '▶️ Continue career')} ({solo.teamName})
           </button>
           <button onClick={() => startCareer(() => setShowCarreiras(true))} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-            🪜 Minhas carreiras · trocar de save
+            {t('🪜 Minhas carreiras · trocar de save', '🪜 My careers · switch save')}
           </button>
         </div>
       )}
       {showCarreiras && <MinhasCarreiras onClose={() => setShowCarreiras(false)} onNew={() => { setShowCarreiras(false); startCareer(() => dispatch({ type: 'GO_SETUP_CAREER' })) }} />}
       {careerGate && (
         <JanelaConta
-          titulo="🪜 Sua carreira mora na conta"
-          contexto="Entre ou crie sua conta — te levo direto pra carreira."
+          titulo={t('🪜 Sua carreira mora na conta', '🪜 Your career lives in your account')}
+          contexto={t('Entre ou crie sua conta — te levo direto pra carreira.', 'Sign in or create your account — I\'ll take you straight to the career.')}
           comecarEmCriar
           onPronto={() => { const fn = careerGate; setCareerGate(null); fn?.() }}
           onFechar={() => setCareerGate(null)} />
       )}
       <div className="text-center pt-8">
         <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          ⚽ Leilão às cegas de lendas
+          {t('⚽ Leilão às cegas de lendas', '⚽ Blind auction of legends')}
         </span>
         <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>LEILÃO LEGENDS</h1>
         {/* sublinhado dourado da marca oficial (mesmo da logo do Instagram/og) */}
         <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
-        <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">Dê lance no <b>nome</b>, sem ver o nível. Monte o time no pregão, ganhe o campeonato e colecione os craques no seu álbum.</p>
+        <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">{getLang() === 'en' ? <>Bid on the <b>name</b>, without seeing the level. Build the team at the auction, win the championship and collect the stars in your album.</> : <>Dê lance no <b>nome</b>, sem ver o nível. Monte o time no pregão, ganhe o campeonato e colecione os craques no seu álbum.</>}</p>
       </div>
       {/* 🎯 O QUE FAZER AGORA (Diego 16/08 — docs/plano-crescimento.md §4).
           Antes a home abria com 4 cartas e a primeira coisa clicável era a
@@ -2314,32 +2380,32 @@ export function EscIntro() {
           animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
           <Btn onClick={() => startCareer(() => { if (listAllCareers().length > 0) setShowCarreiras(true); else dispatch({ type: 'GO_SETUP_CAREER' }) })} className="w-full text-left" bg={PURPLE}>
-            <span className="block text-lg leading-none text-white">🪜 {solo ? 'Nova carreira' : 'Começar carreira'}</span>
+            <span className="block text-lg leading-none text-white">🪜 {solo ? t('Nova carreira', 'New career') : t('Começar carreira', 'Start career')}</span>
             <span className="block text-[11px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.82)' }}>
-              {escadaLiberada() ? 'Comece na Várzea e suba até a Série A' : 'Comece na Série D e suba até a Série A'}
+              {escadaLiberada() ? t('Comece na Várzea e suba até a Série A', 'Start in Várzea and climb to Série A') : t('Comece na Série D e suba até a Série A', 'Start in Série D and climb to Série A')}
             </span>
           </Btn>
         </motion.div>
         {/* ⚠️ o Diego pediu SEM contador de gente online e com "(online)" entre
             parênteses no rótulo (16/08) — sala vazia com "0 online" espanta. */}
         <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-left" bg={GREEN}>
-          <span className="block text-lg leading-none text-white">👥 Jogar com amigos (online)</span>
+          <span className="block text-lg leading-none text-white">{t('👥 Jogar com amigos (online)', '👥 Play with friends (online)')}</span>
           <span className="block text-[11px] font-bold normal-case tracking-normal mt-1.5 leading-snug" style={{ color: 'rgba(255,255,255,.82)' }}>
-            Crie a sala, mande o código no zap — até 20 no mesmo pregão
+            {t('Crie a sala, mande o código no zap — até 20 no mesmo pregão', 'Create the room, send the code in the chat — up to 20 in the same auction')}
           </span>
         </Btn>
         {/* uma linha só, como era (Diego 16/08: "deixe como estava antes o só uma
             partida rápida mesmo, só deixe alinhado") — o que mudou foi só o
             alinhamento: encostado na esquerda igual aos dois de cima. */}
-        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-left text-lg" bg="#fff">⚡ Só uma partida rápida (vs CPU)</Btn>
+        <Btn onClick={() => dispatch({ type: 'GO_SETUP' })} className="w-full text-left text-lg" bg="#fff">{t('⚡ Só uma partida rápida (vs CPU)', '⚡ Just a quick match (vs CPU)')}</Btn>
         {/* fileira de ícones: ver, não jogar */}
         <div className="grid grid-cols-4 gap-2">
-          {([['📖', 'Álbum', () => dispatch({ type: 'GO_ALBUM' })],
+          {([['📖', t('Álbum', 'Album'), () => dispatch({ type: 'GO_ALBUM' })],
              ['🏆', 'Ranking', () => dispatch({ type: 'GO_RANKING' })],
-             ['📘', 'Manual', () => setShowManual(true)]] as [string, string, () => void][]).map(([ic, lb, fn]) => (
+             ['📘', t('Manual', 'Handbook'), () => setShowManual(true)]] as [string, string, () => void][]).map(([ic, lb, fn]) => (
             <HomeIconTile key={lb} icon={ic} label={lb} onClick={fn} />
           ))}
-          <ApoieButton trigger={open => <HomeIconTile icon="💛" label="Apoiar" onClick={open} />} />
+          <ApoieButton trigger={open => <HomeIconTile icon="💛" label={t('Apoiar', 'Support')} onClick={open} />} />
         </div>
         <AdminButton />
         <DinastiaButton />
@@ -2357,13 +2423,16 @@ export function EscIntro() {
         <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Rayan Oi, Boa Noite" club="Vasco" year={2025} pos="ATA" fame={3} promessa showBio /></div>
         <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Obina" club="Flamengo" year={2005} pos="ATA" fame={2} folk showBio /></div>
       </div>
-      <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos</p>
+      <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>{t('👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos', '👑 legend · ⭐ star · 💎 prospect · 🃏 folk hero — collect them all')}</p>
       {/* como funciona — 4 cartões enxutos em grade 2×2 */}
       <div className="grid grid-cols-2 gap-2.5">
-        {([['🔨', 'O Pregão', '5 rodadas de leilão cego: goleiro, lateral, zaga, meio e ataque. Ninguém vê o lance de ninguém.'],
+        {((getLang() === 'en' ? [['🔨', 'The Auction', '5 rounds of blind auction: goalkeeper, full-back, defence, midfield and attack. Nobody sees anyone\'s bid.'],
+           ['🎭', 'Hidden levels', 'You bet on the name. The level only opens at the Ceremony — and every star has good days and bad days.'],
+           ['🪜', 'Pyramid', escadaLiberada() ? 'Start in VÁRZEA and climb to Série A. Every title becomes a card in your album.' : 'Start in Série D and climb to A. Every title becomes a card in your album.'],
+           ['💎', 'Peak counts', 'The level is the star\'s peak, according to the deck: in 🇧🇷 it\'s the peak in Brazil; in 🌍 Europe, the peak abroad. A star only in Europe enters as a prospect in BR.']] : [['🔨', 'O Pregão', '5 rodadas de leilão cego: goleiro, lateral, zaga, meio e ataque. Ninguém vê o lance de ninguém.'],
            ['🎭', 'Níveis ocultos', 'Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem dia bom e dia ruim.'],
            ['🪜', 'Pirâmide', escadaLiberada() ? 'Comece na VÁRZEA e suba até a Série A. Cada título vira uma carta no seu álbum.' : 'Comece na Série D e suba até a A. Cada título vira uma carta no seu álbum.'],
-           ['💎', 'Vale o auge', 'O nível é o auge do craque, conforme o baralho: no 🇧🇷 conta o auge no Brasil; no 🌍 Europa, o auge lá fora. Estrela só na Europa entra como promessa no BR.']] as [string, string, string][]).map(([ic, t, d]) => (
+           ['💎', 'Vale o auge', 'O nível é o auge do craque, conforme o baralho: no 🇧🇷 conta o auge no Brasil; no 🌍 Europa, o auge lá fora. Estrela só na Europa entra como promessa no BR.']]) as [string, string, string][]).map(([ic, t, d]) => (
           <div key={t} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
             <div className="text-xl">{ic}</div>
             <p className="font-black text-[13px] uppercase mt-1.5" style={OSWALD}>{t}</p>
@@ -2381,12 +2450,12 @@ export function EscIntro() {
           try { localStorage.setItem('esc-tema', on ? 'noturno' : 'claro') } catch { /* segue */ }
           setTema(on ? 'noturno' : 'claro')
         }} className="border-2 border-black rounded-full px-4 py-1.5 text-xs font-black bg-white text-black" style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>
-          {tema === 'noturno' ? '☀️ Voltar pro tema claro' : '🌙 Tema noturno (estádio à noite)'}
+          {tema === 'noturno' ? t('☀️ Voltar pro tema claro', '☀️ Back to light theme') : t('🌙 Tema noturno (estádio à noite)', '🌙 Night theme (stadium at night)')}
         </button>
       </div>}
       <CardAccountNote />
       <Btn onClick={shareGame} className="w-full" bg="#fff">
-        📤 {shared ? 'Link copiado! Cola no zap 📲' : 'Compartilhar com os amigos'}
+        📤 {shared ? t('Link copiado! Cola no zap 📲', 'Link copied! Paste it in the chat 📲') : t('Compartilhar com os amigos', 'Share with friends')}
       </Btn>
       <NewsSection />
     </Shell>
@@ -2399,50 +2468,62 @@ export function EscIntro() {
 // ficam de fora até o Diego liberar. É um complemento — o ensino de verdade
 // continua sendo contextual, dentro do jogo.
 function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: boolean }) {
+  const t = useT() // 🌐 BR/EN
   const fases: [string, string, string][] = [
-    ['✉️', 'Envelope', 'lance secreto — ninguém vê o seu'],
-    ['👀', 'Revelação', 'abrem todos juntos'],
-    ['🔨', 'Martelo', 'maior lance leva'],
-    ['🃏', 'Monte', 'sobras: pega de graça na sua vez'],
+    ['✉️', t('Envelope', 'Envelope'), t('lance secreto — ninguém vê o seu', 'secret bid — nobody sees yours')],
+    ['👀', t('Revelação', 'Reveal'), t('abrem todos juntos', 'all open together')],
+    ['🔨', t('Martelo', 'Hammer'), t('maior lance leva', 'highest bid wins')],
+    ['🃏', t('Monte', 'Pile'), t('sobras: pega de graça na sua vez', 'leftovers: grab for free on your turn')],
   ]
   const modos: [string, string, string][] = [
-    ['⚡', 'Rápido (offline)', 'Você contra a CPU. Monta o time no leilão e joga UMA temporada (liga + Copa dos 8). Bom pra treinar o dedo.'],
-    ['👥', 'Rápido (online)', 'Mesma coisa, só que os lances são dos seus AMIGOS na sala (até 8). Baralho Brasil, Europa, Todos — ou a Várzea 🥅 (sem craques).'],
-    ['🪜', 'Carreira', escadaLiberada() ? 'A vida de técnico: começa na VÁRZEA (peladão raiz 🍺) e sobe a pirâmide até a Série A. Temporada a temporada desbloqueia reservas, vendas, folha, contratos, estádio, SAF…' : 'A vida de técnico: começa na Série D e sobe a pirâmide até a A. Temporada a temporada desbloqueia reservas, vendas, folha salarial, contratos, estádio, SAF…'],
+    ['⚡', t('Rápido (offline)', 'Quick (offline)'), t('Você contra a CPU. Monta o time no leilão e joga UMA temporada (liga + Copa dos 8). Bom pra treinar o dedo.', 'You against the CPU. Build the team at the auction and play ONE season (league + Cup of 8). Good for practice.')],
+    ['👥', t('Rápido (online)', 'Quick (online)'), t('Mesma coisa, só que os lances são dos seus AMIGOS na sala (até 8). Baralho Brasil, Europa, Todos — ou a Várzea 🥅 (sem craques).', 'Same thing, but the bids come from your FRIENDS in the room. Brazil, Europe or All decks — or Várzea 🥅 (no stars).')],
+    ['🪜', t('Carreira', 'Career'), escadaLiberada() ? t('A vida de técnico: começa na VÁRZEA (peladão raiz 🍺) e sobe a pirâmide até a Série A. Temporada a temporada desbloqueia reservas, vendas, folha, contratos, estádio, SAF…', 'The manager\'s life: start in VÁRZEA (grassroots pick-up football 🍺) and climb the pyramid up to Série A. Season by season you unlock reserves, sales, payroll, contracts, stadium, SAF…') : t('A vida de técnico: começa na Série D e sobe a pirâmide até a A. Temporada a temporada desbloqueia reservas, vendas, folha salarial, contratos, estádio, SAF…', 'The manager\'s life: start in Série D and climb the pyramid up to A. Season by season you unlock reserves, sales, payroll, contracts, stadium, SAF…')],
   ]
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>📖 Manual do Técnico</p>
-          <button onClick={onClose} aria-label="Fechar" style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>{t('📖 Manual do Técnico', '📖 Manager\'s Handbook')}</p>
+          <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
         {/* 🧼 VERSÃO LIMPA (home nova) — sem firula: a MESMA lista de passos da
             home, e os modos na mesma linha. O manual velho continua igual pra
             quem ainda está na home de hoje. */}
         {limpo ? (
           <>
-            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>Como funciona uma partida</p>
-            <div className="space-y-2">
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>{t('Como funciona uma partida', 'How a match works')}</p>
+            {getLang() === 'en' ? <div className="space-y-2">
+              <PassoLinha n={1} ic="🪙" titulo="100 coins">The deck comes by position. You only see the <b>name</b>, never the level.</PassoLinha>
+              <PassoLinha n={2} ic="✉️" titulo="Secret bid">Write what each name is worth and seal the envelope. Nobody sees anyone's bid.</PassoLinha>
+              <PassoLinha n={3} ic="👀" titulo="All open together">At the Ceremony the envelopes open at once — and <b>only then</b> you see whether it was a star or a donkey.</PassoLinha>
+              <PassoLinha n={4} ic="🔨" titulo="The hammer falls">Whoever paid the most wins. Tied on the highest bid? There is a <b>tie-break</b>, also blind.</PassoLinha>
+              <PassoLinha n={5} ic="🃏" titulo="Fill the 11 from the Pile">Player left without an owner? On your turn you grab him <b>for free</b>, until the team is complete.</PassoLinha>
+              <PassoLinha n={6} ic="⚽" titulo="The championship runs">38 rounds in about 3 minutes, with the score ticking live. The champion takes <b>a card</b> for the album.</PassoLinha>
+            </div> : <div className="space-y-2">
               <PassoLinha n={1} ic="🪙" titulo="100 moedas">O baralho vem por posição. Você só vê o <b>nome</b>, nunca o nível.</PassoLinha>
               <PassoLinha n={2} ic="✉️" titulo="Lance secreto">Escreve quanto vale cada nome e lacra o envelope. Ninguém vê o lance de ninguém.</PassoLinha>
               <PassoLinha n={3} ic="👀" titulo="Abrem todos juntos">Na Cerimônia os envelopes abrem de uma vez — e <b>só aí</b> aparece se era craque ou perna-de-pau.</PassoLinha>
               <PassoLinha n={4} ic="🔨" titulo="O martelo bate">Quem pagou mais leva. Empatou no maior lance? Tem <b>desempate</b>, também às cegas.</PassoLinha>
               <PassoLinha n={5} ic="🃏" titulo="Fecha os 11 no Monte">Sobrou jogador sem dono? Na sua vez você pega <b>de graça</b>, até fechar o time.</PassoLinha>
               <PassoLinha n={6} ic="⚽" titulo="O campeonato roda">38 rodadas em uns 3 minutos, com o placar subindo ao vivo. Campeão leva <b>uma carta</b> pro álbum.</PassoLinha>
-            </div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-6 mb-2.5" style={OSWALD}>Onde dá pra jogar isso</p>
-            <div className="space-y-2">
+            </div>}
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-6 mb-2.5" style={OSWALD}>{t('Onde dá pra jogar isso', 'Where you can play it')}</p>
+            {getLang() === 'en' ? <div className="space-y-2">
+              <PassoLinha ic="⚡" titulo="Quick (offline)">You against the CPU. Just one season — league + Cup of 8. Good to get the hang of it.</PassoLinha>
+              <PassoLinha ic="👥" titulo="Quick (online)">Same thing, but the bids come from your friends in the room. Up to 20 in the same auction.</PassoLinha>
+              <PassoLinha ic="🪜" titulo="Career">{escadaLiberada() ? 'Start in Várzea' : 'Start in Série D'} and climb the pyramid up to Série A. Season by season it opens reserves, sales, payroll, contracts, stadium and SAF.</PassoLinha>
+            </div> : <div className="space-y-2">
               <PassoLinha ic="⚡" titulo="Rápido (offline)">Você contra a CPU. Uma temporada só — liga + Copa dos 8. Bom pra pegar o jeito.</PassoLinha>
               <PassoLinha ic="👥" titulo="Rápido (online)">Mesma coisa, mas os lances são dos seus amigos na sala. Até 20 no mesmo pregão.</PassoLinha>
               <PassoLinha ic="🪜" titulo="Carreira">{escadaLiberada() ? 'Começa na Várzea' : 'Começa na Série D'} e sobe a pirâmide até a Série A. Temporada a temporada abre reservas, vendas, folha, contratos, estádio e SAF.</PassoLinha>
-            </div>
+            </div>}
             <Duvidas />
           </>
         ) : (<>
         {/* a regra-mãe: o leilão */}
         <div style={{ border: `3px solid ${INK}`, borderRadius: 14, background: GOLD, padding: '10px 11px', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
-          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>🔨 Como funciona o leilão (a base de tudo)</p>
+          <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{t('🔨 Como funciona o leilão (a base de tudo)', '🔨 How the auction works (the base of everything)')}</p>
           <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
             {fases.map(([ic, t, d]) => (
               <div key={t} style={{ flex: 1, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', textAlign: 'center' }}>
@@ -2452,7 +2533,7 @@ function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: bool
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 10, fontWeight: 700, margin: '7px 2px 0', lineHeight: 1.4 }}>Empatou no maior lance? Tem <b>desempate</b>. Sobrou sem lance? Vai pro <b>monte</b> — cada técnico pode pegar na sua vez. E o nível do jogador <b>só abre na Cerimônia</b>: você aposta no nome!</p>
+          <p style={{ fontSize: 10, fontWeight: 700, margin: '7px 2px 0', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Tied on the highest bid? There is a <b>tie-break</b>. Nobody bid? It goes to the <b>pile</b> — each manager can grab on their turn. And the player's level <b>only opens at the Ceremony</b>: you bet on the name!</> : <>Empatou no maior lance? Tem <b>desempate</b>. Sobrou sem lance? Vai pro <b>monte</b> — cada técnico pode pegar na sua vez. E o nível do jogador <b>só abre na Cerimônia</b>: você aposta no nome!</>}</p>
         </div>
         {/* um card por modo — só o que muda */}
         {modos.map(([ic, t, d]) => (
@@ -2464,7 +2545,7 @@ function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: bool
             </div>
           </div>
         ))}
-        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>Outros modos entram no manual quando forem liberados. 😉</p>
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>{t('Outros modos entram no manual quando forem liberados. 😉', 'Other modes join the handbook when they are released. 😉')}</p>
         </>)}
       </div>
     </div>
@@ -2482,11 +2563,11 @@ function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
   const marca = (tudo: boolean) => { try { localStorage.setItem(K, '1'); if (tudo) localStorage.setItem(KOFF, '1') } catch { /* segue */ } setVista(true) }
   return (
     <div style={{ border: `3px solid ${INK}`, borderRadius: 13, borderBottomLeftRadius: 4, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10 }}>
-      <span style={{ display: 'inline-block', fontWeight: 900, fontSize: 9, ...OSWALD, textTransform: 'uppercase', background: GOLD, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 8px', marginBottom: 5 }}>🎙️ Narrador</span>
+      <span style={{ display: 'inline-block', fontWeight: 900, fontSize: 9, ...OSWALD, textTransform: 'uppercase', background: GOLD, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 8px', marginBottom: 5 }}>{tr('🎙️ Narrador', '🎙️ Commentator')}</span>
       <p style={{ margin: 0, fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}>{texto}</p>
       <div style={{ display: 'flex', gap: 8, marginTop: 7, alignItems: 'center' }}>
-        <button onClick={() => marca(false)} style={{ border: `2.5px solid ${INK}`, borderRadius: 9, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 11, ...OSWALD, padding: '4px 12px', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>✅ Entendi</button>
-        <button onClick={() => marca(true)} style={{ border: 'none', background: 'transparent', fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.45)', cursor: 'pointer', textDecoration: 'underline' }}>pular todas as dicas</button>
+        <button onClick={() => marca(false)} style={{ border: `2.5px solid ${INK}`, borderRadius: 9, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 11, ...OSWALD, padding: '4px 12px', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>{tr('✅ Entendi', '✅ Got it')}</button>
+        <button onClick={() => marca(true)} style={{ border: 'none', background: 'transparent', fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.45)', cursor: 'pointer', textDecoration: 'underline' }}>{tr('pular todas as dicas', 'skip all tips')}</button>
       </div>
     </div>
   )
