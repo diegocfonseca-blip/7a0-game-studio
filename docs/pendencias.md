@@ -1,3 +1,55 @@
+## 12/09/2026 — 🎴 Leva de 23 cartas novas (a lista que o Diego escolheu)
+
+Ele pediu indicação de **jogadores homens que não estivessem em NENHUM baralho,
+de qualquer categoria** (não só lenda), aprovou a lista curta e mandou fazer:
+*"Boa te todo mas coloca clube certo. Ano certo do auge dele nesse clube. E
+categoria q vc acredita q se enquadre e nível"*.
+
+**Brasil (7)** · Mazaropi (Vasco 89, GOL) · Acácio (Vasco 88, GOL) · Wladimir
+(Corinthians 83, LAT, 🃏) · Paulo Isidoro (Grêmio 80, MEI) · Válber (Vasco 97,
+MEI) · Iarley (Internacional 2006, MEI, 🃏) · Baltazar (Corinthians 90, ATA, 🃏).
+**Europa (13)** · Mihajlović (Lazio 2000, ZAG) · Van der Vaart (Tottenham 2011) e
+Cahill (Everton 2010, 🃏) no MEI · Osimhen (Napoli 2023, ⭐) · Mahrez (Leicester
+2016, ⭐) · Ian Rush (Liverpool 84, ⭐) · Luca Toni (Fiorentina 2006) · Chicharito
+(Man United 2011) · Sheringham (Man United 99) · Madjer (Porto 87, 🃏) · Yekini
+(V. Setúbal 94, 🃏) · Viduka (Leeds 2001) · Wanchope (Derby 98, 🃏).
+**Resto do Mundo (3)** · Ali Daei (Persepolis 2006) · Borgetti (Santos Laguna
+2003) · Wu Lei (Shanghai 2018).
+
+### ⚠️ Dois erros MEUS nesta conversa — ficam registrados pra não repetir
+1. **Mandei nomes REPETIDOS na lista de sugestão** (Kannemann, Geromel, Alex
+   Silva, Fellipe Bastos, Rafael Moura, Sorín, Lugano, Idrissa Gueye, Petit).
+   Causa: conferi por nome INTEIRO contra o catálogo, e quem está no jogo com o
+   nome curto passou batido. Palavras dele: *"Assim fica difícil eu saber quem
+   pôr"*. **Regra pra próxima**: conferir também por pedaço do nome (o apelido),
+   e mandar lista CURTA com quem é cada um, não um paredão de 200 nomes.
+2. **Disse que Madjer, Yekini, Cahill, Viduka, Wanchope e Chicharito iam pro
+   baralho do Resto do Mundo.** Errado: o baralho segue **onde foi o AUGE**, e o
+   deles foi em clube europeu. Nacionalidade é coisa separada (`paises.ts`,
+   regra do Lingard de 28/08).
+
+- `paises.ts`: nacionalidade das 23. **Países novos: Austrália e Irã** — bandeira
+  cadastrada em `copa-mundo.tsx`. Nenhum vira seleção (o `rankingSelecoes` ordena
+  por quantidade de cartas e corta muito antes), então não tem risco de seleção
+  quebrada na Copa.
+- `npm run paises` limpo (1463 cartas) · `npm run novidades`: 23 linhas na home.
+- ✅ **Publicado na main em 12/09** com o "pode" do Diego. Nenhum save muda: carta
+  nova só entra no sorteio do próximo pregão. Reverter = 1 commit.
+
+### ⏳ O que sobrou desta conversa
+- Ele gostou da ideia de **lendas femininas**: hoje o baralho tem só Marta e
+  Formiga em 1463 cartas. Lista levantada e pronta pra virar leva (Cristiane,
+  Sissi, Pretinha, Rosana, Érika, Tamires, Bárbara, Debinha, e as de fora: Mia
+  Hamm, Michelle Akers, Wendel Renard, Sam Kerr, Alexia Putellas…).
+- **Três auges brasileiros faltando** de quem só existe pela carta fraca do
+  exterior: Júnior (só Parma 92 — falta o Flamengo 81), Ganso (só Sevilla 2016 —
+  falta o Santos 2010/11) e Keirrison (só Barcelona 2009 — falta Coritiba/
+  Palmeiras). É o Firmino ao contrário.
+- Ideias de produto que ele ainda não decidiu: **Pregão do Dia**, pregão de 24h
+  sem todo mundo junto, painel de batismo, figurinhas de WhatsApp, baralhos
+  temáticos, A Cotação. Dívidas pequenas: o recado `room_acoes` recusado calado
+  pelo RLS desde 28/08 e o degrau 1 do custo (heartbeat 3s → 15s).
+
 ## 12/09/2026 — 🎴 Três cartas novas (Formiga, Firmino do Figueirense, Usain Bolt) + o gerador de novidades agora lê o baralho MUNDO
 
 Pedido do Diego, nesta ordem: *"Adicione formiga no baralho BR… Tb quero Firmino
