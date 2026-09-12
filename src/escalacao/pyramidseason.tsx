@@ -1746,7 +1746,7 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
     // 📺 YouTube entrou em 28/08 (pedido do Diego: "deixa YouTube também valer
     // a cota extra, não só TikTok e Instagram"). Aceita youtube.com e youtu.be —
     // vale vídeo normal, Shorts ou live gravada, é tudo o mesmo link.
-    if (!/^https?:\/\//i.test(l) || !/(instagram\.com|tiktok\.com|youtube\.com|youtu\.be)/i.test(l)) { setErro('Cola o LINK do post — tem que ser do Instagram, TikTok ou YouTube. 📲'); return }
+    if (!/^https?:\/\//i.test(l) || !/(instagram\.com|tiktok\.com|youtube\.com|youtu\.be)/i.test(l)) { setErro(tr('Cola o LINK do post — tem que ser do Instagram, TikTok ou YouTube. 📲', 'Paste the post LINK — it has to be Instagram, TikTok or YouTube. 📲')); return }
     setBusy(true); setErro('')
     try {
       const { data: u } = await supabase.auth.getUser()
@@ -1756,11 +1756,11 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
       if (error) {
         const cod = (error as { code?: string }).code
         if (cod === '23505') setErro(String((error as { message?: string }).message ?? '').includes('link_unico')
-          ? 'Esse vídeo já foi usado — cada vídeo vale UMA vez. Grava um novo! 🎬'
-          : `Você já televisionou na Temporada ${temporada} — temporada nova, vídeo novo. 🗓️`)
-        else setErro('A emissora está fora do ar agora — tenta de novo em instantes.')
+          ? tr('Esse vídeo já foi usado — cada vídeo vale UMA vez. Grava um novo! 🎬', 'That video was already used — each video counts ONCE. Record a new one! 🎬')
+          : tr(`Você já televisionou na Temporada ${temporada} — temporada nova, vídeo novo. 🗓️`, `You already broadcast in Season ${temporada} — new season, new video. 🗓️`))
+        else setErro(tr('A emissora está fora do ar agora — tenta de novo em instantes.', 'The network is off the air right now — try again in a moment.'))
       } else { setEnvio(data); setAberto(false); setLink('') }
-    } catch { setErro('A emissora está fora do ar agora — tenta de novo em instantes.') }
+    } catch { setErro(tr('A emissora está fora do ar agora — tenta de novo em instantes.', 'The network is off the air right now — try again in a moment.')) }
     setBusy(false)
   }
   const podeEnviar = envio === null || envio?.status === 'recusado'
@@ -1768,12 +1768,12 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
   return (
     <div ref={cardRef} style={{ ...box(), overflow: 'hidden', marginTop: 12, scrollMarginTop: 64, ...(brilho ? { boxShadow: `0 0 0 4px ${GOLD}, 4px 4px 0 0 ${INK}`, transition: 'box-shadow .3s' } : { transition: 'box-shadow .6s' }) }}>
       <div style={{ position: 'relative', background: 'linear-gradient(150deg,#1c1c1e,#0C0C0C 60%,#26221a)', padding: '11px 13px', color: '#fff' }}>
-        <span style={{ position: 'absolute', top: 9, right: 9, background: '#C2452F', border: '2px solid rgba(255,255,255,.25)', borderRadius: 8, ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: 1, padding: '2px 7px' }}>● AO VIVO</span>
-        <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>📺 contrato de transmissão</p>
+        <span style={{ position: 'absolute', top: 9, right: 9, background: '#C2452F', border: '2px solid rgba(255,255,255,.25)', borderRadius: 8, ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: 1, padding: '2px 7px' }}>{tr('● AO VIVO', '● LIVE')}</span>
+        <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>{tr('📺 contrato de transmissão', '📺 broadcast deal')}</p>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', margin: '1px 0 0', color: GOLD }}>Rede Martelo TV</p>
       </div>
       <div style={{ padding: '11px 12px' }}>
-        {sec('🖋️ Seu contrato — paga sozinho, todo fim de temporada')}
+        {sec(tr('🖋️ Seu contrato — paga sozinho, todo fim de temporada', '🖋️ Your deal — pays by itself, every end of season'))}
         <div style={{ display: 'flex', gap: 5, marginBottom: 8 }}>
           {TV_DEGRAUS.map(([d, v]) => {
             const eu = d === div
@@ -1781,66 +1781,68 @@ function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: strin
               <div key={d} style={{ flex: 1, textAlign: 'center', border: `2.5px solid ${eu ? INK : 'rgba(12,12,12,.25)'}`, borderRadius: 10, padding: '4px 2px', background: eu ? GOLD : '#FBF6E9', boxShadow: eu ? `2px 2px 0 ${INK}` : undefined, opacity: eu ? 1 : .7 }}>
                 <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12 }}>{d}</div>
                 <div style={{ fontWeight: 800, fontSize: 9.5, whiteSpace: 'nowrap' }}>{v} 🪙</div>
-                <div style={{ fontSize: 6.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: .5, visibility: eu ? 'visible' : 'hidden' }}>você</div>
+                <div style={{ fontSize: 6.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: .5, visibility: eu ? 'visible' : 'hidden' }}>{tr('você', 'you')}</div>
               </div>
             )
           })}
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#EAF7EE', border: `2.5px solid ${GREEN}`, borderRadius: 11, padding: '7px 10px', fontWeight: 700, fontSize: 11, lineHeight: 1.4 }}>
           <span style={{ fontSize: 14 }}>📡</span>
-          <span>Você está na <b>{div === 'V' ? 'Várzea' : `Série ${div}`}</b>: a Rede Martelo TV deposita <b>+{cotaDiv} 🪙 por temporada</b> no caixa. Subiu de série? O contrato melhora sozinho.</span>
+          <span>{getLang() === 'en' ? <>You are in <b>{div === 'V' ? 'Várzea' : `Série ${div}`}</b>: Rede Martelo TV deposits <b>+{cotaDiv} 🪙 per season</b> into the till. Promoted? The deal improves on its own.</> : <>Você está na <b>{div === 'V' ? 'Várzea' : `Série ${div}`}</b>: a Rede Martelo TV deposita <b>+{cotaDiv} 🪙 por temporada</b> no caixa. Subiu de série? O contrato melhora sozinho.</>}</span>
         </div>
         <div style={{ borderTop: '2.5px dashed rgba(12,12,12,.2)', margin: '12px 0 10px' }} />
-        {sec('📱 Cota extra: transmissão nas redes sociais')}
+        {sec(tr('📱 Cota extra: transmissão nas redes sociais', '📱 Extra fee: social media broadcast'))}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: `linear-gradient(150deg,#FFE79A,${GOLD} 60%,#E8A200)`, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `2.5px 2.5px 0 ${INK}`, padding: '8px 11px', marginBottom: 8 }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, whiteSpace: 'nowrap' }}>+{TV_EXTRA_POR_VIDEO} 🪙</span>
-          <span style={{ fontWeight: 800, fontSize: 10, lineHeight: 1.3 }}>por vídeo aprovado —<br /><b>1 vídeo por temporada</b></span>
+          <span style={{ fontWeight: 800, fontSize: 10, lineHeight: 1.3 }}>{getLang() === 'en' ? <>per approved video —<br /><b>1 video per season</b></> : <>por vídeo aprovado —<br /><b>1 vídeo por temporada</b></>}</span>
         </div>
-        <p style={{ fontWeight: 700, fontSize: 11, lineHeight: 1.45, margin: '0 0 8px' }}>A emissora também paga por jogo que passa <b>nas redes</b>: filma seu jogo, posta marcando <b>@leilaolegendscom</b>, cola o link — e a cota extra cai na caixa do clube.</p>
+        <p style={{ fontWeight: 700, fontSize: 11, lineHeight: 1.45, margin: '0 0 8px' }}>{getLang() === 'en' ? <>The network also pays for matches shown <b>on social media</b>: film your game, post it tagging <b>@leilaolegendscom</b>, paste the link — and the extra fee lands in the club\'s till.</> : <>A emissora também paga por jogo que passa <b>nas redes</b>: filma seu jogo, posta marcando <b>@leilaolegendscom</b>, cola o link — e a cota extra cai na caixa do clube.</>}</p>
         {!soloOk ? (
-          <div style={{ background: '#FBF6E9', border: '2.5px dashed rgba(12,12,12,.4)', borderRadius: 10, padding: '8px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.7)' }}>🤝 Aqui vocês jogam a carreira JUNTOS, e a caixa é compartilhada — a cota extra do vídeo entra na <b>sua carreira solo</b>. Abra a sua lá e televisione por ela. 🎬</div>
+          <div style={{ background: '#FBF6E9', border: '2.5px dashed rgba(12,12,12,.4)', borderRadius: 10, padding: '8px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.7)' }}>{getLang() === 'en' ? <>🤝 Here you play the career TOGETHER and the till is shared — the video\'s extra fee goes to <b>your solo career</b>. Open yours there and broadcast through it. 🎬</> : <>🤝 Aqui vocês jogam a carreira JUNTOS, e a caixa é compartilhada — a cota extra do vídeo entra na <b>sua carreira solo</b>. Abra a sua lá e televisione por ela. 🎬</>}</div>
         ) : !logado ? (
-          <div style={{ background: '#FBF6E9', border: `2.5px dashed rgba(12,12,12,.4)`, borderRadius: 10, padding: '8px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.7)' }}>🔑 Entre com a sua conta (lá na home) pra televisionar — a emissora precisa saber qual clube recebe a cota.</div>
+          <div style={{ background: '#FBF6E9', border: `2.5px dashed rgba(12,12,12,.4)`, borderRadius: 10, padding: '8px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.7)' }}>{tr('🔑 Entre com a sua conta (lá na home) pra televisionar — a emissora precisa saber qual clube recebe a cota.', '🔑 Log in to your account (on the home screen) to broadcast — the network needs to know which club gets the fee.')}</div>
         ) : envio === undefined ? (
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.5)', padding: 6 }}>📡 sintonizando a emissora…</div>
+          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.5)', padding: 6 }}>{tr('📡 sintonizando a emissora…', '📡 tuning in to the network…')}</div>
         ) : (
           <>
             {envio?.status === 'pendente' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F4ECD6', border: '2.5px dashed rgba(12,12,12,.4)', borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.75)' }}><span style={{ fontSize: 14 }}>🕓</span><span><b>Vídeo da T{envio.temporada} em análise na emissora</b> — como toda cota de TV, pode atrasar um pouco… mas cai. 💰</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F4ECD6', border: '2.5px dashed rgba(12,12,12,.4)', borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: 'rgba(12,12,12,.75)' }}><span style={{ fontSize: 14 }}>🕓</span><span>{getLang() === 'en' ? <><b>Season {envio.temporada} video under review at the network</b> — like every TV fee, it may take a little… but it lands. 💰</> : <><b>Vídeo da T{envio.temporada} em análise na emissora</b> — como toda cota de TV, pode atrasar um pouco… mas cai. 💰</>}</span></div>
             )}
             {(envio?.status === 'aprovado' || envio?.status === 'creditado') && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EAF7EE', border: `2.5px solid ${GREEN}`, borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#14532d' }}><span style={{ fontSize: 14 }}>✅</span><span><b>Cota da T{envio.temporada} garantida: +{TV_EXTRA_POR_VIDEO} 🪙 no caixa.</b> Temporada nova, vídeo novo! 🎬</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EAF7EE', border: `2.5px solid ${GREEN}`, borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#14532d' }}><span style={{ fontSize: 14 }}>✅</span><span>{getLang() === 'en' ? <><b>Season {envio.temporada} fee secured: +{TV_EXTRA_POR_VIDEO} 🪙 in the till.</b> New season, new video! 🎬</> : <><b>Cota da T{envio.temporada} garantida: +{TV_EXTRA_POR_VIDEO} 🪙 no caixa.</b> Temporada nova, vídeo novo! 🎬</>}</span></div>
             )}
             {envio?.status === 'recusado' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDECEA', border: '2.5px solid #C2452F', borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#7a2418', marginBottom: 8 }}><span style={{ fontSize: 14 }}>❌</span><span><b>A emissora recusou{envio.motivo ? `: ${envio.motivo}` : ''}.</b> Pode tentar de novo com outro vídeo.</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDECEA', border: '2.5px solid #C2452F', borderRadius: 10, padding: '7px 10px', fontWeight: 800, fontSize: 10.5, color: '#7a2418', marginBottom: 8 }}><span style={{ fontSize: 14 }}>❌</span><span><b>{tr('A emissora recusou', 'The network declined')}{envio.motivo ? `: ${envio.motivo}` : ''}.</b> {tr('Pode tentar de novo com outro vídeo.', 'You can try again with another video.')}</span></div>
             )}
             {podeEnviar && !aberto && (
-              <button onClick={() => { setAberto(true); setErro('') }} style={{ width: '100%', background: INK, color: GOLD, border: `2.5px solid #000`, borderRadius: 11, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', padding: '9px 8px', cursor: 'pointer' }}>🎬 Televisionar meu jogo</button>
+              <button onClick={() => { setAberto(true); setErro('') }} style={{ width: '100%', background: INK, color: GOLD, border: `2.5px solid #000`, borderRadius: 11, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', padding: '9px 8px', cursor: 'pointer' }}>{tr('🎬 Televisionar meu jogo', '🎬 Broadcast my match')}</button>
             )}
             {podeEnviar && aberto && (
               <div style={{ ...box('#fff'), padding: 11 }}>
-                {([['1', <span key="1"><b>Grava um vídeo de 15s ou mais</b>: a tela do jogo rolando — ou você jogando, com o seu time aparecendo na tela.</span>],
+                {((getLang() === 'en' ? [['1', <span key="1"><b>Record a video of 15s or more</b>: the game screen running — or you playing, with your team showing on screen.</span>],
+                  ['2', <span key="2"><b>Post it on Instagram, TikTok or YouTube</b> tagging <b>@leilaolegendscom</b>.</span>],
+                  ['3', <span key="3"><b>Paste the post link down here</b> — the network checks it and deposits <b>+{TV_EXTRA_POR_VIDEO} 🪙 into the club\'s till</b>.</span>]] : [['1', <span key="1"><b>Grava um vídeo de 15s ou mais</b>: a tela do jogo rolando — ou você jogando, com o seu time aparecendo na tela.</span>],
                   ['2', <span key="2"><b>Posta no Instagram, no TikTok ou no YouTube</b> marcando <b>@leilaolegendscom</b>.</span>],
-                  ['3', <span key="3"><b>Cola o link do post aqui embaixo</b> — a emissora confere e deposita <b>+{TV_EXTRA_POR_VIDEO} 🪙 na caixa do clube</b>.</span>]] as [string, React.ReactNode][]).map(([n, t]) => (
+                  ['3', <span key="3"><b>Cola o link do post aqui embaixo</b> — a emissora confere e deposita <b>+{TV_EXTRA_POR_VIDEO} 🪙 na caixa do clube</b>.</span>]]) as [string, React.ReactNode][]).map(([n, t]) => (
                   <div key={n} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', marginBottom: 7 }}>
                     <span style={{ flex: 'none', width: 22, height: 22, borderRadius: 999, background: INK, color: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 11 }}>{n}</span>
                     <p style={{ margin: 0, fontWeight: 700, fontSize: 11, lineHeight: 1.4 }}>{t}</p>
                   </div>
                 ))}
-                <div style={{ background: '#FDECEA', border: '2px solid #C2452F', borderRadius: 9, padding: '6px 9px', fontWeight: 800, fontSize: 9.5, color: '#7a2418', lineHeight: 1.4, margin: '2px 0 8px' }}>📵 Foto não vale — a TV só paga por <b>vídeo com o jogo acontecendo</b>. E cada vídeo vale uma vez só.</div>
+                <div style={{ background: '#FDECEA', border: '2px solid #C2452F', borderRadius: 9, padding: '6px 9px', fontWeight: 800, fontSize: 9.5, color: '#7a2418', lineHeight: 1.4, margin: '2px 0 8px' }}>{getLang() === 'en' ? <>📵 Photos don\'t count — TV only pays for <b>video with the game running</b>. And each video counts once only.</> : <>📵 Foto não vale — a TV só paga por <b>vídeo com o jogo acontecendo</b>. E cada vídeo vale uma vez só.</>}</div>
                 {/* 🔴 LIVE (28/08, pergunta do Diego: "e a live rolando agora,
                     funciona? ele vai botar o link"). O link entra normal — o
                     problema é a CONFERÊNCIA, que é manual e pode ser horas
                     depois: se a live não ficar salva, não sobra o que ver e a
                     cota cai por falta de prova. Por isso o aviso, com o caminho. */}
-                <div style={{ background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 700, fontSize: 9.5, color: '#4a4740', lineHeight: 1.4, margin: '0 0 8px' }}>🔴 <b>Tá ao vivo?</b> Live vale sim — pode colar o link da live rolando. Só <b>deixe ela salva no canal</b> depois (o YouTube guarda sozinho, é só não apagar): a emissora confere <b>depois</b>, e se o vídeo sumir não tem como pagar.</div>
+                <div style={{ background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 700, fontSize: 9.5, color: '#4a4740', lineHeight: 1.4, margin: '0 0 8px' }}>{getLang() === 'en' ? <>🔴 <b>Live right now?</b> Lives count too — you can paste the link of the ongoing live. Just <b>keep it saved on the channel</b> afterwards (YouTube keeps it by itself, just don\'t delete it): the network checks <b>later</b>, and if the video is gone there\'s no way to pay.</> : <>🔴 <b>Tá ao vivo?</b> Live vale sim — pode colar o link da live rolando. Só <b>deixe ela salva no canal</b> depois (o YouTube guarda sozinho, é só não apagar): a emissora confere <b>depois</b>, e se o vídeo sumir não tem como pagar.</>}</div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <input value={link} onChange={e => setLink(e.target.value)} placeholder="cole o link do post aqui" inputMode="url" autoCapitalize="none"
+                  <input value={link} onChange={e => setLink(e.target.value)} placeholder={tr('cole o link do post aqui', 'paste the post link here')} inputMode="url" autoCapitalize="none"
                     style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 9px', fontWeight: 700, fontSize: 11.5, background: '#FBF6E9' }} />
-                  <button onClick={enviar} disabled={busy} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 12px', ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: busy ? '#CBBF9E' : GOLD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: busy ? 'not-allowed' : 'pointer' }}>{busy ? '…' : 'Enviar'}</button>
+                  <button onClick={enviar} disabled={busy} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 12px', ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: busy ? '#CBBF9E' : GOLD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: busy ? 'not-allowed' : 'pointer' }}>{busy ? '…' : tr('Enviar', 'Send')}</button>
                 </div>
                 {erro && <p style={{ fontSize: 10, fontWeight: 800, color: '#c0392b', margin: '7px 0 0', textAlign: 'center' }}>{erro}</p>}
-                <button onClick={() => setAberto(false)} style={{ width: '100%', marginTop: 7, background: 'none', border: 'none', fontSize: 10, fontWeight: 900, textDecoration: 'underline', color: 'rgba(0,0,0,.5)', cursor: 'pointer' }}>fechar</button>
+                <button onClick={() => setAberto(false)} style={{ width: '100%', marginTop: 7, background: 'none', border: 'none', fontSize: 10, fontWeight: 900, textDecoration: 'underline', color: 'rgba(0,0,0,.5)', cursor: 'pointer' }}>{tr('fechar', 'close')}</button>
               </div>
             )}
           </>
@@ -1864,6 +1866,7 @@ export function manchetesDeMemoria(
   const past = cron ?? []
   const out: { ic: string; titulo: string; sub: string }[] = []
   const nomeDiv = (d: string) => d === 'V' ? 'Várzea' : `Série ${d}`
+  const en = getLang() === 'en'
   const tAtual = past.length ? past[past.length - 1].t + 1 : 1
   if (atual.campeao) {
     // 🏆 sequência de títulos (contando o de agora)
@@ -1871,32 +1874,32 @@ export function manchetesDeMemoria(
     for (let i = past.length - 1; i >= 0 && past[i].campeao; i--) seq++
     if (seq >= 2) {
       out.push(seq >= 4
-        ? { ic: '👑', titulo: `${seq}º TÍTULO SEGUIDO — isso já é DINASTIA`, sub: 'O arquivo do jornal não registra nada igual. Os rivais perderam a conta.' }
-        : { ic: '🏆', titulo: `${seq}º título seguido`, sub: 'De novo eles. A taça tá criando morada.' })
+        ? { ic: '👑', titulo: en ? `${ordinal(seq)} TITLE IN A ROW — this is a DYNASTY now` : `${seq}º TÍTULO SEGUIDO — isso já é DINASTIA`, sub: en ? 'The newspaper archive has nothing like it. The rivals lost count.' : 'O arquivo do jornal não registra nada igual. Os rivais perderam a conta.' }
+        : { ic: '🏆', titulo: en ? `${ordinal(seq)} title in a row` : `${seq}º título seguido`, sub: en ? 'Them again. The trophy is settling in.' : 'De novo eles. A taça tá criando morada.' })
     } else {
       // 🎉 acabou o jejum / primeira estrela
       let ultimo = -1
       for (let i = past.length - 1; i >= 0; i--) if (past[i].campeao) { ultimo = past[i].t; break }
-      if (ultimo > 0 && tAtual - ultimo >= 4) out.push({ ic: '🎉', titulo: `ACABOU O JEJUM: ${tAtual - ultimo} temporadas depois, a taça voltou`, sub: `A última vez tinha sido na T${ultimo}. Teve torcedor chorando no gramado.` })
-      else if (ultimo === -1 && past.length >= 3) out.push({ ic: '🎉', titulo: 'O PRIMEIRO TÍTULO DA HISTÓRIA DO CLUBE', sub: `${tAtual} temporadas de espera — a primeira estrela ninguém esquece.` })
+      if (ultimo > 0 && tAtual - ultimo >= 4) out.push({ ic: '🎉', titulo: en ? `DROUGHT OVER: ${tAtual - ultimo} seasons later, the trophy is back` : `ACABOU O JEJUM: ${tAtual - ultimo} temporadas depois, a taça voltou`, sub: en ? `The last time was in S${ultimo}. Fans were crying on the pitch.` : `A última vez tinha sido na T${ultimo}. Teve torcedor chorando no gramado.` })
+      else if (ultimo === -1 && past.length >= 3) out.push({ ic: '🎉', titulo: en ? 'THE FIRST TITLE IN THE CLUB\'S HISTORY' : 'O PRIMEIRO TÍTULO DA HISTÓRIA DO CLUBE', sub: en ? `${tAtual} seasons of waiting — nobody forgets the first star.` : `${tAtual} temporadas de espera — a primeira estrela ninguém esquece.` })
     }
     // ⭐ marco redondo de títulos totais
     const total = past.filter(p => p.campeao).length + 1
-    if ([5, 10, 20, 30, 50, 100].includes(total)) out.push({ ic: '⭐', titulo: `O ${total}º TÍTULO da história do clube`, sub: 'Sala de troféus pedindo estante nova.' })
+    if ([5, 10, 20, 30, 50, 100].includes(total)) out.push({ ic: '⭐', titulo: en ? `The ${ordinal(total)} TITLE in the club\'s history` : `O ${total}º TÍTULO da história do clube`, sub: en ? 'Trophy room asking for a new shelf.' : 'Sala de troféus pedindo estante nova.' })
   } else {
     // ⏳ jejum corrente (só cutuca a partir de 6 — cobrança, não deboche)
     let semTitulo = 1
     for (let i = past.length - 1; i >= 0 && !past[i].campeao; i--) semTitulo++
-    if (past.length >= 5 && semTitulo >= 6) out.push({ ic: '⏳', titulo: `${semTitulo} temporadas sem título — a torcida cobra`, sub: 'O arquivo do jornal guarda tudo. E a paciência da arquibancada tem prazo.' })
+    if (past.length >= 5 && semTitulo >= 6) out.push({ ic: '⏳', titulo: en ? `${semTitulo} seasons without a title — the fans want answers` : `${semTitulo} temporadas sem título — a torcida cobra`, sub: en ? 'The newspaper archive keeps everything. And the stands\' patience has an expiry date.' : 'O arquivo do jornal guarda tudo. E a paciência da arquibancada tem prazo.' })
   }
   // 📅 marcos de permanência na mesma divisão (contando a atual)
   let seqDiv = 1
   for (let i = past.length - 1; i >= 0 && past[i].div === atual.div; i--) seqDiv++
-  if ([5, 10, 15, 20, 25, 30, 40, 50].includes(seqDiv)) out.push({ ic: '📅', titulo: `${seqDiv}ª temporada seguida na ${nomeDiv(atual.div)}`, sub: atual.div === 'A' ? 'Clube de elite não é quem chega — é quem FICA.' : 'História se escreve temporada por temporada.' })
+  if ([5, 10, 15, 20, 25, 30, 40, 50].includes(seqDiv)) out.push({ ic: '📅', titulo: en ? `${ordinal(seqDiv)} season in a row in ${nomeDiv(atual.div)}` : `${seqDiv}ª temporada seguida na ${nomeDiv(atual.div)}`, sub: atual.div === 'A' ? (en ? 'An elite club isn\'t the one that arrives — it\'s the one that STAYS.' : 'Clube de elite não é quem chega — é quem FICA.') : (en ? 'History is written season by season.' : 'História se escreve temporada por temporada.') })
   // 🆕 primeira vez nesta divisão (com pelo menos 2 temporadas de arquivo)
-  if (past.length >= 2 && !past.some(p => p.div === atual.div)) out.push({ ic: '🆕', titulo: `PRIMEIRA VEZ na ${nomeDiv(atual.div)} em toda a história do clube`, sub: 'Página nova no arquivo do jornal.' })
+  if (past.length >= 2 && !past.some(p => p.div === atual.div)) out.push({ ic: '🆕', titulo: en ? `FIRST TIME in ${nomeDiv(atual.div)} in the club\'s whole history` : `PRIMEIRA VEZ na ${nomeDiv(atual.div)} em toda a história do clube`, sub: en ? 'A new page in the newspaper archive.' : 'Página nova no arquivo do jornal.' })
   // 🥇 primeira Copa da história
-  if (atual.copa && past.length >= 3 && !past.some(p => p.copa)) out.push({ ic: '🥇', titulo: 'A PRIMEIRA COPA da história do clube', sub: 'Mata-mata é outra vida — e agora tem taça no armário pra provar.' })
+  if (atual.copa && past.length >= 3 && !past.some(p => p.copa)) out.push({ ic: '🥇', titulo: en ? 'THE FIRST CUP in the club\'s history' : 'A PRIMEIRA COPA da história do clube', sub: en ? 'Knockouts are another life — and now there\'s a cup in the cabinet to prove it.' : 'Mata-mata é outra vida — e agora tem taça no armário pra provar.' })
   return out.slice(0, 3)
 }
 
@@ -1932,21 +1935,21 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
   const noElenco = squad.filter(c => !c.fake && !isFillerClub(c.club) && !c.emprestado && (c.buyPrice != null || c.paid != null))
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? '🏆 Prêmios da temporada' : k === 'gate' ? '🎟️ Bilheteria' : k === 'salary' ? '💸 Folha salarial' : k === 'saf' ? '🏢 Prêmios da SAF' : k === 'stadium' ? '🏟️ Obra no estádio' : k === 'safbuy' ? '🏢 Compra da SAF' : k === 'safsell' ? '🏢 Venda da SAF' : k === 'empresario' ? '💼 Renda do Empresário' : k === 'opening' ? '🏁 Saldo inicial' : k === 'bico' ? '🕴️ Bico de Folga' : k === 'socio' ? '🎟️ Moedas de sócio' : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
       <div style={{ ...box(), background: caixa < 0 ? `linear-gradient(160deg, ${FIN_RED}, #7a1b10)` : `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>Caixa atual{caixa < 0 ? ' · no vermelho' : ''}</div>
+            <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('Caixa atual', 'Current till')}{caixa < 0 ? tr(' · no vermelho', ' · in the red') : ''}</div>
             <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>🪙 {caixa < 0 ? `−${Math.abs(caixa)}` : caixa}</div>
-            {caixa < 0 && <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 3 }}>Folha maior que a caixa — contratar e investir travam até sair do vermelho.</div>}
+            {caixa < 0 && <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 3 }}>{tr('Folha maior que a caixa — contratar e investir travam até sair do vermelho.', 'Payroll bigger than the till — signing and investing are locked until you\'re out of the red.')}</div>}
           </div>
-          <div style={{ textAlign: 'right', fontSize: 10, color: 'rgba(255,255,255,.7)', fontWeight: 700 }}>Temporada {summarySeason}</div>
+          <div style={{ textAlign: 'right', fontSize: 10, color: 'rgba(255,255,255,.7)', fontWeight: 700 }}>{tr('Temporada', 'Season')} {summarySeason}</div>
         </div>
         <div style={{ display: 'flex', gap: 7, marginTop: 10 }}>
-          {([['Entrou', entrou, '#8ff0a8'], ['Saiu', saiu, '#ffb3a6'], ['Saldo', entrou - saiu, GOLD]] as [string, number, string][]).map(([t, v, c], i) => (
+          {([[tr('Entrou', 'In'), entrou, '#8ff0a8'], [tr('Saiu', 'Out'), saiu, '#ffb3a6'], [tr('Saldo', 'Balance'), entrou - saiu, GOLD]] as [string, number, string][]).map(([t, v, c], i) => (
             <div key={t} style={{ flex: 1, background: 'rgba(0,0,0,.22)', borderRadius: 9, padding: '6px 8px' }}>
               <div style={{ fontSize: 8.5, letterSpacing: .5, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800 }}>{t}</div>
               <div style={{ ...OSWALD, fontSize: 15, fontWeight: 900, color: c }}>{i === 2 && v >= 0 ? '+' : i === 1 ? '−' : i === 0 ? '+' : v < 0 ? '−' : '+'}{Math.abs(v)}</div>
@@ -1962,7 +1965,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
         const risco = Math.max(0, Math.min(100, Math.round((-caixa / 1000) * 100)))
         return (
           <div style={{ ...box('#fff'), padding: '9px 11px', marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 10.5, marginBottom: 5 }}><span>Saúde financeira</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 10.5, marginBottom: 5 }}><span>{tr('Saúde financeira', 'Financial health')}</span></div>
             <div style={{ position: 'relative' }}>
               <div style={{ height: 8, borderRadius: 5, overflow: 'hidden', border: `1.5px solid ${INK}`, display: 'flex' }}>
                 <div style={{ width: '55%', background: GREEN }} /><div style={{ width: '25%', background: '#E8A200' }} /><div style={{ width: '20%', background: FIN_RED }} />
@@ -1970,7 +1973,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
               <span style={{ position: 'absolute', top: -14, left: `calc(${risco}% - 7px)`, fontSize: 13 }}>📍</span>
             </div>
             <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 0 0' }}>
-              {risco >= 60 ? '⚠️ Sinal de alerta — coisas piores podem acontecer com o time se continuar assim.' : '🟡 O clube já sentiu o vermelho. Vender ou ganhar prêmio ajuda a melhorar.'}
+              {risco >= 60 ? tr('⚠️ Sinal de alerta — coisas piores podem acontecer com o time se continuar assim.', '⚠️ Warning sign — worse things can happen to the team if this goes on.') : tr('🟡 O clube já sentiu o vermelho. Vender ou ganhar prêmio ajuda a melhorar.', '🟡 The club already feels the red. Selling or winning prizes helps.')}
             </p>
           </div>
         )
@@ -1978,18 +1981,18 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
 
       {/* sub-abas: 🧾 Extrato | 🔁 Transferências */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        {([['extrato', '🧾', 'Extrato'], ['transf', '🔁', 'Transferências']] as [typeof sub, string, string][]).map(([s, ic, label]) => (
+        {([['extrato', '🧾', tr('Extrato', 'Statement')], ['transf', '🔁', tr('Transferências', 'Transfers')]] as [typeof sub, string, string][]).map(([s, ic, label]) => (
           <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: sub === s ? INK : '#fff', color: sub === s ? '#fff' : INK, boxShadow: sub === s ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
         ))}
       </div>
 
       {sub === 'extrato' ? (
         ledger.length === 0
-          ? <div style={{ ...box('#FBF6E9'), padding: 20, textAlign: 'center', fontWeight: 700, color: '#8a7d59' }}>Ainda não há lançamentos. Prêmios, bilheteria, salários, compras e vendas aparecem aqui conforme a carreira anda.</div>
+          ? <div style={{ ...box('#FBF6E9'), padding: 20, textAlign: 'center', fontWeight: 700, color: '#8a7d59' }}>{tr('Ainda não há lançamentos. Prêmios, bilheteria, salários, compras e vendas aparecem aqui conforme a carreira anda.', 'No entries yet. Prizes, gate money, salaries, purchases and sales show up here as the career goes on.')}</div>
           : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {seasons.map(sn => (
                 <div key={sn} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>Temporada {sn}</div>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>{tr('Temporada', 'Season')} {sn}</div>
                   {rev.filter(e => e.season === sn).map(e => (
                     <FinLine key={e.id} label={e.label || lbl(e.kind)} amount={e.amount} />
                   ))}
@@ -1999,9 +2002,9 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {/* NO ELENCO: comprados, ainda no time — pago vs valor atual */}
-          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>No elenco ({noElenco.length})</div>
+          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>{tr('No elenco', 'In the squad')} ({noElenco.length})</div>
           {noElenco.length === 0
-            ? <div style={{ ...box('#FBF6E9'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5 }}>Nenhum jogador comprado ainda.</div>
+            ? <div style={{ ...box('#FBF6E9'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5 }}>{tr('Nenhum jogador comprado ainda.', 'No players bought yet.')}</div>
             : noElenco.map(c => {
                 const pago = c.buyPrice ?? c.paid ?? 0
                 const atual = marketValues[ident(c)] ?? c.paid ?? pago
@@ -2014,18 +2017,18 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
                         <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{POS_LABEL[c.pos]}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>Pago</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{pago}</div></div>
-                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>Hoje</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{atual}</div></div>
-                        <div style={{ textAlign: 'center', minWidth: 44 }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{dif >= 0 ? 'Valoriz.' : 'Caiu'}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: dif >= 0 ? GREEN : FIN_RED }}>{dif >= 0 ? '+' : '−'}{Math.abs(dif)}</div></div>
+                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{tr('Pago', 'Paid')}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{pago}</div></div>
+                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{tr('Hoje', 'Now')}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{atual}</div></div>
+                        <div style={{ textAlign: 'center', minWidth: 44 }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{dif >= 0 ? tr('Valoriz.', 'Gain') : tr('Caiu', 'Drop')}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: dif >= 0 ? GREEN : FIN_RED }}>{dif >= 0 ? '+' : '−'}{Math.abs(dif)}</div></div>
                       </div>
                     </div>
                   </div>
                 )
               })}
           {/* VENDIDOS: com o lucro/prejuízo real */}
-          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '8px 2px 0' }}>Vendidos ({vendidos.length})</div>
+          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '8px 2px 0' }}>{tr('Vendidos', 'Sold')} ({vendidos.length})</div>
           {vendidos.length === 0
-            ? <div style={{ ...box('#FBF6E9'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5 }}>Você ainda não vendeu ninguém.</div>
+            ? <div style={{ ...box('#FBF6E9'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5 }}>{tr('Você ainda não vendeu ninguém.', 'You haven\'t sold anyone yet.')}</div>
             : vendidos.map(e => {
                 const bought = e.buyPrice ?? 0
                 const lucro = e.amount - bought
@@ -2034,12 +2037,12 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: INK }}>{e.player ?? e.label}</div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{e.pos ? POS_LABEL[e.pos] : 'Vendido'} · T{e.season}</div>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: '#8a8069', textTransform: 'uppercase' }}>{e.pos ? POS_LABEL[e.pos] : tr('Vendido', 'Sold')} · {tr('T', 'S')}{e.season}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>Pagou</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{bought}</div></div>
-                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>Vendeu</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{e.amount}</div></div>
-                        <div style={{ textAlign: 'center', minWidth: 44 }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{lucro >= 0 ? 'Lucro' : 'Prejuízo'}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: lucro >= 0 ? GREEN : FIN_RED }}>{lucro >= 0 ? '+' : '−'}{Math.abs(lucro)}</div></div>
+                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{tr('Pagou', 'Paid')}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{bought}</div></div>
+                        <div style={{ textAlign: 'center' }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{tr('Vendeu', 'Sold')}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{e.amount}</div></div>
+                        <div style={{ textAlign: 'center', minWidth: 44 }}><div style={{ fontSize: 8, color: '#9a8f78', fontWeight: 900, textTransform: 'uppercase' }}>{lucro >= 0 ? tr('Lucro', 'Profit') : tr('Prejuízo', 'Loss')}</div><div style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: lucro >= 0 ? GREEN : FIN_RED }}>{lucro >= 0 ? '+' : '−'}{Math.abs(lucro)}</div></div>
                       </div>
                     </div>
                   </div>
