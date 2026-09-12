@@ -26,6 +26,9 @@ import { Escudo } from './escudos'
 import './online-visual.css'
 import onlineVictoryArt from './img/online-jornal-v20.webp'
 import { JornalOnlineVisual, buildOnlineSalaBlob } from './jornal-online-visual'
+// 🌐 BR/EN (12/09): o jornal sai no idioma do site. As notas são traduzidas
+// pelo SENTIDO (zoeira de redação), não palavra por palavra.
+import { tr, ordinal, useLang, getLang } from './lang'
 
 const INK = '#0C0C0C', PAPEL = '#FBF6E9', VERM = '#B23A2A', GOLD = '#FFC400', GREEN = '#1B7A3D', ROXO = '#7C3AED'
 const SERIF = { fontFamily: "Georgia, 'Times New Roman', serif" } as const
@@ -36,6 +39,7 @@ export type CopaStatus = 'campeao' | 'vice' | 'caiu' | 'fora'
 export interface CopaRunSala { status: CopaStatus; fase?: string; vs?: string; pens?: boolean }
 
 const NOME_FASE: Record<string, string> = { oitavas: 'nas oitavas', quartas: 'nas quartas', semis: 'na semifinal', final: 'na final' }
+const NOME_FASE_EN: Record<string, string> = { oitavas: 'in the round of 16', quartas: 'in the quarters', semis: 'in the semi-final', final: 'in the final' }
 
 // Lê o chaveamento e diz, pra cada id, até onde foi. `bracket` guarda as fases já
 // fechadas; `ties` é a fase em andamento (no fim, já entrou no bracket).
@@ -54,7 +58,7 @@ export function runsDaCopa(copa: QuickCopaState | null | undefined): Map<number,
         out.set(t.winner, { status: 'campeao' })
         out.set(perdedor, { status: 'vice', vs: nomeVencedor, pens })
       } else {
-        out.set(perdedor, { status: 'caiu', fase: NOME_FASE[phase] ?? `na ${phase}`, vs: nomeVencedor, pens })
+        out.set(perdedor, { status: 'caiu', fase: getLang() === 'en' ? (NOME_FASE_EN[phase] ?? `in the ${phase}`) : (NOME_FASE[phase] ?? `na ${phase}`), vs: nomeVencedor, pens })
         if (!out.has(t.winner)) out.set(t.winner, { status: 'caiu' }) // provisório: some quando ele aparece na fase seguinte
       }
     }
@@ -82,27 +86,33 @@ function notaDe(
   const s = seed + pos
   const sg = t.gf - t.ga
   const ultimo = pos === n
+  const en = getLang() === 'en'
+  const o = ordinal(pos) // "8º" / "8th"
 
   // 1) campeão da Copa — sempre a manchete da linha
   if (copa?.status === 'campeao') {
-    if (pos === 1) return { nota: `🏆🥇 FEZ OS DOIS. Campeão da liga e campeão da ${copaNome}. Não sobrou nada pra ninguém.`, destaque: 'ouro' }
+    if (pos === 1) return { nota: en ? `🏆🥇 DID THE DOUBLE. League champion and ${copaNome} champion. Left nothing for anyone.` : `🏆🥇 FEZ OS DOIS. Campeão da liga e campeão da ${copaNome}. Não sobrou nada pra ninguém.`, destaque: 'ouro' }
     // ⚠️ "o último a passar" SÓ quando ele é mesmo o último classificado — o teste
     // pegou essa frase saindo pra quem não era, e frase que mente é bug.
-    if (pos === vagasCopa) return { nota: `🥇 CAMPEÃO DA ${copaNome.toUpperCase()}. Entrou como o ÚLTIMO classificado, em ${pos}º, e terminou com a taça na mão. O ${pos}º lugar ninguém mais lembra.`, destaque: 'roxo' }
-    return { nota: `🥇 CAMPEÃO DA ${copaNome.toUpperCase()}. Foi ${pos}º na liga e cobrou a conta no mata-mata.`, destaque: 'roxo' }
+    if (pos === vagasCopa) return { nota: en ? `🥇 ${copaNome.toUpperCase()} CHAMPION. Got in as the LAST qualifier, in ${o}, and finished with the trophy in hand. Nobody remembers the ${o} place anymore.` : `🥇 CAMPEÃO DA ${copaNome.toUpperCase()}. Entrou como o ÚLTIMO classificado, em ${pos}º, e terminou com a taça na mão. O ${pos}º lugar ninguém mais lembra.`, destaque: 'roxo' }
+    return { nota: en ? `🥇 ${copaNome.toUpperCase()} CHAMPION. Finished ${o} in the league and settled the score in the knockout.` : `🥇 CAMPEÃO DA ${copaNome.toUpperCase()}. Foi ${pos}º na liga e cobrou a conta no mata-mata.`, destaque: 'roxo' }
   }
   // 2) vice da Copa
   if (copa?.status === 'vice') {
-    const p = copa.pens ? ' nos pênaltis' : ''
-    if (pos === 1) return { nota: `🏆 Campeão da liga, mas perdeu a final da ${copaNome} pro ${copa.vs}${p}. Ficou o gosto amargo.`, destaque: 'ouro' }
-    return { nota: `🥈 Chegou na final da ${copaNome} e perdeu pro ${copa.vs}${p}. ${pos}º na liga — a taça teria consertado tudo.` }
+    const p = copa.pens ? (en ? ' on penalties' : ' nos pênaltis') : ''
+    if (pos === 1) return { nota: en ? `🏆 League champion, but lost the ${copaNome} final to ${copa.vs}${p}. Bittersweet.` : `🏆 Campeão da liga, mas perdeu a final da ${copaNome} pro ${copa.vs}${p}. Ficou o gosto amargo.`, destaque: 'ouro' }
+    return { nota: en ? `🥈 Reached the ${copaNome} final and lost to ${copa.vs}${p}. ${o} in the league — the trophy would have fixed everything.` : `🥈 Chegou na final da ${copaNome} e perdeu pro ${copa.vs}${p}. ${pos}º na liga — a taça teria consertado tudo.` }
   }
 
   // 3) campeão da liga (sem Copa forte)
   if (pos === 1) return {
     nota: copa?.status === 'caiu' && copa.fase
-      ? `🏆 CAMPEÃO DA LIGA. Levou a taça e a carta — mas caiu ${copa.fase} da ${copaNome} pro ${copa.vs}. Ninguém é perfeito.`
-      : pick([
+      ? (en ? `🏆 LEAGUE CHAMPION. Took the trophy and the card — but went out ${copa.fase} of the ${copaNome} to ${copa.vs}. Nobody's perfect.` : `🏆 CAMPEÃO DA LIGA. Levou a taça e a carta — mas caiu ${copa.fase} da ${copaNome} pro ${copa.vs}. Ninguém é perfeito.`)
+      : pick(en ? [
+        '🏆 CHAMPION. Lifted the trophy and took the card home. End of story.',
+        '🏆 CHAMPION. Led from start to finish and still takes a new card to the album.',
+        '🏆 CHAMPION. The auction was theirs, the title was theirs. Eternal bragging rights.',
+      ] : [
         '🏆 CAMPEÃO. Levantou a taça e levou a carta pro álbum. Fim de papo.',
         '🏆 CAMPEÃO. Comandou do começo ao fim e ainda leva carta nova pro álbum.',
         '🏆 CAMPEÃO. O pregão foi dele, o campeonato foi dele. Resenha eterna.',
@@ -111,7 +121,11 @@ function notaDe(
 
   // 4) o drama: primeiro de fora da Copa
   if (vagasCopa > 0 && pos === vagasCopa + 1) return {
-    nota: pick([
+    nota: pick(en ? [
+      `❗ ONE PLACE short of the ${copaNome}. Missed out by nothing and will spend the week thinking about it.`,
+      `❗ First one out of the ${copaNome}. One more win and they were in.`,
+      `❗ Stopped in ${o} — exactly one spot below the ${copaNome} cut. Cruel.`,
+    ] : [
       `❗ A UMA POSIÇÃO da ${copaNome}. Ficou de fora por nada e vai passar a semana pensando nisso.`,
       `❗ Primeiro de fora da ${copaNome}. Uma vitória a mais e estava lá dentro.`,
       `❗ Parou em ${pos}º — exatamente uma casa depois do corte da ${copaNome}. Cruel.`,
@@ -120,7 +134,11 @@ function notaDe(
 
   // 5) lanterna
   if (ultimo) return {
-    nota: pick([
+    nota: pick(en ? [
+      '🏮 BOTTOM OF THE TABLE. Spent everything on one position and forgot the rest of the team.',
+      '🏮 BOTTOM OF THE TABLE. The auction promised, the table did not forgive.',
+      '🏮 BOTTOM OF THE TABLE. Got the maths wrong at the auction and paid for it over 38 rounds.',
+    ] : [
       '🏮 LANTERNA. Gastou tudo em uma posição e esqueceu do resto do time.',
       '🏮 LANTERNA. O leilão prometia, a tabela não perdoou.',
       '🏮 LANTERNA. Fez as contas erradas no pregão e pagou nas 38 rodadas.',
@@ -129,33 +147,53 @@ function notaDe(
 
   // 6) caiu na Copa (linha combinada — é aqui que liga e copa se cruzam)
   if (copa?.status === 'caiu' && copa.fase) {
-    const p = copa.pens ? ' nos pênaltis' : ''
-    if (pos === 2) return { nota: `🥈 Vice da liga e ainda caiu ${copa.fase} da ${copaNome} pro ${copa.vs}${p}. Noite pra esquecer.` }
-    return { nota: `${pos}º na liga e caiu ${copa.fase} da ${copaNome} pro ${copa.vs}${p}.` }
+    const p = copa.pens ? (en ? ' on penalties' : ' nos pênaltis') : ''
+    if (pos === 2) return { nota: en ? `🥈 League runner-up and still went out ${copa.fase} of the ${copaNome} to ${copa.vs}${p}. A night to forget.` : `🥈 Vice da liga e ainda caiu ${copa.fase} da ${copaNome} pro ${copa.vs}${p}. Noite pra esquecer.` }
+    return { nota: en ? `${o} in the league and out ${copa.fase} of the ${copaNome} to ${copa.vs}${p}.` : `${pos}º na liga e caiu ${copa.fase} da ${copaNome} pro ${copa.vs}${p}.` }
   }
 
   // 7) só a liga
-  if (pos === 2) return { nota: pick([
+  if (pos === 2) return { nota: pick(en ? [
+    '🥈 Runner-up. Fought the whole season and watched the trophy go past in the final stretch.',
+    '🥈 Runner-up. One little push short — and that push was worth a card.',
+    '🥈 Runner-up. Second place is first among the losers, and they know it.',
+  ] : [
     '🥈 Vice. Brigou o campeonato inteiro e viu a taça passar na frente na reta final.',
     '🥈 Vice. Faltou um empurrãozinho — e o empurrãozinho valia uma carta.',
     '🥈 Vice. Segundo lugar é o primeiro dos perdedores, e ele sabe disso.',
   ], s) }
-  if (pos === 3 || pos === 4) return { nota: pick([
+  if (pos === 3 || pos === 4) return { nota: pick(en ? [
+    'Made the podium while complaining about the referee every single round.',
+    'Came close. Close is worth no trophy, no card, nothing.',
+    'A big-club campaign — just never turned respect into silverware.',
+  ] : [
     'Pódio conquistado reclamando do juiz em todas as rodadas.',
     'Chegou perto. Perto não vale taça, não vale carta, não vale nada.',
     'Campanha de gente grande — faltou transformar respeito em troféu.',
   ], s) }
-  if (pos <= vagasCopa) return { nota: pick([
+  if (pos <= vagasCopa) return { nota: pick(en ? [
+    `Made the ${copaNome} and that was it. Went through the motions.`,
+    `Qualified for the ${copaNome} and stopped there. Something, at least.`,
+    'Pretty team on paper, lukewarm campaign on the pitch.',
+  ] : [
     `Entrou na ${copaNome} e foi isso. Cumpriu tabela.`,
     `Se classificou pra ${copaNome} e parou por aí. Já é alguma coisa.`,
     'Time bonito no papel, campanha morna no campo.',
   ], s) }
-  if (pos >= zonaDebaixo) return { nota: pick([
+  if (pos >= zonaDebaixo) return { nota: pick(en ? [
+    'Escaped the drop by a whisker and swears it was all under control.',
+    'Spent the season looking down. And looked far too closely.',
+    `Goal difference ${sg >= 0 ? '+' : ''}${sg}. The attack never showed up, and the defence left with it.`,
+  ] : [
     'Escapou do fundo no sufoco e jura que estava tudo sob controle.',
     'Passou a temporada olhando pra baixo. E olhou de perto demais.',
     `Saldo de ${sg >= 0 ? '+' : ''}${sg}. O ataque não veio, a defesa foi embora junto.`,
   ], s) }
-  return { nota: pick([
+  return { nota: pick(en ? [
+    'Nobody remembers mid-table. Not even their own fans.',
+    'No joy, no sorrow. Coffee with no sugar.',
+    'Played, scored points, nobody noticed.',
+  ] : [
     'Ninguém lembra do meio da tabela. Nem a própria torcida.',
     'Nem alegria, nem tristeza. Café sem açúcar.',
     'Jogou, pontuou, ninguém notou.',
@@ -201,7 +239,8 @@ export interface EdicaoSala {
 export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: number, mundo?: { nome: string; pais: string } | null): EdicaoSala {
   const table = sortedTable(state.league)
   const n = table.length
-  const copaNome = mundo ? 'Copa do Mundo' : state.copaMode === 'liga_liberta' ? 'Libertadores' : 'Copa dos 8'
+  const copaNome = mundo ? tr('Copa do Mundo', 'World Cup') : state.copaMode === 'liga_liberta' ? 'Libertadores' : tr('Copa dos 8', 'Cup of 8')
+  const en = getLang() === 'en'
   const runs = runsDaCopa(state.quickCopa)
   const mgr = (id: number) => state.managers.find(m => m.id === id)
   const seed = Math.abs(state.seed | 0)
@@ -247,19 +286,29 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   // manchete: muda quando os dois títulos têm donos diferentes
   let manchete: string, linhaFina: string
   if (campeaoCopa && campeaoLiga && !mesmoDono) {
-    manchete = `${offline ? 'TEMPORADA' : 'NOITE'} DE DOIS DONOS: O ${campeaoLiga.nome.toUpperCase()} LEVA A LIGA, O ${campeaoCopa.nome.toUpperCase()} LEVA A COPA!`
-    linhaFina = offline
-      ? `Dois campeões e uma temporada inteira sem saber de quem foi a festa. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
-      : `Dois campeões e uma sala inteira sem saber de quem foi a noite. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
+    manchete = en
+      ? `A ${offline ? 'SEASON' : 'NIGHT'} WITH TWO OWNERS: ${campeaoLiga.nome.toUpperCase()} TAKES THE LEAGUE, ${campeaoCopa.nome.toUpperCase()} TAKES THE CUP!`
+      : `${offline ? 'TEMPORADA' : 'NOITE'} DE DOIS DONOS: O ${campeaoLiga.nome.toUpperCase()} LEVA A LIGA, O ${campeaoCopa.nome.toUpperCase()} LEVA A COPA!`
+    linhaFina = en
+      ? (offline
+        ? `Two champions and a whole season without knowing whose party it was. The league went to ${campeaoLiga.nome}, and the ${copaNome} slipped away to ${campeaoCopa.nome}.`
+        : `Two champions and a whole room without knowing whose night it was. The league went to ${campeaoLiga.nome}, and the ${copaNome} slipped away to ${campeaoCopa.nome}.`)
+      : offline
+        ? `Dois campeões e uma temporada inteira sem saber de quem foi a festa. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
+        : `Dois campeões e uma sala inteira sem saber de quem foi a noite. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
   } else if (campeaoCopa && campeaoLiga && mesmoDono) {
-    manchete = `${campeaoLiga.nome.toUpperCase()} FAZ OS DOIS E NÃO DEIXA NADA PRA NINGUÉM!`
-    linhaFina = `Campeão da liga e campeão da ${copaNome} na mesma ${offline ? 'temporada' : 'noite'}. Os outros ${Math.max(0, n - 1)} que se expliquem.`
+    manchete = en ? `${campeaoLiga.nome.toUpperCase()} DOES THE DOUBLE AND LEAVES NOTHING FOR ANYONE!` : `${campeaoLiga.nome.toUpperCase()} FAZ OS DOIS E NÃO DEIXA NADA PRA NINGUÉM!`
+    linhaFina = en
+      ? `League champion and ${copaNome} champion in the same ${offline ? 'season' : 'night'}. The other ${Math.max(0, n - 1)} have some explaining to do.`
+      : `Campeão da liga e campeão da ${copaNome} na mesma ${offline ? 'temporada' : 'noite'}. Os outros ${Math.max(0, n - 1)} que se expliquem.`
   } else if (campeaoLiga) {
-    manchete = `${campeaoLiga.nome.toUpperCase()} É O CAMPEÃO ${offline ? 'DO TORNEIO' : 'DA SALA'}!`
-    linhaFina = `${campeaoLiga.pts} pontos e a taça. ${offline ? 'O resto do pelotão' : 'O resto da sala'} vai ter que esperar o próximo pregão.`
+    manchete = en ? `${campeaoLiga.nome.toUpperCase()} IS THE ${offline ? 'TOURNAMENT' : 'ROOM'} CHAMPION!` : `${campeaoLiga.nome.toUpperCase()} É O CAMPEÃO ${offline ? 'DO TORNEIO' : 'DA SALA'}!`
+    linhaFina = en
+      ? `${campeaoLiga.pts} points and the trophy. ${offline ? 'The rest of the pack' : 'The rest of the room'} will have to wait for the next auction.`
+      : `${campeaoLiga.pts} pontos e a taça. ${offline ? 'O resto do pelotão' : 'O resto da sala'} vai ter que esperar o próximo pregão.`
   } else {
-    manchete = offline ? 'FIM DE JOGO' : 'FIM DE JOGO NA SALA'
-    linhaFina = 'A tabela fechou.'
+    manchete = en ? (offline ? 'FULL TIME' : 'FULL TIME IN THE ROOM') : offline ? 'FIM DE JOGO' : 'FIM DE JOGO NA SALA'
+    linhaFina = en ? 'The table is closed.' : 'A tabela fechou.'
   }
 
   return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length, offline }
@@ -290,11 +339,11 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 }}>
         <span className="newspaper-masthead" style={{ ...SERIF, fontWeight: 700, fontSize: 26, lineHeight: 1 }}>O <span style={{ color: VERM }}>MARTELO</span></span>
         <span style={{ ...COND, fontWeight: 700, fontSize: 8.5, color: 'rgba(0,0,0,.6)', textAlign: 'right', lineHeight: 1.4 }}>
-          {ed.offline ? 'EDIÇÃO DO TORNEIO' : 'EDIÇÃO DA SALA'}<br />{ed.offline ? 'CONTRA A MÁQUINA' : `${ed.nTecnicos} TÉCNICO${ed.nTecnicos === 1 ? '' : 'S'}`} · 1 MOEDA</span>
+          {ed.offline ? tr('EDIÇÃO DO TORNEIO', 'TOURNAMENT EDITION') : tr('EDIÇÃO DA SALA', 'ROOM EDITION')}<br />{ed.offline ? tr('CONTRA A MÁQUINA', 'AGAINST THE MACHINE') : tr(`${ed.nTecnicos} TÉCNICO${ed.nTecnicos === 1 ? '' : 'S'}`, `${ed.nTecnicos} MANAGER${ed.nTecnicos === 1 ? '' : 'S'}`)} · {tr('1 MOEDA', '1 COIN')}</span>
       </div>
       <div style={{ borderTop: `3px solid ${INK}`, borderBottom: `1.5px solid ${INK}`, height: 4, margin: '8px 0 6px' }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', ...COND, fontWeight: 700, fontSize: 9, paddingBottom: 6, borderBottom: `3px solid ${INK}`, color: 'rgba(0,0,0,.72)' }}>
-        <span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE JOGO</span>
+        <span>{tr('⚽ O DIÁRIO DO LEILÃO LEGENDS', '⚽ THE LEILÃO LEGENDS DAILY')}</span><span>{tr('FIM DE JOGO', 'FULL TIME')}</span>
       </div>
 
       {/* manchete */}
@@ -304,26 +353,26 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       {/* banner(s) dos campeões */}
       <div className="newspaper-champions" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {ed.campeaoLiga && (
-          <Banner faixa="LIGA LEGENDS" tag="CAMPEÃO" time={ed.campeaoLiga.nome}
-            sub={`${ed.campeaoLiga.quem ? `o time do ${ed.campeaoLiga.quem} · ` : ''}${ed.campeaoLiga.pts} pontos`}
+          <Banner faixa="LIGA LEGENDS" tag={tr('CAMPEÃO', 'CHAMPION')} time={ed.campeaoLiga.nome}
+            sub={`${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}
             c1="#2E9E5B" c2="#14532d" fita="#DFF3E3" />
         )}
         {ed.campeaoCopa && !ed.mesmoDono && (
-          <Banner faixa={ed.copaNome.toUpperCase()} tag="CAMPEÃO" time={ed.campeaoCopa.nome}
-            sub={ed.campeaoCopa.quem ? `o time do ${ed.campeaoCopa.quem}` : 'campeão do mata-mata'}
+          <Banner faixa={ed.copaNome.toUpperCase()} tag={tr('CAMPEÃO', 'CHAMPION')} time={ed.campeaoCopa.nome}
+            sub={ed.campeaoCopa.quem ? tr(`o time do ${ed.campeaoCopa.quem}`, `${ed.campeaoCopa.quem}'s team`) : tr('campeão do mata-mata', 'knockout champion')}
             c1="#8B5CF6" c2="#4C1D95" fita="#EDE7FF" />
         )}
       </div>
 
       {/* os donos da noite (offline: do torneio — não tem "noite" de sala) */}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 8, overflow: 'hidden', marginBottom: 12 }}>
-        <p style={{ ...COND, fontWeight: 700, fontSize: 11, background: INK, color: GOLD, padding: '7px 10px', letterSpacing: '.05em' }}>🏆 OS DONOS {ed.offline ? 'DO TORNEIO' : 'DA NOITE'}</p>
+        <p style={{ ...COND, fontWeight: 700, fontSize: 11, background: INK, color: GOLD, padding: '7px 10px', letterSpacing: '.05em' }}>{ed.offline ? tr('🏆 OS DONOS DO TORNEIO', '🏆 OWNERS OF THE TOURNAMENT') : tr('🏆 OS DONOS DA NOITE', '🏆 OWNERS OF THE NIGHT')}</p>
         <div style={{ background: '#fff' }}>
           {([
-            ed.campeaoLiga && ['🏆', 'CAMPEÃO DA LIGA', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} pontos`, GOLD],
-            ed.campeaoCopa && ['🥇', `CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO],
-            ed.artilheiro && ['⚽', ed.offline ? 'ARTILHEIRO DO TORNEIO' : 'ARTILHEIRO DA SALA', ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} gols`, GREEN],
-            ed.lanterna && ['🏮', 'LANTERNA', ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} pontos`, '#7A7460'],
+            ed.campeaoLiga && ['🏆', tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`, GOLD],
+            ed.campeaoCopa && ['🥇', tr(`CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, `${ed.copaNome.toUpperCase()} CHAMPION`), ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO],
+            ed.artilheiro && ['⚽', ed.offline ? tr('ARTILHEIRO DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('ARTILHEIRO DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('gols', 'goals')}`, GREEN],
+            ed.lanterna && ['🏮', tr('LANTERNA', 'BOTTOM'), ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} ${tr('pontos', 'points')}`, '#7A7460'],
           ].filter(Boolean) as [string, string, string, string, string][]).map(([ic, rot, nome, sub, cor]) => (
             <div key={rot} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderTop: '1.5px solid rgba(0,0,0,.1)', borderLeft: `6px solid ${cor}` }}>
               <span style={{ fontSize: 17, flex: 'none' }}>{ic}</span>
@@ -339,16 +388,16 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
 
       {/* as notas da redação */}
       <div className="newspaper-notes" style={{ border: `3px solid ${INK}`, borderRadius: 8, overflow: 'hidden' }}>
-        <p style={{ ...COND, fontWeight: 700, fontSize: 11, background: VERM, color: '#fff', padding: '7px 10px', letterSpacing: '.05em' }}>📝 AS NOTAS DA REDAÇÃO</p>
+        <p style={{ ...COND, fontWeight: 700, fontSize: 11, background: VERM, color: '#fff', padding: '7px 10px', letterSpacing: '.05em' }}>{tr('📝 AS NOTAS DA REDAÇÃO', '📝 NOTES FROM THE NEWSROOM')}</p>
         <div style={{ background: '#fff' }}>
           {ed.linhas.map(l => {
             const cor = l.destaque ? corDestaque[l.destaque] : null
             return (
               <div key={l.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '8px 10px', borderTop: '1.5px solid rgba(0,0,0,.1)', borderLeft: `6px solid ${cor ?? 'transparent'}`, background: cor ? `${cor}1f` : undefined }}>
-                <span style={{ ...COND, fontWeight: 700, fontSize: 13, width: 26, flex: 'none', textAlign: 'center', color: cor ?? 'rgba(0,0,0,.4)' }}>{l.pos}º</span>
+                <span style={{ ...COND, fontWeight: 700, fontSize: 13, width: 26, flex: 'none', textAlign: 'center', color: cor ?? 'rgba(0,0,0,.4)' }}>{ordinal(l.pos)}</span>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <p style={{ ...SERIF, fontWeight: 700, fontSize: 13, margin: 0, lineHeight: 1.15 }}>{l.time}
-                    {l.voce && <span style={{ ...COND, fontSize: 8.5, background: INK, color: GOLD, borderRadius: 4, padding: '1px 5px', marginLeft: 5 }}>VOCÊ</span>}
+                    {l.voce && <span style={{ ...COND, fontSize: 8.5, background: INK, color: GOLD, borderRadius: 4, padding: '1px 5px', marginLeft: 5 }}>{tr('VOCÊ', 'YOU')}</span>}
                     {l.quem && <span style={{ ...COND, fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.45)', marginLeft: 5 }}>{l.quem} · {l.pts} pts</span>}</p>
                   <p style={{ ...SERIF, fontSize: 11.5, margin: '2px 0 0', lineHeight: 1.35, color: 'rgba(0,0,0,.78)' }}>{l.nota}</p>
                 </div>
@@ -366,7 +415,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
 
       <button className="newspaper-share" onClick={onCompartilhar} disabled={compartilhando}
         style={{ marginTop: 12, width: '100%', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', ...COND, fontWeight: 700, fontSize: 15 }}>
-        {compartilhando ? '⏳ montando a imagem…' : '📲 Compartilhar o jornal'}
+        {compartilhando ? tr('⏳ montando a imagem…', '⏳ building the image…') : tr('📲 Compartilhar o jornal', '📲 Share the newspaper')}
       </button>
     </div>
   )
@@ -420,16 +469,16 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   x.fillStyle = INK; x.fillText('O ', L, y)
   x.fillStyle = VERM; x.fillText('MARTELO', L + x.measureText('O ').width, y)
   x.textAlign = 'right'; x.fillStyle = '#3a3527'; x.font = `700 20px ${OSW}`
-  x.fillText(ed.offline ? 'EDIÇÃO DO TORNEIO' : 'EDIÇÃO DA SALA', R, y - 30)
-  x.fillText(`${ed.nTecnicos} TÉCNICO${ed.nTecnicos === 1 ? '' : 'S'} · PREÇO: 1 MOEDA`, R, y - 4)
+  x.fillText(ed.offline ? tr('EDIÇÃO DO TORNEIO', 'TOURNAMENT EDITION') : tr('EDIÇÃO DA SALA', 'ROOM EDITION'), R, y - 30)
+  x.fillText(tr(`${ed.nTecnicos} TÉCNICO${ed.nTecnicos === 1 ? '' : 'S'} · PREÇO: 1 MOEDA`, `${ed.nTecnicos} MANAGER${ed.nTecnicos === 1 ? '' : 'S'} · PRICE: 1 COIN`), R, y - 4)
   y += 20
   x.strokeStyle = INK; x.lineWidth = 3
   x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
   x.beginPath(); x.moveTo(L, y + 7); x.lineTo(R, y + 7); x.stroke()
   y += 40
   x.textAlign = 'left'; x.font = `700 21px ${OSW}`; x.fillStyle = '#3a3527'
-  x.fillText('⚽ O DIÁRIO DO LEILÃO LEGENDS', L, y)
-  x.textAlign = 'right'; x.fillText('FIM DE JOGO', R, y)
+  x.fillText(tr('⚽ O DIÁRIO DO LEILÃO LEGENDS', '⚽ THE LEILÃO LEGENDS DAILY'), L, y)
+  x.textAlign = 'right'; x.fillText(tr('FIM DE JOGO', 'FULL TIME'), R, y)
   y += 14
   x.lineWidth = 1.5; x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
 
@@ -466,22 +515,22 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
     x.font = `italic 20px ${SER}`; x.fillStyle = 'rgba(255,255,255,.85)'
     x.fillText(sub, bx + bw / 2, y + 146)
     x.font = `700 20px ${OSW}`; x.fillStyle = GOLD
-    x.fillText('🏆 CAMPEÃO', bx + bw / 2, y + 180)
+    x.fillText(tr('🏆 CAMPEÃO', '🏆 CHAMPION'), bx + bw / 2, y + 180)
   }
-  if (ed.campeaoLiga) desenhaBanner(L, 'LIGA LEGENDS', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem ? `o time do ${ed.campeaoLiga.quem} · ` : ''}${ed.campeaoLiga.pts} pontos`, '#2E9E5B', '#14532d')
-  if (dois && ed.campeaoCopa) desenhaBanner(L + bw + 16, ed.copaNome.toUpperCase(), ed.campeaoCopa.nome, ed.campeaoCopa.quem ? `o time do ${ed.campeaoCopa.quem}` : 'campeão do mata-mata', '#8B5CF6', '#4C1D95')
+  if (ed.campeaoLiga) desenhaBanner(L, 'LIGA LEGENDS', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`, '#2E9E5B', '#14532d')
+  if (dois && ed.campeaoCopa) desenhaBanner(L + bw + 16, ed.copaNome.toUpperCase(), ed.campeaoCopa.nome, ed.campeaoCopa.quem ? tr(`o time do ${ed.campeaoCopa.quem}`, `${ed.campeaoCopa.quem}'s team`) : tr('campeão do mata-mata', 'knockout champion'), '#8B5CF6', '#4C1D95')
   y += bh + 30
 
   // os donos da noite
   x.fillStyle = INK; x.fillRect(L, y, MAXW, 46)
   x.textAlign = 'left'; x.font = `700 24px ${OSW}`; x.fillStyle = GOLD
-  x.fillText(ed.offline ? '🏆 OS DONOS DO TORNEIO' : '🏆 OS DONOS DA NOITE', L + 14, y + 32)
+  x.fillText(ed.offline ? tr('🏆 OS DONOS DO TORNEIO', '🏆 OWNERS OF THE TOURNAMENT') : tr('🏆 OS DONOS DA NOITE', '🏆 OWNERS OF THE NIGHT'), L + 14, y + 32)
   let dy = y + 46
   const donos: [string, string, string, string, string][] = []
-  if (ed.campeaoLiga) donos.push(['🏆', 'CAMPEÃO DA LIGA', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} pontos`, GOLD])
-  if (ed.campeaoCopa) donos.push(['🥇', `CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO])
-  if (ed.artilheiro) donos.push(['⚽', ed.offline ? 'ARTILHEIRO DO TORNEIO' : 'ARTILHEIRO DA SALA', ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} gols`, GREEN])
-  if (ed.lanterna) donos.push(['🏮', 'LANTERNA', ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} pontos`, '#7A7460'])
+  if (ed.campeaoLiga) donos.push(['🏆', tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`, GOLD])
+  if (ed.campeaoCopa) donos.push(['🥇', tr(`CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, `${ed.copaNome.toUpperCase()} CHAMPION`), ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO])
+  if (ed.artilheiro) donos.push(['⚽', ed.offline ? tr('ARTILHEIRO DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('ARTILHEIRO DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('gols', 'goals')}`, GREEN])
+  if (ed.lanterna) donos.push(['🏮', tr('LANTERNA', 'BOTTOM'), ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} ${tr('pontos', 'points')}`, '#7A7460'])
   for (const [ic, rot, nome, sub, cor] of donos) {
     x.fillStyle = '#fff'; x.fillRect(L, dy, MAXW, 74)
     x.fillStyle = cor; x.fillRect(L, dy, 9, 74)
@@ -501,7 +550,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   const notasTop = y
   x.fillStyle = VERM; x.fillRect(L, y, MAXW, 46)
   x.textAlign = 'left'; x.font = `700 24px ${OSW}`; x.fillStyle = '#fff'
-  x.fillText('📝 AS NOTAS DA REDAÇÃO', L + 14, y + 32)
+  x.fillText(tr('📝 AS NOTAS DA REDAÇÃO', '📝 NOTES FROM THE NEWSROOM'), L + 14, y + 32)
   let ny = y + 46
   for (const l of ed.linhas) {
     const linhasNota = wrap(l.nota, `22px ${SER}`, MAXW - 80)
@@ -510,7 +559,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
     const cor = l.destaque ? corDestaque[l.destaque] : null
     if (cor) { x.fillStyle = cor + '2b'; x.fillRect(L, ny, MAXW, alt); x.fillStyle = cor; x.fillRect(L, ny, 9, alt) }
     x.font = `700 22px ${OSW}`; x.fillStyle = cor ?? 'rgba(0,0,0,.4)'
-    x.fillText(`${l.pos}º`, L + 20, ny + 30)
+    x.fillText(ordinal(l.pos), L + 20, ny + 30)
     x.font = `700 23px ${SER}`; x.fillStyle = INK
     x.fillText(l.time, L + 74, ny + 30)
     const tw = x.measureText(l.time).width
@@ -538,7 +587,9 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
 
 // ── o bloco pronto pro EscEnd: capa + compartilhar ──────────────────────────
 export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo, mundo }: { state: EscState; vagasCopa: number; zonaDebaixo: number; mundo?: { nome: string; pais: string } | null }) {
-  const ed = useMemo(() => montaEdicao(state, vagasCopa, zonaDebaixo, mundo), [state, vagasCopa, zonaDebaixo, mundo])
+  const [lang] = useLang() // 🌐 o jornal é remontado quando a pessoa troca BR/EN
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const ed = useMemo(() => montaEdicao(state, vagasCopa, zonaDebaixo, mundo), [state, vagasCopa, zonaDebaixo, mundo, lang])
   const [busy, setBusy] = useState(false)
   const travaRef = useRef(false)
 
@@ -547,7 +598,7 @@ export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo, mundo }: { st
     travaRef.current = true; setBusy(true)
     try {
       const blob = await buildSalaBlob(ed)
-      const txt = `📰 "${ed.manchete}" — Leilão Legends. Monta o teu time: https://leilaolegends.com`
+      const txt = tr(`📰 "${ed.manchete}" — Leilão Legends. Monta o teu time: https://leilaolegends.com`, `📰 "${ed.manchete}" — Leilão Legends. Build your team: https://leilaolegends.com`)
       if (blob) {
         const file = new File([blob], ed.offline ? 'o-martelo-torneio.png' : 'o-martelo-sala.png', { type: 'image/png' })
         const sd = { files: [file], title: 'O MARTELO', text: txt }

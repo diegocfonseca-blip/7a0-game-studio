@@ -6524,6 +6524,8 @@ const GRUPO_LETRA = 'ABCDEFGH'
 
 export function EscLiberta() {
   const { state, dispatch } = useEsc()
+  const LB = useT() // 🌐 BR/EN
+  const enL = getLang() === 'en'
   const previewAccount = useOnlinePreview()
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [groupView, setGroupView] = useState<'meu' | 'todos'>('todos')
@@ -6569,7 +6571,7 @@ export function EscLiberta() {
   const meuGrupo = meuTime?.grupo ?? -1
   const nomeDe = (id: number) => lb.times.find(t => t.id === id)?.name ?? '?'
   const humano = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
-  const tag = (id: number) => id === you.id ? ' (você)' : humano(id) ? ' 🔥' : ''
+  const tag = (id: number) => id === you.id ? LB(' (você)', ' (you)') : humano(id) ? ' 🔥' : ''
   const meuJogo = lb.lastResults.find(r => r.homeId === you.id || r.awayId === you.id)
   // 🙈 ANTI-SPOILER (relato do Walace via Diego, 20/08: *"a tabela tá atualizando
   // antes do jogo acabar"*). É a MESMA trava da liga: enquanto a partida anima na
@@ -6592,9 +6594,9 @@ export function EscLiberta() {
       <Box key={g} bg={privateVisual ? CREAM : destaque ? '#FFF6D6' : '#fff'} className={privateVisual ? 'p-3 ll26-liberta-group' : 'p-2'} shadow={destaque ? 5 : 3}
         style={destaque ? { borderColor: NOITE } : undefined}>
         <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>
-          Grupo {GRUPO_LETRA[g]}{destaque ? ' · o seu' : ''}
+          {LB('Grupo', 'Group')} {GRUPO_LETRA[g]}{destaque ? LB(' · o seu', ' · yours') : ''}
         </p>
-        {privateVisual && <div className="flex justify-end gap-3 text-[10px] font-bold"><span>SG</span><span>PTS</span></div>}
+        {privateVisual && <div className="flex justify-end gap-3 text-[10px] font-bold"><span>{LB('SG', 'GD')}</span><span>PTS</span></div>}
         {cl.map((t, i) => (
           <div key={t.id} className="flex items-center gap-1.5 text-[10.5px] font-bold py-0.5"
             style={{ opacity: acabou && i > 1 ? .45 : 1 }}>
@@ -6607,9 +6609,9 @@ export function EscLiberta() {
             <span className="flex-none tabular-nums font-black w-5 text-right">{t.pts}</span>
           </div>
         ))}
-        {privateVisual && <div className="ll26-group-fixtures"><h3>{lb.rodada > 0 ? `JOGOS · RODADA ${lb.rodada}/6` : 'AGUARDANDO A PRIMEIRA RODADA'}</h3>
+        {privateVisual && <div className="ll26-group-fixtures"><h3>{lb.rodada > 0 ? `${LB('JOGOS · RODADA', 'MATCHES · ROUND')} ${lb.rodada}/6` : LB('AGUARDANDO A PRIMEIRA RODADA', 'WAITING FOR THE FIRST ROUND')}</h3>
           {lb.lastResults.filter(r => lb.times.find(t => t.id === r.homeId)?.grupo === g).map(r => <RoundMatchPresentation startedAt={groupStartedAt} key={`${r.homeId}-${r.awayId}`} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={25} />} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={25} />} homeOwner={state.managers.find(m=>m.id===r.homeId&&m.isHuman)?.name ?? 'BOT'} awayOwner={state.managers.find(m=>m.id===r.awayId&&m.isHuman)?.name ?? 'BOT'} mine={r.homeId === you.id || r.awayId === you.id} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(h => ({name: scorer(h.text), min:h.min,home:h.teamId===r.homeId}))} score={[r.hg,r.ag]} finished={revealed} roundKey={lb.rodada} roundMs={roundMs} />)}
-          <p>{acabou && revealed ? 'Os dois primeiros avançam às oitavas.' : revealed ? 'Classificação atualizada após o apito.' : 'A classificação atualiza quando a rodada terminar.'}</p>
+          <p>{acabou && revealed ? LB('Os dois primeiros avançam às oitavas.', 'The top two reach the round of 16.') : revealed ? LB('Classificação atualizada após o apito.', 'Standings updated after the whistle.') : LB('A classificação atualiza quando a rodada terminar.', 'Standings update when the round ends.')}</p>
         </div>}
       </Box>
     )
@@ -6619,20 +6621,20 @@ export function EscLiberta() {
     <Shell bar={
       <div className="flex items-center justify-between gap-2">
         <span className="font-black text-sm" style={{ ...OSWALD, color: NOITE }}>
-          🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? 'GRUPOS ENCERRADOS' : `RODADA ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
+          🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? LB('GRUPOS ENCERRADOS', 'GROUPS OVER') : `${LB('RODADA', 'ROUND')} ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
         </span>
         {meuTime && (
           <span className="font-black text-sm" style={OSWALD}>
-            Grupo {GRUPO_LETRA[meuGrupo]} · {grupoShown(meuGrupo).findIndex(t => t.id === you.id) + 1}º · {grupoShown(meuGrupo).find(t => t.id === you.id)?.pts ?? 0} pts
+            {LB('Grupo', 'Group')} {GRUPO_LETRA[meuGrupo]} · {ordinal(grupoShown(meuGrupo).findIndex(t => t.id === you.id) + 1)} · {grupoShown(meuGrupo).find(t => t.id === you.id)?.pts ?? 0} pts
           </span>
         )}
       </div>
     }>
-{privateVisual ? <CompetitionStage kind="liberta" title="LIBERTADORES" phase={acabou && revealed ? 'Grupos encerrados' : `Fase de grupos · rodada ${Math.max(1, lb.rodada)}/6`} detail="32 clubes · 8 grupos · os dois primeiros avançam às oitavas" status={meuTime ? `Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}` : 'Acompanhe os clubes classificados da sala'} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
+{privateVisual ? <CompetitionStage kind="liberta" title="LIBERTADORES" phase={acabou && revealed ? LB('Grupos encerrados', 'Groups over') : LB(`Fase de grupos · rodada ${Math.max(1, lb.rodada)}/6`, `Group stage · round ${Math.max(1, lb.rodada)}/6`)} detail={LB('32 clubes · 8 grupos · os dois primeiros avançam às oitavas', '32 clubs · 8 groups · the top two reach the round of 16')} status={meuTime ? LB(`Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}`, `Your club is in group ${GRUPO_LETRA[meuGrupo]}`) : LB('Acompanhe os clubes classificados da sala', 'Follow the room\'s qualified clubs')} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
         <ApoioSheen holo={1} dur={3.2} />
-        <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>🌎 LIBERTADORES · FASE DE GRUPOS</p>
+        <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{LB('🌎 LIBERTADORES · FASE DE GRUPOS', '🌎 LIBERTADORES · GROUP STAGE')}</p>
         <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.82)', zIndex: 2 }}>
-          32 clubes · 8 grupos de 4 · passam os 2 primeiros
+          {LB('32 clubes · 8 grupos de 4 · passam os 2 primeiros', '32 clubs · 8 groups of 4 · top 2 go through')}
         </p>
       </Box>}
 
@@ -6651,7 +6653,7 @@ export function EscLiberta() {
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>
-            {acabou ? '🏁 Fim da fase de grupos!' : meuTime ? '🌎 Aguardando o pontapé inicial da Libertadores…' : '📺 Você não se classificou — acompanhe a Libertadores por aqui.'}
+            {acabou ? LB('🏁 Fim da fase de grupos!', '🏁 Group stage over!') : meuTime ? LB('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LB('📺 Você não se classificou — acompanhe a Libertadores por aqui.', '📺 You did not qualify — follow the Libertadores here.')}
           </p>
         </Box>
       )}
@@ -6659,7 +6661,7 @@ export function EscLiberta() {
       {/* 📣 giro da Libertadores (o mesmo lugar de sempre das manchetes) */}
       {state.news.length > 0 && (
         <Box bg="#fff" className="p-3" shadow={4}>
-          <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>📣 Giro da Libertadores</p>
+          <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>{LB('📣 Giro da Libertadores', '📣 Libertadores round-up')}</p>
           {state.news.slice(0, 3).map((n, i) => <p key={i} className="text-[11px] font-semibold text-black/70 leading-snug">{n}</p>)}
         </Box>
       )}
@@ -6668,7 +6670,7 @@ export function EscLiberta() {
           senão o placar da tela grande é entregue aqui embaixo antes do apito. */}
       {!privateVisual && revealed && lb.lastResults.length > 0 && (
         <Box bg="#fff" className="p-3" shadow={4}>
-          <p className="font-black text-[11px] uppercase mb-1.5" style={{ ...OSWALD, color: NOITE }}>🥅 Os outros jogos da rodada</p>
+          <p className="font-black text-[11px] uppercase mb-1.5" style={{ ...OSWALD, color: NOITE }}>{LB('🥅 Os outros jogos da rodada', '🥅 The other matches of the round')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 5 }}>
             {lb.lastResults.filter(r => r.homeId !== you.id && r.awayId !== you.id).map((r, i) => (
               <div key={i} className="flex items-center gap-1 text-[10px] font-bold rounded-lg px-1.5 py-1" style={{ background: '#F4ECD6', border: '2px solid rgba(0,0,0,.18)' }}>
@@ -6683,8 +6685,8 @@ export function EscLiberta() {
 
       {/* 📊 os 8 grupos — o SEU primeiro, pra não ter que caçar na tela */}
       {privateVisual && <nav className="ll25-rhythm" aria-label="Grupos da Libertadores">
-        {meuGrupo >= 0 && <button className="ll25-button" aria-pressed={groupView === 'meu'} onClick={() => setGroupView('meu')}>MEU GRUPO</button>}
-        <button className="ll25-button" aria-pressed={groupView === 'todos' || meuGrupo < 0} onClick={() => setGroupView('todos')}>TODOS OS GRUPOS</button>
+        {meuGrupo >= 0 && <button className="ll25-button" aria-pressed={groupView === 'meu'} onClick={() => setGroupView('meu')}>{LB('MEU GRUPO', 'MY GROUP')}</button>}
+        <button className="ll25-button" aria-pressed={groupView === 'todos' || meuGrupo < 0} onClick={() => setGroupView('todos')}>{LB('TODOS OS GRUPOS', 'ALL GROUPS')}</button>
       </nav>}
       <div style={{ display: 'grid', gridTemplateColumns: privateVisual ? 'repeat(auto-fit, minmax(min(100%, 310px), 1fr))' : 'repeat(auto-fit, minmax(165px, 1fr))', gap: 12 }}>
         {[...Array(8).keys()]
@@ -6692,8 +6694,8 @@ export function EscLiberta() {
           .sort((a, b) => (a === meuGrupo ? -1 : b === meuGrupo ? 1 : a - b))
           .map(g => tabelaGrupo(g, g === meuGrupo))}
       </div>
-      <p className="text-[10px] font-bold text-black/45 text-center" style={privateVisual ? {color:CREAM} : undefined}>🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</p>
-      {privateVisual && <details className="ll26-bracket-history"><summary>ESTATÍSTICAS DA LIBERTADORES</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">As estatísticas atualizam após o apito final.</p>}</details>}
+      <p className="text-[10px] font-bold text-black/45 text-center" style={privateVisual ? {color:CREAM} : undefined}>{enL ? <>🟢 the <b>top 2</b> of each group reach the round of 16 — 16 clubs.</> : <>🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</>}</p>
+      {privateVisual && <details className="ll26-bracket-history"><summary>{LB('ESTATÍSTICAS DA LIBERTADORES', 'LIBERTADORES STATS')}</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">{LB('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p>}</details>}
 
       {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
       {(!online || streamHost) && !acabou && (
@@ -6701,10 +6703,10 @@ export function EscLiberta() {
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
           onSkip={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
-          nextLabel={!(lb.rodada === 0 || revealed) ? '⏳ Deixa a rodada acabar…' : lb.rodada === 0 ? '🌎 Começar a Libertadores' : '▶️ Próxima rodada'} />
+          nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores') : LB('▶️ Próxima rodada', '▶️ Next round')} />
       )}
       {online && !state.isHost && !acabou && (
-        <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>⏳ O host puxa as rodadas — você acompanha ao vivo.</p>
+        <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
       {privateVisual && online && state.roomId && !state.careerOnline && <LigaHub roomId={state.roomId} souDono={state.isHost} humanos={state.managers.filter(m=>m.isHuman).map(m=>m.teamName)} />}
     </Shell>

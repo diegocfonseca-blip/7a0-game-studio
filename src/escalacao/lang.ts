@@ -67,6 +67,9 @@ export function useT(): (pt: string, en: string) => string {
   return (pt: string, en: string) => (lang === 'en' ? en : pt)
 }
 
+// tradução fora de componente (função pura, lê o idioma na hora): tr('pt', 'en')
+export const tr = (pt: string, en: string): string => (current === 'en' ? en : pt)
+
 // colocação: "3º" em PT · "3rd" em EN (o inglês muda a terminação por número)
 export function ordinal(n: number, lang: Lang = current): string {
   if (lang !== 'en') return `${n}º`
