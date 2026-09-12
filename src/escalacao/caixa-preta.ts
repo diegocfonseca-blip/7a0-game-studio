@@ -41,10 +41,13 @@ export interface Trava {
 let ULTIMA = 0
 const INTERVALO_MS = 60_000
 
-export function anotaTrava(t: Trava): void {
+// `semFreio`: as anotações da COROA (suspeita e rebaixamento, 5 s uma da outra)
+// precisam das DUAS linhas — o freio de 1/min derrubaria justamente a segunda,
+// que é a que diz o que aconteceu. Continua sendo uma linha por evento.
+export function anotaTrava(t: Trava, semFreio = false): void {
   try {
     const agora = Date.now()
-    if (agora - ULTIMA < INTERVALO_MS) return
+    if (!semFreio && agora - ULTIMA < INTERVALO_MS) return
     ULTIMA = agora
     // solta, sem await e sem tratar retorno: o jogo não espera por isto
     void supabase.from('esc_travas').insert(t).then(() => {}, () => {})

@@ -2,6 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useRef, useCallback, 
 import type { ReactNode } from 'react'
 import { onlinePreviewEnabled } from './online-preview'
 import { disputaPenaltis } from './penaltis'
+import { anotaTrava } from './caixa-preta'
 import { publicOnlineVisual } from './online-release'
 import { publicCareerVisual } from './career-feature-release'
 import type {
@@ -8486,8 +8487,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // IMPOSSÍVEL ficar com dois hosts rodando a própria liga/Copa (bug do Sapekeiro).
   // Só rebaixa com host_id CONFIRMADO e DIFERENTE do meu — leitura nula/erro de rede
   // NÃO rebaixa ninguém (senão a rede ruim tiraria o dono legítimo).
+  // 🧾 12/09 (sala TS7ZVD do Diego, ele DONO, preso no "ENVIANDO…" nos primeiros
+  // 2 minutos e só o F5 devolveu a coroa): dono preso no ENVIANDO só existe de
+  // um jeito — o próprio aparelho dele se rebaixou pra convidado. E quem rebaixa
+  // é ESTE vigia. Três condições podem disparar; uma leitura torta (rede, save
+  // atrasado, marcador de aba velho) bastava pra tirar o dono legítimo. Regra
+  // nova, a mesma que o convidado já usa pra acusar sumiço: **só rebaixa se a
+  // MESMA suspeita se confirmar em duas checagens seguidas** (10 s). Pra uma
+  // suspeita falsa passar, ela precisa mentir duas vezes iguais. E cada rebaixa
+  // — ou quase — vai pra caixa-preta com o MOTIVO e os valores, pra parar de
+  // chutar qual das três foi.
+  const suspeitaCoroaRef = useRef<string | null>(null)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
+    suspeitaCoroaRef.current = null
     const iv = setInterval(() => {
       ;(async () => {
         try {
@@ -8497,34 +8510,41 @@ export function EscProvider({ children }: { children: ReactNode }) {
           const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at, tab:game_state->>__hostTab, claim:game_state->>__hostClaimAt').eq('id', st.roomId).maybeSingle()
           const row = r as { host_id?: string; updated_at?: string; tab?: string | null; claim?: string | null } | null
           const hostId = row?.host_id
-          if (hostId && hostId !== uid && stateRef.current.isHost) { rawDispatch({ type: 'STEP_DOWN_HOST' }); return }
           const outraAba = !!row?.tab && row.tab !== tabIdRef.current
           const saveFresco = !!row?.updated_at && Date.now() - new Date(row.updated_at).getTime() < 9_000
-          // 🤫 POSSE HUMILDE decidindo: acordei sozinho (sem gesto do dono) e OUTRA
-          // aba da minha conta está gravando AGORA → a sala já tem quem toque; eu
-          // viro espectador sem briga. Sala em silêncio → assumo de verdade.
-          if (hostId === uid && Date.now() < humildeAteRef.current && stateRef.current.isHost) {
-            if (outraAba && saveFresco) {
-              humildeAteRef.current = 0
-              rawDispatch({ type: 'STEP_DOWN_HOST' })
-              setHostOutroAparelho(true)
-            } else if (!saveFresco) {
-              // ninguém tocando: a posse vira plena e o save religa
-              claimForcadoRef.current = true; humildeAteRef.current = 0
-            }
+          const claimDeLa = Number(row?.claim)
+          const humilde = Date.now() < humildeAteRef.current
+          // qual condição está pedindo o rebaixamento nesta leitura (ou nenhuma)
+          const motivo: string | null =
+            (hostId && hostId !== uid) ? 'posse_de_outro'
+            : (hostId === uid && humilde && outraAba && saveFresco) ? 'humilde_outra_aba'
+            : (hostId === uid && outraAba && Number.isFinite(claimDeLa) && claimDeLa > hostClaimAtRef.current) ? 'outra_aba_mais_nova'
+            : null
+          const foto = {
+            motivo, host_no_banco: hostId ?? null, meu_uid: uid, minha_aba: tabIdRef.current, aba_no_banco: row?.tab ?? null,
+            save_fresco: saveFresco, claim_de_la: Number.isFinite(claimDeLa) ? claimDeLa : null, minha_claim: hostClaimAtRef.current,
+            humilde, tela: st.screen, fase: st.phase, setor: st.sectorIdx,
+          }
+          if (!motivo) {
+            // leitura limpa: a posse humilde vira plena se a sala está em silêncio
+            if (hostId === uid && humilde && !saveFresco) { claimForcadoRef.current = true; humildeAteRef.current = 0 }
+            suspeitaCoroaRef.current = null
             return
           }
-          // 📱 MESMA CONTA, DOIS APARELHOS (o buraco do dia 23/08): a posse é minha
-          // no banco, mas o save mais recente veio de OUTRA aba/aparelho com posse
-          // mais NOVA que a minha → a coroa está na outra mão. Este aqui abaixa a
-          // bola e avisa, em vez de ficar gravando por cima e travando o leilão.
-          const claimDeLa = Number(row?.claim)
-          if (hostId === uid && outraAba
-              && Number.isFinite(claimDeLa) && claimDeLa > hostClaimAtRef.current
-              && stateRef.current.isHost) {
-            rawDispatch({ type: 'STEP_DOWN_HOST' })
-            setHostOutroAparelho(true)
+          if (suspeitaCoroaRef.current !== motivo) {
+            // 1ª vez: só anota e espera a próxima checagem confirmar
+            suspeitaCoroaRef.current = motivo
+            anotaTrava({ room_id: st.roomId, sala: st.roomCode || null, papel: 'host', momento: 'envelope', setor: st.sectorIdx ?? null,
+              segundos: 0, reenvios: 0, canal: fotoDaConexao().canal, host_calado_ms: 0, extra: { ...foto, quando: 'suspeita' } }, true)
+            return
           }
+          // 2ª vez seguida com o MESMO motivo: agora sim, abaixa a bola
+          suspeitaCoroaRef.current = null
+          anotaTrava({ room_id: st.roomId, sala: st.roomCode || null, papel: 'host', momento: 'envelope', setor: st.sectorIdx ?? null,
+            segundos: 0, reenvios: 0, canal: fotoDaConexao().canal, host_calado_ms: 0, extra: { ...foto, quando: 'rebaixou' } }, true)
+          if (motivo === 'humilde_outra_aba') humildeAteRef.current = 0
+          rawDispatch({ type: 'STEP_DOWN_HOST' })
+          if (motivo !== 'posse_de_outro') setHostOutroAparelho(true)
         } catch { /* leitura falhou: não rebaixa (evita perder o dono por rede ruim) */ }
       })()
     }, 5000)

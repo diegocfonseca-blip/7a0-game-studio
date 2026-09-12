@@ -1,3 +1,13 @@
+## 12/09/2026 — 👑 O DONO se rebaixava sozinho (sala TS7ZVD, Diego host preso no "ENVIANDO…")
+
+- Relato: *"tô numa sala online com Neymarzetti, eu sou o host, e novamente deu o mesmo erro, agora eu sendo host. Lacrei meu goleiro e apareceu isso como se eu nem tivesse lacrado. Sempre que atualizo arruma."*
+- **Por que isso é uma pista enorme**: host não "envia" lance pra ninguém — ele aplica na hora. Se o DONO viu "ENVIANDO…", o aparelho dele achava que era convidado. E "atualizar arruma" porque o F5 relê `game_rooms.host_id` no banco e devolve a coroa. Confirmado no banco: ele é o host_id, a sala andou normal depois do F5 e o `__hostClaimAt` novo é das 22:15:47 (o instante do F5).
+- **Quem tira a coroa é o vigia "um dono só"** (`store.tsx`, roda de 5 em 5 s no host). Três condições rebaixam: (1) `host_id` do banco ≠ meu uid; (2) posse humilde + outra aba da MESMA conta gravando; (3) outra aba com posse mais nova. Qualquer UMA leitura torta (save atrasado, marcador de aba velho, rede) bastava pra rebaixar o dono legítimo. Não dá pra provar qual das três disparou hoje: a caixa-preta ainda não estava no ar, e ela nem cobria isso.
+- **Conserto**: o vigia só rebaixa se a MESMA suspeita se confirmar em **duas checagens seguidas** (10 s) — mesma regra que o convidado já usa pra acusar sumiço do dono. Uma suspeita falsa precisa mentir duas vezes iguais. Pior caso, um rebaixamento legítimo (handoff/outra aba) demora 5 s a mais.
+- **E a caixa-preta agora cobre a coroa**: cada suspeita e cada rebaixamento vira uma linha em `esc_travas` com o MOTIVO (`posse_de_outro` / `humilde_outra_aba` / `outra_aba_mais_nova`) e os valores (host_id do banco, meu uid, as duas abas, save fresco, claims, tela/fase/setor). Na próxima, sai o culpado com nome.
+- Regra do Diego preservada: a coroa continua NÃO trocando sozinha — isto só torna mais difícil TIRAR do dono; não dá a coroa pra ninguém.
+- ⏳ No branch, esperando publicar. Este é o conserto mais urgente da fila: bate no próprio Diego como host.
+
 ## 12/09/2026 — 🌐 Tradução do futebol: ETAPA 3 começada (tabela, artilharia, garçons)
 
 - Mesmo achado da etapa 2 se repetiu: o `LC('pt','en')` da artilharia da copa também estava trancado no basquete. Destravado.
