@@ -1196,7 +1196,7 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
       {/* CATEGORIAS: quanto tem, o que rende, o que falta destravar */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {EMP_ORDER.map(k => {
-          const b = by[k], m = EMP_META[k], list = catCards(k)
+          const b = by[k], m = empMeta(k), list = catCards(k)
           return (
             <div key={k} style={{ ...box(b.unlocked ? '#fff' : '#F1EBD9'), padding: '10px 12px', opacity: b.unlocked ? 1 : .72 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -1243,6 +1243,12 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
 // mensalidade por categoria (👑5 ⭐4 💎3 🎯2 🪵1 · folclórico +1) e comissão por
 // acontecimento (artilheiro/campeão/negociação no leilão). A renda cai SEMPRE
 // no caixa do 1º clube. Convocação no estilo da Copa (filtro por posição+busca).
+// 🌐 rótulo e exigência de cada categoria do escritório em EN (números ficam em EMP_META)
+const EMP_EN: Record<EmpCat, { label: string; req: string }> = {
+  lenda: { label: 'Legend', req: 'buy the SAF' }, craque: { label: 'Star', req: 'stadium 100% complete' }, promessa: { label: 'Prospect', req: '3 stands finished' },
+  bom: { label: 'Good Player', req: '1 stadium stand finished' }, prof: { label: 'Ex-Pro', req: 'free' },
+}
+const empMeta = (k: EmpCat) => (getLang() === 'en' ? { ...EMP_META[k], ...EMP_EN[k] } : EMP_META[k])
 const agKeyOf = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
 const agTier = (c: { fame?: number; promessa?: boolean }): { grad: string; ink: string; holo?: boolean } =>
   c.promessa ? { grad: 'linear-gradient(150deg,#C9A9FF,#8B5CF6,#5B2FB0)', ink: '#fff', holo: true }
@@ -1321,7 +1327,7 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
         <div style={{ marginTop: 6 }}>
           {EMP_ORDER.map(k => {
             const b = renda.by[k]; if (b.count === 0) return null
-            const m = EMP_META[k]
+            const m = empMeta(k)
             return (
               <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
                 <span>{m.emoji} {m.label}</span>
@@ -1397,7 +1403,7 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
       </button>
       {locked.length > 0 && (
         <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 9px' }}>
-          🔒 {locked.map(k => `${EMP_META[k].label} ${tr('destrava', 'unlocks')}: ${EMP_META[k].req}`).join(' · ')} — {getLang() === 'en' ? <>unlocks live in <b>Club › 🏗️ Structure</b> (stadium works unlock them).</> : <>os desbloqueios ficam em <b>Clube › 🏗️ Estrutura</b> (a obra do estádio destrava).</>}
+          🔒 {locked.map(k => `${empMeta(k).label} ${tr('destrava', 'unlocks')}: ${empMeta(k).req}`).join(' · ')} — {getLang() === 'en' ? <>unlocks live in <b>Club › 🏗️ Structure</b> (stadium works unlock them).</> : <>os desbloqueios ficam em <b>Clube › 🏗️ Estrutura</b> (a obra do estádio destrava).</>}
         </div>
       )}
 
@@ -1415,7 +1421,7 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
                 <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', marginBottom: 3 }}>{tr('💼 Na sua agência', '💼 In your agency')}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 800, padding: '2px 0' }}>
                   <span>{tr('💰 Rende por temporada', '💰 Earns per season')}{open.folk ? tr(' (com 🃏 +1)', ' (with 🃏 +1)') : ''}</span>
-                  <span style={{ ...OSWALD, color: rende > 0 ? GREEN : '#b3a688' }}>{rende > 0 ? `+${rende} 🪙` : `🔒 ${EMP_META[cat].req}`}</span>
+                  <span style={{ ...OSWALD, color: rende > 0 ? GREEN : '#b3a688' }}>{rende > 0 ? `+${rende} 🪙` : `🔒 ${empMeta(cat).req}`}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 800, padding: '2px 0', borderTop: '2px solid rgba(0,0,0,.06)' }}>
                   <span>{tr('🏦 Já te rendeu nesta carreira', '🏦 Earned for you in this career')}</span>
@@ -1567,7 +1573,7 @@ function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSa
             <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 13, padding: '8px 10px', background: bg, color: INK, boxShadow: '2px 2px 0 rgba(0,0,0,.55)', opacity: ok || next ? 1 : .92 }}>
               <span style={{ fontSize: 22, width: 28, textAlign: 'center' }}>{AG_EMOJI[k]}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', lineHeight: 1.1 }}>{EMP_META[k].label}</div>
+                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', lineHeight: 1.1 }}>{empMeta(k).label}</div>
                 <div style={{ fontSize: 9.5, fontWeight: 600, color: '#5a5647', lineHeight: 1.35 }}>{req[k]}</div>
               </div>
               <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11, whiteSpace: 'nowrap', textAlign: 'right', lineHeight: 1.2 }}>
@@ -3427,6 +3433,9 @@ const TEC_GRAD: Record<DivTec, { grad: string; ink: string }> = {
   V: { grad: 'linear-gradient(160deg,#DBD1B5,#B2A583)', ink: INK },
 }
 const TEC_ESTILO: Record<string, string> = { retranca: '🛡️ Retranqueiro', posse: '🎩 Posse de bola', ofensiva: '⚽ Ofensivo', equilibrado: '⚖️ Equilibrado' }
+const TEC_ESTILO_EN: Record<string, string> = { retranca: '🛡️ Defensive', posse: '🎩 Possession', ofensiva: '⚽ Attacking', equilibrado: '⚖️ Balanced' }
+const CAT_TEC_EN: Record<DivTec, string> = { A: '👑 Legend', B: '⭐ Star', C: '💜 Prospect', D: '💚 Good player', V: '🤎 Ex-pro' }
+const catTecRotulo = (d: DivTec) => (getLang() === 'en' ? CAT_TEC_EN[d] : CATEGORIA_TECNICO_ROTULO[d])
 function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFaixa?: boolean; misterio?: boolean }) {
   const t = tecnicoPorNome(nome)
   if (!t) return null
@@ -3450,16 +3459,16 @@ function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFai
     <div style={{ border: `3px solid ${INK}`, borderRadius: 14, background: cor.grad, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 11px', color: cor.ink }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', borderRadius: 7, padding: '1px 7px' }}>TEC</span>
-        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, opacity: .8, letterSpacing: '.06em', textTransform: 'uppercase' }}>{CATEGORIA_TECNICO_ROTULO[t.div]}</span>
+        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, opacity: .8, letterSpacing: '.06em', textTransform: 'uppercase' }}>{catTecRotulo(t.div)}</span>
       </div>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16.5, margin: '4px 0 0', lineHeight: 1.1 }}>{t.nome} <span style={{ fontSize: 12 }}>{t.pais}</span></p>
-      <p style={{ fontSize: 10, fontWeight: 800, opacity: .8, margin: '2px 0 0' }}>{TEC_ESTILO[t.estilo]}{veFaixa ? ` · 📊 ${ficha.lo}–${ficha.hi}` : ''}</p>
+      <p style={{ fontSize: 10, fontWeight: 800, opacity: .8, margin: '2px 0 0' }}>{(getLang() === 'en' ? TEC_ESTILO_EN : TEC_ESTILO)[t.estilo]}{veFaixa ? ` · 📊 ${ficha.lo}–${ficha.hi}` : ''}</p>
       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 7 }}>
         {ficha.formacoes.map(f => (
           <span key={f} style={{ ...OSWALD, fontWeight: 800, fontSize: 9.5, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 7px', background: 'rgba(255,255,255,.85)', color: INK }}>{f}</span>
         ))}
       </div>
-      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{CATEGORIA_TECNICO_ROTULO[t.div]} = {ficha.formacoes.length} {getLang() === 'en' ? (ficha.formacoes.length > 1 ? 'systems' : 'system') : `esquema${ficha.formacoes.length > 1 ? 's' : ''}`} — {tr('as formações que ele usa de verdade.', 'the formations he really uses.')}</p>
+      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{catTecRotulo(t.div)} = {ficha.formacoes.length} {getLang() === 'en' ? (ficha.formacoes.length > 1 ? 'systems' : 'system') : `esquema${ficha.formacoes.length > 1 ? 's' : ''}`} — {tr('as formações que ele usa de verdade.', 'the formations he really uses.')}</p>
     </div>
   )
 }
@@ -3507,7 +3516,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   // alcança (regra das portas). A trava de verdade mora no reducer.
   const olheiroTier = myApoioPerk()?.tier
   const temOlheiro = olheiroTier === 'ouro' || olheiroTier === 'prata'
-  const olheiroNome = olheiroTier === 'ouro' ? '👑 Olheiro Lenda' : olheiroTier === 'prata' ? '⭐ Olheiro Craque' : '🕵️ Olheiro básico'
+  const olheiroNome = olheiroTier === 'ouro' ? tr('👑 Olheiro Lenda', '👑 Legend Scout') : olheiroTier === 'prata' ? tr('⭐ Olheiro Craque', '⭐ Star Scout') : tr('🕵️ Olheiro básico', '🕵️ Basic scout')
   const olheiroGrad = olheiroTier === 'ouro' ? APOIO_PERKS.ouro.grad : olheiroTier === 'prata' ? APOIO_PERKS.prata.grad : APOIO_PERKS.bege.grad
   const [aberto, setAberto] = useState<string | null>(null)
   // semeia os técnicos da divisão na primeira visita (idempotente; vai pro save)
@@ -3646,17 +3655,17 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                       const fim = state.careerTecnicoContrato?.[c.teamName]
                       const falta = fim != null ? fim - state.seasonNo + 1 : 0
                       const marcado = marcadosT.includes(nome)
-                      const trava = falta > 0 ? `contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : (!marcado && marcadosT.length >= 1 ? 'já sondou 1 técnico nesta temporada' : undefined)
+                      const trava = falta > 0 ? (getLang() === 'en' ? `contract: ${falta} season${falta > 1 ? 's' : ''} left` : `contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}`) : (!marcado && marcadosT.length >= 1 ? tr('já sondou 1 técnico nesta temporada', 'already scouted 1 coach this season') : undefined)
                       return (
                         <>
-                          <p style={{ fontSize: 10, fontWeight: 800, color: falta > 0 ? '#5a5647' : GREEN, margin: '6px 0 0', textAlign: 'center' }}>{falta > 0 ? `📝 contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : '🆓 SEM contrato — pode sondar'}</p>
-                          {btnMarcar(marcado, () => dispatch({ type: 'ALICIAR_MARCAR', tec: nome }), '🕵️ Sondar pro leilão', trava, historiaSondagem(nome, 'tec', c.teamName, state.seasonNo))}
+                          <p style={{ fontSize: 10, fontWeight: 800, color: falta > 0 ? '#5a5647' : GREEN, margin: '6px 0 0', textAlign: 'center' }}>{falta > 0 ? (getLang() === 'en' ? `📝 contract: ${falta} season${falta > 1 ? 's' : ''} left` : `📝 contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}`) : tr('🆓 SEM contrato — pode sondar', '🆓 NO contract — can be scouted')}</p>
+                          {btnMarcar(marcado, () => dispatch({ type: 'ALICIAR_MARCAR', tec: nome }), tr('🕵️ Sondar pro leilão', '🕵️ Scout for the auction'), trava, historiaSondagem(nome, 'tec', c.teamName, state.seasonNo))}
                         </>
                       )
                     })()}
                   </>
                 ) : (
-                  <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center' }}>😶 Este clube está SEM técnico no momento.</p>
+                  <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center' }}>{tr('😶 Este clube está SEM técnico no momento.', '😶 This club has NO coach right now.')}</p>
                 )}
                 {/* 🕵️ JOGADORES DO CLUBE — a parte do OLHEIRO (Diego 07/09). Todo
                     mundo vê a caixa; a lista só traz quem o olheiro da conta ALCANÇA
@@ -3671,10 +3680,10 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                   <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, padding: '9px 10px', marginTop: 11, background: '#FBF6E8' }}>
                     <p style={{ margin: '0 0 5px', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: INK, background: olheiroGrad, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{olheiroNome}</span>
-                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: '#5a5647' }}>Jogadores que ele achou</span>
+                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: '#5a5647' }}>{tr('Jogadores que ele achou', 'Players he found')}</span>
                     </p>
                     {escondidos === elenco.length && (
-                      <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5a5647', margin: '4px 0 2px', textAlign: 'center' }}>😶 Seu olheiro não achou ninguém ao alcance dele neste clube.</p>
+                      <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5a5647', margin: '4px 0 2px', textAlign: 'center' }}>{tr('😶 Seu olheiro não achou ninguém ao alcance dele neste clube.', '😶 Your scout found nobody within his reach at this club.')}</p>
                     )}
                     {SECTORS.map(pos => {
                       const cs = elenco.filter(x => x.pos === pos && alcanca(x))
@@ -3696,10 +3705,10 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                                 <div onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id }) }}
                                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: apagado ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
                                   <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
-                                    <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: apagado ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? `📝 falta${falta > 1 ? 'm' : ''} ${falta}` : marcado ? '✔ no leilão · tirar' : tetoCheio ? '🔒 já sondou 1' : '🆓 + sondar'}</span></span>
+                                    <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: apagado ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? (getLang() === 'en' ? `📝 ${falta} left` : `📝 falta${falta > 1 ? 'm' : ''} ${falta}`) : marcado ? tr('✔ no leilão · tirar', '✔ in the auction · remove') : tetoCheio ? tr('🔒 já sondou 1', '🔒 already scouted 1') : tr('🆓 + sondar', '🆓 + scout')}</span></span>
                                 </div>
                                 {marcado && (
-                                  <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 8, padding: '6px 8px', margin: '0 0 5px', lineHeight: 1.45 }}>📰 <b>Bastidor:</b> {historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo)}</p>
+                                  <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 8, padding: '6px 8px', margin: '0 0 5px', lineHeight: 1.45 }}>📰 <b>{tr('Bastidor:', 'Backstage:')}</b> {historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo)}</p>
                                 )}
                               </div>
                             )
@@ -3707,16 +3716,18 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                         </div>
                       )
                     })}
-                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato). A grana da venda vai pro clube dono — que também pode brigar de volta, e repõe a vaga se perder.</p>
+                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>{tr('Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato). A grana da venda vai pro clube dono — que também pode brigar de volta, e repõe a vaga se perder.', 'Marking = he enters the AUCTION, in his sector, along with the other cards (max. 1 per season, only 🆓 out of contract). The sale money goes to the owner club — which can also fight back, and refills the spot if it loses.')}</p>
                     {/* 🚪 porta: tem gente neste clube que o olheiro da conta não
                         alcança (só pra quem NÃO tem o tier — regra das portas). Sem
                         nome e sem categoria de quem ficou de fora: o olheiro não achou. */}
                     {escondidos > 0 && (
                       <ApoieButton startScreen="choice" trigger={open => (
                         <button onClick={open} style={{ width: '100%', border: `2px dashed ${INK}`, borderRadius: 9, padding: '6px 9px', margin: '7px 0 0', background: '#fff', cursor: 'pointer', textAlign: 'left', fontWeight: 800, fontSize: 10, color: 'rgba(0,0,0,.6)', lineHeight: 1.4 }}>
-                          {temOlheiro
+                          {getLang() === 'en' ? (temOlheiro
+                            ? <>🙈 There {escondidos > 1 ? 'are' : 'is'} <b>{escondidos} player{escondidos > 1 ? 's' : ''}</b> at this club your scout can't reach — only the <b>👑 Legend Scout</b> finds legends. <u>Tap here</u> to become Legend paying just the difference</>
+                            : <>🙈 There {escondidos > 1 ? 'are' : 'is'} <b>{escondidos} player{escondidos > 1 ? 's' : ''}</b> at this club your scout can't reach — ⭐ <b>Star Scout</b> finds the stars · 👑 <b>Legend Scout</b> finds everyone. <u>Tap here</u></>) : (temOlheiro
                             ? <>🙈 Tem <b>{escondidos} jogador{escondidos > 1 ? 'es' : ''}</b> neste clube que o seu olheiro não alcança — só o <b>👑 Olheiro Lenda</b> acha lenda. <u>Toca aqui</u> pra virar Lenda pagando só a diferença</>
-                            : <>🙈 Tem <b>{escondidos} jogador{escondidos > 1 ? 'es' : ''}</b> neste clube que o seu olheiro não alcança — ⭐ <b>Olheiro Craque</b> acha os craques · 👑 <b>Olheiro Lenda</b> acha todos. <u>Toca aqui</u></>}
+                            : <>🙈 Tem <b>{escondidos} jogador{escondidos > 1 ? 'es' : ''}</b> neste clube que o seu olheiro não alcança — ⭐ <b>Olheiro Craque</b> acha os craques · 👑 <b>Olheiro Lenda</b> acha todos. <u>Toca aqui</u></>)}
                         </button>
                       )} />
                     )}
@@ -3737,8 +3748,8 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         return (
           <>
             <div style={{ ...box('#FBF6E8'), padding: 11, margin: '12px 0 10px' }}>
-              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕴️ Sem clube</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Técnicos livres da {divRot}. No leilão deles <b>ninguém defende</b> — é você × os bots da divisão.</p>
+              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🕴️ Sem clube', '🕴️ Unattached')}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>Free coaches of the {divRot}. In their auction <b>nobody defends</b> — it's you × the division's bots.</> : <>Técnicos livres da {divRot}. No leilão deles <b>ninguém defende</b> — é você × os bots da divisão.</>}</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {livres.map(tt => (
@@ -3758,13 +3769,13 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                   <div onClick={e => e.stopPropagation()} style={{ maxWidth: 430, margin: '0 auto', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, background: '#F4ECD6', overflow: 'hidden' }}>
                     <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px' }}>
                       <span style={{ fontSize: 20 }}>🕴️</span>
-                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tt.nome} {tt.pais} · SEM CLUBE</span>
+                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tt.nome} {tt.pais} · {tr('SEM CLUBE', 'NO CLUB')}</span>
                       <button onClick={() => setAberto(null)} style={{ background: '#fff', color: INK, border: 'none', borderRadius: 8, fontWeight: 900, fontSize: 13, padding: '2px 9px', cursor: 'pointer', ...OSWALD }}>✕</button>
                     </div>
                     <div style={{ padding: '12px 12px 14px' }}>
                       <CartaTecnico nome={tt.nome} misterio />
-                      <p style={{ fontSize: 10, fontWeight: 800, color: GREEN, margin: '6px 0 0', textAlign: 'center' }}>🆓 SEM contrato — pode sondar</p>
-                      {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), '🕵️ Sondar pro leilão', !marcadosT.includes(tt.nome) && marcadosT.length >= 1 ? 'já sondou 1 técnico nesta temporada' : undefined, historiaSondagem(tt.nome, 'livre', null, state.seasonNo))}
+                      <p style={{ fontSize: 10, fontWeight: 800, color: GREEN, margin: '6px 0 0', textAlign: 'center' }}>{tr('🆓 SEM contrato — pode sondar', '🆓 NO contract — can be scouted')}</p>
+                      {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), tr('🕵️ Sondar pro leilão', '🕵️ Scout for the auction'), !marcadosT.includes(tt.nome) && marcadosT.length >= 1 ? tr('já sondou 1 técnico nesta temporada', 'already scouted 1 coach this season') : undefined, historiaSondagem(tt.nome, 'livre', null, state.seasonNo))}
                     </div>
                   </div>
                 </div>
@@ -3774,9 +3785,9 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
         )
       })()}
       {totalMarcado > 0 && (
-        <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: GREEN, margin: '8px 0 0' }}>🕵️ {totalMarcado} sondado{totalMarcado > 1 ? 's' : ''} — eles ABREM o próximo leilão de reservas.</p>
+        <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: GREEN, margin: '8px 0 0' }}>🕵️ {totalMarcado} {getLang() === 'en' ? `scouted — they OPEN the next leftovers auction.` : `sondado${totalMarcado > 1 ? 's' : ''} — eles ABREM o próximo leilão de reservas.`}</p>
       )}
-      <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '4px 0 0' }}>⚔️ = rival seu · as outras divisões ficam no mistério</p>
+      <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '4px 0 0' }}>{tr('⚔️ = rival seu · as outras divisões ficam no mistério', '⚔️ = your rival · the other divisions stay a mystery')}</p>
     </div>
   )
 }
@@ -4204,20 +4215,29 @@ function GlobalRankConvite() {
   )
   return (
     <div style={{ ...box('#fff'), padding: 13, marginBottom: 12 }}>
-      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 8px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 8px' }}>{tr('🌍 RANKING GLOBAL DE USUÁRIOS', '🌍 GLOBAL USER RANKING')}</p>
       <div style={{ background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px' }}>
-        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>🔒 Esta carreira não entra no ranking</p>
-        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, color: '#4a4740' }}>Ela começou <b>antes da Agência 2.0</b>. O ranking só conta <b>carreiras novas</b> — assim todo mundo disputa com as mesmas regras.</p>
+        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>{tr('🔒 Esta carreira não entra no ranking', '🔒 This career doesn\'t count for the ranking')}</p>
+        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, color: '#4a4740' }}>{getLang() === 'en' ? <>It started <b>before Agency 2.0</b>. The ranking only counts <b>new careers</b> — so everyone competes under the same rules.</> : <>Ela começou <b>antes da Agência 2.0</b>. O ranking só conta <b>carreiras novas</b> — assim todo mundo disputa com as mesmas regras.</>}</p>
       </div>
-      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '13px 0 2px', textTransform: 'uppercase', letterSpacing: '.05em', color: GREEN }}>✨ Numa carreira NOVA você leva</p>
+      <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '13px 0 2px', textTransform: 'uppercase', letterSpacing: '.05em', color: GREEN }}>{tr('✨ Numa carreira NOVA você leva', '✨ In a NEW career you get')}</p>
+      {getLang() === 'en' ? <>
+      {item('🌱', 'Várzea', <>you start at the very bottom, on the dirt pitch, and climb up to Série A.</>)}
+      {item('🕴️', 'Agency 2.0', <>your 22 active clients inside the <b>Squad</b> (TEAM · CLIENTS pills) — it used to be a separate screen.</>)}
+      {item('🌍', 'Deck from the whole world', <>Brazil + Europe + rest of the world in the same auction.</>)}
+      {item('🏥', 'Player events + Medical Department', <>injury, fame, trouble… and the doctor to sort it out.</>)}
+      {item('🍔', 'New stadium', <>snack bar, pub, subway, hotel and retractable roof — and income counts <b>occupancy</b>.</>)}
+      {item('🏆', 'Global Ranking', <>every title is worth points and the ranking adds up — World, Cup, Série A, Várzea…</>)}
+      </> : <>
       {item('🌱', 'Várzea', <>você começa lá embaixo, no campo de terra, e sobe até a Série A.</>)}
       {item('🕴️', 'Agência 2.0', <>seus 22 na ativa dentro do <b>Elenco</b> (pílulas TIME · AGENCIADOS) — antes era tela separada.</>)}
       {item('🌍', 'Baralho do mundo todo', <>Brasil + Europa + resto do mundo no mesmo pregão.</>)}
       {item('🏥', 'Eventos de jogador + Departamento Médico', <>lesão, fama, confusão… e o médico pra resolver.</>)}
       {item('🍔', 'Estádio novo', <>lanchonete, bar, metrô, hotel e teto retrátil — e a renda conta a <b>ocupação</b>.</>)}
       {item('🏆', 'Ranking Global', <>cada título vale ponto e o ranking soma — Mundo, Copa, Série A, Várzea…</>)}
+      </>}
       <div style={{ background: '#FFF7DB', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginTop: 11 }}>
-        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, color: '#4a4740' }}>💾 <b>Sua carreira de agora não some.</b> Ela fica salva inteirinha — dá pra voltar nela quando quiser. Pra começar outra: <b>🪜 Nova carreira</b>, na tela inicial do jogo.</p>
+        <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, color: '#4a4740' }}>{getLang() === 'en' ? <>💾 <b>Your current career won't disappear.</b> It stays fully saved — you can come back to it anytime. To start another: <b>🪜 New career</b>, on the game's home screen.</> : <>💾 <b>Sua carreira de agora não some.</b> Ela fica salva inteirinha — dá pra voltar nela quando quiser. Pra começar outra: <b>🪜 Nova carreira</b>, na tela inicial do jogo.</>}</p>
       </div>
     </div>
   )
@@ -4299,25 +4319,25 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
   const meInList = !!meUid && lista.some(r => r.user_id === meUid)
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
-      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>🌍 RANKING GLOBAL DE USUÁRIOS</p>
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>Cada título vale ponto e o ranking SOMA: 🌍 Copa do Mundo <b>{PTS_TITULO.mundo}</b> · 🏆 Copa do Brasil <b>{PTS_TITULO.copa}</b> · 🏆 Série A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · 🏆 B <b>{PTS_TITULO.B}</b> · 🏆 C <b>{PTS_TITULO.C}</b> · 🏆 D <b>{PTS_TITULO.D}</b> · 🌱 Várzea <b>{PTS_TITULO.V}</b>. Empatou nos pontos, o 💰 desempata. A MESMA conta do ranking do seu save. Só gente de verdade, top 50, e só quem joga com a Agência 2.0.</p>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{tr('🌍 RANKING GLOBAL DE USUÁRIOS', '🌍 GLOBAL USER RANKING')}</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{getLang() === 'en' ? <>Every title is worth points and the ranking ADDS UP: 🌍 World Cup <b>{PTS_TITULO.mundo}</b> · 🏆 Copa do Brasil <b>{PTS_TITULO.copa}</b> · 🏆 Série A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercup <b>{PTS_TITULO.supercopa}</b> · 🏆 B <b>{PTS_TITULO.B}</b> · 🏆 C <b>{PTS_TITULO.C}</b> · 🏆 D <b>{PTS_TITULO.D}</b> · 🌱 Várzea <b>{PTS_TITULO.V}</b>. Tied on points, 💰 breaks the tie. The SAME math as your save's ranking. Real people only, top 50, and only those playing with Agency 2.0.</> : <>Cada título vale ponto e o ranking SOMA: 🌍 Copa do Mundo <b>{PTS_TITULO.mundo}</b> · 🏆 Copa do Brasil <b>{PTS_TITULO.copa}</b> · 🏆 Série A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · 🏆 B <b>{PTS_TITULO.B}</b> · 🏆 C <b>{PTS_TITULO.C}</b> · 🏆 D <b>{PTS_TITULO.D}</b> · 🌱 Várzea <b>{PTS_TITULO.V}</b>. Empatou nos pontos, o 💰 desempata. A MESMA conta do ranking do seu save. Só gente de verdade, top 50, e só quem joga com a Agência 2.0.</>}</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
         <span style={{ fontSize: 19, lineHeight: 1.2 }}>📍</span>
         <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, lineHeight: 1.4, color: INK }}>
-          Você tá na <b style={{ color: '#7C3AED' }}>Temporada {seasonNo}</b> — todo mundo abaixo aparece com o que tinha feito ATÉ a temporada {seasonNo}, nem um pouco a mais. Ninguém vê o futuro de ninguém.
+          {getLang() === 'en' ? <>You're in <b style={{ color: '#7C3AED' }}>Season {seasonNo}</b> — everyone below shows what they had done UP TO season {seasonNo}, not a bit more. Nobody sees anybody's future.</> : <>Você tá na <b style={{ color: '#7C3AED' }}>Temporada {seasonNo}</b> — todo mundo abaixo aparece com o que tinha feito ATÉ a temporada {seasonNo}, nem um pouco a mais. Ninguém vê o futuro de ninguém.</>}
         </p>
       </div>
       {loading ? (
-        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Carregando…</p>
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>{tr('Carregando…', 'Loading…')}</p>
       ) : down ? (
-        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Não consegui buscar o ranking agora — tenta de novo mais tarde.</p>
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>{tr('Não consegui buscar o ranking agora — tenta de novo mais tarde.', 'Couldn\'t fetch the ranking right now — try again later.')}</p>
       ) : lista.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>Ninguém no ranking ainda até a temporada {seasonNo} — seja o primeiro!</p>
+        <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', padding: '14px 0' }}>{getLang() === 'en' ? `Nobody in the ranking yet up to season ${seasonNo} — be the first!` : `Ninguém no ranking ainda até a temporada ${seasonNo} — seja o primeiro!`}</p>
       ) : (
         <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
           <thead><tr style={{ textAlign: 'left' }}>
-            <th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Usuário</th>
-            <th style={{ ...th, textAlign: 'center' }}>Títulos <span style={{ textTransform: 'none', fontWeight: 700, color: '#7C3AED' }}>(até T{seasonNo})</span></th>
+            <th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Usuário', 'User')}</th>
+            <th style={{ ...th, textAlign: 'center' }}>{tr('Títulos', 'Titles')} <span style={{ textTransform: 'none', fontWeight: 700, color: '#7C3AED' }}>({tr('até', 'up to')} T{seasonNo})</span></th>
             <th style={{ ...th, textAlign: 'right' }}>PTS</th>
             <th style={{ ...th, textAlign: 'right' }}>💰</th>
           </tr></thead>
@@ -4342,25 +4362,25 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
                   <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>
                     {pos}
                     {delta != null && delta !== 0 && (
-                      <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 9, fontWeight: 900, color: delta > 0 ? '#fff' : '#fff', background: delta > 0 ? '#1B7A3D' : '#C2452F', borderRadius: 4, padding: '0 3px' }} title={delta > 0 ? `Passou ${delta} nesta temporada` : `Foi passado por ${-delta} nesta temporada`}>
+                      <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 9, fontWeight: 900, color: delta > 0 ? '#fff' : '#fff', background: delta > 0 ? '#1B7A3D' : '#C2452F', borderRadius: 4, padding: '0 3px' }} title={getLang() === 'en' ? (delta > 0 ? `Passed ${delta} this season` : `Passed by ${-delta} this season`) : (delta > 0 ? `Passou ${delta} nesta temporada` : `Foi passado por ${-delta} nesta temporada`)}>
                         {delta > 0 ? '▲' : '▼'}{Math.abs(delta)}
                       </span>
                     )}
                     {delta === 0 && <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 9, fontWeight: 900, color: 'rgba(0,0,0,.35)' }}>–</span>}
-                    {delta == null && !you && seasonNo > 1 && <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 8, fontWeight: 900, color: '#7C3AED', background: '#F3EBFF', border: '1px solid #7C3AED', borderRadius: 4, padding: '0 3px' }}>novo</span>}
+                    {delta == null && !you && seasonNo > 1 && <span style={{ display: 'inline-block', marginLeft: 3, fontSize: 8, fontWeight: 900, color: '#7C3AED', background: '#F3EBFF', border: '1px solid #7C3AED', borderRadius: 4, padding: '0 3px' }}>{tr('novo', 'new')}</span>}
                   </td>
                   <td style={{ maxWidth: 150, color: you ? '#C2452F' : INK }}>
                     <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {you ? '🫵 ' : ''}{r.team_name || 'Time sem nome'}
-                      {you && <span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>VOCÊ</span>}
+                      {you ? '🫵 ' : ''}{r.team_name || tr('Time sem nome', 'Unnamed team')}
+                      {you && <span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>{tr('VOCÊ', 'YOU')}</span>}
                     </span>
                   </td>
                   <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                     {totalTit === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                       {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › B › C › D) */}
-                      {r.world_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Mundo{r.world_titles > 1 ? r.world_titles : ''}</span>}
+                      {r.world_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍{tr('Mundo', 'World')}{r.world_titles > 1 ? r.world_titles : ''}</span>}
                       {r.honors_a > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.honors_a}</span>}
-                      {r.copa_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆Copa{r.copa_titles > 1 ? r.copa_titles : ''}</span>}
+                      {r.copa_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{tr('Copa', 'Cup')}{r.copa_titles > 1 ? r.copa_titles : ''}</span>}
                       {(r.supercopa_titles ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆🔵{(r.supercopa_titles ?? 0) > 1 ? r.supercopa_titles : ''}</span>}
                       {([['B', r.honors_b], ['C', r.honors_c], ['D', r.honors_d], ['V', r.honors_v]] as [Div, number][]).map(([d, n]) => n > 0 ? (
                         <span key={d} style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG[d].l}{n}</span>
@@ -4381,13 +4401,13 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
                     <td style={{ paddingRight: 4 }}></td>
                     <td style={{ maxWidth: 150 }}>
                       <span style={{ display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 10, fontWeight: 800, color: '#7C3AED' }}>
-                        ↳ sua melhor: {melhorPos}º · {minhaMelhor.team_name || 'Time sem nome'}
+                        ↳ {tr('sua melhor', 'your best')}: {ordinal(melhorPos)} · {minhaMelhor.team_name || tr('Time sem nome', 'Unnamed team')}
                       </span>
                     </td>
                     <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontSize: 9, fontWeight: 900, color: '#7C3AED' }}>
                       {minhaMelhor.world_titles > 0 && <span style={{ marginLeft: 2 }}>🌍{minhaMelhor.world_titles}</span>}
                       {minhaMelhor.honors_a > 0 && <span style={{ marginLeft: 3 }}>🏆A{minhaMelhor.honors_a}</span>}
-                      {minhaMelhor.copa_titles > 0 && <span style={{ marginLeft: 3 }}>🏆Copa{minhaMelhor.copa_titles}</span>}
+                      {minhaMelhor.copa_titles > 0 && <span style={{ marginLeft: 3 }}>🏆{tr('Copa', 'Cup')}{minhaMelhor.copa_titles}</span>}
                       {(minhaMelhor.supercopa_titles ?? 0) > 0 && <span style={{ marginLeft: 3 }}>🏆🔵{minhaMelhor.supercopa_titles}</span>}
                     </td>
                     <td style={{ textAlign: 'right', fontSize: 9.5, fontWeight: 800, color: '#7C3AED' }}>{minhaMelhor.money}</td>
@@ -4403,16 +4423,16 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
             {!meInList && meUid && (() => {
               const pos = atual?.pos ?? myRank?.pos ?? null
               const total = atual?.total ?? myRank?.total ?? null
-              const nome = atual?.team_name || myTeamName || 'Seu time'
+              const nome = atual?.team_name || myTeamName || tr('Seu time', 'Your team')
               return (
                 <>
                   <tr style={{ borderTop: `2px solid ${INK}`, background: '#FFF3D6', fontWeight: 800 }}>
-                    <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>{pos ? `${pos}º` : '—'}</td>
+                    <td style={{ paddingRight: 4, color: 'rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>{pos ? ordinal(pos) : '—'}</td>
                     <td style={{ maxWidth: 150, color: '#C2452F' }}>
                       <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         🫵 {nome}
                         <span style={{ fontSize: 8, fontWeight: 900, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '1px 5px' }}>
-                          VOCÊ · {pos ? `${pos}º de ${total}` : 'fora do Top 50'}
+                          {tr('VOCÊ', 'YOU')} · {pos ? `${ordinal(pos)} ${tr('de', 'of')} ${total}` : tr('fora do Top 50', 'outside the Top 50')}
                         </span>
                       </span>
                     </td>
@@ -4423,7 +4443,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId }: { myTeamName: string;
                     <tr style={{ background: '#F3EFFF', borderTop: '1px dashed rgba(124,58,237,.55)' }}>
                       <td style={{ paddingRight: 4 }}></td>
                       <td colSpan={3} style={{ fontSize: 10.5, fontWeight: 800, color: '#7C3AED' }}>
-                        ↳ sua melhor: {minhaMelhor.team_name || 'Time sem nome'} · {melhorPos}º
+                        ↳ {tr('sua melhor', 'your best')}: {minhaMelhor.team_name || tr('Time sem nome', 'Unnamed team')} · {ordinal(melhorPos)}
                       </td>
                     </tr>
                   )}
@@ -5501,24 +5521,24 @@ function PresidenciaPrivate({ president, st, team, season, games, trophies, onNa
         <img className="ll25-president-person" src={portraits[president?.outfit ?? 'terno']} alt="Presidente do clube" />
         {trophies > 0 && <div className="ll25-president-trophies" aria-label={`${trophies} títulos`}><span>🏆</span><b>×{trophies}</b></div>}
         <div className="ll25-president-caption">
-          <small>SALA DA PRESIDÊNCIA · T{season}</small>
-          <strong>{president?.name || 'PRESIDENTE'}</strong>
+          <small>{tr('SALA DA PRESIDÊNCIA', "PRESIDENT'S OFFICE")} · T{season}</small>
+          <strong>{president?.name || tr('PRESIDENTE', 'PRESIDENT')}</strong>
           <span>{team}</span>
         </div>
       </div>
       <nav className="ll32-office-links" aria-label="Acessos da presidência">
-        <CareerStadiumView st={st} label="Ver estádio" inline={false}><StadiumSvg st={st}/></CareerStadiumView>
-        <button onClick={() => onNavigate('estadio')}>Obras do estádio</button>
-        <button onClick={() => onNavigate('patrocinio')}>Patrocínio</button>
-        <button onClick={() => onNavigate('financas')}>Finanças</button>
+        <CareerStadiumView st={st} label={tr('Ver estádio', 'See stadium')} inline={false}><StadiumSvg st={st}/></CareerStadiumView>
+        <button onClick={() => onNavigate('estadio')}>{tr('Obras do estádio', 'Stadium works')}</button>
+        <button onClick={() => onNavigate('patrocinio')}>{tr('Patrocínio', 'Sponsorship')}</button>
+        <button onClick={() => onNavigate('financas')}>{tr('Finanças', 'Finances')}</button>
       </nav>
       <div className="ll25-president-facts">
-        <article><small>TEMPORADAS</small><b>{season}</b></article>
-        <article><small>JOGOS</small><b>{games}</b></article>
-        <article><small>TÍTULOS</small><b>{trophies}</b></article>
-        <article><small>ESTÁDIO</small><b>{ready}/5 setores</b></article>
+        <article><small>{tr('TEMPORADAS', 'SEASONS')}</small><b>{season}</b></article>
+        <article><small>{tr('JOGOS', 'GAMES')}</small><b>{games}</b></article>
+        <article><small>{tr('TÍTULOS', 'TITLES')}</small><b>{trophies}</b></article>
+        <article><small>{tr('ESTÁDIO', 'STADIUM')}</small><b>{ready}/5 {tr('setores', 'stands')}</b></article>
       </div>
-      <p className="ll25-president-note">A janela usa o mesmo estádio construído na aba Estádio. Obras e troféus reais do save aparecem aqui sem alterar nenhuma regra.</p>
+      <p className="ll25-president-note">{tr('A janela usa o mesmo estádio construído na aba Estádio. Obras e troféus reais do save aparecem aqui sem alterar nenhuma regra.', 'The window shows the same stadium built in the Stadium tab. Real works and trophies from the save appear here without changing any rule.')}</p>
     </section>
   )
 }
