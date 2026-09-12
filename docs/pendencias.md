@@ -56,6 +56,14 @@ o **código de verdade** do jogo, num navegador. Não entra no build (só a
 
 - 📢 Duas linhas em `novidades.ts`, com `en`.
 - ✅ **Publicado na main em 12/09** com o "pode" do Diego.
+- ⚠️ **O PRIMEIRO DEPLOY FALHOU e o conserto foi na hora.** Erro:
+  `jornal.tsx: error TS6133: 'cut' is declared but its value is never read` — o
+  helper `cut` era do desenho VELHO do elenco e ficou órfão na reescrita.
+  **Causa real, e a lição pra próxima:** eu conferia com `npx tsc --noEmit -p .`,
+  e o servidor roda **`npm run build`**, que é `tsc -b && vite build`. O `-b` pega
+  código morto que o `--noEmit` deixa passar. **Conferir SEMPRE com
+  `npm run build`, nunca só com `tsc --noEmit`.** O site não saiu do ar em momento
+  nenhum: o deploy anterior continuou servindo até o verde.
 
 ## 12/09/2026 — 🎴 Leva de 23 cartas novas (a lista que o Diego escolheu)
 

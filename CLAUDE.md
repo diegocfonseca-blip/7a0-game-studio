@@ -221,6 +221,10 @@ FORA do bundle. Então, sem exceção:
   `apoio.tsx` (tiers), `dinastia.tsx`, `estadio.tsx` (SAF/estádio).
 - Backend: Supabase (auth, game_rooms, room_players, user_colors, user_cards).
 - Build: `npm run build` (Vite + tsc). SEMPRE buildar antes de commitar.
+  ⚠️ **Tem que ser o `npm run build` mesmo** (`tsc -b && vite build`). Conferir só
+  com `npx tsc --noEmit` NÃO basta: o `-b` reprova código morto (TS6133, variável
+  ou função que ficou sem uso) e o `--noEmit` deixa passar. Foi assim que um
+  deploy quebrou em 12/09.
 
 ## 🏀 BidLegends (basquete)
 - Conceito COMPLETO e decidido: **`docs/conceito-basquete.md`** (ler antes de
