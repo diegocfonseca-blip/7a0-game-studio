@@ -3379,9 +3379,11 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
       const of = (pos: Sector) => xi.filter(c => c.pos === pos)
       const lats = of('LAT')
       const def = [...(lats[0] ? [lats[0]] : []), ...of('ZAG'), ...(lats[1] ? [lats[1]] : [])]
-      const fieldRows = [of('ATA'), of('MEI'), def, of('GOL')].map(cards =>
-        cards.map(c => ({ pos: c.pos, name: c.name, goals: g(c) })))
-      const toRow = (c: WonCard): ElencoPlayerRow => ({ pos: c.pos, name: c.name, goals: g(c), paid: c.paid ?? 0 })
+      // 🧑 clube e ano vão junto: é a chave do ROSTO da lenda (e a linha
+      // "clube · ano" que o campinho da tela mostra embaixo do nome).
+      const fieldRows = [of('GOL'), def, of('MEI'), of('ATA')].map(cards =>
+        cards.map(c => ({ pos: c.pos, name: c.name, goals: g(c), club: c.club, year: c.year })))
+      const toRow = (c: WonCard): ElencoPlayerRow => ({ pos: c.pos, name: c.name, goals: g(c), paid: c.paid ?? 0, club: c.club, year: c.year })
       const titulares = SECTORS.flatMap(pos => of(pos)).map(toRow)
       const reservas = mgr.squad.filter(c => !xiIds.has(c.id))
         .sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(toRow)
@@ -3392,6 +3394,8 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
         teamName: mgr.teamName + apoioSelo(), divName, tablePos, seasonNo, formation: mgr.formation,
         titles, squadValue: mgr.squad.reduce((s2, c) => s2 + (c.paid ?? 0), 0), coins,
         color: col.solid, tierGrad: perk?.grad, tierHolo: perk?.holo ?? 0, fieldRows, titulares, reservas,
+        // 🛡️👕 nome LIMPO (chave do escudo/mascote) e o manto medido do clube
+        teamRaw: mgr.teamName, manto: meuManto(),
       })
     } finally { setBusy(false) }
   }

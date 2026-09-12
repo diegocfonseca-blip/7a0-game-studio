@@ -10,6 +10,17 @@ import type { SimTeam, CopaResult, SeasonScorer, Div } from './pyramidseason'
 import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { meuEstadioNome } from './manto' // 🏟️ nome batizado pelo sócio
 import { CareerNewspaperStories } from './jornal-career-visual'
+import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09): a imagem compartilhada também
+// 🖼️ as MESMAS ilustrações da tela (visual V22) — a imagem do compartilhar
+// passou a ser cópia do jornal que a pessoa acabou de ler, não um desenho à parte.
+import { carimboDoTime } from './mascotes' // 🐮 mascote do clube batizado, pro rodapé do elenco
+import { avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho)
+import { onlinePreviewEnabled } from './online-preview' // 🔒 trava do rosto: hoje só as contas de teste
+import { fotoDoJogador } from './rostos'
+import { VADICO_LOGO } from './vadico' // 🪧 placa atrás do gol, igual à tela
+import ligaArtSrc from './img/jornal-liga-v22.webp'
+import copaArtSrc from './img/jornal-copa-v22.webp'
+import scorerArtSrc from './img/jornal-artilheiro-v22.webp'
 
 // 🛡️→🖼️ rasteriza o escudo (o MESMO <Escudo> da tela) pra desenhar no canvas do
 // compartilhar. Antes a imagem do jornal mostrava só a 1ª LETRA do time — então a
@@ -39,6 +50,44 @@ function escudoImg(nome: string, px: number): Promise<HTMLImageElement | null> {
   return new Promise(res => { const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null); img.src = src })
 }
 
+// 🖼️ carrega uma imagem do bundle pro canvas. Falhou? devolve null e o desenho
+// segue sem ela (nunca quebra a arte inteira por causa de uma figura).
+// 🐮 mesma ideia do escudo, pra MASCOTE do clube batizado: rasteriza o desenho
+// (o mesmo `carimboDoTime` que carimba a tela no gol) pra poder ir no canvas.
+// Clube sem mascote devolve null e o rodapé sai sem ela, como sempre foi.
+function mascoteImg(nome: string, px: number): Promise<HTMLImageElement | null> {
+  const node = carimboDoTime(nome)
+  if (!node) return Promise.resolve(null)
+  const host = document.createElement('div')
+  host.style.cssText = `position:fixed;left:-9999px;top:0;width:${px}px;height:${px}px`
+  document.body.appendChild(host)
+  const root = createRoot(host)
+  let src: string | null = null
+  try {
+    flushSync(() => root.render(node as never))
+    const el = host.querySelector('img, svg')
+    if (el) {
+      if (el.tagName.toLowerCase() === 'img') src = (el as HTMLImageElement).src
+      else {
+        let t = new XMLSerializer().serializeToString(el)
+        if (!t.includes('xmlns')) t = t.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+        src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t)
+      }
+    }
+  } catch { src = null }
+  finally { root.unmount(); host.remove() }
+  return src ? loadImg(src) : Promise.resolve(null)
+}
+function loadImg(src: string): Promise<HTMLImageElement | null> {
+  return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src })
+}
+// 📐 desenha a imagem PREENCHENDO o retângulo (igual object-fit: cover do CSS)
+function drawCover(x: CanvasRenderingContext2D, img: HTMLImageElement, px: number, py: number, w: number, h: number) {
+  const r = Math.max(w / img.naturalWidth, h / img.naturalHeight)
+  const dw = img.naturalWidth * r, dh = img.naturalHeight * r
+  x.save(); x.beginPath(); x.rect(px, py, w, h); x.clip()
+  x.drawImage(img, px + (w - dw) / 2, py + (h - dh) / 2, dw, dh); x.restore()
+}
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GOLD_HEX = '#F5B301'
@@ -301,12 +350,19 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   // desenha a CAPA do jornal em imagem (canvas) — é ela que vai no compartilhar,
   // não texto. Mesma cara da capa na tela: cabeçalho, manchete, foto carimbada,
   // números e os donos da temporada.
+  // 📰 A IMAGEM DO COMPARTILHAR = A CAPA QUE ESTÁ NA TELA (visual V22).
+  // Reescrita em 12/09. O Diego pegou o descompasso: *"o jornal atual hj já mudou
+  // aparência.. só o compartilhar q ainda não"*. A tela já usava o V22 (masthead
+  // centralizado, ilustrações da liga/copa/artilheiro com o escudo por cima,
+  // notas em duas colunas) e este canvas ainda desenhava o layout velho — quadro
+  // verde chapado, tabela de números e lista corrida. Agora ele copia a tela.
   async function buildJornalBlob(): Promise<Blob | null> {
-    const W = 1080, H = 1560
-    const cv = document.createElement('canvas'); cv.width = W; cv.height = H
+    const W = 1080, MAXH = 2400
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = MAXH
     const x = cv.getContext('2d'); if (!x) return null
-    try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
+    try { await document.fonts.load('900 60px Oswald'); await document.fonts.load('700 60px Oswald') } catch { /* segue */ }
     const SER = "Georgia, 'Times New Roman', serif", OSW = 'Oswald, sans-serif'
+    const PAPEL_A = '#fbf3df', PAPEL_B = '#e3d0ad', TINTA2 = '#413825', TINTA3 = '#615039'
     const wrap = (t: string, font: string, maxW: number): string[] => {
       x.font = font
       const out: string[] = []; let line = ''
@@ -317,136 +373,206 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       if (line) out.push(line)
       return out
     }
-    // papel
-    x.fillStyle = '#F7F1DD'; x.fillRect(0, 0, W, H)
-    x.strokeStyle = INK; x.lineWidth = 6; x.strokeRect(12, 12, W - 24, H - 24)
-    const L = 52, R = W - 52
-    let y = 108
-    // masthead
-    x.textAlign = 'left'; x.font = `900 64px ${SER}`
-    x.fillStyle = INK; x.fillText('O ', L, y)
-    x.fillStyle = '#B23A2A'; x.fillText('MARTELO', L + x.measureText('O ').width, y)
-    x.textAlign = 'right'; x.fillStyle = '#3a3527'; x.font = `800 20px ${OSW}`
-    x.fillText(`EDIÇÃO Nº ${seasonNo} · TEMPORADA ${seasonNo}`, R, y - 30)
-    x.fillText(`${J_DIV_NAME[me.div].toUpperCase()} · PREÇO: 1 MOEDA`, R, y - 4)
-    y += 20
-    x.lineWidth = 3; x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
-    x.beginPath(); x.moveTo(L, y + 7); x.lineTo(R, y + 7); x.stroke()
-    y += 40
-    x.textAlign = 'left'; x.font = `900 21px ${OSW}`; x.fillStyle = '#3a3527'
-    x.fillText('⚽ O DIÁRIO DO LEILÃO LEGENDS', L, y)
-    x.textAlign = 'right'; x.fillText('FIM DE TEMPORADA', R, y)
-    y += 14
-    x.lineWidth = 1.5; x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
-    // manchete
-    y += 62
+    const cortar = (t: string, font: string, maxW: number): string => {
+      x.font = font; let r = t
+      while (x.measureText(r).width > maxW && r.length > 3) r = r.slice(0, -1)
+      return r === t ? t : r + '…'
+    }
+    // 📄 papel do V22: creme com a luz vindo de cima
+    const pg = x.createRadialGradient(W * 0.3, 0, 40, W * 0.3, 0, W * 1.25)
+    pg.addColorStop(0, PAPEL_A); pg.addColorStop(1, PAPEL_B)
+    x.fillStyle = pg; x.fillRect(0, 0, W, MAXH)
+    const L = 46, R = W - 46
+    let y = 92
+
+    // ── MASTHEAD centralizado (a marca do V22)
+    x.textAlign = 'center'; x.fillStyle = INK; x.font = `900 84px ${SER}`
+    x.fillText('O MARTELO', W / 2, y)
+    y += 30
+    x.font = `700 20px ${SER}`; x.fillStyle = TINTA2
+    x.fillText(`${tr('TEMPORADA', 'SEASON')} ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`, W / 2, y)
+    y += 16
+    x.strokeStyle = '#6c604a'; x.lineWidth = 1.5
+    x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
+    y += 22
+    x.font = `700 17px ${OSW}`; x.fillStyle = TINTA2
+    x.textAlign = 'left'; x.fillText(tr('O DIÁRIO DO LEILÃO LEGENDS', 'THE LEILÃO LEGENDS DAILY'), L, y)
+    x.textAlign = 'right'; x.fillText(tr('FIM DE TEMPORADA', 'END OF SEASON'), R, y)
+    y += 12
+    x.strokeStyle = TINTA2; x.lineWidth = 2.5
+    x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
+    x.beginPath(); x.moveTo(L, y + 6); x.lineTo(R, y + 6); x.stroke()
+    y += 58
+
+    // ── MANCHETE (Oswald condensada, caixa alta, igual à tela)
     x.textAlign = 'left'; x.fillStyle = INK
-    const hFont = `900 58px ${SER}`
-    for (const ln of wrap(hl.h, hFont, R - L)) { x.font = hFont; x.fillText(ln, L, y); y += 62 }
-    y += 4
-    x.fillStyle = '#3a3527'
-    const sFont = `italic 700 27px ${SER}`
-    const subTxt = meuEstadioNome() ? `${hl.s} Direto do 🏟️ ${meuEstadioNome()}.` : hl.s
-    for (const ln of wrap(subTxt, sFont, R - L)) { x.font = sFont; x.fillText(ln, L, y); y += 34 }
+    const hFont = `700 62px ${OSW}`
+    for (const ln of wrap(hl.h.toUpperCase(), hFont, R - L)) { x.font = hFont; x.fillText(ln, L, y); y += 66 }
+    y += 8
+
+    // ── DECK (a linha de apoio, entre filetes)
+    x.strokeStyle = '#665944'; x.lineWidth = 1.5
+    x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
+    y += 30
+    x.fillStyle = TINTA2
+    const sFont = `italic 400 21px ${SER}`
+    const subTxt = meuEstadioNome() ? `${hl.s} ${tr('Direto do', 'Live from')} 🏟️ ${meuEstadioNome()}.` : hl.s
+    for (const ln of wrap(subTxt, sFont, R - L)) { x.font = sFont; x.fillText(ln, L, y); y += 28 }
+    y += 8
+    x.strokeStyle = '#665944'; x.lineWidth = 2.5
+    x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
+    x.beginPath(); x.moveTo(L, y + 5); x.lineTo(R, y + 5); x.stroke()
+    y += 30
+
+    // ── AS MATÉRIAS (a peça nova da tela): foto grande + duas do lado
+    const [imgLiga, imgCopa, imgArt] = await Promise.all([loadImg(ligaArtSrc), loadImg(copaArtSrc), loadImg(scorerArtSrc)])
+    const campeao = tables[me.div]?.[0]?.name
+    const artDiv = divTop[me.div]
+    const gapS = 18
+    const mainW = Math.round((R - L - gapS) * 0.63), sideW = R - L - gapS - mainW
+    const mainH = Math.round(mainW * 2 / 3)
+    // 🛡️ escudo numa PRANCHA creme (pedido do Diego 12/09: *"só senti falta do
+    // escudo do time campeão da liga"* — sobre a arte escura ele sumia).
+    const selo = async (nome: string, px: number, py: number, tam: number) => {
+      const pad = Math.round(tam * 0.11), cx0 = px, cy0 = py
+      const lado = tam + pad * 2
+      x.fillStyle = PAPEL_A; x.fillRect(cx0, cy0 - lado, lado, lado)
+      x.strokeStyle = TINTA2; x.lineWidth = 2.5; x.strokeRect(cx0, cy0 - lado, lado, lado)
+      const e = await escudoImg(nome, tam * 2)
+      if (e && e.naturalWidth) {
+        const eh = tam, ew = Math.min(tam, eh * e.naturalWidth / e.naturalHeight)
+        x.drawImage(e, cx0 + (lado - ew) / 2, cy0 - lado + (lado - eh) / 2, ew, eh)
+      } else {
+        x.textAlign = 'center'; x.fillStyle = INK; x.font = `700 ${Math.round(tam * 0.7)}px ${OSW}`
+        x.fillText(nome.trim()[0]?.toUpperCase() ?? '?', cx0 + lado / 2, cy0 - lado / 2 + tam * 0.25)
+        x.textAlign = 'left'
+      }
+    }
+    const yStories = y
+    if (imgLiga) drawCover(x, imgLiga, L, y, mainW, mainH)
+    else { x.fillStyle = '#1B7A3D'; x.fillRect(L, y, mainW, mainH) }
+    x.strokeStyle = '#74674e'; x.lineWidth = 1.5; x.strokeRect(L, y, mainW, mainH)
+    if (campeao) await selo(campeao, L + 12, y + mainH - 12, 66)
+    let my = y + mainH + 26
+    x.textAlign = 'left'; x.fillStyle = TINTA3; x.font = `700 16px ${OSW}`
+    x.fillText(`${tr('CAMPEÃO', 'CHAMPION')} · ${J_DIV_NAME[me.div].toUpperCase()}`, L, my)
+    my += 42
+    x.fillStyle = INK; x.font = `700 42px ${OSW}`
+    x.fillText(cortar((campeao ?? me.team).toUpperCase(), `700 42px ${OSW}`, mainW), L, my)
+    // coluna lateral
+    const sx = L + mainW + gapS
+    let sy = y
+    const sideH = Math.round(sideW * 2 / 3)
+    const miniMateria = async (titulo: string, img: HTMLImageElement | null, crest: string | null, legenda: string) => {
+      x.textAlign = 'left'; x.fillStyle = INK; x.font = `700 24px ${OSW}`
+      x.fillText(cortar(titulo.toUpperCase(), `700 24px ${OSW}`, sideW), sx, sy + 20)
+      sy += 34
+      if (img) drawCover(x, img, sx, sy, sideW, sideH)
+      else { x.fillStyle = '#1B7A3D'; x.fillRect(sx, sy, sideW, sideH) }
+      x.strokeStyle = '#74674e'; x.lineWidth = 1.5; x.strokeRect(sx, sy, sideW, sideH)
+      if (crest) await selo(crest, sx + 8, sy + sideH - 8, 42)
+      sy += sideH + 24
+      x.fillStyle = INK; x.font = `700 17px ${SER}`
+      x.fillText(cortar(legenda, `700 17px ${SER}`, sideW), sx, sy)
+      sy += 26
+    }
+    if (copa?.champion) await miniMateria(brasil ? tr('O dono da Copa do Brasil', 'The Copa do Brasil winner') : tr('O dono da Copa', 'The Cup winner'), imgCopa, copa.champion.name, copa.champion.name)
+    if (artDiv) await miniMateria(`${tr('Artilheiro', 'Top scorer')} · ${J_DIV_NAME[me.div]}`, imgArt, null, `${artDiv.name} · ${artDiv.goals} ${tr('gols', 'goals')}`)
+    y = Math.max(my + 18, sy + 6)
+    x.strokeStyle = '#74674e'; x.lineWidth = 2.5
+    x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
+    x.beginPath(); x.moveTo(L, y + 5); x.lineTo(R, y + 5); x.stroke()
+    y += 30
+    void yStories
+
+    // ── NÚMEROS DO TIME: cinco caixinhas soltas, como na tela
+    const nums: [string, string][] = [[tr('Posição', 'Place'), `${me.pos}º`]]
+    if (mine) nums.push([tr('Pontos', 'Points'), String(mine.pts)], ['V · E · D', `${mine.w}·${mine.d}·${mine.l}`],
+      [tr('Gols (pró/contra)', 'Goals (for/against)'), `${mine.gf}/${mine.ga}`], [tr('Saldo', 'Diff'), `${mine.gf - mine.ga >= 0 ? '+' : ''}${mine.gf - mine.ga}`])
+    const nGap = 10, nW = (R - L - nGap * (nums.length - 1)) / nums.length, nH = 76
+    nums.forEach(([k, v], i) => {
+      const px = L + i * (nW + nGap)
+      x.fillStyle = '#fffdf6'; x.fillRect(px, y, nW, nH)
+      x.strokeStyle = '#9f8b6b'; x.lineWidth = 1.5; x.strokeRect(px, y, nW, nH)
+      x.textAlign = 'center'; x.fillStyle = INK; x.font = `700 30px ${OSW}`
+      x.fillText(cortar(v, `700 30px ${OSW}`, nW - 12), px + nW / 2, y + 38)
+      x.fillStyle = TINTA3; x.font = `700 14px ${OSW}`
+      x.fillText(cortar(k, `700 14px ${OSW}`, nW - 8), px + nW / 2, y + 60)
+    })
+    y += nH + 34
+
+    // ── OS DONOS DA TEMPORADA, em duas colunas (as "notas" do V22)
+    x.textAlign = 'center'; x.fillStyle = INK; x.font = `700 38px ${OSW}`
+    x.fillText(tr('Os donos da temporada', 'The season’s winners'), W / 2, y)
     y += 18
-    // foto (esq) + números (dir)
-    const boxH = 330, colW = (R - L - 24) / 2
-    const g = x.createLinearGradient(L, y, L, y + boxH)
-    g.addColorStop(0, '#2ea457'); g.addColorStop(1, '#123f22')
-    x.fillStyle = g; x.fillRect(L, y, colW, boxH)
-    x.lineWidth = 4; x.strokeStyle = INK; x.strokeRect(L, y, colW, boxH)
-    const cx = L + colW / 2
-    x.beginPath(); x.arc(cx, y + 128, 62, 0, Math.PI * 2); x.fillStyle = '#F7F1DD'; x.fill(); x.strokeStyle = INK; x.lineWidth = 5; x.stroke()
-    // 🛡️ brasão de verdade (a logo do time). Save antigo sem rede/logo cai na letra.
-    const escFoto = await escudoImg(me.team, 120)
-    if (escFoto && escFoto.naturalWidth) {
-      const eh = 104, ew = eh * escFoto.naturalWidth / escFoto.naturalHeight
-      x.save(); x.beginPath(); x.arc(cx, y + 128, 60, 0, Math.PI * 2); x.clip()
-      x.drawImage(escFoto, cx - ew / 2, y + 128 - eh / 2, ew, eh); x.restore()
-    } else {
-      x.textAlign = 'center'; x.fillStyle = INK; x.font = `900 56px ${OSW}`
-      x.fillText(me.team.trim()[0]?.toUpperCase() ?? '?', cx, y + 148)
-    }
-    x.fillStyle = '#fff'; x.font = `900 30px ${OSW}`
-    let tn = me.team; while (x.measureText(tn).width > colW - 30 && tn.length > 3) tn = tn.slice(0, -1)
-    x.fillText(tn, cx, y + 236)
-    x.fillStyle = 'rgba(0,0,0,.68)'; x.fillRect(L, y + boxH - 40, colW, 40)
-    x.fillStyle = '#fff'; x.font = `italic 700 19px ${SER}`
-    x.fillText(`${me.pos}º da ${J_DIV_NAME[me.div]} na temporada ${seasonNo}.`, cx, y + boxH - 13)
-    if (stamp) { // carimbo torto
-      x.save(); x.translate(L + colW - 88, y + 56); x.rotate(0.3)
-      x.fillStyle = 'rgba(247,241,221,.75)'; x.fillRect(-92, -26, 184, 52)
-      x.strokeStyle = stamp.color; x.lineWidth = 5; x.strokeRect(-92, -26, 184, 52)
-      x.fillStyle = stamp.color; x.font = `900 27px ${OSW}`; x.fillText(stamp.txt, 0, 9); x.restore()
-    }
-    // números
-    const nx = L + colW + 24
-    x.fillStyle = '#fff'; x.fillRect(nx, y, colW, boxH)
-    x.lineWidth = 4; x.strokeStyle = INK; x.strokeRect(nx, y, colW, boxH)
-    x.fillStyle = INK; x.fillRect(nx, y, colW, 44)
-    x.fillStyle = '#fff'; x.font = `900 21px ${OSW}`; x.textAlign = 'left'
-    x.fillText('OS NÚMEROS DO TIME', nx + 16, y + 30)
-    const rows: [string, string][] = [['Posição', `${me.pos}º`]]
-    if (mine) rows.push(['Pontos', String(mine.pts)], ['V · E · D', `${mine.w}·${mine.d}·${mine.l}`], ['Gols (pró/contra)', `${mine.gf}/${mine.ga}`], ['Saldo', `${mine.gf - mine.ga >= 0 ? '+' : ''}${mine.gf - mine.ga}`])
-    let ry = y + 84
-    for (const [k, v] of rows) {
-      x.fillStyle = '#1c1a12'; x.font = `700 24px ${OSW}`; x.textAlign = 'left'; x.fillText(k, nx + 16, ry)
-      x.font = `900 24px ${OSW}`; x.textAlign = 'right'; x.fillText(v, nx + colW - 16, ry)
-      x.strokeStyle = 'rgba(0,0,0,.12)'; x.lineWidth = 1; x.beginPath(); x.moveTo(nx + 12, ry + 14); x.lineTo(nx + colW - 12, ry + 14); x.stroke()
-      ry += 50
-    }
-    y += boxH + 26
-    // os donos da temporada
-    const donos: { tag: string; col: string; label: string; champ: string; isYou: boolean; art?: string }[] = []
+    const donos: { col: string; label: string; champ: string; isYou: boolean; art?: string }[] = []
     for (const d of J_DIVS) {
       const c = tables[d]?.[0]; const a = divTop[d]
-      if (c) donos.push({ tag: d, col: J_DIV_COLOR[d], label: J_DIV_NAME[d].toUpperCase(), champ: c.name, isYou: !!c.you, art: a ? `⚽ ${a.name} (${a.teamName}) · ${a.goals} gols` : undefined })
+      if (c) donos.push({ col: J_DIV_COLOR[d], label: J_DIV_NAME[d].toUpperCase(), champ: c.name, isYou: !!c.you, art: a ? `${a.name} (${a.teamName}), ${a.goals} ${tr('gols', 'goals')}` : undefined })
     }
-    if (copa?.champion) donos.push({ tag: '🏆', col: brasil ? '#0EA658' : '#F5B301', label: brasil ? 'COPA DO BRASIL' : 'COPA LEGENDS', champ: copa.champion.name, isYou: !!copa.champion.you, art: copa.topScorer ? `⚽ ${copa.topScorer.name} (${copa.topScorer.teamName}) · ${copa.topScorer.goals} gols` : undefined })
-    if (mundial) donos.push({ tag: '🌍', col: '#2563EB', label: 'COPA DO MUNDO LEGENDS', champ: mundial.selecao, isYou: !!mundial.voce, art: mundial.campeao })
-    const dh = 46 + donos.length * 78
-    x.fillStyle = '#fff'; x.fillRect(L, y, R - L, dh)
-    x.lineWidth = 4; x.strokeStyle = INK; x.strokeRect(L, y, R - L, dh)
-    x.fillStyle = INK; x.fillRect(L, y, R - L, 44)
-    x.fillStyle = GOLD_HEX; x.font = `900 22px ${OSW}`; x.textAlign = 'left'
-    x.fillText('🏆 OS DONOS DA TEMPORADA', L + 16, y + 30)
-    let dy = y + 44
-    for (const dn of donos) {
-      if (dn.isYou) { x.fillStyle = '#fdf6dd'; x.fillRect(L + 4, dy, R - L - 8, 78) }
-      x.fillStyle = dn.col; x.fillRect(L + 4, dy, 8, 78)
-      x.fillRect(L + 26, dy + 20, 38, 38)
-      x.strokeStyle = INK; x.lineWidth = 3; x.strokeRect(L + 26, dy + 20, 38, 38)
-      x.fillStyle = (dn.tag === '🏆' || dn.tag === '🌍') ? INK : '#fff'; x.font = `900 22px ${OSW}`; x.textAlign = 'center'
-      x.fillText(dn.tag, L + 45, dy + 47)
-      // 🏷️ rótulo da série/competição (Diego 05/08: "não sabemos de qual é qual")
-      x.textAlign = 'left'; x.font = `900 13px ${OSW}`; x.fillStyle = dn.col
-      x.fillText(dn.label, L + 84, dy + 14)
-      x.fillStyle = INK; x.font = `900 26px ${OSW}`
-      const champW = x.measureText(dn.champ).width
-      x.fillText(dn.champ, L + 84, dy + 40)
-      x.font = `800 15px ${OSW}`; x.fillStyle = dn.isYou ? '#b98600' : '#8a8266'
-      x.fillText(dn.isYou ? 'CAMPEÃO ⭐ VOCÊ' : (dn.tag === '🏆' ? 'CAMPEÃO DA COPA' : dn.tag === '🌍' ? 'CAMPEÃ DO MUNDO' : 'CAMPEÃO'), L + 84 + champW + 12, dy + 38)
-      if (dn.art) { x.font = `700 20px ${OSW}`; x.fillStyle = '#3a3527'; x.fillText(dn.art, L + 84, dy + 66) }
-      x.strokeStyle = 'rgba(0,0,0,.12)'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(L + 4, dy + 78); x.lineTo(R - 4, dy + 78); x.stroke()
-      dy += 78
+    if (copa?.champion) donos.push({ col: brasil ? '#0EA658' : '#F5B301', label: brasil ? tr('COPA DO BRASIL', 'COPA DO BRASIL') : tr('COPA LEGENDS', 'LEGENDS CUP'), champ: copa.champion.name, isYou: !!copa.champion.you, art: copa.topScorer ? `${copa.topScorer.name} (${copa.topScorer.teamName}), ${copa.topScorer.goals} ${tr('gols', 'goals')}` : undefined })
+    if (mundial) donos.push({ col: '#2563EB', label: tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP'), champ: mundial.selecao, isYou: !!mundial.voce, art: mundial.campeao })
+    const cGap = 26, cW = (R - L - cGap) / 2, noteH = 106
+    for (let i = 0; i < donos.length; i++) {
+      const dn = donos[i]
+      const px = L + (i % 2) * (cW + cGap)
+      const py = y + Math.floor(i / 2) * noteH
+      x.strokeStyle = '#9f8b6b'; x.lineWidth = 1
+      x.beginPath(); x.moveTo(px, py); x.lineTo(px + cW, py); x.stroke()
+      const ey = py + 16
+      const e = await escudoImg(dn.champ, 88)
+      if (e && e.naturalWidth) {
+        const eh = 44, ew = Math.min(44, eh * e.naturalWidth / e.naturalHeight)
+        x.drawImage(e, px + (44 - ew) / 2, ey, ew, eh)
+      } else {
+        x.fillStyle = dn.col; x.fillRect(px, ey, 44, 44)
+        x.strokeStyle = INK; x.lineWidth = 2; x.strokeRect(px, ey, 44, 44)
+        x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = `700 22px ${OSW}`
+        x.fillText(dn.champ.trim()[0]?.toUpperCase() ?? '?', px + 22, ey + 31)
+      }
+      const tx = px + 58, tw = cW - 58
+      x.textAlign = 'left'; x.fillStyle = INK; x.font = `700 21px ${OSW}`
+      const nome = cortar(dn.champ.toUpperCase(), `700 21px ${OSW}`, tw - (dn.isYou ? 74 : 84))
+      x.fillText(nome, tx, ey + 20)
+      const nw = x.measureText(nome).width
+      if (dn.isYou) {
+        x.fillStyle = INK; x.fillRect(tx + nw + 8, ey + 5, 54, 20)
+        x.fillStyle = GOLD; x.font = `700 13px ${OSW}`; x.fillText(tr('VOCÊ', 'YOU'), tx + nw + 15, ey + 20)
+      }
+      x.fillStyle = TINTA3; x.font = `700 13px ${OSW}`
+      x.fillText(`· ${dn.label}`, tx + nw + (dn.isYou ? 70 : 10), ey + 20)
+      x.fillStyle = TINTA3; x.font = `400 14px ${SER}`
+      x.fillText(tr('campeão da temporada', 'season champion'), tx, ey + 42)
+      if (dn.art) {
+        x.fillStyle = INK; x.font = `400 15px ${SER}`
+        x.fillText(cortar(`${tr('Artilheiro', 'Top scorer')}: ${dn.art}`, `400 15px ${SER}`, tw), tx, ey + 66)
+      }
     }
-    y += dh + 40
-    // 🥇 rodapé DOURADO (Diego 27/08: *"talvez o rodapé da imagem seja
-    // leilaolegends.com dourado"*). Era uma tarja verde com texto branco. O
-    // degradê imita o brilho das peças douradas do jogo; o texto vai em tinta
-    // preta porque branco sobre ouro some.
-    const fx0 = W / 2 - 300, fh = 76
-    const grad = x.createLinearGradient(fx0, y, fx0 + 600, y + fh)
-    grad.addColorStop(0, '#FFD44A'); grad.addColorStop(0.45, GOLD); grad.addColorStop(1, '#E0A800')
-    x.fillStyle = grad; x.fillRect(fx0, y, 600, fh)
-    x.strokeStyle = INK; x.lineWidth = 5; x.strokeRect(fx0, y, 600, fh)
-    x.fillStyle = INK; x.font = `900 34px ${OSW}`; x.textAlign = 'center'
-    x.fillText('🔨 leilaolegends.com', W / 2, y + 48)
-    return new Promise(res => cv.toBlob(b => res(b), 'image/png'))
+    y += Math.ceil(donos.length / 2) * noteH + 18
+
+    // ── RODAPÉ do V22: filete duplo e o endereço, sem tarja
+    x.strokeStyle = TINTA3; x.lineWidth = 2.5
+    x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
+    x.beginPath(); x.moveTo(L, y + 5); x.lineTo(R, y + 5); x.stroke()
+    y += 40
+    x.textAlign = 'center'; x.fillStyle = INK; x.font = `700 26px ${OSW}`
+    x.fillText('🔨 leilaolegends.com', W / 2, y)
+    y += 34
+
+    // moldura do papel + corte na altura real
+    const H = Math.min(MAXH, Math.round(y))
+    const fin = document.createElement('canvas'); fin.width = W; fin.height = H
+    const fx = fin.getContext('2d'); if (!fx) return null
+    fx.drawImage(cv, 0, 0, W, H, 0, 0, W, H)
+    fx.strokeStyle = '#8b785c'; fx.lineWidth = 2; fx.strokeRect(1, 1, W - 2, H - 2)
+    fx.strokeStyle = PAPEL_B; fx.lineWidth = 8; fx.strokeRect(8, 8, W - 16, H - 16)
+    return new Promise(res => fin.toBlob(b => res(b), 'image/png'))
   }
 
   async function share() {
-    const txt = `📰 "${hl.h}" — ${me.team}, ${me.pos}º na ${J_DIV_NAME[me.div]} (T${seasonNo}). Joga você também: leilaolegends.com`
+    const txt = getLang() === 'en'
+      ? `📰 "${hl.h}" — ${me.team}, ${ordinal(me.pos)} in ${J_DIV_NAME[me.div]} (S${seasonNo}). Come play too: leilaolegends.com`
+      : `📰 "${hl.h}" — ${me.team}, ${me.pos}º na ${J_DIV_NAME[me.div]} (T${seasonNo}). Joga você também: leilaolegends.com`
     try {
       const blob = await buildJornalBlob()
       if (blob) {
@@ -702,8 +828,8 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
 
       {/* rodapé: compartilhar + fechar */}
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
-        <button onClick={share} style={{ flex: 1, background: '#1faa54', color: '#fff', border: `3px solid ${INK}`, borderRadius: 11, padding: 9, fontWeight: 900, fontSize: 13, ...COND, cursor: 'pointer', boxShadow: `3px 3px 0 0 ${INK}` }}>{copied ? '✅ Copiado!' : '📲 Mandar no grupo'}</button>
-        <button onClick={() => setOpen(false)} style={{ flex: 'none', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 11, padding: '9px 14px', fontWeight: 900, fontSize: 13, ...COND, cursor: 'pointer' }}>Fechar</button>
+        <button onClick={share} style={{ flex: 1, background: '#1faa54', color: '#fff', border: `3px solid ${INK}`, borderRadius: 11, padding: 9, fontWeight: 900, fontSize: 13, ...COND, cursor: 'pointer', boxShadow: `3px 3px 0 0 ${INK}` }}>{copied ? tr('✅ Copiado!', '✅ Copied!') : tr('📲 Mandar no grupo', '📲 Send to the group')}</button>
+        <button onClick={() => setOpen(false)} style={{ flex: 'none', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 11, padding: '9px 14px', fontWeight: 900, fontSize: 13, ...COND, cursor: 'pointer' }}>{tr('Fechar', 'Close')}</button>
       </div>
     </div>
   )
@@ -712,7 +838,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
 // ─── 📤 COMPARTILHAR ELENCO: a arte 1080px aprovada no mockup ────────────────
 // A tela do jogo não muda — isto gera a IMAGEM (header na cor do time + campinho
 // padrão + listas com gols/valor + rodapé dourado) e abre o compartilhar nativo.
-export type ElencoPlayerRow = { pos: string; name: string; goals: number; paid: number }
+export type ElencoPlayerRow = { pos: string; name: string; goals: number; paid: number; club?: string; year?: number }
 export type ElencoShareOpts = {
   teamName: string; divName: string; tablePos: number; seasonNo: number; formation: string
   titles: number; squadValue: number; coins: number; color: string
@@ -720,7 +846,13 @@ export type ElencoShareOpts = {
   // Presente → topo e listas ganham o MESMO manto da aba Elenco (fidelidade de
   // tier: ouro brilha na arte também). Ausente → cor chapada de sempre.
   tierGrad?: string; tierHolo?: number
-  fieldRows: { pos: string; name: string; goals: number }[][] // ATA/MEI/DEF/GOL
+  fieldRows: { pos: string; name: string; goals: number; club?: string; year?: number }[][] // ATA/MEI/DEF/GOL
+  // 🛡️ nome LIMPO do clube (sem o selo de apoio) — é a chave do escudo e da mascote
+  teamRaw?: string
+  // 👕 manto do clube (as 2 cores medidas na arte do dono). Presente → o topo e a
+  // faixa de cada campinho saem listrados igual à tela, e a bolinha de quem não
+  // tem rosto leva o manto. Ausente → cor chapada do time, como era.
+  manto?: [string, string] | null
   titulares: ElencoPlayerRow[]; reservas: ElencoPlayerRow[]
 }
 // degradê CSS do tier → paradas de gradiente de canvas (só hex + % opcional)
@@ -771,105 +903,188 @@ function cut(x: CanvasRenderingContext2D, t: string, maxW: number): string {
   while (s.length > 2 && x.measureText(s + '…').width > maxW) s = s.slice(0, -1)
   return s + '…'
 }
+// 🖼️ A IMAGEM DO ELENCO = O CAMPINHO QUE ESTÁ NA TELA.
+// Reescrita em 12/09, mesmo motivo do jornal: a tela mudou e a imagem ficou pra
+// trás. No campinho de hoje o jogador está SOLTO na grama (decisão do Diego em
+// 19/08: *"o jogador é ele LIVRE"*), com o rosto quando existe e a bolinha no
+// MANTO do clube quando não existe, mais o nome, o clube/ano, o selo de gols, a
+// faixa do manto com o título e a placa do patrocinador atrás do gol. A imagem
+// desenhava fichinha branca com o nome escrito. Agora ela copia a tela.
 export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> {
-  const W = 1080
-  const HEAD = 252, FPAD = 0, FH = 660, LHEAD = 56, ROWH = 46, ROWG = 8
-  const nRows = Math.max(o.titulares.length, o.reservas.length, 1)
-  const LISTS = LHEAD + nRows * (ROWH + ROWG) + 18
-  const FOOT = 116
-  const H = HEAD + FPAD + FH + LISTS + FOOT
-  const cv = document.createElement('canvas'); cv.width = W; cv.height = H
+  const W = 1080, MAXH = 2600
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = MAXH
   const x = cv.getContext('2d'); if (!x) return null
   try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
   const OSW = 'Oswald, sans-serif', ARI = 'Arial, sans-serif'
+  const manto = o.manto ?? null
+  const tier = o.tierGrad
+  const claro = tier ? tierIsLight(tier) : false
+  // 🎽 listras do manto (as mesmas 2 cores medidas na arte do dono)
+  const listras = (px: number, py: number, w: number, h: number, passo: number) => {
+    if (!manto) { if (tier) fillTier(x, tier, px, py, w, h); else { x.fillStyle = o.color; x.fillRect(px, py, w, h) } ; return }
+    x.save(); x.beginPath(); x.rect(px, py, w, h); x.clip()
+    x.fillStyle = manto[1]; x.fillRect(px, py, w, h)
+    x.fillStyle = manto[0]
+    for (let i = -h; i < w + h; i += passo * 2) { x.beginPath(); x.moveTo(px + i, py + h); x.lineTo(px + i + h * 0.45, py); x.lineTo(px + i + h * 0.45 + passo, py); x.lineTo(px + i + passo, py + h); x.closePath(); x.fill() }
+    x.restore()
+  }
+  const veu = (px: number, py: number, w: number, h: number, a = 0.78) => {
+    const g = x.createLinearGradient(px, py, px + w, py)
+    g.addColorStop(0, `rgba(0,0,0,${a})`); g.addColorStop(0.58, `rgba(0,0,0,${a})`); g.addColorStop(1, `rgba(0,0,0,${a * 0.4})`)
+    x.fillStyle = g; x.fillRect(px, py, w, h)
+  }
+  const cortar = (t: string, font: string, maxW: number): string => {
+    x.font = font; let r = t
+    while (x.measureText(r).width > maxW && r.length > 2) r = r.slice(0, -1)
+    return r === t ? t : r + '…'
+  }
+  const rrf = (px: number, py: number, w: number, h: number, r: number) => { rr(x, px, py, w, h, r) }
 
-  // ── HEADER na cor do time (com tier de apoio: no MANTO do tier + brilho)
-  const manto = o.tierGrad
-  const claro = manto ? tierIsLight(manto) : false // manto claro → texto escuro
-  if (manto) fillTier(x, manto, 0, 0, W, HEAD)
-  else { x.fillStyle = o.color; x.fillRect(0, 0, W, HEAD) }
+  // ── CABEÇALHO: manto listrado + véu + escudo + nome + pílulas
+  const HEAD = 268
+  listras(0, 0, W, HEAD, 26)
+  if (manto) veu(0, 0, W, HEAD)
+  if (tier && !manto) sheenRect(x, 0, 0, W, HEAD, 0.62, o.tierHolo ?? 0)
+  const escCor = manto ? '#fff' : (claro ? INK : '#fff')
+  const esc = await escudoImg(o.teamRaw ?? o.teamName, 200)
+  let tx0 = 44
+  if (esc && esc.naturalWidth) {
+    const eh = 118, ew = Math.min(130, eh * esc.naturalWidth / esc.naturalHeight)
+    x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowOffsetX = 3; x.shadowOffsetY = 3
+    x.drawImage(esc, 44, 34, ew, eh); x.restore()
+    tx0 = 44 + ew + 22
+  }
   x.textAlign = 'left'
-  x.fillStyle = claro ? 'rgba(0,0,0,0.60)' : GOLD_HEX; x.font = `800 26px ${OSW}`
-  x.fillText('🔨 LEILÃO LEGENDS · MEU ELENCO', 44, 56)
-  x.fillStyle = claro ? INK : '#fff'; x.font = `900 62px ${OSW}`
-  x.fillText(cut(x, o.teamName, W - 88), 44, 126)
-  x.fillStyle = claro ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)'; x.font = `800 27px ${ARI}`
-  x.fillText(`${o.divName} · ${o.tablePos}º lugar · Temporada ${o.seasonNo} · ${o.formation}`, 44, 168)
-  // chips
-  const chips = [`🏆 ${o.titles} título${o.titles === 1 ? '' : 's'}`, `🏷️ Elenco vale ${o.squadValue} 💵`, `🪙 Caixa: ${o.coins}`]
+  x.fillStyle = manto ? GOLD_HEX : (claro ? 'rgba(0,0,0,0.60)' : GOLD_HEX); x.font = `800 25px ${OSW}`
+  x.fillText(tr('🔨 LEILÃO LEGENDS · MEU ELENCO', '🔨 LEILÃO LEGENDS · MY SQUAD'), tx0, 60)
+  x.fillStyle = escCor; x.font = `900 60px ${OSW}`
+  x.fillText(cortar(o.teamName, `900 60px ${OSW}`, W - tx0 - 44), tx0, 122)
+  x.fillStyle = manto ? 'rgba(255,255,255,0.9)' : (claro ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)'); x.font = `800 25px ${ARI}`
+  x.fillText(`${o.divName} · ${getLang() === 'en' ? ordinal(o.tablePos) : `${o.tablePos}º lugar`} · ${tr('Temporada', 'Season')} ${o.seasonNo} · ${o.formation}`, tx0, 164)
+  const chips = [
+    `🏆 ${o.titles} ${o.titles === 1 ? tr('título', 'title') : tr('títulos', 'titles')}`,
+    `🏷️ ${tr('Elenco vale', 'Squad worth')} ${o.squadValue} 💵`,
+    `🪙 ${tr('Caixa', 'Cash')}: ${o.coins}`,
+  ]
   let cx = 44
-  x.font = `800 25px ${OSW}`
+  x.font = `800 24px ${OSW}`
   for (const c of chips) {
-    const w = x.measureText(c).width + 34
-    x.fillStyle = claro ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.30)'; rr(x, cx, 190, w, 44, 12); x.fill()
-    x.strokeStyle = claro ? 'rgba(0,0,0,0.45)' : 'rgba(245,179,1,0.75)'; x.lineWidth = 2.5; rr(x, cx, 190, w, 44, 12); x.stroke()
-    x.fillStyle = claro ? '#FFDD70' : GOLD_HEX; x.fillText(c, cx + 17, 221)
-    cx += w + 14
+    const w = x.measureText(c).width + 32
+    x.fillStyle = 'rgba(0,0,0,0.55)'; rrf(cx, 196, w, 44, 12); x.fill()
+    x.strokeStyle = GOLD_HEX; x.lineWidth = 2.5; rrf(cx, 196, w, 44, 12); x.stroke()
+    x.fillStyle = GOLD_HEX; x.fillText(c, cx + 16, 226)
+    cx += w + 13
   }
-  if (manto) sheenRect(x, 0, 0, W, HEAD, 0.62, o.tierHolo ?? 0)
   x.fillStyle = INK; x.fillRect(0, HEAD - 6, W, 6)
+  let y = HEAD
 
-  // ── CAMPO padrão de ponta a ponta (uma cor só: o fundo é a cor do time)
-  const fx0 = 0, fy0 = HEAD, fw = W
-  for (let i = 0; i < 10; i++) { x.fillStyle = i % 2 ? '#166332' : '#1B7A3D'; x.fillRect(fx0, fy0 + i * (FH / 10), fw, FH / 10) }
-  const rowY = [0.14, 0.38, 0.63, 0.87]
-  o.fieldRows.forEach((cards, ri) => {
-    if (!cards.length) return
-    const cw = Math.min(300, (fw - 40) / cards.length - 18), ch = 104
-    const total = cards.length * cw + (cards.length - 1) * 18
-    let px = fx0 + (fw - total) / 2
-    const py = fy0 + FH * rowY[ri] - ch / 2
-    for (const c of cards) {
-      x.fillStyle = ri === 3 ? '#FFF6D6' : '#fff'; rr(x, px, py, cw, ch, 18); x.fill()
-      x.strokeStyle = INK; x.lineWidth = 5; rr(x, px, py, cw, ch, 18); x.stroke()
-      x.textAlign = 'center'
-      x.fillStyle = o.color; x.font = `800 20px ${OSW}`
-      x.fillText(c.pos, px + cw / 2, py + 28)
-      x.fillStyle = INK; x.font = `800 28px ${OSW}`
-      x.fillText(cut(x, c.name, cw - 22), px + cw / 2, py + 60)
-      if (c.goals > 0) { x.fillStyle = '#166332'; x.font = `800 22px ${OSW}`; x.fillText(`⚽ ${c.goals}`, px + cw / 2, py + 90) }
-      px += cw + 18
+  // ── um CAMPINHO (faixa do manto + grama + jogadores soltos + placa)
+  const rostoOn = onlinePreviewEnabled()
+  type Cd = { pos: string; name: string; goals: number; club?: string; year?: number }
+  const campinho = async (linhas: Cd[][], titulo: string, alt: number) => {
+    const BAR = 50
+    listras(0, y, W, BAR, 18)
+    if (manto) veu(0, y, W, BAR, 0.62)
+    x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = `900 23px ${OSW}`
+    x.save(); x.shadowColor = 'rgba(0,0,0,.9)'; x.shadowOffsetX = 1; x.shadowOffsetY = 1
+    x.fillText(titulo.toUpperCase(), W / 2, y + 33); x.restore()
+    x.fillStyle = INK; x.fillRect(0, y + BAR - 4, W, 4)
+    y += BAR
+    const linhaH = alt + 92
+    const gramaH = linhas.length * linhaH + 20
+    for (let i = 0; i * 46 < gramaH; i++) { x.fillStyle = i % 2 ? '#27793F' : '#2E8B4E'; x.fillRect(0, y + i * 46, W, Math.min(46, gramaH - i * 46)) }
+    let ly = y + 16
+    for (const linha of linhas) {
+      const larg = Math.min(190, (W - 40) / Math.max(linha.length, 1))
+      const total = linha.length * larg
+      let px = (W - total) / 2
+      for (const c of linha) {
+        const meio = px + larg / 2
+        const art = rostoOn ? avatarLote1(c.name, c.club, c.year) : null
+        const foto = art ? `${import.meta.env.BASE_URL}${art.src.slice(1)}` : fotoDoJogador(c.name)
+        const img = foto ? await loadImg(foto) : null
+        if (img && img.naturalWidth) {
+          const ih = alt, iw = ih * img.naturalWidth / img.naturalHeight
+          x.save(); x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowOffsetX = 2; x.shadowOffsetY = 3
+          x.drawImage(img, meio - iw / 2, ly, iw, ih); x.restore()
+        } else {
+          const d = Math.round(alt * 0.72), cy0 = ly + alt - d
+          x.save(); x.beginPath(); x.arc(meio, cy0 + d / 2, d / 2, 0, Math.PI * 2); x.clip()
+          listras(meio - d / 2, cy0, d, d, 7)
+          // 🔎 véu por dentro da bolinha: sobre listra clara a posição sumia
+          x.fillStyle = 'rgba(0,0,0,.42)'; x.fillRect(meio - d / 2, cy0, d, d)
+          x.restore()
+          x.beginPath(); x.arc(meio, cy0 + d / 2, d / 2, 0, Math.PI * 2)
+          x.strokeStyle = INK; x.lineWidth = 4; x.stroke()
+          x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = `900 ${Math.round(d * 0.3)}px ${OSW}`
+          x.save(); x.shadowColor = 'rgba(0,0,0,.9)'; x.shadowOffsetX = 1; x.shadowOffsetY = 1
+          x.fillText(c.pos, meio, cy0 + d / 2 + d * 0.1); x.restore()
+        }
+        let ty = ly + alt + 26
+        x.textAlign = 'center'
+        x.save(); x.shadowColor = 'rgba(0,0,0,.75)'; x.shadowOffsetX = 1; x.shadowOffsetY = 1
+        x.fillStyle = '#fff'; x.font = `900 24px ${OSW}`
+        x.fillText(cortar(c.name, `900 24px ${OSW}`, larg - 8), meio, ty)
+        if (c.club) {
+          ty += 22
+          x.fillStyle = 'rgba(255,255,255,.85)'; x.font = `700 16px ${ARI}`
+          x.fillText(cortar(`${c.club}${c.year ? ` · ${c.year}` : ''}`, `700 16px ${ARI}`, larg - 6), meio, ty)
+        }
+        x.restore()
+        if (c.goals > 0) {
+          const lbl = `⚽ ${c.goals}`
+          x.font = `900 17px ${OSW}`
+          const w = x.measureText(lbl).width + 22
+          x.fillStyle = GOLD; rrf(meio - w / 2, ty + 9, w, 28, 14); x.fill()
+          x.strokeStyle = INK; x.lineWidth = 2.5; rrf(meio - w / 2, ty + 9, w, 28, 14); x.stroke()
+          x.fillStyle = INK; x.textAlign = 'center'; x.fillText(lbl, meio, ty + 29)
+        }
+        px += larg
+      }
+      ly += linhaH
     }
-  })
-
-  // ── LISTAS sobre a cor do time (ou o manto do tier)
-  const ly0 = HEAD + FPAD + FH
-  if (manto) fillTier(x, manto, 0, ly0, W, LISTS)
-  else { x.fillStyle = o.color; x.fillRect(0, ly0, W, LISTS) }
-  x.fillStyle = INK; x.fillRect(0, ly0, W, 6)
-  const colW = (W - 44 * 2 - 26) / 2
-  const drawList = (title: string, rows: ElencoPlayerRow[], lx: number) => {
-    x.textAlign = 'left'; x.fillStyle = claro ? INK : '#fff'; x.font = `900 30px ${OSW}`
-    x.fillText(title, lx, ly0 + 40)
-    rows.forEach((r0, i) => {
-      const ry = ly0 + LHEAD + i * (ROWH + ROWG)
-      x.fillStyle = '#fff'; rr(x, lx, ry, colW, ROWH, 10); x.fill()
-      x.fillStyle = o.color; x.font = `800 16px ${OSW}`
-      x.fillText(r0.pos, lx + 12, ry + 30)
-      x.fillStyle = INK; x.font = `800 24px ${OSW}`
-      x.fillText(cut(x, r0.name, colW - 200), lx + 58, ry + 32)
-      x.textAlign = 'right'
-      if (r0.goals > 0) { x.fillStyle = '#166332'; x.font = `800 20px ${OSW}`; x.fillText(`⚽ ${r0.goals}`, lx + colW - 92, ry + 31) }
-      x.fillStyle = 'rgba(0,0,0,0.55)'; x.font = `800 20px ${OSW}`
-      x.fillText(`💰 ${r0.paid}`, lx + colW - 12, ry + 31)
-      x.textAlign = 'left'
-    })
+    y += gramaH
+    // 🪧 placa do patrocinador atrás do gol
+    x.fillStyle = '#fff'; x.fillRect(0, y, W, 48)
+    x.fillStyle = INK; x.fillRect(0, y, W, 4)
+    const logo = await loadImg(VADICO_LOGO)
+    if (logo && logo.naturalWidth) {
+      const lh = 26, lw = lh * logo.naturalWidth / logo.naturalHeight
+      x.drawImage(logo, W / 2 - lw / 2, y + 11, lw, lh)
+    }
+    y += 48
   }
-  drawList('⭐ TITULARES', o.titulares, 44)
-  drawList('🔁 RESERVAS', o.reservas, 44 + colW + 26)
-  if (manto) sheenRect(x, 0, ly0, W, LISTS, 0.30, o.tierHolo ?? 0)
 
-  // ── RODAPÉ dourado
-  const fy = H - FOOT
-  x.fillStyle = GOLD_HEX; x.fillRect(0, fy, W, FOOT)
-  x.fillStyle = INK; x.fillRect(0, fy, W, 6)
+  await campinho(o.fieldRows, tr('⭐ Titulares', '⭐ Starting XI'), 100)
+  if (o.reservas.length) {
+    const banco: Cd[][] = []
+    for (let i = 0; i < o.reservas.length; i += 4) banco.push(o.reservas.slice(i, i + 4).map(r => ({ pos: r.pos, name: r.name, goals: r.goals, club: r.club, year: r.year })))
+    await campinho(banco, tr('🔁 Reservas', '🔁 Subs'), 78)
+  }
+
+  // ── RODAPÉ dourado com a mascote do clube
+  const FOOT = 124
+  x.fillStyle = GOLD_HEX; x.fillRect(0, y, W, FOOT)
+  x.fillStyle = INK; x.fillRect(0, y, W, 6)
+  const masc = await mascoteImg(o.teamRaw ?? o.teamName, 220)
+  let fcx = W / 2
+  if (masc && masc.naturalWidth) {
+    const mh = 104, mw = mh * masc.naturalWidth / masc.naturalHeight
+    x.drawImage(masc, 30, y + 12, mw, mh)
+    fcx = 30 + mw + (W - 30 - mw) / 2
+  }
   x.textAlign = 'center'
-  x.fillStyle = INK; x.font = `900 34px ${OSW}`
-  x.fillText('mostra teu elenco e marca a gente! 📲 @leilaolegendscom', W / 2, fy + 56)
-  x.fillStyle = 'rgba(0,0,0,0.6)'; x.font = `800 23px ${ARI}`
-  x.fillText('monta o teu de graça em leilaolegends.com 🔨', W / 2, fy + 92)
+  x.fillStyle = INK; x.font = `900 31px ${OSW}`
+  x.fillText(tr('mostra teu elenco e marca a gente! 📲 @leilaolegendscom', 'show off your squad and tag us! 📲 @leilaolegendscom'), fcx, y + 58)
+  x.fillStyle = 'rgba(0,0,0,0.6)'; x.font = `800 22px ${ARI}`
+  x.fillText(tr('monta o teu de graça em leilaolegends.com 🔨', 'build yours for free at leilaolegends.com 🔨'), fcx, y + 94)
+  y += FOOT
 
-  return new Promise(res => cv.toBlob(b => res(b), 'image/png'))
+  const H = Math.min(MAXH, Math.round(y))
+  const fin = document.createElement('canvas'); fin.width = W; fin.height = H
+  const fx = fin.getContext('2d'); if (!fx) return null
+  fx.drawImage(cv, 0, 0, W, H, 0, 0, W, H)
+  return new Promise(res => fin.toBlob(b => res(b), 'image/png'))
 }
 export async function shareElenco(o: ElencoShareOpts) {
   const blob = await buildElencoBlob(o)
