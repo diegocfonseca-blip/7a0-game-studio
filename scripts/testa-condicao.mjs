@@ -13,37 +13,38 @@ for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) squad.push({ id: `r${squa
 const banco = squad.filter(c => !xi.includes(c.id))
 
 console.log('1) estados e modificadores')
-ok(estadoGas(100) === 'ok' && estadoGas(60) === 'ok', '≥60 = inteiro')
-ok(estadoGas(59) === 'cansado' && estadoGas(30) === 'cansado', '30–59 = cansado')
+ok(estadoGas(100) === 'ok' && estadoGas(40) === 'ok', '≥40 = inteiro')
+ok(estadoGas(39) === 'cansado' && estadoGas(30) === 'cansado', '30–39 = cansado')
 ok(estadoGas(29) === 'limite' && estadoGas(20) === 'limite', '20–29 = no limite')
 ok(estadoGas(19) === 'esgotado' && estadoGas(0) === 'esgotado', '<20 = esgotado 🚑')
-ok(modGas(100) === 0 && modGas(45) === -1 && modGas(25) === -2 && modGas(10) === -3, 'mods 0 / −1 / −2 / −3')
+ok(modGas(100) === 0 && modGas(35) === -1 && modGas(25) === -2 && modGas(10) === -3, 'mods 0 / −1 / −2 / −3')
 ok(pesoLesao(100) === 1 && pesoLesao(25) === 2 && pesoLesao(10) === 3, 'peso da lesão 1× / 2× / 3×')
 
 console.log('2) gás derivado da escalação congelada')
 const byRound = {}
-for (let r = 0; r < 5; r++) byRound[r] = xi // 5 jogos seguidos com o mesmo time
+for (let r = 0; r < 7; r++) byRound[r] = xi // 7 jogos seguidos com o mesmo time
 let g = gasDoElenco(byRound, 0, squad)
 ok(Object.values(g).every(v => v === 100), 'rodada 0: todo mundo 100')
-g = gasDoElenco(byRound, 5, squad)
-ok(g.t0 === 100 - 5 * GAS_JOGO, `5 jogos seguidos como titular → ${100 - 5 * GAS_JOGO} (${estadoGas(g.t0)})`)
-ok(banco.every(c => g[c.id] === 100), 'banco fica no teto (100), nunca passa')
-// 100 − 12×3 = 64 (inteiro) · 100 − 12×4 = 52 (cansado): aguenta 4 jogos seguidos
-// inteiro e entra no 5º já 😓; no limite (< 30) a partir do 7º (100 − 12×6 = 28).
-ok(estadoGas(gasDoElenco(byRound, 3, squad).t0) === 'ok' && estadoGas(gasDoElenco(byRound, 4, squad).t0) === 'cansado', '4 jogos seguidos inteiro; no 5º já está 😓')
-ok(estadoGas(gasDoElenco({ ...byRound, 5: xi }, 6, squad).t0) === 'limite', 'no 7º jogo seguido está 🥵 (28)')
-ok(estadoGas(gasDoElenco({ ...byRound, 5: xi, 6: xi }, 7, squad).t0) === 'esgotado', 'no 8º jogo seguido está 🚑 (16) — e daí pra frente só piora até o zero')
-// descansa 2 rodadas: entra o reserva r11 (GOL) no lugar do t0
-byRound[5] = xi.map(id => (id === 't0' ? 'r11' : id)); byRound[6] = byRound[5]
 g = gasDoElenco(byRound, 7, squad)
-ok(g.t0 === Math.min(100, 100 - 5 * GAS_JOGO + 2 * GAS_BANCO), `2 rodadas no banco → +${2 * GAS_BANCO} (${g.t0})`)
+ok(g.t0 === 100 - 7 * GAS_JOGO, `7 jogos seguidos como titular → ${100 - 7 * GAS_JOGO} (${estadoGas(g.t0)})`)
+ok(banco.every(c => g[c.id] === 100), 'banco fica no teto (100), nunca passa')
+// a escada do Diego: "do 1 ao 7 💪, dps 8, dps 9 e dps 10 em diante"
+const seguidos = n => { const b = {}; for (let r = 0; r < n - 1; r++) b[r] = xi; return estadoGas(gasDoElenco(b, n - 1, squad).t0) }
+ok(seguidos(1) === 'ok' && seguidos(7) === 'ok', '1º ao 7º jogo seguido: inteiro 💪')
+ok(seguidos(8) === 'cansado', '8º jogo seguido: 😓 cansado (−1)')
+ok(seguidos(9) === 'limite', '9º jogo seguido: 🥵 no limite (−2, 2× lesão)')
+ok(seguidos(10) === 'esgotado' && seguidos(14) === 'esgotado', '10º em diante: 🚑 esgotado (−3, 3× lesão)')
+// descansa 2 rodadas: entra o reserva r11 (GOL) no lugar do t0
+byRound[7] = xi.map(id => (id === 't0' ? 'r11' : id)); byRound[8] = byRound[7]
+g = gasDoElenco(byRound, 9, squad)
+ok(g.t0 === Math.min(100, 100 - 7 * GAS_JOGO + 2 * GAS_BANCO), `2 rodadas no banco → +${2 * GAS_BANCO} (${g.t0}) — de 😓 volta a inteiro`)
 ok(g.r11 === 100 - 2 * GAS_JOGO, 'o reserva que entrou gastou 2 jogos')
-const j = jogosDoElenco(byRound, 7, squad)
-ok(j.t0 === 5 && j.r11 === 2 && j.t1 === 7, 'contagem de jogos bate (5 · 2 · 7)')
+const j = jogosDoElenco(byRound, 9, squad)
+ok(j.t0 === 7 && j.r11 === 2 && j.t1 === 9, 'contagem de jogos bate (7 · 2 · 9)')
 ok(gasDoElenco(undefined, 10, squad).t0 === 100, 'sem escalação gravada = ninguém cansa')
 // passado imutável: o gás da rodada 3 não muda por causa do que veio depois
 const g3a = gasDoElenco(byRound, 3, squad).t0
-byRound[9] = xi
+byRound[11] = xi
 ok(gasDoElenco(byRound, 3, squad).t0 === g3a, 'gás de rodada passada não muda quando rodadas futuras mudam')
 
 console.log('3) lesão volta aos poucos')
@@ -54,20 +55,20 @@ ok(modVolta({ ...ev, tipo: 'expulsao' }, 4, 12, 't5') === 0, 'expulsão/noitada 
 ok(modVolta(ev, 4, 12, 't6') === 0, 'só o lesionado')
 
 console.log('4) mods por rodada pra simulação')
-const mods = modsDoElenco(byRound, 9, squad, r => byRound[r] ?? xi, ev, 4)
-ok(!mods[0] && !mods[3], 'rodadas 0–3: ninguém cansado → sem mod (simulação idêntica)')
-ok(mods[4] && mods[4].t0 === -1, 'rodada 4 (5º jogo): t0 com −1')
-ok(!(mods[6] ?? {}).t0, 'rodada 6: t0 estava no banco → sem mod')
+const mods = modsDoElenco(byRound, 11, squad, r => byRound[r] ?? xi, ev, 4)
+ok(!mods[0] && !mods[6], 'rodadas 0–6: ninguém cansado → sem mod (simulação idêntica)')
+ok(mods[7] && mods[7].t1 === -1, 'rodada 7 (8º jogo do t1): −1')
+ok(!(mods[7] ?? {}).t0, 'rodada 7: t0 foi pro banco → sem mod')
 
 console.log('5) sugestão do preparador (nunca aplica sozinho)')
 const gas = Object.fromEntries(squad.map(c => [c.id, 100]))
-gas.t0 = 20; gas.t8 = 50; gas.t1 = 40 // GOL no limite, ATA cansado, LAT cansado
+gas.t0 = 10; gas.t8 = 35; gas.t1 = 25 // GOL esgotado, ATA cansado, LAT no limite
 let s = sugerirRodizio(xi, squad, gas)
 ok(s && s.trocas.length === 3, `3 trocas sugeridas (${s?.trocas.map(t => `${t.entra.id}→${t.sai.id}`).join(', ')})`)
 ok(s.ids.length === 11 && new Set(s.ids).size === 11, 'continua com 11 distintos')
 ok(s.ids.indexOf('r11') === xi.indexOf('t0'), 'o reserva entra na MESMA vaga (campinho não embaralha)')
 ok(s.trocas[0].sai.id === 't0', 'o pior (no limite) sai primeiro')
-gas.r11 = 40
+gas.r11 = 30
 s = sugerirRodizio(xi, squad, gas)
 ok(s && !s.trocas.some(t => t.sai.id === 't0'), 'reserva cansado NÃO entra — o goleiro fica (e joga cansado, nada trava)')
 s = sugerirRodizio(xi, squad, gas, new Set(['r12']))

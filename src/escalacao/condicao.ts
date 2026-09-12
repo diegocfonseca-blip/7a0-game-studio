@@ -5,12 +5,13 @@
 // fechadas com ele no mesmo dia (mockup `scripts/mockup-condicao-elenco.mjs`,
 // variante A — a barrinha):
 //
-//   · cada jogo como TITULAR: −12 de gás · cada rodada no BANCO: +20 (teto 100)
-//   · ≥ 60 = 💪 inteiro (nada) · 30–59 = 😓 cansado (−1 de força no jogo)
+//   · cada jogo como TITULAR: −10 de gás · cada rodada no BANCO: +20 (teto 100)
+//   · ≥ 40 = 💪 inteiro (nada) · 30–39 = 😓 cansado (−1 de força no jogo)
 //     · 20–29 = 🥵 no limite (−2 · 2× de chance de ser o lesionado da temporada)
-//     · < 20 = 🚑 esgotado (−3 · 3× lesão) — degrau pedido pelo Diego: *"do 8º em
-//     diante não aumenta mais ainda a chance de lesionar e cair mais o nível?"*
-//     Agora aumenta: 5º jogo seguido 😓 · 7º 🥵 · 8º em diante 🚑.
+//     · < 20 = 🚑 esgotado (−3 · 3× lesão)
+//     A escada é a que o Diego pediu (12/09): *"do 1 ao 7 💪, dps 8, dps 9 e dps
+//     10 em diante"* → 1º–7º jogo seguido inteiro · 8º 😓 · 9º 🥵 · 10º+ 🚑.
+//     (gás antes do jogo N = 100 − 10·(N−1): 7º = 40 · 8º = 30 · 9º = 20 · 10º = 10)
 //   · lesão VOLTA AOS POUCOS: na rodada da volta joga a 60% (−2), na seguinte
 //     a 80% (−1), depois 100%. O 🏥 Dep. Médico continua acabando com as lesões
 //     PRA SEMPRE (o Diego mandou NÃO mexer nele) — então quem tem médico nunca
@@ -34,9 +35,9 @@
 // 3 Crias da Base que os eventos já usam.
 import { CONDICAO_ON } from './career-feature-release'
 
-export const GAS_JOGO = 12     // desconto por jogo como titular
+export const GAS_JOGO = 10     // desconto por jogo como titular
 export const GAS_BANCO = 20    // recuperação por rodada no banco
-export const GAS_CANSADO = 60  // abaixo disto = 😓
+export const GAS_CANSADO = 40  // abaixo disto = 😓
 export const GAS_LIMITE = 30   // abaixo disto = 🥵
 export const GAS_ESGOTADO = 20 // abaixo disto = 🚑
 export const MOD_CANSADO = -1

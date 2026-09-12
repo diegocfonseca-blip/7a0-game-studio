@@ -8,10 +8,15 @@ Decisões do Diego (todas no chat de 12/09):
   virada. Só carreira nova (`agenciaOn`), como os eventos. Online/rápido: fora.
 - **Dep. Médico INTOCADO** (segue "acaba com as lesões pra sempre") — ele mandou
   tirar a minha ideia de mexer nele. A volta gradual só existe pra quem não tem.
-- Números: −12 por jogo · +20 no banco · <60 😓 (−1) · <30 🥵 (−2 e 2× lesão) ·
-  **<20 🚑 esgotado (−3 e 3× lesão)** — 4º degrau que o Diego pediu (*"do 8º em
-  diante não aumenta mais ainda?"*) · lesão volta 60% → 80% → 100%. Na prática: 4
-  jogos seguidos inteiro, 😓 a partir do 5º, 🥵 no 7º, 🚑 do 8º em diante.
+- Números (escada FINAL do Diego, 12/09: *"do 1 ao 7 💪, dps 8, dps 9 e dps 10 em
+  diante"*): −10 por jogo · +20 no banco · <40 😓 (−1) · <30 🥵 (−2 e 2× lesão) ·
+  <20 🚑 esgotado (−3 e 3× lesão) · lesão volta 60% → 80% → 100%. Na prática:
+  1º–7º jogo seguido inteiro, 8º 😓, 9º 🥵, 10º em diante 🚑. Uma rodada no banco
+  tira do 😓; duas tiram do 🚑.
+- ⏳ **Lesão por desgaste** (perguntou *"uma hr vai se machucar msm né?"* — hoje
+  NÃO é garantido: 1 causo por temporada, o 🚑 só é o mais provável). Proposta
+  feita: 🚑 tem 25%/jogo de lesão própria (1-3 rodadas, mesmo banner e crias;
+  com Dep. Médico segue zero). Esperando o OK dele.
 - Sem reserva: o cara joga cansado, o preparador manda pro mercado; se a lesão
   vier, entra o MESMO banner dos 3 Crias da Base dos eventos (ele confirmou:
   *"aí entra os da base né"*). Nada novo entra no jogo.

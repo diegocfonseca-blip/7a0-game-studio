@@ -9,6 +9,7 @@
 //  · zoeira leve e fictícia SEMPRE — nunca tragédia/lesão real de ninguém.
 import type { Sector, EventoTipo } from './types'
 import { getLang } from './lang' // 🌐 BR/EN (12/09): a história sai no idioma do site
+import { pesoLesao } from './condicao' // 😓 gás: peso do cansado no sorteio da lesão (régua única)
 
 // carta "mínima" que o sorteio precisa (WonCard e PoolCard da tela servem)
 // 🪪 club/year existem pra DESEMPATAR XARÁ (ver `traitDe`). São opcionais porque
@@ -187,8 +188,8 @@ export function sorteiaEvento(args: {
     const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
-    // 🥵 no limite (< 30) = 2× lesão · 🚑 esgotado (< 20) = 3× (mesma régua de condicao.ts)
-    if (!temMedico) { const g = gas ? (gas[c.id] ?? 100) : 100; const peso = g < 20 ? 3 : g < 30 ? 2 : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
+    // 🥵 no limite = 2× lesão · 🚑 esgotado = 3× (a régua mora em condicao.ts)
+    if (!temMedico) { const peso = gas ? pesoLesao(gas[c.id] ?? 100) : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
   }
   if (!pool.length) return null // 🏥 médico pronto + ninguém folclórico no XI = temporada em paz
   // 🔁 DESCANSO DE 5 TEMPORADAS (regra do Diego, 08/08): quem já aprontou fica
