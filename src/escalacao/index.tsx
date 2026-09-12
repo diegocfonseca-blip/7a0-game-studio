@@ -13,6 +13,7 @@ import { DinastiaGame } from './dinastia'
 import { CareerOnlineGame } from './careeronline'
 import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
 import { TelaSenhaNova } from './senha-nova'
+import { anotaTrava } from './caixa-preta'
 
 function Router() {
   const { state } = useEsc()
@@ -346,6 +347,31 @@ function SairDaLista() {
     </div>, document.body)
 }
 
+// 🕵️ NOTA DE RECARGA (12/09, sala TS7ZVD): o Diego, dono, foi "tirado da sala"
+// duas vezes no meio da Libertadores e voltou do mesmo ponto. Nenhum caminho do
+// código manda o dono pro menu sozinho mantendo a faixa de "voltar pra partida"
+// — o que faz isso é a PÁGINA RECARREGAR (o Android descarta a aba pra liberar
+// memória, sobretudo gravando tela com muitas abas). Como o dono salva a cada
+// poucos segundos, nada se perde; só assusta. Esta nota grava UMA linha na
+// caixa-preta quando o jogo abre depois de uma recarga que não foi gesto da
+// pessoa: `document.wasDiscarded` é o próprio Chrome dizendo "eu descartei a
+// aba", e o tipo de navegação diz se foi F5 ou abertura nova. Nada na tela.
+function NotaDeRecarga() {
+  useEffect(() => {
+    try {
+      const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
+      const descartada = (document as Document & { wasDiscarded?: boolean }).wasDiscarded === true
+      const tipo = nav?.type ?? 'desconhecido'
+      const salaSalva = localStorage.getItem('escalacao-room') // mesma chave do `LS_KEY` do lobby
+      if (!salaSalva) return // sem partida em andamento não tem o que explicar
+      if (!descartada && tipo !== 'reload') return // abriu de propósito: normal
+      anotaTrava({ room_id: salaSalva, sala: null, papel: 'convidado', momento: 'envelope', setor: null, segundos: 0, reenvios: 0,
+        canal: null, host_calado_ms: null, extra: { quando: 'recarregou', descartada, tipo, memoria: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null } }, true)
+    } catch { /* nunca atrapalha */ }
+  }, [])
+  return null
+}
+
 export default function EscalacaoGame() {
   return (
     <ErrorBoundary>
@@ -353,6 +379,7 @@ export default function EscalacaoGame() {
       {/* 🔑 quem chega pelo link de "esqueci a senha" cai na HOME; a tela de senha
           nova mora aqui fora pra aparecer onde quer que a pessoa caia. */}
       <TelaSenhaNova />
+      <NotaDeRecarga />
       <EscProvider>
         <SportTitle />
         <MaintenanceBanner />

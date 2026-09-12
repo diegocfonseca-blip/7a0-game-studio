@@ -1,3 +1,11 @@
+## 12/09/2026 — 🚪 "Me tirou da sala" duas vezes na Libertadores (sala TS7ZVD, Diego host)
+
+- Relato: *"na Libertadores, duas vezes, ocorreu de me tirar da sala. Apertei pra voltar e voltou do mesmo local continuando o jogo normal."* Print: lobby online com a faixa verde "Você tem uma partida em andamento · Sala TS7ZVD · Voltar pra partida".
+- **O que foi conferido**: não houve deploy na janela (o `VersionWatcher` só recarrega sozinho na HOME, nunca no meio da partida); `KICKED_OUT` teria apagado a faixa verde (não teria "voltar"); `GO_LOBBY`/`GO_LOBBY_ONLINE` só disparam por toque da pessoa. A sala e as cadeiras já tinham sido apagadas (partida encerrada) e a caixa-preta ainda não estava no ar — sem prova no banco. Ler os logs do servidor exige aprovação do Diego (`query_logs`), bloqueado 3 vezes.
+- **Conclusão (com a certeza que dá)**: nenhum caminho do código manda o dono pro lobby mantendo a faixa "voltar pra partida" — isso é o comportamento exato de **a página ter RECARREGADO**: o jogo abre de novo, acha a sala salva no aparelho e oferece voltar. O Android/Chrome descarta a aba pra liberar memória (gravando tela + várias abas é o caso clássico). Como o dono salva a cada poucos segundos, nada se perde — só assusta.
+- **Feito**: `NotaDeRecarga` em `index.tsx` — quando o jogo abre depois de uma recarga que NÃO foi gesto da pessoa (`document.wasDiscarded` = o próprio Chrome dizendo "eu descartei a aba", ou navegação tipo `reload`) e existe sala salva, grava UMA linha na caixa-preta (`esc_travas`, `extra.quando = 'recarregou'`, com `descartada`, `tipo`, memória do aparelho). Nada na tela, nada muda no jogo. Na próxima vez sai a prova.
+- ⏳ No branch, junto dos outros itens esperando publicar.
+
 ## 12/09/2026 — 👑 O DONO se rebaixava sozinho (sala TS7ZVD, Diego host preso no "ENVIANDO…")
 
 - Relato: *"tô numa sala online com Neymarzetti, eu sou o host, e novamente deu o mesmo erro, agora eu sendo host. Lacrei meu goleiro e apareceu isso como se eu nem tivesse lacrado. Sempre que atualizo arruma."*
