@@ -1,6 +1,7 @@
 import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef } from 'react'
 import './online-match-visual.css'
+import { tr } from './lang' // 🌐 BR/EN
 
 type Goal = { name: string; min: number; home: boolean }
 export function OnlineScorePresentation(p: {
@@ -17,7 +18,7 @@ export function OnlineScorePresentation(p: {
         {!p.enhanced && p.goalSide === (home ? 'h' : 'a') ? <div className="ll25-mascot">{p.mascot}</div> : home ? p.homeCrest : p.awayCrest}
       </div>
       <strong>{name}</strong>
-      <small>{(home ? p.homeOwner : p.awayOwner) ?? ((home === p.youIsHome) ? 'VOCÊ' : 'RIVAL')}</small>
+      <small>{(home ? p.homeOwner : p.awayOwner) ?? ((home === p.youIsHome) ? tr('VOCÊ', 'YOU') : tr('RIVAL', 'RIVAL'))}</small>
     </div>
   }
   return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''}`} aria-label="Placar da partida">
@@ -32,12 +33,12 @@ export function OnlineScorePresentation(p: {
     {p.enhanced && p.goalSide && <div key={p.eventKey} className={`ll26-goal-scene ll26-goal-${p.goalSide}`} aria-hidden="true">
       <div className="ll26-goal-rays" />
       <div className="ll26-goal-mascot">{p.mascot}</div>
-      <strong>GOOOL!</strong>
+      <strong>{tr('GOOOL!', 'GOOOAL!')}</strong>
       {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}
     </div>}
     <div className="ll25-scorers">{[true, false].map(home => <div key={String(home)}>
       {p.goals.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`}>{g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
-      {!p.goals.some(g => g.home === home) && <p>Sem gols</p>}
+      {!p.goals.some(g => g.home === home) && <p>{tr('Sem gols', 'No goals')}</p>}
     </div>)}</div>
   </section>
 }
@@ -46,14 +47,14 @@ export function OnlineRhythm(p: { manual: boolean; onToggle: () => void; speed: 
   return <div className="ll25-rhythm" aria-label="Ritmo da sala">
     <button className="ll25-button" aria-pressed={p.manual} onClick={() => { if (!p.manual) p.onToggle() }}>MANUAL</button>
     <button className="ll25-button" aria-pressed={!p.manual} onClick={() => { if (p.manual) p.onToggle() }}>AUTO</button>
-    <label><span className="ll25-sr">Velocidade da partida</span><select className="ll25-button" disabled={!p.manual} value={p.speed > 0 ? p.speed : 1} onChange={e => p.onSpeed(Number(e.target.value))}>
-      <option value={0.25}>4× mais lento</option><option value={0.5}>2× mais lento</option><option value={1}>Normal</option><option value={2}>2× mais rápido</option><option value={4}>4× mais rápido</option>
+    <label><span className="ll25-sr">{tr('Velocidade da partida', 'Match speed')}</span><select className="ll25-button" disabled={!p.manual} value={p.speed > 0 ? p.speed : 1} onChange={e => p.onSpeed(Number(e.target.value))}>
+      <option value={0.25}>{tr('4× mais lento', '4× slower')}</option><option value={0.5}>{tr('2× mais lento', '2× slower')}</option><option value={1}>Normal</option><option value={2}>{tr('2× mais rápido', '2× faster')}</option><option value={4}>{tr('4× mais rápido', '4× faster')}</option>
     </select></label>
   </div>
 }
 export type OnlineMatchTab = 'jogos' | 'tabela' | 'estatisticas' | 'elenco'
 export function OnlineMatchTabs({ value, onChange }: { value: OnlineMatchTab; onChange: (tab: OnlineMatchTab) => void }) {
-  return <nav className="ll25-tabs" aria-label="Conteúdo da partida">{([['jogos', 'JOGOS + TABELA'], ['estatisticas', 'ESTATÍSTICAS'], ['elenco', 'ELENCO']] as const).map(([tab, label]) =>
+  return <nav className="ll25-tabs" aria-label="Conteúdo da partida">{([['jogos', tr('JOGOS + TABELA', 'MATCHES + TABLE')], ['estatisticas', tr('ESTATÍSTICAS', 'STATS')], ['elenco', tr('ELENCO', 'SQUAD')]] as const).map(([tab, label]) =>
     <button key={tab} className="ll25-button" aria-pressed={value === tab} onClick={() => onChange(tab)}>{label}</button>)}</nav>
 }
 
@@ -85,7 +86,7 @@ export function CompetitionMatch({ home, away, homeCrest, awayCrest, homeOwner, 
     return ()=>clearTimeout(timer)
   },[home,away,homeScore,awayScore])
   return <article className={`ll26-fixture ${mine ? 'll26-fixture-mine' : ''} ${goalFlash?'ll27-fixture-goal':''}`}>
-    <header><span>{goalFlash?'⚽ GOL!':mine ? 'SEU JOGO' : 'JOGO DA RODADA'}</span><b>{status}</b></header>
+    <header><span>{goalFlash?tr('⚽ GOL!', '⚽ GOAL!'):mine ? tr('SEU JOGO', 'YOUR MATCH') : tr('JOGO DA RODADA', 'MATCH OF THE ROUND')}</span><b>{status}</b></header>
     <div className="ll26-fixture-duel"><div>{homeCrest}<span>{home}{showOwners&&homeOwner&&homeOwner!=='BOT'&&<small>{homeOwner}</small>}</span></div><strong>{homeScore}<i>×</i>{awayScore}</strong><div>{awayCrest}<span>{away}{showOwners&&awayOwner&&awayOwner!=='BOT'&&<small>{awayOwner}</small>}</span></div></div>
     {goals.length>0&&<div className="ll28-scorers">{[true,false].map(side=><div key={String(side)}>{goals.filter(g=>g.home===side).map((g,i)=><p key={i}>{goalPlayer(g.name)} <b>{g.min>90?`90+${g.min-90}`:g.min}′</b></p>)}</div>)}</div>}
     {detail && <footer>{detail}</footer>}
@@ -111,7 +112,7 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
   const known = goals.length > 0 || score.every(n => n === 0)
   const homeScore = finished ? score[0] : known ? goals.filter(g => g.home && g.min <= minute).length : '–'
   const awayScore = finished ? score[1] : known ? goals.filter(g => !g.home && g.min <= minute).length : '–'
-  return <CompetitionMatch {...p} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={finished ? 'ENCERRADO' : `${Math.min(90,minute)}′ · AO VIVO`} detail={!finished && !known ? 'Placar revelado no apito final' : p.detail} />
+  return <CompetitionMatch {...p} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={finished ? tr('ENCERRADO', 'FULL TIME') : `${Math.min(90,minute)}′ · ${tr('AO VIVO', 'LIVE')}`} detail={!finished && !known ? tr('Placar revelado no apito final', 'Score revealed at the final whistle') : p.detail} />
 }
 
 export function goalPlayer(text:string){return text.match(/⚽\s+(.+?)\s+marca para/)?.[1] ?? text.replace(/^⚽\s*/, '').replace(/\.$/,'')}
@@ -122,7 +123,7 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  useEffect(()=>{const start=Date.now();setElapsed(0);const id=setInterval(()=>{const t=(Date.now()-start)/1000;setElapsed(t);if(t>=totalDelay)clearInterval(id)},80);return()=>clearInterval(id)},[signature,aName,bName,totalDelay])
  const done=elapsed>=totalDelay
  const valid=rows.every((r,i)=>r.filter(k=>k.ok).length===official[i])
- if(!valid)return <section className="ll28-pens" aria-label="Resultado dos pênaltis"><header><b>PÊNALTIS</b><strong>{done?`${official[0]} × ${official[1]}`:'– × –'}</strong></header><p>{aName} × {bName}</p><p className="ll28-pen-winner">{done?`${official[0]>official[1]?aName:bName} · ${final?'CAMPEÃO':'CLASSIFICADO'}`:'Decisão em andamento…'}</p></section>
+ if(!valid)return <section className="ll28-pens" aria-label="Resultado dos pênaltis"><header><b>{tr('PÊNALTIS', 'PENALTIES')}</b><strong>{done?`${official[0]} × ${official[1]}`:'– × –'}</strong></header><p>{aName} × {bName}</p><p className="ll28-pen-winner">{done?`${official[0]>official[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Decisão em andamento…', 'Shoot-out in progress…')}</p></section>
  const visible=rows.map(r=>r.filter(k=>elapsed>=.7+k.at*.85))
  const scores=visible.map(r=>r.filter(k=>k.ok).length)
  const next=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed<.7+k.at*.85).sort((a,b)=>a.at-b.at)[0]
@@ -135,8 +136,8 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  // mesma coisa agora — `rows` só tem as cobranças reais, então slot sem cobrança
  // some, e o "CAMPEÃO" só sai quando a ÚLTIMA delas pipocou.
  return <section className="ll28-pens" aria-label="Disputa de pênaltis">
-  <header><b>{nSlots>5?'MORTE SÚBITA':'PÊNALTIS'}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?'ENCERRADO':'COBRANÇAS'}</span></header>
-  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*.85;return <span key={i} className={shown?(k.ok?'made':'missed'):!done&&next?.side===side&&next.i===i?'current':'pending'} aria-label={shown?(k.ok?'Gol':'Errou'):'Pendente'}>{shown?(k.ok?'✓':'×'):''}</span>})}</div></div>)}
-  <p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?'CAMPEÃO':'CLASSIFICADO'}`:'Uma cobrança de cada vez…'}</p>
+  <header><b>{nSlots>5?tr('MORTE SÚBITA', 'SUDDEN DEATH'):tr('PÊNALTIS', 'PENALTIES')}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?tr('ENCERRADO', 'OVER'):tr('COBRANÇAS', 'KICKS')}</span></header>
+  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*.85;return <span key={i} className={shown?(k.ok?'made':'missed'):!done&&next?.side===side&&next.i===i?'current':'pending'} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Pendente', 'Pending')}>{shown?(k.ok?'✓':'×'):''}</span>})}</div></div>)}
+  <p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Uma cobrança de cada vez…', 'One kick at a time…')}</p>
  </section>
 }

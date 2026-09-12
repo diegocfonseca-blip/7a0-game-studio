@@ -44,7 +44,7 @@ import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRev
 import { novidadesDaVez } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
-import { useLang, useT, getLang, ordinal } from './lang'
+import { useLang, useT, getLang, ordinal, tr } from './lang'
 import { POS_LABELS } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
@@ -5058,6 +5058,7 @@ export function EscCerimonia() {
 
 // ─── TEMPORADA (autoplay: 38 rodadas em ~3 min, relógio correndo) ─────
 const TACTIC_LABEL: Record<Tactic, string> = { retranca: '🧱 Retranca', equilibrio: '⚖️ Equilíbrio', ataque: '🔥 Ataque' }
+const TACTIC_LABEL_EN: Record<Tactic, string> = { retranca: '🧱 Park the bus', equilibrio: '⚖️ Balanced', ataque: '🔥 Attack' }
 // 🏀 mesma pedra-papel-tesoura, nomes de basquete (defesa/equilíbrio/run-and-gun).
 const TACTIC_LABEL_NBA: Record<Tactic, { pt: string; en: string }> = {
   retranca: { pt: '🛡️ Defesa', en: '🛡️ Defense' },
@@ -5066,7 +5067,7 @@ const TACTIC_LABEL_NBA: Record<Tactic, { pt: string; en: string }> = {
 }
 // rótulo da tática conforme o esporte + idioma (futebol = igual a hoje).
 function tacticLabel(t: Tactic, bb: boolean, lang: 'pt' | 'en'): string {
-  return bb ? TACTIC_LABEL_NBA[t][lang] : TACTIC_LABEL[t]
+  return bb ? TACTIC_LABEL_NBA[t][lang] : lang === 'en' ? TACTIC_LABEL_EN[t] : TACTIC_LABEL[t]
 }
 export const SEASON_TOTAL_MS = 180_000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
@@ -5099,11 +5100,11 @@ export function QuickManualLock() {
     <div style={{ marginBottom: 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
         <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'Oswald, sans-serif' }}>
-          <span>🎮 Modo Manual</span>
-          <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>Apoie 🔒</span>
+          <span>{tr('🎮 Modo Manual', '🎮 Manual Mode')}</span>
+          <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('Apoie 🔒', 'Support 🔒')}</span>
         </button>
       )} />
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', fontFamily: 'Oswald, sans-serif' }}>Controle o ritmo do jogo — pause, acelere, pule. Toque pra desbloquear.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', fontFamily: 'Oswald, sans-serif' }}>{tr('Controle o ritmo do jogo — pause, acelere, pule. Toque pra desbloquear.', 'Control the pace — pause, speed up, skip. Tap to unlock.')}</p>
     </div>
   )
 }
@@ -5940,7 +5941,7 @@ function TopScorersBox({ highlight, title = getLang() === 'en' ? '⚽ TOP SCORER
   if (rows.length === 0) {
     return (
       <Box className="p-3">
-        <p className="font-black text-sm mb-1 text-black" style={OSWALD}>{bb ? L('🏀 CESTINHA', '🏀 SCORING') : '⚽ ARTILHARIA'}</p>
+        <p className="font-black text-sm mb-1 text-black" style={OSWALD}>{bb ? L('🏀 CESTINHA', '🏀 SCORING') : L('⚽ ARTILHARIA', '⚽ TOP SCORERS')}</p>
         <p className="text-xs text-black/60 font-semibold">{bb ? L('Sem pontos ainda. Bola quicando…', 'No points yet. Ball is bouncing…') : 'Sem gols ainda. Bola rolando…'}</p>
       </Box>
     )
@@ -6014,7 +6015,7 @@ function TopAssistsBox({ highlight, competition = 'liga', showEmpty = false }: {
           ))}
         </tbody>
       </table>
-      <p className="text-[10px] font-bold text-black/45 mt-1.5 text-center">Cerca de 3 em cada 4 gols saem de um passe — o resto é jogada individual.</p>
+      <p className="text-[10px] font-bold text-black/45 mt-1.5 text-center">{tr('Cerca de 3 em cada 4 gols saem de um passe — o resto é jogada individual.', 'About 3 in 4 goals come from a pass — the rest are solo plays.')}</p>
     </Box>
   )
 }
@@ -6217,7 +6218,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
           })}
         </tbody>
       </table>
-      {!bb && <p className="text-[10px] font-bold text-black/45 text-center mt-2">🏆 G{copaN(table.length)} = os {copaN(table.length)} primeiros — quando a liga acaba, disputam a Copa dos 8.</p>}
+      {!bb && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{tr(`🏆 G${copaN(table.length)} = os ${copaN(table.length)} primeiros — quando a liga acaba, disputam a Copa dos 8.`, `🏆 G${copaN(table.length)} = the top ${copaN(table.length)} — when the league ends, they play the Cup of 8.`)}</p>}
     </Box>
   )
 }

@@ -49,6 +49,7 @@ import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
+import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
 import { JogadorNoCampo, type EstadoJogador } from './jogadorcampo'
 import { MASCOTES, FestaoMascote, carimboDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
@@ -2056,7 +2057,7 @@ const zone = (rank: number) => rank <= 4 ? '#D8F0DE' : rank >= 17 ? '#F9D8D3' : 
 const th: React.CSSProperties = { color: 'rgba(0,0,0,0.7)', fontWeight: 900, fontSize: 10.5 }
 function ZoneLegend() {
   const chip = (bg: string, label: string, border = false) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><i style={{ width: 10, height: 10, borderRadius: 3, display: 'inline-block', background: bg, border: border ? '1px solid rgba(0,0,0,0.3)' : 'none' }} />{label}</span>
-  return <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{chip(GOLD, 'G4', true)}{chip('#fff', 'Meio', true)}{chip('#F9D8D3', 'Z4', true)}</div>
+  return <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>{chip(GOLD, 'G4', true)}{chip('#fff', tr('Meio', 'Mid'), true)}{chip('#F9D8D3', 'Z4', true)}</div>
 }
 const UP_OF: Partial<Record<Div, Div>> = { B: 'A', C: 'B', D: 'C' }
 const DOWN_OF: Partial<Record<Div, Div>> = { A: 'B', B: 'C', C: 'D' }
@@ -2066,15 +2067,15 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
   // pra TODOS os times, e um banner quando é VOCÊ que sobe/cai/é campeão.
   const youPos = final && mine ? teams.findIndex(t => t.you) + 1 : 0
   const banner = !final || !mine || youPos === 0 ? null
-    : div === 'A' && youPos === 1 ? { bg: GOLD, fg: INK, txt: '🏆 CAMPEÃO DA SÉRIE A! O topo é seu.' }
-    : youPos <= 4 && UP_OF[div] ? { bg: '#1B7A3D', fg: '#fff', txt: `🚀 ACESSO! Você sobe pra Série ${UP_OF[div]}!` }
-    : youPos <= 4 && div === 'A' ? { bg: '#1B7A3D', fg: '#fff', txt: '🛡️ Fechou no G4 da Série A — elite mantida!' }
-    : youPos >= teams.length - 3 && DOWN_OF[div] ? { bg: '#B23B2E', fg: '#fff', txt: `📉 Queda pra Série ${DOWN_OF[div]}… ano que vem tem volta.` }
+    : div === 'A' && youPos === 1 ? { bg: GOLD, fg: INK, txt: tr('🏆 CAMPEÃO DA SÉRIE A! O topo é seu.', '🏆 SÉRIE A CHAMPION! The top is yours.') }
+    : youPos <= 4 && UP_OF[div] ? { bg: '#1B7A3D', fg: '#fff', txt: tr(`🚀 ACESSO! Você sobe pra Série ${UP_OF[div]}!`, `🚀 PROMOTED! You go up to Série ${UP_OF[div]}!`) }
+    : youPos <= 4 && div === 'A' ? { bg: '#1B7A3D', fg: '#fff', txt: tr('🛡️ Fechou no G4 da Série A — elite mantida!', '🛡️ Finished in the Série A top 4 — elite kept!') }
+    : youPos >= teams.length - 3 && DOWN_OF[div] ? { bg: '#B23B2E', fg: '#fff', txt: tr(`📉 Queda pra Série ${DOWN_OF[div]}… ano que vem tem volta.`, `📉 Down to Série ${DOWN_OF[div]}… next year you come back.`) }
     : null
   return (
     <div style={{ ...box(mine ? '#FFFBEB' : '#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}{mine ? ' · você' : ''}</p><ZoneLegend />
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}{mine ? tr(' · você', ' · you') : ''}</p><ZoneLegend />
       </div>
       {final && <style>{'@keyframes divUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes divDown{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}'}</style>}
       {banner && (
@@ -2082,7 +2083,7 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
       )}
       <DivChips humans={humans} colors={colors} />
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', marginTop: 6 }}>
-        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>P</th><th style={{ ...th, textAlign: 'center' }}>V</th><th style={{ ...th, textAlign: 'center' }}>E</th><th style={{ ...th, textAlign: 'center' }}>D</th><th style={{ ...th, textAlign: 'center' }}>SG</th></tr></thead>
+        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('P', 'Pts')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('V', 'W')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('E', 'D')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('D', 'L')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('SG', 'GD')}</th></tr></thead>
         <tbody>
           {teams.map((t, i) => {
             const fc = colors[t.teamId]
@@ -2134,9 +2135,9 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: {
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
       {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
-      {scorers.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Sem gols ainda. Bola rolando…</p> : (
+      {scorers.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Sem gols ainda. Bola rolando…', 'No goals yet. Ball rolling…')}</p> : (
         <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-          <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>Jogador</th><th style={th}>Time</th><th style={{ ...th, textAlign: 'center' }}>Gols</th></tr></thead>
+          <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Jogador', 'Player')}</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('Gols', 'Goals')}</th></tr></thead>
           <tbody>
             {scorers.map((s, i) => {
               const isSaf = !s.you && !!safTeam && s.teamName === safTeam
@@ -2167,7 +2168,7 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam, safCol }:
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
       {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
-      {total === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Sem gols ainda. Bola rolando…</p> : DIVS.map(d => {
+      {total === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Sem gols ainda. Bola rolando…', 'No goals yet. Ball rolling…')}</p> : DIVS.map(d => {
         const top = scorers.filter(s => s.div === d).slice(0, 5) // já vêm ordenados por gols
         return (
           <div key={d} style={{ marginBottom: 10 }}>
@@ -2175,7 +2176,7 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam, safCol }:
               <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 5, padding: '1px 6px' }}>{DIV_TAG[d].l}</span>
               <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{DIV_NAME[d]}</span>
             </div>
-            {top.length === 0 ? <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.45)', fontWeight: 700, margin: '0 0 2px 4px' }}>Sem gols nesta série ainda.</p> : (
+            {top.length === 0 ? <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.45)', fontWeight: 700, margin: '0 0 2px 4px' }}>{tr('Sem gols nesta série ainda.', 'No goals in this division yet.')}</p> : (
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                 <tbody>
                   {top.map((s, i) => {
@@ -2208,7 +2209,7 @@ export function GarconsByDiv({ assists, colors, title, sub, foot, safTeam, safCo
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
       {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
-      {assists.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Nenhum passe pro gol ainda. Bola rolando…</p> : DIVS.map(d => {
+      {assists.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Nenhum passe pro gol ainda. Bola rolando…', 'No assists yet. Ball rolling…')}</p> : DIVS.map(d => {
         const top = assists.filter(a => a.div === d).slice(0, 5)
         return (
           <div key={d} style={{ marginBottom: 10 }}>
@@ -2216,7 +2217,7 @@ export function GarconsByDiv({ assists, colors, title, sub, foot, safTeam, safCo
               <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 900, color: '#fff', background: DIV_TAG[d].bg, borderRadius: 5, padding: '1px 6px' }}>{DIV_TAG[d].l}</span>
               <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{DIV_NAME[d]}</span>
             </div>
-            {top.length === 0 ? <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.45)', fontWeight: 700, margin: '0 0 2px 4px' }}>Sem assistência nesta série ainda.</p> : (
+            {top.length === 0 ? <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,0.45)', fontWeight: 700, margin: '0 0 2px 4px' }}>{tr('Sem assistência nesta série ainda.', 'No assists in this division yet.')}</p> : (
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                 <tbody>
                   {top.map((a, i) => {
@@ -2363,7 +2364,7 @@ export interface ScoreGoal { name: string; min: number; home: boolean; assist?: 
 // rápidos demais numa goleada) e a janela agora tem a altura EXATA de 2 linhas.
 const GOL_LINHA = 22 // altura de uma linha (12 de texto + 5+5 de respiro)
 function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 'right'; basket?: { h: number; a: number } }) {
-  if (list.length === 0) return <div style={{ height: GOL_LINHA * 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.35)' }}>{basket ? 'sem cestas ainda' : 'sem gols ainda'}</div>
+  if (list.length === 0) return <div style={{ height: GOL_LINHA * 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.35)' }}>{basket ? tr('sem cestas ainda', 'no baskets yet') : tr('sem gols ainda', 'no goals yet')}</div>
   const scroll = list.length > 2
   const rowsOf = (key: string) => list.map((g, i) => (
     <p key={key + i} style={{ margin: 0, padding: '5px 0', height: GOL_LINHA, lineHeight: '12px', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -2459,15 +2460,24 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // intervalo e apito final. Bem mais vida que a mesma frase toda partida — sem
   // re-introduzir a narração robótica do meio do jogo (que foi tirada de propósito).
   const rk = Math.abs(roundKey)
+  // 🌐 a narração sai no idioma do site (EN traduzido pelo sentido, mesma quantidade
+  //    de frases em cada banco pra o sorteio por roundKey bater igual na sala toda)
+  const emIngles = getLang() === 'en'
   const START = basket
-    ? ['🟢 Bola ao alto — começa o jogo!', '🟢 Pulou a bola — tá valendo!', '🟢 Começa o duelo na quadra!']
-    : ['🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!', '🟢 Rolou a bola — começa o jogo!', '🟢 Apitou o juiz: é dado o pontapé inicial!', '🟢 Começa a peleja de gente grande!', '🟢 Bola rolando — que comece a batalha!', '🟢 De saída! O árbitro liberou o duelo!']
+    ? (emIngles ? ['🟢 Jump ball — game on!', '🟢 Ball is up — it counts now!', '🟢 The duel on the court begins!'] : ['🟢 Bola ao alto — começa o jogo!', '🟢 Pulou a bola — tá valendo!', '🟢 Começa o duelo na quadra!'])
+    : (emIngles
+      ? ['🟢 The referee blows — first half under way!', '🟢 Ball rolling — the match begins!', '🟢 Whistle goes: kick-off!', '🟢 Big-boy football starts now!', '🟢 Ball rolling — let the battle begin!', '🟢 Straight away! The referee lets them loose!']
+      : ['🟢 Aaaaaauutoriza o árbitro — começa o primeiro tempo!', '🟢 Rolou a bola — começa o jogo!', '🟢 Apitou o juiz: é dado o pontapé inicial!', '🟢 Começa a peleja de gente grande!', '🟢 Bola rolando — que comece a batalha!', '🟢 De saída! O árbitro liberou o duelo!'])
   const HALF = basket
-    ? ['🟢 Volta pra quadra — segundo tempo!', '🟢 Recomeça o jogo na quadra!', '🟢 Segunda metade — agora vale!']
-    : ['🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!', '🟢 Volta do intervalo — bola rolando de novo!', '🟢 Recomeça o jogo pra etapa final!', '🟢 Segundo tempo na área — agora decide!', '🟢 Voltaram os times: 45 minutos pra história!']
+    ? (emIngles ? ['🟢 Back on the court — second half!', '🟢 The game restarts on the court!', '🟢 Second half — now it counts!'] : ['🟢 Volta pra quadra — segundo tempo!', '🟢 Recomeça o jogo na quadra!', '🟢 Segunda metade — agora vale!'])
+    : (emIngles
+      ? ['🟢 The referee blows — second half rolling!', '🟢 Back from the break — ball rolling again!', '🟢 The game restarts for the final stretch!', '🟢 Second half on — now it gets decided!', '🟢 The teams are back: 45 minutes for history!']
+      : ['🟢 Aaaaaauutoriza o árbitro — rola o segundo tempo!', '🟢 Volta do intervalo — bola rolando de novo!', '🟢 Recomeça o jogo pra etapa final!', '🟢 Segundo tempo na área — agora decide!', '🟢 Voltaram os times: 45 minutos pra história!'])
   const END = basket
-    ? ['📢 Buzina final — acabou o jogo!', '📢 Fim de jogo na quadra!', '📢 Soou a buzina: fim de papo!', '📢 Acabou o duelo na quadra!']
-    : ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!', '📢 Acabou! O juiz encerrou a peleja!', '📢 Fim de papo — placar fechado!', '📢 Soou o apito final — é isso aí!']
+    ? (emIngles ? ['📢 Final buzzer — game over!', '📢 Full time on the court!', '📢 The buzzer sounds: that\'s all!', '📢 The duel on the court is over!'] : ['📢 Buzina final — acabou o jogo!', '📢 Fim de jogo na quadra!', '📢 Soou a buzina: fim de papo!', '📢 Acabou o duelo na quadra!'])
+    : (emIngles
+      ? ['📢 Final whistle — the match is over!', '📢 The referee blows: it\'s over!', '📢 Full time — shirts off!', '📢 It\'s over! The referee ends the battle!', '📢 That\'s all — score is final!', '📢 The final whistle goes — that\'s it!']
+      : ['📢 Apito final — termina o jogo!', '📢 Apitou o árbitro: acabou!', '📢 Fim de jogo — pode tirar o uniforme!', '📢 Acabou! O juiz encerrou a peleja!', '📢 Fim de papo — placar fechado!', '📢 Soou o apito final — é isso aí!'])
   const ritualTxt = ritual === 'start' ? START[rk % START.length]
     : ritual === 'half' ? HALF[rk % HALF.length]
       : ritual === 'end' ? END[rk % END.length]
@@ -2484,7 +2494,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     const mm = Math.floor(secLeft / 60), ss = secLeft % 60
     return `Q${q} ${mm}:${ss.toString().padStart(2, '0')}`
   }
-  const minLabel = basket ? basketClock() : (min >= 93 ? 'FIM' : min > 90 ? `90+${min - 90}'` : `${min}'`)
+  const minLabel = basket ? basketClock() : (min >= 93 ? tr('FIM', 'FT') : min > 90 ? `90+${min - 90}'` : `${min}'`)
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
   const homeCol = homeColor, awayCol = awayColor
@@ -2543,7 +2553,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
           foi aprovado). */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: flash ? 'coBump .6s ease' : undefined, ...(basket ? { width: 32, height: 32, borderRadius: 9, border: `2px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 15, ...OSWALD } : null) }}>{basket ? ini(name) : <Escudo nome={name} size={40} />}</div>
       <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: ink, lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{perk ? apoioName(name) : name}</div>
-      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? 'você' : 'rival'}</div>
+      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? tr('você', 'you') : tr('rival', 'rival')}</div>
     </div>
     )
   }
@@ -2551,10 +2561,14 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   //    online). O minuto é CONGELADO no instante do gol (goalSeedFix): se usasse
   //    o relógio corrente, a frase trocaria a cada tique.
   const goalSeed = Math.abs(goalSeedFix ?? last?.min ?? min)
-  const GOAL_FUT = ['⚽ GOOOL!', '⚽ É GOOOL!', '⚽ PINGOU!', '⚽ NA REDE!', '⚽ SACUDIU!', '⚽ ESTUFOU!', '⚽ GOLAÇO!']
-  const GOAL_FUT_LATE = ['🔥 GOL NO FIM!', '🔥 NO ÚLTIMO SUSPIRO!', '🔥 NOS ACRÉSCIMOS!', '🔥 SALVOU NO FIM!']
+  const GOAL_FUT = emIngles
+    ? ['⚽ GOOOAL!', '⚽ IT\'S A GOAL!', '⚽ IN THE NET!', '⚽ BACK OF THE NET!', '⚽ SHAKES THE NET!', '⚽ BULGES THE NET!', '⚽ WHAT A GOAL!']
+    : ['⚽ GOOOL!', '⚽ É GOOOL!', '⚽ PINGOU!', '⚽ NA REDE!', '⚽ SACUDIU!', '⚽ ESTUFOU!', '⚽ GOLAÇO!']
+  const GOAL_FUT_LATE = emIngles
+    ? ['🔥 LATE GOAL!', '🔥 LAST GASP!', '🔥 IN STOPPAGE TIME!', '🔥 SAVED AT THE DEATH!']
+    : ['🔥 GOL NO FIM!', '🔥 NO ÚLTIMO SUSPIRO!', '🔥 NOS ACRÉSCIMOS!', '🔥 SALVOU NO FIM!']
   const goalStamp = basket
-    ? (lateGoal ? '🔥 CESTA NO FIM!' : '🏀 CESTA!')
+    ? (lateGoal ? tr('🔥 CESTA NO FIM!', '🔥 LATE BASKET!') : tr('🏀 CESTA!', '🏀 BASKET!'))
     : (lateGoal ? GOAL_FUT_LATE[goalSeed % GOAL_FUT_LATE.length] : GOAL_FUT[goalSeed % GOAL_FUT.length])
   // 🔒 trava final: se o placar na tela está 0×0, NÃO existe gol pra comemorar —
   //    nenhum selo e nenhum flash, aconteça o que acontecer com o estado.
@@ -2582,11 +2596,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={shown}
     goalSide={golSide} mascot={carimboArt} eventKey={goalSeed}
     stamp={`${goalStamp}${last ? ` ${last.name} ${last.min}′` : ''}`}
-    narration={ritualTxt ?? (done ? 'FIM DE JOGO' : '🟢 BOLA ROLANDO')} />
+    narration={ritualTxt ?? (done ? tr('FIM DE JOGO', 'FULL TIME') : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))} />
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
-      {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>🥊 CLÁSSICO</div>}
+      {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>{tr('🥊 CLÁSSICO', '🥊 DERBY')}</div>}
       {/* 🎨 topo agora acumula os dois papéis (Diego 15/08): narração (apito
           inicial/intervalo/final, sempre visível, fundo escuro) E o flash de
           GOL (fundo dourado/vermelho, alguns segundos). Antes eram 2 lugares
@@ -2596,13 +2610,13 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         <p key={golSide ? 'g' + goalSeed : (ritualTxt ?? 'idle')} style={{ margin: 0, padding: '7px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, letterSpacing: 0.4, color: golSide ? (lateGoal ? '#fff' : INK) : '#fff', animation: golSide ? 'coBanner .3s ease' : (ritualTxt ? 'coFade .4s ease' : undefined), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {golSide
             ? `${goalStamp}${last ? ` ${last.name} ${last.min > 90 ? `90+${last.min - 90}` : last.min}'` : ''}`
-            : (ritualTxt ?? (done ? (basket ? 'sem cestas' : 'sem gols') : (basket ? '🟢 bola quicando…' : '🟢 bola rolando…')))}
+            : (ritualTxt ?? (done ? (basket ? tr('sem cestas', 'no baskets') : tr('sem gols', 'no goals')) : (basket ? tr('🟢 bola quicando…', '🟢 ball bouncing…') : tr('🟢 bola rolando…', '🟢 ball rolling…'))))}
         </p>
       </div>
       {/* 🎨 relógio é a pilulazinha flutuando por cima do placar. */}
       <div style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
-          <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : 'FIM') : minLabel}
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : tr('FIM', 'FT')) : minLabel}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
           <Team name={homeName} color={homeCol} you={youIsHome} flash={golSide === 'h'} />
@@ -5255,6 +5269,7 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
   )
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
+const ABAS_CARR_EN: Record<AbaCarr, string> = { jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', ranking: 'Rank', estadio: 'Club' }
 function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean }) {
   return (
     <>
@@ -5263,7 +5278,7 @@ function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false }: 
       <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
 <div className="ll-career-navigation" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
         {ABAS_CARR.filter(([t]) => !combined || t !== 'tabelas').map(([t, originalLabel]) => {
-          const label = combined && t === 'jogos' ? 'Jogos + Tabela' : originalLabel
+          const label = combined && t === 'jogos' ? tr('Jogos + Tabela', 'Matches + Table') : tr(originalLabel, ABAS_CARR_EN[t])
           const on = tab === t || (combined && t === 'jogos' && tab === 'tabelas')
           return (
             <button key={t} onClick={() => setTab(t)} aria-label={label}
@@ -5288,7 +5303,7 @@ function FaixaCarr({ temporada, texto, div, pos, coins, cor }: { temporada: numb
       <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, background: cor, borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap' }}>T{temporada}</span>
       <span style={{ ...OSWALD, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap' }}>{texto}</span>
       <span style={{ flex: 1, minWidth: 0, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{div}</span>
-      {pos != null && <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>{pos === 1 ? '🥇' : '🏅'} {pos}º</span>}
+      {pos != null && <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>{pos === 1 ? '🥇' : '🏅'} {ordinal(pos)}</span>}
       <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', color: coins < 0 ? '#FF9B8A' : GOLD }}>🪙 {coins}</span>
     </div>
   )
