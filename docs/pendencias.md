@@ -1,3 +1,29 @@
+## 12/09/2026 — 🌐 Tradução: modal do APOIE, pênalti e eventos · 😓 CONDIÇÃO/GÁS proposta (aguardando escolha)
+
+### Feito (commit "Traducao EN: modal do APOIE inteiro…")
+- APOIE inteiro em EN (7 telas), narração do pênalti (7 listas com irmã `_EN`,
+  mesma quantidade de frases), `eventos.ts` (27 histórias + manchetes), marca
+  d'água das prévias. Helper novo em `screens.tsx`: `L(pt, en)` pra JSX rico.
+- As **manchetes de memória** (`manchetesDeMemoria`) JÁ estavam em EN — não
+  precisou mexer.
+
+### ⏳ Falta (o Diego disse "textos de graça" — inclui isto)
+- **Bios das cartas: 702 `bio:` em `data.ts`, só em PT.** Plano: arquivo GERADO
+  `bios-en.ts` (mapa `nome|clube|ano → bio EN`) lido por quem mostra a bio quando
+  `getLang()==='en'`; NÃO tocar no `data.ts` (a bio dele é a que
+  `sincronizaNiveis()` regrava nos saves). Traduzir fiel, sem inventar fato de
+  gente real. Trabalho grande — fazer em levas.
+
+### 😓 CONDIÇÃO / GÁS do jogador — mockup entregue, NADA codado
+Pedido: *"precisamos da condição do jogador.. energia com base na quantidade de
+jogos ou qd se machuca e volta aos poucos"*. `scripts/mockup-condicao-elenco.mjs`
+(3 variantes: A bateria · B três caras · C bolinha; + campinho, aviso do
+preparador, volta gradual). Amarrado ao motor real: força por jogo em
+`rollForm()` (lvl = lo + rng·(hi−lo)), modificador por rodada já existe em
+`RoundMods` (o "escalar assim mesmo" usa −2), lesão em `EventoAtivo`, Dep.
+Médico em `estadiodata.ts`. Regras propostas no chat de 12/09 — só codar depois
+do OK visual dele. Tópico 7 de `docs/ideias-topicos-diego.md` é a semente.
+
 ## 12/09/2026 — 📲 As imagens de COMPARTILHAR viraram cópia da tela · ⚡ pênalti ilustrado liberado · 🌐 as 100 manchetes em inglês
 
 Gatilho: o Diego mandou print do grupo com a figura do jornal e disse *"já
