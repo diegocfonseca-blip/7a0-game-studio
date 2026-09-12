@@ -1188,9 +1188,9 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
     <>
       {/* RESUMO: renda por temporada */}
       <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
-        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>💼 Renda do Empresário</div>
-        <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>+{total} 🪙 <span style={{ fontSize: 13, fontWeight: 700, opacity: .75 }}>/ temporada</span></div>
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', marginTop: 6, lineHeight: 1.4 }}>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — puxe o estádio e a SAF pra liberar as raras.</div>
+        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('💼 Renda do Empresário', '💼 Agent income')}</div>
+        <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>+{total} 🪙 <span style={{ fontSize: 13, fontWeight: 700, opacity: .75 }}>/ {tr('temporada', 'season')}</span></div>
+        <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', marginTop: 6, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Lands in the till every turnover. Only cards of <b>unlocked</b> categories count — build the stadium and the SAF to unlock the rare ones.</> : <>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — puxe o estádio e a SAF pra liberar as raras.</>}</div>
       </div>
 
       {/* CATEGORIAS: quanto tem, o que rende, o que falta destravar */}
@@ -1202,8 +1202,8 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                 <span style={{ fontSize: 20 }}>{m.emoji}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{m.label} <span style={{ fontWeight: 700, fontSize: 11, color: '#8a8069' }}>+{m.value}/carta</span></div>
-                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{list.length} {list.length === 1 ? 'carta' : 'cartas'}{b.unlocked ? '' : ` · 🔒 destrava: ${m.req}`}</div>
+                  <div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{m.label} <span style={{ fontWeight: 700, fontSize: 11, color: '#8a8069' }}>+{m.value}/{tr('carta', 'card')}</span></div>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{list.length} {list.length === 1 ? tr('carta', 'card') : tr('cartas', 'cards')}{b.unlocked ? '' : ` · 🔒 ${tr('destrava', 'unlocks')}: ${m.req}`}</div>
                 </div>
                 <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: b.unlocked ? GREEN : '#b3a688', whiteSpace: 'nowrap' }}>{b.unlocked ? `+${b.income}` : '🔒'}</div>
               </div>
@@ -1223,7 +1223,7 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
         })}
       </div>
       {cards.length === 0 && (
-        <div style={{ ...box('#FBF6E9'), padding: 16, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5, marginTop: 10 }}>Sua agência está vazia. Seja <b>campeão</b> pra ganhar cartas no pacote — elas entram aqui e rendem por temporada.</div>
+        <div style={{ ...box('#FBF6E9'), padding: 16, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5, marginTop: 10 }}>{getLang() === 'en' ? <>Your agency is empty. Become <b>champion</b> to win cards in the pack — they come here and earn every season.</> : <>Sua agência está vazia. Seja <b>campeão</b> pra ganhar cartas no pacote — elas entram aqui e rendem por temporada.</>}</div>
       )}
 
       {/* modal: carta cheia com bio */}
@@ -1231,7 +1231,7 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
         <div onClick={() => setOpen(null)} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 300 }}>
             <CollectibleCard name={open.name} club={open.club} year={open.year} pos={open.pos} fame={open.fame} folk={open.folk} promessa={open.promessa} big showBio />
-            <button onClick={() => setOpen(null)} style={{ width: '100%', marginTop: 10, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>Fechar</button>
+            <button onClick={() => setOpen(null)} style={{ width: '100%', marginTop: 10, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('Fechar', 'Close')}</button>
           </div>
         </div>
       )}
@@ -1251,11 +1251,11 @@ const agTier = (c: { fame?: number; promessa?: boolean }): { grad: string; ink: 
     : (c.fame ?? 1) >= 2 ? { grad: 'linear-gradient(150deg,#41C07A,#2E9E5B,#1E7A45)', ink: '#fff' }
     : { grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E,#B2A583)', ink: INK }
 const agChip = (c: { fame?: number; promessa?: boolean }) =>
-  c.promessa ? { t: '💎 PROMESSA', bg: '#8B5CF6', ink: '#fff' }
-    : (c.fame ?? 1) >= 5 ? { t: '👑 LENDA', bg: GOLD, ink: INK }
-    : (c.fame ?? 1) === 4 ? { t: '⭐ CRAQUE', bg: '#E4E9F0', ink: INK }
-    : (c.fame ?? 1) >= 2 ? { t: '🎯 BOM', bg: '#2E9E5B', ink: '#fff' }
-    : { t: '🪵 FOI PROF.', bg: '#CBBF9E', ink: INK }
+  c.promessa ? { t: tr('💎 PROMESSA', '💎 PROSPECT'), bg: '#8B5CF6', ink: '#fff' }
+    : (c.fame ?? 1) >= 5 ? { t: tr('👑 LENDA', '👑 LEGEND'), bg: GOLD, ink: INK }
+    : (c.fame ?? 1) === 4 ? { t: tr('⭐ CRAQUE', '⭐ STAR'), bg: '#E4E9F0', ink: INK }
+    : (c.fame ?? 1) >= 2 ? { t: tr('🎯 BOM', '🎯 GOOD'), bg: '#2E9E5B', ink: '#fff' }
+    : { t: tr('🪵 FOI PROF.', '🪵 EX-PRO'), bg: '#CBBF9E', ink: INK }
 
 function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet, clubes, destinoId, dividir, onSetDestino }: {
   cards: AgCard[]; pool: AgCard[]; hist: Record<string, number> | undefined
@@ -1277,19 +1277,19 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
       {/* 🕴️ APRESENTAÇÃO (Diego 13/08 — "não tá claro o que é Agenciados"): conta a
           história ANTES do painel técnico — de onde vêm as cartas (título) e por
           que só 22 (dar atenção). Some pra sempre depois do "Entendi!". */}
-      <UnlockBanner k="agenciados" tag="🕴️ novidade pra você" title="Agora você é empresário" ctaBg="#7C3AED" ctaColor="#fff">
-        Toda vez que for <b>CAMPEÃO</b> — com qualquer time — você ganha jogadores de verdade pra agenciar. Dá pra dar atenção a até <b>22 de cada vez</b>.
+      <UnlockBanner k="agenciados" tag={tr('🕴️ novidade pra você', '🕴️ new for you')} title={tr('Agora você é empresário', 'Now you are an agent')} ctaBg="#7C3AED" ctaColor="#fff">
+        {getLang() === 'en' ? <>Every time you become <b>CHAMPION</b> — with any team — you win real players to represent. You can look after up to <b>22 at a time</b>.</> : <>Toda vez que for <b>CAMPEÃO</b> — com qualquer time — você ganha jogadores de verdade pra agenciar. Dá pra dar atenção a até <b>22 de cada vez</b>.</>}
       </UnlockBanner>
       {/* CABEÇALHO: quantos na ativa */}
       <div style={{ ...box(INK), color: '#fff', padding: '11px 13px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, borderRadius: 14 }}>
         <span style={{ fontSize: 26 }}>🕴️</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Sua Agência</div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>Convoque até 22 cartas de título DESTA carreira pra "ativa" — só elas rendem. {dividir ? <>A grana cai <b>meio a meio nos dois clubes</b>.</> : <>A grana cai no <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1º clube)'}.</>}</div>
+          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>{tr('Sua Agência', 'Your Agency')}</div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>{getLang() === 'en' ? <>Call up to 22 title cards from THIS career as "active" — only they earn. {dividir ? <>The money is split <b>half and half between both clubs</b>.</> : <>The money goes to <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1st club)'}.</>}</> : <>Convoque até 22 cartas de título DESTA carreira pra "ativa" — só elas rendem. {dividir ? <>A grana cai <b>meio a meio nos dois clubes</b>.</> : <>A grana cai no <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1º clube)'}.</>}</>}</div>
         </div>
         <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 10px', textAlign: 'center', color: INK }}>
           <b style={{ display: 'block', ...OSWALD, fontSize: 16, lineHeight: 1 }}>{cards.length}/22</b>
-          <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>NA ATIVA</span>
+          <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>{tr('NA ATIVA', 'ACTIVE')}</span>
         </div>
       </div>
 
@@ -1297,11 +1297,11 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
           (inteira — mensalidades + comissões; nada de dividir). Só com 2 clubes. */}
       {clubes && clubes.length === 2 && onSetDestino && (
         <div style={{ ...box('#fff'), padding: '9px 11px', marginBottom: 10 }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 6px', textTransform: 'uppercase' as const }}>💰 A renda da agência cai no caixa de:</p>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, margin: '0 0 6px', textTransform: 'uppercase' as const }}>{tr('💰 A renda da agência cai no caixa de:', '💰 Agency income goes to the till of:')}</p>
           <div style={{ display: 'flex', gap: 6 }}>
             {[
               ...clubes.map(c => ({ key: `c${c.id}`, label: `${c.dorme ? '💤' : '🟡'} ${c.nome}`, on: !dividir && destinoId === c.id, click: () => onSetDestino(c.id) })),
-              { key: 'div', label: '🤝 Dividir os dois', on: !!dividir, click: () => onSetDestino(destinoId ?? clubes[0].id, true) },
+              { key: 'div', label: tr('🤝 Dividir os dois', '🤝 Split both'), on: !!dividir, click: () => onSetDestino(destinoId ?? clubes[0].id, true) },
             ].map(b => (
               <button key={b.key} onClick={b.click} style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 4px', fontWeight: 900, fontSize: 10, ...OSWALD, textTransform: 'uppercase' as const, background: b.on ? GOLD : '#fff', color: INK, boxShadow: b.on ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {b.label}{b.on ? ' ✓' : ''}
@@ -1309,14 +1309,14 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
             ))}
           </div>
           <p style={{ fontSize: 9, fontWeight: 700, color: '#8a8069', margin: '5px 0 0', lineHeight: 1.35 }}>{dividir
-            ? <>🤝 <b>Meio a meio</b>: mensalidades e comissões dividem entre os dois (moeda ímpar fica com o clube no comando). Os destraves usam o <b>estádio que rende mais</b> dos dois.</>
-            : <>Mensalidades e comissões vão INTEIRAS pro clube marcado (os destraves passam a olhar o estádio dele). Troque quando quiser.</>}</p>
+            ? (getLang() === 'en' ? <>🤝 <b>Half and half</b>: monthly fees and commissions are split between the two (an odd coin stays with the club in charge). Unlocks use the <b>better-earning stadium</b> of the two.</> : <>🤝 <b>Meio a meio</b>: mensalidades e comissões dividem entre os dois (moeda ímpar fica com o clube no comando). Os destraves usam o <b>estádio que rende mais</b> dos dois.</>)
+            : (getLang() === 'en' ? <>Monthly fees and commissions go IN FULL to the chosen club (unlocks then look at its stadium). Switch whenever you like.</> : <>Mensalidades e comissões vão INTEIRAS pro clube marcado (os destraves passam a olhar o estádio dele). Troque quando quiser.</>)}</p>
         </div>
       )}
 
       {/* RENDA GARANTIDA por temporada */}
       <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '11px 13px', marginBottom: 10 }}>
-        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>💰 Renda garantida por temporada</div>
+        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('💰 Renda garantida por temporada', '💰 Guaranteed income per season')}</div>
         <div style={{ ...OSWALD, fontSize: 26, fontWeight: 900, lineHeight: 1.1, marginTop: 2 }}>+{renda.total} 🪙</div>
         <div style={{ marginTop: 6 }}>
           {EMP_ORDER.map(k => {
@@ -1326,13 +1326,13 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
               <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
                 <span>{m.emoji} {m.label}</span>
                 <span style={{ opacity: .85 }}>{b.count} × {b.value}</span>
-                <span style={{ marginLeft: 'auto' }}>{b.unlocked ? `= ${b.income} 🪙` : `🔒 destrava: ${m.req}`}</span>
+                <span style={{ marginLeft: 'auto' }}>{b.unlocked ? `= ${b.income} 🪙` : `🔒 ${tr('destrava', 'unlocks')}: ${m.req}`}</span>
               </div>
             )
           })}
           {renda.folkCount > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
-              <span>🃏 Folclórico</span><span style={{ opacity: .85 }}>{renda.folkCount} na ativa, +{AG_FOLK_BONUS} cada</span>
+              <span>{tr('🃏 Folclórico', '🃏 Folk hero')}</span><span style={{ opacity: .85 }}>{renda.folkCount} {tr('na ativa', 'active')}, +{AG_FOLK_BONUS} {tr('cada', 'each')}</span>
               <span style={{ marginLeft: 'auto' }}>= +{renda.folkIncome} 🪙</span>
             </div>
           )}
@@ -1341,14 +1341,14 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
 
       {/* COMISSÕES / fatura da temporada */}
       <div style={{ ...box(), padding: '10px 12px', marginBottom: 10 }}>
-        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', marginBottom: 5 }}>📈 Comissões da agência</div>
+        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', marginBottom: 5 }}>{tr('📈 Comissões da agência', '📈 Agency commissions')}</div>
         {(!fatura || (fatura.rows.length === 0 && fatura.mensal === 0)) ? (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>Ainda nada por aqui. Seus agenciados pagam comissão quando <b>viram artilheiro</b> 🥇, <b>são campeões</b> 🏆 (em qualquer time!) ou <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your clients pay commission when they <b>become top scorer</b> 🥇, <b>win a title</b> 🏆 (with any team!) or <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus agenciados pagam comissão quando <b>viram artilheiro</b> 🥇, <b>são campeões</b> 🏆 (em qualquer time!) ou <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p>
         ) : (
           <>
             {fatura.mensal > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 700, padding: '4px 0' }}>
-                💰 <span>Mensalidades pagas na última virada</span>
+                💰 <span>{tr('Mensalidades pagas na última virada', 'Monthly fees paid at the last turnover')}</span>
                 <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, color: GREEN, fontSize: 12.5 }}>+{fatura.mensal} 🪙</span>
               </div>
             )}
@@ -1359,7 +1359,7 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
               </div>
             ))}
             <div style={{ marginTop: 6, background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '5px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 900, fontSize: 11 }}>
-              <span>🕴️ Total no caixa do {primeiroClube}</span><span style={{ ...OSWALD, color: GREEN, fontSize: 14 }}>+{fatura.total} 🪙</span>
+              <span>{tr('🕴️ Total no caixa do', '🕴️ Total in the till of')} {primeiroClube}</span><span style={{ ...OSWALD, color: GREEN, fontSize: 14 }}>+{fatura.total} 🪙</span>
             </div>
           </>
         )}
@@ -1368,7 +1368,7 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
       {/* GRADE dos agenciados (toque abre a carta igual álbum) */}
       {cards.length > 0 && (
         <>
-          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', margin: '2px 2px 6px' }}>🃏 Seus agenciados (toque pra abrir a carta)</div>
+          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', margin: '2px 2px 6px' }}>{tr('🃏 Seus agenciados (toque pra abrir a carta)', '🃏 Your clients (tap to open the card)')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7, marginBottom: 10 }}>
             {cards.map(c => {
               const t = agTier(c)
@@ -1387,17 +1387,17 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
       )}
       {cards.length === 0 && (
         <div style={{ ...box('#FBF6E9'), padding: 16, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5, marginBottom: 10 }}>
-          Ninguém na ativa ainda. As cartas da agência você ganha sendo <b>campeão NESTA carreira</b> (o pacote do título) — aí é só convocar até 22 pra ativa.
+          {getLang() === 'en' ? <>Nobody active yet. You win agency cards by becoming <b>champion IN THIS career</b> (the title pack) — then just call up to 22 as active.</> : <>Ninguém na ativa ainda. As cartas da agência você ganha sendo <b>campeão NESTA carreira</b> (o pacote do título) — aí é só convocar até 22 pra ativa.</>}
         </div>
       )}
 
       {/* CONVOCAR + trava explicada */}
       <button onClick={() => setConvocando(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', marginBottom: 8 }}>
-        🧢 Convocar agenciados — {cards.length > 0 ? 'trocar os 22' : 'escolher do cofre da carreira'}
+        {tr('🧢 Convocar agenciados', '🧢 Call up clients')} — {cards.length > 0 ? tr('trocar os 22', 'swap the 22') : tr('escolher do cofre da carreira', 'pick from the career vault')}
       </button>
       {locked.length > 0 && (
         <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 9px' }}>
-          🔒 {locked.map(k => `${EMP_META[k].label} destrava: ${EMP_META[k].req}`).join(' · ')} — os desbloqueios ficam em <b>Clube › 🏗️ Estrutura</b> (a obra do estádio destrava).
+          🔒 {locked.map(k => `${EMP_META[k].label} ${tr('destrava', 'unlocks')}: ${EMP_META[k].req}`).join(' · ')} — {getLang() === 'en' ? <>unlocks live in <b>Club › 🏗️ Structure</b> (stadium works unlock them).</> : <>os desbloqueios ficam em <b>Clube › 🏗️ Estrutura</b> (a obra do estádio destrava).</>}
         </div>
       )}
 
@@ -1412,17 +1412,17 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
             <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 300 }}>
               <CollectibleCard name={open.name} club={open.club} year={open.year} pos={open.pos} fame={open.fame} folk={open.folk} promessa={open.promessa} big showBio />
               <div style={{ ...box(), padding: '9px 11px', marginTop: 10 }}>
-                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', marginBottom: 3 }}>💼 Na sua agência</div>
+                <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', marginBottom: 3 }}>{tr('💼 Na sua agência', '💼 In your agency')}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 800, padding: '2px 0' }}>
-                  <span>💰 Rende por temporada{open.folk ? ' (com 🃏 +1)' : ''}</span>
+                  <span>{tr('💰 Rende por temporada', '💰 Earns per season')}{open.folk ? tr(' (com 🃏 +1)', ' (with 🃏 +1)') : ''}</span>
                   <span style={{ ...OSWALD, color: rende > 0 ? GREEN : '#b3a688' }}>{rende > 0 ? `+${rende} 🪙` : `🔒 ${EMP_META[cat].req}`}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 800, padding: '2px 0', borderTop: '2px solid rgba(0,0,0,.06)' }}>
-                  <span>🏦 Já te rendeu nesta carreira</span>
+                  <span>{tr('🏦 Já te rendeu nesta carreira', '🏦 Earned for you in this career')}</span>
                   <span style={{ ...OSWALD, color: GREEN }}>{ja} 🪙</span>
                 </div>
               </div>
-              <button onClick={() => setOpen(null)} style={{ width: '100%', marginTop: 10, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>Fechar</button>
+              <button onClick={() => setOpen(null)} style={{ width: '100%', marginTop: 10, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('Fechar', 'Close')}</button>
             </div>
           </div>
         )
@@ -1461,12 +1461,12 @@ function ConvocacaoAgencia({ current, pool, onClose, onSave }: { current: AgCard
         <div style={{ ...box(INK), color: '#fff', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9, borderRadius: 14 }}>
           <span style={{ fontSize: 26 }}>🧢</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>Convocação da Agência</div>
-            <div style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>{pool.length} cartas de título DESTA carreira — convoque até 22 pra ativa. Troque quando quiser.</div>
+            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>{tr('Convocação da Agência', 'Agency Call-up')}</div>
+            <div style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>{pool.length} {tr('cartas de título DESTA carreira — convoque até 22 pra ativa. Troque quando quiser.', 'title cards from THIS career — call up to 22 as active. Swap whenever you like.')}</div>
           </div>
           <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 9px', textAlign: 'center', color: INK }}>
             <b style={{ display: 'block', ...OSWALD, fontSize: 15, lineHeight: 1 }}>{total}/22</b>
-            <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>CONVOCADOS</span>
+            <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>{tr('CONVOCADOS', 'CALLED UP')}</span>
           </div>
         </div>
 
@@ -1478,7 +1478,7 @@ function ConvocacaoAgencia({ current, pool, onClose, onSave }: { current: AgCard
           ))}
         </div>
 
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder={`🔎 buscar nos ${pool.filter(c => c.pos === tab).length} da posição…`}
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={`${tr('🔎 buscar nos', '🔎 search the')} ${pool.filter(c => c.pos === tab).length} ${tr('da posição…', 'in this position…')}`}
           style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
 
         <div style={{ ...box('#fff'), borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
@@ -1495,29 +1495,29 @@ function ConvocacaoAgencia({ current, pool, onClose, onSave }: { current: AgCard
                   <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : ''}</span>
                   <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                   {c.folk && <span style={{ background: INK, color: '#fff', borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 6px', flexShrink: 0 }}>🃏 +1</span>}
-                  <span style={{ background: chip.bg, color: chip.ink, border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 6px', flexShrink: 0 }}>{otherVersion ? 'já convocado' : chip.t}</span>
+                  <span style={{ background: chip.bg, color: chip.ink, border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 6px', flexShrink: 0 }}>{otherVersion ? tr('já convocado', 'already called') : chip.t}</span>
                   <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.club} · {c.year}</span>
                 </button>
               )
             })}
             {list.length === 0 && (
               <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>
-                {pool.length === 0 ? 'O cofre desta carreira ainda está vazio — seja CAMPEÃO aqui pra ganhar cartas! 🏆' : 'ninguém com esse nome aqui… 🔎'}
+                {pool.length === 0 ? tr('O cofre desta carreira ainda está vazio — seja CAMPEÃO aqui pra ganhar cartas! 🏆', 'This career\'s vault is still empty — become CHAMPION here to win cards! 🏆') : tr('ninguém com esse nome aqui… 🔎', 'nobody with that name here… 🔎')}
               </p>
             )}
           </div>
         </div>
 
         <div style={{ ...box('#FFF7DB'), padding: '9px 11px', marginBottom: 10 }}>
-          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', marginBottom: 3 }}>💡 Quem tá na ativa rende</div>
-          <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>💰 Fixo por temporada: 👑 5 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folclórico +1 por cima<br />🥇 Artilheiro na sua carreira <b>+1</b> · 🏆 Campeão em qualquer time <b>+1</b> · 💸 Negociado no leilão <b>+1</b></p>
+          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', marginBottom: 3 }}>{tr('💡 Quem tá na ativa rende', '💡 Active players earn')}</div>
+          <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>💰 Flat per season: 👑 5 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folk hero +1 on top<br />🥇 Top scorer in your career <b>+1</b> · 🏆 Champion with any team <b>+1</b> · 💸 Traded at the auction <b>+1</b></> : <>💰 Fixo por temporada: 👑 5 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folclórico +1 por cima<br />🥇 Artilheiro na sua carreira <b>+1</b> · 🏆 Campeão em qualquer time <b>+1</b> · 💸 Negociado no leilão <b>+1</b></>}</p>
         </div>
 
         <button onClick={() => onSave(Object.values(sel))} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
-          ✅ Fechar convocação ({total}/22)
+          {tr('✅ Fechar convocação', '✅ Close call-up')} ({total}/22)
         </button>
-        {total < 22 && <p style={{ fontSize: 9.5, fontWeight: 800, color: '#F4ECD6', textAlign: 'center', margin: '6px 0 0' }}>ainda dá pra convocar mais {22 - total} — ou feche assim mesmo, você troca quando quiser</p>}
-        <p style={{ textAlign: 'center', marginTop: 8 }}><button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 11, fontWeight: 900, textDecoration: 'underline', color: 'rgba(255,255,255,.75)', cursor: 'pointer' }}>← voltar sem salvar</button></p>
+        {total < 22 && <p style={{ fontSize: 9.5, fontWeight: 800, color: '#F4ECD6', textAlign: 'center', margin: '6px 0 0' }}>{getLang() === 'en' ? `you can still call up ${22 - total} more — or close as is, you can swap anytime` : `ainda dá pra convocar mais ${22 - total} — ou feche assim mesmo, você troca quando quiser`}</p>}
+        <p style={{ textAlign: 'center', marginTop: 8 }}><button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 11, fontWeight: 900, textDecoration: 'underline', color: 'rgba(255,255,255,.75)', cursor: 'pointer' }}>{tr('← voltar sem salvar', '← back without saving')}</button></p>
       </div>
     </div>
   )
@@ -1536,21 +1536,28 @@ function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSa
   const obras = STADIUM_SECTORS.length + STADIUM_EXTRAS.length - faltam.length
   const totObras = STADIUM_SECTORS.length + STADIUM_EXTRAS.length
   // texto da exigência com o PROGRESSO real (regra do Diego: trava diz o que falta)
-  const req: Record<EmpCat, string> = {
+  const en = getLang() === 'en'
+  const req: Record<EmpCat, string> = en ? {
+    prof: 'Open from day 1 — learn the ropes at no cost.',
+    bom: done >= 1 ? `1 stadium stand finished — you already have ${done}. ✓` : '1 stadium stand finished — finish the first build.',
+    promessa: done >= 3 ? `3 stands finished — you already have ${done}. ✓` : `3 stands finished — you have ${done}.`,
+    craque: faltam.length === 0 ? 'Stadium 100% complete. ✓' : `Stadium 100% (${totObras} builds). Missing: ${faltam.slice(0, 3).join(', ')}${faltam.length > 3 ? '…' : ''}.`,
+    lenda: hasFilial ? 'SAF bought — you reached the top. ✓' : 'Buy the SAF (2,000 🪙 + complete stadium) — the club\'s peak.',
+  } : {
     prof: 'Liberada desde o 1º dia — aprende a mexer sem custo.',
     bom: done >= 1 ? `1 setor do estádio pronto — você já tem ${done}. ✓` : '1 setor do estádio pronto — termine a primeira obra.',
     promessa: done >= 3 ? `3 setores prontos — você já tem ${done}. ✓` : `3 setores prontos — você tem ${done}.`,
     craque: faltam.length === 0 ? 'Estádio 100% completo. ✓' : `Estádio 100% (${totObras} obras). Falta: ${faltam.slice(0, 3).join(', ')}${faltam.length > 3 ? '…' : ''}.`,
     lenda: hasFilial ? 'SAF comprada — chegou no ápice. ✓' : 'Compre a SAF (2.000 🪙 + estádio completo) — o ápice do clube.',
   }
-  const chip: Record<EmpCat, string> = { prof: '', bom: `🔒 ${Math.min(done, 1)}/1 SETOR`, promessa: `🔒 ${Math.min(done, 3)}/3 SETORES`, craque: `🔒 ${obras}/${totObras} OBRAS`, lenda: '🔒 SAF' }
+  const chip: Record<EmpCat, string> = { prof: '', bom: `🔒 ${Math.min(done, 1)}/1 ${tr('SETOR', 'STAND')}`, promessa: `🔒 ${Math.min(done, 3)}/3 ${tr('SETORES', 'STANDS')}`, craque: `🔒 ${obras}/${totObras} ${tr('OBRAS', 'BUILDS')}`, lenda: '🔒 SAF' }
   const ordem = [...EMP_ORDER].reverse() // escada de baixo pra cima: 🪵 primeiro (aberta), 👑 por último (ápice)
   const firstLocked = ordem.find(k => !empCatUnlocked(k, st, hasFilial))
   return (
     <div style={{ ...box(), background: 'linear-gradient(160deg,#241E33,#0C0C0C 70%)', color: '#fff', padding: 12, marginBottom: 10 }}>
-      <div style={{ fontSize: 9.5, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, ...OSWALD }}>A obra destrava o escritório</div>
-      <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', color: GOLD, lineHeight: 1.1, margin: '2px 0 3px' }}>🕴️ Agência de Jogadores</div>
-      <p style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(255,255,255,.82)', lineHeight: 1.5, margin: '0 0 10px' }}>Cada categoria que você libera aqui passa a <b>render moedas por temporada</b> quando está na ativa (Elenco › Agenciados). Clube maior = agência maior.</p>
+      <div style={{ fontSize: 9.5, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, ...OSWALD }}>{tr('A obra destrava o escritório', 'Building unlocks the office')}</div>
+      <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', color: GOLD, lineHeight: 1.1, margin: '2px 0 3px' }}>{tr('🕴️ Agência de Jogadores', '🕴️ Players\' Agency')}</div>
+      <p style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(255,255,255,.82)', lineHeight: 1.5, margin: '0 0 10px' }}>{en ? <>Each category you unlock here starts <b>earning coins per season</b> when active (Squad › Clients). Bigger club = bigger agency.</> : <>Cada categoria que você libera aqui passa a <b>render moedas por temporada</b> quando está na ativa (Elenco › Agenciados). Clube maior = agência maior.</>}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {ordem.map(k => {
           const ok = empCatUnlocked(k, st, hasFilial)
@@ -1564,16 +1571,16 @@ function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSa
                 <div style={{ fontSize: 9.5, fontWeight: 600, color: '#5a5647', lineHeight: 1.35 }}>{req[k]}</div>
               </div>
               <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11, whiteSpace: 'nowrap', textAlign: 'right', lineHeight: 1.2 }}>
-                +{AG_VALUES[k]} 🪙/carta
-                <span style={{ display: 'block', fontSize: 8.5, fontWeight: 800, letterSpacing: .5, borderRadius: 6, padding: '1px 6px', marginTop: 3, background: ok ? GREEN : next ? GOLD : '#8a8064', color: ok ? '#fff' : next ? INK : '#fff', ...OSWALD }}>{ok ? '✓ ABERTA' : chip[k]}</span>
+                +{AG_VALUES[k]} 🪙/{tr('carta', 'card')}
+                <span style={{ display: 'block', fontSize: 8.5, fontWeight: 800, letterSpacing: .5, borderRadius: 6, padding: '1px 6px', marginTop: 3, background: ok ? GREEN : next ? GOLD : '#8a8064', color: ok ? '#fff' : next ? INK : '#fff', ...OSWALD }}>{ok ? tr('✓ ABERTA', '✓ OPEN') : chip[k]}</span>
               </div>
             </div>
           )
         })}
       </div>
-      <div style={{ fontSize: 9.5, fontWeight: 600, color: 'rgba(255,255,255,.75)', marginTop: 9, lineHeight: 1.45 }}>🃏 Carta <b>folclórica</b> rende <b>+{AG_FOLK_BONUS} 🪙</b> por cima — junto com a categoria dela liberada · comissões: 🥇 artilheiro +1 · 🏆 campeão +1 · 💸 negociado no leilão +1.</div>
+      <div style={{ fontSize: 9.5, fontWeight: 600, color: 'rgba(255,255,255,.75)', marginTop: 9, lineHeight: 1.45 }}>{en ? <>🃏 A <b>folk hero</b> card earns <b>+{AG_FOLK_BONUS} 🪙</b> on top — once its category is unlocked · commissions: 🥇 top scorer +1 · 🏆 champion +1 · 💸 traded at the auction +1.</> : <>🃏 Carta <b>folclórica</b> rende <b>+{AG_FOLK_BONUS} 🪙</b> por cima — junto com a categoria dela liberada · comissões: 🥇 artilheiro +1 · 🏆 campeão +1 · 💸 negociado no leilão +1.</>}</div>
       {onVerAgenciados && (
-        <button onClick={onVerAgenciados} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, padding: 10, fontWeight: 900, fontSize: 13, ...OSWALD, textTransform: 'uppercase', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: '3px 3px 0 rgba(0,0,0,.55)', marginTop: 10, cursor: 'pointer' }}>🧢 Ver meus agenciados — Elenco › Agenciados</button>
+        <button onClick={onVerAgenciados} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, padding: 10, fontWeight: 900, fontSize: 13, ...OSWALD, textTransform: 'uppercase', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: '3px 3px 0 rgba(0,0,0,.55)', marginTop: 10, cursor: 'pointer' }}>{tr('🧢 Ver meus agenciados — Elenco › Agenciados', '🧢 See my clients — Squad › Clients')}</button>
       )}
     </div>
   )
@@ -1589,6 +1596,7 @@ const BL_PIX = 'diego.c.fonseca@gmail.com' // chave Pix REAL do Diego (04/08) �
 // A lista guarda o valor em REAIS; a tela e o admin mostram/geram reais × 3.
 export const BL_TRIPLO = 3
 const BL_PACOTES: [number, string][] = [[10, 'CAFEZINHO'], [50, 'REFORÇO PONTUAL'], [100, 'FÔLEGO DE TEMPORADA'], [500, 'PROJETO SAF'], [1000, 'INVESTIDOR VISIONÁRIO 👑']]
+const BL_PACOTES_EN: Record<number, string> = { 10: 'COFFEE MONEY', 50: 'QUICK BOOST', 100: 'SEASON BREATHER', 500: 'SAF PROJECT', 1000: 'VISIONARY INVESTOR 👑' }
 function BancoLegends() {
   const { state, dispatch } = useEsc()
   const [aberto, setAberto] = useState(false)
@@ -1605,17 +1613,17 @@ function BancoLegends() {
     try {
       const { data, error } = await supabase.rpc('bl_redeem', { p_code: code.trim() })
       if (error) throw error
-      if (data === -1) setMsg({ ok: false, tx: 'Entre na sua conta pra resgatar a ficha.' })
+      if (data === -1) setMsg({ ok: false, tx: tr('Entre na sua conta pra resgatar a ficha.', 'Sign in to redeem the voucher.') })
       else if (!data) {
         const f = fails + 1; setFails(f)
-        if (f >= 3) { setCoolAte(Date.now() + 60000); setFails(0); setMsg({ ok: false, tx: 'Ficha inválida ou já usada. Muitas tentativas — espera 1 minutinho. ⏳' }) }
-        else setMsg({ ok: false, tx: 'Ficha inválida ou já usada. Confere o código no zap do gerente. 🤵' })
+        if (f >= 3) { setCoolAte(Date.now() + 60000); setFails(0); setMsg({ ok: false, tx: tr('Ficha inválida ou já usada. Muitas tentativas — espera 1 minutinho. ⏳', 'Invalid or already used voucher. Too many tries — wait a minute. ⏳') }) }
+        else setMsg({ ok: false, tx: tr('Ficha inválida ou já usada. Confere o código no zap do gerente. 🤵', 'Invalid or already used voucher. Check the code the manager sent you. 🤵') })
       } else {
         dispatch({ type: 'BANCO_CREDIT', coins: data as number, code: code.trim().toUpperCase() })
-        setMsg({ ok: true, coins: data as number, tx: 'Vai lá e faz história, doutor. O banco tá de olho. 👀' })
+        setMsg({ ok: true, coins: data as number, tx: tr('Vai lá e faz história, doutor. O banco tá de olho. 👀', 'Go make history, boss. The bank is watching. 👀') })
         setCode(''); setFails(0)
       }
-    } catch { setMsg({ ok: false, tx: 'Sem conexão com o banco agora — tenta de novo em instantes.' }) }
+    } catch { setMsg({ ok: false, tx: tr('Sem conexão com o banco agora — tenta de novo em instantes.', 'No connection to the bank right now — try again in a moment.') }) }
     setBusy(false)
   }
   return (
@@ -1625,7 +1633,7 @@ function BancoLegends() {
           <span style={{ fontSize: 24 }}>🏦</span>
           <span style={{ flex: 1 }}>
             <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>Banco Legends</span>
-            <span style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#8a8069' }}>Precisa de um capital pro clube? O gerente aprova na hora. 🤵</span>
+            <span style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#8a8069' }}>{tr('Precisa de um capital pro clube? O gerente aprova na hora. 🤵', 'Need some capital for the club? The manager approves on the spot. 🤵')}</span>
           </span>
           <span style={{ fontWeight: 900, fontSize: 18 }}>›</span>
         </button>
@@ -1634,40 +1642,40 @@ function BancoLegends() {
           <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '11px 12px', display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 10, borderRadius: 14 }}>
             <span style={{ flex: 'none', width: 46, height: 46, borderRadius: 999, background: '#F4ECD6', border: `3px solid ${INK}`, display: 'grid', placeItems: 'center', fontSize: 24 }}>🤵</span>
             <div>
-              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>Seu Creuzebek · Gerente do Banco Legends</div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, fontStyle: 'italic', lineHeight: 1.4, color: 'rgba(255,255,255,.9)', marginTop: 2 }}>"Precisa de um capital pro clube, doutor? O banco APROVA na hora — sem juros, sem fiador, sem choro."</div>
+              <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>{tr('Seu Creuzebek · Gerente do Banco Legends', 'Mr. Creuzebek · Banco Legends Manager')}</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, fontStyle: 'italic', lineHeight: 1.4, color: 'rgba(255,255,255,.9)', marginTop: 2 }}>{tr('"Precisa de um capital pro clube, doutor? O banco APROVA na hora — sem juros, sem fiador, sem choro."', '"Need some capital for the club, boss? The bank APPROVES on the spot — no interest, no guarantor, no crying."')}</div>
             </div>
           </div>
-          <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 10.5, letterSpacing: .5, margin: '0 0 7px', color: '#1B7A3D' }}>💱 Aqui cada R$ 1 vira <b>3 moedas</b> — sempre o TRIPLO!</p>
+          <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 10.5, letterSpacing: .5, margin: '0 0 7px', color: '#1B7A3D' }}>{getLang() === 'en' ? <>💱 Here every R$ 1 becomes <b>3 coins</b> — always TRIPLE!</> : <>💱 Aqui cada R$ 1 vira <b>3 moedas</b> — sempre o TRIPLO!</>}</p>
           {BL_PACOTES.map(([v, tag]) => (
             <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${INK}`, borderRadius: 12, background: v === 100 ? '#FFF7DB' : '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', marginBottom: 6 }}>
               <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, minWidth: 78 }}>{(v * BL_TRIPLO).toLocaleString('pt-BR')} 🪙</span>
-              <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: .5, color: '#8a8069' }}>{tag}</span>
+              <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: .5, color: '#8a8069' }}>{getLang() === 'en' ? (BL_PACOTES_EN[v] ?? tag) : tag}</span>
               <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, fontSize: 13, background: GOLD, border: `2px solid ${INK}`, borderRadius: 9, padding: '3px 10px', whiteSpace: 'nowrap' }}>R$ {v}</span>
             </div>
           ))}
           <div style={{ ...box(), padding: '9px 11px', margin: '10px 0' }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px' }}>Como funciona</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>1️⃣ Escolha o pacote e mande o Pix pra chave:<br /></p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px' }}>{tr('Como funciona', 'How it works')}</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>{tr('1️⃣ Escolha o pacote e mande o Pix pra chave:', '1️⃣ Pick a pack and send the Pix to this key:')}<br /></p>
             <p style={{ background: '#EAF6EE', border: `2.5px dashed ${INK}`, borderRadius: 10, padding: '6px 8px', fontWeight: 900, fontSize: 11.5, textAlign: 'center', margin: '5px 0' }}>📲 PIX: {BL_PIX}</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>2️⃣ Manda o <b>comprovante</b> no Instagram <b>@leilaolegendscom</b> (ou no e-mail acima) — o gerente responde com sua <b>FICHA DO BANCO</b> (um código).<br />3️⃣ Digita a ficha abaixo — as moedas caem <b>na hora</b> no caixa do clube. 💸</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>{getLang() === 'en' ? <>2️⃣ Send the <b>receipt</b> on Instagram <b>@leilaolegendscom</b> (or to the e-mail above) — the manager replies with your <b>BANK VOUCHER</b> (a code).<br />3️⃣ Type the voucher below — the coins land <b>instantly</b> in the club's till. 💸</> : <>2️⃣ Manda o <b>comprovante</b> no Instagram <b>@leilaolegendscom</b> (ou no e-mail acima) — o gerente responde com sua <b>FICHA DO BANCO</b> (um código).<br />3️⃣ Digita a ficha abaixo — as moedas caem <b>na hora</b> no caixa do clube. 💸</>}</p>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <input value={code} onChange={e => setCode(e.target.value)} placeholder="BL-XXXX-XX" maxLength={14}
               style={{ flex: 1, border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 10px', ...OSWALD, fontWeight: 700, fontSize: 15, letterSpacing: 2, textTransform: 'uppercase', textAlign: 'center', background: '#fff' }} />
-            <button onClick={resgatar} disabled={busy || emCooldown} style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 14px', ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', background: busy || emCooldown ? '#CBBF9E' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `2px 2px 0 0 ${INK}`, cursor: busy || emCooldown ? 'not-allowed' : 'pointer' }}>{busy ? '…' : 'Resgatar'}</button>
+            <button onClick={resgatar} disabled={busy || emCooldown} style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 14px', ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', background: busy || emCooldown ? '#CBBF9E' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `2px 2px 0 0 ${INK}`, cursor: busy || emCooldown ? 'not-allowed' : 'pointer' }}>{busy ? '…' : tr('Resgatar', 'Redeem')}</button>
           </div>
           {msg && (msg.ok ? (
             <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: 12, textAlign: 'center', marginTop: 10 }}>
-              <span style={{ display: 'inline-block', border: `3px solid ${GOLD}`, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 13, letterSpacing: 2, padding: '2px 12px', borderRadius: 8, transform: 'rotate(-5deg)', textTransform: 'uppercase' }}>Empréstimo aprovado</span>
+              <span style={{ display: 'inline-block', border: `3px solid ${GOLD}`, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 13, letterSpacing: 2, padding: '2px 12px', borderRadius: 8, transform: 'rotate(-5deg)', textTransform: 'uppercase' }}>{tr('Empréstimo aprovado', 'Loan approved')}</span>
               <div style={{ ...OSWALD, fontWeight: 900, fontSize: 26, marginTop: 6 }}>+{msg.coins} 🪙</div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 3 }}>no caixa do clube · assinado: Seu Creuzebek 🖋️<br />"{msg.tx}"</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 3 }}>{tr('no caixa do clube · assinado: Seu Creuzebek 🖋️', 'in the club\'s till · signed: Mr. Creuzebek 🖋️')}<br />"{msg.tx}"</div>
             </div>
           ) : (
             <p style={{ fontSize: 10.5, fontWeight: 800, color: '#c0392b', margin: '8px 0 0', textAlign: 'center' }}>{msg.tx}</p>
           ))}
-          <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', textAlign: 'center', margin: '8px 0 0' }}>Cada ficha vale UMA vez, só na sua conta · só na carreira solo.</p>
-          <button onClick={() => { setAberto(false); setMsg(null) }} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', fontSize: 10.5, fontWeight: 900, textDecoration: 'underline', color: 'rgba(0,0,0,.5)', cursor: 'pointer' }}>fechar o banco</button>
+          <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', textAlign: 'center', margin: '8px 0 0' }}>{tr('Cada ficha vale UMA vez, só na sua conta · só na carreira solo.', 'Each voucher works ONCE, only on your account · solo career only.')}</p>
+          <button onClick={() => { setAberto(false); setMsg(null) }} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', fontSize: 10.5, fontWeight: 900, textDecoration: 'underline', color: 'rgba(0,0,0,.5)', cursor: 'pointer' }}>{tr('fechar o banco', 'close the bank')}</button>
         </div>
       )}
     </div>
@@ -2886,7 +2894,7 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     const stop = posx.current, sw = swRef.current, aimZ = aim ?? 4
     const err = Math.abs(stop - 0.5), half = sw / 2, onTarget = err <= half, reads = Math.random() < 0.32
-    setPhase('anim'); setLine(`⚽ Vai ${taker?.name ?? 'o cobrador'}...`)
+    setPhase('anim'); setLine(`${tr('⚽ Vai', '⚽ Here goes')} ${taker?.name ?? tr('o cobrador', 'the taker')}...`)
     let k: 'gol' | 'def' | 'fora', kz: number
     if (!onTarget) { k = 'fora'; kz = Math.floor(Math.random() * 6); moveKeeper(kz); flyBall(aimZ, true) }
     // 🎯 acertou o VERDE: sempre bola no gol — só defende se o goleiro "ler" o
@@ -3431,7 +3439,7 @@ function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFai
     <div style={{ border: `3px solid ${INK}`, borderRadius: 14, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 11px', color: INK }}>
       <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', borderRadius: 7, padding: '1px 7px' }}>TEC</span>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16.5, margin: '4px 0 0', lineHeight: 1.1 }}>{t.nome} <span style={{ fontSize: 12 }}>{t.pais}</span></p>
-      <p style={{ fontSize: 9, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>🎲 Contratação às cegas: categoria, nível e formações só se revelam quando ele for SEU.</p>
+      <p style={{ fontSize: 9, fontWeight: 700, color: '#5a5647', margin: '4px 0 0', lineHeight: 1.35 }}>{tr('🎲 Contratação às cegas: categoria, nível e formações só se revelam quando ele for SEU.', '🎲 Blind hire: category, level and formations are only revealed once he is YOURS.')}</p>
     </div>
   )
   // faixa lo–hi: SÓ no seu elenco, e na mesma regra dos olheiros das cartas de
@@ -3451,7 +3459,7 @@ function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFai
           <span key={f} style={{ ...OSWALD, fontWeight: 800, fontSize: 9.5, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 7px', background: 'rgba(255,255,255,.85)', color: INK }}>{f}</span>
         ))}
       </div>
-      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{CATEGORIA_TECNICO_ROTULO[t.div]} = {ficha.formacoes.length} esquema{ficha.formacoes.length > 1 ? 's' : ''} — as formações que ele usa de verdade.</p>
+      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{CATEGORIA_TECNICO_ROTULO[t.div]} = {ficha.formacoes.length} {getLang() === 'en' ? (ficha.formacoes.length > 1 ? 'systems' : 'system') : `esquema${ficha.formacoes.length > 1 ? 's' : ''}`} — {tr('as formações que ele usa de verdade.', 'the formations he really uses.')}</p>
     </div>
   )
 }
@@ -3466,19 +3474,19 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
   const falta = fim != null ? fim - state.seasonNo + 1 : 0
   return (
     <div style={{ ...box('#fff'), padding: '11px 12px', margin: '0 0 10px' }}>
-      <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px', color: INK }}>🧢 Seu técnico</p>
+      <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px', color: INK }}>{tr('🧢 Seu técnico', '🧢 Your coach')}</p>
       {nome ? (
         <>
           <CartaTecnico nome={nome} mostraFaixa />
           <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
-            💰 valor {valor || '—'} · 💸 salário {Math.round(valor / 10)}/temporada · 📝 contrato: {fim != null ? (falta > 0 ? `falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}` : 'VENCIDO') : '—'}
-            {fim != null && falta <= 0 ? <b style={{ color: '#C2452F' }}> (VENCIDO — decida na janela de contratos)</b> : null}
+            💰 {tr('valor', 'value')} {valor || '—'} · 💸 {tr('salário', 'salary')} {Math.round(valor / 10)}/{tr('temporada', 'season')} · 📝 {tr('contrato', 'contract')}: {fim != null ? (falta > 0 ? (getLang() === 'en' ? `${falta} season${falta > 1 ? 's' : ''} left` : `falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}`) : tr('VENCIDO', 'EXPIRED')) : '—'}
+            {fim != null && falta <= 0 ? <b style={{ color: '#C2452F' }}> {tr('(VENCIDO — decida na janela de contratos)', '(EXPIRED — decide in the contracts window)')}</b> : null}
           </p>
         </>
       ) : (
         <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
-          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Sem técnico você joga só no <b>4-3-3</b> e no <b>4-4-2</b>. Pra ter um: na janela antes do leilão, aba <b>🕵️ Sondar</b>, marque um técnico e brigue por ele no pregão.</p>
+          <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>{tr('Você ainda não tem técnico', 'You don\'t have a coach yet')}</p>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Without a coach you only play <b>4-3-3</b> and <b>4-4-2</b>. To get one: in the window before the auction, tab <b>🕵️ Scout</b>, mark a coach and fight for him at the auction.</> : <>Sem técnico você joga só no <b>4-3-3</b> e no <b>4-4-2</b>. Pra ter um: na janela antes do leilão, aba <b>🕵️ Sondar</b>, marque um técnico e brigue por ele no pregão.</>}</p>
         </div>
       )}
     </div>
@@ -3544,10 +3552,10 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
     <>
       <button onClick={() => { if (marcado || !trava) onClick() }} disabled={!marcado && !!trava}
         style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: marcado ? GREEN : trava ? '#d8cfb5' : GOLD, color: marcado ? '#fff' : trava ? 'rgba(0,0,0,.4)' : INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: marcado || !trava ? `3px 3px 0 0 ${INK}` : 'none', padding: '10px 0', cursor: marcado || !trava ? 'pointer' : 'not-allowed' }}>
-        {marcado ? '✔ Sondado — toque pra tirar' : trava ? `🔒 ${trava}` : rotulo}
+        {marcado ? tr('✔ Sondado — toque pra tirar', '✔ Scouted — tap to remove') : trava ? `🔒 ${trava}` : rotulo}
       </button>
       {marcado && historia && (
-        <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 10, padding: '7px 9px', margin: '7px 0 0', lineHeight: 1.45 }}>📰 <b>Bastidor:</b> {historia}</p>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 10, padding: '7px 9px', margin: '7px 0 0', lineHeight: 1.45 }}>📰 <b>{tr('Bastidor:', 'Backstage:')}</b> {historia}</p>
       )}
     </>
   )
@@ -3557,31 +3565,31 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   return (
     <div style={{ marginTop: 14 }}>
       <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px', color: INK }}>🧢 Seu técnico</p>
+        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px', color: INK }}>{tr('🧢 Seu técnico', '🧢 Your coach')}</p>
         {meu
           ? (
             <>
               <CartaTecnico nome={meu} mostraFaixa />
               <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
-                💰 valor {valorMeu || '—'} · 💸 salário {Math.round(valorMeu / 10)}/temporada · 📝 contrato: {meuContratoFim != null ? (meuContratoFim >= state.seasonNo ? `falta${meuContratoFim - state.seasonNo + 1 > 1 ? 'm' : ''} ${meuContratoFim - state.seasonNo + 1} temporada${meuContratoFim - state.seasonNo + 1 > 1 ? 's' : ''}` : 'VENCIDO') : '—'}
-                {meuContratoFim != null && meuContratoFim < state.seasonNo ? <b style={{ color: '#C2452F' }}> (VENCIDO — decida na janela de contratos)</b> : null}
+                💰 {tr('valor', 'value')} {valorMeu || '—'} · 💸 {tr('salário', 'salary')} {Math.round(valorMeu / 10)}/{tr('temporada', 'season')} · 📝 {tr('contrato', 'contract')}: {meuContratoFim != null ? (meuContratoFim >= state.seasonNo ? (getLang() === 'en' ? `${meuContratoFim - state.seasonNo + 1} season${meuContratoFim - state.seasonNo + 1 > 1 ? 's' : ''} left` : `falta${meuContratoFim - state.seasonNo + 1 > 1 ? 'm' : ''} ${meuContratoFim - state.seasonNo + 1} temporada${meuContratoFim - state.seasonNo + 1 > 1 ? 's' : ''}`) : tr('VENCIDO', 'EXPIRED')) : '—'}
+                {meuContratoFim != null && meuContratoFim < state.seasonNo ? <b style={{ color: '#C2452F' }}> {tr('(VENCIDO — decida na janela de contratos)', '(EXPIRED — decide in the contracts window)')}</b> : null}
               </p>
             </>
           )
           : (
             <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
-              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>Você ainda não tem técnico</p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>Os clubes da {divRot}{rivaisDeFora > 0 ? ' (e os seus ⚔️ rivais de outras séries)' : ''} têm — sonda um aqui embaixo e brigue por ele no próximo leilão.</p>
+              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>{tr('Você ainda não tem técnico', 'You don\'t have a coach yet')}</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>{getLang() === 'en' ? <>The {divRot} clubs{rivaisDeFora > 0 ? ' (and your ⚔️ rivals from other divisions)' : ''} have one — scout one below and fight for him at the next auction.</> : <>Os clubes da {divRot}{rivaisDeFora > 0 ? ' (e os seus ⚔️ rivais de outras séries)' : ''} têm — sonda um aqui embaixo e brigue por ele no próximo leilão.</>}</p>
             </div>
           )}
       </div>
       <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
-        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🕵️ Sondar · {divRot}{rivaisDeFora > 0 ? ' + rivais' : ''}</p>
+        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🕵️ Sondar', '🕵️ Scout')} · {divRot}{rivaisDeFora > 0 ? tr(' + rivais', ' + rivals') : ''}</p>
         {/* 📜 QUEM ESTÁ NA LISTA — a frase que faltava (Diego 10/09). Só aparece
             quando existe rival fora da sua série; carreira sem isso não lê nada a mais. */}
         {rivaisDeFora > 0 && (
           <p style={{ fontSize: 10.5, fontWeight: 800, color: '#7a5c12', margin: '0 0 5px', lineHeight: 1.45 }}>
-            Na lista estão os <b>19 clubes da {divRot}</b> e mais {rivaisDeFora === 1 ? 'o' : 'os'} <b>{rivaisDeFora} ⚔️ rival{rivaisDeFora > 1 ? 'is' : ''}</b> que você escolheu no começo da carreira e que hoje {rivaisDeFora === 1 ? 'está' : 'estão'} em outra série. {rivaisDeFora === 1 ? 'Ele fica' : 'Eles ficam'} aqui porque {rivaisDeFora === 1 ? 'briga' : 'brigam'} no <b>seu leilão</b> — só não {rivaisDeFora === 1 ? 'joga' : 'jogam'} a sua tabela.
+            {getLang() === 'en' ? <>The list has the <b>19 {divRot} clubs</b> plus the <b>{rivaisDeFora} ⚔️ rival{rivaisDeFora > 1 ? 's' : ''}</b> you picked at the start of the career who {rivaisDeFora === 1 ? 'is' : 'are'} now in another division. {rivaisDeFora === 1 ? 'He stays' : 'They stay'} here because {rivaisDeFora === 1 ? 'he fights' : 'they fight'} in <b>your auction</b> — {rivaisDeFora === 1 ? 'he just doesn\'t play' : 'they just don\'t play'} your fixtures.</> : <>Na lista estão os <b>19 clubes da {divRot}</b> e mais {rivaisDeFora === 1 ? 'o' : 'os'} <b>{rivaisDeFora} ⚔️ rival{rivaisDeFora > 1 ? 'is' : ''}</b> que você escolheu no começo da carreira e que hoje {rivaisDeFora === 1 ? 'está' : 'estão'} em outra série. {rivaisDeFora === 1 ? 'Ele fica' : 'Eles ficam'} aqui porque {rivaisDeFora === 1 ? 'briga' : 'brigam'} no <b>seu leilão</b> — só não {rivaisDeFora === 1 ? 'joga' : 'jogam'} a sua tabela.</>}
           </p>
         )}
         {/* 📝 o texto SEGUE O QUE ESTÁ LIGADO (Diego 28/08: "tire essa informação
@@ -3591,9 +3599,9 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
             🕵️ 07/09: e agora segue TAMBÉM o Olheiro da conta — quem tem, lê a
             régua dele; quem não tem, lê que jogador é coisa do Olheiro. */}
         {jogadorOn ? (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros. {olheiroTier === 'ouro' ? <>Seu <b>👑 Olheiro Lenda</b> acha <b>qualquer jogador, lenda inclusive</b>.</> : olheiroTier === 'prata' ? <>Seu <b>⭐ Olheiro Craque</b> acha <b>de craque pra baixo</b> — lenda ele nem enxerga, só o 👑 Lenda.</> : <>Seu <b>olheiro básico</b> só acha <b>foi profissional, bom jogador e promessa</b> — craque e lenda ficam invisíveis pra ele (⭐ Craque acha os craques · 👑 Lenda acha todos).</>}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>Tap a club and mark who you want — <b>max. 1 coach and 1 player per season</b>, and only those <b>🆓 out of contract</b>. It's like listing for sale, but the other way round: <b>the scouted one goes to the auction</b> — the player enters his sector (and in that one you CAN bid) and the coach opens the auction as an extra position, before the goalkeepers. {olheiroTier === 'ouro' ? <>Your <b>👑 Legend Scout</b> finds <b>any player, legends included</b>.</> : olheiroTier === 'prata' ? <>Your <b>⭐ Star Scout</b> finds <b>from star down</b> — he can't even see legends, only the 👑 Legend can.</> : <>Your <b>basic scout</b> only finds <b>ex-pros, good players and prospects</b> — stars and legends are invisible to him (⭐ Star finds the stars · 👑 Legend finds everyone).</>}</> : <>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros. {olheiroTier === 'ouro' ? <>Seu <b>👑 Olheiro Lenda</b> acha <b>qualquer jogador, lenda inclusive</b>.</> : olheiroTier === 'prata' ? <>Seu <b>⭐ Olheiro Craque</b> acha <b>de craque pra baixo</b> — lenda ele nem enxerga, só o 👑 Lenda.</> : <>Seu <b>olheiro básico</b> só acha <b>foi profissional, bom jogador e promessa</b> — craque e lenda ficam invisíveis pra ele (⭐ Craque acha os craques · 👑 Lenda acha todos).</>}</>}</p>
         ) : (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Toque num clube e marque o <b>técnico</b> que você quer — <b>máx. 1 por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — ele abre o pregão como uma posição a mais, <b>antes dos goleiros</b>, e você briga por ele no envelope igual jogador. 🔨</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>Tap a club and mark the <b>coach</b> you want — <b>max. 1 per season</b>, and only those <b>🆓 out of contract</b>. It's like listing for sale, but the other way round: <b>the scouted one goes to the auction</b> — he opens the auction as an extra position, <b>before the goalkeepers</b>, and you fight for him in the envelope just like a player. 🔨</> : <>Toque num clube e marque o <b>técnico</b> que você quer — <b>máx. 1 por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — ele abre o pregão como uma posição a mais, <b>antes dos goleiros</b>, e você briga por ele no envelope igual jogador. 🔨</>}</p>
         )}
       </div>
       {/* 🛡️ grade 2 por linha com o ESCUDO (Diego 28/08: "os times podiam ficar

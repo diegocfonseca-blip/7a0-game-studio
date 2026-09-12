@@ -5952,7 +5952,7 @@ function TopScorersBox({ highlight, title = getLang() === 'en' ? '⚽ TOP SCORER
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-black/60 font-black">
-            <th className="pr-1">#</th><th>{bb ? L('Jogador', 'Player') : 'Jogador'}</th><th>{bb ? L('Time', 'Team') : 'Time'}</th><th className="text-center">{bb ? L('Média', 'PPG') : 'Gols'}</th>{bb && <th className="text-center text-black/40">{L('Pts', 'Pts')}</th>}
+            <th className="pr-1">#</th><th>{L('Jogador', 'Player')}</th><th>{L('Time', 'Team')}</th><th className="text-center">{bb ? L('Média', 'PPG') : L('Gols', 'Goals')}</th>{bb && <th className="text-center text-black/40">{L('Pts', 'Pts')}</th>}
           </tr>
         </thead>
         <tbody>
