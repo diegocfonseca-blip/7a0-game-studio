@@ -255,6 +255,9 @@ Agora:
 1. **Toda feature nova ganha UMA linha em `src/escalacao/novidades.ts`**, na
    mesma entrega que a liga pro pessoal. Formato: o que mudou pra quem joga, em
    uma frase, com o modo entre parênteses. A mais nova em cima, com a data.
+   🌐 **E com o campo `en`** (título + texto em inglês) desde 12/09 — a home é
+   BR/EN; linha sem `en` aparece em PT pra quem está em EN (não quebra, mas
+   fica torto).
 2. **BUG NUNCA VIRA NOVIDADE.** Palavras do Diego: *"menos bugs, que nunca
    lance"*. Conserto vai pro `docs/pendencias.md` e pro commit — nunca pra tela
    do jogador.
