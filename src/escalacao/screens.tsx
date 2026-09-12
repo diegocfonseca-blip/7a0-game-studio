@@ -897,7 +897,7 @@ export function ChatWidget() {
   return (
     <>
       {!chatOpen && (
-        <button onClick={() => setChatOpen(true)} aria-label="Abrir chat da sala"
+        <button onClick={() => setChatOpen(true)} aria-label={tr('Abrir chat da sala', 'Open room chat')}
           style={{ position: 'fixed', left: 12, bottom: 12, zIndex: 99990, width: 46, height: 46, borderRadius: 999, background: chatOff ? '#fff' : GOLD, border: '3px solid #000', display: 'grid', placeItems: 'center', fontSize: 20, boxShadow: '3px 3px 0 0 #000', cursor: 'pointer' }}>
           {chatOff ? '🔕' : '💬'}
           {chatUnread > 0 && !chatOff && (
@@ -910,22 +910,22 @@ export function ChatWidget() {
           <div onClick={() => setChatOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.28)' }} />
           <div style={{ position: 'relative', color: INK, background: '#FBF6E7', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '64vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.12)' }}>
             <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px' }}>
-              <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>💬 Zoeira da sala</span>
-              <button onClick={() => setChatOpen(false)} aria-label="Fechar" style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+              <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>{tr('💬 Zoeira da sala', '💬 Room banter')}</span>
+              <button onClick={() => setChatOpen(false)} aria-label={tr('Fechar', 'Close')} style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
             </div>
             {isHost && (
               <button onClick={() => dispatch({ type: 'SET_CHAT', off: !chatOff })}
                 style={{ ...OSWALD, color: INK, fontWeight: 800, fontSize: 12, padding: '7px 12px', background: chatOff ? '#f0ece0' : '#E7F7EC', borderBottom: '2px solid #000', textAlign: 'left', cursor: 'pointer', width: '100%' }}>
-                👑 Host: chat <b style={{ color: chatOff ? RED : GREEN }}>{chatOff ? 'DESLIGADO' : 'LIGADO'}</b> — toque pra {chatOff ? 'LIGAR' : 'DESLIGAR'}
+                👑 Host: chat <b style={{ color: chatOff ? RED : GREEN }}>{chatOff ? tr('DESLIGADO', 'OFF') : tr('LIGADO', 'ON')}</b> — {tr('toque pra', 'tap to turn')} {chatOff ? tr('LIGAR', 'ON') : tr('DESLIGAR', 'OFF')}
               </button>
             )}
             {chatOff ? (
-              <p style={{ padding: 20, textAlign: 'center', fontWeight: 700, color: '#6b5f3f' }}>🔕 O chat está desligado pra esta sala.{isHost ? ' Ligue no botão acima.' : ''}</p>
+              <p style={{ padding: 20, textAlign: 'center', fontWeight: 700, color: '#6b5f3f' }}>{tr('🔕 O chat está desligado pra esta sala.', '🔕 Chat is off for this room.')}{isHost ? tr(' Ligue no botão acima.', ' Turn it on with the button above.') : ''}</p>
             ) : (
               <>
                 <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: 10, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 90 }}>
                   {chat.length === 0
-                    ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>Manda a primeira zoeira 😎</p>
+                    ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>{tr('Manda a primeira zoeira 😎', 'Send the first jab 😎')}</p>
                     : chat.map(m => {
                       // 🤝 DUPLA: os dois dividem o mesmo `from` (time) — usa o `uid` da
                       // PESSOA quando existe, senão cai no `from` de sempre (mensagem
@@ -935,7 +935,7 @@ export function ChatWidget() {
                         <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
                           <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: dot(m.from), marginTop: 4, flexShrink: 0 }} />
                           <div style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%' }}>
-                            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1 }}>{mine ? 'Você' : m.name}</span>
+                            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1 }}>{mine ? tr('Você', 'You') : m.name}</span>
                             <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word' }}>{m.text}</span>
                           </div>
                         </div>
@@ -944,9 +944,9 @@ export function ChatWidget() {
                 </div>
                 <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
                   <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
-                    onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder="manda a real…"
+                    onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder={tr('manda a real…', 'say it…')}
                     style={{ flex: 1, minWidth: 0, color: INK, background: '#fff', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', fontSize: 13, fontWeight: 600 }} />
-                  <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>Enviar</button>
+                  <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>{tr('Enviar', 'Send')}</button>
                 </div>
               </>
             )}
@@ -1059,15 +1059,15 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
   // sair, o dispatch libera a vaga na sala online (não vira fantasma).
   const inGame = ['setup', 'auction', 'monte', 'cerimonia', 'season', 'liberta', 'end'].includes(state.screen)
   const leave = () => {
-    if (window.confirm('Sair do jogo? Você vai perder esta partida.')) dispatch({ type: 'GO_LOBBY' })
+    if (window.confirm(tr('Sair do jogo? Você vai perder esta partida.', 'Leave the game? You will lose this match.'))) dispatch({ type: 'GO_LOBBY' })
   }
   // online: dois caminhos. Voltar pro menu MANTÉM a vaga (dá pra voltar pela
   // faixa "Voltar pra partida"). Sair da sala remove a vaga de vez.
   const backToMenu = () => dispatch({ type: 'GO_LOBBY_ONLINE' })
   const leaveRoom = () => {
     const msg = state.isHost
-      ? 'Sair da sala? Você será removido e o comando (host) passa pra outra pessoa da sala. Se você estiver sozinho, a sala é apagada.'
-      : 'Sair da sala? Você será removido desta partida (não dá pra voltar).'
+      ? tr('Sair da sala? Você será removido e o comando (host) passa pra outra pessoa da sala. Se você estiver sozinho, a sala é apagada.', 'Leave the room? You will be removed and command (host) passes to someone else in the room. If you are alone, the room is deleted.')
+      : tr('Sair da sala? Você será removido desta partida (não dá pra voltar).', 'Leave the room? You will be removed from this match (no way back).')
     if (window.confirm(msg)) leaveRoomHard()
   }
   // só o host, numa partida online, gerencia os técnicos. Lista os HUMANOS (menos
@@ -1076,8 +1076,8 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
   const others = state.managers.filter(m => m.id !== state.youIdx && (m.isHuman || m.auctionRival))
   const kick = (m: Manager) => {
     const msg = m.isHuman
-      ? `Remover ${m.teamName}? Vira um RIVAL CPU: continua no leilão dando lance com o time e o dinheiro dele.`
-      : `Excluir o rival CPU ${m.teamName}? Ele para de dar lance no leilão (fica só na tabela).`
+      ? (getLang() === 'en' ? `Remove ${m.teamName}? Becomes a CPU RIVAL: stays in the auction bidding with their team and money.` : `Remover ${m.teamName}? Vira um RIVAL CPU: continua no leilão dando lance com o time e o dinheiro dele.`)
+      : (getLang() === 'en' ? `Delete CPU rival ${m.teamName}? They stop bidding at the auction (stay only in the table).` : `Excluir o rival CPU ${m.teamName}? Ele para de dar lance no leilão (fica só na tabela).`)
     if (window.confirm(msg)) kickPlayer(m.id)
   }
   // 🔁 LEILÃO DE RESERVAS (Diego 14/08): cabeçalho do leilão do meio da
@@ -1085,7 +1085,7 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
   // textinho pequeno perto do campo avisava que era outro leilão. Agora o
   // topo fica lilás com um rótulo, pra bater o olho e já saber de cara.
   const isReserveAuction = !!bar && state.reserveAuction
-  const reserveLabel = state.seasonNo === 1 ? '🔁 Leilão de Reservas' : '🔁 Leilão de Transferências'
+  const reserveLabel = state.seasonNo === 1 ? tr('🔁 Leilão de Reservas', '🔁 Reserves Auction') : tr('🔁 Leilão de Transferências', '🔁 Transfer Auction')
   const privateCareerShell = (previewAccount || publicCareerVisual(state)) && state.sport !== 'basquete' && state.careerOnline
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
@@ -1103,26 +1103,26 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
         <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
             <div className="flex items-center justify-center gap-5">
-              <button onClick={backToMenu} className="text-black/35 text-xs font-semibold underline active:opacity-60" title="Sai pro menu mas continua na sala — dá pra voltar">🏠 voltar pro menu</button>
-              <button onClick={leaveRoom} className="text-black/35 text-xs font-semibold underline active:opacity-60" title="Sai da sala de vez (removido)">🚪 sair da sala</button>
+              <button onClick={backToMenu} className="text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but you stay in the room — you can come back')}>{tr('🏠 voltar pro menu', '🏠 back to menu')}</button>
+              <button onClick={leaveRoom} className="text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai da sala de vez (removido)', 'Leaves the room for good (removed)')}>{tr('🚪 sair da sala', '🚪 leave the room')}</button>
             </div>
           ) : (
             <button onClick={leave} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">{tr('🚪 sair do jogo', '🚪 leave the game')}</button>
           )}
           {canManage && others.length > 0 && (
             <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">
-              {manage ? 'fechar' : '⚙️ gerenciar técnicos'}
+              {manage ? tr('fechar', 'close') : tr('⚙️ gerenciar técnicos', '⚙️ manage managers')}
             </button>
           )}
           {canManage && manage && (
             <div className="max-w-xs mx-auto mt-1 border-2 border-black/15 rounded-xl p-2 space-y-1.5 text-left" style={{ background: '#fff' }}>
-              <p className="text-black/40 text-[10px] font-black uppercase tracking-widest px-1">Remover da partida</p>
+              <p className="text-black/40 text-[10px] font-black uppercase tracking-widest px-1">{tr('Remover da partida', 'Remove from the match')}</p>
               {others.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
                   <span className="flex-1 min-w-0 truncate text-xs font-bold text-black/70" style={OSWALD}>{m.isHuman ? '' : '🤖 '}{m.teamName}</span>
                   <button onClick={() => kick(m)}
                     className="shrink-0 border border-black/20 rounded-lg px-2 py-1 text-[11px] font-black active:opacity-60"
-                    style={{ background: '#F4ECD6', color: '#B23A2A', ...OSWALD }}>{m.isHuman ? 'remover' : 'excluir'}</button>
+                    style={{ background: '#F4ECD6', color: '#B23A2A', ...OSWALD }}>{m.isHuman ? tr('remover', 'remove') : tr('excluir', 'delete')}</button>
                 </div>
               ))}
             </div>
