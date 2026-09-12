@@ -2958,9 +2958,9 @@ export function EscStreamIntro() {
       {isCareer && (
         <div style={{ position: 'relative', overflow: 'hidden', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, background: 'linear-gradient(160deg,#141414,#26313d)', color: '#fff', padding: '20px 18px 22px' }}>
           <div style={{ position: 'absolute', inset: 'auto -30% -60% -30%', height: 220, background: 'radial-gradient(closest-side, rgba(245,179,1,.30), transparent 70%)', pointerEvents: 'none' }} />
-          <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: GOLD, position: 'relative' }}>{escadaLiberada() ? 'Várzea → o topo' : 'Série D → o topo'}</span>
-          <h1 style={{ ...OSWALD, fontWeight: 800, fontSize: 30, lineHeight: .97, margin: '12px 0 0', position: 'relative' }}>Não é só levantar <span style={{ color: GOLD }}>taça.</span><br />É virar o clube mais <span style={{ color: GOLD }}>bem-sucedido.</span></h1>
-          <p style={{ fontSize: 13.5, lineHeight: 1.45, color: 'rgba(255,255,255,.82)', margin: '10px 0 0', fontWeight: 500, position: 'relative' }}>Você assume um clube na várzea e sobe na pirâmide. Mas sucesso aqui não é só título: é <b style={{ color: '#fff' }}>administrar</b> — encher o caixa, construir patrimônio (estádio, SAF) e dominar dentro e fora de campo.</p>
+          <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: GOLD, position: 'relative' }}>{escadaLiberada() ? tr('Várzea → o topo', 'Várzea → the top') : tr('Série D → o topo', 'Série D → the top')}</span>
+          <h1 style={{ ...OSWALD, fontWeight: 800, fontSize: 30, lineHeight: .97, margin: '12px 0 0', position: 'relative' }}>{getLang() === 'en' ? <>It's not just lifting <span style={{ color: GOLD }}>trophies.</span><br />It's becoming the most <span style={{ color: GOLD }}>successful club.</span></> : <>Não é só levantar <span style={{ color: GOLD }}>taça.</span><br />É virar o clube mais <span style={{ color: GOLD }}>bem-sucedido.</span></>}</h1>
+          <p style={{ fontSize: 13.5, lineHeight: 1.45, color: 'rgba(255,255,255,.82)', margin: '10px 0 0', fontWeight: 500, position: 'relative' }}>{getLang() === 'en' ? <>You take over a grassroots club and climb the pyramid. But success here isn't just titles: it's <b style={{ color: '#fff' }}>managing</b> — filling the till, building assets (stadium, SAF) and dominating on and off the pitch.</> : <>Você assume um clube na várzea e sobe na pirâmide. Mas sucesso aqui não é só título: é <b style={{ color: '#fff' }}>administrar</b> — encher o caixa, construir patrimônio (estádio, SAF) e dominar dentro e fora de campo.</>}</p>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, marginTop: 15, position: 'relative' }}>
             {([['D', 26], ['C', 38], ['B', 52]] as [string, number][]).map(([l, h]) => (
               <div key={l} style={{ flex: 1, border: '2px solid rgba(255,255,255,.85)', borderRadius: '5px 5px 0 0', background: 'rgba(255,255,255,.08)', height: h, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', ...OSWALD, fontWeight: 700, fontSize: 11, color: '#fff', paddingBottom: 3 }}>{l}</div>
@@ -2970,30 +2970,30 @@ export function EscStreamIntro() {
         </div>
       )}
       <div className="text-center pt-4">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{state.streamMode ? '🎥 Modo Stream' : '🔨 Como funciona'}</span>
-        <h2 className="font-black text-3xl mt-3 leading-none" style={OSWALD}>BEM-VINDO<br />AO PREGÃO! 🔨</h2>
-        <p className="text-sm font-semibold text-black/60 mt-2">Antes de começar, entenda o leilão às cegas — pra quem tá chegando agora.</p>
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{state.streamMode ? tr('🎥 Modo Stream', '🎥 Stream Mode') : tr('🔨 Como funciona', '🔨 How it works')}</span>
+        <h2 className="font-black text-3xl mt-3 leading-none" style={OSWALD}>{getLang() === 'en' ? <>WELCOME<br />TO THE AUCTION! 🔨</> : <>BEM-VINDO<br />AO PREGÃO! 🔨</>}</h2>
+        <p className="text-sm font-semibold text-black/60 mt-2">{tr('Antes de começar, entenda o leilão às cegas — pra quem tá chegando agora.', 'Before you start, understand the blind auction — for those just arriving.')}</p>
       </div>
 
       <Box bg={GOLD} className="p-4" shadow={6}>
-        <p className="font-black text-lg" style={OSWALD}>🪙 Moedas = seu lance</p>
-        <p className="text-sm font-bold text-black/75 mt-1 leading-snug">Cada técnico começa com <b>100 moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</p>
+        <p className="font-black text-lg" style={OSWALD}>{tr('🪙 Moedas = seu lance', '🪙 Coins = your bid')}</p>
+        <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. You place a <b>secret bid</b> (nobody sees) on each player. At the reveal: <b>the HIGHEST bid takes the star</b> and pays what it offered. Tie? Blind re-bid! ⚔️</> : <>Cada técnico começa com <b>100 moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</>}</p>
       </Box>
 
       {/* 👇 mock da linha do jogador: mostra ONDE se põe as moedas (com 7, não 1!)
           e aponta o clube/ano — muita gente aposta só 1 por não entender. */}
       <Box bg="#fff" className="p-3.5" shadow={6}>
-        <p className="font-black text-base mb-2" style={OSWALD}>👇 É AQUI que você bota as moedas</p>
+        <p className="font-black text-base mb-2" style={OSWALD}>{tr('👇 É AQUI que você bota as moedas', '👇 THIS is where you put the coins')}</p>
         <div className="border-[3px] border-black rounded-xl p-3 flex items-center justify-between gap-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>GOL</span>
               <span className="font-black text-sm truncate" style={OSWALD}>Alex Muralha</span>
             </div>
-            <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">(clube e ano)</span></p>
+            <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
           </div>
           <div className="flex flex-col items-center flex-shrink-0">
-            <span className="text-[9px] font-black uppercase tracking-wide mb-0.5" style={{ color: '#B8860B' }}>seu lance</span>
+            <span className="text-[9px] font-black uppercase tracking-wide mb-0.5" style={{ color: '#B8860B' }}>{tr('seu lance', 'your bid')}</span>
             <div className="flex items-center gap-1.5">
               <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black bg-white">−</span>
               <span className="w-12 h-8 flex items-center justify-center font-black border-[3px] rounded-lg bg-white text-lg" style={{ ...OSWALD, borderColor: GREEN, boxShadow: `0 0 0 3px rgba(46,158,91,.25)` }}>7</span>
@@ -3001,27 +3001,27 @@ export function EscStreamIntro() {
             </div>
           </div>
         </div>
-        <p className="text-xs font-bold text-black/70 mt-2 leading-snug">👆 Toque na caixinha e <b>digite quantas moedas</b> quer dar — <b>quanto mais moedas, mais chance de levar o craque!</b> Bota <b>7, 15, 30…</b> não só <b>1</b> 😉</p>
+        <p className="text-xs font-bold text-black/70 mt-2 leading-snug">{getLang() === 'en' ? <>👆 Tap the box and <b>type how many coins</b> you want to bid — <b>the more coins, the better your chance of getting the star!</b> Bid <b>7, 15, 30…</b> not just <b>1</b> 😉</> : <>👆 Toque na caixinha e <b>digite quantas moedas</b> quer dar — <b>quanto mais moedas, mais chance de levar o craque!</b> Bota <b>7, 15, 30…</b> não só <b>1</b> 😉</>}</p>
       </Box>
 
       <Box bg="#EDE7FF" className="p-4" shadow={6}>
-        <p className="font-black text-lg" style={OSWALD}>🎭 O nível é o AUGE do craque</p>
-        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">O mesmo jogador vale <b>diferente</b> conforme o <b>clube e o ano</b>. Você aposta no nome — o nível só abre na revelação!</p>
+        <p className="font-black text-lg" style={OSWALD}>{tr('🎭 O nível é o AUGE do craque', '🎭 The level is the star\'s PEAK')}</p>
+        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">{getLang() === 'en' ? <>The same player is worth <b>different</b> amounts depending on <b>club and year</b>. You bet on the name — the level only opens at the reveal!</> : <>O mesmo jogador vale <b>diferente</b> conforme o <b>clube e o ano</b>. Você aposta no nome — o nível só abre na revelação!</>}</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <CollectibleCard name="Kaká" club="Milan" year={2007} pos="MEI" fame={5} promessa={false} />
-            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>👑 auge na Europa<br />= LENDA</p>
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>{getLang() === 'en' ? <>👑 peak in Europe<br />= LEGEND</> : <>👑 auge na Europa<br />= LENDA</>}</p>
           </div>
           <div>
             <CollectibleCard name="Kaká" club="São Paulo" year={2003} pos="MEI" fame={3} promessa />
-            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>💎 jovem no Brasil<br />= PROMESSA</p>
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>{getLang() === 'en' ? <>💎 young in Brazil<br />= PROSPECT</> : <>💎 jovem no Brasil<br />= PROMESSA</>}</p>
           </div>
         </div>
       </Box>
 
       {online && (
       <Box bg={INK} className="p-4" shadow={6}>
-        <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>👥 Quem tá no pregão ({humans.length})</p>
+        <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>{tr('👥 Quem tá no pregão', '👥 Who is in the auction')} ({humans.length})</p>
         <div className="mt-2 space-y-1.5">
           {humans.map(m => {
             const nm = m.teamName || m.name
@@ -3030,7 +3030,7 @@ export function EscStreamIntro() {
               <div key={m.id} className="flex items-center gap-2 rounded-lg px-3 py-2 border-2 border-black" style={{ background: pk ? pk.light : '#fff' }}>
                 <span style={{ width: 13, height: 13, borderRadius: 999, background: pk ? pk.solid : '#B2A583', border: '2px solid #000', flexShrink: 0, boxShadow: pk && pk.holo > 0 ? `0 0 5px ${pk.solid}` : 'none' }} />
                 <span className="font-black text-sm truncate flex-1" style={{ ...OSWALD, color: INK }}>{nm}</span>
-                {you && m.id === you.id && <span className="text-[10px] font-black text-black/45 flex-shrink-0">(você)</span>}
+                {you && m.id === you.id && <span className="text-[10px] font-black text-black/45 flex-shrink-0">{tr('(você)', '(you)')}</span>}
               </div>
             )
           })}
@@ -3039,16 +3039,16 @@ export function EscStreamIntro() {
       )}
 
       {isHost ? (
-        <Btn onClick={() => dispatch({ type: 'START_STREAM_AUCTION' })} bg={GREEN} className="w-full text-lg"><span className="text-white">▶️ COMEÇAR O LEILÃO 🔨</span></Btn>
+        <Btn onClick={() => dispatch({ type: 'START_STREAM_AUCTION' })} bg={GREEN} className="w-full text-lg"><span className="text-white">{tr('▶️ COMEÇAR O LEILÃO 🔨', '▶️ START THE AUCTION 🔨')}</span></Btn>
       ) : (
-        <div className="w-full border-[3px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ O host vai começar o leilão…</div>
+        <div className="w-full border-[3px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>{tr('⏳ O host vai começar o leilão…', '⏳ The host will start the auction…')}</div>
       )}
       {/* ← voltar: só no offline (rápido/carreira), volta pro setup certo pra
           reconfigurar. No online, sair é pelo próprio fluxo da sala. */}
       {!online && (
         <button onClick={() => dispatch({ type: state.careerOnline ? 'GO_SETUP_CAREER' : 'GO_SETUP' })}
           className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black bg-white active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          ← Voltar
+          {tr('← Voltar', '← Back')}
         </button>
       )}
     </Shell>
@@ -4847,21 +4847,21 @@ export function EscMonte() {
 
   return (
     <Shell bar={<AuctionBar />}>
-      {state.sport !== 'basquete' && <NarradorDica fase="monte" texto="🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!" />}
-      <h2 className="font-black text-3xl pt-1" style={OSWALD}>🪣 MONTE FINAL</h2>
+      {state.sport !== 'basquete' && <NarradorDica fase="monte" texto={tr('🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!', '🃏 Players left without an owner! On your turn, grab one FOR FREE (or pay the floor, if it has 💰). Time to complete the team without spending. You can also pass!')} />}
+      <h2 className="font-black text-3xl pt-1" style={OSWALD}>{tr('🪣 MONTE FINAL', '🪣 FINAL PILE')}</h2>
       <p className="text-sm font-semibold text-black/70">
-        As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos: <b>{totalHoles(you)}</b>.
+        {tr('As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos:', 'The auction leftovers. Whoever has more holes picks first, snake order. Your holes:')} <b>{totalHoles(you)}</b>.
       </p>
       {state.careerOnline && state.monte.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
         <p className="text-xs font-semibold text-black/60">
-          🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Nos jogadores que <b>você listou</b> você tem <b>preferência</b>: a primeira chance de recuperar de graça (já valendo a metade). Se deixar passar, aí os outros levam — pagando metade. E <b>ninguém é obrigado</b>: dá pra passar a vez.
+          {getLang() === 'en' ? <>🆓 A leftover <b>with no value</b> is <b>free</b>. A player <b>with a floor</b> (💰) is a <b>buy without auction</b> — pay the fixed value. On players <b>you listed</b> you have <b>priority</b>: first chance to recover for free (already worth half). Let it pass, and the others take him — paying half. And <b>nobody is forced</b>: you can pass.</> : <>🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Nos jogadores que <b>você listou</b> você tem <b>preferência</b>: a primeira chance de recuperar de graça (já valendo a metade). Se deixar passar, aí os outros levam — pagando metade. E <b>ninguém é obrigado</b>: dá pra passar a vez.</>}
         </p>
       )}
       {online && (
         <p className="text-xs font-semibold text-black/60">
-          ⏱️ {remaining ?? MONTE_SECONDS}s por vez. {state.careerOnline
-            ? <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa (seu time já tem os 11).</>
-            : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e passa a vez. <b>Não custa moeda</b>: as sobras são de graça.</>}
+          ⏱️ {remaining ?? MONTE_SECONDS}s {tr('por vez', 'per turn')}. {state.careerOnline
+            ? (getLang() === 'en' ? <>If time runs out, you <b>take nobody</b> and pass — no penalty (your team already has the 11).</> : <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa (seu time já tem os 11).</>)
+            : (getLang() === 'en' ? <>Time ran out (bathroom break?), the game picks the worst leftover for you and passes the turn. <b>Costs no coins</b>: leftovers are free.</> : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e passa a vez. <b>Não custa moeda</b>: as sobras são de graça.</>)}
         </p>
       )}
       {/* 🤝 DUPLA: o Monte é categoria própria — na vez do time, quem pega a sobra
@@ -4875,13 +4875,13 @@ export function EscMonte() {
         const sumiu = !!donoUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(donoUid)
         return (
           <Box bg="#EDE4FF" className="p-3">
-            <p className="font-black text-black" style={OSWALD}>🔒 O Monte é do {dono ? stripEmoji(dono).trim() : 'seu parceiro'}</p>
-            <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">⏳ É a vez do seu time, mas quem escolhe a sobra é ele. Você acompanha daqui.</p>
+            <p className="font-black text-black" style={OSWALD}>{tr('🔒 O Monte é do', '🔒 The Pile belongs to')} {dono ? stripEmoji(dono).trim() : tr('seu parceiro', 'your partner')}</p>
+            <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">{tr('⏳ É a vez do seu time, mas quem escolhe a sobra é ele. Você acompanha daqui.', '⏳ It is your team\'s turn, but they pick the leftover. You watch from here.')}</p>
             {sumiu && (
               <button onClick={() => dispatch({ type: 'DUPLA_SOLO', mgrId: you.id, ficouUid: state.youUid ?? '' })}
                 className="w-full border-[3px] border-black rounded-xl py-2.5 mt-2 font-black text-[13px] active:translate-y-0.5"
                 style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
-                🆘 {dono ? stripEmoji(dono).trim() : 'Seu parceiro'} caiu — assumir o time
+                🆘 {dono ? stripEmoji(dono).trim() : tr('Seu parceiro', 'Your partner')} {tr('caiu — assumir o time', 'dropped — take over the team')}
               </button>
             )}
           </Box>
@@ -4891,7 +4891,7 @@ export function EscMonte() {
         <div className="space-y-2">
           <Box bg={remaining !== null && remaining <= 5 ? RED : GOLD} className="p-3">
             <p className="font-black text-center" style={{ ...OSWALD, color: remaining !== null && remaining <= 5 ? '#fff' : INK }}>
-              SUA VEZ — escolha uma carta{remaining !== null ? ` · ${remaining}s` : ''}
+              {tr('SUA VEZ — escolha uma carta', 'YOUR TURN — pick a card')}{remaining !== null ? ` · ${remaining}s` : ''}
             </p>
           </Box>
           {valid.map(c => {
@@ -4905,18 +4905,18 @@ export function EscMonte() {
               <div className="flex items-center gap-2 shrink-0">
                 {own && val > 0 && (
                   <span className="text-right leading-tight" style={{ color: GREEN }}>
-                    <span className="text-sm font-black" style={OSWALD}>🫵 seu</span>
-                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: 'rgba(0,0,0,0.5)' }}>recupere grátis · vale {val}</span>
+                    <span className="text-sm font-black" style={OSWALD}>{tr('🫵 seu', '🫵 yours')}</span>
+                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: 'rgba(0,0,0,0.5)' }}>{tr('recupere grátis · vale', 'recover for free · worth')} {val}</span>
                   </span>
                 )}
                 {paidCard && (
                   <span className="text-right leading-tight" style={{ color: afford ? '#B8860B' : RED }}>
                     <span className="text-sm font-black" style={OSWALD}>💰 {val}</span>
-                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>pague sem leilão</span>
+                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>{tr('pague sem leilão', 'buy without auction')}</span>
                   </span>
                 )}
                 <Btn onClick={() => afford && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id, by: state.youUid })} bg={paidCard ? GOLD : GREEN} disabled={!afford}>
-                  <span style={{ color: paidCard ? INK : '#fff' }}>{paidCard ? (afford ? `PAGAR ${val}` : 'SEM CAIXA') : 'PEGAR'}</span>
+                  <span style={{ color: paidCard ? INK : '#fff' }}>{paidCard ? (afford ? `${tr('PAGAR', 'PAY')} ${val}` : tr('SEM CAIXA', 'NO CASH')) : tr('PEGAR', 'TAKE')}</span>
                 </Btn>
               </div>
             </Box>
@@ -4931,20 +4931,20 @@ export function EscMonte() {
               <button onClick={() => dispatch({ type: 'MONTE_PASS', mgrId: you.id, by: state.youUid })}
                 className="w-full rounded-xl border-[3px] border-black bg-white font-black text-sm py-3 active:translate-y-0.5"
                 style={{ color: '#B23B2E', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
-                🙅 PASSAR A VEZ — não quero nenhuma sobra
+                {tr('🙅 PASSAR A VEZ — não quero nenhuma sobra', '🙅 PASS — I don\'t want any leftover')}
               </button>
-              <p className="text-[10px] font-bold text-black/45 text-center">Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.</p>
+              <p className="text-[10px] font-bold text-black/45 text-center">{tr('Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.', 'Your team already has the 11 — leftovers are optional, nobody is forced to pay.')}</p>
             </>
           ) : (
             <p className="text-[11px] font-black text-center rounded-xl border-2 border-black py-2 px-3" style={{ background: '#FFE9B0', ...OSWALD }}>
-              ⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!
+              {tr('⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!', '⚠️ You have a HOLE in the starting XI — you can\'t pass here: grab someone to complete the 11!')}
             </p>
           ))}
         </div>
       ) : (
         <Box className="p-4">
           <p className="font-bold text-center text-black">
-            {curMgr ? <>Vez de <b>{curMgr.teamName}</b>{remaining !== null ? ` · ${remaining}s` : ''}…</> : 'Aguardando a serpente chegar em você…'}
+            {curMgr ? <>{tr('Vez de', 'Turn of')} <b>{curMgr.teamName}</b>{remaining !== null ? ` · ${remaining}s` : ''}…</> : tr('Aguardando a serpente chegar em você…', 'Waiting for the snake to reach you…')}
           </p>
         </Box>
       )}
@@ -4953,16 +4953,16 @@ export function EscMonte() {
       {online && curMgr && curMgr.id !== you.id && (() => {
         const n = curMgr.teamName || curMgr.name
         const jabs: { ic: string; label: string; mk: (x: string) => string }[] = [
-          { ic: '👆', label: 'Aperta o Pegar!', mk: x => `Qual a dificuldade de apertar o Pegar, ${x}?` },
-          { ic: '🐢', label: 'Anda!', mk: x => `Anda, ${x}, é só sobra!` },
-          { ic: '😴', label: 'Dormiu?', mk: x => `${x} dormiu na vez?` },
-          { ic: '🗑️', label: 'Perna-de-pau', mk: x => `Só vai sobrar perna-de-pau pro ${x}!` },
-          { ic: '🤡', label: 'Sobra o Gol Contra', mk: x => `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
-          { ic: '🤏', label: 'Mão de vaca', mk: x => `Na próxima deixa de ser mão de vaca, ${x}!` },
+          { ic: '👆', label: tr('Aperta o Pegar!', 'Press Take!'), mk: x => getLang() === 'en' ? `How hard is it to press Take, ${x}?` : `Qual a dificuldade de apertar o Pegar, ${x}?` },
+          { ic: '🐢', label: tr('Anda!', 'Move!'), mk: x => getLang() === 'en' ? `Come on, ${x}, they're just leftovers!` : `Anda, ${x}, é só sobra!` },
+          { ic: '😴', label: tr('Dormiu?', 'Asleep?'), mk: x => getLang() === 'en' ? `${x} fell asleep on their turn?` : `${x} dormiu na vez?` },
+          { ic: '🗑️', label: tr('Perna-de-pau', 'Donkey'), mk: x => getLang() === 'en' ? `Only donkeys will be left for ${x}!` : `Só vai sobrar perna-de-pau pro ${x}!` },
+          { ic: '🤡', label: tr('Sobra o Gol Contra', 'Own-goal guy is left'), mk: x => getLang() === 'en' ? `Adriano Own-Goal will be left for ${x} 😂` : `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
+          { ic: '🤏', label: tr('Mão de vaca', 'Cheapskate'), mk: x => getLang() === 'en' ? `Next time stop being a cheapskate, ${x}!` : `Na próxima deixa de ser mão de vaca, ${x}!` },
         ]
         return (
           <div className="mt-1">
-            <p className="text-[11px] font-black text-black/45 mb-1.5" style={OSWALD}>😈 CUTUCA QUEM TÁ ESCOLHENDO</p>
+            <p className="text-[11px] font-black text-black/45 mb-1.5" style={OSWALD}>{tr('😈 CUTUCA QUEM TÁ ESCOLHENDO', '😈 POKE WHOEVER IS PICKING')}</p>
             <div className="flex flex-wrap gap-1.5 justify-center">
               {jabs.map(j => (
                 <button key={j.ic} onClick={() => emote(j.ic, undefined, j.mk(n))}
@@ -5017,14 +5017,14 @@ export function EscCerimonia() {
   return (
     <Shell>
       <div className="text-center pt-4">
-        <h2 className="font-black text-3xl" style={OSWALD}>🎭 CERIMÔNIA DA REVELAÇÃO</h2>
-        <p className="text-sm font-semibold text-black/60">As faixas de nível abrem. Agora todo mundo descobre o que comprou.</p>
+        <h2 className="font-black text-3xl" style={OSWALD}>{t('🎭 CERIMÔNIA DA REVELAÇÃO', '🎭 REVEAL CEREMONY')}</h2>
+        <p className="text-sm font-semibold text-black/60">{t('As faixas de nível abrem. Agora todo mundo descobre o que comprou.', 'The level ranges open. Now everyone finds out what they bought.')}</p>
       </div>
       {secsLeft !== null && (
         <div className="rounded-2xl border-[3px] border-black p-3 text-center" style={{ background: secsLeft <= 10 ? '#E8503A' : GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>⏱️ O campeonato começa em</p>
+          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>{t('⏱️ O campeonato começa em', '⏱️ The championship starts in')}</p>
           <p className="font-black text-white text-4xl leading-none mt-0.5" style={OSWALD}>{secsLeft}s</p>
-          <p className="font-bold text-white/80 text-[11px] mt-1">Aproveite pra ver os times de todo mundo 👀</p>
+          <p className="font-bold text-white/80 text-[11px] mt-1">{t('Aproveite pra ver os times de todo mundo 👀', 'Use the time to check out everyone\'s teams 👀')}</p>
         </div>
       )}
       <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
@@ -5037,7 +5037,7 @@ export function EscCerimonia() {
               <div>
                 <p className="font-bold text-sm">{posTag(c.pos)} · {c.name} <span className="text-black/70 text-xs">({c.club} {c.year})</span></p>
                 <p className="text-[10px] font-semibold text-black/70">
-                  {c.via === 'bot' ? 'escalado direto' : c.via === 'monte' ? 'monte (grátis)' : c.via === 'repescagem' ? `repescagem · pagou ${c.paid}` : `leilão · pagou ${c.paid}`}
+                  {c.via === 'bot' ? t('escalado direto', 'assigned directly') : c.via === 'monte' ? t('monte (grátis)', 'pile (free)') : c.via === 'repescagem' ? `${t('repescagem · pagou', 'leftovers · paid')} ${c.paid}` : `${t('leilão · pagou', 'auction · paid')} ${c.paid}`}
                 </p>
               </div>
               <motion.span initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.15 }}
@@ -5062,13 +5062,13 @@ export function EscCerimonia() {
       {state.careerOnline && (state.criaNews ?? []).map((n, i) => (
         <div key={i} className="border-[3px] border-black rounded-2xl overflow-hidden" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
           <div className="p-3" style={{ background: 'linear-gradient(150deg,#2E7D46,#1B5E33)', color: '#fff' }}>
-            <p className="font-black text-[9px] uppercase tracking-widest" style={{ color: 'rgba(255,255,255,.65)' }}>Direto da base</p>
-            <p className="font-black text-sm uppercase" style={OSWALD}>🌱 O menino {n.nome} realizou um sonho!</p>
+            <p className="font-black text-[9px] uppercase tracking-widest" style={{ color: 'rgba(255,255,255,.65)' }}>{t('Direto da base', 'Straight from the academy')}</p>
+            <p className="font-black text-sm uppercase" style={OSWALD}>🌱 {t('O menino', 'The kid')} {n.nome} {t('realizou um sonho!', 'made a dream come true!')}</p>
           </div>
           <div className="bg-white p-3">
             <p className="text-[12px] font-semibold leading-relaxed">{n.texto}</p>
             <div className="mt-2 border-2 border-dashed border-black/30 rounded-xl px-3 py-1.5 text-[11px] font-bold" style={{ background: '#F3EFE2' }}>
-              🌱 {n.nome} · {n.pos} — nível de base · sem contrato · sai de graça quando chegar reforço
+              🌱 {n.nome} · {n.pos} — {t('nível de base · sem contrato · sai de graça quando chegar reforço', 'academy level · no contract · leaves for free when a signing arrives')}
             </div>
           </div>
         </div>
@@ -5078,10 +5078,10 @@ export function EscCerimonia() {
           Tudo JÁ caiu no caixa do 1º clube — aqui é o resumo pós-apito. */}
       {state.agenciaOn && agLibCer && state.agenciaFatura && (state.agenciaFatura.total > 0 || state.agenciaFatura.rows.length > 0) && (
         <div className="border-[3px] border-black rounded-2xl p-4" style={{ background: `linear-gradient(160deg, ${GREEN}, #14401f)`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff' }}>
-          <p className="font-black text-sm uppercase" style={OSWALD}>🕴️ Sua agência faturou</p>
+          <p className="font-black text-sm uppercase" style={OSWALD}>{t('🕴️ Sua agência faturou', '🕴️ Your agency earned')}</p>
           {state.agenciaFatura.mensal > 0 && (
             <div className="flex items-center gap-2 text-[12px] font-bold py-1">
-              💰 <span className="flex-1">Mensalidades dos {state.agenciados?.length ?? 0} na ativa</span>
+              💰 <span className="flex-1">{t('Mensalidades dos', 'Monthly fees of the')} {state.agenciados?.length ?? 0} {t('na ativa', 'active')}</span>
               <span className="font-black" style={{ ...OSWALD, color: '#FFE79A' }}>+{state.agenciaFatura.mensal} 🪙</span>
             </div>
           )}
@@ -5092,26 +5092,26 @@ export function EscCerimonia() {
             </div>
           ))}
           <div className="mt-2 border-2 border-black rounded-xl px-3 py-1.5 flex items-center justify-between font-black text-[12px]" style={{ background: GOLD, color: INK }}>
-            <span>Total no caixa do 1º clube</span>
+            <span>{t('Total no caixa do 1º clube', 'Total in the 1st club\'s till')}</span>
             <span className="text-base" style={OSWALD}>+{state.agenciaFatura.total} 🪙</span>
           </div>
         </div>
       )}
       {state.careerOnline && (state.marketLog?.length ?? 0) > 0 && (
         <Box bg="#EEF7FF" className="p-4 space-y-1">
-          <p className="font-black text-sm" style={OSWALD}>🏟️ OUTROS TIMES NO LEILÃO</p>
-          <p className="text-[11px] font-semibold text-black/55 !mb-1.5">A cada temporada alguns times da pirâmide entram no leilão (sorteados). Eles só dão lance quando a posição está <b>sem disputa</b> — nenhum ou só um técnico ofertou.</p>
+          <p className="font-black text-sm" style={OSWALD}>{t('🏟️ OUTROS TIMES NO LEILÃO', '🏟️ OTHER TEAMS AT THE AUCTION')}</p>
+          <p className="text-[11px] font-semibold text-black/55 !mb-1.5">{getLang() === 'en' ? <>Every season some pyramid teams enter the auction (drawn). They only bid when the position is <b>uncontested</b> — no manager, or just one, made an offer.</> : <>A cada temporada alguns times da pirâmide entram no leilão (sorteados). Eles só dão lance quando a posição está <b>sem disputa</b> — nenhum ou só um técnico ofertou.</>}</p>
           {state.marketLog!.slice(0, 14).map((l, i) => <p key={i} className="text-xs font-bold text-black/75">{l}</p>)}
-          {state.marketLog!.length > 14 && <p className="text-[10px] font-semibold text-black/50">…e mais {state.marketLog!.length - 14}</p>}
+          {state.marketLog!.length > 14 && <p className="text-[10px] font-semibold text-black/50">…{t('e mais', 'and')} {state.marketLog!.length - 14}{getLang() === 'en' ? ' more' : ''}</p>}
         </Box>
       )}
       {/* navegação livre pelos times durante os 45s (dá a volta) */}
       <div className="flex gap-2">
         <div className="flex-1"><Btn className="w-full" bg="#fff"
-          onClick={() => setIdx((idx - 1 + mgrs.length) % mgrs.length)}>◀ Anterior</Btn></div>
+          onClick={() => setIdx((idx - 1 + mgrs.length) % mgrs.length)}>◀ {t('Anterior', 'Previous')}</Btn></div>
         <div className="shrink-0 flex items-center px-2 font-black text-sm text-black/50" style={OSWALD}>{idx + 1}/{mgrs.length}</div>
         <div className="flex-1"><Btn className="w-full" bg={GOLD}
-          onClick={() => setIdx((idx + 1) % mgrs.length)}>Próximo ▶</Btn></div>
+          onClick={() => setIdx((idx + 1) % mgrs.length)}>{t('Próximo', 'Next')} ▶</Btn></div>
       </div>
       {/* 🏀 basquete: a temporada (por pontos) ainda não entrou — em vez de cair
           na temporada de FUTEBOL, mostra um aviso honesto e volta pra home. */}
@@ -5128,10 +5128,10 @@ export function EscCerimonia() {
         </div>
       ) : canStart ? (
         <Btn className="w-full text-lg" bg={GREEN} onClick={() => dispatch({ type: 'FINISH_CEREMONY' })}>
-          <span style={{ color: '#fff' }}>{(state.streamMode || state.manualRoom) ? '▶️ COMEÇAR O CAMPEONATO 🏆' : 'COMEÇAR AGORA 🏆'}</span>
+          <span style={{ color: '#fff' }}>{(state.streamMode || state.manualRoom) ? t('▶️ COMEÇAR O CAMPEONATO 🏆', '▶️ START THE CHAMPIONSHIP 🏆') : t('COMEÇAR AGORA 🏆', 'START NOW 🏆')}</span>
         </Btn>
       ) : (
-        <p className="text-center text-sm font-bold text-black/55 py-1">🔨 O campeonato começa quando {(state.streamMode || state.manualRoom) ? 'o host começar' : 'o tempo acabar'}…</p>
+        <p className="text-center text-sm font-bold text-black/55 py-1">{t('🔨 O campeonato começa quando', '🔨 The championship starts when')} {(state.streamMode || state.manualRoom) ? t('o host começar', 'the host starts it') : t('o tempo acabar', 'time runs out')}…</p>
       )}
     </Shell>
   )
@@ -7331,6 +7331,7 @@ function AlbumSortBar({ value, onChange }: { value: AlbumSort; onChange: (s: Alb
 // carta-lembrança e provocar o cadastro. Some assim que a pessoa loga (aí entram
 // só as reais). É de mentirinha, não conta em lugar nenhum.
 const EXAMPLE_CARD = { name: 'Rayan', club: 'Exemplo FC', year: 2025, pos: 'ATA', fame: 3, bio: 'Oi, boa noite! 👋 Sou só um exemplo pra você ver como é a carta. Faça seu cadastro, seja campeão e colecione craques de verdade — no CPU e no online.' }
+const EXAMPLE_BIO_EN = 'Hi, good evening! 👋 I\'m just an example so you can see what the card looks like. Sign up, become champion and collect real stars — vs CPU and online.'
 
 // ⬅️ VOLTAR no canto de cima à esquerda (pedido do Diego 20/08: *"precisa que o
 // botão de voltar fique no canto superior esquerdo também dessas páginas. Mais
@@ -7343,7 +7344,7 @@ export function VoltarInicio() {
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
       className="flex items-center gap-1.5 border-[2.5px] border-black rounded-xl bg-white px-3 py-1.5 font-black text-[12.5px] active:translate-y-0.5"
       style={{ ...OSWALD, boxShadow: `2.5px 2.5px 0 0 ${INK}` }}>
-      <span className="text-[15px] leading-none">🏠</span> Início
+      <span className="text-[15px] leading-none">🏠</span> {tr('Início', 'Home')}
     </button>
   )
 }
@@ -7395,7 +7396,7 @@ export function EscAlbum() {
   const nCpu = uniqBy(all.filter(c => c.origin === 'cpu'))
   const nOnline = uniqBy(all.filter(c => c.origin === 'online'))
   const TABS: { id: AlbumFilter; label: string }[] = [
-    { id: 'all', label: `Todos (${nAll})` },
+    { id: 'all', label: `${tr('Todos', 'All')} (${nAll})` },
     { id: 'cpu', label: `⚡ Offline (${nCpu})` },
     { id: 'online', label: `👥 Online (${nOnline})` },
   ]
@@ -7404,9 +7405,9 @@ export function EscAlbum() {
     <Shell>
       <div className="pt-4"><VoltarInicio /></div>
       <div className="text-center -mt-1">
-        <h2 className="font-black text-4xl" style={OSWALD}>📖 MEU ÁLBUM</h2>
-        <p className="font-semibold text-black/60 mt-1">Campeão ganha uma carta-lembrança por título — no CPU ou no online. Vai colecionando os craques.</p>
-        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{CATALOG_TOTAL} craques{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
+        <h2 className="font-black text-4xl" style={OSWALD}>{tr('📖 MEU ÁLBUM', '📖 MY ALBUM')}</h2>
+        <p className="font-semibold text-black/60 mt-1">{tr('Campeão ganha uma carta-lembrança por título — no CPU ou no online. Vai colecionando os craques.', 'A champion earns one keepsake card per title — vs CPU or online. Keep collecting the stars.')}</p>
+        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{CATALOG_TOTAL} {tr('craques', 'stars')}{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
       </div>
 
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
@@ -7419,16 +7420,16 @@ export function EscAlbum() {
       </div>
       {!loading && !anon && shown.length > 0 && (
         <div className="space-y-1">
-          <p className="text-[10px] font-black uppercase text-black/45 tracking-wide" style={OSWALD}>🗂️ Organizar por</p>
+          <p className="text-[10px] font-black uppercase text-black/45 tracking-wide" style={OSWALD}>{tr('🗂️ Organizar por', '🗂️ Sort by')}</p>
           <AlbumSortBar value={sort} onChange={setSort} />
         </div>
       )}
 
-      {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
+      {loading && <p className="text-center font-bold text-black/60">{tr('Carregando…', 'Loading…')}</p>}
       {down && (
         <div className="rounded-xl border-2 border-amber-400/70 bg-amber-400/10 px-4 py-3 text-center">
-          <p className="font-black text-sm" style={OSWALD}>🔧 Servidor fora do ar por uns minutos</p>
-          <p className="font-bold text-black/60 text-xs mt-1">Seu álbum está a salvo — é só instabilidade. Volta daqui a pouquinho 💛</p>
+          <p className="font-black text-sm" style={OSWALD}>{tr('🔧 Servidor fora do ar por uns minutos', '🔧 Server down for a few minutes')}</p>
+          <p className="font-bold text-black/60 text-xs mt-1">{tr('Seu álbum está a salvo — é só instabilidade. Volta daqui a pouquinho 💛', 'Your album is safe — just a hiccup. Come back in a little while 💛')}</p>
         </div>
       )}
 
@@ -7436,11 +7437,11 @@ export function EscAlbum() {
       {!loading && anon && (
         <div className="space-y-3">
           <Box bg={GOLD} className="p-3 text-center">
-            <p className="font-black text-sm" style={OSWALD}>👀 Exemplo de carta-lembrança</p>
-            <p className="font-bold text-black/70 text-xs mt-1">Faça seu cadastro pra começar a SUA coleção de verdade. Esta carta some quando você logar.</p>
+            <p className="font-black text-sm" style={OSWALD}>{tr('👀 Exemplo de carta-lembrança', '👀 Example keepsake card')}</p>
+            <p className="font-bold text-black/70 text-xs mt-1">{tr('Faça seu cadastro pra começar a SUA coleção de verdade. Esta carta some quando você logar.', 'Sign up to start YOUR real collection. This card disappears once you sign in.')}</p>
           </Box>
           <div className="grid grid-cols-2 gap-3">
-            <CollectibleCard name={EXAMPLE_CARD.name} club={EXAMPLE_CARD.club} year={EXAMPLE_CARD.year} pos={EXAMPLE_CARD.pos} fame={EXAMPLE_CARD.fame} bio={EXAMPLE_CARD.bio} showBio />
+            <CollectibleCard name={EXAMPLE_CARD.name} club={EXAMPLE_CARD.club} year={EXAMPLE_CARD.year} pos={EXAMPLE_CARD.pos} fame={EXAMPLE_CARD.fame} bio={getLang() === 'en' ? EXAMPLE_BIO_EN : EXAMPLE_CARD.bio} showBio />
           </div>
         </div>
       )}
@@ -7448,9 +7449,9 @@ export function EscAlbum() {
       {!loading && !anon && shown.length === 0 && (
         <Box bg="#fff" className="p-6 text-center">
           <p className="font-bold text-black/70">
-            {filter === 'online' ? 'Ainda sem cartas do online. Seja campeão de uma sala pra ganhar a primeira!'
-              : filter === 'cpu' ? 'Ainda sem cartas do CPU. Seja campeão jogando contra a CPU pra ganhar a primeira!'
-              : 'Ainda sem cartas. Seja campeão (no CPU ou online) pra ganhar a primeira!'}
+            {filter === 'online' ? tr('Ainda sem cartas do online. Seja campeão de uma sala pra ganhar a primeira!', 'No online cards yet. Win a room to earn the first one!')
+              : filter === 'cpu' ? tr('Ainda sem cartas do CPU. Seja campeão jogando contra a CPU pra ganhar a primeira!', 'No CPU cards yet. Become champion against the CPU to earn the first one!')
+              : tr('Ainda sem cartas. Seja campeão (no CPU ou online) pra ganhar a primeira!', 'No cards yet. Become champion (vs CPU or online) to earn the first one!')}
           </p>
         </Box>
       )}
@@ -7582,15 +7583,15 @@ export function EscRanking() {
   const albumShown = viewScope === 'carreira' && albumCarreira ? albumCarreira : albumConta
 
   const MODES: { id: RankMode; label: string }[] = [
-    { id: 'ronline', label: '👥 Rápido (online)' },
-    { id: 'rcpu', label: '⚡ Rápido (offline)' },
-    { id: 'carreira', label: '🪜 Carreira' }, // histórico completo, liberado geral (04/08)
+    { id: 'ronline', label: tr('👥 Rápido (online)', '👥 Quick (online)') },
+    { id: 'rcpu', label: tr('⚡ Rápido (offline)', '⚡ Quick (offline)') },
+    { id: 'carreira', label: tr('🪜 Carreira', '🪜 Career') }, // histórico completo, liberado geral (04/08)
   ]
   const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
 
   if (verSalao && salaoOk) {
     return (
-      <Suspense fallback={<Shell><p className="text-center font-bold text-black/60 pt-10">Carregando o Salão…</p></Shell>}>
+      <Suspense fallback={<Shell><p className="text-center font-bold text-black/60 pt-10">{tr('Carregando o Salão…', 'Loading the Hall…')}</p></Shell>}>
         <SalaoLazy voltar={() => setVerSalao(false)} />
       </Suspense>
     )
@@ -7601,9 +7602,9 @@ export function EscRanking() {
       <div className="pt-4"><VoltarInicio /></div>
       <div className="text-center -mt-1">
         <h2 className="font-black text-4xl" style={OSWALD}>🏆 RANKING</h2>
-        <p className="font-semibold text-black/60 mt-1">Só técnicos com cadastro. Ranking por títulos. 🏆</p>
+        <p className="font-semibold text-black/60 mt-1">{tr('Só técnicos com cadastro. Ranking por títulos. 🏆', 'Registered managers only. Ranked by titles. 🏆')}</p>
         {/* 🕐 aviso sutil do ranking diário (decisão do Diego 04/08) */}
-        <p className="text-[10.5px] font-bold text-black/40 mt-0.5">🕐 O ranking e as cartas atualizam 1× por dia</p>
+        <p className="text-[10.5px] font-bold text-black/40 mt-0.5">{tr('🕐 O ranking e as cartas atualizam 1× por dia', '🕐 Ranking and cards update once a day')}</p>
       </div>
 
       {/* 🏛️ porta do Salão dos Batismos (em obra — só o Diego enxerga) */}
@@ -7634,12 +7635,12 @@ export function EscRanking() {
           "Total da conta" saiu: o total da conta toda já aparece ao tocar no
           técnico, dentro do álbum, no chip "📊 Conta toda"). */}
       {mode === 'carreira' && (
-        <p className="text-center text-[10px] font-bold text-black/45">cada carreira é uma linha · toque no técnico pra ver o total da conta</p>
+        <p className="text-center text-[10px] font-bold text-black/45">{tr('cada carreira é uma linha · toque no técnico pra ver o total da conta', 'each career is one line · tap the manager to see the account total')}</p>
       )}
 
       {/* dica: dá pra tocar num técnico e ver o álbum dele */}
       {!loading && shown.length > 0 && (
-        <p className="text-center text-[12px] font-black text-black/55" style={OSWALD}>👆 Toque num técnico pra ver as cartas dele</p>
+        <p className="text-center text-[12px] font-black text-black/55" style={OSWALD}>{tr('👆 Toque num técnico pra ver as cartas dele', '👆 Tap a manager to see their cards')}</p>
       )}
 
       {/* cabeçalho das colunas */}
@@ -7647,20 +7648,20 @@ export function EscRanking() {
         <div className="flex items-center gap-3 px-2.5">
           <span className="w-9 shrink-0" />
           <span className="flex-1" />
-          <span className="w-12 text-center font-black text-[11px] text-black/45 shrink-0" style={OSWALD}>🏆 Tít.</span>
+          <span className="w-12 text-center font-black text-[11px] text-black/45 shrink-0" style={OSWALD}>{tr('🏆 Tít.', '🏆 Titles')}</span>
         </div>
       )}
 
-      {loading && <p className="text-center font-bold text-black/60">Carregando…</p>}
+      {loading && <p className="text-center font-bold text-black/60">{tr('Carregando…', 'Loading…')}</p>}
       {down && (
         <Box bg="#fff" className="p-5 text-center">
-          <p className="font-black text-sm" style={OSWALD}>🔧 Servidor fora do ar por uns minutos</p>
-          <p className="font-bold text-black/60 text-xs mt-1">O ranking já volta — é só instabilidade. Tenta de novo daqui a pouco 💛</p>
+          <p className="font-black text-sm" style={OSWALD}>{tr('🔧 Servidor fora do ar por uns minutos', '🔧 Server down for a few minutes')}</p>
+          <p className="font-bold text-black/60 text-xs mt-1">{tr('O ranking já volta — é só instabilidade. Tenta de novo daqui a pouco 💛', 'The ranking will be right back — just a hiccup. Try again in a bit 💛')}</p>
         </Box>
       )}
       {!loading && !down && shown.length === 0 && (
         <Box bg="#fff" className="p-6 text-center">
-          <p className="font-bold text-black/70">Ninguém no ranking ainda. Seja o primeiro campeão! 🔨</p>
+          <p className="font-bold text-black/70">{tr('Ninguém no ranking ainda. Seja o primeiro campeão! 🔨', 'Nobody in the ranking yet. Be the first champion! 🔨')}</p>
         </Box>
       )}
       <div className="space-y-2">
@@ -7669,19 +7670,19 @@ export function EscRanking() {
             className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl p-2.5 active:translate-y-0.5"
             style={{ background: r.user_id === meId ? GOLD : '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
             <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
-            <span className="font-black text-black text-sm flex-1 min-w-0 truncate text-left" style={OSWALD}>{r.name}{r.user_id === meId ? ' (você)' : ''}</span>
+            <span className="font-black text-black text-sm flex-1 min-w-0 truncate text-left" style={OSWALD}>{r.name}{r.user_id === meId ? tr(' (você)', ' (you)') : ''}</span>
             <span className="w-12 text-center font-black text-lg shrink-0" style={OSWALD}>{r.titles}</span>
           </button>
         ))}
       </div>
       {!loading && !inList && meId && shown.length > 0 && (
         <Box bg="#fff" className="p-3 text-center">
-          <p className="font-bold text-black/70 text-sm">Você ainda não pontuou {mode === 'ronline' ? 'no rápido online' : 'no rápido offline'}. Seja campeão pra entrar! 🔨</p>
+          <p className="font-bold text-black/70 text-sm">{tr('Você ainda não pontuou', 'You haven\'t scored yet')} {mode === 'ronline' ? tr('no rápido online', 'in online quick match') : tr('no rápido offline', 'in offline quick match')}. {tr('Seja campeão pra entrar! 🔨', 'Become champion to get in! 🔨')}</p>
         </Box>
       )}
       {!loading && !meId && (
         <Box bg="#fff" className="p-3 text-center">
-          <p className="font-bold text-black/70 text-sm">Faça login pra aparecer no ranking e ganhar cartas.</p>
+          <p className="font-bold text-black/70 text-sm">{tr('Faça login pra aparecer no ranking e ganhar cartas.', 'Sign in to appear in the ranking and earn cards.')}</p>
         </Box>
       )}
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 {tr('Voltar ao início', 'Back to start')}</Btn>
@@ -7698,7 +7699,7 @@ export function EscRanking() {
                 <div className="flex items-center justify-between px-4 py-3 border-b-[3px] border-black" style={{ background: pk?.grad ?? GOLD }}>
                   <div className="min-w-0">
                     <p className="font-black text-black text-lg leading-tight truncate" style={OSWALD}>👤 {viewUser.name}{selos ? ` ${selos}` : ''}</p>
-                    <p className="text-black/60 text-xs font-bold">perfil do técnico</p>
+                    <p className="text-black/60 text-xs font-bold">{tr('perfil do técnico', 'manager profile')}</p>
                   </div>
                   <button onClick={() => setViewUser(null)} className="shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white font-black text-black active:translate-y-0.5">✕</button>
                 </div>
@@ -7707,7 +7708,7 @@ export function EscRanking() {
             {/* 👤 PERFIL (mockup aprovado 09/08): stats + documentos + troféus antes do álbum */}
             {viewUser.stats && (
               <div className="flex gap-1.5 px-4 pt-3">
-                {([['🏆', 'títulos', viewUser.stats.titles], ['👟', 'artilharias', viewUser.stats.scorers], ['⚽', 'gols', viewUser.stats.goals], ['🎴', 'cartas', viewUser.stats.cards]] as const).map(([em, lb, n]) => (
+                {([['🏆', tr('títulos', 'titles'), viewUser.stats.titles], ['👟', tr('artilharias', 'top scorer'), viewUser.stats.scorers], ['⚽', tr('gols', 'goals'), viewUser.stats.goals], ['🎴', tr('cartas', 'cards'), viewUser.stats.cards]] as const).map(([em, lb, n]) => (
                   <div key={lb} className="flex-1 border-[2.5px] border-black rounded-xl bg-white text-center py-1.5" style={{ boxShadow: `2px 2px 0 ${INK}` }}>
                     <p className="font-black text-base leading-tight" style={OSWALD}>{n}</p>
                     <p className="text-[8px] font-black uppercase tracking-wide text-black/50">{em} {lb}</p>
@@ -7729,15 +7730,15 @@ export function EscRanking() {
                   {fN != null && (
                     <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#241d0c,#141414 55%,#2b230e)', boxShadow: `3px 3px 0 ${INK}` }}>
                       <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>Nº {fN}</span>
-                      <p className="font-black text-base uppercase" style={{ ...OSWALD, color: GOLD }}>🖋️ Fundador do Leilão Legends</p>
-                      <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.75)' }}>{fN} dos 100 primeiros · pra sempre</p>
+                      <p className="font-black text-base uppercase" style={{ ...OSWALD, color: GOLD }}>{tr('🖋️ Fundador do Leilão Legends', '🖋️ Leilão Legends Founder')}</p>
+                      <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.75)' }}>{fN} {tr('dos 100 primeiros · pra sempre', 'of the first 100 · forever')}</p>
                     </div>
                   )}
                   {socio && (
                     <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#A78BFA,#7C3AED)', boxShadow: `3px 3px 0 ${INK}` }}>
                       <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5 bg-white" style={OSWALD}>nº {socio.socioN}</span>
                       <p className="font-black text-base uppercase text-white" style={OSWALD}>🎫 Sócio Legends</p>
-                      <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.85)' }}>{meses > 0 ? `${meses} ${meses === 1 ? 'mês' : 'meses'} de casa` : 'recém-chegado ao clube'}{socio.socioDesde ? ` · desde ${new Date(socio.socioDesde + 'T12:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}` : ''}</p>
+                      <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.85)' }}>{meses > 0 ? (getLang() === 'en' ? `${meses} ${meses === 1 ? 'month' : 'months'} in the club` : `${meses} ${meses === 1 ? 'mês' : 'meses'} de casa`) : tr('recém-chegado ao clube', 'new to the club')}{socio.socioDesde ? ` · ${tr('desde', 'since')} ${new Date(socio.socioDesde + 'T12:00').toLocaleDateString(getLang() === 'en' ? 'en-US' : 'pt-BR', { month: 'long', year: 'numeric' })}` : ''}</p>
                     </div>
                   )}
                 </div>
@@ -7754,7 +7755,7 @@ export function EscRanking() {
               if (!escT && !masc) return null
               return (
                 <div className="px-4 pt-3">
-                  <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>🛡️ O clube do coração</p>
+                  <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>{tr('🛡️ O clube do coração', '🛡️ The club they support')}</p>
                   <div className="border-[2.5px] border-black rounded-xl bg-white flex items-end justify-center gap-6 px-3 py-2.5" style={{ boxShadow: `2px 2px 0 ${INK}` }}>
                     {escT && (
                       <div className="text-center">
@@ -7765,7 +7766,7 @@ export function EscRanking() {
                     {masc && (
                       <div className="text-center">
                         <div style={{ transform: 'scale(.58)', transformOrigin: 'bottom center', height: 176, width: 140, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginTop: -66, marginLeft: -22, marginRight: -22 }}>{masc}</div>
-                        <p className="text-[8.5px] font-black text-black/50 uppercase" style={OSWALD}>{!escT && coracao ? coracao : 'mascote'}</p>
+                        <p className="text-[8.5px] font-black text-black/50 uppercase" style={OSWALD}>{!escT && coracao ? coracao : tr('mascote', 'mascot')}</p>
                       </div>
                     )}
                   </div>
@@ -7774,25 +7775,25 @@ export function EscRanking() {
             })()}
             {viewUser.stats && (viewUser.stats.titles > 0 || viewUser.stats.scorers > 0) && (
               <div className="px-4 pt-3">
-                <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>🏆 Sala de troféus</p>
+                <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>{tr('🏆 Sala de troféus', '🏆 Trophy room')}</p>
                 {/* 🏆 troféus GRANDES (pedido do Diego 09/08: o DESENHO grande, não só a letra) */}
                 <div className="flex flex-wrap gap-2">
-                  {viewUser.stats.titles > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>🏆</span>Título{viewUser.stats.titles === 1 ? '' : 's'} ×{viewUser.stats.titles}</span>}
-                  {viewUser.stats.scorers > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>👟</span>Artilharia{viewUser.stats.scorers === 1 ? '' : 's'} ×{viewUser.stats.scorers}</span>}
-                  {viewUser.stats.goals > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black bg-white" style={{ boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>⚽</span>{viewUser.stats.goals} gols</span>}
+                  {viewUser.stats.titles > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>🏆</span>{viewUser.stats.titles === 1 ? tr('Título', 'Title') : tr('Títulos', 'Titles')} ×{viewUser.stats.titles}</span>}
+                  {viewUser.stats.scorers > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>👟</span>{viewUser.stats.scorers === 1 ? tr('Artilharia', 'Top scorer') : tr('Artilharias', 'Top scorer awards')} ×{viewUser.stats.scorers}</span>}
+                  {viewUser.stats.goals > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black bg-white" style={{ boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>⚽</span>{viewUser.stats.goals} {tr('gols', 'goals')}</span>}
                 </div>
               </div>
             )}
-            {albumShown && <p className="px-4 pt-3 font-black text-[11px] uppercase tracking-wide" style={OSWALD}>🎴 Álbum de cartas</p>}
+            {albumShown && <p className="px-4 pt-3 font-black text-[11px] uppercase tracking-wide" style={OSWALD}>{tr('🎴 Álbum de cartas', '🎴 Card album')}</p>}
             {/* 🪜×📊 os dois totais (mockup aprovado): só quando a linha tocada é UMA carreira */}
             {albumCarreira && albumConta && (
               <div className="flex gap-2 px-4 pt-3">
-                {([['carreira', '🪜 Esta carreira', albumCarreira.length], ['conta', '📊 Conta toda', albumConta.length]] as const).map(([id, label, n]) => (
+                {([['carreira', tr('🪜 Esta carreira', '🪜 This career'), albumCarreira.length], ['conta', tr('📊 Conta toda', '📊 Whole account'), albumConta.length]] as const).map(([id, label, n]) => (
                   <button key={id} onClick={() => setViewScope(id)}
                     className="flex-1 border-[2.5px] border-black rounded-xl py-2 px-1 font-black text-[11px] uppercase leading-tight"
                     style={{ backgroundColor: viewScope === id ? GOLD : '#fff', boxShadow: viewScope === id ? `2px 2px 0 0 ${INK}` : 'none', ...OSWALD }}>
                     {label}
-                    <span className="block text-[11px] font-extrabold normal-case">{n} carta{n === 1 ? '' : 's'}</span>
+                    <span className="block text-[11px] font-extrabold normal-case">{n} {n === 1 ? tr('carta', 'card') : tr('cartas', 'cards')}</span>
                   </button>
                 ))}
               </div>
@@ -7801,8 +7802,8 @@ export function EscRanking() {
               <div className="px-4 pt-3"><AlbumSortBar value={viewSort} onChange={setViewSort} /></div>
             )}
             <div className="overflow-y-auto p-4">
-              {!albumShown && <p className="text-center font-bold text-black/60 py-6">Carregando…</p>}
-              {albumShown && albumShown.length === 0 && <p className="text-center font-bold text-black/60 py-6">{viewScope === 'carreira' && albumCarreira ? 'Nenhuma carta nesta carreira ainda.' : 'Esse técnico ainda não ganhou cartas.'}</p>}
+              {!albumShown && <p className="text-center font-bold text-black/60 py-6">{tr('Carregando…', 'Loading…')}</p>}
+              {albumShown && albumShown.length === 0 && <p className="text-center font-bold text-black/60 py-6">{viewScope === 'carreira' && albumCarreira ? tr('Nenhuma carta nesta carreira ainda.', 'No cards in this career yet.') : tr('Esse técnico ainda não ganhou cartas.', 'This manager hasn\'t earned any cards yet.')}</p>}
               {albumShown && albumShown.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
                   {sortAlbum(albumShown, viewSort).map((c, i) => (
@@ -7811,7 +7812,7 @@ export function EscRanking() {
                       {/* 🃏 BAFO: carta que MUDOU DE DONO fica marcada pra sempre com
                           de quem ela foi arrancada — é a graça do modo. */}
                       {c.tomadaDe && (
-                        <p className="text-[9.5px] font-black text-center mt-1 leading-snug" style={{ color: '#8E2A1B' }}>🃏 arrancada do {c.tomadaDe}</p>
+                        <p className="text-[9.5px] font-black text-center mt-1 leading-snug" style={{ color: '#8E2A1B' }}>{tr('🃏 arrancada do', '🃏 taken from')} {c.tomadaDe}</p>
                       )}
                     </div>
                   ))}
