@@ -18,19 +18,23 @@ o escudo, manto e mascote"*.
   Post gerado com `mockup-batismo.mjs --renovacao --camisa scripts/kits/sevencity-camisa.webp`
   (sem `--coracao`: não sabemos o time de coração dele).
 
-## 12/09/2026 — 🧪 GÁS: conta de teste do Diego liga em QUALQUER divisão
+## 12/09/2026 (noite) — 😓 GÁS: agora é PRA TODO MUNDO, em QUALQUER divisão
 
 Diego: *"ainda não atualizou a condição física"*. Fui olhar os saves dele na nuvem
 (`esc_pyramid_saves`): a carreira mais recente (Neymarzetti, T18) é **formato
 antigo** — sem `agenciaOn` e sem `careerDivision` — então, como TODA regra nova de
 carreira (eventos, contratos, escada), ela nunca ganha o gás; a outra (Neymarzetti,
-T9) está na **Várzea**, e a regra dele é "liga só quando sobe pra C". Ou seja: a
-condição ESTAVA no ar, só não na carreira dele — comportamento correto, não bug.
-Pra ele conseguir VER sem esperar chegar na C: `CONDICAO_TESTERS` em `condicao.ts`
-(só `diego.c.fonseca@gmail.com`) — pra essa conta o PLAY_ROUND liga o gás na
-próxima rodada em qualquer divisão (mesma mecânica `condicaoDesdeR`, todos em
-100%). Pra todo mundo mais, continua só da Série C. Precisa da carreira com
-Agência (a T9 tem; a T18 antiga não).
+T9) está na **Várzea**, e a regra da tarde era "liga só quando sobe pra C". Fiz
+primeiro uma conta de teste só pra ele (`CONDICAO_TESTERS`, commit 2e32b5b) e ele
+respondeu: *"mas é pra todos né, já liberar"*. **Regra final:** toda carreira solo
+com Agência liga o gás na PRÓXIMA RODADA, em qualquer divisão (Várzea inclusive),
+todo mundo em 100% — no PLAY_ROUND (`condicaoDesde` + `condicaoDesdeR`). O bloco
+do CAREER_ADVANCE e a lista de testers saíram. Banner do Guia, novidade da home e
+a cena final do reels (`video-condicao-reels.mjs`) já não falam em Série C.
+Carreira antiga sem Agência (a T18 dele) continua fora — é a regra geral de toda
+feature nova da carreira; se ele quiser o gás lá, é tirar o `agenciaOn` da
+condição em `condicaoAtiva`/PLAY_ROUND (mas a lesão por desgaste usa o banner das
+Crias da Base dos eventos, que também é só Agência — conferir antes).
 
 ## 12/09/2026 — 😓 CONDIÇÃO / GÁS do jogador (carreira solo) — FEITO no branch, aguardando OK do print
 

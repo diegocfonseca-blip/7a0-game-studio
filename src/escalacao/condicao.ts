@@ -27,9 +27,9 @@
 //     ser recuperada de cara"*): quem só está 😓 volta inteiro com 1 rodada fora;
 //     quem está 🚑 precisa de 2-3. Quem volta de lesão volta com o gás QUE TEM —
 //     nunca zerado pra 100 só porque o jogo precisou dele.
-//   · liga quando o clube SOBE PRA SÉRIE C (não por temporada — *"3ª temporada
-//     acho mt rápido… apenas quando subir pra Série C, que o usuário está mais
-//     experiente"*). Uma vez ligado, não desliga se cair de volta.
+//   · liga na PRÓXIMA RODADA de qualquer carreira solo com Agência, em QUALQUER
+//     divisão (Diego 12/09, à noite: *"mas é pra todos né, já liberar"* — a versão
+//     "só ao subir pra Série C" viveu algumas horas). Uma vez ligado, não desliga.
 //   · bots NÃO cansam (baseline plano): quem rodizia bem também não paga nada —
 //     é camada de gestão, não imposto. Copa Legends também fica de fora.
 //
@@ -45,11 +45,6 @@
 // caminho ("contrate no mercado"); se a lesão vier, entra o MESMO banner dos
 // 3 Crias da Base que os eventos já usam.
 import { CONDICAO_ON } from './career-feature-release'
-
-// 🧪 contas de TESTE: pra elas o gás liga na próxima rodada em QUALQUER divisão
-// (Diego, 12/09: as carreiras dele estão na Várzea e ele precisa VER a regra sem
-// esperar chegar na C). Pra todo mundo mais, continua valendo só da Série C.
-export const CONDICAO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 
 export const GAS_JOGO = 7      // desconto por jogo como titular
 export const GAS_BANCO = 15    // recuperação por rodada no banco (era 20; Diego achou rápido demais)
@@ -72,8 +67,8 @@ export const emojiGas = (e: EstadoGas): string => (e === 'ok' ? '💪' : e === '
 export const corGas = (e: EstadoGas): string => (e === 'ok' ? '#1B7A3D' : e === 'cansado' ? '#D9A000' : e === 'limite' ? '#C2452F' : '#7A1B1B')
 
 // ─── ligado ou não, PARA ESTA CARREIRA/TEMPORADA ─────────────────────────────
-// `condicaoDesde` = temporada em que o clube chegou na Série C (gravado na
-// virada, CAREER_ADVANCE). Temporada em andamento nunca muda de regra no meio.
+// `condicaoDesde` = temporada em que o gás ligou nesta carreira (gravado no
+// PLAY_ROUND, junto com `condicaoDesdeR` = rodada a partir da qual conta).
 export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; agenciaOn?: boolean; condicaoDesde?: number; seasonNo?: number }): boolean {
   if (!CONDICAO_ON) return false
   if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return false

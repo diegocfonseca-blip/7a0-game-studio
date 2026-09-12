@@ -103,7 +103,7 @@ ok(JSON.stringify(d1) === JSON.stringify(d2), 'determinístico: reload não re-s
 
 console.log('7) trava de ativação')
 ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true }), 'sem condicaoDesde = desligado')
-ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 5, seasonNo: 4 }), 'antes da temporada da Série C = desligado')
+ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 5, seasonNo: 4 }), 'antes da temporada em que ligou = desligado')
 ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 5, seasonNo: 5 }), 'na temporada em que chegou na C = ligado')
 ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 5, seasonNo: 9 }), 'e continua ligado depois (mesmo caindo pra D/Várzea)')
 ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'online', agenciaOn: true, condicaoDesde: 5, seasonNo: 9 }), 'online: nunca')
