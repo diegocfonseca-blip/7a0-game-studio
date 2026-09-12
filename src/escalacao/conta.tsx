@@ -19,6 +19,7 @@ import { supabase } from '../lib/supabase'
 import { stripEmoji, emailProblema } from './apoio'
 import { nomeLivre, NOME_MSG } from './manto'
 import { CORACAO_CLUBES } from './coracao'
+import { tr } from './lang' // 🌐 BR/EN do site
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -29,10 +30,10 @@ const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif' }
 // mesma tradução de erro do lobby (duplicada de propósito: o caminho de login do
 // lobby está no ar e não vai ser mexido agora — ver plano-crescimento.md).
 function erroAmigavel(msg: string): string {
-  if (/fetch|network|Failed to fetch|timeout|503|502|504/i.test(msg)) return '🔧 Estamos atualizando novidades no jogo! O servidor volta já já — dá uma passadinha daqui a pouquinho. 💛'
-  if (msg === 'Invalid login credentials') return 'Email ou senha incorretos.'
-  if (/email not confirmed/i.test(msg)) return 'Confirme seu email antes de entrar (olha a caixa de entrada ✉️).'
-  if (/already registered|already been registered/i.test(msg)) return 'Esse e-mail já tem conta. Vai em ENTRAR ali em cima. 😉'
+  if (/fetch|network|Failed to fetch|timeout|503|502|504/i.test(msg)) return tr('🔧 Estamos atualizando novidades no jogo! O servidor volta já já — dá uma passadinha daqui a pouquinho. 💛', '🔧 We are rolling out news to the game! The server will be right back — drop by again in a little while. 💛')
+  if (msg === 'Invalid login credentials') return tr('Email ou senha incorretos.', 'Wrong e-mail or password.')
+  if (/email not confirmed/i.test(msg)) return tr('Confirme seu email antes de entrar (olha a caixa de entrada ✉️).', 'Confirm your e-mail before signing in (check your inbox ✉️).')
+  if (/already registered|already been registered/i.test(msg)) return tr('Esse e-mail já tem conta. Vai em ENTRAR ali em cima. 😉', 'That e-mail already has an account. Use SIGN IN up there. 😉')
   return msg
 }
 
@@ -100,10 +101,10 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
       }
       // ── criar conta ──
       const nm = stripEmoji(time).trim()
-      if (!nm) { setErro('Escolha o nome do seu time.'); setCarregando(false); return }
+      if (!nm) { setErro(tr('Escolha o nome do seu time.', 'Choose your team name.')); setCarregando(false); return }
       const prob = emailProblema(email)
       if (prob) { setErro(prob); setCarregando(false); return }
-      if (senha.length < 6) { setErro('A senha precisa de pelo menos 6 letras/números.'); setCarregando(false); return }
+      if (senha.length < 6) { setErro(tr('A senha precisa de pelo menos 6 letras/números.', 'The password needs at least 6 letters/numbers.')); setCarregando(false); return }
       // 🔒 nome único (tipo @ do Instagram, regra do Diego 10/08) — confere de
       // novo aqui, mesmo já tendo o ✓ na tela: entre digitar e enviar alguém
       // pode ter pegado o nome.
@@ -118,7 +119,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
         options: { data: { display_name: nm, ...(coracao ? { time_coracao: coracao } : {}) } },
       })
       if (error) { setErro(erroAmigavel(error.message)); setCarregando(false); return }
-      setOk('✅ Conta criada! Guarde bem esse e-mail — é ele que recupera sua senha.')
+      setOk(tr('✅ Conta criada! Guarde bem esse e-mail — é ele que recupera sua senha.', '✅ Account created! Keep this e-mail safe — it is what recovers your password.'))
       setCarregando(false)
       onPronto()
     } catch (e) {
@@ -129,12 +130,12 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
 
   async function esqueci() {
     const em = email.trim().toLowerCase()
-    if (!em) { setErro('Digite seu e-mail aí em cima primeiro — aí eu mando o link.'); return }
+    if (!em) { setErro(tr('Digite seu e-mail aí em cima primeiro — aí eu mando o link.', 'Type your e-mail up there first — then I\'ll send the link.')); return }
     const prob = emailProblema(em)
     if (prob) { setErro(prob); return }
     try {
       await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + window.location.pathname })
-      setOk('✉️ Link de redefinição enviado. Olha a caixa de entrada (e o spam).')
+      setOk(tr('✉️ Link de redefinição enviado. Olha a caixa de entrada (e o spam).', '✉️ Reset link sent. Check your inbox (and spam).'))
     } catch (e) { setErro(erroAmigavel(e instanceof Error ? e.message : String(e))) }
   }
 
@@ -145,8 +146,8 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
     <div style={{ position: 'fixed', inset: 0, zIndex: 99991, background: 'rgba(12,12,12,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '18px 14px 30px', overflowY: 'auto' }}>
       <div style={{ width: '100%', maxWidth: 420, background: '#fff', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, overflow: 'hidden' }}>
         <div style={{ background: PURPLE, color: '#fff', padding: '11px 14px', borderBottom: `3px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, textTransform: 'uppercase' }}>{titulo ?? '💾 Guardar sua carreira'}</span>
-          <button onClick={onFechar} aria-label="Fechar" style={{ background: 'rgba(255,255,255,.22)', border: 'none', color: '#fff', width: 26, height: 26, borderRadius: 999, fontWeight: 900, fontSize: 13, cursor: 'pointer', lineHeight: 1, flex: 'none' }}>✕</button>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, textTransform: 'uppercase' }}>{titulo ?? tr('💾 Guardar sua carreira', '💾 Save your career')}</span>
+          <button onClick={onFechar} aria-label={tr('Fechar', 'Close')} style={{ background: 'rgba(255,255,255,.22)', border: 'none', color: '#fff', width: 26, height: 26, borderRadius: 999, fontWeight: 900, fontSize: 13, cursor: 'pointer', lineHeight: 1, flex: 'none' }}>✕</button>
         </div>
 
         <div style={{ padding: '13px 15px 16px' }}>
@@ -160,24 +161,24 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
             {(['entrar', 'criar'] as Aba[]).map(a => (
               <button key={a} onClick={() => { setAba(a); setErro(''); setOk('') }}
                 style={{ flex: 1, padding: '7px 2px', ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: aba === a ? GOLD : '#fff', color: INK, border: 'none', cursor: 'pointer' }}>
-                {a === 'entrar' ? 'Entrar' : 'Criar conta'}
+                {a === 'entrar' ? tr('Entrar', 'Sign in') : tr('Criar conta', 'Create account')}
               </button>
             ))}
           </div>
 
           {aba === 'criar' && (
             <>
-              <p style={rot}>Nome do seu time</p>
+              <p style={rot}>{tr('Nome do seu time', 'Your team name')}</p>
               <div style={{ position: 'relative', marginBottom: 4 }}>
-                <input value={time} onChange={e => setTime(e.target.value)} placeholder="Ex.: Lendas FC" maxLength={28}
+                <input value={time} onChange={e => setTime(e.target.value)} placeholder={tr('Ex.: Lendas FC', 'E.g.: Legends FC')} maxLength={28}
                   style={{ ...campo, paddingRight: 74, borderColor: nomeSit === 'livre' ? GREEN : nomeSit === 'ocupado' ? '#C2452F' : INK }} />
                 <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', color: nomeSit === 'livre' ? GREEN : nomeSit === 'ocupado' ? '#C2452F' : 'rgba(12,12,12,.35)' }}>
-                  {nomeSit === 'livre' ? '✓ livre' : nomeSit === 'ocupado' ? '✕ em uso' : nomeSit === 'checando' ? '…' : ''}
+                  {nomeSit === 'livre' ? tr('✓ livre', '✓ free') : nomeSit === 'ocupado' ? tr('✕ em uso', '✕ taken') : nomeSit === 'checando' ? '…' : ''}
                 </span>
               </div>
-              <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>É o nome que aparece no ranking. Só pode existir um de cada.</p>
+              <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>{tr('É o nome que aparece no ranking. Só pode existir um de cada.', 'It is the name that shows in the ranking. There can only be one of each.')}</p>
 
-              <p style={rot}>Time de coração</p>
+              <p style={rot}>{tr('Time de coração', 'Team you support')}</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 6 }}>
                 {(todosClubes ? CORACAO_CLUBES : CORACAO_CLUBES.slice(0, 12)).map(c => (
                   <button key={c.nome} onClick={() => setCoracao(cor => cor === c.nome ? null : c.nome)}
@@ -188,7 +189,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
                 {!todosClubes && (
                   <button onClick={() => setTodosClubes(true)}
                     style={{ border: `2px dashed ${INK}`, borderRadius: 8, padding: '4px 9px', fontWeight: 800, fontSize: 11.5, cursor: 'pointer', background: '#F4F1E6', color: INK }}>
-                    ⋯ mais times
+                    {tr('⋯ mais times', '⋯ more teams')}
                   </button>
                 )}
               </div>
@@ -199,7 +200,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
                   quem é a torcida da casa; por isso o texto abaixo não fala em
                   nenhum prêmio, e é opcional. */}
               <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>
-                Opcional — é só pra gente saber de que time é a torcida daqui. 💚
+                {tr('Opcional — é só pra gente saber de que time é a torcida daqui. 💚', 'Optional — just so we know which team the crowd here supports. 💚')}
               </p>
             </>
           )}
@@ -207,13 +208,13 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
           <p style={rot}>E-mail</p>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" style={{ ...campo, marginBottom: 9 }} />
 
-          <p style={rot}>Senha</p>
+          <p style={rot}>{tr('Senha', 'Password')}</p>
           <input type="password" value={senha} onChange={e => setSenha(e.target.value)} placeholder="••••••••"
             onKeyDown={e => { if (e.key === 'Enter') enviar() }} style={{ ...campo, marginBottom: aba === 'entrar' ? 4 : 11 }} />
 
           {aba === 'entrar' && (
             <button onClick={esqueci} style={{ display: 'block', marginLeft: 'auto', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.5)', cursor: 'pointer', marginBottom: 10 }}>
-              Esqueci minha senha
+              {tr('Esqueci minha senha', 'Forgot my password')}
             </button>
           )}
 
@@ -222,11 +223,11 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
 
           <button onClick={enviar} disabled={carregando}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: 12, ...OSWALD, fontWeight: 900, fontSize: 16, textTransform: 'uppercase', background: carregando ? '#CBBF9E' : aba === 'entrar' ? GOLD : GREEN, color: aba === 'entrar' ? INK : '#fff', boxShadow: `4px 4px 0 ${INK}`, cursor: carregando ? 'default' : 'pointer' }}>
-            {carregando ? '…' : aba === 'entrar' ? 'Entrar →' : 'Criar conta →'}
+            {carregando ? '…' : aba === 'entrar' ? tr('Entrar →', 'Sign in →') : tr('Criar conta →', 'Create account →')}
           </button>
 
           <button onClick={onFechar} style={{ display: 'block', width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 13, color: 'rgba(12,12,12,.45)', cursor: 'pointer', marginTop: 9 }}>
-            agora não
+            {tr('agora não', 'not now')}
           </button>
         </div>
       </div>
