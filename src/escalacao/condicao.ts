@@ -5,13 +5,14 @@
 // fechadas com ele no mesmo dia (mockup `scripts/mockup-condicao-elenco.mjs`,
 // variante A — a barrinha):
 //
-//   · cada jogo como TITULAR: −10 de gás · cada rodada no BANCO: +15 (teto 100)
-//   · ≥ 40 = 💪 inteiro (nada) · 30–39 = 😓 cansado (−1 de força no jogo)
-//     · 20–29 = 🥵 no limite (−2 · 2× de chance de ser o lesionado da temporada)
+//   · cada jogo como TITULAR: −7 de gás · cada rodada no BANCO: +15 (teto 100)
+//   · ≥ 35 = 💪 inteiro (nada) · 25–34 = 😓 cansado (−1 de força no jogo)
+//     · 20–24 = 🥵 no limite (−2 · 2× de chance de ser o lesionado da temporada)
 //     · < 20 = 🚑 esgotado (−3 · 3× lesão)
-//     A escada é a que o Diego pediu (12/09): *"do 1 ao 7 💪, dps 8, dps 9 e dps
-//     10 em diante"* → 1º–7º jogo seguido inteiro · 8º 😓 · 9º 🥵 · 10º+ 🚑.
-//     (gás antes do jogo N = 100 − 10·(N−1): 7º = 40 · 8º = 30 · 9º = 20 · 10º = 10)
+//     A escada é a que o Diego pediu (12/09, 2ª versão — ele esticou: *"vai ser 1
+//     a 10 normal, dps 11, 12, 13 a 14 em diante"*) → 1º–10º jogo seguido inteiro
+//     · 11º 😓 · 12º 🥵 · 13º+ 🚑. (gás antes do jogo N = 100 − 7·(N−1):
+//     10º = 37 · 11º = 30 · 12º = 23 · 13º = 16 · 14º = 9)
 //   · lesão VOLTA AOS POUCOS: na rodada da volta joga a 60% (−2), na seguinte
 //     a 80% (−1), depois 100%.
 //   · 🩹 LESÃO POR DESGASTE (Diego 12/09: *"quero sim q qd chegue no 9 e no 10
@@ -45,10 +46,10 @@
 // 3 Crias da Base que os eventos já usam.
 import { CONDICAO_ON } from './career-feature-release'
 
-export const GAS_JOGO = 10     // desconto por jogo como titular
+export const GAS_JOGO = 7      // desconto por jogo como titular
 export const GAS_BANCO = 15    // recuperação por rodada no banco (era 20; Diego achou rápido demais)
-export const GAS_CANSADO = 40  // abaixo disto = 😓
-export const GAS_LIMITE = 30   // abaixo disto = 🥵
+export const GAS_CANSADO = 35  // abaixo disto = 😓
+export const GAS_LIMITE = 25   // abaixo disto = 🥵
 export const GAS_ESGOTADO = 20 // abaixo disto = 🚑
 export const MOD_CANSADO = -1
 export const MOD_LIMITE = -2

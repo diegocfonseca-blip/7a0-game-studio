@@ -7,11 +7,12 @@ Decisões do Diego (todas no chat de 12/09):
   não tira: *"quem subir pra C só desbloqueia"*). Save já em C/B/A liga na próxima
   virada. Só carreira nova (`agenciaOn`), como os eventos. Online/rápido: fora.
 - ~~Dep. Médico intocado~~ → SAIU DO JOGO, ver abaixo (12/09, mesma noite).
-- Números (escada FINAL do Diego, 12/09: *"do 1 ao 7 💪, dps 8, dps 9 e dps 10 em
-  diante"*): −10 por jogo · +20 no banco · <40 😓 (−1) · <30 🥵 (−2 e 2× lesão) ·
-  <20 🚑 esgotado (−3 e 3× lesão) · lesão volta 60% → 80% → 100%. Na prática:
-  1º–7º jogo seguido inteiro, 8º 😓, 9º 🥵, 10º em diante 🚑. Banco +15/rodada:
-  uma rodada tira do 😓; 🚑 precisa de 2-3.
+- Números (escada FINAL do Diego, 12/09, 2ª versão — *"vai ser 1 a 10 normal, dps
+  11, 12, 13 a 14 em diante"*): **−7 por jogo** · +15 no banco · <35 😓 (−1) ·
+  <25 🥵 (−2 e 2× lesão) · <20 🚑 esgotado (−3 e 3× lesão) · lesão volta 60% → 80%
+  → 100%. Na prática: **1º–10º jogo seguido inteiro, 11º 😓, 12º 🥵, 13º em
+  diante 🚑**. Banco: 😓 e 🥵 voltam inteiros com 1 rodada fora; 🚑 precisa de 2.
+  (A 1ª versão, 1–7/8/9/10+, viveu só algumas horas no branch.)
 - ✅ **Lesão por desgaste (FEITO, 12/09)**: fora o causo da temporada, todo jogo o
   🥵 tem 15% e o 🚑 30% de se machucar (1-3 rodadas). Sorteio determinístico por
   rodada. Só roda quando ninguém está fora/pendente/voltando (um causo por vez —
