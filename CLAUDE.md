@@ -268,6 +268,14 @@ Agora:
    (`scripts/catalogo-snapshot.json`) e escreve sozinho o que mudou em
    `src/escalacao/novidades-jogadores.ts` (arquivo GERADO, não editar na mão).
    Commitar os três juntos: `data.ts`, a foto e o gerado.
+   🌎 Desde 12/09 ele olha os **TRÊS** baralhos (Brasil, Europa e Resto do
+   Mundo), por ordem do Diego. E rode **`npm run paises`** junto: carta nova
+   precisa de nacionalidade, e nome que já existe em outra carta (Kaká SP ×
+   Kaká Milan, Firmino Figueirense × Liverpool) tem que entrar em
+   `MESMO_JOGADOR` no `paises.ts`.
+   ⚠️ **Ligar um baralho NOVO no gerador exige semear a foto primeiro**, senão
+   a home anuncia todas as cartas velhas dele como "entrou hoje" (foi o que
+   quase aconteceu com as 174 do Mundo em 12/09).
 5. **Regra permanente (21/08): MEXEU NO JOGADOR, TODO SAVE ATUALIZA.** Palavras
    do Diego: *"sempre que atualizarmos qualquer coisa de jogador deve atualizar,
    seja em carreira antiga, atual, ou em times dos bots — o nível, a categoria,

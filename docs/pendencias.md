@@ -1,3 +1,48 @@
+## 12/09/2026 — 🎴 Três cartas novas (Formiga, Firmino do Figueirense, Usain Bolt) + o gerador de novidades agora lê o baralho MUNDO
+
+Pedido do Diego, nesta ordem: *"Adicione formiga no baralho BR… Tb quero Firmino
+da época do Figueirense.. Tb quero Bolt"* e depois *"o gerador de novidades tb tem
+q ter baralho mundo sim"*.
+
+**As cartas** (`data.ts`, blocos novos `L28_BR_MEI` e `L28_WORLD_ATA`):
+| carta | posição | clube · ano | categoria | faixa |
+|---|---|---|---|---|
+| Formiga | MEI | Santos · 2009 | ⭐ craque | 82–88 |
+| Roberto Firmino | MEI | Figueirense · 2010 | 💎 promessa | 73–85 |
+| Usain Bolt | ATA | Central Coast Mariners · 2018 | 🪵 foi profissional · 🃏 | 40–82 |
+
+- **Formiga** é a 2ª mulher do baralho (a 1ª é a Marta, carta do MESMO clube e
+  ano — foi de propósito). ⚠️ **Clube e ano são o que o Diego deve confirmar**: a
+  bio NÃO afirma título de clube nenhum, só o recorde de 7 Copas + 7 Olimpíadas e
+  a carreira até os 44 anos. É a lição do Valdo (28/08): bio errada é a parte que
+  o jogador LÊ. Trocar pra São José é uma linha.
+- **Firmino** virou 2ª carta (a 1ª é Liverpool 2019, baralho da Europa), igual
+  Kaká SP × Kaká Milan. Entrou em `MESMO_JOGADOR` (`paises.ts`). Efeito colateral
+  conhecido e aceito: nome repetido sai da queda-por-nome do `sincronizaNiveis`,
+  então save antigo só casa por nome+clube+ano — é o mesmo que já vale pro Messi
+  e pro CR7.
+- **Bolt** ficou no baralho do **Resto do Mundo**, não no BR: ele nunca jogou no
+  Brasil e o baralho BR é "auge no Brasil". Aparece na carreira e no "todos
+  juntos"; **não** aparece no Rápido, que é só BR. Mover é uma linha, se o Diego
+  quiser o gag em todo jogo rápido. A faixa 40–82 é a mais larga do jogo de
+  propósito (o nível é sorteado a cada partida), e o fame 1 segura o preço.
+- `npm run paises` limpo: 1440 cartas, nenhuma sem seleção. Formiga = Brasil,
+  Bolt = Jamaica (país novo no `paises.ts`).
+
+**O gerador de novidades** (`scripts/novidades-jogadores.mjs`):
+- Passou a ler os **três** catálogos. O baralho de cada carta sai do começo da
+  chave; antes era `startsWith('EU')`, que mandaria o Mundo inteiro pra 'BR'
+  calado.
+- ⚠️ **A armadilha, e como foi fechada**: ligar um baralho novo faz a foto achar
+  que TODAS as cartas dele são de hoje. As **174 cartas antigas do Mundo** foram
+  semeadas na foto ANTES de rodar o comando, deixando de fora só o Bolt. Por isso
+  saiu **1 linha** na home, e não 175. Está escrito no `CLAUDE.md` pra próxima vez.
+- A home já desenha o 3º baralho: 🇧🇷 Brasil · 🌍 Europa · 🌎 Resto do Mundo.
+
+✅ **Publicado na main em 12/09** com o "pode fazer" do Diego. Reverter = os dois
+commits (`6bb0810` cartas, `fe75742` gerador), e a foto volta junto, então nada é
+anunciado duas vezes.
+
 ## 12/09/2026 (2ª leva) — 🌐 Tradução do futebol: ETAPA 4 (carreira) FECHADA + ETAPA 5 (online/lobby) FECHADA
 
 - **Etapa 4 terminada** em `pyramidseason.tsx` + `estadio.tsx`: Estádio/Estrutura (patrocínio por aposta, régua, obras, lotação, SAF, empréstimos), Finanças (extrato/transferências), contrato de TV e cota extra, manchetes de memória, Ranking Geral/Hall de Troféus/campeões/chaveamento da Copa, prêmios, pênaltis (disputa e a INTERFACE do pênalti decisivo — mira/força/narração/botões), jogos da Copa, convite de conta, brinde de sócio, Escritório/Agência (renda, convocação, destraves — `empMeta()` dá rótulo/exigência em EN sem mexer nos números de `EMP_META`), Banco Legends, carta do técnico (categoria/estilo), Sondar inteiro (janelinha do clube, olheiro, técnicos sem clube), Ranking Global (convite + tabela), Sala da Presidência, compra do 2º clube e seletor multiclubes.
