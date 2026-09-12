@@ -6,6 +6,167 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
+    "nome": "Mazaropi",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Acácio",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Wladimir",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Paulo Isidoro",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Válber",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Iarley",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Baltazar",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Siniša Mihajlović",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rafael van der Vaart",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Tim Cahill",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Chicharito",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Victor Osimhen",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Riyad Mahrez",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Luca Toni",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Teddy Sheringham",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Ian Rush",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rabah Madjer",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rashidi Yekini",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Mark Viduka",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Paulo Wanchope",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Ali Daei",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jared Borgetti",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Wu Lei",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-12"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Usain Bolt",
     "baralho": "MUNDO",
     "nivel": "foi profissional",
@@ -270,86 +431,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
     "nome": "Daniel Passarella",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Emerson Leão",
-    "baralho": "BR",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Peter Schmeichel",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Dida",
-    "baralho": "EU",
-    "de": "bom jogador",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Alessandro Nesta",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Thiago Silva",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Virgil van Dijk",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Dani Alves",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Javier Zanetti",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Marcelo Vieira",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-08-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Lilian Thuram",
     "baralho": "EU",
     "de": "craque",
     "para": "lenda",

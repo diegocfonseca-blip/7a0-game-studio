@@ -49,6 +49,10 @@ const FLAG: Record<string, string> = {
   // da rodada do grupo). As 4 últimas entraram na Copa de 24 (17/08).
   'Japão': '🇯🇵', 'Camarões': '🇨🇲', 'Senegal': '🇸🇳',
   'Croácia': '🇭🇷', 'Dinamarca': '🇩🇰', 'Peru': '🇵🇪', 'Equador': '🇪🇨',
+  // 12/09: países que chegaram junto com a leva L29 de cartas. Nenhum dos dois
+  // tem carta suficiente pra virar seleção na Copa (o `rankingSelecoes` corta
+  // muito antes), mas bandeira cadastrada custa zero e evita a branca genérica.
+  'Austrália': '🇦🇺', 'Irã': '🇮🇷',
 }
 // 🏳️ bandeira SEMPRE com rede: seleção sem bandeira cadastrada mostra a branca,
 // nunca "undefined". Todo lugar que desenha bandeira passa por aqui.

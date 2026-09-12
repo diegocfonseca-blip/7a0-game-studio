@@ -229,6 +229,17 @@ export const PAIS: Record<string, string> = {
   'Edinson Cavani': 'Uruguai', 'Gonzalo Higuaín': 'Argentina',
   'Radamel Falcao': 'Colômbia', 'Sadio Mané': 'Senegal',
   'Roberto Firmino': 'Brasil', 'Christian Vieri': 'Itália',
+  // L29 (12/09): a leva que o Diego escolheu. Os 7 primeiros são brasileiros;
+  // o resto é estrangeiro com auge fora — nacionalidade é coisa SEPARADA do
+  // baralho (regra do Lingard, 28/08).
+  'Mazaropi': 'Brasil', 'Acácio': 'Brasil', 'Wladimir': 'Brasil', 'Paulo Isidoro': 'Brasil',
+  'Válber': 'Brasil', 'Iarley': 'Brasil', 'Baltazar': 'Brasil',
+  'Siniša Mihajlović': 'Sérvia', 'Rafael van der Vaart': 'Holanda', 'Tim Cahill': 'Austrália',
+  'Chicharito': 'México', 'Victor Osimhen': 'Nigéria', 'Riyad Mahrez': 'Argélia',
+  'Luca Toni': 'Itália', 'Teddy Sheringham': 'Inglaterra', 'Ian Rush': 'País de Gales',
+  'Rabah Madjer': 'Argélia', 'Rashidi Yekini': 'Nigéria', 'Mark Viduka': 'Austrália',
+  'Paulo Wanchope': 'Costa Rica', 'Ali Daei': 'Irã', 'Jared Borgetti': 'México',
+  'Wu Lei': 'China',
   // L28 (12/09): Formiga é brasileira; Bolt é jamaicano (carta do Resto do Mundo).
   'Formiga': 'Brasil', 'Usain Bolt': 'Jamaica',
   'Mário Jardel': 'Brasil', 'Miroslav Klose': 'Alemanha',

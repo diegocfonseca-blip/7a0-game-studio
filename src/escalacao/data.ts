@@ -1381,7 +1381,28 @@ const L28_BR_MEI: C[] = [
   // 💎 promessa: fez o auge daqui ainda como joia e virou estrela lá fora.
   { name: 'Roberto Firmino', club: 'Figueirense', year: 2010, fame: 3, lo: 73, hi: 85, promessa: true, bio: 'Revelado no Figueirense, saiu do Brasil aos 19 anos direto pra Alemanha e virou o 9 falso do Liverpool campeão da Europa.' },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA] }
+
+// ─── L29 (12/09, leva escolhida pelo Diego) ──────────────────────────────────
+// Clube = onde foi o AUGE, ano = a temporada desse auge, e a bio só afirma o que
+// se sustenta (lição do Valdo, 28/08). Quem teve auge FORA do Brasil está nos
+// blocos L29 do baralho da Europa e do Resto do Mundo, mais abaixo — o baralho
+// segue o lugar do auge, não a nacionalidade (essa mora no `paises.ts`).
+const L29_BR_GOL: C[] = [
+  { name: 'Mazaropi', club: 'Vasco', year: 1989, fame: 3, lo: 74, hi: 84, bio: 'Goleiro do Vasco nos anos 80, dono da meta cruzmaltina por quase uma década.' },
+  { name: 'Acácio', club: 'Vasco', year: 1988, fame: 3, lo: 73, hi: 83, bio: 'Um dos goleiros com mais jogos na história do Vasco — passou os anos 80 inteiros debaixo das traves.' },
+]
+const L29_BR_LAT: C[] = [
+  { name: 'Wladimir', club: 'Corinthians', year: 1983, fame: 3, lo: 76, hi: 85, folk: true, bio: 'Lateral-esquerdo com mais jogos na história do Corinthians e uma das vozes da Democracia Corintiana.' },
+]
+const L29_BR_MEI: C[] = [
+  { name: 'Paulo Isidoro', club: 'Grêmio', year: 1980, fame: 3, lo: 77, hi: 86, bio: 'Ponta de drible curto e ídolo do Grêmio no fim dos anos 70, convocado para a Copa de 1982.' },
+  { name: 'Válber', club: 'Vasco', year: 1997, fame: 3, lo: 74, hi: 84, bio: 'Meia de marcação e chegada no Vasco do fim dos anos 90.' },
+  { name: 'Iarley', club: 'Internacional', year: 2006, fame: 3, lo: 74, hi: 85, folk: true, bio: 'Meia canhoto do Internacional campeão da Libertadores e do Mundial de 2006.' },
+]
+const L29_BR_ATA: C[] = [
+  { name: 'Baltazar', club: 'Corinthians', year: 1990, fame: 3, lo: 76, hi: 86, folk: true, bio: 'O Cabeça de Área: centroavante de jogo aéreo temível, ídolo do Corinthians na virada dos anos 80 para os 90.' },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -2042,7 +2063,32 @@ const L27_EU_MEI: C[] = [
   { name: 'Felipe Anderson', club: 'Lazio', year: 2018, fame: 4, lo: 80, hi: 88, bio: 'Ponta canhoto de drible curto e arrancada — o craque da Lazio antes de rodar a Europa.' },
   { name: 'Anderson Talisca', club: 'Benfica', year: 2016, fame: 3, lo: 76, hi: 86, bio: 'Meia-atacante baiano que estourou no Benfica — corpo de zagueiro, chute de fora e faro de área.' },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA] }
+
+// ─── L29 · auges na EUROPA (12/09) ───────────────────────────────────────────
+// ⚠️ Seis destes eu tinha chamado de "Resto do Mundo" na conversa com o Diego
+// (Madjer, Yekini, Cahill, Viduka, Wanchope e o Chicharito). Estava errado: o
+// baralho segue ONDE foi o auge, e o auge dos seis foi em clube europeu. A
+// nacionalidade deles fica no `paises.ts`, que é coisa separada.
+const L29_EU_ZAG: C[] = [
+  { name: 'Siniša Mihajlović', club: 'Lazio', year: 2000, fame: 3, lo: 78, hi: 87, bio: 'Sérvio dono da bola parada: chegou a fazer três gols de falta num jogo só, e foi campeão italiano pela Lazio.' },
+]
+const L29_EU_MEI: C[] = [
+  { name: 'Rafael van der Vaart', club: 'Tottenham', year: 2011, fame: 3, lo: 79, hi: 87, bio: 'Meia holandês de passe e chute de fora — brilhou no Ajax, passou pelo Real Madrid e virou ídolo no Tottenham.' },
+  { name: 'Tim Cahill', club: 'Everton', year: 2010, fame: 3, lo: 76, hi: 85, folk: true, bio: 'Australiano que cabeceava melhor que centroavante e comemorava dando socos na bandeirinha de escanteio.' },
+]
+const L29_EU_ATA: C[] = [
+  { name: 'Chicharito', club: 'Manchester United', year: 2011, fame: 3, lo: 78, hi: 88, bio: 'Centroavante mexicano do Manchester United, especialista em aparecer sozinho na hora certa dentro da área.' },
+  { name: 'Victor Osimhen', club: 'Napoli', year: 2023, fame: 4, lo: 84, hi: 90, bio: 'Nigeriano de máscara: artilheiro do Napoli campeão italiano depois de 33 anos de fila.' },
+  { name: 'Riyad Mahrez', club: 'Leicester City', year: 2016, fame: 4, lo: 83, hi: 89, bio: 'Argelino canhoto do Leicester campeão inglês de 2016, o título mais improvável da história da Premier League.' },
+  { name: 'Luca Toni', club: 'Fiorentina', year: 2006, fame: 3, lo: 79, hi: 88, bio: 'Italiano campeão do mundo em 2006 — na mesma temporada fez 31 gols no Campeonato Italiano e levou a Chuteira de Ouro.' },
+  { name: 'Teddy Sheringham', club: 'Manchester United', year: 1999, fame: 3, lo: 78, hi: 87, bio: 'Inglês do Manchester United da tríplice coroa de 1999: entrou no fim da final da Champions e empatou o jogo.' },
+  { name: 'Ian Rush', club: 'Liverpool', year: 1984, fame: 4, lo: 83, hi: 90, bio: 'Galês, o maior artilheiro da história do Liverpool.' },
+  { name: 'Rabah Madjer', club: 'Porto', year: 1987, fame: 3, lo: 78, hi: 87, folk: true, bio: 'O calcanhar mais famoso do futebol: o gol dele deu ao Porto o título europeu de 1987.' },
+  { name: 'Rashidi Yekini', club: 'Vitória de Setúbal', year: 1994, fame: 3, lo: 77, hi: 86, folk: true, bio: 'O grito na rede: fez o primeiro gol da Nigéria em Copas do Mundo, em 1994, e agarrou a rede chorando.' },
+  { name: 'Mark Viduka', club: 'Leeds United', year: 2001, fame: 3, lo: 78, hi: 87, bio: 'Centroavante australiano do Leeds — numa tarde de 2000 fez os quatro gols da virada sobre o Liverpool.' },
+  { name: 'Paulo Wanchope', club: 'Derby County', year: 1998, fame: 3, lo: 74, hi: 86, folk: true, bio: 'Costa-riquenho desengonçado e imprevisível: marcou logo na estreia no Old Trafford e nunca deixou zagueiro entender o que ia fazer.' },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -2286,7 +2332,14 @@ const L24_WORLD_ATA: C[] = [
 const L28_WORLD_ATA: C[] = [
   { name: 'Usain Bolt', club: 'Central Coast Mariners', year: 2018, fame: 1, lo: 40, hi: 82, folk: true, bio: 'O homem mais rápido do mundo tentou a sorte no futebol: treinou num clube australiano e fez dois gols num amistoso de pré-temporada, mas nunca chegou a assinar contrato profissional.' },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA] }
+
+// ─── L29 · auges FORA da Europa e do Brasil (12/09) ──────────────────────────
+const L29_WORLD_ATA: C[] = [
+  { name: 'Ali Daei', club: 'Persepolis', year: 2006, fame: 3, lo: 78, hi: 87, bio: 'Iraniano que foi o maior artilheiro de seleções da história por quase 20 anos, até Cristiano Ronaldo passar.' },
+  { name: 'Jared Borgetti', club: 'Santos Laguna', year: 2003, fame: 3, lo: 77, hi: 86, bio: 'Mexicano de cabeceio raro, artilheiro histórico da seleção do México e autor de um gol antológico contra a Itália na Copa de 2002.' },
+  { name: 'Wu Lei', club: 'Shanghai SIPG', year: 2018, fame: 3, lo: 74, hi: 84, bio: 'O maior nome do futebol chinês moderno: 27 gols na temporada do título do Shanghai, recorde para um jogador chinês.' },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
