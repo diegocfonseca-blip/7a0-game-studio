@@ -8131,7 +8131,7 @@ export function ReserveListScreen() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
                         <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, background: INK, color: '#fff', borderRadius: 5, padding: '1px 6px' }}>{c.pos}</span>
                         <span style={{ fontWeight: 900, fontSize: empilha ? 12.5 : 14, ...OSWALD, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                        <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647', flex: 'none' }}>{empilha ? '' : 'valor '}{oficial} 🪙</span>
+                        <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647', flex: 'none' }}>{empilha ? '' : tr('valor ', 'value ')}{oficial} 🪙</span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: empilha ? 'column' : 'row', gap: 6, flexWrap: 'wrap' }}>
                         {opcoes.map(anos => {
@@ -8139,11 +8139,11 @@ export function ReserveListScreen() {
                           const [bg, fg] = COR_PRAZO[anos] ?? ['#F4ECD6', INK]
                           return (
                             <button key={anos} onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos })} disabled={solto} style={btn(bg, fg, solto)}>
-                              Renovar {anos} ano{anos > 1 ? 's' : ''}{empilha ? ' · ' : <br />}{custo} 🪙{anos === 10 ? ' (-10%)' : ''}{saldo < custo ? ' 💳' : ''}
+                              {tr('Renovar', 'Renew')} {anos} {getLang() === 'en' ? (anos > 1 ? 'years' : 'year') : `ano${anos > 1 ? 's' : ''}`}{empilha ? ' · ' : <br />}{custo} 🪙{anos === 10 ? ' (-10%)' : ''}{saldo < custo ? ' 💳' : ''}
                             </button>
                           )
                         })}
-                        <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? '🌱 vai embora\u2028(desfazer)' : '😢 Deixar ir'}{empilha ? ' · ' : <br />}{solto ? 'cria assume se faltar' : 'vai pro leilão'}</button>
+                        <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? tr('🌱 vai embora\u2028(desfazer)', '🌱 leaving\u2028(undo)') : tr('😢 Deixar ir', '😢 Let go')}{empilha ? ' · ' : <br />}{solto ? tr('cria assume se faltar', 'academy kid fills in if needed') : tr('vai pro leilão', 'goes to the auction')}</button>
                       </div>
                     </div>
                   )
@@ -8158,23 +8158,30 @@ export function ReserveListScreen() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       {clubHead(mgr.teamName, false)}
                       {expirados.length === 0
-                        ? <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>Nenhum contrato vencido aqui ✓</p>
+                        ? <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>{tr('Nenhum contrato vencido aqui ✓', 'No expired contracts here ✓')}</p>
                         : expirados.map(c => decisao(c, mgr, coins, true))}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       {clubHead(dormM.teamName, true)}
                       {expDorm.map(c => decisao(c, dormM, saldoDorm, true))}
-                      <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>💰 Renovação sai da caixa <b>do {dormM.teamName}</b> ({saldoDorm} 🪙) — não da sua.</p>
+                      <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>💰 Renewals come out of <b>{dormM.teamName}\'s</b> till ({saldoDorm} 🪙) — not yours.</> : <>💰 Renovação sai da caixa <b>do {dormM.teamName}</b> ({saldoDorm} 🪙) — não da sua.</>}</p>
                     </div>
                   </div>
                 )
               })()}
               {(expirados.length > 0 || expDorm.length > 0) && (
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
+                  {getLang() === 'en' ? <>
+                  {state.reserveListMesmo
+                    ? <><b>😢 Let go</b>: since you kept the <b>same team</b> (no auction), he leaves <b>with no sale</b> — nobody buys — and, if the XI is short, a free <b>🌱 Academy Kid</b> fills in (weak, no contract, gone when a signing arrives).</>
+                    : <><b>😢 Let go</b>: he goes to the auction (you receive the sale <b>up to his value</b> — anything above goes to the <b>greedy family</b> 😏) and, if the XI is short, a free <b>🌱 Academy Kid</b> fills in (weak, no contract, gone when a signing arrives).</>}
+                  {' '}💳 No cash? You can STILL renew — it goes on <b>overdraft</b> (negative till, transfer ban until you\'re out of the red). ⚠️ <b>Moved on without choosing?</b> Renews <b>AUTOMATICALLY for 5 years (half)</b>, cash or not — a player only leaves if YOU say so.{dormM ? <> 😤 <b>Applies to BOTH clubs:</b> a player you release gets <b>hurt</b> — won\'t play for ANY of your clubs until another club signs him.</> : null}
+                  </> : <>
                   {state.reserveListMesmo
                     ? <><b>😢 Deixar ir</b>: como você ficou no <b>mesmo time</b> (sem leilão), ele sai <b>sem venda</b> — ninguém compra — e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>
                     : <><b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>}
                   {' '}💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.{dormM ? <> 😤 <b>Vale pros DOIS clubes:</b> jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
+                  </>}
                 </p>
               )}
             </div>
@@ -8183,63 +8190,65 @@ export function ReserveListScreen() {
         {/* 🪜 ESCADA DE CATEGORIAS (carreira nova, teste): a régua da SUA divisão */}
         {state.escadaOn && escLib && !state.escadaLivre && (() => {
           const d = (state.careerPlacements?.[`m${youId}`] ?? 'V') as 'A' | 'B' | 'C' | 'D' | 'V'
-          const CATS: Record<string, string> = { V: '🪵 Foi Profissional + 🎯 Bom Jogador', D: '🎯 Bom Jogador + 💎 Promessa', C: '💎 Promessa + ⭐ Craque', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
+          const CATS: Record<string, string> = getLang() === 'en'
+            ? { V: '🪵 Was a Pro + 🎯 Good Player', D: '🎯 Good Player + 💎 Prospect', C: '💎 Prospect + ⭐ Star', B: '💎 Prospect + ⭐ Star', A: '⭐ Star + 👑 Legend' }
+            : { V: '🪵 Foi Profissional + 🎯 Bom Jogador', D: '🎯 Bom Jogador + 💎 Promessa', C: '💎 Promessa + ⭐ Craque', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
           return (
             <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>🪜 Mercado da {d === 'V' ? '🌱 Várzea' : `Série ${d}`}</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>Nesta divisão o leilão só negocia <b>{CATS[d]}</b>. Subiu de série? O mercado sobe junto — categoria melhor entra no pregão.</p>
-              {!state.escadaSubiu && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>🌱 Na Várzea o banco enche com essas categorias — <b>suba pra Série D</b> (vire profissional) e jogador melhor entra no pregão.</p>}
-              {d === 'A' && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>👑 Elite! Complete <b>2 temporadas na Série A</b> ({state.escadaTempA ?? 0}/2) e o mercado <b>libera TODAS as categorias</b> de vez.</p>}
+              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🪜 Mercado da', '🪜 Market of')} {d === 'V' ? '🌱 Várzea' : `Série ${d}`}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>In this division the auction only trades <b>{CATS[d]}</b>. Promoted? The market goes up with you — better categories enter the auction.</> : <>Nesta divisão o leilão só negocia <b>{CATS[d]}</b>. Subiu de série? O mercado sobe junto — categoria melhor entra no pregão.</>}</p>
+              {!state.escadaSubiu && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>{getLang() === 'en' ? <>🌱 In Várzea the bench fills with these categories — <b>get promoted to Série D</b> (turn professional) and better players enter the auction.</> : <>🌱 Na Várzea o banco enche com essas categorias — <b>suba pra Série D</b> (vire profissional) e jogador melhor entra no pregão.</>}</p>}
+              {d === 'A' && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '5px 0 0', lineHeight: 1.4 }}>{getLang() === 'en' ? <>👑 Elite! Complete <b>2 seasons in Série A</b> ({state.escadaTempA ?? 0}/2) and the market <b>unlocks ALL categories</b> for good.</> : <>👑 Elite! Complete <b>2 temporadas na Série A</b> ({state.escadaTempA ?? 0}/2) e o mercado <b>libera TODAS as categorias</b> de vez.</>}</p>}
             </div>
           )
         })()}
         {/* aviso de desbloqueio da temporada — só faz sentido quando existe leilão depois */}
         {!state.reserveListMesmo && state.seasonNo === 2 && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
-            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: '#2563EB' }}>🔓 Desbloqueado: Reservas!</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você compra reservas pra encher o banco. A <b>venda/negociação de jogadores libera na 3ª temporada</b>.</p>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: '#2563EB' }}>{tr('🔓 Desbloqueado: Reservas!', '🔓 Unlocked: Reserves!')}</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>{getLang() === 'en' ? <>Now you buy reserves to fill the bench. <b>Selling/trading players unlocks in season 3</b>.</> : <>Agora você compra reservas pra encher o banco. A <b>venda/negociação de jogadores libera na 3ª temporada</b>.</>}</p>
           </div>
         )}
         {!state.reserveListMesmo && state.seasonNo === 3 && (
           <div style={{ ...box('#EAF3FF'), padding: 11, marginBottom: 10 }}>
-            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: GREEN }}>🔓 Desbloqueado: Leilão de transferências!</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Agora você pode <b>listar jogadores pra leilão</b> (e disputá-los de volta).</p>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px', color: GREEN }}>{tr('🔓 Desbloqueado: Leilão de transferências!', '🔓 Unlocked: Transfer auction!')}</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>{getLang() === 'en' ? <>Now you can <b>list players for auction</b> (and bid them back).</> : <>Agora você pode <b>listar jogadores pra leilão</b> (e disputá-los de volta).</>}</p>
           </div>
         )}
         {state.escadaOn && state.escadaSubiu && (
-          <UnlockBanner k="profissional" tag="🪜 subiu de divisão" title="Virou profissional!" ctaBg={GREEN} ctaColor="#fff">
-            Saiu da Várzea! Agora o contrato dos seus jogadores passa a valer de verdade — pode vencer, você renova ou deixa ir.
+          <UnlockBanner k="profissional" tag={tr('🪜 subiu de divisão', '🪜 promoted')} title={tr('Virou profissional!', 'You turned professional!')} ctaBg={GREEN} ctaColor="#fff">
+            {tr('Saiu da Várzea! Agora o contrato dos seus jogadores passa a valer de verdade — pode vencer, você renova ou deixa ir.', 'Out of Várzea! Your players\' contracts now count for real — they can expire, and you renew or let go.')}
           </UnlockBanner>
         )}
         {/* 🔒 "mesmo time": sem mercado, sem leilão — só confere o elenco e decide
             contrato (acima). Nada de listar/vender aqui. */}
         {state.reserveListMesmo ? (
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>Você ficou no <b>mesmo time</b> — sem leilão desta vez. Confira seu elenco, decida os contratos vencidos aí em cima e toque em <b>Continuar</b>.</p>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>{getLang() === 'en' ? <>You kept the <b>same team</b> — no auction this time. Check your squad, decide the expired contracts up there and tap <b>Continue</b>.</> : <>Você ficou no <b>mesmo time</b> — sem leilão desta vez. Confira seu elenco, decida os contratos vencidos aí em cima e toque em <b>Continuar</b>.</>}</p>
         ) : marketUnlocked
-          ? <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>Toque nos jogadores que você quer <b>pôr no leilão</b>. Você pode disputá-los de volta. Nunca dá pra ficar com menos de 11 (o XI completo).</p>
+          ? <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px' }}>{getLang() === 'en' ? <>Tap the players you want to <b>put up for auction</b>. You can bid them back. You can never go below 11 (a full XI).</> : <>Toque nos jogadores que você quer <b>pôr no leilão</b>. Você pode disputá-los de volta. Nunca dá pra ficar com menos de 11 (o XI completo).</>}</p>
           : <div style={{ ...box('#FDECEA'), padding: 11, marginBottom: 12 }}>
-              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Vender ainda não liberou</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>Nesta temporada você só <b>compra</b> reservas (a venda libera na 3ª). E, de todo jeito, pra vender você precisa de <b>reservas no banco</b> — nunca dá pra ficar com menos de 11. Como você tem 11, não teria quem listar mesmo. É só aguardar o host começar o leilão. 👇</p>
+              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>{tr('🔒 Vender ainda não liberou', '🔒 Selling is not unlocked yet')}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>{getLang() === 'en' ? <>This season you only <b>buy</b> reserves (selling unlocks in the 3rd). And anyway, to sell you need <b>reserves on the bench</b> — you can never go below 11. As you have 11, there would be nobody to list. Just wait for the host to start the auction. 👇</> : <>Nesta temporada você só <b>compra</b> reservas (a venda libera na 3ª). E, de todo jeito, pra vender você precisa de <b>reservas no banco</b> — nunca dá pra ficar com menos de 11. Como você tem 11, não teria quem listar mesmo. É só aguardar o host começar o leilão. 👇</>}</p>
             </div>}
         {!state.reserveListMesmo && marketUnlocked && (
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: nListed ? '#C2452F' : 'rgba(0,0,0,0.06)', color: nListed ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 10px' }}>{nListed ? '🔴' : '📋'} {nListed} à venda</span>
+            <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: nListed ? '#C2452F' : 'rgba(0,0,0,0.06)', color: nListed ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 10px' }}>{nListed ? '🔴' : '📋'} {nListed} {tr('à venda', 'for sale')}</span>
           </div>
         )}
         {/* ⚠️ AVISO GRITANTE: listar = pôr à venda. Nunca some jogador calado. */}
         {!state.reserveListMesmo && marketUnlocked && nListed > 0 && (
           <div style={{ ...box('#C2452F'), padding: '10px 12px', marginBottom: 10, color: '#fff' }}>
-            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>⚠️ {nListed} {nListed > 1 ? 'jogadores à VENDA' : 'jogador à VENDA'}</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>Se outro técnico cobrir o lance e você <b>não recomprar</b> no leilão, esse jogador <b>SAI do seu time de vez</b> (vira moedas). Só liste quem você topa <b>perder</b> — toque de novo pra tirar da lista.</p>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>⚠️ {nListed} {getLang() === 'en' ? (nListed > 1 ? 'players for SALE' : 'player for SALE') : nListed > 1 ? 'jogadores à VENDA' : 'jogador à VENDA'}</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>{getLang() === 'en' ? <>If another manager outbids and you <b>don\'t buy back</b> at the auction, that player <b>LEAVES your team for good</b> (becomes coins). Only list who you\'re willing to <b>lose</b> — tap again to unlist.</> : <>Se outro técnico cobrir o lance e você <b>não recomprar</b> no leilão, esse jogador <b>SAI do seu time de vez</b> (vira moedas). Só liste quem você topa <b>perder</b> — toque de novo pra tirar da lista.</>}</p>
           </div>
         )}
         {/* 🔒 explica por que alguns jogadores aparecem travados (cinza): vendê-los
             deixaria o XI incompleto pra formação atual. Só aparece quando há algum. */}
         {!state.reserveListMesmo && marketUnlocked && mgr.squad.some(c => !c.fake && !c.emprestado && !listed.has(c.id) && !canList(c)) && (
-          <EnsinoPilula k="travados" pill="🔒 tem jogador travado (por quê?)" seasonNo={state.seasonNo}>
+          <EnsinoPilula k="travados" pill={tr('🔒 tem jogador travado (por quê?)', '🔒 some players are locked (why?)')} seasonNo={state.seasonNo}>
             <div style={{ ...box('#FDECEA'), padding: '9px 11px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>🔒 Não dá pra vender esses</p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>Seu time ficaria <b>sem jogador suficiente na posição</b>. Pra liberar: traga um substituto, ou <b>troque de formação</b> antes (aba Elenco).</p>
+              <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 2px', color: '#c0392b' }}>{tr('🔒 Não dá pra vender esses', '🔒 These can\'t be sold')}</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Your team would be <b>short in that position</b>. To unlock: bring in a replacement, or <b>change formation</b> first (Squad tab).</> : <>Seu time ficaria <b>sem jogador suficiente na posição</b>. Pra liberar: traga um substituto, ou <b>troque de formação</b> antes (aba Elenco).</>}</p>
             </div>
           </EnsinoPilula>
         )}
@@ -8249,13 +8258,13 @@ export function ReserveListScreen() {
           seasonNo={state.seasonNo} contratosOn={!!state.contratosOn}
           list={state.reserveListMesmo ? undefined : { listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
         {!state.reserveListMesmo && marketUnlocked && (
-          <EnsinoPilula k="listar" pill="ℹ️ como funciona a venda" seasonNo={state.seasonNo}>
+          <EnsinoPilula k="listar" pill={tr('ℹ️ como funciona a venda', 'ℹ️ how selling works')} seasonNo={state.seasonNo}>
             <div style={{ ...box('#FFF3CF'), padding: '11px 13px', margin: '10px 0' }}>
-              <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 4px', color: INK }}>💡 O que acontece ao listar</p>
+              <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 4px', color: INK }}>{tr('💡 O que acontece ao listar', '💡 What happens when you list')}</p>
               <p style={{ fontSize: 12.5, fontWeight: 700, color: '#4a4740', margin: 0, lineHeight: 1.4 }}>
-                Listar = pôr <b>à venda</b>. Vai a leilão e <b>você pode recomprar</b>. Se <b>não recomprar</b> e outro técnico levar, o jogador <b>SAI do seu time</b> — você fica só com as <b>moedas</b>. Se ninguém comprar, ele vai pro <b>monte valendo metade</b>.
+                {getLang() === 'en' ? <>Listing = putting <b>up for sale</b>. He goes to the auction and <b>you can buy him back</b>. If you <b>don\'t</b> and another manager takes him, the player <b>LEAVES your team</b> — you keep only the <b>coins</b>. If nobody buys, he goes to the <b>pile at half value</b>.</> : <>Listar = pôr <b>à venda</b>. Vai a leilão e <b>você pode recomprar</b>. Se <b>não recomprar</b> e outro técnico levar, o jogador <b>SAI do seu time</b> — você fica só com as <b>moedas</b>. Se ninguém comprar, ele vai pro <b>monte valendo metade</b>.</>}
               </p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '5px 0 0' }}>Obs.: a metade arredonda pra baixo — então só quem vale <b>1</b> (metade = 0,5) cai pra <b>0</b>.</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '5px 0 0' }}>{getLang() === 'en' ? <>Note: half rounds down — so only a player worth <b>1</b> (half = 0.5) drops to <b>0</b>.</> : <>Obs.: a metade arredonda pra baixo — então só quem vale <b>1</b> (metade = 0,5) cai pra <b>0</b>.</>}</p>
             </div>
           </EnsinoPilula>
         )}
@@ -8267,11 +8276,11 @@ export function ReserveListScreen() {
         {state.isHost ? (
           <button onClick={() => dispatch({ type: state.reserveListMesmo ? 'CONFIRM_MESMO_TIME' : 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-            {state.reserveListMesmo ? '▶️ Continuar (mesmo time)' : `▶️ Começar o leilão${state.onlineMode === 'online' ? ` (${remaining}s)` : ''}`}
+            {state.reserveListMesmo ? tr('▶️ Continuar (mesmo time)', '▶️ Continue (same team)') : `${tr('▶️ Começar o leilão', '▶️ Start the auction')}${state.onlineMode === 'online' ? ` (${remaining}s)` : ''}`}
           </button>
         ) : (
           <div style={{ ...box('#EAF3FF'), padding: 11, textAlign: 'center' }}>
-            <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>{state.reserveListMesmo ? '⏱️ Decida seus contratos aí em cima. O host continua quando estiver pronto.' : `⏱️ Liste quem quiser. O host começa o leilão em ${remaining}s.`}</p>
+            <p style={{ fontWeight: 800, fontSize: 12, color: '#3a5a8a', margin: 0 }}>{state.reserveListMesmo ? tr('⏱️ Decida seus contratos aí em cima. O host continua quando estiver pronto.', '⏱️ Decide your contracts up there. The host continues when ready.') : tr(`⏱️ Liste quem quiser. O host começa o leilão em ${remaining}s.`, `⏱️ List whoever you want. The host starts the auction in ${remaining}s.`)}</p>
           </div>
         )}
       </div>
@@ -8296,7 +8305,7 @@ export function ReserveListScreen() {
             {!viuSondar && (
               <button onClick={abreSondar} aria-label="Sondar técnico e jogador"
                 style={{ display: 'block', width: '100%', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, border: 'none', borderTop: `3px solid ${INK}`, borderBottom: `3px solid ${INK}`, padding: '6px 10px', cursor: 'pointer', color: INK, ...OSWALD, fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.3px' }}>
-                👇 tem técnico e jogador pra sondar aqui embaixo
+                {tr('👇 tem técnico e jogador pra sondar aqui embaixo', '👇 coaches and players to scout down here')}
               </button>
             )}
             <div style={{ background: '#FAF7EE', borderTop: viuSondar ? `3px solid ${INK}` : 'none', display: 'flex', gap: 7, padding: '8px 9px calc(12px + env(safe-area-inset-bottom))' }}>
