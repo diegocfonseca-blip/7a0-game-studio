@@ -5359,6 +5359,17 @@ const DESF: Record<DesfechoTipo, { titulo: string; grad: string; escuro: string;
   queda: { titulo: 'CAIU', grad: 'linear-gradient(160deg,#C2452F,#5e1c12)', escuro: '#5e1c12', cor: '#FFD9D2', sub: p => `Terminou em ${p}º lugar. Ano que vem a gente volta.` },
   ficou: { titulo: 'TEMPORADA FECHADA', grad: 'linear-gradient(160deg,#3a352c,#16130e)', escuro: '#16130e', cor: GOLD, sub: p => `Terminou em ${p}º lugar e segue na divisão` },
 }
+// 🌐 mesma tabela, no idioma do site (lida na hora de abrir a tela)
+function desfI18n(tipo: DesfechoTipo): (typeof DESF)[DesfechoTipo] {
+  if (getLang() !== 'en') return DESF[tipo]
+  const EN: Record<DesfechoTipo, { titulo: string; sub: (p: number) => string }> = {
+    campeao: { titulo: 'CHAMPION!', sub: () => 'Lifted the trophy — and went up a division too' },
+    acesso: { titulo: 'PROMOTED!', sub: p => `Finished ${ordinal(p)} and went up a division` },
+    queda: { titulo: 'RELEGATED', sub: p => `Finished ${ordinal(p)}. Next year we come back.` },
+    ficou: { titulo: 'SEASON CLOSED', sub: p => `Finished ${ordinal(p)} and stays in the division` },
+  }
+  return { ...DESF[tipo], ...EN[tipo] }
+}
 function LinhaLevou({ ic, txt, val, cor }: { ic: string; txt: string; val: string; cor: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 13px', borderTop: '1.5px solid rgba(255,255,255,.14)' }}>
@@ -5372,7 +5383,7 @@ function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, 
   tipo: DesfechoTipo; time: string; de: string; para: string; pos: number; temporada: number
   levou: { ic: string; txt: string; val: string; bom: boolean }[]; torcidaDe: number; torcidaPara: number; onFechar: () => void
 }) {
-  const d = DESF[tipo]
+  const d = desfI18n(tipo)
   const mudou = de !== para
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
@@ -5381,7 +5392,7 @@ function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, 
           {/* listras do manto, mesma linguagem do jogo — 0 KB */}
           <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(110deg,rgba(255,255,255,.05) 0 8px,transparent 8px 30px)' }} />
           <div style={{ position: 'relative' }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.12em', color: 'rgba(255,255,255,.6)', margin: 0 }}>TEMPORADA {temporada} ENCERRADA</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.12em', color: 'rgba(255,255,255,.6)', margin: 0 }}>{tr(`TEMPORADA ${temporada} ENCERRADA`, `SEASON ${temporada} OVER`)}</p>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: tipo === 'ficou' ? 27 : 42, lineHeight: 1, margin: '5px 0 0', color: d.cor, textShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{d.titulo}</p>
             <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '6px 0 0' }}>{d.sub(pos)}</p>
             {mudou ? (
@@ -5401,19 +5412,19 @@ function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, 
         </div>
         {(levou.length > 0 || torcidaDe !== torcidaPara) && (
           <div style={{ background: d.escuro, padding: '2px 0 8px' }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: '.1em', color: 'rgba(255,255,255,.45)', margin: 0, padding: '8px 13px 2px' }}>O QUE VOCÊ LEVOU</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: '.1em', color: 'rgba(255,255,255,.45)', margin: 0, padding: '8px 13px 2px' }}>{tr('O QUE VOCÊ LEVOU', 'WHAT YOU TOOK HOME')}</p>
             {levou.map(l => <LinhaLevou key={l.txt} ic={l.ic} txt={l.txt} val={l.val} cor={l.bom ? '#7BE59B' : '#FFB1A2'} />)}
             {torcidaDe !== torcidaPara && (
-              <LinhaLevou ic="🎪" txt="Torcida" val={`${torcidaDe}% → ${torcidaPara}%`} cor={torcidaPara >= torcidaDe ? '#7BE59B' : '#FFB1A2'} />
+              <LinhaLevou ic="🎪" txt={tr('Torcida', 'Fans')} val={`${torcidaDe}% → ${torcidaPara}%`} cor={torcidaPara >= torcidaDe ? '#7BE59B' : '#FFB1A2'} />
             )}
           </div>
         )}
         <div style={{ padding: '11px 12px 13px', borderTop: `3px solid ${INK}` }}>
           <button onClick={onFechar}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, background: GREEN, color: '#fff', padding: 12, ...OSWALD, fontWeight: 900, fontSize: 15, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>
-            ▶️ Continuar
+            {tr('▶️ Continuar', '▶️ Continue')}
           </button>
-          <p style={{ textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.4)', margin: '7px 0 0' }}>Um toque e você cai no jornal e na decisão da próxima temporada.</p>
+          <p style={{ textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.4)', margin: '7px 0 0' }}>{tr('Um toque e você cai no jornal e na decisão da próxima temporada.', 'One tap and you land on the newspaper and next season\'s decision.')}</p>
         </div>
       </div>
     </div>
@@ -5442,7 +5453,7 @@ function SubAbasGrudadas({ ligado, topo, children }: { ligado: boolean; topo: nu
 function SeloSuaVez({ texto }: { texto: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: '.08em', background: '#C2452F', color: '#fff', borderRadius: 999, padding: '2px 9px', whiteSpace: 'nowrap' }}>👉 SUA VEZ</span>
+      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: '.08em', background: '#C2452F', color: '#fff', borderRadius: 999, padding: '2px 9px', whiteSpace: 'nowrap' }}>{tr('👉 SUA VEZ', '👉 YOUR TURN')}</span>
       <span style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)' }}>{texto}</span>
     </div>
   )
@@ -6608,7 +6619,7 @@ export function PyramidSeasonScreen() {
       {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
-          texto={done ? 'Encerrada' : round === 0 ? 'Começando…' : `Rodada ${round}/38`} />
+          texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
       )}
       {barraOn && <BarraCarreira tab={tab} setTab={setTab} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} />}
       {desfechoOn && desfecho && (
@@ -6631,15 +6642,15 @@ export function PyramidSeasonScreen() {
           const supercopaFase = copaFase?.name === 'Supercopa'
           const bg = !copaPlaying ? INK : supercopaFase ? SUPERCOPA_HOLO : copaBrOk ? COPA_BR_HOLO : `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)`
           const label = supercopaFase ? '🏆🔵 Supercopa Legends' : copaBrOk ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
-          const sub = supercopaFase ? 'Campeão da Liga × Campeão da Copa do Brasil' : copaBrOk ? '100 clubes · mata-mata puro, sem grupos' : 'Os 4 melhores de cada série (A·B·C·D) no mata-mata'
+          const sub = supercopaFase ? tr('Campeão da Liga × Campeão da Copa do Brasil', 'League champion × Copa do Brasil champion') : copaBrOk ? tr('100 clubes · mata-mata puro, sem grupos', '100 clubs · pure knockout, no groups') : tr('Os 4 melhores de cada série (A·B·C·D) no mata-mata', 'The top 4 of each division (A·B·C·D) in a knockout')
           const artClass = !privateCareer ? '' : !copaPlaying ? ' ll25-career-league' : supercopaFase ? ' ll25-career-super' : copaBrOk ? ' ll25-career-copa-br' : ' ll25-career-copa'
           if (privateCareer && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) return <CareerCompetitionStage
             kind={!copaPlaying ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
-            title={`TEMPORADA ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
-            phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : 'Liga'} · ${done ? 'Encerrada' : 'Rodada '+round+'/38'}`}
-            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} confrontos · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'} · ${sub}` : 'Acompanhe sua divisão e os jogos das outras séries sem sair da tela.'}
-            status={copaPlaying ? copaPos >= copaFaseTotal ? 'Fase encerrada · confira os resultados e os pênaltis' : 'Bola rolando · acompanhe os confrontos' : done ? 'Confira a edição de encerramento' : round===0 ? 'Tudo pronto para a primeira rodada' : revealed >= round ? 'Resultados revelados' : 'Bola rolando'}>
-            <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} Torcida <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>h.motivo).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${me.pos}º · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
+            title={`${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
+            phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : tr('Liga', 'League')} · ${done ? tr('Encerrada', 'Over') : tr('Rodada ', 'Round ')+round+'/38'}`}
+            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : tr('Acompanhe sua divisão e os jogos das outras séries sem sair da tela.', 'Follow your division and the other divisions\' matches without leaving the screen.')}
+            status={copaPlaying ? copaPos >= copaFaseTotal ? tr('Fase encerrada · confira os resultados e os pênaltis', 'Round over · check the results and the penalties') : tr('Bola rolando · acompanhe os confrontos', 'Ball rolling · follow the ties') : done ? tr('Confira a edição de encerramento', 'Check the closing edition') : round===0 ? tr('Tudo pronto para a primeira rodada', 'All set for the first round') : revealed >= round ? tr('Resultados revelados', 'Results revealed') : tr('Bola rolando', 'Ball rolling')}>
+            <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>h.motivo).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
             {copaPlaying && <CareerCompetitionHelp kind={supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}/>}
           </CareerCompetitionStage>
           return (
@@ -6986,7 +6997,7 @@ export function PyramidSeasonScreen() {
           round === 0 ? (
             <button onClick={() => { if (sponsorBetOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!sponsorBetOk}
               style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: sponsorBetOk ? GREEN : '#cfc6ae', color: sponsorBetOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: sponsorBetOk ? 'pointer' : 'default', marginBottom: 10 }}>
-              {sponsorBetOk ? '▶️ Começar a temporada' : '🤝 Escolha o patrocínio aí em cima'}
+              {sponsorBetOk ? tr('▶️ Começar a temporada', '▶️ Start the season') : tr('🤝 Escolha o patrocínio aí em cima', '🤝 Pick the sponsor up there first')}
             </button>
           ) : manualAllowed ? (
           // 🧹 LIMPEZA VISUAL (Diego 13/08 — "tá confuso, botão manual deveria ter um
@@ -6994,12 +7005,12 @@ export function PyramidSeasonScreen() {
           // vivem DENTRO de um cartão só, separado visualmente da navegação de abas
           // logo abaixo (antes ficavam soltos, coladas uma coisa na outra).
           <div className={privateCareer ? 'll25-control-shell' : undefined} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>🎮 Controle da partida</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
               onNext={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
               onSkip={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              nextLabel={halfMode && !halftimeDone ? '⏸️ Resolva o intervalo primeiro' : penMode && !penaltyDone ? '⚽ Bata o pênalti primeiro' : !roundReady ? '⏳ Deixa a rodada acabar…' : '▶️ Próxima rodada'} />
+              nextLabel={halfMode && !halftimeDone ? tr('⏸️ Resolva o intervalo primeiro', '⏸️ Sort out half-time first') : penMode && !penaltyDone ? tr('⚽ Bata o pênalti primeiro', '⚽ Take the penalty first') : !roundReady ? tr('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : tr('▶️ Próxima rodada', '▶️ Next round')} />
           </div>
           ) : <ManualLockButton />
         )}
@@ -7007,9 +7018,9 @@ export function PyramidSeasonScreen() {
             linha cada, DEPOIS da decisão e do botão verde. Nada some: cada linha
             leva pro lugar onde a coisa mora inteira. */}
         {round === 0 && sponsorResultFresh && sponsorResult && me && (
-          <CaixaRecibos titulo={`ENQUANTO ISSO, NA TEMPORADA ${(state.seasonNo ?? 2) - 1}`}>
+          <CaixaRecibos titulo={`${tr('ENQUANTO ISSO, NA TEMPORADA', 'MEANWHILE, IN SEASON')} ${(state.seasonNo ?? 2) - 1}`}>
             <ReciboLinha ic={sponsorResult.hit ? '🛡️' : sponsorResult.floored ? '🎖️' : '🚫'}
-              titulo={sponsorResult.hit ? 'O patrocínio pagou' : sponsorResult.floored ? 'Não bateu — a fidelidade pagou' : 'A aposta do patrocínio não vingou'}
+              titulo={sponsorResult.hit ? tr('O patrocínio pagou', 'The sponsor paid out') : sponsorResult.floored ? tr('Não bateu — a fidelidade pagou', 'Missed the target — loyalty paid') : tr('A aposta do patrocínio não vingou', 'The sponsor bet did not pay')}
               sub={`${sponsorBrandOf(sponsorResult.brandId)?.name ?? 'patrocinador'} · ${SPONSOR_BET_META[sponsorResult.tier].label.toLowerCase()}${sponsorResult.hit && sponsorResult.tier < 3 && sponsorResult.amount < sponsorBetValue(me.div, 3) ? ' · dava pra mirar mais alto 😉' : ''}`}
               valor={`${sponsorResult.amount > 0 ? '+' : ''}${sponsorResult.amount} 🪙`}
               valorCor={sponsorResult.amount > 0 ? GREEN : '#B23A2A'}
@@ -7021,8 +7032,8 @@ export function PyramidSeasonScreen() {
             sincroniza). Assim ele entende por que a temporada pausou ou seguiu. */}
         {state.onlineMode === 'online' && !state.isHost && !seasonOver && !copaPlaying && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, textAlign: 'center', background: manual ? '#EAF3FF' : '#F1EFE6' }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, margin: 0, color: INK }}>{manual ? '🎮 Modo Manual — o host controla o ritmo' : '⚡ Auto — a temporada anda sozinha'}</p>
-            <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? 'A próxima rodada anda quando o host avançar.' : 'O host pode pausar (Manual) a qualquer hora.'}</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, margin: 0, color: INK }}>{manual ? tr('🎮 Modo Manual — o host controla o ritmo', '🎮 Manual Mode — the host sets the pace') : tr('⚡ Auto — a temporada anda sozinha', '⚡ Auto — the season runs by itself')}</p>
+            <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? tr('A próxima rodada anda quando o host avançar.', 'The next round goes when the host advances.') : tr('O host pode pausar (Manual) a qualquer hora.', 'The host can pause (Manual) at any time.')}</p>
           </div>
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
@@ -7035,20 +7046,20 @@ export function PyramidSeasonScreen() {
         {copaPlaying && state.isHost && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
           <div className={privateCareer ? 'll25-control-shell' : undefined} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>🎮 Controle da partida</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
               onNext={() => setCopaRound(r => r + 1)}
               onSkip={() => setCopaRound(r => r + 1)}
-              nextLabel={!copaReady ? '⏳ Deixa o jogo acabar…' : copaRound + 1 >= nCopaRounds ? '🏆 Ver o campeão' : '▶️ Próxima fase'} />
+              nextLabel={!copaReady ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the match finish…') : copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')} />
           </div>
           ) : <ManualLockButton />
         )}
         {/* 🎮 CONVIDADO (online) na Copa: vê o ritmo do host (read-only), reflete a troca */}
         {state.onlineMode === 'online' && !state.isHost && copaPlaying && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, textAlign: 'center', background: manual ? '#EAF3FF' : '#F1EFE6' }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, margin: 0, color: INK }}>{manual ? '🎮 Modo Manual — o host controla o ritmo' : '⚡ Auto — a Copa anda sozinha'}</p>
-            <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? 'A próxima fase anda quando o host avançar.' : 'O host pode pausar (Manual) a qualquer hora.'}</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, margin: 0, color: INK }}>{manual ? tr('🎮 Modo Manual — o host controla o ritmo', '🎮 Manual Mode — the host sets the pace') : tr('⚡ Auto — a Copa anda sozinha', '⚡ Auto — the Cup runs by itself')}</p>
+            <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? tr('A próxima fase anda quando o host avançar.', 'The next round goes when the host advances.') : tr('O host pode pausar (Manual) a qualquer hora.', 'The host can pause (Manual) at any time.')}</p>
           </div>
         )}
 
