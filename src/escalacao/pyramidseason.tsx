@@ -105,7 +105,7 @@ function ManualLockButton() {
           <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>Apoie 🔒</span>
         </button>
       )} />
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', ...OSWALD }}>Controle o ritmo da temporada — pause, acelere, pule. Toque pra desbloquear.</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', ...OSWALD }}>{tr('Controle o ritmo da temporada — pause, acelere, pule. Toque pra desbloquear.', 'Control the pace of the season — pause, speed up, skip. Tap to unlock.')}</p>
     </div>
   )
 }
@@ -1144,32 +1144,32 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
   if (jaTem) return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 14, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ MULTICLUBES</p>
-      <p style={{ fontFamily: 'system-ui', fontSize: 11, marginTop: 4, lineHeight: 1.4 }}>Você já comanda um 2º clube: <b style={{ color: GOLD }}>{jaTem}</b>. <span style={{ opacity: .6 }}>Entre as temporadas você passa o comando pro outro (o que sai dorme e joga sozinho).</span></p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 11, marginTop: 4, lineHeight: 1.4 }}>{getLang() === 'en' ? <>You already manage a 2nd club: <b style={{ color: GOLD }}>{jaTem}</b>. <span style={{ opacity: .6 }}>Between seasons you hand over command to the other one (the one that leaves sleeps and plays on its own).</span></> : <>Você já comanda um 2º clube: <b style={{ color: GOLD }}>{jaTem}</b>. <span style={{ opacity: .6 }}>Entre as temporadas você passa o comando pro outro (o que sai dorme e joga sozinho).</span></>}</p>
     </div>
   )
   const faltam = preco - coins
   return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ Compre um SEGUNDO CLUBE</p>
-      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do tier <b>Lenda 👑</b>.</p>
+      <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>{tr('🏛️ Compre um SEGUNDO CLUBE', '🏛️ Buy a SECOND CLUB')}</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>Pick a club that <b>plays Série D today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>Legend 👑</b> tier perk.</> : <>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do tier <b>Lenda 👑</b>.</>}</p>
       {!isLenda && (
         <>
-          <div style={lock}>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</div>
+          <div style={lock}>{getLang() === 'en' ? <>🔒 <b>Legend 👑</b> perk — become Legend to manage 2 clubs.</> : <>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</>}</div>
           <ApoieButton startScreen="choice" trigger={(open) => (
-            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>👑 VIRAR LENDA NO APOIE</button>
+            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('👑 VIRAR LENDA NO APOIE', '👑 BECOME LEGEND IN SUPPORT')}</button>
           )} />
         </>
       )}
-      {isLenda && faltam > 0 && <div style={lock}>🔒 Faltam <b>{faltam.toLocaleString('pt-BR')}</b> 🪙 — custa {preco.toLocaleString('pt-BR')}, você tem {coins.toLocaleString('pt-BR')}.</div>}
+      {isLenda && faltam > 0 && <div style={lock}>{getLang() === 'en' ? <>🔒 <b>{faltam.toLocaleString('en-US')}</b> 🪙 short — it costs {preco.toLocaleString('en-US')}, you have {coins.toLocaleString('en-US')}.</> : <>🔒 Faltam <b>{faltam.toLocaleString('pt-BR')}</b> 🪙 — custa {preco.toLocaleString('pt-BR')}, você tem {coins.toLocaleString('pt-BR')}.</>}</div>}
       {isLenda && faltam <= 0 && (
         <>
           <div style={{ marginTop: 8, maxHeight: 160, overflowY: 'auto' }}>
-            {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>Nenhum clube da Série D disponível agora.</p>}
+            {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>{tr('Nenhum clube da Série D disponível agora.', 'No Série D club available right now.')}</p>}
             {opcoes.map(t => (
               <button key={t} onClick={() => setPick(t)} style={{ display: 'block', width: '100%', textAlign: 'left', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 5, fontWeight: 900, fontSize: 12, background: pick === t ? GOLD : '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🏟️ {t}{pick === t ? '  ✓' : ''}</button>
             ))}
           </div>
-          <button disabled={!pick} onClick={() => pick && onBuy(pick)} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: pick ? GOLD : '#555', color: pick ? '#000' : 'rgba(255,255,255,.5)', cursor: pick ? 'pointer' : 'default', ...OSWALD }}>💰 COMPRAR {pick ? pick.toUpperCase() : 'POR'} · {preco.toLocaleString('pt-BR')} 🪙</button>
+          <button disabled={!pick} onClick={() => pick && onBuy(pick)} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: pick ? GOLD : '#555', color: pick ? '#000' : 'rgba(255,255,255,.5)', cursor: pick ? 'pointer' : 'default', ...OSWALD }}>{tr('💰 COMPRAR', '💰 BUY')} {pick ? pick.toUpperCase() : tr('POR', 'FOR')} · {preco.toLocaleString('pt-BR')} 🪙</button>
         </>
       )}
     </div>
@@ -2961,12 +2961,12 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
           <div style={{ padding: 13 }}>
             {/* toggle dos 2 modos (trava depois de bater) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 11 }}>
-              {([['voce', '🎯 Você bate'], ['sozinho', '🎙️ Bate sozinho']] as ['voce' | 'sozinho', string][]).map(([m, lb]) => (
+              {([['voce', tr('🎯 Você bate', '🎯 You take it')], ['sozinho', tr('🎙️ Bate sozinho', '🎙️ He takes it')]] as ['voce' | 'sozinho', string][]).map(([m, lb]) => (
                 <button key={m} disabled={busy} onClick={() => { if (!busy) { setMode(m); setAim(null) } }} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 3px', fontWeight: 900, fontSize: 12.5, ...OSWALD, cursor: busy ? 'default' : 'pointer', background: mode === m ? INK : '#fff', color: mode === m ? GOLD : INK, opacity: busy && mode !== m ? 0.38 : 1, boxShadow: mode === m ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{lb}</button>
               ))}
             </div>
             {/* cobrador */}
-            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>👟 Quem vai pra bola?</p>
+            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>{tr('👟 Quem vai pra bola?', '👟 Who steps up?')}</p>
             <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 10 }}>
               {takers.slice(0, 8).map(c => { const sel = c.id === takerId; return (
                 <button key={c.id} disabled={busy} onClick={() => { if (!busy) setTakerId(c.id) }} style={{ flex: '0 0 auto', minWidth: 92, textAlign: 'left', border: `2.5px solid ${sel ? '#C9A227' : INK}`, borderRadius: 10, padding: '7px 9px', background: sel ? '#FFF7DA' : '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy && !sel ? 0.4 : 1, boxShadow: sel ? `3px 3px 0 0 ${INK}` : 'none' }}>
@@ -2975,7 +2975,7 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
                 </button>
               ) })}
             </div>
-            {mode === 'voce' && phase === 'choose' && <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, margin: '0 0 6px', color: INK }}>🎯 Mira num canto e trava a força no VERDE</p>}
+            {mode === 'voce' && phase === 'choose' && <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎯 Mira num canto e trava a força no VERDE', '🎯 Aim at a corner and lock the power in the GREEN')}</p>}
             {/* CAMPO */}
             {privatePenaltyArt ? <PenaltyArt ref={penaltyArtRef} aim={aim} choosing={mode === 'voce' && phase === 'choose'} onAim={setAim} /> : <div style={{ position: 'relative', borderRadius: 13, overflow: 'hidden', background: 'linear-gradient(#3aa862,#2c8a4f 55%,#25793f)', border: `3px solid ${INK}`, padding: '11px 11px 0' }}>
               <div ref={goalRef} style={{ position: 'relative', height: 122, margin: '0 6px' }}>
@@ -3011,19 +3011,19 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
                   {mascote && <div style={{ position: 'absolute', left: '50%', bottom: 4, transform: 'translateX(-50%)', animation: 'penJump .48s ease-in-out infinite alternate', filter: 'drop-shadow(0 4px 4px rgba(0,0,0,.45))' }}><div style={{ transformOrigin: 'bottom center', transform: 'scale(.62)' }}>{mascote}</div></div>}
                 </div>
               )}
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 4, ...OSWALD }}>🎙️ Narração</div>
-              <div style={{ fontWeight: 800, fontSize: 16.5, color: '#fff', lineHeight: 1.25, ...OSWALD, position: 'relative', zIndex: 9 }}>{line || (mode === 'voce' ? 'Escolha o canto e mande bala! ⚽' : phase === 'choose' ? introTxt : '')}</div>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 4, ...OSWALD }}>{tr('🎙️ Narração', '🎙️ Commentary')}</div>
+              <div style={{ fontWeight: 800, fontSize: 16.5, color: '#fff', lineHeight: 1.25, ...OSWALD, position: 'relative', zIndex: 9 }}>{line || (mode === 'voce' ? tr('Escolha o canto e mande bala! ⚽', 'Pick a corner and fire away! ⚽') : phase === 'choose' ? introTxt : '')}</div>
               {dots && <div style={{ fontWeight: 900, fontSize: 24, color: GOLD, letterSpacing: 5, marginTop: 6, ...OSWALD }}>{dots}</div>}
               {kind && phase === 'rev' && <div style={{ fontWeight: 900, fontSize: 40, lineHeight: 1, marginTop: 2, color: revColor, ...OSWALD, animation: 'penPop .45s cubic-bezier(.2,1.7,.4,1) forwards', opacity: 0, transform: 'scale(.4)', position: 'relative', zIndex: 9, textShadow: kind === 'gol' ? '0 0 18px rgba(57,226,122,.5)' : 'none' }}>{revWord}</div>}
               {sub && <div style={{ fontWeight: 800, fontSize: 13.5, color: '#efe9d6', marginTop: 7, ...OSWALD, position: 'relative', zIndex: 9 }}>{sub}</div>}
             </div>
             {/* botão de ação */}
-            {phase === 'choose' && mode === 'voce' && <button onClick={startPower} disabled={aim === null} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: aim === null ? '#b7b0a0' : GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: aim === null ? 'default' : 'pointer' }}>{aim === null ? '1️⃣ escolha o canto' : '⚽ BATER!'}</button>}
-            {phase === 'choose' && mode === 'sozinho' && <button onClick={shootAlone} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>⚽ BATER!</button>}
-            {phase === 'power' && <button onClick={travar} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: '#C2452F', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>🛑 TRAVAR!</button>}
+            {phase === 'choose' && mode === 'voce' && <button onClick={startPower} disabled={aim === null} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: aim === null ? '#b7b0a0' : GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: aim === null ? 'default' : 'pointer' }}>{aim === null ? tr('1️⃣ escolha o canto', '1️⃣ pick a corner') : tr('⚽ BATER!', '⚽ SHOOT!')}</button>}
+            {phase === 'choose' && mode === 'sozinho' && <button onClick={shootAlone} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('⚽ BATER!', '⚽ SHOOT!')}</button>}
+            {phase === 'power' && <button onClick={travar} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: '#C2452F', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🛑 TRAVAR!', '🛑 LOCK!')}</button>}
             {phase === 'anim' && <button disabled style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: '#b7b0a0', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, opacity: 0.7 }}>...</button>}
-            {phase === 'rev' && <button onClick={() => onDone(kind === 'gol', taker?.id ?? takerId)} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: INK, color: GOLD, boxShadow: `3px 3px 0 0 rgba(0,0,0,.4)`, cursor: 'pointer' }}>▶️ Seguir o jogo</button>}
-            <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '7px 0 0' }}>{phase === 'choose' ? 'depois de BATER não dá pra voltar — escolha com calma' : phase === 'rev' ? 'o resultado já vale pro placar do jogo' : 'valendo!'}</p>
+            {phase === 'rev' && <button onClick={() => onDone(kind === 'gol', taker?.id ?? takerId)} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: INK, color: GOLD, boxShadow: `3px 3px 0 0 rgba(0,0,0,.4)`, cursor: 'pointer' }}>{tr('▶️ Seguir o jogo', '▶️ Play on')}</button>}
+            <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '7px 0 0' }}>{phase === 'choose' ? tr('depois de BATER não dá pra voltar — escolha com calma', 'once you SHOOT there is no going back — choose calmly') : phase === 'rev' ? tr('o resultado já vale pro placar do jogo', 'the result already counts for the match score') : tr('valendo!', 'for real!')}</p>
           </div>
         </div>
       </div>
@@ -5108,8 +5108,8 @@ function CoinsBadge({ coins }: { coins: number }) {
           a pessoa a entender que não era bug — ele cortou. A cor já dá o recado, e
           o caminho pra sair continua explicado no quadro da virada de temporada. */}
       <span key={bump} title={coins < 0
-        ? `Sua caixa está no vermelho: ${coins} 🪙. Você não compra até zerar — venda um jogador, ou ganhe prêmios e bilheteria.`
-        : 'Sua caixa de moedas (pra o leilão/mercado)'}
+        ? tr(`Sua caixa está no vermelho: ${coins} 🪙. Você não compra até zerar — venda um jogador, ou ganhe prêmios e bilheteria.`, `Your till is in the red: ${coins} 🪙. You can't buy until it's cleared — sell a player, or earn prizes and gate money.`)
+        : tr('Sua caixa de moedas (pra o leilão/mercado)', 'Your coin till (for the auction/market)')}
         style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: coins < 0 ? '#C2452F' : GOLD, color: coins < 0 ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap', animation: bump ? 'coinBump .45s ease-out' : undefined }}>
         💰 {coins}</span>
       {pops.map(p => (
@@ -6503,10 +6503,10 @@ export function PyramidSeasonScreen() {
     const soma = (k: string) => led.filter(e => e.kind === k).reduce((n, e) => n + e.amount, 0)
     const linhas: { ic: string; txt: string; val: string; bom: boolean }[] = []
     const add = (ic: string, txt: string, v: number) => { if (v !== 0) linhas.push({ ic, txt, val: `${v > 0 ? '+' : ''}${v} 🪙`, bom: v > 0 }) }
-    add('🏅', 'Premiação da temporada', soma('reward'))
-    add('🎟️', 'Bilheteria', soma('gate'))
-    add('🛡️', 'Patrocínio', soma('sponsor'))
-    add('💸', 'Salários', soma('salary'))
+    add('🏅', tr('Premiação da temporada', 'Season prize money'), soma('reward'))
+    add('🎟️', tr('Bilheteria', 'Gate receipts'), soma('gate'))
+    add('🛡️', tr('Patrocínio', 'Sponsorship'), soma('sponsor'))
+    add('💸', tr('Salários', 'Salaries'), soma('salary'))
     return linhas
   }, [state.seasonNo, state.careerLedger, state.careerLedgers, state.onlineMode, youId])
   // 📌 sub-abas do Clube/Elenco grudando no topo (só a conta do Diego)
@@ -7606,15 +7606,15 @@ export function PyramidSeasonScreen() {
               const dormindo = state.multiClube.team
               return (
                 <div style={{ ...box('#0C0C0C'), padding: 12, color: '#fff', marginBottom: 10 }}>
-                  <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: '0 0 7px' }}>🏛️ MULTICLUBES — quem você comanda?</p>
+                  <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: '0 0 7px' }}>{tr('🏛️ MULTICLUBES — quem você comanda?', '🏛️ MULTI-CLUB — who do you manage?')}</p>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('no comando ✓', 'in charge ✓')}</div></div>
                     <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('dormindo 💤', 'asleep 💤')}</div></div>
                   </div>
                   {multiTravada
                     ? <div style={{ marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, background: '#4a4740', color: 'rgba(255,255,255,.9)', textAlign: 'center', ...OSWALD }}>
-                        {multiPending ? '🔄 Vou parar no fim desta rodada pra você trocar…' : `🔒 ${copaPlaying ? 'Deixe a Copa acabar' : 'Deixe a rodada acabar'} pra trocar de clube`}
-                        {!multiPending && !manual && !copaPlaying && <button onClick={() => setMultiPending(true)} style={{ display: 'block', width: '100%', marginTop: 6, border: '2px solid #000', borderRadius: 8, padding: 6, fontWeight: 900, fontSize: 10.5, background: GOLD, color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Trocar no fim desta rodada</button>}
+                        {multiPending ? tr('🔄 Vou parar no fim desta rodada pra você trocar…', '🔄 I\'ll stop at the end of this round so you can switch…') : getLang() === 'en' ? `🔒 ${copaPlaying ? 'Let the Cup finish' : 'Let the round finish'} to switch clubs` : `🔒 ${copaPlaying ? 'Deixe a Copa acabar' : 'Deixe a rodada acabar'} pra trocar de clube`}
+                        {!multiPending && !manual && !copaPlaying && <button onClick={() => setMultiPending(true)} style={{ display: 'block', width: '100%', marginTop: 6, border: '2px solid #000', borderRadius: 8, padding: 6, fontWeight: 900, fontSize: 10.5, background: GOLD, color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('🔄 Trocar no fim desta rodada', '🔄 Switch at the end of this round')}</button>}
                       </div>
                     : <button onClick={() => setMultiAsk(true)} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 10, fontWeight: 900, fontSize: 12.5, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr(`🔄 Passar o comando pro ${dormindo}`, `🔄 Hand over command to ${dormindo}`)}</button>}
                   <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.5)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Each club has <b>its own</b> till, squad, titles and stadium — nothing mixes. The sleeping one plays the season on auto, with the team as it is.</> : <>Cada clube tem o <b>seu</b> caixa, elenco, títulos e estádio — nada se mistura. O que dorme segue a temporada no automático, com o time como está.</>}</p>
