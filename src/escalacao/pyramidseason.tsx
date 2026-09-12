@@ -4439,15 +4439,15 @@ function PrizesBox() {
   const td: React.CSSProperties = { fontSize: 12.5, fontWeight: 900, textAlign: 'center', padding: '4px 4px', ...OSWALD }
   return (
     <div style={{ ...box('#FFF6DE'), padding: 12, marginTop: 12 }}>
-      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 6px' }}>🏆 Prêmios da temporada <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,0.55)' }}>(em 🪙 moedas)</span></p>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 6px' }}>{tr('🏆 Prêmios da temporada', '🏆 Season prizes')} <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,0.55)' }}>{tr('(em 🪙 moedas)', '(in 🪙 coins)')}</span></p>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>
-            <th style={{ ...th, textAlign: 'left' }}>Série</th>
-            <th style={th}>🏆 Campeão</th>
+            <th style={{ ...th, textAlign: 'left' }}>{tr('Série', 'Division')}</th>
+            <th style={th}>{tr('🏆 Campeão', '🏆 Champion')}</th>
             <th style={th}>🔼 Top-4</th>
-            <th style={th}>🔽 Queda</th>
-            <th style={th}>⚽ Artilheiro</th>
+            <th style={th}>{tr('🔽 Queda', '🔽 Relegation')}</th>
+            <th style={th}>{tr('⚽ Artilheiro', '⚽ Top scorer')}</th>
           </tr></thead>
           <tbody>
             {DIVS.map(d => (
@@ -4463,9 +4463,15 @@ function PrizesBox() {
         </table>
       </div>
       <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,0.7)', lineHeight: 1.5 }}>
+        {getLang() === 'en' ? <>
+        <li><b>Top-4</b>: in the lower divisions it means <b>promotion</b> (going up); in A it means "staying in the top 4". The A champion takes both: <b>65 + 30 = 95</b>; the Várzea champion takes <b>15 + 10 = 25</b>.</li>
+        <li><b>Relegation</b>: you lose coins when you go down (same amount as promotion) — applies from A to C. <b>Dropping from Série D to Várzea costs nothing</b> (Várzea is already the bottom of the pyramid).</li>
+        <li><b>⚽ Top scorer</b> of each division (and of the Cup): the amount goes to the <b>club's till</b>; and the player's <b>floor (value)</b> rises by a <b>flat +10</b> for the next auction.</li>
+        </> : <>
         <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>65 + 30 = 95</b>; campeão da Várzea leva <b>15 + 10 = 25</b>.</li>
         <li><b>Queda</b>: perde moedas ao cair (mesmo valor do acesso) — vale de A até C. <b>Caindo da Série D pra Várzea não desconta nada</b> (a Várzea já é o fundo da pirâmide).</li>
         <li><b>⚽ Artilheiro</b> de cada divisão (e da Copa): o valor vai pro <b>caixa do clube</b>; e o <b>piso (valor)</b> do jogador sobe <b>+10 fixo</b> pro próximo leilão.</li>
+        </>}
       </ul>
     </div>
   )
@@ -4476,7 +4482,7 @@ function PrizesBox() {
 // em cada time e aviso de zebra quando um time de baixo elimina um de cima.
 const CDTAG: Record<Div, { bg: string; c: string }> = { A: { bg: '#FFC400', c: '#0C0C0C' }, B: { bg: '#C3CCD8', c: '#0C0C0C' }, C: { bg: '#CD7F4A', c: '#fff' }, D: { bg: '#EDE6D0', c: '#0C0C0C' }, V: { bg: '#8B5E3C', c: '#fff' } }
 const DIV_RANKN: Record<Div, number> = { A: 4, B: 3, C: 2, D: 1, V: 0 }
-const copaName = (t: SimTeam) => t.you ? `${t.name} (você)` : t.name
+const copaName = (t: SimTeam) => t.you ? `${t.name} ${tr('(você)', '(you)')}` : t.name
 // ── DISPUTA DE PÊNALTIS animada: as cobranças aparecem uma a uma, alternando
 // os times (verde = gol, vermelho = perdeu), e o total fecha no fim. A ordem
 // das cobranças é sorteada de forma determinística a partir do próprio placar.
@@ -4551,7 +4557,7 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
         fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', margin: '0 0 3px', letterSpacing: 0.5,
         color: suddenDeath ? '#fff' : '#B23B2E',
         ...(suddenDeath ? { background: FIN_RED, borderRadius: 6, padding: '3px 0', border: `2px solid ${INK}` } : {}),
-      }}>{suddenDeath ? '⚠️ MORTE SÚBITA' : '🎯 DISPUTA DE PÊNALTIS'}</p>
+      }}>{suddenDeath ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT')}</p>
       <div style={{
         display: 'flex', flexDirection: 'column', gap: 3, padding: suddenDeath ? '6px 4px' : 0,
         ...(suddenDeath ? { border: `2px solid ${FIN_RED}`, borderRadius: 8, background: 'repeating-linear-gradient(135deg,rgba(194,69,47,.06),rgba(194,69,47,.06) 10px,transparent 10px,transparent 20px)' } : {}),
@@ -4625,11 +4631,11 @@ function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, foot
               Mesmo conserto da Copa do Mundo (bug do Gabriel, 15/08). */}
           {nLegs === 2 && <>
             <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, color: 'rgba(0,0,0,.45)', margin: '0 0 1px', textTransform: 'uppercase' }}>{copaName(tie.a)} × {copaName(tie.b)}</p>
-            <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>ida {tie.legs[0][0]}×{tie.legs[0][1]} · volta {tie.legs[1][0]}×{tie.legs[1][1]} · <b>agregado {tie.aggA}×{tie.aggB}</b></p>
+            <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>{tr('ida', '1st leg')} {tie.legs[0][0]}×{tie.legs[0][1]} · {tr('volta', '2nd leg')} {tie.legs[1][0]}×{tie.legs[1][1]} · <b>{tr('agregado', 'aggregate')} {tie.aggA}×{tie.aggB}</b></p>
           </>}
           {tie.pens && <PensShootout compactCareer final={final} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
           <p style={{ margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}>
-            <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} {final ? 'é campeão' : 'avança'}</span>
+            <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} {final ? tr('é campeão', 'is champion') : tr('avança', 'advances')}</span>
           </p>
         </div>
       )}
@@ -4673,7 +4679,7 @@ function CopaMatchList({ ties, pos, colors, safName, title }: { ties: CopaTie[];
           }
           const mine = tie.a.you || tie.b.you
           const lastG = [...g].filter(x => x.min <= legMin).sort((x, y) => x.min - y.min).pop()
-          const phaseLbl = nLegs === 2 ? (legIdx === 0 ? 'ida ' : 'volta ') : ''
+          const phaseLbl = nLegs === 2 ? (legIdx === 0 ? tr('ida ', '1st leg ') : tr('volta ', '2nd leg ')) : ''
           return (
             <div key={i} style={{ padding: '3px 4px', borderTop: i ? '1px solid rgba(0,0,0,0.07)' : 'none', background: mine ? '#FFF3CF' : undefined, borderRadius: mine ? 5 : 0 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 5 }}>
@@ -4682,14 +4688,14 @@ function CopaMatchList({ ties, pos, colors, safName, title }: { ties: CopaTie[];
                 </span>
                 <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, flexShrink: 0 }}>
                   <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: done ? INK : '#eee', color: done ? '#fff' : INK, borderRadius: 5, padding: '0 7px', whiteSpace: 'nowrap' }}>{showA}×{showB}</span>
-                  <span style={{ fontWeight: 800, fontSize: 8, ...OSWALD, color: done ? 'rgba(0,0,0,.45)' : '#C2452F', whiteSpace: 'nowrap' }}>{done ? 'FIM' : `🔴 ${phaseLbl}${legMin}'`}</span>
+                  <span style={{ fontWeight: 800, fontSize: 8, ...OSWALD, color: done ? 'rgba(0,0,0,.45)' : '#C2452F', whiteSpace: 'nowrap' }}>{done ? tr('FIM', 'FT') : `🔴 ${phaseLbl}${legMin}'`}</span>
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, fontWeight: mine ? 900 : 600, fontSize: 11.5, ...OSWALD, color: nameCol(tie.b), ...dimStyle(!aWin) }}>
                   <Escudo nome={tie.b.name} size={16} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{markOf(tie.b)}{tie.b.name}</span>
                 </span>
               </div>
               {!done && lastG && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {lastG.name} <span style={{ opacity: 0.7 }}>{lastG.min > 90 ? `90+${lastG.min - 90}'` : `${lastG.min}'`}</span></p>}
-              {done && tie.pens && <p style={{ fontSize: 9, fontWeight: 800, color: '#C2452F', margin: '1px 0 0', textAlign: 'center' }}>🎯 pênaltis {tie.pens[0]}×{tie.pens[1]}</p>}
+              {done && tie.pens && <p style={{ fontSize: 9, fontWeight: 800, color: '#C2452F', margin: '1px 0 0', textAlign: 'center' }}>{tr('🎯 pênaltis', '🎯 penalties')} {tie.pens[0]}×{tie.pens[1]}</p>}
             </div>
           )
         })}
@@ -5126,20 +5132,20 @@ function AvisoContaCarreira() {
     <>
       {horaDoConvite ? (
         <div style={{ ...box('linear-gradient(150deg,#F3EBFF,#E7D9FF)'), padding: 13, marginBottom: 12 }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0 }}>💾 Guarde sua carreira</p>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0 }}>{tr('💾 Guarde sua carreira', '💾 Save your career')}</p>
           <div style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 11px', margin: '8px 0', fontSize: 12.5, fontWeight: 700, lineHeight: 1.5 }}>
-            <b>{you?.teamName ?? 'Seu time'}</b> · temporada {temporada}<br />
-            {titulos > 0 && <>🏆 <b>{titulos}</b> {titulos === 1 ? 'título' : 'títulos'} · </>}
-            🪙 <b>{moedas}</b> em caixa · 👥 <b>{elenco}</b> no elenco
+            <b>{you?.teamName ?? tr('Seu time', 'Your team')}</b> · {tr('temporada', 'season')} {temporada}<br />
+            {titulos > 0 && <>🏆 <b>{titulos}</b> {getLang() === 'en' ? (titulos === 1 ? 'title' : 'titles') : titulos === 1 ? 'título' : 'títulos'} · </>}
+            🪙 <b>{moedas}</b> {tr('em caixa', 'in the till')} · 👥 <b>{elenco}</b> {tr('no elenco', 'in the squad')}
           </div>
           <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '0 0 9px', lineHeight: 1.4 }}>
-            Crie sua conta grátis pra <b>não perder isso</b> e jogar de qualquer aparelho.
+            {getLang() === 'en' ? <>Create your free account so you <b>don\'t lose this</b> and can play from any device.</> : <>Crie sua conta grátis pra <b>não perder isso</b> e jogar de qualquer aparelho.</>}
           </p>
           <button onClick={() => setAbrirConta(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>
-            ✏️ Criar conta grátis
+            {tr('✏️ Criar conta grátis', '✏️ Create a free account')}
           </button>
           <button onClick={() => setAdiado(true)} style={{ width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 12, color: 'rgba(0,0,0,.45)', cursor: 'pointer', marginTop: 7 }}>
-            agora não
+            {tr('agora não', 'not now')}
           </button>
         </div>
       ) : (
@@ -5152,24 +5158,24 @@ function AvisoContaCarreira() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px 0' }}>
             <span style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}>🎴</span>
             <div style={{ minWidth: 0 }}>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, lineHeight: 1.1 }}>Sua carreira só existe neste aparelho</p>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, lineHeight: 1.1 }}>{tr('Sua carreira só existe neste aparelho', 'Your career only exists on this device')}</p>
               <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.35 }}>
-                Com conta você <b>não perde o time</b>, joga de qualquer celular e <b>ganha carta de craque</b> quando for campeão.
+                {getLang() === 'en' ? <>With an account you <b>don\'t lose the team</b>, play from any phone and <b>win a star card</b> when you become champion.</> : <>Com conta você <b>não perde o time</b>, joga de qualquer celular e <b>ganha carta de craque</b> quando for campeão.</>}
               </p>
             </div>
           </div>
           <div style={{ padding: '10px 12px 12px' }}>
             <button onClick={() => setAbrirConta(true)}
               style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 10px', ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>
-              ✏️ Criar conta grátis
+              {tr('✏️ Criar conta grátis', '✏️ Create a free account')}
             </button>
           </div>
         </div>
       )}
       {abrirConta && (
         <JanelaConta
-          titulo="💾 Guardar sua carreira"
-          contexto={`${you?.teamName ?? 'Seu time'} · temporada ${temporada}`}
+          titulo={tr('💾 Guardar sua carreira', '💾 Save your career')}
+          contexto={`${you?.teamName ?? tr('Seu time', 'Your team')} · ${tr('temporada', 'season')} ${temporada}`}
           comecarEmCriar
           onPronto={() => setAbrirConta(false)}
           onFechar={() => setAbrirConta(false)} />
@@ -5242,13 +5248,13 @@ function SocioBaraoBanner() {
   if (!solo || moedas <= 0) return null
   return (
     <div style={{ border: `3px solid ${INK}`, borderRadius: 13, background: 'linear-gradient(150deg,#FFE79A,#FFC400)', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 12px', marginBottom: 12, fontWeight: 900, fontSize: 12.5, fontFamily: 'Oswald, sans-serif' }}>
-      🪙 +{moedas} moedas de sócio caíram no caixa!
+      {tr(`🪙 +${moedas} moedas de sócio caíram no caixa!`, `🪙 +${moedas} member coins landed in the till!`)}
       <span style={{ display: 'block', fontFamily: 'inherit', fontWeight: 700, fontSize: 10.5, opacity: .75, marginTop: 2 }}>
         {boasVindas
           ? (moedas > SOCIO_BOAS_VINDAS
-            ? `${SOCIO_BOAS_VINDAS} de boas-vindas (uma vez só) + ${SOCIO_MENSAL} do seu mês de sócio. Veja em Clube › Finanças.`
-            : 'Brinde de boas-vindas — uma vez só. As próximas 30 caem daqui a 30 dias. Veja em Clube › Finanças.')
-          : 'Seu mês de sócio fechou: +30. As próximas caem daqui a 30 dias. Veja em Clube › Finanças.'}
+            ? tr(`${SOCIO_BOAS_VINDAS} de boas-vindas (uma vez só) + ${SOCIO_MENSAL} do seu mês de sócio. Veja em Clube › Finanças.`, `${SOCIO_BOAS_VINDAS} welcome (one time only) + ${SOCIO_MENSAL} for your member month. See Club › Finances.`)
+            : tr('Brinde de boas-vindas — uma vez só. As próximas 30 caem daqui a 30 dias. Veja em Clube › Finanças.', 'Welcome gift — one time only. The next 30 land in 30 days. See Club › Finances.'))
+          : tr('Seu mês de sócio fechou: +30. As próximas caem daqui a 30 dias. Veja em Clube › Finanças.', 'Your member month closed: +30. The next ones land in 30 days. See Club › Finances.')}
       </span>
     </div>
   )
