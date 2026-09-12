@@ -6,24 +6,30 @@ Decisões do Diego (todas no chat de 12/09):
   `condicaoDesde` na virada (CAREER_ADVANCE) e **nunca desliga** (cair pra D/Várzea
   não tira: *"quem subir pra C só desbloqueia"*). Save já em C/B/A liga na próxima
   virada. Só carreira nova (`agenciaOn`), como os eventos. Online/rápido: fora.
-- ~~Dep. Médico intocado~~ → MUDOU, ver abaixo (12/09, mesma noite).
+- ~~Dep. Médico intocado~~ → SAIU DO JOGO, ver abaixo (12/09, mesma noite).
 - Números (escada FINAL do Diego, 12/09: *"do 1 ao 7 💪, dps 8, dps 9 e dps 10 em
   diante"*): −10 por jogo · +20 no banco · <40 😓 (−1) · <30 🥵 (−2 e 2× lesão) ·
   <20 🚑 esgotado (−3 e 3× lesão) · lesão volta 60% → 80% → 100%. Na prática:
-  1º–7º jogo seguido inteiro, 8º 😓, 9º 🥵, 10º em diante 🚑. Uma rodada no banco
-  tira do 😓; duas tiram do 🚑.
+  1º–7º jogo seguido inteiro, 8º 😓, 9º 🥵, 10º em diante 🚑. Banco +15/rodada:
+  uma rodada tira do 😓; 🚑 precisa de 2-3.
 - ✅ **Lesão por desgaste (FEITO, 12/09)**: fora o causo da temporada, todo jogo o
   🥵 tem 15% e o 🚑 30% de se machucar (1-3 rodadas). Sorteio determinístico por
   rodada. Só roda quando ninguém está fora/pendente/voltando (um causo por vez —
   limitação assumida do modelo `eventoTemporada`). Diego: *"quero sim q qd chegue
   no 9 e no 10 em diante a chance aumente de lesão, senão não tem sentido"*.
-- 🏥 **DEP. MÉDICO MUDOU (12/09)**: NÃO zera mais lesão. Com médico a lesão dura
-  metade (mín. 1), o jogador volta 100% direto e a chance de desgaste cai pela
-  metade. **Vale pra todo mundo, quem já comprou incluso** — palavras dele: *"quem
-  comprou dep médico esquece tb.. vai ser igual p todos"*. (Eu tinha entendido ao
-  contrário a 1ª mensagem — *"remova esta opção de remover dep médico"* — e
-  deixado o médico intocado; ele repetiu e ficou claro.) Perk, banner da obra,
-  guia e novidades atualizados.
+- 🏥 **DEP. MÉDICO SAIU DO JOGO (12/09)**. Diego, 3 vezes: *"remova esta opção de
+  remover dep médico"* → *"remova a opção de comprar dep médico p não ter mais
+  lesões tb"* → *"não quero dep médico, já disse"*. Eu li errado duas vezes (1ª:
+  "não mexe"; 2ª: "muda pra metade"). Agora: a obra saiu de `STADIUM_EXTRAS`, sem
+  efeito nenhum em lugar nenhum, **igual pra todo mundo, quem comprou também** (sem
+  reembolso — *"quem comprou esquece"*; se ele quiser devolver as 1000 🪙, é uma
+  linha). A chave 'medico' pode sobrar em save antigo — `hasExtra` ignora porque
+  não está mais no catálogo; SAF/"estádio completo" iteram o catálogo, então
+  ninguém fica travado. 🚫 **Não propor de novo médico, imunidade ou "lesão
+  encurtada por obra".**
+- 🪑 **Banco recupera +15/rodada** (era +20; Diego: *"a condição dele não deve ser
+  recuperada de cara"*): 😓 volta inteiro com 1 rodada fora; 🚑 precisa de 2-3.
+  Quem volta de lesão volta com o gás que tem (derivado — nunca zera pra 100).
 - Sem reserva: o cara joga cansado, o preparador manda pro mercado; se a lesão
   vier, entra o MESMO banner dos 3 Crias da Base dos eventos (ele confirmou:
   *"aí entra os da base né"*). Nada novo entra no jogo.

@@ -3,15 +3,14 @@
 // expulso, a lesão boba. Regras combinadas com o Diego:
 //  · no MÁXIMO 1 evento por temporada, sempre ANTES do fim (rodadas 3..31);
 //  · só dispara se EXISTE reserva na posição (senão vira SÓ manchete, nada trava);
-//  · 🏥 Departamento Médico (MUDOU 12/09, ordem do Diego: *"remova a opção de
-//    comprar dep médico pra não ter mais lesões"*): NÃO zera mais a lesão — ela
-//    dura METADE (mín. 1) e o jogador volta 100% direto. Antes era imunidade;
+//  · 🏥 o Departamento Médico SAIU DO JOGO em 12/09 (ordem do Diego) — lesão é
+//    igual pra todo mundo, ninguém é imune;
 //  · a troca usa a MESMA vaga (posição igual) — a formação NUNCA quebra;
 //  · a suspensão morre na virada da temporada (o titular volta sozinho);
 //  · zoeira leve e fictícia SEMPRE — nunca tragédia/lesão real de ninguém.
 import type { Sector, EventoTipo } from './types'
 import { getLang } from './lang' // 🌐 BR/EN (12/09): a história sai no idioma do site
-import { pesoLesao, duracaoComMedico } from './condicao' // 😓 gás: peso do cansado no sorteio da lesão · 🏥 médico encurta (régua única)
+import { pesoLesao } from './condicao' // 😓 gás: peso do cansado no sorteio da lesão (régua única)
 
 // carta "mínima" que o sorteio precisa (WonCard e PoolCard da tela servem)
 // 🪪 club/year existem pra DESEMPATAR XARÁ (ver `traitDe`). São opcionais porque
@@ -166,10 +165,10 @@ export const EVENTO_MAX_ROUND = 30
 // Uma rodada-alvo por temporada + ~15% das temporadas passam em branco. Ao
 // chegar na rodada-alvo (ou depois, se o jogo pulou), sorteia o jogador do XI:
 // baladeiro→noitada, pavio→expulsão (peso 4× cada) e qualquer um→lesão (peso 1,
-// e SÓ se o clube ainda não tem o 🏥 Departamento Médico).
+// pesado 2×/3× pelo gás).
 export function sorteiaEvento(args: {
   seed: number; seasonNo: number; round: number
-  xi: EventoCard[]; squad: EventoCard[]; temMedico: boolean
+  xi: EventoCard[]; squad: EventoCard[]
   // 🔁 histórico: nome do jogador → última temporada em que ELE aprontou.
   // É o que segura o "toda vez o mesmo cara" (relato do Diego).
   hist?: Record<string, number>
@@ -178,7 +177,7 @@ export function sorteiaEvento(args: {
   // DOBRADO no sorteio da lesão. Ausente = sorteio igual ao de sempre.
   gas?: Record<string, number>
 }): EventoSorteado | null {
-  const { seed, seasonNo, round, xi, squad, temMedico, avoidName, hist, gas } = args
+  const { seed, seasonNo, round, xi, squad, avoidName, hist, gas } = args
   if (round < EVENTO_MIN_ROUND || round > EVENTO_MAX_ROUND) return null
   const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0x77AA11) >>> 0)
   if (rng() < 0.15) return null // temporada em branco (nem toda temporada tem causo)
@@ -190,8 +189,7 @@ export function sorteiaEvento(args: {
     const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
-    // 🥵 no limite = 2× lesão · 🚑 esgotado = 3× (a régua mora em condicao.ts).
-    // 🏥 médico NÃO tira mais a lesão do sorteio — só encurta (ver `rodadas` abaixo).
+    // 🥵 no limite = 2× lesão · 🚑 esgotado = 3× (a régua mora em condicao.ts)
     { const peso = gas ? pesoLesao(gas[c.id] ?? 100) : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
   }
   if (!pool.length) return null // 🏥 médico pronto + ninguém folclórico no XI = temporada em paz
@@ -209,8 +207,7 @@ export function sorteiaEvento(args: {
   const poolFinal = pool.filter(p => !descansando(p.c.name))
   if (!poolFinal.length) return null
   const pick = poolFinal[Math.floor(rng() * poolFinal.length)]
-  const bruto = pick.tipo === 'noitada' ? 1 : pick.tipo === 'expulsao' ? 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 5)
-  const rodadas = pick.tipo === 'lesao' && temMedico ? duracaoComMedico(bruto) : bruto // 🏥 lesão dura metade com médico
+  const rodadas = pick.tipo === 'noitada' ? 1 : pick.tipo === 'expulsao' ? 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 5)
   const en = getLang() === 'en'
   const textos = pick.tipo === 'noitada' ? (en ? HIST_NOITADA_EN : HIST_NOITADA) : pick.tipo === 'expulsao' ? (en ? HIST_EXPULSAO_EN : HIST_EXPULSAO) : (en ? HIST_LESAO_EN : HIST_LESAO)
   const historia = textos[Math.floor(rng() * textos.length)].replace('{n}', pick.c.name)
@@ -272,8 +269,8 @@ export function mancheteDecisao(ev: { tipo: EventoTipo; nome: string; rodadas: n
     if (en) return { emoji: '😓', titulo: `${ev.nome} breaks down: out for ${rod}`, sub: `Too many matches in a row — the body sent the bill.${ev.subNome ? ` ${ev.subNome} got his chance in the team.` : ''}` }
     return { emoji: '😓', titulo: `${ev.nome} não aguenta: fora por ${rod}`, sub: `Jogos demais seguidos — o corpo mandou a conta.${ev.subNome ? ` ${ev.subNome} ganhou a chance no time.` : ''}` }
   }
-  if (en) return { emoji: '🩹', titulo: `${ev.nome} out for ${rod}`, sub: `Silly injury in training.${ev.subNome ? ` ${ev.subNome} got his chance in the team.` : ' The club is looking into building a Medical Department…'}` }
-  return { emoji: '🩹', titulo: `${ev.nome} fora por ${rod}`, sub: `Lesão boba no treino.${ev.subNome ? ` ${ev.subNome} ganhou a chance no time.` : ' O clube estuda montar um Departamento Médico…'}` }
+  if (en) return { emoji: '🩹', titulo: `${ev.nome} out for ${rod}`, sub: `Silly injury in training.${ev.subNome ? ` ${ev.subNome} got his chance in the team.` : ''}` }
+  return { emoji: '🩹', titulo: `${ev.nome} fora por ${rod}`, sub: `Lesão boba no treino.${ev.subNome ? ` ${ev.subNome} ganhou a chance no time.` : ''}` }
 }
 // sem reserva na posição: NADA trava — vira só esta manchete de zoeira
 export function mancheteSemReserva(tipo: EventoTipo, nome: string): { emoji: string; titulo: string; sub: string } {
@@ -285,6 +282,6 @@ export function mancheteSemReserva(tipo: EventoTipo, nome: string): { emoji: str
     ? { emoji: '🟥', titulo: `${nome} nearly gets banned for dissent`, sub: 'The referee went easy in the report — lucky for the manager, who had no backup for the spot.' }
     : { emoji: '🟥', titulo: `${nome} quase pega gancho por reclamação`, sub: 'O juiz aliviou no relatório — sorte do técnico, que não tinha reserva pra vaga.' }
   return en
-    ? { emoji: '🩹', titulo: `${nome} feels a niggle and plays through it`, sub: 'No backup for the position, so it was ice and guts. The club is looking into a Medical Department…' }
-    : { emoji: '🩹', titulo: `${nome} sente dorzinha e joga no sacrifício`, sub: 'Sem reserva na posição, foi no gelo e na raça. O clube estuda um Departamento Médico…' }
+    ? { emoji: '🩹', titulo: `${nome} feels a niggle and plays through it`, sub: 'No backup for the position, so it was ice and guts.' }
+    : { emoji: '🩹', titulo: `${nome} sente dorzinha e joga no sacrifício`, sub: 'Sem reserva na posição, foi no gelo e na raça.' }
 }

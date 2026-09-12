@@ -49,9 +49,10 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
   // é sagrado). Só nas carreiras novas (mesmo gate do médico) — regra nova
   // nunca muda o meio da carreira de ninguém.
   { k: 'retratil', n: '🏟️ Cobertura Retrátil', cost: 180, inc: 10, reqTxt: 'Cobertura', perk: 'teto que abre e fecha — casa cheia até na chuva' },
-  // 🏥 não rende moeda: o "lucro" dele é acabar com as LESÕES pra sempre (eventos
-  // de jogador). Última obra antes da SAF (a SAF exige TODAS as melhorias).
-  { k: 'medico', n: '🏥 Departamento Médico', cost: 1000, inc: 0, reqTxt: 'Cobertura', perk: 'lesão dura METADE e o jogador volta 100%' },
+  // 🏥 O DEPARTAMENTO MÉDICO SAIU DO JOGO (Diego 12/09: *"não quero dep médico, já
+  // disse… quem comprou esquece, vai ser igual p todos"*). Lesão agora é igual pra
+  // todo mundo (ver condicao.ts). A chave 'medico' pode existir em save antigo —
+  // hasExtra() a ignora porque ela não está mais nesta lista.
 ]
 
 // 🌐 rótulos em inglês das obras — a CHAVE (k) continua a mesma no save; só o texto lido troca.
@@ -67,7 +68,6 @@ const EXTRA_EN: Record<string, { n: string; req: string; perk?: string }> = {
   cober: { n: '☂️ Roof', req: '4 stands finished' },
   hotel: { n: '🏨 Club Hotel', req: 'Stands 100%', perk: 'hosts away fans and delegations' },
   retratil: { n: '🏟️ Retractable Roof', req: 'Roof', perk: 'a roof that opens and closes — full house even in the rain' },
-  medico: { n: '🏥 Medical Department', req: 'Roof', perk: 'injuries last HALF as long, back at 100%' },
 }
 export const sectorNome = (s: StadiumSector): string => (getLang() === 'en' ? (SECTOR_EN[s.k] ?? s.n) : s.n)
 export const extraNome = (e: StadiumExtra): string => (getLang() === 'en' ? (EXTRA_EN[e.k]?.n ?? e.n) : e.n)
@@ -157,7 +157,6 @@ export function extraUnlocked(st: StadiumSave | undefined, k: string): boolean {
     case 'hotel': return sectorsDone(st) >= STADIUM_SECTORS.length // 🏨 obra grande: arquibancadas 100%
     case 'cober': return sectorsDone(st) >= 4
     case 'retratil': return hasExtra(st, 'cober') // 🏟️ upgrade da cobertura comum
-    case 'medico': return hasExtra(st, 'cober') // 🏥 a última obra da árvore (depois vem a SAF)
     default: return false
   }
 }
@@ -165,9 +164,9 @@ export function extraUnlocked(st: StadiumSave | undefined, k: string): boolean {
 // completo" (SAF, Craque) elas são tratadas como o médico/retrátil — opcionais pra
 // quem não é carreira nova, pra nunca mudar o meio da carreira de ninguém.
 export const NEW_EXTRAS = ['praca', 'chopp', 'estacao', 'hotel']
-// melhoria que só aparece/conta em carreira nova (agenciaOn)? (médico e retrátil já
-// eram assim; agora as 4 novas também).
-export function extraNovaOnly(k: string): boolean { return k === 'medico' || k === 'retratil' || NEW_EXTRAS.includes(k) }
+// melhoria que só aparece/conta em carreira nova (agenciaOn)? (retrátil já era
+// assim; as 4 novas também. O médico foi removido do jogo em 12/09.)
+export function extraNovaOnly(k: string): boolean { return k === 'retratil' || NEW_EXTRAS.includes(k) }
 
 // 🎟️ OCUPAÇÃO (Diego 12/08): quão CHEIO o estádio fica pela COLOCAÇÃO final da
 // temporada — é o que vira renda (só fatura o que encher). Top 4 lota; Z4 às moscas.

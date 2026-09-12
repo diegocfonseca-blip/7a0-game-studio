@@ -5,7 +5,7 @@
 // fechadas com ele no mesmo dia (mockup `scripts/mockup-condicao-elenco.mjs`,
 // variante A — a barrinha):
 //
-//   · cada jogo como TITULAR: −10 de gás · cada rodada no BANCO: +20 (teto 100)
+//   · cada jogo como TITULAR: −10 de gás · cada rodada no BANCO: +15 (teto 100)
 //   · ≥ 40 = 💪 inteiro (nada) · 30–39 = 😓 cansado (−1 de força no jogo)
 //     · 20–29 = 🥵 no limite (−2 · 2× de chance de ser o lesionado da temporada)
 //     · < 20 = 🚑 esgotado (−3 · 3× lesão)
@@ -19,10 +19,13 @@
 //     da temporada, todo jogo o 🥵 tem 15% e o 🚑 tem 30% de se machucar (1-3
 //     rodadas). Mesmo banner, mesmos Crias sem reserva. Roda só quando ninguém
 //     do time já está fora (o jogo guarda UM causo por vez — limitação assumida).
-//   · 🏥 DEP. MÉDICO MUDOU (Diego 12/09: *"remova a opção de comprar dep médico
-//     pra não ter mais lesões"*): não zera mais lesão. Com médico, a lesão dura
-//     METADE (mín. 1), o jogador volta 100% direto (sem 60/80%) e a chance de
-//     lesão por desgaste cai pela metade.
+//   · 🏥 O DEP. MÉDICO SAIU DO JOGO (Diego 12/09, três vezes até eu entender:
+//     *"não quero dep médico, já disse… quem comprou esquece, vai ser igual p
+//     todos"*). Ninguém é imune, ninguém encurta lesão. Igual pra todo mundo.
+//   · 🪑 BANCO RECUPERA +15 POR RODADA (Diego 12/09: *"a condição dele não deve
+//     ser recuperada de cara"*): quem só está 😓 volta inteiro com 1 rodada fora;
+//     quem está 🚑 precisa de 2-3. Quem volta de lesão volta com o gás QUE TEM —
+//     nunca zerado pra 100 só porque o jogo precisou dele.
 //   · liga quando o clube SOBE PRA SÉRIE C (não por temporada — *"3ª temporada
 //     acho mt rápido… apenas quando subir pra Série C, que o usuário está mais
 //     experiente"*). Uma vez ligado, não desliga se cair de volta.
@@ -43,7 +46,7 @@
 import { CONDICAO_ON } from './career-feature-release'
 
 export const GAS_JOGO = 10     // desconto por jogo como titular
-export const GAS_BANCO = 20    // recuperação por rodada no banco
+export const GAS_BANCO = 15    // recuperação por rodada no banco (era 20; Diego achou rápido demais)
 export const GAS_CANSADO = 40  // abaixo disto = 😓
 export const GAS_LIMITE = 30   // abaixo disto = 🥵
 export const GAS_ESGOTADO = 20 // abaixo disto = 🚑
@@ -53,8 +56,6 @@ export const MOD_ESGOTADO = -3
 export const MOD_VOLTA = [-2, -1] as const // rodada da volta (60%) · seguinte (80%)
 export const LESAO_LIMITE_PCT = 0.15   // 🥵 chance de lesão por desgaste, por jogo
 export const LESAO_ESGOTADO_PCT = 0.30 // 🚑 idem
-export const MEDICO_FATOR = 0.5        // 🏥 com médico: chance e duração caem pela metade
-export const duracaoComMedico = (rodadas: number): number => Math.max(1, Math.ceil(rodadas * MEDICO_FATOR))
 
 export type EstadoGas = 'ok' | 'cansado' | 'limite' | 'esgotado'
 export function estadoGas(g: number): EstadoGas { return g >= GAS_CANSADO ? 'ok' : g >= GAS_LIMITE ? 'cansado' : g >= GAS_ESGOTADO ? 'limite' : 'esgotado' }
@@ -104,9 +105,8 @@ export function jogosDoElenco(byRound: Record<number, string[]> | undefined, rou
 // `ev` = eventoTemporada (só conta se for LESÃO desta temporada e já decidida
 // pro banco). Devolve o modificador do jogador na rodada `r`: −2 na volta, −1
 // na seguinte, 0 fora disso. Também serve pra tela ("voltando · 60%").
-export function modVolta(ev: { tipo: string; season: number; status: string; volta?: number; cardId: string; medico?: boolean } | null | undefined, seasonNo: number, r: number, cardId: string): number {
+export function modVolta(ev: { tipo: string; season: number; status: string; volta?: number; cardId: string } | null | undefined, seasonNo: number, r: number, cardId: string): number {
   if (!ev || ev.tipo !== 'lesao' || ev.season !== seasonNo || ev.status !== 'banco' || ev.volta == null || ev.cardId !== cardId) return 0
-  if (ev.medico) return 0 // 🏥 com médico volta 100% direto
   const d = r - ev.volta
   return d >= 0 && d < MOD_VOLTA.length ? MOD_VOLTA[d] : 0
 }
@@ -117,17 +117,14 @@ export const pctVolta = (mod: number): number => (mod === -2 ? 60 : mod === -1 ?
 // titulares do pior gás pro melhor; o primeiro que "cair" no dado é o lesionado.
 // Inteiro/cansado nunca se machucam por aqui (só 🥵 e 🚑). Devolve null = nada.
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
-export function sorteiaLesaoDesgaste<T extends { id: string }>(args: { seed: number; seasonNo: number; round: number; xi: T[]; gas: Record<string, number>; temMedico: boolean }): { card: T; rodadas: number; gas: number } | null {
-  const { seed, seasonNo, round, xi, gas, temMedico } = args
+export function sorteiaLesaoDesgaste<T extends { id: string }>(args: { seed: number; seasonNo: number; round: number; xi: T[]; gas: Record<string, number> }): { card: T; rodadas: number; gas: number } | null {
+  const { seed, seasonNo, round, xi, gas } = args
   const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ Math.imul(round + 1, 0x9E3779B1) ^ 0xD35647E) >>> 0)
   const cands = xi.filter(c => { const e = estadoGas(gas[c.id] ?? 100); return e === 'limite' || e === 'esgotado' }).sort((a, b) => (gas[a.id] ?? 100) - (gas[b.id] ?? 100))
   for (const c of cands) {
     const g = gas[c.id] ?? 100
-    const p = (estadoGas(g) === 'esgotado' ? LESAO_ESGOTADO_PCT : LESAO_LIMITE_PCT) * (temMedico ? MEDICO_FATOR : 1)
-    if (rng() < p) {
-      const bruto = 1 + Math.floor(rng() * 3) // 1-3 rodadas
-      return { card: c, rodadas: temMedico ? duracaoComMedico(bruto) : bruto, gas: g }
-    }
+    const p = estadoGas(g) === 'esgotado' ? LESAO_ESGOTADO_PCT : LESAO_LIMITE_PCT
+    if (rng() < p) return { card: c, rodadas: 1 + Math.floor(rng() * 3), gas: g } // 1-3 rodadas
   }
   return null
 }

@@ -1,7 +1,7 @@
 // 🧪 CONDIÇÃO / GÁS — confere as regras fechadas com o Diego (12/09) contra o
 // módulo puro `src/escalacao/condicao.ts`. Rodar: npx tsx scripts/testa-condicao.mjs
 // (sai com código 1 se algo quebrar — serve pra rodar antes de commitar).
-import { gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, sugerirRodizio, estadoGas, modGas, pesoLesao, condicaoAtiva, sorteiaLesaoDesgaste, duracaoComMedico, GAS_JOGO, GAS_BANCO, LESAO_LIMITE_PCT, LESAO_ESGOTADO_PCT } from '../src/escalacao/condicao.ts'
+import { gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, sugerirRodizio, estadoGas, modGas, pesoLesao, condicaoAtiva, sorteiaLesaoDesgaste, GAS_JOGO, GAS_BANCO, LESAO_LIMITE_PCT, LESAO_ESGOTADO_PCT } from '../src/escalacao/condicao.ts'
 
 let falhas = 0
 const ok = (cond, msg) => { if (cond) console.log('  ✅', msg); else { falhas++; console.log('  ❌', msg) } }
@@ -37,7 +37,10 @@ ok(seguidos(10) === 'esgotado' && seguidos(14) === 'esgotado', '10º em diante: 
 // descansa 2 rodadas: entra o reserva r11 (GOL) no lugar do t0
 byRound[7] = xi.map(id => (id === 't0' ? 'r11' : id)); byRound[8] = byRound[7]
 g = gasDoElenco(byRound, 9, squad)
-ok(g.t0 === Math.min(100, 100 - 7 * GAS_JOGO + 2 * GAS_BANCO), `2 rodadas no banco → +${2 * GAS_BANCO} (${g.t0}) — de 😓 volta a inteiro`)
+ok(g.t0 === Math.min(100, 100 - 7 * GAS_JOGO + 2 * GAS_BANCO), `2 rodadas no banco → +${2 * GAS_BANCO} (${g.t0})`)
+// 🪑 recuperação REAL (Diego): 😓 (30) precisa de 1 rodada fora; 🚑 (10) precisa de 2-3
+ok(estadoGas(30 + GAS_BANCO) === 'ok', '😓 com 1 rodada no banco → inteiro')
+ok(estadoGas(10 + GAS_BANCO) !== 'ok' && estadoGas(10 + 2 * GAS_BANCO) === 'ok', '🚑 com 1 rodada ainda não está inteiro; com 2 sim')
 ok(g.r11 === 100 - 2 * GAS_JOGO, 'o reserva que entrou gastou 2 jogos')
 const j = jogosDoElenco(byRound, 9, squad)
 ok(j.t0 === 7 && j.r11 === 2 && j.t1 === 9, 'contagem de jogos bate (7 · 2 · 9)')
@@ -80,24 +83,19 @@ console.log('6) 🩹 lesão por desgaste')
 const xiCards = squad.filter(c => xi.includes(c.id))
 const gasOk = Object.fromEntries(squad.map(c => [c.id, 100]))
 let hits = 0
-for (let seed = 1; seed <= 2000; seed++) if (sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasOk, temMedico: false })) hits++
+for (let seed = 1; seed <= 2000; seed++) if (sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasOk })) hits++
 ok(hits === 0, 'time inteiro: NUNCA se machuca de desgaste (2000 sorteios)')
 const gasEsg = { ...gasOk, t8: 10 } // só o Romário 🚑
 hits = 0; let rod = { 1: 0, 2: 0, 3: 0 }
-for (let seed = 1; seed <= 4000; seed++) { const d = sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg, temMedico: false }); if (d) { hits++; rod[d.rodadas]++; if (d.card.id !== 't8') { hits = -1e9 } } }
+for (let seed = 1; seed <= 4000; seed++) { const d = sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg }); if (d) { hits++; rod[d.rodadas]++; if (d.card.id !== 't8') { hits = -1e9 } } }
 ok(hits > 4000 * (LESAO_ESGOTADO_PCT - 0.03) && hits < 4000 * (LESAO_ESGOTADO_PCT + 0.03), `🚑 sozinho: ~${Math.round(LESAO_ESGOTADO_PCT * 100)}% por jogo (medido ${(hits / 40).toFixed(1)}%), sempre ELE`)
 ok(rod[1] > 0 && rod[2] > 0 && rod[3] > 0 && Object.keys(rod).length === 3, 'dura 1, 2 ou 3 rodadas')
 const gasLim = { ...gasOk, t8: 25 } // 🥵
 hits = 0
-for (let seed = 1; seed <= 4000; seed++) if (sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasLim, temMedico: false })) hits++
+for (let seed = 1; seed <= 4000; seed++) if (sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasLim })) hits++
 ok(hits > 4000 * (LESAO_LIMITE_PCT - 0.03) && hits < 4000 * (LESAO_LIMITE_PCT + 0.03), `🥵: ~${Math.round(LESAO_LIMITE_PCT * 100)}% por jogo (medido ${(hits / 40).toFixed(1)}%)`)
-let hitsMed = 0, maxRod = 0
-for (let seed = 1; seed <= 4000; seed++) { const d = sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg, temMedico: true }); if (d) { hitsMed++; maxRod = Math.max(maxRod, d.rodadas) } }
-ok(hitsMed > 4000 * 0.12 && hitsMed < 4000 * 0.18 && maxRod <= 2, `🏥 com médico: chance cai pela metade (medido ${(hitsMed / 40).toFixed(1)}%) e dura no máx. 2 rodadas`)
-ok(duracaoComMedico(1) === 1 && duracaoComMedico(3) === 2 && duracaoComMedico(5) === 3, 'duração com médico: 1→1 · 3→2 · 5→3')
-const d1 = sorteiaLesaoDesgaste({ seed: 77, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg, temMedico: false }), d2 = sorteiaLesaoDesgaste({ seed: 77, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg, temMedico: false })
+const d1 = sorteiaLesaoDesgaste({ seed: 77, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg }), d2 = sorteiaLesaoDesgaste({ seed: 77, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg })
 ok(JSON.stringify(d1) === JSON.stringify(d2), 'determinístico: reload não re-sorteia')
-ok(modVolta({ ...ev, medico: true }, 4, 12, 't5') === 0, '🏥 com médico não tem volta gradual (100% direto)')
 
 console.log('7) trava de ativação')
 ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true }), 'sem condicaoDesde = desligado')

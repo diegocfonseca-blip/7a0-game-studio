@@ -88,7 +88,7 @@ const aviso = `<div class="aviso">
   <div class="avt">🧑‍⚕️ PREPARADOR FÍSICO</div>
   <div class="avx"><b>Lúcio</b> e <b>Romário</b> estão <b style="color:${RED}">no limite</b> (🥵) — jogando assim rendem menos e o risco de lesão dobra. <b>Sócrates</b> e <b>Cafu</b> estão cansados (😓).</div>
   <div class="avb"><button class="bt btg">🔁 RODIZIAR — pôr os descansados</button><button class="bt btw">deixa como está</button></div>
-  <div class="avs">valendo do próximo jogo · banco recupera +20 por rodada · o jogo NUNCA troca por você</div>
+  <div class="avs">valendo do próximo jogo · banco recupera +15 por rodada · o jogo NUNCA troca por você</div>
 </div>`
 
 const volta = `<div class="volta">
@@ -99,7 +99,7 @@ const volta = `<div class="volta">
     <div class="vs"><b style="color:#D9A000">80%</b><span>rod. 16</span><i style="width:80%;background:#D9A000"></i></div>
     <div class="vs"><b style="color:${GREEN}">100%</b><span>rod. 17</span><i style="width:100%;background:${GREEN}"></i></div>
   </div>
-  <div class="vx">volta jogando, mas com a força reduzida nas 2 primeiras rodadas — com o 🏥 Dep. Médico, volta em 100% direto.</div>
+  <div class="vx">volta jogando, mas com a força reduzida nas 2 primeiras rodadas — e com o gás que tiver, nunca zerado pra 100.</div>
 </div>`
 
 const painel = (t, sub, corpo) => `<div class="painel"><div class="ptag"><b>${t}</b><span>${sub}</span></div><div class="card">${corpo}</div></div>`

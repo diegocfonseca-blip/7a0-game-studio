@@ -342,6 +342,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   visível ao abrir a área do clube ("via o estádio de cara, eu achava bonito").
   Qualquer coisa nova naquela área entra ABAIXO dele, nunca antes.
 - Explicações embaixo do botão/do lugar exato, não parágrafos soltos.
+- **😓 Condição/gás (12/09) é regra fechada — e o 🏥 Dep. Médico NÃO EXISTE MAIS.**
+  Ele mandou tirar três vezes (*"não quero dep médico, já disse… quem comprou
+  esquece, vai ser igual p todos"*). Nunca propor de volta médico, imunidade a
+  lesão ou "obra que encurta lesão". A escada do gás (1º–7º jogo inteiro · 8º 😓 ·
+  9º 🥵 · 10º+ 🚑, banco +15) e a lesão por desgaste (15%/30% por jogo) moram em
+  `src/escalacao/condicao.ts`; mudar número = mudar lá e rodar
+  `npx tsx scripts/testa-condicao.mjs`. Gás aparece SÓ nas listas do Elenco,
+  nunca no campinho (ordem dele). Liga ao subir pra Série C e não desliga.
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

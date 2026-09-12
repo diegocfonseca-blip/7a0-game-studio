@@ -5608,9 +5608,6 @@ export function reducer(state: EscState, action: Action): EscState {
       seen.estadio = true // a base do estádio já existe desde a T1 de qualquer carreira em andamento
       if (s.escadaSubiu) seen.profissional = true
       if (s.careerFilial) seen.saf = true
-      const you = s.managers[s.youIdx]
-      const st = you ? s.stadiums?.[you.id] : undefined
-      if (st && hasExtra(st, 'medico')) seen.medico = true
       s.careerSeen = seen
       return s
     }

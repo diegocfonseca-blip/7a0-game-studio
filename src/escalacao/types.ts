@@ -157,7 +157,6 @@ export interface EventoAtivo {
   status: 'pendente' | 'banco' | 'campo' | 'manchete'
   volta?: number   // rodada em que o titular VOLTA (round + rodadas) — só status 'banco'
   desgaste?: boolean // 😓 LESÃO POR DESGASTE (12/09): veio do gás (🥵/🚑), não do causo da temporada — pode haver mais de uma por temporada; não entra no eventoHist
-  medico?: boolean   // 🏥 o clube TINHA Dep. Médico quando o causo nasceu: lesão já veio pela metade e a volta é 100% direto (sem 60/80%)
   subId?: string   // quem assumiu a vaga
   subNome?: string
   // 🌱 SEM RESERVA na posição (Diego 13/08): em vez de virar manchete sem efeito,

@@ -400,9 +400,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   coins: number
   onInvest: (sector: string) => void
   onBuild: (ext: string) => void
-  // 🏥 Departamento Médico SÓ nas carreiras com eventos de jogador (agenciaOn).
-  // Carreira antiga nem VÊ a obra — e a SAF dela segue custando o de sempre
-  // (regra nova nunca muda o meio da carreira de ninguém).
+  // 🏗️ melhorias NOVAS (retrátil, praça, chopp, estação, hotel) SÓ nas carreiras
+  // novas (agenciaOn). Carreira antiga nem VÊ — regra nova nunca muda o meio da
+  // carreira de ninguém. (O nome vem do Dep. Médico, que era a 1ª obra gateada e
+  // saiu do jogo em 12/09 — o prop continua gateando as outras.)
   medicoOn?: boolean
   filial?: { team: string; since: number; earned?: number; loanOut?: { id: string; name: string; pos: string }[]; loanIn?: { id: string; name: string; pos: string }[] } | null
   filialOptions?: string[]
@@ -617,11 +618,6 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         )
       })}
       </section>
-      {hasExtra(st, 'medico') && (
-        <UnlockBanner k="medico" tag={tr('🏥 obra grande', '🏥 big build')} title={tr('Departamento Médico pronto', 'Medical Department ready')} ctaBg="#C2452F" ctaColor="#fff">
-          {getLang() === 'en' ? <>From now on every injury in your squad <b>lasts half as long</b> (minimum 1 round) and the player <b>comes back at 100%</b>, no gradual return. Fatigue injuries also become half as likely. Injuries still exist — that is football.</> : <>A partir de agora toda lesão do seu elenco <b>dura metade do tempo</b> (mínimo 1 rodada) e o jogador <b>volta 100%</b>, sem volta gradual. Lesão por desgaste também fica metade mais rara. Lesão continua existindo — futebol é assim.</>}
-        </UnlockBanner>
-      )}
       {onBuyFilial && (() => {
         // 🔐 a SAF EXIGE login (direitos ligados à conta). Antes, sem login a seção
         // SUMIA — e o jogador não entendia (ele só via a SAF "desaparecer"). Agora
