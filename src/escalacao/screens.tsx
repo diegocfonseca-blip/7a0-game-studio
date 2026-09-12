@@ -7461,7 +7461,7 @@ export function EscAlbum() {
           ))}
         </div>
       )}
-      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 Voltar ao início</Btn>
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 {tr('Voltar ao início', 'Back to start')}</Btn>
     </Shell>
   )
 }
@@ -7684,7 +7684,7 @@ export function EscRanking() {
           <p className="font-bold text-black/70 text-sm">Faça login pra aparecer no ranking e ganhar cartas.</p>
         </Box>
       )}
-      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 Voltar ao início</Btn>
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 {tr('Voltar ao início', 'Back to start')}</Btn>
 
       {/* álbum do técnico tocado */}
       {viewUser && (

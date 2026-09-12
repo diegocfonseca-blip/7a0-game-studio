@@ -28,6 +28,7 @@
 //    acontece é o aviso aparecer de novo na próxima visita — nunca uma tela
 //    branca.
 import { useState } from 'react'
+import { tr } from './lang' // 🌐 BR/EN
 
 const CHAVE = 'esc-aviso-versao-v1'
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
@@ -68,18 +69,18 @@ export function AvisoVersaoNova() {
         <span style={{ fontSize: 21, lineHeight: 1 }} aria-hidden="true">🔨</span>
         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
           <p style={{ margin: 0, fontWeight: 800, fontSize: 13.5, lineHeight: 1.15, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            As lendas ganharam cara
+            {tr('As lendas ganharam cara', 'The legends got a new face')}
           </p>
           <p style={{ margin: 0, fontWeight: 700, fontSize: 11, lineHeight: 1.2, color: 'rgba(12,12,12,.62)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            saiu versão nova — toque em atualizar
+            {tr('saiu versão nova — toque em atualizar', 'new version out — tap to update')}
           </p>
         </div>
         <button onClick={atualizar} style={{
           fontFamily: 'inherit', fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap',
           background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 999,
           padding: '7px 13px', cursor: 'pointer',
-        }}>ATUALIZAR</button>
-        <button onClick={fechar} aria-label="Fechar aviso" style={{
+        }}>{tr('ATUALIZAR', 'UPDATE')}</button>
+        <button onClick={fechar} aria-label={tr('Fechar aviso', 'Close notice')} style={{
           fontFamily: 'inherit', fontWeight: 800, fontSize: 18, lineHeight: 1,
           background: 'transparent', border: 0, color: 'rgba(12,12,12,.55)',
           padding: '2px 4px', cursor: 'pointer',
