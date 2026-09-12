@@ -1410,7 +1410,7 @@ function NovidadesCurtas() {
   const mostra = abertas ? todas : todas.slice(0, 3)
   return (
     <div>
-      <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>📣 O que mudou por aqui</p>
+      <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-3" style={OSWALD}>{tr('📣 O que mudou por aqui', '📣 What changed around here')}</p>
       <Box bg="#fff" className="p-3.5 space-y-3">
         {mostra.map(n => (
           <div key={n.titulo + n.data} className="flex gap-2 items-start">
@@ -1423,7 +1423,7 @@ function NovidadesCurtas() {
         ))}
         {todas.length > 3 && (
           <button onClick={() => setAbertas(a => !a)} className="w-full text-center pt-1 text-[11px] font-black text-black/45" style={OSWALD}>
-            {abertas ? 'mostrar menos ›' : `ver as ${todas.length} ›`}
+            {abertas ? tr('mostrar menos ›', 'show less ›') : `${tr('ver as', 'see all')} ${todas.length} ›`}
           </button>
         )}
       </Box>
@@ -1440,15 +1440,15 @@ function NewsSection() {
   const mud = MUDANCAS_JOGADORES.filter(m => Date.parse(m.data) >= Date.now() - 30 * 86400000).slice(0, 4)
   const frase = (m: typeof mud[number]) => {
     const bar = m.baralho === 'EU' ? '🌍' : '🇧🇷'
-    if (m.tipo === 'entrou') return `${bar} ${m.nome} entrou no baralho${m.nivel ? ` como ${m.nivel}` : ''}`
-    if (m.tipo === 'saiu') return `${bar} ${m.nome} saiu do baralho`
+    if (m.tipo === 'entrou') return `${bar} ${m.nome} ${tr('entrou no baralho', 'joined the deck')}${m.nivel ? ` ${tr('como', 'as')} ${m.nivel}` : ''}`
+    if (m.tipo === 'saiu') return `${bar} ${m.nome} ${tr('saiu do baralho', 'left the deck')}`
     if (m.tipo === 'nivel') return `${bar} ${m.nome}: ${m.de} → ${m.para}`
-    if (m.tipo === 'virou-folk') return `${bar} ${m.nome} virou folclórico 🃏`
-    return `${bar} ${m.nome} deixou de ser folclórico`
+    if (m.tipo === 'virou-folk') return `${bar} ${m.nome} ${tr('virou folclórico 🃏', 'became a folk hero 🃏')}`
+    return `${bar} ${m.nome} ${tr('deixou de ser folclórico', 'is no longer a folk hero')}`
   }
   return (
     <Box bg="#F6F2FF" className="p-3.5 space-y-2.5">
-      <p className="font-black text-[13px]" style={OSWALD}>📢 O que mudou por aqui</p>
+      <p className="font-black text-[13px]" style={OSWALD}>{tr('📢 O que mudou por aqui', '📢 What changed around here')}</p>
       <div className="space-y-1">
         {novidades.map(n => (
           <p key={n.titulo + n.data} className="text-[11.5px] font-bold text-black/75 leading-snug">
@@ -1458,12 +1458,12 @@ function NewsSection() {
       </div>
       {mud.length > 0 && (
         <div>
-          <p className="text-[10px] font-black uppercase" style={{ color: PURPLE }}>🎴 No baralho</p>
+          <p className="text-[10px] font-black uppercase" style={{ color: PURPLE }}>{tr('🎴 No baralho', '🎴 In the deck')}</p>
           {mud.map((m, i) => <p key={i} className="text-[11.5px] font-bold text-black/75 leading-snug mt-0.5">{frase(m)}</p>)}
         </div>
       )}
       <div>
-        <p className="text-[10px] font-black uppercase" style={{ color: PURPLE }}>🆕 Recém-chegados</p>
+        <p className="text-[10px] font-black uppercase" style={{ color: PURPLE }}>{tr('🆕 Recém-chegados', '🆕 New arrivals')}</p>
         <p className="text-[11.5px] font-bold text-black/75 mt-0.5 leading-snug">
           <b>🇧🇷</b> {recentBR.map(c => c.name).join(', ')} · <b>🌍</b> {recentEU.map(c => c.name).join(', ')}.
         </p>
@@ -2050,9 +2050,9 @@ function HomeMenuFixo({ onInicio, onRegras, onAlbum, onRanking, apoiar }: {
           colado no último item. Enquanto esta barra existe, ele sobe pra cima
           dela. Some junto com a barra: é só nesta tela. */}
       <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
-      {item('inicio', 'Início', onInicio, true)}
-      {item('regras', 'Regras', onRegras)}
-      {item('album', 'Álbum', onAlbum)}
+      {item('inicio', tr('Início', 'Home'), onInicio, true)}
+      {item('regras', tr('Regras', 'Rules'), onRegras)}
+      {item('album', tr('Álbum', 'Album'), onAlbum)}
       {item('ranking', 'Ranking', onRanking)}
       {apoiar}
     </div>
@@ -2916,7 +2916,7 @@ export function CardAccountNote() {
   if (email) {
     return (
       <p className="text-center text-xs font-bold text-black/50 px-2">
-        ✅ Logado{name ? ` como ${name}` : ''} — sendo campeão você leva uma carta-lembrança pro álbum 🎴
+        {tr('✅ Logado', '✅ Signed in')}{name ? ` ${tr('como', 'as')} ${name}` : ''} — {tr('sendo campeão você leva uma carta-lembrança pro álbum 🎴', 'become champion and you take a keepsake card to the album 🎴')}
       </p>
     )
   }
@@ -2927,14 +2927,14 @@ export function CardAccountNote() {
   return (
     <button onClick={goRegister} className="w-full rounded-2xl border-[3px] border-black p-3.5 text-left active:translate-y-0.5"
       style={{ background: '#FFF7DB', boxShadow: `3px 3px 0 0 ${INK}` }}>
-      <p className="font-black text-sm" style={OSWALD}>🎴 Colecione craques — faça seu cadastro</p>
+      <p className="font-black text-sm" style={OSWALD}>{tr('🎴 Colecione craques — faça seu cadastro', '🎴 Collect stars — sign up')}</p>
       <p className="text-xs font-semibold text-black/75 mt-1">
-        <b>Com conta:</b> sendo campeão (no CPU ou online) você ganha um <b>craque colecionável limitado</b> pro seu álbum.
+        {getLang() === 'en' ? <><b>With an account:</b> become champion (vs CPU or online) and you win a <b>limited collectible star</b> for your album.</> : <><b>Com conta:</b> sendo campeão (no CPU ou online) você ganha um <b>craque colecionável limitado</b> pro seu álbum.</>}
       </p>
       <p className="text-xs font-semibold text-black/60 mt-0.5">
-        <b>Sem conta:</b> joga à vontade, mas <b>não ganha carta</b>.
+        {getLang() === 'en' ? <><b>Without an account:</b> play as much as you like, but <b>no card</b>.</> : <><b>Sem conta:</b> joga à vontade, mas <b>não ganha carta</b>.</>}
       </p>
-      <p className="text-xs font-black mt-1.5" style={{ color: GREEN, ...OSWALD }}>👉 Toque aqui pra criar sua conta</p>
+      <p className="text-xs font-black mt-1.5" style={{ color: GREEN, ...OSWALD }}>{tr('👉 Toque aqui pra criar sua conta', '👉 Tap here to create your account')}</p>
     </button>
   )
 }

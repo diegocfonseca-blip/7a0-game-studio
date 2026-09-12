@@ -29,6 +29,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { APOIO_PERKS, ApoioSheen } from './apoio'
 import { perkFromSelo } from './pyramidseason'
+import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif' }
@@ -66,7 +67,10 @@ export const LIGA_REGRAS_PADRAO: LigaRegras = {
   rebaixaTira: true,
   ativos: ['liga', 'copa', 'rebaixamento'],
 }
-export const LIGA_ROTULO: Record<LigaChave, string> = { liga: '🏆 Título da liga', copa: '🏆🇧🇷 Copa', artilheiro: '⚽ Artilheiro', rebaixamento: '🔻 Rebaixamento' }
+const LIGA_ROTULO_PT: Record<LigaChave, string> = { liga: '🏆 Título da liga', copa: '🏆🇧🇷 Copa', artilheiro: '⚽ Artilheiro', rebaixamento: '🔻 Rebaixamento' }
+const LIGA_ROTULO_EN: Record<LigaChave, string> = { liga: '🏆 League title', copa: '🏆🇧🇷 Cup', artilheiro: '⚽ Top scorer', rebaixamento: '🔻 Relegation' }
+// 🌐 lê o idioma na hora do uso (mesmo truque do POS_LABEL)
+export const LIGA_ROTULO: Record<LigaChave, string> = new Proxy(LIGA_ROTULO_PT, { get: (_t, k: string) => (getLang() === 'en' ? LIGA_ROTULO_EN : LIGA_ROTULO_PT)[k as LigaChave] })
 export const lerRegras = (v: unknown): LigaRegras => {
   const r = (v ?? {}) as Partial<LigaRegras>
   return {
@@ -82,8 +86,8 @@ export const lerRegras = (v: unknown): LigaRegras => {
 export const resumoRegra = (regras: LigaRegras): string => {
   const ativas = (['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).filter(k => regras.ativos.includes(k))
   return regras.modo === 'pontos'
-    ? `Por pontos · ${ativas.map(k => `${LIGA_ROTULO[k].toLowerCase()} ${regras.pontos[k] > 0 ? '+' : ''}${regras.pontos[k]}`).join(' · ')} · nunca fica negativo`
-    : `Por títulos · ${regras.ordem.filter(k => regras.ativos.includes(k)).map(k => LIGA_ROTULO[k].toLowerCase()).join(' > ')}${regras.rebaixaTira && regras.ativos.includes('rebaixamento') ? ' · cair tira um título' : ''}`
+    ? `${tr('Por pontos', 'By points')} · ${ativas.map(k => `${LIGA_ROTULO[k].toLowerCase()} ${regras.pontos[k] > 0 ? '+' : ''}${regras.pontos[k]}`).join(' · ')} · ${tr('nunca fica negativo', 'never goes negative')}`
+    : `${tr('Por títulos', 'By titles')} · ${regras.ordem.filter(k => regras.ativos.includes(k)).map(k => LIGA_ROTULO[k].toLowerCase()).join(' > ')}${regras.rebaixaTira && regras.ativos.includes('rebaixamento') ? tr(' · cair tira um título', ' · going down removes a title') : ''}`
 }
 
 export type LinhaCampeao = {
@@ -144,6 +148,20 @@ export function rankingDaLiga(rows: LinhaCampeao[], regras: LigaRegras, gente: S
 
 // 🙈 zoeira do mico — uma por temporada, sorteio ESTÁVEL pela temporada (todo
 // mundo na sala vê a mesma frase). Zoeira é a alma do jogo: bem variada.
+const MICO_FRASES_EN: ((t: string) => string)[] = [
+  t => `${t} finished last — the fans asked for a song on the Sunday show! 🎶`,
+  t => `${t} ate so much dust it climbed the podium wearing a MASK. 😷`,
+  t => `${t}'s bus drove back to the garage IN REVERSE. 🚌`,
+  t => `${t} did so badly the mascot asked for a transfer. 🦴`,
+  t => `${t}'s lantern is so bright you can see it from space. 🔦`,
+  t => `${t} mistook relegation for a swim: went in head first. 🏊`,
+  t => `${t}'s GPS only knew the road to defeat. 🗺️`,
+  t => `${t} took the Mico home and still paid for parking. 🙈`,
+  t => `Even the ball boy played more than ${t} this season. 🏃`,
+  t => `${t}: champion... of boos. 📣`,
+  t => `${t} defended so little the net asked for a holiday. 🥅`,
+  t => `They say ${t} is still looking for the ball to this day. 🔍`,
+]
 const MICO_FRASES: ((t: string) => string)[] = [
   t => `O ${t} terminou em último — a torcida pediu música no Fantástico! 🎶`,
   t => `${t} comeu tanta poeira que subiu no pódio de MÁSCARA. 😷`,
@@ -177,7 +195,9 @@ function IconeLiga({ nome, cor }: { nome: Aba; cor: string }) {
     </svg>
   )
 }
-const ROTULO_ABA: Record<Aba, string> = { rank: 'Rank', estante: 'Estante', temporadas: 'Temporadas', ajustes: 'Ajustes' }
+const ROTULO_ABA_PT: Record<Aba, string> = { rank: 'Rank', estante: 'Estante', temporadas: 'Temporadas', ajustes: 'Ajustes' }
+const ROTULO_ABA_EN: Record<Aba, string> = { rank: 'Rank', estante: 'Shelf', temporadas: 'Seasons', ajustes: 'Settings' }
+const ROTULO_ABA: Record<Aba, string> = new Proxy(ROTULO_ABA_PT, { get: (_t, k: string) => (getLang() === 'en' ? ROTULO_ABA_EN : ROTULO_ABA_PT)[k as Aba] })
 
 export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
   roomId: string
@@ -284,19 +304,19 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
     setBusy(true); setErro('')
     const { data, error } = await supabase.rpc('liga_patch', { p_room: roomId, p_at: null, p_regras: r as never, p_admins: null, p_fechada: null, p_nome: null })
     setBusy(false)
-    if (error || data === false) { setErro('Não deu pra salvar a regra agora — tente de novo.'); return }
+    if (error || data === false) { setErro(tr('Não deu pra salvar a regra agora — tente de novo.', 'Couldn\'t save the rule right now — try again.')); return }
     setSala(s => (s ? { ...s, regras: r } : s))
   }
   async function patch(campos: { ligaAt?: string; ligaFechada?: boolean }) {
     setBusy(true); setErro('')
     const { data, error } = await supabase.rpc('liga_patch', { p_room: roomId, p_at: campos.ligaAt ?? null, p_regras: null as never, p_admins: null as never, p_fechada: campos.ligaFechada ?? null, p_nome: null })
     setBusy(false)
-    if (error || data === false) { setErro('Não deu pra salvar agora — tente de novo.'); return }
+    if (error || data === false) { setErro(tr('Não deu pra salvar agora — tente de novo.', 'Couldn\'t save right now — try again.')); return }
     setSala(s => (s ? { ...s, ...(campos.ligaAt ? { ligaAt: campos.ligaAt } : {}), ...(campos.ligaFechada != null ? { semBots: campos.ligaFechada } : {}) } : s))
   }
   async function excluir() {
     if (!sala) return
-    if (!window.confirm(`Excluir a liga "${sala.nome || 'sem nome'}"?\n\nA sala e a SALA DE TROFÉUS dela somem pra todo mundo. Não dá pra desfazer.`)) return
+    if (!window.confirm(getLang() === 'en' ? `Delete the league "${sala.nome || 'unnamed'}"?\n\nThe room and its TROPHY ROOM disappear for everyone. This cannot be undone.` : `Excluir a liga "${sala.nome || 'sem nome'}"?\n\nA sala e a SALA DE TROFÉUS dela somem pra todo mundo. Não dá pra desfazer.`)) return
     await supabase.from('room_players').delete().eq('room_id', roomId).then(() => {}, () => {})
     await supabase.from('game_rooms').delete().eq('id', roomId).then(() => {}, () => {})
     aoExcluir?.()
@@ -337,9 +357,9 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
             <style>{'@keyframes escMicoWiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}'}</style>
             <div className="flex items-center gap-2 mb-2">
               <p className="flex-1 min-w-0 font-black text-[13px] truncate" style={OSWALD}>
-                {sala.ehLiga ? `🏆 ${sala.nome || 'A liga'}` : '🏆 Esta sala'} · {ROTULO_ABA[aba]}
+                {sala.ehLiga ? `🏆 ${sala.nome || tr('A liga', 'The league')}` : tr('🏆 Esta sala', '🏆 This room')} · {ROTULO_ABA[aba]}
               </p>
-              <button onClick={() => setAba(null)} aria-label="Fechar"
+              <button onClick={() => setAba(null)} aria-label={tr('Fechar', 'Close')}
                 className="flex-none border-2 border-black rounded-lg px-2.5 py-1 font-black text-[12px] bg-white active:translate-y-0.5" style={OSWALD}>✕</button>
             </div>
             {erro && <p className="text-[11px] font-extrabold mb-2 rounded-lg px-2.5 py-1.5" style={{ background: '#FDECEA', border: '2px solid #C2452F', color: '#7a2418' }}>{erro}</p>}
@@ -351,7 +371,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
                 sai. Prometer história numa sala que evapora seria enganar. */}
             {!sala.ehLiga && (
               <p className="text-[10px] font-bold text-black/55 leading-snug mt-2.5 pt-2" style={{ borderTop: '2px solid rgba(12,12,12,.15)' }}>
-                ℹ️ Isto é o histórico <b>desta sala</b>. Sala rápida <b>some</b> quando a galera sai — pra ter um campeonato que continua toda semana, com hora marcada e ranking guardado, crie uma <b>🏆 Liga</b>.
+                {getLang() === 'en' ? <>ℹ️ This is the history of <b>this room</b>. A quick room <b>disappears</b> when the crew leaves — for a championship that carries on every week, with a set time and a saved ranking, create a <b>🏆 League</b>.</> : <>ℹ️ Isto é o histórico <b>desta sala</b>. Sala rápida <b>some</b> quando a galera sai — pra ter um campeonato que continua toda semana, com hora marcada e ranking guardado, crie uma <b>🏆 Liga</b>.</>}
               </p>
             )}
           </div>
@@ -380,15 +400,15 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
 
 // ─── 🏆 RANK — o que a regra do dono produz ─────────────────────────────────
 function AbaRank({ ranking, regras, temLinhas, ehLiga }: { ranking: ReturnType<typeof rankingDaLiga>; regras: LigaRegras; temLinhas: boolean; ehLiga: boolean }) {
-  if (!temLinhas) return <p className="text-black/50 text-[11.5px] font-bold">Ainda não tem temporada encerrada aqui. O primeiro campeão aparece quando este jogo acabar. 🏆</p>
-  if (ranking.length === 0) return <p className="text-black/50 text-[11.5px] font-bold">Nenhum título de gente ainda — os campeões até agora foram bots, e bot não entra no ranking. 🤖</p>
+  if (!temLinhas) return <p className="text-black/50 text-[11.5px] font-bold">{tr('Ainda não tem temporada encerrada aqui. O primeiro campeão aparece quando este jogo acabar. 🏆', 'No finished season here yet. The first champion shows up when this game ends. 🏆')}</p>
+  if (ranking.length === 0) return <p className="text-black/50 text-[11.5px] font-bold">{tr('Nenhum título de gente ainda — os campeões até agora foram bots, e bot não entra no ranking. 🤖', 'No human titles yet — the champions so far were bots, and bots don\'t enter the ranking. 🤖')}</p>
   return (
     <>
-      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>🏆 Classificação {ehLiga ? 'da liga' : 'da sala'} · {ranking.length} {ranking.length === 1 ? 'time' : 'times'}</p>
+      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>{tr('🏆 Classificação', '🏆 Standings')} {ehLiga ? tr('da liga', 'of the league') : tr('da sala', 'of the room')} · {ranking.length} {ranking.length === 1 ? tr('time', 'team') : tr('times', 'teams')}</p>
       <div className="space-y-1.5">
         {ranking.map((r, i) => (
           <div key={r.time} className="flex items-center gap-2 border-2 border-black rounded-xl px-2.5 py-1.5 bg-white">
-            <span className="font-black text-[13px] shrink-0 w-6 text-center" style={{ ...OSWALD, color: i === 0 ? '#7a4d00' : 'rgba(12,12,12,.4)' }}>{i === 0 ? '🥇' : `${i + 1}º`}</span>
+            <span className="font-black text-[13px] shrink-0 w-6 text-center" style={{ ...OSWALD, color: i === 0 ? '#7a4d00' : 'rgba(12,12,12,.4)' }}>{i === 0 ? '🥇' : ordinal(i + 1)}</span>
             <div className="flex-1 min-w-0">
               <p className="font-black text-black text-[13px] truncate" style={OSWALD}>{r.time}</p>
               <p className="text-black/55 text-[10.5px] font-bold truncate">
@@ -404,7 +424,7 @@ function AbaRank({ ranking, regras, temLinhas, ehLiga }: { ranking: ReturnType<t
           </div>
         ))}
       </div>
-      <p className="text-black/50 text-[10px] font-bold leading-snug mt-2">⚖️ {resumoRegra(regras)}.<br />Só a galera pontua — <b>bot não entra</b>.</p>
+      <p className="text-black/50 text-[10px] font-bold leading-snug mt-2">⚖️ {resumoRegra(regras)}.<br />{getLang() === 'en' ? <>Only people score — <b>bots don't count</b>.</> : <>Só a galera pontua — <b>bot não entra</b>.</>}</p>
     </>
   )
 }
@@ -420,7 +440,7 @@ function AbaEstante({ rows, gente }: { rows: LinhaCampeao[]; gente: Set<string> 
   for (const r of rows) { somar(r.champion_name, 'liga'); somar(r.copa_champion_name, 'copa'); somar(r.top_scorer_team, 'art'); somar(r.mico_name, 'mico') }
   const donos = [...shelf.entries()].sort((a, b) => (b[1].liga + b[1].copa + b[1].art) - (a[1].liga + a[1].copa + a[1].art) || b[1].mico - a[1].mico)
   const ultimoMico = [...rows].reverse().find(r => ehGente(r.mico_name))
-  const fraseMico = ultimoMico?.mico_name ? MICO_FRASES[(ultimoMico.season_no + ultimoMico.mico_name.length) % MICO_FRASES.length](ultimoMico.mico_name) : null
+  const fraseMico = ultimoMico?.mico_name ? (getLang() === 'en' ? MICO_FRASES_EN : MICO_FRASES)[(ultimoMico.season_no + ultimoMico.mico_name.length) % MICO_FRASES.length](ultimoMico.mico_name) : null
   const trofeu = (emoji: string, n: number, label: string, grad: string, fg: string, opts?: { wiggle?: boolean; sheen?: boolean }) => (
     <div key={label} style={{ width: 82, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', textAlign: 'center', boxShadow: `2.5px 2.5px 0 0 ${INK}`, background: grad, color: fg, position: 'relative', overflow: 'hidden', animation: opts?.wiggle ? 'escMicoWiggle 2.6s ease-in-out infinite' : undefined }}>
       {opts?.sheen && <ApoioSheen holo={0.7} dur={3.2} />}
@@ -429,10 +449,10 @@ function AbaEstante({ rows, gente }: { rows: LinhaCampeao[]; gente: Set<string> 
       <span style={{ display: 'block', fontWeight: 800, fontSize: 7.5, textTransform: 'uppercase', letterSpacing: 0.4, ...OSWALD, position: 'relative' }}>{label}</span>
     </div>
   )
-  if (donos.length === 0) return <p className="text-black/50 text-[11.5px] font-bold">Ninguém da turma tem troféu aqui ainda. 🏅</p>
+  if (donos.length === 0) return <p className="text-black/50 text-[11.5px] font-bold">{tr('Ninguém da turma tem troféu aqui ainda. 🏅', 'Nobody in the crew has a trophy here yet. 🏅')}</p>
   return (
     <>
-      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>🏅 A estante da resenha</p>
+      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>{tr('🏅 A estante da resenha', '🏅 The crew\'s shelf')}</p>
       {donos.map(([nome, t]) => {
         const perk = perkFromSelo(nome) ?? APOIO_PERKS.bege
         const claro = perk.tier !== 'roxo'
@@ -442,19 +462,19 @@ function AbaEstante({ rows, gente }: { rows: LinhaCampeao[]; gente: Set<string> 
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 11px', fontWeight: 900, fontSize: 13, ...OSWALD, borderBottom: `3px solid ${INK}`, background: perk.grad, color: claro ? INK : '#fff', position: 'relative', overflow: 'hidden' }}>
               {perk.holo > 0 && <ApoioSheen holo={perk.holo} dur={3.4} />}
               <span style={{ position: 'relative', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</span>
-              <span style={{ position: 'relative', marginLeft: 'auto', flex: 'none', background: 'rgba(0,0,0,.72)', color: GOLD, borderRadius: 8, fontSize: 10, padding: '1px 8px', ...OSWALD }}>{total > 0 ? `${total} troféu${total === 1 ? '' : 's'}` : '😬'}</span>
+              <span style={{ position: 'relative', marginLeft: 'auto', flex: 'none', background: 'rgba(0,0,0,.72)', color: GOLD, borderRadius: 8, fontSize: 10, padding: '1px 8px', ...OSWALD }}>{total > 0 ? `${total} ${total === 1 ? tr('troféu', 'trophy') : tr('troféus', 'trophies')}` : '😬'}</span>
             </div>
             <div style={{ display: 'flex', gap: 7, padding: '9px 11px', flexWrap: 'wrap', background: '#FFF9E8' }}>
-              {t.liga > 0 && trofeu('🏆', t.liga, 'Liga', 'linear-gradient(170deg,#FFD84D,#F5B301)', INK, { sheen: true })}
-              {t.copa > 0 && trofeu('🏆', t.copa, 'Copa', 'linear-gradient(170deg,#FFF3C9,#FFE07A)', INK, { sheen: true })}
-              {t.art > 0 && trofeu('⚽', t.art, 'Artilharia', 'linear-gradient(170deg,#57C983,#1B7A3D)', '#fff')}
-              {t.mico > 0 && trofeu('🙈', t.mico, 'Troféu Mico', 'linear-gradient(170deg,#C9986B,#8B5E3C)', '#fff', { wiggle: true })}
+              {t.liga > 0 && trofeu('🏆', t.liga, tr('Liga', 'League'), 'linear-gradient(170deg,#FFD84D,#F5B301)', INK, { sheen: true })}
+              {t.copa > 0 && trofeu('🏆', t.copa, tr('Copa', 'Cup'), 'linear-gradient(170deg,#FFF3C9,#FFE07A)', INK, { sheen: true })}
+              {t.art > 0 && trofeu('⚽', t.art, tr('Artilharia', 'Top scorer'), 'linear-gradient(170deg,#57C983,#1B7A3D)', '#fff')}
+              {t.mico > 0 && trofeu('🙈', t.mico, tr('Troféu Mico', 'Mico Trophy'), 'linear-gradient(170deg,#C9986B,#8B5E3C)', '#fff', { wiggle: true })}
             </div>
           </div>
         )
       })}
       {fraseMico && (
-        <p className="text-[10px] font-extrabold rounded-lg px-2.5 py-1.5" style={{ background: '#FDECEA', border: '2px solid #C2452F', color: '#7a2418', lineHeight: 1.35 }}>🙈 <b>MICO DA TEMPORADA:</b> {fraseMico}</p>
+        <p className="text-[10px] font-extrabold rounded-lg px-2.5 py-1.5" style={{ background: '#FDECEA', border: '2px solid #C2452F', color: '#7a2418', lineHeight: 1.35 }}>🙈 <b>{tr('MICO DA TEMPORADA:', 'MICO OF THE SEASON:')}</b> {fraseMico}</p>
       )}
     </>
   )
@@ -488,16 +508,16 @@ function AbaTemporadas({ roomId, rows, souDono, nomes, recarregar }: {
       ? await supabase.from('game_champions').update(payload).eq('id', existe.id)
       : await supabase.from('game_champions').insert({ room_id: roomId, season_no: edit.season_no, ...payload })
     setBusy(false)
-    if (error) { setErro('Não deu pra salvar. Tente de novo.'); return }
+    if (error) { setErro(tr('Não deu pra salvar. Tente de novo.', 'Couldn\'t save. Try again.')); return }
     setEdit(null); recarregar()
   }
   async function apagar(t: number) {
     if (busy) return
-    if (!window.confirm(`Apagar a temporada ${t} da sala de troféus?\n\nSó esta linha some — o resto da liga fica.`)) return
+    if (!window.confirm(getLang() === 'en' ? `Delete season ${t} from the trophy room?\n\nOnly this line goes — the rest of the league stays.` : `Apagar a temporada ${t} da sala de troféus?\n\nSó esta linha some — o resto da liga fica.`)) return
     setBusy(true); setErro('')
     const { error } = await supabase.from('game_champions').delete().eq('room_id', roomId).eq('season_no', t)
     setBusy(false)
-    if (error) { setErro('Não deu pra apagar. Tente de novo.'); return }
+    if (error) { setErro(tr('Não deu pra apagar. Tente de novo.', 'Couldn\'t delete. Try again.')); return }
     setEdit(null); recarregar()
   }
   const campo = (rot: string, val: string, set: (v: string) => void, ph = '') => (
@@ -511,14 +531,14 @@ function AbaTemporadas({ roomId, rows, souDono, nomes, recarregar }: {
   return (
     <>
       <datalist id={listaId}>{nomes.map(n => <option key={n} value={n} />)}</datalist>
-      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>📜 Temporada a temporada</p>
+      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>{tr('📜 Temporada a temporada', '📜 Season by season')}</p>
       {erro && <p className="text-[11px] font-extrabold mb-2 rounded-lg px-2.5 py-1.5" style={{ background: '#FDECEA', border: '2px solid #C2452F', color: '#7a2418' }}>{erro}</p>}
-      {rows.length === 0 && <p className="text-black/50 text-[11.5px] font-bold mb-2">Nenhuma temporada guardada ainda.</p>}
+      {rows.length === 0 && <p className="text-black/50 text-[11.5px] font-bold mb-2">{tr('Nenhuma temporada guardada ainda.', 'No season saved yet.')}</p>}
       <div className="space-y-1.5">
         {[...rows].sort((a, b) => b.season_no - a.season_no).map(r => (
           <div key={r.season_no} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background: '#fff', border: `2.5px solid ${INK}` }}>
             <span className="flex-none rounded-md px-1.5 font-black text-[10.5px]" style={{ ...OSWALD, background: INK, color: GOLD }}>T{r.season_no}</span>
-            <span className="min-w-0 flex-1 text-[10px] font-bold leading-snug">🏆 {r.champion_name || '—'}{r.copa_champion_name && <> · 🏆 Copa: {r.copa_champion_name}</>}{r.top_scorer_name && <> · ⚽ {r.top_scorer_name} ({r.top_scorer_goals})</>}</span>
+            <span className="min-w-0 flex-1 text-[10px] font-bold leading-snug">🏆 {r.champion_name || '—'}{r.copa_champion_name && <> · 🏆 {tr('Copa', 'Cup')}: {r.copa_champion_name}</>}{r.top_scorer_name && <> · ⚽ {r.top_scorer_name} ({r.top_scorer_goals})</>}</span>
             {r.mico_name && <span className="flex-none text-[10px] font-extrabold" style={{ color: '#8B5E3C' }}>🙈 {r.mico_name}</span>}
             {souDono && (
               <button onClick={() => setEdit(r)} className="flex-none border-2 border-black rounded-md px-1.5 py-0.5 font-black text-[11px] bg-white active:translate-y-0.5">✏️</button>
@@ -528,33 +548,33 @@ function AbaTemporadas({ roomId, rows, souDono, nomes, recarregar }: {
       </div>
       {souDono && !edit && (
         <button onClick={() => setEdit(vazia(proxima))} className="w-full mt-2 border-2 border-dashed border-black/40 rounded-xl py-2 font-black text-[11.5px] text-black/55 active:translate-y-0.5" style={OSWALD}>
-          ＋ Escrever uma temporada que faltou
+          {tr('＋ Escrever uma temporada que faltou', '＋ Write in a missing season')}
         </button>
       )}
       {souDono && edit && (
         <div className="mt-2 rounded-xl border-2 border-black bg-white p-3 space-y-2">
-          <p className="font-black text-[12px]" style={OSWALD}>✏️ Temporada {edit.season_no}</p>
-          <div className="flex gap-2">{campo('🏆 Campeão da liga', edit.champion_name ?? '', v => setEdit({ ...edit, champion_name: v }), 'nome do time')}</div>
-          <div className="flex gap-2">{campo('🏆🇧🇷 Campeão da copa', edit.copa_champion_name ?? '', v => setEdit({ ...edit, copa_champion_name: v }), 'nome do time')}</div>
+          <p className="font-black text-[12px]" style={OSWALD}>✏️ {tr('Temporada', 'Season')} {edit.season_no}</p>
+          <div className="flex gap-2">{campo(tr('🏆 Campeão da liga', '🏆 League champion'), edit.champion_name ?? '', v => setEdit({ ...edit, champion_name: v }), tr('nome do time', 'team name'))}</div>
+          <div className="flex gap-2">{campo(tr('🏆🇧🇷 Campeão da copa', '🏆🇧🇷 Cup champion'), edit.copa_champion_name ?? '', v => setEdit({ ...edit, copa_champion_name: v }), tr('nome do time', 'team name'))}</div>
           <div className="flex gap-2">
-            {campo('⚽ Artilheiro', edit.top_scorer_name ?? '', v => setEdit({ ...edit, top_scorer_name: v }), 'jogador')}
+            {campo(tr('⚽ Artilheiro', '⚽ Top scorer'), edit.top_scorer_name ?? '', v => setEdit({ ...edit, top_scorer_name: v }), tr('jogador', 'player'))}
             <div className="w-16 flex-none">
-              <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1" style={OSWALD}>Gols</p>
+              <p className="font-black text-[10px] uppercase tracking-wider text-black/45 mb-1" style={OSWALD}>{tr('Gols', 'Goals')}</p>
               <input value={edit.top_scorer_goals ?? ''} inputMode="numeric" onChange={e => setEdit({ ...edit, top_scorer_goals: e.target.value ? Number(e.target.value.replace(/\D/g, '')) : null })}
                 className="w-full border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
             </div>
           </div>
-          <div className="flex gap-2">{campo('⚽ Time do artilheiro', edit.top_scorer_team ?? '', v => setEdit({ ...edit, top_scorer_team: v }), 'nome do time')}</div>
-          <div className="flex gap-2">{campo('🙈 Mico (último colocado)', edit.mico_name ?? '', v => setEdit({ ...edit, mico_name: v }), 'nome do time')}</div>
+          <div className="flex gap-2">{campo(tr('⚽ Time do artilheiro', '⚽ Top scorer\'s team'), edit.top_scorer_team ?? '', v => setEdit({ ...edit, top_scorer_team: v }), tr('nome do time', 'team name'))}</div>
+          <div className="flex gap-2">{campo(tr('🙈 Mico (último colocado)', '🙈 Mico (last place)'), edit.mico_name ?? '', v => setEdit({ ...edit, mico_name: v }), tr('nome do time', 'team name'))}</div>
           <p className="text-black/50 text-[10px] font-bold leading-snug">
-            Só o <b>dono da liga</b> arruma — e o que você escrever vale só <b>dentro desta liga</b>: o ranking do jogo não muda.
+            {getLang() === 'en' ? <>Only the <b>league owner</b> edits — and what you write counts only <b>inside this league</b>: the game's ranking doesn't change.</> : <>Só o <b>dono da liga</b> arruma — e o que você escrever vale só <b>dentro desta liga</b>: o ranking do jogo não muda.</>}
           </p>
           <div className="flex gap-2">
-            <button onClick={() => void salvar()} className="flex-1 border-[2.5px] border-black rounded-xl py-2 font-black text-[13px] text-white active:translate-y-0.5" style={{ ...OSWALD, background: GREEN }}>{busy ? 'Salvando…' : '✅ Salvar'}</button>
-            <button onClick={() => setEdit(null)} className="flex-1 border-[2.5px] border-black rounded-xl py-2 font-black text-[13px] bg-white active:translate-y-0.5" style={OSWALD}>Cancelar</button>
+            <button onClick={() => void salvar()} className="flex-1 border-[2.5px] border-black rounded-xl py-2 font-black text-[13px] text-white active:translate-y-0.5" style={{ ...OSWALD, background: GREEN }}>{busy ? tr('Salvando…', 'Saving…') : tr('✅ Salvar', '✅ Save')}</button>
+            <button onClick={() => setEdit(null)} className="flex-1 border-[2.5px] border-black rounded-xl py-2 font-black text-[13px] bg-white active:translate-y-0.5" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
           </div>
           {rows.some(r => r.season_no === edit.season_no) && (
-            <button onClick={() => void apagar(edit.season_no)} className="w-full border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5" style={{ ...OSWALD, background: '#C2452F', color: '#fff' }}>🗑️ Apagar esta temporada</button>
+            <button onClick={() => void apagar(edit.season_no)} className="w-full border-2 border-black rounded-xl py-1.5 font-black text-[11px] active:translate-y-0.5" style={{ ...OSWALD, background: '#C2452F', color: '#fff' }}>{tr('🗑️ Apagar esta temporada', '🗑️ Delete this season')}</button>
           )}
         </div>
       )}
@@ -573,8 +593,8 @@ function AbaAjustes({ sala, regras, busy, salvarRegras, patch, excluir }: {
   const [abrirRegras, setAbrirRegras] = useState(false)
   const d = sala.ligaAt ? new Date(sala.ligaAt) : null
   const quando = d && !isNaN(d.getTime())
-    ? `${['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'][d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1} · ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-    : 'sem horário marcado'
+    ? `${(getLang() === 'en' ? ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] : ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'])[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1} · ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+    : tr('sem horário marcado', 'no time set')
   const adiar = (dias: number) => {
     const base = d && !isNaN(d.getTime()) ? new Date(d) : new Date()
     base.setDate(base.getDate() + dias)
@@ -582,12 +602,12 @@ function AbaAjustes({ sala, regras, busy, salvarRegras, patch, excluir }: {
   }
   return (
     <>
-      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>⚙️ Só o dono da liga vê</p>
+      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>{tr('⚙️ Só o dono da liga vê', '⚙️ Only the league owner sees this')}</p>
       {/* 👑 sem "quem manda junto": Diego 23/08 — "só quem manda é o host mesmo" */}
       <div className="rounded-xl border-2 border-black bg-white px-2.5 py-2 mb-2">
-        <p className="font-black text-[12px]" style={OSWALD}>📅 Próximo jogo: {quando}</p>
+        <p className="font-black text-[12px]" style={OSWALD}>{tr('📅 Próximo jogo', '📅 Next game')}: {quando}</p>
         <div className="grid grid-cols-3 gap-1.5 mt-1.5">
-          {[[1, '+1 dia'], [7, '+1 semana'], [15, '+15 dias']].map(([n, rot]) => (
+          {[[1, tr('+1 dia', '+1 day')], [7, tr('+1 semana', '+1 week')], [15, tr('+15 dias', '+15 days')]].map(([n, rot]) => (
             <button key={String(rot)} disabled={busy} onClick={() => adiar(Number(n))}
               className="border-2 border-black rounded-lg py-1.5 font-black text-[11px] bg-white active:translate-y-0.5" style={OSWALD}>📅 {rot}</button>
           ))}
@@ -595,17 +615,17 @@ function AbaAjustes({ sala, regras, busy, salvarRegras, patch, excluir }: {
       </div>
       <button disabled={busy} onClick={() => patch({ ligaFechada: !sala.semBots })}
         className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white active:translate-y-0.5 mb-2" style={OSWALD}>
-        {sala.semBots ? '🤖 Botar bots até 20 times' : '🚫 Tirar os bots — só a galera'}
+        {sala.semBots ? tr('🤖 Botar bots até 20 times', '🤖 Add bots up to 20 teams') : tr('🚫 Tirar os bots — só a galera', '🚫 Remove the bots — crew only')}
       </button>
       <button onClick={() => setAbrirRegras(v => !v)}
         className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5 mb-2" style={{ ...OSWALD, background: abrirRegras ? GOLD : '#fff' }}>
-        ⚖️ {abrirRegras ? 'Fechar' : 'Regras do ranking'}
+        ⚖️ {abrirRegras ? tr('Fechar', 'Close') : tr('Regras do ranking', 'Ranking rules')}
       </button>
       {abrirRegras && <div className="mb-2"><RegrasDaLiga regras={regras} salvar={salvarRegras} /></div>}
       <button onClick={excluir} className="w-full border-[2.5px] border-black rounded-xl py-2 font-black text-[12px] active:translate-y-0.5" style={{ ...OSWALD, background: '#C2452F', color: '#fff' }}>
-        🗑️ Excluir a liga
+        {tr('🗑️ Excluir a liga', '🗑️ Delete the league')}
       </button>
-      <p className="text-black/50 text-[10px] font-bold leading-snug mt-1.5">A sala e a sala de troféus somem pra todo mundo. Não dá pra desfazer.</p>
+      <p className="text-black/50 text-[10px] font-bold leading-snug mt-1.5">{tr('A sala e a sala de troféus somem pra todo mundo. Não dá pra desfazer.', 'The room and the trophy room disappear for everyone. This cannot be undone.')}</p>
     </>
   )
 }
@@ -630,11 +650,11 @@ export function RegrasDaLiga({ regras, salvar }: { regras: LigaRegras; salvar: (
         {(['titulos', 'pontos'] as const).map(m => (
           <button key={m} onClick={() => salvar({ ...regras, modo: m })}
             className="flex-1 font-black text-[11.5px] py-1.5" style={{ ...OSWALD, background: regras.modo === m ? GOLD : '#fff', borderLeft: m === 'pontos' ? `2.5px solid ${INK}` : undefined }}>
-            {m === 'titulos' ? '🏆 Por títulos' : '🔢 Por pontos'}
+            {m === 'titulos' ? tr('🏆 Por títulos', '🏆 By titles') : tr('🔢 Por pontos', '🔢 By points')}
           </button>
         ))}
       </div>
-      <p className="font-black text-[10px] uppercase tracking-wider text-black/45" style={OSWALD}>O que conta nesta liga</p>
+      <p className="font-black text-[10px] uppercase tracking-wider text-black/45" style={OSWALD}>{tr('O que conta nesta liga', 'What counts in this league')}</p>
       {(['liga', 'copa', 'artilheiro', 'rebaixamento'] as LigaChave[]).map(k => {
         const on = regras.ativos.includes(k)
         return (
@@ -648,7 +668,7 @@ export function RegrasDaLiga({ regras, salvar }: { regras: LigaRegras; salvar: (
               <button onClick={() => sobe(k)} className="flex-none border-2 border-black rounded-md px-1.5 font-black text-[11px] bg-white active:translate-y-0.5">⬆️</button>
             )}
             <button onClick={() => troca(k)} className="flex-none border-2 border-black rounded-md px-2 py-0.5 font-black text-[10.5px] active:translate-y-0.5"
-              style={{ ...OSWALD, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(12,12,12,.5)' }}>{on ? 'conta' : 'não conta'}</button>
+              style={{ ...OSWALD, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(12,12,12,.5)' }}>{on ? tr('conta', 'counts') : tr('não conta', 'doesn\'t count')}</button>
           </div>
         )
       })}
@@ -656,11 +676,11 @@ export function RegrasDaLiga({ regras, salvar }: { regras: LigaRegras; salvar: (
         <button onClick={() => salvar({ ...regras, rebaixaTira: !regras.rebaixaTira })}
           className="w-full border-2 border-black rounded-lg py-1.5 font-black text-[11px] active:translate-y-0.5"
           style={{ ...OSWALD, background: regras.rebaixaTira ? GREEN : '#fff', color: regras.rebaixaTira ? '#fff' : INK }}>
-          {regras.rebaixaTira ? '🔻 Cair TIRA um título' : '🔻 Cair não tira título'}
+          {regras.rebaixaTira ? tr('🔻 Cair TIRA um título', '🔻 Going down REMOVES a title') : tr('🔻 Cair não tira título', '🔻 Going down doesn\'t remove a title')}
         </button>
       )}
       <p className="text-black/50 text-[10px] font-bold leading-snug">
-        ⚖️ {resumoRegra(regras)}.<br />Isto vale <b>só dentro desta liga</b>: o ranking do jogo não é tocado.
+        ⚖️ {resumoRegra(regras)}.<br />{getLang() === 'en' ? <>This applies <b>only inside this league</b>: the game's ranking is untouched.</> : <>Isto vale <b>só dentro desta liga</b>: o ranking do jogo não é tocado.</>}
       </p>
     </div>
   )
