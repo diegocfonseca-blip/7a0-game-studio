@@ -349,10 +349,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   12º 🥵 · 13º+ 🚑, −7 por jogo, banco +15) e a lesão por desgaste (15%/30% por jogo) moram em
   `src/escalacao/condicao.ts`; mudar número = mudar lá e rodar
   `npx tsx scripts/testa-condicao.mjs`. Gás aparece SÓ nas listas do Elenco,
-  nunca no campinho (ordem dele). Liga na PRÓXIMA RODADA em QUALQUER divisão
-  (carreira solo com Agência) e não desliga — a versão "só ao subir pra Série C"
-  durou horas: *"mas é pra todos né, já liberar"* (12/09, noite). Carreira antiga
-  sem Agência fica fora, como em toda regra nova da carreira.
+  nunca no campinho (ordem dele). **Liga ao CHEGAR na Série C e não desliga**
+  (quem já está em C/B/A liga na próxima rodada). ⚠️ Em 12/09 à noite eu li um
+  *"é pra todos né"* como "todas as divisões" e soltei ~1h de gás na Várzea; ele
+  corrigiu: *"a condição física não libera de cara. Ele precisa primeiro chegar
+  na Série C pra desbloquear pra sempre. Se já tiver na Série C ou acima, libera"*.
+  "Pra todos" = todos os USUÁRIOS, nunca "todas as divisões". Carreira antiga sem
+  Agência fica fora, como em toda regra nova da carreira.
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

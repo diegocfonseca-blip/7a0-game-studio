@@ -108,6 +108,12 @@ ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, cond
 ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 5, seasonNo: 9 }), 'e continua ligado depois (mesmo caindo pra D/Várzea)')
 ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'online', agenciaOn: true, condicaoDesde: 5, seasonNo: 9 }), 'online: nunca')
 ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: false, condicaoDesde: 5, seasonNo: 9 }), 'carreira antiga (sem agenciaOn): nunca')
+// 🧹 cura da ~1h de deploy errado (12/09): ligou no MEIO da temporada estando em D/Várzea → desligado
+ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 9, condicaoDesdeR: 8, seasonNo: 9, careerDivision: 'V' }), 'cura: ligou no meio da temporada na Várzea = desligado')
+ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 9, condicaoDesdeR: 8, seasonNo: 9, careerDivision: 'D' }), 'cura: idem na Série D')
+ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 9, condicaoDesdeR: 8, seasonNo: 9, careerDivision: 'C' }), 'já estava na C quando a regra chegou: ligado (legítimo)')
+ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 9, seasonNo: 9, careerDivision: 'C' }), 'chegou na C na virada: ligado')
+ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 5, condicaoDesdeR: 8, seasonNo: 9, careerDivision: 'D' }), 'ligou na C temporadas atrás e caiu pra D: continua ligado (cura não toca)')
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')
 process.exit(falhas ? 1 : 0)

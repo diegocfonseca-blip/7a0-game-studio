@@ -59,23 +59,31 @@ Reverter = 1 commit. Não mexe em sala parada nem em save. A sala EHWPR4 já aca
 foi conferida contra os dados reais da sala. Se der ruim, o fallback é o comportamento
 de antes.
 
-## 12/09/2026 (noite) — 😓 GÁS: agora é PRA TODO MUNDO, em QUALQUER divisão
+## 12/09/2026 (noite) — 😓 GÁS: regra FINAL = só ao chegar na Série C (eu li errado por ~1h)
 
 Diego: *"ainda não atualizou a condição física"*. Fui olhar os saves dele na nuvem
 (`esc_pyramid_saves`): a carreira mais recente (Neymarzetti, T18) é **formato
 antigo** — sem `agenciaOn` e sem `careerDivision` — então, como TODA regra nova de
 carreira (eventos, contratos, escada), ela nunca ganha o gás; a outra (Neymarzetti,
-T9) está na **Várzea**, e a regra da tarde era "liga só quando sobe pra C". Fiz
-primeiro uma conta de teste só pra ele (`CONDICAO_TESTERS`, commit 2e32b5b) e ele
-respondeu: *"mas é pra todos né, já liberar"*. **Regra final:** toda carreira solo
-com Agência liga o gás na PRÓXIMA RODADA, em qualquer divisão (Várzea inclusive),
-todo mundo em 100% — no PLAY_ROUND (`condicaoDesde` + `condicaoDesdeR`). O bloco
-do CAREER_ADVANCE e a lista de testers saíram. Banner do Guia, novidade da home e
-a cena final do reels (`video-condicao-reels.mjs`) já não falam em Série C.
-Carreira antiga sem Agência (a T18 dele) continua fora — é a regra geral de toda
-feature nova da carreira; se ele quiser o gás lá, é tirar o `agenciaOn` da
-condição em `condicaoAtiva`/PLAY_ROUND (mas a lesão por desgaste usa o banner das
-Crias da Base dos eventos, que também é só Agência — conferir antes).
+T9) está na **Várzea**. Fiz primeiro uma conta de teste só pra ele
+(`CONDICAO_TESTERS`, commit 2e32b5b); ele respondeu *"mas é pra todos né, já
+liberar"* e eu entendi "todas as divisões" (commit dc254d4, ~1h no ar). **Errado**:
+era pra todos os USUÁRIOS. Correção dele: *"a condição física não libera de cara.
+Ele precisa primeiro chegar na Série C pra desbloquear pra sempre. Se já tiver na
+Série C ou acima, liberaria"*.
+**Regra final (de volta, commit seguinte):** liga na virada em que o clube CHEGA na
+C (CAREER_ADVANCE, `condicaoDesde = seasonNo+1`) — pra sempre; quem já está em
+C/B/A liga na próxima rodada (PLAY_ROUND, `condicaoDesdeR`). Lista de testers
+saiu de vez. Banner do Guia, novidade da home e cena final do reels voltaram a
+dizer Série C.
+🧹 **Cura pra quem ligou por engano na 1h errada** (D/Várzea, meio da temporada):
+`condicaoDesde === seasonNo && condicaoDesdeR != null && divisão D/V` só acontece
+por esse erro (o desbloqueio legítimo no meio da temporada exige C/B/A, e divisão
+não muda no meio) → `condicaoAtiva` já trata como desligado na tela e o PLAY_ROUND
+limpa o save na próxima rodada. Rodada que já foi jogada com gás nesse intervalo
+fica como está (passado imutável, como sempre).
+Carreira antiga sem Agência (a T18 dele) continua fora — regra geral de toda
+feature nova da carreira.
 
 ## 12/09/2026 — 😓 CONDIÇÃO / GÁS do jogador (carreira solo) — FEITO no branch, aguardando OK do print
 

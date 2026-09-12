@@ -12,7 +12,7 @@
 //   7,6–11,4  cansado joga pior — e pode se machucar de desgaste (15% · 30%)
 //   11,4–15,0 o banco recupera +15 por rodada (barra enchendo)
 //   15,0–18,4 o preparador avisa · RODIZIAR — você decide, o jogo nunca troca sozinho
-//   18,4–22,0 já vale pra todo mundo, em qualquer divisão · próxima rodada, todos em 100% · marca
+//   18,4–22,0 libera ao subir pra Série C · quem já está na C/B/A: próxima rodada · marca
 //
 //   node scripts/video-condicao-reels.mjs [--saida condicao-reels.mp4]
 //   (ffmpeg: usa `ffmpeg-static` se instalado, senão FFMPEG=/caminho/ffmpeg, senão o do PATH)
@@ -171,11 +171,11 @@ ${cena(15.0, 18.4, `
 ${cena(18.4, 30, `
   <p style="font-size:120px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 18.55s both">🏆</p>
   <p style="${OSW};font-size:66px;text-transform:uppercase;text-align:center;line-height:1.1;margin:16px 0 30px;
-    animation:sobe .45s 18.85s both">vale pra <span style="color:${GREEN}">todo mundo</span><br>em qualquer divisão</p>
+    animation:sobe .45s 18.85s both">libera quando o clube<br><span style="color:${GREEN}">sobe pra Série C</span></p>
   <div style="width:880px;background:#fff;border:5px solid ${INK};border-radius:22px;box-shadow:7px 7px 0 ${INK};padding:22px 30px;
     animation:entra .5s cubic-bezier(.2,1.5,.4,1) 19.4s both">
-    <p style="${OSW};font-size:44px;text-transform:uppercase">quando começa?</p>
-    <p style="font-size:34px;font-weight:800;color:rgba(12,12,12,.7);margin-top:8px;line-height:1.3">na sua <b>próxima rodada</b> — todo mundo começa em 100%</p>
+    <p style="${OSW};font-size:44px;text-transform:uppercase">já está na C, B ou A?</p>
+    <p style="font-size:34px;font-weight:800;color:rgba(12,12,12,.7);margin-top:8px;line-height:1.3">libera na <b>próxima rodada</b> — todo mundo começa em 100%</p>
   </div>
   <div style="margin-top:40px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 19.9s both">${pill('já está no ar', GOLD, INK, 40)}</div>
   <p style="${OSW};font-size:60px;margin-top:56px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 20.4s infinite">

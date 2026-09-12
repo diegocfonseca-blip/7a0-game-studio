@@ -591,14 +591,16 @@ export interface EscState {
   // banner que o técnico já fechou (toque em "Entendi!") — nunca mais aparece
   // NESTA carreira. Zera junto com tudo o mais na fundação de carreira nova.
   careerSeen?: Record<string, true>
-  // 😓 CONDIÇÃO / GÁS (12/09): temporada em que o gás ligou nesta carreira — a
-  // partir dela vale (ver condicao.ts). Ausente = ainda não ligou. Gravado no
-  // PLAY_ROUND da primeira rodada jogada depois da regra chegar, em qualquer
-  // divisão. Nunca desliga. O gás em si NÃO é guardado: é derivado de careerLineup.
+  // 😓 CONDIÇÃO / GÁS (12/09): temporada em que o clube chegou na Série C — a
+  // partir dela o gás vale (ver condicao.ts). Ausente = ainda não ligou. Gravado na
+  // VIRADA (CAREER_ADVANCE) ou, pra quem já estava em C/B/A quando a regra chegou,
+  // no PLAY_ROUND (com condicaoDesdeR). Não desliga se o clube cair de volta.
+  // O gás em si NÃO é guardado: é derivado de careerLineup.
   condicaoDesde?: number
-  // 😓 rodada (0-based) a partir da qual o gás CONTA na temporada `condicaoDesde`
+  // 😓 rodada (0-based) a partir da qual o gás CONTA na temporada `condicaoDesde` —
+  // só existe quando o clube JÁ ESTAVA em C/B/A na hora em que a regra chegou
   // (liga na próxima rodada, todo mundo em 100%, e rodada passada não muda).
-  // Ausente/0 = conta desde a rodada 0.
+  // Ausente/0 = ligou na virada, conta desde a rodada 0.
   condicaoDesdeR?: number
   // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
   // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).

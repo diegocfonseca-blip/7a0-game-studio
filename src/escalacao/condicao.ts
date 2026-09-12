@@ -27,9 +27,13 @@
 //     ser recuperada de cara"*): quem só está 😓 volta inteiro com 1 rodada fora;
 //     quem está 🚑 precisa de 2-3. Quem volta de lesão volta com o gás QUE TEM —
 //     nunca zerado pra 100 só porque o jogo precisou dele.
-//   · liga na PRÓXIMA RODADA de qualquer carreira solo com Agência, em QUALQUER
-//     divisão (Diego 12/09, à noite: *"mas é pra todos né, já liberar"* — a versão
-//     "só ao subir pra Série C" viveu algumas horas). Uma vez ligado, não desliga.
+//   · liga quando o clube SOBE PRA SÉRIE C (não por temporada — *"3ª temporada
+//     acho mt rápido… apenas quando subir pra Série C"*); quem já está em C/B/A
+//     liga na próxima rodada. Uma vez ligado, não desliga se cair de volta.
+//     ⚠️ Em 12/09 à noite eu entendi errado um *"é pra todos né"* (era pra todos
+//     os USUÁRIOS, não pra todas as divisões) e a regra ficou ~1h "em qualquer
+//     divisão". Ele corrigiu: *"a condição física não libera de cara. Ele precisa
+//     primeiro chegar na Série C pra desbloquear pra sempre"*. Não repetir.
 //   · bots NÃO cansam (baseline plano): quem rodizia bem também não paga nada —
 //     é camada de gestão, não imposto. Copa Legends também fica de fora.
 //
@@ -67,11 +71,16 @@ export const emojiGas = (e: EstadoGas): string => (e === 'ok' ? '💪' : e === '
 export const corGas = (e: EstadoGas): string => (e === 'ok' ? '#1B7A3D' : e === 'cansado' ? '#D9A000' : e === 'limite' ? '#C2452F' : '#7A1B1B')
 
 // ─── ligado ou não, PARA ESTA CARREIRA/TEMPORADA ─────────────────────────────
-// `condicaoDesde` = temporada em que o gás ligou nesta carreira (gravado no
-// PLAY_ROUND, junto com `condicaoDesdeR` = rodada a partir da qual conta).
-export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; agenciaOn?: boolean; condicaoDesde?: number; seasonNo?: number }): boolean {
+// `condicaoDesde` = temporada em que o clube chegou na Série C (gravado na virada,
+// CAREER_ADVANCE) — ou a temporada corrente + `condicaoDesdeR`, pra quem já estava
+// em C/B/A quando a regra chegou. Temporada em andamento nunca muda de regra no meio.
+export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; agenciaOn?: boolean; condicaoDesde?: number; condicaoDesdeR?: number; seasonNo?: number; careerDivision?: string | null }): boolean {
   if (!CONDICAO_ON) return false
   if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return false
+  // 🧹 mesma cura do PLAY_ROUND: ligou NO MEIO da temporada estando em D/Várzea =
+  // veio da ~1h de deploy errado de 12/09 (legítimo só em C/B/A). Trata como desligado
+  // já na tela, antes mesmo de a próxima rodada limpar o save.
+  if (s.condicaoDesde === (s.seasonNo ?? 1) && s.condicaoDesdeR != null && (s.careerDivision === 'D' || s.careerDivision === 'V')) return false
   return s.condicaoDesde != null && (s.seasonNo ?? 1) >= s.condicaoDesde
 }
 
