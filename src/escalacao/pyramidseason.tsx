@@ -3039,7 +3039,7 @@ function DivMatches({ div, matches, colors, humans, hideId, reveal = true }: { d
                     (placar e gol escondidos). Todos revelam juntos quando o seu apito soa. */}
                 {reveal
                   ? <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD, background: bg ? INK : '#eee', color: bg ? '#fff' : INK, borderRadius: 5, padding: '0 7px' }}>{m.hg}×{m.ag}</span>
-                  : <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, background: '#efe4c8', color: 'rgba(0,0,0,.55)', borderRadius: 5, padding: '0 7px', whiteSpace: 'nowrap' }}>🟢 em jogo</span>}
+                  : <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, background: '#efe4c8', color: 'rgba(0,0,0,.55)', borderRadius: 5, padding: '0 7px', whiteSpace: 'nowrap' }}>{tr('🟢 em jogo', '🟢 in play')}</span>}
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, fontWeight: bg ? 900 : 600, fontSize: 11.5, ...OSWALD, color: nameCol(m.aId) }}>
                   <Escudo nome={m.a} size={16} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.a}</span>
                 </span>
@@ -3056,7 +3056,10 @@ function DivMatches({ div, matches, colors, humans, hideId, reveal = true }: { d
 // ── ELENCO: seu time por posição, com o VALOR (piso) de cada jogador. Os
 // melhores de cada posição (pela formação) são os titulares (fundo creme); as
 // reservas aparecem AO LADO, na mesma linha de posição. Sem estrela/badge. ──
-const POS_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
+const POS_LABEL_PT: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
+const POS_LABEL_EN: Record<Sector, string> = { GOL: 'Goalkeepers', LAT: 'Full-backs', ZAG: 'Centre-backs', MEI: 'Midfielders', ATA: 'Forwards' }
+// 🌐 lê o idioma a cada acesso (Proxy barato): `POS_LABEL[pos]` continua igual nos usos
+const POS_LABEL: Record<Sector, string> = new Proxy(POS_LABEL_PT, { get: (_t, k) => (getLang() === 'en' ? POS_LABEL_EN : POS_LABEL_PT)[k as Sector] })
 type ListCfg = { listed: boolean; listable: boolean; onList: () => void }
 function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boolean; col: FCol; onSwap?: () => void; list?: ListCfg }) {
   const listed = !!list?.listed
@@ -6662,12 +6665,12 @@ export function PyramidSeasonScreen() {
                   no topo — "Liga Legends" — pra dar par com a Copa do Brasil
                   Legends. A divisão desce pra linha de baixo (mesmo lugar onde
                   a Copa mostra o formato da fase). */}
-              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>Temporada {state.seasonNo} · {copaPlaying ? label : '⚽ Liga Legends'}</div>
-              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? copaFaseName : done ? 'Encerrada' : round === 0 ? 'Começando…' : <>Rodada <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.3 }}>{copaPlaying ? `${sub} · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'}` : me ? DIV_NAME[me.div] : ''}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{tr('Temporada', 'Season')} {state.seasonNo} · {copaPlaying ? label : '⚽ Liga Legends'}</div>
+              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? copaFaseName : done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : <>{tr('Rodada', 'Round')} <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.3 }}>{copaPlaying ? `${sub} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')}` : me ? DIV_NAME[me.div] : ''}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
-              {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {me.pos}º</span>}
+              {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {ordinal(me.pos)}</span>}
               <CoinsBadge coins={state.careerCoins?.[youId] ?? 0} />
             </div>
           </div>
@@ -6678,7 +6681,7 @@ export function PyramidSeasonScreen() {
           <div style={{ padding: '0 14px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 20, lineHeight: 1 }}>{torcidaFace(torcidaPct)}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: .5, textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' }}>Torcida</div>
+              <div style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: .5, textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' }}>{tr('Torcida', 'Fans')}</div>
               <div style={{ height: 6, borderRadius: 4, background: 'rgba(255,255,255,.15)', overflow: 'hidden', marginTop: 2 }}><div style={{ height: '100%', width: `${torcidaPct}%`, background: torcidaCor(torcidaPct) }} /></div>
             </div>
             <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD }}>{torcidaPct}%</span>
@@ -6714,14 +6717,14 @@ export function PyramidSeasonScreen() {
             mantém o cartão, porque aí é comemoração, não informação repetida. */}
         {done && me && me.champ && !copaPlaying && (
           <div style={{ ...box(GOLD), padding: 12, marginBottom: 12, textAlign: 'center' }}>
-            <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>🏆 CAMPEÃO DA {DIV_NAME[me.div].toUpperCase()}!</p>
+            <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0 }}>{tr(`🏆 CAMPEÃO DA ${DIV_NAME[me.div].toUpperCase()}!`, `🏆 ${DIV_NAME[me.div].toUpperCase()} CHAMPION!`)}</p>
           </div>
         )}
         {/* quem ainda NÃO é tester continua com o aviso de que a Copa Legends
             começou (o banner grande abaixo é só da Copa do Brasil). */}
         {!privateCareer && copaPlaying && copaRound === 0 && !copaBrOk && (
           <div style={{ ...box('#fff'), padding: '9px 12px', marginBottom: 12, textAlign: 'center' }}>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', margin: 0 }}>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', margin: 0 }}>{getLang() === 'en' ? <>League season over. Now the <b>Copa Legends</b> begins — another competition 👇</> : <>Fim da temporada da liga. Agora começa a <b>Copa Legends</b> — outro campeonato 👇</>}</p>
           </div>
         )}
         {/* 🎉 BANNER "chegou a Copa" — 1x só, na 1ª fase. Diego 16/08: pediu
@@ -6734,12 +6737,12 @@ export function PyramidSeasonScreen() {
           <div style={{ ...box(COPA_BR_HOLO), position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
             <CopaLegSheen />
             <div style={{ padding: '14px 14px 10px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
-              <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0, color: GOLD, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🇧🇷 CHEGOU A COPA DO BRASIL LEGENDS!</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '7px 0 0', padding: '3px 10px', borderRadius: 999 }}>100 clubes · a caçada pela taça começa</p>
+              <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0, color: GOLD, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>{tr('🏆🇧🇷 CHEGOU A COPA DO BRASIL LEGENDS!', '🏆🇧🇷 THE COPA DO BRASIL LEGENDS IS HERE!')}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '7px 0 0', padding: '3px 10px', borderRadius: 999 }}>{tr('100 clubes · a caçada pela taça começa', '100 clubs · the hunt for the cup begins')}</p>
             </div>
             <div style={{ padding: '9px 14px 12px', borderTop: '1px solid rgba(255,255,255,.2)', position: 'relative', zIndex: 2, fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', lineHeight: 1.6 }}>
-              <p style={{ margin: '0 0 3px' }}>🗺️ Peneira → Chave de 64 → Rodada de 32 (jogo único) → Oitavas → Quartas → Semi (ida e volta) → Final.</p>
-              <p style={{ margin: 0 }}>👥 Direto (28): Série A + 8 melhores da B. Na peneira (72): Várzea + C + D + 12 piores da B.</p>
+              <p style={{ margin: '0 0 3px' }}>{tr('🗺️ Peneira → Chave de 64 → Rodada de 32 (jogo único) → Oitavas → Quartas → Semi (ida e volta) → Final.', '🗺️ Qualifiers → Round of 64 → Round of 32 (one-off) → Round of 16 → Quarters → Semis (two legs) → Final.')}</p>
+              <p style={{ margin: 0 }}>{tr('👥 Direto (28): Série A + 8 melhores da B. Na peneira (72): Várzea + C + D + 12 piores da B.', '👥 Direct (28): Série A + top 8 of B. Qualifiers (72): Várzea + C + D + bottom 12 of B.')}</p>
             </div>
           </div>
         )}
@@ -6750,7 +6753,16 @@ export function PyramidSeasonScreen() {
             onde VOCÊ entra, POR QUE, e o que acontece agora. */}
         {!privateCareer && copaPlaying && copaBrOk && copaRound === 0 && me && (() => {
           const direto = me.div === 'A' || (me.div === 'B' && me.pos <= 8)
-          const motivo = me.div === 'A'
+          const enCB = getLang() === 'en'
+          const motivo = enCB
+            ? (me.div === 'A'
+              ? <>Finished <b>{ordinal(me.pos)} in Série A</b> — the <b>whole of Série A</b> goes straight in, skipping the qualifiers.</>
+              : me.div === 'B' && me.pos <= 8
+                ? <>Finished <b>{ordinal(me.pos)} in Série B</b> — the <b>top 8 of Série B</b> go straight in, skipping the qualifiers. That was the prize for the league campaign.</>
+                : me.div === 'B'
+                  ? <>Finished <b>{ordinal(me.pos)} in Série B</b> — the <b>bottom 12 of Série B</b> play the qualifiers alongside Várzea, Série C and Série D.</>
+                  : <>You are in <b>{DIV_NAME[me.div]}</b> — <b>all of Várzea, Série C and Série D</b> play the qualifiers, whatever the position.</>)
+            : me.div === 'A'
             ? <>Terminou em <b>{me.pos}º na Série A</b> — a <b>Série A inteira</b> entra direto, sem passar pela peneira.</>
             : me.div === 'B' && me.pos <= 8
               ? <>Terminou em <b>{me.pos}º na Série B</b> — os <b>8 melhores da Série B</b> entram direto, sem passar pela peneira. Foi o prêmio pela campanha na Liga.</>
@@ -6759,12 +6771,12 @@ export function PyramidSeasonScreen() {
                 : <>Você é da <b>{DIV_NAME[me.div]}</b> — <b>Várzea, Série C e Série D inteiras</b> jogam a peneira, não importa a colocação.</>
           return (
             <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 12 }}>
-              <div style={{ background: direto ? '#0EA658' : '#B8892B', color: '#fff', fontSize: 10, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', padding: '6px 12px', ...OSWALD }}>{direto ? '🎟️ A sua Copa' : '⚔️ A sua Copa'}</div>
+              <div style={{ background: direto ? '#0EA658' : '#B8892B', color: '#fff', fontSize: 10, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', padding: '6px 12px', ...OSWALD }}>{direto ? tr('🎟️ A sua Copa', '🎟️ Your Cup') : tr('⚔️ A sua Copa', '⚔️ Your Cup')}</div>
               <div style={{ padding: '11px 13px 12px' }}>
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, lineHeight: 1.15, margin: '0 0 5px' }}>{direto ? 'VOCÊ JÁ ESTÁ NA CHAVE DE 64' : 'VOCÊ COMEÇA NA PENEIRA'}</p>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, lineHeight: 1.15, margin: '0 0 5px' }}>{direto ? tr('VOCÊ JÁ ESTÁ NA CHAVE DE 64', 'YOU ARE ALREADY IN THE ROUND OF 64') : tr('VOCÊ COMEÇA NA PENEIRA', 'YOU START IN THE QUALIFIERS')}</p>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.72)', lineHeight: 1.45, margin: 0 }}>{motivo}</p>
                 <div style={{ marginTop: 9, padding: '8px 10px', borderRadius: 9, fontSize: 10.5, fontWeight: 800, lineHeight: 1.4, background: direto ? '#DFF6E8' : '#FFF3CF', border: `2px solid ${direto ? '#9adcb6' : '#e6c96a'}`, color: direto ? '#0a6b3c' : '#7a5f14' }}>
-                  {direto ? '⏳ Você não joga a peneira. Sente e assista: ela decide quem vai te enfrentar na sua estreia.' : '⚔️ Ganhou, entra na chave de 64. Perdeu, acabou a Copa. Jogo único, sem volta.'}
+                  {direto ? tr('⏳ Você não joga a peneira. Sente e assista: ela decide quem vai te enfrentar na sua estreia.', '⏳ You skip the qualifiers. Sit back and watch: they decide who you face in your debut.') : tr('⚔️ Ganhou, entra na chave de 64. Perdeu, acabou a Copa. Jogo único, sem volta.', '⚔️ Win and you enter the round of 64. Lose and the Cup is over. One match, no second leg.')}
                 </div>
               </div>
             </div>
@@ -6774,11 +6786,11 @@ export function PyramidSeasonScreen() {
             jogo dos outros sem entender por que não tem o dele na tela. */}
         {copaPlaying && copaBrOk && !myCopaTie && copaFase && (
           <div style={{ background: '#DFF6E8', border: '3px solid #0EA658', borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, padding: '11px 13px', textAlign: 'center', marginBottom: 12 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#0a6b3c', margin: 0 }}>⏳ VOCÊ NÃO JOGA ESTA FASE</p>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#0a6b3c', margin: 0 }}>{tr('⏳ VOCÊ NÃO JOGA ESTA FASE', '⏳ YOU DO NOT PLAY THIS ROUND')}</p>
             <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0' }}>
               {copaRound === 0
-                ? 'Já está classificado — sua estreia é na próxima (Chave de 64). Abaixo, os jogos que estão decidindo seus adversários.'
-                : 'Seu time já foi eliminado da Copa. Abaixo, os jogos que continuam valendo a taça.'}
+                ? tr('Já está classificado — sua estreia é na próxima (Chave de 64). Abaixo, os jogos que estão decidindo seus adversários.', 'You are already through — your debut is next (Round of 64). Below, the matches deciding your opponents.')
+                : tr('Seu time já foi eliminado da Copa. Abaixo, os jogos que continuam valendo a taça.', 'Your team is out of the Cup. Below, the matches still playing for the trophy.')}
             </p>
           </div>
         )}
@@ -6786,11 +6798,11 @@ export function PyramidSeasonScreen() {
           <div style={{ ...box(SUPERCOPA_HOLO), position: 'relative', overflow: 'hidden', marginBottom: 12 }}>
             <CopaLegSheen />
             <div style={{ padding: '14px 14px 10px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
-              <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0, color: GOLD, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>🏆🔵 CHEGOU A SUPERCOPA LEGENDS!</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '7px 0 0', padding: '3px 10px', borderRadius: 999 }}>Campeão da Liga × Campeão da Copa do Brasil</p>
+              <p style={{ fontWeight: 900, fontSize: 17, ...OSWALD, margin: 0, color: GOLD, textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>{tr('🏆🔵 CHEGOU A SUPERCOPA LEGENDS!', '🏆🔵 THE SUPERCOPA LEGENDS IS HERE!')}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.25)', display: 'inline-block', margin: '7px 0 0', padding: '3px 10px', borderRadius: 999 }}>{tr('Campeão da Liga × Campeão da Copa do Brasil', 'League champion × Copa do Brasil champion')}</p>
             </div>
             <div style={{ padding: '9px 14px 12px', borderTop: '1px solid rgba(255,255,255,.2)', position: 'relative', zIndex: 2, fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', textAlign: 'center' }}>
-              Jogo único. Se o mesmo time ganhar a Liga E a Copa do Brasil, o vice da Liga joga essa final no lugar dele.
+              {tr('Jogo único. Se o mesmo time ganhar a Liga E a Copa do Brasil, o vice da Liga joga essa final no lugar dele.', 'One match. If the same team wins the League AND the Copa do Brasil, the league runner-up plays this final instead.')}
             </div>
           </div>
         )}
@@ -6838,7 +6850,7 @@ export function PyramidSeasonScreen() {
             })()} />
         )}
         {copaFinished && copa?.champion && (
-          <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? '👉 Ver fases e resultados na aba Tabelas' : '👉 ver o chaveamento da Copa na aba Tabelas'}</button>
+          <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? tr('👉 Ver fases e resultados na aba Tabelas', '👉 See rounds and results in the Tables tab') : tr('👉 ver o chaveamento da Copa na aba Tabelas', '👉 see the Cup bracket in the Tables tab')}</button>
         )}
         {!done && myMatch && me && <MyMatchCard onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
@@ -6895,12 +6907,12 @@ export function PyramidSeasonScreen() {
               const primeira = !(state.tvBannerSeen ?? []).length
               return (
                 <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
-                  <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Contrato de TV</span>
-                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{primeira ? <>A <span style={{ color: GOLD }}>TV descobriu</span> seu clube!</> : <>Contrato de TV <span style={{ color: GOLD }}>melhorou</span>!</>}</p>
-                  <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me!.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Martelo TV</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me!.div}</b> e a audiência cresceu — a <b>Rede Martelo TV</b> renovou por mais grana. 📡</>}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} por temporada <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>· direto no caixa</span></div>
-                  <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Tudo do contrato mora em: 🏟️ Clube › 🤝 Patrocínio</p>
-                  <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me!.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 10, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Bora! 📺</button>
+                  <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>{tr('📺 Contrato de TV', '📺 TV deal')}</span>
+                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{getLang() === 'en' ? (primeira ? <><span style={{ color: GOLD }}>TV found</span> your club!</> : <>TV deal <span style={{ color: GOLD }}>upgraded</span>!</>) : primeira ? <>A <span style={{ color: GOLD }}>TV descobriu</span> seu clube!</> : <>Contrato de TV <span style={{ color: GOLD }}>melhorou</span>!</>}</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{getLang() === 'en' ? (primeira ? <>"Out of the Sunday-league mud and into <b>Série {me!.div}</b>?! Now you're on the telly, pal!" — <b>Rede Martelo TV</b> signed your club's first broadcast deal. 📡</> : <>Up to <b>Série {me!.div}</b> and the audience grew — <b>Rede Martelo TV</b> renewed for more money. 📡</>) : primeira ? <>"Saiu da lama da várzea e chegou na <b>Série {me!.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Martelo TV</b> assinou o 1º contrato de transmissão do seu clube. 📡</> : <>Subiu pra <b>Série {me!.div}</b> e a audiência cresceu — a <b>Rede Martelo TV</b> renovou por mais grana. 📡</>}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} {tr('por temporada', 'per season')} <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>{tr('· direto no caixa', '· straight into the till')}</span></div>
+                  <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>{tr('Tudo do contrato mora em: 🏟️ Clube › 🤝 Patrocínio', 'Everything about the deal lives in: 🏟️ Club › 🤝 Sponsorship')}</p>
+                  <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me!.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 10, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('Bora! 📺', 'Let\'s go! 📺')}</button>
                 </div>
               )
             },
@@ -6913,14 +6925,14 @@ export function PyramidSeasonScreen() {
           if (temTVExtra) fila.push({
             key: 'tvextra', render: () => (
               <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
-                <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>📺 Novidade da emissora</span>
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>A TV agora paga <span style={{ color: GOLD }}>cota extra!</span></p>
-                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram, TikTok ou YouTube</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+{TV_EXTRA_POR_VIDEO} 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>🎬 1 vídeo por temporada · +{TV_EXTRA_POR_VIDEO} 🪙 cada<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>· 100 temporadas = {(TV_EXTRA_POR_VIDEO * 100).toLocaleString('pt-BR')} 🪙 de cota extra</span></div>
-                <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>Fica pra sempre em: 🏟️ Clube › 🤝 Patrocínio</p>
+                <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>{tr('📺 Novidade da emissora', '📺 News from the network')}</span>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{getLang() === 'en' ? <>TV now pays an <span style={{ color: GOLD }}>extra fee!</span></> : <>A TV agora paga <span style={{ color: GOLD }}>cota extra!</span></>}</p>
+                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#EDE7D3' }}>{getLang() === 'en' ? <><b>Rede Martelo TV</b> already pays your division's fee — and now pays an <b>EXTRA fee</b> for every match shown <b>on social media</b>: record a video (15s+) of your game screen, post it on <b>Instagram, TikTok or YouTube</b> tagging <b>@leilaolegendscom</b>, paste the link in the game… and <b>+{TV_EXTRA_POR_VIDEO} 🪙</b> land in the club's till. 📵 Photos don't count — only video with the game running.</> : <>A <b>Rede Martelo TV</b> já paga a cota da sua divisão — e agora paga <b>cota EXTRA</b> por jogo que passa <b>nas redes sociais</b>: grava um vídeo (15s+) da tela do seu jogo, posta no <b>Instagram, TikTok ou YouTube</b> marcando <b>@leilaolegendscom</b>, cola o link no jogo… e <b>+{TV_EXTRA_POR_VIDEO} 🪙</b> caem na caixa do clube. 📵 Foto não vale — só vídeo com o jogo acontecendo.</>}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>{tr('🎬 1 vídeo por temporada', '🎬 1 video per season')} · +{TV_EXTRA_POR_VIDEO} 🪙 {tr('cada', 'each')}<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>{tr('· 100 temporadas =', '· 100 seasons =')} {(TV_EXTRA_POR_VIDEO * 100).toLocaleString('pt-BR')} 🪙 {tr('de cota extra', 'in extra fees')}</span></div>
+                <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>{tr('Fica pra sempre em: 🏟️ Clube › 🤝 Patrocínio', 'Lives forever in: 🏟️ Club › 🤝 Sponsorship')}</p>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                  <button onClick={() => { dispatch({ type: 'TV_EXTRA_VISTO' }); setTvFoco(true); setTab('estadio'); setClubeSub('patrocinio') }} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>🎬 Quero televisionar</button>
-                  <button onClick={() => dispatch({ type: 'TV_EXTRA_VISTO' })} style={{ flex: 'none', background: 'transparent', color: '#EDE7D3', border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, fontWeight: 900, fontSize: 13, padding: '10px 14px', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>Depois</button>
+                  <button onClick={() => { dispatch({ type: 'TV_EXTRA_VISTO' }); setTvFoco(true); setTab('estadio'); setClubeSub('patrocinio') }} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('🎬 Quero televisionar', '🎬 I want to broadcast')}</button>
+                  <button onClick={() => dispatch({ type: 'TV_EXTRA_VISTO' })} style={{ flex: 'none', background: 'transparent', color: '#EDE7D3', border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, fontWeight: 900, fontSize: 13, padding: '10px 14px', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('Depois', 'Later')}</button>
                 </div>
               </div>
             ),
@@ -6931,7 +6943,7 @@ export function PyramidSeasonScreen() {
               {fila.length > 1 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                   {fila.map((it, i) => <div key={it.key} style={{ width: 7, height: 7, borderRadius: 999, background: i === 0 ? INK : 'rgba(12,12,12,0.18)' }} />)}
-                  <span style={{ ...OSWALD, fontWeight: 800, fontSize: 10.5, textTransform: 'uppercase', color: 'rgba(0,0,0,.55)' }}>1 de {fila.length} avisos pendentes</span>
+                  <span style={{ ...OSWALD, fontWeight: 800, fontSize: 10.5, textTransform: 'uppercase', color: 'rgba(0,0,0,.55)' }}>{tr(`1 de ${fila.length} avisos pendentes`, `1 of ${fila.length} pending notices`)}</span>
                 </div>
               )}
               {fila[0].render()}
@@ -6963,7 +6975,9 @@ export function PyramidSeasonScreen() {
             Fica FORA da fila (não é decisão, é só um lembrete curto). */}
         {!done && suspenso && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 11px', marginBottom: 10, background: '#FDE9C8', fontWeight: 800, fontSize: 11, lineHeight: 1.4 }}>
-            {eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> está fora ({suspenso.tipo === 'noitada' ? 'foi pro banco depois da noitada' : suspenso.tipo === 'expulsao' ? 'cumprindo gancho' : 'se recuperando da lesão'}) — volta na <b>rodada {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} segura a vaga.</> : null}
+            {getLang() === 'en'
+              ? <>{eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> is out ({suspenso.tipo === 'noitada' ? 'benched after the night out' : suspenso.tipo === 'expulsao' ? 'serving a ban' : 'recovering from injury'}) — back in <b>round {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} holds the spot.</> : null}</>
+              : <>{eventoEmoji(suspenso.tipo)} <b>{suspenso.nome}</b> está fora ({suspenso.tipo === 'noitada' ? 'foi pro banco depois da noitada' : suspenso.tipo === 'expulsao' ? 'cumprindo gancho' : 'se recuperando da lesão'}) — volta na <b>rodada {(suspenso.volta ?? 0) + 1}</b>.{suspenso.subNome ? <> {suspenso.subNome} segura a vaga.</> : null}</>}
           </div>
         )}
         {/* 🤝 PATROCÍNIO POR APOSTA (05/08): contrato de início de temporada — aparece
