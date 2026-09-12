@@ -1,3 +1,62 @@
+## 12/09/2026 — 📲 As imagens de COMPARTILHAR viraram cópia da tela · ⚡ pênalti ilustrado liberado · 🌐 as 100 manchetes em inglês
+
+Gatilho: o Diego mandou print do grupo com a figura do jornal e disse *"já
+atualizamos mt coisa no jogo e os compartilhamentos continuam antigos"*. Depois
+corrigiu o meu rumo: *"o jornal atual hj já mudou aparência.. só o compartilhar q
+ainda não"* — e era isso mesmo.
+
+### O que estava errado
+As duas imagens (jornal e elenco) são desenhadas **à mão num canvas**, separado do
+que a tela renderiza. Quando a tela virou o visual V22 (masthead centralizado,
+ilustrações liga/copa/artilheiro, escudo por cima da foto, notas em 2 colunas) e o
+campinho virou o jogador SOLTO na grama com rosto, **o canvas não acompanhou**.
+Ele continuava desenhando quadro verde chapado, tabela de números e fichinha
+branca com o nome escrito. Ninguém percebeu porque as duas coisas vivem em
+arquivos diferentes e nada liga uma na outra.
+
+### O que foi feito (`jornal.tsx`, as duas funções reescritas)
+- **`buildJornalBlob`** agora desenha o V22. O escudo do campeão da liga ganhou
+  **prancha creme com borda** — sobre a arte escura ele sumia, e foi exatamente o
+  que o Diego cobrou (*"só senti falta do escudo do time campeão da liga"*).
+- **`buildElencoBlob`** agora desenha o campinho: jogador solto, **rosto** da
+  lenda, bolinha no **manto** pra quem não tem, clube/ano, selo de gols, faixa do
+  manto, placa do patrocinador e a **mascote** no rodapé.
+- Helpers novos: `loadImg`, `drawCover` (object-fit cover) e `mascoteImg`
+  (rasteriza a mascote igual o `escudoImg` já fazia com o brasão).
+- 🧑 **ERRO MEU, corrigido no mesmo dia**: eu tinha travado o rosto em
+  `onlinePreviewEnabled()` (a prévia das 2 contas) achando que o avatar era
+  privado. **Não é** — `LEGEND_AVATARS_RELEASED = true` desde 10/09 e o campinho
+  usa `useLegendPresentation()`. O Diego pegou na hora: *"vc esqueceu de por as
+  lendas c foto q já tem no jogo"*. Agora **quem manda é a tela**: o botão lê o
+  mesmo hook do campinho e passa em `ElencoShareOpts.rostos`. Os dois não podem
+  mais divergir. ⚠️ **Lição**: existem TRÊS travas parecidas (`online-preview` =
+  2 contas · `useCareerPresentation` · `useLegendPresentation`) — conferir qual a
+  TELA usa antes de copiar o comportamento dela.
+- 🌐 As duas imagens e os botões saem no idioma do site.
+
+### ⚡ Pênalti ilustrado — LIBERADO GERAL
+Estava pronto na main e travado nas duas contas desde 10/09. Agora segue o padrão
+dos avatares: `PENALTY_ART_RELEASED` em `career-feature-release.ts` +
+`usePenaltyPresentation()`. **Reverter = trocar a flag pra `false`.**
+📌 Resposta à pergunta dele (*"somente ele pode publicar ou vc tb consegue?"*):
+qualquer sessão publica — Codex e Claude empurram pra MESMA `main` e o deploy roda
+sozinho. Não existe exclusividade.
+
+### 🌐 As 100 manchetes do fim de temporada em inglês
+`HEADLINES_EN` (5 divisões × 20 colocações) + as notas da Copa e da Supercopa,
+traduzidas **pelo SENTIDO** (a graça é a piada, não a palavra). Era a última parte
+que saía em PT na imagem em EN. Divisão não se traduz. Na imagem em EN a
+colocação vira `1st` e `V·E·D` vira `W·D·L`.
+
+### Como foi conferido
+`scripts/teste-share/` (novo): bancada que roda no vite e gera as DUAS imagens com
+o **código de verdade** do jogo, num navegador. Não entra no build (só a
+`index.html` da raiz vira página). Os mockups aprovados ficaram em
+`scripts/mockup-share-jornal.mjs` e `scripts/mockup-share-elenco.mjs`.
+
+- 📢 Duas linhas em `novidades.ts`, com `en`.
+- ✅ **Publicado na main em 12/09** com o "pode" do Diego.
+
 ## 12/09/2026 — 🎴 Leva de 23 cartas novas (a lista que o Diego escolheu)
 
 Ele pediu indicação de **jogadores homens que não estivessem em NENHUM baralho,
