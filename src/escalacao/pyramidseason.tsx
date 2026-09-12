@@ -2839,19 +2839,43 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
 // suspense). Depois de BATER, NÃO volta. Gol → GOOOOL + confete (+ mascote de quem tem).
 // O resultado (converteu ou não) sobe pro onDone → o motor soma o gol no jogo.
 const PEN_SKILL: Record<EmpCat, number> = { lenda: 0.95, craque: 0.85, promessa: 0.72, bom: 0.58, prof: 0.45 }
-const PEN_INTRO: Record<EmpCat, string[]> = {
+// 🌐 BR/EN (12/09): a narração do pênalti nasceu só em PT. O inglês é tradução
+// PELO SENTIDO, não ao pé da letra — é zoeira de narrador, então vale a graça
+// equivalente, na MESMA quantidade de frases (o sorteio usa o índice, e uma
+// lista mais curta num idioma repetiria mais pra quem joga em inglês).
+const PEN_INTRO_PT: Record<EmpCat, string[]> = {
   lenda: ['👑 O REI assume! Frieza absoluta — o estádio em SILÊNCIO.', '👑 Craque de placa pega a bola. Isso aqui é pão com manteiga pra ele.', '👑 O maestro ajeita a grama, encara o goleiro e sorri...'],
   craque: ['⭐ O craque da equipe na responsa — pé de anjo.', '⭐ Confiança total: já bateu mil desses.', '⭐ Bola nos pés do xodó da torcida.'],
   promessa: ['💎 A joia da base assume — talento de sobra, sangue frio a testar.', '💎 A promessa pede a bola. Coragem não falta!'],
   bom: ['📇 Jogador rodado pega a bola — experiência conta.', '📇 Ele já viu de tudo no futebol. Calma nessa hora.'],
   prof: ['💼 Ele se oferece pra bater. Vai na fé!', '💼 Sem medo: pegou a bola e foi.'],
 }
-const PEN_GO = ['GOOOOOL!', 'É GOL!', 'NA REDE!', 'ESTUFOU!']
-const PEN_GO_S = ['No ângulo, indefensável! 🐟', 'Cavou no cantinho — que categoria!', 'Bola na gaveta, sem chance pro goleiro! 🧤', 'O estádio DESABA! Que cobrança! 🎆', 'Paredão estufado — GOLAÇO!', 'Vira a mão do juiz que acabou! 🏆', 'A torcida foi À LOUCURA! 💸', 'Frango? Que nada — foi pura pancada!']
-const PEN_DE = ['DEFENDEU!', 'PEGOU!', 'MILAGRE!']
-const PEN_DE_S = ['O goleiro VOOU e espalmou! 🧤', 'Defesa de placa do arqueiro!', 'Bateu no meio, o goleiro só esperou. 😬', 'Que MURO! O goleiro cresceu na hora.', 'Adivinhou o canto e pegou firme! 🧤']
-const PEN_FO = ['PRA FORA!', 'ISOLOU!', 'POR CIMA!']
-const PEN_FO_S = ['Mandou nas arquibancadas! 😱', 'Foi pro espaço — que desperdício! 🤦', 'Tirou tinta da trave e foi embora — quase!', 'Cavou DEMAIS, foi parar na lua! 🌙', 'Chutou torto, a torcida leva a mão à cabeça. 🤦']
+const PEN_INTRO_EN: Record<EmpCat, string[]> = {
+  lenda: ['👑 THE KING steps up! Ice in his veins — the stadium falls SILENT.', '👑 A proper great picks up the ball. This is bread and butter for him.', '👑 The maestro fixes the turf, stares the keeper down and smiles...'],
+  craque: ['⭐ The team\'s star takes the responsibility — what a sweet left foot.', '⭐ Total confidence: he has taken a thousand of these.', '⭐ The ball is at the feet of the crowd\'s favourite.'],
+  promessa: ['💎 The academy jewel steps up — talent to spare, nerve still untested.', '💎 The prospect asks for the ball. No shortage of guts!'],
+  bom: ['📇 A seasoned pro picks up the ball — experience counts.', '📇 He has seen it all in football. Calm at a moment like this.'],
+  prof: ['💼 He volunteers to take it. Here goes nothing!', '💼 No fear: grabbed the ball and went.'],
+}
+const PEN_GO_PT = ['GOOOOOL!', 'É GOL!', 'NA REDE!', 'ESTUFOU!']
+const PEN_GO_EN = ['GOOOOOAL!', 'IT\'S IN!', 'BACK OF THE NET!', 'BURIED IT!']
+const PEN_GO_S_PT = ['No ângulo, indefensável! 🐟', 'Cavou no cantinho — que categoria!', 'Bola na gaveta, sem chance pro goleiro! 🧤', 'O estádio DESABA! Que cobrança! 🎆', 'Paredão estufado — GOLAÇO!', 'Vira a mão do juiz que acabou! 🏆', 'A torcida foi À LOUCURA! 💸', 'Frango? Que nada — foi pura pancada!']
+const PEN_GO_S_EN = ['Top corner, unstoppable! 🐟', 'Dinked it into the corner — what class!', 'Straight into the roof of the net, no chance for the keeper! 🧤', 'The stadium ERUPTS! What a penalty! 🎆', 'Blasted past the wall — WHAT A GOAL!', 'Blow the whistle, ref, it\'s over! 🏆', 'The crowd has gone WILD! 💸', 'Keeper error? Not a chance — that was pure power!']
+const PEN_DE_PT = ['DEFENDEU!', 'PEGOU!', 'MILAGRE!']
+const PEN_DE_EN = ['SAVED!', 'GOT IT!', 'WHAT A SAVE!']
+const PEN_DE_S_PT = ['O goleiro VOOU e espalmou! 🧤', 'Defesa de placa do arqueiro!', 'Bateu no meio, o goleiro só esperou. 😬', 'Que MURO! O goleiro cresceu na hora.', 'Adivinhou o canto e pegou firme! 🧤']
+const PEN_DE_S_EN = ['The keeper FLEW across and palmed it away! 🧤', 'An absolute worldie of a save!', 'Hit it down the middle, the keeper just waited. 😬', 'What a WALL! The keeper grew ten feet tall.', 'Guessed the corner and held it firmly! 🧤']
+const PEN_FO_PT = ['PRA FORA!', 'ISOLOU!', 'POR CIMA!']
+const PEN_FO_EN = ['WIDE!', 'SKIED IT!', 'OVER THE BAR!']
+const PEN_FO_S_PT = ['Mandou nas arquibancadas! 😱', 'Foi pro espaço — que desperdício! 🤦', 'Tirou tinta da trave e foi embora — quase!', 'Cavou DEMAIS, foi parar na lua! 🌙', 'Chutou torto, a torcida leva a mão à cabeça. 🤦']
+const PEN_FO_S_EN = ['Put it in the stands! 😱', 'Into orbit — what a waste! 🤦', 'Shaved the paint off the post and away it went — so close!', 'Chipped it WAY too much, off to the moon! 🌙', 'Sliced it, and the crowd holds its head. 🤦']
+const PEN_INTRO = (): Record<EmpCat, string[]> => (getLang() === 'en' ? PEN_INTRO_EN : PEN_INTRO_PT)
+const PEN_GO = () => (getLang() === 'en' ? PEN_GO_EN : PEN_GO_PT)
+const PEN_GO_S = () => (getLang() === 'en' ? PEN_GO_S_EN : PEN_GO_S_PT)
+const PEN_DE = () => (getLang() === 'en' ? PEN_DE_EN : PEN_DE_PT)
+const PEN_DE_S = () => (getLang() === 'en' ? PEN_DE_S_EN : PEN_DE_S_PT)
+const PEN_FO = () => (getLang() === 'en' ? PEN_FO_EN : PEN_FO_PT)
+const PEN_FO_S = () => (getLang() === 'en' ? PEN_FO_S_EN : PEN_FO_S_PT)
 function penPick<T>(a: T[]): T { return a[Math.floor(Math.random() * a.length)] }
 // alvos e saídas (%): 6 cantos (2 linhas × 3), e pra onde a bola vai quando erra
 const PEN_ZP: [number, number][] = [[20, 26], [50, 22], [80, 26], [22, 64], [50, 66], [78, 64]]
@@ -2877,7 +2901,7 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
   const cat = taker ? empCat(taker) : 'prof'
   const skill = PEN_SKILL[cat]
   // fala de suspense estável por cobrador (não re-sorteia a cada render)
-  const introTxt = useMemo(() => penPick(PEN_INTRO[cat] || PEN_INTRO.prof), [takerId, cat])
+  const introTxt = useMemo(() => { const tab = PEN_INTRO(); return penPick(tab[cat] || tab.prof) }, [takerId, cat])
   // refs de animação (transform direto, como o protótipo aprovado)
   const goalRef = useRef<HTMLDivElement>(null), ballRef = useRef<HTMLDivElement>(null), gkRef = useRef<HTMLDivElement>(null), markRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef<number | null>(null), timers = useRef<number[]>([])
@@ -2891,9 +2915,9 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
   const moveKeeper = (z: number) => { if (privatePenaltyArt) { penaltyArtRef.current?.moveKeeper(z); return } const gk = gkRef.current, g = goalRef.current; if (!gk || !g) return; const [x, y] = PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H - (y / 100 * H)); gk.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px)` }
   const flyBall = (z: number, out: boolean) => { if (privatePenaltyArt) { penaltyArtRef.current?.flyBall(z, out); return } const ball = ballRef.current, g = goalRef.current; if (!ball || !g) return; const [x, y] = out ? PEN_OUT[z] : PEN_ZP[z]; const W = g.clientWidth, H = g.clientHeight; const tx = (x / 100 * W) - (W / 2); const ty = -(H + 18 - (y / 100 * H)); ball.style.transition = 'transform .52s cubic-bezier(.25,.7,.35,1)'; ball.style.transform = `translateX(-50%) translate(${tx}px, ${ty}px) scale(.62)` }
   const reveal = (k: 'gol' | 'def' | 'fora') => {
-    setKind(k); setRevWord(k === 'gol' ? penPick(PEN_GO) : k === 'def' ? penPick(PEN_DE) : penPick(PEN_FO)); setDots(''); setPhase('rev')
+    setKind(k); setRevWord(k === 'gol' ? penPick(PEN_GO()) : k === 'def' ? penPick(PEN_DE()) : penPick(PEN_FO())); setDots(''); setPhase('rev')
     if (k === 'gol') setCeleb(true)
-    after(560, () => { setSub(k === 'gol' ? penPick(PEN_GO_S) : k === 'def' ? penPick(PEN_DE_S) : penPick(PEN_FO_S)) })
+    after(560, () => { setSub(k === 'gol' ? penPick(PEN_GO_S()) : k === 'def' ? penPick(PEN_DE_S()) : penPick(PEN_FO_S())) })
   }
   // ── VOCÊ BATE: barra de força + mira
   const startPower = () => {
@@ -2936,7 +2960,7 @@ function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, masco
     const k: 'gol' | 'def' | 'fora' = r < 0.28 + skill * 0.62 ? 'gol' : r < 0.28 + skill * 0.62 + 0.20 ? 'def' : 'fora'
     const aimZ = Math.floor(Math.random() * 6)
     after(560, () => {
-      setLine(`⚽ Partiu ${taker.name}, na cobraaaança`)
+      setLine(getLang() === 'en' ? `⚽ Here comes ${taker.name}, stepping uuuup` : `⚽ Partiu ${taker.name}, na cobraaaança`)
       let i = 0; const N = 8
       const iv = window.setInterval(() => {
         i++; setDots('● '.repeat(i).trim())

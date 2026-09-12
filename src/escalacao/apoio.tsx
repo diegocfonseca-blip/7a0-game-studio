@@ -5,6 +5,7 @@
 // pra tabela user_colors no Supabase, aí outros jogadores também enxergam.
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { tr } from './lang' // 🌐 BR/EN (12/09)
 
 export type ApoioTier = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
 
@@ -424,7 +425,7 @@ export function ApoioPreviewMark() {
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'space-around', overflow: 'hidden' }}>
       {[0, 1, 2].map(i => (
-        <p key={i} style={{ transform: 'rotate(-16deg)', textAlign: 'center', fontWeight: 900, fontSize: 20, color: 'rgba(0,0,0,.22)', letterSpacing: 2, whiteSpace: 'nowrap', margin: 0, fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase' }}>✨ prévia · modelo de teste ✨</p>
+        <p key={i} style={{ transform: 'rotate(-16deg)', textAlign: 'center', fontWeight: 900, fontSize: 20, color: 'rgba(0,0,0,.22)', letterSpacing: 2, whiteSpace: 'nowrap', margin: 0, fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase' }}>{tr('✨ prévia · modelo de teste ✨', '✨ preview · test sample ✨')}</p>
       ))}
     </div>
   )

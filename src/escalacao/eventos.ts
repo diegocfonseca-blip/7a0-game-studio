@@ -8,6 +8,7 @@
 //  · a suspensão morre na virada da temporada (o titular volta sozinho);
 //  · zoeira leve e fictícia SEMPRE — nunca tragédia/lesão real de ninguém.
 import type { Sector, EventoTipo } from './types'
+import { getLang } from './lang' // 🌐 BR/EN (12/09): a história sai no idioma do site
 
 // carta "mínima" que o sorteio precisa (WonCard e PoolCard da tela servem)
 // 🪪 club/year existem pra DESEMPATAR XARÁ (ver `traitDe`). São opcionais porque
@@ -74,6 +75,8 @@ export function traitDe(nome: string, club?: string, year?: number): '🍾 balad
 }
 
 // ─── 📜 as histórias (tudo FICÇÃO cômica — {n} = nome do jogador) ──────────
+// 🌐 Cada lista tem a irmã _EN com a MESMA quantidade de frases (o sorteio usa o
+// índice — lista mais curta num idioma repetiria mais). Tradução pelo SENTIDO.
 const HIST_NOITADA = [
   'O {n} sumiu depois do jantar e apareceu no treino de ÓCULOS ESCUROS, bocejando. O preparador jura que ele "dormiu cedo". 😎',
   'Marcaram o {n} numa foto às 4h da manhã — no aniversário de um "primo". A assessoria diz que era "suco de uva". 🍾',
@@ -86,6 +89,18 @@ const HIST_NOITADA = [
   'O {n} jura que foi só "hidratar no bar" — mas a comanda tinha mais garrafa que copo d\'água. A auditoria do clube não fechou a conta. 🧾',
   'A vizinhança denunciou paredão de som na casa do {n} até as 6h. Ele alegou "insônia com trilha sonora". O síndico não perdoou. 🔊',
 ]
+const HIST_NOITADA_EN = [
+  '{n} vanished after dinner and showed up to training in SUNGLASSES, yawning. The fitness coach swears he "went to bed early". 😎',
+  '{n} was tagged in a photo at 4am — at a "cousin\'s" birthday. His agent says it was "grape juice". 🍾',
+  '{n} got the time wrong: thought training was in the afternoon. Yesterday\'s barbecue, according to him, "was just a lunch that ran long". 🍖',
+  'The club security guard saw {n} arriving in the back of the sound-system truck. He insists he was "doing community work at the club night". 🪩',
+  '{n} posted "water only tonight" at 11pm — and at 5am he was singing live on Instagram. Deleted it later, but the internet never forgets. 📱',
+  '{n}\'s rideshare driver rated the trip 1 star: "customer sang the whole club anthem, backwards". 🚗',
+  '{n} turned up at the training ground still in party clothes, saying he "just popped in to grab something he forgot". Nobody believed him, not even the forgotten thing. 🕺',
+  '{n} was caught ordering pizza to the team hotel at 3am. The pizza arrived. He, at breakfast time, did not. 🍕',
+  '{n} swears he was only "hydrating at the bar" — but the tab had more bottles than glasses of water. The club audit couldn\'t make the numbers work. 🧾',
+  'The neighbours reported a wall of speakers at {n}\'s house until 6am. He claimed "insomnia with a soundtrack". The building manager did not forgive. 🔊',
+]
 const HIST_EXPULSAO = [
   'O {n} discutiu com o juiz, com o bandeira e — testemunhas garantem — com o gandula. Vermelho direto e relatório de 3 páginas. 🟥',
   'O {n} deu uma voadora na PLACA DE PUBLICIDADE depois do gol anulado. A placa não revidou, mas o juiz viu. 🟥',
@@ -95,6 +110,16 @@ const HIST_EXPULSAO = [
   'O {n} arrancou a braçadeira de capitão e jogou no chão em plena discussão. O juiz interpretou como "gesto de desrespeito" — e não errou. 🟥',
   'O {n} correu 40 metros só pra discutir um escanteio que nem era dele. Chegou ofegante, saiu de vermelho. 🟥',
   'O {n} deu risada na cara do quarto árbitro depois do cartão amarelo. A risada rendeu o segundo — e o banho mais cedo. 🟥',
+]
+const HIST_EXPULSAO_EN = [
+  '{n} argued with the referee, the linesman and — witnesses swear — the ball boy. Straight red and a 3-page report. 🟥',
+  '{n} flying-kicked the ADVERTISING BOARD after the disallowed goal. The board didn\'t fight back, but the referee saw it. 🟥',
+  '{n} told the referee to "go study the rules". The referee showed he knows at least one: the red card. 🟥',
+  '{n} kicked the ball into the stands in protest — and it came straight back, because a fan returned it on the spot. Red card and a double booing. 🟥',
+  '{n} mimicked the referee blowing a pretend whistle after the penalty wasn\'t given. The referee wasn\'t amused and showed a real card. 🟥',
+  '{n} ripped off the captain\'s armband and threw it on the ground mid-argument. The referee read it as a "gesture of disrespect" — and he wasn\'t wrong. 🟥',
+  '{n} ran 40 metres just to argue a corner that wasn\'t even his. Arrived out of breath, left with a red. 🟥',
+  '{n} laughed in the fourth official\'s face after the yellow card. The laugh earned the second one — and an early shower. 🟥',
 ]
 const HIST_LESAO = [
   'O {n} sentiu o músculo NO AQUECIMENTO — antes de tocar na bola. O departamento (que não existe) lamenta. 🩹',
@@ -106,6 +131,17 @@ const HIST_LESAO = [
   'O {n} forçou o braço tirando selfie com um torcedor antes do jogo. O ombro não aguentou o ângulo. 📸',
   'O {n} sentiu uma fisgada comemorando um gol de PELADA no dia de folga. Ele jura que "não valia nada". Valeu 3 semanas de departamento médico. 🩹',
   'O {n} deu um mau jeito descendo do ônibus com a mochila pesada demais de chuteira. A mochila venceu. 🎒',
+]
+const HIST_LESAO_EN = [
+  '{n} felt his muscle go IN THE WARM-UP — before touching the ball. The medical department (which doesn\'t exist) regrets it. 🩹',
+  '{n} twisted his ankle rehearsing his goal celebration dance in training. The choreography was beautiful, they say. 🩹',
+  '{n} slipped on the dressing-room stairs carrying the ball bag. The balls are fine. He, more or less. 🩹',
+  '{n} locked up his back tying his boots. Age comes for everyone — even legends. 🩹',
+  '{n} sneezed too hard in the dressing room and felt a twinge in his back. The physio has never seen anything like it. 🤧',
+  '{n} stepped on a ball left in the training-ground corridor — literally. The fall went viral in the squad group chat. 🩹',
+  '{n} strained his arm taking a selfie with a fan before the game. The shoulder couldn\'t handle the angle. 📸',
+  '{n} felt a twinge celebrating a goal in a KICKABOUT on his day off. He swears it "didn\'t count". It counted for 3 weeks in the treatment room. 🩹',
+  '{n} did himself a mischief getting off the bus with a boot bag that was way too heavy. The bag won. 🎒',
 ]
 
 export interface EventoSorteado {
@@ -166,7 +202,8 @@ export function sorteiaEvento(args: {
   if (!poolFinal.length) return null
   const pick = poolFinal[Math.floor(rng() * poolFinal.length)]
   const rodadas = pick.tipo === 'noitada' ? 1 : pick.tipo === 'expulsao' ? 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 5)
-  const textos = pick.tipo === 'noitada' ? HIST_NOITADA : pick.tipo === 'expulsao' ? HIST_EXPULSAO : HIST_LESAO
+  const en = getLang() === 'en'
+  const textos = pick.tipo === 'noitada' ? (en ? HIST_NOITADA_EN : HIST_NOITADA) : pick.tipo === 'expulsao' ? (en ? HIST_EXPULSAO_EN : HIST_EXPULSAO) : (en ? HIST_LESAO_EN : HIST_LESAO)
   const historia = textos[Math.floor(rng() * textos.length)].replace('{n}', pick.c.name)
   const xiIds = new Set(xi.map(c => c.id))
   // reserva = MESMA posição, fora do XI (cria e emprestado valem — estão no elenco e jogam)
@@ -177,23 +214,41 @@ export function sorteiaEvento(args: {
 // ─── 📰 manchetes pro jornal (página "Aconteceu na temporada") ─────────────
 export function eventoEmoji(tipo: EventoTipo): string { return tipo === 'noitada' ? '😎' : tipo === 'expulsao' ? '🟥' : '🩹' }
 export function eventoTituloBanner(tipo: EventoTipo, rodadas: number): string {
-  if (tipo === 'noitada') return '🚨 PROBLEMA NO VESTIÁRIO'
-  if (tipo === 'expulsao') return `🟥 EXPULSO — PEGOU ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
-  return `🩹 LESIONADO — FORA ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
+  const en = getLang() === 'en'
+  if (tipo === 'noitada') return en ? '🚨 DRESSING-ROOM TROUBLE' : '🚨 PROBLEMA NO VESTIÁRIO'
+  if (tipo === 'expulsao') return en ? `🟥 SENT OFF — ${rodadas}-ROUND BAN` : `🟥 EXPULSO — PEGOU ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
+  return en ? `🩹 INJURED — OUT ${rodadas} ${rodadas === 1 ? 'ROUND' : 'ROUNDS'}` : `🩹 LESIONADO — FORA ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
 }
 export function mancheteDecisao(ev: { tipo: EventoTipo; nome: string; rodadas: number; status: string; subNome?: string; round: number }): { emoji: string; titulo: string; sub: string } {
-  const rod = `${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`
+  const en = getLang() === 'en'
+  const rod = en ? `${ev.rodadas} ${ev.rodadas === 1 ? 'round' : 'rounds'}` : `${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`
   if (ev.tipo === 'noitada') {
+    if (en) {
+      return ev.status === 'campo'
+        ? { emoji: '😎', titulo: `${ev.nome} plays "on coffee alone" after a night out`, sub: `The manager backed the selection at his own risk in round ${ev.round + 1}. The fans prayed.` }
+        : { emoji: '😎', titulo: `${ev.nome} benched after the night out`, sub: `Dropped from round ${ev.round + 1} to "catch up on sleep"${ev.subNome ? ` — ${ev.subNome} took the spot` : ''}. Came back rested.` }
+    }
     return ev.status === 'campo'
       ? { emoji: '😎', titulo: `${ev.nome} joga "na base do café" após noitada`, sub: `O técnico bancou a escalação por conta e risco na rodada ${ev.round + 1}. A torcida rezou.` }
       : { emoji: '😎', titulo: `${ev.nome} vai pro banco depois da noitada`, sub: `Cortado da rodada ${ev.round + 1} pra "recuperar o sono"${ev.subNome ? ` — ${ev.subNome} assumiu a vaga` : ''}. Voltou descansado.` }
   }
-  if (ev.tipo === 'expulsao') return { emoji: '🟥', titulo: `${ev.nome} pega ${rod} de gancho`, sub: `Discutiu até com o gandula.${ev.subNome ? ` ${ev.subNome} segurou a bronca na vaga.` : ''}` }
+  if (ev.tipo === 'expulsao') {
+    if (en) return { emoji: '🟥', titulo: `${ev.nome} gets a ${rod} ban`, sub: `Argued with the ball boy, even.${ev.subNome ? ` ${ev.subNome} held the fort in his place.` : ''}` }
+    return { emoji: '🟥', titulo: `${ev.nome} pega ${rod} de gancho`, sub: `Discutiu até com o gandula.${ev.subNome ? ` ${ev.subNome} segurou a bronca na vaga.` : ''}` }
+  }
+  if (en) return { emoji: '🩹', titulo: `${ev.nome} out for ${rod}`, sub: `Silly injury in training.${ev.subNome ? ` ${ev.subNome} got his chance in the team.` : ' The club is looking into building a Medical Department…'}` }
   return { emoji: '🩹', titulo: `${ev.nome} fora por ${rod}`, sub: `Lesão boba no treino.${ev.subNome ? ` ${ev.subNome} ganhou a chance no time.` : ' O clube estuda montar um Departamento Médico…'}` }
 }
 // sem reserva na posição: NADA trava — vira só esta manchete de zoeira
 export function mancheteSemReserva(tipo: EventoTipo, nome: string): { emoji: string; titulo: string; sub: string } {
-  if (tipo === 'noitada') return { emoji: '😎', titulo: `${nome} amanhece na resenha e joga assim mesmo`, sub: 'Sem reserva na posição, o técnico fingiu que não viu os óculos escuros.' }
-  if (tipo === 'expulsao') return { emoji: '🟥', titulo: `${nome} quase pega gancho por reclamação`, sub: 'O juiz aliviou no relatório — sorte do técnico, que não tinha reserva pra vaga.' }
-  return { emoji: '🩹', titulo: `${nome} sente dorzinha e joga no sacrifício`, sub: 'Sem reserva na posição, foi no gelo e na raça. O clube estuda um Departamento Médico…' }
+  const en = getLang() === 'en'
+  if (tipo === 'noitada') return en
+    ? { emoji: '😎', titulo: `${nome} rolls in from the party and plays anyway`, sub: 'No backup for the position, so the manager pretended not to see the sunglasses.' }
+    : { emoji: '😎', titulo: `${nome} amanhece na resenha e joga assim mesmo`, sub: 'Sem reserva na posição, o técnico fingiu que não viu os óculos escuros.' }
+  if (tipo === 'expulsao') return en
+    ? { emoji: '🟥', titulo: `${nome} nearly gets banned for dissent`, sub: 'The referee went easy in the report — lucky for the manager, who had no backup for the spot.' }
+    : { emoji: '🟥', titulo: `${nome} quase pega gancho por reclamação`, sub: 'O juiz aliviou no relatório — sorte do técnico, que não tinha reserva pra vaga.' }
+  return en
+    ? { emoji: '🩹', titulo: `${nome} feels a niggle and plays through it`, sub: 'No backup for the position, so it was ice and guts. The club is looking into a Medical Department…' }
+    : { emoji: '🩹', titulo: `${nome} sente dorzinha e joga no sacrifício`, sub: 'Sem reserva na posição, foi no gelo e na raça. O clube estuda um Departamento Médico…' }
 }
