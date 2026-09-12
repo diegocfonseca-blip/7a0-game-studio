@@ -4447,7 +4447,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
       s.careerSeen = {} // 🗺️ Guia da carreira: carreira nova não herda banner fechado da carreira anterior
       s.criaDeEvento = undefined
-      s.condicaoDesde = undefined // 😓 gás: carreira nova começa desligado (liga ao chegar na Série C)
+      s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: carreira nova começa desligado (liga ao chegar na Série C)
       s.careerBico = undefined // 🕴️ Bico de Folga: carreira nova não herda o patrocinador da carreira anterior
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
@@ -4540,7 +4540,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
-      s.condicaoDesde = undefined // 😓 gás: nasce desligado
+      s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.agenciaDividir = false
       s.stadiums = {}; s.careerFilial = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined
@@ -5774,6 +5774,10 @@ export function reducer(state: EscState, action: Action): EscState {
         // de 04/08 pra saves antigos) — limpa e segue, ninguém fica preso na rodada.
         if (!s.agenciaOn && s.eventoTemporada) s.eventoTemporada = undefined
         if (s.onlineMode !== 'online' && s.agenciaOn && s.eventoTemporada?.status === 'pendente' && s.eventoTemporada.season === s.seasonNo) return s
+        // 😓 CONDIÇÃO: quem JÁ ESTÁ em C/B/A quando a regra chega (12/09) liga AGORA —
+        // desta rodada em diante, todo mundo em 100% (o Diego: *"quem já tá vai liberar
+        // agora"*). Rodada passada não entra na conta nem muda de resultado.
+        if (s.onlineMode !== 'online' && s.agenciaOn && s.condicaoDesde == null && (s.careerDivision === 'C' || s.careerDivision === 'B' || s.careerDivision === 'A')) { s.condicaoDesde = s.seasonNo; s.condicaoDesdeR = s.round }
         // cura ids duplicados de elencos antigos (bug do leilão de reservas) — uma
         // vez só; depois vira no-op. Se corrigiu, zera escalações manuais que
         // apontavam pro id duplicado (voltam ao XI automático, correto).
@@ -6959,7 +6963,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // Série C (ou já está em C/B/A — save antigo liga na próxima virada). Só
       // carreira nova (agenciaOn), como os eventos. Grava a temporada que COMEÇA
       // agora (seasonNo ainda vai somar 1 logo abaixo). Nunca desliga.
-      if (s.agenciaOn && s.onlineMode !== 'online' && s.condicaoDesde == null && (res.nextDiv === 'C' || res.nextDiv === 'B' || res.nextDiv === 'A')) s.condicaoDesde = s.seasonNo + 1
+      if (s.agenciaOn && s.onlineMode !== 'online' && s.condicaoDesde == null && (res.nextDiv === 'C' || res.nextDiv === 'B' || res.nextDiv === 'A')) { s.condicaoDesde = s.seasonNo + 1; s.condicaoDesdeR = undefined }
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       const { managers, botPlans } = makeCareerManagers(teamName, formation, res.nextDiv, coDivRivalDefs(s.careerRivals, res.nextDiv), action.keep ? [] : otherDivRivalDefs(s.careerRivals, res.nextDiv), rng)

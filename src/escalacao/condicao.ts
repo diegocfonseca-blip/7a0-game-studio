@@ -80,11 +80,13 @@ export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; 
 // contam; rodada sem escalação gravada (não deveria existir depois de jogada)
 // não mexe em ninguém. Carta que não existia numa rodada (chegou depois) só
 // sobe até o teto — nasce inteira.
-export function gasDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[]): Record<string, number> {
+// `desdeR` = 1ª rodada que conta (quem já estava em C/B/A quando a regra chegou
+// começa a contar dali, todo mundo em 100% — ver condicaoDesdeR em types.ts).
+export function gasDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0): Record<string, number> {
   const gas: Record<string, number> = {}
   for (const c of squad) gas[c.id] = 100
   if (!byRound) return gas
-  for (let r = 0; r < round; r++) {
+  for (let r = desdeR; r < round; r++) {
     const ids = byRound[r]
     if (!ids) continue
     const xi = new Set(ids)
@@ -94,11 +96,11 @@ export function gasDoElenco(byRound: Record<number, string[]> | undefined, round
 }
 
 // quantos jogos cada carta fez na temporada (o "🏃 9 jogos" da aba Elenco)
-export function jogosDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[]): Record<string, number> {
+export function jogosDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0): Record<string, number> {
   const n: Record<string, number> = {}
   for (const c of squad) n[c.id] = 0
   if (!byRound) return n
-  for (let r = 0; r < round; r++) for (const id of byRound[r] ?? []) if (id in n) n[id]++
+  for (let r = desdeR; r < round; r++) for (const id of byRound[r] ?? []) if (id in n) n[id]++
   return n
 }
 
@@ -138,10 +140,11 @@ export function modsDoElenco(
   byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[],
   xiAt: (r: number) => string[],
   ev: { tipo: string; season: number; status: string; volta?: number; cardId: string } | null | undefined, seasonNo: number,
+  desdeR = 0,
 ): CardModsPorRodada {
   const out: CardModsPorRodada = {}
-  for (let r = 0; r <= round; r++) {
-    const gas = gasDoElenco(byRound, r, squad)
+  for (let r = desdeR; r <= round; r++) {
+    const gas = gasDoElenco(byRound, r, squad, desdeR)
     const m: Record<string, number> = {}
     for (const id of xiAt(r)) {
       const v = modGas(gas[id] ?? 100) + modVolta(ev, seasonNo, r, id)

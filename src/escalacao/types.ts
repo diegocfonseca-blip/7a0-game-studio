@@ -588,6 +588,11 @@ export interface EscState {
   // só na VIRADA (CAREER_ADVANCE), nunca no meio de uma temporada. Não desliga
   // se o clube cair de volta. O gás em si NÃO é guardado: é derivado de careerLineup.
   condicaoDesde?: number
+  // 😓 rodada (0-based) a partir da qual o gás CONTA na temporada `condicaoDesde` —
+  // só existe quando o clube JÁ ESTAVA em C/B/A na hora em que a regra chegou
+  // (liga na próxima rodada, todo mundo em 100%, e rodada passada não muda).
+  // Ausente/0 = ligou na virada, conta desde a rodada 0.
+  condicaoDesdeR?: number
   // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
   // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).
   contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)

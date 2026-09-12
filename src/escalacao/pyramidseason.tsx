@@ -2889,7 +2889,7 @@ function penPick<T>(a: T[]): T { return a[Math.floor(Math.random() * a.length)] 
 const PEN_ZP: [number, number][] = [[20, 26], [50, 22], [80, 26], [22, 64], [50, 66], [78, 64]]
 const PEN_OUT: [number, number][] = [[-4, -9], [50, -17], [104, -9], [-8, 58], [50, -17], [108, 58]]
 
-function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, mascote, onDone }: { mgr: Manager; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; mascote: ReactNode | null; onDone: (scored: boolean, takerId: string) => void }) {
+export function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, mascote, onDone }: { mgr: Manager; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; mascote: ReactNode | null; onDone: (scored: boolean, takerId: string) => void }) {
   const privatePenaltyArt = usePenaltyArtPreview()
   const penaltyArtRef = useRef<PenaltyArtHandle>(null)
   const perk = myApoioPerk() ?? APOIO_PERKS.bege
@@ -3163,7 +3163,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   const gasChip = (c: WonCard): React.ReactNode => {
     if (!condicao || c.fake) return null
     const barBox: React.CSSProperties = { display: 'inline-block', width: 34, height: 6, border: `1.5px solid ${INK}`, borderRadius: 4, background: '#e9dfbe', overflow: 'hidden', flex: 'none', verticalAlign: 'middle' }
-    const fill = (w: number, bg: string): React.CSSProperties => ({ display: 'block', height: '100%', width: `${w}%`, background: bg })
+    const fill = (w: number, bg: string): React.CSSProperties => ({ display: 'block', height: '100%', width: `${w}%`, background: bg, transition: 'width .6s ease' })
     const lbl: React.CSSProperties = { ...OSWALD, fontWeight: 900, fontSize: 9, lineHeight: 1, flex: 'none' }
     if (condicao.suspensoId === c.id) return <span style={{ ...lbl, color: '#7C3AED' }}>🩹 {tr('fora', 'out')}</span>
     const mv = condicao.volta(c.id)
@@ -5788,13 +5788,15 @@ export function PyramidSeasonScreen() {
   // (cansaço −1/−2 e volta gradual da lesão). Derivado da escalação congelada —
   // rodada passada nunca muda de valor. Desligado = {} = simulação idêntica.
   const condOn = condicaoAtiva(state)
+  // 1ª rodada que conta: só na temporada em que a regra chegou pra quem já estava em C/B/A
+  const condDesdeR = state.condicaoDesde === (state.seasonNo ?? 1) ? (state.condicaoDesdeR ?? 0) : 0
   const condMods = useMemo<RoundCardMods>(() => {
     if (!condOn) return {}
     const me = state.managers[state.youIdx]
     if (!me) return {}
-    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1)
+    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR)
     return Object.keys(mods).length ? { [me.id]: mods } : {}
-  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo])
+  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR])
   const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
@@ -6223,8 +6225,8 @@ export function PyramidSeasonScreen() {
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
   // 😓 gás e nº de jogos de cada carta ANTES do próximo jogo (pra aba Elenco e
   // pro sorteio da lesão). null = condição desligada nesta carreira/temporada.
-  const condGas = useMemo(() => (condOn && mgrMe ? gasDoElenco(careerLineup[youId], round, mgrMe.squad) : null), [condOn, mgrMe, careerLineup, youId, round])
-  const condJogos = useMemo(() => (condOn && mgrMe ? jogosDoElenco(careerLineup[youId], round, mgrMe.squad) : null), [condOn, mgrMe, careerLineup, youId, round])
+  const condGas = useMemo(() => (condOn && mgrMe ? gasDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR])
+  const condJogos = useMemo(() => (condOn && mgrMe ? jogosDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR])
 
   // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
   const soloCareer = state.onlineMode !== 'online'

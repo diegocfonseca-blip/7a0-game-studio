@@ -50,6 +50,10 @@ const g3a = gasDoElenco(byRound, 3, squad).t0
 byRound[14] = xi
 ok(gasDoElenco(byRound, 3, squad).t0 === g3a, 'gás de rodada passada não muda quando rodadas futuras mudam')
 
+// 🆕 quem já estava em C/B/A quando a regra chegou: conta só a partir de desdeR
+ok(gasDoElenco(byRound, 12, squad, 10).t0 === 100 && gasDoElenco(byRound, 12, squad, 10).t1 === 100 - 2 * GAS_JOGO, 'desdeR=10: rodadas antigas não contam (t0 100 · t1 2 jogos)')
+ok(!modsDoElenco(byRound, 12, squad, r => byRound[r] ?? xi, null, 4, 10)[9], 'desdeR=10: nenhum mod em rodada anterior (placar antigo intocado)')
+
 console.log('3) lesão volta aos poucos')
 const ev = { tipo: 'lesao', season: 4, status: 'banco', volta: 12, cardId: 't5' }
 ok(modVolta(ev, 4, 11, 't5') === 0 && modVolta(ev, 4, 12, 't5') === -2 && modVolta(ev, 4, 13, 't5') === -1 && modVolta(ev, 4, 14, 't5') === 0, '−2 na volta · −1 na seguinte · 0 depois')
