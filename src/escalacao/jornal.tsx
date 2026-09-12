@@ -1055,12 +1055,6 @@ function rr(x: CanvasRenderingContext2D, px: number, py: number, w: number, h: n
   x.lineTo(px + r, py + h); x.arcTo(px, py + h, px, py + h - r, r)
   x.lineTo(px, py + r); x.arcTo(px, py, px + r, py, r); x.closePath()
 }
-function cut(x: CanvasRenderingContext2D, t: string, maxW: number): string {
-  if (x.measureText(t).width <= maxW) return t
-  let s = t
-  while (s.length > 2 && x.measureText(s + '…').width > maxW) s = s.slice(0, -1)
-  return s + '…'
-}
 // 🖼️ A IMAGEM DO ELENCO = O CAMPINHO QUE ESTÁ NA TELA.
 // Reescrita em 12/09, mesmo motivo do jornal: a tela mudou e a imagem ficou pra
 // trás. No campinho de hoje o jogador está SOLTO na grama (decisão do Diego em
