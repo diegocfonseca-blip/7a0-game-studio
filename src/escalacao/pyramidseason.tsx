@@ -7578,7 +7578,7 @@ export function PyramidSeasonScreen() {
                         {!multiPending && !manual && !copaPlaying && <button onClick={() => setMultiPending(true)} style={{ display: 'block', width: '100%', marginTop: 6, border: '2px solid #000', borderRadius: 8, padding: 6, fontWeight: 900, fontSize: 10.5, background: GOLD, color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Trocar no fim desta rodada</button>}
                       </div>
                     : <button onClick={() => setMultiAsk(true)} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 10, fontWeight: 900, fontSize: 12.5, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr(`🔄 Passar o comando pro ${dormindo}`, `🔄 Hand over command to ${dormindo}`)}</button>}
-                  <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.5)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.4 }}>Cada clube tem o <b>seu</b> caixa, elenco, títulos e estádio — nada se mistura. O que dorme segue a temporada no automático, com o time como está.</p>
+                  <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.5)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Each club has <b>its own</b> till, squad, titles and stadium — nothing mixes. The sleeping one plays the season on auto, with the team as it is.</> : <>Cada clube tem o <b>seu</b> caixa, elenco, títulos e estádio — nada se mistura. O que dorme segue a temporada no automático, com o time como está.</>}</p>
                 </div>
               )
             })()}
@@ -7589,12 +7589,12 @@ export function PyramidSeasonScreen() {
               return (
                 <div onClick={() => setMultiAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
                   <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 340, width: '100%', padding: 16, textAlign: 'center' }}>
-                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0 }}>🔄 Trocar de clube</p>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3a3222', margin: '8px 0 0', lineHeight: 1.5 }}>Você vai comandar o <b>{dormindo}</b> agora. O <b>{ativo}</b> passa a <b>dormir</b>: segue a temporada no automático, com o time como está.</p>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '8px 0 0', lineHeight: 1.45 }}>💤 Na <b>virada da temporada</b>, empréstimo que acaba volta pro dono e o titular do próprio clube entra no lugar — nunca joga com 10. Dá pra voltar pro comando dele quando quiser.</p>
+                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0 }}>{tr('🔄 Trocar de clube', '🔄 Switch club')}</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3a3222', margin: '8px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>You will manage <b>{dormindo}</b> now. <b>{ativo}</b> goes to <b>sleep</b>: it plays the season on auto, with the team as it is.</> : <>Você vai comandar o <b>{dormindo}</b> agora. O <b>{ativo}</b> passa a <b>dormir</b>: segue a temporada no automático, com o time como está.</>}</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '8px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>💤 At the <b>turn of the season</b>, an expiring loan goes back to its owner and the club\'s own starter steps in — it never plays with 10. You can take command back whenever you like.</> : <>💤 Na <b>virada da temporada</b>, empréstimo que acaba volta pro dono e o titular do próprio clube entra no lugar — nunca joga com 10. Dá pra voltar pro comando dele quando quiser.</>}</p>
                     <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                      <button onClick={() => setMultiAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>Voltar</button>
-                      <button onClick={() => { setMultiAsk(false); dispatch({ type: 'SWITCH_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#1B7A3D', color: '#fff', cursor: 'pointer', ...OSWALD }}>🔄 Trocar</button>
+                      <button onClick={() => setMultiAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
+                      <button onClick={() => { setMultiAsk(false); dispatch({ type: 'SWITCH_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#1B7A3D', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('🔄 Trocar', '🔄 Switch')}</button>
                     </div>
                   </div>
                 </div>
@@ -7619,7 +7619,7 @@ export function PyramidSeasonScreen() {
                 coins={state.careerCoins?.[youId] ?? 0} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'}
                 onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} />
             })()}
-            <GoldTeaser label="Ver o estádio DOURADO completo (prévia)">
+            <GoldTeaser label={tr('Ver o estádio DOURADO completo (prévia)', 'See the full GOLD stadium (preview)')}>
               <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
                 <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
               </div>
@@ -7642,7 +7642,7 @@ export function PyramidSeasonScreen() {
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
               {/* 🌍 a aba Global aparece SEMPRE (Diego 28/08). Carreira sem Agência
                   2.0 abre o CONVITE (GlobalRankConvite) — vê a aba, não vê os times. */}
-              {([['arti', '⚽', 'Gols'], ['garcons', '🅰️', 'Garçons'], ['clubes', '🥇', 'Local'], ['global', '🌍', 'Global']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+              {([['arti', '⚽', tr('Gols', 'Goals')], ['garcons', '🅰️', tr('Garçons', 'Assists')], ['clubes', '🥇', tr('Local', 'Local')], ['global', '🌍', 'Global']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
@@ -7652,8 +7652,8 @@ export function PyramidSeasonScreen() {
               /* 🅰️ GARÇONS (24/08): quem DÁ o passe finalmente tem tabela. O
                  meião que ganha o campeonato sem fazer gol agora aparece. */
               <GarconsByDiv assists={privateCareer && done && copa ? copaAssistsShown : assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
-                title={privateCareer && done && copa ? '🅰️ GARÇONS · COPA' : '🅰️ GARÇONS · TEMPORADA'} sub={privateCareer && done && copa ? 'Assistências das fases já encerradas da Copa.' : 'Assistências da temporada atual — top 5 de cada série.'}
-                foot="Cerca de 3 em cada 4 gols saem de um passe; o resto é jogada individual, pênalti ou rebote." />
+                title={privateCareer && done && copa ? tr('🅰️ GARÇONS · COPA', '🅰️ ASSISTS · CUP') : tr('🅰️ GARÇONS · TEMPORADA', '🅰️ ASSISTS · SEASON')} sub={privateCareer && done && copa ? tr('Assistências das fases já encerradas da Copa.', 'Assists from the Cup rounds already played.') : tr('Assistências da temporada atual — top 5 de cada série.', 'Assists this season — top 5 of each division.')}
+                foot={tr('Cerca de 3 em cada 4 gols saem de um passe; o resto é jogada individual, pênalti ou rebote.', 'About 3 in 4 goals come from a pass; the rest are solo plays, penalties or rebounds.')} />
             ) : rankSub === 'global' ? (
               agenciaOk
                 ? <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
@@ -7663,9 +7663,9 @@ export function PyramidSeasonScreen() {
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copaScorersShown.length > 0
-                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`🏆 ARTILHARIA · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? 'Gols do mata-mata da Copa — top 20.' : `Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`} foot={`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube e sobe +10 no piso do jogador.`} />
-                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title="⚽ ARTILHARIA · TEMPORADA" sub="Gols da temporada atual — top 5 de cada série." foot="🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Várzea +6 · D +10 · C +15 · B +20 · A +30." />}
-                <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title="🏆 ARTILHARIA · TODOS OS TEMPOS" sub="Gols somados de todas as temporadas da sala — top 20." foot={allTimeScorers.length === 0 ? 'Começa a contar a partir de agora.' : undefined} />
+                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? tr('Gols do mata-mata da Copa — top 20.', 'Goals in the Cup knockout — top 20.') : tr(`Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`, `Goals up to ${copaRound === 0 ? 'now' : copa.rounds[copaRound - 1].name} — updates every round.`)} foot={tr(`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube e sobe +10 no piso do jogador.`, `🏅 The Cup top scorer earns the club +${copaBrOk ? 10 : 16} and raises the player\'s floor by +10.`)} />
+                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money and becomes the player\'s floor: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
+                <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols somados de todas as temporadas da sala — top 20.', 'Goals added up across every season — top 20.')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
               </>
             )}
           </>
@@ -7677,7 +7677,7 @@ export function PyramidSeasonScreen() {
             {state.agenciaOn && agLib && (
               <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
               <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-                {(([['elenco', '🎽', 'Time'], ['agencia', '🕴️', 'Agenciados']]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
+                {(([['elenco', '🎽', tr('Time', 'Team')], ['agencia', '🕴️', tr('Agenciados', 'Clients')]]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
                   <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
                 ))}
               </div>
@@ -7719,7 +7719,7 @@ export function PyramidSeasonScreen() {
               <>
                 {/* botões de tática MENORES que as abas do menu (pra não confundir) */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, marginBottom: 6 }}>
-                  {([['retranca', '🧱 Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '🔥 Ataque']] as [Tac, string][]).map(([t, label]) => (
+                  {([['retranca', tr('🧱 Retranca', '🧱 Park the bus')], ['equilibrio', tr('⚖️ Equilíbrio', '⚖️ Balanced')], ['ataque', tr('🔥 Ataque', '🔥 Attack')]] as [Tac, string][]).map(([t, label]) => (
                     // 🎨 CORES DO ELENCO (Diego 13/08 — "parede amarela, tudo dourado"):
                     // tática ganha cor PRÓPRIA (azul), separada do dourado da navegação
                     // e do verde da substituição — mockup aprovado antes de codar.
@@ -7729,7 +7729,7 @@ export function PyramidSeasonScreen() {
                     </button>
                   ))}
                 </div>
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</p>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>{getLang() === 'en' ? <><b>Tactics and substitutions</b> apply from the <b>next match</b> on — the match in progress doesn\'t change. Attack scores and concedes more · park the bus holds more · balanced in between.</> : <><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</>}</p>
               </>
             )}
             {/* ⚠️ ESCALAÇÃO FANTASMA (bug 14/08, print do leodiniz85 — "Roberto
@@ -7754,7 +7754,9 @@ export function PyramidSeasonScreen() {
               if (!fills.length) return null
               return (
                 <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, background: '#FDE9C8', fontWeight: 800, fontSize: 11, lineHeight: 1.45 }}>
-                  ⚠️ <b>{buracos === 1 ? 'Um titular seu saiu do clube' : `${buracos} titulares seus saíram do clube`}</b> e a escalação ficou com {buracos === 1 ? 'buraco' : 'buracos'} — {fills.map(c => `${c.name} (${c.pos})`).join(', ')} {fills.length === 1 ? 'está completando a vaga' : 'estão completando as vagas'} automaticamente. Toque nos jogadores abaixo pra escolher você mesmo quem joga.
+                  {getLang() === 'en'
+                    ? <>⚠️ <b>{buracos === 1 ? 'One of your starters left the club' : `${buracos} of your starters left the club`}</b> and the line-up has {buracos === 1 ? 'a hole' : 'holes'} — {fills.map(c => `${c.name} (${c.pos})`).join(', ')} {fills.length === 1 ? 'is filling the spot' : 'are filling the spots'} automatically. Tap the players below to choose who plays yourself.</>
+                    : <>⚠️ <b>{buracos === 1 ? 'Um titular seu saiu do clube' : `${buracos} titulares seus saíram do clube`}</b> e a escalação ficou com {buracos === 1 ? 'buraco' : 'buracos'} — {fills.map(c => `${c.name} (${c.pos})`).join(', ')} {fills.length === 1 ? 'está completando a vaga' : 'estão completando as vagas'} automaticamente. Toque nos jogadores abaixo pra escolher você mesmo quem joga.</>}
                 </div>
               )
             })()}
@@ -7767,10 +7769,14 @@ export function PyramidSeasonScreen() {
                 em campo continuava o outro. */}
             {mgrMe && copaPlaying && faseAtualCopa && (
               <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, background: '#FFF3C4', fontWeight: 800, fontSize: 11, lineHeight: 1.45 }}>
-                🏆 {proxFaseCopa
+                🏆 {getLang() === 'en'
+                  ? (proxFaseCopa
+                    ? <>The <b>{faseAtualCopa.name}</b> is already decided — whoever you swap in here plays <b>in the {proxFaseCopa.name}</b>.</>
+                    : <>The <b>{faseAtualCopa.name}</b> is the Cup\'s last match and is already decided — whoever you swap in here starts <b>next season</b>.</>)
+                  : proxFaseCopa
                   ? <>A <b>{faseAtualCopa.name}</b> já está decidida — quem você trocar aqui entra <b>na {proxFaseCopa.name}</b>.</>
                   : <>A <b>{faseAtualCopa.name}</b> é o último jogo da Copa e já está decidida — quem você trocar aqui começa jogando na <b>próxima temporada</b>.</>}
-                {' '}O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.
+                {' '}{tr('O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.', 'What already showed on screen no longer changes: the champion that comes out is the real champion.')}
               </div>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento} />
@@ -7783,9 +7789,9 @@ export function PyramidSeasonScreen() {
               <div style={{ position: 'relative', background: 'linear-gradient(150deg,#1a1712,#0C0C0C)', border: `3px solid ${INK}`, borderRadius: 16, padding: '12px 14px', marginTop: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
                 <button onClick={() => { setBannerAntigaOff(true); try { localStorage.setItem('esc-banner-antiga-off', '1') } catch { /* ignora */ } }}
                   aria-label="Fechar aviso" style={{ position: 'absolute', top: 6, right: 8, width: 26, height: 26, borderRadius: 999, border: `2px solid ${GOLD}`, background: 'rgba(255,255,255,.08)', color: GOLD, fontWeight: 900, fontSize: 14, lineHeight: 1, cursor: 'pointer' }}>✕</button>
-                <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: GOLD, margin: '0 26px 5px 0', textTransform: 'uppercase' }}>📣 Depois das atualizações, a carreira nova tem MAIS coisa</p>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.9)', margin: 0, lineHeight: 1.5 }}>Esta é uma <b>carreira antiga</b> — <b style={{ color: GOLD }}>fica tranquilo, ela não vai ser interrompida</b> e você pode terminá-la à vontade. Mas a carreira nova ganhou <b>contratos e renovações 📝, Agência 2.0 👔, crias da base 🌱, eventos de jogador 🎭</b> e mais. E tem uma diferença importante: <b style={{ color: '#FFB4A6' }}>a carreira antiga NÃO conta mais pro ranking</b> — só a nova pontua. Quer valer no ranking e ter tudo? <b>Comece uma carreira nova</b> — esta fica guardada em Minhas Carreiras.</p>
-                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.4)', margin: '7px 0 0' }}>toque no ✕ pra não ver mais este aviso</p>
+                <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, color: GOLD, margin: '0 26px 5px 0', textTransform: 'uppercase' }}>{tr('📣 Depois das atualizações, a carreira nova tem MAIS coisa', '📣 After the updates, the new career has MORE')}</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.9)', margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>This is an <b>old career</b> — <b style={{ color: GOLD }}>relax, it won\'t be interrupted</b> and you can finish it at your own pace. But the new career got <b>contracts and renewals 📝, Agency 2.0 👔, academy kids 🌱, player events 🎭</b> and more. And there\'s one important difference: <b style={{ color: '#FFB4A6' }}>the old career NO LONGER counts for the ranking</b> — only the new one scores. Want to count in the ranking and have it all? <b>Start a new career</b> — this one stays saved in My Careers.</> : <>Esta é uma <b>carreira antiga</b> — <b style={{ color: GOLD }}>fica tranquilo, ela não vai ser interrompida</b> e você pode terminá-la à vontade. Mas a carreira nova ganhou <b>contratos e renovações 📝, Agência 2.0 👔, crias da base 🌱, eventos de jogador 🎭</b> e mais. E tem uma diferença importante: <b style={{ color: '#FFB4A6' }}>a carreira antiga NÃO conta mais pro ranking</b> — só a nova pontua. Quer valer no ranking e ter tudo? <b>Comece uma carreira nova</b> — esta fica guardada em Minhas Carreiras.</>}</p>
+                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.4)', margin: '7px 0 0' }}>{tr('toque no ✕ pra não ver mais este aviso', 'tap ✕ to stop seeing this notice')}</p>
               </div>
             )}
             {me && (
@@ -7794,7 +7800,7 @@ export function PyramidSeasonScreen() {
                 coins={state.careerCoins?.[youId] ?? 0}
                 titles={(() => { const h = state.careerHonors?.['m' + youId]; return h ? h.A + h.B + h.C + h.D : 0 })()} />
             )}
-            <GoldTeaser label="Ver MEU elenco DOURADO (prévia)">
+            <GoldTeaser label={tr('Ver MEU elenco DOURADO (prévia)', 'See MY squad in GOLD (preview)')}>
               <div style={{ maxHeight: 400, overflow: 'hidden', borderRadius: 16, position: 'relative' }}>
                 <SquadTab mgr={state.managers[state.youIdx]} col={{ solid: '#C9A227', light: '#F6E9C0' }} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} perkOverride={APOIO_PERKS.ouro} olheiros={state.onlineMode !== 'online'} />
                 <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 64, background: 'linear-gradient(180deg,transparent,#F4ECD6)', pointerEvents: 'none', zIndex: 2 }} />
@@ -7808,19 +7814,19 @@ export function PyramidSeasonScreen() {
             {!done && round > 0 && tab==='jogos' && renderCareerTicker()}
             {done && copa && copa.rounds.length ? <>
               <nav className="ll29-phases" aria-label="Etapas da Copa">{copa.rounds.map((r,i)=><span key={i} aria-current={copaPlaying && i===copaRound ? 'step' : undefined}>{i<copaRound || copaFinished ? '✓ ' : ''}{r.name}</span>)}</nav>
-              {tab==='jogos' && copaPlaying && copaFase && <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · OUTROS JOGOS`}/>}
+              {tab==='jogos' && copaPlaying && copaFase && <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>}
               {tab==='tabelas' && <>
-                {copaPlaying && copaFase && <CopaMatchList ties={copaFase.ties} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · CONFRONTOS DA FASE`}/>}
-                {copa.rounds.slice(0,copaFinished ? nCopaRounds : copaRound).map((r,i)=><details className="ll29-history" key={i}><summary>{r.name.toUpperCase()} · RESULTADOS</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name}/></details>)}
-                <details className="ll29-history"><summary>LIGA ENCERRADA · CLASSIFICAÇÕES E PREMIAÇÃO</summary><PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/><PrizesBox/></details>
+                {copaPlaying && copaFase && <CopaMatchList ties={copaFase.ties} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('CONFRONTOS DA FASE', 'TIES OF THE ROUND')}`}/>}
+                {copa.rounds.slice(0,copaFinished ? nCopaRounds : copaRound).map((r,i)=><details className="ll29-history" key={i}><summary>{r.name.toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name}/></details>)}
+                <details className="ll29-history"><summary>{tr('LIGA ENCERRADA · CLASSIFICAÇÕES E PREMIAÇÃO', 'LEAGUE OVER · STANDINGS AND PRIZES')}</summary><PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/><PrizesBox/></details>
               </>}
             </> : (() => {
               const division = divisionView && ord.includes(divisionView) ? divisionView : myDiv ?? ord[0]
               const minute = done ? 93 : scoreClock.round===round ? scoreClock.minute : 0
               return <>
-                <label className="ll29-filter">DIVISÃO<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? ' · SEU CLUBE' : ''}</option>)}</select></label>
+                <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
                 {tab==='tabelas' ? <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>
-                  : round > 0 && <CareerLeagueGames matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · OUTROS JOGOS`} />}
+                  : round > 0 && <CareerLeagueGames matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
               </>
             })()}
           </section>
@@ -7830,7 +7836,7 @@ export function PyramidSeasonScreen() {
                aba Jogos ficam os OUTROS jogos da fase, rolando junto (mesmo relógio),
                como os jogos das outras divisões apareciam na liga. */
             <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName}
-              title={`${copaBrOk ? '🏆🇧🇷' : '🏆'} ${copaFaseName} · ${copaNLegs === 1 ? 'jogo único' : 'ida e volta'}`} />
+              title={`${copaBrOk ? '🏆🇧🇷' : '🏆'} ${copaFaseName} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')}`} />
           ) : (
           <>
             {/* 🧢🎉 LANÇAMENTO DOS TÉCNICOS (28/08, pedido do Diego: "quando a
@@ -7839,10 +7845,16 @@ export function PyramidSeasonScreen() {
                 carreira, fecha no "Entendi!" e não volta. Só onde o recurso
                 existe de verdade — carreira solo (no online não tem técnico). */}
             {quinzeCarr && (
-              <UnlockBanner k="tecnicos-chegaram" tag="🎉 vocês pediram muito" title="🧢 Os técnicos chegaram!" ctaBg={GREEN} ctaColor="#fff">
+              <UnlockBanner k="tecnicos-chegaram" tag={tr('🎉 vocês pediram muito', '🎉 you asked a lot')} title={tr('🧢 Os técnicos chegaram!', '🧢 The head coaches are here!')} ctaBg={GREEN} ctaColor="#fff">
+                {getLang() === 'en' ? <>
+                Your club now has a <b>head coach</b>: there are <b>105 of them</b>, from 🤎 Was a pro to 👑 Legend, and <b>their level adds to your team</b> in every league match.
+                <br /><br />🎽 The <b>15 formations</b> came along too — but <b>the coach is who unlocks them</b>: with no coach, the team only plays the system it already trains. The higher the coach\'s category, the more systems they bring (👑 Legend brings 5).
+                <br /><br />📍 <b>To hire one:</b> in the window <b>before the auction</b>, <b>🕵️ SCOUT</b> tab — you mark the coach you want and fight for them at the auction, in the envelope, just like a player. 🔨 <b>5-season</b> contract, salary on the payroll.
+                </> : <>
                 Agora seu clube tem <b>técnico</b>: são <b>105 comandantes</b>, do 🤎 Foi profissional ao 👑 Lenda, e o <b>nível dele soma no seu time</b> em toda partida da liga.
                 <br /><br />🎽 E vieram junto as <b>15 formações</b> — mas <b>quem abre elas é o técnico</b>: sem técnico, o time joga só o esquema que já treina. Quanto maior a categoria dele, mais esquemas ele traz (👑 Lenda traz 5).
                 <br /><br />📍 <b>Pra contratar:</b> na janela <b>antes do leilão</b>, aba <b>🕵️ SONDAR</b> — você marca o técnico que quer e briga por ele no pregão, no envelope, igual jogador. 🔨 Contrato de <b>5 temporadas</b>, com salário na folha.
+                </>}
               </UnlockBanner>
             )}
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
@@ -7869,8 +7881,8 @@ export function PyramidSeasonScreen() {
           <button
             onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); dispatch({ type: 'GO_LOBBY' }) }}
             style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-            🚪 Sair e salvar carreira
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>Fica guardada nos seus saves — é só voltar e continuar de onde parou.</span>
+            {tr('🚪 Sair e salvar carreira', '🚪 Exit and save career')}
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>
         )}
       </div>
