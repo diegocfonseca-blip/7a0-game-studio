@@ -23,7 +23,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe } from './eventos'
 import type { EventoCard } from './eventos'
-import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, emojiGas, corGas, sugerirRodizio, GAS_JOGO, GAS_BANCO } from './condicao' // 😓 gás (12/09)
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, corGas, sugerirRodizio, GAS_JOGO, GAS_BANCO } from './condicao' // 😓 gás (12/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
@@ -3171,17 +3171,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     const g = condicao.gas[c.id] ?? 100, e = estadoGas(g), cor = corGas(e)
     return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(g, cor)} /></span><span style={{ ...lbl, color: cor }}>{g}%</span></span>
   }
-  // 😓 selinho no boneco do campinho — só quem NÃO está inteiro (o inteiro não
-  // ganha nada, senão vira poluição em 11 bonecos)
-  const gasBadge = (c: WonCard): React.ReactNode => {
-    if (!condicao || c.fake) return undefined
-    const mv = condicao.volta(c.id)
-    const e = mv ? null : estadoGas(condicao.gas[c.id] ?? 100)
-    if (!mv && e === 'ok') return undefined
-    const cor = mv ? '#7C3AED' : corGas(e!)
-    const txt = mv ? `🩹 ${pctVolta(mv)}%` : `${emojiGas(e!)} ${condicao.gas[c.id] ?? 100}%`
-    return <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, background: '#fff', border: `1.5px solid ${INK}`, borderRadius: 5, padding: '0 4px', color: cor, whiteSpace: 'nowrap' }}>{txt}</span>
-  }
+  // 😓 NO CAMPINHO NÃO (Diego 12/09: *"não quero que apareça no campinho, só onde
+  // tem a listagem"*) — o gás vive só nas listas de titulares/reservas.
   // 📝 CONTRATO SUTIL (pedido do Diego 04/08): vive na coluna da DIREITA,
   // embaixo do 💰 piso e 💸 salário — ali nunca corta em tela estreita, e a
   // linha "clube · ano" da esquerda fica inteira. Cinza quando está tudo certo
@@ -3391,7 +3382,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                 estado={stateOf(c) as EstadoJogador}
                 onClick={onTap ? () => onTap(c.id) : undefined}
                 mantoCss={manto ? mantoStripes(manto, 6, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : null}
-                extra={c.emprestado ? <EmpTag mini /> : gasBadge(c)}
+                extra={c.emprestado ? <EmpTag mini /> : undefined}
               />
             )
             // recuo sutil (alas do 3-5-2 / líbero) — só um deslocamento de desenho,

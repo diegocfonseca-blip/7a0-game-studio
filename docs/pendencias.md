@@ -25,7 +25,8 @@ Como está feito (`src/escalacao/condicao.ts`, módulo puro + testes em
   carta SÓ naquele jogo (`comMods`, dentro de `simDivTo`, 1º e 2º tempo). Vazio =
   simulação byte a byte igual. Chave `CONDICAO_ON` em `career-feature-release.ts`.
 - Aba Elenco: barrinha + % embaixo do clube·ano, "🏃 N jogos" à direita (linha
-  48→54px), selinho no boneco só de quem NÃO está inteiro, chip "Gás do time" no
+  48→54px), **NADA no campinho** (Diego: *"não quero que apareça no campinho, só
+  onde tem a listagem"*), chip "Gás do time" no
   topo, card do **Preparador Físico** com botão 🔁 RODIZIAR (sugere e só aplica no
   toque — nunca sozinho; quem está voltando de lesão não entra na sugestão),
   banner do Guia (`k="condicao"`). Bancada visual: `scripts/teste-condicao/`
