@@ -7094,7 +7094,8 @@ export function PyramidSeasonScreen() {
           const humans = state.managers.filter(m => m.isHuman && !m.dormindo)
           const votes = state.seasonVotes ?? {}
           const myVote = votes[youId]
-          const leilaoLabel = state.seasonNo === 1 ? 'Leilão de reservas' : 'Leilão de transferências'
+          const leilaoLabel = state.seasonNo === 1 ? tr('Leilão de reservas', 'Reserves auction') : tr('Leilão de transferências', 'Transfer auction')
+          const enFim = getLang() === 'en'
           // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
           const sb = scorerRewards(divTop)
           const cr = copaBrOk && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
@@ -7202,8 +7203,8 @@ export function PyramidSeasonScreen() {
                 const total = led.reduce((n, e) => n + e.amount, 0)
                 return (
                   <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 10 }}>
-                    <ReciboLinha ic="💰" titulo={`Fechamento da temporada ${state.seasonNo}`}
-                      sub={`${led.length} lançamento${led.length > 1 ? 's' : ''} · já caiu no caixa (${Math.round(state.careerCoins?.[youId] ?? 0)} 🪙)`}
+                    <ReciboLinha ic="💰" titulo={tr(`Fechamento da temporada ${state.seasonNo}`, `Season ${state.seasonNo} closing`)}
+                      sub={enFim ? `${led.length} ${led.length > 1 ? 'entries' : 'entry'} · already in the till (${Math.round(state.careerCoins?.[youId] ?? 0)} 🪙)` : `${led.length} lançamento${led.length > 1 ? 's' : ''} · já caiu no caixa (${Math.round(state.careerCoins?.[youId] ?? 0)} 🪙)`}
                       valor={`${total > 0 ? '+' : ''}${total} 🪙`} valorCor={total < 0 ? '#C2452F' : GREEN}
                       onClick={() => { setTab('estadio'); setClubeSub('financas') }} ultimo />
                   </div>
@@ -7211,27 +7212,27 @@ export function PyramidSeasonScreen() {
               })()}
               {noVermelho && (
                 <div style={{ background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10, ...OSWALD }}>
-                  <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>🚫 Transfer ban — clube no vermelho ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
-                  <p style={{ fontWeight: 700, fontSize: 10.5, margin: '3px 0 0', lineHeight: 1.35, color: 'rgba(255,255,255,.9)' }}>Você ainda entra no leilão, mas <b>sem grana pra comprar</b>: dá pra <b>vender pra recuperar</b> e tentar a sorte pegando <b>jogador de graça no monte</b>. Ganhando prêmios e bilheteria você sai do vermelho.</p>
+                  <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>{tr('🚫 Transfer ban — clube no vermelho', '🚫 Transfer ban — club in the red')} ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
+                  <p style={{ fontWeight: 700, fontSize: 10.5, margin: '3px 0 0', lineHeight: 1.35, color: 'rgba(255,255,255,.9)' }}>{enFim ? <>You still enter the auction, but <b>with no money to buy</b>: you can <b>sell to recover</b> and try your luck grabbing a <b>free player from the pile</b>. Prizes and gate money get you out of the red.</> : <>Você ainda entra no leilão, mas <b>sem grana pra comprar</b>: dá pra <b>vender pra recuperar</b> e tentar a sorte pegando <b>jogador de graça no monte</b>. Ganhando prêmios e bilheteria você sai do vermelho.</>}</p>
                 </div>
               )}
               {/* 👉 a decisão que TRAVA a carreira agora: abrir o leilão ou seguir
                   com o mesmo time. É a única coisa em vermelho na tela. */}
-              <SeloSuaVez texto="decida como monta o time da próxima" />
-              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>📅 Próxima temporada</p>
+              <SeloSuaVez texto={tr('decida como monta o time da próxima', 'decide how to build next season\'s team')} />
+              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{tr('📅 Próxima temporada', '📅 Next season')}</p>
               {/* 🏛️ MULTICLUBES · seletor (só entre temporadas, só testers) */}
               {state.onlineMode !== 'online' && state.multiClube && (() => {
                 const ativo = state.managers[state.youIdx]?.teamName ?? '—'
                 const dormindo = state.multiClube.team
                 return (
                   <div style={{ ...box('#0C0C0C'), padding: 11, color: '#fff', margin: '0 0 10px' }}>
-                    <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: 0 }}>🏛️ MULTICLUBES — quem você comanda?</p>
+                    <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: 0 }}>{tr('🏛️ MULTICLUBES — quem você comanda?', '🏛️ MULTI-CLUB — who do you manage?')}</p>
                     <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
-                      <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>no comando ✓</div></div>
-                      <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>dormindo 💤</div></div>
+                      <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('no comando ✓', 'in charge ✓')}</div></div>
+                      <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('dormindo 💤', 'asleep 💤')}</div></div>
                     </div>
-                    <button onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Passar o comando pro {dormindo}</button>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.45)', margin: '6px 0 0', textAlign: 'center' }}>Trocar = na próxima você comanda o outro; este dorme (mesmo time).</p>
+                    <button onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr(`🔄 Passar o comando pro ${dormindo}`, `🔄 Hand over command to ${dormindo}`)}</button>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.45)', margin: '6px 0 0', textAlign: 'center' }}>{tr('Trocar = na próxima você comanda o outro; este dorme (mesmo time).', 'Switch = next season you manage the other one; this one sleeps (same team).')}</p>
                   </div>
                 )
               })()}
@@ -7240,7 +7241,7 @@ export function PyramidSeasonScreen() {
                   passa o comando pra ele. Uma por título (divisão e/ou Copa Legends). */}
               {state.onlineMode !== 'online' && (state.multiClubePendingCards?.[youId] ?? []).length > 0 && (
                 <div style={{ margin: '0 0 12px' }}>
-                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: INK, margin: '0 0 7px', textAlign: 'center' }}>🎁 Enquanto dormia, o <b>{state.managers[state.youIdx]?.teamName}</b> foi campeão! Abra {(state.multiClubePendingCards?.[youId] ?? []).length > 1 ? 'os pacotes guardados' : 'o pacote guardado'} 👇</p>
+                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: INK, margin: '0 0 7px', textAlign: 'center' }}>{enFim ? <>🎁 While asleep, <b>{state.managers[state.youIdx]?.teamName}</b> became champion! Open {(state.multiClubePendingCards?.[youId] ?? []).length > 1 ? 'the saved packs' : 'the saved pack'} 👇</> : <>🎁 Enquanto dormia, o <b>{state.managers[state.youIdx]?.teamName}</b> foi campeão! Abra {(state.multiClubePendingCards?.[youId] ?? []).length > 1 ? 'os pacotes guardados' : 'o pacote guardado'} 👇</>}</p>
                   {(state.multiClubePendingCards?.[youId] ?? []).map(p => {
                     const key = `co:solo${state.seed}:${p.season}:mc${youId}${p.copa ? ':copa' : ''}`
                     return (
@@ -7253,9 +7254,11 @@ export function PyramidSeasonScreen() {
                   })}
                 </div>
               )}
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>{enFim ? <>Promotions and relegations already apply. {state.seasonNo === 1
+                ? <>Open the <b>reserves auction</b> (everyone with their own budget, buying to fill the bench up to 22), or carry on with the same squad.</>
+                : <>Open the <b>transfer auction</b> (1 new card per position + the players each manager lists), or carry on with the same squad.</>}</> : <>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
                 ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
-                : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</p>
+                : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</>}</p>
               {/* 🏛️ MULTICLUBES: deixa claro que o leilão é SÓ do clube ativo; o outro
                   segue mesmo time (sem leilão). Pra leiloar o outro, troca no seletor antes. */}
               {state.multiClube && (() => {
@@ -7263,13 +7266,13 @@ export function PyramidSeasonScreen() {
                 const dormindo = state.multiClube.team
                 return (
                   <div style={{ ...box('#FFF3CF'), padding: 10, marginBottom: 10, border: `2.5px solid ${INK}` }}>
-                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: INK, margin: 0 }}>🏛️ Você tem 2 clubes — o leilão é de UM só</p>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 10.5, fontWeight: 600, color: '#5a4a1a', margin: '4px 0 0', lineHeight: 1.4 }}>Se abrir o leilão, ele vale <b>só pro {ativo}</b> (o que você comanda). O <b>{dormindo}</b> segue <b>mesmo time</b>, sem leilão. Quer leiloar o {dormindo}? <b>Troque no seletor</b> aqui em cima <b>antes</b> de abrir.</p>
+                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: INK, margin: 0 }}>{tr('🏛️ Você tem 2 clubes — o leilão é de UM só', '🏛️ You have 2 clubs — the auction is for ONE only')}</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 10.5, fontWeight: 600, color: '#5a4a1a', margin: '4px 0 0', lineHeight: 1.4 }}>{enFim ? <>If you open the auction, it counts <b>only for {ativo}</b> (the one you manage). <b>{dormindo}</b> keeps the <b>same team</b>, no auction. Want to auction {dormindo}? <b>Switch in the selector</b> up there <b>before</b> opening.</> : <>Se abrir o leilão, ele vale <b>só pro {ativo}</b> (o que você comanda). O <b>{dormindo}</b> segue <b>mesmo time</b>, sem leilão. Quer leiloar o {dormindo}? <b>Troque no seletor</b> aqui em cima <b>antes</b> de abrir.</>}</p>
                   </div>
                 )
               })()}
               <button onClick={openLeilao} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>🔨 {leilaoLabel}</button>
-              <button onClick={openMesmo} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>▶️ Mesmo time (sem leilão)</button>
+              <button onClick={openMesmo} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>{tr('▶️ Mesmo time (sem leilão)', '▶️ Same team (no auction)')}</button>
             </div>
           )
           // ONLINE com amigos: VOTAÇÃO. O host só inicia quando todos votam;
@@ -7279,7 +7282,7 @@ export function PyramidSeasonScreen() {
           const nVoted = nLeilao + nMesmo
           const allVoted = nVoted === humans.length
           const pendentes = humans.filter(m => !votes[m.id])
-          const pendNomes = pendentes.map(m => m.id === youId ? 'você' : m.name).join(', ')
+          const pendNomes = pendentes.map(m => m.id === youId ? tr('você', 'you') : m.name).join(', ')
           const start = () => { (nLeilao > nMesmo ? openLeilao : nMesmo > nLeilao ? openMesmo : (votes[youId] === 'leilao' ? openLeilao : openMesmo))() }
           const voteBtn = (v: 'leilao' | 'mesmo', label: string, bg: string, fg: string) => (
             <button onClick={() => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: v })}
@@ -7292,38 +7295,38 @@ export function PyramidSeasonScreen() {
               {/* 🌍 no ONLINE a Copa é individual (cada técnico no seu aparelho) —
                   jogar não trava a votação: dá pra disputar e voltar pra votar. */}
               {copaGate}
-              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>🗳️ Votação — próxima temporada</p>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>Acessos e quedas já entram. Todos votam: abrir o <b>{leilaoLabel.toLowerCase()}</b> {state.seasonNo === 1 ? '(encher o banco até 22)' : '(1 carta nova por posição + os listados)'} ou seguir com o <b>mesmo time</b>. Empate → o host decide.</p>
+              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{tr('🗳️ Votação — próxima temporada', '🗳️ Vote — next season')}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>{enFim ? <>Promotions and relegations already apply. Everyone votes: open the <b>{leilaoLabel.toLowerCase()}</b> {state.seasonNo === 1 ? '(fill the bench up to 22)' : '(1 new card per position + the listed ones)'} or carry on with the <b>same team</b>. Tie → the host decides.</> : <>Acessos e quedas já entram. Todos votam: abrir o <b>{leilaoLabel.toLowerCase()}</b> {state.seasonNo === 1 ? '(encher o banco até 22)' : '(1 carta nova por posição + os listados)'} ou seguir com o <b>mesmo time</b>. Empate → o host decide.</>}</p>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 {voteBtn('leilao', `🔨 ${leilaoLabel}`, GOLD, INK)}
-                {voteBtn('mesmo', '▶️ Mesmo time', GREEN, '#fff')}
+                {voteBtn('mesmo', tr('▶️ Mesmo time', '▶️ Same team'), GREEN, '#fff')}
               </div>
               <style>{'@keyframes coReady{0%,100%{transform:translateY(0);box-shadow:4px 4px 0 0 ' + INK + '}50%{transform:translateY(-2px);box-shadow:4px 6px 0 0 ' + INK + '}}'}</style>
               {/* chips: quem votou já está PRONTO (✓); quem falta pisca com ⏳ */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
                 {humans.map(m => { const v = votes[m.id]; return (
                   <span key={m.id} style={{ fontSize: 10, fontWeight: 800, ...OSWALD, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px', background: v ? (v === 'leilao' ? GOLD : GREEN) : '#fff', color: v === 'mesmo' ? '#fff' : INK, opacity: v ? 1 : 0.55 }}>
-                    {v ? `${v === 'leilao' ? '🔨' : '▶️'} ${m.id === youId ? 'Você' : m.name} ✓` : `⏳ ${m.id === youId ? 'Você' : m.name}`}
+                    {v ? `${v === 'leilao' ? '🔨' : '▶️'} ${m.id === youId ? tr('Você', 'You') : m.name} ✓` : `⏳ ${m.id === youId ? tr('Você', 'You') : m.name}`}
                   </span>
                 )})}
               </div>
               {state.isHost ? (
                 <>
                   {allVoted
-                    ? <p style={{ fontSize: 11.5, fontWeight: 800, color: GREEN, margin: '0 0 7px', textAlign: 'center' }}>🔔 Todos votaram e estão prontos! Bora começar 👇</p>
-                    : <p style={{ fontSize: 11, fontWeight: 700, color: '#8a6a2a', margin: '0 0 7px', textAlign: 'center' }}>⏳ Falta votar: <b>{pendNomes}</b></p>}
+                    ? <p style={{ fontSize: 11.5, fontWeight: 800, color: GREEN, margin: '0 0 7px', textAlign: 'center' }}>{tr('🔔 Todos votaram e estão prontos! Bora começar 👇', '🔔 Everyone voted and is ready! Let\'s go 👇')}</p>
+                    : <p style={{ fontSize: 11, fontWeight: 700, color: '#8a6a2a', margin: '0 0 7px', textAlign: 'center' }}>{tr('⏳ Falta votar:', '⏳ Still to vote:')} <b>{pendNomes}</b></p>}
                   <button disabled={!allVoted} onClick={start}
                     style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, ...OSWALD, background: allVoted ? GREEN : '#cfcabb', color: '#fff', boxShadow: allVoted ? `4px 4px 0 0 ${INK}` : 'none', cursor: allVoted ? 'pointer' : 'not-allowed', animation: allVoted ? 'coReady 1.1s ease-in-out infinite' : undefined }}>
-                    {allVoted ? '▶️ Começar próxima temporada' : `Aguardando votos… (${nVoted}/${humans.length})`}
+                    {allVoted ? tr('▶️ Começar próxima temporada', '▶️ Start next season') : tr(`Aguardando votos… (${nVoted}/${humans.length})`, `Waiting for votes… (${nVoted}/${humans.length})`)}
                   </button>
                 </>
               ) : (
                 <div style={{ textAlign: 'center' }}>
                   {!myVote
-                    ? <p style={{ fontSize: 12, fontWeight: 900, ...OSWALD, color: '#b23b2e', margin: '2px 0 0' }}>👆 Toque no seu voto — assim o host sabe que você tá pronto!</p>
+                    ? <p style={{ fontSize: 12, fontWeight: 900, ...OSWALD, color: '#b23b2e', margin: '2px 0 0' }}>{tr('👆 Toque no seu voto — assim o host sabe que você tá pronto!', '👆 Tap your vote — that\'s how the host knows you\'re ready!')}</p>
                     : allVoted
-                      ? <p style={{ fontSize: 11.5, fontWeight: 800, color: GREEN, margin: '2px 0 0' }}>✅ Todos prontos! Cutuca o host pra apertar <b>Começar</b> 👊</p>
-                      : <p style={{ fontSize: 11.5, fontWeight: 800, color: '#3a5a8a', margin: '2px 0 0' }}>✅ Pronto! Voto computado. Falta: <b>{pendNomes}</b>. O host começa logo depois.</p>}
+                      ? <p style={{ fontSize: 11.5, fontWeight: 800, color: GREEN, margin: '2px 0 0' }}>{enFim ? <>✅ Everyone ready! Poke the host to press <b>Start</b> 👊</> : <>✅ Todos prontos! Cutuca o host pra apertar <b>Começar</b> 👊</>}</p>
+                      : <p style={{ fontSize: 11.5, fontWeight: 800, color: '#3a5a8a', margin: '2px 0 0' }}>{enFim ? <>✅ Ready! Vote counted. Missing: <b>{pendNomes}</b>. The host starts right after.</> : <>✅ Pronto! Voto computado. Falta: <b>{pendNomes}</b>. O host começa logo depois.</>}</p>}
                 </div>
               )}
             </div>
@@ -7552,15 +7555,15 @@ export function PyramidSeasonScreen() {
                 <div style={{ ...box('#0C0C0C'), padding: 12, color: '#fff', marginBottom: 10 }}>
                   <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: '0 0 7px' }}>🏛️ MULTICLUBES — quem você comanda?</p>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>no comando ✓</div></div>
-                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>dormindo 💤</div></div>
+                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('no comando ✓', 'in charge ✓')}</div></div>
+                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('dormindo 💤', 'asleep 💤')}</div></div>
                   </div>
                   {multiTravada
                     ? <div style={{ marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, background: '#4a4740', color: 'rgba(255,255,255,.9)', textAlign: 'center', ...OSWALD }}>
                         {multiPending ? '🔄 Vou parar no fim desta rodada pra você trocar…' : `🔒 ${copaPlaying ? 'Deixe a Copa acabar' : 'Deixe a rodada acabar'} pra trocar de clube`}
                         {!multiPending && !manual && !copaPlaying && <button onClick={() => setMultiPending(true)} style={{ display: 'block', width: '100%', marginTop: 6, border: '2px solid #000', borderRadius: 8, padding: 6, fontWeight: 900, fontSize: 10.5, background: GOLD, color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Trocar no fim desta rodada</button>}
                       </div>
-                    : <button onClick={() => setMultiAsk(true)} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 10, fontWeight: 900, fontSize: 12.5, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🔄 Passar o comando pro {dormindo}</button>}
+                    : <button onClick={() => setMultiAsk(true)} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 10, fontWeight: 900, fontSize: 12.5, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr(`🔄 Passar o comando pro ${dormindo}`, `🔄 Hand over command to ${dormindo}`)}</button>}
                   <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.5)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.4 }}>Cada clube tem o <b>seu</b> caixa, elenco, títulos e estádio — nada se mistura. O que dorme segue a temporada no automático, com o time como está.</p>
                 </div>
               )
