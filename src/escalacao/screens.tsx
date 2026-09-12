@@ -1439,7 +1439,9 @@ function NewsSection() {
   // resto vira história velha e cai fora sozinho.
   const mud = MUDANCAS_JOGADORES.filter(m => Date.parse(m.data) >= Date.now() - 30 * 86400000).slice(0, 4)
   const frase = (m: typeof mud[number]) => {
-    const bar = m.baralho === 'EU' ? '🌍' : '🇧🇷'
+    // 🇧🇷 Brasil · 🌍 Europa · 🌎 Resto do Mundo (entrou em 12/09, a pedido do
+    // Diego, quando o gerador de novidades passou a olhar o 3º baralho também).
+    const bar = m.baralho === 'EU' ? '🌍' : m.baralho === 'MUNDO' ? '🌎' : '🇧🇷'
     if (m.tipo === 'entrou') return `${bar} ${m.nome} ${tr('entrou no baralho', 'joined the deck')}${m.nivel ? ` ${tr('como', 'as')} ${m.nivel}` : ''}`
     if (m.tipo === 'saiu') return `${bar} ${m.nome} ${tr('saiu do baralho', 'left the deck')}`
     if (m.tipo === 'nivel') return `${bar} ${m.nome}: ${m.de} → ${m.para}`

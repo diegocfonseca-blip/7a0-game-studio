@@ -5,7 +5,8 @@
 // recém-lançados também"*.
 //
 // Como funciona, sem mágica:
-//   1. Este script LÊ o baralho de verdade (`data.ts`, os dois catálogos).
+//   1. Este script LÊ o baralho de verdade (`data.ts`, os TRÊS catálogos:
+//      Brasil, Europa e Resto do Mundo).
 //   2. Compara com a FOTO da última vez (`scripts/catalogo-snapshot.json`).
 //   3. Escreve o que mudou em `src/escalacao/novidades-jogadores.ts` — entrou,
 //      saiu, mudou de nível, virou/deixou de ser promessa ou folclórico.
@@ -64,14 +65,21 @@ const server = await createServer({ server: { middlewareMode: true }, appType: '
 const data = await server.ssrLoadModule('/src/escalacao/data.ts')
 await server.close()
 
-const agora = { ...achatar(data.CATALOG, 'BR'), ...achatar(data.CATALOG_EU, 'EU') }
+// 🌎 O baralho MUNDO entra aqui desde 12/09 (pedido do Diego: *"o gerador de
+// novidades tb tem q ter baralho mundo sim"*). Ele não tem seletor próprio na
+// tela, mas a CARREIRA e o "todos juntos" usam ele, então carta nova de lá é
+// novidade pra quem joga igual às outras.
+const agora = { ...achatar(data.CATALOG, 'BR'), ...achatar(data.CATALOG_EU, 'EU'), ...achatar(data.CATALOG_WORLD, 'MUNDO') }
+// o baralho vem do próprio começo da chave (antes era um startsWith('EU'), que
+// mandaria todo o MUNDO pra 'BR' calado)
+const baralhoDaChave = k => k.split('|')[0]
 const antes = existsSync(FOTO) ? JSON.parse(readFileSync(FOTO, 'utf8')) : null
 
 const mudancas = []
 if (antes) {
   for (const [k, c] of Object.entries(agora)) {
     const a = antes[k]
-    const baralho = k.startsWith('EU') ? 'EU' : 'BR'
+    const baralho = baralhoDaChave(k)
     if (!a) { mudancas.push({ tipo: 'entrou', nome: c.n, baralho, nivel: nivelDe({ fame: c.f, promessa: c.pr }) }); continue }
     if (a.f !== c.f || a.pr !== c.pr) {
       const de = nivelDe({ fame: a.f, promessa: a.pr }), pra = nivelDe({ fame: c.f, promessa: c.pr })
@@ -80,7 +88,7 @@ if (antes) {
     if (a.fo !== c.fo) mudancas.push({ tipo: c.fo ? 'virou-folk' : 'saiu-folk', nome: c.n, baralho })
   }
   for (const [k, a] of Object.entries(antes)) {
-    if (!agora[k]) mudancas.push({ tipo: 'saiu', nome: a.n, baralho: k.startsWith('EU') ? 'EU' : 'BR' })
+    if (!agora[k]) mudancas.push({ tipo: 'saiu', nome: a.n, baralho: baralhoDaChave(k) })
   }
 }
 
@@ -104,7 +112,7 @@ writeFileSync(SAIDA, `// ⚠️ ARQUIVO GERADO — não edite na mão.
 // Sai do \`npm run novidades\`, que compara o baralho de hoje com a foto em
 // \`scripts/catalogo-snapshot.json\`. Mexeu em jogador (entrou, saiu, mudou de
 // nível ou de categoria)? Rode o comando e a home conta sozinha.
-export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU'; nivel?: string; de?: string; para?: string }
+export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU' | 'MUNDO'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = ${JSON.stringify(todas, null, 2)}
 `)
 writeFileSync(FOTO, JSON.stringify(agora))
