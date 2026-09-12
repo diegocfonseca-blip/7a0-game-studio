@@ -1,7 +1,7 @@
 // 🧪 CONDIÇÃO / GÁS — confere as regras fechadas com o Diego (12/09) contra o
 // módulo puro `src/escalacao/condicao.ts`. Rodar: npx tsx scripts/testa-condicao.mjs
 // (sai com código 1 se algo quebrar — serve pra rodar antes de commitar).
-import { gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, sugerirRodizio, estadoGas, modGas, condicaoAtiva, GAS_JOGO, GAS_BANCO } from '../src/escalacao/condicao.ts'
+import { gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, sugerirRodizio, estadoGas, modGas, pesoLesao, condicaoAtiva, GAS_JOGO, GAS_BANCO } from '../src/escalacao/condicao.ts'
 
 let falhas = 0
 const ok = (cond, msg) => { if (cond) console.log('  ✅', msg); else { falhas++; console.log('  ❌', msg) } }
@@ -15,8 +15,10 @@ const banco = squad.filter(c => !xi.includes(c.id))
 console.log('1) estados e modificadores')
 ok(estadoGas(100) === 'ok' && estadoGas(60) === 'ok', '≥60 = inteiro')
 ok(estadoGas(59) === 'cansado' && estadoGas(30) === 'cansado', '30–59 = cansado')
-ok(estadoGas(29) === 'limite' && estadoGas(0) === 'limite', '<30 = no limite')
-ok(modGas(100) === 0 && modGas(45) === -1 && modGas(10) === -2, 'mods 0 / −1 / −2')
+ok(estadoGas(29) === 'limite' && estadoGas(20) === 'limite', '20–29 = no limite')
+ok(estadoGas(19) === 'esgotado' && estadoGas(0) === 'esgotado', '<20 = esgotado 🚑')
+ok(modGas(100) === 0 && modGas(45) === -1 && modGas(25) === -2 && modGas(10) === -3, 'mods 0 / −1 / −2 / −3')
+ok(pesoLesao(100) === 1 && pesoLesao(25) === 2 && pesoLesao(10) === 3, 'peso da lesão 1× / 2× / 3×')
 
 console.log('2) gás derivado da escalação congelada')
 const byRound = {}
@@ -30,6 +32,7 @@ ok(banco.every(c => g[c.id] === 100), 'banco fica no teto (100), nunca passa')
 // inteiro e entra no 5º já 😓; no limite (< 30) a partir do 7º (100 − 12×6 = 28).
 ok(estadoGas(gasDoElenco(byRound, 3, squad).t0) === 'ok' && estadoGas(gasDoElenco(byRound, 4, squad).t0) === 'cansado', '4 jogos seguidos inteiro; no 5º já está 😓')
 ok(estadoGas(gasDoElenco({ ...byRound, 5: xi }, 6, squad).t0) === 'limite', 'no 7º jogo seguido está 🥵 (28)')
+ok(estadoGas(gasDoElenco({ ...byRound, 5: xi, 6: xi }, 7, squad).t0) === 'esgotado', 'no 8º jogo seguido está 🚑 (16) — e daí pra frente só piora até o zero')
 // descansa 2 rodadas: entra o reserva r11 (GOL) no lugar do t0
 byRound[5] = xi.map(id => (id === 't0' ? 'r11' : id)); byRound[6] = byRound[5]
 g = gasDoElenco(byRound, 7, squad)

@@ -3326,6 +3326,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         const gasDe = (c: WonCard) => condicao.gas[c.id] ?? 100
         const ruins = titulares.filter(c => !c.fake && (estadoGas(gasDe(c)) !== 'ok' || condicao.volta(c.id) !== 0))
         if (!ruins.length) return null
+        const esgotados = ruins.filter(c => estadoGas(gasDe(c)) === 'esgotado')
         const limite = ruins.filter(c => estadoGas(gasDe(c)) === 'limite')
         const cansados = ruins.filter(c => estadoGas(gasDe(c)) === 'cansado')
         const voltando = ruins.filter(c => condicao.volta(c.id) !== 0 && estadoGas(gasDe(c)) === 'ok')
@@ -3334,11 +3335,13 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         if (condicao.suspensoId) bloq.add(condicao.suspensoId)
         const sug = condicao.onRodizio ? sugerirRodizio(titulares.map(c => c.id), mgr.squad, condicao.gas, bloq) : null
         const nomes = (cs: WonCard[]) => cs.map(c => c.name).join(', ')
-        const semReserva = (limite.length + cansados.length) > 0 && (!sug || sug.trocas.length < limite.length + cansados.length)
+        const nRuins = esgotados.length + limite.length + cansados.length
+        const semReserva = nRuins > 0 && (!sug || sug.trocas.length < nRuins)
         return (
           <div style={{ border: `3px solid ${INK}`, background: '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: .6, color: '#5a5647', margin: 0, textTransform: 'uppercase' }}>{tr('🧑‍⚕️ Preparador físico', '🧑‍⚕️ Fitness coach')}</p>
             <p style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.45, margin: '4px 0 0' }}>
+              {esgotados.length > 0 && (en ? <><b>{nomes(esgotados)}</b> {esgotados.length === 1 ? 'is' : 'are'} <b style={{ color: '#7A1B1B' }}>completely spent</b> (🚑) — −3 and <b>triple</b> the injury risk. </> : <><b>{nomes(esgotados)}</b> {esgotados.length === 1 ? 'está' : 'estão'} <b style={{ color: '#7A1B1B' }}>esgotado{esgotados.length === 1 ? '' : 's'}</b> (🚑) — −3 e o <b>triplo</b> de risco de lesão. </>)}
               {limite.length > 0 && (en ? <><b>{nomes(limite)}</b> {limite.length === 1 ? 'is' : 'are'} <b style={{ color: '#C2452F' }}>running on empty</b> (🥵) — {limite.length === 1 ? 'he plays' : 'they play'} at −2 and the injury risk doubles. </> : <><b>{nomes(limite)}</b> {limite.length === 1 ? 'está' : 'estão'} <b style={{ color: '#C2452F' }}>no limite</b> (🥵) — {limite.length === 1 ? 'joga' : 'jogam'} com −2 e o risco de lesão dobra. </>)}
               {cansados.length > 0 && (en ? <><b>{nomes(cansados)}</b> {cansados.length === 1 ? 'is' : 'are'} <b style={{ color: '#B8860B' }}>tired</b> (😓) — −1 in the next match. </> : <><b>{nomes(cansados)}</b> {cansados.length === 1 ? 'está' : 'estão'} <b style={{ color: '#B8860B' }}>cansado{cansados.length === 1 ? '' : 's'}</b> (😓) — −1 no próximo jogo. </>)}
               {voltando.length > 0 && (en ? <><b>{nomes(voltando)}</b> is <b style={{ color: '#7C3AED' }}>coming back from injury</b> (🩹) — not at 100% yet. </> : <><b>{nomes(voltando)}</b> está <b style={{ color: '#7C3AED' }}>voltando de lesão</b> (🩹) — ainda não rende 100%. </>)}
@@ -3949,10 +3952,11 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           const ids = [...xiIds].filter(id => mgr.squad.some(c => c.id === id && !c.fake))
           if (!ids.length) return null
           const media = Math.round(ids.reduce((s, id) => s + (condicao.gas[id] ?? 100), 0) / ids.length)
+          const nEsg = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'esgotado').length
           const nLim = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'limite').length
           const nCan = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'cansado').length
           const cor = corGas(estadoGas(media))
-          return <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: cor }}>{media}%</span>{nLim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {nLim} 🥵</span> : null}{nCan ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {nCan} 😓</span> : null}</span>
+          return <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: cor }}>{media}%</span>{nEsg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {nEsg} 🚑</span> : null}{nLim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {nLim} 🥵</span> : null}{nCan ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {nCan} 😓</span> : null}</span>
         })()}
       </div>
       {elenco && onSetFormation && (() => {
@@ -4105,8 +4109,8 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           {condicao && (
             <UnlockBanner k="condicao" tag={tr('😓 regra nova', '😓 new rule')} title={tr('Seus jogadores agora cansam', 'Your players get tired now')} ctaBg={GREEN} ctaColor="#fff">
               {getLang() === 'en'
-                ? <>Série C is professional football: every match as a starter costs <b>{GAS_JOGO} energy</b>, every round on the bench gives <b>+{GAS_BANCO}</b> back. Below 60 he is <b>tired</b> (😓, −1 in the match); below 30 he is <b>running on empty</b> (🥵, −2 and double the injury risk). Injuries come back <b>gradually</b> (60% → 80% → 100%) — unless you have the 🏥 Medical Department. Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots don't get tired — rotate well and you won't feel a thing either.</>
-                : <>Série C é futebol profissional: cada jogo como titular custa <b>{GAS_JOGO} de gás</b>, cada rodada no banco devolve <b>+{GAS_BANCO}</b>. Abaixo de 60 ele está <b>cansado</b> (😓, −1 no jogo); abaixo de 30, <b>no limite</b> (🥵, −2 e o dobro de risco de lesão). Lesão volta <b>aos poucos</b> (60% → 80% → 100%) — a não ser que você tenha o 🏥 Departamento Médico. Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
+                ? <>Série C is professional football: every match as a starter costs <b>{GAS_JOGO} energy</b>, every round on the bench gives <b>+{GAS_BANCO}</b> back. Below 60 he is <b>tired</b> (😓, −1 in the match); below 30 he is <b>running on empty</b> (🥵, −2 and double the injury risk); below 20 he is <b>completely spent</b> (🚑, −3 and triple the risk). Injuries come back <b>gradually</b> (60% → 80% → 100%) — unless you have the 🏥 Medical Department. Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots don't get tired — rotate well and you won't feel a thing either.</>
+                : <>Série C é futebol profissional: cada jogo como titular custa <b>{GAS_JOGO} de gás</b>, cada rodada no banco devolve <b>+{GAS_BANCO}</b>. Abaixo de 60 ele está <b>cansado</b> (😓, −1 no jogo); abaixo de 30, <b>no limite</b> (🥵, −2 e o dobro de risco de lesão); abaixo de 20, <b>esgotado</b> (🚑, −3 e o triplo). Lesão volta <b>aos poucos</b> (60% → 80% → 100%) — a não ser que você tenha o 🏥 Departamento Médico. Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
             </UnlockBanner>
           )}
           <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} />

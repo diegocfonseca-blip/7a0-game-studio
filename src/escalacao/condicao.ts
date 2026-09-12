@@ -7,8 +7,10 @@
 //
 //   · cada jogo como TITULAR: −12 de gás · cada rodada no BANCO: +20 (teto 100)
 //   · ≥ 60 = 💪 inteiro (nada) · 30–59 = 😓 cansado (−1 de força no jogo)
-//     · < 30 = 🥵 no limite (−2 de força · 2× de chance de ser o lesionado
-//     da temporada)
+//     · 20–29 = 🥵 no limite (−2 · 2× de chance de ser o lesionado da temporada)
+//     · < 20 = 🚑 esgotado (−3 · 3× lesão) — degrau pedido pelo Diego: *"do 8º em
+//     diante não aumenta mais ainda a chance de lesionar e cair mais o nível?"*
+//     Agora aumenta: 5º jogo seguido 😓 · 7º 🥵 · 8º em diante 🚑.
 //   · lesão VOLTA AOS POUCOS: na rodada da volta joga a 60% (−2), na seguinte
 //     a 80% (−1), depois 100%. O 🏥 Dep. Médico continua acabando com as lesões
 //     PRA SEMPRE (o Diego mandou NÃO mexer nele) — então quem tem médico nunca
@@ -36,15 +38,19 @@ export const GAS_JOGO = 12     // desconto por jogo como titular
 export const GAS_BANCO = 20    // recuperação por rodada no banco
 export const GAS_CANSADO = 60  // abaixo disto = 😓
 export const GAS_LIMITE = 30   // abaixo disto = 🥵
+export const GAS_ESGOTADO = 20 // abaixo disto = 🚑
 export const MOD_CANSADO = -1
 export const MOD_LIMITE = -2
+export const MOD_ESGOTADO = -3
 export const MOD_VOLTA = [-2, -1] as const // rodada da volta (60%) · seguinte (80%)
 
-export type EstadoGas = 'ok' | 'cansado' | 'limite'
-export function estadoGas(g: number): EstadoGas { return g >= GAS_CANSADO ? 'ok' : g >= GAS_LIMITE ? 'cansado' : 'limite' }
-export function modGas(g: number): number { const e = estadoGas(g); return e === 'ok' ? 0 : e === 'cansado' ? MOD_CANSADO : MOD_LIMITE }
-export const emojiGas = (e: EstadoGas): string => (e === 'ok' ? '💪' : e === 'cansado' ? '😓' : '🥵')
-export const corGas = (e: EstadoGas): string => (e === 'ok' ? '#1B7A3D' : e === 'cansado' ? '#D9A000' : '#C2452F')
+export type EstadoGas = 'ok' | 'cansado' | 'limite' | 'esgotado'
+export function estadoGas(g: number): EstadoGas { return g >= GAS_CANSADO ? 'ok' : g >= GAS_LIMITE ? 'cansado' : g >= GAS_ESGOTADO ? 'limite' : 'esgotado' }
+export function modGas(g: number): number { const e = estadoGas(g); return e === 'ok' ? 0 : e === 'cansado' ? MOD_CANSADO : e === 'limite' ? MOD_LIMITE : MOD_ESGOTADO }
+// peso do jogador no sorteio da LESÃO da temporada (1 = normal · 2 = 🥵 · 3 = 🚑)
+export function pesoLesao(g: number): number { const e = estadoGas(g); return e === 'esgotado' ? 3 : e === 'limite' ? 2 : 1 }
+export const emojiGas = (e: EstadoGas): string => (e === 'ok' ? '💪' : e === 'cansado' ? '😓' : e === 'limite' ? '🥵' : '🚑')
+export const corGas = (e: EstadoGas): string => (e === 'ok' ? '#1B7A3D' : e === 'cansado' ? '#D9A000' : e === 'limite' ? '#C2452F' : '#7A1B1B')
 
 // ─── ligado ou não, PARA ESTA CARREIRA/TEMPORADA ─────────────────────────────
 // `condicaoDesde` = temporada em que o clube chegou na Série C (gravado na

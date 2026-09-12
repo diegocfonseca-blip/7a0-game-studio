@@ -9,8 +9,9 @@ Decisões do Diego (todas no chat de 12/09):
 - **Dep. Médico INTOCADO** (segue "acaba com as lesões pra sempre") — ele mandou
   tirar a minha ideia de mexer nele. A volta gradual só existe pra quem não tem.
 - Números: −12 por jogo · +20 no banco · <60 😓 (−1) · <30 🥵 (−2 e 2× lesão) ·
-  lesão volta 60% → 80% → 100%. Na prática: 4 jogos seguidos inteiro, 😓 a partir
-  do 5º, 🥵 a partir do 7º.
+  **<20 🚑 esgotado (−3 e 3× lesão)** — 4º degrau que o Diego pediu (*"do 8º em
+  diante não aumenta mais ainda?"*) · lesão volta 60% → 80% → 100%. Na prática: 4
+  jogos seguidos inteiro, 😓 a partir do 5º, 🥵 no 7º, 🚑 do 8º em diante.
 - Sem reserva: o cara joga cansado, o preparador manda pro mercado; se a lesão
   vier, entra o MESMO banner dos 3 Crias da Base dos eventos (ele confirmou:
   *"aí entra os da base né"*). Nada novo entra no jogo.

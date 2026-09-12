@@ -187,7 +187,8 @@ export function sorteiaEvento(args: {
     const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
-    if (!temMedico) { pool.push({ c, tipo: 'lesao' }); if (gas && (gas[c.id] ?? 100) < 30) pool.push({ c, tipo: 'lesao' }) } // 🥵 no limite = 2× lesão
+    // 🥵 no limite (< 30) = 2× lesão · 🚑 esgotado (< 20) = 3× (mesma régua de condicao.ts)
+    if (!temMedico) { const g = gas ? (gas[c.id] ?? 100) : 100; const peso = g < 20 ? 3 : g < 30 ? 2 : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
   }
   if (!pool.length) return null // 🏥 médico pronto + ninguém folclórico no XI = temporada em paz
   // 🔁 DESCANSO DE 5 TEMPORADAS (regra do Diego, 08/08): quem já aprontou fica
