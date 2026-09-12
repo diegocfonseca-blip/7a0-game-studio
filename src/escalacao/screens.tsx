@@ -411,11 +411,11 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
         <button onClick={openApoio}
           className="w-full rounded-xl border-[3px] border-black font-black text-base py-3 active:translate-y-0.5"
           style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-          💛 APOIE O PROJETO — E ELE SEGUE GRÁTIS
+          {tr('💛 APOIE O PROJETO — E ELE SEGUE GRÁTIS', '💛 SUPPORT THE PROJECT — AND IT STAYS FREE')}
         </button>
       ) : (
         <button onClick={openApoio} className="text-xs font-black rounded-full px-3 py-1 border-2 border-black" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, ...OSWALD }}>
-          💛 Apoie o projeto (Pix)
+          {tr('💛 Apoie o projeto (Pix)', '💛 Support the project (Pix)')}
         </button>
       )}
 
@@ -970,7 +970,7 @@ export function GameFooter() {
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
   if (privatePreview && state.careerIntent && state.screen === 'setup') return null
   const goHome = () => {
-    if (!window.confirm('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.')) return
+    if (!window.confirm(tr('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.', 'Back to the home screen? If you got stuck on a blank screen, this fixes it. A match in progress (on this screen) will be ended.'))) return
     try { localStorage.removeItem('esc-solo-inprogress-v1') } catch { /* ignora */ }
     dispatch({ type: 'GO_LOBBY' }) // volta pro início (e libera a vaga se estiver online)
   }
@@ -978,7 +978,7 @@ export function GameFooter() {
     <div className="game-contact-footer" style={{ background: '#F4ECD6', borderTop: '2px solid rgba(0,0,0,0.06)' }}>
       <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-8 space-y-1.5">
         <div className="pb-1"><ApoieButton /></div>
-        <p className="text-black/55 text-xs font-bold">💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:</p>
+        <p className="text-black/55 text-xs font-bold">{tr('💡 Ideia de jogador novo, sugestão ou achou um bug? Fala comigo:', '💡 New player idea, suggestion or found a bug? Talk to me:')}</p>
         <p className="text-xs font-bold">
           <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/65 underline"><InstaIcon /> @leilaolegendscom</a>
           <span className="text-black/30"> · </span>
@@ -986,10 +986,10 @@ export function GameFooter() {
         </p>
         {canEscape && (
           <p className="text-[11px] font-bold pt-0.5">
-            <button onClick={goHome} className="text-black/45 underline active:opacity-60">🛟 Travou na tela? Voltar ao início</button>
+            <button onClick={goHome} className="text-black/45 underline active:opacity-60">{tr('🛟 Travou na tela? Voltar ao início', '🛟 Stuck on a screen? Back to start')}</button>
           </p>
         )}
-        <p className="text-black/35 text-[11px] font-semibold pt-1">Feito por @diegocfonseca</p>
+        <p className="text-black/35 text-[11px] font-semibold pt-1">{tr('Feito por @diegocfonseca', 'Made by @diegocfonseca')}</p>
         <p className="text-black/20 text-[10px] font-semibold">v{__BUILD_ID__}</p>
       </footer>
     </div>
@@ -1107,7 +1107,7 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
               <button onClick={leaveRoom} className="text-black/35 text-xs font-semibold underline active:opacity-60" title="Sai da sala de vez (removido)">🚪 sair da sala</button>
             </div>
           ) : (
-            <button onClick={leave} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">🚪 sair do jogo</button>
+            <button onClick={leave} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">{tr('🚪 sair do jogo', '🚪 leave the game')}</button>
           )}
           {canManage && others.length > 0 && (
             <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">
@@ -5942,7 +5942,7 @@ function TopScorersBox({ highlight, title = getLang() === 'en' ? '⚽ TOP SCORER
     return (
       <Box className="p-3">
         <p className="font-black text-sm mb-1 text-black" style={OSWALD}>{bb ? L('🏀 CESTINHA', '🏀 SCORING') : L('⚽ ARTILHARIA', '⚽ TOP SCORERS')}</p>
-        <p className="text-xs text-black/60 font-semibold">{bb ? L('Sem pontos ainda. Bola quicando…', 'No points yet. Ball is bouncing…') : 'Sem gols ainda. Bola rolando…'}</p>
+        <p className="text-xs text-black/60 font-semibold">{bb ? L('Sem pontos ainda. Bola quicando…', 'No points yet. Ball is bouncing…') : L('Sem gols ainda. Bola rolando…', 'No goals yet. Ball rolling…')}</p>
       </Box>
     )
   }
