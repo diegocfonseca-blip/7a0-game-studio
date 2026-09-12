@@ -195,6 +195,7 @@ export const PAIS: Record<string, string> = {
   'Berbatov': 'Bulgária', 'Rafael Leão': 'Portugal', 'Ricardo Quaresma': 'Portugal',
   'Nani': 'Portugal', 'Thomas Müller': 'Alemanha', 'Reus': 'Alemanha',
   'Matheus Cunha': 'Brasil', 'Salomon Kalou': 'Costa do Marfim',
+  'Yan Diomandé': 'Costa do Marfim', // ⚡ lote 30 (12/09) — marfinense de Abidjan, ponta do RB Leipzig
   'Raphinha': 'Brasil', 'Martinelli': 'Brasil', 'Viktor Gyökeres': 'Suécia',
   'Nico Williams': 'Espanha', 'Gareth Bale': 'País de Gales',
   'Eden Hazard': 'Bélgica', 'Son Heung-min': 'Coreia do Sul',

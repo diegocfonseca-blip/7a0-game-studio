@@ -2088,7 +2088,18 @@ const L29_EU_ATA: C[] = [
   { name: 'Mark Viduka', club: 'Leeds United', year: 2001, fame: 3, lo: 78, hi: 87, bio: 'Centroavante australiano do Leeds — numa tarde de 2000 fez os quatro gols da virada sobre o Liverpool.' },
   { name: 'Paulo Wanchope', club: 'Derby County', year: 1998, fame: 3, lo: 74, hi: 86, folk: true, bio: 'Costa-riquenho desengonçado e imprevisível: marcou logo na estreia no Old Trafford e nunca deixou zagueiro entender o que ia fazer.' },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA] }
+// ⚡ LOTE 30 (12/09) — pedido do Diego: *"coloque no jogo o jogador Yan Diomandé
+// como promessa, com clube da Alemanha, Leipzig eu acho, e o ano de 2025; ele é
+// da Costa do Marfim"*. Ele não estava em nenhum dos três baralhos (conferido).
+// Os dados foram PESQUISADOS antes de cadastrar: marfinense de Abidjan, nascido
+// em 14/11/2006, ponta; saiu do Leganés e o RB Leipzig comprou em 2025 por 20
+// milhões de euros, com contrato até 2030. Na 1ª temporada na Alemanha: 46 jogos,
+// 15 gols e 11 assistências. Nome com a grafia correta (Diomandé) e clube na
+// MESMA grafia que já existia no baralho ("RB Leipzig", do Xavi Simons).
+const L30_EU_ATA: C[] = [
+  { name: 'Yan Diomandé', club: 'RB Leipzig', year: 2025, fame: 3, lo: 74, hi: 88, promessa: true, bio: 'Marfinense de Abidjan que o Leipzig comprou do Leganés em 2025: na primeira temporada na Alemanha foram 15 gols e 11 assistências, e a Europa inteira passou a brigar por ele.' },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
