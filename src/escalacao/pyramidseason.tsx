@@ -2731,8 +2731,8 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
             cada time com o placar do 1º tempo; o SEU time em dourado. */}
         <div style={{ background: INK, color: '#fff', padding: '11px 15px', borderRadius: '14px 14px 0 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19 }}>⏸️ Intervalo</div>
-            <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)' }}>vale SÓ o 2º tempo · não muda o próximo jogo</div>
+            <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19 }}>{tr('⏸️ Intervalo', '⏸️ Half-time')}</div>
+            <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)' }}>{tr('vale SÓ o 2º tempo · não muda o próximo jogo', 'ONLY for the 2nd half · doesn\'t change the next match')}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 }}>
             <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: youIsHome ? GOLD : '#fff', maxWidth: '38%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🏠 {homeName}</span>
@@ -2744,7 +2744,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
         </div>
         <div style={{ padding: 14 }}>
           {/* formação */}
-          <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>🎽 Formação</p>
+          <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}</p>
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
             {/* 🧢 conta liberada nas 15: o intervalo segue o MESMO cardápio do
                 seletor — com técnico, as contas DELE (+ a atual); sem técnico, as 5
@@ -2768,30 +2768,30 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
             })}
           </div>
           {/* tática */}
-          <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>🧠 Tática</p>
+          <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>{tr('🧠 Tática', '🧠 Tactic')}</p>
           <div style={{ display: 'flex', gap: 5, marginBottom: 12 }}>
-            {([['retranca', '🛡️ Retranca'], ['equilibrio', '⚖️ Equilíbrio'], ['ataque', '⚔️ Ataque']] as [Tac, string][]).map(([t, lb]) => {
+            {([['retranca', tr('🛡️ Retranca', '🛡️ Park the bus')], ['equilibrio', tr('⚖️ Equilíbrio', '⚖️ Balanced')], ['ataque', tr('⚔️ Ataque', '⚔️ Attack')]] as [Tac, string][]).map(([t, lb]) => {
               const cur = tactic === t
               return <button key={t} onClick={() => setTactic(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '7px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: 'pointer', background: cur ? INK : '#fff', color: cur ? '#fff' : INK, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{lb}</button>
             })}
           </div>
           {/* trocas: em campo | banco */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: 0, color: INK }}>🔁 Trocas <span style={{ color: subs >= 3 ? '#C2452F' : '#2E7D46' }}>({subs}/3)</span></p>
-            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#8a8478' }}>toca num titular e depois num reserva da mesma posição</span>
+            <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: 0, color: INK }}>{tr('🔁 Trocas', '🔁 Subs')} <span style={{ color: subs >= 3 ? '#C2452F' : '#2E7D46' }}>({subs}/3)</span></p>
+            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#8a8478' }}>{tr('toca num titular e depois num reserva da mesma posição', 'tap a starter, then a sub in the same position')}</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2E7D46', margin: '0 0 4px', textTransform: 'uppercase' }}>🟢 Em campo</p>
+              <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2E7D46', margin: '0 0 4px', textTransform: 'uppercase' }}>{tr('🟢 Em campo', '🟢 On the pitch')}</p>
               {SECTORS.map(pos => { const cs = xi.map(id => byId.get(id)).filter((c): c is WonCard => !!c && c.pos === pos).sort((a, b) => mid(b) - mid(a)); return cs.length ? <div key={pos} style={{ marginBottom: 5 }}><span style={{ fontSize: 8.5, fontWeight: 800, color: '#a29c8c', textTransform: 'uppercase' }}>{POS_LABEL[pos]}</span>{cs.map(c => row(c, 'tit'))}</div> : null })}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2b5fa8', margin: '0 0 4px', textTransform: 'uppercase' }}>🔵 Banco</p>
+              <p style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2b5fa8', margin: '0 0 4px', textTransform: 'uppercase' }}>{tr('🔵 Banco', '🔵 Bench')}</p>
               {SECTORS.map(pos => { const cs = mgr.squad.filter(c => c.pos === pos && !xiSet.has(c.id) && !c.fake).sort((a, b) => mid(b) - mid(a)); return cs.length ? <div key={pos} style={{ marginBottom: 5 }}><span style={{ fontSize: 8.5, fontWeight: 800, color: '#a29c8c', textTransform: 'uppercase' }}>{POS_LABEL[pos]}</span>{cs.map(c => row(c, 'res'))}</div> : null })}
             </div>
           </div>
-          <button onClick={() => onConfirm(xi, formation, tactic)} style={{ width: '100%', marginTop: 14, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px', fontWeight: 900, fontSize: 15, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>▶️ Voltar pro 2º tempo</button>
-          <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '6px 0 0' }}>pode voltar sem trocar nada — aí o 2º tempo segue com o mesmo time</p>
+          <button onClick={() => onConfirm(xi, formation, tactic)} style={{ width: '100%', marginTop: 14, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px', fontWeight: 900, fontSize: 15, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('▶️ Voltar pro 2º tempo', '▶️ Back for the 2nd half')}</button>
+          <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '6px 0 0' }}>{tr('pode voltar sem trocar nada — aí o 2º tempo segue com o mesmo time', 'you can go back without changing anything — the 2nd half continues with the same team')}</p>
         </div>
         </div>
       </div>
@@ -4886,25 +4886,25 @@ function EventoBanner({ ev, reservas, onDecide }: {
         </div>
         {/* quem assume a vaga (mesma posição = formação NUNCA quebra) */}
         <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
-          <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>quem assume a vaga de {ev.pos}?</div>
+          <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>{tr(`quem assume a vaga de ${ev.pos}?`, `who takes the ${ev.pos} spot?`)}</div>
           {reservas.map(c => (
             <button key={c.id} onClick={() => setSubId(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', borderTop: `1.5px solid rgba(0,0,0,.12)`, borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: subId === c.id ? '#EAF6EE' : '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
               ⚽ {c.name}
-              {subId === c.id && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>ENTRAR ✓</span>}
+              {subId === c.id && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>{tr('ENTRAR ✓', 'IN ✓')}</span>}
             </button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => subId && onDecide('troca', subId)} disabled={!subId}
             style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: '#EAF6EE', cursor: 'pointer', ...OSWALD }}>
-            {noit ? `😤 Banco por 1 jogo` : '✅ Confirmar a troca'}
-            <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>{noit ? 'volta descansado na próxima' : `volta em ${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`}</small>
+            {noit ? tr('😤 Banco por 1 jogo', '😤 Benched for 1 match') : tr('✅ Confirmar a troca', '✅ Confirm the swap')}
+            <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>{noit ? tr('volta descansado na próxima', 'back rested next match') : tr(`volta em ${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`, `back in ${ev.rodadas} ${ev.rodadas === 1 ? 'round' : 'rounds'}`)}</small>
           </button>
           {noit && (
             <button onClick={() => onDecide('campo')}
               style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: GOLD, cursor: 'pointer', ...OSWALD }}>
-              🙏 Escalar assim mesmo
-              <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>joga hoje, mas pode render menos</small>
+              {tr('🙏 Escalar assim mesmo', '🙏 Play him anyway')}
+              <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>{tr('joga hoje, mas pode render menos', 'plays today, but may underperform')}</small>
             </button>
           )}
         </div>
@@ -4937,27 +4937,27 @@ function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
             <div style={{ fontWeight: 800, fontSize: 9, color: 'rgba(0,0,0,.55)', ...OSWALD, textTransform: 'uppercase' }}>{ev.pos}{trait ? ` · ${trait}` : ''}</div>
           </div>
         </div>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '0 0 8px', lineHeight: 1.4 }}>🌱 Sem reserva no banco pra essa vaga — chame alguém da base pra tapar o buraco:</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '0 0 8px', lineHeight: 1.4 }}>{tr('🌱 Sem reserva no banco pra essa vaga — chame alguém da base pra tapar o buraco:', '🌱 No reserve on the bench for that spot — call someone up from the academy to plug the hole:')}</p>
         <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
-          <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>quem sobe do Sub-20?</div>
+          <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>{tr('quem sobe do Sub-20?', 'who comes up from the U-20s?')}</div>
           {(ev.criaOptions ?? []).map(n => (
             <button key={n} onClick={() => setNome(n)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', borderTop: `1.5px solid rgba(0,0,0,.12)`, borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: nome === n ? '#EAF6EE' : '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
               🌱 {n}
-              {nome === n && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>SOBE ✓</span>}
+              {nome === n && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>{tr('SOBE ✓', 'UP ✓')}</span>}
             </button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => nome && onEscolher(nome)} disabled={!nome}
             style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: '#EAF6EE', cursor: 'pointer', ...OSWALD }}>
-            ✅ Confirmar
-            <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>de graça, sem contrato · volta em {ev.rodadas} {ev.rodadas === 1 ? 'rodada' : 'rodadas'}</small>
+            {tr('✅ Confirmar', '✅ Confirm')}
+            <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>{tr(`de graça, sem contrato · volta em ${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`, `free, no contract · back in ${ev.rodadas} ${ev.rodadas === 1 ? 'round' : 'rounds'}`)}</small>
           </button>
           {noit && onCampo && (
             <button onClick={onCampo}
               style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: GOLD, cursor: 'pointer', ...OSWALD }}>
-              🙏 Escalar assim mesmo
-              <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>joga hoje, mas pode render menos</small>
+              {tr('🙏 Escalar assim mesmo', '🙏 Play him anyway')}
+              <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>{tr('joga hoje, mas pode render menos', 'plays today, but may underperform')}</small>
             </button>
           )}
         </div>
@@ -4983,18 +4983,18 @@ function CriseBanner({ crise, opcoes, onResolve }: {
   if (tela === 'folclorico') {
     return (
       <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
-        <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: 'linear-gradient(150deg,#1B7A3D,#0f4a24)', ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>🤝 Quem topa jogar de graça?</div>
+        <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: 'linear-gradient(150deg,#1B7A3D,#0f4a24)', ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{tr('🤝 Quem topa jogar de graça?', '🤝 Who\'s up for playing for free?')}</div>
         <div style={{ padding: '12px 13px' }}>
-          <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', margin: '0 0 9px' }}>Vaga aberta: {POS_LABEL[crise.pos]}</p>
+          <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', margin: '0 0 9px' }}>{tr('Vaga aberta', 'Open spot')}: {POS_LABEL[crise.pos]}</p>
           {opcoes.map(f => (
             <button key={f.name} onClick={() => onResolve('folclorico', f)} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', padding: '9px 10px', marginBottom: 8, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}` }}>
               <div style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}>{f.name}</div>
               <div style={{ fontSize: 8.5, fontWeight: 800, color: '#7a6b3f', marginTop: 1 }}>{f.club} · {f.year}</div>
-              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio ?? 'Categoria "foi profissional" — jogou pouco, mas jogou.'}</div>
-              <span style={{ display: 'inline-block', marginTop: 6, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 8.5, borderRadius: 5, padding: '2px 8px', textTransform: 'uppercase' }}>Grátis</span>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio ?? tr('Categoria "foi profissional" — jogou pouco, mas jogou.', '"Was a pro" category — didn\'t play much, but played.')}</div>
+              <span style={{ display: 'inline-block', marginTop: 6, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 8.5, borderRadius: 5, padding: '2px 8px', textTransform: 'uppercase' }}>{tr('Grátis', 'Free')}</span>
             </button>
           ))}
-          <button onClick={() => setTela('banner')} style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 0', fontWeight: 800, fontSize: 11, background: '#F4ECD6', cursor: 'pointer', ...OSWALD }}>‹ Voltar</button>
+          <button onClick={() => setTela('banner')} style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 0', fontWeight: 800, fontSize: 11, background: '#F4ECD6', cursor: 'pointer', ...OSWALD }}>{tr('‹ Voltar', '‹ Back')}</button>
         </div>
       </div>
     )
@@ -5002,12 +5002,12 @@ function CriseBanner({ crise, opcoes, onResolve }: {
   if (tela === 'base') {
     return (
       <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
-        <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: 'linear-gradient(150deg,#7a4a1e,#4a2c0f)', ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>🌱 Quem sobe da base?</div>
+        <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: 'linear-gradient(150deg,#7a4a1e,#4a2c0f)', ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{tr('🌱 Quem sobe da base?', '🌱 Who comes up from the academy?')}</div>
         <div style={{ padding: '12px 13px' }}>
-          <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', margin: '0 0 9px' }}>Vaga aberta: {POS_LABEL[crise.pos]}</p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: '0 0 12px' }}>Um novato da categoria de base sobe pra tapar o buraco de <b>{crise.playerName}</b> — sem contrato, sem custo. O nome sai na hora.</p>
-          <button onClick={() => onResolve('base')} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '10px 0', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', boxShadow: `2px 2px 0 ${INK}`, background: GOLD, cursor: 'pointer', marginBottom: 8, ...OSWALD }}>Confirmar</button>
-          <button onClick={() => setTela('banner')} style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 0', fontWeight: 800, fontSize: 11, background: '#F4ECD6', cursor: 'pointer', ...OSWALD }}>‹ Voltar</button>
+          <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', textTransform: 'uppercase', margin: '0 0 9px' }}>{tr('Vaga aberta', 'Open spot')}: {POS_LABEL[crise.pos]}</p>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: '0 0 12px' }}>{getLang() === 'en' ? <>An academy rookie comes up to plug the hole left by <b>{crise.playerName}</b> — no contract, no cost. The name comes out right away.</> : <>Um novato da categoria de base sobe pra tapar o buraco de <b>{crise.playerName}</b> — sem contrato, sem custo. O nome sai na hora.</>}</p>
+          <button onClick={() => onResolve('base')} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '10px 0', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', boxShadow: `2px 2px 0 ${INK}`, background: GOLD, cursor: 'pointer', marginBottom: 8, ...OSWALD }}>{tr('Confirmar', 'Confirm')}</button>
+          <button onClick={() => setTela('banner')} style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 0', fontWeight: 800, fontSize: 11, background: '#F4ECD6', cursor: 'pointer', ...OSWALD }}>{tr('‹ Voltar', '‹ Back')}</button>
         </div>
       </div>
     )
@@ -5016,20 +5016,20 @@ function CriseBanner({ crise, opcoes, onResolve }: {
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
       <div style={{ background: 'linear-gradient(160deg,#3a1414,#1a0808)', border: `3px solid ${INK}`, borderRadius: 13, margin: 10, padding: '14px', textAlign: 'center', color: '#fff' }}>
         <div style={{ fontSize: 34 }}>🚪</div>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, margin: '6px 0 2px', textTransform: 'uppercase' }}>"Não jogo em time duro assim, não."</p>
-        <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.85)', lineHeight: 1.4, margin: 0 }}><b>{crise.playerName}</b> (seu melhor jogador) avisa que tá de saída — com o caixa no vermelho desse jeito, ele não fica.</p>
-        <span style={{ display: 'inline-block', marginTop: 8, background: '#C2452F', color: '#fff', fontWeight: 900, fontSize: 9.5, borderRadius: 6, padding: '3px 9px' }}>💸 CAIXA NO VERMELHO</span>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, margin: '6px 0 2px', textTransform: 'uppercase' }}>{tr('"Não jogo em time duro assim, não."', '"I\'m not playing for a club this broke."')}</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.85)', lineHeight: 1.4, margin: 0 }}>{getLang() === 'en' ? <><b>{crise.playerName}</b> (your best player) says he\'s leaving — with the till this deep in the red, he won\'t stay.</> : <><b>{crise.playerName}</b> (seu melhor jogador) avisa que tá de saída — com o caixa no vermelho desse jeito, ele não fica.</>}</p>
+        <span style={{ display: 'inline-block', marginTop: 8, background: '#C2452F', color: '#fff', fontWeight: 900, fontSize: 9.5, borderRadius: 6, padding: '3px 9px' }}>{tr('💸 CAIXA NO VERMELHO', '💸 TILL IN THE RED')}</span>
       </div>
       <div style={{ padding: '0 13px 13px' }}>
         <button onClick={() => setTela('folclorico')} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9, fontWeight: 800, fontSize: 11.5, background: GOLD, cursor: 'pointer', ...OSWALD }}>
-          "Aqui não tem mercenário"
-          <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>Temos gente MELHOR pra vestir a camisa — pode confiar. Vamos ver quem topa.</small>
+          {tr('"Aqui não tem mercenário"', '"No mercenaries here"')}
+          <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>{tr('Temos gente MELHOR pra vestir a camisa — pode confiar. Vamos ver quem topa.', 'We have BETTER people to wear the shirt — trust me. Let\'s see who\'s in.')}</small>
         </button>
         <button onClick={() => setTela('base')} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 800, fontSize: 11.5, background: '#fff', cursor: 'pointer', ...OSWALD }}>
-          "Nunca gostei dele mesmo"
-          <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>Chama alguém da base pro lugar dele.</small>
+          {tr('"Nunca gostei dele mesmo"', '"Never liked him anyway"')}
+          <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>{tr('Chama alguém da base pro lugar dele.', 'Call someone up from the academy to replace him.')}</small>
         </button>
-        <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.4 }}>🤡 Aviso justo: seja base ou "foi profissional", ninguém aqui é bom de bola — mas topa jogar de graça.</p>
+        <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.4 }}>{tr('🤡 Aviso justo: seja base ou "foi profissional", ninguém aqui é bom de bola — mas topa jogar de graça.', '🤡 Fair warning: academy or "was a pro", nobody here is any good — but they\'ll play for free.')}</p>
       </div>
     </div>
   )
@@ -8311,7 +8311,7 @@ export function ReserveListScreen() {
             <div style={{ background: '#FAF7EE', borderTop: viuSondar ? `3px solid ${INK}` : 'none', display: 'flex', gap: 7, padding: '8px 9px calc(12px + env(safe-area-inset-bottom))' }}>
               {/* 🕵️ "Sondar técnico e jogador" (Diego 07/09: a aba que dizia só
                   técnico agora diz os dois — o jogador voltou, pelo Olheiro). */}
-              {([['vender', '📋', 'Vender'], ['aliciar', '🕵️', `Sondar técnico e jogador${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
+              {([['vender', '📋', tr('Vender', 'Sell')], ['aliciar', '🕵️', `${tr('Sondar técnico e jogador', 'Scout coach and player')}${nAliciados > 0 ? ` (${nAliciados})` : ''}`]] as const).map(([k, ico, label]) => {
                 const on = abaLeilao === k
                 // 🟡 o Sondar sai DOURADO enquanto ninguém abriu — é o chamariz.
                 // Depois do 1º toque ele vira aba branca normal, igual o Vender.
