@@ -3694,7 +3694,7 @@ function Envelope() {
       <div className="pt-1 flex items-start justify-between gap-3">
         <div className="flex-1">
           <h2 className="font-black text-3xl" style={OSWALD}>
-            {rescue ? '⚡ REPESCAGEM · ' : '🔨 '}{posName.toUpperCase()}
+            {rescue ? L('⚡ REPESCAGEM · ', '⚡ LEFTOVERS · ') : '🔨 '}{posName.toUpperCase()}
           </h2>
           <p className="text-sm font-semibold text-black/70">
             {rescue

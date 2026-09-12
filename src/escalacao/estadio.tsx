@@ -16,6 +16,7 @@ import type { ApoioPerk } from './apoio'
 import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
+import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -58,6 +59,11 @@ const META_COR: Record<SponsorBetTier, { bg: string; fg: string; curto: string; 
   2: { bg: '#FFE79A', fg: '#7A5A00', curto: 'Acesso', linha: 'ficar no top 4' },
   3: { bg: GOLD, fg: INK, curto: 'Campeão', linha: 'liga ou copa' },
 }
+const META_EN: Record<SponsorBetTier, { curto: string; linha: string }> = {
+  1: { curto: 'Stay up', linha: 'finish outside the bottom 4' },
+  2: { curto: 'Promotion', linha: 'finish in the top 4' },
+  3: { curto: 'Champion', linha: 'league or cup' },
+}
 const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : undefined
 // a marca fiel mora num nível só — o selinho no PASSO 1 avisa em qual, senão
 // quem escolhesse outra meta nunca descobriria que perdeu a garantia.
@@ -65,14 +71,14 @@ const tierDaMarca = (brandId?: string): SponsorBetTier | undefined => sponsorBra
 
 // ① ficha de META — o valor é o herói, a explicação é UMA linha
 function MetaFicha({ tier, div, sel, temFiel, onPick }: { tier: SponsorBetTier; div: string; sel: boolean; temFiel: boolean; onPick: () => void }) {
-  const c = META_COR[tier]
+  const c = getLang() === 'en' ? { ...META_COR[tier], ...META_EN[tier] } : META_COR[tier]
   const meta = SPONSOR_BET_META[tier]
   const val = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[tier - 1]
   return (
     <button onClick={onPick} title={meta.desc}
       style={{ flex: 1, minWidth: 0, position: 'relative', border: `3px solid ${INK}`, borderRadius: 14, background: sel ? c.bg : '#fff', boxShadow: sel ? `3px 3px 0 0 ${INK}` : '2px 2px 0 0 rgba(12,12,12,.25)', padding: '10px 5px 9px', textAlign: 'center', cursor: 'pointer', opacity: sel ? 1 : 0.74, transition: 'opacity .12s, background .12s' }}>
-      {sel && <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: INK, color: GOLD, ...OSW, fontWeight: 900, fontSize: 8, letterSpacing: '.06em', borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap' }}>SUA META</span>}
-      {temFiel && <span title="a marca que quer continuar com você está aqui" style={{ position: 'absolute', top: -8, right: -4, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 7, fontSize: 9, padding: '0 4px', fontWeight: 900 }}>🎖️</span>}
+      {sel && <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: INK, color: GOLD, ...OSW, fontWeight: 900, fontSize: 8, letterSpacing: '.06em', borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap' }}>{tr('SUA META', 'YOUR TARGET')}</span>}
+      {temFiel && <span title={tr('a marca que quer continuar com você está aqui', 'the brand that wants to stay with you is here')} style={{ position: 'absolute', top: -8, right: -4, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 7, fontSize: 9, padding: '0 4px', fontWeight: 900 }}>🎖️</span>}
       <span style={{ fontSize: 23, lineHeight: 1, display: 'block' }}>{meta.emoji}</span>
       <span style={{ ...OSW, fontWeight: 900, fontSize: 11.5, display: 'block', marginTop: 3, lineHeight: 1.05, color: sel ? c.fg : INK }}>{c.curto}</span>
       <span style={{ fontSize: 8.5, fontWeight: 800, display: 'block', marginTop: 2, lineHeight: 1.2, color: sel ? c.fg : 'rgba(0,0,0,.5)', opacity: sel ? 0.8 : 1 }}>{c.linha}</span>
@@ -87,7 +93,7 @@ function MarcaBtn({ b, on, fiel, minVal, onPick }: { b: SponsorBrand; on: boolea
   return (
     <button onClick={onPick}
       style={{ flex: 1, minWidth: 0, position: 'relative', background: on ? INK : '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: on ? `3px 3px 0 0 ${INK}` : '2px 2px 0 0 rgba(12,12,12,.22)', padding: '10px 5px 8px', textAlign: 'center', cursor: 'pointer', outline: on ? `3px solid ${GOLD}` : 'none', outlineOffset: -6 }}>
-      {fiel && <span style={{ position: 'absolute', top: -8, right: -4, background: GREEN, color: '#fff', ...OSW, fontWeight: 900, fontSize: 8, border: `2px solid ${INK}`, borderRadius: 7, padding: '1px 5px', whiteSpace: 'nowrap' }}>🎖️ FIEL</span>}
+      {fiel && <span style={{ position: 'absolute', top: -8, right: -4, background: GREEN, color: '#fff', ...OSW, fontWeight: 900, fontSize: 8, border: `2px solid ${INK}`, borderRadius: 7, padding: '1px 5px', whiteSpace: 'nowrap' }}>{tr('🎖️ FIEL', '🎖️ LOYAL')}</span>}
       <div style={{ height: 40, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {/* 🖼️ logo em CHAPA BRANCA sempre (não inverte cor): o PNG de algumas
             marcas (Vadico/ERO) não tem fundo transparente. */}
@@ -99,7 +105,7 @@ function MarcaBtn({ b, on, fiel, minVal, onPick }: { b: SponsorBrand; on: boolea
       </div>
       <span style={{ ...OSW, fontWeight: 900, fontSize: 9.5, display: 'block', marginTop: 4, lineHeight: 1.1, color: on ? '#fff' : INK }}>{b.name}</span>
       {fiel
-        ? <span style={{ fontSize: 8, fontWeight: 900, display: 'block', marginTop: 2, color: on ? '#BFF2D3' : GREEN }}>garante {minVal} 🪙</span>
+        ? <span style={{ fontSize: 8, fontWeight: 900, display: 'block', marginTop: 2, color: on ? '#BFF2D3' : GREEN }}>{tr('garante', 'guarantees')} {minVal} 🪙</span>
         : <span style={{ display: 'block', height: 12 }} />}
     </button>
   )
@@ -120,15 +126,15 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
     <div style={{ marginBottom: 12 }}>
       <div style={{ ...box('#fff'), overflow: 'hidden' }}>
         <div style={{ background: `linear-gradient(150deg,#2B2B2B,${INK})`, padding: '10px 13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <span style={{ ...OSW, fontWeight: 900, fontSize: 14, color: GOLD }}>🤝 PATROCÍNIO DA TEMPORADA</span>
+          <span style={{ ...OSW, fontWeight: 900, fontSize: 14, color: GOLD }}>{tr('🤝 PATROCÍNIO DA TEMPORADA', '🤝 SEASON SPONSOR')}</span>
           <span style={{ fontSize: 8.5, fontWeight: 800, color: 'rgba(255,255,255,.55)', whiteSpace: 'nowrap' }}>{div === 'V' ? 'VÁRZEA' : `SÉRIE ${div}`}</span>
         </div>
 
         <div style={{ padding: '13px 11px 11px' }}>
           {/* PASSO 1 — a meta */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 9 }}>
-            <span style={{ ...OSW, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>PASSO 1</span>
-            <span style={{ ...OSW, fontWeight: 900, fontSize: 12.5 }}>Onde você quer chegar?</span>
+            <span style={{ ...OSW, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('PASSO 1', 'STEP 1')}</span>
+            <span style={{ ...OSW, fontWeight: 900, fontSize: 12.5 }}>{tr('Onde você quer chegar?', 'How far do you want to go?')}</span>
             {tier && <span style={{ marginLeft: 'auto', ...OSW, fontWeight: 900, fontSize: 12, color: GREEN }}>✓</span>}
           </div>
           <div style={{ display: 'flex', gap: 7, marginBottom: tier ? 12 : 10 }}>
@@ -139,15 +145,15 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
 
           {!tier ? (
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', textAlign: 'center', margin: 0, lineHeight: 1.35 }}>
-              Quanto mais alto você mira, mais o patrocínio paga — mas só paga se você <b>bater</b> a meta.
+              {getLang() === 'en' ? <>The higher you aim, the more the sponsor pays — but it only pays if you <b>hit</b> the target.</> : <>Quanto mais alto você mira, mais o patrocínio paga — mas só paga se você <b>bater</b> a meta.</>}
             </p>
           ) : (
             <>
               <div style={{ borderTop: '2px dashed rgba(12,12,12,.18)', margin: '0 -11px 10px' }} />
               {/* PASSO 2 — a marca (só as 3 do nível escolhido) */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 9 }}>
-                <span style={{ ...OSW, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>PASSO 2</span>
-                <span style={{ ...OSW, fontWeight: 900, fontSize: 12.5 }}>Quem estampa a camisa?</span>
+                <span style={{ ...OSW, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('PASSO 2', 'STEP 2')}</span>
+                <span style={{ ...OSW, fontWeight: 900, fontSize: 12.5 }}>{tr('Quem estampa a camisa?', 'Who goes on the shirt?')}</span>
                 {fechado && <span style={{ marginLeft: 'auto', ...OSW, fontWeight: 900, fontSize: 12, color: GREEN }}>✓</span>}
               </div>
               <div style={{ display: 'flex', gap: 7 }}>
@@ -158,13 +164,13 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
               {/* 🎖️ a proposta da fidelidade, em UMA linha, no lugar em que ela importa */}
               {fielTier === tier && !fechado && (
                 <p style={{ fontSize: 9.5, fontWeight: 800, color: GREEN, textAlign: 'center', margin: '9px 0 0', lineHeight: 1.35 }}>
-                  🎖️ A <b>{sponsorBrandOf(fielBrandId)?.name}</b> quer continuar com você: escolhendo ela, mesmo sem bater a meta você leva <b>{minVal} 🪙</b>.
+                  {getLang() === 'en' ? <>🎖️ <b>{sponsorBrandOf(fielBrandId)?.name}</b> wants to stay with you: pick them and, even if you miss the target, you take <b>{minVal} 🪙</b>.</> : <>🎖️ A <b>{sponsorBrandOf(fielBrandId)?.name}</b> quer continuar com você: escolhendo ela, mesmo sem bater a meta você leva <b>{minVal} 🪙</b>.</>}
                 </p>
               )}
               {/* trava explicada: mudou a meta e ainda não escolheu marca → o que vale é o velho */}
               {!!chosen && !fechado && (
                 <p style={{ fontSize: 9.5, fontWeight: 800, color: '#B23A2A', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.35 }}>
-                  👆 Escolha a marca pra confirmar a mudança. Por enquanto o que vale é <b>{SPONSOR_BET_META[chosen.tier].emoji} {SPONSOR_BET_META[chosen.tier].label} · {brand?.name}</b>.
+                  {tr('👆 Escolha a marca pra confirmar a mudança. Por enquanto o que vale é', '👆 Pick the brand to confirm the change. For now what counts is')} <b>{SPONSOR_BET_META[chosen.tier].emoji} {SPONSOR_BET_META[chosen.tier].label} · {brand?.name}</b>.
                 </p>
               )}
             </>
@@ -178,17 +184,17 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
           <div style={{ position: 'relative', background: '#E6F3EA', borderTop: `3px solid ${INK}`, padding: '17px 12px 11px', display: 'flex', alignItems: 'center', gap: 9 }}>
             <span style={{ fontSize: 19 }}>{SPONSOR_BET_META[chosen!.tier].emoji}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0, lineHeight: 1.1 }}>Contrato fechado com a {brand?.name}</p>
-              <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '1px 0 0' }}>{SPONSOR_BET_META[chosen!.tier].label} · vale a temporada inteira</p>
+              <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0, lineHeight: 1.1 }}>{tr(`Contrato fechado com a ${brand?.name}`, `Deal signed with ${brand?.name}`)}</p>
+              <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '1px 0 0' }}>{SPONSOR_BET_META[chosen!.tier].label} · {tr('vale a temporada inteira', 'good for the whole season')}</p>
             </div>
             <span style={{ ...OSW, fontWeight: 900, fontSize: 14, background: GREEN, color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '4px 10px', whiteSpace: 'nowrap' }}>+{(SPONSOR_BET_PAY[div] ?? [0, 0, 0])[chosen!.tier - 1]} 🪙</span>
-            <span style={{ position: 'absolute', top: -12, right: 14, transform: 'rotate(-9deg)', ...OSW, fontWeight: 900, fontSize: 12, color: '#C2452F', border: '3px solid #C2452F', borderRadius: 8, padding: '2px 9px', background: 'rgba(255,255,255,.85)', letterSpacing: '.06em' }}>ASSINADO</span>
+            <span style={{ position: 'absolute', top: -12, right: 14, transform: 'rotate(-9deg)', ...OSW, fontWeight: 900, fontSize: 12, color: '#C2452F', border: '3px solid #C2452F', borderRadius: 8, padding: '2px 9px', background: 'rgba(255,255,255,.85)', letterSpacing: '.06em' }}>{tr('ASSINADO', 'SIGNED')}</span>
           </div>
         )}
       </div>
       {/* a régua saiu daqui — fica dito ONDE ela está (Diego: toda trava/atalho explica o caminho) */}
       <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '8px 2px 0' }}>
-        Quanto paga em cada divisão? Está na aba <b>🏟️ Clube › 🤝 Patrocínio</b>.
+        {getLang() === 'en' ? <>How much does each division pay? It\'s in the <b>🏟️ Club › 🤝 Sponsors</b> tab.</> : <>Quanto paga em cada divisão? Está na aba <b>🏟️ Clube › 🤝 Patrocínio</b>.</>}
       </p>
     </div>
   )
@@ -209,8 +215,8 @@ export function SponsorBetStatus({ bet, div, completo, soRegua }: { bet?: { tier
       <div style={{ ...box('#fff'), padding: 12, marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 22 }}>{meta!.emoji}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>🤝 Patrocínio: {meta!.label}</p>
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{brand?.name} · aposta da temporada</p>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>{tr('🤝 Patrocínio', '🤝 Sponsor')}: {meta!.label}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{brand?.name} · {tr('aposta da temporada', 'season bet')}</p>
         </div>
         {val != null && <span style={{ ...OSW, fontWeight: 900, fontSize: 13, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 9px', whiteSpace: 'nowrap' }}>+{val} 🪙</span>}
       </div>
@@ -222,29 +228,29 @@ export function SponsorBetStatus({ bet, div, completo, soRegua }: { bet?: { tier
     <div style={{ ...box('#fff'), overflow: 'hidden', marginTop: 10 }}>
       {soRegua ? (
         <div style={{ background: '#FBF6E9', padding: '10px 12px', borderBottom: `2.5px solid ${INK}` }}>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>📊 A régua do patrocínio</p>
-          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>Quanto cada aposta paga, divisão por divisão.</p>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>{tr('📊 A régua do patrocínio', '📊 The sponsor scale')}</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{tr('Quanto cada aposta paga, divisão por divisão.', 'How much each bet pays, division by division.')}</p>
         </div>
       ) : bet ? (
         <div style={{ background: '#E6F3EA', padding: '10px 12px', borderBottom: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', gap: 9 }}>
           <span style={{ fontSize: 19 }}>{meta!.emoji}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0, lineHeight: 1.1 }}>Patrocínio desta temporada</p>
+            <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0, lineHeight: 1.1 }}>{tr('Patrocínio desta temporada', 'This season\'s sponsor')}</p>
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '1px 0 0' }}>{brand?.name} · {meta!.label.toLowerCase()}</p>
           </div>
           {val != null && <span style={{ ...OSW, fontWeight: 900, fontSize: 13, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 9px', whiteSpace: 'nowrap' }}>+{val} 🪙</span>}
         </div>
       ) : (
         <div style={{ background: '#FBF6E9', padding: '10px 12px', borderBottom: `2.5px solid ${INK}` }}>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>🤝 Patrocínio da temporada</p>
-          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>A escolha acontece antes de começar a temporada.</p>
+          <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>{tr('🤝 Patrocínio da temporada', '🤝 Season sponsor')}</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{tr('A escolha acontece antes de começar a temporada.', 'The choice happens before the season starts.')}</p>
         </div>
       )}
       <div style={{ padding: '11px 12px' }}>
-        <p style={{ ...OSW, fontWeight: 900, fontSize: 10, color: 'rgba(0,0,0,.5)', letterSpacing: '.05em', margin: '0 0 6px' }}>QUANTO PAGA EM CADA DIVISÃO</p>
+        <p style={{ ...OSW, fontWeight: 900, fontSize: 10, color: 'rgba(0,0,0,.5)', letterSpacing: '.05em', margin: '0 0 6px' }}>{tr('QUANTO PAGA EM CADA DIVISÃO', 'HOW MUCH EACH DIVISION PAYS')}</p>
         <div style={{ fontSize: 10.5 }}>
           <div style={{ ...grid, ...OSW, fontWeight: 900, color: 'rgba(0,0,0,.45)', fontSize: 8.5, textTransform: 'uppercase' }}>
-            <span>Divisão</span><span style={{ textAlign: 'center' }}>🛡️ Não cair</span><span style={{ textAlign: 'center' }}>📈 Top 4</span><span style={{ textAlign: 'center' }}>👑 Campeão</span>
+            <span>{tr('Divisão', 'Division')}</span><span style={{ textAlign: 'center' }}>{tr('🛡️ Não cair', '🛡️ Stay up')}</span><span style={{ textAlign: 'center' }}>📈 Top 4</span><span style={{ textAlign: 'center' }}>{tr('👑 Campeão', '👑 Champion')}</span>
           </div>
           {rows.map(([d, label]) => {
             const [t1, t2, t3] = SPONSOR_BET_PAY[d] ?? [0, 0, 0]
@@ -257,9 +263,15 @@ export function SponsorBetStatus({ bet, div, completo, soRegua }: { bet?: { tier
         </div>
         <div style={{ marginTop: 10, background: '#FBF6E9', border: '2px solid rgba(12,12,12,.15)', borderRadius: 10, padding: '9px 10px' }}>
           <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>
+            {getLang() === 'en' ? <>
+            <b>How it works:</b> doubles with every division you climb. Fell <b>short</b> of the target (bet "stay up" and went down)? Pays nothing.
+            <b> Beat</b> the target (bet "stay up" and won the title)? Pays only what you bet — aim low, get low.<br />
+            <b>🎖️ Loyalty:</b> hit the target with a brand and picked them again? They guarantee your division\'s minimum even if you miss.
+            </> : <>
             <b>Como funciona:</b> dobra a cada divisão que você sobe. Ficou <b>aquém</b> da meta (apostou "não cair" e caiu)? Não paga nada.
             <b> Superou</b> a meta (apostou "não cair" e foi campeão)? Paga só o que você apostou — mirou baixo, levou baixo.<br />
             <b>🎖️ Fidelidade:</b> acertou a meta com uma marca e escolheu ela de novo? Ela garante o mínimo da sua divisão mesmo se você não bater.
+            </>}
           </p>
         </div>
       </div>
@@ -465,13 +477,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                 style={{ marginLeft: 7, border: `2px solid ${INK}`, borderRadius: 8, background: '#fff', fontSize: 11, padding: '1px 6px', verticalAlign: 'middle' }}>✏️</button>
             )}
           </span>
-          <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>nível {lvl.n}</span>
+          <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>{tr('nível', 'level')} {lvl.n}</span>
         </div>
         {cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} /></CareerStadiumView> : <StadiumSvg st={st} />}
         {edEstadio && meuSocio?.ativo && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 10px', marginTop: 8 }}>
-            <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>🎫 Batiza teu estádio — mimo de sócio</p>
-            <input value={nomeTmp} maxLength={24} placeholder="Ex.: Caldeirão do Alface"
+            <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>{tr('🎫 Batiza teu estádio — mimo de sócio', '🎫 Name your stadium — member perk')}</p>
+            <input value={nomeTmp} maxLength={24} placeholder={tr('Ex.: Caldeirão do Alface', 'E.g.: The Lettuce Cauldron')}
               onChange={e => setNomeTmp(stripEmoji(e.target.value))}
               style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 9px', fontWeight: 900, fontSize: 14, marginTop: 6, background: '#FBF6E9', ...OSW }} />
             <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
@@ -480,27 +492,31 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                 const r = await batizarEstadio(nomeTmp)
                 setSalvandoNome(false)
                 if (r.ok) setEdEstadio(false)
-                else setErroNome(r.erro ?? 'não deu — tenta de novo')
-              }} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 12.5, padding: '7px 0', textTransform: 'uppercase', boxShadow: `2px 2px 0 0 ${INK}`, opacity: salvandoNome ? 0.6 : 1, ...OSW }}>{salvandoNome ? 'salvando…' : '✅ Salvar nome'}</button>
-              <button onClick={() => setEdEstadio(false)} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#fff', fontWeight: 900, fontSize: 12.5, padding: '7px 12px', ...OSW }}>cancelar</button>
+                else setErroNome(r.erro ?? tr('não deu — tenta de novo', 'didn\'t work — try again'))
+              }} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 12.5, padding: '7px 0', textTransform: 'uppercase', boxShadow: `2px 2px 0 0 ${INK}`, opacity: salvandoNome ? 0.6 : 1, ...OSW }}>{salvandoNome ? tr('salvando…', 'saving…') : tr('✅ Salvar nome', '✅ Save name')}</button>
+              <button onClick={() => setEdEstadio(false)} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#fff', fontWeight: 900, fontSize: 12.5, padding: '7px 12px', ...OSW }}>{tr('cancelar', 'cancel')}</button>
             </div>
             {erroNome && <p style={{ fontWeight: 800, fontSize: 10.5, color: '#C2452F', marginTop: 5 }}>⚠️ {erroNome}</p>}
-            <p style={{ fontWeight: 700, fontSize: 10, color: 'rgba(0,0,0,.5)', marginTop: 5, lineHeight: 1.35 }}>O nome aparece aqui no clube e na capa do jornal. Apagar tudo e salvar volta ao nome padrão.</p>
+            <p style={{ fontWeight: 700, fontSize: 10, color: 'rgba(0,0,0,.5)', marginTop: 5, lineHeight: 1.35 }}>{tr('O nome aparece aqui no clube e na capa do jornal. Apagar tudo e salvar volta ao nome padrão.', 'The name shows here at the club and on the newspaper cover. Clear it and save to go back to the default name.')}</p>
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 8 }}>
-          <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} lugares</span></div>
-          <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% pronto</span>
+          <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</span></div>
+          <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% {tr('pronto', 'done')}</span>
         </div>
-        <UnlockBanner k="estadio" tag="🏟️ sistema completo" title="Seu estádio já rende">
-          Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.
+        <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={tr('Seu estádio já rende', 'Your stadium already earns')}>
+          {getLang() === 'en' ? <>Every club already sells tickets, even without building ANYTHING — the base of <b>+{STADIUM_BASE} 🪙 per season</b> lands in the till by itself. Each stand you build ADDS on top — and unlocks income per category over at the Agency.</> : <>Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.</>}
         </UnlockBanner>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 10, padding: '7px 11px' }}>
-          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>🎟️ Bilheteria por temporada{medicoOn ? ' (potencial)' : ''}</span>
+          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', opacity: .92, ...OSW }}>{tr('🎟️ Bilheteria por temporada', '🎟️ Gate money per season')}{medicoOn ? tr(' (potencial)', ' (potential)') : ''}</span>
           <b style={{ fontSize: 17 }}>+{income}</b>
         </div>
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '7px 2px 0', lineHeight: 1.35 }}>
-          {medicoOn
+          {getLang() === 'en'
+            ? (medicoOn
+              ? <><b>Guaranteed floor +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> if SOLD OUT. 🎟️ You earn as your <b>league position</b> fills the stadium: Top 4 sells out (full income), bottom 4 empties (floor only). The floor never drops.</>
+              : <><b>Stadium base +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/season</b>. Every club already sells tickets — building <b>adds on top of the base</b>. Lands in the till by itself at the end of each season; a finished upgrade earns forever.</>)
+            : medicoOn
             ? <><b>Piso garantido +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> se LOTAR. 🎟️ Você fatura conforme a <b>colocação</b> enche o estádio: Top 4 lota (renda cheia), Z4 esvazia (só o piso). O piso nunca cai.</>
             : <><b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</>}</p>
       </div>
@@ -520,7 +536,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         const cor = lotacaoPct >= 55 ? '#1B7A3D' : lotacaoPct >= 30 ? '#E8A200' : '#C2452F'
         return (
           <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
-            <div style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: .8, color: 'rgba(0,0,0,.6)', marginBottom: 7, ...OSW }}>🎟️ Lotação do próximo jogo</div>
+            <div style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: .8, color: 'rgba(0,0,0,.6)', marginBottom: 7, ...OSW }}>{tr('🎟️ Lotação do próximo jogo', '🎟️ Next match attendance')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 26, lineHeight: 1 }}>{chuvaAtiva ? '🌧️' : chuvaHoje ? '☂️' : '🏟️'}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -532,18 +548,18 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
             </div>
             <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '7px 0 0', lineHeight: 1.4 }}>
               {chuvaAtiva
-                ? '🌧️ Chuva hoje — sem cobertura, parte da torcida fica em casa. Construa o Camarote ou a Cobertura (☂️) que protege o público na chuva.'
+                ? tr('🌧️ Chuva hoje — sem cobertura, parte da torcida fica em casa. Construa o Camarote ou a Cobertura (☂️) que protege o público na chuva.', '🌧️ Rain today — with no roof, part of the crowd stays home. Build the Box Seats or the Roof (☂️) to shelter the crowd from the rain.')
                 : chuvaHoje
-                  ? '☂️ Chuva lá fora, mas a sua cobertura segura a casa cheia hoje.'
-                  : 'Segue o clima da torcida — nunca mexe na bilheteria garantida por temporada (essa é fixa, ali em cima).'}
+                  ? tr('☂️ Chuva lá fora, mas a sua cobertura segura a casa cheia hoje.', '☂️ Raining outside, but your roof keeps the house full today.')
+                  : tr('Segue o clima da torcida — nunca mexe na bilheteria garantida por temporada (essa é fixa, ali em cima).', 'Follows the fans\' mood — never touches the guaranteed gate money per season (that one is fixed, up there).')}
             </p>
           </div>
         )
       })()}
 
-      {cinematic && <nav className="ll32-structure-tabs" aria-label="Obras do estádio"><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>Setores</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>Melhorias</button></nav>}
+      {cinematic && <nav className="ll32-structure-tabs" aria-label="Obras do estádio"><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>{tr('Setores', 'Stands')}</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>{tr('Melhorias', 'Upgrades')}</button></nav>}
       <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
-      <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>🧱 Arquibancadas — investe aos poucos</p>
+      <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>{tr('🧱 Arquibancadas — investe aos poucos', '🧱 Stands — invest bit by bit')}</p>
       {STADIUM_SECTORS.map(s => {
         const p = sectorPct(st, s.k), full = p >= 100
         // 🐛 CORRIGIDO (relato de jogador, 12/08): Cadeiras (90) e Camarote (150)
@@ -567,11 +583,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
                 <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
               </div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>custo total {s.cost} 💰 · rende <b style={{ color: ACC }}>+{s.inc}/temp</b>{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} lugares</> : null}</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b>{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</> : null}</div>
             </div>
             <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
-              {full ? '✅ pronto' : <>Investir<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{stepPay} 💰</span></>}
+              {full ? tr('✅ pronto', '✅ done') : <>{tr('Investir', 'Invest')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{stepPay} 💰</span></>}
             </button>
           </div>
         )
@@ -579,7 +595,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
 
       </section>
       <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'extras'}>
-      <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>✨ Melhorias — pagam e destravam 🔓</p>
+      <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>{tr('✨ Melhorias — pagam e destravam 🔓', '✨ Upgrades — they pay and unlock 🔓')}</p>
       {extras.map(e => {
         const done = hasExtra(st, e.k), unlocked = extraUnlocked(st, e.k), poor = coins < e.cost
         return (
@@ -588,22 +604,22 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
               <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{e.n}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
                 {/* 🏥 melhoria SEM renda (perk): mostra o benefício, nunca "+0/temp" */}
-                {done ? <b style={{ color: ACC }}>{e.perk ?? `rendendo +${e.inc}/temp`}</b>
-                  : unlocked ? <>custa {e.cost} 💰 · <b style={{ color: ACC }}>{e.perk ?? `rende +${e.inc}/temp`}</b></>
-                  : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>{e.reqTxt}</b>{e.perk ? <> · {e.perk}</> : null}</>}
+                {done ? <b style={{ color: ACC }}>{e.perk ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}</b>
+                  : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{e.perk ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b></>
+                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{e.reqTxt}</b>{e.perk ? <> · {e.perk}</> : null}</>}
               </div>
             </div>
             <button onClick={() => !done && unlocked && !poor && onBuild(e.k)} disabled={done || !unlocked || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: !done && unlocked && !poor ? 'pointer' : 'default', lineHeight: 1.15, ...OSW, background: done ? GOLD : (!unlocked || poor) ? '#d9cfb4' : INK, color: done ? INK : (!unlocked || poor) ? '#7d7358' : '#fff' }}>
-              {done ? '✅ feito' : !unlocked ? '🔒' : <>Construir<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>−{e.cost} 💰</span></>}
+              {done ? tr('✅ feito', '✅ built') : !unlocked ? '🔒' : <>{tr('Construir', 'Build')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>−{e.cost} 💰</span></>}
             </button>
           </div>
         )
       })}
       </section>
       {hasExtra(st, 'medico') && (
-        <UnlockBanner k="medico" tag="🏥 obra grande" title="Departamento Médico pronto" ctaBg="#C2452F" ctaColor="#fff">
-          A partir de agora <b>NUNCA MAIS</b> um jogador seu sai de campo por lesão — acabou pra sempre, em qualquer elenco desta carreira.
+        <UnlockBanner k="medico" tag={tr('🏥 obra grande', '🏥 big build')} title={tr('Departamento Médico pronto', 'Medical Department ready')} ctaBg="#C2452F" ctaColor="#fff">
+          {getLang() === 'en' ? <>From now on <b>NEVER AGAIN</b> will one of your players leave the pitch injured — gone for good, in any squad of this career.</> : <>A partir de agora <b>NUNCA MAIS</b> um jogador seu sai de campo por lesão — acabou pra sempre, em qualquer elenco desta carreira.</>}
         </UnlockBanner>
       )}
       {onBuyFilial && (() => {
@@ -614,7 +630,18 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         const logged = !!loggedEmail()
         const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && extras.every(e => hasExtra(st, e.k))
         const canBuy = logged && allDone && coins >= 2000
-        const regras = (
+        const regras = getLang() === 'en' ? (
+          <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
+            <li>💰 The SAF costs <b>2,000</b> · one-off purchase · the rights are yours <b>forever in this career</b> (no selling, no swapping)</li>
+            <li>🏆 Entitled to <b>50% of campaign profits</b> (title and promotion) — they land in your till at the turn of the season</li>
+            <li>📉 <b>Relegation hurts</b>: 50% of the relegation fine comes out of YOUR till</li>
+            <li>🙅 <b>Nothing</b> from the club\'s buying/selling profits on the market — campaign only</li>
+            <li>⚖️ The SAF club <b>never bids in your auction</b>: a life of its own, up and down on merit</li>
+            <li>📈 Does it get promoted? Your cut grows with it (higher-division prizes pay more)</li>
+            <li>🔄 <b>Loans grow with the division</b> (lending AND borrowing): Série D <b>1</b> · C <b>2</b> · B <b>3</b> · A <b>4</b> per side. <b>They carry over</b> from one season to the next — bring them back whenever you like. Only the <b>surplus</b> returns by itself if you go down a division</li>
+            <li>👥 Borrowing takes your squad past 22 — <b>up to 26 in Série A</b></li>
+          </ul>
+        ) : (
           <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
             <li>💰 A SAF custa <b>2.000</b> · compra única · os direitos são seus <b>pra sempre nesta carreira</b> (não vende, não troca)</li>
             <li>🏆 Direito a <b>50% dos lucros de campanha</b> (título e acesso) — caem no seu caixa na virada da temporada</li>
@@ -629,23 +656,23 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         if (filial) {
           return (
           <div style={{ ...box('#FFF6DE'), borderRadius: 14, padding: '11px 12px', marginTop: 14 }}>
-            <UnlockBanner k="saf" tag="🏢 sistema completo" title="Você comprou a SAF">
-              É um clube da Série D que passa a ser SEU: caixa e elenco próprios, mas <b>50% do que ela ganha (ou perde) cai no seu caixa também.</b> Ela empresta jogadores pros dois lados e destrava a categoria <b>👑 Lenda</b> lá na Agência (+6 🪙 por carta).
+            <UnlockBanner k="saf" tag={tr('🏢 sistema completo', '🏢 full system')} title={tr('Você comprou a SAF', 'You bought the SAF')}>
+              {getLang() === 'en' ? <>It\'s a Série D club that becomes YOURS: its own till and squad, but <b>50% of what it earns (or loses) lands in your till too.</b> It loans players both ways and unlocks the <b>👑 Legend</b> category over at the Agency (+6 🪙 per card).</> : <>É um clube da Série D que passa a ser SEU: caixa e elenco próprios, mas <b>50% do que ela ganha (ou perde) cai no seu caixa também.</b> Ela empresta jogadores pros dois lados e destrava a categoria <b>👑 Lenda</b> lá na Agência (+6 🪙 por carta).</>}
             </UnlockBanner>
-            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 SUA SAF</p>
-            <p style={{ fontWeight: 900, fontSize: 13, margin: '5px 0 2px', ...OSW }}>⚽ {filial.team}{filialInfo ? <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,.55)' }}> · Série {filialInfo.div} · {filialInfo.pos}º</span> : null}</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>Dono da SAF desde a T{filial.since} · direito a 50% dos lucros de campanha (título/acesso rende; queda desconta)</p>
-            <p style={{ fontSize: 11.5, fontWeight: 900, color: (filial.earned ?? 0) >= 0 ? GREEN : '#B23B2E', margin: '4px 0 0', ...OSW }}>💼 Comissões acumuladas: {(filial.earned ?? 0) >= 0 ? '+' : ''}{filial.earned ?? 0} 🪙</p>
+            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>{tr('💼 SUA SAF', '💼 YOUR SAF')}</p>
+            <p style={{ fontWeight: 900, fontSize: 13, margin: '5px 0 2px', ...OSW }}>⚽ {filial.team}{filialInfo ? <span style={{ fontWeight: 700, fontSize: 10.5, color: 'rgba(0,0,0,.55)' }}> · Série {filialInfo.div} · {ordinal(filialInfo.pos)}</span> : null}</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: 0 }}>{tr(`Dono da SAF desde a T${filial.since} · direito a 50% dos lucros de campanha (título/acesso rende; queda desconta)`, `SAF owner since S${filial.since} · entitled to 50% of campaign profits (title/promotion pays; relegation deducts)`)}</p>
+            <p style={{ fontSize: 11.5, fontWeight: 900, color: (filial.earned ?? 0) >= 0 ? GREEN : '#B23B2E', margin: '4px 0 0', ...OSW }}>{tr('💼 Comissões acumuladas:', '💼 Commissions so far:')} {(filial.earned ?? 0) >= 0 ? '+' : ''}{filial.earned ?? 0} 🪙</p>
 
             {/* 🔄 JANELA DE EMPRÉSTIMO — propriedade nunca muda; agora o empréstimo PERSISTE */}
             <div style={{ marginTop: 10, borderTop: '2px dashed rgba(0,0,0,.15)', paddingTop: 9 }}>
-              <p style={{ fontWeight: 900, fontSize: 12, margin: '0 0 2px', ...OSW }}>🔄 Janela de empréstimo</p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>Até <b>{loanSlots}</b> {loanSlots === 1 ? 'jogador' : 'jogadores'} por lado nesta divisão · cresce ao acessar (D 1 · C 2 · B 3 · A 4) · <b>fica valendo até você trazer de volta</b> (não some sozinho na virada)</p>
+              <p style={{ fontWeight: 900, fontSize: 12, margin: '0 0 2px', ...OSW }}>{tr('🔄 Janela de empréstimo', '🔄 Loan window')}</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>{getLang() === 'en' ? <>Up to <b>{loanSlots}</b> {loanSlots === 1 ? 'player' : 'players'} per side in this division · grows with promotion (D 1 · C 2 · B 3 · A 4) · <b>stays until you bring them back</b> (doesn\'t vanish at the turn of the season)</> : <>Até <b>{loanSlots}</b> {loanSlots === 1 ? 'jogador' : 'jogadores'} por lado nesta divisão · cresce ao acessar (D 1 · C 2 · B 3 · A 4) · <b>fica valendo até você trazer de volta</b> (não some sozinho na virada)</>}</p>
 
               {/* 🏢 aviso: rebaixou e perdeu vaga → alguns voltaram sozinhos */}
               {(trimNotice ?? 0) > 0 && (
                 <div style={{ background: '#FDE9C8', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', marginBottom: 7, fontSize: 10.5, fontWeight: 800, lineHeight: 1.4, position: 'relative' }}>
-                  ⚠️ Você caiu de divisão e a SAF perdeu vaga: <b>{trimNotice}</b> {trimNotice === 1 ? 'empréstimo voltou' : 'empréstimos voltaram'} sozinho pro lugar. O resto continua valendo.
+                  {getLang() === 'en' ? <>⚠️ You went down a division and the SAF lost a slot: <b>{trimNotice}</b> {trimNotice === 1 ? 'loan went' : 'loans went'} back by themselves. The rest still stands.</> : <>⚠️ Você caiu de divisão e a SAF perdeu vaga: <b>{trimNotice}</b> {trimNotice === 1 ? 'empréstimo voltou' : 'empréstimos voltaram'} sozinho pro lugar. O resto continua valendo.</>}
                   {onDismissTrimNotice && (
                     <button onClick={onDismissTrimNotice} aria-label="Ok" style={{ position: 'absolute', top: 2, right: 5, background: 'transparent', border: 'none', fontSize: 15, fontWeight: 900, lineHeight: 1, cursor: 'pointer', padding: '2px 4px' }}>×</button>
                   )}
@@ -655,22 +682,22 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
               {/* empresta PRA SAF (várias vagas conforme a divisão) */}
               {(filial.loanOut ?? []).map(lo => (
                 <div key={lo.id} style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', marginBottom: 6, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ flex: 1, minWidth: 0 }}>📤 <b>{lo.name}</b> ({lo.pos}) jogando na SAF</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>📤 <b>{lo.name}</b> ({lo.pos}) {tr('jogando na SAF', 'playing at the SAF')}</span>
                   {onReturnLoan && (
-                    <button onClick={() => onReturnLoan(lo.id)} style={{ flex: 'none', border: `1.5px solid ${INK}`, borderRadius: 7, padding: '4px 8px', fontWeight: 900, fontSize: 10, ...OSW, background: GOLD, color: INK, cursor: 'pointer' }}>↩️ trazer de volta</button>
+                    <button onClick={() => onReturnLoan(lo.id)} style={{ flex: 'none', border: `1.5px solid ${INK}`, borderRadius: 7, padding: '4px 8px', fontWeight: 900, fontSize: 10, ...OSW, background: GOLD, color: INK, cursor: 'pointer' }}>{tr('↩️ trazer de volta', '↩️ bring back')}</button>
                   )}
                 </div>
               ))}
               {(filial.loanOut ?? []).length < loanSlots && onLoanTo && (mySquad?.length ?? 0) > 0 ? (
                 <div style={{ marginBottom: 6 }}>
                   <button onClick={() => setPickOut(o => !o)} style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 10px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
-                    📤 {pickOut ? '▾' : '▸'} Emprestar um jogador pra SAF <span style={{ opacity: .55 }}>({(filial.loanOut ?? []).length}/{loanSlots})</span>
+                    📤 {pickOut ? '▾' : '▸'} {tr('Emprestar um jogador pra SAF', 'Loan a player to the SAF')} <span style={{ opacity: .55 }}>({(filial.loanOut ?? []).length}/{loanSlots})</span>
                   </button>
                   {pickOut && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5, maxHeight: 160, overflowY: 'auto' }}>
                       {/* ninguém elegível: explica o PORQUÊ (antes abria vazio e parecia bug) */}
                       {(mySquad ?? []).filter(c => loanableOutIds?.has(c.id)).length === 0 && (
-                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0, padding: '4px 2px', lineHeight: 1.35 }}>🔒 Ninguém disponível agora: emprestar não pode deixar seu <b>time titular incompleto</b> em nenhuma posição. Contrate reservas (ou traga alguém de volta) e tente de novo.</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0, padding: '4px 2px', lineHeight: 1.35 }}>{getLang() === 'en' ? <>🔒 Nobody available right now: loaning out can\'t leave your <b>starting XI short</b> in any position. Sign reserves (or bring someone back) and try again.</> : <>🔒 Ninguém disponível agora: emprestar não pode deixar seu <b>time titular incompleto</b> em nenhuma posição. Contrate reservas (ou traga alguém de volta) e tente de novo.</>}</p>
                       )}
                       {(mySquad ?? []).filter(c => loanableOutIds?.has(c.id)).map(c => (
                         <button key={c.id} onClick={() => {
@@ -685,7 +712,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                         </button>
                       ))}
                       {(mySquad ?? []).filter(c => loanableOutIds?.has(c.id)).length === 0 && (
-                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0' }}>Nenhum jogador sobra sem abrir buraco no seu titular agora.</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0' }}>{tr('Nenhum jogador sobra sem abrir buraco no seu titular agora.', 'No player can go without opening a hole in your XI right now.')}</p>
                       )}
                     </div>
                   )}
@@ -698,48 +725,48 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                   (Mockup aprovado pelo Diego 18/08.) */}
               {travaCt && (
                 <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: 11, marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 ${INK}` }}>
-                  <span style={{ display: 'inline-block', ...OSW, fontWeight: 900, fontSize: 10, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '2px 9px', marginBottom: 7 }}>⏳ Contrato {travaCt.jaVenceu ? 'encerrado' : 'acabando'}</span>
+                  <span style={{ display: 'inline-block', ...OSW, fontWeight: 900, fontSize: 10, background: '#C2452F', color: '#fff', borderRadius: 999, padding: '2px 9px', marginBottom: 7 }}>{tr('⏳ Contrato', '⏳ Contract')} {travaCt.jaVenceu ? tr('encerrado', 'ended') : tr('acabando', 'ending')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2 }}>
                     <span style={{ ...OSW, fontWeight: 900, fontSize: 9.5, background: INK, color: '#fff', borderRadius: 5, padding: '2px 6px' }}>{travaCt.pos}</span>
                     <span style={{ ...OSW, fontWeight: 900, fontSize: 15 }}>{travaCt.nome}</span>
                   </div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 9px' }}>{travaCt.clube} · {travaCt.ano} — contrato {travaCt.jaVenceu ? 'já encerrou' : 'vence no fim desta temporada'}</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 9px' }}>{travaCt.clube} · {travaCt.ano} — {travaCt.jaVenceu ? tr('contrato já encerrou', 'contract already ended') : tr('contrato vence no fim desta temporada', 'contract expires at the end of this season')}</p>
                   <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#FFF3CF', padding: '9px 10px', marginBottom: 9 }}>
-                    <p style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>Na SAF o contrato dele <b>não corre</b> — some da sua janela de renovação e você não decide mais nada sobre ele. Pra emprestar, <b>renove antes</b>.</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>{getLang() === 'en' ? <>At the SAF his contract <b>doesn\'t run</b> — he disappears from your renewal window and you no longer decide anything about him. To loan him, <b>renew first</b>.</> : <>Na SAF o contrato dele <b>não corre</b> — some da sua janela de renovação e você não decide mais nada sobre ele. Pra emprestar, <b>renove antes</b>.</>}</p>
                   </div>
                   <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                     {travaCt.opcoes.map(o => (
                       <button key={o.anos} onClick={() => { onLoanToRenovando?.(travaCt.cardId, o.anos); setTravaCt(null) }}
                         style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', ...OSW, fontWeight: 900, fontSize: 12, lineHeight: 1.25, cursor: 'pointer', background: o.anos >= 10 ? GOLD : '#EAF6EE', color: INK }}>
-                        Renovar {o.anos} ano{o.anos > 1 ? 's' : ''}<br />{o.custo} 🪙 · e emprestar
+                        {tr('Renovar', 'Renew')} {o.anos} {getLang() === 'en' ? (o.anos > 1 ? 'years' : 'year') : `ano${o.anos > 1 ? 's' : ''}`}<br />{o.custo} 🪙 · {tr('e emprestar', 'and loan')}
                       </button>
                     ))}
                   </div>
                   <button onClick={() => setTravaCt(null)}
-                    style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', ...OSW, fontWeight: 900, fontSize: 12.5, background: '#fff', color: INK, cursor: 'pointer' }}>↩️ Deixar no elenco por enquanto</button>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '8px 0 0', lineHeight: 1.45, textAlign: 'center' }}>Deixando no elenco, ele aparece normal na <b>janela de contratos</b> no fim da temporada, com renovar ou deixar ir.</p>
+                    style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', ...OSW, fontWeight: 900, fontSize: 12.5, background: '#fff', color: INK, cursor: 'pointer' }}>{tr('↩️ Deixar no elenco por enquanto', '↩️ Keep in the squad for now')}</button>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '8px 0 0', lineHeight: 1.45, textAlign: 'center' }}>{getLang() === 'en' ? <>Kept in the squad, he shows up as usual in the <b>contracts window</b> at the end of the season, with renew or let go.</> : <>Deixando no elenco, ele aparece normal na <b>janela de contratos</b> no fim da temporada, com renovar ou deixar ir.</>}</p>
                 </div>
               )}
 
               {/* pega emprestado DA SAF (várias vagas conforme a divisão) */}
               {(filial.loanIn ?? []).map(li => (
                 <div key={li.id} style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', marginBottom: 6, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ flex: 1, minWidth: 0 }}>📥 <b>{li.name}</b> ({li.pos}) jogando com você</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>📥 <b>{li.name}</b> ({li.pos}) {tr('jogando com você', 'playing for you')}</span>
                   {onReturnLoan && (
-                    <button onClick={() => onReturnLoan(li.id)} style={{ flex: 'none', border: `1.5px solid ${INK}`, borderRadius: 7, padding: '4px 8px', fontWeight: 900, fontSize: 10, ...OSW, background: GOLD, color: INK, cursor: 'pointer' }}>↩️ devolver pra SAF</button>
+                    <button onClick={() => onReturnLoan(li.id)} style={{ flex: 'none', border: `1.5px solid ${INK}`, borderRadius: 7, padding: '4px 8px', fontWeight: 900, fontSize: 10, ...OSW, background: GOLD, color: INK, cursor: 'pointer' }}>{tr('↩️ devolver pra SAF', '↩️ return to the SAF')}</button>
                   )}
                 </div>
               ))}
               {(filial.loanIn ?? []).length < loanSlots && onLoanFrom && (filialSquad?.length ?? 0) > 0 ? (
                 <div>
                   <button onClick={() => setPickIn(o => !o)} style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 10px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
-                    📥 {pickIn ? '▾' : '▸'} Pegar um jogador da SAF <span style={{ opacity: .55 }}>({(filial.loanIn ?? []).length}/{loanSlots})</span>
+                    📥 {pickIn ? '▾' : '▸'} {tr('Pegar um jogador da SAF', 'Borrow a player from the SAF')} <span style={{ opacity: .55 }}>({(filial.loanIn ?? []).length}/{loanSlots})</span>
                   </button>
                   {pickIn && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 5, maxHeight: 160, overflowY: 'auto' }}>
                       {/* ninguém elegível: a SAF também não pode ficar com o XI dela furado */}
                       {(filialSquad ?? []).filter(c => loanableInIds?.has(c.id)).length === 0 && (
-                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0, padding: '4px 2px', lineHeight: 1.35 }}>🔒 Ninguém disponível agora: a SAF precisa manter o <b>time titular dela completo</b>. Dica: empreste um jogador SEU pra ela primeiro — aí abre folga na posição pra puxar alguém de lá.</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: 0, padding: '4px 2px', lineHeight: 1.35 }}>{getLang() === 'en' ? <>🔒 Nobody available right now: the SAF needs to keep <b>its own starting XI complete</b>. Tip: loan one of YOUR players to it first — that frees up the position to pull someone from there.</> : <>🔒 Ninguém disponível agora: a SAF precisa manter o <b>time titular dela completo</b>. Dica: empreste um jogador SEU pra ela primeiro — aí abre folga na posição pra puxar alguém de lá.</>}</p>
                       )}
                       {(filialSquad ?? []).filter(c => loanableInIds?.has(c.id)).map(c => (
                         <button key={c.id} onClick={() => { onLoanFrom(c.id); setPickIn(false) }}
@@ -748,7 +775,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                         </button>
                       ))}
                       {(filialSquad ?? []).filter(c => loanableInIds?.has(c.id)).length === 0 && (
-                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0' }}>A SAF não tem ninguém sobrando pra emprestar agora.</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '2px 0' }}>{tr('A SAF não tem ninguém sobrando pra emprestar agora.', 'The SAF has nobody spare to loan right now.')}</p>
                       )}
                     </div>
                   )}
@@ -763,26 +790,26 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                 {!sellingSaf ? (
                   <button onClick={() => setSellingSaf(true)}
                     style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 12.5, ...OSW, background: '#fff', color: INK, cursor: 'pointer' }}>
-                    💸 Vender a SAF · vale <b style={{ color: GREEN }}>{filialSale.value}</b> 🪙 agora
+                    {tr('💸 Vender a SAF · vale', '💸 Sell the SAF · worth')} <b style={{ color: GREEN }}>{filialSale.value}</b> 🪙 {tr('agora', 'now')}
                   </button>
                 ) : (
                   <div style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 0 ${INK}`, padding: '11px 12px' }}>
-                    <p style={{ ...OSW, fontWeight: 900, fontSize: 14, margin: '0 0 2px' }}>💼 Vender a SAF · {filial.team}</p>
-                    <p style={{ ...OSW, fontWeight: 900, fontSize: 20, color: GREEN, margin: '2px 0 8px' }}>💰 Você recebe agora: {filialSale.value} 🪙</p>
-                    <p style={{ fontSize: 9.5, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 4px' }}>Como calculamos</p>
+                    <p style={{ ...OSW, fontWeight: 900, fontSize: 14, margin: '0 0 2px' }}>{tr('💼 Vender a SAF', '💼 Sell the SAF')} · {filial.team}</p>
+                    <p style={{ ...OSW, fontWeight: 900, fontSize: 20, color: GREEN, margin: '2px 0 8px' }}>{tr('💰 Você recebe agora:', '💰 You receive now:')} {filialSale.value} 🪙</p>
+                    <p style={{ fontSize: 9.5, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 4px' }}>{tr('Como calculamos', 'How we work it out')}</p>
                     <div style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', lineHeight: 1.7 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• Base</span><span>+1.000</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {filialSale.div === 'V' ? 'Várzea' : `Série ${filialSale.div}`} (divisão atual)</span><span>+{filialSale.divBonus}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {filialSale.titles} {filialSale.titles === 1 ? 'título' : 'títulos'} da SAF (+250 cada)</span><span>+{filialSale.titleBonus}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,.15)', marginTop: 3, paddingTop: 3, fontWeight: 900, color: INK }}><span>Total</span><span>{filialSale.value} 🪙{filialSale.value >= 2500 ? ' (teto)' : ''}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {tr('Base', 'Base')}</span><span>+1.000</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {filialSale.div === 'V' ? 'Várzea' : `Série ${filialSale.div}`} {tr('(divisão atual)', '(current division)')}</span><span>+{filialSale.divBonus}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>• {filialSale.titles} {getLang() === 'en' ? (filialSale.titles === 1 ? 'SAF title' : 'SAF titles') : `${filialSale.titles === 1 ? 'título' : 'títulos'} da SAF`} (+250 {tr('cada', 'each')})</span><span>+{filialSale.titleBonus}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,.15)', marginTop: 3, paddingTop: 3, fontWeight: 900, color: INK }}><span>Total</span><span>{filialSale.value} 🪙{filialSale.value >= 2500 ? tr(' (teto)', ' (cap)') : ''}</span></div>
                     </div>
                     <p style={{ fontSize: 11, fontWeight: 800, margin: '7px 0 0', color: filialSale.value - filialSale.paid >= 0 ? GREEN : '#B23B2E' }}>
-                      Você pagou {filialSale.paid} → {filialSale.value - filialSale.paid >= 0 ? `lucro de +${filialSale.value - filialSale.paid} 📈` : `prejuízo de −${filialSale.paid - filialSale.value} 📉`}
+                      {tr('Você pagou', 'You paid')} {filialSale.paid} → {filialSale.value - filialSale.paid >= 0 ? tr(`lucro de +${filialSale.value - filialSale.paid} 📈`, `profit of +${filialSale.value - filialSale.paid} 📈`) : tr(`prejuízo de −${filialSale.paid - filialSale.value} 📉`, `loss of −${filialSale.paid - filialSale.value} 📉`)}
                     </p>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 9px' }}>⚠️ Empréstimos ativos voltam na hora. Depois de vender, dá pra comprar outra SAF.</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 9px' }}>{tr('⚠️ Empréstimos ativos voltam na hora. Depois de vender, dá pra comprar outra SAF.', '⚠️ Active loans come back immediately. After selling, you can buy another SAF.')}</p>
                     <div style={{ display: 'flex', gap: 7 }}>
-                      <button onClick={() => setSellingSaf(false)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 12, ...OSW, background: '#fff', color: INK, cursor: 'pointer' }}>Cancelar</button>
-                      <button onClick={() => { if (window.confirm(`Vender a SAF do ${filial.team} por ${filialSale.value} 🪙?`)) { onSellFilial(); setSellingSaf(false) } }} style={{ flex: 1.4, border: `2px solid ${INK}`, borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 12.5, ...OSW, background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>Vender · +{filialSale.value} 🪙</button>
+                      <button onClick={() => setSellingSaf(false)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 12, ...OSW, background: '#fff', color: INK, cursor: 'pointer' }}>{tr('Cancelar', 'Cancel')}</button>
+                      <button onClick={() => { if (window.confirm(tr(`Vender a SAF do ${filial.team} por ${filialSale.value} 🪙?`, `Sell the ${filial.team} SAF for ${filialSale.value} 🪙?`))) { onSellFilial(); setSellingSaf(false) } }} style={{ flex: 1.4, border: `2px solid ${INK}`, borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 12.5, ...OSW, background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('Vender', 'Sell')} · +{filialSale.value} 🪙</button>
                     </div>
                   </div>
                 )}
@@ -793,9 +820,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         }
         return (
           <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: (allDone && logged) ? 1 : .6, borderStyle: (allDone && logged) ? 'solid' : 'dashed', boxShadow: (allDone && logged) ? `4px 4px 0 0 ${INK}` : 'none' }}>
-            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>💼 COMPRAR UMA SAF</p>
+            <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>{tr('💼 COMPRAR UMA SAF', '💼 BUY A SAF')}</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 6px' }}>
-              {!logged
+              {getLang() === 'en' ? (!logged
+                ? <>🔒 <b style={{ color: '#9a4b00' }}>Log in</b> (or log in again — your session may have dropped) to buy the SAF. Your career progress stays saved to the account.</>
+                : allDone
+                ? <>Buy the <b>SAF of a Série D club</b> and become its owner: you acquire the right to <b>50% of its campaign profits</b> (and take on half the loss on relegation). The club keeps playing on its own — no auction against you. And you <b>loan and borrow players</b> from it: <b>more slots as you climb divisions</b> (D 1 · C 2 · B 3 · A 4).</>
+                : <>🔒 unlocks with: <b style={{ color: '#9a4b00' }}>Stadium 100% complete</b> (stands + upgrades) · the SAF costs 2,000 💰</>) : !logged
                 ? <>🔒 <b style={{ color: '#9a4b00' }}>Faça login</b> (ou entre de novo — sua sessão pode ter caído) pra comprar a SAF. Seu progresso da carreira fica salvo na conta.</>
                 : allDone
                 ? <>Compre a <b>SAF de um clube da Série D</b> e vire dono: você adquire o direito a <b>50% dos lucros de campanha</b> dele (e assume metade do prejuízo na queda). O clube segue jogando por conta própria — sem leilão contra você. E você <b>empresta e pega jogadores</b> dele: <b>+vagas conforme você sobe de série</b> (D 1 · C 2 · B 3 · A 4).</>
@@ -806,25 +837,25 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
             {logged && allDone && !buying && (
               <button onClick={() => canBuy && setBuying(true)} disabled={!canBuy}
                 style={{ width: '100%', border: 'none', borderRadius: 10, padding: '10px 0', fontWeight: 900, fontSize: 13.5, ...OSW, background: canBuy ? INK : '#d9cfb4', color: canBuy ? '#fff' : '#7d7358', cursor: canBuy ? 'pointer' : 'default' }}>
-                {canBuy ? '💼 Comprar a SAF de um clube · −2.000 💰' : `Junte 2.000 💰 (tem ${coins})`}
+                {canBuy ? tr('💼 Comprar a SAF de um clube · −2.000 💰', '💼 Buy a club\'s SAF · −2,000 💰') : tr(`Junte 2.000 💰 (tem ${coins})`, `Save up 2,000 💰 (you have ${coins})`)}
               </button>
             )}
             {logged && allDone && buying && (
               <div>
-                <p style={{ fontSize: 11, fontWeight: 900, margin: '2px 0 6px', ...OSW }}>Escolha o clube (Série D atual):</p>
+                <p style={{ fontSize: 11, fontWeight: 900, margin: '2px 0 6px', ...OSW }}>{tr('Escolha o clube (Série D atual):', 'Pick the club (current Série D):')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                   {(filialOptions ?? []).map(t => (
-                    <button key={t} onClick={() => { if (window.confirm(`Comprar a SAF do ${t} por 2.000 💰? Você vira dono dos direitos dele pra sempre nesta carreira.`)) { onBuyFilial(t); setBuying(false) } }}
+                    <button key={t} onClick={() => { if (window.confirm(tr(`Comprar a SAF do ${t} por 2.000 💰? Você vira dono dos direitos dele pra sempre nesta carreira.`, `Buy the ${t} SAF for 2,000 💰? You own its rights forever in this career.`))) { onBuyFilial(t); setBuying(false) } }}
                       style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t}</button>
                   ))}
                 </div>
-                <button onClick={() => setBuying(false)} style={{ width: '100%', marginTop: 7, background: 'transparent', border: 'none', fontWeight: 800, fontSize: 11, color: 'rgba(0,0,0,.5)', textDecoration: 'underline', cursor: 'pointer' }}>cancelar</button>
+                <button onClick={() => setBuying(false)} style={{ width: '100%', marginTop: 7, background: 'transparent', border: 'none', fontWeight: 800, fontSize: 11, color: 'rgba(0,0,0,.5)', textDecoration: 'underline', cursor: 'pointer' }}>{tr('cancelar', 'cancel')}</button>
               </div>
             )}
           </div>
         )
       })()}
-      <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '10px 2px 4px' }}>🏟️ O desenho lá em cima é o teu progresso — cada compra aparece nele.</p>
+      <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '10px 2px 4px' }}>{tr('🏟️ O desenho lá em cima é o teu progresso — cada compra aparece nele.', '🏟️ The drawing up there is your progress — every purchase shows up in it.')}</p>
     </>
   )
 }
