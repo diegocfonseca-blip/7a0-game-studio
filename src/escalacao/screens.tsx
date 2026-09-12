@@ -41,7 +41,7 @@ import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionSt
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, useSalao, getSport, escadaLiberada, type Sport } from './sport'
-import { novidadesDaVez } from './novidades'
+import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
@@ -1416,8 +1416,8 @@ function NovidadesCurtas() {
           <div key={n.titulo + n.data} className="flex gap-2 items-start">
             <span className="text-[15px] leading-tight">{n.emoji}</span>
             <div className="min-w-0">
-              <p className="font-black text-[12.5px] leading-tight" style={OSWALD}>{n.titulo}</p>
-              <p className="text-[10.5px] font-semibold text-black/60 leading-snug">{n.texto}</p>
+              <p className="font-black text-[12.5px] leading-tight" style={OSWALD}>{novTitulo(n)}</p>
+              <p className="text-[10.5px] font-semibold text-black/60 leading-snug">{novTexto(n)}</p>
             </div>
           </div>
         ))}
@@ -1452,7 +1452,7 @@ function NewsSection() {
       <div className="space-y-1">
         {novidades.map(n => (
           <p key={n.titulo + n.data} className="text-[11.5px] font-bold text-black/75 leading-snug">
-            {n.emoji} <b>{n.titulo}</b> — {n.texto}
+            {n.emoji} <b>{novTitulo(n)}</b> — {novTexto(n)}
           </p>
         ))}
       </div>

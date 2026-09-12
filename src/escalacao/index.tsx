@@ -11,6 +11,7 @@ import { hadLogin } from './apoio'
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
 import { CareerOnlineGame } from './careeronline'
+import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos de app/sessão, tela de erro e página de e-mail
 import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
 import { TelaSenhaNova } from './senha-nova'
 import { anotaTrava } from './caixa-preta'
@@ -119,14 +120,14 @@ function OpenInBrowserBanner() {
     <div style={{ position: 'fixed', bottom: 10, left: 8, right: 8, zIndex: 99998, margin: '0 auto', maxWidth: 440, background: '#0C0C0C', color: '#fff', border: '2px solid #F5B301', borderRadius: 14, padding: '10px 30px 10px 12px', fontWeight: 700, fontSize: 11.5, lineHeight: 1.4, boxShadow: '0 6px 16px rgba(0,0,0,.4)' }}>
       {android ? (
         <>
-          🚀 <b>Jogando dentro do Instagram?</b> Abre no navegador de verdade — teu login e teu save ficam seguros lá.
+          {getLang() === 'en' ? <>🚀 <b>Playing inside Instagram?</b> Open it in a real browser — your login and your save are safe there.</> : <>🚀 <b>Jogando dentro do Instagram?</b> Abre no navegador de verdade — teu login e teu save ficam seguros lá.</>}
           <button onClick={escape} style={{ display: 'block', width: '100%', marginTop: 7, background: '#F5B301', color: '#0C0C0C', border: 'none', borderRadius: 9, padding: '9px 0', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
-            ABRIR NO NAVEGADOR 🌐
+            {tr('ABRIR NO NAVEGADOR 🌐', 'OPEN IN BROWSER 🌐')}
           </button>
         </>
       ) : (
         <>
-          🚀 <b>Jogando dentro do app?</b> Toca nos <b>três pontinhos (⋯)</b> aí no canto e escolhe <b>“Abrir no navegador externo”</b> — teu login e teu save ficam seguros lá.
+          {getLang() === 'en' ? <>🚀 <b>Playing inside an app?</b> Tap the <b>three dots (⋯)</b> in the corner and choose <b>“Open in external browser”</b> — your login and your save are safe there.</> : <>🚀 <b>Jogando dentro do app?</b> Toca nos <b>três pontinhos (⋯)</b> aí no canto e escolhe <b>“Abrir no navegador externo”</b> — teu login e teu save ficam seguros lá.</>}
         </>
       )}
       <button onClick={() => { setDismissed(true); try { sessionStorage.setItem('esc-inapp-dismiss', '1') } catch { /* ignora */ } }} aria-label="Fechar"
@@ -148,11 +149,11 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
       return (
         <div className="tela-cheia" style={{ background: '#F4ECD6', color: '#0C0C0C', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', fontFamily: 'Oswald, sans-serif' }}>
           <div style={{ fontSize: 52 }}>😵</div>
-          <p style={{ fontWeight: 900, fontSize: 22, margin: '8px 0 4px' }}>Ops, algo deu errado</p>
-          <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.6)', maxWidth: 340 }}>Volta ao início e tenta de novo. Seu progresso salvo <b>não foi apagado</b>.</p>
+          <p style={{ fontWeight: 900, fontSize: 22, margin: '8px 0 4px' }}>{tr('Ops, algo deu errado', 'Oops, something went wrong')}</p>
+          <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.6)', maxWidth: 340 }}>{getLang() === 'en' ? <>Go back to the start and try again. Your saved progress <b>was not erased</b>.</> : <>Volta ao início e tenta de novo. Seu progresso salvo <b>não foi apagado</b>.</>}</p>
           <button onClick={() => { try { window.location.hash = '' } catch { /* ignora */ } window.location.reload() }}
-            style={{ marginTop: 16, background: '#1B7A3D', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 22px', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', boxShadow: '4px 4px 0 #0C0C0C', cursor: 'pointer' }}>🏠 Voltar ao início</button>
-          <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 18, maxWidth: 340, wordBreak: 'break-word' }}>Erro: {String(this.state.err?.message || this.state.err)}</p>
+            style={{ marginTop: 16, background: '#1B7A3D', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 22px', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', boxShadow: '4px 4px 0 #0C0C0C', cursor: 'pointer' }}>{tr('🏠 Voltar ao início', '🏠 Back to start')}</button>
+          <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 18, maxWidth: 340, wordBreak: 'break-word' }}>{tr('Erro', 'Error')}: {String(this.state.err?.message || this.state.err)}</p>
           {/* 🔎 detalhe técnico (stack) — pequeno; ajuda a achar EXATAMENTE onde quebrou
              quando o print chega. Mostra só as primeiras linhas pra não assustar. */}
           {this.state.err?.stack && (
@@ -260,9 +261,9 @@ function SessionExpiredBanner() {
   return (
     <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99997, margin: '0 auto', maxWidth: 460, background: '#F5B301', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', boxShadow: '0 4px 14px rgba(0,0,0,.3)', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Oswald, sans-serif' }}>
       <span style={{ fontSize: 18, lineHeight: 1 }}>🔑</span>
-      <span style={{ flex: 1, fontWeight: 800, fontSize: 11.5, lineHeight: 1.25 }}>Sua sessão caiu — entre de novo pra ganhar cartas, aparecer no ranking e usar a SAF.</span>
-      <button onClick={() => { dispatch({ type: 'GO_LOBBY_ONLINE' }); setShow(false) }} style={{ flexShrink: 0, background: '#0C0C0C', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 11.5, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>Entrar</button>
-      <button onClick={close} aria-label="Dispensar" style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 999, background: '#fff', border: '2px solid #000', fontWeight: 900, fontSize: 11, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+      <span style={{ flex: 1, fontWeight: 800, fontSize: 11.5, lineHeight: 1.25 }}>{tr('Sua sessão caiu — entre de novo pra ganhar cartas, aparecer no ranking e usar a SAF.', 'Your session expired — log in again to earn cards, show up in the ranking and use the SAF.')}</span>
+      <button onClick={() => { dispatch({ type: 'GO_LOBBY_ONLINE' }); setShow(false) }} style={{ flexShrink: 0, background: '#0C0C0C', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 11.5, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>{tr('Entrar', 'Log in')}</button>
+      <button onClick={close} aria-label={tr('Dispensar', 'Dismiss')} style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 999, background: '#fff', border: '2px solid #000', fontWeight: 900, fontSize: 11, cursor: 'pointer', lineHeight: 1 }}>✕</button>
     </div>
   )
 }
@@ -312,34 +313,34 @@ function SairDaLista() {
         {fase !== 'pronto' ? (
           <>
             <p style={{ fontSize: 42, margin: 0 }}>✉️</p>
-            <p style={{ ...OSW, fontWeight: 900, fontSize: 20, margin: '6px 0 0', textTransform: 'uppercase' }}>Parar de receber e-mails?</p>
+            <p style={{ ...OSW, fontWeight: 900, fontSize: 20, margin: '6px 0 0', textTransform: 'uppercase' }}>{tr('Parar de receber e-mails?', 'Stop receiving e-mails?')}</p>
             <p style={{ fontSize: 13.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 0 0', lineHeight: 1.5 }}>
-              A gente para de mandar novidades pra <b style={{ wordBreak: 'break-all' }}>{email}</b>.
+              {tr('A gente para de mandar novidades pra', 'We stop sending news to')} <b style={{ wordBreak: 'break-all' }}>{email}</b>.
             </p>
             <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '10px 0 0', lineHeight: 1.5 }}>
-              🎮 <b>Sua conta e seu time não são apagados</b> — você continua jogando normal, só não recebe mais e-mail nosso.
+              {getLang() === 'en' ? <>🎮 <b>Your account and your team are not deleted</b> — you keep playing as usual, you just stop getting our e-mails.</> : <>🎮 <b>Sua conta e seu time não são apagados</b> — você continua jogando normal, só não recebe mais e-mail nosso.</>}
             </p>
             <button onClick={() => { void sair() }} disabled={fase === 'indo'}
               style={{ width: '100%', marginTop: 16, border: '3px solid #0C0C0C', borderRadius: 13, padding: '13px 0', ...OSW, fontWeight: 900, fontSize: 15,
                 background: '#C2452F', color: '#fff', boxShadow: '4px 4px 0 #0C0C0C', cursor: 'pointer' }}>
-              {fase === 'indo' ? '⏳ Saindo…' : '✅ Sim, pode parar'}
+              {fase === 'indo' ? tr('⏳ Saindo…', '⏳ Leaving…') : tr('✅ Sim, pode parar', '✅ Yes, stop them')}
             </button>
             <button onClick={() => { window.location.href = window.location.origin + window.location.pathname }}
               style={{ width: '100%', marginTop: 9, border: 'none', background: 'transparent', ...OSW, fontWeight: 900, fontSize: 13, color: 'rgba(0,0,0,.55)', textDecoration: 'underline', cursor: 'pointer' }}>
-              não, quero continuar recebendo
+              {tr('não, quero continuar recebendo', 'no, I want to keep receiving them')}
             </button>
           </>
         ) : (
           <>
             <p style={{ fontSize: 42, margin: 0 }}>👍</p>
-            <p style={{ ...OSW, fontWeight: 900, fontSize: 20, margin: '6px 0 0', textTransform: 'uppercase' }}>Pronto</p>
+            <p style={{ ...OSW, fontWeight: 900, fontSize: 20, margin: '6px 0 0', textTransform: 'uppercase' }}>{tr('Pronto', 'Done')}</p>
             <p style={{ fontSize: 13.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 0 0', lineHeight: 1.5 }}>
-              Não mandamos mais e-mail de novidade pra <b style={{ wordBreak: 'break-all' }}>{email}</b>. Valeu por ter jogado! 🔨
+              {tr('Não mandamos mais e-mail de novidade pra', 'No more news e-mails to')} <b style={{ wordBreak: 'break-all' }}>{email}</b>. {tr('Valeu por ter jogado! 🔨', 'Thanks for playing! 🔨')}
             </p>
             <button onClick={() => { window.location.href = window.location.origin + window.location.pathname }}
               style={{ width: '100%', marginTop: 16, border: '3px solid #0C0C0C', borderRadius: 13, padding: '13px 0', ...OSW, fontWeight: 900, fontSize: 15,
                 background: '#1B7A3D', color: '#fff', boxShadow: '4px 4px 0 #0C0C0C', cursor: 'pointer' }}>
-              🔨 Ir pro jogo
+              {tr('🔨 Ir pro jogo', '🔨 Go to the game')}
             </button>
           </>
         )}

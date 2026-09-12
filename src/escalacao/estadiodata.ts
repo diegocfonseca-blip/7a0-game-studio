@@ -4,6 +4,8 @@
 // arquibancadas, melhorias destravam em árvore, e TUDO rende moeda por
 // temporada — o ralo de dinheiro que dá motivo pra seguir ganhando.
 
+import { getLang } from './lang' // 🌐 BR/EN (12/09): só pros RÓTULOS; as chaves (k) e os números não mudam
+
 export interface StadiumSave { inv: Record<string, number>; ext: string[] }
 
 export const STADIUM_STEP = 20 // moedas por clique de "investir" num setor
@@ -52,6 +54,26 @@ export const STADIUM_EXTRAS: StadiumExtra[] = [
   { k: 'medico', n: '🏥 Departamento Médico', cost: 1000, inc: 0, reqTxt: 'Cobertura', perk: 'acaba com as lesões PRA SEMPRE' },
 ]
 
+// 🌐 rótulos em inglês das obras — a CHAVE (k) continua a mesma no save; só o texto lido troca.
+const SECTOR_EN: Record<string, string> = { grama: '🌱 Pitch', geral: 'Terraces', cadeiras: 'Seats', visitante: 'Away end', camarote: 'Boxes' }
+const EXTRA_EN: Record<string, { n: string; req: string; perk?: string }> = {
+  refl:  { n: '💡 Floodlights', req: 'Terraces 100%' },
+  telao: { n: '📺 Big screen', req: 'Seats 100%' },
+  loja:  { n: '🛍️ Club Store', req: '2 stands finished' },
+  estac: { n: '🅿️ Parking', req: 'Club Store' },
+  praca: { n: '🍔 Food Court', req: 'Club Store', perk: 'the stadium food court' },
+  chopp: { n: '🍻 Stadium Beer Hall', req: 'Food Court', perk: 'pre-match warm-up' },
+  estacao: { n: '🚇 Station / Easy Access', req: 'Parking', perk: '+8% attendance: more people can get there' },
+  cober: { n: '☂️ Roof', req: '4 stands finished' },
+  hotel: { n: '🏨 Club Hotel', req: 'Stands 100%', perk: 'hosts away fans and delegations' },
+  retratil: { n: '🏟️ Retractable Roof', req: 'Roof', perk: 'a roof that opens and closes — full house even in the rain' },
+  medico: { n: '🏥 Medical Department', req: 'Roof', perk: 'ends injuries FOREVER' },
+}
+export const sectorNome = (s: StadiumSector): string => (getLang() === 'en' ? (SECTOR_EN[s.k] ?? s.n) : s.n)
+export const extraNome = (e: StadiumExtra): string => (getLang() === 'en' ? (EXTRA_EN[e.k]?.n ?? e.n) : e.n)
+export const extraReq = (e: StadiumExtra): string => (getLang() === 'en' ? (EXTRA_EN[e.k]?.req ?? e.reqTxt) : e.reqTxt)
+export const extraPerk = (e: StadiumExtra): string | undefined => (getLang() === 'en' ? (EXTRA_EN[e.k]?.perk ?? e.perk) : e.perk)
+
 export const emptyStadium = (): StadiumSave => ({ inv: {}, ext: [] })
 
 // ─── 🤝 PATROCÍNIO POR APOSTA (carreira, 05/08) ────────────────────────────
@@ -66,6 +88,15 @@ export const SPONSOR_BET_META: Record<SponsorBetTier, { label: string; emoji: st
   1: { label: 'Não cair de divisão', emoji: '🛡️', desc: 'Aposta segura: termine fora da zona de rebaixamento (fora do Z4).' },
   2: { label: 'Acesso (top 4)', emoji: '📈', desc: 'Termine entre os 4 primeiros da sua divisão.' },
   3: { label: 'Campeão (liga ou copa)', emoji: '👑', desc: 'Seja CAMPEÃO — da liga ou da Copa Legends. Ganhar as duas não dobra o prêmio.' },
+}
+// 🌐 a mesma ficha em inglês (emoji e números vêm da tabela de cima)
+const SPONSOR_BET_META_EN: Record<SponsorBetTier, { label: string; desc: string }> = {
+  1: { label: 'Avoid relegation', desc: 'Safe bet: finish outside the relegation zone (out of the bottom 4).' },
+  2: { label: 'Promotion (top 4)', desc: 'Finish in the top 4 of your division.' },
+  3: { label: 'Champion (league or cup)', desc: 'Be CHAMPION — of the league or the Legends Cup. Winning both does not double the prize.' },
+}
+export function sponsorBetMeta(t: SponsorBetTier): { label: string; emoji: string; desc: string } {
+  return getLang() === 'en' ? { ...SPONSOR_BET_META[t], ...SPONSOR_BET_META_EN[t] } : SPONSOR_BET_META[t]
 }
 // 💰 quanto paga cada nível, por divisão — dobra a cada divisão (Diego 11/08:
 // dobrou a tabela toda pra aliviar a grana, sobretudo no começo da carreira):
@@ -179,7 +210,9 @@ export function stadiumSeats(st: StadiumSave | undefined): { now: number; max: n
 // nível/apelido do estádio pelo total de peças prontas (setores + melhorias)
 export function stadiumLevel(st: StadiumSave | undefined): { n: number; name: string } {
   const n = sectorsDone(st) + STADIUM_EXTRAS.filter(e => hasExtra(st, e.k)).length
-  const name = n >= 9 ? '👑 Templo Legends' : n >= 6 ? '🏟️ Arena Legends' : n >= 4 ? '🏛️ Estádio Municipal' : n >= 2 ? '🪵 Estádio de Bairro' : n >= 1 ? '🚧 Canteiro de Obras' : '🌱 Campo de Várzea'
+  const name = getLang() === 'en'
+    ? (n >= 9 ? '👑 Legends Temple' : n >= 6 ? '🏟️ Legends Arena' : n >= 4 ? '🏛️ Municipal Stadium' : n >= 2 ? '🪵 Neighborhood Ground' : n >= 1 ? '🚧 Building Site' : '🌱 Sunday League Pitch')
+    : (n >= 9 ? '👑 Templo Legends' : n >= 6 ? '🏟️ Arena Legends' : n >= 4 ? '🏛️ Estádio Municipal' : n >= 2 ? '🪵 Estádio de Bairro' : n >= 1 ? '🚧 Canteiro de Obras' : '🌱 Campo de Várzea')
   return { n, name }
 }
 export function stadiumComplete(st: StadiumSave | undefined): boolean {

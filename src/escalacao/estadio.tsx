@@ -5,7 +5,7 @@ import { CareerSponsorVisual } from './career-sponsor-visual'
 // Cada compra APARECE no desenho: torcida enchendo os setores, refletores
 // acendendo (anoitece!), telão ligando, loja, estacionamento, cobertura.
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
-import { STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, extraNovaOnly, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_META, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf } from './estadiodata'
+import { sectorNome, extraNome, extraReq, extraPerk, sponsorBetMeta, STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, extraNovaOnly, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf } from './estadiodata'
 import type { StadiumSave, SponsorBetTier, SponsorBrand } from './estadiodata'
 import { VADICO_LOGO } from './vadico'
 import { ERO_LOGO } from './ero'
@@ -72,7 +72,7 @@ const tierDaMarca = (brandId?: string): SponsorBetTier | undefined => sponsorBra
 // ① ficha de META — o valor é o herói, a explicação é UMA linha
 function MetaFicha({ tier, div, sel, temFiel, onPick }: { tier: SponsorBetTier; div: string; sel: boolean; temFiel: boolean; onPick: () => void }) {
   const c = getLang() === 'en' ? { ...META_COR[tier], ...META_EN[tier] } : META_COR[tier]
-  const meta = SPONSOR_BET_META[tier]
+  const meta = sponsorBetMeta(tier)
   const val = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[tier - 1]
   return (
     <button onClick={onPick} title={meta.desc}
@@ -170,7 +170,7 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
               {/* trava explicada: mudou a meta e ainda não escolheu marca → o que vale é o velho */}
               {!!chosen && !fechado && (
                 <p style={{ fontSize: 9.5, fontWeight: 800, color: '#B23A2A', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.35 }}>
-                  {tr('👆 Escolha a marca pra confirmar a mudança. Por enquanto o que vale é', '👆 Pick the brand to confirm the change. For now what counts is')} <b>{SPONSOR_BET_META[chosen.tier].emoji} {SPONSOR_BET_META[chosen.tier].label} · {brand?.name}</b>.
+                  {tr('👆 Escolha a marca pra confirmar a mudança. Por enquanto o que vale é', '👆 Pick the brand to confirm the change. For now what counts is')} <b>{sponsorBetMeta(chosen.tier).emoji} {sponsorBetMeta(chosen.tier).label} · {brand?.name}</b>.
                 </p>
               )}
             </>
@@ -182,10 +182,10 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
             não pode encostar no valor da direita em tela estreita. */}
         {fechado && (
           <div style={{ position: 'relative', background: '#E6F3EA', borderTop: `3px solid ${INK}`, padding: '17px 12px 11px', display: 'flex', alignItems: 'center', gap: 9 }}>
-            <span style={{ fontSize: 19 }}>{SPONSOR_BET_META[chosen!.tier].emoji}</span>
+            <span style={{ fontSize: 19 }}>{sponsorBetMeta(chosen!.tier).emoji}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0, lineHeight: 1.1 }}>{tr(`Contrato fechado com a ${brand?.name}`, `Deal signed with ${brand?.name}`)}</p>
-              <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '1px 0 0' }}>{SPONSOR_BET_META[chosen!.tier].label} · {tr('vale a temporada inteira', 'good for the whole season')}</p>
+              <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '1px 0 0' }}>{sponsorBetMeta(chosen!.tier).label} · {tr('vale a temporada inteira', 'good for the whole season')}</p>
             </div>
             <span style={{ ...OSW, fontWeight: 900, fontSize: 14, background: GREEN, color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '4px 10px', whiteSpace: 'nowrap' }}>+{(SPONSOR_BET_PAY[div] ?? [0, 0, 0])[chosen!.tier - 1]} 🪙</span>
             <span style={{ position: 'absolute', top: -12, right: 14, transform: 'rotate(-9deg)', ...OSW, fontWeight: 900, fontSize: 12, color: '#C2452F', border: '3px solid #C2452F', borderRadius: 8, padding: '2px 9px', background: 'rgba(255,255,255,.85)', letterSpacing: '.06em' }}>{tr('ASSINADO', 'SIGNED')}</span>
@@ -207,7 +207,7 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
 // (Diego achou confuso o tabelão na frente e a TV escondida lá embaixo).
 export function SponsorBetStatus({ bet, div, completo, soRegua }: { bet?: { tier: SponsorBetTier; brandId: string }; div?: string; completo?: boolean; soRegua?: boolean }) {
   if (!bet && !completo && !soRegua) return null
-  const meta = bet ? SPONSOR_BET_META[bet.tier] : undefined
+  const meta = bet ? sponsorBetMeta(bet.tier) : undefined
   const brand = bet ? sponsorBrandOf(bet.brandId) : undefined
   const val = bet && div ? (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[bet.tier - 1] : undefined
   if (!completo && !soRegua) {
@@ -577,7 +577,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           <div key={s.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
-                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{s.n}</span>
+                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{sectorNome(s)}</span>
                 <span style={{ fontSize: 11.5, fontWeight: 900, color: '#14512b' }}>{p}%</span>
               </div>
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
@@ -601,12 +601,12 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         return (
           <div key={e.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11, opacity: done || unlocked ? 1 : .55, borderStyle: done || unlocked ? 'solid' : 'dashed', boxShadow: done || unlocked ? `4px 4px 0 0 ${INK}` : 'none' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{e.n}</div>
+              <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{extraNome(e)}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
                 {/* 🏥 melhoria SEM renda (perk): mostra o benefício, nunca "+0/temp" */}
-                {done ? <b style={{ color: ACC }}>{e.perk ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}</b>
-                  : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{e.perk ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b></>
-                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{e.reqTxt}</b>{e.perk ? <> · {e.perk}</> : null}</>}
+                {done ? <b style={{ color: ACC }}>{extraPerk(e) ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}</b>
+                  : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{extraPerk(e) ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b></>
+                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{extraReq(e)}</b>{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
               </div>
             </div>
             <button onClick={() => !done && unlocked && !poor && onBuild(e.k)} disabled={done || !unlocked || poor}

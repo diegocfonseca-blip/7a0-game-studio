@@ -26,7 +26,7 @@ import type { EventoCard } from './eventos'
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
-import { empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, SPONSOR_BET_META } from './estadiodata'
+import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
@@ -1545,8 +1545,8 @@ const AG_EMOJI: Record<EmpCat, string> = { prof: '🪵', bom: '🎯', promessa: 
 function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSave | undefined; hasFilial: boolean; onVerAgenciados?: () => void }) {
   const done = sectorsDone(st)
   const faltam: string[] = []
-  for (const s of STADIUM_SECTORS) if (sectorPct(st, s.k) < 100) faltam.push(s.n)
-  for (const e of STADIUM_EXTRAS) if (!hasExtra(st, e.k)) faltam.push(e.n)
+  for (const s of STADIUM_SECTORS) if (sectorPct(st, s.k) < 100) faltam.push(sectorNome(s))
+  for (const e of STADIUM_EXTRAS) if (!hasExtra(st, e.k)) faltam.push(extraNome(e))
   const obras = STADIUM_SECTORS.length + STADIUM_EXTRAS.length - faltam.length
   const totObras = STADIUM_SECTORS.length + STADIUM_EXTRAS.length
   // texto da exigência com o PROGRESSO real (regra do Diego: trava diz o que falta)
@@ -1957,6 +1957,15 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   // transferências
   const vendidos = rev.filter(e => e.kind === 'sell')
   const noElenco = squad.filter(c => !c.fake && !isFillerClub(c.club) && !c.emprestado && (c.buyPrice != null || c.paid != null))
+  // 🌐 rótulo do extrato gravado no save (PT) → inglês só na hora de ler
+  const LEDGER_EN: Record<string, string> = {
+    '🏆 Prêmios da temporada': '🏆 Season prizes', '🎟️ Bilheteria': '🎟️ Gate money', '💸 Folha salarial': '💸 Payroll', '🤝 Patrocínio': '🤝 Sponsorship',
+    '🕴️ Agência — mensalidades (na ativa)': '🕴️ Agency — monthly fees (active)', '🕴️ Agência — comissões (artilheiro/campeão)': '🕴️ Agency — commissions (top scorer/champion)',
+    '🕴️ Bico de Folga': '🕴️ Side gig', '💼 Renda do Empresário': '💼 Agent income', '🏁 Saldo inicial': '🏁 Opening balance', '🏢 Prêmios da SAF': '🏢 SAF prizes',
+    '📺 Cota de TV': '📺 TV money', '🌍 Prêmio da Copa do Mundo Legends': '🌍 Legends World Cup prize',
+    '🎟️ Boas-vindas de sócio (uma vez só)': '🎟️ Member welcome bonus (one time)', '🎟️ Moedas de sócio do mês': '🎟️ Member coins of the month',
+  }
+  const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? l) : l)
   const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <>
@@ -2016,7 +2025,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
                 <div key={sn} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>{tr('Temporada', 'Season')} {sn}</div>
                   {rev.filter(e => e.season === sn).map(e => (
-                    <FinLine key={e.id} label={e.label || lbl(e.kind)} amount={e.amount} />
+                    <FinLine key={e.id} label={ledgerLabel(e.label) || lbl(e.kind)} amount={e.amount} />
                   ))}
                 </div>
               ))}
@@ -7082,7 +7091,7 @@ export function PyramidSeasonScreen() {
           <CaixaRecibos titulo={`${tr('ENQUANTO ISSO, NA TEMPORADA', 'MEANWHILE, IN SEASON')} ${(state.seasonNo ?? 2) - 1}`}>
             <ReciboLinha ic={sponsorResult.hit ? '🛡️' : sponsorResult.floored ? '🎖️' : '🚫'}
               titulo={sponsorResult.hit ? tr('O patrocínio pagou', 'The sponsor paid out') : sponsorResult.floored ? tr('Não bateu — a fidelidade pagou', 'Missed the target — loyalty paid') : tr('A aposta do patrocínio não vingou', 'The sponsor bet did not pay')}
-              sub={`${sponsorBrandOf(sponsorResult.brandId)?.name ?? 'patrocinador'} · ${SPONSOR_BET_META[sponsorResult.tier].label.toLowerCase()}${sponsorResult.hit && sponsorResult.tier < 3 && sponsorResult.amount < sponsorBetValue(me.div, 3) ? ' · dava pra mirar mais alto 😉' : ''}`}
+              sub={`${sponsorBrandOf(sponsorResult.brandId)?.name ?? 'patrocinador'} · ${sponsorBetMeta(sponsorResult.tier).label.toLowerCase()}${sponsorResult.hit && sponsorResult.tier < 3 && sponsorResult.amount < sponsorBetValue(me.div, 3) ? ' · dava pra mirar mais alto 😉' : ''}`}
               valor={`${sponsorResult.amount > 0 ? '+' : ''}${sponsorResult.amount} 🪙`}
               valorCor={sponsorResult.amount > 0 ? GREEN : '#B23A2A'}
               onClick={() => { setTab('estadio'); setClubeSub('patrocinio') }} ultimo />

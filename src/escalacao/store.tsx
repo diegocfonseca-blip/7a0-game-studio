@@ -323,7 +323,7 @@ function escadaAfterPlacements(s: EscState) {
   const d = s.careerPlacements?.[`m${y}`]
   if (d && d !== 'V') {
     s.escadaSubiu = true
-    ;(s.marketLog = s.marketLog ?? []).push('🪜 SUBIU pra Série D! Agora é profissional — o mercado sobe junto: categoria melhor entra no pregão. 🔓')
+    ;(s.marketLog = s.marketLog ?? []).push(tr('🪜 SUBIU pra Série D! Agora é profissional — o mercado sobe junto: categoria melhor entra no pregão. 🔓', '🪜 PROMOTED to Série D! Now it\'s professional — the market climbs with you: a better category enters the auction. 🔓'))
   }
 }
 // 💰 VIRA-TEMPORADA: aplica prêmios + bilheteria + folha na caixa do técnico e
@@ -387,9 +387,9 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
       s.escadaTempA = (s.escadaTempA ?? 0) + 1
       if ((s.escadaTempA ?? 0) >= 2) {
         s.escadaLivre = true
-        ;(s.marketLog = s.marketLog ?? []).push('🔓 MERCADO LIBERADO! Duas temporadas na elite — o leilão agora mistura TODAS as categorias, como sempre foi. Bem-vindo ao mercado grande. 🍾')
+        ;(s.marketLog = s.marketLog ?? []).push(tr('🔓 MERCADO LIBERADO! Duas temporadas na elite — o leilão agora mistura TODAS as categorias, como sempre foi. Bem-vindo ao mercado grande. 🍾', '🔓 MARKET UNLOCKED! Two seasons in the elite — the auction now mixes ALL categories, as it always did. Welcome to the big market. 🍾'))
       } else {
-        ;(s.marketLog = s.marketLog ?? []).push('🪜 Primeira temporada na Série A concluída — mais UMA e o mercado libera todas as categorias! 👀')
+        ;(s.marketLog = s.marketLog ?? []).push(tr('🪜 Primeira temporada na Série A concluída — mais UMA e o mercado libera todas as categorias! 👀', '🪜 First season in Série A done — ONE more and the market unlocks every category! 👀'))
       }
     }
   }
@@ -595,6 +595,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
+import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'
@@ -2573,8 +2574,8 @@ function finishSeason(s: EscState) {
     s.quickCopa = seedQuickCopa(s.league, bbCopa)
     // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
     s.news = [bbCopa
-      ? '🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.'
-      : '🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.']
+      ? tr('🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.', '🏆 Regular season over — the PLAYOFFS are here! East × West, top 4 of each conference.')
+      : tr('🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.', '🏆 The league is over — the CUP OF 8 is here! The best 8 fight for the title.')]
   }
   // 🌎 LIBERTADORES: os 8 primeiros da liga se classificam e caem numa chave de
   // 32 com os clubes do continente. Copa dos 8 e Libertadores nunca rodam juntas
@@ -2587,9 +2588,9 @@ function finishSeason(s: EscState) {
   else if (s.copaMode === 'liga_liberta' && !s.liberta) {
     if (s.league.length >= 8) {
       s.liberta = seedLiberta(s.league, mulberry((s.seed ^ 0x11BE47A) >>> 0))
-      s.news = ['🌎 A liga acabou — os 8 primeiros estão na LIBERTADORES! 32 clubes, 8 grupos de 4.']
+      s.news = [tr('🌎 A liga acabou — os 8 primeiros estão na LIBERTADORES! 32 clubes, 8 grupos de 4.', '🌎 The league is over — the top 8 are in the LIBERTADORES! 32 clubs, 8 groups of 4.')]
     } else {
-      s.news = [`⚠️ Sem Libertadores desta vez: ela precisa de 8 classificados e esta liga tem só ${s.league.length} clubes.`]
+      s.news = [getLang() === 'en' ? `⚠️ No Libertadores this time: it needs 8 qualifiers and this league has only ${s.league.length} clubs.` : `⚠️ Sem Libertadores desta vez: ela precisa de 8 classificados e esta liga tem só ${s.league.length} clubes.`]
     }
   }
   s.screen = 'end'
@@ -2682,7 +2683,7 @@ function playLibertaRodada(s: EscState) {
     // 🛟 se por qualquer motivo não fecharem 8 e 8, a Libertadores acaba aqui em
     // vez de montar uma chave torta (o giro explica). Melhor não ter do que quebrar.
     if (primeiros.length < 8 || segundos.length < 8) {
-      s.news = ['⚠️ A Libertadores foi encerrada na fase de grupos — não deu pra fechar as oitavas.']
+      s.news = [tr('⚠️ A Libertadores foi encerrada na fase de grupos — não deu pra fechar as oitavas.', '⚠️ The Libertadores ended at the group stage — the round of 16 could not be filled.')]
       s.screen = 'end'
       return
     }
@@ -7467,7 +7468,7 @@ function faxinaCaixa(save: EscState): EscState {
     else limpo[+k] = n
   }
   if (!sujo) return save
-  return { ...save, careerCoins: limpo, news: ['🧹 Achamos um erro no seu caixa e arrumamos — o resto da carreira está intacto.', ...(save.news ?? [])].slice(0, 12) }
+  return { ...save, careerCoins: limpo, news: [tr('🧹 Achamos um erro no seu caixa e arrumamos — o resto da carreira está intacto.', '🧹 We found an error in your till and fixed it — the rest of the career is intact.'), ...(save.news ?? [])].slice(0, 12) }
 }
 
 // ─── 👑 A FICHA DO JOGADOR ACOMPANHA O BARALHO (regra permanente, Diego 21/08) ──
@@ -9135,13 +9136,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
       {hostOutroAparelho && (
         <div style={{ position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 93, fontFamily: 'Oswald, sans-serif' }}>
           <div style={{ background: '#FFF7DB', border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>
-            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#0C0C0C' }}>📱 VOCÊ ABRIU ESTA SALA EM OUTRO APARELHO</p>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#0C0C0C' }}>{tr('📱 VOCÊ ABRIU ESTA SALA EM OUTRO APARELHO', '📱 YOU OPENED THIS ROOM ON ANOTHER DEVICE')}</p>
             <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.7)', lineHeight: 1.4 }}>
-              A coroa foi pra lá (a sala segue no outro aparelho) e <b>este aqui virou só tela</b> — dois donos ao mesmo tempo travavam o leilão. Se era pra jogar AQUI, toque no botão.
+              {getLang() === 'en' ? <>The crown went there (the room goes on on the other device) and <b>this one became view-only</b> — two owners at once used to freeze the auction. If you meant to play HERE, tap the button.</> : <>A coroa foi pra lá (a sala segue no outro aparelho) e <b>este aqui virou só tela</b> — dois donos ao mesmo tempo travavam o leilão. Se era pra jogar AQUI, toque no botão.</>}
             </p>
             <button onClick={() => { claimForcadoRef.current = true; hostClaimAtRef.current = Date.now(); humildeAteRef.current = 0; setHostOutroAparelho(false); rawDispatch({ type: 'BECOME_HOST' }) }}
               style={{ marginTop: 8, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '10px 0', fontWeight: 900, fontSize: 14, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
-              👑 RETOMAR AQUI
+              {tr('👑 RETOMAR AQUI', '👑 TAKE OVER HERE')}
             </button>
           </div>
         </div>
@@ -9157,16 +9158,16 @@ export function EscProvider({ children }: { children: ReactNode }) {
             padding: '26px 22px', textAlign: 'center', maxWidth: 340,
           }}>
             <div style={{ fontSize: 52, lineHeight: 1 }}>🎖️</div>
-            <p style={{ fontWeight: 900, fontSize: 26, color: '#0C0C0C', margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ VIROU O HOST!</p>
-            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>O dono da sala <b>saiu da partida</b> e passou o comando pra <b>você</b>: avançar fases, tocar o leilão e decidir depois da votação. 🎮</p>
+            <p style={{ fontWeight: 900, fontSize: 26, color: '#0C0C0C', margin: '10px 0 4px', letterSpacing: .5 }}>{tr('VOCÊ VIROU O HOST!', 'YOU ARE THE HOST NOW!')}</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(0,0,0,.72)' }}>{getLang() === 'en' ? <>The room owner <b>left the match</b> and handed command to <b>you</b>: advance phases, run the auction and decide after the vote. 🎮</> : <>O dono da sala <b>saiu da partida</b> e passou o comando pra <b>você</b>: avançar fases, tocar o leilão e decidir depois da votação. 🎮</>}</p>
             {viradaNoLeilao && (
               <p style={{ fontWeight: 800, fontSize: 13, color: '#7a2418', background: '#FFF1E8', border: '2.5px solid #C2452F', borderRadius: 12, padding: '9px 11px', margin: '10px 0 0', lineHeight: 1.4, textAlign: 'left' }}>
-                🔨 <b>Dá o seu lance de novo neste setor.</b> Na troca de comando os envelopes voltam pra mão de cada um — se ficassem lacrados no dono antigo, o setor fecharia com lance ZERO. <b>Ninguém viu o que você tinha mandado</b>: lance secreto continua secreto. 🔒
+                {getLang() === 'en' ? <>🔨 <b>Place your bid again in this sector.</b> When command changes hands the envelopes go back to everyone — if they stayed sealed with the old owner, the sector would close with a ZERO bid. <b>Nobody saw what you had sent</b>: a secret bid stays secret. 🔒</> : <>🔨 <b>Dá o seu lance de novo neste setor.</b> Na troca de comando os envelopes voltam pra mão de cada um — se ficassem lacrados no dono antigo, o setor fecharia com lance ZERO. <b>Ninguém viu o que você tinha mandado</b>: lance secreto continua secreto. 🔒</>}
               </p>
             )}
             <button onClick={() => setBecameHost(false)}
               style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
-              👑 OK, ENTENDI — SOU O HOST
+              {tr('👑 OK, ENTENDI — SOU O HOST', '👑 OK, GOT IT — I AM THE HOST')}
             </button>
           </div>
         </div>
@@ -9174,13 +9175,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
       {lanceReaberto && (
         <div style={{ position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 92, fontFamily: 'Oswald, sans-serif' }}>
           <div style={{ background: '#FFF1E8', border: '3px solid #C2452F', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>
-            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#7a2418' }}>🔨 MANDA SEU LANCE DE NOVO</p>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#7a2418' }}>{tr('🔨 MANDA SEU LANCE DE NOVO', '🔨 SEND YOUR BID AGAIN')}</p>
             <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: '#7a2418', lineHeight: 1.4 }}>
-              O <b>dono da sala</b> atualizou a página no meio da coleta, e os envelopes deste setor voltaram pra mão de <b>todo mundo</b> — se ficassem lacrados com ele, o setor fecharia com <b>lance ZERO</b>. <b>Ninguém viu o seu</b>: lance secreto continua secreto. 🔒
+              {getLang() === 'en' ? <>The <b>room owner</b> refreshed the page mid-collection, and this sector's envelopes went back to <b>everyone</b> — if they stayed sealed with them, the sector would close with a <b>ZERO bid</b>. <b>Nobody saw yours</b>: a secret bid stays secret. 🔒</> : <>O <b>dono da sala</b> atualizou a página no meio da coleta, e os envelopes deste setor voltaram pra mão de <b>todo mundo</b> — se ficassem lacrados com ele, o setor fecharia com <b>lance ZERO</b>. <b>Ninguém viu o seu</b>: lance secreto continua secreto. 🔒</>}
             </p>
             <button onClick={() => setLanceReaberto(false)}
               style={{ marginTop: 9, width: '100%', background: '#C2452F', color: '#fff', border: '2.5px solid #0C0C0C', borderRadius: 10, padding: '9px 0', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
-              ENTENDI — VOU LANÇAR DE NOVO
+              {tr('ENTENDI — VOU LANÇAR DE NOVO', 'GOT IT — I WILL BID AGAIN')}
             </button>
           </div>
         </div>
@@ -9196,11 +9197,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
             padding: '26px 22px', textAlign: 'center', maxWidth: 340, color: '#fff',
           }}>
             <div style={{ fontSize: 52, lineHeight: 1 }}>🟥</div>
-            <p style={{ fontWeight: 900, fontSize: 26, margin: '10px 0 4px', letterSpacing: .5 }}>VOCÊ FOI EXPULSO</p>
-            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,.9)' }}>O host removeu você desta partida. Você <b>saiu da sala</b> — pode entrar em outra sala ou criar a sua. 👋</p>
+            <p style={{ fontWeight: 900, fontSize: 26, margin: '10px 0 4px', letterSpacing: .5 }}>{tr('VOCÊ FOI EXPULSO', 'YOU WERE KICKED OUT')}</p>
+            <p style={{ fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,.9)' }}>{getLang() === 'en' ? <>The host removed you from this match. You <b>left the room</b> — you can join another room or create your own. 👋</> : <>O host removeu você desta partida. Você <b>saiu da sala</b> — pode entrar em outra sala ou criar a sua. 👋</>}</p>
             <button onClick={() => setKickedOut(false)}
               style={{ marginTop: 16, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '12px 0', fontWeight: 900, fontSize: 16, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>
-              OK, ENTENDI
+              {tr('OK, ENTENDI', 'OK, GOT IT')}
             </button>
           </div>
         </div>
@@ -9222,28 +9223,36 @@ export function EscProvider({ children }: { children: ReactNode }) {
               nada) e O CAMINHO pra sair dali. */}
           {donoForaSeg >= 60 ? (
             <>
-              🚪 O <b>dono da sala</b> saiu — faz <b>{donoForaSeg >= 120 ? `${Math.round(donoForaSeg / 60)} minutos` : '1 minuto'}</b> que ele não dá sinal, e a partida <b>parou aqui</b>.<br />
+              {getLang() === 'en'
+                ? <>🚪 The <b>room owner</b> left — it's been <b>{donoForaSeg >= 120 ? `${Math.round(donoForaSeg / 60)} minutes` : '1 minute'}</b> without a sign from them, and the match <b>stopped here</b>.<br />
+              <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .94 }}>
+                Whoever created the room commands it from start to finish — without them, nobody advances the rounds. <b>The match is kept:</b> if they come back, it continues from exactly this point. You lose nothing by leaving.
+              </span></>
+                : <>🚪 O <b>dono da sala</b> saiu — faz <b>{donoForaSeg >= 120 ? `${Math.round(donoForaSeg / 60)} minutos` : '1 minuto'}</b> que ele não dá sinal, e a partida <b>parou aqui</b>.<br />
               <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .94 }}>
                 Quem criou a sala é quem comanda do começo ao fim — sem ele, ninguém avança as rodadas. <b>A partida fica guardada:</b> se ele voltar, continua exatamente deste ponto. Você não perde nada saindo.
-              </span>
+              </span></>}
               <span style={{ display: 'flex', gap: 8, justifyContent: 'center', margin: '7px auto 0', maxWidth: 420 }}>
                 <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
                   style={{ flex: 1, border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '5px 10px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
-                  🔄 Ele voltou? Atualiza
+                  {tr('🔄 Ele voltou? Atualiza', '🔄 Is he back? Refresh')}
                 </button>
                 <button onClick={() => { void leaveRoom() }}
                   style={{ flex: 1, border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#0C0C0C', color: '#fff', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '5px 10px', cursor: 'pointer', boxShadow: '2px 2px 0 0 rgba(0,0,0,.35)' }}>
-                  🚪 Sair da sala
+                  {tr('🚪 Sair da sala', '🚪 Leave the room')}
                 </button>
               </span>
             </>
           ) : (
             <>
-              ⏳ Segura a onda! O <b>dono da sala</b> trocou de tela ou caiu — a partida espera por ele.<br />
-              <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .92 }}>O comando é dele do começo ao fim: ninguém assume no lugar (era isso que fazia o seu lance voltar). Chama ele pra deixar a aba do jogo na frente! 😤</span>
+              {getLang() === 'en'
+                ? <>⏳ Hang tight! The <b>room owner</b> switched screens or dropped — the match waits for them.<br />
+              <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .92 }}>Command is theirs from start to finish: nobody takes over (that was what made your bid come back). Tell them to keep the game tab in front! 😤</span></>
+                : <>⏳ Segura a onda! O <b>dono da sala</b> trocou de tela ou caiu — a partida espera por ele.<br />
+              <span style={{ fontWeight: 700, fontSize: 11.5, opacity: .92 }}>O comando é dele do começo ao fim: ninguém assume no lugar (era isso que fazia o seu lance voltar). Chama ele pra deixar a aba do jogo na frente! 😤</span></>}
               <button onClick={() => { try { window.location.reload() } catch { /* nada */ } }}
                 style={{ display: 'block', margin: '6px auto 0', border: '2.5px solid #0C0C0C', borderRadius: 10, background: '#fff', color: '#0C0C0C', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', padding: '4px 14px', cursor: 'pointer', boxShadow: '2px 2px 0 0 #0C0C0C' }}>
-                🔄 Travou? Atualiza a página — a partida continua de onde parou
+                {tr('🔄 Travou? Atualiza a página — a partida continua de onde parou', '🔄 Stuck? Refresh the page — the match continues where it stopped')}
               </button>
             </>
           )}
