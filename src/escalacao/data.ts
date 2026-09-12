@@ -2272,7 +2272,10 @@ const L24_WORLD_ATA: C[] = [
 // 🏃 Ele entra AQUI, no baralho do Resto do Mundo, e não no brasileiro: Bolt
 // nunca jogou no Brasil, e o baralho BR é "auge no Brasil". A carreira e o
 // "todos juntos" usam este baralho, então ele aparece lá; no Rápido só-BR, não.
-// Mover pro BR é uma linha, se o Diego quiser o gag em todo jogo rápido.
+// ⛔ DECIDIDO E ENCERRADO (12/09): eu oferecí mover pro BR pro gag pegar o jogo
+// rápido, e o Diego cortou na hora — *"Como assim Bolt no baralho brasileiro
+// cara.. Oq vc tá falando?? Ele é do mundo"*. Ele é do MUNDO e fica aqui.
+// NÃO propor de novo.
 // 🎲 FAIXA MAIS LARGA DO JOGO, de propósito: o nível é sorteado entre lo e hi a
 // cada jogo, então ele tem dia de voar e dia de se perder em campo. É a piada da
 // carta, e o fame 1 segura o preço (a CPU não paga caro por ele).

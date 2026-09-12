@@ -23,9 +23,14 @@ q ter baralho mundo sim"*.
   e pro CR7.
 - **Bolt** ficou no baralho do **Resto do Mundo**, não no BR: ele nunca jogou no
   Brasil e o baralho BR é "auge no Brasil". Aparece na carreira e no "todos
-  juntos"; **não** aparece no Rápido, que é só BR. Mover é uma linha, se o Diego
-  quiser o gag em todo jogo rápido. A faixa 40–82 é a mais larga do jogo de
-  propósito (o nível é sorteado a cada partida), e o fame 1 segura o preço.
+  juntos"; **não** aparece no Rápido, que é só BR. A faixa 40–82 é a mais larga
+  do jogo de propósito (o nível é sorteado a cada partida), e o fame 1 segura o
+  preço.
+  ⛔ **ENCERRADO no mesmo dia**: cheguei a oferecer mover ele pro baralho BR pra
+  o gag pegar o jogo rápido, e o Diego cortou na hora — *"Como assim Bolt no
+  baralho brasileiro cara.. Oq vc tá falando?? Ele é do mundo"*. **Ele é do
+  MUNDO e fica lá. Não propor de novo** (está escrito também no `data.ts`, do
+  lado da carta).
 - `npm run paises` limpo: 1440 cartas, nenhuma sem seleção. Formiga = Brasil,
   Bolt = Jamaica (país novo no `paises.ts`).
 
