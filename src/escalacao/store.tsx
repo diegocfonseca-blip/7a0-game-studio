@@ -3284,6 +3284,7 @@ type Action =
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[]; slot?: number } // carreira: define os 11 titulares (escalação), vale do PRÓXIMO jogo. `slot` = rodada-fantasma da Copa (38 = 1ª fase, 39 = a seguinte…) — é assim que a substituição vale da PRÓXIMA FASE da Copa em diante, sem tocar no que já foi jogado.
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
+  | { type: 'SET_CONDICAO_AUTO'; on: boolean } // 🔁 carreira solo: liga/desliga o rodízio automático do preparador (preferência do técnico, não zera entre temporadas)
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic } // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
@@ -5590,6 +5591,13 @@ export function reducer(state: EscState, action: Action): EscState {
       const bl = { ...(s.careerLineup ?? {}) }
       bl[action.mgrId] = { ...(bl[action.mgrId] ?? {}), [r]: action.ids }
       s.careerLineup = bl
+      return s
+    }
+    case 'SET_CONDICAO_AUTO': {
+      // 🔁 rodízio automático do preparador — SÓ carreira solo (no online o host
+      // conduz). É preferência do técnico, igual ao 'só troca no intervalo'.
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      s.condicaoAuto = action.on || undefined
       return s
     }
     case 'SET_SUBMODE': {

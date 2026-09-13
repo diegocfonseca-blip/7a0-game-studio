@@ -616,6 +616,16 @@ export interface EscState {
   // receita, desenhada na hora. Então a tela manda a carta junto e ela espera aqui até
   // virar lote no leilão de reservas. Some assim que o leilão monta os lotes.
   aliciarFundo?: { cardId: string; clube: string; card: WonCard; squad: WonCard[] }
+  // 🔁 RODÍZIO AUTOMÁTICO (13/09, pedido do Diego: *"coloque um botão de troca
+  // automática, na qual o preparador informa as coisas e automaticamente se troca,
+  // fazendo com que não atrapalhe pro cara ficar mexendo toda hora"*).
+  // Ligado = o preparador aplica a MESMA sugestão do botão 🔁 RODIZIAR sozinho, na
+  // rodada que ainda vai ser jogada. Continua sendo o jogo do técnico: ele liga e
+  // desliga quando quer, vê o time já trocado no campinho ANTES de mandar jogar, e
+  // pode desfazer na mão. Nunca entra fake, nunca entra suspenso, nunca entra quem
+  // está voltando de lesão — as mesmas travas do botão. Preferência do técnico:
+  // NÃO zera entre temporadas.
+  condicaoAuto?: boolean
   // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
   // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).
   contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)

@@ -23,7 +23,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
-import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, corGas, sugerirRodizio, sorteiaLesaoDesgaste, GAS_JOGO, GAS_BANCO } from './condicao' // 😓 gás (12/09)
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, corGas, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao' // 😓 gás (12/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
@@ -3166,6 +3166,8 @@ type CondicaoUI = {
   volta: (id: string) => number          // 🩹 volta gradual: −2 (60%) · −1 (80%) · 0
   onRodizio?: () => void                 // botão 🔁 RODIZIAR (ausente = ainda não pode trocar)
   suspensoId?: string                    // quem está fora (lesão/gancho) até a rodada da volta
+  auto?: boolean                         // 🔁 rodízio automático ligado (o preparador troca sozinho)
+  onAuto?: (on: boolean) => void         // liga/desliga o automático
 }
 function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI }) {
   // 😓 barrinha de gás (variante A aprovada pelo Diego 12/09): mora embaixo do
@@ -3338,7 +3340,12 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         const en = getLang() === 'en'
         const gasDe = (c: WonCard) => condicao.gas[c.id] ?? 100
         const ruins = titulares.filter(c => !c.fake && (estadoGas(gasDe(c)) !== 'ok' || condicao.volta(c.id) !== 0))
-        if (!ruins.length) return null
+        // ⚠️ COM O AUTOMÁTICO LIGADO A CAIXA NÃO PODE SUMIR. Ela só aparecia quando
+        // algum titular estava ruim — só que o automático JÁ ARRUMOU antes de você
+        // olhar, então ninguém fica ruim, a caixa sumia e o interruptor de DESLIGAR
+        // ia junto: o técnico ligava e não achava mais como desligar. Com o
+        // automático ligado a caixa fica sempre, dizendo que está tudo inteiro.
+        if (!ruins.length && !(condicao.auto && condicao.onRodizio)) return null
         const esgotados = ruins.filter(c => estadoGas(gasDe(c)) === 'esgotado')
         const limite = ruins.filter(c => estadoGas(gasDe(c)) === 'limite')
         const cansados = ruins.filter(c => estadoGas(gasDe(c)) === 'cansado')
@@ -3358,15 +3365,35 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
               {limite.length > 0 && (en ? <><b>{nomes(limite)}</b> {limite.length === 1 ? 'is' : 'are'} <b style={{ color: '#C2452F' }}>running on empty</b> (🥵) — {limite.length === 1 ? 'he plays' : 'they play'} at −2 and the injury risk doubles. </> : <><b>{nomes(limite)}</b> {limite.length === 1 ? 'está' : 'estão'} <b style={{ color: '#C2452F' }}>no limite</b> (🥵) — {limite.length === 1 ? 'joga' : 'jogam'} com −2 e o risco de lesão dobra. </>)}
               {cansados.length > 0 && (en ? <><b>{nomes(cansados)}</b> {cansados.length === 1 ? 'is' : 'are'} <b style={{ color: '#B8860B' }}>tired</b> (😓) — −1 in the next match. </> : <><b>{nomes(cansados)}</b> {cansados.length === 1 ? 'está' : 'estão'} <b style={{ color: '#B8860B' }}>cansado{cansados.length === 1 ? '' : 's'}</b> (😓) — −1 no próximo jogo. </>)}
               {voltando.length > 0 && (en ? <><b>{nomes(voltando)}</b> is <b style={{ color: '#7C3AED' }}>coming back from injury</b> (🩹) — not at 100% yet. </> : <><b>{nomes(voltando)}</b> está <b style={{ color: '#7C3AED' }}>voltando de lesão</b> (🩹) — ainda não rende 100%. </>)}
+              {/* automático ligado e ninguém ruim: é ele que já arrumou — precisa dizer,
+                  senão a caixa fica vazia e parece bug */}
+              {!ruins.length && condicao.auto && (en ? <>Everyone in the XI is <b style={{ color: GREEN }}>fit</b> (💪) — the coach is taking care of the rotation.</> : <>Todo mundo do time está <b style={{ color: GREEN }}>inteiro</b> (💪) — o preparador está cuidando do rodízio.</>)}
             </p>
-            {sug && condicao.onRodizio && (
+            {sug && condicao.onRodizio && !condicao.auto && (
               <button onClick={condicao.onRodizio} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'left' }}>
                 {tr('🔁 RODIZIAR', '🔁 ROTATE')} <span style={{ fontWeight: 700, fontSize: 10.5, opacity: .9 }}>— {sug.trocas.map(t => (en ? `${t.entra.name} in for ${t.sai.name}` : `${t.entra.name} no lugar de ${t.sai.name}`)).join(' · ')}</span>
               </button>
             )}
+            {/* 🔁 O INTERRUPTOR DO AUTOMÁTICO (Diego 13/09: *"pra não atrapalhar o cara
+                ficar mexendo toda hora"*). Ligado, o preparador aplica a MESMA troca
+                sozinho, ANTES de você mandar jogar — o campinho já mostra o time que
+                vai entrar, nada acontece escondido. Desligou, volta a pedir no botão. */}
+            {/* só aparece quando a troca já é possível (mesma condição do botão
+                RODIZIAR) — interruptor que não faz nada é mentira */}
+            {condicao.onAuto && condicao.onRodizio && (
+              <button onClick={() => condicao.onAuto!(!condicao.auto)}
+                style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 10px', fontWeight: 900, fontSize: 11.5, ...OSWALD, background: condicao.auto ? GREEN : '#fff', color: condicao.auto ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'left' }}>
+                {condicao.auto ? tr('✔ RODÍZIO AUTOMÁTICO LIGADO', '✔ AUTO-ROTATION ON') : tr('🔁 LIGAR RODÍZIO AUTOMÁTICO', '🔁 TURN ON AUTO-ROTATION')}
+                <span style={{ display: 'block', fontWeight: 700, fontSize: 10, opacity: .85, marginTop: 1 }}>
+                  {condicao.auto
+                    ? (en ? 'the coach rotates on his own before each match — tap to go back to deciding' : 'o preparador troca sozinho antes de cada jogo — toque pra voltar a decidir')
+                    : (en ? 'let the coach rotate on his own, without you having to do it every round' : 'deixa o preparador trocar sozinho, sem você ter que mexer toda rodada')}
+                </span>
+              </button>
+            )}
             <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '6px 0 0', lineHeight: 1.4 }}>
               {semReserva && (en ? <>No rested backup for every spot — whoever stays plays tired. <b>Sign one at the transfer auction.</b> </> : <>Sem reserva inteiro pra toda vaga — quem fica joga cansado. <b>Contrate no leilão de transferências.</b> </>)}
-              {en ? <>Starter −{GAS_JOGO} per match · bench +{GAS_BANCO} per round · applies from the next match · the game never swaps for you.</> : <>Titular −{GAS_JOGO} por jogo · banco +{GAS_BANCO} por rodada · vale do próximo jogo · o jogo nunca troca por você.</>}
+              {condicao.auto ? (en ? <>Starter loses energy each match, the bench gives it back · <b>auto-rotation is on</b>: the coach already swapped for the next match — you can still change it by hand.</> : <>Titular perde gás a cada jogo, o banco devolve · <b>rodízio automático ligado</b>: o preparador já trocou pro próximo jogo — você ainda pode mexer na mão.</>) : (en ? <>Starter loses energy each match · bench gives it back each round · applies from the next match · the game never swaps for you.</> : <>Titular perde gás a cada jogo · o banco devolve a cada rodada · vale do próximo jogo · o jogo nunca troca por você.</>)}
             </p>
           </div>
         )
@@ -5831,6 +5858,7 @@ export function PyramidSeasonScreen() {
   // (cansaço −1/−2 e volta gradual da lesão). Derivado da escalação congelada —
   // rodada passada nunca muda de valor. Desligado = {} = simulação idêntica.
   const condOn = condicaoAtiva(state)
+  const condAuto = !!state.condicaoAuto // 🔁 rodízio automático do preparador (13/09)
   // 😓 DE ONDE CADA UM COMEÇOU ESTA TEMPORADA (13/09: o cansaço atravessa a virada).
   // O save guarda por IDENTIDADE da carta (nome|clube|ano), porque o leilão troca o
   // id; aqui viramos isso num mapa por id, que é o que as contas usam.
@@ -6581,6 +6609,23 @@ export function PyramidSeasonScreen() {
     dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: sug.ids, slot: slotEscala })
     setSelId(null)
   }
+  // 🔁 RODÍZIO AUTOMÁTICO (13/09). Faz EXATAMENTE o que o botão faz — mesma
+  // sugestão, mesmas travas, mesmo SET_LINEUP — só que sozinho, assim que a
+  // rodada abre. Duas escolhas de propósito:
+  //  · aplica ANTES de você mandar jogar, então o campinho já mostra o time que
+  //    vai entrar. Nada acontece escondido (regra do Diego: nunca jogador em
+  //    campo sem o dono saber).
+  //  · não repete: depois de trocar, ninguém cansado sobra no XI, a sugestão vira
+  //    nula e o efeito para. Sem reserva inteiro, também não faz nada — o cansado
+  //    joga e o preparador avisa, igual hoje.
+  useEffect(() => {
+    if (!condAuto || !condOn || !mgrMe || !condGas || !canSub) return
+    const bloq = new Set(mgrMe.squad.filter(c => modVolta(evAtual, state.seasonNo ?? 1, round, c.id) !== 0).map(c => c.id))
+    if (suspenso) bloq.add(suspenso.cardId)
+    const sug = sugerirRodizio(myXI.map(c => c.id), mgrMe.squad, condGas, bloq)
+    if (sug) dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: sug.ids, slot: slotEscala })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [condAuto, condOn, canSub, round, condGas, myXI, suspenso?.cardId, slotEscala])
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv).filter(d => d !== 'V' || (tables.V?.length ?? 0) > 0) // 🌱 Várzea só aparece quando existe
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
@@ -8074,7 +8119,7 @@ export function PyramidSeasonScreen() {
               </div>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
-              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub ? onRodizio : undefined, suspensoId: suspenso?.cardId } : undefined} />
+              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto, onAuto: on => dispatch({ type: 'SET_CONDICAO_AUTO', on }) } : undefined} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
                 Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner

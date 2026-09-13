@@ -1,3 +1,58 @@
+## 13/09/2026 — 🔁 RODÍZIO AUTOMÁTICO do preparador (pedido do Diego) — ⏸️ esperando OK visual
+
+Palavras dele: *"o botão que o preparador pede pra trocar, coloque apenas quando
+for tirar o nível mesmo do jogador — não é com 50, acho que é a partir de 55,
+correto?? Outra coisa, coloque um botão de troca automática, na qual o preparador
+informa as coisas e automaticamente se troca, fazendo com que não atrapalhe pro
+cara ficar mexendo toda hora. Mas veja todos os problemas que podemos ter em
+relação a machucados ou qualquer coisa. Faça uma simulação dessa nova forma."*
+
+**1) O botão 🔁 RODIZIAR já era a partir do 55º jogo — ele estava certo.**
+`sugerirRodizio` só olha titular com `estadoGas !== 'ok'`, ou seja gás abaixo de
+25; com −1,4 por jogo isso cai EXATAMENTE no 55º jogo somado da carreira (54º =
+25,8% 💪 · 55º = 24,4% 😓). Não teve mudança de número — está conferido no
+`scripts/simula-rodizio.mjs`, seção 8. O botão também aparece pra quem está
+**voltando de lesão** (−2/−1), que é perda de nível de verdade também.
+
+**2) O automático (`condicaoAuto` em `types.ts`, `SET_CONDICAO_AUTO` no `store.tsx`).**
+Ligado, um efeito no `pyramidseason.tsx` aplica a MESMA sugestão do botão, com as
+MESMAS travas, assim que a rodada abre — antes de você mandar jogar, então o
+campinho já mostra o time que vai entrar (nada acontece escondido). É preferência
+do técnico: não zera na virada de temporada, e vale só na carreira solo.
+
+**⚠️ Duas armadilhas que eu mesmo abri e fechei antes de commitar:**
+- A caixa do preparador só aparecia quando algum titular estava ruim. Com o
+  automático ligado ninguém fica ruim (ele já arrumou) → a caixa sumia **e o
+  interruptor de DESLIGAR ia junto**. Agora, com o automático ligado, a caixa
+  fica sempre, dizendo "todo mundo inteiro 💪 — o preparador está cuidando".
+- O interruptor só aparece quando a troca já é possível (mesma condição do botão
+  RODIZIAR). Interruptor que não faz nada é mentira.
+
+**3) A simulação que ele pediu — `npx tsx scripts/simula-rodizio.mjs`.**
+3 temporadas inteiras (132 jogos), elenco de 18, três jeitos: sem rodiziar · na
+mão · automático. Resultado:
+- **na mão e no automático dá o time IDÊNTICO nas 132 rodadas** (30 trocas nos
+  dois) — o automático não é regra nova, é o mesmo botão apertado sozinho;
+- 11 em campo sempre · ninguém repetido · **nenhuma carta fake entrou pelo
+  rodízio** · nenhum machucado/suspenso entrou · cada vaga manteve a posição;
+- **machucado**: testado com lesão de 3 rodadas — ficou fora as 3, e o rodízio
+  nunca puxou quem está **voltando** (🩹 60%/80%) pra tapar buraco;
+- **elenco curto** (nenhum meia no banco): não trava nada, os 3 meias seguem em
+  campo jogando cansados e o preparador manda pro leilão, igual hoje;
+- **sem loop**: 0,23 troca por rodada, no máximo 2 rodadas seguidas mexidas;
+- **o que ele ganha**: sem rodiziar = 520 presenças abaixo de 100%, −1343 de
+  força e o pior jogador acabando com 0% 🚑 e **14 lesões por desgaste**; no
+  automático = 3 presenças abaixo de 100%, −3 de força, pior gás 39,8% e **zero
+  lesão por desgaste**. Rodiziar bem continua não custando nada (é camada de
+  gestão, não imposto).
+
+**Reverter**: é um commit só; reverter apaga o interruptor e volta o botão manual
+de sempre. Nenhum save muda de formato (`condicaoAuto` é opcional, save antigo
+abre normal e nasce desligado).
+
+**Mockup pro OK visual**: `node scripts/mockup-rodizio-auto.mjs` (3 estados da
+caixa). **Não subir pra main antes do OK do Diego** — é elemento visual novo.
+
 ## 13/09/2026 — Salão dos Batismos: vitrine pública aprovada
 
 - Publicação geral autorizada por Diego após os mockups: entrada compacta abaixo do último modo principal, antes do rodapé; porta retirada do Ranking. Arte, cabeçalho e botões principais da home preservados.
