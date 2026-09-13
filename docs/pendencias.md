@@ -1,4 +1,4 @@
-## 13/09/2026 — 📊 Barrinha de gás "cai rápido demais" — leitura nova, ⏳ AGUARDANDO OK do Diego (só no branch)
+## 13/09/2026 — 📊 Barrinha de gás "cai rápido demais" — leitura nova, ✅ aprovado ("Perfeito isso aí") e no ar
 
 Palavras dele: *"as barrinhas estou achando que está diminuindo muito rápido… não quero
 mexer no motor… deveria ficar amarelo depois de 50%, quando chegar em 49%… seguir com
@@ -11,8 +11,8 @@ a mesma regra: 1 a 50 jogos, aí cai pra 49% e vai descendo até chegar em 55 e 
   "Gás do time" (média).
 - Mockup: `npx tsx scripts/mockup-barra-gas.mjs` (usa a função real). Testes: seção 8 do
   `testa-condicao.mjs`. Build ok.
-- ⏳ **Não foi pra main**: regra nº 2 (visual só com OK). Quando ele aprovar: push na main
-  + linha em `novidades.ts` (com `en`).
+- Mockup mostrado antes (regra nº 2), OK dele em seguida → main + linha em `novidades.ts`
+  (com `en`). Reverter = um commit.
 
 ## 13/09/2026 — 🐛 Copa presa no 1' (Sentidos Unidos, T9 Série A, carreira antiga) — ✅ corrigido, no ar
 
