@@ -38,6 +38,7 @@ import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorOverview } from './career-sponsor-visual'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
@@ -1281,7 +1282,8 @@ const agChip = (c: { name: string; club?: string; year?: number; fame?: number; 
     : (c.fame ?? 1) >= 2 ? { t: tr('🎯 BOM', '🎯 GOOD'), bg: '#2E9E5B', ink: '#fff' }
     : { t: tr('🪵 FOI PROF.', '🪵 EX-PRO'), bg: '#CBBF9E', ink: INK }
 
-function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet, clubes, destinoId, dividir, onSetDestino }: {
+// 🔬 exportado só pra bancada de conferência (`scripts/teste-rosto/`), igual o SquadTab
+export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet, clubes, destinoId, dividir, onSetDestino }: {
   cards: AgCard[]; pool: AgCard[]; hist: Record<string, number> | undefined
   fatura: { season: number; mensal: number; rows: AgEvento[]; total: number } | undefined
   st: StadiumSave | undefined; hasFilial: boolean; primeiroClube: string
@@ -1294,6 +1296,10 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
 }) {
   const [open, setOpen] = useState<AgCard | null>(null)
   const [convocando, setConvocando] = useState(false)
+  // 🧑 rosto de lenda no quadradinho (pedido do Diego 13/09: *"os agenciados estão
+  // sem avatar… claro, os que têm foto apenas"*). Hoje TODA arte é de carta 👑 LENDA,
+  // então quem não é lenda segue na letra, como sempre foi.
+  const rostoOn = useLegendPresentation()
   const renda = agenciaRenda(cards, st, hasFilial)
   const locked = EMP_ORDER.filter(k => !renda.by[k].unlocked && renda.by[k].count > 0)
   return (
@@ -1400,9 +1406,13 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
                 <button key={agKeyOf(c)} onClick={() => setOpen(c)} style={{ border: `2.5px solid ${INK}`, borderRadius: 11, aspectRatio: '3/4', padding: '5px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', boxShadow: `2px 2px 0 0 ${INK}`, position: 'relative', overflow: 'hidden', background: t.grad, cursor: 'pointer' }}>
                   {t.holo && <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.6) 48%,transparent 62%)', pointerEvents: 'none' }} />}
                   {c.folk && <span style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(0,0,0,.75)', color: '#fff', borderRadius: 999, fontSize: 6.5, fontWeight: 900, padding: '1px 5px' }}>🃏 +1</span>}
-                  <span style={{ width: 26, height: 26, borderRadius: 999, border: '2px solid rgba(0,0,0,.28)', display: 'grid', placeItems: 'center', ...OSWALD, fontWeight: 900, fontSize: 13, background: 'rgba(255,255,255,.85)', color: INK }}>{c.name.trim()[0]?.toUpperCase() ?? '?'}</span>
-                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.1, color: t.ink }}>{c.name}</span>
-                  <span style={{ fontSize: 6.5, letterSpacing: .5 }}>{ehPromessa(c) ? '💎💎💎' : '⭐'.repeat(Math.max(1, Math.min(5, c.fame)))}</span>
+                  {rostoOn && avatarLote1(c.name, c.club, c.year)
+                    ? <span style={{ position: 'relative', display: 'block', width: '100%', lineHeight: 0 }}><AvatarLote1 name={c.name} club={c.club} year={c.year} /></span>
+                    : <span style={{ position: 'relative', width: 26, height: 26, borderRadius: 999, border: '2px solid rgba(0,0,0,.28)', display: 'grid', placeItems: 'center', ...OSWALD, fontWeight: 900, fontSize: 13, background: 'rgba(255,255,255,.85)', color: INK }}>{c.name.trim()[0]?.toUpperCase() ?? '?'}</span>}
+                  {/* ⬆️ `position:relative` no nome e nas estrelas: o brilho holo é
+                      absoluto e pintava POR CIMA do texto, deixando o nome lavado. */}
+                  <span style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.1, color: t.ink }}>{c.name}</span>
+                  <span style={{ position: 'relative', fontSize: 6.5, letterSpacing: .5 }}>{ehPromessa(c) ? '💎💎💎' : '⭐'.repeat(Math.max(1, Math.min(5, c.fame)))}</span>
                 </button>
               )
             })}

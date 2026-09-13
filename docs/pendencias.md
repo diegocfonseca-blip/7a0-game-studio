@@ -44,24 +44,43 @@ o `isProm` da cerimônia (screens) + `agTier`/`agChip`/estrelinhas da Agência e
 **Medido:** as 1464 cartas do baralho, simuladas SEM o flag, dão o tier certo
 (`scripts/teste-rosto/` monta as cartas de verdade na tela).
 
-📖 **PENDENTE, esperando o Diego decidir: a BIO também é só por NOME.**
-`BIOS[name]` em `screens.tsx` — a carta do garoto veste o texto da lenda: Dani
-Alves do Bahia diz *"Revolucionou a lateral no Barcelona"*, Kaká do São Paulo diz
-*"Último brasileiro a ganhar a Bola de Ouro"*. São **102 cartas de 57 nomes**, 13
-delas promessas. Os nomes que são PESSOAS DIFERENTES (Pepe, Reinaldo, Alex,
-Gérson) já têm bio própria em cada carta, então esse lado está coberto.
-Duas saídas oferecidas: (a) travar (nome repetido não pega a bio compartilhada; a
-carta do garoto cai no texto neutro de promessa) — zero invenção, sai na hora; ou
-(b) escrever a bio do momento certo das 13 promessas — como é gente de verdade, a
-lista vai pra ele conferir ANTES de entrar.
+📖 **A BIO por NOME FICA COMO ESTÁ — decisão dele (13/09).** Mostrei que a carta do
+garoto veste o texto da lenda (Dani Alves do Bahia diz *"Revolucionou a lateral no
+Barcelona"*; Kaká do São Paulo diz *"Último brasileiro a ganhar a Bola de Ouro"*),
+102 cartas de 57 nomes. Resposta: *"o texto pode continuar, não tem problema cara"*.
+⚠️ **Não mexer nem propor de novo.** Os nomes que são PESSOAS DIFERENTES (Pepe,
+Reinaldo, Alex, Gérson) já têm bio própria em cada carta — esse lado, que era o
+perigoso, está coberto.
 
-🕴️ **PENDENTE também: rosto na gradezinha dos agenciados.** Mockup entregue
-(`scripts/mockup-agenciados-rosto.mjs`). Hoje os quadradinhos desenham só a letra,
-mesmo pra quem tem rosto. Medido: **as 156 artes são TODAS de carta 👑 LENDA** —
-o Diego já sabia (*"as fotos de avatar são apenas nas lendas"*).
-E as **5 cartas velhas** que perderam o rosto porque a gente renomeou a carta
-(Zidane RM2002→Juve1998 com 86 donos, Zizinho, Marcos, Ibrahimović, Ronaldinho)
-continuam esperando o OK pro apelido em `legend-avatars.ts`.
+## 13/09/2026 — 🕴️🧑 Rosto de lenda na Agência + as cartas velhas que perderam o rosto — FEITO
+
+Diego, sobre o item 2 do que eu tinha oferecido: *"já o 2 arrume também"*.
+
+1. **Rosto no quadradinho dos agenciados** (`AgenciadosTab`, pyramidseason). Antes
+   desenhava só a letra, mesmo pra quem tem arte. Agora usa a MESMA peça do
+   campinho e da carta (`AvatarLote1`), atrás do mesmo portão (`useLegendPresentation`).
+   Medido: **as 158 artes são TODAS de carta 👑 LENDA** — ele já sabia
+   (*"as fotos de avatar são apenas nas lendas"*), então promessa/craque seguem na
+   letra, como sempre. De quebra, `position:relative` no nome e nas estrelinhas do
+   quadradinho: o brilho holo é absoluto e pintava por cima, deixando o nome lavado.
+2. **Carta RENOMEADA acha o rosto da carta nova** (`legend-avatars.ts`). Quando a
+   gente troca o auge de uma carta no `data.ts`, o álbum guarda a VELHA e o rosto
+   (achado por nome+clube+ano) sumia. Quatro apelidos, todos MESMA PESSOA e rename
+   óbvio: **Zidane** Real Madrid 2002 → Juventus 1998 (86 donos, troca de 03/09) ·
+   **Zizinho** Flamengo 1950 → 1943 (50) · **Marcos** Palmeiras 1999 → 2002 (39) ·
+   **Ibrahimović** Milan 2013 → 2012 (35).
+   🚫 **Ronaldinho Gaúcho · Grêmio 1999 ficou de FORA de propósito** (1 dono): o
+   baralho tem Barcelona 2005 e Atlético-MG 2013, e não dá pra afirmar qual carta
+   substituiu aquela — chutar seria pôr a cara de um auge no outro. Se o Diego
+   disser qual é, entra em uma linha.
+3. Bancada `scripts/teste-rosto/` agora monta o **`AgenciadosTab` de verdade** (foi
+   exportado só pra isso, igual o `SquadTab`), com as cartas chegando SEM o campo
+   `promessa` — que é como elas vêm do álbum da nuvem. É o jeito de conferir tier +
+   rosto na tela sem depender de print de jogador.
+   ⚠️ ordem dos imports: `store` → `screens` → `pyramidseason`, e envolver em
+   `<EscProvider>` (o `UnlockBanner` usa `useEsc`).
+Sem linha de novidade: rosto de lenda já foi anunciado em 10/09 e o resto é bug.
+Reverter = 1 commit; não toca em save nenhum.
 
 ## 12/09/2026 (noite) — 🪑 "Novo leilão" trocava o convidado de cadeira (Copa do Mundo sem o campeão) — CORRIGIDO
 
