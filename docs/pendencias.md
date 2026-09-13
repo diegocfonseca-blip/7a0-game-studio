@@ -100,10 +100,20 @@ Método: `LOGOS_PRONTAS` (escudos.tsx) × `BATISMOS` (batismos.ts) × `esc_socio
     (clube → coração, RLS fechada, só a função lê) e `esc_salao_torcidas` soma ela aos
     sócios (migração `salao_torcida_sem_dono_vasco_da_grana`). Quando o dono aparecer:
     cria em `esc_socios` e apaga daqui (a função já ignora a linha se o clube tiver sócio).
-  - Ainda sem coração (16): White Thigs · Skyy · Marreco · Jurubeba (Meia na Canela) ·
+  ✅ **13/09, 3ª leva:** *"Theuzudo é theuzudo@… coração Valência, Milhaça é o igumarques"*.
+  - **Theuzudo FC ganhou a linha de sócio**: `esc_socios` **nº47** (a conta real é
+    `matheusfilipealves@hotmail.com`, display "Theuzudo FC", fundador 47 — não existe
+    conta "theuzudo@…"), desde 21/08, até 2099, manto #F06000/#0C0C0C, `theuzudo_morcego`,
+    coração **Valência**, origem batismo. `user_colors` ouro/manual também (estava só na
+    reserva do código).
+  - **Milhaça FC** (`igormarquesn99@gmail.com`, @igumarques) JÁ tinha a linha (nº30) —
+    eu tinha dito errado que faltava. Só `user_colors` ouro/manual foi gravado agora.
+    ❓ **Coração do Milhaça continua vazio**: ele deu o @, não o time.
+  - Ainda sem coração (15): White Thigs · Skyy · Marreco · Jurubeba (Meia na Canela) ·
     Stocco · Bagres 1993 · Sistematizados · Bonança · Leite de Verdade · Capsule ·
-    Alfacehh · Eros · Seven City · Crias do Bigão · Theuzudo · Milhaça · Esqueceram do
-    Lluch (estes dois últimos + Theuzudo seguem também sem linha em `esc_socios`).
+    Alfacehh · Eros · Seven City · Crias do Bigão · Milhaça · Esqueceram do Lluch
+    (o Lluch segue também sem linha em `esc_socios`; e-mail no código:
+    `lluchmarcel81@gmail.com`, coração São Paulo — falta o Diego confirmar).
   🔧 **De carona:** a torcida do Salão (`esc_salao_torcidas`) só contava
   `origem = 'batismo'`, então o Futpoint (sócio, regra do 19/08) ficaria fora mesmo
   com o coração gravado — e o Marinheiros AS (sócio, Palmeiras) já estava fora.
