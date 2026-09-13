@@ -98,6 +98,37 @@ Barcelona"*; Kaká do São Paulo diz *"Último brasileiro a ganhar a Bola de Our
 Reinaldo, Alex, Gérson) já têm bio própria em cada carta — esse lado, que era o
 perigoso, está coberto.
 
+## 13/09/2026 — 🏛️ SALÃO DOS BATISMOS ABERTO PRA TODO MUNDO (com duas coisas escondidas)
+
+Palavras do Diego: *"agora publique também a sala de batismos, mas oculte por
+enquanto os números de fundadores. + coloque a torcida também, sem pôr os usuários
+embaixo. Oculte eles. E deixe como % mesmo também"*.
+
+- `SALAO_GERAL = true` em `sport.ts` (era `false` + lista de testers desde 30/08).
+  A porta fica na tela do **Ranking** e agora aparece pra todo mundo; o subtítulo
+  dela deixou de dizer "👁️ só você vê" e a pílula de "prévia" saiu da tela.
+- 🙈 **`MOSTRAR_NUMERO_FUNDADOR = false`** (salao.tsx): esconde o `🏛️ nº` E o selo
+  que ocupa a MESMA casinha ("🥇 1º da história") — os dois são o número. O selo
+  `🎫 sócio` FICA, porque é tipo, não número. A ORDEM dos cards continua sendo a de
+  chegada, só não está escrita.
+- 🙈 **`MOSTRAR_DONOS_DA_TORCIDA = false`**: some a linha "❤️ Nata de SP · Fala D10 · …"
+  debaixo de cada barra, que era dizer quem torce pra quem. ⚠️ O dado ainda VEM do
+  banco (a RPC `esc_salao_torcidas` devolve `clubes`); só não é desenhado. Se ele
+  quiser que nem chegue ao navegador, é mexer na RPC — anotado, não feito.
+- ❤️ A torcida **continua em %** (ele reforçou). Nada mudou nessa conta.
+- As duas travas são uma linha cada — é assim que ele volta atrás quando quiser.
+- 🌐 **A tela foi traduzida** (nasceu só em PT em 30/08, antes do site virar BR/EN):
+  título, abas, textos, erro de servidor e rodapé em PT/EN. Nome de CLUBE e de TIME
+  DE CORAÇÃO não traduz — é identidade.
+- 📢 Linha de novidade PT/EN em `novidades.ts` (é feature, não conserto).
+- 🔬 A bancada `scripts/teste-rosto/` agora abre o **Salão de verdade** (`?agencia`
+  volta pra Agência, `?en` força inglês). ⚠️ O navegador da bancada não alcança o
+  Supabase daqui, então a aba de torcidas cai no aviso "servidor fora do ar" — pra
+  ver cheia, responder a chamada `**/rpc/esc_salao_torcidas*` no Playwright.
+- ✔️ Conferido: a RPC é `security definer` e tem EXECUTE pra `anon` e `authenticated`
+  — ninguém vai bater em erro de permissão agora que a tela é de todos.
+Reverter tudo = `SALAO_GERAL` pra false (1 linha).
+
 ## 13/09/2026 — 🕴️🧑 Rosto de lenda na Agência + as cartas velhas que perderam o rosto — FEITO
 
 Diego, sobre o item 2 do que eu tinha oferecido: *"já o 2 arrume também"*.

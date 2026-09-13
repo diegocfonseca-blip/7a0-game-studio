@@ -30,8 +30,23 @@
 //     (migração `salao_torcidas_so_batismo`, 11/09) — sócio de assinatura não
 //     entra mais na conta. Ele devolve nome de CLUBE, nunca e-mail.
 //
-// 🔒 EM OBRA: só a conta do Diego vê (trava `useSalao` em sport.ts). Pra soltar
-// pra geral é trocar `SALAO_GERAL` lá pra true.
+// 🔓 ABERTO PRA TODO MUNDO em 13/09 (`SALAO_GERAL = true` em sport.ts). Palavras
+// do Diego: *"agora publique também a sala de batismos, mas oculte por enquanto os
+// números de fundadores. + coloque a torcida também, sem pôr os usuários embaixo.
+// Oculte eles. E deixe como % mesmo também"*. Então, nesta abertura:
+//   · 🙈 **número de fundador ESCONDIDO** (`MOSTRAR_NUMERO_FUNDADOR`, abaixo) —
+//     inclusive o selo que aparece no LUGAR do número ("🥇 1º da história"), que é
+//     a mesma casinha. O selo 🎫 sócio fica, porque é TIPO, não número. A ORDEM
+//     dos cards continua sendo a de chegada — só não está mais escrita na tela.
+//   · 🙈 **lista de donos ESCONDIDA** embaixo de cada barra de torcida
+//     (`MOSTRAR_DONOS_DA_TORCIDA`) — antes saía "❤️ Nata de SP · Fala D10 · …",
+//     que é dizer quem torce pra quem.
+//   · ❤️ **a torcida continua em %** (ele reforçou: *"deixe como % msm tb"*).
+// As duas travas são uma linha cada: é assim que ele volta atrás quando quiser.
+//
+// 🌐 BILÍNGUE desde a abertura: a tela nasceu só em PT (30/08), mas o site virou
+// BR/EN em 11-12/09 e agora ela é de todo mundo. Nome de CLUBE e de TIME DE
+// CORAÇÃO nunca traduz — é identidade (regra do CLAUDE.md).
 
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -39,9 +54,14 @@ import { Shell, Box, VoltarInicio } from './screens'
 import { Escudo } from './escudos'
 import { BATISMOS, type Batismo } from './batismos'
 import { useEsc } from './store'
+import { tr } from './lang'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', PURPLE = '#7C3AED', GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
+
+// 🙈 as duas travas da abertura de 13/09 — trocar pra true devolve cada coisa
+const MOSTRAR_NUMERO_FUNDADOR = false   // nº do fundador (e o selo que ocupa a mesma casinha)
+const MOSTRAR_DONOS_DA_TORCIDA = false  // a lista de clubes embaixo da barra de cada torcida
 
 interface Torcida { time_nome: string; gente: number; clubes: string[] | null }
 
@@ -83,24 +103,24 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
     return v >= 10 ? `${Math.round(v)}%` : `${v.toFixed(1).replace('.', ',')}%`
   }
   const ABAS = [
-    { id: 'clubes' as const, txt: '🛡️ Clubes' },
-    { id: 'torcida' as const, txt: '❤️ Torcidas' },
+    { id: 'clubes' as const, txt: tr('🛡️ Clubes', '🛡️ Clubs') },
+    { id: 'torcida' as const, txt: tr('❤️ Torcidas', '❤️ Fanbases') },
   ]
 
   const Card = ({ c }: { c: Batismo }) => (
     <div className="relative border-[3px] border-black rounded-2xl px-2 pt-3 pb-2.5 text-center"
       style={{ background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
-      {c.fundador && (
+      {MOSTRAR_NUMERO_FUNDADOR && c.fundador && (
         <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
           style={{ background: GOLD }}>🏛️ nº{c.fundador}</span>
       )}
-      {!c.fundador && c.selo && (
+      {MOSTRAR_NUMERO_FUNDADOR && !c.fundador && c.selo && (
         <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
           style={{ background: GOLD }}>{c.selo}</span>
       )}
       {c.tipo === 'socio' && (
         <span className="absolute top-1.5 right-1.5 text-[8.5px] font-black border-2 border-black rounded-full px-1.5"
-          style={{ background: '#fff' }}>🎫 sócio</span>
+          style={{ background: '#fff' }}>{tr('🎫 sócio', '🎫 member')}</span>
       )}
       <div className="flex justify-center mb-1.5"><Escudo nome={c.clube} size={58} /></div>
       {/* 📱 nome inteiro, sem cortar — e NADA de "Série X" embaixo (decisão 08/09) */}
@@ -120,16 +140,15 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
     <Shell>
       <div className="pt-4">
         {voltar
-          ? <button onClick={voltar} className="text-black/45 font-black text-sm active:opacity-60" style={OSWALD}>← Voltar pro Ranking</button>
+          ? <button onClick={voltar} className="text-black/45 font-black text-sm active:opacity-60" style={OSWALD}>{tr('← Voltar pro Ranking', '← Back to the Ranking')}</button>
           : <VoltarInicio />}
       </div>
       <div className="text-center -mt-1">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-0.5 text-[11px] font-black uppercase tracking-wide mb-1.5"
-          style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>👁️ prévia — só você vê</span>
-        <h2 className="font-black text-4xl leading-none" style={OSWALD}>🏛️ SALÃO DOS BATISMOS</h2>
+        {/* 👁️ a pílula de "prévia" saiu em 13/09: a tela é de todo mundo agora */}
+        <h2 className="font-black text-4xl leading-none" style={OSWALD}>{tr('🏛️ SALÃO DOS BATISMOS', '🏛️ HALL OF NAMED CLUBS')}</h2>
         <p className="font-semibold text-black/60 mt-2 text-[13px] leading-snug">
-          Todo clube que virou de alguém está aqui, com o escudo que aparece no jogo.
-          <br /><b>{BATISMOS.length} clubes</b> · {vagas} vagas ainda livres
+          {tr('Todo clube que virou de alguém está aqui, com o escudo que aparece no jogo.', 'Every club that became someone\'s is here, with the crest that shows up in the game.')}
+          <br /><b>{BATISMOS.length} {tr('clubes', 'clubs')}</b> · {vagas} {tr('vagas ainda livres', 'spots still open')}
         </p>
       </div>
 
@@ -146,7 +165,7 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
         <div className="space-y-3">
           {/* 📛 UMA PAREDE SÓ: sem faixa de divisão, sem letra, sem separar em
               grupos. Só os clubes, na ordem de quem chegou antes. */}
-          <Faixa titulo="🛡️ Os clubes" sub={`${clubes.length} · na ordem de quem chegou antes`} />
+          <Faixa titulo={tr('🛡️ Os clubes', '🛡️ The clubs')} sub={`${clubes.length} · ${tr('na ordem de quem chegou antes', 'in the order they arrived')}`} />
           <div className="grid grid-cols-2 gap-2.5">
             {clubes.map(c => <Card key={c.clube} c={c} />)}
           </div>
@@ -157,15 +176,15 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
       {aba === 'torcida' && (
         <div className="space-y-2">
           <p className="text-center text-[11px] font-bold text-black/45">
-            de cada 100 donos de clube batizado, quantos torcem por cada time
+            {tr('de cada 100 donos de clube batizado, quantos torcem por cada time', 'out of every 100 owners of a named club, how many support each team')}
           </p>
           {fora && (
             <Box bg="#fff" className="p-5 text-center">
-              <p className="font-black text-sm" style={OSWALD}>🔧 Servidor fora do ar por uns minutos</p>
-              <p className="font-bold text-black/60 text-xs mt-1">As torcidas já voltam — é só instabilidade 💛</p>
+              <p className="font-black text-sm" style={OSWALD}>{tr('🔧 Servidor fora do ar por uns minutos', '🔧 Server down for a few minutes')}</p>
+              <p className="font-bold text-black/60 text-xs mt-1">{tr('As torcidas já voltam — é só instabilidade 💛', 'The fanbases will be back shortly — just a hiccup 💛')}</p>
             </Box>
           )}
-          {torcidas === null && !fora && <p className="text-center font-bold text-black/60">Carregando…</p>}
+          {torcidas === null && !fora && <p className="text-center font-bold text-black/60">{tr('Carregando…', 'Loading…')}</p>}
           {torcidas && torcidas.length > 0 && (
             <Box bg="#fff" className="p-3 space-y-2.5">
               {torcidas.map(t => (
@@ -178,8 +197,10 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
                     {/* % e NÃO quantidade (pedido dele, 11/09) */}
                     <span className="font-black text-[13px] w-12 text-right shrink-0" style={OSWALD}>{pct(t.gente)}</span>
                   </div>
-                  {/* os clubes dessa torcida — é o que faz a aba ser dos batismos */}
-                  {t.clubes && t.clubes.length > 0 && (
+                  {/* 🙈 quem torce por esse time: ESCONDIDO na abertura de 13/09
+                      (*"sem pôr os usuários embaixo. Oculte eles"*). Uma linha
+                      devolve, se ele mudar de ideia. */}
+                  {MOSTRAR_DONOS_DA_TORCIDA && t.clubes && t.clubes.length > 0 && (
                     <p className="text-[9.5px] font-bold text-black/50 leading-snug pl-0.5 mt-0.5">
                       ❤️ {t.clubes.join(' · ')}
                     </p>
@@ -192,15 +213,15 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
       )}
 
       <Box bg={GREEN} className="p-4 text-center">
-        <p className="font-black text-white text-lg leading-none" style={OSWALD}>🔨 Sua vaga está livre</p>
+        <p className="font-black text-white text-lg leading-none" style={OSWALD}>{tr('🔨 Sua vaga está livre', '🔨 Your spot is open')}</p>
         <p className="text-white/85 text-[12px] font-bold mt-1.5 leading-snug">
-          {vagas} clubes ainda esperam dono — vire Lenda e batize o seu
+          {vagas} {tr('clubes ainda esperam dono — vire Lenda e batize o seu', 'clubs are still waiting for an owner — become a Legend and name yours')}
         </p>
       </Box>
 
       <button onClick={() => dispatch({ type: 'GO_RANKING' })}
         className="w-full text-center text-[12px] font-black text-black/50 underline active:opacity-60 pb-2" style={OSWALD}>
-        🏆 quer se comparar com TODO mundo? o Ranking geral está aqui
+        {tr('🏆 quer se comparar com TODO mundo? o Ranking geral está aqui', '🏆 want to compare with EVERYONE? the overall Ranking is here')}
       </button>
     </Shell>
   )

@@ -391,13 +391,14 @@ export function usePreviewComum(): boolean {
   return previewComumOk
 }
 
-// ─── 🏛️ SALÃO DOS BATISMOS (30/08) — em obra, só o Diego vê ─────────────────
-// Ele pediu: *"gostei do salão dos batismos vamos fazer e codar só p mim"*.
-// Enquanto está fechado, o botão nem existe pra mais ninguém: quem não está
-// nesta lista não vê a pílula no Ranking e não consegue abrir a tela.
-// Pra soltar pra geral, é trocar `SALAO_GERAL` pra true — a lista some do
-// caminho e vira só uma linha de história.
-const SALAO_GERAL = false
+// ─── 🏛️ SALÃO DOS BATISMOS (30/08) — 🔓 ABERTO PRA TODO MUNDO em 13/09 ───────
+// Nasceu fechado (*"gostei do salão dos batismos vamos fazer e codar só p mim"*)
+// e ficou em obra até o Diego mandar publicar: *"agora publique também a sala de
+// batismos"* (13/09) — junto com a aba de torcidas, sem os números de fundador e
+// sem a lista de donos embaixo das barras (ver `salao.tsx`).
+// A lista de testers fica aqui só de história; com `SALAO_GERAL = true` ela não
+// muda nada. Reverter a abertura = voltar esta linha pra false.
+const SALAO_GERAL = true
 const SALAO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 let salaoOk = false
 function applySalao(email?: string | null): void {
