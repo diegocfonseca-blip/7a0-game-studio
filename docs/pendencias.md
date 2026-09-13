@@ -100,6 +100,13 @@ B 20/28/36/52 · A 40/56/72/104** (Vadico na C: 130 no total, era 120). `masterV
 refaz a conta na divisão CONGELADA do contrato, então quem assinou antes do ajuste
 também recebe o novo — e o valor gravado (`porTemporada`) vira só registro.
 
+**🎬 Vídeo de mockup (pedido dele 13/09)**: `scripts/video-master.mjs` grava a cena
+REAL da bancada (`scripts/teste-rosto?video`, celular 430px, componentes do jogo): os 4
+contratos → toca na Vadico → mesa com o papel → ASSINAR → faixa com carimbo ASSINADO →
+o Pontual embaixo. Sai .webm (Playwright) e .mp4 (ffmpeg do `imageio-ffmpeg`, pip).
+⚠️ A gravação começa antes da página pintar: os primeiros ~4 s saem em branco — cortar
+com `ffmpeg -ss 3.9`. Cursor falso amarelo segue o mouse (só na bancada).
+
 **Reverter**: um commit; `careerMaster` é opcional e ninguém perde nada (o que já foi
 pago fica no caixa, como qualquer receita).
 

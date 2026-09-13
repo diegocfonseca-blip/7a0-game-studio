@@ -12,6 +12,9 @@
 //   ?masterreal 🏆 o Patrocinador Master DE VERDADE (componentes do jogo), nas duas
 //              versões: caixinha (todo mundo) e escritório (prévia), proposta e
 //              contrato correndo. `&en` mostra em inglês.
+//   ?video     🎬 cena pro VÍDEO de mockup do Master (tela de celular, 430px):
+//              os 4 contratos → escolhe → assina → faixa ASSINADO → Pontual embaixo.
+//              Gravado por scripts/video-master.mjs. Cursor falso segue o mouse.
 //   ?en        força o inglês.
 // ⚠️ ordem dos imports: store → screens → pyramidseason/salao (ciclo do COPA_LEG_MS)
 // ⚠️ envolver em <EscProvider>: o UnlockBanner usa useEsc.
@@ -247,9 +250,42 @@ function MasterReal() {
   )
 }
 
+
+// ─── 🎬 a cena do vídeo (celular, componentes reais) ─────────────────────────
+function VideoMaster() {
+  const [c, setC] = useState<{ brandId: string; anos: number; div: string; desde: number; porTemporada: number } | undefined>()
+  const assina = (brandId: string) => {
+    const anos = brandId === 'vadico' ? 5 : brandId === 'ero' ? 3 : brandId === 'reidastintas' ? 2 : 1
+    setC({ brandId, anos, div: 'V', desde: 1, porTemporada: Math.round(2 * (1.25 + (anos - 1) / 2)) })
+  }
+  return (
+    <div style={{ background: '#F4ECD6', minHeight: '100vh', padding: '0 0 40px', color: INK }}>
+      <div style={{ background: INK, color: '#fff', padding: '12px 14px 10px' }}>
+        <div style={{ font: '600 10px Oswald,sans-serif', letterSpacing: '.08em', color: GOLD }}>TEMPORADA 1 · LIGA LEGENDS</div>
+        <div style={{ font: '700 22px Oswald,sans-serif', lineHeight: 1.1 }}>Começando…</div>
+        <div style={{ font: '700 11px system-ui', opacity: .65 }}>🌱 Várzea</div>
+      </div>
+      <div style={{ padding: '12px 12px 0' }}>
+        <div style={{ background: GOLD, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 12px', marginBottom: 12, font: '700 13px Oswald,sans-serif', letterSpacing: '.03em' }}>🆕 NOVO: PATROCINADOR MASTER — contrato de várias temporadas</div>
+        <MasterBanner cinematic div="V" seasonNo={1} contrato={c} onPick={assina} />
+        <CareerSponsorVisual div="V" onPick={() => {}} />
+        <div style={{ font: '700 14px Oswald,sans-serif', textAlign: 'center', marginTop: 14, opacity: .7 }}>⚽ Leilão Legends · leilaolegends.com</div>
+      </div>
+      <div id="cursor" style={{ position: 'fixed', left: -100, top: -100, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,196,0,.55)', border: `3px solid ${INK}`, pointerEvents: 'none', zIndex: 9999, transform: 'translate(-50%,-50%)', transition: 'transform .08s' }} />
+    </div>
+  )
+}
+if (new URLSearchParams(location.search).has('video')) {
+  window.addEventListener('mousemove', e => { const el = document.getElementById('cursor'); if (el) { el.style.left = e.clientX + 'px'; el.style.top = e.clientY + 'px' } })
+  window.addEventListener('mousedown', () => { const el = document.getElementById('cursor'); if (el) el.style.transform = 'translate(-50%,-50%) scale(.7)' })
+  window.addEventListener('mouseup', () => { const el = document.getElementById('cursor'); if (el) el.style.transform = 'translate(-50%,-50%) scale(1)' })
+}
+
 createRoot(document.getElementById('root')!).render(
   <EscProvider>
-    {q.has('masterreal')
+    {q.has('video')
+      ? <VideoMaster />
+      : q.has('masterreal')
       ? <MasterReal />
       : q.has('master')
       ? <MasterMockup />
