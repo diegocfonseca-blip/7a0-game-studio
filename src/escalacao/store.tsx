@@ -6785,6 +6785,10 @@ export function reducer(state: EscState, action: Action): EscState {
             // clube e, no fim da cerimônia, a ficha dele é gravada (completada em 11)
             // e ele sai. É isso que também fecha a porta da carta repetida: o clube
             // fica GUARDADO sem o sondado, então a receita nunca o devolve.
+            // 🔒 tira o sondado da ficha GUARDADA do clube (quando existe): sem isso o
+            // sorteio do "mercado dos famosos", que vasculha as fichas de fundo, podia
+            // rifar a MESMA carta que já virou lote — dois do mesmo cara no leilão.
+            if (s.cpuSquads?.[f.clube]) s.cpuSquads = { ...s.cpuSquads, [f.clube]: (s.cpuSquads[f.clube] ?? []).filter(c => c.id !== cid) }
             if (f.squad.length && !s.managers.some(m => m.marketCpu && m.marketTeam === f.clube)) {
               const divF = (s.careerPlacements?.[f.clube] as 'A' | 'B' | 'C' | 'D') ?? 'C'
               const rngF = rngOf(s)
@@ -6913,6 +6917,10 @@ export function reducer(state: EscState, action: Action): EscState {
         let tmpId = -1000
         const materialize = (name: string): Manager => {
           let m = tempById.get(name)
+          // 🔁 o clube pode JÁ estar na sala como participante temporário (a sondagem
+          // de time de fundo cria um). Reaproveita — senão o mesmo clube entraria duas
+          // vezes, com dois elencos diferentes.
+          if (!m) { const ja = s.managers.find(x => x.marketCpu && x.marketTeam === name); if (ja) { tempById.set(name, ja); return ja } }
           if (!m) {
             const div = (s.careerPlacements?.[name] as 'A' | 'B' | 'C' | 'D') ?? 'C'
             // 4-3-3: é a formação em que as fichas de fundo são montadas (1/2/2/3/3),
@@ -6950,7 +6958,7 @@ export function reducer(state: EscState, action: Action): EscState {
           }
         }
         // os times de fundo sorteados entram na sala pra brigar (leilão + monte)
-        for (const m of tempById.values()) s.managers.push(m)
+        for (const m of tempById.values()) if (!s.managers.includes(m)) s.managers.push(m)
         s.deck = deck
       } else {
         // RESERVAS (2ª temporada): baralho SÓ COM REAIS (noFake) — reserva é opcional,

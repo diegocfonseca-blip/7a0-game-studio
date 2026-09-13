@@ -192,9 +192,33 @@ por isso que vai à luta), paga com o caixa do clube, e no fim da cerimônia a
 🔒 **É esse mesmo passo que fecha de vez a porta da carta repetida**: o clube passa a
 ficar GUARDADO em `cpuSquads` sem o sondado, então a receita nunca mais o devolve —
 além da trava por identidade que o `buildCpuSquads` já tinha.
+🔒 **Dois furos que EU abri e fechei na mesma conversa** (o Diego perguntou justamente
+se o sorteado podia ser o mesmo que ele sondou):
+1. O sondado saía do elenco que vai pro leilão, mas continuava na **ficha guardada**
+   do clube (`cpuSquads`) quando ela existia. O sorteio do "mercado dos famosos"
+   vasculha essas fichas — podia rifar a MESMA carta que já era lote. Agora a carta
+   sai da ficha também, na hora da sondagem.
+2. O `materialize()` do mercado dos famosos criava um participante NOVO pro clube
+   mesmo quando a sondagem já tinha criado um — o mesmo clube entraria duas vezes,
+   com dois elencos. Agora ele reaproveita o que está na sala.
 ⚠️ Não dá pra testar o leilão de ponta a ponta por aqui (precisa jogar uma carreira):
 se aparecer jogador repetido ou o clube sondado não aparecer dando lance, é reverter
-este commit.
+estes commits.
+
+### 📋 Como um jogador chega ao leilão de reservas hoje (conferido no código, 13/09)
+O Diego recapitulou o modelo dele e pediu conferência. **Está certo.** Da 3ª temporada
+em diante, o baralho do leilão é feito de quatro fontes:
+1. **Sorteio ("mercado dos famosos")** — UM famoso por posição (5 no total), sorteado
+   entre TODOS os clubes: os bots da sua liga E os 60 de fundo. O dono perde o cara e
+   entra na sala pra brigar de volta. A régua de quem é "famoso" segue a escada da SUA
+   divisão (na D é bom jogador, não craque).
+2. **Sobra do mundo** — jogador REAL que não coube em time nenhum, UMA carta por
+   posição por temporada, até acabarem.
+3. **Venda** — o que você listou, o que os rivais de CPU listaram sozinhos (T3+) e o
+   contrato encerrado que ninguém renovou.
+4. **Sondagem** — 1 jogador + 1 técnico por temporada, só de quem está sem contrato.
+(Na 2ª temporada é diferente: baralho só com reais, sem incógnita, e metade dos bots
+solta as reservas que passam do XI.)
 
 ### 🧑‍⚕️ Preparador físico: já é de graça (proposta de cobrar CANCELADA)
 Conferido: o card do preparador (com o 🔁 RODIZIAR) aparece sempre que o gás está
