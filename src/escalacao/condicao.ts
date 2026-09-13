@@ -50,11 +50,19 @@
 // 3 Crias da Base que os eventos já usam.
 import { CONDICAO_ON } from './career-feature-release'
 
-export const GAS_JOGO = 7      // desconto por jogo como titular
-export const GAS_BANCO = 15    // recuperação por rodada no banco (era 20; Diego achou rápido demais)
-export const GAS_CANSADO = 35  // abaixo disto = 😓
-export const GAS_LIMITE = 25   // abaixo disto = 🥵
-export const GAS_ESGOTADO = 20 // abaixo disto = 🚑
+// ⚖️ A ESCADA DE 13/09 — o cansaço ATRAVESSA TEMPORADAS (escolha do Diego).
+// Ele pediu *"1 a 50, depois 55, 60, 65 e 70 em diante"*. Eu avisei que a temporada
+// tem 38 rodadas e que, com o gás zerando na virada, o 1º degrau em 50 jogos deixaria
+// o gás de enfeite. Ele escolheu a outra saída: **o cansaço não zera mais na virada**
+// (ver `condicaoCarry` em types.ts). Com isso a escada fecha em JOGOS SOMADOS DA
+// CARREIRA: 1º–54º inteiro · 55º 😓 · 60º 🥵 · 65º em diante 🚑.
+// (gás antes do jogo N = 100 − 1,4·(N−1): 54º = 25,8 · 55º = 24,4 · 59º = 18,8 ·
+//  60º = 17,4 · 64º = 11,8 · 65º = 10,4 · 70º = 3,4 · 72º = 0,6)
+export const GAS_JOGO = 1.4    // desconto por jogo como titular (era 7, quando zerava por temporada)
+export const GAS_BANCO = 4     // recuperação por rodada no banco (≈ 3 jogos de folga)
+export const GAS_CANSADO = 25  // abaixo disto = 😓
+export const GAS_LIMITE = 18   // abaixo disto = 🥵
+export const GAS_ESGOTADO = 11 // abaixo disto = 🚑
 export const MOD_CANSADO = -1
 export const MOD_LIMITE = -2
 export const MOD_ESGOTADO = -3
@@ -118,23 +126,30 @@ export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; 
 // sobe até o teto — nasce inteira.
 // `desdeR` = 1ª rodada que conta (quem já estava em C/B/A quando a regra chegou
 // começa a contar dali, todo mundo em 100% — ver condicaoDesdeR em types.ts).
-export function gasDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0): Record<string, number> {
+// `inicio` = o gás com que cada carta COMEÇOU esta temporada (13/09: o cansaço
+// atravessa a virada — ver `condicaoCarry` em types.ts). Sem ele, todo mundo em 100.
+export function gasDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0, inicio?: Record<string, number>): Record<string, number> {
   const gas: Record<string, number> = {}
-  for (const c of squad) gas[c.id] = 100
+  for (const c of squad) gas[c.id] = Math.max(0, Math.min(100, inicio?.[c.id] ?? 100))
   if (!byRound) return gas
   for (let r = desdeR; r < round; r++) {
     const ids = byRound[r]
     if (!ids) continue
     const xi = new Set(ids)
-    for (const c of squad) gas[c.id] = xi.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + GAS_BANCO)
+    // ⚠️ arredonda a 1 casa A CADA passo: o desconto é 1,4 e sem isto a soma de
+    // ~70 jogos acumula lixo de float (93.99999999999994) — a escada tem que cair
+    // exatamente no 55º/60º/65º jogo.
+    for (const c of squad) gas[c.id] = Math.round((xi.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + GAS_BANCO)) * 10) / 10
   }
   return gas
 }
 
 // quantos jogos cada carta fez na temporada (o "🏃 9 jogos" da aba Elenco)
-export function jogosDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0): Record<string, number> {
+// `jaJogou` = jogos que a carta já tinha SOMADO em temporadas anteriores (o "🏃 N
+// jogos" passou a contar a carreira inteira, junto com o gás que atravessa a virada).
+export function jogosDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0, jaJogou?: Record<string, number>): Record<string, number> {
   const n: Record<string, number> = {}
-  for (const c of squad) n[c.id] = 0
+  for (const c of squad) n[c.id] = Math.max(0, jaJogou?.[c.id] ?? 0)
   if (!byRound) return n
   for (let r = desdeR; r < round; r++) for (const id of byRound[r] ?? []) if (id in n) n[id]++
   return n
@@ -176,11 +191,11 @@ export function modsDoElenco(
   byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[],
   xiAt: (r: number) => string[],
   ev: { tipo: string; season: number; status: string; volta?: number; cardId: string } | null | undefined, seasonNo: number,
-  desdeR = 0,
+  desdeR = 0, inicio?: Record<string, number>,
 ): CardModsPorRodada {
   const out: CardModsPorRodada = {}
   for (let r = desdeR; r <= round; r++) {
-    const gas = gasDoElenco(byRound, r, squad, desdeR)
+    const gas = gasDoElenco(byRound, r, squad, desdeR, inicio)
     const m: Record<string, number> = {}
     for (const id of xiAt(r)) {
       const v = modGas(gas[id] ?? 100) + modVolta(ev, seasonNo, r, id)

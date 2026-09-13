@@ -602,6 +602,15 @@ export interface EscState {
   // (liga na próxima rodada, todo mundo em 100%, e rodada passada não muda).
   // Ausente/0 = ligou na virada, conta desde a rodada 0.
   condicaoDesdeR?: number
+  // 😓 O CANSAÇO ATRAVESSA A VIRADA (13/09, escolha do Diego). Antes o gás era
+  // 100% derivado da temporada em curso e zerava toda virada — com a escada nova
+  // (1º–54º inteiro · 55º 😓 · 60º 🥵 · 65º+ 🚑) isso deixaria o gás de enfeite,
+  // porque a temporada tem só 38 rodadas. Então na virada o jogo GUARDA aqui como
+  // cada jogador do seu elenco terminou, e a temporada nova começa daí.
+  // Chave = IDENTIDADE da carta (`nome|clube|ano`), NÃO o id: no leilão as cartas
+  // ganham id novo, e é a pessoa que continua cansada. `g` = gás (0-100) · `j` =
+  // jogos somados na carreira. Ausente = 100 e 0 (save antigo entra inteiro).
+  condicaoCarry?: Record<string, { g: number; j: number }>
   // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
   // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).
   contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)

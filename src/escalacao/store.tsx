@@ -12,7 +12,7 @@ import type {
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
-import { divisaoDaCarreira, DIV_COM_GAS } from './condicao' // 😓 gás: a divisão de VERDADE (13/09)
+import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
@@ -828,6 +828,35 @@ function frozenXIids(byRound: Record<number, string[]>, r: number, squad: WonCar
 // REFORÇO NOVO vai pro BANCO — só o usuário promove (manual). CPU/rivais seguem no
 // bestXI automático (tudo bem). Vale offline e online. Chamado ANTES do leilão
 // mexer no elenco (na virada de temporada), pra capturar o time atual.
+// 😓 GUARDA O CANSAÇO NA VIRADA (13/09 — escolha do Diego: o cansaço ATRAVESSA
+// temporadas). O gás continua DERIVADO dentro da temporada (passado imutável, zero
+// migração); o que atravessa é só o ponto de partida. Aqui, no fim da temporada,
+// anotamos como cada jogador do seu elenco terminou — gás e jogos somados — numa
+// chave que sobrevive ao leilão: a IDENTIDADE da carta (nome|clube|ano), porque no
+// pregão a mesma pessoa ganha id novo e é ela que continua cansada.
+// Só o SEU elenco: bot não cansa (regra do Diego desde o 1º dia).
+function guardaCansaco(s: EscState) {
+  if (!s.careerOnline || s.onlineMode === 'online') return
+  const desdeR = s.condicaoDesde === s.seasonNo ? (s.condicaoDesdeR ?? 0) : 0
+  const antes = s.condicaoCarry ?? {}
+  const chave = (c: { name: string; club: string; year: number }) => `${c.name}|${clubCanon(c.club)}|${c.year}`
+  const novo: Record<string, { g: number; j: number }> = {}
+  for (const m of s.managers) {
+    if (!m.isHuman) continue
+    const byRound = (s.careerLineup ?? {})[m.id]
+    const squad = m.squad as WonCard[]
+    // de onde cada carta partiu nesta temporada (o que foi guardado na virada passada)
+    const inicioG: Record<string, number> = {}
+    const inicioJ: Record<string, number> = {}
+    for (const c of squad) { const k = antes[chave(c)]; if (k) { inicioG[c.id] = k.g; inicioJ[c.id] = k.j } }
+    const gas = gasDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioG)
+    const jogos = jogosDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioJ)
+    // ⚠️ só quem ESTÁ no elenco entra no novo mapa: assim ele não cresce pra sempre
+    // com quem foi vendido. Se a pessoa voltar um dia, volta inteira — e tudo bem.
+    for (const c of squad) if (!c.fake) novo[chave(c)] = { g: Math.round(gas[c.id] ?? 100), j: jogos[c.id] ?? 0 }
+  }
+  s.condicaoCarry = Object.keys(novo).length ? novo : undefined
+}
 function pinHumanLineups(s: EscState) {
   if (!s.careerOnline) return
   const cl = { ...(s.careerLineup ?? {}) }
@@ -6400,6 +6429,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // Copa/valores (applyHonors/careerCopaHonors/applyScorerValues não têm trava
       // própria). A UI atual nem usa mais este caminho, mas fica blindado.
       if (s.screen === 'auction') return s
+      guardaCansaco(s) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST)
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
@@ -6443,6 +6473,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // não pegava porque o seasonNo já tinha subido). Se já estamos na tela de
       // reservas, o 2º toque não faz nada.
       if (s.screen === 'reserveList') return s
+      guardaCansaco(s) // 😓 o cansaço atravessa a virada: anota como cada um terminou
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas

@@ -181,16 +181,31 @@ ligado — não existe compra, nem obra, nem trava. A ideia de cobrar 50 🪙 (1
 **cancelada** por ordem dele: *"o preparador físico venha liberado, mantenha sem
 precisar comprar mesmo"*. ⚠️ Não propor de novo.
 
-### ⏳ Escada do gás — ESPERANDO ELE (um número impede de adivinhar)
+### ✅ Escada do gás — O CANSAÇO AGORA ATRAVESSA TEMPORADAS (escolha dele)
 Pedido: *"a combinação tava 1 a 10, depois 11, 12, 13 e 14 em diante… agora quero 1 a
-50, depois 55, 60, 65 e 70 em diante"*. **Não implementei: a temporada tem 38
-rodadas.** O gás é derivado da escalação DA TEMPORADA (`careerLineup` por rodada,
-`round` 0-37) e zera na virada — um titular joga no máximo 38 jogos. Com o 1º degrau
-em 50, **ninguém cansaria nunca** e o gás viraria enfeite. Perguntado a ele: esticar
-dentro da temporada (ex.: 1-20 · 25 · 30 · 35+) ou fazer o cansaço ATRAVESSAR
-temporadas (aí 50/55/60/65/70 fecham, e é mudança de regra). Qualquer um dos dois é
-trocar `GAS_JOGO`/`GAS_CANSADO`/`GAS_LIMITE`/`GAS_ESGOTADO` em `condicao.ts` e rodar
-`npx tsx scripts/testa-condicao.mjs`.
+50, depois 55, 60, 65 e 70 em diante"*. Eu avisei o número que impedia: **a temporada
+tem 38 rodadas** e o gás zerava na virada, então o 1º degrau em 50 jogos deixaria o
+gás de enfeite. Dei as saídas e ele escolheu **"o cansaço atravessa temporadas"**.
+
+**Como ficou** (`condicao.ts` + `condicaoCarry` em types.ts):
+- `GAS_JOGO` 7 → **1,4** · `GAS_BANCO` 15 → **4** · bandas 35/25/20 → **25/18/11**.
+- Escada em JOGOS SOMADOS DA CARREIRA: **1º–54º inteiro · 55º 😓 · 60º 🥵 · 65º+ 🚑**
+  (medido com `scripts/testa-condicao.mjs`, que agora testa exatamente esses degraus).
+- Banco: 😓 volta inteiro com **1** rodada fora · 🥵 com **2** · 🚑 com **4**.
+- Uma temporada inteira jogando tudo (38 jogos) termina em **46,8%** — ou seja, quem
+  não rodiza começa a sentir no meio da 2ª temporada. Era esse o pedido.
+- 🧮 **O gás continua DERIVADO dentro da temporada** (passado imutável, zero migração).
+  O que atravessa é só o PONTO DE PARTIDA: na virada, `guardaCansaco()` anota como
+  cada jogador do SEU elenco terminou (gás + jogos somados) em `condicaoCarry`.
+  Chave = **identidade da carta** (`nome|clube|ano`), não o id — no leilão a mesma
+  pessoa ganha id novo e é ela que continua cansada. Só o seu elenco (bot não cansa),
+  e só quem ficou no elenco entra no mapa, pra ele não crescer pra sempre.
+- ⚠️ O gás virou **float** (−1,4/jogo): `gasDoElenco` arredonda a 1 casa A CADA passo
+  (sem isso, ~70 jogos acumulam lixo tipo `93.99999999999994` e a escada não cai no
+  degrau certo) e a tela mostra `Math.round`. A conta segue cheia.
+- Save antigo entra sem `condicaoCarry` = todo mundo em 100% e 0 jogos. Sem migração.
+- Banner do Guia e a linha de novidade de 12/09 reescritos (o texto dizia "dez jogos").
+Reverter = voltar as 5 constantes e tirar o `condicaoCarry` (1 commit).
 
 ## 13/09/2026 — 🏛️ SALÃO DOS BATISMOS ABERTO PRA TODO MUNDO (com duas coisas escondidas)
 

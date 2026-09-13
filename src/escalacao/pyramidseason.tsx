@@ -3179,8 +3179,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     if (condicao.suspensoId === c.id) return <span style={{ ...lbl, color: '#7C3AED' }}>🩹 {tr('fora', 'out')}</span>
     const mv = condicao.volta(c.id)
     if (mv) { const p = pctVolta(mv); return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, '#7C3AED')} /></span><span style={{ ...lbl, color: '#7C3AED' }}>🩹 {p}%</span></span> }
+    // ⚠️ o gás é FLOAT desde 13/09 (−1,4 por jogo, porque o cansaço atravessa
+    // temporadas): arredonda SÓ pra mostrar — a conta segue cheia.
     const g = condicao.gas[c.id] ?? 100, e = estadoGas(g), cor = corGas(e)
-    return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(g, cor)} /></span><span style={{ ...lbl, color: cor }}>{g}%</span></span>
+    return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(g, cor)} /></span><span style={{ ...lbl, color: cor }}>{Math.round(g)}%</span></span>
   }
   // 😓 NO CAMPINHO NÃO (Diego 12/09: *"não quero que apareça no campinho, só onde
   // tem a listagem"*) — o gás vive só nas listas de titulares/reservas.
@@ -4154,8 +4156,8 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           {condicao && (
             <UnlockBanner k="condicao" tag={tr('😓 regra nova', '😓 new rule')} title={tr('Seus jogadores agora cansam', 'Your players get tired now')} ctaBg={GREEN} ctaColor="#fff">
               {getLang() === 'en'
-                ? <>Série C is professional football: from this round on, every match as a starter costs <b>{GAS_JOGO} energy</b>, every round on the bench gives <b>+{GAS_BANCO}</b> back. Ten matches in a row and he is still fine; the <b>11th</b> he is <b>tired</b> (😓, −1 in the match), the <b>12th</b> <b>running on empty</b> (🥵, −2 and double the injury risk), from the <b>13th</b> on <b>completely spent</b> (🚑, −3 and triple the risk). From 🥵 on he can also <b>break down</b> (15% per match; 30% when 🚑) and miss 1-3 rounds. Injuries come back <b>gradually</b> (60% → 80% → 100%). Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots don't get tired — rotate well and you won't feel a thing either.</>
-                : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular custa <b>{GAS_JOGO} de gás</b>, cada rodada no banco devolve <b>+{GAS_BANCO}</b>. Dez jogos seguidos ele aguenta inteiro; no <b>11º</b> está <b>cansado</b> (😓, −1 no jogo), no <b>12º</b> <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>13º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (15% por jogo; 30% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
+                ? <>Série C is professional football: from this round on, every match as a starter burns energy and every round on the bench gives some back — and <b>it carries over between seasons</b>, it doesn't reset. Around <b>54 matches</b> he is still fine; near the <b>55th</b> he gets <b>tired</b> (😓, −1 in the match), near the <b>60th</b> he is <b>running on empty</b> (🥵, −2 and double the injury risk), from the <b>65th</b> on he is <b>completely spent</b> (🚑, −3 and triple the risk). From 🥵 on he can also <b>break down</b> (15% per match; 30% when 🚑) and miss 1-3 rounds. Injuries come back <b>gradually</b> (60% → 80% → 100%). Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots don't get tired — rotate well and you won't feel a thing either.</>
+                : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular gasta gás e cada rodada no banco devolve um tanto — e isso <b>atravessa as temporadas</b>, não zera na virada. Até uns <b>54 jogos</b> ele aguenta inteiro; lá pelo <b>55º</b> fica <b>cansado</b> (😓, −1 no jogo), pelo <b>60º</b> está <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>65º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (15% por jogo; 30% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
             </UnlockBanner>
           )}
           <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} />
@@ -5833,13 +5835,27 @@ export function PyramidSeasonScreen() {
   // (cansaço −1/−2 e volta gradual da lesão). Derivado da escalação congelada —
   // rodada passada nunca muda de valor. Desligado = {} = simulação idêntica.
   const condOn = condicaoAtiva(state)
+  // 😓 DE ONDE CADA UM COMEÇOU ESTA TEMPORADA (13/09: o cansaço atravessa a virada).
+  // O save guarda por IDENTIDADE da carta (nome|clube|ano), porque o leilão troca o
+  // id; aqui viramos isso num mapa por id, que é o que as contas usam.
+  const condInicio = useMemo(() => {
+    const carry = state.condicaoCarry
+    const me = state.managers[state.youIdx]
+    if (!carry || !me) return undefined
+    const g: Record<string, number> = {}, j: Record<string, number> = {}
+    for (const c of me.squad as WonCard[]) {
+      const k = carry[`${c.name}|${c.club}|${c.year}`]
+      if (k) { g[c.id] = k.g; j[c.id] = k.j }
+    }
+    return { g, j }
+  }, [state.condicaoCarry, state.managers, state.youIdx])
   // 1ª rodada que conta: só na temporada em que a regra chegou pra quem já estava em C/B/A
   const condDesdeR = state.condicaoDesde === (state.seasonNo ?? 1) ? (state.condicaoDesdeR ?? 0) : 0
   const condMods = useMemo<RoundCardMods>(() => {
     if (!condOn) return {}
     const me = state.managers[state.youIdx]
     if (!me) return {}
-    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR)
+    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR, condInicio?.g)
     return Object.keys(mods).length ? { [me.id]: mods } : {}
   }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR])
   const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods])
@@ -6270,8 +6286,8 @@ export function PyramidSeasonScreen() {
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
   // 😓 gás e nº de jogos de cada carta ANTES do próximo jogo (pra aba Elenco e
   // pro sorteio da lesão). null = condição desligada nesta carreira/temporada.
-  const condGas = useMemo(() => (condOn && mgrMe ? gasDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR])
-  const condJogos = useMemo(() => (condOn && mgrMe ? jogosDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR])
+  const condGas = useMemo(() => (condOn && mgrMe ? gasDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR, condInicio?.g) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR, condInicio])
+  const condJogos = useMemo(() => (condOn && mgrMe ? jogosDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR, condInicio?.j) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR, condInicio])
 
   // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
   const soloCareer = state.onlineMode !== 'online'
