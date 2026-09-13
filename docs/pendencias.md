@@ -1,3 +1,9 @@
+## 13/09/2026 — Rodapé do Online igual ao apoio compacto da home
+
+- Pedido aprovado pelo Diego: substituir todo o rodapé antigo do lobby pelo mesmo SupportFooter e estilo compacto da home, abrindo os mesmos planos.
+- Removidos do rodapé do Online: botão Pix avulso, contatos, assinatura, versão e saída de emergência duplicada. Mantidos no lobby os botões Menu inicial, Sair da conta e Painel do Criador. Home e rodapés de partidas não alterados; saída de emergência continua nas partidas.
+- História do Diego permanece dentro dos planos. Alteração isolada, sem preços, benefícios, login ou regras de jogo alterados.
+
 ## 13/09/2026 — Conta única no Online/Carreira e cadastro curto (aprovado pelo Diego)
 
 - Minha conta consulta a sessão existente e acompanha entrada/saída: mostra nome do time, e-mail, continuar e saída com confirmação. Mesma conta Supabase; nenhum usuário, save, tier ou regra de acesso migrado.

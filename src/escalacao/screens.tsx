@@ -649,6 +649,13 @@ export function GameFooter() {
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
   if (privatePreview && state.careerIntent && state.screen === 'setup') return null
+  // No lobby, a navegação já está acima. Mesmo apoio compacto da home,
+  // sem duplicar contatos, assinatura e saída no rodapé.
+  if (state.screen === 'lobby') return (
+    <footer className="game-contact-footer ll-support-home-tail">
+      <ApoieButton trigger={open => <SupportFooter onOpen={open} />} />
+    </footer>
+  )
   const goHome = () => {
     if (!window.confirm(tr('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.', 'Back to the home screen? If you got stuck on a blank screen, this fixes it. A match in progress (on this screen) will be ended.'))) return
     try { localStorage.removeItem('esc-solo-inprogress-v1') } catch { /* ignora */ }
