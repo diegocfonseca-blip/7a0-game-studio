@@ -21,8 +21,8 @@ const CARTAS = [
 
 createRoot(document.getElementById('root')!).render(
   <div style={{ padding: 18, fontFamily: 'Oswald, sans-serif', background: '#F4ECD6', minHeight: '100vh', color: '#0C0C0C' }}>
-    <h1 style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 22, textTransform: 'uppercase', margin: '0 0 4px' }}>🔬 rosto x texto da carta — cartas reais do baralho</h1>
-    <p style={{ fontWeight: 700, fontSize: 12.5, margin: '0 0 14px', color: 'rgba(12,12,12,.7)' }}>O ROSTO acerta sempre (é por nome+clube+ano). O TEXTO é só por NOME — por isso o Dani Alves do Bahia e o Kaká do São Paulo aparecem com a ficha da lenda.</p>
+    <h1 style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 22, textTransform: 'uppercase', margin: '0 0 4px' }}>🔬 tier x rosto x texto da carta — cartas reais do baralho</h1>
+    <p style={{ fontWeight: 700, fontSize: 12.5, margin: '0 0 14px', color: 'rgba(12,12,12,.7)' }}>TIER e ROSTO acertam (é por nome+clube+ano): Barcelona/Milan = 👑 LENDA dourada, Bahia/São Paulo = 💎 PROMESSA roxa. O TEXTO ainda é só por NOME — por isso a carta do garoto conta a história da lenda.</p>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 190px)', gap: 14 }}>
       {CARTAS.map((c, i) => (
         <div key={i} data-carta={`${c.name}|${c.club}|${c.year}`}>

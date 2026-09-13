@@ -18,7 +18,7 @@ import { OnlineScorePresentation, CompactPenalties } from './online-match-visual
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { careerCupAssists } from './career-match-model'
 import { exactPenaltyRows } from './online-penalties'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
@@ -1266,14 +1266,16 @@ const EMP_EN: Record<EmpCat, { label: string; req: string }> = {
 }
 const empMeta = (k: EmpCat) => (getLang() === 'en' ? { ...EMP_META[k], ...EMP_EN[k] } : EMP_META[k])
 const agKeyOf = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
-const agTier = (c: { fame?: number; promessa?: boolean }): { grad: string; ink: string; holo?: boolean } =>
-  c.promessa ? { grad: 'linear-gradient(150deg,#C9A9FF,#8B5CF6,#5B2FB0)', ink: '#fff', holo: true }
+// 💎 tier do quadradinho: pela CARTA (nome|clube|ano), não pelo flag solto — carta
+// que veio do álbum da nuvem chega SEM `promessa` (ver `ehPromessa` em data.ts).
+const agTier = (c: { name: string; club?: string; year?: number; fame?: number; promessa?: boolean }): { grad: string; ink: string; holo?: boolean } =>
+  ehPromessa(c) ? { grad: 'linear-gradient(150deg,#C9A9FF,#8B5CF6,#5B2FB0)', ink: '#fff', holo: true }
     : (c.fame ?? 1) >= 5 ? { grad: 'linear-gradient(150deg,#FFE79A,#FFC400,#E8A200)', ink: INK, holo: true }
     : (c.fame ?? 1) === 4 ? { grad: 'linear-gradient(150deg,#F4F7FB,#CBD4DE,#9BA7B5)', ink: INK, holo: true }
     : (c.fame ?? 1) >= 2 ? { grad: 'linear-gradient(150deg,#41C07A,#2E9E5B,#1E7A45)', ink: '#fff' }
     : { grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E,#B2A583)', ink: INK }
-const agChip = (c: { fame?: number; promessa?: boolean }) =>
-  c.promessa ? { t: tr('💎 PROMESSA', '💎 PROSPECT'), bg: '#8B5CF6', ink: '#fff' }
+const agChip = (c: { name: string; club?: string; year?: number; fame?: number; promessa?: boolean }) =>
+  ehPromessa(c) ? { t: tr('💎 PROMESSA', '💎 PROSPECT'), bg: '#8B5CF6', ink: '#fff' }
     : (c.fame ?? 1) >= 5 ? { t: tr('👑 LENDA', '👑 LEGEND'), bg: GOLD, ink: INK }
     : (c.fame ?? 1) === 4 ? { t: tr('⭐ CRAQUE', '⭐ STAR'), bg: '#E4E9F0', ink: INK }
     : (c.fame ?? 1) >= 2 ? { t: tr('🎯 BOM', '🎯 GOOD'), bg: '#2E9E5B', ink: '#fff' }
@@ -1400,7 +1402,7 @@ function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube
                   {c.folk && <span style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(0,0,0,.75)', color: '#fff', borderRadius: 999, fontSize: 6.5, fontWeight: 900, padding: '1px 5px' }}>🃏 +1</span>}
                   <span style={{ width: 26, height: 26, borderRadius: 999, border: '2px solid rgba(0,0,0,.28)', display: 'grid', placeItems: 'center', ...OSWALD, fontWeight: 900, fontSize: 13, background: 'rgba(255,255,255,.85)', color: INK }}>{c.name.trim()[0]?.toUpperCase() ?? '?'}</span>
                   <span style={{ ...OSWALD, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.1, color: t.ink }}>{c.name}</span>
-                  <span style={{ fontSize: 6.5, letterSpacing: .5 }}>{c.promessa ? '💎💎💎' : '⭐'.repeat(Math.max(1, Math.min(5, c.fame)))}</span>
+                  <span style={{ fontSize: 6.5, letterSpacing: .5 }}>{ehPromessa(c) ? '💎💎💎' : '⭐'.repeat(Math.max(1, Math.min(5, c.fame)))}</span>
                 </button>
               )
             })}
@@ -3202,7 +3204,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   const overallChip = (c: WonCard) => {
     if (!c.lo || !c.hi || c.fake) return null
     if (olheiroTier !== 'ouro' && !(olheiroTier === 'prata' && c.fame < 5)) return null
-    const isProm = !!c.promessa
+    const isProm = ehPromessa(c) // 💎 pela CARTA, nunca só pelo flag/nome
     const [g, ink2] = c.fame >= 5 ? ['linear-gradient(150deg,#FFE79A,#FFC400)', INK]
       : c.fame === 4 ? ['linear-gradient(150deg,#F4F7FB,#CBD4DE)', INK]
       : isProm ? ['linear-gradient(150deg,#C9A9FF,#8B5CF6)', '#fff']

@@ -2366,8 +2366,18 @@ export const CATALOG_BOTH: Record<Sector, C[]> = {
   ATA: [...CATALOG.ATA, ...CATALOG_EU.ATA, ...CATALOG_WORLD.ATA],
 }
 
-// nomes marcados como PROMESSA (5º tier) — usado no álbum quando o flag não vem no dado
-export const PROMESSA_SET = new Set([...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat()].filter(c => c.promessa).map(c => c.name))
+// nomes marcados como PROMESSA — última rede do `ehPromessa()` (ver lá embaixo, do
+// lado do `clubCanon`). ⚠️ SÓ nome que tem UMA carta no baralho inteiro entra: nome
+// repetido (Dani Alves, Kaká…) tem que ser resolvido pelo trio nome|clube|ano,
+// senão a carta de LENDA vira PROMESSA roxa (bug que o Diego pegou em 13/09).
+// 🌎 e agora o baralho do MUNDO entra na conta — ficava de fora, então promessa de
+// lá (Gilberto Mora, Takefusa Kubo) nunca ganhava o 💎 sem o flag.
+export const PROMESSA_SET = (() => {
+  const todas = [...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat(), ...Object.values(CATALOG_WORLD).flat()]
+  const quantas = new Map<string, number>()
+  for (const c of todas) quantas.set(c.name, (quantas.get(c.name) ?? 0) + 1)
+  return new Set(todas.filter(c => c.promessa && quantas.get(c.name) === 1).map(c => c.name))
+})()
 
 // ─── Incógnitas: SÓ como último recurso, quando o catálogo real de uma
 // posição se esgota (salas online gigantes, com muitos bots preenchendo
@@ -2469,6 +2479,35 @@ export const CLUB_GRAFIA: Record<string, string> = {
   'Olympique Lyon': 'Lyon',
 }
 export const clubCanon = (club: string): string => CLUB_GRAFIA[club] ?? club
+
+// ─── 💎 PROMESSA: a resposta é por CARTA, nunca por NOME ─────────────────────
+// ⚠️ ACHADO DO DIEGO (13/09): *"Daniel Alves do Barcelona é lenda, Daniel Alves do
+// Bahia é promessa. Kaká do Milan é lenda, Kaká do SP é promessa"*. O antigo
+// `PROMESSA_SET` era um set de NOMES, então QUALQUER carta daquele nome que
+// chegasse SEM o flag `promessa` era pintada de roxo 💎. E chega sem flag o tempo
+// todo: a tabela `user_cards` (o álbum da nuvem) guarda só nome/clube/ano/pos/fame
+// — não guarda `promessa`. Resultado no ar: a carta 👑 LENDA do Dani Alves do
+// Barcelona e a do Kaká do Milan apareciam como 💎 PROMESSA no álbum, com a cor,
+// o selo e os 💎💎💎 errados. Eram 12 cartas (2 lendas, 6 craques).
+// Regra nova, na mesma linha do `FICHA_ATUAL` do store:
+//   1º pelo trio nome|clube|ano (resposta definitiva, pros dois lados);
+//   2º só pelo nome — e SÓ se aquele nome tiver UMA carta no baralho inteiro
+//      (assim save velho com clube/ano de antes ainda acerta, sem contaminar
+//      o outro auge da mesma pessoa).
+const CARTAS_TODAS = [...Object.values(CATALOG).flat(), ...Object.values(CATALOG_EU).flat(), ...Object.values(CATALOG_WORLD).flat()]
+const chaveCarta = (name: string, club: string, year: number) => `${name}|${clubCanon(club)}|${year}`
+const PROMESSA_CARTA = new Set(CARTAS_TODAS.filter(c => c.promessa).map(c => chaveCarta(c.name, c.club, c.year)))
+const CARTA_CONHECIDA = new Set(CARTAS_TODAS.map(c => chaveCarta(c.name, c.club, c.year)))
+/** 💎 esta CARTA é promessa? Use sempre isto — nunca `PROMESSA_SET.has(nome)`. */
+export function ehPromessa(c: { name: string; club?: string; year?: number; promessa?: boolean }): boolean {
+  if (c.promessa != null) return !!c.promessa                       // o dado manda
+  if (c.club != null && c.year != null) {
+    const k = chaveCarta(c.name, c.club, c.year)
+    if (PROMESSA_CARTA.has(k)) return true
+    if (CARTA_CONHECIDA.has(k)) return false                        // é do baralho e NÃO é promessa: fim
+  }
+  return PROMESSA_SET.has(c.name)                                   // só nome único cai aqui
+}
 
 export const OLD_NAME: Record<string, string> = {
   'Milhaça FC': 'Real Bets', // ⚽ batismo do igormarquesn99: save antigo com Real Bets vira Milhaça FC ao carregar (24/08)

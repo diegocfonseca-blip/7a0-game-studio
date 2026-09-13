@@ -12,7 +12,7 @@ import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCr
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { CATALOG, CATALOG_EU, BIOS, PROMESSA_SET, TIMES_ELITE } from './data'
+import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
 import type { ApoioTier } from './apoio'
@@ -1298,7 +1298,7 @@ function NbaCourt({ m }: { m: Manager }) {
     { pos: 'GOL', x: 50, y: 84 }, // PG · armador
   ]
   const surname = (n: string) => n.replace(/\s*\(.*?\)\s*/g, ' ').trim().split(' ').pop() || n
-  const isProm = (c: Card) => c.promessa ?? PROMESSA_SET.has(c.name)
+  const isProm = (c: Card) => ehPromessa(c) // 💎 pela CARTA (nome|clube|ano), nunca só pelo nome
   const tierOf = (c: Card) => (isProm(c) ? PROMESSA_TIER : (FAME_TIER[c.fame] ?? FAME_TIER[1]))
   const tierEmoji = (c: Card) => (isProm(c) ? '💎' : c.fame >= 5 ? '👑' : c.fame === 4 ? '⭐' : c.fame === 1 ? '🪵' : '🎯')
   return (
@@ -6458,7 +6458,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
   const x = cv.getContext('2d'); if (!x) return null
   try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
   const OSW = 'Oswald, sans-serif'
-  const isProm = c.promessa ?? PROMESSA_SET.has(c.name)
+  const isProm = ehPromessa(c) // 💎 pela CARTA, nunca só pelo nome
   const grads: Record<string, [string, string, string]> = {
     prom: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], f5: ['#FFE79A', '#FFC400', '#E8A200'],
     f4: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], f3: ['#41C07A', '#2E9E5B', '#1E7A45'], f1: ['#DBD1B5', '#CBBF9E', '#B2A583'],
@@ -6923,7 +6923,7 @@ function fallbackBio(fame: number, pos: string): string {
 }
 export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean }) {
   const avatarPreview = useLegendPresentation() && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(pos) && !!avatarLote1(name, club, year)
-  const isProm = promessa ?? PROMESSA_SET.has(name)
+  const isProm = ehPromessa({ name, club, year, promessa }) // 💎 pela CARTA, nunca só pelo nome
   const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
   const foto = fotoDoJogador(name)
@@ -6976,7 +6976,7 @@ async function shareCardImage(c: { name: string; club: string; year: number; pos
   const x = cv.getContext('2d'); if (!x) return
   try { await document.fonts.load('900 60px Oswald') } catch { /* segue */ }
   const OSW = 'Oswald, sans-serif'
-  const isProm = c.promessa ?? PROMESSA_SET.has(c.name)
+  const isProm = ehPromessa(c) // 💎 pela CARTA, nunca só pelo nome
   const grads: Record<string, [string, string, string]> = {
     prom: ['#C9A9FF', '#8B5CF6', '#5B2FB0'], f5: ['#FFE79A', '#FFC400', '#E8A200'],
     f4: ['#F4F7FB', '#CBD4DE', '#9BA7B5'], f3: ['#41C07A', '#2E9E5B', '#1E7A45'],

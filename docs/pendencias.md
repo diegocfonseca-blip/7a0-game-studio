@@ -18,6 +18,51 @@ o escudo, manto e mascote"*.
   Post gerado com `mockup-batismo.mjs --renovacao --camisa scripts/kits/sevencity-camisa.webp`
   (sem `--coracao`: não sabemos o time de coração dele).
 
+## 13/09/2026 — 💎👑 Carta de LENDA aparecia como PROMESSA roxa — CORRIGIDO
+
+Achado do Diego: *"Daniel Alves do Barcelona é lenda, Daniel Alves do Bahia é
+promessa. Kaká do Milan é lenda, Kaká do SP é promessa"* — e no álbum os dois
+apareciam ROXOS.
+
+**Causa:** `PROMESSA_SET` (data.ts) era um set de **NOMES**, e quatro telas faziam
+`c.promessa ?? PROMESSA_SET.has(nome)`. Carta que chega **sem o flag** era pintada
+de 💎 pelo nome — e chega sem flag o tempo todo, porque a tabela `user_cards` (o
+álbum da nuvem) guarda só `card_name/club/year/pos/fame`, não guarda `promessa`.
+Resultado no ar: **12 cartas com o tier errado, 2 delas LENDAS** (Dani Alves
+Barcelona 2011, Kaká Milan 2007) + 6 craques (Casemiro, Coutinho, Pato, Firmino,
+Rodrygo, Aldair). Fere a regra sagrada dele: cor de tier não se empresta.
+
+**Conserto:** `ehPromessa({name, club, year, promessa})` em `data.ts` —
+1º o flag do dado, 2º o trio nome|clube|ano (resposta definitiva pros DOIS lados),
+3º só o nome, e **só se aquele nome tiver UMA carta no baralho inteiro** (mesma
+trava do `FICHA_ATUAL.porNome` do store; salva save velho sem contaminar o outro
+auge). `PROMESSA_SET` virou só-nome-único e agora inclui o **baralho do Mundo**,
+que ficava de fora (Gilberto Mora e Takefusa Kubo nunca ganhavam o 💎).
+Trocado nos 6 lugares: `CollectibleCard`, a carta do pacote, o `shareCardImage`,
+o `isProm` da cerimônia (screens) + `agTier`/`agChip`/estrelinhas da Agência e o
+`overallChip` do Elenco (pyramidseason).
+**Medido:** as 1464 cartas do baralho, simuladas SEM o flag, dão o tier certo
+(`scripts/teste-rosto/` monta as cartas de verdade na tela).
+
+📖 **PENDENTE, esperando o Diego decidir: a BIO também é só por NOME.**
+`BIOS[name]` em `screens.tsx` — a carta do garoto veste o texto da lenda: Dani
+Alves do Bahia diz *"Revolucionou a lateral no Barcelona"*, Kaká do São Paulo diz
+*"Último brasileiro a ganhar a Bola de Ouro"*. São **102 cartas de 57 nomes**, 13
+delas promessas. Os nomes que são PESSOAS DIFERENTES (Pepe, Reinaldo, Alex,
+Gérson) já têm bio própria em cada carta, então esse lado está coberto.
+Duas saídas oferecidas: (a) travar (nome repetido não pega a bio compartilhada; a
+carta do garoto cai no texto neutro de promessa) — zero invenção, sai na hora; ou
+(b) escrever a bio do momento certo das 13 promessas — como é gente de verdade, a
+lista vai pra ele conferir ANTES de entrar.
+
+🕴️ **PENDENTE também: rosto na gradezinha dos agenciados.** Mockup entregue
+(`scripts/mockup-agenciados-rosto.mjs`). Hoje os quadradinhos desenham só a letra,
+mesmo pra quem tem rosto. Medido: **as 156 artes são TODAS de carta 👑 LENDA** —
+o Diego já sabia (*"as fotos de avatar são apenas nas lendas"*).
+E as **5 cartas velhas** que perderam o rosto porque a gente renomeou a carta
+(Zidane RM2002→Juve1998 com 86 donos, Zizinho, Marcos, Ibrahimović, Ronaldinho)
+continuam esperando o OK pro apelido em `legend-avatars.ts`.
+
 ## 12/09/2026 (noite) — 🪑 "Novo leilão" trocava o convidado de cadeira (Copa do Mundo sem o campeão) — CORRIGIDO
 
 Relato do Diego (live do Futpoint, sala **EHWPR4**, 3 pessoas na 1ª partida → 2 na
