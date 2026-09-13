@@ -1,3 +1,48 @@
+## 13/09/2026 — 🏆 PATROCINADOR MASTER (contrato de vários anos) — 🎨 mockup entregue, esperando o Diego
+
+Pedido dele: *"hoje o patrocínio é uma aposta. Agora eu quero fazer um patrocinador
+MASTER, que é com base em CONTRATOS. Um que vai fazer um ano, outro dois, outro três,
+outro quatro, outro cinco, e sugestões de valores, e tudo vai variar com base na
+divisão que o cara está. Se ele fechou na Várzea um contrato de cinco temporadas e
+logo na segunda já vai pra Série D, não importa, continua ganhando aquele valor. Só
+quando acabar o contrato é que chega outra proposta. Ele aparece PRIMEIRO do que o
+das apostas. E o das apostas passa a se chamar PATROCINADOR PONTUAL."*
+
+**Mockup**: `node scripts/mockup-patrocinio-master.mjs`. **Nada no código ainda.**
+
+**Como está hoje** (`estadiodata.ts` + `career-sponsor-visual.tsx` + `estadio.tsx`):
+o patrocínio é uma APOSTA de uma temporada — 3 metas (🛡️ não cair · 📈 top 4 ·
+👑 campeão), 3 marcas por meta, valor por divisão em `SPONSOR_BET_PAY`
+(V 2/4/6 · D 4/8/12 · C 8/16/24 · B 16/32/48 · A 32/64/96), pago no fecho da
+temporada por `sponsorBetRewards`, com garantia de 🎖️ fidelidade se repetir a marca.
+
+**A régua proposta pro Master** (por temporada, paga TODA temporada do contrato):
+1 temporada = a aposta 🛡️ não cair da divisão · cada temporada a mais soma METADE
+desse valor · 5 temporadas = exatamente o que 👑 campeão pagaria, só que garantido.
+V 2·3·4·5·6 · D 4·6·8·10·12 · C 8·12·16·20·24 · B 16·24·32·40·48 · A 32·48·64·80·96.
+Reaproveita a escala que o jogo já tem — nenhuma régua nova.
+
+**Marcas propostas** (uma por prazo, como ele descreveu): 📻 Rádio Grito de Gol (1) ·
+🚚 Pé-de-Ferro Transportes (2) · 🏦 Banco Gol de Placa (3) · ✈️ AeroCraque (4) ·
+⚡ Trovão Energia (5). A cada proposta aparecem 3 das 5.
+
+**Regras fechadas com ele** (dele, não minhas): o valor CONGELA na divisão da
+assinatura e não muda subindo nem caindo · só chega proposta nova quando o contrato
+ACABA (sem rescisão) · o Master aparece ACIMA do Pontual · o de aposta passa a se
+chamar **Patrocinador Pontual**.
+
+**⏳ 3 decisões que ficaram com ele** (perguntadas no mockup):
+1. Na Série A o prazo longo não tem custo (não há pra onde subir) — sugeri limitar a
+   Série A a 3 temporadas, mas é escolha dele.
+2. Master e Pontual SOMAM (foi como desenhei) ou o Master substitui o Pontual?
+3. Os nomes das marcas — ele pode querer amigos, como Vadico/ERO/Max Joias/Rei das Tintas.
+
+**Quando for implementar**: campo novo e opcional no save (contrato + temporada de
+início + divisão travada), pagamento junto de `sponsorBetRewards` no `CLOSE_SEASON_BOOKS`,
+proposta no começo da temporada só quando não houver contrato correndo, e a régua na
+aba Clube › Patrocínio. Carreira antiga recebe a 1ª proposta como se o contrato
+anterior tivesse acabado. Tudo em PT e EN.
+
 ## 13/09/2026 — 🔁 RODÍZIO AUTOMÁTICO do preparador (pedido do Diego) — ✅ no ar
 
 Palavras dele: *"o botão que o preparador pede pra trocar, coloque apenas quando
