@@ -31,6 +31,12 @@ no pregão da T14 só os dois.
   `seasonNo = último + 1` (ou = último, se veio de pregão abandonado). Antes toda passagem
   pela espera recomeçava em "Temporada 1" com 13 na estante.
 - Textos do `AVISO_REABRE` avisam do botão.
+- 🗄️ **2ª migração** (`liga_reabre_pelo_dono_no_pregao_antes_da_1a_rodada`): o DONO que
+  fecha o jogo e vai em Minhas ligas › 📤 Convidar/Entrar também reabre a espera quando a
+  liga está no pregão com `round = 0` (a temporada não aconteceu); grava
+  `ligaRepeteTemporada` no game_state pra próxima abertura repetir o número. Convidado
+  segue lendo `rolando`/`meio`. Pergunta do Diego: *"ele pode fechar e entrar no online e
+  ir em Minhas ligas né"* → sim, por este caminho.
 - 🏆 **`ligaMode` no estado** (novo): `START_ONLINE` recebe `liga` (lobby e "novo leilão"
   passam) — o estado passa a saber que a sala é Minhas Ligas. TUDO acima é gated por ele:
   **o Rápido online não muda em nada** (o Diego reforçou duas vezes).
