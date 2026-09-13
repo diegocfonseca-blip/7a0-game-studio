@@ -9,6 +9,12 @@
          pra nao ficar POR BAIXO da barrinha (ver a barra Inicio/Regras/Album). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Leilão Legends</title>
+    <!-- 🛡️ SEM TRADUTOR AUTOMÁTICO (13/09, "Ops, algo deu errado" nas quartas da Copa,
+         Chrome no iPhone: "The object can not be found here" em removeChild). O tradutor
+         do navegador reescreve os textos da tela por fora do React; na próxima troca de
+         fase o React tenta tirar um nó que já não está onde deixou e a tela cai. O jogo
+         já é BR/EN por conta própria (botão no header), então tradutor de fora só atrapalha. -->
+    <meta name="google" content="notranslate">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -35,7 +41,7 @@
   <meta name="twitter:image" content="https://leilaolegends.com/og.png?v=4">
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root" translate="no"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

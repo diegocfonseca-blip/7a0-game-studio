@@ -42,9 +42,20 @@ const listeners = new Set<() => void>()
 
 export function getLang(): Lang { return current }
 
+// 🏷️ o <html lang> acompanha o idioma da tela. Com o jogo em EN e o lang parado em
+// "pt-BR", o navegador achava que a página estava "em outra língua" e oferecia/aplicava
+// tradução automática — que reescreve a tela por fora do React e derruba o jogo
+// ("Ops, algo deu errado" nas quartas da Copa, 13/09). Junto com o notranslate do
+// index.html, fecha essa porta.
+function aplicaLangNoHtml(l: Lang): void {
+  try { if (typeof document !== 'undefined') document.documentElement.lang = l === 'en' ? 'en' : 'pt-BR' } catch { /* ignora */ }
+}
+aplicaLangNoHtml(current)
+
 export function setLang(l: Lang): void {
   if (l === current) return
   current = l
+  aplicaLangNoHtml(l)
   try { localStorage.setItem(LS_KEY, l) } catch { /* ignora */ }
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }

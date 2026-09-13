@@ -1,3 +1,23 @@
+## 13/09/2026 — 😵 "Ops, algo deu errado" nas quartas da Copa (Internacional de Madrid, iPhone) — 🛡️ blindado, causa provável de fora
+
+Print do Matheus Stefanello (`matheusstefanello372@gmail.com`, T1 Várzea, Chrome no iPhone):
+tela de erro do jogo com **"The object can not be found here"** em `removeChild` (é o
+NotFoundError do WebKit — no Chrome de PC seria "The node to be removed is not a child").
+- **Reproduzi a Copa INTEIRA com o save dele** (`scripts/repro-copa-inteira.mjs`, novo):
+  Peneira (ele caiu pro Crias do Bigão) → 64 → 32 → oitavas → quartas → semi → final →
+  Supercopa, **sem nenhum erro de página**. No código não há nada que mexa no DOM por fora
+  do React durante a Copa, nem key duplicada nas listas da fase.
+- Essa assinatura de erro é a clássica de **tradutor automático do navegador** (ou
+  extensão): ele reescreve os textos por fora do React; na troca de fase o React tenta tirar
+  um nó que já não está onde deixou e a tela cai. Não dá pra provar sem o aparelho dele.
+- **Blindagem (zero risco):** `<meta name="google" content="notranslate">` +
+  `translate="no"` no `#root` (index.html) e `<html lang>` passa a acompanhar o idioma do
+  jogo (`aplicaLangNoHtml` em `lang.ts`; antes ficava "pt-BR" com a tela em EN, o que
+  convida o navegador a traduzir). O jogo já é BR/EN por conta própria.
+- Pro jogador: "Voltar ao início" → Continuar; o save não foi tocado (a Copa re-anima da
+  1ª fase, resultado igual). Se voltar a acontecer, perguntar se o Chrome ofereceu
+  "traduzir página" e se tem extensão/tradutor ligado.
+
 ## 13/09/2026 — 📊 Barrinha de gás "cai rápido demais" — leitura nova, ✅ aprovado ("Perfeito isso aí") e no ar
 
 Palavras dele: *"as barrinhas estou achando que está diminuindo muito rápido… não quero
