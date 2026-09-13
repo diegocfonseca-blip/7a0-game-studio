@@ -1,3 +1,10 @@
+## 13/09/2026 — Time de coração: lista curta alfabética e Outros
+
+- Minha conta: 12 clubes da antiga lista inicial em ordem alfabética (Atlético-MG, Botafogo, Corinthians, Cruzeiro, Flamengo, Fluminense, Grêmio, Internacional, Palmeiras, Santos, São Paulo, Vasco), Não informar no começo e Outros no final.
+- Outros abre um campo de nome (até 60 caracteres). Salvar preferência grava o nome real em auth.users.raw_user_meta_data.time_coracao, via updateUser do próprio usuário; não grava a palavra Outros. Campo vazio pede nome ou Não informar. Valores antigos fora da lista reaparecem preenchidos em Outros.
+- Preferência é opcional e informativa, sem conceder cores, manto ou benefícios. Nenhuma alteração de schema, RLS, autenticação ou cadastro; sessão renovada não apaga o rascunho da preferência.
+- Validação: navegador com API simulada (nome vazio bloqueado, Remo salvo e relido ao reabrir), lista completa e ordenada conferida; teste de regressão e build completo. Gravação continua dependente do botão Salvar preferência e confirmação de sucesso.
+
 ## 13/09/2026 — Rodapé do Online igual ao apoio compacto da home
 
 - Pedido aprovado pelo Diego: substituir todo o rodapé antigo do lobby pelo mesmo SupportFooter e estilo compacto da home, abrindo os mesmos planos.

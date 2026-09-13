@@ -20,8 +20,10 @@ import { CampoSenha, erroSenhaNova } from './campo-senha'
 import { supabase } from '../lib/supabase'
 import { stripEmoji, emailProblema, logout } from './apoio'
 import { nomeLivre, NOME_MSG } from './manto'
-import { CORACAO_CLUBES } from './coracao'
 import { tr } from './lang' // 🌐 BR/EN do site
+
+// Lista curta do perfil; não altera o catálogo de cores usado em outras telas.
+const CLUBES_PRINCIPAIS = ['Atlético-MG', 'Botafogo', 'Corinthians', 'Cruzeiro', 'Flamengo', 'Fluminense', 'Grêmio', 'Internacional', 'Palmeiras', 'Santos', 'São Paulo', 'Vasco']
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -58,6 +60,8 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
   const [aba, setAba] = useState<Aba>(comecarEmCriar ? 'criar' : 'entrar')
   const [time, setTime] = useState('')
   const [coracao, setCoracao] = useState<string | null>(null)
+  const [outroClube, setOutroClube] = useState(false)
+  const preferenciaRecebida = useRef('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [confirmacao, setConfirmacao] = useState('')
@@ -77,7 +81,15 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
     let ativo = true
     let eventoRecebido = false
     const mostrar = (u: User | null) => {
-      setUser(u); setCoracao(u?.user_metadata?.time_coracao ?? null); setChecandoSessao(false)
+      setUser(u); setChecandoSessao(false)
+      const salvo = typeof u?.user_metadata?.time_coracao === 'string' ? u.user_metadata.time_coracao : null
+      const chave = JSON.stringify([u?.id ?? null, salvo])
+      // Renovar a sessão não apaga o nome que a pessoa ainda está digitando.
+      if (preferenciaRecebida.current !== chave) {
+        preferenciaRecebida.current = chave
+        setCoracao(salvo)
+        setOutroClube(!!salvo && !CLUBES_PRINCIPAIS.includes(salvo))
+      }
     }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_evento, sessao) => {
       if (!ativo) return
@@ -180,13 +192,16 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
 
   async function salvarPerfil(sair = false) {
     if (ocupado.current || !user) return
+    const clube = coracao?.trim().replace(/\s+/g, ' ') || null
+    if (!sair && outroClube && !clube) { setErro(tr('Digite o nome do clube ou escolha Não informar.', 'Enter the club name or choose Prefer not to say.')); setOk(''); return }
+    if (!sair && clube && clube.length > 60) { setErro(tr('Use até 60 caracteres para o nome do clube.', 'Use up to 60 characters for the club name.')); setOk(''); return }
     ocupado.current = true; setCarregando(true); setErro(''); setOk('')
     try {
-      const { error } = sair ? await logout() : await supabase.auth.updateUser({ data: { time_coracao: coracao } })
+      const { error } = sair ? await logout() : await supabase.auth.updateUser({ data: { time_coracao: clube } })
       if (error) { setErro(erroAmigavel(error.message)); return }
       if (sair) {
         setUser(null); setEmail(''); setSenha(''); setConfirmacao(''); setConfirmarSaida(false); setAba('entrar')
-      } else setOk(tr('Preferência salva.', 'Preference saved.'))
+      } else { setCoracao(clube); setOutroClube(!!clube && !CLUBES_PRINCIPAIS.includes(clube)); setOk(tr('Preferência salva na sua conta.', 'Preference saved to your account.')) }
     } catch (e) { setErro(erroAmigavel(e instanceof Error ? e.message : String(e))) }
     finally { ocupado.current = false; setCarregando(false) }
   }
@@ -214,11 +229,22 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
             <p style={{ color: '#565656', fontSize: 14, overflowWrap: 'anywhere', margin: '0 0 14px' }}>{user.email}</p>
             <p style={{ color: INK, fontSize: 13 }}>{tr('Esta é sua conta no Online e na Carreira.', 'This is your account for Online and Career.')}</p>
             <label htmlFor="conta-coracao" style={rot}>{tr('Time de coração · opcional', 'Favorite team · optional')}</label>
-            <select id="conta-coracao" value={coracao ?? ''} onChange={e => setCoracao(e.target.value || null)} style={{ ...campo, margin: '5px 0 8px' }}>
+            <select id="conta-coracao" disabled={carregando} value={outroClube ? '__outros__' : coracao ?? ''} onChange={e => {
+              const outros = e.target.value === '__outros__'
+              setOutroClube(outros); setCoracao(outros ? '' : e.target.value || null); setErro(''); setOk('')
+            }} style={{ ...campo, margin: '5px 0 8px' }}>
               <option value="">{tr('Não informar', 'Prefer not to say')}</option>
-              {coracao && !CORACAO_CLUBES.some(c => c.nome === coracao) && <option>{coracao}</option>}
-              {CORACAO_CLUBES.map(c => <option key={c.nome}>{c.nome}</option>)}
+              {CLUBES_PRINCIPAIS.map(nome => <option key={nome}>{nome}</option>)}
+              <option value="__outros__">{tr('Outros', 'Other')}</option>
             </select>
+            {outroClube && <div style={{ marginBottom: 8 }}>
+              <label htmlFor="conta-outro-clube" style={rot}>{tr('Qual é o seu clube?', 'Which club do you support?')}</label>
+              <input id="conta-outro-clube" autoFocus disabled={carregando} maxLength={60} value={coracao ?? ''}
+                onChange={e => { setCoracao(e.target.value); setErro(''); setOk('') }}
+                onKeyDown={e => { if (e.key === 'Enter') void salvarPerfil() }}
+                placeholder={tr('Digite o nome do clube', 'Enter the club name')} style={campo} />
+            </div>}
+            <p style={{ fontSize: 12, color: '#565656', margin: '0 0 8px' }}>{tr('Toque em Salvar preferência para guardar na sua conta.', 'Tap Save preference to store it in your account.')}</p>
             <button disabled={carregando} onClick={() => void salvarPerfil()} style={{ ...campo, cursor: 'pointer', marginBottom: 12 }}>{tr('Salvar preferência', 'Save preference')}</button>
             {erro && <p role="alert" style={{ color: '#C2452F', fontWeight: 700 }}>{erro}</p>}
             {ok && <p role="status" style={{ color: GREEN, fontWeight: 700 }}>{ok}</p>}
