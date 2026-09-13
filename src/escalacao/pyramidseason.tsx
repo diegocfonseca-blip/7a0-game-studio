@@ -3392,7 +3392,12 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
               </button>
             )}
             <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '6px 0 0', lineHeight: 1.4 }}>
-              {semReserva && (en ? <>No rested backup for every spot — whoever stays plays tired. <b>Sign one at the transfer auction.</b> </> : <>Sem reserva inteiro pra toda vaga — quem fica joga cansado. <b>Contrate no leilão de transferências.</b> </>)}
+              {/* 🌱 O RECADO DOS CRIAS (Diego 13/09): *"deixe uma mensagem limpa também
+                  informando sobre jogadores da base, que a ideia é ter jogadores
+                  melhores, pois os da base são ruins"*. Sem banco de verdade, quem
+                  tapa buraco de lesão é o Cria da Base — e ele é fraco de propósito.
+                  O caminho pra não depender dele é o leilão. */}
+              {semReserva && (en ? <>No rested backup for every spot — whoever stays plays tired, and if someone gets injured a <b>Cria da Base</b> fills the shirt: he is a kid, much weaker than your squad. <b>Build a real bench at the transfer auction.</b> </> : <>Sem reserva inteiro pra toda vaga — quem fica joga cansado, e se alguém se machucar quem veste a camisa é um <b>Cria da Base</b>: ele é um moleque, bem mais fraco que o seu elenco. <b>Monte um banco de verdade no leilão de transferências.</b> </>)}
               {condicao.auto ? (en ? <>Starter loses energy each match, the bench gives it back · <b>auto-rotation is on</b>: the coach already swapped for the next match — you can still change it by hand.</> : <>Titular perde gás a cada jogo, o banco devolve · <b>rodízio automático ligado</b>: o preparador já trocou pro próximo jogo — você ainda pode mexer na mão.</>) : (en ? <>Starter loses energy each match · bench gives it back each round · applies from the next match · the game never swaps for you.</> : <>Titular perde gás a cada jogo · o banco devolve a cada rodada · vale do próximo jogo · o jogo nunca troca por você.</>)}
             </p>
           </div>

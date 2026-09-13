@@ -1,4 +1,4 @@
-## 13/09/2026 — 🔁 RODÍZIO AUTOMÁTICO do preparador (pedido do Diego) — ⏸️ esperando OK visual
+## 13/09/2026 — 🔁 RODÍZIO AUTOMÁTICO do preparador (pedido do Diego) — ✅ no ar
 
 Palavras dele: *"o botão que o preparador pede pra trocar, coloque apenas quando
 for tirar o nível mesmo do jogador — não é com 50, acho que é a partir de 55,
@@ -50,8 +50,14 @@ mão · automático. Resultado:
 de sempre. Nenhum save muda de formato (`condicaoAuto` é opcional, save antigo
 abre normal e nasce desligado).
 
-**Mockup pro OK visual**: `node scripts/mockup-rodizio-auto.mjs` (3 estados da
-caixa). **Não subir pra main antes do OK do Diego** — é elemento visual novo.
+**4) 🌱 O recado dos Crias** (pedido dele junto do OK): *"deixe uma mensagem limpa
+também informando sobre jogadores da base, que a ideia é ter jogadores melhores,
+pois os da base são ruins"*. Quando falta reserva inteiro pra alguma vaga, a caixa
+agora avisa que, se vier lesão, quem veste a camisa é um **Cria da Base** — um
+moleque, bem mais fraco que o elenco — e que o caminho é montar banco no leilão.
+
+**Mockup**: `node scripts/mockup-rodizio-auto.mjs` (3 estados da caixa).
+**OK visual do Diego dado em 13/09 — no ar na main.**
 
 ## 13/09/2026 — Salão dos Batismos: vitrine pública aprovada
 
