@@ -41,6 +41,19 @@ assinatura e não muda subindo nem caindo · só chega proposta nova quando o co
 ACABA (sem rescisão) · o Master aparece ACIMA do Pontual · o de aposta passa a se
 chamar **Patrocinador Pontual**.
 
+**Visual — DECIDIDO por ele (13/09, 3ª rodada)**: *"no visual já aparecesse os 4
+painéis abertos de uma vez, já mostrando cada marca, cada temporada e cada valor a
+pagar… coloque o valor total das temporadas e o que ele ganhará por temporada, que
+é só dividir"*. Ou seja: NÃO é aba/um-de-cada-vez — são **4 papéis de contrato
+abertos** (grade 2×2 na tela do celular), cada um com logo · marca · prazo ·
+**TOTAL grande** · "= +X por temporada". Toca num, ele vai pro papel da mesa,
+assina. O TOTAL é o número principal; por temporada é a divisão. Exemplo dele:
+*"Vadico 5 temporadas, 100 moedas total → 20 por temporada"* (número ilustrativo;
+a régua real dá 120 → 24 na Série C).
+**Quando aparece (dele)**: *"abre apenas essa primeira vez pra ele o Master e,
+quando acabar a quinta, acaba o contrato e chegam novos contratos com base na
+divisão que ele vai participar"*.
+
 **⏳ O que ainda está assumido, não decidido**: o Master SOMA com o Pontual (Master =
 salário garantido, Pontual = aposta da temporada) — as 4 marcas reais continuam
 também no Pontual. Se ele achar dinheiro demais, o Master substitui o Pontual enquanto
