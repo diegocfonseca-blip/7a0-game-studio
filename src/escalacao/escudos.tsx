@@ -904,8 +904,9 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Briga de Galo': brigaDeGaloEscudoRender,
   'Briga de Galo EC': brigaDeGaloEscudoRender,
   'Briga de Galo SC': brigaDeGaloEscudoRender,
-  // 😇🐷 São Marcos Antônio FC (marcomak03) — batismo de 13/09, Série A (assento a
-  // definir pelo Diego: a Série A está toda de batismos). As 4 formas do nome.
+  // 😇🐷 São Marcos Antônio FC (marcomak03) — batismo de 13/09, Série A, no assento
+  // que era do Marolados FC (que DESCEU pra Série B). As 4 formas do nome. ⚠️ SEM o
+  // nome velho: o Marolados só mudou de divisão, continua desenhando o escudo dele.
   'São Marcos Antônio FC': saoMarcosAntonioEscudoRender,
   'São Marcos Antônio': saoMarcosAntonioEscudoRender,
   'São Marcos Antônio EC': saoMarcosAntonioEscudoRender,

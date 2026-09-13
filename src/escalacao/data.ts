@@ -2697,7 +2697,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Zé Ruela', team: 'Neymarzetti' }, // ⚽ clube BATIZADO (time do Diego, dono do jogo — ex-Paixandu)
     { name: 'Anjo Caído', team: 'Só Deus Sabe FC' }, // 🙏 clube BATIZADO por apoiador (contateste577660006 — Só Deus Sabe FC; coração Atlético Mineiro; anjo de joelhos no gramado, preto + dourado; Lenda + fundador nº65 + sócio nº43, 09/09). Assento que era do Nightfull FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Nightfull não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Pelado FR).
     { name: 'Bagrão', team: 'Bagres 1993' }, // 🐟 clube BATIZADO por apoiador (caiohcris — Bagres 1993; verde e branco, mascote o Bagre de boné; Lenda + fundador nº59 + sócio nº37, 06/09). Assento que era do White Thigs do GuGu, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o GuGu não foi renomeado, só mudou de divisão — e ele tem corrente própria de nomes velhos (Astronáutico/Sinhô Futebol) que continua valendo.
-    { name: 'Serjão', team: 'Marolados FC' }, // ⚽ clube BATIZADO por apoiador (paisagensetrilha — Marolados FC, ex-Real Madruga; molecada da várzea, Lenda + fundador, 11/08)
+    { name: 'Marcão', team: 'São Marcos Antônio FC' }, // 😇🐷 clube BATIZADO por apoiador (marcomak03 — São Marcos Antônio FC; o goleiro de auréola e o porquinho, verde-garrafa + creme; coração Palmeiras; era ⭐ Craque, virou Lenda + fundador nº68 + sócio nº49, 13/09). Assento que era do Marolados FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Marolados não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Real Madruga). ⚠️ Isto aqui é memória do repo — no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Painitto', team: 'SC Ferrari' }, // ⚽ clube BATIZADO por apoiador (adriano.ferrari — SC Ferrari, ex-Painitto FC)
     { name: 'Zé da Vidraça', team: 'Vidraceiro FC' }, // 🪟 clube BATIZADO por apoiador (guiouriques — Vidraceiro FC; Lenda + fundador nº58 + sócio nº36, 05/09). Assento que era do Murriz FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Igual ao caso do Marreco/Al Takhadao: NÃO existe OLD_NAME aqui — o Murriz não foi renomeado, só mudou de divisão, e mapear faria os dois desenharem o mesmo escudo. Escudo, mascote (🪟 O Cristal) e manto azul-vidro + preto com a arte própria do dono.
     { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)
@@ -2744,7 +2744,13 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // renomeado, só mudou de divisão — o nome velho dele (Pelado FR) segue valendo.
     { name: 'Guilherme', team: 'Nightfull FC' }, // ⚽ clube BATIZADO por apoiador (Guilherme). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
     { name: 'Comendador', team: 'Comercial das Gerais' },
-    { name: 'Fronteira', team: 'Ipiranga da Fronteira' },
+    // ⚽ Marolados FC (paisagensetrilha) DESCEU da Série A pra cá em 13/09, por decisão
+    // do Diego, pra abrir o assento do São Marcos Antônio FC. Ocupa a vaga que era do
+    // bot "Ipiranga da Fronteira" (escolhido por só existir aqui, em mais lugar nenhum
+    // do jogo). ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Marolados FC'] = 'Ipiranga da
+    // Fronteira'`: ele não foi renomeado, só mudou de divisão — o nome velho dele (Real
+    // Madruga) segue valendo.
+    { name: 'Serjão', team: 'Marolados FC' }, // ⚽ clube BATIZADO por apoiador (paisagensetrilha — Marolados FC, ex-Real Madruga; molecada da várzea, Lenda + fundador, 11/08). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
     // 🥋 White Thigs do GuGu (o 1º batismo da história) DESCEU da Série A pra cá
     // em 06/09, por decisão do Diego, pra abrir o assento do Bagres 1993. Ocupa a
     // vaga que era do bot "Estrela do Pantanal" (escolhido por só existir aqui e

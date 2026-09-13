@@ -1,4 +1,11 @@
-## 13/09/2026 — 😇🐷 BATISMO SÃO MARCOS ANTÔNIO FC (marcomak03) — Série A, ⏳ ASSENTO A DEFINIR pelo Diego
+## 13/09/2026 — 😇🐷 BATISMO SÃO MARCOS ANTÔNIO FC (marcomak03) — Série A, ✅ no ar
+
+**Assento (decisão do Diego, 13/09):** *"coloca no lugar do Marolados FC e passe ele pra
+Série B no lugar de um bot"*. São Marcos Antônio FC → Série A (linha do Marolados);
+**Marolados FC → Série B**, na vaga do bot "Ipiranga da Fronteira" (só existia em
+`data.ts`). Sem OLD_NAME (Marolados só mudou de divisão; o nome velho Real Madruga segue).
+Carreira antiga não sente (placements no save). Linha em `novidades.ts` (PT/EN) sem dizer
+de quem era o assento.
 
 Pedido: *"marcomak03@gmail.com que era Craque virou batismo de 69,90 da Série A… segue
 arte… e Palmeiras hein"*. Conta existe (24/07, display "Marco Antonio", era ⭐ prata).
@@ -11,9 +18,8 @@ arte… e Palmeiras hein"*. Conta existe (24/07, display "Marco Antonio", era �
   `saomarcos_porco` + `CARIMBO_GOL` (4 formas + caixa alta) + `MASCOTE_NOME` "O
   Porquinho" (⚠️ PROVISÓRIO, a arte veio sem nome) · `apoio.tsx` ouro (saiu a linha
   prata do Craque) + `FUNDADOR_N` 68 · `manto.ts` · `batismos.ts` · `checa-batismos.mjs`.
-  **Falta `data.ts`**: a Série A está com os 20 assentos TODOS de batismo — não tem bot
-  pra tirar. Perguntei ao Diego quem desce (padrão dele: um batismo desce pra B/D pra abrir
-  a vaga). Sem isso não vai pra main (o clube não existiria na pirâmide).
+  `data.ts`: a Série A estava com os 20 assentos TODOS de batismo — não tinha bot pra
+  tirar; o Diego escolheu o Marolados (ver o cabeçalho).
 - **Banco (feito):** `esc_socios` nº49 (até 2099, manto, `saomarcos_porco`, escudo_time,
   coração **Palmeiras**, origem batismo) · `esc_fundadores` 68 · `esc_nomes_batismo` "São
   Marcos Antônio" (gatilho criou FC/EC) · `user_colors` ouro/manual (era prata/false).
