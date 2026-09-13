@@ -7543,7 +7543,7 @@ interface RankRow { user_id: string; name: string; career_key: string; titles: n
 
 export function EscRanking() {
   const { dispatch } = useEsc()
-  // 🏛️ SALÃO DOS BATISMOS — em obra, só a conta do Diego vê a pílula (30/08).
+  // 🏛️ SALÃO DOS BATISMOS — ABERTO PRA TODO MUNDO em 13/09 (era só o Diego).
   // Fica AQUI, e não numa tela nova, porque foi o que ele pediu: *"e aí entraria
   // no, ligar daquela aba de ranking"*. O Ranking é a tabela de quem ganhou mais;
   // o Salão é o lugar de quem tem clube próprio — um leva pro outro.
@@ -7674,15 +7674,15 @@ export function EscRanking() {
         <p className="text-[10.5px] font-bold text-black/40 mt-0.5">{tr('🕐 O ranking e as cartas atualizam 1× por dia', '🕐 Ranking and cards update once a day')}</p>
       </div>
 
-      {/* 🏛️ porta do Salão dos Batismos (em obra — só o Diego enxerga) */}
+      {/* 🏛️ porta do Salão dos Batismos — ABERTA PRA TODO MUNDO em 13/09 */}
       {salaoOk && (
         <button onClick={() => setVerSalao(true)}
           className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 flex items-center gap-2.5 active:translate-x-[2px] active:translate-y-[2px]"
           style={{ background: GOLD, boxShadow: `4px 4px 0 ${INK}` }}>
           <span className="text-2xl">🏛️</span>
           <span className="flex-1 text-left">
-            <span className="block font-black text-[15px] leading-none" style={OSWALD}>SALÃO DOS BATISMOS</span>
-            <span className="block text-[10.5px] font-bold text-black/60 mt-0.5">os clubes que viraram de alguém · 👁️ só você vê</span>
+            <span className="block font-black text-[15px] leading-none" style={OSWALD}>{tr('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</span>
+            <span className="block text-[10.5px] font-bold text-black/60 mt-0.5">{tr('os clubes que viraram de alguém · e as maiores torcidas', 'the clubs that became someone\'s · and the biggest fanbases')}</span>
           </span>
           <span className="font-black text-lg">›</span>
         </button>
