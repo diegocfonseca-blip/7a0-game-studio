@@ -210,7 +210,10 @@ export function modsDoElenco(
 // Pra cada titular cansado (pior primeiro), entra o MELHOR reserva da mesma
 // posição que esteja inteiro e não seja suspenso/fake. Mantém a vaga (mesmo
 // índice) — o campinho não embaralha. Devolve null se não há o que trocar.
-export function sugerirRodizio<T extends { id: string; pos: string; lo: number; hi: number; fake?: boolean }>(
+// 🌱 Cria da Base (13/09) também fica de fora da sugestão: trocar um titular de 85
+// por um guri de 50 pra poupar −1 de gás é piorar o time — e no automático isso
+// aconteceria sem o técnico ver. Quem quiser o cria em campo escala na mão.
+export function sugerirRodizio<T extends { id: string; pos: string; lo: number; hi: number; fake?: boolean; cria?: boolean }>(
   xiIds: string[], squad: T[], gas: Record<string, number>, bloqueados: Set<string> = new Set(),
 ): { ids: string[]; trocas: { sai: T; entra: T }[] } | null {
   const byId = new Map(squad.map(c => [c.id, c]))
@@ -219,7 +222,7 @@ export function sugerirRodizio<T extends { id: string; pos: string; lo: number; 
   const cansados = ids.map(id => byId.get(id)).filter((c): c is T => !!c && estadoGas(gas[c.id] ?? 100) !== 'ok').sort((a, b) => (gas[a.id] ?? 100) - (gas[b.id] ?? 100))
   const trocas: { sai: T; entra: T }[] = []
   for (const sai of cansados) {
-    const cand = squad.filter(c => c.pos === sai.pos && !emCampo.has(c.id) && !c.fake && !bloqueados.has(c.id) && estadoGas(gas[c.id] ?? 100) === 'ok')
+    const cand = squad.filter(c => c.pos === sai.pos && !emCampo.has(c.id) && !c.fake && !c.cria && !bloqueados.has(c.id) && estadoGas(gas[c.id] ?? 100) === 'ok')
       .sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]
     if (!cand) continue
     const i = ids.indexOf(sai.id); if (i < 0) continue

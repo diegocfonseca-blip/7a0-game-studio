@@ -961,7 +961,19 @@ export function previewCriaNomes(jaUsados: string[], rng: () => number, n = 3): 
   }
   return escolhidos
 }
-function spawnCriaCore(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () => number, forcedName?: string): void {
+// 🌱 historinhas de quem sobe pela VAGA (13/09) — a tela do Elenco mostra estas mesmas
+// frases ao lado de cada nome, e o técnico escolhe NOME + HISTÓRIA juntos (pedido do
+// Diego: *"você escolhe qual o nome e a historinha do jogador. Ensina que é ruim"*).
+// Todas dizem, cada uma do seu jeito, que o guri é ruim — e que tem coração.
+export const CRIA_HISTORIAS_VAGA: ((nome: string) => string)[] = [
+  nome => `${nome} trava a bola, tropeça no vento e já chutou pra fora de dentro da pequena área. Mas chega primeiro no treino, engraxa a chuteira dos titulares e jurou pro roupeiro que um dia joga a Série A. 🥹`,
+  nome => `Perna torta, cabeceio de olho fechado e um coração GIGANTE: esse é o ${nome}. A vó dele já comprou ingresso pra temporada inteira e leva bolo pro vestiário — o bolo é bom, o menino nem tanto. 🎂`,
+  nome => `O ${nome} é fraquinho, todo mundo no Sub-20 sabe. Mas ninguém corre mais que ele: marca, volta, cruza errado e ainda pede desculpa pro adversário. Vai segurar a vaga até chegar gente grande. 💚`,
+  nome => `Dizem que o ${nome} dormiu abraçado com a camisa do clube na noite em que soube que ia subir. Chuta com a canela, mas grita mais alto que a torcida — e às vezes é isso que o banco precisa. 📣`,
+  nome => `O ${nome} leva marmita pro roupeiro, carrega a bolsa de bolas e erra passe de três metros. O técnico do Sub-20 avisou: "é limitado, mas não desiste nunca". Quebra o galho sem reclamar. 🍱`,
+  nome => `${nome} tem 1,60 m de altura, 1,90 m de vontade e zero de pontaria. Foi visto treinando pênalti no muro da vila até de madrugada — acertou dois. Sobe pra tapar buraco e sonhar um pouco. 🌙`,
+]
+function spawnCriaCore(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () => number, forcedName?: string, motivo: 'saida' | 'vaga' = 'saida', forcedHistoria?: number): void {
   let nome: string
   if (forcedName) nome = forcedName
   else {
@@ -972,14 +984,16 @@ function spawnCriaCore(s: EscState, m: Manager, pos: Sector, saiu: string, rng: 
   s.criaNames = [...(s.criaNames ?? []), nome]
   const cria = { id: `cria-${pos}-${nextBuildTok()}`, name: nome, club: 'Sub-20', year: new Date().getFullYear(), pos, fame: 1, lo: 48, hi: 58, cria: true } as Card
   m.squad.push({ ...cria, paid: 0, buyPrice: 0, via: 'monte' } as WonCard)
-  const historias = [
+  const historias = motivo === 'vaga' ? CRIA_HISTORIAS_VAGA.map(h => h(nome)) : [
     `Sem renovar com o ${saiu}, a diretoria desceu no Sub-20 e gritou: "sobe, ${nome}!". O menino é RUIM de doer — trava a bola, tropeça no vento — mas dá pra tapar o buraco, e ele dormiu abraçado com a camisa do clube. 🥹`,
     `O ${saiu} foi embora e não tinha ninguém: a solução foi o ${nome}, cria da base. Perna torta, chute pra fora... mas coração GIGANTE. Tapa o buraco até chegar reforço — e a vó dele já tá na arquibancada. 🥹`,
     `Adeus, ${saiu}. Quem assume é o ${nome}, do Sub-20: o guri é fraquinho mesmo, todo mundo sabe — mas ninguém corre mais que ele. Quebra o galho até o clube conseguir gente grande. 💚`,
   ]
-  const texto = historias[Math.floor(rng() * historias.length)]
+  const texto = historias[forcedHistoria != null && historias[forcedHistoria] ? forcedHistoria : Math.floor(rng() * historias.length)]
   ;(s.criaNews = s.criaNews ?? []).push({ texto, nome, pos })
-  ;(s.marketLog = s.marketLog ?? []).push(`🌱 ${m.teamName}: ${nome} subiu da base pra tapar o buraco do ${saiu} (de graça, sem contrato)`)
+  ;(s.marketLog = s.marketLog ?? []).push(motivo === 'vaga'
+    ? `🌱 ${m.teamName}: ${nome} subiu da base pra vaga de ${pos} (de graça, sem contrato — some quando chegar reforço)`
+    : `🌱 ${m.teamName}: ${nome} subiu da base pra tapar o buraco do ${saiu} (de graça, sem contrato)`)
 }
 export function valorOficial(state: EscState, c: Card): number {
   return Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
@@ -3314,6 +3328,7 @@ type Action =
   | { type: 'SET_BICO'; brand: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas' | null } // 🕴️ Bico de Folga: escolhe/troca (ou larga, null) o patrocinador do bico — renda entra sozinha na virada de temporada
   | { type: 'BICO_NEWS'; kind: 'saiu' | 'voltou' } // 🕴️ notícia de virada (subiu pra C = desligou · caiu pra D de novo = reabriu) — repete quantas vezes acontecer, não é banner de uma vez só
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
+  | { type: 'SUBIR_CRIA'; mgrId: number; pos: Sector; nome: string; historia?: number } // 🌱 (13/09) o técnico SOBE um Cria da Base por vontade própria pra uma VAGA do elenco, antes de precisar de lesão — de graça, sem contrato, invendável; some sozinho quando chegar reforço na posição
   | { type: 'EVENTO_DECIDE_CRIA'; nome: string; xi: string[] } // 🌱 evento sem reserva na posição: o técnico ESCOLHE 1 de 3 nomes de Cria da Base (ev.criaOptions) pra tapar o buraco — acaba o truque de jogar sempre só com 11, sem pular a decisão do técnico
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
@@ -5748,6 +5763,27 @@ export function reducer(state: EscState, action: Action): EscState {
       // (desgaste NÃO entra: não é folclore, é conta do técnico que não rodiziou)
       if (action.evento.nome && !action.evento.desgaste) s.eventoHist = { ...(s.eventoHist ?? {}), [action.evento.nome]: s.seasonNo }
       if (action.manchete) s.eventoManchetes = [...(s.eventoManchetes ?? []), action.manchete].slice(-24)
+      return s
+    }
+    case 'SUBIR_CRIA': {
+      // 🌱 SUBIR DA BASE POR VONTADE (Diego 13/09): *"a aba de elenco tem que ter algum
+      // botão pra subir jogadores da base antes de precisar machucar… não é obrigatório,
+      // mas o usuário já poderia escolher com base na quantidade que falta"*.
+      // Travas (segurança nº 1): só carreira · só técnico humano · só se HÁ VAGA na
+      // posição (openSlots > 0 — o elenco tem teto por posição, o cria não fura o teto)
+      // · nome nunca repetido nesta carreira · a posição tem que ser uma das 5.
+      // Mesmo cria de sempre: 48–58, sem contrato, invendável, sem salário de gente
+      // grande, e SOME sozinho na virada quando a posição fecha com jogador de verdade
+      // ("depois que compra qualquer jogador real, ele substitui o da base").
+      if (!s.careerOnline) return s
+      const m = s.managers.find(x => x.id === action.mgrId)
+      if (!m || !m.isHuman || m.dormindo) return s
+      if (!SECTORS.includes(action.pos)) return s
+      if (openSlots(m, action.pos) <= 0) return s
+      const nome = (action.nome ?? '').trim()
+      if (!nome || (s.criaNames ?? []).includes(nome)) return s
+      const rng = mulberry((s.seed ^ Math.imul((s.criaNames?.length ?? 0) + 1, 0x9E3779B1)) >>> 0)
+      spawnCriaCore(s, m, action.pos, '', rng, nome, 'vaga', action.historia)
       return s
     }
     case 'EVENTO_DECIDE_CRIA': {

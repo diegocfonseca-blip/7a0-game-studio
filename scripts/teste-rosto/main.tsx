@@ -15,6 +15,8 @@
 //   ?video     🎬 cena pro VÍDEO de mockup do Master (tela de celular, 430px):
 //              os 4 contratos → escolhe → assina → faixa ASSINADO → Pontual embaixo.
 //              Gravado por scripts/video-master.mjs. Cursor falso segue o mouse.
+//   ?base      🌱 a caixa 'SUBIR DA BASE' de verdade (BaseBox), num elenco com 7 vagas
+//              (11 + 4 reservas, banco fundo), fechada e aberta.
 //   ?en        força o inglês.
 // ⚠️ ordem dos imports: store → screens → pyramidseason/salao (ciclo do COPA_LEG_MS)
 // ⚠️ envolver em <EscProvider>: o UnlockBanner usa useEsc.
@@ -22,7 +24,7 @@ import { createRoot } from 'react-dom/client'
 import '../../src/index.css'
 import { EscProvider } from '../../src/escalacao/store'
 import '../../src/escalacao/screens'
-import { AgenciadosTab } from '../../src/escalacao/pyramidseason'
+import { AgenciadosTab, BaseBox } from '../../src/escalacao/pyramidseason'
 import Salao from '../../src/escalacao/salao'
 import { CareerSponsorVisual, CareerSponsorOverview } from '../../src/escalacao/career-sponsor-visual'
 import { MasterBanner, MasterFaixa, MasterRegua, SponsorBetBanner } from '../../src/escalacao/estadio'
@@ -281,9 +283,30 @@ if (new URLSearchParams(location.search).has('video')) {
   window.addEventListener('mouseup', () => { const el = document.getElementById('cursor'); if (el) el.style.transform = 'translate(-50%,-50%) scale(1)' })
 }
 
+
+// ─── 🌱 a caixa da Base, de verdade ──────────────────────────────────────────
+function BaseBench() {
+  const sq: any[] = []
+  for (const pos of ['GOL', 'LAT', 'LAT', 'ZAG', 'ZAG', 'MEI', 'MEI', 'MEI', 'ATA', 'ATA', 'ATA']) sq.push({ id: `t${sq.length}`, name: `Titular ${sq.length}`, club: 'X', year: 2000, pos, fame: 3, lo: 80, hi: 90 })
+  for (const pos of ['GOL', 'ZAG', 'MEI', 'ATA']) sq.push({ id: `r${sq.length}`, name: `Reserva ${sq.length}`, club: 'X', year: 2000, pos, fame: 3, lo: 70, hi: 80 })
+  const [squad, setSquad] = useState<any[]>(sq)
+  const [nomes, setNomes] = useState<string[]>(['Miudinho', 'Ratinho'])
+  const mgr: any = { id: 1, isHuman: true, formation: '4-3-3', deepSquad: true, squad, teamName: 'Bancada FC', name: 'Bancada FC' }
+  return (
+    <div style={{ background: '#F4ECD6', minHeight: '100vh', padding: 14 }}>
+      <div style={{ maxWidth: 430, margin: '0 auto', background: '#E8A200', padding: 10, borderRadius: 14, border: `3px solid ${INK}` }}>
+        <div style={{ font: '700 12px Oswald,sans-serif', color: '#fff', marginBottom: 8 }}>elenco {squad.length}/22 · crias: {squad.filter(c => c.cria).map(c => c.name).join(', ') || '—'}</div>
+        <BaseBox mgr={mgr} criaNames={nomes} seed={42} onSubir={(pos, nome) => { setSquad(s => [...s, { id: `cria-${pos}-${s.length}`, name: nome, club: 'Sub-20', year: 2026, pos, fame: 1, lo: 48, hi: 58, cria: true }]); setNomes(n => [...n, nome]) }} />
+      </div>
+    </div>
+  )
+}
+
 createRoot(document.getElementById('root')!).render(
   <EscProvider>
-    {q.has('video')
+    {q.has('base')
+      ? <BaseBench />
+      : q.has('video')
       ? <VideoMaster />
       : q.has('masterreal')
       ? <MasterReal />

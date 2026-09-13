@@ -1,3 +1,47 @@
+## 13/09/2026 — 🌱 SUBIR DA BASE quando quiser (botão no Elenco) — ✅ FEITO
+
+Pedido do Diego (com print do elenco dele: 11 + 4, dois crias já no time): *"a aba de
+elenco tem que ter algum botão pra subir jogadores da base antes de precisar machucar.
+Não é obrigatório chamar da base, mas se tiver um botão o usuário já poderia escolher
+com base na quantidade que falta de jogadores. E aí entra a lista da base daquela forma
+engraçada — nome engraçado, história contando que ele é ruim, igual já existe. Em algum
+lugar do elenco que dê pra ver quando tá com campos vagos ainda. Lembrando que depois
+que compra qualquer jogador real ele substitui a posição do jogador da base."*
+
+**Como ficou:**
+- `store.tsx`: ação `SUBIR_CRIA { mgrId, pos, nome }`. Travas: carreira · técnico humano
+  (não dormindo) · **só se `openSlots(m, pos) > 0`** (o cria ocupa a vaga, não fura o
+  teto do elenco) · nome nunca repetido · posição válida. Usa o MESMO `spawnCriaCore`
+  de sempre (48–58, sem contrato, invendável, salário 0), com `motivo: 'vaga'` — 3
+  historinhas novas pra quem sobe "antes da hora" (engraxa a chuteira dos titulares,
+  leva marmita pro roupeiro, a vó comprou ingresso da temporada).
+- `pyramidseason.tsx`: `BaseBox` (exportado pra bancada) dentro do `ElencoField`, logo
+  acima da FOLHA DO TIME — **só aparece quando há vaga** ("🌱 BASE · 7 vagas no
+  elenco · GOL 1 · MEI 2…"). Abre → escolhe a posição (chips com as vagas) → 3 nomes do
+  Sub-20, **cada um num cartão com NOME + HISTORINHA inteira** (formato do banner de
+  evento: faixa dourada com o nome, a história embaixo) → Confirmar. Foi correção dele
+  na 1ª versão (que mostrava só uma tirada curta): *"eu gostava da forma que tinha de
+  você ler as opções… você escolhe qual o nome e a historinha do jogador. Ensina que é
+  ruim"*. As histórias moram em `CRIA_HISTORIAS_VAGA` (store.tsx, 6 opções) e a
+  escolhida vai no `SUBIR_CRIA { historia }` — o save guarda EXATAMENTE a que ele leu.
+  Os 3 trocam sozinhos depois de cada subida (`previewCriaNomes`, sem repetir). PT/EN.
+  Ligado só no `SquadTab` da carreira (call site principal); solo e online (o
+  convidado manda a ação pro host, como toda ação).
+- **"Substitui quando compra jogador real"** — já era assim e continua: na virada
+  (`OPEN_RESERVE_LIST`), todo cria cuja posição fecha a formação sem ele **volta pra
+  base sozinho** ("de cabeça erguida"). Cria que sobe pra vaga de reserva some na
+  virada seguinte se a posição está coberta por gente de verdade; se ainda houver
+  vaga, é só subir de novo. A virada limpa ANTES do leilão, então o cria nunca rouba a
+  vaga de compra de ninguém.
+- `condicao.ts`: **o preparador não usa cria no rodízio** (manual nem automático) —
+  trocar um titular de 85 por um guri de 50 pra poupar −1 de gás é piorar o time, e no
+  automático isso aconteceria sem o técnico ver. Quem quiser o cria em campo escala na
+  mão. Teste: `scripts/testa-cria-base.mjs`.
+- `novidades.ts`: linha PT+EN. Bancada: `scripts/teste-rosto?base` (fechada, aberta,
+  depois de subir um).
+
+**Reverter**: um commit; nenhum save muda de formato (o cria é a mesma carta de sempre).
+
 ## 13/09/2026 — 🏆 PATROCINADOR MASTER (contrato de vários anos) — ✅ FEITO (OK do Diego: *"pode fazer e publicar já p todos"*)
 
 Pedido dele: *"hoje o patrocínio é uma aposta. Agora eu quero fazer um patrocinador

@@ -26,7 +26,7 @@ import type { EventoCard } from './eventos'
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, corGas, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao' // 😓 gás (12/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, openSlots, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
 import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -3169,7 +3169,7 @@ type CondicaoUI = {
   auto?: boolean                         // 🔁 rodízio automático ligado (o preparador troca sozinho)
   onAuto?: (on: boolean) => void         // liga/desliga o automático
 }
-function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI }) {
+function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, antesFolha }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; antesFolha?: React.ReactNode }) {
   // 😓 barrinha de gás (variante A aprovada pelo Diego 12/09): mora embaixo do
   // "clube · ano", onde já mora o overall do Olheiro. Cor pelo estado; lesão em
   // volta gradual fica roxa com o %; quem está FORA (suspenso) mostra só "🩹 fora".
@@ -3467,6 +3467,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       </div>
       {/* 🧢 o TÉCNICO logo abaixo do campinho — ele é do time, igual os jogadores */}
       {quinze && <MeuTecnicoBox mgr={mgr} />}
+      {/* 🌱 a BASE (13/09): a caixa pra subir Cria da Base quando há vaga no elenco */}
+      {antesFolha}
       {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
           temporada. Fica aqui em cima das listas pra você ver o custo de relance.
           ⚠️ Soma o salário do TÉCNICO junto: é o que o vira-temporada cobra de
@@ -3995,7 +3997,90 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   )
 }
 
-export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI }) {
+// ─── 🌱 A BASE: subir Cria antes de precisar (Diego 13/09) ───────────────────
+// Palavras dele: *"a aba de elenco tem que ter algum botão pra subir jogadores da
+// base antes de precisar machucar. Não é obrigatório, mas se tiver um botão o
+// usuário já poderia escolher com base na quantidade que falta de jogadores. E aí
+// entra a lista da base daquela forma engraçada — nome engraçado, história contando
+// que ele é ruim… Em algum lugar do elenco que dê pra ver quando tá com campos
+// vagos ainda. Depois que compra qualquer jogador real, ele substitui o da base."*
+// A caixa só aparece quando HÁ VAGA (openSlots > 0 em alguma posição). O cria que
+// sobe é o mesmo de sempre (48–58, sem contrato, invendável, some na virada quando
+// a posição fecha com jogador de verdade). As travas de verdade moram no reducer.
+// 🔬 exportado só pra bancada de conferência (`scripts/teste-rosto?base`)
+export function BaseBox({ mgr, criaNames, seed, onSubir }: { mgr: Manager; criaNames: string[]; seed: number; onSubir: (pos: Sector, nome: string, historia: number) => void }) {
+  const en = getLang() === 'en'
+  const vagas = SECTORS.map(pos => [pos, openSlots(mgr, pos)] as [Sector, number]).filter(([, n]) => n > 0)
+  const total = vagas.reduce((a, [, n]) => a + n, 0)
+  const [aberto, setAberto] = useState(false)
+  const [pos, setPos] = useState<Sector | null>(null)
+  const [nome, setNome] = useState('')
+  const posSel = pos && vagas.some(([p]) => p === pos) ? pos : (vagas[0]?.[0] ?? null)
+  // 3 candidatos por vez, cada um com NOME + HISTORINHA próprios (a mesma que vai ficar
+  // guardada se ele subir). Trocam sozinhos depois de cada subida (criaNames cresce).
+  const opcoes = useMemo(() => {
+    const rng = mulberry((seed ^ Math.imul(criaNames.length + 1, 0x9E3779B1) ^ (posSel ? posSel.charCodeAt(0) * 131 : 0)) >>> 0)
+    const nomes = previewCriaNomes(criaNames, rng, 3)
+    const base = Math.floor(rng() * CRIA_HISTORIAS_VAGA.length)
+    return nomes.map((n, i) => ({ nome: n, historia: (base + i) % CRIA_HISTORIAS_VAGA.length }))
+  }, [criaNames, seed, posSel])
+  const sel = opcoes.find(o => o.nome === nome) ?? opcoes[0]
+  if (total === 0 || !posSel || !sel) return null
+  const rot = (p: Sector) => POS_LABEL[p] ?? p
+  return (
+    <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#EAF6EE', boxShadow: `2px 2px 0 0 ${INK}`, margin: '0 0 10px', overflow: 'hidden', color: INK, textShadow: 'none' }}>
+      <button onClick={() => setAberto(a => !a)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, background: 'transparent', border: 'none', padding: '8px 11px', cursor: 'pointer', textAlign: 'left' }}>
+        <span style={{ fontSize: 18 }}>🌱</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontWeight: 900, fontSize: 11.5, ...OSWALD, letterSpacing: 0.3, textTransform: 'uppercase', color: INK }}>{en ? 'Academy' : 'Base'} · {total} {en ? (total === 1 ? 'open spot' : 'open spots') : (total === 1 ? 'vaga no elenco' : 'vagas no elenco')}</span>
+          <span style={{ display: 'block', fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{vagas.map(([p, n]) => `${rot(p)} ${n}`).join(' · ')} · {en ? 'call a kid up before anyone gets hurt' : 'sobe um guri antes de alguém se machucar'}</span>
+        </span>
+        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10.5, background: aberto ? '#fff' : GREEN, color: aberto ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 9px', whiteSpace: 'nowrap' }}>{aberto ? (en ? 'CLOSE' : 'FECHAR') : (en ? '🌱 CALL UP' : '🌱 SUBIR DA BASE')}</span>
+      </button>
+      {aberto && (
+        <div style={{ borderTop: `2px solid ${INK}`, background: '#fff', padding: '9px 11px 10px' }}>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#3a3527', lineHeight: 1.45, margin: '0 0 8px' }}>
+            {en ? <>Not required — but if you want the bench filled <b>before</b> an injury, call a kid from the U-20s. He is <b>weak</b> (48–58), free, no contract, can\'t be sold — and he <b>goes back to the academy on his own</b> when a real player fills the spot.</>
+              : <>Não é obrigatório — mas se quiser o banco cheio <b>antes</b> de alguém se machucar, sobe um guri do Sub-20. Ele é <b>fraquinho</b> (48–58), de graça, sem contrato, invendável — e <b>volta pra base sozinho</b> quando chegar jogador de verdade na posição.</>}
+          </p>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 9 }}>
+            {vagas.map(([p, n]) => (
+              <button key={p} onClick={() => { setPos(p); setNome('') }} style={{ border: `2px solid ${INK}`, borderRadius: 8, padding: '4px 9px', background: posSel === p ? GREEN : '#fff', color: posSel === p ? '#fff' : INK, fontWeight: 900, fontSize: 10.5, ...OSWALD, cursor: 'pointer' }}>{rot(p)} · {n} {en ? (n === 1 ? 'spot' : 'spots') : (n === 1 ? 'vaga' : 'vagas')}</button>
+            ))}
+          </div>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '0 0 6px', lineHeight: 1.4 }}>{en ? `🌱 Who comes up from the U-20s as ${rot(posSel).toLowerCase()}? Pick the kid — name and story go together:` : `🌱 Quem sobe do Sub-20 pra ${rot(posSel).toLowerCase()}? Escolha o guri — nome e historinha vêm juntos:`}</p>
+          {/* 📇 um cartão por candidato, no formato do banner de evento: nome em destaque
+              na faixa dourada + a historinha inteira (a MESMA que fica no save) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 10 }}>
+            {opcoes.map(o => {
+              const on = sel.nome === o.nome
+              return (
+                <button key={o.nome} onClick={() => setNome(o.nome)} style={{ display: 'block', width: '100%', textAlign: 'left', color: INK, border: `2.5px solid ${on ? GREEN : INK}`, outline: on ? `2px solid ${GREEN}` : 'none', borderRadius: 12, background: on ? '#EAF6EE' : '#fff', padding: 0, cursor: 'pointer', overflow: 'hidden', boxShadow: on ? `2px 2px 0 ${INK}` : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', borderBottom: `2px solid ${INK}`, padding: '6px 10px' }}>
+                    <span style={{ fontSize: 22 }}>🌱</span>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontWeight: 900, fontSize: 15, ...OSWALD, lineHeight: 1.05, color: INK }}>{o.nome}</div>
+                      <div style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,.55)', ...OSWALD, textTransform: 'uppercase' }}>{rot(posSel)} · Sub-20 · 48–58 · {en ? 'no contract' : 'sem contrato'}</div>
+                    </div>
+                    {on && <span style={{ fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px', whiteSpace: 'nowrap' }}>{en ? 'UP ✓' : 'SOBE ✓'}</span>}
+                  </div>
+                  <p style={{ fontSize: 11.5, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: 0, padding: '8px 10px' }}>{CRIA_HISTORIAS_VAGA[o.historia](o.nome)}</p>
+                </button>
+              )
+            })}
+          </div>
+          <button onClick={() => onSubir(posSel, sel.nome, sel.historia)}
+            style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 8px', fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', boxShadow: `2px 2px 0 ${INK}`, background: GREEN, color: '#fff', cursor: 'pointer', ...OSWALD }}>
+            {en ? `✅ Confirm · ${sel.nome} comes up as ${rot(posSel).toLowerCase()}` : `✅ Confirmar · sobe ${sel.nome} pra ${rot(posSel).toLowerCase()}`}
+            <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, opacity: .9 }}>{en ? 'free · no contract · goes back on his own when a real player arrives' : 'de graça · sem contrato · volta pra base sozinho quando chegar reforço'}</small>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, criaBase }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
   const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
   const need = FORMATIONS[mgr.formation]
@@ -4188,7 +4273,8 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
                 : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular gasta gás e cada rodada no banco devolve um tanto — e isso <b>atravessa as temporadas</b>, não zera na virada. Até uns <b>54 jogos</b> ele aguenta inteiro; lá pelo <b>55º</b> fica <b>cansado</b> (😓, −1 no jogo), pelo <b>60º</b> está <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>65º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (15% por jogo; 30% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
             </UnlockBanner>
           )}
-          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} />
+          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao}
+            antesFolha={criaBase ? <BaseBox mgr={mgr} criaNames={escSt.criaNames ?? []} seed={escSt.seed ?? 1} onSubir={criaBase.onSubir} /> : undefined} />
         </>
       ) : (<>
       {hasReserves && (
@@ -8145,7 +8231,8 @@ export function PyramidSeasonScreen() {
               </div>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
-              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto, onAuto: on => dispatch({ type: 'SET_CONDICAO_AUTO', on }) } : undefined} />
+              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto, onAuto: on => dispatch({ type: 'SET_CONDICAO_AUTO', on }) } : undefined}
+              criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba
                 Agenciados aqui do lado) tem agenciaOn=true e NÃO vê este banner
