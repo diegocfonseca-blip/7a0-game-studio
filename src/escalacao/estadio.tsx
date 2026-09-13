@@ -5,7 +5,7 @@ import { CareerSponsorVisual } from './career-sponsor-visual'
 // Cada compra APARECE no desenho: torcida enchendo os setores, refletores
 // acendendo (anoitece!), telão ligando, loja, estacionamento, cobertura.
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
-import { sectorNome, extraNome, extraReq, extraPerk, sponsorBetMeta, STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, extraNovaOnly, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterAnoAtual } from './estadiodata'
+import { sectorNome, extraNome, extraReq, extraPerk, sponsorBetMeta, STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, extraNovaOnly, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterAnoAtual, masterValor } from './estadiodata'
 import type { StadiumSave, SponsorBetTier, SponsorBrand, MasterContrato } from './estadiodata'
 import { VADICO_LOGO } from './vadico'
 import { ERO_LOGO } from './ero'
@@ -235,6 +235,7 @@ export function MasterFaixa({ contrato, seasonNo, recemAssinado }: { contrato: M
   const ano = masterAnoAtual(contrato, seasonNo)
   const faltam = contrato.anos - ano
   const en = getLang() === 'en'
+  const valor = masterValor(contrato)
   return (
     <div style={{ position: 'relative', background: '#160e08', color: '#f4ecd6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 14px', marginBottom: 12 }}>
       {recemAssinado && <span style={{ position: 'absolute', top: -12, right: 14, transform: 'rotate(-9deg)', ...OSW, fontWeight: 900, fontSize: 12, color: '#C2452F', border: '3px solid #C2452F', borderRadius: 8, padding: '2px 9px', background: 'rgba(255,255,255,.9)', letterSpacing: '.06em' }}>{tr('ASSINADO', 'SIGNED')}</span>}
@@ -247,8 +248,8 @@ export function MasterFaixa({ contrato, seasonNo, recemAssinado }: { contrato: M
           </div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ ...OSW, fontWeight: 700, fontSize: 24, lineHeight: 1, color: GOLD }}>+{contrato.porTemporada} 🪙</div>
-          <div style={{ fontSize: 9.5, fontWeight: 700, opacity: .75 }}>{tr('por temporada', 'per season')} · {contrato.porTemporada * contrato.anos} {tr('no total', 'in total')}</div>
+          <div style={{ ...OSW, fontWeight: 700, fontSize: 24, lineHeight: 1, color: GOLD }}>+{valor} 🪙</div>
+          <div style={{ fontSize: 9.5, fontWeight: 700, opacity: .75 }}>{tr('por temporada', 'per season')} · {valor * contrato.anos} {tr('no total', 'in total')}</div>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 4, margin: '10px 0 6px' }}>
@@ -355,9 +356,9 @@ export function MasterRegua({ div }: { div?: string }) {
         <div style={{ marginTop: 10, background: '#FBF6E9', border: '2px solid rgba(12,12,12,.15)', borderRadius: 10, padding: '9px 10px' }}>
           <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>
             {getLang() === 'en' ? <>
-              <b>How it works:</b> each brand offers its own term. One season pays the same as the 🛡️ "stay up" bet of your division; every extra season adds <b>half</b> of that per season — Vadico (5 seasons) pays what a 👑 champion would, <b>guaranteed</b>. The amount <b>locks in at the division where you sign</b>, up or down, until the contract ends. No early exit: new offers only when it ends. It adds up with the one-season sponsor.
+              <b>How it works:</b> each brand offers its own term. One season pays a bit more than the 🛡️ "stay up" bet of your division; every extra season adds <b>half</b> of that bet per season — Vadico (5 seasons) pays more than a 👑 champion would, <b>guaranteed</b>. The amount <b>locks in at the division where you sign</b>, up or down, until the contract ends. No early exit: new offers only when it ends. It adds up with the one-season sponsor.
             </> : <>
-              <b>Como funciona:</b> cada marca oferece o seu prazo. Uma temporada paga o mesmo que a aposta 🛡️ "não cair" da sua divisão; cada temporada a mais soma <b>metade</b> disso por temporada — a Vadico (5 temporadas) paga o que um 👑 campeão pagaria, <b>garantido</b>. O valor <b>trava na divisão em que você assina</b>, suba ou caia, até o contrato acabar. Sem rescisão: proposta nova só quando terminar. Soma com o Patrocinador Pontual.
+              <b>Como funciona:</b> cada marca oferece o seu prazo. Uma temporada paga um pouco mais que a aposta 🛡️ "não cair" da sua divisão; cada temporada a mais soma <b>metade</b> dessa aposta por temporada — a Vadico (5 temporadas) paga mais que um 👑 campeão pagaria, <b>garantido</b>. O valor <b>trava na divisão em que você assina</b>, suba ou caia, até o contrato acabar. Sem rescisão: proposta nova só quando terminar. Soma com o Patrocinador Pontual.
             </>}
           </p>
         </div>

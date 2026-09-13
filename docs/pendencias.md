@@ -92,6 +92,14 @@ vê a versão de caixinhas. Por isso o Master nasceu nas duas. Não mexi nessa t
 Pontual também). Na Série A o prazo longo não tem custo (não há pra onde subir) — ele
 não quis limitar; fica como está.
 
+**🔼 Régua subiu um pouco (13/09, minutos depois de publicar)**: pedido dele —
+*"aumente um pouco mais o valor, quase nada, de cada patrocinador e cada divisão"*.
+Era base × (1 + (anos−1)/2); virou **base × (1,25 + (anos−1)/2)** (base = aposta 🛡️
+não cair). Tabela por temporada: **V 3/4/5/7 · D 5/7/9/13 · C 10/14/18/26 ·
+B 20/28/36/52 · A 40/56/72/104** (Vadico na C: 130 no total, era 120). `masterValor(c)`
+refaz a conta na divisão CONGELADA do contrato, então quem assinou antes do ajuste
+também recebe o novo — e o valor gravado (`porTemporada`) vira só registro.
+
 **Reverter**: um commit; `careerMaster` é opcional e ninguém perde nada (o que já foi
 pago fica no caixa, como qualquer receita).
 

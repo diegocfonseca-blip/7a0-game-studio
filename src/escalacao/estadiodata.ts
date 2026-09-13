@@ -141,10 +141,16 @@ export function sponsorBetHit(tier: SponsorBetTier, pos: number, champDiv: boole
 //     prazo fixo (a ordem 1·2·3·5 segue o nível que cada marca já tem no Pontual).
 //   · o valor POR TEMPORADA sai da divisão em que o clube ASSINOU e CONGELA até o
 //     fim — subiu ou caiu, tanto faz. Paga no fecho de cada temporada do contrato.
-//   · régua: 1 temporada = a aposta 🛡️ "não cair" da divisão · cada temporada a
-//     mais soma METADE disso · 5 temporadas = o que 👑 campeão pagaria, garantido.
-//     (V 2·3·4·6 · D 4·6·8·12 · C 8·12·16·24 · B 16·24·32·48 · A 32·48·64·96 por
-//     temporada, pra 1·2·3·5 temporadas — tudo inteiro, dobra a cada divisão.)
+//   · régua: 1 temporada = a aposta 🛡️ "não cair" da divisão E MAIS UM QUARTO dela ·
+//     cada temporada a mais soma METADE da aposta · 5 temporadas = um pouco acima do
+//     que 👑 campeão pagaria, garantido.
+//     (V 3·4·5·7 · D 5·7·9·13 · C 10·14·18·26 · B 20·28·36·52 · A 40·56·72·104 por
+//     temporada, pra 1·2·3·5 temporadas. Dobra a cada divisão de D pra cima; a Várzea
+//     arredonda pra cima, .5 → inteiro.)
+//     🔼 13/09, logo depois de publicar, o Diego pediu *"aumente um pouco mais o
+//     valor, quase nada, de cada patrocinador e cada divisão"* — era base × (1 +
+//     (anos−1)/2); virou base × (1,25 + (anos−1)/2). Quem já tinha assinado ganha o
+//     valor novo também (a conta é refeita na hora de pagar — `masterValor`).
 //   · a proposta aparece na 1ª temporada (já na Várzea) e depois SÓ quando o
 //     contrato termina — aí com os valores da divisão em que o clube estiver.
 //     No meio do contrato não há nada pra decidir (não atrasa o começo da temporada).
@@ -159,8 +165,12 @@ export interface MasterContrato { brandId: string; anos: number; div: string; de
 /** quanto o Master paga POR TEMPORADA, pra um contrato de `anos` fechado na divisão `div` */
 export function masterPorTemporada(div: string, anos: number): number {
   const base = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[0]
-  return Math.round(base * (1 + (anos - 1) / 2))
+  return Math.round(base * (1.25 + (anos - 1) / 2))
 }
+/** o que um contrato paga por temporada HOJE — refaz a conta pela divisão e prazo
+ *  congelados no contrato (assim um ajuste de régua vale pra quem já assinou; a
+ *  divisão da assinatura continua sendo a que manda). */
+export function masterValor(c: MasterContrato): number { return Math.max(c.porTemporada ?? 0, masterPorTemporada(c.div, c.anos)) }
 /** o contrato cobre a temporada `seasonNo`? (desde … desde+anos−1) */
 export function masterAtivo(c: MasterContrato | undefined, seasonNo: number): c is MasterContrato {
   return !!c && seasonNo >= c.desde && seasonNo < c.desde + c.anos
