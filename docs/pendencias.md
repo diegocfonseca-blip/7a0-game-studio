@@ -41,11 +41,10 @@ assinatura e não muda subindo nem caindo · só chega proposta nova quando o co
 ACABA (sem rescisão) · o Master aparece ACIMA do Pontual · o de aposta passa a se
 chamar **Patrocinador Pontual**.
 
-**⏳ 3 decisões que ficaram com ele** (perguntadas no mockup):
-1. Na Série A o prazo longo não tem custo (não há pra onde subir) — sugeri limitar a
-   Série A a 3 temporadas, mas é escolha dele.
-2. Master e Pontual SOMAM (foi como desenhei) ou o Master substitui o Pontual?
-3. Os nomes das marcas — ele pode querer amigos, como Vadico/ERO/Max Joias/Rei das Tintas.
+**⏳ O que ainda está assumido, não decidido**: o Master SOMA com o Pontual (Master =
+salário garantido, Pontual = aposta da temporada) — as 4 marcas reais continuam
+também no Pontual. Se ele achar dinheiro demais, o Master substitui o Pontual enquanto
+durar. (Já perguntei duas vezes; não insistir — implementar somando e avisar.)
 
 **Quando for implementar**: campo novo e opcional no save (contrato + temporada de
 início + divisão travada), pagamento junto de `sponsorBetRewards` no `CLOSE_SEASON_BOOKS`,
