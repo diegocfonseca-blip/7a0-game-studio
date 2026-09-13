@@ -1090,5 +1090,19 @@
     "year": 1972,
     "src": "/avatars/lendas-v1/ademir-da-guia-palmeiras-1972.webp",
     "transparent": true
+  },
+  {
+    "name": "Rummenigge",
+    "club": "Bayern",
+    "year": 1981,
+    "src": "/avatars/lendas-v2/rummenigge-bayern-1981.webp",
+    "transparent": true
+  },
+  {
+    "name": "Allan Simonsen",
+    "club": "Mönchengladbach",
+    "year": 1977,
+    "src": "/avatars/lendas-v2/allan-simonsen-monchengladbach-1977.webp",
+    "transparent": true
   }
 ]
