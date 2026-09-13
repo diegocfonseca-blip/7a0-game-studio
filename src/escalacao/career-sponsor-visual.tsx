@@ -23,7 +23,7 @@ export function CareerSponsorOverview({ div, chosen }: { div: string; chosen?: C
   const meta = chosen ? sponsorBetMeta(chosen.tier) : undefined
   const pay = chosen ? (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[chosen.tier - 1] : 0
   return <section className="ll32-sponsor-overview ll36-sponsor" aria-label={tr('Contrato de patrocínio', 'Sponsorship contract')}>
-    <header><small>{div === 'V' ? 'VÁRZEA' : `SÉRIE ${div}`}</small><h2>{tr('PATROCÍNIO DO CLUBE', 'CLUB SPONSORSHIP')}</h2></header>
+    <header><small>{div === 'V' ? 'VÁRZEA' : `SÉRIE ${div}`}</small><h2>{tr('PATROCINADOR PONTUAL', 'ONE-SEASON SPONSOR')}</h2></header>
     <div className="ll32-contract-scene"><article>
       <small>{chosen ? tr('CONTRATO DA TEMPORADA', 'SEASON CONTRACT') : tr('PRÓXIMO ACORDO', 'NEXT DEAL')}</small>
       {chosen && <ContractLogo brandId={chosen.brandId}/>}
@@ -46,7 +46,7 @@ export function CareerSponsorVisual({div,chosen,onPick,fielBrandId}:{div:string;
   const brands=tier ? sponsorBrandsOfTier(tier) : []
   const b=brands[page]
   return <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Propostas de patrocínio', 'Sponsorship proposals')}>
-    <header><small>{div==='V'?'VÁRZEA':`SÉRIE ${div}`}</small><h2>{tr('PROPOSTAS DE PATROCÍNIO', 'SPONSORSHIP PROPOSALS')}</h2><p>{tier ? tr('Compare as propostas e assine seu contrato.', 'Compare the proposals and sign your contract.') : tr('Primeiro, escolha o objetivo da temporada.', 'First, pick the season\'s goal.')}</p></header>
+    <header><small>{div==='V'?'VÁRZEA':`SÉRIE ${div}`}</small><h2>{tr('PATROCINADOR PONTUAL', 'ONE-SEASON SPONSOR')}</h2><p>{tier ? tr('Só esta temporada — a aposta de sempre. Compare e assine.', 'This season only — the usual bet. Compare and sign.') : tr('Só esta temporada — a aposta de sempre. Primeiro, escolha o objetivo.', 'This season only — the usual bet. First, pick the goal.')}</p></header>
     <div className="ll29-sponsor-tabs">{([1,2,3] as SponsorBetTier[]).map(t=><button key={t} aria-pressed={t===tier} onClick={()=>{setTier(t);setPage(0);setDraft({tier:t,brandId:sponsorBrandsOfTier(t)[0].id})}}>{sponsorBetMeta(t).label}</button>)}</div>
     {tier && <nav className="ll30-proposals" aria-label={tr('Comparar propostas', 'Compare proposals')}>{brands.map((brand,i)=><button key={brand.id} aria-pressed={page===i} onClick={()=>{setPage(i);setDraft({tier,brandId:brand.id})}}>{tr('PROPOSTA', 'PROPOSAL')} {i+1}</button>)}</nav>}
     <div className="ll36-office"><article className="ll36-paper" aria-live="polite">

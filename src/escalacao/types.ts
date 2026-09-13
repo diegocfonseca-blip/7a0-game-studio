@@ -508,7 +508,12 @@ export interface EscState {
   // Bate a meta escolhida → ganha o valor dela; fica AQUÉM → zero; supera → só o
   // valor apostado mesmo assim (vale pra solo E online — chave é sempre o mgrId).
   careerSponsorBet?: Record<number, { tier: 1 | 2 | 3; brandId: string; season: number }> // aposta da temporada ATUAL (pro banner de início não mostrar de novo se já escolheu)
-  careerSponsorResult?: Record<number, { season: number; tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }> // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado. floored = não bateu mas a garantia de fidelidade pagou o mínimo mesmo assim
+  careerSponsorResult?: Record<number, { season: number; tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>
+  // 🏆 PATROCINADOR MASTER (13/09): contrato de várias temporadas, por técnico. O valor
+  // por temporada CONGELA na divisão da assinatura (`div`) e paga no fecho de cada
+  // temporada de `desde` até `desde + anos − 1`. Vencido, fica guardado (histórico) e a
+  // tela oferece os 4 contratos de novo. Regras completas em estadiodata.ts (MASTER_PRAZOS).
+  careerMaster?: Record<number, { brandId: string; anos: number; div: string; desde: number; porTemporada: number }> // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado. floored = não bateu mas a garantia de fidelidade pagou o mínimo mesmo assim
   empresarioCards?: EmpCard[] // 💼 carreira SOLO: agência do Empresário — cartas ganhas no pacote de campeão desta carreira (começa vazia). Rende por temporada por raridade (categorias destravam com estádio/SAF). Aceita REPETIDAS (o álbum geral ignora; a agência do save conta).
   empresarioClaimKeys?: string[] // 💼 idempotência: seasonKeys dos pacotes já registrados na agência (o pacote reoferece a carta no reload, então dedup por temporada, não por carta).
   careerEmpresario?: Record<number, EmpCard[]> // 💼 carreira ONLINE: agência do Empresário por técnico (mgrId → cartas). Offline usa empresarioCards.

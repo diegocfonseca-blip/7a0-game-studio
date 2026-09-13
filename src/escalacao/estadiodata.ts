@@ -128,6 +128,46 @@ export function sponsorBetHit(tier: SponsorBetTier, pos: number, champDiv: boole
   return pos <= 16 // 🛡️ não cair: fora da zona de rebaixamento (Z4 de 20 times)
 }
 
+// ─── 🏆 PATROCINADOR MASTER — contrato de VÁRIAS temporadas (Diego 13/09) ────
+// Palavras dele: *"um patrocinador que vai fazer um ano de contrato, outro dois,
+// outro três, outro cinco… botando apenas os reais que tem no jogo: ERO, Rei das
+// Tintas, Max Joias e Vadico Veículos. Quero que a Vadico seja o que dá mais grana
+// porém mais temporadas. Se ele fechou na Várzea um contrato de cinco temporadas e
+// na segunda já vai pra Série D, não importa, continua ganhando aquele valor. Só
+// quando acabar o contrato chega outra proposta, com base na divisão que ele está."*
+//
+// Como funciona, sem exceção:
+//   · 4 contratos, SEMPRE os mesmos, abertos de uma vez: cada marca real tem o SEU
+//     prazo fixo (a ordem 1·2·3·5 segue o nível que cada marca já tem no Pontual).
+//   · o valor POR TEMPORADA sai da divisão em que o clube ASSINOU e CONGELA até o
+//     fim — subiu ou caiu, tanto faz. Paga no fecho de cada temporada do contrato.
+//   · régua: 1 temporada = a aposta 🛡️ "não cair" da divisão · cada temporada a
+//     mais soma METADE disso · 5 temporadas = o que 👑 campeão pagaria, garantido.
+//     (V 2·3·4·6 · D 4·6·8·12 · C 8·12·16·24 · B 16·24·32·48 · A 32·48·64·96 por
+//     temporada, pra 1·2·3·5 temporadas — tudo inteiro, dobra a cada divisão.)
+//   · a proposta aparece na 1ª temporada (já na Várzea) e depois SÓ quando o
+//     contrato termina — aí com os valores da divisão em que o clube estiver.
+//     No meio do contrato não há nada pra decidir (não atrasa o começo da temporada).
+//   · o Master SOMA com o Pontual (a aposta de sempre, que só mudou de nome).
+export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
+  { brandId: 'maxjoias', anos: 1 },
+  { brandId: 'reidastintas', anos: 2 },
+  { brandId: 'ero', anos: 3 },
+  { brandId: 'vadico', anos: 5 },
+]
+export interface MasterContrato { brandId: string; anos: number; div: string; desde: number; porTemporada: number }
+/** quanto o Master paga POR TEMPORADA, pra um contrato de `anos` fechado na divisão `div` */
+export function masterPorTemporada(div: string, anos: number): number {
+  const base = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[0]
+  return Math.round(base * (1 + (anos - 1) / 2))
+}
+/** o contrato cobre a temporada `seasonNo`? (desde … desde+anos−1) */
+export function masterAtivo(c: MasterContrato | undefined, seasonNo: number): c is MasterContrato {
+  return !!c && seasonNo >= c.desde && seasonNo < c.desde + c.anos
+}
+/** temporada corrente DENTRO do contrato (1 = primeira) — só pra tela */
+export function masterAnoAtual(c: MasterContrato, seasonNo: number): number { return Math.min(c.anos, Math.max(1, seasonNo - c.desde + 1)) }
+
 // % construído de um setor (0–100), a partir das moedas investidas
 export function sectorPct(st: StadiumSave | undefined, k: string): number {
   // 🌱 MIGRAÇÃO: quem já tinha comprado "Gramado de Elite" (a melhoria antiga,

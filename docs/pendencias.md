@@ -1,4 +1,4 @@
-## 13/09/2026 — 🏆 PATROCINADOR MASTER (contrato de vários anos) — 🎨 mockup entregue, esperando o Diego
+## 13/09/2026 — 🏆 PATROCINADOR MASTER (contrato de vários anos) — ✅ FEITO (OK do Diego: *"pode fazer e publicar já p todos"*)
 
 Pedido dele: *"hoje o patrocínio é uma aposta. Agora eu quero fazer um patrocinador
 MASTER, que é com base em CONTRATOS. Um que vai fazer um ano, outro dois, outro três,
@@ -54,10 +54,46 @@ a régua real dá 120 → 24 na Série C).
 quando acabar a quinta, acaba o contrato e chegam novos contratos com base na
 divisão que ele vai participar"*.
 
-**⏳ O que ainda está assumido, não decidido**: o Master SOMA com o Pontual (Master =
-salário garantido, Pontual = aposta da temporada) — as 4 marcas reais continuam
-também no Pontual. Se ele achar dinheiro demais, o Master substitui o Pontual enquanto
-durar. (Já perguntei duas vezes; não insistir — implementar somando e avisar.)
+**Implementado (13/09) — onde mora cada coisa:**
+- `estadiodata.ts`: `MASTER_PRAZOS` (as 4 marcas × prazo) · `masterPorTemporada(div, anos)`
+  (= 🛡️ não cair × (1 + (anos−1)/2), tudo inteiro) · `masterAtivo(c, seasonNo)` ·
+  `masterAnoAtual`. Cabeçalho com as palavras dele e as regras.
+- `types.ts`: `careerMaster?: Record<mgrId, { brandId, anos, div, desde, porTemporada }>`
+  — opcional; save velho abre normal e recebe a proposta na próxima temporada (round 0).
+- `store.tsx`: ação `SET_MASTER { brandId, mgrId? }` — o reducer calcula o valor pela
+  divisão REAL de hoje (`careerPlacements['m'+id]`) e congela no contrato; recusa se já
+  há contrato cobrindo a temporada (sem rescisão) ou marca fora das 4. Pagamento em
+  `applyMasterIncome(s)`, chamado por `applySeasonMoney` logo depois da cota de TV
+  (antes dos snapshots → linha própria no extrato: "🏆 Master · Vadico Veículos (2/5)",
+  kind `sponsor`). Idempotente pela mesma trava `booksSeason`. Solo paga o clube no
+  comando (+ o dormindo, se tiver contrato); online paga cada humano. Zera junto com o
+  `careerSponsorBet` nas 3 criações de carreira.
+- `estadio.tsx`: `MasterBanner` (proposta: os 4 papéis 2×2 · `cinematic` = cena do
+  escritório com o papel da mesa, senão caixinha) · `MasterFaixa` (contrato correndo:
+  logo, +X por temporada, total, pips, "temporada n de N", carimbo ASSINADO na temporada
+  da assinatura) · `MasterRegua` (tabela total + por temporada, marca × divisão). O
+  Pontual foi renomeado nos 3 lugares (`SponsorBetBanner`, `SponsorBetStatus`,
+  `career-sponsor-visual.tsx`).
+- `pyramidseason.tsx`: `MasterBanner` ACIMA do Pontual no round 0; trava
+  `masterOk` somada ao `sponsorBetOk` (`decisoesOk`) — o botão verde explica qual
+  falta ("🏆 Assine um contrato Master aí em cima") e o selo conta "2 decisões";
+  Clube › Patrocínio: faixa do Master (ou aviso "sem contrato") + `MasterRegua`.
+- `novidades.ts`: linha PT+EN. `scripts/testa-master.mjs`: régua + travas (verde).
+- Bancada: `scripts/teste-rosto` `?masterreal` = os componentes REAIS nas duas versões
+  (caixinha e escritório), com clique e assinatura; `?master` = o mockup antigo.
+
+**⚠️ Descoberta no caminho**: o escritório (`privateCareer` em pyramidseason.tsx) hoje
+só liga pras DUAS contas do Diego (`useOnlinePreview`), apesar de
+`CAREER_VISUAL_RELEASED = true` existir em `career-feature-release.ts`. Todo mundo mais
+vê a versão de caixinhas. Por isso o Master nasceu nas duas. Não mexi nessa trava
+(fora do escopo) — anotar pro Diego decidir se o escritório vai pra geral.
+
+**Assumido e avisado**: o Master SOMA com o Pontual (as 4 marcas reais continuam no
+Pontual também). Na Série A o prazo longo não tem custo (não há pra onde subir) — ele
+não quis limitar; fica como está.
+
+**Reverter**: um commit; `careerMaster` é opcional e ninguém perde nada (o que já foi
+pago fica no caixa, como qualquer receita).
 
 **Quando for implementar**: campo novo e opcional no save (contrato + temporada de
 início + divisão travada), pagamento junto de `sponsorBetRewards` no `CLOSE_SEASON_BOOKS`,

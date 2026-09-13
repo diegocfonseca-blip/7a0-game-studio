@@ -367,6 +367,24 @@ function applyTVIncome(s: EscState) {
     }
   }
 }
+// 🏆 PATROCINADOR MASTER: paga a parcela da temporada que está fechando pra cada
+// técnico humano com contrato cobrindo ela. O valor é o CONGELADO no contrato (da
+// divisão em que assinou) — a divisão de hoje não entra na conta, de propósito.
+// Roda antes dos snapshots de applySeasonMoney, então ganha linha própria no extrato
+// e não se mistura com o Pontual (que é lançado pela variação de caixa).
+function applyMasterIncome(s: EscState) {
+  const season = s.seasonNo ?? 1
+  const online = s.onlineMode === 'online'
+  const y = s.managers[s.youIdx]?.id ?? s.youIdx
+  const dorm = (!online && s.multiClube && s.multiClube.id !== y) ? s.multiClube.id : null
+  const ids = online ? s.managers.filter(m => m.isHuman).map(h => h.id) : (dorm != null ? [y, dorm] : [y])
+  for (const id of ids) {
+    const c = s.careerMaster?.[id]
+    if (!masterAtivo(c, season) || c.porTemporada <= 0) continue
+    s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + c.porTemporada }
+    logFin(s, 'sponsor', `🏆 Master · ${sponsorBrandOf(c.brandId)?.name ?? c.brandId} (${season - c.desde + 1}/${c.anos})`, c.porTemporada, undefined, id, true)
+  }
+}
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
@@ -374,6 +392,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   if (s.booksSeason === (s.seasonNo ?? 1)) return
   s.booksSeason = s.seasonNo ?? 1
   applyTVIncome(s) // 📺 cota de TV por divisão (antes dos snapshots — linha própria no extrato)
+  applyMasterIncome(s) // 🏆 Patrocinador Master (contrato de várias temporadas — linha própria no extrato)
   const online = s.onlineMode === 'online'
   const humans = s.managers.filter(m => m.isHuman)
   // snapshot da caixa de cada humano — pra registrar o extrato pela VARIAÇÃO REAL
@@ -597,7 +616,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 }
 import type { CareerTeam } from './data'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
-import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat } from './estadiodata'
+import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
@@ -3270,6 +3289,7 @@ type Action =
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_SPONSOR_BET'; tier: 1 | 2 | 3; brandId: string; mgrId?: number } // 🤝 aposta do patrocínio da temporada (nível escolhido + marca) — banner de início de temporada
+  | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
   | { type: 'SWITCH_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): passa o comando pro outro clube (só entre temporadas). O que sai dorme.
@@ -4480,7 +4500,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerScorersAll = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
-      s.careerSponsorBet = undefined; s.careerSponsorResult = undefined // 🤝 patrocínio por aposta começa zerado
+      s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined // 🤝🏆 patrocínio por aposta e Master começam zerados
       // 🧹 FAXINA ANTI-HERANÇA (04/08, família do bug "Copa21 em 8 temporadas"):
       // TUDO que é por-carreira zera aqui — senão vaza do save anterior.
       s.cpuSquads = undefined // fichas dos times de fundo: re-semeia do zero (antes REUSAVA os elencos da carreira velha!)
@@ -4587,7 +4607,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.statsSeason = 0
       s.empresarioCards = []; s.empresarioClaimKeys = []
-      s.careerSponsorBet = undefined; s.careerSponsorResult = undefined
+      s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
       s.copaMundoMural = undefined // 🌍 idem: título de Copa do Mundo não atravessa pra carreira nova
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
@@ -4714,7 +4734,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.marketLog = []
         s.careerScorersAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
         s.clubCash = seedClubCash({}, pl) // todo time da pirâmide começa com caixa (base por divisão)
-        s.careerFilials = {}; s.careerSponsorBet = {}; s.careerSponsorResult = {} // 🏢🤝 Clube online por técnico começa zerado
+        s.careerFilials = {}; s.careerSponsorBet = {}; s.careerSponsorResult = {}; s.careerMaster = {} // 🏢🤝🏆 Clube online por técnico começa zerado
       }
       s.roomId = action.roomId
       s.roomCode = action.roomCode
@@ -5008,6 +5028,22 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
       s.careerSponsorBet = { ...(s.careerSponsorBet ?? {}), [id]: { tier: action.tier, brandId: action.brandId, season: s.seasonNo ?? 1 } }
+      return s
+    }
+    case 'SET_MASTER': {
+      // 🏆 PATROCINADOR MASTER (13/09): assina um dos 4 contratos. Travas:
+      //  · só na carreira; · só quem NÃO tem contrato cobrindo esta temporada (sem
+      //  rescisão, sem trocar no meio — "tem que aguardar", palavras do Diego);
+      //  · a marca tem que ser uma das 4 (o prazo vem dela, nunca da tela).
+      // O valor por temporada é calculado AQUI, pela divisão REAL de hoje, e fica
+      // congelado no contrato — a tela nunca manda valor.
+      if (!s.careerOnline) return s
+      const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
+      const prazo = MASTER_PRAZOS.find(p => p.brandId === action.brandId); if (!prazo) return s
+      const season = s.seasonNo ?? 1
+      if (masterAtivo(s.careerMaster?.[id], season)) return s
+      const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
+      s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: prazo.brandId, anos: prazo.anos, div, desde: season, porTemporada: masterPorTemporada(div, prazo.anos) } }
       return s
     }
     case 'BUY_FILIAL': {

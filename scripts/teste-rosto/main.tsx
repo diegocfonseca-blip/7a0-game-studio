@@ -9,6 +9,9 @@
 //   ?master    🏆 MOCKUP do Patrocinador Master desenhado por cima da cena REAL
 //              do escritório (mesmas classes CSS) — 3 colunas: contrato acabou ·
 //              dia a dia · aba Clube. Nada disto está no jogo; é pro OK do Diego.
+//   ?masterreal 🏆 o Patrocinador Master DE VERDADE (componentes do jogo), nas duas
+//              versões: caixinha (todo mundo) e escritório (prévia), proposta e
+//              contrato correndo. `&en` mostra em inglês.
 //   ?en        força o inglês.
 // ⚠️ ordem dos imports: store → screens → pyramidseason/salao (ciclo do COPA_LEG_MS)
 // ⚠️ envolver em <EscProvider>: o UnlockBanner usa useEsc.
@@ -19,6 +22,8 @@ import '../../src/escalacao/screens'
 import { AgenciadosTab } from '../../src/escalacao/pyramidseason'
 import Salao from '../../src/escalacao/salao'
 import { CareerSponsorVisual, CareerSponsorOverview } from '../../src/escalacao/career-sponsor-visual'
+import { MasterBanner, MasterFaixa, MasterRegua, SponsorBetBanner } from '../../src/escalacao/estadio'
+import { useState } from 'react'
 import { VADICO_LOGO } from '../../src/escalacao/vadico'
 import { ERO_LOGO } from '../../src/escalacao/ero'
 import { MAXJOIAS_LOGO } from '../../src/escalacao/maxjoias'
@@ -28,7 +33,7 @@ import type { AgCard } from '../../src/escalacao/types'
 
 const q = new URLSearchParams(location.search)
 if (q.has('en')) { try { localStorage.setItem('bl_lang', 'en') } catch { /* ignora */ } }
-if (q.has('master')) { try { localStorage.setItem('bl_lang', 'pt') } catch { /* ignora */ } }
+if (q.has('master') || (q.has('masterreal') && !q.has('en'))) { try { localStorage.setItem('bl_lang', 'pt') } catch { /* ignora */ } }
 
 type C = { name: string; club: string; year: number; fame: number; promessa?: boolean; folk?: boolean }
 const TODAS: (C & { pos: string })[] = [CATALOG, CATALOG_EU, CATALOG_WORLD]
@@ -68,7 +73,7 @@ const MASTER_MARCAS = [
   { anos: 5, nome: 'Vadico Veículos', logo: VADICO_LOGO },
 ]
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
-function MasterFaixa({ div, anos, ano, nome, logo }: { div: string; anos: number; ano: number; nome: string; logo: string }) {
+function MasterFaixaMock({ div, anos, ano, nome, logo }: { div: string; anos: number; ano: number; nome: string; logo: string }) {
   return (
     <div style={{ background: '#160e08', color: '#f4ecd6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 14px', marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
@@ -156,7 +161,7 @@ function MasterAbaClube() {
   return (
     <section className="ll32-sponsor-overview ll36-sponsor">
       <header><small>SÉRIE C</small><h2>PATROCÍNIO DO CLUBE</h2></header>
-      <div style={{ padding: '10px 14px 0' }}><MasterFaixa div="C" anos={5} ano={2} nome="Vadico Veículos" logo={VADICO_LOGO} /></div>
+      <div style={{ padding: '10px 14px 0' }}><MasterFaixaMock div="C" anos={5} ano={2} nome="Vadico Veículos" logo={VADICO_LOGO} /></div>
       <div className="ll32-contract-scene"><article>
         <small>CONTRATO PONTUAL DA TEMPORADA</small>
         <h3>Max Joias</h3><p>Não cair de divisão</p><strong>+8 MOEDAS</strong>
@@ -190,7 +195,7 @@ function MasterMockup() {
       <div style={{ font: '600 13px/1.5 system-ui', opacity: .7, maxWidth: 1000, marginBottom: 22 }}>Só as 4 marcas reais, cada uma com o seu prazo: <b>Max Joias 1</b> · <b>Rei das Tintas 2</b> · <b>ERO 3</b> · <b>Vadico Veículos 5</b> temporadas. Quanto mais longo, mais paga por temporada — Vadico é quem dá mais grana e por mais tempo. O valor trava na divisão onde assinou; nova proposta só quando acabar, na divisão de então.</div>
       <div style={{ display: 'flex', gap: 26, alignItems: 'flex-start' }}>
         {col('① Temporada 1, na Várzea (e toda vez que um contrato acaba)', 'Os 4 contratos ABERTOS de uma vez: marca, prazo, TOTAL e o que dá por temporada (total ÷ temporadas). Toca num, ele vai pra mesa, assina. Embaixo, o Pontual de sempre.', <><MasterProposta /><PontualHoje /></>)}
-        {col('② O dia a dia (contrato correndo)', 'Contrato rolando: o Master é só uma FAIXA em cima — quanto paga, temporada 2 de 5, quanto falta. Nada pra decidir. Quando a 5ª acabar, o contrato termina e voltam os 4 contratos, já na divisão em que você estiver.', <><MasterFaixa div="C" anos={5} ano={2} nome="Vadico Veículos" logo={VADICO_LOGO} /><PontualHoje compacto /></>)}
+        {col('② O dia a dia (contrato correndo)', 'Contrato rolando: o Master é só uma FAIXA em cima — quanto paga, temporada 2 de 5, quanto falta. Nada pra decidir. Quando a 5ª acabar, o contrato termina e voltam os 4 contratos, já na divisão em que você estiver.', <><MasterFaixaMock div="C" anos={5} ano={2} nome="Vadico Veículos" logo={VADICO_LOGO} /><PontualHoje compacto /></>)}
         {col('③ Clube › Patrocínio', 'A faixa do Master, o papel do Pontual assinado e a régua completa de valores — no mesmo quadro que já existe.', <MasterAbaClube />)}
       </div>
       <div style={{ display: 'flex', gap: 26, marginTop: 26, maxWidth: 1340 }}>
@@ -208,9 +213,45 @@ function MasterMockup() {
   )
 }
 
+
+// ─── 🏆 o MASTER real, nas duas versões ──────────────────────────────────────
+function MasterReal() {
+  const [c1, setC1] = useState<{ brandId: string; anos: number; div: string; desde: number; porTemporada: number } | undefined>()
+  const [c2, setC2] = useState<{ brandId: string; anos: number; div: string; desde: number; porTemporada: number } | undefined>()
+  const assina = (set: typeof setC1) => (brandId: string) => {
+    const anos = brandId === 'vadico' ? 5 : brandId === 'ero' ? 3 : brandId === 'reidastintas' ? 2 : 1
+    const base = { V: 2, D: 4, C: 8, B: 16, A: 32 }.V
+    set({ brandId, anos, div: 'V', desde: 1, porTemporada: Math.round(base * (1 + (anos - 1) / 2)) })
+  }
+  const correndo = { brandId: 'vadico', anos: 5, div: 'V', desde: 1, porTemporada: 6 }
+  const col = (rot: string, children: React.ReactNode) => (
+    <div style={{ width: 430 }}><div style={{ font: '700 16px Oswald,sans-serif', textTransform: 'uppercase', margin: '0 0 8px' }}>{rot}</div>{children}</div>
+  )
+  return (
+    <div style={{ background: '#F4ECD6', minHeight: '100vh', padding: 20, color: INK }}>
+      <div style={{ font: '700 26px Oswald,sans-serif', marginBottom: 14 }}>🏆 PATROCINADOR MASTER — componentes REAIS do jogo (clique num papel pra ver a assinatura)</div>
+      <div style={{ display: 'flex', gap: 22, alignItems: 'flex-start' }}>
+        {col('① Caixinha (todo mundo) · T1 Várzea', <>
+          <MasterBanner div="V" seasonNo={1} contrato={c1} onPick={assina(setC1)} />
+          <SponsorBetBanner div="V" onPick={() => {}} />
+        </>)}
+        {col('② Escritório (prévia) · T1 Várzea', <>
+          <MasterBanner cinematic div="V" seasonNo={1} contrato={c2} onPick={assina(setC2)} />
+        </>)}
+        {col('③ Contrato correndo · T3 (Série D) + régua', <>
+          <MasterFaixa contrato={correndo} seasonNo={3} />
+          <MasterRegua div="D" />
+        </>)}
+      </div>
+    </div>
+  )
+}
+
 createRoot(document.getElementById('root')!).render(
   <EscProvider>
-    {q.has('master')
+    {q.has('masterreal')
+      ? <MasterReal />
+      : q.has('master')
       ? <MasterMockup />
       : q.has('patrocinio')
       ? <div style={{ background: '#F4ECD6', minHeight: '100vh', padding: 14 }}>

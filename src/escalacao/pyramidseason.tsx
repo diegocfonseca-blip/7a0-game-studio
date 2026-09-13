@@ -27,13 +27,13 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
-import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf } from './estadiodata'
+import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, MasterRegua } from './estadio'
 import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorOverview } from './career-sponsor-visual'
 import { UnlockBanner } from './unlockbanner'
@@ -6712,6 +6712,12 @@ export function PyramidSeasonScreen() {
   // técnico escolher a meta do patrocínio — senão os 9s do ROUND_MS viravam um
   // cronômetro escondido pra escolher (Diego pediu SEM tempo nenhum nessa área).
   const sponsorBetOk = round > 0 || !!(state.careerSponsorBet?.[youId] && state.careerSponsorBet[youId].season === state.seasonNo)
+  // 🏆 PATROCINADOR MASTER (13/09): na temporada em que NÃO há contrato cobrindo
+  // (a 1ª, e toda vez que um contrato termina) a temporada só começa depois de
+  // assinar um dos 4 contratos — mesma trava do Pontual, com o porquê na tela.
+  // Com contrato correndo, não há nada pra decidir e a trava nem aparece.
+  const masterOk = round > 0 || masterAtivo(state.careerMaster?.[youId], state.seasonNo ?? 1)
+  const decisoesOk = sponsorBetOk && masterOk
   // 🧹 recibo do patrocínio da temporada PASSADA (rotina, não conquista): sai do
   // caminho da decisão e vira linha depois do botão verde.
   const sponsorResult = state.careerSponsorResult?.[youId]
@@ -6742,11 +6748,11 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (!state.isHost || seasonOver || manual || eventoPendente || !sponsorBetOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady) return
+    if (!state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, sponsorBetOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady])
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
@@ -7336,7 +7342,13 @@ export function PyramidSeasonScreen() {
             <>
               {/* 👉 A DECISÃO DA VEZ fica sozinha em cima. O resultado da temporada
                   passada desceu pros recibos, depois do botão verde. */}
-              {!sponsorBetOk && <SeloSuaVez texto={tr(`1 decisão pra começar a T${state.seasonNo ?? 1}`, `1 decision to start S${state.seasonNo ?? 1}`)} />}
+              {!decisoesOk && (() => { const n = (sponsorBetOk ? 0 : 1) + (masterOk ? 0 : 1); return <SeloSuaVez texto={tr(`${n} ${n === 1 ? 'decisão' : 'decisões'} pra começar a T${state.seasonNo ?? 1}`, `${n} decision${n === 1 ? '' : 's'} to start S${state.seasonNo ?? 1}`)} /> })()}
+              {/* 🏆 PATROCINADOR MASTER vem PRIMEIRO (ordem do Diego: "ele aparece
+                  primeiro do que o das apostas"). Sem contrato = os 4 papéis abertos;
+                  com contrato = a faixa de leitura. */}
+              <MasterBanner cinematic={privateCareer} div={me.div} seasonNo={state.seasonNo ?? 1}
+                contrato={state.careerMaster?.[youId]}
+                onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })} />
               {/* 🎖️ fielBrandId segue a MESMA regra que sponsorBetRewards usa pra
                   garantir o mínimo: acertou a meta na temporada PASSADA com essa marca. */}
               <SponsorBetBanner cinematic={privateCareer} div={me.div}
@@ -7353,9 +7365,9 @@ export function PyramidSeasonScreen() {
             tem que ter o botão de iniciar", pra craque/lenda E pra quem não é. */}
         {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           round === 0 ? (
-            <button onClick={() => { if (sponsorBetOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!sponsorBetOk}
-              style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: sponsorBetOk ? GREEN : '#cfc6ae', color: sponsorBetOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: sponsorBetOk ? 'pointer' : 'default', marginBottom: 10 }}>
-              {sponsorBetOk ? tr('▶️ Começar a temporada', '▶️ Start the season') : tr('🤝 Escolha o patrocínio aí em cima', '🤝 Pick the sponsor up there first')}
+            <button onClick={() => { if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
+              style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: decisoesOk ? GREEN : '#cfc6ae', color: decisoesOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: decisoesOk ? 'pointer' : 'default', marginBottom: 10 }}>
+              {decisoesOk ? tr('▶️ Começar a temporada', '▶️ Start the season') : !masterOk ? tr('🏆 Assine um contrato Master aí em cima', '🏆 Sign a Master contract up there first') : tr('🤝 Escolha o patrocínio aí em cima', '🤝 Pick the sponsor up there first')}
             </button>
           ) : manualAllowed ? (
           // 🧹 LIMPEZA VISUAL (Diego 13/08 — "tá confuso, botão manual deveria ter um
@@ -7748,8 +7760,17 @@ export function PyramidSeasonScreen() {
                     ficou meio estranho e confuso"): 1º o cartãozinho da aposta,
                     2º a TV, 3º o tabelão da régua — assim quem vem do banner
                     "quero televisionar" acha a TV de cara, sem caçar. */}
+                {/* 🏆 o Master vem primeiro: a faixa do contrato correndo (ou o aviso
+                    de que a proposta chega no começo da temporada) */}
+                {me && (masterAtivo(state.careerMaster?.[youId], state.seasonNo ?? 1)
+                  ? <MasterFaixa contrato={state.careerMaster![youId]} seasonNo={state.seasonNo ?? 1} />
+                  : <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 12 }}>
+                      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: 0 }}>🏆 {tr('Patrocinador Master', 'Master sponsor')}</p>
+                      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{tr('Sem contrato correndo. Os 4 contratos aparecem no começo da temporada.', 'No contract running. The 4 contracts show up at the start of the season.')}</p>
+                    </div>)}
                 {me && (privateCareer ? <CareerSponsorOverview chosen={state.careerSponsorBet?.[youId]} div={me.div} /> : <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} />)}
                 {me && <TVContrato div={me.div} clube={me.team} foco={tvFoco} onFocoFim={() => setTvFoco(false)} />}
+                {me && <MasterRegua div={me.div} />}
                 {me && <SponsorBetStatus div={me.div} soRegua />}
                 {agenciaOk && (() => {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
