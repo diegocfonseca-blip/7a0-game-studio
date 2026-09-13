@@ -1,3 +1,13 @@
+## 13/09/2026 — Salão dos Batismos: vitrine pública aprovada
+
+- Publicação geral autorizada por Diego após os mockups: entrada compacta abaixo do último modo principal, antes do rodapé; porta retirada do Ranking. Arte, cabeçalho e botões principais da home preservados.
+- Vitrine com todos os clubes do catálogo, destaque navegável, ordem de chegada/A–Z e detalhe em três folhas: escudo, mascote e Manto. Celular com deslize/abas e ampliação; desktop com as três juntas. Fontes, cores, foco, contraste e BR/EN conferidos.
+- Manto é SOMENTE CAMISA: sem shorts, meias ou chuteiras. Reutiliza 30 artes originais de scripts/kits como arquivos públicos independentes, carregados só no detalhe. NÃO gera verso fictício: o acervo atual tem predominantemente frente. Clube sem arte recebe aviso explícito, nunca camisa de outro.
+- Torcidas: lista completa, maior para menor, percentual sobre quem informou; reutiliza esc_salao_torcidas, confirmada só origem batismo. Não mostra donos, e-mails, divisões ou números de fundador. Consulta de leitura confirmou 15 torcidas / 27 declarações; nada no banco foi alterado.
+- CTA abre o fluxo Batismo já existente. Não altera preço, compra, direitos de identidade, sessão, saves ou partidas.
+- Verificações: npm run build completo; QA de navegador com 40+ clubes, percentuais ordenados, privacidade, camisa, zoom/Escape e telas 320/390/1280 px. Dados simulados somente no teste, nunca na tela publicada.
+- Reversão: reverter somente o commit desta entrega. Pendente fora do escopo imediato: obter/aprovar artes de costas e camisas dos clubes que ainda não têm arquivo no acervo.
+
 ## 13/09/2026 — Time de coração: lista curta alfabética e Outros
 
 - Minha conta: 12 clubes da antiga lista inicial em ordem alfabética (Atlético-MG, Botafogo, Corinthians, Cruzeiro, Flamengo, Fluminense, Grêmio, Internacional, Palmeiras, Santos, São Paulo, Vasco), Não informar no começo e Outros no final.

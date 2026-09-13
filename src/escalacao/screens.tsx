@@ -41,7 +41,7 @@ import { publicOnlineVisual } from './online-release'
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, type OnlineMatchTab } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, useSalao, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -345,7 +345,7 @@ function ApoieModal({ onClose, children }: { onClose: () => void; children: Reac
     document.body
   )
 }
-export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual'; trigger?: (open: () => void) => React.ReactNode }) {
+export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo'; trigger?: (open: () => void) => React.ReactNode }) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'pay' | 'batismo' | 'manual' | 'socio'>('off')
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
   const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
@@ -1768,7 +1768,9 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
   overlays: ReactNode
 }) {
   const [contaAberta, setContaAberta] = useState(false)
+  const [verSalao, setVerSalao] = useState(false)
   const t = useT() // 🌐 BR/EN: o botão fica no header, do lado de MINHA CONTA
+  if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
     <><div className="ll-home">
       <div className="ll-art" />
@@ -1796,6 +1798,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
           <button className="ll-mode ll-career" onClick={onCareer}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Construa a história do seu clube.', "Build your club's story.")}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
         </div>
+        <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
       </section>
       <footer className="ll-footer">
         <nav aria-label="Mais opções">
@@ -7181,8 +7184,6 @@ export function EscRanking() {
   // Fica AQUI, e não numa tela nova, porque foi o que ele pediu: *"e aí entraria
   // no, ligar daquela aba de ranking"*. O Ranking é a tabela de quem ganhou mais;
   // o Salão é o lugar de quem tem clube próprio — um leva pro outro.
-  const salaoOk = useSalao()
-  const [verSalao, setVerSalao] = useState(false)
   // 🪜 aba Carreira LIBERADA GERAL (decisão do Diego 04/08): histórico completo
   // visível pra todos e os títulos de carreira novos seguem contando normalmente.
   const [mode, setMode] = useState<RankMode>('ronline')
@@ -7290,14 +7291,6 @@ export function EscRanking() {
   ]
   const medal = (i: number) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
 
-  if (verSalao && salaoOk) {
-    return (
-      <Suspense fallback={<Shell><p className="text-center font-bold text-black/60 pt-10">{tr('Carregando o Salão…', 'Loading the Hall…')}</p></Shell>}>
-        <SalaoLazy voltar={() => setVerSalao(false)} />
-      </Suspense>
-    )
-  }
-
   return (
     <Shell>
       <div className="pt-4"><VoltarInicio /></div>
@@ -7308,19 +7301,6 @@ export function EscRanking() {
         <p className="text-[10.5px] font-bold text-black/40 mt-0.5">{tr('🕐 O ranking e as cartas atualizam 1× por dia', '🕐 Ranking and cards update once a day')}</p>
       </div>
 
-      {/* 🏛️ porta do Salão dos Batismos — ABERTA PRA TODO MUNDO em 13/09 */}
-      {salaoOk && (
-        <button onClick={() => setVerSalao(true)}
-          className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 flex items-center gap-2.5 active:translate-x-[2px] active:translate-y-[2px]"
-          style={{ background: GOLD, boxShadow: `4px 4px 0 ${INK}` }}>
-          <span className="text-2xl">🏛️</span>
-          <span className="flex-1 text-left">
-            <span className="block font-black text-[15px] leading-none" style={OSWALD}>{tr('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</span>
-            <span className="block text-[10.5px] font-bold text-black/60 mt-0.5">{tr('os clubes que viraram de alguém · e as maiores torcidas', 'the clubs that became someone\'s · and the biggest fanbases')}</span>
-          </span>
-          <span className="font-black text-lg">›</span>
-        </button>
-      )}
 
       {/* filtro: Carreira (em breve) / Rápido online / Rápido offline */}
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
