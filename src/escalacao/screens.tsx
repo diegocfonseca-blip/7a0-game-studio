@@ -15,7 +15,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, emailProblema, myFundadorN } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN } from './apoio'
 import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
@@ -7668,49 +7668,9 @@ async function deleteCareer() {
 
 // modal rápido de cadastro/login (email + senha) — pra salvar na conta
 function CareerAuthModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
-  const [tab, setTab] = useState<'register' | 'login'>('register')
-  const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [nome, setNome] = useState('')
-  const [err, setErr] = useState(''); const [loading, setLoading] = useState(false)
-  async function go() {
-    setLoading(true); setErr('')
-    if (tab === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) { setErr(tr('Email ou senha incorretos.', 'Wrong email or password.')); setLoading(false); return }
-      onDone()
-    } else {
-      if (!nome.trim()) { setErr(tr('Escolha um nome de técnico.', 'Pick a manager name.')); setLoading(false); return }
-      // ✉️ trava anti-bounce: e-mail com cara de erro de digitação/temporário não cadastra
-      const prob = emailProblema(email)
-      if (prob) { setErr(prob); setLoading(false); return }
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(nome).trim() } } })
-      if (error) { setErr(error.message); setLoading(false); return }
-      if (data.session) { onDone() } // confirmação desligada: já entrou → salva
-      else { setErr(tr('✉️ Conta criada! Confirme no seu email e depois entre pra salvar na nuvem. (Já guardei no aparelho.)', '✉️ Account created! Confirm it in your email, then log in to save to the cloud. (Already saved on this device.)')); setLoading(false) }
-    }
-  }
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.7)' }}>
-      <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-        <p className="font-black text-black text-lg" style={OSWALD}>{tr('💾 Salvar carreira', '💾 Save career')}</p>
-        <p className="text-black/60 text-xs font-bold mb-2">{tr('Rapidinho: crie a conta (ou entre) pra guardar sua carreira e jogar em qualquer aparelho.', 'Quick one: create an account (or log in) to keep your career and play on any device.')}</p>
-        <div className="flex border-[3px] border-black rounded-xl overflow-hidden mb-2">
-          {(['register', 'login'] as const).map(t => (
-            <button key={t} onClick={() => { setTab(t); setErr('') }} className="flex-1 py-2 font-black text-xs uppercase" style={{ background: tab === t ? GOLD : '#fff', color: '#000', ...OSWALD }}>{t === 'register' ? tr('Cadastrar', 'Sign up') : tr('Entrar', 'Log in')}</button>
-          ))}
-        </div>
-        <div className="space-y-2">
-          {tab === 'register' && <input value={nome} onChange={e => setNome(stripEmoji(e.target.value))} placeholder={tr('Nome de técnico', 'Manager name')} className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />}
-          <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="seu@email.com" className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
-          <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder={tr('Senha', 'Password')} onKeyDown={e => e.key === 'Enter' && go()} className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
-          {err && <p className={`text-xs font-bold ${err.startsWith('✉️') ? 'text-green-700' : 'text-red-500'}`}>{err}</p>}
-        </div>
-        <div className="flex gap-2 mt-3">
-          <button onClick={onClose} className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
-          <button onClick={go} disabled={loading} className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: GREEN, color: '#fff', ...OSWALD }}>{loading ? '...' : tab === 'register' ? tr('Criar e salvar', 'Create and save') : tr('Entrar e salvar', 'Log in and save')}</button>
-        </div>
-      </div>
-    </div>
-  )
+  return <JanelaConta titulo={tr('💾 Salvar carreira', '💾 Save career')}
+    contexto={tr('Entre ou crie sua conta para guardar sua carreira.', 'Sign in or create your account to save your career.')}
+    comecarEmCriar onFechar={onClose} onPronto={onDone} />
 }
 
 // faixa no setup da carreira: retomar o save (ou excluí-lo no X). Só aparece

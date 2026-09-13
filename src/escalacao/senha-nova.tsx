@@ -27,6 +27,7 @@
 // toa num fluxo de conta.
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { CampoSenha, erroSenhaNova } from './campo-senha'
 import { tr } from './lang' // 🌐 BR/EN
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
@@ -41,6 +42,7 @@ const MARCA_NA_URL = (() => {
 export function TelaSenhaNova() {
   const [aberto, setAberto] = useState(MARCA_NA_URL)
   const [senha, setSenha] = useState('')
+  const [confirmacao, setConfirmacao] = useState('')
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [pronto, setPronto] = useState(false)
@@ -55,7 +57,9 @@ export function TelaSenhaNova() {
   if (!aberto) return null
 
   const salvar = async () => {
-    if (senha.length < 6) { setErro(tr('A senha precisa de pelo menos 6 letras ou números.', 'The password needs at least 6 letters or numbers.')); return }
+    if (salvando) return
+    const problema = erroSenhaNova(senha, confirmacao)
+    if (problema) { setErro(problema); return }
     setSalvando(true); setErro('')
     try {
       const { error } = await supabase.auth.updateUser({ password: senha })
@@ -66,20 +70,16 @@ export function TelaSenhaNova() {
           : tr('Não consegui trocar agora. Tenta de novo daqui a pouco.', 'Couldn\'t change it right now. Try again in a bit.'))
         setSalvando(false); return
       }
-      setSenha(''); setPronto(true)
+      setSenha(''); setConfirmacao(''); setPronto(true)
     } catch {
       setErro(tr('Sem internet agora. Tenta de novo daqui a pouco.', 'No internet right now. Try again in a bit.'))
     }
     setSalvando(false)
   }
 
-  const campo: React.CSSProperties = {
-    width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '10px 12px',
-    fontWeight: 700, fontSize: 16, background: '#fff', color: INK, outline: 'none', boxSizing: 'border-box',
-  }
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99992, background: 'rgba(12,12,12,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, padding: 18 }}>
+      <div style={{ width: '100%', maxWidth: 380, maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto', background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, padding: 18 }}>
         {pronto ? (
           <>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 21, margin: 0, textTransform: 'uppercase' }}>{tr('✅ Senha trocada', '✅ Password changed')}</p>
@@ -97,10 +97,8 @@ export function TelaSenhaNova() {
             <p style={{ fontWeight: 700, fontSize: 13, color: 'rgba(12,12,12,.6)', margin: '6px 0 12px', lineHeight: 1.45 }}>
               {tr('Você chegou aqui pelo link do e-mail. Escreve a senha nova e pronto — nada do seu jogo se perde.', 'You got here from the e-mail link. Type the new password and that is it — nothing in your game is lost.')}
             </p>
-            <input type="password" value={senha} autoFocus autoComplete="new-password"
-              onChange={e => { setSenha(e.target.value); setErro('') }}
-              onKeyDown={e => { if (e.key === 'Enter') void salvar() }}
-              placeholder={tr('senha nova (mínimo 6)', 'new password (at least 6)')} style={campo} />
+            <CampoSenha label={tr('Nova senha', 'New password')} value={senha} onChange={v => { setSenha(v); setErro('') }} nova onEnter={() => void salvar()} />
+            <CampoSenha label={tr('Confirmar nova senha', 'Confirm new password')} value={confirmacao} onChange={v => { setConfirmacao(v); setErro('') }} nova onEnter={() => void salvar()} />
             {erro && <p style={{ fontWeight: 800, fontSize: 12.5, color: RED, margin: '8px 0 0', lineHeight: 1.4 }}>{erro}</p>}
             <button onClick={() => void salvar()} disabled={salvando}
               style={{ ...OSWALD, width: '100%', marginTop: 12, background: salvando ? '#9aa' : GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '11px 0', fontWeight: 900, fontSize: 16, cursor: 'pointer' }}>

@@ -1,3 +1,13 @@
+## 13/09/2026 — Conta única no Online/Carreira e cadastro curto (aprovado pelo Diego)
+
+- Minha conta consulta a sessão existente e acompanha entrada/saída: mostra nome do time, e-mail, continuar e saída com confirmação. Mesma conta Supabase; nenhum usuário, save, tier ou regra de acesso migrado.
+- Online e o salvamento antigo da Carreira agora reutilizam JanelaConta. Convites de sala e callbacks de retorno ao destino preservados.
+- Cadastro apenas com nome do time, e-mail, senha e confirmar senha. Time de coração foi retirado do cadastro; preferência opcional em um seletor compacto dentro do perfil.
+- Senha com mostrar/ocultar e confirmação também na recuperação global/legada. Divergência bloqueia o envio. Cadastro sem sessão pede confirmação do e-mail, sem fingir login; recuperação verifica erro retornado antes de anunciar envio.
+- Renovar token não manda mais quem já está em uma sala de volta ao menu. Callbacks de sessão síncronos, com limpeza de assinatura e proteção contra resposta inicial atrasada.
+- QA: build completo; scripts/testa-conta.mjs (7 casos de senha + 10 regressões); testes de navegador isolados sem criar contas/redefinir senhas reais (divergência, confirmação de e-mail, login/retorno, reabrir perfil, saída em outra aba, falha de recuperação e recuperação válida); conferência de cadastro em 320/390 px e botão Online real no ambiente local.
+- Home preservada. Correção isolada/revertível, sem anúncio em novidades e sem mudança no banco/RLS.
+
 ## 12/09/2026 — Ajuste fino dos apoios solicitado pelo Diego
 
 - Bloco de apoio no fim da home menor: espaçamentos e fontes reduzidos apenas nesse bloco; botão mantém área de toque de 44px. Restante da home e planos preservados.

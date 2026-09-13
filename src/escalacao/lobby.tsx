@@ -9,7 +9,9 @@ import { useEsc, listAllCareers } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
 import { AdminButton, useCanCareerOnline } from './admin'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, emailProblema } from './apoio'
+import { JanelaConta } from './conta'
+import { erroSenhaNova } from './campo-senha'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
 import { isMuted } from './sound'
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
@@ -579,13 +581,11 @@ export function EscLobby() {
   const { dispatch } = useEsc()
   const [user, setUser] = useState<User | null>(null)
   const [phase, setPhase] = useState<Phase>('auth')
-  const [authTab, setAuthTab] = useState<AuthTab>(() => {
+  const [authTab] = useState<AuthTab>(() => {
     // veio do aviso "ganhe uma carta" (home/setup)? já abre no Cadastrar
     try { if (localStorage.getItem('esc_open_register')) { localStorage.removeItem('esc_open_register'); return 'register' } } catch { /* ignora */ }
     return 'login'
   })
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [recovering, setRecovering] = useState(false) // 🔑 voltou pelo link de "esqueci a senha" → tela de nova senha
   // 🔑 trava da redefinição: o link de recuperação dispara TAMBÉM o evento de
   // "logou" (ordem varia), que jogava a pessoa pro MENU por cima da tela de nova
@@ -594,7 +594,7 @@ export function EscLobby() {
   const recoveringRef = useRef(false)
   const startRecovery = useCallback(() => { recoveringRef.current = true; setRecovering(true); setPhase('auth') }, [])
   const [newPw, setNewPw] = useState('')
-  const [displayName, setDisplayName] = useState('')
+  const [newPwConfirm, setNewPwConfirm] = useState('')
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -844,17 +844,26 @@ export function EscLobby() {
       const marca = `${window.location.hash} ${window.location.search}`
       if (marca.includes('type=recovery')) startRecovery()
     } catch { /* ignora */ }
-    supabase.auth.getSession().then(({ data }) => {
+    let ativo = true
+    let eventoRecebido = false
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!ativo || eventoRecebido) return
       const u = data.session?.user ?? null
-      setUser(u); if (u && !recoveringRef.current) setPhase('menu')
-    })
+      setUser(u); if (u && !recoveringRef.current) setPhase(p => p === 'auth' ? 'menu' : p)
+    }).catch(() => { /* JanelaConta mostra o erro e permite tentar novamente. */ })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!ativo) return
+      eventoRecebido = true
       const u = session?.user ?? null
       // 🔑 voltou pelo link de redefinição: NÃO cai no menu — abre a tela de nova senha
       if (event === 'PASSWORD_RECOVERY') { setUser(u); startRecovery(); return }
-      setUser(u); if (u && !recoveringRef.current) setPhase('menu')
+      setUser(u)
+      if (!recoveringRef.current) {
+        if (u) setPhase(p => p === 'auth' ? 'menu' : p)
+        else if (event === 'SIGNED_OUT') setPhase('auth')
+      }
     })
-    return () => subscription.unsubscribe()
+    return () => { ativo = false; subscription.unsubscribe() }
   }, [startRecovery])
 
   // Reconecta sozinho se a página recarregou com uma sala salva (ex.: o
@@ -1383,55 +1392,16 @@ export function EscLobby() {
     setEditingName(false); setLoading(false)
   }
 
-  async function handleAuth() {
-    setLoading(true); setAuthError('')
-    try {
-      if (authTab === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) setAuthError(friendlyAuthErr(error.message))
-      } else {
-        if (!displayName.trim()) { setAuthError(tr('Escolha o nome do seu time.', 'Choose your team name.')); setLoading(false); return }
-        // ✉️ trava anti-bounce: e-mail com cara de erro de digitação/temporário não cadastra
-        const prob = emailProblema(email)
-        if (prob) { setAuthError(prob); setLoading(false); return }
-        // 🔒 nome único (tipo @ do Instagram): não deixa cadastrar com nome que já tem dono
-        const chk = await nomeLivre(stripEmoji(displayName).trim())
-        if (!chk.livre) { setAuthError(NOME_MSG[chk.motivo ?? 'em_uso']); setLoading(false); return }
-        const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: stripEmoji(displayName).trim() } } })
-        setAuthError(error ? friendlyAuthErr(error.message) : tr('✅ Conta criada! Guarde bem esse e-mail — é ele que recupera sua senha.', '✅ Account created! Keep this e-mail safe — it is what recovers your password.'))
-      }
-    } catch (e) {
-      // erro de rede que estourou como exceção (backend fora) — trata igual
-      setAuthError(friendlyAuthErr(e instanceof Error ? e.message : String(e)))
-    }
-    setLoading(false)
-  }
-
-  // 🔑 ESQUECI A SENHA: manda o email de redefinição pro endereço digitado.
-  async function handleForgot() {
-    const em = email.trim().toLowerCase()
-    if (!em) { setAuthError(tr('Digite seu email aí em cima primeiro — aí eu mando o link de redefinição.', 'Type your e-mail up there first — then I\'ll send the reset link.')); return }
-    // ✉️ trava anti-bounce: não manda link pra endereço com cara de erro (voltaria)
-    const prob = emailProblema(em)
-    if (prob) { setAuthError(prob); return }
-    setLoading(true); setAuthError('')
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + window.location.pathname })
-      setAuthError(error ? friendlyAuthErr(error.message) : tr('✉️ Enviei um link pro seu email pra criar uma senha nova. Confere a caixa de entrada (e o spam).', '✉️ I sent a link to your e-mail to create a new password. Check your inbox (and spam).'))
-    } catch (e) {
-      setAuthError(friendlyAuthErr(e instanceof Error ? e.message : String(e)))
-    }
-    setLoading(false)
-  }
-
   // 🔑 salva a nova senha (depois de voltar pelo link de redefinição)
   async function handleSaveNewPw() {
-    if (newPw.length < 6) { setAuthError(tr('A senha precisa de pelo menos 6 caracteres.', 'The password needs at least 6 characters.')); return }
+    if (loading) return
+    const problema = erroSenhaNova(newPw, newPwConfirm)
+    if (problema) { setAuthError(problema); return }
     setLoading(true); setAuthError('')
     try {
       const { error } = await supabase.auth.updateUser({ password: newPw })
       if (error) { setAuthError(friendlyAuthErr(error.message)); setLoading(false); return }
-      setNewPw(''); setRecovering(false); recoveringRef.current = false; setAuthError(''); setPhase('menu')
+      setNewPw(''); setNewPwConfirm(''); setRecovering(false); recoveringRef.current = false; setAuthError(''); setPhase('menu')
     } catch (e) {
       setAuthError(friendlyAuthErr(e instanceof Error ? e.message : String(e)))
     }
@@ -2358,64 +2328,29 @@ export function EscLobby() {
     <div className="space-y-3">
       <PwField label={tr('Nova senha', 'New password')} value={newPw} onChange={e => setNewPw(e.target.value)} placeholder={tr('mínimo 6 caracteres', 'at least 6 characters')}
         onKeyDown={e => e.key === 'Enter' && handleSaveNewPw()} />
+      <PwField label={tr('Confirmar nova senha', 'Confirm new password')} value={newPwConfirm} onChange={e => setNewPwConfirm(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveNewPw()} />
       {authError && <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>}
     </div>
     <Big onClick={handleSaveNewPw}>{loading ? '...' : tr('Salvar nova senha →', 'Save new password →')}</Big>
-    <button onClick={() => { setRecovering(false); setPhase(user ? 'menu' : 'auth') }} className="text-white/40 text-sm underline w-full text-center">{tr('Pular', 'Skip')}</button>
+    <button onClick={() => { setRecovering(false); recoveringRef.current = false; setNewPw(''); setNewPwConfirm(''); setPhase(user ? 'menu' : 'auth') }} className="text-white/40 text-sm underline w-full text-center">{tr('Pular', 'Skip')}</button>
   </>, undefined, true)
   }
 
   if (phase === 'auth') {
     const pendingInvite = loadInvite()
-    return wrap(<>
-    <div className="text-center">
-      <div className="text-6xl mb-2">🔨</div>
-      <h1 className="font-black text-3xl text-white" style={OSWALD}>LEILÃO LEGENDS · ONLINE</h1>
-    </div>
-    {pendingInvite && (
-      <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: PURPLE, boxShadow: `3px 3px 0 ${INK}` }}>
-        <p className="text-xs font-black text-white leading-snug" style={OSWALD}>
-          {tr('🎮 Você foi convidado pra sala', '🎮 You were invited to room')} <span className="bg-white text-black px-1.5 rounded">{pendingInvite}</span>.<br />
-          <span className="text-white/80">{tr('Entre ou crie sua conta — te levo direto pra sala.', 'Sign in or create your account — I\'ll take you straight to the room.')}</span>
-        </p>
-      </div>
-    )}
-    <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
-      {(['login', 'register'] as AuthTab[]).map(tab => (
-        <button key={tab} onClick={() => { setAuthTab(tab); setAuthError('') }}
-          className="flex-1 py-2.5 font-black text-sm uppercase" style={{ backgroundColor: authTab === tab ? GOLD : '#fff', color: '#000' }}>
-          {tab === 'login' ? tr('Entrar', 'Sign in') : tr('Cadastrar', 'Sign up')}
-        </button>
-      ))}
-    </div>
-    {authTab === 'register' && (
-      <div className="rounded-xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD }}>
-        <p className="text-xs font-black text-black leading-snug" style={OSWALD}>{tr('🎴 Com a conta, ser campeão (no CPU ou online) te dá uma carta-lembrança limitada pro álbum. Sem conta, não ganha carta.', '🎴 With an account, becoming champion (vs CPU or online) gives you a limited keepsake card for your album. No account, no card.')}</p>
-      </div>
-    )}
-    <div className="space-y-3">
-      {/* 🏷️ NOME DO TIME, não da pessoa (Diego 23/08: *"não precisa ser
-          obrigatório o nome da pessoa nem o clube de coração, mas o time da
-          pessoa e o e-mail tem que ter"*). Esta tela pedia "Nome de técnico ·
-          como te chamam?" enquanto a JanelaConta (carreira) pedia o NOME DO
-          TIME — mesmo campo (`display_name`), significados diferentes, e o
-          ranking misturava os dois. Agora as duas pedem a mesma coisa. */}
-      {authTab === 'register' && <Field label={tr('Nome do seu time', 'Your team name')} value={displayName} onChange={e => setDisplayName(stripEmoji(e.target.value))} placeholder={tr('Ex.: Lendas FC', 'E.g.: Legends FC')} />}
-      <Field label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
-      <PwField label={tr('Senha', 'Password')} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-        onKeyDown={e => e.key === 'Enter' && handleAuth()} />
-      {authTab === 'login' && (
-        <button onClick={handleForgot} className="text-white/50 text-xs font-bold underline w-full text-right" style={{ marginTop: -6 }}>
-          {tr('Esqueci minha senha', 'Forgot my password')}
-        </button>
-      )}
-      {authError && (authError.startsWith('🔧')
-        ? <div className="rounded-xl border-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 text-sm font-bold text-amber-200">{authError}</div>
-        : <p className={`text-sm font-bold ${authError.startsWith('✉️') ? 'text-green-400' : 'text-red-400'}`}>{authError}</p>)}
-    </div>
-    <Big onClick={handleAuth}>{loading ? '...' : authTab === 'login' ? tr('Entrar →', 'Sign in →') : tr('Criar conta →', 'Create account →')}</Big>
-    <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full text-center">{tr('← Voltar', '← Back')}</button>
-  </>, undefined, true)
+    return <JanelaConta
+      titulo={tr('Minha conta · Online', 'My account · Online')}
+      contexto={pendingInvite
+        ? tr('Entre para continuar na sala ', 'Sign in to continue to room ') + pendingInvite
+        : tr('Uma conta só para o Online e a Carreira.', 'One account for Online and Career.')}
+      comecarEmCriar={authTab === 'register'}
+      onPronto={() => {
+        void supabase.auth.getSession().then(({ data }) => {
+          if (data.session && !recoveringRef.current) { setUser(data.session.user); setPhase(p => p === 'auth' ? 'menu' : p) }
+        }).catch(() => setAuthError(tr('Não consegui consultar sua conta. Tente novamente.', 'Could not check your account. Try again.')))
+      }}
+      onFechar={() => dispatch({ type: 'GO_LOBBY' })}
+    />
   }
 
   if (phase === 'menu') {

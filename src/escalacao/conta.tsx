@@ -15,8 +15,10 @@
 // carreira. Dois nomes brigando. Agora é UM só: o nome do TIME. O nome da
 // pessoa saiu — o jogo é sobre clube, não sobre gente.
 import { useEffect, useRef, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
+import { CampoSenha, erroSenhaNova } from './campo-senha'
 import { supabase } from '../lib/supabase'
-import { stripEmoji, emailProblema } from './apoio'
+import { stripEmoji, emailProblema, logout } from './apoio'
 import { nomeLivre, NOME_MSG } from './manto'
 import { CORACAO_CLUBES } from './coracao'
 import { tr } from './lang' // 🌐 BR/EN do site
@@ -27,9 +29,9 @@ const GREEN = '#1B7A3D'
 const PURPLE = '#7C3AED'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif' }
 
-// mesma tradução de erro do lobby (duplicada de propósito: o caminho de login do
-// lobby está no ar e não vai ser mexido agora — ver plano-crescimento.md).
+// Online, Minha conta e Carreira compartilham este formulário e a mesma sessão.
 function erroAmigavel(msg: string): string {
+  if (/rate.limit|too many requests|after.*seconds/i.test(msg)) return tr('Muitas tentativas em pouco tempo. Aguarde um pouco e tente novamente.', 'Too many attempts. Wait a little and try again.')
   if (/fetch|network|Failed to fetch|timeout|503|502|504/i.test(msg)) return tr('🔧 Estamos atualizando novidades no jogo! O servidor volta já já — dá uma passadinha daqui a pouquinho. 💛', '🔧 We are rolling out news to the game! The server will be right back — drop by again in a little while. 💛')
   if (msg === 'Invalid login credentials') return tr('Email ou senha incorretos.', 'Wrong e-mail or password.')
   if (/email not confirmed/i.test(msg)) return tr('Confirme seu email antes de entrar (olha a caixa de entrada ✉️).', 'Confirm your e-mail before signing in (check your inbox ✉️).')
@@ -58,24 +60,52 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
   const [coracao, setCoracao] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [confirmacao, setConfirmacao] = useState('')
+  const [user, setUser] = useState<User | null>(null)
+  const [checandoSessao, setChecandoSessao] = useState(true)
+  const [confirmarSaida, setConfirmarSaida] = useState(false)
+  const ocupado = useRef(false)
   const [erro, setErro] = useState('')
   const [ok, setOk] = useState('')
   const [carregando, setCarregando] = useState(false)
   // ✓/✗ do nome do time enquanto digita (a mesma trava do resto do jogo)
   const [nomeSit, setNomeSit] = useState<'vazio' | 'checando' | 'livre' | 'ocupado'>('vazio')
-  // 📱 a lista inteira são 40 clubes — no celular isso empurra e-mail e senha
-  // pra fora da tela. Mostra os primeiros e abre o resto só se pedir.
-  const [todosClubes, setTodosClubes] = useState(false)
+  // Preferência opcional fica no perfil; nunca atrasa o cadastro.
   const nomeSeq = useRef(0)
+
+  useEffect(() => {
+    let ativo = true
+    let eventoRecebido = false
+    const mostrar = (u: User | null) => {
+      setUser(u); setCoracao(u?.user_metadata?.time_coracao ?? null); setChecandoSessao(false)
+    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_evento, sessao) => {
+      if (!ativo) return
+      eventoRecebido = true
+      mostrar(sessao?.user ?? null)
+    })
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (!ativo || eventoRecebido) return
+      if (error) setErro(erroAmigavel(error.message))
+      mostrar(data.session?.user ?? null)
+    }).catch(() => {
+      if (ativo && !eventoRecebido) {
+        setChecandoSessao(false)
+        setErro(tr('Não consegui consultar sua conta. Feche e tente novamente.', 'Could not check your account. Close and try again.'))
+      }
+    })
+    return () => { ativo = false; subscription.unsubscribe() }
+  }, [])
 
   // 🔎 checa o nome enquanto digita, com respiro de 500ms pra não bater no
   // servidor a cada letra. `seq` garante que resposta atrasada não sobrescreve
   // uma checagem mais nova.
   useEffect(() => {
+    const meu = ++nomeSeq.current
+    if (aba !== 'criar' || user) { setNomeSit('vazio'); return }
     const nm = stripEmoji(time).trim()
     if (!nm) { setNomeSit('vazio'); return }
     setNomeSit('checando')
-    const meu = ++nomeSeq.current
     const t = setTimeout(async () => {
       // no CADASTRO manda junto o e-mail digitado: é o que deixa o DONO do
       // batismo usar o nome do próprio clube (ver `nomeLivre`).
@@ -85,47 +115,52 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
       if (!r.livre) setErro(NOME_MSG[r.motivo ?? 'em_uso'])
       else setErro(e => (e && /nome/i.test(e) ? '' : e))
     }, 500)
-    return () => clearTimeout(t)
+    return () => { clearTimeout(t); nomeSeq.current++ }
     // `email` e `aba` entram nas dependências de propósito: no cadastro a resposta
     // MUDA conforme o e-mail digitado (é o que libera o dono do batismo). Sem eles,
     // quem escrevesse o nome ANTES do e-mail ficava travado no ❌ na tela.
-  }, [time, email, aba])
+  }, [time, email, aba, user])
 
   async function enviar() {
+    if (ocupado.current || checandoSessao || user) return
+    ocupado.current = true
     setCarregando(true); setErro(''); setOk('')
     try {
       if (aba === 'entrar') {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha })
+        const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha })
         if (error) { setErro(erroAmigavel(error.message)); setCarregando(false); return }
-        setCarregando(false); onPronto(); return
+        if (!data.session) { setErro(tr('Não foi possível entrar. Tente novamente.', 'Could not sign in. Try again.')); return }
+        setSenha(''); setConfirmacao(''); onPronto(); return
       }
       // ── criar conta ──
       const nm = stripEmoji(time).trim()
       if (!nm) { setErro(tr('Escolha o nome do seu time.', 'Choose your team name.')); setCarregando(false); return }
       const prob = emailProblema(email)
       if (prob) { setErro(prob); setCarregando(false); return }
-      if (senha.length < 6) { setErro(tr('A senha precisa de pelo menos 6 letras/números.', 'The password needs at least 6 letters/numbers.')); setCarregando(false); return }
+      const problemaSenha = erroSenhaNova(senha, confirmacao)
+      if (problemaSenha) { setErro(problemaSenha); return }
       // 🔒 nome único (tipo @ do Instagram, regra do Diego 10/08) — confere de
       // novo aqui, mesmo já tendo o ✓ na tela: entre digitar e enviar alguém
       // pode ter pegado o nome.
       const chk = await nomeLivre(nm, email)
       if (!chk.livre) { setErro(NOME_MSG[chk.motivo ?? 'em_uso']); setNomeSit('ocupado'); setCarregando(false); return }
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: email.trim(), password: senha,
         // 🏷️ `display_name` continua sendo o campo do nome (é o que o ranking e
         // o resto do jogo já leem) — só que agora ele guarda o NOME DO TIME, não
         // o nome da pessoa. Quem já tinha conta não é tocado: o nome que ela já
         // tem passa a valer como nome do time (é o que já aparecia no ranking).
-        options: { data: { display_name: nm, ...(coracao ? { time_coracao: coracao } : {}) } },
+        options: { data: { display_name: nm } },
       })
       if (error) { setErro(erroAmigavel(error.message)); setCarregando(false); return }
-      setOk(tr('✅ Conta criada! Guarde bem esse e-mail — é ele que recupera sua senha.', '✅ Account created! Keep this e-mail safe — it is what recovers your password.'))
-      setCarregando(false)
-      onPronto()
+      setSenha(''); setConfirmacao('')
+      if (data.session) { onPronto(); return }
+      setAba('entrar')
+      setOk(tr('✉️ Confira seu e-mail para confirmar o cadastro. Depois, entre com sua senha para continuar.', '✉️ Check your e-mail to confirm registration. Then sign in with your password to continue.'))
     } catch (e) {
       setErro(erroAmigavel(e instanceof Error ? e.message : String(e)))
       setCarregando(false)
-    }
+    } finally { ocupado.current = false; setCarregando(false) }
   }
 
   async function esqueci() {
@@ -133,18 +168,35 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
     if (!em) { setErro(tr('Digite seu e-mail aí em cima primeiro — aí eu mando o link.', 'Type your e-mail up there first — then I\'ll send the link.')); return }
     const prob = emailProblema(em)
     if (prob) { setErro(prob); return }
+    if (ocupado.current) return
+    ocupado.current = true; setCarregando(true); setErro(''); setOk('')
     try {
-      await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + window.location.pathname })
+      const { error } = await supabase.auth.resetPasswordForEmail(em, { redirectTo: window.location.origin + window.location.pathname })
+      if (error) { setErro(erroAmigavel(error.message)); return }
       setOk(tr('✉️ Link de redefinição enviado. Olha a caixa de entrada (e o spam).', '✉️ Reset link sent. Check your inbox (and spam).'))
     } catch (e) { setErro(erroAmigavel(e instanceof Error ? e.message : String(e))) }
+    finally { ocupado.current = false; setCarregando(false) }
   }
 
-  const campo: React.CSSProperties = { width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '9px 11px', fontWeight: 700, fontSize: 15, background: '#fff', color: INK, outline: 'none' }
-  const rot: React.CSSProperties = { ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(12,12,12,.45)', margin: '0 0 3px' }
+  async function salvarPerfil(sair = false) {
+    if (ocupado.current || !user) return
+    ocupado.current = true; setCarregando(true); setErro(''); setOk('')
+    try {
+      const { error } = sair ? await logout() : await supabase.auth.updateUser({ data: { time_coracao: coracao } })
+      if (error) { setErro(erroAmigavel(error.message)); return }
+      if (sair) {
+        setUser(null); setEmail(''); setSenha(''); setConfirmacao(''); setConfirmarSaida(false); setAba('entrar')
+      } else setOk(tr('Preferência salva.', 'Preference saved.'))
+    } catch (e) { setErro(erroAmigavel(e instanceof Error ? e.message : String(e))) }
+    finally { ocupado.current = false; setCarregando(false) }
+  }
+
+  const campo: React.CSSProperties = { width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '9px 11px', fontWeight: 700, fontSize: 16, boxSizing: 'border-box', background: '#fff', color: INK, outline: 'none' }
+  const rot: React.CSSProperties = { ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: '#565656', margin: '0 0 3px' }
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99991, background: 'rgba(12,12,12,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '18px 14px 30px', overflowY: 'auto' }}>
-      <div style={{ width: '100%', maxWidth: 420, background: '#fff', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, overflow: 'hidden' }}>
+      <div role="dialog" aria-modal="true" aria-label={titulo ?? tr('Sua conta', 'Your account')} style={{ flexShrink: 0, width: '100%', maxWidth: 420, background: '#fff', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, overflow: 'hidden' }}>
         <div style={{ background: PURPLE, color: '#fff', padding: '11px 14px', borderBottom: `3px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, textTransform: 'uppercase' }}>{titulo ?? tr('💾 Guardar sua carreira', '💾 Save your career')}</span>
           <button onClick={onFechar} aria-label={tr('Fechar', 'Close')} style={{ background: 'rgba(255,255,255,.22)', border: 'none', color: '#fff', width: 26, height: 26, borderRadius: 999, fontWeight: 900, fontSize: 13, cursor: 'pointer', lineHeight: 1, flex: 'none' }}>✕</button>
@@ -157,9 +209,29 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
             </p>
           )}
 
+          {checandoSessao ? <p role="status" style={{ color: INK }}>{tr('Consultando sua conta…', 'Checking your account…')}</p> : user ? <>
+            <p style={{ ...OSWALD, color: INK, fontSize: 22, fontWeight: 800, margin: '0 0 4px', overflowWrap: 'anywhere' }}>{user.user_metadata?.display_name || tr('Seu time', 'Your team')}</p>
+            <p style={{ color: '#565656', fontSize: 14, overflowWrap: 'anywhere', margin: '0 0 14px' }}>{user.email}</p>
+            <p style={{ color: INK, fontSize: 13 }}>{tr('Esta é sua conta no Online e na Carreira.', 'This is your account for Online and Career.')}</p>
+            <label htmlFor="conta-coracao" style={rot}>{tr('Time de coração · opcional', 'Favorite team · optional')}</label>
+            <select id="conta-coracao" value={coracao ?? ''} onChange={e => setCoracao(e.target.value || null)} style={{ ...campo, margin: '5px 0 8px' }}>
+              <option value="">{tr('Não informar', 'Prefer not to say')}</option>
+              {coracao && !CORACAO_CLUBES.some(c => c.nome === coracao) && <option>{coracao}</option>}
+              {CORACAO_CLUBES.map(c => <option key={c.nome}>{c.nome}</option>)}
+            </select>
+            <button disabled={carregando} onClick={() => void salvarPerfil()} style={{ ...campo, cursor: 'pointer', marginBottom: 12 }}>{tr('Salvar preferência', 'Save preference')}</button>
+            {erro && <p role="alert" style={{ color: '#C2452F', fontWeight: 700 }}>{erro}</p>}
+            {ok && <p role="status" style={{ color: GREEN, fontWeight: 700 }}>{ok}</p>}
+            <button disabled={carregando} onClick={onPronto} style={{ ...campo, background: GOLD, cursor: 'pointer', ...OSWALD }}>{tr('Continuar →', 'Continue →')}</button>
+            {confirmarSaida ? <div style={{ marginTop: 12, color: INK, fontSize: 13 }}>
+              <p>{tr('Sair desta conta? Você precisará entrar novamente.', 'Sign out of this account? You will need to sign in again.')}</p>
+              <button disabled={carregando} onClick={() => void salvarPerfil(true)} style={{ ...campo, cursor: 'pointer' }}>{tr('Confirmar saída', 'Confirm sign out')}</button>
+              <button disabled={carregando} onClick={() => setConfirmarSaida(false)} style={{ ...campo, marginTop: 6 }}>{tr('Cancelar', 'Cancel')}</button>
+            </div> : <button disabled={carregando} onClick={() => setConfirmarSaida(true)} style={{ color: '#565656', background: 'none', border: 0, textDecoration: 'underline', marginTop: 14, cursor: 'pointer' }}>{tr('Sair da conta', 'Sign out')}</button>}
+          </> : <>
           <div style={{ display: 'flex', border: `2.5px solid ${INK}`, borderRadius: 10, overflow: 'hidden', marginBottom: 11 }}>
             {(['entrar', 'criar'] as Aba[]).map(a => (
-              <button key={a} onClick={() => { setAba(a); setErro(''); setOk('') }}
+              <button key={a} disabled={carregando} onClick={() => { setAba(a); setSenha(''); setConfirmacao(''); setErro(''); setOk('') }}
                 style={{ flex: 1, padding: '7px 2px', ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: aba === a ? GOLD : '#fff', color: INK, border: 'none', cursor: 'pointer' }}>
                 {a === 'entrar' ? tr('Entrar', 'Sign in') : tr('Criar conta', 'Create account')}
               </button>
@@ -170,7 +242,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
             <>
               <p style={rot}>{tr('Nome do seu time', 'Your team name')}</p>
               <div style={{ position: 'relative', marginBottom: 4 }}>
-                <input value={time} onChange={e => setTime(e.target.value)} placeholder={tr('Ex.: Lendas FC', 'E.g.: Legends FC')} maxLength={28}
+                <input aria-label={tr('Nome do seu time', 'Your team name')} autoComplete="nickname" value={time} onChange={e => setTime(e.target.value)} placeholder={tr('Ex.: Lendas FC', 'E.g.: Legends FC')} maxLength={28}
                   style={{ ...campo, paddingRight: 74, borderColor: nomeSit === 'livre' ? GREEN : nomeSit === 'ocupado' ? '#C2452F' : INK }} />
                 <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', color: nomeSit === 'livre' ? GREEN : nomeSit === 'ocupado' ? '#C2452F' : 'rgba(12,12,12,.35)' }}>
                   {nomeSit === 'livre' ? tr('✓ livre', '✓ free') : nomeSit === 'ocupado' ? tr('✕ em uso', '✕ taken') : nomeSit === 'checando' ? '…' : ''}
@@ -178,48 +250,24 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
               </div>
               <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>{tr('É o nome que aparece no ranking. Só pode existir um de cada.', 'It is the name that shows in the ranking. There can only be one of each.')}</p>
 
-              <p style={rot}>{tr('Time de coração', 'Team you support')}</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 6 }}>
-                {(todosClubes ? CORACAO_CLUBES : CORACAO_CLUBES.slice(0, 12)).map(c => (
-                  <button key={c.nome} onClick={() => setCoracao(cor => cor === c.nome ? null : c.nome)}
-                    style={{ border: `2px solid ${INK}`, borderRadius: 8, padding: '4px 9px', fontWeight: 800, fontSize: 11.5, cursor: 'pointer', background: coracao === c.nome ? INK : '#fff', color: coracao === c.nome ? '#fff' : INK }}>
-                    {c.nome}
-                  </button>
-                ))}
-                {!todosClubes && (
-                  <button onClick={() => setTodosClubes(true)}
-                    style={{ border: `2px dashed ${INK}`, borderRadius: 8, padding: '4px 9px', fontWeight: 800, fontSize: 11.5, cursor: 'pointer', background: '#F4F1E6', color: INK }}>
-                    {tr('⋯ mais times', '⋯ more teams')}
-                  </button>
-                )}
-              </div>
-              {/* ⚠️ AQUI NÃO PROMETE MANTO (Diego 16/08: "não quero que coloque
-                  cores de manto que isso é dos sócios apenas"). Escolher o time
-                  de coração NÃO pinta o clube de ninguém — as cores do manto
-                  continuam sendo regalia de SÓCIO. Este campo é só pra saber de
-                  quem é a torcida da casa; por isso o texto abaixo não fala em
-                  nenhum prêmio, e é opcional. */}
-              <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>
-                {tr('Opcional — é só pra gente saber de que time é a torcida daqui. 💚', 'Optional — just so we know which team the crowd here supports. 💚')}
-              </p>
+
             </>
           )}
 
           <p style={rot}>E-mail</p>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" style={{ ...campo, marginBottom: 9 }} />
+          <input type="email" aria-label="E-mail" autoComplete="email" autoCapitalize="none" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" style={{ ...campo, marginBottom: 9 }} />
 
-          <p style={rot}>{tr('Senha', 'Password')}</p>
-          <input type="password" value={senha} onChange={e => setSenha(e.target.value)} placeholder="••••••••"
-            onKeyDown={e => { if (e.key === 'Enter') enviar() }} style={{ ...campo, marginBottom: aba === 'entrar' ? 4 : 11 }} />
+          <CampoSenha label={tr('Senha', 'Password')} value={senha} onChange={setSenha} nova={aba === 'criar'} onEnter={() => void enviar()} />
+          {aba === 'criar' && <CampoSenha label={tr('Confirmar senha', 'Confirm password')} value={confirmacao} onChange={setConfirmacao} nova onEnter={() => void enviar()} />}
 
           {aba === 'entrar' && (
-            <button onClick={esqueci} style={{ display: 'block', marginLeft: 'auto', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.5)', cursor: 'pointer', marginBottom: 10 }}>
+            <button disabled={carregando} onClick={esqueci} style={{ display: 'block', marginLeft: 'auto', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.5)', cursor: 'pointer', marginBottom: 10 }}>
               {tr('Esqueci minha senha', 'Forgot my password')}
             </button>
           )}
 
-          {erro && <p style={{ margin: '0 0 9px', fontWeight: 800, fontSize: 13, color: '#C2452F', lineHeight: 1.35 }}>{erro}</p>}
-          {ok && <p style={{ margin: '0 0 9px', fontWeight: 800, fontSize: 13, color: GREEN, lineHeight: 1.35 }}>{ok}</p>}
+          {erro && <p role="alert" style={{ margin: '0 0 9px', fontWeight: 800, fontSize: 13, color: '#C2452F', lineHeight: 1.35 }}>{erro}</p>}
+          {ok && <p role="status" style={{ margin: '0 0 9px', fontWeight: 800, fontSize: 13, color: GREEN, lineHeight: 1.35 }}>{ok}</p>}
 
           <button onClick={enviar} disabled={carregando}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: 12, ...OSWALD, fontWeight: 900, fontSize: 16, textTransform: 'uppercase', background: carregando ? '#CBBF9E' : aba === 'entrar' ? GOLD : GREEN, color: aba === 'entrar' ? INK : '#fff', boxShadow: `4px 4px 0 ${INK}`, cursor: carregando ? 'default' : 'pointer' }}>
@@ -229,6 +277,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
           <button onClick={onFechar} style={{ display: 'block', width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 13, color: 'rgba(12,12,12,.45)', cursor: 'pointer', marginTop: 9 }}>
             {tr('agora não', 'not now')}
           </button>
+          </>}
         </div>
       </div>
     </div>
