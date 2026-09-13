@@ -1,3 +1,23 @@
+## 13/09/2026 — 📋 Levantamento pro Diego: escudos desatualizados + times de coração faltando
+
+Método: `LOGOS_PRONTAS` (escudos.tsx) × `BATISMOS` (batismos.ts) × `esc_socios` no banco.
+- **Sem arte nenhuma (escudo automático genérico pelo nome)**: White Thigs do GuGu ·
+  Vasco da Grana · Marreco FC · Alfacehh.
+- **SVG antigo à mão (antes da regra do .webp)**: Nightfull FC · Murriz FC ·
+  Marinheiros AS · Barcenite FC · Remoçada · Scorporila FC · Deportivo Montreal ·
+  Marolados FC · La Bestia Negra.
+- Tôka10 já está em .webp (`toka10-escudo.webp`), mas o Diego o cita como
+  desatualizado — a arte que está lá não é a do dono; trocar quando ele mandar.
+- **Sem time de coração** (23): White Thigs · Vasco da Grana · Skyy · Marreco · Jurubeba
+  (Meia na Canela) · Stocco · Final Boss · Bagres 1993 · Nova Eclipse · Sistematizados ·
+  Briga de Galo · Bonança · Leite de Verdade · Capsule · Alfacehh · Eros · Seven City ·
+  Crias do Bigão · Theuzudo · São Luiz · Milhaça · Esqueceram do Lluch · Futpoint.
+- ⚠️ **Batismos SEM linha em `esc_socios`**: White Thigs do GuGu e Vasco da Grana (sem
+  dono conhecido, ok) — e **Theuzudo FC, São Luiz FC e Esqueceram do Lluch**, que TÊM
+  dono. Pelo roteiro (3 pernas), sem essa linha o dono não vira sócio. Conferir
+  e-mail/conta e inserir (socio_n, desde, valido_ate 2099, manto, mascote_key,
+  escudo_time, time_coracao, origem 'batismo').
+
 ## 13/09/2026 — 🐛 São Luiz FC (T545, Série A): tela travada no banner de lesão + gás desligado + "vencido" — ✅ corrigido, no ar
 
 Relato do Diego: *"usuário Luis, São Luiz FC: tela travada, atualiza e não muda nada.
