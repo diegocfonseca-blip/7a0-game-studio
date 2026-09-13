@@ -1,3 +1,30 @@
+## 13/09/2026 — 🐛 Copa presa no 1' (Sentidos Unidos, T9 Série A, carreira antiga) — ✅ corrigido, no ar
+
+Relato do Diego (print do @kelvin01_hp, `kelvinbom205@gmail.com`): Rodada de 64 da Copa
+do Brasil, Sentidos Unidos × Esqueceram do Lluch, **0 × 0 no 1' pra sempre**, "Bola
+rolando", atualizar não resolve. A Peneira tinha passado (✓).
+
+**Causa (reproduzida com o save dele: `scripts/repro-copa-presa.mjs`):** carreira ANTIGA
+(era 1, sem Agência) não tem `careerHalftime` nem `careerPenalty` no save. Na tela da
+temporada esses dois entravam como `state.x ?? {}` — um objeto **novo a cada render** — e
+são dependência do `useMemo` da simulação (`live`). Resultado: a temporada inteira era
+recomputada a cada quadro → a Copa (`copaBR`/`copa`) era remontada a cada tique → o
+efeito do relógio da Copa depende do SEU confronto (`myCopaTie`, adicionado em 02/09
+pros pênaltis) → o efeito reiniciava a cada 90 ms e zerava o relógio. Por isso a
+Peneira andava (o time dele não jogava nela, `myCopaTie` era `null` estável) e a
+Rodada de 64 travava. A liga nunca mostrou o problema porque o relógio dela não
+depende da simulação. Vale pra QUALQUER carreira antiga sem esses campos desde 02/09:
+no banco, hoje, `matheus.henrique1149`, `adv.dutrafilho1`, `povoroznekg`,
+`gabrielcsouza4213`, `v1n161u2j` e `cauamsmoreira` estavam paradas na mesma situação
+(rodada 38 com a Copa por terminar) — todas sem os dois campos.
+
+**Conserto (`pyramidseason.tsx`):** (1) vazios ESTÁVEIS de módulo (`SEM_TATICAS`,
+`SEM_ESCALACAO`, `SEM_INTERVALO`, `SEM_PENALTI`) no lugar dos `?? {}`; (2) o efeito do
+relógio da Copa passa a depender de um NÚMERO (`copaPenMs`) em vez do objeto do
+confronto — mesmo que a Copa seja remontada, o relógio não reinicia. Medido no save
+dele: antes 0'→1' em 10 s; depois 4'→42'→84'. Nenhum save é alterado; ninguém precisa
+fazer nada — abrir o jogo já destrava. Reverter = voltar este commit.
+
 ## 13/09/2026 — 📋 Levantamento pro Diego: escudos desatualizados + times de coração faltando
 
 Método: `LOGOS_PRONTAS` (escudos.tsx) × `BATISMOS` (batismos.ts) × `esc_socios` no banco.

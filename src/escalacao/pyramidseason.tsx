@@ -682,6 +682,19 @@ export type RoundHalftime = Record<number, Record<number, { xi2: string[]; forma
 export type SimTecnicos = Record<string, { lo: number; hi: number; desdeR: number }>
 // ⚽ resultado do pênalti decisivo por jogo do humano (teamId → índice 0-based → resultado)
 export type RoundPenalty = Record<number, Record<number, { scored: boolean; taker: string }>>
+// 🧊 VAZIOS ESTÁVEIS (13/09, Copa presa no 1' — caso do Sentidos Unidos). Save
+// ANTIGO (carreira de antes do intervalo/pênalti) não tem `careerHalftime` nem
+// `careerPenalty`; um `?? {}` inline criava um objeto NOVO a cada render, o `useMemo`
+// da simulação (`live`) via dependência nova e recomputava a temporada inteira a
+// cada quadro → a Copa era remontada a cada tique do relógio → o efeito do relógio
+// da Copa (que depende do SEU confronto) reiniciava sem parar e a Rodada de 64
+// ficava presa no 0'–1' pra sempre. Na liga ninguém percebia (o relógio dela não
+// depende da simulação). A Peneira andava porque o time dele não jogava nela.
+// Um objeto vazio único por tipo, criado UMA vez, fecha a torneira na raiz.
+const SEM_TATICAS: RoundTactics = {}
+const SEM_ESCALACAO: RoundLineups = {}
+const SEM_INTERVALO: RoundHalftime = {}
+const SEM_PENALTI: RoundPenalty = {}
 // ⚽ PLANO DE PÊNALTIS DA TEMPORADA (determinístico, só carreira offline): sorteia
 // QUANTOS pênaltis a temporada reserva (0, 1 ou 2 — nunca mais) e em QUAIS jogos
 // (índices 0-based). O pênalti só APARECE se aquele jogo for decisivo de verdade (um
@@ -5897,14 +5910,17 @@ export function PyramidSeasonScreen() {
   // clube, o `you` do mundo continuava no clube antigo até outra coisa mexer —
   // "minha colocação", "minha divisão" e o desfecho descreviam o clube errado.
   const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx]) // eslint-disable-line react-hooks/exhaustive-deps
-  const careerTactics = (state.careerTactics ?? {}) as RoundTactics
-  const careerLineup = (state.careerLineup ?? {}) as RoundLineups
+  // ⚠️ os quatro abaixo entram como DEPENDÊNCIA de useMemo (a simulação): quando o
+  // save não tem o campo, tem que cair num vazio ESTÁVEL (SEM_*), nunca num `{}`
+  // inline — ver o comentário dos SEM_* lá em cima (Copa presa no 1', 13/09).
+  const careerTactics = (state.careerTactics ?? SEM_TATICAS) as RoundTactics
+  const careerLineup = (state.careerLineup ?? SEM_ESCALACAO) as RoundLineups
   // 🔁 decisões de intervalo (só carreira offline; vazio no resto) — motor re-simula
   // SÓ o 2º tempo do jogo do humano com rng isolado. Vazio = jogo 100% igual a hoje.
-  const careerHalftime = ((state.onlineMode !== 'online' ? state.careerHalftime : undefined) ?? {}) as RoundHalftime
+  const careerHalftime = ((state.onlineMode !== 'online' ? state.careerHalftime : undefined) ?? SEM_INTERVALO) as RoundHalftime
   // ⚽ pênaltis decisivos guardados (só carreira offline; vazio no resto). O motor só
   // soma 1 gol ao humano no jogo em que ele bateu e converteu. Vazio = jogo 100% igual.
-  const careerPenalty = ((state.onlineMode !== 'online' ? state.careerPenalty : undefined) ?? {}) as RoundPenalty
+  const careerPenalty = ((state.onlineMode !== 'online' ? state.careerPenalty : undefined) ?? SEM_PENALTI) as RoundPenalty
   // teto de qualidade + gol realista por versão da fórmula (simV): v3 (>=3) = gol
   // realista/menos goleada; v2 = 1.28; save antigo = 1.2. Temporada em andamento
   // termina na versão em que começou (não muda no meio).
@@ -6352,6 +6368,9 @@ export function PyramidSeasonScreen() {
   const copaFaseTotal = copaNLegs * 90
   const myCopaTie = copaFase?.ties.find(t => t.a.you || t.b.you) ?? null
   const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
+  // ⏱️ quanto o relógio da fase espera pelos SEUS pênaltis (número, pra entrar como
+  // dependência estável do efeito do relógio logo abaixo)
+  const copaPenMs = myCopaTie?.pens ? Math.ceil(pensRevealDelay(myCopaTie.pens) * 1000) : 0
   // cada JOGO rola ~COPA_LEG_MS (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
   useEffect(() => {
@@ -6372,7 +6391,7 @@ export function PyramidSeasonScreen() {
     // disputa em ~19% do caminho, e o cara só via que tinha sido eliminado.
     // A Copa do Mundo já fazia esta conta (copa-mundo.tsx); aqui faltava.
     // Só conta o SEU jogo — pênalti dos outros não segura a tela de ninguém.
-    const penMs = myCopaTie?.pens ? Math.ceil(pensRevealDelay(myCopaTie.pens) * 1000) : 0
+    const penMs = copaPenMs
     // 🎮 MANUAL: NÃO avança sozinho — libera a "Próxima fase" quando a fase termina de
     // animar e espera o toque. AUTO: avança sozinho depois da folga, como sempre.
     // O botão também espera os pênaltis: senão ele aparecia no meio da disputa e o
@@ -6380,7 +6399,9 @@ export function PyramidSeasonScreen() {
     const rdy = setTimeout(() => setCopaReady(true), Math.round(dur * 0.9) + 250 + penMs)
     const adv = manual ? null : setTimeout(() => setCopaRound(r => r + 1), dur + 2200 + penMs)
     return () => { clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, myCopaTie])
+    // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
+    // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaPenMs])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
