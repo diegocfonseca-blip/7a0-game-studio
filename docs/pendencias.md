@@ -1,3 +1,40 @@
+## 13/09/2026 — 🐛 São Luiz FC (T545, Série A): tela travada no banner de lesão + gás desligado + "vencido" — ✅ corrigido, no ar
+
+Relato do Diego: *"usuário Luis, São Luiz FC: tela travada, atualiza e não muda nada.
+Machucou o jogador, apareceram 3 opções da base, ele confirma e não acontece nada.
+Também está com jogador sem contrato que veio da SAF, e sem condição física —
+Série A, carreira nova."* Save lido no banco (`esc_pyramid_saves`, user `429ae562…`,
+carreira `at 1789316781480`):
+
+1. **Travada — causa exata.** `eventoTemporada` = lesão do Domingos da Guia (ZAG-4),
+   rodada 5, `pendente`, com `criaOptions`. A escalação gravada da rodada 5 já estava
+   **com o Bobby Moore (ZAG-128) no lugar dele** — ou seja, ele viu o aviso, foi no
+   Elenco e trocou na mão antes de confirmar. Aí o "Confirmar" mandava a escalação sem
+   o lesionado, `EVENTO_DECIDE_CRIA` fazia `idx = xi.indexOf(cardId) → −1` e
+   **devolvia o estado sem mexer** ("estado torto — não trava o jogo", dizia o
+   comentário; travava). O irmão `EVENTO_DECIDE` já tratava esse caso (`campo`).
+   **Fix**: o cria escolhido sobe do mesmo jeito e o evento fecha (`banco` até a
+   volta); se o lesionado já saiu do XI, a escalação do técnico é respeitada (cria
+   fica no banco). Teste `scripts/testa-evento-cria.mjs`.
+   👉 **Pro Luis**: recarregar a página (o deploy já está no ar) e apertar Confirmar de
+   novo — sobe o guri e a rodada anda. Nada no save precisou ser mexido na mão.
+2. **Gás desligado na Série A.** `condicaoDesde` vazio com `agenciaOn`, placements
+   `m0 = 'A'`. O desbloqueio só rodava dentro do `PLAY_ROUND`, DEPOIS da trava do
+   evento pendente — preso no banner, a rodada nunca andava e o gás nunca ligava.
+   **Fix**: a regra virou `ligaCondicaoSeCabe(s)` e roda (a) antes da trava do evento
+   no PLAY_ROUND e (b) **ao abrir a carreira** (`RESUME_CAREER_SOLO` e
+   `saveAtualizado`). Quem está em C/B/A liga no próximo load, sem precisar jogar.
+3. **Bobby Moore "❗ vencido" (contrato até a T481 numa T545).** É o jogador SEU que
+   ficou emprestado pra SAF: fora do `squad`, passa batido por TODAS as janelas de
+   renovação; quando volta, traz o contrato de dezenas de temporadas atrás. A janela
+   da próxima virada já trataria (renova automático ou deixar ir), mas até lá a carta
+   fica "vencida" e o evento de lesão não a via como reserva. **Fix**:
+   `curaContratoVoltando` na volta do empréstimo (virada e retorno antecipado) e
+   `curaContratosVencidos` ao abrir o save: contrato do passado vira "termina nesta
+   temporada" (`contratoAte = seasonNo`) — honesto, e a janela decide na virada.
+
+Sem mudança de formato de save; tudo é cura idempotente. Reverter = 1 commit.
+
 ## 13/09/2026 — 🌱 SUBIR DA BASE quando quiser (botão no Elenco) — ✅ FEITO
 
 Pedido do Diego (com print do elenco dele: 11 + 4, dois crias já no time): *"a aba de

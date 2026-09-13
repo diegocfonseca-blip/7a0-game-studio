@@ -387,6 +387,49 @@ function applyMasterIncome(s: EscState) {
     logFin(s, 'sponsor', `🏆 Master · ${sponsorBrandOf(c.brandId)?.name ?? c.brandId} (${season - c.desde + 1}/${c.anos})`, valor, undefined, id, true)
   }
 }
+// 😓 CONDIÇÃO: quem JÁ ESTÁ em C/B/A quando a regra chega liga AGORA — desta
+// rodada em diante, todo mundo em 100% (Diego: *"se já tiver na Série C ou acima
+// liberaria"*). Quem está em D/Várzea espera SUBIR pra C (CAREER_ADVANCE), e aí
+// é pra sempre. Rodada passada não entra na conta nem muda de resultado.
+// 🧹 CURA (12/09, ~1h de deploy errado): por engano meu a regra saiu "em qualquer
+// divisão" e carreiras em D/Várzea ligaram no meio da temporada. Isso só é
+// possível por esse erro (o desbloqueio legítimo no meio da temporada exige estar
+// em C/B/A, e divisão não muda no meio) — então desliga de volta. Quem ligou na
+// virada (desdeR vazio) ou já virou de temporada não é tocado.
+// ⚠️ 13/09: lia `s.careerDivision`, que MENTE em carreira nascida na Várzea (fica
+// congelado em "V"). Medido no banco: 155 carreiras com Agência com o campo "V" e a
+// divisão REAL em A/B/C — por isso o gás não ligava pra quem tinha subido. Usa
+// `divisaoDaCarreira()`. E desde 13/09 (à tarde) roda TAMBÉM ao abrir o save e ANTES
+// da trava do evento pendente — o São Luiz FC estava na Série A, com Agência, preso
+// num banner de lesão: a rodada não andava e o gás nunca chegava a ligar.
+function ligaCondicaoSeCabe(s: EscState): void {
+  if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return
+  const divAgora = divisaoDaCarreira(s)
+  if (s.condicaoDesde === s.seasonNo && s.condicaoDesdeR != null && !DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = undefined; s.condicaoDesdeR = undefined }
+  if (s.condicaoDesde == null && DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = s.seasonNo; s.condicaoDesdeR = s.round }
+}
+// 📝 CONTRATO VENCIDO NO MEIO DA TEMPORADA (13/09, Bobby Moore do São Luiz FC: contrato
+// até a T481 num elenco da T545, "❗ vencido"). Como acontece: jogador SEU emprestado
+// pra SAF sai do `squad` e por isso passa batido por TODAS as janelas de renovação;
+// quando volta (na virada ou puxado de volta no meio da temporada), traz o contrato
+// de dezenas de temporadas atrás. A janela da PRÓXIMA virada já trata (renova
+// automático ou "deixar ir"), mas até lá a carta fica "vencida" na tela e some das
+// contas que olham contrato. Cura: contrato que voltou do passado vira "termina
+// nesta temporada" (contratoAte = seasonNo) — honesto, e a janela decide na virada.
+function curaContratoVoltando<T extends { contratoAte?: number; cria?: boolean; fake?: boolean }>(c: T, seasonNo: number): T {
+  if (c.fake || c.cria || c.contratoAte == null || c.contratoAte >= seasonNo) return c
+  return { ...c, contratoAte: seasonNo }
+}
+function curaContratosVencidos(s: EscState): void {
+  if (!s.careerOnline || !s.contratosOn) return
+  const sn = s.seasonNo ?? 1
+  for (const m of s.managers) {
+    if (!m.isHuman) continue
+    if ((m.squad as WonCard[]).some(c => !c.fake && !c.cria && c.contratoAte != null && c.contratoAte < sn)) {
+      m.squad = (m.squad as WonCard[]).map(c => curaContratoVoltando(c, sn))
+    }
+  }
+}
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
@@ -1849,7 +1892,7 @@ function returnFilialLoansFor(s: EscState, you: Manager, f: NonNullable<EscState
   if (outs.length === 0 && ins.length === 0) return f
   const cpuSq = { ...(s.cpuSquads ?? {}) }
   const safSquad = [...(cpuSq[f.team] ?? [])]
-  for (const lo of outs) { const i = safSquad.findIndex(c => c.id === lo.id); if (i >= 0) safSquad.splice(i, 1); you.squad = [...you.squad, { ...lo, emprestado: undefined } as WonCard] }
+  for (const lo of outs) { const i = safSquad.findIndex(c => c.id === lo.id); if (i >= 0) safSquad.splice(i, 1); you.squad = [...you.squad, curaContratoVoltando({ ...lo, emprestado: undefined } as WonCard, s.seasonNo ?? 1)] }
   if (ins.length) { const inIds = new Set(ins.map(c => c.id)); you.squad = you.squad.filter(c => !inIds.has(c.id)); for (const li of ins) safSquad.push({ ...li, emprestado: undefined } as WonCard) }
   cpuSq[f.team] = safSquad; s.cpuSquads = cpuSq
   return { ...f, loanOut: [], loanIn: [] }
@@ -4671,6 +4714,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // 👑 cinto e suspensório: a ficha dos jogadores entra em dia aqui também.
       // É idempotente — se o save já veio sincronizado do leitor, não faz nada.
       const restored = sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }))
+      // 😓📝 CURAS AO ABRIR (13/09, São Luiz FC): liga o gás se a carreira já está em
+      // C/B/A (mesmo presa num banner, onde o PLAY_ROUND nunca chegava a ligar) e
+      // devolve pro presente contrato que voltou do passado (empréstimo pra SAF).
+      try { ligaCondicaoSeCabe(restored); curaContratosVencidos(restored) } catch { /* save torto: abre mesmo assim */ }
       normalizeMultiSeats(restored)
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
@@ -5354,7 +5401,7 @@ export function reducer(state: EscState, action: Action): EscState {
         // seu jogador estava jogando na SAF → tira de lá e devolve pro clube DONO
         const i = safSquad.findIndex(c => c.id === outCard.id); if (i >= 0) safSquad.splice(i, 1)
         const owner = (!online && s.multiClube) ? (s.managers.find(m => m.isHuman && m.id === outCard.byClub) ?? you) : you
-        owner.squad = [...owner.squad, { ...outCard, emprestado: undefined, byClub: undefined } as WonCard]
+        owner.squad = [...owner.squad, curaContratoVoltando({ ...outCard, emprestado: undefined, byClub: undefined } as WonCard, s.seasonNo ?? 1)] // 📝 contrato do passado → termina nesta temporada
       } else if (inCard) {
         // jogador da SAF estava no seu time → tira do elenco (qualquer humano) e volta pra SAF
         for (const m of s.managers) if (m.isHuman) m.squad = m.squad.filter(c => c.id !== inCard.id)
@@ -5798,7 +5845,14 @@ export function reducer(state: EscState, action: Action): EscState {
       const you = s.managers.find(m => m.id === ev0.mgrId)
       if (!you) return s
       const idx = action.xi.indexOf(ev0.cardId)
-      if (idx < 0) return s // estado torto (escalação mudou entre o sorteio e a decisão) — não trava o jogo
+      // 🐛 13/09 (São Luiz FC, T545 rodada 5): o técnico viu o aviso de lesão, foi no
+      // Elenco e TROCOU o lesionado na mão antes de confirmar o cria. Aí a escalação
+      // que a tela manda já não tinha o lesionado, este `idx` dava −1 e o reducer
+      // devolvia o estado SEM MEXER — o banner continuava 'pendente', a rodada
+      // travada, e F5 não resolvia. O irmão dele (EVENTO_DECIDE) já tratava isso;
+      // este não. Agora: o cria que ele escolheu sobe do mesmo jeito e o evento fecha
+      // ('banco' até a volta). Se o lesionado já saiu do XI, a escalação do técnico é
+      // respeitada — o cria fica no banco. Nunca mais uma decisão que não faz nada.
       const crRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 104729) ^ 0xE1E27E) >>> 0)
       spawnCriaCore(s, you, ev0.pos, ev0.nome, crRng, action.nome)
       const cria = you.squad.find(c => c.name === action.nome && c.cria)
@@ -5806,10 +5860,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.criaDeEvento = true // 🗺️ Guia da carreira: liga o banner explicativo (uma vez)
       const volta = ev0.round + ev0.rodadas
       const ev: EventoAtivo = { ...ev0, status: 'banco', volta, subId: cria.id, subNome: cria.name, criaOptions: undefined }
-      const ids = action.xi.slice(); ids[idx] = cria.id
-      const bl = { ...(s.careerLineup ?? {}) }
-      bl[you.id] = { ...(bl[you.id] ?? {}), [ev.round]: ids, [volta]: action.xi.slice() }
-      s.careerLineup = bl
+      if (idx >= 0) {
+        const ids = action.xi.slice(); ids[idx] = cria.id
+        const bl = { ...(s.careerLineup ?? {}) }
+        bl[you.id] = { ...(bl[you.id] ?? {}), [ev.round]: ids, [volta]: action.xi.slice() }
+        s.careerLineup = bl
+      }
       s.eventoTemporada = ev
       if (ev.nome) s.eventoHist = { ...(s.eventoHist ?? {}), [ev.nome]: s.seasonNo }
       const m = mancheteDecisao(ev)
@@ -5911,24 +5967,11 @@ export function reducer(state: EscState, action: Action): EscState {
         // 🩹 CURA: carreira SEM agenciaOn não pode ter evento (vazou no lançamento
         // de 04/08 pra saves antigos) — limpa e segue, ninguém fica preso na rodada.
         if (!s.agenciaOn && s.eventoTemporada) s.eventoTemporada = undefined
+        // 😓 CONDIÇÃO: o desbloqueio roda ANTES da trava do evento pendente (13/09, São
+        // Luiz FC: preso num banner, a rodada nunca andava e o gás nunca ligava). A
+        // regra em si mora em `ligaCondicaoSeCabe` — a mesma que roda ao abrir o save.
+        ligaCondicaoSeCabe(s)
         if (s.onlineMode !== 'online' && s.agenciaOn && s.eventoTemporada?.status === 'pendente' && s.eventoTemporada.season === s.seasonNo) return s
-        // 😓 CONDIÇÃO: quem JÁ ESTÁ em C/B/A quando a regra chega liga AGORA — desta
-        // rodada em diante, todo mundo em 100% (Diego: *"se já tiver na Série C ou acima
-        // liberaria"*). Quem está em D/Várzea espera SUBIR pra C (CAREER_ADVANCE), e aí
-        // é pra sempre. Rodada passada não entra na conta nem muda de resultado.
-        // 🧹 CURA (12/09, ~1h de deploy errado): por engano meu a regra saiu "em qualquer
-        // divisão" e carreiras em D/Várzea ligaram no meio da temporada. Isso só é
-        // possível por esse erro (o desbloqueio legítimo no meio da temporada exige estar
-        // em C/B/A, e divisão não muda no meio) — então desliga de volta. Quem ligou na
-        // virada (desdeR vazio) ou já virou de temporada não é tocado.
-        // ⚠️ 13/09: as duas linhas abaixo liam `s.careerDivision`, que MENTE em
-        // carreira nascida na Várzea (fica congelado em "V"). Medido no banco:
-        // 155 carreiras com Agência estavam com o campo "V" e a divisão REAL em
-        // A/B/C — por isso o gás não ligava pra quem tinha subido, que foi a
-        // pergunta do Diego. Agora as duas usam `divisaoDaCarreira()`.
-        const divAgora = divisaoDaCarreira(s)
-        if (s.condicaoDesde === s.seasonNo && s.condicaoDesdeR != null && !DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = undefined; s.condicaoDesdeR = undefined }
-        if (s.onlineMode !== 'online' && s.agenciaOn && s.condicaoDesde == null && DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = s.seasonNo; s.condicaoDesdeR = s.round }
         // cura ids duplicados de elencos antigos (bug do leilão de reservas) — uma
         // vez só; depois vira no-op. Se corrigiu, zera escalações manuais que
         // apontavam pro id duplicado (voltam ao XI automático, correto).
@@ -7796,8 +7839,21 @@ function sincronizaNiveis(save: EscState): EscState {
   try { anda(save, 0) } catch { /* save torto: melhor não sincronizar do que quebrar o load */ }
   return mexeu > 0 ? { ...save } : save
 }
-/** tudo que um save de carreira leva ao ser aberto: faxina do caixa + nível das cartas em dia. */
-function saveAtualizado(save: EscState): EscState { return sincronizaNiveis(faxinaCaixa(save)) }
+/** tudo que um save de carreira leva ao ser aberto: faxina do caixa + nível das cartas em dia
+ *  + (13/09) gás ligado se a carreira já está em C/B/A + contratos que voltaram do passado. */
+function saveAtualizado(save: EscState): EscState {
+  const s = sincronizaNiveis(faxinaCaixa(save))
+  try {
+    const antes = { d: s.condicaoDesde, r: s.condicaoDesdeR }
+    const copia: EscState = { ...s, managers: s.managers?.map(m => ({ ...m })) ?? s.managers }
+    ligaCondicaoSeCabe(copia)
+    curaContratosVencidos(copia)
+    const mexeuGas = copia.condicaoDesde !== antes.d || copia.condicaoDesdeR !== antes.r
+    const mexeuCtr = copia.managers?.some((m, i) => m.squad !== s.managers[i]?.squad)
+    return mexeuGas || mexeuCtr ? copia : s
+  } catch { return s }
+}
+export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos } // 🔬 só pra teste
 // 🔎 DIAGNÓSTICO DA CAIXA (20/08 — caso do "±9999" do Pedro).
 // O que sabemos: a tela dele mostrou 9999 e -9999, o save na nuvem tem -261, e o
 // LACRE do save bate (ou seja: ninguém editou o arquivo — o valor da tela nunca
