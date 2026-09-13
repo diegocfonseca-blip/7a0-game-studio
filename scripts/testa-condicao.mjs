@@ -127,8 +127,9 @@ const gasJogo = n => Math.round((100 - GAS_JOGO * (n - 1)) * 10) / 10 // gás an
 ok(pctBarra(100) === 100 && pctBarra(0) === 0, 'extremos: 100 → 100% · 0 → 0%')
 ok(pctBarra(gasJogo(50)) >= 50 && pctBarra(gasJogo(51)) === 49, `50º jogo ainda ≥ 50% (${pctBarra(gasJogo(50))}%) · 51º cai pra 49%`)
 ok(pctBarra(gasJogo(13)) === 88, `13º jogo: 88% na barra (era ${Math.round(gasJogo(13))}% cru)`)
-ok(pctBarra(gasJogo(55)) === 40 && pctBarra(gasJogo(60)) === 28 && pctBarra(gasJogo(65)) === 17, '55º ≈ 40% · 60º ≈ 28% · 65º ≈ 17%')
-let mono = true; for (let g = 1; g <= 100; g++) if (pctBarra(g) < pctBarra(g - 1)) mono = false
+ok(pctBarra(gasJogo(55)) === 40 && pctBarra(gasJogo(60)) === 33 && pctBarra(gasJogo(65)) === 25 && pctBarra(gasJogo(70)) === 10, '55º = 40% · 60º = 33% · 65º = 25% · 70º = 10% (final espaçado, 2ª rodada do Diego)')
+ok(pctBarra(gasJogo(73)) === 0 && pctBarra(gasJogo(90)) === 0, '73º em diante: 0% (o motor zera o gás)')
+let mono = true; for (let g = 1; g <= 1000; g++) if (pctBarra(g / 10) < pctBarra((g - 1) / 10)) mono = false
 ok(mono, 'nunca sobe quando o gás cai (monótona)')
 ok(corBarra(gasJogo(50)) === corGas('ok') && corBarra(gasJogo(51)) === corGas('cansado'), 'verde até o 50º · amarela do 51º (mesmo 💪)')
 ok(corBarra(gasJogo(55)) === corGas('cansado') && corBarra(gasJogo(60)) === corGas('limite') && corBarra(gasJogo(65)) === corGas('esgotado'), '😓 amarela · 🥵 vermelha · 🚑 escura — como antes')

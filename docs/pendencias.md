@@ -13,6 +13,11 @@ a mesma regra: 1 a 50 jogos, aí cai pra 49% e vai descendo até chegar em 55 e 
   `testa-condicao.mjs`. Build ok.
 - Mockup mostrado antes (regra nº 2), OK dele em seguida → main + linha em `novidades.ts`
   (com `en`). Reverter = um commit.
+- 🪜 **2ª rodada (mesmo dia):** *"espaçar mais o final após bater 40%… a parte final achei
+  rápido e brusco"*. Ofereci A (só barra, redistribuir a queda) × B (motor mais lento depois
+  do 55º); ele escolheu **A**. Agora é reta por trechos (`BARRA_PONTOS`): 55º 40% · 60º 33%
+  · 65º 25% · 70º 10% · 73º 0. O motor zera o gás no ~72º, por isso o zero da barra não
+  tem como ir mais longe sem mexer no motor — anotado caso ele volte ao assunto.
 
 ## 13/09/2026 — 🐛 Copa presa no 1' (Sentidos Unidos, T9 Série A, carreira antiga) — ✅ corrigido, no ar
 

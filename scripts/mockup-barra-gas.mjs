@@ -48,7 +48,7 @@ const html = `<!doctype html><meta charset="utf-8">
 <div class="nota">
   ✅ <b>1º ao 50º jogo</b>: a barra vai de 100% a 50%, verde (cai ~1% por jogo).<br>
   🟡 <b>51º em diante</b>: passa de 49% e fica <b>amarela</b> — mesmo com o jogador ainda 💪 (é o aviso de que está chegando).<br>
-  🔻 Daí cai mais rápido, como a zona do cansaço: 55º ≈ 40% (😓) · 60º ≈ 28% (🥵, vermelho) · 65º ≈ 17% (🚑, escuro).<br>
+  🔻 Daí desce em degraus mais espaçados: 55º = 40% (😓) · 60º = 33% (🥵, vermelho) · 65º = 25% (🚑, escuro) · 70º = 10% · zera no 73º.<br>
   🪑 Banco recupera igual ao de hoje (o motor é o mesmo) — na barra aparece ~+3% por rodada de descanso.
 </div>`
 

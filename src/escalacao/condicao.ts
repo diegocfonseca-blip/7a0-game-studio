@@ -87,16 +87,28 @@ export const corGas = (e: EstadoGas): string => (e === 'ok' ? '#1B7A3D' : e === 
 // mostrava isso cru: parecia "quase acabando" com o jogador ainda inteiro (inteiro
 // vai até o 54º). A barra passa a mostrar uma LEITURA do gás, em dois trechos:
 //   · gás 100 → 30,7 (1º ao 50º jogo)  = barra 100% → 50%  (cai ~1% por jogo)
-//   · gás 30,7 → 0 (51º jogo em diante) = barra 49% → 0%   (cai mais rápido: é a
-//     zona do cansaço — 55º ≈ 40% · 60º ≈ 28% · 65º ≈ 17% · 72º ≈ 1%)
+//   · gás 30,7 → 0 (51º jogo em diante) = barra 49% → 0%   (zona do cansaço, em
+//     degraus mais espaçados — 55º = 40% · 60º = 33% · 65º = 25% · 70º = 10% · 73º = 0)
 // Cor: verde enquanto a barra está em 50% ou mais; abaixo disso amarelo — mesmo com
 // o jogador ainda 💪 (é o aviso "está chegando"); 🥵 e 🚑 seguem vermelho/escuro.
 // O emoji, o estado e todos os números do jogo continuam saindo do gás cru.
 export const GAS_MEIO = 30.7 // gás do motor que a barra mostra como 50% (entre o 50º = 31,4 e o 51º = 30 → 51% e 49%)
+// 🪜 2ª rodada com o Diego (13/09): *"espaçar mais o final após bater 40%… manter de 1 a
+// 50, depois 55 e depois prolongar… a parte final achei que foi rápido e brusco"*. O motor
+// zera o gás no ~72º jogo, então a barra TEM que perder os 40 pontos finais em 17 jogos —
+// o que dá pra fazer é REDISTRIBUIR: cai devagar na zona que ele vê (55º–65º) e só despenca
+// no finzinho, que quase ninguém alcança sem descansar. Pontos [gás do motor → barra]:
+//   100 → 100 · 30,7 → 50 (50º/51º) · 24,4 → 40 (55º 😓) · 17,4 → 33 (60º 🥵) ·
+//   10,4 → 25 (65º 🚑) · 3,4 → 10 (70º) · 0 → 0 (73º em diante)
+// Entre dois pontos é reta. Monótona: gás menor nunca dá barra maior.
+export const BARRA_PONTOS: [number, number][] = [[100, 100], [GAS_MEIO, 50], [24.4, 40], [17.4, 33], [10.4, 25], [3.4, 10], [0, 0]]
 export function pctBarra(g: number): number {
   const x = Math.max(0, Math.min(100, g))
-  const p = x >= GAS_MEIO ? 50 + ((x - GAS_MEIO) / (100 - GAS_MEIO)) * 50 : (x / GAS_MEIO) * 50
-  return Math.max(0, Math.min(100, Math.round(p)))
+  for (let i = 1; i < BARRA_PONTOS.length; i++) {
+    const [g1, p1] = BARRA_PONTOS[i - 1], [g0, p0] = BARRA_PONTOS[i]
+    if (x >= g0) return Math.max(0, Math.min(100, Math.round(p0 + ((x - g0) / (g1 - g0)) * (p1 - p0))))
+  }
+  return 0
 }
 export function corBarra(g: number): string {
   const e = estadoGas(g)
