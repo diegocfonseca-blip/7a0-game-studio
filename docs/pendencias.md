@@ -8,10 +8,22 @@ Método: `LOGOS_PRONTAS` (escudos.tsx) × `BATISMOS` (batismos.ts) × `esc_socio
   Marolados FC · La Bestia Negra.
 - Tôka10 já está em .webp (`toka10-escudo.webp`), mas o Diego o cita como
   desatualizado — a arte que está lá não é a do dono; trocar quando ele mandar.
-- **Sem time de coração** (23): White Thigs · Vasco da Grana · Skyy · Marreco · Jurubeba
-  (Meia na Canela) · Stocco · Final Boss · Bagres 1993 · Nova Eclipse · Sistematizados ·
+- **Sem time de coração** (21): White Thigs · Vasco da Grana · Skyy · Marreco · Jurubeba
+  (Meia na Canela) · Stocco · Final Boss · Bagres 1993 · Sistematizados ·
   Briga de Galo · Bonança · Leite de Verdade · Capsule · Alfacehh · Eros · Seven City ·
-  Crias do Bigão · Theuzudo · São Luiz · Milhaça · Esqueceram do Lluch · Futpoint.
+  Crias do Bigão · Theuzudo · São Luiz · Milhaça · Esqueceram do Lluch.
+  ✅ **13/09, o Diego respondeu:** Futpoint FC (nº27) e Nova Eclipse FC (nº38) →
+  **Corinthians**, gravado em `esc_socios.time_coracao`. **Vasco da Grana → Vasco da
+  Gama**, mas NÃO deu pra gravar: o clube não tem linha em `esc_socios` (e-mail é
+  NOT NULL) e ninguém usa o nome — a conta `caiovvzmx@gmail.com`, que era o único
+  rastro (20/08), hoje se chama "Rio das Flores FC". Falta o Diego dizer o e-mail do
+  dono pra entrar a linha (com a conta já existente, regra de 07/09).
+  🔧 **De carona:** a torcida do Salão (`esc_salao_torcidas`) só contava
+  `origem = 'batismo'`, então o Futpoint (sócio, regra do 19/08) ficaria fora mesmo
+  com o coração gravado — e o Marinheiros AS (sócio, Palmeiras) já estava fora.
+  Migração `salao_torcidas_conta_socios_do_salao`: conta todo dono com
+  `escudo_time` (é o que o Salão mostra, decisão do Diego 30/08: sócio também entra).
+  Reverter = devolver a linha `and s.origem = 'batismo'` na CTE. Sem deploy: é banco.
 - ⚠️ **Batismos SEM linha em `esc_socios`**: White Thigs do GuGu e Vasco da Grana (sem
   dono conhecido, ok) — e **Theuzudo FC, São Luiz FC e Esqueceram do Lluch**, que TÊM
   dono. Pelo roteiro (3 pernas), sem essa linha o dono não vira sócio. Conferir
