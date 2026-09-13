@@ -103,11 +103,10 @@ function ManualLockButton() {
     <div style={{ marginBottom: 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
         <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
-          <span>🎮 Modo Manual</span>
-          <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>Apoie 🔒</span>
+          <span>{tr('Acelerar e pular', 'Speed up and skip')}</span>
+          <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('🔒 Desbloquear', '🔒 Unlock')}</span>
         </button>
       )} />
-      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '4px 2px 0', ...OSWALD }}>{tr('Controle o ritmo da temporada — pause, acelere, pule. Toque pra desbloquear.', 'Control the pace of the season — pause, speed up, skip. Tap to unlock.')}</p>
     </div>
   )
 }

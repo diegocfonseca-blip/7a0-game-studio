@@ -44,6 +44,15 @@ conserto. Ligar Agência em carreira antiga é decisão do Diego (mexe em econom
 ranking e contraria a regra dele de 16/08 de não tocar em save antigo). A outra
 carreira dele está na Várzea, temporada 2 — essa liga sozinha quando chegar na C.
 
+## 12/09/2026 — Apoios reorganizados, publicação geral aprovada pelo Diego
+
+- Home preservada: mesma arte, cabeçalho, botões e atalhos. Única inclusão: bloco compacto de apoio após o rodapé. A história Diego/Luca fica somente no final dos planos.
+- Planos: visão geral compacta, detalhes por categoria, pagamentos únicos separados de assinatura mensal, comparação de dois apoios no celular, textos BR/EN.
+- Acesso bloqueado: faixa branca do mesmo tamanho, “Acelerar e pular” + “🔒 Desbloquear”; controles só após liberação. Oferta Craque com prévia, benefícios, Pix e comprovante existentes.
+- Condição de upgrade Craque → Lenda mantida em R$ 20,00, também no Pix. Sem mudança de atributos, regras do jogo, permissões ou concessão automática de planos.
+- Preferência permanente: não redesenhar a home nesta entrega; apoios ficam discretos no final. História pessoal dentro dos planos, não na home.
+- Entrega isolada para permitir reversão sem mexer nas demais novidades. Publicação solicitada para todos, não apenas as duas contas de teste.
+
 ## 12/09/2026 — 🍀7️⃣ SEVEN CITY de cara nova (arte do dono) — ✅ PUBLICADO na main (f6119b4) + banco atualizado
 
 Diego mandou a prancha nova (escudo trevo/7 dourado, mascote trevo de terno e
