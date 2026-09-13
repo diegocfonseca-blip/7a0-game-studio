@@ -146,6 +146,52 @@ Barcelona"*; Kaká do São Paulo diz *"Último brasileiro a ganhar a Bola de Our
 Reinaldo, Alex, Gérson) já têm bio própria em cada carta — esse lado, que era o
 perigoso, está coberto.
 
+## 13/09/2026 — 🕵️ O Sondar mostrava sempre os clubes da FUNDAÇÃO (e não os da divisão de hoje)
+
+Achado do Diego no mesmo print do gás (T15, **Série C**, Rodada 1/38):
+*"subi pra série D e depois pra série C e continuou os mesmos times… o certo deveria
+sempre ter ali os rivais + trocar pelos times da divisão atual o restante"*. Ele já
+tinha falado isso antes e ficou sem conserto.
+
+**Causa:** a lista era `state.managers.filter(!isHuman)` — os 19 bots da liga dele.
+Na pirâmide esses 19 **se espalham pelas séries** e nunca trocam de nome. No save da
+T15: 3 na C, 8 na D, 7 na V, 1 na B. Ele estava na Série C vendo 19 clubes de Várzea.
+
+**Conserto:** a lista agora é a da **divisão de verdade**: os rivais escolhidos
+(sempre, mesmo de outra série — eles disputam o SEU leilão) + todo mundo que está na
+sua divisão agora, seja bot da liga ou **TIME DE FUNDO**. Os times de fundo moram só
+em `careerPlacements` (chave = NOME do clube; manager usa `m<id>`) e nunca tinham
+técnico — o `ALICIAR_SEED` passou a semear por essa lista, e a "cura" de técnico de
+divisão errada passou a varrer TODO clube semeado, não só os managers.
+No save dele isso troca 19 clubes de Várzea por **19 da Série C** (3 da liga + 16 de
+fundo).
+
+⚠️ **O que NÃO foi feito, e por quê:** sondar JOGADOR de time de fundo. O elenco
+deles é RECEITA determinística (`buildCpuSquads`, que vive na tela, não no store) —
+tirar uma carta de lá sem persistir em `cpuSquads` faria a carta existir DUAS vezes
+(no seu elenco e no clube, que recalcula igual). Dá pra fazer: mandar a carta + o
+elenco na ação e gravar `cpuSquads[clube]` sem ela (o `completaComBase` do
+`buildPyramid` já tapa o buraco do XI). Mas não sem testar o leilão de ponta a ponta,
+e estado quebrado é a prioridade nº 1 dele. Por ora: nesses clubes vai o TÉCNICO, e a
+janelinha DIZ isso com todas as letras em vez de mostrar caixa vazia.
+
+### 🧑‍⚕️ Preparador físico: já é de graça (proposta de cobrar CANCELADA)
+Conferido: o card do preparador (com o 🔁 RODIZIAR) aparece sempre que o gás está
+ligado — não existe compra, nem obra, nem trava. A ideia de cobrar 50 🪙 (11/09) está
+**cancelada** por ordem dele: *"o preparador físico venha liberado, mantenha sem
+precisar comprar mesmo"*. ⚠️ Não propor de novo.
+
+### ⏳ Escada do gás — ESPERANDO ELE (um número impede de adivinhar)
+Pedido: *"a combinação tava 1 a 10, depois 11, 12, 13 e 14 em diante… agora quero 1 a
+50, depois 55, 60, 65 e 70 em diante"*. **Não implementei: a temporada tem 38
+rodadas.** O gás é derivado da escalação DA TEMPORADA (`careerLineup` por rodada,
+`round` 0-37) e zera na virada — um titular joga no máximo 38 jogos. Com o 1º degrau
+em 50, **ninguém cansaria nunca** e o gás viraria enfeite. Perguntado a ele: esticar
+dentro da temporada (ex.: 1-20 · 25 · 30 · 35+) ou fazer o cansaço ATRAVESSAR
+temporadas (aí 50/55/60/65/70 fecham, e é mudança de regra). Qualquer um dos dois é
+trocar `GAS_JOGO`/`GAS_CANSADO`/`GAS_LIMITE`/`GAS_ESGOTADO` em `condicao.ts` e rodar
+`npx tsx scripts/testa-condicao.mjs`.
+
 ## 13/09/2026 — 🏛️ SALÃO DOS BATISMOS ABERTO PRA TODO MUNDO (com duas coisas escondidas)
 
 Palavras do Diego: *"agora publique também a sala de batismos, mas oculte por

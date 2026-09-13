@@ -3685,12 +3685,35 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   // Palavras dele: *"só precisa ser especificado que quem está na série são os 19 da
   // divisão junto dos rivais escolhidos no início do jogo"*.
   const rivaisDeFora = state.managers.filter(m => !m.isHuman && m.auctionOnly).length
-  // 🪶 a lista de clubes só muda quando o elenco de bots muda — sem o useMemo,
-  // toda rolagem/re-render refazia filter+sort e redesenhava os ~20 escudos.
-  const clubes = useMemo(
-    () => state.managers.filter(m => !m.isHuman).slice().sort((x, y) => x.teamName.localeCompare(y.teamName)),
-    [state.managers],
-  )
+  // 🕵️ A LISTA É A DA SUA DIVISÃO DE VERDADE (13/09) — antes era "os seus 19 bots",
+  // que na pirâmide se espalham pelas séries e NUNCA mudavam. Diego: *"subi pra
+  // série D e depois pra C e continuou os mesmos times… o certo deveria sempre ter
+  // ali os rivais + trocar pelos times da divisão atual o restante"*.
+  // Entram: os RIVAIS escolhidos (sempre, mesmo de outra série — eles disputam o SEU
+  // leilão) + todo mundo que está na sua divisão agora, seja um bot da sua liga ou um
+  // TIME DE FUNDO (esses moram só em `careerPlacements`, com o NOME como chave).
+  // Time de fundo não tem elenco no save (a ficha dele é receita, não estado), então
+  // vai com `squad: []`: dá pra sondar o TÉCNICO dele, não o jogador — e a janelinha
+  // diz isso com todas as letras, em vez de mostrar uma lista vazia sem explicação.
+  const clubes = useMemo(() => {
+    const pl = state.careerPlacements ?? {}
+    const rivaisTime = new Set((state.careerRivals ?? []).map(r => newestTeamName(r.team)))
+    const out: { teamName: string; squad: WonCard[]; fundo?: boolean }[] = []
+    const vistos = new Set<string>()
+    for (const m of state.managers) {
+      if (m.isHuman) continue
+      const dm = pl[`m${m.id}`]
+      if (dm !== divAtual && !m.auctionOnly && !rivaisTime.has(newestTeamName(m.teamName))) continue
+      vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[] })
+    }
+    for (const [k, v] of Object.entries(pl)) {
+      if (v !== divAtual || /^m\d+$/.test(k)) continue
+      const nome = newestTeamName(k)
+      if (vistos.has(nome)) continue
+      vistos.add(nome); out.push({ teamName: nome, squad: [], fundo: true })
+    }
+    return out.sort((x, y) => x.teamName.localeCompare(y.teamName))
+  }, [state.managers, state.careerPlacements, state.careerRivals, divAtual])
   const divRot = divAtual === 'V' ? 'Várzea' : `Série ${divAtual}`
   const totalMarcado = marcadosT.length + marcadosJ.length
   // 📰 depois de marcar, a HISTORINHA de bastidor conta por que o sondado vai
@@ -3811,7 +3834,18 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                     (profissional/bom/promessa = todos · craque = ⭐/👑 · lenda = 👑).
                     Quem está acima dele não aparece — e no pé fica a porta dizendo
                     que tem gente que o olheiro não achou. */}
-                {jogadorOn && (() => {
+                {/* 🏟️ CLUBE DE FUNDO: entrou na lista em 13/09 porque é adversário DE
+                    VERDADE da sua divisão — mas o elenco dele não vive no save (é
+                    receita, não estado), então dá pra levar o TÉCNICO e não o jogador.
+                    Dizer isso é melhor que mostrar uma caixa vazia sem motivo. */}
+                {jogadorOn && c.fundo && (
+                  <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, padding: '9px 10px', marginTop: 11, background: '#FBF6E8' }}>
+                    <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center', lineHeight: 1.45 }}>
+                      {tr('🕵️ Deste clube o seu olheiro traz o TÉCNICO. Jogador, só dos clubes da sua liga — é lá que ele tem contato.', '🕵️ From this club your scout can bring the COACH. Players, only from the clubs in your league — that\'s where he has contacts.')}
+                    </p>
+                  </div>
+                )}
+                {jogadorOn && !c.fundo && (() => {
                   const elenco = c.squad.filter(x => !x.fake && !x.emprestado)
                   const alcanca = (x: WonCard) => marcadosJ.includes(x.id) || sondarLiberado(x, olheiroTier)
                   const escondidos = elenco.filter(x => !alcanca(x)).length

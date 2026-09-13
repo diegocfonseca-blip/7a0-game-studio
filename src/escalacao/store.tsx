@@ -6073,18 +6073,35 @@ export function reducer(state: EscState, action: Action): EscState {
       // Só nos clubes de CPU, e o `desde` é remarcado — placar já visto não muda.
       const desdeCura = { ...(s.careerTecnicosDesde ?? {}) }
       let curou = false
-      for (const m of s.managers) {
-        if (m.isHuman) continue
-        const n = map[m.teamName]
+      // cura TODO clube já semeado (manager ou time de fundo), não só os managers
+      for (const nomeClube of Object.keys(map)) {
+        const n = map[nomeClube]
         if (!n) continue
         const tt = tecnicoPorNome(n)
-        if (tt && tt.div !== div) { delete map[m.teamName]; curou = true }
+        if (tt && tt.div !== div) { delete map[nomeClube]; curou = true }
       }
       const usados = new Set(Object.values(map).filter((x): x is string => !!x))
       const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
       const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
       for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
-      const clubes = s.managers.filter(m => !m.isHuman).map(m => m.teamName).sort()
+      // 🕵️ OS CLUBES QUE GANHAM TÉCNICO = OS DA SUA DIVISÃO DE VERDADE (13/09).
+      // Palavras do Diego: *"eu subi pra série D e depois pra série C e continuou os
+      // mesmos times... o certo deveria sempre ter ali os rivais + trocar pelos times
+      // da divisão atual o restante"*. Na pirâmide os seus 19 bots se ESPALHAM pelas
+      // séries (no save dele, na T15, só 3 estavam na C junto com ele) — os outros 16
+      // adversários da Série C são TIMES DE FUNDO, que moram só em `careerPlacements`
+      // (chave = nome do clube; manager usa `m<id>`). Eles nunca tinham técnico, então
+      // nem apareciam no Sondar. Agora entram: rivais escolhidos SEMPRE, mais todo
+      // mundo (manager ou fundo) que está na sua divisão agora.
+      const naMinhaDiv = new Set<string>()
+      for (const [k, v] of Object.entries(s.careerPlacements ?? {})) if (v === div && !/^m\d+$/.test(k)) naMinhaDiv.add(newestTeamName(k))
+      const rivaisTime = new Set((s.careerRivals ?? []).map(r => newestTeamName(r.team)))
+      for (const m of s.managers) {
+        if (m.isHuman) continue
+        const dm = s.careerPlacements?.[`m${m.id}`]
+        if (dm === div || m.auctionOnly || rivaisTime.has(newestTeamName(m.teamName))) naMinhaDiv.add(m.teamName)
+      }
+      const clubes = [...naMinhaDiv].sort()
       const desde = { ...(s.careerTecnicosDesde ?? {}) }
       let mudou = false
       for (const c of clubes) if (!(c in map)) { map[c] = livres.shift() ?? null; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true }
