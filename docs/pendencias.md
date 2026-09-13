@@ -180,8 +180,21 @@ junto, porque esse clube não tem manager pra procurar dentro); fica em
 sem dono pra brigar de volta — o resto é igual. O id vira `sond-<id>` porque o id de
 fundo (`MEI-42`) tem a MESMA forma do id do baralho e podia bater com outro lote; a
 identidade continua a mesma, que é o que o jogo usa pra saber quem é quem.
+🎯 **E O CLUBE SONDADO ENTRA NO LEILÃO INTEIRO** (pedido dele na sequência: *"esse
+time sondado tem direito a participar da leva inteira do leilão também, seja técnico
+a atacante, na rodada que o jogador dele for pro leilão"*). Isso já existia pronto
+pra outro caso: o **participante temporário** (`marketCpu`) do "mercado dos 80" —
+ele *"disputa o leilão INTEIRO, repõe a perda E pode pegar reservas em qualquer
+posição, como um técnico de verdade"*. Então o clube de fundo sondado é
+materializado assim: entra com o elenco dele MENOS o sondado (fica com buraco, e é
+por isso que vai à luta), paga com o caixa do clube, e no fim da cerimônia a
+`FINISH_CEREMONY` grava a ficha dele (completada em 11) e o remove.
+🔒 **É esse mesmo passo que fecha de vez a porta da carta repetida**: o clube passa a
+ficar GUARDADO em `cpuSquads` sem o sondado, então a receita nunca mais o devolve —
+além da trava por identidade que o `buildCpuSquads` já tinha.
 ⚠️ Não dá pra testar o leilão de ponta a ponta por aqui (precisa jogar uma carreira):
-se aparecer jogador repetido, é reverter este commit.
+se aparecer jogador repetido ou o clube sondado não aparecer dando lance, é reverter
+este commit.
 
 ### 🧑‍⚕️ Preparador físico: já é de graça (proposta de cobrar CANCELADA)
 Conferido: o card do preparador (com o 🔁 RODIZIAR) aparece sempre que o gás está

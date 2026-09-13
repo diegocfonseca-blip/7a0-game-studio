@@ -3214,7 +3214,7 @@ type Action =
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
   | { type: 'ALICIAR_SEED' } // 🧢 semeia os técnicos dos clubes da SUA divisão (1ª visita à área de aliciar; idempotente)
-  | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string; card?: WonCard; clube?: string } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão. `card`+`clube` só pra TIME DE FUNDO (13/09): esses não têm manager nem elenco no save, então a tela manda a carta junto
+  | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string; card?: WonCard; clube?: string; squad?: WonCard[] } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão. `card`+`clube` só pra TIME DE FUNDO (13/09): esses não têm manager nem elenco no save, então a tela manda a carta junto
   | { type: 'RENOVAR_TECNICO' } // 📝 contrato do técnico venceu (5 anos): +5 temporadas pagando o valor dele
   | { type: 'DISPENSAR_TECNICO' } // 📝 contrato venceu: deixa ir sem multa
   | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
@@ -6249,7 +6249,7 @@ export function reducer(state: EscState, action: Action): EscState {
         if (!alvo || alvo.fake || alvo.emprestado) return s
         if (!sondarLiberado(alvo, myApoioPerk()?.tier)) return s
         s.aliciarJogadores = [action.cardId]
-        s.aliciarFundo = action.clube && action.card ? { cardId: action.cardId, clube: action.clube, card: action.card } : undefined
+        s.aliciarFundo = action.clube && action.card ? { cardId: action.cardId, clube: action.clube, card: action.card, squad: action.squad ?? [] } : undefined
       }
       return s
     }
@@ -6775,7 +6775,28 @@ export function reducer(state: EscState, action: Action): EscState {
           // (`MEI-42`) tem a mesma forma do id do baralho e poderia bater com outro
           // lote. A identidade (nome|clube|ano) é a mesma, que é o que importa.
           const f = s.aliciarFundo
-          if (f && f.cardId === cid && !f.card.fake) listedCards.push({ ...f.card, id: `sond-${cid}`, semContrato: true })
+          if (f && f.cardId === cid && !f.card.fake) {
+            listedCards.push({ ...f.card, id: `sond-${cid}`, semContrato: true })
+            // 🎯 O CLUBE SONDADO ENTRA NO LEILÃO INTEIRO (Diego 13/09): *"esse time
+            // sondado tem direito a participar da leva inteira do leilão também, seja
+            // técnico a atacante, na rodada que o jogador dele for pro leilão"*.
+            // Ele vira PARTICIPANTE TEMPORÁRIO — a mesma peça que o "mercado dos 80"
+            // já usa (`marketCpu`): briga em TODAS as posições, paga com o caixa do
+            // clube e, no fim da cerimônia, a ficha dele é gravada (completada em 11)
+            // e ele sai. É isso que também fecha a porta da carta repetida: o clube
+            // fica GUARDADO sem o sondado, então a receita nunca o devolve.
+            if (f.squad.length && !s.managers.some(m => m.marketCpu && m.marketTeam === f.clube)) {
+              const divF = (s.careerPlacements?.[f.clube] as 'A' | 'B' | 'C' | 'D') ?? 'C'
+              const rngF = rngOf(s)
+              s.managers = [...s.managers, {
+                id: -2000 - s.managers.length, name: f.clube, teamName: f.clube, isHuman: false,
+                auctionRival: false, marketCpu: true, marketTeam: f.clube, deepSquad: true, formation: '4-3-3',
+                money: s.clubCash?.[f.clube] ?? DIV_BASE_CASH[divF] ?? 100,
+                squad: f.squad.filter(c => c.id !== cid).map(c => ({ ...c, paid: c.paid ?? 0, via: c.via ?? 'bot' })) as WonCard[],
+                aggression: 0.25 + rngF() * 0.6, starHunger: rngF(),
+              }]
+            }
+          }
         }
         s.aliciarJogadores = []
         s.aliciarFundo = undefined

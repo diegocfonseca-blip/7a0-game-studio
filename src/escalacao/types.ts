@@ -615,7 +615,7 @@ export interface EscState {
   // verdade da sua divisão, mas não têm manager nem elenco guardado — o time deles é
   // receita, desenhada na hora. Então a tela manda a carta junto e ela espera aqui até
   // virar lote no leilão de reservas. Some assim que o leilão monta os lotes.
-  aliciarFundo?: { cardId: string; clube: string; card: WonCard }
+  aliciarFundo?: { cardId: string; clube: string; card: WonCard; squad: WonCard[] }
   // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
   // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).
   contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)

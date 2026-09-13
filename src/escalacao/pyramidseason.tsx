@@ -3873,7 +3873,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                             const apagado = preso || (tetoCheio && !marcado)
                             return (
                               <div key={x.id}>
-                                <div onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName } : {}) }) }}
+                                <div onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName, squad: c.squad } : {}) }) }}
                                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: apagado ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
                                   <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
                                     <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: apagado ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? (getLang() === 'en' ? `📝 ${falta} left` : `📝 falta${falta > 1 ? 'm' : ''} ${falta}`) : marcado ? tr('✔ no leilão · tirar', '✔ in the auction · remove') : tetoCheio ? tr('🔒 já sondou 1', '🔒 already scouted 1') : tr('🆓 + sondar', '🆓 + scout')}</span></span>
