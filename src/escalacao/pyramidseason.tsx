@@ -16,6 +16,7 @@ import { PRESIDENT_ROOM_RELEASED } from './career-feature-release'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
+import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa } from './data'
@@ -4946,7 +4947,11 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
 // 🔁 Ida e volta: o card mostra UM jogo por vez. Quando o relógio passa dos 90'
 // (vira a volta), o `roundKey` muda e ele reinicia com os gols do 2º jogo — e
 // os lados trocam, porque na volta quem manda é o outro.
-function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, footTint, final=false }: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+// 🛟 (13/09) o SEU jogo da Copa também fica numa zona segura — mesmo motivo da lista.
+function MyCopaMatch(props: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+  return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
+}
+function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed, footTint, final=false }: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   const privateMatch = useOnlinePreview()
   const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
   const nLegs = legG.length
@@ -5005,7 +5010,13 @@ function MyCopaMatch({ tie, pos, phase, colors, safName, myColor, simSpeed, foot
 // por confronto, com o relógio de cada jogo correndo de verdade.
 // 🚫 ANTI-SPOILER: o placar exibido é o placar NAQUELE minuto (gols filtrados
 // por `min <= legMin`, mesma conta do card grande) — nunca o resultado final.
-function CopaMatchList({ ties, pos, colors, safName, title }: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
+// 🛟 (13/09, Internacional de Madrid) a lista dos outros jogos vive numa ZONA SEGURA:
+// se o navegador tropeçar ao desmontar um card na virada de fase (erro de removeChild
+// do WebKit nas quartas), só a lista pisca "atualizando…" e volta — a tela não cai.
+function CopaMatchList(props: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
+  return <ZonaSegura nome="copa-outros-jogos" aviso={tr('⏳ atualizando os jogos da fase…', '⏳ refreshing the round…')}><CopaMatchListInner {...props} /></ZonaSegura>
+}
+function CopaMatchListInner({ ties, pos, colors, safName, title }: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
   const privateMatches = useOnlinePreview()
   if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>}/>} />
   const nameCol = (t: SimTeam) => t.you ? (colors[t.teamId]?.solid ?? INK) : (safName && t.name === safName) ? (colors[t.teamId]?.solid ?? INK) : (t.human || t.rival) ? (colors[t.teamId]?.solid ?? INK) : INK

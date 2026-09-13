@@ -46,6 +46,23 @@ NotFoundError do WebKit — no Chrome de PC seria "The node to be removed is not
 - Pro jogador: "Voltar ao início" → Continuar; o save não foi tocado (a Copa re-anima da
   1ª fase, resultado igual). Se voltar a acontecer, perguntar se o Chrome ofereceu
   "traduzir página" e se tem extensão/tradutor ligado.
+- ❌ **Caiu de novo (16:50) já com o notranslate no ar** → não era o tradutor. O print
+  mostrou a fase: quartas com a lista "OUTROS JOGOS" no visual novo (`CareerCupGames`,
+  que é PÚBLICO desde 10/09 — `useCareerPresentation`), e nas quartas do save dele há um
+  confronto nos PÊNALTIS (Papão × Leão da Estradinha) que é justamente um dos cards
+  REMOVIDOS na virada pra semifinal. No Chromium passa; o WebKit do Playwright não
+  baixa aqui (proxy 403). Causa exata segue em aberto.
+- 🛟 **Blindagem 2 (no ar):** `ZonaSegura` (`zona-segura.tsx`) envolve a lista dos
+  outros jogos e o seu jogo da Copa: se o navegador tropeçar ao desmontar um card, só
+  aquele pedaço pisca "⏳ atualizando…" por meio segundo e remonta com chave nova — a
+  tela não cai. **Testado** com sabotagem no Chromium (`SABOTA=1
+  scripts/repro-copa-fase.mjs` tira um card do grid antes da virada → o React dá o MESMO
+  erro de removeChild → a lista remonta e a Copa segue até a Supercopa, sem "Ops").
+- 🚑 **Registro de quedas (no ar):** tabela `esc_quedas` (insert-only pelo app) recebe
+  msg + pilha de COMPONENTES (nomes reais, o build guarda) + navegador + versão, tanto da
+  tela de erro geral (`index.tsx`) quanto das zonas seguras (`quedas.ts`, 1 por 30 s). A
+  tela de erro também passou a mostrar a linha "tela: A < B < C" no print. Próximo print
+  do Matheus (ou a linha no banco) diz o componente exato.
 
 ## 13/09/2026 — 📊 Barrinha de gás "cai rápido demais" — leitura nova, ✅ aprovado ("Perfeito isso aí") e no ar
 

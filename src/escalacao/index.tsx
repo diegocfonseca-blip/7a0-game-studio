@@ -15,6 +15,7 @@ import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos de app/sessã
 import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
 import { TelaSenhaNova } from './senha-nova'
 import { anotaTrava } from './caixa-preta'
+import { registraQueda } from './quedas' // 🚑 registro das quedas de tela (13/09)
 
 function Router() {
   const { state } = useEsc()
@@ -140,10 +141,17 @@ function OpenInBrowserBanner() {
 // incompatível ao continuar a carreira), em vez de tela branca sem saída mostra
 // um aviso com botão de voltar ao início (NÃO apaga o save) e a mensagem do erro
 // na tela — assim dá pra tirar print e a gente corrige a causa exata.
-class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | null }> {
-  state: { err: Error | null } = { err: null }
+class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | null; componentes: string | null }> {
+  state: { err: Error | null; componentes: string | null } = { err: null, componentes: null }
   static getDerivedStateFromError(err: Error) { return { err } }
-  componentDidCatch(err: Error) { try { console.error('Leilão Legends crash:', err) } catch { /* ignora */ } }
+  componentDidCatch(err: Error, info: { componentStack?: string | null }) {
+    try { console.error('Leilão Legends crash:', err) } catch { /* ignora */ }
+    // 🚑 (13/09) guarda a pilha de COMPONENTES (tem nome de verdade, ao contrário da
+    // pilha do React minificado) e registra a queda em `esc_quedas` — ver quedas.ts.
+    const componentes = info?.componentStack ?? null
+    this.setState({ componentes })
+    registraQueda('tela', err, componentes)
+  }
   render() {
     if (this.state.err) {
       return (
@@ -158,6 +166,11 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
              quando o print chega. Mostra só as primeiras linhas pra não assustar. */}
           {this.state.err?.stack && (
             <pre style={{ fontSize: 8, color: 'rgba(0,0,0,.4)', marginTop: 6, maxWidth: 340, maxHeight: 96, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'left', fontFamily: 'monospace' }}>{this.state.err.stack.split('\n').slice(0, 14).join('\n')}</pre>
+          )}
+          {/* 🧭 onde na TELA quebrou (nomes dos componentes, de baixo pra cima) — é isto que
+              diz o lugar exato; a pilha de cima é só o miolo do React. */}
+          {this.state.componentes && (
+            <pre style={{ fontSize: 8, color: 'rgba(0,0,0,.5)', marginTop: 4, maxWidth: 340, maxHeight: 80, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'left', fontFamily: 'monospace' }}>{'tela: ' + this.state.componentes.trim().split('\n').map(l => l.trim().replace(/^at /, '').replace(/\s*\(.*$/, '')).filter(Boolean).slice(0, 10).join(' < ')}</pre>
           )}
           <p style={{ fontSize: 10.5, color: 'rgba(0,0,0,.45)', marginTop: 6 }}>Manda um print disso <b>inteiro</b> pro <b>@leilaolegendscom</b> 🙏</p>
         </div>
