@@ -105,6 +105,12 @@ export interface AgEvento { emoji: string; texto: string; coins: number; nome?: 
 export interface WonCard extends Card {
   paid: number
   via: Acquisition
+  // 📝❄️ EMPRÉSTIMO CONGELA O CONTRATO (Diego 13/09: *"quando o jogador é emprestado não
+  // quero que conte o empréstimo — congela o tempo. Ele volta com o mesmo número que
+  // tava quando emprestou"*). Gravado na ida pra SAF: quantas temporadas faltavam ALÉM
+  // da corrente (contratoAte − seasonNo). Na volta vira contratoAte = temporada da
+  // volta + isto, e some. Empréstimo antigo (sem o campo) cai na cura legada.
+  contratoRestante?: number
   contratoAte?: number // 📝 CONTRATOS (carreira): temporada em que o contrato ENCERRA (vence no FIM dela). Sorteado 5-10 na chegada; renovação = 10 anos (valor cheio) ou 5 (metade). Ausente em carreira COM contratosOn = ganha na próxima cerimônia; carreira ANTIGA (sem contratosOn) NUNCA ganha — contratos são só de carreira criada depois de 02/08 (decisão de produto, ver diário)
   reforco?: boolean // carreira online: comprado no leilão de reservas/mercado (não é do elenco original) — usado pras frases de "como vão as contratações"
   emprestado?: 'saf' | 'dono' // 🏢 SAF: jogador de EMPRÉSTIMO (propriedade não mudou) — 'saf' = veio da SAF pro dono; 'dono' = veio do dono pra SAF. Nunca pode ser vendido/listado; volta sozinho na virada de temporada.

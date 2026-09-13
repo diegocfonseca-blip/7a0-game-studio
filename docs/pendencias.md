@@ -26,12 +26,24 @@ carreira `at 1789316781480`):
    `saveAtualizado`). Quem está em C/B/A liga no próximo load, sem precisar jogar.
 3. **Bobby Moore "❗ vencido" (contrato até a T481 numa T545).** É o jogador SEU que
    ficou emprestado pra SAF: fora do `squad`, passa batido por TODAS as janelas de
-   renovação; quando volta, traz o contrato de dezenas de temporadas atrás. A janela
-   da próxima virada já trataria (renova automático ou deixar ir), mas até lá a carta
-   fica "vencida" e o evento de lesão não a via como reserva. **Fix**:
-   `curaContratoVoltando` na volta do empréstimo (virada e retorno antecipado) e
-   `curaContratosVencidos` ao abrir o save: contrato do passado vira "termina nesta
-   temporada" (`contratoAte = seasonNo`) — honesto, e a janela decide na virada.
+   renovação (e o empréstimo PERSISTE na virada), então o contrato "venceu" lá
+   dentro. **Regra do Diego (13/09, depois do 1º conserto):** *"quando o jogador é
+   emprestado não quero que conte o empréstimo — congela o tempo. Ele volta com o
+   mesmo número que tava quando emprestou. Só não pode deixar emprestar com contrato
+   encerrado."* Implementado:
+   - `LOAN_TO_FILIAL` grava `contratoRestante = contratoAte − seasonNo` na carta
+     emprestada (campo novo em `WonCard`, opcional).
+   - toda VOLTA (`revertFilialLoans`/`returnFilialLoansFor` na virada e na venda da
+     SAF, `trimFilialLoansToDivision` no rebaixamento, `RETURN_FILIAL_LOAN` no meio da
+     temporada) passa por `descongelaContrato(c, temporadaVolta)`: contratoAte =
+     temporada da volta + restante. Na virada a temporada da volta é a NOVA
+     (`seasonNo + 1`, porque roda antes do `seasonNo++`); no meio da temporada é a
+     corrente (volta igualzinho saiu).
+   - "não pode emprestar com contrato encerrado": `travaContratoSaf` **já bloqueava**
+     (contrato vencendo/vencido só sai pra SAF renovando antes). Conferido no teste.
+   - Empréstimo feito ANTES da regra (sem `contratoRestante`, caso do Bobby Moore) cai
+     na **cura legada**: contrato do passado vira "termina nesta temporada" e a janela
+     da virada decide — não dá pra saber quanto faltava quando ele saiu.
 
 Sem mudança de formato de save; tudo é cura idempotente. Reverter = 1 commit.
 

@@ -1,7 +1,7 @@
 // 🧪 EVENTO SEM RESERVA + CRIA (13/09, caso do São Luiz FC): o técnico trocou o
 // lesionado na mão ANTES de confirmar o cria → a decisão tem que fechar do mesmo
 // jeito (nunca mais "Confirmar" que não faz nada). Rodar: npx tsx scripts/testa-evento-cria.mjs
-import { reducer, __ligaCondicaoSeCabe as ligaCondicao, __curaContratosVencidos as curaContratos } from '../src/escalacao/store.tsx'
+import { reducer, __ligaCondicaoSeCabe as ligaCondicao, __curaContratosVencidos as curaContratos, __descongelaContrato as descongela } from '../src/escalacao/store.tsx'
 
 let falhas = 0
 const ok = (cond, msg) => { if (cond) console.log('  ✅', msg); else { falhas++; console.log('  ❌', msg) } }
@@ -52,6 +52,24 @@ curaContratos(c)
 const bm = c.managers[0].squad.find(x => x.id === 'BM')
 ok(bm.contratoAte === 545, `Bobby Moore: contrato até ${bm.contratoAte} (a janela da virada decide: renova ou deixa ir)`)
 ok(c.managers[0].squad.filter(x => x.id !== 'BM').every(x => x.contratoAte === 550), 'os outros contratos não foram tocados')
+
+console.log('6) ❄️ empréstimo pra SAF CONGELA o contrato (regra do Diego 13/09)')
+const L = { ...base(), careerFilial: { team: 'SAF Teste', loanOut: [], loanIn: [] }, cpuSquads: { 'SAF Teste': [] }, careerCoins: { 0: 100 } }
+L.managers[0].squad.find(c => c.id === 'ZAG-128').contratoAte = 548 // faltam 3 além da T545
+let e = reducer(L, { type: 'LOAN_TO_FILIAL', cardId: 'ZAG-128', mgrId: 0 })
+const emprestado = e.careerFilial.loanOut[0]
+ok(emprestado && emprestado.contratoRestante === 3 && !e.managers[0].squad.some(c => c.id === 'ZAG-128'), `emprestou na T545 com contrato até 548 → gravou restante = ${emprestado?.contratoRestante}`)
+const volta545 = descongela({ ...emprestado }, 545)
+ok(volta545.contratoAte === 548 && volta545.contratoRestante == null, 'voltou na MESMA temporada → contrato até 548 (igual saiu)')
+const volta560 = descongela({ ...emprestado }, 560)
+ok(volta560.contratoAte === 563, 'ficou 15 temporadas na SAF e voltou na T560 → contrato até 563 (mesmos 3 que tinha — o tempo lá não contou)')
+e = reducer(e, { type: 'RETURN_FILIAL_LOAN', cardId: 'ZAG-128', mgrId: 0 })
+const dv = e.managers[0].squad.find(c => c.id === 'ZAG-128')
+ok(dv && dv.contratoAte === 548 && dv.contratoRestante == null && !dv.emprestado, 'RETURN_FILIAL_LOAN na mesma temporada: voltou com 548, sem o campo congelado')
+const semCt = reducer({ ...L, managers: [{ ...L.managers[0], squad: L.managers[0].squad.map(c => (c.id === 'ZAG-128' ? { ...c, contratoAte: 545 } : c)) }] }, { type: 'LOAN_TO_FILIAL', cardId: 'ZAG-128', mgrId: 0 })
+ok(semCt.careerFilial.loanOut.length === 0, 'contrato encerrando/encerrado (até 545 na T545) → NÃO deixa emprestar (travaContratoSaf, já existia)')
+const legado = descongela({ id: 'x', contratoAte: 481 }, 545)
+ok(legado.contratoAte === 545, 'empréstimo antigo (sem restante gravado, Bobby Moore): cura legada → termina nesta temporada')
 
 console.log(falhas ? `\n❌ ${falhas} trava(s) quebrada(s)` : '\n✅ tudo certo')
 process.exit(falhas ? 1 : 0)

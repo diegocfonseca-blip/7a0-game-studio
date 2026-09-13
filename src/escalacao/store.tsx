@@ -420,6 +420,16 @@ function curaContratoVoltando<T extends { contratoAte?: number; cria?: boolean; 
   if (c.fake || c.cria || c.contratoAte == null || c.contratoAte >= seasonNo) return c
   return { ...c, contratoAte: seasonNo }
 }
+// ❄️ EMPRÉSTIMO CONGELA O CONTRATO (Diego 13/09): *"quando o jogador é emprestado não
+// quero que conte o empréstimo — congela o tempo. Ele volta com o mesmo número que tava
+// quando emprestou. Só não pode deixar emprestar com contrato encerrado"* (essa 2ª
+// parte `travaContratoSaf` já fazia). Na ida, `contratoRestante` = temporadas que
+// faltavam ALÉM da corrente; na volta, contratoAte = temporada da volta + restante.
+// Empréstimo feito ANTES desta regra (sem o campo) cai na cura legada de cima.
+function descongelaContrato<T extends { contratoAte?: number; contratoRestante?: number; cria?: boolean; fake?: boolean }>(c: T, temporadaVolta: number): T {
+  if (c.contratoRestante != null) { const { contratoRestante, ...resto } = c; return { ...(resto as T), contratoAte: temporadaVolta + contratoRestante } }
+  return curaContratoVoltando(c, temporadaVolta)
+}
 function curaContratosVencidos(s: EscState): void {
   if (!s.careerOnline || !s.contratosOn) return
   const sn = s.seasonNo ?? 1
@@ -1887,12 +1897,12 @@ export function ownedRealCount(s: EscState, m: Manager): number {
 // careerFilial.earned pro painel.
 // 🏢 devolve os empréstimos de UM técnico (online: por-técnico na virada e na venda).
 // Efeitos: mexe no elenco do técnico e no cpuSquads; devolve a SAF com as listas zeradas.
-function returnFilialLoansFor(s: EscState, you: Manager, f: NonNullable<EscState['careerFilial']>): NonNullable<EscState['careerFilial']> {
+function returnFilialLoansFor(s: EscState, you: Manager, f: NonNullable<EscState['careerFilial']>, temporadaVolta = s.seasonNo ?? 1): NonNullable<EscState['careerFilial']> {
   const outs = loanList(f.loanOut), ins = loanList(f.loanIn)
   if (outs.length === 0 && ins.length === 0) return f
   const cpuSq = { ...(s.cpuSquads ?? {}) }
   const safSquad = [...(cpuSq[f.team] ?? [])]
-  for (const lo of outs) { const i = safSquad.findIndex(c => c.id === lo.id); if (i >= 0) safSquad.splice(i, 1); you.squad = [...you.squad, curaContratoVoltando({ ...lo, emprestado: undefined } as WonCard, s.seasonNo ?? 1)] }
+  for (const lo of outs) { const i = safSquad.findIndex(c => c.id === lo.id); if (i >= 0) safSquad.splice(i, 1); you.squad = [...you.squad, descongelaContrato({ ...lo, emprestado: undefined } as WonCard, temporadaVolta)] }
   if (ins.length) { const inIds = new Set(ins.map(c => c.id)); you.squad = you.squad.filter(c => !inIds.has(c.id)); for (const li of ins) safSquad.push({ ...li, emprestado: undefined } as WonCard) }
   cpuSq[f.team] = safSquad; s.cpuSquads = cpuSq
   return { ...f, loanOut: [], loanIn: [] }
@@ -1982,12 +1992,12 @@ export function filialSaleValue(s: EscState, filial?: EscState['careerFilial']):
 }
 // devolve os DOIS empréstimos ativos (se houver) na virada de temporada — a
 // janela reabre do zero pra próxima: renovar o mesmo, escolher outro ou nenhum.
-function revertFilialLoans(s: EscState) {
+function revertFilialLoans(s: EscState, temporadaVolta = s.seasonNo ?? 1) {
   if (s.onlineMode === 'online') {
     // 🏢 ONLINE: devolve os empréstimos de CADA técnico com SAF; janela reabre.
     for (const you of s.managers.filter(m => m.isHuman)) {
       const f = s.careerFilials?.[you.id]; if (!f) continue
-      s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: returnFilialLoansFor(s, you, f) }
+      s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: returnFilialLoansFor(s, you, f, temporadaVolta) }
     }
     return
   }
@@ -2009,7 +2019,7 @@ function revertFilialLoans(s: EscState) {
     const i = safSquad.findIndex(c => c.id === lo.id)
     if (i >= 0) safSquad.splice(i, 1)
     const o = ownerOf(lo)
-    o.squad = [...o.squad, { ...lo, emprestado: undefined, byClub: undefined } as WonCard]
+    o.squad = [...o.squad, descongelaContrato({ ...lo, emprestado: undefined, byClub: undefined } as WonCard, temporadaVolta)] // ❄️ volta com o contrato que tinha
   }
   if (ins.length) {
     // jogador da SAF estava jogando num dos seus clubes: tira de QUALQUER elenco seu
@@ -2035,7 +2045,7 @@ function trimFilialLoansToDivision(s: EscState): number {
     const keptOut = outs.slice(0, cap), keptIn = ins.slice(0, cap)
     for (const lo of outs.slice(cap)) {
       const i = safSquad.findIndex(c => c.id === lo.id); if (i >= 0) safSquad.splice(i, 1)
-      owner.squad = [...owner.squad, { ...lo, emprestado: undefined, byClub: undefined } as WonCard]; returned++
+      owner.squad = [...owner.squad, descongelaContrato({ ...lo, emprestado: undefined, byClub: undefined } as WonCard, s.seasonNo ?? 1)]; returned++ // ❄️ (roda depois do seasonNo++)
     }
     const excessIn = ins.slice(cap)
     if (excessIn.length) {
@@ -5305,7 +5315,7 @@ export function reducer(state: EscState, action: Action): EscState {
         if (you.squad.filter(c => c.pos === card.pos && !c.fake).length - 1 < need[card.pos]) return s
         if (travaContratoSaf(s, you, card, action.renovarAnos) === 'bloqueia') return s
         you.squad = you.squad.filter(c => c.id !== action.cardId)
-        const loaned = { ...card, emprestado: 'dono' } as WonCard
+        const loaned = { ...card, emprestado: 'dono', contratoRestante: card.contratoAte != null ? card.contratoAte - (s.seasonNo ?? 1) : undefined } as WonCard // ❄️ congela o contrato
         const cpuSq = { ...(s.cpuSquads ?? {}) }
         cpuSq[f.team] = [...(cpuSq[f.team] ?? []), loaned]
         s.cpuSquads = cpuSq
@@ -5329,7 +5339,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (filled - 1 < need[card.pos]) return s
       if (travaContratoSaf(s, you, card, action.renovarAnos) === 'bloqueia') return s
       you.squad = you.squad.filter(c => c.id !== action.cardId)
-      const loaned = { ...card, emprestado: 'dono', byClub: you.id } as WonCard // 🏛️ carimba o clube que emprestou (multiclube)
+      const loaned = { ...card, emprestado: 'dono', byClub: you.id, contratoRestante: card.contratoAte != null ? card.contratoAte - (s.seasonNo ?? 1) : undefined } as WonCard // 🏛️ carimba o clube que emprestou (multiclube) · ❄️ congela o contrato
       const cpuSq = { ...(s.cpuSquads ?? {}) }
       cpuSq[s.careerFilial.team] = [...(cpuSq[s.careerFilial.team] ?? []), loaned]
       s.cpuSquads = cpuSq
@@ -5401,7 +5411,7 @@ export function reducer(state: EscState, action: Action): EscState {
         // seu jogador estava jogando na SAF → tira de lá e devolve pro clube DONO
         const i = safSquad.findIndex(c => c.id === outCard.id); if (i >= 0) safSquad.splice(i, 1)
         const owner = (!online && s.multiClube) ? (s.managers.find(m => m.isHuman && m.id === outCard.byClub) ?? you) : you
-        owner.squad = [...owner.squad, curaContratoVoltando({ ...outCard, emprestado: undefined, byClub: undefined } as WonCard, s.seasonNo ?? 1)] // 📝 contrato do passado → termina nesta temporada
+        owner.squad = [...owner.squad, descongelaContrato({ ...outCard, emprestado: undefined, byClub: undefined } as WonCard, s.seasonNo ?? 1)] // ❄️ volta com o contrato que tinha (mesma temporada)
       } else if (inCard) {
         // jogador da SAF estava no seu time → tira do elenco (qualquer humano) e volta pra SAF
         for (const m of s.managers) if (m.isHuman) m.squad = m.squad.filter(c => c.id !== inCard.id)
@@ -6568,7 +6578,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
-      revertFilialLoans(s) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada
+      revertFilialLoans(s, (s.seasonNo ?? 1) + 1) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada · ❄️ contrato volta contado a partir da temporada NOVA
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
       creditaCopa(s, action.copaChampion, 'copa') // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador) — com recibo por temporada
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
@@ -7853,7 +7863,7 @@ function saveAtualizado(save: EscState): EscState {
     return mexeuGas || mexeuCtr ? copia : s
   } catch { return s }
 }
-export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos } // 🔬 só pra teste
+export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato } // 🔬 só pra teste
 // 🔎 DIAGNÓSTICO DA CAIXA (20/08 — caso do "±9999" do Pedro).
 // O que sabemos: a tela dele mostrou 9999 e -9999, o save na nuvem tem -261, e o
 // LACRE do save bate (ou seja: ninguém editou o arquivo — o valor da tela nunca
