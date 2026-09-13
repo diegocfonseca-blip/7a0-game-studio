@@ -714,7 +714,7 @@ function fillToEleven(squad: WonCard[], formation: FormationKey, rng: () => numb
 }
 
 // CARREIRA: junta os auges (nome|clube|ano) de TODOS os jogadores REAIS que já
-// existem no mundo — elencos da sala + fichas dos 60 times de fundo. Serve pra
+// existem no mundo — elencos da sala + fichas dos times de fundo (80 com Várzea). Serve pra
 // SEMENTE de exclusão do baralho: o leilão nunca INVENTA uma carta nova de quem já
 // existe em campo (o mesmo Kaká do Milan não é criado do nada em outro time). NÃO
 // mexe em quem já está repetido num save antigo — só impede criar NOVA duplicata.
@@ -727,7 +727,7 @@ function ownedRealIdents(s: EscState): Set<string> {
   return seen
 }
 // 🔒 UNICIDADE das fichas de fundo: nenhum jogador REAL pode estar em dois lugares.
-// Tira das fichas dos 60 times de fundo (cpuSquads) qualquer jogador que um técnico
+// Tira das fichas dos times de fundo (cpuSquads) qualquer jogador que um técnico
 // (humano/rival/bot da sala) JÁ tem no elenco, e remove cópias repetidas ENTRE as
 // próprias fichas de fundo (a 1ª mantém). Assim, se uma ficha de fundo foi semeada
 // com o elenco de alguém desatualizado (o amigo ainda não tinha "recebido" o Messi
@@ -3236,7 +3236,7 @@ type Action =
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
   | { type: 'SET_AGENCIA_CLUBE'; mgrId: number; dividir?: boolean } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (ou dividir meio a meio) — toggle na tela dos Agenciados
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
-  | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos 60 times de fundo (1x)
+  | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; youUid?: string }
   | { type: 'DUPLA_TOGGLE_CAT'; mgrId: number; cat: DuplaCat; uid: string } // 🤝 alguém tocou numa categoria na tela de dividir (primeiro que toca leva)
@@ -6418,7 +6418,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'SEED_CPU_SQUADS': {
-      // materializa a ficha dos 60 times de fundo (1x). Idempotente: se já existe,
+      // materializa a ficha dos times de fundo (1x). Idempotente: se já existe,
       // não sobrescreve (o mercado já pode ter mexido).
       if (!s.careerOnline || s.cpuSquads) return s
       s.cpuSquads = action.squads

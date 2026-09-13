@@ -231,7 +231,7 @@ export interface Manager {
   // É CPU (usa clubCash), mas aparece COLORIDO e marcado como rival no display,
   // igual à carreira antiga. Não afeta economia — só o visual.
   rival?: boolean
-  // pirâmide, mercado dos 80: time de FUNDO (dos 60) materializado como participante
+  // pirâmide, mercado dos 80: time de FUNDO (dos 80) materializado como participante
   // TEMPORÁRIO só neste leilão, porque um jogador dele foi sorteado pro mercado. Ele
   // briga na posição da perda (leilão + monte, com preferência no próprio) e no fim
   // a ficha dele (cpuSquads) é atualizada e ele SAI da lista. Fica sempre em 11.
@@ -701,7 +701,7 @@ export interface EscState {
   // já está lá) e não some (nada apaga a lista).
   careerCopaSeasons?: number[]
   careerSupercopaSeasons?: number[]
-  cpuSquads?: Record<string, Card[]> // pirâmide: a "ficha" (elenco guardado) dos 60 times de fundo, por NOME. Antes eram recalculados na hora (receita fixa); agora têm MEMÓRIA — 11 fixos que só o mercado mexe (troca), pra negociarem de verdade. Reserva de bot só quando houver mais cartas. Semeado 1x pela receita determinística.
+  cpuSquads?: Record<string, Card[]> // pirâmide: a "ficha" (elenco guardado) dos times de fundo, por NOME. ⚠️ São 80 (4 divisões × 20) na carreira COM Várzea, que é a de hoje; 60 só no formato antigo, sem Várzea. A pirâmide toda tem 100 vagas: 20 são a sua liga (você + 19) e o resto é fundo. Antes eram recalculados na hora (receita fixa); agora têm MEMÓRIA — 11 fixos que só o mercado mexe (troca), pra negociarem de verdade. Reserva de bot só quando houver mais cartas. Semeado 1x pela receita determinística.
   dinastia?: boolean // modo Dinastia (teste): usa o leilão real; a economia assume após a cerimônia
   dinastiaBudget?: number // orçamento (moedas do clube) que o pregão do Dinastia usa
   dinastiaPaused?: boolean // Dinastia: temporada pausada na JANELA DO MEIO (metade do calendário)

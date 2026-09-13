@@ -238,7 +238,7 @@ export function pickAssist(base: number, teamName: string, xi: PoolCard[], score
 
 function pickCatalog(deck: 'br' | 'eu' | 'both' | 'todos') { return deck === 'eu' ? CATALOG_EU : deck === 'both' ? CATALOG_BOTH : deck === 'todos' ? catalogTodos() : CATALOG }
 
-// elencos determinísticos dos 60 times de CPU (A/B/C), por NOME — estável entre
+// elencos determinísticos dos times de CPU, por NOME (80 com Várzea: A/B/C/D · 60 sem) — estável entre
 // temporadas: quando um time sobe/desce, leva o mesmo elenco (chave = nome).
 // `divOut` (opcional) devolve em QUAL divisão cada time de fundo foi montado — é o
 // que faz um clube RESERVA (o que entra no lugar de um bot com nome de técnico)
@@ -396,7 +396,7 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   for (const d of balanceDivs) while (world[d].length < 20 && over.length) world[d].push(over.pop()!)
   return world
 }
-// semeia a ficha dos 60 times de fundo a partir da receita (base determinística)
+// semeia a ficha dos times de fundo (80 com Várzea, 60 sem) a partir da receita
 // — materializa 1x os elencos que antes eram só calculados na hora.
 export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos', comVarzea = false): Record<string, Card[]> {
   const out: Record<string, Card[]> = {}
@@ -6433,7 +6433,7 @@ export function PyramidSeasonScreen() {
     dispatch({ type: 'RECORD_SEASON_STATS', scorers: scorersAll })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // MATERIALIZA a ficha dos 60 times de fundo (1x): antes eram recalculados na
+  // MATERIALIZA a ficha dos times de fundo (80 com Várzea) (1x): antes eram recalculados na
   // hora; agora ganham elenco guardado, pra negociarem de verdade no mercado.
   // Idempotente (só semeia se ainda não existe).
   useEffect(() => {

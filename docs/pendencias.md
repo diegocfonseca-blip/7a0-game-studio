@@ -209,7 +209,7 @@ estes commits.
 O Diego recapitulou o modelo dele e pediu conferência. **Está certo.** Da 3ª temporada
 em diante, o baralho do leilão é feito de quatro fontes:
 1. **Sorteio ("mercado dos famosos")** — UM famoso por posição (5 no total), sorteado
-   entre TODOS os clubes: os bots da sua liga E os 60 de fundo. O dono perde o cara e
+   entre TODOS os clubes: os bots da sua liga E os de fundo. O dono perde o cara e
    entra na sala pra brigar de volta. A régua de quem é "famoso" segue a escada da SUA
    divisão (na D é bom jogador, não craque).
 2. **Sobra do mundo** — jogador REAL que não coube em time nenhum, UMA carta por
@@ -219,6 +219,19 @@ em diante, o baralho do leilão é feito de quatro fontes:
 4. **Sondagem** — 1 jogador + 1 técnico por temporada, só de quem está sem contrato.
 (Na 2ª temporada é diferente: baralho só com reais, sem incógnita, e metade dos bots
 solta as reservas que passam do XI.)
+
+⚠️ **CORRIGINDO UM NÚMERO QUE EU REPETI ERRADO (e que estava errado no código também).**
+Eu disse "60 times de fundo" e o Diego corrigiu: *"são 100 times totais contando 20 em
+cada divisão, sendo contado comigo dentro deles e os rivais na quantidade escolhida"*.
+Ele está certo. Na carreira de hoje (COM Várzea) a pirâmide tem **5 divisões × 20 =
+100 vagas**: **20 são a sua liga** (você + os 19 bots que nasceram com a carreira,
+rivais escolhidos inclusos) e **80 são times de fundo** — daí o nome "mercado dos 80".
+O `buildCpuSquads` monta 20 nomes para A/B/C/D quando há Várzea (= 80) e só 60 no
+formato ANTIGO, sem Várzea. O comentário "60 times de fundo" estava espalhado por
+`types.ts`, `pyramidseason.tsx` e `store.tsx` desde antes da Várzea e foi o que me fez
+repetir o número errado — corrigido nos seis lugares. O próprio código já dizia o
+certo na rede de segurança do `buildPyramid`: *"21 técnicos + 80 clubes = 101 times
+pra 100 vagas"*.
 
 ### 🧑‍⚕️ Preparador físico: já é de graça (proposta de cobrar CANCELADA)
 Conferido: o card do preparador (com o 🔁 RODIZIAR) aparece sempre que o gás está
