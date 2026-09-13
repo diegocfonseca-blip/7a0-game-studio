@@ -3309,7 +3309,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -3403,6 +3403,7 @@ type Action =
   | { type: 'CONFIRM_RESTART'; mgrId: number; by?: string } // by = 🤝 crachá (numa dupla os DOIS precisam confirmar)
   | { type: 'CANCEL_RESTART' }
   | { type: 'REMATCH' }
+  | { type: 'VOLTA_ESPERA' } // 📣 (13/09) host volta todo mundo pra sala de espera pra chamar mais gente — da tela de fim OU do pregão antes da 1ª rodada
 
 function rngOf(state: EscState): () => number {
   return mulberry(state.seed + state.sectorIdx * 977 + state.round * 131 + state.revealIdx * 7 + state.monteIdx * 13 + state.submitted.length * 101)
@@ -4765,6 +4766,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
       s.contratosOn = !!action.career // 📝 contratos: SÓ carreira NOVA nasce com eles (save antigo segue sem)
       s.ligaFechada = !!action.ligaFechada // 🏆 liga só com humanos (sem bots na tabela)
+      s.ligaMode = !!action.liga // 🏆 é uma liga do "Minhas Ligas" (13/09): dono nunca passa a coroa; "📣 Chamar mais gente" só aqui
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
@@ -4913,6 +4915,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // nova começa na 1. Sem isto toda partida era "temporada 1" e a linha do
       // Hall da Fama da partida nova apagava a da anterior.
       s.seasonNo = action.seasonNo ?? 1
+      s.ligaRepeteTemporada = false // 📣 a marca do pregão abandonado já foi consumida pelo lobby ao calcular o seasonNo
       s.seasonVotes = {} // novo leilão: zera a votação de fim de jogo (senão volta marcada)
       s.restartPending = false; s.restartReady = []; s.restartReadyUids = [] // e a prontidão do restart
       // 🎥 STREAM / 🌐 CARREIRA: antes do pregão, uma tela explicativa (regras da
@@ -7456,6 +7459,18 @@ export function reducer(state: EscState, action: Action): EscState {
       s.screen = 'lobby'
       return s
     }
+    case 'VOLTA_ESPERA': {
+      // 📣 "CHAMAR MAIS GENTE" (13/09 — liga do Bruno, 7LFW9T: a turma acabou a temporada,
+      // ficou na tela "E agora?" esperando o amigo, e a tela só tinha "mesmo time" e "novo
+      // leilão" — nenhum caminho pra sala de espera). Só o host chama. Igual ao REMATCH,
+      // mas quando parte do PREGÃO (antes da 1ª rodada) marca que a temporada que estava
+      // nascendo NÃO aconteceu: a próxima abertura repete o número (ver lobby/START_ONLINE).
+      if (s.onlineMode !== 'online' || !s.isHost || !s.ligaMode) return s // 🏆 só Minhas Ligas (ordem do Diego)
+      const noPregao = s.round === 0 && s.screen !== 'end' && s.screen !== 'lobby' && s.screen !== 'season'
+      if (noPregao) s.ligaRepeteTemporada = true
+      s.screen = 'lobby'
+      return s
+    }
     default:
       return s
   }
@@ -8391,6 +8406,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const leaveRoom = useCallback(async () => {
     const st = stateRef.current
     const rid = st.roomId
+    // 🏆 MINHAS LIGAS (13/09): o DONO sair NÃO passa a coroa nem apaga a liga — a liga é
+    // dele do começo ao fim (regra 21/08, sem admin) e é feita pra ficar de pé. Ele só
+    // libera a própria cadeira e vai pro menu; a liga segue em "🏆 Minhas ligas" e ele
+    // volta quando quiser. Fechar de vez é SÓ pelo "🗑️ Excluir a liga". Convidado de
+    // liga segue o caminho normal (libera a vaga e, no meio do jogo, vira rival CPU).
+    if (onlineRef.current === 'online' && isHostRef.current && rid && st.ligaMode) {
+      try { localStorage.removeItem('escalacao-room') } catch { /* ignora */ }
+      try { const { data } = await supabase.auth.getUser(); if (data?.user) await supabase.from('room_players').delete().eq('room_id', rid).eq('user_id', data.user.id) } catch { /* silencioso */ }
+      dispatch({ type: 'GO_LOBBY' })
+      return
+    }
     if (onlineRef.current === 'online' && isHostRef.current && rid && !st.careerOnline) {
       // 🤝 sem repetir cadeira: no duplas a presença traz a MESMA cadeira duas vezes
       // (uma por aparelho), o que enviesava o sorteio pras duplas mais cheias.

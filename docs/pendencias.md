@@ -1,3 +1,47 @@
+## 13/09/2026 — 🏆📣 MINHAS LIGAS: "não acho a sala de espera pra chamar mais gente" (liga do Bruno, 7LFW9T) — ✅ no ar
+
+Relato do Diego (prints): liga "sala do leite de verdade" (Bruno FC + Filhote FC, com bots,
+13 temporadas na estante). A turma TERMINOU a temporada e ficou na tela **"E agora?"**
+esperando; queriam pôr mais amigos, o amigo entrava com o código e lia *"🔴 a partida
+dessa liga está rolando agora"*; o dono não achava a sala de espera; ao voltar via
+"Voltar pra partida" caía na mesma tela. Depois apertaram "Abrir novo leilão" e ficaram
+no pregão da T14 só os dois.
+
+**Duas causas, medidas:**
+1. A tela "E agora?" só tinha ▶️ mesmo time · 🔨 novo leilão · menu · sair — **nenhum
+   caminho pra sala de espera** (o "novo leilão" recomeça com a MESMA galera, de propósito).
+2. `esc_liga_reabre` devolvia `rolando` quando `updated_at` < 3 min — e o jogo do dono
+   bate `updated_at` a cada segundos **mesmo parado na tela de fim**. Então, enquanto o
+   dono esperava o amigo, a porta ficava trancada; só abria se ele fechasse o jogo por 3
+   minutos. Trava que depende de coordenação por fora é armadilha (lição de 31/08, de novo).
+
+**Feito:**
+- 🗄️ `esc_liga_reabre` (migração `liga_reabre_na_tela_de_fim_mesmo_com_host_online`): na
+  tela `end`/`lobby`/`intro` reabre MESMO com o dono online (nada em jogo ali). `rolando`/
+  `meio` continuam só pra pregão/temporada. → o amigo do Bruno já entra pelo código AGORA
+  se a turma estiver na tela de fim.
+- 📣 **Botão "Chamar mais gente (sala de espera)"** na tela "E agora?" (só host, online):
+  confirma, põe `status='waiting'` e dispara `VOLTA_ESPERA` (= o antigo "Jogar de novo":
+  todo mundo pra sala de espera via SYNC). Lá o dono convida, o amigo entra com código +
+  senha, "Abrir o Pregão" começa com todos. Estante/ranking ficam (`game_champions`).
+- 📣 **O mesmo botão na barra do PREGÃO** (só host, online, `round === 0`, nunca carreira
+  online): "volta pra sala de espera (desfaz este pregão)" — é o caso do Bruno agora (T14
+  no envelope). Marca `ligaRepeteTemporada` pra próxima abertura REPETIR o número.
+- 🔢 **Contagem de temporadas da liga**: `START_ONLINE` pela sala de espera agora recebe
+  `seasonNo = último + 1` (ou = último, se veio de pregão abandonado). Antes toda passagem
+  pela espera recomeçava em "Temporada 1" com 13 na estante.
+- Textos do `AVISO_REABRE` avisam do botão.
+- 🏆 **`ligaMode` no estado** (novo): `START_ONLINE` recebe `liga` (lobby e "novo leilão"
+  passam) — o estado passa a saber que a sala é Minhas Ligas. TUDO acima é gated por ele:
+  **o Rápido online não muda em nada** (o Diego reforçou duas vezes).
+- 🚪 **"Sair da sala" do DONO na liga, em jogo**: antes passava a coroa (`host_id`) pra
+  outro e, sozinho, APAGAVA a sala — na liga isso feria a regra "quem criou manda do começo
+  ao fim" e podia sumir com a liga. Agora o dono só libera a própria cadeira e vai pro
+  menu; a liga fica em Minhas ligas (igual já era na sala de espera). O texto do confirm
+  explica. Fechar de vez continua sendo só "🗑️ Excluir a liga".
+- Reverter: commit isolado no app; a função do banco volta com a versão anterior (está no
+  histórico de migrações).
+
 ## 13/09/2026 — ⏱️ Partida da carreira +1s no AUTO — ✅ no ar
 
 Pedido do Diego: *"aumente mais 1s o tempo da simulação da partida no modo carreira em

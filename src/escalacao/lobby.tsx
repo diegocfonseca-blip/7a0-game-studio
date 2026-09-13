@@ -1259,6 +1259,14 @@ export function EscLobby() {
       ligaFechada: !!(gs as GS & { ligaFechada?: boolean })?.ligaFechada, // 🏆 liga só com a galera, sem bots
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
       copaMode: gs?.copaMode, // 🏆 rápido: liga só ou liga + Copa dos 8 (escolha do host na criação)
+      // 🏆 LIGA: a contagem de temporadas CONTINUA quando a turma passa pela sala de
+      // espera (13/09 — antes toda volta pela espera recomeçava em "Temporada 1", e a
+      // estante já tinha 13). O game_state guarda a ÚLTIMA temporada encerrada (o
+      // pregão abandonado devolve o número em VOLTA_ESPERA), então a próxima é +1.
+      seasonNo: gs?.mode === 'liga'
+        ? (((gs as GS & { seasonNo?: number })?.seasonNo ?? 0) + ((gs as GS & { ligaRepeteTemporada?: boolean })?.ligaRepeteTemporada ? 0 : 1)) || 1
+        : undefined,
+      liga: gs?.mode === 'liga', // 🏆 o estado passa a saber que é Minhas Ligas (13/09)
     })
     return true
   }
@@ -1363,8 +1371,8 @@ export function EscLobby() {
     } catch { return 'erro' }
   }
   const AVISO_REABRE: Record<'rolando' | 'meio' | 'erro', string> = {
-    rolando: tr('🔴 A partida dessa liga está rolando agora. Quando a turma terminar, é só entrar — quem chega agora joga a próxima temporada.', '🔴 This league\'s match is running right now. When the crew finishes, just join — whoever arrives now plays the next season.'),
-    meio: tr('⏳ Essa liga está no MEIO de uma temporada. Quem entrasse agora ficaria sem time, então só dá pra entrar quando essa temporada acabar. Fala com a turma pra terminar e volta depois.', '⏳ This league is in the MIDDLE of a season. Whoever joined now would have no team, so you can only join when this season ends. Ask the crew to finish and come back later.'),
+    rolando: tr('🔴 A partida dessa liga está rolando agora. Quando a turma terminar, é só entrar — quem chega agora joga a próxima temporada. (Se a turma ainda está no PREGÃO, o dono pode apertar "📣 Chamar mais gente" lá pra abrir a sala de espera.)', '🔴 This league\'s match is running right now. When the crew finishes, just join — whoever arrives now plays the next season. (If the crew is still in the AUCTION, the owner can tap "📣 Invite more people" there to open the waiting room.)'),
+    meio: tr('⏳ Essa liga está no MEIO de uma temporada. Quem entrasse agora ficaria sem time, então só dá pra entrar quando essa temporada acabar. Fala com a turma pra terminar e volta depois. (Se ainda está no pregão, o dono pode apertar "📣 Chamar mais gente" e voltar pra sala de espera.)', '⏳ This league is in the MIDDLE of a season. Whoever joined now would have no team, so you can only join when this season ends. Ask the crew to finish and come back later. (If it is still in the auction, the owner can tap "📣 Invite more people" to go back to the waiting room.)'),
     erro: tr('Não consegui abrir a sala agora. Tenta de novo em instantes.', 'Couldn\'t open the room right now. Try again in a moment.'),
   }
   async function copyCode(code: string) {

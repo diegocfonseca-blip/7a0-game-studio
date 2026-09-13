@@ -541,6 +541,15 @@ export interface EscState {
   // juntas: é uma OU a outra, e o seletor da tela reflete isso.
   copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'
   ligaFechada?: boolean // 🏆 LIGA FECHADA: sala online só com os humanos, SEM bots na tabela. A liga tem o tamanho da galera (returno duplo); ímpar folga. Copa só destrava com 8+.
+  // 📣 (13/09) o dono voltou pra sala de espera NO MEIO DO PREGÃO (antes da 1ª rodada)
+  // pra chamar mais gente: a temporada que estava nascendo não aconteceu, então a
+  // próxima abertura do pregão REPETE o número dela em vez de somar 1. START_ONLINE limpa.
+  ligaRepeteTemporada?: boolean
+  // 🏆 (13/09) esta sala online É uma liga do "Minhas Ligas" (game_state.mode === 'liga').
+  // Antes o estado não sabia; só o banco sabia. Liga tem regras próprias: o dono nunca
+  // passa a coroa ao sair, e o "📣 Chamar mais gente" só existe nela (ordem do Diego:
+  // "é apenas Minhas Ligas e não modo rápido online").
+  ligaMode?: boolean
   // 🃏 BAFO: sala sem leilão, cada um traz o time da própria carreira e no fim
   // quem ficou atrás entrega UMA carta daquela carreira pro de cima (cascata).
   bafoOn?: boolean

@@ -752,7 +752,9 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
   // faixa "Voltar pra partida"). Sair da sala remove a vaga de vez.
   const backToMenu = () => dispatch({ type: 'GO_LOBBY_ONLINE' })
   const leaveRoom = () => {
-    const msg = state.isHost
+    const msg = state.isHost && state.ligaMode
+      ? tr('Sair da sala? Você é o DONO desta liga: ninguém assume o comando e nada se apaga. Você vai pro menu e a liga continua guardada em "🏆 Minhas ligas" pra voltar quando quiser. (Pra encerrar a liga de vez, use "🗑️ Excluir a liga" lá.)', 'Leave the room? You are this league\'s OWNER: nobody takes command and nothing is deleted. You go to the menu and the league stays saved in "🏆 My leagues" to come back whenever you want. (To end the league for good, use "🗑️ Delete the league" there.)')
+      : state.isHost
       ? tr('Sair da sala? Você será removido e o comando (host) passa pra outra pessoa da sala. Se você estiver sozinho, a sala é apagada.', 'Leave the room? You will be removed and command (host) passes to someone else in the room. If you are alone, the room is deleted.')
       : tr('Sair da sala? Você será removido desta partida (não dá pra voltar).', 'Leave the room? You will be removed from this match (no way back).')
     if (window.confirm(msg)) leaveRoomHard()
@@ -2799,12 +2801,40 @@ function pendingSpend(state: EscState, you: Manager): number {
 // 🔨 barra do pregão. Com o PREGÃO LIMPO ligado ela ganha duas coisas que hoje
 // vivem em quadros que rolam com as cartas: as VAGAS e o ❓ das regras. O que a
 // pessoa precisa AGORA (moedas · vagas · tempo) fica sempre na tela.
+// 📣 CHAMAR MAIS GENTE (13/09): o host devolve a sala inteira pra sala de espera. Usado na
+// tela de fim ("E agora?") e no pregão ANTES da 1ª rodada. Faz o que o antigo "Jogar de
+// novo" fazia (status 'waiting' no banco + REMATCH/VOLTA_ESPERA), com uma confirmação que
+// explica o que acontece. Sala de carreira online NÃO (lá o pregão entre temporadas é
+// parte do save — voltar pra espera criaria uma carreira nova).
+async function chamarMaisGente(roomId: string | undefined | null, dispatch: ReturnType<typeof useEsc>['dispatch'], V: (pt: string, en: string) => string, noPregao = false) {
+  const msg = noPregao
+    ? V('Chamar mais gente agora?\n\nEste pregão é desfeito (nenhuma rodada foi jogada) e TODO MUNDO volta pra sala de espera. Lá você convida, o amigo entra com código + senha, e você abre o pregão de novo — com todo mundo. Troféus e ranking ficam.', 'Invite more people now?\n\nThis auction is discarded (no round was played) and EVERYONE goes back to the waiting room. There you invite, your friend joins with code + password, and you open the auction again — with everybody. Trophies and ranking stay.')
+    : V('Chamar mais gente?\n\nTodo mundo volta pra sala de espera. Lá você convida, o amigo entra com código + senha, e "Abrir o Pregão" começa a próxima temporada com todo mundo. Troféus e ranking ficam.', 'Invite more people?\n\nEveryone goes back to the waiting room. There you invite, your friend joins with code + password, and "Open the auction" starts the next season with everybody. Trophies and ranking stay.')
+  let ok = true
+  try { ok = window.confirm(msg) } catch { ok = true }
+  if (!ok) return
+  if (roomId) { try { await supabase.from('game_rooms').update({ status: 'waiting', updated_at: new Date().toISOString() }).eq('id', roomId) } catch { /* segue: o reducer leva pra espera mesmo assim */ } }
+  dispatch({ type: 'VOLTA_ESPERA' })
+}
+
 function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) {
-  const { state } = useEsc()
+  const { state, dispatch } = useEsc()
   const you = state.managers[state.youIdx]
   const [regras, setRegras] = useState(false)
+  const V = useT()
+  // 📣 só o HOST, só online, só ANTES da 1ª rodada (round 0 = a temporada ainda não
+  // aconteceu) e nunca em carreira online. É a saída pra "queria pôr mais um amigo e o
+  // pregão já começou" — sem isso, só terminando a temporada inteira.
+  const podeChamar = state.onlineMode === 'online' && !!state.isHost && !!state.ligaMode && !state.careerOnline && state.round === 0
   return (
     <>
+      {podeChamar && (
+        <button onClick={() => void chamarMaisGente(state.roomId, dispatch, V, true)}
+          className="w-full max-w-xl mx-auto block rounded-lg border-2 border-black py-1 mb-1.5 font-black text-[11px] active:translate-y-0.5"
+          style={{ ...OSWALD, background: '#EFE3FF', color: '#4C1D95' }}>
+          {V('📣 Chamar mais gente · volta pra sala de espera (desfaz este pregão)', '📣 Invite more people · back to the waiting room (discards this auction)')}
+        </button>
+      )}
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <div className="flex gap-1.5">
           {SECTORS.map((p, i) => (
@@ -8172,6 +8202,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // precisam ir junto de novo (stream, manual, chat, tempo, liga fechada, senha).
         stream: state.streamMode, manual: state.manualRoom, chatOff: state.chatOff,
         auctionSecs: state.auctionSecs, ligaFechada: state.ligaFechada,
+        liga: state.ligaMode, // 🏆 continua sendo Minhas Ligas no novo leilão (13/09)
         locked: state.locked, pwHash: state.pwHash,
       })
     } catch { dispatch({ type: 'REMATCH' }) }
@@ -8183,7 +8214,9 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
     </button>
   )
   const exitLeave = () => {
-    const msg = isHost
+    const msg = isHost && state.ligaMode
+      ? V('Sair da sala? Você é o DONO desta liga: ninguém assume o comando e nada se apaga. Você vai pro menu e a liga continua guardada em "🏆 Minhas ligas". (Pra encerrar a liga de vez, use "🗑️ Excluir a liga" lá.)', 'Leave the room? You are this league\'s OWNER: nobody takes command and nothing is deleted. You go to the menu and the league stays saved in "🏆 My leagues". (To end the league for good, use "🗑️ Delete the league" there.)')
+      : isHost
       ? V('Sair da sala? O comando (host) passa pra outra pessoa. Se estiver sozinho, a sala é apagada.', 'Leave the room? Command (host) passes to someone else. If you are alone, the room is deleted.')
       : V('Sair da sala? Você será removido desta partida.', 'Leave the room? You will be removed from this match.')
     if (window.confirm(msg)) leaveRoom()
@@ -8258,6 +8291,20 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {!podeComecarDireto && (
             <p className="text-center text-[10px] font-bold text-white/70">{V('O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.', 'The start unlocks once everyone has voted — or tap a button to decide what to do.')}</p>
           )}
+          {/* 📣 CHAMAR MAIS GENTE (13/09 — liga do Bruno): a turma terminou a temporada e
+              queria pôr mais amigos na sala, mas daqui só dava pra recomeçar com a MESMA
+              galera. Este botão devolve todo mundo pra sala de espera (o mesmo caminho do
+              antigo "Jogar de novo"): lá o dono convida, o amigo entra com código + senha,
+              e "Abrir o Pregão" começa a próxima temporada com todo mundo. Troféus, estante
+              e ranking ficam (moram em game_champions). Só o host vê. */}
+          {state.ligaMode && <>
+            <button onClick={() => void chamarMaisGente(state.roomId, dispatch, V)}
+              className="w-full rounded-xl border-[3px] border-black py-2.5 font-black text-sm active:translate-y-0.5"
+              style={{ ...OSWALD, background: '#EFE3FF', color: '#4C1D95', boxShadow: `3px 3px 0 ${INK}` }}>
+              {V('📣 Chamar mais gente (sala de espera)', '📣 Invite more people (waiting room)')}
+            </button>
+            <p className="text-center text-[10px] font-bold text-white/70 -mt-1">{V('Todo mundo volta pra sala de espera; quem chegar joga a próxima temporada com vocês. Nenhum troféu se perde.', 'Everyone goes back to the waiting room; whoever arrives plays the next season with you. No trophy is lost.')}</p>
+          </>}
         </>
       ) : (
         <>
