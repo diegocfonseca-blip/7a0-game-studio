@@ -166,14 +166,22 @@ divisão errada passou a varrer TODO clube semeado, não só os managers.
 No save dele isso troca 19 clubes de Várzea por **19 da Série C** (3 da liga + 16 de
 fundo).
 
-⚠️ **O que NÃO foi feito, e por quê:** sondar JOGADOR de time de fundo. O elenco
-deles é RECEITA determinística (`buildCpuSquads`, que vive na tela, não no store) —
-tirar uma carta de lá sem persistir em `cpuSquads` faria a carta existir DUAS vezes
-(no seu elenco e no clube, que recalcula igual). Dá pra fazer: mandar a carta + o
-elenco na ação e gravar `cpuSquads[clube]` sem ela (o `completaComBase` do
-`buildPyramid` já tapa o buraco do XI). Mas não sem testar o leilão de ponta a ponta,
-e estado quebrado é a prioridade nº 1 dele. Por ora: nesses clubes vai o TÉCNICO, e a
-janelinha DIZ isso com todas as letras em vez de mostrar caixa vazia.
+✅ **E DÁ PRA SONDAR JOGADOR NELES TAMBÉM** (13/09, mesma conversa). Eu tinha travado
+só no técnico com medo de duplicar carta; o Diego insistiu (*"óbvio que tem jogador…
+não existe hipótese de ter repetido… não tô entendendo qual a dificuldade"*) e ele
+estava certo. Fui conferir e **o jogo já se protege sozinho**: `buildCpuSquads` monta
+os times de fundo tirando do baralho tudo que já é de alguém, e a comparação é por
+**identidade da carta** (`nome|clube|ano`, o `idOf` de lá). Assim que o jogador passa
+a ser seu, a receita para de oferecê-lo pra qualquer clube de fundo — não tem como
+existir em dois lugares.
+**Como ficou:** a ação `ALICIAR_MARCAR` ganhou `card` + `clube` (a tela manda a carta
+junto, porque esse clube não tem manager pra procurar dentro); fica em
+`aliciarFundo` até o leilão montar os lotes. No lote, sem dono pra tirar a carta e
+sem dono pra brigar de volta — o resto é igual. O id vira `sond-<id>` porque o id de
+fundo (`MEI-42`) tem a MESMA forma do id do baralho e podia bater com outro lote; a
+identidade continua a mesma, que é o que o jogo usa pra saber quem é quem.
+⚠️ Não dá pra testar o leilão de ponta a ponta por aqui (precisa jogar uma carreira):
+se aparecer jogador repetido, é reverter este commit.
 
 ### 🧑‍⚕️ Preparador físico: já é de graça (proposta de cobrar CANCELADA)
 Conferido: o card do preparador (com o 🔁 RODIZIAR) aparece sempre que o gás está

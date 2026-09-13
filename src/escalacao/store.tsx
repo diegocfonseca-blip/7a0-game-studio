@@ -3214,7 +3214,7 @@ type Action =
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
   | { type: 'ALICIAR_SEED' } // 🧢 semeia os técnicos dos clubes da SUA divisão (1ª visita à área de aliciar; idempotente)
-  | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão
+  | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string; card?: WonCard; clube?: string } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão. `card`+`clube` só pra TIME DE FUNDO (13/09): esses não têm manager nem elenco no save, então a tela manda a carta junto
   | { type: 'RENOVAR_TECNICO' } // 📝 contrato do técnico venceu (5 anos): +5 temporadas pagando o valor dele
   | { type: 'DISPENSAR_TECNICO' } // 📝 contrato venceu: deixa ir sem multa
   | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
@@ -6239,10 +6239,17 @@ export function reducer(state: EscState, action: Action): EscState {
         // `sondarLiberado` (profissional/bom/promessa = todos · craque = ⭐/👑 ·
         // lenda = 👑). A tela já tranca a linha; isto aqui é a trava de verdade
         // (ninguém marca craque ou lenda "por fora").
+        // 🏟️ TIME DE FUNDO (13/09): os 16 adversários que não são da sua liga não têm
+        // manager nem elenco guardado — o elenco deles é receita, desenhada na hora.
+        // Então a tela manda a CARTA junto, e ela é guardada aqui pra virar lote no
+        // leilão. Duplicata não acontece: assim que a carta passa a ser de alguém, a
+        // receita de fundo para de oferecê-la (ela casa por nome|clube|ano).
         const alvo = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === action.cardId))?.squad.find(c => c.id === action.cardId)
-        if (!alvo) return s
+          ?? (action.clube && action.card && action.card.id === action.cardId ? action.card : null)
+        if (!alvo || alvo.fake || alvo.emprestado) return s
         if (!sondarLiberado(alvo, myApoioPerk()?.tier)) return s
         s.aliciarJogadores = [action.cardId]
+        s.aliciarFundo = action.clube && action.card ? { cardId: action.cardId, clube: action.clube, card: action.card } : undefined
       }
       return s
     }
@@ -6757,12 +6764,21 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const cid of s.aliciarJogadores ?? []) {
           const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
           const card = dono?.squad.find(c => c.id === cid)
-          if (!dono || !card || card.fake || card.emprestado) continue
-          dono.squad = dono.squad.filter(c => c.id !== cid)
-          listedCards.push({ ...card, seller: dono.id, semContrato: true }) // aliciado = está sem contrato (regra do teto)
-          marketSellers[card.pos].push(dono.id) // o dono pode brigar de volta no setor
+          if (dono && card && !card.fake && !card.emprestado) {
+            dono.squad = dono.squad.filter(c => c.id !== cid)
+            listedCards.push({ ...card, seller: dono.id, semContrato: true }) // aliciado = está sem contrato (regra do teto)
+            marketSellers[card.pos].push(dono.id) // o dono pode brigar de volta no setor
+            continue
+          }
+          // 🏟️ TIME DE FUNDO: não tem manager pra tirar a carta nem pra brigar de
+          // volta — a carta veio guardada da sondagem. Id novo porque o id de fundo
+          // (`MEI-42`) tem a mesma forma do id do baralho e poderia bater com outro
+          // lote. A identidade (nome|clube|ano) é a mesma, que é o que importa.
+          const f = s.aliciarFundo
+          if (f && f.cardId === cid && !f.card.fake) listedCards.push({ ...f.card, id: `sond-${cid}`, semContrato: true })
         }
         s.aliciarJogadores = []
+        s.aliciarFundo = undefined
       }
       // 1b) 📝 CONTRATOS ENCERRADOS que NÃO foram renovados na janela de venda:
       // • HUMANO: o jogador vai pro leilão com selo SEM CONTRATO (venda com teto no

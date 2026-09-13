@@ -611,6 +611,11 @@ export interface EscState {
   // ganham id novo, e é a pessoa que continua cansada. `g` = gás (0-100) · `j` =
   // jogos somados na carreira. Ausente = 100 e 0 (save antigo entra inteiro).
   condicaoCarry?: Record<string, { g: number; j: number }>
+  // 🕵️🏟️ alvo sondado num TIME DE FUNDO (13/09). Esses clubes são adversários de
+  // verdade da sua divisão, mas não têm manager nem elenco guardado — o time deles é
+  // receita, desenhada na hora. Então a tela manda a carta junto e ela espera aqui até
+  // virar lote no leilão de reservas. Some assim que o leilão monta os lotes.
+  aliciarFundo?: { cardId: string; clube: string; card: WonCard }
   // 🌱 CRIA DA BASE (contratos): "deixar ir" marcado na janela de renovação;
   // se a saída quebrar o XI, um cria tapa o buraco (sem contrato, invendável).
   contratoRelease?: string[] // ids marcados "deixar ir" na janela atual (consumido no leilão)

@@ -3697,8 +3697,15 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   // Time de fundo não tem elenco no save (a ficha dele é receita, não estado), então
   // vai com `squad: []`: dá pra sondar o TÉCNICO dele, não o jogador — e a janelinha
   // diz isso com todas as letras, em vez de mostrar uma lista vazia sem explicação.
+  // 🏟️ o elenco dos TIMES DE FUNDO vem da mesma conta que monta a pirâmide na tela
+  // da temporada — é receita determinística, então dá o mesmo time sempre.
+  const mundoSondar = useMemo(
+    () => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads),
+    [state.managers, state.youIdx, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads],
+  )
   const clubes = useMemo(() => {
     const pl = state.careerPlacements ?? {}
+    const fundoSquad = new Map((mundoSondar[divAtual as Div] ?? []).filter(t => t.teamId < 0).map(t => [t.name, t.squad as unknown as WonCard[]]))
     const rivaisTime = new Set((state.careerRivals ?? []).map(r => newestTeamName(r.team)))
     const out: { teamName: string; squad: WonCard[]; fundo?: boolean }[] = []
     const vistos = new Set<string>()
@@ -3712,10 +3719,10 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
       if (v !== divAtual || /^m\d+$/.test(k)) continue
       const nome = newestTeamName(k)
       if (vistos.has(nome)) continue
-      vistos.add(nome); out.push({ teamName: nome, squad: [], fundo: true })
+      vistos.add(nome); out.push({ teamName: nome, squad: fundoSquad.get(nome) ?? [], fundo: true })
     }
     return out.sort((x, y) => x.teamName.localeCompare(y.teamName))
-  }, [state.managers, state.careerPlacements, state.careerRivals, divAtual])
+  }, [state.managers, state.careerPlacements, state.careerRivals, divAtual, mundoSondar])
   const divRot = divAtual === 'V' ? 'Várzea' : `Série ${divAtual}`
   const totalMarcado = marcadosT.length + marcadosJ.length
   // 📰 depois de marcar, a HISTORINHA de bastidor conta por que o sondado vai
@@ -3836,18 +3843,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                     (profissional/bom/promessa = todos · craque = ⭐/👑 · lenda = 👑).
                     Quem está acima dele não aparece — e no pé fica a porta dizendo
                     que tem gente que o olheiro não achou. */}
-                {/* 🏟️ CLUBE DE FUNDO: entrou na lista em 13/09 porque é adversário DE
-                    VERDADE da sua divisão — mas o elenco dele não vive no save (é
-                    receita, não estado), então dá pra levar o TÉCNICO e não o jogador.
-                    Dizer isso é melhor que mostrar uma caixa vazia sem motivo. */}
-                {jogadorOn && c.fundo && (
-                  <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, padding: '9px 10px', marginTop: 11, background: '#FBF6E8' }}>
-                    <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center', lineHeight: 1.45 }}>
-                      {tr('🕵️ Deste clube o seu olheiro traz o TÉCNICO. Jogador, só dos clubes da sua liga — é lá que ele tem contato.', '🕵️ From this club your scout can bring the COACH. Players, only from the clubs in your league — that\'s where he has contacts.')}
-                    </p>
-                  </div>
-                )}
-                {jogadorOn && !c.fundo && (() => {
+                {jogadorOn && (() => {
                   const elenco = c.squad.filter(x => !x.fake && !x.emprestado)
                   const alcanca = (x: WonCard) => marcadosJ.includes(x.id) || sondarLiberado(x, olheiroTier)
                   const escondidos = elenco.filter(x => !alcanca(x)).length
@@ -3877,7 +3873,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                             const apagado = preso || (tetoCheio && !marcado)
                             return (
                               <div key={x.id}>
-                                <div onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id }) }}
+                                <div onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName } : {}) }) }}
                                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: apagado ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
                                   <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
                                     <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: apagado ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? (getLang() === 'en' ? `📝 ${falta} left` : `📝 falta${falta > 1 ? 'm' : ''} ${falta}`) : marcado ? tr('✔ no leilão · tirar', '✔ in the auction · remove') : tetoCheio ? tr('🔒 já sondou 1', '🔒 already scouted 1') : tr('🆓 + sondar', '🆓 + scout')}</span></span>
