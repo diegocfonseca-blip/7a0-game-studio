@@ -1,3 +1,49 @@
+## 13/09/2026 — 😓🪜 O gás não ligava pra quem SUBIU (campo de divisão congelado) — ✅ no ar
+
+Pergunta do Diego, com o caso do `rzinho07oli@gmail.com`: *"esse usuário disse
+que ainda não atualizou a condição física no time dele sendo que ele tá na
+Série A. Por que não foi ainda?"* — e depois: *"tem mais gente também"*.
+
+**A causa:** `careerDivision` **MENTE** em carreira que nasceu na Várzea — fica
+congelado em `"V"` pra sempre. O desbloqueio do gás lia esse campo. Medido no
+banco (amostra dos 250 saves mais recentes = 483 carreiras):
+
+| Campo diz | Divisão REAL | Carreiras |
+|---|---|---|
+| V | **A** | 84 |
+| V | **C** | 49 |
+| V | **B** | 22 |
+
+**155 carreiras com Agência** estavam travadas por isso. Não era o caso de um
+usuário — era todo mundo que subiu de divisão.
+
+**Conserto:** nova função `divisaoDaCarreira()` em `condicao.ts` — lê
+`careerPlacements['m' + id]` (a MESMA conta que o Painel do Criador usa desde
+07/09) e só cai no `careerDivision` como último recurso. Os três lugares passaram
+a usar ela: o desbloqueio no `PLAY_ROUND`, a "cura" do deploy errado de 12/09 e o
+`condicaoAtiva()` da tela. O `CAREER_ADVANCE` já estava certo (usa `res.nextDiv`),
+mas passou a usar a mesma lista `DIV_COM_GAS` pra não haver duas verdades.
+
+🚨 **Bug de tabela que o conserto também fechou:** a "cura" apagava
+`condicaoDesde` de quem tivesse o campo em D/V. Como o campo dizia "V" pra quem
+está na Série A, ela estava a uma rodada de **APAGAR o gás de quem já tinha
+ganhado** (2 carreiras da amostra estavam nessa situação).
+
+🔓 **Regra confirmada pelo Diego (13/09):** *"lembra do que é desbloqueio. Se quem
+valeu a condição física depois descer pra Várzea, continua com a condição
+física"*. Está assim e tem teste: `condicaoAtiva` olha só `condicaoDesde`, e a
+divisão de hoje nunca desliga nada.
+
+**Trava nova:** `scripts/testa-gas-divisao.mjs` (rodar da raiz).
+
+**Não virou novidade na home:** é conserto de bug.
+
+⏳ **Falta:** o `rzinho07oli` tem DUAS carreiras — a da Série A (temporada 197) é
+**anterior a 03/08 e não tem Agência**, então ela segue sem gás mesmo depois deste
+conserto. Ligar Agência em carreira antiga é decisão do Diego (mexe em economia e
+ranking e contraria a regra dele de 16/08 de não tocar em save antigo). A outra
+carreira dele está na Várzea, temporada 2 — essa liga sozinha quando chegar na C.
+
 ## 12/09/2026 — 🍀7️⃣ SEVEN CITY de cara nova (arte do dono) — ✅ PUBLICADO na main (f6119b4) + banco atualizado
 
 Diego mandou a prancha nova (escudo trevo/7 dourado, mascote trevo de terno e

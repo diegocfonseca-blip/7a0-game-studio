@@ -70,17 +70,44 @@ export function pesoLesao(g: number): number { const e = estadoGas(g); return e 
 export const emojiGas = (e: EstadoGas): string => (e === 'ok' ? '💪' : e === 'cansado' ? '😓' : e === 'limite' ? '🥵' : '🚑')
 export const corGas = (e: EstadoGas): string => (e === 'ok' ? '#1B7A3D' : e === 'cansado' ? '#D9A000' : e === 'limite' ? '#C2452F' : '#7A1B1B')
 
+// ─── 🪜 A DIVISÃO DE VERDADE (13/09) ─────────────────────────────────────────
+// ⚠️ `careerDivision` MENTE em carreira que nasceu na Várzea: ele fica congelado
+// na divisão de FUNDAÇÃO. Medido no banco em 13/09, numa amostra dos 250 saves
+// mais recentes: 155 carreiras com Agência estavam com o campo dizendo "V" e a
+// divisão REAL sendo A (84), C (49) ou B (22). Por isso o gás não ligava pra
+// ninguém que tinha subido — foi a pergunta do Diego (*"por que não foi ainda?"*).
+// A colocação de verdade mora em `careerPlacements['m' + id do seu técnico]`, que
+// é a MESMA conta que o Painel do Criador já usa desde 07/09.
+// 👉 Todo lugar que precisa saber a divisão da carreira usa ESTA função.
+export function divisaoDaCarreira(s: {
+  careerDivision?: string | null
+  careerPlacements?: Record<string, string> | null
+  managers?: { id: number }[]
+  youIdx?: number
+}): string {
+  const id = s.managers?.[s.youIdx ?? 0]?.id ?? s.youIdx ?? 0
+  return s.careerPlacements?.['m' + id] ?? s.careerDivision ?? 'D'
+}
+/** o gás vale desta divisão pra cima (Série C, B e A) */
+export const DIV_COM_GAS = new Set(['C', 'B', 'A'])
+
 // ─── ligado ou não, PARA ESTA CARREIRA/TEMPORADA ─────────────────────────────
 // `condicaoDesde` = temporada em que o clube chegou na Série C (gravado na virada,
 // CAREER_ADVANCE) — ou a temporada corrente + `condicaoDesdeR`, pra quem já estava
 // em C/B/A quando a regra chegou. Temporada em andamento nunca muda de regra no meio.
-export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; agenciaOn?: boolean; condicaoDesde?: number; condicaoDesdeR?: number; seasonNo?: number; careerDivision?: string | null }): boolean {
+// 🔓 É DESBLOQUEIO, NÃO CONDIÇÃO (Diego 13/09): *"lembra do que é desbloqueio. Se
+// quem valeu a condição física depois descer pra Várzea, continua com a condição
+// física"*. Por isso a conta olha só `condicaoDesde` — a divisão de HOJE não
+// desliga nada. Ela só decide QUANDO liga, e isso acontece uma vez.
+export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; agenciaOn?: boolean; condicaoDesde?: number; condicaoDesdeR?: number; seasonNo?: number; careerDivision?: string | null; careerPlacements?: Record<string, string> | null; managers?: { id: number }[]; youIdx?: number }): boolean {
   if (!CONDICAO_ON) return false
   if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return false
   // 🧹 mesma cura do PLAY_ROUND: ligou NO MEIO da temporada estando em D/Várzea =
   // veio da ~1h de deploy errado de 12/09 (legítimo só em C/B/A). Trata como desligado
   // já na tela, antes mesmo de a próxima rodada limpar o save.
-  if (s.condicaoDesde === (s.seasonNo ?? 1) && s.condicaoDesdeR != null && (s.careerDivision === 'D' || s.careerDivision === 'V')) return false
+  // ⚠️ usa a divisão REAL: com o campo congelado, esta cura estava a um passo de
+  // APAGAR o gás de quem está de verdade na Série A (o campo dele diz "V").
+  if (s.condicaoDesde === (s.seasonNo ?? 1) && s.condicaoDesdeR != null && !DIV_COM_GAS.has(divisaoDaCarreira(s))) return false
   return s.condicaoDesde != null && (s.seasonNo ?? 1) >= s.condicaoDesde
 }
 

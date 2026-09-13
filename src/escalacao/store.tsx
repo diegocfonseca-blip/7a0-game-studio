@@ -12,6 +12,7 @@ import type {
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
+import { divisaoDaCarreira, DIV_COM_GAS } from './condicao' // 😓 gás: a divisão de VERDADE (13/09)
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
@@ -5809,8 +5810,14 @@ export function reducer(state: EscState, action: Action): EscState {
         // possível por esse erro (o desbloqueio legítimo no meio da temporada exige estar
         // em C/B/A, e divisão não muda no meio) — então desliga de volta. Quem ligou na
         // virada (desdeR vazio) ou já virou de temporada não é tocado.
-        if (s.condicaoDesde === s.seasonNo && s.condicaoDesdeR != null && (s.careerDivision === 'D' || s.careerDivision === 'V')) { s.condicaoDesde = undefined; s.condicaoDesdeR = undefined }
-        if (s.onlineMode !== 'online' && s.agenciaOn && s.condicaoDesde == null && (s.careerDivision === 'C' || s.careerDivision === 'B' || s.careerDivision === 'A')) { s.condicaoDesde = s.seasonNo; s.condicaoDesdeR = s.round }
+        // ⚠️ 13/09: as duas linhas abaixo liam `s.careerDivision`, que MENTE em
+        // carreira nascida na Várzea (fica congelado em "V"). Medido no banco:
+        // 155 carreiras com Agência estavam com o campo "V" e a divisão REAL em
+        // A/B/C — por isso o gás não ligava pra quem tinha subido, que foi a
+        // pergunta do Diego. Agora as duas usam `divisaoDaCarreira()`.
+        const divAgora = divisaoDaCarreira(s)
+        if (s.condicaoDesde === s.seasonNo && s.condicaoDesdeR != null && !DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = undefined; s.condicaoDesdeR = undefined }
+        if (s.onlineMode !== 'online' && s.agenciaOn && s.condicaoDesde == null && DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = s.seasonNo; s.condicaoDesdeR = s.round }
         // cura ids duplicados de elencos antigos (bug do leilão de reservas) — uma
         // vez só; depois vira no-op. Se corrigiu, zera escalações manuais que
         // apontavam pro id duplicado (voltam ao XI automático, correto).
@@ -6996,7 +7003,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // Série C (quem já está em C/B/A liga no PLAY_ROUND, na próxima rodada). Só
       // carreira nova (agenciaOn), como os eventos. Grava a temporada que COMEÇA
       // agora (seasonNo ainda vai somar 1 logo abaixo). Nunca desliga, nem caindo.
-      if (s.agenciaOn && s.onlineMode !== 'online' && s.condicaoDesde == null && (res.nextDiv === 'C' || res.nextDiv === 'B' || res.nextDiv === 'A')) { s.condicaoDesde = s.seasonNo + 1; s.condicaoDesdeR = undefined }
+      if (s.agenciaOn && s.onlineMode !== 'online' && s.condicaoDesde == null && DIV_COM_GAS.has(res.nextDiv)) { s.condicaoDesde = s.seasonNo + 1; s.condicaoDesdeR = undefined }
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       const { managers, botPlans } = makeCareerManagers(teamName, formation, res.nextDiv, coDivRivalDefs(s.careerRivals, res.nextDiv), action.keep ? [] : otherDivRivalDefs(s.careerRivals, res.nextDiv), rng)
