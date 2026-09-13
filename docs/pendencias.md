@@ -8,7 +8,17 @@ logo na segunda já vai pra Série D, não importa, continua ganhando aquele val
 quando acabar o contrato é que chega outra proposta. Ele aparece PRIMEIRO do que o
 das apostas. E o das apostas passa a se chamar PATROCINADOR PONTUAL."*
 
-**Mockup**: `node scripts/mockup-patrocinio-master.mjs`. **Nada no código ainda.**
+**Mockup**: o Diego avisou que o visual do patrocínio HOJE é o **escritório do
+presidente** (`career-sponsor-visual.tsx` + `career-sponsor-office.css`, commit
+"patrocínio na mesa aprovado") — não o de caixinhas que eu tinha desenhado primeiro.
+Refiz por cima da cena REAL: `npx vite scripts/teste-rosto --port 5199` e abrir
+`/?master` (bancada, mesmas classes CSS do jogo; `/?patrocinio` mostra a tela de
+hoje). O `scripts/mockup-patrocinio-master.mjs` ficou só como registro da régua.
+**Nada no código do jogo ainda.**
+⚠️ A bancada é en-US: forçar `bl_lang=pt` (o `?master` já faz), senão sai em inglês.
+⚠️ O papel do contrato tem altura FIXA (36% da cena): cabem 5 itens (título miúdo ·
+nome · 1 linha · valor · assinatura). Nome longo quebra em 2 linhas e estoura —
+por isso "Banco Gol de Placa" virou "Banco Craque" no desenho.
 
 **Como está hoje** (`estadiodata.ts` + `career-sponsor-visual.tsx` + `estadio.tsx`):
 o patrocínio é uma APOSTA de uma temporada — 3 metas (🛡️ não cair · 📈 top 4 ·
