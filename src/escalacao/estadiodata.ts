@@ -98,11 +98,17 @@ const SPONSOR_BET_META_EN: Record<SponsorBetTier, { label: string; desc: string 
 export function sponsorBetMeta(t: SponsorBetTier): { label: string; emoji: string; desc: string } {
   return getLang() === 'en' ? { ...SPONSOR_BET_META[t], ...SPONSOR_BET_META_EN[t] } : SPONSOR_BET_META[t]
 }
-// 💰 quanto paga cada nível, por divisão — dobra a cada divisão (Diego 11/08:
-// dobrou a tabela toda pra aliviar a grana, sobretudo no começo da carreira):
-// Várzea 2/4/6 · D 4/8/12 · C 8/16/24 · B 16/32/48 · A 32/64/96.
+// 💰 quanto paga cada nível, por divisão. Histórico:
+//   · 11/08 (Diego dobrou a tabela pra aliviar a grana no começo da carreira):
+//     Várzea 2/4/6 · D 4/8/12 · C 8/16/24 · B 16/32/48 · A 32/64/96.
+//   · 13/09 (Diego: *"aumente em mais 2 4 6 8 10 moedas também o patrocinador pontual
+//     pras divisões começando da Várzea até Série A"*) — soma fixa por divisão, nos 3
+//     níveis: Várzea +2 · D +4 · C +6 · B +8 · A +10 →
+//     Várzea 4/6/8 · D 8/12/16 · C 14/22/30 · B 24/40/56 · A 42/74/106.
+//   ⚠️ O MASTER NÃO usa mais esta tabela como base (ver MASTER_BASE): a régua dele foi
+//   aprovada à parte e não muda quando o Pontual muda.
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
-  V: [2, 4, 6], D: [4, 8, 12], C: [8, 16, 24], B: [16, 32, 48], A: [32, 64, 96],
+  V: [4, 6, 8], D: [8, 12, 16], C: [14, 22, 30], B: [24, 40, 56], A: [42, 74, 106],
 }
 export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
@@ -162,9 +168,14 @@ export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   { brandId: 'vadico', anos: 5 },
 ]
 export interface MasterContrato { brandId: string; anos: number; div: string; desde: number; porTemporada: number }
+/** base da régua do Master por divisão. Nasceu igual ao 🛡️ "não cair" do Pontual de
+ *  então (2/4/8/16/32) e ficou CONGELADA aqui em 13/09, quando o Diego subiu o Pontual
+ *  sem pedir pra mexer no Master — a régua dele (V 3/4/5/7 · D 5/7/9/13 · C 10/14/18/26 ·
+ *  B 20/28/36/52 · A 40/56/72/104) continua a aprovada. */
+export const MASTER_BASE: Record<string, number> = { V: 2, D: 4, C: 8, B: 16, A: 32 }
 /** quanto o Master paga POR TEMPORADA, pra um contrato de `anos` fechado na divisão `div` */
 export function masterPorTemporada(div: string, anos: number): number {
-  const base = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[0]
+  const base = MASTER_BASE[div] ?? 0
   return Math.round(base * (1.25 + (anos - 1) / 2))
 }
 /** o que um contrato paga por temporada HOJE — refaz a conta pela divisão e prazo

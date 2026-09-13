@@ -1,3 +1,14 @@
+## 13/09/2026 — 🤝 Patrocinador Pontual paga mais (+2/+4/+6/+8/+10 por divisão) — ✅ no ar
+
+Pedido do Diego: *"aumente em mais 2 4 6 8 10 moedas também o patrocinador pontual pras
+divisões começando da Várzea até Série A"*. Soma fixa por divisão nos 3 níveis:
+Várzea 4/6/8 · D 8/12/16 · C 14/22/30 · B 24/40/56 · A 42/74/106 (`SPONSOR_BET_PAY`).
+Vale já pra aposta da temporada em andamento (o pagamento lê a tabela na virada).
+- ⚠️ O Master usava o "não cair" do Pontual como base da régua → subir o Pontual mudaria
+  o Master sem o Diego pedir. Separei: `MASTER_BASE` (2/4/8/16/32, congelado) — a régua
+  do Master fica exatamente a aprovada (V 3/4/5/7 … A 40/56/72/104). `testa-master.mjs`
+  ajustado e passando. Novidade na home (PT/EN). Reverter = um commit.
+
 ## 13/09/2026 — 🐛 Leilão da carreira "dá uma travada" na Revelação (F5 destrava) — ✅ corrigido, no ar
 
 Relato do Diego: *"às vezes durante a carreira o leilão dá uma travada… aí o usuário atualiza

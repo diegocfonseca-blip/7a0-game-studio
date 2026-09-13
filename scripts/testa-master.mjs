@@ -1,7 +1,7 @@
 // 🧪 PATROCINADOR MASTER — confere a régua e as travas fechadas com o Diego (13/09)
 // contra `src/escalacao/estadiodata.ts`. Rodar: npx tsx scripts/testa-master.mjs
 // (sai com código 1 se algo quebrar — rodar antes de commitar).
-import { MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterAnoAtual, masterValor, SPONSOR_BET_PAY, sponsorBrandOf } from '../src/escalacao/estadiodata.ts'
+import { MASTER_PRAZOS, MASTER_BASE, masterPorTemporada, masterAtivo, masterAnoAtual, masterValor, SPONSOR_BET_PAY, sponsorBrandOf } from '../src/escalacao/estadiodata.ts'
 
 let falhas = 0
 const ok = (cond, msg) => { if (cond) console.log('  ✅', msg); else { falhas++; console.log('  ❌', msg) } }
@@ -20,9 +20,12 @@ for (const d of ['V', 'D', 'C', 'B', 'A']) {
 
 console.log('2) a régua (13/09, 2ª versão — "aumente um pouco, quase nada"): base × (1,25 + (anos−1)/2)')
 for (const d of ['V', 'D', 'C', 'B', 'A']) {
-  const [naoCair, , campeao] = SPONSOR_BET_PAY[d]
-  ok(masterPorTemporada(d, 1) > naoCair && masterPorTemporada(d, 1) <= naoCair * 1.5, `${d}: 1 temporada = ${masterPorTemporada(d, 1)} (um pouco acima da aposta 🛡️ não cair, ${naoCair})`)
-  ok(masterPorTemporada(d, 5) > campeao && masterPorTemporada(d, 5) <= campeao * 1.17, `${d}: 5 temporadas = ${masterPorTemporada(d, 5)} por temporada (um pouco acima do 👑 campeão, ${campeao})`)
+  // 13/09: o Pontual subiu (+2/+4/+6/+8/+10 por divisão) SEM mexer no Master — a régua do
+  // Master agora nasce de MASTER_BASE (congelada), não mais da tabela do Pontual.
+  const naoCair = MASTER_BASE[d], campeao = naoCair * 3
+  ok(masterPorTemporada(d, 1) > naoCair && masterPorTemporada(d, 1) <= naoCair * 1.5, `${d}: 1 temporada = ${masterPorTemporada(d, 1)} (um pouco acima da base ${naoCair})`)
+  ok(masterPorTemporada(d, 5) > campeao && masterPorTemporada(d, 5) <= campeao * 1.17, `${d}: 5 temporadas = ${masterPorTemporada(d, 5)} por temporada (um pouco acima de 3× a base, ${campeao})`)
+  ok(SPONSOR_BET_PAY[d][0] === naoCair + [2, 4, 6, 8, 10][['V', 'D', 'C', 'B', 'A'].indexOf(d)], `${d}: Pontual 🛡️ = ${SPONSOR_BET_PAY[d][0]} (base ${naoCair} + o aumento de 13/09)`)
   ok([1, 2, 3, 5].every(a => Number.isInteger(masterPorTemporada(d, a))), `${d}: tudo inteiro (${[1, 2, 3, 5].map(a => masterPorTemporada(d, a)).join('/')})`)
 }
 ok(['V', 'D', 'C', 'B', 'A'].map(d => [1, 2, 3, 5].map(a => masterPorTemporada(d, a)).join('/')).join(' · ') === '3/4/5/7 · 5/7/9/13 · 10/14/18/26 · 20/28/36/52 · 40/56/72/104', 'a tabela inteira: V 3/4/5/7 · D 5/7/9/13 · C 10/14/18/26 · B 20/28/36/52 · A 40/56/72/104')
