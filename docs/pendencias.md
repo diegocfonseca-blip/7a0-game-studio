@@ -66,6 +66,24 @@ Método: `LOGOS_PRONTAS` (escudos.tsx) × `BATISMOS` (batismos.ts) × `esc_socio
   NOT NULL) e ninguém usa o nome — a conta `caiovvzmx@gmail.com`, que era o único
   rastro (20/08), hoje se chama "Rio das Flores FC". Falta o Diego dizer o e-mail do
   dono pra entrar a linha (com a conta já existente, regra de 07/09).
+  ✅ **13/09, 2ª leva do Diego:** *"São Luiz é Flamengo… Vasco da Grana coloque Vasco da
+  Gama… Rio Branco tem que pôr Rio Branco PR… Briga de Galo Corinthians… Final Boss São
+  Paulo"*. Gravado: Briga de Galo FC (nº40) → Corinthians · Final Boss FC (nº35) → São
+  Paulo · Leão da Estradinha (nº4) → **Rio Branco-PR** (era "Rio Branco").
+  - **São Luiz FC ganhou a linha de sócio que faltava**: `esc_socios` **nº46**
+    (`gabrielnegreirosamaral99@hotmail.com`, desde 21/08, até 2099, manto #E00000/#0C0C0C,
+    `saoluiz_pitbull`, coração **Flamengo**, origem batismo) + `user_colors` ouro/manual
+    (estava só na reserva do `apoio.tsx`). ⚠️ Existe uma 2ª conta
+    `gabrielnegreirosamaral@outlook.com` com display "São Luiz FC" (criada 17/08, save parado
+    em 22/08) — a conta VIVA é a hotmail (T555, Série A, hoje), então foi nela.
+  - **Vasco da Grana → Vasco da Gama sem dono**: tabelinha nova `esc_torcida_sem_dono`
+    (clube → coração, RLS fechada, só a função lê) e `esc_salao_torcidas` soma ela aos
+    sócios (migração `salao_torcida_sem_dono_vasco_da_grana`). Quando o dono aparecer:
+    cria em `esc_socios` e apaga daqui (a função já ignora a linha se o clube tiver sócio).
+  - Ainda sem coração (16): White Thigs · Skyy · Marreco · Jurubeba (Meia na Canela) ·
+    Stocco · Bagres 1993 · Sistematizados · Bonança · Leite de Verdade · Capsule ·
+    Alfacehh · Eros · Seven City · Crias do Bigão · Theuzudo · Milhaça · Esqueceram do
+    Lluch (estes dois últimos + Theuzudo seguem também sem linha em `esc_socios`).
   🔧 **De carona:** a torcida do Salão (`esc_salao_torcidas`) só contava
   `origem = 'batismo'`, então o Futpoint (sócio, regra do 19/08) ficaria fora mesmo
   com o coração gravado — e o Marinheiros AS (sócio, Palmeiras) já estava fora.
