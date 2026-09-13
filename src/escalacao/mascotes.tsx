@@ -561,11 +561,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   brigadegalo_galo: (
     <img src={brigaDeGaloMascoteImg} height={176} width={Math.round(176 * 272 / 440)} alt="O Galo — Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 😇🐷 O Porquinho — São Marcos Antônio FC (marcomak03, 13/09). 297x440 no arquivo,
-  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O goleiro de
-  // auréola ajoelhado apontando pro céu, com o porquinho de auréola do lado.
+  // 😇 Marcos — São Marcos Antônio FC (marcomak03, 13/09). 297x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). A mascote é o
+  // próprio Marcos: o goleiro de auréola ajoelhado apontando pro céu, com o porquinho
+  // de auréola do lado.
   saomarcos_porco: (
-    <img src={saoMarcosAntonioMascoteImg} height={176} width={Math.round(176 * 297 / 440)} alt="O Porquinho — São Marcos Antônio FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={saoMarcosAntonioMascoteImg} height={176} width={Math.round(176 * 297 / 440)} alt="Marcos — São Marcos Antônio FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🌑 O Eclipse — Nova Eclipse FC (jh9415474, 07/09). 245x440 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
@@ -1051,7 +1052,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
-  saomarcos_porco: 'O Porquinho', // 😇🐷 São Marcos Antônio FC (marcomak03, 13/09) — o porquinho de auréola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  saomarcos_porco: 'Marcos', // 😇 São Marcos Antônio FC (marcomak03, 13/09) — a mascote é o próprio Marcos, o goleiro de auréola (palavras do Diego: "Mascote do São Marcos é o Marcos mesmo"); o porquinho vai junto na arte. A chave fica `saomarcos_porco` porque já está gravada no banco (esc_socios.mascote_key).
   sistematizados_streamer: 'O Sistematizado', // 🎮 Sistematizados FC (gaancaxd, 07/09) — a caricatura do streamer, com headset e controle. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   novaeclipse_eclipse: 'O Eclipse', // 🌑 Nova Eclipse FC (jh9415474, 07/09) — o jogador encapuzado com o eclipse no lugar do rosto. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   finalboss_touro: 'O Boss', // 🐂 Final Boss FC (gustavo99828, 05/09) — o touro do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, então é pra confirmar com o dono

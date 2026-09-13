@@ -24,8 +24,9 @@ arte… e Palmeiras hein"*. Conta existe (24/07, display "Marco Antonio", era �
   coração **Palmeiras**, origem batismo) · `esc_fundadores` 68 · `esc_nomes_batismo` "São
   Marcos Antônio" (gatilho criou FC/EC) · `user_colors` ouro/manual (era prata/false).
 - **Post:** `mockup-batismo.mjs` com `--camisa` e `--coracao Palmeiras`, sem `--antigo`
-  (regra 05/09). Mandado pro Diego. Falta: `novidades.ts` (junto com a main) e o nome
-  real da mascote.
+  (regra 05/09). Mandado pro Diego. ✅ Nome da mascote (Diego, 13/09): **"Marcos"** — é o
+  próprio goleiro de auréola; o porquinho vai junto na arte. A chave continua
+  `saomarcos_porco` (já está no banco). Post regerado com o nome certo.
 
 ## 13/09/2026 — 😵 "Ops, algo deu errado" nas quartas da Copa (Internacional de Madrid, iPhone) — 🛡️ blindado, causa provável de fora
 
