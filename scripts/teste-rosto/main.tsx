@@ -93,7 +93,7 @@ function MasterFaixa({ div, anos, ano, nome, logo }: { div: string; anos: number
   )
 }
 function MasterProposta() {
-  const div = 'C'; const esc = MASTER_MARCAS[3]
+  const div = 'V'; const divNome = 'Várzea'; const esc = MASTER_MARCAS[3]
   // Diego (13/09): *"no visual já aparecesse os 4 painéis abertos de uma vez, já
   // mostrando cada marca, cada temporada e cada valor a pagar… coloque o valor
   // total das temporadas e o que ele ganhará por temporada, que é só dividir"*.
@@ -114,21 +114,21 @@ function MasterProposta() {
   }
   return (
     <section className="ll29-sponsor ll36-sponsor" aria-label="Patrocinador Master">
-      <header><small>SÉRIE C · PRIMEIRA VEZ / CONTRATO ACABOU</small><h2>PATROCINADOR MASTER</h2><p>Quatro contratos na mesa — cada um com o seu prazo. Escolha um.</p></header>
+      <header><small>VÁRZEA · TEMPORADA 1 (a primeira vez) — ou quando um contrato acaba</small><h2>PATROCINADOR MASTER</h2><p>Quatro contratos na mesa — cada um com o seu prazo. Escolha um.</p></header>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 14px 12px' }}>
         {MASTER_MARCAS.map(m => <Papel key={m.anos} m={m} />)}
       </div>
       <div className="ll36-office"><article className="ll36-paper">
         <img className="ll35-contract-logo" src={esc.logo} alt="" />
         <h3>{esc.nome}</h3>
-        <p>{esc.anos} temporadas · {mval(div, esc.anos) * esc.anos} no total · Série C</p>
+        <p>{esc.anos} temporadas · {mval(div, esc.anos) * esc.anos} no total · {divNome}</p>
         <strong>+{mval(div, esc.anos)}/TEMPORADA</strong>
         <span className="ll35-signature">Assinatura do presidente</span>
       </article></div>
       <div className="ll29-sponsor-bottom">
-        <p><b>{mval(div, esc.anos) * esc.anos} moedas em {esc.anos} temporadas = +{mval(div, esc.anos)} por temporada</b>, garantidas. O valor trava na Série C: subiu ou caiu, continua igual até a {esc.anos}ª temporada. Depois o contrato acaba e chegam contratos novos, já na divisão em que você estiver.</p>
+        <p><b>{mval(div, esc.anos) * esc.anos} moedas em {esc.anos} temporadas = +{mval(div, esc.anos)} por temporada</b>, garantidas. O valor trava na {divNome}, onde você assinou: subiu ou caiu, continua igual até a {esc.anos}ª temporada. Depois o contrato acaba e chegam contratos novos, já na divisão em que você estiver.</p>
         <button>ASSINAR · {esc.nome.toUpperCase()} · {esc.anos} TEMPORADAS</button>
-        <small>Isto só aparece na primeira vez e quando um contrato termina. No meio do contrato, nada pra decidir.</small>
+        <small>Começa já na Várzea, na 1ª temporada. Depois só volta quando um contrato termina — com os valores da divisão em que você estiver (cada divisão paga o dobro da de baixo).</small>
       </div>
     </section>
   )
@@ -189,7 +189,7 @@ function MasterMockup() {
       <div style={{ font: '700 30px Oswald,sans-serif', marginBottom: 4 }}>🏆 PATROCINADOR MASTER — na cena real do escritório</div>
       <div style={{ font: '600 13px/1.5 system-ui', opacity: .7, maxWidth: 1000, marginBottom: 22 }}>Só as 4 marcas reais, cada uma com o seu prazo: <b>Max Joias 1</b> · <b>Rei das Tintas 2</b> · <b>ERO 3</b> · <b>Vadico Veículos 5</b> temporadas. Quanto mais longo, mais paga por temporada — Vadico é quem dá mais grana e por mais tempo. O valor trava na divisão onde assinou; nova proposta só quando acabar, na divisão de então.</div>
       <div style={{ display: 'flex', gap: 26, alignItems: 'flex-start' }}>
-        {col('① Primeira vez / contrato acabou', 'Os 4 contratos ABERTOS de uma vez: marca, prazo, TOTAL e o que dá por temporada (total ÷ temporadas). Toca num, ele vai pra mesa, assina. Embaixo, o Pontual de sempre.', <><MasterProposta /><PontualHoje /></>)}
+        {col('① Temporada 1, na Várzea (e toda vez que um contrato acaba)', 'Os 4 contratos ABERTOS de uma vez: marca, prazo, TOTAL e o que dá por temporada (total ÷ temporadas). Toca num, ele vai pra mesa, assina. Embaixo, o Pontual de sempre.', <><MasterProposta /><PontualHoje /></>)}
         {col('② O dia a dia (contrato correndo)', 'Contrato rolando: o Master é só uma FAIXA em cima — quanto paga, temporada 2 de 5, quanto falta. Nada pra decidir. Quando a 5ª acabar, o contrato termina e voltam os 4 contratos, já na divisão em que você estiver.', <><MasterFaixa div="C" anos={5} ano={2} nome="Vadico Veículos" logo={VADICO_LOGO} /><PontualHoje compacto /></>)}
         {col('③ Clube › Patrocínio', 'A faixa do Master, o papel do Pontual assinado e a régua completa de valores — no mesmo quadro que já existe.', <MasterAbaClube />)}
       </div>
