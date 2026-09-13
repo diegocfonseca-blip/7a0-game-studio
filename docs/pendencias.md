@@ -1,3 +1,19 @@
+## 13/09/2026 — 🐛 Leilão da carreira "dá uma travada" na Revelação (F5 destrava) — ✅ corrigido, no ar
+
+Relato do Diego: *"às vezes durante a carreira o leilão dá uma travada… aí o usuário atualiza
+e consegue passar"*. Print: "REVELAÇÃO 1/1 · POTE CRESCENTE", Geovani já "Vendido para
+Ferroviário do Sul por 82", tela parada.
+**Causa:** o `AutoAdvance` (relógio que dispara `ADVANCE_REVEAL`) rearmava só quando
+`revealIdx`/`phase`/`hasBids`/`extraMs` mudavam. Na carreira é comum a leva ter UMA carta e
+a seguinte também (você sem vaga no setor → `humansToSubmit` vazio → `sealAndResolve` na
+hora → nova revelação nasce com `revealIdx = 0` e `phase = 'reveal'`). 0 → 0 e reveal →
+reveal: pro React nada mudou, o efeito não roda, ninguém arma o relógio, e a carta nova
+fica "vendida" na tela pra sempre. O F5 montava tudo do zero e por isso passava. O mesmo
+furo deixava o martelo/som sem rearmar (vencedor da carta nova já nascia verde).
+**Conserto (`screens.tsx`):** os três efeitos (relógio, som do martelo, `hammered`) passam
+a observar também a CARTA na tela (`item.card.id`): leva nova = carta nova = relógio novo.
+Sem mudança de regra, sem tocar no reducer. Reverter = um commit.
+
 ## 13/09/2026 — 😇🐷 BATISMO SÃO MARCOS ANTÔNIO FC (marcomak03) — Série A, ✅ no ar
 
 **Assento (decisão do Diego, 13/09):** *"coloca no lugar do Marolados FC e passe ele pra

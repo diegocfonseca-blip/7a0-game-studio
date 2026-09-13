@@ -3950,7 +3950,16 @@ function Tiebreak() {
 // (só um F5 destravava). Com prazo (Date.now()) + um poll de reforço, assim
 // que a aba volta a rodar de verdade a gente vê que o prazo já passou e
 // avança na hora — sem precisar recarregar a página.
-function AutoAdvance({ hasBids, canDrive, extraMs = 0 }: { hasBids: boolean; canDrive: boolean; isLast: boolean; extraMs?: number }) {
+// 🐛 13/09 (relato do Diego: *"às vezes durante a carreira o leilão dá uma travada, aí o
+// usuário atualiza e consegue passar"*, print: "REVELAÇÃO 1/1", carta já vendida, parada).
+// O relógio era rearmado só quando `revealIdx`/`phase` mudavam. Só que, na carreira, é
+// comum a leva ter UMA carta e a leva SEGUINTE também (você sem vaga no setor → os bots
+// lacram sozinhos → nova revelação nasce na hora). Aí o índice vai de 0 pra 0 e a fase de
+// 'reveal' pra 'reveal': pro React nada mudou, o efeito não roda de novo, ninguém arma o
+// relógio — e a carta nova fica "vendida" na tela pra sempre. O F5 destravava porque
+// montava tudo do zero. Agora o efeito também observa a CARTA na tela (`cardId`): leva
+// nova = carta nova = relógio novo. O mesmo vale pro martelo/som (efeitos abaixo).
+function AutoAdvance({ hasBids, canDrive, extraMs = 0, cardId }: { hasBids: boolean; canDrive: boolean; isLast: boolean; extraMs?: number; cardId?: string }) {
   const { state, dispatch } = useEsc()
   useEffect(() => {
     if (!canDrive) return
@@ -3964,7 +3973,7 @@ function AutoAdvance({ hasBids, canDrive, extraMs = 0 }: { hasBids: boolean; can
     document.addEventListener('visibilitychange', onVis)
     return () => { clearTimeout(t); clearInterval(iv); document.removeEventListener('visibilitychange', onVis) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.revealIdx, state.phase, canDrive, hasBids, extraMs])
+  }, [state.revealIdx, state.phase, canDrive, hasBids, extraMs, cardId])
   return null
 }
 
@@ -4186,8 +4195,9 @@ function Reveal() {
     // que usam o reveal; respeita o mudo (playMp3). Substitui o antigo chime.
     if (it.card.fame >= 5 && (iWon || iSold)) timers.push(setTimeout(() => playMp3(`${import.meta.env.BASE_URL}sfx/lenda.mp3`), delayMs + 260))
     return () => timers.forEach(clearTimeout)
+    // ⚠️ também pela CARTA: leva nova com o mesmo índice (0 → 0) tem que tocar de novo (13/09)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.revealIdx])
+  }, [state.revealIdx, item?.card.id])
   // 🔨 ANTI-SPOILER: o vencedor só fica VERDE quando o martelo bate (hammerDelay) —
   // nunca antes. Sem isto, a linha do maior lance entrava já verde em ~0s e a sala
   // via quem ganhou (e por quanto) antes do apito/martelo.
@@ -4201,8 +4211,10 @@ function Reveal() {
     const hd = it.bids.length * 0.25 + (tieHit ? 1.2 : 0.2)
     const t = setTimeout(() => setHammered(true), hd * 1000)
     return () => clearTimeout(t)
+    // ⚠️ também pela CARTA: leva nova com o mesmo índice (0 → 0) rearma o martelo — senão o
+    // vencedor da carta nova já nascia verde (spoiler) e o relógio não zerava (13/09)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.revealIdx])
+  }, [state.revealIdx, item?.card.id])
   if (!item) return (
     <Shell bar={<AuctionBar />}>
       <div className="text-center pt-12 space-y-2">
@@ -4481,7 +4493,7 @@ function Reveal() {
           nome NO MARTELO — passava tão rápido que ninguém via QUEM era. E a
           ÚLTIMA revelação fecha a rodada (o resultado), então também merece um
           respiro. Só nesses dois casos; o resto do pregão segue no ritmo de sempre. */}
-      <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast}
+      <AutoAdvance hasBids={item.bids.length > 0} canDrive={canDrive} isLast={isLast} cardId={item.card.id}
         extraMs={(tie ? (tie.viaRoulette ? 3200 : 1500) : 0)
           + (item.card.id === state.surpriseId && sold ? 1600 : 0)
           + (isLast ? 1200 : 0)} />
