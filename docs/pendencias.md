@@ -1,3 +1,12 @@
+## 13/09/2026 — ⏱️ Partida da carreira +1s no AUTO — ✅ no ar
+
+Pedido do Diego: *"aumente mais 1s o tempo da simulação da partida no modo carreira em
+auto"*. `AUTO_EXTRA_MS = 1000` em `pyramidseason.tsx`: no auto a rodada da liga dura 10 s
+(era 9); no manual segue 9 s (ritmo é do 🐢/⏩). Pra isso `manual` subiu pro topo do
+componente e nasceu `baseRoundMs`, que alimenta TODOS os relógios da rodada (placar,
+revelação da tabela a 0,86× e fim de temporada a 0,95×) — sem isso a tabela abriria antes
+do apito. Copa não mudou (`COPA_LEG_MS`). Reverter = um commit.
+
 ## 13/09/2026 — 🤝 Patrocinador Pontual paga mais (+2/+4/+6/+8/+10 por divisão) — ✅ no ar
 
 Pedido do Diego: *"aumente em mais 2 4 6 8 10 moedas também o patrocinador pontual pras

@@ -2322,6 +2322,9 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 // ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
 // tempo de decidir tática/Time A-B durante a partida: 8s por rodada (fixo). Só aqui.
 const ROUND_MS = 9000
+// ⏱️ +1s SÓ no AUTO da carreira (Diego 13/09: "aumente mais 1s o tempo da simulação da
+// partida no modo carreira em auto"). No manual o técnico já controla o ritmo (🐢/⏩).
+const AUTO_EXTRA_MS = 1000
 export const COPA_LEG_MS = 9000 // cada JOGO da Copa rola ~9s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
 
 // COR DO TIME: todo mundo começa na cor BEGE do "Foi Profissional" — a cor
@@ -5895,6 +5898,26 @@ export function PyramidSeasonScreen() {
   useEffect(() => () => setCareerColorCtx(null), [])
   const round = state.round
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  // ⏸️ passo é seu (SOLO + manual): usado na liga e na Copa. Declarado aqui em cima
+  // porque o TEMPO DA PARTIDA (logo abaixo) e o efeito da Copa precisam saber se é manual.
+  const [manualPref, toggleSim] = useSimMode()
+  // 📣 banner "migre pra carreira nova" (só carreira antiga): o jogador pode
+  // FECHAR e não vê mais (por aparelho). Diego 10/08.
+  const [bannerAntigaOff, setBannerAntigaOff] = useState(() => { try { return localStorage.getItem('esc-banner-antiga-off') === '1' } catch { return false } })
+  // 🎮 MODO MANUAL (carreira solo): liberado se (a) a carreira é ANTIGA — sem
+  // careerEra, começou antes da cobrança → grandfather, nunca mexe em save antigo;
+  // ou (b) a pessoa tem o Modo Manual/Lenda. Online segue de graça (outra tela).
+  const hasManual = useHasManual()
+  const manualAllowed = state.onlineMode === 'online' || !state.careerEra || hasManual
+  // 🎮 ONLINE: o ritmo é do HOST (state.manualRoom, escolhido na criação e trocável
+  // no meio) — sincroniza pra todos. OFFLINE/solo: preferência local do aparelho.
+  const manual = state.onlineMode === 'online' ? !!state.manualRoom : (manualPref && manualAllowed)
+  // ⏱️ TEMPO-BASE DA PARTIDA DA LIGA (13/09, Diego: *"aumente mais 1s o tempo da simulação
+  // da partida no modo carreira em auto"*): no AUTO a partida dura ROUND_MS + 1s; no
+  // manual continua ROUND_MS (lá quem manda no ritmo é o 🐢/⏩ do técnico). TODOS os
+  // relógios da rodada saem daqui — o placar, a revelação da tabela (0,86×) e o fim da
+  // temporada (0,95×) — senão a tabela abriria antes do apito (spoiler).
+  const baseRoundMs = manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
   // jogo sumia na hora e pulava pro resultado — a última rodada não aparecia rolando.
@@ -5905,9 +5928,9 @@ export function PyramidSeasonScreen() {
   const [endShown, setEndShown] = useState(() => round >= 38)
   useEffect(() => {
     if (!seasonOver) { setEndShown(false); return }
-    const t = setTimeout(() => setEndShown(true), Math.round((ROUND_MS / speedFactor) * 0.95))
+    const t = setTimeout(() => setEndShown(true), Math.round((baseRoundMs / speedFactor) * 0.95))
     return () => clearTimeout(t)
-  }, [seasonOver, speedFactor])
+  }, [seasonOver, speedFactor, baseRoundMs])
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'global'>('arti')
@@ -6255,20 +6278,9 @@ export function PyramidSeasonScreen() {
   }
   const [copaPos, setCopaPos] = useState(0) // relógio da fase (0..nLegs*90) no nível da TELA (o placar fica em cima das abas)
   const [copaReady, setCopaReady] = useState(false) // 🎮 no manual, libera a "Próxima fase" quando a fase acaba de animar
-  // ⏸️ passo é seu (SOLO + manual): usado tanto na liga quanto na Copa. Declarado
-  // aqui em cima porque o efeito da Copa (logo abaixo) precisa saber se é manual.
-  const [manualPref, toggleSim] = useSimMode()
-  // 📣 banner "migre pra carreira nova" (só carreira antiga): o jogador pode
-  // FECHAR e não vê mais (por aparelho). Diego 10/08.
-  const [bannerAntigaOff, setBannerAntigaOff] = useState(() => { try { return localStorage.getItem('esc-banner-antiga-off') === '1' } catch { return false } })
-  // 🎮 MODO MANUAL (carreira solo): liberado se (a) a carreira é ANTIGA — sem
-  // careerEra, começou antes da cobrança → grandfather, nunca mexe em save antigo;
-  // ou (b) a pessoa tem o Modo Manual/Lenda. Online segue de graça (outra tela).
-  const hasManual = useHasManual()
-  const manualAllowed = state.onlineMode === 'online' || !state.careerEra || hasManual
-  // 🎮 ONLINE: o ritmo é do HOST (state.manualRoom, escolhido na criação e trocável
-  // no meio) — sincroniza pra todos. OFFLINE/solo: preferência local do aparelho.
-  const manual = state.onlineMode === 'online' ? !!state.manualRoom : (manualPref && manualAllowed)
+  // (⏸️ manual/manualPref/hasManual moraram aqui até 13/09; subiram pro topo do
+  //  componente porque o tempo da partida — usado por efeitos lá em cima — agora
+  //  depende de saber se é auto ou manual. Mesmos hooks, mesma ordem relativa.)
   // 🚫 ANTI-SPOILER: ao VIRAR de fase da Copa (copaRound muda), o relógio ainda está
   // no fim da fase anterior por 1 frame — o que piscaria o placar/vencedor da fase
   // NOVA antes do apito. Zera JÁ na renderização (o efeito abaixo religa a animação).
@@ -6801,9 +6813,9 @@ export function PyramidSeasonScreen() {
     if (done || round <= 0) { setRevealed(round); return }
     setRevealed(round - 1) // segura a rodada atual enquanto a partida anima
     if ((halfMode && !halftimeDone) || (penMode && !penaltyDone)) return // pausado esperando o técnico — não arma
-    const t = setTimeout(() => setRevealed(round), Math.round((ROUND_MS / speedFactor) * 0.86))
+    const t = setTimeout(() => setRevealed(round), Math.round((baseRoundMs / speedFactor) * 0.86))
     return () => clearTimeout(t)
-  }, [round, done, speedFactor, halfMode, halftimeDone, penMode, penaltyDone])
+  }, [round, done, speedFactor, baseRoundMs, halfMode, halftimeDone, penMode, penaltyDone])
   // 🐊 mascote do usuário pra comemorar o gol de pênalti (SÓ quem tem mascote)
   const penMascArt = meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? MASCOTES[meuSocFesta.mascoteKey] : null
 
@@ -6828,8 +6840,8 @@ export function PyramidSeasonScreen() {
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
-  // O Normal do manual é IGUAL ao do auto (ROUND_MS); quem quiser mais calmo usa o 🐢.
-  const roundMs = Math.round(ROUND_MS / speedFactor)
+  // O Normal do manual é ROUND_MS; o auto ganhou +1s em 13/09 (ver baseRoundMs, lá em cima).
+  const roundMs = Math.round(baseRoundMs / speedFactor)
   // 🤝 no AUTO (offline, sem manual), a rodada 0 NÃO pode andar sozinha antes do
   // técnico escolher a meta do patrocínio — senão os 9s do ROUND_MS viravam um
   // cronômetro escondido pra escolher (Diego pediu SEM tempo nenhum nessa área).
