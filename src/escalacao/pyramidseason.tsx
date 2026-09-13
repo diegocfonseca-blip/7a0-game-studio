@@ -23,7 +23,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
-import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, corGas, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao' // 😓 gás (12/09)
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao' // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, openSlots, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
@@ -3196,8 +3196,11 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     if (mv) { const p = pctVolta(mv); return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, '#7C3AED')} /></span><span style={{ ...lbl, color: '#7C3AED' }}>🩹 {p}%</span></span> }
     // ⚠️ o gás é FLOAT desde 13/09 (−1,4 por jogo, porque o cansaço atravessa
     // temporadas): arredonda SÓ pra mostrar — a conta segue cheia.
-    const g = condicao.gas[c.id] ?? 100, e = estadoGas(g), cor = corGas(e)
-    return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(g, cor)} /></span><span style={{ ...lbl, color: cor }}>{Math.round(g)}%</span></span>
+    // 📊 A barra mostra a LEITURA do gás (pctBarra/corBarra, condicao.ts — Diego 13/09:
+    // "está diminuindo muito rápido"): 1º–50º jogo = 100%→50% verde, depois amarelo e
+    // cai mais rápido. O motor, o estado e o emoji seguem no gás cru.
+    const g = condicao.gas[c.id] ?? 100, p = pctBarra(g), cor = corBarra(g)
+    return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, cor)} /></span><span style={{ ...lbl, color: cor }}>{p}%</span></span>
   }
   // 😓 NO CAMPINHO NÃO (Diego 12/09: *"não quero que apareça no campinho, só onde
   // tem a listagem"*) — o gás vive só nas listas de titulares/reservas.
@@ -4124,12 +4127,13 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
         {elenco && condicao && xiIds && (() => {
           const ids = [...xiIds].filter(id => mgr.squad.some(c => c.id === id && !c.fake))
           if (!ids.length) return null
-          const media = Math.round(ids.reduce((s, id) => s + (condicao.gas[id] ?? 100), 0) / ids.length)
+          // média do gás CRU dos 11; na tela, a mesma leitura das barrinhas (pctBarra/corBarra)
+          const media = ids.reduce((s, id) => s + (condicao.gas[id] ?? 100), 0) / ids.length
           const nEsg = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'esgotado').length
           const nLim = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'limite').length
           const nCan = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'cansado').length
-          const cor = corGas(estadoGas(media))
-          return <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: cor }}>{media}%</span>{nEsg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {nEsg} 🚑</span> : null}{nLim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {nLim} 🥵</span> : null}{nCan ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {nCan} 😓</span> : null}</span>
+          const cor = corBarra(media)
+          return <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: cor }}>{pctBarra(media)}%</span>{nEsg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {nEsg} 🚑</span> : null}{nLim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {nLim} 🥵</span> : null}{nCan ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {nCan} 😓</span> : null}</span>
         })()}
       </div>
       {elenco && onSetFormation && (() => {

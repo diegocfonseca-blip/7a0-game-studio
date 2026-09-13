@@ -78,6 +78,32 @@ export function pesoLesao(g: number): number { const e = estadoGas(g); return e 
 export const emojiGas = (e: EstadoGas): string => (e === 'ok' ? '💪' : e === 'cansado' ? '😓' : e === 'limite' ? '🥵' : '🚑')
 export const corGas = (e: EstadoGas): string => (e === 'ok' ? '#1B7A3D' : e === 'cansado' ? '#D9A000' : e === 'limite' ? '#C2452F' : '#7A1B1B')
 
+// ─── 📊 A BARRINHA (só TELA — o motor não muda) ─────────────────────────────
+// Diego, 13/09: *"as barrinhas estou achando que está diminuindo muito rápido…
+// não quero mexer no motor… deveria ficar amarelo depois de 50%, quando chegar em
+// 49%, que está quase na metade ainda… seguir com a mesma regra que botamos: 1 a
+// 50 jogos, aí cai pra 49% e vai descendo até chegar em 55 e tantos"*.
+// O gás do MOTOR cai 1,4 por jogo, então no 50º jogo ele já está em 31 — e a barra
+// mostrava isso cru: parecia "quase acabando" com o jogador ainda inteiro (inteiro
+// vai até o 54º). A barra passa a mostrar uma LEITURA do gás, em dois trechos:
+//   · gás 100 → 30,7 (1º ao 50º jogo)  = barra 100% → 50%  (cai ~1% por jogo)
+//   · gás 30,7 → 0 (51º jogo em diante) = barra 49% → 0%   (cai mais rápido: é a
+//     zona do cansaço — 55º ≈ 40% · 60º ≈ 28% · 65º ≈ 17% · 72º ≈ 1%)
+// Cor: verde enquanto a barra está em 50% ou mais; abaixo disso amarelo — mesmo com
+// o jogador ainda 💪 (é o aviso "está chegando"); 🥵 e 🚑 seguem vermelho/escuro.
+// O emoji, o estado e todos os números do jogo continuam saindo do gás cru.
+export const GAS_MEIO = 30.7 // gás do motor que a barra mostra como 50% (entre o 50º = 31,4 e o 51º = 30 → 51% e 49%)
+export function pctBarra(g: number): number {
+  const x = Math.max(0, Math.min(100, g))
+  const p = x >= GAS_MEIO ? 50 + ((x - GAS_MEIO) / (100 - GAS_MEIO)) * 50 : (x / GAS_MEIO) * 50
+  return Math.max(0, Math.min(100, Math.round(p)))
+}
+export function corBarra(g: number): string {
+  const e = estadoGas(g)
+  if (e === 'ok') return pctBarra(g) >= 50 ? corGas('ok') : corGas('cansado')
+  return corGas(e)
+}
+
 // ─── 🪜 A DIVISÃO DE VERDADE (13/09) ─────────────────────────────────────────
 // ⚠️ `careerDivision` MENTE em carreira que nasceu na Várzea: ele fica congelado
 // na divisão de FUNDAÇÃO. Medido no banco em 13/09, numa amostra dos 250 saves

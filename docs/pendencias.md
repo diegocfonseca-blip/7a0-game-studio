@@ -1,3 +1,19 @@
+## 13/09/2026 — 📊 Barrinha de gás "cai rápido demais" — leitura nova, ⏳ AGUARDANDO OK do Diego (só no branch)
+
+Palavras dele: *"as barrinhas estou achando que está diminuindo muito rápido… não quero
+mexer no motor… deveria ficar amarelo depois de 50%, quando chegar em 49%… seguir com
+a mesma regra: 1 a 50 jogos, aí cai pra 49% e vai descendo até chegar em 55 e tantos"*.
+- **Motor intocado** (1,4 por jogo · 😓 55º · 🥵 60º · 🚑 65º · banco +4 · lesão igual).
+- **Só a tela**: `pctBarra`/`corBarra` em `condicao.ts`. Gás 100→30,7 (1º–50º jogo) vira
+  barra 100%→50% verde; gás 30,7→0 vira 49%→0% (55º ≈ 40% · 60º ≈ 28% · 65º ≈ 17%).
+  Abaixo de 50% a barra fica AMARELA mesmo com o jogador 💪; 🥵/🚑 seguem vermelho/escuro.
+  Emoji, estado e "🏃 N jogos" continuam do gás cru. Vale pras listas do Elenco e pro
+  "Gás do time" (média).
+- Mockup: `npx tsx scripts/mockup-barra-gas.mjs` (usa a função real). Testes: seção 8 do
+  `testa-condicao.mjs`. Build ok.
+- ⏳ **Não foi pra main**: regra nº 2 (visual só com OK). Quando ele aprovar: push na main
+  + linha em `novidades.ts` (com `en`).
+
 ## 13/09/2026 — 🐛 Copa presa no 1' (Sentidos Unidos, T9 Série A, carreira antiga) — ✅ corrigido, no ar
 
 Relato do Diego (print do @kelvin01_hp, `kelvinbom205@gmail.com`): Rodada de 64 da Copa

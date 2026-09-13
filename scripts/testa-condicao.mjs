@@ -1,7 +1,7 @@
 // 🧪 CONDIÇÃO / GÁS — confere as regras fechadas com o Diego (12/09) contra o
 // módulo puro `src/escalacao/condicao.ts`. Rodar: npx tsx scripts/testa-condicao.mjs
 // (sai com código 1 se algo quebrar — serve pra rodar antes de commitar).
-import { gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, sugerirRodizio, estadoGas, modGas, pesoLesao, condicaoAtiva, sorteiaLesaoDesgaste, GAS_JOGO, GAS_BANCO, LESAO_LIMITE_PCT, LESAO_ESGOTADO_PCT } from '../src/escalacao/condicao.ts'
+import { gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, sugerirRodizio, estadoGas, modGas, pesoLesao, condicaoAtiva, sorteiaLesaoDesgaste, pctBarra, corBarra, corGas, GAS_JOGO, GAS_BANCO, LESAO_LIMITE_PCT, LESAO_ESGOTADO_PCT } from '../src/escalacao/condicao.ts'
 
 let falhas = 0
 const ok = (cond, msg) => { if (cond) console.log('  ✅', msg); else { falhas++; console.log('  ❌', msg) } }
@@ -121,6 +121,18 @@ ok(!condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, con
 ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 9, condicaoDesdeR: 8, seasonNo: 9, careerDivision: 'C' }), 'já estava na C quando a regra chegou: ligado (legítimo)')
 ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 9, seasonNo: 9, careerDivision: 'C' }), 'chegou na C na virada: ligado')
 ok(condicaoAtiva({ careerOnline: true, onlineMode: 'solo', agenciaOn: true, condicaoDesde: 5, condicaoDesdeR: 8, seasonNo: 9, careerDivision: 'D' }), 'ligou na C temporadas atrás e caiu pra D: continua ligado (cura não toca)')
+
+console.log('8) 📊 a barrinha (só tela — Diego 13/09: "está diminuindo muito rápido")')
+const gasJogo = n => Math.round((100 - GAS_JOGO * (n - 1)) * 10) / 10 // gás antes do jogo N
+ok(pctBarra(100) === 100 && pctBarra(0) === 0, 'extremos: 100 → 100% · 0 → 0%')
+ok(pctBarra(gasJogo(50)) >= 50 && pctBarra(gasJogo(51)) === 49, `50º jogo ainda ≥ 50% (${pctBarra(gasJogo(50))}%) · 51º cai pra 49%`)
+ok(pctBarra(gasJogo(13)) === 88, `13º jogo: 88% na barra (era ${Math.round(gasJogo(13))}% cru)`)
+ok(pctBarra(gasJogo(55)) === 40 && pctBarra(gasJogo(60)) === 28 && pctBarra(gasJogo(65)) === 17, '55º ≈ 40% · 60º ≈ 28% · 65º ≈ 17%')
+let mono = true; for (let g = 1; g <= 100; g++) if (pctBarra(g) < pctBarra(g - 1)) mono = false
+ok(mono, 'nunca sobe quando o gás cai (monótona)')
+ok(corBarra(gasJogo(50)) === corGas('ok') && corBarra(gasJogo(51)) === corGas('cansado'), 'verde até o 50º · amarela do 51º (mesmo 💪)')
+ok(corBarra(gasJogo(55)) === corGas('cansado') && corBarra(gasJogo(60)) === corGas('limite') && corBarra(gasJogo(65)) === corGas('esgotado'), '😓 amarela · 🥵 vermelha · 🚑 escura — como antes')
+ok(estadoGas(gasJogo(54)) === 'ok' && estadoGas(gasJogo(55)) === 'cansado', 'o MOTOR não mudou: inteiro até o 54º, 😓 no 55º')
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')
 process.exit(falhas ? 1 : 0)
