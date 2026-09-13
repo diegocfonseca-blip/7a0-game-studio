@@ -35,6 +35,7 @@ import finalBossEscudoImg from './img/finalboss-escudo.webp' // 🐂 Final Boss 
 import novaEclipseEscudoImg from './img/novaeclipse-escudo.webp' // 🌑 Nova Eclipse FC (jh9415474): arte própria do dono, 07/09
 import sistematizadosEscudoImg from './img/sistematizados-escudo.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
 import brigaDeGaloEscudoImg from './img/brigadegalo-escudo.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
+import saoMarcosAntonioEscudoImg from './img/saomarcosantonio-escudo.webp' // 😇🐷 São Marcos Antônio FC (marcomak03): arte própria do dono, 13/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
 import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
@@ -605,6 +606,12 @@ const sistematizadosEscudoRender = (size: number) => (
 const brigaDeGaloEscudoRender = (size: number) => (
   <img src={brigaDeGaloEscudoImg} height={size} width={Math.round(size * 280 / 360)} alt="Briga de Galo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 😇🐷 São Marcos Antônio FC — 248x360 no arquivo, então a largura sai da PROPORÇÃO
+// REAL (nunca width={size} chutado). Arte do dono (marcomak03, 13/09): o goleiro de
+// auréola e o porquinho, verde e creme, "SMA FC".
+const saoMarcosAntonioEscudoRender = (size: number) => (
+  <img src={saoMarcosAntonioEscudoImg} height={size} width={Math.round(size * 248 / 360)} alt="São Marcos Antônio FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🔊 Bonança SSFC — 305x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (duselecta, 09/09): escudo redondo
 // com o paredão de caixas de som, coroa e as bandeirinhas da Jamaica.
@@ -897,6 +904,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Briga de Galo': brigaDeGaloEscudoRender,
   'Briga de Galo EC': brigaDeGaloEscudoRender,
   'Briga de Galo SC': brigaDeGaloEscudoRender,
+  // 😇🐷 São Marcos Antônio FC (marcomak03) — batismo de 13/09, Série A (assento a
+  // definir pelo Diego: a Série A está toda de batismos). As 4 formas do nome.
+  'São Marcos Antônio FC': saoMarcosAntonioEscudoRender,
+  'São Marcos Antônio': saoMarcosAntonioEscudoRender,
+  'São Marcos Antônio EC': saoMarcosAntonioEscudoRender,
+  'São Marcos Antônio SC': saoMarcosAntonioEscudoRender,
   // 🔊 Bonança SSFC (duselecta) — Série C, no assento que era do bot Torta de Rã
   // (09/09). As formas do nome + o nome velho e o mais velho ainda (Fogaréu EC),
   // pra save antigo não ficar sem escudo. ⚠️ `chaveEscudo` corta FC/EC/SC do fim,

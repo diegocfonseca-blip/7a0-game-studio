@@ -1,3 +1,26 @@
+## 13/09/2026 — 😇🐷 BATISMO SÃO MARCOS ANTÔNIO FC (marcomak03) — Série A, ⏳ ASSENTO A DEFINIR pelo Diego
+
+Pedido: *"marcomak03@gmail.com que era Craque virou batismo de 69,90 da Série A… segue
+arte… e Palmeiras hein"*. Conta existe (24/07, display "Marco Antonio", era ⭐ prata).
+- **Arte** (prancha do dono, fundo verde-neon removido por chroma key, poeira e franja
+  limpas, conferido sobre creme): escudo `saomarcosantonio-escudo.webp` 248×360 · 27,3 KB ·
+  mascote `saomarcosantonio-mascote.webp` 297×440 · 43,2 KB (total 70,5 KB ≤ 75) · camisa
+  `scripts/kits/saomarcosantonio-camisa.webp` (só post). Manto MEDIDO na camisa:
+  **#033E23 verde-garrafa (79%) + #ECEAD4 creme**.
+- **Código (feito, no branch):** `LOGOS_PRONTAS` (4 formas) · `MASCOTES`
+  `saomarcos_porco` + `CARIMBO_GOL` (4 formas + caixa alta) + `MASCOTE_NOME` "O
+  Porquinho" (⚠️ PROVISÓRIO, a arte veio sem nome) · `apoio.tsx` ouro (saiu a linha
+  prata do Craque) + `FUNDADOR_N` 68 · `manto.ts` · `batismos.ts` · `checa-batismos.mjs`.
+  **Falta `data.ts`**: a Série A está com os 20 assentos TODOS de batismo — não tem bot
+  pra tirar. Perguntei ao Diego quem desce (padrão dele: um batismo desce pra B/D pra abrir
+  a vaga). Sem isso não vai pra main (o clube não existiria na pirâmide).
+- **Banco (feito):** `esc_socios` nº49 (até 2099, manto, `saomarcos_porco`, escudo_time,
+  coração **Palmeiras**, origem batismo) · `esc_fundadores` 68 · `esc_nomes_batismo` "São
+  Marcos Antônio" (gatilho criou FC/EC) · `user_colors` ouro/manual (era prata/false).
+- **Post:** `mockup-batismo.mjs` com `--camisa` e `--coracao Palmeiras`, sem `--antigo`
+  (regra 05/09). Mandado pro Diego. Falta: `novidades.ts` (junto com a main) e o nome
+  real da mascote.
+
 ## 13/09/2026 — 😵 "Ops, algo deu errado" nas quartas da Copa (Internacional de Madrid, iPhone) — 🛡️ blindado, causa provável de fora
 
 Print do Matheus Stefanello (`matheusstefanello372@gmail.com`, T1 Várzea, Chrome no iPhone):
@@ -112,8 +135,10 @@ Método: `LOGOS_PRONTAS` (escudos.tsx) × `BATISMOS` (batismos.ts) × `esc_socio
   - Ainda sem coração (15): White Thigs · Skyy · Marreco · Jurubeba (Meia na Canela) ·
     Stocco · Bagres 1993 · Sistematizados · Bonança · Leite de Verdade · Capsule ·
     Alfacehh · Eros · Seven City · Crias do Bigão · Milhaça · Esqueceram do Lluch
-    (o Lluch segue também sem linha em `esc_socios`; e-mail no código:
-    `lluchmarcel81@gmail.com`, coração São Paulo — falta o Diego confirmar).
+    ✅ **Lluch confirmado pelo Diego (13/09, *"é São Paulo FC mesmo"*)**: `esc_socios`
+    **nº48** (`lluchmarcel81@gmail.com`, desde 28/08, até 2099, manto #C00018/#111111,
+    `lluch_menino`, coração São Paulo, origem batismo). Com isso os 3 batismos que estavam
+    sem linha de sócio (São Luiz, Theuzudo, Lluch) ficaram completos. Sem coração agora: 14.
   🔧 **De carona:** a torcida do Salão (`esc_salao_torcidas`) só contava
   `origem = 'batismo'`, então o Futpoint (sócio, regra do 19/08) ficaria fora mesmo
   com o coração gravado — e o Marinheiros AS (sócio, Palmeiras) já estava fora.

@@ -117,6 +117,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'diegohdsf@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº64 + SÓCIO nº42 + batismo (Fala D10, Série A, no assento que era do Skyy FC; coração Corinthians; 09/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'duselecta@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº63 + SÓCIO nº41 + batismo (Bonança SSFC, Série C, ex-Torta de Rã; paredão de som 🔊, preto + amarelo com vermelho; 09/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'pedrovianacarneiroq@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº62 + SÓCIO nº40 + batismo (Briga de Galo FC, Série A, no assento que era do Vasco da Grana; mascote o Galo 🐓, preto + branco listrado com dourado; 08/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
+  'marcomak03@gmail.com': 'ouro', // 👑 Lenda (pago) — era ⭐ Craque, virou batismo de R$69,90 (13/09): tudo do ouro + FUNDADOR nº68 + SÓCIO nº49 + batismo (São Marcos Antônio FC, Série A; goleiro de auréola e o porquinho 😇🐷, verde + creme). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'jh9415474@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº60 + SÓCIO nº38 + batismo (Nova Eclipse FC, Série C, ex-Zequinha SAF; mascote O Eclipse 🌑, preto + branco; 07/09)
   'gustavo99828@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº57 + batismo (Final Boss FC, Série C, ex-Ponte Branca; mascote o touro O Boss 🐂, vermelho + preto sobre branco, 05/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
   'stoccoassessoria@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº56 + batismo (Stocco FC, Série C, ex-Semervilha; mascote o Relâmpago 🐺, roxo + preto, 04/09). ⚠️ A fonte OFICIAL do tier é a tabela `user_colors` no banco — esta lista é RESERVA.
@@ -129,7 +130,6 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'mickael.mearepresentacoes@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (08/08)
   'macson100vitorio@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual (08/08)
   'danielmanfre5@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Manfré FC, ex-Livre-pool) (08/08)
-  'marcomak03@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual (08/08)
   'luiz.maia.luiz@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR (08/08)
   'souzact12@gmail.com': 'ouro', // 👑 Lenda (pago) — Geovany Souza: tudo do ouro + FUNDADOR + batismo (Tricolor do Arruda FC, ex-Legado EC; anel do Arruda com o T no escudo, cobra de cachimbo de mascote; coração Santa Cruz) — era Craque prata, subiu no batismo (16/08)
   'lucas_calefi@outlook.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº44 + sócio nº24; batizou os CORINGAS DO DINIZ (ex-Vanguarda Nacional, Série A); coração Corinthians, manto preto e branco (16/08)
@@ -172,6 +172,7 @@ const FUNDADOR_N: Record<string, number> = {
   'contateste577660006@gmail.com': 65, // 🙏 Só Deus Sabe FC (09/09)
   'iago.cortellini@gmail.com': 66, // 🐟📉 Bagres de Wall Street FC (09/09)
   'brunolopesmiranda15@gmail.com': 67, // 🐮 Leite de Verdade FC (10/09)
+  'marcomak03@gmail.com': 68, // 😇🐷 São Marcos Antônio FC (13/09)
   'caiohcris@gmail.com': 59, // 🐟 Bagres 1993 (06/09)
   'contatovegetta14@gmail.com': 55, // 🐉 Corporação Capsule FC (03/09)
   'cesar.verissimo27@gmail.com': 3,
