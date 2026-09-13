@@ -1,3 +1,9 @@
+## 12/09/2026 — Ajuste fino dos apoios solicitado pelo Diego
+
+- Bloco de apoio no fim da home menor: espaçamentos e fontes reduzidos apenas nesse bloco; botão mantém área de toque de 44px. Restante da home e planos preservados.
+- História: texto fornecido e aprovado pelo Diego, “são 120 casos no mundo”, “ele é o menino mais forte do mundo. Ele é a minha lenda”; somente a palavra lenda em dourado. Mesma história na oferta Manual e nos planos, com versão EN.
+- Ajuste visual/textual; sem novidade de jogo, preço ou regra nova.
+
 ## 13/09/2026 — 😓🪜 O gás não ligava pra quem SUBIU (campo de divisão congelado) — ✅ no ar
 
 Pergunta do Diego, com o caso do `rzinho07oli@gmail.com`: *"esse usuário disse
