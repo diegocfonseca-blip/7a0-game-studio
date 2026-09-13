@@ -12,6 +12,12 @@ import './salao.css'
 
 interface Torcida { time_nome: string; gente: number }
 const porChegada = (a: Batismo, b: Batismo) => (a.fundador ?? 999) - (b.fundador ?? 999) || a.clube.localeCompare(b.clube)
+// 🙈 FORA DO SALÃO POR ENQUANTO (Diego 13/09): clubes que ainda estão com escudo/mascote
+// provisórios (genérico ou SVG antigo). Palavras dele: *"tire do menu de salão de batismo
+// por enquanto, só até arrumar as logos dele, mascote e etc… só tô falando daqui ocultar
+// até eu melhorar os deles"*. SÓ o Salão: no jogo, na pirâmide, na estante e no
+// `checa-batismos` eles continuam iguais. Quando a arte nova chegar, tirar daqui.
+const SALAO_OCULTOS = new Set(['Alfacehh', 'Marreco FC', 'White Thigs do GuGu'])
 const pecas = () => [tr('Escudo', 'Crest'), tr('Mascote', 'Mascot'), tr('Manto', 'Shirt')]
 function Arte({ clube, peca }: { clube: string; peca: number }) {
   const [erro, setErro] = useState(false)
@@ -38,7 +44,7 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
   const folhas = useRef<HTMLDivElement>(null)
   const closeZoom = useRef<HTMLButtonElement>(null)
   const ultimoFoco = useRef<HTMLElement | null>(null)
-  const clubes = useMemo(() => [...BATISMOS].sort(ordem === 'nome' ? (a,b) => a.clube.localeCompare(b.clube, 'pt-BR') : porChegada), [ordem])
+  const clubes = useMemo(() => BATISMOS.filter(b => !SALAO_OCULTOS.has(b.clube)).sort(ordem === 'nome' ? (a,b) => a.clube.localeCompare(b.clube, 'pt-BR') : porChegada), [ordem])
   const clube = clubes[destaque % clubes.length]
   useEffect(() => {
     let vivo = true
