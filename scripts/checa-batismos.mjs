@@ -80,7 +80,7 @@ const BATISMOS = [
   ['iago.cortellini@gmail.com', 'Bagres de Wall Street FC'], // 🐟📉 Série A, no assento do Manfré FC, que desceu pra B (09/09)
   ['brunolopesmiranda15@gmail.com', 'Leite de Verdade FC'], // 🐮 Série A, no assento do Barcenite FC, que desceu pra B (10/09)
   ['contatovegetta14@gmail.com', 'Corporação Capsule FC'],
-  ['denilson.stifler10@gmail.com', 'Xurupitas FC'], ['matheus223lms@icloud.com', 'Alfacehh'],
+  ['denilson.stifler10@gmail.com', 'Xurupitas FC'], ['matheus223lms@icloud.com', 'Inter de Bailão'],
   ['jorgericardo777@gmail.com', 'Leão da Estradinha'], ['nevesgabriel95@gmail.com', 'Deportivo Montreal'],
   ['eltonfrossard45@gmail.com', 'La Bestia Negra'], ['ofc.toka10@gmail.com', 'Tôka10'],
   ['glaucomiranda@outlook.com', 'Seven City'], ['danielmanfre5@gmail.com', 'Manfré FC'],

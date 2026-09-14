@@ -2528,6 +2528,7 @@ export const OLD_NAME: Record<string, string> = {
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
+  'Inter de Bailão': 'Alfacehh', // 🪩 RENOMEAÇÃO do mesmo dono (matheus223lms, 14/09): o Alfacehh virou Inter de Bailão. Save antigo segue a corrente (Athletico do Porto → Alfacehh → Inter de Bailão) e chega no nome novo.
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
   'Internacional de Madrid': 'Adão Esporte', // 👑 batismo do matheusstefanello372 (14/09): assumiu o assento da Série C que era do Adão Esporte — save antigo com Adão Esporte vira Internacional de Madrid ao abrir. (O Adão Esporte continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Bonança SSFC': 'Torta de Rã', // 🔊 batismo do duselecta: assumiu o assento da Série C que era do Torta de Rã — save antigo com Torta de Rã (ou Fogaréu EC, o nome mais velho ainda) vira Bonança SSFC ao carregar (09/09)
@@ -2728,7 +2729,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   ],
   B: [
     { name: 'Seu Ferreira', team: 'Crias do Bigão' }, // ⚽ clube BATIZADO por apoiador (giovannecastro784 — Crias do Bigão, ex-Ferroviária do Vale, 17/08)
-    { name: 'Mr. Porto', team: 'Alfacehh' }, // ⚽ clube BATIZADO por apoiador (matheus223lms — Alfacehh, ex-Athletico do Porto). DESCEU da Série D pra cá em 23/08, por decisão do Diego, pra abrir o assento do Papão United Madrid.
+    { name: 'Waguinho Pipa', team: 'Fatality FC' }, // ⬆️ SUBIU da Série C em 14/09, na troca 1:1 que levou o Inter de Bailão (ex-Alfacehh) pra Série C a pedido do Diego.
     { name: 'Serrano', team: 'Nacional da Serra' },
     { name: 'Cerradão', team: 'Esporte do Cerrado' },
     // ⚽ Manfré FC (danielmanfre5) DESCEU da Série A pra cá em 09/09, por decisão
@@ -2802,7 +2803,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   C: [
     { name: 'Casa de Vó', team: 'Casa de Vó' },
     { name: 'Zé Colmeia', team: 'Zé Colmeia' },
-    { name: 'Waguinho Pipa', team: 'Fatality FC' },
+    { name: 'DJ Bailão', team: 'Inter de Bailão' }, // 🪩 clube BATIZADO por apoiador (matheus223lms — Inter de Bailão, ex-Alfacehh, ex-Athletico do Porto; escudo com as caixas de som e o monograma IDB, mascote a bola de espelho de chapéu-bucket, azul #0040CD + preto MEDIDOS na camisa do dono; Lenda + fundador nº30 + sócio nº3). DESCEU da Série B pra cá em 14/09, na troca 1:1 com o Fatality FC.
     { name: 'Miúdo do Gol', team: 'Miúdo EC' },
     { name: 'Eclipse', team: 'Nova Eclipse FC' }, // 🌑 clube BATIZADO por apoiador (jh9415474 — Nova Eclipse FC, ex-Zequinha SAF, Série C; mascote O Eclipse, preto + branco; Lenda + fundador nº60, 07/09)
     { name: 'Nego do Xote', team: 'Mano Paulista' },
@@ -2868,7 +2869,7 @@ export const TIMES_ELITE: CareerTeam[] = DIVISION_TEAMS.A
 // ─── Clubes clássicos que completam a liga de 20 ─────────────────────
 export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Crias do Bigão', atk: 78, def: 76 }, // ⚽ ex-Ferroviária do Vale (batismo 17/08) — mesma força, só o nome muda
-  { name: 'Alfacehh', atk: 76, def: 78 }, // ⚽ ex-Athletico do Porto (o Alfacehh desceu pra cá em 23/08) — MESMA força, só o nome muda
+  { name: 'Inter de Bailão', atk: 76, def: 78 }, // 🪩 ex-Alfacehh, ex-Athletico do Porto — MESMA força, só o nome muda (renomeado em 14/09)
   { name: 'Nacional da Serra', atk: 75, def: 73 },
   { name: 'Esporte do Cerrado', atk: 73, def: 75 },
   { name: 'Manfré FC', atk: 72, def: 71 }, // ⚽ desceu da Série A em 09/09 (abriu o assento do Bagres de Wall Street FC) — MESMA força do bot que cedeu a vaga (União da Baixada)

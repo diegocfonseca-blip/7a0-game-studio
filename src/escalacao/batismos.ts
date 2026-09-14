@@ -65,7 +65,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Leite de Verdade FC', tipo: 'batismo', fundador: 67 },
   { clube: 'Fala D10', tipo: 'batismo', fundador: 64 },
   { clube: 'Corporação Capsule FC', tipo: 'batismo', fundador: 55 },
-  { clube: 'Alfacehh', tipo: 'batismo', fundador: 30 },
+  { clube: 'Inter de Bailão', tipo: 'batismo', fundador: 30 }, // 🪩 ex-Alfacehh (renomeado pelo dono em 14/09)
   { clube: 'Barcenite FC', tipo: 'batismo', fundador: 31 },
   { clube: 'Manfré FC', tipo: 'batismo', fundador: 34 },
   { clube: 'Remoçada', tipo: 'batismo', fundador: 35 },

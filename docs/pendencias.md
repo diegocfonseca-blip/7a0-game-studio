@@ -1,3 +1,52 @@
+## 14/09/2026 — 🪩 O Alfacehh virou INTER DE BAILÃO (Série C) — pronto, esperando OK
+
+Pedido do Diego: *"matheus223lms@icloud.com, troque o nome do Alfacehh para Inter de Baião
+e segue artes e coloque ele na série C"*.
+
+⚠️ **O NOME É "BAILÃO", COM L.** Ele escreveu "Baião", mas a arte que ele mandou traz
+**INTER DE BAILÃO** escrito em TRÊS lugares (escudo, chapéu da mascote e camisa) e o tema
+é bailão puro: bola de espelho, caixas de som, *"mais que um time é um bailão"*. Segui a
+arte. Se ele quiser "Baião" mesmo, é trocar o nome em 7 lugares + 2 linhas de banco.
+
+**Conta conferida ANTES:** existe desde 21/07, confirmada. Já era sócio nº3, fundador nº30
+e ouro — é RENOMEAÇÃO, não batismo novo (por isso o post saiu com `--renovacao`,
+"CLUBE DE CARA NOVA", e não "NASCEU O").
+
+### Arte (a 1ª de verdade dele — antes era escudo/mascote desenhados em código)
+Escudo **313×360, 29,4 KB** · mascote **232×440, 37,0 KB** · total 66,4 KB dos 75.
+As três peças vieram já separadas na imagem, então o recorte foi limpo de primeira.
+Camisa do post em `scripts/kits/inter-bailao.png`.
+**Cores MEDIDAS na camisa:** azul **#0040CD** (21.126 px) e preto **#040609** (32.119 px).
+Ele estava com `manto_c1`/`manto_c2` VAZIOS no banco — agora tem.
+
+### A troca de divisão (o detalhe que quase passa batido)
+O Alfacehh estava na **Série B** (desceu pra lá em 23/08 pra abrir o assento do Papão).
+Pra ir pra C sem quebrar a contagem, fiz **troca 1:1**: o Inter de Bailão desce pra C e o
+**Fatality FC sobe pra B**. Os técnicos viajaram com os clubes; o do clube batizado virou
+**"DJ Bailão"** (era "Mr. Porto", herança do Athletico do Porto).
+
+### Onde mexi
+`data.ts` (OLD_NAME vira corrente Athletico do Porto → Alfacehh → Inter de Bailão · troca
+B↔C · `CLASSIC_CLUBS` com a MESMA força 76/78) · `escudos.tsx` e `mascotes.tsx` (arte nova
+registrada nas 4 formas do nome novo **e nas do nome velho**, pra save antigo não perder
+escudo nem carimbo) · `manto.ts` · `batismos.ts` · `apoio.tsx` (comentário) ·
+`checa-batismos.mjs` · **`salao.tsx`: saiu do `SALAO_OCULTOS`** — ele estava escondido do
+Salão desde 13/09 justamente por estar com arte provisória, e agora tem arte de verdade.
+
+### Banco (já aplicado)
+`esc_socios`: `escudo_time` → 'Inter de Bailão', `mascote_key` 'alface' → 'bailao_espelho',
+manto preenchido · `esc_nomes_batismo`: o nome novo trancado nas 3 formas (o velho segue
+trancado também, continua sendo dele) · `user_colors`: `manual` estava **false** e virou
+true, que é o que o roteiro pede (o Modo Manual vem junto do ouro).
+
+**Conferido:** build verde · `checa-batismos` passou de 29 pra **30 completos** e o clube
+sumiu de todas as listas de "faltando" · pirâmide fechando 20 em toda divisão · nenhum time
+repetido · a corrente de nome velho resolve certo.
+
+**🟡 Falta o OK visual do Diego.** E vale perguntar a ele sobre o **tênis da mascote**, que
+tem o símbolo da Nike/Jordan bem visível — mesmo caso da adidas que ele mandou tirar do
+Internacional de Madrid.
+
 ## 14/09/2026 — 💸 VENDER O 2º CLUBE (multiclubes) — ✅ NO AR
 
 Pedido do Diego: *"gostaria de dar opção pra quem comprou o segundo clube poder vender…
