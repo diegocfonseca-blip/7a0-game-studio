@@ -5251,7 +5251,7 @@ export function EscSeason() {
       if (left <= 0 && !copaFirstFiredRef.current && canAdvance) { copaFirstFiredRef.current = true; dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' }) }
     }, 250)
     return () => clearInterval(iv)
-  }, [firstLegPending, canAdvance, manual, dispatch, streamRoom])
+  }, [firstLegPending, canAdvance, manual, dispatch, streamRoom, cupNow])
   // fase acabou de VIRAR (chaveamento novo, nenhuma perna jogada ainda): dá um
   // respiro CURTO só pra ver quem avançou, e então bate bola. Uma perna normal
   // (ida/volta) espera o tempo cheio do jogo pra animar o placar todo.
@@ -5276,7 +5276,7 @@ export function EscSeason() {
     if (!canAdvance || !copaLive || manual || firstLegPending || cupNow) return // a Cup tem o motor dela
     const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round(3200 / speedFactor) : copaAnimMs)
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor])
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow])
   // trava o "Próximo jogo da Copa" (manual) enquanto a perna — INCLUINDO a disputa
   // de pênaltis — ainda está animando, pra não cortar clicando cedo.
   const [copaAdvReady, setCopaAdvReady] = useState(true)
