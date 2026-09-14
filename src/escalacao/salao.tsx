@@ -38,14 +38,12 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
   const [tentativa, setTentativa] = useState(0)
   const [ordem, setOrdem] = useState('chegada')
   const [detalhe, setDetalhe] = useState<Batismo | null>(null)
-  const [destaque, setDestaque] = useState(0)
   const [peca, setPeca] = useState(0)
   const [ampliada, setAmpliada] = useState(false)
   const folhas = useRef<HTMLDivElement>(null)
   const closeZoom = useRef<HTMLButtonElement>(null)
   const ultimoFoco = useRef<HTMLElement | null>(null)
   const clubes = useMemo(() => BATISMOS.filter(b => !SALAO_OCULTOS.has(b.clube)).sort(ordem === 'nome' ? (a,b) => a.clube.localeCompare(b.clube, 'pt-BR') : porChegada), [ordem])
-  const clube = clubes[destaque % clubes.length]
   useEffect(() => {
     let vivo = true
     setFalha(false); setTorcidas(null)
@@ -102,9 +100,11 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
     </> : <>
       <div className="sb-tabs">{(['clubes','torcida'] as const).map(a => <button key={a} aria-pressed={aba===a} onClick={() => setAba(a)}>{a==='clubes' ? tr('CLUBES','CLUBS') : tr('TORCIDAS','FANBASES')}</button>)}</div>
       {aba==='clubes' ? <section className="sb-gallery">
-        <article className="sb-feature"><button className="sb-stage" onClick={() => abrir(clube)} aria-label={tr('Conhecer ', 'Explore ') + clube.clube}><span>{clube.tipo==='socio' ? tr('CLUBE DE SÓCIO','MEMBER CLUB') : tr('CLUBE BATIZADO','NAMED CLUB')}</span><div className="sb-feature-crest"><Escudo nome={clube.clube} size={200} /></div><div className="sb-feature-mascot">{MASCOTES[CARIMBO_GOL[clube.clube]] ?? null}</div></button><div className="sb-feature-info"><h2>{clube.clube}</h2><button className="sb-primary" onClick={() => abrir(clube)}>{tr('CONHECER A IDENTIDADE →', 'EXPLORE THE IDENTITY →')}</button></div></article>
-        <div className="sb-browse"><button onClick={() => setDestaque((destaque+clubes.length-1)%clubes.length)} aria-label={tr('Clube anterior','Previous club')}>‹</button><span>{destaque%clubes.length+1} / {clubes.length}</span><button onClick={() => setDestaque((destaque+1)%clubes.length)} aria-label={tr('Próximo clube','Next club')}>›</button></div>
-        <div className="sb-list-heading"><h2>{tr('EXPLORE OS CLUBES','EXPLORE THE CLUBS')}</h2><select aria-label={tr('Ordem dos clubes','Club order')} value={ordem} onChange={e => {setOrdem(e.target.value);setDestaque(0)}}><option value="chegada">{tr('Ordem de chegada','Arrival order')}</option><option value="nome">{tr('Nome · A–Z','Name · A–Z')}</option></select></div>
+        {/* 🧹 13/09: o cartão GRANDE de destaque (escudo enorme + mascote + "1/47" + "Conhecer
+            a identidade") SAIU a pedido do Diego — *"remove esse modal grandão e deixa só os
+            menores mesmo como já estão embaixo"*. O escudo ampliado ali denunciava toda
+            borda e o pager não ajudava. Fica a grade de escudos, que já abre a identidade. */}
+        <div className="sb-list-heading"><h2>{tr('EXPLORE OS CLUBES','EXPLORE THE CLUBS')}</h2><select aria-label={tr('Ordem dos clubes','Club order')} value={ordem} onChange={e => setOrdem(e.target.value)}><option value="chegada">{tr('Ordem de chegada','Arrival order')}</option><option value="nome">{tr('Nome · A–Z','Name · A–Z')}</option></select></div>
         <div className="sb-grid">{clubes.map(c => <button key={c.clube} onClick={() => abrir(c)}><Escudo nome={c.clube} size={80} /><strong>{c.clube}</strong>{c.tipo==='socio' && <small>{tr('Sócio','Member')}</small>}</button>)}</div>
       </section> : <section className="sb-fans"><h2>{tr('Todas as torcidas. Cada uma com sua presença.', 'Every fanbase. Each with its own presence.')}</h2><p className="sb-note">{tr('Somente donos de Batismo que informaram o time de coração.', 'Only named-club owners who provided their favorite team.')}</p>
         {torcidas===null && <p role="status">{tr('Carregando torcidas…','Loading fanbases…')}</p>}
