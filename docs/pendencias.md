@@ -1,4 +1,4 @@
-## 14/09/2026 — 💸 VENDER O 2º CLUBE (multiclubes) — pronto no branch, esperando OK
+## 14/09/2026 — 💸 VENDER O 2º CLUBE (multiclubes) — ✅ NO AR
 
 Pedido do Diego: *"gostaria de dar opção pra quem comprou o segundo clube poder vender…
 aí quando vender some também as coisas de trocar, hibernar e etc e mantém tudo como era
@@ -52,8 +52,17 @@ o pacote guardado, a moeda de carreira do 2º clube, devolve a renda da agência
 normal, recusa do clube oficial, empréstimos, travas de online/sem-multiclube/save torto) ·
 `checa-piramide.mjs` segue fechando 20 em toda divisão.
 
-**🟡 Falta o OK visual do Diego pra subir na main.** Nada disso está no ar.
-**Reverter:** é um commit só.
+**✅ NO AR** desde 14/09 21:15 UTC (deploy run 2799, verde). **Reverter:** é um commit só.
+
+### 📢 O post do anúncio — e a regra de spoiler
+`scripts/post-venda-2o-clube.mjs`. Pedido dele: *"faça um aí, pode ser foto mesmo, da arte
+dizendo que agora tem a possibilidade de vender o clube. O segundo clube só apenas, né?"*
+— **com uma trava**: *"mas não dá não do que que vem escrito na hora"*.
+👉 Ou seja: **o post NÃO conta a piada do churrasco.** Ele diz que dá pra vender, que são
+3.000 das 4.000, que SÓ o segundo clube se vende, e o que acontece com o clube depois. O
+sumiço das outras 1.000 vira ISCA (*"você só descobre na hora de vender"*). É a regra de
+sempre dele — odeia spoiler —, agora valendo também pra divulgação, não só pra dentro do
+jogo. Qualquer post futuro de feature com piada escondida segue isto.
 
 ## 14/09/2026 — 🛡️ BATISMO: Internacional de Madrid (Série C) — ✅ NO AR
 
