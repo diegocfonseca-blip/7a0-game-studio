@@ -53,11 +53,17 @@ velha, mais escura.
 repetido na pirâmide**, `batismoDe()` acha pelo nome puro e pela forma FC, `npm run build`
 verde e a trava `checa-batismos.mjs` não aponta buraco neste clube.
 
-**🟡 FALTA O OK DO DIEGO (regra 2: visual novo só commita na main depois que ele vê):**
-foram gerados DOIS posts — um só com "chega na Série C" (regra 05/09) e outro citando o
-Adão Esporte (permitido, porque ele foi renomeado de verdade, igual ao Stocco ← Semervilha).
-Ele escolhe. E ainda faltam o **time de coração** (pro post e pro `esc_socios.time_coracao`,
-hoje vazio) e o aval do nome **"O Siuuu"** pra mascote.
+**❤️ TIME DE CORAÇÃO: INTERNACIONAL** (Diego, 14/09: *"time de coração Internacional rs"*
+— que é justamente a piada do nome do clube). Já gravado em `esc_socios.time_coracao` e já
+entra no post pelo `--coracao`.
+
+**🟡 FALTA SÓ O OK DO DIEGO PRA SUBIR NA MAIN (regra 2: visual novo, ele decide).**
+O post final ficou na versão **sem `--antigo`**, seguindo a regra permanente de 05/09 (o
+post diz só "chega na Série C" e não conta de quem era a vaga). A versão que citava o Adão
+Esporte também foi mostrada e seria permitida (ele foi renomeado de verdade, igual ao
+Stocco ← Semervilha), mas o padrão vence enquanto ele não pedir o contrário.
+O nome **"O Siuuu"** pra mascote foi escolha minha, pra não pôr o nome de uma pessoa real
+no jogo — ele não contestou, mas é uma linha se quiser trocar.
 
 **(histórico do que travou antes)**
 O dono mandou um post pronto (escudo + boneco + camisa lado a lado, fundo verde) e o
