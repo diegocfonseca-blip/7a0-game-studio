@@ -3,6 +3,10 @@
 // coisas de trocar, hibernar e etc e mantém tudo como era antes. E valor do
 // segundo clube, coloca perdendo nada, vendendo pelo mesmo valor que foi comprado"*).
 //
+// ATUALIZADO 14/09 (Diego): *"vender pelo msm valor n sei se e valido.. podia
+// deixar vender mas perdendo um cadinho, pelo menos 300 moedas... com uma
+// historinha, so n sei qual"*. Entao a venda passou a ser 3.700 (4.000 - 300) e
+// este mockup mostra as historinhas candidatas pra ele escolher.
 // Mostra a aba Clube ANTES e DEPOIS, mais o aviso de confirmação. Nada aqui é
 // código do jogo — é só a proposta visual pro Diego aprovar antes de eu codar.
 // Rodar: node scripts/mockup-vender-2o-clube.mjs [--saida /tmp/x.png]
