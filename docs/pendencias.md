@@ -1,3 +1,36 @@
+## 14/09/2026 — 🃏 Léo Maringá entrou no baralho · ⏱️ Monte online caiu pra 15s
+
+**Pedido do Diego:** *"Coloque Leo Maringá no jogo, ele jogou no Maringá fc, coloque
+ano do auge categoria e nível tb… Outra coisa no monte de sobras nos modos online
+coloque tempo de 15s e não mais 20s"*.
+
+**1. A carta (`data.ts`, lote novo `L30_BR_MEI`).** Conferido antes de escrever, que é
+regra (não inventar quem a pessoa é):
+- Léo Maringá = Leonardo Augusto Drugovich Valente, meia, nascido em Maringá-PR em 1979.
+- **Auge = 2014**: capitão do Maringá FC na final do Campeonato Paranaense, com o clube
+  fundado havia só 4 anos — perdeu pro Londrina nos pênaltis (1-1 no tempo normal,
+  3×4 nas penalidades, 13/04/2014, no Willie Davids).
+- É o jogador **com mais jogos pelo Maringá FC**. Passou de 400 jogos como profissional,
+  com 64 gols; estreou no Racing Santander (Espanha) em 2000, emprestado ao Cerro Porteño
+  (Paraguai) em 2001, e ainda rodou Chile e Venezuela. Pendurou a chuteira aos 40.
+- **Categoria 🎯 BOM JOGADOR (fame 2), nível 62-80, posição MEI, clube "Maringá".**
+  Por quê: carreira longa e de verdade, com passagens fora, mas nunca foi estrela
+  nacional — então não dá craque (fame 4) nem "foi profissional" (fame 1). O fame 2 é
+  justamente o de faixa larga ("tem dias").
+- Escudo do Maringá sai sozinho (o `escudos.tsx` desenha por código a partir do nome),
+  então não tem arte faltando nem nada inventado.
+- Rodados os dois geradores, como manda a regra: `npm run paises` (1.465 cartas, nenhuma
+  sem seleção, nenhum nome repetido) e `npm run novidades` (1 entrou).
+
+**2. Monte de sobras: 20s → 15s** (`MONTE_MS` em `store.tsx`). Vale pros DOIS modos
+online (rápido e carreira), que é como o Diego sempre pediu — é um número só. Contra a
+máquina o Monte segue sem relógio. Histórico do número: 45s → 30s (02/09) → 20s (04/09)
+→ **15s (14/09)**. A tela já lê a constante (`MONTE_SECONDS`), então não sobrou nenhum
+"20s" escrito à mão em lugar nenhum.
+
+Novidade escrita pros dois idiomas. `npm run build` verde. **Reversível:** é um commit só,
+`git revert` devolve o tempo pra 20s e tira a carta.
+
 ## 14/09/2026 — 🩺 RAIO-X DO BANCO (Diego mandou o painel: COMPUTE 99% / CPU 99% / DISK 32%)
 
 **Resposta curta: hoje o banco está calmo** (32 conexões, 3 trabalhando, fila ZERO,

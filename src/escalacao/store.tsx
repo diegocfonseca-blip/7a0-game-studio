@@ -3223,15 +3223,16 @@ function monteWorstPick(state: EscState, m: Manager, monte: Card[], rng: () => n
   return ranked[0].c
 }
 
-// ⏱️ 20s por vez no Monte ONLINE — vale pros DOIS modos online (rápido e
+// ⏱️ 15s por vez no Monte ONLINE — vale pros DOIS modos online (rápido e
 // carreira). Diego 04/09: *"preciso q o monte agora vc diminua o tempo pra 25s"*,
 // depois *"baixa pra 20s na verdade"* e, corrigindo uma separação que eu tinha
 // inventado por conta própria: *"não falei p mexer na carreira… quem eu disse só
 // nos modos online q hj tá 30s e quero q coloque 20s"*. É um número só.
-// Foi 45s → 30s (02/09) → 20s.
+// Diego 14/09: *"no monte de sobras nos modos online coloque tempo de 15s e não
+// mais 20s"*. Foi 45s → 30s (02/09) → 20s (04/09) → 15s (14/09).
 // Só existe no ONLINE: o prazo nasce em `refreshMonteDeadline`, que só arma pra
 // técnico humano em sala online — contra a CPU o Monte não tem relógio e segue sem.
-const MONTE_MS = 20_000
+const MONTE_MS = 15_000
 export const MONTE_SECONDS = MONTE_MS / 1000
 
 // define/limpa o prazo da vez atual do Monte (só vale no online, pra técnico humano)
