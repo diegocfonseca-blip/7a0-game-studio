@@ -22,6 +22,7 @@ import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
 import { registraMeusNomes } from './mimos'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
+import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
 import { NBA_SLOTS_PER_POS } from './sportcfg'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
@@ -8055,9 +8056,35 @@ const FICHA_ATUAL = (() => {
   for (const n of repetidos) porNome.delete(n)
   return { exato, porNome }
 })()
+// 🏀 A MESMA REGRA PRO BASQUETE, EM MAPA SEPARADO. A regra permanente do Diego
+// (21/08) é "mexeu no jogador, TODO save atualiza" — mas a ficha acima só olha os
+// três baralhos de FUTEBOL, então um save de basquete ficava com a ficha velha
+// pra sempre. Mapa à parte (e consultado SÓ quando o save é de basquete) porque:
+//  • o futebol não pode nem encostar nisto — se um nome existisse nos dois
+//    esportes, misturar os dois mapas daria a ficha errada pra alguém;
+//  • a bio do basquete é BILÍNGUE (bioPt/bioEn) e o idioma pode mudar depois que
+//    o módulo carrega, então ela é escolhida na HORA de sincronizar, não aqui.
+type FichaNba = { fame: number; lo: number; hi: number; folk?: boolean; promessa?: boolean; bioPt: string; bioEn: string }
+const FICHA_NBA = (() => {
+  const exato = new Map<string, FichaNba>()
+  const porNome = new Map<string, FichaNba>()
+  const repetidos = new Set<string>()
+  for (const lista of Object.values(CATALOG_NBA)) {
+    for (const c of lista) {
+      const ficha: FichaNba = { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bioPt: c.bioPt, bioEn: c.bioEn }
+      exato.set(`${c.name}|${clubCanon(c.club)}|${c.year}`, ficha)
+      if (porNome.has(c.name)) repetidos.add(c.name); else porNome.set(c.name, ficha)
+    }
+  }
+  for (const n of repetidos) porNome.delete(n)
+  return { exato, porNome }
+})()
 function sincronizaNiveis(save: EscState): EscState {
   let mexeu = 0
   const vistos = new Set<object>()
+  // 🏀 save de basquete lê a ficha do baralho NBA; o de futebol nunca passa por lá.
+  const nba = save.sport === 'basquete'
+  const bioNba = (f: FichaNba) => (getLang() === 'en' ? f.bioEn : f.bioPt)
   const anda = (v: unknown, prof: number): void => {
     if (prof > 12 || !v || typeof v !== 'object') return
     if (vistos.has(v as object)) return
@@ -8069,7 +8096,11 @@ function sincronizaNiveis(save: EscState): EscState {
       if (!o.fake) {
         // 1º pelo trio nome+clube+ano; 2º só pelo nome — assim uma correção de
         // clube/ano no `data.ts` ainda alcança quem tem a carta velha no save.
-        const f = FICHA_ATUAL.exato.get(`${o.name}|${clubCanon(o.club)}|${o.year}`) ?? FICHA_ATUAL.porNome.get(o.name)
+        const chave = `${o.name}|${clubCanon(o.club)}|${o.year}`
+        const fNba = nba ? (FICHA_NBA.exato.get(chave) ?? FICHA_NBA.porNome.get(o.name)) : undefined
+        const f: FichaJogador | undefined = fNba
+          ? { fame: fNba.fame, lo: fNba.lo, hi: fNba.hi, folk: fNba.folk, promessa: fNba.promessa, bio: bioNba(fNba) }
+          : (FICHA_ATUAL.exato.get(chave) ?? FICHA_ATUAL.porNome.get(o.name))
         if (f) {
           const dif = o.fame !== f.fame || o.lo !== f.lo || o.hi !== f.hi
             || !!o.folk !== !!f.folk || !!o.promessa !== !!f.promessa || (f.bio != null && o.bio !== f.bio)
@@ -8103,7 +8134,7 @@ function saveAtualizado(save: EscState): EscState {
     return mexeuGas || mexeuCtr ? copia : s
   } catch { return s }
 }
-export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato, resolveQuickCopaTie as __resolveQuickCopaTie, seedQuickCopa as __seedQuickCopa, seedNbaCup as __seedNbaCup } // 🔬 só pra teste
+export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato, resolveQuickCopaTie as __resolveQuickCopaTie, seedQuickCopa as __seedQuickCopa, seedNbaCup as __seedNbaCup, sincronizaNiveis as __sincronizaNiveis } // 🔬 só pra teste
 // 🔎 DIAGNÓSTICO DA CAIXA (20/08 — caso do "±9999" do Pedro).
 // O que sabemos: a tela dele mostrou 9999 e -9999, o save na nuvem tem -261, e o
 // LACRE do save bate (ou seja: ninguém editou o arquivo — o valor da tela nunca

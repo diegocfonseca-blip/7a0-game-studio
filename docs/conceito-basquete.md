@@ -48,7 +48,23 @@
 - Baralho inicial ~150-200 cartas (30-40 por posição). Folclóricos: JR Smith 2018, JaVale, Boban, Nick Young…
 - Nível = auge NAQUELE ano/franquia (igual à regra do futebol: Kaká 2003 promessa vs 2007 lenda).
 - 🇺🇸 **SÓ QUEM JOGOU NA NBA (decisão do Diego).** O baralho é NBA de verdade (franquias reais). Quem nunca vestiu uma franquia NBA NÃO entra — ex.: Oscar Schmidt (recusou o draft) ficou de fora. Brasileiros valem SE jogaram NBA (Nenê, Leandrinho, Varejão, Splitter, Bruno Caboclo, Marcelinho Huertas). Lendas FIBA/mundiais (Oscar, Dražen, Sabonis…) só num baralho À PARTE, se um dia o Diego quiser.
-- 🏷️ **Regra do "conhecido":** o jogador só precisa ser CONHECIDO — craque, ruim ou zuado (busts, memes) valem igual. **Apelido no NOME da carta só pra quem é REALMENTE chamado pelo apelido** (ex.: Swaggy P, White Chocolate, AK-47, Big Shot Bob, The Iceman, Dr. J, Agent Zero, The Glove). Os demais: nome normal, apelido/graça mora na BIO. (Referência do futebol: Romarinho, Adriano Gol Contra.)
+- 🏷️ **Regra do "conhecido" — RECONFIRMADA E ENDURECIDA PELO DIEGO (14/09/2026).** Palavras
+  dele: *"pode encher mais, porém lembrando que TAMBÉM tem que ter jogador RUIM. Mas sempre
+  FAMOSOS. Sendo bom ou ruim, teve polêmica ou fama ou qualquer coisa nesse tipo — igual
+  Carlos Kaiser e Mauro Shampoo"*. Traduzindo pro basquete:
+  - **O crivo é FAMA, não qualidade.** Entra quem o torcedor RECONHECE: craque, lenda,
+    mico de draft, meme, encrenqueiro, personagem. Não entra jogador anônimo, por melhor
+    que a estatística seja.
+  - **Encher o baralho é encher os DOIS lados.** Cada lote novo tem que trazer 🪵 "foi
+    profissional" e 🎯 "bom jogador" junto com os craques — senão o baralho vira só
+    seleção de all-stars e perde a graça do pregão.
+  - **As 5 categorias, nas palavras dele:** 🪵 foi profissional · 🎯 bom jogador ·
+    💎 promessa · ⭐ craque · 👑 lenda.
+  - ⚠️ **E vale a regra de ouro do Diego (18/08): não inventar como a pessoa REAL é.** Bio
+    de gente de verdade só com fato público e conhecido (posição de draft, apelido, lance
+    famoso, título). Nada de zoeira em cima de doença, vício, tragédia ou crime — a piada é
+    com o BASQUETE, nunca com a desgraça de ninguém. Sem referência? Não faz a carta.
+  - Herança da regra antiga: craque, ruim ou zuado (busts, memes) valem igual. **Apelido no NOME da carta só pra quem é REALMENTE chamado pelo apelido** (ex.: Swaggy P, White Chocolate, AK-47, Big Shot Bob, The Iceman, Dr. J, Agent Zero, The Glove). Os demais: nome normal, apelido/graça mora na BIO. (Referência do futebol: Romarinho, Adriano Gol Contra.)
 - Baralho do BidLegends em `src/escalacao/data-basquete.ts` (bio já bilíngue PT+EN). Prévia gerável pelo script `scratchpad/gen-deck-preview.mjs`.
 
 ## A pirâmide (modo carreira)

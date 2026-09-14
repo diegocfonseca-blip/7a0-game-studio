@@ -1,8 +1,9 @@
 // 🏀🌐 ONLINE DO BASQUETE — confere no MOTOR (não na tela) que a sala online de
 // basquete nasce certa e que o futebol não muda NADA.
 // Rodar: npx tsx scripts/testa-basquete-online.mjs   (sai 1 se algo quebrar)
-import { reducer, __resolveQuickCopaTie as resolveTie, __seedQuickCopa as seedCopa, __seedNbaCup as seedCup } from '../src/escalacao/store.tsx'
+import { reducer, __resolveQuickCopaTie as resolveTie, __seedQuickCopa as seedCopa, __seedNbaCup as seedCup, __sincronizaNiveis as sincroniza } from '../src/escalacao/store.tsx'
 import { basketClockLabel, MATCH_TICKS } from '../src/escalacao/sportcfg.ts'
+import { CATALOG_NBA } from '../src/escalacao/data-basquete.ts'
 const mulberry = seed => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
 
 let falhas = 0
@@ -300,6 +301,45 @@ console.log('12) 🔁 TEMPORADA INTEIRA: liga → NBA Cup no meio → liga de no
   ok(!!s.nbaCup?.champion, 'e o campeão da Cup continua guardado no fim (é a carta dele)')
   const series = s.quickCopa.bracket.flatMap(b => b.ties)
   ok(series.every(t => t.legs.length >= 2), 'os playoffs seguiram em SÉRIE (melhor de 3), não viraram jogo único da Cup')
+}
+
+console.log('13) 🃏 BARALHO: tem jogador RUIM famoso, e mexer nele atualiza o save (regra do Diego 21/08)')
+{
+  const todas = Object.values(CATALOG_NBA).flat()
+  ok(todas.length >= 300, `o baralho tem ${todas.length} cartas`)
+  const porFama = {}
+  for (const c of todas) porFama[c.fame] = (porFama[c.fame] ?? 0) + 1
+  ok([1, 2, 3, 4, 5].every(f => (porFama[f] ?? 0) > 0), `as cinco categorias existem: ${JSON.stringify(porFama)}`)
+  ok((porFama[1] ?? 0) >= 30, `"foi profissional" (o famoso ruim) tem ${porFama[1] ?? 0} cartas — o Diego pediu que tivesse`)
+  ok(todas.some(c => c.promessa), 'e existe PROMESSA no baralho')
+  ok(todas.every(c => c.bioPt && c.bioEn), 'TODA carta nasce bilíngue (bioPt + bioEn) — regra do BidLegends')
+  ok(todas.every(c => c.lo < c.hi && c.lo >= 40 && c.hi <= 99), 'toda faixa de nível é válida (lo < hi, dentro de 40–99)')
+  const chaves = todas.map(c => `${c.name}|${c.club}|${c.year}`)
+  ok(new Set(chaves).size === chaves.length, 'nenhuma carta repetida (nome|franquia|ano)')
+  ok(new Set(todas.map(c => c.name)).size === todas.length, 'e nenhum nome repetido entre cartas')
+
+  // 🔁 a trava do Diego: mexeu na ficha do jogador, o save tem que acompanhar
+  const carta = Object.values(CATALOG_NBA).flat()[0]
+  const saveVelho = {
+    sport: 'basquete',
+    managers: [{ id: 0, squad: [{ ...carta, id: 'x1', pos: 'GOL', fame: 1, lo: 10, hi: 11, bio: 'bio velha' }] }],
+  }
+  const curado = sincroniza(saveVelho)
+  const depois = curado.managers[0].squad[0]
+  ok(depois.fame === carta.fame && depois.lo === carta.lo && depois.hi === carta.hi,
+    `a ficha do save foi regravada pelo baralho (fame ${depois.fame}, ${depois.lo}–${depois.hi})`)
+  ok(depois.bio === carta.bioPt || depois.bio === carta.bioEn, 'e a bio veio do baralho, no idioma da vez')
+  ok(depois.name === carta.name && depois.club === carta.club && depois.year === carta.year, 'identidade da carta (nome/franquia/ano) NÃO foi tocada')
+  ok(depois.pos === 'GOL', 'e a posição também não — mexer nela quebraria o time já escalado')
+
+  console.log('   — e o save de FUTEBOL não olha pro baralho de basquete:')
+  const saveFut = {
+    sport: 'futebol',
+    managers: [{ id: 0, squad: [{ ...carta, id: 'y1', pos: 'GOL', fame: 1, lo: 10, hi: 11, bio: 'bio velha' }] }],
+  }
+  const futDepois = sincroniza(saveFut).managers[0].squad[0]
+  ok(futDepois.fame === 1 && futDepois.lo === 10 && futDepois.bio === 'bio velha',
+    'carta de basquete dentro de um save de futebol fica intocada (os mapas são separados)')
 }
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')

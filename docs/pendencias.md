@@ -112,8 +112,36 @@ O basquete tinha parado em 28/07 com **rápido offline** e **carreira** (Street 
     vezes, nem no futebol, nem na Street) e — a que mais importa — **a TEMPORADA INTEIRA**:
     liga → Cup no meio → liga de novo → playoffs semeados → anel.
   - 🖼️ `scripts/mockup-nba-cup.mjs` → `/tmp/mockup-nba-cup.png`.
-- ⏭️ **Falta** (próximos passos): engordar o baralho (cuidado: carta de gente de verdade,
-  nada de bio inventada) · varrer o resto do PT solto nas telas do pregão.
+- 🃏 **BARALHO ENGORDADO: 270 → 330 cartas** (6ª leva, mesmo dia). Pedido do Diego:
+  *"pode encher mais, porém lembrando que também tem que ter jogador RUIM. Mas sempre
+  FAMOSOS. Sendo bom ou ruim, teve polêmica ou fama ou qualquer coisa nesse tipo — igual
+  Carlos Kaiser e Mauro Shampoo"*.
+  - O buraco era exatamente esse: 🪵 **"foi profissional" tinha só 19 cartas em 270**. O
+    lote de 60 puxou pra lá — agora são **39**. Micos de draft (Tskitishvili, Todd Fuller,
+    Jan Veselý, Rafael Araújo, Stromile Swift), memes (JaVale McGee, Ricky Davis, Dion
+    Waiters), encrenqueiros e personagens (Bruce Bowen, Matt Barnes, Lance Stephenson,
+    Vernon Maxwell, Charles Oakley), brasileiros (Rafael Araújo, Cristiano Felício, Lucas
+    "Bebê" Nogueira) e os craques que faltavam.
+  - As 5 categorias ficaram: 👑 30 lenda · ⭐ 90 craque · 🎯 171 bom jogador ·
+    🪵 39 foi profissional · 💎 16 promessa.
+  - ⚠️ **Conferi os fatos carta por carta e corrigi 6 imprecisões minhas** antes de
+    commitar (o clube/ano do lance famoso do Alston, do Barnes, do Rider e do Collins; e
+    "bicampeão" virou "campeão" no Maxwell; os roubos do Ariza foram na final do OESTE,
+    não na final da NBA). Regra do Diego 18/08: não inventar como a pessoa real é.
+  - 🔒 **Nenhuma bio faz piada de doença, vício, tragédia ou crime.** A zoeira é com o
+    basquete. Jogador cuja fama é a própria desgraça pessoal simplesmente NÃO virou carta.
+- 🔁 **E fechei a trava que faltava: `sincronizaNiveis` agora cobre o BASQUETE.** A regra
+  permanente do Diego (21/08) é *"mexeu no jogador, TODO save atualiza"* — mas a ficha só
+  olhava os TRÊS baralhos de futebol, então um save de basquete ficava com a ficha velha
+  pra sempre. Justamente agora que o baralho mudou. Mapa **separado** (`FICHA_NBA`),
+  consultado **só quando o save é de basquete**: se um nome existisse nos dois esportes,
+  misturar os mapas daria a ficha errada pra alguém. A bio vem no idioma da vez (o baralho
+  do basquete é bilíngue). Tem teste dos dois lados, inclusive "carta de basquete dentro
+  de um save de futebol fica intocada".
+- 🖼️ `scripts/mockup-baralho-nba.mjs` → `/tmp/mockup-baralho-nba.png` (as 60 cartas novas
+  abertas, pro Diego conferir o tom das bios).
+- ⏭️ **Falta** (próximos passos): varrer o resto do PT solto nas telas do pregão · seguir
+  engordando o baralho em lotes (a régua agora está escrita no conceito).
 - 🐞 **Achado de passagem (não é do basquete, não mexi):** `scripts/checa-assist-copa.mjs`
   quebra com *"Cannot access 'COPA_LEG_MS' before initialization"* num servidor de dev
   FRIO — reproduz na `main` também. É o ciclo de import `screens.tsx` ↔ `pyramidseason.tsx`
