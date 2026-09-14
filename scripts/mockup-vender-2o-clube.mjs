@@ -1,14 +1,15 @@
 // 🖼️ MOCKUP — VENDER O 2º CLUBE (pedido do Diego 14/09: *"gostaria de dar opção
 // pra quem comprou o segundo clube poder vender… aí quando vender some também as
-// coisas de trocar, hibernar e etc e mantém tudo como era antes. E valor do
-// segundo clube, coloca perdendo nada, vendendo pelo mesmo valor que foi comprado"*).
+// coisas de trocar, hibernar e etc e mantém tudo como era antes"*).
 //
-// ATUALIZADO 14/09 (Diego): *"vender pelo msm valor n sei se e valido.. podia
-// deixar vender mas perdendo um cadinho, pelo menos 300 moedas... com uma
-// historinha, so n sei qual"*. Entao a venda passou a ser 3.700 (4.000 - 300) e
-// este mockup mostra as historinhas candidatas pra ele escolher.
-// Mostra a aba Clube ANTES e DEPOIS, mais o aviso de confirmação. Nada aqui é
-// código do jogo — é só a proposta visual pro Diego aprovar antes de eu codar.
+// 💰 O VALOR (2ª volta): ele recusou vender pelo mesmo preço — *"vender pelo msm
+// valor n sei se é válido.. podia deixar vender mas perdendo um cadinho, pelo
+// menos 300 moedas"*. Então: paga 4.000, recebe 3.700.
+//
+// 🍖 A HISTORINHA (3ª volta): depois de duas levas recusadas, ele escreveu a dele —
+// *"coloque q os jogadores e diretoria fizeram churrasco de despedida comemorando
+// sua saída e pior deixaram na sua conta"*. É esse texto que está aqui.
+//
 // Rodar: node scripts/mockup-vender-2o-clube.mjs [--saida /tmp/x.png]
 import { chromium } from 'playwright-core'
 
@@ -22,12 +23,12 @@ const html = `<!doctype html><meta charset="utf-8">
   *{box-sizing:border-box}
   body{margin:0;background:${CREME};font-family:Oswald,system-ui;color:${INK};padding:26px;width:1180px}
   h1{font-size:34px;margin:0 0 2px;text-transform:uppercase;letter-spacing:.5px}
-  p.sub{margin:0 0 20px;font-size:15px;color:#4a4636;font-family:system-ui;line-height:1.4;max-width:900px}
+  p.sub{margin:0 0 20px;font-size:15px;color:#4a4636;font-family:system-ui;line-height:1.4;max-width:940px}
   .cols{display:flex;gap:18px;align-items:flex-start}
   .col{flex:1}
   .rot{font-size:15px;text-transform:uppercase;letter-spacing:1px;font-weight:900;margin:0 0 8px;display:flex;gap:8px;align-items:center}
   .rot i{font-style:normal;background:${INK};color:${CREME};border-radius:20px;padding:2px 10px;font-size:12px}
-  .tel{background:${CREME};border:4px solid ${INK};border-radius:18px;box-shadow:5px 5px 0 ${INK};padding:14px;min-height:420px}
+  .tel{background:${CREME};border:4px solid ${INK};border-radius:18px;box-shadow:5px 5px 0 ${INK};padding:14px;min-height:400px}
   .card{background:${INK};color:${CREME};border-radius:14px;padding:12px;margin-bottom:12px}
   .card h3{margin:0 0 10px;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:${OURO}}
   .chips{display:flex;gap:8px;margin-bottom:10px}
@@ -48,23 +49,29 @@ const html = `<!doctype html><meta charset="utf-8">
   .sumiu:after{content:'SOME';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     font-weight:900;font-size:26px;letter-spacing:4px;color:${VERM};background:rgba(244,236,214,.55);border-radius:14px}
   .modal{background:#fff;border:4px solid ${INK};border-radius:18px;box-shadow:6px 6px 0 ${INK};padding:16px}
-  .modal h2{margin:0 0 8px;font-size:22px;text-transform:uppercase}
+  .modal h2{margin:0 0 10px;font-size:23px;text-transform:uppercase}
   .modal ul{margin:8px 0 12px;padding-left:18px;font-family:system-ui;font-size:13.5px;line-height:1.6;color:#2f2c22}
-  .modal li b{font-weight:700}
+  .churras{background:#fff4e2;border:3px solid #b8722a;border-radius:13px;padding:11px 12px;margin-bottom:11px}
+  .churras p{margin:0;font-family:system-ui;font-size:14px;line-height:1.5;color:#3a2c18}
+  .churras .pe{margin-top:7px;font-family:Georgia,serif;font-style:italic;font-size:13.5px;color:#6b4a22}
   .ok{background:#eafaef;border:3px solid ${VERDE};border-radius:12px;padding:9px 11px;font-family:system-ui;
-      font-size:13.5px;line-height:1.45;margin-bottom:10px}
+      font-size:13.5px;line-height:1.45;margin-bottom:11px}
   .row{display:flex;gap:9px}
   .row .btn{margin:0}
+  .extrato{background:${INK};color:${CREME};border-radius:12px;padding:11px 13px;font-family:system-ui;font-size:13px}
+  .extrato b{color:${OURO}}
+  .extrato .li{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #4a4436}
+  .extrato .li:last-child{border:0}
+  .neg{color:#ff8b7a} .pos{color:#7de29a}
   .nota{margin-top:16px;font-family:system-ui;font-size:13.5px;line-height:1.5;color:#2f2c22;background:#fff7d6;
         border:3px solid ${INK};border-radius:14px;padding:11px 13px;box-shadow:3px 3px 0 ${INK}}
-  .nota b{font-weight:700}
 </style>
-<h1>Vender o 2º clube</h1>
-<p class="sub">Proposta pra sua aprovação. A venda devolve <b>as mesmas 4.000 🪙</b> que você pagou, e o clube volta a ser um time da máquina na Série D — sem sumir do jogo e sem mexer na contagem de times da pirâmide.</p>
+<h1>Vender o 2º clube · versão final</h1>
+<p class="sub">Paga 4.000, recebe <b>3.700</b>. Os 300 são o churrasco que eles fizeram sem te chamar. O clube volta a ser um time da máquina na divisão em que estiver — não some do jogo e não mexe na contagem da pirâmide.</p>
 
 <div class="cols">
   <div class="col">
-    <p class="rot">Aba Clube · hoje <i>como é</i></p>
+    <p class="rot">Aba Clube <i>o botão novo</i></p>
     <div class="tel">
       <div class="card">
         <h3>🏛️ Multiclubes — quem você comanda?</h3>
@@ -73,77 +80,55 @@ const html = `<!doctype html><meta charset="utf-8">
           <div class="chip"><b>⚪ Adão Esporte</b><small>dormindo 💤</small></div>
         </div>
         <div class="btn tr">🔄 Passar o comando pro Adão Esporte</div>
-        <p class="leg">O leilão é de um clube só: o que está no comando.</p>
+        <div class="btn vd">💸 Vender o Adão Esporte · 3.700 🪙</div>
+        <p class="leg">Só dá pra vender o clube que está <b>dormindo</b>. Pra vender o outro, passa o comando antes.</p>
       </div>
       <div class="box"><h4>🏟️ Estádio</h4><p>Obras, lotação e patrocínio do clube no comando.</p></div>
     </div>
   </div>
 
-  <div class="col">
-    <p class="rot">Aba Clube · proposta <i>mudança</i></p>
-    <div class="tel">
-      <div class="card">
-        <h3>🏛️ Multiclubes — quem você comanda?</h3>
-        <div class="chips">
-          <div class="chip on"><b>🟡 Meia na Canela</b><small>no comando</small></div>
-          <div class="chip"><b>⚪ Adão Esporte</b><small>dormindo 💤</small></div>
-        </div>
-        <div class="btn tr">🔄 Passar o comando pro Adão Esporte</div>
-        <div class="btn vd">💸 Vender o Adão Esporte · 4.000 🪙</div>
-        <p class="leg">Vende pelo mesmo valor que você pagou. Só dá pra vender o clube que está <b>dormindo</b>.</p>
+  <div class="col" style="flex:1.35">
+    <p class="rot">O aviso antes de confirmar <i>o churrasco</i></p>
+    <div class="modal">
+      <h2>💸 Vender o Adão Esporte?</h2>
+      <div class="churras">
+        <p>🍖 <b>O elenco e a diretoria já fizeram o churrasco de despedida</b> — comemorando a sua saída. E deixaram os <b>300 🪙</b> na sua conta.</p>
+        <p class="pe">“Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”</p>
       </div>
-      <div class="box"><h4>🏟️ Estádio</h4><p>Obras, lotação e patrocínio do clube no comando.</p></div>
+      <div class="ok">✅ Você pagou 4.000 e recebe <b>3.700 🪙</b> de volta.</div>
+      <p style="font-family:system-ui;font-size:13.5px;margin:0 0 4px"><b>E o Adão Esporte:</b></p>
+      <ul>
+        <li><b>Continua no jogo</b>, na divisão em que está, comandado pela máquina.</li>
+        <li>Fica com o <b>estádio, os títulos e o caixa dele</b>.</li>
+        <li>Você <b>deixa de receber</b> a cota de TV e os prêmios dele.</li>
+        <li>Os <b>empréstimos da SAF</b> que ele tem voltam antes da venda.</li>
+      </ul>
+      <div class="row"><div class="btn cz">Voltar</div><div class="btn vd">💸 Vender · 3.700 🪙</div></div>
     </div>
   </div>
 
   <div class="col">
-    <p class="rot">Depois de vender <i>volta ao normal</i></p>
+    <p class="rot">Depois <i>volta ao normal</i></p>
     <div class="tel">
       <div class="card sumiu">
-        <h3>🏛️ Multiclubes — quem você comanda?</h3>
+        <h3>🏛️ Multiclubes</h3>
         <div class="chips"><div class="chip on"><b>&nbsp;</b><small>&nbsp;</small></div><div class="chip"><b>&nbsp;</b><small>&nbsp;</small></div></div>
         <div class="btn tr">&nbsp;</div>
       </div>
-      <div class="box"><h4>🏟️ Estádio</h4><p>Obras, lotação e patrocínio do seu clube.</p></div>
-      <div class="box"><h4>🏛️ Quer um 2º clube?</h4><p>O painel de <b>comprar</b> volta a aparecer, igual antes de você ter comprado. Dá pra comprar outro quando quiser.</p></div>
+      <div class="box"><h4>🏛️ Quer um 2º clube?</h4><p>O painel de <b>comprar</b> volta, igual antes. Dá pra comprar outro quando quiser.</p></div>
+      <p class="rot" style="margin-top:14px">No extrato <i>fica registrado</i></p>
+      <div class="extrato">
+        <div class="li"><span>🏛️ Venda do 2º clube · Adão Esporte</span><b class="pos">+4.000</b></div>
+        <div class="li"><span>🍖 Churrasco de despedida</span><b class="neg">−300</b></div>
+      </div>
     </div>
   </div>
 </div>
 
-<div style="height:20px"></div>
-<div class="cols">
-  <div class="col" style="flex:1.25">
-    <p class="rot">O aviso antes de confirmar <i>trava</i></p>
-    <div class="modal">
-      <h2>💸 Vender o Adão Esporte?</h2>
-      <div class="ok">✅ Você recebe <b>4.000 🪙</b> de volta, o mesmo que pagou. Não perde moeda nenhuma na troca.</div>
-      <p style="font-family:system-ui;font-size:13.5px;margin:0 0 4px"><b>O que acontece com o Adão Esporte:</b></p>
-      <ul>
-        <li>Ele <b>continua no jogo</b>, na divisão em que está, só que comandado pela máquina.</li>
-        <li>Fica com o <b>estádio, os títulos e o caixa dele</b> — nada disso vem pra você.</li>
-        <li>Você <b>deixa de receber</b> a cota de TV e os prêmios dele.</li>
-        <li>Os <b>empréstimos da SAF</b> que ele tem voltam pra SAF antes da venda.</li>
-        <li>Some o botão de <b>trocar de comando</b> e a coluna dele na janela de contratos.</li>
-      </ul>
-      <div class="row"><div class="btn cz">Voltar</div><div class="btn vd">💸 Vender · 4.000 🪙</div></div>
-    </div>
-  </div>
-  <div class="col">
-    <p class="rot">Quando NÃO dá pra vender <i>segurança</i></p>
-    <div class="box"><h4>🔒 Enquanto a rodada está rolando</h4><p>Mesma trava que já existe pra trocar de comando: espera a rodada acabar. Evita vender no meio de uma partida do clube.</p></div>
-    <div class="box"><h4>🔒 Durante a Copa do Mundo</h4><p>Igual à troca de comando: a Copa termina primeiro.</p></div>
-    <div class="box"><h4>🔒 O clube no comando</h4><p>Só dá pra vender o que está <b>dormindo</b>. Se quiser vender o outro, passa o comando primeiro. Assim nunca se vende a cadeira em que você está sentado.</p></div>
-  </div>
-</div>
-
-<div class="nota">
-  <b>Duas coisas que eu preciso que você decida:</b><br>
-  1️⃣ <b>O caixa do 2º clube</b> (as moedas que ELE juntou jogando): a minha proposta é que fiquem com ele e sumam junto. Se voltassem pro seu bolso, daria pra comprar clube, esperar ele juntar dinheiro, vender e repetir — vira máquina de moeda.<br>
-  2️⃣ <b>As cartas de empresário guardadas no clube que dormia</b>: some junto com ele, ou volta pro seu acervo? Elas foram ganhas por ele, mas quem abriu o pacote foi você.
-</div>`
+<div class="nota"><b>A única coisa que ainda não te perguntei de volta:</b> as cartas de empresário que estavam guardadas no clube que dormia. Meu palpite é que <b>vão junto com ele</b>, pela mesma lógica do estádio, dos títulos e do caixa: era o acervo daquele clube, não o seu. Se você achar que devem voltar pro seu bolso, é uma linha pra trocar.</div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-const p = await b.newPage({ viewport: { width: 1180, height: 1200 }, deviceScaleFactor: 2 })
+const p = await b.newPage({ viewport: { width: 1180, height: 1000 }, deviceScaleFactor: 2 })
 await p.setContent(html, { waitUntil: 'networkidle' })
 await p.screenshot({ path: SAIDA, fullPage: true })
 await b.close()
