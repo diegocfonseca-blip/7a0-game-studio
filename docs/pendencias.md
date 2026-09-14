@@ -1,3 +1,51 @@
+## 14/09/2026 — 👑 O DONO VIRAVA CONVIDADO NA LARGADA (sala NX2ALC "Meia na Canela") — ✅ conserto isolado
+
+Relato do Diego: *"quando ele deu lance no goleiro abriu a segunda tela escrito ENVIANDO,
+todos os usuários pensando e ele, host, que lacrou, ficou como pensando também. Só quando
+ele atualizou voltou ao normal. Vira e mexe ocorre isso, ele tendo que atualizar."*
+
+**O que o banco mostrou (caixa-preta `esc_travas`):**
+- 15:43:58 — o aparelho do dono (Felipe, "fridao fc") gravou que estava preso no ENVIANDO
+  **se achando CONVIDADO**, no goleiro, "0 lacrados", 15 humanos, e sem notícia de host
+  há 23 s. Todos os outros 13 gravaram o mesmo: presos, "0 lacrados", e o silêncio do host
+  crescendo até 58 s. **A sala inteira ficou sem dono.**
+- 15:44:30 — o dono recarregou; a posse foi carimbada de novo (`__hostClaimAt`) e a sala
+  andou (às 15:50 já estava na revelação dos laterais).
+- E o detalhe que fechou o caso: **não existe registro de "suspeita"/"rebaixou"** pro
+  Felipe. O vigia da coroa (a única rotina que rebaixa o dono no meio do jogo) SEMPRE
+  grava antes de rebaixar. Logo, o rebaixamento veio de outro lugar.
+
+**A causa:** a rotina de largada da partida (`triggerStart`, no lobby). Ela roda DUAS
+vezes no aparelho do dono: uma quando ele aperta COMEÇAR (monta o jogo, vira host) e outra
+~5 s depois, com o **eco do banco** (`game_rooms` → `started`). Nesse eco ela relê a sala,
+cai no ramo "partida em andamento" e manda um RESTORE por cima do host vivo, com
+`isHost = (dono lido) === user.id`. Quando a leitura vem **sem o dono** — o aviso do banco
+"chega picado" numa linha de 200 KB (já estava anotado ali no próprio código!) e a
+releitura pode falhar no mesmo piscar de rede — `undefined === user.id` dá FALSE e **o dono
+rebaixa a si mesmo, sem erro, sem registro**, e o RESTORE ainda zera a lista de lacrados.
+É a mesma família do bug da live do marcelow (05/09).
+
+**Por que o socorro automático não pegou:** ele existe (checa no banco se o dono sou eu e
+reassume), mas depende da MESMA rede que acabou de piscar, tenta no máximo a cada 10 s e
+falha calado. Em ~40 s o Felipe apertou F5 antes.
+
+**Conserto (2 pontos, ambos "não rebaixar sem prova"):**
+1. `lobby.tsx` — **o dono não restaura por cima de si mesmo**: se este aparelho já está
+   online NESTA sala como host, o eco da largada não tem nada a restaurar e sai. E a
+   releitura que vem sem `host_id` tenta **uma vez mais** antes de qualquer decisão.
+   Passagem de coroa de verdade (outro dono no banco) segue com o vigia da coroa, que
+   exige prova dupla e registra o motivo.
+2. `store.tsx` — o socorro do dono preso **não espera 10 s** quando a leitura falha
+   (puxa a próxima pra ~2,5 s) e **registra na caixa-preta quando reassume**
+   (`quando: 'reassumiu'`), pra da próxima vez a gente saber se ele rodou.
+
+**Não muda nada pra quem é convidado de verdade** (o atalho só vale pra quem já é host
+da sala em memória), e o futebol/basquete não têm regra tocada. Testes online, os 4 do
+futebol e o do basquete verdes; build limpo. Commit isolado, cherry-pick só dele na main.
+
+⏳ **Pra confirmar:** na próxima sala grande do Felipe, olhar `esc_travas` — não deve
+aparecer "convidado preso" no aparelho dele; se o socorro rodar, vai aparecer `reassumiu`.
+
 ## 14/09/2026 — 🇧🇷 OS BRASILEIROS: 10 já estavam, faltavam 5 (e um erro na carta do Leandrinho)
 
 Pergunta do Diego: *"alguns brasileiros têm? Leandrinho… aquele com cabelo grandão, e o
