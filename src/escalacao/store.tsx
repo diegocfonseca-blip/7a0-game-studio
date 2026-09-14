@@ -1030,16 +1030,29 @@ function spawnCria(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () =
 // sem reserva) sem gravar nada no save — só se o técnico escolher um deles é que
 // `spawnCriaCore` (com `forcedName`) grava de verdade. Nunca repete nome já usado
 // nesta carreira nem entre os N candidatos do mesmo sorteio.
+// 🐛 14/09 (gfpicolo13, temporada 241, Multiclubes): *"o segundo clube dele não
+// está conseguindo colocar os jogadores da base no elenco"*. O pote tem 30 nomes
+// e a carreira dele já tinha gasto 72 (os DOIS clubes dividem a mesma lista, então
+// o pote seca em metade do tempo). Quando acabavam os livres, esta função caía de
+// volta no pote INTEIRO e oferecia nome JÁ USADO — o `SUBIR_CRIA` recusa nome
+// repetido, então o botão CONFIRMAR não fazia nada e não explicava nada.
+// Agora nunca mais: acabou o pote, o nome ganha número ("Zezinho 73º"), que é
+// exatamente o que o jogo já fazia sozinho quando o cria sobe por lesão.
 export function previewCriaNomes(jaUsados: string[], rng: () => number, n = 3): string[] {
   const usados = new Set(jaUsados)
   const livres = CRIA_NOMES.filter(nm => !usados.has(nm))
-  const pool = livres.length >= n ? livres : CRIA_NOMES
   const escolhidos: string[] = []
   const tentados = new Set<string>()
-  while (escolhidos.length < n && tentados.size < pool.length) {
-    const nm = pool[Math.floor(rng() * pool.length)]
+  while (escolhidos.length < n && tentados.size < livres.length) {
+    const nm = livres[Math.floor(rng() * livres.length)]
     if (tentados.has(nm)) continue
     tentados.add(nm)
+    escolhidos.push(nm)
+  }
+  // pote seco: numera, sem nunca devolver um nome que já existe nesta carreira
+  for (let k = usados.size + 1; escolhidos.length < n; k++) {
+    const nm = `${CRIA_NOMES[Math.floor(rng() * CRIA_NOMES.length)]} ${k}º`
+    if (usados.has(nm) || escolhidos.includes(nm)) continue
     escolhidos.push(nm)
   }
   return escolhidos

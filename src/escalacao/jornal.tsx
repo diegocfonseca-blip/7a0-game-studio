@@ -260,7 +260,7 @@ const HEADLINES: Record<Div, Headline[]> = {
   ],
   D: [
     { h: '{t} SAI DO POÇO COMO CAMPEÃO!', s: 'Título da Série D — o primeiro degrau da glória foi conquistado no grito.' },
-    { h: '{t} SOBE! ADEUS, VÁRZEA!', s: 'Vice da D e acesso: a escalada da pirâmide começou oficialmente.' },
+    { h: '{t} SOBE! ADEUS, SÉRIE D!', s: 'Vice da D e acesso: a escalada da pirâmide continua.' },
     { h: '{t} GARANTE O ACESSO NO PEITO', s: '3º da Série D — subiu com direito a carreata e buzinaço.' },
     { h: 'NO APAGAR DAS LUZES: {t} SOBE!', s: '4º lugar — a última vaga de acesso veio na rodada final. Que roteiro.' },
     { h: '{t} ACORDA TARDE E FICA', s: '5º da D: embalou quando a vaga já tinha ido embora.' },
@@ -268,12 +268,12 @@ const HEADLINES: Record<Div, Headline[]> = {
     { h: '{t} FAZ CAMPANHA DECENTE NA D', s: '7º: prometeu acesso, entregou esperança. Ano que vem tem mais.' },
     { h: '{t} FICA NO MEIO DO MATO', s: '8º da Série D — nem brilhou, nem passou vergonha. Empate com a vida.' },
     { h: '{t} SEGUE NA LUTA (E NA D)', s: '9º lugar: mais uma temporada de aprendizado, como diz o técnico.' },
-    { h: '{t} FECHA O TOP 10 DA VÁRZEA', s: '10º — na D até posição redonda é meio consolo.' },
+    { h: '{t} FECHA O TOP 10 DA SÉRIE D', s: '10º — na D até posição redonda é meio consolo.' },
     { h: '{t} NÃO DECOLA', s: '11º da Série D: o projeto segue "em fase de maturação". Aham.' },
     { h: '{t} PATINA NO BARRO DA D', s: '12º lugar — jogou 38 vezes e ninguém sabe dizer como.' },
     { h: '{t} FAZ TEMPORADA INVISÍVEL', s: '13º: nem o mascote foi aos últimos jogos.' },
     { h: '{t} CONTINUA DEVENDO', s: '14º da D — a torcida pediu futebol, recebeu desculpas.' },
-    { h: '{t} AMARGA A PARTE FEIA DA TABELA', s: '15º lugar: na várzea e mal colocado. Combo difícil.' },
+    { h: '{t} AMARGA A PARTE FEIA DA TABELA', s: '15º lugar: na Série D e mal colocado. Combo difícil.' },
     { h: '{t} SE ARRASTA ATÉ O FIM', s: '16º da Série D — terminou o ano no modo sobrevivência.' },
     { h: '{t} FAZ CAMPANHA DE DAR DÓ', s: '17º: até o adversário ficou com pena. Até marcar o quinto.' },
     { h: '{t} QUASE FECHA COMO PIOR DO PAÍS', s: '18º da D — escapou da lanterna, não escapou da zoeira.' },
@@ -304,11 +304,18 @@ const HEADLINES: Record<Div, Headline[]> = {
   ],
 }
 // carimbo da "foto" conforme o resultado (sobem 4 / caem 4)
-function stampOf(div: Div, pos: number): { txt: string; color: string } | null {
+// ⚠️ 14/09: o carimbo era escrito quando a SÉRIE D ainda era o fundo do poço.
+// Com a Várzea existindo (carreira da escada), o fundo passou a ser ela: quem
+// termina em 17º-20º na D CAI pra Várzea, e quem está lá embaixo na Várzea não
+// cai pra lugar nenhum. Sem isto, o time rebaixado da D saía sem carimbo e um
+// time da Várzea em 18º aparecia "REBAIXADO" sem ter pra onde descer.
+// `temVarzea` vem da tabela da própria carreira (a V só existe quando tem times).
+function stampOf(div: Div, pos: number, temVarzea: boolean): { txt: string; color: string } | null {
+  const fundo: Div = temVarzea ? 'V' : 'D'
   if (pos === 1) return { txt: 'CAMPEÃO', color: '#B23A2A' }
   if (pos <= 4 && div !== 'A') return { txt: 'ACESSO', color: '#1B7A3D' }
-  if (pos >= 17 && div !== 'D') return { txt: 'REBAIXADO', color: '#B23A2A' }
-  if (pos === 20 && div === 'D') return { txt: 'LANTERNA', color: '#7A7460' }
+  if (pos >= 17 && div !== fundo) return { txt: 'REBAIXADO', color: '#B23A2A' }
+  if (pos === 20 && div === fundo) return { txt: 'LANTERNA', color: '#7A7460' }
   return null
 }
 
@@ -385,7 +392,7 @@ const HEADLINES_EN: Record<Div, Headline[]> = {
   ],
   D: [
     { h: '{t} CLIMB OUT OF THE PIT AS CHAMPIONS!', s: 'Série D title — the first step to glory, taken screaming.' },
-    { h: '{t} GO UP! GOODBYE, PARK FOOTBALL!', s: 'Runners-up in D and promoted: the climb up the pyramid has officially begun.' },
+    { h: '{t} GO UP! GOODBYE, SÉRIE D!', s: 'Runners-up in D and promoted: the climb up the pyramid goes on.' },
     { h: '{t} SEAL PROMOTION WITH THEIR CHEST', s: '3rd in Série D — up, with a motorcade and a lot of honking.' },
     { h: 'AT THE DEATH: {t} GO UP!', s: '4th — the last promotion spot arrived on the final day. What a script.' },
     { h: '{t} WAKE UP LATE AND STAY PUT', s: '5th in D: got going once the spot had already gone.' },
@@ -498,7 +505,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   ][seasonNo % 4]
   const mine = tables[me.div]?.find(t => t.you)
   const hl = seasonHeadline(me.div, me.pos, me.team)
-  const stamp = stampOf(me.div, me.pos)
+  const stamp = stampOf(me.div, me.pos, (tables.V?.length ?? 0) > 0)
 
   // desenha a CAPA do jornal em imagem (canvas) — é ela que vai no compartilhar,
   // não texto. Mesma cara da capa na tela: cabeçalho, manchete, foto carimbada,

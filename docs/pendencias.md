@@ -1,3 +1,45 @@
+## 14/09/2026 — 🐛 Dois erros do gfpicolo13 (Multiclubes, temporada 241) — ✅ no ar
+
+Diego mandou dois stories do usuário. Os dois confirmados no código e no save dele
+(conta `gfpicolo13@gmail.com`: clube ativo **Leão da Estradinha** com 17 jogadores,
+clube que dorme **Futpoint FC** com 22, **72 crias já usadas**).
+
+### 1. 📰 O jornal dizia "ADEUS, VÁRZEA!" pra quem saiu da SÉRIE D
+Ele terminou **vice da Série D** e subiu pra C — e a manchete de O MARTELO saiu
+*"LEÃO DA ESTRADINHA SOBE! ADEUS, VÁRZEA!"*, com a tabela mostrando D → C do lado.
+Não era o estado errado: a manchete do 2º lugar da D foi escrita quando "várzea"
+era só GÍRIA de divisão de baixo. Depois a **Várzea virou divisão de verdade**,
+logo abaixo da D, e o texto passou a mentir. Trocadas as três linhas do bloco da
+Série D que falavam em várzea (2º, 10º e 15º lugar) + a versão EN do 2º lugar.
+
+🧹 **E achei o mesmo vício no CARIMBO da foto** (`stampOf`): ele também nasceu
+com "a Série D é o fundo do poço". Resultado, na carreira com escada: quem caía
+da **D pra Várzea saía SEM carimbo** de rebaixado, e um time da **Várzea em 17º-20º
+aparecia "REBAIXADO"** sem ter pra onde descer. Agora o fundo é calculado da
+tabela da própria carreira (`temVarzea`).
+
+### 2. 🌱 O 2º clube não conseguia subir jogador da base — o POTE DE NOMES tinha secado
+O botão aparecia certinho ("Meias · 3 vagas", "Atacantes · 2 vagas" no story) e o
+CONFIRMAR **não fazia nada, sem explicar nada**. Não é do multiclube em si — o
+reducer funciona nos dois clubes (`scripts/testa-cria-multiclube.mjs` prova). A
+causa é o **pote de nomes de cria: 30 nomes só**, e a carreira dele já tinha gasto
+**72**. Quando os livres acabavam, o `previewCriaNomes` caía de volta no pote
+INTEIRO e oferecia nome JÁ USADO; o `SUBIR_CRIA` recusa repetido e devolve o estado
+sem mexer. Botão morto.
+👉 O multiclube **acelera** o problema porque os DOIS clubes dividem a mesma lista
+`criaNames` — o pote seca na metade do tempo.
+👉 Agora, com o pote seco, o nome ganha número (**"Zezinho 31º"**) — que é
+exatamente o que o jogo JÁ fazia sozinho quando o cria sobe por lesão
+(`spawnCriaCore`). A tela nunca mais oferece um nome que vai ser recusado.
+
+🧪 `scripts/testa-cria-multiclube.mjs` (novo) cobre: subir da base no principal ·
+trocar o comando · subir no 2º clube · nada vazar de um clube pro outro · a trava
+de nome repetido · **e o pote seco**. Conferido que ele REPROVA no código velho
+(oferecia "Zezinho, Guri, Tampinha", todos já usados).
+
+Reverter: um commit só. Quem já está com o save torto não precisa fazer nada — o
+conserto vale na hora, sem mexer em save.
+
 ## 14/09/2026 — 🎮 Copa no online: ritmo no TOPO + auto não pede mais botão — ✅ no ar
 
 Dois achados do Diego jogando AO VIVO na live do Meia na Canela (4,3 mil
