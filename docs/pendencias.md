@@ -82,8 +82,45 @@ O basquete tinha parado em 28/07 com **rápido offline** e **carreira** (Street 
   (72–152) e o cruzamento Leste×Oeste só na final — **nos dois tamanhos**: a NBA de 30
   (top 8, 15 séries) e a sala online de 20 (top 4, 7 séries). Os 4 testes do futebol
   seguem verdes.
-- ⏭️ **Falta** (próximos passos): NBA Cup · engordar o baralho (cuidado: carta de gente
-  de verdade, nada de bio inventada) · varrer o resto do PT solto nas telas do pregão.
+- 🏆 **NBA CUP NO AR** (5ª leva, mesmo dia). O conceito só tinha UMA linha: *"torneio no
+  meio da temporada; detalhar na construção"*. Detalhada e construída (regra escrita em
+  `docs/conceito-basquete.md`):
+  - **Nasce sozinha na METADE do calendário** (rodada 41 de 82), uma vez por temporada. A
+    liga espera, e o comando volta pra ela assim que sai o campeão. **Sem botão novo e sem
+    espera extra** — regra de ouro do Diego: nada pode atrasar o ritmo.
+  - **8 times: top 4 de CADA conferência** naquele momento. 1×4 e 2×3 dentro do próprio
+    lado; **Leste e Oeste só se cruzam na final**, como na Cup de verdade.
+  - **JOGO ÚNICO** em toda fase (quartas → semi → final), de propósito DIFERENTE dos
+    playoffs (melhor de 3), pra ninguém confundir as duas. Empatou? **Prorrogação.**
+  - **NÃO MEXE NA TABELA** nem na cestinha da liga (a Cup tem a dela). Na NBA a final da
+    Cup também não conta. Prêmio: **mais uma carta** pro álbum (sufixo `:nbacup`), à parte
+    da liga e do anel — dá pra levar as três na mesma temporada.
+  - **Não existe na Street League** (a várzea do basquete, que é só pontos corridos) nem,
+    claro, no futebol.
+  - 🗄️ **Mora em campo PRÓPRIO (`nbaCup`), nunca no `quickCopa`** — e isso é segurança,
+    não capricho: o `quickCopa` é o slot ÚNICO do mata-mata de FIM de temporada e só é
+    semeado se estiver VAZIO. Se a Cup ocupasse ele no meio do caminho e sobrasse
+    qualquer coisa, **a temporada terminaria sem playoffs**. Zerado junto com o
+    `quickCopa` nas 8 viradas de temporada.
+  - 🖥️ **Tela**: reusa o MESMO mata-mata que já existe (em vez de uma tela paralela que ia
+    divergir na primeira mudança) — o `qc` aponta pra chave da vez. O que muda são os
+    rótulos (NBA CUP · QUARTAS/SEMI/FINAL) e o `bbSerie`, que separa "melhor de 3"
+    (playoffs) de "jogo único" (Cup). De quebra, corrigi o texto dos PLAYOFFS na tela de
+    temporada, que ainda prometia a chave velha (top 8 geral, final em jogo único).
+  - 🧪 3 seções novas de teste: a chave e o que a Cup não pode encostar (tabela, cestinha
+    da liga, slot dos playoffs, rodada), o nascimento na metade (e que não nasce duas
+    vezes, nem no futebol, nem na Street) e — a que mais importa — **a TEMPORADA INTEIRA**:
+    liga → Cup no meio → liga de novo → playoffs semeados → anel.
+  - 🖼️ `scripts/mockup-nba-cup.mjs` → `/tmp/mockup-nba-cup.png`.
+- ⏭️ **Falta** (próximos passos): engordar o baralho (cuidado: carta de gente de verdade,
+  nada de bio inventada) · varrer o resto do PT solto nas telas do pregão.
+- 🐞 **Achado de passagem (não é do basquete, não mexi):** `scripts/checa-assist-copa.mjs`
+  quebra com *"Cannot access 'COPA_LEG_MS' before initialization"* num servidor de dev
+  FRIO — reproduz na `main` também. É o ciclo de import `screens.tsx` ↔ `pyramidseason.tsx`
+  (a pyramid importa `CardCollectPrompt` etc. da screens, e a screens importa `COPA_LEG_MS`
+  da pyramid). Roda na 2ª tentativa, quando o grafo já está quente. E a foto de comparação
+  dele (`scripts/copa-antes.json`) é de **27/08**, anterior aos batismos de 13/09 — por isso
+  ele acusa "2450 de 2450 linhas diferentes". Precisa ser refeita quando alguém for mexer aí.
 - 👀 **Esperando o OK visual do Diego** pra ir pra `main`: a tela das duas tabelas e a das
   séries (mockup acima). Enquanto isso segue invisível pro público (`BASQUETE_TESTERS`).
 

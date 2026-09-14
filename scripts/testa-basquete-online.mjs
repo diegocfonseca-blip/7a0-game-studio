@@ -1,7 +1,7 @@
 // 🏀🌐 ONLINE DO BASQUETE — confere no MOTOR (não na tela) que a sala online de
 // basquete nasce certa e que o futebol não muda NADA.
 // Rodar: npx tsx scripts/testa-basquete-online.mjs   (sai 1 se algo quebrar)
-import { reducer, __resolveQuickCopaTie as resolveTie, __seedQuickCopa as seedCopa } from '../src/escalacao/store.tsx'
+import { reducer, __resolveQuickCopaTie as resolveTie, __seedQuickCopa as seedCopa, __seedNbaCup as seedCup } from '../src/escalacao/store.tsx'
 import { basketClockLabel, MATCH_TICKS } from '../src/escalacao/sportcfg.ts'
 const mulberry = seed => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
 
@@ -179,6 +179,127 @@ console.log('9) 🏀 a cesta acontece nos QUATRO quartos (não só até o interv
   ok(porQuarto.size === 4, `teve cesta nos quatro quartos — apareceram ${[...porQuarto].sort().join(', ')}`)
   const segundoTempo = mins.filter(m => m > MATCH_TICKS / 2).length
   ok(segundoTempo > 0, `${segundoTempo} lances no 2º tempo (antes eram ZERO: o sorteio parava no 47)`)
+}
+
+console.log('10) 🏆 NBA CUP: copa do MEIO da temporada, 8 times, JOGO ÚNICO')
+{
+  const ligaDe = n => Array.from({ length: n }, (_, i) => ({ id: i, name: `T${i}`, isManager: true, pts: 100 - i, w: 60 - i, l: i, d: 0, gf: 0, ga: 0 }))
+  const cup = seedCup(ligaDe(30))
+  ok(cup.phase === 'quartas' && cup.ties.length === 4, `começa nas QUARTAS com 4 jogos — veio ${cup?.ties.length}`)
+  ok(cup.ties.slice(0, 2).flatMap(t => [t.aId, t.bId]).every(id => id % 2 === 0), 'os 2 primeiros jogos são do Leste (top 4 de lá)')
+  ok(cup.ties.slice(2).flatMap(t => [t.aId, t.bId]).every(id => id % 2 !== 0), 'os 2 últimos são do Oeste — os lados só se cruzam na FINAL')
+  ok(cup.ties[0].aId === 0 && cup.ties[0].bId === 6, 'o 1º do Leste pega o 4º do Leste (1×4)')
+  ok(seedCup(ligaDe(7)) === null, 'liga com menos de 8 times não tem Cup (em vez de montar chave torta)')
+
+  // a Cup inteira no motor, dentro de uma temporada de verdade
+  let s = reducer(base(), sala({ sport: 'basquete', roomCode: 'NBACUP' }))
+  const league = s.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 20 - i, l: i, d: 0, gf: 2000 - i * 10, ga: 1900 }))
+  const tabelaAntes = JSON.stringify(league)
+  s = { ...s, league, copaMode: 'liga_copa', cpuAtkAdj: 0, cpuDefAdj: 0, round: 41, news: [], nbaCup: seedCup(league) }
+  const fases = []
+  for (let passo = 0; passo < 40 && s.nbaCup && s.nbaCup.phase !== 'done'; passo++) {
+    const antes = s.nbaCup.phase
+    s = reducer(s, { type: 'PLAY_NBA_CUP_ROUND' })
+    if (s.nbaCup && s.nbaCup.phase !== antes) fases.push(antes)
+  }
+  ok(s.nbaCup?.phase === 'done', 'a Cup termina sozinha (sem travar)')
+  ok(JSON.stringify(fases) === JSON.stringify(['quartas', 'semis', 'final']), `caminho: quartas → semis → final (${fases.join(' → ')})`)
+  ok(!!s.nbaCup?.champion, `campeão da NBA Cup: ${s.nbaCup?.champion?.name}`)
+  const jogos = s.nbaCup.bracket.flatMap(b => b.ties)
+  ok(jogos.length === 7, `7 confrontos no total (4+2+1) — vieram ${jogos.length}`)
+  ok(jogos.every(t => t.legs.length === 1), 'TODO confronto foi de JOGO ÚNICO (é copa, não série)')
+  ok(jogos.every(t => t.legs[0][0] !== t.legs[0][1]), 'nenhum jogo terminou empatado')
+  ok(jogos.every(t => !t.pens), 'ninguém precisou de desempate por fora')
+  const pts = jogos.flatMap(t => t.legs.flat())
+  ok(pts.every(p => p >= 60 && p <= 170), `placares de basquete (${Math.min(...pts)}–${Math.max(...pts)})`)
+  const antesDaFinal = s.nbaCup.bracket.filter(b => b.phase !== 'final').flatMap(b => b.ties)
+  ok(antesDaFinal.every(t => t.aId % 2 === t.bId % 2), 'Leste e Oeste só se cruzaram na FINAL')
+
+  console.log('   — e o que a Cup NÃO pode encostar:')
+  ok(JSON.stringify(s.league) === tabelaAntes, 'a TABELA da temporada regular não mudou nem um ponto (copa não conta pro V-D)')
+  ok((s.scorers ?? []).length === 0, 'a lista de cestinhas da LIGA não foi tocada (a Cup tem a dela)')
+  ok((s.nbaCup.scorers ?? []).length > 0, `a Cup tem a cestinha dela (${s.nbaCup.scorers.length} nomes)`)
+  ok(s.quickCopa == null, 'o slot do mata-mata de FIM de temporada continua VAZIO — os playoffs ainda vão ser semeados')
+  ok(s.round === 41, 'a Cup não consumiu rodada da liga')
+
+  console.log('   — e o futebol nunca entra aqui:')
+  let f = reducer(base(), sala({ roomCode: 'FUTCUP' }))
+  const fLeague = f.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 20 - i, l: i, d: 0, gf: 0, ga: 0 }))
+  f = { ...f, league: fLeague, round: 19, fixtures: new Array(38).fill(null).map(() => []) }
+  const fDepois = reducer(f, { type: 'PLAY_NBA_CUP_ROUND' })
+  ok(fDepois.nbaCup == null, 'mandar a ação da Cup numa sala de FUTEBOL não faz nada')
+}
+
+console.log('11) 🗓️ a Cup nasce na METADE da temporada — e a temporada segue normal depois dela')
+{
+  let s = reducer(base(), sala({ sport: 'basquete', roomCode: 'MEIOTM' }))
+  const league = s.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 0, l: 0, d: 0, gf: 0, ga: 0 }))
+  // calendário de 82 rodadas VAZIAS: aqui só interessa o RELÓGIO da temporada
+  // (quando a Cup nasce), não o resultado dos jogos.
+  s = { ...s, league, copaMode: 'liga_copa', cpuAtkAdj: 0, cpuDefAdj: 0, round: 0, news: [], scorers: [], assists: [], lastResults: [], fixtures: new Array(82).fill(null).map(() => []) }
+  let nasceuNa = null
+  for (let r = 0; r < 82 && s.round < 82; r++) {
+    s = reducer(s, { type: 'PLAY_ROUND' })
+    if (s.nbaCup && nasceuNa === null) nasceuNa = s.round
+  }
+  ok(nasceuNa === 41, `a Cup nasceu na rodada 41 (metade de 82) — nasceu na ${nasceuNa}`)
+  ok(s.round === 82, `a liga foi até o fim mesmo assim (rodada ${s.round})`)
+  ok(s.nbaCupFeita === s.seasonNo, 'fica marcado que a Cup desta temporada já rolou')
+  // não pode nascer DUAS vezes na mesma temporada
+  const antes = s.nbaCup
+  s = { ...s, nbaCup: null, round: 41 }
+  s = reducer(s, { type: 'PLAY_ROUND' })
+  ok(s.nbaCup == null, 'e ela não nasce de novo na mesma temporada (a marca segura)')
+  ok(!!antes, 'a Cup da primeira vez existiu mesmo')
+
+  console.log('   — e no FUTEBOL a metade da temporada continua não tendo copa nenhuma:')
+  let f = reducer(base(), sala({ roomCode: 'FUTMEI' }))
+  const fl = f.managers.map(m => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 0, l: 0, d: 0, gf: 0, ga: 0 }))
+  f = { ...f, league: fl, round: 0, news: [], scorers: [], assists: [], lastResults: [], fixtures: new Array(38).fill(null).map(() => []) }
+  for (let r = 0; r < 38 && f.round < 38; r++) f = reducer(f, { type: 'PLAY_ROUND' })
+  ok(f.nbaCup == null, 'a temporada inteira do futebol passou e nenhuma NBA Cup apareceu')
+  ok(f.round === 38, 'e ela foi até a 38ª rodada, como sempre')
+
+  console.log('   — e a STREET LEAGUE (a várzea do basquete) também não tem Cup:')
+  let st = reducer(base(), sala({ sport: 'basquete', roomCode: 'STREET' }))
+  const stl = st.managers.map(m => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 0, l: 0, d: 0, gf: 0, ga: 0 }))
+  st = { ...st, league: stl, copaMode: 'liga', round: 0, news: [], scorers: [], assists: [], lastResults: [], fixtures: new Array(38).fill(null).map(() => []) }
+  for (let r = 0; r < 38 && st.round < 38; r++) st = reducer(st, { type: 'PLAY_ROUND' })
+  ok(st.nbaCup == null, 'andar sem mata-mata (copaMode liga) passa a temporada toda sem Cup — igual não tem playoff')
+}
+
+console.log('12) 🔁 TEMPORADA INTEIRA: liga → NBA Cup no meio → liga de novo → PLAYOFFS → anel')
+{
+  // é o teste que importa de verdade: prova que a Cup não deixa a temporada
+  // presa no meio do caminho nem rouba o lugar dos playoffs.
+  let s = reducer(base(), sala({ sport: 'basquete', roomCode: 'INTEIR' }))
+  const league = s.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 0, l: 0, d: 0, gf: 0, ga: 0 }))
+  s = { ...s, league, copaMode: 'liga_copa', cpuAtkAdj: 0, cpuDefAdj: 0, round: 0, news: [], scorers: [], assists: [], lastResults: [], fixtures: new Array(82).fill(null).map(() => []) }
+  let cupJogada = false, rodadaDaCup = null, passos = 0
+  // o laço imita a TELA: se a Cup está rolando, ela manda; senão, roda a liga.
+  while (passos++ < 400) {
+    if (s.nbaCup && s.nbaCup.phase !== 'done') {
+      if (rodadaDaCup === null) rodadaDaCup = s.round
+      s = reducer(s, { type: 'PLAY_NBA_CUP_ROUND' })
+      if (s.nbaCup?.phase === 'done') cupJogada = true
+      continue
+    }
+    if (s.round < 82) { s = reducer(s, { type: 'PLAY_ROUND' }); continue }
+    break
+  }
+  ok(cupJogada, 'a Cup rolou inteira no meio do caminho')
+  ok(rodadaDaCup === 41, `e ela rolou na rodada 41 (rodou na ${rodadaDaCup})`)
+  ok(!!s.nbaCup?.champion, `campeão da Cup: ${s.nbaCup?.champion?.name}`)
+  ok(s.round === 82, `a liga chegou ao fim mesmo assim (rodada ${s.round})`)
+  // agora o fim de temporada: os playoffs TÊM que ser semeados
+  s = reducer(s, { type: 'FINISH_SEASON' })
+  ok(!!s.quickCopa, 'o fim de temporada semeou os PLAYOFFS (a Cup não roubou o slot)')
+  for (let p = 0; p < 80 && s.quickCopa && s.quickCopa.phase !== 'done'; p++) s = reducer(s, { type: 'PLAY_COPA_LEG' })
+  ok(s.quickCopa?.phase === 'done', 'e os playoffs terminaram sozinhos')
+  ok(!!s.quickCopa?.champion, `campeão das Finals: ${s.quickCopa?.champion?.name}`)
+  ok(!!s.nbaCup?.champion, 'e o campeão da Cup continua guardado no fim (é a carta dele)')
+  const series = s.quickCopa.bracket.flatMap(b => b.ties)
+  ok(series.every(t => t.legs.length >= 2), 'os playoffs seguiram em SÉRIE (melhor de 3), não viraram jogo único da Cup')
 }
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')

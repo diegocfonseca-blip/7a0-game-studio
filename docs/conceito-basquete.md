@@ -9,7 +9,14 @@
   nasce nas DUAS línguas (helper `useT()` em `src/escalacao/lang.ts`).
 - Padrão: navegador em PT abre em BR; senão, EN. A escolha manual fica gravada
   no aparelho.
-- ⚠️ Vale SÓ pro basquete. O futebol (Leilão Legends) continua 100% em PT.
+- ⚠️ ~~Vale SÓ pro basquete. O futebol (Leilão Legends) continua 100% em PT.~~
+  **REVOGADO em 11/09/2026 pelo Diego**: *"preciso q vc faça tradução do jogo p
+  english de todo o jogo e tenha esse botão de traduzir, igual fizemos pro
+  bidlegends"*. O FUTEBOL TAMBÉM É BILÍNGUE. A escolha de idioma é ÚNICA pro site
+  (mesma chave `bl_lang`) e o botão BR/EN vive também no header da home do futebol.
+  Todo texto novo, dos dois esportes, nasce em PT e EN. (NUNCA traduzir: nome de
+  jogador, clube, mascote e país; texto que o código compara ou guarda no save —
+  GOL/LAT/ZAG/MEI/ATA, letra de divisão, chave de formação; e nome de clube batizado.)
 
 ## Domínio / hospedagem
 - Domínio REGISTRADO (26/07/2026): **bidlegendsarena.com** — aponta pro MESMO site/deploy do leilaolegends.com.
@@ -69,7 +76,32 @@
 - **SOBE quem chega à final de conferência** (2 do Leste + 2 do Oeste = 4). Subida se conquista no mata-mata; a temporada regular é o ingresso (top 8) e o chaveamento.
 - **DESCE** os 2 piores de cada conferência na temporada regular (4 no total).
 - **Cartas**: campeão do Leste 🎴 · campeão do Oeste 🎴 · campeão das FINALS 🎴 (o campeão do anel leva 2, como liga+copa no futebol).
-- **NBA Cup** = a Copa Legends do basquete (torneio no meio da temporada; detalhar na construção).
+- **NBA Cup** = a Copa Legends do basquete (torneio no meio da temporada).
+
+### 🏆 NBA CUP — regra fechada (14/09/2026, na construção)
+O conceito só dizia "torneio no meio da temporada; detalhar na construção". Detalhado
+assim, e o porquê de cada escolha:
+
+- **QUANDO**: no MEIO da temporada, na parada que o jogo JÁ tem (a virada de metade de
+  temporada). Regra de ouro do Diego: *"nada pode atrasar o ritmo do jogo"* — a Cup
+  entra num tempo morto que já existe, **não cria passo nem espera nova**.
+- **QUEM**: **8 times** — os **4 primeiros de cada conferência** na tabela daquele
+  momento. É o retrato de meia temporada, igual à Cup de verdade premiar quem começou
+  bem. Liga sem conferência fechada cai no top 8 geral.
+- **FORMATO**: **mata-mata de JOGO ÚNICO** — quartas → semis → final. De propósito
+  DIFERENTE dos playoffs (que são melhor de 3): copa é relâmpago, e assim ninguém
+  confunde as duas competições. Empatou? **Prorrogação**, nunca pênalti.
+- **NÃO MEXE NA TABELA**: os jogos da Cup não entram no V-D da temporada regular nem na
+  lista de cestinhas da liga (a Cup tem a dela). Na NBA de verdade a final também não
+  conta. Isso mantém a temporada honesta: ninguém sobe na tabela por causa da copa.
+- **PRÊMIO**: carta pro álbum + moedas, do mesmo jeito que a Copa dos 8 do futebol paga
+  o campeão dela. Quem ganha a Cup e depois o anel leva as duas.
+- **ONDE MORA NO CÓDIGO**: campo PRÓPRIO no estado (`nbaCup`), **nunca** o `quickCopa`.
+  Motivo de segurança: `quickCopa` é o slot ÚNICO do mata-mata de fim de temporada (Copa
+  dos 8, Libertadores e os playoffs). Se a Cup ocupasse esse slot no meio da temporada e
+  sobrasse qualquer coisa lá, **os playoffs não seriam semeados** no fim (o código só
+  semeia se o slot estiver vazio) — a temporada acabaria sem anel. Slot separado = zero
+  risco pro futebol e zero risco pros playoffs.
 
 ## Táticas (pedra-papel-tesoura igual ao futebol)
 - 🛡️ Defesa ferrenha · ⚖️ Equilíbrio · 🏃 Run-and-gun (mesma lógica retranca/equilíbrio/ataque).
