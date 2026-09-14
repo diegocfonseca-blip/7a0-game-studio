@@ -13,6 +13,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Fala D10": "falad10-camisa.webp",
   "Final Boss FC": "finalboss-camisa.webp",
   "Futpoint FC": "futpoint-camisa.webp",
+  "Inter de Bailão": "interbailao-camisa.webp", // 🪩 ex-Alfacehh (renomeado 14/09) — a 1ª camisa de verdade dele no salão
   "Jurubeba FC": "jurubeba-camisa.webp",
   "Leão da Estradinha": "leao-estradinha-camisa.webp",
   "Leite de Verdade FC": "leitedeverdade-camisa.webp",

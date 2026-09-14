@@ -28,8 +28,9 @@ const bots = nba.managers.filter(m => !m.isHuman)
 ok(bots.length > 0 && bots.every(m => FRANQUIAS.has(m.teamName)), `os adversários são franquias da NBA (ex.: ${bots.slice(0, 3).map(m => m.teamName).join(', ')})`)
 const cartasNba = Object.values(nba.deck).flat()
 ok(cartasNba.length > 0, `o pregão tem ${cartasNba.length} cartas`)
-// franquias NBA de TODAS as eras (Royals viraram Kings; Nationals viraram 76ers)
-const CLUBES_NBA = /Bulls|Lakers|Celtics|Heat|Warriors|Spurs|Knicks|Nets|Suns|Bucks|Rockets|Magic|Sixers|76ers|Jazz|Pistons|Hawks|Kings|Pacers|Blazers|Mavericks|Cavaliers|Raptors|Nuggets|Clippers|Wizards|Grizzlies|Thunder|Hornets|Pelicans|Timberwolves|Sonics|Bullets|Royals|Nationals|Pipers|Squires|Colonels|Stags|Capitols|Bombers|Olympians|Packers|Zephyrs|Rens/
+// franquias NBA de TODAS as eras (Royals viraram Kings; Nationals viraram 76ers;
+// Braves de Buffalo viraram Clippers; Bobcats de Charlotte viraram Hornets)
+const CLUBES_NBA = /Bulls|Lakers|Celtics|Heat|Warriors|Spurs|Knicks|Nets|Suns|Bucks|Rockets|Magic|Sixers|76ers|Jazz|Pistons|Hawks|Kings|Pacers|Blazers|Mavericks|Cavaliers|Raptors|Nuggets|Clippers|Wizards|Grizzlies|Thunder|Hornets|Pelicans|Timberwolves|Sonics|Bullets|Royals|Nationals|Pipers|Squires|Colonels|Stags|Capitols|Bombers|Olympians|Packers|Zephyrs|Rens|Braves|Bobcats/
 const reais = cartasNba.filter(c => !c.fake)
 ok(reais.length > 0 && reais.every(c => CLUBES_NBA.test(c.club)), 'toda carta REAL do pregão é de franquia NBA (nenhum jogador de futebol vazou)')
 
@@ -317,6 +318,10 @@ console.log('13) 🃏 BARALHO: tem jogador RUIM famoso, e mexer nele atualiza o 
   const chaves = todas.map(c => `${c.name}|${c.club}|${c.year}`)
   ok(new Set(chaves).size === chaves.length, 'nenhuma carta repetida (nome|franquia|ano)')
   ok(new Set(todas.map(c => c.name)).size === todas.length, 'e nenhum nome repetido entre cartas')
+  // ⚠️ esta conferência é o que pegou o De'Aaron Fox duplicado em 14/09: o script
+  // de fora que eu usava pra caçar repetido lia o arquivo com regex e QUEBRAVA em
+  // nome com apóstrofo (De'Aaron, Amar'e, O'Neal) — ele via "De" e passava batido.
+  // Aqui é o baralho de VERDADE, importado, então apóstrofo nenhum engana.
 
   // 🔁 a trava do Diego: mexeu na ficha do jogador, o save tem que acompanhar
   const carta = Object.values(CATALOG_NBA).flat()[0]

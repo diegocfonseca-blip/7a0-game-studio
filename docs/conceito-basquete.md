@@ -60,6 +60,29 @@
     seleção de all-stars e perde a graça do pregão.
   - **As 5 categorias, nas palavras dele:** 🪵 foi profissional · 🎯 bom jogador ·
     💎 promessa · ⭐ craque · 👑 lenda.
+  - 👑 **QUEM É LENDA — régua ampliada pelo Diego (14/09).** Palavras dele: *"o Luka
+    Dončić, que está nos Lakers agora, é considerado uma lenda. O Jayson Tatum também. E
+    aquele do Milwaukee, moreno, forte [Giannis] — esses jogadores top famosos também são
+    considerados lenda"*. Ou seja: **lenda NÃO é só o veterano aposentado**; o astro de
+    HOJE que todo mundo conhece também é. Pra isso não virar gosto de quem está mexendo
+    no baralho, o critério ficou **factual**:
+    > 👑 LENDA = ganhou **MVP da temporada** ou **MVP das finais**, OU é um nome de topo
+    > absoluto que o Diego apontar.
+    Aplicando isso o baralho saiu de 30 pra **51 lendas** (e é justamente o que faltava:
+    bate com os ~12% do futebol). Subiram Luka e Tatum (apontados por ele) e os MVPs que
+    estavam como craque — Barkley, Karl Malone, Garnett, Iverson, Nash, Derrick Rose,
+    David Robinson, Harden, Westbrook, Embiid, Shai, Walton, Cowens, Unseld, McAdoo e
+    Willis Reed — mais Ewing, Pippen e Kawhi (MVP das finais / topo absoluto).
+    ⚠️ Eu tinha escrito aqui que "lenda não cresce". **Estava errado, e a régua dele é que
+    está certa**: o que não pode é INVENTAR lenda; ampliar com quem tem título de MVP na
+    mão é fato, não invenção.
+  - 🌍 **DE FORA DOS EUA CONTA, desde que tenha jogado NBA (reforçado 14/09).** Palavras
+    dele: *"jogadores que vieram da Europa… mas jogaram NBA também, de alguma forma
+    jogaram NBA"*. Vale o craque europeu que virou astro aqui (Dončić, Jokić, Dirk,
+    Giannis, Porziņģis) e também o **rei da Europa que passou de raspão pela NBA** —
+    Jasikevičius, Teodosić, Navarro, Micić. Esses últimos são ótimos como 🎯/🪵: são
+    famosos de verdade, mas o auge deles não foi aqui. Continua valendo a trava de 26/07:
+    quem NUNCA vestiu uma franquia NBA fica de fora (Oscar Schmidt segue fora).
   - ⚠️ **E vale a regra de ouro do Diego (18/08): não inventar como a pessoa REAL é.** Bio
     de gente de verdade só com fato público e conhecido (posição de draft, apelido, lance
     famoso, título). Nada de zoeira em cima de doença, vício, tragédia ou crime — a piada é

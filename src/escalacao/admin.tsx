@@ -906,7 +906,10 @@ function Dashboard({ email }: { email: string }) {
   const [intents, setIntents] = useState<{ id: number; created_at: string; email: string | null; nick: string | null; choice: string }[]>([])
   // 🔒 saves que o LACRE pegou editados na mão (esc_cheat_flags) — só marca, nada é feito
   const [cheats, setCheats] = useState<Record<string, { name: string; detail: string; at: string }>>({})
-  const load = useCallback(async () => {
+  // `forcar` = o botão "🔄 Atualizar dados" foi apertado. Abrir o painel / voltar pra
+  // ele aceita o histórico em cache (120s, instantâneo); o botão manda recalcular na
+  // hora. Ver a nota sobre o cache logo abaixo, na chamada do `esc_admin_dashboard`.
+  const load = useCallback(async (forcar = false) => {
     try {
       supabase.from('apoio_intents').select('*').order('id', { ascending: false }).limit(40)
         .then(({ data: it }) => { if (it) setIntents(it as typeof intents) }, () => {})
@@ -918,13 +921,23 @@ function Dashboard({ email }: { email: string }) {
           for (const r of cf as { user_id: string; display_name: string | null; detail: string | null; last_at: string }[]) m[r.user_id] = { name: r.display_name || 'Técnico', detail: r.detail || '', at: r.last_at }
           setCheats(m)
         }, () => {})
-      // 🛟 se a janela cheia (30d/200) estourar o tempo do banco ("statement
-      // timeout"), tenta de novo com janelas menores em vez de mostrar erro —
-      // o painel carrega com o que der. (Correção definitiva é um índice no banco.)
+      // 🗄️ CACHE DO HISTÓRICO (14/09). O `esc_admin_dashboard` agora vem em duas
+      // partes: o AO VIVO (quem está online, jogando, pico e a lista) é sempre
+      // calculado na hora, e o HISTÓRICO pesado (jogos, visitas, retorno, ranking de
+      // usuários) sai de um cache de 120s no banco. Motivo: o histórico varria a
+      // `game_plays` inteira várias vezes e levava 9,3s — mais que o limite de 8s do
+      // banco. Era ISSO que fazia o painel cair pras janelas menores aqui embaixo.
+      // Agora a abertura custa ~36ms e o recálculo, quando precisa, ~2,5s.
+      // `p_fresh` = o botão 🔄 mandou recalcular agora, ignorando o cache.
+      //
+      // 🛟 se ainda assim a janela cheia (30d/200) estourar o tempo do banco, tenta de
+      // novo com janelas menores em vez de mostrar erro — e SEM forçar, pra poder
+      // aproveitar o cache; o painel carrega com o que der.
       const scopes = [{ d: 30, u: 200 }, { d: 14, u: 120 }, { d: 7, u: 80 }]
       let lastErr = ''
-      for (const s of scopes) {
-        const { data, error } = await supabase.rpc('esc_admin_dashboard', { p_days: s.d, p_users: s.u })
+      for (let i = 0; i < scopes.length; i++) {
+        const s = scopes[i]
+        const { data, error } = await supabase.rpc('esc_admin_dashboard', { p_days: s.d, p_users: s.u, p_fresh: forcar && i === 0 })
         if (!error) { setErr(''); setD(data as Dash); setUpdatedAt(Date.now()); setJumps(detectJumps((data as Dash).live_list ?? [])); return }
         lastErr = error.message
         if (!/timeout|canceling statement/i.test(error.message)) break // erro que não é lentidão: reduzir não adianta
@@ -1242,7 +1255,7 @@ function Dashboard({ email }: { email: string }) {
         </div>
       </div>
 
-      <button onClick={() => load()} style={{ ...btn('#1B7A3D', '#fff') }}>🔄 Atualizar dados</button>
+      <button onClick={() => load(true)} style={{ ...btn('#1B7A3D', '#fff') }}>🔄 Atualizar dados</button>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', opacity: 0.5, fontSize: 12 }}>
         <span>Logado: {email}</span>
         <span>Atualizado às {updatedAt ? new Date(updatedAt).toLocaleTimeString('pt-BR') : '—'}</span>

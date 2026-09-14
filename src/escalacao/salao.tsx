@@ -17,7 +17,7 @@ const porChegada = (a: Batismo, b: Batismo) => (a.fundador ?? 999) - (b.fundador
 // por enquanto, só até arrumar as logos dele, mascote e etc… só tô falando daqui ocultar
 // até eu melhorar os deles"*. SÓ o Salão: no jogo, na pirâmide, na estante e no
 // `checa-batismos` eles continuam iguais. Quando a arte nova chegar, tirar daqui.
-const SALAO_OCULTOS = new Set(['Alfacehh', 'Marreco FC', 'White Thigs do GuGu'])
+const SALAO_OCULTOS = new Set(['Marreco FC', 'White Thigs do GuGu']) // 🪩 o Alfacehh saiu daqui em 14/09: virou Inter de Bailão e ganhou escudo, mascote e manto de verdade
 const pecas = () => [tr('Escudo', 'Crest'), tr('Mascote', 'Mascot'), tr('Manto', 'Shirt')]
 function Arte({ clube, peca }: { clube: string; peca: number }) {
   const [erro, setErro] = useState(false)

@@ -40,6 +40,405 @@ de nome repetido · **e o pote seco**. Conferido que ele REPROVA no código velh
 Reverter: um commit só. Quem já está com o save torto não precisa fazer nada — o
 conserto vale na hora, sem mexer em save.
 
+## 14/09/2026 — 🪩 O Alfacehh virou INTER DE BAILÃO (Série C) — pronto, esperando OK
+
+Pedido do Diego: *"matheus223lms@icloud.com, troque o nome do Alfacehh para Inter de Baião
+e segue artes e coloque ele na série C"*.
+
+⚠️ **O NOME É "BAILÃO", COM L.** Ele escreveu "Baião", mas a arte que ele mandou traz
+**INTER DE BAILÃO** escrito em TRÊS lugares (escudo, chapéu da mascote e camisa) e o tema
+é bailão puro: bola de espelho, caixas de som, *"mais que um time é um bailão"*. Segui a
+arte. Se ele quiser "Baião" mesmo, é trocar o nome em 7 lugares + 2 linhas de banco.
+
+**Conta conferida ANTES:** existe desde 21/07, confirmada. Já era sócio nº3, fundador nº30
+e ouro — é RENOMEAÇÃO, não batismo novo (por isso o post saiu com `--renovacao`,
+"CLUBE DE CARA NOVA", e não "NASCEU O").
+
+### Arte (a 1ª de verdade dele — antes era escudo/mascote desenhados em código)
+Escudo **313×360, 29,4 KB** · mascote **232×440, 37,0 KB** · total 66,4 KB dos 75.
+As três peças vieram já separadas na imagem, então o recorte foi limpo de primeira.
+Camisa do post em `scripts/kits/inter-bailao.png`.
+**Cores MEDIDAS na camisa:** azul **#0040CD** (21.126 px) e preto **#040609** (32.119 px).
+Ele estava com `manto_c1`/`manto_c2` VAZIOS no banco — agora tem.
+
+### A troca de divisão (o detalhe que quase passa batido)
+O Alfacehh estava na **Série B** (desceu pra lá em 23/08 pra abrir o assento do Papão).
+Pra ir pra C sem quebrar a contagem, fiz **troca 1:1**: o Inter de Bailão desce pra C e o
+**Fatality FC sobe pra B**. Os técnicos viajaram com os clubes; o do clube batizado virou
+**"DJ Bailão"** (era "Mr. Porto", herança do Athletico do Porto).
+
+### Onde mexi
+`data.ts` (OLD_NAME vira corrente Athletico do Porto → Alfacehh → Inter de Bailão · troca
+B↔C · `CLASSIC_CLUBS` com a MESMA força 76/78) · `escudos.tsx` e `mascotes.tsx` (arte nova
+registrada nas 4 formas do nome novo **e nas do nome velho**, pra save antigo não perder
+escudo nem carimbo) · `manto.ts` · `batismos.ts` · `apoio.tsx` (comentário) ·
+`checa-batismos.mjs` · **`salao.tsx`: saiu do `SALAO_OCULTOS`** — ele estava escondido do
+Salão desde 13/09 justamente por estar com arte provisória, e agora tem arte de verdade.
+
+### Banco (já aplicado)
+`esc_socios`: `escudo_time` → 'Inter de Bailão', `mascote_key` 'alface' → 'bailao_espelho',
+manto preenchido · `esc_nomes_batismo`: o nome novo trancado nas 3 formas (o velho segue
+trancado também, continua sendo dele) · `user_colors`: `manual` estava **false** e virou
+true, que é o que o roteiro pede (o Modo Manual vem junto do ouro).
+
+**Conferido:** build verde · `checa-batismos` passou de 29 pra **30 completos** e o clube
+sumiu de todas as listas de "faltando" · pirâmide fechando 20 em toda divisão · nenhum time
+repetido · a corrente de nome velho resolve certo.
+
+### ❤️🪩 Fechado com ele na sequência (14/09)
+- **Time de coração: CORINTHIANS.** Palavras dele: *"Tim é dele e Corinthians de coração
+  tá"*. Gravado em `esc_socios.time_coracao` e já no post.
+- **Voltou pro Salão dos Batismos com as 3 peças**: *"estava oculto na sala do batismo,
+  pode pôr de volta. Coloque aí o escudo, mascote e manto novo nele"*.
+  ⚠️ **Pegadinha do Salão que quase me escapou:** lá o MANTO **não** sai do `manto.ts` nem
+  da pasta do jogo — ele vem de `CAMISAS_SALAO` (`salao-camisas.ts`) apontando pra um
+  arquivo em **`public/mantos-salao/`**. Tirar do `SALAO_OCULTOS` só resolve escudo e
+  mascote; sem o webp lá, a aba do manto mostra *"a arte da camisa deste clube ainda não
+  está disponível"*. Agora tem: `interbailao-camisa.webp`, 570×700, 83,4 KB.
+  👉 **Todo clube que sair do `SALAO_OCULTOS` precisa das TRÊS pernas conferidas**, não só
+  das duas do jogo.
+
+**🟡 Falta o OK visual do Diego.** E vale perguntar sobre o **tênis da mascote**, que tem o
+símbolo da Nike/Jordan bem visível — mesmo caso da adidas que ele mandou tirar do
+Internacional de Madrid.
+
+## 14/09/2026 — 💸 VENDER O 2º CLUBE (multiclubes) — ✅ NO AR
+
+Pedido do Diego: *"gostaria de dar opção pra quem comprou o segundo clube poder vender…
+aí quando vender some também as coisas de trocar, hibernar e etc e mantém tudo como era
+antes"*.
+
+**Como ficou:** paga 4.000, recebe **3.000**. Palavras dele pro valor: *"vender pelo msm
+valor n sei se é válido… podia deixar vender mas perdendo um cadinho"* e depois
+*"desconta 1000 e diga q foi tudo de luxo gasto na festa"*.
+
+**A historinha é dele** (duas levas minhas foram recusadas com um *"outras"*):
+*"os jogadores e diretoria fizeram churrasco de despedida comemorando sua saída e pior
+deixaram na sua conta"*. No aviso: *"E foi tudo de luxo: deixaram 1.000 🪙 na sua conta.
+Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te
+chamaram."* No extrato entram **dois lançamentos separados** (+4.000 e −1.000), pra ficar
+claro de onde saiu a mordida.
+
+### ⚠️ A PEGADINHA QUE A REGRA DELE PEGOU (guardar isto)
+Ele cravou: *"quero deixar claro q somente o segundo clube que pode ser vendido… o
+primeiro oficial q aparece no rank global e etc não pode ser vendido nunca"*.
+Eu tinha desenhado a trava como **"só vende quem está dormindo"** — e isso estava
+**ERRADO**. `multiClube.id` é sempre o clube que DORME, e quando o 2º clube está no
+comando quem dorme é o **PRINCIPAL**. A trava do jeito que eu tinha deixaria vender o
+clube oficial. Agora a trava olha a marca **`mine`**, que só a compra liga
+(`store.tsx` BUY_MULTICLUBE) e que o clube original nunca teve. Com o 2º no comando o
+botão some e aparece "passe o comando pro seu clube principal pra poder vender".
+👉 Lição que vale pra qualquer código novo de multiclube: **"quem dorme" não é "o segundo".**
+
+### 🤝 Empréstimos (pedido dele, na mesma mensagem)
+*"os jogadores emprestado pelo Adão Esporte voltam pra ele e os jogadores emprestados
+para o Adão Esporte voltam pro primeiro clube"*. Implementado assim, antes de vender:
+- o que o 2º clube tinha emprestado pra SAF **volta pro elenco dele** e sai junto;
+- o que ele tinha **pegado** emprestado sai do elenco dele. Se o jogador é do clube
+  PRINCIPAL (viajou principal → SAF → 2º clube), volta **pro dono**; se é da SAF mesmo,
+  volta **pra SAF**.
+
+### O que a venda faz
+O clube **volta a ser bot no lugar dele** — não some da pirâmide e não mexe na contagem,
+porque a compra já tinha feito a troca 1:1 em `careerPlacements`. Fica com estádio,
+títulos e caixa (keyed por id, não são tocados). Limpa `multiClube`, `multiClubeAtivo`,
+o pacote guardado, a moeda de carreira do 2º clube, devolve a renda da agência pro clube
+único e apaga evento preso ao clube que saiu. A UI de trocar/dormir some sozinha porque
+é toda gated em `state.multiClube`, e o painel de **comprar** volta.
+
+### Onde mexi
+`store.tsx` (action + reducer `SELL_MULTICLUBE`) · `pyramidseason.tsx` (botão na aba Clube
++ modal de confirmação, bilíngue) · `novidades.ts` (linha PT+EN) ·
+`scripts/testa-vender-2o-clube.mjs` (trava nova) · `scripts/mockup-vender-2o-clube.mjs` e
+`scripts/mockup-historinha-venda-clube.mjs` (as propostas visuais).
+
+**Conferido:** `npm run build` verde · a trava nova passa nas **21 conferências** (venda
+normal, recusa do clube oficial, empréstimos, travas de online/sem-multiclube/save torto) ·
+`checa-piramide.mjs` segue fechando 20 em toda divisão.
+
+**✅ NO AR** desde 14/09 21:15 UTC (deploy run 2799, verde). **Reverter:** é um commit só.
+
+### 📢 O post do anúncio — e a regra de spoiler
+`scripts/post-venda-2o-clube.mjs`. Pedido dele: *"faça um aí, pode ser foto mesmo, da arte
+dizendo que agora tem a possibilidade de vender o clube. O segundo clube só apenas, né?"*
+— **com uma trava**: *"mas não dá não do que que vem escrito na hora"*.
+👉 E na 2ª volta ele **cortou quase tudo o que eu tinha escrito**, nesta ordem:
+- *"não conta por quanto vai valer não"* → fora o preço (nada de 3.000 nem 4.000);
+- *"que vai se contar tanto, não conta isso, não quero spoiler"* → fora o churrasco e fora
+  o que acontece com o clube depois;
+- *"e não precisa falar também só segundo clube. A pessoa vai saber na hora"* → fora até a
+  regra do 2º clube, que eu achava que era informação de segurança.
+
+👉 E na **3ª volta** ele corrigiu a mão pro outro lado: *"tem que botar assim, agora dá
+pra vender o SEGUNDO clube, alguma coisa do tipo assim… **faltou mais informações aí**.
+E é **stories**, que eu quero postar"*.
+
+**Onde parou (a versão que vale):** `scripts/post-venda-2o-clube.mjs` gera um
+**1080×1920** que diz na manchete que é o **2º clube**, explica que só o segundo se vende
+(o oficial nunca), que o clube vendido fica no jogo com a máquina, que os empréstimos se
+acertam e que tudo volta ao normal. **Continua sem o valor e sem o churrasco**, com a
+isca *"quanto você recebe de volta? Isso você descobre na hora"*.
+
+📌 **Regra permanente que sai daqui — a linha é essa:**
+**PODE** explicar o QUE a feature faz e onde fica. **NÃO PODE** dizer QUANTO vale nem
+entregar a piada que aparece na hora. E quando ele pedir arte pra postar, **perguntar o
+formato** (stories 9:16 × post quadrado) antes de desenhar — foi o que me fez refazer.
+O script já avisa no console se o conteúdo passar da altura do stories.
+
+## 14/09/2026 — 🛡️ BATISMO: Internacional de Madrid (Série C) — ✅ NO AR
+
+Dono: **matheusstefanello372@gmail.com** (confirmado pelo Diego). Assento: **Adão Esporte**
+(escolha do Diego) — na Série C o padrão é RENOMEAR um genérico, como já foi feito com
+Zequinha SAF → Nova Eclipse e Ponte Branca → Final Boss.
+
+**✅ Trava de segurança (regra 07/09) passou ANTES de qualquer linha:** a conta existe desde
+26/07/2026, com e-mail confirmado. Sem isso, quem criasse conta primeiro com esse e-mail
+levaria todos os mimos.
+
+**✅ BANCO — as 4 linhas, já aplicadas (não dependem de deploy):**
+- `esc_socios` — sócio **nº50**, desde 14/09, válido até 2099-12-31, manto `#941514` +
+  `#F7F0E9`, `mascote_key = 'internacional_siuuu'`, `escudo_time = 'Internacional de Madrid'`,
+  origem batismo. ⚠️ `time_coracao` ficou VAZIO — o Diego ainda não disse.
+- `esc_fundadores` — **nº69**.
+- `user_colors` — **ouro + manual** (fonte OFICIAL do tier). O dono já está 👑 Lenda com Modo
+  Manual AGORA, sem esperar deploy.
+- `esc_nomes_batismo` — o nome puro entrou e o gatilho criou as formas **FC** e **EC** sozinho.
+  As 3 formas estão trancadas (a caixa já está coberta porque a chave é minúscula).
+
+**🎨 CORES MEDIDAS na arte que o dono mandou** (não chutadas, regra 10): vermelho **#941514**
+(mediana de 13.516 px da camisa; o escudo dá #8D0C0B, mesma família), branco/creme **#F7F0E9**
+(34.002 px) e dourado **#E2A646** (só se virar MANTO_TRI).
+
+**✅ RESOLVIDO: o dono mandou a arte separada (14/09, mais tarde).** O escudo veio inteiro
+(com "1909" e o texto completo) e o boneco veio solto. Recortei os dois pela geometria do
+círculo do escudo (centro e raio ajustados por mínimos quadrados, erro médio de 2 px).
+Escudo **282×360, 28,0 KB**; mascote **364×440, 41,5 KB**; total 69,5 KB dos 75 permitidos.
+O conferidor do `mockup-batismo.mjs` não achou moldura vazia sobrando em nenhum dos dois.
+A **adidas foi apagada da camisa do post** por interpolação da moldura (não por remendo
+copiado, que deixava mancha). Sobrou um **Nike vermelho nas duas chuteiras** do boneco:
+deixado como está porque no tamanho real do jogo (176 px de altura) ele fica com ~2 px, e
+mexer borrava o desenho — o Diego pode pedir pra tirar.
+
+**Cores REMEDIDAS na arte nova e corrigidas no banco:** vermelho **#A90605** (mediana de
+13.309 px da camisa) e branco **#FCF6F1** (41.238 px). As primeiras tinham saído da arte
+velha, mais escura.
+
+**✅ CÓDIGO — as 7 pontas do roteiro, feitas e conferidas:**
+- `escudos.tsx` — import + render com a proporção REAL (282/360) + `LOGOS_PRONTAS` nas 4
+  formas do nome **e no nome velho** (Adão Esporte), pra save antigo não abrir sem escudo.
+- `mascotes.tsx` — import + `MASCOTES.internacional_siuuu` (proporção 364/440) +
+  `CARIMBO_GOL` nas 4 formas, na CAIXA ALTA e no nome velho + `MASCOTE_NOME` = **"O Siuuu"**.
+  ⚠️ Cuidado achado aqui: o mapa nome→chave **é o próprio `CARIMBO_GOL`** (ele vai da linha
+  801 até a 1042). Eu tinha somado as chaves duas vezes e o `tsc` reprovou com TS1117.
+- `data.ts` — `OLD_NAME['Internacional de Madrid'] = 'Adão Esporte'` + a linha da Série C
+  (técnico "Siuuu"). ⚠️ O Adão Esporte também aparece em `CPU_MANAGERS`, mas essa lista é
+  **morta** (exportada e nunca usada em lugar nenhum) — por isso não foi mexida.
+- `apoio.tsx` — tier ouro (reserva) + `FUNDADOR_N` 69 · `manto.ts` · `batismos.ts` ·
+  `scripts/checa-batismos.mjs`.
+
+**Conferido rodando:** Série C segue com 20 times, o Adão Esporte saiu, **nenhum time
+repetido na pirâmide**, `batismoDe()` acha pelo nome puro e pela forma FC, `npm run build`
+verde e a trava `checa-batismos.mjs` não aponta buraco neste clube.
+
+**❤️ TIME DE CORAÇÃO: INTERNACIONAL** (Diego, 14/09: *"time de coração Internacional rs"*
+— que é justamente a piada do nome do clube). Já gravado em `esc_socios.time_coracao` e já
+entra no post pelo `--coracao`.
+
+**🟡 FALTA SÓ O OK DO DIEGO PRA SUBIR NA MAIN (regra 2: visual novo, ele decide).**
+O post final ficou na versão **sem `--antigo`**, seguindo a regra permanente de 05/09 (o
+post diz só "chega na Série C" e não conta de quem era a vaga). A versão que citava o Adão
+Esporte também foi mostrada e seria permitida (ele foi renomeado de verdade, igual ao
+Stocco ← Semervilha), mas o padrão vence enquanto ele não pedir o contrário.
+O nome **"O Siuuu"** pra mascote foi escolha minha, pra não pôr o nome de uma pessoa real
+no jogo — ele não contestou, mas é uma linha se quiser trocar.
+
+**(histórico do que travou antes)**
+O dono mandou um post pronto (escudo + boneco + camisa lado a lado, fundo verde) e o
+**braço do boneco está POR CIMA do escudo**, tapando o "D" final de MADRID e parte do anel
+externo. Reconstruir aquilo seria inventar letra, o que a regra proíbe. E recortar o boneco
+pela borda do braço deixa lasca de escudo grudada nele.
+👉 **Precisa dos arquivos separados: o escudo sozinho e o boneco sozinho.** Pedido ao Diego.
+
+**Decisões do Diego nesta entrega (14/09):**
+- 🚨 Levantei que a mascote é o **Cristiano Ronaldo desenhado** (pessoa real, viva) e que a
+  camisa tem o **logo da adidas** (marca de terceiro), num jogo dele que está no ar. Resposta:
+  *"Remova a adidas e mantenha o Ronaldo todo e mantenha o SIUUU igualzinho a foto"*.
+  **Decisão dele, registrada.** Então: mascote = o Ronaldo com o grito 👑 SIUUU!, e a adidas
+  sai da camisa antes de qualquer coisa entrar no repo.
+
+**Ainda falta (quando a arte separada chegar):**
+1. Escudo `.webp` 360px ≤30 KB e mascote `.webp` 440px ≤45 KB, com bbox medido por alfa ≥40 e
+   ≥3 px por linha/coluna. (O escudo já foi recortado uma vez: 271×360, 28,2 KB — serve de
+   referência de peso.)
+2. Código: `LOGOS_PRONTAS` (3 formas do nome) · `MASCOTES` + `MASCOTE_NOME` + `CARIMBO_GOL` ·
+   `data.ts` (`OLD_NAME['Internacional de Madrid'] = 'Adão Esporte'` + a linha da Série C) ·
+   `apoio.tsx` (ouro + `FUNDADOR_N` 69) · `manto.ts` · `batismos.ts` · a lista `BATISMOS` de
+   `scripts/checa-batismos.mjs`.
+3. Camisa do post em `scripts/kits/` (NUNCA em `src/escalacao/img/` — é do post, não do jogo).
+4. Mockup com `node scripts/mockup-batismo.mjs`, **sem `--antigo`** (o Adão Esporte continua
+   no jogo, só muda de nome — e a regra de 05/09 diz que o post não conta de quem era a vaga),
+   com `--camisa` e com `--coracao` se o Diego disser o time.
+5. Mostrar o mockup e esperar o OK dele antes de commitar.
+
+## 14/09/2026 — ⚡ PAINEL DO CRIADOR: de 9,3 s (estourando) para 36 ms — ✅ NO AR
+
+Item 1 do plano do raio-x do banco. O Diego mandou: *"Já faça o 1"*.
+
+**O que estava acontecendo (e ninguém sabia):** `esc_admin_dashboard` era a consulta
+interativa mais cara do projeto — média de 4,6 s e **~10 GB de blocos lidos por abertura**.
+Na janela cheia (30 dias / 200 usuários) levava **9,3 s**, e o papel `authenticated` tem
+`statement_timeout = 8 s`. Ou seja: **o painel ESTOURAVA o limite do banco** e caía no
+remendo que existia no `admin.tsx` (tenta 30d, se der timeout tenta 14d, depois 7d). Tinha
+até um comentário lá dizendo *"correção definitiva é um índice no banco"* — não era índice,
+era o formato da consulta.
+
+**Conserto, em duas pernas:**
+
+1. **O resultado virou duas partes.** 🔴 O AO VIVO (`online_now`, `playing_now`, `peak`,
+   `live_list`) sai da `live_beats`, que é pequena, e é **sempre calculado na hora** — o
+   Diego nunca vê "quem está jogando agora" atrasado. 🗄️ O HISTÓRICO (jogos, visitas,
+   retorno, carreiras, ranking de usuários) entra em **cache de 120 s** na tabela nova
+   `esc_admin_cache`. O botão "🔄 Atualizar dados" manda `p_fresh = true` e recalcula na
+   hora, ignorando o cache — então o botão continua significando exatamente o que dizia.
+2. **O histórico ficou ~4× mais rápido.** O peso NÃO estava nas contagens simples (essas já
+   usam os índices e custam quase nada). Estava em **quatro varreduras com
+   `group by session_id` na `game_plays` inteira** — `players_total`, `players_today`,
+   `returning_players`/`returning_7d` e a lista de usuários — cada uma refazendo o mesmo
+   agrupamento de 348 mil linhas. Agora o agrupamento é **UM só** e os quatro saem dele.
+
+| medição (janela cheia 30d/200) | tempo |
+|---|---|
+| antes | 9.350 ms (estourava o limite de 8 s) |
+| tentativa de materializar tudo (descartada) | 4.939 ms |
+| **versão que ficou** | **~2.500 ms** |
+| **abertura com cache quente** | **36 ms** |
+
+**Conferência de que nenhum número mudou:** a conta velha e a nova foram rodadas no MESMO
+instante (mesma transação, mesmo snapshot) e deram **idênticas** nas 22 chaves numéricas
+(`today`, `week`, `month`, `total`, os seis `_cpu`/`_online`, `players_total`,
+`players_today`, `returning_players`, `returning_7d`, as seis de visita). A lista de
+usuários foi comparada item por item.
+
+**Brinde achado na conferência:** no 200º lugar da lista havia **quatro sessões empatadas**
+(209 jogos) com só 199 acima do corte — sem desempate o banco escolhia uma a esmo e a
+última linha da lista **trocava sozinha a cada abertura**. Isso já era assim antes. Agora
+tem desempate fixo (último jogo, depois sessão) e a lista parou de piscar.
+
+**Detalhe de segurança que quase passou:** recriar a função com `DROP` + `CREATE` faz o
+Postgres devolver o `EXECUTE` padrão pra `PUBLIC` — o `anon` apareceu no advisor. A trava
+de e-mail continuava valendo (quem não é o Diego leva `not authorized` na primeira linha),
+mas a permissão foi revogada de volta pro que era: `authenticated`, `postgres`,
+`service_role`. Fica de lição: **todo DROP+CREATE de função pede conferir o grant depois.**
+
+**Estado da entrega (as três pernas):**
+- 🗄️ **Banco: JÁ ESTÁ NO AR.** Migração aplicada, não depende de deploy. O painel já abre
+  rápido agora.
+- 💻 **Código:** só o botão 🔄 passando `p_fresh` (`admin.tsx`). Está no branch; sem ele o
+  painel funciona igual, só que o botão também aceita cache de até 2 min.
+- 📋 Cópia fiel da função no repo em **`supabase/esc_admin_dashboard.sql`** (conferida por
+  hash contra o banco), pra próxima sessão não ter que adivinhar.
+
+**Reverter:** o arquivo `supabase/esc_admin_dashboard.sql` guarda a versão nova; a antiga
+está no histórico de migrações do Supabase. O `git revert` do commit desfaz a perna do
+código.
+
+### Continua na fila (do mesmo raio-x, esperando o Diego mandar)
+- **2. Apagar 3 índices repetidos** — `room_players_room_user_unique` (cópia da chave
+  primária, na tabela mais escrita do online), `site_visits_created_idx` e
+  `game_plays_created_idx`. Barato e reversível.
+- **3. Tirar o "estou vivo" da sala de cima do entregador do realtime** — sozinho come ~22%
+  da CPU do banco (1,53 milhão de gravações que só carimbam a hora). **Mexe no coração do
+  online: só com OK do Diego, em commit separado e em dia sem sala grande.**
+- **Não mexer:** faxina de save (conferido: ZERO save órfão e ZERO parado há 90 dias — toda
+  carreira é de gente de verdade) e as 347 salas paradas (o Diego quer que a sala espere o
+  dono).
+
+## 14/09/2026 — 🃏 Léo Maringá entrou no baralho · ⏱️ Monte online caiu pra 15s
+
+**Pedido do Diego:** *"Coloque Leo Maringá no jogo, ele jogou no Maringá fc, coloque
+ano do auge categoria e nível tb… Outra coisa no monte de sobras nos modos online
+coloque tempo de 15s e não mais 20s"*.
+
+**1. A carta (`data.ts`, lote novo `L30_BR_MEI`).** Conferido antes de escrever, que é
+regra (não inventar quem a pessoa é):
+- Léo Maringá = Leonardo Augusto Drugovich Valente, meia, nascido em Maringá-PR em 1979.
+- **Auge = 2014**: capitão do Maringá FC na final do Campeonato Paranaense, com o clube
+  fundado havia só 4 anos — perdeu pro Londrina nos pênaltis (1-1 no tempo normal,
+  3×4 nas penalidades, 13/04/2014, no Willie Davids).
+- É o jogador **com mais jogos pelo Maringá FC**. Passou de 400 jogos como profissional,
+  com 64 gols; estreou no Racing Santander (Espanha) em 2000, emprestado ao Cerro Porteño
+  (Paraguai) em 2001, e ainda rodou Chile e Venezuela. Pendurou a chuteira aos 40.
+- **Categoria 🎯 BOM JOGADOR (fame 2), nível 62-80, posição MEI, clube "Maringá".**
+  Por quê: carreira longa e de verdade, com passagens fora, mas nunca foi estrela
+  nacional — então não dá craque (fame 4) nem "foi profissional" (fame 1). O fame 2 é
+  justamente o de faixa larga ("tem dias").
+- Escudo do Maringá sai sozinho (o `escudos.tsx` desenha por código a partir do nome),
+  então não tem arte faltando nem nada inventado.
+- Rodados os dois geradores, como manda a regra: `npm run paises` (1.465 cartas, nenhuma
+  sem seleção, nenhum nome repetido) e `npm run novidades` (1 entrou).
+
+**2. Monte de sobras: 20s → 15s** (`MONTE_MS` em `store.tsx`). Vale pros DOIS modos
+online (rápido e carreira), que é como o Diego sempre pediu — é um número só. Contra a
+máquina o Monte segue sem relógio. Histórico do número: 45s → 30s (02/09) → 20s (04/09)
+→ **15s (14/09)**. A tela já lê a constante (`MONTE_SECONDS`), então não sobrou nenhum
+"20s" escrito à mão em lugar nenhum.
+
+Novidade escrita pros dois idiomas. `npm run build` verde. **Reversível:** é um commit só,
+`git revert` devolve o tempo pra 20s e tira a carta.
+
+## 14/09/2026 — 🩺 RAIO-X DO BANCO (Diego mandou o painel: COMPUTE 99% / CPU 99% / DISK 32%)
+
+**Resposta curta: hoje o banco está calmo** (32 conexões, 3 trabalhando, fila ZERO,
+99,87% do que ele lê já está na memória). O pico de 100% do gráfico é **9–10/09** — é a
+noite do apagão de 08/09 23:50, **que já foi consertado** (commit `dba2853`, lista de salas
+lendo colunas magras `ls_*`). Prova nos números do banco: a consulta velha da lista custava
+**593 ms e ~10 mil blocos por chamada**; a nova custa **8,4 ms**. É 70× mais leve.
+
+**De onde vem o gasto (medido em `pg_stat_statements`, contado desde 28/08):**
+
+| o quê | fatia da CPU | detalhe |
+|---|---|---|
+| Entregador do online (realtime lendo cada gravação) | **42%** | 2,9 M leituras, 24 ms cada |
+| Lista de salas VELHA (já corrigida em 09/09) | 24% | 593 ms/chamada — não roda mais |
+| Salvar carreira na nuvem (`esc_pyramid_saves`) | 18% | 336 mil gravações, 87 ms cada |
+| Gravar a partida (`game_rooms.game_state`) | 5% | 633 mil |
+| Ler carreira da nuvem | 5% | 410 mil |
+
+Somando tudo: ~46 h de CPU em 17 dias, ou seja **~11% de um núcleo na média**. Não é
+aperto contínuo — são PICOS.
+
+**Os 4 pontos que ainda podem apertar (nenhum mexido ainda, só anotado):**
+
+1. 🫀 **O "estou vivo" da sala é mais da metade do trabalho do entregador.** São
+   **1,53 milhão** de gravações que só carimbam `updated_at` (sem nada do jogo). Elas são
+   baratíssimas de gravar (0,37 ms), **mas cada uma obriga o entregador do online a
+   reprocessar a sala** (24 ms) e a avisar todo mundo da sala à toa. Conta: ~22% de TODA a
+   CPU do banco é gasta anunciando batimento cardíaco. Caminho seguro: bater o coração em
+   tabela própria e magra (tipo `live_beats`), fora da publicação do realtime — a sala
+   continua sabendo quem está vivo, sem acordar o entregador. **Mexe no online: só com OK
+   do Diego e em commit isolado.**
+2. 🔴 **O Painel do Criador é a coisa mais pesada que existe aqui.** `esc_admin_dashboard`
+   custa **4,6 segundos e ~10 GB de leitura POR ABERTURA** (254 aberturas = 20 min de CPU).
+   Se o Diego abrir/atualizar o painel com sala grande rolando, ele pode engasgar a partida
+   dos outros. Caminho: guardar o resultado em cache de 1–2 min, igual já é feito com o
+   ranking.
+3. 💾 **`esc_pyramid_saves` = 923 MB de um banco de 1.468 MB** (63% do disco) com só 4.242
+   linhas. Cada carreira salva tem **181 KB na média e até 1,6 MB**; e cada save reescreve
+   o pacote inteiro. É o motivo do DISK 32% e do WAL gordo. Caminho: podar o que vai pra
+   nuvem (arquivo de carreiras antigas comprimido) e faxina de saves de contas que sumiram.
+4. 🧟 **375 salas com status "começou", 347 sem sinal de vida há mais de 1 hora.** A faxina
+   automática só passa depois de 2 dias e só na sala rápida. Não pesa CPU, mas incha o
+   `game_rooms` (89 MB) e polui a lista.
+
+**Tem risco pro online?** Sim, e é exatamente o mecanismo dos bugs que ele relata: quando a
+CPU trava, a gravação do host demora, o convidado não recebe, aparece **ENVIANDO** e o vigia
+acha que "o host caiu". Mas a causa conhecida desse tipo de pico (a lista de salas) já está
+consertada, e no dia de hoje a fila do banco está zerada. Os 4 pontos acima são para não
+voltar a acontecer quando o jogo crescer.
+
+⚠️ **Nada foi alterado no banco nem no código** — este bloco é só o diagnóstico. Qualquer
+uma das 4 mexidas entra separada e revertível.
+
 ## 14/09/2026 — 🎮 Copa no online: ritmo no TOPO + auto não pede mais botão — ✅ no ar
 
 Dois achados do Diego jogando AO VIVO na live do Meia na Canela (4,3 mil
@@ -75,6 +474,7 @@ inteira levaria o botão de voltar pro topo junto. Se ele reclamar, é o mesmo
 conserto, só separando o botão de voltar.
 
 Reverter: é um commit só, `git revert` volta o layout e o comportamento antigos.
+
 
 ## 14/09/2026 — 🌍 Copa do Mundo: Peru, Bélgica e Equador sem escudo — ✅ no ar
 
@@ -127,6 +527,211 @@ futebol e o do basquete verdes; build limpo. Commit isolado, cherry-pick só del
 aparecer "convidado preso" no aparelho dele; se o socorro rodar, vai aparecer `reassumiu`.
 
 ## 14/09/2026 — 🇧🇷 OS BRASILEIROS: 10 já estavam, faltavam 5 (e um erro na carta do Leandrinho)
+
+Pergunta do Diego: *"alguns brasileiros têm? Leandrinho… aquele com cabelo grandão, e o
+atual hoje que esqueci o nome"*.
+
+Traduzindo: **Leandrinho** (tinha), **o do cabelo grandão = Anderson Varejão** (tinha) e
+**o atual = Gui Santos**, do Golden State (NÃO tinha — agora tem).
+
+**Os 15 brasileiros do baralho agora:**
+
+| | quem | categoria |
+|---|---|---|
+| 🎯 bom jogador | Nenê · Anderson Varejão · Leandrinho · Tiago Splitter | 4 |
+| 🪵 foi profissional | Marcelinho Huertas · Bruno Caboclo · Raul Neto · Rafael Araújo · Lucas "Bebê" Nogueira · Cristiano Felício · **Alex Garcia** · **Didi Louzada** · **Vitor Faverani** · **Gui Santos** · **Rolando Ferreira** | 11 |
+
+Os cinco em **negrito** entraram agora (Lote 9). O **Gui Santos** é o que responde à
+pergunta dele: o brasileiro que está na NBA HOJE. O **Rolando Ferreira** entrou por ser um
+dos PRIMEIROS a chegar lá, nos anos 80 — abriu a porteira que o Nenê atravessou depois.
+
+🐞 **E achei um erro numa carta que JÁ EXISTIA:** a do Leandrinho dizia *"Sexto Homem do
+Ano, velocidade pura e anel em 2007"*. Errado — o prêmio de melhor sexto homem foi em 2007
+pelo Phoenix, mas o **anel dele veio em 2015, pelo Golden State**. Duas conquistas
+diferentes, com oito anos de distância, juntadas numa frase só. Corrigido. (É o tipo de
+coisa que a regra de 18/08 existe pra evitar: não inventar sobre gente de verdade — e
+juntar dois fatos verdadeiros num falso conta como inventar.)
+
+⚠️ Continua valendo: **Oscar Schmidt fica de fora** (recusou o draft, nunca jogou NBA),
+como o Diego decidiu em 26/07.
+
+Baralho: **427 → 432 cartas**.
+
+## 14/09/2026 — 👑🌍 LENDA VIROU RÉGUA NOVA, e entrou o lote de fora dos EUA
+
+Áudio do Diego (transcrito com ruído, mas o recado é claro): *"o Micah Donsit [Luka
+Dončić], que está agora inclusive nos Lakers… esse jogador é considerado uma lenda.
+Jason Tatum também é considerado lenda. Aquele jogador do Miwok [Milwaukee], moreno,
+forte [Giannis], também é considerado lenda. Esses jogadores top famosos também é
+considerado lenda. Além disso, outros jogadores que vieram da Europa, igual o Micah
+Donsit… mas jogaram NBA também."*
+
+**1) 👑 A RÉGUA DE LENDA ESTAVA ERRADA — e era erro MEU.** Eu tinha escrito nas pendências
+que *"lenda não cresce, não existem 75 lendas da NBA"*. O Diego está certo: **lenda não é
+só o veterano aposentado**, o astro de HOJE que todo mundo conhece também é. Pra não virar
+gosto de quem mexe no baralho, o critério ficou FACTUAL:
+
+> 👑 **LENDA = MVP da temporada, ou MVP das finais, ou nome de topo absoluto que o Diego
+> apontar.**
+
+Aplicando, o baralho foi de **30 para 51 lendas** — e olha só: isso dá **12,0%**, que é
+exatamente os **11,9%** do futebol. O buraco que eu jurava que não dava pra fechar era
+esse, e fechou sozinho quando a régua ficou certa.
+
+Subiram: **Luka Dončić** e **Jayson Tatum** (apontados por ele; o Giannis já era lenda), e
+os MVPs que estavam como craque — Barkley, Karl Malone, Garnett, Iverson, Nash, Derrick
+Rose, David Robinson, Harden, Westbrook, Embiid, Shai Gilgeous-Alexander, Bill Walton,
+Dave Cowens, Wes Unseld, Bob McAdoo e Willis Reed — mais Ewing, Pippen e Kawhi.
+
+**2) 🌍 LOTE 8: 22 cartas de fora dos EUA** (baralho **399 → 427**). O outro ponto do
+áudio. Entraram duas famílias:
+- **o estrangeiro que virou astro AQUI**: Kristaps Porziņģis (o Unicórnio), Lauri
+  Markkanen, Danilo Gallinari, Bojan Bogdanović, Bogdan Bogdanović, Jonas Valančiūnas,
+  Nicolas Batum, Mehmet Okur, Luis Scola, Nikola Mirotić, Evan Fournier, José Calderón,
+  Andrés Nocioni, Fabricio Oberto, Rudy Fernández, Ersan İlyasova, Dino Rađa e o famoso
+  mico italiano Andrea Bargnani;
+- **o REI DA EUROPA que passou de raspão pela NBA**: Šarūnas Jasikevičius, Miloš Teodosić,
+  Juan Carlos Navarro e Vasilije Micić. São famosos de verdade, mas o auge não foi aqui —
+  então entram como 🎯 bom jogador, e isso é fiel à história deles.
+
+Continua valendo a trava de 26/07: **quem NUNCA vestiu uma franquia NBA fica de fora**
+(Oscar Schmidt segue fora).
+
+**3) 🐞 Dois consertos de dados que o teste pegou:**
+- o **Anthony Edwards** estava com o clube escrito `Wolves` enquanto o resto do baralho usa
+  `Timberwolves` — e o clube faz parte da CHAVE da carta (nome|franquia|ano), então dois
+  jeitos de escrever é encrenca na certa. Padronizado.
+- a trava "toda carta é de franquia NBA" não conhecia **Braves** (Buffalo, viraram
+  Clippers) nem **Bobcats** (Charlotte, viraram Hornets). São franquias de verdade;
+  a lista foi ampliada com o porquê anotado.
+
+🔁 **E a armadilha das ASPAS, de novo.** Metade das promoções a lenda não pegou na primeira
+tentativa porque meu `sed`/regex só casava aspas DUPLAS, e as cartas do Lote 1 usam aspas
+SIMPLES. Some isso com a armadilha do apóstrofo (De'Aaron, Amar'e, O'Neal) e a lição é uma
+só: **pra mexer no baralho, IMPORTE o arquivo e trabalhe no objeto — não leia por texto.**
+
+⏭️ **Falta** pro alvo de 630: craque +71 · bom +72 · foi prof +29 · promessa +13.
+
+## 14/09/2026 — 🃏 BARALHO: LOTE 7, preenchendo o buraco POR CATEGORIA E POR POSIÇÃO
+
+Correção do Diego: *"não é só bom jogador que é pra botar. Tem que ver quais categorias
+que precisam mais e coloca. Não importa se é bom jogador — tem que botar as que precisam
+mais, e as posições que precisam mais"*. Ele está certo: eu tinha estreitado a conta pro
+pool de "bom jogador" (o gargalo dos bots) e esquecido que craque, foi profissional e
+promessa também estavam abaixo da régua do futebol.
+
+**Medido por posição × categoria** (`npx tsx scripts/mede-baralho-basquete.mjs`) e
+preenchido pelos maiores buracos, nas CINCO categorias:
+
+**Lote 7 — 74 cartas** (baralho **330 → 399**):
+
+| posição | craque | bom | foi prof. | promessa | total |
+|---|---|---|---|---|---|
+| PG | 4 | 8 | 2 | 1 | 15 |
+| SG | 3 | 9 | 3 | — | 15 |
+| SF | 5 | 6 | 4 | — | 15 |
+| PF | 5 | 9 | 2 | — | 16 |
+| C | 5 | 7 | 2 | — | 14 |
+
+Nomes como Karl-Anthony Towns, LaMarcus Aldridge, Tyson Chandler, Joakim Noah, Jason
+Terry, Glenn Robinson, Serge Ibaka e Paul Millsap (craque); Derek Fisher, Udonis Haslem,
+Mike Miller, Buck Williams e Kevin Willis (bom); e os famosos-ruins que o Diego pediu:
+**Jonny Flynn** (escolhido na frente do Curry), **Nik Stauskas** ("Sauce Castillo"),
+**Wesley Johnson**, **Derrick Williams**, **Jerome James** e **Chris Dudley**.
+
+**📈 O que melhorou (pool de bom jogador na NBA, o andar mais pesado):**
+
+| | antes | agora | régua do futebol |
+|---|---|---|---|
+| pior posição | 1,3× | **1,7×** | 2,7× |
+| melhor posição | 1,8× | **2,0×** | 8,0× |
+
+Street League e G League **já passaram** da régua. Falta fechar a NBA.
+
+⏭️ **Ainda faltam ~186 cartas** pro alvo de 630: craque +52 · bom +92 · foi prof +29 ·
+promessa +13. Dá mais 2 ou 3 lotes deste tamanho, e o Hall da Fama é a fonte (entrando
+sobretudo como craque e bom, não como lenda).
+
+🐞 **Erros MEUS pegos e corrigidos antes de commitar** (regra de 18/08, não inventar sobre
+gente de verdade):
+- o ano da noite dos 7 triplos do **Mike Miller** (foi na final de 2012, não 2013);
+- o **Harrison Barnes** foi campeão em 2015; o time dos 73 triunfos é 2016 e PERDEU a
+  final — eu tinha juntado as duas coisas numa frase só;
+- o **Josh Jackson** foi escolhido DEPOIS do Tatum, não na frente dele (trocado por
+  Donovan Mitchell e Bam Adebayo, que vieram mesmo depois).
+
+🔍 **E uma armadilha que vale pra qualquer sessão:** eu caçava carta repetida com um script
+de fora que lia o arquivo por REGEX — e ele **quebrava em nome com apóstrofo**
+(`De'Aaron`, `Amar'e`, `O'Neal`), lendo "De" e deixando passar. Duplicei o **De'Aaron Fox**
+e só o TESTE pegou, porque o teste importa o baralho de verdade. A conferência agora mora
+em `testa-basquete-online.mjs` e está comentada lá. (O Fox aproveitou e subiu pra craque:
+All-Star e melhor no minuto final — o `sincronizaNiveis` leva a ficha nova pros saves.)
+
+## 14/09/2026 — 📏 BARALHO DO BASQUETE: a conta de OFERTA E DEMANDA (medida, e CORRIGIDA)
+
+Pergunta do Diego: *"com base nas quantidades de categorias que temos de cartas, quais
+estão precisando encher mais pra bater a % que precisamos pra funcionar oferta e demanda
+no leilão, igual já funciona no futebol?"* — e, logo depois, o reparo dele: *"temos que
+entender que no carreira precisamos que TODOS os times estejam completos, então temos que
+ver a quantidade também. Porque tem a liga da NBA, antes dela a G League e antes da
+G League a Street League, que iremos ter também"*.
+
+Script: `npx tsx scripts/mede-baralho-basquete.mjs` (lê os DOIS baralhos de verdade).
+
+**1) A MISTURA JÁ ESTÁ CERTA.** Futebol 11,9 / 26,2 / 44,9 / 12,6 / 4,4 contra basquete
+9,1 / 27,3 / 47,0 / 11,8 / 4,8 (lenda / craque / bom / foi profissional / promessa). O
+lote de 60 cartas de hoje já tapou o buraco do "famoso ruim".
+
+**2) ⚠️ CORREÇÃO DA MINHA PRIMEIRA CONTA (estava inflada).** Eu somei 20 times × 15
+jogadores = 300 vagas. **Errado:** o bot do basquete fica no QUINTETO (1 por posição),
+exatamente como o bot do futebol fica no XI de 11 — `slotsOf` devolve o quinteto pra quem
+não tem `nbaSlots`, e só VOCÊ cresce (5 → 10 → 15). Então "todos os times completos" no
+basquete já acontece hoje, e "completo" quer dizer o quinteto, igual no futebol quer dizer
+o XI.
+
+**3) O ANDAR QUE MANDA É A NBA (30 times)** — o Diego está certo em olhar por andar.
+Street 20 · G League 24 · NBA 30, e a demanda é a do maior. E o gargalo de verdade NÃO é
+o número total de cartas: é o pool de **BOM JOGADOR (fame 2-3)**, porque **76% dos bots
+são "médios"** e é só desse pool que eles se servem (`makeBotSquad`).
+
+| bom jogador por posição | ⚽ futebol (régua) | 🏀 hoje, na NBA (23 times médios) |
+|---|---|---|
+| pior posição | **2,7×** (GOL) | **1,3×** (PF e C) |
+| melhor posição | 8,0× (ATA) | 1,8× (SF) |
+
+Todas as cinco posições do basquete estão abaixo do PIOR caso do futebol.
+
+**4) O ALVO, corrigido:** ~**62 cartas de BOM JOGADOR por posição** (23 times médios ×
+2,7 = a folga do goleiro no futebol). Hoje: PF 30 · C 31 · SG 33 · PG 36 · SF 41.
+
+| prioridade | posição | bom jogador tem | precisa | faltam |
+|---|---|---|---|---|
+| 1º | PF | 30 | 62 | **+32** |
+| 2º | C | 31 | 62 | **+31** |
+| 3º | SG | 33 | 62 | **+29** |
+| 4º | PG | 36 | 62 | **+26** |
+| 5º | SF | 41 | 62 | **+21** |
+
+**~+140 cartas de bom jogador**, e com a mistura mantida isso leva o baralho de 330 pra
+perto de **630-680**. (Bate com a primeira conta por outro caminho — o número estava
+certo, o motivo é que estava errado.)
+
+**5) 🏛️ SOBRE O HALL DA FAMA (dúvida do Diego: *"mas não tem muitos no hall da fama? Mas
+não quer dizer que são consideradas lendas né?"*) — a intuição dele está CERTA.**
+- O Hall da Fama tem centenas de nomes, mas a lista inclui **treinador, árbitro,
+  dirigente, time inteiro, basquete feminino e figura internacional**. Só uma parte é
+  jogador de NBA.
+- E **Hall da Fama ≠ 👑 lenda no nosso jogo.** Lenda aqui é o topo (~12% no futebol), o
+  cara que qualquer um reconhece de primeira. A maioria dos Hall da Fama entra como
+  **⭐ craque**, e vários como **🎯 bom jogador**.
+- 🎯 **E é exatamente por isso que ele serve:** o Hall da Fama é uma lista PRONTA,
+  pública e conferível de gente famosa de verdade — justo pra encher craque e bom
+  jogador, que é o buraco medido acima. Sem inventar ninguém.
+- 👑 **Lenda cresce pouco:** de 30 pra uns 40-45 (os gigantes de consenso). Não existem 75
+  lendas da NBA, e forçar isso seria mentir sobre gente de verdade (regra de 18/08).
+
+⏭️ **Plano:** ~2 a 3 lotes de 60, começando por **PF e C**, puxados do Hall da Fama e
+entrando sobretudo como bom jogador e craque. Aguardando o Diego dizer se sigo.
 
 Diego: *"tem três países que não está aparecendo o escudo. Peru, Bélgica e
 Ecuador… está sem escudo, sem a logo"*. Causa: `national-crest.tsx` aponta pra

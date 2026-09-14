@@ -27,6 +27,8 @@ import novaEclipseMascoteImg from './img/novaeclipse-mascote.webp' // 🌑 Nova 
 import sistematizadosMascoteImg from './img/sistematizados-mascote.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
 import brigaDeGaloMascoteImg from './img/brigadegalo-mascote.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import saoMarcosAntonioMascoteImg from './img/saomarcosantonio-mascote.webp' // 😇🐷 São Marcos Antônio FC (marcomak03): arte própria do dono, 13/09
+import interMadridMascoteImg from './img/internacional-madrid-mascote.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
+import interBailaoMascoteImg from './img/inter-bailao-mascote.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
 import soDeusSabeMascoteImg from './img/sodeussabe-mascote.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
@@ -568,6 +570,18 @@ export const MASCOTES: Record<string, ReactNode> = {
   saomarcos_porco: (
     <img src={saoMarcosAntonioMascoteImg} height={176} width={Math.round(176 * 297 / 440)} alt="Marcos — São Marcos Antônio FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 👑 O Siuuu — Internacional de Madrid (matheusstefanello372, 14/09). 364x440 no
+  // arquivo, então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  // A chave é `internacional_siuuu` porque já está gravada no banco (esc_socios.mascote_key).
+  internacional_siuuu: (
+    <img src={interMadridMascoteImg} height={176} width={Math.round(176 * 364 / 440)} alt="O Siuuu — Internacional de Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🪩 O Bailão — Inter de Bailão (matheus223lms, 14/09). 232x440 no arquivo, então a
+  // largura sai da PROPORÇÃO REAL (nunca width={size} chutado). A bola de espelho de
+  // chapéu-bucket e corrente de ouro, com o pé na bola.
+  bailao_espelho: (
+    <img src={interBailaoMascoteImg} height={176} width={Math.round(176 * 232 / 440)} alt="O Bailão — Inter de Bailão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🌑 O Eclipse — Nova Eclipse FC (jh9415474, 07/09). 245x440 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
   novaeclipse_eclipse: (
@@ -809,7 +823,16 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Manfré EC': 'manfre_gralha',
   'Manfre FC': 'manfre_gralha',
   'Livre-pool': 'manfre_gralha',
-  'Alfacehh': 'alface',
+  // 🪩 Inter de Bailão (matheus223lms) — renomeado em 14/09 (era Alfacehh). O nome
+  // VELHO fica apontando pra mascote NOVA: quem tem save antigo não perde o carimbo.
+  'Inter de Bailão': 'bailao_espelho',
+  'Inter de Bailão FC': 'bailao_espelho',
+  'Inter de Bailão EC': 'bailao_espelho',
+  'Inter de Bailão SC': 'bailao_espelho',
+  'INTER DE BAILÃO': 'bailao_espelho',
+  'Alfacehh': 'bailao_espelho',
+  'Alfacehh FC': 'bailao_espelho',
+  'Alfacehh EC': 'bailao_espelho',
   'Leão da Estradinha': 'leao_estradinha', // 🦁 o leão carimba o placar (rebatismo 23/08)
   'Leão da Estradinha FC': 'leao_estradinha',
   'Leão da Estradinha EC': 'leao_estradinha',
@@ -946,6 +969,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'São Marcos Antônio EC': 'saomarcos_porco',
   'São Marcos Antônio SC': 'saomarcos_porco',
   'SÃO MARCOS ANTÔNIO FC': 'saomarcos_porco',
+  // 👑 Internacional de Madrid — as 4 formas do nome, a CAIXA ALTA e o nome VELHO
+  // (Adão Esporte), pra save antigo não abrir sem mascote (14/09)
+  'Internacional de Madrid': 'internacional_siuuu',
+  'Internacional de Madrid FC': 'internacional_siuuu',
+  'Internacional de Madrid EC': 'internacional_siuuu',
+  'Internacional de Madrid SC': 'internacional_siuuu',
+  'INTERNACIONAL DE MADRID': 'internacional_siuuu',
+  'Adão Esporte': 'internacional_siuuu',
   'BRIGA DE GALO': 'brigadegalo_galo',
   // 🔊 Bonança SSFC — as formas do nome, a CAIXA ALTA e os nomes velhos
   'Bonança SSFC': 'bonanca_selecta',
@@ -1052,6 +1083,8 @@ export const MASCOTE_NOME: Record<string, string> = {
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  bailao_espelho: 'O Bailão', // 🪩 Inter de Bailão (matheus223lms, 14/09) — a bola de espelho. ⚠️ a chave antiga era `alface`; o banco (esc_socios.mascote_key) foi atualizado junto.
+  internacional_siuuu: 'O Siuuu', // 👑 Internacional de Madrid (matheusstefanello372, 14/09) — o grito coroado é a marca do clube. A chave fica `internacional_siuuu` porque já está gravada no banco (esc_socios.mascote_key).
   saomarcos_porco: 'Marcos', // 😇 São Marcos Antônio FC (marcomak03, 13/09) — a mascote é o próprio Marcos, o goleiro de auréola (palavras do Diego: "Mascote do São Marcos é o Marcos mesmo"); o porquinho vai junto na arte. A chave fica `saomarcos_porco` porque já está gravada no banco (esc_socios.mascote_key).
   sistematizados_streamer: 'O Sistematizado', // 🎮 Sistematizados FC (gaancaxd, 07/09) — a caricatura do streamer, com headset e controle. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   novaeclipse_eclipse: 'O Eclipse', // 🌑 Nova Eclipse FC (jh9415474, 07/09) — o jogador encapuzado com o eclipse no lugar do rosto. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono

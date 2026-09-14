@@ -36,6 +36,8 @@ import novaEclipseEscudoImg from './img/novaeclipse-escudo.webp' // 🌑 Nova Ec
 import sistematizadosEscudoImg from './img/sistematizados-escudo.webp' // 🎮 Sistematizados FC (gaancaxd): arte própria do dono, 07/09
 import brigaDeGaloEscudoImg from './img/brigadegalo-escudo.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import saoMarcosAntonioEscudoImg from './img/saomarcosantonio-escudo.webp' // 😇🐷 São Marcos Antônio FC (marcomak03): arte própria do dono, 13/09
+import interMadridEscudoImg from './img/internacional-madrid-escudo.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
+import interBailaoEscudoImg from './img/inter-bailao-escudo.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
 import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
@@ -612,6 +614,18 @@ const brigaDeGaloEscudoRender = (size: number) => (
 const saoMarcosAntonioEscudoRender = (size: number) => (
   <img src={saoMarcosAntonioEscudoImg} height={size} width={Math.round(size * 248 / 360)} alt="São Marcos Antônio FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 👑 Internacional de Madrid — 282x360 no arquivo, então a largura sai da PROPORÇÃO
+// REAL (nunca width={size} chutado). Arte do dono (matheusstefanello372, 14/09): o
+// escudo redondo vermelho com a coroa em cima, o monograma SCI e "1909".
+const interMadridEscudoRender = (size: number) => (
+  <img src={interMadridEscudoImg} height={size} width={Math.round(size * 282 / 360)} alt="Internacional de Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🪩 Inter de Bailão — 313x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (matheus223lms, 14/09): escudo redondo
+// azul e preto com as caixas de som, o monograma IDB coroado e a estrela em cima.
+const interBailaoEscudoRender = (size: number) => (
+  <img src={interBailaoEscudoImg} height={size} width={Math.round(size * 313 / 360)} alt="Inter de Bailão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🔊 Bonança SSFC — 305x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (duselecta, 09/09): escudo redondo
 // com o paredão de caixas de som, coroa e as bandeirinhas da Jamaica.
@@ -911,6 +925,24 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'São Marcos Antônio': saoMarcosAntonioEscudoRender,
   'São Marcos Antônio EC': saoMarcosAntonioEscudoRender,
   'São Marcos Antônio SC': saoMarcosAntonioEscudoRender,
+  // 👑 Internacional de Madrid (matheusstefanello372) — batismo de 14/09, Série C, no
+  // assento que era do bot Adão Esporte, que foi RENOMEADO (é o padrão da Série C).
+  // As 4 formas do nome + o nome VELHO, pra save antigo não ficar sem escudo.
+  'Internacional de Madrid': interMadridEscudoRender,
+  'Internacional de Madrid FC': interMadridEscudoRender,
+  'Internacional de Madrid EC': interMadridEscudoRender,
+  'Internacional de Madrid SC': interMadridEscudoRender,
+  'Adão Esporte': interMadridEscudoRender,
+  // 🪩 Inter de Bailão (matheus223lms) — RENOMEAÇÃO de 14/09: era Alfacehh, que por sua
+  // vez era o bot Athletico do Porto. As 4 formas do nome NOVO + as do nome VELHO, pra
+  // save antigo (e quem ainda chama de Alfacehh) continuar vendo o escudo.
+  'Inter de Bailão': interBailaoEscudoRender,
+  'Inter de Bailão FC': interBailaoEscudoRender,
+  'Inter de Bailão EC': interBailaoEscudoRender,
+  'Inter de Bailão SC': interBailaoEscudoRender,
+  'Alfacehh': interBailaoEscudoRender,
+  'Alfacehh FC': interBailaoEscudoRender,
+  'Alfacehh EC': interBailaoEscudoRender,
   // 🔊 Bonança SSFC (duselecta) — Série C, no assento que era do bot Torta de Rã
   // (09/09). As formas do nome + o nome velho e o mais velho ainda (Fogaréu EC),
   // pra save antigo não ficar sem escudo. ⚠️ `chaveEscudo` corta FC/EC/SC do fim,
