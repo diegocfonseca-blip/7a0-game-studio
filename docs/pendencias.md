@@ -1,3 +1,58 @@
+## 14/09/2026 — 📏 BARALHO DO BASQUETE: a conta de OFERTA E DEMANDA (medida, não chutada)
+
+Pergunta do Diego: *"com base nas quantidades de categorias que temos de cartas,
+quais estão precisando encher mais pra bater a % que precisamos pra funcionar oferta e
+demanda no leilão, igual já funciona no futebol?"*
+
+**1) A MISTURA JÁ ESTÁ CERTA — não é por aí.** Medindo os dois baralhos:
+
+| | lenda | craque | bom | foi prof. | promessa |
+|---|---|---|---|---|---|
+| ⚽ futebol (BR+EU, 1286 cartas) | 11,9% | 26,2% | 44,9% | 12,6% | 4,4% |
+| 🏀 basquete (330 cartas) | 9,1% | 27,3% | 47,0% | 11,8% | 4,8% |
+
+Praticamente idênticos. O lote de 14/09 já corrigiu o buraco do "famoso ruim".
+
+**2) O QUE FALTA É VOLUME — e só dói quando o ELENCO CRESCE.** A régua de verdade é
+*quantas cartas existem por VAGA* numa sala de 20 times:
+
+| | cartas por vaga |
+|---|---|
+| ⚽ futebol, baralho BR, XI de 11 | **2,1× a 3,8×** |
+| 🏀 basquete, RÁPIDO (quinteto de 5) | **3,1× a 3,5×** ✅ igual ao futebol |
+| 🏀 basquete, CARREIRA (rotação de 10) | **1,6× a 1,8×** ⚠️ abaixo do piso do futebol |
+| 🏀 basquete, ELENCO CHEIO (15) | **1,0× a 1,2×** 🚨 |
+
+🚨 **O 15 é o problema de verdade, e é problema de SEGURANÇA, não de gosto.** 20 times ×
+15 jogadores = **300 vagas** pra um baralho de **330 cartas**: o baralho é consumido
+inteiro, não sobra escolha no pregão e — pior — o tampa-buraco **"Pickup"**
+(`fillerCard`, o perna-de-pau do basquete) começa a entrar em elenco. É exatamente o que o
+Diego não quer.
+
+**3) O ALVO: 126 cartas por posição (630 no total)** — que dá 2,1× por vaga no elenco de
+15, a folga mais APERTADA que o futebol tem hoje. Faltam **~300 cartas**, assim:
+
+| posição | tem | faltam | craque | bom | foi prof. | promessa |
+|---|---|---|---|---|---|---|
+| PG | 68 | 58 | +14 | +25 | +9 | +2 |
+| SG | 66 | 60 | +10 | +26 | +11 | +4 |
+| SF | 64 | 62 | +19 | +20 | +13 | +2 |
+| PF | 62 | 64 | +15 | +30 | +7 | +3 |
+| C | 70 | 56 | +17 | +29 | +1 | +3 |
+| **soma** | | **~300** | **+75** | **+130** | **+41** | **+14** |
+
+Está parelho entre as posições (62 a 70), então cresce por igual — PF e SF primeiro, que
+são as mais magras.
+
+⚠️ **LENDA NÃO CRESCE, e isso é de propósito.** Hoje são 30. Pra manter 11,9% num baralho
+de 630 seriam 75 lendas — **não existem 75 lendas da NBA**. Inventar lenda seria mentir
+sobre gente de verdade (regra do Diego 18/08). Então o baralho engorda em **bom jogador,
+craque e foi profissional**, e a fatia de lenda cai sozinha. Fica MAIS honesto: lenda vira
+carta rara de verdade.
+
+⏭️ **Plano:** 5 lotes de ~60 cartas (do mesmo tamanho do de 14/09) chegam nas 630.
+Aguardando o Diego dizer se sigo.
+
 ## 14/09/2026 — 🏀 BIDLEGENDS: ONLINE NO AR (rápido + Minhas ligas) e as regras de basquete no mata-mata
 
 Pedido do Diego: *"comece a fazer o basquete tudo que falta… igual ao futebol, porém
