@@ -1,3 +1,39 @@
+## 14/09/2026 — 🎮 Copa no online: ritmo no TOPO + auto não pede mais botão — ✅ no ar
+
+Dois achados do Diego jogando AO VIVO na live do Meia na Canela (4,3 mil
+seguidores assistindo), na Libertadores da carreira online.
+
+1. 📍 **A barra de manual/auto estava no FIM da página.** Na liga ela sempre
+   ficou logo no começo da tela; na Copa era desenhada só DEPOIS da arte da fase,
+   do seu confronto, da tática e dos 8 confrontos. Palavras dele: *"esse botão de
+   manual e auto ficou ruim lá embaixo nas copas do online, tem q ficar em cima tb
+   igual tava na liga"*. Na live ele teve que rolar a tela inteira pra achar.
+   👉 Agora o bloco de ritmo (velocidade + manual/auto + próximo/pular) é montado
+   no TOPO quando a Copa está rolando. É a MESMA peça, só mudou de lugar, e quem
+   vê o quê não mudou (velocidade só pra quem está no manual, botões só pra quem
+   conduz). Vale pra **Copa dos 8 e Libertadores** (mesmo código).
+   `scripts/mockup-ritmo-copa-topo.mjs` tem o antes × depois.
+
+2. 🤖 **No AUTOMÁTICO a Copa parava pedindo "Iniciar as oitavas".** A sala de
+   STREAM era exceção: ela segurava a PRIMEIRA perna do mata-mata até o host
+   apertar, mesmo com o ritmo no auto — e as fases seguintes viravam sozinhas, o
+   que fazia o botão aparecer uma vez só e parecer bug. Palavras dele: *"estava em
+   modo auto. E qd chegou nas oitavas teve q apertar um botão de iniciar. Tinha q
+   tá no auto tb já q tava auto.. pq isso confunde"*.
+   👉 Agora quem segura é só o MANUAL. No manual o host começa no botão (em
+   qualquer sala, stream ou não); no auto conta os 10s de leitura do chaveamento e
+   entra sozinha. O aviso da tela acompanha: no auto todo mundo vê a contagem, no
+   manual quem não conduz lê "o host começa quando quiser".
+   A flag `streamRoom` da tela da sala saiu — não sobrou ninguém usando.
+
+⚠️ **Fora do pacote:** a tela da **Copa do Mundo** (`copa-mundo.tsx`) tem os
+controles dela numa seção própria, também no fim da página, junto do "VOLTAR À
+SALA". Não mexi porque o Diego mostrou a Libertadores e mover aquela seção
+inteira levaria o botão de voltar pro topo junto. Se ele reclamar, é o mesmo
+conserto, só separando o botão de voltar.
+
+Reverter: é um commit só, `git revert` volta o layout e o comportamento antigos.
+
 ## 14/09/2026 — 🌍 Copa do Mundo: Peru, Bélgica e Equador sem escudo — ✅ no ar
 
 Diego: *"tem três países que não está aparecendo o escudo. Peru, Bélgica e
