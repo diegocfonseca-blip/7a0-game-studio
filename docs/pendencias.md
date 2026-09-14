@@ -1,24 +1,57 @@
-## 14/09/2026 — 🌍 Copa do Mundo: Peru, Bélgica e Equador sem escudo — ⏳ no branch, ESPERANDO OK do Diego
+## 14/09/2026 — 🌍 Copa do Mundo: Peru, Bélgica e Equador sem escudo — ✅ no ar
 
 Diego: *"tem três países que não está aparecendo o escudo. Peru, Bélgica e
 Ecuador… está sem escudo, sem a logo"*. Causa: `national-crest.tsx` aponta pra
 `img/nations-v25/peru.webp`, `belgium.webp` e `ecuador.webp` e os **três arquivos
-nunca existiram** (a pasta veio com 21 escudos oficiais em 08/09; nigeria/sweden/
-switzerland são arquivos quebrados de 1 linha, mas ninguém aponta pra eles).
-Sem arquivo o componente cai no texto puro — isso só aparece na prévia V25
-(`privateVisual`, contas do Diego); o público vê bandeira-emoji.
+nunca existiram** (a pasta nasceu em 08/09 com 21 escudos). Sem arquivo, o
+componente cai no nome em texto puro. Só aparece na prévia V25 (`privateVisual`,
+contas do Diego); o público vê a bandeira-emoji.
 
-**O que fiz:** NÃO achei o escudo oficial das três federações em fonte aberta
-que este ambiente alcance (só GitHub passa no proxy; os repositórios de escudos
-abertos têm bandeira, não o escudo da FPF/RBFA/FEF). Pela regra *"não inventar
-como uma coisa real é"*, gerei **peça NEUTRA**: escudo com as cores da bandeira +
-sigla (PER/BEL/ECU), 128px de altura igual aos oficiais, ~2 KB cada, contorno
-preto do jogo. Gerador: `scripts/gera-escudo-neutro-selecao.mjs` (`--mockup`
-monta o lado a lado com os oficiais). Mockup mandado pro Diego.
+**Como resolveu:** eu não alcanço escudo de federação daqui (o proxy só deixa
+GitHub, e os acervos abertos de lá têm bandeira, não o escudo da FPF/RBFA/FEF).
+Cheguei a gerar peça neutra (cores da bandeira + sigla) e o Diego cortou na hora:
+*"os escudos que eu estava colocando era da federação, não era escudo da
+bandeira"*. Ele mandou os três oficiais e eles entraram — a peça neutra foi
+descartada junto com o gerador dela.
 
-**Falta:** OK do Diego pra subir na main. Quando ele mandar os três escudos
-oficiais, é só trocar o `.webp` (360px máx / ≤ 30 KB / alfa recortado) — código
-não muda. Reverter: `git revert` do commit, volta ao texto.
+📌 **Regra que fica: escudo de seleção é o da FEDERAÇÃO** (FPF, RBFA, FEF, CBF,
+AFA…), nunca bandeira nem brasão desenhado por cima do nome. Se faltar arte,
+pedir pro Diego — ele tem.
+
+🔧 **`scripts/escudo-selecao.mjs`** (novo) faz o serviço: recorta no limite REAL
+do desenho (corte de alfa ≥ 40 e mínimo de 3 pixels na linha/coluna, porque o
+bbox cru mente), apaga a poeira de alfa, deixa 128px de altura igual aos outros
+21 e salva `.webp` avisando o peso. Com `--mockup` monta a conferência sobre o
+CREME, nos tamanhos reais da Copa (58 · 25 · 20). Uso:
+`node scripts/escudo-selecao.mjs --mockup peru /caminho/fpf.png`.
+A Bélgica provou pra que serve: o arquivo que ele mandou tinha **71% de moldura
+vazia** — sem o recorte, o escudo apareceria minúsculo do lado dos outros.
+
+Peso: peru 3,7 KB · belgium 4,3 KB · ecuador 5,0 KB (teto de escudo é 30 KB).
+
+📐 **E o ENCAIXE da Bélgica** (ele pegou no mesmo dia: *"o escudo da Bélgica está
+desproporcional, está muito pequeno em relação aos outros"*). Não era recorte: o
+`NationalCrest` encaixa TODO escudo num QUADRADO, e o da Bélgica é o mais
+estreito da pasta (65×128 = proporção 0,51, por causa da coroa em cima e dos
+ramos embaixo), então ocupava metade da largura dos vizinhos. Entrou o mapa
+`ESCALA` em `national-crest.tsx` (só `belgium: 1.25`): o escudo cresce e passa um
+pouco do quadrado, mas a MOLDURA continua do tamanho fixo — nenhuma linha do
+jogo se mexe, e o slot grande tem folga (76px de altura pra 72,5px de escudo).
+A arte oficial não foi tocada. `scripts/mockup-encaixe-belgica.mjs` compara
+1,00 / 1,15 / 1,25 / 1,35 se um dia precisar reaferir.
+
+⚠️ **França e Alemanha são as próximas da fila** (medido: tinta na tela 2949 e
+2951 contra mediana 5909 — menos que a Bélgica antes do conserto, 3607). São
+escudos de traço fino (galo e águia), então "somem" mais que encolhem. O Diego
+não reclamou; se reclamar, é a mesma linha no `ESCALA`.
+
+Reverter: `git revert` do commit, volta ao nome em texto.
+
+⚠️ **Sobra na pasta:** `nigeria.webp`, `sweden.webp` e `switzerland.webp` são
+arquivos quebrados de 1 linha que vieram em 08/09. Ninguém aponta pra eles no
+`national-crest.tsx`, então não quebram nada — mas se um dia entrar Nigéria,
+Suécia ou Suíça na Copa, **a arte tem que ser refeita**, esses arquivos não
+prestam.
 
 ## 14/09/2026 — 🧹 Aba ELENCO enxuta — ✅ no ar (mockup aprovado)
 
