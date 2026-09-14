@@ -1,3 +1,58 @@
+## 14/09/2026 — 🃏 BARALHO: LOTE 7, preenchendo o buraco POR CATEGORIA E POR POSIÇÃO
+
+Correção do Diego: *"não é só bom jogador que é pra botar. Tem que ver quais categorias
+que precisam mais e coloca. Não importa se é bom jogador — tem que botar as que precisam
+mais, e as posições que precisam mais"*. Ele está certo: eu tinha estreitado a conta pro
+pool de "bom jogador" (o gargalo dos bots) e esquecido que craque, foi profissional e
+promessa também estavam abaixo da régua do futebol.
+
+**Medido por posição × categoria** (`npx tsx scripts/mede-baralho-basquete.mjs`) e
+preenchido pelos maiores buracos, nas CINCO categorias:
+
+**Lote 7 — 74 cartas** (baralho **330 → 399**):
+
+| posição | craque | bom | foi prof. | promessa | total |
+|---|---|---|---|---|---|
+| PG | 4 | 8 | 2 | 1 | 15 |
+| SG | 3 | 9 | 3 | — | 15 |
+| SF | 5 | 6 | 4 | — | 15 |
+| PF | 5 | 9 | 2 | — | 16 |
+| C | 5 | 7 | 2 | — | 14 |
+
+Nomes como Karl-Anthony Towns, LaMarcus Aldridge, Tyson Chandler, Joakim Noah, Jason
+Terry, Glenn Robinson, Serge Ibaka e Paul Millsap (craque); Derek Fisher, Udonis Haslem,
+Mike Miller, Buck Williams e Kevin Willis (bom); e os famosos-ruins que o Diego pediu:
+**Jonny Flynn** (escolhido na frente do Curry), **Nik Stauskas** ("Sauce Castillo"),
+**Wesley Johnson**, **Derrick Williams**, **Jerome James** e **Chris Dudley**.
+
+**📈 O que melhorou (pool de bom jogador na NBA, o andar mais pesado):**
+
+| | antes | agora | régua do futebol |
+|---|---|---|---|
+| pior posição | 1,3× | **1,7×** | 2,7× |
+| melhor posição | 1,8× | **2,0×** | 8,0× |
+
+Street League e G League **já passaram** da régua. Falta fechar a NBA.
+
+⏭️ **Ainda faltam ~186 cartas** pro alvo de 630: craque +52 · bom +92 · foi prof +29 ·
+promessa +13. Dá mais 2 ou 3 lotes deste tamanho, e o Hall da Fama é a fonte (entrando
+sobretudo como craque e bom, não como lenda).
+
+🐞 **Erros MEUS pegos e corrigidos antes de commitar** (regra de 18/08, não inventar sobre
+gente de verdade):
+- o ano da noite dos 7 triplos do **Mike Miller** (foi na final de 2012, não 2013);
+- o **Harrison Barnes** foi campeão em 2015; o time dos 73 triunfos é 2016 e PERDEU a
+  final — eu tinha juntado as duas coisas numa frase só;
+- o **Josh Jackson** foi escolhido DEPOIS do Tatum, não na frente dele (trocado por
+  Donovan Mitchell e Bam Adebayo, que vieram mesmo depois).
+
+🔍 **E uma armadilha que vale pra qualquer sessão:** eu caçava carta repetida com um script
+de fora que lia o arquivo por REGEX — e ele **quebrava em nome com apóstrofo**
+(`De'Aaron`, `Amar'e`, `O'Neal`), lendo "De" e deixando passar. Duplicei o **De'Aaron Fox**
+e só o TESTE pegou, porque o teste importa o baralho de verdade. A conferência agora mora
+em `testa-basquete-online.mjs` e está comentada lá. (O Fox aproveitou e subiu pra craque:
+All-Star e melhor no minuto final — o `sincronizaNiveis` leva a ficha nova pros saves.)
+
 ## 14/09/2026 — 📏 BARALHO DO BASQUETE: a conta de OFERTA E DEMANDA (medida, e CORRIGIDA)
 
 Pergunta do Diego: *"com base nas quantidades de categorias que temos de cartas, quais

@@ -317,6 +317,10 @@ console.log('13) 🃏 BARALHO: tem jogador RUIM famoso, e mexer nele atualiza o 
   const chaves = todas.map(c => `${c.name}|${c.club}|${c.year}`)
   ok(new Set(chaves).size === chaves.length, 'nenhuma carta repetida (nome|franquia|ano)')
   ok(new Set(todas.map(c => c.name)).size === todas.length, 'e nenhum nome repetido entre cartas')
+  // ⚠️ esta conferência é o que pegou o De'Aaron Fox duplicado em 14/09: o script
+  // de fora que eu usava pra caçar repetido lia o arquivo com regex e QUEBRAVA em
+  // nome com apóstrofo (De'Aaron, Amar'e, O'Neal) — ele via "De" e passava batido.
+  // Aqui é o baralho de VERDADE, importado, então apóstrofo nenhum engana.
 
   // 🔁 a trava do Diego: mexeu na ficha do jogador, o save tem que acompanhar
   const carta = Object.values(CATALOG_NBA).flat()[0]
