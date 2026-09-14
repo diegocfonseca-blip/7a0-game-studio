@@ -1,3 +1,55 @@
+## 14/09/2026 — 🛡️ BATISMO: Internacional de Madrid (Série C) — 🟡 banco NO AR, arte pendente
+
+Dono: **matheusstefanello372@gmail.com** (confirmado pelo Diego). Assento: **Adão Esporte**
+(escolha do Diego) — na Série C o padrão é RENOMEAR um genérico, como já foi feito com
+Zequinha SAF → Nova Eclipse e Ponte Branca → Final Boss.
+
+**✅ Trava de segurança (regra 07/09) passou ANTES de qualquer linha:** a conta existe desde
+26/07/2026, com e-mail confirmado. Sem isso, quem criasse conta primeiro com esse e-mail
+levaria todos os mimos.
+
+**✅ BANCO — as 4 linhas, já aplicadas (não dependem de deploy):**
+- `esc_socios` — sócio **nº50**, desde 14/09, válido até 2099-12-31, manto `#941514` +
+  `#F7F0E9`, `mascote_key = 'internacional_siuuu'`, `escudo_time = 'Internacional de Madrid'`,
+  origem batismo. ⚠️ `time_coracao` ficou VAZIO — o Diego ainda não disse.
+- `esc_fundadores` — **nº69**.
+- `user_colors` — **ouro + manual** (fonte OFICIAL do tier). O dono já está 👑 Lenda com Modo
+  Manual AGORA, sem esperar deploy.
+- `esc_nomes_batismo` — o nome puro entrou e o gatilho criou as formas **FC** e **EC** sozinho.
+  As 3 formas estão trancadas (a caixa já está coberta porque a chave é minúscula).
+
+**🎨 CORES MEDIDAS na arte que o dono mandou** (não chutadas, regra 10): vermelho **#941514**
+(mediana de 13.516 px da camisa; o escudo dá #8D0C0B, mesma família), branco/creme **#F7F0E9**
+(34.002 px) e dourado **#E2A646** (só se virar MANTO_TRI).
+
+**🟡 O QUE TRAVOU: a arte veio como UMA imagem só, com as peças sobrepostas.**
+O dono mandou um post pronto (escudo + boneco + camisa lado a lado, fundo verde) e o
+**braço do boneco está POR CIMA do escudo**, tapando o "D" final de MADRID e parte do anel
+externo. Reconstruir aquilo seria inventar letra, o que a regra proíbe. E recortar o boneco
+pela borda do braço deixa lasca de escudo grudada nele.
+👉 **Precisa dos arquivos separados: o escudo sozinho e o boneco sozinho.** Pedido ao Diego.
+
+**Decisões do Diego nesta entrega (14/09):**
+- 🚨 Levantei que a mascote é o **Cristiano Ronaldo desenhado** (pessoa real, viva) e que a
+  camisa tem o **logo da adidas** (marca de terceiro), num jogo dele que está no ar. Resposta:
+  *"Remova a adidas e mantenha o Ronaldo todo e mantenha o SIUUU igualzinho a foto"*.
+  **Decisão dele, registrada.** Então: mascote = o Ronaldo com o grito 👑 SIUUU!, e a adidas
+  sai da camisa antes de qualquer coisa entrar no repo.
+
+**Ainda falta (quando a arte separada chegar):**
+1. Escudo `.webp` 360px ≤30 KB e mascote `.webp` 440px ≤45 KB, com bbox medido por alfa ≥40 e
+   ≥3 px por linha/coluna. (O escudo já foi recortado uma vez: 271×360, 28,2 KB — serve de
+   referência de peso.)
+2. Código: `LOGOS_PRONTAS` (3 formas do nome) · `MASCOTES` + `MASCOTE_NOME` + `CARIMBO_GOL` ·
+   `data.ts` (`OLD_NAME['Internacional de Madrid'] = 'Adão Esporte'` + a linha da Série C) ·
+   `apoio.tsx` (ouro + `FUNDADOR_N` 69) · `manto.ts` · `batismos.ts` · a lista `BATISMOS` de
+   `scripts/checa-batismos.mjs`.
+3. Camisa do post em `scripts/kits/` (NUNCA em `src/escalacao/img/` — é do post, não do jogo).
+4. Mockup com `node scripts/mockup-batismo.mjs`, **sem `--antigo`** (o Adão Esporte continua
+   no jogo, só muda de nome — e a regra de 05/09 diz que o post não conta de quem era a vaga),
+   com `--camisa` e com `--coracao` se o Diego disser o time.
+5. Mostrar o mockup e esperar o OK dele antes de commitar.
+
 ## 14/09/2026 — ⚡ PAINEL DO CRIADOR: de 9,3 s (estourando) para 36 ms — ✅ NO AR
 
 Item 1 do plano do raio-x do banco. O Diego mandou: *"Já faça o 1"*.
