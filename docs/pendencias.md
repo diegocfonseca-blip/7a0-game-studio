@@ -40,10 +40,18 @@ jogo se mexe, e o slot grande tem folga (76px de altura pra 72,5px de escudo).
 A arte oficial não foi tocada. `scripts/mockup-encaixe-belgica.mjs` compara
 1,00 / 1,15 / 1,25 / 1,35 se um dia precisar reaferir.
 
-⚠️ **França e Alemanha são as próximas da fila** (medido: tinta na tela 2949 e
-2951 contra mediana 5909 — menos que a Bélgica antes do conserto, 3607). São
-escudos de traço fino (galo e águia), então "somem" mais que encolhem. O Diego
-não reclamou; se reclamar, é a mesma linha no `ESCALA`.
+🇦🇷 **E na mesma conversa ele pegou a Argentina**: *"o da Argentina também está
+muito pequeno, não? Comparado aos outros? muito estreito"*. Era o mesmo caso.
+Medi os 24 de uma vez (`scripts/mockup-encaixe-selecoes.mjs`, com `--proposta`
+mostra antes × depois) e cresceram os cinco estreitos: **belgium 1,25 ·
+argentina 1,22 · brazil 1,15 · spain 1,12 · south-korea 1,12**.
+
+🚫 **França e Alemanha ficaram DE FORA de propósito.** Pela conta de tinta elas
+são as menores de todas (2949 e 2951 contra mediana 5909), mas olhando na tela
+o problema delas é outro: não são pequenas, são de traço CLARO (galo branco,
+águia cinza) e somem no fundo creme. Crescer não resolve isso, e a arte é
+oficial. Se o Diego reclamar delas, o caminho é contraste (fundo/sombra), não
+escala.
 
 Reverter: `git revert` do commit, volta ao nome em texto.
 
