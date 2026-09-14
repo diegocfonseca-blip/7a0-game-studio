@@ -2529,6 +2529,7 @@ export const OLD_NAME: Record<string, string> = {
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
+  'Internacional de Madrid': 'Adão Esporte', // 👑 batismo do matheusstefanello372 (14/09): assumiu o assento da Série C que era do Adão Esporte — save antigo com Adão Esporte vira Internacional de Madrid ao abrir. (O Adão Esporte continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Bonança SSFC': 'Torta de Rã', // 🔊 batismo do duselecta: assumiu o assento da Série C que era do Torta de Rã — save antigo com Torta de Rã (ou Fogaréu EC, o nome mais velho ainda) vira Bonança SSFC ao carregar (09/09)
   'Final Boss FC': 'Ponte Branca', // 🐂 batismo do gustavo99828: assumiu o assento da Série C que era do Ponte Branca — save antigo com Ponte Branca (ou Grelha SAF, o nome mais velho ainda) vira Final Boss FC ao carregar (05/09)
   'Sistematizados FC': 'Coliseu United', // 🎮 batismo do gaancaxd (07/09): assumiu o assento da Série D que era do Coliseu United — save antigo com Coliseu United vira Sistematizados FC ao abrir
@@ -2806,7 +2807,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Eclipse', team: 'Nova Eclipse FC' }, // 🌑 clube BATIZADO por apoiador (jh9415474 — Nova Eclipse FC, ex-Zequinha SAF, Série C; mascote O Eclipse, preto + branco; Lenda + fundador nº60, 07/09)
     { name: 'Nego do Xote', team: 'Mano Paulista' },
     { name: 'Zé Chapéu', team: 'Brodeiragem' },
-    { name: 'Adãozinho', team: 'Adão Esporte' },
+    { name: 'Siuuu', team: 'Internacional de Madrid' }, // 👑 clube BATIZADO por apoiador (matheusstefanello372 — Internacional de Madrid, ex-Adão Esporte, Série C; escudo com a coroa e o monograma SCI, vermelho #A90605 + branco #FCF6F1 MEDIDOS na arte do dono; mascote o SIUUU coroado; Lenda + fundador nº69 + sócio nº50, 14/09)
     { name: 'Zorra Total FC', team: 'Zorra FC' },
     { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
     { name: 'Gugu Canela', team: 'Napolitano' },

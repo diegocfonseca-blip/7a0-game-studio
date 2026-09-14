@@ -73,6 +73,7 @@ const BATISMOS = [
   ['gaancaxd@gmail.com', 'Sistematizados FC'], // 🎮 Série D, ex-Coliseu United (07/09)
   ['pedrovianacarneiroq@gmail.com', 'Briga de Galo FC'], // 🐓 Série A, no assento do Vasco da Grana, que desceu pra D (08/09)
   ['marcomak03@gmail.com', 'São Marcos Antônio FC'], // 😇🐷 Série A, no assento do Marolados FC, que desceu pra B (13/09)
+  ['matheusstefanello372@gmail.com', 'Internacional de Madrid'], // 👑 Série C, no assento do bot Adão Esporte, que foi RENOMEADO (padrão da Série C) (14/09)
   ['duselecta@gmail.com', 'Bonança SSFC'], // 🔊 Série C, ex-Torta de Rã (09/09)
   ['diegohdsf@gmail.com', 'Fala D10'], // 🎙️ Série A, no assento do Skyy FC, que desceu pra D (09/09)
   ['contateste577660006@gmail.com', 'Só Deus Sabe FC'], // 🙏 Série A, no assento do Nightfull FC, que desceu pra B (09/09)

@@ -22,7 +22,44 @@ levaria todos os mimos.
 (mediana de 13.516 px da camisa; o escudo dá #8D0C0B, mesma família), branco/creme **#F7F0E9**
 (34.002 px) e dourado **#E2A646** (só se virar MANTO_TRI).
 
-**🟡 O QUE TRAVOU: a arte veio como UMA imagem só, com as peças sobrepostas.**
+**✅ RESOLVIDO: o dono mandou a arte separada (14/09, mais tarde).** O escudo veio inteiro
+(com "1909" e o texto completo) e o boneco veio solto. Recortei os dois pela geometria do
+círculo do escudo (centro e raio ajustados por mínimos quadrados, erro médio de 2 px).
+Escudo **282×360, 28,0 KB**; mascote **364×440, 41,5 KB**; total 69,5 KB dos 75 permitidos.
+O conferidor do `mockup-batismo.mjs` não achou moldura vazia sobrando em nenhum dos dois.
+A **adidas foi apagada da camisa do post** por interpolação da moldura (não por remendo
+copiado, que deixava mancha). Sobrou um **Nike vermelho nas duas chuteiras** do boneco:
+deixado como está porque no tamanho real do jogo (176 px de altura) ele fica com ~2 px, e
+mexer borrava o desenho — o Diego pode pedir pra tirar.
+
+**Cores REMEDIDAS na arte nova e corrigidas no banco:** vermelho **#A90605** (mediana de
+13.309 px da camisa) e branco **#FCF6F1** (41.238 px). As primeiras tinham saído da arte
+velha, mais escura.
+
+**✅ CÓDIGO — as 7 pontas do roteiro, feitas e conferidas:**
+- `escudos.tsx` — import + render com a proporção REAL (282/360) + `LOGOS_PRONTAS` nas 4
+  formas do nome **e no nome velho** (Adão Esporte), pra save antigo não abrir sem escudo.
+- `mascotes.tsx` — import + `MASCOTES.internacional_siuuu` (proporção 364/440) +
+  `CARIMBO_GOL` nas 4 formas, na CAIXA ALTA e no nome velho + `MASCOTE_NOME` = **"O Siuuu"**.
+  ⚠️ Cuidado achado aqui: o mapa nome→chave **é o próprio `CARIMBO_GOL`** (ele vai da linha
+  801 até a 1042). Eu tinha somado as chaves duas vezes e o `tsc` reprovou com TS1117.
+- `data.ts` — `OLD_NAME['Internacional de Madrid'] = 'Adão Esporte'` + a linha da Série C
+  (técnico "Siuuu"). ⚠️ O Adão Esporte também aparece em `CPU_MANAGERS`, mas essa lista é
+  **morta** (exportada e nunca usada em lugar nenhum) — por isso não foi mexida.
+- `apoio.tsx` — tier ouro (reserva) + `FUNDADOR_N` 69 · `manto.ts` · `batismos.ts` ·
+  `scripts/checa-batismos.mjs`.
+
+**Conferido rodando:** Série C segue com 20 times, o Adão Esporte saiu, **nenhum time
+repetido na pirâmide**, `batismoDe()` acha pelo nome puro e pela forma FC, `npm run build`
+verde e a trava `checa-batismos.mjs` não aponta buraco neste clube.
+
+**🟡 FALTA O OK DO DIEGO (regra 2: visual novo só commita na main depois que ele vê):**
+foram gerados DOIS posts — um só com "chega na Série C" (regra 05/09) e outro citando o
+Adão Esporte (permitido, porque ele foi renomeado de verdade, igual ao Stocco ← Semervilha).
+Ele escolhe. E ainda faltam o **time de coração** (pro post e pro `esc_socios.time_coracao`,
+hoje vazio) e o aval do nome **"O Siuuu"** pra mascote.
+
+**(histórico do que travou antes)**
 O dono mandou um post pronto (escudo + boneco + camisa lado a lado, fundo verde) e o
 **braço do boneco está POR CIMA do escudo**, tapando o "D" final de MADRID e parte do anel
 externo. Reconstruir aquilo seria inventar letra, o que a regra proíbe. E recortar o boneco
