@@ -326,7 +326,8 @@ export interface QuickCopaTie {
   lastPresentationGoals?: MatchHighlight[]
   aId: number; bId: number; aName: string; bName: string
   legs: [number, number][] // placares [gols de A, gols de B] de cada perna já jogada
-  pens?: [number, number]  // disputa de pênaltis, se empatou no agregado
+  pens?: [number, number]  // ⚽ disputa de pênaltis · 🏀 pontos da PRORROGAÇÃO, se empatou no agregado
+  ot?: boolean             // 🏀 o desempate foi PRORROGAÇÃO (basquete), não pênaltis (14/09)
   winner: number | null    // id de quem passou (null = ainda rolando)
   lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
 }

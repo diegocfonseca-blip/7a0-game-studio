@@ -1,3 +1,43 @@
+## 14/09/2026 — 🏀 BIDLEGENDS: ONLINE NO AR (rápido + Minhas ligas) e as regras de basquete no mata-mata
+
+Pedido do Diego: *"comece a fazer o basquete tudo que falta… igual ao futebol, porém
+basquete suas regras de basquete… reinicie de onde parou e faça todos os modos valer"*.
+O basquete tinha parado em 28/07 com **rápido offline** e **carreira** (Street → G League
+→ NBA) prontos. **Faltava o online inteiro.** Feito agora (tudo invisível pro público —
+`BASQUETE_TESTERS` segue só na conta do Diego):
+
+- 🌐 **SALA ONLINE DE BASQUETE** — o MESMO lobby do futebol (código, senha, duplas, chat,
+  stream, Minhas ligas). Botão "🌐 JOGAR ONLINE" na home do BidLegends.
+  - `START_ONLINE` aceita `sport`: baralho NBA, **quinteto de 5** (1 por posição),
+    adversários = **franquias da NBA** e caixa de **50** (≈10/jogador, o mesmo equilíbrio
+    do futebol, que dá 100 pra 11). Sala sem `sport` = futebol, byte-idêntica.
+  - 🔑 **`reancoraEsporte(s)`**: `ACTIVE_SPORT`/`ACTIVE_CATALOG`/`NBA_BASE_SLOTS` são
+    globais do MÓDULO — somem no F5 e NÃO viajam no pacote do host. Todo caminho de
+    retomar/sincronizar (`SYNC_STATE`, `RESTORE_ONLINE`) chamava `setActiveCatalog`, que
+    força futebol: sala de basquete voltaria com jogador de futebol no pregão. Agora o
+    ESTADO manda.
+  - 🏷️ **Salas separadas por esporte** sem coluna nova no banco: a sala de basquete nasce
+    com a etiqueta `bidlegends` (o futebol segue `escalacao`). O lobby JÁ filtra tudo por
+    ela — lista de salas abertas, sala salva, convite por link e o aviso "essa sala é de
+    outro jogo". Quem está no futebol não vê sala de basquete e vice-versa.
+  - No BidLegends o lobby mostra só os modos que existem lá: **⚡ Rápido** e **🏆 Minhas
+    ligas** (carreira online de 4 divisões e Bafo são do futebol).
+- 🕐 **REGRA DE BASQUETE NO MATA-MATA:** empate no agregado ia pra **pênaltis** (regra de
+  futebol vazando). Agora vai pra **PRORROGAÇÃO**: período extra simulado (6-20 pontos por
+  lado), repete se empatar, e a tela escreve "🕐 PRORROGAÇÃO 15 × 12" no lugar das
+  bolinhas. O futebol continua nos pênaltis, intocado.
+- 🧹 **Beco sem saída removido:** a cerimônia do basquete ainda dizia *"a temporada entra
+  na próxima atualização"* e oferecia "voltar ao início" — texto de antes de 27/07, quando
+  a temporada (82 jogos, tabela por V-D, cestinha, playoffs) já existia. Pior: o vigia
+  começava a temporada sozinho 45s depois, então a tela MENTIA e o botão largava a partida
+  no meio. Agora usa o mesmo fim do futebol, escrito em basquete.
+- 🧪 `scripts/testa-basquete-online.mjs` (25 conferências): baralho/vagas/caixa/franquias
+  da sala, futebol byte-idêntico, reancoragem no sync, prorrogação (200 sorteios, nenhum
+  empate) e a chave por conferência. Os 4 testes do futebol seguem verdes.
+- ⏭️ **Falta** (próximos passos): relógio de 48min/4 quartos no placar · top 8 por
+  conferência (hoje 4) e séries melhor-de · tabela separada por conferência na tela ·
+  NBA Cup · i18n do martelo/cerimônia · engordar o baralho.
+
 ## 13/09/2026 — 🏆📣 MINHAS LIGAS: "não acho a sala de espera pra chamar mais gente" (liga do Bruno, 7LFW9T) — ✅ no ar
 
 Relato do Diego (prints): liga "sala do leite de verdade" (Bruno FC + Filhote FC, com bots,

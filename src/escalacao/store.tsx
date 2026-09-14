@@ -81,6 +81,18 @@ function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' 
 function baseSlots(formation: FormationKey, pos: Sector): number {
   return ACTIVE_SPORT === 'basquete' ? NBA_BASE_SLOTS : FORMATIONS[formation][pos]
 }
+// 🏀🌐 REANCORA O ESPORTE PELO ESTADO (14/09 — online do basquete).
+// `ACTIVE_SPORT`/`ACTIVE_CATALOG`/`NBA_BASE_SLOTS` são globais do MÓDULO: eles se
+// perdem num F5 e NÃO viajam no pacote que o host manda pro convidado. Até aqui todo
+// caminho de "retomar/sincronizar" chamava `setActiveCatalog`, que força FUTEBOL —
+// então uma sala de basquete voltava com o baralho errado (jogador de futebol no
+// pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
+// o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
+// sempre (byte-idêntico pra quem não é basquete).
+function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean }): void {
+  if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick')
+  else setActiveCatalog(s.deckLeague, !!s.varzea)
+}
 
 // 🏀 franquias da NBA usadas como rivais CPU do basquete (o motor lê {team,name}
 // igual aos times do futebol; aqui o nome do "técnico" é a própria franquia).
@@ -2837,14 +2849,28 @@ function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
 }
 // resolve uma tie depois do(s) leg(s) jogado(s): soma o agregado; empate vira
 // pênaltis (mesma fórmula da Copa da carreira — 3 a 5 cobranças, sem empatar 2x).
-function resolveQuickCopaTie(tie: QuickCopaTie, rng: () => number) {
+// 🏀 PRORROGAÇÃO (overtime) — a regra do BASQUETE no lugar dos pênaltis (14/09).
+// Basquete não tem disputa de pênaltis: jogo empatado vai pra prorrogação de 5
+// minutos, e se empatar de novo vem outra. Aqui é o mesmo princípio pro agregado
+// empatado do mata-mata: um período extra (~8-14 pontos por lado) e, se der
+// igual, outro — até alguém passar na frente. Devolve [pontos de A, pontos de B].
+function prorrogacao(rng: () => number): [number, number] {
+  for (let i = 0; i < 12; i++) {
+    const a = 6 + Math.floor(rng() * 10), b = 6 + Math.floor(rng() * 10)
+    if (a !== b) return [a, b]
+  }
+  return [12, 10] // salvaguarda: nunca fica preso num empate eterno
+}
+function resolveQuickCopaTie(tie: QuickCopaTie, rng: () => number, nba = false) {
   const aggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
   const aggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
   if (aggA === aggB) {
+    // 🏀 basquete = PRORROGAÇÃO · ⚽ futebol = pênaltis (cada esporte com a sua regra).
     // 🎯 11/09: disputa simulada de verdade (ver `penaltis.ts`) — o sorteio de
     // dois números soltos produzia placar impossível e as bolinhas da tela não
     // fechavam com ele.
-    tie.pens = disputaPenaltis(rng)
+    tie.pens = nba ? prorrogacao(rng) : disputaPenaltis(rng)
+    tie.ot = nba || undefined // a tela usa isto pra escrever "prorrogação" em vez de "pênaltis"
     tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
   } else {
     tie.winner = aggA > aggB ? tie.aId : tie.bId
@@ -3309,7 +3335,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -3948,7 +3974,7 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
 
 export function reducer(state: EscState, action: Action): EscState {
   if (action.type === 'SYNC_STATE') {
-    setActiveCatalog(action.newState.deckLeague) // o ponteiro do baralho segue o estado do host (reload zera pra BR)
+    reancoraEsporte(action.newState) // o baralho/esporte segue o estado do host (reload zera o ponteiro; 🏀 sala de basquete reancora no NBA)
     // O host manda o estado do JOGO (managers, deck, leilão, temporada...),
     // mas identidade é local a cada cliente: "quem sou eu" (youIdx), "sou
     // host?", sala. Sem isso, um convidado que recebe o broadcast do host
@@ -4004,7 +4030,7 @@ export function reducer(state: EscState, action: Action): EscState {
     }
   }
   if (action.type === 'RESTORE_ONLINE') {
-    setActiveCatalog(action.state.deckLeague) // reancora o baralho da sala (reload zera o ponteiro pra BR)
+    reancoraEsporte(action.state) // reancora o baralho/esporte da sala (reload zera o ponteiro; 🏀 basquete volta no NBA)
     // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
     // do zero. A identidade ("quem sou eu", host?) é sempre local a este
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
@@ -4757,10 +4783,18 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🥅 VÁRZEA ("Sem craques"): SÓ no rápido online + baralho BR (carreira e
       // Europa/Todos não têm essa categoria). Filtra o baralho pro leilão E os bots
       // saírem sem craque/lenda de uma vez. Restaura o baralho cheio logo após montar.
-      const onlineVarzea = !action.career && (action.deck ?? 'br') === 'br' && !!action.varzea
+      // 🏀 SALA DE BASQUETE (14/09): a sala nasce do esporte em que a pessoa ESTÁ
+      // (a home do BidLegends manda `sport: 'basquete'`). Muda só o CONTEÚDO —
+      // baralho NBA, quinteto de 5, franquias no lugar dos clubes e caixa de 50.
+      // Sala de futebol não passa por nenhuma linha nova: `action.sport` vem
+      // indefinido e tudo cai no caminho de sempre.
+      const onlineNba = action.sport === 'basquete'
+      const onlineVarzea = !onlineNba && !action.career && (action.deck ?? 'br') === 'br' && !!action.varzea
       s.varzea = onlineVarzea
-      setActiveCatalog(s.deckLeague, onlineVarzea)
-      s.sport = 'futebol'; s.nbaCareer = false // ⚽ online é sempre futebol (não herda basquete de um jogo anterior)
+      s.sport = onlineNba ? 'basquete' : 'futebol'
+      s.nbaCareer = false // online rápido/liga: não é a carreira salva do basquete
+      if (onlineNba) setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição (quinteto)
+      else setActiveCatalog(s.deckLeague, onlineVarzea)
       s.simSpeed = 1 // ⏩ todo jogo online COMEÇA no ritmo Normal — não herda a velocidade de um jogo anterior (era o "sim ultra rápida" numa sala auto, sem ninguém ter tocado no manual). Manual/stream re-escolhe a marcha dentro do jogo.
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
@@ -4842,7 +4876,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // depois o resto da Série D. Rápido: pool embaralhado, sem rivais de leilão.
       const careerChosen = (action.rivalTeams ?? []).map(tn => TIMES_ELITE.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
       const careerRest = TIMES_ELITE.filter(t => !careerChosen.some(c => c.team === t.team))
-      const namePool = action.career
+      const namePool = onlineNba
+        ? shuffle([...NBA_PRO_TEAMS], rng) // 🏀 a tabela da sala de basquete é de FRANQUIAS da NBA
+        : action.career
         ? [...careerChosen, ...careerRest]
         : [...shuffle([...TIMES_ELITE], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
       const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
@@ -4851,6 +4887,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
       // leilão mas aparecem como time comum, sem selo ⚔️.
       s.managers = onlineManagers
+      // 🏀 caixa do basquete: 50 pro quinteto (5) = ~10/jogador, o MESMO equilíbrio
+      // do futebol (100 pra 11). Com os 100 do futebol dava pra pagar caro em todos.
+      // Só quem DISPUTA o pregão (humanos e rivais de leilão) — os bots de tabela
+      // ficam com o caixa zerado deles, exatamente como no futebol.
+      if (onlineNba) for (const m of s.managers) if (m.isHuman || m.auctionRival) m.money = NBA_QUICK_BUDGET
       // rápido (e T1 de carreira) começam SEM piso. O livro de preços
       // (marketValues) é memória da carreira ENTRE temporadas — não pode vazar do
       // jogo anterior nem do "novo leilão" do rápido, senão aparece "valor mínimo".
@@ -6141,7 +6182,7 @@ export function reducer(state: EscState, action: Action): EscState {
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
         tie.lastPresentationGoals = r.presentationGoals
-        if (isLastLeg) resolveQuickCopaTie(tie, rng) // só resolve no fim (agregado/pênaltis)
+        if (isLastLeg) resolveQuickCopaTie(tie, rng, s.sport === 'basquete') // só resolve no fim (agregado → pênaltis ⚽ / prorrogação 🏀)
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
       // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga.
@@ -6161,7 +6202,7 @@ export function reducer(state: EscState, action: Action): EscState {
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
-          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na ${copaWord === 'Copa' ? 'Copa' : 'Libertadores'} — adeus, ${l}!`)
+          copaHeads.push(tie.pens ? (tie.ot ? `🕐 ${w} passou na PRORROGAÇÃO e eliminou ${l}!` : `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!`) : `🏆 ${w} avançou na ${copaWord === 'Copa' ? 'Copa' : 'Libertadores'} — adeus, ${l}!`)
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)
@@ -7878,7 +7919,7 @@ function saveAtualizado(save: EscState): EscState {
     return mexeuGas || mexeuCtr ? copia : s
   } catch { return s }
 }
-export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato } // 🔬 só pra teste
+export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato, resolveQuickCopaTie as __resolveQuickCopaTie, seedQuickCopa as __seedQuickCopa } // 🔬 só pra teste
 // 🔎 DIAGNÓSTICO DA CAIXA (20/08 — caso do "±9999" do Pedro).
 // O que sabemos: a tela dele mostrou 9999 e -9999, o save na nuvem tem -261, e o
 // LACRE do save bate (ou seja: ninguém editou o arquivo — o valor da tela nunca
