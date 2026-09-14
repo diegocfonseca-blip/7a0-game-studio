@@ -9451,8 +9451,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
             if (!st.roomId || st.isHost) return
             const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at').eq('id', st.roomId).maybeSingle()
             const hostId = (r as { host_id?: string } | null)?.host_id
+            // 🔁 leitura que NÃO trouxe dono = leitura que falhou (a linha da sala sempre
+            // tem host_id). Não espera os 10 s inteiros pra tentar de novo: o dono que
+            // ficou preso como convidado (sala NX2ALC, 14/09) precisou de F5 porque este
+            // socorro dependia da MESMA rede que tinha acabado de piscar. Puxa a
+            // próxima checagem pra ~2,5 s (o tique do vigia), sem mudar mais nada.
+            if (!hostId) { lastOwnerCheckRef.current = Date.now() - 7_500; return }
             // (1) a posse já é MINHA no banco (handoff explícito ou eu era o dono) → assumo.
-            if (hostId === uid) { if (!stateRef.current.isHost) { claimForcadoRef.current = true; rawDispatch({ type: 'BECOME_HOST' }) } return }
+            if (hostId === uid) {
+              if (!stateRef.current.isHost) {
+                claimForcadoRef.current = true
+                // 🧾 deixa registrado que o socorro AGIU (antes ele agia calado — e a gente
+                // não sabia dizer se ele tinha rodado ou não).
+                anotaTrava({ room_id: st.roomId, sala: st.roomCode || null, papel: 'convidado', momento: 'envelope', setor: st.sectorIdx ?? null,
+                  segundos: 0, reenvios: 0, canal: fotoDaConexao().canal, host_calado_ms: Math.round(Date.now() - lastHostMsgRef.current),
+                  extra: { quando: 'reassumiu', tela: st.screen, fase: st.phase } }, true)
+                rawDispatch({ type: 'BECOME_HOST' })
+              }
+              return
+            }
             // 🎬 checagem da tela de abertura SEM silêncio: só serve pra devolver o
             // comando ao dono. Convidado de verdade não acusa nem conta nada aqui.
             if (!stale) return
