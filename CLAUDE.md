@@ -36,6 +36,13 @@ responde melhor a explicações simples, sem jargão).
    comportamento desejado, não bug. O que a sala deve fazer é AVISAR direito
    (faixa vermelha nível 2, depois de 1 min: "o dono saiu, faz X minutos, a
    partida parou aqui, ela fica guardada") e dar o botão de SAIR.
+   **RECONFIRMADO 14/09** (sala NX2ALC do Felipe): *"o cara que cria a sala tem
+   que ser sempre o host. Não tem essa de trocar"*. Naquele dia a regra foi
+   quebrada por outro caminho: o dono NÃO perdeu a coroa pra ninguém — o PRÓPRIO
+   aparelho dele se rebaixou pra convidado no eco da largada (leitura da sala
+   sem `host_id` → `undefined === user.id` → falso). Lição que vale pra qualquer
+   código novo: **decisão sobre a coroa só com PROVA**. Leitura que falhou, veio
+   picada ou sem o dono NUNCA rebaixa ninguém; na dúvida, o criador continua dono.
 
 ## 🎨 Identidade visual (OBRIGATÓRIA — não inventar arte nova)
 - Fundo creme `#F4ECD6` · tinta `#0C0C0C` · dourado `#FFC400` · verde `#1B7A3D`
