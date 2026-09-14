@@ -28,8 +28,9 @@ const bots = nba.managers.filter(m => !m.isHuman)
 ok(bots.length > 0 && bots.every(m => FRANQUIAS.has(m.teamName)), `os adversários são franquias da NBA (ex.: ${bots.slice(0, 3).map(m => m.teamName).join(', ')})`)
 const cartasNba = Object.values(nba.deck).flat()
 ok(cartasNba.length > 0, `o pregão tem ${cartasNba.length} cartas`)
-// franquias NBA de TODAS as eras (Royals viraram Kings; Nationals viraram 76ers)
-const CLUBES_NBA = /Bulls|Lakers|Celtics|Heat|Warriors|Spurs|Knicks|Nets|Suns|Bucks|Rockets|Magic|Sixers|76ers|Jazz|Pistons|Hawks|Kings|Pacers|Blazers|Mavericks|Cavaliers|Raptors|Nuggets|Clippers|Wizards|Grizzlies|Thunder|Hornets|Pelicans|Timberwolves|Sonics|Bullets|Royals|Nationals|Pipers|Squires|Colonels|Stags|Capitols|Bombers|Olympians|Packers|Zephyrs|Rens/
+// franquias NBA de TODAS as eras (Royals viraram Kings; Nationals viraram 76ers;
+// Braves de Buffalo viraram Clippers; Bobcats de Charlotte viraram Hornets)
+const CLUBES_NBA = /Bulls|Lakers|Celtics|Heat|Warriors|Spurs|Knicks|Nets|Suns|Bucks|Rockets|Magic|Sixers|76ers|Jazz|Pistons|Hawks|Kings|Pacers|Blazers|Mavericks|Cavaliers|Raptors|Nuggets|Clippers|Wizards|Grizzlies|Thunder|Hornets|Pelicans|Timberwolves|Sonics|Bullets|Royals|Nationals|Pipers|Squires|Colonels|Stags|Capitols|Bombers|Olympians|Packers|Zephyrs|Rens|Braves|Bobcats/
 const reais = cartasNba.filter(c => !c.fake)
 ok(reais.length > 0 && reais.every(c => CLUBES_NBA.test(c.club)), 'toda carta REAL do pregão é de franquia NBA (nenhum jogador de futebol vazou)')
 

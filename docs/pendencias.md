@@ -1,3 +1,58 @@
+## 14/09/2026 — 👑🌍 LENDA VIROU RÉGUA NOVA, e entrou o lote de fora dos EUA
+
+Áudio do Diego (transcrito com ruído, mas o recado é claro): *"o Micah Donsit [Luka
+Dončić], que está agora inclusive nos Lakers… esse jogador é considerado uma lenda.
+Jason Tatum também é considerado lenda. Aquele jogador do Miwok [Milwaukee], moreno,
+forte [Giannis], também é considerado lenda. Esses jogadores top famosos também é
+considerado lenda. Além disso, outros jogadores que vieram da Europa, igual o Micah
+Donsit… mas jogaram NBA também."*
+
+**1) 👑 A RÉGUA DE LENDA ESTAVA ERRADA — e era erro MEU.** Eu tinha escrito nas pendências
+que *"lenda não cresce, não existem 75 lendas da NBA"*. O Diego está certo: **lenda não é
+só o veterano aposentado**, o astro de HOJE que todo mundo conhece também é. Pra não virar
+gosto de quem mexe no baralho, o critério ficou FACTUAL:
+
+> 👑 **LENDA = MVP da temporada, ou MVP das finais, ou nome de topo absoluto que o Diego
+> apontar.**
+
+Aplicando, o baralho foi de **30 para 51 lendas** — e olha só: isso dá **12,0%**, que é
+exatamente os **11,9%** do futebol. O buraco que eu jurava que não dava pra fechar era
+esse, e fechou sozinho quando a régua ficou certa.
+
+Subiram: **Luka Dončić** e **Jayson Tatum** (apontados por ele; o Giannis já era lenda), e
+os MVPs que estavam como craque — Barkley, Karl Malone, Garnett, Iverson, Nash, Derrick
+Rose, David Robinson, Harden, Westbrook, Embiid, Shai Gilgeous-Alexander, Bill Walton,
+Dave Cowens, Wes Unseld, Bob McAdoo e Willis Reed — mais Ewing, Pippen e Kawhi.
+
+**2) 🌍 LOTE 8: 22 cartas de fora dos EUA** (baralho **399 → 427**). O outro ponto do
+áudio. Entraram duas famílias:
+- **o estrangeiro que virou astro AQUI**: Kristaps Porziņģis (o Unicórnio), Lauri
+  Markkanen, Danilo Gallinari, Bojan Bogdanović, Bogdan Bogdanović, Jonas Valančiūnas,
+  Nicolas Batum, Mehmet Okur, Luis Scola, Nikola Mirotić, Evan Fournier, José Calderón,
+  Andrés Nocioni, Fabricio Oberto, Rudy Fernández, Ersan İlyasova, Dino Rađa e o famoso
+  mico italiano Andrea Bargnani;
+- **o REI DA EUROPA que passou de raspão pela NBA**: Šarūnas Jasikevičius, Miloš Teodosić,
+  Juan Carlos Navarro e Vasilije Micić. São famosos de verdade, mas o auge não foi aqui —
+  então entram como 🎯 bom jogador, e isso é fiel à história deles.
+
+Continua valendo a trava de 26/07: **quem NUNCA vestiu uma franquia NBA fica de fora**
+(Oscar Schmidt segue fora).
+
+**3) 🐞 Dois consertos de dados que o teste pegou:**
+- o **Anthony Edwards** estava com o clube escrito `Wolves` enquanto o resto do baralho usa
+  `Timberwolves` — e o clube faz parte da CHAVE da carta (nome|franquia|ano), então dois
+  jeitos de escrever é encrenca na certa. Padronizado.
+- a trava "toda carta é de franquia NBA" não conhecia **Braves** (Buffalo, viraram
+  Clippers) nem **Bobcats** (Charlotte, viraram Hornets). São franquias de verdade;
+  a lista foi ampliada com o porquê anotado.
+
+🔁 **E a armadilha das ASPAS, de novo.** Metade das promoções a lenda não pegou na primeira
+tentativa porque meu `sed`/regex só casava aspas DUPLAS, e as cartas do Lote 1 usam aspas
+SIMPLES. Some isso com a armadilha do apóstrofo (De'Aaron, Amar'e, O'Neal) e a lição é uma
+só: **pra mexer no baralho, IMPORTE o arquivo e trabalhe no objeto — não leia por texto.**
+
+⏭️ **Falta** pro alvo de 630: craque +71 · bom +72 · foi prof +29 · promessa +13.
+
 ## 14/09/2026 — 🃏 BARALHO: LOTE 7, preenchendo o buraco POR CATEGORIA E POR POSIÇÃO
 
 Correção do Diego: *"não é só bom jogador que é pra botar. Tem que ver quais categorias
