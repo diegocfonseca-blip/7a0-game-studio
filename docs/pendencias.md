@@ -1,4 +1,55 @@
+## 14/09/2026 — 🩺 RAIO-X DO BANCO (Diego mandou o painel: COMPUTE 99% / CPU 99% / DISK 32%)
 
+**Resposta curta: hoje o banco está calmo** (32 conexões, 3 trabalhando, fila ZERO,
+99,87% do que ele lê já está na memória). O pico de 100% do gráfico é **9–10/09** — é a
+noite do apagão de 08/09 23:50, **que já foi consertado** (commit `dba2853`, lista de salas
+lendo colunas magras `ls_*`). Prova nos números do banco: a consulta velha da lista custava
+**593 ms e ~10 mil blocos por chamada**; a nova custa **8,4 ms**. É 70× mais leve.
+
+**De onde vem o gasto (medido em `pg_stat_statements`, contado desde 28/08):**
+
+| o quê | fatia da CPU | detalhe |
+|---|---|---|
+| Entregador do online (realtime lendo cada gravação) | **42%** | 2,9 M leituras, 24 ms cada |
+| Lista de salas VELHA (já corrigida em 09/09) | 24% | 593 ms/chamada — não roda mais |
+| Salvar carreira na nuvem (`esc_pyramid_saves`) | 18% | 336 mil gravações, 87 ms cada |
+| Gravar a partida (`game_rooms.game_state`) | 5% | 633 mil |
+| Ler carreira da nuvem | 5% | 410 mil |
+
+Somando tudo: ~46 h de CPU em 17 dias, ou seja **~11% de um núcleo na média**. Não é
+aperto contínuo — são PICOS.
+
+**Os 4 pontos que ainda podem apertar (nenhum mexido ainda, só anotado):**
+
+1. 🫀 **O "estou vivo" da sala é mais da metade do trabalho do entregador.** São
+   **1,53 milhão** de gravações que só carimbam `updated_at` (sem nada do jogo). Elas são
+   baratíssimas de gravar (0,37 ms), **mas cada uma obriga o entregador do online a
+   reprocessar a sala** (24 ms) e a avisar todo mundo da sala à toa. Conta: ~22% de TODA a
+   CPU do banco é gasta anunciando batimento cardíaco. Caminho seguro: bater o coração em
+   tabela própria e magra (tipo `live_beats`), fora da publicação do realtime — a sala
+   continua sabendo quem está vivo, sem acordar o entregador. **Mexe no online: só com OK
+   do Diego e em commit isolado.**
+2. 🔴 **O Painel do Criador é a coisa mais pesada que existe aqui.** `esc_admin_dashboard`
+   custa **4,6 segundos e ~10 GB de leitura POR ABERTURA** (254 aberturas = 20 min de CPU).
+   Se o Diego abrir/atualizar o painel com sala grande rolando, ele pode engasgar a partida
+   dos outros. Caminho: guardar o resultado em cache de 1–2 min, igual já é feito com o
+   ranking.
+3. 💾 **`esc_pyramid_saves` = 923 MB de um banco de 1.468 MB** (63% do disco) com só 4.242
+   linhas. Cada carreira salva tem **181 KB na média e até 1,6 MB**; e cada save reescreve
+   o pacote inteiro. É o motivo do DISK 32% e do WAL gordo. Caminho: podar o que vai pra
+   nuvem (arquivo de carreiras antigas comprimido) e faxina de saves de contas que sumiram.
+4. 🧟 **375 salas com status "começou", 347 sem sinal de vida há mais de 1 hora.** A faxina
+   automática só passa depois de 2 dias e só na sala rápida. Não pesa CPU, mas incha o
+   `game_rooms` (89 MB) e polui a lista.
+
+**Tem risco pro online?** Sim, e é exatamente o mecanismo dos bugs que ele relata: quando a
+CPU trava, a gravação do host demora, o convidado não recebe, aparece **ENVIANDO** e o vigia
+acha que "o host caiu". Mas a causa conhecida desse tipo de pico (a lista de salas) já está
+consertada, e no dia de hoje a fila do banco está zerada. Os 4 pontos acima são para não
+voltar a acontecer quando o jogo crescer.
+
+⚠️ **Nada foi alterado no banco nem no código** — este bloco é só o diagnóstico. Qualquer
+uma das 4 mexidas entra separada e revertível.
 
 ## 14/09/2026 — 🌍 Copa do Mundo: Peru, Bélgica e Equador sem escudo — ✅ no ar
 
