@@ -73,13 +73,45 @@ for (let i = 1; i <= 200; i++) { const t = { aId: 0, bId: 1, legs: [[80, 80]], w
 ok(semOt === 0, '200 prorrogações e nenhuma terminou empatada')
 
 console.log('6) 🏀 playoffs por CONFERÊNCIA (Leste × Oeste), top 4 de cada lado')
-const liga = Array.from({ length: 20 }, (_, i) => ({ id: i, name: `T${i}`, pts: 100 - i, w: 60 - i, l: i, d: 0, gf: 0, ga: 0 }))
+const liga = Array.from({ length: 20 }, (_, i) => ({ id: i, name: `T${i}`, isManager: true, pts: 100 - i, w: 60 - i, l: i, d: 0, gf: 0, ga: 0 }))
 const copa = seedCopa(liga, true)
-ok(copa.ties.length === 4, 'quatro confrontos na primeira fase')
-const leste = copa.ties.slice(0, 2).flatMap(t => [t.aId, t.bId])
-const oeste = copa.ties.slice(2).flatMap(t => [t.aId, t.bId])
+ok(copa.ties.length === 8, `oito séries na 1ª rodada — 4 do Leste + 4 do Oeste (vieram ${copa.ties.length})`)
+const leste = copa.ties.slice(0, 4).flatMap(t => [t.aId, t.bId])
+const oeste = copa.ties.slice(4).flatMap(t => [t.aId, t.bId])
 ok(leste.every(id => id % 2 === 0), 'a primeira metade da chave é só do Leste')
+ok(copa.ties[0].aId === 0 && copa.ties[0].bId === 14, 'o 1º do Leste pega o 8º (1×8), como na NBA')
 ok(oeste.every(id => id % 2 !== 0), 'a segunda metade é só do Oeste — os campeões só se cruzam nas Finais')
+
+console.log('7) 🏀 PLAYOFFS INTEIROS no motor: série MELHOR DE 3, do 1º jogo ao anel')
+{
+  // sala de basquete pronta → monta a tabela e semeia os playoffs, como o fim da temporada faz
+  let s = reducer(base(), sala({ sport: 'basquete', roomCode: 'PLAYOF' }))
+  const league = s.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 60 - i, l: i, d: 0, gf: 2000 - i * 10, ga: 1900 }))
+  // o ajuste de força dos bots é recalculado pelo jogo na CERIMÔNIA (cpuAdjFor);
+  // como o teste pula direto pros playoffs, entra zerado na mão.
+  s = { ...s, league, copaMode: 'liga_copa', cpuAtkAdj: 0, cpuDefAdj: 0, round: 82, news: [], quickCopa: seedCopa(league, true) }
+  ok(s.quickCopa.phase === 'oitavas' && s.quickCopa.ties.length === 8, `1ª rodada com 8 séries (top 8 de cada conferência) — veio ${s.quickCopa.ties.length}`)
+  const fases = []
+  for (let passo = 0; passo < 60 && s.quickCopa && s.quickCopa.phase !== 'done'; passo++) {
+    const antes = s.quickCopa.phase
+    s = reducer(s, { type: 'PLAY_COPA_LEG' })
+    if (s.quickCopa && s.quickCopa.phase !== antes) fases.push(antes)
+  }
+  ok(s.quickCopa?.phase === 'done', 'os playoffs terminaram sozinhos (sem travar)')
+  ok(JSON.stringify(fases) === JSON.stringify(['oitavas', 'quartas', 'semis', 'final']), `caminho: 1ª rodada → semis de conf. → finais de conf. → FINALS (${fases.join(' → ')})`)
+  ok(!!s.quickCopa?.champion, `campeão das Finals: ${s.quickCopa?.champion?.name}`)
+  const todasSeries = s.quickCopa.bracket.flatMap(b => b.ties)
+  ok(todasSeries.length === 15, `15 séries no total (8+4+2+1) — vieram ${todasSeries.length}`)
+  ok(todasSeries.every(t => t.legs.length >= 2 && t.legs.length <= 3), 'toda série durou 2 ou 3 jogos (melhor de 3)')
+  ok(todasSeries.every(t => t.legs.filter(l => l[0] > l[1]).length === 2 || t.legs.filter(l => l[1] > l[0]).length === 2), 'quem passou venceu exatamente 2 jogos')
+  ok(todasSeries.every(t => t.legs.every(l => l[0] !== l[1])), 'nenhum jogo terminou empatado (a prorrogação resolve dentro do jogo)')
+  ok(todasSeries.every(t => !t.pens), 'nenhuma série precisou de desempate por fora — quem ganhou 2 jogos levou')
+  const pontos = todasSeries.flatMap(t => t.legs.flat())
+  ok(pontos.every(p => p >= 70 && p <= 160), `placares de basquete de verdade (${Math.min(...pontos)}–${Math.max(...pontos)} pontos)`)
+  // conferências: até as Finais, ninguém do Leste enfrenta ninguém do Oeste
+  const antesDaFinal = s.quickCopa.bracket.filter(b => b.phase !== 'final').flatMap(b => b.ties)
+  ok(antesDaFinal.every(t => t.aId % 2 === t.bId % 2), 'Leste e Oeste só se cruzam nas FINALS')
+}
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')
 process.exit(falhas ? 1 : 0)

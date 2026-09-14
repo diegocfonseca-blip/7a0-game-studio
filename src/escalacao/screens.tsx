@@ -5303,7 +5303,7 @@ export function EscSeason() {
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
           {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {LS('CARREIRA', 'CAREER')}{escadaLiberada() ? ' · VÁRZEA' : ' · SÉRIE D'}</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
-          {copaLive && qc ? `${libS ? '🌎 LIBERTA' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA', 'CUP')}`} · ${qc.phase === 'oitavas' ? LS('OITAVAS', 'R16') : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : LS('QUARTAS', 'QUARTERS')) : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `${LS('RODADA', 'ROUND')} ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
+          {copaLive && qc ? `${libS ? '🌎 LIBERTA' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA', 'CUP')}`} · ${qc.phase === 'oitavas' ? (bbS ? LS('1ª RODADA', 'FIRST ROUND') : LS('OITAVAS', 'R16')) : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : LS('QUARTAS', 'QUARTERS')) : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}` : `${LS('RODADA', 'ROUND')} ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
           if (privateVisual && copaLive && qc) return qc.phase === 'final' ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.legIdx === 0 ? LS('IDA', '1ST LEG') : LS('VOLTA', '2ND LEG')
@@ -5336,6 +5336,10 @@ export function EscSeason() {
         const tieRow = (tie: QuickCopaTie) => {
           const mine = tie.aId === you.id || tie.bId === you.id
           const nLegs = tie.legs.length
+          // 🏀 SÉRIE MELHOR DE 3 (14/09): no basquete o que vale é quantos JOGOS cada um
+          // venceu — somar pontos de dois jogos ("agregado") é conta de futebol.
+          const serieA = tie.legs.filter(l => l[0] > l[1]).length
+          const serieB = nLegs - serieA
           const fullAggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
           const fullAggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
           const clockDone = copaMin >= 93
@@ -5381,8 +5385,10 @@ export function EscSeason() {
             const h = reverse ? tie.bName : tie.aName, a = reverse ? tie.aName : tie.bName
             return <CompetitionMatch key={`${tie.aId}-${tie.bId}`} goals={(tie.lastPresentationGoals??tie.lastHighlights??[]).filter(lanceEhGol).filter(g=>clockDone||g.min<=copaMin).map(g=>({name:g.text,min:g.min,home:g.teamId===(reverse?tie.bId:tie.aId)}))} home={h} away={a} homeCrest={<Escudo nome={h} size={28} />} awayCrest={<Escudo nome={a} size={28} />} homeOwner={owner(reverse ? tie.bId : tie.aId)} awayOwner={owner(reverse ? tie.aId : tie.bId)} mine={mine}
               homeScore={nLegs ? reverse ? showB-prevB : showA-prevA : '–'} awayScore={nLegs ? reverse ? showA-prevA : showB-prevB : '–'}
-              status={`${qc.phase==='final'?'FINAL':reverse?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')} · ${live ? `${minLabel} ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}`}
-              detail={<>{reverse && <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} />)}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
+              status={`${bbS ? `${LS('JOGO', 'GAME')} ${Math.max(1, nLegs)}` : qc.phase==='final'?'FINAL':reverse?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')} · ${live ? `${minLabel} ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}`}
+              detail={<>{reverse && (bbS
+                ? <p><b>{LS('Série', 'Series')}: {tie.aName} {serieA} × {serieB} {tie.bName}</b> <span style={{ opacity: .7 }}>({LS('melhor de 3', 'best of 3')})</span></p>
+                : <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>)}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} />)}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
           }
           return (
             <Box key={`${tie.aId}-${tie.bId}`} className={privateVisual ? 'll26-cup-match' : undefined} bg={privateVisual ? CREAM : 'transparent'} style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
@@ -5405,8 +5411,8 @@ export function EscSeason() {
                 </div>
                 <div style={{ background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 11px', gap: 1 }}>
                   {live && <span className="text-[9px] font-black" style={{ color: '#C2452F' }}>●{minLabel}</span>}
-                  <span className="font-black text-lg" style={{ ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{privateVisual ? showA - tie.legs.slice(0,-1).reduce((s,l)=>s+l[0],0) : showA} × {privateVisual ? showB - tie.legs.slice(0,-1).reduce((s,l)=>s+l[1],0) : showB}</span>
-                  {privateVisual && <small style={{fontSize:9,fontWeight:800,color:INK}}>{qc.phase==='final'?'FINAL':nLegs>1?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')}</small>}
+                  <span className="font-black text-lg" style={{ ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{(privateVisual || bbS) ? showA - tie.legs.slice(0,-1).reduce((s,l)=>s+l[0],0) : showA} × {(privateVisual || bbS) ? showB - tie.legs.slice(0,-1).reduce((s,l)=>s+l[1],0) : showB}</span>
+                  {(privateVisual || bbS) && <small style={{fontSize:9,fontWeight:800,color:INK}}>{bbS ? `${LS('JOGO', 'GAME')} ${Math.max(1, nLegs)}` : qc.phase==='final'?'FINAL':nLegs>1?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')}</small>}
                 </div>
                 <div style={{ position: 'relative', overflow: 'hidden', background: fB.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, minWidth: 0, padding: '9px 6px' }}>
                   {fB.holo > 0 && <ApoioSheen holo={fB.holo} />}
@@ -5421,11 +5427,15 @@ export function EscSeason() {
                 )}
               </div>
               <div style={{ padding: '6px 10px 9px' }}>
-                {privateVisual && nLegs>1 && <p className="text-center text-xs font-bold text-black">{LS('AGREGADO', 'AGGREGATE')}: {showA} × {showB} · {LS('Ida', '1st leg')}: {tie.legs[0][0]} × {tie.legs[0][1]}</p>}
+                {privateVisual && nLegs>1 && (bbS
+                  ? <p className="text-center text-xs font-bold text-black">{LS('SÉRIE', 'SERIES')}: {serieA} × {serieB} <span style={{ opacity: .6 }}>({LS('melhor de 3', 'best of 3')})</span></p>
+                  : <p className="text-center text-xs font-bold text-black">{LS('AGREGADO', 'AGGREGATE')}: {showA} × {showB} · {LS('Ida', '1st leg')}: {tie.legs[0][0]} × {tie.legs[0][1]}</p>)}
                 {privateVisual && settled && <p className="text-center text-xs font-bold" style={{color:GREEN,...(pd>0?{opacity:0,animation:`cmWinPop .2s ease ${pd}s forwards`}:{})}}>{tie.winner===tie.aId?tie.aName:tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avança', 'advances')}</p>}
                 {justScored && <p className="text-center mt-1"><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 900, color: '#FFD778' }}>{LS('⚽ GOOOL agora!', '⚽ GOAL just now!')}</span></p>}
                 {settled && nLegs > 0 && (
-                  <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{nLegs === 1 ? `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]}` : `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]} · ${LS('volta', '2nd leg')} ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
+                  <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{bbS
+                    ? tie.legs.map((l, gi) => `${LS('jogo', 'game')} ${gi + 1} ${l[0]}×${l[1]}`).join(' · ')
+                    : nLegs === 1 ? `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]}` : `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]} · ${LS('volta', '2nd leg')} ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
                 )}
                 {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>{tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}</>}
               </div>

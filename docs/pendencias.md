@@ -31,12 +31,26 @@ O basquete tinha parado em 28/07 com **rápido offline** e **carreira** (Street 
   a temporada (82 jogos, tabela por V-D, cestinha, playoffs) já existia. Pior: o vigia
   começava a temporada sozinho 45s depois, então a tela MENTIA e o botão largava a partida
   no meio. Agora usa o mesmo fim do futebol, escrito em basquete.
-- 🧪 `scripts/testa-basquete-online.mjs` (25 conferências): baralho/vagas/caixa/franquias
-  da sala, futebol byte-idêntico, reancoragem no sync, prorrogação (200 sorteios, nenhum
-  empate) e a chave por conferência. Os 4 testes do futebol seguem verdes.
-- ⏭️ **Falta** (próximos passos): relógio de 48min/4 quartos no placar · top 8 por
-  conferência (hoje 4) e séries melhor-de · tabela separada por conferência na tela ·
-  NBA Cup · i18n do martelo/cerimônia · engordar o baralho.
+- 🏆 **PLAYOFFS DE VERDADE (2ª leva, mesmo dia):** o mata-mata do basquete era o do
+  futebol — 4 times por conferência, jogo de ida e volta somando os pontos. Agora é NBA:
+  - **Top 8 de cada conferência**, chaveados por posição na tabela: **1×8 · 4×5 · 3×6 ·
+    2×7**. São 16 times, 15 séries (8 + 4 + 2 + 1), e **Leste e Oeste só se cruzam nas
+    FINALS**.
+  - **Toda série é MELHOR DE 3** (inclusive a final — no futebol a final é jogo único).
+    Quem ganhar 2 jogos leva; o 3º jogo só acontece se precisar. **Não existe agregado de
+    pontos**: no basquete o que conta é VITÓRIA, e o mando alterna jogo 1 casa do melhor,
+    jogo 2 fora, jogo 3 casa de novo.
+  - **Nomes certos** em toda a tela e no giro de notícias: 1ª RODADA · SEMIS DE CONF. ·
+    FINAIS DE CONF. · **FINALS**, "Playoffs" no lugar de "Copa", 🏀 no lugar da bola de
+    futebol, "JOGO 1/2/3", o placar de cada jogo em fila ("jogo 1 108×99 · jogo 2 91×97")
+    e o campeão sai com **"É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍"**.
+- 🧪 `scripts/testa-basquete-online.mjs` (7 seções): baralho/vagas/caixa/franquias da sala,
+  futebol byte-idêntico, reancoragem no sync, prorrogação (200 sorteios, nenhum empate), a
+  chave por conferência **e os playoffs inteiros rodando no motor** — 15 séries, cada uma
+  de 2 ou 3 jogos, ninguém passa sem ganhar 2, nenhum jogo empatado, placares de basquete
+  (72–152) e o cruzamento Leste×Oeste só na final. Os 4 testes do futebol seguem verdes.
+- ⏭️ **Falta** (próximos passos): relógio de 48min/4 quartos no placar · tabela separada
+  por conferência na tela · NBA Cup · i18n do martelo/cerimônia · engordar o baralho.
 
 ## 13/09/2026 — 🏆📣 MINHAS LIGAS: "não acho a sala de espera pra chamar mais gente" (liga do Bruno, 7LFW9T) — ✅ no ar
 

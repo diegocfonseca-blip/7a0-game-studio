@@ -337,7 +337,7 @@ export type CopaFase = 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
 export interface QuickCopaState {
   phase: CopaFase
   ties: QuickCopaTie[]  // confrontos da fase ATUAL
-  legIdx: 0 | 1          // perna sendo jogada agora (final usa só a 0 — jogo único)
+  legIdx: 0 | 1 | 2      // ⚽ perna sendo jogada (final usa só a 0 — jogo único) · 🏀 jogo 1/2/3 da série melhor de 3
   bracket: { phase: Exclude<CopaFase, 'done'>; ties: QuickCopaTie[] }[] // fases já fechadas
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)

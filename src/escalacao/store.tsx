@@ -2836,10 +2836,22 @@ function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
   // conferência (vencedores das semis) só se cruzam nas FINAIS. Conferência estável
   // por id (par = Leste, ímpar = Oeste). Se um lado não fecha 4, cai no top-8 único.
   if (nba) {
-    const east = sorted.filter(t => t.id % 2 === 0).slice(0, 4)
-    const west = sorted.filter(t => t.id % 2 !== 0).slice(0, 4)
-    if (east.length === 4 && west.length === 4) {
-      const ties = [mk(east[0], east[3]), mk(east[1], east[2]), mk(west[0], west[3]), mk(west[1], west[2])]
+    const east = sorted.filter(t => t.id % 2 === 0)
+    const west = sorted.filter(t => t.id % 2 !== 0)
+    // 🏀 14/09 — TOP 8 DE CADA CONFERÊNCIA, como na NBA de verdade: 1×8 · 4×5 · 3×6 ·
+    // 2×7. A ordem é a do chaveamento oficial (o 1º e o 2º só se encontram na FINAL
+    // DE CONFERÊNCIA), e o motor casa os vencedores de dois em dois — então a chave
+    // anda sozinha: 1ª rodada (8) → semis de conf. (4) → finais de conf. (2) → FINALS.
+    // As duas conferências ficam em METADES separadas, então Leste e Oeste só se
+    // cruzam no jogo do anel. Liga pequena (sala fechada com pouca gente) cai no
+    // top 4 de cada lado e, se nem isso fechar, no top-8 único lá embaixo.
+    const chave8 = (c: LeagueTeam[]) => [mk(c[0], c[7]), mk(c[3], c[4]), mk(c[2], c[5]), mk(c[1], c[6])]
+    if (east.length >= 8 && west.length >= 8) {
+      return { phase: 'oitavas', ties: [...chave8(east.slice(0, 8)), ...chave8(west.slice(0, 8))], legIdx: 0, bracket: [], scorers: [] }
+    }
+    if (east.length >= 4 && west.length >= 4) {
+      const e = east.slice(0, 4), w = west.slice(0, 4)
+      const ties = [mk(e[0], e[3]), mk(e[1], e[2]), mk(w[0], w[3]), mk(w[1], w[2])]
       return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [] }
     }
   }
@@ -6127,13 +6139,24 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!qc || qc.phase === 'done') return s
       if (!qc.scorers) qc.scorers = [] // saves antigos sem o campo
       const isFinal = qc.phase === 'final'
-      const legsNeeded = isFinal ? 1 : 2 // ida+volta (fases) ou jogo único (final)
+      // 🏀 PLAYOFFS DA NBA = SÉRIE MELHOR DE 3 (14/09). Somar os pontos de dois jogos
+      // ("agregado") é regra de FUTEBOL: no basquete ninguém soma placar de jogos
+      // diferentes — quem ganha a série é quem vence 2 jogos primeiro. Vale em todas
+      // as fases, inclusive as Finals. Mando de quadra alterna (jogo 1 e 3 com o time
+      // de melhor campanha). O futebol continua ida-e-volta com final em jogo único.
+      const bbSerie = s.sport === 'basquete'
+      const vitoriasNaSerie = (t: QuickCopaTie): [number, number] =>
+        t.legs.reduce<[number, number]>((acc, [a, b]) => { if (a > b) acc[0]++; else acc[1]++; return acc }, [0, 0])
+      const legsNeeded = bbSerie ? 3 : (isFinal ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
       const legsPlayed = qc.ties[0]?.legs.length ?? 0
       // ── AVANÇO de fase: passo À PARTE de jogar a perna. Só roda DEPOIS que a
       // última perna já teve tempo de animar na tela (o dispatch anterior tocou a
       // perna; este só fecha o chaveamento e monta a próxima fase). Sem isso, a
       // volta era jogada e a fase virava no MESMO passo — a volta nunca aparecia.
-      if (legsPlayed >= legsNeeded) {
+      // 🏀 a fase vira quando TODAS as séries fecharam (uma pode acabar em 2 jogos e a
+      // do lado precisar de 3 — quem já fechou fica de fora do próximo jogo).
+      const faseAcabou = bbSerie ? qc.ties.every(t => t.winner !== null) : legsPlayed >= legsNeeded
+      if (faseAcabou) {
         qc.bracket = [...qc.bracket, { phase: qc.phase, ties: qc.ties }]
         if (isFinal) {
           const champ = qc.ties[0]
@@ -6141,7 +6164,7 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : 'DA COPA DOS 8'}!`, ...s.news].slice(0, 12)
+          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -6164,45 +6187,59 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       // ── JOGA a próxima perna. legIdx = a perna que está sendo jogada/MOSTRADA
       // agora (0 = ida, 1 = volta) — o rótulo na tela lê daqui, então fica certo.
-      qc.legIdx = legsPlayed as 0 | 1
+      qc.legIdx = Math.min(legsPlayed, 2) as 0 | 1 | 2
       const isLastLeg = legsPlayed + 1 >= legsNeeded // volta (fases) ou o jogo único (final)
       const rng = mulberry(s.seed + 90000 + s.seasonNo * 733 + qc.ties.length * 31 + qc.bracket.length * 97 + qc.legIdx * 13)
       for (const tie of qc.ties) {
         if (tie.winner !== null) continue
         // ida: A em casa; volta: B em casa (mandante troca). Final: jogo único, A em casa.
-        const homeId = qc.legIdx === 0 ? tie.aId : tie.bId
-        const awayId = qc.legIdx === 0 ? tie.bId : tie.aId
+        // 🏀 série de 3: jogos 1 e 3 na quadra de A (melhor campanha), jogo 2 na de B —
+        // o mando alterna igual à NBA, e a vantagem fica com quem fez por merecer.
+        const emCasaA = qc.legIdx % 2 === 0
+        const homeId = emCasaA ? tie.aId : tie.bId
+        const awayId = emCasaA ? tie.bId : tie.aId
         // 🏆 gols da Copa contam numa artilharia À PARTE (qc.scorers) — não mexe na da liga.
         // Final = jogo ÚNICO em campo NEUTRO (isFinal): sem vantagem de casa, mesma chance
         // pros dois. Ida/volta mantêm a casa (que se alterna, então também é justo).
         // 🅰️ garçom da Copa vai na lista DA COPA (qc.assists), pelo mesmo motivo.
         if (!qc.assists) qc.assists = []
         const r = simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
-        const leg: [number, number] = qc.legIdx === 0 ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [gols de A, gols de B]
+        const leg: [number, number] = emCasaA ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [pontos/gols de A, de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
         tie.lastPresentationGoals = r.presentationGoals
-        if (isLastLeg) resolveQuickCopaTie(tie, rng, s.sport === 'basquete') // só resolve no fim (agregado → pênaltis ⚽ / prorrogação 🏀)
+        if (bbSerie) {
+          // 🏀 fechou 2 vitórias? acabou a série (pode ter sido em 2 jogos). No 3º
+          // jogo alguém já chega a 2 obrigatoriamente — jogo de basquete não empata
+          // (a prorrogação acontece dentro do próprio jogo, em `simMatch`).
+          const [va, vb] = vitoriasNaSerie(tie)
+          if (va >= 2 || vb >= 2) tie.winner = va > vb ? tie.aId : tie.bId
+          else if (tie.legs.length >= 3) resolveQuickCopaTie(tie, rng, true) // salvaguarda
+        } else if (isLastLeg) resolveQuickCopaTie(tie, rng) // ⚽ agregado → pênaltis se empatar
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
       // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga.
-      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : 'QUARTAS'
-      const copaWord = s.copaMode === 'liga_liberta' ? 'Liberta' : 'Copa'
-      const legWord = isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
+      // 🏀 no basquete a chave é a da NBA: 1ª rodada → semis de conf. → finais de conf. → FINALS
+      const bbGiro = s.sport === 'basquete'
+      const phaseWord = bbGiro
+        ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
+        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : 'QUARTAS')
+      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : 'Copa'
+      const legWord = bbGiro ? ` · jogo ${qc.legIdx + 1}` : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
         const leg = tie.legs[tie.legs.length - 1]
         if (!leg) continue
         // na VOLTA o mandante inverte (B joga em casa): mostra o mandante primeiro
         // no placar, pra manchete refletir a troca de lado (ida A×B, volta B×A).
-        const swap = qc.legIdx === 1 // volta
+        const swap = qc.legIdx % 2 === 1 // ⚽ volta · 🏀 jogo 2 (mando alterna)
         const mand = swap ? tie.bName : tie.aName, vis = swap ? tie.aName : tie.bName
         const mandG = swap ? leg[1] : leg[0], visG = swap ? leg[0] : leg[1]
-        copaHeads.push(`⚽ ${copaWord} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
+        copaHeads.push(`${bbGiro ? '🏀' : '⚽'} ${copaWord} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
-          copaHeads.push(tie.pens ? (tie.ot ? `🕐 ${w} passou na PRORROGAÇÃO e eliminou ${l}!` : `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!`) : `🏆 ${w} avançou na ${copaWord === 'Copa' ? 'Copa' : 'Libertadores'} — adeus, ${l}!`)
+          copaHeads.push(tie.pens ? (tie.ot ? `🕐 ${w} passou na PRORROGAÇÃO e eliminou ${l}!` : `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!`) : `🏆 ${w} avançou ${bbGiro ? 'nos Playoffs' : copaWord === 'Copa' ? 'na Copa' : 'na Libertadores'} — adeus, ${l}!`)
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)
