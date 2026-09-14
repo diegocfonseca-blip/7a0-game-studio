@@ -18,6 +18,7 @@ import { OnlineScorePresentation, CompactPenalties } from './online-match-visual
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
+import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00 (mesma conta em toda tela)
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
@@ -2555,16 +2556,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // ⏱️ relógio: futebol conta 0→90'; 🏀 basquete = 4 quartos de 12min contando
   // pra baixo (Q1 12:00 → Q4 0:00). O `min` (0→93) só dirige a animação — aqui
   // vira o rótulo certo por esporte.
-  const basketClock = () => {
-    const prog = Math.min(1, min / 93) // 0..1 do jogo
-    if (prog >= 1) return 'FINAL'
-    const q = Math.min(4, Math.floor(prog * 4) + 1) // quarto 1..4
-    const within = (prog * 4) % 1 // 0..1 dentro do quarto
-    const secLeft = Math.max(0, Math.round((1 - within) * 12 * 60)) // conta regressiva de 12min
-    const mm = Math.floor(secLeft / 60), ss = secLeft % 60
-    return `Q${q} ${mm}:${ss.toString().padStart(2, '0')}`
-  }
-  const minLabel = basket ? basketClock() : (min >= 93 ? tr('FIM', 'FT') : min > 90 ? `90+${min - 90}'` : `${min}'`)
+  // (a conta mora em `sportcfg.ts` pra TODA tela do basquete marcar o mesmo quarto)
+  const minLabel = basket ? basketClockLabel(min) : (min >= 93 ? tr('FIM', 'FT') : min > 90 ? `90+${min - 90}'` : `${min}'`)
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
   const homeCol = homeColor, awayCol = awayColor

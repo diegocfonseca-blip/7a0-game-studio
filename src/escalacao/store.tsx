@@ -2578,7 +2578,11 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         const top = pool.slice(0, 3)
         for (let k = 0; k < Math.min(6, top.length * 2); k++) {
           const p = top[k % top.length]
-          highlights.push({ min: 1 + Math.floor(rng() * 47), text: `🏀 ${p.name} anota para ${prefix}!`, teamId: id, kind: 'gol' })
+          // ⏱️ o relógio do card anda de 0 a 93 e o basquete traduz isso em Q1→Q4
+          // (12 min contando pra baixo). Estes lances iam só até 47 — ou seja, a
+          // cesta PARAVA no intervalo e o 2º tempo inteiro ficava mudo. Agora
+          // espalha pelo jogo todo (1 a 92), pra ter ponto nos quatro quartos.
+          highlights.push({ min: 1 + Math.floor(rng() * 92), text: `🏀 ${p.name} anota para ${prefix}!`, teamId: id, kind: 'gol' })
         }
       }
     }

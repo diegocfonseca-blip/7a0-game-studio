@@ -2,6 +2,7 @@
 // basquete nasce certa e que o futebol não muda NADA.
 // Rodar: npx tsx scripts/testa-basquete-online.mjs   (sai 1 se algo quebrar)
 import { reducer, __resolveQuickCopaTie as resolveTie, __seedQuickCopa as seedCopa } from '../src/escalacao/store.tsx'
+import { basketClockLabel, MATCH_TICKS } from '../src/escalacao/sportcfg.ts'
 const mulberry = seed => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
 
 let falhas = 0
@@ -142,6 +143,42 @@ console.log('7b) 🏀 e na SALA ONLINE (20 times): top 4 de cada lado, mesma sé
   ok(!!s.quickCopa?.champion, `campeão da sala: ${s.quickCopa?.champion?.name}`)
   const antesDaFinal = s.quickCopa.bracket.filter(b => b.phase !== 'final').flatMap(b => b.ties)
   ok(antesDaFinal.every(t => t.aId % 2 === t.bId % 2), 'e as conferências seguem separadas até a final')
+}
+
+console.log('8) ⏱️ o RELÓGIO: 4 quartos de 12 min contando pra baixo (nunca minuto de futebol)')
+{
+  ok(basketClockLabel(0) === 'Q1 12:00', `o jogo abre em Q1 12:00 — veio ${basketClockLabel(0)}`)
+  ok(basketClockLabel(MATCH_TICKS) === 'FINAL', 'no fim do contador o relógio diz FINAL')
+  ok(basketClockLabel(MATCH_TICKS, 'FIM') === 'FIM', 'e a palavra do fim é a que a tela pedir (BR/EN)')
+  const quartos = []
+  for (let m = 0; m < MATCH_TICKS; m++) quartos.push(+basketClockLabel(m).slice(1, 2))
+  ok(quartos.every(q => q >= 1 && q <= 4), 'nunca aparece um Q5 (nem Q0)')
+  ok(quartos.every((q, i) => i === 0 || q >= quartos[i - 1]), 'o quarto só anda pra frente, nunca volta')
+  ok(new Set(quartos).size === 4, `o jogo passa pelos QUATRO quartos — passou por ${new Set(quartos).size}`)
+  // dentro de um quarto o relógio DESCE (é contagem regressiva, como na quadra)
+  const segs = [10, 11, 12, 13].map(m => { const [mm, ss] = basketClockLabel(m).split(' ')[1].split(':'); return +mm * 60 + +ss })
+  ok(segs.every((v, i) => i === 0 || v < segs[i - 1]), 'dentro do quarto o tempo DESCE (12:00 → 0:00)')
+  ok(basketClockLabel(MATCH_TICKS - 1).startsWith('Q4'), 'o último lance do jogo ainda é no Q4')
+}
+
+console.log('9) 🏀 a cesta acontece nos QUATRO quartos (não só até o intervalo)')
+{
+  // roda várias séries de playoff e olha em que minutos os lances narrados caem.
+  let s = reducer(base(), sala({ sport: 'basquete', roomCode: 'RELOGI' }))
+  const league = s.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 60 - i, l: i, d: 0, gf: 2000 - i * 10, ga: 1900 }))
+  s = { ...s, league, copaMode: 'liga_copa', cpuAtkAdj: 0, cpuDefAdj: 0, round: 82, news: [], quickCopa: seedCopa(league, true) }
+  const mins = []
+  for (let passo = 0; passo < 60 && s.quickCopa && s.quickCopa.phase !== 'done'; passo++) {
+    s = reducer(s, { type: 'PLAY_COPA_LEG' })
+    for (const t of (s.quickCopa?.ties ?? [])) for (const h of (t.lastHighlights ?? [])) if (typeof h.min === 'number') mins.push(h.min)
+    for (const b of (s.quickCopa?.bracket ?? [])) for (const t of b.ties) for (const h of (t.lastHighlights ?? [])) if (typeof h.min === 'number') mins.push(h.min)
+  }
+  ok(mins.length > 0, `saíram ${mins.length} lances narrados pra conferir`)
+  ok(mins.every(m => m >= 1 && m <= MATCH_TICKS), `todo lance cai dentro do jogo (${Math.min(...mins)}–${Math.max(...mins)})`)
+  const porQuarto = new Set(mins.map(m => basketClockLabel(m).slice(0, 2)))
+  ok(porQuarto.size === 4, `teve cesta nos quatro quartos — apareceram ${[...porQuarto].sort().join(', ')}`)
+  const segundoTempo = mins.filter(m => m > MATCH_TICKS / 2).length
+  ok(segundoTempo > 0, `${segundoTempo} lances no 2º tempo (antes eram ZERO: o sorteio parava no 47)`)
 }
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')

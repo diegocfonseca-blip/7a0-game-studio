@@ -57,6 +57,21 @@ O basquete tinha parado em 28/07 com **rápido offline** e **carreira** (Street 
   classificados da Copa dos 8 do futebol. A tabela, o aviso de fim de temporada e o giro
   de notícias leem **a mesma régua** do chaveamento — nenhum deles pode prometer vaga pra
   quem o motor vai deixar de fora.
+- ⏱️ **O RELÓGIO VIROU DE BASQUETE EM TODA TELA** (4ª leva, mesmo dia). O relógio de
+  quartos (Q1 12:00 → Q4 0:00) já existia, mas **só uma tela passava o `basket`** — a
+  lista dos playoffs e os jogos da rodada no online ainda marcavam `45'` e `90+2'` num
+  jogo de basquete. Agora a conta mora em **`sportcfg.ts` (`basketClockLabel`)** e todas
+  leem a MESMA — senão duas telas marcariam quartos diferentes no mesmo jogo.
+  - E o placar dos OUTROS jogos da rodada **sobe junto com o relógio**. Antes ele contava
+    os lances narrados (meia dúzia), então um jogo de basquete mostrava 0 a 3 durante a
+    animação e pulava pra 108 × 99 no apito.
+- 🏀 **Cesta nos QUATRO quartos** (era bug de verdade): os lances narrados eram sorteados
+  entre 1 e 47 de um relógio que anda até 93 — ou seja, a cesta **parava no intervalo** e o
+  2º tempo inteiro ficava mudo. Agora espalha por 1–92.
+- 🌐 **i18n**: a MESA DO MARTELO estava 100% em PT (`🫵 VOCÊ`, `Todos lacraram!`,
+  `revelando lances…`, `martelo batido.`, `anulado (setor cheio)`) e o aviso do jogador
+  surpresa também. Traduzidos — isso aparece pra TODO mundo, futebol incluído. E na
+  cerimônia o basquete agora diz "a TEMPORADA começa em", não "o campeonato".
 - 🖼️ `scripts/mockup-basquete-playoffs.mjs` — o mockup pro Diego ver. Não é desenho à mão:
   monta uma sala pelo reducer, semeia com `seedQuickCopa` e joga as séries de verdade até
   sair o anel. Gera `/tmp/mockup-basquete-playoffs.png`.
@@ -67,8 +82,8 @@ O basquete tinha parado em 28/07 com **rápido offline** e **carreira** (Street 
   (72–152) e o cruzamento Leste×Oeste só na final — **nos dois tamanhos**: a NBA de 30
   (top 8, 15 séries) e a sala online de 20 (top 4, 7 séries). Os 4 testes do futebol
   seguem verdes.
-- ⏭️ **Falta** (próximos passos): relógio de 48min/4 quartos no placar · NBA Cup ·
-  i18n do martelo/cerimônia · engordar o baralho.
+- ⏭️ **Falta** (próximos passos): NBA Cup · engordar o baralho (cuidado: carta de gente
+  de verdade, nada de bio inventada) · varrer o resto do PT solto nas telas do pregão.
 - 👀 **Esperando o OK visual do Diego** pra ir pra `main`: a tela das duas tabelas e a das
   séries (mockup acima). Enquanto isso segue invisível pro público (`BASQUETE_TESTERS`).
 

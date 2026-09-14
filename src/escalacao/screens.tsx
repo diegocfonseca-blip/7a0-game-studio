@@ -46,7 +46,7 @@ import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
-import { POS_LABELS } from './sportcfg'
+import { POS_LABELS, basketClockLabel } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
 import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
@@ -3618,7 +3618,7 @@ function Envelope() {
             <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5 text-white"
               style={{ background: PURPLE, boxShadow: `3px 3px 0 0 ${INK}` }}>
               <p className="text-sm font-black" style={OSWALD}>{L('🎁 JOGADOR SURPRESA nesta rodada!', '🎁 MYSTERY PLAYER in this round!')}</p>
-              <p className="text-[11px] font-bold" style={{ opacity: 0.9 }}>O nome está escondido — você só vê posição, clube e ano. Arrisca no escuro; o nome sai no martelo.</p>
+              <p className="text-[11px] font-bold" style={{ opacity: 0.9 }}>{L('O nome está escondido — você só vê posição, clube e ano. Arrisca no escuro; o nome sai no martelo.', 'The name is hidden — you only see position, club and year. Take a shot in the dark; the name comes out at the hammer.')}</p>
             </div>
           )}
         </div>
@@ -4127,6 +4127,7 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro, 
   // parecer último mesmo quando levou a carta. Agora você senta na SUA posição,
   // como todo mundo; o que te acha na mesa é o "🫵 VOCÊ", a moldura mais grossa e
   // a cor do teu tier — nunca o lugar.
+  const t = useT() // 🌐 BR/EN — a mesa é o coração do pregão, não pode ficar em PT sozinha
   const ordem = [...bids].sort((a, b) => b.amount - a.amount)
   // sala cheia aperta o assento (a carta do meio NUNCA encolhe)
   const mini = ordem.length > 7
@@ -4152,10 +4153,10 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro, 
         <span className="absolute z-10 font-black" style={{ ...OSWALD, top: -1, left: -1, fontSize: mini ? 7.5 : 8.5, letterSpacing: 0.3, lineHeight: 1.5,
           background: selo === '🥇' ? GOLD : INK, color: selo === '🥇' ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: '0 0 9px 0', padding: '0 5px 1px' }}>{selo}</span>
         <div className="flex justify-center relative"><Escudo nome={nome} size={mini ? 24 : 32} /></div>
-        <p className="font-bold truncate relative" style={{ fontSize: mini ? 8.5 : 10, marginTop: 2 }}>{souEu ? '🫵 VOCÊ' : stripEmoji(nome)}</p>
+        <p className="font-bold truncate relative" style={{ fontSize: mini ? 8.5 : 10, marginTop: 2 }}>{souEu ? t('🫵 VOCÊ', '🫵 YOU') : stripEmoji(nome)}</p>
         <div className="rounded-lg font-black relative" style={{ ...OSWALD, marginTop: 3, border: `2px solid ${INK}`, fontSize: mini ? 11 : 13, lineHeight: 1.35,
           background: venceu ? GREEN : anulado ? '#ddd' : perk.grad, color: venceu ? '#fff' : TIER_INK[perk.tier] }}>{b.amount}</div>
-        {anulado && <p className="font-bold relative" style={{ fontSize: 7.5, marginTop: 1, color: 'rgba(0,0,0,.55)' }}>anulado (setor cheio)</p>}
+        {anulado && <p className="font-bold relative" style={{ fontSize: 7.5, marginTop: 1, color: 'rgba(0,0,0,.55)' }}>{t('anulado (setor cheio)', 'void (position full)')}</p>}
       </motion.div>
     )
   }
@@ -4169,8 +4170,8 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro, 
           do estado que já existe). */}
       <div className="text-center" style={{ marginBottom: 7 }}>
         <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 10.5, letterSpacing: '.06em' }}>
-          🔒 Todos lacraram!{' '}
-          <span className="font-bold" style={{ color: 'rgba(0,0,0,.5)', letterSpacing: 0 }}>{hammered ? 'martelo batido.' : 'revelando lances…'}</span>
+          {t('🔒 Todos lacraram!', '🔒 Everyone sealed!')}{' '}
+          <span className="font-bold" style={{ color: 'rgba(0,0,0,.5)', letterSpacing: 0 }}>{hammered ? t('martelo batido.', 'hammer down.') : t('revelando lances…', 'revealing bids…')}</span>
         </p>
         {total > 1 && (
           <div className="flex justify-center items-center" style={{ gap: 4, marginTop: 4 }}>
@@ -4787,7 +4788,7 @@ export function EscCerimonia() {
       </div>
       {secsLeft !== null && (
         <div className="rounded-2xl border-[3px] border-black p-3 text-center" style={{ background: secsLeft <= 10 ? '#E8503A' : GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>{t('⏱️ O campeonato começa em', '⏱️ The championship starts in')}</p>
+          <p className="font-black text-white text-sm leading-tight" style={OSWALD}>{state.sport === 'basquete' ? t('⏱️ A temporada começa em', '⏱️ The season starts in') : t('⏱️ O campeonato começa em', '⏱️ The championship starts in')}</p>
           <p className="font-black text-white text-4xl leading-none mt-0.5" style={OSWALD}>{secsLeft}s</p>
           <p className="font-bold text-white/80 text-[11px] mt-1">{t('Aproveite pra ver os times de todo mundo 👀', 'Use the time to check out everyone\'s teams 👀')}</p>
         </div>
@@ -4892,7 +4893,7 @@ export function EscCerimonia() {
             : (state.sport === 'basquete' ? t('COMEÇAR AGORA 🏀', 'START NOW 🏀') : t('COMEÇAR AGORA 🏆', 'START NOW 🏆'))}</span>
         </Btn>
       ) : (
-        <p className="text-center text-sm font-bold text-black/55 py-1">{t('🔨 O campeonato começa quando', '🔨 The championship starts when')} {(state.streamMode || state.manualRoom) ? t('o host começar', 'the host starts it') : t('o tempo acabar', 'time runs out')}…</p>
+        <p className="text-center text-sm font-bold text-black/55 py-1">{(state.sport === 'basquete' ? t('🔨 A temporada começa quando', '🔨 The season starts when') : t('🔨 O campeonato começa quando', '🔨 The championship starts when'))} {(state.streamMode || state.manualRoom) ? t('o host começar', 'the host starts it') : t('o tempo acabar', 'time runs out')}…</p>
       )}
     </Shell>
   )
@@ -5367,7 +5368,11 @@ export function EscSeason() {
           // 🚫 anti-spoiler: com PÊNALTIS, o riscado do perdedor espera a última cobrança animar
           const pd = settled && tie.pens && !tie.ot ? pensRevealDelay(tie.pens) : 0
           const loserStyle = (isLoser: boolean) => !settled || !isLoser ? {} : pd > 0 ? { animation: `qcLoserFade .4s ease ${pd.toFixed(2)}s forwards` } : { opacity: .6, textDecoration: 'line-through' as const }
-          const minLabel = copaMin >= 93 ? '' : copaMin > 90 ? `90+${copaMin - 90}'` : `${copaMin}'`
+          // ⏱️ 🏀 a lista dos playoffs marcava minuto de futebol (45' · 90+2') num
+          // jogo de basquete. Agora usa o MESMO relógio de quartos do card grande
+          // (a conta mora em `sportcfg.ts`, pra duas telas nunca marcarem quartos
+          // diferentes no mesmo jogo).
+          const minLabel = copaMin >= 93 ? '' : bbS ? basketClockLabel(copaMin) : copaMin > 90 ? `90+${copaMin - 90}'` : `${copaMin}'`
           const live = !clockDone && nLegs > 0
           const kindOf = (id: number): 'you' | 'human' | 'bot' => id === you.id ? 'you' : state.managers.some(m => m.id === id && m.isHuman) ? 'human' : 'bot'
           const fA = copaFill(kindOf(tie.aId), tie.aName), fB = copaFill(kindOf(tie.bId), tie.bName)
@@ -5594,7 +5599,7 @@ export function EscSeason() {
       {privateVisual && !copaLive && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
       {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
-        return <RoundMatchPresentation key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
+        return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
       })}</div></section>}
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5">
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
@@ -5692,7 +5697,7 @@ export function EscSeason() {
           {state.lastResults.map(r => {
             const h = state.league.find(t => t.id === r.homeId), a = state.league.find(t => t.id === r.awayId)
             const owner = (id: number) => { const m = state.managers.find(x => x.id === id); return m?.isHuman ? m.name : 'BOT' }
-            return <RoundMatchPresentation startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} />
+            return <RoundMatchPresentation basket={bbS} startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} />
           })}
         </div></section>}
         {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}

@@ -10,6 +10,7 @@
 //   → /tmp/mockup-basquete-playoffs.png
 import { chromium } from 'playwright-core'
 import { reducer, sortedTable, __seedQuickCopa as seedCopa } from '../src/escalacao/store.tsx'
+import { basketClockLabel, MATCH_TICKS } from '../src/escalacao/sportcfg.ts'
 
 const INK = '#0C0C0C', CREME = '#F4ECD6', GOLD = '#FFC400', VERDE_ZONA = '#D8F0DE'
 const mulberry = seed => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
@@ -140,6 +141,10 @@ const html = `<!doctype html><meta charset="utf-8">
   .nota{margin-top:16px;font-family:system-ui;font-size:13.5px;line-height:1.5;color:#2f2c22;background:#fff7d6;
         border:3px solid ${INK};border-radius:14px;padding:11px 13px;box-shadow:3px 3px 0 ${INK}}
   .nota b{font-family:Oswald}
+  .relogio{display:flex;flex-wrap:wrap;gap:7px}
+  .tick{flex:1 1 90px;text-align:center;background:${INK};color:#fff;border:3px solid ${INK};border-radius:12px;padding:6px 4px;box-shadow:3px 3px 0 rgba(0,0,0,.25)}
+  .tick b{display:block;font-size:15px;font-weight:800;letter-spacing:.4px}
+  .tick small{display:block;font-family:system-ui;font-size:10px;color:rgba(255,255,255,.6);margin-top:1px}
 </style>
 <h1>🏀 BidLegends — tabela por conferência e playoffs</h1>
 <p class="sub">Tudo saiu do motor do jogo: temporada de 82 jogos, chaveamento semeado pelo <b>seedQuickCopa</b> e séries jogadas de verdade até sair o anel.</p>
@@ -155,6 +160,14 @@ const html = `<!doctype html><meta charset="utf-8">
 <div class="box">
   ${fases}
   <p class="anel">👑 ${campeao} é campeão das Finals — levou o anel 💍</p>
+</div>
+
+<h2>3. O relógio: 4 quartos de 12 minutos, contando pra baixo</h2>
+<div class="box">
+  <div class="relogio">
+    ${[0, 12, 23, 24, 35, 46, 47, 58, 69, 70, 81, 92, MATCH_TICKS].map(m => `<span class="tick"><b>${basketClockLabel(m)}</b><small>${Math.round(100 * m / MATCH_TICKS)}% do jogo</small></span>`).join('')}
+  </div>
+  <p class="sub" style="margin:10px 0 0">O card da partida e a lista dos playoffs leem a <b>mesma conta</b>, então nunca marcam quartos diferentes no mesmo jogo. E as cestas narradas agora caem nos <b>quatro</b> quartos — antes o sorteio parava no meio e o 2º tempo ficava mudo.</p>
 </div>
 
 <div class="nota">

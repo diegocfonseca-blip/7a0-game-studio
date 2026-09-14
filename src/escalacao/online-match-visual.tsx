@@ -2,6 +2,7 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef } from 'react'
 import './online-match-visual.css'
 import { tr } from './lang' // 🌐 BR/EN
+import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
 
 type Goal = { name: string; min: number; home: boolean }
 export function OnlineScorePresentation(p: {
@@ -99,8 +100,13 @@ export function useRoundPresentationStart(key: number) {
   if(ref.current.key !== key) ref.current = {key,at:Date.now()}
   return ref.current.at
 }
-export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, score, startedAt, ...p }: Omit<Parameters<typeof CompetitionMatch>[0], 'status' | 'homeScore' | 'awayScore'> & {
+export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, score, startedAt, basket, ...p }: Omit<Parameters<typeof CompetitionMatch>[0], 'status' | 'homeScore' | 'awayScore'> & {
   goals: Goal[]; finished: boolean; roundKey: number; roundMs: number; score: [number, number]; startedAt: number
+  // 🏀 jogo de BASQUETE: o relógio vira Q1 12:00 → Q4 0:00 e o placar SOBE junto
+  // com o relógio. Sem isto, um jogo de basquete aqui mostrava "45′" e um placar
+  // de 0 a 3 (ele contava os LANCES narrados, que são meia dúzia) e depois pulava
+  // pra 108 × 99 no apito. Agora anda de verdade até o placar final.
+  basket?: boolean
 }) {
   const [minute, setMinute] = useState(0)
   useEffect(() => {
@@ -110,9 +116,11 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
     return () => clearInterval(timer)
   }, [roundKey, roundMs, startedAt])
   const known = goals.length > 0 || score.every(n => n === 0)
-  const homeScore = finished ? score[0] : known ? goals.filter(g => g.home && g.min <= minute).length : '–'
-  const awayScore = finished ? score[1] : known ? goals.filter(g => !g.home && g.min <= minute).length : '–'
-  return <CompetitionMatch {...p} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={finished ? tr('ENCERRADO', 'FULL TIME') : `${Math.min(90,minute)}′ · ${tr('AO VIVO', 'LIVE')}`} detail={!finished && !known ? tr('Placar revelado no apito final', 'Score revealed at the final whistle') : p.detail} />
+  const parcial = (final: number) => Math.round(final * Math.min(1, minute / 93))
+  const homeScore = finished ? score[0] : basket ? parcial(score[0]) : known ? goals.filter(g => g.home && g.min <= minute).length : '–'
+  const awayScore = finished ? score[1] : basket ? parcial(score[1]) : known ? goals.filter(g => !g.home && g.min <= minute).length : '–'
+  const relogio = basket ? basketClockLabel(minute, tr('FIM', 'FINAL')) : `${Math.min(90, minute)}′`
+  return <CompetitionMatch {...p} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={finished ? tr('ENCERRADO', 'FULL TIME') : `${relogio} · ${tr('AO VIVO', 'LIVE')}`} detail={!finished && !known && !basket ? tr('Placar revelado no apito final', 'Score revealed at the final whistle') : p.detail} />
 }
 
 export function goalPlayer(text:string){return text.match(/⚽\s+(.+?)\s+marca para/)?.[1] ?? text.replace(/^⚽\s*/, '').replace(/\.$/,'')}
