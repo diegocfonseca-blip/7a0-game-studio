@@ -1,3 +1,76 @@
+## 14/09/2026 — ⚡ PAINEL DO CRIADOR: de 9,3 s (estourando) para 36 ms — ✅ NO AR
+
+Item 1 do plano do raio-x do banco. O Diego mandou: *"Já faça o 1"*.
+
+**O que estava acontecendo (e ninguém sabia):** `esc_admin_dashboard` era a consulta
+interativa mais cara do projeto — média de 4,6 s e **~10 GB de blocos lidos por abertura**.
+Na janela cheia (30 dias / 200 usuários) levava **9,3 s**, e o papel `authenticated` tem
+`statement_timeout = 8 s`. Ou seja: **o painel ESTOURAVA o limite do banco** e caía no
+remendo que existia no `admin.tsx` (tenta 30d, se der timeout tenta 14d, depois 7d). Tinha
+até um comentário lá dizendo *"correção definitiva é um índice no banco"* — não era índice,
+era o formato da consulta.
+
+**Conserto, em duas pernas:**
+
+1. **O resultado virou duas partes.** 🔴 O AO VIVO (`online_now`, `playing_now`, `peak`,
+   `live_list`) sai da `live_beats`, que é pequena, e é **sempre calculado na hora** — o
+   Diego nunca vê "quem está jogando agora" atrasado. 🗄️ O HISTÓRICO (jogos, visitas,
+   retorno, carreiras, ranking de usuários) entra em **cache de 120 s** na tabela nova
+   `esc_admin_cache`. O botão "🔄 Atualizar dados" manda `p_fresh = true` e recalcula na
+   hora, ignorando o cache — então o botão continua significando exatamente o que dizia.
+2. **O histórico ficou ~4× mais rápido.** O peso NÃO estava nas contagens simples (essas já
+   usam os índices e custam quase nada). Estava em **quatro varreduras com
+   `group by session_id` na `game_plays` inteira** — `players_total`, `players_today`,
+   `returning_players`/`returning_7d` e a lista de usuários — cada uma refazendo o mesmo
+   agrupamento de 348 mil linhas. Agora o agrupamento é **UM só** e os quatro saem dele.
+
+| medição (janela cheia 30d/200) | tempo |
+|---|---|
+| antes | 9.350 ms (estourava o limite de 8 s) |
+| tentativa de materializar tudo (descartada) | 4.939 ms |
+| **versão que ficou** | **~2.500 ms** |
+| **abertura com cache quente** | **36 ms** |
+
+**Conferência de que nenhum número mudou:** a conta velha e a nova foram rodadas no MESMO
+instante (mesma transação, mesmo snapshot) e deram **idênticas** nas 22 chaves numéricas
+(`today`, `week`, `month`, `total`, os seis `_cpu`/`_online`, `players_total`,
+`players_today`, `returning_players`, `returning_7d`, as seis de visita). A lista de
+usuários foi comparada item por item.
+
+**Brinde achado na conferência:** no 200º lugar da lista havia **quatro sessões empatadas**
+(209 jogos) com só 199 acima do corte — sem desempate o banco escolhia uma a esmo e a
+última linha da lista **trocava sozinha a cada abertura**. Isso já era assim antes. Agora
+tem desempate fixo (último jogo, depois sessão) e a lista parou de piscar.
+
+**Detalhe de segurança que quase passou:** recriar a função com `DROP` + `CREATE` faz o
+Postgres devolver o `EXECUTE` padrão pra `PUBLIC` — o `anon` apareceu no advisor. A trava
+de e-mail continuava valendo (quem não é o Diego leva `not authorized` na primeira linha),
+mas a permissão foi revogada de volta pro que era: `authenticated`, `postgres`,
+`service_role`. Fica de lição: **todo DROP+CREATE de função pede conferir o grant depois.**
+
+**Estado da entrega (as três pernas):**
+- 🗄️ **Banco: JÁ ESTÁ NO AR.** Migração aplicada, não depende de deploy. O painel já abre
+  rápido agora.
+- 💻 **Código:** só o botão 🔄 passando `p_fresh` (`admin.tsx`). Está no branch; sem ele o
+  painel funciona igual, só que o botão também aceita cache de até 2 min.
+- 📋 Cópia fiel da função no repo em **`supabase/esc_admin_dashboard.sql`** (conferida por
+  hash contra o banco), pra próxima sessão não ter que adivinhar.
+
+**Reverter:** o arquivo `supabase/esc_admin_dashboard.sql` guarda a versão nova; a antiga
+está no histórico de migrações do Supabase. O `git revert` do commit desfaz a perna do
+código.
+
+### Continua na fila (do mesmo raio-x, esperando o Diego mandar)
+- **2. Apagar 3 índices repetidos** — `room_players_room_user_unique` (cópia da chave
+  primária, na tabela mais escrita do online), `site_visits_created_idx` e
+  `game_plays_created_idx`. Barato e reversível.
+- **3. Tirar o "estou vivo" da sala de cima do entregador do realtime** — sozinho come ~22%
+  da CPU do banco (1,53 milhão de gravações que só carimbam a hora). **Mexe no coração do
+  online: só com OK do Diego, em commit separado e em dia sem sala grande.**
+- **Não mexer:** faxina de save (conferido: ZERO save órfão e ZERO parado há 90 dias — toda
+  carreira é de gente de verdade) e as 347 salas paradas (o Diego quer que a sala espere o
+  dono).
+
 ## 14/09/2026 — 🃏 Léo Maringá entrou no baralho · ⏱️ Monte online caiu pra 15s
 
 **Pedido do Diego:** *"Coloque Leo Maringá no jogo, ele jogou no Maringá fc, coloque
