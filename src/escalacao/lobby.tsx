@@ -588,7 +588,11 @@ function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: str
 
 export function EscLobby() {
   const privateOnline = ONLINE_VISUAL_RELEASED
-  const { dispatch } = useEsc()
+  const { state: escState, dispatch } = useEsc()
+  // 👑 retrato do estado do JOGO, lido na hora dentro do `triggerStart` (async):
+  // "este aparelho JÁ está tocando esta sala como dono?" — ver o eco da largada.
+  const escRef = useRef(escState)
+  escRef.current = escState
   const [user, setUser] = useState<User | null>(null)
   const [phase, setPhase] = useState<Phase>('auth')
   const [authTab] = useState<AuthTab>(() => {
@@ -1115,7 +1119,34 @@ export function EscLobby() {
     // 👑 lê o DONO junto com o estado: quem manda na sala é a linha do banco, NUNCA
     // a cópia que veio no evento (ver o `amHost` lá embaixo — foi o buraco do
     // "sumiu o COMEÇAR O LEILÃO" na live do marcelow, 05/09).
-    const { data: freshRoom } = await supabase.from('game_rooms').select('game_state, host_id').eq('id', roomData.id).maybeSingle()
+    // 👑 O DONO NÃO RESTAURA POR CIMA DE SI MESMO (14/09, sala NX2ALC "Meia na
+    // Canela", 14 pessoas, modo stream). O que aconteceu, pela caixa-preta: o dono
+    // apertou COMEÇAR (montou o jogo aqui, como host), e ~5 s depois chegou o ECO
+    // do banco (`game_rooms` → 'started', o `.on('postgres_changes')` lá em cima),
+    // que chama esta mesma função. Ela releu a sala, caiu no ramo "partida em
+    // andamento" e mandou um RESTORE_ONLINE por cima do host vivo — e quando essa
+    // leitura vem sem o dono (o aviso do banco "chega picado" numa linha de 200 KB,
+    // e a releitura pode falhar no mesmo piscar de rede), `undefined === user.id`
+    // dá FALSE e o dono REBAIXA A SI MESMO pra convidado, sem erro e sem registro.
+    // Foi isso que a caixa-preta gravou às 15:43:58: o dono preso no "ENVIANDO…"
+    // se achando convidado, "0 lacrados", e a sala inteira "pensando" — porque
+    // ninguém era host. Só o F5 dele devolveu a coroa (15:44:30).
+    // Regra: se ESTE aparelho já está online NESTA sala como dono, um eco da
+    // largada não tem nada a restaurar — o jogo vivo está aqui. Passagem de
+    // coroa de verdade (outro dono no banco) continua sendo tratada pelo vigia da
+    // coroa no provider, que exige prova e registra o motivo.
+    const jogo = escRef.current
+    const jaTocoAquiComoDono = jogo.onlineMode === 'online' && jogo.roomId === roomData.id && !!jogo.isHost
+    if (jaTocoAquiComoDono) { saveRoom(roomData.id); return true }
+    let { data: freshRoom } = await supabase.from('game_rooms').select('game_state, host_id').eq('id', roomData.id).maybeSingle()
+    // 🔁 releitura SEM DONO = leitura que falhou (a linha da sala SEMPRE tem host_id).
+    // Uma tentativa a mais antes de qualquer decisão — decidir "não sou o dono" com
+    // base numa leitura que não veio é exatamente o que rebaixa o dono legítimo.
+    if (!freshRoom?.host_id) {
+      await new Promise(r => setTimeout(r, 800))
+      const again = await supabase.from('game_rooms').select('game_state, host_id').eq('id', roomData.id).maybeSingle()
+      if (again.data?.host_id) freshRoom = again.data
+    }
     const gs = (freshRoom?.game_state ?? roomData.game_state) as GS | undefined
     // 🔒 TRAVA (listas magras): se o fetch do estado FRESCO falhou e a linha só tem
     // o mini-estado da lista (sem managers), NÃO segue — seguir cairia no "começa
