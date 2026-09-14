@@ -3529,6 +3529,7 @@ type Action =
   | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
+  | { type: 'SELL_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): vende o 2º clube. Volta 4.000 e desconta 300 (o churrasco). SÓ o 2º clube — o principal nunca.
   | { type: 'SWITCH_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): passa o comando pro outro clube (só entre temporadas). O que sai dorme.
   | { type: 'CLEAR_MULTICLUBE_PENDING'; mgrId: number; season: number; copa?: boolean } // 🏛️ MULTICLUBES: risca a carta guardada depois que você abriu o pacote
   | { type: 'SELL_FILIAL'; mgrId?: number } // 🏢 vende a SAF (valor progressivo por divisão + títulos, teto 2.500)
@@ -5429,6 +5430,102 @@ export function reducer(state: EscState, action: Action): EscState {
       s.empresarioClaimKeys = s.multiClube.empresarioClaims ?? []
       s.multiClube = { team: active.teamName, id: active.id, since: s.multiClube.since, ...stash }
       s.multiClubeAtivo = !s.multiClubeAtivo
+      return s
+    }
+    case 'SELL_MULTICLUBE': {
+      // 🏛️ MULTICLUBES · a VENDA (Diego 14/09: *"gostaria de dar opção pra quem comprou
+      // o segundo clube poder vender… aí quando vender some também as coisas de trocar,
+      // hibernar e etc e mantém tudo como era antes"*).
+      //
+      // Vender é DESFAZER a compra: o clube volta a ser um time da MÁQUINA no lugar dele.
+      // Não some da pirâmide e não mexe na contagem, porque a compra já tinha feito a
+      // troca 1:1 em `careerPlacements` — então basta desligar as flags do assento.
+      //
+      // 🚫 SÓ O 2º CLUBE SE VENDE. Palavras dele: *"quero deixar claro q somente o segundo
+      // clube que pode ser vendido... o primeiro oficial q aparece no rank global e etc
+      // não pode ser vendido nunca"*. O 2º é o único com `mine` (só a compra liga essa
+      // flag, logo acima); o clube original NUNCA tem.
+      // ⚠️ E aqui mora a PEGADINHA que a regra dele pegou: `multiClube.id` é sempre o que
+      // DORME — e quando o 2º clube está no comando, quem dorme é o PRINCIPAL. Se a trava
+      // fosse "vende quem está dormindo", daria pra vender o clube oficial. Por isso a
+      // trava é `mine`, e não "dorme".
+      //
+      // 💰 Diego: *"podia deixar vender mas perdendo um cadinho"* e depois *"desconta 1000
+      // e diga q foi tudo de luxo gasto na festa"*. Paga 4.000, recebe 3.000.
+      const PRECO = 4000, FESTA = 1000
+      if (s.onlineMode === 'online' || !s.careerOnline || !s.multiClube) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const vIdx = s.managers.findIndex(m => m.id === s.multiClube!.id && m.mine)
+      if (vIdx < 0) return s              // quem dorme é o principal (ou não achei) → não vende
+      const vendido = s.managers[vIdx]
+      if (vendido.id === you.id) return s // nunca vende a cadeira em que você está sentado
+
+      // 🤝 EMPRÉSTIMOS (pedido dele): *"os jogadores emprestado pelo Adão Esporte voltam
+      // pra ele e os jogadores emprestados para o Adão Esporte voltam pro primeiro clube"*.
+      // Nada que não seja do vendido sai junto, e nada dele fica pra trás.
+      const f = s.careerFilial
+      if (f) {
+        const outs = loanList(f.loanOut), ins = loanList(f.loanIn)
+        const cpuSq = { ...(s.cpuSquads ?? {}) }
+        const safSquad = [...((cpuSq[f.team] ?? []) as WonCard[])]
+        const volta = s.seasonNo ?? 1
+        const tiraOut = new Set<string>(), tiraIn = new Set<string>()
+
+        // (1) o que o VENDIDO tinha emprestado PRA SAF volta pro elenco dele (e sai junto).
+        for (const lo of outs.filter(c => c.byClub === vendido.id)) {
+          const i = safSquad.findIndex(c => c.id === lo.id)
+          if (i >= 0) safSquad.splice(i, 1)
+          vendido.squad = [...vendido.squad, descongelaContrato({ ...lo, emprestado: undefined, byClub: undefined } as WonCard, volta)]
+          tiraOut.add(lo.id)
+        }
+        // (2) o que o VENDIDO tinha PEGADO emprestado sai do elenco dele. Se o jogador é
+        // do SEU outro clube (ele viajou principal → SAF → 2º clube), volta pro DONO, que
+        // é o primeiro clube. Se for da SAF mesmo, volta pra SAF.
+        for (const li of ins.filter(c => c.byClub === vendido.id)) {
+          vendido.squad = vendido.squad.filter(c => c.id !== li.id)
+          const meu = outs.find(o => o.id === li.id && o.byClub === you.id)
+          if (meu) {
+            you.squad = [...you.squad, descongelaContrato({ ...meu, emprestado: undefined, byClub: undefined } as WonCard, volta)]
+            tiraOut.add(li.id)
+          } else {
+            safSquad.push({ ...li, emprestado: undefined, byClub: undefined } as WonCard)
+          }
+          tiraIn.add(li.id)
+        }
+        if (tiraOut.size || tiraIn.size) {
+          cpuSq[f.team] = safSquad
+          s.cpuSquads = cpuSq
+          s.careerFilial = { ...f, loanOut: outs.filter(c => !tiraOut.has(c.id)), loanIn: ins.filter(c => !tiraIn.has(c.id)) }
+        }
+      }
+
+      // 🤖 o assento volta a ser BOT, no mesmo lugar da pirâmide. Fica com o estádio, os
+      // títulos e a caixa dele (`clubCash`/`careerHonors`/`stadiums` são keyed por id e
+      // não são tocados) — nada disso vem pro dono.
+      vendido.mine = false; vendido.dormindo = false; vendido.isHuman = false
+
+      // 💰 os dois lançamentos entram SEPARADOS no extrato, pra ficar claro de onde saiu
+      // a mordida em vez de chegar um número quebrado sem explicação.
+      const cc = { ...(s.careerCoins ?? {}) }
+      cc[you.id] = (cc[you.id] ?? 0) + PRECO - FESTA
+      delete cc[vendido.id] // a moeda de carreira do 2º clube vai embora com ele
+      s.careerCoins = cc
+      logFin(s, 'safsell', `🏛️ Venda do 2º clube · ${vendido.teamName}`, PRECO)
+      logFin(s, 'safsell', `🍖 Festa de despedida do ${vendido.teamName} (no capricho)`, -FESTA)
+
+      // 🧹 e some tudo que só existia por causa do 2º clube — é o que ele pediu:
+      // *"quando vender some também as coisas de trocar, hibernar e etc e mantém tudo
+      // como era antes"*. A UI de trocar/dormir é toda gated em `state.multiClube`,
+      // então ela se apaga sozinha; aqui limpo o que fica no save.
+      s.multiClube = null
+      s.multiClubeAtivo = false
+      if (s.multiClubePendingCards?.[vendido.id]) {
+        const pend = { ...s.multiClubePendingCards }; delete pend[vendido.id]; s.multiClubePendingCards = pend
+      }
+      if (s.agenciaClubeId === vendido.id) s.agenciaClubeId = you.id
+      s.agenciaDividir = false // "dividir a renda" só existe com 2 clubes
+      if (s.eventoTemporada?.mgrId === vendido.id) s.eventoTemporada = null // evento preso ao clube que saiu
       return s
     }
     case 'CLEAR_MULTICLUBE_PENDING': {

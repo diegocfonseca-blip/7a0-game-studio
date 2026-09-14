@@ -1,3 +1,60 @@
+## 14/09/2026 — 💸 VENDER O 2º CLUBE (multiclubes) — pronto no branch, esperando OK
+
+Pedido do Diego: *"gostaria de dar opção pra quem comprou o segundo clube poder vender…
+aí quando vender some também as coisas de trocar, hibernar e etc e mantém tudo como era
+antes"*.
+
+**Como ficou:** paga 4.000, recebe **3.000**. Palavras dele pro valor: *"vender pelo msm
+valor n sei se é válido… podia deixar vender mas perdendo um cadinho"* e depois
+*"desconta 1000 e diga q foi tudo de luxo gasto na festa"*.
+
+**A historinha é dele** (duas levas minhas foram recusadas com um *"outras"*):
+*"os jogadores e diretoria fizeram churrasco de despedida comemorando sua saída e pior
+deixaram na sua conta"*. No aviso: *"E foi tudo de luxo: deixaram 1.000 🪙 na sua conta.
+Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te
+chamaram."* No extrato entram **dois lançamentos separados** (+4.000 e −1.000), pra ficar
+claro de onde saiu a mordida.
+
+### ⚠️ A PEGADINHA QUE A REGRA DELE PEGOU (guardar isto)
+Ele cravou: *"quero deixar claro q somente o segundo clube que pode ser vendido… o
+primeiro oficial q aparece no rank global e etc não pode ser vendido nunca"*.
+Eu tinha desenhado a trava como **"só vende quem está dormindo"** — e isso estava
+**ERRADO**. `multiClube.id` é sempre o clube que DORME, e quando o 2º clube está no
+comando quem dorme é o **PRINCIPAL**. A trava do jeito que eu tinha deixaria vender o
+clube oficial. Agora a trava olha a marca **`mine`**, que só a compra liga
+(`store.tsx` BUY_MULTICLUBE) e que o clube original nunca teve. Com o 2º no comando o
+botão some e aparece "passe o comando pro seu clube principal pra poder vender".
+👉 Lição que vale pra qualquer código novo de multiclube: **"quem dorme" não é "o segundo".**
+
+### 🤝 Empréstimos (pedido dele, na mesma mensagem)
+*"os jogadores emprestado pelo Adão Esporte voltam pra ele e os jogadores emprestados
+para o Adão Esporte voltam pro primeiro clube"*. Implementado assim, antes de vender:
+- o que o 2º clube tinha emprestado pra SAF **volta pro elenco dele** e sai junto;
+- o que ele tinha **pegado** emprestado sai do elenco dele. Se o jogador é do clube
+  PRINCIPAL (viajou principal → SAF → 2º clube), volta **pro dono**; se é da SAF mesmo,
+  volta **pra SAF**.
+
+### O que a venda faz
+O clube **volta a ser bot no lugar dele** — não some da pirâmide e não mexe na contagem,
+porque a compra já tinha feito a troca 1:1 em `careerPlacements`. Fica com estádio,
+títulos e caixa (keyed por id, não são tocados). Limpa `multiClube`, `multiClubeAtivo`,
+o pacote guardado, a moeda de carreira do 2º clube, devolve a renda da agência pro clube
+único e apaga evento preso ao clube que saiu. A UI de trocar/dormir some sozinha porque
+é toda gated em `state.multiClube`, e o painel de **comprar** volta.
+
+### Onde mexi
+`store.tsx` (action + reducer `SELL_MULTICLUBE`) · `pyramidseason.tsx` (botão na aba Clube
++ modal de confirmação, bilíngue) · `novidades.ts` (linha PT+EN) ·
+`scripts/testa-vender-2o-clube.mjs` (trava nova) · `scripts/mockup-vender-2o-clube.mjs` e
+`scripts/mockup-historinha-venda-clube.mjs` (as propostas visuais).
+
+**Conferido:** `npm run build` verde · a trava nova passa nas **21 conferências** (venda
+normal, recusa do clube oficial, empréstimos, travas de online/sem-multiclube/save torto) ·
+`checa-piramide.mjs` segue fechando 20 em toda divisão.
+
+**🟡 Falta o OK visual do Diego pra subir na main.** Nada disso está no ar.
+**Reverter:** é um commit só.
+
 ## 14/09/2026 — 🛡️ BATISMO: Internacional de Madrid (Série C) — ✅ NO AR
 
 Dono: **matheusstefanello372@gmail.com** (confirmado pelo Diego). Assento: **Adão Esporte**

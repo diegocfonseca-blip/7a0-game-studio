@@ -3,8 +3,9 @@
 // coisas de trocar, hibernar e etc e mantém tudo como era antes"*).
 //
 // 💰 O VALOR (2ª volta): ele recusou vender pelo mesmo preço — *"vender pelo msm
-// valor n sei se é válido.. podia deixar vender mas perdendo um cadinho, pelo
-// menos 300 moedas"*. Então: paga 4.000, recebe 3.700.
+// valor n sei se é válido.. podia deixar vender mas perdendo um cadinho"* — e depois
+// fechou em *"desconta 1000 e diga q foi tudo de luxo gasto na festa"*.
+// Então: paga 4.000, recebe 3.000.
 //
 // 🍖 A HISTORINHA (3ª volta): depois de duas levas recusadas, ele escreveu a dele —
 // *"coloque q os jogadores e diretoria fizeram churrasco de despedida comemorando
@@ -67,7 +68,7 @@ const html = `<!doctype html><meta charset="utf-8">
         border:3px solid ${INK};border-radius:14px;padding:11px 13px;box-shadow:3px 3px 0 ${INK}}
 </style>
 <h1>Vender o 2º clube · versão final</h1>
-<p class="sub">Paga 4.000, recebe <b>3.700</b>. Os 300 são o churrasco que eles fizeram sem te chamar. O clube volta a ser um time da máquina na divisão em que estiver — não some do jogo e não mexe na contagem da pirâmide.</p>
+<p class="sub">Paga 4.000, recebe <b>3.000</b>. Os 1.000 são o churrasco que eles fizeram sem te chamar. O clube volta a ser um time da máquina na divisão em que estiver — não some do jogo e não mexe na contagem da pirâmide.</p>
 
 <div class="cols">
   <div class="col">
@@ -80,8 +81,8 @@ const html = `<!doctype html><meta charset="utf-8">
           <div class="chip"><b>⚪ Adão Esporte</b><small>dormindo 💤</small></div>
         </div>
         <div class="btn tr">🔄 Passar o comando pro Adão Esporte</div>
-        <div class="btn vd">💸 Vender o Adão Esporte · 3.700 🪙</div>
-        <p class="leg">Só dá pra vender o clube que está <b>dormindo</b>. Pra vender o outro, passa o comando antes.</p>
+        <div class="btn vd">💸 Vender o Adão Esporte · 3.000 🪙</div>
+        <p class="leg">Só o <b>2º clube</b> se vende. O oficial, o do rank global, nunca.</p>
       </div>
       <div class="box"><h4>🏟️ Estádio</h4><p>Obras, lotação e patrocínio do clube no comando.</p></div>
     </div>
@@ -92,10 +93,10 @@ const html = `<!doctype html><meta charset="utf-8">
     <div class="modal">
       <h2>💸 Vender o Adão Esporte?</h2>
       <div class="churras">
-        <p>🍖 <b>O elenco e a diretoria já fizeram o churrasco de despedida</b> — comemorando a sua saída. E deixaram os <b>300 🪙</b> na sua conta.</p>
-        <p class="pe">“Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”</p>
+        <p>🍖 <b>O elenco e a diretoria já fizeram o churrasco de despedida</b> — comemorando a sua saída. E foi <b>tudo de luxo</b>: deixaram <b>1.000 🪙</b> na sua conta.</p>
+        <p class="pe">“Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”</p>
       </div>
-      <div class="ok">✅ Você pagou 4.000 e recebe <b>3.700 🪙</b> de volta.</div>
+      <div class="ok">✅ Você pagou 4.000 e recebe <b>3.000 🪙</b> de volta.</div>
       <p style="font-family:system-ui;font-size:13.5px;margin:0 0 4px"><b>E o Adão Esporte:</b></p>
       <ul>
         <li><b>Continua no jogo</b>, na divisão em que está, comandado pela máquina.</li>
@@ -103,7 +104,7 @@ const html = `<!doctype html><meta charset="utf-8">
         <li>Você <b>deixa de receber</b> a cota de TV e os prêmios dele.</li>
         <li>Os <b>empréstimos da SAF</b> que ele tem voltam antes da venda.</li>
       </ul>
-      <div class="row"><div class="btn cz">Voltar</div><div class="btn vd">💸 Vender · 3.700 🪙</div></div>
+      <div class="row"><div class="btn cz">Voltar</div><div class="btn vd">💸 Vender · 3.000 🪙</div></div>
     </div>
   </div>
 
@@ -119,13 +120,13 @@ const html = `<!doctype html><meta charset="utf-8">
       <p class="rot" style="margin-top:14px">No extrato <i>fica registrado</i></p>
       <div class="extrato">
         <div class="li"><span>🏛️ Venda do 2º clube · Adão Esporte</span><b class="pos">+4.000</b></div>
-        <div class="li"><span>🍖 Churrasco de despedida</span><b class="neg">−300</b></div>
+        <div class="li"><span>🍖 Festa de despedida (no capricho)</span><b class="neg">−1.000</b></div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="nota"><b>A única coisa que ainda não te perguntei de volta:</b> as cartas de empresário que estavam guardadas no clube que dormia. Meu palpite é que <b>vão junto com ele</b>, pela mesma lógica do estádio, dos títulos e do caixa: era o acervo daquele clube, não o seu. Se você achar que devem voltar pro seu bolso, é uma linha pra trocar.</div>`
+<div class="nota"><b>🚫 Só o 2º clube se vende.</b> O clube oficial, o que aparece no rank global, nunca. E tem uma pegadinha que a regra dele pegou: o jogo guarda sempre <b>quem está dormindo</b> — e quando o 2º clube está no comando, quem dorme é o PRINCIPAL. Por isso a trava olha a marca de <b>clube comprado</b>, e não quem dorme. Se o 2º estiver no comando, o botão some e a caixa manda passar o comando de volta antes.<br><br><b>🤝 Empréstimos se acertam sozinhos:</b> quem o 2º clube tinha emprestado volta pra ele e sai junto; quem era do clube principal e estava jogando lá volta pra casa.</div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const p = await b.newPage({ viewport: { width: 1180, height: 1000 }, deviceScaleFactor: 2 })
