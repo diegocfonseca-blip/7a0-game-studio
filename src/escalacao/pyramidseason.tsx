@@ -6065,7 +6065,21 @@ export function PyramidSeasonScreen() {
     const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR, condInicio?.g)
     return Object.keys(mods).length ? { [me.id]: mods } : {}
   }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR])
-  const live = useMemo(() => simulatePyramid(world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods), [world, seasonSeed, round, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods])
+  // 🧮 UMA HISTÓRIA SÓ (conserto 14/09). A tela precisa da temporada em duas
+  // alturas: a rodada ATUAL (`live`) e a rodada já REVELADA (`shown`, usada
+  // enquanto a partida anima, pra tabela não entregar o resultado antes do apito).
+  // As duas eram CHAMADAS SEPARADAS com a lista de argumentos escrita na mão — e a
+  // do `shown` ficou sem o último, o gás (`condMods`). Resultado: enquanto a rodada
+  // animava, a tela desenhava uma temporada INTEIRA que nunca existiu, a que teria
+  // acontecido se ninguém cansasse; no apito ela trocava pela verdadeira e os pontos
+  // despencavam. Dois usuários no mesmo dia: *"até o último jogo tava em terceiro
+  // com 68 pontos, aí acabou o último jogo e apareceu que eu caí com 44"*.
+  // Medido em `scripts/testa-tabela-gas.mjs`: até 43 pontos e 10 posições de
+  // diferença entre as duas histórias.
+  // Agora as duas saem da MESMA função — não tem como uma esquecer um argumento.
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods),
+    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods])
+  const live = useMemo(() => simulaAte(round), [simulaAte, round])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -6079,7 +6093,7 @@ export function PyramidSeasonScreen() {
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
   // artilharia entregava). Quando a rodada termina de animar (revealed = round),
   // tudo passa a vir da simulação completa (live), sem recomputar à toa.
-  const shown = useMemo(() => revealed >= round ? live : simulatePyramid(world, seasonSeed, revealed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs), [live, revealed, round, world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs])
+  const shown = useMemo(() => revealed >= round ? live : simulaAte(revealed), [live, revealed, round, simulaAte])
   const { scorers, scorersAll, goalsByCard, assistsByCard, assistsAll, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)

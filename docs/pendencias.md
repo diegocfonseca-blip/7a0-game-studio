@@ -1,3 +1,41 @@
+## 14/09/2026 — 🧮 "caí com 44 pontos sendo que tava em 3º com 68" — ✅ no ar
+
+Dois usuários no mesmo dia, com as mesmas palavras: *"minha carreira tá bugada,
+até o último jogo tava em terceiro lugar com 68 pontos, aí acabou o último jogo e
+apareceu que eu caí com 44"*. Não era save corrompido nem conta trocada.
+
+**O que estava acontecendo:** a tela da carreira desenha a tabela com DUAS
+simulações da pirâmide — `live` (a rodada atual) e `shown` (a rodada já revelada,
+usada enquanto a partida anima, pra tabela não entregar o placar antes do apito).
+As duas eram chamadas separadas, com a lista de argumentos escrita na mão, e a do
+`shown` **ficou sem o último argumento: o gás** (`condMods`, que entrou em 12/09).
+Ou seja: enquanto a rodada animava, a tela desenhava uma **temporada inteira que
+nunca existiu** — a que teria acontecido se ninguém cansasse. No apito, ela trocava
+pela verdadeira e os pontos despencavam de uma vez.
+
+Importante: **o campeonato sempre foi o verdadeiro**. O acesso/rebaixamento sai da
+tabela certa (a `live`); quem estava errada era só a TELA durante a animação. O
+jogador não perdeu pontos — ele estava vendo pontos que nunca teve.
+
+**Conserto:** as duas agora saem da MESMA função (`simulaAte`), então não tem como
+uma esquecer um argumento que a outra tem. Foi por isso que aconteceu: duas listas
+gigantes de argumentos, escritas duas vezes.
+
+📏 **Medido** (`scripts/testa-tabela-gas.mjs`, com os números REAIS do gás,
+😓 −1 · 🥵 −2 · 🚑 −3):
+- elenco **descansado** (gás 100): **zero** diferença — por isso ninguém viu isso
+  em carreira nova;
+- elenco **cansado** (gás 40): até **11 pontos**;
+- elenco de **carreira longa** (gás 25): até **16 pontos e 4 posições**.
+Quem reclamou está exatamente no terceiro caso — carreira velha, elenco no 🥵/🚑.
+
+⚠️ **Lição pro repo:** `simulatePyramid` tem 13 argumentos posicionais. Toda vez que
+alguém acrescenta um, TODA chamada precisa ser atualizada, e o TypeScript não
+reclama porque os últimos têm valor padrão. Se um dia entrar um argumento novo,
+entre por `simulaAte` — nunca escrevendo a lista de novo.
+
+Reverter: um commit só. Ninguém precisa mexer no save.
+
 ## 14/09/2026 — 🐛 Dois erros do gfpicolo13 (Multiclubes, temporada 241) — ✅ no ar
 
 Diego mandou dois stories do usuário. Os dois confirmados no código e no save dele
