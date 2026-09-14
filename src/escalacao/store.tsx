@@ -22,6 +22,7 @@ import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
 import { registraMeusNomes } from './mimos'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
+import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
 import { NBA_SLOTS_PER_POS } from './sportcfg'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
@@ -80,6 +81,18 @@ function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' 
 // modo (toda posição igual). É o único ponto onde a QUANTIDADE muda por esporte.
 function baseSlots(formation: FormationKey, pos: Sector): number {
   return ACTIVE_SPORT === 'basquete' ? NBA_BASE_SLOTS : FORMATIONS[formation][pos]
+}
+// 🏀🌐 REANCORA O ESPORTE PELO ESTADO (14/09 — online do basquete).
+// `ACTIVE_SPORT`/`ACTIVE_CATALOG`/`NBA_BASE_SLOTS` são globais do MÓDULO: eles se
+// perdem num F5 e NÃO viajam no pacote que o host manda pro convidado. Até aqui todo
+// caminho de "retomar/sincronizar" chamava `setActiveCatalog`, que força FUTEBOL —
+// então uma sala de basquete voltava com o baralho errado (jogador de futebol no
+// pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
+// o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
+// sempre (byte-idêntico pra quem não é basquete).
+function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean }): void {
+  if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick')
+  else setActiveCatalog(s.deckLeague, !!s.varzea)
 }
 
 // 🏀 franquias da NBA usadas como rivais CPU do basquete (o motor lê {team,name}
@@ -2583,7 +2596,11 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         const top = pool.slice(0, 3)
         for (let k = 0; k < Math.min(6, top.length * 2); k++) {
           const p = top[k % top.length]
-          highlights.push({ min: 1 + Math.floor(rng() * 47), text: `🏀 ${p.name} anota para ${prefix}!`, teamId: id, kind: 'gol' })
+          // ⏱️ o relógio do card anda de 0 a 93 e o basquete traduz isso em Q1→Q4
+          // (12 min contando pra baixo). Estes lances iam só até 47 — ou seja, a
+          // cesta PARAVA no intervalo e o 2º tempo inteiro ficava mudo. Agora
+          // espalha pelo jogo todo (1 a 92), pra ter ponto nos quatro quartos.
+          highlights.push({ min: 1 + Math.floor(rng() * 92), text: `🏀 ${p.name} anota para ${prefix}!`, teamId: id, kind: 'gol' })
         }
       }
     }
@@ -2708,8 +2725,11 @@ function finishSeason(s: EscState) {
     const bbCopa = s.sport === 'basquete'
     s.quickCopa = seedQuickCopa(s.league, bbCopa)
     // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
+    // 🏆 o giro diz o número REAL de classificados (8 em conferência de 12+, 4 nas
+    // menores) — quem lê a notícia tem que ver a mesma régua que o chaveamento usou.
+    const bbVagas = s.quickCopa.ties.length >= 8 ? 8 : 4
     s.news = [bbCopa
-      ? tr('🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.', '🏆 Regular season over — the PLAYOFFS are here! East × West, top 4 of each conference.')
+      ? tr(`🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top ${bbVagas} de cada conferência, toda série melhor de 3.`, `🏆 Regular season over — the PLAYOFFS are here! East × West, top ${bbVagas} of each conference, every series best of 3.`)
       : tr('🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.', '🏆 The league is over — the CUP OF 8 is here! The best 8 fight for the title.')]
   }
   // 🌎 LIBERTADORES: os 8 primeiros da liga se classificam e caem numa chave de
@@ -2836,15 +2856,33 @@ function playLibertaRodada(s: EscState) {
 function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
   const sorted = sortedTable(league)
   const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
-  // 🏀 PLAYOFFS POR CONFERÊNCIA (Leste × Oeste): top 4 de CADA lado. Uma conferência
-  // é cada METADE da chave (ties[0,1] = Leste, ties[2,3] = Oeste) — os campeões de
-  // conferência (vencedores das semis) só se cruzam nas FINAIS. Conferência estável
+  // 🏀 PLAYOFFS POR CONFERÊNCIA (Leste × Oeste): uma conferência é cada METADE da
+  // chave — os campeões de conferência só se cruzam nas FINAIS. Conferência estável
   // por id (par = Leste, ímpar = Oeste). Se um lado não fecha 4, cai no top-8 único.
   if (nba) {
-    const east = sorted.filter(t => t.id % 2 === 0).slice(0, 4)
-    const west = sorted.filter(t => t.id % 2 !== 0).slice(0, 4)
-    if (east.length === 4 && west.length === 4) {
-      const ties = [mk(east[0], east[3]), mk(east[1], east[2]), mk(west[0], west[3]), mk(west[1], west[2])]
+    const east = sorted.filter(t => t.id % 2 === 0)
+    const west = sorted.filter(t => t.id % 2 !== 0)
+    // 🏀 14/09 — TOP 8 DE CADA CONFERÊNCIA, como na NBA de verdade: 1×8 · 4×5 · 3×6 ·
+    // 2×7. A ordem é a do chaveamento oficial (o 1º e o 2º só se encontram na FINAL
+    // DE CONFERÊNCIA), e o motor casa os vencedores de dois em dois — então a chave
+    // anda sozinha: 1ª rodada (8) → semis de conf. (4) → finais de conf. (2) → FINALS.
+    // As duas conferências ficam em METADES separadas, então Leste e Oeste só se
+    // cruzam no jogo do anel.
+    // ⚖️ O top 8 só vale em conferência GRANDE (12+ times, que é o caso da NBA de
+    // verdade com 15 e da G League com 12): classificar 8 de 10 faria a temporada
+    // regular não valer nada — quase ninguém ficaria de fora. Sala menor (o online
+    // arma 20 times = 10 por lado) usa top 4 de cada, que dá os mesmos 40% de
+    // classificados da Copa dos 8 do futebol. Quem escolhe é o TAMANHO da liga, e a
+    // tabela na tela lê a mesma régua, então a tela nunca mente sobre quem está
+    // dentro. Nem isso fecha? Cai no top-8 único lá embaixo.
+    const CONF_GRANDE = 12
+    const chave8 = (c: LeagueTeam[]) => [mk(c[0], c[7]), mk(c[3], c[4]), mk(c[2], c[5]), mk(c[1], c[6])]
+    if (east.length >= CONF_GRANDE && west.length >= CONF_GRANDE) {
+      return { phase: 'oitavas', ties: [...chave8(east.slice(0, 8)), ...chave8(west.slice(0, 8))], legIdx: 0, bracket: [], scorers: [] }
+    }
+    if (east.length >= 4 && west.length >= 4) {
+      const e = east.slice(0, 4), w = west.slice(0, 4)
+      const ties = [mk(e[0], e[3]), mk(e[1], e[2]), mk(w[0], w[3]), mk(w[1], w[2])]
       return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [] }
     }
   }
@@ -2854,18 +2892,130 @@ function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
 }
 // resolve uma tie depois do(s) leg(s) jogado(s): soma o agregado; empate vira
 // pênaltis (mesma fórmula da Copa da carreira — 3 a 5 cobranças, sem empatar 2x).
-function resolveQuickCopaTie(tie: QuickCopaTie, rng: () => number) {
+// 🏀 PRORROGAÇÃO (overtime) — a regra do BASQUETE no lugar dos pênaltis (14/09).
+// Basquete não tem disputa de pênaltis: jogo empatado vai pra prorrogação de 5
+// minutos, e se empatar de novo vem outra. Aqui é o mesmo princípio pro agregado
+// empatado do mata-mata: um período extra (~8-14 pontos por lado) e, se der
+// igual, outro — até alguém passar na frente. Devolve [pontos de A, pontos de B].
+function prorrogacao(rng: () => number): [number, number] {
+  for (let i = 0; i < 12; i++) {
+    const a = 6 + Math.floor(rng() * 10), b = 6 + Math.floor(rng() * 10)
+    if (a !== b) return [a, b]
+  }
+  return [12, 10] // salvaguarda: nunca fica preso num empate eterno
+}
+function resolveQuickCopaTie(tie: QuickCopaTie, rng: () => number, nba = false) {
   const aggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
   const aggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
   if (aggA === aggB) {
+    // 🏀 basquete = PRORROGAÇÃO · ⚽ futebol = pênaltis (cada esporte com a sua regra).
     // 🎯 11/09: disputa simulada de verdade (ver `penaltis.ts`) — o sorteio de
     // dois números soltos produzia placar impossível e as bolinhas da tela não
     // fechavam com ele.
-    tie.pens = disputaPenaltis(rng)
+    tie.pens = nba ? prorrogacao(rng) : disputaPenaltis(rng)
+    tie.ot = nba || undefined // a tela usa isto pra escrever "prorrogação" em vez de "pênaltis"
     tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
   } else {
     tie.winner = aggA > aggB ? tie.aId : tie.bId
   }
+}
+
+// ─── 🏆🏀 NBA CUP — a copa do MEIO da temporada do BidLegends ──────────────────
+// Regra fechada em 14/09 (o conceito só dizia "torneio no meio da temporada").
+// O que ela é, e por que cada escolha:
+//  • 8 times: os 4 primeiros de CADA conferência na tabela daquele momento — o
+//    retrato de meia temporada, como a Cup de verdade premiar quem começou bem.
+//  • JOGO ÚNICO em cada fase (quartas → semis → final). De propósito DIFERENTE dos
+//    playoffs (melhor de 3): copa é relâmpago, e ninguém confunde as duas.
+//  • Leste e Oeste só se cruzam na FINAL — igual à Cup de verdade.
+//  • NÃO MEXE NA TABELA: nada de `applyResult` aqui. Os jogos da Cup não entram no
+//    V-D da temporada regular nem na lista de cestinhas da liga (a Cup tem a dela).
+//    Na NBA a final da Cup também não conta. Assim ninguém sobe na tabela por copa.
+//  • Mora no campo `nbaCup`, NUNCA no `quickCopa` (que é o slot único do fim de
+//    temporada; ocupá-lo no meio do caminho deixaria a temporada sem playoffs).
+function seedNbaCup(league: LeagueTeam[]): QuickCopaState | null {
+  const sorted = sortedTable(league)
+  const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
+  const east = sorted.filter(t => t.id % 2 === 0)
+  const west = sorted.filter(t => t.id % 2 !== 0)
+  // conferência fechada (4 de cada lado): metades separadas, como nos playoffs
+  if (east.length >= 4 && west.length >= 4) {
+    const e = east.slice(0, 4), w = west.slice(0, 4)
+    return { phase: 'quartas', ties: [mk(e[0], e[3]), mk(e[1], e[2]), mk(w[0], w[3]), mk(w[1], w[2])], legIdx: 0, bracket: [], scorers: [], assists: [] }
+  }
+  // liga pequena demais pra ter dois lados: cai no top 8 geral (1×8, 4×5, 2×7, 3×6)
+  const top8 = sorted.slice(0, 8)
+  if (top8.length < 8) return null // 🛡️ sem 8 times não existe chave — a Cup simplesmente não acontece
+  return { phase: 'quartas', ties: [mk(top8[0], top8[7]), mk(top8[3], top8[4]), mk(top8[1], top8[6]), mk(top8[2], top8[5])], legIdx: 0, bracket: [], scorers: [], assists: [] }
+}
+
+// joga UMA fase inteira da Cup (todos os jogos daquela rodada) ou fecha o
+// chaveamento e monta a próxima — exatamente o mesmo ritmo de dois passos do
+// mata-mata de fim de temporada, pra tela ter tempo de animar o jogo antes da
+// fase virar. Devolve as manchetes do giro.
+function playNbaCupRound(s: EscState): void {
+  const cup = s.nbaCup
+  if (!cup || cup.phase === 'done') return
+  if (!cup.scorers) cup.scorers = []
+  if (!cup.assists) cup.assists = []
+  const isFinal = cup.phase === 'final'
+  const nomeDoVencedor = (t: QuickCopaTie) => t.winner === t.aId ? t.aName : t.bName
+
+  // ── passo 2: a fase acabou → fecha e monta a próxima (ou coroa o campeão)
+  if (cup.ties.length > 0 && cup.ties.every(t => t.winner !== null)) {
+    cup.bracket = [...cup.bracket, { phase: cup.phase, ties: cup.ties }]
+    if (isFinal) {
+      const f = cup.ties[0]
+      const champName = nomeDoVencedor(f)
+      cup.champion = { id: f.winner!, name: champName, you: !!s.managers.find(m => m.id === f.winner && m.isHuman) }
+      s.news = [tr(`👑 ${champName} É CAMPEÃO DA NBA CUP! 🏆`, `👑 ${champName} WINS THE NBA CUP! 🏆`), ...s.news].slice(0, 12)
+      cup.phase = 'done'
+      cup.ties = []
+      return
+    }
+    const next: QuickCopaTie[] = []
+    for (let i = 0; i + 1 < cup.ties.length; i += 2) {
+      const a = cup.ties[i], b = cup.ties[i + 1]
+      next.push({ aId: a.winner!, bId: b.winner!, aName: nomeDoVencedor(a), bName: nomeDoVencedor(b), legs: [], winner: null })
+    }
+    cup.phase = cup.phase === 'quartas' ? 'semis' : 'final'
+    cup.ties = next
+    cup.legIdx = 0
+    return
+  }
+
+  // ── passo 1: joga o jogo ÚNICO de cada confronto desta fase
+  const rng = mulberry(s.seed + 51000 + s.seasonNo * 617 + cup.bracket.length * 29)
+  for (const tie of cup.ties) {
+    if (tie.winner !== null) continue
+    // o de melhor campanha joga em casa. A FINAL é em quadra NEUTRA (na NBA ela é
+    // em Las Vegas) — `neutral` tira a vantagem de casa dos dois lados.
+    const r = simMatch(s, tie.aId, tie.bId, rng, cup.scorers, isFinal, cup.assists)
+    tie.legs.push([r.hg, r.ag])
+    tie.lastHighlights = r.highlights
+    tie.lastPresentationGoals = r.presentationGoals
+    // 🛡️ jogo de basquete não empata (a prorrogação já acontece dentro do próprio
+    // jogo). Isto aqui é rede de segurança: se um dia vier empate, a PRORROGAÇÃO
+    // decide — nunca pênalti, que não existe no basquete.
+    if (r.hg !== r.ag) tie.winner = r.hg > r.ag ? tie.aId : tie.bId
+    else resolveQuickCopaTie(tie, rng, true)
+  }
+  const faseNome = isFinal
+    ? tr('FINAL', 'FINAL')
+    : cup.phase === 'semis' ? tr('SEMIFINAL', 'SEMIFINAL') : tr('QUARTAS', 'QUARTER-FINALS')
+  const heads: string[] = []
+  for (const tie of cup.ties) {
+    const leg = tie.legs[tie.legs.length - 1]
+    if (!leg) continue
+    heads.push(`🏀 NBA Cup ${faseNome}: ${tie.aName} ${leg[0]} × ${leg[1]} ${tie.bName}`)
+    if (tie.winner !== null) {
+      const w = nomeDoVencedor(tie), l = tie.winner === tie.aId ? tie.bName : tie.aName
+      heads.push(tie.ot
+        ? tr(`🕐 ${w} passou na PRORROGAÇÃO e eliminou ${l} da Cup!`, `🕐 ${w} won in OVERTIME and knocked ${l} out of the Cup!`)
+        : tr(`🏆 ${w} avançou na NBA Cup — adeus, ${l}!`, `🏆 ${w} advanced in the NBA Cup — goodbye, ${l}!`))
+    }
+  }
+  s.news = [...heads, ...s.news].slice(0, 12)
 }
 
 function applyResult(league: LeagueTeam[], r: MatchResult) {
@@ -3326,7 +3476,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -3408,6 +3558,7 @@ type Action =
   | { type: 'SIM_MANY'; count: number }
   | { type: 'FINISH_SEASON' } // 🏁 rápido: encerra a liga DEPOIS da última partida animar
   | { type: 'PLAY_COPA_LEG' } // 🏆 Copa dos 8 (rápido): joga a perna atual de todas as ties da fase
+  | { type: 'PLAY_NBA_CUP_ROUND' } // 🏀 NBA Cup (meio da temporada): joga a fase atual (jogo único)
   | { type: 'PLAY_LIBERTA_RODADA' } // 🌎 Libertadores: joga uma rodada da fase de grupos (os 8 grupos de uma vez)
   | { type: 'START_LIBERTA' } // 🌎 Libertadores: sai do bannerzão de abertura e entra na fase de grupos
   | { type: 'START_COPA' } // 🏆 Copa dos 8: sai da tela de fim de liga e entra na Copa (botão ou tempo de leitura)
@@ -3896,6 +4047,7 @@ function redraftSeason(s: EscState): EscState {
   s.league = []; s.fixtures = []; s.scorers = []; s.assists = []; s.lastResults = []
   s.tactics = {}
   s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — senão a próxima liga nunca semeia de novo
+  s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
   s.liberta = null // 🌎 idem pra Libertadores: temporada nova, chave nova
   s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
   s.submitted = []; s.pendingEnvelopes = {}
@@ -3965,7 +4117,7 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
 
 export function reducer(state: EscState, action: Action): EscState {
   if (action.type === 'SYNC_STATE') {
-    setActiveCatalog(action.newState.deckLeague) // o ponteiro do baralho segue o estado do host (reload zera pra BR)
+    reancoraEsporte(action.newState) // o baralho/esporte segue o estado do host (reload zera o ponteiro; 🏀 sala de basquete reancora no NBA)
     // O host manda o estado do JOGO (managers, deck, leilão, temporada...),
     // mas identidade é local a cada cliente: "quem sou eu" (youIdx), "sou
     // host?", sala. Sem isso, um convidado que recebe o broadcast do host
@@ -4021,7 +4173,7 @@ export function reducer(state: EscState, action: Action): EscState {
     }
   }
   if (action.type === 'RESTORE_ONLINE') {
-    setActiveCatalog(action.state.deckLeague) // reancora o baralho da sala (reload zera o ponteiro pra BR)
+    reancoraEsporte(action.state) // reancora o baralho/esporte da sala (reload zera o ponteiro; 🏀 basquete volta no NBA)
     // reconexão/host-caiu: adota o estado salvo no banco em vez de recomeçar
     // do zero. A identidade ("quem sou eu", host?) é sempre local a este
     // cliente; efêmeros host-only voltam limpos (já vêm sanitizados).
@@ -4448,6 +4600,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const newTier = NBA_TIERS[tier].next as NbaTier
         s.nbaTier = newTier
         s.quickCopa = null // zera o chaveamento da temporada passada
+        s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
         s.liberta = null // 🌎 e a Libertadores da temporada passada junto
         const tierTeams = NBA_TIERS[newTier].teams
         // novos adversários do andar (CPUs recebem elenco, não dão lance); VOCÊ fica.
@@ -4464,6 +4617,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // ao vivo, tudo simula, zero spoiler). A Street League é só pontos corridos.
       s.copaMode = (s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa'
       s.quickCopa = null // reseeda o chaveamento a cada temporada
+      s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
       s.liberta = null // 🌎 a Libertadores também é semeada de novo a cada temporada
       // 🏀 VENDER: tira do elenco as reservas que você DISPENSOU (marcadas na tela
       // de fim) — as vagas voltam a abrir e o leilão de reservas repõe.
@@ -4633,6 +4787,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
+      s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
       s.liberta = null // 🌎 idem pra Libertadores
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.seasonVotes = {}
@@ -4710,6 +4865,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null; s.liberta = null; s.streamChampCard = null
+      s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
       s.seasonVotes = {}; s.restartPending = false; s.restartReady = []
       { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
       const ccQ: Record<number, number> = {}
@@ -4774,10 +4930,18 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🥅 VÁRZEA ("Sem craques"): SÓ no rápido online + baralho BR (carreira e
       // Europa/Todos não têm essa categoria). Filtra o baralho pro leilão E os bots
       // saírem sem craque/lenda de uma vez. Restaura o baralho cheio logo após montar.
-      const onlineVarzea = !action.career && (action.deck ?? 'br') === 'br' && !!action.varzea
+      // 🏀 SALA DE BASQUETE (14/09): a sala nasce do esporte em que a pessoa ESTÁ
+      // (a home do BidLegends manda `sport: 'basquete'`). Muda só o CONTEÚDO —
+      // baralho NBA, quinteto de 5, franquias no lugar dos clubes e caixa de 50.
+      // Sala de futebol não passa por nenhuma linha nova: `action.sport` vem
+      // indefinido e tudo cai no caminho de sempre.
+      const onlineNba = action.sport === 'basquete'
+      const onlineVarzea = !onlineNba && !action.career && (action.deck ?? 'br') === 'br' && !!action.varzea
       s.varzea = onlineVarzea
-      setActiveCatalog(s.deckLeague, onlineVarzea)
-      s.sport = 'futebol'; s.nbaCareer = false // ⚽ online é sempre futebol (não herda basquete de um jogo anterior)
+      s.sport = onlineNba ? 'basquete' : 'futebol'
+      s.nbaCareer = false // online rápido/liga: não é a carreira salva do basquete
+      if (onlineNba) setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição (quinteto)
+      else setActiveCatalog(s.deckLeague, onlineVarzea)
       s.simSpeed = 1 // ⏩ todo jogo online COMEÇA no ritmo Normal — não herda a velocidade de um jogo anterior (era o "sim ultra rápida" numa sala auto, sem ninguém ter tocado no manual). Manual/stream re-escolhe a marcha dentro do jogo.
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
@@ -4859,7 +5023,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // depois o resto da Série D. Rápido: pool embaralhado, sem rivais de leilão.
       const careerChosen = (action.rivalTeams ?? []).map(tn => TIMES_ELITE.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
       const careerRest = TIMES_ELITE.filter(t => !careerChosen.some(c => c.team === t.team))
-      const namePool = action.career
+      const namePool = onlineNba
+        ? shuffle([...NBA_PRO_TEAMS], rng) // 🏀 a tabela da sala de basquete é de FRANQUIAS da NBA
+        : action.career
         ? [...careerChosen, ...careerRest]
         : [...shuffle([...TIMES_ELITE], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
       const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
@@ -4868,6 +5034,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
       // leilão mas aparecem como time comum, sem selo ⚔️.
       s.managers = onlineManagers
+      // 🏀 caixa do basquete: 50 pro quinteto (5) = ~10/jogador, o MESMO equilíbrio
+      // do futebol (100 pra 11). Com os 100 do futebol dava pra pagar caro em todos.
+      // Só quem DISPUTA o pregão (humanos e rivais de leilão) — os bots de tabela
+      // ficam com o caixa zerado deles, exatamente como no futebol.
+      if (onlineNba) for (const m of s.managers) if (m.isHuman || m.auctionRival) m.money = NBA_QUICK_BUDGET
       // rápido (e T1 de carreira) começam SEM piso. O livro de preços
       // (marketValues) é memória da carreira ENTRE temporadas — não pode vazar do
       // jogo anterior nem do "novo leilão" do rápido, senão aparece "valor mínimo".
@@ -4887,6 +5058,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null // 🏆 Copa dos 8 é POR TEMPORADA — jogo novo não herda a Copa de uma sessão anterior
+      s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
       s.liberta = null // 🌎 idem pra Libertadores
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       // 🌱 CRIA DA BASE / EVENTOS DE JOGADOR: são coisa da CARREIRA, mas esta
@@ -6071,6 +6243,25 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.dinastia && !s.dinastiaMidUsed && s.round >= Math.floor(roundsTotal / 2) && s.round < roundsTotal) {
         s.dinastiaPaused = true; s.dinastiaMidUsed = true
       }
+      // 🏆🏀 NBA CUP: a copa do MEIO da temporada nasce ao bater a metade do
+      // calendário (82 jogos → rodada 41), UMA vez por temporada. Ela não cria
+      // passo nem espera nova — a tela troca a rodada da liga pelos jogos da Cup e
+      // devolve o comando pra liga assim que sair o campeão (regra de ouro do
+      // Diego: nada pode atrasar o ritmo).
+      // `nbaCupFeita` grava a temporada mesmo quando a Cup NÃO acontece (liga com
+      // menos de 8 times), senão ficaria tentando semear a cada rodada.
+      // 🛝 `copaMode === 'liga_copa'` = andar que TEM mata-mata (G League, NBA e a
+      // sala online). A Street League é a várzea do basquete: pontos corridos e
+      // nada mais, então lá não nasce Cup nenhuma — como não nasce playoff.
+      if (s.sport === 'basquete' && s.copaMode === 'liga_copa' && !s.nbaCup && s.nbaCupFeita !== s.seasonNo
+        && s.round >= Math.floor(roundsTotal / 2) && s.round < roundsTotal) {
+        const cup = seedNbaCup(s.league)
+        s.nbaCupFeita = s.seasonNo
+        if (cup) {
+          s.nbaCup = cup
+          s.news = [tr('🏆 METADE DA TEMPORADA — chegou a NBA CUP! 8 times, jogo único, quem perder está fora.', '🏆 MIDSEASON — the NBA CUP is here! 8 teams, single game, lose and you are out.'), ...s.news].slice(0, 12)
+        }
+      }
       if (s.round >= roundsTotal && action.type === 'SIM_MANY') {
         // pulo em MASSA (sem assistir): encerra na hora. Rodada a rodada (PLAY_ROUND)
         // NÃO encerra aqui — deixa a última partida ANIMAR; a tela chama FINISH_SEASON.
@@ -6101,18 +6292,37 @@ export function reducer(state: EscState, action: Action): EscState {
       playLibertaRodada(s)
       return s
     }
+    case 'PLAY_NBA_CUP_ROUND': {
+      // 🏀 a NBA Cup roda no MOTOR DELA (`playNbaCupRound`), não no do fim de
+      // temporada — dois passos: joga a fase, depois fecha e monta a próxima, pra
+      // tela ter tempo de animar o jogo antes do chaveamento virar.
+      if (s.sport !== 'basquete') return s
+      playNbaCupRound(s)
+      return s
+    }
     case 'PLAY_COPA_LEG': {
       const qc = s.quickCopa
       if (!qc || qc.phase === 'done') return s
       if (!qc.scorers) qc.scorers = [] // saves antigos sem o campo
       const isFinal = qc.phase === 'final'
-      const legsNeeded = isFinal ? 1 : 2 // ida+volta (fases) ou jogo único (final)
+      // 🏀 PLAYOFFS DA NBA = SÉRIE MELHOR DE 3 (14/09). Somar os pontos de dois jogos
+      // ("agregado") é regra de FUTEBOL: no basquete ninguém soma placar de jogos
+      // diferentes — quem ganha a série é quem vence 2 jogos primeiro. Vale em todas
+      // as fases, inclusive as Finals. Mando de quadra alterna (jogo 1 e 3 com o time
+      // de melhor campanha). O futebol continua ida-e-volta com final em jogo único.
+      const bbSerie = s.sport === 'basquete'
+      const vitoriasNaSerie = (t: QuickCopaTie): [number, number] =>
+        t.legs.reduce<[number, number]>((acc, [a, b]) => { if (a > b) acc[0]++; else acc[1]++; return acc }, [0, 0])
+      const legsNeeded = bbSerie ? 3 : (isFinal ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
       const legsPlayed = qc.ties[0]?.legs.length ?? 0
       // ── AVANÇO de fase: passo À PARTE de jogar a perna. Só roda DEPOIS que a
       // última perna já teve tempo de animar na tela (o dispatch anterior tocou a
       // perna; este só fecha o chaveamento e monta a próxima fase). Sem isso, a
       // volta era jogada e a fase virava no MESMO passo — a volta nunca aparecia.
-      if (legsPlayed >= legsNeeded) {
+      // 🏀 a fase vira quando TODAS as séries fecharam (uma pode acabar em 2 jogos e a
+      // do lado precisar de 3 — quem já fechou fica de fora do próximo jogo).
+      const faseAcabou = bbSerie ? qc.ties.every(t => t.winner !== null) : legsPlayed >= legsNeeded
+      if (faseAcabou) {
         qc.bracket = [...qc.bracket, { phase: qc.phase, ties: qc.ties }]
         if (isFinal) {
           const champ = qc.ties[0]
@@ -6120,7 +6330,7 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : 'DA COPA DOS 8'}!`, ...s.news].slice(0, 12)
+          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -6143,45 +6353,59 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       // ── JOGA a próxima perna. legIdx = a perna que está sendo jogada/MOSTRADA
       // agora (0 = ida, 1 = volta) — o rótulo na tela lê daqui, então fica certo.
-      qc.legIdx = legsPlayed as 0 | 1
+      qc.legIdx = Math.min(legsPlayed, 2) as 0 | 1 | 2
       const isLastLeg = legsPlayed + 1 >= legsNeeded // volta (fases) ou o jogo único (final)
       const rng = mulberry(s.seed + 90000 + s.seasonNo * 733 + qc.ties.length * 31 + qc.bracket.length * 97 + qc.legIdx * 13)
       for (const tie of qc.ties) {
         if (tie.winner !== null) continue
         // ida: A em casa; volta: B em casa (mandante troca). Final: jogo único, A em casa.
-        const homeId = qc.legIdx === 0 ? tie.aId : tie.bId
-        const awayId = qc.legIdx === 0 ? tie.bId : tie.aId
+        // 🏀 série de 3: jogos 1 e 3 na quadra de A (melhor campanha), jogo 2 na de B —
+        // o mando alterna igual à NBA, e a vantagem fica com quem fez por merecer.
+        const emCasaA = qc.legIdx % 2 === 0
+        const homeId = emCasaA ? tie.aId : tie.bId
+        const awayId = emCasaA ? tie.bId : tie.aId
         // 🏆 gols da Copa contam numa artilharia À PARTE (qc.scorers) — não mexe na da liga.
         // Final = jogo ÚNICO em campo NEUTRO (isFinal): sem vantagem de casa, mesma chance
         // pros dois. Ida/volta mantêm a casa (que se alterna, então também é justo).
         // 🅰️ garçom da Copa vai na lista DA COPA (qc.assists), pelo mesmo motivo.
         if (!qc.assists) qc.assists = []
         const r = simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
-        const leg: [number, number] = qc.legIdx === 0 ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [gols de A, gols de B]
+        const leg: [number, number] = emCasaA ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [pontos/gols de A, de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
         tie.lastPresentationGoals = r.presentationGoals
-        if (isLastLeg) resolveQuickCopaTie(tie, rng) // só resolve no fim (agregado/pênaltis)
+        if (bbSerie) {
+          // 🏀 fechou 2 vitórias? acabou a série (pode ter sido em 2 jogos). No 3º
+          // jogo alguém já chega a 2 obrigatoriamente — jogo de basquete não empata
+          // (a prorrogação acontece dentro do próprio jogo, em `simMatch`).
+          const [va, vb] = vitoriasNaSerie(tie)
+          if (va >= 2 || vb >= 2) tie.winner = va > vb ? tie.aId : tie.bId
+          else if (tie.legs.length >= 3) resolveQuickCopaTie(tie, rng, true) // salvaguarda
+        } else if (isLastLeg) resolveQuickCopaTie(tie, rng) // ⚽ agregado → pênaltis se empatar
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
       // pênaltis) — o giro fala DA COPA agora, não das rodadas da liga.
-      const phaseWord = isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : 'QUARTAS'
-      const copaWord = s.copaMode === 'liga_liberta' ? 'Liberta' : 'Copa'
-      const legWord = isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
+      // 🏀 no basquete a chave é a da NBA: 1ª rodada → semis de conf. → finais de conf. → FINALS
+      const bbGiro = s.sport === 'basquete'
+      const phaseWord = bbGiro
+        ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
+        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : 'QUARTAS')
+      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : 'Copa'
+      const legWord = bbGiro ? ` · jogo ${qc.legIdx + 1}` : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
         const leg = tie.legs[tie.legs.length - 1]
         if (!leg) continue
         // na VOLTA o mandante inverte (B joga em casa): mostra o mandante primeiro
         // no placar, pra manchete refletir a troca de lado (ida A×B, volta B×A).
-        const swap = qc.legIdx === 1 // volta
+        const swap = qc.legIdx % 2 === 1 // ⚽ volta · 🏀 jogo 2 (mando alterna)
         const mand = swap ? tie.bName : tie.aName, vis = swap ? tie.aName : tie.bName
         const mandG = swap ? leg[1] : leg[0], visG = swap ? leg[0] : leg[1]
-        copaHeads.push(`⚽ ${copaWord} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
+        copaHeads.push(`${bbGiro ? '🏀' : '⚽'} ${copaWord} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
-          copaHeads.push(tie.pens ? `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!` : `🏆 ${w} avançou na ${copaWord === 'Copa' ? 'Copa' : 'Libertadores'} — adeus, ${l}!`)
+          copaHeads.push(tie.pens ? (tie.ot ? `🕐 ${w} passou na PRORROGAÇÃO e eliminou ${l}!` : `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!`) : `🏆 ${w} avançou ${bbGiro ? 'nos Playoffs' : copaWord === 'Copa' ? 'na Copa' : 'na Libertadores'} — adeus, ${l}!`)
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)
@@ -7324,6 +7548,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null; s.liberta = null
+      s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
       s.deckLeague = sv.deckLeague ?? 'br'; setActiveCatalog(s.deckLeague) // baralho da carreira salva
       s.careerDivision = sv.division; s.careerIntent = false; s.careerTitles = sv.titles; s.careerTitlesA = sv.titlesA ?? 0
       s.seasonNo = sv.seasonNo
@@ -7441,6 +7666,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.champion = null
       s.tactics = {}
       s.quickCopa = null; s.liberta = null // 🏆🌎 Copa dos 8 / Libertadores são POR TEMPORADA — senão a próxima liga nunca semeia de novo
+      s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
       s.seasonNo++
       s.restartPending = false
@@ -7850,9 +8076,35 @@ const FICHA_ATUAL = (() => {
   for (const n of repetidos) porNome.delete(n)
   return { exato, porNome }
 })()
+// 🏀 A MESMA REGRA PRO BASQUETE, EM MAPA SEPARADO. A regra permanente do Diego
+// (21/08) é "mexeu no jogador, TODO save atualiza" — mas a ficha acima só olha os
+// três baralhos de FUTEBOL, então um save de basquete ficava com a ficha velha
+// pra sempre. Mapa à parte (e consultado SÓ quando o save é de basquete) porque:
+//  • o futebol não pode nem encostar nisto — se um nome existisse nos dois
+//    esportes, misturar os dois mapas daria a ficha errada pra alguém;
+//  • a bio do basquete é BILÍNGUE (bioPt/bioEn) e o idioma pode mudar depois que
+//    o módulo carrega, então ela é escolhida na HORA de sincronizar, não aqui.
+type FichaNba = { fame: number; lo: number; hi: number; folk?: boolean; promessa?: boolean; bioPt: string; bioEn: string }
+const FICHA_NBA = (() => {
+  const exato = new Map<string, FichaNba>()
+  const porNome = new Map<string, FichaNba>()
+  const repetidos = new Set<string>()
+  for (const lista of Object.values(CATALOG_NBA)) {
+    for (const c of lista) {
+      const ficha: FichaNba = { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bioPt: c.bioPt, bioEn: c.bioEn }
+      exato.set(`${c.name}|${clubCanon(c.club)}|${c.year}`, ficha)
+      if (porNome.has(c.name)) repetidos.add(c.name); else porNome.set(c.name, ficha)
+    }
+  }
+  for (const n of repetidos) porNome.delete(n)
+  return { exato, porNome }
+})()
 function sincronizaNiveis(save: EscState): EscState {
   let mexeu = 0
   const vistos = new Set<object>()
+  // 🏀 save de basquete lê a ficha do baralho NBA; o de futebol nunca passa por lá.
+  const nba = save.sport === 'basquete'
+  const bioNba = (f: FichaNba) => (getLang() === 'en' ? f.bioEn : f.bioPt)
   const anda = (v: unknown, prof: number): void => {
     if (prof > 12 || !v || typeof v !== 'object') return
     if (vistos.has(v as object)) return
@@ -7864,7 +8116,11 @@ function sincronizaNiveis(save: EscState): EscState {
       if (!o.fake) {
         // 1º pelo trio nome+clube+ano; 2º só pelo nome — assim uma correção de
         // clube/ano no `data.ts` ainda alcança quem tem a carta velha no save.
-        const f = FICHA_ATUAL.exato.get(`${o.name}|${clubCanon(o.club)}|${o.year}`) ?? FICHA_ATUAL.porNome.get(o.name)
+        const chave = `${o.name}|${clubCanon(o.club)}|${o.year}`
+        const fNba = nba ? (FICHA_NBA.exato.get(chave) ?? FICHA_NBA.porNome.get(o.name)) : undefined
+        const f: FichaJogador | undefined = fNba
+          ? { fame: fNba.fame, lo: fNba.lo, hi: fNba.hi, folk: fNba.folk, promessa: fNba.promessa, bio: bioNba(fNba) }
+          : (FICHA_ATUAL.exato.get(chave) ?? FICHA_ATUAL.porNome.get(o.name))
         if (f) {
           const dif = o.fame !== f.fame || o.lo !== f.lo || o.hi !== f.hi
             || !!o.folk !== !!f.folk || !!o.promessa !== !!f.promessa || (f.bio != null && o.bio !== f.bio)
@@ -7898,7 +8154,7 @@ function saveAtualizado(save: EscState): EscState {
     return mexeuGas || mexeuCtr ? copia : s
   } catch { return s }
 }
-export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato } // 🔬 só pra teste
+export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato, resolveQuickCopaTie as __resolveQuickCopaTie, seedQuickCopa as __seedQuickCopa, seedNbaCup as __seedNbaCup, sincronizaNiveis as __sincronizaNiveis } // 🔬 só pra teste
 // 🔎 DIAGNÓSTICO DA CAIXA (20/08 — caso do "±9999" do Pedro).
 // O que sabemos: a tela dele mostrou 9999 e -9999, o save na nuvem tem -261, e o
 // LACRE do save bate (ou seja: ninguém editou o arquivo — o valor da tela nunca

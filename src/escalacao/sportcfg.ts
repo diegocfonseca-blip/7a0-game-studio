@@ -71,3 +71,21 @@ export function sectorTitle(sport: Sport, s: Sector, lang: 'pt' | 'en'): string 
 
 // sanity: garante que todo setor tem rótulo nos dois esportes (pega erro de digitação em build)
 SECTORS.forEach(s => { void POS_LABELS.futebol[s]; void POS_LABELS.basquete[s] })
+
+// ⏱️ O RELÓGIO DO JOGO — mesmo motor, rótulo por esporte.
+// O card de partida anima um contador de 0 a 93 (o "minuto"). No FUTEBOL isso já
+// é o rótulo (45' · 90+2' · FIM). No BASQUETE não existe minuto corrido: são 4
+// QUARTOS DE 12 MINUTOS contando PRA BAIXO (Q1 12:00 → Q4 0:00). Esta função
+// traduz aquele 0-93 no relógio certo, e mora AQUI pra todas as telas usarem a
+// mesma conta — o card grande, a lista dos playoffs e o que vier depois. Se duas
+// telas fizessem a conta por conta própria, uma mostraria Q3 enquanto a outra
+// mostrava Q2 no mesmo jogo.
+export const MATCH_TICKS = 93 // quanto o contador da animação anda num jogo inteiro
+export function basketClockLabel(min: number, fim = 'FINAL'): string {
+  const prog = Math.min(1, min / MATCH_TICKS)
+  if (prog >= 1) return fim
+  const q = Math.min(4, Math.floor(prog * 4) + 1)     // quarto 1..4
+  const within = (prog * 4) % 1                        // 0..1 dentro do quarto
+  const secLeft = Math.max(0, Math.round((1 - within) * 12 * 60)) // 12 min regressivos
+  return `Q${q} ${Math.floor(secLeft / 60)}:${(secLeft % 60).toString().padStart(2, '0')}`
+}

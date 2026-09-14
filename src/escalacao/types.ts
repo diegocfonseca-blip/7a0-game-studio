@@ -326,7 +326,8 @@ export interface QuickCopaTie {
   lastPresentationGoals?: MatchHighlight[]
   aId: number; bId: number; aName: string; bName: string
   legs: [number, number][] // placares [gols de A, gols de B] de cada perna já jogada
-  pens?: [number, number]  // disputa de pênaltis, se empatou no agregado
+  pens?: [number, number]  // ⚽ disputa de pênaltis · 🏀 pontos da PRORROGAÇÃO, se empatou no agregado
+  ot?: boolean             // 🏀 o desempate foi PRORROGAÇÃO (basquete), não pênaltis (14/09)
   winner: number | null    // id de quem passou (null = ainda rolando)
   lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
 }
@@ -336,7 +337,7 @@ export type CopaFase = 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
 export interface QuickCopaState {
   phase: CopaFase
   ties: QuickCopaTie[]  // confrontos da fase ATUAL
-  legIdx: 0 | 1          // perna sendo jogada agora (final usa só a 0 — jogo único)
+  legIdx: 0 | 1 | 2      // ⚽ perna sendo jogada (final usa só a 0 — jogo único) · 🏀 jogo 1/2/3 da série melhor de 3
   bracket: { phase: Exclude<CopaFase, 'done'>; ties: QuickCopaTie[] }[] // fases já fechadas
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
@@ -558,6 +559,14 @@ export interface EscState {
   bafoTrocasFeitas?: string[] // 🃏 idempotência do COFRE da carreira: chaves das trocas de Bafo já aplicadas neste save (o servidor já trocou o dono; isto evita tirar/pôr a carta duas vezes no aparelho).
   quickCopa?: QuickCopaState | null
   liberta?: LibertaState | null // 🌎 fase de grupos da Libertadores (o mata-mata dela usa o quickCopa)
+  // 🏀 NBA CUP — a copa do MEIO da temporada do BidLegends (jogo único, 8 times).
+  // ⚠️ SLOT PRÓPRIO DE PROPÓSITO. O `quickCopa` acima é o slot ÚNICO do mata-mata de
+  // FIM de temporada (Copa dos 8 · Libertadores · playoffs da NBA) e só é semeado se
+  // estiver VAZIO. Se a Cup usasse ele no meio do caminho e sobrasse qualquer coisa,
+  // a temporada terminaria SEM playoffs. Campo separado = o fim de temporada não
+  // muda em nada, e o futebol nunca passa por aqui (só nasce com sport 'basquete').
+  nbaCup?: QuickCopaState | null
+  nbaCupFeita?: number | null // nº da temporada em que a Cup daquele ano já rolou (não repete)
   phaseDeadline: number | null // timestamp (ms) do fim do envelope
   monteDeadline: number | null // timestamp (ms) do fim da vez atual no Monte (online)
   cerimoniaDeadline: number | null // timestamp (ms) do fim da cerimônia (auto-começa o campeonato)

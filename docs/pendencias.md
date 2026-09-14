@@ -32,6 +32,160 @@ da carta).
 
 ⏳ **Falta:** print do Diego no celular. Reverter = 1 commit.
 
+## 14/09/2026 — 🏀 BIDLEGENDS: ONLINE NO AR (rápido + Minhas ligas) e as regras de basquete no mata-mata
+
+Pedido do Diego: *"comece a fazer o basquete tudo que falta… igual ao futebol, porém
+basquete suas regras de basquete… reinicie de onde parou e faça todos os modos valer"*.
+O basquete tinha parado em 28/07 com **rápido offline** e **carreira** (Street → G League
+→ NBA) prontos. **Faltava o online inteiro.** Feito agora (tudo invisível pro público —
+`BASQUETE_TESTERS` segue só na conta do Diego):
+
+- 🌐 **SALA ONLINE DE BASQUETE** — o MESMO lobby do futebol (código, senha, duplas, chat,
+  stream, Minhas ligas). Botão "🌐 JOGAR ONLINE" na home do BidLegends.
+  - `START_ONLINE` aceita `sport`: baralho NBA, **quinteto de 5** (1 por posição),
+    adversários = **franquias da NBA** e caixa de **50** (≈10/jogador, o mesmo equilíbrio
+    do futebol, que dá 100 pra 11). Sala sem `sport` = futebol, byte-idêntica.
+  - 🔑 **`reancoraEsporte(s)`**: `ACTIVE_SPORT`/`ACTIVE_CATALOG`/`NBA_BASE_SLOTS` são
+    globais do MÓDULO — somem no F5 e NÃO viajam no pacote do host. Todo caminho de
+    retomar/sincronizar (`SYNC_STATE`, `RESTORE_ONLINE`) chamava `setActiveCatalog`, que
+    força futebol: sala de basquete voltaria com jogador de futebol no pregão. Agora o
+    ESTADO manda.
+  - 🏷️ **Salas separadas por esporte** sem coluna nova no banco: a sala de basquete nasce
+    com a etiqueta `bidlegends` (o futebol segue `escalacao`). O lobby JÁ filtra tudo por
+    ela — lista de salas abertas, sala salva, convite por link e o aviso "essa sala é de
+    outro jogo". Quem está no futebol não vê sala de basquete e vice-versa.
+  - No BidLegends o lobby mostra só os modos que existem lá: **⚡ Rápido** e **🏆 Minhas
+    ligas** (carreira online de 4 divisões e Bafo são do futebol).
+- 🕐 **REGRA DE BASQUETE NO MATA-MATA:** empate no agregado ia pra **pênaltis** (regra de
+  futebol vazando). Agora vai pra **PRORROGAÇÃO**: período extra simulado (6-20 pontos por
+  lado), repete se empatar, e a tela escreve "🕐 PRORROGAÇÃO 15 × 12" no lugar das
+  bolinhas. O futebol continua nos pênaltis, intocado.
+- 🧹 **Beco sem saída removido:** a cerimônia do basquete ainda dizia *"a temporada entra
+  na próxima atualização"* e oferecia "voltar ao início" — texto de antes de 27/07, quando
+  a temporada (82 jogos, tabela por V-D, cestinha, playoffs) já existia. Pior: o vigia
+  começava a temporada sozinho 45s depois, então a tela MENTIA e o botão largava a partida
+  no meio. Agora usa o mesmo fim do futebol, escrito em basquete.
+- 🏆 **PLAYOFFS DE VERDADE (2ª leva, mesmo dia):** o mata-mata do basquete era o do
+  futebol — 4 times por conferência, jogo de ida e volta somando os pontos. Agora é NBA:
+  - **Top 8 de cada conferência**, chaveados por posição na tabela: **1×8 · 4×5 · 3×6 ·
+    2×7**. São 16 times, 15 séries (8 + 4 + 2 + 1), e **Leste e Oeste só se cruzam nas
+    FINALS**.
+  - **Toda série é MELHOR DE 3** (inclusive a final — no futebol a final é jogo único).
+    Quem ganhar 2 jogos leva; o 3º jogo só acontece se precisar. **Não existe agregado de
+    pontos**: no basquete o que conta é VITÓRIA, e o mando alterna jogo 1 casa do melhor,
+    jogo 2 fora, jogo 3 casa de novo.
+  - **Nomes certos** em toda a tela e no giro de notícias: 1ª RODADA · SEMIS DE CONF. ·
+    FINAIS DE CONF. · **FINALS**, "Playoffs" no lugar de "Copa", 🏀 no lugar da bola de
+    futebol, "JOGO 1/2/3", o placar de cada jogo em fila ("jogo 1 108×99 · jogo 2 91×97")
+    e o campeão sai com **"É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍"**.
+- 📊 **A TABELA VIROU DUAS — uma por conferência** (3ª leva, mesmo dia). Antes era uma
+  lista só, misturada, com 🔵/🔴 no nome de cada time — mas quem decide o chaveamento é a
+  posição DENTRO da conferência, então a tela dizia uma coisa e o motor fazia outra. Agora
+  são **🔵 LESTE** e **🔴 OESTE** lado a lado, numeração recomeçando do 1, etiqueta **PO**
+  em quem está em vaga de playoff. E **some a faixa vermelha**: no basquete NINGUÉM CAI (a
+  pirâmide dele só sobe), então pintar zona de rebaixamento era mentira na tela.
+- ⚖️ **Quantos passam: 8 ou 4, quem escolhe é o TAMANHO da liga.** O top 8 puro deixava a
+  temporada regular sem sentido na sala online: 20 times = 10 por conferência, e 8 de 10
+  passariam. Ficou assim: conferência com **12+ times** (NBA tem 15, G League 12) passa
+  **8** (chave 1×8/4×5/3×6/2×7); menor que isso passa **4**, que dá os mesmos 40% de
+  classificados da Copa dos 8 do futebol. A tabela, o aviso de fim de temporada e o giro
+  de notícias leem **a mesma régua** do chaveamento — nenhum deles pode prometer vaga pra
+  quem o motor vai deixar de fora.
+- ⏱️ **O RELÓGIO VIROU DE BASQUETE EM TODA TELA** (4ª leva, mesmo dia). O relógio de
+  quartos (Q1 12:00 → Q4 0:00) já existia, mas **só uma tela passava o `basket`** — a
+  lista dos playoffs e os jogos da rodada no online ainda marcavam `45'` e `90+2'` num
+  jogo de basquete. Agora a conta mora em **`sportcfg.ts` (`basketClockLabel`)** e todas
+  leem a MESMA — senão duas telas marcariam quartos diferentes no mesmo jogo.
+  - E o placar dos OUTROS jogos da rodada **sobe junto com o relógio**. Antes ele contava
+    os lances narrados (meia dúzia), então um jogo de basquete mostrava 0 a 3 durante a
+    animação e pulava pra 108 × 99 no apito.
+- 🏀 **Cesta nos QUATRO quartos** (era bug de verdade): os lances narrados eram sorteados
+  entre 1 e 47 de um relógio que anda até 93 — ou seja, a cesta **parava no intervalo** e o
+  2º tempo inteiro ficava mudo. Agora espalha por 1–92.
+- 🌐 **i18n**: a MESA DO MARTELO estava 100% em PT (`🫵 VOCÊ`, `Todos lacraram!`,
+  `revelando lances…`, `martelo batido.`, `anulado (setor cheio)`) e o aviso do jogador
+  surpresa também. Traduzidos — isso aparece pra TODO mundo, futebol incluído. E na
+  cerimônia o basquete agora diz "a TEMPORADA começa em", não "o campeonato".
+- 🖼️ `scripts/mockup-basquete-playoffs.mjs` — o mockup pro Diego ver. Não é desenho à mão:
+  monta uma sala pelo reducer, semeia com `seedQuickCopa` e joga as séries de verdade até
+  sair o anel. Gera `/tmp/mockup-basquete-playoffs.png`.
+- 🧪 `scripts/testa-basquete-online.mjs` (7 seções): baralho/vagas/caixa/franquias da sala,
+  futebol byte-idêntico, reancoragem no sync, prorrogação (200 sorteios, nenhum empate), a
+  chave por conferência **e os playoffs inteiros rodando no motor** — 15 séries, cada uma
+  de 2 ou 3 jogos, ninguém passa sem ganhar 2, nenhum jogo empatado, placares de basquete
+  (72–152) e o cruzamento Leste×Oeste só na final — **nos dois tamanhos**: a NBA de 30
+  (top 8, 15 séries) e a sala online de 20 (top 4, 7 séries). Os 4 testes do futebol
+  seguem verdes.
+- 🏆 **NBA CUP NO AR** (5ª leva, mesmo dia). O conceito só tinha UMA linha: *"torneio no
+  meio da temporada; detalhar na construção"*. Detalhada e construída (regra escrita em
+  `docs/conceito-basquete.md`):
+  - **Nasce sozinha na METADE do calendário** (rodada 41 de 82), uma vez por temporada. A
+    liga espera, e o comando volta pra ela assim que sai o campeão. **Sem botão novo e sem
+    espera extra** — regra de ouro do Diego: nada pode atrasar o ritmo.
+  - **8 times: top 4 de CADA conferência** naquele momento. 1×4 e 2×3 dentro do próprio
+    lado; **Leste e Oeste só se cruzam na final**, como na Cup de verdade.
+  - **JOGO ÚNICO** em toda fase (quartas → semi → final), de propósito DIFERENTE dos
+    playoffs (melhor de 3), pra ninguém confundir as duas. Empatou? **Prorrogação.**
+  - **NÃO MEXE NA TABELA** nem na cestinha da liga (a Cup tem a dela). Na NBA a final da
+    Cup também não conta. Prêmio: **mais uma carta** pro álbum (sufixo `:nbacup`), à parte
+    da liga e do anel — dá pra levar as três na mesma temporada.
+  - **Não existe na Street League** (a várzea do basquete, que é só pontos corridos) nem,
+    claro, no futebol.
+  - 🗄️ **Mora em campo PRÓPRIO (`nbaCup`), nunca no `quickCopa`** — e isso é segurança,
+    não capricho: o `quickCopa` é o slot ÚNICO do mata-mata de FIM de temporada e só é
+    semeado se estiver VAZIO. Se a Cup ocupasse ele no meio do caminho e sobrasse
+    qualquer coisa, **a temporada terminaria sem playoffs**. Zerado junto com o
+    `quickCopa` nas 8 viradas de temporada.
+  - 🖥️ **Tela**: reusa o MESMO mata-mata que já existe (em vez de uma tela paralela que ia
+    divergir na primeira mudança) — o `qc` aponta pra chave da vez. O que muda são os
+    rótulos (NBA CUP · QUARTAS/SEMI/FINAL) e o `bbSerie`, que separa "melhor de 3"
+    (playoffs) de "jogo único" (Cup). De quebra, corrigi o texto dos PLAYOFFS na tela de
+    temporada, que ainda prometia a chave velha (top 8 geral, final em jogo único).
+  - 🧪 3 seções novas de teste: a chave e o que a Cup não pode encostar (tabela, cestinha
+    da liga, slot dos playoffs, rodada), o nascimento na metade (e que não nasce duas
+    vezes, nem no futebol, nem na Street) e — a que mais importa — **a TEMPORADA INTEIRA**:
+    liga → Cup no meio → liga de novo → playoffs semeados → anel.
+  - 🖼️ `scripts/mockup-nba-cup.mjs` → `/tmp/mockup-nba-cup.png`.
+- 🃏 **BARALHO ENGORDADO: 270 → 330 cartas** (6ª leva, mesmo dia). Pedido do Diego:
+  *"pode encher mais, porém lembrando que também tem que ter jogador RUIM. Mas sempre
+  FAMOSOS. Sendo bom ou ruim, teve polêmica ou fama ou qualquer coisa nesse tipo — igual
+  Carlos Kaiser e Mauro Shampoo"*.
+  - O buraco era exatamente esse: 🪵 **"foi profissional" tinha só 19 cartas em 270**. O
+    lote de 60 puxou pra lá — agora são **39**. Micos de draft (Tskitishvili, Todd Fuller,
+    Jan Veselý, Rafael Araújo, Stromile Swift), memes (JaVale McGee, Ricky Davis, Dion
+    Waiters), encrenqueiros e personagens (Bruce Bowen, Matt Barnes, Lance Stephenson,
+    Vernon Maxwell, Charles Oakley), brasileiros (Rafael Araújo, Cristiano Felício, Lucas
+    "Bebê" Nogueira) e os craques que faltavam.
+  - As 5 categorias ficaram: 👑 30 lenda · ⭐ 90 craque · 🎯 171 bom jogador ·
+    🪵 39 foi profissional · 💎 16 promessa.
+  - ⚠️ **Conferi os fatos carta por carta e corrigi 6 imprecisões minhas** antes de
+    commitar (o clube/ano do lance famoso do Alston, do Barnes, do Rider e do Collins; e
+    "bicampeão" virou "campeão" no Maxwell; os roubos do Ariza foram na final do OESTE,
+    não na final da NBA). Regra do Diego 18/08: não inventar como a pessoa real é.
+  - 🔒 **Nenhuma bio faz piada de doença, vício, tragédia ou crime.** A zoeira é com o
+    basquete. Jogador cuja fama é a própria desgraça pessoal simplesmente NÃO virou carta.
+- 🔁 **E fechei a trava que faltava: `sincronizaNiveis` agora cobre o BASQUETE.** A regra
+  permanente do Diego (21/08) é *"mexeu no jogador, TODO save atualiza"* — mas a ficha só
+  olhava os TRÊS baralhos de futebol, então um save de basquete ficava com a ficha velha
+  pra sempre. Justamente agora que o baralho mudou. Mapa **separado** (`FICHA_NBA`),
+  consultado **só quando o save é de basquete**: se um nome existisse nos dois esportes,
+  misturar os mapas daria a ficha errada pra alguém. A bio vem no idioma da vez (o baralho
+  do basquete é bilíngue). Tem teste dos dois lados, inclusive "carta de basquete dentro
+  de um save de futebol fica intocada".
+- 🖼️ `scripts/mockup-baralho-nba.mjs` → `/tmp/mockup-baralho-nba.png` (as 60 cartas novas
+  abertas, pro Diego conferir o tom das bios).
+- ⏭️ **Falta** (próximos passos): varrer o resto do PT solto nas telas do pregão · seguir
+  engordando o baralho em lotes (a régua agora está escrita no conceito).
+- 🐞 **Achado de passagem (não é do basquete, não mexi):** `scripts/checa-assist-copa.mjs`
+  quebra com *"Cannot access 'COPA_LEG_MS' before initialization"* num servidor de dev
+  FRIO — reproduz na `main` também. É o ciclo de import `screens.tsx` ↔ `pyramidseason.tsx`
+  (a pyramid importa `CardCollectPrompt` etc. da screens, e a screens importa `COPA_LEG_MS`
+  da pyramid). Roda na 2ª tentativa, quando o grafo já está quente. E a foto de comparação
+  dele (`scripts/copa-antes.json`) é de **27/08**, anterior aos batismos de 13/09 — por isso
+  ele acusa "2450 de 2450 linhas diferentes". Precisa ser refeita quando alguém for mexer aí.
+- 👀 **Esperando o OK visual do Diego** pra ir pra `main`: a tela das duas tabelas e a das
+  séries (mockup acima). Enquanto isso segue invisível pro público (`BASQUETE_TESTERS`).
+
 ## 14/09/2026 — 🌱 A caixa da Base sumia no meio da temporada — ✅ no ar
 
 Diego, com o mockup na mão: *"já tá funcionando isso aqui de poder colocar

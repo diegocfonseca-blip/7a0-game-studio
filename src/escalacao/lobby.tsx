@@ -26,10 +26,20 @@ import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gra
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
+import { getSport, useSport } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
 const GAME_TAG = 'escalacao'
+// 🏀 14/09 — SALA DE BASQUETE (BidLegends) no MESMO lobby, com uma etiqueta PRÓPRIA.
+// Por que uma etiqueta em vez de um campo novo: o lobby JÁ filtra tudo por esta
+// etiqueta (lista de salas abertas, sala salva, convite por link, "essa sala é de
+// outro jogo"). Trocando só a etiqueta, futebol e basquete ficam separados em TODA
+// parte de uma vez — sem coluna nova no banco, sem migração, e sem UMA linha a mais
+// no caminho do futebol (a etiqueta dele continua 'escalacao').
+const GAME_TAG_NBA = 'bidlegends'
+/** etiqueta das salas do esporte em que a pessoa está agora */
+function tagAtual(): string { return getSport() === 'basquete' ? GAME_TAG_NBA : GAME_TAG }
 const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
 // 🏆 quantas LIGAS cada pessoa pode CRIAR. Era 2; virou 5 em 29/08 a pedido do
 // Diego (*"acho q pode aumentar p 5 ligas q cada um pode criar de lenda… e jogar
@@ -225,7 +235,7 @@ export function useResumableRoom() {
       userRef.current = user
       const isLive = (rd: RoomInfo | null | undefined): rd is RoomInfo => {
         const gs = rd?.game_state as GS | undefined
-        return !!rd && rd.game_state?.__game === GAME_TAG && rd.status === 'started'
+        return !!rd && rd.game_state?.__game === tagAtual() && rd.status === 'started'
           && !!gs && Array.isArray(gs.managers) && gs.managers.length > 0
           && !!gs.screen && gs.screen !== 'intro' && gs.screen !== 'lobby'
       }
@@ -234,7 +244,7 @@ export function useResumableRoom() {
       const savedId = loadSavedRoom()
       if (savedId) {
         const { data } = await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()
-        if (data && data.game_state?.__game !== GAME_TAG) clearSavedRoom()
+        if (data && data.game_state?.__game !== tagAtual()) clearSavedRoom()
         else if (isLive(data as RoomInfo)) rd = data as RoomInfo
       }
       // 2) sem ponteiro local (ex.: limpou o cache) → procura no banco uma sala
@@ -598,7 +608,12 @@ export function EscLobby() {
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const canCareer = useCanCareerOnline()
+  // 🏀 estou no BidLegends? O lobby é o MESMO do futebol (mesmas telas e botões,
+  // regra do Diego); no basquete só some o que ainda não existe lá (carreira online
+  // de 4 divisões, Bafo, Copa do Mundo) e o texto fala de quinteto em vez de XI.
+  const [esporteSala] = useSport()
+  const nbaSala = esporteSala === 'basquete'
+  const canCareer = useCanCareerOnline() && !nbaSala
   // 👔🃏 SALA DE ELENCO (17/08): 3º modo — em vez de leiloar, cada um traz o time
   // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
   const salaElenco = useSalaElencoLiberada()
@@ -876,7 +891,7 @@ export function EscLobby() {
     if (invite) {
       ;(async () => {
         const { data: rd } = await supabase.from('game_rooms').select('*').eq('code', invite).maybeSingle()
-        if (!rd || rd.game_state?.__game !== GAME_TAG) { clearInvite(); return }
+        if (!rd || rd.game_state?.__game !== tagAtual()) { clearInvite(); return }
         clearInvite()
         setLoading(true)
         await enterRoom(rd as RoomInfo)
@@ -887,7 +902,7 @@ export function EscLobby() {
     if (!savedId) return
     ;(async () => {
       const rd = (await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()).data
-      if (!rd || rd.game_state?.__game !== GAME_TAG) { clearSavedRoom(); return }
+      if (!rd || rd.game_state?.__game !== tagAtual()) { clearSavedRoom(); return }
       // 🩹 SALA PRESA: diz que COMEÇOU mas não tem jogo nenhum dentro (nenhum
       // técnico montado). Acontecia quando o aviso do banco se perdia entre marcar
       // "começou" e montar a partida — e deixava a sala num beco sem saída: sem
@@ -1227,6 +1242,10 @@ export function EscLobby() {
       deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
       varzea: !!gs?.varzea, // 🥅 rápido + BR, categoria "Sem craques" (só bom jogador + foi profissional)
       career: gs?.mode === 'carreira',
+      // 🏀 o ESPORTE da sala (14/09). Vem gravado no game_state de quem criou — é a
+      // sala que manda, não o aparelho de quem entra. Sala de futebol não tem o
+      // campo e cai no `undefined` = futebol, como sempre.
+      sport: gs?.sport,
       // 🃏 BAFO: os times que cada técnico trouxe da carreira dele. A chave é a
       // POSIÇÃO na lista (uniq), que é exatamente o id do manager humano lá dentro
       // — a mesma amarração que as duplas usam. Errar isso é o bug clássico da
@@ -1534,7 +1553,7 @@ export function EscLobby() {
       }
       ligaAt = quando.toISOString()
     }
-    const gs = { __game: GAME_TAG, formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1594,14 +1613,14 @@ export function EscLobby() {
     const { data: rooms } = await supabase.from('game_rooms')
       .select('id, code, host_id, max_players, status, updated_at, gname:ls_name, gdeck:ls_deck, gvarzea:ls_varzea, gmode:ls_mode, gat:ls_at, gcareer:ls_career, gmanual:ls_manual, gcopa:ls_copa, gliga:ls_liga, glocked:ls_locked, gstream:ls_stream, gpw:ls_pw, gchat:ls_chat, gduplas:ls_duplas')
       .in('status', ['waiting', 'started'])
-      .eq('ls_tag', GAME_TAG)
+      .eq('ls_tag', tagAtual())
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(50)
     type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
+      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -1808,10 +1827,10 @@ export function EscLobby() {
     type SlimLiga = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null }
     const seen = new Set<string>(); const rooms: RoomInfo[] = []
     for (const r of [...((hosted.data ?? []) as unknown as SlimLiga[]), ...((member.data ?? []) as unknown as SlimLiga[])]) {
-      if (seen.has(r.id) || r.gtag !== GAME_TAG) continue
+      if (seen.has(r.id) || r.gtag !== tagAtual()) continue
       seen.add(r.id)
       rooms.push({ id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-        game_state: { __game: GAME_TAG, roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined } as GS })
+        game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined } as GS })
     }
     // a próxima da agenda primeiro (liga sem horário vai pro fim)
     rooms.sort((a, b) => ((a.game_state as GS).ligaAt ?? '9') .localeCompare((b.game_state as GS).ligaAt ?? '9'))
@@ -1825,7 +1844,7 @@ export function EscLobby() {
 
   async function fetchMyCareers() {
     if (!user) return
-    const isCareer = (r: RoomInfo) => r.game_state?.__game === GAME_TAG && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline)
+    const isCareer = (r: RoomInfo) => r.game_state?.__game === tagAtual() && (r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline)
     // 🪶 LISTA MAGRA (03/08): carreiras têm o MAIOR game_state do jogo — a lista
     // só precisa de nome/temporada/tipo. O estado completo é buscado na hora de
     // retomar (triggerStart refetcha), com trava pra nunca começar do zero.
@@ -1928,7 +1947,7 @@ export function EscLobby() {
   // entra numa sala já carregada (por código ou pela lista de salas abertas)
   async function enterRoom(rd: RoomInfo, pw?: string) {
     if (!user) return
-    if (rd.game_state?.__game !== GAME_TAG) { setRoomError(tr('Essa sala é de outro jogo.', 'That room belongs to another game.')); setLoading(false); return }
+    if (rd.game_state?.__game !== tagAtual()) { setRoomError(tr('Essa sala é de outro jogo.', 'That room belongs to another game.')); setLoading(false); return }
     // carreira online em teste: só os e-mails liberados entram
     if ((rd.game_state?.mode === 'carreira' || (rd.game_state as GS & { careerOnline?: boolean })?.careerOnline) && !canCareer) {
       setRoomError(tr('Esse modo (Carreira Online) ainda está em teste fechado.', 'That mode (Online Career) is still in closed testing.')); setLoading(false); return
@@ -2028,7 +2047,7 @@ export function EscLobby() {
     const code = joinCode.trim().toUpperCase()
     const { data: rd, error: re } = await supabase.from('game_rooms').select('*').eq('code', code).single()
     if (re || !rd) { setRoomError(tr('Sala não encontrada.', 'Room not found.')); setLoading(false); return }
-    if (rd.game_state?.__game !== GAME_TAG) { setRoomError(tr('Esse código é de outro jogo.', 'That code belongs to another game.')); setLoading(false); return }
+    if (rd.game_state?.__game !== tagAtual()) { setRoomError(tr('Esse código é de outro jogo.', 'That code belongs to another game.')); setLoading(false); return }
     await enterRoom(rd)
   }
 
@@ -2625,12 +2644,16 @@ export function EscLobby() {
         // vocês vão JOGAR", e a Copa não é um jeito de jogar — é o que acontece
         // DEPOIS da liga, igual à Copa dos 8 e à Libertadores. O lugar dela é o
         // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
-        const MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
+        const TODOS_MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Minhas ligas', 'My leagues'), frase: tr('A sala da turma que não acaba.', 'The crew\'s room that never ends.'), on: ligaOn, selo: tr('👑 LENDA', '👑 LEGEND') },
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true },
         ]
+        // 🏀 no BidLegends só existem estes dois modos por enquanto: Rápido e Minhas
+        // ligas. Carreira online (pirâmide) e Bafo são do futebol — em vez de mostrar
+        // um cartão que não abre, eles somem da lista aqui.
+        const MODOS = TODOS_MODOS.filter(m => !nbaSala || m.v === 'rapido' || m.v === 'liga')
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
         // configuração DAQUELE modo, não "o básico" da sala (bronca do Diego 29/08:
@@ -2835,12 +2858,14 @@ export function EscLobby() {
                   // o resto da liga (horário marcado, troféus na sala de espera, o dono
                   // arrumando troféu e escrevendo a regra do ranking) ainda está sendo
                   // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
-                  const abas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
+                  const abasTodas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
                     { v: 'rapido', label: tr('⚡ Rápido', '⚡ Quick'), liberado: true },
                     { v: 'liga', label: tr('🏆 Minhas ligas', '🏆 My leagues'), liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
                     { v: 'carreira', label: tr('🌐 Carreira', '🌐 Career'), liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
+                  // 🏀 idem aos cartões: no basquete só os dois modos que existem lá
+                  const abas = abasTodas.filter(a => !nbaSala || a.v === 'rapido' || a.v === 'liga')
                   return (
                     <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
                       {abas.map((a, i) => (a.liberado && a.v) ? (
