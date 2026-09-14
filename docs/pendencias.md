@@ -1,57 +1,68 @@
-## 14/09/2026 — 📏 BARALHO DO BASQUETE: a conta de OFERTA E DEMANDA (medida, não chutada)
+## 14/09/2026 — 📏 BARALHO DO BASQUETE: a conta de OFERTA E DEMANDA (medida, e CORRIGIDA)
 
-Pergunta do Diego: *"com base nas quantidades de categorias que temos de cartas,
-quais estão precisando encher mais pra bater a % que precisamos pra funcionar oferta e
-demanda no leilão, igual já funciona no futebol?"*
+Pergunta do Diego: *"com base nas quantidades de categorias que temos de cartas, quais
+estão precisando encher mais pra bater a % que precisamos pra funcionar oferta e demanda
+no leilão, igual já funciona no futebol?"* — e, logo depois, o reparo dele: *"temos que
+entender que no carreira precisamos que TODOS os times estejam completos, então temos que
+ver a quantidade também. Porque tem a liga da NBA, antes dela a G League e antes da
+G League a Street League, que iremos ter também"*.
 
-**1) A MISTURA JÁ ESTÁ CERTA — não é por aí.** Medindo os dois baralhos:
+Script: `npx tsx scripts/mede-baralho-basquete.mjs` (lê os DOIS baralhos de verdade).
 
-| | lenda | craque | bom | foi prof. | promessa |
-|---|---|---|---|---|---|
-| ⚽ futebol (BR+EU, 1286 cartas) | 11,9% | 26,2% | 44,9% | 12,6% | 4,4% |
-| 🏀 basquete (330 cartas) | 9,1% | 27,3% | 47,0% | 11,8% | 4,8% |
+**1) A MISTURA JÁ ESTÁ CERTA.** Futebol 11,9 / 26,2 / 44,9 / 12,6 / 4,4 contra basquete
+9,1 / 27,3 / 47,0 / 11,8 / 4,8 (lenda / craque / bom / foi profissional / promessa). O
+lote de 60 cartas de hoje já tapou o buraco do "famoso ruim".
 
-Praticamente idênticos. O lote de 14/09 já corrigiu o buraco do "famoso ruim".
+**2) ⚠️ CORREÇÃO DA MINHA PRIMEIRA CONTA (estava inflada).** Eu somei 20 times × 15
+jogadores = 300 vagas. **Errado:** o bot do basquete fica no QUINTETO (1 por posição),
+exatamente como o bot do futebol fica no XI de 11 — `slotsOf` devolve o quinteto pra quem
+não tem `nbaSlots`, e só VOCÊ cresce (5 → 10 → 15). Então "todos os times completos" no
+basquete já acontece hoje, e "completo" quer dizer o quinteto, igual no futebol quer dizer
+o XI.
 
-**2) O QUE FALTA É VOLUME — e só dói quando o ELENCO CRESCE.** A régua de verdade é
-*quantas cartas existem por VAGA* numa sala de 20 times:
+**3) O ANDAR QUE MANDA É A NBA (30 times)** — o Diego está certo em olhar por andar.
+Street 20 · G League 24 · NBA 30, e a demanda é a do maior. E o gargalo de verdade NÃO é
+o número total de cartas: é o pool de **BOM JOGADOR (fame 2-3)**, porque **76% dos bots
+são "médios"** e é só desse pool que eles se servem (`makeBotSquad`).
 
-| | cartas por vaga |
-|---|---|
-| ⚽ futebol, baralho BR, XI de 11 | **2,1× a 3,8×** |
-| 🏀 basquete, RÁPIDO (quinteto de 5) | **3,1× a 3,5×** ✅ igual ao futebol |
-| 🏀 basquete, CARREIRA (rotação de 10) | **1,6× a 1,8×** ⚠️ abaixo do piso do futebol |
-| 🏀 basquete, ELENCO CHEIO (15) | **1,0× a 1,2×** 🚨 |
+| bom jogador por posição | ⚽ futebol (régua) | 🏀 hoje, na NBA (23 times médios) |
+|---|---|---|
+| pior posição | **2,7×** (GOL) | **1,3×** (PF e C) |
+| melhor posição | 8,0× (ATA) | 1,8× (SF) |
 
-🚨 **O 15 é o problema de verdade, e é problema de SEGURANÇA, não de gosto.** 20 times ×
-15 jogadores = **300 vagas** pra um baralho de **330 cartas**: o baralho é consumido
-inteiro, não sobra escolha no pregão e — pior — o tampa-buraco **"Pickup"**
-(`fillerCard`, o perna-de-pau do basquete) começa a entrar em elenco. É exatamente o que o
-Diego não quer.
+Todas as cinco posições do basquete estão abaixo do PIOR caso do futebol.
 
-**3) O ALVO: 126 cartas por posição (630 no total)** — que dá 2,1× por vaga no elenco de
-15, a folga mais APERTADA que o futebol tem hoje. Faltam **~300 cartas**, assim:
+**4) O ALVO, corrigido:** ~**62 cartas de BOM JOGADOR por posição** (23 times médios ×
+2,7 = a folga do goleiro no futebol). Hoje: PF 30 · C 31 · SG 33 · PG 36 · SF 41.
 
-| posição | tem | faltam | craque | bom | foi prof. | promessa |
-|---|---|---|---|---|---|---|
-| PG | 68 | 58 | +14 | +25 | +9 | +2 |
-| SG | 66 | 60 | +10 | +26 | +11 | +4 |
-| SF | 64 | 62 | +19 | +20 | +13 | +2 |
-| PF | 62 | 64 | +15 | +30 | +7 | +3 |
-| C | 70 | 56 | +17 | +29 | +1 | +3 |
-| **soma** | | **~300** | **+75** | **+130** | **+41** | **+14** |
+| prioridade | posição | bom jogador tem | precisa | faltam |
+|---|---|---|---|---|
+| 1º | PF | 30 | 62 | **+32** |
+| 2º | C | 31 | 62 | **+31** |
+| 3º | SG | 33 | 62 | **+29** |
+| 4º | PG | 36 | 62 | **+26** |
+| 5º | SF | 41 | 62 | **+21** |
 
-Está parelho entre as posições (62 a 70), então cresce por igual — PF e SF primeiro, que
-são as mais magras.
+**~+140 cartas de bom jogador**, e com a mistura mantida isso leva o baralho de 330 pra
+perto de **630-680**. (Bate com a primeira conta por outro caminho — o número estava
+certo, o motivo é que estava errado.)
 
-⚠️ **LENDA NÃO CRESCE, e isso é de propósito.** Hoje são 30. Pra manter 11,9% num baralho
-de 630 seriam 75 lendas — **não existem 75 lendas da NBA**. Inventar lenda seria mentir
-sobre gente de verdade (regra do Diego 18/08). Então o baralho engorda em **bom jogador,
-craque e foi profissional**, e a fatia de lenda cai sozinha. Fica MAIS honesto: lenda vira
-carta rara de verdade.
+**5) 🏛️ SOBRE O HALL DA FAMA (dúvida do Diego: *"mas não tem muitos no hall da fama? Mas
+não quer dizer que são consideradas lendas né?"*) — a intuição dele está CERTA.**
+- O Hall da Fama tem centenas de nomes, mas a lista inclui **treinador, árbitro,
+  dirigente, time inteiro, basquete feminino e figura internacional**. Só uma parte é
+  jogador de NBA.
+- E **Hall da Fama ≠ 👑 lenda no nosso jogo.** Lenda aqui é o topo (~12% no futebol), o
+  cara que qualquer um reconhece de primeira. A maioria dos Hall da Fama entra como
+  **⭐ craque**, e vários como **🎯 bom jogador**.
+- 🎯 **E é exatamente por isso que ele serve:** o Hall da Fama é uma lista PRONTA,
+  pública e conferível de gente famosa de verdade — justo pra encher craque e bom
+  jogador, que é o buraco medido acima. Sem inventar ninguém.
+- 👑 **Lenda cresce pouco:** de 30 pra uns 40-45 (os gigantes de consenso). Não existem 75
+  lendas da NBA, e forçar isso seria mentir sobre gente de verdade (regra de 18/08).
 
-⏭️ **Plano:** 5 lotes de ~60 cartas (do mesmo tamanho do de 14/09) chegam nas 630.
-Aguardando o Diego dizer se sigo.
+⏭️ **Plano:** ~2 a 3 lotes de 60, começando por **PF e C**, puxados do Hall da Fama e
+entrando sobretudo como bom jogador e craque. Aguardando o Diego dizer se sigo.
 
 ## 14/09/2026 — 🏀 BIDLEGENDS: ONLINE NO AR (rápido + Minhas ligas) e as regras de basquete no mata-mata
 
