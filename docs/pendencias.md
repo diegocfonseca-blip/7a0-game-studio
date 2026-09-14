@@ -44,13 +44,33 @@ O basquete tinha parado em 28/07 com **rápido offline** e **carreira** (Street 
     FINAIS DE CONF. · **FINALS**, "Playoffs" no lugar de "Copa", 🏀 no lugar da bola de
     futebol, "JOGO 1/2/3", o placar de cada jogo em fila ("jogo 1 108×99 · jogo 2 91×97")
     e o campeão sai com **"É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍"**.
+- 📊 **A TABELA VIROU DUAS — uma por conferência** (3ª leva, mesmo dia). Antes era uma
+  lista só, misturada, com 🔵/🔴 no nome de cada time — mas quem decide o chaveamento é a
+  posição DENTRO da conferência, então a tela dizia uma coisa e o motor fazia outra. Agora
+  são **🔵 LESTE** e **🔴 OESTE** lado a lado, numeração recomeçando do 1, etiqueta **PO**
+  em quem está em vaga de playoff. E **some a faixa vermelha**: no basquete NINGUÉM CAI (a
+  pirâmide dele só sobe), então pintar zona de rebaixamento era mentira na tela.
+- ⚖️ **Quantos passam: 8 ou 4, quem escolhe é o TAMANHO da liga.** O top 8 puro deixava a
+  temporada regular sem sentido na sala online: 20 times = 10 por conferência, e 8 de 10
+  passariam. Ficou assim: conferência com **12+ times** (NBA tem 15, G League 12) passa
+  **8** (chave 1×8/4×5/3×6/2×7); menor que isso passa **4**, que dá os mesmos 40% de
+  classificados da Copa dos 8 do futebol. A tabela, o aviso de fim de temporada e o giro
+  de notícias leem **a mesma régua** do chaveamento — nenhum deles pode prometer vaga pra
+  quem o motor vai deixar de fora.
+- 🖼️ `scripts/mockup-basquete-playoffs.mjs` — o mockup pro Diego ver. Não é desenho à mão:
+  monta uma sala pelo reducer, semeia com `seedQuickCopa` e joga as séries de verdade até
+  sair o anel. Gera `/tmp/mockup-basquete-playoffs.png`.
 - 🧪 `scripts/testa-basquete-online.mjs` (7 seções): baralho/vagas/caixa/franquias da sala,
   futebol byte-idêntico, reancoragem no sync, prorrogação (200 sorteios, nenhum empate), a
   chave por conferência **e os playoffs inteiros rodando no motor** — 15 séries, cada uma
   de 2 ou 3 jogos, ninguém passa sem ganhar 2, nenhum jogo empatado, placares de basquete
-  (72–152) e o cruzamento Leste×Oeste só na final. Os 4 testes do futebol seguem verdes.
-- ⏭️ **Falta** (próximos passos): relógio de 48min/4 quartos no placar · tabela separada
-  por conferência na tela · NBA Cup · i18n do martelo/cerimônia · engordar o baralho.
+  (72–152) e o cruzamento Leste×Oeste só na final — **nos dois tamanhos**: a NBA de 30
+  (top 8, 15 séries) e a sala online de 20 (top 4, 7 séries). Os 4 testes do futebol
+  seguem verdes.
+- ⏭️ **Falta** (próximos passos): relógio de 48min/4 quartos no placar · NBA Cup ·
+  i18n do martelo/cerimônia · engordar o baralho.
+- 👀 **Esperando o OK visual do Diego** pra ir pra `main`: a tela das duas tabelas e a das
+  séries (mockup acima). Enquanto isso segue invisível pro público (`BASQUETE_TESTERS`).
 
 ## 13/09/2026 — 🏆📣 MINHAS LIGAS: "não acho a sala de espera pra chamar mais gente" (liga do Bruno, 7LFW9T) — ✅ no ar
 

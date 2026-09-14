@@ -6011,90 +6011,141 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
   // traduções que já existiam aqui ficavam guardadas e nunca apareciam no
   // futebol. Agora quem manda é só o botão BR/EN.
   const L = (pt: string, en: string) => (blLang === 'en' ? en : pt)
-  // 🏀 andar com playoffs (G League/NBA): mostra a conferência de cada time (🔵
-  // Leste par · 🔴 Oeste ímpar) — top 4 de cada vai aos playoffs. Na Street não.
+  // 🏀 andar com playoffs (G League/NBA): a tabela é a da NBA — DUAS tabelas, uma
+  // por conferência (🔵 Leste = id par · 🔴 Oeste = id ímpar, a MESMA régua do
+  // `seedQuickCopa`, senão a tela mentiria sobre quem está classificado). Na Street
+  // não tem playoffs, então continua tabela única.
   const confTier = bb && state.copaMode === 'liga_copa'
-  const confOf = (id: number) => id % 2 === 0 ? '🔵 ' : '🔴 '
   const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
   const table = sortedTable(league)
+  const leste = confTier ? table.filter(t => t.id % 2 === 0) : []
+  const oeste = confTier ? table.filter(t => t.id % 2 !== 0) : []
+  // 🏆 vagas de playoff POR CONFERÊNCIA — a MESMA régua do `seedQuickCopa`: 8 em
+  // conferência grande (12+ times: NBA tem 15, G League 12), chave 1×8/4×5/3×6/2×7;
+  // 4 em liga menor (sala online de 20 = 10 por lado), que dá os mesmos 40% de
+  // classificados da Copa dos 8 do futebol. Se mudar lá, muda aqui — senão a tela
+  // marcaria como classificado quem o motor deixa de fora.
+  const duasConf = confTier && leste.length >= 4 && oeste.length >= 4
+  const vagasPO = leste.length >= 12 && oeste.length >= 12 ? 8 : 4
+  const confOf = (id: number) => id % 2 === 0 ? '🔵 ' : '🔴 '
+  // 🖊️ UMA linha da tabela. `vagas` = quantos de cima se classificam naquela
+  // tabela (0 = ninguém, caso da Street League, que é só pontos corridos);
+  // `zonaFut` liga a zona de rebaixamento — no basquete NINGUÉM CAI (a pirâmide
+  // dele só sobe), então pintar faixa vermelha ali seria mentira na tela.
+  const linha = (t: typeof table[number], rank: number, nTab: number, vagas: number, zonaFut: boolean) => {
+    const isMgr = state.managers.some(m => m.id === t.id)
+    const isYou = t.id === highlight
+    // rival de carreira (fixo, vida própria na pirâmide) OU, no online,
+    // qualquer outro técnico HUMANO na sala (gente de verdade, não bot)
+    const isOnlineRival = state.onlineMode === 'online' && !isYou && !!state.managers.find(m => m.id === t.id)?.isHuman
+    const isRival = (!!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)) || isOnlineRival
+    // 🎨 cada técnico leva o VISUAL do próprio tier pra faixa dele: quem tem
+    // tier brilha com o DEGRADÊ da carta (Lenda = dourado metálico, Craque =
+    // prata brilhante…); gratuito = bege chapado. Rival de carreira = salmão.
+    const youPerk = isYou ? myApoioPerk() : null
+    const rivPerk = isOnlineRival ? perkFromSelo(state.managers.find(m => m.id === t.id)?.teamName ?? '') : null
+    const fundoZona = zonaFut ? zoneColor(rank, nTab) : (vagas > 0 && rank <= vagas ? '#D8F0DE' : undefined)
+    const rowBg = isYou
+      ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light)
+      : isOnlineRival
+        ? (rivPerk ? rivPerk.grad : APOIO_PERKS.bege.light)
+        : isRival ? '#FFE0D6' : fundoZona
+    const rowInk = youPerk ? TIER_INK[youPerk.tier] : rivPerk ? TIER_INK[rivPerk.tier] : undefined
+    return (
+      <tr key={t.id} className="border-t border-black/10 font-semibold"
+        style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
+        <td className="pr-1">
+          <span className="flex items-center gap-1">
+            {rank}
+            {vagas > 0 && rank <= vagas && <span className="text-[7px] font-black rounded px-1" style={{ background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>{bb ? 'PO' : `G${vagas}`}</span>}
+            {zonaFut && rank >= zoneBot(nTab) && <span className="text-[7px] font-black rounded px-1" style={{ background: '#F9D8D3', border: '1px solid rgba(0,0,0,.4)', color: INK }}>Z{zoneN(nTab)}</span>}
+          </span>
+        </td>
+        {/* 🛡️ escudo do clube (gerado do nome) — só no futebol; o basquete
+            segue sem, o visual dele ainda não passou pelo Diego */}
+        <td className="max-w-[150px]">
+          <span className="flex items-center gap-1.5 min-w-0">
+            {!bb && <Escudo nome={t.name} size={18} />}
+            <span className="truncate">{confTier && !duasConf ? confOf(t.id) : ''}{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</span>
+          </span>
+        </td>
+        {bb ? (
+          <>
+            <td className="text-center font-black">{t.w}</td>
+            <td className="text-center">{t.l}</td>
+            <td className="text-center">{(t.w + t.l) > 0 ? Math.round(100 * t.w / (t.w + t.l)) : 0}%</td>
+            <td className="text-center">{t.gf - t.ga}</td>
+          </>
+        ) : (
+          <>
+            <td className="text-center font-black">{t.pts}</td>
+            <td className="text-center">{t.w}</td><td className="text-center">{t.d}</td><td className="text-center">{t.l}</td>
+            <td className="text-center">{t.gf - t.ga}</td>
+          </>
+        )}
+      </tr>
+    )
+  }
+  const cabeca = () => (
+    <thead>
+      <tr className="text-left text-black/70 font-black">
+        <th className="pr-1">#</th><th>{L('Time', 'Team')}</th>
+        {bb
+          ? <><th className="text-center">V</th><th className="text-center">D</th><th className="text-center">{L('AP', 'PCT')}</th><th className="text-center">SC</th></>
+          : <><th className="text-center">{L('P', 'Pts')}</th><th className="text-center">{L('V', 'W')}</th><th className="text-center">{L('E', 'D')}</th><th className="text-center">{L('D', 'L')}</th><th className="text-center">{L('SG', 'GD')}</th></>}
+      </tr>
+    </thead>
+  )
+  // 🏀 uma conferência inteira, com o nome dela na etiqueta de sempre (borda
+  // preta grossa + sombra dura). A numeração recomeça do 1: na NBA o que vale
+  // pro chaveamento é a posição DENTRO da conferência, não a geral.
+  const tabelaConf = (times: typeof table, nome: string) => (
+    <div className="min-w-0">
+      <p className="font-black text-[11px] mb-1.5 inline-block px-2 py-0.5 rounded-lg"
+        style={{ ...OSWALD, background: GOLD, color: INK, border: '2px solid #000', boxShadow: '2px 2px 0 #000' }}>{nome}</p>
+      <table className="w-full text-xs">
+        {cabeca()}
+        <tbody>{times.map((t, i) => linha(t, i + 1, times.length, vagasPO, false))}</tbody>
+      </table>
+    </div>
+  )
   return (
     <Box className="p-3 overflow-x-auto">
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFC400', border: '1px solid rgba(0,0,0,.3)' }} />G{copaN(table.length)}</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />{L('Meio', 'Mid')}</span>
-          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3', border: '1px solid rgba(0,0,0,.3)' }} />Z{zoneN(table.length)}</span>
+          {bb ? (confTier && (
+            <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D8F0DE', border: '1px solid rgba(0,0,0,.3)' }} />{L('Playoffs', 'Playoffs')}</span>
+          )) : (
+            <>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFC400', border: '1px solid rgba(0,0,0,.3)' }} />G{copaN(table.length)}</span>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />{L('Meio', 'Mid')}</span>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3', border: '1px solid rgba(0,0,0,.3)' }} />Z{zoneN(table.length)}</span>
+            </>
+          )}
         </div>
       </div>
-      {confTier && <p className="text-[10px] font-bold text-black/55 mb-1.5">{L('🔵 Leste · 🔴 Oeste — top 4 de cada conferência vai aos playoffs', '🔵 East · 🔴 West — top 4 of each conference makes the playoffs')}</p>}
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="text-left text-black/70 font-black">
-            <th className="pr-1">#</th><th>{L('Time', 'Team')}</th>
-            {bb
-              ? <><th className="text-center">V</th><th className="text-center">D</th><th className="text-center">{L('AP', 'PCT')}</th><th className="text-center">SC</th></>
-              : <><th className="text-center">{L('P', 'Pts')}</th><th className="text-center">{L('V', 'W')}</th><th className="text-center">{L('E', 'D')}</th><th className="text-center">{L('D', 'L')}</th><th className="text-center">{L('SG', 'GD')}</th></>}
-          </tr>
-        </thead>
-        <tbody>
-          {table.map((t, i) => {
-            const isMgr = state.managers.some(m => m.id === t.id)
-            const rank = i + 1
-            const isYou = t.id === highlight
-            // rival de carreira (fixo, vida própria na pirâmide) OU, no online,
-            // qualquer outro técnico HUMANO na sala (gente de verdade, não bot)
-            const isOnlineRival = state.onlineMode === 'online' && !isYou && !!state.managers.find(m => m.id === t.id)?.isHuman
-            const isRival = (!!state.careerDivision && state.careerRivals.some(rv => rv.team === t.name)) || isOnlineRival
-            // 🎨 cada técnico leva o VISUAL do próprio tier pra faixa dele: quem tem
-            // tier brilha com o DEGRADÊ da carta (Lenda = dourado metálico, Craque =
-            // prata brilhante…); gratuito = bege chapado. Rival de carreira = salmão.
-            const youPerk = isYou ? myApoioPerk() : null
-            const rivPerk = isOnlineRival ? perkFromSelo(state.managers.find(m => m.id === t.id)?.teamName ?? '') : null
-            const rowBg = isYou
-              ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light)
-              : isOnlineRival
-                ? (rivPerk ? rivPerk.grad : APOIO_PERKS.bege.light)
-                : isRival ? '#FFE0D6' : zoneColor(rank, table.length)
-            const rowInk = youPerk ? TIER_INK[youPerk.tier] : rivPerk ? TIER_INK[rivPerk.tier] : undefined
-            return (
-              <tr key={t.id} className="border-t border-black/10 font-semibold"
-                style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
-                <td className="pr-1">
-                  <span className="flex items-center gap-1">
-                    {rank}
-                    {rank <= copaN(table.length) && <span className="text-[7px] font-black rounded px-1" style={{ background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>G{copaN(table.length)}</span>}
-                    {rank >= zoneBot(table.length) && <span className="text-[7px] font-black rounded px-1" style={{ background: '#F9D8D3', border: '1px solid rgba(0,0,0,.4)', color: INK }}>Z{zoneN(table.length)}</span>}
-                  </span>
-                </td>
-                {/* 🛡️ escudo do clube (gerado do nome) — só no futebol; o basquete
-                    segue sem, o visual dele ainda não passou pelo Diego */}
-                <td className="max-w-[150px]">
-                  <span className="flex items-center gap-1.5 min-w-0">
-                    {!bb && <Escudo nome={t.name} size={18} />}
-                    <span className="truncate">{confTier ? confOf(t.id) : ''}{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</span>
-                  </span>
-                </td>
-                {bb ? (
-                  <>
-                    <td className="text-center font-black">{t.w}</td>
-                    <td className="text-center">{t.l}</td>
-                    <td className="text-center">{(t.w + t.l) > 0 ? Math.round(100 * t.w / (t.w + t.l)) : 0}%</td>
-                    <td className="text-center">{t.gf - t.ga}</td>
-                  </>
-                ) : (
-                  <>
-                    <td className="text-center font-black">{t.pts}</td>
-                    <td className="text-center">{t.w}</td><td className="text-center">{t.d}</td><td className="text-center">{t.l}</td>
-                    <td className="text-center">{t.gf - t.ga}</td>
-                  </>
-                )}
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      {duasConf ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {tabelaConf(leste, L('🔵 LESTE', '🔵 EAST'))}
+          {tabelaConf(oeste, L('🔴 OESTE', '🔴 WEST'))}
+        </div>
+      ) : (
+        <>
+          {confTier && <p className="text-[10px] font-bold text-black/55 mb-1.5">{L('🔵 Leste · 🔴 Oeste', '🔵 East · 🔴 West')}</p>}
+          <table className="w-full text-xs">
+            {cabeca()}
+            <tbody>
+              {table.map((t, i) => linha(t, i + 1, table.length,
+                bb ? (confTier ? Math.min(8, table.length) : 0) : copaN(table.length), !bb))}
+            </tbody>
+          </table>
+        </>
+      )}
       {!bb && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{tr(`🏆 G${copaN(table.length)} = os ${copaN(table.length)} primeiros — quando a liga acaba, disputam a Copa dos 8.`, `🏆 G${copaN(table.length)} = the top ${copaN(table.length)} — when the league ends, they play the Cup of 8.`)}</p>}
+      {duasConf && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L(
+        `🏆 PO = os ${vagasPO} primeiros de CADA conferência vão aos playoffs${vagasPO === 8 ? ' (1×8 · 4×5 · 3×6 · 2×7)' : ''}. Leste e Oeste só se cruzam nas Finals.`,
+        `🏆 PO = the top ${vagasPO} of EACH conference make the playoffs${vagasPO === 8 ? ' (1×8 · 4×5 · 3×6 · 2×7)' : ''}. East and West only meet in the Finals.`)}</p>}
     </Box>
   )
 }
@@ -8574,6 +8625,10 @@ export function EscEnd() {
   const [streamManual] = useStreamSimMode()
   const [endLang] = useLang()
   const bbEnd = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
+  // 🏆 quantos passam por conferência — a MESMA régua do `seedQuickCopa` (8 em
+  // conferência de 12+, 4 nas menores). O texto tem que dizer o número REAL, senão
+  // promete vaga pra quem vai ficar de fora.
+  const bbVagas = state.league.filter(t => t.id % 2 === 0).length >= 12 && state.league.filter(t => t.id % 2 !== 0).length >= 12 ? 8 : 4
   // 🌐 BR/EN (11/09): valia só pro basquete; agora o fim de jogo do futebol também lê o idioma
   const LE = (pt: string, en: string) => endLang === 'en' ? en : pt
   const you = state.managers[state.youIdx]
@@ -8995,8 +9050,8 @@ export function EscEnd() {
           <p className="text-sm font-bold text-center text-black/75">
             {bbEnd
               ? (endLang === 'en'
-                ? <><b>Playoffs — East × West.</b> Top 4 of each conference. Each conference crowns its champion, and the two meet in the <b>Finals</b> for the <b>ring</b>! 🏀</>
-                : <><b>Playoffs — Leste × Oeste.</b> Top 4 de cada conferência. Cada lado decide seu campeão, e os dois se cruzam nas <b>Finais</b> pelo <b>anel</b>! 🏀</>)
+                ? <><b>Playoffs — East × West.</b> Top {bbVagas} of each conference{bbVagas === 8 ? ' (1×8, 4×5, 3×6, 2×7)' : ''}. Every series is <b>best of 3</b>. Each conference crowns its champion, and the two meet in the <b>Finals</b> for the <b>ring</b>! 🏀</>
+                : <><b>Playoffs — Leste × Oeste.</b> Top {bbVagas} de cada conferência{bbVagas === 8 ? ' (1×8, 4×5, 3×6, 2×7)' : ''}. Toda série é <b>melhor de 3</b>. Cada lado decide seu campeão, e os dois se cruzam nas <b>Finais</b> pelo <b>anel</b>! 🏀</>)
               : endLang === 'en'
                 ? <>The league's top 8 enter a separate Cup — two legs, semis and a single final. 1st plays 8th, 2nd plays 7th, 3rd plays 6th, 4th plays 5th. The Cup champion earns <b>another card</b> for the album!</>
                 : <>Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!</>}

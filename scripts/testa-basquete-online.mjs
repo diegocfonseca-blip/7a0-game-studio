@@ -72,21 +72,36 @@ let semOt = 0
 for (let i = 1; i <= 200; i++) { const t = { aId: 0, bId: 1, legs: [[80, 80]], winner: null }; resolveTie(t, mulberry(i), true); if (t.pens[0] === t.pens[1]) semOt++ }
 ok(semOt === 0, '200 prorrogações e nenhuma terminou empatada')
 
-console.log('6) 🏀 playoffs por CONFERÊNCIA (Leste × Oeste), top 4 de cada lado')
-const liga = Array.from({ length: 20 }, (_, i) => ({ id: i, name: `T${i}`, isManager: true, pts: 100 - i, w: 60 - i, l: i, d: 0, gf: 0, ga: 0 }))
+console.log('6) 🏀 playoffs por CONFERÊNCIA (Leste × Oeste) — o TAMANHO da liga escolhe o top 8 ou o top 4')
+const ligaDe = n => Array.from({ length: n }, (_, i) => ({ id: i, name: `T${i}`, isManager: true, pts: 100 - i, w: 60 - i, l: i, d: 0, gf: 0, ga: 0 }))
+// NBA de verdade: 30 times = 15 por conferência → top 8 de cada lado
+const liga = ligaDe(30)
 const copa = seedCopa(liga, true)
-ok(copa.ties.length === 8, `oito séries na 1ª rodada — 4 do Leste + 4 do Oeste (vieram ${copa.ties.length})`)
+ok(copa.ties.length === 8, `NBA (30 times, 15 por lado): oito séries na 1ª rodada — 4 do Leste + 4 do Oeste (vieram ${copa.ties.length})`)
 const leste = copa.ties.slice(0, 4).flatMap(t => [t.aId, t.bId])
 const oeste = copa.ties.slice(4).flatMap(t => [t.aId, t.bId])
 ok(leste.every(id => id % 2 === 0), 'a primeira metade da chave é só do Leste')
 ok(copa.ties[0].aId === 0 && copa.ties[0].bId === 14, 'o 1º do Leste pega o 8º (1×8), como na NBA')
 ok(oeste.every(id => id % 2 !== 0), 'a segunda metade é só do Oeste — os campeões só se cruzam nas Finais')
+// G League: 24 times = 12 por conferência, o mínimo do top 8
+ok(seedCopa(ligaDe(24), true).ties.length === 8, 'G League (24 times, 12 por lado): também top 8 de cada conferência')
+// ⚖️ sala online (20 times = 10 por lado): top 8 classificaria 8 de 10 e a
+// temporada regular não valeria nada — então cai pro top 4, os mesmos 40% da Copa
+// dos 8 do futebol.
+const copaSala = seedCopa(ligaDe(20), true)
+ok(copaSala.ties.length === 4, `sala online (20 times, 10 por lado): top 4 de cada lado = 4 séries (vieram ${copaSala.ties.length})`)
+ok(copaSala.phase === 'quartas', 'e ela começa direto nas SEMIS DE CONF. (4 séries), sem 1ª rodada')
+ok(copaSala.ties.slice(0, 2).flatMap(t => [t.aId, t.bId]).every(id => id % 2 === 0), 'no top 4 as conferências continuam em metades separadas')
 
 console.log('7) 🏀 PLAYOFFS INTEIROS no motor: série MELHOR DE 3, do 1º jogo ao anel')
 {
-  // sala de basquete pronta → monta a tabela e semeia os playoffs, como o fim da temporada faz
+  // sala de basquete pronta → monta a tabela da NBA (30 times) e semeia os playoffs,
+  // como o fim da temporada faz. 30 times = 15 por conferência = o top 8 de verdade.
   let s = reducer(base(), sala({ sport: 'basquete', roomCode: 'PLAYOF' }))
-  const league = s.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 60 - i, l: i, d: 0, gf: 2000 - i * 10, ga: 1900 }))
+  // a sala arma 20 técnicos; a NBA tem 30 times, então clonamos os elencos pros 10
+  // que faltam — o motor precisa de UM técnico por time da tabela pra simular.
+  s = { ...s, managers: Array.from({ length: 30 }, (_, i) => ({ ...s.managers[i % s.managers.length], id: i, teamName: `T${i}`, isHuman: i === 0 })), youIdx: 0 }
+  const league = Array.from({ length: 30 }, (_, i) => ({ id: i, name: `T${i}`, isManager: true, pts: 0, w: 60 - i, l: i, d: 0, gf: 2000 - i * 10, ga: 1900 }))
   // o ajuste de força dos bots é recalculado pelo jogo na CERIMÔNIA (cpuAdjFor);
   // como o teste pula direto pros playoffs, entra zerado na mão.
   s = { ...s, league, copaMode: 'liga_copa', cpuAtkAdj: 0, cpuDefAdj: 0, round: 82, news: [], quickCopa: seedCopa(league, true) }
@@ -111,6 +126,22 @@ console.log('7) 🏀 PLAYOFFS INTEIROS no motor: série MELHOR DE 3, do 1º jogo
   // conferências: até as Finais, ninguém do Leste enfrenta ninguém do Oeste
   const antesDaFinal = s.quickCopa.bracket.filter(b => b.phase !== 'final').flatMap(b => b.ties)
   ok(antesDaFinal.every(t => t.aId % 2 === t.bId % 2), 'Leste e Oeste só se cruzam nas FINALS')
+}
+
+console.log('7b) 🏀 e na SALA ONLINE (20 times): top 4 de cada lado, mesma série melhor de 3')
+{
+  let s = reducer(base(), sala({ sport: 'basquete', roomCode: 'SALAPO' }))
+  const league = s.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, pts: 0, w: 60 - i, l: i, d: 0, gf: 2000 - i * 10, ga: 1900 }))
+  s = { ...s, league, copaMode: 'liga_copa', cpuAtkAdj: 0, cpuDefAdj: 0, round: 82, news: [], quickCopa: seedCopa(league, true) }
+  ok(s.quickCopa.ties.length === 4, `a sala começa nas SEMIS DE CONF. com 4 séries — veio ${s.quickCopa.ties.length}`)
+  for (let passo = 0; passo < 60 && s.quickCopa && s.quickCopa.phase !== 'done'; passo++) s = reducer(s, { type: 'PLAY_COPA_LEG' })
+  ok(s.quickCopa?.phase === 'done', 'a chave da sala também fecha sozinha')
+  const series = s.quickCopa.bracket.flatMap(b => b.ties)
+  ok(series.length === 7, `7 séries (4+2+1) — vieram ${series.length}`)
+  ok(series.every(t => t.legs.length >= 2 && t.legs.length <= 3), 'melhor de 3 aqui também')
+  ok(!!s.quickCopa?.champion, `campeão da sala: ${s.quickCopa?.champion?.name}`)
+  const antesDaFinal = s.quickCopa.bracket.filter(b => b.phase !== 'final').flatMap(b => b.ties)
+  ok(antesDaFinal.every(t => t.aId % 2 === t.bId % 2), 'e as conferências seguem separadas até a final')
 }
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')

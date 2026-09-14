@@ -2703,8 +2703,11 @@ function finishSeason(s: EscState) {
     const bbCopa = s.sport === 'basquete'
     s.quickCopa = seedQuickCopa(s.league, bbCopa)
     // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
+    // 🏆 o giro diz o número REAL de classificados (8 em conferência de 12+, 4 nas
+    // menores) — quem lê a notícia tem que ver a mesma régua que o chaveamento usou.
+    const bbVagas = s.quickCopa.ties.length >= 8 ? 8 : 4
     s.news = [bbCopa
-      ? tr('🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top 4 de cada conferência.', '🏆 Regular season over — the PLAYOFFS are here! East × West, top 4 of each conference.')
+      ? tr(`🏆 Fim da temporada regular — chegaram os PLAYOFFS! Leste × Oeste, top ${bbVagas} de cada conferência, toda série melhor de 3.`, `🏆 Regular season over — the PLAYOFFS are here! East × West, top ${bbVagas} of each conference, every series best of 3.`)
       : tr('🏆 A liga acabou — chegou a COPA DOS 8! Os 8 melhores brigam pelo título.', '🏆 The league is over — the CUP OF 8 is here! The best 8 fight for the title.')]
   }
   // 🌎 LIBERTADORES: os 8 primeiros da liga se classificam e caem numa chave de
@@ -2831,9 +2834,8 @@ function playLibertaRodada(s: EscState) {
 function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
   const sorted = sortedTable(league)
   const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
-  // 🏀 PLAYOFFS POR CONFERÊNCIA (Leste × Oeste): top 4 de CADA lado. Uma conferência
-  // é cada METADE da chave (ties[0,1] = Leste, ties[2,3] = Oeste) — os campeões de
-  // conferência (vencedores das semis) só se cruzam nas FINAIS. Conferência estável
+  // 🏀 PLAYOFFS POR CONFERÊNCIA (Leste × Oeste): uma conferência é cada METADE da
+  // chave — os campeões de conferência só se cruzam nas FINAIS. Conferência estável
   // por id (par = Leste, ímpar = Oeste). Se um lado não fecha 4, cai no top-8 único.
   if (nba) {
     const east = sorted.filter(t => t.id % 2 === 0)
@@ -2843,10 +2845,17 @@ function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
     // DE CONFERÊNCIA), e o motor casa os vencedores de dois em dois — então a chave
     // anda sozinha: 1ª rodada (8) → semis de conf. (4) → finais de conf. (2) → FINALS.
     // As duas conferências ficam em METADES separadas, então Leste e Oeste só se
-    // cruzam no jogo do anel. Liga pequena (sala fechada com pouca gente) cai no
-    // top 4 de cada lado e, se nem isso fechar, no top-8 único lá embaixo.
+    // cruzam no jogo do anel.
+    // ⚖️ O top 8 só vale em conferência GRANDE (12+ times, que é o caso da NBA de
+    // verdade com 15 e da G League com 12): classificar 8 de 10 faria a temporada
+    // regular não valer nada — quase ninguém ficaria de fora. Sala menor (o online
+    // arma 20 times = 10 por lado) usa top 4 de cada, que dá os mesmos 40% de
+    // classificados da Copa dos 8 do futebol. Quem escolhe é o TAMANHO da liga, e a
+    // tabela na tela lê a mesma régua, então a tela nunca mente sobre quem está
+    // dentro. Nem isso fecha? Cai no top-8 único lá embaixo.
+    const CONF_GRANDE = 12
     const chave8 = (c: LeagueTeam[]) => [mk(c[0], c[7]), mk(c[3], c[4]), mk(c[2], c[5]), mk(c[1], c[6])]
-    if (east.length >= 8 && west.length >= 8) {
+    if (east.length >= CONF_GRANDE && west.length >= CONF_GRANDE) {
       return { phase: 'oitavas', ties: [...chave8(east.slice(0, 8)), ...chave8(west.slice(0, 8))], legIdx: 0, bracket: [], scorers: [] }
     }
     if (east.length >= 4 && west.length >= 4) {
