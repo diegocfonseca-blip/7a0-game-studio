@@ -5095,7 +5095,6 @@ export function EscSeason() {
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
   const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) : ROUND_MS
   const roundMs = Math.round(baseRoundMs / speedFactor)
-  const streamRoom = online && (state.streamMode || !!state.manualRoom) // sala com ritmo do host: Copa/etapas sem cronômetro pra ninguém
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   // 🏆 total de rodadas real: 20 times = 38 (como sempre); Liga Fechada = calendário
@@ -5236,8 +5235,16 @@ export function EscSeason() {
   const [copaFirstLeft, setCopaFirstLeft] = useState(COPA_INTRO_SECONDS)
   const copaFirstFiredRef = useRef(false)
   useEffect(() => {
-    // stream: sem cronômetro pra ninguém — o host começa no botão.
-    if (!firstLegPending || manual || streamRoom) return
+    // 🤖 NO AUTOMÁTICO A COPA COMEÇA SOZINHA — INCLUSIVE NA SALA DE STREAM
+    // (Diego 14/09, na live): ele estava no AUTO, a liga inteira andou sozinha e
+    // aí, ao chegar nas oitavas, a tela PAROU pedindo "iniciar". Palavras dele:
+    // *"tinha q tá no auto tb já q tava auto.. pq isso confunde"*. Antes a sala de
+    // stream era exceção (`streamRoom`) e segurava até o host apertar, mesmo no
+    // auto — mas as fases SEGUINTES já viravam sozinhas, então o botão aparecia
+    // uma vez só e parecia bug. Agora quem manda é só o MANUAL: no manual o host
+    // começa no botão (em qualquer sala), no auto conta os segundos de leitura e
+    // entra sozinha.
+    if (!firstLegPending || manual) return
     copaFirstFiredRef.current = false
     setCopaFirstLeft(COPA_INTRO_SECONDS)
     const t0 = Date.now()
@@ -5251,7 +5258,7 @@ export function EscSeason() {
       if (left <= 0 && !copaFirstFiredRef.current && canAdvance) { copaFirstFiredRef.current = true; dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' }) }
     }, 250)
     return () => clearInterval(iv)
-  }, [firstLegPending, canAdvance, manual, dispatch, streamRoom, cupNow])
+  }, [firstLegPending, canAdvance, manual, dispatch, cupNow])
   // fase acabou de VIRAR (chaveamento novo, nenhuma perna jogada ainda): dá um
   // respiro CURTO só pra ver quem avançou, e então bate bola. Uma perna normal
   // (ida/volta) espera o tempo cheio do jogo pra animar o placar todo.
@@ -5342,6 +5349,28 @@ export function EscSeason() {
         })()}</span>
       </div>
     }>
+      {/* 🎮 RITMO DA COPA FICA NO TOPO (Diego 14/09, na live do Meia na Canela):
+          na liga a barra de manual/auto aparece logo no começo da tela, mas na
+          Copa ela caía DEPOIS do chaveamento inteiro e da lista de confrontos —
+          ou seja, lá no fim da página, onde ninguém acha. Palavras dele: *"esse
+          botão de manual e auto ficou ruim lá embaixo nas copas do online, tem
+          que ficar em cima também, igual tava na liga"*. É a MESMA peça, só
+          montada aqui em cima; quem vê o quê não mudou (velocidade pra quem está
+          no manual, botões pra quem conduz). Vale pra Copa dos 8 e pra Libertadores. */}
+      {copaLive && (
+        <>
+          {manual && !state.dinastiaPaused && (
+            <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
+          )}
+          {(!online || streamHost) && (
+            <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
+              lock={manualLocked ? <QuickManualLock /> : undefined}
+              onNext={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
+              onSkip={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
+              nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (cupNow ? LS('🏆 Iniciar a NBA Cup', '🏆 Start the NBA Cup') : libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (cupNow ? LS('🏀 Próximo jogo da NBA Cup', '🏀 Next NBA Cup game') : libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
+          )}
+        </>
+      )}
       {copaLive && qc ? (() => {
         // 🏀 os PLAYOFFS têm nome próprio em cada fase (1ª rodada → semis de conf. →
         // finais de conf. → FINALS); a NBA CUP é copa normal (quartas → semi → final).
@@ -5488,7 +5517,7 @@ export function EscSeason() {
         return (
           <>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
-            {privateVisual ? <CompetitionStage kind={libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : libS ? 'LIBERTADORES' : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual && !streamRoom ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
+            {privateVisual ? <CompetitionStage kind={libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : libS ? 'LIBERTADORES' : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
               {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
             </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
               <ApoioSheen holo={1} dur={3.2} />
@@ -5517,10 +5546,13 @@ export function EscSeason() {
                       ? <>The league's top 8 face off over two legs: 1st×8th, 2nd×7th, 3rd×6th, 4th×5th. Winners reach the semi-final — and the final is a single match. The Cup champion earns <b style={{ color: GOLD }}>another card</b> for the album, on top of the league card!</>
                       : <>Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b style={{ color: GOLD }}>outra carta</b> pro álbum, além da carta da liga!</>}
                   </p>
-                  {!manual && !streamRoom && (
+                  {/* 🤖 no AUTO a contagem aparece em QUALQUER sala (inclusive a de
+                      stream): quem escolheu automático não deve encontrar botão. */}
+                  {!manual && (
                     <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{bbS ? LS(`🏀 O primeiro jogo começa em ${copaFirstLeft}s`, `🏀 The first game starts in ${copaFirstLeft}s`) : LS(`⚽ A primeira partida começa em ${copaFirstLeft}s`, `⚽ The first match starts in ${copaFirstLeft}s`)}</p>
                   )}
-                  {streamRoom && !canAdvance && (
+                  {/* no MANUAL quem não conduz espera o host — a sala inteira lê o mesmo aviso */}
+                  {manual && !canAdvance && (
                     <p className="text-center font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{enS ? `⏳ The host starts ${cupNow ? 'the NBA Cup' : libS ? 'the round of 16' : bbS ? 'the playoffs' : 'the Cup'} when ready…` : `⏳ O host começa ${cupNow ? 'a NBA Cup' : libS ? 'as oitavas' : bbS ? 'os playoffs' : 'a Copa'} quando quiser…`}</p>
                   )}
                 </div>
@@ -5615,9 +5647,10 @@ export function EscSeason() {
         </Box>
       )}
 
-      {manual && !state.dinastiaPaused && (
+      {manual && !state.dinastiaPaused && !copaLive && (
         // ⏩ marcha da velocidade: só no manual (o passo é seu). No online manual/stream
         // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.
+        // (Na COPA esta mesma marcha é desenhada LÁ EM CIMA, junto do manual/auto.)
         <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
       )}
       {(!online || streamHost) && !state.dinastiaPaused && state.round < totalRounds && (
@@ -5631,13 +5664,7 @@ export function EscSeason() {
           onSkip={() => dispatch({ type: 'PLAY_ROUND' })}
           nextLabel={!(state.round === 0 || resultRevealed) ? LS('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : state.round === 0 && !myLast ? LS('▶️ Começar a temporada', '▶️ Start the season') : LS('▶️ Próxima rodada', '▶️ Next round')} />
       )}
-      {(!online || streamHost) && copaLive && (
-        <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
-          lock={manualLocked ? <QuickManualLock /> : undefined}
-          onNext={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
-          onSkip={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
-          nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (cupNow ? LS('🏆 Iniciar a NBA Cup', '🏆 Start the NBA Cup') : libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (cupNow ? LS('🏀 Próximo jogo da NBA Cup', '🏀 Next NBA Cup game') : libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
-      )}
+      {/* (os controles da COPA mudaram pro TOPO da tela — veja lá em cima) */}
       {privateVisual && !copaLive && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
       {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
