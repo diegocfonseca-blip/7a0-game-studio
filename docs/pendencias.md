@@ -65,13 +65,21 @@ dizendo que agora tem a possibilidade de vender o clube. O segundo clube só ape
 - *"e não precisa falar também só segundo clube. A pessoa vai saber na hora"* → fora até a
   regra do 2º clube, que eu achava que era informação de segurança.
 
-**Sobrou só: a novidade existe e mora na aba Clube. Mais o 🤫 "o resto você descobre na
-hora".** ⚠️ O vazio desse post é DE PROPÓSITO — quem for "melhorar" enchendo de detalhe
-está desfazendo ordem direta dele.
+👉 E na **3ª volta** ele corrigiu a mão pro outro lado: *"tem que botar assim, agora dá
+pra vender o SEGUNDO clube, alguma coisa do tipo assim… **faltou mais informações aí**.
+E é **stories**, que eu quero postar"*.
 
-📌 **Regra permanente que sai daqui:** a birra do Diego com spoiler vale também pra
-DIVULGAÇÃO, não só pra dentro do jogo. Post de feature anuncia que a feature existe e onde
-fica; número, regra e piada ficam pra quem jogar. Vale pros próximos.
+**Onde parou (a versão que vale):** `scripts/post-venda-2o-clube.mjs` gera um
+**1080×1920** que diz na manchete que é o **2º clube**, explica que só o segundo se vende
+(o oficial nunca), que o clube vendido fica no jogo com a máquina, que os empréstimos se
+acertam e que tudo volta ao normal. **Continua sem o valor e sem o churrasco**, com a
+isca *"quanto você recebe de volta? Isso você descobre na hora"*.
+
+📌 **Regra permanente que sai daqui — a linha é essa:**
+**PODE** explicar o QUE a feature faz e onde fica. **NÃO PODE** dizer QUANTO vale nem
+entregar a piada que aparece na hora. E quando ele pedir arte pra postar, **perguntar o
+formato** (stories 9:16 × post quadrado) antes de desenhar — foi o que me fez refazer.
+O script já avisa no console se o conteúdo passar da altura do stories.
 
 ## 14/09/2026 — 🛡️ BATISMO: Internacional de Madrid (Série C) — ✅ NO AR
 
