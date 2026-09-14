@@ -58,11 +58,20 @@ normal, recusa do clube oficial, empréstimos, travas de online/sem-multiclube/s
 `scripts/post-venda-2o-clube.mjs`. Pedido dele: *"faça um aí, pode ser foto mesmo, da arte
 dizendo que agora tem a possibilidade de vender o clube. O segundo clube só apenas, né?"*
 — **com uma trava**: *"mas não dá não do que que vem escrito na hora"*.
-👉 Ou seja: **o post NÃO conta a piada do churrasco.** Ele diz que dá pra vender, que são
-3.000 das 4.000, que SÓ o segundo clube se vende, e o que acontece com o clube depois. O
-sumiço das outras 1.000 vira ISCA (*"você só descobre na hora de vender"*). É a regra de
-sempre dele — odeia spoiler —, agora valendo também pra divulgação, não só pra dentro do
-jogo. Qualquer post futuro de feature com piada escondida segue isto.
+👉 E na 2ª volta ele **cortou quase tudo o que eu tinha escrito**, nesta ordem:
+- *"não conta por quanto vai valer não"* → fora o preço (nada de 3.000 nem 4.000);
+- *"que vai se contar tanto, não conta isso, não quero spoiler"* → fora o churrasco e fora
+  o que acontece com o clube depois;
+- *"e não precisa falar também só segundo clube. A pessoa vai saber na hora"* → fora até a
+  regra do 2º clube, que eu achava que era informação de segurança.
+
+**Sobrou só: a novidade existe e mora na aba Clube. Mais o 🤫 "o resto você descobre na
+hora".** ⚠️ O vazio desse post é DE PROPÓSITO — quem for "melhorar" enchendo de detalhe
+está desfazendo ordem direta dele.
+
+📌 **Regra permanente que sai daqui:** a birra do Diego com spoiler vale também pra
+DIVULGAÇÃO, não só pra dentro do jogo. Post de feature anuncia que a feature existe e onde
+fica; número, regra e piada ficam pra quem jogar. Vale pros próximos.
 
 ## 14/09/2026 — 🛡️ BATISMO: Internacional de Madrid (Série C) — ✅ NO AR
 
