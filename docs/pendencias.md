@@ -43,8 +43,21 @@ true, que é o que o roteiro pede (o Modo Manual vem junto do ouro).
 sumiu de todas as listas de "faltando" · pirâmide fechando 20 em toda divisão · nenhum time
 repetido · a corrente de nome velho resolve certo.
 
-**🟡 Falta o OK visual do Diego.** E vale perguntar a ele sobre o **tênis da mascote**, que
-tem o símbolo da Nike/Jordan bem visível — mesmo caso da adidas que ele mandou tirar do
+### ❤️🪩 Fechado com ele na sequência (14/09)
+- **Time de coração: CORINTHIANS.** Palavras dele: *"Tim é dele e Corinthians de coração
+  tá"*. Gravado em `esc_socios.time_coracao` e já no post.
+- **Voltou pro Salão dos Batismos com as 3 peças**: *"estava oculto na sala do batismo,
+  pode pôr de volta. Coloque aí o escudo, mascote e manto novo nele"*.
+  ⚠️ **Pegadinha do Salão que quase me escapou:** lá o MANTO **não** sai do `manto.ts` nem
+  da pasta do jogo — ele vem de `CAMISAS_SALAO` (`salao-camisas.ts`) apontando pra um
+  arquivo em **`public/mantos-salao/`**. Tirar do `SALAO_OCULTOS` só resolve escudo e
+  mascote; sem o webp lá, a aba do manto mostra *"a arte da camisa deste clube ainda não
+  está disponível"*. Agora tem: `interbailao-camisa.webp`, 570×700, 83,4 KB.
+  👉 **Todo clube que sair do `SALAO_OCULTOS` precisa das TRÊS pernas conferidas**, não só
+  das duas do jogo.
+
+**🟡 Falta o OK visual do Diego.** E vale perguntar sobre o **tênis da mascote**, que tem o
+símbolo da Nike/Jordan bem visível — mesmo caso da adidas que ele mandou tirar do
 Internacional de Madrid.
 
 ## 14/09/2026 — 💸 VENDER O 2º CLUBE (multiclubes) — ✅ NO AR
