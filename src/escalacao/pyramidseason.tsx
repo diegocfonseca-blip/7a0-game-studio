@@ -28,7 +28,7 @@ import type { EventoCard } from './eventos'
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao' // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
+import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
 import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -3179,7 +3179,10 @@ type CondicaoUI = {
   auto?: boolean                         // 🔁 rodízio automático ligado (o preparador troca sozinho)
   onAuto?: (on: boolean) => void         // liga/desliga o automático
 }
-function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, antesFolha }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; antesFolha?: React.ReactNode }) {
+function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, antesFolha, dicaTrocaNoTopo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean }) {
+  // 🧹 ENXUGADA (Diego 14/09: *"tá com muita informação desnecessária"*): o texto
+  // longo do preparador só abre no "?" — quem já sabe a regra nunca mais lê.
+  const [ajudaPrep, setAjudaPrep] = useState(false)
   // 😓 barrinha de gás (variante A aprovada pelo Diego 12/09): mora embaixo do
   // "clube · ano", onde já mora o overall do Olheiro. Cor pelo estado; lesão em
   // volta gradual fica roxa com o %; quem está FORA (suspenso) mostra só "🩹 fora".
@@ -3312,15 +3315,21 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, fontSize: 9, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap', overflow: 'hidden' }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}</span>{overallChip(c)}</span>
         {condicao && <span style={{ display: 'flex', alignItems: 'center', marginTop: 2 }}>{gasChip(c)}</span>}
       </span>
+      {/* 🧹 lado direito ENXUTO (Diego 14/09): antes eram 5 coisas empilhadas em 54px
+          (⚽ · 🅰 · 💰+💸 · contrato · 🏃) e o gol/assist flutuava por cima da borda,
+          com o "N jogos" vazando pra fora da carta. Agora são no máximo 2 linhas:
+          ⚽ · 🅰 · jogos numa só, e o contrato embaixo. 💰 valor e 💸 salário SAÍRAM
+          daqui — já aparecem na ficha quando toca no jogador, não precisam dos dois
+          lugares. */}
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, lineHeight: 1.25, gap: 1 }}>
-        {goalsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: GREEN }}>⚽ {goalsOf(c)}</span>}
-        {assistsOf(c) > 0 && <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#2F6BAE' }}>🅰️ {assistsOf(c)}</span>}
-        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          <span style={{ fontWeight: 900, fontSize: 10, ...OSWALD, color: '#5a5647' }}>💰 {c.paid ?? 0}</span>
-          {salaryOn && <span title={tr('Salário por ano (piso ÷ 10)', 'Salary per year (floor ÷ 10)')} style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, color: '#C2452F', background: 'rgba(194,69,47,.10)', border: '1px solid rgba(194,69,47,.30)', borderRadius: 5, padding: '0 3px' }}>💸 {salaryOfCard(c)}</span>}
-        </span>
+        {(goalsOf(c) > 0 || assistsOf(c) > 0 || (condicao && !c.fake)) && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 900, fontSize: 9.5, ...OSWALD, whiteSpace: 'nowrap' }}>
+            {goalsOf(c) > 0 && <span style={{ color: GREEN }}>⚽ {goalsOf(c)}</span>}
+            {assistsOf(c) > 0 && <span style={{ color: '#2F6BAE' }}>🅰️ {assistsOf(c)}</span>}
+            {condicao && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'system-ui' }}>{condicao.jogos[c.id] ?? 0} {tr('j', 'g')}</span>}
+          </span>
+        )}
         {(() => { const k = ctInfo(c); return k ? <span style={{ fontWeight: 800, fontSize: 8.5, color: k.color, whiteSpace: 'nowrap' }}>{k.txt}</span> : null })()}
-        {condicao && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap' }}>🏃 {condicao.jogos[c.id] ?? 0} {tr('jogos', 'games')}</span>}
       </span>
     </div>
   ) }
@@ -3335,7 +3344,11 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           </button>
         )} />
       )}
-      {onTap && (
+      {/* 🧹 em repouso a dica "toque num, depois no outro" já vive na faixa de
+          Substituições (dicaTrocaNoTopo) — aqui só aparece com jogador selecionado,
+          que é feedback da troca em andamento. Fora da carreira (sem a faixa) a
+          dica continua aqui. */}
+      {onTap && (sel || !dicaTrocaNoTopo) && (
         <div style={{ border: `3px solid ${sel ? GREEN : INK}`, background: sel ? '#E9F9EF' : '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ fontSize: 13.5, fontWeight: 900, ...OSWALD, color: sel ? GREEN : INK, margin: 0, lineHeight: 1.2 }}>
             {getLang() === 'en'
@@ -3372,19 +3385,31 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         const semReserva = nRuins > 0 && (!sug || sug.trocas.length < nRuins)
         return (
           <div style={{ border: `3px solid ${INK}`, background: '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: .6, color: '#5a5647', margin: 0, textTransform: 'uppercase' }}>{tr('🧑‍⚕️ Preparador físico', '🧑‍⚕️ Fitness coach')}</p>
-            <p style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.45, margin: '4px 0 0' }}>
-              {esgotados.length > 0 && (en ? <><b>{nomes(esgotados)}</b> {esgotados.length === 1 ? 'is' : 'are'} <b style={{ color: '#7A1B1B' }}>completely spent</b> (🚑) — −3 and <b>triple</b> the injury risk. </> : <><b>{nomes(esgotados)}</b> {esgotados.length === 1 ? 'está' : 'estão'} <b style={{ color: '#7A1B1B' }}>esgotado{esgotados.length === 1 ? '' : 's'}</b> (🚑) — −3 e o <b>triplo</b> de risco de lesão. </>)}
-              {limite.length > 0 && (en ? <><b>{nomes(limite)}</b> {limite.length === 1 ? 'is' : 'are'} <b style={{ color: '#C2452F' }}>running on empty</b> (🥵) — {limite.length === 1 ? 'he plays' : 'they play'} at −2 and the injury risk doubles. </> : <><b>{nomes(limite)}</b> {limite.length === 1 ? 'está' : 'estão'} <b style={{ color: '#C2452F' }}>no limite</b> (🥵) — {limite.length === 1 ? 'joga' : 'jogam'} com −2 e o risco de lesão dobra. </>)}
-              {cansados.length > 0 && (en ? <><b>{nomes(cansados)}</b> {cansados.length === 1 ? 'is' : 'are'} <b style={{ color: '#B8860B' }}>tired</b> (😓) — −1 in the next match. </> : <><b>{nomes(cansados)}</b> {cansados.length === 1 ? 'está' : 'estão'} <b style={{ color: '#B8860B' }}>cansado{cansados.length === 1 ? '' : 's'}</b> (😓) — −1 no próximo jogo. </>)}
-              {voltando.length > 0 && (en ? <><b>{nomes(voltando)}</b> is <b style={{ color: '#7C3AED' }}>coming back from injury</b> (🩹) — not at 100% yet. </> : <><b>{nomes(voltando)}</b> está <b style={{ color: '#7C3AED' }}>voltando de lesão</b> (🩹) — ainda não rende 100%. </>)}
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: .6, color: '#5a5647', margin: 0, textTransform: 'uppercase', display: 'flex', alignItems: 'center' }}>
+              <span style={{ flex: 1 }}>{tr('🧑‍⚕️ Preparador físico', '🧑‍⚕️ Fitness coach')}</span>
+              {/* ❓ o texto de regra só abre aqui (Diego 14/09: muita informação) */}
+              <button onClick={() => setAjudaPrep(a => !a)} aria-label={tr('como funciona o gás', 'how energy works')} style={{ width: 20, height: 20, borderRadius: 999, border: `2px solid ${INK}`, background: ajudaPrep ? INK : '#fff', color: ajudaPrep ? '#fff' : INK, fontWeight: 900, fontSize: 11, lineHeight: '16px', padding: 0, cursor: 'pointer', fontFamily: 'system-ui' }}>?</button>
+            </p>
+            {/* 🤫 SEM NÚMERO (Diego 14/09: *"não era pra contar o segredo de −1 −2 em
+                relação a cansaço"*). O modificador e a chance de lesão são segredo do
+                motor, igual o overall — aqui é só o emoji e o nome. Quem lê já sabe que
+                🚑 é pior que 😓 sem precisar da conta. */}
+            <p style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.6, margin: '4px 0 0' }}>
+              {esgotados.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>🚑 <b style={{ color: '#7A1B1B' }}>{nomes(esgotados)}</b></span>}
+              {limite.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>🥵 <b style={{ color: '#C2452F' }}>{nomes(limite)}</b></span>}
+              {cansados.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>😓 <b style={{ color: '#B8860B' }}>{nomes(cansados)}</b></span>}
+              {voltando.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>🩹 <b style={{ color: '#7C3AED' }}>{nomes(voltando)}</b> <span style={{ fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{tr('voltando de lesão', 'back from injury')}</span></span>}
               {/* automático ligado e ninguém ruim: é ele que já arrumou — precisa dizer,
                   senão a caixa fica vazia e parece bug */}
               {!ruins.length && condicao.auto && (en ? <>Everyone in the XI is <b style={{ color: GREEN }}>fit</b> (💪) — the coach is taking care of the rotation.</> : <>Todo mundo do time está <b style={{ color: GREEN }}>inteiro</b> (💪) — o preparador está cuidando do rodízio.</>)}
             </p>
-            {sug && condicao.onRodizio && !condicao.auto && (
-              <button onClick={condicao.onRodizio} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'left' }}>
-                {tr('🔁 RODIZIAR', '🔁 ROTATE')} <span style={{ fontWeight: 700, fontSize: 10.5, opacity: .9 }}>— {sug.trocas.map(t => (en ? `${t.entra.name} in for ${t.sai.name}` : `${t.entra.name} no lugar de ${t.sai.name}`)).join(' · ')}</span>
+            {/* 🧹 os dois botões LADO A LADO (mockup aprovado 14/09). A linha só existe
+                se algum dos dois vai aparecer — senão sobrava um vão em branco. */}
+            {condicao.onRodizio && ((sug && !condicao.auto) || condicao.onAuto) && (
+            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+            {sug && !condicao.auto && (
+              <button onClick={condicao.onRodizio} style={{ flex: 1.4, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', fontWeight: 900, fontSize: 12, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'left' }}>
+                {tr('🔁 RODIZIAR', '🔁 ROTATE')} <span style={{ display: 'block', fontWeight: 700, fontSize: 9.5, opacity: .9, fontFamily: 'system-ui', textTransform: 'none' }}>{sug.trocas.map(t => (en ? `${t.entra.name} in for ${t.sai.name}` : `${t.entra.name} no lugar de ${t.sai.name}`)).join(' · ')}</span>
               </button>
             )}
             {/* 🔁 O INTERRUPTOR DO AUTOMÁTICO (Diego 13/09: *"pra não atrapalhar o cara
@@ -3393,18 +3418,23 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                 vai entrar, nada acontece escondido. Desligou, volta a pedir no botão. */}
             {/* só aparece quando a troca já é possível (mesma condição do botão
                 RODIZIAR) — interruptor que não faz nada é mentira */}
-            {condicao.onAuto && condicao.onRodizio && (
+            {condicao.onAuto && (
               <button onClick={() => condicao.onAuto!(!condicao.auto)}
-                style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 10px', fontWeight: 900, fontSize: 11.5, ...OSWALD, background: condicao.auto ? GREEN : '#fff', color: condicao.auto ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'left' }}>
-                {condicao.auto ? tr('✔ RODÍZIO AUTOMÁTICO LIGADO', '✔ AUTO-ROTATION ON') : tr('🔁 LIGAR RODÍZIO AUTOMÁTICO', '🔁 TURN ON AUTO-ROTATION')}
-                <span style={{ display: 'block', fontWeight: 700, fontSize: 10, opacity: .85, marginTop: 1 }}>
-                  {condicao.auto
-                    ? (en ? 'the coach rotates on his own before each match — tap to go back to deciding' : 'o preparador troca sozinho antes de cada jogo — toque pra voltar a decidir')
-                    : (en ? 'let the coach rotate on his own, without you having to do it every round' : 'deixa o preparador trocar sozinho, sem você ter que mexer toda rodada')}
+                style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', fontWeight: 900, fontSize: 11, ...OSWALD, background: condicao.auto ? GREEN : '#fff', color: condicao.auto ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'center' }}>
+                {condicao.auto ? tr('✔ AUTOMÁTICO', '✔ AUTO') : tr('🤖 AUTOMÁTICO', '🤖 AUTO')}
+                <span style={{ display: 'block', fontWeight: 700, fontSize: 9, opacity: .8, marginTop: 1, fontFamily: 'system-ui', textTransform: 'none' }}>
+                  {condicao.auto ? tr('ligado · toque pra desligar', 'on · tap to turn off') : tr('desligado · o preparador troca sozinho', 'off · the coach rotates on his own')}
                 </span>
               </button>
             )}
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '6px 0 0', lineHeight: 1.4 }}>
+            </div>
+            )}
+            {/* ⚠️ sem reserva inteiro: aviso CURTO sempre (é trava com caminho); o
+                resto da explicação mora no "?" */}
+            {semReserva && !ajudaPrep && (
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#8a6d00', margin: '6px 0 0', lineHeight: 1.4 }}>{tr('⚠️ Sem reserva inteiro pra toda vaga — monte banco no leilão.', '⚠️ No rested backup for every spot — build a bench at the auction.')}</p>
+            )}
+            {ajudaPrep && <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '6px 0 0', lineHeight: 1.4 }}>
               {/* 🌱 O RECADO DOS CRIAS (Diego 13/09): *"deixe uma mensagem limpa também
                   informando sobre jogadores da base, que a ideia é ter jogadores
                   melhores, pois os da base são ruins"*. Sem banco de verdade, quem
@@ -3412,7 +3442,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                   O caminho pra não depender dele é o leilão. */}
               {semReserva && (en ? <>No rested backup for every spot — whoever stays plays tired, and if someone gets injured a <b>Cria da Base</b> fills the shirt: he is a kid, much weaker than your squad. <b>Build a real bench at the transfer auction.</b> </> : <>Sem reserva inteiro pra toda vaga — quem fica joga cansado, e se alguém se machucar quem veste a camisa é um <b>Cria da Base</b>: ele é um moleque, bem mais fraco que o seu elenco. <b>Monte um banco de verdade no leilão de transferências.</b> </>)}
               {condicao.auto ? (en ? <>Starter loses energy each match, the bench gives it back · <b>auto-rotation is on</b>: the coach already swapped for the next match — you can still change it by hand.</> : <>Titular perde gás a cada jogo, o banco devolve · <b>rodízio automático ligado</b>: o preparador já trocou pro próximo jogo — você ainda pode mexer na mão.</>) : (en ? <>Starter loses energy each match · bench gives it back each round · applies from the next match · the game never swaps for you.</> : <>Titular perde gás a cada jogo · o banco devolve a cada rodada · vale do próximo jogo · o jogo nunca troca por você.</>)}
-            </p>
+            </p>}
           </div>
         )
       })()}
@@ -4200,8 +4230,11 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
                   )
                 })}
               </div>
-              {!!daCasa && !doTec.has(daCasa) && (
-                <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>🧳 The <b>{daCasa}</b> isn\'t {meuTecN}\'s — it\'s <b>inherited from the previous coach</b>: the team already played it when he arrived, and it stayed on the menu.</> : <>🧳 O <b>{daCasa}</b> não é do {meuTecN} — é <b>herança do técnico anterior</b>: o time já jogava assim quando ele chegou, e continuou no cardápio.</>}</p>
+              {/* 🧹 (Diego 14/09): a explicação da herança só aparece quando a formação
+                  herdada está APERTADA — *"escreva 'herança do técnico anterior' quando
+                  apertado"*. Em vez de um parágrafo fixo, é uma linha só, contextual. */}
+              {!!daCasa && !doTec.has(daCasa) && atual.rotulo === daCasa && (
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>🧳 <b>{daCasa}</b>: inherited from the previous coach{meuTecN ? ` (not ${meuTecN}'s)` : ''} · applies from the next match.</> : <>🧳 <b>{daCasa}</b>: herança do técnico anterior{meuTecN ? ` (não é do ${meuTecN})` : ''} · vale do próximo jogo.</>}</p>
               )}
               {/* 🔒 sem técnico: explica a trava E o caminho pra destravar */}
               {!meuTecT && (
@@ -4209,7 +4242,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
               )}
               {bloqueadas.length
                 ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>⚠️ To play <b>{bloqueadas[0].rotulo}</b> you\'re missing <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Sign at the auction or bring from the SAF.</> : <>⚠️ Pra jogar <b>{bloqueadas[0].rotulo}</b> faltam <b>{missFor(bloqueadas[0].motor).join(', ')}</b>. Contrate no leilão ou traga da SAF.</>}</p>
-                : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>{tr('✅ Você pode trocar de formação quando quiser — vale do próximo jogo.', '✅ You can change formation whenever you like — applies from the next match.')}</p>}
+                : (!(!!daCasa && !doTec.has(daCasa) && atual.rotulo === daCasa) && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>{tr('✅ vale do próximo jogo', '✅ applies from the next match')}</p>)}
             </div>
           )
         }
@@ -4254,23 +4287,30 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
         const mode = subMode ?? 'dinamico'
         // 🎨 CORES DO ELENCO (Diego 13/08): substituição ganha verde PRÓPRIO, em vez
         // da cor do time — evita se misturar com a navegação (mockup aprovado).
-        const Opt = ({ m, titulo, desc }: { m: 'dinamico' | 'intervalo'; titulo: string; desc: string }) => {
+        // 🧹 ENXUTA (Diego 14/09): duas pílulas numa linha e UMA frase embaixo, que
+        // muda conforme o que está apertado. Texto do Dinâmico é dele, palavra por
+        // palavra: *"Sem trocas no intervalo e vale pro próximo jogo"*.
+        const Opt = ({ m, titulo }: { m: 'dinamico' | 'intervalo'; titulo: string }) => {
           const on = mode === m
           return (
             <button onClick={() => { if (!on) onSetSubMode(m) }}
-              style={{ flex: 1, textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', cursor: on ? 'default' : 'pointer', background: on ? GREEN : '#fff', color: on ? '#fff' : INK, boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              <div style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{titulo}{on ? ' ✓' : ''}</div>
-              <div style={{ fontSize: 8.5, fontWeight: 700, opacity: on ? 0.85 : 0.55, lineHeight: 1.25, marginTop: 2 }}>{desc}</div>
+              style={{ border: `2.5px solid ${INK}`, borderRadius: 9, padding: '5px 10px', cursor: on ? 'default' : 'pointer', background: on ? GREEN : '#fff', color: on ? '#fff' : INK, boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none', fontWeight: 900, fontSize: 11.5, ...OSWALD, whiteSpace: 'nowrap' }}>
+              {titulo}{on ? ' ✓' : ''}
             </button>
           )
         }
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
-            <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🔁 Substituições', '🔁 Substitutions')}</p>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <Opt m="dinamico" titulo={tr('🔄 Dinâmico', '🔄 Dynamic')} desc={tr('troca quando quiser · vale pro próximo jogo', 'swap whenever you like · applies to the next match')} />
-              <Opt m="intervalo" titulo={tr('⏸️ Só no intervalo', '⏸️ Half-time only')} desc={tr("o jogo pausa aos 45' pra trocar (só o 2º tempo)", "the match pauses at 45' to swap (2nd half only)")} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, color: INK, marginRight: 2 }}>{tr('🔁 Trocas', '🔁 Subs')}</span>
+              <Opt m="dinamico" titulo={tr('🔄 Dinâmico', '🔄 Dynamic')} />
+              <Opt m="intervalo" titulo={tr('⏸️ Só no intervalo', '⏸️ Half-time only')} />
             </div>
+            <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', lineHeight: 1.35 }}>
+              {mode === 'dinamico'
+                ? tr('Sem trocas no intervalo e vale pro próximo jogo · toque num jogador, depois no outro.', 'No half-time swaps, applies to the next match · tap one player, then the other.')
+                : tr("O jogo pausa aos 45' pra trocar (só o 2º tempo) · toque num jogador, depois no outro.", "The match pauses at 45' to swap (2nd half only) · tap one player, then the other.")}
+            </p>
           </div>
         )
       })()}
@@ -4291,6 +4331,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
             </UnlockBanner>
           )}
           <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao}
+            dicaTrocaNoTopo={!!(elenco && onSetSubMode)}
             antesFolha={criaBase ? <BaseBox mgr={mgr} criaNames={escSt.criaNames ?? []} seed={escSt.seed ?? 1} onSubir={criaBase.onSubir} /> : undefined} />
         </>
       ) : (<>

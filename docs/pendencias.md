@@ -1,3 +1,7 @@
+
+
+## 14/09/2026 — 🌍 Copa do Mundo: Peru, Bélgica e Equador sem escudo — ✅ no ar
+
 ## 14/09/2026 — 👑 O DONO VIRAVA CONVIDADO NA LARGADA (sala NX2ALC "Meia na Canela") — ✅ conserto isolado
 
 Relato do Diego: *"quando ele deu lance no goleiro abriu a segunda tela escrito ENVIANDO,
@@ -252,6 +256,101 @@ não quer dizer que são consideradas lendas né?"*) — a intuição dele está
 
 ⏭️ **Plano:** ~2 a 3 lotes de 60, começando por **PF e C**, puxados do Hall da Fama e
 entrando sobretudo como bom jogador e craque. Aguardando o Diego dizer se sigo.
+
+Diego: *"tem três países que não está aparecendo o escudo. Peru, Bélgica e
+Ecuador… está sem escudo, sem a logo"*. Causa: `national-crest.tsx` aponta pra
+`img/nations-v25/peru.webp`, `belgium.webp` e `ecuador.webp` e os **três arquivos
+nunca existiram** (a pasta nasceu em 08/09 com 21 escudos). Sem arquivo, o
+componente cai no nome em texto puro. Só aparece na prévia V25 (`privateVisual`,
+contas do Diego); o público vê a bandeira-emoji.
+
+**Como resolveu:** eu não alcanço escudo de federação daqui (o proxy só deixa
+GitHub, e os acervos abertos de lá têm bandeira, não o escudo da FPF/RBFA/FEF).
+Cheguei a gerar peça neutra (cores da bandeira + sigla) e o Diego cortou na hora:
+*"os escudos que eu estava colocando era da federação, não era escudo da
+bandeira"*. Ele mandou os três oficiais e eles entraram — a peça neutra foi
+descartada junto com o gerador dela.
+
+📌 **Regra que fica: escudo de seleção é o da FEDERAÇÃO** (FPF, RBFA, FEF, CBF,
+AFA…), nunca bandeira nem brasão desenhado por cima do nome. Se faltar arte,
+pedir pro Diego — ele tem.
+
+🔧 **`scripts/escudo-selecao.mjs`** (novo) faz o serviço: recorta no limite REAL
+do desenho (corte de alfa ≥ 40 e mínimo de 3 pixels na linha/coluna, porque o
+bbox cru mente), apaga a poeira de alfa, deixa 128px de altura igual aos outros
+21 e salva `.webp` avisando o peso. Com `--mockup` monta a conferência sobre o
+CREME, nos tamanhos reais da Copa (58 · 25 · 20). Uso:
+`node scripts/escudo-selecao.mjs --mockup peru /caminho/fpf.png`.
+A Bélgica provou pra que serve: o arquivo que ele mandou tinha **71% de moldura
+vazia** — sem o recorte, o escudo apareceria minúsculo do lado dos outros.
+
+Peso: peru 3,7 KB · belgium 4,3 KB · ecuador 5,0 KB (teto de escudo é 30 KB).
+
+📐 **E o ENCAIXE da Bélgica** (ele pegou no mesmo dia: *"o escudo da Bélgica está
+desproporcional, está muito pequeno em relação aos outros"*). Não era recorte: o
+`NationalCrest` encaixa TODO escudo num QUADRADO, e o da Bélgica é o mais
+estreito da pasta (65×128 = proporção 0,51, por causa da coroa em cima e dos
+ramos embaixo), então ocupava metade da largura dos vizinhos. Entrou o mapa
+`ESCALA` em `national-crest.tsx` (só `belgium: 1.25`): o escudo cresce e passa um
+pouco do quadrado, mas a MOLDURA continua do tamanho fixo — nenhuma linha do
+jogo se mexe, e o slot grande tem folga (76px de altura pra 72,5px de escudo).
+A arte oficial não foi tocada. `scripts/mockup-encaixe-belgica.mjs` compara
+1,00 / 1,15 / 1,25 / 1,35 se um dia precisar reaferir.
+
+🇦🇷 **E na mesma conversa ele pegou a Argentina**: *"o da Argentina também está
+muito pequeno, não? Comparado aos outros? muito estreito"*. Era o mesmo caso.
+Medi os 24 de uma vez (`scripts/mockup-encaixe-selecoes.mjs`, com `--proposta`
+mostra antes × depois) e cresceram os cinco estreitos: **belgium 1,25 ·
+argentina 1,22 · brazil 1,15 · spain 1,12 · south-korea 1,12**.
+
+🚫 **França e Alemanha ficaram DE FORA de propósito.** Pela conta de tinta elas
+são as menores de todas (2949 e 2951 contra mediana 5909), mas olhando na tela
+o problema delas é outro: não são pequenas, são de traço CLARO (galo branco,
+águia cinza) e somem no fundo creme. Crescer não resolve isso, e a arte é
+oficial. Se o Diego reclamar delas, o caminho é contraste (fundo/sombra), não
+escala.
+
+Reverter: `git revert` do commit, volta ao nome em texto.
+
+⚠️ **Sobra na pasta:** `nigeria.webp`, `sweden.webp` e `switzerland.webp` são
+arquivos quebrados de 1 linha que vieram em 08/09. Ninguém aponta pra eles no
+`national-crest.tsx`, então não quebram nada — mas se um dia entrar Nigéria,
+Suécia ou Suíça na Copa, **a arte tem que ser refeita**, esses arquivos não
+prestam.
+
+## 14/09/2026 — 🧹 Aba ELENCO enxuta — ✅ no ar (mockup aprovado)
+
+Diego, com print: *"tá com MUITA informação desnecessária… não era pra contar o
+segredo de −1 −2 em relação a cansaço… gols não entrando dentro do elenco
+porque tá cheio na listagem"*. Mockup `scripts/mockup-elenco-enxuto.mjs`
+aprovado (*"pode fazer"*) com DUAS emendas dele, aplicadas:
+- na formação, **"herança do técnico anterior" só quando a herdada está
+  APERTADA** (era um parágrafo fixo);
+- em Substituições, com Dinâmico apertado: **"Sem trocas no intervalo e vale
+  pro próximo jogo"** (palavras dele).
+
+**O que mudou (só tela, nenhuma regra):**
+1. 🤫 **Preparador sem número** — só emoji + nome (🚑 · 🥵 · 😓 · 🩹). O −1/−2/−3
+   e a chance de lesão viram segredo do motor, igual o overall.
+2. **Carta enxuta** — ⚽ · 🅰 · jogos numa linha DENTRO da carta; contrato
+   embaixo. 💰 valor e 💸 salário saíram da lista (já estão na ficha do toque).
+   Antes eram 5 coisas empilhadas em 54px e o gol/assist flutuava por cima da
+   borda, com o "N jogos" vazando pra fora.
+3. **RODIZIAR e AUTOMÁTICO lado a lado**; o textão de regra do preparador virou
+   um **"?"** no cabeçalho (estado `ajudaPrep` no `ElencoField`). O aviso de
+   "sem reserva inteiro" continua sempre, mas em UMA linha (é trava com caminho).
+4. **Formação** — a linha embaixo é contextual: herança apertada → "🧳 X:
+   herança do técnico anterior · vale do próximo jogo"; senão → "✅ vale do
+   próximo jogo". As travas (sem técnico / faltam jogadores) ficaram iguais.
+5. **Substituições** — duas pílulas numa linha + frase contextual. A caixa
+   "Faça suas trocas aqui" **em repouso** sumiu na carreira (a dica mora na
+   faixa de Trocas, prop `dicaTrocaNoTopo`); com jogador selecionado ela FICA
+   (é o feedback da troca). Fora da carreira (sem a faixa) continua como era.
+
+Tudo em PT e EN. `salaryOfCard` saiu do import do `pyramidseason.tsx` (era só
+da carta).
+
+⏳ **Falta:** print do Diego no celular. Reverter = 1 commit.
 
 ## 14/09/2026 — 🏀 BIDLEGENDS: ONLINE NO AR (rápido + Minhas ligas) e as regras de basquete no mata-mata
 
