@@ -1,3 +1,37 @@
+## 14/09/2026 — 🧹 Aba ELENCO enxuta — ✅ no ar (mockup aprovado)
+
+Diego, com print: *"tá com MUITA informação desnecessária… não era pra contar o
+segredo de −1 −2 em relação a cansaço… gols não entrando dentro do elenco
+porque tá cheio na listagem"*. Mockup `scripts/mockup-elenco-enxuto.mjs`
+aprovado (*"pode fazer"*) com DUAS emendas dele, aplicadas:
+- na formação, **"herança do técnico anterior" só quando a herdada está
+  APERTADA** (era um parágrafo fixo);
+- em Substituições, com Dinâmico apertado: **"Sem trocas no intervalo e vale
+  pro próximo jogo"** (palavras dele).
+
+**O que mudou (só tela, nenhuma regra):**
+1. 🤫 **Preparador sem número** — só emoji + nome (🚑 · 🥵 · 😓 · 🩹). O −1/−2/−3
+   e a chance de lesão viram segredo do motor, igual o overall.
+2. **Carta enxuta** — ⚽ · 🅰 · jogos numa linha DENTRO da carta; contrato
+   embaixo. 💰 valor e 💸 salário saíram da lista (já estão na ficha do toque).
+   Antes eram 5 coisas empilhadas em 54px e o gol/assist flutuava por cima da
+   borda, com o "N jogos" vazando pra fora.
+3. **RODIZIAR e AUTOMÁTICO lado a lado**; o textão de regra do preparador virou
+   um **"?"** no cabeçalho (estado `ajudaPrep` no `ElencoField`). O aviso de
+   "sem reserva inteiro" continua sempre, mas em UMA linha (é trava com caminho).
+4. **Formação** — a linha embaixo é contextual: herança apertada → "🧳 X:
+   herança do técnico anterior · vale do próximo jogo"; senão → "✅ vale do
+   próximo jogo". As travas (sem técnico / faltam jogadores) ficaram iguais.
+5. **Substituições** — duas pílulas numa linha + frase contextual. A caixa
+   "Faça suas trocas aqui" **em repouso** sumiu na carreira (a dica mora na
+   faixa de Trocas, prop `dicaTrocaNoTopo`); com jogador selecionado ela FICA
+   (é o feedback da troca). Fora da carreira (sem a faixa) continua como era.
+
+Tudo em PT e EN. `salaryOfCard` saiu do import do `pyramidseason.tsx` (era só
+da carta).
+
+⏳ **Falta:** print do Diego no celular. Reverter = 1 commit.
+
 ## 14/09/2026 — 🌱 A caixa da Base sumia no meio da temporada — ✅ no ar
 
 Diego, com o mockup na mão: *"já tá funcionando isso aqui de poder colocar
