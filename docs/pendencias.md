@@ -1,3 +1,25 @@
+## 14/09/2026 — 🌍 Copa do Mundo: Peru, Bélgica e Equador sem escudo — ⏳ no branch, ESPERANDO OK do Diego
+
+Diego: *"tem três países que não está aparecendo o escudo. Peru, Bélgica e
+Ecuador… está sem escudo, sem a logo"*. Causa: `national-crest.tsx` aponta pra
+`img/nations-v25/peru.webp`, `belgium.webp` e `ecuador.webp` e os **três arquivos
+nunca existiram** (a pasta veio com 21 escudos oficiais em 08/09; nigeria/sweden/
+switzerland são arquivos quebrados de 1 linha, mas ninguém aponta pra eles).
+Sem arquivo o componente cai no texto puro — isso só aparece na prévia V25
+(`privateVisual`, contas do Diego); o público vê bandeira-emoji.
+
+**O que fiz:** NÃO achei o escudo oficial das três federações em fonte aberta
+que este ambiente alcance (só GitHub passa no proxy; os repositórios de escudos
+abertos têm bandeira, não o escudo da FPF/RBFA/FEF). Pela regra *"não inventar
+como uma coisa real é"*, gerei **peça NEUTRA**: escudo com as cores da bandeira +
+sigla (PER/BEL/ECU), 128px de altura igual aos oficiais, ~2 KB cada, contorno
+preto do jogo. Gerador: `scripts/gera-escudo-neutro-selecao.mjs` (`--mockup`
+monta o lado a lado com os oficiais). Mockup mandado pro Diego.
+
+**Falta:** OK do Diego pra subir na main. Quando ele mandar os três escudos
+oficiais, é só trocar o `.webp` (360px máx / ≤ 30 KB / alfa recortado) — código
+não muda. Reverter: `git revert` do commit, volta ao texto.
+
 ## 14/09/2026 — 🧹 Aba ELENCO enxuta — ✅ no ar (mockup aprovado)
 
 Diego, com print: *"tá com MUITA informação desnecessária… não era pra contar o
