@@ -1,3 +1,74 @@
+## 14/09/2026 — 🏋️ PREPARADOR FÍSICO + 🏛️ DEPARTAMENTO TÉCNICO — desenhado, NÃO codado
+
+⛔ **NADA DISSO ESTÁ NO JOGO.** O que subiu pra main é só o gerador do mockup, o do vídeo,
+o da stories e as fotos de backup. Nenhuma linha em `src/`. Esperando 3 respostas do Diego
+(ver o fim desta nota) pra começar a codar.
+
+### O pedido dele
+*"a gente tem que tirar esse botão de rodiziar, e só aparecer esse botão se comprar o
+preparador físico… ele vai ter salário também… e também vai ter contrato de renovação.
+Inclusive técnico e o preparador físico agora eles têm que ter uma área dividida dos
+jogadores ali no mesmo local… departamento técnico"*.
+
+### Como funciona hoje (medido no código, `condicao.ts`)
+Cada jogo como titular gasta **1,4** de gás; cada rodada no banco devolve **4**
+(`GAS_JOGO` / `GAS_BANCO`). Por isso o ritmo em que o tanque NUNCA desce é
+**"joga 2, senta 1"** (2 jogos = 2,8 · uma sentada = 4). Tanque vazio enche em 25 rodadas.
+O botão 🔁 RODIZIAR (e o interruptor AUTOMÁTICO) moram na caixa amarela da aba Elenco,
+`pyramidseason.tsx` ~3360-3448, e hoje são de graça pra todo mundo.
+
+### O que foi fechado com ele
+Quatro degraus, cada um na cor do tier de `apoio.tsx` (cor de tier é sagrada). Ele pediu
+**gente de verdade** — quando ofereci nomes folclóricos ele cortou: *"falei preparadores
+famosos"*. Vale a regra do "não inventar como a pessoa é": só o nome e uma linha factual
+de carreira, arte neutra, nada de rosto nem de bio inventada.
+
+| tier | quem | preço | salário | banco devolve | joga seguidas | enche do zero |
+|---|---|---|---|---|---|---|
+| — | *sem preparador (hoje)* | — | — | +4 | 2 | 25 rodadas |
+| 🟢 bom | **Rui Faria** 🇵🇹 | 100 🪙 | 10 | +6 | 4 | 17 rodadas |
+| 💎 promessa | **Antonio Pintus** 🇮🇹 | 300 🪙 | 30 | +9 | 6 | 12 rodadas |
+| ⭐ craque | **Paulo Paixão** 🇧🇷 | 600 🪙 | 60 | +12 | 8 | 9 rodadas |
+| 👑 lenda | **Paco Seirulo** 🇪🇸 | 1000 🪙 | 100 | +20 | 14 | 5 rodadas |
+
+Ele começou em 300/800/1500, achou caro (*"pode ser cem, quinhentos e mil"*), e depois
+pediu o 4º degrau: *"pode ter mais um q seria roxo da categoria promessa pq acho q o
+preparador de seleção deveria encher o tanque em menos rodadas ainda"*.
+
+**Salário e contrato copiam o TÉCNICO, sem inventar regra nova:** salário = 10% do preço
+por temporada (a mesma conta de `careerTecnicoPago` / 10 em `store.tsx` ~251), contrato de
+**5 temporadas** (`seasonNo + 4`), renovação pelo mesmo preço só quando VENCIDO, e dispensa
+sem multa — ver `RENOVAR_TECNICO` / `DISPENSAR_TECNICO` em `store.tsx` ~6738-6774.
+
+### 🚫 Nada de botão trancado (decidido com ele)
+Ele perguntou se dava pra deixar o RODIZIAR/AUTOMÁTICO na tela com uma "travinha". Respondi
+que não, e ele topou: já existe a regra dele no código — *"interruptor que não faz nada é
+mentira"* (`pyramidseason.tsx` ~3419). Sem preparador, no lugar dos botões entra o aviso
+com o porquê e o caminho: *"🔒 Você não tem preparador físico — sem ele o rodízio é na mão.
+Pra ter o botão 🔁 RODIZIAR e o automático, contrate no Departamento Técnico, logo abaixo"*.
+
+### Onde vai morar (quando codar)
+Aba Elenco, LOGO ABAIXO do campinho, no lugar do `MeuTecnicoBox` (`pyramidseason.tsx`
+~3693-3721): um bloco 🏛️ **Departamento Técnico** com o técnico e o preparador juntos,
+separados dos jogadores. O salário do preparador entra na **Folha do Time** junto com o do
+técnico (`pyramidseason.tsx` ~3519-3535 e `store.tsx` ~250).
+
+### Os arquivos que ficaram no repo
+`scripts/mockup-preparador.mjs` (a tela) · `scripts/video-preparador-reels.mjs` (reels
+1080×1920, ~25 s) · `scripts/post-preparador.mjs` (stories 1080×1920; `--no-ar` troca o
+rodapé de "chegando" pra "já está no ar" no dia do deploy) · as fotos em
+`scripts/mockups/`. O mockup mora no repo de propósito: o do Coringas foi feito à mão e
+se perdeu com o scratchpad.
+
+⚠️ O vídeo e a stories dizem **"CHEGANDO"**, não "já está no ar". Trocar no dia do deploy.
+
+### ⏳ Esperando o Diego responder (sem isso não dá pra codar)
+1. Sem preparador, o rodízio **na mão** continua existindo? (no mockup: continua)
+2. Quem já usa o RODIZIAR hoje **ganha o 🟢 Rui Faria de graça**, ou todo mundo começa do zero?
+3. O **Pintus** fica no 💎 promessa (proposta) ou sobe pro ⭐ craque, com o Paixão no 💎?
+
+---
+
 ## 14/09/2026 — 🪩 O Alfacehh virou INTER DE BAILÃO (Série C) — pronto, esperando OK
 
 Pedido do Diego: *"matheus223lms@icloud.com, troque o nome do Alfacehh para Inter de Baião
