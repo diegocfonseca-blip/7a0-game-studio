@@ -1,3 +1,34 @@
+## 14/09/2026 — 🇧🇷 OS BRASILEIROS: 10 já estavam, faltavam 5 (e um erro na carta do Leandrinho)
+
+Pergunta do Diego: *"alguns brasileiros têm? Leandrinho… aquele com cabelo grandão, e o
+atual hoje que esqueci o nome"*.
+
+Traduzindo: **Leandrinho** (tinha), **o do cabelo grandão = Anderson Varejão** (tinha) e
+**o atual = Gui Santos**, do Golden State (NÃO tinha — agora tem).
+
+**Os 15 brasileiros do baralho agora:**
+
+| | quem | categoria |
+|---|---|---|
+| 🎯 bom jogador | Nenê · Anderson Varejão · Leandrinho · Tiago Splitter | 4 |
+| 🪵 foi profissional | Marcelinho Huertas · Bruno Caboclo · Raul Neto · Rafael Araújo · Lucas "Bebê" Nogueira · Cristiano Felício · **Alex Garcia** · **Didi Louzada** · **Vitor Faverani** · **Gui Santos** · **Rolando Ferreira** | 11 |
+
+Os cinco em **negrito** entraram agora (Lote 9). O **Gui Santos** é o que responde à
+pergunta dele: o brasileiro que está na NBA HOJE. O **Rolando Ferreira** entrou por ser um
+dos PRIMEIROS a chegar lá, nos anos 80 — abriu a porteira que o Nenê atravessou depois.
+
+🐞 **E achei um erro numa carta que JÁ EXISTIA:** a do Leandrinho dizia *"Sexto Homem do
+Ano, velocidade pura e anel em 2007"*. Errado — o prêmio de melhor sexto homem foi em 2007
+pelo Phoenix, mas o **anel dele veio em 2015, pelo Golden State**. Duas conquistas
+diferentes, com oito anos de distância, juntadas numa frase só. Corrigido. (É o tipo de
+coisa que a regra de 18/08 existe pra evitar: não inventar sobre gente de verdade — e
+juntar dois fatos verdadeiros num falso conta como inventar.)
+
+⚠️ Continua valendo: **Oscar Schmidt fica de fora** (recusou o draft, nunca jogou NBA),
+como o Diego decidiu em 26/07.
+
+Baralho: **427 → 432 cartas**.
+
 ## 14/09/2026 — 👑🌍 LENDA VIROU RÉGUA NOVA, e entrou o lote de fora dos EUA
 
 Áudio do Diego (transcrito com ruído, mas o recado é claro): *"o Micah Donsit [Luka

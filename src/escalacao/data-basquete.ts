@@ -149,7 +149,7 @@ const SG: BC[] = [
   { name: 'Klay Thompson', club: 'Warriors', year: 2016, fame: 4, lo: 85, hi: 92, bioPt: 'Splash Brother nº2. 37 pontos num quarto só. Chega quieto e te afoga de 3.', bioEn: 'Splash Brother No.2. 37 points in a single quarter. Shows up quiet and drowns you in threes.' },
   { name: 'Nick Young (Swaggy P)', club: 'Lakers', year: 2014, fame: 2, lo: 64, hi: 82, folk: true, bioPt: 'Comemorou uma bola de 3 que NÃO entrou. O meme mais honesto da NBA.', bioEn: 'Celebrated a three that DIDN\'T go in. The most honest meme in the NBA.' },
   { name: 'Nate Robinson', club: 'Knicks', year: 2010, fame: 2, lo: 62, hi: 81, folk: true, bioPt: '1,75m e TRÊS títulos de enterrada. Pulou por cima do Yao no concurso. Depois levou nocaute no boxe 😅.', bioEn: 'Five-foot-nine and THREE dunk titles. Leapt over Yao in the contest. Later got knocked out boxing 😅.' },
-  { name: 'Leandrinho', club: 'Suns', year: 2007, fame: 2, lo: 66, hi: 83, folk: true, bioPt: 'O Borrão Brasileiro. Sexto Homem do Ano, velocidade pura e anel em 2007. 🇧🇷', bioEn: 'The Brazilian Blur. Sixth Man of the Year, pure speed and a 2007 ring. 🇧🇷' },
+  { name: 'Leandrinho', club: 'Suns', year: 2007, fame: 2, lo: 66, hi: 83, folk: true, bioPt: 'O Borrão Brasileiro. Melhor sexto homem da liga em 2007 pelo Phoenix — e campeão da NBA em 2015, pelo Golden State. 🇧🇷', bioEn: 'The Brazilian Blur. Sixth Man of the Year in 2007 with Phoenix — and an NBA champion in 2015, with Golden State. 🇧🇷' },
   { name: 'Brian Scalabrine (White Mamba)', club: 'Celtics', year: 2008, fame: 1, lo: 52, hi: 72, folk: true, bioPt: 'O herói do banco. A torcida gritava o nome dele nos 2 minutos finais. Anel em 2008 sem suar.', bioEn: 'The bench hero. The crowd chanted his name in garbage time. A 2008 ring without breaking a sweat.' },
   { name: 'Adam Morrison', club: 'Lakers', year: 2008, fame: 1, lo: 50, hi: 70, folk: true, bioPt: 'Bigode, cabelão e DOIS anéis... aquecendo o banco. O bust mais estiloso da história.', bioEn: 'Mustache, long hair and TWO rings... warming the bench. The most stylish bust ever.' },
   // -- Lote 3 --
@@ -229,6 +229,9 @@ const SG: BC[] = [
   { name: "Rudy Fernández", club: "Blazers", year: 2009, fame: 2, lo: 73, hi: 83, folk: true, bioPt: "Espanhol que voou no concurso de enterradas pulando por cima de uma cadeira. Na Europa, colecionou tudo que dava pra colecionar.", bioEn: "The Spaniard who flew in the dunk contest, leaping clean over a chair. Back in Europe he collected everything there was to collect." },
   { name: "Juan Carlos Navarro", club: "Grizzlies", year: 2008, fame: 2, lo: 73, hi: 83, folk: true, bioPt: "La Bomba. Uma temporada só na NBA e um arremesso tão torto quanto certeiro — a \"bomba\" virou marca registrada na Espanha.", bioEn: "La Bomba. One NBA season and a shot as crooked as it was deadly — \"la bomba\" became a trademark back in Spain." },
   { name: "Evan Fournier", club: "Magic", year: 2020, fame: 2, lo: 74, hi: 84, bioPt: "Francês de arremesso solto e confiança de sobra. Carregou o ataque do Orlando e da seleção da França em Olimpíada.", bioEn: "A Frenchman with a quick release and confidence to spare. Carried Orlando's offense and France's at the Olympics." },
+  // ── Lote 9 (14/09) — 🇧🇷 os brasileiros que faltavam (pergunta do Diego) ──
+  { name: "Alex Garcia", club: "Spurs", year: 2004, fame: 1, lo: 60, hi: 78, folk: true, bioPt: "Gigante do basquete brasileiro que chegou à NBA SEM ser draftado e vestiu Spurs e Hornets. Em casa, é ídolo eterno. 🇧🇷", bioEn: "A giant of Brazilian basketball who reached the NBA UNDRAFTED and wore Spurs and Hornets colors. Back home, a forever idol. 🇧🇷" },
+  { name: "Didi Louzada", club: "Pelicans", year: 2022, fame: 1, lo: 57, hi: 76, folk: true, bioPt: "Ala brasileiro de defesa aguerrida que passou por Nova Orleans e vestiu a seleção em Olimpíada. 🇧🇷", bioEn: "A hard-nosed Brazilian wing who passed through New Orleans and wore the national shirt at the Olympics. 🇧🇷" },
 ]
 
 // ─── SF · ALA ────────────────────────────────────────────────────────
@@ -328,6 +331,8 @@ const SF: BC[] = [
   { name: "Andrés Nocioni", club: "Bulls", year: 2007, fame: 3, lo: 78, hi: 85, folk: true, bioPt: "Chapu. Argentino de sangue nos olhos que jogava toda bola dividida como se fosse a última. Ouro olímpico em Atenas.", bioEn: "Chapu. An Argentine who played every loose ball like it was the last. Olympic gold in Athens." },
   { name: "Nikola Mirotić", club: "Bulls", year: 2018, fame: 2, lo: 74, hi: 84, bioPt: "Montenegrino-espanhol de arremesso longo, campeão de tudo na Europa e eleito o melhor calouro do mês mais de uma vez na NBA.", bioEn: "A Montenegrin-Spanish stretch big, a winner of everything in Europe and more than once an NBA Rookie of the Month." },
   { name: "Šarūnas Jasikevičius", club: "Pacers", year: 2006, fame: 2, lo: 72, hi: 83, folk: true, bioPt: "Saras. Um dos maiores da história da Europa, com três Euroligas seguidas — e na NBA foi só um reserva. O basquete é assim mesmo.", bioEn: "Saras. One of the greatest in European history, with three straight EuroLeagues — and in the NBA he was just a reserve. That's basketball." },
+  // ── Lote 9 (14/09) — 🇧🇷 os brasileiros que faltavam (pergunta do Diego) ──
+  { name: "Gui Santos", club: "Warriors", year: 2025, fame: 1, lo: 60, hi: 79, folk: true, bioPt: "O brasileiro que está na NBA AGORA. Saiu do Minas pra segunda rodada do draft e foi cavar espaço no Golden State. 🇧🇷", bioEn: "The Brazilian who is in the NBA RIGHT NOW. Went from Minas to a second-round pick and carved out a spot at Golden State. 🇧🇷" },
 ]
 
 // ─── PF · ALA-PIVÔ ───────────────────────────────────────────────────
@@ -425,6 +430,8 @@ const PF: BC[] = [
   { name: "Andrea Bargnani", club: "Raptors", year: 2011, fame: 2, lo: 70, hi: 82, folk: true, bioPt: "Primeira escolha do draft e o italiano mais discutido da história da NBA. Pontuava — defender, nem tanto.", bioEn: "A number one overall pick and the most argued-about Italian in NBA history. He scored — defending, not so much." },
   { name: "Ersan İlyasova", club: "Bucks", year: 2016, fame: 2, lo: 73, hi: 83, folk: true, bioPt: "O turco que tomava mais carga pra ganhar falta do que qualquer um. Se jogar nele, é falta ofensiva — e ele cai como profissional.", bioEn: "The Turk who took more charges than anyone alive. Drive at him and it's an offensive foul — and he sells it like a professional." },
   { name: "Fabricio Oberto", club: "Spurs", year: 2007, fame: 2, lo: 71, hi: 82, folk: true, bioPt: "Argentino campeão da NBA e ouro olímpico. Fazia a parte suja no garrafão pro Duncan e o Manu brilharem.", bioEn: "An Argentine NBA champion and Olympic gold medalist. He did the dirty work in the paint so Duncan and Manu could shine." },
+  // ── Lote 9 (14/09) — 🇧🇷 os brasileiros que faltavam (pergunta do Diego) ──
+  { name: "Vitor Faverani", club: "Celtics", year: 2014, fame: 1, lo: 57, hi: 76, folk: true, bioPt: "Chegou do nada pra ser TITULAR do Boston na temporada de estreia. O Brasil inteiro acordou cedo pra ver. 🇧🇷", bioEn: "Came out of nowhere to START for Boston in his debut season. All of Brazil woke up early to watch. 🇧🇷" },
 ]
 
 // ─── C · PIVÔ ────────────────────────────────────────────────────────
@@ -526,6 +533,8 @@ const C: BC[] = [
   { name: "Jonas Valančiūnas", club: "Grizzlies", year: 2021, fame: 3, lo: 79, hi: 86, bioPt: "Lituano de ombro largo que não sai do garrafão nem na marra. Rebote, gancho e uma paciência de pedra.", bioEn: "A broad-shouldered Lithuanian who will not be moved out of the paint. Rebounds, hooks and the patience of stone." },
   { name: "Mehmet Okur", club: "Jazz", year: 2007, fame: 3, lo: 78, hi: 85, folk: true, bioPt: "O primeiro turco campeão da NBA e o primeiro pivô do Jazz a virar All-Star metendo de três. Abriu caminho pra muita gente.", bioEn: "The first Turkish NBA champion and the first Jazz big to make an All-Star game shooting threes. He opened a door for many." },
   { name: "Dino Rađa", club: "Celtics", year: 1996, fame: 3, lo: 78, hi: 85, folk: true, bioPt: "Croata de mão macia que brilhou em Boston nos anos 90 — parte daquela geração iugoslava que mudou o basquete europeu.", bioEn: "A soft-handed Croat who shone in Boston in the nineties — part of the Yugoslav generation that changed European basketball." },
+  // ── Lote 9 (14/09) — 🇧🇷 os brasileiros que faltavam (pergunta do Diego) ──
+  { name: "Rolando Ferreira", club: "Blazers", year: 1989, fame: 1, lo: 55, hi: 75, folk: true, bioPt: "Um dos PRIMEIROS brasileiros a chegar à NBA, lá nos anos 80. Abriu a porteira que o Nenê atravessaria depois. 🇧🇷", bioEn: "One of the FIRST Brazilians to reach the NBA, back in the eighties. He opened the gate that Nenê would later walk through. 🇧🇷" },
 ]
 
 // catálogo por posição — mesma forma do futebol (Record<posição, cartas[]>)
