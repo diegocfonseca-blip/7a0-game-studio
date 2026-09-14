@@ -27,7 +27,7 @@ import type { EventoCard } from './eventos'
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao' // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
-import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, openSlots, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
+import { useEsc, savePyramidCloud, salaryOfCard, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
 import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -4030,7 +4030,10 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
 // 🔬 exportado só pra bancada de conferência (`scripts/teste-rosto?base`)
 export function BaseBox({ mgr, criaNames, seed, onSubir }: { mgr: Manager; criaNames: string[]; seed: number; onSubir: (pos: Sector, nome: string, historia: number) => void }) {
   const en = getLang() === 'en'
-  const vagas = SECTORS.map(pos => [pos, openSlots(mgr, pos)] as [Sector, number]).filter(([, n]) => n > 0)
+  // 🌱 a régua é a do ELENCO CHEIO (22 no futebol · 15 no basquete), não a do
+  // alvo da vez — senão a caixa some no meio da temporada, que é justamente quando
+  // o Diego quer usá-la (ver `slotsCheio` no store.tsx).
+  const vagas = SECTORS.map(pos => [pos, vagaCheio(mgr, pos)] as [Sector, number]).filter(([, n]) => n > 0)
   const total = vagas.reduce((a, [, n]) => a + n, 0)
   const [aberto, setAberto] = useState(false)
   const [pos, setPos] = useState<Sector | null>(null)

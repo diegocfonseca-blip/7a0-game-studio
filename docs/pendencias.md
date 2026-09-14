@@ -1,3 +1,37 @@
+## 14/09/2026 — 🌱 A caixa da Base sumia no meio da temporada — ✅ no ar
+
+Diego, com o mockup na mão: *"já tá funcionando isso aqui de poder colocar
+jogadores da base? Porque não achei o botão no elenco"*.
+
+**Estava codado e funcionando — mas só aparecia numa janela curtíssima do ano.**
+A caixa usava `openSlots`, que mede a vaga contra o **alvo da vez**. E o alvo
+muda: no leilão de reservas é 22 (`deepSquad = true`), e o `FINISH_CEREMONY`
+desliga o fundo, então **no resto da temporada o alvo volta pra 11**. Com 11+
+jogadores, o jogo lia "elenco cheio" e escondia a caixa — justamente durante a
+temporada, que é quando ele pediu pra usar (*"subir da base ANTES de precisar
+machucar"*). Um elenco 15/22 aparecia como cheio.
+
+**Conserto:** régua nova `slotsCheio()`/`vagaCheio()` no `store.tsx`, que mede
+sempre contra o **ELENCO CHEIO** (22 no futebol = 2× a formação · 15 no basquete
+= `NBA_SLOTS_PER_POS.roster`) e **não depende do `deepSquad`**. As DUAS pontas
+passaram a usar ela: a caixa (`BaseBox`) e a trava do reducer (`SUBIR_CRIA`) —
+antes só a tela usaria, e o botão apareceria sem fazer nada.
+
+🌱 **Decisão do Diego (14/09):** *"sim, quero que possa preencher o elenco com as
+crias se eu quiser"* — **sem limite de quantas crias**; o teto é o do elenco.
+
+**Não mexe em nada mais:** `slotsOf` (leilão, bots, piso de venda) segue igual;
+`vagaCheio` é usada SÓ pela Base.
+
+**Trava:** `scripts/testa-cria-base.mjs` ganhou o bloco 3 — prova que a régua
+velha escondia o botão no meio da temporada, que a nova mostra, e que em 22/22 a
+caixa some. Rodar: `npx tsx scripts/testa-cria-base.mjs`.
+
+**Não virou novidade na home:** a feature já foi anunciada em 13/09; isto é
+conserto.
+
+⏳ **Falta:** print do Diego confirmando o botão na aba Elenco. Reverter = 1 commit.
+
 ## 13/09/2026 — 🏆📣 MINHAS LIGAS: "não acho a sala de espera pra chamar mais gente" (liga do Bruno, 7LFW9T) — ✅ no ar
 
 Relato do Diego (prints): liga "sala do leite de verdade" (Bruno FC + Filhote FC, com bots,

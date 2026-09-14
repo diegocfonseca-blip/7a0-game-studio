@@ -1,7 +1,7 @@
 // 🧪 SUBIR DA BASE (13/09) — confere a trava de VAGA e o que muda no rodízio.
 // Rodar: npx tsx scripts/testa-cria-base.mjs
 import { sugerirRodizio } from '../src/escalacao/condicao.ts'
-import { openSlots, totalHoles, previewCriaNomes } from '../src/escalacao/store.tsx'
+import { openSlots, vagaCheio, totalHoles, previewCriaNomes } from '../src/escalacao/store.tsx'
 
 let falhas = 0
 const ok = (cond, msg) => { if (cond) console.log('  ✅', msg); else { falhas++; console.log('  ❌', msg) } }
@@ -14,6 +14,19 @@ ok(totalHoles(m) === 11, `elenco de 11 numa carreira com banco fundo: ${totalHol
 ok(openSlots(m, 'GOL') === 1 && openSlots(m, 'MEI') === 3, `GOL ${openSlots(m, 'GOL')} vaga · MEI ${openSlots(m, 'MEI')} vagas`)
 m.squad.push({ id: 'c1', pos: 'GOL', lo: 48, hi: 58, cria: true })
 ok(openSlots(m, 'GOL') === 0, 'subiu um cria de GOL → GOL sem vaga (o cria ocupa a vaga, não fura o teto)')
+
+console.log('3) 🌱 a caixa da Base vale O ANO INTEIRO (conserto de 14/09)')
+// Diego (14/09): "não achei o botão no elenco". Motivo: fora do leilão de reservas
+// o alvo do elenco volta pra 11 (deepSquad=false), então `openSlots` dava ZERO e a
+// caixa sumia justamente NA TEMPORADA — que é quando ele quer usar. A régua da
+// caixa passou a ser o ELENCO CHEIO (`vagaCheio`), que não depende do deepSquad.
+const meio = { id: 2, isHuman: true, formation: '4-3-3', deepSquad: false, squad: sq.slice(0, 15) }
+ok(openSlots(meio, 'MEI') === 0, 'regra velha no meio da temporada: MEI sem vaga (mira 11) — era isto que escondia o botão')
+ok(vagaCheio(meio, 'MEI') > 0, `regra nova: MEI com ${vagaCheio(meio, 'MEI')} vaga(s) pro elenco cheio, com o leilão fechado`)
+const cheio = { id: 3, isHuman: true, formation: '4-3-3', deepSquad: false, squad: [] }
+for (const pos of ['GOL','GOL','LAT','LAT','LAT','LAT','ZAG','ZAG','ZAG','ZAG','MEI','MEI','MEI','MEI','MEI','MEI','ATA','ATA','ATA','ATA','ATA','ATA'])
+  cheio.squad.push({ id: `f${cheio.squad.length}`, pos, lo: 80, hi: 90 })
+ok(['GOL','LAT','ZAG','MEI','ATA'].every(p => vagaCheio(cheio, p) === 0), 'elenco 22/22: nenhuma vaga — a caixa some, que é o certo')
 
 console.log('2) nomes: nunca repete o que já subiu')
 const rng = (() => { let x = 7; return () => { x = (x * 1103515245 + 12345) % 2147483648; return x / 2147483648 } })()
