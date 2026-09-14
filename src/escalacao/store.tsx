@@ -856,6 +856,23 @@ export function filled(m: Manager, pos: Sector): number {
 export function openSlots(m: Manager, pos: Sector): number {
   return Math.max(0, slotsOf(m, pos) - filled(m, pos))
 }
+// ─── 🌱 VAGA PRO ELENCO CHEIO (14/09) ────────────────────────────────────────
+// ⚠️ POR QUE ISTO EXISTE, separado do `slotsOf`: o alvo do elenco MUDA durante o
+// ano. No leilão de reservas ele é 22 (`deepSquad`), e no resto da temporada
+// volta pra 11 (o `FINISH_CEREMONY` desliga o fundo). Com isso, a caixa da Base
+// ficava escondida justamente NA TEMPORADA — que é quando o Diego quer usá-la:
+// *"subir jogadores da base ANTES de precisar machucar"*. Um elenco 15/22 era
+// lido como "cheio" e a caixa sumia (ele pegou isso em 14/09: *"não achei o
+// botão"*). Aqui o teto é sempre o do ELENCO CHEIO, o ano inteiro.
+// 🌱 Diego (14/09): *"sim, quero que possa preencher o elenco com as crias se eu
+// quiser"* — então não há limite de quantas crias; o teto é o do elenco e ponto.
+export function slotsCheio(m: Manager, pos: Sector): number {
+  if (ACTIVE_SPORT === 'basquete') return NBA_SLOTS_PER_POS.roster // 3 por posição = elenco 15
+  return baseSlots(m.formation, pos) * 2 // 2× a formação por posição = elenco 22
+}
+export function vagaCheio(m: Manager, pos: Sector): number {
+  return Math.max(0, slotsCheio(m, pos) - filled(m, pos))
+}
 export function totalHoles(m: Manager): number {
   return SECTORS.reduce((s, pos) => s + openSlots(m, pos), 0)
 }
@@ -6002,8 +6019,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // botão pra subir jogadores da base antes de precisar machucar… não é obrigatório,
       // mas o usuário já poderia escolher com base na quantidade que falta"*.
       // Travas (segurança nº 1): só carreira · só técnico humano · só se HÁ VAGA na
-      // posição (openSlots > 0 — o elenco tem teto por posição, o cria não fura o teto)
+      // posição pro ELENCO CHEIO (`vagaCheio` — o cria nunca fura o teto do elenco)
       // · nome nunca repetido nesta carreira · a posição tem que ser uma das 5.
+      // ⚠️ 14/09: aqui era `openSlots`, que no meio da temporada mira 11 — então o
+      // botão aparecia e NÃO FAZIA NADA fora do leilão de reservas. Agora as duas
+      // pontas (tela e reducer) usam a MESMA régua, a do elenco cheio.
       // Mesmo cria de sempre: 48–58, sem contrato, invendável, sem salário de gente
       // grande, e SOME sozinho na virada quando a posição fecha com jogador de verdade
       // ("depois que compra qualquer jogador real, ele substitui o da base").
@@ -6011,7 +6031,7 @@ export function reducer(state: EscState, action: Action): EscState {
       const m = s.managers.find(x => x.id === action.mgrId)
       if (!m || !m.isHuman || m.dormindo) return s
       if (!SECTORS.includes(action.pos)) return s
-      if (openSlots(m, action.pos) <= 0) return s
+      if (vagaCheio(m, action.pos) <= 0) return s
       const nome = (action.nome ?? '').trim()
       if (!nome || (s.criaNames ?? []).includes(nome)) return s
       const rng = mulberry((s.seed ^ Math.imul((s.criaNames?.length ?? 0) + 1, 0x9E3779B1)) >>> 0)
