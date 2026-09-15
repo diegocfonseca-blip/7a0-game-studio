@@ -25,7 +25,8 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
-import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao' // 😓 gás (12/09) · barra = leitura (13/09)
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, pedeRodizio } from './condicao'
+import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
@@ -3180,7 +3181,9 @@ type CondicaoUI = {
   onRodizio?: () => void                 // botão 🔁 RODIZIAR (ausente = ainda não pode trocar)
   suspensoId?: string                    // quem está fora (lesão/gancho) até a rodada da volta
   auto?: boolean                         // 🔁 rodízio automático ligado (o preparador troca sozinho)
-  onAuto?: (on: boolean) => void         // liga/desliga o automático
+  onAuto?: (on: boolean) => void         // liga/desliga o automático (ausente = não tem direito)
+  prep?: Preparador | null               // 🏋️ o preparador contratado (null = nenhum → só troca na mão)
+  onDepto?: () => void                   // leva pro Departamento Técnico (onde se contrata)
 }
 function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, antesFolha, dicaTrocaNoTopo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean }) {
   // 🧹 ENXUGADA (Diego 14/09: *"tá com muita informação desnecessária"*): o texto
@@ -3374,15 +3377,26 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         // olhar, então ninguém fica ruim, a caixa sumia e o interruptor de DESLIGAR
         // ia junto: o técnico ligava e não achava mais como desligar. Com o
         // automático ligado a caixa fica sempre, dizendo que está tudo inteiro.
-        if (!ruins.length && !(condicao.auto && condicao.onRodizio)) return null
+        // 🏋️ 15/09: quem PEDE rodízio é quem está com a barra em 49% ou menos (o
+        // amarelo) — o gatilho novo. A lista de emojis continua sendo a do MOTOR
+        // (😓🥵🚑), que não mudou; por isso as duas contas convivem aqui.
+        const noPonto = titulares.filter(c => !c.fake && pedeRodizio(gasDe(c)))
+        if (!ruins.length && !noPonto.length && !(condicao.auto && condicao.onRodizio)) return null
         const esgotados = ruins.filter(c => estadoGas(gasDe(c)) === 'esgotado')
         const limite = ruins.filter(c => estadoGas(gasDe(c)) === 'limite')
         const cansados = ruins.filter(c => estadoGas(gasDe(c)) === 'cansado')
         const voltando = ruins.filter(c => condicao.volta(c.id) !== 0 && estadoGas(gasDe(c)) === 'ok')
+        // quem já está no ponto de sair mas o motor ainda chama de 💪 (barra amarela,
+        // entre 49% e o 😓) — sem isto a caixa mostraria o botão sem dizer por quem
+        const amarelos = noPonto.filter(c => estadoGas(gasDe(c)) === 'ok')
         // mesma lista de bloqueados do onRodizio: suspenso + quem está voltando de lesão
         const bloq = new Set(mgr.squad.filter(c => condicao.volta(c.id) !== 0).map(c => c.id))
         if (condicao.suspensoId) bloq.add(condicao.suspensoId)
         const sug = condicao.onRodizio ? sugerirRodizio(titulares.map(c => c.id), mgr.squad, condicao.gas, bloq) : null
+        // 🔒 sem preparador contratado: nada de botão (regra do Diego 15/09). No lugar
+        // dele vai o aviso com o PORQUÊ e o CAMINHO — e dizendo que trocar na mão
+        // continua livre, que é a parte que não pode assustar ninguém.
+        const semPrep = condicao.prep === null || condicao.prep === undefined
         const nomes = (cs: WonCard[]) => cs.map(c => c.name).join(', ')
         const nRuins = esgotados.length + limite.length + cansados.length
         const semReserva = nRuins > 0 && (!sug || sug.trocas.length < nRuins)
@@ -3402,12 +3416,30 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
               {limite.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>🥵 <b style={{ color: '#C2452F' }}>{nomes(limite)}</b></span>}
               {cansados.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>😓 <b style={{ color: '#B8860B' }}>{nomes(cansados)}</b></span>}
               {voltando.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>🩹 <b style={{ color: '#7C3AED' }}>{nomes(voltando)}</b> <span style={{ fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{tr('voltando de lesão', 'back from injury')}</span></span>}
+              {amarelos.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>⏳ <b style={{ color: '#B8860B' }}>{nomes(amarelos)}</b> <span style={{ fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{tr('no ponto de descansar', 'due for a rest')}</span></span>}
               {/* automático ligado e ninguém ruim: é ele que já arrumou — precisa dizer,
                   senão a caixa fica vazia e parece bug */}
               {!ruins.length && condicao.auto && (en ? <>Everyone in the XI is <b style={{ color: GREEN }}>fit</b> (💪) — the coach is taking care of the rotation.</> : <>Todo mundo do time está <b style={{ color: GREEN }}>inteiro</b> (💪) — o preparador está cuidando do rodízio.</>)}
             </p>
             {/* 🧹 os dois botões LADO A LADO (mockup aprovado 14/09). A linha só existe
                 se algum dos dois vai aparecer — senão sobrava um vão em branco. */}
+            {/* 🔒 SEM PREPARADOR: o botão não existe — e o aviso diz o porquê, o caminho
+                e, principalmente, que NADA travou (trocar na mão segue igual). */}
+            {semPrep && (
+              <div style={{ marginTop: 8, border: `2.5px dashed #8a6d00`, borderRadius: 9, background: '#FFFBEC', padding: '8px 10px' }}>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: '#8a6d00', margin: 0 }}>{tr('🔒 Você não tem preparador físico', '🔒 You have no fitness coach')}</p>
+                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#6b5a1f', margin: '3px 0 0', lineHeight: 1.45 }}>
+                  {getLang() === 'en'
+                    ? <>You can still rotate <b>by hand</b>: tap the tired player, then tap the backup — a normal substitution. To get the <b>🔁 ROTATE</b> button, hire a fitness coach in the <b>Technical Department</b>, right below the pitch.</>
+                    : <>Dá pra rodiziar <b>na mão</b> do mesmo jeito: toque no cansado e depois no reserva — substituição normal. Pra ter o botão <b>🔁 RODIZIAR</b>, contrate um preparador no <b>Departamento Técnico</b>, logo abaixo do campinho.</>}
+                </p>
+                {condicao.onDepto && (
+                  <button onClick={condicao.onDepto} style={{ marginTop: 7, width: '100%', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', ...OSWALD, fontWeight: 900, fontSize: 12, background: GOLD, color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
+                    {tr('🏋️ VER O DEPARTAMENTO TÉCNICO', '🏋️ OPEN THE TECHNICAL DEPARTMENT')}
+                  </button>
+                )}
+              </div>
+            )}
             {condicao.onRodizio && ((sug && !condicao.auto) || condicao.onAuto) && (
             <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
             {sug && !condicao.auto && (
@@ -3512,7 +3544,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         })()}
       </div>
       {/* 🧢 o TÉCNICO logo abaixo do campinho — ele é do time, igual os jogadores */}
-      {quinze && <MeuTecnicoBox mgr={mgr} />}
+      {quinze && <DepartamentoTecnico mgr={mgr} />}
       {/* 🌱 a BASE (13/09): a caixa pra subir Cria da Base quando há vaga no elenco */}
       {antesFolha}
       {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
@@ -3522,13 +3554,16 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       {salaryOn && (() => {
         const nomeTec = quinze ? stEl.careerTecnicos?.[mgr.teamName] : null
         const salTec = nomeTec ? Math.round((stEl.careerTecnicoPago?.[nomeTec] ?? 0) / 10) : 0
-        const folha = squadPayroll(mgr.squad as WonCard[]) + salTec
+        // 🏋️ o salário do PREPARADOR entra aqui junto com o do técnico — o número da
+        // tela tem que ser o mesmo que o vira-temporada cobra de verdade (store.tsx).
+        const salPrep = quinze ? salarioPreparador(preparadorDe(stEl.careerPreparador?.[mgr.teamName])) : 0
+        const folha = squadPayroll(mgr.squad as WonCard[]) + salTec + salPrep
         return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(150deg,#2A241A,#17130A)', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 11px', margin: '0 0 10px', boxShadow: `2px 2px 0 0 ${INK}` }}>
           <span style={{ fontSize: 17 }}>💸</span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', fontWeight: 900, fontSize: 11.5, ...OSWALD, color: '#fff', letterSpacing: 0.3 }}>{tr('FOLHA DO TIME', 'TEAM PAYROLL')}</span>
-            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>{tr('cobrada no fim da temporada · piso ÷ 10 por jogador', 'charged at the end of the season · floor ÷ 10 per player')}{salTec > 0 ? tr(' · + o técnico', ' · + the coach') : ''}</span>
+            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>{tr('cobrada no fim da temporada · piso ÷ 10 por jogador', 'charged at the end of the season · floor ÷ 10 per player')}{salTec + salPrep > 0 ? (salPrep > 0 && salTec > 0 ? tr(' · + a comissão', ' · + the staff') : salPrep > 0 ? tr(' · + o preparador', ' · + the fitness coach') : tr(' · + o técnico', ' · + the coach')) : ''}</span>
           </span>
           <span style={{ textAlign: 'right', flexShrink: 0 }}>
             <span style={{ display: 'block', fontWeight: 900, fontSize: 17, ...OSWALD, color: '#E7503A', lineHeight: 1 }}>{folha}</span>
@@ -3693,9 +3728,123 @@ function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFai
     </div>
   )
 }
+// 🏛️ DEPARTAMENTO TÉCNICO (Diego 14/09: *"o técnico e o preparador físico agora eles
+// têm que ter uma área dividida dos jogadores ali no mesmo local… departamento
+// técnico"*). Mesma aba Elenco, logo abaixo do campinho — onde a ficha do técnico já
+// morava desde 28/08. A comissão fica VISIVELMENTE separada dos jogadores: cabeçalho
+// escuro dizendo o que é ("não entram em campo") e as duas fichas dentro.
+function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
+  const { state, dispatch } = useEsc()
+  const [loja, setLoja] = useState(false)
+  const prep = preparadorDe(state.careerPreparador?.[mgr.teamName])
+  const fimPrep = state.careerPreparadorContrato?.[mgr.teamName]
+  const faltaPrep = fimPrep != null ? fimPrep - state.seasonNo + 1 : 0
+  const prepVencido = fimPrep != null && faltaPrep <= 0
+  const moedas = state.careerCoins?.[mgr.id] ?? 0
+  const contrato = (fim: number | undefined, falta: number) => fim == null ? '—'
+    : falta > 0 ? (getLang() === 'en' ? `${falta} season${falta > 1 ? 's' : ''} left` : `falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}`)
+    : tr('VENCIDO', 'EXPIRED')
+  return (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, overflow: 'hidden', margin: '0 0 10px' }}>
+      <div style={{ background: 'linear-gradient(150deg,#2A241A,#17130A)', padding: '7px 11px' }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: '#fff', margin: 0, textTransform: 'uppercase', letterSpacing: .4 }}>{tr('🏛️ Departamento Técnico', '🏛️ Technical Department')}</p>
+        <p style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)', margin: 0 }}>{tr('comissão — não entram em campo', 'staff — they don\'t play')}</p>
+      </div>
+      <div style={{ padding: '10px 12px' }}>
+        <MeuTecnicoBox mgr={mgr} />
+        {/* 🏋️ o preparador, na MESMA forma da ficha do técnico */}
+        <div style={{ borderTop: '2px dashed #d9d0b4', paddingTop: 10, marginTop: 4 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: .7, color: '#8a8266', margin: '0 0 6px', textTransform: 'uppercase' }}>{tr('🏋️ Preparador físico', '🏋️ Fitness coach')}</p>
+          {prep ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <span style={{ flex: 'none', width: 40, height: 40, border: `3px solid ${INK}`, borderRadius: 10, background: APOIO_PERKS[prep.tier].grad, boxShadow: `2px 2px 0 0 ${INK}`, display: 'grid', placeItems: 'center', fontSize: 19 }}>🏋️</span>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 15, lineHeight: 1.1 }}>{prep.nome} <span style={{ fontSize: 12 }}>{prep.pais}</span></span>
+                  <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, color: '#5a5647' }}>{prep.selo} {tr(prep.cat[0], prep.cat[1])} · {tr(`o titular joga ${Math.floor(prep.banco / 1.4)} seguidas e senta 1`, `starters play ${Math.floor(prep.banco / 1.4)} in a row, then rest 1`)}</span>
+                </span>
+              </div>
+              <p style={{ fontSize: 9.5, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0' }}>
+                💰 {prep.preco} · 💸 {tr('salário', 'salary')} {salarioPreparador(prep)}/{tr('temporada', 'season')} · 📝 {tr('contrato', 'contract')}: {contrato(fimPrep, faltaPrep)}
+                {temAutomatico(prep) ? <b style={{ color: GREEN }}> · 🤖 {tr('automático liberado', 'auto unlocked')}</b> : null}
+              </p>
+              {prepVencido && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                  <button onClick={() => dispatch({ type: 'RENOVAR_PREPARADOR' })} disabled={moedas < prep.preco}
+                    style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: moedas < prep.preco ? '#CBBF9E' : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: moedas < prep.preco ? 'not-allowed' : 'pointer' }}>
+                    {tr('📝 RENOVAR', '📝 RENEW')} <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .9, textTransform: 'none' }}>{prep.preco} 🪙 · +5 {tr('temporadas', 'seasons')}</span>
+                  </button>
+                  <button onClick={() => dispatch({ type: 'DISPENSAR_PREPARADOR' })}
+                    style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
+                    {tr('👋 DEIXAR IR', '👋 LET HIM GO')} <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .7, textTransform: 'none' }}>{tr('sem multa', 'no fee')}</span>
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={{ border: `3px dashed ${INK}`, borderRadius: 12, background: '#FBF6E8', padding: '9px 11px' }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: 0 }}>{tr('Vaga aberta', 'Open position')}</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 8px', lineHeight: 1.4 }}>
+                {getLang() === 'en'
+                  ? <>He unlocks the <b>🔁 ROTATE</b> button and makes each round on the bench give back <b>more energy</b>. Without him nothing is blocked — you just swap by hand.</>
+                  : <>Ele libera o botão <b>🔁 RODIZIAR</b> e faz cada rodada no banco devolver <b>mais gás</b>. Sem ele nada trava — você só troca na mão.</>}
+              </p>
+              <button onClick={() => setLoja(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 10, background: GOLD, ...OSWALD, fontWeight: 900, fontSize: 13, padding: '8px', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>
+                {tr('CONTRATAR PREPARADOR', 'HIRE A FITNESS COACH')}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {loja && <LojaPreparadores moedas={moedas} onFechar={() => setLoja(false)} onEscolher={key => { dispatch({ type: 'BUY_PREPARADOR', key }); setLoja(false) }} />}
+    </div>
+  )
+}
+// 🏋️ a lojinha dos quatro — abre no botão CONTRATAR do Departamento Técnico
+function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; onEscolher: (key: string) => void; onFechar: () => void }) {
+  return (
+    <div onClick={onFechar} style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto', padding: 13, margin: 'auto', borderRadius: 16 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '0 0 2px', textTransform: 'uppercase' }}>{tr('🏋️ Contratar preparador', '🏋️ Hire a fitness coach')}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.4 }}>
+          {getLang() === 'en'
+            ? <>The better the coach, the more energy the bench gives back — and the longer your star plays without getting tired. Salary is <b>10% of the price</b> per season, contract of <b>5 seasons</b>.</>
+            : <>Quanto melhor o preparador, mais o banco devolve — e mais tempo o seu craque joga sem cansar. Salário de <b>10% do preço</b> por temporada, contrato de <b>5 temporadas</b>.</>}
+        </p>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 8px', color: '#5a5647' }}>💰 {tr('seu caixa', 'your cash')}: {moedas} 🪙</p>
+        {PREPARADORES.map(p => {
+          const pode = moedas >= p.preco
+          return (
+            <div key={p.key} style={{ border: `3px solid ${INK}`, borderRadius: 14, background: APOIO_PERKS[p.tier].grad, boxShadow: `3px 3px 0 0 ${INK}`, padding: 3, marginBottom: 8 }}>
+              <div style={{ background: 'rgba(255,255,255,.93)', borderRadius: 11, padding: '9px 11px' }}>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, color: '#5a5647', margin: 0, textTransform: 'uppercase' }}>{p.selo} {tr(p.cat[0], p.cat[1])}</p>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, lineHeight: 1.05, margin: '1px 0 0' }}>{p.nome} <span style={{ fontSize: 14 }}>{p.pais}</span></p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#4a4636', lineHeight: 1.4, margin: '4px 0 7px' }}>{tr(p.bio[0], p.bio[1])}</p>
+                <p style={{ fontSize: 10.5, fontWeight: 800, background: '#F1F7F2', borderLeft: `4px solid ${GREEN}`, borderRadius: 5, padding: '6px 8px', margin: 0, lineHeight: 1.4 }}>
+                  {tr(`o titular joga ${Math.floor(p.banco / 1.4)} seguidas e senta 1 — e nunca cansa`, `starters play ${Math.floor(p.banco / 1.4)} in a row, then rest 1 — and never get tired`)}
+                  {temAutomatico(p) ? <b style={{ display: 'block', color: GREEN, marginTop: 2 }}>🤖 {tr('e troca sozinho: o rodízio automático é só dele', 'and rotates on its own: auto-rotation is his alone')}</b> : null}
+                </p>
+                <button onClick={() => pode && onEscolher(p.key)} disabled={!pode}
+                  style={{ width: '100%', marginTop: 8, border: `3px solid ${INK}`, borderRadius: 10, background: pode ? INK : '#CBBF9E', color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 15, padding: '8px', boxShadow: `3px 3px 0 0 rgba(0,0,0,.35)`, cursor: pode ? 'pointer' : 'not-allowed' }}>
+                  {p.preco} 🪙
+                  <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, opacity: .78, marginTop: 1 }}>
+                    {pode ? tr(`salário ${salarioPreparador(p)}/temporada · contrato de 5`, `salary ${salarioPreparador(p)}/season · 5-season contract`) : tr('moedas insuficientes', 'not enough coins')}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )
+        })}
+        <button onClick={onFechar} style={{ width: '100%', marginTop: 4, border: `3px solid ${INK}`, borderRadius: 10, background: '#fff', ...OSWALD, fontWeight: 900, fontSize: 13, padding: '8px', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('AGORA NÃO', 'NOT NOW')}</button>
+      </div>
+    </div>
+  )
+}
 // 🧢 O TÉCNICO NA ABA ELENCO (Diego 28/08: "aqui no elenco agora terá que pôr o
 // técnico também, igual tem os jogadores já"). Só a FICHA — sondar não mora mais
 // aqui, mora na tela do pré-leilão (rodapé Vender · Sondar).
+// 🏛️ 15/09: deixou de ser uma caixa solta e virou a PRIMEIRA ficha do Departamento
+// Técnico (a moldura branca saiu; quem desenha a borda agora é o departamento).
 function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
   const { state } = useEsc()
   const nome = state.careerTecnicos?.[mgr.teamName] ?? null
@@ -3703,8 +3852,8 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
   const valor = nome ? (state.careerTecnicoPago?.[nome] ?? 0) : 0
   const falta = fim != null ? fim - state.seasonNo + 1 : 0
   return (
-    <div style={{ ...box('#fff'), padding: '11px 12px', margin: '0 0 10px' }}>
-      <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px', color: INK }}>{tr('🧢 Seu técnico', '🧢 Your coach')}</p>
+    <div>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: .7, color: '#8a8266', margin: '0 0 6px', textTransform: 'uppercase' }}>{tr('🧢 Técnico', '🧢 Head coach')}</p>
       {nome ? (
         <>
           <CartaTecnico nome={nome} mostraFaixa />
@@ -6499,6 +6648,12 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
   // escalação (XI) do SEU time pro próximo jogo — pra aba Elenco (substituição)
   const mgrMe = state.managers[state.youIdx]
+  // 🏋️ O PREPARADOR FÍSICO DO CLUBE (15/09). É ele quem libera o 🔁 RODIZIAR; o 👑
+  // Lenda libera também o 🤖 AUTOMÁTICO (*"botão automático podemos pôr apenas pro que
+  // pagar o preparador lenda"*). Sem preparador NADA trava: o técnico continua trocando
+  // na mão, tocando no jogador — é substituição normal, como sempre foi.
+  const meuPreparador = preparadorDe(state.careerPreparador?.[mgrMe?.teamName ?? ''])
+  const prepAutoOn = temAutomatico(meuPreparador)
   // 🔁 DURANTE A COPA, o "próximo jogo" não é uma rodada da liga — é a PRÓXIMA
   // FASE da Copa (Diego 23/08: *"se for dinâmico muda p próximo jogo"*). Cada
   // fase lê a escalação num slot próprio (38 = a que está rolando, 39 = a
@@ -6514,7 +6669,9 @@ export function PyramidSeasonScreen() {
   const myXIids = useMemo(() => new Set(myXI.map(c => c.id)), [myXI])
   // 😓 gás e nº de jogos de cada carta ANTES do próximo jogo (pra aba Elenco e
   // pro sorteio da lesão). null = condição desligada nesta carreira/temporada.
-  const condGas = useMemo(() => (condOn && mgrMe ? gasDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR, condInicio?.g) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR, condInicio])
+  // 🏋️ o banco devolve o que o preparador devolve — o MESMO número que o `guardaCansaco`
+  // usa na virada (store.tsx). Se os dois discordassem, a barrinha da tela mentiria.
+  const condGas = useMemo(() => (condOn && mgrMe ? gasDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR, condInicio?.g, meuPreparador?.banco) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR, condInicio, meuPreparador])
   const condJogos = useMemo(() => (condOn && mgrMe ? jogosDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR, condInicio?.j) : null), [condOn, mgrMe, careerLineup, youId, round, condDesdeR, condInicio])
 
   // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
@@ -6803,7 +6960,10 @@ export function PyramidSeasonScreen() {
   // da mesma posição entra na MESMA vaga). É o mesmo SET_LINEUP da troca por toque
   // — vale do próximo jogo. Só roda quando o técnico APERTA; nunca sozinho.
   const onRodizio = () => {
-    if (!mgrMe || !condGas || !canSub) return
+    // 🏋️ sem preparador contratado não existe rodízio de um toque (15/09) — a tela
+    // já esconde o botão; esta é a segunda trava, pro caso de alguém chegar por outro
+    // caminho. Trocar NA MÃO continua livre pra todo mundo (é o SET_LINEUP do toque).
+    if (!mgrMe || !condGas || !canSub || !meuPreparador) return
     // bloqueados: o suspenso e quem está VOLTANDO de lesão (60/80%) — entrar com
     // −2 no lugar de um cansado com −1 seria piorar o time
     const bloq = new Set(mgrMe.squad.filter(c => modVolta(evAtual, state.seasonNo ?? 1, round, c.id) !== 0).map(c => c.id))
@@ -6823,13 +6983,15 @@ export function PyramidSeasonScreen() {
   //    nula e o efeito para. Sem reserva inteiro, também não faz nada — o cansado
   //    joga e o preparador avisa, igual hoje.
   useEffect(() => {
-    if (!condAuto || !condOn || !mgrMe || !condGas || !canSub) return
+    // 🤖 o AUTOMÁTICO é só do 👑 Lenda (Diego 15/09). Sem ele, nem que a preferência
+    // tenha ficado ligada de antes: o efeito não roda e ninguém troca sozinho.
+    if (!condAuto || !prepAutoOn || !condOn || !mgrMe || !condGas || !canSub) return
     const bloq = new Set(mgrMe.squad.filter(c => modVolta(evAtual, state.seasonNo ?? 1, round, c.id) !== 0).map(c => c.id))
     if (suspenso) bloq.add(suspenso.cardId)
     const sug = sugerirRodizio(myXI.map(c => c.id), mgrMe.squad, condGas, bloq)
     if (sug) dispatch({ type: 'SET_LINEUP', mgrId: youId, ids: sug.ids, slot: slotEscala })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [condAuto, condOn, canSub, round, condGas, myXI, suspenso?.cardId, slotEscala])
+  }, [condAuto, prepAutoOn, condOn, canSub, round, condGas, myXI, suspenso?.cardId, slotEscala])
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv).filter(d => d !== 'V' || (tables.V?.length ?? 0) > 0) // 🌱 Várzea só aparece quando existe
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
@@ -8383,7 +8545,7 @@ export function PyramidSeasonScreen() {
               </div>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
-              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto, onAuto: on => dispatch({ type: 'SET_CONDICAO_AUTO', on }) } : undefined}
+              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
               criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba

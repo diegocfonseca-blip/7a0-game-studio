@@ -784,6 +784,17 @@ export interface EscState {
   // Diego 27/08: "deixar ir não paga multa e ainda recupera uma parte").
   // Chave = nome do técnico → teamName do ex-dono. Apaga ao pagar.
   careerTecnicoExDono?: Record<string, string>
+  // 🏋️ PREPARADOR FÍSICO (15/09) — clube → `key` do preparador em `preparadores.ts`
+  // (faria/pintus/paixao/seirulo). Guardo a CHAVE, não a ficha: preço, salário,
+  // benefício e bio saem do catálogo na hora, então acertar um número lá vale pra
+  // todo save aberto — mesma ideia do técnico, que guarda só o nome.
+  // Ele é quem libera o 🔁 RODIZIAR (e o 👑 libera também o 🤖 AUTOMÁTICO) e faz o
+  // banco devolver mais gás por rodada. Sem preparador nada trava: o técnico troca
+  // na mão, tocando no jogador, como uma substituição normal.
+  careerPreparador?: Record<string, string | null>
+  // 📝 contrato do preparador: temporada em que ENCERRA (5 temporadas, igual ao
+  // técnico: compra na T → encerra no fim da T+4). Chave = teamName do humano.
+  careerPreparadorContrato?: Record<string, number>
   // 🤖 vida dos técnicos dos BOTS: roda no MÁXIMO 1× por temporada e SÓ na
   // rodada 0 (virada) — bot contratar/trocar técnico ou formação no meio da
   // temporada re-simularia rodada já vista e mudaria placar (proibido).

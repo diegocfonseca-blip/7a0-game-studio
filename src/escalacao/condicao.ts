@@ -116,6 +116,21 @@ export function corBarra(g: number): string {
   return corGas(e)
 }
 
+// ─── 🔁 QUANDO O PREPARADOR TROCA (Diego 15/09) ──────────────────────────────
+// Palavras dele: *"automático ele troca qd bate no 49% e rodiziar também eu acho né"*.
+// 49% é EXATAMENTE onde a barra vira de verde pra amarelo (ver `corBarra`) — ou seja,
+// o preparador tira o cara no primeiro sinal, não depois que ele já está 😓.
+// Antes disto os dois trocavam só com `estadoGas !== 'ok'` (barra 40%, o 55º jogo);
+// agora trocam na barra 49% (≈ o 51º jogo). São ~4 jogos de antecedência.
+// ⚠️ O motor NÃO mudou: o −1/−2/−3 e a chance de lesão continuam saindo do gás cru
+// (GAS_CANSADO/LIMITE/ESGOTADO). Isto aqui é só o gatilho do RODÍZIO.
+export const BARRA_RODIZIO = 49
+/** o titular está no ponto de sair (barra ≤ 49%) */
+export const pedeRodizio = (g: number): boolean => pctBarra(g) <= BARRA_RODIZIO
+/** o reserva está inteiro o bastante pra entrar (barra > 49%) — mesma régua, pros
+ *  dois lados: entrar alguém que já sairia na rodada seguinte seria trocar por trocar */
+export const prontoPraEntrar = (g: number): boolean => pctBarra(g) > BARRA_RODIZIO
+
 // ─── 🪜 A DIVISÃO DE VERDADE (13/09) ─────────────────────────────────────────
 // ⚠️ `careerDivision` MENTE em carreira que nasceu na Várzea: ele fica congelado
 // na divisão de FUNDAÇÃO. Medido no banco em 13/09, numa amostra dos 250 saves
@@ -166,7 +181,13 @@ export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; 
 // começa a contar dali, todo mundo em 100% — ver condicaoDesdeR em types.ts).
 // `inicio` = o gás com que cada carta COMEÇOU esta temporada (13/09: o cansaço
 // atravessa a virada — ver `condicaoCarry` em types.ts). Sem ele, todo mundo em 100.
-export function gasDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0, inicio?: Record<string, number>): Record<string, number> {
+// 🏋️ `banco` = quanto CADA rodada no banco devolve. Sem preparador é o GAS_BANCO de
+// sempre (+4); com preparador é o número dele (`preparadores.ts`). Como o gás é
+// DERIVADO, trocar de preparador re-deriva a temporada CORRENTE — e só ela, porque
+// `inicio` (o condicaoCarry) congela o que veio das temporadas anteriores. Ou seja:
+// contratou no meio do ano, o elenco sente já nesta temporada; o passado guardado
+// não muda. Nenhum placar antigo se mexe (o gás nunca entra no resultado já jogado).
+export function gasDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0, inicio?: Record<string, number>, banco = GAS_BANCO): Record<string, number> {
   const gas: Record<string, number> = {}
   for (const c of squad) gas[c.id] = Math.max(0, Math.min(100, inicio?.[c.id] ?? 100))
   if (!byRound) return gas
@@ -177,7 +198,7 @@ export function gasDoElenco(byRound: Record<number, string[]> | undefined, round
     // ⚠️ arredonda a 1 casa A CADA passo: o desconto é 1,4 e sem isto a soma de
     // ~70 jogos acumula lixo de float (93.99999999999994) — a escada tem que cair
     // exatamente no 55º/60º/65º jogo.
-    for (const c of squad) gas[c.id] = Math.round((xi.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + GAS_BANCO)) * 10) / 10
+    for (const c of squad) gas[c.id] = Math.round((xi.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + banco)) * 10) / 10
   }
   return gas
 }
@@ -257,10 +278,12 @@ export function sugerirRodizio<T extends { id: string; pos: string; lo: number; 
   const byId = new Map(squad.map(c => [c.id, c]))
   const ids = xiIds.slice()
   const emCampo = new Set(ids)
-  const cansados = ids.map(id => byId.get(id)).filter((c): c is T => !!c && estadoGas(gas[c.id] ?? 100) !== 'ok').sort((a, b) => (gas[a.id] ?? 100) - (gas[b.id] ?? 100))
+  // 🔁 15/09: sai quem está com a BARRA em 49% ou menos (o amarelo), não mais só
+  // quem já virou 😓 — ordem do Diego. Pior barra primeiro, como sempre.
+  const cansados = ids.map(id => byId.get(id)).filter((c): c is T => !!c && pedeRodizio(gas[c.id] ?? 100)).sort((a, b) => (gas[a.id] ?? 100) - (gas[b.id] ?? 100))
   const trocas: { sai: T; entra: T }[] = []
   for (const sai of cansados) {
-    const cand = squad.filter(c => c.pos === sai.pos && !emCampo.has(c.id) && !c.fake && !c.cria && !bloqueados.has(c.id) && estadoGas(gas[c.id] ?? 100) === 'ok')
+    const cand = squad.filter(c => c.pos === sai.pos && !emCampo.has(c.id) && !c.fake && !c.cria && !bloqueados.has(c.id) && prontoPraEntrar(gas[c.id] ?? 100))
       .sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]
     if (!cand) continue
     const i = ids.indexOf(sai.id); if (i < 0) continue

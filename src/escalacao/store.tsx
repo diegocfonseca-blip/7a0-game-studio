@@ -13,6 +13,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
+import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
@@ -249,6 +250,9 @@ function chargeSalaries(s: EscState) {
     // 🧢 salário do TÉCNICO (27/08): valor/10 por temporada, igual jogador
     const nomeTec = s.careerTecnicos?.[m.teamName]
     if (nomeTec) folha += Math.round((s.careerTecnicoPago?.[nomeTec] ?? 0) / 10)
+    // 🏋️ salário do PREPARADOR FÍSICO (15/09): a MESMA conta do técnico — 10% do
+    // preço, por temporada. Ele mora no Departamento Técnico e pesa na folha junto.
+    folha += salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]))
     if (folha > 0) cc[m.id] = (cc[m.id] ?? 0) - folha // folha REAL, pode negativar (dívida)
   }
   s.careerCoins = cc
@@ -953,7 +957,11 @@ function guardaCansaco(s: EscState) {
     const inicioG: Record<string, number> = {}
     const inicioJ: Record<string, number> = {}
     for (const c of squad) { const k = antes[chave(c)]; if (k) { inicioG[c.id] = k.g; inicioJ[c.id] = k.j } }
-    const gas = gasDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioG)
+    // 🏋️ o banco devolve o que o preparador DESTE clube devolve (sem preparador, o
+    // +4 de sempre). É o mesmo número que a tela usa — os dois têm que casar, senão
+    // o gás guardado na virada não bateria com a barrinha que o técnico viu.
+    const bancoPrep = preparadorDe(s.careerPreparador?.[m.teamName])?.banco
+    const gas = gasDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioG, bancoPrep)
     const jogos = jogosDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioJ)
     // ⚠️ só quem ESTÁ no elenco entra no novo mapa: assim ele não cresce pra sempre
     // com quem foi vendido. Se a pessoa voltar um dia, volta inteira — e tudo bem.
@@ -3486,6 +3494,11 @@ type Action =
   | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string; card?: WonCard; clube?: string; squad?: WonCard[] } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão. `card`+`clube` só pra TIME DE FUNDO (13/09): esses não têm manager nem elenco no save, então a tela manda a carta junto
   | { type: 'RENOVAR_TECNICO' } // 📝 contrato do técnico venceu (5 anos): +5 temporadas pagando o valor dele
   | { type: 'DISPENSAR_TECNICO' } // 📝 contrato venceu: deixa ir sem multa
+  // 🏋️ PREPARADOR FÍSICO (15/09) — mesmas três portas do técnico: contratar, renovar
+  // quando vence, dispensar sem multa. Compra direta (não vai a leilão como o técnico).
+  | { type: 'BUY_PREPARADOR'; key: string }
+  | { type: 'RENOVAR_PREPARADOR' }
+  | { type: 'DISPENSAR_PREPARADOR' }
   | { type: 'FORMATION_UNLOCK'; mgrId?: number } // 🎽 marca o destravamento permanente da troca de formação (1ª vez que chega a 22 reais)
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
@@ -6744,6 +6757,66 @@ export function reducer(state: EscState, action: Action): EscState {
         s.aliciarJogadores = [action.cardId]
         s.aliciarFundo = action.clube && action.card ? { cardId: action.cardId, clube: action.clube, card: action.card, squad: action.squad ?? [] } : undefined
       }
+      return s
+    }
+    // ─── 🏋️ PREPARADOR FÍSICO ────────────────────────────────────────────────
+    // Compra DIRETA (o técnico vai a leilão; o preparador não — ele é item de loja).
+    // Só carreira, só o humano, um por clube. O preço sai do catálogo, nunca de fora:
+    // a action recebe só a CHAVE, então ninguém consegue pedir um valor inventado —
+    // a mesma trava que o SOCIO_CREDIT já usa.
+    case 'BUY_PREPARADOR': {
+      if (!s.careerOnline) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const p = PREPARADORES.find(x => x.key === action.key)
+      if (!p) return s
+      if (s.careerPreparador?.[you.teamName]) return s // já tem um — dispensa o atual antes
+      const coins = s.careerCoins?.[you.id] ?? 0
+      if (coins < p.preco) return s
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
+      s.careerPreparador = { ...(s.careerPreparador ?? {}), [you.teamName]: p.key }
+      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimDoContrato(s.seasonNo) }
+      logFin(s, 'buy', `🏋️ ${p.nome} chegou ao Departamento Técnico`, -p.preco)
+      s.aliciarLog = {
+        titulo: `🏋️ ${p.nome} é do ${you.teamName}!`,
+        corpo: `Contrato de 5 temporadas (até a T${fimDoContrato(s.seasonNo)}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora o banco devolve ${p.banco} de gás por rodada e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
+        venceu: true,
+      }
+      return s
+    }
+    case 'RENOVAR_PREPARADOR': {
+      // 📝 só renova VENCIDO, pelo MESMO preço — regra copiada do técnico
+      if (!s.careerOnline) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const p = preparadorDe(s.careerPreparador?.[you.teamName])
+      if (!p) return s
+      const fim = s.careerPreparadorContrato?.[you.teamName]
+      if (fim == null || fim >= s.seasonNo) return s
+      const coins = s.careerCoins?.[you.id] ?? 0
+      if (coins < p.preco) return s
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
+      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimDoContrato(s.seasonNo) }
+      logFin(s, 'buy', `📝 Renovação do preparador ${p.nome} (+5 temporadas)`, -p.preco)
+      s.aliciarLog = { titulo: `📝 ${p.nome} renovou!`, corpo: `Mais 5 temporadas (até a T${fimDoContrato(s.seasonNo)}) por ${p.preco} 🪙.`, venceu: true }
+      return s
+    }
+    case 'DISPENSAR_PREPARADOR': {
+      // 📝 contrato venceu e você deixou ir — SEM multa (foi até o fim), igual ao técnico.
+      // ⚠️ Sem preparador o time NÃO trava: volta a trocar na mão, e o banco volta a
+      // devolver o +4 de sempre. Nenhum jogador sai de campo por causa disto.
+      if (!s.careerOnline) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const p = preparadorDe(s.careerPreparador?.[you.teamName])
+      if (!p) return s
+      const fim = s.careerPreparadorContrato?.[you.teamName]
+      if (fim == null || fim >= s.seasonNo) return s
+      s.careerPreparador = { ...(s.careerPreparador ?? {}), [you.teamName]: null }
+      const ct = { ...(s.careerPreparadorContrato ?? {}) }
+      delete ct[you.teamName]
+      s.careerPreparadorContrato = ct
+      s.aliciarLog = { titulo: `👋 ${p.nome} se foi`, corpo: 'Contrato encerrado, sem multa. O rodízio volta a ser na mão (toque no cansado e no reserva) e o banco volta a devolver o de sempre. Dá pra contratar outro no Departamento Técnico quando quiser.', venceu: false }
       return s
     }
     case 'RENOVAR_TECNICO': {
