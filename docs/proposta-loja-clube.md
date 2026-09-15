@@ -44,28 +44,41 @@ temporadas termina sem nenhuma renda de campanha. A loja entra como renda que
 
 ### 3.1 A camisa, montada pelo jogo
 
-Mesmo molde pra todo mundo, em **SVG, sem arquivo novo por clube** (respeita o teto
-de peso). ⚠️ **Corrigido na hora pelo Diego (15/09):** a primeira versão que mandei
-era uma camiseta CHAPADA e ele cortou — *"não entendi essa arte, acabei de te mandar
-o padrão de modelo de camisa"*, com as artes do Inter de Bailão e do Internacional
-de Madrid. O molde certo é o **das artes de batismo**: camisa de verdade, com gola V,
-ombros e caimento. É esse molde que está no mockup agora.
+🎨 **DECIDIDO PELO DIEGO EM 15/09: a camisa é ARTE DE VERDADE, não desenho vetorial.**
+Eu mandei duas versões em SVG e ele cortou as duas: *"você tá fazendo em SVG e quero
+arte de verdade igual está é a do time"*. Vale como regra: **camisa do jogo tem que
+ter a mesma qualidade das artes de batismo** (dobras, costura, gola, sombra).
+
+👕 **Como fazer isso sem criar um arquivo por clube** (a regra de peso continua de pé,
+ele quer escalar pra 10 mil batismos): **UMA arte só**, de uma camisa **em branco**, no
+estilo das artes de batismo. O jogo usa ela como MOLDE e pinta com as 2 cores do clube;
+escudo e patrocínios são carimbados por cima.
+
+- **Provado em 15/09**: peguei a arte do Internacional de Madrid, virei molde
+  (luminância) e repintei em 4 duplas de cor. É a MESMA arte nas 4, só a cor muda.
+- **Peso**: ~25 KB **uma vez**, pro jogo inteiro. Não é por clube.
+- ⛔ **O que falta**: a arte limpa. A que usei na prova tem o SIUUU e o escudo do
+  Madrid impressos, então serve pra mostrar a ideia e não pra ir pro jogo. Precisa de
+  **uma camisa branca, de frente, sem estampa, sem escudo, sem patrocínio, sem nome**.
+  Caminhos: quem desenha os batismos faz essa uma, ou gerar por IA (tentei em 15/09 e
+  o gerador estava **sem crédito**).
+
+Lugares das peças (pedido dele, referência: Internacional de Madrid e Inter de Bailão):
 
 - **peito esquerdo**: escudo do clube;
 - **peito direito**: fornecedor de material;
 - **centro, abaixo do peito**: patrocínio Master;
-- **barra**: nome do clube; **corpo**: as 2 cores do manto.
+- **barra**: nome do clube; **corpo**: as 2 cores do clube.
 
-Quem é **batismo** vê, ao lado, a **arte oficial** dele (o `.webp` que já existe)
-e as 2 cores saem dessa arte (as mesmas do `MANTO_CONTAS`).
+Quem é **batismo** vê, ao lado, a **arte oficial** dele (o `.webp` que já existe) e as
+2 cores saem dessa arte (as mesmas do `MANTO_CONTAS`).
 
-🎨 **Quem NÃO é batismo ESCOLHE as 2 cores, de graça.** Essa é a resposta que eu dou
-pro medo que ele levantou em 15/09, de o jogador sem batismo achar o próprio clube
-feio e desanimar: a camisa é a MESMA, o molde é o mesmo, o escudo é o mesmo, os
-patrocínios são os mesmos. A única coisa que o batismo tem a mais é a **arte
-desenhada à mão**. Ninguém abre a loja e vê tela pobre.
-(Hoje a carreira da pirâmide não guarda cor de clube nenhuma — só a dinastia tem
-`crest` com 2 cores. Então isso é campo novo no save, pequeno: 2 cores.)
+🎨 **Quem NÃO é batismo ESCOLHE as 2 cores, de graça.** É a resposta pro medo que ele
+levantou em 15/09, de o jogador sem batismo achar o próprio clube feio e desanimar: a
+camisa é a MESMA, o molde é o mesmo, o escudo é o mesmo, os patrocínios são os mesmos.
+A única coisa a mais do batismo é a **arte desenhada à mão**. Ninguém abre a loja e vê
+tela pobre. (Hoje a carreira da pirâmide não guarda cor de clube nenhuma — só a
+dinastia tem `crest` com 2 cores. Então é campo novo no save, pequeno: 2 cores.)
 
 ### 3.2 Fornecedor de material esportivo (slot NOVO de patrocínio)
 
