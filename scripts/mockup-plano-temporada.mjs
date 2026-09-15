@@ -27,12 +27,27 @@ const arg = (n, d = '') => { const i = process.argv.indexOf(`--${n}`); return i 
 const SAIDA = arg('saida', '/tmp/mockup-plano-temporada.png')
 const VERM = '#C2452F', ROXO = '#7C3AED', AZUL = '#0E3E86'
 
-// as 3 metas — e o que cada uma fecha nas DUAS pontas
+// as 3 metas — e o que cada uma fecha nas DUAS pontas.
+// 🏷️ `marcas` = as 3 PROPOSTAS daquele nível, exatamente como em `SPONSOR_BRANDS`
+// (`estadiodata.ts`). Cobrança dele (15/09): *"não estão aparecendo os patrocinadores
+// pra escolher — essa é a questão do mockup que você fez aí do Pontual"*. No jogo o
+// Pontual são DOIS toques (a meta E a marca), e o mockup tinha comido o segundo.
+// Todas as marcas do mesmo nível pagam IGUAL — a marca é identidade, não valor.
 const METAS = [
-  { emoji: '🛡️', nome: 'NÃO CAIR', sub: '5º ao 16º', pontual: 14, preco: 'POPULAR', moeda: 1, loja: 14, marcada: false },
-  { emoji: '📈', nome: 'ACESSO', sub: '2º ao 4º', pontual: 22, preco: 'NORMAL', moeda: 2, loja: 20, marcada: false },
-  { emoji: '👑', nome: 'CAMPEÃO', sub: '1º lugar', pontual: 30, preco: 'CARA', moeda: 3, loja: 25, marcada: true },
+  {
+    emoji: '🛡️', nome: 'NÃO CAIR', sub: '5º ao 16º', pontual: 14, preco: 'POPULAR', moeda: 1, loja: 14, marcada: false,
+    marcas: [{ e: '🥖', n: 'Padaria do Zé' }, { e: '🥩', n: 'Açougue Bom Corte' }, { e: '💍', n: 'Max Joias', logo: 'src/escalacao/img/patro-maxjoias.webp' }],
+  },
+  {
+    emoji: '📈', nome: 'ACESSO', sub: '2º ao 4º', pontual: 22, preco: 'NORMAL', moeda: 2, loja: 20, marcada: false,
+    marcas: [{ e: '🍗', n: 'Espetinho do Baixinho' }, { e: '🎨', n: 'Rei das Tintas', logo: 'src/escalacao/img/patro-reidastintas.webp' }, { e: '🥤', n: 'Guaraná Craque' }],
+  },
+  {
+    emoji: '👑', nome: 'CAMPEÃO', sub: '1º lugar', pontual: 30, preco: 'CARA', moeda: 3, loja: 25, marcada: true,
+    marcas: [{ e: '🚗', n: 'Vadico Veículos', logo: 'src/escalacao/img/patro-vadico-alfa.webp' }, { e: '🦷', n: 'ERO Odontologia', logo: 'src/escalacao/img/patro-ero-alfa.webp' }, { e: '💎', n: 'Diamante Joias' }],
+  },
 ]
+const META_SEL = METAS.find(m => m.marcada)
 
 // 👕 a camisa do Final Boss (arte de batismo de verdade, com a Vadico na barriga e o
 // fornecedor no peito direito) — a mesma que ele aprovou no reels.
@@ -51,7 +66,7 @@ const nomeDaCoisa = (ic, nome, cor) => `
   </div>`
 
 // ── COMO É HOJE: uma das duas telas de virada ───────────────────────────────
-const telaHoje = ({ ic, nome, cor, tela, pergunta, itens, pe }) => `
+const telaHoje = ({ ic, nome, cor, tela, pergunta, itens, extra = '', pe }) => `
   <div style="flex:1;min-width:0">
     <div style="${OSW};font-weight:700;font-size:11px;letter-spacing:1.6px;opacity:.55;margin-bottom:5px">${tela}</div>
     <div style="border:4px solid ${INK};border-radius:16px;overflow:hidden;background:${CREME};box-shadow:4px 4px 0 ${INK}">
@@ -67,6 +82,7 @@ const telaHoje = ({ ic, nome, cor, tela, pergunta, itens, pe }) => `
               <span style="${OSW};font-weight:700;font-size:15px;color:${cor};white-space:nowrap">${i.v}</span>
             </div>`).join('')}
         </div>
+        ${extra}
         <div style="${OSW};font-weight:400;font-size:10px;opacity:.7;margin-top:8px;line-height:1.3">${pe}</div>
       </div>
     </div>
@@ -95,6 +111,32 @@ const coluna = (m) => `
     </div>
   </div>`
 
+// ── 🏷️ uma PROPOSTA de patrocinador (a marca) ──────────────────────────────
+// No jogo a marca é só IDENTIDADE: as 3 do mesmo nível pagam igual. Por isso o cartão
+// mostra logo/emoji e nome, e repete o valor da meta embaixo — pra ninguém procurar
+// diferença de dinheiro entre elas.
+const cartaoMarca = (m, valor, sel) => `
+  <div style="flex:1;border:3px solid ${INK};border-radius:13px;padding:9px 8px 8px;text-align:center;
+              background:${sel ? GOLD : '#fff'};box-shadow:${sel ? `3px 3px 0 ${INK}` : 'none'};${sel ? '' : 'opacity:.85'}">
+    <div style="height:38px;display:flex;align-items:center;justify-content:center">
+      ${m.logo
+        ? `<img src="${img(m.logo)}" style="max-height:36px;max-width:112px;width:auto;display:block">`
+        : `<span style="font-size:30px;line-height:1">${m.e}</span>`}
+    </div>
+    <div style="${OSW};font-weight:700;font-size:11.5px;text-transform:uppercase;line-height:1.1;margin-top:5px">${m.n}</div>
+    <div style="${OSW};font-weight:700;font-size:13px;color:${VERM};margin-top:3px">+${valor} 🪙</div>
+    <div style="${OSW};font-weight:400;font-size:9px;opacity:.65;margin-top:1px">${sel ? 'proposta escolhida' : 'mesma meta, mesmo valor'}</div>
+  </div>`
+
+// ── o rótulo de PASSO (1 · 2 · 3) ──────────────────────────────────────────
+const passo = (n, txt, cor = INK) => `
+  <div style="display:flex;align-items:center;gap:8px;margin:0 0 8px">
+    <span style="flex:none;width:26px;height:26px;border:3px solid ${INK};border-radius:8px;background:${cor};
+      color:${cor === INK ? GOLD : '#fff'};display:flex;align-items:center;justify-content:center;
+      ${OSW};font-weight:700;font-size:14px">${n}</span>
+    <span style="${OSW};font-weight:700;font-size:13.5px;text-transform:uppercase;letter-spacing:.4px">${txt}</span>
+  </div>`
+
 const cel = (txt, o = {}) => `<td style="${OSW};font-weight:${o.b ? 700 : 400};font-size:${o.fs || 13}px;
   padding:8px 12px;border-bottom:2px solid rgba(12,12,12,.12);color:${o.c || INK};${o.al ? `text-align:${o.al}` : ''}">${txt}</td>`
 
@@ -116,18 +158,32 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
   <div style="display:flex;gap:14px;align-items:stretch">
     ${telaHoje({
       ic: '🤝', nome: 'Patrocinador Pontual', cor: '#FF9A8A', tela: 'TELA 1',
-      pergunta: 'Qual a sua meta?',
+      pergunta: '1️⃣ Qual a sua meta?',
       itens: [
         { ic: '🛡️', t: 'Não cair', v: '+14' },
         { ic: '📈', t: 'Acesso', v: '+22' },
         { ic: '👑', t: 'Campeão', v: '+30' },
       ],
+      // 🏷️ o SEGUNDO toque do Pontual, que o 1º mockup tinha esquecido
+      extra: `
+        <div style="${OSW};font-weight:700;font-size:13px;text-transform:uppercase;margin:9px 0 6px">
+          2️⃣ E qual marca patrocina?</div>
+        <div style="display:flex;gap:5px">
+          ${META_SEL.marcas.map((m, i) => `
+            <div style="flex:1;border:2.5px solid ${INK};border-radius:9px;background:${i === 0 ? GOLD : '#fff'};
+                        box-shadow:${i === 0 ? `2px 2px 0 ${INK}` : 'none'};padding:5px 3px;text-align:center;${i === 0 ? '' : 'opacity:.6'}">
+              <div style="font-size:16px;line-height:1">${m.e}</div>
+              <div style="${OSW};font-weight:700;font-size:8.5px;text-transform:uppercase;line-height:1.1;margin-top:2px">${m.n}</div>
+            </div>`).join('')}
+        </div>
+        <div style="${OSW};font-weight:400;font-size:9.5px;opacity:.65;margin-top:5px">
+          3 propostas por meta · todas pagam igual (a marca é identidade)</div>`,
       pe: 'Bateu a meta, leva. Não bateu, leva zero. <b>Tudo ou nada.</b>',
     })}
     <div style="${OSW};font-weight:700;font-size:44px;align-self:center;opacity:.3;flex:none">+</div>
     ${telaHoje({
       ic: '🛍️', nome: 'Venda de camisas', cor: '#8FE3AC', tela: 'TELA 2',
-      pergunta: 'Qual o preço da camisa?',
+      pergunta: '1️⃣ Qual o preço da camisa?',
       itens: [
         { ic: '🪙', t: 'Popular · 1', v: '~14' },
         { ic: '🪙', t: 'Normal · 2', v: '~20' },
@@ -144,10 +200,20 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
 <div style="border:4px solid ${INK};border-radius:18px;background:${CREME};box-shadow:5px 5px 0 ${INK};padding:15px 17px 17px">
   <div style="${OSW};font-weight:700;font-size:15px;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:3px">
     ✨ A proposta · <span style="color:${ROXO}">uma tela só</span></div>
-  <div style="${OSW};font-weight:400;font-size:12.5px;opacity:.75;margin-bottom:12px">
-    Você toca na meta — e ela fecha o <b>🤝 patrocínio</b> e o <b>🛍️ preço da camisa</b> de uma vez.</div>
+  <div style="${OSW};font-weight:400;font-size:12.5px;opacity:.75;margin-bottom:13px">
+    Continua tendo a escolha da <b>marca</b>, igual hoje. O que some é a tela extra do preço da camisa.</div>
 
+  ${passo(1, 'A meta — ela fecha o 🤝 patrocínio E a 🛍️ camisa')}
   <div style="display:flex;gap:10px;align-items:stretch">${METAS.map(coluna).join('')}</div>
+
+  <div style="margin-top:14px">${passo(2, 'A marca que patrocina · 3 propostas do 👑 campeão', VERM)}</div>
+  <div style="display:flex;gap:10px;align-items:stretch">
+    ${META_SEL.marcas.map((m, i) => cartaoMarca(m, META_SEL.pontual, i === 0)).join('')}
+  </div>
+  <div style="${OSW};font-weight:400;font-size:10.5px;opacity:.7;margin-top:6px">
+    Trocou a meta lá em cima, trocam as 3 propostas aqui — exatamente como já funciona hoje.</div>
+
+  <div style="margin-top:14px">${passo(3, 'Só na opção B: mexer no preço da camisa', ROXO)}</div>
 
   <!-- a linha que separa a opção A da B -->
   <div style="display:flex;gap:12px;align-items:center;margin-top:12px;border:4px dashed ${ROXO};border-radius:14px;

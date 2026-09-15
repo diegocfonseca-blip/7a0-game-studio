@@ -413,9 +413,21 @@ sumiu o nome das duas coisas que estavam sendo fundidas, e aí ninguém sabe qua
 é qual. **Proposta de fundir A com B tem que mostrar A e B pelo NOME, com o ícone, em
 toda caixa onde entram** — e começar pelo "como é HOJE" antes do "como ficaria".
 O desenho refeito: (1) faixa de cima com as 2 telas de hoje, cada uma com o cabeçalho
-preto do seu nome; (2) seta; (3) a tela única em 3 COLUNAS, uma por meta, cada coluna
-com 🤝 Pontual em cima e 🛍️ camisa embaixo; (4) a linha roxa que é a única diferença
-entre A e B; (5) a conta do bolso. As opções são:
+preto do seu nome; (2) seta; (3) a tela única em PASSOS — passo 1 as 3 COLUNAS de meta
+(🤝 Pontual em cima, 🛍️ camisa embaixo), passo 2 as 3 PROPOSTAS de marca, passo 3 a
+troca do preço; (4) a conta do bolso.
+
+🔴 **E o 2º desenho ainda faltava um pedaço**: *"não estão aparecendo os patrocinadores
+pra escolher — essa é a questão do mockup que você fez aí do Pontual"*. Verdade: no jogo
+o Pontual são **DOIS toques** — a META (`SPONSOR_BET_META`) **e** a MARCA (as 3
+propostas daquele nível em `SPONSOR_BRANDS`, via `sponsorBrandsOfTier`) — e eu tinha
+desenhado só o primeiro. **Regra pra qualquer mockup de tela que já existe: contar os
+toques no código antes de desenhar.** As marcas por nível, pra não errar de novo:
+🛡️ Padaria do Zé · Açougue Bom Corte · Max Joias — 📈 Espetinho do Baixinho · Rei das
+Tintas · Guaraná Craque — 👑 Vadico Veículos · ERO Odontologia · Diamante Joias. Todas
+do mesmo nível **pagam igual** (a marca é identidade, não valor).
+
+As opções são:
 - **Opção A — grudado**: o objetivo escolhe patrocínio E preço. 1 toque. Custo: errar a
   aposta vira castigo dobrado (0 + 6 = **6 moedas** no exemplo, contra 14 hoje).
 - **Opção B — junto, mas dá pra separar** ⭐ recomendada: mesma tela única, o preço já
