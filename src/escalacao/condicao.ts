@@ -242,20 +242,25 @@ export function modVolta(ev: { tipo: string; season: number; status: string; vol
 export const pctVolta = (mod: number): number => (mod === -2 ? 60 : mod === -1 ? 80 : 100)
 
 // ─── 🩹 LESÃO POR DESGASTE: o sorteio de cada rodada ────────────────────────
-// Determinístico (seed + temporada + rodada): reload não re-sorteia. Olha os
-// titulares do pior gás pro melhor; o primeiro que "cair" no dado é o lesionado.
+// Determinístico (seed + temporada + rodada): reload não re-sorteia.
+// ⚠️ UM DADO POR RODADA, e só (consertado 15/09). Até aqui o dado era jogado pra
+// CADA titular cansado — com 9 🚑 em campo isso virava 61% de chance por rodada e
+// ~9 lesões por temporada ("machuca toda hora", cobrança do Diego). Agora a rodada
+// sorteia UMA vez, no jogador MAIS ACABADO do time: o teto é 10% por rodada, doa
+// o time que doer. Escalar mais gente morta continua sendo pior (o pior gás fica
+// pior, e o dado passa de 5% pra 10%), só não vira loteria.
 // Inteiro/cansado nunca se machucam por aqui (só 🥵 e 🚑). Devolve null = nada.
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 export function sorteiaLesaoDesgaste<T extends { id: string }>(args: { seed: number; seasonNo: number; round: number; xi: T[]; gas: Record<string, number> }): { card: T; rodadas: number; gas: number } | null {
   const { seed, seasonNo, round, xi, gas } = args
   const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ Math.imul(round + 1, 0x9E3779B1) ^ 0xD35647E) >>> 0)
   const cands = xi.filter(c => { const e = estadoGas(gas[c.id] ?? 100); return e === 'limite' || e === 'esgotado' }).sort((a, b) => (gas[a.id] ?? 100) - (gas[b.id] ?? 100))
-  for (const c of cands) {
-    const g = gas[c.id] ?? 100
-    const p = estadoGas(g) === 'esgotado' ? LESAO_ESGOTADO_PCT : LESAO_LIMITE_PCT
-    if (rng() < p) return { card: c, rodadas: 1 + Math.floor(rng() * 3), gas: g } // 1-3 rodadas
-  }
-  return null
+  const pior = cands[0]
+  if (!pior) return null
+  const g = gas[pior.id] ?? 100
+  const p = estadoGas(g) === 'esgotado' ? LESAO_ESGOTADO_PCT : LESAO_LIMITE_PCT
+  if (rng() >= p) return null
+  return { card: pior, rodadas: 1 + Math.floor(rng() * 3), gas: g } // 1-3 rodadas
 }
 
 // ─── modificadores POR JOGADOR pra simulação, rodada a rodada ────────────────

@@ -2731,6 +2731,80 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
     youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} />
 }
 
+// ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────
+// Palavras dele: *"sobre arrastar pra baixo o placar rolando daria?? qd eu quiser
+// arrastar p descer mais as coisas"*. A queixa era que o Elenco mora longe demais —
+// pra ver quem está cansado a pessoa tem que rolar por cima do estádio, do placar e
+// dos avisos. E ele BARROU tirar qualquer um desses três da tela ("mas isso aqui N
+// deve sair... E o campinho C elenco Tb não").
+//
+// Então nada some: o placar ENCOLHE.
+//   · No topo, inteiro, exatamente como sempre foi.
+//   · Rolou pra baixo até o placar sair da tela → uma faixinha preta gruda no alto
+//     com o resultado AO VIVO (ninguém perde um gol por estar olhando o elenco).
+//   · Tocou na faixinha → volta pro placar inteiro. Subiu → ele abre sozinho.
+// A faixinha entra ABAIXO da faixa da carreira (z-index menor) e empurra as
+// sub-abas grudadas pra baixo, então não cobre nada.
+// 🚫 ANTI-SPOILER: o placar da faixinha é o placar NAQUELE minuto, com a mesma
+// conta do LiveScoreCard (gols filtrados por `min`), e zera na virada de rodada.
+const MINI_PLACAR_H = 30
+function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu }: {
+  m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
+  pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
+  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void
+}) {
+  const [min, setMin] = useState(finished ? 93 : 0)
+  const [fora, setFora] = useState(false)
+  const caixa = useRef<HTMLDivElement | null>(null)
+  const reportar = useCallback((n: number) => { setMin(n); onMinuteChange?.(n) }, [onMinuteChange])
+  // rodada nova: zera JÁ na renderização (mesma guarda do LiveScoreCard), senão a
+  // faixinha mostraria o placar da rodada anterior com os nomes do jogo novo.
+  const rkRef = useRef(roundKey)
+  if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0) }
+  useEffect(() => {
+    const el = caixa.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    // só liga quando o placar saiu POR CIMA (a pessoa rolou pra baixo).
+    const io = new IntersectionObserver(([e]) => {
+      const v = !e.isIntersecting && e.boundingClientRect.top < 0
+      setFora(v); onEncolheu(v)
+    }, { threshold: 0 })
+    io.observe(el)
+    return () => { io.disconnect(); onEncolheu(false) }
+  }, [onEncolheu])
+  const fim = !!finished || min >= 93
+  const vistos = fim ? m.goals : m.goals.filter(g => g.min <= min)
+  const hg = vistos.filter(g => g.home).length
+  const ag = vistos.length - hg
+  const iAmHome = m.h === youName
+  const nome = (t: string, meu: boolean) => (
+    <b style={{ ...OSWALD, fontWeight: meu ? 900 : 700, fontSize: 11.5, color: meu ? '#fff' : 'rgba(255,255,255,.72)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '38vw' }}>{t}</b>
+  )
+  return (
+    <>
+      <div ref={caixa}>
+        <MyMatchCard m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
+          roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} />
+      </div>
+      {fora && !escondido && (
+        <button type="button" onClick={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          title={tr('toque pra abrir o placar inteiro', 'tap to open the full scoreboard')}
+          style={{ position: 'fixed', top: topo, left: 0, right: 0, zIndex: 99987, height: MINI_PLACAR_H, width: '100%',
+            background: 'rgba(12,12,12,.96)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', color: '#fff', border: 0,
+            boxShadow: '0 2px 10px rgba(0,0,0,.18)', display: 'flex', alignItems: 'center', gap: 7, padding: '0 10px', cursor: 'pointer' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: fim ? '#C2452F' : '#1B7A3D', borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>{fim ? tr('FIM', 'FT') : `${min}'`}</span>
+          <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            {nome(m.h, iAmHome)}
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: '#fff', color: INK, borderRadius: 6, padding: '0 8px', whiteSpace: 'nowrap' }}>{hg} × {ag}</span>
+            {nome(m.a, !iAmHome)}
+          </span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,.55)', whiteSpace: 'nowrap' }}>▴ {tr('abrir', 'open')}</span>
+        </button>
+      )}
+    </>
+  )
+}
+
 // ── 🔁 BANNER DO INTERVALO (carreira offline): pausa aos 45' e deixa o técnico
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
@@ -3155,6 +3229,8 @@ const POS_LABEL_EN: Record<Sector, string> = { GOL: 'Goalkeepers', LAT: 'Full-ba
 // 🌐 lê o idioma a cada acesso (Proxy barato): `POS_LABEL[pos]` continua igual nos usos
 const POS_LABEL: Record<Sector, string> = new Proxy(POS_LABEL_PT, { get: (_t, k) => (getLang() === 'en' ? POS_LABEL_EN : POS_LABEL_PT)[k as Sector] })
 type ListCfg = { listed: boolean; listable: boolean; onList: () => void }
+// 🚑 âncora da lista de titulares: o atalho do cabeçalho do clube rola até aqui.
+const ID_TITULARES = 'll-titulares'
 function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boolean; col: FCol; onSwap?: () => void; list?: ListCfg }) {
   const listed = !!list?.listed
   const dim = !!list && !list.listable && !listed // modo listagem: sem poder listar (último da posição / bloqueado)
@@ -3399,7 +3475,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         return (
           <div style={{ border: `3px solid ${INK}`, background: '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: .6, color: '#5a5647', margin: 0, textTransform: 'uppercase', display: 'flex', alignItems: 'center' }}>
-              <span style={{ flex: 1 }}>{tr('🧑‍⚕️ Preparador físico', '🧑‍⚕️ Fitness coach')}</span>
+              {/* 🏷️ O NOME DA CAIXA É O QUE ELA FAZ (Diego 15/09: *"aqui será q N tá
+                  confuso Tb não? Mostrando falando de preparador em cima e dps
+                  preparador em baixo"*). Ela se chamava "Preparador físico" — o MESMO
+                  nome do bloco de contratar, logo abaixo do campinho —, então a tela
+                  dizia "você não tem preparador" duas vezes, com dois botões dourados,
+                  um mandando pro outro. Aqui é a lista de QUEM ESTÁ CANSADO + o
+                  🔁 RODIZIAR; contratar mora num lugar só, no Departamento Técnico. */}
+              <span style={{ flex: 1 }}>{tr('😓 Quem está cansado', '😓 Who is tired')}</span>
               {/* ❓ o texto de regra só abre aqui (Diego 14/09: muita informação) */}
               <button onClick={() => setAjudaPrep(a => !a)} aria-label={tr('como funciona o gás', 'how energy works')} style={{ width: 20, height: 20, borderRadius: 999, border: `2px solid ${INK}`, background: ajudaPrep ? INK : '#fff', color: ajudaPrep ? '#fff' : INK, fontWeight: 900, fontSize: 11, lineHeight: '16px', padding: 0, cursor: 'pointer', fontFamily: 'system-ui' }}>?</button>
             </p>
@@ -3420,20 +3503,19 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                 se algum dos dois vai aparecer — senão sobrava um vão em branco. */}
             {/* 🔒 SEM PREPARADOR: o botão não existe — e o aviso diz o porquê, o caminho
                 e, principalmente, que NADA travou (trocar na mão segue igual). */}
+            {/* 🔒 SEM PREPARADOR: uma LINHA, não uma caixa. O aviso grande com botão
+                dourado repetia, palavra por palavra, o que o Departamento Técnico já
+                diz logo abaixo. Aqui fica só o essencial — nada travou, trocar na mão
+                segue igual — e o caminho pra contratar é um link de texto. */}
             {semPrep && (
-              <div style={{ marginTop: 8, border: `2.5px dashed #8a6d00`, borderRadius: 9, background: '#FFFBEC', padding: '8px 10px' }}>
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: '#8a6d00', margin: 0 }}>{tr('🔒 Você não tem preparador físico', '🔒 You have no fitness coach')}</p>
-                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#6b5a1f', margin: '3px 0 0', lineHeight: 1.45 }}>
-                  {getLang() === 'en'
-                    ? <>You can still rotate <b>by hand</b>: tap the tired player, then tap the backup — a normal substitution. To get the <b>🔁 ROTATE</b> button, hire a fitness coach in the <b>Technical Department</b>, right below the pitch.</>
-                    : <>Dá pra rodiziar <b>na mão</b> do mesmo jeito: toque no cansado e depois no reserva — substituição normal. Pra ter o botão <b>🔁 RODIZIAR</b>, contrate um preparador no <b>Departamento Técnico</b>, logo abaixo do campinho.</>}
-                </p>
-                {condicao.onDepto && (
-                  <button onClick={condicao.onDepto} style={{ marginTop: 7, width: '100%', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', ...OSWALD, fontWeight: 900, fontSize: 12, background: GOLD, color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
-                    {tr('🏋️ VER O DEPARTAMENTO TÉCNICO', '🏋️ OPEN THE TECHNICAL DEPARTMENT')}
-                  </button>
-                )}
-              </div>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#6b5a1f', margin: '7px 0 0', lineHeight: 1.45 }}>
+                {getLang() === 'en'
+                  ? <>Rotate <b>by hand</b>: tap the tired player, then the backup. The <b>🔁 ROTATE</b> button comes with a fitness coach — </>
+                  : <>Troque <b>na mão</b>: toque no cansado, depois no reserva. O botão <b>🔁 RODIZIAR</b> vem com o preparador — </>}
+                {condicao.onDepto
+                  ? <button onClick={condicao.onDepto} style={{ background: 'none', border: 0, padding: 0, font: 'inherit', fontWeight: 900, color: '#8a6d00', textDecoration: 'underline', cursor: 'pointer' }}>{tr('contrate no Departamento Técnico ↓', 'hire one in the Technical Department ↓')}</button>
+                  : <b style={{ color: '#8a6d00' }}>{tr('contrate no Departamento Técnico, logo abaixo do campinho.', 'hire one in the Technical Department, right below the pitch.')}</b>}
+              </p>
             )}
             {condicao.onRodizio && ((sug && !condicao.auto) || condicao.onAuto) && (
             <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
@@ -3571,7 +3653,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           jogador de qualquer lista OU do campinho e completa no outro). */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, alignItems: 'start' }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('⭐ Titulares', '⭐ Starters')} ({titulares.length})</p>
+          {/* 🚑 alvo do atalho do cabeçalho (ver ID_TITULARES) */}
+          <p id={ID_TITULARES} style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('⭐ Titulares', '⭐ Starters')} ({titulares.length})</p>
           {titulares.map(c => rowOf(c, true))}
         </div>
         <div style={{ minWidth: 0 }}>
@@ -4288,6 +4371,19 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
   // de brilho (holo), igual à carta — só na aba Elenco, que é o "manto" dele.
   const perk = perkOverride ?? myApoioPerk()
   const shine = elenco && perk && perk.holo > 0
+  // 😓 resumo do gás dos 11 do PRÓXIMO jogo — usado em dois lugares: a linha
+  // "🏃 Gás do time" do cabeçalho e o atalho 🚑 logo abaixo dele.
+  const resumoGas = (() => {
+    if (!elenco || !condicao || !xiIds) return null
+    const ids = [...xiIds].filter(id => mgr.squad.some(c => c.id === id && !c.fake))
+    if (!ids.length) return null
+    const media = ids.reduce((s, id) => s + (condicao.gas[id] ?? 100), 0) / ids.length
+    const conta = (e: string) => ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === e).length
+    return { media, pct: pctBarra(media), cor: corBarra(media), esg: conta('esgotado'), lim: conta('limite'), can: conta('cansado') }
+  })()
+  // o atalho 🚑 só existe quando tem 🥵 ou 🚑 no time — e é ele que passa a carregar
+  // os contadores, pra não repetir a mesma informação duas linhas seguidas.
+  const atalhoGas = !!resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0)
   return (
     <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12 }}>
       {shine && <ApoioSheen holo={perk.holo} />}
@@ -4300,19 +4396,34 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
         <span title={tr('Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)', 'Sum of the 22 players\' market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
-        {/* 😓 resumo do gás do TIME (média dos 11 do próximo jogo) — a leitura de relance */}
-        {elenco && condicao && xiIds && (() => {
-          const ids = [...xiIds].filter(id => mgr.squad.some(c => c.id === id && !c.fake))
-          if (!ids.length) return null
-          // média do gás CRU dos 11; na tela, a mesma leitura das barrinhas (pctBarra/corBarra)
-          const media = ids.reduce((s, id) => s + (condicao.gas[id] ?? 100), 0) / ids.length
-          const nEsg = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'esgotado').length
-          const nLim = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'limite').length
-          const nCan = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'cansado').length
-          const cor = corBarra(media)
-          return <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: cor }}>{pctBarra(media)}%</span>{nEsg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {nEsg} 🚑</span> : null}{nLim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {nLim} 🥵</span> : null}{nCan ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {nCan} 😓</span> : null}</span>
-        })()}
+        {/* 😓 resumo do gás do TIME (média dos 11 do próximo jogo) — a leitura de relance.
+            Na tela é a mesma leitura das barrinhas (pctBarra/corBarra), nunca o gás cru. */}
+        {/* ⚠️ os contadores (· 9 🚑) SOMEM quando o atalho 🚑 logo abaixo está na tela
+            (Diego 15/09): os dois ficavam um em cima do outro dizendo a mesma coisa, e
+            o de baixo é o que dá pra tocar. Sem o atalho — só 😓 no time —, eles ficam,
+            senão a leitura de relance se perderia. */}
+        {resumoGas && <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: resumoGas.cor }}>{resumoGas.pct}%</span>{!atalhoGas && resumoGas.esg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {resumoGas.esg} 🚑</span> : null}{!atalhoGas && resumoGas.lim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {resumoGas.lim} 🥵</span> : null}{resumoGas.can ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {resumoGas.can} 😓</span> : null}</span>}
       </div>
+      {/* 🚑 ATALHO PRO ELENCO (Diego 15/09: *"o cara tem q descer lá em baixo p ver o
+          elenco... os cansados e etc"*). Entre o cabeçalho do clube e a lista mora um
+          monte de coisa (formação, banners, modo de troca, campinho). Em vez de MEXER
+          nessa ordem — ele barrou mexer —, quando tem gente no vermelho aparece UMA
+          linha que diz o problema e leva direto pros titulares. Time inteiro = some. */}
+      {resumoGas && atalhoGas && (
+        <button onClick={() => document.getElementById(ID_TITULARES)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, textAlign: 'left', background: '#FDECEA', border: `2.5px solid ${resumoGas.esg ? '#C2452F' : '#E8503A'}`, borderRadius: 10, padding: '7px 9px', marginBottom: 10, boxShadow: '2px 3px 0 0 rgba(122,27,27,.55)', cursor: 'pointer' }}>
+          <span style={{ fontSize: 19, lineHeight: 1, flexShrink: 0 }}>{resumoGas.esg ? '🚑' : '🥵'}</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <b style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 12, color: '#8a2318' }}>
+              {resumoGas.esg
+                ? tr(`${resumoGas.esg} esgotado${resumoGas.esg > 1 ? 's' : ''} · gás do time ${resumoGas.pct}%`, `${resumoGas.esg} spent · team energy ${resumoGas.pct}%`)
+                : tr(`${resumoGas.lim} no limite · gás do time ${resumoGas.pct}%`, `${resumoGas.lim} on the limit · team energy ${resumoGas.pct}%`)}
+            </b>
+            <i style={{ fontStyle: 'normal', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{tr('toque pra ver quem — e trocar', 'tap to see who — and swap')}</i>
+          </span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 17, color: '#8a2318', flexShrink: 0 }}>›</span>
+        </button>
+      )}
       {elenco && onSetFormation && (() => {
         // 🎽 troca de formação: libera pra QUALQUER formação que você consiga preencher
         // por posição com jogadores REAIS e SEUS (emprestado não conta — é extra que
@@ -7219,11 +7330,19 @@ export function PyramidSeasonScreen() {
     io.observe(el)
     return () => io.disconnect()
   }, [barraOn])
+  // ⬇️ o placar encolhido (a faixinha do resultado) — ver PlacarQueEncolhe. Fica
+  // logo ABAIXO da faixa da carreira e, quando está na tela, empurra as sub-abas
+  // grudadas pra baixo pra nada ficar escondido atrás dela. Nos momentos sagrados
+  // (intervalo, pênalti, festa de campeão) ela não aparece: nada compete com eles.
+  const [placarEncolhido, setPlacarEncolhido] = useState(false)
+  const marcaEncolhido = useCallback((v: boolean) => setPlacarEncolhido(v), [])
+  const miniPlacarOn = placarEncolhido && !sagrado
+  const topoMini = (barraOn && cabFora) ? FAIXA_H : 0
   // A fileira gruda logo abaixo da faixa fina. De propósito ela para 6px ACIMA
   // do fim da faixa: assim o padding de cima do wrapper fica ESCONDIDO atrás da
   // faixa (que é opaca e vem por cima) e não sobra nenhuma fresta pro conteúdo
   // aparecer entre as duas. As pílulas continuam inteiras.
-  const topoSub = (barraOn && cabFora) ? FAIXA_H - 6 : 0
+  const topoSub = ((barraOn && cabFora) ? FAIXA_H - 6 : 0) + (miniPlacarOn ? MINI_PLACAR_H : 0)
   // 🐛 CONSERTO (21/08, vídeo de usuário): a fileira de pílulas aparecia BOIANDO
   // por cima da tela do intervalo. O banner do intervalo (e o do pênalti, e a
   // festa de campeão) é desenhado ANTES do bloco das abas, então ele fica na
@@ -7347,6 +7466,33 @@ export function PyramidSeasonScreen() {
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
           onFechar={fecharDesfecho} />
       )}
+      {/* 💸 MODAL DE VENDER O 2º CLUBE — mora aqui na RAIZ da tela, não dentro de
+          uma aba. Ele nasceu dentro da aba Clube junto com o botão; quando o botão
+          passou a existir também na virada da temporada (15/09), o modal teria
+          ficado pra trás e o clique não abriria nada. Overlay fixo não tem por que
+          morar dentro de uma aba. */}
+      {venderAsk && state.multiClube && (() => {
+        const vendido = state.multiClube.team
+        return (
+          <div onClick={() => setVenderAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 348, width: '100%', padding: 16 }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0, textAlign: 'center' }}>{tr(`💸 Vender o ${vendido}?`, `💸 Sell ${vendido}?`)}</p>
+              <div style={{ background: '#FFF4E2', border: '2.5px solid #B8722A', borderRadius: 12, padding: 10, margin: '10px 0 0' }}>
+                <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3A2C18', margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>🍖 The squad and the board already threw the <b>farewell barbecue</b> — celebrating that you are leaving. And they went <b>all out</b>: they left <b>1.000 🪙</b> on your tab.</> : <>🍖 O elenco e a diretoria já fizeram o <b>churrasco de despedida</b> — comemorando a sua saída. E foi <b>tudo de luxo</b>: deixaram <b>1.000 🪙</b> na sua conta.</>}</p>
+                <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 12, color: '#6B4A22', margin: '7px 0 0', lineHeight: 1.45 }}>{tr('“Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”', '“Prime cuts, shrimp and an open bar. There was a banner, a speech, a photo on the pitch. They just didn\'t invite you.”')}</p>
+              </div>
+              <div style={{ background: '#EAFAEF', border: '2.5px solid #1B7A3D', borderRadius: 11, padding: '8px 10px', margin: '9px 0 0' }}>
+                <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 700, color: '#1c3d28', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>✅ You paid 4.000 and get <b>3.000 🪙</b> back.</> : <>✅ Você pagou 4.000 e recebe <b>3.000 🪙</b> de volta.</>}</p>
+              </div>
+              <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '9px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>🤖 <b>{vendido}</b> stays in the game, in its division, run by the computer — keeping its stadium, titles and till. Loans sort themselves out: whoever it lent goes back to it, and whoever your main club lent comes home.</> : <>🤖 O <b>{vendido}</b> continua no jogo, na divisão dele, comandado pela máquina — e fica com o estádio, os títulos e o caixa dele. Os empréstimos se acertam sozinhos: quem ele emprestou volta pra ele, e quem era do seu clube principal volta pra casa.</>}</p>
+              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                <button onClick={() => setVenderAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
+                <button onClick={() => { setVenderAsk(false); dispatch({ type: 'SELL_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('💸 Vender', '💸 Sell')}</button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
       <div className="max-w-xl mx-auto" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <AvisoContaCarreira />
@@ -7569,7 +7715,7 @@ export function PyramidSeasonScreen() {
         {copaFinished && copa?.champion && (
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? tr('👉 Ver fases e resultados na aba Tabelas', '👉 See rounds and results in the Tables tab') : tr('👉 ver o chaveamento da Copa na aba Tabelas', '👉 see the Cup bracket in the Tables tab')}</button>
         )}
-        {!done && myMatch && me && <MyMatchCard onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} />}
+        {!done && myMatch && me && <PlacarQueEncolhe onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -8017,7 +8163,17 @@ export function PyramidSeasonScreen() {
                   com o mesmo time. É a única coisa em vermelho na tela. */}
               <SeloSuaVez texto={tr('decida como monta o time da próxima', 'decide how to build next season\'s team')} />
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{tr('📅 Próxima temporada', '📅 Next season')}</p>
-              {/* 🏛️ MULTICLUBES · seletor (só entre temporadas, só testers) */}
+              {/* 🏛️ MULTICLUBES · seletor da VIRADA (entre temporadas).
+                  🐛 BURACO ACHADO PELO DIEGO (15/09, print do Futpoint FC): *"aqui por
+                  exemplo o Futpoint tá usando o time principal dele e N tá aparecendo p
+                  deixar vender o segundo clube"*. Ele estava certo e não era nenhuma das
+                  travas da regra — a caixa do multiclube existe em DOIS lugares (aqui, na
+                  virada, e na aba Clube) e o botão de VENDER só tinha sido posto na aba
+                  Clube. Quem estava na virada — que é justamente onde se decide o time da
+                  próxima temporada, o momento mais natural pra desistir do 2º clube — não
+                  via jeito nenhum de vender. Agora as duas caixas têm o mesmo botão, com
+                  a MESMA trava (`mine`), e o modal subiu pra raiz da tela pra abrir dos
+                  dois lugares. */}
               {state.onlineMode !== 'online' && state.multiClube && (() => {
                 const ativo = state.managers[state.youIdx]?.teamName ?? '—'
                 const dormindo = state.multiClube.team
@@ -8029,6 +8185,17 @@ export function PyramidSeasonScreen() {
                       <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('dormindo 💤', 'asleep 💤')}</div></div>
                     </div>
                     <button onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr(`🔄 Passar o comando pro ${dormindo}`, `🔄 Hand over command to ${dormindo}`)}</button>
+                    {/* 💸 VENDER — mesma regra da aba Clube: só o 2º clube (`mine`) se
+                        vende, nunca o oficial do rank global. Quando quem dorme é o
+                        PRINCIPAL (você está comandando o 2º), o botão não existe e a
+                        linha explica o caminho. O reducer tem a mesma trava, então nem
+                        um clique torto venderia o clube errado. */}
+                    {(() => {
+                      const dorm = state.managers.find(m => m.id === state.multiClube!.id)
+                      return dorm?.mine
+                        ? <button onClick={() => setVenderAsk(true)} style={{ width: '100%', marginTop: 7, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr(`💸 Vender o ${dormindo} · 3.000 🪙`, `💸 Sell ${dormindo} · 3,000 🪙`)}</button>
+                        : <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.55)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
+                    })()}
                     <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.45)', margin: '6px 0 0', textAlign: 'center' }}>{tr('Trocar = na próxima você comanda o outro; este dorme (mesmo time).', 'Switch = next season you manage the other one; this one sleeps (same team).')}</p>
                   </div>
                 )
@@ -8360,7 +8527,12 @@ export function PyramidSeasonScreen() {
                 escalação de verdade, em vez de espalhado em duas abas). */}
             {agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
             {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
-                fora do leilão (outra tela) e de jogo/Copa rolando. Só testers, só solo. */}
+                fora do leilão (outra tela) e de jogo/Copa rolando.
+                ⚠️ O comentário aqui dizia "só testers" e estava VELHO (achado 15/09, o
+                Diego perguntou se a venda já valia pra todos). NÃO existe trava de tester
+                em lugar nenhum do multiclube: quem tem 2º clube vê esta área, e ter 2º
+                clube é regalia de Lenda 👑 + 4.000 moedas. Só não vale no ONLINE (o motor
+                é solo-only: o reducer ignora BUY/SWITCH e o estado guarda 1 clube só). */}
             {state.onlineMode !== 'online' && state.multiClube && (() => {
               const ativo = state.managers[state.youIdx]?.teamName ?? '—'
               const dormindo = state.multiClube.team
@@ -8397,29 +8569,6 @@ export function PyramidSeasonScreen() {
                 </div>
               )
             })()}
-            {/* 💸 modal de CONFIRMAR a venda — com a historinha que o Diego escreveu */}
-            {venderAsk && state.multiClube && (() => {
-              const vendido = state.multiClube.team
-              return (
-                <div onClick={() => setVenderAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-                  <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 348, width: '100%', padding: 16 }}>
-                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0, textAlign: 'center' }}>{tr(`💸 Vender o ${vendido}?`, `💸 Sell ${vendido}?`)}</p>
-                    <div style={{ background: '#FFF4E2', border: '2.5px solid #B8722A', borderRadius: 12, padding: 10, margin: '10px 0 0' }}>
-                      <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3A2C18', margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>🍖 The squad and the board already threw the <b>farewell barbecue</b> — celebrating that you are leaving. And they went <b>all out</b>: they left <b>1.000 🪙</b> on your tab.</> : <>🍖 O elenco e a diretoria já fizeram o <b>churrasco de despedida</b> — comemorando a sua saída. E foi <b>tudo de luxo</b>: deixaram <b>1.000 🪙</b> na sua conta.</>}</p>
-                      <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 12, color: '#6B4A22', margin: '7px 0 0', lineHeight: 1.45 }}>{tr('“Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”', '“Prime cuts, shrimp and an open bar. There was a banner, a speech, a photo on the pitch. They just didn\'t invite you.”')}</p>
-                    </div>
-                    <div style={{ background: '#EAFAEF', border: '2.5px solid #1B7A3D', borderRadius: 11, padding: '8px 10px', margin: '9px 0 0' }}>
-                      <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 700, color: '#1c3d28', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>✅ You paid 4.000 and get <b>3.000 🪙</b> back.</> : <>✅ Você pagou 4.000 e recebe <b>3.000 🪙</b> de volta.</>}</p>
-                    </div>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '9px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>🤖 <b>{vendido}</b> stays in the game, in its division, run by the computer — keeping its stadium, titles and till. Loans sort themselves out: whoever it lent goes back to it, and whoever your main club lent comes home.</> : <>🤖 O <b>{vendido}</b> continua no jogo, na divisão dele, comandado pela máquina — e fica com o estádio, os títulos e o caixa dele. Os empréstimos se acertam sozinhos: quem ele emprestou volta pra ele, e quem era do seu clube principal volta pra casa.</>}</p>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                      <button onClick={() => setVenderAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
-                      <button onClick={() => { setVenderAsk(false); dispatch({ type: 'SELL_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('💸 Vender', '💸 Sell')}</button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
             {/* modal de CONFIRMAR a troca (explicação completa) */}
             {multiAsk && state.multiClube && (() => {
               const dormindo = state.multiClube.team
@@ -8438,7 +8587,9 @@ export function PyramidSeasonScreen() {
                 </div>
               )
             })()}
-            {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · em construção, só testers veem · só solo */}
+            {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · só solo. ⚠️ dizia "em construção, só
+                testers veem" e estava VELHO: a compra está no ar pra todo mundo desde
+                que apareça o tier — quem não é Lenda vê a área com o botão APOIE. */}
             {state.onlineMode !== 'online' && (() => {
               const opcoes = (() => {
                 const safName = myFilial?.team
@@ -8514,10 +8665,21 @@ export function PyramidSeasonScreen() {
                 nome/ícone da aba-mãe "Elenco", confundindo (14/08, pedido do Diego). */}
             {state.agenciaOn && agLib && (
               <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
-              <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-                {(([['elenco', '🎽', tr('Time', 'Team')], ['agencia', '🕴️', tr('Agenciados', 'Clients')]]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
-                  <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
-                ))}
+              {/* 🎛️ FORMA SEGUE PAPEL (Diego 15/09): NAVEGAR não é apertar. Estas duas
+                  eram caixas com borda grossa e sombra dura, iguaizinhas aos botões de
+                  ação logo acima — quatro fileiras de botão empilhadas ("tudo parecido").
+                  Viraram aba de TEXTO com sublinhado: continuam no mesmo lugar, fazem a
+                  mesma coisa, só não competem mais com o que precisa ser apertado. */}
+              <div style={{ display: 'flex', gap: 18, borderBottom: '3px solid rgba(12,12,12,.14)', marginBottom: subGrudadas ? 0 : 10 }}>
+                {(([['elenco', '🎽', tr('Time', 'Team')], ['agencia', '🕴️', tr('Agenciados', 'Clients')]]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => {
+                  const on = elencoSub === sb
+                  return (
+                    <button key={sb} onClick={() => setElencoSub(sb)} aria-current={on ? 'page' : undefined}
+                      style={{ background: 'none', border: 0, borderBottom: `4px solid ${on ? myCol.solid : 'transparent'}`, marginBottom: -3, padding: '0 2px 7px', fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', color: on ? INK : 'rgba(12,12,12,.42)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, ...OSWALD }}>
+                      <span style={{ fontSize: 14 }}>{ic}</span>{label}
+                    </button>
+                  )
+                })}
               </div>
               </SubAbasGrudadas>
             )}
@@ -8555,14 +8717,16 @@ export function PyramidSeasonScreen() {
                 fica AQUI no topo do elenco (era na aba Jogos). */}
             {!done && (
               <>
-                {/* botões de tática MENORES que as abas do menu (pra não confundir) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, marginBottom: 6 }}>
+                {/* 🎛️ FORMA SEGUE PAPEL (Diego 15/09: *"olha q confusão, tudo parecido"*).
+                    A tática não é botão de apertar-agora nem aba — é um AJUSTE do time.
+                    Então ganhou rótulo próprio e virou PÍLULA arredondada, sem sombra
+                    dura: forma diferente separa mais que cor. O azul continua sendo a
+                    cor da tática (decisão de 13/08), só que agora dentro da pílula. */}
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1.1, color: '#5a5647', textTransform: 'uppercase', margin: '0 0 5px' }}>{tr('⚔️ Tática do próximo jogo', '⚔️ Tactics for the next match')}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
                   {([['retranca', tr('🧱 Retranca', '🧱 Park the bus')], ['equilibrio', tr('⚖️ Equilíbrio', '⚖️ Balanced')], ['ataque', tr('🔥 Ataque', '🔥 Attack')]] as [Tac, string][]).map(([t, label]) => (
-                    // 🎨 CORES DO ELENCO (Diego 13/08 — "parede amarela, tudo dourado"):
-                    // tática ganha cor PRÓPRIA (azul), separada do dourado da navegação
-                    // e do verde da substituição — mockup aprovado antes de codar.
                     <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: youId, tactic: t })}
-                      style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? '#2F6BAE' : '#fff', color: myTactic === t ? '#fff' : INK, boxShadow: myTactic === t ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                      style={{ border: `2px solid ${myTactic === t ? '#2F6BAE' : 'rgba(12,12,12,.28)'}`, borderRadius: 999, padding: '6px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? '#2F6BAE' : 'rgba(255,255,255,.75)', color: myTactic === t ? '#fff' : '#5a5647', cursor: 'pointer' }}>
                       {label}
                     </button>
                   ))}

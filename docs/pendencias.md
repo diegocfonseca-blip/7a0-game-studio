@@ -1,3 +1,139 @@
+## 15/09/2026 — 🧑‍⚕️ O "preparador físico" aparecia DUAS vezes na aba Elenco (consertado)
+
+Ele pegou, com dois prints: *"aqui será q N tá confuso Tb não? Mostrando falando de
+preparador em cima e dps preparador em baixo"*. Depois do mockup: *"Ok pibkique Tb"*
+(= publique também, as duas coisas que ofereci).
+
+### A causa — sempre a mesma: dois blocos com o MESMO TÍTULO
+A caixa ACIMA do campinho se chamava **"🧑‍⚕️ Preparador físico"**, mas o trabalho dela é
+outro: listar QUEM ESTÁ CANSADO e trazer o 🔁 RODIZIAR. Contratar é no **"🏛️ Departamento
+Técnico"**, embaixo do campinho. Com o mesmo nome nos dois, a tela dizia *"você não tem
+preparador"* duas vezes, com **dois botões dourados**, um mandando pro outro.
+
+### O que foi feito (nada saiu do lugar, nada sumiu)
+1. A caixa de cima passou a se chamar **"😓 Quem está cansado"** (EN: "Who is tired").
+   Lista, ❓ de ajuda, 🔁 RODIZIAR e o interruptor do automático: tudo igual.
+2. O aviso de bloqueio dela virou **uma linha**, sem botão dourado: *"Troque na mão…
+   o 🔁 RODIZIAR vem com o preparador — contrate no Departamento Técnico ↓"*, com o
+   caminho como link de texto (segue chamando o mesmo `condicao.onDepto`).
+3. **Contratar existe num lugar só**: o Departamento Técnico.
+
+### E o contador de gás repetido (o 2º item, que ele mandou publicar junto)
+A linha **"🏃 Gás do time: 29% · 9 🚑"** e o atalho novo **"9 esgotados · gás do time
+29%"** ficavam coladas dizendo a mesma coisa. Agora os contadores **🚑/🥵 somem da linha
+de cima quando o atalho está na tela** (é ele que dá pra tocar). Sem o atalho — time só
+com 😓 —, os contadores ficam, pra não perder a leitura de relance.
+
+📢 Não virou linha de novidade: é polimento da mesma entrega de hoje, que já tem a linha
+"A tela da carreira ficou mais fácil de ler".
+**Reverter**: um título, um parágrafo e uma condição, tudo em `pyramidseason.tsx`. Nada
+de save, nada de banco.
+Mockup do antes/depois: `scripts/mockups/preparador-duplicado.png`.
+
+---
+
+## 15/09/2026 — 🚑⬇️🎛️ Três entregas juntas: lesão, placar que encolhe e hierarquia da tela
+
+Ele aprovou as três de uma vez: *"Perfeito pode publicar tudo isso"*.
+
+---
+
+### 1. 🚑 A lesão virou UM DADO POR RODADA (a causa raiz, finalmente)
+O que faltava desde a madrugada (ver o bloco "Por que machucava tanto" mais abaixo, que
+fica aqui de propósito como histórico). `sorteiaLesaoDesgaste` jogava um dado **pra cada
+titular cansado** — com 9 🚑 em campo isso dava **61% de chance por rodada** e ~9 lesões
+por temporada. Agora a rodada sorteia **uma vez só**, no jogador de PIOR gás:
+  · teto de **10% por rodada**, doa o time que doer;
+  · escalar mais gente morta continua sendo pior (o pior gás piora e o dado sobe de 5%
+    pra 10%), só não vira loteria;
+  · medido depois da mudança, com 9 🚑 + 2 🥵 em campo as 38 rodadas inteiras: **3,9
+    lesões por temporada** (era 9,0). Com só um 🥵: 1,9.
+Determinismo intacto (reload não re-sorteia) e a condição física não foi tocada.
+Testes novos em `scripts/testa-condicao.mjs`: o teto com o time todo 🚑, "quem cai é
+sempre o de pior gás" e a mistura 1 🚑 + 4 🥵.
+**Reverter**: uma função em `condicao.ts`. Nada de save.
+
+### 2. ⬇️ O placar encolhe quando você rola (ideia DELE)
+Palavras dele: *"sobre arrastar pra baixo o placar rolando daria?? qd eu quiser arrastar
+p descer mais as coisas"*. Como ele **barrou tirar** o estádio, o placar e o campinho
+(*"mas isso aqui N deve sair… E o campinho C elenco Tb não"*), nada some — o placar
+ENCOLHE. Saiu da tela por cima, vira faixinha preta grudada no topo com o **resultado ao
+vivo + o minuto**; toca nela e volta pro placar inteiro; subiu, ele abre sozinho.
+Detalhes que importam:
+  · a faixinha entra **abaixo** da faixa da carreira (z-index 99987 contra 99988) e
+    **empurra as sub-abas grudadas** pra baixo — não cobre nada;
+  · não aparece nos momentos sagrados (intervalo, pênalti, festa de campeão);
+  · 🚫 anti-spoiler: o placar é o daquele minuto (mesma conta do `LiveScoreCard`) e zera
+    na virada de rodada.
+Feito no componente novo `PlacarQueEncolhe` (`pyramidseason.tsx`), que embrulha o
+`MyMatchCard` sem mexer nele.
+**Reverter**: trocar `<PlacarQueEncolhe …>` de volta por `<MyMatchCard …>`.
+
+### 3. 🎛️ Hierarquia da tela de carreira (mockup v2, "forma segue papel")
+Queixa dele com dois prints: *"o cara tem q descer lá em baixo p ver o elenco"* e *"isso
+aqui Tb N tá legal.. Olha q confusão tudo parecido"*. **Nada mudou de lugar** — só a
+FORMA de cada coisa:
+  · **ação** = único botão grande (`.ll25-career .ll25-actions`); PULAR menor ao lado;
+  · ⚠️ o botão grande ficou **DOURADO, não verde** como no mockup: o verde virou o
+    "ligado" do ritmo em 15/09 e uma cor não pode significar duas coisas. Quem faz a
+    hierarquia é o TAMANHO. Se ele quiser verde, é uma linha de CSS;
+  · **ritmo** = segue a faixinha fina verde de 15/09 (intocada);
+  · **TIME / AGENCIADOS** = aba de TEXTO com sublinhado na cor do time (era caixa com
+    borda grossa, igual aos botões de ação);
+  · **tática** = pastilha redonda sob o rótulo **⚔️ TÁTICA DO PRÓXIMO JOGO** (o azul de
+    13/08 continua sendo a cor da tática);
+  · **atalho 🚑** colado na caixa do clube: *"9 esgotados · gás do time 29% — toque pra
+    ver quem"*, rola direto pros ⭐ Titulares (âncora `ID_TITULARES`). Só aparece quando
+    tem 🥵 ou 🚑 no time; time inteiro, some.
+Mockup do estado publicado: `scripts/mockups/carreira-hierarquia-v3.png`.
+**Reverter**: as duas regras `.ll25-career .ll25-actions` do CSS + três blocos do
+`pyramidseason.tsx`. Nada de save, nada de banco.
+
+📢 Novidades: duas linhas novas (o placar que acompanha e a tela mais fácil de ler). A
+lesão **não** virou novidade — é conserto, e conserto não vai pra tela do jogador.
+
+---
+
+## 15/09/2026 — 🧩 "Caiu pra home no meio do jogo" = publicação derrubando quem está jogando (CONHECIDO, o Diego pediu pra DEIXAR)
+
+Relato do Diego, vendo a live do canalmeianacanela: *"durante o jogo teve umas duas vezes
+que ele foi tirado pro menu… ele continuou sendo host e não mudou nada, só que jogou ela
+pra home do site e voltou ele de novo depois"*.
+
+### A causa (com prova, não teoria)
+O jogo carrega algumas partes **sob demanda** (`lazy` + `import()`): o **Salão dos
+Batismos** (`screens.tsx:92`) e a **Copa da Liga** (`screens.tsx:30`). O arquivo desses
+pedaços tem HASH no nome, que muda a cada publicação — e o GitHub Pages apaga o antigo na
+hora. Quem está com a página aberta na versão VELHA e toca numa dessas partes busca um
+arquivo que não existe mais → 404 → `ErrorBoundary` → tela "😵 Ops" → a pessoa recarrega →
+cai na home → o save da sala traz ela de volta pra partida, ainda como host.
+
+👉 **Não é bug de coroa, de host nem de sala.** Bate exatamente com o relato.
+
+### O tamanho (tabela `esc_quedas`, a caixa-preta do jogo)
+Nos últimos 30 dias: **12 quedas desse tipo, com 12 pessoas diferentes** — contra **3** de
+todos os outros erros somados. Ou seja, **80% das quedas do jogo são isto**.
+Assinatura inconfundível: toda queda numa `versao` diferente (9adfaab, 54739af, d11e86a,
+b475e7a, 3be7df8, 4da4b7a, 14bf4e8…) e sempre em `Lazy → Suspense`.
+A última foi 15/09 18:18 UTC (15:18 BRT), 7 minutos depois de um deploy meu — ou seja,
+**fui eu que derrubei o streamer**, publicando ~6 vezes durante a live dele.
+
+### ⛔ O Diego mandou DEIXAR como está
+Palavras dele: *"não, deixa. Quero [saber] se foi por isso, porque estávamos fazendo
+coisas. Não tem problema não"*. **Não implementar sem ele pedir.**
+
+O conserto está mapeado, se um dia voltar a incomodar:
+  · no `ErrorBoundary` (`index.tsx:144`), quando a mensagem for **especificamente**
+    "Failed to fetch dynamically imported module" / "Importing a module script failed",
+    recarregar a página sozinho UMA vez (trava anti-loop de 5 min, igual à do
+    `VersionWatcher`) em vez de mostrar o "Ops". Qualquer outra pane continua mostrando a
+    tela de erro com a pilha — é ela que ajuda a achar bug de verdade.
+  · e/ou envolver os dois `lazy(() => import(...))` num retry.
+
+### 🤝 E o que não precisa de código
+Não publicar enquanto tem live rolando. Foi o que criou o caso de hoje.
+
+---
 ## 15/09/2026 — 🌱 Cria da Base ganha apelido de várzea (adeus "Cotoco 33º") — ✅ no ar
 
 Cobrança do Diego: *"não gostei desses nomes Cotoco 33, Pimentinha 25, não ficou bom desse
