@@ -27,7 +27,7 @@ const img = (caminho, tipo = 'webp') => `data:image/${tipo};base64,${readFileSyn
 // ── A CAMISA: a arte (imagem) + as 3 peças carimbadas por cima ──────────────
 // `pos` = onde cada peça cai NAQUELA arte, em % (arte de batismo e molde têm
 // enquadramentos diferentes, então cada uma traz as suas medidas).
-const camisa = ({ arte, alt = 300, escudo, fornecedor, master, masterLogo, masterCor, pos }) => `
+const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, master, masterLogo, masterCor, pos }) => `
   <div style="position:relative;height:${alt}px;flex:none;isolation:isolate">
     <img src="${arte}" style="height:${alt}px;display:block">
     ${!escudo ? '' : `<div style="position:absolute;left:${pos.escudoX}%;top:${pos.escudoY}%;transform:translate(-50%,-50%)">
@@ -36,14 +36,28 @@ const camisa = ({ arte, alt = 300, escudo, fornecedor, master, masterLogo, maste
         : `<span style="font-size:${Math.round(alt * 0.11)}px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))">${escudo}</span>`}
     </div>`}
     <div style="position:absolute;left:${pos.fornX}%;top:${pos.fornY}%;transform:translate(-50%,-50%);
-                ${OSW};font-weight:700;font-size:${Math.round(alt * 0.04)}px;color:${masterCor ?? INK};letter-spacing:.5px;white-space:nowrap;
-                mix-blend-mode:multiply;opacity:.85;filter:blur(.15px)">${fornecedor}</div>
+                display:flex;flex-direction:column;align-items:center;gap:${Math.round(alt * 0.006)}px;
+                mix-blend-mode:multiply;opacity:.88;filter:blur(.15px);color:${masterCor ?? INK}">
+      <span style="font-size:${Math.round(alt * 0.042)}px;line-height:1">${fornSimbolo ?? '▸'}</span>
+      <span style="${OSW};font-weight:700;font-size:${Math.round(alt * 0.026)}px;line-height:1;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap">${fornecedor}</span>
+    </div>
     <div style="position:absolute;left:${pos.masterX}%;top:${pos.masterY}%;transform:translate(-50%,-50%);
                 mix-blend-mode:multiply;opacity:.93;filter:blur(.15px)">
       ${masterLogo
-        ? `<img src="${masterLogo}" style="width:${Math.round(alt * 0.46)}px;display:block">`
-        : `<span style="${OSW};font-weight:700;font-size:${Math.round(alt * (master.length > 18 ? 0.042 : master.length > 13 ? 0.05 : 0.058))}px;line-height:1;letter-spacing:.5px;
-             text-transform:uppercase;white-space:nowrap;color:${masterCor ?? INK}">${master}</span>`}
+        ? `<img src="${masterLogo}" style="width:${Math.round(alt * 0.27)}px;display:block">`
+        : (() => {
+            // 🖨️ marca SEM logo: o nome é impresso no peito e tem que CABER no corpo
+            // da camisa (≈65% da largura dele). Nome comprido quebra em 2 linhas,
+            // que é o que kit de verdade faz — não encolhe até virar formiga.
+            const linhas = master.length > 14 ? (() => {
+              const p = master.split(' '); const meio = Math.ceil(p.length / 2)
+              return [p.slice(0, meio).join(' '), p.slice(meio).join(' ')]
+            })() : [master]
+            const maior = Math.max(...linhas.map(l => l.length))
+            const fs = Math.max(alt * 0.028, Math.min(alt * 0.058, (alt * 0.30) / (maior * 0.52)))
+            return `<div style="${OSW};font-weight:700;font-size:${fs.toFixed(1)}px;line-height:1.05;letter-spacing:.5px;
+                      text-transform:uppercase;text-align:center;color:${masterCor ?? INK}">${linhas.join('<br>')}</div>`
+          })()}
     </div>
   </div>`
 
@@ -90,9 +104,9 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
       shirt: camisa({
         arte: img('public/mantos-salao/finalboss-camisa.webp'), alt: 300,
         escudo: '', // a arte do batismo já traz o escudo dele — o jogo não carimba outro
-        fornecedor: 'NAIQUE', master: 'VADICO VEÍCULOS', masterCor: INK,
-        masterLogo: img('src/escalacao/img/patro-vadico.webp'), // 🏷️ marca REAL = logo de verdade
-        pos: { fornX: 30, fornY: 25, masterX: 50, masterY: 60 },
+        fornecedor: 'Naique', fornSimbolo: '✓', master: 'VADICO VEÍCULOS', masterCor: INK,
+        masterLogo: img(`${SCRATCH}/logo-vadico.webp`), // 🏷️ marca REAL = logo de verdade (recortado no limite do desenho)
+        pos: { fornX: 30, fornY: 26, masterX: 50, masterY: 58 },
       }),
       extra: cartao('👑 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Arte própria do batismo</div>`,
         'Clube batizado usa a arte que o dono mandou — é ela que aparece na loja. As 2 cores do manto saem dessa arte.'),
@@ -105,8 +119,8 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
       titulo: 'SEM batismo', sub: 'tier 🪵 FOI PROFISSIONAL',
       shirt: camisa({
         arte: img(`${SCRATCH}/camisa-foiprof.webp`), alt: 300,
-        escudo: '', fornecedor: 'ADIBAS', master: 'ESPETINHO DO BAIXINHO', masterCor: '#5B5138',
-        pos: { fornX: 69, fornY: 26, masterX: 50, masterY: 52 },
+        escudo: '', fornecedor: 'Adibas', fornSimbolo: '◣', master: 'ESPETINHO DO BAIXINHO', masterCor: '#4F462E',
+        pos: { fornX: 69, fornY: 27, masterX: 50, masterY: 55 },
       }),
       extra: cartao('🪵 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Molde do jogo, na cor do seu tier</div>`,
         'Mesmo molde, mesma qualidade de arte. É UM arquivo só pro jogo inteiro, pintado com as suas cores — aqui o bege do tier 🪵 Foi Profissional.'),

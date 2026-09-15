@@ -123,6 +123,20 @@ inteira. Sai simétrica, sem escudo, sem coroa e sem etiqueta, com um conserto s
 vez de quatro. Ainda sobra um clarão leve nas mangas: é o limite de mexer em arte
 alheia, e por isso a arte limpa continua sendo pedida.
 
+📐 **ENQUADRAMENTO DA ESTAMPA (medido, não chutado).** Ele pegou: *"a logo da
+Vadico não está enquadrada"*. Na altura do peito o CORPO da camisa tem **253px de
+498** (o resto é manga e fundo). A estampa tem que tomar ~65% do CORPO, ou seja
+**~33% da largura da imagem** — eu estava desenhando com 46% da ALTURA, que dava
+quase a camisa inteira e passava por cima das listras laterais. Também recortei a
+moldura branca do arquivo do logo (`patro-vadico.webp` tem 5px de folga em volta).
+Marca SEM logo (genérica) segue a mesma régua: nome comprido **quebra em 2 linhas**,
+como kit de verdade, em vez de encolher até virar formiga.
+
+🏷️ **Fornecedor virou MARQUINHA, não palavra solta** (*"tá com uma marca ridícula no
+peito"*): símbolo em cima + nome pequeno embaixo, como etiqueta de material
+esportivo. O símbolo é neutro de propósito — **não imitar a marca de verdade**
+(Nike/Adidas/Puma), só o nome é paródia.
+
 Lugares das peças (pedido dele, referência: Internacional de Madrid e Inter de Bailão):
 
 - **peito esquerdo**: escudo do clube;
