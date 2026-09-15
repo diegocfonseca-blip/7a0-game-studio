@@ -421,6 +421,35 @@ entra de novo:
 ⚠️ **Nenhum valor muda** — régua do Master, Pontual, fornecedor, preços e bico ficam
 iguais. É troca de casca + a ordem + a volta do bico na mudança de divisão.
 
+👷 O brasão da carteira é **emoji de trabalhador**, não a bola do jogo. Corte dele
+(15/09): *"na arte da carteira de trabalho não coloque a logo de uma bola, coloque um
+emoji de trabalhador ou obras"*. Faz sentido — a carteira é do BICO, não do clube.
+
+#### 💰 QUANDO CADA UM PAGA — regra nova dele (15/09), e ela MUDA o jogo de hoje
+Palavras dele: *"os valores do bico já devem entrar na hora que ele aperta pra iniciar a
+temporada, já de cara. O Master também. O fornecedor de material esportivo também.
+Somente o Pontual e a venda de camisas devem aguardar, porque como são aposta o Pontual
+tem que esperar o que acontece… e a venda de camisas também no final, mas ele só não
+ganha se ficar entre os 4 últimos"*.
+
+| | hoje | passa a ser |
+|---|---|---|
+| 🏆 Master | fim | **começo** (`applyMasterIncome`) |
+| 👟 Fornecedor | fim | **começo** (a perna do fornecedor em `applyLojaIncome`) |
+| 🕴️ Bico | fim | **começo** (o bloco do bico em `applySeasonMoney`) |
+| 🤝 Pontual | fim | fim (é aposta) |
+| 🛍️ Camisas | fim | fim (é aposta; zero só com `faixaDaPos` = 'caiu') |
+
+⚠️ **CONFERIDO NO CÓDIGO: hoje os CINCO pagam no fim** — todos dentro de
+`applySeasonMoney` (`store.tsx`), que roda no fechamento da temporada.
+
+🛡️ **O cuidado que essa mudança exige** (senão some moeda de gente que está jogando):
+quem estiver **no MEIO de uma temporada** no dia do deploy já começou o ano sem receber,
+e o fechamento deixaria de pagar → **sumia uma parcela**. Solução combinada: gravar no
+save **qual temporada já foi paga** (uma marca por perna: Master/fornecedor/bico); o
+começo paga só se ainda não pagou aquela temporada, e o fechamento continua pagando o
+que ficou pra trás. Ninguém recebe duas vezes, ninguém perde. **Não codar sem isso.**
+
 ### ⛔ ENCERRADO — juntar o Pontual com a venda de camisas NÃO vai acontecer
 Ele mesmo matou a ideia depois de ver o mockup (15/09): *"a ideia é diferente, porque no
 Pontual quando não bate a meta não ganha nada; já nas camisas ganha — só não ganha se

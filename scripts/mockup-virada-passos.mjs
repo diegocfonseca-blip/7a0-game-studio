@@ -118,8 +118,12 @@ const precoPapel = (nome, moeda, quando, sel) => `
 
 // ── PASSO 5 (NOVO) — a CARTEIRA DE TRABALHO aberta ──────────────────────────
 // 🇧🇷 Desenhada em CSS (0 KB). Não é cópia de documento oficial: é a brincadeira da
-// carteirinha azul, com a marca do jogo no lugar do brasão — a regra permanente do
-// Diego é não inventar coisa de gente/instituição real com cara de verdadeira.
+// carteirinha azul — a regra permanente do Diego é não inventar coisa de gente ou
+// instituição real com cara de verdadeira.
+// 👷 No lugar do brasão vai o EMOJI DE TRABALHADOR. Era a bola do jogo e ele cortou
+// (15/09): *"na arte da carteira de trabalho não coloque a logo de uma bola na
+// carteira, coloque um emoji de trabalhador ou obras"*. Faz sentido: a carteira é do
+// bico, não do clube — bola ali confundia as duas coisas.
 const cenaCarteira = `
   <div style="position:relative;aspect-ratio:1;overflow:hidden;background:
       radial-gradient(110% 60% at 50% 6%, rgba(255,213,120,.26) 0%, transparent 60%),
@@ -130,7 +134,7 @@ const cenaCarteira = `
       <div style="width:150px;background:linear-gradient(145deg,${AZUL_CT},#0E1830);padding:14px 11px;text-align:center;
                   border-right:3px solid #0A1024">
         <div style="width:46px;height:46px;margin:2px auto 8px;border:3px solid ${GOLD};border-radius:999px;
-                    display:flex;align-items:center;justify-content:center;font-size:22px">⚽</div>
+                    display:flex;align-items:center;justify-content:center;font-size:22px">👷</div>
         <div style="${OSW};font-weight:700;font-size:11px;line-height:1.15;color:${GOLD};letter-spacing:.06em">CARTEIRA<br>DE TRABALHO</div>
         <div style="${OSW};font-weight:400;font-size:7.5px;line-height:1.25;color:rgba(255,255,255,.62);margin-top:5px;
                     letter-spacing:.06em">E PREVIDÊNCIA<br>DO TÉCNICO</div>
@@ -205,6 +209,49 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
 <div style="display:flex;gap:16px;${OSW};font-weight:400;font-size:12px;opacity:.8;margin-bottom:22px">
   <span><b style="color:${GREEN}">Verde</b> = cai toda temporada (2 decisões fixas).</span>
   <span><b style="color:${VERM}">Vermelho</b> = fica quieto até alguma coisa mudar: contrato que acabou, ou divisão que trocou.</span>
+</div>
+
+<!-- ───────── QUANDO CADA UM PAGA (regra dele, 15/09) ───────── -->
+<div style="${OSW};font-weight:700;font-size:16px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px">
+  💰 E quando cada um cai no caixa</div>
+<div style="display:flex;gap:18px;align-items:stretch;margin-bottom:26px">
+  ${[
+    {
+      t: '▶️ Na hora de COMEÇAR a temporada', sub: 'dinheiro garantido — não depende de resultado nenhum',
+      cor: GREEN, itens: [['🏆', 'Patrocinador Master', '+26 🪙'], ['👟', 'Fornecedor de material', '+6 🪙'], ['🕴️', 'Bico de folga', '+10 🪙']],
+      pe: 'São contratos assinados. Apertou <b>Começar a temporada</b>, o caixa já sobe.',
+    },
+    {
+      t: '🏁 No FIM da temporada', sub: 'são apostas — precisam saber como o ano terminou',
+      cor: VERM, itens: [['🤝', 'Patrocinador Pontual', 'bateu a meta ou zero'], ['🛍️', 'Venda de camisas', 'zero só entre os 4 últimos']],
+      pe: 'O Pontual é <b>tudo ou nada</b>. A camisa paga em qualquer final — <b>só não paga se cair</b>.',
+    },
+  ].map(c => `
+    <div style="flex:1;border:4px solid ${INK};border-radius:18px;background:#fff;box-shadow:5px 5px 0 ${INK};overflow:hidden">
+      <div style="background:${c.cor};color:#fff;padding:9px 13px">
+        <div style="${OSW};font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.4px">${c.t}</div>
+        <div style="${OSW};font-weight:400;font-size:11px;opacity:.9;margin-top:1px">${c.sub}</div>
+      </div>
+      <div style="padding:10px 13px 11px">
+        ${c.itens.map(([ic, n, v]) => `
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:2px solid rgba(12,12,12,.08)">
+            <span style="font-size:19px;line-height:1;flex:none">${ic}</span>
+            <span style="${OSW};font-weight:700;font-size:13.5px;flex:1;text-transform:uppercase">${n}</span>
+            <span style="${OSW};font-weight:700;font-size:13.5px;color:${c.cor};white-space:nowrap">${v}</span>
+          </div>`).join('')}
+        <div style="${OSW};font-weight:400;font-size:11.5px;line-height:1.4;opacity:.8;margin-top:9px">${c.pe}</div>
+      </div>
+    </div>`).join('')}
+</div>
+<div style="border:4px solid ${VERM};border-radius:16px;background:#FFF1EE;padding:12px 15px;margin-bottom:26px">
+  <div style="${OSW};font-weight:700;font-size:14px;text-transform:uppercase;color:${VERM};margin-bottom:5px">
+    ⚠️ Isso MUDA o jogo de hoje — e tem um cuidado</div>
+  <div style="${OSW};font-weight:400;font-size:12.5px;line-height:1.5">
+    Hoje os <b>cinco</b> pagam no fim da temporada (todos dentro do mesmo fechamento de caixa).
+    Passar três deles pro começo é seguro, menos num caso: quem estiver <b>no meio de uma temporada</b>
+    no dia do deploy já começou o ano sem receber — e o fim deixaria de pagar. Sumiria uma parcela dele.
+    <b>Solução:</b> marcar no save qual temporada já foi paga; o começo paga se ainda não pagou, e o
+    fechamento continua pagando só o que ficou pra trás. Ninguém recebe duas vezes e ninguém perde nada.</div>
 </div>
 
 <!-- ───────── o molde que já existe ───────── -->
@@ -286,6 +333,9 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
   <div style="padding:12px 14px;${OSW};font-weight:400;font-size:13px;line-height:1.55">
     <div style="margin-bottom:7px">· <b>A ordem troca:</b> hoje o Fornecedor vem antes do Pontual. Passa a ser
       Master → <b>Pontual</b> → Fornecedor → Camisas → Bico, como você pediu.</div>
+    <div style="margin-bottom:7px">· <b>Master, fornecedor e bico passam a pagar no COMEÇO</b> (hoje os cinco pagam
+      no fim). Com a marca de "já paguei esta temporada" no save, pra ninguém receber duas vezes
+      nem perder a parcela na virada do deploy.</div>
     <div style="margin-bottom:7px">· <b>A pílula PASSO X DE 5</b> entra no cabeçalho dos cinco, e o número é contado
       só entre os passos que estão aparecendo — se só tem 2 decisões, ele diz "passo 1 de 2".</div>
     <div style="margin-bottom:7px">· <b>Camisa e bico ganham o molde do Master</b> (hoje são duas caixinhas brancas
