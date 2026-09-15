@@ -123,6 +123,18 @@ inteira. Sai simétrica, sem escudo, sem coroa e sem etiqueta, com um conserto s
 vez de quatro. Ainda sobra um clarão leve nas mangas: é o limite de mexer em arte
 alheia, e por isso a arte limpa continua sendo pedida.
 
+🚫 **NÃO MEXER NAS MANGAS (ordem dele, 15/09).** Pra disfarçar o remendo eu tinha
+pintado uma faixa escura na manga; ele cortou na hora: *"na manga ficou ridícula,
+não mexe nas mangas"*. A manga não recebe desenho novo — só a limpeza do texto do
+Final Boss.
+🩹 **E a limpeza certa é RECONSTRUIR, não remendar.** Colar um pedaço de tecido
+vizinho deixa caixa e fantasma das letras, por mais que se case o brilho (tentei
+3 vezes). O que funcionou foi reconstruir o buraco a partir das BORDAS — média dos
+vizinhos repetida até assentar (Laplace). Sai liso, no tom exato da volta, sem
+caixa e sem fantasma. Vale pra qualquer limpeza de arte daqui pra frente.
+🎽 **As DUAS FAIXAS DO PEITO ficaram** (ele pediu de volta, *"só pra disfarçar essa
+mancha"*): elas cobrem o fantasma da faixa original e ainda dão cara de kit.
+
 📐 **ENQUADRAMENTO DA ESTAMPA (medido, não chutado).** Ele pegou: *"a logo da
 Vadico não está enquadrada"*. Na altura do peito o CORPO da camisa tem **253px de
 498** (o resto é manga e fundo). A estampa tem que tomar ~65% do CORPO, ou seja
