@@ -330,6 +330,44 @@ a cota do bom jogador (mexe no equilíbrio do leilão, que ele ajustou à mão),
 prioridade a quem nunca saiu (o `RECENT_DECK` já faz isso pra UMA leva; daria pra
 guardar mais fundo). Perguntar antes — régua de raridade é decisão dele.
 
+### 📏 CABE MAIS GENTE NO ELENCO? — medido em 15/09 (nada mudado)
+Pergunta dele: *"o tamanho do elenco, se cabe eu colocar mais gente… pelo menos mais um
+de cada posição… se vai atrapalhar visualmente"*, e *"se eu pegar quatro emprestados da
+SAF, eu tenho que emprestar quatro também?"*.
+
+`node scripts/mockup-tamanho-elenco.mjs` monta o relatório. As alturas saem da bancada
+`scripts/teste-elenco/` (`?n=22|27|31`), que monta o **`SquadTab` DE VERDADE** num
+celular de 454px — não é chute.
+
+**📐 As regras de hoje, conferidas no código:**
+- o elenco **não é um "22" fixo**: é `baseSlots(formação, pos) × 2` (`slotsOf` em
+  `store.tsx`). Como toda formação soma 11, dá 22 sempre — mas a FORMA muda
+  (4-4-2 → GOL 2 · LAT 4 · ZAG 4 · MEI 8 · ATA 4);
+- 🏢 **SAF não é troca**: as vagas são **por lado** (`loanSlots`, Série D 1 · C 2 · B 3 ·
+  A 4), `loanIn` e `loanOut` são contas separadas. Dá pra pegar 4 sem emprestar nenhum;
+- o que limita na prática é a SAF ter que manter o **XI dela** completo
+  (`loanableInIds` em `pyramidseason.tsx`) — por isso emprestar um seu primeiro "abre"
+  a posição, e dá a impressão de troca;
+- ⚠️ **quem você pega da SAF entra no seu elenco POR CIMA do limite** (o
+  `LOAN_FROM_FILIAL` faz `you.squad = [...you.squad, loaned]` e **nada checa a sua
+  lotação**). Ou seja, o **teto real hoje na Série A já é 26**, não 22.
+
+**📊 A medida da tela (rolagem da aba Elenco, celular de 454px):**
+| elenco | altura | telas | a mais que hoje |
+|---|---|---|---|
+| 22 (hoje) | 2184px | 2,4 | — |
+| 27 (+1 por posição) | 2459px | 2,7 | **+275px** |
+| 31 (27 + 4 da SAF) | 2679px | 3,0 | +495px |
+
+👉 **Visualmente cabe.** A lista é em **DUAS COLUNAS** (titulares × reservas), então cada
+jogador novo empurra só meia linha. E metade da altura da aba nem é a lista: é o banner,
+o campinho, o 🏛️ Departamento Técnico e a folha.
+
+⚠️ **O que NÃO foi medido e decide a questão:** o efeito no JOGO. "2× a formação" é a
+régua que o leilão, o Monte, a base e a SAF usam juntos — mexer nela muda quantas cartas
+o leilão põe na mesa e quanto sai de folha salarial por mês. Se ele mandar seguir, medir
+isso ANTES.
+
 ### 🕳️ Os BURACOS no ⚙️ gerenciar técnicos — ✅ NO AR (15/09)
 Cada linha do ⚙️ gerenciar técnicos (só o host, partida online) mostra `−N 🕳️`, que é
 quantas vagas o time daquele técnico ainda tem vazias — `✅` com o time cheio. Pedido
