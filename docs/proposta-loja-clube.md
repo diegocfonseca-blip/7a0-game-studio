@@ -233,6 +233,34 @@ A única coisa a mais do batismo é a **arte desenhada à mão**. Ninguém abre 
 tela pobre. (Hoje a carreira da pirâmide não guarda cor de clube nenhuma — só a
 dinastia tem `crest` com 2 cores. Então é campo novo no save, pequeno: 2 cores.)
 
+### 3.1b A LOJA É UMA VITRINE, não uma caixa branca (Diego, 15/09)
+
+Pergunta dele vendo o mockup do fornecedor: *"mas é a loja com a arte da camisa e
+patrocínio e etc?? não tem uma arte foda que possa fazer também?"*. Tem razão duas vezes:
+
+1. **Sim — a loja é a tela que mostra a camisa montada** (arte + escudo + fornecedor +
+   Master). O balanço e o contrato são tempo morto da virada; a LOJA é a vitrine do
+   orgulho, e é lá que a camisa aparece grande.
+2. **E ela merece cena, não moldura.** A camisa numa caixa branca é catálogo. Agora a
+   moldura virou vitrine: madeira escura, foco de luz quente em cima da camisa, chão
+   refletindo, placa "· LOJA DO CLUBE ·" em cima. Feito em **degradê CSS, 0 KB** — e
+   por isso serve pra QUALQUER camisa (batismo ou molde do tier) sem arquivo novo.
+
+🎨 **Arte de verdade: 4 opções geradas no Canva em 15/09** (loja vista por dentro,
+balcão, arara ao fundo, luz de vitrine, **centro vazio de propósito** pra a camisa
+entrar por cima):
+
+- https://www.canva.com/d/Ia9F9GEo8hmyR8V
+- https://www.canva.com/d/ygsMC6AdbShx4Zg
+- https://www.canva.com/d/CbHOrcQAa9G1JcS
+- https://www.canva.com/d/Sp4QschTs7xxpYf
+
+⚠️ **Este ambiente BLOQUEIA os domínios do Canva** (`design.canva.ai` e cia dão 403 no
+proxy), então eu **gero mas não consigo ver nem baixar** — igual aconteceu com a camisa
+em branco. O caminho que funciona é o mesmo de sempre: o Diego abre, escolhe e **manda
+o arquivo**. Quando chegar, é UM `.webp` no lugar do fundo da vitrine e a camisa
+continua entrando por cima exatamente do mesmo jeito (nada de conta muda).
+
 ### 3.2 Fornecedor de material esportivo — MESMA MECÂNICA DO MASTER (Diego, 15/09)
 
 Palavras dele: *"o fornecedor de material esportivo deve ser parecido com o estilo do

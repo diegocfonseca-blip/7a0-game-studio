@@ -27,7 +27,15 @@ dono, desenhado em código (0 KB). No mockup: Fulanos FC → F.
 ✅ **Tamanhos medidos** (ele pegou: *"totalmente desproporcional × o tamanho da
 camisa"*): peça de camisa se mede pelo CORPO (21–79% da largura), nunca pela imagem.
 
+🏬 **A loja virou VITRINE** (*"não tem uma arte foda que possa fazer também?"*):
+madeira escura, foco de luz na camisa e placa em cima, tudo em CSS (0 KB). E gerei
+4 opções de arte de loja no Canva — os links estão em `docs/proposta-loja-clube.md`.
+⚠️ Eu NÃO consigo ver nem baixar arte do Canva daqui (o proxy bloqueia os domínios,
+403): quem abre e escolhe é o Diego, e ele manda o arquivo — mesmo caminho da camisa.
+
 **Falta pra virar código de verdade:**
+0. Diego escolher uma das 4 artes de loja do Canva e mandar o arquivo (opcional: a
+   vitrine em CSS já funciona sem ela).
 1. OK visual do Diego no mockup (regra: nada visual commitado sem o OK dele).
 2. Rampa de cor dos outros tiers (hoje só o 🪵 está feita).
 3. Campo novo no save: as 2 cores do clube de quem não tem batismo (valem pra camisa

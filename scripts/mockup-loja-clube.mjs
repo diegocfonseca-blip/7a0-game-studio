@@ -52,6 +52,31 @@ const escudoBase = ({ letra, c1, c2, size = 44 }) => {
   </svg>`
 }
 
+
+// 🏬 A VITRINE DA LOJA — pedido do Diego (15/09): *"não tem uma arte foda que possa
+// fazer também?"*. A camisa numa caixa branca é catálogo; loja é vitrine. Então a
+// moldura virou cena: madeira escura, foco de luz quente em cima da camisa, chão
+// refletindo e a placa de LOJA DO CLUBE. Tudo em degradê CSS — **0 KB**, e por isso
+// funciona com QUALQUER camisa (batismo ou molde do tier) sem arquivo novo.
+// 👉 Se ele aprovar uma das artes do Canva, essa cena vira UM `.webp` e a camisa
+//    continua entrando por cima exatamente do mesmo jeito.
+const vitrine = (shirt) => `
+  <div style="position:relative;overflow:hidden;border:3px solid ${INK};border-radius:14px;box-shadow:3px 3px 0 ${INK};
+              margin-bottom:9px;background:
+                radial-gradient(120% 70% at 50% 4%, rgba(255,213,120,.42) 0%, rgba(255,196,0,.10) 38%, transparent 66%),
+                linear-gradient(#2A1B10 0%, #40281680 34%, #1A0F08 100%),
+                repeating-linear-gradient(90deg,#3A2414 0 26px,#331F11 26px 52px)">
+    <div style="position:absolute;inset:0 0 auto;height:30px;background:linear-gradient(#0B0704,#0B070400);opacity:.85"></div>
+    <div style="position:relative;text-align:center;padding:7px 0 2px">
+      <span style="${OSW};font-weight:700;font-size:10px;letter-spacing:.22em;color:#F0DFAE;text-transform:uppercase;
+                   text-shadow:0 1px 0 #000">· Loja do Clube ·</span>
+    </div>
+    <div style="position:relative;display:flex;justify-content:center;padding:2px 10px 0;
+                filter:drop-shadow(0 14px 16px rgba(0,0,0,.55))">${shirt}</div>
+    <div style="position:relative;height:34px;margin-top:-6px;background:
+                linear-gradient(#150C06,#0A0603);border-top:2px solid #54351C"></div>
+  </div>`
+
 // ── A CAMISA: a arte (imagem) + as 3 peças carimbadas por cima ──────────────
 // `pos` = onde cada peça cai NAQUELA arte, em % (arte de batismo e molde têm
 // enquadramentos diferentes, então cada uma traz as suas medidas).
@@ -113,7 +138,7 @@ const tela = ({ titulo, sub, shirt, extra, forn, master, masterPe, vendeu }) => 
   <div style="width:392px;flex:none;background:${CREME};border:3px solid ${INK};border-radius:16px;box-shadow:4px 4px 0 ${INK};padding:12px;color:${INK}">
     <div style="${OSW};font-weight:700;font-size:16px;text-transform:uppercase">🛍️ Loja do Clube</div>
     <div style="${OSW};font-weight:400;font-size:11px;opacity:.7;margin-bottom:8px">${titulo} · ${sub}</div>
-    <div style="display:flex;justify-content:center;background:#fff;border:3px solid ${INK};border-radius:14px;box-shadow:3px 3px 0 ${INK};padding:10px;margin-bottom:9px">${shirt}</div>
+    ${vitrine(shirt)}
     ${extra ?? ''}
     ${cartao('💰 Preço da camisa', `<div style="display:flex;gap:5px">${pill('Popular', '1 🪙 cada', false)}${pill('Normal', '2 🪙 cada', true)}${pill('Cara', '3 🪙 cada', false)}</div>`,
       'Barata vende pra torcida toda e rende pouco por peça. Cara rende mais e vende menos.')}
