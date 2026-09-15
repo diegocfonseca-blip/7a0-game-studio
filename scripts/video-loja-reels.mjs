@@ -11,14 +11,24 @@
 // ⚠️ A feature ainda está em TESTE FECHADO, então o vídeo diz "chegando".
 // Trocar por `--no-ar` no dia que liberar geral.
 //
-// 🎞️ Roteiro (~27 s):
-//   0,0–3,6    abriu a LOJA DO CLUBE
-//   3,6–8,0    a camisa montada: escudo · fornecedor · Master
-//   8,0–12,4   👟 o fornecedor de material — 4 marcas, o valor trava na sua divisão
-//   12,4–17,0  👥 a torcida vem do estádio que VOCÊ levanta
-//   17,0–22,2  💰 o preço é uma aposta (popular · normal · cara)
-//   22,2–24,6  🔴 se cair, não vende nada
-//   24,6–40    marca
+// ⚠️ REFEITO em 15/09 depois do corte dele: *"não gostei, não ficou claro.
+// Primeiro que são DUAS novidades. A primeira novidade é o fornecedor de material
+// esportivo, tá? E a segunda novidade é a venda de camisas. E não coloca esse
+// negócio de se não vender nada, não ganha nada — não coloca essa informação pra
+// assustar as pessoas"*.
+// Então: DUAS partes, cada uma com a sua cartela de número, e a cena do
+// rebaixamento SAIU. O vídeo anuncia, não ameaça.
+//
+// 🎞️ Roteiro (~31 s):
+//   0,0–3,4    duas novidades no modo carreira (a 1 e a 2 já listadas)
+//   3,4–5,6    CARTELA · NOVIDADE 1 · 👟 fornecedor de material
+//   5,6–10,0   uma marca veste o seu time — e aparece na camisa (destaque no peito)
+//   10,0–14,6  as 4 marcas · o valor trava na divisão em que você assina
+//   14,6–16,8  CARTELA · NOVIDADE 2 · 🛍️ venda de camisas
+//   16,8–21,2  a sua camisa vira dinheiro toda temporada (a vitrine)
+//   21,2–25,4  quanto mais arquibancada, mais camisa
+//   25,4–30,2  você escolhe o preço — cada um rende melhor num final
+//   30,2–40    marca
 //
 //   node scripts/video-loja-reels.mjs [--saida loja-reels.mp4] [--no-ar]
 import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'node:fs'
@@ -49,6 +59,15 @@ const CAMISA = (alt) => camisa({
 const pill = (txt, bg, cor, fs = 32) => `
   <span style="display:inline-block;background:${bg};color:${cor};border:4px solid ${INK};border-radius:999px;
     box-shadow:5px 5px 0 ${INK};padding:10px 32px;${OSW};font-size:${fs}px;letter-spacing:.06em;text-transform:uppercase">${txt}</span>`
+// 🔢 a CARTELA que separa as duas novidades — é ela que deixa claro que são DUAS
+const cartela = (n, emoji, titulo, atraso) => `
+  <div style="display:flex;flex-direction:column;align-items:center;animation:pop .5s cubic-bezier(.2,1.6,.4,1) ${atraso}s both">
+    <span style="display:inline-block;background:${INK};color:${GOLD};border:6px solid ${INK};border-radius:999px;
+      padding:10px 40px;${OSW};font-size:34px;letter-spacing:.14em;text-transform:uppercase">novidade ${n} de 2</span>
+    <p style="font-size:156px;line-height:1;margin:34px 0 10px">${emoji}</p>
+    <p style="${OSW};font-size:104px;text-transform:uppercase;text-align:center;line-height:.98">${titulo}</p>
+  </div>`
+
 const cena = (ini, fim, html) => `
   <div class="cena" style="animation:apar .01s linear ${ini}s both, some .01s linear ${fim}s both">${html}</div>`
 
@@ -63,6 +82,12 @@ const vitrine = (alt) => `
     <div style="height:38px;margin-top:-8px;background:linear-gradient(#150C06,#0A0603);border-top:3px solid #54351C;
       margin-left:-30px;margin-right:-30px;border-radius:0 0 22px 22px"></div>
   </div>`
+
+// 🔍 um anel piscando sobre um ponto da camisa (pra mostrar ONDE a marca entra)
+const anel = (x, y, atraso) => `
+  <div style="position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);
+    width:150px;height:150px;border:8px solid ${GOLD};border-radius:999px;box-shadow:0 0 0 5px ${INK}, inset 0 0 0 5px ${INK};
+    animation:anelp 1.1s ease-in-out ${atraso}s infinite"></div>`
 
 // uma seta apontando pra um ponto da camisa
 const ponto = (emoji, titulo, txt, atraso) => `
@@ -107,84 +132,117 @@ body{width:1080px;height:1920px;background:${CREME};font-family:system-ui;overfl
 @keyframes sobe{0%{transform:translateY(90px);opacity:0}100%{transform:translateY(0);opacity:1}}
 @keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 @keyframes sobeb{0%{transform:translateY(16px)}100%{transform:translateY(-16px)}}
+@keyframes anelp{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.95}50%{transform:translate(-50%,-50%) scale(1.14);opacity:.55}}
 </style><body>
 
-<!-- ① abertura -->
-${cena(0, 3.6, `
-  <p style="font-size:156px;line-height:1;margin-bottom:22px;animation:pop .6s cubic-bezier(.2,1.6,.4,1) .15s both">🛍️</p>
-  <p style="${OSW};font-size:120px;text-transform:uppercase;text-align:center;line-height:.98;animation:sobe .5s .4s both">
-    agora a sua<br>torcida<br><span style="color:${GREEN}">compra</span> camisa</p>
-  <p style="font-size:44px;font-weight:700;color:rgba(12,12,12,.62);margin-top:40px;text-align:center;line-height:1.35;
-    animation:sobe .5s 1.2s both">abriu a Loja do Clube — e a sua camisa<br>vira dinheiro toda temporada</p>
-  <div style="margin-top:38px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 1.8s both">${pill('modo carreira', '#fff', INK, 36)}</div>`)}
-
-<!-- ② a camisa montada -->
-${cena(3.6, 8.0, `
-  <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:26px;
-    animation:sobe .45s 3.75s both">a camisa do<br><span style="color:${GREEN}">seu clube</span></p>
-  <div style="animation:pop .55s cubic-bezier(.2,1.6,.4,1) 4.1s both">${vitrine(430)}</div>
-  <p style="font-size:38px;font-weight:800;color:rgba(12,12,12,.68);margin-top:34px;text-align:center;line-height:1.3;
-    animation:sobe .45s 5.0s both">escudo no peito esquerdo · fornecedor no direito<br>e o seu Master na barriga</p>`)}
-
-<!-- ③ o fornecedor de material -->
-${cena(8.0, 12.4, `
-  <p style="font-size:120px;line-height:1;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 8.15s both">👟</p>
-  <p style="${OSW};font-size:82px;text-transform:uppercase;text-align:center;line-height:1;margin:14px 0 8px;
-    animation:sobe .45s 8.4s both">fornecedor<br>de <span style="color:${GREEN}">material</span></p>
-  <p style="font-size:34px;font-weight:800;color:rgba(12,12,12,.62);margin-bottom:22px;text-align:center;
-    animation:sobe .45s 8.7s both">contrato de 1, 2, 3 ou 5 temporadas — igual ao Master</p>
-  <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
-    ${marca('⚡', '#8A1E1E', 'Pênalti do Bairro', '1 temporada', 10, 9.0)}
-    ${marca('◣', '#0E3E86', 'Adibas', '2 temporadas', 20, 9.2)}
-    ${marca('🐆', '#B5651D', 'Pumba', '3 temporadas', 30, 9.4)}
-    ${marca('✓', GREEN, 'Naique', '5 temporadas', 45, 9.6)}
-  </div>
-  <p style="font-size:32px;font-weight:800;color:rgba(12,12,12,.6);margin-top:24px;text-align:center;line-height:1.3;
-    animation:sobe .45s 10.2s both">🔒 o valor trava na divisão em que você assina —<br>subiu ou caiu, o contrato não quebra</p>`)}
-
-<!-- ④ a torcida vem do estádio -->
-${cena(12.4, 17.0, `
-  <p style="font-size:130px;line-height:1;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 12.55s both">👥</p>
-  <p style="${OSW};font-size:88px;text-transform:uppercase;text-align:center;line-height:1;margin:16px 0 10px;
-    animation:sobe .45s 12.8s both">quanto mais<br><span style="color:${GREEN}">arquibancada</span><br>mais camisa</p>
-  <p style="font-size:38px;font-weight:800;color:rgba(12,12,12,.66);text-align:center;line-height:1.3;margin-bottom:30px;
-    animation:sobe .45s 13.2s both">a sua torcida cresce com o estádio que VOCÊ levanta</p>
-  <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
-    ${ponto('🏟️', 'cada setor pronto', 'mais gente no estádio = mais gente na loja', 13.6)}
-    ${ponto('🍔', 'praça, choperia, estação…', 'cada obra soma nas vendas da temporada', 13.9)}
-    ${ponto('🛍️', 'precisa da Loja construída', 'sem ela não há venda nem fornecedor', 14.2)}
+<!-- ① abertura: são DUAS novidades, e já diz quais -->
+${cena(0, 3.4, `
+  <p style="${OSW};font-size:124px;text-transform:uppercase;text-align:center;line-height:.98;
+    animation:sobe .5s .2s both">duas<br><span style="color:${GREEN}">novidades</span></p>
+  <p style="font-size:42px;font-weight:800;color:rgba(12,12,12,.6);margin:22px 0 40px;text-align:center;
+    animation:sobe .5s .6s both">no modo carreira</p>
+  <div style="display:flex;flex-direction:column;gap:18px;align-items:center">
+    <div style="display:flex;align-items:center;gap:22px;width:900px;background:#fff;border:6px solid ${INK};border-radius:26px;
+      box-shadow:8px 8px 0 ${INK};padding:22px 30px;animation:entra .5s cubic-bezier(.2,1.5,.4,1) 1.1s both">
+      <span style="flex:none;width:78px;height:78px;border:6px solid ${INK};border-radius:20px;background:${GOLD};
+        display:flex;align-items:center;justify-content:center;${OSW};font-size:46px">1</span>
+      <span style="text-align:left">
+        <span style="display:block;${OSW};font-size:50px;text-transform:uppercase;line-height:1.05">👟 fornecedor</span>
+        <span style="display:block;font-size:33px;font-weight:800;color:rgba(12,12,12,.6)">de material esportivo</span>
+      </span>
+    </div>
+    <div style="display:flex;align-items:center;gap:22px;width:900px;background:#fff;border:6px solid ${INK};border-radius:26px;
+      box-shadow:8px 8px 0 ${INK};padding:22px 30px;animation:entra .5s cubic-bezier(.2,1.5,.4,1) 1.5s both">
+      <span style="flex:none;width:78px;height:78px;border:6px solid ${INK};border-radius:20px;background:${GOLD};
+        display:flex;align-items:center;justify-content:center;${OSW};font-size:46px">2</span>
+      <span style="text-align:left">
+        <span style="display:block;${OSW};font-size:50px;text-transform:uppercase;line-height:1.05">🛍️ venda</span>
+        <span style="display:block;font-size:33px;font-weight:800;color:rgba(12,12,12,.6)">de camisas</span>
+      </span>
+    </div>
   </div>`)}
 
-<!-- ⑤ o preço é uma aposta -->
-${cena(17.0, 22.2, `
-  <p style="font-size:120px;line-height:1;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 17.15s both">🎲</p>
-  <p style="${OSW};font-size:88px;text-transform:uppercase;text-align:center;line-height:1;margin:14px 0 10px;
-    animation:sobe .45s 17.4s both">o preço é<br>uma <span style="color:${GREEN}">aposta</span></p>
-  <p style="font-size:36px;font-weight:800;color:rgba(12,12,12,.66);text-align:center;line-height:1.3;margin-bottom:28px;
-    animation:sobe .45s 17.7s both">você escolhe ANTES da temporada começar</p>
-  <div style="display:flex;gap:16px;width:940px">
-    ${precoCard('Popular', 1, 'se só se manter', GREEN, 18.1)}
-    ${precoCard('Normal', 2, 'se pegar o acesso', '#B8860B', 18.35)}
-    ${precoCard('Cara', 3, 'se for campeão', RED, 18.6)}
+<!-- ② CARTELA da novidade 1 -->
+${cena(3.4, 5.6, cartela(1, '👟', 'fornecedor<br>de material', 3.55))}
+
+<!-- ③ o que é: a marca veste o time e APARECE na camisa -->
+${cena(5.6, 10.0, `
+  <p style="${OSW};font-size:74px;text-transform:uppercase;text-align:center;line-height:1.02;margin-bottom:8px;
+    animation:sobe .45s 5.75s both">uma marca<br><span style="color:${GREEN}">veste o seu time</span></p>
+  <p style="font-size:36px;font-weight:800;color:rgba(12,12,12,.62);margin-bottom:24px;text-align:center;
+    animation:sobe .45s 6.05s both">e aparece na camisa, no peito direito</p>
+  <div style="position:relative;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 6.35s both">
+    ${vitrine(400)}
+    ${anel(31, 46, 7.0)}
   </div>
-  <p style="font-size:36px;font-weight:800;color:rgba(12,12,12,.7);margin-top:34px;text-align:center;line-height:1.35;
-    animation:sobe .45s 19.4s both">camisa cara com o time brigando pra não cair<br><span style="color:${RED}">é prejuízo</span> — a popular renderia o dobro</p>`)}
+  <p style="font-size:34px;font-weight:800;color:rgba(12,12,12,.62);margin-top:26px;text-align:center;line-height:1.3;
+    animation:sobe .45s 7.6s both">contrato de 1, 2, 3 ou 5 temporadas —<br>igual ao Patrocinador Master</p>`)}
 
-<!-- ⑥ se cair, não vende nada -->
-${cena(22.2, 24.6, `
-  <p style="font-size:150px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 22.35s both">🔴</p>
-  <p style="${OSW};font-size:104px;text-transform:uppercase;text-align:center;line-height:1;margin:18px 0 14px;
-    animation:sobe .45s 22.6s both">se cair,<br><span style="color:${RED}">não vende<br>nada</span></p>
-  <p style="font-size:40px;font-weight:800;color:rgba(12,12,12,.66);text-align:center;line-height:1.3;
-    animation:sobe .45s 23.0s both">em qualquer preço — mais um motivo<br>pra não flertar com o Z4</p>`)}
+<!-- ④ as 4 marcas + a trava do valor -->
+${cena(10.0, 14.6, `
+  <p style="${OSW};font-size:76px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:22px;
+    animation:sobe .45s 10.15s both">quatro marcas<br><span style="color:${GREEN}">na mesa</span></p>
+  <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+    ${marca('⚡', '#8A1E1E', 'Pênalti do Bairro', '1 temporada', 10, 10.5)}
+    ${marca('◣', '#0E3E86', 'Adibas', '2 temporadas', 20, 10.7)}
+    ${marca('🐆', '#B5651D', 'Pumba', '3 temporadas', 30, 10.9)}
+    ${marca('✓', GREEN, 'Naique', '5 temporadas', 45, 11.1)}
+  </div>
+  <p style="font-size:32px;font-weight:800;color:rgba(12,12,12,.58);margin-top:18px;text-align:center;
+    animation:sobe .45s 11.6s both">a porcentagem é o que ela soma nas vendas da sua loja</p>
+  <div style="margin-top:26px;width:900px;background:${INK};border-radius:24px;padding:22px 28px;
+    animation:entra .5s cubic-bezier(.2,1.5,.4,1) 12.2s both">
+    <p style="${OSW};font-size:44px;color:${GOLD};text-transform:uppercase">🔒 o valor trava na sua divisão</p>
+    <p style="font-size:32px;font-weight:800;color:rgba(244,236,214,.9);margin-top:8px;line-height:1.3">
+      assinou na Série D? é o valor da Série D até o fim —<br>subiu ou caiu, o contrato não quebra</p>
+  </div>`)}
 
-<!-- ⑦ marca -->
-${cena(24.6, 40, `
-  <p style="font-size:146px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 24.75s both">🛍️</p>
+<!-- ⑤ CARTELA da novidade 2 -->
+${cena(14.6, 16.8, cartela(2, '🛍️', 'venda<br>de camisas', 14.75))}
+
+<!-- ⑥ a loja: a camisa vira dinheiro -->
+${cena(16.8, 21.2, `
+  <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:8px;
+    animation:sobe .45s 16.95s both">a sua camisa<br><span style="color:${GREEN}">vira dinheiro</span></p>
+  <p style="font-size:36px;font-weight:800;color:rgba(12,12,12,.62);margin-bottom:24px;text-align:center;
+    animation:sobe .45s 17.25s both">a torcida compra, e entra no caixa toda temporada</p>
+  <div style="animation:pop .55s cubic-bezier(.2,1.6,.4,1) 17.55s both">${vitrine(400)}</div>
+  <p style="font-size:34px;font-weight:800;color:rgba(12,12,12,.62);margin-top:26px;text-align:center;line-height:1.3;
+    animation:sobe .45s 18.6s both">o balanço aparece na abertura<br>da temporada seguinte</p>`)}
+
+<!-- ⑦ a torcida vem do estádio -->
+${cena(21.2, 25.4, `
+  <p style="font-size:126px;line-height:1;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 21.35s both">👥</p>
+  <p style="${OSW};font-size:84px;text-transform:uppercase;text-align:center;line-height:1;margin:14px 0 10px;
+    animation:sobe .45s 21.6s both">quanto mais<br><span style="color:${GREEN}">arquibancada</span><br>mais camisa</p>
+  <p style="font-size:37px;font-weight:800;color:rgba(12,12,12,.64);text-align:center;line-height:1.3;margin-bottom:26px;
+    animation:sobe .45s 21.95s both">a sua torcida cresce com o estádio que VOCÊ levanta</p>
+  <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+    ${ponto('🏟️', 'cada setor pronto', 'mais gente no estádio = mais gente na loja', 22.3)}
+    ${ponto('🍔', 'praça, choperia, estação…', 'cada obra soma nas vendas da temporada', 22.6)}
+  </div>`)}
+
+<!-- ⑧ o preço que você escolhe -->
+${cena(25.4, 30.2, `
+  <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:8px;
+    animation:sobe .45s 25.55s both">você escolhe<br><span style="color:${GREEN}">o preço</span></p>
+  <p style="font-size:36px;font-weight:800;color:rgba(12,12,12,.62);margin-bottom:26px;text-align:center;line-height:1.3;
+    animation:sobe .45s 25.85s both">cada um rende melhor num final de temporada</p>
+  <div style="display:flex;gap:16px;width:940px">
+    ${precoCard('Popular', 1, 'se só se manter', GREEN, 26.2)}
+    ${precoCard('Normal', 2, 'se pegar o acesso', '#B8860B', 26.45)}
+    ${precoCard('Cara', 3, 'se for campeão', ROXO, 26.7)}
+  </div>
+  <p style="font-size:36px;font-weight:800;color:rgba(12,12,12,.7);margin-top:32px;text-align:center;line-height:1.35;
+    animation:sobe .45s 27.5s both">camisa barata a torcida toda leva.<br>camisa cara, campeão vende que é uma beleza.</p>`)}
+
+<!-- ⑨ marca -->
+${cena(30.2, 44, `
+  <p style="font-size:146px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 30.35s both">🛍️</p>
   <p style="${OSW};font-size:92px;text-transform:uppercase;text-align:center;line-height:1;margin:20px 0 32px;
-    animation:sobe .45s 25.05s both">chega no<br><span style="color:${GREEN}">modo carreira</span></p>
-  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 25.5s both">${pill(NO_AR ? 'já está no ar' : 'chegando', GOLD, INK, 40)}</div>
-  <p style="${OSW};font-size:64px;margin-top:58px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 26.0s infinite">
+    animation:sobe .45s 30.65s both">chega no<br><span style="color:${GREEN}">modo carreira</span></p>
+  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 31.1s both">${pill(NO_AR ? 'já está no ar' : 'chegando', GOLD, INK, 40)}</div>
+  <p style="${OSW};font-size:64px;margin-top:58px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 31.6s infinite">
     ⚽ Leilão <span style="color:${RED}">Legends</span></p>
   <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.55);margin-top:12px">leilaolegends.com</p>`)}
 </body>`
@@ -200,7 +258,7 @@ const ctx = await b.newContext({ viewport: { width: 1080, height: 1920 }, record
 const vp = await ctx.newPage()
 await vp.goto('file://' + vtmp)
 await vp.evaluate(() => document.fonts.ready)
-await vp.waitForTimeout(28200)
+await vp.waitForTimeout(33400)
 await ctx.close()
 await b.close()
 

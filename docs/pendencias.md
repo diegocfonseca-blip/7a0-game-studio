@@ -296,17 +296,35 @@ quiser a troca de volta, o lugar natural é o bloco da virada aparecer também q
 DIVISÃO muda (que é quando o cargo muda de degrau).
 
 ### 🎬 Reels da Loja + fornecedor
-`node scripts/video-loja-reels.mjs [--saida x.mp4] [--no-ar]` — 1080×1920, ~28 s, a
+`node scripts/video-loja-reels.mjs [--saida x.mp4] [--no-ar]` — 1080×1920, ~31 s, a
 mesma técnica dos outros reels (cenas em keyframes de CSS, Playwright grava a tela,
-ffmpeg converte). 7 cenas: abertura · a camisa montada na vitrine · o fornecedor com as
-4 marcas · a torcida vem do estádio · o preço é uma aposta · se cair não vende nada ·
-marca. A camisa é montada pelas peças de verdade (`loja-pecas.mjs`).
+ffmpeg converte). A camisa é montada pelas peças de verdade (`loja-pecas.mjs`).
 ⏳ Diz "chegando"; `--no-ar` troca no dia que liberar geral.
+
+🔴 **O 1º corte foi REPROVADO — e as duas correções viraram regra pra qualquer vídeo
+com mais de uma novidade.** Palavras do Diego (15/09): *"não gostei, não ficou claro.
+Primeiro que são duas novidades. A primeira novidade é o fornecedor de material
+esportivo… e a segunda novidade é a venda de camisas. E não coloca esse negócio assim
+de se não vender nada, não ganha nada. Não coloca essa informação para assustar as
+pessoas não"*. Traduzindo:
+1. **Novidade separada é CARTELA separada e NUMERADA na tela.** O vídeo abre listando
+   as duas (1️⃣ fornecedor · 2️⃣ venda de camisas) e cada bloco entra com a cartela
+   "NOVIDADE 1 DE 2" / "NOVIDADE 2 DE 2". Não misturar dois assuntos num fluxo só —
+   foi exatamente isso que ficou confuso.
+2. **Nada de cena de castigo em post/vídeo.** A cena "🔴 se cair, não vende nada" foi
+   APAGADA. A regra do jogo continua valendo (rebaixado vende zero), mas divulgação
+   vende o que a pessoa GANHA — quem assusta não atrai. Vale pro post também.
+Roteiro do corte aprovado (9 cenas): as duas novidades listadas · CARTELA 1 👟 · uma
+marca veste o seu time (com anel dourado marcando o lugar da marca na camisa) · as 4
+marcas + o valor trava na divisão · CARTELA 2 🛍️ · a sua camisa vira dinheiro · quanto
+mais arquibancada, mais camisa · você escolhe o preço · marca.
 
 ### 📢 Stories da venda de camisas
 `node scripts/post-loja-camisas.mjs [--saida x.png] [--no-ar]` — o irmão do post do
 fornecedor, mesmo molde. Mostra a vitrine, os 3 preços com o que cada um é bom pra
-fazer, a aposta e o "se cair não vende nada". Sem tabela de valores, como ele pediu.
+fazer, a aposta e o que o fornecedor soma em cima. Sem tabela de valores, como ele
+pediu — e **sem a caixa "se cair não vende nada"**, tirada junto com a do vídeo pela
+mesma ordem dele (divulgação mostra o que se ganha, não o castigo).
 
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora

@@ -107,12 +107,12 @@ const html = `<!doctype html><meta charset="utf-8">
 
 <div class="so">
   <h2>🎲 O preço é uma aposta</h2>
-  <p>Você escolhe <b>antes</b> da temporada. Camisa cara com o time brigando pra não cair é <b>prejuízo</b> — a popular renderia o dobro. Campeão é o contrário.</p>
+  <p>Você escolhe <b>antes</b> da temporada, apostando em como o time vai indo. Ano de campeão, a camisa cara <b>rende o dobro</b>; ano de arrumar a casa, a popular é a que enche o caixa.</p>
 </div>
 
 <div class="c">
-  <h3>🔴 Se cair, não vende nada</h3>
-  <p>Em <b>qualquer</b> preço. Mais um motivo pra não flertar com o Z4.</p>
+  <h3>👟 E o fornecedor soma em cima</h3>
+  <p>A marca de material que veste o seu time <b>aumenta a venda</b> da loja — marca grande, porcentagem maior.</p>
 </div>
 
 <div class="shh">
