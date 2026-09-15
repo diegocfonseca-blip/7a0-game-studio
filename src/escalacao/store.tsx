@@ -15,7 +15,7 @@ import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from '
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
 import type { DivTecnico } from './tecnicos'
@@ -1097,21 +1097,30 @@ function spawnCria(s: EscState, m: Manager, pos: Sector, saiu: string, rng: () =
 // repetido, então o botão CONFIRMAR não fazia nada e não explicava nada.
 // Agora nunca mais: acabou o pote, o nome ganha número ("Zezinho 73º"), que é
 // exatamente o que o jogo já fazia sozinho quando o cria sobe por lesão.
+// 🌱 UM NOME DE GURI QUE AINDA NÃO EXISTE NESTA CARREIRA.
+// 15/09 — o Diego cobrou o "Cotoco 33º": *"parecem robôs pow… o jogador não foi vendido
+// do time, ele é o mesmo da base de sempre"*. Acabados os 30 nomes soltos, agora vem
+// APELIDO DE VÁRZEA ("Cotoco da Vila"), não contador. São 672 combinações — o número
+// virou só a última rede de segurança, pra função nunca devolver nome repetido.
+export function proximoNomeCria(usados: Set<string>, rng: () => number): string {
+  const livres = CRIA_NOMES.filter(nm => !usados.has(nm))
+  if (livres.length) return livres[Math.floor(rng() * livres.length)]
+  // 📏 só nome de UMA palavra ganha apelido — senão sairia "Zé Pequeno da Base do Morro"
+  const combos: string[] = []
+  for (const nm of CRIA_NOMES) {
+    if (nm.includes(' ')) continue
+    for (const ap of CRIA_APELIDOS) { const c = `${nm} ${ap}`; if (!usados.has(c)) combos.push(c) }
+  }
+  if (combos.length) return combos[Math.floor(rng() * combos.length)]
+  // 672 nomes usados na MESMA carreira (não acontece): aí sim numera, pra não repetir
+  for (let k = usados.size + 1; ; k++) { const nm = `${CRIA_NOMES[0]} ${k}º`; if (!usados.has(nm)) return nm }
+}
 export function previewCriaNomes(jaUsados: string[], rng: () => number, n = 3): string[] {
   const usados = new Set(jaUsados)
-  const livres = CRIA_NOMES.filter(nm => !usados.has(nm))
   const escolhidos: string[] = []
-  const tentados = new Set<string>()
-  while (escolhidos.length < n && tentados.size < livres.length) {
-    const nm = livres[Math.floor(rng() * livres.length)]
-    if (tentados.has(nm)) continue
-    tentados.add(nm)
-    escolhidos.push(nm)
-  }
-  // pote seco: numera, sem nunca devolver um nome que já existe nesta carreira
-  for (let k = usados.size + 1; escolhidos.length < n; k++) {
-    const nm = `${CRIA_NOMES[Math.floor(rng() * CRIA_NOMES.length)]} ${k}º`
-    if (usados.has(nm) || escolhidos.includes(nm)) continue
+  while (escolhidos.length < n) {
+    const nm = proximoNomeCria(usados, rng)
+    usados.add(nm) // as 3 opções da tela nunca vêm repetidas entre si
     escolhidos.push(nm)
   }
   return escolhidos
@@ -1132,9 +1141,7 @@ function spawnCriaCore(s: EscState, m: Manager, pos: Sector, saiu: string, rng: 
   let nome: string
   if (forcedName) nome = forcedName
   else {
-    const usados = new Set(s.criaNames ?? [])
-    const livres = CRIA_NOMES.filter(n => !usados.has(n))
-    nome = livres.length ? livres[Math.floor(rng() * livres.length)] : `${CRIA_NOMES[Math.floor(rng() * CRIA_NOMES.length)]} ${((s.criaNames?.length ?? 0) + 1)}º`
+    nome = proximoNomeCria(new Set(s.criaNames ?? []), rng)
   }
   s.criaNames = [...(s.criaNames ?? []), nome]
   const cria = { id: `cria-${pos}-${nextBuildTok()}`, name: nome, club: 'Sub-20', year: new Date().getFullYear(), pos, fame: 1, lo: 48, hi: 58, cria: true } as Card

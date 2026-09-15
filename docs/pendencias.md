@@ -1,3 +1,35 @@
+## 15/09/2026 — 🌱 Cria da Base ganha apelido de várzea (adeus "Cotoco 33º") — ✅ no ar
+
+Cobrança do Diego: *"não gostei desses nomes Cotoco 33, Pimentinha 25, não ficou bom desse
+jeito, parecem robôs pow… até porque o jogador não foi vendido do time, ele é o mesmo da
+base de sempre"*.
+
+### O que era
+`CRIA_NOMES` tem 30 nomes. Acabados, o código colava o CONTADOR no fim
+(`${nome} ${k}º`) — em `previewCriaNomes` e em `spawnCriaCore`. Era a engrenagem
+aparecendo na cara de quem joga: o jogador via o jogo contando, não um moleque do clube.
+
+### O que ficou
+`proximoNomeCria(usados, rng)` (store.tsx) é agora a porta ÚNICA — os dois lugares usam
+ela. Ordem: nome solto que ainda não saiu → nome + **apelido de várzea**
+(`CRIA_APELIDOS`, 24 deles: da Vila, do Campinho, Canhoto, Foguete, Bala…) → e só então,
+como última rede, o número. São **30 + 672 = 702 nomes** antes de qualquer dígito, ou
+seja: na prática o número nunca mais aparece.
+📏 Só nome de UMA palavra ganha apelido — senão sairia "Zé Pequeno da Base do Morro".
+Exemplos reais do gerador: *Cotoco do Campinho · Chulé Bala · Pintinho Canhoto ·
+Neneca da Vila*.
+
+`scripts/testa-nomes-cria.mjs`: gera 120 crias na mesma carreira e confere que nenhum tem
+número, nenhum repete, os 30 primeiros continuam os de sempre, nome composto não ganha
+apelido e as 3 opções da tela nunca vêm repetidas.
+
+🚫 Não virou novidade da home: é conserto de apresentação, não feature.
+
+### Reverter
+Um commit. Nomes já gravados em save (`criaNames`) continuam como estão — a mudança vale
+só pros PRÓXIMOS guris que sobem.
+
+---
 ## 15/09/2026 — 🩹 Lesão por desgaste: 15%→5% e 30%→10% — ✅ no ar
 
 ⚠️ **O Diego desanimou de jogar o próprio jogo.** Palavras dele: *"tô achando bem chato

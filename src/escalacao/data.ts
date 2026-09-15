@@ -2592,6 +2592,20 @@ export const newestTeamName = (name: string): string => {
 // 🌱 nomes dos CRIAS DA BASE (contratos: tapa-buraco quando o técnico deixa um
 // jogador ir). Cada entrada na carreira usa um nome NOVO (o jogo não repete).
 export const CRIA_NOMES = ['Zezinho', 'Guri', 'Pituquinha', 'Neneca', 'Cabecinha', 'Juninho Pipoca', 'Toquinho', 'Buiú', 'Sapinho', 'Carequinha', 'Foguinho', 'Pezão', 'Miudinho', 'Bidu', 'Cotoco', 'Mirim', 'Formiguinha', 'Pintinho', 'Grilo', 'Peninha', 'Xandoca', 'Tonhinho', 'Ratinho', 'Biscoito', 'Chulé', 'Fubá', 'Pipoquinha', 'Zé Pequeno da Base', 'Canelinha', 'Tampinha']
+// 🌱 APELIDO DE VÁRZEA em vez de NÚMERO (Diego 15/09). Palavras dele: *"não gostei desses
+// nomes Cotoco 33, Pimentinha 25, não ficou bom desse jeito, parecem robôs pow… até porque
+// o jogador não foi vendido do time, ele é o mesmo da base de sempre"*.
+// Ele tinha razão: acabados os 30 nomes, o código colava o CONTADOR no fim — era a
+// engrenagem aparecendo na cara de quem joga. Agora o guri ganha apelido, como todo
+// moleque de campinho: "Cotoco da Vila", "Pimentinha Foguete".
+// 📏 Só nomes de UMA palavra entram na combinação (senão sai "Zé Pequeno da Base do
+// Morro"), o que dá 28 × 24 = 672 nomes antes de qualquer número — ou seja, nunca.
+export const CRIA_APELIDOS = [
+  'da Vila', 'do Morro', 'do Campinho', 'da Ponte', 'do Beco', 'da Pracinha',
+  'da Várzea', 'do Areião', 'da Quebrada', 'do Bairro', 'da Lagoa', 'do Matinho',
+  'Canhoto', 'Foguete', 'Ligeiro', 'Teimoso', 'Danado', 'Bala', 'Raio',
+  'Peixinho', 'Sombra', 'Carrapato', 'Chicote', 'Trovão',
+]
 
 export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Bilu', team: 'Unidos da Resenha' },
