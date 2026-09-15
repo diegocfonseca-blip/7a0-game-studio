@@ -47,3 +47,21 @@
   .ll-home .ll-header .ll-lang button{padding:2px 6px!important;font-size:11px!important}
   .ll-brand{font-size:19px}
 }
+
+/* 📬 Contato sutil no rodapé da home (Diego 15/09). O rodapé geral do jogo fica
+   escondido aqui (regra acima), então o Instagram e o e-mail voltam POR DENTRO do
+   `.ll-web`, no mesmo tom apagado — é recado, não banner. */
+.ll-footer .ll-web{text-align:right;line-height:1.5}
+.ll-footer .ll-contato{display:block;margin-top:3px;font:11px/1.45 Arial;color:#928f80}
+.ll-footer .ll-contato a{white-space:nowrap;color:#d3ccb6;text-decoration:none;border-bottom:1px solid rgba(211,204,182,.32)}
+.ll-footer .ll-contato a:hover{color:#ffc400;border-bottom-color:#ffc400}
+@media(max-width:650px){
+  .ll-footer .ll-web{text-align:center}
+  .ll-footer .ll-contato{font-size:10px;margin-top:2px}
+  /* ⚠️ o rodapé do celular é COLUNA: a linha de contato o deixa ~28px mais alto e
+     ele encostava no botão do Salão dos Batismos (medido: 21px de sobreposição).
+     Sobe o bloco dos modos na mesma medida e dá a mesma folga de altura à home —
+     é o mesmo remendo que o próprio Salão já usa nas duas primeiras regras do arquivo. */
+  .ll-home:has(.ll-salao-entry){min-height:936px}
+  .ll-home .ll-choices{bottom:136px}
+}
