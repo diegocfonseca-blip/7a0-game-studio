@@ -5427,28 +5427,7 @@ export function EscSeason() {
         })()}</span>
       </div>
     }>
-      {/* 🎮 RITMO DA COPA FICA NO TOPO (Diego 14/09, na live do Meia na Canela):
-          na liga a barra de manual/auto aparece logo no começo da tela, mas na
-          Copa ela caía DEPOIS do chaveamento inteiro e da lista de confrontos —
-          ou seja, lá no fim da página, onde ninguém acha. Palavras dele: *"esse
-          botão de manual e auto ficou ruim lá embaixo nas copas do online, tem
-          que ficar em cima também, igual tava na liga"*. É a MESMA peça, só
-          montada aqui em cima; quem vê o quê não mudou (velocidade pra quem está
-          no manual, botões pra quem conduz). Vale pra Copa dos 8 e pra Libertadores. */}
-      {copaLive && (
-        <>
-          {manual && !state.dinastiaPaused && (
-            <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
-          )}
-          {(!online || streamHost) && (
-            <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
-              lock={manualLocked ? <QuickManualLock /> : undefined}
-              onNext={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
-              onSkip={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
-              nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (cupNow ? LS('🏆 Iniciar a NBA Cup', '🏆 Start the NBA Cup') : libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (cupNow ? LS('🏀 Próximo jogo da NBA Cup', '🏀 Next NBA Cup game') : libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
-          )}
-        </>
-      )}
+      {/* (o RITMO da Copa é montado mais abaixo, COLADO nas abas — veja lá) */}
       {copaLive && qc ? (() => {
         // 🏀 os PLAYOFFS têm nome próprio em cada fase (1ª rodada → semis de conf. →
         // finais de conf. → FINALS); a NBA CUP é copa normal (quartas → semi → final).
@@ -5635,6 +5614,30 @@ export function EscSeason() {
                   )}
                 </div>
               </Box>
+            )}
+            {/* 🎮 O RITMO DA COPA MORA COLADO NAS ABAS (Diego 15/09, vendo a live de novo):
+                *"cadê o botão de manual e auto? não tô vendo. Aí depois foi pras quartas —
+                era pra continuar colado ali próximo das abas de jogos, tabela e etc"*.
+                📜 É a 2ª volta do mesmo assunto, e NÃO é um desmanche da 1ª: em 14/09 ele
+                reclamou que na Copa o manual/auto caía LÁ EMBAIXO, depois do chaveamento
+                inteiro, e mandou subir. Subiu — só que foi parar ANTES do cartaz da fase,
+                separado das abas pelo chaveamento todo. Na LIGA a peça fica logo ACIMA das
+                abas, e é esse lugar que ele reconhece. Agora é o mesmo lugar nas duas.
+                ⚠️ Não mover pro topo nem pro fim de novo sem falar com ele — já foi aos
+                dois extremos. */}
+            {copaLive && (
+              <>
+                {manual && !state.dinastiaPaused && (
+                  <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
+                )}
+                {(!online || streamHost) && (
+                  <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
+                    lock={manualLocked ? <QuickManualLock /> : undefined}
+                    onNext={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
+                    onSkip={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
+                    nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (cupNow ? LS('🏆 Iniciar a NBA Cup', '🏆 Start the NBA Cup') : libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (cupNow ? LS('🏀 Próximo jogo da NBA Cup', '🏀 Next NBA Cup game') : libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
+                )}
+              </>
             )}
             {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
             {myTie ? (
