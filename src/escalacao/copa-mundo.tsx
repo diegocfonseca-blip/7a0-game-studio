@@ -20,7 +20,7 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // placar AO VIVO oficial (relógio 0→90', GOOOL, bump) + pênaltis com suspense —
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
-import { LiveScoreCard, PensShootout, pensRevealDelay, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill } from './pyramidseason'
+import { LiveScoreCard, PensShootout, pensRevealDelay, AUTO_EXTRA_MS as COPA_AUTO_EXTRA_MS, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill } from './pyramidseason'
 import { disputaPenaltis } from './penaltis'
 import { clockMinute, type CopaClockController } from './copa-clock-preview'
 import { copaStats } from './copa-stats'
@@ -894,7 +894,12 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   // tempo tá muito rápido dos jogos da Copa"*. Com 4 grupos rolando juntos não
   // dá tempo de ler nada em 9s — na sala a rodada respira 14s. O controle de
   // velocidade continua ali pra quem quiser correr (ou ir mais devagar ainda).
-  const roundMs = synced?.row?.duration_ms ?? Math.round((online ? 14000 : 9000) / speed)
+  // ⏱️ +1s SÓ NO AUTO (15/09, Diego: *"aumente p 1s a simulação dos jogos das Copas nos
+  // jogos rolando no modo auto… nos modos online e no off-line do modo carreira"*) —
+  // a MESMA regra que a partida da liga segue desde 13/09. No manual quem manda no ritmo
+  // é o 🐢/⏩ do técnico. Na sala com relógio sincronizado quem soma o segundo é o banco
+  // (`esc_copa_preview_clock`), pra todo mundo ver o mesmo minuto.
+  const roundMs = synced?.row?.duration_ms ?? Math.round(((online ? 14000 : 9000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
 
   const localLiveMin = useLiveMin(roundKey, roundMs, liveDone)
   const liveMin = synced ? synced.row ? clockMinute(synced.row, synced.now) : 0 : localLiveMin

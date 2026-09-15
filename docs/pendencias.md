@@ -1,3 +1,52 @@
+## 15/09/2026 — ⏱️ +1s nos jogos de Copa no AUTO — ✅ no ar
+
+Pedido do Diego: *"aumente p 1s a simulação dos jogos das Copas nos jogos rolando no modo
+auto, nos jogos das copas dos modos online e no off-line do modo carreira tb"*.
+
+⚠️ **A frase é ambígua de propósito anotar**: "aumente **p**ra 1s" com os jogos hoje em
+9-15s podia ser lido como "deixe em 1 segundo" (ou seja, 10× mais rápido). Perguntei, e ele
+confirmou **+1s em cada**. O que decidiu a leitura foi o próprio repo: em 13/09 ele já tinha
+pedido a mesma coisa pra liga com as mesmas palavras (*"aumente mais 1s o tempo da simulação
+da partida no modo carreira em auto"*) — é o `AUTO_EXTRA_MS` de `pyramidseason.tsx`.
+
+### Como ficou (SÓ no auto; no manual o ritmo é do 🐢/⏩ e do botão, como sempre)
+| onde | antes | agora |
+|---|---|---|
+| Copa do Brasil / Libertadores — carreira (offline e online) | 9s | **10s** |
+| Copa do Jogo Rápido / online | 15s | **16s** |
+| Copa do Mundo — carreira | 9s | **10s** |
+| Copa do Mundo — sala online | 14s | **15s** |
+
+### Onde mexeu
+`AUTO_EXTRA_MS` virou **exportado** e é a fonte única do segundo extra, em três lugares:
+· `pyramidseason.tsx` — `copaLegMs` na `PyramidSeasonScreen`, passado pro card do seu jogo
+  (`legMs`) **e** pro relógio da lista de confrontos. ⚠️ Os dois TÊM que sair do mesmo
+  número, senão o seu jogo apita fora de hora em relação aos outros (o comentário do
+  arquivo já avisava disso).
+· `screens.tsx` — `copaLegMs` na `EscSeason`, usado nos TRÊS relógios da Copa rápida
+  (avanço da perna, minuto do placar, card do seu jogo).
+· `copa-mundo.tsx` — o `roundMs` quando o relógio NÃO é o sincronizado da sala.
+
+### 🗄️ E uma linha no banco (a Copa do Mundo da SALA)
+Na sala o relógio é carimbado pelo banco (`esc_copa_preview_clock`), pra todo mundo ver o
+mesmo minuto — então o +1s tinha que ser lá: `duration_ms` do comando `next` virou
+`case when r.manual then 14000 else 15000 end`. Migration `copa_mundo_sala_auto_mais_1s`.
+Conferido depois: travas de login e de "só o dono comanda" intactas, `anon` continua sem
+execute, `security invoker` e `search_path=''` preservados.
+
+⚠️ **Achado no caminho:** `docs/sql/online-copa-clock-preview.sql` **não é o retrato do que
+está no ar** — a função viva já não tem a lista dos dois e-mails de teste (virou "precisa
+estar logado" quando o visual online foi liberado). Reaplicar aquele arquivo inteiro
+fecharia a Copa da sala pra todo mundo que não é o Diego. Pus um aviso no topo do arquivo.
+A migration foi montada em cima do `prosrc` LIDO do banco, não do arquivo.
+
+### Reverter
+Código: um commit. Banco: `create or replace` com `14000/r.speed` de volta no lugar do
+`case`. Nada de save, nada de resultado de jogo — é só ritmo de animação.
+
+🚫 Não virou novidade da home (é ajuste de ritmo a pedido dele, não feature nova de jogador).
+
+---
 ## 15/09/2026 — 🐛 "Chamar mais gente" não contava quem entrou depois — ✅ no ar
 
 Relato do Bruno (print que o Diego mandou, 21:50): *"fica dando um erro quando tu volta
