@@ -169,17 +169,21 @@ export function useAgenciaLiberada(): boolean {
 }
 
 
-// 🛍️ LOJA DO CLUBE (15/09) — em TESTE FECHADO, só a conta do Diego.
-// Palavras dele aprovando: *"pode aprovar tudo que fizemos, só pro e-mail do
-// usuário diego.c.fonseca@gmail.com"*. Enquanto a lista tiver só ele, NENHUM
-// outro jogador vê a sub-aba nem sente qualquer diferença — o futebol no ar
-// segue exatamente como está (regra #1: nunca quebrar o futebol).
-// Pra liberar geral depois: trocar por uma constante LOJA_GERAL = true, igual
-// à Agência, ou esvaziar a checagem.
+// 🛍️ LOJA DO CLUBE — 🔓 LIBERADA GERAL (15/09, ordem do Diego).
+// Nasceu em teste fechado na conta dele (*"pode aprovar tudo que fizemos, só pro
+// e-mail do usuário diego.c.fonseca@gmail.com"*) e foi liberada pra todo mundo no
+// mesmo dia: *"tá tudo aprovado, pode publicar pra todos: na loja, ou vendas de
+// camisas, bico passo a passo, enfim tudo pro meu usuário agora pra todos também"*.
+//
+// ⚠️ A trava não some, vira interruptor: pra voltar ao teste fechado é só pôr
+// LOJA_GERAL = false e a lista reassume sozinha. E vale lembrar que a Loja tem uma
+// SEGUNDA porta natural — só existe pra quem construiu a obra 🛍️ Loja do Clube no
+// estádio, então liberar aqui não muda nada pra quem ainda não chegou lá.
+const LOJA_GERAL = true
 const LOJA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-let lojaOk = false
+let lojaOk = LOJA_GERAL
 function applyLojaUnlock(email?: string | null): void {
-  const u = !!email && LOJA_TESTERS.has(email.toLowerCase())
+  const u = LOJA_GERAL || (!!email && LOJA_TESTERS.has(email.toLowerCase()))
   if (u === lojaOk) return
   lojaOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })

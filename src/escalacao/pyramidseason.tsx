@@ -47,7 +47,7 @@ import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador, useLojaLiberada } from './sport'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
 import { BICO_MARCAS, bicoValor, bicoElegivel, type BicoDiv } from './bico'
-import { fornAtivo } from './loja' // 🕴️ Bico de Folga — teste fechado por e-mail (LOJA_TESTERS)
+import { fornAtivo } from './loja'
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
@@ -6124,7 +6124,7 @@ export function PyramidSeasonScreen() {
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
-  const lojaLib = useLojaLiberada() // 🛍️ Loja do Clube: teste fechado na conta do Diego — pros outros a pílula nem existe
+  const lojaLib = useLojaLiberada() // 🛍️ Loja do Clube (liberada geral em 15/09; a porta de verdade é a OBRA da loja no estádio)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
   const agenciaOk = !!state.agenciaOn && agLib // 🏗️ Clube vira "Estrutura" (estádio→patrocínio→agência) SÓ na Agência 2.0
   // 🏛️ MULTICLUBES (Opção B): seletor livre. `multiAsk` = modal de confirmar a troca;

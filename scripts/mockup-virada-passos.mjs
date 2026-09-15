@@ -137,7 +137,7 @@ const cenaCarteira = `
                     display:flex;align-items:center;justify-content:center;font-size:22px">👷</div>
         <div style="${OSW};font-weight:700;font-size:11px;line-height:1.15;color:${GOLD};letter-spacing:.06em">CARTEIRA<br>DE TRABALHO</div>
         <div style="${OSW};font-weight:400;font-size:7.5px;line-height:1.25;color:rgba(255,255,255,.62);margin-top:5px;
-                    letter-spacing:.06em">E PREVIDÊNCIA<br>DO TÉCNICO</div>
+                    letter-spacing:.06em">REGISTRO DO<br>BICO DE FOLGA</div>
         <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.22);padding-top:7px;
                     ${OSW};font-weight:400;font-size:7.5px;color:rgba(255,255,255,.5)">Nº 0007-2029</div>
       </div>

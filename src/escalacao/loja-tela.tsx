@@ -1,6 +1,7 @@
 // ─── 🛍️ LOJA DO CLUBE — a tela (sub-aba 🏟️ Clube › 🛍️ Loja) ──────────────
-// Aprovada pelo Diego em 15/09, em TESTE FECHADO na conta dele (`LOJA_TESTERS`
-// em `sport.ts`). Nenhum outro jogador vê a pílula nem sente diferença.
+// Aprovada pelo Diego em 15/09 e LIBERADA GERAL no mesmo dia (`LOJA_GERAL` em
+// `sport.ts`). A porta de verdade continua sendo a OBRA 🛍️ Loja do Clube no estádio:
+// quem não construiu não vê nem a sub-aba nem os passos da virada.
 //
 // A regra da camisa, palavras dele: *"todo clube sem batismo só terá no peito
 // esquerdo, enquadrado corretamente, o escudo dele. O patrocínio irá alterar com
@@ -531,7 +532,12 @@ export function BicoVirada({
           <div className="capa">
             <div className="selo">👷</div>
             <b>{tr('CARTEIRA', 'WORK')}<br />{tr('DE TRABALHO', 'RECORD BOOK')}</b>
-            <i>{tr('E PREVIDÊNCIA', 'AND PENSION')}<br />{tr('DO TÉCNICO', 'OF THE MANAGER')}</i>
+            {/* ⚠️ NADA de "previdência do técnico" aqui. Corte do Diego (15/09): *"não
+                quero na carteira de trabalho escrito previdência de técnico, porque dá
+                a entender que é carteira de trabalho do futebol, e estamos falando de
+                bico apenas aqui"*. A carteira é do EMPREGO DE FORA — o clube não tem
+                nada a ver com ela. */}
+            <i>{tr('REGISTRO DO', 'RECORD OF THE')}<br />{tr('BICO DE FOLGA', 'SIDE JOB')}</i>
             <div className="num">{tr('Nº', 'No.')} {String(1000 + (seasonNo ?? 1)).slice(1)}-{2020 + (seasonNo ?? 1)}</div>
           </div>
           <div className="pagina">

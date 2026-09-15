@@ -21,7 +21,7 @@ import type { ApoioPerk } from './apoio'
 import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
-import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (teste fechado)
+import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09)
 import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)

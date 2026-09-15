@@ -3671,7 +3671,7 @@ type Action =
   | { type: 'MONTE_TIMEOUT' }
   | { type: 'SET_SPONSOR_BET'; tier: 1 | 2 | 3; brandId: string; mgrId?: number } // 🤝 aposta do patrocínio da temporada (nível escolhido + marca) — banner de início de temporada
   | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
-  // 🛍️ LOJA DO CLUBE (15/09, teste fechado por e-mail — sport.ts/LOJA_TESTERS)
+  // 🛍️ LOJA DO CLUBE (15/09; liberada geral no mesmo dia — sport.ts/LOJA_GERAL)
   | { type: 'LOJA_PRECO'; preco: import('./loja').PrecoLoja; mgrId?: number } // 💰 preço da camisa da temporada (a aposta)
   | { type: 'LOJA_FORNECEDOR'; fornId: string; mgrId?: number } // 👟 assina o fornecedor de material (o prazo vem da marca; o valor congela na divisão de hoje)
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])

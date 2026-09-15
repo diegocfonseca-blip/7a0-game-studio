@@ -81,7 +81,10 @@ ok(loja.lojaConstruida(st), 'com a obra, a loja existe')
 ok(!loja.lojaConstruida({ inv: { geral: 60 }, ext: [] }), 'sem a obra, não existe')
 
 // ── 7) A TRAVA QUE MAIS IMPORTA: carreira sem Loja não é tocada ─────────────
-console.log('\n🛡️ 7) carreira SEM careerLoja não é tocada (teste fechado)')
+// ⚠️ Esta trava valia como rede do teste fechado e CONTINUA valendo depois da
+// liberação geral: quem nunca abriu a Loja (nunca construiu a obra) não tem
+// `careerLoja` no save, e nada de loja pode tocar no caixa dele.
+console.log('\n🛡️ 7) carreira SEM careerLoja não é tocada')
 const carta = (id, pos) => ({ id, name: pos, club: 'X', year: 2000, pos, fame: 2, lo: 60, hi: 70, paid: 1, buyPrice: 1 })
 const base = {
   ...INITIAL, screen: 'season', careerOnline: true, onlineMode: 'solo', seasonNo: 5, youIdx: 0,

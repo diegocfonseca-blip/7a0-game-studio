@@ -1,6 +1,6 @@
 // ─── 🛍️ LOJA DO CLUBE — dados e contas (módulo PURO, sem React) ──────────
-// Aprovado pelo Diego em 15/09, em TESTE FECHADO na conta dele (a trava mora em
-// `sport.ts`, `LOJA_TESTERS`). Enquanto a lista tiver só ele, ninguém mais vê.
+// Aprovado pelo Diego em 15/09 e liberado pra TODO MUNDO no mesmo dia (a trava mora em
+// `sport.ts`, `LOJA_GERAL`).
 //
 // A ideia: a torcida compra camisa, e isso vira moeda por temporada. Tudo sai de
 // coisa que o jogo JÁ mede — estádio construído e colocação final —, então não há
