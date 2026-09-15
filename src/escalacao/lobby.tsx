@@ -1136,7 +1136,23 @@ export function EscLobby() {
     // coroa de verdade (outro dono no banco) continua sendo tratada pelo vigia da
     // coroa no provider, que exige prova e registra o motivo.
     const jogo = escRef.current
-    const jaTocoAquiComoDono = jogo.onlineMode === 'online' && jogo.roomId === roomData.id && !!jogo.isHost
+    // ⚠️ …MAS SÓ QUANDO EXISTE JOGO VIVO PRA PROTEGER (15/09 — relato do Bruno que
+    // chegou pro Diego: *"fica dando um erro quando tu volta pra sala de esperar,
+    // aí tu abre um pregão com mais pessoas que antes e ele não contabiliza os
+    // novos jogadores"*; e ele confirmou que ANTES não dava — a guarda é de ontem).
+    // Depois do 📣 CHAMAR MAIS GENTE o dono CONTINUA `onlineMode: 'online'`, com o
+    // mesmo `roomId` e `isHost` — só que na SALA DE ESPERA (`VOLTA_ESPERA` só troca
+    // `screen` pra 'lobby'), sem partida nenhuma. A guarda então engolia a largada
+    // NOVA do próprio dono: ele apertava "Abrir o Pregão", isto devolvia `true` sem
+    // montar nada, e o aparelho dele seguia com a lista ANTIGA de técnicos — enquanto
+    // o amigo que acabou de entrar montava a lista NOVA no aparelho dele. Com o jogo
+    // host-autoritativo e as duas listas diferentes, o novato não conseguia jogar.
+    // (O F5 resolvia porque zerava o estado vivo — foi o que a turma acabou fazendo.)
+    // Na sala de espera não há jogo vivo, então não há nada que um eco possa atropelar;
+    // o caso que a guarda protege (sala NX2ALC, dono se rebaixando no eco da largada)
+    // acontece com o dono DENTRO do pregão, e esse segue coberto.
+    const emJogoVivo = jogo.screen !== 'lobby' && jogo.screen !== 'intro'
+    const jaTocoAquiComoDono = emJogoVivo && jogo.onlineMode === 'online' && jogo.roomId === roomData.id && !!jogo.isHost
     if (jaTocoAquiComoDono) { saveRoom(roomData.id); return true }
     let { data: freshRoom } = await supabase.from('game_rooms').select('game_state, host_id').eq('id', roomData.id).maybeSingle()
     // 🔁 releitura SEM DONO = leitura que falhou (a linha da sala SEMPRE tem host_id).

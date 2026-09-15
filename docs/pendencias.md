@@ -1,3 +1,43 @@
+## 15/09/2026 — 🐛 "Chamar mais gente" não contava quem entrou depois — ✅ no ar
+
+Relato do Bruno (print que o Diego mandou, 21:50): *"fica dando um erro quando tu volta
+pra sala de esperar, aí tu abre um pregão com mais pessoas que antes; ele não contabiliza
+os novos jogadores"*. E no áudio, a pista que resolveu o caso: ***"antes não estava dando
+esse erro"*** — e *"a gente ficou atualizando a página, entrando no pregão, saindo, daí ele
+voltou normal"*.
+
+### O que era
+Regressão de **14/09**, da guarda `jaTocoAquiComoDono` no `triggerStart` (`lobby.tsx`) —
+a que foi criada pra sala NX2ALC, onde o dono se rebaixava a convidado no eco da largada.
+Ela dizia: *se este aparelho já está online nesta sala como dono, o eco não tem nada a
+restaurar*. O problema é que depois do 📣 **CHAMAR MAIS GENTE** o dono continua
+`onlineMode: 'online'`, com o mesmo `roomId` e `isHost` — o `VOLTA_ESPERA` só troca
+`screen` pra `'lobby'`. Ou seja: o dono na SALA DE ESPERA passava na guarda.
+
+Resultado: ele apertava "Abrir o Pregão", a função devolvia `true` **sem montar nada**, e o
+aparelho dele seguia com a lista ANTIGA de técnicos — enquanto o amigo que acabou de
+entrar (aparelho novo, sem estado vivo) montava a lista NOVA. Jogo host-autoritativo com
+duas listas diferentes: o novato não conseguia dar lance. O F5 resolvia porque zerava o
+estado vivo do dono — foi o que a turma acabou fazendo na mão.
+
+Convidado nunca foi afetado (a guarda exige `isHost`), o que bate com o relato: só o dono
+ficava "liberando só pra ele".
+
+### O conserto
+Uma condição a mais: a guarda só vale quando existe **jogo vivo** pra proteger
+(`screen !== 'lobby' && screen !== 'intro'`). Na sala de espera não há partida, então não
+há eco que possa atropelar nada. O caso da NX2ALC acontece com o dono DENTRO do pregão, e
+segue coberto — conferido com tabela de 7 casos (dono no pregão bloqueia · dono na espera
+passa · dono no fim bloqueia · convidado passa · outra sala passa · offline passa).
+
+### Reverter
+Um commit só, em `lobby.tsx`, uma linha de condição. `git revert` devolve o comportamento
+de ontem (com o bug de volta). Nenhum save, nenhuma tabela e nenhuma outra tela são tocados.
+
+🚫 **Não virou novidade da home** — é conserto de bug (regra do Diego: *"menos bugs, que
+nunca lance"*).
+
+---
 ## 14/09/2026 — 🧮 "caí com 44 pontos sendo que tava em 3º com 68" — ✅ no ar
 
 Dois usuários no mesmo dia, com as mesmas palavras: *"minha carreira tá bugada,
