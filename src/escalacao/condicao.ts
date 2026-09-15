@@ -89,8 +89,8 @@ export const corGas = (e: EstadoGas): string => (e === 'ok' ? '#1B7A3D' : e === 
 //   · gás 100 → 30,7 (1º ao 50º jogo)  = barra 100% → 50%  (cai ~1% por jogo)
 //   · gás 30,7 → 0 (51º jogo em diante) = barra 49% → 0%   (zona do cansaço, em
 //     degraus mais espaçados — 55º = 40% · 60º = 33% · 65º = 25% · 70º = 10% · 73º = 0)
-// Cor: verde enquanto a barra está em 50% ou mais; abaixo disso amarelo — mesmo com
-// o jogador ainda 💪 (é o aviso "está chegando"); 🥵 e 🚑 seguem vermelho/escuro.
+// Cor: ver `corBarra` — desde 15/09 ela segue o MOTOR (verde até o 54º, amarelo do 55º),
+// e não mais a leitura da barra. O texto acima descreve só o TAMANHO da barra.
 // O emoji, o estado e todos os números do jogo continuam saindo do gás cru.
 export const GAS_MEIO = 30.7 // gás do motor que a barra mostra como 50% (entre o 50º = 31,4 e o 51º = 30 → 51% e 49%)
 // 🪜 2ª rodada com o Diego (13/09): *"espaçar mais o final após bater 40%… manter de 1 a
@@ -110,26 +110,32 @@ export function pctBarra(g: number): number {
   }
   return 0
 }
+// 🟡 A COR SEGUE O MOTOR (15/09) — verde enquanto 💪, amarelo a partir do 😓 (55º jogo).
+// ⚠️ ISTO SUBSTITUI A DECISÃO DE 13/09, não é descuido: naquele dia o Diego pediu
+// *"deveria ficar amarelo depois de 50%, quando chegar em 49%, que está quase na metade
+// ainda"*, e a barra passava a amarelar no 51º. Em 15/09 ele viu o outro lado: entre o
+// 51º e o 54º a barra ficava amarela e o preparador NÃO trocava — quatro jogos de alerta
+// aceso com o jogo de braços cruzados. Ele escolheu juntar as duas coisas no 55º
+// (*"podemos fazer isso no 55"*), com a pergunta certa na cabeça: *"temos que imaginar o
+// que as pessoas estão pensando quando olham o que está havendo"*.
+// 👉 Regra de hoje: amarelo = o preparador vai agir. Não amarelar antes é de propósito.
 export function corBarra(g: number): string {
-  const e = estadoGas(g)
-  if (e === 'ok') return pctBarra(g) >= 50 ? corGas('ok') : corGas('cansado')
-  return corGas(e)
+  return corGas(estadoGas(g))
 }
 
-// ─── 🔁 QUANDO O PREPARADOR TROCA (Diego 15/09) ──────────────────────────────
-// Palavras dele: *"automático ele troca qd bate no 49% e rodiziar também eu acho né"*.
-// 49% é EXATAMENTE onde a barra vira de verde pra amarelo (ver `corBarra`) — ou seja,
-// o preparador tira o cara no primeiro sinal, não depois que ele já está 😓.
-// Antes disto os dois trocavam só com `estadoGas !== 'ok'` (barra 40%, o 55º jogo);
-// agora trocam na barra 49% (≈ o 51º jogo). São ~4 jogos de antecedência.
-// ⚠️ O motor NÃO mudou: o −1/−2/−3 e a chance de lesão continuam saindo do gás cru
-// (GAS_CANSADO/LIMITE/ESGOTADO). Isto aqui é só o gatilho do RODÍZIO.
-export const BARRA_RODIZIO = 49
-/** o titular está no ponto de sair (barra ≤ 49%) */
-export const pedeRodizio = (g: number): boolean => pctBarra(g) <= BARRA_RODIZIO
-/** o reserva está inteiro o bastante pra entrar (barra > 49%) — mesma régua, pros
- *  dois lados: entrar alguém que já sairia na rodada seguinte seria trocar por trocar */
-export const prontoPraEntrar = (g: number): boolean => pctBarra(g) > BARRA_RODIZIO
+// ─── 🔁 QUANDO O PREPARADOR TROCA ───────────────────────────────────────────
+// No 😓 — o 55º jogo. Ou seja: o MESMO instante em que a barra vira amarela (ver
+// `corBarra` acima) e em que o motor começa a descontar. Uma coisa só, três sinais.
+// 📜 Passou por uma volta em 15/09: cheguei a deixar o gatilho na barra em 49% (51º
+// jogo) pra casar com a cor de então. O Diego preferiu o contrário — trazer a COR pro
+// 55º e deixar o gatilho onde sempre esteve. Fica com nome próprio mesmo assim: se um
+// dia esse ponto mudar de novo, muda AQUI e o botão, o automático e o aviso da tela
+// andam juntos (foi justamente a falta disso que criou os 4 jogos de incoerência).
+/** o titular está no ponto de sair */
+export const pedeRodizio = (g: number): boolean => estadoGas(g) !== 'ok'
+/** o reserva está inteiro o bastante pra entrar — mesma régua, pros dois lados:
+ *  entrar alguém que já sairia na rodada seguinte seria trocar por trocar */
+export const prontoPraEntrar = (g: number): boolean => estadoGas(g) === 'ok'
 
 // ─── 🪜 A DIVISÃO DE VERDADE (13/09) ─────────────────────────────────────────
 // ⚠️ `careerDivision` MENTE em carreira que nasceu na Várzea: ele fica congelado

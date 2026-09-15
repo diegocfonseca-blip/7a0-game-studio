@@ -25,7 +25,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
-import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, pedeRodizio } from './condicao'
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao'
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
@@ -3377,18 +3377,11 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         // olhar, então ninguém fica ruim, a caixa sumia e o interruptor de DESLIGAR
         // ia junto: o técnico ligava e não achava mais como desligar. Com o
         // automático ligado a caixa fica sempre, dizendo que está tudo inteiro.
-        // 🏋️ 15/09: quem PEDE rodízio é quem está com a barra em 49% ou menos (o
-        // amarelo) — o gatilho novo. A lista de emojis continua sendo a do MOTOR
-        // (😓🥵🚑), que não mudou; por isso as duas contas convivem aqui.
-        const noPonto = titulares.filter(c => !c.fake && pedeRodizio(gasDe(c)))
-        if (!ruins.length && !noPonto.length && !(condicao.auto && condicao.onRodizio)) return null
+        if (!ruins.length && !(condicao.auto && condicao.onRodizio)) return null
         const esgotados = ruins.filter(c => estadoGas(gasDe(c)) === 'esgotado')
         const limite = ruins.filter(c => estadoGas(gasDe(c)) === 'limite')
         const cansados = ruins.filter(c => estadoGas(gasDe(c)) === 'cansado')
         const voltando = ruins.filter(c => condicao.volta(c.id) !== 0 && estadoGas(gasDe(c)) === 'ok')
-        // quem já está no ponto de sair mas o motor ainda chama de 💪 (barra amarela,
-        // entre 49% e o 😓) — sem isto a caixa mostraria o botão sem dizer por quem
-        const amarelos = noPonto.filter(c => estadoGas(gasDe(c)) === 'ok')
         // mesma lista de bloqueados do onRodizio: suspenso + quem está voltando de lesão
         const bloq = new Set(mgr.squad.filter(c => condicao.volta(c.id) !== 0).map(c => c.id))
         if (condicao.suspensoId) bloq.add(condicao.suspensoId)
@@ -3416,7 +3409,6 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
               {limite.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>🥵 <b style={{ color: '#C2452F' }}>{nomes(limite)}</b></span>}
               {cansados.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>😓 <b style={{ color: '#B8860B' }}>{nomes(cansados)}</b></span>}
               {voltando.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>🩹 <b style={{ color: '#7C3AED' }}>{nomes(voltando)}</b> <span style={{ fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{tr('voltando de lesão', 'back from injury')}</span></span>}
-              {amarelos.length > 0 && <span style={{ marginRight: 10, whiteSpace: 'nowrap' }}>⏳ <b style={{ color: '#B8860B' }}>{nomes(amarelos)}</b> <span style={{ fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{tr('no ponto de descansar', 'due for a rest')}</span></span>}
               {/* automático ligado e ninguém ruim: é ele que já arrumou — precisa dizer,
                   senão a caixa fica vazia e parece bug */}
               {!ruins.length && condicao.auto && (en ? <>Everyone in the XI is <b style={{ color: GREEN }}>fit</b> (💪) — the coach is taking care of the rotation.</> : <>Todo mundo do time está <b style={{ color: GREEN }}>inteiro</b> (💪) — o preparador está cuidando do rodízio.</>)}

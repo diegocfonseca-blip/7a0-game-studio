@@ -200,7 +200,7 @@ const html = `<!doctype html><meta charset="utf-8">
   · <b>Contrato de 5 temporadas</b>, igual ao técnico. Venceu, aparece <b>RENOVAR</b> pelo mesmo preço, ou você deixa ir sem multa.<br>
   · <b>Sem preparador nada trava</b>: você continua trocando na mão, tocando no cansado e no reserva. O que ele dá é o <b>botão</b>.<br>
   · <b>O 🤖 automático é só do 👑 Lenda</b> — 🟢 💎 ⭐ dão o botão, o 👑 cuida do time sozinho.<br>
-  · <b>Ele troca quando a barra bate 49%</b>, que é quando ela vira de verde pra amarelo — antes de o jogador ficar 😓.<br>
+  · <b>Ele troca no 😓</b> — e a barra passa a ficar amarela exatamente aí. Cor, emoji e ação no mesmo ponto: o alerta nunca acende com o preparador parado.<br>
   · <b>Todo mundo começa do zero</b>: ninguém ganha preparador de brinde, nem quem usa o rodízio hoje.
 </div>`
 

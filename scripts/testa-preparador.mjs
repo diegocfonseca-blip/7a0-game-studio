@@ -3,15 +3,17 @@
 //
 // Pedido do Diego (14-15/09): *"a gente tem que tirar esse botão de rodiziar, e só
 // aparecer esse botão se comprar o preparador físico… ele vai ter salário também… e
-// também vai ter contrato de renovação"*; depois *"automático ele troca qd bate no
-// 49%"*, *"botão automático podemos pôr apenas pro que pagar o preparador lenda"* e,
-// sobre quem já usa o rodízio hoje, *"zero"* (ninguém ganha de brinde).
+// também vai ter contrato de renovação"*; *"botão automático podemos pôr apenas pro que
+// pagar o preparador lenda"*; e, sobre quem já usa o rodízio hoje, *"zero"* (ninguém
+// ganha de brinde). Sobre QUANDO trocar, ele foi e voltou: pediu no 49% e, depois de ver
+// a tabela dos dois jeitos, escolheu *"podemos fazer isso no 55"* — com a cor junto.
 //
 // O que esta trava protege, em ordem de perigo:
 //  1. o PREÇO nunca vem de fora — a action leva só a chave, o valor sai do catálogo
 //  2. sem preparador NADA trava: o gás continua andando, ninguém some do time
 //  3. o automático é SÓ do 👑 Lenda
-//  4. o gatilho do rodízio é a barra em 49%, e o MOTOR (−1/−2/−3) não mudou
+//  4. o gatilho do rodízio é o 😓 (55º jogo) — o MESMO ponto em que a barra vira
+//     amarela e em que o motor começa a descontar. Um ponto só, três sinais.
 //
 // uso: node scripts/testa-preparador.mjs     (sai com código 1 se reprovar)
 import { createServer } from 'vite'
@@ -21,7 +23,7 @@ const S = await vite.ssrLoadModule('/src/escalacao/store.tsx')
 const C = await vite.ssrLoadModule('/src/escalacao/condicao.ts')
 const P = await vite.ssrLoadModule('/src/escalacao/preparadores.ts')
 const { reducer } = S
-const { gasDoElenco, sugerirRodizio, pctBarra, pedeRodizio, estadoGas, modGas, GAS_BANCO, GAS_JOGO } = C
+const { gasDoElenco, sugerirRodizio, pctBarra, pedeRodizio, estadoGas, modGas, corBarra, corGas, GAS_BANCO, GAS_JOGO } = C
 const { PREPARADORES, preparadorDe, salarioPreparador, temAutomatico } = P
 
 let falhas = 0
@@ -87,24 +89,25 @@ console.log('\n4) 💸 salário = 10% do preço, igual ao técnico')
 for (const p of PREPARADORES) ok(salarioPreparador(p) === Math.round(p.preco / 10), `${p.nome}: ${p.preco} → ${salarioPreparador(p)}/temporada`)
 ok(salarioPreparador(null) === 0, 'sem preparador: folha não muda')
 
-console.log('\n5) 🔁 o gatilho novo: barra em 49%')
+console.log('\n5) 🔁 o gatilho: no 😓 (55º jogo) — cor, emoji e ação no MESMO ponto')
 {
-  // gás 30,7 = barra 50% (o 51º jogo é onde ela cai pra 49%)
-  ok(pctBarra(30.7) === 50 && !pedeRodizio(30.7), 'barra 50% ainda NÃO pede rodízio')
-  const g49 = 30.0
-  ok(pctBarra(g49) <= 49 && pedeRodizio(g49), `barra ${pctBarra(g49)}% pede rodízio`)
-  ok(estadoGas(g49) === 'ok' && modGas(g49) === 0, 'e nesse ponto o MOTOR ainda o considera inteiro (−0) — o gatilho é só do rodízio')
-  ok(pedeRodizio(24.4) && estadoGas(24.4) === 'cansado', '😓 continua pedindo rodízio, como antes')
+  // 📜 15/09 teve uma volta: cheguei a pôr o gatilho na barra em 49% (51º jogo), pra
+  // casar com a cor daquele dia. O Diego preferiu o contrário — puxar a COR pro 55º e
+  // deixar o gatilho onde sempre esteve. É isto que este bloco tranca.
+  const g54 = 25.8, g55 = 24.4 // gás antes do 54º e do 55º jogo
+  ok(!pedeRodizio(g54) && estadoGas(g54) === 'ok', `54º jogo (💪): NÃO pede rodízio — barra ${pctBarra(g54)}%`)
+  ok(pedeRodizio(g55) && estadoGas(g55) === 'cansado', `55º jogo (😓): pede rodízio — barra ${pctBarra(g55)}%`)
+  ok(corBarra(g54) === corGas('ok') && corBarra(g55) === corGas('cansado'), 'e a BARRA vira amarela exatamente aí — nada de alerta aceso com o preparador parado')
+  ok(modGas(g54) === 0 && modGas(g55) === -1, 'o motor também começa a descontar aí (−0 → −1): um ponto só, três sinais')
   ok(!pedeRodizio(100), 'quem está cheio não é trocado')
 }
 {
-  // a troca de verdade: um titular na barra amarela sai, o reserva cheio entra
+  // a troca de verdade: o titular 😓 sai, o reserva inteiro entra
   const squad = [carta('t1'), carta('r1'), carta('velho')]
-  const gas = { t1: 30.0, r1: 100, velho: 25 }
-  const sug = sugerirRodizio(['t1'], squad, gas)
-  ok(sug && sug.trocas.length === 1 && sug.trocas[0].entra.id === 'r1', 'titular na barra 49% sai e o reserva cheio entra')
-  const gas2 = { t1: 30.0, r1: 30.0, velho: 25 }
-  ok(sugerirRodizio(['t1'], squad, gas2) === null, 'reserva também no ponto de sair NÃO entra (seria trocar por trocar)')
+  const sug = sugerirRodizio(['t1'], squad, { t1: 24.4, r1: 100, velho: 25 })
+  ok(sug && sug.trocas.length === 1 && sug.trocas[0].entra.id === 'r1', 'titular 😓 sai e o reserva cheio entra')
+  ok(sugerirRodizio(['t1'], squad, { t1: 24.4, r1: 24.4, velho: 24.4 }) === null, 'banco todo 😓 também: NÃO troca (seria trocar por trocar)')
+  ok(sugerirRodizio(['t1'], squad, { t1: 25.8, r1: 100, velho: 100 }) === null, 'titular ainda 💪 no 54º: não troca (o preparador não tira quem está inteiro)')
   ok(sugerirRodizio(['t1'], squad, { t1: 100, r1: 100, velho: 100 }) === null, 'time inteiro: não sugere nada')
 }
 
