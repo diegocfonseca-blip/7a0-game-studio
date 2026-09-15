@@ -17,16 +17,17 @@
 // *"totalmente desproporcional"* — a imagem inclui as duas mangas, então o peito
 // é bem mais estreito do que parece).
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { tr } from './lang'
 import { CAMISAS_SALAO } from './salao-camisas'
 import {
-  FORNECEDORES, PRECOS, PRECO_EN, FAIXA_META, CORES_PADRAO,
+  FORNECEDORES, PRECOS, PRECO_EN, CORES_PADRAO,
   fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor,
   torcidaDoEstadio, bonusObras, lojaConstruida, calculaVendas,
-  type LojaSave, type PrecoLoja, type FaixaLoja,
+  type LojaSave, type PrecoLoja,
 } from './loja'
 import type { StadiumSave } from './estadiodata'
+import { BICO_MARCAS, BICO_VALOR, type BicoMarca } from './bico' // 🕴️ Bico de Folga
 import MOLDE_CAMISA from './img/camisa-molde-v1.webp'
 
 const INK = '#0C0C0C', CREME = '#F4ECD6', GOLD = '#FFC400', GREEN = '#1B7A3D'
@@ -229,7 +230,7 @@ const Cartao = ({ titulo, children, pe, bg = '#fff' }: { titulo: string; childre
 // ══════════════════════════════════════════════════════════════════════════
 export function LojaTab({
   time, st, div, seasonNo, loja, masterNome, masterLogo, minhaCor,
-  onPreco, onVerPatrocinio, onIrEstrutura,
+  onIrEstrutura,
 }: {
   time: string
   st: StadiumSave | undefined
@@ -239,8 +240,6 @@ export function LojaTab({
   masterNome?: string
   masterLogo?: string
   minhaCor: string
-  onPreco: (p: PrecoLoja) => void
-  onVerPatrocinio: () => void
   onIrEstrutura: () => void
 }) {
   const arteFile = CAMISAS_SALAO[time]
@@ -250,24 +249,12 @@ export function LojaTab({
   const ativo = fornAtivo(forn, seasonNo)
   const fornMeta = ativo ? fornecedorDe(forn.fornId) : undefined
   const preco: PrecoLoja = loja?.preco ?? 'normal'
-  const [verPreco, setVerPreco] = useState(false)
 
   const camisa = (
     <CamisaLoja time={time} arteBatismo={arteBatismo}
       cores={loja?.cores} fornId={ativo ? forn.fornId : undefined}
       masterNome={masterNome} masterLogo={masterLogo} />
   )
-
-  // 💰 a tabela da aposta, com o estádio e o fornecedor REAIS deste clube
-  const tabela = useMemo(() => {
-    const faixas: Exclude<FaixaLoja, 'caiu'>[] = ['manteve', 'acesso', 'campeao']
-    const posDa = { manteve: 10, acesso: 3, campeao: 1 } as const
-    const val: Record<PrecoLoja, number[]> = { popular: [], normal: [], cara: [] }
-    for (const k of ['popular', 'normal', 'cara'] as PrecoLoja[])
-      val[k] = faixas.map(f => calculaVendas({ st, pos: posDa[f], preco: k, fornLoja: fornMeta?.loja ?? 0 }).moedas)
-    const melhor = faixas.map((_, i) => Math.max(...(['popular', 'normal', 'cara'] as PrecoLoja[]).map(k => val[k][i])))
-    return { faixas, val, melhor }
-  }, [st, fornMeta])
 
   // ── 🔒 porta fechada: a loja é a obra do estádio que já existe ───────────
   if (!aberta) return (
@@ -309,121 +296,66 @@ export function LojaTab({
     </section>
   )
 
-  // ── 🛍️ loja aberta ──────────────────────────────────────────────────────
+  // ── 🛍️ LOJA ABERTA — SÓ LEITURA, e arrumada ────────────────────────────
+  // Ordem do Diego (15/09): *"deixou visual mais organizado nas duas abas, de loja e
+  // patrocínio, porque tava muito confuso"* e *"lá já é pra mostrar tudo que foi
+  // escolhido e tudo que ele ganha"*. Então aqui NÃO tem botão de escolher nada:
+  // é a vitrine + um resumo curto. Escolher preço e fornecedor é na virada.
   const b = loja?.balanco
+  const p = PRECOS[preco]
+  const linha = (rot: React.ReactNode, val: React.ReactNode) => (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, padding: '5px 0', borderTop: '1.5px solid rgba(0,0,0,.10)' }}>
+      <span style={{ ...OSW, fontWeight: 400, fontSize: 11, opacity: .7, flex: 1, minWidth: 0 }}>{rot}</span>
+      <span style={{ ...OSW, fontWeight: 700, fontSize: 12, textAlign: 'right' }}>{val}</span>
+    </div>
+  )
   return (
     <section aria-label={tr('Loja do Clube', 'Club Store')}>
       <Vitrine>{camisa}</Vitrine>
 
-      {/* 📦 o balanço da temporada que fechou — primeira coisa da virada */}
+      {/* 📦 quanto rendeu no ano que fechou */}
       {b && (
-        <Cartao bg={GOLD} titulo={tr(`📦 Balanço da temporada ${b.season}`, `📦 Season ${b.season} balance`)}
-          pe={tr('Caiu direto no caixa. Durante a temporada a loja trabalha calada.',
-            'Straight into the bank. During the season the store works quietly.')}>
-          <div style={{ ...OSW, fontWeight: 700, fontSize: 19, lineHeight: 1.1 }}>
-            {fmt(b.camisas)} {tr('camisas', 'shirts')} · <span style={{ color: GREEN }}>+{b.moedas} 🪙</span>
+        <Cartao bg={GOLD} titulo={tr(`📦 Última temporada (${b.season})`, `📦 Last season (${b.season})`)}
+          pe={tr('O balanço fecha na virada e cai direto no caixa. Durante a temporada a loja trabalha calada.',
+            'The balance closes at the season turn and goes straight into the bank. During the season the store works quietly.')}>
+          <div style={{ ...OSW, fontWeight: 700, fontSize: 19, lineHeight: 1.15 }}>
+            {fmt(b.camisas)} {tr('camisas', 'shirts')} · <span style={{ color: '#1B5E2A' }}>+{b.moedas} 🪙</span>
           </div>
           <div style={{ ...OSW, fontWeight: 400, fontSize: 10, opacity: .78, marginTop: 2 }}>
-            {fmt(b.torcida)} {tr('torcedores', 'fans')} · {b.pos}º {tr('lugar', 'place')} ({FAIXA_META[faixaDaPosSafe(b.pos)].txt.toLowerCase()}) · {tr('preço', 'price')} {nomePreco(b.preco)}
+            {b.pos}º {tr('lugar', 'place')} · {tr('preço', 'price')} {nomePreco(b.preco)} · {fmt(b.torcida)} {tr('torcedores', 'fans')}
           </div>
         </Cartao>
       )}
 
-      {/* 👕 a camisa: o que está estampado hoje */}
+      {/* 👕 a ficha do clube: tudo que está valendo, em linhas curtas */}
       <Cartao titulo={tr('👕 A sua camisa', '👕 Your shirt')}
         pe={arteBatismo
-          ? tr('Clube batizado usa a arte que o dono mandou — o escudo já vem nela. As estampas de patrocínio entram por cima.',
-            'A named club uses the art its owner sent — the crest is already on it. Sponsor prints go on top.')
-          : tr('No peito esquerdo vai só o escudo do seu clube, sempre enquadrado igual. O resto muda com os contratos.',
-            'The left chest carries only your club crest, always framed the same. The rest changes with your deals.')}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          {!arteBatismo && <EscudoBase nome={time} cores={loja?.cores} size={38} />}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5 }}>{time} · {nomeDiv(div)}</div>
-            <div style={{ ...OSW, fontWeight: 400, fontSize: 10, opacity: .72, lineHeight: 1.35 }}>
-              {fmt(torcidaDoEstadio(st))} {tr('torcedores', 'fans')}
-              {bonusObras(st) > 0 && <> · {tr('obras', 'works')} +{Math.round(bonusObras(st) * 100)}%</>}
-            </div>
-          </div>
+          ? tr('Clube batizado usa a arte que o dono mandou — o escudo já vem nela.', 'A named club uses the art its owner sent — the crest is already on it.')
+          : tr('No peito esquerdo vai só o escudo do seu clube, sempre enquadrado igual.', 'The left chest carries only your club crest, always framed the same.')}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 2 }}>
+          {!arteBatismo && <EscudoBase nome={time} cores={loja?.cores} size={34} />}
+          <div style={{ ...OSW, fontWeight: 700, fontSize: 13, flex: 1, minWidth: 0 }}>{time}</div>
+          <div style={{ ...OSW, fontWeight: 400, fontSize: 10.5, opacity: .7 }}>{nomeDiv(div)}</div>
         </div>
+        {linha(<>👥 {tr('Torcida', 'Fan base')}</>, <>{fmt(torcidaDoEstadio(st))}{bonusObras(st) > 0 && <span style={{ fontWeight: 400, fontSize: 10, opacity: .7 }}> · {tr('obras', 'works')} +{Math.round(bonusObras(st) * 100)}%</span>}</>)}
+        {linha(<>👟 {tr('Fornecedor', 'Kit supplier')}</>, ativo && fornMeta
+          ? <>{fornMeta.simb} {fornMeta.nome} <span style={{ fontWeight: 400, fontSize: 10, opacity: .7 }}>· {tr('ano', 'yr')} {fornAnoAtual(forn, seasonNo)}/{forn.anos} · +{fornValor(forn)} 🪙 · +{Math.round(fornMeta.loja * 100)}%</span></>
+          : <span style={{ fontWeight: 400, opacity: .6 }}>{tr('nenhum', 'none')}</span>)}
+        {linha(<>🤝 {tr('Master', 'Master')}</>, masterNome
+          ? <>{masterNome}</>
+          : <span style={{ fontWeight: 400, opacity: .6 }}>{tr('nenhum', 'none')}</span>)}
+        {linha(<>💰 {tr('Preço do ano', 'Price this season')}</>, <>{nomePreco(preco)} · {p.moeda} 🪙</>)}
       </Cartao>
 
-      {/* 💰 o preço — a aposta */}
-      <Cartao titulo={tr('💰 Preço da camisa', '💰 Shirt price')}
-        pe={tr('Vale pra temporada inteira. Se cair, não vende nada — em qualquer preço.',
-          'Valid for the whole season. If you get relegated, nothing sells — at any price.')}>
-        <div style={{ display: 'flex', gap: 5 }}>
-          {(['popular', 'normal', 'cara'] as PrecoLoja[]).map(k => (
-            <button key={k} onClick={() => onPreco(k)} aria-pressed={preco === k}
-              style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '6px 4px', textAlign: 'center', cursor: 'pointer', background: preco === k ? GOLD : '#fff', boxShadow: preco === k ? `2px 2px 0 ${INK}` : 'none' }}>
-              <div style={{ ...OSW, fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{nomePreco(k)}</div>
-              <div style={{ ...OSW, fontWeight: 400, fontSize: 9, opacity: .65, marginTop: 1 }}>{PRECOS[k].moeda} 🪙</div>
-            </button>
-          ))}
-        </div>
-        <button onClick={() => setVerPreco(v => !v)} style={{ width: '100%', marginTop: 7, border: `2.5px solid ${INK}`, borderRadius: 11, background: '#fff', ...OSW, fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase', padding: 6, cursor: 'pointer' }}>
-          {verPreco ? tr('esconder a conta', 'hide the numbers') : tr('quanto rende em cada final?', 'how much in each outcome?')}
-        </button>
-        {verPreco && <div style={{ marginTop: 7 }}>
-          {(['popular', 'normal', 'cara'] as PrecoLoja[]).map(k => (
-            <div key={k} style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '6px 8px', marginBottom: 5, background: preco === k ? GOLD : CREME }}>
-              <div style={{ ...OSW, fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', marginBottom: 4 }}>{nomePreco(k)}</div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {tabela.faixas.map((f, i) => {
-                  const top = tabela.val[k][i] === tabela.melhor[i]
-                  return (
-                    <div key={f} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 0', textAlign: 'center', background: top ? GREEN : 'rgba(0,0,0,.05)', color: top ? '#fff' : INK }}>
-                      <div style={{ fontSize: 9, lineHeight: 1.1 }}>{FAIXA_META[f].emoji}</div>
-                      <div style={{ ...OSW, fontWeight: 700, fontSize: 13, lineHeight: 1.05 }}>{tabela.val[k][i]}</div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-          <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '6px 9px', background: '#3A1410', color: '#FFD9CF' }}>
-            <span style={{ ...OSW, fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>🔴 {tr('Se cair: não vende nada', 'Relegated: nothing sells')}</span>
-          </div>
-        </div>}
-      </Cartao>
-
-      {/* 👟 o fornecedor: aqui é só LEITURA. Assinar é na aba 🤝 Patrocínio, junto do
-          Master e do Pontual — a Loja é a vitrine, contrato mora com contrato. */}
-      <Cartao titulo={tr('👟 Fornecedor de material', '👟 Kit supplier')}
-        pe={tr('O contrato é fechado em 🤝 Patrocínio, junto do Master e do Pontual. Aqui você só vê como ficou na camisa.',
-          'The deal is signed in 🤝 Sponsors, next to the Master and the one-season sponsor. Here you only see how it looks on the shirt.')}>
-        {ativo && fornMeta ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 34, height: 34, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 9, background: fornMeta.cor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{fornMeta.simb}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5 }}>{fornMeta.nome}</div>
-              <div style={{ ...OSW, fontWeight: 400, fontSize: 10, opacity: .72 }}>
-                {tr('ano', 'year')} {fornAnoAtual(forn, seasonNo)} {tr('de', 'of')} {forn.anos} · +{fornValor(forn)} 🪙/{tr('temp', 'seas')} · +{Math.round(fornMeta.loja * 100)}% {tr('nas vendas', 'on sales')}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div style={{ ...OSW, fontWeight: 400, fontSize: 11.5, opacity: .8, lineHeight: 1.45 }}>
-            {tr('Você ainda não tem marca de material. Sem ela, o peito direito da camisa fica vazio e a loja vende sem bônus.',
-              'You have no kit brand yet. Without one the right chest stays empty and the store sells with no bonus.')}
-          </div>
-        )}
-        <button onClick={onVerPatrocinio} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, background: ativo ? '#fff' : minhaCor, color: ativo ? INK : '#fff', ...OSW, fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', padding: 8, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
-          {ativo ? tr('Ver em 🤝 Patrocínio', 'See it in 🤝 Sponsors') : tr('Fechar contrato em 🤝 Patrocínio', 'Sign a deal in 🤝 Sponsors')}
-        </button>
-      </Cartao>
+      {/* 🧭 onde se decide — uma linha, sem botão de escolher aqui */}
+      <div style={{ ...OSW, fontWeight: 400, fontSize: 10.5, lineHeight: 1.5, opacity: .72, padding: '0 3px 4px' }}>
+        {tr('Preço da camisa e contrato de material você escolhe na virada da temporada, junto com o Master e o Pontual. Esta aba é só pra ver como o seu clube está.',
+          'You pick the shirt price and the kit deal at the season turn, along with the Master and the one-season sponsor. This tab is just to see how your club looks.')}
+      </div>
     </section>
   )
 }
 
-// pequena guarda: colocação fora da faixa não quebra a tela
-function faixaDaPosSafe(pos: number): FaixaLoja {
-  if (!Number.isFinite(pos) || pos < 1) return 'manteve'
-  if (pos <= 1) return 'campeao'
-  if (pos <= 4) return 'acesso'
-  if (pos <= 16) return 'manteve'
-  return 'caiu'
-}
 
 // ══════════════════════════════════════════════════════════════════════════
 // 🛍️ A LOJA NA VIRADA DA TEMPORADA
@@ -582,6 +514,75 @@ function FornecedorPapeis({ div, onPick }: { div: string; onPick: (id: string) =
       <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .7, marginTop: 6, lineHeight: 1.4 }}>
         {tr('Pode deixar pra depois: dá pra assinar em 🤝 Patrocínio a qualquer hora. Sem marca, o peito direito fica vazio e a loja vende sem bônus.',
           'You can leave it for later: you can sign in 🤝 Sponsors any time. With no brand the right chest stays empty and the store sells with no bonus.')}
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// 🕴️ BICO DE FOLGA na virada da temporada
+// ══════════════════════════════════════════════════════════════════════════
+// Pedido do Diego (15/09): *"o bico também deveria aparecer uma vez nesse início
+// também… mas só quando precisar"* e *"quero a historinha dizendo o porquê e o que
+// ele escolhe fazer da vida"*.
+//
+// "SÓ QUANDO PRECISAR" é a parte importante: este bloco só é montado quando o
+// técnico está na janela do bico (T3+, Várzea ou Série D) e **ainda não escolheu
+// nenhum**. Quem já tem bico não vê nada aqui — senão viraria um passo a mais em
+// toda virada, e a regra de ouro dele é que nada pode atrasar o ritmo do jogo.
+// E dá pra ignorar: o botão "Começar a temporada" não depende disto.
+export function BicoVirada({ div, atual, onPick }: { div: string; atual?: BicoMarca; onPick: (b: BicoMarca) => void }) {
+  const [sel, setSel] = useState<BicoMarca | undefined>(undefined)
+  const [trocando, setTrocando] = useState(false)
+  const esc = BICO_MARCAS.find(b => b.k === sel)
+  const valor = BICO_VALOR[div === 'V' ? 'V' : 'D']
+  const jaTem = atual ? BICO_MARCAS.find(b => b.k === atual) : undefined
+  // ✅ JÁ TEM BICO: uma linha só, com o trocar fechado. "Só quando precisar" é isso —
+  // nada de repetir a lista inteira em toda virada (o Diego odeia passo a mais).
+  if (jaTem && !trocando) return (
+    <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '9px 11px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 9 }}>
+      <div style={{ width: 30, height: 30, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 8, background: jaTem.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{jaTem.ic}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 12.5 }}>🕴️ {jaTem.nome}</div>
+        <div style={{ fontWeight: 400, fontSize: 10, opacity: .72 }}>{tr(jaTem.cargo.pt, jaTem.cargo.en)} · +{valor} 🪙/{tr('temp', 'seas')}</div>
+      </div>
+      <button onClick={() => setTrocando(true)} style={{ flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 9px', ...OSW, fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase', background: CREME, color: INK, cursor: 'pointer' }}>🔁 {tr('trocar', 'change')}</button>
+    </div>
+  )
+  return (
+    <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '10px 11px', marginBottom: 12 }}>
+      <div style={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase' }}>🕴️ {tr('Bico de folga', 'Side job')}</div>
+      <div style={{ fontWeight: 400, fontSize: 10.5, opacity: .75, margin: '3px 0 8px', lineHeight: 1.45 }}>
+        {tr(`O clube ainda não paga bem. Nas folgas dá pra trabalhar num dos patrocinadores e ajudar o caixa em +${valor} 🪙 por temporada. É de graça, troca quando quiser — e acaba sozinho quando você chegar na Série C.`,
+          `The club doesn't pay well yet. On your days off you can work for one of the sponsors and help the till by +${valor} 🪙 a season. It's free, switch whenever — and it ends by itself once you reach Série C.`)}
+      </div>
+      {BICO_MARCAS.map(b => (
+        <button key={b.k} onClick={() => setSel(b.k)} aria-pressed={sel === b.k}
+          style={{ width: '100%', textAlign: 'left', border: `2.5px solid ${sel === b.k ? '#7C3AED' : INK}`, borderRadius: 11, padding: '7px 9px', marginBottom: 5, cursor: 'pointer', background: sel === b.k ? b.bg : CREME, boxShadow: sel === b.k ? `2px 2px 0 ${INK}` : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 28, height: 28, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 8, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{b.ic}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5, lineHeight: 1.1 }}>{b.nome}</div>
+              <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .75 }}>{tr(b.cargo.pt, b.cargo.en)}</div>
+            </div>
+            <div style={{ ...OSW, fontWeight: 700, fontSize: 13, flex: 'none' }}>+{valor} 🪙</div>
+          </div>
+          {/* 📖 a historinha só abre no escolhido — a lista fica limpa e quem quer ler, lê */}
+          {sel === b.k && (
+            <div style={{ ...OSW, fontWeight: 400, fontSize: 10.5, lineHeight: 1.5, marginTop: 7, paddingTop: 7, borderTop: `2px solid rgba(0,0,0,.18)`, fontStyle: 'italic' }}>
+              “{tr(b.historia.pt, b.historia.en)}”
+            </div>
+          )}
+        </button>
+      ))}
+      <button disabled={!esc} onClick={() => esc && onPick(esc.k)}
+        style={{ width: '100%', marginTop: 4, border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 10px', ...OSW, fontWeight: 700, fontSize: 12.5, textTransform: 'uppercase', background: esc ? GREEN : '#cfc6ae', color: esc ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 ${INK}`, cursor: esc ? 'pointer' : 'default' }}>
+        {esc ? `🕴️ ${tr('Pegar o bico na', 'Take the job at')} ${esc.nome}` : tr('Toque num bico pra ler a história', 'Tap a job to read the story')}
+      </button>
+      {jaTem && <button onClick={() => { setTrocando(false); setSel(undefined) }} style={{ width: '100%', marginTop: 6, border: `2.5px solid ${INK}`, borderRadius: 11, padding: 7, ...OSW, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', background: CREME, color: INK, cursor: 'pointer' }}>{tr('cancelar — fico na', 'cancel — stay at')} {jaTem.nome}</button>}
+      <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .7, marginTop: 6, lineHeight: 1.4 }}>
+        {tr('Pode ignorar e começar a temporada: o bico não trava nada, e fica esperando em 🤝 Patrocínio.',
+          'You can ignore this and start the season: the side job blocks nothing, and it waits for you in 🤝 Sponsors.')}
       </div>
     </div>
   )

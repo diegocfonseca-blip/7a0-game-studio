@@ -209,6 +209,37 @@ que ele mesmo desenhou lá atrás:
 pede decisão quando o contrato termina, e o texto diz que dá pra deixar como está e
 começar. Quem não tem a obra vê UMA linha com o caminho, e nada trava.
 
+### 🧹 PATROCÍNIO E LOJA VIRARAM PAINEL DE LEITURA (ordem dele, 15/09)
+Palavras do Diego: *"a área de patrocínios está com visual horrível e muita informação
+também. Remova a régua de valores de lá do Master e do Pontual, que isso só bota
+confusão e ninguém olha e lê. Não quero que lá tenha opções de escolher funções igual
+bico e etc — lá já é pra mostrar tudo que foi escolhido e tudo que ele ganha. Mesma
+coisa serve pra loja."* E depois: *"deixou visual mais organizado nas duas abas"*.
+Regra que fica: **DECIDIR é na virada da temporada; as abas só MOSTRAM.**
+- ❌ Saiu a `MasterRegua` e o `SponsorBetStatus soRegua` da aba Patrocínio (as duas
+  tabelonas de valor por divisão). ⚠️ Isso vale pra TODO MUNDO, não só pro tester.
+- 👟 O fornecedor na aba virou faixa de leitura (a assinatura foi pra virada).
+- 🕴️ O bico na aba virou leitura, com a historinha; trocar de bico foi pra virada.
+- 🛍️ A aba Loja ficou: vitrine + balanço do ano passado + uma ficha curta em linhas
+  (torcida · fornecedor · Master · preço do ano). Sem botão de escolher nada.
+
+### 🕴️ BICO DE FOLGA: valor, história e lugar (ordem dele, 15/09)
+- 💰 **Subiu pra 5 🪙 por temporada.** Era Várzea 2 · Série D 4; ele mandou *"aumente o
+  valor do bico pra 5 moedas"*. Virou 5 nas duas — os dois subiram, ninguém perde.
+  ⚠️ Vale pra TODO MUNDO (é feature já viva), não está atrás da trava da Loja.
+- 📖 **Cada bico ganhou a historinha** (*"quero a historinha dizendo o porquê e o que
+  ele escolhe fazer da vida"*). ⚠️ A história é sempre sobre o TÉCNICO, nunca sobre o
+  dono da marca — são negócios de amigos de verdade, e a regra permanente é não
+  inventar como uma pessoa real é.
+- 📍 **Aparece na virada da temporada**, "só quando precisar": sem bico → a lista com as
+  histórias; com bico → UMA linha e um 🔁 trocar. Nunca trava o "Começar a temporada".
+- 🧭 A régua e as marcas saíram de dois arquivos e viraram **`src/escalacao/bico.ts`**.
+
+**Como o bico funciona hoje, conferido no código** (era dúvida dele):
+abre na **temporada 3**, só com o clube na **Várzea ou Série D**, paga **5 🪙 por
+temporada**, a escolha é de graça. **Ao chegar na Série C ele acaba** ("virou nome
+grande") e **reabre se cair** de volta pra D.
+
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
    mostraria pra todo mundo uma aba que só ele vê. Entra na MESMA entrega que

@@ -36,7 +36,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, MasterRegua, sponsorLogoEstampa, FornBanner } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, sponsorLogoEstampa, FornFaixa } from './estadio'
 import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorOverview } from './career-sponsor-visual'
 import { UnlockBanner } from './unlockbanner'
@@ -45,7 +45,9 @@ import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador, useLojaLiberada } from './sport'
-import { LojaTab, LojaVirada } from './loja-tela' // 🛍️ Loja do Clube — teste fechado por e-mail (LOJA_TESTERS)
+import { LojaTab, LojaVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
+import { BICO_MARCAS, BICO_VALOR, bicoElegivel } from './bico'
+import { fornAtivo } from './loja' // 🕴️ Bico de Folga — teste fechado por e-mail (LOJA_TESTERS)
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
@@ -6121,7 +6123,6 @@ export function PyramidSeasonScreen() {
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
-  const [bicoTrocando, setBicoTrocando] = useState(false) // 🕴️ Bico de Folga: lista de troca abre no lugar do botão (visual novo, 14/08)
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const lojaLib = useLojaLiberada() // 🛍️ Loja do Clube: teste fechado na conta do Diego — pros outros a pílula nem existe
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
@@ -7728,6 +7729,20 @@ export function PyramidSeasonScreen() {
                   A ordem é a que ele desenhou: 1) o BALANÇO do ano que acabou,
                   2) o FORNECEDOR (aviso se o contrato corre, os 4 papéis se acabou),
                   3) o PREÇO da camisa do ano novo. */}
+              {/* 🕴️ BICO DE FOLGA na virada — pedido dele (15/09): *"o bico também
+                  deveria aparecer uma vez nesse início também, mas só quando
+                  precisar"*. "Quando precisar" = ele está na janela do bico (T3+,
+                  Várzea ou Série D) e AINDA NÃO escolheu nenhum. Quem já tem bico não
+                  vê nada aqui — senão vira um passo a mais toda temporada, e isso o
+                  Diego odeia. */}
+              {(() => {
+                const dv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
+                if (!agenciaOk || !bicoElegivel(state.seasonNo ?? 1, dv)) return null
+                // com bico já escolhido é UMA linha com o "trocar" fechado; sem bico,
+                // a lista aberta. Em nenhum dos dois casos trava o "Começar a temporada".
+                return <BicoVirada div={dv} atual={state.careerBico?.brandId}
+                  onPick={brand => dispatch({ type: 'SET_BICO', brand })} />
+              })()}
               {lojaLib && <LojaVirada
                 time={state.managers[state.youIdx]?.teamName ?? tr('Seu clube', 'Your club')}
                 st={state.stadiums?.[youId]} div={me.div} seasonNo={state.seasonNo ?? 1}
@@ -8142,8 +8157,6 @@ export function PyramidSeasonScreen() {
                 masterNome={masterBrandAtual?.name}
                 masterLogo={masterBrandAtual ? sponsorLogoEstampa(masterBrandAtual) : undefined}
                 minhaCor={myCol.solid}
-                onPreco={preco => dispatch({ type: 'LOJA_PRECO', preco, mgrId: youId })}
-                onVerPatrocinio={() => setClubeSub('patrocinio')}
                 onIrEstrutura={() => setClubeSub('estadio')} />
             ) : clubeSub === 'financas' ? (
               <>
@@ -8172,24 +8185,27 @@ export function PyramidSeasonScreen() {
                     O Diego pegou meu erro em 15/09: *"não era contrato igual tem lá na
                     área de patrocínio Master e Pontual? Achei que aqui [na Loja] era só
                     pra ver o visual"*. Contrato mora com contrato; a Loja é a vitrine. */}
-                {me && lojaLib && <FornBanner div={me.div} contrato={state.careerLoja?.[youId]?.forn}
-                  seasonNo={state.seasonNo ?? 1} temLoja={hasExtra(state.stadiums?.[youId], 'loja')}
-                  cinematic={privateCareer} onIrEstrutura={() => setClubeSub('estadio')}
-                  onPick={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })} />}
+                {/* 👟 SÓ LEITURA. Ordem do Diego (15/09): *"não quero que lá tenha opções
+                    de escolher funções igual bico e etc… lá já é pra mostrar tudo que foi
+                    escolhido e tudo que ele ganha"*. Assinar é na virada da temporada. */}
+                {me && lojaLib && (fornAtivo(state.careerLoja?.[youId]?.forn, state.seasonNo ?? 1)
+                  ? <FornFaixa contrato={state.careerLoja![youId]!.forn!} seasonNo={state.seasonNo ?? 1} />
+                  : <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 12 }}>
+                      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: 0 }}>👟 {tr('Fornecedor de material', 'Kit supplier')}</p>
+                      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>
+                        {hasExtra(state.stadiums?.[youId], 'loja')
+                          ? tr('Sem contrato correndo. As propostas aparecem no começo da temporada.', 'No contract running. The offers show up at the start of the season.')
+                          : tr('Nenhuma marca patrocina quem ainda não vende camisa — construa a 🛍️ Loja do Clube no estádio.', 'No brand sponsors a club that does not sell shirts yet — build the 🛍️ Club Store at the stadium.')}
+                      </p>
+                    </div>)}
                 {me && (privateCareer ? <CareerSponsorOverview chosen={state.careerSponsorBet?.[youId]} div={me.div} /> : <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} />)}
                 {me && <TVContrato div={me.div} clube={me.team} foco={tvFoco} onFocoFim={() => setTvFoco(false)} />}
-                {me && <MasterRegua div={me.div} />}
-                {me && <SponsorBetStatus div={me.div} soRegua />}
                 {agenciaOk && (() => {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
-                  const bicoOn = (state.seasonNo ?? 1) >= 3 && (myDiv === 'V' || myDiv === 'D')
-                  const valor = myDiv === 'V' ? 2 : 4
-                  const BRANDS: { k: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; ic: string; bg: string; nome: string; cargo: string }[] = [
-                    { k: 'vadico', ic: '🚗', bg: '#FDE68A', nome: 'Vadico Veículos', cargo: tr('vendedor nas folgas', 'salesman on days off') },
-                    { k: 'maxjoias', ic: '💍', bg: '#F5D0E8', nome: 'Max Jóias', cargo: tr('atendente na loja', 'shop assistant') },
-                    { k: 'ero', ic: '🦷', bg: '#CFE8FB', nome: 'Ero Dentista', cargo: tr('recepcionista', 'receptionist') },
-                    { k: 'reidastintas', ic: '🎨', bg: '#FBD0C6', nome: 'Rei das Tintas', cargo: tr('pintor de parede nas folgas', 'wall painter on days off') },
-                  ]
+                  // 🕴️ a régua e as marcas do bico moram em `bico.ts` (lista repetida diverge)
+                  const bicoOn = bicoElegivel(state.seasonNo ?? 1, myDiv)
+                  const valor = BICO_VALOR[(myDiv === 'V' ? 'V' : 'D')]
+                  const BRANDS = BICO_MARCAS.map(b => ({ ...b, cargo: tr(b.cargo.pt, b.cargo.en) }))
                   return (
                     <div style={{ marginTop: 10 }}>
                       <UnlockBanner k="bico" tag={tr('🕴️ novo bico', '🕴️ new side job')} title={tr('Bico de Folga', 'Side Job')} ctaBg={GREEN} ctaColor="#fff">
@@ -8210,6 +8226,7 @@ export function PyramidSeasonScreen() {
                               <span style={{ width: 44, height: 44, borderRadius: 11, border: `2.5px solid ${INK}`, background: atual.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{atual.ic}</span>
                               <div style={{ minWidth: 0, flex: 1 }}>
                                 <p style={{ fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, margin: 0 }}>{tr('🕴️ seu bico de folga', '🕴️ your side job')}</p>
+                                {/* 📖 a história do bico que ele escolheu, pra não virar só um numerozinho */}
                                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '1px 0 0' }}>{atual.nome}</p>
                                 <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', margin: '1px 0 0' }}>{atual.cargo}</p>
                               </div>
@@ -8219,45 +8236,23 @@ export function PyramidSeasonScreen() {
                               </div>
                             </div>
                             <div style={{ padding: '9px 12px' }}>
-                              {!bicoTrocando ? (
-                                <button onClick={() => setBicoTrocando(true)} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, ...OSWALD, textTransform: 'uppercase', background: GOLD, color: INK, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>{tr('🔁 Trocar de bico', '🔁 Change side job')}</button>
-                              ) : (
-                                <>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 7px' }}>
-                                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: 0 }}>{tr('Escolher outro:', 'Pick another:')}</p>
-                                    <span onClick={() => setBicoTrocando(false)} style={{ fontSize: 9.5, fontWeight: 800, color: '#8a8069', textDecoration: 'underline', cursor: 'pointer' }}>{tr('cancelar', 'cancel')}</span>
-                                  </div>
-                                  {BRANDS.map(b => {
-                                    const isCur = b.k === state.careerBico!.brandId
-                                    return (
-                                      <button key={b.k} disabled={isCur} onClick={() => { dispatch({ type: 'SET_BICO', brand: b.k }); setBicoTrocando(false) }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 9px', marginBottom: 6, background: isCur ? '#EAF7EE' : '#FBF6E9', borderColor: isCur ? GREEN : INK, cursor: isCur ? 'default' : 'pointer', textAlign: 'left' }}>
-                                        <span style={{ width: 28, height: 28, borderRadius: 7, border: `2px solid ${INK}`, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>{b.ic}</span>
-                                        <span style={{ minWidth: 0, flex: 1 }}>
-                                          <span style={{ display: 'block', fontWeight: 800, fontSize: 10, ...OSWALD }}>{b.nome}</span>
-                                          <span style={{ fontSize: 8, color: '#8a8069', fontWeight: 700 }}>{b.cargo}</span>
-                                        </span>
-                                        {isCur && <span style={{ fontSize: 8, fontWeight: 900, color: GREEN, textTransform: 'uppercase' }}>{tr('atual', 'current')}</span>}
-                                      </button>
-                                    )
-                                  })}
-                                </>
-                              )}
+                              {/* 📖 a historinha (Diego 15/09) — é o que dá vida ao bico */}
+                              <p style={{ fontSize: 10.5, fontWeight: 600, fontStyle: 'italic', color: '#5a5647', margin: 0, lineHeight: 1.5 }}>“{tr(atual.historia.pt, atual.historia.en)}”</p>
+                              {/* 🧹 SEM BOTÃO DE ESCOLHA AQUI (ordem do Diego, 15/09): esta aba
+                                  só MOSTRA o que está fechado. Trocar de bico é na virada da
+                                  temporada, junto das outras decisões. */}
+                              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a8069', margin: '7px 0 0', lineHeight: 1.4 }}>
+                                {tr('Pra trocar de bico, é na virada da temporada — junto das outras decisões.', 'To change your side job, do it at the season turn — with the other decisions.')}
+                              </p>
                             </div>
                           </div>
                         )
                       })() : (
                         <div style={{ ...box('#fff'), padding: 12 }}>
-                          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px' }}>{tr('Escolha seu bico — de graça', 'Pick your side job — free')}</p>
-                          {BRANDS.map(b => (
-                            <button key={b.k} onClick={() => dispatch({ type: 'SET_BICO', brand: b.k })} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 10px', marginBottom: 7, background: '#FBF6E9', cursor: 'pointer', textAlign: 'left' }}>
-                              <span style={{ width: 34, height: 34, borderRadius: 9, border: `2px solid ${INK}`, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{b.ic}</span>
-                              <span style={{ minWidth: 0 }}>
-                                <span style={{ display: 'block', fontWeight: 800, fontSize: 11.5, ...OSWALD }}>{b.nome}</span>
-                                <span style={{ fontSize: 9, color: '#8a8069', fontWeight: 700 }}>{b.cargo}</span>
-                              </span>
-                            </button>
-                          ))}
-                          <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 12.5, color: GREEN, ...OSWALD, margin: '4px 0 0' }}>+{valor}🪙 {tr('por temporada', 'per season')}</p>
+                          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: 0 }}>{tr('🕴️ Você ainda não pegou um bico', '🕴️ You have no side job yet')}</p>
+                          <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '4px 0 0', lineHeight: 1.45 }}>
+                            {tr(`Na virada da temporada os quatro aparecem pra você escolher — de graça, e rende +${valor} 🪙 por temporada.`, `At the season turn the four show up for you to pick — free, and it pays +${valor} 🪙 a season.`)}
+                          </p>
                         </div>
                       )}
                     </div>

@@ -369,7 +369,7 @@ export const TV_EXTRA_ANTIGO = 10
 // 🕴️ BICO DE FOLGA (Guia da Carreira, 13/08): renda extra fixa enquanto o clube
 // tá na Várzea/D, a partir da T3 — 3 patrocinadores reais do jogo, escolha livre.
 const BICO_BRANDS: Record<'vadico' | 'maxjoias' | 'ero' | 'reidastintas', string> = { vadico: 'Vadico Veículos', maxjoias: 'Max Jóias', ero: 'Ero Dentista', reidastintas: 'Rei das Tintas' }
-const BICO_VALOR: Record<'V' | 'D', number> = { V: 2, D: 4 }
+// 💰 a régua do bico mora em `bico.ts` (a lista de marcas e a história também)
 function applyTVIncome(s: EscState) {
   const online = s.onlineMode === 'online'
   const y = s.managers[s.youIdx]?.id ?? s.youIdx
@@ -603,7 +603,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
     // guardada mesmo fora da janela (não paga, mas não esquece o patrocinador).
     if (s.careerBico) {
       const divAtual = (s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'V') as string
-      if ((s.seasonNo ?? 1) >= 3 && (divAtual === 'V' || divAtual === 'D')) {
+      if (bicoElegivel(s.seasonNo ?? 1, divAtual)) {
         const valor = BICO_VALOR[divAtual as 'V' | 'D']
         s.careerCoins = { ...(s.careerCoins ?? {}), [y]: (s.careerCoins?.[y] ?? 0) + valor }
       }
@@ -738,6 +738,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 }
 import type { CareerTeam } from './data'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
+import { BICO_VALOR, bicoElegivel } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, lojaConstruida, calculaVendas } from './loja'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
