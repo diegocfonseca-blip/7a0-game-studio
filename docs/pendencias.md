@@ -1,3 +1,37 @@
+## 15/09/2026 — 🧑‍⚕️ O "preparador físico" aparecia DUAS vezes na aba Elenco (consertado)
+
+Ele pegou, com dois prints: *"aqui será q N tá confuso Tb não? Mostrando falando de
+preparador em cima e dps preparador em baixo"*. Depois do mockup: *"Ok pibkique Tb"*
+(= publique também, as duas coisas que ofereci).
+
+### A causa — sempre a mesma: dois blocos com o MESMO TÍTULO
+A caixa ACIMA do campinho se chamava **"🧑‍⚕️ Preparador físico"**, mas o trabalho dela é
+outro: listar QUEM ESTÁ CANSADO e trazer o 🔁 RODIZIAR. Contratar é no **"🏛️ Departamento
+Técnico"**, embaixo do campinho. Com o mesmo nome nos dois, a tela dizia *"você não tem
+preparador"* duas vezes, com **dois botões dourados**, um mandando pro outro.
+
+### O que foi feito (nada saiu do lugar, nada sumiu)
+1. A caixa de cima passou a se chamar **"😓 Quem está cansado"** (EN: "Who is tired").
+   Lista, ❓ de ajuda, 🔁 RODIZIAR e o interruptor do automático: tudo igual.
+2. O aviso de bloqueio dela virou **uma linha**, sem botão dourado: *"Troque na mão…
+   o 🔁 RODIZIAR vem com o preparador — contrate no Departamento Técnico ↓"*, com o
+   caminho como link de texto (segue chamando o mesmo `condicao.onDepto`).
+3. **Contratar existe num lugar só**: o Departamento Técnico.
+
+### E o contador de gás repetido (o 2º item, que ele mandou publicar junto)
+A linha **"🏃 Gás do time: 29% · 9 🚑"** e o atalho novo **"9 esgotados · gás do time
+29%"** ficavam coladas dizendo a mesma coisa. Agora os contadores **🚑/🥵 somem da linha
+de cima quando o atalho está na tela** (é ele que dá pra tocar). Sem o atalho — time só
+com 😓 —, os contadores ficam, pra não perder a leitura de relance.
+
+📢 Não virou linha de novidade: é polimento da mesma entrega de hoje, que já tem a linha
+"A tela da carreira ficou mais fácil de ler".
+**Reverter**: um título, um parágrafo e uma condição, tudo em `pyramidseason.tsx`. Nada
+de save, nada de banco.
+Mockup do antes/depois: `scripts/mockups/preparador-duplicado.png`.
+
+---
+
 ## 15/09/2026 — 🚑⬇️🎛️ Três entregas juntas: lesão, placar que encolhe e hierarquia da tela
 
 Ele aprovou as três de uma vez: *"Perfeito pode publicar tudo isso"*.

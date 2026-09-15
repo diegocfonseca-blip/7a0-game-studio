@@ -3475,7 +3475,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         return (
           <div style={{ border: `3px solid ${INK}`, background: '#FFF6D6', borderRadius: 11, padding: '9px 12px', margin: '0 0 10px', boxShadow: `3px 3px 0 0 ${INK}` }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: .6, color: '#5a5647', margin: 0, textTransform: 'uppercase', display: 'flex', alignItems: 'center' }}>
-              <span style={{ flex: 1 }}>{tr('🧑‍⚕️ Preparador físico', '🧑‍⚕️ Fitness coach')}</span>
+              {/* 🏷️ O NOME DA CAIXA É O QUE ELA FAZ (Diego 15/09: *"aqui será q N tá
+                  confuso Tb não? Mostrando falando de preparador em cima e dps
+                  preparador em baixo"*). Ela se chamava "Preparador físico" — o MESMO
+                  nome do bloco de contratar, logo abaixo do campinho —, então a tela
+                  dizia "você não tem preparador" duas vezes, com dois botões dourados,
+                  um mandando pro outro. Aqui é a lista de QUEM ESTÁ CANSADO + o
+                  🔁 RODIZIAR; contratar mora num lugar só, no Departamento Técnico. */}
+              <span style={{ flex: 1 }}>{tr('😓 Quem está cansado', '😓 Who is tired')}</span>
               {/* ❓ o texto de regra só abre aqui (Diego 14/09: muita informação) */}
               <button onClick={() => setAjudaPrep(a => !a)} aria-label={tr('como funciona o gás', 'how energy works')} style={{ width: 20, height: 20, borderRadius: 999, border: `2px solid ${INK}`, background: ajudaPrep ? INK : '#fff', color: ajudaPrep ? '#fff' : INK, fontWeight: 900, fontSize: 11, lineHeight: '16px', padding: 0, cursor: 'pointer', fontFamily: 'system-ui' }}>?</button>
             </p>
@@ -3496,20 +3503,19 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                 se algum dos dois vai aparecer — senão sobrava um vão em branco. */}
             {/* 🔒 SEM PREPARADOR: o botão não existe — e o aviso diz o porquê, o caminho
                 e, principalmente, que NADA travou (trocar na mão segue igual). */}
+            {/* 🔒 SEM PREPARADOR: uma LINHA, não uma caixa. O aviso grande com botão
+                dourado repetia, palavra por palavra, o que o Departamento Técnico já
+                diz logo abaixo. Aqui fica só o essencial — nada travou, trocar na mão
+                segue igual — e o caminho pra contratar é um link de texto. */}
             {semPrep && (
-              <div style={{ marginTop: 8, border: `2.5px dashed #8a6d00`, borderRadius: 9, background: '#FFFBEC', padding: '8px 10px' }}>
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: '#8a6d00', margin: 0 }}>{tr('🔒 Você não tem preparador físico', '🔒 You have no fitness coach')}</p>
-                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#6b5a1f', margin: '3px 0 0', lineHeight: 1.45 }}>
-                  {getLang() === 'en'
-                    ? <>You can still rotate <b>by hand</b>: tap the tired player, then tap the backup — a normal substitution. To get the <b>🔁 ROTATE</b> button, hire a fitness coach in the <b>Technical Department</b>, right below the pitch.</>
-                    : <>Dá pra rodiziar <b>na mão</b> do mesmo jeito: toque no cansado e depois no reserva — substituição normal. Pra ter o botão <b>🔁 RODIZIAR</b>, contrate um preparador no <b>Departamento Técnico</b>, logo abaixo do campinho.</>}
-                </p>
-                {condicao.onDepto && (
-                  <button onClick={condicao.onDepto} style={{ marginTop: 7, width: '100%', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', ...OSWALD, fontWeight: 900, fontSize: 12, background: GOLD, color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
-                    {tr('🏋️ VER O DEPARTAMENTO TÉCNICO', '🏋️ OPEN THE TECHNICAL DEPARTMENT')}
-                  </button>
-                )}
-              </div>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#6b5a1f', margin: '7px 0 0', lineHeight: 1.45 }}>
+                {getLang() === 'en'
+                  ? <>Rotate <b>by hand</b>: tap the tired player, then the backup. The <b>🔁 ROTATE</b> button comes with a fitness coach — </>
+                  : <>Troque <b>na mão</b>: toque no cansado, depois no reserva. O botão <b>🔁 RODIZIAR</b> vem com o preparador — </>}
+                {condicao.onDepto
+                  ? <button onClick={condicao.onDepto} style={{ background: 'none', border: 0, padding: 0, font: 'inherit', fontWeight: 900, color: '#8a6d00', textDecoration: 'underline', cursor: 'pointer' }}>{tr('contrate no Departamento Técnico ↓', 'hire one in the Technical Department ↓')}</button>
+                  : <b style={{ color: '#8a6d00' }}>{tr('contrate no Departamento Técnico, logo abaixo do campinho.', 'hire one in the Technical Department, right below the pitch.')}</b>}
+              </p>
             )}
             {condicao.onRodizio && ((sug && !condicao.auto) || condicao.onAuto) && (
             <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
@@ -4375,6 +4381,9 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
     const conta = (e: string) => ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === e).length
     return { media, pct: pctBarra(media), cor: corBarra(media), esg: conta('esgotado'), lim: conta('limite'), can: conta('cansado') }
   })()
+  // o atalho 🚑 só existe quando tem 🥵 ou 🚑 no time — e é ele que passa a carregar
+  // os contadores, pra não repetir a mesma informação duas linhas seguidas.
+  const atalhoGas = !!resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0)
   return (
     <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12 }}>
       {shine && <ApoioSheen holo={perk.holo} />}
@@ -4389,14 +4398,18 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
         {/* 😓 resumo do gás do TIME (média dos 11 do próximo jogo) — a leitura de relance.
             Na tela é a mesma leitura das barrinhas (pctBarra/corBarra), nunca o gás cru. */}
-        {resumoGas && <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: resumoGas.cor }}>{resumoGas.pct}%</span>{resumoGas.esg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {resumoGas.esg} 🚑</span> : null}{resumoGas.lim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {resumoGas.lim} 🥵</span> : null}{resumoGas.can ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {resumoGas.can} 😓</span> : null}</span>}
+        {/* ⚠️ os contadores (· 9 🚑) SOMEM quando o atalho 🚑 logo abaixo está na tela
+            (Diego 15/09): os dois ficavam um em cima do outro dizendo a mesma coisa, e
+            o de baixo é o que dá pra tocar. Sem o atalho — só 😓 no time —, eles ficam,
+            senão a leitura de relance se perderia. */}
+        {resumoGas && <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: resumoGas.cor }}>{resumoGas.pct}%</span>{!atalhoGas && resumoGas.esg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {resumoGas.esg} 🚑</span> : null}{!atalhoGas && resumoGas.lim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {resumoGas.lim} 🥵</span> : null}{resumoGas.can ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {resumoGas.can} 😓</span> : null}</span>}
       </div>
       {/* 🚑 ATALHO PRO ELENCO (Diego 15/09: *"o cara tem q descer lá em baixo p ver o
           elenco... os cansados e etc"*). Entre o cabeçalho do clube e a lista mora um
           monte de coisa (formação, banners, modo de troca, campinho). Em vez de MEXER
           nessa ordem — ele barrou mexer —, quando tem gente no vermelho aparece UMA
           linha que diz o problema e leva direto pros titulares. Time inteiro = some. */}
-      {resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0) && (
+      {resumoGas && atalhoGas && (
         <button onClick={() => document.getElementById(ID_TITULARES)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, textAlign: 'left', background: '#FDECEA', border: `2.5px solid ${resumoGas.esg ? '#C2452F' : '#E8503A'}`, borderRadius: 10, padding: '7px 9px', marginBottom: 10, boxShadow: '2px 3px 0 0 rgba(122,27,27,.55)', cursor: 'pointer' }}>
           <span style={{ fontSize: 19, lineHeight: 1, flexShrink: 0 }}>{resumoGas.esg ? '🚑' : '🥵'}</span>
