@@ -337,42 +337,45 @@ CAMISAS = TORCIDA × quem_compra × curva_do_preço[faixa] × (1+OBRAS) × (1+FO
 MOEDAS  = CAMISAS ÷ 100 × margem_do_preço
 ```
 
-### 3.3b 💰 O PREÇO É UMA APOSTA — e escolher errado dói (Diego, 15/09)
+### 3.3b 💰 O PREÇO É UMA APOSTA — 3 faixas, e quem cai não vende nada
 
-A ideia é dele, e é a melhor coisa da Loja: *"sobre os preços, temos que basear com
-base no time: se vai cair, se vai se manter na divisão, se vai entrar na área de
-classificação, ou ser campeão. Essas 4 ideias, parecido com patrocínio pontual. E aí,
-se escolher o mais caro da camisa e disputar pra não cair, ele se ferra — ele teria
-ganho mais se escolhesse a moeda menor, já que está disputando pra cair, entende?"*.
+A ideia é dele: *"sobre os preços, temos que basear com base no time… e aí, se escolher
+o mais caro da camisa e disputar pra não cair, ele se ferra — ele teria ganho mais se
+escolhesse a moeda menor"*.
 
-Traduzindo em número: **cada preço tem a SUA curva pelas 4 faixas.**
+✂️ **E ele MESMO cortou a versão de 4 faixas em seguida**: *"muita confusão, acho que
+tem que ter só: se manteve, classificação zona, ou campeão. Caiu não vendeu nada"*.
+Então são **3 faixas — as mesmas 3 metas do Patrocinador Pontual**, que o jogador já
+conhece de cor — e o 🔴 caiu **não é uma 4ª faixa: é o ZERO**.
 
-| Preço | de cada 100 torcedores compram | margem (por 100 camisas) | 🔴 CAIU | 🛡️ MANTEVE | 📈 CLASSIF. | 👑 CAMPEÃO |
+| Preço | de cada 100 torcedores compram | margem (por 100 camisas) | 🛡️ SE MANTEVE | 📈 CLASSIFICAÇÃO | 👑 CAMPEÃO | 🔴 CAIU |
 |---|---|---|---|---|---|---|
-| **Popular** (1 🪙) | 8,0 | 0,5 | ×0,70 | ×0,95 | ×1,15 | ×1,30 |
-| **Normal** (2 🪙) | 4,5 | 1,0 | ×0,45 | ×0,80 | ×1,25 | ×1,55 |
-| **Cara** (3 🪙) | 2,4 | 1,5 | ×0,20 | ×0,55 | ×1,45 | ×2,00 |
+| **Popular** (1 🪙) | 8,0 | 0,5 | ×1,00 | ×1,15 | ×1,30 | **0** |
+| **Normal** (2 🪙) | 4,5 | 1,0 | ×0,80 | ×1,25 | ×1,55 | **0** |
+| **Cara** (3 🪙) | 2,4 | 1,5 | ×0,50 | ×1,40 | ×2,00 | **0** |
 
-- **Popular** quase não sente o resultado (0,70 → 1,30): camisa barata o torcedor
-  compra mesmo com o time na bacia das almas. Em compensação sobra pouco por peça.
-- **Cara** só vende se o time for bem (0,20 → 2,00): ninguém paga caro pra vestir time
-  que caiu — mas campeão vende camisa cara que é uma beleza.
+- **Popular** quase não sente o resultado: camisa barata o torcedor leva mesmo com o
+  time no meio da tabela. Em compensação sobra pouco por peça.
+- **Cara** só vende se o time for bem: ninguém paga caro pra vestir time sem graça —
+  mas campeão vende camisa cara que é uma beleza.
+- 🔴 **Caiu = zero, em qualquer preço.** Não é curva baixinha, é não vender nada mesmo.
 
 **O resultado, no mesmo clube** (Série C, 52.000 de torcida, Adibas +20%):
 
-| Preço | 🔴 CAIU | 🛡️ SE MANTEVE | 📈 CLASSIFICAÇÃO | 👑 CAMPEÃO |
+| Preço | 🛡️ SE MANTEVE | 📈 CLASSIFICAÇÃO | 👑 CAMPEÃO | 🔴 CAIU |
 |---|---|---|---|---|
-| Popular (1 🪙) | **19** | **25** | 30 | 34 |
-| Normal (2 🪙) | 13 | 24 | **37** | 46 |
-| Cara (3 🪙) | 5 | 13 | 35 | **48** |
+| Popular (1 🪙) | **26** | 30 | 34 | 0 |
+| Normal (2 🪙) | 24 | **37** | 46 | 0 |
+| Cara (3 🪙) | 12 | 33 | **48** | 0 |
 
-👉 É exatamente o que ele descreveu: **brigando pra não cair, a cara dá 5 e a popular
-dá 19 — quase 4× mais.** Campeão é o contrário: cara 48, popular 34. E o meio de
-tabela é escolha de verdade (25 × 24, empate técnico entre popular e normal).
+👉 A diagonal conta a história sozinha: **só se manteve → a popular ganha** (26 contra
+12 da cara, mais que o dobro); **classificação → a normal**; **campeão → a cara**.
+É exatamente o que ele descreveu, com uma faixa a menos e sem confusão.
 
-⚠️ **E NÃO É PEGADINHA.** A tela mostra a tabela dos 4 finais **antes** de ele escolher
-— regra permanente do Diego: toda trava/escolha explica o porquê. Ele aposta sabendo
-o que ganha em cada cenário; o risco é dele, a informação é dele também.
+⚠️ **E NÃO É PEGADINHA.** A tela mostra as 3 colunas **antes** de ele escolher, com o
+verde marcando qual preço ganha em cada final, e a faixa vermelha embaixo avisando que
+cair zera tudo — regra permanente do Diego: toda escolha explica o porquê. Ele aposta
+sabendo; o risco é dele, a informação é dele também.
 
 **Quanto isso dá numa temporada** (preço Normal, rodado em `node scripts/mockup-fornecedor.mjs`):
 
@@ -383,12 +386,13 @@ o que ganha em cada cenário; o risco é dele, a informação é dele também.
 | Série C, 2 setores, meio de tabela | 52.000 | 2.381 | **+24 🪙** |
 | Série C, 2 setores, **CLASSIFICAÇÃO** | 52.000 | 3.721 | **+37 🪙** |
 | Série A, estádio COMPLETO, **CAMPEÃO** | 90.838 | 13.781 | **+138 🪙** |
+| **qualquer clube que CAIU** | — | 0 | **0 🪙** |
 
 Por que esses tamanhos: medido em 14/09, a mediana de caixa é **32 na Série B** e
 **53 na Série C** — ou seja, +24 a +37 numa temporada de Série C **dobra** o ano de
 quem está no meio da tabela, que é exatamente quem reclamou. Na Série A (mediana de
 caixa 881) os +138 são um bônus, não uma virada — a loja não vira a fonte principal
-de ninguém.
+de ninguém. E quem cai perde a loja no ano, o que dá mais um motivo pra não cair.
 
 ### 3.4 QUANDO isso aparece — o balanço só na virada (Diego, 15/09)
 
@@ -422,7 +426,7 @@ Mockup: `node scripts/mockup-fornecedor.mjs` → `mockup-fornecedor.png`.
 |---|---|
 | **1º** — abertura da temporada nova | 📦 **Balanço da Loja** do ano que acabou: camisas vendidas, moedas, e a conta na tela. Cai direto no caixa. |
 | **2º** — logo em seguida | 👟 **Fornecedor**: contrato em dia = só aviso, nada pra decidir · contrato acabou = 4 propostas e ele assina |
-| **3º** — ainda na virada | 💰 **O preço da camisa** do ano novo: aposta nas 4 faixas, com a tabela dos 4 finais na tela antes de escolher |
+| **3º** — ainda na virada | 💰 **O preço da camisa** do ano novo: aposta nas 3 faixas (se manteve · classificação · campeão), com a tabela na tela antes de escolher. Caiu = zero. |
 | Durante a temporada | **nada**. A loja trabalha calada. |
 | Qualquer hora | aba **Clube › Loja**: a camisa grande, é a vitrine do orgulho |
 

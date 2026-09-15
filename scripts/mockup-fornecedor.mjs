@@ -60,15 +60,16 @@ const nomeDiv = d => (d === 'V' ? 'Várzea' : `Série ${d}`)
 //    Geral 21.500 · Cadeiras 18.500 · Visitante 22.838 · Camarote 16.000 = 78.838.
 //    Mais um piso de 12.000: clube nenhum tem torcida zero.
 const TORCIDA_PISO = 12_000
-// 📣 COMO A TEMPORADA ACABOU — as 4 FAIXAS que o Diego pediu (15/09), as mesmas do
-//    Patrocinador Pontual: *"temos que basear com base no time: se vai cair, se vai se
-//    manter na divisão, se vai entrar na área de classificação, ou ser campeão. Essas
-//    4 ideias, parecido com patrocínio pontual"*.
+// 📣 COMO A TEMPORADA ACABOU — 3 FAIXAS, e só (Diego, 15/09: *"muita confusão, acho
+//    que tem que ter só: se manteve, classificação zona, ou campeão. Caiu não vendeu
+//    nada"*). São as MESMAS 3 metas do Patrocinador Pontual, então o jogador já
+//    conhece a régua de cor.
+//    🔴 CAIU não é uma 4ª faixa: é o ZERO. Quem cai não vende camisa nenhuma.
 const FAIXAS = [
-  { k: 'campeao', ate: 1,  emoji: '👑', txt: 'CAMPEÃO',        sub: '1º lugar' },
-  { k: 'acesso',  ate: 4,  emoji: '📈', txt: 'CLASSIFICAÇÃO',  sub: '2º ao 4º' },
-  { k: 'manteve', ate: 16, emoji: '🛡️', txt: 'SE MANTEVE',     sub: '5º ao 16º' },
-  { k: 'caiu',    ate: 20, emoji: '🔴', txt: 'CAIU',           sub: '17º ao 20º' },
+  { k: 'campeao', ate: 1,  emoji: '👑', txt: 'CAMPEÃO',       sub: '1º lugar' },
+  { k: 'acesso',  ate: 4,  emoji: '📈', txt: 'CLASSIFICAÇÃO', sub: '2º ao 4º' },
+  { k: 'manteve', ate: 16, emoji: '🛡️', txt: 'SE MANTEVE',    sub: '5º ao 16º' },
+  { k: 'caiu',    ate: 20, emoji: '🔴', txt: 'CAIU',          sub: '17º ao 20º', zero: true },
 ]
 const faixaDe = pos => FAIXAS.find(f => pos <= f.ate)
 // 🏬 OBRAS do estádio que levam gente pra loja (as que já existem em STADIUM_EXTRAS).
@@ -79,25 +80,26 @@ const OBRAS_LOJA = { telao: .04, estac: .06, praca: .10, chopp: .06, estacao: .0
 //    *"se escolher o mais caro da camisa e disputar pra não cair, ele se ferra. Ele
 //    teria ganho mais se escolhesse a moeda menor, já que está disputando pra cair"*.
 //
-//    Como isso vira número: cada preço tem a SUA curva pelas 4 faixas.
-//      · Popular — quase não sente o resultado (0,70 → 1,30). Camisa barata o torcedor
-//        compra até com o time na bacia das almas. Rende pouco por peça.
-//      · Normal  — sente no meio (0,45 → 1,55).
-//      · Cara    — só vende se o time FOR BEM (0,20 → 2,00). Ninguém paga caro pra
-//        vestir time que caiu; mas quem é campeão vende camisa cara que é uma beleza.
+//    Como isso vira número: cada preço tem a SUA curva pelas 3 faixas.
+//      · Popular — quase não sente o resultado (1,00 → 1,30). Camisa barata o torcedor
+//        leva mesmo com o time no meio da tabela. Rende pouco por peça.
+//      · Normal  — sente no meio (0,80 → 1,55).
+//      · Cara    — só vende se o time FOR BEM (0,50 → 2,00). Ninguém paga caro pra
+//        vestir time sem graça; mas campeão vende camisa cara que é uma beleza.
 //    `compram` = de cada 100 torcedores, quantos levam a camisa (com o time mediano).
 //    `margem`  = moedas que sobram pro clube a cada 100 camisas.
 const PRECOS = {
-  popular: { nome: 'Popular', moeda: 1, compram: 8.0, margem: 0.5, curva: { caiu: 0.70, manteve: 0.95, acesso: 1.15, campeao: 1.30 } },
-  normal:  { nome: 'Normal',  moeda: 2, compram: 4.5, margem: 1.0, curva: { caiu: 0.45, manteve: 0.80, acesso: 1.25, campeao: 1.55 } },
-  cara:    { nome: 'Cara',    moeda: 3, compram: 2.4, margem: 1.5, curva: { caiu: 0.20, manteve: 0.55, acesso: 1.45, campeao: 2.00 } },
+  popular: { nome: 'Popular', moeda: 1, compram: 8.0, margem: 0.5, curva: { manteve: 1.00, acesso: 1.15, campeao: 1.30 } },
+  normal:  { nome: 'Normal',  moeda: 2, compram: 4.5, margem: 1.0, curva: { manteve: 0.80, acesso: 1.25, campeao: 1.55 } },
+  cara:    { nome: 'Cara',    moeda: 3, compram: 2.4, margem: 1.5, curva: { manteve: 0.50, acesso: 1.40, campeao: 2.00 } },
 }
 function vendas({ assentos, pos, obras = [], fornLoja = 0, preco = 'normal' }) {
   const torcida = TORCIDA_PISO + assentos
   const faixa = faixaDe(pos)
   const bObras = obras.reduce((s, k) => s + (OBRAS_LOJA[k] ?? 0), 0)
   const p = PRECOS[preco]
-  const camp = p.curva[faixa.k]
+  // 🔴 caiu = ZERO. Não é curva baixinha: é não vender nada mesmo (ordem do Diego).
+  const camp = faixa.zero ? 0 : p.curva[faixa.k]
   const camisas = Math.round(torcida * (p.compram / 100) * camp * (1 + bObras) * (1 + fornLoja))
   return { torcida, faixa, camp, bObras, camisas, moedas: Math.round(camisas / 100 * p.margem), p }
 }
@@ -130,15 +132,17 @@ for (const c of CASOS) {
 // brigar pra não cair é se ferrar; com a barata ele teria ganho muito mais.
 const APOSTA_BASE = { assentos: 40000, obras: ['estac'], fornLoja: .20 } // Série C, 2 setores, Adibas
 const POS_DA_FAIXA = { campeao: 1, acesso: 3, manteve: 10, caiu: 18 }
-console.log('\n💰 A APOSTA DO PREÇO — o mesmo clube (Série C, 52.000 de torcida), 4 finais possíveis')
-console.log('preço        │ 🔴 CAIU │ 🛡️ MANTEVE │ 📈 CLASSIF. │ 👑 CAMPEÃO')
+// só as 3 faixas que valem — 🔴 caiu é o zero, não entra na tabela
+const FAIXAS_APOSTA = FAIXAS.filter(f => !f.zero).reverse() // manteve → classificação → campeão
+console.log('\n💰 A APOSTA DO PREÇO — o mesmo clube (Série C, 52.000 de torcida)')
+console.log('preço         │ 🛡️ MANTEVE │ 📈 CLASSIF. │ 👑 CAMPEÃO │ 🔴 CAIU')
 for (const k of ['popular', 'normal', 'cara']) {
-  const c = FAIXAS.slice().reverse().map(f => vendas({ ...APOSTA_BASE, pos: POS_DA_FAIXA[f.k], preco: k }).moedas)
+  const c = FAIXAS_APOSTA.map(f => vendas({ ...APOSTA_BASE, pos: POS_DA_FAIXA[f.k], preco: k }).moedas)
   const p = PRECOS[k]
-  console.log(`${(p.nome + ' (' + p.moeda + ' 🪙)').padEnd(13)}│${String(c[0]).padStart(6)}  │${String(c[1]).padStart(9)}  │${String(c[2]).padStart(10)}  │${String(c[3]).padStart(9)}`)
+  console.log(`${(p.nome + ' (' + p.moeda + ' 🪙)').padEnd(14)}│${String(c[0]).padStart(9)}  │${String(c[1]).padStart(10)}  │${String(c[2]).padStart(9)}  │${'0'.padStart(6)}`)
 }
-console.log('👉 brigando pra não cair, a CARA dá 5 e a POPULAR dá 19 — quase 4× mais.')
-console.log('👉 sendo campeão, a CARA dá 48 e a POPULAR dá 34. A aposta se paga ao contrário.')
+console.log('👉 quem CAI não vende nada — em qualquer preço.')
+console.log('👉 só se manteve: a POPULAR ganha. Campeão: a CARA ganha. É a aposta.')
 
 // ══════════════════════════════════════════════════════════════════════════
 // 🎬 O MOCKUP
@@ -250,8 +254,8 @@ const novas = painel({
 // 🟢 o verde marca, EM CADA FINAL, qual preço rende mais — é a leitura que interessa
 // (não "onde este preço rende mais", que seria sempre campeão pros três).
 const VALORES = Object.fromEntries(['popular', 'normal', 'cara'].map(k =>
-  [k, FAIXAS.slice().reverse().map(f => vendas({ ...APOSTA_BASE, pos: POS_DA_FAIXA[f.k], preco: k }).moedas)]))
-const MELHOR_DA_COLUNA = FAIXAS.map((_, i) => Math.max(...Object.values(VALORES).map(v => v[i])))
+  [k, FAIXAS_APOSTA.map(f => vendas({ ...APOSTA_BASE, pos: POS_DA_FAIXA[f.k], preco: k }).moedas)]))
+const MELHOR_DA_COLUNA = FAIXAS_APOSTA.map((_, i) => Math.max(...Object.values(VALORES).map(v => v[i])))
 const linhaPreco = (k, escolhido) => {
   const p = PRECOS[k]
   const val = VALORES[k]
@@ -262,10 +266,11 @@ const linhaPreco = (k, escolhido) => {
       <span style="${OSW};font-weight:400;font-size:10px;opacity:.75">${p.moeda} 🪙 a camisa · ${String(p.compram).replace('.', ',')} de cada 100 torcedores compram</span>
     </div>
     <div style="display:flex;gap:4px">${val.map((v, i) => {
-      const f = FAIXAS.slice().reverse()[i], top = v === MELHOR_DA_COLUNA[i]
+      const f = FAIXAS_APOSTA[i], top = v === MELHOR_DA_COLUNA[i]
       return `<div style="flex:1;border:2px solid ${INK};border-radius:8px;padding:3px 0;text-align:center;
           background:${top ? '#1B7A3D' : 'rgba(0,0,0,.05)'};color:${top ? '#fff' : INK}">
-        <div style="font-size:10px;line-height:1.1">${f.emoji}</div>
+        <div style="font-size:9px;line-height:1.1">${f.emoji}</div>
+        <div style="${OSW};font-weight:600;font-size:7px;line-height:1;letter-spacing:.03em;opacity:.8">${f.txt}</div>
         <div style="${OSW};font-weight:700;font-size:13px;line-height:1.05">${v}</div>
       </div>`}).join('')}</div>
   </div>`
@@ -278,16 +283,18 @@ const precoPanel = painel({
     ${selo('TABELA DE PREÇOS · TEMPORADA 7')}
     <div style="${OSW};font-weight:700;font-size:22px;line-height:1">Normal</div>
     <div style="${OSW};font-weight:700;font-size:10.5px;line-height:1.2">2 🪙 A CAMISA</div>
-    <strong style="${OSW};font-weight:700;font-size:23px;line-height:1">13 a 46 🪙</strong>
+    <strong style="${OSW};font-weight:700;font-size:23px;line-height:1">24 a 46 🪙</strong>
     <div style="${OSW};font-weight:500;font-size:8.5px;line-height:1.35;color:#5A5040">
-      depende de como a temporada terminar</div>
+      se o time não cair. Caindo, não vende nada.</div>
     ${assinatura('Diretoria de marketing · Fulanos FC')}`,
   rodape: `${nota('Quanto entra em cada final possível — <b>com 52.000 de torcida e a Adibas</b>:')}
     ${['popular', 'normal', 'cara'].map(k => linhaPreco(k, k === 'normal')).join('')}
-    <p style="${OSW};font-weight:400;font-size:9.5px;line-height:1.45;margin:2px 0 0;opacity:.85">
-      🔴 caiu · 🛡️ se manteve · 📈 classificação · 👑 campeão &nbsp;—&nbsp; verde = o preço que MAIS rende naquele final.<br>
-      <b>Camisa cara com time brigando pra não cair é prejuízo</b>: dá 5 🪙 onde a popular daria 19.
-      Time campeão é o contrário: a cara dá 48 e a popular, 34.</p>
+    <div style="border:2.5px solid ${INK};border-radius:11px;padding:6px 9px;margin:1px 0 0;background:#3A1410;color:#FFD9CF">
+      <span style="${OSW};font-weight:700;font-size:11px;text-transform:uppercase">🔴 Se cair: não vende nada</span>
+      <span style="${OSW};font-weight:400;font-size:9.5px;opacity:.85"> — em qualquer preço, zero.</span></div>
+    <p style="${OSW};font-weight:400;font-size:9.5px;line-height:1.45;margin:6px 0 0;opacity:.85">
+      O verde é o preço que mais rende naquele final. <b>Se você só se mantiver, a camisa cara
+      é prejuízo</b>: 12 🪙 onde a popular daria 26. Campeão é o contrário: cara 48, popular 34.</p>
     ${botao('CONFIRMAR O PREÇO')}`,
 })
 
