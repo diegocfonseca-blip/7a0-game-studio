@@ -87,7 +87,13 @@ const PROP_SO_CAMISA = 0.80
 // manto escuro. Em vez de chutar, o jogo MEDE o brilho do pano no lugar exato onde a
 // estampa vai cair, e escolhe tinta escura ou clara. Vale pra sempre, pra qualquer
 // arte nova que chegar, sem tabela por clube.
-function brilhoNoPonto(img: HTMLImageElement, xPct: number, yPct: number): number | undefined {
+// 🧵 devolve o brilho MÉDIO e o quanto ele VARIA no pedaço de pano medido.
+// A variação é a parte nova (Diego 15/09, zoom da camisa do Futpoint: *"a logo N tá
+// ficando MT legal.. acho q falta algum fundo pra dar um contraste"*): numa camisa LISA
+// a média basta, mas numa LISTRADA ela dá "meio-termo" — e o logo acaba metade no preto
+// e metade no branco, sumindo dos dois lados. Um halo único nunca resolve isso, porque
+// o problema não é o brilho médio, é o contraste DENTRO da área da estampa.
+function brilhoNoPonto(img: HTMLImageElement, xPct: number, yPct: number): { med: number; dp: number } | undefined {
   try {
     const c = document.createElement('canvas')
     c.width = 40; c.height = 40
@@ -98,18 +104,36 @@ function brilhoNoPonto(img: HTMLImageElement, xPct: number, yPct: number): numbe
     const sy = Math.max(0, Math.min(h - lado, Math.round(h * yPct / 100 - lado / 2)))
     ctx.drawImage(img, sx, sy, lado, lado, 0, 0, 40, 40)
     const d = ctx.getImageData(0, 0, 40, 40).data
-    let soma = 0, n = 0
+    const lums: number[] = []
     for (let i = 0; i < d.length; i += 4) {
       if (d[i + 3] < 120) continue // fora do desenho
-      soma += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; n++
+      lums.push(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2])
     }
-    return n > 20 ? soma / n : undefined
+    if (lums.length <= 20) return undefined
+    const med = lums.reduce((a, b) => a + b, 0) / lums.length
+    const dp = Math.sqrt(lums.reduce((a, b) => a + (b - med) ** 2, 0) / lums.length)
+    return { med, dp }
   } catch { return undefined } // canvas bloqueado: segue no padrão
 }
+// acima disto o pano é LISTRADO (medido na camisa do Futpoint: variação 103 contra
+// brilho médio 120 — o médio parecia cinza, mas o pano é preto-e-branco puro).
+const LISTRADO_DP = 45
+const ehListrado = (b?: { dp: number }): boolean => !!b && b.dp > LISTRADO_DP
 /** tinta + jeito de misturar, pro pano medido */
-function tintaDaEstampa(brilho?: number): { cor: string; blend: 'multiply' | 'screen'; op: number } {
-  if (brilho != null && brilho < 110) return { cor: '#F2F0EA', blend: 'screen', op: .92 } // pano ESCURO → tinta clara
-  return { cor: '#20201C', blend: 'multiply', op: .95 }                                    // pano CLARO → tinta escura
+function tintaDaEstampa(b?: { med: number; dp: number }): { cor: string; blend: 'multiply' | 'screen'; op: number } {
+  if (b != null && b.med < 110) return { cor: '#F2F0EA', blend: 'screen', op: .92 } // pano ESCURO → tinta clara
+  return { cor: '#20201C', blend: 'multiply', op: .95 }                              // pano CLARO → tinta escura
+}
+// 🖨️ SUB-BASE BRANCA (escolha do Diego, 15/09: *"B base branca ficou melhor"*).
+// É o que a serigrafia de verdade faz: antes da cor, imprime uma base branca no
+// FORMATO do desenho, pra tinta não ser comida pelo tecido. Aqui são quatro sombras
+// coladas de 1px que, somadas, viram um contorno fino acompanhando o alfa do logo.
+// 🚫 Ele descartou a TARJA RETANGULAR que eu tinha sugerido — nada de retângulo atrás
+// da estampa sem ele pedir: *"teria q ser algo bem natural como se fosse silk na
+// camisa msm. E N PowerPoint"*.
+function subBaseBranca(alt: number): string {
+  const u = Math.max(0.8, alt * 0.003).toFixed(2) // acompanha o tamanho da camisa na tela
+  return `drop-shadow(0 0 ${u}px #fff) drop-shadow(0 0 ${u}px #fff) drop-shadow(0 0 ${u}px #fff) drop-shadow(0 0 ${u}px #fff) drop-shadow(0 1px ${(alt * 0.007).toFixed(2)}px rgba(0,0,0,.38))`
 }
 /** o quanto da ALTURA da imagem é a camisa (1 = a imagem é só a camisa) */
 function fatorCamisa(ratio?: number): number {
@@ -132,7 +156,7 @@ export function CamisaLoja({
   const f = fornecedorDe(fornId)
   // 📏 proporção real do arquivo, lida quando a imagem carrega (ver POS_BATISMO)
   const [ratio, setRatio] = useState<number | undefined>(undefined)
-  const [brilho, setBrilho] = useState<{ forn?: number; master?: number }>({})
+  const [brilho, setBrilho] = useState<{ forn?: { med: number; dp: number }; master?: { med: number; dp: number } }>({})
   const fc = arteBatismo ? fatorCamisa(ratio) : 1
   const base = arteBatismo ? POS_BATISMO : POS_MOLDE
   const p = { ...base, fornY: base.fornY * fc, masterY: base.masterY * fc }
@@ -164,7 +188,11 @@ export function CamisaLoja({
       </>, {
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: alt * 0.006,
         // a estampa tem que ENTRAR no tecido — texto colado por cima "parece PowerPoint"
-        mixBlendMode: tintaForn.blend, opacity: tintaForn.op, filter: 'blur(.15px)', color: tintaForn.cor,
+        // 🧵 mesma regra do Master: no pano LISTRADO o blend COME a tinta em metade das
+        // listras, então lá entra a sub-base branca em vez do blend.
+        ...(ehListrado(brilho.forn)
+          ? { color: '#141412', opacity: .97, filter: 'blur(.1px)', textShadow: '0 0 1px #fff, 0 0 1px #fff, 0 0 2px #fff, 0 0 3px rgba(255,255,255,.8)' }
+          : { mixBlendMode: tintaForn.blend, opacity: tintaForn.op, filter: 'blur(.15px)', color: tintaForn.cor }),
       })}
       {/* 🤝 Master na barriga */}
       {(masterLogo || masterNome) && marca(p.masterX, p.masterY,
@@ -174,10 +202,13 @@ export function CamisaLoja({
           ? <img src={masterLogo} alt={masterNome ?? ''} style={{
             maxWidth: alt * 0.20, maxHeight: alt * 0.155, width: 'auto', height: 'auto',
             display: 'block',
-            // em pano escuro a sombra preta some; um halo claro devolve o contorno
-            filter: (brilho.master != null && brilho.master < 110)
-              ? 'drop-shadow(0 0 2px rgba(255,255,255,.75)) drop-shadow(0 0 5px rgba(255,255,255,.35))'
-              : 'drop-shadow(0 1px 1px rgba(0,0,0,.28))',
+            // 🧵 pano LISTRADO → sub-base branca no formato do logo (escolha do Diego).
+            // Pano liso ESCURO → o halo claro de sempre. Pano liso CLARO → sombra preta.
+            filter: ehListrado(brilho.master)
+              ? subBaseBranca(alt)
+              : (brilho.master != null && brilho.master.med < 110)
+                ? 'drop-shadow(0 0 2px rgba(255,255,255,.75)) drop-shadow(0 0 5px rgba(255,255,255,.35))'
+                : 'drop-shadow(0 1px 1px rgba(0,0,0,.28))',
           }} />
           // 🖨️ marca genérica: o nome impresso, que tem que CABER no corpo da camisa
           : (() => {
@@ -189,12 +220,22 @@ export function CamisaLoja({
               : [masterNome ?? '']
             const maior = Math.max(...linhas.map(l => l.length))
             const fs = Math.max(alt * 0.026, Math.min(alt * 0.045, (alt * 0.26) / (maior * 0.55)))
+            // 🧵 no pano LISTRADO a marca SEM logo tem o mesmo problema do logo: a
+            // tinta some em metade das listras. Aqui a sub-base branca é feita com
+            // text-shadow (o equivalente pra texto) e a tinta vira escura fixa.
+            const listr = ehListrado(brilho.master)
             return <div style={{
               ...OSW, fontWeight: 700, lineHeight: 1.1, letterSpacing: .4, textAlign: 'center',
-              textTransform: 'uppercase', color: tintaMaster.cor, fontSize: fs,
+              textTransform: 'uppercase', color: listr ? '#141412' : tintaMaster.cor, fontSize: fs,
+              ...(listr ? { textShadow: '0 0 1px #fff, 0 0 1px #fff, 0 0 2px #fff, 0 0 3px rgba(255,255,255,.8)' } : {}),
             }}>{linhas.map((l, i) => <div key={i} style={{ whiteSpace: 'nowrap' }}>{l}</div>)}</div>
           })(),
-        masterLogo ? { opacity: .97, filter: 'blur(.15px)' } : { mixBlendMode: tintaMaster.blend, opacity: tintaMaster.op, filter: 'blur(.15px)' })}
+        masterLogo
+          ? { opacity: .97, filter: 'blur(.15px)' }
+          // no listrado o texto NÃO pode entrar em blend (é o blend que come a tinta)
+          : ehListrado(brilho.master)
+            ? { opacity: .97, filter: 'blur(.1px)' }
+            : { mixBlendMode: tintaMaster.blend, opacity: tintaMaster.op, filter: 'blur(.15px)' })}
     </div>
   )
 }
