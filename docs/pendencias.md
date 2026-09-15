@@ -267,6 +267,39 @@ caixa de aviso · rodapé). A camisa do post é montada pelas peças de verdade
 ⏳ O rodapé diz **"chegando"**; `--no-ar` troca pra "já está no ar" no dia que a
 Loja sair do teste fechado.
 
+### 🧭 A VIRADA VIROU FILA DE DECISÕES (ordem dele, 15/09)
+Palavras do Diego, vendo a tela: *"quero que você zere de todo mundo o bico; e quando
+chegar nessa área, o fornecedor de material esportivo tenha o mesmo formato do Pontual
+e do Master. Após escolher lá o Master vem o fornecedor de material esportivo, primeiro
+pra fechar contrato. Aí depois passa, decide a camisa. E o bico a mesma coisa. Depois
+não fica info na home mais — ali é só pra tomar as decisões."*
+
+**A ordem na virada agora é:**
+1. 🏆 **Master** (contrato) · 2. 👟 **Fornecedor de material** — agora no **mesmo formato
+cinematográfico** do Master (`FornBanner cinematic`, os 4 papéis na mesa) · 3. 🤝
+**Pontual** · 4. 💰 **Preço da camisa** · 5. 🕴️ **Bico**.
+
+**E cada bloco SOME depois de decidido** — a virada é só decisão, não painel:
+- fornecedor: some com contrato correndo;
+- preço: `LojaSave.precoSeason` guarda em que temporada foi escolhido; escolheu, some;
+- bico: some assim que escolhe.
+- 📦 **O balanço saiu da virada** e mora só na aba 🛍️ Loja (é informação, não decisão).
+
+🕴️ **BICO ZERADO PRA TODO MUNDO, uma vez só** (`zeraBicoUmaVez` + `bicoZeradoV2` no
+save): o bico virou escada de carreira com história, então todo mundo escolhe de novo
+na próxima virada. A marca no save garante que isso aconteça UMA vez — sem ela, todo
+save que abrisse perderia o bico pra sempre.
+
+⚠️ **Fica em aberto**: depois de escolher, hoje **não há onde trocar de bico** (a aba é
+leitura e o bloco da virada some). Antes tinha o botão "Trocar de bico" na aba. Se ele
+quiser a troca de volta, o lugar natural é o bloco da virada aparecer também quando a
+DIVISÃO muda (que é quando o cargo muda de degrau).
+
+### 📢 Stories da venda de camisas
+`node scripts/post-loja-camisas.mjs [--saida x.png] [--no-ar]` — o irmão do post do
+fornecedor, mesmo molde. Mostra a vitrine, os 3 preços com o que cada um é bom pra
+fazer, a aposta e o "se cair não vende nada". Sem tabela de valores, como ele pediu.
+
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
    mostraria pra todo mundo uma aba que só ele vê. Entra na MESMA entrega que

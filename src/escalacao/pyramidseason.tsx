@@ -36,7 +36,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, sponsorLogoEstampa, FornFaixa } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, sponsorLogoEstampa, FornFaixa, FornBanner } from './estadio'
 import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorOverview } from './career-sponsor-visual'
 import { UnlockBanner } from './unlockbanner'
@@ -45,7 +45,7 @@ import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador, useLojaLiberada } from './sport'
-import { LojaTab, LojaVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
+import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
 import { BICO_MARCAS, bicoValor, bicoElegivel, type BicoDiv } from './bico'
 import { fornAtivo } from './loja' // 🕴️ Bico de Folga — teste fechado por e-mail (LOJA_TESTERS)
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
@@ -7716,42 +7716,46 @@ export function PyramidSeasonScreen() {
               <MasterBanner cinematic={privateCareer} div={me.div} seasonNo={state.seasonNo ?? 1}
                 contrato={state.careerMaster?.[youId]}
                 onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })} />
+              {/* 👟 FORNECEDOR DE MATERIAL vem LOGO DEPOIS DO MASTER, e com o MESMO
+                  formato dele (ordem do Diego, 15/09): *"quando chegar nessa área, o
+                  fornecedor de material esportivo tenha o mesmo formato do Pontual e do
+                  Master; após escolher lá o Master vem o fornecedor de material
+                  esportivo, primeiro pra fechar contrato"*. É o FornBanner cinematográfico,
+                  o mesmo escritório, os 4 papéis na mesa.
+                  ⚠️ E SOME depois de fechado: *"depois não fica info na home mais, ali é
+                  só pra tomar as decisões"* — com contrato correndo, não desenha nada. */}
+              {lojaLib && !fornAtivo(state.careerLoja?.[youId]?.forn, state.seasonNo ?? 1)
+                && hasExtra(state.stadiums?.[youId], 'loja') && (
+                <FornBanner div={me.div} contrato={state.careerLoja?.[youId]?.forn}
+                  seasonNo={state.seasonNo ?? 1} temLoja cinematic={privateCareer}
+                  onPick={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })} />
+              )}
               {/* 🎖️ fielBrandId segue a MESMA regra que sponsorBetRewards usa pra
                   garantir o mínimo: acertou a meta na temporada PASSADA com essa marca. */}
               <SponsorBetBanner cinematic={privateCareer} div={me.div}
                 chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
                 fielBrandId={sponsorResultFresh && sponsorResult!.hit ? sponsorResult!.brandId : undefined}
                 onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
-              {/* 🛍️ A LOJA NA VIRADA — o Diego cobrou em 15/09: *"ainda não apareceu
-                  nada pro meu usuário sobre a loja, camisas e etc, após o Master,
-                  pontual e etc"*. Eu tinha posto só na ABA; a decisão da temporada é
-                  AQUI, na fila, junto com os outros contratos.
-                  A ordem é a que ele desenhou: 1) o BALANÇO do ano que acabou,
-                  2) o FORNECEDOR (aviso se o contrato corre, os 4 papéis se acabou),
-                  3) o PREÇO da camisa do ano novo. */}
-              {/* 🕴️ BICO DE FOLGA na virada — pedido dele (15/09): *"o bico também
-                  deveria aparecer uma vez nesse início também, mas só quando
-                  precisar"*. "Quando precisar" = ele está na janela do bico (T3+,
-                  Várzea ou Série D) e AINDA NÃO escolheu nenhum. Quem já tem bico não
-                  vê nada aqui — senão vira um passo a mais toda temporada, e isso o
-                  Diego odeia. */}
+              {/* 💰 O PREÇO DA CAMISA — depois dos contratos, como ele desenhou ("aí
+                  depois passa, decide a camisa"). Só aparece enquanto NÃO foi decidido
+                  nesta temporada; decidiu, some. */}
+              {lojaLib && hasExtra(state.stadiums?.[youId], 'loja')
+                && state.careerLoja?.[youId]?.precoSeason !== (state.seasonNo ?? 1) && (
+                <PrecoVirada
+                  time={state.managers[state.youIdx]?.teamName ?? tr('Seu clube', 'Your club')}
+                  st={state.stadiums?.[youId]} seasonNo={state.seasonNo ?? 1}
+                  loja={state.careerLoja?.[youId]}
+                  masterNome={masterBrandAtual?.name}
+                  masterLogo={masterBrandAtual ? sponsorLogoEstampa(masterBrandAtual) : undefined}
+                  onPreco={preco => dispatch({ type: 'LOJA_PRECO', preco, mgrId: youId })} />
+              )}
+              {/* 🕴️ E O BICO POR ÚLTIMO, na mesma lógica: só enquanto não escolheu. */}
               {(() => {
                 const dv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
-                if (!agenciaOk || !bicoElegivel(state.seasonNo ?? 1, dv)) return null
-                // com bico já escolhido é UMA linha com o "trocar" fechado; sem bico,
-                // a lista aberta. Em nenhum dos dois casos trava o "Começar a temporada".
-                return <BicoVirada div={dv} atual={state.careerBico?.brandId} esnobou={state.careerBico?.esnobou}
+                if (!agenciaOk || state.careerBico || !bicoElegivel(state.seasonNo ?? 1, dv)) return null
+                return <BicoVirada div={dv}
                   onPick={brand => dispatch({ type: 'SET_BICO', brand })} />
               })()}
-              {lojaLib && <LojaVirada
-                time={state.managers[state.youIdx]?.teamName ?? tr('Seu clube', 'Your club')}
-                st={state.stadiums?.[youId]} div={me.div} seasonNo={state.seasonNo ?? 1}
-                loja={state.careerLoja?.[youId]}
-                masterNome={masterBrandAtual?.name}
-                masterLogo={masterBrandAtual ? sponsorLogoEstampa(masterBrandAtual) : undefined}
-                onPreco={preco => dispatch({ type: 'LOJA_PRECO', preco, mgrId: youId })}
-                onFornecedor={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })}
-                onIrEstrutura={() => { setTab('estadio'); setClubeSub('estadio') }} />}
             </>
           )
         })()}

@@ -21,8 +21,8 @@ import { useState } from 'react'
 import { tr } from './lang'
 import { CAMISAS_SALAO } from './salao-camisas'
 import {
-  FORNECEDORES, PRECOS, PRECO_EN, CORES_PADRAO,
-  fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor,
+  PRECOS, PRECO_EN, CORES_PADRAO,
+  fornecedorDe, fornAtivo, fornAnoAtual, fornValor,
   torcidaDoEstadio, bonusObras, lojaConstruida, calculaVendas,
   type LojaSave, type PrecoLoja,
 } from './loja'
@@ -358,162 +358,56 @@ export function LojaTab({
 
 
 // ══════════════════════════════════════════════════════════════════════════
-// 🛍️ A LOJA NA VIRADA DA TEMPORADA
+// 💰 O PREÇO DA CAMISA na virada da temporada
 // ══════════════════════════════════════════════════════════════════════════
-// Cobrança do Diego (15/09): *"ainda não apareceu nada pro meu usuário sobre a
-// loja, camisas e etc, após o Master, pontual e etc"*. Ele tem razão — eu tinha
-// posto tudo só na ABA, e a DECISÃO da temporada acontece na fila de início,
-// junto do Master e do Pontual.
+// Ordem do Diego (15/09): Master → fornecedor de material → **depois decide a
+// camisa**. E: *"depois não fica info na home mais, ali é só pra tomar as
+// decisões"* — então este bloco SÓ existe enquanto o preço desta temporada não foi
+// escolhido. Escolheu, some da virada (o resumo fica na aba 🛍️ Loja).
 //
-// A ordem é a que ele mesmo desenhou lá atrás:
-//   1) 📦 o BALANÇO da temporada que acabou (aparece uma vez só, aqui);
-//   2) 👟 o FORNECEDOR — aviso de uma linha se o contrato corre; os 4 papéis se acabou;
-//   3) 💰 o PREÇO da camisa do ano novo, que é a aposta.
-// ⏱️ Nada disso ATRASA a virada: o preço já vem escolhido (Normal) e o fornecedor
-// só pede decisão quando o contrato termina. Quem não quiser mexer, só desce e
-// aperta "Começar a temporada" — regra de ouro dele.
-export function LojaVirada({
-  time, st, div, seasonNo, loja, masterNome, masterLogo,
-  onPreco, onFornecedor, onIrEstrutura,
+// ⏱️ E não trava o "Começar a temporada": o texto diz que dá pra deixar como está.
+export function PrecoVirada({
+  time, st, seasonNo, loja, masterNome, masterLogo, onPreco,
 }: {
-  time: string; st: StadiumSave | undefined; div: string; seasonNo: number
+  time: string; st: StadiumSave | undefined; seasonNo: number
   loja: LojaSave | undefined; masterNome?: string; masterLogo?: string
   onPreco: (p: PrecoLoja) => void
-  onFornecedor: (fornId: string) => void
-  onIrEstrutura: () => void
 }) {
-  const aberta = lojaConstruida(st)
-  const b = loja?.balanco
   const forn = loja?.forn
   const ativo = fornAtivo(forn, seasonNo)
   const fornMeta = ativo ? fornecedorDe(forn.fornId) : undefined
-  const preco: PrecoLoja = loja?.preco ?? 'normal'
   const arteFile = CAMISAS_SALAO[time]
   const arteBatismo = arteFile ? import.meta.env.BASE_URL + 'mantos-salao/' + arteFile : undefined
-
-  // 🔒 loja não construída: UMA linha discreta, com o caminho. Nada de bloquear a
-  // virada por uma coisa que ele ainda nem comprou.
-  if (!aberta) return (
-    <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '9px 11px', marginBottom: 12 }}>
-      <div style={{ fontWeight: 700, fontSize: 12 }}>🛍️ {tr('Loja do Clube', 'Club Store')}</div>
-      <div style={{ fontWeight: 400, fontSize: 10.5, opacity: .7, marginTop: 2, lineHeight: 1.45 }}>
-        {tr('Ainda não existe. Construa a obra no estádio (2 setores prontos + 80 🪙) e você passa a vender camisa e a receber fornecedor de material.',
-          'Not built yet. Put up the stand at the stadium (2 finished stands + 80 🪙) and you start selling shirts and getting a kit supplier.')}
-      </div>
-      <button onClick={onIrEstrutura} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: 8, ...OSW, fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
-        {tr('Ir pra 🏗️ Estrutura', 'Go to 🏗️ Facilities')}
-      </button>
-    </div>
-  )
-
+  const atual: PrecoLoja = loja?.preco ?? 'normal'
   return (
-    <div style={{ marginBottom: 12 }}>
-      {/* 1) 📦 o balanço do ano que acabou */}
-      {b && b.season < seasonNo && (
-        <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: GOLD, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 12px', marginBottom: 10 }}>
-          <div style={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase' }}>
-            📦 {tr(`Balanço da loja · temporada ${b.season}`, `Store balance · season ${b.season}`)}
-          </div>
-          <div style={{ fontWeight: 700, fontSize: 21, lineHeight: 1.15, marginTop: 3 }}>
-            {fmt(b.camisas)} {tr('camisas', 'shirts')} · <span style={{ color: '#1B5E2A' }}>+{b.moedas} 🪙</span>
-          </div>
-          <div style={{ fontWeight: 400, fontSize: 10, opacity: .78, marginTop: 2 }}>
-            {fmt(b.torcida)} {tr('torcedores', 'fans')} · {b.pos}º {tr('lugar', 'place')} · {tr('preço', 'price')} {nomePreco(b.preco)} · {tr('já caiu no caixa', 'already in the bank')}
-          </div>
+    <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '10px 11px', marginBottom: 12 }}>
+      <div style={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', marginBottom: 6 }}>
+        💰 {tr('Preço da camisa · temporada', 'Shirt price · season')} {seasonNo}
+      </div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        <div style={{ flex: 'none' }}>
+          <CamisaLoja time={time} arteBatismo={arteBatismo} cores={loja?.cores} alt={118}
+            fornId={ativo ? forn.fornId : undefined} masterNome={masterNome} masterLogo={masterLogo} />
         </div>
-      )}
-
-      {/* 2) 👟 o fornecedor: aviso se corre, decisão se acabou */}
-      {ativo && fornMeta ? (
-        <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '9px 11px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 9 }}>
-          <div style={{ width: 32, height: 32, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 9, background: fornMeta.cor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{fornMeta.simb}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 12.5 }}>👟 {fornMeta.nome}</div>
-            <div style={{ fontWeight: 400, fontSize: 10, opacity: .72 }}>
-              {tr('ano', 'year')} {fornAnoAtual(forn, seasonNo)} {tr('de', 'of')} {forn.anos} · +{fornValor(forn)} 🪙/{tr('temp', 'seas')} · {tr('nada pra decidir', 'nothing to decide')}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <FornecedorPapeis div={div} onPick={onFornecedor} />
-      )}
-
-      {/* 3) 💰 o preço da camisa, com a camisa do lado pra ele ver o que vai vender */}
-      <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '10px 11px' }}>
-        <div style={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', marginBottom: 6 }}>
-          💰 {tr('Preço da camisa · temporada', 'Shirt price · season')} {seasonNo}
-        </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <div style={{ flex: 'none' }}>
-            <CamisaLoja time={time} arteBatismo={arteBatismo} cores={loja?.cores} alt={118}
-              fornId={ativo ? forn.fornId : undefined} masterNome={masterNome} masterLogo={masterLogo} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {(['popular', 'normal', 'cara'] as PrecoLoja[]).map(k => {
-                const r = calculaVendas({ st, pos: 10, preco: k, fornLoja: fornMeta?.loja ?? 0 })
-                const rc = calculaVendas({ st, pos: 1, preco: k, fornLoja: fornMeta?.loja ?? 0 })
-                return (
-                  <button key={k} onClick={() => onPreco(k)} aria-pressed={preco === k}
-                    style={{ width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '5px 8px', cursor: 'pointer', background: preco === k ? GOLD : CREME, boxShadow: preco === k ? `2px 2px 0 ${INK}` : 'none' }}>
-                    <div style={{ ...OSW, fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase' }}>{nomePreco(k)} · {PRECOS[k].moeda} 🪙</div>
-                    <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .75, lineHeight: 1.25 }}>
-                      🛡️ {r.moedas} · 👑 {rc.moedas} {tr('moedas', 'coins')}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-        <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .7, marginTop: 7, lineHeight: 1.4 }}>
-          {tr('🛡️ se você só se manter · 👑 se for campeão. Se cair, não vende nada. Dá pra deixar como está e começar a temporada.',
-            '🛡️ if you just stay up · 👑 if you win it. Relegated means nothing sells. You can leave it as is and start the season.')}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {(['popular', 'normal', 'cara'] as PrecoLoja[]).map(k => {
+            const r = calculaVendas({ st, pos: 10, preco: k, fornLoja: fornMeta?.loja ?? 0 })
+            const rc = calculaVendas({ st, pos: 1, preco: k, fornLoja: fornMeta?.loja ?? 0 })
+            return (
+              <button key={k} onClick={() => onPreco(k)} aria-pressed={atual === k}
+                style={{ width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 9px', cursor: 'pointer', background: atual === k ? GOLD : CREME, boxShadow: atual === k ? `2px 2px 0 ${INK}` : 'none' }}>
+                <div style={{ ...OSW, fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{nomePreco(k)} · {PRECOS[k].moeda} 🪙</div>
+                <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .75, lineHeight: 1.25 }}>
+                  🛡️ {r.moedas} · 👑 {rc.moedas} {tr('moedas', 'coins')}
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
-    </div>
-  )
-}
-
-/** os 4 contratos de material, versão compacta pra fila de início de temporada */
-function FornecedorPapeis({ div, onPick }: { div: string; onPick: (id: string) => void }) {
-  const [sel, setSel] = useState<string | undefined>(undefined)
-  const esc = FORNECEDORES.find(f => f.id === sel)
-  return (
-    <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '10px 11px', marginBottom: 10 }}>
-      <div style={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase' }}>👟 {tr('Fornecedor de material', 'Kit supplier')}</div>
-      <div style={{ fontWeight: 400, fontSize: 10, opacity: .7, margin: '2px 0 7px', lineHeight: 1.4 }}>
-        {tr('Quem veste o seu time. O valor trava na sua divisão de hoje e não muda se você subir ou cair.',
-          'Who kits out your team. The amount locks in at your current division and does not change if you go up or down.')}
-      </div>
-      {FORNECEDORES.map(f => {
-        const ok = fornLiberado(f, div)
-        const v = fornPorTemporada(div, f.anos)
-        return (
-          <button key={f.id} disabled={!ok} onClick={() => ok && setSel(f.id)} aria-pressed={sel === f.id}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${sel === f.id ? '#7C3AED' : INK}`, borderRadius: 11, padding: '6px 8px', marginBottom: 5, textAlign: 'left', cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : sel === f.id ? GOLD : CREME, opacity: ok ? 1 : .8, boxShadow: ok ? `2px 2px 0 ${INK}` : 'none' }}>
-            <div style={{ width: 28, height: 28, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 8, background: ok ? f.cor : '#8A836E', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{f.simb}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5, lineHeight: 1.1 }}>{f.nome}</div>
-              <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .75, lineHeight: 1.25 }}>
-                {ok ? `${f.anos} ${f.anos > 1 ? tr('temporadas', 'seasons') : tr('temporada', 'season')} · +${Math.round(f.loja * 100)}% ${tr('na loja', 'on store')}`
-                  : tr(`só fecha da ${nomeDiv(f.desde)} pra cima — suba de divisão`, `only signs from ${nomeDiv(f.desde)} up — go up a division`)}
-              </div>
-            </div>
-            <div style={{ textAlign: 'right', flex: 'none' }}>
-              <div style={{ ...OSW, fontWeight: 700, fontSize: 14, lineHeight: 1 }}>{ok ? `${v} 🪙` : '🔒'}</div>
-              {ok && <div style={{ ...OSW, fontWeight: 400, fontSize: 8.5, opacity: .7 }}>{v * f.anos} {tr('no total', 'total')}</div>}
-            </div>
-          </button>
-        )
-      })}
-      <button disabled={!esc} onClick={() => esc && onPick(esc.id)}
-        style={{ width: '100%', marginTop: 4, border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 10px', ...OSW, fontWeight: 700, fontSize: 12.5, textTransform: 'uppercase', background: esc ? GOLD : '#cfc6ae', color: esc ? INK : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 ${INK}`, cursor: esc ? 'pointer' : 'default' }}>
-        {esc ? `✍️ ${tr('Assinar', 'Sign')} · ${esc.nome}` : tr('Escolha uma marca acima', 'Pick a brand above')}
-      </button>
-      <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .7, marginTop: 6, lineHeight: 1.4 }}>
-        {tr('Pode deixar pra depois: dá pra assinar em 🤝 Patrocínio a qualquer hora. Sem marca, o peito direito fica vazio e a loja vende sem bônus.',
-          'You can leave it for later: you can sign in 🤝 Sponsors any time. With no brand the right chest stays empty and the store sells with no bonus.')}
+      <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .72, marginTop: 7, lineHeight: 1.4 }}>
+        {tr('🛡️ se você só se manter · 👑 se for campeão. Se cair, não vende nada. Toque num preço pra confirmar.',
+          '🛡️ if you just stay up · 👑 if you win it. Relegated means nothing sells. Tap a price to confirm.')}
       </div>
     </div>
   )

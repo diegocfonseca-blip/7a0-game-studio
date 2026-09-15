@@ -2272,6 +2272,17 @@ function travaContratoSaf(s: EscState, mgr: Manager, card: WonCard, anos?: Renew
   return 'ok'
 }
 
+// 🕴️ ZERA O BICO DE TODO MUNDO, UMA VEZ SÓ (ordem do Diego, 15/09: *"quero que
+// você zere de todo mundo o bico"*). Motivo: o bico virou ESCADA DE CARREIRA
+// (lavador → vendedor → gerente, com valor por divisão e história própria). Quem
+// escolheu antes escolheu em outro jogo — então todo mundo escolhe de novo, na
+// próxima virada de temporada, já vendo as histórias.
+// ⚠️ A marca `bicoZeradoV2` existe pra isso acontecer UMA vez: sem ela, todo save
+// que abrisse perderia o bico pra sempre, e a pessoa nunca conseguiria manter um.
+function zeraBicoUmaVez(st: EscState): EscState {
+  if (st.bicoZeradoV2) return st
+  return { ...st, careerBico: undefined, bicoZeradoV2: true }
+}
 function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -4987,7 +4998,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // dois clubes com o mesmo nome. No-op sem 2º clube.
       // 👑 cinto e suspensório: a ficha dos jogadores entra em dia aqui também.
       // É idempotente — se o save já veio sincronizado do leitor, não faz nada.
-      const restored = sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }))
+      const restored = zeraBicoUmaVez(sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })))
       // 😓📝 CURAS AO ABRIR (13/09, São Luiz FC): liga o gás se a carreira já está em
       // C/B/A (mesmo presa num banner, onde o PLAY_ROUND nunca chegava a ligar) e
       // devolve pro presente contrato que voltou do passado (empréstimo pra SAF).
@@ -5409,7 +5420,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (!s.careerOnline) return s
       if (!PRECOS_LOJA[action.preco]) return s // preço tem que ser um dos 3 (a tela nunca manda outro)
       const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
-      s.careerLoja = { ...(s.careerLoja ?? {}), [id]: { ...(s.careerLoja?.[id] ?? {}), preco: action.preco } }
+      s.careerLoja = { ...(s.careerLoja ?? {}), [id]: { ...(s.careerLoja?.[id] ?? {}), preco: action.preco, precoSeason: s.seasonNo ?? 1 } }
       return s
     }
     case 'LOJA_FORNECEDOR': {
@@ -8201,7 +8212,7 @@ function loadSoloInProgress(): EscState | null {
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
       // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
       // carreira voltava pelo aqui e o baralho continuava com o nível velho.
-      return sincronizaNiveis(s)
+      return zeraBicoUmaVez(sincronizaNiveis(s))
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }
   return null

@@ -680,6 +680,8 @@ export interface EscState {
   // volta, com o MESMO patrocinador (ideia do Diego: "pede o emprego de volta").
   // 🕴️ Bico de Folga. `esnobou` = já chegou na Série B e largou o bico uma vez;
   // se cair de volta, volta humilde — e ganhando o teto (10), porque já foi gerente.
+  /** 🕴️ marca da zeragem única do bico (15/09) — ver zeraBicoUmaVez em store.tsx */
+  bicoZeradoV2?: boolean
   careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; since: number; esnobou?: boolean } | null
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"

@@ -190,6 +190,10 @@ export interface LojaSave {
   forn?: FornContrato
   /** preço escolhido pra temporada CORRENTE */
   preco?: PrecoLoja
+  /** a temporada em que o preço foi escolhido. É o que faz o bloco de decisão
+   *  SUMIR da virada depois de decidido — *"depois não fica info na home mais,
+   *  ali é só pra tomar as decisões"* (Diego, 15/09). */
+  precoSeason?: number
   /** 2 cores do clube — usadas no escudo base e (quem não tem batismo) na camisa */
   cores?: [string, string]
   /** balanço da temporada que FECHOU, mostrado na abertura da nova */
