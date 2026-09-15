@@ -57,11 +57,24 @@ escudo e patrocínios são carimbados por cima.
 - **Provado em 15/09**: peguei a arte do Internacional de Madrid, virei molde
   (luminância) e repintei em 4 duplas de cor. É a MESMA arte nas 4, só a cor muda.
 - **Peso**: ~25 KB **uma vez**, pro jogo inteiro. Não é por clube.
+- 🏆 **MOLDE ESCOLHIDO PELO DIEGO (15/09): a camisa do FINAL BOSS FC.** Palavras
+  dele: *"faz com base na do Final Boss, que é esse modelo que é o certo de
+  camisa"*. É a mais limpa do acervo: branca, gola V, faixa no peito, raglan.
+  `public/mantos-salao/finalboss-camisa.webp`.
+- 🪵 **O clube SEM batismo usa a cor do tier FOI PROFISSIONAL** (`#CBBF9E`, a mesma
+  do chip 🪵 em `pyramidseason.tsx`). Foi o pedido dele: *"o segundo mockup do time
+  que não tem batismo com tier cor foi profissional"*.
 - ⛔ **O que falta**: a arte limpa. A que usei na prova tem o SIUUU e o escudo do
   Madrid impressos, então serve pra mostrar a ideia e não pra ir pro jogo. Precisa de
   **uma camisa branca, de frente, sem estampa, sem escudo, sem patrocínio, sem nome**.
-  Caminhos: quem desenha os batismos faz essa uma, ou gerar por IA (tentei em 15/09 e
-  o gerador estava **sem crédito**).
+  Caminhos: quem desenha os batismos faz essa uma (é o melhor: sai perfeita), ou gerar
+  por IA. Em 15/09 o gerador do OpenArt estava **sem crédito** e os domínios do Canva
+  **não são alcançáveis deste ambiente** (dá pra mandar gerar pelo MCP, mas não dá pra
+  baixar a imagem aqui — o Diego precisa baixar e mandar).
+  🩹 **Molde provisório**: peguei a camisa do Final Boss e apaguei na mão o escudo do
+  peito (espelhando o lado limpo), o texto da manga, a coroa e a etiqueta da barra.
+  Serve pro mockup, mas **sobraram dois remendos de leve** (manga esquerda e barra),
+  então não é arte final.
 
 Lugares das peças (pedido dele, referência: Internacional de Madrid e Inter de Bailão):
 
