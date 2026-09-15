@@ -121,6 +121,24 @@ da Loja. Contrato mora com contrato.
      estampa** (`sponsorLogoEstampa`), e as telas antigas seguem com o arquivo original;
    - logo em pano escuro ganha um halo claro, senão some no preto.
 
+### 📍 E FALTAVA O PRINCIPAL: a loja na FILA DE INÍCIO DE TEMPORADA
+Cobrança dele (15/09): *"ainda não apareceu nada pro meu usuário sobre a loja,
+camisas e etc, após o Master, pontual e etc"* e *"era pra aparecer antes da
+temporada, igual aparece com Master, Pontual e etc"*.
+**Ele estava certo de novo.** Eu tinha posto a Loja na ABA e o contrato no
+PATROCÍNIO — mas a DECISÃO da temporada acontece na fila de início (`round === 0`),
+junto do `MasterBanner` e do `SponsorBetBanner`. Sem isso ele simplesmente nunca
+esbarrava na loja jogando.
+👉 Entrou o **`LojaVirada`** (em `loja-tela.tsx`), logo depois do Pontual, na ordem
+que ele mesmo desenhou lá atrás:
+1. 📦 **balanço** da temporada que acabou (uma vez só, aqui);
+2. 👟 **fornecedor** — aviso de uma linha se o contrato corre, os 4 papéis se acabou;
+3. 💰 **preço da camisa** do ano novo, com a camisa do lado e o quanto rende
+   🛡️ se só se manter e 👑 se for campeão.
+⏱️ **Não atrasa a virada** (regra de ouro): o preço já vem escolhido, o fornecedor só
+pede decisão quando o contrato termina, e o texto diz que dá pra deixar como está e
+começar. Quem não tem a obra vê UMA linha com o caminho, e nada trava.
+
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
    mostraria pra todo mundo uma aba que só ele vê. Entra na MESMA entrega que

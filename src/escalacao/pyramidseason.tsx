@@ -45,7 +45,7 @@ import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador, useLojaLiberada } from './sport'
-import { LojaTab } from './loja-tela' // 🛍️ Loja do Clube — teste fechado por e-mail (LOJA_TESTERS)
+import { LojaTab, LojaVirada } from './loja-tela' // 🛍️ Loja do Clube — teste fechado por e-mail (LOJA_TESTERS)
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
@@ -7721,6 +7721,22 @@ export function PyramidSeasonScreen() {
                 chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
                 fielBrandId={sponsorResultFresh && sponsorResult!.hit ? sponsorResult!.brandId : undefined}
                 onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
+              {/* 🛍️ A LOJA NA VIRADA — o Diego cobrou em 15/09: *"ainda não apareceu
+                  nada pro meu usuário sobre a loja, camisas e etc, após o Master,
+                  pontual e etc"*. Eu tinha posto só na ABA; a decisão da temporada é
+                  AQUI, na fila, junto com os outros contratos.
+                  A ordem é a que ele desenhou: 1) o BALANÇO do ano que acabou,
+                  2) o FORNECEDOR (aviso se o contrato corre, os 4 papéis se acabou),
+                  3) o PREÇO da camisa do ano novo. */}
+              {lojaLib && <LojaVirada
+                time={state.managers[state.youIdx]?.teamName ?? tr('Seu clube', 'Your club')}
+                st={state.stadiums?.[youId]} div={me.div} seasonNo={state.seasonNo ?? 1}
+                loja={state.careerLoja?.[youId]}
+                masterNome={masterBrandAtual?.name}
+                masterLogo={masterBrandAtual ? sponsorLogoEstampa(masterBrandAtual) : undefined}
+                onPreco={preco => dispatch({ type: 'LOJA_PRECO', preco, mgrId: youId })}
+                onFornecedor={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })}
+                onIrEstrutura={() => { setTab('estadio'); setClubeSub('estadio') }} />}
             </>
           )
         })()}
