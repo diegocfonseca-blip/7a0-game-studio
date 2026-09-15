@@ -11,7 +11,15 @@ batismo usa o molde do jogo na cor do tier 🪵 Foi Profissional.
   a 4ª pílula ao lado de Estrutura/Finanças/Patrocínio (conferido em `pyramidseason.tsx`).
   A porta abre com a obra 🛍️ Loja do Clube, que já existe em `STADIUM_EXTRAS`; quem não
   construiu vê a trava explicando o porquê e o caminho. O `StadiumSvg` não muda.
-- Peças compartilhadas dos dois mockups: `scripts/loja-pecas.mjs`.
+- 👕 **A camisa muda com os contratos** (regra fechada 15/09): `node scripts/mockup-camisa-patrocinio.mjs`
+  — Leite de Verdade FC (batismo) × Morto FC (sem batismo), os dois com Master 🎨 Rei das
+  Tintas e fornecedor 🐆 Pumba. Três lugares fixos: escudo no peito esquerdo (sem batismo =
+  escudo base, sempre enquadrado igual; com batismo já vem na arte, o jogo não carimba por
+  cima) · fornecedor no peito direito · Master na barriga. Fechou aparece, acabou some, e
+  vale IGUAL pros dois tipos de clube.
+- Peças compartilhadas dos três mockups: `scripts/loja-pecas.mjs` (camisa, escudo base,
+  vitrine e os logos com alfa). A estampa do Master entra numa CAIXA larg×alt, pra logo
+  deitado (Vadico) e redondo (Rei das Tintas) saírem os dois no tamanho certo.
 - Molde e peças do mockup em `scripts/kits/` (MOLDE-camisa-branca, camisa-tier-foiprof,
   patro-vadico-alfa) — são do POST, não entram no bundle do jogo.
 - Pintor de camisa: `python3 scripts/tinge-camisa.py foiprof` (rampa de cor por tier).

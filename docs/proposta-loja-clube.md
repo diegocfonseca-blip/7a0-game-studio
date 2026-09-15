@@ -261,6 +261,50 @@ em branco. O caminho que funciona é o mesmo de sempre: o Diego abre, escolhe e 
 o arquivo**. Quando chegar, é UM `.webp` no lugar do fundo da vitrine e a camisa
 continua entrando por cima exatamente do mesmo jeito (nada de conta muda).
 
+### 3.1d 👕 A CAMISA MUDA COM OS CONTRATOS — regra fechada (Diego, 15/09)
+
+Palavras dele: *"lembrando que todo clube sem batismo só terá no peito esquerdo,
+enquadrado corretamente, o escudo dele. O patrocínio irá alterar com base no fechamento
+do patrocínio Master e também do fornecedor de material esportivo. **Isso vale também
+pros times de batismo.**"*
+
+São **três lugares fixos**, e o que aparece em cada um depende do que está fechado
+NAQUELE momento:
+
+| Lugar | O que entra | Quando |
+|---|---|---|
+| **peito ESQUERDO** (lado direito de quem olha) | o **escudo do clube** | sempre |
+| **peito DIREITO** | o **fornecedor de material** | só com contrato assinado |
+| **BARRIGA** | o **patrocínio Master** | só com contrato assinado |
+
+- **Sem batismo**: no peito esquerdo vai o **escudo base** — a letra do nome + as 2
+  cores do dono — e **só ele**, sempre **enquadrado igual** (mesmo tamanho, mesmo
+  lugar, em qualquer clube). Nada de enfeite inventado.
+- **Com batismo**: o escudo **já vem desenhado na arte** que o dono mandou, então o
+  jogo **não carimba outro por cima**. A arte do dono nunca muda.
+- **E as duas estampas de patrocínio valem IGUAL pros dois.** Fechou, aparece.
+  Acabou o contrato, **some da camisa** até fechar outro. É a mesma regra — só muda de
+  onde vem a arte de base.
+
+**Mockup com os dois casos** (`node scripts/mockup-camisa-patrocinio.mjs`), com o
+exemplo que ele pediu — Master 🎨 **Rei das Tintas** (marca real → logo de verdade, em
+cores) e fornecedor 🐆 **Pumba** (marca cômica → nome escrito):
+
+- **Leite de Verdade FC** (COM batismo, Série A) — arte própria do dono, com o escudo
+  do curral já nela; Pumba e Rei das Tintas carimbados por cima.
+- **Morto FC** (SEM batismo, tier 🪵, Série C) — molde do jogo na cor do tier, escudo
+  base com a letra **M** no peito esquerdo, Pumba e Rei das Tintas nos mesmos lugares.
+
+Cada painel traz a **tirinha dos 3 estados** (sem nada fechado → fechou o fornecedor →
+fechou o Master), que é a prova visual da regra.
+
+📐 **As medidas saem de CADA arte, não da imagem.** A camisa do Leite (588×760) tem o
+escudo do batismo em x68%/y28%, a coroa do clube em x34%/y26%, o nome escrito de 37% a
+51% e o celeiro a partir de 55% — então o fornecedor cai em x33%/y34% e o Master em
+x50%/y65%. No molde do tier (542×620) as posições são outras. Chutar pela altura da
+imagem foi exatamente o erro que ele pegou ("totalmente desproporcional"): **cada arte
+traz as suas medidas.**
+
 ### 3.1c 🧭 ONDE ISSO MORA: sub-aba 🏟️ Clube › 🛍️ Loja (Diego, 15/09)
 
 Pergunta dele: *"gostei dessa forma… mas onde entra a arte da camisa, da loja e etc?

@@ -15,8 +15,10 @@ export const img = (caminho, tipo = 'webp') => `data:image/${tipo};base64,${read
 //   · MOLDE-camisa-branca.webp  → o molde em branco (camisa do Final Boss, limpa)
 //   · camisa-tier-foiprof.webp  → o molde já pintado no bege 🪵 Foi Profissional
 //   · patro-vadico-alfa.webp    → o logo da Vadico com fundo transparente (cor intacta)
+//   · patro-reidastintas-alfa.webp → o logo do Rei das Tintas (já nasce com alfa)
 export const CAMISA_TIER = img('scripts/kits/MOLDE-camisa-tier.webp')
 export const LOGO_VADICO = img('scripts/kits/patro-vadico-alfa.webp')
+export const LOGO_REIDASTINTAS = img('scripts/kits/patro-reidastintas-alfa.webp')
 
 // 🛡️ ESCUDO BASE — quem não tem batismo também tem escudo (pedido do Diego, 15/09):
 // *"o escudo base que sempre vem com a primeira letra ou algo do tipo pra pôr no
@@ -67,7 +69,7 @@ export const vitrine = (shirt) => `
 // ── A CAMISA: a arte (imagem) + as 3 peças carimbadas por cima ──────────────
 // `pos` = onde cada peça cai NAQUELA arte, em % (arte de batismo e molde têm
 // enquadramentos diferentes, então cada uma traz as suas medidas).
-export const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, master, masterLogo, masterCor, masterW = 0.27, pos }) => `
+export const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, master, masterLogo, masterCor, masterW = 0.27, masterH = 0.10, pos }) => `
   <div style="position:relative;height:${alt}px;flex:none;isolation:isolate">
     <img src="${arte}" style="height:${alt}px;display:block">
     ${!escudo ? '' : `<div style="position:absolute;left:${pos.escudoX}%;top:${pos.escudoY}%;transform:translate(-50%,-50%);
@@ -79,8 +81,8 @@ export const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, maste
     <div style="position:absolute;left:${pos.fornX}%;top:${pos.fornY}%;transform:translate(-50%,-50%);
                 display:flex;flex-direction:column;align-items:center;gap:${Math.round(alt * 0.006)}px;
                 mix-blend-mode:multiply;opacity:.95;filter:blur(.15px);color:${masterCor ?? INK}">
-      <span style="font-size:${(alt * 0.030).toFixed(1)}px;line-height:1">${fornSimbolo ?? '▸'}</span>
-      <span style="${OSW};font-weight:700;font-size:${(alt * 0.019).toFixed(1)}px;line-height:1;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap">${fornecedor}</span>
+      <span style="font-size:${(alt * 0.034).toFixed(1)}px;line-height:1">${fornSimbolo ?? '▸'}</span>
+      <span style="${OSW};font-weight:700;font-size:${(alt * 0.022).toFixed(1)}px;line-height:1;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap">${fornecedor}</span>
     </div>
     <div style="position:absolute;left:${pos.masterX}%;top:${pos.masterY}%;transform:translate(-50%,-50%);
                 ${masterLogo ? 'opacity:.97' : 'mix-blend-mode:multiply;opacity:.93'};filter:blur(.15px)">
@@ -92,7 +94,11 @@ export const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, maste
         // arquivo já tem alfa de verdade (o branco do fundo virou transparente,
         // veja `scripts/kits/patro-vadico-alfa.webp`), ele entra por cima normal
         // e a cor fica intacta; a sombrinha é que encaixa a estampa no pano.
-        ? `<img src="${masterLogo}" style="width:${Math.round(alt * masterW)}px;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.28))">`
+        // 📐 a estampa entra numa CAIXA (larg × alt) e se ajusta dentro dela. Assim o
+        // logo DEITADO (Vadico) e o REDONDO (Rei das Tintas) saem os dois no tamanho
+        // certo pro peito, sem um virar gigante por causa do formato do arquivo.
+        ? `<img src="${masterLogo}" style="max-width:${Math.round(alt * masterW)}px;max-height:${Math.round(alt * masterH)}px;
+             width:auto;height:auto;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.28))">`
         : (() => {
             // 🖨️ marca SEM logo: o nome é impresso no peito e tem que CABER no corpo
             // da camisa (≈65% da largura dele). Nome comprido quebra em 2 linhas,
