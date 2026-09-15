@@ -233,66 +233,163 @@ A única coisa a mais do batismo é a **arte desenhada à mão**. Ninguém abre 
 tela pobre. (Hoje a carreira da pirâmide não guarda cor de clube nenhuma — só a
 dinastia tem `crest` com 2 cores. Então é campo novo no save, pequeno: 2 cores.)
 
-### 3.2 Fornecedor de material esportivo (slot NOVO de patrocínio)
+### 3.2 Fornecedor de material esportivo — MESMA MECÂNICA DO MASTER (Diego, 15/09)
 
-Terceiro contrato, ao lado do Pontual e do Master. Nome cômico no estilo das
-marcas de verdade, como ele pediu:
+Palavras dele: *"o fornecedor de material esportivo deve ser parecido com o estilo do
+patrocinador Master, em relação a temporadas que se escolhe 1, 2, 3 e 5. Só que moedas
+menos que o Master. E também tem aumento em relação à divisão que vai participar quando
+começar a temporada e tiver sem contrato, com base na divisão… igual do Master, e não
+quebra contrato também mas que tenha subido ou caído"*.
 
-| Marca | Chega quando | Paga por ano | Bônus na loja |
+Então é **cópia da régua do Master** (`MASTER_PRAZOS` / `masterPorTemporada` em
+`estadiodata.ts`), trocando só a base:
+
+- **4 marcas, prazo fixo em cada uma** (1 · 2 · 3 · 5 temporadas), abertas de uma vez;
+- o valor **POR TEMPORADA sai da divisão em que assinou e CONGELA** até o fim —
+  **subiu ou caiu, tanto faz, o contrato não quebra**;
+- proposta nova **só quando o contrato acaba**, aí com os valores da divisão do momento;
+- no meio do contrato **não há nada pra decidir** (não atrasa o começo da temporada);
+- **soma** com o Pontual e com o Master. São três contratos vivos ao mesmo tempo.
+
+**Base:** `FORN_BASE = { V: 1, D: 2, C: 5, B: 10, A: 20 }` — ≈62% da base do Master
+(V2 D4 C8 B16 A32), com a **mesma fórmula** `base × (1,25 + (anos−1)/2)`. Fica menos
+que o Master porque o fornecedor ainda paga a **segunda perna**: o bônus nas vendas
+da loja.
+
+| Divisão | 1 temp | 2 temp | 3 temp | 5 temp | total do contrato de 5 |
+|---|---|---|---|---|---|
+| Várzea | 1 | 2 | 2 | 3 | 15 |
+| Série D | 3 | 4 | 5 | 7 | 35 |
+| Série C | 6 | 9 | 11 | 16 | 80 |
+| Série B | 13 | 18 | 23 | 33 | 165 |
+| Série A | 25 | 35 | 45 | 65 | 325 |
+
+*(Master, pra comparar: V 3/4/5/7 · D 5/7/9/13 · C 10/14/18/26 · B 20/28/36/52 ·
+A 40/56/72/104.)*
+
+**As 4 marcas** — nome cômico no estilo das de verdade, como ele pediu, mas **símbolo
+neutro**: não imitar o desenho da Nike/Adidas/Puma, só o nome é paródia.
+
+| Marca | Prazo | Bônus na loja | Bate na porta de |
 |---|---|---|---|
-| 👑 Rainha da Várzea | sempre | 1 | +10% |
-| ⚡ Umbrinha | Série D | 2 | +15% |
-| 🥋 Kapinha | Série D | 2 | +15% |
-| 🔺 Adibas | Série C | 3 | +20% |
-| 🦅 Penalti do Bairro | Série C | 3 | +20% |
-| 👟 Naique Sports | Série B | 5 | +30% |
-| 🐆 Pumba | Série B | 5 | +30% |
-| 🦁 Reebocada | Série A | 8 | +40% |
-| 🇧🇷 Topner | Série A | 8 | +40% |
+| ⚡ Pênalti do Bairro | 1 temporada | +10% | todo mundo (já na Várzea) |
+| ◣ Adibas | 2 temporadas | +20% | todo mundo (já na Várzea) |
+| 🐆 Pumba | 3 temporadas | +30% | Série D pra cima |
+| ✓ Naique | 5 temporadas | +45% | Série B pra cima |
 
-Contrato de 1 a 3 temporadas, fechado na virada, no mesmo tempo morto do Master.
-**Marca grande só bate na porta de quem subiu** — é o degrau de ambição.
+🔒 **A trava explica o porquê e a saída** (regra do Diego): *"a Naique só fecha com
+clube da Série B pra cima — suba uma série e ela bate na sua porta"*. Marca grande
+que só procura quem subiu é o degrau de ambição, e o jogador nunca fica sem opção:
+na Várzea já há duas marcas na mesa.
 
-### 3.3 Venda de camisas
+### 3.3 Venda de camisas — torcida vem do ESTÁDIO, venda vem da CAMPANHA
+
+Pedido dele (15/09): *"o tamanho da torcida deve ser com base no estádio, de coisas
+que é construído. E também as vendas com base na temporada, como foi"*. A conta usa só
+coisa que o jogo **já mede** — nada de número solto:
 
 ```
-camisas = base da divisão × ocupação do estádio × bônus do fornecedor × efeito do preço
-renda   = camisas × margem do preço
+👥 TORCIDA   = 12.000 + assentos construídos no estádio
+               (Geral 21.500 · Cadeiras 18.500 · Visitante 22.838 · Camarote 16.000)
+               → de 12.000 (estádio cru) a 90.838 (estádio completo)
+
+📣 CAMPANHA  = como a temporada acabou, pela colocação final:
+               campeão 1,35 · acesso (2º–4º) 1,15 · 5º–7º 0,90
+               8º–14º 0,60 · 15º–16º 0,45 · rebaixado 0,30
+
+🏬 OBRAS     = o que leva gente pra loja (soma, teto +50%):
+               📺 telão +4% · 🅿️ estacionamento +6% · 🍔 praça +10% · 🍻 choperia +6%
+               🚇 estação +8% · 🏨 hotel +10% · 🏟️ retrátil +6%
+               (a 🛍️ Loja do Clube não está na lista porque ela é a PORTA: sem ela
+                não existe loja nenhuma — e ela já é uma obra do estádio hoje)
+
+👟 FORNECEDOR = +10% · +20% · +30% · +45%
+
+🛒 QUEM COMPRA (de cada 100 torcedores) e 💰 MARGEM (moedas por 100 camisas):
+      Popular  8,0 compram   ·  0,5 moeda / 100 camisas   (1 🪙 a camisa)
+      Normal   4,5 compram   ·  1,0 moeda / 100 camisas   (2 🪙 a camisa)
+      Cara     2,4 compram   ·  1,5 moeda / 100 camisas   (3 🪙 a camisa)
+
+CAMISAS = TORCIDA × quem_compra × CAMPANHA × (1 + OBRAS) × (1 + FORNECEDOR)
+MOEDAS  = CAMISAS ÷ 100 × MARGEM
 ```
 
-- **base por divisão**: V 8 · D 14 · C 22 · B 34 · A 50
-- **preço** (escolha do dono, uma vez por temporada):
-  - Popular: ×1,3 camisas, margem 1
-  - Normal: ×1,0 camisas, margem 2
-  - Cara: ×0,6 camisas, margem 3
+Barata vende pra torcida toda e sobra pouco por peça; cara vende menos e sobra mais.
+Com o clube grande e indo bem, o **Normal** rende um pouco mais — mas as três ficam
+perto, então a escolha é gosto, não pegadinha.
 
-Exemplos: Série C no meio da tabela, Normal, Adibas → 22 × 0,55 × 1,2 = 14
-camisas × 2 = **28 🪙**. Série C no G4 com Naique → 22 × 1,0 × 1,3 = 28 × 2 =
-**56 🪙**. Várzea, estádio meio cheio, Rainha → **9 🪙**.
+**Quanto isso dá de verdade** (rodado em `node scripts/mockup-fornecedor.mjs`):
 
-Isso é da mesma ordem do Master e **dobra** uma temporada de meio de tabela, sem
-virar a principal fonte de renda.
+| Situação | Torcida | Camisas | Entra |
+|---|---|---|---|
+| Várzea, estádio cru, meio de tabela | 12.000 | 356 | **+4 🪙** |
+| Série D, só a Geral, escapou do Z4 | 33.500 | 814 | **+8 🪙** |
+| Série C, 2 setores, meio de tabela | 52.000 | 1.786 | **+18 🪙** |
+| Série C, 2 setores, **ACESSO** | 52.000 | 3.423 | **+34 🪙** |
+| Série B, 3 setores, 5º–7º | 74.838 | 4.728 | **+47 🪙** |
+| Série A, estádio COMPLETO, **CAMPEÃO** | 90.838 | 12.003 | **+120 🪙** |
+
+Por que esses tamanhos: medido em 14/09, a mediana de caixa é **32 na Série B** e
+**53 na Série C** — ou seja, +18 a +34 numa temporada de Série C **dobra** o ano de
+quem está no meio da tabela, que é exatamente quem reclamou. Na Série A (mediana de
+caixa 881) os +120 são um bônus, não uma virada — a loja não vira a fonte principal
+de ninguém.
+
+### 3.4 QUANDO isso aparece — o balanço só na virada (Diego, 15/09)
+
+*"o resultado das vendas aparece somente no início da nova temporada. Aparece o
+resultado e depois mostra a continuação do contrato ou se inicia um novo, na qual ele
+precisa decidir"*. Então a ordem na virada é SEMPRE esta, e só esta:
+
+1. 📦 **BALANÇO DA LOJA** — camisas vendidas e moedas da temporada que acabou, com a
+   conta na tela (torcida · colocação · preço · fornecedor). Entra direto no caixa.
+2. 👟 **FORNECEDOR** — duas caras:
+   - **contrato em dia**: é só um aviso ("ano 2 de 2, assinado na Série D, +4 🪙"),
+     **nada pra decidir**, a temporada começa;
+   - **contrato acabou**: chegam as 4 propostas com os valores da divisão atual, e aí
+     sim ele escolhe e assina.
+
+⏱️ Isso respeita a regra de ouro dele (*"nada pode atrasar o ritmo do jogo"*): durante
+a temporada a loja trabalha calada, sem passo novo. Só na virada há tela — e mesmo lá,
+na maioria das temporadas, o fornecedor é aviso e não decisão.
+
+🎬 **A ARTE É A QUE JÁ EXISTE.** A cena é a mesma mesa de presidente com o estádio na
+janela que o Master e o Pontual já usam (`img/career-sponsor-office-v36.webp`), com o
+papel no mesmo lugar do CSS de verdade (`career-sponsor-office.css`: inset 49%/24%,
+51% × 36%). **0 KB de arte nova.** Se um dia ele quiser uma cena própria de loja
+(balcão, arara de camisas), é UM `.webp` a mais — mas não precisa pra entregar.
+
+Mockup: `node scripts/mockup-fornecedor.mjs` → `mockup-fornecedor.png`.
 
 ## 4. Quando cada coisa aparece
 
 | Momento | O que acontece |
 |---|---|
-| Virada de temporada | proposta do fornecedor (só quando o contrato antigo acaba), junto do Master |
-| Virada de temporada | escolher o preço da camisa do ano |
-| Virada de temporada | entra a renda: linha no Extrato "👕 Loja: N camisas × preço" |
+| **1º** — abertura da temporada nova | 📦 **Balanço da Loja** do ano que acabou: camisas vendidas, moedas, e a conta na tela. Cai direto no caixa. |
+| **2º** — logo em seguida | 👟 **Fornecedor**: contrato em dia = só aviso, nada pra decidir · contrato acabou = 4 propostas e ele assina |
+| Virada de temporada | escolher o **preço** da camisa do ano (popular / normal / cara) |
+| Durante a temporada | **nada**. A loja trabalha calada. |
 | Qualquer hora | aba **Clube › Loja**: a camisa grande, é a vitrine do orgulho |
 
 Nenhum passo novo dentro da temporada. Tudo em tela que já existe, em tempo morto
-que já existe (regra de ouro: não atrasa o ritmo).
+que já existe (regra de ouro: não atrasa o ritmo). E na maioria das temporadas o
+fornecedor nem é decisão — é um aviso de uma linha, porque o contrato ainda corre.
 
 ## 5. Travas
 
-1. **A loja nunca paga mais que o Master** na mesma divisão. Se pagar, é bug de
-   calibragem, não feature.
+1. **A loja + o fornecedor nunca pagam mais que o Master + o Pontual** na mesma
+   divisão. Conferido na régua: Série A completa e campeã dá +120 (loja) + 65
+   (fornecedor de 5 temporadas) = 185, contra 104 (Master) + 106 (Pontual) = 210.
+   Se algum dia passar, é bug de calibragem, não feature.
+1b. **O fornecedor paga sempre MENOS que o Master** na mesma divisão e prazo
+   (base 1/2/5/10/20 contra 2/4/8/16/32). É a ordem que o Diego pediu.
 2. **Nenhum arquivo de imagem novo por clube.** A camisa é CSS; a arte do batismo
    é a que já está publicada.
-3. **Marca de verdade não entra.** Os nomes são paródia, o jogo não usa logo real
-   de Nike/Adidas/Puma.
+3. **Marca de verdade não entra no fornecedor.** Os nomes são paródia e o símbolo
+   é neutro — o jogo não usa nem imita o desenho da Nike/Adidas/Puma. (O Master é
+   o contrário: ali as marcas são os amigos do Diego, com o logo de verdade.)
+5. **Nada do que a loja rende aparece no meio da temporada.** Se aparecer, virou
+   spoiler do resultado — e o Diego odeia spoiler.
 4. **Quem não é batismo nunca vê tela pior**, só cores diferentes. Nada de "sua
    camisa está vazia porque você não pagou".
 

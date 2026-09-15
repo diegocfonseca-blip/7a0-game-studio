@@ -10,6 +10,14 @@ batismo usa o molde do jogo na cor do tier 🪵 Foi Profissional.
 - Molde e peças do mockup em `scripts/kits/` (MOLDE-camisa-branca, camisa-tier-foiprof,
   patro-vadico-alfa) — são do POST, não entram no bundle do jogo.
 - Pintor de camisa: `python3 scripts/tinge-camisa.py foiprof` (rampa de cor por tier).
+- 👟 **Fornecedor de material + 📦 Balanço da Loja**: `node scripts/mockup-fornecedor.mjs`
+  (mesma cena cinematográfica do Master, 0 KB de arte nova). O script também IMPRIME
+  as tabelas de valor no terminal — é por elas que os números se conferem.
+  Régua fechada em 15/09: fornecedor = mecânica do Master (1/2/3/5 temporadas, valor
+  congela na divisão da assinatura, não quebra ao subir/cair) com base 62% menor
+  (V1 D2 C5 B10 A20). Loja: torcida = 12.000 + assentos construídos; venda = torcida ×
+  quem compra × campanha (colocação final) × obras × fornecedor. Balanço só na abertura
+  da temporada nova, e aí o fornecedor (aviso se o contrato corre, decisão se acabou).
 
 ✅ **A arte limpa chegou** — o Diego mandou a camisa certa (*"segue a arte certa"*),
 sem escudo e sem patrocínio. Virou `scripts/kits/MOLDE-camisa-tier.webp` e aposentou
