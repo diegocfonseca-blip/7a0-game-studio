@@ -296,7 +296,7 @@ Diego fechou a regra: *"o bico, depois de escolhido, só troca se subir de divis
 cair"* — que é exatamente quando o cargo muda de degrau. O passo 5 volta a aparecer na
 virada sempre que a divisão mudar. Falta codar (esperando o OK do mockup).
 
-### 👀 Os campinhos da sala no Monte Final — ⏳ codado, esperando o OK visual (15/09)
+### 👀 Os campinhos da sala no Monte Final — ✅ NO AR (15/09)
 Ideia dele: *"quando você tá no monte e tá escolhendo os times, não poderia aparecer o
 campinho de todos os times, igual quando acontece a simulação?"* — pra ver o time de cada
 um e sacar quem largou o jogo, e tirar pelo ⚙️ gerenciar.
