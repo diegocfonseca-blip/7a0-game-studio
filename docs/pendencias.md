@@ -1,3 +1,69 @@
+## 15/09/2026 — 👕 A estampa do Master sumindo na camisa LISTRADA (consertado)
+
+Diego, com o zoom da camisa do Futpoint FC: *"a logo N tá ficando MT legal.. acho q
+falta algum fundo pra dar um contraste na logo não sei.. Mas teria q ser algo bem
+natural como se fosse silk na camisa msm.. E N PowerPoint hehe... Lembrando q muda a
+logo qd troca o patrocinador Master né"*.
+
+### A causa (medida, não achismo)
+`brilhoNoPonto()` media só o brilho MÉDIO de um quadradinho do pano e escolhia o halo
+por ele. Em camisa LISA funciona. Na LISTRADA a média mente: na camisa do Futpoint deu
+**brilho médio 120** (parece cinza), mas a **variação é 103** e 41% dos pixels são
+claros — o pano é preto-e-branco puro. Resultado: a parte escura do logo some no preto,
+a clara some no branco, e um halo único não resolve nada, porque o problema não é o
+brilho médio, é o CONTRASTE dentro da área da estampa.
+
+### O que foi feito — a escolha dele: 🅱️ SUB-BASE BRANCA
+Mostrei três saídas no mockup (A tarja retangular · B sub-base branca · C faixa na
+barriga) com a camisa e o logo DE VERDADE. Eu sugeri a A; ele olhou e escolheu a B:
+*"B base branca ficou melhor"*.
+É a mais fiel à serigrafia real: antes da cor, a máquina imprime uma base branca no
+FORMATO do desenho pra tinta não ser comida pelo tecido. São 4 drop-shadows de 1px
+somadas, acompanhando o alfa do logo — **nada de retângulo atrás da estampa**.
+  · `brilhoNoPonto` passou a devolver `{ med, dp }` (média + variação);
+  · `ehListrado()` = `dp > 45`;
+  · **a sub-base só entra quando o pano é listrado de verdade**. Camisa lisa continua
+    byte a byte como era (halo claro no escuro, sombra preta no claro);
+  · vale pro **logo do Master**, pro **nome impresso** (marca sem logo, com text-shadow)
+    e pro **fornecedor** no peito direito — os três tinham o mesmo furo;
+  · o tamanho da base acompanha a altura da camisa na tela (`alt * 0.003`), então não
+    engorda na vitrine nem some na miniatura.
+Como a conta é do PANO e não da marca, serve para as quatro marcas e para qualquer
+batismo novo que chegar — e a estampa troca junto com o Patrocinador Master, como ele
+lembrou.
+
+🚫 **Registrado: nada de tarja retangular na camisa sem ele pedir.**
+Mockup: `scripts/mockups/logo-na-camisa.png` (gerador: `scripts/mockup-logo-na-camisa.mjs`).
+**Reverter**: um bloco em `loja-tela.tsx`. Nada de save, nada de banco, e nenhuma arte
+de batismo é alterada.
+
+---
+
+## 15/09/2026 — 🏥 Dep. Médico: NINGUÉM foi reembolsado (pergunta dele, ainda ABERTA)
+
+Ele perguntou: *"quem comprou dept médico q tiramos fora vc devolveu o dinheiro mil
+moedas?"*. Resposta conferida no código e no banco: **não**, e isso foi ordem dele mesmo
+em 12/09 (*"quem comprou esquece, vai ser igual p todos"*). O commit 730c328 anotou:
+*"sem reembolso das 1000 moedas (ordem dele; se quiser devolver, é uma linha)"*.
+
+### O tamanho (medido no Supabase, 15/09)
+`select ... from esc_pyramid_saves, lateral jsonb_array_elements(save->'careers')
+where (c->'save'->'stadiums')::text like '%medico%'` → **180 carreiras, 167 pessoas**.
+É o MÍNIMO: quem só tem save no aparelho não entra nessa conta.
+A obra custava **1.000 moedas** e dava **0 de renda** (`inc: 0`), então a pessoa não
+perdeu bilheteria — perdeu exatamente as 1.000 moedas e o efeito de encurtar lesão.
+A chave `medico` que sobrou nos saves **não trava nada**: "estádio completo" e SAF
+contam pela lista atual de obras, e o médico saiu dela.
+
+### ⏳ PENDENTE — esperando a decisão dele
+Ofereci: devolver **1.000 🪙 uma vez por carreira**, com carimbo no save pra nunca pagar
+duas vezes, entrando sozinho ao abrir a carreira, com uma linha no extrato
+(*"🏥 Departamento Médico saiu do jogo — 1.000 🪙 devolvidas"*). Perguntei também se ele
+quer aviso na tela ou só o extrato, silencioso. **Ele ainda não respondeu** — a conversa
+virou pra camisa. Retomar.
+
+---
+
 ## 15/09/2026 — 🧑‍⚕️ O "preparador físico" aparecia DUAS vezes na aba Elenco (consertado)
 
 Ele pegou, com dois prints: *"aqui será q N tá confuso Tb não? Mostrando falando de
