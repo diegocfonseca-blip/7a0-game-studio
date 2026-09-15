@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { sponsorBetMeta, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf } from './estadiodata'
 import { tr } from './lang' // 🌐 BR/EN (12/09)
+import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
 import type { SponsorBetTier } from './estadiodata'
 import './career-sponsor-visual.css'
 import './career-sponsor-paper.css'
@@ -36,7 +37,7 @@ export function CareerSponsorOverview({ div, chosen }: { div: string; chosen?: C
     <p className="ll32-contract-note">{tr('Abaixo: transmissão dos jogos e valores por divisão.', 'Below: match broadcasting and amounts per division.')}</p>
   </section>
 }
-export function CareerSponsorVisual({div,chosen,onPick,fielBrandId}:{div:string;chosen?:Choice;onPick:(tier:SponsorBetTier,brandId:string)=>void;fielBrandId?:string}) {
+export function CareerSponsorVisual({div,chosen,onPick,fielBrandId,passo}:{div:string;chosen?:Choice;onPick:(tier:SponsorBetTier,brandId:string)=>void;fielBrandId?:string;passo?:PassoVirada}) {
   const [tier,setTier]=useState<SponsorBetTier|undefined>(chosen?.tier)
   const [draft,setDraft]=useState<Choice|undefined>(chosen)
   const [page,setPage]=useState(()=>chosen ? Math.max(0,sponsorBrandsOfTier(chosen.tier).findIndex(b=>b.id===chosen.brandId)) : 0)
@@ -46,7 +47,7 @@ export function CareerSponsorVisual({div,chosen,onPick,fielBrandId}:{div:string;
   const brands=tier ? sponsorBrandsOfTier(tier) : []
   const b=brands[page]
   return <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Propostas de patrocínio', 'Sponsorship proposals')}>
-    <header><small>{div==='V'?'VÁRZEA':`SÉRIE ${div}`}</small><h2>{tr('PATROCINADOR PONTUAL', 'ONE-SEASON SPONSOR')}</h2><p>{tier ? tr('Só esta temporada — a aposta de sempre. Compare e assine.', 'This season only — the usual bet. Compare and sign.') : tr('Só esta temporada — a aposta de sempre. Primeiro, escolha o objetivo.', 'This season only — the usual bet. First, pick the goal.')}</p></header>
+    <header><PassoPill passo={passo}/><small>{div==='V'?'VÁRZEA':`SÉRIE ${div}`}</small><h2>{tr('PATROCINADOR PONTUAL', 'ONE-SEASON SPONSOR')}</h2><p>{tier ? tr('Só esta temporada — a aposta de sempre. Compare e assine.', 'This season only — the usual bet. Compare and sign.') : tr('Só esta temporada — a aposta de sempre. Primeiro, escolha o objetivo.', 'This season only — the usual bet. First, pick the goal.')}</p></header>
     <div className="ll29-sponsor-tabs">{([1,2,3] as SponsorBetTier[]).map(t=><button key={t} aria-pressed={t===tier} onClick={()=>{setTier(t);setPage(0);setDraft({tier:t,brandId:sponsorBrandsOfTier(t)[0].id})}}>{sponsorBetMeta(t).label}</button>)}</div>
     {tier && <nav className="ll30-proposals" aria-label={tr('Comparar propostas', 'Compare proposals')}>{brands.map((brand,i)=><button key={brand.id} aria-pressed={page===i} onClick={()=>{setPage(i);setDraft({tier,brandId:brand.id})}}>{tr('PROPOSTA', 'PROPOSAL')} {i+1}</button>)}</nav>}
     <div className="ll36-office"><article className="ll36-paper" aria-live="polite">

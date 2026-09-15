@@ -17,11 +17,11 @@
 // *"totalmente desproporcional"* — a imagem inclui as duas mangas, então o peito
 // é bem mais estreito do que parece).
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { tr } from './lang'
 import { CAMISAS_SALAO } from './salao-camisas'
 import {
-  PRECOS, PRECO_EN, CORES_PADRAO,
+  PRECOS, PRECO_EN, PRECO_PADRAO, CORES_PADRAO,
   fornecedorDe, fornAtivo, fornAnoAtual, fornValor,
   torcidaDoEstadio, bonusObras, lojaConstruida, calculaVendas,
   type LojaSave, type PrecoLoja,
@@ -29,8 +29,14 @@ import {
 import type { StadiumSave } from './estadiodata'
 import { BICO_MARCAS, bicoValor, type BicoMarca, type BicoDiv } from './bico' // 🕴️ Bico de Folga
 import MOLDE_CAMISA from './img/camisa-molde-v1.webp'
+// 🎬 as duas telas da virada usam o MOLDE do Patrocinador Master (ll29/ll36) + as cenas
+// novas (vitrine e carteira de trabalho), que moram em career-loja-cenas.css
+import './career-sponsor-visual.css'
+import './career-sponsor-office.css'
+import './career-loja-cenas.css'
+import { PassoPill, type PassoVirada } from './passo-virada'
 
-const INK = '#0C0C0C', CREME = '#F4ECD6', GOLD = '#FFC400', GREEN = '#1B7A3D'
+const INK = '#0C0C0C', CREME = '#F4ECD6', GOLD = '#FFC400'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
 const nomeDiv = (d: string) => (d === 'V' ? tr('Várzea', 'Sunday League') : `${tr('Série', 'Tier')} ${d}`)
 const fmt = (n: number) => n.toLocaleString(tr('pt-BR', 'en-US'))
@@ -358,127 +364,201 @@ export function LojaTab({
 
 
 // ══════════════════════════════════════════════════════════════════════════
-// 💰 O PREÇO DA CAMISA na virada da temporada
+// 🪜 O MOLDE DOS PASSOS DA VIRADA (Diego, 15/09)
 // ══════════════════════════════════════════════════════════════════════════
-// Ordem do Diego (15/09): Master → fornecedor de material → **depois decide a
-// camisa**. E: *"depois não fica info na home mais, ali é só pra tomar as
-// decisões"* — então este bloco SÓ existe enquanto o preço desta temporada não foi
-// escolhido. Escolheu, some da virada (o resumo fica na aba 🛍️ Loja).
+// Palavras dele: *"quero padronizado passo a passo igual já ocorre hoje quando abre
+// patrocinador Master, depois patrocinador pontual, depois material esportivo, depois
+// venda de camisas e depois o bico"*, com *"visuais parecidos com o que já existe"*.
 //
-// ⏱️ E não trava o "Começar a temporada": o texto diz que dá pra deixar como está.
+// Então a 🛍️ camisa e o 🕴️ bico deixaram de ser duas caixinhas brancas fora do padrão
+// e passaram a usar a MESMA casca do Patrocinador Master: `ll29-sponsor ll36-sponsor`
+// (cabeçalho escuro → os papéis → a CENA quadrada → a barra com o botão de assinar).
+// O que muda é só a cena, desenhada em `career-loja-cenas.css`.
+
+/** 📏 mede a cena pra camisa nascer grande em qualquer tela sem estourar.
+ *  A cena é quadrada (aspect-ratio 1), então 66% da largura sobra espaço certo pra
+ *  placa em cima e o chão embaixo. Sem isso teria que chutar um número em px — e no
+ *  celular estreito a camisa vazaria. */
+function useLarguraDaCena() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [larg, setLarg] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => setLarg(el.clientWidth))
+    ro.observe(el)
+    setLarg(el.clientWidth)
+    return () => ro.disconnect()
+  }, [])
+  return { ref, larg }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// 🛍️ PASSO — VENDA DE CAMISAS (o preço desta temporada)
+// ══════════════════════════════════════════════════════════════════════════
+// Aparece TODA temporada, porque é aposta (o Master e o fornecedor só voltam quando o
+// contrato acaba). Escolheu, some — *"depois não fica info na home mais, ali é só pra
+// tomar as decisões"*. E não trava o "Começar a temporada".
 export function PrecoVirada({
-  time, st, seasonNo, loja, masterNome, masterLogo, onPreco,
+  time, div, st, seasonNo, loja, masterNome, masterLogo, onPreco, passo,
 }: {
-  time: string; st: StadiumSave | undefined; seasonNo: number
+  time: string; div: string; st: StadiumSave | undefined; seasonNo: number
   loja: LojaSave | undefined; masterNome?: string; masterLogo?: string
   onPreco: (p: PrecoLoja) => void
+  passo?: PassoVirada
 }) {
   const forn = loja?.forn
   const ativo = fornAtivo(forn, seasonNo)
   const fornMeta = ativo ? fornecedorDe(forn.fornId) : undefined
   const arteFile = CAMISAS_SALAO[time]
   const arteBatismo = arteFile ? import.meta.env.BASE_URL + 'mantos-salao/' + arteFile : undefined
-  const atual: PrecoLoja = loja?.preco ?? 'normal'
+  const [sel, setSel] = useState<PrecoLoja>(loja?.preco ?? PRECO_PADRAO)
+  const { ref, larg } = useLarguraDaCena()
+  const altCamisa = Math.max(140, Math.round((larg || 420) * 0.66))
+  const p = PRECOS[sel]
+  // as duas pontas da aposta, com a conta REAL: se só se manteve × se for campeão
+  const rManteve = calculaVendas({ st, pos: 10, preco: sel, fornLoja: fornMeta?.loja ?? 0 })
+  const rCampeao = calculaVendas({ st, pos: 1, preco: sel, fornLoja: fornMeta?.loja ?? 0 })
+  const QUANDO: Record<PrecoLoja, { pt: string; en: string }> = {
+    popular: { pt: 'se só se manter', en: 'if you just stay up' },
+    normal: { pt: 'se pegar o acesso', en: 'if you go up' },
+    cara: { pt: 'se for campeão', en: 'if you win it' },
+  }
+  const EXPLICA: Record<PrecoLoja, { pt: string; en: string }> = {
+    popular: {
+      pt: 'Camisa barata: a torcida toda leva, sobra pouco por peça — é a que menos sente um ano morno.',
+      en: 'Cheap shirt: everyone buys one, little left per piece — the one that least minds a quiet year.',
+    },
+    normal: { pt: 'O meio-termo: vende bem e rende bem, sem depender de um ano perfeito.', en: 'The middle ground: sells well and pays well, without needing a perfect year.' },
+    cara: { pt: 'Pouca gente leva, mas cada uma vale ouro — num ano de campeão ela rende o dobro.', en: 'Few people buy it, but each one is gold — in a title year it pays double.' },
+  }
   return (
-    <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '10px 11px', marginBottom: 12 }}>
-      <div style={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', marginBottom: 6 }}>
-        💰 {tr('Preço da camisa · temporada', 'Shirt price · season')} {seasonNo}
+    <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Preço da camisa', 'Shirt price')}>
+      <header>
+        <PassoPill passo={passo} />
+        <small>{nomeDiv(div).toUpperCase()} · {tr('TEMPORADA', 'SEASON')} {seasonNo}</small>
+        <h2>{tr('VENDA DE CAMISAS', 'SHIRT SALES')}</h2>
+        <p>{tr('A sua camisa na vitrine. Escolha o preço desta temporada.', 'Your shirt in the window. Pick this season\'s price.')}</p>
+      </header>
+      <div className="ll37-papeis">
+        {(['popular', 'normal', 'cara'] as PrecoLoja[]).map(k => (
+          <button key={k} onClick={() => setSel(k)} aria-pressed={sel === k}>
+            <span className="chapeu">{tr('PREÇO DA CAMISA', 'SHIRT PRICE')}</span>
+            <span className="nome">{nomePreco(k)}</span>
+            <span className="moeda">{PRECOS[k].moeda} 🪙</span>
+            <span className="quando">{tr(QUANDO[k].pt, QUANDO[k].en)}</span>
+          </button>
+        ))}
       </div>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-        <div style={{ flex: 'none' }}>
-          <CamisaLoja time={time} arteBatismo={arteBatismo} cores={loja?.cores} alt={118}
+      <div className="ll37-vitrine" ref={ref}>
+        <span className="ll37-placa">· {tr('Loja do Clube', 'Club Shop')} ·</span>
+        <div className="ll37-arara">
+          <CamisaLoja time={time} arteBatismo={arteBatismo} cores={loja?.cores} alt={altCamisa}
             fornId={ativo ? forn.fornId : undefined} masterNome={masterNome} masterLogo={masterLogo} />
+          <div className="ll37-etiqueta">
+            <span>{tr('preço', 'price')}</span>
+            <b>{p.moeda} 🪙</b>
+            <span>{nomePreco(sel)}</span>
+          </div>
         </div>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {(['popular', 'normal', 'cara'] as PrecoLoja[]).map(k => {
-            const r = calculaVendas({ st, pos: 10, preco: k, fornLoja: fornMeta?.loja ?? 0 })
-            const rc = calculaVendas({ st, pos: 1, preco: k, fornLoja: fornMeta?.loja ?? 0 })
-            return (
-              <button key={k} onClick={() => onPreco(k)} aria-pressed={atual === k}
-                style={{ width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 9px', cursor: 'pointer', background: atual === k ? GOLD : CREME, boxShadow: atual === k ? `2px 2px 0 ${INK}` : 'none' }}>
-                <div style={{ ...OSW, fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{nomePreco(k)} · {PRECOS[k].moeda} 🪙</div>
-                <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .75, lineHeight: 1.25 }}>
-                  🛡️ {r.moedas} · 👑 {rc.moedas} {tr('moedas', 'coins')}
-                </div>
-              </button>
-            )
-          })}
+        <div className="ll37-chao" />
+        <div className="ll37-conta">
+          ~{fmt(rCampeao.camisas)} {tr('camisas', 'shirts')} · <em>+{rCampeao.moedas} 🪙</em>{' '}
+          <small>{tr('se for campeão', 'if you win it')}</small>
         </div>
       </div>
-      <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .72, marginTop: 7, lineHeight: 1.4 }}>
-        {tr('🛡️ se você só se manter · 👑 se for campeão. Se cair, não vende nada. Toque num preço pra confirmar.',
-          '🛡️ if you just stay up · 👑 if you win it. Relegated means nothing sells. Tap a price to confirm.')}
+      <div className="ll29-sponsor-bottom">
+        <p>{tr(EXPLICA[sel].pt, EXPLICA[sel].en)}{' '}
+          {tr(`Num ano de meio de tabela dá ~${rManteve.moedas} 🪙.`, `In a mid-table year it makes ~${rManteve.moedas} 🪙.`)}</p>
+        <button onClick={() => onPreco(sel)}>
+          ✍️ {tr('CONFIRMAR O PREÇO', 'CONFIRM THE PRICE')} · {nomePreco(sel).toUpperCase()}
+        </button>
+        <small>{tr('O balanço chega na abertura da temporada seguinte. Dá pra começar a temporada sem mexer aqui.',
+          'The balance arrives when the next season opens. You can start the season without touching this.')}</small>
       </div>
-    </div>
+    </section>
   )
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// 🕴️ BICO DE FOLGA na virada da temporada
+// 🕴️ PASSO — BICO DE FOLGA (a carteira de trabalho)
 // ══════════════════════════════════════════════════════════════════════════
-// Pedido do Diego (15/09): *"o bico também deveria aparecer uma vez nesse início
-// também… mas só quando precisar"* e *"quero a historinha dizendo o porquê e o que
-// ele escolhe fazer da vida"*.
+// Quando aparece (regra fechada pelo Diego em 15/09): *"o bico, depois de escolhido, só
+// troca se subir de divisão ou cair"*. Quem decide isso é a virada (`pyramidseason`);
+// aqui a tela só desenha. Se ele JÁ tem bico e a divisão mudou, a empresa atual vem
+// pré-escolhida — continuar onde está é um clique só.
 //
-// "SÓ QUANDO PRECISAR" é a parte importante: este bloco só é montado quando o
-// técnico está na janela do bico (T3+, Várzea ou Série D) e **ainda não escolheu
-// nenhum**. Quem já tem bico não vê nada aqui — senão viraria um passo a mais em
-// toda virada, e a regra de ouro dele é que nada pode atrasar o ritmo do jogo.
-// E dá pra ignorar: o botão "Começar a temporada" não depende disto.
-export function BicoVirada({ div, atual, esnobou, onPick }: { div: string; atual?: BicoMarca; esnobou?: boolean; onPick: (b: BicoMarca) => void }) {
-  const [sel, setSel] = useState<BicoMarca | undefined>(undefined)
-  const [trocando, setTrocando] = useState(false)
+// 👷 A CENA é a carteira de trabalho, e o selo da capa é emoji de TRABALHADOR: *"não
+// coloque a logo de uma bola na carteira, coloque um emoji de trabalhador ou obras"*.
+export function BicoVirada({
+  div, atual, esnobou, seasonNo, onPick, passo,
+}: {
+  div: string; atual?: BicoMarca; esnobou?: boolean; seasonNo?: number
+  onPick: (b: BicoMarca) => void
+  passo?: PassoVirada
+}) {
+  const [sel, setSel] = useState<BicoMarca | undefined>(atual)
   const esc = BICO_MARCAS.find(b => b.k === sel)
   const valor = bicoValor(div, esnobou)
   const dv = (['V', 'D', 'C'].includes(div) ? div : 'V') as BicoDiv
-  const jaTem = atual ? BICO_MARCAS.find(b => b.k === atual) : undefined
-  // ✅ JÁ TEM BICO: uma linha só, com o trocar fechado. "Só quando precisar" é isso —
-  // nada de repetir a lista inteira em toda virada (o Diego odeia passo a mais).
-  if (jaTem && !trocando) return (
-    <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '9px 11px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 9 }}>
-      <div style={{ width: 30, height: 30, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 8, background: jaTem.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{jaTem.ic}</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: 12.5 }}>🕴️ {jaTem.nome}</div>
-        <div style={{ fontWeight: 400, fontSize: 10, opacity: .72 }}>{tr(jaTem.cargos[dv].pt, jaTem.cargos[dv].en)} · +{valor} 🪙/{tr('temp', 'seas')}</div>
-      </div>
-      <button onClick={() => setTrocando(true)} style={{ flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 9px', ...OSW, fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase', background: CREME, color: INK, cursor: 'pointer' }}>🔁 {tr('trocar', 'change')}</button>
-    </div>
-  )
+  const cargo = esc ? tr(esc.cargos[dv].pt, esc.cargos[dv].en) : undefined
+  // 📖 a história muda com o momento: quem volta depois de ter esnobado lê a volta
+  // humilde; quem está começando lê por que ele faz isso da vida.
+  const historia = esc ? (esnobou ? tr(esc.volta.pt, esc.volta.en) : tr(esc.historia.pt, esc.historia.en)) : undefined
   return (
-    <div style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 13, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '10px 11px', marginBottom: 12 }}>
-      <div style={{ fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase' }}>🕴️ {tr('Bico de folga', 'Side job')}</div>
-      <div style={{ fontWeight: 400, fontSize: 10.5, opacity: .75, margin: '3px 0 8px', lineHeight: 1.45 }}>
-        {tr(`O clube ainda não paga bem. Nas folgas dá pra trabalhar num dos patrocinadores e ajudar o caixa em +${valor} 🪙 por temporada. É de graça, troca quando quiser — e acaba sozinho quando você chegar na Série C.`,
-          `The club doesn't pay well yet. On your days off you can work for one of the sponsors and help the till by +${valor} 🪙 a season. It's free, switch whenever — and it ends by itself once you reach Série C.`)}
+    <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Bico de folga', 'Side job')}>
+      <header>
+        <PassoPill passo={passo} />
+        <small>{nomeDiv(div).toUpperCase()}{seasonNo ? ` · ${tr('TEMPORADA', 'SEASON')} ${seasonNo}` : ''}</small>
+        <h2>{tr('BICO DE FOLGA', 'SIDE JOB')}</h2>
+        <p>{atual
+          ? tr('A divisão mudou e o cargo muda junto. Continue onde está ou assine em outra.',
+            'Your division changed and so does the job title. Stay where you are or sign elsewhere.')
+          : tr('Nas folgas você trabalha pra ajudar o caixa do clube. Escolha onde.',
+            'On your days off you work to help the club\'s till. Pick where.')}</p>
+      </header>
+      <div className="ll37-papeis">
+        {BICO_MARCAS.map(b => (
+          <button key={b.k} onClick={() => setSel(b.k)} aria-pressed={sel === b.k}>
+            <span className="emo">{b.ic}</span>
+            <span className="nome">{b.nome}</span>
+            <span className="cargo">{tr(b.cargos[dv].pt, b.cargos[dv].en)}</span>
+          </button>
+        ))}
       </div>
-      {BICO_MARCAS.map(b => (
-        <button key={b.k} onClick={() => setSel(b.k)} aria-pressed={sel === b.k}
-          style={{ width: '100%', textAlign: 'left', border: `2.5px solid ${sel === b.k ? '#7C3AED' : INK}`, borderRadius: 11, padding: '7px 9px', marginBottom: 5, cursor: 'pointer', background: sel === b.k ? b.bg : CREME, boxShadow: sel === b.k ? `2px 2px 0 ${INK}` : 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 8, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{b.ic}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5, lineHeight: 1.1 }}>{b.nome}</div>
-              <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .75 }}>{tr(b.cargos[dv].pt, b.cargos[dv].en)}</div>
-            </div>
-            <div style={{ ...OSW, fontWeight: 700, fontSize: 13, flex: 'none' }}>+{valor} 🪙</div>
+      <div className="ll37-cena-bico">
+        <div className="ll37-carteira">
+          <div className="capa">
+            <div className="selo">👷</div>
+            <b>{tr('CARTEIRA', 'WORK')}<br />{tr('DE TRABALHO', 'RECORD BOOK')}</b>
+            <i>{tr('E PREVIDÊNCIA', 'AND PENSION')}<br />{tr('DO TÉCNICO', 'OF THE MANAGER')}</i>
+            <div className="num">{tr('Nº', 'No.')} {String(1000 + (seasonNo ?? 1)).slice(1)}-{2020 + (seasonNo ?? 1)}</div>
           </div>
-          {/* 📖 a historinha só abre no escolhido — a lista fica limpa e quem quer ler, lê */}
-          {sel === b.k && (
-            <div style={{ ...OSW, fontWeight: 400, fontSize: 10.5, lineHeight: 1.5, marginTop: 7, paddingTop: 7, borderTop: `2px solid rgba(0,0,0,.18)`, fontStyle: 'italic' }}>
-              “{esnobou ? tr(b.volta.pt, b.volta.en) : tr(b.historia.pt, b.historia.en)}”
+          <div className="pagina">
+            <div className="tit">{tr('CONTRATO DE TRABALHO', 'EMPLOYMENT CONTRACT')}</div>
+            <div className="campo"><span>{tr('EMPREGADOR', 'EMPLOYER')}</span><b>{esc?.nome ?? '—'}</b></div>
+            <div className="campo"><span>{tr('CARGO', 'ROLE')}</span><b>{cargo ?? tr('a escolher', 'to be picked')}</b></div>
+            <div className="campo"><span>{tr('ADMISSÃO', 'START')}</span><b>T{seasonNo ?? 1} · {nomeDiv(div)}</b></div>
+            <div className="salario">
+              <span>{tr('REMUNERAÇÃO', 'PAY')}</span>
+              <b>+{valor} 🪙</b>
+              <i>{tr('por temporada', 'per season')}</i>
             </div>
-          )}
-        </button>
-      ))}
-      <button disabled={!esc} onClick={() => esc && onPick(esc.k)}
-        style={{ width: '100%', marginTop: 4, border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 10px', ...OSW, fontWeight: 700, fontSize: 12.5, textTransform: 'uppercase', background: esc ? GREEN : '#cfc6ae', color: esc ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 ${INK}`, cursor: esc ? 'pointer' : 'default' }}>
-        {esc ? `🕴️ ${tr('Pegar o bico na', 'Take the job at')} ${esc.nome}` : tr('Toque num bico pra ler a história', 'Tap a job to read the story')}
-      </button>
-      {jaTem && <button onClick={() => { setTrocando(false); setSel(undefined) }} style={{ width: '100%', marginTop: 6, border: `2.5px solid ${INK}`, borderRadius: 11, padding: 7, ...OSW, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', background: CREME, color: INK, cursor: 'pointer' }}>{tr('cancelar — fico na', 'cancel — stay at')} {jaTem.nome}</button>}
-      <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .7, marginTop: 6, lineHeight: 1.4 }}>
-        {tr('Pode ignorar e começar a temporada: o bico não trava nada, e fica esperando em 🤝 Patrocínio.',
-          'You can ignore this and start the season: the side job blocks nothing, and it waits for you in 🤝 Sponsors.')}
+            <div className="assina">
+              {tr('assinatura do empregador', 'employer signature')}
+              {esc && <span className="carimbo">{tr('ANOTADO', 'FILED')}</span>}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+      <div className="ll29-sponsor-bottom">
+        <p>{historia ? `“${historia}”` : tr('Toque numa empresa acima pra ler a história e ver o cargo.', 'Tap a company above to read the story and see the role.')}</p>
+        <button disabled={!esc} onClick={() => esc && onPick(esc.k)}>
+          {esc ? `✍️ ${tr('ASSINAR A CARTEIRA', 'SIGN THE BOOK')} · ${esc.nome.toUpperCase()}` : tr('ESCOLHA UMA EMPRESA ACIMA', 'PICK A COMPANY ABOVE')}
+        </button>
+        <small>{tr('Na Série B pra cima ele larga o bico. Dá pra começar a temporada sem mexer aqui.',
+          'From Série B up he quits the side job. You can start the season without touching this.')}</small>
+      </div>
+    </section>
   )
 }

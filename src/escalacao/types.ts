@@ -691,7 +691,12 @@ export interface EscState {
    *  que JÁ tinha começado a temporada não recebeu no início, então recebe no fim;
    *  da temporada seguinte em diante, recebe no início. */
   pagoAdiantado?: Record<number, { master?: number; forn?: number; bico?: number }>
-  careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; since: number; esnobou?: boolean } | null
+  /** `div` = a divisão em que a carteira foi assinada. É ela que faz o passo do bico
+   *  VOLTAR quando o clube sobe ou cai — regra do Diego (15/09): *"o bico, depois de
+   *  escolhido, só troca se subir de divisão ou cair"* (é quando o cargo muda de
+   *  degrau). Save antigo não tem o campo: aí a divisão de hoje vale como a de origem
+   *  e ninguém é incomodado à toa. */
+  careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; since: number; esnobou?: boolean; div?: string } | null
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {

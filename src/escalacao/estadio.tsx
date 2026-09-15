@@ -24,6 +24,7 @@ import { UnlockBanner } from './unlockbanner'
 import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (teste fechado)
 import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
+import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -124,14 +125,14 @@ function MarcaBtn({ b, on, fiel, minVal, onPick }: { b: SponsorBrand; on: boolea
 // 🎯 O CONTRATO — trava o "Começar a temporada" até fechar meta + marca.
 // `fielBrandId` = marca com quem o técnico acertou a meta na temporada passada
 // (a mesma regra que `sponsorBetRewards` usa pra garantir o mínimo).
-export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=false }: { div: string; chosen?: { tier: SponsorBetTier; brandId: string }; onPick: (tier: SponsorBetTier, brandId: string) => void; fielBrandId?: string; cinematic?: boolean }) {
+export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=false, passo }: { div: string; chosen?: { tier: SponsorBetTier; brandId: string }; onPick: (tier: SponsorBetTier, brandId: string) => void; fielBrandId?: string; cinematic?: boolean; passo?: PassoVirada }) {
   const [tier, setTier] = useState<SponsorBetTier | null>(chosen?.tier ?? null)
   const minVal = (SPONSOR_BET_PAY[div] ?? [0, 0, 0])[0]
   const fielTier = tierDaMarca(fielBrandId)
   const brand = chosen ? sponsorBrandOf(chosen.brandId) : undefined
   // fechado = o que está no passo 2 na tela é exatamente o que está valendo
   const fechado = !!chosen && chosen.tier === tier
-  if (cinematic) return <CareerSponsorVisual div={div} chosen={chosen} onPick={onPick} fielBrandId={fielBrandId}/>
+  if (cinematic) return <CareerSponsorVisual div={div} chosen={chosen} onPick={onPick} fielBrandId={fielBrandId} passo={passo}/>
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ ...box('#fff'), overflow: 'hidden' }}>
@@ -274,7 +275,7 @@ export function MasterFaixa({ contrato, seasonNo, recemAssinado }: { contrato: M
     </div>
   )
 }
-export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = false }: { div: string; contrato?: MasterContrato; seasonNo: number; onPick: (brandId: string) => void; cinematic?: boolean }) {
+export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = false, passo }: { div: string; contrato?: MasterContrato; seasonNo: number; onPick: (brandId: string) => void; cinematic?: boolean; passo?: PassoVirada }) {
   const [sel, setSel] = useState<string | undefined>(undefined)
   const en = getLang() === 'en'
   if (masterAtivo(contrato, seasonNo)) return <MasterFaixa contrato={contrato} seasonNo={seasonNo} recemAssinado={contrato.desde === seasonNo} />
@@ -300,7 +301,7 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
   if (cinematic) {
     return (
       <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Patrocinador Master', 'Master sponsor')}>
-        <header><small>{divNome(div).toUpperCase()} · {primeira ? tr('PRIMEIRA VEZ', 'FIRST TIME') : tr('CONTRATO ACABOU', 'CONTRACT ENDED')}</small><h2>{tr('PATROCINADOR MASTER', 'MASTER SPONSOR')}</h2><p>{tr('Quatro contratos na mesa — cada um com o seu prazo. Escolha um.', 'Four contracts on the desk — each with its own term. Pick one.')}</p></header>
+        <header><PassoPill passo={passo} /><small>{divNome(div).toUpperCase()} · {primeira ? tr('PRIMEIRA VEZ', 'FIRST TIME') : tr('CONTRATO ACABOU', 'CONTRACT ENDED')}</small><h2>{tr('PATROCINADOR MASTER', 'MASTER SPONSOR')}</h2><p>{tr('Quatro contratos na mesa — cada um com o seu prazo. Escolha um.', 'Four contracts on the desk — each with its own term. Pick one.')}</p></header>
         <div style={{ padding: '0 14px 12px' }}>{grade}</div>
         <div className="ll36-office"><article className="ll36-paper">
           {escolhido ? <>
@@ -1103,9 +1104,9 @@ export function FornFaixa({ contrato, seasonNo }: { contrato: FornContrato; seas
   )
 }
 /** os 4 contratos de material, na cena do escritório (igual ao Master) */
-export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic = false, onIrEstrutura }: {
+export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic = false, onIrEstrutura, passo }: {
   div: string; contrato?: FornContrato; seasonNo: number; temLoja: boolean
-  onPick: (fornId: string) => void; cinematic?: boolean; onIrEstrutura?: () => void
+  onPick: (fornId: string) => void; cinematic?: boolean; onIrEstrutura?: () => void; passo?: PassoVirada
 }) {
   const [sel, setSel] = useState<string | undefined>(undefined)
   if (fornAtivo(contrato, seasonNo)) return <FornFaixa contrato={contrato} seasonNo={seasonNo} />
@@ -1141,7 +1142,7 @@ export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic
   </>
   if (cinematic) return (
     <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Fornecedor de material', 'Kit supplier')}>
-      <header><small>{divNome(div).toUpperCase()} · {contrato ? tr('CONTRATO ACABOU', 'CONTRACT ENDED') : tr('PRIMEIRA VEZ', 'FIRST TIME')}</small><h2>{tr('FORNECEDOR DE MATERIAL', 'KIT SUPPLIER')}</h2><p>{tr('Quem veste o seu time. Quatro marcas na mesa — cada uma com o seu prazo.', 'Who kits out your team. Four brands on the desk — each with its own term.')}</p></header>
+      <header><PassoPill passo={passo} /><small>{divNome(div).toUpperCase()} · {contrato ? tr('CONTRATO ACABOU', 'CONTRACT ENDED') : tr('PRIMEIRA VEZ', 'FIRST TIME')}</small><h2>{tr('FORNECEDOR DE MATERIAL', 'KIT SUPPLIER')}</h2><p>{tr('Quem veste o seu time. Quatro marcas na mesa — cada uma com o seu prazo.', 'Who kits out your team. Four brands on the desk — each with its own term.')}</p></header>
       <div style={{ padding: '0 14px 12px' }}>{grade}</div>
       <div className="ll36-office"><article className="ll36-paper">
         {esc ? <>

@@ -1,0 +1,131 @@
+/* 🎬 AS DUAS CENAS NOVAS DA VIRADA (Diego, 15/09)
+   A 🛍️ venda de camisas e o 🕴️ bico passaram a usar o MESMO molde do Patrocinador
+   Master (`ll29-sponsor ll36-sponsor`): cabeçalho escuro → os papéis → a CENA → a barra
+   de baixo. O que muda é só a cena, e é o que este arquivo desenha.
+
+   Pedido dele, literal: *"quero visuais parecidos com o que já existe hoje… mas na arte
+   da camisa seria ideal ter o mesmo estilo de arte porém aparecendo a camisa MAIOR. E o
+   bico, mesmo estilo também, só que em vez do papel seria uma carteira de trabalho do
+   Brasil"*.
+
+   ⚖️ Tudo aqui é DEGRADÊ E BORDA — nenhuma imagem nova. A regra de peso do repo vale
+   pra qualquer arte, e cena em CSS custa 0 KB pra todo jogador. */
+
+/* 🪜 a pílula PASSO X DE N, no cabeçalho dos cinco passos */
+.ll37-passo {
+  /* 📐 own line: com `inline-block` ela dividia a linha com o chapéu da divisão e o
+     "PASSO 4 DE 5" ficava colado no "SÉRIE C · TEMPORADA 7". */
+  display: block; width: fit-content; background: #ffc400; color: #0c0c0c;
+  border: 3px solid #0c0c0c; border-radius: 999px; padding: 2px 13px;
+  font: 700 11px/1.5 Oswald, sans-serif; letter-spacing: .14em; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* ── 🛍️ A VITRINE ────────────────────────────────────────────────────────────
+   Mesma janela quadrada da cena do escritório (`.ll36-office`), com a luz quente da
+   loja: foco dourado em cima, madeira escura no fundo, tábuas e o chão refletindo. */
+.ll37-vitrine {
+  /* ⚠️ SEM `min-height`: com `aspect-ratio: 1` uma altura mínima maior que a largura
+     disponível INFLA a largura, e a cena vazava uns 24px pra fora da borda arredondada
+     do cartão. Deixando só o aspect-ratio, ela nasce quadrada pela largura do cartão. */
+  position: relative; display: block; aspect-ratio: 1; overflow: hidden;
+  background:
+    radial-gradient(120% 62% at 50% 2%, rgba(255, 213, 120, .46) 0%, rgba(255, 196, 0, .12) 36%, transparent 64%),
+    linear-gradient(#2a1b10 0%, #40281680 32%, #140c06 100%),
+    repeating-linear-gradient(90deg, #3a2414 0 30px, #331f11 30px 60px);
+}
+.ll37-vitrine .ll37-placa {
+  position: relative; display: block; text-align: center; padding: 14px 0 0;
+  font: 700 clamp(10px, 1.8vw, 13px)/1 Oswald, sans-serif; letter-spacing: .26em;
+  color: #f0dfae; text-transform: uppercase; text-shadow: 0 1px 0 #000;
+}
+/* a camisa GRANDE, centrada e com sombra de vitrine */
+.ll37-vitrine .ll37-arara {
+  position: relative; display: flex; justify-content: center; margin-top: 8px;
+  filter: drop-shadow(0 20px 22px rgba(0, 0, 0, .6));
+}
+/* 🏷️ a etiqueta de preço pendurada — é a decisão desta tela, então fica visível */
+.ll37-etiqueta {
+  position: absolute; right: 9%; top: 15%; transform: rotate(7deg);
+  background: #ffc400; border: 3px solid #0c0c0c; border-radius: 10px;
+  box-shadow: 3px 3px 0 #0c0c0c; padding: 5px 12px; text-align: center; color: #0c0c0c;
+}
+.ll37-etiqueta b { display: block; font: 700 clamp(15px, 2.6vw, 21px)/1 Oswald, sans-serif; }
+.ll37-etiqueta span { display: block; font: 700 clamp(7px, 1.1vw, 9px)/1.4 Oswald, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+/* o chão e a conta da temporada, no rodapé da cena */
+.ll37-vitrine .ll37-chao {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 74px;
+  background: linear-gradient(#150c0600, #150c06 60%); border-top: 3px solid #54351c;
+}
+.ll37-vitrine .ll37-conta {
+  position: absolute; left: 0; right: 0; bottom: 14px; text-align: center;
+  font: 700 clamp(11px, 1.9vw, 14px)/1.3 Oswald, sans-serif; color: #f0dfae;
+}
+.ll37-vitrine .ll37-conta em { font-style: normal; color: #7bd79b; }
+.ll37-vitrine .ll37-conta small { font-weight: 400; opacity: .75; }
+
+/* ── 🕴️ A CARTEIRA DE TRABALHO ───────────────────────────────────────────────
+   👷 O selo da capa é EMOJI DE TRABALHADOR, não a bola do jogo — corte dele: *"não
+   coloque a logo de uma bola na carteira, coloque um emoji de trabalhador ou obras"*.
+   E de propósito NÃO imita documento oficial: é a brincadeira da carteirinha azul. */
+.ll37-cena-bico {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  /* um pouco mais baixa que a vitrine (6/5 em vez de quadrada): a carteira é um objeto
+     deitado, e no quadrado sobrava um vão escuro grande em cima e embaixo dela. */
+  aspect-ratio: 6 / 5; overflow: hidden; padding: 16px; /* sem min-height: ver .ll37-vitrine */
+  background:
+    radial-gradient(110% 60% at 50% 6%, rgba(255, 213, 120, .26) 0%, transparent 60%),
+    linear-gradient(#241a12, #100a06);
+}
+.ll37-carteira {
+  /* larga na cena de propósito: a carteira É a arte deste passo, como o escritório é a
+     do Master. Sem a largura ela nascia do tamanho do texto e ficava perdida no escuro. */
+  display: flex; width: 92%; max-width: 380px;
+  border: 4px solid #0a1024; border-radius: 9px;
+  box-shadow: 0 16px 22px rgba(0, 0, 0, .6); transform: rotate(-1.5deg); overflow: hidden;
+}
+.ll37-carteira .capa {
+  width: 40%; min-width: 118px; background: linear-gradient(145deg, #16233f, #0e1830);
+  padding: 14px 10px; text-align: center; border-right: 3px solid #0a1024; color: #fff;
+}
+.ll37-carteira .capa .selo {
+  width: 46px; height: 46px; margin: 2px auto 8px; border: 3px solid #ffc400;
+  border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.ll37-carteira .capa b { display: block; font: 700 clamp(9px, 1.7vw, 12px)/1.15 Oswald, sans-serif; color: #ffc400; letter-spacing: .06em; }
+.ll37-carteira .capa i { display: block; font: 400 clamp(6.5px, 1.2vw, 8px)/1.25 Oswald, sans-serif; font-style: normal; color: rgba(255, 255, 255, .62); margin-top: 5px; letter-spacing: .06em; }
+.ll37-carteira .capa .num { margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, .22); padding-top: 7px; font: 400 clamp(6.5px, 1.2vw, 8px)/1 Oswald, sans-serif; color: rgba(255, 255, 255, .5); }
+.ll37-carteira .pagina { flex: 1; min-width: 0; background: #f6efdc; padding: 11px 12px 10px; color: #0c0c0c; }
+.ll37-carteira .pagina .tit { font: 700 clamp(7px, 1.3vw, 9px)/1 Oswald, sans-serif; letter-spacing: .1em; text-align: center; color: #6b6552; border-bottom: 1px solid #b9ab8a; padding-bottom: 5px; }
+.ll37-carteira .campo { margin-top: 7px; }
+.ll37-carteira .campo span { display: block; font: 400 clamp(6px, 1.1vw, 7.5px)/1 Oswald, sans-serif; letter-spacing: .08em; color: #8a7f63; }
+.ll37-carteira .campo b { display: block; font: 700 clamp(10px, 1.9vw, 14px)/1.15 Oswald, sans-serif; border-bottom: 1px solid #c9bb99; padding-bottom: 2px; }
+.ll37-carteira .salario { margin-top: 9px; text-align: center; border: 2px solid #0c0c0c; border-radius: 7px; background: #fff; padding: 5px 0; }
+.ll37-carteira .salario span { display: block; font: 400 clamp(6px, 1.1vw, 7.5px)/1 Oswald, sans-serif; letter-spacing: .08em; color: #8a7f63; }
+.ll37-carteira .salario b { display: block; font: 700 clamp(15px, 2.8vw, 21px)/1.05 Oswald, sans-serif; }
+.ll37-carteira .salario i { display: block; font: 400 clamp(7px, 1.3vw, 9px)/1.2 Oswald, sans-serif; font-style: normal; color: #6b6552; }
+.ll37-carteira .assina { position: relative; margin-top: 8px; border-top: 1px solid #c9bb99; padding-top: 5px; font: 400 8px/1.2 Arial, sans-serif; color: #62573f; text-align: center; }
+.ll37-carteira .carimbo { position: absolute; right: -2px; top: -15px; transform: rotate(-11deg); border: 2px solid #2e6c9e; border-radius: 5px; color: #2e6c9e; font: 700 8px/1.4 Oswald, sans-serif; padding: 1px 5px; opacity: .85; letter-spacing: .06em; }
+
+/* ── os "papéis" em cima da mesa (preços e empresas do bico) ─────────────────
+   Mesmo desenho dos contratos do Master: papel creme, borda preta, sombra dura, e
+   roxo quando está escolhido. */
+.ll37-papeis { display: flex; gap: 8px; padding: 0 14px 12px; }
+.ll37-papeis button {
+  flex: 1; min-width: 0; background: #f6efdc; color: #0c0c0c; border: 3px solid #0c0c0c;
+  border-radius: 6px; box-shadow: 3px 3px 0 rgba(0, 0, 0, .55); cursor: pointer;
+  padding: 9px 5px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-height: 0; font: inherit; text-transform: none;
+}
+.ll37-papeis button[aria-pressed=true] { border-color: #7c3aed; outline: 3px solid #7c3aed; outline-offset: 1px; box-shadow: 3px 3px 0 #0c0c0c; }
+.ll37-papeis .chapeu { font: 400 7.5px/1 Oswald, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.ll37-papeis .nome {
+  font: 700 clamp(11px, 2.1vw, 16px)/1.05 Oswald, sans-serif; text-transform: uppercase;
+  /* nome comprido (ERO ODONTOLOGIA) tem que QUEBRAR, não vazar o papel — é a mesma
+     cura que os contratos do Master já usam (`overflow-wrap:anywhere`). */
+  max-width: 100%; overflow-wrap: anywhere;
+}
+.ll37-papeis .cargo { font: 400 clamp(7.5px, 1.4vw, 9.5px)/1.15 Oswald, sans-serif; color: #6b6552; }
+.ll37-papeis .moeda { font: 700 11px/1.4 Oswald, sans-serif; background: #0c0c0c; color: #ffc400; border-radius: 5px; padding: 1px 8px; margin-top: 2px; }
+.ll37-papeis .quando { font: 700 clamp(8px, 1.5vw, 10px)/1.15 Oswald, sans-serif; color: #1b7a3d; margin-top: 4px; }
+.ll37-papeis .emo { font-size: clamp(17px, 3vw, 21px); line-height: 1; }

@@ -7710,51 +7710,76 @@ export function PyramidSeasonScreen() {
               {/* 👉 A DECISÃO DA VEZ fica sozinha em cima. O resultado da temporada
                   passada desceu pros recibos, depois do botão verde. */}
               {!decisoesOk && (() => { const n = (sponsorBetOk ? 0 : 1) + (masterOk ? 0 : 1); return <SeloSuaVez texto={tr(`${n} ${n === 1 ? 'decisão' : 'decisões'} pra começar a T${state.seasonNo ?? 1}`, `${n} decision${n === 1 ? '' : 's'} to start S${state.seasonNo ?? 1}`)} /> })()}
-              {/* 🏆 PATROCINADOR MASTER vem PRIMEIRO (ordem do Diego: "ele aparece
-                  primeiro do que o das apostas"). Sem contrato = os 4 papéis abertos;
-                  com contrato = a faixa de leitura. */}
-              <MasterBanner cinematic={privateCareer} div={me.div} seasonNo={state.seasonNo ?? 1}
-                contrato={state.careerMaster?.[youId]}
-                onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })} />
-              {/* 👟 FORNECEDOR DE MATERIAL vem LOGO DEPOIS DO MASTER, e com o MESMO
-                  formato dele (ordem do Diego, 15/09): *"quando chegar nessa área, o
-                  fornecedor de material esportivo tenha o mesmo formato do Pontual e do
-                  Master; após escolher lá o Master vem o fornecedor de material
-                  esportivo, primeiro pra fechar contrato"*. É o FornBanner cinematográfico,
-                  o mesmo escritório, os 4 papéis na mesa.
-                  ⚠️ E SOME depois de fechado: *"depois não fica info na home mais, ali é
-                  só pra tomar as decisões"* — com contrato correndo, não desenha nada. */}
-              {lojaLib && !fornAtivo(state.careerLoja?.[youId]?.forn, state.seasonNo ?? 1)
-                && hasExtra(state.stadiums?.[youId], 'loja') && (
-                <FornBanner div={me.div} contrato={state.careerLoja?.[youId]?.forn}
-                  seasonNo={state.seasonNo ?? 1} temLoja cinematic={privateCareer}
-                  onPick={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })} />
-              )}
-              {/* 🎖️ fielBrandId segue a MESMA regra que sponsorBetRewards usa pra
-                  garantir o mínimo: acertou a meta na temporada PASSADA com essa marca. */}
-              <SponsorBetBanner cinematic={privateCareer} div={me.div}
-                chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
-                fielBrandId={sponsorResultFresh && sponsorResult!.hit ? sponsorResult!.brandId : undefined}
-                onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
-              {/* 💰 O PREÇO DA CAMISA — depois dos contratos, como ele desenhou ("aí
-                  depois passa, decide a camisa"). Só aparece enquanto NÃO foi decidido
-                  nesta temporada; decidiu, some. */}
-              {lojaLib && hasExtra(state.stadiums?.[youId], 'loja')
-                && state.careerLoja?.[youId]?.precoSeason !== (state.seasonNo ?? 1) && (
-                <PrecoVirada
-                  time={state.managers[state.youIdx]?.teamName ?? tr('Seu clube', 'Your club')}
-                  st={state.stadiums?.[youId]} seasonNo={state.seasonNo ?? 1}
-                  loja={state.careerLoja?.[youId]}
-                  masterNome={masterBrandAtual?.name}
-                  masterLogo={masterBrandAtual ? sponsorLogoEstampa(masterBrandAtual) : undefined}
-                  onPreco={preco => dispatch({ type: 'LOJA_PRECO', preco, mgrId: youId })} />
-              )}
-              {/* 🕴️ E O BICO POR ÚLTIMO, na mesma lógica: só enquanto não escolheu. */}
+              {/* 🪜 A VIRADA EM PASSOS PADRONIZADOS (Diego, 15/09): *"quero padronizado
+                  passo a passo igual já ocorre hoje quando abre patrocinador Master,
+                  depois patrocinador pontual, depois material esportivo, depois venda de
+                  camisas e depois o bico"*.
+                  ORDEM NOVA: 🏆 Master → 🤝 Pontual → 👟 Fornecedor → 🛍️ Camisas → 🕴️ Bico
+                  (antes o fornecedor vinha antes do Pontual).
+                  QUEM APARECE: toda temporada caem só o Pontual e a venda de camisas
+                  (são as duas apostas); Master e fornecedor voltam quando o contrato
+                  acaba; o bico volta quando a DIVISÃO muda — *"o bico, depois de
+                  escolhido, só troca se subir de divisão ou cair"*.
+                  O NÚMERO do passo é contado aqui, e só entre os que estão na tela:
+                  quem tem 2 decisões lê "passo 1 de 2". */}
               {(() => {
+                const sn = state.seasonNo ?? 1
+                const st = state.stadiums?.[youId]
+                const lj = state.careerLoja?.[youId]
                 const dv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
-                if (!agenciaOk || state.careerBico || !bicoElegivel(state.seasonNo ?? 1, dv)) return null
-                return <BicoVirada div={dv}
-                  onPick={brand => dispatch({ type: 'SET_BICO', brand })} />
+                const temLoja = lojaLib && hasExtra(st, 'loja')
+                // 🕴️ o bico volta à mesa quando nunca foi escolhido OU quando a divisão
+                // mudou desde a assinatura. Save antigo (sem `div`) conta como assinado
+                // na divisão de hoje — ninguém é incomodado à toa por causa da migração.
+                const bicoDiv = state.careerBico?.div ?? dv
+                const mostraBico = agenciaOk && bicoElegivel(sn, dv)
+                  && (!state.careerBico || bicoDiv !== dv)
+                const passos: string[] = []
+                if (!masterAtivo(state.careerMaster?.[youId], sn)) passos.push('master')
+                passos.push('pontual') // 🤝 é aposta: cai TODA temporada
+                if (temLoja && !fornAtivo(lj?.forn, sn)) passos.push('forn')
+                if (temLoja && lj?.precoSeason !== sn) passos.push('camisas')
+                if (mostraBico) passos.push('bico')
+                const de = passos.length
+                const p = (k: string) => { const i = passos.indexOf(k); return i < 0 ? undefined : { n: i + 1, de } }
+                return (
+                  <>
+                    {/* 🏆 1 — MASTER: sem contrato = os 4 papéis; com contrato = a faixa
+                        de leitura (que não é passo, é só informação). */}
+                    <MasterBanner cinematic={privateCareer} div={me.div} seasonNo={sn}
+                      contrato={state.careerMaster?.[youId]} passo={p('master')}
+                      onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })} />
+                    {/* 🤝 2 — PONTUAL. fielBrandId segue a MESMA regra que sponsorBetRewards
+                        usa pro mínimo: acertou a meta na temporada PASSADA com essa marca. */}
+                    <SponsorBetBanner cinematic={privateCareer} div={me.div} passo={p('pontual')}
+                      chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
+                      fielBrandId={sponsorResultFresh && sponsorResult!.hit ? sponsorResult!.brandId : undefined}
+                      onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
+                    {/* 👟 3 — FORNECEDOR, no mesmo escritório do Master. E SOME depois de
+                        fechado: *"depois não fica info na home mais, ali é só pra tomar as
+                        decisões"*. */}
+                    {temLoja && !fornAtivo(lj?.forn, sn) && (
+                      <FornBanner div={me.div} contrato={lj?.forn} passo={p('forn')}
+                        seasonNo={sn} temLoja cinematic={privateCareer}
+                        onPick={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })} />
+                    )}
+                    {/* 🛍️ 4 — A CAMISA. Aposta, então cai toda temporada; decidiu, some. */}
+                    {temLoja && lj?.precoSeason !== sn && (
+                      <PrecoVirada passo={p('camisas')}
+                        time={state.managers[state.youIdx]?.teamName ?? tr('Seu clube', 'Your club')}
+                        div={me.div} st={st} seasonNo={sn} loja={lj}
+                        masterNome={masterBrandAtual?.name}
+                        masterLogo={masterBrandAtual ? sponsorLogoEstampa(masterBrandAtual) : undefined}
+                        onPreco={preco => dispatch({ type: 'LOJA_PRECO', preco, mgrId: youId })} />
+                    )}
+                    {/* 🕴️ 5 — O BICO, com a carteira de trabalho. */}
+                    {mostraBico && (
+                      <BicoVirada div={dv} seasonNo={sn} passo={p('bico')}
+                        atual={state.careerBico?.brandId} esnobou={state.careerBico?.esnobou}
+                        onPick={brand => dispatch({ type: 'SET_BICO', brand })} />
+                    )}
+                  </>
+                )
               })()}
             </>
           )

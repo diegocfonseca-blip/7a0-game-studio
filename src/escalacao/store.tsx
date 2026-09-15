@@ -6257,7 +6257,11 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'SET_BICO': {
       if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return s
       if (action.brand === null) { s.careerBico = null; return s }
-      s.careerBico = { brandId: action.brand, since: s.seasonNo ?? 1 }
+      // 🕴️ grava a DIVISÃO da assinatura: é ela que faz a carteira voltar pra mesa
+      // quando o clube sobe ou cai (é aí que o cargo muda de degrau). Mantém o
+      // `esnobou` de quem já largou o bico uma vez e está voltando humilde.
+      const divBico = (s.careerPlacements?.[`m${s.managers[s.youIdx]?.id ?? s.youIdx}`] ?? s.careerDivision ?? 'V') as string
+      s.careerBico = { brandId: action.brand, since: s.seasonNo ?? 1, div: divBico, ...(s.careerBico?.esnobou ? { esnobou: true } : {}) }
       return s
     }
     case 'BICO_NEWS': {
