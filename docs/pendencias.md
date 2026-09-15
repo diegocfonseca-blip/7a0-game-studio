@@ -296,6 +296,40 @@ Diego fechou a regra: *"o bico, depois de escolhido, só troca se subir de divis
 cair"* — que é exatamente quando o cargo muda de degrau. O passo 5 volta a aparecer na
 virada sempre que a divisão mudar. Falta codar (esperando o OK do mockup).
 
+### 🔍 POR QUE O DIEGO NUNCA VÊ CERTAS CARTAS (medido em 15/09)
+Pergunta dele: *"por que eu nunca vejo o Garrincha do Bangu? Tem vários jogadores que eu
+nunca vejo, cara. Não entendo isso"*. (A carta é o 🃏 **GarrinSha do Bangu** — atacante,
+🎯 bom jogador, folk.)
+
+**NÃO É BUG.** O catálogo do setor é embaralhado a cada leilão (`shuffle` no `buildDeck`)
+e ainda tem rodízio (`RECENT_DECK` joga quem acabou de sair pro fim). O problema é a
+CONTA das cotas: a chance de uma carta específica aparecer é
+`vagas do balde dela ÷ cartas do balde dela` — e o balde do 🎯 bom jogador tem **a menor
+cota e o maior baralho ao mesmo tempo**.
+
+Medido no baralho BR, sala de 4 técnicos no rápido (uma carta específica, por leilão):
+
+| setor | 👑 lenda | ⭐ craque+💎 | 🪵 foi prof. | 🎯 bom jogador |
+|---|---|---|---|---|
+| GOL | 11,4% | 15,8% | 9,1% | **2,1%** |
+| LAT | 20,6% | 24,4% | 15,4% | **3,3%** |
+| ZAG | 24,0% | 19,0% | 18,6% | **3,2%** |
+| MEI | 18,9% | 7,8% | 14,0% | **2,5%** |
+| ATA | 10,9% | 8,4% | 7,9% | **2,1%** |
+
+👉 **Uma LENDA aparece 5 a 7× MAIS que um bom jogador.** O GarrinSha cai ~1 a cada 48
+leilões numa sala de 4; numa sala de 20 sobe pra ~1 a cada 10 (mais vagas na mesa).
+
+**A causa, em uma linha:** o rápido dá 16% pra lenda, 38% pra craque+promessa e 29% pro
+foi-profissional — sobram **~17% pro bom jogador, que é o maior baralho do jogo** (107
+atacantes, 87 meias). O Diego já tinha mexido nisso em 16/08 (tirou 5pt do craque e deu
+pro bom jogador); ainda está torto.
+
+⏳ **Nada mudado — é diagnóstico.** Se ele quiser mais variedade, os caminhos são: subir
+a cota do bom jogador (mexe no equilíbrio do leilão, que ele ajustou à mão), ou dar
+prioridade a quem nunca saiu (o `RECENT_DECK` já faz isso pra UMA leva; daria pra
+guardar mais fundo). Perguntar antes — régua de raridade é decisão dele.
+
 ### 👀 Os campinhos da sala no Monte Final — ✅ NO AR (15/09)
 Ideia dele: *"quando você tá no monte e tá escolhendo os times, não poderia aparecer o
 campinho de todos os times, igual quando acontece a simulação?"* — pra ver o time de cada
