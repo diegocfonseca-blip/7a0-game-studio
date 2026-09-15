@@ -403,9 +403,19 @@ Por isso hoje existe um **hedge legítimo**: apostar 👑 no patrocínio (prêmi
 imprimir camisa **popular** (renda segura). Juntar de vez apaga esse hedge e as
 9 combinações viram 3.
 
-`node scripts/mockup-plano-temporada.mjs [--saida x.png]` desenha as duas versões lado
-a lado (números REAIS: régua da Série C + `calculaVendas` com torcida 24.300, obras
-+10%, Pumba +30%):
+`node scripts/mockup-plano-temporada.mjs [--saida x.png]` (números REAIS: régua da
+Série C + `calculaVendas` com torcida 24.300, obras +10%, Pumba +30%).
+
+🔴 **O 1º desenho foi reprovado — e a lição vale pra todo mockup de proposta.**
+Palavras dele: *"não ficou claro que era patrocinador pontual e venda de camisas"*. Eu
+tinha batizado a tela nova de "O PLANO DA TEMPORADA" e deixado só as metas soltas —
+sumiu o nome das duas coisas que estavam sendo fundidas, e aí ninguém sabe qual metade
+é qual. **Proposta de fundir A com B tem que mostrar A e B pelo NOME, com o ícone, em
+toda caixa onde entram** — e começar pelo "como é HOJE" antes do "como ficaria".
+O desenho refeito: (1) faixa de cima com as 2 telas de hoje, cada uma com o cabeçalho
+preto do seu nome; (2) seta; (3) a tela única em 3 COLUNAS, uma por meta, cada coluna
+com 🤝 Pontual em cima e 🛍️ camisa embaixo; (4) a linha roxa que é a única diferença
+entre A e B; (5) a conta do bolso. As opções são:
 - **Opção A — grudado**: o objetivo escolhe patrocínio E preço. 1 toque. Custo: errar a
   aposta vira castigo dobrado (0 + 6 = **6 moedas** no exemplo, contra 14 hoje).
 - **Opção B — junto, mas dá pra separar** ⭐ recomendada: mesma tela única, o preço já
