@@ -212,12 +212,15 @@ export function LojaTab({
           <div style={{ ...OSW, fontWeight: 700, fontSize: 15, color: '#F0DFAE', textTransform: 'uppercase', marginTop: 8 }}>
             {tr('A loja ainda não abriu', 'The store is not open yet')}</div>
           <div style={{ ...OSW, fontWeight: 400, fontSize: 11, color: '#D8CEB4', opacity: .85, marginTop: 5, lineHeight: 1.45 }}>
-            {tr('Sua camisa existe, mas não tem onde vender.', 'Your shirt exists, but there is nowhere to sell it.')}</div>
+            {tr('Sua camisa existe, mas não tem onde vender.', 'Your shirt exists, but there is nowhere to sell it.')}<br />
+            {/* 🔒 a trava explica O QUE falta — os DOIS degraus, não só o último */}
+            {tr('Sem a loja não há venda de camisa nem fornecedor de material: marca de material patrocina quem vende.',
+              'With no store there are no shirt sales and no kit supplier: a kit brand sponsors clubs that sell.')}</div>
         </div>
       </div>
       <Cartao titulo={tr('🔨 Como abrir', '🔨 How to open it')}
-        pe={tr('A obra já existe no jogo (custo 80, rende +6 por temporada). Agora ela também abre esta aba.',
-          'The upgrade already exists in the game (costs 80, pays +6 per season). Now it also opens this tab.')}>
+        pe={tr('Primeiro 2 setores do estádio prontos, depois a obra da loja. Com ela de pé, a partir da próxima temporada entram as vendas e o fornecedor.',
+          'First 2 finished stands, then the store itself. With it up, from next season on the sales and the supplier kick in.')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 34, height: 34, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 9, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🛍️</div>
           <div style={{ flex: 1, minWidth: 0 }}>

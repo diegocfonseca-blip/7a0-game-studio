@@ -245,22 +245,30 @@ export function stadiumOccupancy(pos: number, st: StadiumSave | undefined): numb
 }
 // 🎟️ RENDA REAL da temporada pela ocupação: piso garantido + o CONSTRUÍDO × ocupação.
 // occ = 0..1. Só carreira nova usa isto; a antiga segue no stadiumIncome cheio.
-export function stadiumIncomeAt(st: StadiumSave | undefined, occ: number): number {
-  return STADIUM_BASE + Math.floor(stadiumBuiltIncome(st) * Math.max(0, Math.min(1, occ)))
+export function stadiumIncomeAt(st: StadiumSave | undefined, occ: number, semLoja = false): number {
+  return STADIUM_BASE + Math.floor(stadiumBuiltIncome(st, semLoja) * Math.max(0, Math.min(1, occ)))
 }
 // renda por TEMPORADA: BILHETERIA-BASE + setores proporcionais ao construído +
 // melhorias fixas. A base vale mesmo com o estádio zerado (st indefinido).
-export function stadiumIncome(st: StadiumSave | undefined): number {
+// 🛍️ 15/09: quem tem a LOJA DO CLUBE de verdade (a aba, em teste fechado) não
+// recebe mais o +6 fixo dela — palavras do Diego: *"diz ali que rende 6 moedas;
+// agora não renderá mais, porque na verdade renderá venda de camisas e terá
+// patrocínio de fornecedor de material esportivo"*. A obra deixa de ser um
+// numerozinho e passa a render pelo que ela é.
+// ⚠️ `semLoja` só é ligado pra quem TEM `careerLoja` no save, e a única porta que
+// cria isso é a aba travada por e-mail. Pra todo mundo mais, nada muda: o +6
+// continua caindo igual, e ninguém perde renda que já tinha.
+export function stadiumIncome(st: StadiumSave | undefined, semLoja = false): number {
   let r = STADIUM_BASE
   if (st) {
     for (const s of STADIUM_SECTORS) r += Math.floor(s.inc * sectorPct(st, s.k) / 100)
-    for (const e of STADIUM_EXTRAS) if (hasExtra(st, e.k)) r += e.inc
+    for (const e of STADIUM_EXTRAS) if (hasExtra(st, e.k) && !(semLoja && e.k === 'loja')) r += e.inc
   }
   return r
 }
 // só a parte CONSTRUÍDA (sem a base) — pra mostrar a conta separada na tela.
-export function stadiumBuiltIncome(st: StadiumSave | undefined): number {
-  return stadiumIncome(st) - STADIUM_BASE
+export function stadiumBuiltIncome(st: StadiumSave | undefined, semLoja = false): number {
+  return stadiumIncome(st, semLoja) - STADIUM_BASE
 }
 export function stadiumSeats(st: StadiumSave | undefined): { now: number; max: number } {
   let now = 0, max = 0

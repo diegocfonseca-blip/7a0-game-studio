@@ -27,6 +27,22 @@ cria essa chave é a sub-aba travada por e-mail. O teste prova: carreira sem
 a mais. As travas do fornecedor (divisão mínima, sem rescisão) estão no REDUCER,
 não só na tela.
 
+### ✂️ Dois ajustes que ele pediu vendo a tela (15/09, à noite)
+1. 🔒 **Sem a loja construída NÃO há fornecedor** — palavras dele: *"pra quem não
+   desbloqueou os dois setores e também não comprou a loja ainda, não poderá ter
+   patrocínio de fornecedor de material esportivo, e nem vender camisas, porque a loja
+   não está vendendo ainda"*. A venda já era travada; o fornecedor não era. Agora a
+   trava está no REDUCER (`LOJA_FORNECEDOR` exige `lojaConstruida`) e o pagamento do
+   contrato também dorme sem a loja. A porta fechada explica os DOIS degraus.
+2. 💰 **A obra da Loja não paga mais os +6 fixos** pra quem tem a aba: *"diz ali que
+   rende 6 moedas; agora não renderá mais, porque na verdade renderá venda de camisas e
+   terá patrocínio de fornecedor de material esportivo — pode trocar a info por isso"*.
+   `stadiumIncome(st, semLoja)` ganhou o parâmetro, ligado SÓ pra quem tem `careerLoja`;
+   e o texto da obra na Estrutura passou a dizer *"rende com a venda de camisas e o
+   fornecedor de material"* quando a trava está aberta.
+   ⚠️ Quem não é tester continua recebendo o +6 e lendo o texto de sempre — ninguém
+   perde renda que já tinha. O teste mede a diferença (40 × 34).
+
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
    mostraria pra todo mundo uma aba que só ele vê. Entra na MESMA entrega que

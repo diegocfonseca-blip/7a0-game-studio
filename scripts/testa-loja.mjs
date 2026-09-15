@@ -108,6 +108,30 @@ ok(s2.careerLoja[1].forn?.fornId === 'adibas', 'tentou trocar pela Pumba no meio
 let s3 = reducer({ ...base, careerLoja: { 1: {} } }, { type: 'LOJA_FORNECEDOR', fornId: 'naique', mgrId: 1 })
 ok(!s3.careerLoja[1].forn, 'Naique na Série C: RECUSADO pelo reducer (a trava não é só da tela)')
 
+// ── 9) SEM A LOJA NÃO HÁ FORNECEDOR (ordem do Diego, 15/09) ────────────────
+console.log('\n🔒 9) sem a loja construída não há fornecedor nem venda')
+const stSemLoja = { inv: { geral: 60 }, ext: [] } // 1 setor, sem a obra da loja
+const semObra = reducer({ ...base, stadiums: { 1: stSemLoja }, careerLoja: { 1: {} } },
+  { type: 'LOJA_FORNECEDOR', fornId: 'penalti', mgrId: 1 })
+ok(!semObra.careerLoja[1].forn, 'sem a obra da loja, assinar fornecedor é RECUSADO pelo reducer')
+const comObra = reducer({ ...base, stadiums: { 1: st }, careerLoja: { 1: {} } },
+  { type: 'LOJA_FORNECEDOR', fornId: 'penalti', mgrId: 1 })
+ok(!!comObra.careerLoja[1].forn, 'com a obra, assina normalmente')
+ok(calculaVendas({ st: stSemLoja, pos: 1, preco: 'normal' }).moedas > 0 === true, '(a conta pura ignora a obra — quem barra é o reducer/tela)')
+const fechouSemObra = reducer({ ...base, stadiums: { 1: stSemLoja }, careerLoja: { 1: { preco: 'normal' } } },
+  { type: 'CLOSE_SEASON_BOOKS', finalPos: { 1: 1 } })
+ok(linhasLoja(fechouSemObra).length === 0, 'e na virada sem a obra não entra NENHUMA moeda de loja')
+
+// ── 10) o +6 fixo da obra vira as vendas (só pra quem tem a Loja) ───────────
+console.log('\n💰 10) a obra da Loja não paga mais +6 fixo pra quem tem a aba')
+const caixa = (s2) => s2.careerCoins?.[1] ?? 0
+const semAba = reducer({ ...base, stadiums: { 1: st } }, { type: 'CLOSE_SEASON_BOOKS', finalPos: { 1: 10 } })
+const comAba = reducer({ ...base, stadiums: { 1: st }, careerLoja: { 1: { preco: 'normal' } } }, { type: 'CLOSE_SEASON_BOOKS', finalPos: { 1: 10 } })
+const est2 = est.stadiumIncome(st), est3 = est.stadiumIncome(st, true)
+ok(est2 - est3 === 6, `stadiumIncome com e sem a loja difere exatamente nos 6 da obra (${est2} × ${est3})`)
+ok(caixa(semAba) > 100, `quem NÃO tem a aba continua recebendo o estádio cheio (caixa ${caixa(semAba)})`)
+ok(caixa(comAba) > caixa(semAba), `quem tem a aba troca os 6 fixos pelas vendas e sai na frente (${caixa(comAba)} × ${caixa(semAba)})`)
+
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')
 await server.close()
 process.exit(falhas ? 1 : 0)

@@ -422,9 +422,10 @@ function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
   for (const id of ids) {
     const lj: import('./loja').LojaSave | undefined = s.careerLoja?.[id]; if (!lj) continue
     const st = s.stadiums?.[id]
-    // 👟 a parcela do fornecedor
+    // 👟 a parcela do fornecedor — só com a loja construída (é ela que dá o que
+    // patrocinar). Se o clube perdeu a loja por algum caminho, o contrato dorme.
     const fc = lj.forn
-    if (fornAtivo(fc, season)) {
+    if (fornAtivo(fc, season) && lojaConstruida(st)) {
       const v = fornValor(fc)
       if (v > 0) {
         s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + v }
@@ -529,7 +530,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   const s0 = snap()
   s.careerCoins = applyRewards(s.careerCoins, rewards)
   const s1 = snap()
-  s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums, s.managers, stadiumOcc, s.agenciaOn)
+  s.careerCoins = applyStadiumIncome(s.careerCoins, s.stadiums, s.managers, stadiumOcc, s.agenciaOn, s.careerLoja)
   const s2 = snap()
   chargeSalaries(s)
   const s3 = snap()
@@ -715,14 +716,18 @@ function recordDormantCards(s: EscState, champions?: Record<string, 'A' | 'B' | 
 // temporada). Inclui a BILHETERIA-BASE (stadiumIncome vale mesmo sem estádio), então
 // dá pra render pra quem nunca abriu a tela do estádio também. Bots não têm estádio
 // (usam clubCash), então só os humanos ganham aqui.
-function applyStadiumIncome(coins: Record<number, number> | undefined, stads: EscState['stadiums'], managers: Manager[], occ?: Record<number, number>, agencia?: boolean): Record<number, number> {
+function applyStadiumIncome(coins: Record<number, number> | undefined, stads: EscState['stadiums'], managers: Manager[], occ?: Record<number, number>, agencia?: boolean, comLoja?: Record<number, unknown>): Record<number, number> {
   const out = { ...(coins ?? {}) }
   for (const m of managers) {
     if (!m.isHuman) continue
     // 🎟️ carreira NOVA (agenciaOn): a renda é piso + construído × OCUPAÇÃO (quão cheio
     // ficou, pela colocação). Carreira antiga segue no valor cheio de sempre (grandfather).
     const o = occ?.[m.id]
-    const inc = (agencia && o != null) ? stadiumIncomeAt(stads?.[m.id], o) : stadiumIncome(stads?.[m.id])
+    // 🛍️ quem tem a Loja do Clube DE VERDADE (a aba) não recebe mais o +6 fixo da
+    // obra: ela passou a render pela venda de camisas e pelo fornecedor. Quem não
+    // tem `careerLoja` segue recebendo igual — ninguém perde renda que já tinha.
+    const semLoja = !!comLoja?.[m.id]
+    const inc = (agencia && o != null) ? stadiumIncomeAt(stads?.[m.id], o, semLoja) : stadiumIncome(stads?.[m.id], semLoja)
     if (inc > 0) out[m.id] = (out[m.id] ?? 0) + inc
   }
   return out
@@ -5397,6 +5402,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
       const season = s.seasonNo ?? 1
       if (fornAtivo(s.careerLoja?.[id]?.forn, season)) return s
+      // 🔒 SEM LOJA NÃO HÁ FORNECEDOR (ordem do Diego, 15/09): *"pra quem não
+      // desbloqueou os dois setores e também não comprou a loja ainda, não poderá ter
+      // patrocínio de fornecedor de material esportivo, e nem vender camisas, porque a
+      // loja não está vendendo ainda"*. Marca de material patrocina quem VENDE.
+      if (!lojaConstruida(s.stadiums?.[id])) return s
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
       if (!fornLiberado(f, div)) return s
       s.careerLoja = { ...(s.careerLoja ?? {}), [id]: { ...(s.careerLoja?.[id] ?? {}),

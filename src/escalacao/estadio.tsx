@@ -16,6 +16,7 @@ import type { ApoioPerk } from './apoio'
 import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
+import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (teste fechado)
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 
 const INK = '#0C0C0C'
@@ -766,14 +767,23 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>{tr('✨ Melhorias — pagam e destravam 🔓', '✨ Upgrades — they pay and unlock 🔓')}</p>
       {extras.map(e => {
         const done = hasExtra(st, e.k), unlocked = extraUnlocked(st, e.k), poor = coins < e.cost
+        // 🛍️ com a LOJA DO CLUBE de verdade ligada (teste fechado), a obra da loja
+        // deixa de prometer "+6/temp": ela passou a render pela VENDA DE CAMISAS e
+        // pelo patrocínio de material. Ordem do Diego (15/09): *"diz ali que rende 6
+        // moedas; agora não renderá mais… pode trocar a info por isso"*.
+        // Pra quem não é tester nada muda — o texto e o +6 seguem como sempre.
+        const lojaNova = e.k === 'loja' && lojaLiberada()
+        const rendeTxt = lojaNova
+          ? tr('rende com a venda de camisas e o fornecedor de material', 'earns from shirt sales and the kit supplier')
+          : null
         return (
           <div key={e.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11, opacity: done || unlocked ? 1 : .55, borderStyle: done || unlocked ? 'solid' : 'dashed', boxShadow: done || unlocked ? `4px 4px 0 0 ${INK}` : 'none' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{extraNome(e)}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
                 {/* 🏥 melhoria SEM renda (perk): mostra o benefício, nunca "+0/temp" */}
-                {done ? <b style={{ color: ACC }}>{extraPerk(e) ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}</b>
-                  : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{extraPerk(e) ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b></>
+                {done ? <b style={{ color: ACC }}>{rendeTxt ?? extraPerk(e) ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}</b>
+                  : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{rendeTxt ?? extraPerk(e) ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b></>
                   : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{extraReq(e)}</b>{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
               </div>
             </div>
