@@ -51,17 +51,22 @@ const camisa = ({ c1, c2, escudo, fornecedor, master, nome, larg = 230 }) => {
     <path d="${corpo}" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linejoin="round"/>
     <!-- escudo: peito esquerdo -->
     <g transform="translate(66,58)">
-      <path d="M0,0 H30 V17 Q30,31 15,38 Q0,31 0,17 Z" fill="${CREME}" stroke="${INK}" stroke-width="2.6"/>
-      <text x="15" y="25" text-anchor="middle" font-size="17">${escudo}</text>
+      ${escudo.startsWith('data:')
+        ? `<image href="${escudo}" x="-2" y="-2" width="34" height="42" preserveAspectRatio="xMidYMid meet"/>`
+        : `<path d="M0,0 H30 V17 Q30,31 15,38 Q0,31 0,17 Z" fill="${CREME}" stroke="${INK}" stroke-width="2.6"/>
+           <text x="15" y="25" text-anchor="middle" font-size="17">${escudo}</text>`}
     </g>
     <!-- fornecedor: peito direito -->
     <text x="134" y="74" text-anchor="middle" font-family="Oswald" font-weight="700" font-size="12"
           fill="${CREME}" stroke="${INK}" stroke-width="2.6" paint-order="stroke" letter-spacing="0.4">${fornecedor}</text>
     <!-- MASTER: centro, abaixo do peito -->
-    <g transform="translate(100,124)">
-      <rect x="-52" y="-13" width="104" height="26" rx="7" fill="${CREME}" stroke="${INK}" stroke-width="2.8"/>
-      <text x="0" y="5" text-anchor="middle" font-family="Oswald" font-weight="700" font-size="12" fill="${INK}">${master}</text>
-    </g>
+    ${(() => {
+      const fs = master.length > 17 ? 9.5 : master.length > 13 ? 11 : 12
+      const larguraPatch = Math.min(150, Math.max(90, master.length * fs * 0.62 + 16))
+      return `<g transform="translate(100,124)">
+      <rect x="${-larguraPatch / 2}" y="-13" width="${larguraPatch}" height="26" rx="7" fill="${CREME}" stroke="${INK}" stroke-width="2.8"/>
+      <text x="0" y="4.5" text-anchor="middle" font-family="Oswald" font-weight="700" font-size="${fs}" fill="${INK}">${master}</text>
+    </g>` })()}
     <!-- nome do clube na barra -->
     <text x="100" y="199" text-anchor="middle" font-family="Oswald" font-weight="700" font-size="11"
           fill="${CREME}" stroke="${INK}" stroke-width="2.4" paint-order="stroke" letter-spacing="0.8">${nome.toUpperCase()}</text>
@@ -81,7 +86,7 @@ const cartao = (titulo, corpo, rodape) => `
     ${rodape ? `<div style="${OSW};font-weight:400;font-size:10px;opacity:.65;margin-top:6px;line-height:1.4">${rodape}</div>` : ''}
   </div>`
 
-const tela = ({ titulo, sub, shirt, artOficial, forn, master, vendeu }) => `
+const tela = ({ titulo, sub, shirt, artOficial, forn, master, vendeu, extra }) => `
   <div style="width:392px;flex:none;background:${CREME};border:3px solid ${INK};border-radius:16px;box-shadow:4px 4px 0 ${INK};padding:12px;color:${INK}">
     <div style="${OSW};font-weight:700;font-size:16px;text-transform:uppercase">🛍️ Loja do Clube</div>
     <div style="${OSW};font-weight:400;font-size:11px;opacity:.7;margin-bottom:8px">${titulo} · ${sub}</div>
@@ -89,10 +94,11 @@ const tela = ({ titulo, sub, shirt, artOficial, forn, master, vendeu }) => `
     <div style="display:flex;gap:10px;align-items:flex-start;justify-content:center;background:#fff;border:3px solid ${INK};border-radius:14px;box-shadow:3px 3px 0 ${INK};padding:12px 8px;margin-bottom:9px">
       ${shirt}
       ${artOficial ? `<div style="text-align:center">
-        <img src="${artOficial}" height="150" style="object-fit:contain">
+        <img src="${artOficial}" height="215" style="object-fit:contain">
         <div style="${OSW};font-weight:600;font-size:9px;opacity:.6;margin-top:3px;text-transform:uppercase">arte oficial<br>do batismo</div></div>` : ''}
     </div>
 
+    ${extra ?? ''}
     ${cartao('💰 Preço da camisa', `<div style="display:flex;gap:5px">
         ${pill('Popular', '1 🪙 cada', false)}${pill('Normal', '2 🪙 cada', true)}${pill('Cara', '3 🪙 cada', false)}</div>`,
       'Camisa barata vende pra torcida toda e rende pouco por peça. Cara rende mais e vende menos.')}
@@ -116,25 +122,36 @@ const tela = ({ titulo, sub, shirt, artOficial, forn, master, vendeu }) => `
 
 const b64img = f => `data:image/webp;base64,${readFileSync(`public/mantos-salao/${f}`).toString('base64')}`
 
+const escudoIM = `data:image/webp;base64,${readFileSync('src/escalacao/img/internacional-madrid-escudo.webp').toString('base64')}`
+const artIM = `data:image/webp;base64,${readFileSync('/tmp/claude-0/-home-user-7a0-game-studio/eff68882-b963-5eee-b2bb-3ea2ad04e5b9/scratchpad/intermadrid-camisa.webp').toString('base64')}`
+
+const bolinha = (cor, on) => `<span style="display:inline-block;width:26px;height:26px;border-radius:50%;background:${cor};border:${on ? `3px solid ${INK}` : '2px solid rgba(0,0,0,.25)'};box-shadow:${on ? `2px 2px 0 ${INK}` : 'none'};margin-right:5px"></span>`
+
 const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;width:860px}</style>
   <div style="${OSW};font-weight:700;font-size:20px;text-transform:uppercase;color:${INK};margin-bottom:2px">Loja do Clube · proposta</div>
-  <div style="${OSW};font-weight:400;font-size:12px;color:${INK};opacity:.75;margin-bottom:12px">A camisa é montada pelo jogo, em CSS, sem arquivo novo: escudo no peito esquerdo, fornecedor no peito direito, Master abaixo do peito.</div>
+  <div style="${OSW};font-weight:400;font-size:12px;color:${INK};opacity:.75;margin-bottom:12px">A camisa é montada pelo jogo, no molde das artes de batismo. Escudo no peito esquerdo, fornecedor no peito direito, Master abaixo do peito.</div>
   <div style="display:flex;gap:14px;align-items:flex-start">
     ${tela({
-      titulo: 'Clube de BATISMO', sub: 'Leão da Estradinha',
-      shirt: camisa({ c1: '#0B7A3B', c2: '#F3F1EC', escudo: '🦁', fornecedor: 'NAIQUE', master: 'VADICO VEÍCULOS', nome: 'Leão da Estradinha' }),
-      artOficial: b64img('leao-estradinha-camisa.webp'),
+      titulo: 'COM batismo', sub: 'Internacional de Madrid',
+      shirt: camisa({ c1: '#A90605', c2: '#FCF6F1', escudo: escudoIM, fornecedor: 'NAIQUE', master: 'VADICO VEÍCULOS', nome: 'Internacional de Madrid' }),
+      artOficial: artIM,
       forn: { nome: 'Naique Sports', emoji: '👟', cor: GREEN, linha: 'contrato de 3 temporadas · 5 🪙 por ano<br>+30% nas vendas da loja', pe: 'Marca grande só te procura na Série B pra cima.' },
       master: '🚗 Vadico Veículos <span style="font-weight:400;font-size:10px;opacity:.7">· ano 2 de 5</span>',
-      vendeu: { n: 28, m: 56, conta: '22 de base na Série C × estádio cheio × Naique (+30%)' },
+      vendeu: { n: 44, m: 88, conta: '34 de base na Série B × estádio cheio × Naique (+30%)' },
+      extra: cartao('👕 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">👑 Arte oficial do batismo</div>`,
+        'Clube batizado usa a arte que o dono mandou. As 2 cores do manto saem dela — aqui, o vermelho e o branco medidos na camisa dele.'),
     })}
     ${tela({
-      titulo: 'Clube SEM batismo', sub: 'apoio grátis · Várzea',
-      shirt: camisa({ c1: '#B2A583', c2: '#EFE9D6', escudo: '⚽', fornecedor: 'RAINHA', master: 'PADARIA DO ZÉ', nome: 'Meu Timão FC' }),
+      titulo: 'SEM batismo', sub: 'clube de qualquer jogador',
+      shirt: camisa({ c1: '#1C57C8', c2: '#F2F0E9', escudo: '🦅', fornecedor: 'ADIBAS', master: 'ESPETINHO DO BAIXINHO', nome: 'Gaviões do Zé FC' }),
       artOficial: null,
-      forn: { nome: 'Rainha da Várzea', emoji: '👑', cor: '#8A1E1E', linha: 'contrato de 1 temporada · 1 🪙 por ano<br>+10% nas vendas da loja', pe: 'É com quem todo mundo começa. Subiu de série, marca melhor bate na porta.' },
-      master: '🥖 Padaria do Zé <span style="font-weight:400;font-size:10px;opacity:.7">· ano 1 de 1</span>',
-      vendeu: { n: 9, m: 9, conta: '8 de base na Várzea × estádio meio cheio × Rainha (+10%)' },
+      forn: { nome: 'Adibas', emoji: '🔺', cor: '#0E3E86', linha: 'contrato de 2 temporadas · 3 🪙 por ano<br>+20% nas vendas da loja', pe: 'Subiu de série, marca melhor bate na porta.' },
+      master: '🍗 Espetinho do Baixinho <span style="font-weight:400;font-size:10px;opacity:.7">· ano 1 de 2</span>',
+      vendeu: { n: 15, m: 30, conta: '22 de base na Série C × estádio 55% × Adibas (+20%)' },
+      extra: cartao('🎨 Cores do seu manto', `<div style="display:flex;align-items:center;flex-wrap:wrap">
+          ${bolinha('#1C57C8', true)}${bolinha('#F2F0E9', true)}${bolinha('#0C7A3D', false)}${bolinha('#FFC400', false)}${bolinha('#C2452F', false)}${bolinha('#0C0C0C', false)}
+          <span style="${OSW};font-weight:700;font-size:11px;margin-left:4px">escolher</span></div>`,
+        'Quem não é batismo ESCOLHE as 2 cores, de graça. A camisa é a mesma, o escudo é o mesmo, o que muda é só a arte desenhada à mão do batismo.'),
     })}
   </div>`
 

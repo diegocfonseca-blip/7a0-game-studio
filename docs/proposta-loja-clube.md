@@ -56,11 +56,16 @@ ombros e caimento. É esse molde que está no mockup agora.
 - **centro, abaixo do peito**: patrocínio Master;
 - **barra**: nome do clube; **corpo**: as 2 cores do manto.
 
-Quem é **batismo** vê, ao lado, a **arte oficial** dele (o `.webp` que já existe).
-Quem **não é** vê a camisa nas cores do próprio tier de apoio (bege no gratuito).
-⚠️ Ponto a confirmar com o Diego: ele escreveu *"camisa simples tier foi
-profissional"*. Entendi como **as cores do tier de apoio**. Se ele quis dizer
-outra coisa, muda só a origem das 2 cores, o molde é o mesmo.
+Quem é **batismo** vê, ao lado, a **arte oficial** dele (o `.webp` que já existe)
+e as 2 cores saem dessa arte (as mesmas do `MANTO_CONTAS`).
+
+🎨 **Quem NÃO é batismo ESCOLHE as 2 cores, de graça.** Essa é a resposta que eu dou
+pro medo que ele levantou em 15/09, de o jogador sem batismo achar o próprio clube
+feio e desanimar: a camisa é a MESMA, o molde é o mesmo, o escudo é o mesmo, os
+patrocínios são os mesmos. A única coisa que o batismo tem a mais é a **arte
+desenhada à mão**. Ninguém abre a loja e vê tela pobre.
+(Hoje a carreira da pirâmide não guarda cor de clube nenhuma — só a dinastia tem
+`crest` com 2 cores. Então isso é campo novo no save, pequeno: 2 cores.)
 
 ### 3.2 Fornecedor de material esportivo (slot NOVO de patrocínio)
 
