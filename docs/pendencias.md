@@ -1,3 +1,55 @@
+## 15/09/2026 — 🏋️ PREPARADOR FÍSICO — ✅ NO AR (fecha a nota de 14/09)
+
+As quatro decisões que faltavam, direto dele:
+1. **Sem preparador nada trava** — *"o usuário troca na mão selecionando jogador e
+   trocando igual substituição normal"*. O que ele compra é o BOTÃO.
+2. **"zero"** — ninguém ganha preparador de brinde, nem quem usa o rodízio hoje.
+3. **Pintus no 💎 promessa** (ele corrigiu meu "proposta" por "promessa").
+4. **O 🤖 automático é SÓ do 👑 Lenda** — ideia dele: *"podemos pôr apenas pro que pagar
+   o preparador lenda, o que acha? melhor né"*. Eu avisei que hoje o automático é de
+   graça pra todo mundo e que quem usa vai PERDER; ele seguiu assim mesmo.
+
+### ⚠️ A volta do gatilho (vale guardar pra não refazer o zigue-zague)
+Ele pediu *"automático ele troca qd bate no 49%"*, eu implementei, e aí ele perguntou o
+raciocínio. Mostrei a tabela: do 51º ao 54º a barra JÁ ficava amarela e o preparador não
+fazia nada — quatro jogos de alerta aceso com o jogo de braços cruzados (efeito colateral
+do amarelo que ele mesmo pediu em 13/09). Ofereci os dois consertos e avisei que atrasar a
+cor desfaz o pedido de 13/09. Ele escolheu: ***"podemos fazer isso no 55"***.
+👉 **Hoje: no 55º jogo e só nele — a barra vira amarela, o emoji vira 😓, o motor começa a
+descontar e o preparador troca.** Um ponto só, três sinais. O comentário de `corBarra` em
+`condicao.ts` registra que isso SUBSTITUI 13/09 e por quê — sem isso alguém "conserta" de
+volta daqui a duas semanas.
+A pergunta dele que gerou tudo, e que vale pra qualquer tela nova: *"temos que imaginar o
+que as pessoas estão pensando quando olham o que está havendo"*.
+
+### Os quatro (preço · salário · banco devolve · joga seguidas e senta 1)
+🟢 Rui Faria 100 · 10 · +6 · 4 — 💎 Antonio Pintus 300 · 30 · +9 · 6 —
+⭐ Paulo Paixão 600 · 60 · +12 · 8 — 👑 Paco Seirulo 1000 · 100 · +20 · 14 (+ automático).
+Salário = 10% do preço e contrato de 5 temporadas: as MESMAS regras do técnico, sem
+inventar regra nova. Nomes de gente real → só nome + UMA linha factual de carreira.
+
+### Onde mexeu
+`preparadores.ts` (novo, o catálogo) · `condicao.ts` (`pedeRodizio`/`prontoPraEntrar`,
+`corBarra` e o `banco` do `gasDoElenco`) · `types.ts` (`careerPreparador` +
+`careerPreparadorContrato`) · `store.tsx` (BUY/RENOVAR/DISPENSAR + salário na folha +
+`guardaCansaco`) · `pyramidseason.tsx` (o Departamento Técnico, a lojinha e os botões
+gateados) · `novidades.ts`.
+
+⚠️ **O cuidado que valia:** o gás é DERIVADO do histórico, então a TELA e o
+`guardaCansaco` da virada têm que usar o MESMO número de banco. Se discordassem, a
+barrinha mentiria pro jogador. Os dois leem `preparadorDe(...)?.banco`.
+
+### Travas
+`scripts/testa-preparador.mjs` — 45+ casos: o preço nunca vem de fora (a action leva só a
+CHAVE), sem moeda não compra, não compra dois, só renova vencido, automático só do Lenda,
+teto de 100, jogar custa o mesmo com ou sem preparador, save antigo não quebra.
+`testa-condicao.mjs` atualizado (a cor mudou) e passando.
+
+### Reverter
+Um commit. O campo do save é OPCIONAL — sem ele o jogo se comporta como antes, só sem o
+botão. Nenhum save precisa de migração.
+
+---
 ## 15/09/2026 — 🛍️ LOJA DO CLUBE no ar, TRAVADA na conta do Diego
 
 Ele aprovou: *"pode aprovar tudo que fizemos, só pro e-mail do usuário
@@ -275,7 +327,7 @@ entre por `simulaAte` — nunca escrevendo a lista de novo.
 
 Reverter: um commit só. Ninguém precisa mexer no save.
 
-## 14/09/2026 — 🏋️ PREPARADOR FÍSICO + 🏛️ DEPARTAMENTO TÉCNICO — desenhado, NÃO codado
+## 14-15/09/2026 — 🏋️ PREPARADOR FÍSICO + 🏛️ DEPARTAMENTO TÉCNICO — ✅ no ar (ver nota de 15/09 no topo)
 
 ⛔ **NADA DISSO ESTÁ NO JOGO.** O que subiu pra main é só o gerador do mockup, o do vídeo,
 o da stories e as fotos de backup. Nenhuma linha em `src/`. Esperando 3 respostas do Diego

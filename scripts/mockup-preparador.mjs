@@ -25,17 +25,18 @@ const caixaHoje = (variante) => `
 <div class="prep">
   <p class="pt"><span>🧑‍⚕️ Preparador físico</span><b class="q">?</b></p>
   <p class="pl">🥵 <b style="color:${RED}">Lúcio</b> &nbsp; 😓 <b style="color:#B8860B">Sócrates, Romário</b></p>
-  ${variante === 'livre' ? `
+  ${variante === 'livre' || variante === 'lenda' ? `
   <div class="pbs">
     <button class="rod">🔁 RODIZIAR<span>Mozer no lugar de Lúcio · Raí no lugar de Sócrates</span></button>
-    <button class="auto">🤖 AUTOMÁTICO<span>desligado</span></button>
+    ${variante === 'lenda' ? '<button class="auto">🤖 AUTOMÁTICO<span>desligado</span></button>' : ''}
   </div>` : ''}
   ${variante === 'travado' ? `
   <div class="trava">
     <b>🔒 Você não tem preparador físico</b>
-    <span>Sem ele o rodízio é na mão: toque no cansado e no reserva pra trocar.
-    Pra ter o botão 🔁 RODIZIAR (e o automático), contrate um preparador no
-    <b>Departamento Técnico</b>, logo abaixo do campinho.</span>
+    <span>Dá pra rodiziar <b>na mão</b> do mesmo jeito: toque no cansado e depois no
+    reserva — substituição normal. Pra ter o botão 🔁 RODIZIAR, contrate um preparador
+    no <b>Departamento Técnico</b>, logo abaixo do campinho.</span>
+    <button class="ctaMini">🏋️ VER O DEPARTAMENTO TÉCNICO</button>
   </div>` : ''}
 </div>`
 
@@ -62,8 +63,8 @@ const ficha = ({ emoji, papel, nome, sub, valor, grad, contrato, vencido }) => `
 
 const vaga = `<div class="vaga">
   <b>🏋️ Preparador físico — vaga aberta</b>
-  <span>Ele é quem libera o botão <b>🔁 RODIZIAR</b> e o rodízio automático, e faz o
-  jogador <b>recuperar mais gás</b> em cada rodada no banco.</span>
+  <span>Ele libera o botão <b>🔁 RODIZIAR</b> e faz cada rodada no banco devolver
+  <b>mais gás</b>. Sem ele nada trava — você só troca na mão.</span>
   <button class="cta">CONTRATAR PREPARADOR</button>
 </div>`
 
@@ -74,7 +75,7 @@ const depto = (conteudo) => `
 </div>`
 
 const TEC = { emoji: '🧢', papel: 'TÉCNICO', nome: 'Telê Santana', sub: '⭐ Craque · 4-3-3 · 4-4-2 · 3-5-2', valor: 120, grad: G_PRATA, contrato: 'faltam 3 temporadas' }
-const PREP = { emoji: '🏋️', papel: 'PREPARADOR FÍSICO', nome: 'Rui Faria', sub: '🟢 Bom · o titular joga 4 seguidas e senta 1', valor: 100, grad: G_VERDE, contrato: 'faltam 5 temporadas' }
+const PREP = { emoji: '🏋️', papel: 'PREPARADOR FÍSICO', nome: 'Rui Faria', sub: '🟢 Bom · joga 4 seguidas e senta 1 · sem automático', valor: 100, grad: G_VERDE, contrato: 'faltam 5 temporadas' }
 
 // ── a lojinha do preparador (o que abre no CONTRATAR) ───────────────────────
 // ⚖️ o banco hoje devolve +4 e cada jogo gasta 1,4 → "joga 2, senta 1" é o ritmo
@@ -93,7 +94,8 @@ const cardLoja = (p) => `<div class="lj" style="background:${p.grad}">
     <span class="ljn">${p.nome} <i>${p.pais}</i></span>
     <span class="ljb">${p.bio}</span>
     <span class="ljr">o titular joga <b>${seguidas(p.banco)} seguidas</b> e senta 1 — e nunca cansa
-      <i>tanque vazio enche em ${encher(p.banco)} rodadas no banco (hoje: 25)</i></span>
+      <i>tanque vazio enche em ${encher(p.banco)} rodadas no banco (hoje: 25)</i>
+      ${p.cat === 'LENDA' ? '<i class="au">🤖 e troca sozinho: o automático é só dele</i>' : ''}</span>
     <button class="ljbt">${p.preco} 🪙 <span>salário ${p.preco / 10}/temporada · contrato de 5</span></button>
   </div>
 </div>`
@@ -150,6 +152,7 @@ const html = `<!doctype html><meta charset="utf-8">
  .vaga{margin:9px 10px 10px;border:3px dashed ${INK};border-radius:12px;background:#FBF6E8;padding:10px 11px}
  .vaga>b{display:block;font-family:Oswald;font-size:13px}
  .vaga>span{display:block;font-size:10.5px;font-weight:700;color:#5a5647;line-height:1.45;margin:3px 0 8px}
+ .ctaMini{width:100%;margin-top:7px;border:2.5px solid #0C0C0C;border-radius:9px;background:#FFC400;font-family:Oswald;font-weight:900;font-size:12px;padding:7px;box-shadow:2px 2px 0 #0C0C0C}
  .cta{width:100%;border:3px solid ${INK};border-radius:10px;background:${GOLD};font-family:Oswald;font-weight:900;font-size:14px;padding:8px;box-shadow:3px 3px 0 ${INK}}
 
  /* folha */
@@ -170,6 +173,7 @@ const html = `<!doctype html><meta charset="utf-8">
  .ljn i{font-style:normal;font-size:15px}
  .ljb{display:block;font-size:11.5px;font-weight:700;color:#4a4636;line-height:1.45;margin:6px 0 9px;min-height:64px}
  .ljr{display:block;font-size:12px;font-weight:800;color:${INK};background:#F1F7F2;border-left:4px solid ${GREEN};border-radius:6px;padding:7px 9px;line-height:1.4;min-height:62px}
+ .ljr i.au{color:#1B7A3D;font-weight:900}
  .ljr i{display:block;font-style:normal;font-weight:700;color:#5a5647;font-size:10.5px;margin-top:3px}
  .ljbt{width:100%;margin-top:10px;border:3px solid ${INK};border-radius:11px;background:${INK};color:#fff;font-family:Oswald;font-weight:900;font-size:18px;padding:9px;box-shadow:3px 3px 0 rgba(0,0,0,.35)}
  .ljbt span{display:block;font-family:system-ui;font-weight:700;font-size:9.5px;opacity:.75;margin-top:2px}
@@ -180,9 +184,9 @@ const html = `<!doctype html><meta charset="utf-8">
 <p class="sub">O técnico e o preparador saem do meio dos jogadores e ganham a <b>área deles</b>, na mesma aba Elenco, logo abaixo do campinho. E o botão <b>🔁 RODIZIAR</b> passa a ser coisa de quem <b>contratou</b> um preparador — sem ele, o rodízio continua existindo, só que na mão.</p>
 
 <div class="grid">
-  ${painel('1 · Como é hoje', GOLD, caixaHoje('livre') + campo + `<div class="dep"><div class="fic"><div class="fav" style="background:${G_PRATA}">🧢</div><div class="fin"><span class="fpa">SEU TÉCNICO</span><span class="fno">Telê Santana</span><span class="fsu">⭐ Craque · 4-3-3 · 4-4-2 · 3-5-2</span><span class="fnu">💰 120 · 💸 salário <b>12</b>/temporada · 📝 faltam 3 temporadas</span></div></div></div>` + `<div class="folha"><span class="fl"><b>FOLHA DO TIME</b><i>cobrada no fim da temporada · + o técnico</i></span><u>186</u></div>`)}
+  ${painel('1 · Como é hoje (de graça)', GOLD, caixaHoje('lenda') + campo + `<div class="dep"><div class="fic"><div class="fav" style="background:${G_PRATA}">🧢</div><div class="fin"><span class="fpa">SEU TÉCNICO</span><span class="fno">Telê Santana</span><span class="fsu">⭐ Craque · 4-3-3 · 4-4-2 · 3-5-2</span><span class="fnu">💰 120 · 💸 salário <b>12</b>/temporada · 📝 faltam 3 temporadas</span></div></div></div>` + `<div class="folha"><span class="fl"><b>FOLHA DO TIME</b><i>cobrada no fim da temporada · + o técnico</i></span><u>186</u></div>`)}
   ${painel('2 · Como fica — sem preparador', '#E8E2CE', caixaHoje('travado') + campo + depto(ficha(TEC) + vaga) + `<div class="folha"><span class="fl"><b>FOLHA DO TIME</b><i>cobrada no fim da temporada · + a comissão</i></span><u>186</u></div>`)}
-  ${painel('3 · Como fica — com preparador', GREEN + ';color:#fff', caixaHoje('livre') + campo + depto(ficha(TEC) + ficha(PREP)) + `<div class="folha"><span class="fl"><b>FOLHA DO TIME</b><i>cobrada no fim da temporada · + a comissão</i></span><u>196</u></div>`)}
+  ${painel('3 · Com o 🟢 Rui Faria — só o botão', GREEN + ';color:#fff', caixaHoje('livre') + campo + depto(ficha(TEC) + ficha(PREP)) + `<div class="folha"><span class="fl"><b>FOLHA DO TIME</b><i>cobrada no fim da temporada · + a comissão</i></span><u>196</u></div>`)}
 </div>
 
 <div class="lojawrap">
@@ -194,8 +198,10 @@ const html = `<!doctype html><meta charset="utf-8">
   <b>As regras, em uma linha cada.</b><br>
   · <b>Salário igual ao do técnico</b>: 10% do preço, por temporada (100 → 10 · 300 → 30 · 600 → 60 · 1000 → 100), e entra na <b>Folha do Time</b>.<br>
   · <b>Contrato de 5 temporadas</b>, igual ao técnico. Venceu, aparece <b>RENOVAR</b> pelo mesmo preço, ou você deixa ir sem multa.<br>
-  · <b>Sem preparador nada trava</b>: você continua trocando na mão, tocando no cansado e no reserva. O que ele dá é o <b>botão</b> e o <b>automático</b>.<br>
-  · <b>Quem já jogava não perde nada</b>: quem abrir o save sem preparador vê o aviso com o caminho, nunca um botão que sumiu sem explicação.
+  · <b>Sem preparador nada trava</b>: você continua trocando na mão, tocando no cansado e no reserva. O que ele dá é o <b>botão</b>.<br>
+  · <b>O 🤖 automático é só do 👑 Lenda</b> — 🟢 💎 ⭐ dão o botão, o 👑 cuida do time sozinho.<br>
+  · <b>Ele troca no 😓</b> — e a barra passa a ficar amarela exatamente aí. Cor, emoji e ação no mesmo ponto: o alerta nunca acende com o preparador parado.<br>
+  · <b>Todo mundo começa do zero</b>: ninguém ganha preparador de brinde, nem quem usa o rodízio hoje.
 </div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
