@@ -85,7 +85,7 @@ console.log('\n🛡️ 7) carreira SEM careerLoja não é tocada (teste fechado)
 const carta = (id, pos) => ({ id, name: pos, club: 'X', year: 2000, pos, fame: 2, lo: 60, hi: 70, paid: 1, buyPrice: 1 })
 const base = {
   ...INITIAL, screen: 'season', careerOnline: true, onlineMode: 'solo', seasonNo: 5, youIdx: 0,
-  managers: [{ ...INITIAL.managers[0], id: 1, isHuman: true, teamName: 'Sem Loja FC', squad: [carta('a', 'GOL')] }],
+  managers: [{ ...INITIAL.managers[0], id: 1, isHuman: true, teamName: 'Sem Loja FC', formation: '4-4-2', squad: [carta('a', 'GOL')] }],
   careerCoins: { 1: 100 }, careerLedgers: {}, careerLedger: [],
   stadiums: { 1: st }, careerPlacements: { m1: 'C' }, booksSeason: 4,
 }
@@ -139,6 +139,58 @@ ok(mst('C', 5) < mst('B', 3), `Master: o melhor da Série C (${mst('C', 5)}) fic
 ok(fornPorTemporada('C', 5) < fornPorTemporada('B', 3), `Fornecedor: idem (${fornPorTemporada('C', 5)} < ${fornPorTemporada('B', 3)})`)
 for (const [a, b] of [['V','D'],['D','C'],['C','B'],['B','A']])
   ok(mst(a, 1) < mst(b, 1) && fornPorTemporada(a, 1) < fornPorTemporada(b, 1), `${a} paga menos que ${b} no contrato de 1 temporada`)
+
+// ── 12) 💰 QUANDO CADA UM PAGA (Diego 15/09) — e a migração dos saves antigos ──
+// Esta é a parte que mexe em dinheiro de quem JÁ ESTÁ JOGANDO, então é a que mais
+// precisa de prova. A regra: Master · fornecedor · bico caem ao COMEÇAR a temporada;
+// Pontual e venda de camisas ficam no fim. E o save que já tinha começado a temporada
+// quando a regra chegou recebe no FIM daquela (ordem dele), sem receber duas vezes.
+console.log('\n💰 12) contratos fixos pagam no COMEÇO; aposta continua no fim')
+const stB = { inv: { geral: 100, cadeiras: 100, visitante: 100, camarote: 100 }, ext: ['loja'] }
+const comContratos = {
+  ...base, seasonNo: 5, round: 0, stadiums: { 1: stB },
+  careerMaster: { 1: { brandId: 'vadico', anos: 5, div: 'C', desde: 3 } },
+  careerLoja: { 1: { preco: 'normal', forn: { fornId: 'pumba', anos: 3, div: 'C', desde: 4, porTemporada: fornPorTemporada('C', 3) } } },
+  careerBico: { brandId: 'vadico', since: 3 },
+  careerSponsorBet: { 1: { season: 5, tier: 1, brandId: 'padaria' } },
+}
+const rotulos = (s2) => (s2.careerLedger ?? []).concat(Object.values(s2.careerLedgers ?? {}).flat()).map(l => l?.label ?? '')
+const tem = (s2, re) => rotulos(s2).some(l => re.test(l))
+
+// a) apertou COMEÇAR → os três já entram
+const comecou = reducer({ ...comContratos }, { type: 'PLAY_ROUND' })
+ok(comecou.careerCoins[1] > 100, `ao começar a temporada o caixa sobe na hora (100 → ${comecou.careerCoins[1]})`)
+ok(tem(comecou, /Master/), 'extrato do começo tem a linha do 🏆 Master')
+ok(tem(comecou, /Material/), 'extrato do começo tem a linha do 👟 fornecedor')
+ok(tem(comecou, /Bico/), 'extrato do começo tem a linha do 🕴️ bico')
+ok(!tem(comecou, /Loja ·/), 'a 🛍️ venda de camisas NÃO entra no começo (é aposta)')
+const esperado = 100 + est.masterPorTemporada('C', 5) + fornPorTemporada('C', 3) + 10
+ok(comecou.careerCoins[1] === esperado, `valor certo: Master + fornecedor + bico (${comecou.careerCoins[1]} = ${esperado})`)
+
+// b) começar de novo não paga de novo
+const deNovo = reducer({ ...comecou, round: 0 }, { type: 'PLAY_ROUND' })
+ok(deNovo.careerCoins[1] === comecou.careerCoins[1], 'apertar COMEÇAR duas vezes não paga duas vezes')
+
+// c) o fechamento da temporada que já pagou no começo NÃO repete
+const fechouDepois = reducer({ ...comecou, booksSeason: 4 }, { type: 'CLOSE_SEASON_BOOKS', finalPos: { 1: 10 } })
+const soVendas = fechouDepois.careerCoins[1] - comecou.careerCoins[1]
+const master2x = rotulos(fechouDepois).filter(l => /Master/.test(l)).length
+ok(master2x === 1, `o 🏆 Master aparece UMA vez no extrato da temporada (achou ${master2x})`)
+ok(soVendas > 0, `no fim entram as outras receitas, incluindo as vendas (+${soVendas})`)
+
+// d) 🛡️ SAVE ANTIGO (já estava no meio da temporada): o FIM paga os três
+const antigo = reducer({ ...comContratos, round: 12, booksSeason: 4 }, { type: 'CLOSE_SEASON_BOOKS', finalPos: { 1: 10 } })
+ok(tem(antigo, /Master/) && tem(antigo, /Material/) && tem(antigo, /Bico/),
+  'save que já tinha começado a temporada recebe os três no FIM dela (ninguém perde parcela)')
+ok(antigo.pagoAdiantado?.[1]?.master === 5, 'e fica marcado como pago, pra não repetir')
+
+// e) e na temporada SEGUINTE ele volta a receber no começo
+const proxima = reducer({ ...antigo, seasonNo: 6, round: 0, careerSponsorBet: { 1: { season: 6, tier: 1, brandId: 'padaria' } } }, { type: 'PLAY_ROUND' })
+ok(proxima.careerCoins[1] > antigo.careerCoins[1], 'na temporada seguinte os contratos fixos caem no COMEÇO, como combinado')
+
+// f) quem não tem nada disso não é tocado
+const semNada = reducer({ ...base, round: 0, careerSponsorBet: { 1: { season: 5, tier: 1, brandId: 'padaria' } } }, { type: 'PLAY_ROUND' })
+ok(semNada.careerCoins[1] === 100, 'carreira sem Master/fornecedor/bico não ganha moeda nenhuma ao começar')
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')
 await server.close()

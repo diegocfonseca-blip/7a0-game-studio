@@ -682,6 +682,15 @@ export interface EscState {
   // se cair de volta, volta humilde — e ganhando o teto (10), porque já foi gerente.
   /** 🕴️ marca da zeragem única do bico (15/09) — ver zeraBicoUmaVez em store.tsx */
   bicoZeradoV2?: boolean
+  /** 💰 QUAL TEMPORADA JÁ FOI PAGA em cada contrato FIXO, por técnico (15/09).
+   *  Master, fornecedor de material e bico passaram a cair no caixa ao APERTAR
+   *  "Começar a temporada" (ordem do Diego: *"já deve entrar na hora que ele aperta
+   *  pra iniciar a temporada, já de cara"*) — mas o fechamento continua tentando
+   *  pagar o que ficou pra trás. Esta marca é o que impede pagar duas vezes e, ao
+   *  mesmo tempo, garante que ninguém perca uma parcela na virada do deploy: save
+   *  que JÁ tinha começado a temporada não recebeu no início, então recebe no fim;
+   *  da temporada seguinte em diante, recebe no início. */
+  pagoAdiantado?: Record<number, { master?: number; forn?: number; bico?: number }>
   careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; since: number; esnobou?: boolean } | null
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"

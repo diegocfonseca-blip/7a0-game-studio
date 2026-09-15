@@ -389,53 +389,104 @@ function applyTVIncome(s: EscState) {
 // divisão em que assinou) — a divisão de hoje não entra na conta, de propósito.
 // Roda antes dos snapshots de applySeasonMoney, então ganha linha própria no extrato
 // e não se mistura com o Pontual (que é lançado pela variação de caixa).
-function applyMasterIncome(s: EscState) {
-  const season = s.seasonNo ?? 1
+// ── 💰 OS TRÊS CONTRATOS FIXOS PAGAM NO COMEÇO (Diego, 15/09) ──────────────
+// Palavras dele: *"os valores do bico já devem entrar na hora que ele aperta pra
+// iniciar a temporada, já de cara. O Master também. O fornecedor de material esportivo
+// também. Somente o Pontual e a venda de camisas devem aguardar, porque como são aposta
+// o Pontual tem que esperar o que acontece"*.
+//
+// 🛡️ COMO NINGUÉM PERDE NEM GANHA DUAS VEZES: cada perna marca em `pagoAdiantado` a
+// TEMPORADA que já pagou. `aplicaContratosFixos` roda nos DOIS lugares — ao apertar
+// "Começar a temporada" e no fechamento — e a marca resolve o resto:
+//   · save que começou a temporada DEPOIS da mudança → paga no início; no fechamento
+//     a marca já está lá e não repete;
+//   · save que já estava NO MEIO da temporada no dia do deploy → não teve início pra
+//     pagar, então o fechamento paga (é a regra que o Diego pediu pros saves antigos:
+//     *"se ele já iniciou, ele ganha no final; e na próxima ele ganha no início"*).
+// Sem isso, a mudança comeria uma parcela de quem estava jogando.
+type PernaFixa = 'master' | 'forn' | 'bico'
+function jaPagou(s: EscState, id: number, perna: PernaFixa): boolean {
+  return s.pagoAdiantado?.[id]?.[perna] === (s.seasonNo ?? 1)
+}
+function marcaPago(s: EscState, id: number, perna: PernaFixa) {
+  const mapa = s.pagoAdiantado ?? {}
+  s.pagoAdiantado = { ...mapa, [id]: { ...(mapa[id] ?? {}), [perna]: s.seasonNo ?? 1 } }
+}
+/** os técnicos que recebem: online = todos os humanos; solo = você (+ o clube dormindo) */
+function idsQueRecebem(s: EscState): number[] {
   const online = s.onlineMode === 'online'
   const y = s.managers[s.youIdx]?.id ?? s.youIdx
   const dorm = (!online && s.multiClube && s.multiClube.id !== y) ? s.multiClube.id : null
-  const ids = online ? s.managers.filter(m => m.isHuman).map(h => h.id) : (dorm != null ? [y, dorm] : [y])
-  for (const id of ids) {
+  return online ? s.managers.filter(m => m.isHuman).map(h => h.id) : (dorm != null ? [y, dorm] : [y])
+}
+// 🏆 PATROCINADOR MASTER: paga a parcela da temporada pra cada técnico humano com
+// contrato cobrindo ela. O valor é o CONGELADO no contrato (da divisão em que assinou)
+// — a divisão de hoje não entra na conta, de propósito.
+function applyMasterIncome(s: EscState) {
+  const season = s.seasonNo ?? 1
+  for (const id of idsQueRecebem(s)) {
+    if (jaPagou(s, id, 'master')) continue
     const c = s.careerMaster?.[id]
     if (!masterAtivo(c, season)) continue
     const valor = masterValor(c) // refeito pela régua de hoje, na divisão congelada
     if (valor <= 0) continue
     s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + valor }
+    marcaPago(s, id, 'master')
     logFin(s, 'sponsor', `🏆 Master · ${sponsorBrandOf(c.brandId)?.name ?? c.brandId} (${season - c.desde + 1}/${c.anos})`, valor, undefined, id, true)
   }
 }
-// 🛍️ LOJA DO CLUBE: fecha a temporada da loja pra cada técnico humano. Duas linhas
-// no extrato, porque são duas coisas diferentes:
-//   · 👟 o FORNECEDOR paga a parcela do contrato (valor congelado na divisão em que
-//     assinou — igual ao Master, subir ou cair não muda);
-//   · 🛍️ as VENDAS de camisa da temporada que acabou, pela colocação FINAL.
-// E guarda o BALANÇO, que é o que a tela mostra na abertura da temporada nova
-// (ordem do Diego: o resultado das vendas só aparece no início da nova).
-//
-// 🔒 TRAVA DE SEGURANÇA: só mexe em quem JÁ TEM `careerLoja` no save. Como a única
-// porta pra criar essa entrada é a sub-aba, que está fechada por e-mail
-// (`LOJA_TESTERS` em sport.ts), nenhuma carreira de outro jogador é tocada — nem
-// ganha moeda, nem ganha linha no extrato, nem sente qualquer diferença.
+// 👟 FORNECEDOR DE MATERIAL: a parcela do contrato, com a mesma trava do Master (valor
+// congelado na divisão em que assinou). Só paga com a 🛍️ Loja construída — é ela que dá
+// o que patrocinar; se o clube perdeu a loja por algum caminho, o contrato dorme.
+function applyFornIncome(s: EscState) {
+  if (!s.careerLoja) return
+  const season = s.seasonNo ?? 1
+  for (const id of idsQueRecebem(s)) {
+    if (jaPagou(s, id, 'forn')) continue
+    const fc = s.careerLoja?.[id]?.forn
+    if (!fornAtivo(fc, season) || !lojaConstruida(s.stadiums?.[id])) continue
+    const v = fornValor(fc)
+    if (v <= 0) continue
+    s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + v }
+    marcaPago(s, id, 'forn')
+    logFin(s, 'sponsor', `👟 Material · ${fornecedorDe(fc.fornId)?.nome ?? fc.fornId} (${season - fc.desde + 1}/${fc.anos})`, v, undefined, id, true)
+  }
+}
+// 🕴️ BICO DE FOLGA: renda de quem ainda está na janela do bico (T3+ e Várzea/D/C).
+// A escolha fica guardada mesmo fora da janela — não paga, mas não esquece a empresa.
+// (Antes isto vivia dentro da cadeia de snapshots do fechamento; ganhou linha própria
+// justamente pra poder ser pago no começo da temporada.)
+function applyBicoIncome(s: EscState) {
+  if (!s.careerBico) return
+  const y = s.managers[s.youIdx]?.id ?? s.youIdx
+  if (jaPagou(s, y, 'bico')) return
+  const divAtual = (s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'V') as string
+  if (!bicoElegivel(s.seasonNo ?? 1, divAtual)) return
+  const valor = bicoValor(divAtual, s.careerBico.esnobou)
+  if (valor <= 0) return
+  s.careerCoins = { ...(s.careerCoins ?? {}), [y]: (s.careerCoins?.[y] ?? 0) + valor }
+  marcaPago(s, y, 'bico')
+  logFin(s, 'bico', `🕴️ Bico de Folga · ${bicoMarcaDe(s.careerBico.brandId)?.nome ?? s.careerBico.brandId}`, valor, undefined, y, true)
+}
+/** os três contratos fixos de uma vez — chamado ao COMEÇAR a temporada e, como
+ *  rede de segurança, no fechamento (paga só o que ainda não foi pago). */
+function aplicaContratosFixos(s: EscState) {
+  applyMasterIncome(s)
+  applyFornIncome(s)
+  applyBicoIncome(s)
+}
+// 🛍️ VENDA DE CAMISAS: fecha a temporada da loja pra cada técnico humano, pela
+// colocação FINAL. Fica no FECHAMENTO de propósito — é aposta, e aposta precisa saber
+// como o ano terminou (o 👟 fornecedor, que é contrato fixo, saiu daqui pra
+// `applyFornIncome` e paga no começo). E guarda o BALANÇO, que é o que a tela mostra na
+// abertura da temporada nova (ordem do Diego: o resultado das vendas só aparece lá).
 function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
   if (!s.careerLoja) return
   const season = s.seasonNo ?? 1
-  const online = s.onlineMode === 'online'
-  const y = s.managers[s.youIdx]?.id ?? s.youIdx
-  const dorm = (!online && s.multiClube && s.multiClube.id !== y) ? s.multiClube.id : null
-  const ids = online ? s.managers.filter(m => m.isHuman).map(h => h.id) : (dorm != null ? [y, dorm] : [y])
-  for (const id of ids) {
+  for (const id of idsQueRecebem(s)) {
     const lj: import('./loja').LojaSave | undefined = s.careerLoja?.[id]; if (!lj) continue
     const st = s.stadiums?.[id]
-    // 👟 a parcela do fornecedor — só com a loja construída (é ela que dá o que
-    // patrocinar). Se o clube perdeu a loja por algum caminho, o contrato dorme.
     const fc = lj.forn
-    if (fornAtivo(fc, season) && lojaConstruida(st)) {
-      const v = fornValor(fc)
-      if (v > 0) {
-        s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + v }
-        logFin(s, 'sponsor', `👟 Material · ${fornecedorDe(fc.fornId)?.nome ?? fc.fornId} (${season - fc.desde + 1}/${fc.anos})`, v, undefined, id, true)
-      }
-    }
     // 🛍️ as vendas — só se a loja existir (a obra do estádio) e a colocação for conhecida
     const pos = finalPos?.[id]
     if (!lojaConstruida(st) || !pos) continue
@@ -509,8 +560,12 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   if (s.booksSeason === (s.seasonNo ?? 1)) return
   s.booksSeason = s.seasonNo ?? 1
   applyTVIncome(s) // 📺 cota de TV por divisão (antes dos snapshots — linha própria no extrato)
-  applyMasterIncome(s) // 🏆 Patrocinador Master (contrato de várias temporadas — linha própria no extrato)
-  applyLojaIncome(s, finalPos) // 🛍️ Loja do Clube: fornecedor + vendas de camisa (só pra quem tem careerLoja — teste fechado)
+  // 🛟 REDE DE SEGURANÇA dos contratos fixos (Master · fornecedor · bico): eles pagam
+  // ao COMEÇAR a temporada, mas quem já tinha começado o ano quando essa regra chegou
+  // não teve esse momento. Aqui eles pagam o que ficou pra trás — e a marca
+  // `pagoAdiantado` garante que quem já recebeu no início não receba de novo.
+  aplicaContratosFixos(s)
+  applyLojaIncome(s, finalPos) // 🛍️ venda de camisas (aposta: só aqui dá pra saber a colocação)
   const online = s.onlineMode === 'online'
   const humans = s.managers.filter(m => m.isHuman)
   // snapshot da caixa de cada humano — pra registrar o extrato pela VARIAÇÃO REAL
@@ -599,18 +654,11 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
     s.agenciaFatura = { season: (s.seasonNo ?? 1) + 1, mensal: renda.total, rows: evs, total: renda.total + com }
     s.agenciaEventos = undefined
     const s5 = snap()
-    // 🕴️ BICO DE FOLGA: só rende com T3+ e clube na Várzea/D — a escolha fica
-    // guardada mesmo fora da janela (não paga, mas não esquece o patrocinador).
-    if (s.careerBico) {
-      const divAtual = (s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'V') as string
-      if (bicoElegivel(s.seasonNo ?? 1, divAtual)) {
-        const valor = bicoValor(divAtual, s.careerBico.esnobou)
-        s.careerCoins = { ...(s.careerCoins ?? {}), [y]: (s.careerCoins?.[y] ?? 0) + valor }
-      }
-    }
-    const s6 = snap()
-    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro/campeão)'], ['bico', '🕴️ Bico de Folga']]
-    const steps = [s0, s1, s2, s3, s4, s45, s5, s6]
+    // 🕴️ O BICO SAIU DAQUI (15/09): virou `applyBicoIncome`, com linha própria no
+    // extrato, porque agora ele paga ao COMEÇAR a temporada. No fechamento ele só
+    // aparece pra quem ficou pra trás, e por isso não é mais uma linha do resumo.
+    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro/campeão)']]
+    const steps = [s0, s1, s2, s3, s4, s45, s5]
     const ids = dorm != null ? [y, dorm] : [y]
     for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
     return
@@ -6438,6 +6486,12 @@ export function reducer(state: EscState, action: Action): EscState {
           }
           s.careerLineup = cl
         }
+        // 💰 COMEÇOU A TEMPORADA = os contratos FIXOS caem no caixa agora (Diego,
+        // 15/09: *"já deve entrar na hora que ele aperta pra iniciar a temporada, já
+        // de cara"*). Master, fornecedor de material e bico — só eles, porque são
+        // dinheiro garantido; o Pontual e a venda de camisas são aposta e esperam o
+        // fim. `pagoAdiantado` impede repetir se PLAY_ROUND vier duas vezes.
+        if (s.round === 0) aplicaContratosFixos(s)
         s.round = nextRound
         // o fim de temporada é tratado na própria tela da pirâmide (não vai pro
         // EscEnd, que usa a liga viva). A rodada capada em 38 encerra a sim.
