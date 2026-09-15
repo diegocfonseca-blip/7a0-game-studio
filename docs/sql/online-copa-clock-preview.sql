@@ -1,3 +1,11 @@
+-- ⚠️ ESTE ARQUIVO É O NASCIMENTO DA FEATURE, NÃO O RETRATO DO QUE ESTÁ NO AR.
+-- Conferido em 15/09 lendo `pg_proc.prosrc` do banco: a função viva JÁ NÃO tem a
+-- lista de dois e-mails de teste na primeira linha — ela virou só "precisa estar
+-- logado" quando o visual online foi liberado pra todo mundo. A trava de que SÓ O
+-- DONO DA SALA comanda o relógio continua igual. Antes de mexer nessa função de
+-- novo, LEIA O prosrc do banco e edite em cima dele (foi o que fizemos no +1s do
+-- auto) — reaplicar este arquivo inteiro fecharia a Copa da sala pra todo mundo
+-- que não é o Diego.
 -- Somente as duas contas de teste; não altera game_state nem esc_copa_salas.
 create table public.esc_copa_clock_preview (
  room_id uuid not null references public.game_rooms(id) on delete cascade,
@@ -49,7 +57,8 @@ begin
   elsif p_command='skip' and r.running then r.running:=false;
   elsif p_command='next' and not r.running and r.step<12 then
    target:=r.step+1; r.step:=target; r.running:=target between 1 and 5 or target between 7 and 11;
-   r.started_at:=stamp; r.duration_ms:=round(14000/r.speed); r.extra_ms:=700+greatest(0,least(60000,p_extra));
+   -- ⏱️ +1s no AUTO (Diego 15/09). No manual quem manda no ritmo é o botão do dono.
+   r.started_at:=stamp; r.duration_ms:=round((case when r.manual then 14000 else 15000 end)/r.speed); r.extra_ms:=700+greatest(0,least(60000,p_extra));
   elsif p_command='manual' then r.manual:=true;
   elsif p_command='auto' then r.manual:=false;
   elsif p_command='speed' and p_speed in (0.25,0.5,1,2,4) and not r.running then r.speed:=p_speed;
