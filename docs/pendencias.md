@@ -7,6 +7,11 @@ batismo usa o molde do jogo na cor do tier 🪵 Foi Profissional.
 - Plano escrito: `docs/proposta-loja-clube.md` (economia medida, régua de venda, quando
   cada coisa aparece, travas e todas as correções dele, palavra por palavra).
 - Mockup: `node scripts/mockup-loja-clube.mjs` → dois painéis, COM e SEM batismo.
+- 🧭 **Onde mora**: `node scripts/mockup-loja-aba.mjs` — sub-aba nova **🏟️ Clube › 🛍️ Loja**,
+  a 4ª pílula ao lado de Estrutura/Finanças/Patrocínio (conferido em `pyramidseason.tsx`).
+  A porta abre com a obra 🛍️ Loja do Clube, que já existe em `STADIUM_EXTRAS`; quem não
+  construiu vê a trava explicando o porquê e o caminho. O `StadiumSvg` não muda.
+- Peças compartilhadas dos dois mockups: `scripts/loja-pecas.mjs`.
 - Molde e peças do mockup em `scripts/kits/` (MOLDE-camisa-branca, camisa-tier-foiprof,
   patro-vadico-alfa) — são do POST, não entram no bundle do jogo.
 - Pintor de camisa: `python3 scripts/tinge-camisa.py foiprof` (rampa de cor por tier).

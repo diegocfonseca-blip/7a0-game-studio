@@ -261,6 +261,38 @@ em branco. O caminho que funciona é o mesmo de sempre: o Diego abre, escolhe e 
 o arquivo**. Quando chegar, é UM `.webp` no lugar do fundo da vitrine e a camisa
 continua entrando por cima exatamente do mesmo jeito (nada de conta muda).
 
+### 3.1c 🧭 ONDE ISSO MORA: sub-aba 🏟️ Clube › 🛍️ Loja (Diego, 15/09)
+
+Pergunta dele: *"gostei dessa forma… mas onde entra a arte da camisa, da loja e etc?
+Fica em alguma aba?? Ou o quê?"*. Conferido na navegação **de verdade**
+(`pyramidseason.tsx`), sem chutar:
+
+- **abas da carreira**: 🗓️ Jogos · 📊 Tabelas · 👥 Elenco · 🏆 Rank · 🏟️ Clube
+- **sub-abas dentro de 🏟️ Clube** (hoje, 3 pílulas): 🏗️ Estrutura · 💰 Finanças ·
+  🤝 Patrocínio (+ 🏛️ Presidência, só na carreira privada)
+
+👉 **A Loja entra como a 4ª pílula: `🏟️ Clube › 🛍️ Loja`.** Tudo dela mora ali:
+a camisa na vitrine · o preço do ano · o fornecedor · o balanço da última temporada.
+
+**Por que sub-aba própria, e não dentro do Patrocínio:** o Patrocínio já está cheio
+(Master + Pontual + TV + a régua de valores), e a Loja tem três coisas pra mostrar. E
+porque a camisa é a vitrine do orgulho — merece porta própria. Continua cabendo na
+tela do celular: 4 pílulas, como já foi 4 antes da Agência sair de lá.
+
+🏟️ **O desenho do estádio segue intocado.** A regra permanente ("o `StadiumSvg` é a
+PRIMEIRA coisa ao abrir a área do clube") vale pra sub-aba 🏗️ Estrutura, que não muda
+em nada — a Loja é uma porta ao lado, não algo empilhado antes do estádio.
+
+🔒 **A porta abre com a obra que JÁ EXISTE.** A 🛍️ Loja do Clube é uma melhoria de
+`STADIUM_EXTRAS` desde sempre (custo 80, exige 2 setores prontos, rende +6 por
+temporada). Quem construiu encontra a loja aberta; quem não construiu vê a porta
+fechada dizendo **o porquê e o caminho** ("sua camisa existe, mas não tem onde vender"
++ botão **Ir pra 🏗️ Estrutura**) — regra permanente do Diego sobre travas. E o +6 de
+hoje continua valendo: ninguém perde o que já pagou.
+
+Mockup: `node scripts/mockup-loja-aba.mjs` → `mockup-loja-aba.png` (as duas telas:
+loja aberta e loja trancada).
+
 ### 3.2 Fornecedor de material esportivo — MESMA MECÂNICA DO MASTER (Diego, 15/09)
 
 Palavras dele: *"o fornecedor de material esportivo deve ser parecido com o estilo do
