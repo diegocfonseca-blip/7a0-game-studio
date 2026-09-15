@@ -330,46 +330,29 @@ a cota do bom jogador (mexe no equilíbrio do leilão, que ele ajustou à mão),
 prioridade a quem nunca saiu (o `RECENT_DECK` já faz isso pra UMA leva; daria pra
 guardar mais fundo). Perguntar antes — régua de raridade é decisão dele.
 
-### 👀 Os campinhos da sala no Monte Final — ✅ NO AR (15/09)
-Ideia dele: *"quando você tá no monte e tá escolhendo os times, não poderia aparecer o
-campinho de todos os times, igual quando acontece a simulação?"* — pra ver o time de cada
-um e sacar quem largou o jogo, e tirar pelo ⚙️ gerenciar.
+### 🕳️ Os BURACOS no ⚙️ gerenciar técnicos — ✅ NO AR (15/09)
+Cada linha do ⚙️ gerenciar técnicos (só o host, partida online) mostra `−N 🕳️`, que é
+quantas vagas o time daquele técnico ainda tem vazias — `✅` com o time cheio. Pedido
+dele: *"gostei de apertar em gerenciar e mostrar a quantidade de buracos, com −5, algo
+assim"* e *"em tempo real também: se o cara pegou um jogador, aí vai diminuindo"*.
 
-🚫 **E ele CORTOU a parte de marcar quem saiu**: *"não precisa colocar quem saiu, deixa
-quieto como está hoje. O cara que é o host, ele decide se tira"*. Eu tinha proposto um
-🟢/🔴 com a presença real (`state.presenceUids`, que o jogo já usa pro "seu parceiro
-caiu") — ele não quis. **Regra a respeitar:** o jogo não carimba ninguém de ausente; ele
-mostra o time e a decisão de remover é de gente. Não repropor.
+⏱️ **Cai em tempo real de graça**, porque o reducer clona o estado inteiro a cada ação
+(`JSON.parse(JSON.stringify(state))`) e o `Shell` reconta `totalHoles(m)` a cada
+redesenho — inclusive quando a jogada do amigo chega pelo `SYNC_STATE`.
+🧪 **PROVADO** em `scripts/testa-monte.mjs` (11 checks): o elenco do amigo cresce, o
+buraco dele cai de −10 pra −9 na mesma jogada, o de quem não pegou não mexe, e o estado
+anterior não é mutado. ⚠️ Se alguém trocar aquele clone por mutação no lugar, o contador
+CONGELA e o teste 2 cai — é esse o alarme.
 
-✅ **O que ficou:**
-1. **Os campinhos da sala no Monte** (`EscMonte` em `screens.tsx`): o SEU primeiro, os
-   outros embaixo. É **literalmente o mesmo bloco** que a simulação já roda desde 09/08 —
-   mesma regra (`online && !careerOnline`, ou seja rápido + Minhas Ligas), mesmo `small`,
-   mesmo manto da sala (RPC `esc_mantos_sala`).
-2. **Os buracos no ⚙️ gerenciar técnicos** (`Shell`): cada linha mostra `−N 🕳️` em
-   vermelho (ou ✅ com o time cheio). Pedido dele: *"gostei de apertar em gerenciar e
-   mostrar a quantidade de buracos, com −5, algo assim"*.
+🚫 **E os campinhos de TODA A SALA no Monte foram REVERTIDOS.** Ele pediu, eu fiz, ele
+viu e voltou atrás no mesmo dia: *"mantenha como era antes, sem o campinho de todos.
+Deixe como era antes, cada um vendo o seu nessa área do Monte"*. O Monte voltou a
+mostrar só `<YourPitch />`. **Não repropor sem ele pedir** — a nota está no próprio
+`EscMonte`. (O que sobreviveu daquela conversa foi o contador de buracos acima.)
 
-✅ **E O CAMPINHO DOS AMIGOS ATUALIZA NA HORA** — pergunta dele: *"quando os amigos
-usuários vão escolhendo, também já vai atualizando o campinho na hora pra a tela do
-usuário que está assistindo?"*. **Sim**, e está PROVADO em `scripts/testa-monte.mjs`
-(11 checks): quando outro técnico pega no Monte, o elenco dele cresce, `state.managers`
-vira referência NOVA (o reducer clona o estado inteiro — `JSON.parse(JSON.stringify)`),
-o `useMemo` invalida e a lista redesenha; e o mesmo vale pelo caminho do `SYNC_STATE`,
-que é por onde o convidado recebe a jogada do host.
-⚠️ **Se alguém um dia trocar esse clone por mutação no lugar, os campinhos CONGELAM** —
-o teste 2 é o alarme disso. Rodar `node scripts/testa-monte.mjs` ao mexer aqui.
-
-⚠️ **O CUIDADO QUE NÃO PODE SUMIR DAQUI:** `EscMonte` se redesenha **4× por segundo**
-enquanto o relógio da vez corre (`setInterval(…, 250)`). A lista de campinhos está num
-`useMemo` de propósito — sem ele, os até **20 campinhos × 11 rostos** seriam redesenhados
-a cada tique, na única tela do jogo com cronômetro. **Mexeu ali? Mantenha o memo.**
-
-📏 Medidas que valem guardar: o tempo da vez é **15 s** (`MONTE_MS = 15_000`; o "13s" que
-ele viu na live era o relógio já correndo) e a sala vai a **20 técnicos**
-(`MAX_PLAYERS`, 40 em duplas).
-
-`node scripts/mockup-monte-campinhos.mjs` desenha as duas telas.
+📏 Medidas da investigação que valem guardar: o tempo da vez do Monte é **15 s**
+(`MONTE_MS = 15_000`; o "13s" que ele viu na live era o relógio já correndo) e a sala vai
+a **20 técnicos** (`MAX_PLAYERS`, 40 em duplas).
 
 ### 🎬 Reels da Loja + fornecedor
 `node scripts/video-loja-reels.mjs [--saida x.mp4] [--no-ar]` — 1080×1920, ~31 s, a

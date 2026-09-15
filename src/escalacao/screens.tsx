@@ -4642,46 +4642,12 @@ export function EscMonte() {
   }, [online, state.monteDeadline])
   const remaining = online && state.monteDeadline ? Math.max(0, Math.ceil((state.monteDeadline - now) / 1000)) : null
 
-  // 🎽 mantos da SALA — mesma fonte que a simulação usa (o servidor devolve só
-  // assento → cores; e-mail nunca viaja). Falhou? O campinho fica sem manto.
-  const [mantosMonte, setMantosMonte] = useState<Record<number, [string, string]>>({})
-  useEffect(() => {
-    if (!online || !state.roomId) { setMantosMonte({}); return }
-    let alive = true
-    supabase.rpc('esc_mantos_sala', { p_room: state.roomId }).then(({ data }) => {
-      if (!alive || !Array.isArray(data)) return
-      const mm: Record<number, [string, string]> = {}
-      for (const r of data as { player_index: number; manto_c1: string; manto_c2: string }[]) mm[r.player_index] = [r.manto_c1, r.manto_c2]
-      setMantosMonte(mm)
-    }, () => {})
-    return () => { alive = false }
-  }, [online, state.roomId])
-
-  // 🏟️ OS CAMPINHOS DE TODA A SALA (pedido do Diego, 15/09): *"você colocaria os
-  // campos com o elenco de quem a pessoa escolheu, igual já funciona na simulação"*.
-  // É LITERALMENTE o mesmo bloco que a simulação já roda desde 09/08 — mesma regra
-  // (só online rápido/Minhas Ligas, fora a carreira online), mesmo `small`, mesmo
-  // manto da sala. Sem spoiler: quem é de quem já é público aqui (a ordem da
-  // serpente é pelos buracos, e a revelação já passou).
-  //
-  // ⚠️ `useMemo` NÃO é enfeite: esta tela se redesenha 4× POR SEGUNDO enquanto o
-  // relógio da vez corre (o `setNow` de 250 ms aí em cima). Sem congelar a lista,
-  // os até 20 campinhos — 11 rostos cada — seriam redesenhados junto, e logo na
-  // tela que tem cronômetro. Com o memo eles só mudam quando o elenco muda.
-  const campinhosDaSala = useMemo(() => {
-    if (!online || state.careerOnline) return null
-    const outros = state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0)
-    if (!outros.length) return null
-    return (
-      <div className="space-y-2">
-        <p className="text-[11px] font-black text-black/45" style={OSWALD}>{tr('🏟️ OS TIMES DA SALA', '🏟️ THE TEAMS IN THE ROOM')}</p>
-        {outros.map(mm => (
-          <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`}
-            manto={mm.isHuman ? mantosMonte[mm.id] ?? null : null} />
-        ))}
-      </div>
-    )
-  }, [online, state.careerOnline, state.managers, you.id, mantosMonte])
+  // 🚫 O MONTE VOLTOU A MOSTRAR SÓ O SEU CAMPINHO (Diego, 15/09). Cheguei a pôr os
+  // campinhos da sala inteira aqui — ele pediu, viu, e voltou atrás: *"mantenha como era
+  // antes, sem o campinho de todos. Deixe como era antes, cada um vendo o seu nessa área
+  // do Monte"*. O que ele quis MESMO dessa conversa foi a outra metade: ver os BURACOS de
+  // cada técnico no ⚙️ gerenciar (isso ficou, no `Shell`, e atualiza em tempo real).
+  // Não repropor os campinhos aqui sem ele pedir.
 
   return (
     <Shell bar={<AuctionBar />}>
@@ -4813,7 +4779,6 @@ export function EscMonte() {
         )
       })()}
       <YourPitch />
-      {campinhosDaSala}
       <FloatingEmotes />
     </Shell>
   )
