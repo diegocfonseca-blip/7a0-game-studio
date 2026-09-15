@@ -290,10 +290,11 @@ save): o bico virou escada de carreira com história, então todo mundo escolhe 
 na próxima virada. A marca no save garante que isso aconteça UMA vez — sem ela, todo
 save que abrisse perderia o bico pra sempre.
 
-⚠️ **Fica em aberto**: depois de escolher, hoje **não há onde trocar de bico** (a aba é
-leitura e o bloco da virada some). Antes tinha o botão "Trocar de bico" na aba. Se ele
-quiser a troca de volta, o lugar natural é o bloco da virada aparecer também quando a
-DIVISÃO muda (que é quando o cargo muda de degrau).
+✅ **RESOLVIDO no desenho dos 5 passos (15/09)**: ficava em aberto que, depois de
+escolher, não havia onde trocar de bico (a aba é leitura e o bloco da virada some). O
+Diego fechou a regra: *"o bico, depois de escolhido, só troca se subir de divisão ou
+cair"* — que é exatamente quando o cargo muda de degrau. O passo 5 volta a aparecer na
+virada sempre que a divisão mudar. Falta codar (esperando o OK do mockup).
 
 ### 🎬 Reels da Loja + fornecedor
 `node scripts/video-loja-reels.mjs [--saida x.mp4] [--no-ar]` — 1080×1920, ~31 s, a
@@ -387,7 +388,47 @@ camisa sai — e o preço quem escolhe é você.
 ⚽ leilaolegends.com
 ```
 
-### 🎲 EM ABERTO — juntar o Pontual e o preço da camisa numa decisão só
+### 🪜 A VIRADA EM 5 PASSOS PADRONIZADOS — mockup feito, esperando OK
+Pedido dele (15/09): *"quero padronizado passo a passo igual já ocorre hoje quando abre
+patrocinador Master, depois patrocinador pontual, depois material esportivo, depois
+venda de camisas e depois o bico!"*, com *"visuais parecidos com o que já existe hoje"*,
+a camisa **maior** na arte, e o bico com **carteira de trabalho** no lugar do papel.
+
+`node scripts/mockup-virada-passos.mjs [--saida x.png]`.
+
+**A ORDEM MUDA** (hoje o Fornecedor vem antes do Pontual):
+`🏆 Master → 🤝 Pontual → 👟 Fornecedor → 🛍️ Camisas → 🕴️ Bico`.
+
+**Quando cada passo aparece** — ele fechou a regra:
+- **toda temporada**: 🤝 Pontual e 🛍️ venda de camisas (são as duas apostas anuais);
+- **só quando o contrato acaba**: 🏆 Master e 👟 Fornecedor (contratos longos);
+- **só quando a DIVISÃO muda**: 🕴️ bico — *"o bico, depois de escolhido, só troca se
+  subir de divisão ou cair"*. 👉 Isso **fecha o buraco** que estava anotado aqui embaixo
+  (depois de escolher não havia mais onde trocar de bico).
+
+**O molde é o que o Master já usa** (`ll29-sponsor ll36-sponsor`, `career-sponsor-office.css`):
+cabeçalho escuro → os papéis → a CENA quadrada → barra com explicação e botão. O que
+entra de novo:
+1. pílula dourada **PASSO X DE N** no cabeçalho dos cinco (N contado só entre os passos
+   que estão na tela — 2 decisões viram "passo 1 de 2");
+2. 🛍️ camisas: os papéis viram os 3 preços e a cena vira a **vitrine com a camisa
+   grande** (alt 300 contra 118 de hoje) + etiqueta de preço pendurada;
+3. 🕴️ bico: os papéis viram as 4 empresas e a cena vira a **carteira de trabalho
+   aberta** — capa azul + página de dentro com empregador/cargo/admissão/remuneração e
+   o carimbo "ANOTADO". **Desenhada em CSS, 0 KB** (regra de peso), e de propósito NÃO
+   imita documento oficial: no lugar do brasão vai a bola do jogo.
+
+⚠️ **Nenhum valor muda** — régua do Master, Pontual, fornecedor, preços e bico ficam
+iguais. É troca de casca + a ordem + a volta do bico na mudança de divisão.
+
+### ⛔ ENCERRADO — juntar o Pontual com a venda de camisas NÃO vai acontecer
+Ele mesmo matou a ideia depois de ver o mockup (15/09): *"a ideia é diferente, porque no
+Pontual quando não bate a meta não ganha nada; já nas camisas ganha — só não ganha se
+cair ou ficar na classificação dos últimos 4. Acredito que deva separar mesmo"*. É
+exatamente o formato de risco que o mockup mostrou. **Ficam separadas; não repropor.**
+O histórico abaixo fica só como memória do raciocínio.
+
+### 🎲 (histórico) — a ideia de juntar o Pontual e o preço da camisa
 Ideia dele (15/09): *"o cara que escolher o patrocínio pontual já decide de uma vez
 entre o valor que ele ganharia e também a venda de camisa — são duas coisas em uma,
 porque têm o mesmo sentido de aposta, ou não têm??"*.
@@ -434,11 +475,8 @@ As opções são:
   entra MARCADO pelo objetivo (1 toque pra quem não quer pensar) e pode ser trocado
   (2 toques pra quem quer proteger a loja). Mesma economia de hoje, uma tela a menos.
 
-⏳ **Nada foi codado — só o mockup.** Esperando o OK dele pra escolher A ou B.
-Se for B, o trabalho é: fundir `CareerSponsorVisual` + `PrecoVirada` numa tela só na
-fila da virada (`pyramidseason.tsx`, `round === 0`), com o `LOJA_PRECO` disparado junto
-do `onPick` do Pontual. As regras de `loja.ts` e `estadiodata.ts` **não mudam** — é
-costura de tela.
+⏳ **Não foi codado, e não vai ser** — ver a seção ENCERRADO acima. O mockup fica no
+repo porque foi ele que mostrou, com número, por que as duas não podem virar uma.
 
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
